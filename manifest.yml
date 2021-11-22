@@ -1,0 +1,78 @@
+app:
+  uuid: bf73e61c-e15a-4461-a1f7-f940c2009332
+  name: test-manager
+modules:
+  adminPage:
+    - key: micro-adminPage-1
+      resource: main
+      title: 微应用test
+      loadType: Micro
+tables:
+  - className: Repository
+    fields:
+      workspace:
+        type: Pointer
+        targetClass: Workspace
+      parent:
+        type: Pointer
+        targetClass: Repository
+      issues:
+        type: Array
+      tenant:
+        type: Pointer
+        targetClass: Tenant
+      type:
+        type: Number
+  - className: TestConfig
+      workspace:
+        type: Pointer
+        targetClass: Workspace
+      TestIssue:
+        type: Array
+      TestPrecondition:
+        type: Array
+      TestSet:
+        type: Array
+      TestPlan:
+        type: Array
+      TestExecution:
+        type: Array
+  - className: TestDetail
+      resource:
+        type: String
+      action:
+        type: String
+  # itemPanel:
+  #   - key: micro-itemPanel-1
+  #     resource: main
+  #     title: 卡片面板微应用
+  #     loadType: Micro
+  #     route: /demo1
+  # itemActivity:
+  #   - key: micro-itemActivity-1
+  #     resource: main
+  #     title: 卡片活动微应用
+  #     loadType: Micro
+  #     route: /demo2
+  # adminPage:
+  #   - key: micro-adminPage-1
+  #     resource: main
+  #     title: 管理微前端
+  #     loadType: Micro
+  #     route: /demo3
+  # appPage:
+  #   - key: micro-appPage-1
+  #     resource: main
+  #     title: 应用微前端
+  #     loadType: Micro
+  #     route: /demo4
+  # workspacePage:
+  #   - key: micro-workspacePage-1
+  #     resource: main
+  #     title: 空间微前端
+  #     loadType: Micro
+  #     route: /demo5
+
+resources:
+  - key: main
+    path: ./dist/
