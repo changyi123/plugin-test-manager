@@ -10,6 +10,8 @@ modules:
 tables:
   - className: Repository
     fields:
+      name:
+        type: String
       workspace:
         type: Pointer
         targetClass: Workspace
@@ -24,23 +26,69 @@ tables:
       type:
         type: Number
   - className: TestConfig
+    fields:
       workspace:
         type: Pointer
         targetClass: Workspace
-      TestIssue:
-        type: Array
-      TestPrecondition:
-        type: Array
-      TestSet:
-        type: Array
-      TestPlan:
-        type: Array
-      TestExecution:
-        type: Array
-  - className: TestDetail
+      itemTypeMap:
+        type: Object
+  - className: TestStep
+    fields:
       resource:
         type: String
       action:
+        type: String
+      data:
+        type: String
+      expectedResult:
+        type: String
+      attachments:
+        type: Array
+      customFileds:
+        type: Object
+      index:
+        type: Number
+      callTestIssueId:
+        type: String
+  - className: TestExecution
+    fields:
+      resource:
+        type: String
+      action:
+        type: String
+      data:
+        type: String
+      expectedResult:
+        type: String
+      attachments:
+        type: Array
+      customFileds:
+        type: Object
+      index:
+        type: Number
+      actualResult:
+        type: String
+      status:
+        type: Number
+      comment:
+        type: String
+      defects:
+        type: Array
+      evidence:
+        type: Array
+  - className: Activity
+    fields:
+      resource:
+        type: String
+      avatar:
+        type: String
+      log:
+        type: String
+      type:
+        type: Number
+      originValue:
+        type: String
+      newValue:
         type: String
   # itemPanel:
   #   - key: micro-itemPanel-1

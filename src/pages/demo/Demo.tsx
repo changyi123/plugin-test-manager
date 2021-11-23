@@ -3,15 +3,13 @@ import { Input, Rate } from '@osui/ui';
 import Error from '@/statics/error.png';
 import Logo from '@/statics/Gitee-Scan.svg';
 import cx from './Demo.less';
-import { useSDK } from '@projectproxima/plugin-sdk';
+import { Repository } from '@/lib/models';
 
 const Demo: React.FC = () => {
-  const sdk = useSDK();
-
   const handleClick = () => {
-    sdk.sendAction('openIssuePanel', { issue: 11223 }).then(() => {
-      console.log('打开回调');
-    });
+    const repository = new Repository();
+    repository.set('name', '这个是第二个仓库');
+    repository.save();
   };
 
   return (
