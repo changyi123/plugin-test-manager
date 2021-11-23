@@ -3,7 +3,9 @@
   "extends": [
     "eslint:recommended",
     "plugin:@typescript-eslint/recommended",
-    "prettier"
+    "prettier",
+    "plugin:react/recommended",
+    "plugin:react-hooks/recommended"
   ],
   "plugins": ["@typescript-eslint", "prettier"],
   "env": {
@@ -19,7 +21,6 @@
   "globals": {},
   "rules": {
     "prettier/prettier": "error",
-    "linebreak-style": ["error", "unix"],
     "no-trailing-spaces": 2,
     "eol-last": 2,
     "dot-notation": "error",
@@ -51,12 +52,9 @@
       // enable the rule specifically for TypeScript files
       "files": ["*.ts", "*.tsx"],
       "rules": {
-        "@typescript-eslint/explicit-module-boundary-types": ["error"]
+        "@typescript-eslint/explicit-module-boundary-types": ["off"]
       }
     }
   ],
-  "ignorePatterns": [
-    "node_modules/",
-    "dist/"
-  ]
+  "ignorePatterns": ["node_modules/", "dist/"]
 }

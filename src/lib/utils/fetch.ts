@@ -1,0 +1,113 @@
+import { message } from '@osui/ui';
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
+import debug from 'debug';
+
+const logMsg = debug('fetch');
+
+interface FetchInstance extends AxiosInstance {
+  $get<T = any>(url: string, config?: AxiosRequestConfig): Promise<T>;
+
+  $delete<T = any>(url: string, config?: AxiosRequestConfig): Promise<T>;
+
+  $head<T = any>(url: string, config?: AxiosRequestConfig): Promise<T>;
+
+  $options<T = any>(url: string, config?: AxiosRequestConfig): Promise<T>;
+
+  $post<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T>;
+
+  $put<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T>;
+
+  $patch<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T>;
+}
+
+logMsg('process.env.REACT_APP_API_SERVER:', process.env.REACT_APP_API_SERVER);
+
+// TODO:临时从localStorage中获取sessionToken
+const { sessionToken } = JSON.parse(localStorage.getItem('Parse/proxima-core/currentUser'));
+// const reg = /sessionToken=([^;]+)/;
+// const result = reg.exec(document.cookie);
+// const sessionToken = result?.[1];
+const id = process.env.REACT_APP_NEXT_PUBLIC_PARSE_APP_ID;
+
+const config: AxiosRequestConfig = {
+  baseURL: process.env.REACT_APP_API_SERVER,
+  timeout: 15 * 1000,
+  headers: {
+    'X-Parse-Application-Id': id,
+    'X-Parse-Session-Token': sessionToken,
+  },
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+const fetch = <FetchInstance>axios.create(config);
+
+fetch.interceptors.response.use(
+  (response: AxiosResponse) => {
+    // 如果返回的状态码为200，说明接口请求成功，可以正常拿到数据
+    // 否则的话抛出错误
+    if (response.status >= 200 && response.status < 300) {
+      return Promise.resolve(response);
+    } else {
+      return Promise.reject(response);
+    }
+  },
+  // 服务器状态码不是2开头的的情况
+  // 这里可以跟你们的后台开发人员协商好统一的错误状态码
+  // 然后根据返回的状态码进行一些操作，例如登录过期提示，错误提示等等
+  // 下面列举几个常见的操作，其他需求可自行扩展
+  error => {
+    // eslint-disable-next-line no-console
+    if (error.code === 'ECONNABORTED') {
+      message.error('请求超时');
+      return Promise.reject('timeout');
+    } else if (error.response.status) {
+      if (typeof error.response.data === 'object') {
+        message.error(error.response.data.message || '请求失败');
+      } else {
+        message.error(error.response.data || '请求失败');
+      }
+      return Promise.reject(error.response);
+    }
+  },
+);
+
+export type Method = 'get' | 'post' | 'delete' | 'put' | 'patch' | 'head' | 'options';
+
+const $fetch = async (method: Method, url: string, ...args: any) => {
+  if (!url) {
+    return;
+  }
+
+  const response = await fetch[method](url, ...args);
+  logMsg(response);
+  if (!response.data || response.data.code === 0) {
+    return response.data;
+  } else {
+    const QiankunProps = (window as any).QiankunProps;
+    if (QiankunProps?.context?.currentUser) {
+      // TODO 通知弹出提示语
+      message.success(response.data.message);
+    } else {
+      message.error(response.data.message);
+    }
+    return Promise.reject(response.data);
+  }
+};
+
+fetch.$get = async (...args) => $fetch('get', ...args);
+fetch.$post = async (...args) => $fetch('post', ...args);
+fetch.$delete = async (...args) => $fetch('delete', ...args);
+fetch.$put = async (...args) => $fetch('put', ...args);
+fetch.$patch = async (...args) => $fetch('patch', ...args);
+fetch.$head = async (...args) => $fetch('head', ...args);
+fetch.$options = async (...args) => $fetch('options', ...args);
+
+export const fetcherInfiniteList = <T = any, U = any>(query: T): Promise<U[]> => {
+  return fetch(query).then(resp => resp.data.payload);
+};
+
+export const fetcher = async <T = any>(query: string): Promise<T> => {
+  return await fetch.$get(query);
+};
+
+export default fetch;
