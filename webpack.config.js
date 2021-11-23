@@ -8,11 +8,35 @@ const autoprefixer = require('autoprefixer');
 const namespacePefixer = require('postcss-selector-namespace');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const WebpackBar = require('webpackbar');
+const webpack = require('webpack');
+require('dotenv').config();
 
 const smp = new SpeedMeasurePlugin();
 
 const distOutputPath = 'dist';
 const appPerfix = 'test-manager';
+
+// 环境变量
+function resolveClientEnv(raw) {
+  const prefixRE = /^PROXIMA_/;
+  const env = {};
+  Object.keys(process.env).forEach(key => {
+    if (prefixRE.test(key) || key === 'NODE_ENV') {
+      env[key] = process.env[key];
+    }
+  });
+
+  if (raw) {
+    return env;
+  }
+
+  for (const key in env) {
+    env[key] = JSON.stringify(env[key]);
+  }
+  return {
+    'process.env': env,
+  };
+}
 
 // output配置
 const outputConfig = isProd =>
@@ -126,6 +150,16 @@ module.exports = (cliEnv = {}, argv) => {
         react: path.resolve(__dirname, './node_modules/react'),
         'react-dom': path.resolve(__dirname, './node_modules/react-dom'),
       },
+      fallback: {
+        fs: false,
+        tls: false,
+        net: false,
+        path: false,
+        zlib: false,
+        http: false,
+        https: false,
+        child_process: false,
+      },
     },
     devServer: {
       // hot: 'only',
@@ -148,10 +182,12 @@ module.exports = (cliEnv = {}, argv) => {
     },
     plugins: [
       new WebpackBar(),
+      new webpack.DefinePlugin({ ...resolveClientEnv() }),
       new HtmlWebpackPlugin({
         template: path.resolve(__dirname, 'public/index.html'),
         filename: 'index.html',
         inject: true,
+        templateParameters: () => resolveClientEnv(true),
       }),
       isProd &&
         new MiniCssExtractPlugin({

@@ -929,6 +929,14 @@
     "@babel/plugin-transform-react-jsx-development" "^7.14.5"
     "@babel/plugin-transform-react-pure-annotations" "^7.14.5"
 
+"@babel/runtime-corejs3@7.14.7":
+  version "7.14.7"
+  resolved "https://registry.npmmirror.com/@babel/runtime-corejs3/download/@babel/runtime-corejs3-7.14.7.tgz#0ef292bbce40ca00f874c9724ef175a12476465c"
+  integrity sha1-DvKSu85AygD4dMlyTvF1oSR2Rlw=
+  dependencies:
+    core-js-pure "^3.15.0"
+    regenerator-runtime "^0.13.4"
+
 "@babel/runtime-corejs3@^7.10.2":
   version "7.15.3"
   resolved "https://registry.npmmirror.com/@babel/runtime-corejs3/download/@babel/runtime-corejs3-7.15.3.tgz?cache=0&sync_timestamp=1636495246114&other_urls=https%3A%2F%2Fregistry.npmmirror.com%2F%40babel%2Fruntime-corejs3%2Fdownload%2F%40babel%2Fruntime-corejs3-7.15.3.tgz"
@@ -937,7 +945,7 @@
     core-js-pure "^3.16.0"
     regenerator-runtime "^0.13.4"
 
-"@babel/runtime@^7.0.0", "@babel/runtime@^7.1.2", "@babel/runtime@^7.10.1", "@babel/runtime@^7.10.2", "@babel/runtime@^7.10.4", "@babel/runtime@^7.11.1", "@babel/runtime@^7.11.2", "@babel/runtime@^7.12.1", "@babel/runtime@^7.12.13", "@babel/runtime@^7.12.5", "@babel/runtime@^7.8.4":
+"@babel/runtime@7.15.4", "@babel/runtime@^7.0.0", "@babel/runtime@^7.1.2", "@babel/runtime@^7.10.1", "@babel/runtime@^7.10.2", "@babel/runtime@^7.10.4", "@babel/runtime@^7.11.1", "@babel/runtime@^7.11.2", "@babel/runtime@^7.12.1", "@babel/runtime@^7.12.13", "@babel/runtime@^7.12.5", "@babel/runtime@^7.8.4":
   version "7.15.4"
   resolved "https://registry.npmmirror.com/@babel/runtime/download/@babel/runtime-7.15.4.tgz?cache=0&sync_timestamp=1636495247319&other_urls=https%3A%2F%2Fregistry.npmmirror.com%2F%40babel%2Fruntime%2Fdownload%2F%40babel%2Fruntime-7.15.4.tgz"
   integrity sha1-/RfRa/34eObdAtGXU6OfqKjZyEo=
@@ -2999,6 +3007,11 @@ core-js-compat@^3.14.0, core-js-compat@^3.16.0:
     browserslist "^4.16.7"
     semver "7.0.0"
 
+core-js-pure@^3.15.0:
+  version "3.19.1"
+  resolved "https://registry.npmmirror.com/core-js-pure/download/core-js-pure-3.19.1.tgz#edffc1fc7634000a55ba05e95b3f0fe9587a5aa4"
+  integrity sha1-7f/B/HY0AApVugXpWz8P6Vh6WqQ=
+
 core-js-pure@^3.16.0:
   version "3.16.2"
   resolved "https://registry.npmmirror.com/core-js-pure/download/core-js-pure-3.16.2.tgz?cache=0&sync_timestamp=1635884843415&other_urls=https%3A%2F%2Fregistry.npmmirror.com%2Fcore-js-pure%2Fdownload%2Fcore-js-pure-3.16.2.tgz"
@@ -3035,6 +3048,11 @@ cross-spawn@^7.0.1, cross-spawn@^7.0.2, cross-spawn@^7.0.3:
     path-key "^3.1.0"
     shebang-command "^2.0.0"
     which "^2.0.1"
+
+crypto-js@4.1.1:
+  version "4.1.1"
+  resolved "https://registry.npmmirror.com/crypto-js/download/crypto-js-4.1.1.tgz#9e485bcf03521041bd85844786b83fb7619736cf"
+  integrity sha1-nkhbzwNSEEG9hYRHhrg/t2GXNs8=
 
 css-loader@^6.2.0:
   version "6.2.0"
@@ -3354,6 +3372,25 @@ dot-case@^3.0.4:
   dependencies:
     no-case "^3.0.4"
     tslib "^2.0.3"
+
+dotenv-defaults@^2.0.2:
+  version "2.0.2"
+  resolved "https://registry.npmmirror.com/dotenv-defaults/download/dotenv-defaults-2.0.2.tgz#6b3ec2e4319aafb70940abda72d3856770ee77ac"
+  integrity sha1-az7C5DGar7cJQKvactOFZ3Dud6w=
+  dependencies:
+    dotenv "^8.2.0"
+
+dotenv-webpack@^7.0.3:
+  version "7.0.3"
+  resolved "https://registry.npmmirror.com/dotenv-webpack/download/dotenv-webpack-7.0.3.tgz#f50ec3c7083a69ec6076e110566720003b7b107b"
+  integrity sha1-9Q7Dxwg6aexgduEQVmcgADt7EHs=
+  dependencies:
+    dotenv-defaults "^2.0.2"
+
+dotenv@^8.2.0:
+  version "8.6.0"
+  resolved "https://registry.npmmirror.com/dotenv/download/dotenv-8.6.0.tgz#061af664d19f7f4d8fc6e4ff9b584ce237adcb8b"
+  integrity sha1-Bhr2ZNGff02PxuT/m1hM4jety4s=
 
 ee-first@1.1.1:
   version "1.1.1"
@@ -4302,6 +4339,11 @@ icss-utils@^5.0.0, icss-utils@^5.1.0:
   version "5.1.0"
   resolved "https://registry.npm.taobao.org/icss-utils/download/icss-utils-5.1.0.tgz?cache=0&sync_timestamp=1605801312995&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2Ficss-utils%2Fdownload%2Ficss-utils-5.1.0.tgz"
   integrity sha1-xr5oWKvQE9do6YNmrkfiXViHsa4=
+
+idb-keyval@5.0.6:
+  version "5.0.6"
+  resolved "https://registry.npmmirror.com/idb-keyval/download/idb-keyval-5.0.6.tgz#62fe4a6703fb5ec86661f41330c94fda65e6d0e6"
+  integrity sha1-Yv5KZwP7XshmYfQTMMlP2mXm0OY=
 
 ignore@^4.0.6:
   version "4.0.6"
@@ -5476,6 +5518,21 @@ parse-node-version@^1.0.1:
   resolved "https://registry.npm.taobao.org/parse-node-version/download/parse-node-version-1.0.1.tgz"
   integrity sha1-4rXb7eAOf6m8NjYH9TMn6LBzGJs=
 
+parse@^3.4.0:
+  version "3.4.0"
+  resolved "https://registry.npmmirror.com/parse/download/parse-3.4.0.tgz#de39edd0918ae77baed9c249793d4a09bb734d14"
+  integrity sha1-3jnt0JGK53uu2cJJeT1KCbtzTRQ=
+  dependencies:
+    "@babel/runtime" "7.15.4"
+    "@babel/runtime-corejs3" "7.14.7"
+    idb-keyval "5.0.6"
+    react-native-crypto-js "1.0.0"
+    uuid "3.4.0"
+    ws "7.5.1"
+    xmlhttprequest "1.8.0"
+  optionalDependencies:
+    crypto-js "4.1.1"
+
 parseurl@~1.3.2, parseurl@~1.3.3:
   version "1.3.3"
   resolved "https://registry.npm.taobao.org/parseurl/download/parseurl-1.3.3.tgz"
@@ -6210,6 +6267,11 @@ react-joyride@^2.3.0:
     scroll "^3.0.1"
     scrollparent "^2.0.1"
     tree-changes "^0.7.1"
+
+react-native-crypto-js@1.0.0:
+  version "1.0.0"
+  resolved "https://registry.npmmirror.com/react-native-crypto-js/download/react-native-crypto-js-1.0.0.tgz#e677e022e147f41b35614416c92d655f87e2450a"
+  integrity sha1-5nfgIuFH9Bs1YUQWyS1lX4fiRQo=
 
 react-proptype-conditional-require@^1.0.4:
   version "1.0.4"
@@ -7426,7 +7488,7 @@ utils-merge@1.0.1:
   resolved "https://registry.npm.taobao.org/utils-merge/download/utils-merge-1.0.1.tgz"
   integrity sha1-n5VxD1CiZ5R7LMwSR0HBAoQn5xM=
 
-uuid@^3.4.0:
+uuid@3.4.0, uuid@^3.4.0:
   version "3.4.0"
   resolved "https://registry.nlark.com/uuid/download/uuid-3.4.0.tgz?cache=0&sync_timestamp=1622213086354&other_urls=https%3A%2F%2Fregistry.nlark.com%2Fuuid%2Fdownload%2Fuuid-3.4.0.tgz"
   integrity sha1-sj5DWK+oogL+ehAK8fX4g/AgB+4=
@@ -7673,10 +7735,20 @@ wrappy@1:
   resolved "https://registry.nlark.com/wrappy/download/wrappy-1.0.2.tgz"
   integrity sha1-tSQ9jz7BqjXxNkYFvA0QNuMKtp8=
 
+ws@7.5.1:
+  version "7.5.1"
+  resolved "https://registry.npmmirror.com/ws/download/ws-7.5.1.tgz#44fc000d87edb1d9c53e51fbc69a0ac1f6871d66"
+  integrity sha1-RPwADYftsdnFPlH7xpoKwfaHHWY=
+
 ws@^8.1.0:
   version "8.2.0"
   resolved "https://registry.nlark.com/ws/download/ws-8.2.0.tgz?cache=0&other_urls=https%3A%2F%2Fregistry.nlark.com%2Fws%2Fdownload%2Fws-8.2.0.tgz"
   integrity "sha1-C3OM1IS/yTA0IZFLEbtAEeB2Fbs= sha512-uYhVJ/m9oXwEI04iIVmgLmugh2qrZihkywG9y5FfZV2ATeLIzHf93qs+tUNqlttbQK957/VX3mtwAS+UfIwA4g=="
+
+xmlhttprequest@1.8.0:
+  version "1.8.0"
+  resolved "https://registry.npmmirror.com/xmlhttprequest/download/xmlhttprequest-1.8.0.tgz#67fe075c5c24fef39f9d65f5f7b7fe75171968fc"
+  integrity sha1-Z/4HXFwk/vOfnWX197f+dRcZaPw=
 
 xtend@^4.0.0, xtend@^4.0.1:
   version "4.0.2"
