@@ -59,7 +59,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({ structure, onSelect, className 
         onSelect(node.pos, node.itemIds);
       }
     },
-    [onSelect],
+    [onSelect, state],
   );
 
   const ToolKitButtons = [
