@@ -1,0 +1,42 @@
+@detailItemMarginLeft: 10px;
+
+.detail {
+  &__breadcrumb {
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  &__content {
+    margin-top: 20px;
+    
+
+    &__header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      .left {
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        .input {
+          width: 220px;
+          margin-left: @detailItemMarginLeft;
+        }
+      
+        .item {
+          margin-left: @detailItemMarginLeft;
+        }
+      }
+
+      .right {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        .item {
+          margin-left: @detailItemMarginLeft;
+        }
+      }
+    }
+  }
+}

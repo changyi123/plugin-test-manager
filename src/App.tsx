@@ -1,5 +1,5 @@
 import React, { useEffect, Suspense, useMemo } from 'react';
-import { MemoryRouter, Switch, Route, useHistory } from 'react-router-dom';
+import { BrowserRouter as Router, Switch, Route, useHistory } from 'react-router-dom';
 import { ConfigProvider, message } from '@osui/ui';
 import { PluginSDKContext } from '@projectproxima/plugin-sdk';
 
@@ -41,20 +41,21 @@ const App: React.FC = props => {
     }),
     [props],
   );
+  console.log('看看刷新了多少次');
 
   return (
     <PluginSDKContext.Provider value={qiankunContextValue.sdk}>
       <ConfigProvider getPopupContainer={() => document.getElementById(rootElement)}>
-        <MemoryRouter>
+        <Router>
           <GoPropsRoute {...props} />
-          <Switch>
-            <Suspense fallback={<div>Loading...</div>}>
+          <Suspense fallback={<div>Loading...</div>}>
+            <Switch>
               {routes.map(({ path, component, exact }) => (
                 <Route path={path} component={component} exact={exact} key={path} />
               ))}
-            </Suspense>
-          </Switch>
-        </MemoryRouter>
+            </Switch>
+          </Suspense>
+        </Router>
       </ConfigProvider>
     </PluginSDKContext.Provider>
   );

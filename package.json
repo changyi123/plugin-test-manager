@@ -65,6 +65,7 @@
     "webpackbar": "^5.0.0-3"
   },
   "dependencies": {
+    "@ant-design/icons": "^4.7.0",
     "@osui/icons": "^1.1.1",
     "@osui/theme": "^1.1.2",
     "@osui/ui": "^1.1.6",

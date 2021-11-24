@@ -11,7 +11,6 @@ const Demo: React.FC = () => {
     repository.set('name', '这个是第二个仓库');
     repository.save();
   };
-
   return (
     <div>
       <h2 className={cx('title')}>CSS Module啊嘎嘎 </h2>
