@@ -1,6 +1,8 @@
 import React from 'react';
 import FolderTree from '@/components/repository/FolderTree';
 import TestCase from '@/components/repository/TestCase';
+import DataProvider from '@/components/repository/DataProvider';
+
 import repositoryApi from '@/lib/api/repository';
 import Split from '@uiw/react-split';
 
@@ -12,33 +14,11 @@ import { Breadcrumb, Empty } from '@osui/ui';
 
 import cx from './index.less';
 
-const MOCK_DATA = [
-  {
-    title: '测试用例',
-    key: '1',
-    itemIds: ['123'],
-    children: [
-      {
-        title: '测试用例2',
-        key: '2',
-        itemIds: ['456'],
-        children: [],
-      },
-      {
-        title: '测试用例3',
-        key: '3',
-        itemIds: ['456'],
-        children: [],
-      },
-    ],
-  },
-];
-
 const TestRepository = () => {
   const state = useReactive({
     itemIds: [],
     breadcrumb: [],
-    folderTreeData: MOCK_DATA,
+    folderTreeData: [],
     items: [],
   });
 
@@ -67,34 +47,36 @@ const TestRepository = () => {
   return (
     <div className={cx('test-repository')}>
       <h2 className={cx('title')}>测试管理</h2>
-      <Split className={cx('layout')}>
-        <FolderTree
-          className={cx('left')}
-          onSelect={handleSelect}
-          structure={state.folderTreeData}
-        />
-        <div className={cx('right')}>
-          <div className={cx('header')}>
-            <Breadcrumb>
-              {state.breadcrumb.map((title, index) => (
-                <Breadcrumb.Item
-                  className={cx(index === state.breadcrumb.length - 1 && 'highlight')}
-                  key={title}
-                >
-                  {title}
-                </Breadcrumb.Item>
-              ))}
-            </Breadcrumb>
+      <DataProvider workspaceId="GBYsF1CYcI">
+        <Split className={cx('layout')}>
+          <FolderTree
+            className={cx('left')}
+            onSelect={handleSelect}
+            structure={state.folderTreeData}
+          />
+          <div className={cx('right')}>
+            <div className={cx('header')}>
+              <Breadcrumb>
+                {state.breadcrumb.map((title, index) => (
+                  <Breadcrumb.Item
+                    className={cx(index === state.breadcrumb.length - 1 && 'highlight')}
+                    key={title}
+                  >
+                    {title}
+                  </Breadcrumb.Item>
+                ))}
+              </Breadcrumb>
+            </div>
+            <div className={cx('main')}>
+              {!loading && !hasArrayItem(state.items) ? (
+                <Empty className={cx('empty')} description="文件夹为空" />
+              ) : (
+                <TestCase />
+              )}
+            </div>
           </div>
-          <div className={cx('main')}>
-            {!loading && !hasArrayItem(state.items) ? (
-              <Empty className={cx('empty')} description="文件夹为空" />
-            ) : (
-              <TestCase />
-            )}
-          </div>
-        </div>
-      </Split>
+        </Split>
+      </DataProvider>
     </div>
   );
 };

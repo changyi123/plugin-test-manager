@@ -1,6 +1,6 @@
-import fetch from '../utils/fetch';
+// import fetch from '../utils/fetch';
 import Parse from '@/lib/parse';
-import { Item, Repository } from '../models';
+import { Item, Repository, Workspace } from '../models';
 
 const repositoryApi = {
   getByWorkspace: (workspaceId: string) => {
@@ -13,8 +13,14 @@ const repositoryApi = {
     return items;
   },
 
-  createFolder: async () => {
-    const repository = Repository.create({});
+  createFolder: async (params: { parentId?: string; name: string; workspaceId: string }) => {
+    const repository = Repository.create({
+      parent: params.parentId ? Repository.createWithoutData(params.parentId) : undefined,
+      workspace: Workspace.createWithoutData(params.workspaceId),
+      name: params.name,
+    });
+
+    await repository.save();
   },
 };
 

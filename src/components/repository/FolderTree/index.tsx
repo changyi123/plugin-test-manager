@@ -2,12 +2,41 @@ import React from 'react';
 import Tree, { TreeDataNode } from '@osui/tree';
 import cx from './index.less';
 import { useReactive } from 'ahooks';
-import { Button } from '@osui/ui';
+import { Button, Modal, Input, message } from '@osui/ui';
+import { hasArrayItem, getRootContainer } from '@/lib/utils/helper';
 import { IconPlusOutlined, IconDownOutlined, IconMoreOutlined } from '@osui/icons';
-import { hasArrayItem } from '@/lib/utils/helper';
-import ContextMenu, { openContextMenu } from '../ContextMenu';
+import ContextMenu, { openContextMenu, MenuKey } from '../ContextMenu';
+import repositoryApi from '@/lib/api/repository';
+import { useRepositoryContext } from '../DataProvider';
 
 const { DirectoryTree } = Tree;
+
+type openFolderNameModalParams = { title: string; name?: string };
+
+const openFolderNameModal = ({ title, name }: openFolderNameModalParams) => {
+  let inputRef = null;
+  const inputProps = {
+    ref: ele => (inputRef = ele),
+    defaultValue: name || '未命名目录',
+    placeholder: '请输入目录名',
+    maxLength: 40,
+  };
+  const input = <Input {...inputProps} />;
+  return new Promise((resolve, reject) => {
+    Modal.confirm({
+      getContainer: getRootContainer,
+      title,
+      icon: null,
+      content: input,
+      onOk() {
+        resolve(inputRef.state.value);
+      },
+      onCancel() {
+        reject();
+      },
+    });
+  });
+};
 
 type TreeNode = {
   key: string;
@@ -28,6 +57,8 @@ const FolderTree: React.FC<FolderTreeProps> = ({ structure, onSelect, className 
     selectedKeys: [],
   });
 
+  const { workspaceId } = useRepositoryContext();
+
   const treeData = React.useMemo(() => {
     const traverseTreeNode = (nodes): TreeDataNode[] => {
       return nodes
@@ -47,10 +78,32 @@ const FolderTree: React.FC<FolderTreeProps> = ({ structure, onSelect, className 
     return traverseTreeNode(structure);
   }, [structure]);
 
-  const handleRightClick = React.useCallback(({ event, node }) => {
-    event.preventDefault();
-    openContextMenu(event.target, { x: event.clientX, y: event.clientY });
-  }, []);
+  // 菜单处理
+  const handleMenuClick = React.useCallback(
+    async (actionKey: MenuKey, context?: { folderId?: string }) => {
+      if (actionKey === MenuKey.createFolder) {
+        openFolderNameModal({ title: '创建目录' });
+        // await repositoryApi.createFolder({
+        //   parentId: context.folderId,
+        //   workspaceId,
+        //   name: '',
+        // });
+      }
+    },
+    [],
+  );
+
+  const handleRightClick = React.useCallback(
+    ({ event, node }) => {
+      event.preventDefault();
+      openContextMenu(event.target, {
+        x: event.clientX,
+        y: event.clientY,
+        onMenuClick: key => handleMenuClick(key, { folderId: node }),
+      });
+    },
+    [handleMenuClick],
+  );
 
   const handleExpand = React.useCallback(
     expandedKeys => {
@@ -101,7 +154,10 @@ const FolderTree: React.FC<FolderTreeProps> = ({ structure, onSelect, className 
     {
       title: '更多',
       icon: (
-        <ContextMenu onMenuClick={console.log} trigger={['click']}>
+        <ContextMenu
+          onMenuClick={key => handleMenuClick(key, { folderId: state.expandedKeys[0] })}
+          trigger={['click']}
+        >
           <IconMoreOutlined />
         </ContextMenu>
       ),

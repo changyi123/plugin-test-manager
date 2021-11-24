@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { Menu, Dropdown } from '@osui/ui';
 import { DropDownProps } from '@osui/dropdown/es';
+import { getRootContainer } from '@/lib/utils/helper';
 
 import cx from './index.less';
 
@@ -44,14 +45,18 @@ const FolderTreeMenus = [
 ];
 
 type InnerMenuProps = {
-  onMenuClick?: () => void;
+  onMenuClick?: (menuKey: MenuKey) => void;
   disabledKeys?: MenuKey[];
   children?: React.ReactNode;
 };
 
 const InnerMenu: React.FC<InnerMenuProps> = ({ onMenuClick, disabledKeys }) => {
   return (
-    <Menu className={cx('menu')} onClick={onMenuClick}>
+    <Menu
+      selectedKeys={[]}
+      className={cx('menu')}
+      onClick={({ key }) => onMenuClick(key as MenuKey)}
+    >
       {FolderTreeMenus.map((menu, index) =>
         menu.key === DividerMenuItemKey ? (
           <Menu.Divider key={index} />
@@ -75,14 +80,19 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
   return (
     <Dropdown
       {...dropDownProps}
-      overlay={<InnerMenu disabledKeys={disabledKeys} onMenuClick={onMenuClick} />}
+      overlay={
+        // 增加 empty dom 节点, 使 menu点击后消失
+        <div>
+          <InnerMenu disabledKeys={disabledKeys} onMenuClick={onMenuClick} />
+        </div>
+      }
     ></Dropdown>
   );
 };
 
 let _menuRef = null;
 let _holder = null;
-const root = document.querySelector('#test-manager');
+const root = getRootContainer();
 
 const getHolder = () => {
   if (!_holder) {
@@ -94,7 +104,7 @@ const getHolder = () => {
 
 export const openContextMenu = (
   el: HTMLElement,
-  props: ContextMenuProps & { x: number; y: number },
+  props: InnerMenuProps & { x: number; y: number },
 ) => {
   if (_menuRef) {
     ReactDOM.unmountComponentAtNode(_holder);
