@@ -4,6 +4,7 @@ import cx from './index.less';
 import { useReactive } from 'ahooks';
 import { Button } from '@osui/ui';
 import { IconPlusOutlined, IconDownOutlined, IconMoreOutlined } from '@osui/icons';
+import { hasArrayItem } from '@/lib/utils/helper';
 
 const { DirectoryTree } = Tree;
 
@@ -17,26 +18,24 @@ type TreeNode = {
 type FolderTreeProps = {
   className?: string;
   structure: TreeNode[];
-  onSelect(pos: string, itemIds: string[]): void;
+  onSelect(indexes: number[], itemIds: string[]): void;
 };
 
 const FolderTree: React.FC<FolderTreeProps> = ({ structure, onSelect, className }) => {
   const state = useReactive({
     expandedKeys: [],
-    selectedKey: '',
+    selectedKeys: [],
   });
 
   const treeData = React.useMemo(() => {
-    const hasItem = (arr?: unknown[]) => Boolean(Array.isArray(arr) && arr.length);
-
     const traverseTreeNode = (nodes): TreeDataNode[] => {
       return nodes
         .map(node => {
           if (!node) return node;
-          if (hasItem(node.children)) {
+          if (hasArrayItem(node.children)) {
             node.children = traverseTreeNode(node.children);
           }
-          if (!hasItem(node.itemIds)) {
+          if (!hasArrayItem(node.itemIds)) {
             return null;
           }
           return node;
@@ -52,23 +51,43 @@ const FolderTree: React.FC<FolderTreeProps> = ({ structure, onSelect, className 
   }, []);
 
   const handleExpand = React.useCallback(
-    (expandedKeys, { expanded, node }) => {
+    expandedKeys => {
       state.expandedKeys = expandedKeys;
-      if (expanded) {
-        state.selectedKey = node.key;
-        onSelect(node.pos, node.itemIds);
+    },
+    [state],
+  );
+
+  const handleSelect = React.useCallback(
+    (selectedKeys, { selected, node }) => {
+      state.selectedKeys = selectedKeys;
+      if (selected) {
+        const indexes = node.pos.split('-');
+        indexes.shift();
+        onSelect(indexes, node.itemIds);
       }
     },
     [onSelect, state],
   );
 
+  React.useEffect(() => {
+    if (hasArrayItem(treeData)) {
+      const node = treeData[0];
+      handleExpand([node.key]);
+      handleSelect([node.key], {
+        selected: true,
+        node: {
+          pos: '0-0',
+          ...node,
+        },
+      });
+    }
+  }, [handleSelect, treeData, handleExpand]);
+
   const ToolKitButtons = [
     {
       title: '创建目录',
       icon: <IconPlusOutlined />,
-      onClick() {
-        console.log(state.selectedKey);
-      },
+      onClick() {},
     },
     {
       title: '折叠全部',
@@ -97,10 +116,12 @@ const FolderTree: React.FC<FolderTreeProps> = ({ structure, onSelect, className 
         ))}
       </div>
       <DirectoryTree
-        className={cx('tree')}
         treeData={treeData}
+        className={cx('tree')}
         onExpand={handleExpand}
+        onSelect={handleSelect}
         onRightClick={handleRightClick}
+        selectedKeys={state.selectedKeys}
         expandedKeys={state.expandedKeys}
       />
     </div>

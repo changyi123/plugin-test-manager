@@ -1,10 +1,13 @@
 import React from 'react';
 import FolderTree from '@/components/repository/FolderTree';
 import TestCase from '@/components/repository/TestCase';
+import repositoryApi from '@/lib/api/repository';
 
-import { useReactive } from 'ahooks';
+import { hasArrayItem } from '@/lib/utils/helper';
 
-import { Breadcrumb } from '@osui/ui';
+import { useReactive, useRequest } from 'ahooks';
+
+import { Breadcrumb, Spin, Empty } from '@osui/ui';
 
 import cx from './index.less';
 
@@ -32,30 +35,65 @@ const MOCK_DATA = [
 
 const TestRepository = () => {
   const state = useReactive({
+    itemIds: [],
     breadcrumb: [],
     folderTreeData: MOCK_DATA,
+    items: [],
   });
-  const handleSelect = React.useCallback((pos, itemIds) => {
-    const indexes = pos.split('-');
-    indexes.shift();
-    let ref = state.folderTreeData as any;
-    state.breadcrumb = indexes.map(index => {
-      const data = ref[index];
-      ref = data.children;
-      return data.title;
-    });
-  }, []);
+
+  const { run: fetchItems, loading } = useRequest(repositoryApi.getItemByIds, {
+    manual: true,
+    cacheKey: `itemIds${state.itemIds.toString()}`,
+    onSuccess(data) {
+      state.items = data;
+    },
+  });
+
+  const handleSelect = React.useCallback(
+    (indexes, itemIds) => {
+      let ref = state.folderTreeData as any;
+      state.itemIds = itemIds;
+      fetchItems(itemIds);
+      state.breadcrumb = indexes.map(index => {
+        const data = ref[index];
+        ref = data.children;
+        return data.title;
+      });
+    },
+    [fetchItems, state],
+  );
 
   return (
     <div className={cx('test-repository')}>
       <h3 className={cx('title')}>测试管理</h3>
       <div className={cx('layout')}>
-        <FolderTree className={cx('left')} onSelect={handleSelect} structure={MOCK_DATA} />
+        <Spin spinning={loading}>
+          <FolderTree
+            className={cx('left')}
+            onSelect={handleSelect}
+            structure={state.folderTreeData}
+          />
+        </Spin>
         <div className={cx('right')}>
-          <div className={cx('breadcrumb')}>
-            <Breadcrumb />
+          <div className={cx('header')}>
+            <Breadcrumb>
+              {state.breadcrumb.map((title, index) => (
+                <Breadcrumb.Item
+                  className={cx(index === state.breadcrumb.length - 1 && 'highlight')}
+                  key={title}
+                >
+                  {title}
+                </Breadcrumb.Item>
+              ))}
+            </Breadcrumb>
           </div>
-          <TestCase />
+          <div className={cx('main')}>
+            {!loading && !hasArrayItem(state.items) ? (
+              <Empty className={cx('empty')} description="文件夹为空" />
+            ) : (
+              <TestCase />
+            )}
+          </div>
         </div>
       </div>
     </div>
