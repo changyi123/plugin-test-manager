@@ -69,6 +69,7 @@
     "@osui/theme": "^1.1.2",
     "@osui/ui": "^1.1.6",
     "@projectproxima/plugin-sdk": "^0.1.7",
+    "@uiw/react-split": "^5.8.4",
     "ahooks": "^2.10.12",
     "antd": "^4.16.13",
     "axios": "^0.21.4",

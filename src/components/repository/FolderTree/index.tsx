@@ -5,6 +5,7 @@ import { useReactive } from 'ahooks';
 import { Button } from '@osui/ui';
 import { IconPlusOutlined, IconDownOutlined, IconMoreOutlined } from '@osui/icons';
 import { hasArrayItem } from '@/lib/utils/helper';
+import ContextMenu, { openContextMenu } from '../ContextMenu';
 
 const { DirectoryTree } = Tree;
 
@@ -46,8 +47,9 @@ const FolderTree: React.FC<FolderTreeProps> = ({ structure, onSelect, className 
     return traverseTreeNode(structure);
   }, [structure]);
 
-  const handleRightClick = React.useCallback(({ event }) => {
+  const handleRightClick = React.useCallback(({ event, node }) => {
     event.preventDefault();
+    openContextMenu(event.target, { x: event.clientX, y: event.clientY });
   }, []);
 
   const handleExpand = React.useCallback(
@@ -98,7 +100,11 @@ const FolderTree: React.FC<FolderTreeProps> = ({ structure, onSelect, className 
     },
     {
       title: '更多',
-      icon: <IconMoreOutlined />,
+      icon: (
+        <ContextMenu onMenuClick={console.log} trigger={['click']}>
+          <IconMoreOutlined />
+        </ContextMenu>
+      ),
     },
   ];
 

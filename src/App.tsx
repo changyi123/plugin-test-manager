@@ -1,5 +1,5 @@
 import React, { useEffect, Suspense, useMemo } from 'react';
-import { MemoryRouter, Switch, Route, useHistory } from 'react-router-dom';
+import { MemoryRouter, Switch, Route, useHistory, HashRouter } from 'react-router-dom';
 import { ConfigProvider, message } from '@osui/ui';
 import { PluginSDKContext } from '@projectproxima/plugin-sdk';
 
@@ -29,7 +29,7 @@ const GoPropsRoute = props => {
     if (props?.route) {
       history.push(props?.route);
     }
-  }, []);
+  }, [history, props?.route]);
 
   return null;
 };
@@ -45,16 +45,28 @@ const App: React.FC = props => {
   return (
     <PluginSDKContext.Provider value={qiankunContextValue.sdk}>
       <ConfigProvider getPopupContainer={() => document.getElementById(rootElement)}>
-        <MemoryRouter>
-          <GoPropsRoute {...props} />
-          <Switch>
-            <Suspense fallback={<div>Loading...</div>}>
-              {routes.map(({ path, component, exact }) => (
-                <Route path={path} component={component} exact={exact} key={path} />
-              ))}
-            </Suspense>
-          </Switch>
-        </MemoryRouter>
+        {process.env.NODE_ENV === 'production' ? (
+          <MemoryRouter>
+            <GoPropsRoute {...props} />
+            <Switch>
+              <Suspense fallback={<div>Loading...</div>}>
+                {routes.map(({ path, component, exact }) => (
+                  <Route path={path} component={component} exact={exact} key={path} />
+                ))}
+              </Suspense>
+            </Switch>
+          </MemoryRouter>
+        ) : (
+          <HashRouter>
+            <Switch>
+              <Suspense fallback={<div>Loading...</div>}>
+                {routes.map(({ path, component, exact }) => (
+                  <Route path={path} component={component} exact={exact} key={path} />
+                ))}
+              </Suspense>
+            </Switch>
+          </HashRouter>
+        )}
       </ConfigProvider>
     </PluginSDKContext.Provider>
   );

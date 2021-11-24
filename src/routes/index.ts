@@ -6,6 +6,11 @@ const routes = [
     component: React.lazy(() => import('../pages/repository')),
     exact: true,
   },
+  {
+    path: '/login',
+    component: React.lazy(() => import('../pages/demo/Demo')),
+    exact: true,
+  },
 ];
 
 export default routes;

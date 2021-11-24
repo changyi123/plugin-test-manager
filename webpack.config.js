@@ -219,6 +219,7 @@ module.exports = (cliEnv = {}, argv) => {
           include: [
             path.resolve(__dirname, 'src'),
             path.resolve(__dirname, 'node_modules/antd/'),
+            path.resolve(__dirname, 'node_modules/@uiw/react-split'),
             path.resolve(__dirname, 'node_modules/@osui'),
             path.resolve(__dirname, 'node_modules/github-markdown-css'),
           ],

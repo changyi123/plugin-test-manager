@@ -12,6 +12,10 @@ const repositoryApi = {
     const items = await new Parse.Query(Item).containedIn('objectId', ids).find();
     return items;
   },
+
+  createFolder: async () => {
+    const repository = Repository.create({});
+  },
 };
 
 export default repositoryApi;

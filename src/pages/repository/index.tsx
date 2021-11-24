@@ -2,12 +2,13 @@ import React from 'react';
 import FolderTree from '@/components/repository/FolderTree';
 import TestCase from '@/components/repository/TestCase';
 import repositoryApi from '@/lib/api/repository';
+import Split from '@uiw/react-split';
 
 import { hasArrayItem } from '@/lib/utils/helper';
 
 import { useReactive, useRequest } from 'ahooks';
 
-import { Breadcrumb, Spin, Empty } from '@osui/ui';
+import { Breadcrumb, Empty } from '@osui/ui';
 
 import cx from './index.less';
 
@@ -65,15 +66,13 @@ const TestRepository = () => {
 
   return (
     <div className={cx('test-repository')}>
-      <h3 className={cx('title')}>测试管理</h3>
-      <div className={cx('layout')}>
-        <Spin spinning={loading}>
-          <FolderTree
-            className={cx('left')}
-            onSelect={handleSelect}
-            structure={state.folderTreeData}
-          />
-        </Spin>
+      <h2 className={cx('title')}>测试管理</h2>
+      <Split className={cx('layout')}>
+        <FolderTree
+          className={cx('left')}
+          onSelect={handleSelect}
+          structure={state.folderTreeData}
+        />
         <div className={cx('right')}>
           <div className={cx('header')}>
             <Breadcrumb>
@@ -95,7 +94,7 @@ const TestRepository = () => {
             )}
           </div>
         </div>
-      </div>
+      </Split>
     </div>
   );
 };
