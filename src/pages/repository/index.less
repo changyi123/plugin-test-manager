@@ -4,20 +4,41 @@
   flex-direction: column;
 
   .layout {
-    display: flex;
-    height: 100%;
     border-top: 1px solid var(--color-gray-5);
+
     .left {
-      flex: 1 1 0%;
-      border-right: 1px solid var(--color-gray-5);
+      min-width: 300px;
+      width: 26%;
     }
+
     .right {
-      width: 70%;
+      flex: 1;
+      min-width: 400px;
+    }
+
+    :global .w-split-bar {
+      width: 10px;
+      z-index: 1;
+      margin: 0px -5px;
+      background: inherit;
+      box-shadow: none;
+      & > div {
+        cursor: ew-resize;
+        border-right: 1px solid var(--color-gray-5);
+        &:hover {
+          border-color: var(--color-brand-5);
+        }
+      }
+      &:after,
+      &:before {
+        display: none;
+      }
     }
   }
 
   .header {
-    padding: 11px 22px;
+    height: 45px;
+    line-height: 45px;
     border-bottom: 1px solid var(--color-gray-5);
     .highlight {
       color: var(--color-brand-5);
