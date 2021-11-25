@@ -5,9 +5,9 @@ import { useReactive } from 'ahooks';
 import { Button, Modal, Input, message } from '@osui/ui';
 import { hasArrayItem, getRootContainer } from '@/lib/utils/helper';
 import { IconPlusOutlined, IconDownOutlined, IconMoreOutlined } from '@osui/icons';
-import ContextMenu, { openContextMenu, MenuKey } from '../ContextMenu';
+import { openFolderMenu, MenuKey, FolderMenuWithDropdown } from '../Menu';
 import repositoryApi from '@/lib/api/repository';
-import { useRepositoryContext } from '../DataProvider';
+import { useConfigContext } from '@/lib/hooks/useConfig';
 
 const { DirectoryTree } = Tree;
 
@@ -57,7 +57,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({ structure, onSelect, className 
     selectedKeys: [],
   });
 
-  const { workspaceId } = useRepositoryContext();
+  const { workspaceId } = useConfigContext();
 
   const treeData = React.useMemo(() => {
     const traverseTreeNode = (nodes): TreeDataNode[] => {
@@ -93,17 +93,14 @@ const FolderTree: React.FC<FolderTreeProps> = ({ structure, onSelect, className 
     [],
   );
 
-  const handleRightClick = React.useCallback(
-    ({ event, node }) => {
-      event.preventDefault();
-      openContextMenu(event.target, {
-        x: event.clientX,
-        y: event.clientY,
-        onMenuClick: key => handleMenuClick(key, { folderId: node }),
-      });
-    },
-    [handleMenuClick],
-  );
+  const handleRightClick = React.useCallback(({ event, node }) => {
+    event.preventDefault();
+    openFolderMenu(event.target, {
+      x: event.clientX,
+      y: event.clientY,
+      onClick: console.log,
+    });
+  }, []);
 
   const handleExpand = React.useCallback(
     expandedKeys => {
@@ -154,12 +151,12 @@ const FolderTree: React.FC<FolderTreeProps> = ({ structure, onSelect, className 
     {
       title: '更多',
       icon: (
-        <ContextMenu
+        <FolderMenuWithDropdown
           onMenuClick={key => handleMenuClick(key, { folderId: state.expandedKeys[0] })}
           trigger={['click']}
         >
           <IconMoreOutlined />
-        </ContextMenu>
+        </FolderMenuWithDropdown>
       ),
     },
   ];

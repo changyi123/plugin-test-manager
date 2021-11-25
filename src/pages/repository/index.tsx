@@ -1,7 +1,7 @@
 import React from 'react';
 import FolderTree from '@/components/repository/FolderTree';
 import TestCase from '@/components/repository/TestCase';
-import DataProvider from '@/components/repository/DataProvider';
+import ConfigProvider from '@/components/common/ConfigProvider';
 
 import repositoryApi from '@/lib/api/repository';
 import Split from '@uiw/react-split';
@@ -47,7 +47,7 @@ const TestRepository = () => {
   return (
     <div className={cx('test-repository')}>
       <h2 className={cx('title')}>测试管理</h2>
-      <DataProvider workspaceId="GBYsF1CYcI">
+      <ConfigProvider workspaceId="GBYsF1CYcI">
         <Split className={cx('layout')}>
           <FolderTree
             className={cx('left')}
@@ -76,7 +76,7 @@ const TestRepository = () => {
             </div>
           </div>
         </Split>
-      </DataProvider>
+      </ConfigProvider>
     </div>
   );
 };
