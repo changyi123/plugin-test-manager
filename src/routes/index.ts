@@ -13,7 +13,7 @@ const routes = [
   },
   {
     path: '/login',
-    component: lazy(() => import('../pages/demo/Demo')),
+    component: React.lazy(() => import('../pages/demo/Demo')),
     exact: true,
   },
 ];
