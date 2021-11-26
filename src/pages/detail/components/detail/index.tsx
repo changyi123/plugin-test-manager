@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Button, Tooltip, Input, Dropdown, Menu } from '@osui/ui';
 import {
   EditOutlined,
@@ -8,8 +8,12 @@ import {
   QuestionCircleOutlined,
   DownOutlined,
 } from '@ant-design/icons';
+import { HTML5Backend } from 'react-dnd-html5-backend';
+import { DndProvider, useDrop } from 'react-dnd';
 import Breadcrumb from './components/Breadcrumb';
-import DetailList from './components/List';
+import StepItem from './components/List';
+import BoxWithHandle from './test';
+import update from 'immutability-helper';
 
 import css from './index.less';
 
@@ -27,10 +31,48 @@ export interface TestStep {
   index: number;
   callTestIssueId?: string;
   isEdit: boolean;
+  id?: string;
 }
 
+const StepList: React.FC<{
+  steps: TestStep[];
+  moveCard: (id: string, atIndex: number) => void;
+  findCard: (id: string) => { index: number };
+}> = props => {
+  const { steps, moveCard, findCard } = props;
+
+  return (
+    <DndProvider backend={HTML5Backend}>
+      <BoxWithHandle />
+      <StepDrop steps={steps} moveCard={moveCard} findCard={findCard} />
+    </DndProvider>
+  );
+};
+
+const StepDrop: React.FC<{
+  steps: TestStep[];
+  moveCard: (id: string, atIndex: number) => void;
+  findCard: (id: string) => { index: number };
+}> = props => {
+  const { steps, moveCard, findCard } = props;
+  const [, drop] = useDrop(() => ({ accept: 'card' }));
+  return (
+    <div ref={drop}>
+      {steps.map(item => (
+        <StepItem
+          item={item}
+          itemLen={steps.length}
+          key={item.id}
+          moveCard={moveCard}
+          findCard={findCard}
+        />
+      ))}
+    </div>
+  );
+};
+
 const Detail: React.FC = () => {
-  const [steps] = useState<Array<TestStep>>([
+  const [steps, setSteps] = useState<Array<TestStep>>([
     {
       resource: '1',
       action: '行动111',
@@ -40,6 +82,7 @@ const Detail: React.FC = () => {
       customFields: [],
       index: 0,
       isEdit: true,
+      id: 'one',
     },
     {
       resource: '2',
@@ -50,6 +93,7 @@ const Detail: React.FC = () => {
       customFields: [],
       index: 1,
       isEdit: false,
+      id: 'two',
     },
     {
       resource: '3',
@@ -60,8 +104,38 @@ const Detail: React.FC = () => {
       customFields: [],
       index: 2,
       isEdit: false,
+      id: 'third',
     },
   ]);
+  // console.log('刷新了');
+
+  const findCard = useCallback(
+    (id: string) => {
+      const step = steps.filter(c => `${c.id}` === id)[0];
+      const stepIndex = steps.findIndex(item => item.id === step.id);
+      return {
+        step,
+        index: stepIndex,
+      };
+    },
+    [steps],
+  );
+
+  const moveCard = useCallback(
+    (id: string, atIndex: number) => {
+      // console.log('执行了moveCARD', id, atIndex);
+      const { step, index } = findCard(id);
+      setSteps(
+        update(steps, {
+          $splice: [
+            [index, 1],
+            [atIndex, 0, step],
+          ],
+        }),
+      );
+    },
+    [findCard, steps, setSteps],
+  );
 
   return (
     <div className={css('detail')}>
@@ -109,9 +183,7 @@ const Detail: React.FC = () => {
             </Dropdown>
           </div>
         </div>
-        {steps.map(item => (
-          <DetailList item={item} itemLen={steps.length} key={item.index} />
-        ))}
+        <StepList steps={steps} moveCard={moveCard} findCard={findCard} />
       </div>
     </div>
   );

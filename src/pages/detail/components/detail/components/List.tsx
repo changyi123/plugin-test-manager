@@ -9,6 +9,7 @@ import {
   UnorderedListOutlined,
   DeleteOutlined,
 } from '@ant-design/icons';
+import { useDrag, useDrop } from 'react-dnd';
 
 import { TestStep } from '../';
 import css from './List.less';
@@ -18,21 +19,55 @@ const { TextArea } = Input;
 interface ListProps {
   item: TestStep;
   itemLen: number;
+  moveCard: (id: string, to: number) => void;
+  findCard: (id: string) => { index: number };
 }
 
 const List: React.FC<ListProps> = (props: ListProps) => {
-  const { item, itemLen } = props;
+  const { item, itemLen, moveCard, findCard } = props;
 
-  function editItem() {
-    setEdit(true);
-  }
-
-  const [edit, setEdit] = useState<boolean>(false);
+  const [editState, setEditState] = useState<boolean>(false);
   const [itemBak, setItemBak] = useState<TestStep>(item);
   const { action, data, result, index } = itemBak; //attachments, customFields
+  // console.log('刷新次数', index);
+
+  function toggleEditState(bol?: boolean) {
+    setEditState(bol === undefined ? !editState : bol);
+  }
+
+  const [{ isDragging }, drag] = useDrag(
+    () => ({
+      type: 'card',
+      item: { id: item.id },
+      collect: monitor => {
+        // console.log('useDrag执行了connect', monitor, monitor.isDragging());
+        return {
+          isDragging: monitor.isDragging(),
+        };
+      },
+    }),
+    [item.id, moveCard],
+  );
+
+  const [, drop] = useDrop(
+    () => ({
+      accept: 'card',
+      canDrop: () => false,
+      hover({ id: draggedId }: TestStep) {
+        // console.log('执行了useDrop', draggedId, item.id);
+        if (draggedId !== item.id) {
+          const { index: overIndex } = findCard(item.id);
+          moveCard(draggedId, overIndex);
+        }
+      },
+    }),
+    [findCard, moveCard],
+  );
+
+  const opacity = isDragging ? 0.5 : 1;
 
   return (
-    <>
+    <div ref={node => drag(drop(node))} style={{ opacity }}>
       <div className={css('detail-list')}>
         <div className={css('nav')}>
           {index !== 0 && (
@@ -58,7 +93,23 @@ const List: React.FC<ListProps> = (props: ListProps) => {
                 <CopyOutlined />
               </p>
             </div>
-            <div className={css('list__item__result')}>{action}</div>
+            <div className={css('list__item__result')} onClick={() => toggleEditState(true)}>
+              {editState ? (
+                <TextArea
+                  placeholder={`请输入action`}
+                  autoSize={{ minRows: 2 }}
+                  value={action}
+                  onChange={e =>
+                    setItemBak({
+                      ...itemBak,
+                      action: e.target.value,
+                    })
+                  }
+                />
+              ) : (
+                action
+              )}
+            </div>
           </div>
 
           <div className={css('list__item')}>
@@ -68,7 +119,23 @@ const List: React.FC<ListProps> = (props: ListProps) => {
                 <CopyOutlined />
               </p>
             </div>
-            <div className={css('list__item__result')}>{data}</div>
+            <div className={css('list__item__result')} onClick={() => toggleEditState(true)}>
+              {editState ? (
+                <TextArea
+                  placeholder={`请输入action`}
+                  autoSize={{ minRows: 2 }}
+                  value={data}
+                  onChange={e =>
+                    setItemBak({
+                      ...itemBak,
+                      data: e.target.value,
+                    })
+                  }
+                />
+              ) : (
+                data
+              )}
+            </div>
           </div>
 
           <div className={css('list__item')}>
@@ -78,8 +145,8 @@ const List: React.FC<ListProps> = (props: ListProps) => {
                 <CopyOutlined />
               </p>
             </div>
-            <div className={css('list__item__result')} onClick={editItem}>
-              {edit ? (
+            <div className={css('list__item__result')} onClick={() => toggleEditState(true)}>
+              {editState ? (
                 <TextArea
                   placeholder={`请输入action`}
                   autoSize={{ minRows: 2 }}
@@ -112,13 +179,15 @@ const List: React.FC<ListProps> = (props: ListProps) => {
           </div>
         </div>
       </div>
-      {edit && (
+      {editState && (
         <div className={css('detail-footer')}>
           <Button type="primary">保存</Button>
-          <Button type="default">取消</Button>
+          <Button type="default" onClick={() => toggleEditState(false)}>
+            取消
+          </Button>
         </div>
       )}
-    </>
+    </div>
   );
 };
 
