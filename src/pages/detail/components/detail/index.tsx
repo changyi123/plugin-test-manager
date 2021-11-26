@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button, Tooltip, Input, Dropdown, Menu } from '@osui/ui';
 import {
   EditOutlined,
@@ -9,10 +9,60 @@ import {
   DownOutlined,
 } from '@ant-design/icons';
 import Breadcrumb from './components/Breadcrumb';
+import DetailList from './components/List';
 
 import css from './index.less';
 
+export interface fields {
+  id: string;
+  value: string;
+}
+export interface TestStep {
+  resource: string;
+  action: string;
+  data: string;
+  result: string;
+  attachments: Array<string>;
+  customFields: Array<fields>;
+  index: number;
+  callTestIssueId?: string;
+  isEdit: boolean;
+}
+
 const Detail: React.FC = () => {
+  const [steps] = useState<Array<TestStep>>([
+    {
+      resource: '1',
+      action: '行动111',
+      data: '数据111',
+      result: '结果111',
+      attachments: [],
+      customFields: [],
+      index: 0,
+      isEdit: true,
+    },
+    {
+      resource: '2',
+      action: '行动2',
+      data: '数据222',
+      result: '结果222',
+      attachments: [],
+      customFields: [],
+      index: 1,
+      isEdit: false,
+    },
+    {
+      resource: '3',
+      action: '行动2333',
+      data: '数据33',
+      result: '结果3333',
+      attachments: [],
+      customFields: [],
+      index: 2,
+      isEdit: false,
+    },
+  ]);
+
   return (
     <div className={css('detail')}>
       <div className={css('detail__breadcrumb')}>
@@ -59,6 +109,9 @@ const Detail: React.FC = () => {
             </Dropdown>
           </div>
         </div>
+        {steps.map(item => (
+          <DetailList item={item} itemLen={steps.length} key={item.index} />
+        ))}
       </div>
     </div>
   );
