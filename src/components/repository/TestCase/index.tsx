@@ -1,7 +1,12 @@
 import React from 'react';
 import cx from './index.less';
+import { Item } from '@/lib/types/App';
 
-const TestCase = () => {
+type TestCaseProps = Item & {
+  children?: React.ReactNode;
+};
+
+const TestCase: React.FC<TestCaseProps> = () => {
   return <div className={cx('test-case')}></div>;
 };
 

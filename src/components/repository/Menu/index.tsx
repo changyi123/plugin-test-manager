@@ -60,7 +60,7 @@ export const FolderMenuWithDropdown: React.FC<FolderMenuWithDropdownProps> = ({
           <ContextMenu
             menuList={FolderTreeMenus}
             disabledKeys={disabledKeys}
-            onClick={key => onMenuClick(key as unknown as MenuKey)}
+            onClick={({ key }) => onMenuClick(key as MenuKey)}
           />
         </div>
       }
@@ -68,9 +68,16 @@ export const FolderMenuWithDropdown: React.FC<FolderMenuWithDropdownProps> = ({
   );
 };
 
-export const openFolderMenu = (el: HTMLElement, args: Omit<openContextMenuProps, 'menuList'>) => {
+export const openFolderMenu = (
+  el: HTMLElement,
+  args: { onClick: (key: MenuKey) => void } & Omit<openContextMenuProps, 'menuList' | 'onClick'>,
+) => {
+  const { onClick, ...restArgs } = args;
   openContextMenu(el, {
     menuList: FolderTreeMenus,
-    ...args,
+    onClick: ({ key }) => {
+      onClick(key as MenuKey);
+    },
+    ...restArgs,
   });
 };
