@@ -17,7 +17,8 @@ tables:
         targetClass: Workspace
       parent:
         type: Pointer
-        targetClass: Repository
+        # 使用应用 prefix
+        targetClass: test_manager_Repository
       issues:
         type: Array
       tenant:

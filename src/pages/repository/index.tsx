@@ -3,7 +3,7 @@ import FolderTree from '@/components/repository/FolderTree';
 import TestCase from '@/components/repository/TestCase';
 import ConfigProvider from '@/components/common/ConfigProvider';
 
-import repositoryApi from '@/lib/api/repository';
+import { getItemByIds, getFolderTree } from '@/lib/api/repository';
 import Split from '@uiw/react-split';
 
 import { hasArrayItem } from '@/lib/utils/helper';
@@ -14,15 +14,17 @@ import { Breadcrumb, Empty } from '@osui/ui';
 
 import cx from './index.less';
 
+const MOCK_WORKSPACE_ID = 'GBYsF1CYcI';
+
 const TestRepository = () => {
+  const [folderTreeData, setFolderTreeData] = React.useState([]);
   const state = useReactive({
     itemIds: [],
     breadcrumb: [],
-    folderTreeData: [],
     items: [],
   });
 
-  const { run: fetchItems, loading } = useRequest(repositoryApi.getItemByIds, {
+  const { run: fetchItems, loading: itemLoading } = useRequest(getItemByIds, {
     manual: true,
     cacheKey: `itemIds${state.itemIds.toString()}`,
     onSuccess(data) {
@@ -30,16 +32,27 @@ const TestRepository = () => {
     },
   });
 
+  const { loading: folderTreeLoading, refresh: refreshFolderTree } = useRequest(
+    () => getFolderTree(MOCK_WORKSPACE_ID),
+    {
+      ready: !!MOCK_WORKSPACE_ID,
+      onSuccess(data) {
+        setFolderTreeData(data);
+      },
+    },
+  );
+
+  const handleFolderTreeChange = React.useCallback(() => {
+    refreshFolderTree();
+  }, [refreshFolderTree]);
+
   const handleSelect = React.useCallback(
-    (indexes, itemIds) => {
-      let ref = state.folderTreeData as any;
+    (itemIds, breadcrumbs) => {
       state.itemIds = itemIds;
-      fetchItems(itemIds);
-      state.breadcrumb = indexes.map(index => {
-        const data = ref[index];
-        ref = data.children;
-        return data.title;
-      });
+      if (hasArrayItem(itemIds)) {
+        fetchItems(itemIds);
+      }
+      state.breadcrumb = breadcrumbs;
     },
     [fetchItems, state],
   );
@@ -47,19 +60,22 @@ const TestRepository = () => {
   return (
     <div className={cx('test-repository')}>
       <h2 className={cx('title')}>测试管理</h2>
+      {/* FIXME: 插件获取 workspaceId！！！ */}
       <ConfigProvider workspaceId="GBYsF1CYcI">
         <Split className={cx('layout')}>
           <FolderTree
             className={cx('left')}
             onSelect={handleSelect}
-            structure={state.folderTreeData}
+            loading={folderTreeLoading}
+            treeNodeData={folderTreeData}
+            onFolderTreeChange={handleFolderTreeChange}
           />
           <div className={cx('right')}>
             <div className={cx('header')}>
               <Breadcrumb>
                 {state.breadcrumb.map((title, index) => (
                   <Breadcrumb.Item
-                    className={cx(index === state.breadcrumb.length - 1 && 'highlight')}
+                    className={cx(index + 1 === state.breadcrumb.length && 'highlight')}
                     key={title}
                   >
                     {title}
@@ -68,10 +84,10 @@ const TestRepository = () => {
               </Breadcrumb>
             </div>
             <div className={cx('main')}>
-              {!loading && !hasArrayItem(state.items) ? (
+              {!itemLoading && !hasArrayItem(state.items) ? (
                 <Empty className={cx('empty')} description="文件夹为空" />
               ) : (
-                <TestCase />
+                state.items.map(item => <TestCase {...item} key={item} />)
               )}
             </div>
           </div>

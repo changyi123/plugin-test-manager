@@ -1,14 +1,14 @@
-import { lazy } from 'react';
+import React from 'react';
 
 const routes = [
   {
     path: '/',
-    component: lazy(() => import('../pages/repository')),
+    component: React.lazy(() => import('../pages/repository')),
     exact: true,
   },
   {
     path: '/testDetail',
-    component: lazy(() => import('../pages/detail')),
+    component: React.lazy(() => import('../pages/detail')),
     exact: true,
   },
   {
