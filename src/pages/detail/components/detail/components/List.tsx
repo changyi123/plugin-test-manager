@@ -1,17 +1,16 @@
 import React, { useState } from 'react';
-import { Button, Input } from '@osui/ui';
+import { Button, Input, Divider, Dropdown, Menu, Tooltip, Popconfirm, InputNumber } from '@osui/ui';
 import {
-  ShrinkOutlined,
   DragOutlined,
   ArrowDownOutlined,
   ArrowUpOutlined,
   CopyOutlined,
-  UnorderedListOutlined,
-  DeleteOutlined,
+  EllipsisOutlined,
 } from '@ant-design/icons';
 import { useDrag, useDrop } from 'react-dnd';
 
-import { TestStep } from '../';
+import { TestStep, IActionCard } from '../';
+import { stepTools, IStepToolsKey } from './ListConfig';
 import css from './List.less';
 
 const { TextArea } = Input;
@@ -19,20 +18,35 @@ const { TextArea } = Input;
 interface ListProps {
   item: TestStep;
   itemLen: number;
-  moveCard: (id: string, to: number) => void;
-  findCard: (id: string) => { index: number };
+  index: number;
+  actionCard: IActionCard;
+}
+
+interface IStepItemProps {
+  trigger?: JSX.Element;
+  text?: string;
 }
 
 const List: React.FC<ListProps> = (props: ListProps) => {
-  const { item, itemLen, moveCard, findCard } = props;
+  const { item, itemLen, actionCard } = props;
+  const { moveCard, findCard, expandCard, cloneCard, deleteCard, addCard, saveCard } = actionCard;
 
-  const [editState, setEditState] = useState<boolean>(false);
+  const [editState, setEditState] = useState<boolean>(item.isEdit || false);
+  const { isExpand } = item;
   const [itemBak, setItemBak] = useState<TestStep>(item);
-  const { action, data, result, index } = itemBak; //attachments, customFields
-  // console.log('刷新次数', index);
+  const { action, data, result } = itemBak; //attachments, customFields
+  // console.log('刷新次数', index, item.isEdit, itemBak.index, editState);
 
   function toggleEditState(bol?: boolean) {
     setEditState(bol === undefined ? !editState : bol);
+  }
+
+  function expandItemCard(isExpand: boolean) {
+    expandCard(item.id, isExpand);
+  }
+
+  function handleCopyItem() {
+    cloneCard(item.id);
   }
 
   const [{ isDragging }, drag] = useDrag(
@@ -64,125 +78,273 @@ const List: React.FC<ListProps> = (props: ListProps) => {
     [findCard, moveCard],
   );
 
+  const StepItemMove: React.FC<IStepItemProps> = props => {
+    const [num, setNum] = useState<number>(0);
+
+    function handleMoveItem() {
+      moveCard(item.id, num);
+    }
+
+    return (
+      <Popconfirm
+        placement="rightTop"
+        title={
+          <div>
+            <p>移动到</p>
+            <InputNumber value={num} min={0} max={itemLen} onChange={e => setNum(+e)} />
+          </div>
+        }
+        onConfirm={handleMoveItem}
+        okText="Yes"
+        cancelText="No"
+      >
+        <Tooltip placement="left" title={stepTools[IStepToolsKey.MOVE].label}>
+          {props.trigger && React.cloneElement(props.trigger)}
+          {props.text}
+        </Tooltip>
+      </Popconfirm>
+    );
+  };
+
+  const StepItemCopy: React.FC<IStepItemProps> = props => {
+    return (
+      <Popconfirm
+        placement="left"
+        title="你确定要克隆这一测试步骤？"
+        onConfirm={handleCopyItem}
+        okText="Yes"
+        cancelText="No"
+      >
+        <Tooltip placement="left" title={stepTools[IStepToolsKey.COPY].label}>
+          {props.trigger && React.cloneElement(props.trigger)}
+          {props.text}
+        </Tooltip>
+      </Popconfirm>
+    );
+  };
+
+  const StepItemDelete: React.FC<IStepItemProps> = props => {
+    return (
+      <Popconfirm
+        placement="left"
+        title="你确定要删除这一测试步骤？"
+        onConfirm={() => deleteCard(item.id)}
+        okText="Yes"
+        cancelText="No"
+      >
+        <Tooltip placement="left" title={stepTools[IStepToolsKey.DELETE].label}>
+          {props.trigger && React.cloneElement(props.trigger)}
+          {props.text}
+        </Tooltip>
+      </Popconfirm>
+    );
+  };
+
   const opacity = isDragging ? 0.5 : 1;
 
   return (
-    <div ref={node => drag(drop(node))} style={{ opacity }}>
-      <div className={css('detail-list')}>
-        <div className={css('nav')}>
-          {index !== 0 && (
+    <div ref={node => drag(drop(node))} style={{ opacity }} className={css('around')}>
+      <Divider plain className={css('around__divider')}>
+        <span>
+          <Button type="link" onClick={() => addCard(item.id)}>
+            新步骤
+          </Button>
+          <Divider type="vertical" />
+          <Button type="link">继承测试</Button>
+        </span>
+      </Divider>
+      {isExpand ? (
+        <div className={css('detail-list')}>
+          <div className={css('nav')}>
+            {props.index !== 0 && (
+              <div className={css('nav__drag')}>
+                <ArrowUpOutlined />
+              </div>
+            )}
+            <div className={css('nav__index')}>{props.index + 1}</div>
             <div className={css('nav__drag')}>
-              <ArrowUpOutlined />
+              <DragOutlined />
             </div>
-          )}
-          <div className={css('nav__index')}>{index + 1}</div>
-          <div className={css('nav__drag')}>
-            <DragOutlined />
+            {itemLen !== props.index + 1 ? (
+              <div className={css('nav__icon')}>
+                <ArrowDownOutlined />
+              </div>
+            ) : null}
           </div>
-          {itemLen !== item.index + 1 ? (
-            <div className={css('nav__icon')}>
-              <ArrowDownOutlined />
+          <div className={css('list')}>
+            <div className={css('list__item')}>
+              <div className={css('list__item__topic')}>
+                <p>
+                  Action
+                  <CopyOutlined />
+                </p>
+              </div>
+              <div className={css('list__item__result')} onClick={() => toggleEditState(true)}>
+                {editState ? (
+                  <TextArea
+                    placeholder={`请输入action`}
+                    autoSize={{ minRows: 2 }}
+                    value={action}
+                    onChange={e =>
+                      setItemBak({
+                        ...itemBak,
+                        action: e.target.value,
+                      })
+                    }
+                  />
+                ) : (
+                  action
+                )}
+              </div>
             </div>
-          ) : null}
-        </div>
-        <div className={css('list')}>
-          <div className={css('list__item')}>
-            <div className={css('list__item__topic')}>
-              <p>
-                Action
-                <CopyOutlined />
-              </p>
-            </div>
-            <div className={css('list__item__result')} onClick={() => toggleEditState(true)}>
-              {editState ? (
-                <TextArea
-                  placeholder={`请输入action`}
-                  autoSize={{ minRows: 2 }}
-                  value={action}
-                  onChange={e =>
-                    setItemBak({
-                      ...itemBak,
-                      action: e.target.value,
-                    })
-                  }
-                />
-              ) : (
-                action
-              )}
-            </div>
-          </div>
 
-          <div className={css('list__item')}>
-            <div className={css('list__item__topic')}>
-              <p>
-                data
-                <CopyOutlined />
-              </p>
+            <div className={css('list__item')}>
+              <div className={css('list__item__topic')}>
+                <p>
+                  data
+                  <CopyOutlined />
+                </p>
+              </div>
+              <div className={css('list__item__result')} onClick={() => toggleEditState(true)}>
+                {editState ? (
+                  <TextArea
+                    placeholder={`请输入action`}
+                    autoSize={{ minRows: 2 }}
+                    value={data}
+                    onChange={e =>
+                      setItemBak({
+                        ...itemBak,
+                        data: e.target.value,
+                      })
+                    }
+                  />
+                ) : (
+                  data
+                )}
+              </div>
             </div>
-            <div className={css('list__item__result')} onClick={() => toggleEditState(true)}>
-              {editState ? (
-                <TextArea
-                  placeholder={`请输入action`}
-                  autoSize={{ minRows: 2 }}
-                  value={data}
-                  onChange={e =>
-                    setItemBak({
-                      ...itemBak,
-                      data: e.target.value,
-                    })
-                  }
-                />
-              ) : (
-                data
-              )}
-            </div>
-          </div>
 
-          <div className={css('list__item')}>
-            <div className={css('list__item__topic')}>
-              <p>
-                Action
-                <CopyOutlined />
-              </p>
+            <div className={css('list__item')}>
+              <div className={css('list__item__topic')}>
+                <p>
+                  Action
+                  <CopyOutlined />
+                </p>
+              </div>
+              <div className={css('list__item__result')} onClick={() => toggleEditState(true)}>
+                {editState ? (
+                  <TextArea
+                    placeholder={`请输入action`}
+                    autoSize={{ minRows: 2 }}
+                    value={result}
+                    onChange={e =>
+                      setItemBak({
+                        ...itemBak,
+                        result: e.target.value,
+                      })
+                    }
+                  />
+                ) : (
+                  result
+                )}
+              </div>
             </div>
-            <div className={css('list__item__result')} onClick={() => toggleEditState(true)}>
-              {editState ? (
-                <TextArea
-                  placeholder={`请输入action`}
-                  autoSize={{ minRows: 2 }}
-                  value={result}
-                  onChange={e =>
-                    setItemBak({
-                      ...itemBak,
-                      result: e.target.value,
-                    })
-                  }
+          </div>
+          <div className={css('tools')}>
+            <div className={css('tools__item')}>
+              <Tooltip placement="left" title={stepTools[IStepToolsKey.CLOSE].label}>
+                <Button
+                  shape="circle"
+                  icon={stepTools[IStepToolsKey.CLOSE].icon}
+                  onClick={() => expandItemCard(false)}
                 />
-              ) : (
-                result
-              )}
+              </Tooltip>
+            </div>
+            <div className={css('tools__item')}>
+              <StepItemCopy
+                trigger={<Button shape="circle" icon={stepTools[IStepToolsKey.COPY].icon} />}
+              ></StepItemCopy>
+            </div>
+            <div className={css('tools__item')}>
+              <StepItemMove
+                trigger={<Button shape="circle" icon={stepTools[IStepToolsKey.MOVE].icon} />}
+              />
+            </div>
+            <div className={css('tools__item')}>
+              <StepItemDelete
+                trigger={<Button shape="circle" icon={stepTools[IStepToolsKey.DELETE].icon} />}
+              />
             </div>
           </div>
         </div>
-        <div className={css('tools')}>
-          <div className={css('tools__item')}>
-            <Button shape="circle" icon={<ShrinkOutlined />} />
+      ) : (
+        <div className={css('detail-list')}>
+          <div className={css('nav')}>
+            <div className={css('nav__index')}>{props.index + 1}</div>
+            <div className={css('nav__drag')}>
+              <DragOutlined />
+            </div>
           </div>
-          <div className={css('tools__item')}>
-            <Button shape="circle" icon={<CopyOutlined />} />
+          <div className={css('list')}>
+            <div className={css('list__item')}>
+              <div className={css('list__item__result')}>
+                <div>{action}</div>
+                <div>{data}</div>
+                <div>{result}</div>
+              </div>
+            </div>
           </div>
-          <div className={css('tools__item')}>
-            <Button shape="circle" icon={<UnorderedListOutlined />} />
-          </div>
-          <div className={css('tools__item')}>
-            <Button shape="circle" icon={<DeleteOutlined />} />
+          <div className={css('tools')}>
+            <div className={[css('tools__item'), css('tools__expand')].join(' ')}>
+              <Dropdown
+                overlay={
+                  <Menu>
+                    <Menu.Item
+                      key="1"
+                      icon={stepTools[IStepToolsKey.OPEN].icon}
+                      onClick={() => expandItemCard(true)}
+                    >
+                      {stepTools[IStepToolsKey.OPEN].label}
+                    </Menu.Item>
+                    <Menu.Item key="2" icon={stepTools[IStepToolsKey.COPY].icon}>
+                      <StepItemCopy text={stepTools[IStepToolsKey.COPY].label} />
+                    </Menu.Item>
+                    <Menu.Item key="3" icon={stepTools[IStepToolsKey.MOVE].icon}>
+                      <StepItemMove text={stepTools[IStepToolsKey.MOVE].label} />
+                    </Menu.Item>
+                    <Menu.Item key="4" icon={stepTools[IStepToolsKey.DELETE].icon}>
+                      <StepItemDelete text={stepTools[IStepToolsKey.DELETE].label} />
+                    </Menu.Item>
+                  </Menu>
+                }
+                placement="bottomCenter"
+              >
+                <Button icon={<EllipsisOutlined />}></Button>
+              </Dropdown>
+            </div>
           </div>
         </div>
-      </div>
-      {editState && (
+      )}
+      {isExpand && editState && (
         <div className={css('detail-footer')}>
-          <Button type="primary">保存</Button>
-          <Button type="default" onClick={() => toggleEditState(false)}>
+          <Button
+            type="primary"
+            onClick={() => {
+              saveCard(props.index, itemBak);
+              setEditState(false);
+            }}
+          >
+            保存
+          </Button>
+          <Button
+            type="default"
+            onClick={() => {
+              if (item.id === '-1') {
+                deleteCard(item.id);
+              }
+              toggleEditState(false);
+            }}
+          >
             取消
           </Button>
         </div>

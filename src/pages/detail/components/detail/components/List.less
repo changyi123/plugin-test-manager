@@ -1,6 +1,5 @@
 .detail-list {
   display: flex;
-  margin-top: 20px;
   // grid-row-gap: 10px;
   // grid-template-columns: 30px 100px 10px;
   .nav {
@@ -47,7 +46,19 @@
           margin-left: 6px;
         }
       }
+
     }
+
+    &__expand {
+      .list__item {
+        height: 60px;
+        overflow: hidden;
+      }
+    }
+  }
+
+  &-expand {
+    color:red;
   }
 
   .tools {
@@ -62,6 +73,23 @@
       &:first-child {
         margin-top: 0;
       }
+    }
+  }
+
+}
+
+.around {
+  :global {
+    .ant-divider-horizontal.ant-divider-with-text {
+      margin: 0;
+    }
+  }
+  &__divider {
+    margin: 0;
+    opacity: 0;
+    transition: all 0.3s;
+    &:hover {
+      opacity: 1;
     }
   }
 }
