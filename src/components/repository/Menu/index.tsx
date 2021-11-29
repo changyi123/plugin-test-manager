@@ -10,6 +10,14 @@ export enum MenuKey {
   expandFolder = 'expandFolder',
   createTestCase = 'createTestCase',
   createTestSet = 'createTestSet',
+
+  viewTestCase = 'viewTestCase',
+  addTestCaseToTestSet = 'addTestCaseToTestSet',
+  addTestCaseToTestPlan = 'addTestCaseToTestPlan',
+  addTestCaseToTestExecution = 'addTestCaseToTestExecution',
+  createTestCaseWithTestSet = 'createTestCaseWithTestSet',
+  createTestCaseWithTestPlan = 'createTestCaseWithTestPlan',
+  createTestCaseWithTestExecution = 'createTestCaseWithTestExecution',
 }
 const FolderTreeMenus = [
   {
@@ -38,6 +46,22 @@ const FolderTreeMenus = [
     title: '创建测试集合',
     key: MenuKey.createTestSet,
   },
+];
+
+const TestCaseMenus = [
+  {
+    title: '查看用例',
+    key: MenuKey.viewTestCase,
+  },
+  { key: 'Divider' },
+  { title: '创建测试集合包含测试用例', key: MenuKey.createTestCaseWithTestSet },
+  { title: '添加测试用例至测试集合', key: MenuKey.addTestCaseToTestSet },
+  { key: 'Divider' },
+  { title: '创建测试计划包含测试用例', key: MenuKey.createTestCaseWithTestPlan },
+  { title: '添加测试用例至测试计划', key: MenuKey.addTestCaseToTestPlan },
+  { key: 'Divider' },
+  { title: '创建测试执行包含测试用例', key: MenuKey.createTestCaseWithTestExecution },
+  { title: '添加测试用例至测试执行', key: MenuKey.addTestCaseToTestExecution },
 ];
 
 type FolderMenuWithDropdownProps = Omit<DropDownProps, 'overlay'> & {
@@ -75,6 +99,20 @@ export const openFolderMenu = (
   const { onClick, ...restArgs } = args;
   openContextMenu(el, {
     menuList: FolderTreeMenus,
+    onClick: ({ key }) => {
+      onClick(key as MenuKey);
+    },
+    ...restArgs,
+  });
+};
+
+export const openTestMenu = (
+  el: HTMLElement,
+  args: { onClick: (key: MenuKey) => void } & Omit<openContextMenuProps, 'menuList' | 'onClick'>,
+) => {
+  const { onClick, ...restArgs } = args;
+  openContextMenu(el, {
+    menuList: TestCaseMenus,
     onClick: ({ key }) => {
       onClick(key as MenuKey);
     },
