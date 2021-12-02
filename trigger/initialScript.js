@@ -363,7 +363,6 @@ const getWorkFlowFieldByTemplate = status => {
   });
 
   const result = template.replace(/<%=(\w+)%>/g, (_, $1) => {
-    console.log(status[$1], status, $1);
     return status[$1];
   });
   return JSON.parse(result);
@@ -373,13 +372,26 @@ const getWorkFlowFieldByTemplate = status => {
 const getNameByPrefix = name => {
   return {
     name: `测试管理_${name}`,
-    description: `测试管理_${name}（忽删）`,
+    description: `测试管理_${name}（忽改）`,
   };
 };
 // 事项类型标题
-const ItemTypeNames = ['测试用例', '测试集合', '测试计划', '测试执行', '前置条件'].map(
-  name => getNameByPrefix(name).name,
-);
+const BaseItemTypes = [
+  { name: '测试用例', alias: 'testCase' },
+  {
+    name: '测试集合',
+    alias: 'testSet',
+  },
+  { name: '测试计划', alias: 'testPlan' },
+  {
+    name: '测试执行',
+    alias: 'testExecution',
+  },
+  {
+    name: '前置条件',
+    alias: 'preCondition',
+  },
+];
 // 状态
 const BaseStatues = [
   { name: '测试未开始', type: 'Start', alias: 'todo' },
@@ -401,14 +413,16 @@ const initialScriptRunner = async () => {
     };
   };
 
-  // 事项类型创建
+  // 前置数据创建（事项类型，状态）
   const createPrepareData = async () => {
     let itemTypes = await apis.getAllData(false, 'ItemType', { key: APP_KEY });
     let statues = await apis.getAllData(false, 'Status', { description: '测试管理_状态' });
 
-    const needCreatedItemTypeNames = ItemTypeNames.filter(name =>
+    const BaseItemTypeNames = BaseItemTypes.map(({ name }) => getNameByPrefix(name).name);
+    const needCreatedItemTypeNames = BaseItemTypeNames.filter(name =>
       itemTypes?.every(itemType => itemType.get('name') !== name),
     );
+
     const needCreatedStatues = BaseStatues.filter(({ name }) =>
       statues?.every(status => status.get('name') !== name),
     );
@@ -451,12 +465,19 @@ const initialScriptRunner = async () => {
     }
 
     return {
-      itemTypes: itemTypes.map(item => item.toJSON()),
-      statues: statues.map(item => item.toJSON()),
+      itemTypes,
+      statues,
     };
   };
 
   const createWorkspaceTemplate = async ({ itemTypes, statues }) => {
+    // 查询空间配置方案，如果有则直接返回
+    let workspaceScheme = await apis.getData(
+      false,
+      'WorkspaceScheme',
+      getNameByPrefix('空间配置方案'),
+    );
+    if (workspaceScheme) return workspaceScheme;
     // 事项类型层级方案
     let itemTypeScheme = await apis.getData(
       false,
@@ -470,7 +491,7 @@ const initialScriptRunner = async () => {
       itemTypeSchemeParseObj.set({
         ...getCommonFields(),
         ...getNameByPrefix('事项层级方案'),
-        hierarchy: JSON.stringify(itemTypes),
+        hierarchy: JSON.stringify(itemTypes.map(item => item.toJSON())),
       });
 
       [itemTypeScheme] = await apis.saveAllObject([itemTypeSchemeParseObj]);
@@ -479,23 +500,33 @@ const initialScriptRunner = async () => {
     }
 
     // 空间界面方案
-    let [screen, screenScheme] = await Promise.all([
+    let [screen, screenScheme, itemTypeScreenScheme] = await Promise.all([
       apis.getData(false, 'Screen', getNameByPrefix('界面')),
       apis.getData(false, 'ScreenScheme', getNameByPrefix('界面方案')),
+      apis.getData(false, 'ItemTypeScreenScheme', getNameByPrefix('事项类型界面方案')),
     ]);
+
     if (!screen) {
       const screenParseObj = await apis.getParseObject(false, 'Screen');
 
       await screenParseObj.set({
         ...getCommonFields(),
         ...getNameByPrefix('界面'),
+        layout: {
+          // 初始化使用一个空占位
+          _id: '_c_root__uuid',
+          component: '_c_root',
+          children: [],
+        },
       });
 
       [screen] = await apis.saveAllObject([screenParseObj]);
       console.info('界面创建成功');
     }
+
     if (!screenScheme) {
       const screenSchemeParseObj = await apis.getParseObject(false, 'ScreenScheme');
+
       screenSchemeParseObj.set({
         ...getCommonFields(),
         ...getNameByPrefix('界面方案'),
@@ -506,26 +537,41 @@ const initialScriptRunner = async () => {
       console.info('界面方案创建成功');
     }
 
+    if (!itemTypeScreenScheme) {
+      const parseObject = await apis.getParseObject(false, 'ItemTypeScreenScheme');
+      parseObject.set({
+        ...getCommonFields(),
+        ...getNameByPrefix('事项类型界面方案'),
+        defaultScreenScheme: screenScheme,
+      });
+
+      [itemTypeScreenScheme] = await apis.saveAllObject([parseObject]);
+
+      console.info('事项类型界面方案创建成功');
+    }
+
     // 空间工作流方案
-    let [workflow, workflowSchema] = await Promise.all([
+    let [workflow, workflowScheme] = await Promise.all([
       apis.getData(false, 'Workflow', getNameByPrefix('工作流')),
       apis.getData(false, 'WorkflowScheme', getNameByPrefix('工作流方案')),
     ]);
 
     if (!workflow) {
-      const getStatusIdByAlias = alias => {
+      const getStatusByAlias = alias => {
         const name = BaseStatues.find(status => status.alias === alias).name;
-        return statues.find(status => status.name === name).objectId;
+        const status = statues.find(status => status.get('name') === name);
+        return status.get('objectId');
       };
       const parseObj = await apis.getParseObject(false, 'Workflow');
       parseObj.set({
+        releaseStatus: true,
         ...getCommonFields(),
         ...getNameByPrefix('工作流'),
         ...getWorkFlowFieldByTemplate({
-          todo: getStatusIdByAlias('todo'),
-          executing: getStatusIdByAlias('executing'),
-          failed: getStatusIdByAlias('failed'),
-          passed: getStatusIdByAlias('passed'),
+          todo: getStatusByAlias('todo'),
+          executing: getStatusByAlias('executing'),
+          failed: getStatusByAlias('failed'),
+          passed: getStatusByAlias('passed'),
         }),
       });
 
@@ -533,24 +579,101 @@ const initialScriptRunner = async () => {
       console.info('界面方案创建成功');
     }
 
-    // if (!workflowSchema) {
-    //   const parseObj = await apis.getParseObject(false, 'WorkflowSchema');
-    //   parseObj.set({
-    //     ...getCommonFields(),
-    //     ...getNameByPrefix('工作流方案'),
-    //   });
+    if (!workflowScheme) {
+      const workflowSchemeParseObj = await apis.getParseObject(false, 'WorkflowScheme');
+      const workflowSchemeConfigParseObj = await apis.getParseObject(false, 'WorkflowSchemeConfig');
 
-    //   [workflowSchema] = await apis.saveAllObject([parseObj]);
-    //   console.info('工作流方案创建成功');
-    // }
+      workflowSchemeParseObj.set({
+        ...getCommonFields(),
+        ...getNameByPrefix('工作流方案'),
+      });
+
+      [workflowScheme] = await apis.saveAllObject([workflowSchemeParseObj]);
+      console.info('工作流方案创建成功');
+
+      // 工作流方案绑定工作流
+      const workflowSchemeConfigParseObjs = itemTypes.map(itemType => {
+        const newWorkflowSchemeConfigParseObj = workflowSchemeConfigParseObj.clone();
+        newWorkflowSchemeConfigParseObj.set({
+          ...getCommonFields(),
+          workflow,
+          itemType,
+          workflowScheme,
+        });
+        return newWorkflowSchemeConfigParseObj;
+      });
+
+      await apis.saveAllObject([workflowSchemeConfigParseObjs]);
+      console.info('工作流方案绑定成功');
+    }
+
+    console.info('itemTypeScreenScheme', itemTypeScreenScheme);
+
+    if (!workspaceScheme) {
+      const parseObj = await apis.getParseObject(false, 'WorkspaceScheme');
+
+      parseObj.set({
+        ...getCommonFields(),
+        ...getNameByPrefix('空间配置方案'),
+        itemTypeScheme,
+        workflowScheme,
+        itemTypeScreenScheme,
+      });
+
+      [workspaceScheme] = await apis.saveAllObject([parseObj]);
+      console.info('空间配置方案创建成功');
+    }
+
+    return workspaceScheme;
   };
 
-  createPrepareData().then(
-    preparedData => {
-      return createWorkspaceTemplate(preparedData);
-    },
-    () => { },
-  );
+  // 创建空间
+  const createWorkspace = async ({ workspaceScheme }) => {
+    let workspace = await apis.getData(false, 'Workspace', { key: 'TEST_MANAGER' });
+
+    if (!workspace) {
+      const parseObj = await apis.getParseObject(false, 'Workspace');
+
+      parseObj.set({
+        key: 'TEST_MANAGER',
+        workspaceScheme,
+        ...getNameByPrefix('空间'),
+        ...getCommonFields(),
+      });
+
+      [workspace] = await apis.saveAllObject([parseObj]);
+      console.info('界面创建成功');
+    }
+
+    return workspace;
+  };
+
+  // 建立关联关系
+  const createRelationWithTestConfig = async ({ itemTypes, workspace }) => {
+    const testConfig = await apis.getData(true, 'TestConfig', { workspace });
+    if (!testConfig) {
+      const parseObj = await apis.getParseObject(true, 'TestConfig');
+      parseObj.set({
+        ...getCommonFields(),
+      });
+    }
+  };
+
+  createPrepareData()
+    .then(async preparedData => {
+      const workspaceScheme = await createWorkspaceTemplate(preparedData);
+      return {
+        workspaceScheme,
+        ...preparedData,
+      };
+    })
+    .then(async ({ workspaceScheme, itemTypes }) => {
+      const workspace = await createWorkspace(workspaceScheme);
+      return createRelationWithTestConfig({
+        itemTypes,
+        workspace,
+      });
+    });
 };
 
 initialScriptRunner().then(() => {
