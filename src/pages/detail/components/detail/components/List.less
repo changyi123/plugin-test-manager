@@ -29,7 +29,7 @@
     flex: 1;
     margin-left: 5px;
     &__item {
-      padding: 10px;
+      padding: 6px;
       margin-top: 8px;
       border: 1px solid rgb(245, 245, 245);
 
@@ -43,11 +43,24 @@
         overflow: hidden;
         white-space: nowrap;
         text-overflow: ellipsis;
+        margin-left: 6px;
         p {
           margin: 0;
         }
         p > span {
           margin-left: 6px;
+        }
+      }
+
+      &__result {
+        padding: 6px;
+        padding: 3px;
+        border-radius: 3px;
+        transition: background-color 0.2s ease-in-out 0s;
+        word-break: break-all;
+        &:hover {
+          background-color: rgb(235, 236, 240);
+          cursor: pointer;
         }
       }
 

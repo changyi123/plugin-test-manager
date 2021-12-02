@@ -18,7 +18,7 @@ import {
 } from '@ant-design/icons';
 import { useDrag, useDrop } from 'react-dnd';
 
-import { PostAddTestExecution } from '@/lib/api/detail';
+import { PostAddTestExecution, PostEditTestExecution } from '@/lib/api/detail';
 import { TestStep, IActionCard } from '../';
 import { stepTools, IStepToolsKey } from './ListConfig';
 import css from './List.less';
@@ -264,7 +264,13 @@ const List: React.FC<ListProps> = (props: ListProps) => {
         ) : (
           <div className={css('list')}>
             <div className={css('list__item')}>
-              <div className={css('list__item__result')}>
+              <div
+                className={css('list__item__result')}
+                onClick={() => {
+                  expandItemCard(true);
+                  toggleEditState(true);
+                }}
+              >
                 <div>{action}</div>
                 <div>{data}</div>
                 <div>{result}</div>
@@ -337,12 +343,20 @@ const List: React.FC<ListProps> = (props: ListProps) => {
           <Button
             type="primary"
             onClick={() => {
-              PostAddTestExecution({
-                resource: 'WDDKjgIg8G',
-                action: itemBak.action,
-                data: itemBak.data,
-                result: itemBak.result,
-              }).then(() => {
+              if (itemBak.id === '-1') {
+                PostAddTestExecution({
+                  resource: 'WDDKjgIg8G',
+                  action: itemBak.action,
+                  data: itemBak.data,
+                  result: itemBak.result,
+                }).then(() => {
+                  message.success('操作成功');
+                  saveCard(props.index, itemBak);
+                  setEditState(false);
+                });
+                return;
+              }
+              PostEditTestExecution(itemBak).then(() => {
                 message.success('操作成功');
                 saveCard(props.index, itemBak);
                 setEditState(false);
@@ -356,6 +370,7 @@ const List: React.FC<ListProps> = (props: ListProps) => {
             onClick={() => {
               if (item.id === '-1') {
                 deleteCard(item.id);
+                return;
               }
               toggleEditState(false);
             }}

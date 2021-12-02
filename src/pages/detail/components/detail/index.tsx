@@ -204,7 +204,8 @@ const Detail: React.FC = () => {
       setSteps(
         steps.filter(item => {
           if (item.id === id) {
-            return { ...item, isExpand: isExpand === undefined ? false : isExpand };
+            item.isExpand = isExpand === undefined ? false : isExpand;
+            return item;
           }
           if (item.id !== '-1') {
             return item;
@@ -227,6 +228,13 @@ const Detail: React.FC = () => {
 
   const deleteCard = useCallback(
     (id: string) => {
+      if (id === '-1') {
+        const { index } = findCard(id);
+        const stepsbak = [...steps];
+        stepsbak.splice(index, 1);
+        setSteps(stepsbak);
+        return;
+      }
       deleteTestExecution(id)
         .then(() => {
           message.success('删除成功');
@@ -244,6 +252,10 @@ const Detail: React.FC = () => {
 
   const addCard = useCallback(
     (id?: string) => {
+      const hasEmptyIdStep = steps.some(item => item.id === '-1');
+      if (hasEmptyIdStep) {
+        return message.warning('含有未保存的新步骤');
+      }
       const emptyStep: TestStep = {
         resource: '-1',
         action: '',
@@ -256,14 +268,13 @@ const Detail: React.FC = () => {
         isEdit: true,
         id: '-1',
       };
+      const stepsbak = [...steps].filter(item => item.id !== '-1');
       if (!id) {
-        const stepsbak = [...steps];
         stepsbak.splice(0, 0, { ...emptyStep });
         setSteps(stepsbak);
         return;
       }
       const { index } = findCard(id);
-      const stepsbak = [...steps];
       stepsbak.splice(index, 0, { ...emptyStep, index });
       setSteps(stepsbak);
     },

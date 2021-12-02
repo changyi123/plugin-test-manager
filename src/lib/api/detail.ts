@@ -6,6 +6,8 @@ interface PostAddTestExecutionReq {
   data: string;
   result: string;
   resource: string;
+  id?: string;
+  objectId?: string;
 }
 
 interface ICommonRes {
@@ -18,6 +20,33 @@ export const PostAddTestExecution = (req: PostAddTestExecutionReq): Promise<ICom
   return new Promise((resolve, reject) => {
     const query = new TestExecution();
     query.save(req).then(
+      res => {
+        resolve({
+          success: true,
+          data: { ...res },
+        });
+      },
+      err => {
+        reject({
+          success: false,
+          data: { ...err },
+          msg: err,
+        });
+      },
+    );
+  });
+};
+
+export const PostEditTestExecution = (req: PostAddTestExecutionReq): Promise<ICommonRes> => {
+  return new Promise((resolve, reject) => {
+    const { objectId, action, data, result } = req;
+    const execution = TestExecution.createWithoutData(objectId);
+    execution.set({
+      action,
+      data,
+      result,
+    });
+    execution.save().then(
       res => {
         resolve({
           success: true,
