@@ -33,6 +33,7 @@ export interface AdvancedConfig {
   parentValue?: string;
 }
 export interface BaseParseObject extends Parse.JSONBaseAttributes {
+  objectId: ObjectId;
   updatedBy?: User | PointerObject;
   createdBy?: User | PointerObject;
   // 有acl，暂不写
@@ -202,6 +203,7 @@ export interface Group extends BaseParseObject {
 
 type ItemId = ObjectId;
 export interface Item extends BaseParseObject {
+  key: string;
   name: string;
   ancestors: ItemId[];
   itemType: ItemType | PointerObject;

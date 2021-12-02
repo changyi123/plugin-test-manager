@@ -47,6 +47,30 @@
 
   .tree {
     padding: 10px;
+
+    .tree-node {
+      display: flex;
+      width: 100%;
+    }
+
+    :global {
+      .ant-tree-treenode {
+        .ant-tree-node-content-wrapper,
+        .ant-tree-switcher {
+          color: #172b4d !important;
+        }
+        &-selected {
+          background-color: rgb(235, 242, 249);
+        }
+        &-hovering,
+        &:hover {
+          background-color: rgb(216, 230, 243);
+        }
+        &:before {
+          display: none;
+        }
+      }
+    }
   }
 
   .empty {

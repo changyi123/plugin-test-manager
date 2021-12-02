@@ -19,9 +19,10 @@ const MOCK_WORKSPACE_ID = 'GBYsF1CYcI';
 const TestRepository = () => {
   const [folderTreeData, setFolderTreeData] = React.useState([]);
   const state = useReactive({
+    items: [],
     itemIds: [],
     breadcrumb: [],
-    items: [],
+    selectedFolderKey: '',
   });
 
   const { run: fetchItems, loading: itemLoading } = useRequest(getItemByIds, {
@@ -47,9 +48,11 @@ const TestRepository = () => {
   }, [refreshFolderTree]);
 
   const handleSelect = React.useCallback(
-    (itemIds, breadcrumbs) => {
+    (node, breadcrumbs) => {
+      const itemIds = node.itemIds;
       state.itemIds = itemIds;
-      if (hasArrayItem(itemIds)) {
+      state.selectedFolderKey = node.key;
+      if (Array.isArray(itemIds)) {
         fetchItems(itemIds);
       }
       state.breadcrumb = breadcrumbs;
@@ -87,7 +90,13 @@ const TestRepository = () => {
               {!itemLoading && !hasArrayItem(state.items) ? (
                 <Empty className={cx('empty')} description="文件夹为空" />
               ) : (
-                state.items.map(item => <TestCase {...item} key={item} />)
+                state.items.map(item => (
+                  <TestCase
+                    key={item.objectId}
+                    selectedFolderKey={state.selectedFolderKey}
+                    {...item}
+                  />
+                ))
               )}
             </div>
           </div>

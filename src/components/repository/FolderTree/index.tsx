@@ -1,15 +1,18 @@
 import React from 'react';
 import cx from './index.less';
-import { useReactive } from 'ahooks';
+import { useReactive, useDrop } from 'ahooks';
 import { Tree, Button, Modal, Input, message, Empty } from '@osui/ui';
 import { hasArrayItem, getRootContainer } from '@/lib/utils/helper';
 import { IconPlusOutlined, IconDownOutlined, IconMoreOutlined } from '@osui/icons';
 import { openFolderMenu, MenuKey, FolderMenuWithDropdown } from '../Menu';
-import { createFolder, updateFolder, deleteFolder } from '@/lib/api/repository';
+import { createFolder, updateFolders, deleteFolder } from '@/lib/api/repository';
 import { useConfigContext } from '@/lib/hooks/useConfig';
 import { uniq } from 'lodash';
 
 const { DirectoryTree } = Tree;
+// antd hover className
+const AntdHoveringClassName = 'ant-tree-treenode-hovering';
+const AntdTreeNodeClassName = 'ant-tree-treenode';
 
 type OpenFolderNameModal = (args: { title: string; name?: string }) => Promise<string>;
 
@@ -57,7 +60,7 @@ type FolderTreeProps = {
   className?: string;
   treeNodeData: TreeNode[];
   onFolderTreeChange?: () => void;
-  onSelect(itemIds: string[], breadcrumbs: string[]): void;
+  onSelect(node: TreeNode, breadcrumbs: string[]): void;
 };
 
 /**
@@ -102,6 +105,53 @@ const FolderTree: React.FC<FolderTreeProps> = ({
 
   const isInitialRef = React.useRef(false);
   const { workspaceId } = useConfigContext();
+  const removeHoveringClassName = () => {
+    const treeNodeDOMList = document.querySelectorAll(`.${AntdTreeNodeClassName}`);
+    treeNodeDOMList.forEach(dom => {
+      dom.className = dom.className.replace(AntdHoveringClassName, '');
+    });
+  };
+  const appendHoveringClassName = target => {
+    const treeNodeDOMList = document.querySelectorAll(`.${AntdTreeNodeClassName}`);
+    const treeNodeDOM = Array.from(treeNodeDOMList).find(dom => dom.contains(target));
+    const isExistedHoveringClassName =
+      treeNodeDOM && !treeNodeDOM.className.includes(AntdHoveringClassName);
+    if (isExistedHoveringClassName) {
+      treeNodeDOM.className = `${treeNodeDOM.className} ${AntdHoveringClassName}`;
+    }
+  };
+  const [props] = useDrop({
+    async onDom(content, e) {
+      removeHoveringClassName();
+      const { selectedFolderKey, itemId } = content;
+      const targetNodeKey = e.currentTarget.getAttribute('data-node-key');
+      // 相同目录不执行操作
+      if (selectedFolderKey === targetNodeKey) return;
+      const currentNode = getTreeNodeByKey(treeNodeData, selectedFolderKey);
+      const targetNode = getTreeNodeByKey(treeNodeData, targetNodeKey);
+
+      currentNode.itemIds = currentNode.itemIds.filter(key => key !== itemId);
+      targetNode.itemIds = targetNode.itemIds.concat(itemId);
+
+      await updateFolders([
+        {
+          id: currentNode.key,
+          itemIds: currentNode.itemIds,
+        },
+        {
+          id: targetNode.key,
+          itemIds: targetNode.itemIds,
+        },
+      ]);
+
+      message.success('测试用例移动成功');
+      onFolderTreeChange();
+      handleSelect([currentNode.key], {
+        selected: true,
+        node: currentNode,
+      });
+    },
+  });
 
   const selectedTreeNode = React.useMemo(() => {
     return getTreeNodeByKey(treeNodeData, state.selectedKeys[0]);
@@ -114,13 +164,27 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         totalLen += node.itemIds.length;
       });
       node.title = (
-        <>
+        <div
+          {...props}
+          data-node-key={node.key}
+          className={cx('tree-node')}
+          onDragOver={event => {
+            appendHoveringClassName(event.currentTarget);
+            // eslint-disable-next-line react/prop-types
+            props.onDragOver(event);
+          }}
+          onDragLeave={event => {
+            removeHoveringClassName();
+            // eslint-disable-next-line react/prop-types
+            props.onDragLeave(event);
+          }}
+        >
           <span>{node.name}</span>
           <span className={cx('tree-node-length')}>{`${node.itemIds.length} (${totalLen})`}</span>
-        </>
+        </div>
       );
     });
-  }, [treeNodeData]);
+  }, [treeNodeData, props]);
 
   // 展开子菜单
   const expandSubFolder = React.useCallback(
@@ -155,7 +219,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
           }
         }
 
-        onSelect(node.itemIds, breadcrumbs);
+        onSelect(node, breadcrumbs);
       }
     },
     [onSelect, state, treeNodeData],
@@ -179,10 +243,12 @@ const FolderTree: React.FC<FolderTreeProps> = ({
           name: node.name,
         });
 
-        await updateFolder({
-          id: node.key,
-          name: newFolderName,
-        });
+        await updateFolders([
+          {
+            id: node.key,
+            name: newFolderName,
+          },
+        ]);
         message.success(`目录重命被为${newFolderName}`);
       } else if (actionKey === MenuKey.deleteFolder) {
         Modal.confirm({
@@ -226,11 +292,11 @@ const FolderTree: React.FC<FolderTreeProps> = ({
     },
     [
       workspaceId,
+      treeNodeData,
+      handleSelect,
+      expandSubFolder,
       state.expandedKeys,
       onFolderTreeChange,
-      handleSelect,
-      treeNodeData,
-      expandSubFolder,
     ],
   );
 
@@ -260,11 +326,8 @@ const FolderTree: React.FC<FolderTreeProps> = ({
       // 默认展开目录第一层
       handleExpand([node.key]);
       handleSelect([node.key], {
+        node,
         selected: true,
-        node: {
-          pos: '0-0',
-          ...node,
-        },
       });
     }
   }, [handleSelect, treeData, handleExpand]);
@@ -307,8 +370,8 @@ const FolderTree: React.FC<FolderTreeProps> = ({
       title: '更多',
       icon: (
         <FolderMenuWithDropdown
-          onMenuClick={key => handleMenuClick(key, selectedTreeNode || {})}
           trigger={['click']}
+          onMenuClick={key => handleMenuClick(key, selectedTreeNode || {})}
         >
           <IconMoreOutlined />
         </FolderMenuWithDropdown>

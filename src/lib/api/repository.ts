@@ -26,7 +26,7 @@ export const getFolderTree = async (workspaceId: string) => {
 export const getItemByIds = async (ids: string[]) => {
   const items = await new Parse.Query(Item)
     .containedIn('objectId', ids)
-    .include(['itemType.name'])
+    .include(['itemType', 'status'])
     .map(item => item.toJSON());
   return items;
 };
@@ -45,20 +45,35 @@ export const createFolder = async (params: {
   await repository.save();
 };
 
-export const updateFolder = async (params: { id: string; parentId?: string; name: string }) => {
-  const repository = new Repository({
-    objectId: params.id,
+export const updateFolders = async (
+  folders: {
+    id: string;
+    parentId?: string;
+    name?: string;
+    itemIds?: string;
+  }[],
+) => {
+  const needUpdateRepositories = folders.map(folder => {
+    const repository = new Repository({
+      objectId: folder.id,
+    });
+
+    if ('parentId' in folder) {
+      repository.set('parentId', Repository.createWithoutData(folder.parentId));
+    }
+
+    if ('name' in folder) {
+      repository.set('name', folder.name);
+    }
+
+    if ('itemIds' in folder) {
+      repository.set('issues', folder.itemIds);
+    }
+
+    return repository;
   });
 
-  if ('parentId' in params) {
-    repository.set('parentId', Repository.createWithoutData(params.parentId));
-  }
-
-  if ('name' in params) {
-    repository.set('name', params.name);
-  }
-
-  await repository.save();
+  await Parse.Object.saveAll(needUpdateRepositories);
 };
 
 export const deleteFolder = async (ids: string[]) => {
