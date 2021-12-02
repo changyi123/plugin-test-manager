@@ -1,17 +1,28 @@
 import React, { useState } from 'react';
-import { Button, Input, Divider, Dropdown, Menu, Tooltip, Popconfirm, InputNumber } from '@osui/ui';
+import {
+  Button,
+  Input,
+  Divider,
+  Dropdown,
+  Menu,
+  Tooltip,
+  Popconfirm,
+  InputNumber,
+  message,
+} from '@osui/ui';
 import {
   DragOutlined,
   ArrowDownOutlined,
   ArrowUpOutlined,
-  CopyOutlined,
   EllipsisOutlined,
 } from '@ant-design/icons';
 import { useDrag, useDrop } from 'react-dnd';
 
+import { PostAddTestExecution } from '@/lib/api/detail';
 import { TestStep, IActionCard } from '../';
 import { stepTools, IStepToolsKey } from './ListConfig';
 import css from './List.less';
+import Copy from '@/components/common/CopyToClipboard';
 
 const { TextArea } = Input;
 
@@ -175,14 +186,14 @@ const List: React.FC<ListProps> = (props: ListProps) => {
             <div className={css('list__item')}>
               <div className={css('list__item__topic')}>
                 <p>
-                  Action
-                  <CopyOutlined />
+                  行动
+                  <Copy text={action} />
                 </p>
               </div>
               <div className={css('list__item__result')} onClick={() => toggleEditState(true)}>
                 {editState ? (
                   <TextArea
-                    placeholder={`请输入action`}
+                    placeholder={`请输入行动`}
                     autoSize={{ minRows: 2 }}
                     value={action}
                     onChange={e =>
@@ -201,14 +212,14 @@ const List: React.FC<ListProps> = (props: ListProps) => {
             <div className={css('list__item')}>
               <div className={css('list__item__topic')}>
                 <p>
-                  data
-                  <CopyOutlined />
+                  数据
+                  <Copy text={data} />
                 </p>
               </div>
               <div className={css('list__item__result')} onClick={() => toggleEditState(true)}>
                 {editState ? (
                   <TextArea
-                    placeholder={`请输入action`}
+                    placeholder={`请输入数据`}
                     autoSize={{ minRows: 2 }}
                     value={data}
                     onChange={e =>
@@ -227,14 +238,14 @@ const List: React.FC<ListProps> = (props: ListProps) => {
             <div className={css('list__item')}>
               <div className={css('list__item__topic')}>
                 <p>
-                  Action
-                  <CopyOutlined />
+                  预期结果
+                  <Copy text={result} />
                 </p>
               </div>
               <div className={css('list__item__result')} onClick={() => toggleEditState(true)}>
                 {editState ? (
                   <TextArea
-                    placeholder={`请输入action`}
+                    placeholder={`请输入预期结果`}
                     autoSize={{ minRows: 2 }}
                     value={result}
                     onChange={e =>
@@ -330,8 +341,16 @@ const List: React.FC<ListProps> = (props: ListProps) => {
           <Button
             type="primary"
             onClick={() => {
-              saveCard(props.index, itemBak);
-              setEditState(false);
+              PostAddTestExecution({
+                resource: 'WDDKjgIg8G',
+                action: itemBak.action,
+                data: itemBak.data,
+                result: itemBak.result,
+              }).then(() => {
+                message.success('操作成功');
+                saveCard(props.index, itemBak);
+                setEditState(false);
+              });
             }}
           >
             保存
