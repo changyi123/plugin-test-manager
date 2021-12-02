@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Button, Tooltip, Input, Dropdown, Menu } from '@osui/ui';
 import {
   EditOutlined,
@@ -8,8 +8,11 @@ import {
   QuestionCircleOutlined,
   DownOutlined,
 } from '@ant-design/icons';
+import { HTML5Backend } from 'react-dnd-html5-backend';
+import { DndProvider, useDrop } from 'react-dnd';
 import Breadcrumb from './components/Breadcrumb';
-import DetailList from './components/List';
+import StepItem from './components/List';
+import update from 'immutability-helper';
 
 import css from './index.less';
 
@@ -26,11 +29,59 @@ export interface TestStep {
   customFields: Array<fields>;
   index: number;
   callTestIssueId?: string;
-  isEdit: boolean;
+  isExpand: boolean;
+  isEdit?: boolean;
+  id?: string;
 }
 
+export type IExpandCard = (id?: string, isExpand?: boolean) => void;
+
+export interface IActionCard {
+  moveCard: (id: string, atIndex: number) => void;
+  expandCard: IExpandCard;
+  findCard: (id: string) => { index: number };
+  cloneCard: (id: string) => void;
+  deleteCard: (id: string) => void;
+  addCard: (id: string) => void;
+  saveCard: (index: number, step: TestStep) => void;
+}
+
+const StepList: React.FC<{
+  steps: TestStep[];
+  actionCard: IActionCard;
+}> = props => {
+  const { steps, actionCard } = props;
+
+  return (
+    <DndProvider backend={HTML5Backend}>
+      <StepDrop steps={steps} actionCard={actionCard} />
+    </DndProvider>
+  );
+};
+
+const StepDrop: React.FC<{
+  steps: TestStep[];
+  actionCard: IActionCard;
+}> = props => {
+  const { steps, actionCard } = props;
+  const [, drop] = useDrop(() => ({ accept: 'card' }));
+  return (
+    <div ref={drop}>
+      {steps.map((item, index) => (
+        <StepItem
+          item={item}
+          key={item.id}
+          index={index}
+          itemLen={steps.length}
+          actionCard={actionCard}
+        />
+      ))}
+    </div>
+  );
+};
+
 const Detail: React.FC = () => {
-  const [steps] = useState<Array<TestStep>>([
+  const [steps, setSteps] = useState<Array<TestStep>>([
     {
       resource: '1',
       action: '行动111',
@@ -39,7 +90,8 @@ const Detail: React.FC = () => {
       attachments: [],
       customFields: [],
       index: 0,
-      isEdit: true,
+      isExpand: true,
+      id: 'one',
     },
     {
       resource: '2',
@@ -49,7 +101,8 @@ const Detail: React.FC = () => {
       attachments: [],
       customFields: [],
       index: 1,
-      isEdit: false,
+      isExpand: false,
+      id: 'two',
     },
     {
       resource: '3',
@@ -59,9 +112,130 @@ const Detail: React.FC = () => {
       attachments: [],
       customFields: [],
       index: 2,
-      isEdit: false,
+      isExpand: false,
+      id: 'third',
     },
   ]);
+  // console.log('刷新了');
+
+  const findCard = useCallback(
+    (id: string) => {
+      const step = steps.filter(c => `${c.id}` === id)[0];
+      const stepIndex = steps.findIndex(item => item.id === step.id);
+      return {
+        step,
+        index: stepIndex,
+      };
+    },
+    [steps],
+  );
+
+  const moveCard = useCallback(
+    (id: string, atIndex: number) => {
+      // console.log('执行了moveCARD', id, atIndex);
+      const { step, index } = findCard(id);
+      setSteps(
+        update(steps, {
+          $splice: [
+            [index, 1],
+            [atIndex, 0, step],
+          ],
+        }),
+      );
+    },
+    [findCard, steps, setSteps],
+  );
+
+  const expandCard = useCallback(
+    (id?: string, isExpand?: boolean) => {
+      if (!id) {
+        setSteps(
+          steps.filter(item => {
+            item.isExpand = isExpand === undefined ? false : isExpand;
+            if (item.id !== '-1') {
+              return item;
+            }
+          }),
+        );
+        return;
+      }
+      setSteps(
+        steps.filter(item => {
+          if (item.id === id) {
+            return { ...item, isExpand: isExpand === undefined ? false : isExpand };
+          }
+          if (item.id !== '-1') {
+            return item;
+          }
+        }),
+      );
+    },
+    [steps, setSteps],
+  );
+
+  const cloneCard = useCallback(
+    (id: string) => {
+      const { step, index } = findCard(id);
+      const stepsbak = [...steps];
+      stepsbak.splice(index, 0, { ...step, id: `${step.id}1` });
+      setSteps(stepsbak);
+    },
+    [steps, setSteps, findCard],
+  );
+
+  const deleteCard = useCallback(
+    (id: string) => {
+      const { index } = findCard(id);
+      const stepsbak = [...steps];
+      stepsbak.splice(index, 1);
+      setSteps(stepsbak);
+    },
+    [steps, setSteps, findCard],
+  );
+
+  const addCard = useCallback(
+    (id?: string) => {
+      const emptyStep: TestStep = {
+        resource: '-1',
+        action: '',
+        data: '',
+        result: '',
+        attachments: [],
+        customFields: [],
+        index: 0,
+        isExpand: true,
+        isEdit: true,
+        id: '-1',
+      };
+      if (!id) {
+        const stepsbak = [...steps];
+        stepsbak.splice(0, 0, { ...emptyStep });
+        setSteps(stepsbak);
+        return;
+      }
+      const { index } = findCard(id);
+      const stepsbak = [...steps];
+      stepsbak.splice(index, 0, { ...emptyStep, index });
+      setSteps(stepsbak);
+    },
+    [steps, setSteps, findCard],
+  );
+
+  const saveCard = (index: number, step: TestStep) => {
+    const stepsbak = [...steps];
+    stepsbak[index] = step;
+    setSteps(stepsbak);
+  };
+
+  const actionCard: IActionCard = {
+    moveCard,
+    findCard,
+    cloneCard,
+    expandCard,
+    deleteCard,
+    addCard,
+    saveCard,
+  };
 
   return (
     <div className={css('detail')}>
@@ -76,12 +250,12 @@ const Detail: React.FC = () => {
             </Button>
             <div className={css('item')}>
               <Tooltip title="全部展开" placement="bottom">
-                <Button icon={<ArrowsAltOutlined />} />
+                <Button icon={<ArrowsAltOutlined />} onClick={() => expandCard(undefined, true)} />
               </Tooltip>
             </div>
             <div className={css('item')}>
               <Tooltip title="全部收缩" placement="bottom">
-                <Button icon={<ShrinkOutlined />} />
+                <Button icon={<ShrinkOutlined />} onClick={() => expandCard()} />
               </Tooltip>
             </div>
             <div className={css('input')}>
@@ -98,7 +272,9 @@ const Detail: React.FC = () => {
             <Dropdown
               overlay={
                 <Menu>
-                  <Menu.Item key="1">新增步骤</Menu.Item>
+                  <Menu.Item key="1" onClick={() => addCard()}>
+                    新增步骤
+                  </Menu.Item>
                   <Menu.Item key="2">继承测试用例</Menu.Item>
                 </Menu>
               }
@@ -109,9 +285,7 @@ const Detail: React.FC = () => {
             </Dropdown>
           </div>
         </div>
-        {steps.map(item => (
-          <DetailList item={item} itemLen={steps.length} key={item.index} />
-        ))}
+        <StepList steps={steps} actionCard={actionCard} />
       </div>
     </div>
   );
