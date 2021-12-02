@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { Button, Tooltip, Input, Dropdown, Menu, Empty } from '@osui/ui';
+import { Button, Tooltip, Input, Dropdown, Menu, Empty, Spin, message } from '@osui/ui';
 import {
   EditOutlined,
   ArrowsAltOutlined,
@@ -13,7 +13,7 @@ import { DndProvider, useDrop } from 'react-dnd';
 import Breadcrumb from './components/Breadcrumb';
 import StepItem from './components/List';
 import update from 'immutability-helper';
-import { fetchTestExecution } from '@/lib/api/detail';
+import { fetchTestExecution, deleteTestExecution } from '@/lib/api/detail';
 
 import css from './index.less';
 
@@ -43,7 +43,7 @@ export interface IActionCard {
   findCard: (id: string) => { index: number };
   cloneCard: (id: string) => void;
   deleteCard: (id: string) => void;
-  addCard: (id: string) => void;
+  addCard: (id?: string) => void;
   saveCard: (index: number, step: TestStep) => void;
 }
 
@@ -52,6 +52,34 @@ const StepList: React.FC<{
   actionCard: IActionCard;
 }> = props => {
   const { steps, actionCard } = props;
+
+  if (!steps.length) {
+    return (
+      <Empty
+        description={
+          <div>
+            <h3>暂无定义测试</h3>
+            <p>测试是与条件、测试输入和预期结果相结合的一系列步骤。创建测试步骤来定义测试。</p>
+          </div>
+        }
+      >
+        <Dropdown
+          overlay={
+            <Menu>
+              <Menu.Item key="1" onClick={() => actionCard.addCard()}>
+                新增步骤
+              </Menu.Item>
+              <Menu.Item key="2">继承测试用例</Menu.Item>
+            </Menu>
+          }
+        >
+          <Button type="primary">
+            添加步骤 <DownOutlined />
+          </Button>
+        </Dropdown>
+      </Empty>
+    );
+  }
 
   return (
     <DndProvider backend={HTML5Backend}>
@@ -117,13 +145,19 @@ const Detail: React.FC = () => {
     //   id: 'third',
     // },
   ]);
+
+  const [loading, setLoading] = useState<boolean>(true);
   // console.log('刷新了');
 
   useEffect(() => {
-    fetchTestExecution('WDDKjgIg8G').then(({ data }) => {
-      console.log('rerere', data);
-      setSteps(data);
-    });
+    fetchTestExecution('WDDKjgIg8G')
+      .then(({ data }) => {
+        // console.log('rerere', data);
+        setSteps(data);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, []);
 
   const findCard = useCallback(
@@ -193,10 +227,17 @@ const Detail: React.FC = () => {
 
   const deleteCard = useCallback(
     (id: string) => {
-      const { index } = findCard(id);
-      const stepsbak = [...steps];
-      stepsbak.splice(index, 1);
-      setSteps(stepsbak);
+      deleteTestExecution(id)
+        .then(() => {
+          message.success('删除成功');
+          const { index } = findCard(id);
+          const stepsbak = [...steps];
+          stepsbak.splice(index, 1);
+          setSteps(stepsbak);
+        })
+        .catch(err => {
+          message.warning(`删除失败，原因：${err}`);
+        });
     },
     [steps, setSteps, findCard],
   );
@@ -244,6 +285,14 @@ const Detail: React.FC = () => {
     addCard,
     saveCard,
   };
+
+  if (loading) {
+    return (
+      <div className={css('detail')}>
+        <Spin tip="加载中..."></Spin>
+      </div>
+    );
+  }
 
   return (
     <div className={css('detail')}>
@@ -295,31 +344,6 @@ const Detail: React.FC = () => {
         </div>
         <StepList steps={steps} actionCard={actionCard} />
       </div>
-      {!steps.length && (
-        <Empty
-          description={
-            <div>
-              <h3>暂无定义测试</h3>
-              <p>测试是与条件、测试输入和预期结果相结合的一系列步骤。创建测试步骤来定义测试。</p>
-            </div>
-          }
-        >
-          <Dropdown
-            overlay={
-              <Menu>
-                <Menu.Item key="1" onClick={() => addCard()}>
-                  新增步骤
-                </Menu.Item>
-                <Menu.Item key="2">继承测试用例</Menu.Item>
-              </Menu>
-            }
-          >
-            <Button type="primary">
-              添加步骤 <DownOutlined />
-            </Button>
-          </Dropdown>
-        </Empty>
-      )}
     </div>
   );
 };

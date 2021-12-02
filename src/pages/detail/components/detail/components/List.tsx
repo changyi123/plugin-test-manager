@@ -60,7 +60,7 @@ const List: React.FC<ListProps> = (props: ListProps) => {
     cloneCard(item.id);
   }
 
-  const [{ isDragging }, drag] = useDrag(
+  const [{ isDragging }, drag, preview] = useDrag(
     () => ({
       type: 'card',
       item: { id: item.id },
@@ -154,7 +154,7 @@ const List: React.FC<ListProps> = (props: ListProps) => {
   const opacity = isDragging ? 0.5 : 1;
 
   return (
-    <div ref={node => drag(drop(node))} style={{ opacity }} className={css('around')}>
+    <div ref={node => drop(node)} style={{ opacity }} className={css('around')}>
       <Divider plain className={css('around__divider')}>
         <span>
           <Button type="link" onClick={() => addCard(item.id)}>
@@ -164,24 +164,24 @@ const List: React.FC<ListProps> = (props: ListProps) => {
           <Button type="link">继承测试</Button>
         </span>
       </Divider>
-      {isExpand ? (
-        <div className={css('detail-list')}>
-          <div className={css('nav')}>
-            {props.index !== 0 && (
-              <div className={css('nav__drag')}>
-                <ArrowUpOutlined />
-              </div>
-            )}
-            <div className={css('nav__index')}>{props.index + 1}</div>
+      <div className={css('detail-list')} ref={preview}>
+        <div className={css('nav')}>
+          {isExpand && props.index !== 0 && (
             <div className={css('nav__drag')}>
-              <DragOutlined />
+              <ArrowUpOutlined />
             </div>
-            {itemLen !== props.index + 1 ? (
-              <div className={css('nav__icon')}>
-                <ArrowDownOutlined />
-              </div>
-            ) : null}
+          )}
+          <div className={css('nav__index')}>{props.index + 1}</div>
+          <div className={css('nav__drag')} ref={node => drag(node)}>
+            <DragOutlined />
           </div>
+          {isExpand && itemLen !== props.index + 1 ? (
+            <div className={css('nav__icon')}>
+              <ArrowDownOutlined />
+            </div>
+          ) : null}
+        </div>
+        {isExpand ? (
           <div className={css('list')}>
             <div className={css('list__item')}>
               <div className={css('list__item__topic')}>
@@ -261,6 +261,19 @@ const List: React.FC<ListProps> = (props: ListProps) => {
               </div>
             </div>
           </div>
+        ) : (
+          <div className={css('list')}>
+            <div className={css('list__item')}>
+              <div className={css('list__item__result')}>
+                <div>{action}</div>
+                <div>{data}</div>
+                <div>{result}</div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {isExpand ? (
           <div className={css('tools')}>
             <div className={css('tools__item')}>
               <Tooltip placement="left" title={stepTools[IStepToolsKey.CLOSE].label}>
@@ -287,24 +300,7 @@ const List: React.FC<ListProps> = (props: ListProps) => {
               />
             </div>
           </div>
-        </div>
-      ) : (
-        <div className={css('detail-list')}>
-          <div className={css('nav')}>
-            <div className={css('nav__index')}>{props.index + 1}</div>
-            <div className={css('nav__drag')}>
-              <DragOutlined />
-            </div>
-          </div>
-          <div className={css('list')}>
-            <div className={css('list__item')}>
-              <div className={css('list__item__result')}>
-                <div>{action}</div>
-                <div>{data}</div>
-                <div>{result}</div>
-              </div>
-            </div>
-          </div>
+        ) : (
           <div className={css('tools')}>
             <div className={[css('tools__item'), css('tools__expand')].join(' ')}>
               <Dropdown
@@ -334,8 +330,8 @@ const List: React.FC<ListProps> = (props: ListProps) => {
               </Dropdown>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
       {isExpand && editState && (
         <div className={css('detail-footer')}>
           <Button

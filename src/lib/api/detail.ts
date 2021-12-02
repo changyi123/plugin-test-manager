@@ -11,7 +11,7 @@ interface PostAddTestExecutionReq {
 interface ICommonRes {
   success: boolean;
   msg?: string;
-  data: any;
+  data?: any;
 }
 
 export const PostAddTestExecution = (req: PostAddTestExecutionReq): Promise<ICommonRes> => {
@@ -46,6 +46,7 @@ export const fetchTestExecution = (resource: string): Promise<ICommonRes> => {
           data: res.map(item => {
             const obj = item.toJSON();
             obj.id = obj.objectId;
+            obj.isExpand = true;
             return obj;
           }),
         });
@@ -58,5 +59,25 @@ export const fetchTestExecution = (resource: string): Promise<ICommonRes> => {
         });
       },
     );
+  });
+};
+
+export const deleteTestExecution = (id: string): Promise<ICommonRes> => {
+  return new Promise((resolve, reject) => {
+    TestExecution.createWithoutData(id)
+      .destroy()
+      .then(
+        () => {
+          resolve({
+            success: true,
+          });
+        },
+        err => {
+          reject({
+            success: false,
+            msg: err,
+          });
+        },
+      );
   });
 };
