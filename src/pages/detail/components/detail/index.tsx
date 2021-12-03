@@ -13,7 +13,7 @@ import { DndProvider, useDrop } from 'react-dnd';
 import Breadcrumb from './components/Breadcrumb';
 import StepItem from './components/List';
 import update from 'immutability-helper';
-import { fetchTestExecution, deleteTestExecution } from '@/lib/api/detail';
+import { fetchTestSteps, deleteTestExecution, saveOrUpdateTestStep } from '@/lib/api/detail';
 
 import css from './index.less';
 
@@ -22,17 +22,17 @@ export interface fields {
   value: string;
 }
 export interface TestStep {
-  resource: string;
-  action: string;
-  data: string;
-  result: string;
-  attachments: Array<string>;
-  customFields: Array<fields>;
-  index: number;
+  action?: string;
+  data?: string;
+  result?: string;
+  attachments?: Array<string>;
+  customFields?: Array<fields>;
+  index?: number;
   callTestIssueId?: string;
-  isExpand: boolean;
+  isExpand?: boolean;
   isEdit?: boolean;
   id?: string;
+  objectId?: string;
 }
 
 export type IExpandCard = (id?: string, isExpand?: boolean) => void;
@@ -122,35 +122,13 @@ const Detail: React.FC = () => {
     //   isExpand: true,
     //   id: 'one',
     // },
-    // {
-    //   resource: '2',
-    //   action: '行动2',
-    //   data: '数据222',
-    //   result: '结果222',
-    //   attachments: [],
-    //   customFields: [],
-    //   index: 1,
-    //   isExpand: false,
-    //   id: 'two',
-    // },
-    // {
-    //   resource: '3',
-    //   action: '行动2333',
-    //   data: '数据33',
-    //   result: '结果3333',
-    //   attachments: [],
-    //   customFields: [],
-    //   index: 2,
-    //   isExpand: false,
-    //   id: 'third',
-    // },
   ]);
 
   const [loading, setLoading] = useState<boolean>(true);
   // console.log('刷新了');
 
   useEffect(() => {
-    fetchTestExecution('WDDKjgIg8G')
+    fetchTestSteps('YBkC6luOfw')
       .then(({ data }) => {
         // console.log('rerere', data);
         setSteps(data);
@@ -176,14 +154,16 @@ const Detail: React.FC = () => {
     (id: string, atIndex: number) => {
       // console.log('执行了moveCARD', id, atIndex);
       const { step, index } = findCard(id);
-      setSteps(
-        update(steps, {
-          $splice: [
-            [index, 1],
-            [atIndex, 0, step],
-          ],
-        }),
-      );
+      const newSteps = update(steps, {
+        $splice: [
+          [index, 1],
+          [atIndex, 0, step],
+        ],
+      });
+      saveOrUpdateTestStep(newSteps).then(() => {
+        message.success('操作成功');
+        setSteps(newSteps);
+      });
     },
     [findCard, steps, setSteps],
   );
@@ -257,7 +237,6 @@ const Detail: React.FC = () => {
         return message.warning('含有未保存的新步骤');
       }
       const emptyStep: TestStep = {
-        resource: '-1',
         action: '',
         data: '',
         result: '',
@@ -283,8 +262,12 @@ const Detail: React.FC = () => {
 
   const saveCard = (index: number, step: TestStep) => {
     const stepsbak = [...steps];
+    step.isEdit = false;
     stepsbak[index] = step;
-    setSteps(stepsbak);
+    saveOrUpdateTestStep(stepsbak).then(() => {
+      message.success('操作成功');
+      setSteps(stepsbak);
+    });
   };
 
   const actionCard: IActionCard = {

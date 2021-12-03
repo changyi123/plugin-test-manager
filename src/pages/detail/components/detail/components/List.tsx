@@ -1,15 +1,5 @@
 import React, { useState } from 'react';
-import {
-  Button,
-  Input,
-  Divider,
-  Dropdown,
-  Menu,
-  Tooltip,
-  Popconfirm,
-  InputNumber,
-  message,
-} from '@osui/ui';
+import { Button, Input, Divider, Dropdown, Menu, Tooltip, Popconfirm, InputNumber } from '@osui/ui';
 import {
   DragOutlined,
   ArrowDownOutlined,
@@ -18,7 +8,6 @@ import {
 } from '@ant-design/icons';
 import { useDrag, useDrop } from 'react-dnd';
 
-import { PostAddTestExecution, PostEditTestExecution } from '@/lib/api/detail';
 import { TestStep, IActionCard } from '../';
 import { stepTools, IStepToolsKey } from './ListConfig';
 import css from './List.less';
@@ -343,24 +332,8 @@ const List: React.FC<ListProps> = (props: ListProps) => {
           <Button
             type="primary"
             onClick={() => {
-              if (itemBak.id === '-1') {
-                PostAddTestExecution({
-                  resource: 'WDDKjgIg8G',
-                  action: itemBak.action,
-                  data: itemBak.data,
-                  result: itemBak.result,
-                }).then(() => {
-                  message.success('操作成功');
-                  saveCard(props.index, itemBak);
-                  setEditState(false);
-                });
-                return;
-              }
-              PostEditTestExecution(itemBak).then(() => {
-                message.success('操作成功');
-                saveCard(props.index, itemBak);
-                setEditState(false);
-              });
+              saveCard(props.index, itemBak);
+              setEditState(false);
             }}
           >
             保存

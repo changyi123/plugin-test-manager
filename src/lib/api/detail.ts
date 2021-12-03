@@ -1,14 +1,6 @@
-import { TestExecution } from '../models';
+import { TestExecution, TestStep } from '../models';
 import Parse from '@/lib/parse';
-
-interface PostAddTestExecutionReq {
-  action: string;
-  data: string;
-  result: string;
-  resource: string;
-  id?: string;
-  objectId?: string;
-}
+import { TestStep as ITestStep } from '@/pages/detail/components/detail';
 
 interface ICommonRes {
   success: boolean;
@@ -16,7 +8,7 @@ interface ICommonRes {
   data?: any;
 }
 
-export const PostAddTestExecution = (req: PostAddTestExecutionReq): Promise<ICommonRes> => {
+export const PostAddTestExecution = (req: ITestStep): Promise<ICommonRes> => {
   return new Promise((resolve, reject) => {
     const query = new TestExecution();
     query.save(req).then(
@@ -37,7 +29,7 @@ export const PostAddTestExecution = (req: PostAddTestExecutionReq): Promise<ICom
   });
 };
 
-export const PostEditTestExecution = (req: PostAddTestExecutionReq): Promise<ICommonRes> => {
+export const PostEditTestExecution = (req: ITestStep): Promise<ICommonRes> => {
   return new Promise((resolve, reject) => {
     const { objectId, action, data, result } = req;
     const execution = TestExecution.createWithoutData(objectId);
@@ -108,5 +100,66 @@ export const deleteTestExecution = (id: string): Promise<ICommonRes> => {
           });
         },
       );
+  });
+};
+
+export const fetchTestSteps = (resource: string): Promise<ICommonRes> => {
+  return new Promise((resolve, reject) => {
+    const query = new Parse.Query(TestStep);
+    query.equalTo('objectId', resource);
+    query.find().then(
+      res => {
+        const stepsArray = [];
+        res.forEach(item => {
+          const obj = item.toJSON();
+          obj?.steps?.forEach((item2, index2) => {
+            item2.id = `${obj.objectId}_${index2}`;
+            item2.objectId = `${obj.objectId}_${index2}`;
+            item2.isEdit = false;
+            stepsArray.push(item2);
+          });
+        });
+        resolve({
+          success: true,
+          data: stepsArray,
+        });
+      },
+      err => {
+        reject({
+          success: false,
+          data: { ...err },
+          msg: err,
+        });
+      },
+    );
+  });
+};
+
+export const saveOrUpdateTestStep = (
+  testSteps: Array<ITestStep>,
+  resource?: string,
+  id?: string,
+): Promise<ICommonRes> => {
+  return new Promise((resolve, reject) => {
+    const step = TestStep.createWithoutData(id || 'YBkC6luOfw');
+    step.set({
+      steps: testSteps,
+      resource: resource || 'WDDKjgIg8G',
+    });
+    step.save().then(
+      res => {
+        resolve({
+          success: true,
+          data: { ...res },
+        });
+      },
+      err => {
+        reject({
+          success: false,
+          data: { ...err },
+          msg: err,
+        });
+      },
+    );
   });
 };
