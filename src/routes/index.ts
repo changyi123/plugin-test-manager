@@ -2,7 +2,7 @@ import React from 'react';
 
 const routes = [
   {
-    path: '/',
+    path: '/testRepo',
     component: React.lazy(() => import('../pages/repository')),
     exact: true,
   },
@@ -15,6 +15,10 @@ const routes = [
     path: '/login',
     component: React.lazy(() => import('../pages/demo/Demo')),
     exact: true,
+  },
+  {
+    path: '/testConfig',
+    component: React.lazy(() => import('../pages/config')),
   },
 ];
 

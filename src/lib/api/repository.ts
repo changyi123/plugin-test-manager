@@ -1,6 +1,6 @@
 // import fetch from '../utils/fetch';
 import Parse from '@/lib/parse';
-import { Item, Repository, Workspace } from '../models';
+import { Repository, Workspace } from '../models';
 import { arrayToTree } from '@/lib/utils/arrayToTree';
 
 export const getFolderTree = async (workspaceId: string) => {
@@ -21,14 +21,6 @@ export const getFolderTree = async (workspaceId: string) => {
   const folderTree = arrayToTree(repositories);
 
   return folderTree;
-};
-
-export const getItemByIds = async (ids: string[]) => {
-  const items = await new Parse.Query(Item)
-    .containedIn('objectId', ids)
-    .include(['itemType', 'status'])
-    .map(item => item.toJSON());
-  return items;
 };
 
 export const createFolder = async (params: {
