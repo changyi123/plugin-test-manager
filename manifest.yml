@@ -48,6 +48,8 @@ tables:
         type: String
       data:
         type: String
+      result:
+        type: String
       expectedResult:
         type: String
       attachments:

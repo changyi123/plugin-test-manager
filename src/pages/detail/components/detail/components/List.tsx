@@ -1,17 +1,28 @@
 import React, { useState } from 'react';
-import { Button, Input, Divider, Dropdown, Menu, Tooltip, Popconfirm, InputNumber } from '@osui/ui';
+import {
+  Button,
+  Input,
+  Divider,
+  Dropdown,
+  Menu,
+  Tooltip,
+  Popconfirm,
+  InputNumber,
+  message,
+} from '@osui/ui';
 import {
   DragOutlined,
   ArrowDownOutlined,
   ArrowUpOutlined,
-  CopyOutlined,
   EllipsisOutlined,
 } from '@ant-design/icons';
 import { useDrag, useDrop } from 'react-dnd';
 
+import { PostAddTestExecution, PostEditTestExecution } from '@/lib/api/detail';
 import { TestStep, IActionCard } from '../';
 import { stepTools, IStepToolsKey } from './ListConfig';
 import css from './List.less';
+import Copy from '@/components/common/CopyToClipboard';
 
 const { TextArea } = Input;
 
@@ -49,7 +60,7 @@ const List: React.FC<ListProps> = (props: ListProps) => {
     cloneCard(item.id);
   }
 
-  const [{ isDragging }, drag] = useDrag(
+  const [{ isDragging }, drag, preview] = useDrag(
     () => ({
       type: 'card',
       item: { id: item.id },
@@ -143,7 +154,7 @@ const List: React.FC<ListProps> = (props: ListProps) => {
   const opacity = isDragging ? 0.5 : 1;
 
   return (
-    <div ref={node => drag(drop(node))} style={{ opacity }} className={css('around')}>
+    <div ref={node => drop(node)} style={{ opacity }} className={css('around')}>
       <Divider plain className={css('around__divider')}>
         <span>
           <Button type="link" onClick={() => addCard(item.id)}>
@@ -153,36 +164,36 @@ const List: React.FC<ListProps> = (props: ListProps) => {
           <Button type="link">继承测试</Button>
         </span>
       </Divider>
-      {isExpand ? (
-        <div className={css('detail-list')}>
-          <div className={css('nav')}>
-            {props.index !== 0 && (
-              <div className={css('nav__drag')}>
-                <ArrowUpOutlined />
-              </div>
-            )}
-            <div className={css('nav__index')}>{props.index + 1}</div>
+      <div className={css('detail-list')} ref={preview}>
+        <div className={css('nav')}>
+          {isExpand && props.index !== 0 && (
             <div className={css('nav__drag')}>
-              <DragOutlined />
+              <ArrowUpOutlined />
             </div>
-            {itemLen !== props.index + 1 ? (
-              <div className={css('nav__icon')}>
-                <ArrowDownOutlined />
-              </div>
-            ) : null}
+          )}
+          <div className={css('nav__index')}>{props.index + 1}</div>
+          <div className={css('nav__drag')} ref={node => drag(node)}>
+            <DragOutlined />
           </div>
+          {isExpand && itemLen !== props.index + 1 ? (
+            <div className={css('nav__icon')}>
+              <ArrowDownOutlined />
+            </div>
+          ) : null}
+        </div>
+        {isExpand ? (
           <div className={css('list')}>
             <div className={css('list__item')}>
               <div className={css('list__item__topic')}>
                 <p>
-                  Action
-                  <CopyOutlined />
+                  行动
+                  <Copy text={action} />
                 </p>
               </div>
               <div className={css('list__item__result')} onClick={() => toggleEditState(true)}>
                 {editState ? (
                   <TextArea
-                    placeholder={`请输入action`}
+                    placeholder={`请输入行动`}
                     autoSize={{ minRows: 2 }}
                     value={action}
                     onChange={e =>
@@ -201,14 +212,14 @@ const List: React.FC<ListProps> = (props: ListProps) => {
             <div className={css('list__item')}>
               <div className={css('list__item__topic')}>
                 <p>
-                  data
-                  <CopyOutlined />
+                  数据
+                  <Copy text={data} />
                 </p>
               </div>
               <div className={css('list__item__result')} onClick={() => toggleEditState(true)}>
                 {editState ? (
                   <TextArea
-                    placeholder={`请输入action`}
+                    placeholder={`请输入数据`}
                     autoSize={{ minRows: 2 }}
                     value={data}
                     onChange={e =>
@@ -227,14 +238,14 @@ const List: React.FC<ListProps> = (props: ListProps) => {
             <div className={css('list__item')}>
               <div className={css('list__item__topic')}>
                 <p>
-                  Action
-                  <CopyOutlined />
+                  预期结果
+                  <Copy text={result} />
                 </p>
               </div>
               <div className={css('list__item__result')} onClick={() => toggleEditState(true)}>
                 {editState ? (
                   <TextArea
-                    placeholder={`请输入action`}
+                    placeholder={`请输入预期结果`}
                     autoSize={{ minRows: 2 }}
                     value={result}
                     onChange={e =>
@@ -250,6 +261,25 @@ const List: React.FC<ListProps> = (props: ListProps) => {
               </div>
             </div>
           </div>
+        ) : (
+          <div className={css('list')}>
+            <div className={css('list__item')}>
+              <div
+                className={css('list__item__result')}
+                onClick={() => {
+                  expandItemCard(true);
+                  toggleEditState(true);
+                }}
+              >
+                <div>{action}</div>
+                <div>{data}</div>
+                <div>{result}</div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {isExpand ? (
           <div className={css('tools')}>
             <div className={css('tools__item')}>
               <Tooltip placement="left" title={stepTools[IStepToolsKey.CLOSE].label}>
@@ -276,24 +306,7 @@ const List: React.FC<ListProps> = (props: ListProps) => {
               />
             </div>
           </div>
-        </div>
-      ) : (
-        <div className={css('detail-list')}>
-          <div className={css('nav')}>
-            <div className={css('nav__index')}>{props.index + 1}</div>
-            <div className={css('nav__drag')}>
-              <DragOutlined />
-            </div>
-          </div>
-          <div className={css('list')}>
-            <div className={css('list__item')}>
-              <div className={css('list__item__result')}>
-                <div>{action}</div>
-                <div>{data}</div>
-                <div>{result}</div>
-              </div>
-            </div>
-          </div>
+        ) : (
           <div className={css('tools')}>
             <div className={[css('tools__item'), css('tools__expand')].join(' ')}>
               <Dropdown
@@ -323,15 +336,31 @@ const List: React.FC<ListProps> = (props: ListProps) => {
               </Dropdown>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
       {isExpand && editState && (
         <div className={css('detail-footer')}>
           <Button
             type="primary"
             onClick={() => {
-              saveCard(props.index, itemBak);
-              setEditState(false);
+              if (itemBak.id === '-1') {
+                PostAddTestExecution({
+                  resource: 'WDDKjgIg8G',
+                  action: itemBak.action,
+                  data: itemBak.data,
+                  result: itemBak.result,
+                }).then(() => {
+                  message.success('操作成功');
+                  saveCard(props.index, itemBak);
+                  setEditState(false);
+                });
+                return;
+              }
+              PostEditTestExecution(itemBak).then(() => {
+                message.success('操作成功');
+                saveCard(props.index, itemBak);
+                setEditState(false);
+              });
             }}
           >
             保存
@@ -341,6 +370,7 @@ const List: React.FC<ListProps> = (props: ListProps) => {
             onClick={() => {
               if (item.id === '-1') {
                 deleteCard(item.id);
+                return;
               }
               toggleEditState(false);
             }}

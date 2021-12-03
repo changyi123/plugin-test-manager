@@ -1,5 +1,5 @@
-import React, { useState, useCallback } from 'react';
-import { Button, Tooltip, Input, Dropdown, Menu } from '@osui/ui';
+import React, { useState, useCallback, useEffect } from 'react';
+import { Button, Tooltip, Input, Dropdown, Menu, Empty, Spin, message } from '@osui/ui';
 import {
   EditOutlined,
   ArrowsAltOutlined,
@@ -13,6 +13,7 @@ import { DndProvider, useDrop } from 'react-dnd';
 import Breadcrumb from './components/Breadcrumb';
 import StepItem from './components/List';
 import update from 'immutability-helper';
+import { fetchTestExecution, deleteTestExecution } from '@/lib/api/detail';
 
 import css from './index.less';
 
@@ -42,7 +43,7 @@ export interface IActionCard {
   findCard: (id: string) => { index: number };
   cloneCard: (id: string) => void;
   deleteCard: (id: string) => void;
-  addCard: (id: string) => void;
+  addCard: (id?: string) => void;
   saveCard: (index: number, step: TestStep) => void;
 }
 
@@ -51,6 +52,34 @@ const StepList: React.FC<{
   actionCard: IActionCard;
 }> = props => {
   const { steps, actionCard } = props;
+
+  if (!steps.length) {
+    return (
+      <Empty
+        description={
+          <div>
+            <h3>暂无定义测试</h3>
+            <p>测试是与条件、测试输入和预期结果相结合的一系列步骤。创建测试步骤来定义测试。</p>
+          </div>
+        }
+      >
+        <Dropdown
+          overlay={
+            <Menu>
+              <Menu.Item key="1" onClick={() => actionCard.addCard()}>
+                新增步骤
+              </Menu.Item>
+              <Menu.Item key="2">继承测试用例</Menu.Item>
+            </Menu>
+          }
+        >
+          <Button type="primary">
+            添加步骤 <DownOutlined />
+          </Button>
+        </Dropdown>
+      </Empty>
+    );
+  }
 
   return (
     <DndProvider backend={HTML5Backend}>
@@ -82,41 +111,54 @@ const StepDrop: React.FC<{
 
 const Detail: React.FC = () => {
   const [steps, setSteps] = useState<Array<TestStep>>([
-    {
-      resource: '1',
-      action: '行动111',
-      data: '数据111',
-      result: '结果111',
-      attachments: [],
-      customFields: [],
-      index: 0,
-      isExpand: true,
-      id: 'one',
-    },
-    {
-      resource: '2',
-      action: '行动2',
-      data: '数据222',
-      result: '结果222',
-      attachments: [],
-      customFields: [],
-      index: 1,
-      isExpand: false,
-      id: 'two',
-    },
-    {
-      resource: '3',
-      action: '行动2333',
-      data: '数据33',
-      result: '结果3333',
-      attachments: [],
-      customFields: [],
-      index: 2,
-      isExpand: false,
-      id: 'third',
-    },
+    // {
+    //   resource: '1',
+    //   action: '行动111',
+    //   data: '数据111',
+    //   result: '结果111',
+    //   attachments: [],
+    //   customFields: [],
+    //   index: 0,
+    //   isExpand: true,
+    //   id: 'one',
+    // },
+    // {
+    //   resource: '2',
+    //   action: '行动2',
+    //   data: '数据222',
+    //   result: '结果222',
+    //   attachments: [],
+    //   customFields: [],
+    //   index: 1,
+    //   isExpand: false,
+    //   id: 'two',
+    // },
+    // {
+    //   resource: '3',
+    //   action: '行动2333',
+    //   data: '数据33',
+    //   result: '结果3333',
+    //   attachments: [],
+    //   customFields: [],
+    //   index: 2,
+    //   isExpand: false,
+    //   id: 'third',
+    // },
   ]);
+
+  const [loading, setLoading] = useState<boolean>(true);
   // console.log('刷新了');
+
+  useEffect(() => {
+    fetchTestExecution('WDDKjgIg8G')
+      .then(({ data }) => {
+        // console.log('rerere', data);
+        setSteps(data);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, []);
 
   const findCard = useCallback(
     (id: string) => {
@@ -162,7 +204,8 @@ const Detail: React.FC = () => {
       setSteps(
         steps.filter(item => {
           if (item.id === id) {
-            return { ...item, isExpand: isExpand === undefined ? false : isExpand };
+            item.isExpand = isExpand === undefined ? false : isExpand;
+            return item;
           }
           if (item.id !== '-1') {
             return item;
@@ -185,16 +228,34 @@ const Detail: React.FC = () => {
 
   const deleteCard = useCallback(
     (id: string) => {
-      const { index } = findCard(id);
-      const stepsbak = [...steps];
-      stepsbak.splice(index, 1);
-      setSteps(stepsbak);
+      if (id === '-1') {
+        const { index } = findCard(id);
+        const stepsbak = [...steps];
+        stepsbak.splice(index, 1);
+        setSteps(stepsbak);
+        return;
+      }
+      deleteTestExecution(id)
+        .then(() => {
+          message.success('删除成功');
+          const { index } = findCard(id);
+          const stepsbak = [...steps];
+          stepsbak.splice(index, 1);
+          setSteps(stepsbak);
+        })
+        .catch(err => {
+          message.warning(`删除失败，原因：${err}`);
+        });
     },
     [steps, setSteps, findCard],
   );
 
   const addCard = useCallback(
     (id?: string) => {
+      const hasEmptyIdStep = steps.some(item => item.id === '-1');
+      if (hasEmptyIdStep) {
+        return message.warning('含有未保存的新步骤');
+      }
       const emptyStep: TestStep = {
         resource: '-1',
         action: '',
@@ -207,14 +268,13 @@ const Detail: React.FC = () => {
         isEdit: true,
         id: '-1',
       };
+      const stepsbak = [...steps].filter(item => item.id !== '-1');
       if (!id) {
-        const stepsbak = [...steps];
         stepsbak.splice(0, 0, { ...emptyStep });
         setSteps(stepsbak);
         return;
       }
       const { index } = findCard(id);
-      const stepsbak = [...steps];
       stepsbak.splice(index, 0, { ...emptyStep, index });
       setSteps(stepsbak);
     },
@@ -236,6 +296,14 @@ const Detail: React.FC = () => {
     addCard,
     saveCard,
   };
+
+  if (loading) {
+    return (
+      <div className={css('detail')}>
+        <Spin tip="加载中..."></Spin>
+      </div>
+    );
+  }
 
   return (
     <div className={css('detail')}>
