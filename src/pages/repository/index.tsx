@@ -27,7 +27,8 @@ const TestRepository = () => {
 
   const { run: fetchItems, loading: itemLoading } = useRequest(getItemByIds, {
     manual: true,
-    cacheKey: `itemIds${state.itemIds.toString()}`,
+    staleTime: 5000,
+    cacheKey: state.itemIds.toString(),
     onSuccess(data) {
       state.items = data;
     },

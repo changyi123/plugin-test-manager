@@ -1958,6 +1958,13 @@
   dependencies:
     "@types/node" "*"
 
+"@types/immutability-helper@^2.6.3":
+  version "2.6.3"
+  resolved "https://registry.yarnpkg.com/@types/immutability-helper/-/immutability-helper-2.6.3.tgz#9c864d84dabf45176904ececce439257cefdbc3c"
+  integrity sha512-WKddkNbFonQIwbplhRQuBFBVgMM7yqpfaYTlxeN6oubEU+q0TCQJx7LZvKaFXHQzP7KnPpzhCVjfYGLfBB2nzQ==
+  dependencies:
+    immutability-helper "*"
+
 "@types/js-cookie@^2.2.6":
   version "2.2.7"
   resolved "https://registry.yarnpkg.com/@types/js-cookie/-/js-cookie-2.2.7.tgz#226a9e31680835a6188e887f3988e60c04d3f6a3"
@@ -2004,6 +2011,20 @@
   version "1.5.5"
   resolved "https://registry.nlark.com/@types/q/download/@types/q-1.5.5.tgz?cache=0&sync_timestamp=1629708761534&other_urls=https%3A%2F%2Fregistry.nlark.com%2F%40types%2Fq%2Fdownload%2F%40types%2Fq-1.5.5.tgz"
   integrity sha1-daKo59irSyMEFFBdkjNdHctTpt8=
+
+"@types/react-dnd-html5-backend@^3.0.2":
+  version "3.0.2"
+  resolved "https://registry.yarnpkg.com/@types/react-dnd-html5-backend/-/react-dnd-html5-backend-3.0.2.tgz#f3cc8307cb9563a2896cb9fb48a09660a0e209c9"
+  integrity sha512-sLKCHGGoXrxbx3QX9Jerg51dRjeUKD+c+HL59ZTkut5GevxJFC8PxsVpcoMchBRd9X+GUyrsaBSXGteWCpMISw==
+  dependencies:
+    react-dnd-html5-backend "*"
+
+"@types/react-dnd@^3.0.2":
+  version "3.0.2"
+  resolved "https://registry.yarnpkg.com/@types/react-dnd/-/react-dnd-3.0.2.tgz#939e5a8ca5b83f847c3f64dabbe2f49a9fefb192"
+  integrity sha512-Z1BqHYGFtfSPfWs+kgX4b6wQmwwtqq4/pLo4zdO9xcDUB1ZQP8iWTAYNf3EJ2f0WiVQpSLN8UytP+ILzZHDLYw==
+  dependencies:
+    react-dnd "*"
 
 "@types/react-dom@^17.0.9":
   version "17.0.9"
@@ -4526,7 +4547,7 @@ immer@^9.0.5:
   resolved "https://registry.nlark.com/immer/download/immer-9.0.5.tgz"
   integrity "sha1-pxVPNP5wZPFfAFVMyUxmzAv0U+w= sha512-2WuIehr2y4lmYz9gaQzetPR2ECniCifk4ORaQbU3g5EalLt+0IVTosEPJ5BoYl/75ky2mivzdRzV8wWgQGOSYQ=="
 
-immutability-helper@^3.1.1:
+immutability-helper@*, immutability-helper@^3.1.1:
   version "3.1.1"
   resolved "https://registry.npmmirror.com/immutability-helper/download/immutability-helper-3.1.1.tgz#2b86b2286ed3b1241c9e23b7b21e0444f52f77b7"
   integrity sha1-K4ayKG7TsSQcniO3sh4ERPUvd7c=
@@ -6459,14 +6480,14 @@ react-abstract-quick-edit@^0.0.7:
     classnames "^2.2.6"
     lodash.mapvalues "^4.6.0"
 
-react-dnd-html5-backend@^14.0.2:
+react-dnd-html5-backend@*, react-dnd-html5-backend@^14.0.2:
   version "14.0.2"
   resolved "https://registry.npmmirror.com/react-dnd-html5-backend/download/react-dnd-html5-backend-14.0.2.tgz#25019388f6abdeeda3a6fea835dff155abb2085c"
   integrity sha1-JQGTiPar3u2jpv6oNd/xVauyCFw=
   dependencies:
     dnd-core "14.0.1"
 
-react-dnd@^14.0.4:
+react-dnd@*, react-dnd@^14.0.4:
   version "14.0.4"
   resolved "https://registry.npmmirror.com/react-dnd/download/react-dnd-14.0.4.tgz#ffb4ea0e2a3a5532f9c6294d565742008a52b8b0"
   integrity sha1-/7TqDio6VTL5xilNVldCAIpSuLA=

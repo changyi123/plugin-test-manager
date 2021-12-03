@@ -8,28 +8,27 @@ export enum MenuKey {
   renameFolder = 'renameFolder',
   deleteFolder = 'deleteFolder',
   expandFolder = 'expandFolder',
-  createTestCase = 'createTestCase',
-  createTestSet = 'createTestSet',
+  createTest = 'createTest',
 
   viewTestCase = 'viewTestCase',
   addTestCaseToTestSet = 'addTestCaseToTestSet',
   addTestCaseToTestPlan = 'addTestCaseToTestPlan',
   addTestCaseToTestExecution = 'addTestCaseToTestExecution',
-  createTestCaseWithTestSet = 'createTestCaseWithTestSet',
-  createTestCaseWithTestPlan = 'createTestCaseWithTestPlan',
-  createTestCaseWithTestExecution = 'createTestCaseWithTestExecution',
+  createTestWithTestSet = 'createTestWithTestSet',
+  createTestWithTestPlan = 'createTestWithTestPlan',
+  createTestWithTestExecution = 'createTestWithTestExecution',
 }
 const FolderTreeMenus = [
   {
-    title: '创建目录',
+    title: '创建模块',
     key: MenuKey.createFolder,
   },
   {
-    title: '重命名目录',
+    title: '重命名模块',
     key: MenuKey.renameFolder,
   },
   {
-    title: '删除目录',
+    title: '删除模块',
     key: MenuKey.deleteFolder,
   },
   { key: 'Divider' },
@@ -40,11 +39,7 @@ const FolderTreeMenus = [
   { key: 'Divider' },
   {
     title: '创建测试用例',
-    key: MenuKey.createTestCase,
-  },
-  {
-    title: '创建测试集合',
-    key: MenuKey.createTestSet,
+    key: MenuKey.createTest,
   },
 ];
 
@@ -54,13 +49,13 @@ const TestCaseMenus = [
     key: MenuKey.viewTestCase,
   },
   { key: 'Divider' },
-  { title: '创建测试集合包含测试用例', key: MenuKey.createTestCaseWithTestSet },
+  { title: '创建测试集合包含测试用例', key: MenuKey.createTestWithTestSet },
   { title: '添加测试用例至测试集合', key: MenuKey.addTestCaseToTestSet },
   { key: 'Divider' },
-  { title: '创建测试计划包含测试用例', key: MenuKey.createTestCaseWithTestPlan },
+  { title: '创建测试计划包含测试用例', key: MenuKey.createTestWithTestPlan },
   { title: '添加测试用例至测试计划', key: MenuKey.addTestCaseToTestPlan },
   { key: 'Divider' },
-  { title: '创建测试执行包含测试用例', key: MenuKey.createTestCaseWithTestExecution },
+  { title: '创建测试执行包含测试用例', key: MenuKey.createTestWithTestExecution },
   { title: '添加测试用例至测试执行', key: MenuKey.addTestCaseToTestExecution },
 ];
 

@@ -38,11 +38,11 @@ const TestCase: React.FC<TestCaseProps> = ({
 
   return (
     <div
-      className={cx('test-case')}
       {...getDragProps({
         itemId,
         selectedFolderKey,
       })}
+      className={cx('test-case')}
       onContextMenu={handleContextMenu}
     >
       <div className={cx('row')}>
