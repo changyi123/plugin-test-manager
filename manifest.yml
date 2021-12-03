@@ -3,10 +3,10 @@ app:
   name: test-manager
 modules:
   trigger:
-    - key: test-manager-initial-script
-      events:
-        - proxima:app:install
-      function: test-manager-initial-script
+    # - key: test-manager-initial-script
+    #   events:
+    #     - proxima:app:install
+    #   function: test-manager-initial-script
   function:
       - key: test-manager-initial-script
       handler: /trigger/initialScript.js
@@ -40,34 +40,30 @@ tables:
         targetClass: Workspace
       itemTypeMap:
         type: Object
-  - className: TestStep
+  - className: Test
     fields:
-      resource:
+      reference:
+        type: Pointer
+        targetClass: Item
+      workspace:
         type: String
-      action:
+        targetClass: Workspace
+      type:
         type: String
-      data:
-        type: String
-      result:
-        type: String
-      expectedResult:
-        type: String
-      attachments:
+      test:
         type: Array
-      customFileds:
+      precondition:
+        type: Array
+      testSet:
+        type: Array
+      testPlan:
+        type: Array
+      testExecution:
+        type: Array
+      steps:
+        type: Array
+      extra:
         type: Object
-      index:
-        type: Number
-      actualResult:
-        type: String
-      status:
-        type: Number
-      comment:
-        type: String
-      defects:
-        type: Array
-      evidence:
-        type: Array
   - className: Activity
     fields:
       resource:

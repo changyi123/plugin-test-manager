@@ -25,7 +25,7 @@ export const traverseTreeNodes = (nodes: TreeNode[], cb?: (node: TreeNode) => Tr
 /**
  * 获取树节点
  */
-const getTreeNodeByKey = (nodes: TreeNode[], key) => {
+export const getTreeNodeByKey = (nodes: TreeNode[], key) => {
   let result = null;
   traverseTreeNodes(nodes, node => {
     if (node.key === key) {
@@ -38,7 +38,7 @@ const getTreeNodeByKey = (nodes: TreeNode[], key) => {
 /**
  * 逆向遍历树节点
  */
-const reverseTreeNodes = (
+export const reverseTreeNodes = (
   nodes: TreeNode[],
   currentNode: TreeNode,
   cb: (node: TreeNode) => void,

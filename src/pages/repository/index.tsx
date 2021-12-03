@@ -3,7 +3,8 @@ import FolderTree from '@/components/repository/FolderTree';
 import TestCase from '@/components/repository/TestCase';
 import ConfigProvider from '@/components/common/ConfigProvider';
 
-import { getItemByIds, getFolderTree } from '@/lib/api/repository';
+import { getFolderTree } from '@/lib/api/repository';
+import { getItemByIds } from '@/lib/api/common';
 import Split from '@uiw/react-split';
 
 import { hasArrayItem } from '@/lib/utils/helper';
