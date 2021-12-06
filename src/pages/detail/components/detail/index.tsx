@@ -13,7 +13,9 @@ import { DndProvider, useDrop } from 'react-dnd';
 import Breadcrumb from './components/Breadcrumb';
 import StepItem from './components/List';
 import update from 'immutability-helper';
-import { fetchTestSteps, deleteTestExecution, saveOrUpdateTestStep } from '@/lib/api/detail';
+import { fetchTestSteps, saveOrUpdateTestStep } from '@/lib/api/detail';
+
+import UploadFile from '@/components/common/UploadFile';
 
 import css from './index.less';
 
@@ -35,16 +37,21 @@ export interface TestStep {
   objectId?: string;
 }
 
+export interface TestInfor {
+  objectId?: string;
+  resource?: string;
+}
+
 export type IExpandCard = (id?: string, isExpand?: boolean) => void;
 
 export interface IActionCard {
-  moveCard: (id: string, atIndex: number) => void;
+  moveCard: (id: string, atIndex: number, saveSteps?: boolean) => void;
   expandCard: IExpandCard;
   findCard: (id: string) => { index: number };
   cloneCard: (id: string) => void;
   deleteCard: (id: string) => void;
   addCard: (id?: string) => void;
-  saveCard: (index: number, step: TestStep) => void;
+  saveCard: (index?: number, step?: TestStep) => void;
 }
 
 const StepList: React.FC<{
@@ -123,20 +130,26 @@ const Detail: React.FC = () => {
     //   id: 'one',
     // },
   ]);
+  const [testInfo, setTestInfo] = useState<TestInfor>({});
+  const currentObjectId = 'YBkC6luOfw';
 
   const [loading, setLoading] = useState<boolean>(true);
-  // console.log('刷新了');
 
-  useEffect(() => {
-    fetchTestSteps('YBkC6luOfw')
+  const fetchData = useCallback(() => {
+    setLoading(true);
+    fetchTestSteps(currentObjectId)
       .then(({ data }) => {
-        // console.log('rerere', data);
-        setSteps(data);
+        setSteps(data?.steps || []);
+        setTestInfo(data);
       })
       .finally(() => {
         setLoading(false);
       });
   }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const findCard = useCallback(
     (id: string) => {
@@ -151,8 +164,7 @@ const Detail: React.FC = () => {
   );
 
   const moveCard = useCallback(
-    (id: string, atIndex: number) => {
-      // console.log('执行了moveCARD', id, atIndex);
+    (id: string, atIndex: number, saveSteps?: boolean) => {
       const { step, index } = findCard(id);
       const newSteps = update(steps, {
         $splice: [
@@ -160,12 +172,16 @@ const Detail: React.FC = () => {
           [atIndex, 0, step],
         ],
       });
-      saveOrUpdateTestStep(newSteps).then(() => {
-        message.success('操作成功');
-        setSteps(newSteps);
-      });
+      if (saveSteps) {
+        saveOrUpdateTestStep(newSteps, testInfo?.objectId, currentObjectId).then(() => {
+          message.success('操作成功');
+          setSteps(newSteps);
+        });
+        return;
+      }
+      setSteps(newSteps);
     },
-    [findCard, steps, setSteps],
+    [findCard, steps, setSteps, testInfo?.objectId],
   );
 
   const expandCard = useCallback(
@@ -201,9 +217,12 @@ const Detail: React.FC = () => {
       const { step, index } = findCard(id);
       const stepsbak = [...steps];
       stepsbak.splice(index, 0, { ...step, id: `${step.id}1` });
-      setSteps(stepsbak);
+      saveOrUpdateTestStep(stepsbak, testInfo?.objectId, currentObjectId).then(() => {
+        message.success('操作成功');
+        fetchData();
+      });
     },
-    [steps, setSteps, findCard],
+    [steps, findCard, testInfo, fetchData],
   );
 
   const deleteCard = useCallback(
@@ -215,19 +234,19 @@ const Detail: React.FC = () => {
         setSteps(stepsbak);
         return;
       }
-      deleteTestExecution(id)
+      const { index } = findCard(id);
+      const stepsbak = [...steps];
+      stepsbak.splice(index, 1);
+      saveOrUpdateTestStep(stepsbak, testInfo?.objectId, currentObjectId)
         .then(() => {
-          message.success('删除成功');
-          const { index } = findCard(id);
-          const stepsbak = [...steps];
-          stepsbak.splice(index, 1);
+          message.success('操作成功');
           setSteps(stepsbak);
         })
         .catch(err => {
           message.warning(`删除失败，原因：${err}`);
         });
     },
-    [steps, setSteps, findCard],
+    [steps, setSteps, findCard, testInfo?.objectId],
   );
 
   const addCard = useCallback(
@@ -260,13 +279,15 @@ const Detail: React.FC = () => {
     [steps, setSteps, findCard],
   );
 
-  const saveCard = (index: number, step: TestStep) => {
+  const saveCard = (index?: number, step?: TestStep) => {
     const stepsbak = [...steps];
-    step.isEdit = false;
-    stepsbak[index] = step;
-    saveOrUpdateTestStep(stepsbak).then(() => {
+    if (step) {
+      step.isEdit = false;
+      stepsbak[index] = step;
+    }
+    saveOrUpdateTestStep(stepsbak, testInfo?.objectId, currentObjectId).then(() => {
       message.success('操作成功');
-      setSteps(stepsbak);
+      fetchData();
     });
   };
 
@@ -293,6 +314,7 @@ const Detail: React.FC = () => {
       <div className={css('detail__breadcrumb')}>
         <Breadcrumb />
       </div>
+      <UploadFile />
       <div className={css('detail__content')}>
         <div className={css('detail__content__header')}>
           <div className={css('left')}>

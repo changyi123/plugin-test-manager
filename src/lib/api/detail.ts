@@ -1,4 +1,4 @@
-import { TestExecution, TestStep } from '../models';
+import { TestExecution, Test, Item } from '../models';
 import Parse from '@/lib/parse';
 import { TestStep as ITestStep } from '@/pages/detail/components/detail';
 
@@ -105,23 +105,20 @@ export const deleteTestExecution = (id: string): Promise<ICommonRes> => {
 
 export const fetchTestSteps = (resource: string): Promise<ICommonRes> => {
   return new Promise((resolve, reject) => {
-    const query = new Parse.Query(TestStep);
-    query.equalTo('objectId', resource);
-    query.find().then(
+    const query = new Parse.Query(Test);
+    const reference = Item.createWithoutData(resource);
+    query.equalTo('reference', reference);
+    query.first().then(
       res => {
-        const stepsArray = [];
-        res.forEach(item => {
-          const obj = item.toJSON();
-          obj?.steps?.forEach((item2, index2) => {
-            item2.id = `${obj.objectId}_${index2}`;
-            item2.objectId = `${obj.objectId}_${index2}`;
-            item2.isEdit = false;
-            stepsArray.push(item2);
-          });
+        const step = res?.toJSON();
+        step?.steps?.forEach((item, index) => {
+          item.id = `${step.objectId}_${index}`;
+          item.objectId = `${step.objectId}_${index}`;
+          item.isEdit = false;
         });
         resolve({
           success: true,
-          data: stepsArray,
+          data: step,
         });
       },
       err => {
@@ -137,14 +134,19 @@ export const fetchTestSteps = (resource: string): Promise<ICommonRes> => {
 
 export const saveOrUpdateTestStep = (
   testSteps: Array<ITestStep>,
-  resource?: string,
-  id?: string,
+  testStepId?: string,
+  resource?: string, // 关联测试用例Id
 ): Promise<ICommonRes> => {
   return new Promise((resolve, reject) => {
-    const step = TestStep.createWithoutData(id || 'YBkC6luOfw');
+    const step = Test.createWithoutData(testStepId);
+    const reference = Item.createWithoutData(resource);
+    testSteps.forEach((item, index) => {
+      item.id = `${resource}_${index}`;
+      item.objectId = `${resource}_${index}`;
+    });
     step.set({
       steps: testSteps,
-      resource: resource || 'WDDKjgIg8G',
+      reference,
     });
     step.save().then(
       res => {

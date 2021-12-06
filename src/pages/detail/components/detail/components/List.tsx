@@ -66,7 +66,9 @@ const List: React.FC<ListProps> = (props: ListProps) => {
   const [, drop] = useDrop(
     () => ({
       accept: 'card',
-      canDrop: () => false,
+      drop: () => {
+        saveCard();
+      },
       hover({ id: draggedId }: TestStep) {
         // console.log('执行了useDrop', draggedId, item.id);
         if (draggedId !== item.id) {
@@ -82,7 +84,7 @@ const List: React.FC<ListProps> = (props: ListProps) => {
     const [num, setNum] = useState<number>(0);
 
     function handleMoveItem() {
-      moveCard(item.id, num);
+      moveCard(item.id, +num - 1, true);
     }
 
     return (
@@ -193,7 +195,7 @@ const List: React.FC<ListProps> = (props: ListProps) => {
                     }
                   />
                 ) : (
-                  action
+                  action || '暂无内容'
                 )}
               </div>
             </div>
@@ -219,7 +221,7 @@ const List: React.FC<ListProps> = (props: ListProps) => {
                     }
                   />
                 ) : (
-                  data
+                  data || '暂无内容'
                 )}
               </div>
             </div>
@@ -245,7 +247,7 @@ const List: React.FC<ListProps> = (props: ListProps) => {
                     }
                   />
                 ) : (
-                  result
+                  result || '暂无内容'
                 )}
               </div>
             </div>
@@ -268,64 +270,65 @@ const List: React.FC<ListProps> = (props: ListProps) => {
           </div>
         )}
 
-        {isExpand ? (
-          <div className={css('tools')}>
-            <div className={css('tools__item')}>
-              <Tooltip placement="left" title={stepTools[IStepToolsKey.CLOSE].label}>
-                <Button
-                  shape="circle"
-                  icon={stepTools[IStepToolsKey.CLOSE].icon}
-                  onClick={() => expandItemCard(false)}
+        {!editState &&
+          (isExpand ? (
+            <div className={css('tools')}>
+              <div className={css('tools__item')}>
+                <Tooltip placement="left" title={stepTools[IStepToolsKey.CLOSE].label}>
+                  <Button
+                    shape="circle"
+                    icon={stepTools[IStepToolsKey.CLOSE].icon}
+                    onClick={() => expandItemCard(false)}
+                  />
+                </Tooltip>
+              </div>
+              <div className={css('tools__item')}>
+                <StepItemCopy
+                  trigger={<Button shape="circle" icon={stepTools[IStepToolsKey.COPY].icon} />}
+                ></StepItemCopy>
+              </div>
+              <div className={css('tools__item')}>
+                <StepItemMove
+                  trigger={<Button shape="circle" icon={stepTools[IStepToolsKey.MOVE].icon} />}
                 />
-              </Tooltip>
+              </div>
+              <div className={css('tools__item')}>
+                <StepItemDelete
+                  trigger={<Button shape="circle" icon={stepTools[IStepToolsKey.DELETE].icon} />}
+                />
+              </div>
             </div>
-            <div className={css('tools__item')}>
-              <StepItemCopy
-                trigger={<Button shape="circle" icon={stepTools[IStepToolsKey.COPY].icon} />}
-              ></StepItemCopy>
+          ) : (
+            <div className={css('tools')}>
+              <div className={[css('tools__item'), css('tools__expand')].join(' ')}>
+                <Dropdown
+                  overlay={
+                    <Menu>
+                      <Menu.Item
+                        key="1"
+                        icon={stepTools[IStepToolsKey.OPEN].icon}
+                        onClick={() => expandItemCard(true)}
+                      >
+                        {stepTools[IStepToolsKey.OPEN].label}
+                      </Menu.Item>
+                      <Menu.Item key="2" icon={stepTools[IStepToolsKey.COPY].icon}>
+                        <StepItemCopy text={stepTools[IStepToolsKey.COPY].label} />
+                      </Menu.Item>
+                      <Menu.Item key="3" icon={stepTools[IStepToolsKey.MOVE].icon}>
+                        <StepItemMove text={stepTools[IStepToolsKey.MOVE].label} />
+                      </Menu.Item>
+                      <Menu.Item key="4" icon={stepTools[IStepToolsKey.DELETE].icon}>
+                        <StepItemDelete text={stepTools[IStepToolsKey.DELETE].label} />
+                      </Menu.Item>
+                    </Menu>
+                  }
+                  placement="bottomCenter"
+                >
+                  <Button icon={<EllipsisOutlined />}></Button>
+                </Dropdown>
+              </div>
             </div>
-            <div className={css('tools__item')}>
-              <StepItemMove
-                trigger={<Button shape="circle" icon={stepTools[IStepToolsKey.MOVE].icon} />}
-              />
-            </div>
-            <div className={css('tools__item')}>
-              <StepItemDelete
-                trigger={<Button shape="circle" icon={stepTools[IStepToolsKey.DELETE].icon} />}
-              />
-            </div>
-          </div>
-        ) : (
-          <div className={css('tools')}>
-            <div className={[css('tools__item'), css('tools__expand')].join(' ')}>
-              <Dropdown
-                overlay={
-                  <Menu>
-                    <Menu.Item
-                      key="1"
-                      icon={stepTools[IStepToolsKey.OPEN].icon}
-                      onClick={() => expandItemCard(true)}
-                    >
-                      {stepTools[IStepToolsKey.OPEN].label}
-                    </Menu.Item>
-                    <Menu.Item key="2" icon={stepTools[IStepToolsKey.COPY].icon}>
-                      <StepItemCopy text={stepTools[IStepToolsKey.COPY].label} />
-                    </Menu.Item>
-                    <Menu.Item key="3" icon={stepTools[IStepToolsKey.MOVE].icon}>
-                      <StepItemMove text={stepTools[IStepToolsKey.MOVE].label} />
-                    </Menu.Item>
-                    <Menu.Item key="4" icon={stepTools[IStepToolsKey.DELETE].icon}>
-                      <StepItemDelete text={stepTools[IStepToolsKey.DELETE].label} />
-                    </Menu.Item>
-                  </Menu>
-                }
-                placement="bottomCenter"
-              >
-                <Button icon={<EllipsisOutlined />}></Button>
-              </Dropdown>
-            </div>
-          </div>
-        )}
+          ))}
       </div>
       {isExpand && editState && (
         <div className={css('detail-footer')}>
@@ -345,6 +348,7 @@ const List: React.FC<ListProps> = (props: ListProps) => {
                 deleteCard(item.id);
                 return;
               }
+              setItemBak(item);
               toggleEditState(false);
             }}
           >

@@ -9,3 +9,4 @@ export const Repository = Parse.Object.extend(`${appKey}_Repository`);
 export const TestConfig = Parse.Object.extend(`${appKey}_TestConfig`);
 export const TestExecution = Parse.Object.extend(`${appKey}_TestExecution`);
 export const TestStep = Parse.Object.extend(`${appKey}_TestStep`);
+export const Test = Parse.Object.extend(`${appKey}_Test`);

@@ -2,14 +2,14 @@ app:
   uuid: bf73e61c-e15a-4461-a1f7-f940c2009332
   name: test-manager
 modules:
-  trigger:
+  # trigger:
     # - key: test-manager-initial-script
     #   events:
     #     - proxima:app:install
     #   function: test-manager-initial-script
   function:
       - key: test-manager-initial-script
-      handler: /trigger/initialScript.js
+        handler: /trigger/initialScript.js
   adminPage:
     - key: micro-adminPage-1
       resource: main
@@ -46,7 +46,7 @@ tables:
         type: Pointer
         targetClass: Item
       workspace:
-        type: String
+        type: Pointer
         targetClass: Workspace
       type:
         type: String
