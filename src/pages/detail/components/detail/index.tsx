@@ -240,13 +240,13 @@ const Detail: React.FC = () => {
       saveOrUpdateTestStep(stepsbak, testInfo?.objectId, currentObjectId)
         .then(() => {
           message.success('操作成功');
-          setSteps(stepsbak);
+          fetchData();
         })
         .catch(err => {
           message.warning(`删除失败，原因：${err}`);
         });
     },
-    [steps, setSteps, findCard, testInfo?.objectId],
+    [steps, setSteps, findCard, testInfo?.objectId, fetchData],
   );
 
   const addCard = useCallback(
