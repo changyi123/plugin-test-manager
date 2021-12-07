@@ -90,7 +90,7 @@ const StepList: React.FC<{
   }
 
   return (
-    <DndProvider backend={HTML5Backend}>
+    <DndProvider backend={HTML5Backend} key={1}>
       <StepDrop steps={steps} actionCard={actionCard} />
     </DndProvider>
   );
@@ -132,7 +132,7 @@ const Detail: React.FC = () => {
     // },
   ]);
   const [testInfo, setTestInfo] = useState<TestInfor>({});
-  const currentObjectId = 'YBkC6luOfw';
+  const currentObjectId = window?.QiankunProps?.itemId || 'YBkC6luOfw';
 
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -146,7 +146,7 @@ const Detail: React.FC = () => {
       .finally(() => {
         setLoading(false);
       });
-  }, []);
+  }, [currentObjectId]);
 
   useEffect(() => {
     fetchData();
@@ -182,7 +182,7 @@ const Detail: React.FC = () => {
       }
       setSteps(newSteps);
     },
-    [findCard, steps, setSteps, testInfo?.objectId],
+    [findCard, steps, setSteps, testInfo?.objectId, currentObjectId],
   );
 
   const expandCard = useCallback(
@@ -223,7 +223,7 @@ const Detail: React.FC = () => {
         fetchData();
       });
     },
-    [steps, findCard, testInfo, fetchData],
+    [steps, findCard, testInfo, fetchData, currentObjectId],
   );
 
   const deleteCard = useCallback(
@@ -247,7 +247,7 @@ const Detail: React.FC = () => {
           message.warning(`删除失败，原因：${err}`);
         });
     },
-    [steps, setSteps, findCard, testInfo?.objectId, fetchData],
+    [steps, setSteps, findCard, testInfo?.objectId, fetchData, currentObjectId],
   );
 
   const addCard = useCallback(
@@ -306,6 +306,19 @@ const Detail: React.FC = () => {
     saveCard,
     openCallTestModal,
   };
+
+  if (!currentObjectId) {
+    return (
+      <div className={css('detail')}>
+        <div>获取不了事项Id</div>
+        <div>
+          <Button type="primary" onClick={() => window?.QiankunProps?.onRefreshContext()}>
+            重新加载
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
