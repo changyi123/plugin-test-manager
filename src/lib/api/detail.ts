@@ -1,14 +1,6 @@
-import { TestExecution } from '../models';
+import { TestExecution, Test, Item } from '../models';
 import Parse from '@/lib/parse';
-
-interface PostAddTestExecutionReq {
-  action: string;
-  data: string;
-  result: string;
-  resource: string;
-  id?: string;
-  objectId?: string;
-}
+import { TestStep as ITestStep } from '@/pages/detail/components/detail';
 
 interface ICommonRes {
   success: boolean;
@@ -16,7 +8,7 @@ interface ICommonRes {
   data?: any;
 }
 
-export const PostAddTestExecution = (req: PostAddTestExecutionReq): Promise<ICommonRes> => {
+export const PostAddTestExecution = (req: ITestStep): Promise<ICommonRes> => {
   return new Promise((resolve, reject) => {
     const query = new TestExecution();
     query.save(req).then(
@@ -37,7 +29,7 @@ export const PostAddTestExecution = (req: PostAddTestExecutionReq): Promise<ICom
   });
 };
 
-export const PostEditTestExecution = (req: PostAddTestExecutionReq): Promise<ICommonRes> => {
+export const PostEditTestExecution = (req: ITestStep): Promise<ICommonRes> => {
   return new Promise((resolve, reject) => {
     const { objectId, action, data, result } = req;
     const execution = TestExecution.createWithoutData(objectId);
@@ -108,5 +100,68 @@ export const deleteTestExecution = (id: string): Promise<ICommonRes> => {
           });
         },
       );
+  });
+};
+
+export const fetchTestSteps = (resource: string): Promise<ICommonRes> => {
+  return new Promise((resolve, reject) => {
+    const query = new Parse.Query(Test);
+    const reference = Item.createWithoutData(resource);
+    query.equalTo('reference', reference);
+    query.first().then(
+      res => {
+        const step = res?.toJSON();
+        step?.steps?.forEach((item, index) => {
+          item.id = `${step.objectId}_${index}`;
+          item.objectId = `${step.objectId}_${index}`;
+          item.isEdit = false;
+        });
+        resolve({
+          success: true,
+          data: step,
+        });
+      },
+      err => {
+        reject({
+          success: false,
+          data: { ...err },
+          msg: err,
+        });
+      },
+    );
+  });
+};
+
+export const saveOrUpdateTestStep = (
+  testSteps: Array<ITestStep>,
+  testStepId?: string,
+  resource?: string, // 关联测试用例Id
+): Promise<ICommonRes> => {
+  return new Promise((resolve, reject) => {
+    const step = Test.createWithoutData(testStepId);
+    const reference = Item.createWithoutData(resource);
+    testSteps.forEach((item, index) => {
+      item.id = `${resource}_${index}`;
+      item.objectId = `${resource}_${index}`;
+    });
+    step.set({
+      steps: testSteps,
+      reference,
+    });
+    step.save().then(
+      res => {
+        resolve({
+          success: true,
+          data: { ...res },
+        });
+      },
+      err => {
+        reject({
+          success: false,
+          data: { ...err },
+          msg: err,
+        });
+      },
+    );
   });
 };

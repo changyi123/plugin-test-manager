@@ -13,7 +13,9 @@ import { DndProvider, useDrop } from 'react-dnd';
 import Breadcrumb from './components/Breadcrumb';
 import StepItem from './components/List';
 import update from 'immutability-helper';
-import { fetchTestExecution, deleteTestExecution } from '@/lib/api/detail';
+import { fetchTestSteps, saveOrUpdateTestStep } from '@/lib/api/detail';
+
+import UploadFile from '@/components/common/UploadFile';
 
 import css from './index.less';
 
@@ -22,29 +24,34 @@ export interface fields {
   value: string;
 }
 export interface TestStep {
-  resource: string;
-  action: string;
-  data: string;
-  result: string;
-  attachments: Array<string>;
-  customFields: Array<fields>;
-  index: number;
+  action?: string;
+  data?: string;
+  result?: string;
+  attachments?: Array<string>;
+  customFields?: Array<fields>;
+  index?: number;
   callTestIssueId?: string;
-  isExpand: boolean;
+  isExpand?: boolean;
   isEdit?: boolean;
   id?: string;
+  objectId?: string;
+}
+
+export interface TestInfor {
+  objectId?: string;
+  resource?: string;
 }
 
 export type IExpandCard = (id?: string, isExpand?: boolean) => void;
 
 export interface IActionCard {
-  moveCard: (id: string, atIndex: number) => void;
+  moveCard: (id: string, atIndex: number, saveSteps?: boolean) => void;
   expandCard: IExpandCard;
   findCard: (id: string) => { index: number };
   cloneCard: (id: string) => void;
   deleteCard: (id: string) => void;
   addCard: (id?: string) => void;
-  saveCard: (index: number, step: TestStep) => void;
+  saveCard: (index?: number, step?: TestStep) => void;
 }
 
 const StepList: React.FC<{
@@ -122,43 +129,27 @@ const Detail: React.FC = () => {
     //   isExpand: true,
     //   id: 'one',
     // },
-    // {
-    //   resource: '2',
-    //   action: '行动2',
-    //   data: '数据222',
-    //   result: '结果222',
-    //   attachments: [],
-    //   customFields: [],
-    //   index: 1,
-    //   isExpand: false,
-    //   id: 'two',
-    // },
-    // {
-    //   resource: '3',
-    //   action: '行动2333',
-    //   data: '数据33',
-    //   result: '结果3333',
-    //   attachments: [],
-    //   customFields: [],
-    //   index: 2,
-    //   isExpand: false,
-    //   id: 'third',
-    // },
   ]);
+  const [testInfo, setTestInfo] = useState<TestInfor>({});
+  const currentObjectId = 'YBkC6luOfw';
 
   const [loading, setLoading] = useState<boolean>(true);
-  // console.log('刷新了');
 
-  useEffect(() => {
-    fetchTestExecution('WDDKjgIg8G')
+  const fetchData = useCallback(() => {
+    setLoading(true);
+    fetchTestSteps(currentObjectId)
       .then(({ data }) => {
-        // console.log('rerere', data);
-        setSteps(data);
+        setSteps(data?.steps || []);
+        setTestInfo(data);
       })
       .finally(() => {
         setLoading(false);
       });
   }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const findCard = useCallback(
     (id: string) => {
@@ -173,19 +164,24 @@ const Detail: React.FC = () => {
   );
 
   const moveCard = useCallback(
-    (id: string, atIndex: number) => {
-      // console.log('执行了moveCARD', id, atIndex);
+    (id: string, atIndex: number, saveSteps?: boolean) => {
       const { step, index } = findCard(id);
-      setSteps(
-        update(steps, {
-          $splice: [
-            [index, 1],
-            [atIndex, 0, step],
-          ],
-        }),
-      );
+      const newSteps = update(steps, {
+        $splice: [
+          [index, 1],
+          [atIndex, 0, step],
+        ],
+      });
+      if (saveSteps) {
+        saveOrUpdateTestStep(newSteps, testInfo?.objectId, currentObjectId).then(() => {
+          message.success('操作成功');
+          setSteps(newSteps);
+        });
+        return;
+      }
+      setSteps(newSteps);
     },
-    [findCard, steps, setSteps],
+    [findCard, steps, setSteps, testInfo?.objectId],
   );
 
   const expandCard = useCallback(
@@ -221,9 +217,12 @@ const Detail: React.FC = () => {
       const { step, index } = findCard(id);
       const stepsbak = [...steps];
       stepsbak.splice(index, 0, { ...step, id: `${step.id}1` });
-      setSteps(stepsbak);
+      saveOrUpdateTestStep(stepsbak, testInfo?.objectId, currentObjectId).then(() => {
+        message.success('操作成功');
+        fetchData();
+      });
     },
-    [steps, setSteps, findCard],
+    [steps, findCard, testInfo, fetchData],
   );
 
   const deleteCard = useCallback(
@@ -235,19 +234,19 @@ const Detail: React.FC = () => {
         setSteps(stepsbak);
         return;
       }
-      deleteTestExecution(id)
+      const { index } = findCard(id);
+      const stepsbak = [...steps];
+      stepsbak.splice(index, 1);
+      saveOrUpdateTestStep(stepsbak, testInfo?.objectId, currentObjectId)
         .then(() => {
-          message.success('删除成功');
-          const { index } = findCard(id);
-          const stepsbak = [...steps];
-          stepsbak.splice(index, 1);
-          setSteps(stepsbak);
+          message.success('操作成功');
+          fetchData();
         })
         .catch(err => {
           message.warning(`删除失败，原因：${err}`);
         });
     },
-    [steps, setSteps, findCard],
+    [steps, setSteps, findCard, testInfo?.objectId, fetchData],
   );
 
   const addCard = useCallback(
@@ -257,7 +256,6 @@ const Detail: React.FC = () => {
         return message.warning('含有未保存的新步骤');
       }
       const emptyStep: TestStep = {
-        resource: '-1',
         action: '',
         data: '',
         result: '',
@@ -281,10 +279,16 @@ const Detail: React.FC = () => {
     [steps, setSteps, findCard],
   );
 
-  const saveCard = (index: number, step: TestStep) => {
+  const saveCard = (index?: number, step?: TestStep) => {
     const stepsbak = [...steps];
-    stepsbak[index] = step;
-    setSteps(stepsbak);
+    if (step) {
+      step.isEdit = false;
+      stepsbak[index] = step;
+    }
+    saveOrUpdateTestStep(stepsbak, testInfo?.objectId, currentObjectId).then(() => {
+      message.success('操作成功');
+      fetchData();
+    });
   };
 
   const actionCard: IActionCard = {
@@ -310,6 +314,7 @@ const Detail: React.FC = () => {
       <div className={css('detail__breadcrumb')}>
         <Breadcrumb />
       </div>
+      <UploadFile />
       <div className={css('detail__content')}>
         <div className={css('detail__content__header')}>
           <div className={css('left')}>
