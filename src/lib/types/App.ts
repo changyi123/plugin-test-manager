@@ -1,5 +1,3 @@
-import Parse from 'parse';
-
 type FieldId = string;
 type CustomFieldKey = string;
 
@@ -402,12 +400,3 @@ export type RoleType = {
   permissions?: string[];
   boards?: Record<string, string[]>;
 };
-//视图
-export type ViewType =
-  | 'Default'
-  | 'Structure'
-  | 'Kanban'
-  | 'Gantt'
-  | 'StoryMapping'
-  | 'Calendar'
-  | 'Split';

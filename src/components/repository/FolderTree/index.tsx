@@ -6,7 +6,7 @@ import { hasArrayItem, getRootContainer } from '@/lib/utils/helper';
 import { PlusCircleOutlined, MoreOutlined, FullscreenExitOutlined } from '@ant-design/icons';
 import { openFolderMenu, MenuKey, FolderMenuWithDropdown } from '../Menu';
 import { createFolder, updateFolders, deleteFolder } from '@/lib/api/repository';
-import { useConfigContext } from '@/lib/hooks/useConfig';
+import { useTestConfig } from '@/lib/hooks/useContext';
 import { uniq } from 'lodash';
 import { useTreeFn, traverseTreeNodes } from './hook';
 
@@ -98,7 +98,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
   const {
     workspaceId,
     config: { itemTypeMap },
-  } = useConfigContext();
+  } = useTestConfig();
   const [props] = useDrop({
     async onDom(content, e) {
       removeHoveringClassName();
@@ -202,7 +202,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
     [onSelect, state, treeFn],
   );
 
-  // 右键菜单处理函数
+  /** 右键菜单处理函数 */
   const handleMenuClick = React.useCallback(
     async (actionKey: MenuKey, node?: TreeNode) => {
       if (actionKey === MenuKey.createFolder) {
@@ -210,6 +210,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         treeFn.reverseTreeNodes(node, () => {
           hierarchy++;
         });
+        // 模块创建限制 5 个层级
         if (hierarchy >= 5) {
           message.warn('限制5个层级，5个层级以上不能新建子模块');
           return;
@@ -268,6 +269,8 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         });
       } else if (actionKey === MenuKey.expandFolder) {
         expandSubFolder(node.key);
+      } else if (actionKey === MenuKey.createTest) {
+        // TODO: 创建测试用例
       }
 
       const NeedRefreshActionKeys = [MenuKey.createFolder, MenuKey.renameFolder];

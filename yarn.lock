@@ -1779,6 +1779,13 @@
   resolved "https://registry.npmmirror.com/@projectproxima/plugin-sdk/download/@projectproxima/plugin-sdk-0.1.8.tgz"
   integrity sha1-/T1ebDpdKuH79QJ4CTxaf/1ImhA=
 
+"@projectproxima/proxima-sdk-js@^0.4.4":
+  version "0.4.4"
+  resolved "https://registry.yarnpkg.com/@projectproxima/proxima-sdk-js/-/proxima-sdk-js-0.4.4.tgz#0ce9029957e2343e9a3cc2861ee2e62bdf8ec88d"
+  integrity sha512-NkS9gU0OiOT4F46og/b/tQFpb269icG93JVvwGRm9PVGGNX/Uz8lKj3PIKOIK49PwPWTb66Oou9qhM1nF/3M2g==
+  dependencies:
+    react "^17.0.2"
+
 "@react-dnd/asap@^4.0.0":
   version "4.0.0"
   resolved "https://registry.npmmirror.com/@react-dnd/asap/download/@react-dnd/asap-4.0.0.tgz#b300eeed83e9801f51bd66b0337c9a6f04548651"
@@ -2001,6 +2008,13 @@
   version "4.0.0"
   resolved "https://registry.nlark.com/@types/parse-json/download/@types/parse-json-4.0.0.tgz"
   integrity sha1-L4u0QUNNFjs1+4/9zNcTiSf/uMA=
+
+"@types/parse@^2.18.13":
+  version "2.18.13"
+  resolved "https://mirrors.cloud.tencent.com/npm/@types%2fparse/-/parse-2.18.13.tgz#692a1324adf06014ae35c2ce524de9d2f704ecd8"
+  integrity sha512-FtdfzurcGArAEHAraJUfkLz9IDeIIArPzReX4Z810A+RKkwPdNiUrwxbLJZSw0Ya5wu4jixCJR6BdxnFZ7Q6dA==
+  dependencies:
+    "@types/node" "*"
 
 "@types/prop-types@*":
   version "15.7.4"

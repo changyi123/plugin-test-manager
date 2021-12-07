@@ -12,3 +12,5 @@ declare interface Window {
   QiankunProps: any;
 }
 declare let __webpack_public_path__: string;
+
+declare module 'parse';
