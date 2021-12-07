@@ -18,9 +18,12 @@ modules:
       route: /testDetail
   adminPage:
     - key: test-manager-repository
+  workspacePage:
+    - key: test-manager-workspace-page
       resource: main
       title: 测试仓库
       loadType: Micro
+      route: /testRepo
 tables:
   - className: Repository
     fields:
