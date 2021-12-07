@@ -1,4 +1,4 @@
-import { TestExecution, Test, Item } from '../models';
+import { TestExecution, Test, Item, TestConfig, Workspace } from '../models';
 import Parse from '@/lib/parse';
 import { TestStep as ITestStep } from '@/pages/detail/components/detail';
 
@@ -165,3 +165,90 @@ export const saveOrUpdateTestStep = (
     );
   });
 };
+
+export interface TestConfig {
+  test?: string;
+  testPrecondition?: string;
+  testSet?: string;
+  testPlan?: string;
+  testExecution?: string;
+}
+
+export const saveOrUpdateTestConfig = (
+  workspaceId: string,
+  config: TestConfig,
+): Promise<ICommonRes> => {
+  return new Promise((resolve, reject) => {
+    const configQuery = new Parse.Query(TestConfig);
+    const workspace = Workspace.createWithoutData(workspaceId);
+    configQuery.equalTo('workspace', workspace);
+    configQuery.first({
+      success: configObject => {
+        configObject.set('itemTypeMap', config);
+        configObject.save().then(
+          () => {
+            resolve({
+              success: true,
+            });
+          },
+          err => {
+            reject({
+              success: false,
+              msg: err,
+            });
+          },
+        );
+      },
+      error: err => {
+        reject({
+          success: false,
+          msg: err,
+        });
+      },
+    });
+  });
+};
+
+export const fetchTestConfig = (workspaceId: string): Promise<ICommonRes> => {
+  return new Promise((resolve, reject) => {
+    const configQuery = new Parse.Query(TestConfig);
+    const workspace = Workspace.createWithoutData(workspaceId);
+    configQuery.equalTo('workspace', workspace);
+    configQuery.first({
+      success: configObject => {
+        resolve({
+          success: true,
+          data: configObject.toJSON(),
+        });
+      },
+      error: err => {
+        reject({
+          success: false,
+          msg: err,
+        });
+      },
+    });
+  });
+};
+
+// export const fetchItemFromItemType = (itemTypeId: string, itemName?: string): Promise<ICommonRes> => {
+//   return new Promise((resolve, reject) => {
+//     const configQuery = new Parse.Query(TestConfig);
+//     const workspace = Workspace.createWithoutData(workspaceId);
+//     configQuery.equalTo('workspace', workspace);
+//     configQuery.first({
+//       success: configObject => {
+//         resolve({
+//           success: true,
+//           data: configObject.toJSON(),
+//         });
+//       },
+//       error: err => {
+//         reject({
+//           success: false,
+//           msg: err,
+//         });
+//       },
+//     });
+//   });
+// }

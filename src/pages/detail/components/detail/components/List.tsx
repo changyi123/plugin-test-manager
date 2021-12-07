@@ -29,7 +29,16 @@ interface IStepItemProps {
 
 const List: React.FC<ListProps> = (props: ListProps) => {
   const { item, itemLen, actionCard } = props;
-  const { moveCard, findCard, expandCard, cloneCard, deleteCard, addCard, saveCard } = actionCard;
+  const {
+    moveCard,
+    findCard,
+    expandCard,
+    cloneCard,
+    deleteCard,
+    addCard,
+    saveCard,
+    openCallTestModal,
+  } = actionCard;
 
   const [editState, setEditState] = useState<boolean>(item.isEdit || false);
   const { isExpand } = item;
@@ -152,7 +161,9 @@ const List: React.FC<ListProps> = (props: ListProps) => {
             新步骤
           </Button>
           <Divider type="vertical" />
-          <Button type="link">继承测试</Button>
+          <Button type="link" onClick={() => openCallTestModal()}>
+            继承测试
+          </Button>
         </span>
       </Divider>
       <div className={css('detail-list')} ref={preview}>

@@ -15,7 +15,7 @@ import StepItem from './components/List';
 import update from 'immutability-helper';
 import { fetchTestSteps, saveOrUpdateTestStep } from '@/lib/api/detail';
 
-import UploadFile from '@/components/common/UploadFile';
+import ItemTypeModal from './components/ItemTypeModal';
 
 import css from './index.less';
 
@@ -52,6 +52,7 @@ export interface IActionCard {
   deleteCard: (id: string) => void;
   addCard: (id?: string) => void;
   saveCard: (index?: number, step?: TestStep) => void;
+  openCallTestModal: () => void;
 }
 
 const StepList: React.FC<{
@@ -291,6 +292,10 @@ const Detail: React.FC = () => {
     });
   };
 
+  const openCallTestModal = () => {
+    // console.log('打开');
+  };
+
   const actionCard: IActionCard = {
     moveCard,
     findCard,
@@ -299,6 +304,7 @@ const Detail: React.FC = () => {
     deleteCard,
     addCard,
     saveCard,
+    openCallTestModal,
   };
 
   if (loading) {
@@ -311,10 +317,10 @@ const Detail: React.FC = () => {
 
   return (
     <div className={css('detail')}>
+      <ItemTypeModal />
       <div className={css('detail__breadcrumb')}>
         <Breadcrumb />
       </div>
-      <UploadFile />
       <div className={css('detail__content')}>
         <div className={css('detail__content__header')}>
           <div className={css('left')}>
