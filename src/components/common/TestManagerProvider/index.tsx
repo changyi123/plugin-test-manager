@@ -25,7 +25,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
     setWorkspaceId(workspaceIdProp);
   }, [workspaceIdProp]);
 
-  const { data: testConfig } = useRequest(() => getTestConfig(workspaceId), {
+  const { data: testConfigParseObj } = useRequest(() => getTestConfig(workspaceId), {
     staleTime: 50000,
     ready: !!workspaceId,
     cacheKey: workspaceId,
@@ -50,21 +50,20 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
   useOnItemCreateSuccess(itemCreateSuccessCb);
 
   /** 测试关联类型 */
-  const itemTypeMap = React.useMemo(() => {
-    return (pick(testConfig?.toJSON() ?? {}, ['itemTypeMap']) ||
-      {}) as TestConfigContextType['config']['itemTypeMap'];
-  }, [testConfig]);
+  const testConfig = React.useMemo(() => {
+    return (testConfigParseObj?.toJSON() ?? {}) as TestConfigContextType['config'];
+  }, [testConfigParseObj]);
 
   const testConfigContextValues = React.useMemo<TestConfigContextType>(() => {
     return {
       // TODO: fetch config
       config: {
-        itemTypeMap,
+        itemTypeMap: testConfig.itemTypeMap,
       },
       workspaceId,
       setWorkspaceId,
     };
-  }, [workspaceId, itemTypeMap]);
+  }, [workspaceId, testConfig]);
 
   const baseActionContextValues = React.useMemo(() => {
     const actions: BaseActionContextType = {
@@ -73,7 +72,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
       },
       createItem(params) {
         const { extraData, type } = params;
-        const itemTypeId = itemTypeMap[type];
+        const itemTypeId = testConfig?.itemTypeMap?.[type];
         // 打开创建弹窗
         openCreateItemModal({
           itemTypeId,
@@ -90,7 +89,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
     };
 
     return actions;
-  }, [itemTypeMap, workspaceId]);
+  }, [workspaceId]);
 
   return (
     <TestConfigContext.Provider value={testConfigContextValues}>

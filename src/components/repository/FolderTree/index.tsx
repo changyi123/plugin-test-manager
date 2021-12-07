@@ -170,7 +170,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
 
   const folderMenuDisabledKeys = React.useMemo(() => {
     const keys = [];
-    if (!itemTypeMap.Test) {
+    if (!itemTypeMap?.Test) {
       keys.push(MenuKey.createTest);
     }
     return keys;

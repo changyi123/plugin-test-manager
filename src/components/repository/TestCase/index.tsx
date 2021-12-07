@@ -5,6 +5,7 @@ import { Tooltip } from '@osui/ui';
 import { ItemType as ItemTyped, Status as StatusType } from '@/lib/types/App';
 import { useDrag } from 'ahooks';
 import { openTestMenu, MenuKey } from '../Menu';
+import { useBaseAction } from '@/lib/hooks/useContext';
 
 type TestCaseProps = Item & {
   children?: React.ReactNode;
@@ -21,18 +22,22 @@ const TestCase: React.FC<TestCaseProps> = ({
 }) => {
   const itemType = _itemType as ItemTyped;
   const status = _status as StatusType;
-  const handleContextMenu = React.useCallback(e => {
-    openTestMenu(e.target, {
-      x: e.clientX,
-      y: e.clientY,
-      onClick(key: MenuKey) {
-        if (key === MenuKey.viewTestCase) {
-          // TODO: proxima sdk
-        }
-      },
-    });
-    e.preventDefault();
-  }, []);
+  const { openItemViewPanel } = useBaseAction();
+  const handleContextMenu = React.useCallback(
+    (e, data) => {
+      openTestMenu(e.target, {
+        x: e.clientX,
+        y: e.clientY,
+        onClick(key: MenuKey) {
+          if (key === MenuKey.viewTestCase) {
+            openItemViewPanel(data.itemId);
+          }
+        },
+      });
+      e.preventDefault();
+    },
+    [openItemViewPanel],
+  );
 
   const getDragProps = useDrag();
 
@@ -43,7 +48,7 @@ const TestCase: React.FC<TestCaseProps> = ({
         selectedFolderKey,
       })}
       className={cx('test-case')}
-      onContextMenu={handleContextMenu}
+      onContextMenu={e => handleContextMenu(e, { itemId })}
     >
       <div className={cx('row')}>
         <Tooltip title={`事项类型：${itemType.name}`}>

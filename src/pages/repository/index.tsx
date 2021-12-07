@@ -66,7 +66,7 @@ const TestRepository = () => {
     <div className={cx('test-repository')}>
       <h2 className={cx('title')}>测试管理</h2>
       {/* FIXME: 插件获取 workspaceId！！！ */}
-      <TestManagerProvider workspaceId="GBYsF1CYcI">
+      <TestManagerProvider workspaceId={MOCK_WORKSPACE_ID}>
         <Split className={cx('layout')}>
           <FolderTree
             className={cx('left')}
