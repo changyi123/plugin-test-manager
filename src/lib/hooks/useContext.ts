@@ -1,4 +1,8 @@
 import React from 'react';
-import { TestConfigContext } from '@/components/common/TestManagerProvider/context';
+import {
+  TestConfigContext,
+  BaseActionContext,
+} from '@/components/common/TestManagerProvider/context';
 
 export const useTestConfig = () => React.useContext(TestConfigContext);
+export const useBaseAction = () => React.useContext(BaseActionContext);

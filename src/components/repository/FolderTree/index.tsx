@@ -1,14 +1,16 @@
 import React from 'react';
-import cx from './index.less';
+import { uniq } from 'lodash';
 import { useReactive, useDrop } from 'ahooks';
 import { Tree, Button, Modal, Input, message, Empty } from '@osui/ui';
 import { hasArrayItem, getRootContainer } from '@/lib/utils/helper';
 import { PlusCircleOutlined, MoreOutlined, FullscreenExitOutlined } from '@ant-design/icons';
 import { openFolderMenu, MenuKey, FolderMenuWithDropdown } from '../Menu';
 import { createFolder, updateFolders, deleteFolder } from '@/lib/api/repository';
-import { useTestConfig } from '@/lib/hooks/useContext';
-import { uniq } from 'lodash';
+import { useTestConfig, useBaseAction } from '@/lib/hooks/useContext';
 import { useTreeFn, traverseTreeNodes } from './hook';
+import { TestType } from '@/lib/constants';
+
+import cx from './index.less';
 
 const { DirectoryTree } = Tree;
 // antd hover className
@@ -99,6 +101,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
     workspaceId,
     config: { itemTypeMap },
   } = useTestConfig();
+  const { createItem } = useBaseAction();
   const [props] = useDrop({
     async onDom(content, e) {
       removeHoveringClassName();
@@ -270,7 +273,13 @@ const FolderTree: React.FC<FolderTreeProps> = ({
       } else if (actionKey === MenuKey.expandFolder) {
         expandSubFolder(node.key);
       } else if (actionKey === MenuKey.createTest) {
-        // TODO: 创建测试用例
+        // 创建测试用例
+        createItem({
+          type: TestType.Test,
+          extraData: {
+            type: TestType.Test,
+          },
+        });
       }
 
       const NeedRefreshActionKeys = [MenuKey.createFolder, MenuKey.renameFolder];
@@ -278,7 +287,15 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         onFolderTreeChange();
       }
     },
-    [treeFn, workspaceId, state.expandedKeys, onFolderTreeChange, handleSelect, expandSubFolder],
+    [
+      treeFn,
+      workspaceId,
+      state.expandedKeys,
+      onFolderTreeChange,
+      handleSelect,
+      expandSubFolder,
+      createItem,
+    ],
   );
 
   const handleRightClick = React.useCallback(

@@ -56,7 +56,7 @@ export const openContextMenu = (el: HTMLElement, props: openContextMenuProps) =>
 
   Object.assign(holder.style, {
     'z-index': '1993',
-    position: 'absolute',
+    position: 'fixed',
     top: `${y}px`,
     left: `${x}px`,
   });
