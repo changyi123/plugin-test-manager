@@ -8,14 +8,14 @@ import {
   QuestionCircleOutlined,
   DownOutlined,
 } from '@ant-design/icons';
-import { HTML5Backend } from 'react-dnd-html5-backend';
-import { DndProvider, useDrop } from 'react-dnd';
+import { useDrop } from 'react-dnd';
 import Breadcrumb from './components/Breadcrumb';
 import StepItem from './components/List';
 import update from 'immutability-helper';
 import { fetchTestSteps, saveOrUpdateTestStep } from '@/lib/api/detail';
 
 import ItemTypeModal from './components/ItemTypeModal';
+import GlobalDndContext from './DndContext';
 
 import css from './index.less';
 
@@ -90,9 +90,9 @@ const StepList: React.FC<{
   }
 
   return (
-    <DndProvider backend={HTML5Backend} key={1}>
+    <GlobalDndContext>
       <StepDrop steps={steps} actionCard={actionCard} />
-    </DndProvider>
+    </GlobalDndContext>
   );
 };
 
@@ -132,7 +132,8 @@ const Detail: React.FC = () => {
     // },
   ]);
   const [testInfo, setTestInfo] = useState<TestInfor>({});
-  const currentObjectId = window?.QiankunProps?.itemId || 'YBkC6luOfw';
+  const currentObjectId: string = window?.QiankunProps?.context?.itemId || 'YBkC6luOfw';
+  console.log('QiankunProps', window?.QiankunProps);
 
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -150,7 +151,7 @@ const Detail: React.FC = () => {
 
   useEffect(() => {
     fetchData();
-  }, [fetchData]);
+  }, [fetchData, currentObjectId]);
 
   const findCard = useCallback(
     (id: string) => {
@@ -280,17 +281,20 @@ const Detail: React.FC = () => {
     [steps, setSteps, findCard],
   );
 
-  const saveCard = (index?: number, step?: TestStep) => {
-    const stepsbak = [...steps];
-    if (step) {
-      step.isEdit = false;
-      stepsbak[index] = step;
-    }
-    saveOrUpdateTestStep(stepsbak, testInfo?.objectId, currentObjectId).then(() => {
-      message.success('操作成功');
-      fetchData();
-    });
-  };
+  const saveCard = useCallback(
+    (index?: number, step?: TestStep) => {
+      const stepsbak = [...steps];
+      if (step) {
+        step.isEdit = false;
+        stepsbak[index] = step;
+      }
+      saveOrUpdateTestStep(stepsbak, testInfo?.objectId, currentObjectId).then(() => {
+        message.success('操作成功');
+        fetchData();
+      });
+    },
+    [currentObjectId, fetchData, steps, testInfo?.objectId],
+  );
 
   const openCallTestModal = () => {
     // console.log('打开');
@@ -307,6 +311,14 @@ const Detail: React.FC = () => {
     openCallTestModal,
   };
 
+  if (loading) {
+    return (
+      <div className={css('detail')}>
+        <Spin tip="加载中..."></Spin>
+      </div>
+    );
+  }
+
   if (!currentObjectId) {
     return (
       <div className={css('detail')}>
@@ -316,14 +328,6 @@ const Detail: React.FC = () => {
             重新加载
           </Button>
         </div>
-      </div>
-    );
-  }
-
-  if (loading) {
-    return (
-      <div className={css('detail')}>
-        <Spin tip="加载中..."></Spin>
       </div>
     );
   }
@@ -338,7 +342,7 @@ const Detail: React.FC = () => {
         <div className={css('detail__content__header')}>
           <div className={css('left')}>
             <Button type="primary" icon={<EditOutlined />}>
-              弹窗编辑
+              弹窗编辑1
             </Button>
             <div className={css('item')}>
               <Tooltip title="全部展开" placement="bottom">
