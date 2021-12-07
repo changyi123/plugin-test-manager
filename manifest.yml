@@ -10,10 +10,16 @@ modules:
   function:
       - key: test-manager-initial-script
         handler: /trigger/initialScript.js
-  adminPage:
-    - key: micro-adminPage-1
+  itemPanel:
+    - key: test-manager-test-detail
       resource: main
-      title: 测试管理-测试用例仓库
+      title: 测试用例详情
+      loadType: Micro
+      route: /testDetail
+  adminPage:
+    - key: test-manager-repository
+      resource: main
+      title: 测试仓库
       loadType: Micro
 tables:
   - className: Repository
