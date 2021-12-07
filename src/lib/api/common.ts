@@ -1,6 +1,31 @@
 import Parse from '@/lib/parse';
 import { TestConfig } from '../models';
-import { Workspace, Item } from '@/lib/models';
+import { Workspace, Item, Test } from '@/lib/models';
+import { TestType } from '@/lib/constants';
+
+/**
+ * 创建测试实体
+ */
+export const createTestEntity = (params: {
+  itemId: string;
+  type: TestType;
+  workspaceId: string;
+}) => {
+  const newTest = new Test({
+    type: params.type,
+    workspace: Workspace.createWithoutData(params.workspaceId),
+    reference: Item.createWithoutData(params.itemId),
+  });
+
+  return newTest.save();
+};
+
+/**
+ * 获取测试实体
+ */
+export const getTestEntity = (itemId: string) => {
+  return new Parse.Query(Test).equalTo('reference', itemId);
+};
 
 /**
  * 根据卡片 id
@@ -28,5 +53,7 @@ export const updateTestConfig = () => {
  * 获取空间模板已经配置过的 itemTypes（界面方案中使用的 itemType）
  */
 export const getUsefulItemTypes = (workspaceId: string) => {
-  new Parse.Query(Workspace).includes(['workspaceTemplate']);
+  return new Parse.Query(Workspace)
+    .includes(['workspaceTemplate'])
+    .equalTo('workspace', workspaceId);
 };

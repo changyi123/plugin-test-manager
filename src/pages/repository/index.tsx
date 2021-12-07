@@ -1,7 +1,7 @@
 import React from 'react';
 import FolderTree from '@/components/repository/FolderTree';
 import TestCase from '@/components/repository/TestCase';
-import ConfigProvider from '@/components/common/ConfigProvider';
+import TestManagerProvider from '@/components/common/TestManagerProvider';
 
 import { getFolderTree } from '@/lib/api/repository';
 import { getItemByIds } from '@/lib/api/common';
@@ -66,7 +66,7 @@ const TestRepository = () => {
     <div className={cx('test-repository')}>
       <h2 className={cx('title')}>测试管理</h2>
       {/* FIXME: 插件获取 workspaceId！！！ */}
-      <ConfigProvider workspaceId="GBYsF1CYcI">
+      <TestManagerProvider workspaceId="GBYsF1CYcI">
         <Split className={cx('layout')}>
           <FolderTree
             className={cx('left')}
@@ -103,7 +103,7 @@ const TestRepository = () => {
             </div>
           </div>
         </Split>
-      </ConfigProvider>
+      </TestManagerProvider>
     </div>
   );
 };

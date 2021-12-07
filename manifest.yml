@@ -10,10 +10,10 @@ modules:
   function:
       - key: test-manager-initial-script
       handler: /trigger/initialScript.js
-  adminPage:
-    - key: micro-adminPage-1
+  workspacePage:
+    - key: test-manager
       resource: main
-      title: 微应用test
+      title: 测试管理-测试用例仓库
       loadType: Micro
 tables:
   - className: Repository
@@ -50,16 +50,6 @@ tables:
         targetClass: Workspace
       type:
         type: String
-      test:
-        type: Array
-      precondition:
-        type: Array
-      testSet:
-        type: Array
-      testPlan:
-        type: Array
-      testExecution:
-        type: Array
       steps:
         type: Array
       extra:
