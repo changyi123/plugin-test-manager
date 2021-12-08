@@ -29,8 +29,10 @@ const TestCase: React.FC<TestCaseProps> = ({
         x: e.clientX,
         y: e.clientY,
         onClick(key: MenuKey) {
-          if (key === MenuKey.viewTestCase) {
+          if (key === MenuKey.viewTest) {
             openItemViewPanel(data.itemId);
+          } else if (key === MenuKey.deleteTest) {
+            console.info('删除测试用例');
           }
         },
       });
@@ -60,8 +62,8 @@ const TestCase: React.FC<TestCaseProps> = ({
         <span className={cx('item-name')}>{name}</span>
       </div>
       <div className={cx('row', 'bottom')}>
-        <Tooltip title={`状态：${status.name}`}>
-          <span className={cx('status', status.type)}>{status.name}</span>
+        <Tooltip title={`状态：${status?.name}`}>
+          <span className={cx('status', status?.type)}>{status?.name}</span>
         </Tooltip>
       </div>
     </div>

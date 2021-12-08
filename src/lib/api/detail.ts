@@ -1,6 +1,6 @@
-import { TestExecution, Test, Item, TestConfig, Workspace } from '../models';
 import Parse from '@/lib/parse';
 import { TestStep as ITestStep } from '@/pages/detail/components/detail';
+import { TestExecution, Test, Item, TestConfig, Workspace } from '../models';
 
 interface ICommonRes {
   success: boolean;
