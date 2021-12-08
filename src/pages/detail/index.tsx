@@ -42,7 +42,6 @@ const TestDetail: React.FC = () => {
   // console.log('刷新了');
   return (
     <div className={css('detail')}>
-      <h3>测试详情</h3>
       <Tabs defaultActiveKey="1">
         {tabConfig.map(({ tab, key, Component }) => (
           <TabPane tab={tab} key={key}>

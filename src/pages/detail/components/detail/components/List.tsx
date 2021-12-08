@@ -151,6 +151,11 @@ const List: React.FC<ListProps> = (props: ListProps) => {
     );
   };
 
+  const handleOpenModal = () => {
+    const { index } = findCard(item.id);
+    openCallTestModal(index);
+  };
+
   const opacity = isDragging ? 0.5 : 1;
 
   return (
@@ -161,7 +166,7 @@ const List: React.FC<ListProps> = (props: ListProps) => {
             新步骤
           </Button>
           <Divider type="vertical" />
-          <Button type="link" onClick={() => openCallTestModal()}>
+          <Button type="link" onClick={handleOpenModal}>
             继承测试
           </Button>
         </span>
@@ -183,104 +188,110 @@ const List: React.FC<ListProps> = (props: ListProps) => {
             </div>
           ) : null}
         </div>
-        {isExpand ? (
-          <div className={css('list')}>
-            <div className={css('list__item')}>
-              <div className={css('list__item__topic')}>
-                <p>
-                  行动
-                  <Copy text={action} />
-                </p>
-              </div>
-              <div className={css('list__item__result')} onClick={() => toggleEditState(true)}>
-                {editState ? (
-                  <TextArea
-                    placeholder={`请输入行动`}
-                    autoSize={{ minRows: 2 }}
-                    value={action}
-                    onChange={e =>
-                      setItemBak({
-                        ...itemBak,
-                        action: e.target.value,
-                      })
-                    }
-                  />
-                ) : (
-                  action || '暂无内容'
-                )}
-              </div>
-            </div>
 
-            <div className={css('list__item')}>
-              <div className={css('list__item__topic')}>
-                <p>
-                  数据
-                  <Copy text={data} />
-                </p>
+        {!item.callTestId ? (
+          isExpand ? (
+            <div className={css('list')}>
+              <div className={css('list__item')}>
+                <div className={css('list__item__topic')}>
+                  <p>
+                    行动
+                    <Copy text={action} />
+                  </p>
+                </div>
+                <div className={css('list__item__result')} onClick={() => toggleEditState(true)}>
+                  {editState ? (
+                    <TextArea
+                      placeholder={`请输入行动`}
+                      autoSize={{ minRows: 2 }}
+                      value={action}
+                      onChange={e =>
+                        setItemBak({
+                          ...itemBak,
+                          action: e.target.value,
+                        })
+                      }
+                    />
+                  ) : (
+                    action || '暂无内容'
+                  )}
+                </div>
               </div>
-              <div className={css('list__item__result')} onClick={() => toggleEditState(true)}>
-                {editState ? (
-                  <TextArea
-                    placeholder={`请输入数据`}
-                    autoSize={{ minRows: 2 }}
-                    value={data}
-                    onChange={e =>
-                      setItemBak({
-                        ...itemBak,
-                        data: e.target.value,
-                      })
-                    }
-                  />
-                ) : (
-                  data || '暂无内容'
-                )}
-              </div>
-            </div>
 
-            <div className={css('list__item')}>
-              <div className={css('list__item__topic')}>
-                <p>
-                  预期结果
-                  <Copy text={result} />
-                </p>
+              <div className={css('list__item')}>
+                <div className={css('list__item__topic')}>
+                  <p>
+                    数据
+                    <Copy text={data} />
+                  </p>
+                </div>
+                <div className={css('list__item__result')} onClick={() => toggleEditState(true)}>
+                  {editState ? (
+                    <TextArea
+                      placeholder={`请输入数据`}
+                      autoSize={{ minRows: 2 }}
+                      value={data}
+                      onChange={e =>
+                        setItemBak({
+                          ...itemBak,
+                          data: e.target.value,
+                        })
+                      }
+                    />
+                  ) : (
+                    data || '暂无内容'
+                  )}
+                </div>
               </div>
-              <div className={css('list__item__result')} onClick={() => toggleEditState(true)}>
-                {editState ? (
-                  <TextArea
-                    placeholder={`请输入预期结果`}
-                    autoSize={{ minRows: 2 }}
-                    value={result}
-                    onChange={e =>
-                      setItemBak({
-                        ...itemBak,
-                        result: e.target.value,
-                      })
-                    }
-                  />
-                ) : (
-                  result || '暂无内容'
-                )}
+
+              <div className={css('list__item')}>
+                <div className={css('list__item__topic')}>
+                  <p>
+                    预期结果
+                    <Copy text={result} />
+                  </p>
+                </div>
+                <div className={css('list__item__result')} onClick={() => toggleEditState(true)}>
+                  {editState ? (
+                    <TextArea
+                      placeholder={`请输入预期结果`}
+                      autoSize={{ minRows: 2 }}
+                      value={result}
+                      onChange={e =>
+                        setItemBak({
+                          ...itemBak,
+                          result: e.target.value,
+                        })
+                      }
+                    />
+                  ) : (
+                    result || '暂无内容'
+                  )}
+                </div>
               </div>
             </div>
-          </div>
+          ) : (
+            <div className={css('list')}>
+              <div className={css('list__item')}>
+                <div
+                  className={css('list__item__result')}
+                  onClick={() => {
+                    expandItemCard(true);
+                    toggleEditState(true);
+                  }}
+                >
+                  <div>{action}</div>
+                  <div>{data}</div>
+                  <div>{result}</div>
+                </div>
+              </div>
+            </div>
+          )
         ) : (
           <div className={css('list')}>
-            <div className={css('list__item')}>
-              <div
-                className={css('list__item__result')}
-                onClick={() => {
-                  expandItemCard(true);
-                  toggleEditState(true);
-                }}
-              >
-                <div>{action}</div>
-                <div>{data}</div>
-                <div>{result}</div>
-              </div>
-            </div>
+            <div className={[css('list__item'), css('call-test')].join(' ')}>{item.callTestId}</div>
           </div>
         )}
-
         {!editState &&
           (isExpand ? (
             <div className={css('tools')}>
