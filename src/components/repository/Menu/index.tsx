@@ -9,8 +9,9 @@ export enum MenuKey {
   deleteFolder = 'deleteFolder',
   expandFolder = 'expandFolder',
   createTest = 'createTest',
+  deleteTest = 'deleteTest',
+  viewTest = 'viewTest',
 
-  viewTestCase = 'viewTestCase',
   addTestCaseToTestSet = 'addTestCaseToTestSet',
   addTestCaseToTestPlan = 'addTestCaseToTestPlan',
   addTestCaseToTestExecution = 'addTestCaseToTestExecution',
@@ -46,7 +47,12 @@ const FolderTreeMenus = [
 const TestCaseMenus = [
   {
     title: '查看测试用例',
-    key: MenuKey.viewTestCase,
+    key: MenuKey.viewTest,
+  },
+  { key: 'Divider' },
+  {
+    title: '删除测试用例',
+    key: MenuKey.deleteTest,
   },
   // { key: 'Divider' },
   // { title: '创建测试集合包含测试用例', key: MenuKey.createTestWithTestSet },

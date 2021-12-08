@@ -1,24 +1,36 @@
 import React from 'react';
 import FolderTree from '@/components/repository/FolderTree';
 import TestCase from '@/components/repository/TestCase';
-import TestManagerProvider from '@/components/common/TestManagerProvider';
 
-import { getFolderTree } from '@/lib/api/repository';
-import { getItemByIds } from '@/lib/api/common';
 import Split from '@uiw/react-split';
-
-import { hasArrayItem } from '@/lib/utils/helper';
-
 import { useReactive, useRequest } from 'ahooks';
+import { hasArrayItem } from '@/lib/utils/helper';
+import { getFolderTree } from '@/lib/api/repository';
+import { useSDK } from '@projectproxima/plugin-sdk';
+import { getItemByIds, getWorkspaceByKey } from '@/lib/api/proxima';
+import TestManagerProvider from '@/components/common/TestManagerProvider';
 
 import { Breadcrumb, Empty } from '@osui/ui';
 
 import cx from './index.less';
 
-const MOCK_WORKSPACE_ID = 'GBYsF1CYcI';
+const MOCK_WORKSPACE_KEY = 'TEST_MANAGE_1';
 
 const TestRepository = () => {
   const [folderTreeData, setFolderTreeData] = React.useState([]);
+  const [workspaceId, setWorkspaceId] = React.useState();
+  const { context } = useSDK();
+
+  React.useEffect(() => {
+    const execute = async () => {
+      const { objectId } = await getWorkspaceByKey(
+        context?.env?.WORKSPACE_KEY || MOCK_WORKSPACE_KEY,
+      );
+      setWorkspaceId(objectId);
+    };
+    execute();
+  }, [context?.env?.WORKSPACE_KEY]);
+
   const state = useReactive({
     items: [],
     itemIds: [],
@@ -36,9 +48,9 @@ const TestRepository = () => {
   });
 
   const { loading: folderTreeLoading, refresh: refreshFolderTree } = useRequest(
-    () => getFolderTree(MOCK_WORKSPACE_ID),
+    () => getFolderTree(workspaceId),
     {
-      ready: !!MOCK_WORKSPACE_ID,
+      ready: !!workspaceId,
       onSuccess(data) {
         setFolderTreeData(data);
       },
@@ -63,10 +75,9 @@ const TestRepository = () => {
   );
 
   return (
-    <div className={cx('test-repository')}>
-      <h2 className={cx('title')}>测试管理</h2>
-      {/* FIXME: 插件获取 workspaceId！！！ */}
-      <TestManagerProvider workspaceId={MOCK_WORKSPACE_ID}>
+    <TestManagerProvider workspaceId={workspaceId}>
+      <div className={cx('test-repository')}>
+        <h2 className={cx('title')}>测试管理</h2>
         <Split className={cx('layout')}>
           <FolderTree
             className={cx('left')}
@@ -103,8 +114,8 @@ const TestRepository = () => {
             </div>
           </div>
         </Split>
-      </TestManagerProvider>
-    </div>
+      </div>
+    </TestManagerProvider>
   );
 };
 

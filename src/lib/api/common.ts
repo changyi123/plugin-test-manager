@@ -28,17 +28,6 @@ export const getTestEntity = (itemId: string) => {
 };
 
 /**
- * 根据卡片 id
- */
-export const getItemByIds = async (ids: string[]) => {
-  const items = await new Parse.Query(Item)
-    .containedIn('objectId', ids)
-    .include(['itemType', 'status'])
-    .map(item => item.toJSON());
-  return items;
-};
-
-/**
  * 获取测试管理配置
  */
 export const getTestConfig = (workspaceId: string) => {

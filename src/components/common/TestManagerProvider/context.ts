@@ -1,6 +1,7 @@
 import React from 'react';
 import { TestType } from '@/lib/constants';
 import { TestEntity } from '@/lib/types/Test';
+import { EventEmitter } from 'ahooks/lib/useEventEmitter';
 
 export type TestConfigContextType = {
   config: {
@@ -8,7 +9,6 @@ export type TestConfigContextType = {
     itemTypeMap: Record<TestType, 'string'>;
   };
   workspaceId: string;
-  setWorkspaceId: (workspaceId: string) => void;
 };
 /** 测试管理配置 context */
 export const TestConfigContext = React.createContext<TestConfigContextType>(
@@ -27,3 +27,10 @@ export type BaseActionContextType = {
 export const BaseActionContext = React.createContext<BaseActionContextType>(
   {} as BaseActionContextType,
 );
+
+export type EventBusContextType = {
+  itemCreated$: EventEmitter<any>;
+};
+
+/** 事件总线，跨组件传递事项创建编辑 */
+export const EventBusContext = React.createContext<EventBusContextType>({} as EventBusContextType);

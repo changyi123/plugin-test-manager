@@ -1,29 +1,34 @@
 import React from 'react';
+import { message } from '@osui/ui';
 import { useRequest } from 'ahooks';
-import { pick } from 'lodash';
-import { openCreateItemModal, openItemDetailPanel } from '@/lib/api/sdk';
 import { useOnItemCreateSuccess } from '@/lib/hooks/useProximaSDK';
+import { openCreateItemModal, openItemDetailPanel } from '@/lib/api/sdk';
 import { getTestConfig, createTestEntity, getTestEntity } from '@/lib/api/common';
+import { getItemByIds } from '@/lib/api/proxima';
+import { useEventBusContextValue } from './hooks';
 import {
   TestConfigContext,
   TestConfigContextType,
   BaseActionContext,
   BaseActionContextType,
+  EventBusContext,
 } from './context';
 
-type RepositoryDataProviderProps = Pick<TestConfigContextType, 'workspaceId'> & {
+type RepositoryDataProviderProps = {
+  workspaceId?: string;
   children: React.ReactNode;
 };
 
 const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
   children,
-  workspaceId: workspaceIdProp,
+  workspaceId: workspacePropId,
 }) => {
   const [workspaceId, setWorkspaceId] = React.useState<string>();
+  const eventBusValues = useEventBusContextValue();
 
   React.useEffect(() => {
-    setWorkspaceId(workspaceIdProp);
-  }, [workspaceIdProp]);
+    setWorkspaceId(workspacePropId);
+  }, [workspacePropId]);
 
   const { data: testConfigParseObj } = useRequest(() => getTestConfig(workspaceId), {
     staleTime: 50000,
@@ -31,28 +36,49 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
     cacheKey: workspaceId,
     refreshDeps: [workspaceId],
   });
-
-  /** 事项创建成功回调 */
-  const itemCreateSuccessCb = React.useCallback(params => {
-    console.info('itemCreateSuccessCb', params);
-    const testEntity = getTestEntity(params.itemId);
-    if (!testEntity) {
-      createTestEntity({
-        itemId: params.itemId,
-        type: params.extraData.type,
-        workspaceId: params.workspaceId,
-      });
-    }
-
-    // TODO: item link
-  }, []);
-
-  useOnItemCreateSuccess(itemCreateSuccessCb);
-
   /** 测试关联类型 */
   const testConfig = React.useMemo(() => {
     return (testConfigParseObj?.toJSON() ?? {}) as TestConfigContextType['config'];
   }, [testConfigParseObj]);
+
+  /** 事项创建成功回调 */
+  const itemCreateSuccessCb = React.useCallback(
+    async params => {
+      // 获取 item 数据
+      const [item] = await getItemByIds([params.itemId]);
+      const { objectId, workspace, itemType } = item ?? ({} as any);
+      // 测试实体类型
+      const testEntityType = params.extraData.type;
+
+      if (workspaceId !== workspace.objectId) {
+        // 事项所属空间不是当前空间则需要 testConfig itemTypeMap 关联类型
+        const otherTestConfig = getTestConfig(workspace.objectId);
+        const isRightTestEntityType = Object.entries(otherTestConfig?.itemTypeMap ?? {}).some(
+          ([testType, itemTypeId]) => {
+            return testType === testEntityType && itemTypeId === itemType?.objectId;
+          },
+        );
+        if (!isRightTestEntityType) return message.warn('当前空间未配置测试关联');
+      }
+      // 如果没有相关联的类型，则放弃创建测试实体
+      const testEntity = await getTestEntity(params.itemId);
+      if (!testEntity) {
+        await createTestEntity({
+          itemId: objectId,
+          type: testEntityType,
+          workspaceId: workspace.objectId,
+        });
+      }
+      eventBusValues.itemCreated$.emit({
+        itemId: objectId,
+        ...params.extraData,
+      });
+      // TODO: item link
+    },
+    [eventBusValues.itemCreated$, workspaceId],
+  );
+
+  useOnItemCreateSuccess(itemCreateSuccessCb);
 
   const testConfigContextValues = React.useMemo<TestConfigContextType>(() => {
     return {
@@ -89,14 +115,16 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
     };
 
     return actions;
-  }, [workspaceId]);
+  }, [testConfig?.itemTypeMap, workspaceId]);
 
   return (
-    <TestConfigContext.Provider value={testConfigContextValues}>
-      <BaseActionContext.Provider value={baseActionContextValues}>
-        {children}
-      </BaseActionContext.Provider>
-    </TestConfigContext.Provider>
+    <EventBusContext.Provider value={eventBusValues}>
+      <TestConfigContext.Provider value={testConfigContextValues}>
+        <BaseActionContext.Provider value={baseActionContextValues}>
+          {children}
+        </BaseActionContext.Provider>
+      </TestConfigContext.Provider>
+    </EventBusContext.Provider>
   );
 };
 

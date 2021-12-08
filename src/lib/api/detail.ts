@@ -1,7 +1,7 @@
-import { TestExecution, Test, Item, TestConfig, Workspace, ItemType } from '../models';
 import Parse from '@/lib/parse';
 import fetch from '@/lib/utils/fetch';
 import { TestStep as ITestStep } from '@/pages/detail/components/detail';
+import { TestExecution, Test, Item, TestConfig, Workspace } from '../models';
 
 export interface ICommonRes<T = any> {
   success: boolean;

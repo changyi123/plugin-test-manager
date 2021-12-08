@@ -6,7 +6,7 @@ import { hasArrayItem, getRootContainer } from '@/lib/utils/helper';
 import { PlusCircleOutlined, MoreOutlined, FullscreenExitOutlined } from '@ant-design/icons';
 import { openFolderMenu, MenuKey, FolderMenuWithDropdown } from '../Menu';
 import { createFolder, updateFolders, deleteFolder } from '@/lib/api/repository';
-import { useTestConfig, useBaseAction } from '@/lib/hooks/useContext';
+import { useTestConfig, useBaseAction, useEventBus } from '@/lib/hooks/useContext';
 import { useTreeFn, traverseTreeNodes } from './hook';
 import { TestType } from '@/lib/constants';
 
@@ -96,11 +96,28 @@ const FolderTree: React.FC<FolderTreeProps> = ({
 
   const treeFn = useTreeFn(treeNodeData);
 
+  const { itemCreated$ } = useEventBus();
   const isInitialRef = React.useRef(false);
   const {
     workspaceId,
     config: { itemTypeMap },
   } = useTestConfig();
+
+  // 监听事项创建成功
+  itemCreated$.useSubscription(async ({ itemId, folderKey }) => {
+    console.info('itemCreated', itemId, folderKey);
+    const node = treeFn.getTreeNodeByKey(folderKey);
+    if (!node) return;
+    // 修改 node，将创建成功的 itemId 追加到 node 上
+    node.itemIds = (node.itemIds || []).concat(itemId);
+    await updateFolders([node]);
+    onFolderTreeChange();
+    handleSelect([node.key], {
+      selected: true,
+      node: node,
+    });
+  });
+
   const { createItem } = useBaseAction();
   const [props] = useDrop({
     async onDom(content, e) {
@@ -115,16 +132,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
       currentNode.itemIds = currentNode.itemIds.filter(key => key !== itemId);
       targetNode.itemIds = targetNode.itemIds.concat(itemId);
 
-      await updateFolders([
-        {
-          id: currentNode.key,
-          itemIds: currentNode.itemIds,
-        },
-        {
-          id: targetNode.key,
-          itemIds: targetNode.itemIds,
-        },
-      ]);
+      await updateFolders([currentNode, targetNode]);
 
       message.success('测试用例移动成功');
       onFolderTreeChange();
@@ -234,7 +242,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
 
         await updateFolders([
           {
-            id: node.key,
+            key: node.key,
             name: newFolderName,
           },
         ]);
@@ -278,6 +286,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
           type: TestType.Test,
           extraData: {
             type: TestType.Test,
+            folderKey: node.key,
           },
         });
       }

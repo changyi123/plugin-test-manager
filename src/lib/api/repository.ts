@@ -39,19 +39,19 @@ export const createFolder = async (params: {
 
 export const updateFolders = async (
   folders: {
-    id: string;
-    parentId?: string;
+    key: string;
     name?: string;
     itemIds?: string;
+    parentId?: string;
   }[],
 ) => {
   const needUpdateRepositories = folders.map(folder => {
     const repository = new Repository({
-      objectId: folder.id,
+      objectId: folder.key,
     });
 
     if ('parentId' in folder) {
-      repository.set('parentId', Repository.createWithoutData(folder.parentId));
+      repository.set('parent', folder.parentId && Repository.createWithoutData(folder.parentId));
     }
 
     if ('name' in folder) {
