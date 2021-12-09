@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, createRef } from 'react';
 import { Button, Tooltip, Input, Dropdown, Menu, Empty, Spin, message } from '@osui/ui';
 import {
   EditOutlined,
@@ -9,12 +9,13 @@ import {
   DownOutlined,
 } from '@ant-design/icons';
 import { useDrop } from 'react-dnd';
-import Breadcrumb from './components/Breadcrumb';
+// import Breadcrumb from './components/Breadcrumb';
 import StepItem from './components/List';
 import update from 'immutability-helper';
-import { fetchTestSteps, saveOrUpdateTestStep } from '@/lib/api/detail';
+import { fetchTestSteps, saveOrUpdateTestStep, Item } from '@/lib/api/detail';
 
 import ItemTypeModal from './components/ItemTypeModal';
+import type { ItemTypeModalHandle } from './components/ItemTypeModal';
 import GlobalDndContext from './DndContext';
 
 import css from './index.less';
@@ -30,7 +31,8 @@ export interface TestStep {
   attachments?: Array<string>;
   customFields?: Array<fields>;
   index?: number;
-  callTestIssueId?: string;
+  callTestId?: string;
+  itemObject?: Item;
   isExpand?: boolean;
   isEdit?: boolean;
   id?: string;
@@ -51,8 +53,8 @@ export interface IActionCard {
   cloneCard: (id: string) => void;
   deleteCard: (id: string) => void;
   addCard: (id?: string) => void;
-  saveCard: (index?: number, step?: TestStep) => void;
-  openCallTestModal: () => void;
+  saveCard: (index?: number, step?: TestStep, atIndex?: number) => void;
+  openCallTestModal: (index: number) => void;
 }
 
 const StepList: React.FC<{
@@ -133,6 +135,7 @@ const Detail: React.FC = () => {
   ]);
   const [testInfo, setTestInfo] = useState<TestInfor>({});
   const currentObjectId: string = window?.QiankunProps?.context?.itemId || 'YBkC6luOfw';
+  const ItemTypeModalRef = createRef<ItemTypeModalHandle>();
   console.log('QiankunProps', window?.QiankunProps);
 
   const [loading, setLoading] = useState<boolean>(true);
@@ -282,11 +285,18 @@ const Detail: React.FC = () => {
   );
 
   const saveCard = useCallback(
-    (index?: number, step?: TestStep) => {
-      const stepsbak = [...steps];
+    (index?: number, step?: TestStep, atIndex?: number) => {
+      let stepsbak = [...steps];
+      // 指定保存哪个位置，如果无则保存全部
       if (step) {
         step.isEdit = false;
         stepsbak[index] = step;
+      }
+      // 新增继承测试用例
+      if (atIndex !== undefined) {
+        stepsbak = update(steps, {
+          $splice: [[atIndex, 0, step]],
+        });
       }
       saveOrUpdateTestStep(stepsbak, testInfo?.objectId, currentObjectId).then(() => {
         message.success('操作成功');
@@ -296,8 +306,8 @@ const Detail: React.FC = () => {
     [currentObjectId, fetchData, steps, testInfo?.objectId],
   );
 
-  const openCallTestModal = () => {
-    // console.log('打开');
+  const openCallTestModal = (index: number) => {
+    ItemTypeModalRef.current?.open(index);
   };
 
   const actionCard: IActionCard = {
@@ -334,16 +344,13 @@ const Detail: React.FC = () => {
 
   return (
     <div className={css('detail')}>
-      <ItemTypeModal />
-      <div className={css('detail__breadcrumb')}>
+      <ItemTypeModal type="Test" ref={ItemTypeModalRef} saveCard={saveCard} />
+      {/* <div className={css('detail__breadcrumb')}>
         <Breadcrumb />
-      </div>
+      </div> */}
       <div className={css('detail__content')}>
         <div className={css('detail__content__header')}>
           <div className={css('left')}>
-            <Button type="primary" icon={<EditOutlined />}>
-              弹窗编辑1
-            </Button>
             <div className={css('item')}>
               <Tooltip title="全部展开" placement="bottom">
                 <Button icon={<ArrowsAltOutlined />} onClick={() => expandCard(undefined, true)} />
@@ -354,14 +361,14 @@ const Detail: React.FC = () => {
                 <Button icon={<ShrinkOutlined />} onClick={() => expandCard()} />
               </Tooltip>
             </div>
-            <div className={css('input')}>
+            {/* <div className={css('input')}>
               <Input placeholder="搜索关键字" prefix={<SearchOutlined />} />
             </div>
             <div className={css('item')}>
               <Tooltip title="测试步骤教程">
                 <QuestionCircleOutlined />
               </Tooltip>
-            </div>
+            </div> */}
           </div>
 
           <div className={css('right')}>

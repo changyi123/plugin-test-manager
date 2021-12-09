@@ -20,17 +20,17 @@ interface FetchInstance extends AxiosInstance {
   $patch<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T>;
 }
 
-logMsg('process.env.REACT_APP_API_SERVER:', process.env.REACT_APP_API_SERVER);
+logMsg('process.env.PROXIMA_BASE_URL:', process.env.PROXIMA_BASE_URL);
 
 // TODO:临时从localStorage中获取sessionToken
 const { sessionToken } = JSON.parse(localStorage.getItem('Parse/proxima-core/currentUser'));
 // const reg = /sessionToken=([^;]+)/;
 // const result = reg.exec(document.cookie);
 // const sessionToken = result?.[1];
-const id = process.env.REACT_APP_NEXT_PUBLIC_PARSE_APP_ID;
+const id = process.env.PROXIMA_APP_ID;
 
 const config: AxiosRequestConfig = {
-  baseURL: process.env.REACT_APP_API_SERVER,
+  baseURL: process.env.PROXIMA_BASE_URL,
   timeout: 15 * 1000,
   headers: {
     'X-Parse-Application-Id': id,
