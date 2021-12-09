@@ -49,11 +49,11 @@ const TestCaseMenus = [
     title: '查看测试用例',
     key: MenuKey.viewTest,
   },
-  { key: 'Divider' },
-  {
-    title: '删除测试用例',
-    key: MenuKey.deleteTest,
-  },
+  // { key: 'Divider' },
+  // {
+  //   title: '删除测试用例',
+  //   key: MenuKey.deleteTest,
+  // },
   // { key: 'Divider' },
   // { title: '创建测试集合包含测试用例', key: MenuKey.createTestWithTestSet },
   // { title: '添加测试用例至测试集合', key: MenuKey.addTestCaseToTestSet },

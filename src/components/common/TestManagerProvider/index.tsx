@@ -1,5 +1,5 @@
 import React from 'react';
-import { message } from '@osui/ui';
+import { notification } from '@osui/ui';
 import { useRequest } from 'ahooks';
 import { useOnItemCreateSuccess } from '@/lib/hooks/useProximaSDK';
 import { openCreateItemModal, openItemDetailPanel } from '@/lib/api/sdk';
@@ -36,6 +36,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
     cacheKey: workspaceId,
     refreshDeps: [workspaceId],
   });
+
   /** 测试关联类型 */
   const testConfig = React.useMemo(() => {
     return (testConfigParseObj?.toJSON() ?? {}) as TestConfigContextType['config'];
@@ -47,18 +48,28 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
       // 获取 item 数据
       const [item] = await getItemByIds([params.itemId]);
       const { objectId, workspace, itemType } = item ?? ({} as any);
+      // 测试类型关联的事项类型
+      let workspaceItemTypeMap = testConfig?.itemTypeMap;
       // 测试实体类型
       const testEntityType = params.extraData.type;
+      // 判断测试类型关联的事项类型是否正确
+      const isRightTestEntityType = itemTypeMap => {
+        return Object.entries(itemTypeMap ?? {}).some(([testType, itemTypeId]) => {
+          return testType === testEntityType && itemTypeId === itemType?.objectId;
+        });
+      };
 
       if (workspaceId !== workspace.objectId) {
         // 事项所属空间不是当前空间则需要 testConfig itemTypeMap 关联类型
         const otherTestConfig = getTestConfig(workspace.objectId);
-        const isRightTestEntityType = Object.entries(otherTestConfig?.itemTypeMap ?? {}).some(
-          ([testType, itemTypeId]) => {
-            return testType === testEntityType && itemTypeId === itemType?.objectId;
-          },
-        );
-        if (!isRightTestEntityType) return message.warn('当前空间未配置测试关联');
+        workspaceItemTypeMap = otherTestConfig?.itemTypeMap;
+      }
+
+      if (!isRightTestEntityType(workspaceItemTypeMap)) {
+        return notification.open({
+          message: '提示',
+          description: '事项所属空间未配置测试管理关联类型',
+        });
       }
       // 如果没有相关联的类型，则放弃创建测试实体
       const testEntity = await getTestEntity(params.itemId);
@@ -75,7 +86,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
       });
       // TODO: item link
     },
-    [eventBusValues.itemCreated$, workspaceId],
+    [eventBusValues.itemCreated$, testConfig?.itemTypeMap, workspaceId],
   );
 
   useOnItemCreateSuccess(itemCreateSuccessCb);

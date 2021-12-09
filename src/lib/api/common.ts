@@ -34,6 +34,16 @@ export const getTestConfig = (workspaceId: string) => {
   return new Parse.Query(TestConfig).equalTo('workspace', workspaceId).first();
 };
 
+/**
+ * 获取整个租户测试类型关联的事项类型
+ */
+export const getItemTypeMap = () => {
+  return new Parse.Query(TestConfig).reduce((res, { itemTypeMap }) => {
+    res = Object.entries(itemTypeMap);
+    return res;
+  }, {});
+};
+
 export const updateTestConfig = () => {
   // TODO
 };

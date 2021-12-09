@@ -20,6 +20,7 @@ const TestRepository = () => {
   const [folderTreeData, setFolderTreeData] = React.useState([]);
   const [workspaceId, setWorkspaceId] = React.useState();
   const { context } = useSDK();
+  console.info('context111', context);
 
   React.useEffect(() => {
     const execute = async () => {
@@ -77,7 +78,6 @@ const TestRepository = () => {
   return (
     <TestManagerProvider workspaceId={workspaceId}>
       <div className={cx('test-repository')}>
-        <h2 className={cx('title')}>测试管理</h2>
         <Split className={cx('layout')}>
           <FolderTree
             className={cx('left')}
