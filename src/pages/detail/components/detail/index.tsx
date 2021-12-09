@@ -1,13 +1,6 @@
 import React, { useState, useCallback, useEffect, createRef } from 'react';
-import { Button, Tooltip, Input, Dropdown, Menu, Empty, Spin, message } from '@osui/ui';
-import {
-  EditOutlined,
-  ArrowsAltOutlined,
-  ShrinkOutlined,
-  SearchOutlined,
-  QuestionCircleOutlined,
-  DownOutlined,
-} from '@ant-design/icons';
+import { Button, Tooltip, Dropdown, Menu, Empty, Spin, message } from '@osui/ui';
+import { ArrowsAltOutlined, ShrinkOutlined, DownOutlined } from '@ant-design/icons';
 import { useDrop } from 'react-dnd';
 // import Breadcrumb from './components/Breadcrumb';
 import StepItem from './components/List';
@@ -134,7 +127,7 @@ const Detail: React.FC = () => {
     // },
   ]);
   const [testInfo, setTestInfo] = useState<TestInfor>({});
-  const currentObjectId: string = window?.QiankunProps?.context?.itemId || 'YBkC6luOfw';
+  const currentObjectId: string = window?.QiankunProps?.context?.itemId || 'EiQfWGQz21';
   const ItemTypeModalRef = createRef<ItemTypeModalHandle>();
   console.log('QiankunProps', window?.QiankunProps);
 

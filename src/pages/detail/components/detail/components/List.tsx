@@ -172,7 +172,7 @@ const List: React.FC<ListProps> = (props: ListProps) => {
         </span>
       </Divider>
       <div className={css('detail-list')} ref={preview}>
-        <div className={css('nav')}>
+        <div className={[css('nav'), item.callTestId && css('call')].join(' ')}>
           {isExpand && props.index !== 0 && (
             <div className={css('nav__drag')}>
               <ArrowUpOutlined />
@@ -289,7 +289,13 @@ const List: React.FC<ListProps> = (props: ListProps) => {
           )
         ) : (
           <div className={css('list')}>
-            <div className={[css('list__item'), css('call-test')].join(' ')}>{item.callTestId}</div>
+            <div className={[css('list__item'), css('call-test')].join(' ')}>
+              <div className={css('call-test-topic')}>
+                <div className={css('label')}>继承测试用例</div>
+                <Button type="link">{item?.itemObject?.key}</Button>
+              </div>
+              <div className={css('list__item__result')}>{item?.itemObject?.name}</div>
+            </div>
           </div>
         )}
         {!editState &&
