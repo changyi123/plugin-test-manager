@@ -72,7 +72,9 @@ const StepList: React.FC<{
               <Menu.Item key="1" onClick={() => actionCard.addCard()}>
                 新增步骤
               </Menu.Item>
-              <Menu.Item key="2">继承测试用例</Menu.Item>
+              <Menu.Item key="2" onClick={() => actionCard.openCallTestModal(0)}>
+                继承测试用例
+              </Menu.Item>
             </Menu>
           }
         >
@@ -371,7 +373,9 @@ const Detail: React.FC = () => {
                   <Menu.Item key="1" onClick={() => addCard()}>
                     新增步骤
                   </Menu.Item>
-                  <Menu.Item key="2">继承测试用例</Menu.Item>
+                  <Menu.Item key="2" onClick={() => openCallTestModal(0)}>
+                    继承测试用例
+                  </Menu.Item>
                 </Menu>
               }
             >
