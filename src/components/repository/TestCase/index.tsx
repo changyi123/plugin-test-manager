@@ -8,16 +8,16 @@ import { openTestMenu, MenuKey } from '../Menu';
 import { useBaseAction } from '@/lib/hooks/useContext';
 
 type TestCaseProps = Item & {
-  children?: React.ReactNode;
   selectedFolderKey: string;
+  children?: React.ReactNode;
 };
 
 const TestCase: React.FC<TestCaseProps> = ({
   key,
   name,
+  status: _status,
   objectId: itemId,
   selectedFolderKey,
-  status: _status,
   itemType: _itemType,
 }) => {
   const itemType = _itemType as ItemTyped;
@@ -59,7 +59,9 @@ const TestCase: React.FC<TestCaseProps> = ({
           ) : null}
         </Tooltip>
         <a className={cx('item-key')}>{key}</a>
-        <span className={cx('item-name')}>{name}</span>
+        <a className={cx('item-name')} onClick={() => openItemViewPanel(itemId)}>
+          {name}
+        </a>
       </div>
       <div className={cx('row', 'bottom')}>
         <Tooltip title={`状态：${status?.name}`}>

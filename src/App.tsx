@@ -1,7 +1,8 @@
 import React, { useEffect, Suspense, useMemo } from 'react';
-import { MemoryRouter, Switch, Route, useHistory, HashRouter } from 'react-router-dom';
-import { ConfigProvider, message } from '@osui/ui';
+import { getRootContainer } from '@/lib/utils/helper';
 import { PluginSDKContext } from '@projectproxima/plugin-sdk';
+import { ConfigProvider, message, notification } from '@osui/ui';
+import { MemoryRouter, Switch, Route, useHistory, HashRouter } from 'react-router-dom';
 
 const rootElement = 'test-manager';
 
@@ -41,7 +42,10 @@ const App: React.FC = props => {
     }),
     [props],
   );
-  console.log('看看刷新了多少次');
+
+  notification.config({
+    getContainer: getRootContainer,
+  });
 
   return (
     <PluginSDKContext.Provider value={qiankunContextValue.sdk}>

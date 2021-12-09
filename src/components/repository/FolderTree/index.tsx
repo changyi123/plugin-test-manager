@@ -104,8 +104,10 @@ const FolderTree: React.FC<FolderTreeProps> = ({
   } = useTestConfig();
 
   // 监听事项创建成功
-  itemCreated$.useSubscription(async ({ itemId, folderKey }) => {
+  itemCreated$.useSubscription(async ({ itemId, folderKey, type }) => {
     console.info('itemCreated', itemId, folderKey);
+    // 只有测试用例需要被添加至测试用例仓库
+    if (type !== TestType.Test) return;
     const node = treeFn.getTreeNodeByKey(folderKey);
     if (!node) return;
     // 修改 node，将创建成功的 itemId 追加到 node 上
