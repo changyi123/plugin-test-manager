@@ -20,6 +20,10 @@ const routes = [
     path: '/testConfig',
     component: React.lazy(() => import('../pages/config')),
   },
+  {
+    path: '/testRun',
+    component: React.lazy(() => import('../pages/run')),
+  },
 ];
 
 export default routes;
