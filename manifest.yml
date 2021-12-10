@@ -77,6 +77,16 @@ tables:
         type: String
       newValue:
         type: String
+  - className: TestRelation
+    fields:
+      from:
+        type: Pointer
+        targetClass: test_manager_Test
+      to:
+        type: Pointer
+        targetClass: test_manager_Test
+      relationType:
+        type: String
   # itemPanel:
   #   - key: micro-itemPanel-1
   #     resource: main

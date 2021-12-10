@@ -10,9 +10,25 @@ export enum PROXIMA_EVENT_KEY {
 
 // 测试类型
 export enum TestType {
-  Test = 'Test',
+  // 测试用例
+  TestDetail = 'TestDetail',
   TestSet = 'TestSet',
   TestPlan = 'TestPlan',
   Precondition = 'Precondition',
   TestExecution = 'TestExecution',
+  TestRun = 'TestRun',
+}
+
+// 测试实体类型关联关系 (from)Rel(to)
+export enum TestRelationType {
+  // 测试用例关联测试运行（1:1）
+  DetailRelRun = 'DetailRelRun',
+  // 测试执行关联测试运行(1:N)
+  ExecutionRelRun = 'ExecutionRelRun',
+  // 测试计划关联测试用例(1:N)
+  PlanRelDetail = 'PlanRelDetail',
+  // 测试计划关联测试执行(1:N)
+  PlanRelExecution = 'PlanRelExecution',
+
+  // TODO: 测试集合
 }

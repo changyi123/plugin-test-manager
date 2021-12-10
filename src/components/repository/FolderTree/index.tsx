@@ -107,7 +107,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
   itemCreated$.useSubscription(async ({ itemId, folderKey, type }) => {
     console.info('itemCreated', itemId, folderKey);
     // 只有测试用例需要被添加至测试用例仓库
-    if (type !== TestType.Test) return;
+    if (type !== TestType.TestDetail) return;
     const node = treeFn.getTreeNodeByKey(folderKey);
     if (!node) return;
     // 修改 node，将创建成功的 itemId 追加到 node 上
@@ -180,7 +180,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
 
   const folderMenuDisabledKeys = React.useMemo(() => {
     const keys = [];
-    if (!itemTypeMap?.Test) {
+    if (!itemTypeMap?.TestDetail) {
       keys.push(MenuKey.createTest);
     }
     return keys;
@@ -285,9 +285,9 @@ const FolderTree: React.FC<FolderTreeProps> = ({
       } else if (actionKey === MenuKey.createTest) {
         // 创建测试用例
         createItem({
-          type: TestType.Test,
+          type: TestType.TestDetail,
           extraData: {
-            type: TestType.Test,
+            type: TestType.TestDetail,
             folderKey: node.key,
           },
         });
