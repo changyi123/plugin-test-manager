@@ -1,0 +1,13 @@
+diff --git a/node_modules/@osui/empty/es/empty.js b/node_modules/@osui/empty/es/empty.js
+index 777a90a..2a7b7c5 100644
+--- a/node_modules/@osui/empty/es/empty.js
++++ b/node_modules/@osui/empty/es/empty.js
+@@ -5,7 +5,7 @@ var Empty = function Empty(_ref) {
+   var _ref$width = _ref.width,
+       width = _ref$width === void 0 ? 140 : _ref$width,
+       _ref$height = _ref.height,
+-      height = _ref$height === void 0 ? 'auto' : _ref$height;
++      height = _ref$height === void 0 ? '100%' : _ref$height;
+   return /*#__PURE__*/React.createElement("svg", {
+     className: "osui-empty-img",
+     width: width,
