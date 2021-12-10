@@ -8,7 +8,8 @@
     "dev": "yarn start",
     "start": "webpack server --mode=development",
     "build-app": "sh ./build-app.sh",
-    "lint": "eslint src --ext .js,.jsx,.ts,.tsx"
+    "lint": "eslint src --ext .js,.jsx,.ts,.tsx",
+    "prepare": "npx patch-package"
   },
   "repository": {
     "type": "git"
@@ -54,6 +55,7 @@
     "less-loader": "^10.0.1",
     "less-plugin-functions": "^1.0.0",
     "mini-css-extract-plugin": "^2.3.0",
+    "patch-package": "^6.4.7",
     "postcss": "^8.3.6",
     "postcss-loader": "^6.1.1",
     "postcss-selector-namespace": "^3.0.1",
