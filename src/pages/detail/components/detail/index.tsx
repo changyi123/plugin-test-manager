@@ -1,13 +1,6 @@
 import React, { useState, useCallback, useEffect, createRef } from 'react';
-import { Button, Tooltip, Input, Dropdown, Menu, Empty, Spin, message } from '@osui/ui';
-import {
-  EditOutlined,
-  ArrowsAltOutlined,
-  ShrinkOutlined,
-  SearchOutlined,
-  QuestionCircleOutlined,
-  DownOutlined,
-} from '@ant-design/icons';
+import { Button, Tooltip, Dropdown, Menu, Empty, Spin, message } from '@osui/ui';
+import { ArrowsAltOutlined, ShrinkOutlined, DownOutlined } from '@ant-design/icons';
 import { useDrop } from 'react-dnd';
 // import Breadcrumb from './components/Breadcrumb';
 import StepItem from './components/List';
@@ -79,7 +72,9 @@ const StepList: React.FC<{
               <Menu.Item key="1" onClick={() => actionCard.addCard()}>
                 新增步骤
               </Menu.Item>
-              <Menu.Item key="2">继承测试用例</Menu.Item>
+              <Menu.Item key="2" onClick={() => actionCard.openCallTestModal(0)}>
+                继承测试用例
+              </Menu.Item>
             </Menu>
           }
         >
@@ -134,7 +129,7 @@ const Detail: React.FC = () => {
     // },
   ]);
   const [testInfo, setTestInfo] = useState<TestInfor>({});
-  const currentObjectId: string = window?.QiankunProps?.context?.itemId || 'YBkC6luOfw';
+  const currentObjectId: string = window?.QiankunProps?.context?.itemId || 'EiQfWGQz21';
   const ItemTypeModalRef = createRef<ItemTypeModalHandle>();
   console.log('QiankunProps', window?.QiankunProps);
 
@@ -378,7 +373,9 @@ const Detail: React.FC = () => {
                   <Menu.Item key="1" onClick={() => addCard()}>
                     新增步骤
                   </Menu.Item>
-                  <Menu.Item key="2">继承测试用例</Menu.Item>
+                  <Menu.Item key="2" onClick={() => openCallTestModal(0)}>
+                    继承测试用例
+                  </Menu.Item>
                 </Menu>
               }
             >
