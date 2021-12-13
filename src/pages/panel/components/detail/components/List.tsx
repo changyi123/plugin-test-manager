@@ -8,7 +8,7 @@ import {
 } from '@ant-design/icons';
 import { useDrag, useDrop } from 'react-dnd';
 
-import { TestStep, IActionCard } from '../';
+import { TestStep, IActionCard } from '..';
 import { stepTools, IStepToolsKey } from './ListConfig';
 import css from './List.less';
 import Copy from '@/components/common/CopyToClipboard';

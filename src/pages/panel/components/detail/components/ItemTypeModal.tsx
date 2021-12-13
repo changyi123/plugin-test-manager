@@ -9,7 +9,7 @@ import {
   GetItemFromItemType,
 } from '@/lib/api/detail';
 import useMergedState from 'rc-util/lib/hooks/useMergedState';
-import { IActionCard } from '../';
+import { IActionCard } from '..';
 
 type ItemTypelModelProps = {
   trigger?: JSX.Element;
@@ -105,8 +105,6 @@ const ItemTypeModal: React.ForwardRefRenderFunction<ItemTypeModalHandle, ItemTyp
       open: handleOpenModal,
     };
   });
-
-  console.log('没更新吗', props.visible);
 
   return (
     <>

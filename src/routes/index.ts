@@ -7,8 +7,8 @@ const routes = [
     exact: true,
   },
   {
-    path: '/testDetail',
-    component: React.lazy(() => import('../pages/detail')),
+    path: '/testPanel',
+    component: React.lazy(() => import('../pages/panel')),
     exact: true,
   },
   {

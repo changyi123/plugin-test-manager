@@ -15,7 +15,7 @@ modules:
       resource: main
       title: 测试用例详情
       loadType: Micro
-      route: /testDetail
+      route: /testPanel
   adminPage:
     - key: test-manager-repository
   workspacePage:
