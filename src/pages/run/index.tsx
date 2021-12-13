@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { Breadcrumb, Tooltip, Divider, Row, Col, Typography, Collapse } from '@osui/ui';
 import UploadFile from '@/components/common/UploadFile';
+import Comment from '@/components/common/Comment';
+import ItemList from './components/ItemList';
+import StepList from './components/StepList';
 
 import css from './index.less';
 
@@ -149,17 +152,31 @@ const TestRun: React.FC = () => {
       <TestInfo />
 
       <div className={css('run__total')}>
-        <Collapse defaultActiveKey={['1']}>
+        <Collapse defaultActiveKey={['2']}>
           <Collapse.Panel header="总结" key="1">
             <Collapse defaultActiveKey={['1', '2', '3']}>
-              <Collapse.Panel header="关联缺陷" key="1">
-                <p>阿萨德</p>
+              <Collapse.Panel header="缺陷" key="1">
+                <ItemList />
               </Collapse.Panel>
               <Collapse.Panel header="附件" key="2">
                 <UploadFile />
               </Collapse.Panel>
-              <Collapse.Panel header="留言" key="3">
-                <p>阿萨德</p>
+              <Collapse.Panel header="留言(点击文本编辑)" key="3">
+                <Comment />
+              </Collapse.Panel>
+            </Collapse>
+          </Collapse.Panel>
+
+          <Collapse.Panel header="详情" key="2">
+            <Collapse defaultActiveKey={['1', '2', '3']}>
+              <Collapse.Panel header="关联事项" key="1">
+                <ItemList />
+              </Collapse.Panel>
+              {/* <Collapse.Panel header="前置条件" key="2.2">
+                <UploadFile />
+              </Collapse.Panel> */}
+              <Collapse.Panel header="步骤" key="3">
+                <StepList />
               </Collapse.Panel>
             </Collapse>
           </Collapse.Panel>

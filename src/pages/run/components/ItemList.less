@@ -1,0 +1,38 @@
+.list {
+  &__item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+
+    .left, .right {
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+    }
+
+    &__name {
+      margin-left: 8px;
+    }
+
+    &__status {
+      margin-left: 8px;
+    }
+
+    &__del {
+      transition: all 0.3s;
+      opacity: 0;
+    }
+  }
+
+  :global(.ant-list-item) {
+    transition: all 0.3s;
+    &:hover {
+      background-color: #fafafa;
+
+      .list__item__del {
+        opacity: 1;
+      }
+    }
+  }
+}

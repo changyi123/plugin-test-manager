@@ -1,0 +1,41 @@
+.step-list {
+  &__item {
+    display: flex;
+    justify-content: space-between;
+    .left {
+      display: flex;
+      background-color: #bfbfbf;
+      flex-flow: column;
+      text-align: center;
+      padding: 6px 8px;
+      color: #fff;
+
+      &__tips {
+        margin-top: auto;
+      }
+    }
+
+    .right {
+      margin-left: 10px;
+      flex: 1;
+
+      &__item {
+        border: 1px solid #bfbfbf;
+        margin-left: -1px;
+        margin-top: -1px;
+        padding: 6px;
+      }
+
+      &__topic {
+        font-size: 18px;
+        font-weight: 600;
+      }
+
+      &__tools {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+    }
+  }
+}
