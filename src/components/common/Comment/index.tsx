@@ -1,6 +1,5 @@
-import React, { useCallback, useState } from 'react';
+import React, { useState } from 'react';
 import { Space, Input, Button } from '@osui/ui';
-import { CopyOutlined } from '@ant-design/icons';
 
 import css from './index.less';
 
@@ -29,14 +28,15 @@ const Comment: React.FC<ICommentProps> = ({ placeholder = '点击添加评论', 
       <Input.TextArea
         placeholder={placeholder}
         value={inputValue}
-        allowClear
         onChange={e => setInputValue(e.target.value)}
       />
 
       {isEdit && (
         <div className={css('comment__footer')}>
           <Space>
-            <Button onClick={e => handleConfirm(e)}>保存</Button>
+            <Button type="primary" onClick={e => handleConfirm(e)}>
+              保存
+            </Button>
             <Button onClick={e => handleCancel(e)}>取消</Button>
           </Space>
         </div>
