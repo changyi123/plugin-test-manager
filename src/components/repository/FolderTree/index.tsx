@@ -4,7 +4,7 @@ import { useReactive, useDrop } from 'ahooks';
 import { Tree, Button, Modal, Input, message, Empty } from '@osui/ui';
 import { hasArrayItem, getRootContainer } from '@/lib/utils/helper';
 import { PlusCircleOutlined, MoreOutlined, FullscreenExitOutlined } from '@ant-design/icons';
-import { openFolderMenu, MenuKey, FolderMenuWithDropdown } from '../Menu';
+import { openFolderMenu, MenuKey } from '../Menu';
 import { createFolder, updateFolders, deleteFolder } from '@/lib/api/repository';
 import { useTestConfig, useBaseAction, useEventBus } from '@/lib/hooks/useContext';
 import { useTreeFn, traverseTreeNodes } from './hook';
@@ -386,15 +386,18 @@ const FolderTree: React.FC<FolderTreeProps> = ({
     },
     {
       title: '更多',
-      icon: (
-        <FolderMenuWithDropdown
-          trigger={['click']}
-          onMenuClick={key => handleMenuClick(key, selectedTreeNode || {})}
-          disabledKeys={folderMenuDisabledKeys}
-        >
-          <MoreOutlined />
-        </FolderMenuWithDropdown>
-      ),
+      icon: <MoreOutlined />,
+      onClick(e) {
+        if (selectedTreeNode.key === 'ALL') return;
+        openFolderMenu(e.target, {
+          x: e.clientX,
+          y: e.clientY,
+          disabledKeys: folderMenuDisabledKeys,
+          onClick(key: MenuKey) {
+            handleMenuClick(key, selectedTreeNode || {});
+          },
+        });
+      },
     },
   ];
 

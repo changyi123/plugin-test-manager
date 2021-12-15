@@ -6,7 +6,7 @@ import { hasArrayItem } from '@/lib/utils/helper';
 import Parse from '@/lib/parse';
 import fetch from '@/lib/utils/fetch';
 import { IQLBuilder } from '@/lib/utils/iql';
-import { Item, Workspace } from '@/lib/models';
+import { CustomField, Workspace } from '@/lib/models';
 
 type IQLPaginationParams = {
   form?: number;
@@ -60,4 +60,14 @@ export const getWorkspaceByKey = async (key: string) => {
     .equalTo('key', key)
     .map(item => item.toJSON());
   return workspace;
+};
+
+/**
+ * 获取全部自定义字段
+ */
+export const getCustomFields = async () => {
+  const query = new Parse.Query(CustomField).include('fieldType').limit(1000);
+
+  const fields = await query.find();
+  return fields.map(item => item.toJSON());
 };
