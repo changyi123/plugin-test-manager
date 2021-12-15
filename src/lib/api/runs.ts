@@ -8,21 +8,28 @@ export const GetTestRunsById = (objectId: string): Promise<ICommonRes> => {
     const reference = Item.createWithoutData(objectId);
     query.equalTo('reference', reference);
     query.equalTo('type', '1');
-    query.first().then(
-      res => {
-        resolve({
-          success: true,
-          data: { ...res },
-        });
-      },
-      err => {
-        reject({
-          success: false,
-          data: { ...err },
-          message: err,
-        });
-      },
-    );
+    console.log('执行到这里了');
+    query
+      .first()
+      .then(
+        res => {
+          console.log('res来到这里？？', res);
+          resolve({
+            success: true,
+            data: { ...res },
+          });
+        },
+        err => {
+          reject({
+            success: false,
+            data: { ...err },
+            message: err,
+          });
+        },
+      )
+      .catch(() => {
+        console.log('这里吗');
+      });
   });
 };
 

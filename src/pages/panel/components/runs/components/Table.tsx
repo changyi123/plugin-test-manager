@@ -73,7 +73,7 @@ const RunsTable: React.FC<RunsTableProps> = ({ id }) => {
     {
       title: '执行',
       render: () => (
-        <Button type="primary" href="#/testRun" icon={<CaretRightOutlined />}>
+        <Button size="small" type="primary" href="#/testRun" icon={<CaretRightOutlined />}>
           执行
         </Button>
       ),
@@ -91,9 +91,9 @@ const RunsTable: React.FC<RunsTableProps> = ({ id }) => {
   if (loading) {
     return <Spin tip="加载中..."></Spin>;
   }
-  if (!data?.data?.length) {
-    return <Empty description="测试运行为空，请创建测试执行"></Empty>;
-  }
+  // if (!data?.data?.length) {
+  //   return <Empty description="测试运行为空，请创建测试执行"></Empty>;
+  // }
   return (
     <Table<RunItem>
       dataSource={dataSource}
