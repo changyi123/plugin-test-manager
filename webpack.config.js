@@ -144,22 +144,23 @@ module.exports = (cliEnv = {}, argv) => {
       return false;
     })(),
     // 生产环境使用 proxima-app 传入的
-    externals: isProd
-      ? {
-          react: {
-            amd: 'react',
-            commonjs: 'react',
-            commonjs2: 'react',
-            root: '_PROXIMA_React',
-          },
-          'react-dom': {
-            amd: 'react-dom',
-            commonjs: 'react-dom',
-            commonjs2: 'react-dom',
-            root: '_PROXIMA_ReactDOM',
-          },
-        }
-      : undefined,
+    externals:
+      isProd || process.env.PROXIMA_DEV_MODE === 'embed'
+        ? {
+            react: {
+              amd: 'react',
+              commonjs: 'react',
+              commonjs2: 'react',
+              root: '_PROXIMA_React',
+            },
+            'react-dom': {
+              amd: 'react-dom',
+              commonjs: 'react-dom',
+              commonjs2: 'react-dom',
+              root: '_PROXIMA_ReactDOM',
+            },
+          }
+        : undefined,
     resolve: {
       extensions: ['.js', '.css', '.jsx', '.tsx', '.ts'],
       alias: {

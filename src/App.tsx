@@ -50,7 +50,7 @@ const App: React.FC = props => {
   return (
     <PluginSDKContext.Provider value={qiankunContextValue.sdk}>
       <ConfigProvider getPopupContainer={() => document.getElementById(rootElement)}>
-        {process.env.NODE_ENV === 'production' ? (
+        {process.env.NODE_ENV === 'production' || process.env.PROXIMA_DEV_MODE === 'embed' ? (
           <MemoryRouter>
             <GoPropsRoute {...props} />
             <Switch>

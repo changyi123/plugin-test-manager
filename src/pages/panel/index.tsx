@@ -42,7 +42,7 @@ const tabConfig: Array<{
 const TestDetail: React.FC = () => {
   return (
     <div className={css('detail')}>
-      <Tabs defaultActiveKey={TestType.TestRun}>
+      <Tabs defaultActiveKey={TestType.TestPlan}>
         {tabConfig.map(({ tab, key, Component }) => (
           <TabPane tab={tab} key={key}>
             <Suspense fallback={<Spin tip="加载中..."></Spin>}>
