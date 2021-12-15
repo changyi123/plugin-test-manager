@@ -140,7 +140,7 @@ export const fetchTestSteps = (resource: string): Promise<ICommonRes> => {
               }
             });
           });
-          console.log('step', step);
+          // console.log('step', step);
           resolve({
             success: true,
             data: step,
@@ -173,6 +173,7 @@ export const saveOrUpdateTestStep = (
     step.set({
       steps: testSteps,
       reference,
+      type: 1,
     });
     step.save().then(
       res => {
@@ -250,7 +251,7 @@ export const GetTestConfigFromWorkspaceId = (workspaceId: string): Promise<IComm
           });
           return;
         }
-        console.log('configObject.toJSON()', configObject);
+        // console.log('configObject.toJSON()', configObject);
         resolve({
           success: true,
           data: configObject.toJSON(),

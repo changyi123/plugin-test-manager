@@ -115,21 +115,9 @@ const StepDrop: React.FC<{
 };
 
 const Detail: React.FC = () => {
-  const [steps, setSteps] = useState<Array<TestStep>>([
-    // {
-    //   resource: '1',
-    //   action: '行动111',
-    //   data: '数据111',
-    //   result: '结果111',
-    //   attachments: [],
-    //   customFields: [],
-    //   index: 0,
-    //   isExpand: true,
-    //   id: 'one',
-    // },
-  ]);
+  const [steps, setSteps] = useState<Array<TestStep>>([]);
   const [testInfo, setTestInfo] = useState<TestInfor>({});
-  const currentObjectId: string = window?.QiankunProps?.context?.itemId || 'EiQfWGQz21';
+  const currentObjectId: string = window?.QiankunProps?.context?.itemId || 'SzHLagi3vR';
   const ItemTypeModalRef = createRef<ItemTypeModalHandle>();
   console.log('QiankunProps', window?.QiankunProps);
 

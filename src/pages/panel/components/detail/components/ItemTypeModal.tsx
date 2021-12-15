@@ -14,6 +14,7 @@ import { IActionCard } from '..';
 type ItemTypelModelProps = {
   trigger?: JSX.Element;
   visible?: boolean;
+  title?: string;
   onCancel?: ModalProps['onCancel'];
   saveCard?: IActionCard['saveCard'];
   type: 'Test' | 'TestPrecondition' | 'TestSet' | 'TestPlan' | 'TestExecution';
@@ -40,8 +41,13 @@ const ItemTypeModalContent: React.FC<ItemTypeModalContentProps> = props => {
     () => GetItemTypeFromId(testConfigRequest?.data?.data?.itemTypeMap?.[props.type]),
     {
       ready: !!testConfigRequest.data,
+      throwOnError: true,
     },
   );
+
+  if (!testConfigRequest?.data?.data?.itemTypeMap?.[props.type]) {
+    return <div>暂无找到{props.type}关联关系</div>;
+  }
 
   if (testConfigRequest.error) {
     return <div>加载失败,原因:{testConfigRequest?.error?.message}</div>;
@@ -109,7 +115,7 @@ const ItemTypeModal: React.ForwardRefRenderFunction<ItemTypeModalHandle, ItemTyp
   return (
     <>
       <Modal
-        title="请选择继承测试用例"
+        title={props.title || '请选择继承测试用例'}
         visible={isVisible}
         maskClosable={false}
         onCancel={handleCloseModal}
