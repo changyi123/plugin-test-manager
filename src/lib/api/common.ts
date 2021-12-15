@@ -67,32 +67,37 @@ export const createTestRelation = ({
 /**
  * 创建测试实体
  */
-export const createTestEntity = (newEntity: {
-  itemId: string;
-  type: TestType;
-  workspaceId: string;
-}) => {
-  const newTest = new Test({
-    type: newEntity.type,
-    workspace: Workspace.createWithoutData(newEntity.workspaceId),
-    reference: Item.createWithoutData(newEntity.itemId),
-  });
+export const createTestEntities = (
+  entities: {
+    itemId: string;
+    type: TestType;
+    workspaceKey: string;
+  }[],
+) => {
+  const newTestEntities = entities.map(
+    entity =>
+      new Test({
+        type: entity.type,
+        workspaceKey: entity.workspaceKey,
+        reference: Item.createWithoutData(entity.itemId),
+      }),
+  );
 
-  return newTest.save();
+  return Parse.Object.saveAll(newTestEntities);
 };
 
 /**
  * 获取测试实体
  */
-export const getTestEntity = (itemId: string) => {
-  return new Parse.Query(Test).equalTo('reference', itemId);
+export const getTestEntityByItemId = (itemId: string) => {
+  return new Parse.Query(Test).equalTo('reference', Item.createWithoutData(itemId)).first();
 };
 
 /**
  * 获取测试管理配置
  */
-export const getTestConfig = (workspaceId: string) => {
-  return new Parse.Query(TestConfig).equalTo('workspace', workspaceId).first();
+export const getTestConfig = (workspaceKey: string) => {
+  return new Parse.Query(TestConfig).equalTo('workspaceKey', workspaceKey).first();
 };
 
 /**

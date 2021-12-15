@@ -51,10 +51,14 @@ const openFolderNameModal: OpenFolderNameModal = ({ title, name }) => {
       icon: null,
       content: input,
       onOk() {
-        const inputValue = inputRef.state.value;
+        const inputValue = inputRef.state.value?.trim() ?? '';
         if (!inputValue) {
           message.error('模块名不能为空');
           throw new Error('required name');
+        }
+        if (inputValue.length > 30) {
+          message.error('模块名最多30字符');
+          throw new Error('max length');
         }
         resolve(inputValue);
       },
@@ -99,19 +103,19 @@ const FolderTree: React.FC<FolderTreeProps> = ({
   const { itemCreated$ } = useEventBus();
   const isInitialRef = React.useRef(false);
   const {
-    workspaceId,
+    workspaceKey,
     config: { itemTypeMap },
   } = useTestConfig();
 
   // 监听事项创建成功
-  itemCreated$.useSubscription(async ({ itemId, folderKey, type }) => {
-    console.info('itemCreated', itemId, folderKey);
+  itemCreated$.useSubscription(async ({ itemKey, folderKey, type }) => {
+    console.info('itemCreated', itemKey, folderKey);
     // 只有测试用例需要被添加至测试用例仓库
     if (type !== TestType.TestDetail) return;
     const node = treeFn.getTreeNodeByKey(folderKey);
     if (!node) return;
-    // 修改 node，将创建成功的 itemId 追加到 node 上
-    node.itemIds = (node.itemIds || []).concat(itemId);
+    // 修改 node，将创建成功的 itemKey 追加到 node 上
+    node.itemIds = (node.itemIds || []).concat(itemKey);
     await updateFolders([node]);
     onFolderTreeChange();
     handleSelect([node.key], {
@@ -124,15 +128,15 @@ const FolderTree: React.FC<FolderTreeProps> = ({
   const [props] = useDrop({
     async onDom(content, e) {
       removeHoveringClassName();
-      const { selectedFolderKey, itemId } = content;
+      const { selectedFolderKey, itemKey } = content;
       const targetNodeKey = e.currentTarget.getAttribute('data-node-key');
       // 相同模块不执行操作
       if (selectedFolderKey === targetNodeKey) return;
       const currentNode = treeFn.getTreeNodeByKey(selectedFolderKey);
       const targetNode = treeFn.getTreeNodeByKey(targetNodeKey);
 
-      currentNode.itemIds = currentNode.itemIds.filter(key => key !== itemId);
-      targetNode.itemIds = targetNode.itemIds.concat(itemId);
+      currentNode.itemIds = currentNode.itemIds.filter(key => key !== itemKey);
+      targetNode.itemIds = targetNode.itemIds.concat(itemKey);
 
       await updateFolders([currentNode, targetNode]);
 
@@ -172,7 +176,9 @@ const FolderTree: React.FC<FolderTreeProps> = ({
           }}
         >
           <span>{node.name}</span>
-          <span className={cx('tree-node-length')}>{`${node.itemIds.length} (${totalLen})`}</span>
+          {node.key !== 'ALL' ? (
+            <span className={cx('tree-node-length')}>{`${node.itemIds.length} (${totalLen})`}</span>
+          ) : null}
         </div>
       );
     });
@@ -231,7 +237,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         const folderName = await openFolderNameModal({ title: '创建模块' });
         await createFolder({
           parentId: node?.key,
-          workspaceId,
+          workspaceKey,
           name: folderName,
         });
         node?.key && state.expandedKeys.push(node.key);
@@ -300,7 +306,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
     },
     [
       treeFn,
-      workspaceId,
+      workspaceKey,
       state.expandedKeys,
       onFolderTreeChange,
       handleSelect,
@@ -312,6 +318,8 @@ const FolderTree: React.FC<FolderTreeProps> = ({
   const handleRightClick = React.useCallback(
     ({ event, node }) => {
       event.preventDefault();
+      // 所有案例无右侧菜单
+      if (node.key === 'ALL') return;
       openFolderMenu(event.target, {
         x: event.clientX,
         y: event.clientY,
@@ -330,7 +338,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
   );
 
   React.useEffect(() => {
-    if (hasArrayItem(treeData) && !isInitialRef.current) {
+    if (hasArrayItem(treeData) && treeData.length > 1 && !isInitialRef.current) {
       isInitialRef.current = true;
       const node = treeData[0];
       // 默认展开模块第一层

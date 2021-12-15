@@ -3,8 +3,8 @@ import { notification } from '@osui/ui';
 import { useRequest } from 'ahooks';
 import { useOnItemCreateSuccess } from '@/lib/hooks/useProximaSDK';
 import { openCreateItemModal, openItemDetailPanel } from '@/lib/api/sdk';
-import { getTestConfig, createTestEntity, getTestEntity } from '@/lib/api/common';
-import { getItemByIds } from '@/lib/api/proxima';
+import { getTestConfig, createTestEntities, getTestEntityByItemId } from '@/lib/api/common';
+import { getItemByIQL, getWorkspaceByKey } from '@/lib/api/proxima';
 import { useEventBusContextValue } from './hooks';
 import {
   TestConfigContext,
@@ -15,22 +15,23 @@ import {
 } from './context';
 
 type RepositoryDataProviderProps = {
-  workspaceId?: string;
+  workspaceKey?: string;
   children: React.ReactNode;
 };
 
-const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
-  children,
-  workspaceId: workspacePropId,
-}) => {
+const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({ children, workspaceKey }) => {
   const [workspaceId, setWorkspaceId] = React.useState<string>();
   const eventBusValues = useEventBusContextValue();
 
   React.useEffect(() => {
-    setWorkspaceId(workspacePropId);
-  }, [workspacePropId]);
+    const execute = async () => {
+      const { objectId } = await getWorkspaceByKey(workspaceKey);
+      setWorkspaceId(objectId);
+    };
+    execute();
+  }, [workspaceKey]);
 
-  const { data: testConfigParseObj } = useRequest(() => getTestConfig(workspaceId), {
+  const { data: testConfigParseObj } = useRequest(() => getTestConfig(workspaceKey), {
     staleTime: 50000,
     ready: !!workspaceId,
     cacheKey: workspaceId,
@@ -46,22 +47,25 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
   const itemCreateSuccessCb = React.useCallback(
     async params => {
       // 获取 item 数据
-      const [item] = await getItemByIds([params.itemId]);
-      const { objectId, workspace, itemType } = item ?? ({} as any);
+      const {
+        items: [item],
+      } = await getItemByIQL({ itemId: params.itemId });
+      const { key, workspace, itemType } = item ?? ({} as any);
       // 测试类型关联的事项类型
       let workspaceItemTypeMap = testConfig?.itemTypeMap;
       // 测试实体类型
       const testEntityType = params.extraData.type;
       // 判断测试类型关联的事项类型是否正确
       const isRightTestEntityType = itemTypeMap => {
-        return Object.entries(itemTypeMap ?? {}).some(([testType, itemTypeId]) => {
-          return testType === testEntityType && itemTypeId === itemType?.objectId;
+        // 对比 key
+        return Object.entries(itemTypeMap ?? {}).some(([testType, itemTypeKey]) => {
+          return testType === testEntityType && itemTypeKey === itemType?.key;
         });
       };
 
-      if (workspaceId !== workspace.objectId) {
+      if (workspaceKey !== workspace.key) {
         // 事项所属空间不是当前空间则需要 testConfig itemTypeMap 关联类型
-        const otherTestConfig = getTestConfig(workspace.objectId);
+        const otherTestConfig = getTestConfig(workspace.key);
         workspaceItemTypeMap = otherTestConfig?.itemTypeMap;
       }
 
@@ -72,21 +76,23 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
         });
       }
       // 如果没有相关联的类型，则放弃创建测试实体
-      const testEntity = await getTestEntity(params.itemId);
+      const testEntity = await getTestEntityByItemId(params.itemId);
       if (!testEntity) {
-        await createTestEntity({
-          itemId: objectId,
-          type: testEntityType,
-          workspaceId: workspace.objectId,
-        });
+        await createTestEntities([
+          {
+            itemId: item.id,
+            type: testEntityType,
+            workspaceKey: workspace.key,
+          },
+        ]);
       }
       eventBusValues.itemCreated$.emit({
-        itemId: objectId,
+        itemKey: key,
         ...params.extraData,
       });
       // TODO: item link
     },
-    [eventBusValues.itemCreated$, testConfig?.itemTypeMap, workspaceId],
+    [eventBusValues.itemCreated$, testConfig?.itemTypeMap, workspaceKey],
   );
 
   useOnItemCreateSuccess(itemCreateSuccessCb);
@@ -97,15 +103,15 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
       config: {
         itemTypeMap: testConfig.itemTypeMap,
       },
-      workspaceId,
+      workspaceKey,
       setWorkspaceId,
     };
-  }, [workspaceId, testConfig]);
+  }, [workspaceKey, testConfig]);
 
   const baseActionContextValues = React.useMemo(() => {
     const actions: BaseActionContextType = {
       getTestEntity(itemId) {
-        return getTestEntity(itemId);
+        return getTestEntityByItemId(itemId);
       },
       createItem(params) {
         const { extraData, type } = params;

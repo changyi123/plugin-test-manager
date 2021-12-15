@@ -8,7 +8,7 @@ export type TestConfigContextType = {
     // 测试类型 和 itemType 类型关联
     itemTypeMap: Record<TestType, 'string'>;
   };
-  workspaceId: string;
+  workspaceKey: string;
 };
 /** 测试管理配置 context */
 export const TestConfigContext = React.createContext<TestConfigContextType>(
