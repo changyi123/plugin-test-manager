@@ -1,0 +1,73 @@
+.exe {
+  &__handle {
+    margin-top: 10px;
+  }
+
+  &__progress {
+    &__around {
+      position: relative;
+      width: 100%;
+    }
+
+    &-outer {
+      display: inline-block;
+      width: 100%;
+    }
+
+    &-inner {
+      position: relative;
+      display: inline-block;
+      width: 100%;
+      overflow: hidden;
+      vertical-align: middle;
+      background-color: #bfbfbf;
+      border-radius: 8px;
+    }
+
+    &-bg {
+      position: relative;
+      background-color: #bfbfbf;
+      border-radius: 8px;
+      width: 100%;
+      height: 10px;
+      transition: all 0.4s cubic-bezier(0.08, 0.82, 0.17, 1) 0s;
+
+      &__success, &__fail, &__ing {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        background: #52c41a;
+        border-radius: 10px;
+        width: 50%;
+        height: 10px;
+        -webkit-animation: ant-progress-active 2.4s cubic-bezier(0.23, 1, 0.32, 1) infinite;
+        animation: ant-progress-active 2.4s cubic-bezier(0.23, 1, 0.32, 1) infinite;
+        content: '';
+        z-index: 3;
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+      }
+
+      &__fail {
+        width: 60%;
+        z-index: 2;
+        background: #fa541c;
+      }
+
+      &__ing {
+        width: 80%;
+        z-index: 1;
+        background: #fadb14;
+      }
+    }
+  }
+
+  &__tips {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-top: 10px;
+  }
+}

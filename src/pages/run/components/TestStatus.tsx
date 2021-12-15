@@ -9,26 +9,27 @@ export interface IStatusColor {
   label: string;
 }
 
+export const colorArray: Array<IStatusColor> = [
+  {
+    class: 'todo',
+    label: '未开始',
+  },
+  {
+    class: 'ing',
+    label: '正在执行',
+  },
+  {
+    class: 'fail',
+    label: '失败',
+  },
+  {
+    class: 'pass',
+    label: '通过',
+  },
+];
+
 const TestStatus: React.FC = () => {
   const [currentColor, setCurrentColor] = useState<IColor>('todo');
-  const colorArray: Array<IStatusColor> = [
-    {
-      class: 'todo',
-      label: '未开始',
-    },
-    {
-      class: 'ing',
-      label: '正在执行',
-    },
-    {
-      class: 'fail',
-      label: '失败',
-    },
-    {
-      class: 'pass',
-      label: '通过',
-    },
-  ];
   return (
     <div className={css('run__header__status')}>
       <div className={css('run__header__status__content')}>

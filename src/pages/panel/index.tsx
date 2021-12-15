@@ -34,7 +34,7 @@ const tabConfig: Array<{
   },
   {
     tab: '测试运行',
-    key: TestType.TestRun,
+    key: TestType.TestRuns,
     Component: React.lazy(() => import('./components/runs')),
   },
 ];
@@ -42,7 +42,7 @@ const tabConfig: Array<{
 const TestDetail: React.FC = () => {
   return (
     <div className={css('detail')}>
-      <Tabs defaultActiveKey={TestType.TestPlan}>
+      <Tabs defaultActiveKey={TestType.TestRuns}>
         {tabConfig.map(({ tab, key, Component }) => (
           <TabPane tab={tab} key={key}>
             <Suspense fallback={<Spin tip="加载中..."></Spin>}>
