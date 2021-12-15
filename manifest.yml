@@ -3,13 +3,13 @@ app:
   name: test-manager
 modules:
   # trigger:
-    # - key: test-manager-initial-script
-    #   events:
-    #     - proxima:app:install
-    #   function: test-manager-initial-script
+  # - key: test-manager-initial-script
+  #   events:
+  #     - proxima:app:install
+  #   function: test-manager-initial-script
   function:
-      - key: test-manager-initial-script
-        handler: /trigger/initialScript.js
+    - key: test-manager-initial-script
+      handler: /trigger/initialScript.js
   itemPanel:
     - key: test-manager-test-detail
       resource: main
@@ -29,13 +29,12 @@ tables:
     fields:
       name:
         type: String
-      workspace:
-        type: Pointer
-        targetClass: Workspace
+      workspaceKey:
+        type: String
       parent:
         type: Pointer
         targetClass: test_manager_Repository
-      issues:
+      itemIds:
         type: Array
       tenant:
         type: Pointer
@@ -44,9 +43,8 @@ tables:
         type: Number
   - className: TestConfig
     fields:
-      workspace:
-        type: Pointer
-        targetClass: Workspace
+      workspaceKey:
+        type: String
       itemTypeMap:
         type: Object
   - className: Test
@@ -54,9 +52,8 @@ tables:
       reference:
         type: Pointer
         targetClass: Item
-      workspace:
-        type: Pointer
-        targetClass: Workspace
+      workspaceKey:
+        type: string
       type:
         type: String
       steps:

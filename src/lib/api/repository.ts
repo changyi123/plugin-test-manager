@@ -3,9 +3,9 @@ import Parse from '@/lib/parse';
 import { Repository, Workspace } from '../models';
 import { arrayToTree } from '@/lib/utils/arrayToTree';
 
-export const getFolderTree = async (workspaceId: string) => {
+export const getFolderTree = async (workspaceKey: string) => {
   const repositoryObjects = await new Parse.Query(Repository)
-    .equalTo('workspace', workspaceId)
+    .equalTo('workspaceKey', workspaceKey)
     .addAscending(['createdAt'])
     .find();
   const repositories = repositoryObjects.map(item => {
@@ -13,9 +13,9 @@ export const getFolderTree = async (workspaceId: string) => {
     return {
       key: repository.objectId,
       name: repository.name,
-      itemIds: repository.issues ?? [],
+      itemIds: repository.itemIds ?? [],
       parentId: repository.parent?.objectId ?? null,
-      workspaceId: repository.workspace?.objectId,
+      workspaceKey: repository.workspaceKey,
     };
   });
   const folderTree = arrayToTree(repositories);
@@ -26,11 +26,11 @@ export const getFolderTree = async (workspaceId: string) => {
 export const createFolder = async (params: {
   parentId?: string;
   name: string;
-  workspaceId: string;
+  workspaceKey: string;
 }) => {
   const repository = new Repository({
     parent: params.parentId ? Repository.createWithoutData(params.parentId) : undefined,
-    workspace: Workspace.createWithoutData(params.workspaceId),
+    workspaceKey: params.workspaceKey,
     name: params.name,
   });
 
@@ -59,7 +59,7 @@ export const updateFolders = async (
     }
 
     if ('itemIds' in folder) {
-      repository.set('issues', folder.itemIds);
+      repository.set('itemIds', folder.itemIds);
     }
 
     return repository;

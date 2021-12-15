@@ -12,7 +12,6 @@ export type TestStep = {
 
 /** 测试实体对应和事项一对一关联 */
 export type TestEntity = {
-  reference: Item;
   workspace: Workspace;
   type: TestType;
   /** 测试详情使用 */

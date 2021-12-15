@@ -7,30 +7,22 @@ import { useReactive, useRequest } from 'ahooks';
 import { hasArrayItem } from '@/lib/utils/helper';
 import { getFolderTree } from '@/lib/api/repository';
 import { useSDK } from '@projectproxima/plugin-sdk';
-import { getItemByIds, getWorkspaceByKey } from '@/lib/api/proxima';
+import { getItemByIQL } from '@/lib/api/proxima';
+import { useTestConfig } from '@/lib/hooks/useContext';
 import TestManagerProvider from '@/components/common/TestManagerProvider';
+import { TestType } from '@/lib/constants';
+import { BaseTable } from '@/components/common/Table';
 
 import { Breadcrumb, Empty } from '@osui/ui';
 
 import cx from './index.less';
 
 const MOCK_WORKSPACE_KEY = 'TEST_MANAGE_1';
+const ALL_FOLDER_KEY = 'ALL';
 
-const TestRepository = () => {
+const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) => {
   const [folderTreeData, setFolderTreeData] = React.useState([]);
-  const [workspaceId, setWorkspaceId] = React.useState();
-  const { context } = useSDK();
-  console.info('context111', context);
-
-  React.useEffect(() => {
-    const execute = async () => {
-      const { objectId } = await getWorkspaceByKey(
-        context?.env?.WORKSPACE_KEY || MOCK_WORKSPACE_KEY,
-      );
-      setWorkspaceId(objectId);
-    };
-    execute();
-  }, [context?.env?.WORKSPACE_KEY]);
+  const { config } = useTestConfig();
 
   const state = useReactive({
     items: [],
@@ -39,19 +31,19 @@ const TestRepository = () => {
     selectedFolderKey: '',
   });
 
-  const { run: fetchItems, loading: itemLoading } = useRequest(getItemByIds, {
+  const { run: fetchItems, loading: itemLoading } = useRequest(getItemByIQL, {
     manual: true,
     staleTime: 5000,
     cacheKey: state.itemIds.toString(),
-    onSuccess(data) {
-      state.items = data;
+    onSuccess({ items }) {
+      state.items = items;
     },
   });
 
   const { loading: folderTreeLoading, refresh: refreshFolderTree } = useRequest(
-    () => getFolderTree(workspaceId),
+    () => getFolderTree(workspaceKey),
     {
-      ready: !!workspaceId,
+      ready: !!workspaceKey,
       onSuccess(data) {
         setFolderTreeData(data);
       },
@@ -67,56 +59,79 @@ const TestRepository = () => {
       const itemIds = node.itemIds;
       state.itemIds = itemIds;
       state.selectedFolderKey = node.key;
-      if (Array.isArray(itemIds)) {
-        fetchItems(itemIds);
+      if (node.key === ALL_FOLDER_KEY) {
+        fetchItems({ workspace: workspaceKey, itemType: [config.itemTypeMap?.TestDetail] });
+      } else {
+        fetchItems({ itemKey: itemIds });
       }
       state.breadcrumb = breadcrumbs;
     },
-    [fetchItems, state],
+    [config.itemTypeMap, fetchItems, state, workspaceKey],
   );
 
+  const treeNodeData = React.useMemo(() => {
+    const rootFolder = {
+      key: ALL_FOLDER_KEY,
+      name: '所有案例',
+      title: '所有案例',
+      parentId: null,
+      itemIds: [],
+      children: [],
+    };
+    return [rootFolder].concat(folderTreeData);
+  }, [folderTreeData]);
+
   return (
-    <TestManagerProvider workspaceId={workspaceId}>
-      <div className={cx('test-repository')}>
-        <Split className={cx('layout')}>
-          <FolderTree
-            className={cx('left')}
-            onSelect={handleSelect}
-            loading={folderTreeLoading}
-            treeNodeData={folderTreeData}
-            onFolderTreeChange={handleFolderTreeChange}
-          />
-          <div className={cx('right')}>
-            <div className={cx('header')}>
-              <Breadcrumb>
-                {state.breadcrumb.map((title, index) => (
-                  <Breadcrumb.Item
-                    className={cx(index + 1 === state.breadcrumb.length && 'highlight')}
-                    key={title}
-                  >
-                    {title}
-                  </Breadcrumb.Item>
-                ))}
-              </Breadcrumb>
-            </div>
-            <div className={cx('main')}>
-              {!itemLoading && !hasArrayItem(state.items) ? (
-                <Empty className={cx('empty')} description="文件夹为空" />
-              ) : (
-                state.items.map(item => (
-                  <TestCase
-                    key={item.objectId}
-                    selectedFolderKey={state.selectedFolderKey}
-                    {...item}
-                  />
-                ))
-              )}
-            </div>
+    <div className={cx('test-repository')}>
+      <Split className={cx('layout')}>
+        <FolderTree
+          className={cx('left')}
+          onSelect={handleSelect}
+          loading={folderTreeLoading}
+          treeNodeData={treeNodeData}
+          onFolderTreeChange={handleFolderTreeChange}
+        />
+        <div className={cx('right')}>
+          <div className={cx('header')}>
+            <Breadcrumb>
+              {state.breadcrumb.map((title, index) => (
+                <Breadcrumb.Item
+                  className={cx(index + 1 === state.breadcrumb.length && 'highlight')}
+                  key={title}
+                >
+                  {title}
+                </Breadcrumb.Item>
+              ))}
+            </Breadcrumb>
           </div>
-        </Split>
-      </div>
+          <div className={cx('main')}>
+            {!itemLoading && !hasArrayItem(state.items) ? (
+              <Empty className={cx('empty')} description="文件夹为空" />
+            ) : (
+              state.items.map(item => (
+                <TestCase
+                  key={item.objectId}
+                  selectedFolderKey={state.selectedFolderKey}
+                  {...item}
+                />
+              ))
+              // <BaseTable data={state.items} />
+            )}
+          </div>
+        </div>
+      </Split>
+    </div>
+  );
+};
+
+const TestRepositoryPage = () => {
+  const { context } = useSDK();
+  const workspaceKey = context?.env?.WORKSPACE_KEY ?? MOCK_WORKSPACE_KEY;
+  return (
+    <TestManagerProvider workspaceKey={workspaceKey}>
+      <TestRepository workspaceKey={workspaceKey} />
     </TestManagerProvider>
   );
 };
 
-export default React.memo(TestRepository);
+export default React.memo(TestRepositoryPage);
