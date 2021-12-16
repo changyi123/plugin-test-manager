@@ -175,7 +175,7 @@ export const saveOrUpdateTestStep = (
     step.set({
       steps: testSteps,
       reference,
-      type: TestType.TestRuns,
+      type: TestType.TestRun,
     });
     step.save().then(
       res => {

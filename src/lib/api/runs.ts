@@ -119,7 +119,7 @@ export const FetchAllTestStepByTestId = (
         const referenceObjArray = callTestIds.map(item => Item.createWithoutData(item));
         const query = new Parse.Query(Test)
           .containedIn('reference', referenceObjArray)
-          .equalTo('type', TestType.TestRuns);
+          .equalTo('type', TestType.TestRun);
         query.find().then(res => {
           const items = res?.map(item => item?.toJSON()) || [];
           const sonCallTestIds: string[] = [];
