@@ -116,12 +116,9 @@ export const FetchAllTestStepByTestId = (
           callback && callback(null, step);
           return;
         }
-        const callTestPromises = [];
-        callTestIds.forEach(async item => {
-          callTestPromises.push(callback => {
-            FetchAllTestStepByTestId(item, callback);
-          });
-        });
+        const callTestPromises = callTestIds.map(
+          item => callback => FetchAllTestStepByTestId(item, callback),
+        );
 
         series(callTestPromises)
           .then(res => {
