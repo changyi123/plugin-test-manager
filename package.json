@@ -81,6 +81,7 @@
     "@uiw/react-split": "^5.8.4",
     "ahooks": "^2.10.12",
     "antd": "^4.16.13",
+    "async": "^3.2.2",
     "axios": "^0.21.4",
     "immutability-helper": "^3.1.1",
     "parse": "^3.4.0",

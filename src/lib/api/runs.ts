@@ -1,6 +1,8 @@
 import Parse from '@/lib/parse';
 import { Test, Item, Workspace } from '../models';
 import { ICommonRes } from './detail';
+import { TestType } from '@/lib/constants';
+import series from 'async/series';
 
 export const GetTestRunsById = (objectId: string): Promise<ICommonRes> => {
   return new Promise((resolve, reject) => {
@@ -8,7 +10,7 @@ export const GetTestRunsById = (objectId: string): Promise<ICommonRes> => {
     const reference = Item.createWithoutData(objectId);
     query.equalTo('reference', reference);
     query.equalTo('type', '1');
-    console.log('执行到这里了');
+    console.log('执行到这里了1232131231231');
     query
       .first()
       .then(
@@ -86,11 +88,15 @@ export const SaveOrUpdateTest = (
   });
 };
 
-export const FetchAllTestStepByTestId = (id: string): Promise<ICommonRes> => {
+export const FetchAllTestStepByTestId = (
+  id: string,
+  callback?: (nil: null, data: any) => void,
+): Promise<ICommonRes> => {
   return new Promise((resolve, reject) => {
     const query = new Parse.Query(Test);
     const reference = Item.createWithoutData(id);
     query.equalTo('reference', reference);
+    console.log('id', id);
     query.first().then(
       res => {
         const step = res?.toJSON() || [];
@@ -107,23 +113,57 @@ export const FetchAllTestStepByTestId = (id: string): Promise<ICommonRes> => {
             success: true,
             data: step,
           });
+          callback && callback(null, step);
           return;
         }
-        const query = new Parse.Query(Item).containedIn('objectId', callTestIds);
+        const referenceObjArray = callTestIds.map(item => Item.createWithoutData(item));
+        const query = new Parse.Query(Test)
+          .containedIn('reference', referenceObjArray)
+          .equalTo('type', TestType.TestRuns);
         query.find().then(res => {
           const items = res?.map(item => item?.toJSON()) || [];
+          const sonCallTestIds: string[] = [];
+          const stepsBak = step?.steps?.map(item => item);
           items?.forEach(item => {
-            step?.steps?.forEach(item2 => {
-              if (item.objectId === item2.callTestId) {
-                item2.itemObject = item;
+            step?.steps?.forEach((item2, index2) => {
+              if (item2.callTestId) {
+                sonCallTestIds.push(item2.callTestId);
+              }
+              if (item?.reference?.objectId === item2.callTestId) {
+                stepsBak[index2] = [];
+                stepsBak[index2] = item.steps;
               }
             });
           });
-          // console.log('step', step);
-          resolve({
-            success: true,
-            data: step,
+          step.steps = stepsBak;
+          console.log('callTestIds', callTestIds);
+
+          if (!sonCallTestIds.length) {
+            resolve({
+              success: true,
+              data: step,
+            });
+            callback && callback(null, step);
+            return;
+          }
+
+          const callTestPromises = [];
+          sonCallTestIds.forEach(async item => {
+            callTestPromises.push(callback => {
+              FetchAllTestStepByTestId(item, callback);
+            });
           });
+          console.log('来到这里吗？', callTestPromises, sonCallTestIds);
+          series(callTestPromises)
+            .then(res => {
+              console.log('res-------------------', res);
+              resolve({
+                success: true,
+                data: step,
+              });
+              callback && callback(null, step);
+            })
+            .catch(err => console.log('eeeee', err));
         });
       },
       err => {

@@ -4,12 +4,13 @@ import type { ModalProps } from '@osui/modal';
 import { useRequest } from 'ahooks';
 import ItemTypeSelect from './ItemTypeSelect';
 import {
-  GetTestConfigFromWorkspaceId,
-  GetItemTypeFromId,
+  GetTestConfigFromWorkspaceKey,
+  GetItemTypeFromKey,
   GetItemFromItemType,
 } from '@/lib/api/detail';
 import useMergedState from 'rc-util/lib/hooks/useMergedState';
 import { IActionCard } from '..';
+import { TestType } from '@/lib/constants';
 
 type ItemTypelModelProps = {
   trigger?: JSX.Element;
@@ -17,7 +18,7 @@ type ItemTypelModelProps = {
   title?: string;
   onCancel?: ModalProps['onCancel'];
   saveCard?: IActionCard['saveCard'];
-  type: 'Test' | 'TestPrecondition' | 'TestSet' | 'TestPlan' | 'TestExecution';
+  type: TestType;
 };
 
 export type ItemTypeModalHandle = {
@@ -33,12 +34,12 @@ let currentIndex = 0;
 let currentTestId = '';
 
 const ItemTypeModalContent: React.FC<ItemTypeModalContentProps> = props => {
-  const testConfigRequest = useRequest(() => GetTestConfigFromWorkspaceId('nodeheFysV'), {
+  const testConfigRequest = useRequest(() => GetTestConfigFromWorkspaceKey('TEST_MANAGE_1'), {
     throwOnError: true,
   });
 
   const { data, error, loading } = useRequest(
-    () => GetItemTypeFromId(testConfigRequest?.data?.data?.itemTypeMap?.[props.type]),
+    () => GetItemTypeFromKey(testConfigRequest?.data?.data?.itemTypeMap?.[props.type]),
     {
       ready: !!testConfigRequest.data,
       throwOnError: true,
