@@ -90,7 +90,10 @@ export const createTestEntities = (
  * 获取测试实体
  */
 export const getTestEntityByItemId = (itemId: string) => {
-  return new Parse.Query(Test).equalTo('reference', Item.createWithoutData(itemId)).first();
+  return new Parse.Query(Test)
+    .include(['reference.workspace', 'reference.itemType'])
+    .equalTo('reference', Item.createWithoutData(itemId))
+    .first();
 };
 
 /**

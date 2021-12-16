@@ -12,7 +12,6 @@ enum IQLWhereOperator {
 const IQLWhereClauseGenerators: Record<IQLWhereOperator, (...args: any[]) => string> = {
   [IQLWhereOperator.IN]: (key: string, data: string[], operator: Dash = '') => {
     if (!Array.isArray(data)) return '';
-    console.log(data.toString());
     return `${operator} ${key} in [${data.toString().replace(/([^,]+)(?=$|,)/g, `'$1'`)}]`;
   },
   [IQLWhereOperator.EQUAL]: (key: string, data: string, operator: Dash = '') => {
@@ -46,7 +45,6 @@ export class IQLBuilder {
 
   where = (key: string, data: unknown, op: IQLWhereOperator = IQLWhereOperator.EQUAL) => {
     this._iql.where.push({ key, data, op });
-    console.log('this._iql', key, this._iql);
     return new IQLBuilder(this._iql);
   };
 

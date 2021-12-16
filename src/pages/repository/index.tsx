@@ -7,11 +7,11 @@ import { useReactive, useRequest } from 'ahooks';
 import { hasArrayItem } from '@/lib/utils/helper';
 import { getFolderTree } from '@/lib/api/repository';
 import { useSDK } from '@projectproxima/plugin-sdk';
-import { getItemByIQL } from '@/lib/api/proxima';
+import { getItemByIQL, getCustomFields } from '@/lib/api/proxima';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import TestManagerProvider from '@/components/common/TestManagerProvider';
 import { TestType } from '@/lib/constants';
-import { BaseTable } from '@/components/common/Table';
+import { BaseTable, BaseTableProvider } from '@/components/common/Table';
 
 import { Breadcrumb, Empty } from '@osui/ui';
 
@@ -21,6 +21,7 @@ const MOCK_WORKSPACE_KEY = 'TEST_MANAGE_1';
 const ALL_FOLDER_KEY = 'ALL';
 
 const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) => {
+  const initialRef = React.useRef(false);
   const [folderTreeData, setFolderTreeData] = React.useState([]);
   const { config } = useTestConfig();
 
@@ -28,6 +29,7 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
     items: [],
     itemIds: [],
     breadcrumb: [],
+    customFields: [],
     selectedFolderKey: '',
   });
 
@@ -50,6 +52,14 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
     },
   );
 
+  useRequest(getCustomFields, {
+    ready: !!workspaceKey,
+    cacheKey: 'getCustomFields',
+    onSuccess(data) {
+      state.customFields = data;
+    },
+  });
+
   const handleFolderTreeChange = React.useCallback(() => {
     refreshFolderTree();
   }, [refreshFolderTree]);
@@ -68,6 +78,13 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
     },
     [config.itemTypeMap, fetchItems, state, workspaceKey],
   );
+
+  React.useEffect(() => {
+    if (workspaceKey && config.itemTypeMap?.TestDetail && !initialRef.current) {
+      initialRef.current = true;
+      fetchItems({ workspace: workspaceKey, itemType: [config.itemTypeMap?.TestDetail] });
+    }
+  }, [config.itemTypeMap?.TestDetail, fetchItems, workspaceKey]);
 
   const treeNodeData = React.useMemo(() => {
     const rootFolder = {
@@ -115,7 +132,9 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
                   {...item}
                 />
               ))
-              // <BaseTable data={state.items} />
+              // <BaseTableProvider customFields={state.customFields} selectedKeys={['name', 'key']}>
+              //   <BaseTable data={state.items} />
+              // </BaseTableProvider>
             )}
           </div>
         </div>

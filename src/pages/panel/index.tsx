@@ -1,58 +1,46 @@
-import React, { Suspense } from 'react';
-import { Tabs, Spin } from '@osui/ui';
+import React from 'react';
+
+import TestDetail from './TestDetail';
+import { useSDK } from '@projectproxima/plugin-sdk';
+import { useTestConfig } from '@/lib/hooks/useContext';
+import TestManagerProvider from '@/components/common/TestManagerProvider';
 import { TestType } from '@/lib/constants';
 
-import css from './index.less';
+import cx from './index.less';
 
-const { TabPane } = Tabs;
+const MOCK_ITEM_ID = 'bKDW597G4A';
+const MOCK_WORKSPACE_KEY = 'TEST_MANAGE_1';
 
-const tabConfig: Array<{
-  tab: string;
-  key: string;
-  Component?: React.FC;
-}> = [
-  {
-    tab: '详情',
-    key: TestType.TestDetail,
-    // TODO: 待检验懒加载是否成功
-    Component: React.lazy(() => import('./components/detail')),
-  },
-  {
-    tab: '前置条件',
-    key: TestType.Precondition,
-    Component: React.lazy(() => import('./components/preconditions')),
-  },
-  {
-    tab: '测试集合',
-    key: TestType.TestSet,
-    Component: () => <div>测试集合</div>,
-  },
-  {
-    tab: '测试计划',
-    key: TestType.TestPlan,
-    Component: React.lazy(() => import('./components/plan')),
-  },
-  {
-    tab: '测试运行',
-    key: TestType.TestRuns,
-    Component: React.lazy(() => import('./components/runs')),
-  },
-];
+const TestPanelComponents = {
+  [TestType.TestDetail]: TestDetail,
+};
 
-const TestDetail: React.FC = () => {
+const TestPanel = () => {
+  const { testEntity } = useTestConfig();
+
+  const panelRenderNode = React.useMemo(() => {
+    if (!testEntity) return null;
+    console.info('testEntity', testEntity.toJSON());
+    const testType = testEntity.get('type');
+
+    const TestPanelComponent = TestPanelComponents[testType];
+
+    return TestPanelComponent ? <TestPanelComponent /> : null;
+  }, [testEntity]);
+
+  return <div className={cx('test-panel')}>{panelRenderNode}</div>;
+};
+
+const TestPanelPage = () => {
+  const { context } = useSDK();
+  const workspaceKey = context?.env?.WORKSPACE_KEY ?? MOCK_WORKSPACE_KEY;
+  const itemId = context?.itemId ?? MOCK_ITEM_ID;
+
   return (
-    <div className={css('detail')}>
-      <Tabs defaultActiveKey={TestType.TestRuns}>
-        {tabConfig.map(({ tab, key, Component }) => (
-          <TabPane tab={tab} key={key}>
-            <Suspense fallback={<Spin tip="加载中..."></Spin>}>
-              {Component && <Component />}
-            </Suspense>
-          </TabPane>
-        ))}
-      </Tabs>
-    </div>
+    <TestManagerProvider itemId={itemId} workspaceKey={workspaceKey}>
+      <TestPanel />
+    </TestManagerProvider>
   );
 };
 
-export default TestDetail;
+export default React.memo(TestPanelPage);

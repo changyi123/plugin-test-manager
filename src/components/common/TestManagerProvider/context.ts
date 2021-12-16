@@ -2,13 +2,15 @@ import React from 'react';
 import { TestType } from '@/lib/constants';
 import { TestEntity } from '@/lib/types/Test';
 import { EventEmitter } from 'ahooks/lib/useEventEmitter';
+import { Item, Workspace } from '@/lib/types/App';
 
 export type TestConfigContextType = {
   config: {
     // 测试类型 和 itemType 类型关联
     itemTypeMap: Record<TestType, 'string'>;
   };
-  workspaceKey: string;
+  workspace?: Workspace;
+  testEntity?: Parse.Object<TestEntity>;
 };
 /** 测试管理配置 context */
 export const TestConfigContext = React.createContext<TestConfigContextType>(

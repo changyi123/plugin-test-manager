@@ -3,6 +3,7 @@ import { Checkbox } from '@osui/ui';
 import { BaseTableProps as OBaseTableProps, ColumnShape } from 'react-base-table';
 import { isFunction, isEqual } from 'lodash';
 import { useProximaTableToolkit } from './hooks';
+import { useProviderContext } from './Provider';
 
 type BaseTableProps = Omit<OBaseTableProps, 'width'> & {
   select?: {
@@ -18,6 +19,12 @@ const BaseTable: React.FC<BaseTableProps> = baseTableProps => {
     components: { Table, AutoResizer, TableCell },
     methods: { getTableColumns },
   } = useProximaTableToolkit();
+  const { customFields, selectedKeys } = useProviderContext();
+
+  const fieldColumns = React.useMemo(
+    () => getTableColumns(customFields, selectedKeys)?.selectedColumns || [],
+    [customFields, getTableColumns, selectedKeys],
+  );
 
   const {
     columns: columnsProp,
@@ -84,7 +91,7 @@ const BaseTable: React.FC<BaseTableProps> = baseTableProps => {
   } as Record<BuiltinType, ColumnShape>);
 
   const columns = React.useMemo(() => {
-    const leftColumns = []
+    const leftColumns = [...fieldColumns]
       .concat(isFunction(select?.onSelect) && builtinColumns.Checkbox)
       .filter(Boolean);
     const columns = leftColumns.concat(columnsProp);
@@ -105,7 +112,14 @@ const BaseTable: React.FC<BaseTableProps> = baseTableProps => {
       }
       return column;
     });
-  }, [builtinColumns.Checkbox, builtinColumns.Field, columnsProp, rowWidth, select?.onSelect]);
+  }, [
+    builtinColumns.Checkbox,
+    builtinColumns.Field,
+    columnsProp,
+    fieldColumns,
+    rowWidth,
+    select?.onSelect,
+  ]);
 
   const components = React.useMemo(() => {
     const CustomTableCell = cellProps => {

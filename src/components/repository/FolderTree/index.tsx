@@ -4,7 +4,7 @@ import { useReactive, useDrop } from 'ahooks';
 import { Tree, Button, Modal, Input, message, Empty } from '@osui/ui';
 import { hasArrayItem, getRootContainer } from '@/lib/utils/helper';
 import { PlusCircleOutlined, MoreOutlined, FullscreenExitOutlined } from '@ant-design/icons';
-import { openFolderMenu, MenuKey, FolderMenuWithDropdown } from '../Menu';
+import { openFolderMenu, MenuKey } from '../Menu';
 import { createFolder, updateFolders, deleteFolder } from '@/lib/api/repository';
 import { useTestConfig, useBaseAction, useEventBus } from '@/lib/hooks/useContext';
 import { useTreeFn, traverseTreeNodes } from './hook';
@@ -103,7 +103,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
   const { itemCreated$ } = useEventBus();
   const isInitialRef = React.useRef(false);
   const {
-    workspaceKey,
+    workspace,
     config: { itemTypeMap },
   } = useTestConfig();
 
@@ -236,9 +236,9 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         }
         const folderName = await openFolderNameModal({ title: '创建模块' });
         await createFolder({
-          parentId: node?.key,
-          workspaceKey,
           name: folderName,
+          parentId: node?.key,
+          workspaceKey: workspace?.key,
         });
         node?.key && state.expandedKeys.push(node.key);
         message.success('模块创建成功');
@@ -306,7 +306,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
     },
     [
       treeFn,
-      workspaceKey,
+      workspace?.key,
       state.expandedKeys,
       onFolderTreeChange,
       handleSelect,
@@ -386,15 +386,18 @@ const FolderTree: React.FC<FolderTreeProps> = ({
     },
     {
       title: '更多',
-      icon: (
-        <FolderMenuWithDropdown
-          trigger={['click']}
-          onMenuClick={key => handleMenuClick(key, selectedTreeNode || {})}
-          disabledKeys={folderMenuDisabledKeys}
-        >
-          <MoreOutlined />
-        </FolderMenuWithDropdown>
-      ),
+      icon: <MoreOutlined />,
+      onClick(e) {
+        if (selectedTreeNode.key === 'ALL') return;
+        openFolderMenu(e.target, {
+          x: e.clientX,
+          y: e.clientY,
+          disabledKeys: folderMenuDisabledKeys,
+          onClick(key: MenuKey) {
+            handleMenuClick(key, selectedTreeNode || {});
+          },
+        });
+      },
     },
   ];
 
