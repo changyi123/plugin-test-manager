@@ -23,7 +23,7 @@ const DropdownButton: React.FC<DropdownButtonProps> = ({ menuList, children }) =
   }, [menuList]);
 
   return (
-    <Dropdown overlay={menu} className="dropdown-button">
+    <Dropdown trigger={['click']} overlay={menu} className="dropdown-button">
       <Button type="primary">
         <span>{children}</span>
         <DownOutlined />

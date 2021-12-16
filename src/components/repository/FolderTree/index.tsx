@@ -124,7 +124,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
     });
   });
 
-  const { createItem } = useBaseAction();
+  const { createItemUseModal } = useBaseAction();
   const [props] = useDrop({
     async onDom(content, e) {
       removeHoveringClassName();
@@ -290,7 +290,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         expandSubFolder(node.key);
       } else if (actionKey === MenuKey.createTest) {
         // 创建测试用例
-        createItem({
+        createItemUseModal({
           type: TestType.TestDetail,
           extraData: {
             type: TestType.TestDetail,
@@ -311,7 +311,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
       onFolderTreeChange,
       handleSelect,
       expandSubFolder,
-      createItem,
+      createItemUseModal,
     ],
   );
 

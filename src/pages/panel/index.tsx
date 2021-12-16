@@ -11,6 +11,7 @@ import cx from './index.less';
 const MOCK_ITEM_ID = 'bKDW597G4A';
 const MOCK_WORKSPACE_KEY = 'TEST_MANAGE_1';
 
+// 根据测试类型打开不同的测试 panel
 const TestPanelComponents = {
   [TestType.TestDetail]: TestDetail,
 };

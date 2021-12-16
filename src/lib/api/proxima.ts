@@ -6,7 +6,7 @@ import { hasArrayItem } from '@/lib/utils/helper';
 import Parse from '@/lib/parse';
 import fetch from '@/lib/utils/fetch';
 import { IQLBuilder } from '@/lib/utils/iql';
-import { CustomField, Workspace } from '@/lib/models';
+import { CustomField, Workspace, ItemType } from '@/lib/models';
 
 type IQLPaginationParams = {
   form?: number;
@@ -53,16 +53,6 @@ export const getItemByIQL = async (
 };
 
 /**
- * 通过 workspace key 查询 workspace
- */
-export const getWorkspaceByKey = async (key: string) => {
-  const [workspace] = await new Parse.Query(Workspace)
-    .equalTo('key', key)
-    .map(item => item.toJSON());
-  return workspace;
-};
-
-/**
  * 获取全部自定义字段
  */
 export const getCustomFields = async () => {
@@ -70,4 +60,22 @@ export const getCustomFields = async () => {
 
   const fields = await query.find();
   return fields.map(item => item.toJSON());
+};
+
+/**
+ * 通过 workspaceKey 查询 workspace（不要问为什么又这个方法，proxima 处处会给你人来惊喜）
+ */
+export const getWorkspaceByKey = async key => {
+  if (!key) return;
+  const workspace = await new Parse.Query(Workspace).equalTo('key', key).first();
+  return workspace?.toJSON();
+};
+
+/**
+ * 通过 itemKey 获取 itemType （不要问为什么又这个方法，proxima 处处会给你人来惊喜）
+ */
+export const getItemTypeByKey = async key => {
+  if (!key) return;
+  const itemType = new Parse.Query(ItemType).equalTo('key', key).first();
+  return itemType?.toJSON();
 };

@@ -1,7 +1,5 @@
 import React from 'react';
-import { ColumnsType } from 'antd/es/table';
-import { Menu, Button, Typography, Dropdown } from '@osui/ui';
-import { CaretRightOutlined, DownOutlined, DeleteOutlined } from '@ant-design/icons';
+import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
 
 import DropDownButton from '@/components/panel/DropDownButton';
 
@@ -10,22 +8,30 @@ import PlanTable from './components/Table';
 import cx from './index.less';
 
 const Plan = () => {
+  const {
+    testEntity,
+    config: { itemTypeMap },
+  } = useTestConfig();
+  const { createItemUseModal } = useBaseAction();
+
+  const createPlan = React.useCallback(() => {
+    console.log(itemTypeMap.TestPlan);
+  }, [itemTypeMap]);
+
   const dropDownMenuList = React.useMemo(() => {
     return [
       {
         title: '已存在的测试计划',
         onClick() {
-          console.log(11);
+          createPlan();
         },
       },
       {
         title: '新建测试计划',
-        onClick() {
-          console.log(2);
-        },
+        onClick() {},
       },
     ];
-  }, []);
+  }, [createPlan]);
 
   return (
     <div className={cx('test-plan')}>

@@ -19,7 +19,7 @@ export const TestConfigContext = React.createContext<TestConfigContextType>(
 
 export type BaseActionContextType = {
   /** 创建事项 */
-  createItem: (params: { type: TestType; extraData?: Record<string, any> }) => void;
+  createItemUseModal: (params: { type: TestType; extraData?: Record<string, any> }) => void;
   /** 获取测试管理实体 */
   getTestEntity: (itemId: string) => Parse.Object<TestEntity>;
   /** 打开事项 panel */
