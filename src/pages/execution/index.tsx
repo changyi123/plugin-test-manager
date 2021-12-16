@@ -1,6 +1,6 @@
 import React from 'react';
 import { Space, Button, Divider } from '@osui/ui';
-import TestRunsTable from '@/pages/panel/components/runs/components/Table';
+import TestRunsTable from '@/pages/panel/TestDetail/components/runs/components/Table';
 
 import css from './index.less';
 

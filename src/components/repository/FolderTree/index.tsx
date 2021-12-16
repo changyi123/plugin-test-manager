@@ -103,7 +103,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
   const { itemCreated$ } = useEventBus();
   const isInitialRef = React.useRef(false);
   const {
-    workspaceKey,
+    workspace,
     config: { itemTypeMap },
   } = useTestConfig();
 
@@ -236,9 +236,9 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         }
         const folderName = await openFolderNameModal({ title: '创建模块' });
         await createFolder({
-          parentId: node?.key,
-          workspaceKey,
           name: folderName,
+          parentId: node?.key,
+          workspaceKey: workspace?.key,
         });
         node?.key && state.expandedKeys.push(node.key);
         message.success('模块创建成功');
@@ -306,7 +306,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
     },
     [
       treeFn,
-      workspaceKey,
+      workspace?.key,
       state.expandedKeys,
       onFolderTreeChange,
       handleSelect,

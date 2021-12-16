@@ -1,6 +1,6 @@
 import Parse from '@/lib/parse';
 import fetch from '@/lib/utils/fetch';
-import { TestStep as ITestStep } from '@/pages/panel/components/detail';
+import { TestStep as ITestStep } from '@/pages/panel/TestDetail/components/detail';
 import { TestExecution, Test, Item, TestConfig, Workspace, ItemType } from '../models';
 
 export interface ICommonRes<T = any> {

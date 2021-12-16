@@ -125,16 +125,16 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
             {!itemLoading && !hasArrayItem(state.items) ? (
               <Empty className={cx('empty')} description="文件夹为空" />
             ) : (
-              // state.items.map(item => (
-              //   <TestCase
-              //     key={item.objectId}
-              //     selectedFolderKey={state.selectedFolderKey}
-              //     {...item}
-              //   />
-              // ))
-              <BaseTableProvider customFields={state.customFields} selectedKeys={['name', 'key']}>
-                <BaseTable data={state.items} />
-              </BaseTableProvider>
+              state.items.map(item => (
+                <TestCase
+                  key={item.objectId}
+                  selectedFolderKey={state.selectedFolderKey}
+                  {...item}
+                />
+              ))
+              // <BaseTableProvider customFields={state.customFields} selectedKeys={['name', 'key']}>
+              //   <BaseTable data={state.items} />
+              // </BaseTableProvider>
             )}
           </div>
         </div>

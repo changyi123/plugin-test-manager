@@ -33,7 +33,8 @@ tables:
         type: String
       parent:
         type: Pointer
-        targetClass: test_manager_Repository
+        isAppClass: true
+        targetClass: Repository
       itemIds:
         type: Array
       tenant:
@@ -78,9 +79,11 @@ tables:
     fields:
       from:
         type: Pointer
-        targetClass: test_manager_Test
+        isAppClass: true
+        targetClass: Test
       to:
         type: Pointer
+        isAppClass: true
         targetClass: test_manager_Test
       relationType:
         type: String

@@ -1,11 +1,14 @@
 import React from 'react';
-import { notification } from '@osui/ui';
 import { useRequest } from 'ahooks';
+import { notification } from '@osui/ui';
 import { useOnItemCreateSuccess } from '@/lib/hooks/useProximaSDK';
 import { openCreateItemModal, openItemDetailPanel } from '@/lib/api/sdk';
 import { getTestConfig, createTestEntities, getTestEntityByItemId } from '@/lib/api/common';
 import { getItemByIQL, getWorkspaceByKey } from '@/lib/api/proxima';
 import { useEventBusContextValue } from './hooks';
+import { Workspace, Item } from '@/lib/types/App';
+import { TestEntity } from '@/lib/types/Test';
+import { getKeyByValue } from '@/lib/utils/helper';
 import {
   TestConfigContext,
   TestConfigContextType,
@@ -13,29 +16,69 @@ import {
   BaseActionContextType,
   EventBusContext,
 } from './context';
+import { TestType } from '@/lib/constants';
 
 type RepositoryDataProviderProps = {
   workspaceKey?: string;
+  itemId?: string;
   children: React.ReactNode;
 };
 
-const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({ children, workspaceKey }) => {
-  const [workspaceId, setWorkspaceId] = React.useState<string>();
+const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
+  itemId,
+  children,
+  workspaceKey,
+}) => {
+  // const [item, setItem] = React.useState<Item>();
+  const [workspace, setWorkspace] = React.useState<Workspace>();
+  const [testEntity, setTestEntity] = React.useState<Parse.Object<TestEntity>>();
+
   const eventBusValues = useEventBusContextValue();
 
   React.useEffect(() => {
     const execute = async () => {
-      const { objectId } = await getWorkspaceByKey(workspaceKey);
-      setWorkspaceId(objectId);
+      if (!workspaceKey) return;
+      const workspace = await getWorkspaceByKey(workspaceKey);
+      setWorkspace(workspace);
     };
     execute();
   }, [workspaceKey]);
 
+  React.useEffect(() => {
+    const execute = async () => {
+      if (!itemId) return;
+      let testEntity = await getTestEntityByItemId(itemId);
+      // 查询不到测试实体则直接创建
+      if (!testEntity) {
+        const {
+          items: [item],
+        } = await getItemByIQL({ itemId });
+
+        const testConfig = await getTestConfig(item?.workspace?.key);
+        const itemTypeMap = testConfig?.get('itemTypeMap');
+
+        if (itemTypeMap) {
+          const testType = getKeyByValue(itemTypeMap, item.itemType.key) as TestType;
+          if (!testType) return;
+          testEntity = await createTestEntities([
+            {
+              itemId: item.id,
+              type: testType,
+              workspaceKey: item?.workspace?.key,
+            },
+          ]);
+        }
+      }
+      setTestEntity(testEntity);
+    };
+    execute();
+  }, [itemId, workspace?.key]);
+
   const { data: testConfigParseObj } = useRequest(() => getTestConfig(workspaceKey), {
     staleTime: 50000,
-    ready: !!workspaceId,
-    cacheKey: workspaceId,
-    refreshDeps: [workspaceId],
+    ready: !!workspace,
+    cacheKey: workspaceKey + workspace?.key,
+    refreshDeps: [workspaceKey, workspace?.key],
   });
 
   /** 测试关联类型 */
@@ -103,10 +146,11 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({ children, 
       config: {
         itemTypeMap: testConfig.itemTypeMap,
       },
-      workspaceKey,
-      setWorkspaceId,
+      // item,
+      workspace,
+      testEntity,
     };
-  }, [workspaceKey, testConfig]);
+  }, [testConfig.itemTypeMap, workspace, testEntity]);
 
   const baseActionContextValues = React.useMemo(() => {
     const actions: BaseActionContextType = {
@@ -119,10 +163,10 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({ children, 
         // 打开创建弹窗
         openCreateItemModal({
           itemTypeId,
-          workspaceId,
+          workspaceId: workspace?.objectId,
           extraData: extraData ?? {
             type,
-            workspaceId,
+            workspaceId: workspace?.objectId,
           },
         });
       },
@@ -132,7 +176,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({ children, 
     };
 
     return actions;
-  }, [testConfig?.itemTypeMap, workspaceId]);
+  }, [testConfig?.itemTypeMap, workspace?.objectId]);
 
   return (
     <EventBusContext.Provider value={eventBusValues}>
