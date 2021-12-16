@@ -16,7 +16,7 @@ const Runs: React.FC = () => {
       </div>
 
       <div className={css('runs__content')}>
-        <Table id="SzHLagi3vR" />
+        <Table id="beAxtdQda1" />
       </div>
     </div>
   );

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Modal, Form, Input, Spin, Button, Space, Select } from '@osui/ui';
 import { useRequest } from 'ahooks';
-import { GetWorkspaceList } from '@/lib/api/runs';
+import { GetWorkspaceList, FetchAllTestStepByTestId } from '@/lib/api/runs';
 import useMergedState from 'rc-util/lib/hooks/useMergedState';
 
 type AddTestExecutionModalProps = {
@@ -23,6 +23,7 @@ const Content: React.FC<{ id: string; close: () => void }> = ({ close, id }) => 
 
   const onFinish = (values: any) => {
     console.log('Success:', values);
+    FetchAllTestStepByTestId('beAxtdQda1');
   };
 
   return (
@@ -52,7 +53,7 @@ const Content: React.FC<{ id: string; close: () => void }> = ({ close, id }) => 
       <Form.Item>
         <div style={{ textAlign: 'right' }}>
           <Space>
-            <Button>取消</Button>
+            <Button onClick={() => close()}>取消</Button>
             <Button type="primary" htmlType="submit">
               添加
             </Button>
@@ -78,6 +79,7 @@ const AddTestExecutionModal: React.FC<AddTestExecutionModalProps> = props => {
         visible={isVisible}
         maskClosable={false}
         destroyOnClose
+        onCancel={handleCloseModal}
         footer={false}
       >
         {isVisible && <Content close={handleCloseModal} id="asd" />}

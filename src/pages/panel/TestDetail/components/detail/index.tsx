@@ -10,6 +10,7 @@ import { fetchTestSteps, saveOrUpdateTestStep, Item } from '@/lib/api/detail';
 import ItemTypeModal from './components/ItemTypeModal';
 import type { ItemTypeModalHandle } from './components/ItemTypeModal';
 import GlobalDndContext from './DndContext';
+import { TestType } from '@/lib/constants';
 
 import css from './index.less';
 
@@ -117,7 +118,7 @@ const StepDrop: React.FC<{
 const Detail: React.FC = () => {
   const [steps, setSteps] = useState<Array<TestStep>>([]);
   const [testInfo, setTestInfo] = useState<TestInfor>({});
-  const currentObjectId: string = window?.QiankunProps?.context?.itemId || 'SzHLagi3vR';
+  const currentObjectId: string = window?.QiankunProps?.context?.itemId || 'beAxtdQda1';
   const ItemTypeModalRef = createRef<ItemTypeModalHandle>();
   console.log('QiankunProps', window?.QiankunProps);
 
@@ -327,7 +328,7 @@ const Detail: React.FC = () => {
 
   return (
     <div className={css('detail')}>
-      <ItemTypeModal type="Test" ref={ItemTypeModalRef} saveCard={saveCard} />
+      <ItemTypeModal type={TestType.TestDetail} ref={ItemTypeModalRef} saveCard={saveCard} />
       {/* <div className={css('detail__breadcrumb')}>
         <Breadcrumb />
       </div> */}

@@ -1,6 +1,8 @@
 import Parse from '@/lib/parse';
 import { Test, Item, Workspace } from '../models';
 import { ICommonRes } from './detail';
+import { TestType } from '@/lib/constants';
+import series from 'async/series';
 
 export const GetTestRunsById = (objectId: string): Promise<ICommonRes> => {
   return new Promise((resolve, reject) => {
@@ -8,7 +10,7 @@ export const GetTestRunsById = (objectId: string): Promise<ICommonRes> => {
     const reference = Item.createWithoutData(objectId);
     query.equalTo('reference', reference);
     query.equalTo('type', '1');
-    console.log('执行到这里了');
+    console.log('执行到这里了1232131231231');
     query
       .first()
       .then(
@@ -86,11 +88,15 @@ export const SaveOrUpdateTest = (
   });
 };
 
-export const FetchAllTestStepByTestId = (id: string): Promise<ICommonRes> => {
+export const FetchAllTestStepByTestId = (
+  id: string,
+  callback?: (nil: null, data: any) => void,
+): Promise<ICommonRes> => {
   return new Promise((resolve, reject) => {
     const query = new Parse.Query(Test);
     const reference = Item.createWithoutData(id);
-    query.equalTo('reference', reference);
+    query.equalTo('reference', reference).equalTo('type', TestType.TestRun);
+    console.log('id', id);
     query.first().then(
       res => {
         const step = res?.toJSON() || [];
@@ -107,24 +113,23 @@ export const FetchAllTestStepByTestId = (id: string): Promise<ICommonRes> => {
             success: true,
             data: step,
           });
+          callback && callback(null, step);
           return;
         }
-        const query = new Parse.Query(Item).containedIn('objectId', callTestIds);
-        query.find().then(res => {
-          const items = res?.map(item => item?.toJSON()) || [];
-          items?.forEach(item => {
-            step?.steps?.forEach(item2 => {
-              if (item.objectId === item2.callTestId) {
-                item2.itemObject = item;
-              }
+        const callTestPromises = callTestIds.map(
+          item => callback => FetchAllTestStepByTestId(item, callback),
+        );
+
+        series(callTestPromises)
+          .then(res => {
+            console.log('res-------------------', res, step);
+            resolve({
+              success: true,
+              data: step,
             });
-          });
-          // console.log('step', step);
-          resolve({
-            success: true,
-            data: step,
-          });
-        });
+            callback && callback(null, step);
+          })
+          .catch(err => console.log('eeeee', err));
       },
       err => {
         reject({

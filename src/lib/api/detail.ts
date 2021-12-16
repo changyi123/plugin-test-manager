@@ -2,6 +2,7 @@ import Parse from '@/lib/parse';
 import fetch from '@/lib/utils/fetch';
 import { TestStep as ITestStep } from '@/pages/panel/TestDetail/components/detail';
 import { TestExecution, Test, Item, TestConfig, Workspace, ItemType } from '../models';
+import { TestType } from '@/lib/constants';
 
 export interface ICommonRes<T = any> {
   success: boolean;
@@ -169,11 +170,12 @@ export const saveOrUpdateTestStep = (
     testSteps.forEach((item, index) => {
       item.id = `${resource}_${index}`;
       item.objectId = `${resource}_${index}`;
+      delete item.itemObject;
     });
     step.set({
       steps: testSteps,
       reference,
-      type: 1,
+      type: TestType.TestRun,
     });
     step.save().then(
       res => {
@@ -236,11 +238,10 @@ export const saveOrUpdateTestConfig = (
   });
 };
 
-export const GetTestConfigFromWorkspaceId = (workspaceId: string): Promise<ICommonRes> => {
+export const GetTestConfigFromWorkspaceKey = (workspaceKey: string): Promise<ICommonRes> => {
   return new Promise((resolve, reject) => {
     const configQuery = new Parse.Query(TestConfig);
-    const workspace = Workspace.createWithoutData(workspaceId);
-    configQuery.equalTo('workspace', workspace);
+    configQuery.equalTo('workspaceKey', workspaceKey);
     configQuery
       .first()
       .then(configObject => {
@@ -266,11 +267,11 @@ export const GetTestConfigFromWorkspaceId = (workspaceId: string): Promise<IComm
   });
 };
 
-export const GetItemTypeFromId = (itemTypeId: string): Promise<ICommonRes> => {
+export const GetItemTypeFromKey = (itemTypeKey: string): Promise<ICommonRes> => {
   return new Promise((resolve, reject) => {
-    const itemTypeQuery = ItemType.createWithoutData(itemTypeId);
-    itemTypeQuery
-      .fetch()
+    const ItemTypeQuery = new Parse.Query(ItemType);
+    ItemTypeQuery.equalTo('key', itemTypeKey);
+    ItemTypeQuery.first()
       .then(itemTypeObject => {
         resolve({
           success: true,

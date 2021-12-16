@@ -2619,6 +2619,11 @@ async@^2.6.2:
   dependencies:
     lodash "^4.17.14"
 
+async@^3.2.2:
+  version "3.2.2"
+  resolved "https://registry.npmmirror.com/async/download/async-3.2.2.tgz#2eb7671034bb2194d45d30e31e24ec7e7f9670cd"
+  integrity sha1-LrdnEDS7IZTUXTDjHiTsfn+WcM0=
+
 autoprefixer@^10.3.4:
   version "10.3.4"
   resolved "https://registry.nlark.com/autoprefixer/download/autoprefixer-10.3.4.tgz?cache=0&sync_timestamp=1630619182089&other_urls=https%3A%2F%2Fregistry.nlark.com%2Fautoprefixer%2Fdownload%2Fautoprefixer-10.3.4.tgz"
