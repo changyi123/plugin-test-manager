@@ -76,6 +76,6 @@ export const getWorkspaceByKey = async key => {
  */
 export const getItemTypeByKey = async key => {
   if (!key) return;
-  const itemType = new Parse.Query(ItemType).equalTo('key', key).first();
+  const itemType = await new Parse.Query(ItemType).equalTo('key', key).first();
   return itemType?.toJSON();
 };

@@ -12,9 +12,10 @@ export type TestStep = {
 
 /** 测试实体对应和事项一对一关联 */
 export type TestEntity = {
-  workspace: Workspace;
   type: TestType;
+  workspaceKey: string;
   /** 测试详情使用 */
+  reference: Item;
   steps: TestStep[];
   extra: Record<string, unknown>;
 };

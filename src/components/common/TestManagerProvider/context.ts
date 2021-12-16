@@ -1,7 +1,6 @@
 import React from 'react';
 import { TestType } from '@/lib/constants';
 import { TestEntity } from '@/lib/types/Test';
-import { EventEmitter } from 'ahooks/lib/useEventEmitter';
 import { Item, Workspace } from '@/lib/types/App';
 
 export type TestConfigContextType = {
@@ -19,9 +18,11 @@ export const TestConfigContext = React.createContext<TestConfigContextType>(
 
 export type BaseActionContextType = {
   /** 创建事项 */
-  createItemUseModal: (params: { type: TestType; extraData?: Record<string, any> }) => void;
-  /** 获取测试管理实体 */
-  getTestEntity: (itemId: string) => Parse.Object<TestEntity>;
+  createItemUseModal: (params: { type: TestType; extraData?: Record<string, any> }) => Promise<{
+    item: Item;
+    extraData?: unknown;
+    testEntity: Parse.Object<TestEntity>;
+  }>;
   /** 打开事项 panel */
   openItemViewPanel: (itemId: string) => void;
 };
@@ -29,10 +30,3 @@ export type BaseActionContextType = {
 export const BaseActionContext = React.createContext<BaseActionContextType>(
   {} as BaseActionContextType,
 );
-
-export type EventBusContextType = {
-  itemCreated$: EventEmitter<any>;
-};
-
-/** 事件总线，跨组件传递事项创建编辑 */
-export const EventBusContext = React.createContext<EventBusContextType>({} as EventBusContextType);

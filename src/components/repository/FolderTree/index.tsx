@@ -1,12 +1,12 @@
 import React from 'react';
-import { uniq } from 'lodash';
+import { uniq, uniqueId } from 'lodash';
 import { useReactive, useDrop } from 'ahooks';
 import { Tree, Button, Modal, Input, message, Empty } from '@osui/ui';
 import { hasArrayItem, getRootContainer } from '@/lib/utils/helper';
 import { PlusCircleOutlined, MoreOutlined, FullscreenExitOutlined } from '@ant-design/icons';
 import { openFolderMenu, MenuKey } from '../Menu';
 import { createFolder, updateFolders, deleteFolder } from '@/lib/api/repository';
-import { useTestConfig, useBaseAction, useEventBus } from '@/lib/hooks/useContext';
+import { useTestConfig, useBaseAction } from '@/lib/hooks/useContext';
 import { useTreeFn, traverseTreeNodes } from './hook';
 import { TestType } from '@/lib/constants';
 
@@ -100,29 +100,11 @@ const FolderTree: React.FC<FolderTreeProps> = ({
 
   const treeFn = useTreeFn(treeNodeData);
 
-  const { itemCreated$ } = useEventBus();
   const isInitialRef = React.useRef(false);
   const {
     workspace,
     config: { itemTypeMap },
   } = useTestConfig();
-
-  // 监听事项创建成功
-  itemCreated$.useSubscription(async ({ itemKey, folderKey, type }) => {
-    console.info('itemCreated', itemKey, folderKey);
-    // 只有测试用例需要被添加至测试用例仓库
-    if (type !== TestType.TestDetail) return;
-    const node = treeFn.getTreeNodeByKey(folderKey);
-    if (!node) return;
-    // 修改 node，将创建成功的 itemKey 追加到 node 上
-    node.itemIds = (node.itemIds || []).concat(itemKey);
-    await updateFolders([node]);
-    onFolderTreeChange();
-    handleSelect([node.key], {
-      selected: true,
-      node: node,
-    });
-  });
 
   const { createItemUseModal } = useBaseAction();
   const [props] = useDrop({
@@ -289,13 +271,33 @@ const FolderTree: React.FC<FolderTreeProps> = ({
       } else if (actionKey === MenuKey.expandFolder) {
         expandSubFolder(node.key);
       } else if (actionKey === MenuKey.createTest) {
+        const token = uniqueId('TestDetail');
         // 创建测试用例
-        createItemUseModal({
+        const { testEntity, item, extraData } = await createItemUseModal({
           type: TestType.TestDetail,
           extraData: {
+            token,
             type: TestType.TestDetail,
             folderKey: node.key,
           },
+        });
+
+        // 判断 token 是否一致
+        const isSameToken = token === (extraData as any)?.token;
+        if (!isSameToken) return;
+
+        console.info('itemCreated', item.objectId, node.key);
+        // 创建的测试用例不在同一个空间
+        if (workspace?.key !== testEntity?.get('workspaceKey')) return;
+        // 只有测试用例需要被添加至测试用例仓库
+        if (testEntity?.get('type') !== TestType.TestDetail) return;
+        // 修改 node，将创建成功的 itemKey 追加到 node 上
+        node.itemIds = (node.itemIds || []).concat(item.objectId);
+        await updateFolders([node]);
+        onFolderTreeChange();
+        handleSelect([node.key], {
+          selected: true,
+          node: node,
         });
       }
 
@@ -306,12 +308,12 @@ const FolderTree: React.FC<FolderTreeProps> = ({
     },
     [
       treeFn,
-      workspace?.key,
-      state.expandedKeys,
-      onFolderTreeChange,
       handleSelect,
+      workspace?.key,
       expandSubFolder,
       createItemUseModal,
+      onFolderTreeChange,
+      state.expandedKeys,
     ],
   );
 
@@ -350,8 +352,14 @@ const FolderTree: React.FC<FolderTreeProps> = ({
     }
   }, [handleSelect, treeData, handleExpand]);
 
-  const EmptyElement = React.useMemo(() => {
+  // 空目录展示
+  const EmptyNode = React.useMemo(() => {
     if (loading) return null;
+    // 存在其他模块
+    const hasCustomFolder = hasArrayItem(treeData) && treeData.length > 1;
+
+    if (hasCustomFolder) return null;
+
     return (
       <Empty
         className={cx('empty')}
@@ -362,12 +370,12 @@ const FolderTree: React.FC<FolderTreeProps> = ({
           </>
         }
       >
-        <Button type="primary" onClick={() => handleMenuClick(MenuKey.createFolder)}>
+        <Button type="primary" size="small" onClick={() => handleMenuClick(MenuKey.createFolder)}>
           新建模块
         </Button>
       </Empty>
     );
-  }, [handleMenuClick, loading]);
+  }, [handleMenuClick, loading, treeData]);
 
   const ToolKitButtons = [
     {
@@ -414,19 +422,17 @@ const FolderTree: React.FC<FolderTreeProps> = ({
           />
         ))}
       </div>
-      {hasArrayItem(treeData) ? (
-        <DirectoryTree
-          treeData={treeData}
-          className={cx('tree')}
-          onExpand={handleExpand}
-          onSelect={handleSelect}
-          onRightClick={handleRightClick}
-          selectedKeys={state.selectedKeys}
-          expandedKeys={state.expandedKeys}
-        />
-      ) : (
-        EmptyElement
-      )}
+
+      <DirectoryTree
+        treeData={treeData}
+        className={cx('tree')}
+        onExpand={handleExpand}
+        onSelect={handleSelect}
+        onRightClick={handleRightClick}
+        selectedKeys={state.selectedKeys}
+        expandedKeys={state.expandedKeys}
+      />
+      {EmptyNode}
     </div>
   );
 };

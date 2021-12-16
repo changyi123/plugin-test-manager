@@ -41,7 +41,7 @@ export const updateFolders = async (
   folders: {
     key: string;
     name?: string;
-    itemIds?: string;
+    itemIds?: string[];
     parentId?: string;
   }[],
 ) => {

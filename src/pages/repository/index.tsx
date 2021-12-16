@@ -72,7 +72,7 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
       if (node.key === ALL_FOLDER_KEY) {
         fetchItems({ workspace: workspaceKey, itemType: [config.itemTypeMap?.TestDetail] });
       } else {
-        fetchItems({ itemKey: itemIds });
+        fetchItems({ itemId: itemIds });
       }
       state.breadcrumb = breadcrumbs;
     },
