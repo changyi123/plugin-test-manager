@@ -95,7 +95,7 @@ export const FetchAllTestStepByTestId = (
   return new Promise((resolve, reject) => {
     const query = new Parse.Query(Test);
     const reference = Item.createWithoutData(id);
-    query.equalTo('reference', reference);
+    query.equalTo('reference', reference).equalTo('type', TestType.TestRun);
     console.log('id', id);
     query.first().then(
       res => {
@@ -116,55 +116,23 @@ export const FetchAllTestStepByTestId = (
           callback && callback(null, step);
           return;
         }
-        const referenceObjArray = callTestIds.map(item => Item.createWithoutData(item));
-        const query = new Parse.Query(Test)
-          .containedIn('reference', referenceObjArray)
-          .equalTo('type', TestType.TestRun);
-        query.find().then(res => {
-          const items = res?.map(item => item?.toJSON()) || [];
-          const sonCallTestIds: string[] = [];
-          const stepsBak = step?.steps?.map(item => item);
-          items?.forEach(item => {
-            step?.steps?.forEach((item2, index2) => {
-              if (item2.callTestId) {
-                sonCallTestIds.push(item2.callTestId);
-              }
-              if (item?.reference?.objectId === item2.callTestId) {
-                stepsBak[index2] = [];
-                stepsBak[index2] = item.steps;
-              }
-            });
+        const callTestPromises = [];
+        callTestIds.forEach(async item => {
+          callTestPromises.push(callback => {
+            FetchAllTestStepByTestId(item, callback);
           });
-          step.steps = stepsBak;
-          console.log('callTestIds', callTestIds);
+        });
 
-          if (!sonCallTestIds.length) {
+        series(callTestPromises)
+          .then(res => {
+            console.log('res-------------------', res, step);
             resolve({
               success: true,
               data: step,
             });
             callback && callback(null, step);
-            return;
-          }
-
-          const callTestPromises = [];
-          sonCallTestIds.forEach(async item => {
-            callTestPromises.push(callback => {
-              FetchAllTestStepByTestId(item, callback);
-            });
-          });
-          console.log('来到这里吗？', callTestPromises, sonCallTestIds);
-          series(callTestPromises)
-            .then(res => {
-              console.log('res-------------------', res);
-              resolve({
-                success: true,
-                data: step,
-              });
-              callback && callback(null, step);
-            })
-            .catch(err => console.log('eeeee', err));
-        });
+          })
+          .catch(err => console.log('eeeee', err));
       },
       err => {
         reject({
