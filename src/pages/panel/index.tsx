@@ -1,5 +1,6 @@
 import React from 'react';
 
+import TestPlan from './TestPlan';
 import TestDetail from './TestDetail';
 import { useSDK } from '@projectproxima/plugin-sdk';
 import { useTestConfig } from '@/lib/hooks/useContext';
@@ -14,6 +15,7 @@ const MOCK_WORKSPACE_KEY = 'TEST_MANAGE_1';
 // 根据测试类型打开不同的测试 panel
 const TestPanelComponents = {
   [TestType.TestDetail]: TestDetail,
+  [TestType.TestPlan]: TestPlan,
 };
 
 const TestPanel = () => {

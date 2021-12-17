@@ -10,5 +10,5 @@ export const CustomField = Parse.Object.extend('CustomField');
 export const Test = Parse.Object.extend(`${appKey}_Test`);
 export const Repository = Parse.Object.extend(`${appKey}_Repository`);
 export const TestConfig = Parse.Object.extend(`${appKey}_TestConfig`);
-export const TestRelation = Parse.Object.extend(`${appKey}TestRelation`);
+export const TestRelation = Parse.Object.extend(`${appKey}_TestRelation`);
 export const TestExecution = Parse.Object.extend(`${appKey}_TestExecution`);
