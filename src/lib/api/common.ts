@@ -14,10 +14,16 @@ const pointerTransfer = (parseModel, pointer: string | Parse.Object) => {
 /**
  * 根据关联类型查询测试实体
  */
-export const getTestEntitiesByRelation = (
+export const getTestEntitiesByRelation = async (
   relType: TestRelationType,
   sides: Partial<Record<'from' | 'to', string | Parse.Object>> = {},
+  _config?: any,
 ) => {
+  const config = _config ?? {
+    queryParams: { limit: 10, offset: 0, orderBy: 'createdAt' },
+  };
+
+  console.info('config', config);
   // 查询必须要要有关联类型
   if (!relType) return;
   const include = [];
@@ -34,7 +40,21 @@ export const getTestEntitiesByRelation = (
   });
 
   // 需要获取关联事项的实体
-  return query.include(include).map(testEntity => {
+  query.include(include);
+
+  if (config?.queryParams && typeof config?.queryParams === 'object') {
+    const queryParams = config.queryParams;
+
+    console.info('queryParams', queryParams);
+    console.info('query', query);
+    query.limit(queryParams.limit);
+    query.skip(queryParams.offset);
+    query.ascending(queryParams.orderBy);
+  }
+
+  const testEntities = await query.find();
+
+  return testEntities.map(testEntity => {
     if (include.length === 1) return testEntity?.get(include[0]);
     return testEntity;
   });
@@ -102,18 +122,20 @@ export const deleteTestEntities = (testEntities: Array<Parse.Object | string>) =
  * 创建测试实体
  */
 export const createTestEntities = (
-  entities: {
-    itemId: string;
+  entities: Array<{
     type: TestType;
+    itemId?: string;
     workspaceKey: string;
-  }[],
+    fields?: Record<string, unknown>;
+  }>,
 ) => {
   const newTestEntities = entities.map(
     entity =>
       new Test({
         type: entity.type,
         workspaceKey: entity.workspaceKey,
-        reference: Item.createWithoutData(entity.itemId),
+        reference: entity.itemId ? Item.createWithoutData(entity.itemId) : null,
+        ...(entity.fields || {}),
       }),
   );
 

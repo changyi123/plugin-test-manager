@@ -7,13 +7,13 @@ import cx from './index.less';
 const { TabPane } = Tabs;
 const PlanTabs = [
   {
-    key: TestType.TestDetail,
     tab: '测试用例',
+    key: TestType.TestDetail,
     Component: React.lazy(() => import('./components/Test')),
   },
   {
-    key: TestType.TestExecution,
     tab: '测试执行',
+    key: TestType.TestExecution,
     Component: React.lazy(() => import('./components/Execution')),
   },
 ];

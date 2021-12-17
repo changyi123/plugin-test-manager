@@ -54,7 +54,7 @@ const getOrCreateTestEntity = async (itemId: string, config?: { notice: boolean 
       ]);
       // 重新查询 testEntity，保持返回数据一致
       testEntity = await getTestEntityByItemId(itemId);
-      console.info('new testEntity', testEntity.toJSON());
+      console.info('new testEntity', testEntity?.toJSON());
     }
   }
 
