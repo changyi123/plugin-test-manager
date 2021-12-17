@@ -1,4 +1,5 @@
 import React from 'react';
+import { ButtonProps } from 'antd/lib/button';
 import { MenuItemProps } from 'antd/lib/menu';
 import { Button, Dropdown, Menu } from '@osui/ui';
 import { DownOutlined } from '@ant-design/icons';
@@ -6,10 +7,11 @@ import { DownOutlined } from '@ant-design/icons';
 import './index.less';
 
 type DropdownButtonProps = {
+  buttonProps?: ButtonProps;
   menuList: Array<MenuItemProps & { [k: string]: any }>;
 };
 
-const DropdownButton: React.FC<DropdownButtonProps> = ({ menuList, children }) => {
+const DropdownButton: React.FC<DropdownButtonProps> = ({ menuList, buttonProps, children }) => {
   const menu = React.useMemo(() => {
     return (
       <Menu>
@@ -24,7 +26,7 @@ const DropdownButton: React.FC<DropdownButtonProps> = ({ menuList, children }) =
 
   return (
     <Dropdown trigger={['click']} overlay={menu} className="dropdown-button">
-      <Button type="primary">
+      <Button {...(buttonProps || { type: 'primary' })}>
         <span>{children}</span>
         <DownOutlined />
       </Button>

@@ -9,8 +9,8 @@ import { IQLBuilder } from '@/lib/utils/iql';
 import { CustomField, Workspace, ItemType } from '@/lib/models';
 
 type IQLPaginationParams = {
-  form?: number;
-  size?: number;
+  offset?: number;
+  limit?: number;
 };
 
 /**
@@ -46,8 +46,8 @@ export const getItemByIQL = async (
 
   const { data } = await fetch.post('/parse/api/search', {
     iql: iql.toString(),
-    form: pagination.form ?? 0,
-    size: pagination.size ?? 0,
+    form: pagination.offset ?? 0,
+    size: pagination.limit ?? 0,
   });
   return data.payload;
 };

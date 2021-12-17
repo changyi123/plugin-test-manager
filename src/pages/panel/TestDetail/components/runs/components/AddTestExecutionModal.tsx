@@ -56,7 +56,7 @@ const Content: React.FC<{ id: string; close: () => void }> = ({ close, id = 'beA
         <div style={{ textAlign: 'right' }}>
           <Space>
             <Button onClick={() => close()}>取消</Button>
-            <Button type="primary" htmlType="submit" loading={}>
+            <Button type="primary" htmlType="submit">
               添加
             </Button>
           </Space>

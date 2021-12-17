@@ -1,5 +1,5 @@
 import Parse from '@/lib/parse';
-import { pickBy } from 'lodash';
+import { pickBy, keyBy } from 'lodash';
 import { TestConfig } from '../models';
 import { getItemByIQL } from './proxima';
 import { hasArrayItem } from '@/lib/utils/helper';
@@ -19,11 +19,14 @@ export const getTestEntitiesByRelation = async (
   sides: Partial<Record<'from' | 'to', string | Parse.Object>> = {},
   _config?: any,
 ) => {
-  const config = _config ?? {
-    queryParams: { limit: 10, offset: 0, orderBy: 'createdAt' },
-  };
-
-  console.info('config', config);
+  const config = Object.assign(
+    {
+      // 需要填充 item 数据则自动转换未 json 格式
+      fillItemData: false,
+      queryParams: { limit: 10, offset: 0, orderBy: 'createdAt' },
+    },
+    _config,
+  );
   // 查询必须要要有关联类型
   if (!relType) return;
   const include = [];
@@ -44,20 +47,32 @@ export const getTestEntitiesByRelation = async (
 
   if (config?.queryParams && typeof config?.queryParams === 'object') {
     const queryParams = config.queryParams;
-
-    console.info('queryParams', queryParams);
-    console.info('query', query);
     query.limit(queryParams.limit);
     query.skip(queryParams.offset);
     query.ascending(queryParams.orderBy);
   }
 
-  const testEntities = await query.find();
+  const data = await query.find();
 
-  return testEntities.map(testEntity => {
+  const testEntities = data.map(testEntity => {
     if (include.length === 1) return testEntity?.get(include[0]);
     return testEntity;
   });
+
+  // 需要填充 item 数据则自动转换未 json 格式
+  if (config?.fillItemData && hasArrayItem(testEntities)) {
+    const testEntitiesData = testEntities.map(item => item.toJSON());
+    const itemIds = testEntitiesData.map(item => item.reference?.objectId);
+    const { items } = await getItemByIQL({ itemId: itemIds, limit: config?.queryParams?.limit });
+    const itemObj = keyBy(items, 'objectId');
+    return testEntitiesData.map(entity => {
+      const item = itemObj[entity.reference?.objectId];
+      // 测试运行没有关联的事项
+      return Object.assign({}, entity, { reference: item || null });
+    });
+  }
+
+  return testEntities;
 };
 
 /**
