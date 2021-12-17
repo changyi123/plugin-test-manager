@@ -1,8 +1,15 @@
 import Parse from '@/lib/parse';
+import { pickBy } from 'lodash';
 import { TestConfig } from '../models';
-import { Workspace, Item, Test, TestRelation } from '@/lib/models';
+import { getItemByIQL } from './proxima';
+import { hasArrayItem } from '@/lib/utils/helper';
 import { TestType, TestRelationType } from '@/lib/constants';
-import { pick } from 'lodash';
+import { Workspace, Item, Test, TestRelation } from '@/lib/models';
+
+/** 转换 pointer */
+const pointerTransfer = (parseModel, pointer: string | Parse.Object) => {
+  return typeof pointer === 'string' ? parseModel.createWithoutData(pointer) : pointer;
+};
 
 /**
  * 根据关联类型查询测试实体
@@ -11,16 +18,13 @@ export const getTestEntitiesByRelation = (
   relType: TestRelationType,
   sides: Partial<Record<'from' | 'to', string | Parse.Object>> = {},
 ) => {
-  const pointerTransfer = (pointer: string | Parse.Object) => {
-    return typeof pointer === 'string' ? TestRelation.createWithoutData(pointer) : pointer;
-  };
   // 查询必须要要有关联类型
   if (!relType) return;
   const include = [];
   const query = new Parse.Query(TestRelation).equalTo('relationType', relType);
 
   Object.entries(sides).forEach(([sideKey, side]) => {
-    query.equalTo(sideKey, pointerTransfer(side));
+    query.equalTo(sideKey, pointerTransfer(TestRelationType, side));
     // 查另一向的关联关系
     const sideMapping = {
       from: 'to',
@@ -29,39 +33,69 @@ export const getTestEntitiesByRelation = (
     include.push(sideMapping[sideKey]);
   });
 
-  return query.include(include).map(res => {
-    const testEntities = pick(res, include);
-    if (include.length === 1) return testEntities[include[0]];
-    return testEntities;
+  // 需要获取关联事项的实体
+  return query.include(include).map(testEntity => {
+    if (include.length === 1) return testEntity?.get(include[0]);
+    return testEntity;
   });
+};
+
+/**
+ * 根据测试实体查询测试实体关联
+ */
+export const getTestRelation = ({
+  from,
+  to,
+}: Partial<Record<'from' | 'to', Array<string | Parse.Object>>>) => {
+  const testRelationTypePointerTransfer = arr =>
+    hasArrayItem(arr) ? arr.map(item => pointerTransfer(TestRelationType, item)) : [];
+
+  return Parse.Query.or(
+    new Parse.Query(TestRelation).containedBy('from', testRelationTypePointerTransfer(from)),
+    new Parse.Query(TestRelation).containedBy('to', testRelationTypePointerTransfer(to)),
+  ).find();
 };
 
 /**
  * 创建测试实体关联关系
  */
-export const createTestRelation = ({
-  from,
-  to,
-  relationType,
-}: {
-  from: string | Parse.Object;
-  to: string | Parse.Object;
-  relationType: TestRelationType;
-}) => {
+export const createTestRelation = (
+  _relations: Array<{
+    from: string | Parse.Object;
+    to: string | Parse.Object;
+    relationType: TestRelationType;
+  }>,
+) => {
   const pointerTransfer = (pointer: string | Parse.Object) => {
     return typeof pointer === 'string' ? TestRelation.createWithoutData(pointer) : pointer;
   };
 
-  const relationField = {
-    from: pointerTransfer(from),
-    to: pointerTransfer(to),
-    relationType: relationType,
-  };
+  const relations = _relations.map(
+    rel =>
+      new TestRelation({
+        to: pointerTransfer(rel.to),
+        from: pointerTransfer(rel.from),
+        relationType: rel.relationType,
+      }),
+  );
 
-  const newRelation = new TestRelation();
+  return Parse.Object.saveAll(relations);
+};
 
-  // TODO: 是否需要先查询？
-  return newRelation.save(relationField);
+/**
+ * 删除测试实体
+ */
+export const deleteTestEntities = (testEntities: Array<Parse.Object | string>) => {
+  testEntities = testEntities.map(item =>
+    typeof item === 'string' ? new Test({ objectId: item }) : item,
+  );
+  // 测试实体对应的关联关系也需要被删除
+  const testRelations = getTestRelation({ from: testEntities, to: testEntities });
+
+  return Promise.all([
+    Parse.Object.destroyAll(testEntities),
+    Parse.Object.destroyAll(testRelations),
+  ]);
 };
 
 /**

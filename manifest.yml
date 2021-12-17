@@ -13,7 +13,7 @@ modules:
   itemPanel:
     - key: test-manager-test-detail
       resource: main
-      title: 测试用例详情
+      title: 测试管理
       loadType: Micro
       route: /testPanel
   adminPage:
