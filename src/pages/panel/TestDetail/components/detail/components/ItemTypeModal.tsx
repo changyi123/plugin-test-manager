@@ -34,15 +34,12 @@ let currentIndex = 0;
 let currentTestId = '';
 
 const ItemTypeModalContent: React.FC<ItemTypeModalContentProps> = props => {
-  const testConfigRequest = useRequest(() => GetTestConfigFromWorkspaceKey('TEST_MANAGE_1'), {
-    throwOnError: true,
-  });
+  const testConfigRequest = useRequest(() => GetTestConfigFromWorkspaceKey('TEST_MANAGE_1'));
 
   const { data, error, loading } = useRequest(
     () => GetItemTypeFromKey(testConfigRequest?.data?.data?.itemTypeMap?.[props.type]),
     {
       ready: !!testConfigRequest.data,
-      throwOnError: true,
     },
   );
 

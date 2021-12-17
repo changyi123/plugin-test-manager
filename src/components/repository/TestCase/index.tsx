@@ -41,17 +41,8 @@ const TestCase: React.FC<TestCaseProps> = ({
     [openItemViewPanel],
   );
 
-  const getDragProps = useDrag();
-
   return (
-    <div
-      {...getDragProps({
-        itemId,
-        selectedFolderKey,
-      })}
-      className={cx('test-case')}
-      onContextMenu={e => handleContextMenu(e, { itemId })}
-    >
+    <div className={cx('test-case')} onContextMenu={e => handleContextMenu(e, { itemId })}>
       <div className={cx('row')}>
         <Tooltip title={`事项类型：${itemType.name}`}>
           {itemType.icon ? (

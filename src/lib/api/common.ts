@@ -170,7 +170,7 @@ export const getTestEntityByItemId = (itemId: string) => {
 /**
  * 获取测试管理配置
  */
-export const getTestConfig = (workspaceKey: string) => {
+export const getTestConfig = (workspaceKey: string): Promise<Parse.Object> => {
   return new Parse.Query(TestConfig).equalTo('workspaceKey', workspaceKey).first();
 };
 

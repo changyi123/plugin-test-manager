@@ -31,8 +31,6 @@ const Content: React.FC<{ id: string; close: () => void }> = ({ close, id }) => 
       workspaceKey: 'TEST_MANAGE_1',
       itemId: id,
       name: summary,
-    }).then(() => {
-      message.success('创建成功');
     });
   };
 

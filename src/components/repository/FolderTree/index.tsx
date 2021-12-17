@@ -107,29 +107,29 @@ const FolderTree: React.FC<FolderTreeProps> = ({
   } = useTestConfig();
 
   const { createItemUseModal } = useBaseAction();
-  const [props] = useDrop({
-    async onDom(content, e) {
-      removeHoveringClassName();
-      const { selectedFolderKey, itemKey } = content;
-      const targetNodeKey = e.currentTarget.getAttribute('data-node-key');
-      // 相同模块不执行操作
-      if (selectedFolderKey === targetNodeKey) return;
-      const currentNode = treeFn.getTreeNodeByKey(selectedFolderKey);
-      const targetNode = treeFn.getTreeNodeByKey(targetNodeKey);
+  // const [props] = useDrop({
+  //   async onDom(content, e) {
+  //     removeHoveringClassName();
+  //     const { selectedFolderKey, itemKey } = content;
+  //     const targetNodeKey = e.currentTarget.getAttribute('data-node-key');
+  //     // 相同模块不执行操作
+  //     if (selectedFolderKey === targetNodeKey) return;
+  //     const currentNode = treeFn.getTreeNodeByKey(selectedFolderKey);
+  //     const targetNode = treeFn.getTreeNodeByKey(targetNodeKey);
 
-      currentNode.itemIds = currentNode.itemIds.filter(key => key !== itemKey);
-      targetNode.itemIds = targetNode.itemIds.concat(itemKey);
+  //     currentNode.itemIds = currentNode.itemIds.filter(key => key !== itemKey);
+  //     targetNode.itemIds = targetNode.itemIds.concat(itemKey);
 
-      await updateFolders([currentNode, targetNode]);
+  //     await updateFolders([currentNode, targetNode]);
 
-      message.success('测试用例移动成功');
-      onFolderTreeChange();
-      handleSelect([currentNode.key], {
-        selected: true,
-        node: currentNode,
-      });
-    },
-  });
+  //     message.success('测试用例移动成功');
+  //     onFolderTreeChange();
+  //     handleSelect([currentNode.key], {
+  //       selected: true,
+  //       node: currentNode,
+  //     });
+  //   },
+  // });
 
   const selectedTreeNode = React.useMemo(() => {
     return treeFn.getTreeNodeByKey(state.selectedKeys[0]);
@@ -143,19 +143,19 @@ const FolderTree: React.FC<FolderTreeProps> = ({
       });
       node.title = (
         <div
-          {...props}
+          // {...props}
           data-node-key={node.key}
           className={cx('tree-node')}
-          onDragOver={event => {
-            appendHoveringClassName(event.currentTarget);
-            // eslint-disable-next-line react/prop-types
-            props.onDragOver(event);
-          }}
-          onDragLeave={event => {
-            removeHoveringClassName();
-            // eslint-disable-next-line react/prop-types
-            props.onDragLeave(event);
-          }}
+          // onDragOver={event => {
+          //   appendHoveringClassName(event.currentTarget);
+          //   // eslint-disable-next-line react/prop-types
+          //   props.onDragOver(event);
+          // }}
+          // onDragLeave={event => {
+          //   removeHoveringClassName();
+          //   // eslint-disable-next-line react/prop-types
+          //   props.onDragLeave(event);
+          // }}
         >
           <span>{node.name}</span>
           {node.key !== 'ALL' ? (
@@ -164,7 +164,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         </div>
       );
     });
-  }, [treeFn, props]);
+  }, [treeFn]);
 
   const folderMenuDisabledKeys = React.useMemo(() => {
     const keys = [];

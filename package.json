@@ -79,7 +79,7 @@
     "@projectproxima/plugin-sdk": "^0.1.7",
     "@projectproxima/proxima-sdk-js": "^0.4.4",
     "@uiw/react-split": "^5.8.4",
-    "ahooks": "^2.10.12",
+    "ahooks": "^3.0.5",
     "antd": "^4.16.13",
     "async": "^3.2.2",
     "axios": "^0.21.4",
