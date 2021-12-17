@@ -1,23 +1,25 @@
 import Parse from '@/lib/parse';
-import { Test, Item, Workspace } from '../models';
+import { Test, Item, Workspace, ItemType } from '../models';
 import { ICommonRes } from './detail';
-import { TestType } from '@/lib/constants';
+import { TestType, TestRelationType } from '@/lib/constants';
+import { createTestEntities, createTestRelation } from '@/lib/api/common';
 import series from 'async/series';
 import { useRequest } from 'ahooks';
+import { useTestConfig } from '@/lib/hooks/useContext';
 
 export const GetTestRunsById = (objectId: string): Promise<ICommonRes> => {
   return new Promise((resolve, reject) => {
     const query = new Parse.Query(Test);
-    const reference = Item.createWithoutData(objectId);
-    query.equalTo('reference', reference);
-    query.equalTo('type', '1');
+    const reference = Test.createWithoutData(objectId);
+    query.equalTo('runReferenceDetail', reference);
+    query.equalTo('type', TestType.TestRun);
     query
-      .first()
+      .find()
       .then(
         res => {
           resolve({
             success: true,
-            data: { ...res },
+            data: res.map(item => item.toJSON()),
           });
         },
         err => {
@@ -95,7 +97,6 @@ export const FetchAllTestStepByTestId = (
     const query = new Parse.Query(Test);
     const reference = Item.createWithoutData(id);
     query.equalTo('reference', reference).equalTo('type', TestType.TestRun);
-    console.log('id', id);
     query.first().then(
       res => {
         const step = res?.toJSON() || [];
@@ -132,7 +133,6 @@ export const FetchAllTestStepByTestId = (
               stepBackList.push(item);
             });
             step.steps = stepBackList;
-            console.log('res-------------------', res, stepBackList);
             resolve({
               success: true,
               data: step,
@@ -152,30 +152,97 @@ export const FetchAllTestStepByTestId = (
   });
 };
 
+interface CreateTestExecutionReq {
+  workspaceId: string;
+  workspaceKey: string;
+  itemId: string;
+  name: string;
+}
+
+let workspaceKeyBak = '';
+let itemIdBak = '';
+
 export const CreateTestExecutionWithTestRun = () => {
-  const { run, data: testRuns } = useRequest(() => FetchAllTestStepByTestId('beAxtdQda1'), {
-    manual: true,
+  const { config } = useTestConfig();
+
+  let globalLoading = false;
+  const {
+    run,
+    data: itemForTestExecution,
+    loading: startLoading,
+  } = useRequest(
+    ({ workspaceId, workspaceKey, itemId, name }: CreateTestExecutionReq) => {
+      workspaceKeyBak = workspaceKey;
+      itemIdBak = itemId;
+      const workspaceObj = Workspace.createWithoutData(workspaceId);
+      const itemTypeObj = ItemType.createWithoutData(config?.itemTypeMap?.TestExecution);
+      const itemQuery = new Item();
+      itemQuery.set({
+        itemType: itemTypeObj,
+        workspace: workspaceObj,
+        name,
+      });
+      return itemQuery.save();
+    },
+    {
+      manual: true,
+    },
+  );
+  if (startLoading) {
+    globalLoading = true;
+  }
+
+  const { data: testRuns } = useRequest(() => FetchAllTestStepByTestId(itemIdBak), {
+    ready: !!itemForTestExecution,
   });
 
-  const { data, loading, error } = useRequest(
+  const { data: testRunObj } = useRequest(
     () =>
-      SaveOrUpdateTest(
+      createTestEntities([
         {
-          run_detail: {
-            runs: testRuns,
+          type: TestType.TestRun,
+          workspaceKey: workspaceKeyBak,
+          fields: {
+            runDetail: {
+              runs: testRuns,
+            },
+            runReferenceDetail: Test.createWithoutData(itemIdBak),
           },
         },
-        TestType.TestRun,
-      ),
+        {
+          type: TestType.TestExecution,
+          workspaceKey: workspaceKeyBak,
+          fields: {
+            reference: itemForTestExecution,
+          },
+        },
+      ]),
     {
       ready: !!testRuns,
     },
   );
 
+  const { data: testRelationObj, loading } = useRequest(
+    () =>
+      createTestRelation([
+        {
+          relationType: TestRelationType.ExecutionRelRun,
+          from: testRunObj[1],
+          to: testRunObj[0],
+        },
+      ]),
+    {
+      ready: !!testRunObj,
+    },
+  );
+  if (!loading && testRelationObj) {
+    globalLoading = false;
+  }
+
   return {
     run,
-    loading,
-    data,
-    error,
+    loading: globalLoading,
+    data: testRelationObj,
+    // error,
   };
 };
