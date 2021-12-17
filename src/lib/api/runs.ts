@@ -3,6 +3,7 @@ import { Test, Item, Workspace } from '../models';
 import { ICommonRes } from './detail';
 import { TestType } from '@/lib/constants';
 import series from 'async/series';
+import { useRequest } from 'ahooks';
 
 export const GetTestRunsById = (objectId: string): Promise<ICommonRes> => {
   return new Promise((resolve, reject) => {
@@ -10,12 +11,10 @@ export const GetTestRunsById = (objectId: string): Promise<ICommonRes> => {
     const reference = Item.createWithoutData(objectId);
     query.equalTo('reference', reference);
     query.equalTo('type', '1');
-    console.log('执行到这里了1232131231231');
     query
       .first()
       .then(
         res => {
-          console.log('res来到这里？？', res);
           resolve({
             success: true,
             data: { ...res },
@@ -30,7 +29,7 @@ export const GetTestRunsById = (objectId: string): Promise<ICommonRes> => {
         },
       )
       .catch(() => {
-        console.log('这里吗');
+        // console.log('这里吗');
       });
   });
 };
@@ -58,7 +57,7 @@ export const GetWorkspaceList = (): Promise<ICommonRes> => {
 
 export const SaveOrUpdateTest = (
   obj: any,
-  type: 1 | 2 | 3 | 4,
+  type: TestType,
   id?: string,
   resource?: string, // 关联测试用例Id
 ): Promise<ICommonRes> => {
@@ -122,14 +121,25 @@ export const FetchAllTestStepByTestId = (
 
         series(callTestPromises)
           .then(res => {
-            console.log('res-------------------', res, step);
+            const stepBackList = [];
+            step?.steps?.forEach(item => {
+              if (item.callTestId && item.callTestId === res[0]?.reference?.objectId) {
+                res[0]?.steps?.forEach(item => {
+                  stepBackList.push(item);
+                });
+                return;
+              }
+              stepBackList.push(item);
+            });
+            step.steps = stepBackList;
+            console.log('res-------------------', res, stepBackList);
             resolve({
               success: true,
               data: step,
             });
             callback && callback(null, step);
           })
-          .catch(err => console.log('eeeee', err));
+          .catch(() => {});
       },
       err => {
         reject({
@@ -140,4 +150,32 @@ export const FetchAllTestStepByTestId = (
       },
     );
   });
+};
+
+export const CreateTestExecutionWithTestRun = () => {
+  const { run, data: testRuns } = useRequest(() => FetchAllTestStepByTestId('beAxtdQda1'), {
+    manual: true,
+  });
+
+  const { data, loading, error } = useRequest(
+    () =>
+      SaveOrUpdateTest(
+        {
+          run_detail: {
+            runs: testRuns,
+          },
+        },
+        TestType.TestRun,
+      ),
+    {
+      ready: !!testRuns,
+    },
+  );
+
+  return {
+    run,
+    loading,
+    data,
+    error,
+  };
 };

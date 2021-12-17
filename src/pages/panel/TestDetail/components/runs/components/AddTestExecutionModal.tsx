@@ -9,7 +9,7 @@ type AddTestExecutionModalProps = {
   visible?: boolean;
 };
 
-const Content: React.FC<{ id: string; close: () => void }> = ({ close, id }) => {
+const Content: React.FC<{ id: string; close: () => void }> = ({ close, id = 'beAxtdQda1' }) => {
   const { error, data, loading } = useRequest(GetWorkspaceList);
   if (error) {
     return <div>加载失败,原因{error?.message}</div>;
@@ -23,7 +23,9 @@ const Content: React.FC<{ id: string; close: () => void }> = ({ close, id }) => 
 
   const onFinish = (values: any) => {
     console.log('Success:', values);
-    FetchAllTestStepByTestId('beAxtdQda1');
+    FetchAllTestStepByTestId('beAxtdQda1').then(res => {
+      console.log('res', res);
+    });
   };
 
   return (
@@ -54,7 +56,7 @@ const Content: React.FC<{ id: string; close: () => void }> = ({ close, id }) => 
         <div style={{ textAlign: 'right' }}>
           <Space>
             <Button onClick={() => close()}>取消</Button>
-            <Button type="primary" htmlType="submit">
+            <Button type="primary" htmlType="submit" loading={}>
               添加
             </Button>
           </Space>
