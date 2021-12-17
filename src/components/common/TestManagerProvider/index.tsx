@@ -147,14 +147,22 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
   const baseActionContextValues = React.useMemo(() => {
     const actions: BaseActionContextType = {
       async createItemUseModal(params) {
-        const { extraData, type } = params;
+        const { extraData, type, name } = params;
         const itemTypeKey = testConfig?.itemTypeMap?.[type];
 
         const itemType = await getItemTypeByKey(itemTypeKey);
-        if (!itemType?.objectId) return;
+
+        console.info('itemType', itemTypeKey, itemType);
+        if (!itemType?.objectId) {
+          notification.open({
+            message: '提示',
+            description: '所属空间无法创建测试执行，请选择其他空间事项创建',
+          });
+        }
 
         // 打开创建弹窗
         openCreateItemModal({
+          name: name ?? '',
           itemTypeId: itemType?.objectId,
           workspaceId: workspace?.objectId,
           extraData: extraData ?? {
@@ -163,7 +171,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
           },
         });
 
-        // 事项创建成功通知=lll
+        // 事项创建成功通知
         return new Promise(resolve => {
           eventBusRef.current.register(ItemCreateSuccessEventType, data => {
             console.info('data', data);

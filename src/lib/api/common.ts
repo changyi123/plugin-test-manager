@@ -1,5 +1,5 @@
 import Parse from '@/lib/parse';
-import { pickBy, keyBy } from 'lodash';
+import { keyBy, merge } from 'lodash';
 import { TestConfig } from '../models';
 import { getItemByIQL } from './proxima';
 import { hasArrayItem } from '@/lib/utils/helper';
@@ -19,7 +19,7 @@ export const getTestEntitiesByRelation = async (
   sides: Partial<Record<'from' | 'to', string | Parse.Object>> = {},
   _config?: any,
 ) => {
-  const config = Object.assign(
+  const config = merge(
     {
       // 需要填充 item 数据则自动转换未 json 格式
       fillItemData: false,

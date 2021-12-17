@@ -19,6 +19,7 @@ export const TestConfigContext = React.createContext<TestConfigContextType>(
 export type BaseActionContextType = {
   /** 创建事项 */
   createItemUseModal: <Extra extends Record<string, any>>(params: {
+    name?: string;
     type: TestType;
     extraData?: Extra;
   }) => Promise<{

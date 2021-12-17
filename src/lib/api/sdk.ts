@@ -6,13 +6,14 @@ const proximaSDK = createProximaSdk();
 /**
  * 打开事项创建弹窗
  */
-export const openCreateItemModal = ({ itemTypeId, workspaceId, extraData }) => {
+export const openCreateItemModal = ({ itemTypeId, workspaceId, name, extraData }) => {
   proximaSDK.execute('openItemCreateScreen', {
     extraData: {
       ...extraData,
       key: TEST_MANAGER_PLUGIN_KEY,
     },
     initItemData: {
+      name: name,
       workspace: {
         objectId: workspaceId,
       },
