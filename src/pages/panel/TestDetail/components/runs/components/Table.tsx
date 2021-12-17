@@ -7,7 +7,7 @@ import { GetTestRunsById } from '@/lib/api/runs';
 import TestTableStatus from '@/pages/run/components/TestTableStatus';
 
 export interface RunsTableProps {
-  id?: string;
+  itemId?: string;
 }
 
 export interface RunItem {
@@ -16,8 +16,7 @@ export interface RunItem {
   status: string;
 }
 
-const ActionBtn: React.FC<RunsTableProps> = ({ id }) => {
-  console.log('id', id);
+const ActionBtn: React.FC<RunsTableProps> = () => {
   const menu = (
     <Menu>
       <Menu.Item key="0">
@@ -34,7 +33,7 @@ const ActionBtn: React.FC<RunsTableProps> = ({ id }) => {
   );
 };
 
-const RunsTable: React.FC<RunsTableProps> = ({ id }) => {
+const RunsTable: React.FC<RunsTableProps> = ({ itemId }) => {
   const [page, setPage] = useState(1);
   const dataSource: Array<RunItem> = [
     {
@@ -81,19 +80,20 @@ const RunsTable: React.FC<RunsTableProps> = ({ id }) => {
     {
       title: '操作',
       key: 'action',
-      render: value => <ActionBtn id={value} />,
+      render: value => <ActionBtn itemId={value} />,
     },
   ];
-  const { data, error, loading } = useRequest(() => GetTestRunsById(id));
+  const { data, error, loading } = useRequest(() => GetTestRunsById(itemId));
   if (error) {
     return <div>加载失败,原因{error?.message}</div>;
   }
   if (loading) {
     return <Spin tip="加载中..."></Spin>;
   }
-  // if (!data?.data?.length) {
-  //   return <Empty description="测试运行为空，请创建测试执行"></Empty>;
-  // }
+  if (!data?.data?.length) {
+    return <Empty description="测试运行为空，请创建测试执行"></Empty>;
+  }
+  // console.log('data', data.data);
   return (
     <Table<RunItem>
       dataSource={dataSource}

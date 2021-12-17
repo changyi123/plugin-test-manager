@@ -39,7 +39,7 @@ const ExecutionPannel: React.FC = () => {
       </div>
 
       <div className={css('exe__table')}>
-        <TestRunsTable id="SzHLagi3vR"></TestRunsTable>
+        <TestRunsTable itemId="SzHLagi3vR"></TestRunsTable>
       </div>
     </div>
   );

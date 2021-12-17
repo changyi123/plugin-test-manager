@@ -6,17 +6,21 @@ import Table from './components/Table';
 import css from './index.less';
 
 const Runs: React.FC = () => {
+  const itemId = 'beAxtdQda1';
   return (
     <div className={css('runs')}>
       <div className={css('runs__new')}>
         <Space>
-          <AddTestExecutionModal trigger={<Button type="primary">新增测试执行</Button>} />
+          <AddTestExecutionModal
+            trigger={<Button type="primary">新增测试执行</Button>}
+            itemId={itemId}
+          />
           <Button type="primary">继承测试执行</Button>
         </Space>
       </div>
 
       <div className={css('runs__content')}>
-        <Table id="beAxtdQda1" />
+        <Table itemId={itemId} />
       </div>
     </div>
   );

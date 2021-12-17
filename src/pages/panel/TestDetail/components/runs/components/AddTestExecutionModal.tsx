@@ -1,16 +1,18 @@
 import React from 'react';
-import { Modal, Form, Input, Spin, Button, Space, Select } from '@osui/ui';
+import { Modal, Form, Input, Spin, Button, Space, Select, message } from '@osui/ui';
 import { useRequest } from 'ahooks';
-import { GetWorkspaceList, FetchAllTestStepByTestId } from '@/lib/api/runs';
+import { GetWorkspaceList, CreateTestExecutionWithTestRun } from '@/lib/api/runs';
 import useMergedState from 'rc-util/lib/hooks/useMergedState';
 
 type AddTestExecutionModalProps = {
   trigger?: JSX.Element;
   visible?: boolean;
+  itemId: string;
 };
 
-const Content: React.FC<{ id: string; close: () => void }> = ({ close, id = 'beAxtdQda1' }) => {
+const Content: React.FC<{ id: string; close: () => void }> = ({ close, id }) => {
   const { error, data, loading } = useRequest(GetWorkspaceList);
+  const { run, loading: runLoading, data: runData } = CreateTestExecutionWithTestRun();
   if (error) {
     return <div>加载失败,原因{error?.message}</div>;
   }
@@ -23,8 +25,14 @@ const Content: React.FC<{ id: string; close: () => void }> = ({ close, id = 'beA
 
   const onFinish = (values: any) => {
     console.log('Success:', values);
-    FetchAllTestStepByTestId('beAxtdQda1').then(res => {
-      console.log('res', res);
+    const { workspace, summary } = values;
+    run({
+      workspaceId: workspace,
+      workspaceKey: 'TEST_MANAGE_1',
+      itemId: id,
+      name: summary,
+    }).then(() => {
+      message.success('创建成功');
     });
   };
 
@@ -56,7 +64,7 @@ const Content: React.FC<{ id: string; close: () => void }> = ({ close, id = 'beA
         <div style={{ textAlign: 'right' }}>
           <Space>
             <Button onClick={() => close()}>取消</Button>
-            <Button type="primary" htmlType="submit">
+            <Button type="primary" htmlType="submit" loading={runLoading}>
               添加
             </Button>
           </Space>
@@ -84,7 +92,7 @@ const AddTestExecutionModal: React.FC<AddTestExecutionModalProps> = props => {
         onCancel={handleCloseModal}
         footer={false}
       >
-        {isVisible && <Content close={handleCloseModal} id="asd" />}
+        {isVisible && <Content close={handleCloseModal} id={props.itemId} />}
       </Modal>
       {props.trigger &&
         React.cloneElement(props.trigger, {
