@@ -6,8 +6,10 @@ import { hasArrayItem } from '@/lib/utils/helper';
 import { TestType, TestRelationType } from '@/lib/constants';
 import { Workspace, Item, Test, TestRelation } from '@/lib/models';
 
+type PointerType = string | Parse.Object;
+
 /** 转换 pointer */
-const pointerTransfer = (parseModel, pointer: string | Parse.Object) => {
+const pointerTransfer = (parseModel, pointer: PointerType) => {
   return typeof pointer === 'string' ? parseModel.createWithoutData(pointer) : pointer;
 };
 
@@ -16,7 +18,7 @@ const pointerTransfer = (parseModel, pointer: string | Parse.Object) => {
  */
 export const getTestEntitiesByRelation = async (
   relType: TestRelationType,
-  sides: Partial<Record<'from' | 'to', string | Parse.Object>> = {},
+  sides: Partial<Record<'from' | 'to', Array<PointerType> | PointerType>> = {},
   _config?: any,
 ) => {
   const config = merge(
@@ -33,7 +35,15 @@ export const getTestEntitiesByRelation = async (
   const query = new Parse.Query(TestRelation).equalTo('relationType', relType);
 
   Object.entries(sides).forEach(([sideKey, side]) => {
-    query.equalTo(sideKey, pointerTransfer(TestRelationType, side));
+    // 支持数组的关联关系查询
+    if (Array.isArray(side)) {
+      query.containedIn(
+        sideKey,
+        side.map(item => pointerTransfer(TestRelationType, item)),
+      );
+    } else {
+      query.equalTo(sideKey, pointerTransfer(TestRelationType, side as PointerType));
+    }
     // 查另一向的关联关系
     const sideMapping = {
       from: 'to',
