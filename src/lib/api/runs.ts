@@ -2,24 +2,41 @@ import Parse from '@/lib/parse';
 import { Test, Item, Workspace, ItemType } from '../models';
 import { ICommonRes } from './detail';
 import { TestType, TestRelationType } from '@/lib/constants';
-import { createTestEntities, createTestRelation } from '@/lib/api/common';
+import {
+  createTestEntities,
+  createTestRelation,
+  getTestEntitiesByRelation,
+} from '@/lib/api/common';
 import series from 'async/series';
 import { useRequest } from 'ahooks';
-import { useTestConfig } from '@/lib/hooks/useContext';
 
-export const GetTestRunsById = (objectId: string): Promise<ICommonRes> => {
+export const GetTestRunsById = (itemId: string): Promise<ICommonRes> => {
   return new Promise((resolve, reject) => {
     const query = new Parse.Query(Test);
-    const reference = Test.createWithoutData(objectId);
-    query.equalTo('runReferenceDetail', reference);
-    query.equalTo('type', TestType.TestRun);
+    const reference = Test.createWithoutData(itemId);
+    query.equalTo('reference', reference);
+    query.equalTo('type', TestType.TestDetail);
     query
-      .find()
+      .first()
       .then(
         res => {
-          resolve({
-            success: true,
-            data: res.map(item => item.toJSON()),
+          const runReferenceDetail = Test.createWithoutData(res.id);
+          const testRunQuery = new Parse.Query(Test);
+          testRunQuery.equalTo('reference', reference);
+          testRunQuery.equalTo('type', TestType.TestRun);
+          testRunQuery.equalTo('runReferenceDetail', runReferenceDetail);
+          testRunQuery.find().then(async testRunRes => {
+            // const testRuns = testRunRes?.map(item => item.toJSON());
+            const data = await getTestEntitiesByRelation(
+              TestRelationType.ExecutionRelRun,
+              { to: testRunRes[0] },
+              { fillItemData: true },
+            );
+            console.log('data---------', data);
+            resolve({
+              success: true,
+              data: testRunRes?.map(item => item.toJSON()),
+            });
           });
         },
         err => {
@@ -96,7 +113,7 @@ export const FetchAllTestStepByTestId = (
   return new Promise((resolve, reject) => {
     const query = new Parse.Query(Test);
     const reference = Item.createWithoutData(id);
-    query.equalTo('reference', reference).equalTo('type', TestType.TestRun);
+    query.equalTo('reference', reference).equalTo('type', TestType.TestDetail);
     query.first().then(
       res => {
         const step = res?.toJSON() || [];
@@ -156,6 +173,7 @@ interface CreateTestExecutionReq {
   workspaceId: string;
   workspaceKey: string;
   itemId: string;
+  itemTypeId: string;
   name: string;
 }
 
@@ -163,19 +181,17 @@ let workspaceKeyBak = '';
 let itemIdBak = '';
 
 export const CreateTestExecutionWithTestRun = () => {
-  const { config } = useTestConfig();
-
   let globalLoading = false;
   const {
     run,
     data: itemForTestExecution,
     loading: startLoading,
   } = useRequest(
-    ({ workspaceId, workspaceKey, itemId, name }: CreateTestExecutionReq) => {
+    ({ workspaceId, workspaceKey, itemId, name, itemTypeId }: CreateTestExecutionReq) => {
       workspaceKeyBak = workspaceKey;
       itemIdBak = itemId;
       const workspaceObj = Workspace.createWithoutData(workspaceId);
-      const itemTypeObj = ItemType.createWithoutData(config?.itemTypeMap?.TestExecution);
+      const itemTypeObj = ItemType.createWithoutData(itemTypeId);
       const itemQuery = new Item();
       itemQuery.set({
         itemType: itemTypeObj,
@@ -204,9 +220,10 @@ export const CreateTestExecutionWithTestRun = () => {
           workspaceKey: workspaceKeyBak,
           fields: {
             runDetail: {
-              runs: testRuns,
+              runs: testRuns.data,
             },
-            runReferenceDetail: Test.createWithoutData(itemIdBak),
+            reference: Item.createWithoutData(itemIdBak),
+            runReferenceDetail: Test.createWithoutData(testRuns?.data?.objectId),
           },
         },
         {
@@ -238,6 +255,7 @@ export const CreateTestExecutionWithTestRun = () => {
   if (!loading && testRelationObj) {
     globalLoading = false;
   }
+  console.log('testRuns', testRuns);
 
   return {
     run,

@@ -1,8 +1,10 @@
 import React from 'react';
-import { Modal, Form, Input, Spin, Button, Space, Select, message } from '@osui/ui';
+import { Modal, Form, Input, Spin, Button, Space, Select, notification } from '@osui/ui';
 import { useRequest } from 'ahooks';
 import { GetWorkspaceList, CreateTestExecutionWithTestRun } from '@/lib/api/runs';
 import useMergedState from 'rc-util/lib/hooks/useMergedState';
+import { useTestConfig } from '@/lib/hooks/useContext';
+import { getItemTypeByKey } from '@/lib/api/proxima';
 
 type AddTestExecutionModalProps = {
   trigger?: JSX.Element;
@@ -13,6 +15,7 @@ type AddTestExecutionModalProps = {
 const Content: React.FC<{ id: string; close: () => void }> = ({ close, id }) => {
   const { error, data, loading } = useRequest(GetWorkspaceList);
   const { run, loading: runLoading, data: runData } = CreateTestExecutionWithTestRun();
+  const { config } = useTestConfig();
   if (error) {
     return <div>加载失败,原因{error?.message}</div>;
   }
@@ -23,13 +26,30 @@ const Content: React.FC<{ id: string; close: () => void }> = ({ close, id }) => 
     return <div>暂无可选择空间</div>;
   }
 
-  const onFinish = (values: any) => {
+  const onFinish = async (values: any) => {
     console.log('Success:', values);
     const { workspace, summary } = values;
+    const itemTypeKey = config?.itemTypeMap?.TestExecution;
+    if (!config?.itemTypeMap?.TestExecution) {
+      return notification.open({
+        message: '提示',
+        description: '暂无事项类型与测试执行类型关联',
+      });
+    }
+    const itemType = await getItemTypeByKey(itemTypeKey);
+
+    if (!itemType?.objectId) {
+      notification.open({
+        message: '提示',
+        description: '所属空间无法创建测试执行，请选择其他空间事项创建',
+      });
+      return;
+    }
     run({
       workspaceId: workspace,
       workspaceKey: 'TEST_MANAGE_1',
       itemId: id,
+      itemTypeId: itemType?.objectId,
       name: summary,
     });
   };

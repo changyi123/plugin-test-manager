@@ -6,7 +6,7 @@ import Table from './components/Table';
 import css from './index.less';
 
 const Runs: React.FC = () => {
-  const itemId = 'beAxtdQda1';
+  const itemId = 'tjn7zKxmj4';
   return (
     <div className={css('runs')}>
       <div className={css('runs__new')}>
