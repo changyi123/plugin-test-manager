@@ -1,7 +1,7 @@
 import Parse from '@/lib/parse';
 import fetch from '@/lib/utils/fetch';
 import { TestStep as ITestStep } from '@/pages/panel/TestDetail/components/detail';
-import { TestExecution, Test, Item, TestConfig, Workspace, ItemType } from '../models';
+import { Test, Item, TestConfig, Workspace, ItemType } from '../models';
 import { TestType } from '@/lib/constants';
 
 export interface ICommonRes<T = any> {
@@ -9,101 +9,6 @@ export interface ICommonRes<T = any> {
   message?: string;
   data?: T;
 }
-
-export const PostAddTestExecution = (req: ITestStep): Promise<ICommonRes> => {
-  return new Promise((resolve, reject) => {
-    const query = new TestExecution();
-    query.save(req).then(
-      res => {
-        resolve({
-          success: true,
-          data: { ...res },
-        });
-      },
-      err => {
-        reject({
-          success: false,
-          data: { ...err },
-          message: err,
-        });
-      },
-    );
-  });
-};
-
-export const PostEditTestExecution = (req: ITestStep): Promise<ICommonRes> => {
-  return new Promise((resolve, reject) => {
-    const { objectId, action, data, result } = req;
-    const execution = TestExecution.createWithoutData(objectId);
-    execution.set({
-      action,
-      data,
-      result,
-    });
-    execution.save().then(
-      res => {
-        resolve({
-          success: true,
-          data: { ...res },
-        });
-      },
-      err => {
-        reject({
-          success: false,
-          data: { ...err },
-          message: err,
-        });
-      },
-    );
-  });
-};
-
-export const fetchTestExecution = (resource: string): Promise<ICommonRes> => {
-  return new Promise((resolve, reject) => {
-    const query = new Parse.Query(TestExecution);
-    query.equalTo('resource', resource);
-    query.find().then(
-      res => {
-        resolve({
-          success: true,
-          data: res.map(item => {
-            const obj = item.toJSON();
-            obj.id = obj.objectId;
-            obj.isExpand = true;
-            return obj;
-          }),
-        });
-      },
-      err => {
-        reject({
-          success: false,
-          data: { ...err },
-          message: err,
-        });
-      },
-    );
-  });
-};
-
-export const deleteTestExecution = (id: string): Promise<ICommonRes> => {
-  return new Promise((resolve, reject) => {
-    TestExecution.createWithoutData(id)
-      .destroy()
-      .then(
-        () => {
-          resolve({
-            success: true,
-          });
-        },
-        err => {
-          reject({
-            success: false,
-            message: err,
-          });
-        },
-      );
-  });
-};
 
 export const fetchTestSteps = (resource: string): Promise<ICommonRes> => {
   return new Promise((resolve, reject) => {

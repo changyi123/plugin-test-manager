@@ -15,6 +15,7 @@ export interface RunItem {
   name: string;
   status: string;
   referenceId: string;
+  testRunId: string;
   referenceName: string;
 }
 
@@ -59,8 +60,14 @@ const RunsTable: React.FC<RunsTableProps> = ({ itemId }) => {
     },
     {
       title: '执行',
-      render: () => (
-        <Button size="small" type="primary" href="#/testRun" icon={<CaretRightOutlined />}>
+      key: 'testRunId',
+      render: (value, item) => (
+        <Button
+          size="small"
+          type="primary"
+          href={`#/testRun?id=${item.testRunId}`}
+          icon={<CaretRightOutlined />}
+        >
           执行
         </Button>
       ),

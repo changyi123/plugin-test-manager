@@ -1,21 +1,14 @@
 import React, { useEffect } from 'react';
-import { Modal, Form, Input, Spin, Button, Space, Select, notification, message } from '@osui/ui';
 import { useRequest } from 'ahooks';
-import { GetWorkspaceList, CreateTestExecutionWithTestRun } from '@/lib/api/runs';
+import { Modal, Form, Spin, Button, Space, Select, message } from '@osui/ui';
+import { AddTestExecutionModalProps } from './AddTestExecutionModal';
+import { GetTestExecutionList, CreateTestExecutionWithTestRun } from '@/lib/api/runs';
 import useMergedState from 'rc-util/lib/hooks/useMergedState';
-import { useTestConfig } from '@/lib/hooks/useContext';
-import { getItemTypeByKey } from '@/lib/api/proxima';
-
-export type AddTestExecutionModalProps = {
-  trigger?: JSX.Element;
-  visible?: boolean;
-  itemId: string;
-};
 
 const Content: React.FC<{ id: string; close: () => void }> = ({ close, id }) => {
-  const { error, data, loading } = useRequest(GetWorkspaceList);
+  const { error, data, loading } = useRequest(() => GetTestExecutionList());
   const { run, loading: runLoading, data: runData } = CreateTestExecutionWithTestRun();
-  const { config } = useTestConfig();
+  // const { config } = useTestConfig();
   useEffect(() => {
     if (runData) {
       message.success('操作成功');
@@ -32,43 +25,42 @@ const Content: React.FC<{ id: string; close: () => void }> = ({ close, id }) => 
     return <div>暂无可选择空间</div>;
   }
 
-  const onFinish = async (values: any) => {
-    console.log('Success:', values);
-    const { workspace, summary } = values;
-    const itemTypeKey = config?.itemTypeMap?.TestExecution;
-    if (!config?.itemTypeMap?.TestExecution) {
-      return notification.open({
-        message: '提示',
-        description: '暂无事项类型与测试执行类型关联',
-      });
-    }
-    const itemType = await getItemTypeByKey(itemTypeKey);
+  // const onFinish = async (values: any) => {
+  //   console.log('Success:', values);
+  //   const { workspace, summary } = values;
+  //   const itemTypeKey = config?.itemTypeMap?.TestExecution;
+  //   if (!config?.itemTypeMap?.TestExecution) {
+  //     return notification.open({
+  //       message: '提示',
+  //       description: '暂无事项类型与测试执行类型关联',
+  //     });
+  //   }
+  //   const itemType = await getItemTypeByKey(itemTypeKey);
 
-    if (!itemType?.objectId) {
-      notification.open({
-        message: '提示',
-        description: '所属空间无法创建测试执行，请选择其他空间事项创建',
-      });
-      return;
-    }
-    run({
-      workspaceId: workspace,
-      workspaceKey: 'TEST_MANAGE_1',
-      itemId: id,
-      itemTypeId: itemType?.objectId,
-      name: summary,
-    });
-  };
-
+  //   if (!itemType?.objectId) {
+  //     notification.open({
+  //       message: '提示',
+  //       description: '所属空间无法创建测试执行，请选择其他空间事项创建',
+  //     });
+  //     return;
+  //   }
+  //   run({
+  //     workspaceId: workspace,
+  //     workspaceKey: 'TEST_MANAGE_1',
+  //     itemId: id,
+  //     itemTypeId: itemType?.objectId,
+  //     name: summary,
+  //   });
+  // };
   return (
     <Form
       name="basic"
       layout="vertical"
-      initialValues={{ workspace: 'nodeheFysV', summary: '为xxx创建的测试执行' }}
-      onFinish={onFinish}
+      initialValues={{ workspace: data.data[0].objectId }}
+      // onFinish={onFinish}
       autoComplete="off"
     >
-      <Form.Item label="选择空间" name="workspace">
+      <Form.Item label="请选择测试执行" name="workspace">
         <Select>
           {data.data.map(item => {
             return (
@@ -78,10 +70,6 @@ const Content: React.FC<{ id: string; close: () => void }> = ({ close, id }) => 
             );
           })}
         </Select>
-      </Form.Item>
-
-      <Form.Item label="摘要" name="summary" rules={[{ required: true, message: '请输入摘要！' }]}>
-        <Input placeholder="请输入摘要" />
       </Form.Item>
 
       <Form.Item>
@@ -98,7 +86,7 @@ const Content: React.FC<{ id: string; close: () => void }> = ({ close, id }) => 
   );
 };
 
-const AddTestExecutionModal: React.FC<AddTestExecutionModalProps> = props => {
+const ExtendTestExecutionModal: React.FC<AddTestExecutionModalProps> = props => {
   const [isVisible, setIsVisible] = useMergedState<boolean>(!!props.visible, {
     value: props.visible,
   });
@@ -109,7 +97,7 @@ const AddTestExecutionModal: React.FC<AddTestExecutionModalProps> = props => {
   return (
     <>
       <Modal
-        title="创建测试执行"
+        title="继承测试执行"
         visible={isVisible}
         maskClosable={false}
         destroyOnClose
@@ -130,4 +118,4 @@ const AddTestExecutionModal: React.FC<AddTestExecutionModalProps> = props => {
   );
 };
 
-export default AddTestExecutionModal;
+export default ExtendTestExecutionModal;

@@ -32,14 +32,19 @@ export const GetTestRunsById = (itemId: string): Promise<ICommonRes> => {
               { to: testRunRes },
               { fillItemData: true },
             );
-            const dataBak = data.map((item, index) => {
+            const dataBak = [];
+            data.forEach((item, index) => {
               item.referenceId = item.reference.objectId;
               item.referenceName = item.reference.name;
               item.key = index + 1;
               item.status = testRunRes[index].toJSON().status;
-              return item;
+              item.testRunId = testRunRes[index].toJSON().objectId;
+              dataBak.push(item);
             });
-            console.log('data---------', dataBak);
+            // console.log(
+            //   'data---------',
+            //   testRunRes.map(item => item.toJSON()),
+            // );
             resolve({
               success: true,
               data: dataBak,
@@ -262,7 +267,6 @@ export const CreateTestExecutionWithTestRun = () => {
   if (!loading && testRelationObj) {
     globalLoading = false;
   }
-  console.log('testRuns', testRuns);
 
   return {
     run,
@@ -271,3 +275,34 @@ export const CreateTestExecutionWithTestRun = () => {
     // error,
   };
 };
+
+export const GetTestExecutionList = (name?: string): Promise<ICommonRes> => {
+  return new Promise((resolve, reject) => {
+    const testExeQuery = new Parse.Query(Test);
+    testExeQuery.equalTo('type', TestType.TestExecution);
+    if (name) {
+      const itemQuery = new Parse.Query(Item);
+      itemQuery.contains('name', name);
+      itemQuery.include('name');
+      testExeQuery.matchesQuery('reference', itemQuery);
+    }
+    testExeQuery.find().then(
+      res => {
+        // console.log('resasasd------', res);
+        resolve({
+          success: true,
+          data: res?.map(item => item.toJSON()),
+        });
+      },
+      err => {
+        reject({
+          success: false,
+          data: { ...err },
+          message: err,
+        });
+      },
+    );
+  });
+};
+
+export const ExtendTestExecution = () => {};
