@@ -29,13 +29,20 @@ export const GetTestRunsById = (itemId: string): Promise<ICommonRes> => {
             // const testRuns = testRunRes?.map(item => item.toJSON());
             const data = await getTestEntitiesByRelation(
               TestRelationType.ExecutionRelRun,
-              { to: testRunRes[0] },
+              { to: testRunRes },
               { fillItemData: true },
             );
-            console.log('data---------', data);
+            const dataBak = data.map((item, index) => {
+              item.referenceId = item.reference.objectId;
+              item.referenceName = item.reference.name;
+              item.key = index + 1;
+              item.status = testRunRes[index].toJSON().status;
+              return item;
+            });
+            console.log('data---------', dataBak);
             resolve({
               success: true,
-              data: testRunRes?.map(item => item.toJSON()),
+              data: dataBak,
             });
           });
         },

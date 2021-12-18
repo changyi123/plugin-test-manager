@@ -14,6 +14,8 @@ export interface RunItem {
   key: string;
   name: string;
   status: string;
+  referenceId: string;
+  referenceName: string;
 }
 
 const ActionBtn: React.FC<RunsTableProps> = () => {
@@ -35,18 +37,6 @@ const ActionBtn: React.FC<RunsTableProps> = () => {
 
 const RunsTable: React.FC<RunsTableProps> = ({ itemId }) => {
   const [page, setPage] = useState(1);
-  const dataSource: Array<RunItem> = [
-    {
-      key: 'IREP-47',
-      name: '测试用例111',
-      status: 'todo',
-    },
-    {
-      key: 'IREP-49',
-      name: '测试2222',
-      status: 'ing',
-    },
-  ];
   const columns: ColumnsType<RunItem> = [
     {
       title: '序号',
@@ -54,19 +44,17 @@ const RunsTable: React.FC<RunsTableProps> = ({ itemId }) => {
     },
     {
       title: '密钥',
-      key: 'key',
-      dataIndex: 'key',
-      render: value => <Typography.Link href="#">{value}</Typography.Link>,
+      key: 'referenceId',
+      render: (value, item) => <Typography.Link href="#">{item.referenceId}</Typography.Link>,
     },
     {
       title: '摘要',
-      dataIndex: 'name',
-      key: 'name',
+      key: 'referenceName',
+      dataIndex: 'referenceName',
     },
     {
       title: '状态',
       dataIndex: 'status',
-      key: 'status',
       render: value => <TestTableStatus status={value} />,
     },
     {
@@ -96,7 +84,7 @@ const RunsTable: React.FC<RunsTableProps> = ({ itemId }) => {
   console.log('data', data.data);
   return (
     <Table<RunItem>
-      dataSource={dataSource}
+      dataSource={data.data}
       columns={columns}
       pagination={{
         onChange(current) {
