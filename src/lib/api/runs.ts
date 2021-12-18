@@ -283,8 +283,8 @@ export const GetTestExecutionList = (name?: string): Promise<ICommonRes> => {
     if (name) {
       const itemQuery = new Parse.Query(Item);
       itemQuery.contains('name', name);
-      itemQuery.include('name');
       testExeQuery.matchesQuery('reference', itemQuery);
+      testExeQuery.include('reference');
     }
     testExeQuery.find().then(
       res => {
@@ -292,6 +292,30 @@ export const GetTestExecutionList = (name?: string): Promise<ICommonRes> => {
         resolve({
           success: true,
           data: res?.map(item => item.toJSON()),
+        });
+      },
+      err => {
+        reject({
+          success: false,
+          data: { ...err },
+          message: err,
+        });
+      },
+    );
+  });
+};
+
+export const GetTestRunDetail = (id: string): Promise<ICommonRes> => {
+  return new Promise((resolve, reject) => {
+    const testRun = new Parse.Query(Test);
+    testRun.equalTo('type', TestType.TestRun);
+    testRun.equalTo('objectId', id);
+    testRun.include('reference');
+    testRun.first().then(
+      res => {
+        resolve({
+          success: true,
+          data: res.toJSON(),
         });
       },
       err => {

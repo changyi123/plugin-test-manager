@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
-import { Breadcrumb, Row, Col, Typography, Collapse, Divider } from '@osui/ui';
+import React, { useEffect, useState } from 'react';
+import { Breadcrumb, Descriptions, Typography, Collapse, Divider, Spin, Empty } from '@osui/ui';
 import UploadFile from '@/components/common/UploadFile';
 import Comment from '@/components/common/Comment';
 import ItemList from './components/ItemList';
 import StepList from './components/StepList';
 import TestStatus from './components/TestStatus';
+import { useLocation } from 'react-router-dom';
+import { GetTestRunDetail } from '@/lib/api/runs';
+import { useRequest } from 'ahooks';
 
 import css from './index.less';
 export interface ITestInfo {
@@ -13,63 +16,59 @@ export interface ITestInfo {
   key: string;
 }
 
-const TestInfo: React.FC = () => {
-  const info: Array<ITestInfo> = [
-    {
-      key: 'startTime',
-      topic: '开始时间',
-      content: 'xxx',
-    },
-    {
-      key: 'assignee',
-      topic: '负责人',
-      content: 'xxx',
-    },
-    {
-      key: 'version',
-      topic: '版本',
-      content: 'xxx',
-    },
-    {
-      key: 'env',
-      topic: '测试环境',
-      content: 'xxx',
-    },
-    {
-      key: 'finishTime',
-      topic: '完成时间',
-      content: 'xxx',
-    },
-    {
-      key: 'executedBy',
-      topic: '执行人',
-      content: 'xxx',
-    },
-    {
-      key: 'Revision',
-      topic: '修订版本',
-      content: 'xxx',
-    },
-  ];
+function useQuery() {
+  const { search } = useLocation();
 
+  return React.useMemo(() => new URLSearchParams(search), [search]);
+}
+
+interface TestInfoContent {
+  detail: any;
+}
+
+const TestInfo: React.FC<TestInfoContent> = ({ detail }) => {
   return (
-    <div className={css('run__info')}>
-      <Row gutter={[16, 16]}>
-        {info.map(item => (
-          <Col key={item.key} className={css('run__info')} span={6}>
-            <Typography.Title level={5}>{item.topic}</Typography.Title>
-            <div className={css('run__info__content')}>{item.content}</div>
-          </Col>
-        ))}
-      </Row>
-    </div>
+    <Descriptions title="执行信息">
+      <Descriptions.Item label="开始时间">{detail.startTime || '-'}</Descriptions.Item>
+      <Descriptions.Item label="负责人">{detail.assignee || '-'}</Descriptions.Item>
+      <Descriptions.Item label="版本">{detail.version || '-'}</Descriptions.Item>
+      <Descriptions.Item label="完成时间">{detail.finishTime || '-'}</Descriptions.Item>
+      <Descriptions.Item label="执行人">{detail.executedBy || '-'}</Descriptions.Item>
+    </Descriptions>
   );
 };
 
 const TestRun: React.FC = () => {
+  const query = useQuery();
+  const [testRunId, setTestRunId] = useState<string>(query.get('id'));
+  const { data, loading, error } = useRequest(() => GetTestRunDetail(testRunId));
+
+  useEffect(() => {
+    if (query.get('id') !== testRunId) {
+      setTestRunId(query.get('id'));
+    }
+  }, [query, testRunId]);
+
+  if (!query.get('id')) {
+    return <div>无</div>;
+  }
+
+  if (error) {
+    return <div>加载失败,原因{error?.message}</div>;
+  }
+  if (loading) {
+    return <Spin tip="加载中..."></Spin>;
+  }
+  if (!data?.data) {
+    return <Empty description="测试运行为空"></Empty>;
+  }
+
+  console.log('主线按时', data?.data);
+  const { reference, runDetail, status } = data?.data;
+
   return (
     <div className={css('run')}>
-      <div>
+      {/* <div>
         <Breadcrumb>
           <Breadcrumb.Item>首页</Breadcrumb.Item>
 
@@ -81,21 +80,21 @@ const TestRun: React.FC = () => {
             <a href="">测试用例</a>
           </Breadcrumb.Item>
         </Breadcrumb>
-      </div>
+      </div> */}
 
       <div className={css('run__header')}>
         <div>
           <Typography.Link ellipsis href="#">
-            测试用例11111
+            {reference.name}（{reference.key}）
           </Typography.Link>
         </div>
 
-        <TestStatus />
+        <TestStatus status={status} />
       </div>
 
       <Divider />
 
-      <TestInfo />
+      <TestInfo detail={runDetail} />
 
       <div className={css('run__total')}>
         <Collapse defaultActiveKey={['2']}>

@@ -52,6 +52,7 @@ const Content: React.FC<{ id: string; close: () => void }> = ({ close, id }) => 
   //     name: summary,
   //   });
   // };
+  console.log('data', data.data);
   return (
     <Form
       name="basic"

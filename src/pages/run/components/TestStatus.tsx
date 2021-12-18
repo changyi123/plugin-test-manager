@@ -28,8 +28,8 @@ export const colorArray: Array<IStatusColor> = [
   },
 ];
 
-const TestStatus: React.FC = () => {
-  const [currentColor, setCurrentColor] = useState<IColor>('todo');
+const TestStatus: React.FC<{ status: IColor }> = ({ status }) => {
+  const [currentColor, setCurrentColor] = useState<IColor>(status);
   return (
     <div className={css('run__header__status')}>
       <div className={css('run__header__status__content')}>

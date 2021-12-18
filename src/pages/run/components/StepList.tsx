@@ -75,7 +75,7 @@ const StepList: React.FC = () => {
                 </Space>
               </div>
               <div className={css('right__')}>
-                <TestStatus />
+                <TestStatus status="todo" />
               </div>
             </div>
           </Col>
