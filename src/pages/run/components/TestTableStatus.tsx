@@ -4,7 +4,10 @@ import { colorArray, IColor } from './TestStatus';
 
 import css from './TestStatus.less';
 
-const TestTableStatus: React.FC<{ status: IColor }> = ({ status }) => {
+const TestTableStatus: React.FC<{ readonly?: boolean; status: IColor }> = ({
+  status,
+  readonly = false,
+}) => {
   const menu = (
     <Menu>
       {colorArray.map((item, index) => {
@@ -24,7 +27,7 @@ const TestTableStatus: React.FC<{ status: IColor }> = ({ status }) => {
   );
 
   return (
-    <Dropdown overlay={menu} trigger={['click']}>
+    <Dropdown overlay={menu} trigger={readonly ? [] : ['click']}>
       <div className={[css('table-status'), css('now-status')].join(' ')}>
         <div className={[css('status-block'), css(status)].join(' ')}></div>
         <div className={[css('now-status__content')].join(' ')}>

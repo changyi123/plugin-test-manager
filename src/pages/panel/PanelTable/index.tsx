@@ -1,81 +1,131 @@
 import React from 'react';
-import { useAntdTable } from 'ahooks';
 import { Table } from '@osui/ui';
+import { TableProps } from 'antd/lib/table';
+import { DownOutlined } from '@ant-design/icons';
+import { hasArrayItem } from '@/lib/utils/helper';
+import { get, uniqBy } from 'lodash';
+import { useAntdTable, useGetState } from 'ahooks';
+import DropDownButton from '@/components/panel/DropDownButton';
 
-type PanelTableProps = {};
+import cx from './index.less';
 
-const PanelTable: React.FC<PanelTableProps> = () => {
-  return <Table />;
+export type ActionType = { refresh: () => void };
+
+type PanelTableProps = TableProps<any> & {
+  actionRef?: React.RefObject<ActionType>;
+  getDataSource: (params: { offset: number; limit: number }) => Promise<any>;
+  actionMenuList?: Array<{ title: string; onClick: (selectedRowKeys) => void }>;
+};
+
+const PanelTable: React.FC<PanelTableProps> = props => {
+  const { columns, actionMenuList, getDataSource, actionRef, ...restTableProps } = props;
+  // 全量的 row 数据
+  const allRowDataRef = React.useRef([]);
+
+  const [selectedRowKeys, setSelectedRowKeys] = useGetState([]);
+
+  const { tableProps, refresh } = useAntdTable(
+    ({ current, pageSize }) => {
+      return getDataSource({ offset: (current - 1) * pageSize, limit: pageSize });
+    },
+    { defaultPageSize: 10 },
+  );
+
+  React.useImperativeHandle(
+    actionRef,
+    () => ({
+      refresh,
+    }),
+    [refresh],
+  );
+
+  React.useEffect(() => {
+    allRowDataRef.current = uniqBy(
+      [].concat(allRowDataRef.current, tableProps.dataSource),
+      props.rowKey ?? 'objectId',
+    );
+  }, [props.rowKey, tableProps.dataSource]);
+
+  const tableColumnsProp = React.useMemo(() => {
+    return columns;
+  }, [columns]);
+
+  const rowSelection = React.useMemo(
+    () => ({
+      fixed: true,
+      hideSelectAll: true,
+      preserveSelectedRowKeys: true,
+      selectedRowKeys: selectedRowKeys,
+      onChange: selectedRowKeys => {
+        setSelectedRowKeys(selectedRowKeys);
+      },
+    }),
+    [selectedRowKeys, setSelectedRowKeys],
+  );
+
+  return (
+    <div className={cx('table')}>
+      <div className={cx('actions')}>
+        <DropDownButton
+          menuList={[
+            // {
+            //   onClick() {},
+            //   title: '全部',
+            // },
+            {
+              onClick() {
+                const keys = tableProps.dataSource.map(data => get(data, props.rowKey as string));
+                setSelectedRowKeys(keys);
+              },
+              title: '本页全部',
+            },
+            {
+              onClick() {
+                setSelectedRowKeys([]);
+              },
+              title: '取消选择',
+            },
+          ]}
+        >
+          选择 <DownOutlined />
+        </DropDownButton>
+        {hasArrayItem(selectedRowKeys) && hasArrayItem(actionMenuList) ? (
+          <DropDownButton
+            className={cx('button-select')}
+            buttonProps={{ type: 'default' }}
+            menuList={(actionMenuList ?? []).map(action => ({
+              ...action,
+              onClick() {
+                action.onClick(
+                  allRowDataRef.current.filter(row =>
+                    selectedRowKeys.includes(get(row, props.rowKey as string)),
+                  ),
+                );
+              },
+            }))}
+          >
+            ({selectedRowKeys.length})个已选择
+            <DownOutlined />
+          </DropDownButton>
+        ) : null}
+        {/* column setting */}
+      </div>
+      <Table
+        {...tableProps}
+        {...restTableProps}
+        pagination={{
+          size: 'small',
+          showTotal(total) {
+            return `共${total}条数据`;
+          },
+          pageSizeOptions: ['10', '30', '50'],
+          showSizeChanger: true,
+        }}
+        rowSelection={rowSelection}
+        columns={tableColumnsProp}
+      />
+    </div>
+  );
 };
 
 export default React.memo(PanelTable);
-
-// const dataSource: Array<RunItem> = [
-//     {
-//       key: 'IREP-47',
-//       name: '测试用例111',
-//       status: 'todo',
-//     },
-//     {
-//       key: 'IREP-49',
-//       name: '测试2222',
-//       status: 'ing',
-//     },
-//   ];
-//   const columns: ColumnsType<RunItem> = [
-//     {
-//       title: '序号',
-//       render: (value, item, index) => (page - 1) * 10 + index + 1,
-//     },
-//     {
-//       title: '密钥',
-//       key: 'key',
-//       dataIndex: 'key',
-//       render: value => <Typography.Link href="#">{value}</Typography.Link>,
-//     },
-//     {
-//       title: '摘要',
-//       dataIndex: 'name',
-//       key: 'name',
-//     },
-//     {
-//       title: '状态',
-//       dataIndex: 'status',
-//       key: 'status',
-//       render: value => <TestTableStatus status={value} />,
-//     },
-//     {
-//       title: '执行',
-//       render: () => (
-//         <Button size="small" type="primary" href="#/testRun" icon={<CaretRightOutlined />}>
-//           执行
-//         </Button>
-//       ),
-//     },
-//     {
-//       title: '操作',
-//       key: 'action',
-//       render: value => <ActionBtn id={value} />,
-//     },
-//   ];
-//   const { data, error, loading } = useRequest(() => GetTestRunsById(id));
-//   if (error) {
-//     return <div>加载失败,原因{error?.message}</div>;
-//   }
-//   if (loading) {
-//     return <Spin tip="加载中..."></Spin>;
-//   }
-//   // if (!data?.data?.length) {
-//   //   return <Empty description="测试运行为空，请创建测试执行"></Empty>;
-//   // }
-//   return (
-//     <Table<RunItem>
-//       dataSource={dataSource}
-//       columns={columns}
-//       pagination={{
-//         onChange(current) {
-//           setPage(current);
-//         },
-//       }}
-//     />
-//   );

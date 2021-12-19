@@ -13,12 +13,13 @@ export const createTestExecutionService = async (testPlan, testExecution, relTes
 
   // 没有 relTestDetails 则创建全部
   if (!hasArrayItem(relTestDetails)) {
-    relTestDetails = await getTestEntitiesByRelation(
+    const res = await getTestEntitiesByRelation(
       TestRelationType.PlanRelDetail,
       { from: testPlan },
       // TODO: fetch all
       { queryParams: { limit: 9999 } },
     );
+    relTestDetails = res.list;
   }
   // todo: 创建测试运行
   const relations = [

@@ -21,7 +21,7 @@ const PlanTabs = [
 const TestPlan = () => {
   return (
     <div className={cx('plan')}>
-      <Tabs defaultActiveKey={TestType.TestDetail}>
+      <Tabs defaultActiveKey={TestType.TestExecution}>
         {PlanTabs.map(({ tab, key, Component }) => (
           <TabPane tab={tab} key={key}>
             <React.Suspense fallback={<Spin tip="加载中..."></Spin>}>

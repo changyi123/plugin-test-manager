@@ -13,8 +13,12 @@ const pointerTransfer = (parseModel, pointer: PointerType) => {
   return typeof pointer === 'string' ? parseModel.createWithoutData(pointer) : pointer;
 };
 
+/** to/from -> pointer */
+const testRelationTypePointerTransfer = arr =>
+  hasArrayItem(arr) ? arr.map(item => pointerTransfer(TestRelation, item)) : [];
+
 /**
- * 根据关联类型查询测试实体
+ * 根据关联类型查询测试实体（分页，批量查询，填充 proxima 事项数据）
  */
 export const getTestEntitiesByRelation = async (
   relType: TestRelationType,
@@ -23,6 +27,8 @@ export const getTestEntitiesByRelation = async (
 ) => {
   const config = merge(
     {
+      // 返回数据数据格式是 json
+      toJSON: true,
       // 需要填充 item 数据则自动转换未 json 格式
       fillItemData: false,
       queryParams: { limit: 10, offset: 0, orderBy: 'createdAt' },
@@ -37,10 +43,7 @@ export const getTestEntitiesByRelation = async (
   Object.entries(sides).forEach(([sideKey, side]) => {
     // 支持数组的关联关系查询
     if (Array.isArray(side)) {
-      query.containedIn(
-        sideKey,
-        side.map(item => pointerTransfer(TestRelationType, item)),
-      );
+      query.containedIn(sideKey, testRelationTypePointerTransfer(side));
     } else {
       query.equalTo(sideKey, pointerTransfer(TestRelationType, side as PointerType));
     }
@@ -54,6 +57,7 @@ export const getTestEntitiesByRelation = async (
 
   // 需要获取关联事项的实体
   query.include(include);
+  query.withCount(true);
 
   if (config?.queryParams && typeof config?.queryParams === 'object') {
     const queryParams = config.queryParams;
@@ -62,27 +66,49 @@ export const getTestEntitiesByRelation = async (
     query.ascending(queryParams.orderBy);
   }
 
-  const data = await query.find();
+  const { results, count } = await query.find();
 
-  const testEntities = data.map(testEntity => {
-    if (include.length === 1) return testEntity?.get(include[0]);
-    return testEntity;
+  // from or to 则查批量数据，from and to 查一条数据
+  const getTestEntityByRelation = relation =>
+    include.length === 1 ? relation?.[include[0]] ?? relation?.get(include[0]) : relation;
+
+  // 生成标准数据
+  const buildReturnData = list => ({
+    list,
+    count,
   });
 
-  // 需要填充 item 数据则自动转换未 json 格式
-  if (config?.fillItemData && hasArrayItem(testEntities)) {
-    const testEntitiesData = testEntities.map(item => item.toJSON());
-    const itemIds = testEntitiesData.map(item => item.reference?.objectId);
+  // 需要填充 item 数据则自动转换未 json 格式，非批量数据不做处理
+  if (config?.toJSON && Array.isArray(results) && include.length === 1) {
+    const itemIds = [];
+    const testEntitiesData = results.map(relation => {
+      const relationData = relation.toJSON();
+      const testEntityData = getTestEntityByRelation(relationData);
+      itemIds.push(testEntityData.reference?.objectId);
+      return {
+        ...testEntityData,
+        // 当前关联数据
+        relation: relationData,
+        testRelationId: relationData.objectId,
+      };
+    });
+    if (!config?.fillItemData) return buildReturnData(testEntitiesData);
+
+    // 从 iql 中获取 item 相关数据
     const { items } = await getItemByIQL({ itemId: itemIds, limit: config?.queryParams?.limit });
-    const itemObj = keyBy(items, 'objectId');
-    return testEntitiesData.map(entity => {
-      const item = itemObj[entity.reference?.objectId];
+    const itemMap = keyBy(items, 'objectId');
+    const testEntitiesDataWithItemData = testEntitiesData.map(entity => {
+      const item = itemMap[entity.reference?.objectId];
       // 测试运行没有关联的事项
       return Object.assign({}, entity, { reference: item || null });
     });
+    return buildReturnData(testEntitiesDataWithItemData);
   }
 
-  return testEntities;
+  return {
+    count,
+    list: results.map(getTestEntityByRelation),
+  };
 };
 
 /**
@@ -92,12 +118,9 @@ export const getTestRelation = ({
   from,
   to,
 }: Partial<Record<'from' | 'to', Array<string | Parse.Object>>>) => {
-  const testRelationTypePointerTransfer = arr =>
-    hasArrayItem(arr) ? arr.map(item => pointerTransfer(TestRelationType, item)) : [];
-
   return Parse.Query.or(
-    new Parse.Query(TestRelation).containedBy('from', testRelationTypePointerTransfer(from)),
-    new Parse.Query(TestRelation).containedBy('to', testRelationTypePointerTransfer(to)),
+    new Parse.Query(TestRelation).containedIn('from', testRelationTypePointerTransfer(from)),
+    new Parse.Query(TestRelation).containedIn('to', testRelationTypePointerTransfer(to)),
   ).find();
 };
 
@@ -111,20 +134,26 @@ export const createTestRelation = (
     relationType: TestRelationType;
   }>,
 ) => {
-  const pointerTransfer = (pointer: string | Parse.Object) => {
-    return typeof pointer === 'string' ? TestRelation.createWithoutData(pointer) : pointer;
-  };
-
   const relations = _relations.map(
     rel =>
       new TestRelation({
-        to: pointerTransfer(rel.to),
-        from: pointerTransfer(rel.from),
+        to: pointerTransfer(TestRelation, rel.to),
+        from: pointerTransfer(TestRelation, rel.from),
         relationType: rel.relationType,
       }),
   );
 
   return Parse.Object.saveAll(relations);
+};
+
+/**
+ * 解除关联关系
+ */
+
+export const removeTestRelations = (_relations: Array<PointerType>) => {
+  const relations = _relations.map(rel => pointerTransfer(TestRelation, rel));
+
+  return Parse.Object.destroyAll(relations);
 };
 
 /**
