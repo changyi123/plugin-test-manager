@@ -14,6 +14,9 @@ export interface RunItem {
   key: string;
   name: string;
   status: string;
+  referenceId: string;
+  testRunId: string;
+  referenceName: string;
 }
 
 const ActionBtn: React.FC<RunsTableProps> = () => {
@@ -35,18 +38,6 @@ const ActionBtn: React.FC<RunsTableProps> = () => {
 
 const RunsTable: React.FC<RunsTableProps> = ({ itemId }) => {
   const [page, setPage] = useState(1);
-  const dataSource: Array<RunItem> = [
-    {
-      key: 'IREP-47',
-      name: '测试用例111',
-      status: 'todo',
-    },
-    {
-      key: 'IREP-49',
-      name: '测试2222',
-      status: 'ing',
-    },
-  ];
   const columns: ColumnsType<RunItem> = [
     {
       title: '序号',
@@ -54,25 +45,29 @@ const RunsTable: React.FC<RunsTableProps> = ({ itemId }) => {
     },
     {
       title: '密钥',
-      key: 'key',
-      dataIndex: 'key',
-      render: value => <Typography.Link href="#">{value}</Typography.Link>,
+      key: 'referenceId',
+      render: (value, item) => <Typography.Link href="#">{item.referenceId}</Typography.Link>,
     },
     {
       title: '摘要',
-      dataIndex: 'name',
-      key: 'name',
+      key: 'referenceName',
+      dataIndex: 'referenceName',
     },
     {
       title: '状态',
       dataIndex: 'status',
-      key: 'status',
       render: value => <TestTableStatus status={value} />,
     },
     {
       title: '执行',
-      render: () => (
-        <Button size="small" type="primary" href="#/testRun" icon={<CaretRightOutlined />}>
+      key: 'testRunId',
+      render: (value, item) => (
+        <Button
+          size="small"
+          type="primary"
+          href={`#/testRun?id=${item.testRunId}`}
+          icon={<CaretRightOutlined />}
+        >
           执行
         </Button>
       ),
@@ -96,7 +91,7 @@ const RunsTable: React.FC<RunsTableProps> = ({ itemId }) => {
   console.log('data', data.data);
   return (
     <Table<RunItem>
-      dataSource={dataSource}
+      dataSource={data.data}
       columns={columns}
       pagination={{
         onChange(current) {

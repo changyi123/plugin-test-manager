@@ -29,13 +29,25 @@ export const GetTestRunsById = (itemId: string): Promise<ICommonRes> => {
             // const testRuns = testRunRes?.map(item => item.toJSON());
             const data = await getTestEntitiesByRelation(
               TestRelationType.ExecutionRelRun,
-              { to: testRunRes[0] },
+              { to: testRunRes },
               { fillItemData: true },
             );
-            console.log('data---------', data);
+            const dataBak = [];
+            data.forEach((item, index) => {
+              item.referenceId = item.reference.objectId;
+              item.referenceName = item.reference.name;
+              item.key = index + 1;
+              item.status = testRunRes[index].toJSON().status;
+              item.testRunId = testRunRes[index].toJSON().objectId;
+              dataBak.push(item);
+            });
+            // console.log(
+            //   'data---------',
+            //   testRunRes.map(item => item.toJSON()),
+            // );
             resolve({
               success: true,
-              data: testRunRes?.map(item => item.toJSON()),
+              data: dataBak,
             });
           });
         },
@@ -255,7 +267,6 @@ export const CreateTestExecutionWithTestRun = () => {
   if (!loading && testRelationObj) {
     globalLoading = false;
   }
-  console.log('testRuns', testRuns);
 
   return {
     run,
@@ -264,3 +275,58 @@ export const CreateTestExecutionWithTestRun = () => {
     // error,
   };
 };
+
+export const GetTestExecutionList = (name?: string): Promise<ICommonRes> => {
+  return new Promise((resolve, reject) => {
+    const testExeQuery = new Parse.Query(Test);
+    testExeQuery.equalTo('type', TestType.TestExecution);
+    if (name) {
+      const itemQuery = new Parse.Query(Item);
+      itemQuery.contains('name', name);
+      testExeQuery.matchesQuery('reference', itemQuery);
+      testExeQuery.include('reference');
+    }
+    testExeQuery.find().then(
+      res => {
+        // console.log('resasasd------', res);
+        resolve({
+          success: true,
+          data: res?.map(item => item.toJSON()),
+        });
+      },
+      err => {
+        reject({
+          success: false,
+          data: { ...err },
+          message: err,
+        });
+      },
+    );
+  });
+};
+
+export const GetTestRunDetail = (id: string): Promise<ICommonRes> => {
+  return new Promise((resolve, reject) => {
+    const testRun = new Parse.Query(Test);
+    testRun.equalTo('type', TestType.TestRun);
+    testRun.equalTo('objectId', id);
+    testRun.include('reference');
+    testRun.first().then(
+      res => {
+        resolve({
+          success: true,
+          data: res.toJSON(),
+        });
+      },
+      err => {
+        reject({
+          success: false,
+          data: { ...err },
+          message: err,
+        });
+      },
+    );
+  });
+};
+
+export const ExtendTestExecution = () => {};

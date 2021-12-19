@@ -1,6 +1,7 @@
 import React from 'react';
 import { Button, Space } from '@osui/ui';
 import AddTestExecutionModal from './components/AddTestExecutionModal';
+import ExtendTestExecutionModal from './components/ExtendTestExecutionModal';
 import Table from './components/Table';
 
 import css from './index.less';
@@ -15,7 +16,10 @@ const Runs: React.FC = () => {
             trigger={<Button type="primary">新增测试执行</Button>}
             itemId={itemId}
           />
-          <Button type="primary">继承测试执行</Button>
+          <ExtendTestExecutionModal
+            trigger={<Button type="primary">继承测试执行</Button>}
+            itemId={itemId}
+          />
         </Space>
       </div>
 
