@@ -1,10 +1,11 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useContext } from 'react';
 import { Modal, Form, Input, Spin, Button, Space, Select, notification, message } from '@osui/ui';
 import { useRequest } from 'ahooks';
 import { GetWorkspaceList, CreateTestExecutionWithTestRun } from '@/lib/api/runs';
 import useMergedState from 'rc-util/lib/hooks/useMergedState';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import { getItemTypeByKey } from '@/lib/api/proxima';
+import { RunsContext } from '../index';
 
 export type AddTestExecutionModalProps = {
   trigger?: JSX.Element;
@@ -16,12 +17,14 @@ const Content: React.FC<{ id: string; close: () => void }> = ({ close, id }) => 
   const { error, data, loading } = useRequest(GetWorkspaceList);
   const { run, loading: runLoading, data: runData } = CreateTestExecutionWithTestRun();
   const { config } = useTestConfig();
+  const { refresh } = useContext(RunsContext);
   useEffect(() => {
     if (runData) {
       message.success('操作成功');
       close();
+      refresh && refresh();
     }
-  }, [runData, close]);
+  }, [runData, close, refresh]);
   if (error) {
     return <div>加载失败,原因{error?.message}</div>;
   }

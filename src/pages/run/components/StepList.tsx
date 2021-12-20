@@ -76,7 +76,7 @@ export const StepItem: React.FC<IStepItemProps> = ({ index, item, saveList, test
 
           <Col className={css('right__item')} span={8}>
             <div className={css('right__topic')}>预期结果</div>
-            <div className={css('right__content')}>{item.data}</div>
+            <div className={css('right__content')}>{item.result}</div>
           </Col>
         </Row>
 
