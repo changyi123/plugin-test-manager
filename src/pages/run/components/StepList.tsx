@@ -49,7 +49,6 @@ export const StepItem: React.FC<IStepItemProps> = ({ index, item, saveList }) =>
     },
     [item, saveList, index],
   );
-  console.log('item', item);
   return (
     <div className={css('step-list__item')}>
       <div className={css('left')}>

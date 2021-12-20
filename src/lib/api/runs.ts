@@ -61,9 +61,7 @@ export const GetTestRunsById = (itemId: string): Promise<ICommonRes> => {
           });
         },
       )
-      .catch(() => {
-        // console.log('这里吗');
-      });
+      .catch(() => {});
   });
 };
 
@@ -269,10 +267,6 @@ export const CreateTestExecutionWithTestRun = () => {
   if (!loading && testRelationObj) {
     globalLoading = false;
   }
-  console.log('itemForTestExecution', itemForTestExecution);
-  console.log('testRuns', testRuns);
-  console.log('testRunObj', testRunObj);
-  console.log('testRelationObj', testRelationObj);
 
   return {
     run,
@@ -294,7 +288,6 @@ export const GetTestExecutionList = (name?: string): Promise<ICommonRes> => {
     }
     testExeQuery.find().then(
       res => {
-        // console.log('resasasd------', res);
         resolve({
           success: true,
           data: res?.map(item => item.toJSON()),

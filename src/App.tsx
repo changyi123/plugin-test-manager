@@ -36,7 +36,6 @@ const GoPropsRoute = props => {
 };
 
 const App: React.FC = props => {
-  console.log('a a a aa a a aaaa', window);
   const qiankunContextValue: any = useMemo(
     () => ({
       ...props,
@@ -47,8 +46,6 @@ const App: React.FC = props => {
   notification.config({
     getContainer: getRootContainer,
   });
-  console.log('process.env', process.env);
-  console.log('qiankunContextValue', qiankunContextValue);
 
   return (
     <PluginSDKContext.Provider value={qiankunContextValue.sdk}>

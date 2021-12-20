@@ -117,11 +117,8 @@ const StepDrop: React.FC<{
 
 const Detail: React.FC = () => {
   const [steps, setSteps] = useState<Array<TestStep>>([]);
-  console.log(1111);
   const [testInfo, setTestInfo] = useState<TestInfor>({});
-  console.log(2222);
   const currentObjectId: string = window?.QiankunProps?.context?.itemId || 'WiC8uYebSx';
-  console.log(3333);
   const ItemTypeModalRef = createRef<ItemTypeModalHandle>();
   console.log('QiankunProps', window?.QiankunProps);
 

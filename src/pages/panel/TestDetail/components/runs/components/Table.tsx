@@ -89,7 +89,7 @@ const RunsTable: React.FC<RunsTableProps> = ({ itemId }) => {
   if (!data?.data?.length) {
     return <Empty description="测试运行为空，请创建测试执行"></Empty>;
   }
-  console.log('data', data.data);
+  // console.log('data', data.data);
   return (
     <Table<RunItem>
       dataSource={data.data}
