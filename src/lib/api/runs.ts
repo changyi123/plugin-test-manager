@@ -234,7 +234,6 @@ export const CreateTestExecutionWithTestRun = () => {
             runDetail: {
               runs: testRuns.data || [],
             },
-            reference: Item.createWithoutData(itemIdBak),
             runReferenceDetail: Test.createWithoutData(testRuns?.data?.objectId),
           },
         },
