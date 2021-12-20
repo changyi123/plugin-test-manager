@@ -44,9 +44,10 @@ const TestInfo: React.FC<TestInfoContent> = ({ detail }) => {
   );
 };
 
-const TestRun: React.FC = () => {
+const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
   const query = useQuery();
-  const [testRunId, setTestRunId] = useState<string>(query.get('id'));
+  // 从路由/弹窗拿
+  const [testRunId, setTestRunId] = useState<string>(query.get('id') || testId);
   const { data, loading, error } = useRequest(() => GetTestRunDetail(testRunId));
 
   useEffect(() => {
@@ -55,7 +56,7 @@ const TestRun: React.FC = () => {
     }
   }, [query, testRunId]);
 
-  if (!query.get('id')) {
+  if (!query.get('id') && !testId) {
     return <div>无</div>;
   }
 
