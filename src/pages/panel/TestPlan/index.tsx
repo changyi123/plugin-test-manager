@@ -21,7 +21,7 @@ const PlanTabs = [
 const TestPlan = () => {
   return (
     <div className={cx('plan')}>
-      <Tabs destroyInactiveTabPane defaultActiveKey={TestType.TestExecution}>
+      <Tabs destroyInactiveTabPane defaultActiveKey={TestType.TestDetail}>
         {PlanTabs.map(({ tab, key, Component }) => (
           <TabPane tab={tab} key={key}>
             <React.Suspense fallback={<Spin tip="加载中..."></Spin>}>

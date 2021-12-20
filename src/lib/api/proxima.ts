@@ -18,6 +18,8 @@ type IQLPaginationParams = {
  */
 export const getItemByIQL = async (
   params: IQLPaginationParams & {
+    // like
+    nameLike?: string;
     itemId?: string | string[];
     itemKey?: string | string[];
     itemType?: string | string[];
@@ -25,7 +27,7 @@ export const getItemByIQL = async (
     orderBy?: string[];
   },
 ) => {
-  const { workspace, itemId, itemKey, itemType, orderBy, ...pagination } = params;
+  const { workspace, itemId, nameLike, itemKey, itemType, orderBy, ...pagination } = params;
 
   const iql = new IQLBuilder();
 
@@ -39,6 +41,10 @@ export const getItemByIQL = async (
 
   Array.isArray(itemId) ? iql.whereIn('id', itemId) : iql.where('id', itemId);
   Array.isArray(itemKey) ? iql.whereIn('事项ID', itemKey) : iql.where('事项ID', itemKey);
+
+  if (typeof nameLike === 'string') {
+    iql.whereLike('标题', nameLike);
+  }
 
   if (hasArrayItem(orderBy)) {
     iql.orderBy(orderBy[0] || '创建时间');

@@ -1,0 +1,23 @@
+.tooltip-overflow {
+  /* display: -webkit-box;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    white-space: pre-line;
+    word-break: break-all; */
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  word-break: break-all;
+  white-space: pre-line;
+}
+@lines: 5;
+
+.generate(@line) when (@line > 0) {
+  .tooltip-maxline-@{line} {
+    -webkit-line-clamp: @line;
+  }
+  .generate((@line - 1));
+}
+.generate(@lines);

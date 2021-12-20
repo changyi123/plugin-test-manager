@@ -1,6 +1,6 @@
 import { hasArrayItem } from '@/lib/utils/helper';
 import { TestType, TestRelationType } from '@/lib/constants';
-import { Test } from '@/lib/models';
+import { Test, TestRelation } from '@/lib/models';
 import {
   createTestRelation,
   createTestEntities,
@@ -79,4 +79,17 @@ export const createTestExecutionService = async (params: {
   await createTestRelation(relations);
 
   return testExecution;
+};
+
+// 将测试用例添加至测试计划
+export const addTestDetailToPlanService = async (params: {
+  testPlan: Parse.Object;
+  testDetailIds: string[];
+}) => {
+  const relations = params.testDetailIds.map(testDetailId => ({
+    relationType: TestRelationType.PlanRelDetail,
+    from: params.testPlan,
+    to: testDetailId,
+  }));
+  return createTestRelation(relations);
 };

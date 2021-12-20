@@ -3,14 +3,17 @@ import React from 'react';
 import { uniqueId } from 'lodash';
 import { Workspace } from '@/lib/types/App';
 import { Typography, message } from '@osui/ui';
-import { EllipsisOutlined } from '@ant-design/icons';
-import { createTestExecutionService } from './services';
+import { EllipsisOutlined, DownOutlined } from '@ant-design/icons';
 import { TestType, TestRelationType } from '@/lib/constants';
 import PanelTable, { ActionType } from '../../../PanelTable';
 import DropDownButton from '@/components/panel/DropDownButton';
 import TestTableStatus from '@/pages/run/components/TestTableStatus';
 import { useTestConfig, useBaseAction } from '@/lib/hooks/useContext';
+import TestEntitySelectorModal, {
+  ActionType as SelectorActionType,
+} from '../../../TestEntitySelectorModal';
 import { getTestEntitiesByRelation, removeTestRelations } from '@/lib/api/common';
+import { createTestExecutionService, addTestDetailToPlanService } from './services';
 
 import cx from './index.less';
 
@@ -18,6 +21,7 @@ const Test = () => {
   const { testEntity } = useTestConfig();
   const { createItemUseModal } = useBaseAction();
   const tableActionRef = React.useRef<ActionType>();
+  const selectorModalRef = React.useRef<SelectorActionType>();
 
   const tableDataSourceGetter = React.useCallback(
     queryParams => {
@@ -60,7 +64,11 @@ const Test = () => {
     return [
       {
         title: '已存在的测试用例',
-        onClick() {},
+        onClick() {
+          selectorModalRef.current.open({
+            testType: TestType.TestDetail,
+          });
+        },
       },
     ];
   }, []);
@@ -143,11 +151,32 @@ const Test = () => {
     ];
   }, [createTestExecution]);
 
+  // 添加测试用例至测试计划
+  const addTestDetailToPlan = React.useCallback(
+    async testDetailIds => {
+      await addTestDetailToPlanService({
+        testPlan: testEntity,
+        testDetailIds,
+      });
+
+      tableActionRef.current.refresh();
+    },
+    [testEntity],
+  );
+
   return (
     <div className={cx('test')}>
-      <DropDownButton menuList={testDetailMenuList}>添加测试用例</DropDownButton>
+      <TestEntitySelectorModal
+        title="添加测试用例到当前测试计划"
+        onSelect={addTestDetailToPlan}
+        actionRef={selectorModalRef}
+      />
+      <DropDownButton menuList={testDetailMenuList}>
+        添加测试用例 <DownOutlined />
+      </DropDownButton>
       <DropDownButton buttonProps={{ className: cx('btn-right') }} menuList={testExecutionMenuList}>
         创建测试执行
+        <DownOutlined />
       </DropDownButton>
       <PanelTable
         actionRef={tableActionRef}

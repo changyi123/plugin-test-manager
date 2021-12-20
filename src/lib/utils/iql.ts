@@ -4,6 +4,7 @@ enum IQLWhereOperator {
   IN = 'IN',
   NOT = 'NOT',
   EQUAL = 'EQUAL',
+  LIKE = 'LIKE',
 }
 
 /**
@@ -21,6 +22,10 @@ const IQLWhereClauseGenerators: Record<IQLWhereOperator, (...args: any[]) => str
   [IQLWhereOperator.NOT]: (key: string, data: string, operator: Dash = '') => {
     if (!data) return '';
     return `${operator} ${key} is not '${data}'`;
+  },
+  [IQLWhereOperator.LIKE]: (key: string, data: string, operator: Dash = '') => {
+    if (!data) return '';
+    return `${operator} ${key} ~ '${data}'`;
   },
 };
 
@@ -59,6 +64,10 @@ export class IQLBuilder {
 
   whereNot = (key, data) => {
     return this.where(key, data, IQLWhereOperator.NOT);
+  };
+
+  whereLike = (key, data) => {
+    return this.where(key, data, IQLWhereOperator.LIKE);
   };
 
   toString = () => {
