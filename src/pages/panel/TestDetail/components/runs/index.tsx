@@ -7,7 +7,7 @@ import Table from './components/Table';
 import css from './index.less';
 
 const Runs: React.FC = () => {
-  const itemId: string = window?.QiankunProps?.context?.itemId || 'tjn7zKxmj4';
+  const itemId: string = window?.QiankunProps?.context?.itemId || 'bcOBXkAodq';
   return (
     <div className={css('runs')}>
       <div className={css('runs__new')}>

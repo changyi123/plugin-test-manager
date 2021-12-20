@@ -11,6 +11,7 @@ import series from 'async/series';
 import { useRequest } from 'ahooks';
 import { IRunDetail } from '@/pages/run';
 import { IColor } from '@/pages/run/components/TestStatus';
+import { getItemByIQL } from '@/lib/api/proxima';
 
 export const GetTestRunsById = (itemId: string): Promise<ICommonRes> => {
   return new Promise((resolve, reject) => {
@@ -24,7 +25,6 @@ export const GetTestRunsById = (itemId: string): Promise<ICommonRes> => {
         res => {
           const runReferenceDetail = Test.createWithoutData(res.id);
           const testRunQuery = new Parse.Query(Test);
-          testRunQuery.equalTo('reference', reference);
           testRunQuery.equalTo('type', TestType.TestRun);
           testRunQuery.equalTo('runReferenceDetail', runReferenceDetail);
           testRunQuery.find().then(async testRunRes => {
@@ -303,17 +303,24 @@ export const GetTestExecutionList = (name?: string): Promise<ICommonRes> => {
   });
 };
 
-export const GetTestRunDetail = (id: string): Promise<ICommonRes> => {
+export const GetTestRunDetail = (testId: string): Promise<ICommonRes> => {
   return new Promise((resolve, reject) => {
     const testRun = new Parse.Query(Test);
     testRun.equalTo('type', TestType.TestRun);
-    testRun.equalTo('objectId', id);
-    testRun.include('reference');
+    testRun.equalTo('objectId', testId);
+    testRun.include('runReferenceDetail');
     testRun.first().then(
-      res => {
+      async res => {
+        const itemId = res?.toJSON()?.runReferenceDetail?.reference?.objectId;
+        const {
+          items: [item],
+        } = await getItemByIQL({ itemId });
         resolve({
           success: true,
-          data: res.toJSON(),
+          data: {
+            ...res.toJSON(),
+            itemDetail: item,
+          },
         });
       },
       err => {
