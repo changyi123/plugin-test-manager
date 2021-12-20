@@ -137,8 +137,8 @@ export const createTestRelation = (
   const relations = _relations.map(
     rel =>
       new TestRelation({
-        to: pointerTransfer(TestRelation, rel.to),
-        from: pointerTransfer(TestRelation, rel.from),
+        to: pointerTransfer(Test, rel.to),
+        from: pointerTransfer(Test, rel.from),
         relationType: rel.relationType,
       }),
   );
@@ -199,11 +199,12 @@ export const createTestEntities = (
 /**
  * 获取测试实体
  */
-export const getTestEntityByItemId = (itemId: string) => {
-  return new Parse.Query(Test)
-    .include(['reference.workspace', 'reference.itemType'])
-    .equalTo('reference', Item.createWithoutData(itemId))
-    .first();
+export const getTestEntityByItemId = (itemId: string | string[]) => {
+  const query = new Parse.Query(Test).include(['reference.workspace', 'reference.itemType']);
+  if (Array.isArray(itemId)) {
+    return query.containedIn('reference', itemId).find();
+  }
+  return query.equalTo('reference', Item.createWithoutData(itemId)).first();
 };
 
 /**
@@ -211,6 +212,18 @@ export const getTestEntityByItemId = (itemId: string) => {
  */
 export const getTestConfig = (workspaceKey: string): Promise<Parse.Object> => {
   return new Parse.Query(TestConfig).equalTo('workspaceKey', workspaceKey).first();
+};
+
+/**
+ * 获取租户下所有空间测试管理配置（制作单租户）
+ */
+
+export const getAllTestConfigs = (selectKeys?: string[]) => {
+  const query = new Parse.Query(TestConfig);
+  if (hasArrayItem(selectKeys)) {
+    query.select(selectKeys);
+  }
+  return query.findAll();
 };
 
 /**
