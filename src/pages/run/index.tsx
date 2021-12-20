@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Breadcrumb, Descriptions, Typography, Collapse, Divider, Spin, Empty } from '@osui/ui';
+import { Descriptions, Typography, Collapse, Divider, Spin, Empty } from '@osui/ui';
 import UploadFile from '@/components/common/UploadFile';
 import Comment from '@/components/common/Comment';
 import ItemList from './components/ItemList';
-import StepList from './components/StepList';
+import StepList, { IStepItem } from './components/StepList';
 import TestStatus from './components/TestStatus';
 import { useLocation } from 'react-router-dom';
 import { GetTestRunDetail } from '@/lib/api/runs';
@@ -24,6 +24,12 @@ function useQuery() {
 
 interface TestInfoContent {
   detail: any;
+}
+
+export interface IRunDetail {
+  runs: {
+    steps: Array<IStepItem>;
+  };
 }
 
 const TestInfo: React.FC<TestInfoContent> = ({ detail }) => {
@@ -63,8 +69,9 @@ const TestRun: React.FC = () => {
     return <Empty description="测试运行为空"></Empty>;
   }
 
-  console.log('主线按时', data?.data);
-  const { reference, runDetail, status } = data?.data;
+  const { reference, runDetail, status, objectId } = data?.data;
+  const detail = runDetail as IRunDetail;
+  // const { runs } = runDetail as { runs: { steps: Array<IStepItem> } };
 
   return (
     <div className={css('run')}>
@@ -121,7 +128,7 @@ const TestRun: React.FC = () => {
                 <UploadFile />
               </Collapse.Panel> */}
               <Collapse.Panel header="步骤" key="3">
-                <StepList />
+                <StepList detail={detail} objectId={objectId} />
               </Collapse.Panel>
             </Collapse>
           </Collapse.Panel>

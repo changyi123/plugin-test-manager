@@ -56,7 +56,7 @@ const RunsTable: React.FC<RunsTableProps> = ({ itemId }) => {
     {
       title: '状态',
       dataIndex: 'status',
-      render: value => <TestTableStatus status={value} />,
+      render: (value, item) => <TestTableStatus status={value} testId={item.testRunId} />,
     },
     {
       title: '执行',
