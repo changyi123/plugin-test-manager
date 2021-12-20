@@ -1,21 +1,125 @@
 import React from 'react';
-import { Button } from '@osui/ui';
+
+import { Typography, message, Button } from '@osui/ui';
+import { EllipsisOutlined } from '@ant-design/icons';
 import { useTestConfig } from '@/lib/hooks/useContext';
+import { TestType, TestRelationType } from '@/lib/constants';
+import PanelTable, { ActionType } from '../../../PanelTable';
+import DropDownButton from '@/components/panel/DropDownButton';
+import { getTestEntitiesByRelation, removeTestRelations } from '@/lib/api/common';
 
-const Execution = () => {
+import cx from './index.less';
+
+const Test = () => {
   const { testEntity } = useTestConfig();
+  const tableActionRef = React.useRef<ActionType>();
 
-  const addTestExecution = React.useCallback(() => {
-    console.info(testEntity?.toJSON());
-  }, [testEntity]);
+  const tableDataSourceGetter = React.useCallback(
+    queryParams => {
+      return getTestEntitiesByRelation(
+        TestRelationType.PlanRelExecution,
+        { from: testEntity },
+        { fillItemData: true, queryParams: queryParams },
+      );
+    },
+    [testEntity],
+  );
+
+  // 创建测试执行
+  const addExistedTestExecution = React.useCallback(async () => {
+    // TODO: 添加并执行
+  }, []);
+
+  const removeTestRelation = React.useCallback(async relationTypeIds => {
+    if (!Array.isArray(relationTypeIds)) return;
+    await removeTestRelations(relationTypeIds);
+
+    tableActionRef.current.refresh();
+
+    message.success('删除成功');
+  }, []);
+
+  // table column 数据
+  const tableColumns = React.useMemo(() => {
+    return [
+      {
+        title: '事项key',
+        key: 'reference.name',
+        width: 100,
+        render(_, record) {
+          const item = record?.reference;
+          return (
+            <Typography.Link
+              ellipsis={true}
+              target="_blank"
+              href={`/osc/workspaces/${item?.workspace?.key}/item/${item?.key}`}
+            >
+              {item?.key}
+            </Typography.Link>
+          );
+        },
+      },
+      {
+        title: '事项名',
+        key: 'reference.name',
+        render(_, record) {
+          const item = record?.reference;
+
+          return <Typography.Text ellipsis={{ tooltip: item?.name }}>{item?.name}</Typography.Text>;
+        },
+      },
+      {
+        title: '状态',
+        dataIndex: 'status',
+        key: 'status',
+        render: value => {
+          return 'TODO: status';
+          // return <TestTableStatus readonly status={value ?? 'todo'} />;
+        },
+      },
+      {
+        title: '操作',
+        key: 'action',
+        render: (_, record) => (
+          <DropDownButton
+            buttonProps={{ type: 'text' }}
+            menuList={[
+              {
+                title: '删除',
+                onClick() {
+                  removeTestRelation([record.testRelationId]);
+                },
+              },
+            ]}
+          >
+            <EllipsisOutlined />
+          </DropDownButton>
+        ),
+      },
+    ];
+  }, [removeTestRelation]);
 
   return (
-    <div>
-      <Button type="primary" onClick={addTestExecution}>
+    <div className={cx('test')}>
+      <Button type="primary" onClick={addExistedTestExecution}>
         添加测试执行
       </Button>
+      <PanelTable
+        actionRef={tableActionRef}
+        actionMenuList={[
+          {
+            title: '删除',
+            onClick(rows) {
+              removeTestRelation(rows.map(row => row.testRelationId));
+            },
+          },
+        ]}
+        rowKey="objectId"
+        columns={tableColumns}
+        getDataSource={tableDataSourceGetter}
+      />
     </div>
   );
 };
 
-export default React.memo(Execution);
+export default React.memo(Test);

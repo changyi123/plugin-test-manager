@@ -8,7 +8,11 @@ import { useRequest } from 'ahooks';
 
 import css from './TestStatus.less';
 
-const TestTableStatus: React.FC<{ status: IColor; testId: string }> = ({ status, testId }) => {
+const TestTableStatus: React.FC<{ status: IColor; testId: string; readonly?: boolean }> = ({
+  status,
+  testId,
+  readonly = false,
+}) => {
   const [itemStatus, setItemStatus] = useMergedState<IColor>(status, {
     value: status,
   });
@@ -56,9 +60,8 @@ const TestTableStatus: React.FC<{ status: IColor; testId: string }> = ({ status,
   if (loading) {
     return <Spin tip="加载中..."></Spin>;
   }
-  console.log('data', data);
   return (
-    <Dropdown overlay={menu} trigger={['click']}>
+    <Dropdown overlay={menu} trigger={readonly ? [] : ['click']}>
       <div className={[css('table-status'), css('now-status')].join(' ')}>
         <div className={[css('status-block'), css(itemStatus)].join(' ')}></div>
         <div className={[css('now-status__content')].join(' ')}>

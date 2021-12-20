@@ -2,15 +2,13 @@ import React from 'react';
 
 import TestPlan from './TestPlan';
 import TestDetail from './TestDetail';
+import { TestType } from '@/lib/constants';
+import { PanelItemId } from '@/devEnv';
 import { useSDK } from '@projectproxima/plugin-sdk';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import TestManagerProvider from '@/components/common/TestManagerProvider';
-import { TestType } from '@/lib/constants';
 
 import cx from './index.less';
-
-const MOCK_ITEM_ID = 'WiC8uYebSx';
-const MOCK_WORKSPACE_KEY = 'TEST_MANAGE_1';
 
 // 根据测试类型打开不同的测试 panel
 const TestPanelComponents = {
@@ -36,11 +34,10 @@ const TestPanel = () => {
 
 const TestPanelPage = () => {
   const { context } = useSDK();
-  const workspaceKey = context?.env?.WORKSPACE_KEY ?? MOCK_WORKSPACE_KEY;
-  const itemId = context?.itemId ?? MOCK_ITEM_ID;
+  const itemId = context?.itemId ?? PanelItemId;
 
   return (
-    <TestManagerProvider itemId={itemId} workspaceKey={workspaceKey}>
+    <TestManagerProvider itemId={itemId}>
       <TestPanel />
     </TestManagerProvider>
   );

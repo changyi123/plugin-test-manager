@@ -1,17 +1,26 @@
 import React from 'react';
+import classnames from 'classnames';
 import { ButtonProps } from 'antd/lib/button';
 import { MenuItemProps } from 'antd/lib/menu';
+import { DropDownProps } from 'antd/lib/Dropdown';
 import { Button, Dropdown, Menu } from '@osui/ui';
-import { DownOutlined } from '@ant-design/icons';
 
 import './index.less';
 
 type DropdownButtonProps = {
+  className?: string;
   buttonProps?: ButtonProps;
+  dropdownProps?: Omit<DropDownProps, 'overlay'>;
   menuList: Array<MenuItemProps & { [k: string]: any }>;
 };
 
-const DropdownButton: React.FC<DropdownButtonProps> = ({ menuList, buttonProps, children }) => {
+const DropdownButton: React.FC<DropdownButtonProps> = ({
+  children,
+  menuList,
+  className,
+  buttonProps,
+  dropdownProps,
+}) => {
   const menu = React.useMemo(() => {
     return (
       <Menu>
@@ -25,11 +34,12 @@ const DropdownButton: React.FC<DropdownButtonProps> = ({ menuList, buttonProps, 
   }, [menuList]);
 
   return (
-    <Dropdown trigger={['click']} overlay={menu} className="dropdown-button">
-      <Button {...(buttonProps || { type: 'primary' })}>
-        <span>{children}</span>
-        <DownOutlined />
-      </Button>
+    <Dropdown
+      overlay={menu}
+      className={classnames('dropdown-button', className)}
+      {...Object.assign({ trigger: ['click'] }, dropdownProps)}
+    >
+      <Button {...Object.assign({ type: 'primary' }, buttonProps)}>{children}</Button>
     </Dropdown>
   );
 };

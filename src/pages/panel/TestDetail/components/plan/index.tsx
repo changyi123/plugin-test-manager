@@ -1,66 +1,168 @@
 import React from 'react';
+
 import { uniqueId } from 'lodash';
-import { useRequest } from 'ahooks';
+import { Typography, message } from '@osui/ui';
+import { EllipsisOutlined, DownOutlined } from '@ant-design/icons';
+import { createTestPlanService } from './services';
 import { TestType, TestRelationType } from '@/lib/constants';
-import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
-import { createTestRelation, getTestEntitiesByRelation } from '@/lib/api/common';
-
+import PanelTable, { ActionType } from '../../../PanelTable';
 import DropDownButton from '@/components/panel/DropDownButton';
-
-import PlanTable from './components/Table';
+import TestTableStatus from '@/pages/run/components/TestTableStatus';
+import { useTestConfig, useBaseAction } from '@/lib/hooks/useContext';
+import { getTestEntitiesByRelation, removeTestRelations } from '@/lib/api/common';
 
 import cx from './index.less';
 
 const Plan = () => {
-  const {
-    testEntity,
-    config: { itemTypeMap },
-  } = useTestConfig();
+  const { testEntity } = useTestConfig();
   const { createItemUseModal } = useBaseAction();
+  const tableActionRef = React.useRef<ActionType>();
 
-  const { data: testPlanEntities } = useRequest(() =>
-    getTestEntitiesByRelation(TestRelationType.PlanRelDetail, { to: testEntity }),
+  const tableDataSourceGetter = React.useCallback(
+    async queryParams => {
+      const { count, list: testPlans } = await getTestEntitiesByRelation(
+        TestRelationType.PlanRelDetail,
+        { to: testEntity },
+        { fillItemData: true, queryParams: queryParams },
+      );
+      // 填充 testExecution 数据
+      const testPlanIds = testPlans.map(plan => plan.objectId);
+
+      const { list: testExecutions } = await getTestEntitiesByRelation(
+        TestRelationType.PlanRelExecution,
+        { from: testPlanIds },
+        { queryParams: { limit: 9999 } },
+      );
+
+      console.log(testExecutions);
+
+      return {
+        count,
+        list: testPlans,
+      };
+    },
+    [testEntity],
   );
 
-  console.info(
-    'testPlanEntity',
-    testPlanEntities?.map(item => item.toJSON()),
-  );
-
-  const createPlan = React.useCallback(async () => {
-    const token = uniqueId('TestPlan');
-    const { testEntity: testPlanEntity, extraData } = await createItemUseModal({
-      type: TestType.TestPlan,
-      extraData: { token },
-    });
-    // token 不相同则不创建关联
-    if (extraData.token !== token) return;
-    await createTestRelation([
-      {
-        relationType: TestRelationType.PlanRelDetail,
-        from: testPlanEntity,
-        to: testEntity,
-      },
-    ]);
-  }, [createItemUseModal, testEntity]);
-
-  const dropDownMenuList = React.useMemo(() => {
+  // 添加测试计划菜单
+  const testPlanMenuList = React.useMemo(() => {
     return [
-      {
-        title: '已存在的测试计划',
-        onClick() {},
-      },
+      // TODO
+      // {
+      //   title: '已存在的测试用例',
+      //   onClick() {
+      //     console.info(11);
+      //   },
+      // },
       {
         title: '新建测试计划',
-        onClick: createPlan,
+        async onClick() {
+          const token = uniqueId('TestPlan');
+          const { testEntity: testPlanEntity, extraData } = await createItemUseModal({
+            type: TestType.TestPlan,
+            extraData: { token },
+          });
+          // token 不相同则不创建关联
+          if (extraData.token !== token) return;
+
+          await createTestPlanService(testEntity, testPlanEntity);
+
+          tableActionRef.current.refresh();
+
+          message.success('测试计划创建成功');
+        },
       },
     ];
-  }, [createPlan]);
+  }, [createItemUseModal, testEntity]);
+
+  const removeTestRelation = React.useCallback(async relationTypeIds => {
+    if (!Array.isArray(relationTypeIds)) return;
+    await removeTestRelations(relationTypeIds);
+
+    tableActionRef.current.refresh();
+
+    message.success('删除成功');
+  }, []);
+
+  // table column 数据
+  const tableColumns = React.useMemo(() => {
+    return [
+      {
+        title: '事项key',
+        key: 'reference.name',
+        width: 100,
+        render(_, record) {
+          const item = record?.reference;
+          return (
+            <Typography.Link
+              ellipsis={true}
+              target="_blank"
+              href={`/osc/workspaces/${item?.workspace?.key}/item/${item?.key}`}
+            >
+              {item?.key}
+            </Typography.Link>
+          );
+        },
+      },
+      {
+        title: '事项名',
+        key: 'reference.name',
+        render(_, record) {
+          const item = record?.reference;
+
+          return <Typography.Text ellipsis={{ tooltip: item?.name }}>{item?.name}</Typography.Text>;
+        },
+      },
+      {
+        title: '最新执行状态',
+        dataIndex: 'status',
+        key: 'status',
+        render: value => {
+          return <TestTableStatus readonly status={value ?? 'todo'} testId="" />;
+        },
+      },
+      {
+        title: '操作',
+        key: 'action',
+        render: (_, record) => (
+          <DropDownButton
+            buttonProps={{ type: 'text' }}
+            menuList={[
+              {
+                title: '删除',
+                onClick() {
+                  removeTestRelation([record.testRelationId]);
+                },
+              },
+            ]}
+          >
+            <EllipsisOutlined />
+          </DropDownButton>
+        ),
+      },
+    ];
+  }, [removeTestRelation]);
 
   return (
-    <div className={cx('test-plan')}>
-      <DropDownButton menuList={dropDownMenuList}>添加测试用例</DropDownButton>
-      <PlanTable />
+    <div className={cx('test')}>
+      <DropDownButton menuList={testPlanMenuList}>
+        添加至测试计划
+        <DownOutlined />
+      </DropDownButton>
+      <PanelTable
+        actionRef={tableActionRef}
+        actionMenuList={[
+          {
+            title: '删除',
+            onClick(rows) {
+              removeTestRelation(rows.map(row => row.testRelationId));
+            },
+          },
+        ]}
+        rowKey="objectId"
+        columns={tableColumns}
+        getDataSource={tableDataSourceGetter}
+      />
     </div>
   );
 };

@@ -99,23 +99,28 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
       if (testEntity) {
         setTestEntity(testEntity);
         const workspace = testEntity.get('reference')?.get('workspace');
-        workspace && setWorkspace(workspace);
+        workspace && setWorkspace(workspace.toJSON());
       }
     };
     execute();
   }, [itemId]);
 
-  const { data: testConfigParseObj } = useRequest(() => getTestConfig(workspaceKey), {
-    staleTime: 50000,
-    ready: !!workspace,
-    cacheKey: workspaceKey + workspace?.key,
-    refreshDeps: [workspaceKey, workspace?.key],
-  });
+  const { data: testConfigParseObj } = useRequest(
+    () => getTestConfig(workspaceKey ?? workspace?.key),
+    {
+      staleTime: 50000,
+      ready: !!workspace,
+      cacheKey: workspaceKey + workspace?.key,
+      refreshDeps: [workspaceKey, workspace?.key],
+    },
+  );
 
   /** 测试关联类型 */
   const testConfig = React.useMemo(() => {
     return (testConfigParseObj?.toJSON() ?? {}) as TestConfigContextType['config'];
   }, [testConfigParseObj]);
+
+  console.info('testConfig', workspaceKey ?? workspace, testConfig);
 
   // 事项创建成功回调
   const itemCreateSuccessCb = React.useCallback(async params => {
