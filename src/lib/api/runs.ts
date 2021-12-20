@@ -27,7 +27,7 @@ export const GetTestRunsById = (itemId: string): Promise<ICommonRes> => {
           testRunQuery.equalTo('runReferenceDetail', runReferenceDetail);
           testRunQuery.find().then(async testRunRes => {
             // const testRuns = testRunRes?.map(item => item.toJSON());
-            const data = await getTestEntitiesByRelation(
+            const { list: data } = await getTestEntitiesByRelation(
               TestRelationType.ExecutionRelRun,
               { to: testRunRes },
               { fillItemData: true },

@@ -99,18 +99,22 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
       if (testEntity) {
         setTestEntity(testEntity);
         const workspace = testEntity.get('reference')?.get('workspace');
+        console.info('workspace', workspace);
         workspace && setWorkspace(workspace);
       }
     };
     execute();
   }, [itemId]);
 
-  const { data: testConfigParseObj } = useRequest(() => getTestConfig(workspaceKey), {
-    staleTime: 50000,
-    ready: !!workspace,
-    cacheKey: workspaceKey + workspace?.key,
-    refreshDeps: [workspaceKey, workspace?.key],
-  });
+  const { data: testConfigParseObj } = useRequest(
+    () => getTestConfig(workspaceKey ?? workspace?.key),
+    {
+      staleTime: 50000,
+      ready: !!workspace,
+      cacheKey: workspaceKey + workspace?.key,
+      refreshDeps: [workspaceKey, workspace?.key],
+    },
+  );
 
   /** 测试关联类型 */
   const testConfig = React.useMemo(() => {

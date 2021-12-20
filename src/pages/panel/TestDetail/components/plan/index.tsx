@@ -102,6 +102,15 @@ const Plan = () => {
         },
       },
       {
+        title: '事项名',
+        key: 'reference.name',
+        render(_, record) {
+          const item = record?.reference;
+
+          return <Typography.Text ellipsis={{ tooltip: item?.name }}>{item?.name}</Typography.Text>;
+        },
+      },
+      {
         title: '最新执行状态',
         dataIndex: 'status',
         key: 'status',

@@ -54,7 +54,7 @@ tables:
         type: Pointer
         targetClass: Item
       workspaceKey:
-        type: string
+        type: String
       type:
         type: String
       steps:
