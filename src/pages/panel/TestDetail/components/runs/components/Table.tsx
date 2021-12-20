@@ -5,6 +5,7 @@ import { CaretRightOutlined, DownOutlined, DeleteOutlined } from '@ant-design/ic
 import { useRequest } from 'ahooks';
 import { GetTestRunsById } from '@/lib/api/runs';
 import TestTableStatus from '@/pages/run/components/TestTableStatus';
+import TestRunModal from '@/pages/run/Modal';
 
 export interface RunsTableProps {
   itemId?: string;
@@ -56,20 +57,20 @@ const RunsTable: React.FC<RunsTableProps> = ({ itemId }) => {
     {
       title: '状态',
       dataIndex: 'status',
-      render: value => <TestTableStatus status={value} />,
+      render: (value, item) => <TestTableStatus status={value} testId={item.testRunId} />,
     },
     {
       title: '执行',
       key: 'testRunId',
       render: (value, item) => (
-        <Button
-          size="small"
-          type="primary"
-          href={`#/testRun?id=${item.testRunId}`}
-          icon={<CaretRightOutlined />}
-        >
-          执行
-        </Button>
+        <TestRunModal
+          testId={item.testRunId}
+          trigger={
+            <Button size="small" type="primary" icon={<CaretRightOutlined />}>
+              执行
+            </Button>
+          }
+        />
       ),
     },
     {

@@ -9,6 +9,8 @@ import {
 } from '@/lib/api/common';
 import series from 'async/series';
 import { useRequest } from 'ahooks';
+import { IRunDetail } from '@/pages/run';
+import { IColor } from '@/pages/run/components/TestStatus';
 
 export const GetTestRunsById = (itemId: string): Promise<ICommonRes> => {
   return new Promise((resolve, reject) => {
@@ -316,6 +318,54 @@ export const GetTestRunDetail = (id: string): Promise<ICommonRes> => {
         resolve({
           success: true,
           data: res.toJSON(),
+        });
+      },
+      err => {
+        reject({
+          success: false,
+          data: { ...err },
+          message: err,
+        });
+      },
+    );
+  });
+};
+
+export const updateTestStep = (detail: IRunDetail, testStepId?: string): Promise<ICommonRes> => {
+  return new Promise((resolve, reject) => {
+    const step = Test.createWithoutData(testStepId);
+    step.set({
+      runDetail: detail,
+    });
+    step.save().then(
+      res => {
+        resolve({
+          success: true,
+          data: { ...res },
+        });
+      },
+      err => {
+        reject({
+          success: false,
+          data: { ...err },
+          message: err,
+        });
+      },
+    );
+  });
+};
+
+export const updateTestStatus = (testId: string, status: IColor): Promise<ICommonRes> => {
+  return new Promise((resolve, reject) => {
+    const step = Test.createWithoutData(testId);
+    step.set({
+      status,
+    });
+    step.save().then(
+      res => {
+        resolve({
+          success: true,
+          data: { ...res },
         });
       },
       err => {

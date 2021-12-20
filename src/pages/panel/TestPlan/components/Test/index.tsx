@@ -116,7 +116,7 @@ const Test = () => {
         dataIndex: 'status',
         key: 'status',
         render: value => {
-          return <TestTableStatus readonly status={value ?? 'todo'} />;
+          return <TestTableStatus readonly status={value ?? 'todo'} testId="" />;
         },
       },
       {

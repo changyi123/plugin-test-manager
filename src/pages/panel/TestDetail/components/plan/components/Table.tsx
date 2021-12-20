@@ -66,7 +66,7 @@ const Plan = () => {
       title: '状态',
       dataIndex: 'status',
       key: 'status',
-      render: value => <TestTableStatus status={value} />,
+      render: value => <TestTableStatus status={value} testId="" />,
     },
     {
       title: '执行',

@@ -6,9 +6,10 @@ import css from './index.less';
 export interface ICommentProps {
   placeholder?: string;
   value?: string;
+  save?: () => (value: string) => void;
 }
 
-const Comment: React.FC<ICommentProps> = ({ placeholder = '点击添加评论', value }) => {
+const Comment: React.FC<ICommentProps> = ({ placeholder = '点击添加评论', value, save }) => {
   const [isEdit, setIsEdit] = useState<boolean>(false);
   const [inputValue, setInputValue] = useState<string>(value);
 
@@ -20,6 +21,7 @@ const Comment: React.FC<ICommentProps> = ({ placeholder = '点击添加评论', 
 
   const handleConfirm = (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
     e.stopPropagation();
+    save && save()(inputValue);
     setIsEdit(false);
   };
 

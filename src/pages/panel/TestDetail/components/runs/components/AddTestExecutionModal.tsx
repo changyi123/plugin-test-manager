@@ -33,7 +33,6 @@ const Content: React.FC<{ id: string; close: () => void }> = ({ close, id }) => 
   }
 
   const onFinish = async (values: any) => {
-    console.log('Success:', values);
     const { workspace, summary } = values;
     const itemTypeKey = config?.itemTypeMap?.TestExecution;
     if (!config?.itemTypeMap?.TestExecution) {
