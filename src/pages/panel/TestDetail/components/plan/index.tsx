@@ -28,23 +28,64 @@ const Plan = () => {
 
   const tableDataSourceGetter = React.useCallback(
     async queryParams => {
-      const { count, list: testPlans } = await getTestEntitiesByRelation(
+      const { list: testPlans, count } = await getTestEntitiesByRelation(
         TestRelationType.PlanRelDetail,
         { to: testEntity },
-        { fillItemData: true, queryParams: queryParams },
+        {
+          fillItemData: true,
+          queryParams: queryParams,
+        },
       );
-      // TODO: 填充 testExecution 数据
-      const testPlanIds = testPlans.map(plan => plan.objectId);
 
-      // const { list: testExecutions } = await getTestEntitiesByRelation(
-      //   TestRelationType.PlanRelExecution,
-      //   { from: testPlanIds },
-      //   { queryParams: { limit: 9999 } },
-      // );
+      const testPlanIds = testPlans.map(item => item.objectId);
+
+      // 获取测试执行，包含测试运行 testRuns
+      const { list: testExecutions } = await getTestEntitiesByRelation(
+        TestRelationType.PlanRelExecution,
+        { from: testPlanIds },
+        {
+          queryParams: { limit: 9999 },
+          async resultTransfer(data) {
+            const { list: testExecutions, count } = data;
+            const testExecutionIds = testExecutions.map(item => item.objectId);
+
+            const { list: testRuns } = await getTestEntitiesByRelation(
+              TestRelationType.ExecutionRelRun,
+              {
+                from: testExecutionIds,
+              },
+              { queryParams: { limit: 9999 } },
+            );
+
+            return {
+              count,
+              list: testExecutions.map(execution => {
+                const relRuns = testRuns.filter(
+                  run => run.relation?.from?.objectId === execution.objectId,
+                );
+                return {
+                  ...execution,
+                  testRuns: relRuns,
+                };
+              }),
+            };
+          },
+        },
+      );
+
+      const list = testPlans.map(plan => {
+        const relTestExecutions = testExecutions.filter(
+          exec => exec.relation?.from?.objectId === plan.objectId,
+        );
+        return {
+          ...plan,
+          testExecutions: relTestExecutions,
+        };
+      });
 
       return {
         count,
-        list: testPlans,
+        list,
       };
     },
     [testEntity],
@@ -121,11 +162,12 @@ const Plan = () => {
         },
       },
       {
-        title: '最新执行状态',
+        title: '测试计划状态',
         dataIndex: 'status',
         key: 'status',
-        render: value => {
-          return <TestTableStatus readonly status={value ?? 'todo'} testId="" />;
+        render: (_, record) => {
+          console.log(record);
+          return 1;
         },
       },
       {

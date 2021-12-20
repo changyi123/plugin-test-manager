@@ -20,13 +20,18 @@ const testRelationTypePointerTransfer = arr =>
 /**
  * 根据关联类型查询测试实体（分页，批量查询，填充 proxima 事项数据）
  */
-export const getTestEntitiesByRelation = async (
+export const getTestEntitiesByRelation = async <TResponseList extends any[] = any[]>(
   relType: TestRelationType,
   sides: Partial<Record<'from' | 'to', Array<PointerType> | PointerType>> = {},
   _config?: any,
-) => {
+): Promise<{
+  count: number;
+  list: TResponseList;
+}> => {
   const config = merge(
     {
+      // 响应数据处理
+      resultTransfer: data => data,
       // 返回数据数据格式是 json
       toJSON: true,
       // 需要填充 item 数据则自动转换未 json 格式
@@ -73,10 +78,17 @@ export const getTestEntitiesByRelation = async (
     include.length === 1 ? relation?.[include[0]] ?? relation?.get(include[0]) : relation;
 
   // 生成标准数据
-  const buildReturnData = list => ({
-    list,
-    count,
-  });
+  const buildReturnData = async list => {
+    const responseData = {
+      list,
+      count,
+    };
+    if (typeof config.resultTransfer === 'function') {
+      // 响应数据处理
+      return config.resultTransfer(responseData);
+    }
+    return responseData;
+  };
 
   // 需要填充 item 数据则自动转换未 json 格式，非批量数据不做处理
   if (config?.toJSON && Array.isArray(results) && include.length === 1) {
