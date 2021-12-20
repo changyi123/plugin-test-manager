@@ -2,14 +2,21 @@ import React from 'react';
 
 import { uniqueId } from 'lodash';
 import { Typography, message } from '@osui/ui';
-import { EllipsisOutlined, DownOutlined } from '@ant-design/icons';
 import { createTestPlanService } from './services';
 import { TestType, TestRelationType } from '@/lib/constants';
 import PanelTable, { ActionType } from '../../../PanelTable';
 import DropDownButton from '@/components/panel/DropDownButton';
+import { EllipsisOutlined, DownOutlined } from '@ant-design/icons';
 import TestTableStatus from '@/pages/run/components/TestTableStatus';
 import { useTestConfig, useBaseAction } from '@/lib/hooks/useContext';
-import { getTestEntitiesByRelation, removeTestRelations } from '@/lib/api/common';
+import TestEntitySelectorModal, {
+  ActionType as SelectorActionType,
+} from '../../../TestEntitySelectorModal';
+import {
+  createTestRelation,
+  removeTestRelations,
+  getTestEntitiesByRelation,
+} from '@/lib/api/common';
 
 import cx from './index.less';
 
@@ -17,6 +24,7 @@ const Plan = () => {
   const { testEntity } = useTestConfig();
   const { createItemUseModal } = useBaseAction();
   const tableActionRef = React.useRef<ActionType>();
+  const selectorModalRef = React.useRef<SelectorActionType>();
 
   const tableDataSourceGetter = React.useCallback(
     async queryParams => {
@@ -25,16 +33,14 @@ const Plan = () => {
         { to: testEntity },
         { fillItemData: true, queryParams: queryParams },
       );
-      // 填充 testExecution 数据
+      // TODO: 填充 testExecution 数据
       const testPlanIds = testPlans.map(plan => plan.objectId);
 
-      const { list: testExecutions } = await getTestEntitiesByRelation(
-        TestRelationType.PlanRelExecution,
-        { from: testPlanIds },
-        { queryParams: { limit: 9999 } },
-      );
-
-      console.log(testExecutions);
+      // const { list: testExecutions } = await getTestEntitiesByRelation(
+      //   TestRelationType.PlanRelExecution,
+      //   { from: testPlanIds },
+      //   { queryParams: { limit: 9999 } },
+      // );
 
       return {
         count,
@@ -47,13 +53,14 @@ const Plan = () => {
   // 添加测试计划菜单
   const testPlanMenuList = React.useMemo(() => {
     return [
-      // TODO
-      // {
-      //   title: '已存在的测试用例',
-      //   onClick() {
-      //     console.info(11);
-      //   },
-      // },
+      {
+        title: '已存在的测试用例',
+        onClick() {
+          selectorModalRef.current.open({
+            testType: TestType.TestPlan,
+          });
+        },
+      },
       {
         title: '新建测试计划',
         async onClick() {
@@ -143,8 +150,28 @@ const Plan = () => {
     ];
   }, [removeTestRelation]);
 
+  // 添加测试用例至测试计划
+  const addTestDetailToPlan = React.useCallback(
+    async testPlanIds => {
+      const relations = testPlanIds.map(testPlanId => ({
+        relationType: TestRelationType.PlanRelDetail,
+        from: testPlanId,
+        to: testEntity,
+      }));
+      await createTestRelation(relations);
+
+      tableActionRef.current.refresh();
+    },
+    [testEntity],
+  );
+
   return (
     <div className={cx('test')}>
+      <TestEntitySelectorModal
+        title="添加测试执行至当前测试计划"
+        actionRef={selectorModalRef}
+        onSelect={addTestDetailToPlan}
+      />
       <DropDownButton menuList={testPlanMenuList}>
         添加至测试计划
         <DownOutlined />

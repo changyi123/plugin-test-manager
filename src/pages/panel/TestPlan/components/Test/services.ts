@@ -58,13 +58,6 @@ export const createTestExecutionService = async (params: {
     testDetailIds: relTestDetailIds,
   });
 
-  // 测试执行&运行关联关系
-  const testExecutionRunRelations = testRunEntities.map(runEntity => ({
-    relationType: TestRelationType.ExecutionRelRun,
-    from: testExecution,
-    to: runEntity,
-  }));
-
   const testPlanExecutionRelations = [
     {
       from: testPlan,
@@ -72,6 +65,13 @@ export const createTestExecutionService = async (params: {
       relationType: TestRelationType.PlanRelExecution,
     },
   ];
+
+  // 测试执行&运行关联关系
+  const testExecutionRunRelations = testRunEntities.map(runEntity => ({
+    relationType: TestRelationType.ExecutionRelRun,
+    from: testExecution,
+    to: runEntity,
+  }));
 
   // todo: 创建测试运行
   const relations = [].concat(testPlanExecutionRelations, testExecutionRunRelations);

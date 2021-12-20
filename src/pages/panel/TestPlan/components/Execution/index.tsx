@@ -6,6 +6,10 @@ import { useTestConfig } from '@/lib/hooks/useContext';
 import { TestType, TestRelationType } from '@/lib/constants';
 import PanelTable, { ActionType } from '../../../PanelTable';
 import DropDownButton from '@/components/panel/DropDownButton';
+import TestEntitySelectorModal, {
+  ActionType as SelectorActionType,
+} from '../../../TestEntitySelectorModal';
+import { addTestExecutionToPlanService } from './service';
 import { getTestEntitiesByRelation, removeTestRelations } from '@/lib/api/common';
 
 import cx from './index.less';
@@ -13,6 +17,7 @@ import cx from './index.less';
 const Test = () => {
   const { testEntity } = useTestConfig();
   const tableActionRef = React.useRef<ActionType>();
+  const selectorModalRef = React.useRef<SelectorActionType>();
 
   const tableDataSourceGetter = React.useCallback(
     queryParams => {
@@ -27,8 +32,22 @@ const Test = () => {
 
   // 创建测试执行
   const addExistedTestExecution = React.useCallback(async () => {
-    // TODO: 添加并执行
+    selectorModalRef.current.open({
+      testType: TestType.TestExecution,
+    });
   }, []);
+
+  const addTestExecutionToPlan = React.useCallback(
+    async testExecutionIds => {
+      await addTestExecutionToPlanService({
+        testPlan: testEntity,
+        testExecutionIds,
+      });
+
+      tableActionRef.current.refresh();
+    },
+    [testEntity],
+  );
 
   const removeTestRelation = React.useCallback(async relationTypeIds => {
     if (!Array.isArray(relationTypeIds)) return;
@@ -101,6 +120,11 @@ const Test = () => {
 
   return (
     <div className={cx('test')}>
+      <TestEntitySelectorModal
+        title="添加测试执行至当前测试计划"
+        actionRef={selectorModalRef}
+        onSelect={addTestExecutionToPlan}
+      />
       <Button type="primary" onClick={addExistedTestExecution}>
         添加测试执行
       </Button>

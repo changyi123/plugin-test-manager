@@ -34,9 +34,13 @@ const PanelTable: React.FC<PanelTableProps> = props => {
   React.useImperativeHandle(
     actionRef,
     () => ({
-      refresh,
+      refresh() {
+        refresh();
+        // 刷新后重置选中的 row
+        setSelectedRowKeys([]);
+      },
     }),
-    [refresh],
+    [refresh, setSelectedRowKeys],
   );
 
   React.useEffect(() => {
