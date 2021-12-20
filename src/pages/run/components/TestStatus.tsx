@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
-import { Tooltip, Divider, Button, Space } from '@osui/ui';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Tooltip, Divider, Button, Space, message, Spin } from '@osui/ui';
 import css from './TestStatus.less';
+import { useRequest } from 'ahooks';
+import { updateTestStatus } from '@/lib/api/runs';
 
 export type IColor = 'todo' | 'ing' | 'fail' | 'pass';
 
@@ -28,8 +30,32 @@ export const colorArray: Array<IStatusColor> = [
   },
 ];
 
-const TestStatus: React.FC<{ status: IColor }> = ({ status }) => {
+const TestStatus: React.FC<{ status: IColor; testId: string }> = ({ status, testId }) => {
   const [currentColor, setCurrentColor] = useState<IColor>(status);
+  const { run, loading, data } = useRequest(
+    (testId: string, status: IColor) => updateTestStatus(testId, status),
+    {
+      manual: true,
+    },
+  );
+  useEffect(() => {
+    if (data && data.success) {
+      message.success('操作成功');
+    }
+  }, [data]);
+
+  const changeStatus = useCallback(
+    (key: IColor) => {
+      run(testId, key);
+      setCurrentColor(key as IColor);
+    },
+    [testId, run, setCurrentColor],
+  );
+
+  if (loading) {
+    return <Spin tip="改变中..."></Spin>;
+  }
+
   return (
     <div className={css('run__header__status')}>
       <div className={css('run__header__status__content')}>
@@ -51,7 +77,12 @@ const TestStatus: React.FC<{ status: IColor }> = ({ status }) => {
               }
               return (
                 <Tooltip key={item.class} title={`设置该测试用例${item.label}`}>
-                  <Button className={[css(`btn-${item.class}`)].join(' ')}>{item.label}</Button>
+                  <Button
+                    onClick={() => changeStatus(item.class)}
+                    className={[css(`btn-${item.class}`)].join(' ')}
+                  >
+                    {item.label}
+                  </Button>
                 </Tooltip>
               );
             })}

@@ -1,10 +1,11 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useContext } from 'react';
 import { Dropdown, Menu, Spin, message } from '@osui/ui';
 import { MenuInfo } from 'rc-menu/lib/interface';
 import { colorArray, IColor } from './TestStatus';
 import useMergedState from 'rc-util/lib/hooks/useMergedState';
 import { updateTestStatus } from '@/lib/api/runs';
 import { useRequest } from 'ahooks';
+import { RunsContext } from '@/pages/panel/TestDetail/components/runs';
 
 import css from './TestStatus.less';
 
@@ -24,6 +25,8 @@ const TestTableStatus: React.FC<{ status: IColor; testId: string; readonly?: boo
     },
   );
 
+  const { refresh } = useContext(RunsContext);
+
   useEffect(() => {
     if (data && data.success) {
       message.success('操作成功');
@@ -35,8 +38,9 @@ const TestTableStatus: React.FC<{ status: IColor; testId: string; readonly?: boo
       const { key } = info;
       run(testId, key as IColor);
       setItemStatus(key as IColor);
+      refresh && refresh();
     },
-    [testId, run, setItemStatus],
+    [testId, run, setItemStatus, refresh],
   );
 
   const menu = (

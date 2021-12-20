@@ -44,7 +44,6 @@ const List: React.FC<ListProps> = (props: ListProps) => {
   const { isExpand } = item;
   const [itemBak, setItemBak] = useState<TestStep>(item);
   const { action, data, result } = itemBak; //attachments, customFields
-  // console.log('刷新次数', index, item.isEdit, itemBak.index, editState);
 
   function toggleEditState(bol?: boolean) {
     setEditState(bol === undefined ? !editState : bol);
@@ -63,7 +62,6 @@ const List: React.FC<ListProps> = (props: ListProps) => {
       type: 'card',
       item: { id: item.id },
       collect: monitor => {
-        // console.log('useDrag执行了connect', monitor, monitor.isDragging());
         return {
           isDragging: monitor.isDragging(),
         };
@@ -79,7 +77,6 @@ const List: React.FC<ListProps> = (props: ListProps) => {
         saveCard();
       },
       hover({ id: draggedId }: TestStep) {
-        // console.log('执行了useDrop', draggedId, item.id);
         if (draggedId !== item.id) {
           const { index: overIndex } = findCard(item.id);
           moveCard(draggedId, overIndex);

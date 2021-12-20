@@ -46,8 +46,9 @@ const TestInfo: React.FC<TestInfoContent> = ({ detail }) => {
 
 const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
   const query = useQuery();
+  const currentTestId = query.get('id') || testId;
   // 从路由/弹窗拿
-  const [testRunId, setTestRunId] = useState<string>(query.get('id') || testId);
+  const [testRunId, setTestRunId] = useState<string>(currentTestId);
   const { data, loading, error } = useRequest(() => GetTestRunDetail(testRunId));
 
   useEffect(() => {
@@ -56,7 +57,7 @@ const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
     }
   }, [query, testRunId]);
 
-  if (!query.get('id') && !testId) {
+  if (!currentTestId) {
     return <div>无</div>;
   }
 
@@ -70,7 +71,7 @@ const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
     return <Empty description="测试运行为空"></Empty>;
   }
 
-  const { reference, runDetail, status, objectId } = data?.data;
+  const { itemDetail, runDetail, status, objectId } = data?.data;
   const detail = runDetail as IRunDetail;
   // const { runs } = runDetail as { runs: { steps: Array<IStepItem> } };
 
@@ -92,12 +93,12 @@ const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
 
       <div className={css('run__header')}>
         <div>
-          <Typography.Link ellipsis href="#">
-            {reference.name}（{reference.key}）
-          </Typography.Link>
+          <Typography.Text ellipsis>
+            {itemDetail?.name}（{itemDetail?.key}）
+          </Typography.Text>
         </div>
 
-        <TestStatus status={status} />
+        <TestStatus status={status} testId={currentTestId} />
       </div>
 
       <Divider />
@@ -108,12 +109,12 @@ const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
         <Collapse defaultActiveKey={['2']}>
           <Collapse.Panel header="总结" key="1">
             <Collapse defaultActiveKey={['1', '2', '3']}>
-              <Collapse.Panel header="缺陷" key="1">
+              {/* <Collapse.Panel header="缺陷" key="1">
                 <ItemList />
               </Collapse.Panel>
               <Collapse.Panel header="附件" key="2">
                 <UploadFile />
-              </Collapse.Panel>
+              </Collapse.Panel> */}
               <Collapse.Panel header="留言(点击文本编辑)" key="3">
                 <Comment />
               </Collapse.Panel>
@@ -122,14 +123,14 @@ const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
 
           <Collapse.Panel header="详情" key="2">
             <Collapse defaultActiveKey={['1', '2', '3']}>
-              <Collapse.Panel header="关联事项" key="1">
+              {/* <Collapse.Panel header="关联事项" key="1">
                 <ItemList />
-              </Collapse.Panel>
+              </Collapse.Panel> */}
               {/* <Collapse.Panel header="前置条件" key="2.2">
                 <UploadFile />
               </Collapse.Panel> */}
               <Collapse.Panel header="步骤" key="3">
-                <StepList detail={detail} objectId={objectId} />
+                <StepList detail={detail} objectId={objectId} testId={currentTestId} />
               </Collapse.Panel>
             </Collapse>
           </Collapse.Panel>

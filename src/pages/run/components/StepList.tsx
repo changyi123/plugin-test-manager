@@ -26,10 +26,12 @@ export interface IStepItem {
 export interface IStepItemProps {
   item: IStepItem;
   index: number;
+  testId: string;
   saveList: (item: IStepItem, index: number) => void;
 }
 
 export interface StepListProps {
+  testId: string;
   detail?: {
     runs: {
       steps: Array<IStepItem>;
@@ -38,7 +40,7 @@ export interface StepListProps {
   objectId: string;
 }
 
-export const StepItem: React.FC<IStepItemProps> = ({ index, item, saveList }) => {
+export const StepItem: React.FC<IStepItemProps> = ({ index, item, saveList, testId }) => {
   const saveItem = useCallback(
     (key: string) => {
       const itemBak = { ...item };
@@ -49,7 +51,6 @@ export const StepItem: React.FC<IStepItemProps> = ({ index, item, saveList }) =>
     },
     [item, saveList, index],
   );
-  console.log('item', item);
   return (
     <div className={css('step-list__item')}>
       <div className={css('left')}>
@@ -75,7 +76,7 @@ export const StepItem: React.FC<IStepItemProps> = ({ index, item, saveList }) =>
 
           <Col className={css('right__item')} span={8}>
             <div className={css('right__topic')}>预期结果</div>
-            <div className={css('right__content')}>{item.data}</div>
+            <div className={css('right__content')}>{item.result}</div>
           </Col>
         </Row>
 
@@ -104,13 +105,13 @@ export const StepItem: React.FC<IStepItemProps> = ({ index, item, saveList }) =>
                   />
                 </div>
 
-                <div className={css('btn')}>
+                {/* <div className={css('btn')}>
                   <Button type="primary" icon={<PlusCircleOutlined />}>
                     添加缺陷
                   </Button>
                   <ExclamationCircleOutlined style={{ marginLeft: '10px', color: 'red' }} />
                   (1)
-                </div>
+                </div> */}
 
                 {/* <div className={css('btn')}>
                   <Button icon={<FileAddOutlined />}>添加附件</Button>
@@ -120,7 +121,7 @@ export const StepItem: React.FC<IStepItemProps> = ({ index, item, saveList }) =>
               </Space>
             </div>
             <div className={css('right__')}>
-              <TestStatus status={item.status || 'todo'} />
+              <TestStatus status={item.status || 'todo'} testId={testId} />
             </div>
           </div>
         </Col>
@@ -129,7 +130,7 @@ export const StepItem: React.FC<IStepItemProps> = ({ index, item, saveList }) =>
   );
 };
 
-const StepList: React.FC<StepListProps> = ({ detail, objectId }) => {
+const StepList: React.FC<StepListProps> = ({ detail, objectId, testId }) => {
   const { steps } = detail?.runs;
   const saveList = useCallback(
     (item: IStepItem, index: number) => {
@@ -145,7 +146,7 @@ const StepList: React.FC<StepListProps> = ({ detail, objectId }) => {
     <div className={css('step-list')}>
       {steps &&
         steps?.map((item, index) => (
-          <StepItem item={item} key={index} index={index} saveList={saveList} />
+          <StepItem item={item} key={index} index={index} saveList={saveList} testId={testId} />
         ))}
     </div>
   );

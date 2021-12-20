@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
-import { Table, Spin, Typography, Menu, Button, Dropdown, Empty } from '@osui/ui';
+import { Table, Typography, Menu, Button, Dropdown } from '@osui/ui';
 import { ColumnsType } from 'antd/es/table';
 import { CaretRightOutlined, DownOutlined, DeleteOutlined } from '@ant-design/icons';
-import { useRequest } from 'ahooks';
-import { GetTestRunsById } from '@/lib/api/runs';
+
 import TestTableStatus from '@/pages/run/components/TestTableStatus';
 import TestRunModal from '@/pages/run/Modal';
 
 export interface RunsTableProps {
-  itemId?: string;
+  data?: any;
 }
 
 export interface RunItem {
@@ -20,7 +19,7 @@ export interface RunItem {
   referenceName: string;
 }
 
-const ActionBtn: React.FC<RunsTableProps> = () => {
+const ActionBtn: React.FC<{ itemId: string }> = () => {
   const menu = (
     <Menu>
       <Menu.Item key="0">
@@ -37,7 +36,7 @@ const ActionBtn: React.FC<RunsTableProps> = () => {
   );
 };
 
-const RunsTable: React.FC<RunsTableProps> = ({ itemId }) => {
+const RunsTable: React.FC<RunsTableProps> = ({ data }) => {
   const [page, setPage] = useState(1);
   const columns: ColumnsType<RunItem> = [
     {
@@ -79,17 +78,8 @@ const RunsTable: React.FC<RunsTableProps> = ({ itemId }) => {
       render: value => <ActionBtn itemId={value} />,
     },
   ];
-  const { data, error, loading } = useRequest(() => GetTestRunsById(itemId));
-  if (error) {
-    return <div>加载失败,原因{error?.message}</div>;
-  }
-  if (loading) {
-    return <Spin tip="加载中..."></Spin>;
-  }
-  if (!data?.data?.length) {
-    return <Empty description="测试运行为空，请创建测试执行"></Empty>;
-  }
-  console.log('data', data.data);
+
+  // console.log('data', data.data);
   return (
     <Table<RunItem>
       dataSource={data.data}
