@@ -1,9 +1,37 @@
 import { hasArrayItem } from '@/lib/utils/helper';
 import { TestType, TestRelationType } from '@/lib/constants';
-import { getTestEntitiesByRelation, createTestRelation } from '@/lib/api/common';
+import { Test } from '@/lib/models';
+import {
+  createTestRelation,
+  createTestEntities,
+  getTestEntitiesByRelation,
+} from '@/lib/api/common';
+
+/**
+ * 创建测试运行
+ */
+export const createTestRunService = async (params: {
+  workspaceKey: string;
+  testDetailIds: string[];
+}) => {
+  const { workspaceKey, testDetailIds } = params;
+  const entities = testDetailIds.map(id => ({
+    type: TestType.TestRun,
+    workspaceKey,
+    fields: {
+      runReferenceDetail: Test.createWithoutData(id),
+    },
+  }));
+  return createTestEntities(entities);
+};
 
 // 创建测试执行
-export const createTestExecutionService = async (testPlan, testExecution, relTestDetails = []) => {
+export const createTestExecutionService = async (params: {
+  workspaceKey: string;
+  testPlan: Parse.Object;
+  testExecution: Parse.Object;
+  relTestDetailIds?: string[];
+}) => {
   /**
    *  s1. 查找所有的关联的测试用例
    *  s2. 创建测试执行事项
@@ -11,24 +39,42 @@ export const createTestExecutionService = async (testPlan, testExecution, relTes
    *  s4. 处理关联关系，测试计划关联测试执行，测试执行关联测试运行
    */
 
+  const { workspaceKey, testPlan, testExecution } = params;
+  let relTestDetailIds = params.relTestDetailIds || [];
+
   // 没有 relTestDetails 则创建全部
-  if (!hasArrayItem(relTestDetails)) {
+  if (!hasArrayItem(relTestDetailIds)) {
     const res = await getTestEntitiesByRelation(
       TestRelationType.PlanRelDetail,
       { from: testPlan },
       // TODO: fetch all
       { queryParams: { limit: 9999 } },
     );
-    relTestDetails = res.list;
+    relTestDetailIds = res.list.map(item => item.objectId);
   }
-  // todo: 创建测试运行
-  const relations = [
+
+  const testRunEntities = await createTestRunService({
+    workspaceKey,
+    testDetailIds: relTestDetailIds,
+  });
+
+  // 测试执行&运行关联关系
+  const testExecutionRunRelations = testRunEntities.map(runEntity => ({
+    relationType: TestRelationType.ExecutionRelRun,
+    from: testExecution,
+    to: runEntity,
+  }));
+
+  const testPlanExecutionRelations = [
     {
       from: testPlan,
       to: testExecution,
       relationType: TestRelationType.PlanRelExecution,
     },
-  ].concat([]);
+  ];
+
+  // todo: 创建测试运行
+  const relations = [].concat(testPlanExecutionRelations, testExecutionRunRelations);
 
   await createTestRelation(relations);
 

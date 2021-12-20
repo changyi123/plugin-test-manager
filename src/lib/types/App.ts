@@ -107,6 +107,7 @@ export interface WorkspaceScheme extends BaseParseObject, SimpleBaseInfo {
 }
 
 export interface Workspace extends BaseParseObject, BaseInfo {
+  key: string;
   name: string;
   tenant: Tenant;
   // 这个字段已经没用了

@@ -47,12 +47,13 @@ const Plan = () => {
   // 添加测试计划菜单
   const testPlanMenuList = React.useMemo(() => {
     return [
-      {
-        title: '已存在的测试用例',
-        onClick() {
-          console.info(11);
-        },
-      },
+      // TODO
+      // {
+      //   title: '已存在的测试用例',
+      //   onClick() {
+      //     console.info(11);
+      //   },
+      // },
       {
         title: '新建测试计划',
         async onClick() {
@@ -65,6 +66,8 @@ const Plan = () => {
           if (extraData.token !== token) return;
 
           await createTestPlanService(testEntity, testPlanEntity);
+
+          tableActionRef.current.refresh();
 
           message.success('测试计划创建成功');
         },

@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { uniqueId } from 'lodash';
+import { Workspace } from '@/lib/types/App';
 import { Typography, message } from '@osui/ui';
 import { EllipsisOutlined } from '@ant-design/icons';
 import { createTestExecutionService } from './services';
@@ -43,7 +44,13 @@ const Test = () => {
     // token 不相同则不创建关联
     if (extraData.token !== token) return;
 
-    const testExecution = await createTestExecutionService(testEntity, testExecutionEntity);
+    const testExecutionData = testExecutionEntity.toJSON();
+
+    const testExecution = await createTestExecutionService({
+      testPlan: testEntity,
+      testExecution: testExecutionEntity,
+      workspaceKey: (testExecutionData.reference.workspace as Workspace).key,
+    });
 
     console.info('testExecution', testExecution);
   }, [createItemUseModal, testEntity]);
@@ -53,9 +60,7 @@ const Test = () => {
     return [
       {
         title: '已存在的测试用例',
-        onClick() {
-          console.info(11);
-        },
+        onClick() {},
       },
     ];
   }, []);

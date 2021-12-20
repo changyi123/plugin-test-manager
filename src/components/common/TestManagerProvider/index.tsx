@@ -99,8 +99,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
       if (testEntity) {
         setTestEntity(testEntity);
         const workspace = testEntity.get('reference')?.get('workspace');
-        console.info('workspace', workspace);
-        workspace && setWorkspace(workspace);
+        workspace && setWorkspace(workspace.toJSON());
       }
     };
     execute();
@@ -120,6 +119,8 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
   const testConfig = React.useMemo(() => {
     return (testConfigParseObj?.toJSON() ?? {}) as TestConfigContextType['config'];
   }, [testConfigParseObj]);
+
+  console.info('testConfig', workspaceKey ?? workspace, testConfig);
 
   // 事项创建成功回调
   const itemCreateSuccessCb = React.useCallback(async params => {
