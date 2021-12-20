@@ -35,11 +35,11 @@ export interface IRunDetail {
 const TestInfo: React.FC<TestInfoContent> = ({ detail }) => {
   return (
     <Descriptions title="执行信息">
-      <Descriptions.Item label="开始时间">{detail.startTime || '-'}</Descriptions.Item>
-      <Descriptions.Item label="负责人">{detail.assignee || '-'}</Descriptions.Item>
-      <Descriptions.Item label="版本">{detail.version || '-'}</Descriptions.Item>
-      <Descriptions.Item label="完成时间">{detail.finishTime || '-'}</Descriptions.Item>
-      <Descriptions.Item label="执行人">{detail.executedBy || '-'}</Descriptions.Item>
+      <Descriptions.Item label="开始时间">{detail?.startTime || '-'}</Descriptions.Item>
+      <Descriptions.Item label="负责人">{detail?.assignee || '-'}</Descriptions.Item>
+      <Descriptions.Item label="版本">{detail?.version || '-'}</Descriptions.Item>
+      <Descriptions.Item label="完成时间">{detail?.finishTime || '-'}</Descriptions.Item>
+      <Descriptions.Item label="执行人">{detail?.executedBy || '-'}</Descriptions.Item>
     </Descriptions>
   );
 };

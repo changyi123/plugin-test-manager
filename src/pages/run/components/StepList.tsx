@@ -30,7 +30,7 @@ export interface IStepItemProps {
 }
 
 export interface StepListProps {
-  detail: {
+  detail?: {
     runs: {
       steps: Array<IStepItem>;
     };
@@ -49,6 +49,7 @@ export const StepItem: React.FC<IStepItemProps> = ({ index, item, saveList }) =>
     },
     [item, saveList, index],
   );
+  console.log('item', item);
   return (
     <div className={css('step-list__item')}>
       <div className={css('left')}>
@@ -129,7 +130,7 @@ export const StepItem: React.FC<IStepItemProps> = ({ index, item, saveList }) =>
 };
 
 const StepList: React.FC<StepListProps> = ({ detail, objectId }) => {
-  const { steps } = detail.runs;
+  const { steps } = detail?.runs;
   const saveList = useCallback(
     (item: IStepItem, index: number) => {
       const detailBak = { ...detail };
@@ -142,9 +143,10 @@ const StepList: React.FC<StepListProps> = ({ detail, objectId }) => {
   );
   return (
     <div className={css('step-list')}>
-      {steps.map((item, index) => (
-        <StepItem item={item} key={index} index={index} saveList={saveList} />
-      ))}
+      {steps &&
+        steps?.map((item, index) => (
+          <StepItem item={item} key={index} index={index} saveList={saveList} />
+        ))}
     </div>
   );
 };

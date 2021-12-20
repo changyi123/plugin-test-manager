@@ -36,6 +36,7 @@ const GoPropsRoute = props => {
 };
 
 const App: React.FC = props => {
+  console.log('a a a aa a a aaaa', window);
   const qiankunContextValue: any = useMemo(
     () => ({
       ...props,
@@ -65,6 +66,7 @@ const App: React.FC = props => {
           </MemoryRouter>
         ) : (
           <HashRouter>
+            <GoPropsRoute {...props} />
             <Switch>
               <Suspense fallback={<div>Loading...</div>}>
                 {routes.map(({ path, component, exact }) => (
