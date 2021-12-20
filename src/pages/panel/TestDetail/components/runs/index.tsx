@@ -19,10 +19,7 @@ const Runs: React.FC = () => {
   if (loading) {
     return <Spin tip="加载中..."></Spin>;
   }
-  if (!data?.data?.length) {
-    return <Empty description="测试运行为空，请创建测试执行"></Empty>;
-  }
-  console.log('data?.data', data?.data);
+  // console.log('data?.data', data?.data);
 
   return (
     <RunsContext.Provider
