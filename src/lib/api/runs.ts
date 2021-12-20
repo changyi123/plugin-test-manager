@@ -234,7 +234,7 @@ export const CreateTestExecutionWithTestRun = () => {
           workspaceKey: workspaceKeyBak,
           fields: {
             runDetail: {
-              runs: testRuns.data,
+              runs: testRuns.data || [],
             },
             reference: Item.createWithoutData(itemIdBak),
             runReferenceDetail: Test.createWithoutData(testRuns?.data?.objectId),
@@ -269,6 +269,10 @@ export const CreateTestExecutionWithTestRun = () => {
   if (!loading && testRelationObj) {
     globalLoading = false;
   }
+  console.log('itemForTestExecution', itemForTestExecution);
+  console.log('testRuns', testRuns);
+  console.log('testRunObj', testRunObj);
+  console.log('testRelationObj', testRelationObj);
 
   return {
     run,
