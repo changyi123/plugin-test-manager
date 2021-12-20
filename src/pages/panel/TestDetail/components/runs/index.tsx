@@ -16,10 +16,10 @@ const Runs: React.FC = () => {
             trigger={<Button type="primary">新增测试执行</Button>}
             itemId={itemId}
           />
-          <ExtendTestExecutionModal
+          {/* <ExtendTestExecutionModal
             trigger={<Button type="primary">继承测试执行</Button>}
             itemId={itemId}
-          />
+          /> */}
         </Space>
       </div>
 
