@@ -26,7 +26,10 @@ const PanelTable: React.FC<PanelTableProps> = props => {
 
   const { tableProps, refresh } = useAntdTable(
     ({ current, pageSize }) => {
-      return getDataSource({ offset: (current - 1) * pageSize, limit: pageSize });
+      return getDataSource({
+        offset: (current - 1) * pageSize,
+        limit: pageSize,
+      });
     },
     { defaultPageSize: 10 },
   );
@@ -119,6 +122,7 @@ const PanelTable: React.FC<PanelTableProps> = props => {
         {...tableProps}
         {...restTableProps}
         pagination={{
+          ...tableProps.pagination,
           size: 'small',
           showTotal(total) {
             return `共${total}条数据`;

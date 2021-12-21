@@ -28,7 +28,7 @@ const Plan = () => {
 
   const tableDataSourceGetter = React.useCallback(
     async queryParams => {
-      const { list: testPlans, count } = await getTestEntitiesByRelation(
+      const { list: testPlans, total } = await getTestEntitiesByRelation(
         TestRelationType.PlanRelDetail,
         { to: testEntity },
         {
@@ -84,7 +84,7 @@ const Plan = () => {
       });
 
       return {
-        count,
+        total,
         list,
       };
     },
