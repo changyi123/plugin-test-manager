@@ -75,7 +75,7 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
   // 测试实体 key
   const sideKey = include[include.length - 1];
   // 从 relation 中获取测试实体， from or to 查批量数据
-  const getTestEntityByRelation = relation => relation?.get(sideKey);
+  const getTestEntityByRelation = relation => relation[sideKey];
 
   // 生成标准数据
   const buildReturnData = async list => {
