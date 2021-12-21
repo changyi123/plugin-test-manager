@@ -1,27 +1,19 @@
 import React from 'react';
 
-import { uniqueId } from 'lodash';
-import { Workspace } from '@/lib/types/App';
-import { Typography, message } from '@osui/ui';
-import { EllipsisOutlined, DownOutlined } from '@ant-design/icons';
-import { TestType, TestRelationType } from '@/lib/constants';
+import { Typography, message, Space, Button } from '@osui/ui';
+import { EllipsisOutlined } from '@ant-design/icons';
+import { TestRelationType } from '@/lib/constants';
 import PanelTable, { ActionType } from '../../../PanelTable';
 import DropDownButton from '@/components/panel/DropDownButton';
 import TestTableStatus from '@/pages/run/components/TestTableStatus';
-import { useTestConfig, useBaseAction } from '@/lib/hooks/useContext';
-import TestEntitySelectorModal, {
-  ActionType as SelectorActionType,
-} from '../../../TestEntitySelectorModal';
+import { useTestConfig } from '@/lib/hooks/useContext';
 import { getTestEntitiesByRelation, removeTestRelations } from '@/lib/api/common';
-import { createTestExecutionService, addTestDetailToPlanService } from './services';
 
 import cx from './index.less';
 
 const Test = () => {
   const { testEntity } = useTestConfig();
-  const { createItemUseModal } = useBaseAction();
   const tableActionRef = React.useRef<ActionType>();
-  const selectorModalRef = React.useRef<SelectorActionType>();
 
   const tableDataSourceGetter = React.useCallback(
     queryParams => {
@@ -33,45 +25,6 @@ const Test = () => {
     },
     [testEntity],
   );
-
-  // 创建测试执行
-  const createTestExecution = React.useCallback(async () => {
-    const token = uniqueId('TestPlan');
-    const res = await createItemUseModal({
-      extraData: { token },
-      // TODO: 测试执行 name
-      name: uniqueId('测试执行'),
-      type: TestType.TestExecution,
-    });
-
-    const { testEntity: testExecutionEntity, extraData } = res;
-    // token 不相同则不创建关联
-    if (extraData.token !== token) return;
-
-    const testExecutionData = testExecutionEntity.toJSON();
-
-    const testExecution = await createTestExecutionService({
-      testPlan: testEntity,
-      testExecution: testExecutionEntity,
-      workspaceKey: (testExecutionData.reference.workspace as Workspace).key,
-    });
-
-    console.info('testExecution', testExecution);
-  }, [createItemUseModal, testEntity]);
-
-  // 添加测试用例菜单
-  const testDetailMenuList = React.useMemo(() => {
-    return [
-      {
-        title: '已存在的测试用例',
-        onClick() {
-          selectorModalRef.current.open({
-            testType: TestType.TestDetail,
-          });
-        },
-      },
-    ];
-  }, []);
 
   const removeTestRelation = React.useCallback(async relationTypeIds => {
     if (!Array.isArray(relationTypeIds)) return;
@@ -141,43 +94,12 @@ const Test = () => {
     ];
   }, [removeTestRelation]);
 
-  // 添加测试执行菜单
-  const testExecutionMenuList = React.useMemo(() => {
-    return [
-      {
-        title: '所有测试用例',
-        onClick: createTestExecution,
-      },
-    ];
-  }, [createTestExecution]);
-
-  // 添加测试用例至测试计划
-  const addTestDetailToPlan = React.useCallback(
-    async testDetailIds => {
-      await addTestDetailToPlanService({
-        testPlan: testEntity,
-        testDetailIds,
-      });
-
-      tableActionRef.current.refresh();
-    },
-    [testEntity],
-  );
-
   return (
     <div className={cx('test')}>
-      <TestEntitySelectorModal
-        title="添加测试用例到当前测试计划"
-        onSelect={addTestDetailToPlan}
-        actionRef={selectorModalRef}
-      />
-      <DropDownButton menuList={testDetailMenuList}>
-        添加测试用例 <DownOutlined />
-      </DropDownButton>
-      <DropDownButton buttonProps={{ className: cx('btn-right') }} menuList={testExecutionMenuList}>
-        创建测试执行
-        <DownOutlined />
-      </DropDownButton>
+      <Space>
+        <Button type="primary">新增测试用例</Button>
+        <Button type="primary">添加测试用例</Button>
+      </Space>
       <PanelTable
         actionRef={tableActionRef}
         actionMenuList={[

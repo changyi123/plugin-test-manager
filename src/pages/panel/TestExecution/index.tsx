@@ -1,24 +1,22 @@
 import React from 'react';
 import { Tabs, Spin } from '@osui/ui';
 import { TestType } from '@/lib/constants';
+import { PanelItemId } from '@/devEnv';
+import { useSDK } from '@projectproxima/plugin-sdk';
+import TestManagerProvider from '@/components/common/TestManagerProvider';
 
 import cx from './index.less';
 
 const { TabPane } = Tabs;
 const PlanTabs = [
   {
-    tab: 'TODO：',
-    key: TestType.TestDetail,
-    Component: React.lazy(() => import('./components/Test')),
-  },
-  {
-    tab: 'TODO：',
+    tab: '测试执行',
     key: TestType.TestExecution,
-    Component: React.lazy(() => import('./components/Execution')),
+    Component: React.lazy(() => import('./components/Test')),
   },
 ];
 
-const TestPlan = () => {
+const TestExecution = () => {
   return (
     <div className={cx('plan')}>
       <Tabs destroyInactiveTabPane defaultActiveKey={TestType.TestDetail}>
@@ -34,4 +32,15 @@ const TestPlan = () => {
   );
 };
 
-export default React.memo(TestPlan);
+const TestExecutionPage = () => {
+  const { context } = useSDK();
+  const itemId = context?.itemId ?? PanelItemId;
+
+  return (
+    <TestManagerProvider itemId={itemId}>
+      <TestExecution />
+    </TestManagerProvider>
+  );
+};
+
+export default React.memo(TestExecutionPage);
