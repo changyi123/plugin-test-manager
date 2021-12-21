@@ -24,6 +24,7 @@ type TestEntitySelectorProps = {
 
 const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
   const { actionRef } = props;
+  const debounceSelectContainerRef = React.useRef();
   const [visible, setVisible] = useSafeState(false);
   const [selectValue, setSelectValue] = useSafeState([]);
   const [testType, setTestType] = useSafeState<TestType>();
@@ -110,15 +111,17 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
       visible={visible}
     >
       <p className={cx('hint')}>请输入并从列表中选择已存在的事项</p>
-      <DebounceSelect
-        mode="multiple"
-        value={selectValue}
-        className={cx('select')}
-        fetchOptions={getTestEntityByName}
-        onChange={value => setSelectValue(value)}
-        placeholder={props.placeholder ?? '选择事项'}
-        getPopupContainer={getRootContainer}
-      />
+      <div ref={debounceSelectContainerRef}>
+        <DebounceSelect
+          mode="multiple"
+          value={selectValue}
+          className={cx('select')}
+          fetchOptions={getTestEntityByName}
+          onChange={value => setSelectValue(value)}
+          placeholder={props.placeholder ?? '选择事项'}
+          getPopupContainer={() => debounceSelectContainerRef.current}
+        />
+      </div>
     </Modal>
   );
 };

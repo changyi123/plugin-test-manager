@@ -25,7 +25,7 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
   sides: Partial<Record<'from' | 'to', Array<PointerType> | PointerType>> = {},
   _config?: any,
 ): Promise<{
-  count: number;
+  total: number;
   list: TResponseList;
 }> => {
   const config = merge(
@@ -69,7 +69,7 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
 
   // 需要获取关联事项的实体
   query.include(includeKeys);
-  query.withCount(true);
+  query.withCount();
 
   if (config?.queryParams && typeof config?.queryParams === 'object') {
     const queryParams = config.queryParams;
@@ -87,7 +87,7 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
   const buildReturnData = async list => {
     const responseData = {
       list,
-      count,
+      total: count,
     };
     if (typeof config.resultTransfer === 'function') {
       // 响应数据处理
