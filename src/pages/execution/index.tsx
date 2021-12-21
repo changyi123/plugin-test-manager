@@ -1,48 +1,125 @@
 import React from 'react';
-import { Space, Button, Divider } from '@osui/ui';
-import TestRunsTable from '@/pages/panel/TestDetail/components/runs/components/Table';
 
+import { Typography, message, Space, Button } from '@osui/ui';
+import { EllipsisOutlined } from '@ant-design/icons';
+import { TestRelationType } from '@/lib/constants';
+import PanelTable, { ActionType } from '@/pages/panel/PanelTable/index';
+import DropDownButton from '@/components/panel/DropDownButton';
+import TestTableStatus from '@/pages/run/components/TestTableStatus';
+import { useTestConfig } from '@/lib/hooks/useContext';
+import { getTestEntitiesByRelation, removeTestRelations } from '@/lib/api/common';
+
+import cx from './index.less';
 import css from './index.less';
 
-const ExecutionPannel: React.FC = () => {
+const Test = () => {
+  const { testEntity } = useTestConfig();
+  const tableActionRef = React.useRef<ActionType>();
+  console.log('testEntity', testEntity);
+
+  const tableDataSourceGetter = React.useCallback(
+    queryParams => {
+      return getTestEntitiesByRelation(
+        TestRelationType.ExecutionRelRun,
+        { from: testEntity },
+        { fillItemData: true, queryParams: queryParams },
+      );
+    },
+    [testEntity],
+  );
+
+  const removeTestRelation = React.useCallback(async relationTypeIds => {
+    if (!Array.isArray(relationTypeIds)) return;
+    await removeTestRelations(relationTypeIds);
+
+    tableActionRef.current.refresh();
+
+    message.success('删除成功');
+  }, []);
+
+  // table column 数据
+  const tableColumns = React.useMemo(() => {
+    return [
+      {
+        title: '事项key',
+        key: 'reference.name',
+        width: 100,
+        render(_, record) {
+          const item = record?.reference;
+          return (
+            <Typography.Link
+              ellipsis={true}
+              target="_blank"
+              href={`/osc/workspaces/${item?.workspace?.key}/item/${item?.key}`}
+            >
+              {item?.key}
+            </Typography.Link>
+          );
+        },
+      },
+      {
+        title: '事项名',
+        key: 'reference.name',
+        render(_, record) {
+          const item = record?.reference;
+
+          return <Typography.Text ellipsis={{ tooltip: item?.name }}>{item?.name}</Typography.Text>;
+        },
+      },
+      {
+        title: '最新执行状态',
+        dataIndex: 'status',
+        key: 'status',
+        render: value => {
+          return <TestTableStatus readonly status={value ?? 'todo'} testId="" />;
+        },
+      },
+      {
+        title: '操作',
+        key: 'action',
+        render: (_, record) => (
+          <DropDownButton
+            buttonProps={{ type: 'text' }}
+            menuList={[
+              {
+                title: '删除',
+                onClick() {
+                  removeTestRelation([record.testRelationId]);
+                },
+              },
+            ]}
+          >
+            <EllipsisOutlined />
+          </DropDownButton>
+        ),
+      },
+    ];
+  }, [removeTestRelation]);
+
   return (
-    <div className={css('exe')}>
+    <div className={cx('test')}>
       <div className={css('exe__handle')}>
         <Space>
           <Button type="primary">新增测试用例</Button>
           <Button type="primary">添加测试用例</Button>
         </Space>
       </div>
-
-      <div className={css('exe__progress')}>
-        <div className={css('exe__progress__around')}>
-          <div className={css('exe__progress-outer')}>
-            <div className={css('exe__progress-inner')}>
-              <div className={css('exe__progress-bg')}>
-                <div className={css('exe__progress-bg__success')}></div>
-                <div className={css('exe__progress-bg__fail')}></div>
-                <div className={css('exe__progress-bg__ing')}></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className={css('exe__tips')}>
-          <Space split={<Divider type="vertical" />}>
-            <div>2个通过</div>
-            <div>2个失败</div>
-            <div>2个待执行</div>
-          </Space>
-
-          <div>总共测试用例有：22</div>
-        </div>
-      </div>
-
-      <div className={css('exe__table')}>
-        <TestRunsTable data="SzHLagi3vR"></TestRunsTable>
-      </div>
+      <PanelTable
+        actionRef={tableActionRef}
+        actionMenuList={[
+          {
+            title: '删除',
+            onClick(rows) {
+              removeTestRelation(rows.map(row => row.testRelationId));
+            },
+          },
+        ]}
+        rowKey="objectId"
+        columns={tableColumns}
+        getDataSource={tableDataSourceGetter}
+      />
     </div>
   );
 };
 
-export default ExecutionPannel;
+export default React.memo(Test);
