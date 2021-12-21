@@ -1,4 +1,4 @@
-import { Item, Workspace } from './App';
+import { Item } from './App';
 import { TestType } from '@/lib/constants';
 
 export type TestStep = {

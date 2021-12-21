@@ -3,7 +3,7 @@ import React from 'react';
 import { Typography, message, Space, Button } from '@osui/ui';
 import { EllipsisOutlined } from '@ant-design/icons';
 import { TestRelationType } from '@/lib/constants';
-import PanelTable, { ActionType } from '@/pages/panel/PanelTable/index';
+import PanelTable, { ActionType } from '@/components/panel/PanelTable/index';
 import DropDownButton from '@/components/panel/DropDownButton';
 import TestTableStatus from '@/pages/run/components/TestTableStatus';
 import { useTestConfig } from '@/lib/hooks/useContext';

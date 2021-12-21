@@ -2,16 +2,9 @@ import Parse from '@/lib/parse';
 import { keyBy, merge } from 'lodash';
 import { TestConfig } from '../models';
 import { getItemByIQL } from './proxima';
-import { hasArrayItem } from '@/lib/utils/helper';
 import { TestType, TestRelationType } from '@/lib/constants';
+import { hasArrayItem, pointerTransfer } from '@/lib/utils/helper';
 import { Workspace, Item, Test, TestRelation } from '@/lib/models';
-
-type PointerType = string | Parse.Object;
-
-/** 转换 pointer */
-const pointerTransfer = (parseModel, pointer: PointerType) => {
-  return typeof pointer === 'string' ? parseModel.createWithoutData(pointer) : pointer;
-};
 
 /** to/from -> pointer */
 const testRelationTypePointerTransfer = arr =>
@@ -35,6 +28,8 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
       // 需要填充 item 数据则自动转换未 json 格式
       fillItemData: false,
       include: [],
+      // 只需要测试实体数据，不需要关联关系数据
+      entityOnly: false,
       queryParams: { limit: 10, offset: 0, orderBy: 'createdAt' },
     },
     _config,
@@ -67,6 +62,11 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
     ? include.map(includeKey => `${relationSideKey}.${includeKey}`)
     : [relationSideKey];
 
+  // 如果有 select 事项追加至 query
+  if (config.entityOnly) {
+    query.select(relationSideKey);
+  }
+
   // 需要获取关联事项的实体
   query.include(includeKeys);
   query.withCount();
@@ -79,9 +79,6 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
   }
 
   const { results, count } = await query.find();
-
-  // 从 relation 中获取测试实体， from or to 查批量数据
-  const getTestEntityByRelation = relation => relation[relationSideKey];
 
   // 生成标准数据
   const buildReturnData = async list => {
@@ -101,13 +98,18 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
     const itemIds = [];
     const testEntitiesData = results.map(relation => {
       const relationData = relation.toJSON();
-      const testEntityData = getTestEntityByRelation(relationData);
-      itemIds.push(testEntityData.reference?.objectId);
+      // 从 relation 中获取测试实体， from or to 查批量数据
+      const testEntityData = relationData[relationSideKey];
+      itemIds.push(testEntityData?.reference?.objectId);
+
+      // 当前关联数据
+      const assignData = config.entityOnly
+        ? {}
+        : { relation: relationData, testRelationId: relationData.objectId };
+
       return {
         ...testEntityData,
-        // 当前关联数据
-        relation: relationData,
-        testRelationId: relationData.objectId,
+        ...assignData,
       };
     });
     if (!config?.fillItemData) return buildReturnData(testEntitiesData);
@@ -129,7 +131,7 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
 /**
  * 根据测试实体查询测试实体关联
  */
-export const getTestRelation = ({
+export const getAllTestRelations = ({
   from,
   to,
 }: Partial<Record<'from' | 'to', Array<string | Parse.Object>>>) => {
@@ -179,7 +181,7 @@ export const deleteTestEntities = (testEntities: Array<Parse.Object | string>) =
     typeof item === 'string' ? new Test({ objectId: item }) : item,
   );
   // 测试实体对应的关联关系也需要被删除
-  const testRelations = getTestRelation({ from: testEntities, to: testEntities });
+  const testRelations = getAllTestRelations({ from: testEntities, to: testEntities });
 
   return Promise.all([
     Parse.Object.destroyAll(testEntities),

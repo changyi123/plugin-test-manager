@@ -4,14 +4,13 @@ import { uniqueId } from 'lodash';
 import { Typography, message } from '@osui/ui';
 import { createTestPlanService } from './services';
 import { TestType, TestRelationType } from '@/lib/constants';
-import PanelTable, { ActionType } from '../../../PanelTable';
+import PanelTable, { ActionType } from '@/components/panel/PanelTable';
 import DropDownButton from '@/components/panel/DropDownButton';
 import { EllipsisOutlined, DownOutlined } from '@ant-design/icons';
-import TestTableStatus from '@/pages/run/components/TestTableStatus';
 import { useTestConfig, useBaseAction } from '@/lib/hooks/useContext';
 import TestEntitySelectorModal, {
   ActionType as SelectorActionType,
-} from '../../../TestEntitySelectorModal';
+} from '@/components/panel/TestEntitySelectorModal';
 import {
   createTestRelation,
   removeTestRelations,
@@ -161,15 +160,15 @@ const Plan = () => {
           return <Typography.Text ellipsis={{ tooltip: item?.name }}>{item?.name}</Typography.Text>;
         },
       },
-      {
-        title: '测试计划状态',
-        dataIndex: 'status',
-        key: 'status',
-        render: (_, record) => {
-          console.log(record);
-          return 1;
-        },
-      },
+      // {
+      //   title: '测试计划状态',
+      //   dataIndex: 'status',
+      //   key: 'status',
+      //   render: (_, record) => {
+      //     console.log(record);
+      //     return 1;
+      //   },
+      // },
       {
         title: '操作',
         key: 'action',

@@ -6,28 +6,29 @@ import { useSafeState, useRequest } from 'ahooks';
 import { getItemByIQL } from '@/lib/api/proxima';
 import DebounceSelect from '@/components/common/DebounceSelect';
 import { getAllTestConfigs, getTestEntityByItemId } from '@/lib/api/common';
-import { getRootContainer } from '@/lib/utils/helper';
 
 import cx from './index.less';
 
 export type ActionType = {
-  open: (params: { testType: TestType; ignoreWorkspaceKeys?: string[] }) => void;
+  open: (params?: { testType?: TestType; ignoreWorkspaceKeys?: string[] }) => void;
 };
 
 type TestEntitySelectorProps = {
   title?: string;
+  testType?: TestType;
   placeholder?: string;
   workspaceKey?: string;
+  ignoreTestEntityIds?: string[];
   onSelect?: (testIds: string[]) => void;
   actionRef?: React.ForwardedRef<ActionType>;
 };
 
 const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
-  const { actionRef } = props;
+  const { actionRef, ignoreTestEntityIds = [] } = props;
   const debounceSelectContainerRef = React.useRef();
   const [visible, setVisible] = useSafeState(false);
   const [selectValue, setSelectValue] = useSafeState([]);
-  const [testType, setTestType] = useSafeState<TestType>();
+  const [testType, setTestType] = useSafeState<TestType>(props.testType);
 
   // 获取租户测试类型关联的 itemType keys
   const { data: testTypeAssItemTypeKeys, runAsync: getTestTypeAssItemTypeKeys } = useRequest(
@@ -44,7 +45,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
       }, {}) as Record<TestType, string[]>;
     },
     {
-      // manual: true,
+      manual: true,
       cacheKey: 'allItemTypeMappings',
     },
   );
@@ -65,6 +66,10 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
         .map(testEntity => {
           const item = items.find(item => item.objectId === testEntity.reference?.objectId);
           if (!item) return;
+          // 在 ignoreTestEntityIds 列表的数据给过滤掉
+          if (ignoreTestEntityIds.includes(testEntity.objectId)) {
+            return;
+          }
           return {
             label: (
               <div>
@@ -87,7 +92,9 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
   React.useImperativeHandle(actionRef, () => ({
     async open(params) {
       setSelectValue([]);
-      setTestType(params.testType);
+      if (params?.testType) {
+        setTestType(params.testType);
+      }
       if (!testTypeAssItemTypeKeys) {
         await getTestTypeAssItemTypeKeys();
       }

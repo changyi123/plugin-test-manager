@@ -1,9 +1,9 @@
 import React from 'react';
 import { Table } from '@osui/ui';
+import { get, uniqBy } from 'lodash';
 import { TableProps } from 'antd/lib/table';
 import { DownOutlined } from '@ant-design/icons';
 import { hasArrayItem } from '@/lib/utils/helper';
-import { get, uniqBy } from 'lodash';
 import { useAntdTable, useGetState } from 'ahooks';
 import DropDownButton from '@/components/panel/DropDownButton';
 
@@ -69,7 +69,6 @@ const PanelTable: React.FC<PanelTableProps> = props => {
     }),
     [selectedRowKeys, setSelectedRowKeys],
   );
-  console.log('tableProps', tableProps);
 
   return (
     <div className={cx('table')}>
