@@ -6,3 +6,8 @@ export const getRootContainer = () => document.querySelector('#test-manager') as
 
 export const getKeyByValue = (object: Record<string, unknown>, value: unknown) =>
   findKey(object, val => isEqual(val, value));
+
+/** 转换 pointer */
+export const pointerTransfer = (parseModel, pointer: PointerType) => {
+  return typeof pointer === 'string' ? parseModel.createWithoutData(pointer) : pointer;
+};

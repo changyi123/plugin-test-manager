@@ -4,11 +4,11 @@ import { Typography, message, Button } from '@osui/ui';
 import { EllipsisOutlined } from '@ant-design/icons';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import { TestType, TestRelationType } from '@/lib/constants';
-import PanelTable, { ActionType } from '../../../PanelTable';
+import PanelTable, { ActionType } from '../../../../../components/panel/PanelTable';
 import DropDownButton from '@/components/panel/DropDownButton';
 import TestEntitySelectorModal, {
   ActionType as SelectorActionType,
-} from '../../../TestEntitySelectorModal';
+} from '@/components/panel/TestEntitySelectorModal';
 import { addTestExecutionToPlanService } from './service';
 import { getTestEntitiesByRelation, removeTestRelations } from '@/lib/api/common';
 
@@ -87,15 +87,15 @@ const Test = () => {
           return <Typography.Text ellipsis={{ tooltip: item?.name }}>{item?.name}</Typography.Text>;
         },
       },
-      {
-        title: '状态',
-        dataIndex: 'status',
-        key: 'status',
-        render: value => {
-          return 'TODO: status';
-          // return <TestTableStatus readonly status={value ?? 'todo'} />;
-        },
-      },
+      // {
+      //   title: '状态',
+      //   dataIndex: 'status',
+      //   key: 'status',
+      //   render: value => {
+      //     return 'TODO: status';
+      //     // return <TestTableStatus readonly status={value ?? 'todo'} />;
+      //   },
+      // },
       {
         title: '操作',
         key: 'action',

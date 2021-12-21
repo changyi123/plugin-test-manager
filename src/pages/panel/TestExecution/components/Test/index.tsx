@@ -1,18 +1,17 @@
 import React from 'react';
-
-import { Typography, message, Space, Button } from '@osui/ui';
+import { uniqueId } from 'lodash';
+import { Typography, message, Space } from '@osui/ui';
 import { EllipsisOutlined, DownOutlined } from '@ant-design/icons';
 import { TestType, TestRelationType } from '@/lib/constants';
-import PanelTable, { ActionType } from '../../../PanelTable';
+import PanelTable, { ActionType } from '../../../../../components/panel/PanelTable';
 import DropDownButton from '@/components/panel/DropDownButton';
 import TestTableStatus from '@/pages/run/components/TestTableStatus';
 import { useTestConfig, useBaseAction } from '@/lib/hooks/useContext';
 import { getTestEntitiesByRelation, removeTestRelations } from '@/lib/api/common';
 import TestEntitySelectorModal, {
   ActionType as SelectorActionType,
-} from '@/pages/panel/TestEntitySelectorModal';
+} from '@/components/panel/TestEntitySelectorModal';
 import { addTestRunToExecution } from './services';
-import { uniqueId } from 'lodash';
 
 import cx from './index.less';
 
@@ -69,8 +68,6 @@ const Test = () => {
     const { testEntity: testDetailEntity, extraData } = res;
     // token 不相同则不创建关联
     if (extraData.token !== token) return;
-    console.log('token', token);
-    console.log('res', res);
 
     // const testExecutionData = testDetailEntity.toJSON();
 
