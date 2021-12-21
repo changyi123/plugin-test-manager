@@ -1,13 +1,16 @@
 import React from 'react';
 
 import { Typography, message, Space, Button } from '@osui/ui';
-import { EllipsisOutlined } from '@ant-design/icons';
-import { TestRelationType } from '@/lib/constants';
+import { EllipsisOutlined, DownOutlined } from '@ant-design/icons';
+import { TestType, TestRelationType } from '@/lib/constants';
 import PanelTable, { ActionType } from '../../../PanelTable';
 import DropDownButton from '@/components/panel/DropDownButton';
 import TestTableStatus from '@/pages/run/components/TestTableStatus';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import { getTestEntitiesByRelation, removeTestRelations } from '@/lib/api/common';
+import TestEntitySelectorModal, {
+  ActionType as SelectorActionType,
+} from '@/pages/panel/TestEntitySelectorModal';
 
 import cx from './index.less';
 
@@ -15,12 +18,14 @@ const Test = () => {
   const { testEntity } = useTestConfig();
   const tableActionRef = React.useRef<ActionType>();
 
+  const selectorModalRef = React.useRef<SelectorActionType>();
+
   const tableDataSourceGetter = React.useCallback(
     queryParams => {
       return getTestEntitiesByRelation(
         TestRelationType.ExecutionRelRun,
         { from: testEntity },
-        { fillItemData: true, queryParams: queryParams },
+        { fillItemData: true, queryParams: queryParams, include: ['runReferenceDetail'] },
       );
     },
     [testEntity],
@@ -94,11 +99,48 @@ const Test = () => {
     ];
   }, [removeTestRelation]);
 
+  // 添加测试用例菜单
+  const testDetailMenuList = React.useMemo(() => {
+    return [
+      {
+        title: '已存在的测试用例',
+        onClick() {
+          selectorModalRef.current.open({
+            testType: TestType.TestDetail,
+          });
+        },
+      },
+    ];
+  }, []);
+
+  // 添加测试用例添加到测试执行
+  const addTestDetailToPlan = React.useCallback(
+    async testDetailIds => {
+      // await addTestDetailToPlanService({
+      //   testPlan: testEntity,
+      //   testDetailIds,
+      // });
+
+      console.log('testEntity', testEntity);
+      console.log('testDetailIds', testDetailIds);
+
+      tableActionRef.current.refresh();
+    },
+    [testEntity],
+  );
+
   return (
     <div className={cx('test')}>
+      <TestEntitySelectorModal
+        title="添加测试用例到当前测试计划"
+        onSelect={addTestDetailToPlan}
+        actionRef={selectorModalRef}
+      />
       <Space>
         <Button type="primary">新增测试用例</Button>
-        <Button type="primary">添加测试用例</Button>
+        <DropDownButton menuList={testDetailMenuList}>
+          添加测试用例 <DownOutlined />
+        </DropDownButton>
       </Space>
       <PanelTable
         actionRef={tableActionRef}
