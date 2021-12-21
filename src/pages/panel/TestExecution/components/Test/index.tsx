@@ -8,6 +8,7 @@ import DropDownButton from '@/components/panel/DropDownButton';
 import TestTableStatus from '@/pages/run/components/TestTableStatus';
 import { useTestConfig, useBaseAction } from '@/lib/hooks/useContext';
 import { getTestEntitiesByRelation, removeTestRelations } from '@/lib/api/common';
+import { getItemByIQL } from '@/lib/api/proxima';
 import TestEntitySelectorModal, {
   ActionType as SelectorActionType,
 } from '@/components/panel/TestEntitySelectorModal';
@@ -31,25 +32,6 @@ const Test = () => {
           fillItemData: true,
           queryParams: queryParams,
           include: ['runReferenceDetail'],
-          // async resultTransfer(data) {
-          //   const { list, count } = data;
-          //   const itemIds = list?.map(item => item?.runReferenceDetail?.reference?.objectId);
-          //   const itemListRes = await getItemByIQL({ itemId: itemIds });
-          //   const itemList = itemListRes.items;
-          //   const listBak = [...list];
-          //   listBak?.forEach(item => {
-          //     itemList?.forEach(item2 => {
-          //       if (item?.runReferenceDetail?.reference?.objectId === item2?.objectId) {
-          //         item.itemDetail = item2;
-          //       }
-          //     });
-          //   });
-          //   console.log('listBak', listBak);
-          //   return {
-          //     count,
-          //     list: listBak,
-          //   };
-          // },
         },
       );
     },
@@ -125,7 +107,7 @@ const Test = () => {
             <TestTableStatus
               status={value ?? 'todo'}
               testId={item.objectId}
-              change={() => tableActionRef.current.refresh()}
+              change={() => setTimeout(() => tableActionRef.current.refresh(), 0)}
             />
           );
         },
@@ -163,40 +145,30 @@ const Test = () => {
           });
         },
       },
-      {
-        title: '新增测试用例',
-        onClick() {
-          createTestDetail();
-        },
-      },
+      // {
+      //   title: '新增测试用例',
+      //   onClick() {
+      //     createTestDetail();
+      //   },
+      // },
     ];
   }, [createTestDetail]);
 
   // 添加测试用例添加到测试执行
   const addTestDetailToPlan = React.useCallback(
-    async testDetailIds => {
-      // await addTestDetailToPlanService({
-      //   testPlan: testEntity,
-      //   testDetailIds,
-      // });
-      if (testDetailIds.length) {
+    async testIds => {
+      if (testIds.length) {
         message.info('后台添加中...');
         addTestRunToExecution({
           testExecution: testEntity,
-          testDetailIds: testDetailIds,
+          testIds,
+        }).then(() => {
+          tableActionRef.current.refresh();
         });
-      } else {
-        message.info('后台添加中...');
-        addTestRunToExecution({
-          testExecution: testEntity,
-          testDetailIds: ['Zk9hORRAQN'],
-        });
+        return;
       }
 
-      // console.log('testEntity', testEntity.toJSON());
-      // console.log('testDetailIds', testDetailIds);
-
-      // tableActionRef.current.refresh();
+      tableActionRef.current.refresh();
     },
     [testEntity],
   );

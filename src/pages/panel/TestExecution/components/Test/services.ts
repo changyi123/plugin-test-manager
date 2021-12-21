@@ -1,5 +1,6 @@
 import { Test } from '@/lib/models';
 import { hasArrayItem } from '@/lib/utils/helper';
+import Parse from '@/lib/parse';
 import { TestType, TestRelationType } from '@/lib/constants';
 import {
   createTestRelation,
@@ -97,15 +98,26 @@ export const addTestDetailToPlanService = async (params: {
   return createTestRelation(relations);
 };
 
+export const getItemByTestId = (testIds: string[]): Promise<Array<Parse.Object>> => {
+  return new Promise(resolve => {
+    const query = new Parse.Query(Test);
+    query.containedIn('objectId', testIds);
+    query.include('reference');
+    query.find().then((itemObjs: Array<Parse.Object>) => {
+      resolve(itemObjs);
+    });
+  });
+};
+
 // 将测试run添加至测试执行
 export const addTestRunToExecution = async (params: {
   testExecution: Parse.Object;
-  testDetailIds: string[];
+  testIds: string[];
 }) => {
+  const itemObjs = await getItemByTestId(params.testIds);
+  const itemIds = itemObjs.map(item => item.toJSON()?.reference?.objectId);
   return new Promise((resolve, reject) => {
-    const callTestPromises = params.testDetailIds.map(
-      item => callback => createTestRunByItemId(item, callback),
-    );
+    const callTestPromises = itemIds.map(item => callback => createTestRunByItemId(item, callback));
 
     series(callTestPromises)
       .then((res: Array<Parse.Object>) => {
@@ -114,23 +126,15 @@ export const addTestRunToExecution = async (params: {
           from: params.testExecution,
           to: testRunObj.id,
         }));
-        console.log('relations', relations);
         return createTestRelation(relations);
       })
       .then(res => {
-        console.log('resaddTestRunToExecution-------', res);
-        resolve({});
+        resolve(res);
       })
       .catch(() => {
         reject({});
       });
   });
-  // const relations = params.testDetailIds.map(testDetailId => ({
-  //   relationType: TestRelationType.ExecutionRelRun,
-  //   from: params.testExecution,
-  //   to: testDetailId,
-  // }));
-  // return createTestRelation(relations);
 };
 
 export const createTestRunByItemId = async (
@@ -138,21 +142,9 @@ export const createTestRunByItemId = async (
   callback?: (nil: null, data: any) => void,
 ) => {
   return new Promise((resolve, reject) => {
-    console.log('laidao as dasd asd按时的撒旦阿萨德');
     getTestEntityByItemId(itemId).then(testEntity => {
-      console.log('testEntity----------', testEntity);
       return FetchAllTestStepByTestId(itemId)
         .then(({ data: testRuns }) => {
-          console.log('testRuns---------', testEntity?.toJSON(), testRuns, {
-            type: TestType.TestRun,
-            workspaceKey: testEntity?.toJSON()?.workspaceKey,
-            fields: {
-              runDetail: {
-                runs: testRuns || {},
-              },
-              runReferenceDetail: Test.createWithoutData(testRuns?.objectId),
-            },
-          });
           return createTestEntities([
             {
               type: TestType.TestRun,
@@ -161,13 +153,12 @@ export const createTestRunByItemId = async (
                 runDetail: {
                   runs: testRuns || {},
                 },
-                runReferenceDetail: Test.createWithoutData(testRuns?.data?.objectId),
+                runReferenceDetail: Test.createWithoutData(testRuns?.objectId),
               },
             },
           ]);
         })
         .then((data: Array<Parse.Object>) => {
-          console.log('data-----------', data);
           resolve(data[0]);
           callback && callback(null, data[0]);
         })

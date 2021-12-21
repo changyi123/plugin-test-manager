@@ -94,6 +94,10 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
   };
 
   // 需要填充 item 数据则自动转换未 json 格式，非批量数据不做处理
+  console.log(
+    'results',
+    results.map(i => i.toJSON()),
+  );
   if (Array.isArray(results)) {
     const itemIds = [];
     const testEntitiesData = results.map(relation => {
