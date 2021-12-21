@@ -194,6 +194,10 @@ let itemIdBak = '';
 
 export const CreateTestExecutionWithTestRun = () => {
   let globalLoading = false;
+  // 1.创建一个事项
+  // 2.根据测试用例的itemId拿到全部测试步骤
+  // 3.创建TestRun和TestExecution
+  // 4.创建TestRun和TestExecution的关联关系
   const {
     run,
     data: itemForTestExecution,

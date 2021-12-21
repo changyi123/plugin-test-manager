@@ -30,7 +30,6 @@ const Runs: React.FC = () => {
       <div className={css('runs')}>
         <div className={css('runs__new')}>
           <Space>
-            123
             <AddTestExecutionModal
               trigger={<Button type="primary">新增测试执行</Button>}
               itemId={itemId}

@@ -9,11 +9,12 @@ import { RunsContext } from '@/pages/panel/TestDetail/components/runs';
 
 import css from './TestStatus.less';
 
-const TestTableStatus: React.FC<{ status: IColor; testId: string; readonly?: boolean }> = ({
-  status,
-  testId,
-  readonly = false,
-}) => {
+const TestTableStatus: React.FC<{
+  status: IColor;
+  testId: string;
+  readonly?: boolean;
+  change?: () => void;
+}> = ({ status, testId, readonly = false, change }) => {
   const [itemStatus, setItemStatus] = useMergedState<IColor>(status, {
     value: status,
   });
@@ -38,9 +39,10 @@ const TestTableStatus: React.FC<{ status: IColor; testId: string; readonly?: boo
       const { key } = info;
       run(testId, key as IColor);
       setItemStatus(key as IColor);
+      change && change();
       refresh && refresh();
     },
-    [testId, run, setItemStatus, refresh],
+    [testId, run, setItemStatus, refresh, change],
   );
 
   const menu = (
