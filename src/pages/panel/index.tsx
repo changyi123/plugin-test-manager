@@ -2,6 +2,7 @@ import React from 'react';
 
 import TestPlan from './TestPlan';
 import TestDetail from './TestDetail';
+import TestExecution from './TestExecution';
 import { TestType } from '@/lib/constants';
 import { PanelItemId } from '@/devEnv';
 import { useSDK } from '@projectproxima/plugin-sdk';
@@ -14,6 +15,7 @@ import cx from './index.less';
 const TestPanelComponents = {
   [TestType.TestDetail]: TestDetail,
   [TestType.TestPlan]: TestPlan,
+  [TestType.TestExecution]: TestExecution,
 };
 
 const TestPanel = () => {

@@ -1,4 +1,4 @@
 // 事项id
-export const PanelItemId = 'XA0DMVfpgR';
+export const PanelItemId = 'NMCSt8hesi';
 // 空间 key
 export const WorkspaceKey = 'TEST_MANAGE_1';
