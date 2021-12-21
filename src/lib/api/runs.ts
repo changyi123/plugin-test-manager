@@ -13,7 +13,7 @@ import { IRunDetail } from '@/pages/run';
 import { IColor } from '@/pages/run/components/TestStatus';
 import { getItemByIQL } from '@/lib/api/proxima';
 
-export const GetTestRunsById = (itemId: string): Promise<ICommonRes> => {
+export const GetTestRunsById = (itemId: string): Promise<{ list: any; total: number }> => {
   return new Promise((resolve, reject) => {
     const query = new Parse.Query(Test);
     const reference = Test.createWithoutData(itemId);
@@ -43,13 +43,14 @@ export const GetTestRunsById = (itemId: string): Promise<ICommonRes> => {
               item.testRunId = testRunRes[index].toJSON().objectId;
               dataBak.push(item);
             });
+            console.log('dataBak', dataBak);
             // console.log(
             //   'data---------',
             //   testRunRes.map(item => item.toJSON()),
             // );
             resolve({
-              success: true,
-              data: dataBak,
+              list: dataBak,
+              total: dataBak.length,
             });
           });
         },

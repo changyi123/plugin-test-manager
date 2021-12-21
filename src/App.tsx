@@ -63,7 +63,6 @@ const App: React.FC = props => {
           </MemoryRouter>
         ) : (
           <HashRouter>
-            <GoPropsRoute {...props} />
             <Switch>
               <Suspense fallback={<div>Loading...</div>}>
                 {routes.map(({ path, component, exact }) => (
