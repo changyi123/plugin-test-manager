@@ -32,17 +32,16 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
     {
       // 响应数据处理
       resultTransfer: data => data,
-      // 返回数据数据格式是 json
-      toJSON: true,
       // 需要填充 item 数据则自动转换未 json 格式
       fillItemData: false,
+      include: [],
       queryParams: { limit: 10, offset: 0, orderBy: 'createdAt' },
     },
     _config,
   );
   // 查询必须要要有关联类型
   if (!relType) return;
-  const include = [];
+  const include = config.include;
   const query = new Parse.Query(TestRelation).equalTo('relationType', relType);
 
   Object.entries(sides).forEach(([sideKey, side]) => {
@@ -73,9 +72,10 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
 
   const { results, count } = await query.find();
 
-  // from or to 则查批量数据，from and to 查一条数据
-  const getTestEntityByRelation = relation =>
-    include.length === 1 ? relation?.[include[0]] ?? relation?.get(include[0]) : relation;
+  // 测试实体 key
+  const sideKey = include[include.length - 1];
+  // 从 relation 中获取测试实体， from or to 查批量数据
+  const getTestEntityByRelation = relation => relation?.get(sideKey);
 
   // 生成标准数据
   const buildReturnData = async list => {
@@ -91,7 +91,7 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
   };
 
   // 需要填充 item 数据则自动转换未 json 格式，非批量数据不做处理
-  if (config?.toJSON && Array.isArray(results) && include.length === 1) {
+  if (Array.isArray(results)) {
     const itemIds = [];
     const testEntitiesData = results.map(relation => {
       const relationData = relation.toJSON();
@@ -116,11 +116,8 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
     });
     return buildReturnData(testEntitiesDataWithItemData);
   }
-
-  return {
-    count,
-    list: results.map(getTestEntityByRelation),
-  };
+  // 异常响应数据兼容处理
+  return buildReturnData([]);
 };
 
 /**
