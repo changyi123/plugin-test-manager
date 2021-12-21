@@ -102,7 +102,12 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
     const testEntitiesData = results.map(relation => {
       const relationData = relation.toJSON();
       const testEntityData = getTestEntityByRelation(relationData);
-      itemIds.push(testEntityData.reference?.objectId);
+      // 第二个||是适配于没有事项的
+      console.log('testEntityData', testEntityData);
+      // 防止为空
+      if (testEntityData.reference?.objectId) {
+        itemIds.push(testEntityData.reference?.objectId);
+      }
       return {
         ...testEntityData,
         // 当前关联数据

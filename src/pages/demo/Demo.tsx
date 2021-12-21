@@ -4,7 +4,7 @@ import Parse from '@/lib/parse';
 
 const Demo: React.FC = () => {
   const handleClick = async () => {
-    await Parse.User.logIn('testmanager', 'testmanager');
+    await Parse.User.logIn('onion', '123456');
     message.success('登录成功');
   };
   return (

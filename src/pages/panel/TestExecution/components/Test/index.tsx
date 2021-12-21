@@ -192,14 +192,14 @@ const Test = () => {
         message.info('后台添加中...');
         addTestRunToExecution({
           testExecution: testEntity,
-          testDetailIds: ['HiLvqadc84'],
+          testDetailIds: ['Zk9hORRAQN'],
         });
       }
 
       // console.log('testEntity', testEntity.toJSON());
       // console.log('testDetailIds', testDetailIds);
 
-      tableActionRef.current.refresh();
+      // tableActionRef.current.refresh();
     },
     [testEntity],
   );

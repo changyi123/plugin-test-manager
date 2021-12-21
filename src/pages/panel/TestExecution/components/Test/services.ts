@@ -8,6 +8,7 @@ import {
   getTestEntityByItemId,
 } from '@/lib/api/common';
 import { FetchAllTestStepByTestId } from '@/lib/api/runs';
+import series from 'async/series';
 
 /**
  * 创建测试运行
@@ -101,29 +102,64 @@ export const addTestRunToExecution = async (params: {
   testExecution: Parse.Object;
   testDetailIds: string[];
 }) => {
+  return new Promise((resolve, reject) => {
+    const callTestPromises = params.testDetailIds.map(
+      item => callback => createTestRunByItemId(item, callback),
+    );
+
+    series(callTestPromises)
+      .then((res: Array<Parse.Object>) => {
+        const relations = res?.map(testRunObj => ({
+          relationType: TestRelationType.ExecutionRelRun,
+          from: params.testExecution,
+          to: testRunObj.id,
+        }));
+        console.log('relations', relations);
+        return createTestRelation(relations);
+      })
+      .then(res => {
+        console.log('resaddTestRunToExecution-------', res);
+        resolve({});
+      })
+      .catch(() => {
+        reject({});
+      });
+  });
   // const relations = params.testDetailIds.map(testDetailId => ({
   //   relationType: TestRelationType.ExecutionRelRun,
   //   from: params.testExecution,
   //   to: testDetailId,
   // }));
   // return createTestRelation(relations);
-  createTestRunByItemId(params.testDetailIds[0]);
 };
 
-export const createTestRunByItemId = async (itemId: string) => {
+export const createTestRunByItemId = async (
+  itemId: string,
+  callback?: (nil: null, data: any) => void,
+) => {
   return new Promise((resolve, reject) => {
+    console.log('laidao as dasd asd按时的撒旦阿萨德');
     getTestEntityByItemId(itemId).then(testEntity => {
       console.log('testEntity----------', testEntity);
-      return FetchAllTestStepByTestId(testEntity.id)
+      return FetchAllTestStepByTestId(itemId)
         .then(({ data: testRuns }) => {
-          console.log('testRuns---------', testRuns);
+          console.log('testRuns---------', testEntity?.toJSON(), testRuns, {
+            type: TestType.TestRun,
+            workspaceKey: testEntity?.toJSON()?.workspaceKey,
+            fields: {
+              runDetail: {
+                runs: testRuns || {},
+              },
+              runReferenceDetail: Test.createWithoutData(testRuns?.objectId),
+            },
+          });
           return createTestEntities([
             {
               type: TestType.TestRun,
-              workspaceKey: testEntity?.toJSON()?.reference?.workspace?.name,
+              workspaceKey: testEntity?.toJSON()?.workspaceKey,
               fields: {
                 runDetail: {
-                  runs: testRuns.data || [],
+                  runs: testRuns || {},
                 },
                 runReferenceDetail: Test.createWithoutData(testRuns?.data?.objectId),
               },
@@ -133,6 +169,7 @@ export const createTestRunByItemId = async (itemId: string) => {
         .then((data: Array<Parse.Object>) => {
           console.log('data-----------', data);
           resolve(data[0]);
+          callback && callback(null, data[0]);
         })
         .catch(e => {
           reject({ ...e });
