@@ -95,7 +95,7 @@ const Plan = () => {
   const testPlanMenuList = React.useMemo(() => {
     return [
       {
-        title: '已存在的测试用例',
+        title: '已存在的测试计划',
         onClick() {
           selectorModalRef.current.open({
             testType: TestType.TestPlan,

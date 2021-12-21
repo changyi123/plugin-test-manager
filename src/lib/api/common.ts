@@ -41,9 +41,12 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
   );
   // 查询必须要要有关联类型
   if (!relType) return;
+  // 测试实体 key
+  let relationSideKey = '';
   const include = config.include;
   const query = new Parse.Query(TestRelation).equalTo('relationType', relType);
 
+  // 只支持单方关联查询
   Object.entries(sides).forEach(([sideKey, side]) => {
     // 支持数组的关联关系查询
     if (Array.isArray(side)) {
@@ -56,11 +59,16 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
       from: 'to',
       to: 'from',
     };
-    include.push(sideMapping[sideKey]);
+    relationSideKey = sideMapping[sideKey];
   });
 
+  // 如果 include 不是一个数组则用默认的 include
+  const includeKeys = hasArrayItem(include)
+    ? include.map(includeKey => `${relationSideKey}.${includeKey}`)
+    : [relationSideKey];
+
   // 需要获取关联事项的实体
-  query.include(include);
+  query.include(includeKeys);
   query.withCount(true);
 
   if (config?.queryParams && typeof config?.queryParams === 'object') {
@@ -72,10 +80,8 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
 
   const { results, count } = await query.find();
 
-  // 测试实体 key
-  const sideKey = include[include.length - 1];
   // 从 relation 中获取测试实体， from or to 查批量数据
-  const getTestEntityByRelation = relation => relation[sideKey];
+  const getTestEntityByRelation = relation => relation[relationSideKey];
 
   // 生成标准数据
   const buildReturnData = async list => {
