@@ -10,6 +10,8 @@ import { GetTestRunDetail } from '@/lib/api/runs';
 import { useRequest } from 'ahooks';
 
 import css from './index.less';
+
+const { Paragraph } = Typography;
 export interface ITestInfo {
   topic: string;
   content: string;
@@ -33,13 +35,40 @@ export interface IRunDetail {
 }
 
 const TestInfo: React.FC<TestInfoContent> = ({ detail }) => {
+  const [info, setInfo] = useState<TestInfoContent['detail']>(detail);
+  const changeStr = (key: keyof TestInfoContent['detail'], value: string) => {
+    setInfo({
+      ...info,
+      [key]: value,
+    });
+  };
   return (
     <Descriptions title="执行信息">
-      <Descriptions.Item label="开始时间">{detail?.startTime || '-'}</Descriptions.Item>
-      <Descriptions.Item label="负责人">{detail?.assignee || '-'}</Descriptions.Item>
-      <Descriptions.Item label="版本">{detail?.version || '-'}</Descriptions.Item>
-      <Descriptions.Item label="完成时间">{detail?.finishTime || '-'}</Descriptions.Item>
-      <Descriptions.Item label="执行人">{detail?.executedBy || '-'}</Descriptions.Item>
+      <Descriptions.Item label="开始时间">
+        <Paragraph editable={{ onChange: (val: string) => changeStr('startTime', val) }}>
+          {info?.startTime || '-'}
+        </Paragraph>
+      </Descriptions.Item>
+      <Descriptions.Item label="负责人">
+        <Paragraph editable={{ onChange: (val: string) => changeStr('assignee', val) }}>
+          {info?.assignee || '-'}
+        </Paragraph>
+      </Descriptions.Item>
+      <Descriptions.Item label="版本">
+        <Paragraph editable={{ onChange: (val: string) => changeStr('version', val) }}>
+          {info?.version || '-'}
+        </Paragraph>
+      </Descriptions.Item>
+      <Descriptions.Item label="完成时间">
+        <Paragraph editable={{ onChange: (val: string) => changeStr('finishTime', val) }}>
+          {info?.finishTime || '-'}
+        </Paragraph>
+      </Descriptions.Item>
+      <Descriptions.Item label="执行人">
+        <Paragraph editable={{ onChange: (val: string) => changeStr('executedBy', val) }}>
+          {info?.executedBy || '-'}
+        </Paragraph>
+      </Descriptions.Item>
     </Descriptions>
   );
 };
