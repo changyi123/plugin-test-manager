@@ -66,6 +66,7 @@ const PanelTable: React.FC<PanelTableProps> = props => {
     }),
     [selectedRowKeys, setSelectedRowKeys],
   );
+  console.log('tableProps', tableProps);
 
   return (
     <div className={cx('table')}>

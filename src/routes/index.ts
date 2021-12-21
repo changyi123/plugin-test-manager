@@ -26,7 +26,7 @@ const routes = [
   },
   {
     path: '/testExecution',
-    component: React.lazy(() => import('../pages/execution')),
+    component: React.lazy(() => import('../pages/panel/TestExecution')),
   },
 ];
 
