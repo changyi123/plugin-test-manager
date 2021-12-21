@@ -5,7 +5,9 @@ import {
   createTestRelation,
   createTestEntities,
   getTestEntitiesByRelation,
+  getTestEntityByItemId,
 } from '@/lib/api/common';
+import { FetchAllTestStepByTestId } from '@/lib/api/runs';
 
 /**
  * 创建测试运行
@@ -95,3 +97,46 @@ export const addTestDetailToPlanService = async (params: {
 };
 
 // 将测试run添加至测试执行
+export const addTestRunToExecution = async (params: {
+  testExecution: Parse.Object;
+  testDetailIds: string[];
+}) => {
+  // const relations = params.testDetailIds.map(testDetailId => ({
+  //   relationType: TestRelationType.ExecutionRelRun,
+  //   from: params.testExecution,
+  //   to: testDetailId,
+  // }));
+  // return createTestRelation(relations);
+  createTestRunByItemId(params.testDetailIds[0]);
+};
+
+export const createTestRunByItemId = async (itemId: string) => {
+  return new Promise((resolve, reject) => {
+    getTestEntityByItemId(itemId).then(testEntity => {
+      console.log('testEntity----------', testEntity);
+      return FetchAllTestStepByTestId(testEntity.id)
+        .then(({ data: testRuns }) => {
+          console.log('testRuns---------', testRuns);
+          return createTestEntities([
+            {
+              type: TestType.TestRun,
+              workspaceKey: testEntity?.toJSON()?.reference?.workspace?.name,
+              fields: {
+                runDetail: {
+                  runs: testRuns.data || [],
+                },
+                runReferenceDetail: Test.createWithoutData(testRuns?.data?.objectId),
+              },
+            },
+          ]);
+        })
+        .then((data: Array<Parse.Object>) => {
+          console.log('data-----------', data);
+          resolve(data[0]);
+        })
+        .catch(e => {
+          reject({ ...e });
+        });
+    });
+  });
+};
