@@ -24,7 +24,7 @@ export interface RunItem {
   key: string;
   name: string;
   status: string;
-  referenceId: string;
+  referenceKey: string;
   testRunId: string;
   referenceName: string;
   testRelationId: string;
@@ -62,7 +62,7 @@ const Runs: React.FC = () => {
             (item as any)?.reference.key
           }`}
         >
-          {item.referenceId}
+          {item.referenceKey}
         </Typography.Link>
       ),
     },
