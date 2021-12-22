@@ -30,13 +30,16 @@ const { sessionToken } = JSON.parse(localStorage.getItem('Parse/proxima-core/cur
 const id = process.env.PROXIMA_APP_ID;
 
 const config: AxiosRequestConfig = {
-  baseURL: process.env.PROXIMA_BASE_URL,
   timeout: 15 * 1000,
   headers: {
     'X-Parse-Application-Id': id,
     'X-Parse-Session-Token': sessionToken,
   },
 };
+
+if (process.env.NODE_ENV === 'development') {
+  config.baseURL = process.env.PROXIMA_BASE_URL;
+}
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
 const fetch = <FetchInstance>axios.create(config);
