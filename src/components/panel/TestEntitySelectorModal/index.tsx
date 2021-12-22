@@ -1,6 +1,6 @@
 import React from 'react';
-import { uniq } from 'lodash';
 import { Modal } from '@osui/ui';
+import { uniq, uniqBy } from 'lodash';
 import { TestType } from '@/lib/constants';
 import { useSafeState, useRequest } from 'ahooks';
 import { getItemByIQL } from '@/lib/api/proxima';
@@ -61,7 +61,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
 
       const itemIds = items.map(item => item.objectId);
       const testEntities = await getTestEntityByItemId(itemIds);
-      const testEntitiesData = testEntities.map(item => item.toJSON());
+      const testEntitiesData = uniqBy(testEntities.map(item => item.toJSON()) as any[], 'objectId');
       return testEntitiesData
         .map(testEntity => {
           const item = items.find(item => item.objectId === testEntity.reference?.objectId);
