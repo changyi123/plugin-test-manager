@@ -117,7 +117,7 @@ const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
     return <Empty description="测试运行为空"></Empty>;
   }
 
-  if (!data?.data || !data?.data?.runDetail?.runs?.steps) {
+  if (!data?.data?.runDetail?.runs) {
     checkRunInit();
     return <Spin tip="初始化runs中..."></Spin>;
   }
