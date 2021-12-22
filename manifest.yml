@@ -57,9 +57,16 @@ tables:
         type: String
       type:
         type: String
+      status:
+        type: String
       steps:
         type: Array
       extra:
+        type: Object
+      runReferenceDetail:
+        type: Pointer
+        targetClass: test_manager_Test
+      runDetail:
         type: Object
   - className: Activity
     fields:
@@ -80,7 +87,7 @@ tables:
       from:
         type: Pointer
         isAppClass: true
-        targetClass: Test
+        targetClass: test_manager_Test
       to:
         type: Pointer
         isAppClass: true

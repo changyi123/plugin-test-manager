@@ -945,12 +945,12 @@
     "@babel/plugin-transform-react-jsx-development" "^7.14.5"
     "@babel/plugin-transform-react-pure-annotations" "^7.14.5"
 
-"@babel/runtime-corejs3@7.14.7":
-  version "7.14.7"
-  resolved "https://registry.npmmirror.com/@babel/runtime-corejs3/download/@babel/runtime-corejs3-7.14.7.tgz#0ef292bbce40ca00f874c9724ef175a12476465c"
-  integrity sha1-DvKSu85AygD4dMlyTvF1oSR2Rlw=
+"@babel/runtime-corejs3@7.14.6":
+  version "7.14.6"
+  resolved "https://registry.npmmirror.com/@babel/runtime-corejs3/download/@babel/runtime-corejs3-7.14.6.tgz#066b966eda40481740180cb3caab861a3f208cd3"
+  integrity sha1-BmuWbtpASBdAGAyzyquGGj8gjNM=
   dependencies:
-    core-js-pure "^3.15.0"
+    core-js-pure "^3.14.0"
     regenerator-runtime "^0.13.4"
 
 "@babel/runtime-corejs3@^7.10.2":
@@ -961,7 +961,14 @@
     core-js-pure "^3.16.0"
     regenerator-runtime "^0.13.4"
 
-"@babel/runtime@7.15.4", "@babel/runtime@^7.0.0", "@babel/runtime@^7.1.2", "@babel/runtime@^7.10.1", "@babel/runtime@^7.10.2", "@babel/runtime@^7.10.4", "@babel/runtime@^7.11.1", "@babel/runtime@^7.11.2", "@babel/runtime@^7.12.1", "@babel/runtime@^7.12.13", "@babel/runtime@^7.12.5", "@babel/runtime@^7.8.4":
+"@babel/runtime@7.14.8":
+  version "7.14.8"
+  resolved "https://registry.npmmirror.com/@babel/runtime/download/@babel/runtime-7.14.8.tgz#7119a56f421018852694290b9f9148097391b446"
+  integrity sha1-cRmlb0IQGIUmlCkLn5FICXORtEY=
+  dependencies:
+    regenerator-runtime "^0.13.4"
+
+"@babel/runtime@^7.0.0", "@babel/runtime@^7.1.2", "@babel/runtime@^7.10.1", "@babel/runtime@^7.10.2", "@babel/runtime@^7.10.4", "@babel/runtime@^7.11.1", "@babel/runtime@^7.11.2", "@babel/runtime@^7.12.1", "@babel/runtime@^7.12.13", "@babel/runtime@^7.12.5", "@babel/runtime@^7.8.4":
   version "7.15.4"
   resolved "https://registry.npmmirror.com/@babel/runtime/download/@babel/runtime-7.15.4.tgz?cache=0&sync_timestamp=1636495247319&other_urls=https%3A%2F%2Fregistry.npmmirror.com%2F%40babel%2Fruntime%2Fdownload%2F%40babel%2Fruntime-7.15.4.tgz"
   integrity sha1-/RfRa/34eObdAtGXU6OfqKjZyEo=
@@ -3137,10 +3144,10 @@ core-js-compat@^3.14.0, core-js-compat@^3.16.0:
     browserslist "^4.16.7"
     semver "7.0.0"
 
-core-js-pure@^3.15.0:
-  version "3.19.1"
-  resolved "https://registry.npmmirror.com/core-js-pure/download/core-js-pure-3.19.1.tgz#edffc1fc7634000a55ba05e95b3f0fe9587a5aa4"
-  integrity sha1-7f/B/HY0AApVugXpWz8P6Vh6WqQ=
+core-js-pure@^3.14.0:
+  version "3.20.0"
+  resolved "https://registry.npmmirror.com/core-js-pure/download/core-js-pure-3.20.0.tgz#7253feccf8bb05b72c153ddccdbe391ddbffbe03"
+  integrity sha512-qsrbIwWSEEYOM7z616jAVgwhuDDtPLwZSpUsU3vyUkHYqKTf/uwOJBZg2V7lMurYWkpVlaVOxBrfX0Q3ppvjfg==
 
 core-js-pure@^3.16.0:
   version "3.16.2"
@@ -5845,17 +5852,17 @@ parse-node-version@^1.0.1:
   resolved "https://registry.npm.taobao.org/parse-node-version/download/parse-node-version-1.0.1.tgz"
   integrity sha1-4rXb7eAOf6m8NjYH9TMn6LBzGJs=
 
-parse@^3.4.0:
-  version "3.4.0"
-  resolved "https://registry.npmmirror.com/parse/download/parse-3.4.0.tgz#de39edd0918ae77baed9c249793d4a09bb734d14"
-  integrity sha1-3jnt0JGK53uu2cJJeT1KCbtzTRQ=
+parse@3.3.1:
+  version "3.3.1"
+  resolved "https://registry.npmmirror.com/parse/download/parse-3.3.1.tgz#01d5be56879349db5045a6943648a37a6e336ed9"
+  integrity sha1-AdW+VoeTSdtQRaaUNkijem4zbtk=
   dependencies:
-    "@babel/runtime" "7.15.4"
-    "@babel/runtime-corejs3" "7.14.7"
+    "@babel/runtime" "7.14.8"
+    "@babel/runtime-corejs3" "7.14.6"
     idb-keyval "5.0.6"
     react-native-crypto-js "1.0.0"
     uuid "3.4.0"
-    ws "7.5.1"
+    ws "7.5.0"
     xmlhttprequest "1.8.0"
   optionalDependencies:
     crypto-js "4.1.1"
@@ -8191,10 +8198,10 @@ wrappy@1:
   resolved "https://registry.nlark.com/wrappy/download/wrappy-1.0.2.tgz"
   integrity sha1-tSQ9jz7BqjXxNkYFvA0QNuMKtp8=
 
-ws@7.5.1:
-  version "7.5.1"
-  resolved "https://registry.npmmirror.com/ws/download/ws-7.5.1.tgz#44fc000d87edb1d9c53e51fbc69a0ac1f6871d66"
-  integrity sha1-RPwADYftsdnFPlH7xpoKwfaHHWY=
+ws@7.5.0:
+  version "7.5.0"
+  resolved "https://registry.npmmirror.com/ws/download/ws-7.5.0.tgz#0033bafea031fb9df041b2026fc72a571ca44691"
+  integrity sha1-ADO6/qAx+53wQbICb8cqVxykRpE=
 
 ws@^8.1.0:
   version "8.2.0"
