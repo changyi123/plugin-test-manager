@@ -43,7 +43,7 @@ export const GetTestRunsById = (itemId: string): Promise<{ list: any; total: num
               item.testRunId = testRunRes[index].toJSON().objectId;
               dataBak.push(item);
             });
-            console.log('dataBak', dataBak);
+            // console.log('dataBak', dataBak);
             // console.log(
             //   'data---------',
             //   testRunRes.map(item => item.toJSON()),
@@ -248,7 +248,9 @@ export const CreateTestExecutionWithTestRun = () => {
           type: TestType.TestExecution,
           workspaceKey: workspaceKeyBak,
           fields: {
-            reference: itemForTestExecution,
+            reference: Item.createWithoutData(
+              (itemForTestExecution as any)?.toJSON()?.reference?.objectId,
+            ),
           },
         },
       ]),
@@ -287,11 +289,8 @@ export const CreateTestExecutionWithItemModal = (
   testExecutionEntity: Parse.Object,
 ) => {
   return new Promise((resolve, reject) => {
-    console.log('itemId', itemId);
-    console.log('testExecutionEntity', testExecutionEntity);
     FetchAllTestStepByTestId(itemId)
       .then(testRuns => {
-        console.log('testRuns', testRuns);
         return createTestEntities([
           {
             type: TestType.TestRun,
@@ -299,7 +298,7 @@ export const CreateTestExecutionWithItemModal = (
             fields: {
               runDetail: {
                 runs: {
-                  steps: testRuns.data.steps || [],
+                  steps: testRuns?.data?.steps || [],
                 },
               },
               runReferenceDetail: Test.createWithoutData(testRuns?.data?.objectId),
@@ -309,13 +308,12 @@ export const CreateTestExecutionWithItemModal = (
             type: TestType.TestExecution,
             workspaceKey: testRuns?.data?.reference?.workspace?.key,
             fields: {
-              reference: testExecutionEntity,
+              reference: Item.createWithoutData(testExecutionEntity?.toJSON()?.reference?.objectId),
             },
           },
         ]);
       })
       .then(testRunObj => {
-        console.log('testRunObj', testRunObj);
         return createTestRelation([
           {
             relationType: TestRelationType.ExecutionRelRun,
@@ -327,7 +325,8 @@ export const CreateTestExecutionWithItemModal = (
       .then(() => {
         resolve({});
       })
-      .catch(() => {
+      .catch(err => {
+        console.error('err.aaaaamessage', err.message);
         reject({});
       });
   });
@@ -373,7 +372,6 @@ export const GetTestRunDetail = (testId: string): Promise<ICommonRes> => {
         const {
           items: [item],
         } = await getItemByIQL({ itemId });
-        console.log('res', res);
         resolve({
           success: true,
           data: {
