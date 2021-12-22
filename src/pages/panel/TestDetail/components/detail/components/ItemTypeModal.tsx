@@ -11,6 +11,7 @@ import {
 import useMergedState from 'rc-util/lib/hooks/useMergedState';
 import { IActionCard } from '..';
 import { TestType } from '@/lib/constants';
+import { useTestConfig } from '@/lib/hooks/useContext';
 
 type ItemTypelModelProps = {
   trigger?: JSX.Element;
@@ -34,7 +35,8 @@ let currentIndex = 0;
 let currentTestId = '';
 
 const ItemTypeModalContent: React.FC<ItemTypeModalContentProps> = props => {
-  const testConfigRequest = useRequest(() => GetTestConfigFromWorkspaceKey('TEST_MANAGE_1'));
+  const { workspace } = useTestConfig();
+  const testConfigRequest = useRequest(() => GetTestConfigFromWorkspaceKey(workspace.key));
 
   const { data, error, loading } = useRequest(
     () => GetItemTypeFromKey(testConfigRequest?.data?.data?.itemTypeMap?.[props.type]),
