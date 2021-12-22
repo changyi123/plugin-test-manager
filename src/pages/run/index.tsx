@@ -8,7 +8,7 @@ import TestStatus from './components/TestStatus';
 import { useLocation } from 'react-router-dom';
 import { GetTestRunDetail } from '@/lib/api/runs';
 import { useRequest } from 'ahooks';
-import { updateTestStep } from '@/lib/api/runs';
+import { updateTestStep, InitStepByTestId } from '@/lib/api/runs';
 
 import css from './index.less';
 
@@ -93,7 +93,16 @@ const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
   console.log('currentTestId', currentTestId);
   const { data, loading, error, refresh } = useRequest(() => GetTestRunDetail(currentTestId));
 
-  const checkRunInit = React.useCallback(() => {}, []);
+  const checkRunInit = React.useCallback(() => {
+    InitStepByTestId(currentTestId)
+      .then(() => {
+        message.success('初始化成功');
+        refresh();
+      })
+      .catch(() => {
+        message.warning('初始化失败');
+      });
+  }, [currentTestId, refresh]);
 
   console.log('data', data);
   if (!currentTestId) {
@@ -110,12 +119,82 @@ const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
     return <Empty description="测试运行为空"></Empty>;
   }
 
-  if (!data?.data || !data?.data?.runDetail) {
-    console.log('这里都没去到吗');
+  if (!data?.data || !data?.data?.runDetail?.runs?.steps) {
     checkRunInit();
     return <Spin tip="初始化runs中..."></Spin>;
   }
 
+  const { itemDetail, runDetail, status, objectId } = data?.data;
+
+  const changeRunInfo = (info: IRunDetail['detail']) => {
+    const detailBak: IRunDetail = { ...runDetail };
+    detailBak.detail = info;
+    updateTestStep(detailBak, objectId).then(() => {
+      message.success('修改成功');
+      refresh && refresh();
+    });
+  };
+
+  return (
+    <div className={css('run')}>
+      {/* <div>
+        <Breadcrumb>
+          <Breadcrumb.Item>首页</Breadcrumb.Item>
+          <Breadcrumb.Item>
+            <a href="">测试执行</a>
+          </Breadcrumb.Item>
+          <Breadcrumb.Item>
+            <a href="">测试用例</a>
+          </Breadcrumb.Item>
+        </Breadcrumb>
+      </div> */}
+
+      <div className={css('run__header')}>
+        <div>
+          <Typography.Text ellipsis>
+            {itemDetail?.name}（{itemDetail?.key}）
+          </Typography.Text>
+        </div>
+
+        <TestStatus status={status} testId={currentTestId} />
+      </div>
+
+      <Divider />
+
+      <TestInfo detail={runDetail.detail} changeRunInfo={changeRunInfo} />
+
+      <div className={css('run__total')}>
+        <Collapse defaultActiveKey={['2']}>
+          <Collapse.Panel header="总结" key="1">
+            <Collapse defaultActiveKey={['1', '2', '3']}>
+              {/* <Collapse.Panel header="缺陷" key="1">
+                <ItemList />
+              </Collapse.Panel>
+              <Collapse.Panel header="附件" key="2">
+                <UploadFile />
+              </Collapse.Panel> */}
+              <Collapse.Panel header="留言(点击文本编辑)" key="3">
+                <Comment />
+              </Collapse.Panel>
+            </Collapse>
+          </Collapse.Panel>
+          <Collapse.Panel header="详情" key="2">
+            <Collapse defaultActiveKey={['1', '2', '3']}>
+              {/* <Collapse.Panel header="关联事项" key="1">
+                <ItemList />
+              </Collapse.Panel> */}
+              {/* <Collapse.Panel header="前置条件" key="2.2">
+                <UploadFile />
+              </Collapse.Panel> */}
+              <Collapse.Panel header="步骤" key="3">
+                <StepList detail={runDetail} objectId={objectId} testId={currentTestId} />
+              </Collapse.Panel>
+            </Collapse>
+          </Collapse.Panel>
+        </Collapse>
+      </div>
+    </div>
+  );
 };
 
 export default TestRun;

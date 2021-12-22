@@ -388,4 +388,36 @@ export const updateTestStatus = (testId: string, status: IColor): Promise<ICommo
   });
 };
 
-export const ExtendTestExecution = () => {};
+export const InitStepByTestId = (testId: string) => {
+  return new Promise((resolve, reject) => {
+    const query = new Parse.Query(Test);
+    query.equalTo('objectId', testId);
+    query.include('runReferenceDetail');
+    query
+      .first()
+      .then(res => {
+        if (!res) {
+          reject('没有数据');
+        }
+        const testRun = res.toJSON();
+        const itemId = testRun?.runReferenceDetail?.reference?.objectId;
+        return FetchAllTestStepByTestId(itemId);
+      })
+      .then(testRuns => {
+        const runDetail: any = {
+          runs: {
+            steps: testRuns.data.steps || [],
+          },
+        };
+        return updateTestStep(runDetail, testId);
+      })
+      .then(() => {
+        resolve({});
+      })
+      .catch(error => {
+        reject({
+          error,
+        });
+      });
+  });
+};

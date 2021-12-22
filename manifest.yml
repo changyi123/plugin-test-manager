@@ -57,6 +57,8 @@ tables:
         type: String
       type:
         type: String
+      status:
+        type: String
       steps:
         type: Array
       extra:
