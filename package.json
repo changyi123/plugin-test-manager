@@ -84,7 +84,7 @@
     "async": "^3.2.2",
     "axios": "^0.21.4",
     "immutability-helper": "^3.1.1",
-    "parse": "^3.4.0",
+    "parse": "3.3.1",
     "react": "^17.0.2",
     "react-base-table": "^1.13.0",
     "react-dnd": "^14.0.4",
