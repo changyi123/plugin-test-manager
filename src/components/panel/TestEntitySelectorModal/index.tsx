@@ -66,10 +66,6 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
         .map(testEntity => {
           const item = items.find(item => item.objectId === testEntity.reference?.objectId);
           if (!item) return;
-          // 在 ignoreTestEntityIds 列表的数据给过滤掉
-          if (ignoreTestEntityIds.includes(testEntity.objectId)) {
-            return;
-          }
           return {
             label: (
               <div>
@@ -109,6 +105,14 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
     setVisible(false);
   }, [props, selectValue, setVisible]);
 
+  const filterOptions = React.useCallback(
+    options => {
+      // 在 ignoreTestEntityIds 列表的数据给过滤掉
+      return options.filter(opt => !ignoreTestEntityIds.includes(opt.value));
+    },
+    [ignoreTestEntityIds],
+  );
+
   return (
     <Modal
       onCancel={() => setVisible(false)}
@@ -124,6 +128,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
           value={selectValue}
           className={cx('select')}
           fetchOptions={getTestEntityByName}
+          filterOptions={filterOptions}
           onChange={value => setSelectValue(value)}
           placeholder={props.placeholder ?? '选择事项'}
           getPopupContainer={() => debounceSelectContainerRef.current}
