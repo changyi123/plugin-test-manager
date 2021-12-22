@@ -289,7 +289,14 @@ const List: React.FC<ListProps> = (props: ListProps) => {
             <div className={[css('list__item'), css('call-test')].join(' ')}>
               <div className={css('call-test-topic')}>
                 <div className={css('label')}>继承测试用例</div>
-                <Button type="link">{item?.itemObject?.key}</Button>
+                <Button
+                  type="link"
+                  href={`/osc/workspaces/${(item as any)?.itemObject?.workspace?.key}/item/${
+                    item?.itemObject?.key
+                  }`}
+                >
+                  {item?.itemObject?.key}
+                </Button>
               </div>
               <div className={css('list__item__result')}>{item?.itemObject?.name}</div>
             </div>
