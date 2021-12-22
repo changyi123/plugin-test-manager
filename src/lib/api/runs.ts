@@ -282,6 +282,57 @@ export const CreateTestExecutionWithTestRun = () => {
   };
 };
 
+export const CreateTestExecutionWithItemModal = (
+  itemId: string,
+  testExecutionEntity: Parse.Object,
+) => {
+  return new Promise((resolve, reject) => {
+    console.log('itemId', itemId);
+    console.log('testExecutionEntity', testExecutionEntity);
+    FetchAllTestStepByTestId(itemId)
+      .then(testRuns => {
+        console.log('testRuns', testRuns);
+        return createTestEntities([
+          {
+            type: TestType.TestRun,
+            workspaceKey: workspaceKeyBak,
+            fields: {
+              runDetail: {
+                runs: {
+                  steps: testRuns.data.steps || [],
+                },
+              },
+              runReferenceDetail: Test.createWithoutData(testRuns?.data?.objectId),
+            },
+          },
+          {
+            type: TestType.TestExecution,
+            workspaceKey: workspaceKeyBak,
+            fields: {
+              reference: testExecutionEntity,
+            },
+          },
+        ]);
+      })
+      .then(testRunObj => {
+        console.log('testRunObj', testRunObj);
+        return createTestRelation([
+          {
+            relationType: TestRelationType.ExecutionRelRun,
+            from: testRunObj[1],
+            to: testRunObj[0],
+          },
+        ]);
+      })
+      .then(() => {
+        resolve({});
+      })
+      .catch(() => {
+        reject({});
+      });
+  });
+};
+
 export const GetTestExecutionList = (name?: string): Promise<ICommonRes> => {
   return new Promise((resolve, reject) => {
     const testExeQuery = new Parse.Query(Test);

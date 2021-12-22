@@ -1,4 +1,5 @@
 import React from 'react';
+import { uniqueId } from 'lodash';
 import { Button, Space, Typography, message } from '@osui/ui';
 import AddTestExecutionModal from './components/AddTestExecutionModal';
 import { CaretRightOutlined, EllipsisOutlined } from '@ant-design/icons';
@@ -6,8 +7,10 @@ import { CaretRightOutlined, EllipsisOutlined } from '@ant-design/icons';
 import PanelTable, { ActionType } from '@/components/panel/PanelTable';
 import DropDownButton from '@/components/panel/DropDownButton';
 import { ColumnsType } from 'antd/es/table';
-import { GetTestRunsById } from '@/lib/api/runs';
+import { GetTestRunsById, CreateTestExecutionWithItemModal } from '@/lib/api/runs';
 import TestTableStatus from '@/pages/run/components/TestTableStatus';
+import { useTestConfig, useBaseAction } from '@/lib/hooks/useContext';
+import { TestType } from '@/lib/constants';
 import { removeTestRelations } from '@/lib/api/common';
 import TestRunModal from '@/pages/run/Modal';
 
@@ -32,6 +35,7 @@ export const RunsContext = React.createContext<{ refresh?: () => void }>({});
 const Runs: React.FC = () => {
   const itemId: string = window?.QiankunProps?.context?.itemId || 'rCbadjFXZx';
   const tableActionRef = React.useRef<ActionType>();
+  const { createItemUseModal } = useBaseAction();
 
   const removeTestRelation = React.useCallback(async relationTypeIds => {
     if (!Array.isArray(relationTypeIds)) return;
@@ -107,7 +111,20 @@ const Runs: React.FC = () => {
     },
   ];
 
-  // console.log('data?.data', data?.data);
+  const createTestExecution = async () => {
+    const token = uniqueId('TestPlan');
+    const { testEntity: testExecutionEntity, extraData } = await createItemUseModal({
+      type: TestType.TestExecution,
+      extraData: { token },
+    });
+    // token 不相同则不创建关联
+    if (extraData.token !== token) return;
+
+    CreateTestExecutionWithItemModal(itemId, testExecutionEntity).then(() => {
+      tableActionRef.current.refresh();
+      message.success('测试计划创建成功');
+    });
+  };
 
   return (
     <RunsContext.Provider
@@ -118,10 +135,13 @@ const Runs: React.FC = () => {
       <div className={css('runs')}>
         <div className={css('runs__new')}>
           <Space>
-            <AddTestExecutionModal
+            {/* <AddTestExecutionModal
               trigger={<Button type="primary">新增测试执行</Button>}
               itemId={itemId}
-            />
+            /> */}
+            <Button type="primary" onClick={() => createTestExecution()}>
+              新增测试执行
+            </Button>
             {/* <ExtendTestExecutionModal
             trigger={<Button type="primary">继承测试执行</Button>}
             itemId={itemId}
