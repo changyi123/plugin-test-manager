@@ -1,30 +1,104 @@
 import React from 'react';
-import { Button, Space, Spin, Empty } from '@osui/ui';
+import { Button, Space, Typography, message } from '@osui/ui';
 import AddTestExecutionModal from './components/AddTestExecutionModal';
+import { CaretRightOutlined, EllipsisOutlined } from '@ant-design/icons';
 // import ExtendTestExecutionModal from './components/ExtendTestExecutionModal';
-import Table from './components/Table';
-import { useRequest } from 'ahooks';
+import PanelTable, { ActionType } from '@/components/panel/PanelTable';
+import DropDownButton from '@/components/panel/DropDownButton';
+import { ColumnsType } from 'antd/es/table';
 import { GetTestRunsById } from '@/lib/api/runs';
+import TestTableStatus from '@/pages/run/components/TestTableStatus';
+import { removeTestRelations } from '@/lib/api/common';
+import TestRunModal from '@/pages/run/Modal';
 
 import css from './index.less';
+
+export interface RunsTableProps {
+  data?: any;
+}
+
+export interface RunItem {
+  key: string;
+  name: string;
+  status: string;
+  referenceId: string;
+  testRunId: string;
+  referenceName: string;
+  testRelationId: string;
+}
 
 export const RunsContext = React.createContext<{ refresh?: () => void }>({});
 
 const Runs: React.FC = () => {
   const itemId: string = window?.QiankunProps?.context?.itemId || 'bcOBXkAodq';
-  const { data, error, loading, refresh } = useRequest(() => GetTestRunsById(itemId));
-  if (error) {
-    return <div>加载失败,原因{error?.message}</div>;
-  }
-  if (loading) {
-    return <Spin tip="加载中..."></Spin>;
-  }
+  const tableActionRef = React.useRef<ActionType>();
+
+  const removeTestRelation = React.useCallback(async relationTypeIds => {
+    if (!Array.isArray(relationTypeIds)) return;
+    await removeTestRelations(relationTypeIds);
+
+    tableActionRef.current.refresh();
+
+    message.success('删除成功');
+  }, []);
+
+  const tableColumns: ColumnsType<RunItem> = [
+    {
+      title: '密钥',
+      key: 'referenceId',
+      render: (value, item) => <Typography.Link href="#">{item.referenceId}</Typography.Link>,
+    },
+    {
+      title: '摘要',
+      key: 'referenceName',
+      dataIndex: 'referenceName',
+    },
+    {
+      title: '状态',
+      dataIndex: 'status',
+      render: (value, item) => <TestTableStatus status={value} testId={item.testRunId} />,
+    },
+    {
+      title: '执行',
+      key: 'testRunId',
+      render: (value, item) => (
+        <TestRunModal
+          testId={item.testRunId}
+          trigger={
+            <Button size="small" type="primary" icon={<CaretRightOutlined />}>
+              执行
+            </Button>
+          }
+        />
+      ),
+    },
+    {
+      title: '操作',
+      key: 'action',
+      render: (_, record) => (
+        <DropDownButton
+          buttonProps={{ type: 'text' }}
+          menuList={[
+            {
+              title: '删除',
+              onClick() {
+                removeTestRelation([record.testRelationId]);
+              },
+            },
+          ]}
+        >
+          <EllipsisOutlined />
+        </DropDownButton>
+      ),
+    },
+  ];
+
   // console.log('data?.data', data?.data);
 
   return (
     <RunsContext.Provider
       value={{
-        refresh,
+        refresh: tableActionRef?.current?.refresh,
       }}
     >
       <div className={css('runs')}>
@@ -42,11 +116,20 @@ const Runs: React.FC = () => {
         </div>
 
         <div className={css('runs__content')}>
-          {data?.data?.length ? (
-            <Table data={data} />
-          ) : (
-            <Empty description="测试运行为空，请创建测试执行"></Empty>
-          )}
+          <PanelTable
+            actionRef={tableActionRef}
+            actionMenuList={[
+              {
+                title: '删除',
+                onClick(rows) {
+                  removeTestRelation(rows.map(row => row.testRelationId));
+                },
+              },
+            ]}
+            rowKey="objectId"
+            columns={tableColumns}
+            getDataSource={() => GetTestRunsById(itemId)}
+          />
         </div>
       </div>
     </RunsContext.Provider>
