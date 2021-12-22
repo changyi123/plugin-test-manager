@@ -92,6 +92,9 @@ const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
   // 从路由/弹窗拿
   console.log('currentTestId', currentTestId);
   const { data, loading, error, refresh } = useRequest(() => GetTestRunDetail(currentTestId));
+
+  const checkRunInit = React.useCallback(() => {}, []);
+
   console.log('data', data);
   if (!currentTestId) {
     return <div>无</div>;
@@ -107,80 +110,12 @@ const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
     return <Empty description="测试运行为空"></Empty>;
   }
 
-  const { itemDetail, runDetail, status, objectId } = data?.data;
+  if (!data?.data || !data?.data?.runDetail) {
+    console.log('这里都没去到吗');
+    checkRunInit();
+    return <Spin tip="初始化runs中..."></Spin>;
+  }
 
-  const changeRunInfo = (info: IRunDetail['detail']) => {
-    const detailBak: IRunDetail = { ...runDetail };
-    detailBak.detail = info;
-    updateTestStep(detailBak, objectId).then(() => {
-      message.success('修改成功');
-      refresh && refresh();
-    });
-  };
-
-  return (
-    <div className={css('run')}>
-      {/* <div>
-        <Breadcrumb>
-          <Breadcrumb.Item>首页</Breadcrumb.Item>
-
-          <Breadcrumb.Item>
-            <a href="">测试执行</a>
-          </Breadcrumb.Item>
-
-          <Breadcrumb.Item>
-            <a href="">测试用例</a>
-          </Breadcrumb.Item>
-        </Breadcrumb>
-      </div> */}
-
-      <div className={css('run__header')}>
-        <div>
-          <Typography.Text ellipsis>
-            {itemDetail?.name}（{itemDetail?.key}）
-          </Typography.Text>
-        </div>
-
-        <TestStatus status={status} testId={currentTestId} />
-      </div>
-
-      <Divider />
-
-      <TestInfo detail={runDetail.detail} changeRunInfo={changeRunInfo} />
-
-      <div className={css('run__total')}>
-        <Collapse defaultActiveKey={['2']}>
-          <Collapse.Panel header="总结" key="1">
-            <Collapse defaultActiveKey={['1', '2', '3']}>
-              {/* <Collapse.Panel header="缺陷" key="1">
-                <ItemList />
-              </Collapse.Panel>
-              <Collapse.Panel header="附件" key="2">
-                <UploadFile />
-              </Collapse.Panel> */}
-              <Collapse.Panel header="留言(点击文本编辑)" key="3">
-                <Comment />
-              </Collapse.Panel>
-            </Collapse>
-          </Collapse.Panel>
-
-          <Collapse.Panel header="详情" key="2">
-            <Collapse defaultActiveKey={['1', '2', '3']}>
-              {/* <Collapse.Panel header="关联事项" key="1">
-                <ItemList />
-              </Collapse.Panel> */}
-              {/* <Collapse.Panel header="前置条件" key="2.2">
-                <UploadFile />
-              </Collapse.Panel> */}
-              <Collapse.Panel header="步骤" key="3">
-                <StepList detail={runDetail} objectId={objectId} testId={currentTestId} />
-              </Collapse.Panel>
-            </Collapse>
-          </Collapse.Panel>
-        </Collapse>
-      </div>
-    </div>
-  );
 };
 
 export default TestRun;
