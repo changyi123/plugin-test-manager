@@ -90,7 +90,6 @@ const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
   const query = useQuery();
   const currentTestId = query.get('id') || testId;
   // 从路由/弹窗拿
-  console.log('currentTestId', currentTestId);
   const { data, loading, error, refresh } = useRequest(() => GetTestRunDetail(currentTestId));
 
   const checkRunInit = React.useCallback(() => {
@@ -104,7 +103,6 @@ const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
       });
   }, [currentTestId, refresh]);
 
-  console.log('data', data);
   if (!currentTestId) {
     return <div>无</div>;
   }

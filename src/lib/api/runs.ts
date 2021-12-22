@@ -237,7 +237,9 @@ export const CreateTestExecutionWithTestRun = () => {
           workspaceKey: workspaceKeyBak,
           fields: {
             runDetail: {
-              runs: testRuns.data || [],
+              runs: {
+                steps: testRuns.data.steps || [],
+              },
             },
             runReferenceDetail: Test.createWithoutData(testRuns?.data?.objectId),
           },
