@@ -10,11 +10,14 @@ const { Option } = Select;
 
 const isObj = (val): boolean => isObject(val);
 
+const noop = val => val;
+
 export interface DebounceSelectProps<valueType = any>
   extends Omit<SelectProps<valueType>, 'options' | 'childern'> {
   fetchOptions: (search: string) => Promise<valueType[]>;
   fetchValues?: (values: string[] | valueType[]) => Promise<valueType[]>;
   debounceTimeout?: number;
+  filterOptions?: (values: valueType[]) => valueType[];
 }
 function DebounceSelect<
   ValueType extends {
@@ -25,6 +28,7 @@ function DebounceSelect<
   } = any,
 >({
   fetchOptions,
+  filterOptions = noop,
   debounceTimeout = 800,
   fetchValues,
   value,
@@ -104,8 +108,10 @@ function DebounceSelect<
 
   // 选中的 option 置顶
   const sortedOptions = useMemo(() => {
-    return Array.isArray(value) ? options.sort(a => (value.includes(a.value) ? -1 : 1)) : options;
-  }, [options, value]);
+    return Array.isArray(value)
+      ? filterOptions(options).sort(a => (value.includes(a.value) ? -1 : 1))
+      : options;
+  }, [options, value, filterOptions]);
 
   // 搜索结果拼接到 initialOptions 中
   useEffect(() => {
