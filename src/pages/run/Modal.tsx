@@ -3,6 +3,7 @@ import type { ModalProps } from '@osui/modal';
 import { Modal, Button } from '@osui/ui';
 import useMergedState from 'rc-util/lib/hooks/useMergedState';
 import TestRun from './index';
+import { getRootContainer } from '@/lib/utils/helper';
 
 interface ITestRunModalProps {
   trigger?: JSX.Element;
@@ -24,6 +25,7 @@ const TestRunModal: React.FC<ITestRunModalProps> = props => {
   return (
     <>
       <Modal
+        // getContainer={() => document.getElementById('osc-proxima') || getRootContainer()}
         title={'测试执行'}
         visible={isVisible}
         maskClosable={false}

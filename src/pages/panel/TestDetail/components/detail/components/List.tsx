@@ -291,6 +291,7 @@ const List: React.FC<ListProps> = (props: ListProps) => {
                 <div className={css('label')}>继承测试用例</div>
                 <Button
                   type="link"
+                  target="_blank"
                   href={`/osc/workspaces/${(item as any)?.itemObject?.workspace?.key}/item/${
                     item?.itemObject?.key
                   }`}

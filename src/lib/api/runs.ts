@@ -36,9 +36,9 @@ export const GetTestRunsById = (itemId: string): Promise<{ list: any; total: num
             );
             const dataBak = [];
             data.forEach((item, index) => {
-              item.referenceId = item.reference.objectId;
-              item.referenceKey = item.reference.key;
-              item.referenceName = item.reference.name;
+              item.referenceId = item.reference?.objectId;
+              item.referenceKey = item.reference?.key;
+              item.referenceName = item.reference?.name;
               item.key = index + 1;
               item.status = testRunRes[index].toJSON().status;
               item.testRunId = testRunRes[index].toJSON().objectId;
@@ -305,21 +305,14 @@ export const CreateTestExecutionWithItemModal = (
               runReferenceDetail: Test.createWithoutData(testRuns?.data?.objectId),
             },
           },
-          {
-            type: TestType.TestExecution,
-            workspaceKey: testRuns?.data?.reference?.workspace?.key,
-            fields: {
-              reference: Item.createWithoutData(testExecutionEntity?.toJSON()?.reference?.objectId),
-            },
-          },
         ]);
       })
-      .then(testRunObj => {
+      .then(([testRunEntity]) => {
         return createTestRelation([
           {
             relationType: TestRelationType.ExecutionRelRun,
-            from: testRunObj[1],
-            to: testRunObj[0],
+            from: testExecutionEntity,
+            to: testRunEntity,
           },
         ]);
       })
