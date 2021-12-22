@@ -320,6 +320,7 @@ export const GetTestRunDetail = (testId: string): Promise<ICommonRes> => {
         const {
           items: [item],
         } = await getItemByIQL({ itemId });
+        console.log('res', res);
         resolve({
           success: true,
           data: {

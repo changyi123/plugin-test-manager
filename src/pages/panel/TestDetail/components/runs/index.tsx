@@ -30,7 +30,7 @@ export interface RunItem {
 export const RunsContext = React.createContext<{ refresh?: () => void }>({});
 
 const Runs: React.FC = () => {
-  const itemId: string = window?.QiankunProps?.context?.itemId || 'bcOBXkAodq';
+  const itemId: string = window?.QiankunProps?.context?.itemId || 'rCbadjFXZx';
   const tableActionRef = React.useRef<ActionType>();
 
   const removeTestRelation = React.useCallback(async relationTypeIds => {
@@ -50,7 +50,17 @@ const Runs: React.FC = () => {
     {
       title: '密钥',
       key: 'referenceId',
-      render: (value, item) => <Typography.Link href="#">{item.referenceId}</Typography.Link>,
+      render: (value, item) => (
+        <Typography.Link
+          ellipsis={true}
+          target="_blank"
+          href={`/osc/workspaces/${(item as any)?.reference?.workspace?.key}/item/${
+            (item as any)?.reference.key
+          }`}
+        >
+          {item.referenceId}
+        </Typography.Link>
+      ),
     },
     {
       title: '摘要',

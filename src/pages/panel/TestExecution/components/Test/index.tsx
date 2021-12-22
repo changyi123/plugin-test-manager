@@ -1,7 +1,7 @@
 import React from 'react';
 import { uniqueId } from 'lodash';
-import { Typography, message, Space } from '@osui/ui';
-import { EllipsisOutlined, DownOutlined } from '@ant-design/icons';
+import { Typography, message, Space, Button } from '@osui/ui';
+import { EllipsisOutlined, DownOutlined, CaretRightOutlined } from '@ant-design/icons';
 import { TestType, TestRelationType } from '@/lib/constants';
 import PanelTable, { ActionType } from '../../../../../components/panel/PanelTable';
 import DropDownButton from '@/components/panel/DropDownButton';
@@ -13,6 +13,7 @@ import TestEntitySelectorModal, {
   ActionType as SelectorActionType,
 } from '@/components/panel/TestEntitySelectorModal';
 import { addTestRunToExecution } from './services';
+import TestRunModal from '@/pages/run/Modal';
 
 import cx from './index.less';
 
@@ -111,6 +112,20 @@ const Test = () => {
             />
           );
         },
+      },
+      {
+        title: '执行',
+        key: 'testRunId',
+        render: (value, item) => (
+          <TestRunModal
+            testId={item.objectId}
+            trigger={
+              <Button size="small" type="primary" icon={<CaretRightOutlined />}>
+                执行
+              </Button>
+            }
+          />
+        ),
       },
       {
         title: '操作',
