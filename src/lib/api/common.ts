@@ -120,6 +120,9 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
       // 防止为空
       if (testEntityData?.reference?.objectId) {
         itemIds.push(testEntityData?.reference?.objectId);
+        // 兼容test runs
+      } else if (testEntityData?.runReferenceDetail?.reference?.objectId) {
+        itemIds.push(testEntityData?.runReferenceDetail?.reference?.objectId);
       }
 
       // 当前关联数据
@@ -138,7 +141,9 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
     const { items } = await getItemByIQL({ itemId: itemIds, limit: config?.queryParams?.limit });
     const itemMap = keyBy(items, 'objectId');
     const testEntitiesDataWithItemData = testEntitiesData.map(entity => {
-      const item = itemMap[entity.reference?.objectId];
+      // 第二个兼容test run
+      const item =
+        itemMap[entity.reference?.objectId || entity?.runReferenceDetail?.reference?.objectId];
       // 测试运行没有关联的事项
       return Object.assign({}, entity, { reference: item || null });
     });

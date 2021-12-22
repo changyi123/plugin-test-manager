@@ -78,7 +78,7 @@ const Test = () => {
         key: 'reference.name',
         width: 100,
         render(_, record) {
-          const item = record?.runReferenceDetail?.reference;
+          const item = record?.reference;
           return (
             <Typography.Link
               ellipsis={true}
@@ -94,7 +94,7 @@ const Test = () => {
         title: '事项名',
         key: 'reference.name',
         render(_, record) {
-          const name = record?.runReferenceDetail?.reference?.name;
+          const name = record?.reference?.name;
 
           return <Typography.Text ellipsis={{ tooltip: name }}>{name}</Typography.Text>;
         },
