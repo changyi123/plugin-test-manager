@@ -82,6 +82,7 @@ const Runs: React.FC = () => {
       render: (value, item) => (
         <TestRunModal
           testId={item.testRunId}
+          onCancel={() => setTimeout(() => tableActionRef.current.refresh(), 200)}
           trigger={
             <Button size="small" type="primary" icon={<CaretRightOutlined />}>
               执行

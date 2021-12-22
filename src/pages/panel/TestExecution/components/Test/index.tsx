@@ -119,6 +119,7 @@ const Test = () => {
         render: (value, item) => (
           <TestRunModal
             testId={item.objectId}
+            onCancel={() => setTimeout(() => tableActionRef.current.refresh(), 200)}
             trigger={
               <Button size="small" type="primary" icon={<CaretRightOutlined />}>
                 执行
