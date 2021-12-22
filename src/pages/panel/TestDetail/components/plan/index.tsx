@@ -16,6 +16,7 @@ import {
   removeTestRelations,
   getTestEntitiesByRelation,
 } from '@/lib/api/common';
+import { useAllRelTestEntityIds } from '@/lib/hooks/useTest';
 
 import cx from './index.less';
 
@@ -24,6 +25,18 @@ const Plan = () => {
   const { createItemUseModal } = useBaseAction();
   const tableActionRef = React.useRef<ActionType>();
   const selectorModalRef = React.useRef<SelectorActionType>();
+  const { testEntityIds, refresh: getAllRelTestEntityIds } = useAllRelTestEntityIds(
+    TestRelationType.PlanRelDetail,
+    {
+      to: testEntity,
+    },
+  );
+
+  // 刷新依赖数据
+  const refreshDepData = React.useCallback(() => {
+    getAllRelTestEntityIds();
+    tableActionRef.current.refresh();
+  }, [getAllRelTestEntityIds]);
 
   const tableDataSourceGetter = React.useCallback(
     async queryParams => {
@@ -114,22 +127,25 @@ const Plan = () => {
 
           await createTestPlanService(testEntity, testPlanEntity);
 
-          tableActionRef.current.refresh();
+          refreshDepData();
 
           message.success('测试计划创建成功');
         },
       },
     ];
-  }, [createItemUseModal, testEntity]);
+  }, [createItemUseModal, refreshDepData, testEntity]);
 
-  const removeTestRelation = React.useCallback(async relationTypeIds => {
-    if (!Array.isArray(relationTypeIds)) return;
-    await removeTestRelations(relationTypeIds);
+  const removeTestRelation = React.useCallback(
+    async relationTypeIds => {
+      if (!Array.isArray(relationTypeIds)) return;
+      await removeTestRelations(relationTypeIds);
 
-    tableActionRef.current.refresh();
+      refreshDepData();
 
-    message.success('删除成功');
-  }, []);
+      message.success('删除成功');
+    },
+    [refreshDepData],
+  );
 
   // table column 数据
   const tableColumns = React.useMemo(() => {
@@ -212,6 +228,7 @@ const Plan = () => {
         title="添加测试执行至当前测试计划"
         actionRef={selectorModalRef}
         onSelect={addTestDetailToPlan}
+        ignoreTestEntityIds={testEntityIds}
       />
       <DropDownButton menuList={testPlanMenuList}>
         添加至测试计划
