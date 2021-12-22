@@ -42,6 +42,10 @@ const Runs: React.FC = () => {
     message.success('删除成功');
   }, []);
 
+  const tableRefresh = React.useCallback(() => {
+    tableActionRef.current.refresh();
+  }, [tableActionRef]);
+
   const tableColumns: ColumnsType<RunItem> = [
     {
       title: '密钥',
@@ -98,7 +102,7 @@ const Runs: React.FC = () => {
   return (
     <RunsContext.Provider
       value={{
-        refresh: tableActionRef?.current?.refresh,
+        refresh: tableRefresh,
       }}
     >
       <div className={css('runs')}>

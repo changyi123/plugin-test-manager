@@ -39,8 +39,10 @@ const TestTableStatus: React.FC<{
       const { key } = info;
       run(testId, key as IColor);
       setItemStatus(key as IColor);
-      change && change();
-      refresh && refresh();
+      setTimeout(() => {
+        change && change();
+        refresh && refresh();
+      }, 200);
     },
     [testId, run, setItemStatus, refresh, change],
   );
