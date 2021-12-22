@@ -21,6 +21,19 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
   total: number;
   list: TResponseList;
 }> => {
+  try {
+    // FIXME: 方案
+    // const CacheKey = 'Parse/proxima-core/currentUser';
+    // const userJSON = JSON.parse(window.localStorage.getItem(CacheKey));
+
+    Parse.User._clearCache();
+    // Parse.User._setCurrentUserCache(Parse.Object.fromJSON(userJSON));
+
+    console.info('用户数据重置成功');
+  } catch (err) {
+    console.info(err);
+  }
+
   const config = merge(
     {
       // 响应数据处理
@@ -47,7 +60,7 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
     if (Array.isArray(side)) {
       query.containedIn(sideKey, testRelationTypePointerTransfer(side));
     } else {
-      query.equalTo(sideKey, pointerTransfer(TestRelationType, side as PointerType));
+      query.equalTo(sideKey, pointerTransfer(Test, side as PointerType));
     }
     // 查另一向的关联关系
     const sideMapping = {
