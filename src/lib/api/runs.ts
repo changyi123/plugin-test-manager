@@ -295,7 +295,7 @@ export const CreateTestExecutionWithItemModal = (
         return createTestEntities([
           {
             type: TestType.TestRun,
-            workspaceKey: workspaceKeyBak,
+            workspaceKey: testRuns?.data?.reference?.workspace?.key,
             fields: {
               runDetail: {
                 runs: {
@@ -307,7 +307,7 @@ export const CreateTestExecutionWithItemModal = (
           },
           {
             type: TestType.TestExecution,
-            workspaceKey: workspaceKeyBak,
+            workspaceKey: testRuns?.data?.reference?.workspace?.key,
             fields: {
               reference: testExecutionEntity,
             },
