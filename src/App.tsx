@@ -4,6 +4,8 @@ import { PluginSDKContext } from '@projectproxima/plugin-sdk';
 import { ConfigProvider, message, notification } from '@osui/ui';
 import { MemoryRouter, Switch, Route, useHistory, HashRouter } from 'react-router-dom';
 
+import zhCN from 'antd/lib/locale/zh_CN';
+
 const rootElement = 'test-manager';
 
 message.config({
@@ -49,7 +51,7 @@ const App: React.FC = props => {
 
   return (
     <PluginSDKContext.Provider value={qiankunContextValue.sdk}>
-      <ConfigProvider getPopupContainer={() => document.getElementById(rootElement)}>
+      <ConfigProvider locale={zhCN} getPopupContainer={() => document.getElementById(rootElement)}>
         {process.env.NODE_ENV === 'production' || process.env.PROXIMA_DEV_MODE === 'embed' ? (
           <MemoryRouter>
             <GoPropsRoute {...props} />
