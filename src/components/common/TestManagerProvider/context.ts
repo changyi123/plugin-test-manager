@@ -17,7 +17,7 @@ export const TestConfigContext = React.createContext<TestConfigContextType>(
 );
 
 export type BaseActionContextType = {
-  /** 创建事项 */
+  /** 新建事项，并会生成对应的测试实体 */
   createItemUseModal: <Extra extends Record<string, any>>(params: {
     name?: string;
     type: TestType;

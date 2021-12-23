@@ -156,6 +156,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
         const itemType = await getItemTypeByKey(itemTypeKey);
 
         console.info('itemType', itemTypeKey, itemType);
+        // TODO: 通知统一处理！
         if (!itemType?.objectId) {
           notification.open({
             message: '提示',
@@ -175,9 +176,13 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
         });
 
         // 事项创建成功通知
-        return new Promise(resolve => {
+        return new Promise((resolve, reject) => {
           eventBusRef.current.register(ItemCreateSuccessEventType, data => {
-            console.info('data', data);
+            const { testEntity } = data;
+            // 创建的测试类型是否符合预期
+            const expectedTestType = testEntity.get('type') === type;
+            // TODO: 消息通知
+            if (!expectedTestType) return reject('测试实体类型未匹配');
             resolve(data);
           });
         });

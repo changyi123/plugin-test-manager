@@ -18,7 +18,6 @@ type TestEntitySelectorProps = {
   title?: string;
   testType?: TestType;
   placeholder?: string;
-  workspaceKey?: string;
   ignoreTestEntityIds?: string[];
   onSelect?: (testIds: string[]) => void;
   actionRef?: React.ForwardedRef<ActionType>;
