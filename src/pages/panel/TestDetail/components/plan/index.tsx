@@ -57,31 +57,31 @@ const Plan = () => {
         { from: testPlanIds },
         {
           queryParams: { limit: 9999 },
-          async resultTransfer(data) {
-            const { list: testExecutions, count } = data;
-            const testExecutionIds = testExecutions.map(item => item.objectId);
+          // async resultTransfer(data) {
+          //   const { list: testExecutions, count } = data;
+          //   const testExecutionIds = testExecutions.map(item => item.objectId);
 
-            const { list: testRuns } = await getTestEntitiesByRelation(
-              TestRelationType.ExecutionRelRun,
-              {
-                from: testExecutionIds,
-              },
-              { queryParams: { limit: 9999 } },
-            );
+          //   const { list: testRuns } = await getTestEntitiesByRelation(
+          //     TestRelationType.ExecutionRelRun,
+          //     {
+          //       from: testExecutionIds,
+          //     },
+          //     { queryParams: { limit: 9999 } },
+          //   );
 
-            return {
-              count,
-              list: testExecutions.map(execution => {
-                const relRuns = testRuns.filter(
-                  run => run.relation?.from?.objectId === execution.objectId,
-                );
-                return {
-                  ...execution,
-                  testRuns: relRuns,
-                };
-              }),
-            };
-          },
+          //   return {
+          //     count,
+          //     list: testExecutions.map(execution => {
+          //       const relRuns = testRuns.filter(
+          //         run => run.relation?.from?.objectId === execution.objectId,
+          //       );
+          //       return {
+          //         ...execution,
+          //         testRuns: relRuns,
+          //       };
+          //     }),
+          //   };
+          // },
         },
       );
 
