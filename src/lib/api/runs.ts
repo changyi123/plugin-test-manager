@@ -385,12 +385,38 @@ export const GetTestRunDetail = (testId: string): Promise<ICommonRes> => {
   });
 };
 
-export const updateTestStep = (detail: IRunDetail, testStepId?: string): Promise<ICommonRes> => {
+export const updateTestStep = (
+  detail: IRunDetail,
+  testStepId?: string,
+  checkStatus?: boolean,
+): Promise<ICommonRes> => {
   return new Promise((resolve, reject) => {
     const step = Test.createWithoutData(testStepId);
-    step.set({
+    const updateObj: {
+      runDetail: IRunDetail;
+      status?: string;
+    } = {
       runDetail: detail,
-    });
+    };
+    if (checkStatus && detail?.runs?.steps?.length) {
+      // 有一个失败
+      const hasFail = detail?.runs?.steps.some(item => item.status === 'fail');
+      // 全部pass
+      const allPass = detail?.runs?.steps.filter(item => item.status === 'pass');
+      // 全部todo
+      const allTodo = detail?.runs?.steps.filter(item => item.status === 'todo');
+
+      if (hasFail) {
+        updateObj.status = 'fail';
+      } else if (allPass.length === detail?.runs?.steps?.length) {
+        updateObj.status = 'pass';
+      } else if (allTodo.length === detail?.runs?.steps?.length) {
+        updateObj.status = 'todo';
+      } else {
+        updateObj.status = 'ing';
+      }
+    }
+    step.set(updateObj);
     step.save().then(
       res => {
         resolve({
@@ -412,24 +438,43 @@ export const updateTestStep = (detail: IRunDetail, testStepId?: string): Promise
 export const updateTestStatus = (testId: string, status: IColor): Promise<ICommonRes> => {
   return new Promise((resolve, reject) => {
     const step = Test.createWithoutData(testId);
-    step.set({
-      status,
-    });
-    step.save().then(
-      res => {
+    step
+      .fetch()
+      .then(res => {
+        const { runDetail } = res.toJSON();
+        const runDetailBak = { ...runDetail };
+        if (runDetail?.runs?.steps) {
+          const steps = [];
+          runDetail?.runs?.steps?.forEach(item => {
+            // 成功，全成功 || todo，全todo
+            if (status === 'pass' || status === 'todo') {
+              item.status = status;
+              // 失败，todo全失败，其他状态不变
+            } else if (status === 'fail' && (item.status === 'todo' || !item.status)) {
+              item.status = 'fail';
+            }
+            // 执行中，状态不变
+            steps.push(item);
+          });
+          runDetailBak.runs.steps = steps;
+        }
+        const newTestRun = Test.createWithoutData(testId);
+        newTestRun.set({
+          status,
+          runDetail: runDetailBak?.runs ? runDetailBak : undefined,
+        });
+        return newTestRun.save();
+      })
+      .then(() => {
         resolve({
           success: true,
-          data: { ...res },
         });
-      },
-      err => {
+      })
+      .catch(() => {
         reject({
           success: false,
-          data: { ...err },
-          message: err,
         });
-      },
-    );
+      });
   });
 };
 

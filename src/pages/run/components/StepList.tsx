@@ -38,13 +38,14 @@ export interface StepListProps {
     };
   };
   objectId: string;
+  refresh?: () => void;
 }
 
 export const StepItem: React.FC<IStepItemProps> = ({ index, item, saveList, testId }) => {
   const saveItem = useCallback(
     (key: string) => {
-      const itemBak = { ...item };
       return value => {
+        const itemBak = { ...item };
         itemBak[key] = value;
         saveList(itemBak, index);
       };
@@ -121,7 +122,7 @@ export const StepItem: React.FC<IStepItemProps> = ({ index, item, saveList, test
               </Space>
             </div>
             <div className={css('right__')}>
-              <TestStatus status={item.status || 'todo'} testId={testId} />
+              <TestStatus status={item.status || 'todo'} change={() => saveItem('status')} />
             </div>
           </div>
         </Col>
@@ -130,17 +131,19 @@ export const StepItem: React.FC<IStepItemProps> = ({ index, item, saveList, test
   );
 };
 
-const StepList: React.FC<StepListProps> = ({ detail, objectId, testId }) => {
+const StepList: React.FC<StepListProps> = ({ detail, objectId, testId, refresh }) => {
   const { steps } = detail?.runs;
   const saveList = useCallback(
     (item: IStepItem, index: number) => {
       const detailBak = { ...detail };
       detailBak.runs.steps[index] = item;
-      updateTestStep(detailBak, objectId).then(() => {
+      console.log('detailBak', detailBak);
+      updateTestStep(detailBak, objectId, true).then(() => {
         message.success('修改成功');
+        refresh && refresh();
       });
     },
-    [objectId, detail],
+    [objectId, detail, refresh],
   );
   return (
     <div className={css('step-list')}>

@@ -33,7 +33,7 @@ export interface RunItem {
 export const RunsContext = React.createContext<{ refresh?: () => void }>({});
 
 const Runs: React.FC = () => {
-  const itemId: string = window?.QiankunProps?.context?.itemId || 'rCbadjFXZx';
+  const itemId: string = window?.QiankunProps?.context?.itemId || 'qCXK92ilv6';
   const tableActionRef = React.useRef<ActionType>();
   const { createItemUseModal } = useBaseAction();
 

@@ -30,7 +30,11 @@ export const colorArray: Array<IStatusColor> = [
   },
 ];
 
-const TestStatus: React.FC<{ status: IColor; testId: string }> = ({ status, testId }) => {
+const TestStatus: React.FC<{
+  status: IColor;
+  testId?: string;
+  change?: () => (IColor?: string) => void;
+}> = ({ status, testId, change }) => {
   const [currentColor, setCurrentColor] = useState<IColor>(status);
   const { run, loading, data } = useRequest(
     (testId: string, status: IColor) => updateTestStatus(testId, status),
@@ -41,15 +45,21 @@ const TestStatus: React.FC<{ status: IColor; testId: string }> = ({ status, test
   useEffect(() => {
     if (data && data.success) {
       message.success('操作成功');
+      change && change()(currentColor);
     }
-  }, [data]);
+  }, [data, change, currentColor]);
 
   const changeStatus = useCallback(
     (key: IColor) => {
-      run(testId, key);
+      if (testId) {
+        run(testId, key);
+        setCurrentColor(key as IColor);
+        return;
+      }
       setCurrentColor(key as IColor);
+      change && change()(key);
     },
-    [testId, run, setCurrentColor],
+    [testId, run, setCurrentColor, change],
   );
 
   if (loading) {

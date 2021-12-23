@@ -154,7 +154,7 @@ const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
           </Typography.Text>
         </div>
 
-        <TestStatus status={status} testId={currentTestId} />
+        <TestStatus status={status} testId={currentTestId} change={() => () => refresh()} />
       </div>
 
       <Divider />
@@ -185,7 +185,12 @@ const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
                 <UploadFile />
               </Collapse.Panel> */}
               <Collapse.Panel header="步骤" key="3">
-                <StepList detail={runDetail} objectId={objectId} testId={currentTestId} />
+                <StepList
+                  refresh={refresh}
+                  detail={runDetail}
+                  objectId={objectId}
+                  testId={currentTestId}
+                />
               </Collapse.Panel>
             </Collapse>
           </Collapse.Panel>
