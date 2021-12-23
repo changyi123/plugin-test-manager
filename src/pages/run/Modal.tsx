@@ -25,7 +25,7 @@ const TestRunModal: React.FC<ITestRunModalProps> = props => {
   return (
     <>
       <Modal
-        // getContainer={() => document.getElementById('osc-proxima') || getRootContainer()}
+        getContainer={getRootContainer}
         title={'测试执行'}
         visible={isVisible}
         maskClosable={false}

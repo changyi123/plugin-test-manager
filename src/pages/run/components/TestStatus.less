@@ -1,148 +1,154 @@
-.run {
-  margin-top: 10px;
+:root {
+  .run {
+    margin-top: 10px;
 
-  &__header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    
-    &__status {
-      &__content {
-        display: flex;
-        justify-content: flex-end;
-        align-items: center;
+    &__header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+
+      &__status {
+        &__content {
+          display: flex;
+          justify-content: flex-end;
+          align-items: center;
+        }
       }
     }
   }
-}
 
-.status-block {
-  width: 20px;
-  height: 20px;
-  border-radius: 2px;
-}
-
-.todo {
-  background-color: #bfbfbf;
-}
-
-.pass {
-  background-color: #52c41a;
-}
-
-.fail {
-  background-color: #fa541c;
-}
-
-.ing {
-  background-color: #fadb14;
-}
-
-.now-status {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-
-  &__content {
-    margin-left: 6px;
-  }
-
-  &__label {
-    margin-right: 6px;
-  }
-}
-
-.table-status {
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-}
-
-.had-status {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
   .status-block {
-    margin-left: 6px;
+    width: 20px;
+    height: 20px;
+    border-radius: 2px;
   }
 
-  .status-pointer {
-    cursor: pointer;
-  }
-
-  .btn-todo {
-    color: #fff;
+  .todo {
     background-color: #bfbfbf;
-    border-color: #bfbfbf;
-    box-shadow: none;
-
-    &:hover, &:focus {
-      color: #fff;
-      background: #d9d9d9;
-      border-color: #d9d9d9;
-    }
-
-    &:active {
-      color: #fff;
-      background: #8c8c8c;
-      border-color: #8c8c8c;
-    }
   }
 
-  .btn-ing {
-    color: #fff;
-    background-color: #fadb14;
-    border-color: #fadb14;
-    box-shadow: none;
-
-    &:hover, &:focus {
-      color: #fff;
-      background: #ffec3d;
-      border-color: #ffec3d;
-    }
-
-    &:active {
-      color: #fff;
-      background: #d4b106;
-      border-color: #d4b106;
-    }
-  }
-
-  .btn-pass {
-    color: #fff;
+  .pass {
     background-color: #52c41a;
-    border-color: #52c41a;
-    box-shadow: none;
+  }
 
-    &:hover, &:focus {
-      color: #fff;
-      background: #73d13d;
-      border-color: #73d13d;
+  .fail {
+    background-color: #fa541c;
+  }
+
+  .ing {
+    background-color: #fadb14;
+  }
+
+  .now-status {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+
+    &__content {
+      margin-left: 6px;
     }
 
-    &:active {
-      color: #fff;
-      background: #389e0d;
-      border-color: #389e0d;
+    &__label {
+      margin-right: 6px;
     }
   }
 
-  .btn-fail {
-    color: #fff;
-    background-color: #fa541c;
-    border-color: #fa541c;
-    box-shadow: none;
+  .table-status {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+  }
 
-    &:hover, &:focus {
-      color: #fff;
-      background: #ff7a45;
-      border-color: #ff7a45;
+  .had-status {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    .status-block {
+      margin-left: 6px;
     }
 
-    &:active {
+    .status-pointer {
+      cursor: pointer;
+    }
+
+    .btn-todo {
       color: #fff;
-      background: #d4380d;
-      border-color: #d4380d;
+      background-color: #bfbfbf;
+      border-color: #bfbfbf;
+      box-shadow: none;
+
+      &:hover,
+      &:focus {
+        color: #fff;
+        background: #d9d9d9;
+        border-color: #d9d9d9;
+      }
+
+      &:active {
+        color: #fff;
+        background: #8c8c8c;
+        border-color: #8c8c8c;
+      }
+    }
+
+    .btn-ing {
+      color: #fff;
+      background-color: #fadb14;
+      border-color: #fadb14;
+      box-shadow: none;
+
+      &:hover,
+      &:focus {
+        color: #fff;
+        background: #ffec3d;
+        border-color: #ffec3d;
+      }
+
+      &:active {
+        color: #fff;
+        background: #d4b106;
+        border-color: #d4b106;
+      }
+    }
+
+    .btn-pass {
+      color: #fff;
+      background-color: #52c41a;
+      border-color: #52c41a;
+      box-shadow: none;
+
+      &:hover,
+      &:focus {
+        color: #fff;
+        background: #73d13d;
+        border-color: #73d13d;
+      }
+
+      &:active {
+        color: #fff;
+        background: #389e0d;
+        border-color: #389e0d;
+      }
+    }
+
+    .btn-fail {
+      color: #fff;
+      background-color: #fa541c;
+      border-color: #fa541c;
+      box-shadow: none;
+
+      &:hover,
+      &:focus {
+        color: #fff;
+        background: #ff7a45;
+        border-color: #ff7a45;
+      }
+
+      &:active {
+        color: #fff;
+        background: #d4380d;
+        border-color: #d4380d;
+      }
     }
   }
 }

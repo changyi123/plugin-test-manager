@@ -4,6 +4,7 @@ import { uniq, uniqBy } from 'lodash';
 import { TestType } from '@/lib/constants';
 import { useSafeState, useRequest } from 'ahooks';
 import { getItemByIQL } from '@/lib/api/proxima';
+import { getRootContainer } from '@/lib/utils/helper';
 import DebounceSelect from '@/components/common/DebounceSelect';
 import { getAllTestConfigs, getTestEntityByItemId } from '@/lib/api/common';
 
@@ -115,6 +116,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
 
   return (
     <Modal
+      getContainer={getRootContainer}
       onCancel={() => setVisible(false)}
       onOk={handleOkButtonClick}
       title={props.title ?? '测试管理选择'}

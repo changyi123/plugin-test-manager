@@ -13,8 +13,8 @@ import cx from './index.less';
 
 // 根据测试类型打开不同的测试 panel
 const TestPanelComponents = {
-  [TestType.TestDetail]: TestDetail,
   [TestType.TestPlan]: TestPlan,
+  [TestType.TestDetail]: TestDetail,
   [TestType.TestExecution]: TestExecution,
 };
 

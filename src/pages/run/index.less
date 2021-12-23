@@ -1,67 +1,68 @@
-.run {
-  margin-top: 10px;
+:root {
+  .run {
+    margin-top: 10px;
 
-  &__header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    
-    &__status {
+    &__header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
 
-      .status-block {
-        width: 20px;
-        height: 20px;
-        border-radius: 2px;
-      }
-      
-      .todo {
-        background-color: #bfbfbf;
-      }
-
-      .pass {
-        background-color: #52c41a;
-      }
-
-      .fail {
-        background-color: #fa541c;
-      }
-
-      .ing {
-        background-color: #fadb14;
-      }
-
-      .now-status {
-        display: flex;
-        justify-content: flex-end;
-        align-items: center;
-
-        &__label {
-          margin-left: 6px;
-        }
-      }
-
-      .had-status {
-        display: flex;
-        justify-content: flex-end;
-        align-items: center;
+      &__status {
         .status-block {
-          margin-left: 6px;
+          width: 20px;
+          height: 20px;
+          border-radius: 2px;
         }
 
-        .status-pointer {
-          cursor: pointer;
+        .todo {
+          background-color: #bfbfbf;
         }
-      }
 
-      &__content {
-        display: flex;
-        justify-content: flex-end;
-        align-items: center;
+        .pass {
+          background-color: #52c41a;
+        }
+
+        .fail {
+          background-color: #fa541c;
+        }
+
+        .ing {
+          background-color: #fadb14;
+        }
+
+        .now-status {
+          display: flex;
+          justify-content: flex-end;
+          align-items: center;
+
+          &__label {
+            margin-left: 6px;
+          }
+        }
+
+        .had-status {
+          display: flex;
+          justify-content: flex-end;
+          align-items: center;
+          .status-block {
+            margin-left: 6px;
+          }
+
+          .status-pointer {
+            cursor: pointer;
+          }
+        }
+
+        &__content {
+          display: flex;
+          justify-content: flex-end;
+          align-items: center;
+        }
       }
     }
-  }
 
-  .descriptions-top {
-    padding-top: 10px;
+    .descriptions-top {
+      padding-top: 10px;
+    }
   }
 }
