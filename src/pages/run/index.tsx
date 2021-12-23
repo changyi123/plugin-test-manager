@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Descriptions, Typography, Collapse, Divider, Spin, Empty, message } from '@osui/ui';
+import { Row, Col, Typography, Collapse, Divider, Spin, Empty, message } from '@osui/ui';
 import UploadFile from '@/components/common/UploadFile';
 import Comment from '@/components/common/Comment';
 import ItemList from './components/ItemList';
@@ -56,33 +56,78 @@ const TestInfo: React.FC<TestInfoContent> = ({ detail, changeRunInfo }) => {
     });
   };
   return (
-    <Descriptions title="执行信息">
-      <Descriptions.Item label="开始时间" className={css('descriptions-top')}>
-        <Paragraph editable={{ onChange: (val: string) => changeStr('startTime', val) }}>
-          {info?.startTime}
-        </Paragraph>
-      </Descriptions.Item>
-      <Descriptions.Item label="负责人" className={css('descriptions-top')}>
-        <Paragraph editable={{ onChange: (val: string) => changeStr('assignee', val) }}>
-          {info?.assignee}
-        </Paragraph>
-      </Descriptions.Item>
-      <Descriptions.Item label="版本" className={css('descriptions-top')}>
-        <Paragraph editable={{ onChange: (val: string) => changeStr('version', val) }}>
-          {info?.version}
-        </Paragraph>
-      </Descriptions.Item>
-      <Descriptions.Item label="完成时间">
-        <Paragraph editable={{ onChange: (val: string) => changeStr('finishTime', val) }}>
-          {info?.finishTime}
-        </Paragraph>
-      </Descriptions.Item>
-      <Descriptions.Item label="执行人">
-        <Paragraph editable={{ onChange: (val: string) => changeStr('executedBy', val) }}>
-          {info?.executedBy}
-        </Paragraph>
-      </Descriptions.Item>
-    </Descriptions>
+    <Row gutter={[10, 10]} className="info">
+      <Col span={24}>
+        <div className="info__title">执行信息</div>
+      </Col>
+      <Col span={8}>
+        <div className={css('info__item')}>
+          <div className={css('info__item__label')}>开始时间</div>
+          <div className={css('info__item__value')}>
+            <Paragraph
+              className={css('info__item__paragraph')}
+              editable={{ onChange: (val: string) => changeStr('startTime', val) }}
+            >
+              {info?.startTime}
+            </Paragraph>
+          </div>
+        </div>
+      </Col>
+
+      <Col span={8}>
+        <div className={css('info__item')}>
+          <div className={css('info__item__label')}>负责人</div>
+          <div className={css('info__item__value')}>
+            <Paragraph
+              className={css('info__item__paragraph')}
+              editable={{ onChange: (val: string) => changeStr('assignee', val) }}
+            >
+              {info?.assignee}
+            </Paragraph>
+          </div>
+        </div>
+      </Col>
+      <Col span={8}>
+        <div className={css('info__item')}>
+          <div className={css('info__item__label')}>版本</div>
+          <div className={css('info__item__value')}>
+            <Paragraph
+              className={css('info__item__paragraph')}
+              editable={{ onChange: (val: string) => changeStr('version', val) }}
+            >
+              {info?.version}
+            </Paragraph>
+          </div>
+        </div>
+      </Col>
+      <Col span={8}>
+        <div className={css('info__item')}>
+          <div className={css('info__item__label')}>完成时间</div>
+          <div className={css('info__item__value')}>
+            <Paragraph
+              className={css('info__item__paragraph')}
+              editable={{ onChange: (val: string) => changeStr('finishTime', val) }}
+            >
+              {info?.finishTime}
+            </Paragraph>
+          </div>
+        </div>
+      </Col>
+
+      <Col span={8}>
+        <div className={css('info__item')}>
+          <div className={css('info__item__label')}>执行人</div>
+          <div className={css('info__item__value')}>
+            <Paragraph
+              className={css('info__item__paragraph')}
+              editable={{ onChange: (val: string) => changeStr('executedBy', val) }}
+            >
+              {info?.executedBy}
+            </Paragraph>
+          </div>
+        </div>
+      </Col>
+    </Row>
   );
 };
 
