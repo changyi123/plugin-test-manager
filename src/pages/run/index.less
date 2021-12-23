@@ -64,5 +64,36 @@
     .descriptions-top {
       padding-top: 10px;
     }
+
+    .info {
+      &__title {
+        font-weight: 600;
+      }
+
+      :global {
+        .ant-typography {
+          margin-bottom: 0;
+        }
+      }
+
+      &__item {
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        margin-bottom: 6px;
+
+        &__label {
+          width: 80px;
+        }
+
+        &__value {
+          flex: 1;
+        }
+
+        &__paragraph {
+          margin-bottom: 0 !important;
+        }
+      }
+    }
   }
 }
