@@ -16,7 +16,7 @@ const TestTableStatus: React.FC<{
   change?: () => void;
 }> = ({ status, testId, readonly = false, change }) => {
   const [itemStatus, setItemStatus] = useMergedState<IColor>(status, {
-    value: status,
+    value: status || 'todo',
   });
 
   const { run, loading, data } = useRequest(

@@ -35,7 +35,7 @@ const TestStatus: React.FC<{
   testId?: string;
   change?: () => (IColor?: string) => void;
 }> = ({ status, testId, change }) => {
-  const [currentColor, setCurrentColor] = useState<IColor>(status);
+  const [currentColor, setCurrentColor] = useState<IColor>(status || 'todo');
   const { run, loading, data } = useRequest(
     (testId: string, status: IColor) => updateTestStatus(testId, status),
     {
