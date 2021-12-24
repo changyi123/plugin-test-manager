@@ -24,7 +24,7 @@ interface FetchInstance extends AxiosInstance {
 logMsg('process.env.PROXIMA_BASE_URL:', process.env.PROXIMA_BASE_URL);
 
 // TODO:临时从localStorage中获取sessionToken
-// const { sessionToken } = JSON.parse(localStorage.getItem('Parse/proxima-core/currentUser'));
+const { sessionToken } = JSON.parse(localStorage.getItem('Parse/proxima-core/currentUser'));
 // const reg = /sessionToken=([^;]+)/;
 // const result = reg.exec(document.cookie);
 // const sessionToken = result?.[1];
@@ -34,6 +34,7 @@ const config: AxiosRequestConfig = {
   timeout: 15 * 1000,
   headers: {
     'X-Parse-Application-Id': id,
+    'X-Parse-Session-Token': sessionToken,
     ...getParseReqHeader(),
   },
 };
