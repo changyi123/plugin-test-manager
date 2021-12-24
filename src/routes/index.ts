@@ -12,8 +12,8 @@ const routes = [
     exact: true,
   },
   {
-    path: '/login',
-    component: React.lazy(() => import('../pages/demo/Demo')),
+    path: '/dev',
+    component: React.lazy(() => import('../pages/dev')),
     exact: true,
   },
   {

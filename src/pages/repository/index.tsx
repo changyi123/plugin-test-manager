@@ -10,7 +10,7 @@ import { useSDK } from '@projectproxima/plugin-sdk';
 import { getItemByIQL, getCustomFields } from '@/lib/api/proxima';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import TestManagerProvider from '@/components/common/TestManagerProvider';
-import { WorkspaceKey } from '@/devEnv';
+import { getDevConfig } from '@/devEnv';
 import { TestType } from '@/lib/constants';
 import { BaseTable, BaseTableProvider } from '@/components/common/Table';
 
@@ -145,7 +145,7 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
 
 const TestRepositoryPage = () => {
   const { context } = useSDK();
-  const workspaceKey = context?.env?.WORKSPACE_KEY ?? WorkspaceKey;
+  const workspaceKey = context?.env?.WORKSPACE_KEY ?? getDevConfig().workspaceKey;
   return (
     <TestManagerProvider workspaceKey={workspaceKey}>
       <TestRepository workspaceKey={workspaceKey} />
