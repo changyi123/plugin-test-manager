@@ -33,7 +33,14 @@ const DebounceSelect: FC<DebounceSelectProps> = ({
           return;
         }
         const itemArray = newOptions.map(item => ({
-          label: item.name,
+          label: (
+            <div>
+              <span style={{ display: 'inline-block', marginRight: 4, fontSize: 13 }}>
+                {item.name}
+              </span>
+              <span style={{ fontSize: 12, color: '#aaa' }}>({item.key})</span>
+            </div>
+          ),
           value: item.objectId,
         }));
         setOptions(itemArray);

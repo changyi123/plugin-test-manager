@@ -11,6 +11,7 @@ import ItemTypeModal from './components/ItemTypeModal';
 import type { ItemTypeModalHandle } from './components/ItemTypeModal';
 import GlobalDndContext from './DndContext';
 import { TestType } from '@/lib/constants';
+import { PanelItemId } from '@/devEnv';
 
 import css from './index.less';
 
@@ -118,7 +119,7 @@ const StepDrop: React.FC<{
 const Detail: React.FC = () => {
   const [steps, setSteps] = useState<Array<TestStep>>([]);
   const [testInfo, setTestInfo] = useState<TestInfor>({});
-  const currentObjectId: string = window?.QiankunProps?.context?.itemId || 'qCXK92ilv6';
+  const currentObjectId: string = window?.QiankunProps?.context?.itemId || PanelItemId;
   const ItemTypeModalRef = createRef<ItemTypeModalHandle>();
   console.log('QiankunProps', window?.QiankunProps);
 

@@ -13,6 +13,7 @@ import { useTestConfig, useBaseAction } from '@/lib/hooks/useContext';
 import { TestType } from '@/lib/constants';
 import { removeTestRelations } from '@/lib/api/common';
 import TestRunModal from '@/pages/run/Modal';
+import { PanelItemId } from '@/devEnv';
 
 import css from './index.less';
 
@@ -33,7 +34,7 @@ export interface RunItem {
 export const RunsContext = React.createContext<{ refresh?: () => void }>({});
 
 const Runs: React.FC = () => {
-  const itemId: string = window?.QiankunProps?.context?.itemId || 'qCXK92ilv6';
+  const itemId: string = window?.QiankunProps?.context?.itemId || PanelItemId;
   const tableActionRef = React.useRef<ActionType>();
   const { createItemUseModal } = useBaseAction();
 

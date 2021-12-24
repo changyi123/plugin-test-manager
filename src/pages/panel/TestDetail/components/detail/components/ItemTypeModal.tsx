@@ -12,6 +12,8 @@ import useMergedState from 'rc-util/lib/hooks/useMergedState';
 import { IActionCard } from '..';
 import { TestType } from '@/lib/constants';
 import { useTestConfig } from '@/lib/hooks/useContext';
+import { getRootContainer } from '@/lib/utils/helper';
+import cx from '@/components/panel/TestEntitySelectorModal/index.less';
 
 type ItemTypelModelProps = {
   trigger?: JSX.Element;
@@ -37,6 +39,7 @@ let currentTestId = '';
 const ItemTypeModalContent: React.FC<ItemTypeModalContentProps> = props => {
   const { workspace } = useTestConfig();
   const testConfigRequest = useRequest(() => GetTestConfigFromWorkspaceKey(workspace.key));
+  const debounceSelectContainerRef = React.useRef();
 
   const { data, error, loading } = useRequest(
     () => GetItemTypeFromKey(testConfigRequest?.data?.data?.itemTypeMap?.[props.type]),
@@ -62,15 +65,17 @@ const ItemTypeModalContent: React.FC<ItemTypeModalContentProps> = props => {
   }
 
   return (
-    <ItemTypeSelect
-      placeholder="搜索事项ID、标题"
-      fetchOptions={GetItemFromItemType}
-      itemTypeName={data?.data?.name}
-      onChange={value => {
-        currentTestId = value;
-      }}
-      style={{ width: '100%' }}
-    />
+    <div ref={debounceSelectContainerRef}>
+      <ItemTypeSelect
+        placeholder="搜索事项ID、标题"
+        fetchOptions={GetItemFromItemType}
+        itemTypeName={data?.data?.name}
+        onChange={value => {
+          currentTestId = value;
+        }}
+        style={{ width: '100%' }}
+      />
+    </div>
   );
 };
 
@@ -115,12 +120,14 @@ const ItemTypeModal: React.ForwardRefRenderFunction<ItemTypeModalHandle, ItemTyp
   return (
     <>
       <Modal
+        getContainer={getRootContainer}
         title={props.title || '请选择继承测试用例'}
         visible={isVisible}
         maskClosable={false}
         onCancel={handleCloseModal}
         onOk={handleOkModal}
         destroyOnClose
+        className={cx('modal')}
       >
         {isVisible && <ItemTypeModalContent type={type} saveCard={props.saveCard} />}
       </Modal>
