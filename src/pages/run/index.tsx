@@ -66,7 +66,7 @@ const TestInfo: React.FC<TestInfoContent> = ({ detail, changeRunInfo }) => {
           <div className={css('info__item__value')}>
             <Paragraph
               className={css('info__item__paragraph')}
-              editable={{ onChange: (val: string) => changeStr('startTime', val) }}
+              editable={{ onChange: (val: string) => changeStr('startTime', val), maxLength: 10 }}
             >
               {info?.startTime}
             </Paragraph>
@@ -80,7 +80,7 @@ const TestInfo: React.FC<TestInfoContent> = ({ detail, changeRunInfo }) => {
           <div className={css('info__item__value')}>
             <Paragraph
               className={css('info__item__paragraph')}
-              editable={{ onChange: (val: string) => changeStr('assignee', val) }}
+              editable={{ onChange: (val: string) => changeStr('assignee', val), maxLength: 10 }}
             >
               {info?.assignee}
             </Paragraph>
@@ -93,7 +93,7 @@ const TestInfo: React.FC<TestInfoContent> = ({ detail, changeRunInfo }) => {
           <div className={css('info__item__value')}>
             <Paragraph
               className={css('info__item__paragraph')}
-              editable={{ onChange: (val: string) => changeStr('version', val) }}
+              editable={{ onChange: (val: string) => changeStr('version', val), maxLength: 10 }}
             >
               {info?.version}
             </Paragraph>
@@ -106,7 +106,7 @@ const TestInfo: React.FC<TestInfoContent> = ({ detail, changeRunInfo }) => {
           <div className={css('info__item__value')}>
             <Paragraph
               className={css('info__item__paragraph')}
-              editable={{ onChange: (val: string) => changeStr('finishTime', val) }}
+              editable={{ onChange: (val: string) => changeStr('finishTime', val), maxLength: 10 }}
             >
               {info?.finishTime}
             </Paragraph>
@@ -120,7 +120,7 @@ const TestInfo: React.FC<TestInfoContent> = ({ detail, changeRunInfo }) => {
           <div className={css('info__item__value')}>
             <Paragraph
               className={css('info__item__paragraph')}
-              editable={{ onChange: (val: string) => changeStr('executedBy', val) }}
+              editable={{ onChange: (val: string) => changeStr('executedBy', val), maxLength: 10 }}
             >
               {info?.executedBy}
             </Paragraph>

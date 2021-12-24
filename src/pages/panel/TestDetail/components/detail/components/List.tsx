@@ -200,6 +200,7 @@ const List: React.FC<ListProps> = (props: ListProps) => {
                   {editState ? (
                     <TextArea
                       placeholder={`请输入行动`}
+                      maxLength={100}
                       autoSize={{ minRows: 2 }}
                       value={action}
                       onChange={e =>
@@ -225,6 +226,7 @@ const List: React.FC<ListProps> = (props: ListProps) => {
                 <div className={css('list__item__result')} onClick={() => toggleEditState(true)}>
                   {editState ? (
                     <TextArea
+                      maxLength={100}
                       placeholder={`请输入数据`}
                       autoSize={{ minRows: 2 }}
                       value={data}
@@ -252,6 +254,7 @@ const List: React.FC<ListProps> = (props: ListProps) => {
                   {editState ? (
                     <TextArea
                       placeholder={`请输入预期结果`}
+                      maxLength={100}
                       autoSize={{ minRows: 2 }}
                       value={result}
                       onChange={e =>

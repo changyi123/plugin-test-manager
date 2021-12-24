@@ -31,6 +31,7 @@ const Comment: React.FC<ICommentProps> = ({ placeholder = '点击添加评论', 
         placeholder={placeholder}
         value={inputValue}
         onChange={e => setInputValue(e.target.value)}
+        maxLength={100}
       />
 
       {isEdit && (
