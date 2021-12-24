@@ -4,7 +4,7 @@ import TestPlan from './TestPlan';
 import TestDetail from './TestDetail';
 import TestExecution from './TestExecution';
 import { TestType } from '@/lib/constants';
-import { PanelItemId } from '@/devEnv';
+import { getDevConfig } from '@/devEnv';
 import { useSDK } from '@projectproxima/plugin-sdk';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import TestManagerProvider from '@/components/common/TestManagerProvider';
@@ -36,7 +36,7 @@ const TestPanel = () => {
 
 const TestPanelPage = () => {
   const { context } = useSDK();
-  const itemId = context?.itemId ?? PanelItemId;
+  const itemId = context?.itemId ?? getDevConfig().itemId;
 
   return (
     <TestManagerProvider itemId={itemId}>

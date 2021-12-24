@@ -1,6 +1,7 @@
 import { message } from '@osui/ui';
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import debug from 'debug';
+import { getDevConfig, getParseReqHeader } from '@/devEnv';
 
 const logMsg = debug('fetch');
 
@@ -23,7 +24,7 @@ interface FetchInstance extends AxiosInstance {
 logMsg('process.env.PROXIMA_BASE_URL:', process.env.PROXIMA_BASE_URL);
 
 // TODO:临时从localStorage中获取sessionToken
-const { sessionToken } = JSON.parse(localStorage.getItem('Parse/proxima-core/currentUser'));
+// const { sessionToken } = JSON.parse(localStorage.getItem('Parse/proxima-core/currentUser'));
 // const reg = /sessionToken=([^;]+)/;
 // const result = reg.exec(document.cookie);
 // const sessionToken = result?.[1];
@@ -33,12 +34,12 @@ const config: AxiosRequestConfig = {
   timeout: 15 * 1000,
   headers: {
     'X-Parse-Application-Id': id,
-    'X-Parse-Session-Token': sessionToken,
+    ...getParseReqHeader(),
   },
 };
 
 if (process.env.NODE_ENV === 'development') {
-  config.baseURL = process.env.PROXIMA_BASE_URL;
+  config.baseURL = getDevConfig().baseURL;
 }
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-assertions

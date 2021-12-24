@@ -65,7 +65,8 @@ tables:
         type: Object
       runReferenceDetail:
         type: Pointer
-        targetClass: test_manager_Test
+        isAppClass: true
+        targetClass: Test
       runDetail:
         type: Object
   - className: Activity
@@ -87,11 +88,11 @@ tables:
       from:
         type: Pointer
         isAppClass: true
-        targetClass: test_manager_Test
+        targetClass: Test
       to:
         type: Pointer
         isAppClass: true
-        targetClass: test_manager_Test
+        targetClass: Test
       relationType:
         type: String
   # itemPanel:

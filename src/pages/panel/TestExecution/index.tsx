@@ -1,7 +1,7 @@
 import React from 'react';
 import { Tabs, Spin } from '@osui/ui';
 import { TestType } from '@/lib/constants';
-import { PanelItemId } from '@/devEnv';
+import { getDevConfig } from '@/devEnv';
 import { useSDK } from '@projectproxima/plugin-sdk';
 import TestManagerProvider from '@/components/common/TestManagerProvider';
 
@@ -34,7 +34,7 @@ const TestExecution = () => {
 
 const TestExecutionPage = () => {
   const { context } = useSDK();
-  const itemId = context?.itemId ?? PanelItemId;
+  const itemId = context?.itemId ?? getDevConfig().itemId;
 
   return (
     <TestManagerProvider itemId={itemId}>
