@@ -1,7 +1,8 @@
 import React from 'react';
 import { Button, message, Input, Select, Radio, Layout, Form } from '@osui/ui';
-import { useLocalStorageState, useMount } from 'ahooks';
+import { useLocalStorageState, useSafeState } from 'ahooks';
 import { merge } from 'lodash';
+import Parse from '@/lib/parse';
 
 const DEV_STORAGE_KEY = 'test_manager_dev';
 
@@ -21,13 +22,19 @@ const urlOptions = [
 
 const Dev: React.FC = () => {
   const [devConfig, setDevConfig] = useLocalStorageState(DEV_STORAGE_KEY, {
-    defaultValue: {},
+    defaultValue: {} as any,
   });
+  const [env, setEnv] = useSafeState(devConfig.env);
 
   const [form] = Form.useForm();
+  const login = async () => {
+    await Parse.User.logIn(devConfig.username, devConfig.password);
+    message.success(`用户【${devConfig.username}】登录成功`);
+  };
 
-  const handleValuesChange = (_, values) => {
+  const handleValuesChange = (changedVal, values) => {
     setDevConfig(merge(devConfig, values));
+    setEnv(values.env);
   };
 
   return (
@@ -51,33 +58,46 @@ const Dev: React.FC = () => {
             <Form.Item name="baseURL" tooltip={{ title: '环境名' }} label="BASE_URL">
               <Select>
                 {urlOptions.map(url => (
-                  <Select.Option
-                    disabled={url.env === form.getFieldValue('env')}
-                    key={url.value}
-                    {...url}
-                  >
+                  <Select.Option disabled={url.env !== env} key={url.value} {...url}>
                     {url.label}
                   </Select.Option>
                 ))}
               </Select>
             </Form.Item>
-            <Form.Item name="actor" tooltip={{ title: '模拟用户信息' }} label="模拟用户信息">
-              <Input />
-            </Form.Item>
           </>
 
-          <>
-            <Form.Item
-              name="workspaceKey"
-              tooltip={{ title: 'workspace_key' }}
-              label="mock_workspace_key"
-            >
-              <Input />
-            </Form.Item>
-            <Form.Item name="itemId" tooltip={{ title: 'item_id' }} label="mock_item_id">
-              <Input />
-            </Form.Item>
-          </>
+          <Form.Item
+            name="workspaceKey"
+            tooltip={{ title: 'workspace_key' }}
+            label="mock_workspace_key"
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item name="itemId" tooltip={{ title: 'item_id' }} label="mock_item_id">
+            <Input />
+          </Form.Item>
+
+          {env === 'one' ? (
+            <>
+              <Form.Item name="actor" tooltip={{ title: '模拟用户信息' }} label="模拟用户信息">
+                <Input />
+              </Form.Item>
+            </>
+          ) : null}
+
+          {env === 'single' ? (
+            <>
+              <Form.Item name="username" tooltip={{ title: '输入账号' }} label="账号">
+                <Input />
+              </Form.Item>
+              <Form.Item name="password" tooltip={{ title: '密码' }} label="输入密码">
+                <Input />
+              </Form.Item>
+              <Button onClick={login} type="primary">
+                登录
+              </Button>
+            </>
+          ) : null}
         </Form>
       </Layout.Content>
     </Layout>
