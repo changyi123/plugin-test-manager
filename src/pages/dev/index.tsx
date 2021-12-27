@@ -10,7 +10,7 @@ const urlOptions = [
   {
     env: 'one',
     label: 'huishang2 集成环境',
-    value: 'http://proxima.huishang2.gitee.work',
+    value: 'http://proxima.huishang2.gitee.work/api/project',
   },
   {
     env: 'single',
