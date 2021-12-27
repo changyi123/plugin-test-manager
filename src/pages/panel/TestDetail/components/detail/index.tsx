@@ -165,13 +165,14 @@ const Detail: React.FC = () => {
       if (saveSteps) {
         saveOrUpdateTestStep(newSteps, testInfo?.objectId, currentObjectId).then(() => {
           message.success('操作成功');
-          setSteps(newSteps);
+          // setSteps([...newSteps]);
+          fetchData();
         });
         return;
       }
       setSteps(newSteps);
     },
-    [findCard, steps, setSteps, testInfo?.objectId, currentObjectId],
+    [findCard, steps, setSteps, fetchData, testInfo?.objectId, currentObjectId],
   );
 
   const expandCard = useCallback(
@@ -258,7 +259,7 @@ const Detail: React.FC = () => {
       };
       const stepsbak = [...steps].filter(item => item.id !== '-1');
       if (!id) {
-        stepsbak.splice(0, 0, { ...emptyStep });
+        stepsbak.splice(stepsbak.length, 0, { ...emptyStep });
         setSteps(stepsbak);
         return;
       }

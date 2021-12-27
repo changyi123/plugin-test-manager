@@ -55,7 +55,7 @@ export const StepItem: React.FC<IStepItemProps> = ({ index, item, saveList, test
   return (
     <div className={css('step-list__item')}>
       <div className={css('left')}>
-        <div className={css('left__index')}>1</div>
+        <div className={css('left__index')}>{index + 1}</div>
         <div className={css('left__tips')}>
           <Popover content={<div>继承测试用例</div>}>
             <InfoCircleOutlined />
