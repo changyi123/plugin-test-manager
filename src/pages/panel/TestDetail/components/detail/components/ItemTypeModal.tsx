@@ -70,6 +70,7 @@ const ItemTypeModalContent: React.FC<ItemTypeModalContentProps> = props => {
         placeholder="搜索事项ID、标题"
         fetchOptions={GetItemFromItemType}
         itemTypeName={data?.data?.name}
+        getPopupContainer={() => debounceSelectContainerRef.current}
         onChange={value => {
           currentTestId = value;
         }}
