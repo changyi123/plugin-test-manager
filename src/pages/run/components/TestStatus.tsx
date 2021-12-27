@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Tooltip, Divider, Button, Space, message, Spin } from '@osui/ui';
+import { Tooltip, Divider, Button, Space, message } from '@osui/ui';
 import css from './TestStatus.less';
 import { useRequest } from 'ahooks';
 import { updateTestStatus } from '@/lib/api/runs';
+import Loading from '@/components/common/Loading';
 
 export type IColor = 'todo' | 'ing' | 'fail' | 'pass';
 
@@ -63,7 +64,7 @@ const TestStatus: React.FC<{
   );
 
   if (loading) {
-    return <Spin tip="改变中..."></Spin>;
+    return <Loading tip="改变中..." />;
   }
 
   return (

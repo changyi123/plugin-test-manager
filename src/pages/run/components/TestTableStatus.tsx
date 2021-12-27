@@ -1,11 +1,12 @@
 import React, { useCallback, useEffect, useContext } from 'react';
-import { Dropdown, Menu, Spin, message } from '@osui/ui';
+import { Dropdown, Menu, message } from '@osui/ui';
 import { MenuInfo } from 'rc-menu/lib/interface';
 import { colorArray, IColor } from './TestStatus';
 import useMergedState from 'rc-util/lib/hooks/useMergedState';
 import { updateTestStatus } from '@/lib/api/runs';
 import { useRequest } from 'ahooks';
 import { RunsContext } from '@/pages/panel/TestDetail/components/runs';
+import Loading from '@/components/common/Loading';
 
 import css from './TestStatus.less';
 
@@ -66,7 +67,7 @@ const TestTableStatus: React.FC<{
   );
 
   if (loading) {
-    return <Spin tip="加载中..."></Spin>;
+    return <Loading />;
   }
   return (
     <Dropdown overlay={menu} trigger={readonly ? [] : ['click']}>

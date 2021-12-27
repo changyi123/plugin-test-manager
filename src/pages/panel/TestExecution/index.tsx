@@ -1,9 +1,10 @@
 import React from 'react';
-import { Tabs, Spin } from '@osui/ui';
+import { Tabs } from '@osui/ui';
 import { TestType } from '@/lib/constants';
 import { getDevConfig } from '@/devEnv';
 import { useSDK } from '@projectproxima/plugin-sdk';
 import TestManagerProvider from '@/components/common/TestManagerProvider';
+import Loading from '@/components/common/Loading';
 
 import cx from './index.less';
 
@@ -22,9 +23,7 @@ const TestExecution = () => {
       <Tabs destroyInactiveTabPane defaultActiveKey={TestType.TestDetail}>
         {PlanTabs.map(({ tab, key, Component }) => (
           <TabPane tab={tab} key={key}>
-            <React.Suspense fallback={<Spin tip="加载中..."></Spin>}>
-              {Component && <Component />}
-            </React.Suspense>
+            <React.Suspense fallback={<Loading />}>{Component && <Component />}</React.Suspense>
           </TabPane>
         ))}
       </Tabs>
