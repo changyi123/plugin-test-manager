@@ -2,10 +2,14 @@ import React from 'react';
 
 import { uniqueId } from 'lodash';
 import { Workspace } from '@/lib/types/App';
-import { Typography, message } from '@osui/ui';
-import { EllipsisOutlined, DownOutlined } from '@ant-design/icons';
+import { message, Table, Tooltip } from '@osui/ui';
+import { DownOutlined } from '@ant-design/icons';
 import { TestType, TestRelationType } from '@/lib/constants';
-import PanelTable, { ActionType } from '@/components/panel/PanelTable';
+import PanelTable, {
+  ActionType,
+  BuiltinColumns,
+  columnBuilder,
+} from '@/components/panel/PanelTable';
 import DropDownButton from '@/components/panel/DropDownButton';
 import { useTestConfig, useBaseAction } from '@/lib/hooks/useContext';
 import TestEntitySelectorModal, {
@@ -14,8 +18,6 @@ import TestEntitySelectorModal, {
 import { useAllRelTestEntityIds } from '@/lib/hooks/useTest';
 import { getTestEntitiesByRelation, removeTestRelations } from '@/lib/api/common';
 import { createTestExecutionService, addTestDetailToPlanService } from './services';
-
-import cx from './index.less';
 
 const Test = () => {
   const { testEntity } = useTestConfig();
@@ -37,12 +39,62 @@ const Test = () => {
   }, [getAllRelTestEntityIds]);
 
   const tableDataSourceGetter = React.useCallback(
-    queryParams => {
-      return getTestEntitiesByRelation(
-        TestRelationType.PlanRelDetail,
-        { from: testEntity },
-        { fillItemData: true, queryParams: queryParams },
-      );
+    async queryParams => {
+      const [{ list: testDetails, total }, { list: testRuns }] = await Promise.all([
+        getTestEntitiesByRelation(
+          TestRelationType.PlanRelDetail,
+          { from: testEntity },
+          {
+            fillItemData: true,
+            queryParams: queryParams,
+          },
+        ),
+        getTestEntitiesByRelation(
+          TestRelationType.PlanRelExecution,
+          { from: testEntity },
+          {
+            fillItemData: true,
+            queryParams: { limit: 999 },
+            include: ['objectId'],
+            async resultTransfer(data) {
+              const testExecutionIds = data.list.map(item => item.objectId);
+              const { list: testRuns } = await getTestEntitiesByRelation(
+                TestRelationType.ExecutionRelRun,
+                {
+                  from: testExecutionIds,
+                },
+                {
+                  include: ['objectId'],
+                  queryParams: { limit: 999 },
+                },
+              );
+              return {
+                ...data,
+                list: testRuns.map(run => ({
+                  ...run,
+                  // 关联的 relations
+                  relExecutions: data.list.filter(
+                    item => item.objectId === run.relation.from.objectId,
+                  ),
+                })),
+              };
+            },
+          },
+        ),
+      ]);
+
+      const list = testDetails.map(detail => {
+        return {
+          ...detail,
+          // 关联的测试运行
+          relRuns: testRuns.filter(run => run.runReferenceDetail.objectId === detail.objectId),
+        };
+      });
+
+      return {
+        list,
+        total,
+      };
     },
     [testEntity],
   );
@@ -99,57 +151,27 @@ const Test = () => {
   // table column 数据
   const tableColumns = React.useMemo(() => {
     return [
+      columnBuilder(BuiltinColumns.ItemKey, record => ({ item: record.reference })),
+      columnBuilder(BuiltinColumns.ItemTitle, record => ({ item: record.reference })),
       {
-        title: '事项key',
-        key: 'reference.name',
-        width: 100,
-        render(_, record) {
-          const item = record?.reference;
-          return (
-            <Typography.Link
-              ellipsis={true}
-              target="_blank"
-              href={`/osc/workspaces/${item?.workspace?.key}/item/${item?.key}`}
-            >
-              {item?.key}
-            </Typography.Link>
-          );
+        title: '执行轮次',
+        key: 'execution',
+        render: (_, record) => {
+          return record.relRuns?.length ?? 0;
         },
       },
       {
-        title: '事项名',
-        key: 'reference.name',
-        render(_, record) {
-          const item = record?.reference;
-
-          return <Typography.Text ellipsis={{ tooltip: item?.name }}>{item?.name}</Typography.Text>;
-        },
+        title: '最新执行状态',
+        key: 'status',
+        render: (_, record) => record.relRuns?.[0]?.status,
       },
-      // {
-      //   title: '最新执行状态',
-      //   dataIndex: 'status',
-      //   key: 'status',
-      //   render: value => {
-      //     return <TestTableStatus readonly status={value ?? 'todo'} testId="" />;
-      //   },
-      // },
       {
         title: '操作',
         key: 'action',
         render: (_, record) => (
-          <DropDownButton
-            buttonProps={{ type: 'text' }}
-            menuList={[
-              {
-                title: '删除',
-                onClick() {
-                  removeTestRelation([record.testRelationId]);
-                },
-              },
-            ]}
-          >
-            <EllipsisOutlined />
-          </DropDownButton>
+          <>
+            <a onClick={() => removeTestRelation([record.testRelationId])}>删除</a>
+          </>
         ),
       },
     ];
@@ -178,8 +200,50 @@ const Test = () => {
     [refreshDepData, testEntity],
   );
 
+  const expandedRowRender = React.useCallback(record => {
+    // console.log(record.relRuns);
+    const columns = [
+      {
+        key: 'execution',
+        title: '测试运行轮次',
+        ellipsis: {
+          showTitle: false,
+        },
+        tooltip: true,
+        width: 150,
+        render(_, record) {
+          const name = record.relExecutions?.[0]?.reference?.name;
+          return <Tooltip title={name}>{name}</Tooltip>;
+        },
+      },
+      {
+        key: 'status',
+        title: '执行状态',
+        width: 100,
+        render(_, record) {
+          return record.status;
+        },
+      },
+      {
+        key: 'action',
+        title: '操作',
+        // fixed: 'right',
+        render() {
+          return (
+            <>
+              <a>执行</a>
+            </>
+          );
+        },
+      },
+    ];
+    return (
+      <Table pagination={false} rowKey="objectId" columns={columns} dataSource={record.relRuns} />
+    );
+  }, []);
+
   return (
-    <div className={cx('test')}>
+    <div>
       <TestEntitySelectorModal
         actionRef={selectorModalRef}
         title="添加测试用例到当前测试计划"
@@ -187,14 +251,25 @@ const Test = () => {
         onSelect={addTestDetailToPlan}
         ignoreTestEntityIds={testEntityIds}
       />
-      <DropDownButton menuList={testDetailMenuList}>
-        添加测试用例 <DownOutlined />
-      </DropDownButton>
-      <DropDownButton buttonProps={{ className: cx('btn-right') }} menuList={testExecutionMenuList}>
-        创建测试执行
-        <DownOutlined />
-      </DropDownButton>
+
       <PanelTable
+        expandable={{
+          expandedRowRender,
+          rowExpandable(record) {
+            return !!record.relRuns?.length;
+          },
+        }}
+        renderActions={() => (
+          <>
+            <DropDownButton menuList={testDetailMenuList}>
+              添加测试用例 <DownOutlined />
+            </DropDownButton>
+            <DropDownButton menuList={testExecutionMenuList}>
+              创建测试执行
+              <DownOutlined />
+            </DropDownButton>
+          </>
+        )}
         actionRef={tableActionRef}
         actionMenuList={[
           {

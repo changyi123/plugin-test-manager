@@ -1,36 +1,38 @@
 import React from 'react';
-import { Tabs, Spin } from '@osui/ui';
 import { TestType } from '@/lib/constants';
-
-import cx from './index.less';
-
-const { TabPane } = Tabs;
-const PlanTabs = [
-  {
-    tab: '测试用例',
-    key: TestType.TestDetail,
-    Component: React.lazy(() => import('./components/Test')),
-  },
-  {
-    tab: '测试执行',
-    key: TestType.TestExecution,
-    Component: React.lazy(() => import('./components/Execution')),
-  },
-];
+import TestDetailPanel from './TestDetailPanel';
+import TestExecutionPanel from './TestExecutionPanel';
+import PanelLayout, { alert } from '@/components/panel/PanelLayout';
 
 const TestPlan = () => {
+  React.useEffect(() => {
+    alert({
+      type: 'success',
+      message: '创建成功',
+    });
+    alert({
+      type: 'error',
+      message: '创建失败',
+    });
+  }, []);
+  const tabs = [
+    {
+      tab: '测试用例',
+      key: TestType.TestDetail,
+      Component: TestDetailPanel,
+    },
+    {
+      tab: '测试执行',
+      key: TestType.TestExecution,
+      Component: TestExecutionPanel,
+    },
+  ];
   return (
-    <div className={cx('plan')}>
-      <Tabs destroyInactiveTabPane defaultActiveKey={TestType.TestDetail}>
-        {PlanTabs.map(({ tab, key, Component }) => (
-          <TabPane tab={tab} key={key}>
-            <React.Suspense fallback={<Spin tip="加载中..."></Spin>}>
-              {Component && <Component />}
-            </React.Suspense>
-          </TabPane>
-        ))}
-      </Tabs>
-    </div>
+    <PanelLayout
+      tabsProps={{ destroyInactiveTabPane: true, defaultActiveKey: TestType.TestDetail }}
+      title="测试计划"
+      tabs={tabs}
+    />
   );
 };
 

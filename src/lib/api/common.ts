@@ -3,7 +3,7 @@ import { keyBy, merge } from 'lodash';
 import { TestConfig } from '../models';
 import { getItemByIQL } from './proxima';
 import { TestType, TestRelationType } from '@/lib/constants';
-import { hasArrayItem, pointerTransfer } from '@/lib/utils/helper';
+import { hasArrayItem, pointerTransfer, toArray } from '@/lib/utils/helper';
 import { Workspace, Item, Test, TestRelation } from '@/lib/models';
 
 /** to/from -> pointer */
@@ -21,19 +21,6 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
   total: number;
   list: TResponseList;
 }> => {
-  try {
-    // FIXME: 方案
-    // const CacheKey = 'Parse/proxima-core/currentUser';
-    // const userJSON = JSON.parse(window.localStorage.getItem(CacheKey));
-
-    Parse.User._clearCache();
-    // Parse.User._setCurrentUserCache(Parse.Object.fromJSON(userJSON));
-
-    console.info('用户数据重置成功');
-  } catch (err) {
-    console.info(err);
-  }
-
   const config = merge(
     {
       // 响应数据处理
@@ -107,10 +94,6 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
   };
 
   // 需要填充 item 数据则自动转换未 json 格式，非批量数据不做处理
-  console.log(
-    'results',
-    results.map(i => i.toJSON()),
-  );
   if (Array.isArray(results)) {
     const itemIds = [];
     const testEntitiesData = results.map(relation => {
@@ -241,12 +224,28 @@ export const createTestEntities = (
 /**
  * 获取测试实体
  */
-export const getTestEntityByItemId = (itemId: string | string[]) => {
-  const query = new Parse.Query(Test).include(['reference.workspace', 'reference.itemType']);
-  if (Array.isArray(itemId)) {
-    return query.containedIn('reference', itemId).find();
+export const getTestEntities = (
+  params: { itemId?: string | string[]; id?: string | string[] },
+  _config?: {
+    include?: string[];
+  },
+) => {
+  const query = new Parse.Query(Test);
+  const config = merge({ include: ['reference.workspace', 'reference.itemType'] }, _config);
+
+  if (Array.isArray(config.include)) {
+    query.include(config.include);
   }
-  return query.equalTo('reference', Item.createWithoutData(itemId)).first();
+
+  if (params?.id) {
+    query.containedIn('objectId', toArray(params.id));
+  }
+
+  if (params?.itemId) {
+    query.containedIn('reference', toArray(params.itemId));
+  }
+
+  return query.find();
 };
 
 /**

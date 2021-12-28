@@ -32,6 +32,7 @@
     "space-infix-ops": "error",
     "no-useless-escape": "off",
     "require-atomic-updates": "off",
+    "react/prop-types": "off",
     "no-console": [
       "error",
       {

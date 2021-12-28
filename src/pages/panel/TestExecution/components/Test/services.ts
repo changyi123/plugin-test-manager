@@ -3,10 +3,10 @@ import { hasArrayItem } from '@/lib/utils/helper';
 import Parse from '@/lib/parse';
 import { TestType, TestRelationType } from '@/lib/constants';
 import {
+  getTestEntities,
   createTestRelation,
   createTestEntities,
   getTestEntitiesByRelation,
-  getTestEntityByItemId,
 } from '@/lib/api/common';
 import { FetchAllTestStepByTestId } from '@/lib/api/runs';
 import series from 'async/series';
@@ -142,7 +142,7 @@ export const createTestRunByItemId = async (
   callback?: (nil: null, data: any) => void,
 ) => {
   return new Promise((resolve, reject) => {
-    getTestEntityByItemId(itemId).then(testEntity => {
+    getTestEntities({ itemId }).then(([testEntity]) => {
       return FetchAllTestStepByTestId(itemId)
         .then(({ data: testRuns }) => {
           return createTestEntities([
