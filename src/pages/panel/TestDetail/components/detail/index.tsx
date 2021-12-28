@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, createRef } from 'react';
-import { Button, Tooltip, Dropdown, Menu, Empty, Spin, message } from '@osui/ui';
+import { Button, Tooltip, Dropdown, Menu, Empty, message } from '@osui/ui';
 import { ArrowsAltOutlined, ShrinkOutlined, DownOutlined } from '@ant-design/icons';
 import { useDrop } from 'react-dnd';
 // import Breadcrumb from './components/Breadcrumb';
@@ -12,6 +12,7 @@ import type { ItemTypeModalHandle } from './components/ItemTypeModal';
 import GlobalDndContext from './DndContext';
 import { TestType } from '@/lib/constants';
 import { getDevConfig } from '@/devEnv';
+import Loading from '@/components/common/Loading';
 
 import css from './index.less';
 
@@ -165,13 +166,14 @@ const Detail: React.FC = () => {
       if (saveSteps) {
         saveOrUpdateTestStep(newSteps, testInfo?.objectId, currentObjectId).then(() => {
           message.success('操作成功');
-          setSteps(newSteps);
+          // setSteps([...newSteps]);
+          fetchData();
         });
         return;
       }
       setSteps(newSteps);
     },
-    [findCard, steps, setSteps, testInfo?.objectId, currentObjectId],
+    [findCard, steps, setSteps, fetchData, testInfo?.objectId, currentObjectId],
   );
 
   const expandCard = useCallback(
@@ -258,7 +260,7 @@ const Detail: React.FC = () => {
       };
       const stepsbak = [...steps].filter(item => item.id !== '-1');
       if (!id) {
-        stepsbak.splice(0, 0, { ...emptyStep });
+        stepsbak.splice(stepsbak.length, 0, { ...emptyStep });
         setSteps(stepsbak);
         return;
       }
@@ -307,11 +309,7 @@ const Detail: React.FC = () => {
   };
 
   if (loading) {
-    return (
-      <div className={css('detail')}>
-        <Spin tip="加载中..."></Spin>
-      </div>
-    );
+    return <Loading />;
   }
 
   if (!currentObjectId) {

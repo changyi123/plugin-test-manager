@@ -171,7 +171,7 @@ const List: React.FC<ListProps> = (props: ListProps) => {
       <div className={css('detail-list')} ref={preview}>
         <div className={[css('nav'), item.callTestId && css('call')].join(' ')}>
           {isExpand && props.index !== 0 && (
-            <div className={css('nav__drag')}>
+            <div className={css('nav__up')}>
               <ArrowUpOutlined />
             </div>
           )}

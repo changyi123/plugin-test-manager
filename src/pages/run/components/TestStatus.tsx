@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Tooltip, Divider, Button, Space, message, Spin } from '@osui/ui';
+import { Tooltip, Divider, Button, Space, Spin, message } from '@osui/ui';
 import css from './TestStatus.less';
 import { useRequest } from 'ahooks';
 import { updateTestStatus } from '@/lib/api/runs';

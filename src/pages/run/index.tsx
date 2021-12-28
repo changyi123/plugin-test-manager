@@ -9,6 +9,7 @@ import { useLocation } from 'react-router-dom';
 import { GetTestRunDetail } from '@/lib/api/runs';
 import { useRequest } from 'ahooks';
 import { updateTestStep, InitStepByTestId } from '@/lib/api/runs';
+import Loading from '@/components/common/Loading';
 
 import css from './index.less';
 
@@ -156,7 +157,7 @@ const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
     return <div>加载失败,原因{error?.message}</div>;
   }
   if (loading) {
-    return <Spin tip="加载中..."></Spin>;
+    return <Loading />;
   }
   if (!data?.data) {
     return <Empty description="测试运行为空"></Empty>;
@@ -164,7 +165,7 @@ const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
 
   if (!data?.data?.runDetail?.runs) {
     checkRunInit();
-    return <Spin tip="初始化runs中..."></Spin>;
+    return <Loading tip="初始化runs中..."></Loading>;
   }
 
   const { itemDetail, runDetail, status, objectId } = data?.data;

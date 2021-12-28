@@ -1,6 +1,7 @@
 import React, { Suspense } from 'react';
 import { Tabs, Spin } from '@osui/ui';
 import { TestType } from '@/lib/constants';
+import Loading from '@/components/common/Loading';
 
 import css from './index.less';
 
@@ -45,9 +46,7 @@ const TestDetail: React.FC = () => {
       <Tabs defaultActiveKey={TestType.TestDetail}>
         {tabConfig.map(({ tab, key, Component }) => (
           <TabPane tab={tab} key={key}>
-            <Suspense fallback={<Spin tip="加载中..."></Spin>}>
-              {Component && <Component />}
-            </Suspense>
+            <Suspense fallback={<Loading />}>{Component && <Component />}</Suspense>
           </TabPane>
         ))}
       </Tabs>
