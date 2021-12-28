@@ -13,12 +13,14 @@ export type ActionType = { refresh: () => void };
 
 type PanelTableProps = TableProps<any> & {
   actionRef?: React.RefObject<ActionType>;
+  renderActions?: () => React.ReactNode;
   getDataSource: (params: { offset: number; limit: number }) => Promise<any>;
   actionMenuList?: Array<{ title: string; onClick: (selectedRowKeys) => void }>;
 };
 
 const PanelTable: React.FC<PanelTableProps> = props => {
-  const { columns, actionMenuList, getDataSource, actionRef, ...restTableProps } = props;
+  const { columns, actionMenuList, getDataSource, actionRef, renderActions, ...restTableProps } =
+    props;
   // 全量的 row 数据
   const allRowDataRef = React.useRef([]);
 
@@ -69,54 +71,53 @@ const PanelTable: React.FC<PanelTableProps> = props => {
     }),
     [selectedRowKeys, setSelectedRowKeys],
   );
-  console.log('tableProps', tableProps);
 
   return (
     <div className={cx('table')}>
       <div className={cx('actions')}>
-        <DropDownButton
-          menuList={[
-            // {
-            //   onClick() {},
-            //   title: '全部',
-            // },
-            {
-              onClick() {
-                const keys = tableProps.dataSource.map(data => get(data, props.rowKey as string));
-                setSelectedRowKeys(keys);
-              },
-              title: '本页全部',
-            },
-            {
-              onClick() {
-                setSelectedRowKeys([]);
-              },
-              title: '取消选择',
-            },
-          ]}
-        >
-          选择 <DownOutlined />
-        </DropDownButton>
-        {hasArrayItem(selectedRowKeys) && hasArrayItem(actionMenuList) ? (
+        <div className={cx('left')}>
           <DropDownButton
-            className={cx('button-select')}
-            buttonProps={{ type: 'default' }}
-            menuList={(actionMenuList ?? []).map(action => ({
-              ...action,
-              onClick() {
-                action.onClick(
-                  allRowDataRef.current.filter(row =>
-                    selectedRowKeys.includes(get(row, props.rowKey as string)),
-                  ),
-                );
+            menuList={[
+              {
+                onClick() {
+                  const keys = tableProps.dataSource.map(data => get(data, props.rowKey as string));
+                  setSelectedRowKeys(keys);
+                },
+                title: '本页全部',
               },
-            }))}
+              {
+                onClick() {
+                  setSelectedRowKeys([]);
+                },
+                title: '取消选择',
+              },
+            ]}
           >
-            ({selectedRowKeys.length})个已选择
-            <DownOutlined />
+            批量选择 <DownOutlined />
           </DropDownButton>
+          {hasArrayItem(selectedRowKeys) && hasArrayItem(actionMenuList) ? (
+            <DropDownButton
+              className={cx('button-select')}
+              buttonProps={{ type: 'default' }}
+              menuList={(actionMenuList ?? []).map(action => ({
+                ...action,
+                onClick() {
+                  action.onClick(
+                    allRowDataRef.current.filter(row =>
+                      selectedRowKeys.includes(get(row, props.rowKey as string)),
+                    ),
+                  );
+                },
+              }))}
+            >
+              ({selectedRowKeys.length})个已选择
+              <DownOutlined />
+            </DropDownButton>
+          ) : null}
+        </div>
+        {typeof renderActions === 'function' ? (
+          <div className={cx('right')}>{renderActions()}</div>
         ) : null}
-        {/* column setting */}
       </div>
       <Table
         {...tableProps}
@@ -125,7 +126,7 @@ const PanelTable: React.FC<PanelTableProps> = props => {
           ...tableProps.pagination,
           size: 'small',
           showTotal(total) {
-            return `共${total}条数据`;
+            return `共 ${total} 条数据`;
           },
           pageSizeOptions: ['10', '30', '50'],
           showSizeChanger: true,
@@ -136,5 +137,8 @@ const PanelTable: React.FC<PanelTableProps> = props => {
     </div>
   );
 };
+
+export { columnBuilder } from './builtinColumns/base';
+export * as BuiltinColumns from './builtinColumns';
 
 export default React.memo(PanelTable);

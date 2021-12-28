@@ -13,3 +13,9 @@ export const getKeyByValue = (object: Record<string, unknown>, value: unknown) =
 export const pointerTransfer = (parseModel, pointer: PointerType) => {
   return typeof pointer === 'string' ? parseModel.createWithoutData(pointer) : pointer;
 };
+
+/** 转换成数组 */
+export const toArray = data => (Array.isArray(data) ? data : [data]);
+
+/** panel 消息通知 */
+export { alert } from '@/components/panel/PanelLayout';

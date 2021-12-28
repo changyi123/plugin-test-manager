@@ -1,0 +1,32 @@
+import React from 'react';
+import { Typography } from '@osui/ui';
+
+import cx from './style.less';
+
+/** 事项 id */
+export const ItemKey = {
+  title: '事项ID',
+  width: 100,
+  cellRenderer({ item }) {
+    return (
+      <Typography.Link
+        ellipsis={true}
+        target="_blank"
+        className={cx('item-key')}
+        // 租户处理
+        href={`/osc/workspaces/${item?.workspace?.key}/item/${item?.key}`}
+      >
+        {item?.key}
+      </Typography.Link>
+    );
+  },
+};
+
+/** 事项标题 */
+export const ItemTitle = {
+  title: '标题',
+  width: 100,
+  cellRenderer({ item }) {
+    return <Typography.Text ellipsis={{ tooltip: item?.name }}>{item?.name}</Typography.Text>;
+  },
+};

@@ -6,7 +6,7 @@ import { useSafeState, useRequest } from 'ahooks';
 import { getItemByIQL } from '@/lib/api/proxima';
 import { getRootContainer } from '@/lib/utils/helper';
 import DebounceSelect from '@/components/common/DebounceSelect';
-import { getAllTestConfigs, getTestEntityByItemId } from '@/lib/api/common';
+import { getAllTestConfigs, getTestEntities } from '@/lib/api/common';
 
 import cx from './index.less';
 
@@ -59,8 +59,8 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
         itemType: testTypeAssItemTypeKeys?.[testType] ?? [],
       });
 
-      const itemIds = items.map(item => item.objectId);
-      const testEntities = await getTestEntityByItemId(itemIds);
+      const itemId = items.map(item => item.objectId);
+      const [testEntities] = await getTestEntities({ itemId });
       const testEntitiesData = uniqBy(testEntities.map(item => item.toJSON()) as any[], 'objectId');
       return testEntitiesData
         .map(testEntity => {

@@ -125,10 +125,13 @@ const Test = () => {
         actionRef={selectorModalRef}
         onSelect={addTestExecutionToPlan}
       />
-      <Button type="primary" onClick={addExistedTestExecution}>
-        添加测试执行
-      </Button>
+
       <PanelTable
+        renderActions={() => (
+          <Button type="primary" onClick={addExistedTestExecution}>
+            添加测试执行
+          </Button>
+        )}
         actionRef={tableActionRef}
         actionMenuList={[
           {

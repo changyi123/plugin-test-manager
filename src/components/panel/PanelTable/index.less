@@ -1,5 +1,23 @@
 .table {
-  margin-top: 20px;
+  :global {
+    .ant-pagination-total-text {
+      margin-right: auto;
+      color: #878c96;
+      font-size: 12px;
+    }
+  }
+}
+
+.actions {
+  display: flex;
+  padding-bottom: 8px;
+
+  .right {
+    margin-left: auto;
+    & > * {
+      margin-right: 8px;
+    }
+  }
 }
 
 .button-select {

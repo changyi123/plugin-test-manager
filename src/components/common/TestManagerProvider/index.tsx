@@ -4,7 +4,7 @@ import { notification } from '@osui/ui';
 import { EventBus } from '@/lib/utils/eventBus';
 import { useOnItemCreateSuccess } from '@/lib/hooks/useProximaSDK';
 import { openCreateItemModal, openItemDetailPanel } from '@/lib/api/sdk';
-import { getTestConfig, createTestEntities, getTestEntityByItemId } from '@/lib/api/common';
+import { getTestConfig, createTestEntities, getTestEntities } from '@/lib/api/common';
 import { getItemByIQL, getWorkspaceByKey, getItemTypeByKey } from '@/lib/api/proxima';
 import { Workspace } from '@/lib/types/App';
 import { TestEntity } from '@/lib/types/Test';
@@ -22,7 +22,7 @@ const ItemCreateSuccessEventType = 'itemCreateSuccess';
 /** 获取测试实体，如果不存在创建 */
 const getOrCreateTestEntity = async (itemId: string, config?: { notice: boolean }) => {
   if (!itemId) return null;
-  let testEntity = await getTestEntityByItemId(itemId);
+  let [testEntity] = await getTestEntities({ itemId });
 
   // 查询不到测试实体则直接创建
   if (!testEntity) {
@@ -53,7 +53,7 @@ const getOrCreateTestEntity = async (itemId: string, config?: { notice: boolean 
         },
       ]);
       // 重新查询 testEntity，保持返回数据一致
-      testEntity = await getTestEntityByItemId(itemId);
+      [testEntity] = await getTestEntities({ itemId });
       console.info('new testEntity', testEntity?.toJSON());
     }
   }
