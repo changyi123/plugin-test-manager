@@ -1,5 +1,5 @@
-import React, { useImperativeHandle, forwardRef } from 'react';
-import { Modal, Spin } from '@osui/ui';
+import React, { useState, useImperativeHandle, forwardRef } from 'react';
+import { Modal, Spin, message } from '@osui/ui';
 import type { ModalProps } from '@osui/modal';
 import { useRequest } from 'ahooks';
 import ItemTypeSelect from './ItemTypeSelect';
@@ -8,6 +8,7 @@ import {
   GetItemTypeFromKey,
   GetItemFromItemType,
 } from '@/lib/api/detail';
+import { checkHasDepsLink } from '@/lib/api/runs';
 import useMergedState from 'rc-util/lib/hooks/useMergedState';
 import { IActionCard } from '..';
 import { TestType } from '@/lib/constants';
@@ -17,6 +18,7 @@ import cx from '@/components/panel/TestEntitySelectorModal/index.less';
 
 type ItemTypelModelProps = {
   trigger?: JSX.Element;
+  itemId: string;
   visible?: boolean;
   title?: string;
   onCancel?: ModalProps['onCancel'];
@@ -87,6 +89,7 @@ const ItemTypeModal: React.ForwardRefRenderFunction<ItemTypeModalHandle, ItemTyp
   const [isVisible, setIsVisible] = useMergedState<boolean>(!!props.visible, {
     value: props.visible,
   });
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const { type } = props;
 
   const handleCloseModal = (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
@@ -102,14 +105,24 @@ const ItemTypeModal: React.ForwardRefRenderFunction<ItemTypeModalHandle, ItemTyp
   };
 
   const handleOkModal = (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
-    props.saveCard(
-      undefined,
-      {
-        callTestId: currentTestId,
-      },
-      currentIndex,
-    );
-    handleCloseModal(e);
+    setIsLoading(true);
+    checkHasDepsLink(props.itemId, currentTestId)
+      .then(() => {
+        props.saveCard(
+          undefined,
+          {
+            callTestId: currentTestId,
+          },
+          currentIndex,
+        );
+        handleCloseModal(e);
+      })
+      .catch(e => {
+        message.warning(e.message);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   };
 
   useImperativeHandle(forwardedRef, () => {
@@ -129,6 +142,9 @@ const ItemTypeModal: React.ForwardRefRenderFunction<ItemTypeModalHandle, ItemTyp
         onOk={handleOkModal}
         destroyOnClose
         className={cx('modal')}
+        okButtonProps={{
+          loading: isLoading,
+        }}
       >
         {isVisible && <ItemTypeModalContent type={type} saveCard={props.saveCard} />}
       </Modal>

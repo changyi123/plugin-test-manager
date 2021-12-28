@@ -327,7 +327,12 @@ const Detail: React.FC = () => {
 
   return (
     <div className={css('detail')}>
-      <ItemTypeModal type={TestType.TestDetail} ref={ItemTypeModalRef} saveCard={saveCard} />
+      <ItemTypeModal
+        type={TestType.TestDetail}
+        itemId={currentObjectId}
+        ref={ItemTypeModalRef}
+        saveCard={saveCard}
+      />
       {/* <div className={css('detail__breadcrumb')}>
         <Breadcrumb />
       </div> */}

@@ -183,6 +183,128 @@ export const FetchAllTestStepByTestId = (
   });
 };
 
+export const checkHasDepsLink = async (
+  itemId: string,
+  extendItemId: string,
+  links?: string[],
+  callback?: (nil: any, data: any) => void,
+): Promise<ICommonRes> => {
+  return new Promise((resolve, reject) => {
+    if (itemId === extendItemId) {
+      reject({
+        success: false,
+        message: '不能关联本身',
+      });
+    }
+    const query = new Parse.Query(Test);
+    const reference = Item.createWithoutData(extendItemId);
+    query.equalTo('reference', reference).equalTo('type', TestType.TestDetail);
+    query.first().then(
+      res => {
+        const step = res?.toJSON() || [];
+        const callTestIds = [];
+        const depLinks = links ?? [itemId];
+        let hasDepLink = false;
+        step?.steps?.forEach((item, index) => {
+          item.id = `${step.objectId}_${index}`;
+          if (item.callTestId) {
+            callTestIds.push(item.callTestId);
+          }
+          if (depLinks.includes(item.callTestId)) {
+            hasDepLink = true;
+          }
+        });
+        if (hasDepLink) {
+          const query = new Parse.Query(Test);
+          const reference = Item.createWithoutData(extendItemId);
+          query.equalTo('reference', reference);
+          query
+            .include('reference')
+            .first()
+            .then(
+              res => {
+                const TestDetail = res.toJSON();
+                const { name } = TestDetail?.reference;
+                callback &&
+                  callback(
+                    {
+                      success: false,
+                      message: `与 ${name} 存在循环依赖`,
+                    },
+                    null,
+                  );
+                reject({
+                  success: false,
+                  message: `与 ${name} 存在循环依赖`,
+                });
+              },
+              () => {
+                callback &&
+                  callback(
+                    {
+                      success: false,
+                      message: `存在循环依赖`,
+                    },
+                    null,
+                  );
+                reject({
+                  success: false,
+                  message: '存在循环依赖',
+                });
+              },
+            );
+          return;
+        }
+        // 如果没有继承测试用例
+        if (!callTestIds.length) {
+          resolve({
+            success: true,
+            data: step,
+          });
+          callback && callback(null, step);
+          return;
+        }
+        const callTestPromises = callTestIds.map(
+          item => callback => checkHasDepsLink(extendItemId, item, depLinks, callback),
+        );
+
+        series(callTestPromises)
+          .then(res => {
+            const stepBackList = [];
+            step?.steps?.forEach(item => {
+              if (item.callTestId && item.callTestId === res[0]?.reference?.objectId) {
+                res[0]?.steps?.forEach(item => {
+                  stepBackList.push(item);
+                });
+                return;
+              }
+              stepBackList.push(item);
+            });
+            step.steps = stepBackList;
+            resolve({
+              success: true,
+              data: step,
+            });
+            callback && callback(null, step);
+          })
+          .catch(error => {
+            reject({
+              success: false,
+              message: error.message,
+            });
+          });
+      },
+      err => {
+        reject({
+          success: false,
+          data: { ...err },
+          message: err,
+        });
+      },
+    );
+  });
+};
+
 interface CreateTestExecutionReq {
   workspaceId: string;
   workspaceKey: string;
