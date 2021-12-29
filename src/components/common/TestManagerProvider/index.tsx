@@ -9,6 +9,7 @@ import { getItemByIQL, getWorkspaceByKey, getItemTypeByKey } from '@/lib/api/pro
 import { Workspace } from '@/lib/types/App';
 import { TestEntity } from '@/lib/types/Test';
 import { getKeyByValue } from '@/lib/utils/helper';
+import { alert } from '@/lib/utils/helper';
 import {
   TestConfigContext,
   TestConfigContextType,
@@ -122,15 +123,26 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
 
   // 事项创建成功回调
   const itemCreateSuccessCb = React.useCallback(async params => {
-    const testEntity = await getOrCreateTestEntity(params.itemId, { notice: true });
-    const testEntityData = testEntity?.toJSON();
+    // 缺陷类型不需要创建测试实体
+    const { extraData } = params;
 
-    if (!testEntityData) return;
+    let itemData = null;
+    let testEntity = null;
+
+    // 缺陷类型不需要创建测试管理测试实体
+    if (extraData.type === TestType.TestDefect) {
+      [itemData] = await getItemByIQL({ itemId: params.itemId });
+    } else {
+      testEntity = await getOrCreateTestEntity(params.itemId, { notice: true });
+      const testEntityData = testEntity?.toJSON();
+      if (!testEntityData) return;
+      itemData.reference = testEntityData.reference;
+    }
 
     eventBusRef.current.disposer = eventBusRef.current.dispatch(ItemCreateSuccessEventType, {
+      extraData,
       testEntity,
-      extraData: params.extraData,
-      item: testEntityData.reference,
+      item: itemData,
     });
   }, []);
   useOnItemCreateSuccess(itemCreateSuccessCb);
@@ -140,27 +152,32 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
       // TODO: fetch config
       config: {
         itemTypeMap: testConfig.itemTypeMap,
+        defectsMapping: testConfig.defectsMapping,
       },
       // item,
       workspace,
       testEntity,
     };
-  }, [testConfig.itemTypeMap, workspace, testEntity]);
+  }, [testConfig.itemTypeMap, testConfig.defectsMapping, workspace, testEntity]);
 
   const baseActionContextValues = React.useMemo(() => {
     const actions: BaseActionContextType = {
       async createItemUseModal(params) {
         const { extraData, type, name } = params;
-        const itemTypeKey = testConfig?.itemTypeMap?.[type];
+        let itemTypeKey = testConfig?.itemTypeMap?.[type] as string;
 
-        const itemType = await getItemTypeByKey(itemTypeKey);
+        // 获取缺陷事项类型 key
+        if (type === TestType.TestDefect) {
+          itemTypeKey = testConfig.defectsMapping?.[0];
+        }
 
-        console.info('itemType', itemTypeKey, itemType);
+        const itemType = await getItemTypeByKey(itemTypeKey ?? '');
+
         // TODO: 通知统一处理！
         if (!itemType?.objectId) {
           notification.open({
             message: '提示',
-            description: '所属空间无法创建测试执行，请选择其他空间事项创建',
+            description: '所属空间无法创建实体，请选择其他空间事项创建',
           });
         }
 
@@ -178,11 +195,24 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
         // 事项创建成功通知
         return new Promise((resolve, reject) => {
           eventBusRef.current.register(ItemCreateSuccessEventType, data => {
-            const { testEntity } = data;
+            const { testEntity, item } = data;
+
             // 创建的测试类型是否符合预期
-            const expectedTestType = testEntity.get('type') === type;
+            let expectedTestType = testEntity?.get('type') === type;
+
+            // 判断事项类型 key 是否在 defectsMapping 中
+            if (type === TestType.TestDefect) {
+              expectedTestType = (testConfig?.defectsMapping ?? []).includes(item?.itemType?.key);
+            }
+
+            // 通知
+            alert({
+              type: 'warning',
+              message: '新建事项类型与创建的测试类型未匹配',
+            });
+
             // TODO: 消息通知
-            if (!expectedTestType) return reject('测试实体类型未匹配');
+            if (!expectedTestType) return reject('新建事项类型与创建的测试类型未匹配');
             resolve(data);
           });
         });
@@ -191,7 +221,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
     };
 
     return actions;
-  }, [testConfig?.itemTypeMap, workspace?.objectId]);
+  }, [testConfig?.defectsMapping, testConfig?.itemTypeMap, workspace?.objectId]);
 
   return (
     <TestConfigContext.Provider value={testConfigContextValues}>

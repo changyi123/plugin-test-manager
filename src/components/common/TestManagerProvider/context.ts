@@ -7,6 +7,8 @@ export type TestConfigContextType = {
   config: {
     // 测试类型 和 itemType 类型关联
     itemTypeMap: Record<TestType, 'string'>;
+    // 权限关联
+    defectsMapping: string[];
   };
   workspace?: Workspace;
   testEntity?: Parse.Object<TestEntity>;

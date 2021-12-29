@@ -53,6 +53,11 @@ const PanelLayout: React.FC<PanelLayoutProps> = props => {
 /** 消息提示 */
 export const alert = (props: AlertProps & { duration?: number }) => {
   const { duration = 3000 } = props;
+  const DOMContainer = document.getElementById(AlertDOMContainerId);
+  if (!DOMContainer) {
+    // 不存在 DOMContainer 使用 notification 代替
+    return;
+  }
   const container = document.createElement('div');
   // 删除挂载点
   const removeContainerDOM = () => {

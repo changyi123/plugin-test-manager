@@ -48,6 +48,8 @@ tables:
         type: String
       itemTypeMap:
         type: Object
+      defectsMapping:
+        type: Array
       global:
         type: Boolean
       extra:
