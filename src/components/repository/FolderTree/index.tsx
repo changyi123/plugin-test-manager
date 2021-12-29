@@ -1,37 +1,18 @@
 import React from 'react';
 import { uniq, uniqueId } from 'lodash';
-import { useReactive, useDrop } from 'ahooks';
-import { Tree, Button, Modal, Input, message, Empty } from '@osui/ui';
+import { useReactive } from 'ahooks';
+import { TestType } from '@/lib/constants';
 import { hasArrayItem, getRootContainer } from '@/lib/utils/helper';
 import { PlusCircleOutlined, MoreOutlined, FullscreenExitOutlined } from '@ant-design/icons';
-import { openFolderMenu, MenuKey } from '../Menu';
 import { createFolder, updateFolders, deleteFolder } from '@/lib/api/repository';
 import { useTestConfig, useBaseAction } from '@/lib/hooks/useContext';
 import { useTreeFn, traverseTreeNodes } from './hook';
-import { TestType } from '@/lib/constants';
+import { openFolderMenu, MenuKey, FolderMenu } from '../Menu';
+import { Tree, Button, Modal, Input, message, Empty, Dropdown } from '@osui/ui';
 
 import cx from './index.less';
 
 const { DirectoryTree } = Tree;
-// antd hover className
-const AntdHoveringClassName = 'ant-tree-treenode-hovering';
-const AntdTreeNodeClassName = 'ant-tree-treenode';
-// antd tree component
-const removeHoveringClassName = () => {
-  const treeNodeDOMList = document.querySelectorAll(`.${AntdTreeNodeClassName}`);
-  treeNodeDOMList.forEach(dom => {
-    dom.className = dom.className.replace(AntdHoveringClassName, '');
-  });
-};
-const appendHoveringClassName = target => {
-  const treeNodeDOMList = document.querySelectorAll(`.${AntdTreeNodeClassName}`);
-  const treeNodeDOM = Array.from(treeNodeDOMList).find(dom => dom.contains(target));
-  const isExistedHoveringClassName =
-    treeNodeDOM && !treeNodeDOM.className.includes(AntdHoveringClassName);
-  if (isExistedHoveringClassName) {
-    treeNodeDOM.className = `${treeNodeDOM.className} ${AntdHoveringClassName}`;
-  }
-};
 
 type OpenFolderNameModal = (args: { title: string; name?: string }) => Promise<string>;
 
@@ -46,10 +27,10 @@ const openFolderNameModal: OpenFolderNameModal = ({ title, name }) => {
   const input = <Input {...inputProps} />;
   return new Promise((resolve, reject) => {
     Modal.confirm({
-      getContainer: getRootContainer,
       title,
       icon: null,
       content: input,
+      getContainer: getRootContainer,
       onOk() {
         const inputValue = inputRef.state.value?.trim() ?? '';
         if (!inputValue) {
@@ -65,6 +46,11 @@ const openFolderNameModal: OpenFolderNameModal = ({ title, name }) => {
       onCancel() {
         reject();
       },
+    });
+    setTimeout(() => {
+      inputRef.focus({
+        cursor: 'start',
+      });
     });
   });
 };
@@ -107,64 +93,10 @@ const FolderTree: React.FC<FolderTreeProps> = ({
   } = useTestConfig();
 
   const { createItemUseModal } = useBaseAction();
-  // const [props] = useDrop({
-  //   async onDom(content, e) {
-  //     removeHoveringClassName();
-  //     const { selectedFolderKey, itemKey } = content;
-  //     const targetNodeKey = e.currentTarget.getAttribute('data-node-key');
-  //     // 相同模块不执行操作
-  //     if (selectedFolderKey === targetNodeKey) return;
-  //     const currentNode = treeFn.getTreeNodeByKey(selectedFolderKey);
-  //     const targetNode = treeFn.getTreeNodeByKey(targetNodeKey);
-
-  //     currentNode.itemIds = currentNode.itemIds.filter(key => key !== itemKey);
-  //     targetNode.itemIds = targetNode.itemIds.concat(itemKey);
-
-  //     await updateFolders([currentNode, targetNode]);
-
-  //     message.success('测试用例移动成功');
-  //     onFolderTreeChange();
-  //     handleSelect([currentNode.key], {
-  //       selected: true,
-  //       node: currentNode,
-  //     });
-  //   },
-  // });
 
   const selectedTreeNode = React.useMemo(() => {
     return treeFn.getTreeNodeByKey(state.selectedKeys[0]);
   }, [treeFn, state.selectedKeys]);
-
-  const treeData = React.useMemo(() => {
-    return treeFn.traverseTreeNodes(node => {
-      let totalLen = 0;
-      traverseTreeNodes([node], node => {
-        totalLen += node.itemIds.length;
-      });
-      node.title = (
-        <div
-          // {...props}
-          data-node-key={node.key}
-          className={cx('tree-node')}
-          // onDragOver={event => {
-          //   appendHoveringClassName(event.currentTarget);
-          //   // eslint-disable-next-line react/prop-types
-          //   props.onDragOver(event);
-          // }}
-          // onDragLeave={event => {
-          //   removeHoveringClassName();
-          //   // eslint-disable-next-line react/prop-types
-          //   props.onDragLeave(event);
-          // }}
-        >
-          <span>{node.name}</span>
-          {node.key !== 'ALL' ? (
-            <span className={cx('tree-node-length')}>{`${node.itemIds.length} (${totalLen})`}</span>
-          ) : null}
-        </div>
-      );
-    });
-  }, [treeFn]);
 
   const folderMenuDisabledKeys = React.useMemo(() => {
     const keys = [];
@@ -240,15 +172,17 @@ const FolderTree: React.FC<FolderTreeProps> = ({
       } else if (actionKey === MenuKey.deleteFolder) {
         Modal.confirm({
           getContainer: getRootContainer,
-          title: '提醒',
-          content: '当前操作会使改模块的所有子模块会被删除，是否继续执行？',
+          title: '删除模块',
+          content: (
+            <>
+              <div>确定删除【{node.name}】模块吗？</div>
+              <div>模块下的子模块将会一同删除，模块内的用例仍保留且自动移至根模块下。</div>
+            </>
+          ),
           okText: '继续',
           okButtonProps: {
             type: 'default',
             danger: true,
-          },
-          cancelButtonProps: {
-            type: 'primary',
           },
           onOk: async () => {
             const keys = [];
@@ -317,20 +251,17 @@ const FolderTree: React.FC<FolderTreeProps> = ({
     ],
   );
 
-  const handleRightClick = React.useCallback(
-    ({ event, node }) => {
-      event.preventDefault();
-      // 所有案例无右侧菜单
-      if (node.key === 'ALL') return;
-      openFolderMenu(event.target, {
-        x: event.clientX,
-        y: event.clientY,
-        onClick: (key: MenuKey) => handleMenuClick(key, node),
-        disabledKeys: folderMenuDisabledKeys,
-      });
-    },
-    [handleMenuClick, folderMenuDisabledKeys],
-  );
+  const handleRightClick = React.useCallback(({ event, node }) => {
+    event.preventDefault();
+    // 所有案例无右侧菜单
+    if (node.key === 'ALL') return;
+    // openFolderMenu(event.target, {
+    //   x: event.clientX,
+    //   y: event.clientY,
+    //   onClick: (key: MenuKey) => handleMenuClick(key, node),
+    //   disabledKeys: folderMenuDisabledKeys,
+    // });
+  }, []);
 
   const handleExpand = React.useCallback(
     expandedKeys => {
@@ -339,8 +270,40 @@ const FolderTree: React.FC<FolderTreeProps> = ({
     [state],
   );
 
+  // antd tree data
+  const treeData = React.useMemo(() => {
+    return treeFn.traverseTreeNodes(node => {
+      let totalLen = 0;
+      traverseTreeNodes([node], node => {
+        totalLen += node.itemIds.length;
+      });
+      node.title = (
+        <div data-node-key={node.key} className={cx('tree-node')}>
+          <span>{node.name}</span>
+          {node.key !== 'ALL' ? (
+            <>
+              <span
+                className={cx('tree-node-length')}
+              >{`${node.itemIds.length} (${totalLen})`}</span>
+              <Dropdown overlay={<FolderMenu onClick={({ key }) => handleMenuClick(key, node)} />}>
+                <MoreOutlined
+                  onClick={e => e.stopPropagation()}
+                  className={cx('tree-node-action')}
+                />
+              </Dropdown>
+            </>
+          ) : null}
+        </div>
+      );
+    });
+  }, [handleMenuClick, treeFn]);
+
+  const isEmptyFolderTree = React.useMemo(() => {
+    return !hasArrayItem(treeData) || !hasArrayItem(treeData[0].children);
+  }, [treeData]);
+
   React.useEffect(() => {
-    if (hasArrayItem(treeData) && treeData.length > 1 && !isInitialRef.current) {
+    if (!isEmptyFolderTree && !isInitialRef.current) {
       isInitialRef.current = true;
       const node = treeData[0];
       // 默认展开模块第一层
@@ -350,15 +313,14 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         selected: true,
       });
     }
-  }, [handleSelect, treeData, handleExpand]);
+  }, [handleSelect, treeData, handleExpand, isEmptyFolderTree]);
 
   // 空目录展示
   const EmptyNode = React.useMemo(() => {
     if (loading) return null;
     // 存在其他模块
-    const hasCustomFolder = hasArrayItem(treeData) && treeData.length > 1;
 
-    if (hasCustomFolder) return null;
+    if (!isEmptyFolderTree) return null;
 
     return (
       <Empty
@@ -375,7 +337,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         </Button>
       </Empty>
     );
-  }, [handleMenuClick, loading, treeData]);
+  }, [handleMenuClick, isEmptyFolderTree, loading]);
 
   const ToolKitButtons = [
     {

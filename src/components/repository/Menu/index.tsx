@@ -1,6 +1,4 @@
 import React from 'react';
-import { Dropdown } from '@osui/ui';
-import { DropDownProps } from '@osui/dropdown/es';
 import ContextMenu, { openContextMenuProps, openContextMenu } from '../../common/ContextMenu';
 
 export enum MenuKey {
@@ -65,32 +63,8 @@ const TestCaseMenus = [
   // { title: '添加测试用例至测试执行', key: MenuKey.addTestCaseToTestExecution },
 ];
 
-type FolderMenuWithDropdownProps = Omit<DropDownProps, 'overlay'> & {
-  onMenuClick?: (menuKey: MenuKey) => void;
-  disabledKeys?: MenuKey[];
-  children?: React.ReactNode;
-};
-
-export const FolderMenuWithDropdown: React.FC<FolderMenuWithDropdownProps> = ({
-  disabledKeys,
-  onMenuClick,
-  ...dropDownProps
-}) => {
-  return (
-    <Dropdown
-      {...dropDownProps}
-      overlay={
-        // 增加 empty dom 节点, 使 menu点击后消失
-        <div>
-          <ContextMenu
-            menuList={FolderTreeMenus}
-            disabledKeys={disabledKeys}
-            onClick={({ key }) => onMenuClick(key as MenuKey)}
-          />
-        </div>
-      }
-    ></Dropdown>
-  );
+export const FolderMenu = props => {
+  return <ContextMenu menuList={FolderTreeMenus} {...props} />;
 };
 
 export const openFolderMenu = (
@@ -105,6 +79,10 @@ export const openFolderMenu = (
     },
     ...restArgs,
   });
+};
+
+export const TestMenu = props => {
+  return <ContextMenu menuList={TestCaseMenus} {...props} />;
 };
 
 export const openTestMenu = (

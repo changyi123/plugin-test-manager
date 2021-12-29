@@ -29,11 +29,6 @@
     }
   }
 
-  .tree-node-length {
-    margin-left: auto;
-    font-size: 12px;
-  }
-
   .toolkit-bar {
     display: flex;
     justify-content: flex-end;
@@ -51,6 +46,37 @@
     .tree-node {
       display: flex;
       width: 100%;
+      align-items: center;
+      &:hover {
+        .tree-node-action {
+          display: flex;
+        }
+        .tree-node-length {
+          display: none;
+        }
+      }
+    }
+
+    .tree-node-action {
+      display: none;
+      margin-left: auto;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      border-radius: 4px;
+      margin-top: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      background-color: RGBA(30, 42, 61, 0.1);
+      &:hover {
+        background-color: RGBA(30, 42, 61, 0.4);
+      }
+    }
+
+    .tree-node-length {
+      margin-left: auto;
+      font-size: 12px;
     }
 
     :global {

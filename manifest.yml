@@ -48,6 +48,12 @@ tables:
         type: String
       itemTypeMap:
         type: Object
+      defectsMapping:
+        type: Array
+      global:
+        type: Boolean
+      extra:
+        type: Object
   - className: Test
     fields:
       reference:
@@ -61,8 +67,6 @@ tables:
         type: String
       steps:
         type: Array
-      extra:
-        type: Object
       runReferenceDetail:
         type: Pointer
         isAppClass: true

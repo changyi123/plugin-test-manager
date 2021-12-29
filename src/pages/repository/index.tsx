@@ -89,13 +89,14 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
   const treeNodeData = React.useMemo(() => {
     const rootFolder = {
       key: ALL_FOLDER_KEY,
-      name: '所有案例',
-      title: '所有案例',
+      name: '根模块',
+      title: '根模块',
       parentId: null,
       itemIds: [],
-      children: [],
+      // 测试案例库有且只有一个根模块
+      children: folderTreeData,
     };
-    return [rootFolder].concat(folderTreeData);
+    return [rootFolder];
   }, [folderTreeData]);
 
   return (

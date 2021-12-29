@@ -17,6 +17,9 @@ export enum TestType {
   Precondition = 'Precondition',
   TestExecution = 'TestExecution',
   TestRun = 'TestRun',
+
+  // 测试缺陷
+  TestDefect = 'TestDefect',
 }
 
 // 测试实体类型关联关系 (from)Rel(to)
