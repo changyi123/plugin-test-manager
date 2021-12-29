@@ -1,0 +1,101 @@
+import React, { useState, useCallback, useEffect } from 'react';
+import { Popover, Skeleton, Space, Typography, Modal } from '@osui/ui';
+import { ExclamationCircleOutlined, DeleteOutlined } from '@ant-design/icons';
+import { useRequest } from 'ahooks';
+import { getItemByIQL } from '@/lib/api/proxima';
+import { getRootContainer } from '@/lib/utils/helper';
+
+import css from './SmallDefectList.less';
+
+interface ISmallDefectListProps {
+  itemIds: string[];
+  refreshNum?: number;
+}
+
+export const SmallDefectList: React.FC<ISmallDefectListProps> = props => {
+  const handleDeleteRelation = useCallback((index: number) => {
+    Modal.confirm({
+      getContainer: getRootContainer,
+      title: '提醒',
+      content: '当前操作会删除与该缺陷的关联关系，是否继续执行？',
+      onOk: async () => {
+        console.log('提交', index);
+      },
+    });
+  }, []);
+
+  const { data, loading, error, refresh } = useRequest(() =>
+    getItemByIQL({ itemId: props.itemIds }),
+  );
+
+  useEffect(() => {
+    if (props.refreshNum > 1) {
+      refresh();
+    }
+  }, [props.refreshNum, refresh]);
+  if (loading) {
+    return (
+      <Space direction="vertical">
+        <Skeleton.Button active={true} size="small" style={{ width: 200 }} />
+        <Skeleton.Button active={true} size="small" style={{ width: 200 }} />
+      </Space>
+    );
+  }
+  if (error) {
+    return <div>发生错误: {error.message}</div>;
+  }
+  const { items } = data;
+  if (!items.length) {
+    return <div></div>;
+  }
+
+  return (
+    <div className={css('list')}>
+      {items &&
+        items.map((item, index) => {
+          return (
+            <div key={index} className={css('list__item')}>
+              <div className={css('list__item__detail')}>
+                <div className={css('img')}></div>
+                <div className={css('key')}>{item.key}</div>
+                <div className={css('name')}>
+                  <Typography.Text ellipsis={{ tooltip: item.name }}>{item.name}</Typography.Text>
+                </div>
+              </div>
+              <div className={css('list__item__handle')}>
+                <DeleteOutlined onClick={() => handleDeleteRelation(index)} />
+              </div>
+            </div>
+          );
+        })}
+    </div>
+  );
+};
+
+export const SmallDefectListPopover: React.FC<ISmallDefectListProps> = props => {
+  const [refreshNum, setRefreshNum] = useState<number>(0);
+
+  const handleVisibleChange = useCallback(
+    (visible: boolean) => {
+      if (visible) {
+        setRefreshNum(refreshNum + 1);
+      }
+    },
+    [refreshNum, setRefreshNum],
+  );
+
+  return (
+    <Popover
+      content={<SmallDefectList itemIds={props.itemIds} refreshNum={refreshNum} />}
+      onVisibleChange={handleVisibleChange}
+      trigger="click"
+    >
+      <div className={css('btn')}>
+        <ExclamationCircleOutlined style={{ color: 'red' }} />
+        <div>({props.itemIds.length})</div>
+      </div>
+    </Popover>
+  );
+};
+
+export default SmallDefectList;

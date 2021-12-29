@@ -2,17 +2,16 @@ import React from 'react';
 import type { ModalProps } from '@osui/modal';
 import { Modal, Button } from '@osui/ui';
 import useMergedState from 'rc-util/lib/hooks/useMergedState';
-import TestRun from './index';
 import { getRootContainer } from '@/lib/utils/helper';
 
-interface ITestRunModalProps {
+interface IDefectModalProps {
   trigger?: JSX.Element;
   visible?: boolean;
   testId: string;
   onCancel?: ModalProps['onCancel'];
 }
 
-const TestRunModal: React.FC<ITestRunModalProps> = props => {
+const DefectModal: React.FC<IDefectModalProps> = props => {
   const [isVisible, setIsVisible] = useMergedState<boolean>(!!props.visible, {
     value: props.visible,
   });
@@ -26,19 +25,14 @@ const TestRunModal: React.FC<ITestRunModalProps> = props => {
     <>
       <Modal
         getContainer={getRootContainer}
-        title={'测试执行'}
+        title={'请选择添加缺陷'}
         visible={isVisible}
         maskClosable={false}
-        width="1400px"
-        footer={
-          <Button key="2" onClick={handleCloseModal}>
-            关闭
-          </Button>
-        }
+        width="400px"
         onCancel={handleCloseModal}
         destroyOnClose
       >
-        {isVisible && <TestRun testId={props.testId} />}
+        {isVisible && <div>wahahahha</div>}
       </Modal>
       {props.trigger &&
         React.cloneElement(props.trigger, {
@@ -52,4 +46,4 @@ const TestRunModal: React.FC<ITestRunModalProps> = props => {
   );
 };
 
-export default TestRunModal;
+export default DefectModal;
