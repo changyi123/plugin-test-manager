@@ -4,7 +4,7 @@ import { InfoCircleOutlined, PlusCircleOutlined } from '@ant-design/icons';
 import Comment from '@/components//common/Comment';
 import TestStatus, { IColor } from './TestStatus';
 import { updateTestStep } from '@/lib/api/runs';
-import DefectModal from './DefectModal';
+import AddDefectModal from './AddDefectModal';
 import { SmallDefectListPopover } from './SmallDefectList';
 
 import css from './StepList.less';
@@ -53,7 +53,7 @@ export const StepItem: React.FC<IStepItemProps> = ({ index, item, saveList, test
 
   const menu = (
     <Menu>
-      <DefectModal
+      <AddDefectModal
         trigger={
           <Menu.Item key="0">
             <a>添加缺陷</a>
