@@ -1,13 +1,11 @@
 import React, { useCallback } from 'react';
-import { Popover, Row, Col, Space, Divider, Button, message } from '@osui/ui';
-import {
-  InfoCircleOutlined,
-  PlusCircleOutlined,
-  ExclamationCircleOutlined,
-} from '@ant-design/icons';
+import { Popover, Row, Col, Space, Divider, Button, message, Dropdown, Menu } from '@osui/ui';
+import { InfoCircleOutlined, PlusCircleOutlined } from '@ant-design/icons';
 import Comment from '@/components//common/Comment';
 import TestStatus, { IColor } from './TestStatus';
 import { updateTestStep } from '@/lib/api/runs';
+import AddDefectModal from './AddDefectModal';
+import { SmallDefectListPopover } from './SmallDefectList';
 
 import css from './StepList.less';
 
@@ -52,6 +50,24 @@ export const StepItem: React.FC<IStepItemProps> = ({ index, item, saveList, test
     },
     [item, saveList, index],
   );
+
+  const menu = (
+    <Menu>
+      <AddDefectModal
+        trigger={
+          <Menu.Item key="0">
+            <a>添加缺陷</a>
+          </Menu.Item>
+        }
+        testId="aa"
+      />
+
+      <Menu.Item key="1">
+        <a>创建缺陷</a>
+      </Menu.Item>
+    </Menu>
+  );
+
   return (
     <div className={css('step-list__item')}>
       <div className={css('left')}>
@@ -106,13 +122,15 @@ export const StepItem: React.FC<IStepItemProps> = ({ index, item, saveList, test
                   />
                 </div>
 
-                {/* <div className={css('btn')}>
-                  <Button type="primary" icon={<PlusCircleOutlined />}>
-                    添加缺陷
-                  </Button>
-                  <ExclamationCircleOutlined style={{ marginLeft: '10px', color: 'red' }} />
-                  (1)
-                </div> */}
+                <div className={css('btn')}>
+                  <Dropdown overlay={menu} trigger={['click']}>
+                    <Button type="link" icon={<PlusCircleOutlined />}>
+                      添加缺陷
+                    </Button>
+                  </Dropdown>
+
+                  <SmallDefectListPopover itemIds={['2OixnqpvOw', 'orS7nZR0rR']} />
+                </div>
 
                 {/* <div className={css('btn')}>
                   <Button icon={<FileAddOutlined />}>添加附件</Button>
@@ -137,7 +155,6 @@ const StepList: React.FC<StepListProps> = ({ detail, objectId, testId, refresh }
     (item: IStepItem, index: number) => {
       const detailBak = { ...detail };
       detailBak.runs.steps[index] = item;
-      console.log('detailBak', detailBak);
       updateTestStep(detailBak, objectId, true).then(() => {
         message.success('修改成功');
         refresh && refresh();

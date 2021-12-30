@@ -29,7 +29,7 @@ const TestRunModal: React.FC<ITestRunModalProps> = props => {
         title={'测试执行'}
         visible={isVisible}
         maskClosable={false}
-        width="1200"
+        width="1400px"
         footer={
           <Button key="2" onClick={handleCloseModal}>
             关闭
