@@ -1,6 +1,6 @@
 import Parse from '@/lib/parse';
 import fetch from '@/lib/utils/fetch';
-import { TestStep as ITestStep } from '@/pages/panel/TestDetail/components/detail';
+import { TestStep as ITestStep } from '@/pages/panel/TestDetail/TestDetail';
 import { Test, Item, TestConfig, Workspace, ItemType } from '../models';
 import { TestType } from '@/lib/constants';
 

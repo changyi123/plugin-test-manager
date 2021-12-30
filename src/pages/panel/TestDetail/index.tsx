@@ -16,7 +16,7 @@ const tabConfig: Array<{
     tab: '详情',
     key: TestType.TestDetail,
     // TODO: 待检验懒加载是否成功
-    Component: React.lazy(() => import('./components/detail')),
+    Component: React.lazy(() => import('./TestDetail')),
   },
   // {
   //   tab: '前置条件',
@@ -31,12 +31,12 @@ const tabConfig: Array<{
   {
     tab: '测试计划',
     key: TestType.TestPlan,
-    Component: React.lazy(() => import('./components/plan')),
+    Component: React.lazy(() => import('./TestPlan')),
   },
   {
     tab: '测试运行',
     key: TestType.TestRun,
-    Component: React.lazy(() => import('./components/runs')),
+    Component: React.lazy(() => import('./TestRun')),
   },
 ];
 
