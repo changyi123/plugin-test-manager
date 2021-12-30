@@ -154,15 +154,13 @@ const FolderTree: React.FC<FolderTreeProps> = ({
   );
 
   const handleSelect = React.useCallback(
-    (selectedKeys, { selected, node }) => {
+    (selectedKeys, { node }) => {
       state.selectedKeys = selectedKeys;
-      if (selected) {
-        const breadcrumbs = [];
-        treeFn.reverseTreeNodes(node, n => {
-          breadcrumbs.unshift(n.name);
-        });
-        onSelect(node, breadcrumbs);
-      }
+      const breadcrumbs = [];
+      treeFn.reverseTreeNodes(node, n => {
+        breadcrumbs.unshift(n.name);
+      });
+      onSelect(node, breadcrumbs);
     },
     [onSelect, state, treeFn],
   );
@@ -200,7 +198,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
             name: newFolderName,
           },
         ]);
-        message.success(`模块重命被为${newFolderName}`);
+        message.success(`模块重命被为【${newFolderName}】`);
       } else if (actionKey === MenuKey.deleteFolder) {
         Modal.confirm({
           getContainer: getRootContainer,
@@ -228,7 +226,6 @@ const FolderTree: React.FC<FolderTreeProps> = ({
             if (parentNode) {
               // 删除后选中模块置于被删除模块的父级
               handleSelect([node.parentId], {
-                selected: true,
                 node: parentNode,
               });
             }
@@ -262,7 +259,6 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         await updateFolders([node]);
         onFolderTreeChange();
         handleSelect([node.key], {
-          selected: true,
           node: node,
         });
       }
@@ -319,7 +315,6 @@ const FolderTree: React.FC<FolderTreeProps> = ({
       handleExpand([node.key]);
       handleSelect([node.key], {
         node,
-        selected: true,
       });
     }
   }, [handleSelect, treeData, handleExpand, isEmptyFolderTree]);
@@ -403,7 +398,6 @@ const FolderTree: React.FC<FolderTreeProps> = ({
 
       handleSelect([sourceNode.key], {
         node: sourceNode,
-        selected: true,
       });
     },
     [handleSelect, onFolderTreeChange, treeFn],
