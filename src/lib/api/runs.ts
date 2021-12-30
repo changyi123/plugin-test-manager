@@ -1,5 +1,5 @@
 import Parse from '@/lib/parse';
-import { Test, Item, Workspace, ItemType } from '../models';
+import { Test, Item, Workspace, ItemType, ItemLink, ItemLinkType } from '../models';
 import { ICommonRes } from './detail';
 import { TestType, TestRelationType } from '@/lib/constants';
 import {
@@ -7,6 +7,7 @@ import {
   createTestRelation,
   getTestEntitiesByRelation,
 } from '@/lib/api/common';
+import { pointerTransfer } from '@/lib/utils/helper';
 import series from 'async/series';
 import { useRequest } from 'ahooks';
 import { IRunDetail } from '@/pages/run';
@@ -632,4 +633,25 @@ export const InitStepByTestId = (testId: string) => {
         });
       });
   });
+};
+
+interface IItemLink {
+  destination: string;
+  source: string;
+  linkType: string;
+}
+
+export const createItemLink = (links: IItemLink | Array<IItemLink>) => {
+  console.log('links', links);
+  const itemLinks = Array.isArray(links) ? links : [links];
+  const linkObjs = itemLinks.map(
+    link =>
+      new ItemLink({
+        destination: pointerTransfer(Item, link.destination),
+        source: pointerTransfer(Item, link.source),
+        linkType: pointerTransfer(ItemLinkType, link.linkType),
+      }),
+  );
+
+  return Parse.Object.saveAll(linkObjs);
 };

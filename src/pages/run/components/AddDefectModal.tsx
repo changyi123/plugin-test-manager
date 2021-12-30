@@ -7,6 +7,7 @@ import { getItemByIQL } from '@/lib/api/proxima';
 import DebounceSelect from '@/components/common/DebounceSelect';
 import { useSafeState, useRequest } from 'ahooks';
 import css from './StepList.less';
+import { useTestConfig } from '@/lib/hooks/useContext';
 
 interface IDefectModalProps {
   trigger?: JSX.Element;
@@ -22,6 +23,10 @@ interface AddDefectSelect {
 
 export const AddDefectSelect: React.FC<AddDefectSelect> = props => {
   const { ignoreTestEntityIds = [] } = props;
+  const { config } = useTestConfig();
+  const { defectsMapping } = config;
+  const defectItemType = 'Mwuo9Bp0LS';
+  console.log('config', config);
   const [selectValue, setSelectValue] = useSafeState([]);
   const filterOptions = React.useCallback(
     options => {
@@ -36,6 +41,7 @@ export const AddDefectSelect: React.FC<AddDefectSelect> = props => {
       const { items } = await getItemByIQL({
         limit: 50,
         nameLike: name,
+        itemType: defectsMapping,
       });
 
       return items
@@ -64,6 +70,7 @@ export const AddDefectSelect: React.FC<AddDefectSelect> = props => {
       <DebounceSelect
         mode="multiple"
         value={selectValue}
+        notFoundContent={loading ? <Spin /> : <div>未找到事项</div>}
         className={css('select')}
         fetchOptions={getItems}
         filterOptions={filterOptions}
