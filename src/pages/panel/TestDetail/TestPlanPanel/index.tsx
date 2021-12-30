@@ -230,11 +230,13 @@ const Plan = () => {
         onSelect={addTestDetailToPlan}
         ignoreTestEntityIds={testEntityIds}
       />
-      <DropDownButton menuList={testPlanMenuList}>
-        添加至测试计划
-        <DownOutlined />
-      </DropDownButton>
       <PanelTable
+        renderActions={() => (
+          <DropDownButton menuList={testPlanMenuList}>
+            添加至测试计划
+            <DownOutlined />
+          </DropDownButton>
+        )}
         actionRef={tableActionRef}
         actionMenuList={[
           {

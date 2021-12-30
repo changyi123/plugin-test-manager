@@ -135,24 +135,25 @@ const Runs: React.FC = () => {
       }}
     >
       <div className={css('runs')}>
-        <div className={css('runs__new')}>
-          <Space>
-            {/* <AddTestExecutionModal
-              trigger={<Button type="primary">新增测试执行</Button>}
-              itemId={itemId}
-            /> */}
-            <Button type="primary" onClick={() => createTestExecution()}>
-              新增测试执行
-            </Button>
-            {/* <ExtendTestExecutionModal
-            trigger={<Button type="primary">继承测试执行</Button>}
-            itemId={itemId}
-          /> */}
-          </Space>
-        </div>
-
         <div className={css('runs__content')}>
           <PanelTable
+            renderActions={() => (
+              <div className={css('runs__new')}>
+                <Space>
+                  {/* <AddTestExecutionModal
+                trigger={<Button type="primary">新增测试执行</Button>}
+                itemId={itemId}
+              /> */}
+                  <Button type="primary" onClick={() => createTestExecution()}>
+                    新增测试执行
+                  </Button>
+                  {/* <ExtendTestExecutionModal
+              trigger={<Button type="primary">继承测试执行</Button>}
+              itemId={itemId}
+            /> */}
+                </Space>
+              </div>
+            )}
             actionRef={tableActionRef}
             actionMenuList={[
               {
