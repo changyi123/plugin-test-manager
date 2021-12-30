@@ -1,14 +1,17 @@
 import React from 'react';
 import { uniq, uniqueId } from 'lodash';
-import { useReactive } from 'ahooks';
+import { useReactive, useDrop } from 'ahooks';
 import { TestType } from '@/lib/constants';
 import { hasArrayItem, getRootContainer } from '@/lib/utils/helper';
-import { PlusCircleOutlined, MoreOutlined, FullscreenExitOutlined } from '@ant-design/icons';
+import { PlusOutlined, MoreOutlined, CompressOutlined } from '@ant-design/icons';
 import { createFolder, updateFolders, deleteFolder } from '@/lib/api/repository';
 import { useTestConfig, useBaseAction } from '@/lib/hooks/useContext';
-import { useTreeFn, traverseTreeNodes } from './hook';
+import { useTreeFn, traverseTreeNodes } from '../hook';
 import { openFolderMenu, MenuKey, FolderMenu } from '../Menu';
+import OverflowTooltip from '@/components/common/OverflowTooltip';
 import { Tree, Button, Modal, Input, message, Empty, Dropdown } from '@osui/ui';
+
+import { ROOT_FOLDER_KEY } from '../constant';
 
 import cx from './index.less';
 
@@ -53,6 +56,31 @@ const openFolderNameModal: OpenFolderNameModal = ({ title, name }) => {
       });
     });
   });
+};
+
+const DropTreeTitle = ({ children, nodeKey }) => {
+  const ref = React.useRef(null);
+  const dragoverClassName = cx('ant-tree-treenode-dragover');
+  useDrop(ref, {
+    onDom(data, e) {
+      console.log(data);
+      const treeElementNode = (e.target as any).closest('.ant-tree-treenode');
+      treeElementNode.classList.remove(dragoverClassName);
+    },
+    onDragEnter(e) {
+      const treeElementNode = (e.target as any).closest('.ant-tree-treenode');
+      treeElementNode.classList.add(dragoverClassName);
+    },
+    onDragLeave(e) {
+      const treeElementNode = (e.target as any).closest('.ant-tree-treenode');
+      treeElementNode.classList.remove(dragoverClassName);
+    },
+  });
+  return (
+    <div ref={ref} data-node-key={nodeKey} className={cx('tree-node')}>
+      {children}
+    </div>
+  );
 };
 
 type TreeNode = {
@@ -176,7 +204,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
           content: (
             <>
               <div>确定删除【{node.name}】模块吗？</div>
-              <div>模块下的子模块将会一同删除，模块内的用例仍保留且自动移至根模块下。</div>
+              <div>模块下的子模块将会一同删除，模块内的用例仍保留且自动移至未分组用例下。</div>
             </>
           ),
           okText: '继续',
@@ -254,7 +282,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
   const handleRightClick = React.useCallback(({ event, node }) => {
     event.preventDefault();
     // 所有案例无右侧菜单
-    if (node.key === 'ALL') return;
+    if (node.key === ROOT_FOLDER_KEY) return;
     // openFolderMenu(event.target, {
     //   x: event.clientX,
     //   y: event.clientY,
@@ -277,29 +305,12 @@ const FolderTree: React.FC<FolderTreeProps> = ({
       traverseTreeNodes([node], node => {
         totalLen += node.itemIds.length;
       });
-      node.title = (
-        <div data-node-key={node.key} className={cx('tree-node')}>
-          <span>{node.name}</span>
-          {node.key !== 'ALL' ? (
-            <>
-              <span
-                className={cx('tree-node-length')}
-              >{`${node.itemIds.length} (${totalLen})`}</span>
-              <Dropdown overlay={<FolderMenu onClick={({ key }) => handleMenuClick(key, node)} />}>
-                <MoreOutlined
-                  onClick={e => e.stopPropagation()}
-                  className={cx('tree-node-action')}
-                />
-              </Dropdown>
-            </>
-          ) : null}
-        </div>
-      );
+      node.length = [node.itemIds.length, totalLen];
     });
-  }, [handleMenuClick, treeFn]);
+  }, [treeFn]);
 
   const isEmptyFolderTree = React.useMemo(() => {
-    return !hasArrayItem(treeData) || !hasArrayItem(treeData[0].children);
+    return hasArrayItem(treeData) && treeData.length === 1;
   }, [treeData]);
 
   React.useEffect(() => {
@@ -342,14 +353,14 @@ const FolderTree: React.FC<FolderTreeProps> = ({
   const ToolKitButtons = [
     {
       title: '创建模块',
-      icon: <PlusCircleOutlined />,
+      icon: <PlusOutlined />,
       onClick() {
         handleMenuClick(MenuKey.createFolder, selectedTreeNode);
       },
     },
     {
       title: '折叠全部',
-      icon: <FullscreenExitOutlined />,
+      icon: <CompressOutlined />,
       onClick() {
         state.expandedKeys = [];
       },
@@ -358,7 +369,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
       title: '更多',
       icon: <MoreOutlined />,
       onClick(e) {
-        if (selectedTreeNode.key === 'ALL') return;
+        if (selectedTreeNode.key === ROOT_FOLDER_KEY) return;
         openFolderMenu(e.target, {
           x: e.clientX,
           y: e.clientY,
@@ -370,6 +381,33 @@ const FolderTree: React.FC<FolderTreeProps> = ({
       },
     },
   ];
+
+  const titleRender = React.useCallback(
+    node => (
+      <DropTreeTitle key={node.key} nodeKey={node.key}>
+        <>
+          <OverflowTooltip title={node.name}>
+            <span className={cx('tree-node-name')}>{node.name}</span>
+          </OverflowTooltip>
+
+          {node.key !== ROOT_FOLDER_KEY ? (
+            <>
+              <span
+                className={cx('tree-node-length')}
+              >{`${node.length[0]}(${node.length[1]})`}</span>
+              <Dropdown overlay={<FolderMenu onClick={({ key }) => handleMenuClick(key, node)} />}>
+                <MoreOutlined
+                  onClick={e => e.stopPropagation()}
+                  className={cx('tree-node-action')}
+                />
+              </Dropdown>
+            </>
+          ) : null}
+        </>
+      </DropTreeTitle>
+    ),
+    [handleMenuClick],
+  );
 
   return (
     <div className={cx('folder-tree', className)}>
@@ -390,6 +428,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         className={cx('tree')}
         onExpand={handleExpand}
         onSelect={handleSelect}
+        titleRender={titleRender}
         onRightClick={handleRightClick}
         selectedKeys={state.selectedKeys}
         expandedKeys={state.expandedKeys}

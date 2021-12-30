@@ -21,13 +21,16 @@ export const getItemByIQL = async (
     // like
     nameLike?: string;
     itemId?: string | string[];
+    // 需要排除的事项 id
+    excludeItemId?: string[];
     itemKey?: string | string[];
     itemType?: string | string[];
     workspace?: string | string[];
     orderBy?: string[];
   },
 ) => {
-  const { workspace, itemId, nameLike, itemKey, itemType, orderBy, ...pagination } = params;
+  const { workspace, itemId, excludeItemId, nameLike, itemKey, itemType, orderBy, ...pagination } =
+    params;
 
   const iql = new IQLBuilder();
 
@@ -39,10 +42,11 @@ export const getItemByIQL = async (
     ? iql.whereIn('itemTypeKey', itemType)
     : iql.where('itemTypeKey', itemType);
 
+  Array.isArray(excludeItemId) && iql.whereNot('id', excludeItemId);
   Array.isArray(itemId) ? iql.whereIn('id', itemId) : iql.where('id', itemId);
   Array.isArray(itemKey) ? iql.whereIn('事项ID', itemKey) : iql.where('事项ID', itemKey);
 
-  if (typeof nameLike === 'string') {
+  if (nameLike && typeof nameLike === 'string') {
     iql.whereLike('标题', nameLike);
   }
 

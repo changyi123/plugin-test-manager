@@ -1,5 +1,8 @@
 import React from 'react';
-import ContextMenu, { openContextMenuProps, openContextMenu } from '../../common/ContextMenu';
+import ContextMenu, {
+  openContextMenuProps,
+  openContextMenu,
+} from '@/components/common/ContextMenu';
 
 export enum MenuKey {
   createFolder = 'createFolder',
@@ -19,15 +22,15 @@ export enum MenuKey {
 }
 const FolderTreeMenus = [
   {
-    title: '创建模块',
+    title: '新建子模块',
     key: MenuKey.createFolder,
   },
   {
-    title: '重命名模块',
+    title: '重命名',
     key: MenuKey.renameFolder,
   },
   {
-    title: '删除模块',
+    title: '删除',
     key: MenuKey.deleteFolder,
   },
   { key: 'Divider' },
@@ -37,7 +40,7 @@ const FolderTreeMenus = [
   },
   { key: 'Divider' },
   {
-    title: '创建测试用例',
+    title: '新建测试用例',
     key: MenuKey.createTest,
   },
 ];

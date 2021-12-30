@@ -1,24 +1,23 @@
 import React from 'react';
-import FolderTree from '@/components/repository/FolderTree';
-import TestCase from '@/components/repository/TestCase';
+import FolderTree from '@/pages/repository/FolderTree';
 
 import Split from '@uiw/react-split';
+import TestDetailTable from './TestDetailTable';
 import { useReactive, useRequest } from 'ahooks';
-import { hasArrayItem } from '@/lib/utils/helper';
 import { getFolderTree } from '@/lib/api/repository';
 import { useSDK } from '@projectproxima/plugin-sdk';
-import { getItemByIQL, getCustomFields } from '@/lib/api/proxima';
+import { getItemByIQL } from '@/lib/api/proxima';
+import { getDevConfig } from '@/devEnv';
+import { traverseTreeNodes } from './hook';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import TestManagerProvider from '@/components/common/TestManagerProvider';
-import { getDevConfig } from '@/devEnv';
-import { TestType } from '@/lib/constants';
-import { BaseTable, BaseTableProvider } from '@/components/common/Table';
 
-import { Breadcrumb, Empty } from '@osui/ui';
+import { Breadcrumb, Input } from '@osui/ui';
+import { MacCommandOutlined } from '@ant-design/icons';
+
+import { ROOT_FOLDER_KEY } from './constant';
 
 import cx from './index.less';
-
-const ALL_FOLDER_KEY = 'ALL';
 
 const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) => {
   const initialRef = React.useRef(false);
@@ -29,11 +28,12 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
     items: [],
     itemIds: [],
     breadcrumb: [],
-    customFields: [],
+    searchValue: '',
+    isRootFolder: false,
     selectedFolderKey: '',
   });
 
-  const { run: fetchItems, loading: itemLoading } = useRequest(getItemByIQL, {
+  const { run: fetchItems } = useRequest(getItemByIQL, {
     manual: true,
     staleTime: 5000,
     cacheKey: state.itemIds.toString(),
@@ -52,51 +52,70 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
     },
   );
 
-  useRequest(getCustomFields, {
-    ready: !!workspaceKey,
-    cacheKey: 'getCustomFields',
-    onSuccess(data) {
-      state.customFields = data;
-    },
-  });
-
   const handleFolderTreeChange = React.useCallback(() => {
     refreshFolderTree();
   }, [refreshFolderTree]);
+
+  // 获取 item
+  const fetchFolderItems = React.useCallback(() => {
+    if (state.isRootFolder) {
+      let itemIds = [];
+      traverseTreeNodes(folderTreeData, node => {
+        itemIds = itemIds.concat(node.itemIds);
+      });
+
+      fetchItems({
+        excludeItemId: itemIds,
+        workspace: workspaceKey,
+        nameLike: state.searchValue,
+        itemType: [config.itemTypeMap?.TestDetail],
+      });
+    } else {
+      fetchItems({ itemId: state.itemIds, nameLike: state.searchValue });
+    }
+  }, [
+    fetchItems,
+    workspaceKey,
+    state.itemIds,
+    folderTreeData,
+    state.searchValue,
+    state.isRootFolder,
+    config.itemTypeMap?.TestDetail,
+  ]);
 
   const handleSelect = React.useCallback(
     (node, breadcrumbs) => {
       const itemIds = node.itemIds;
       state.itemIds = itemIds;
       state.selectedFolderKey = node.key;
-      if (node.key === ALL_FOLDER_KEY) {
-        fetchItems({ workspace: workspaceKey, itemType: [config.itemTypeMap?.TestDetail] });
-      } else {
-        fetchItems({ itemId: itemIds });
-      }
       state.breadcrumb = breadcrumbs;
+      state.isRootFolder = node.key === ROOT_FOLDER_KEY;
+      // 第一次使用 useEffect 请求
+      if (!initialRef.current) return;
+      fetchFolderItems();
     },
-    [config.itemTypeMap, fetchItems, state, workspaceKey],
+    [fetchFolderItems, state],
   );
 
   React.useEffect(() => {
     if (workspaceKey && config.itemTypeMap?.TestDetail && !initialRef.current) {
       initialRef.current = true;
-      fetchItems({ workspace: workspaceKey, itemType: [config.itemTypeMap?.TestDetail] });
+      fetchFolderItems();
     }
-  }, [config.itemTypeMap?.TestDetail, fetchItems, workspaceKey]);
+  }, [config.itemTypeMap?.TestDetail, fetchFolderItems, fetchItems, workspaceKey]);
 
   const treeNodeData = React.useMemo(() => {
     const rootFolder = {
-      key: ALL_FOLDER_KEY,
-      name: '根模块',
-      title: '根模块',
+      key: ROOT_FOLDER_KEY,
+      name: '未分组用例',
+      title: '未分组用例',
       parentId: null,
       itemIds: [],
+      icon: <MacCommandOutlined />,
       // 测试案例库有且只有一个根模块
-      children: folderTreeData,
+      children: [],
     };
-    return [rootFolder];
+    return [rootFolder].concat(folderTreeData);
   }, [folderTreeData]);
 
   return (
@@ -111,32 +130,27 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
         />
         <div className={cx('right')}>
           <div className={cx('header')}>
-            <Breadcrumb>
+            <Breadcrumb className={cx('breadcrumb')}>
               {state.breadcrumb.map((title, index) => (
                 <Breadcrumb.Item
-                  className={cx(index + 1 === state.breadcrumb.length && 'highlight')}
+                  className={cx(index !== state.breadcrumb.length - 1 && 'light')}
                   key={title}
                 >
                   {title}
                 </Breadcrumb.Item>
               ))}
             </Breadcrumb>
+            <Input.Search
+              className={cx('search')}
+              placeholder="请输入关键字"
+              style={{ width: 200 }}
+              value={state.searchValue}
+              onSearch={fetchFolderItems}
+              onChange={e => (state.searchValue = e.target.value)}
+            />
           </div>
           <div className={cx('main')}>
-            {!itemLoading && !hasArrayItem(state.items) ? (
-              <Empty className={cx('empty')} description="文件夹为空" />
-            ) : (
-              state.items.map(item => (
-                <TestCase
-                  key={item.objectId}
-                  selectedFolderKey={state.selectedFolderKey}
-                  {...item}
-                />
-              ))
-              // <BaseTableProvider customFields={state.customFields} selectedKeys={['name', 'key']}>
-              //   <BaseTable data={state.items} />
-              // </BaseTableProvider>
-            )}
+            <TestDetailTable dataSource={state.items} />
           </div>
         </div>
       </Split>

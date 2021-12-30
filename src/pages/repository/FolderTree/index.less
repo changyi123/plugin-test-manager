@@ -20,11 +20,13 @@
     }
     .ant-tree-node-content-wrapper {
       flex: 1 !important;
+      overflow: hidden;
       display: flex;
     }
     .ant-tree-title {
       flex: 1;
       display: flex;
+      overflow: hidden;
       align-items: center;
     }
   }
@@ -41,12 +43,25 @@
   }
 
   .tree {
-    padding: 10px;
+    padding-top: 10px;
+    padding-left: 10px;
 
     .tree-node {
       display: flex;
+      overflow: hidden;
       width: 100%;
       align-items: center;
+      &-name {
+        margin-right: 8px;
+      }
+      &-length,
+      &-action {
+        flex: none;
+        margin-left: auto;
+        text-align: right;
+        // width: 46px;
+      }
+
       &:hover {
         .tree-node-action {
           display: flex;
@@ -59,7 +74,6 @@
 
     .tree-node-action {
       display: none;
-      margin-left: auto;
       align-items: center;
       justify-content: center;
       width: 24px;
@@ -77,6 +91,7 @@
     .tree-node-length {
       margin-left: auto;
       font-size: 12px;
+      width: 36px;
     }
 
     :global {
@@ -88,7 +103,7 @@
         &-selected {
           background-color: rgb(235, 242, 249);
         }
-        &-hovering,
+        &-dragover,
         &:hover {
           background-color: rgb(216, 230, 243);
         }

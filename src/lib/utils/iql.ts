@@ -13,19 +13,19 @@ enum IQLWhereOperator {
 const IQLWhereClauseGenerators: Record<IQLWhereOperator, (...args: any[]) => string> = {
   [IQLWhereOperator.IN]: (key: string, data: string[], operator: Dash = '') => {
     if (!Array.isArray(data)) return '';
-    return `${operator} ${key} in [${data.toString().replace(/([^,]+)(?=$|,)/g, `'$1'`)}]`;
+    return ` ${operator} ${key} in [${data.toString().replace(/([^,]+)(?=$|,)/g, `'$1'`)}]`;
   },
   [IQLWhereOperator.EQUAL]: (key: string, data: string, operator: Dash = '') => {
     if (!data) return '';
-    return `${operator} ${key} = '${data}'`;
+    return ` ${operator} ${key} = '${data}'`;
   },
-  [IQLWhereOperator.NOT]: (key: string, data: string, operator: Dash = '') => {
-    if (!data) return '';
-    return `${operator} ${key} is not '${data}'`;
+  [IQLWhereOperator.NOT]: (key: string, data: string[], operator: Dash = '') => {
+    if (!Array.isArray(data)) return '';
+    return ` ${operator} ${key} not in [${data.toString().replace(/([^,]+)(?=$|,)/g, `'$1'`)}]`;
   },
   [IQLWhereOperator.LIKE]: (key: string, data: string, operator: Dash = '') => {
     if (!data) return '';
-    return `${operator} ${key} ~ '${data}'`;
+    return ` ${operator} ${key} ~ '${data}'`;
   },
 };
 

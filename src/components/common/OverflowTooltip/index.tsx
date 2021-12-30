@@ -19,7 +19,7 @@ const overlayStyle: CSSProperties = {
 };
 
 const getCurrentNodeContainer = target => target.parentNode;
-const getPopupContainer = () => document.body;
+const getPopupContainer = () => document.getElementById('test-manager');
 interface OverflowTooltip {
   className?: string;
   title?: string | React.ReactElement;
