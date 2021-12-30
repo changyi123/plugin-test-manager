@@ -4,6 +4,8 @@ const appKey = window.QiankunProps?.frame?.app?.key || 'test_manager';
 
 export const Item = Parse.Object.extend('Item');
 export const ItemType = Parse.Object.extend('ItemType');
+export const ItemLink = Parse.Object.extend('ItemLink');
+export const ItemLinkType = Parse.Object.extend('ItemLinkType');
 export const Workspace = Parse.Object.extend('Workspace');
 export const CustomField = Parse.Object.extend('CustomField');
 
