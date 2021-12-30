@@ -51,7 +51,7 @@ export const getItemByIQL = async (
   }
 
   if (hasArrayItem(orderBy)) {
-    iql.orderBy(orderBy[0] || '创建时间');
+    iql.orderBy(orderBy[0] || '修改时间', (orderBy[1] as any) || 'desc');
   }
 
   const { data } = await fetch.post('/parse/api/search', {

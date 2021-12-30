@@ -14,9 +14,22 @@ export type ContextMenuProps = MenuProps & {
   menuList: MenuListItemProps[];
 };
 
-const ContextMenu: React.FC<ContextMenuProps> = ({ menuList, disabledKeys, ...menuProps }) => {
+const ContextMenu: React.FC<ContextMenuProps> = ({
+  onClick,
+  menuList,
+  disabledKeys,
+  ...menuProps
+}) => {
   return (
-    <Menu {...menuProps} className="context-menu">
+    <Menu
+      onClick={arg => {
+        arg.domEvent.preventDefault();
+        arg.domEvent.stopPropagation();
+        onClick(arg);
+      }}
+      {...menuProps}
+      className="context-menu"
+    >
       {menuList.map((menu, index) =>
         menu.key === 'Divider' ? (
           <Menu.Divider key={index} />

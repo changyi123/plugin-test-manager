@@ -35,8 +35,6 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
 
   const { run: fetchItems } = useRequest(getItemByIQL, {
     manual: true,
-    staleTime: 5000,
-    cacheKey: state.itemIds.toString(),
     onSuccess({ items }) {
       state.items = items;
     },
@@ -59,13 +57,13 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
   // 获取 item
   const fetchFolderItems = React.useCallback(() => {
     if (state.isRootFolder) {
-      let itemIds = [];
+      let excludeItemId = [];
       traverseTreeNodes(folderTreeData, node => {
-        itemIds = itemIds.concat(node.itemIds);
+        excludeItemId = excludeItemId.concat(node.itemIds);
       });
 
       fetchItems({
-        excludeItemId: itemIds,
+        excludeItemId,
         workspace: workspaceKey,
         nameLike: state.searchValue,
         itemType: [config.itemTypeMap?.TestDetail],
