@@ -58,12 +58,16 @@ const openFolderNameModal: OpenFolderNameModal = ({ title, name }) => {
   });
 };
 
-const DropTreeTitle = ({ children, nodeKey }) => {
+const DropTreeTitle = ({ children, nodeKey, onItemDrop }) => {
   const ref = React.useRef(null);
   const dragoverClassName = cx('ant-tree-treenode-dragover');
   useDrop(ref, {
     onDom(data, e) {
-      console.log(data);
+      onItemDrop({
+        itemId: data.itemId,
+        fromFolderKey: data.folderKey,
+        toFolderKey: nodeKey,
+      });
       const treeElementNode = (e.target as any).closest('.ant-tree-treenode');
       treeElementNode.classList.remove(dragoverClassName);
     },
@@ -176,17 +180,17 @@ const FolderTree: React.FC<FolderTreeProps> = ({
           message.warn('限制5个层级，5个层级以上不能新建子模块');
           return;
         }
-        const folderName = await openFolderNameModal({ title: '创建模块' });
+        const folderName = await openFolderNameModal({ title: '新建子模块' });
         await createFolder({
           name: folderName,
           parentId: node?.key,
           workspaceKey: workspace?.key,
         });
         node?.key && state.expandedKeys.push(node.key);
-        message.success('模块创建成功');
+        message.success('子模块新建成功');
       } else if (actionKey === MenuKey.renameFolder) {
         const newFolderName = await openFolderNameModal({
-          title: '修改模块名',
+          title: '重命名模块',
           name: node.name,
         });
 
@@ -283,12 +287,6 @@ const FolderTree: React.FC<FolderTreeProps> = ({
     event.preventDefault();
     // 所有案例无右侧菜单
     if (node.key === ROOT_FOLDER_KEY) return;
-    // openFolderMenu(event.target, {
-    //   x: event.clientX,
-    //   y: event.clientY,
-    //   onClick: (key: MenuKey) => handleMenuClick(key, node),
-    //   disabledKeys: folderMenuDisabledKeys,
-    // });
   }, []);
 
   const handleExpand = React.useCallback(
@@ -382,9 +380,38 @@ const FolderTree: React.FC<FolderTreeProps> = ({
     },
   ];
 
+  const handleItemDrop = React.useCallback(
+    async ({ itemId, toFolderKey, fromFolderKey }) => {
+      const sourceNode = treeFn.getTreeNodeByKey(fromFolderKey);
+      const targetNode = treeFn.getTreeNodeByKey(toFolderKey);
+
+      sourceNode.itemIds = sourceNode.itemIds.filter(id => id !== itemId);
+      targetNode.itemIds = targetNode.itemIds.concat(itemId);
+
+      let needUpdatedFolders = [];
+      if (toFolderKey !== ROOT_FOLDER_KEY) {
+        needUpdatedFolders = needUpdatedFolders.concat(targetNode);
+      } else if (fromFolderKey !== ROOT_FOLDER_KEY) {
+        needUpdatedFolders = needUpdatedFolders.concat(sourceNode);
+      }
+
+      await updateFolders(needUpdatedFolders);
+
+      message.success('测试用例移动成功');
+
+      await onFolderTreeChange();
+
+      handleSelect([sourceNode.key], {
+        node: sourceNode,
+        selected: true,
+      });
+    },
+    [handleSelect, onFolderTreeChange, treeFn],
+  );
+
   const titleRender = React.useCallback(
     node => (
-      <DropTreeTitle key={node.key} nodeKey={node.key}>
+      <DropTreeTitle key={node.key} nodeKey={node.key} onItemDrop={handleItemDrop}>
         <>
           <OverflowTooltip title={node.name}>
             <span className={cx('tree-node-name')}>{node.name}</span>
@@ -406,7 +433,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         </>
       </DropTreeTitle>
     ),
-    [handleMenuClick],
+    [handleMenuClick, handleItemDrop],
   );
 
   return (
