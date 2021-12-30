@@ -642,7 +642,6 @@ interface IItemLink {
 }
 
 export const createItemLink = (links: IItemLink | Array<IItemLink>) => {
-  console.log('links', links);
   const itemLinks = Array.isArray(links) ? links : [links];
   const linkObjs = itemLinks.map(
     link =>

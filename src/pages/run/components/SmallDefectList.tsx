@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { Popover, Skeleton, Space, Typography, Modal } from '@osui/ui';
+import { Popover, Skeleton, Space, Typography, Modal, Popconfirm } from '@osui/ui';
 import { ExclamationCircleOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useRequest } from 'ahooks';
 import { getItemByIQL } from '@/lib/api/proxima';
@@ -17,15 +17,8 @@ interface ISmallDefectListProps {
 export const SmallDefectList: React.FC<ISmallDefectListProps> = props => {
   const { itemIds } = props;
   const handleDeleteRelation = useCallback((index: number) => {
-    Modal.confirm({
-      getContainer: getRootContainer,
-      title: '提醒',
-      content: '当前操作会删除与该缺陷的关联关系，是否继续执行？',
-      onOk: async () => {
-        console.log('提交', index);
-        console.log('props', props);
-      },
-    });
+    console.log('提交', index);
+    console.log('props', props);
   }, []);
 
   const { data, loading, error, refresh } = useRequest(() =>
@@ -70,7 +63,14 @@ export const SmallDefectList: React.FC<ISmallDefectListProps> = props => {
                   </div>
                 </div>
                 <div className={css('list__item__handle')}>
-                  <DeleteOutlined onClick={() => handleDeleteRelation(index)} />
+                  <Popconfirm
+                    title="当前操作会删除与该缺陷的关联关系，是否继续执行？"
+                    onConfirm={() => handleDeleteRelation(index)}
+                    okText="确定"
+                    cancelText="取消"
+                  >
+                    <DeleteOutlined />
+                  </Popconfirm>
                 </div>
               </div>
             );
