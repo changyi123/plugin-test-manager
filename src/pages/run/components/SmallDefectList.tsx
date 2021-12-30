@@ -9,10 +9,13 @@ import css from './SmallDefectList.less';
 
 interface ISmallDefectListProps {
   itemIds: string[];
+  testId: string;
+  save?: () => (value: string[]) => void;
   refreshNum?: number;
 }
 
 export const SmallDefectList: React.FC<ISmallDefectListProps> = props => {
+  const { itemIds } = props;
   const handleDeleteRelation = useCallback((index: number) => {
     Modal.confirm({
       getContainer: getRootContainer,
@@ -20,6 +23,7 @@ export const SmallDefectList: React.FC<ISmallDefectListProps> = props => {
       content: '当前操作会删除与该缺陷的关联关系，是否继续执行？',
       onOk: async () => {
         console.log('提交', index);
+        console.log('props', props);
       },
     });
   }, []);
@@ -48,25 +52,29 @@ export const SmallDefectList: React.FC<ISmallDefectListProps> = props => {
   if (!items.length) {
     return <div></div>;
   }
+  console.log('items', items);
 
   return (
     <div className={css('list')}>
-      {items &&
-        items.map((item, index) => {
-          return (
-            <div key={index} className={css('list__item')}>
-              <div className={css('list__item__detail')}>
-                <div className={css('img')}></div>
-                <div className={css('key')}>{item.key}</div>
-                <div className={css('name')}>
-                  <Typography.Text ellipsis={{ tooltip: item.name }}>{item.name}</Typography.Text>
+      {itemIds &&
+        itemIds.map((itemId, index) => {
+          const item = items.find(item => item.objectId === itemId);
+          if (item) {
+            return (
+              <div key={index} className={css('list__item')}>
+                <div className={css('list__item__detail')}>
+                  <div className={css('img')}></div>
+                  <div className={css('key')}>{item.key}</div>
+                  <div className={css('name')}>
+                    <Typography.Text ellipsis={{ tooltip: item.name }}>{item.name}</Typography.Text>
+                  </div>
+                </div>
+                <div className={css('list__item__handle')}>
+                  <DeleteOutlined onClick={() => handleDeleteRelation(index)} />
                 </div>
               </div>
-              <div className={css('list__item__handle')}>
-                <DeleteOutlined onClick={() => handleDeleteRelation(index)} />
-              </div>
-            </div>
-          );
+            );
+          }
         })}
     </div>
   );
@@ -86,7 +94,14 @@ export const SmallDefectListPopover: React.FC<ISmallDefectListProps> = props => 
 
   return (
     <Popover
-      content={<SmallDefectList itemIds={props.itemIds} refreshNum={refreshNum} />}
+      content={
+        <SmallDefectList
+          itemIds={props.itemIds}
+          refreshNum={refreshNum}
+          testId={props.testId}
+          save={props.save}
+        />
+      }
       onVisibleChange={handleVisibleChange}
       trigger="click"
     >
