@@ -2,16 +2,19 @@ import React from 'react';
 import { Modal } from '@osui/ui';
 import { uniq, uniqBy } from 'lodash';
 import { TestType } from '@/lib/constants';
-import { useSafeState, useRequest } from 'ahooks';
 import { getItemByIQL } from '@/lib/api/proxima';
+import { useSafeState, useRequest } from 'ahooks';
+import EventBus from '@/lib/utils/eventBus';
 import { getRootContainer } from '@/lib/utils/helper';
 import DebounceSelect from '@/components/common/DebounceSelect';
 import { getAllTestConfigs, getTestEntities } from '@/lib/api/common';
 
 import cx from './index.less';
 
+const AddExistedTestEventType = 'ADD_EXISTED_TEST';
+
 export type ActionType = {
-  open: (params?: { testType?: TestType; ignoreWorkspaceKeys?: string[] }) => void;
+  open: (params?: { testType?: TestType; ignoreTestEntityIds?: string[] }) => any;
 };
 
 type TestEntitySelectorProps = {
@@ -25,10 +28,18 @@ type TestEntitySelectorProps = {
 
 const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
   const { actionRef, ignoreTestEntityIds = [] } = props;
-  const debounceSelectContainerRef = React.useRef();
   const [visible, setVisible] = useSafeState(false);
+  const debounceSelectContainerRef = React.useRef();
   const [selectValue, setSelectValue] = useSafeState([]);
   const [testType, setTestType] = useSafeState<TestType>(props.testType);
+
+  const eventBusRef = React.useRef<any>(new EventBus());
+  React.useEffect(() => {
+    const eventBus = eventBusRef.current;
+    return () => {
+      typeof eventBus?.disposer === 'function' && eventBus.disposer();
+    };
+  }, []);
 
   // 获取租户测试类型关联的 itemType keys
   const { data: testTypeAssItemTypeKeys, runAsync: getTestTypeAssItemTypeKeys } = useRequest(
@@ -60,7 +71,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
       });
 
       const itemId = items.map(item => item.objectId);
-      const [testEntities] = await getTestEntities({ itemId });
+      const testEntities = await getTestEntities({ itemId });
       const testEntitiesData = uniqBy(testEntities.map(item => item.toJSON()) as any[], 'objectId');
       return testEntitiesData
         .map(testEntity => {
@@ -95,6 +106,15 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
         await getTestTypeAssItemTypeKeys();
       }
       setVisible(true);
+
+      return new Promise(resolve => {
+        eventBusRef.current.disposer = eventBusRef.current.register(
+          AddExistedTestEventType,
+          data => {
+            resolve(data);
+          },
+        );
+      });
     },
   }));
 
@@ -102,6 +122,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
     if (typeof props.onSelect === 'function') {
       props.onSelect(selectValue);
     }
+    eventBusRef.current.dispatch(AddExistedTestEventType, selectValue);
     setVisible(false);
   }, [props, selectValue, setVisible]);
 
