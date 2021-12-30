@@ -139,7 +139,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
       itemData.reference = testEntityData.reference;
     }
 
-    eventBusRef.current.disposer = eventBusRef.current.dispatch(ItemCreateSuccessEventType, {
+    eventBusRef.current.dispatch(ItemCreateSuccessEventType, {
       extraData,
       testEntity,
       item: itemData,
@@ -194,27 +194,30 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
 
         // 事项创建成功通知
         return new Promise((resolve, reject) => {
-          eventBusRef.current.register(ItemCreateSuccessEventType, data => {
-            const { testEntity, item } = data;
+          eventBusRef.current.disposer = eventBusRef.current.register(
+            ItemCreateSuccessEventType,
+            data => {
+              const { testEntity, item } = data;
 
-            // 创建的测试类型是否符合预期
-            let expectedTestType = testEntity?.get('type') === type;
+              // 创建的测试类型是否符合预期
+              let expectedTestType = testEntity?.get('type') === type;
 
-            // 判断事项类型 key 是否在 defectsMapping 中
-            if (type === TestType.TestDefect) {
-              expectedTestType = (testConfig?.defectsMapping ?? []).includes(item?.itemType?.key);
-            }
+              // 判断事项类型 key 是否在 defectsMapping 中
+              if (type === TestType.TestDefect) {
+                expectedTestType = (testConfig?.defectsMapping ?? []).includes(item?.itemType?.key);
+              }
 
-            // 通知
-            alert({
-              type: 'warning',
-              message: '新建事项类型与创建的测试类型未匹配',
-            });
+              // 通知
+              alert({
+                type: 'warning',
+                message: '新建事项类型与创建的测试类型未匹配',
+              });
 
-            // TODO: 消息通知
-            if (!expectedTestType) return reject('新建事项类型与创建的测试类型未匹配');
-            resolve(data);
-          });
+              // TODO: 消息通知
+              if (!expectedTestType) return reject('新建事项类型与创建的测试类型未匹配');
+              resolve(data);
+            },
+          );
         });
       },
       openItemViewPanel: openItemDetailPanel,

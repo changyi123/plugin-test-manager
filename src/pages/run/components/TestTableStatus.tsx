@@ -5,7 +5,7 @@ import { colorArray, IColor } from './TestStatus';
 import useMergedState from 'rc-util/lib/hooks/useMergedState';
 import { updateTestStatus } from '@/lib/api/runs';
 import { useRequest } from 'ahooks';
-import { RunsContext } from '@/pages/panel/TestDetail/components/runs';
+import { RunsContext } from '@/pages/panel/TestDetail/TestRunPanel';
 
 import css from './TestStatus.less';
 

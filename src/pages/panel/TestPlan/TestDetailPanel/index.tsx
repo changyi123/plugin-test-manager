@@ -1,9 +1,10 @@
 import React from 'react';
 
 import { uniqueId } from 'lodash';
+import { message, Table } from '@osui/ui';
 import { Workspace } from '@/lib/types/App';
-import { message, Table, Tooltip } from '@osui/ui';
 import { DownOutlined } from '@ant-design/icons';
+import OverflowTooltip from '@/components/common/OverflowTooltip';
 import { TestType, TestRelationType } from '@/lib/constants';
 import PanelTable, {
   ActionType,
@@ -213,7 +214,7 @@ const Test = () => {
         width: 150,
         render(_, record) {
           const name = record.relExecutions?.[0]?.reference?.name;
-          return <Tooltip title={name}>{name}</Tooltip>;
+          return <OverflowTooltip title={name}>{name}</OverflowTooltip>;
         },
       },
       {

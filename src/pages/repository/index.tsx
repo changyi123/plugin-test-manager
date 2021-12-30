@@ -150,7 +150,7 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
             />
           </div>
           <div className={cx('main')}>
-            <TestDetailTable dataSource={state.items} />
+            <TestDetailTable selectedFolderKey={state.selectedFolderKey} dataSource={state.items} />
           </div>
         </div>
       </Split>
