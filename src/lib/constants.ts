@@ -24,13 +24,13 @@ export enum TestType {
 
 // 测试实体类型关联关系 (from)Rel(to)
 export enum TestRelationType {
-  // 测试用例关联测试运行（1:1）
+  // 测试用例关联测试执行（1:1）
   DetailRelRun = 'DetailRelRun',
-  // 测试执行关联测试运行(1:N)
+  // 测试执行轮次关联测试执行(1:N)
   ExecutionRelRun = 'ExecutionRelRun',
   // 测试计划关联测试用例(1:N)
   PlanRelDetail = 'PlanRelDetail',
-  // 测试计划关联测试执行(1:N)
+  // 测试计划关联测试执行轮次(1:N)
   PlanRelExecution = 'PlanRelExecution',
 
   // TODO: 测试集合

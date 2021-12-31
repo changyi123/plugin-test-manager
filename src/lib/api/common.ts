@@ -127,7 +127,7 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
       // 第二个兼容test run
       const item =
         itemMap[entity.reference?.objectId || entity?.runReferenceDetail?.reference?.objectId];
-      // 测试运行没有关联的事项
+      // 测试执行没有关联的事项
       return Object.assign({}, entity, { reference: item || null });
     });
     return buildReturnData(testEntitiesDataWithItemData);

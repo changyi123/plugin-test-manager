@@ -87,7 +87,7 @@ const Test = () => {
       const list = testDetails.map(detail => {
         return {
           ...detail,
-          // 关联的测试运行
+          // 关联的测试执行
           relRuns: testRuns.filter(run => run.runReferenceDetail.objectId === detail.objectId),
         };
       });

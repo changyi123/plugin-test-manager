@@ -100,19 +100,7 @@ const Test = () => {
         title: '操作',
         key: 'action',
         render: (_, record) => (
-          <DropDownButton
-            buttonProps={{ type: 'text' }}
-            menuList={[
-              {
-                title: '删除',
-                onClick() {
-                  removeTestRelation([record.testRelationId]);
-                },
-              },
-            ]}
-          >
-            <EllipsisOutlined />
-          </DropDownButton>
+          <a onClick={() => removeTestRelation([record.testRelationId])}>删除</a>
         ),
       },
     ];
@@ -129,7 +117,7 @@ const Test = () => {
       <PanelTable
         renderActions={() => (
           <Button type="primary" onClick={addExistedTestExecution}>
-            添加测试执行
+            添加测试执行轮次
           </Button>
         )}
         actionRef={tableActionRef}

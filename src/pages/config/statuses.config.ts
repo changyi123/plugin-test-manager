@@ -1,7 +1,7 @@
 export default [
   {
     color: '#95C160',
-    description: '测试运行通过',
+    description: '测试执行通过',
     name: '通过',
     final: true,
     native: true,
@@ -10,7 +10,7 @@ export default [
   },
   {
     color: '#A2A6AE',
-    description: '测试运行未开始',
+    description: '测试执行未开始',
     name: '未开始',
     final: false,
     native: true,
@@ -19,7 +19,7 @@ export default [
   },
   {
     color: '#F1E069',
-    description: '测试运行正在执行中',
+    description: '测试执行正在执行中',
     name: '正在执行',
     final: false,
     native: true,
@@ -28,7 +28,7 @@ export default [
   },
   {
     color: '#D45D52',
-    description: '测试运行失败',
+    description: '测试执行失败',
     final: true,
     name: '失败',
     native: true,

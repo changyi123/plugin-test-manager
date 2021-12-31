@@ -50,7 +50,7 @@ const Plan = () => {
 
       const testPlanIds = testPlans.map(item => item.objectId);
 
-      // 获取测试执行，包含测试运行 testRuns
+      // 测试执行轮次 testRuns
       const { list: testDetails } = await getTestEntitiesByRelation(
         TestRelationType.PlanRelDetail,
         { from: testPlanIds },
@@ -158,19 +158,7 @@ const Plan = () => {
         key: 'action',
         fixed: 'right',
         render: (_, record) => (
-          <DropDownButton
-            buttonProps={{ type: 'text' }}
-            menuList={[
-              {
-                title: '删除',
-                onClick() {
-                  removeTestRelation([record.testRelationId]);
-                },
-              },
-            ]}
-          >
-            <EllipsisOutlined />
-          </DropDownButton>
+          <a onClick={() => removeTestRelation([record.testRelationId])}>删除</a>
         ),
       },
     ] as any[];
@@ -179,7 +167,7 @@ const Plan = () => {
   return (
     <div className={cx('test')}>
       <TestEntitySelectorModal
-        title="添加测试执行至当前测试计划"
+        title="添加测试执行轮次至当前测试计划"
         actionRef={selectorModalRef}
         testType={TestType.TestPlan}
         ignoreTestEntityIds={allTestEntityId}
