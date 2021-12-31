@@ -29,7 +29,7 @@ const PanelLayout: React.FC<PanelLayoutProps> = props => {
   return (
     <div className={cx('panel')}>
       {useTabsComponent ? (
-        <Tabs defaultActiveKey={tabs[0]?.key} {...tabsProps}>
+        <Tabs destroyInactiveTabPane defaultActiveKey={tabs[0]?.key} {...tabsProps}>
           {tabs.map(tab => {
             const { Component } = tab;
             return (
@@ -67,7 +67,7 @@ export const alert = (props: AlertProps & { duration?: number }) => {
     <Alert className={cx('alert')} afterClose={removeContainerDOM} showIcon closable {...props} />,
     container,
   );
-  document.getElementById(AlertDOMContainerId).appendChild(container);
+  DOMContainer.appendChild(container);
   if (duration > 0) {
     setTimeout(removeContainerDOM, duration);
   }

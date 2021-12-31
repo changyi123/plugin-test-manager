@@ -1,7 +1,36 @@
 .test-repository {
   height: ~'calc(100vh - 95px)';
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+
+  .left {
+    position: relative;
+    height: 100% !important;
+    min-width: 300px;
+    max-width: 50%;
+    flex: none;
+    padding-right: 6px;
+
+    :global {
+      .react-resizable-handle {
+        position: absolute;
+        cursor: ew-resize;
+        width: 10px;
+        height: 100%;
+        right: -5px;
+        top: 0;
+        border-left: 1px solid var(--color-gray-5);
+        &:hover {
+          border-color: var(--color-brand-5);
+        }
+      }
+    }
+  }
+
+  .right {
+    flex: 1;
+    min-width: 400px;
+  }
 
   :global {
     .ant-table-wrapper {
@@ -9,44 +38,11 @@
     }
   }
 
-  .layout {
-    .left {
-      min-width: 300px;
-      width: 300px;
-      max-width: 50%;
-      flex: none;
-    }
-
-    .right {
-      flex: 1;
-      min-width: 400px;
-    }
-
-    :global .w-split-bar {
-      width: 10px;
-      z-index: 1;
-      margin: 0px -5px;
-      background: inherit;
-      box-shadow: none;
-      & > div {
-        cursor: ew-resize;
-        border-right: 1px solid var(--color-gray-5);
-        &:hover {
-          border-color: var(--color-brand-5);
-        }
-      }
-      &:after,
-      &:before {
-        display: none;
-      }
-    }
-  }
-
   .header {
     display: flex;
     align-items: center;
     padding: 11px 22px;
-    min-height: 45px;
+    min-height: 55px;
     border-bottom: 1px solid var(--color-gray-5);
 
     .light {

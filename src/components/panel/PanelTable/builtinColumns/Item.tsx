@@ -6,7 +6,6 @@ import cx from './style.less';
 /** 事项 id */
 export const ItemKey = {
   title: '事项ID',
-  width: 100,
   cellRenderer({ item }) {
     return (
       <Typography.Link
@@ -25,7 +24,6 @@ export const ItemKey = {
 /** 事项标题 */
 export const ItemTitle = {
   title: '标题',
-  width: 100,
   cellRenderer({ item }) {
     return <Typography.Text ellipsis={{ tooltip: item?.name }}>{item?.name}</Typography.Text>;
   },

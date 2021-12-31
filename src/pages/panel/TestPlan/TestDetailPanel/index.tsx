@@ -202,7 +202,6 @@ const Test = () => {
   );
 
   const expandedRowRender = React.useCallback(record => {
-    // console.log(record.relRuns);
     const columns = [
       {
         key: 'execution',

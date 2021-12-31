@@ -1,10 +1,18 @@
 @import '@/index.global.less';
 
 .folder-tree {
-  overflow-y: auto;
-  .custom-scrollbar-mixin();
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 
   :global {
+    .ant-tree {
+      overflow-y: auto;
+      padding-right: 8px;
+      .custom-scrollbar-mixin();
+    }
+
     .ant-tree-iconEle,
     .ant-tree-switcher,
     .ant-tree-treenode,
@@ -36,13 +44,11 @@
 
   .toolkit-bar {
     display: flex;
-    position: sticky;
-    top: 0;
-    z-index: 10;
+    align-items: center;
     background-color: #fff;
     justify-content: flex-end;
-    padding: 10px;
     border-bottom: 1px solid var(--color-gray-5);
+    min-height: 55px;
 
     & > * {
       margin-right: 10px;

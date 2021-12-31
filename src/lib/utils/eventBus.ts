@@ -32,7 +32,7 @@ export class EventBus implements IEventBus {
       return;
     }
 
-    Object.keys(subscriber).forEach(key => subscriber[key](arg));
+    Object.keys(subscriber).forEach(key => subscriber[key]?.(arg));
   }
 
   public register(event: string, callback: Function): Registry {

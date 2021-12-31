@@ -1,0 +1,38 @@
+export default [
+  {
+    color: '#95C160',
+    description: '测试运行通过',
+    name: '通过',
+    final: true,
+    native: true,
+    readOnly: true,
+    type: 'PASSED',
+  },
+  {
+    color: '#A2A6AE',
+    description: '测试运行未开始',
+    name: '未开始',
+    final: false,
+    native: true,
+    readOnly: true,
+    type: 'TODO',
+  },
+  {
+    color: '#F1E069',
+    description: '测试运行正在执行中',
+    name: '正在执行',
+    final: false,
+    native: true,
+    readOnly: true,
+    type: 'EXECUTING',
+  },
+  {
+    color: '#D45D52',
+    description: '测试运行失败',
+    final: true,
+    name: '失败',
+    native: true,
+    readOnly: true,
+    type: 'FAILED',
+  },
+];

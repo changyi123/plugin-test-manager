@@ -20,7 +20,7 @@ const PlanTabs = [
 const TestExecution = () => {
   return (
     <div className={cx('plan')}>
-      <Tabs destroyInactiveTabPane defaultActiveKey={TestType.TestDetail}>
+      <Tabs defaultActiveKey={TestType.TestDetail}>
         {PlanTabs.map(({ tab, key, Component }) => (
           <TabPane tab={tab} key={key}>
             <React.Suspense fallback={<Loading />}>{Component && <Component />}</React.Suspense>

@@ -251,8 +251,20 @@ export const getTestEntities = (
 /**
  * 获取测试管理配置
  */
-export const getTestConfig = (workspaceKey: string): Promise<Parse.Object> => {
-  return new Parse.Query(TestConfig).equalTo('workspaceKey', workspaceKey).first();
+export const getTestConfig = (params: {
+  workspaceKey?: string;
+  global?: boolean;
+}): Promise<Parse.Object> => {
+  const query = new Parse.Query(TestConfig);
+  if (params.workspaceKey) {
+    query.equalTo('workspaceKey', params.workspaceKey);
+  }
+
+  if (typeof params.global === 'boolean') {
+    query.equalTo('global', params.global);
+  }
+
+  return query.first();
 };
 
 /**
