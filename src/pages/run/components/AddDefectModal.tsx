@@ -30,7 +30,6 @@ export const AddDefectSelect: React.FC<AddDefectSelect> = props => {
   const { ignoreTestEntityIds = [] } = props;
   const { config } = useTestConfig();
   const { defectsMapping } = config;
-  console.log('config', config);
   const [selectValue, setSelectValue] = useSafeState<Array<string>>([]);
   const filterOptions = React.useCallback(
     options => {
@@ -99,7 +98,6 @@ const AddDefectModal: React.FC<IDefectModalProps> = props => {
     value: props.visible,
   });
   const [confirmLoading, setConfirmLoading] = useState(false);
-  console.log('props.testId', props.testId);
 
   const handleCloseModal = (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
     setIsVisible(false);
@@ -111,7 +109,11 @@ const AddDefectModal: React.FC<IDefectModalProps> = props => {
     addDefect(defectItemType, props.testId, chooseItems).then(() => {
       message.success('添加成功');
       setConfirmLoading(false);
-      props.save && props.save()([...props.currentDefectIds, ...chooseItems]);
+      if (props.currentDefectIds) {
+        props.save && props.save()([...props.currentDefectIds, ...chooseItems]);
+        return;
+      }
+      props.save && props.save()(chooseItems);
     });
   };
 
