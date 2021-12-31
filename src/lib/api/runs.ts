@@ -642,7 +642,6 @@ interface IItemLink {
 }
 
 export const createItemLink = (links: IItemLink | Array<IItemLink>) => {
-  console.log('links', links);
   const itemLinks = Array.isArray(links) ? links : [links];
   const linkObjs = itemLinks.map(
     link =>
@@ -654,4 +653,38 @@ export const createItemLink = (links: IItemLink | Array<IItemLink>) => {
   );
 
   return Parse.Object.saveAll(linkObjs);
+};
+
+export const addDefect = async (linkType: string, testId: string, defectItemIds: string[]) => {
+  const testRunQuery = new Parse.Query(Test);
+  testRunQuery.equalTo('objectId', testId);
+  testRunQuery.include('runReferenceDetail');
+  const res = await testRunQuery.first();
+  const run = res.toJSON();
+  // 测试用例的事项ID
+  const testItemId = run?.runReferenceDetail?.reference?.objectId;
+  const { list } = await getTestEntitiesByRelation(
+    TestRelationType.ExecutionRelRun,
+    { to: res },
+    { fillItemData: true },
+  );
+  console.log('data', list);
+  const testExcItemId = list[0]?.reference?.objectId;
+  const itemLink: Array<IItemLink> = [];
+  defectItemIds.forEach(item => {
+    // 测试用例与缺陷关联
+    itemLink.push({
+      linkType,
+      source: testItemId,
+      destination: item,
+    });
+    // 测试执行与缺陷关联
+    itemLink.push({
+      linkType,
+      source: testExcItemId,
+      destination: item,
+    });
+  });
+  console.log('itemLink', itemLink);
+  return createItemLink(itemLink);
 };

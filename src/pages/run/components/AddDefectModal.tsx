@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react';
+import React, { useState } from 'react';
 import type { ModalProps } from '@osui/modal';
-import { Modal, Spin } from '@osui/ui';
+import { Modal, Spin, message } from '@osui/ui';
 import useMergedState from 'rc-util/lib/hooks/useMergedState';
 import { getRootContainer } from '@/lib/utils/helper';
 import { getItemByIQL } from '@/lib/api/proxima';
@@ -8,11 +8,14 @@ import DebounceSelect from '@/components/common/DebounceSelect';
 import { useSafeState, useRequest } from 'ahooks';
 import css from './StepList.less';
 import { useTestConfig } from '@/lib/hooks/useContext';
+import { addDefect } from '@/lib/api/runs';
 
 interface IDefectModalProps {
   trigger?: JSX.Element;
   visible?: boolean;
   testId: string;
+  currentDefectIds?: string[];
+  save?: () => (value: string[]) => void;
   onCancel?: ModalProps['onCancel'];
 }
 
@@ -21,19 +24,28 @@ interface AddDefectSelect {
   ignoreTestEntityIds?: string[];
 }
 
+let chooseItems = [];
+
 export const AddDefectSelect: React.FC<AddDefectSelect> = props => {
   const { ignoreTestEntityIds = [] } = props;
   const { config } = useTestConfig();
   const { defectsMapping } = config;
-  const defectItemType = 'Mwuo9Bp0LS';
   console.log('config', config);
-  const [selectValue, setSelectValue] = useSafeState([]);
+  const [selectValue, setSelectValue] = useSafeState<Array<string>>([]);
   const filterOptions = React.useCallback(
     options => {
       // 在 ignoreTestEntityIds 列表的数据给过滤掉
       return options.filter(opt => !ignoreTestEntityIds.includes(opt.value));
     },
     [ignoreTestEntityIds],
+  );
+
+  const handleSelectChange = React.useCallback(
+    (values: Array<string>) => {
+      setSelectValue(values);
+      chooseItems = values;
+    },
+    [setSelectValue],
   );
 
   const { loading, runAsync: getItems } = useRequest(
@@ -74,7 +86,7 @@ export const AddDefectSelect: React.FC<AddDefectSelect> = props => {
         className={css('select')}
         fetchOptions={getItems}
         filterOptions={filterOptions}
-        onChange={value => setSelectValue(value)}
+        onChange={handleSelectChange}
         placeholder={props.placeholder ?? '选择事项'}
       />
     </Spin>
@@ -82,13 +94,25 @@ export const AddDefectSelect: React.FC<AddDefectSelect> = props => {
 };
 
 const AddDefectModal: React.FC<IDefectModalProps> = props => {
+  const defectItemType = 'Mwuo9Bp0LS';
   const [isVisible, setIsVisible] = useMergedState<boolean>(!!props.visible, {
     value: props.visible,
   });
+  const [confirmLoading, setConfirmLoading] = useState(false);
+  console.log('props.testId', props.testId);
 
   const handleCloseModal = (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
     setIsVisible(false);
     props.onCancel?.(e);
+  };
+
+  const handleConfirmModal = () => {
+    setConfirmLoading(true);
+    addDefect(defectItemType, props.testId, chooseItems).then(() => {
+      message.success('添加成功');
+      setConfirmLoading(false);
+      props.save && props.save()([...props.currentDefectIds, ...chooseItems]);
+    });
   };
 
   return (
@@ -99,6 +123,10 @@ const AddDefectModal: React.FC<IDefectModalProps> = props => {
         visible={isVisible}
         maskClosable={false}
         width="800px"
+        okButtonProps={{
+          loading: confirmLoading,
+        }}
+        onOk={handleConfirmModal}
         onCancel={handleCloseModal}
         destroyOnClose
       >

@@ -12,6 +12,7 @@ import css from './StepList.less';
 export interface IStepItem {
   action: string;
   attachments: string[];
+  defectIds: string[];
   data: string;
   index: number;
   result: string;
@@ -59,7 +60,9 @@ export const StepItem: React.FC<IStepItemProps> = ({ index, item, saveList, test
             <a>添加缺陷</a>
           </Menu.Item>
         }
-        testId="aa"
+        testId={testId}
+        currentDefectIds={item.defectIds}
+        save={() => saveItem('defectIds')}
       />
 
       <Menu.Item key="1">
@@ -129,7 +132,13 @@ export const StepItem: React.FC<IStepItemProps> = ({ index, item, saveList, test
                     </Button>
                   </Dropdown>
 
-                  <SmallDefectListPopover itemIds={['2OixnqpvOw', 'orS7nZR0rR']} />
+                  {item.defectIds && (
+                    <SmallDefectListPopover
+                      itemIds={item.defectIds}
+                      testId={testId}
+                      save={() => saveItem('defectIds')}
+                    />
+                  )}
                 </div>
 
                 {/* <div className={css('btn')}>
