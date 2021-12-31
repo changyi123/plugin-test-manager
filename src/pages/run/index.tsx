@@ -160,7 +160,7 @@ const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
     return <Loading />;
   }
   if (!data?.data) {
-    return <Empty description="测试运行为空"></Empty>;
+    return <Empty description="测试执行为空"></Empty>;
   }
 
   if (!data?.data?.runDetail?.runs) {

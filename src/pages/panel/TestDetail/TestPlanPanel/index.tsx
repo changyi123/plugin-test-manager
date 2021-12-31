@@ -1,7 +1,6 @@
 import React from 'react';
 
 import { uniqueId } from 'lodash';
-import { message } from '@osui/ui';
 import { createTestPlanService } from './services';
 import { TestType, TestRelationType } from '@/lib/constants';
 import DropDownButton from '@/components/panel/DropDownButton';
@@ -18,6 +17,7 @@ import {
   getTestEntitiesByRelation,
 } from '@/lib/api/common';
 import { useAllRelTestEntityIds } from '@/lib/hooks/useTest';
+import { alert } from '@/lib/utils/helper';
 
 import cx from './index.less';
 
@@ -50,7 +50,7 @@ const Plan = () => {
 
       const testPlanIds = testPlans.map(item => item.objectId);
 
-      // 获取测试执行，包含测试运行 testRuns
+      // 测试执行轮次 testRuns
       const { list: testDetails } = await getTestEntitiesByRelation(
         TestRelationType.PlanRelDetail,
         { from: testPlanIds },
@@ -98,7 +98,11 @@ const Plan = () => {
         title: '新建测试计划',
         async onClick() {
           const token = uniqueId('TestPlan');
-          const { testEntity: testPlanEntity, extraData } = await createItemUseModal({
+          const {
+            testEntity: testPlanEntity,
+            extraData,
+            item,
+          } = await createItemUseModal({
             type: TestType.TestPlan,
             extraData: { token },
           });
@@ -109,11 +113,14 @@ const Plan = () => {
 
           refreshDepData();
 
-          message.success('测试计划创建成功');
+          alert({
+            type: 'success',
+            message: `测试计划【${item.name}】新建成功`,
+          });
         },
       },
     ];
-  }, [createItemUseModal, refreshDepData, testEntity, allTestEntityId]);
+  }, [createItemUseModal, refreshDepData, testEntity]);
 
   const removeTestRelation = React.useCallback(
     async relationTypeIds => {
@@ -122,7 +129,10 @@ const Plan = () => {
 
       refreshDepData();
 
-      message.success('删除成功');
+      alert({
+        type: 'success',
+        message: '测试计划删除成功',
+      });
     },
     [refreshDepData],
   );
@@ -137,31 +147,27 @@ const Plan = () => {
         item: data.reference,
       })),
       {
+        title: '测试用例数',
+        key: 'count',
+        render(_, record) {
+          return record.relTestDetails?.length ?? 0;
+        },
+      },
+      {
         title: '操作',
         key: 'action',
+        fixed: 'right',
         render: (_, record) => (
-          <DropDownButton
-            buttonProps={{ type: 'text' }}
-            menuList={[
-              {
-                title: '删除',
-                onClick() {
-                  removeTestRelation([record.testRelationId]);
-                },
-              },
-            ]}
-          >
-            <EllipsisOutlined />
-          </DropDownButton>
+          <a onClick={() => removeTestRelation([record.testRelationId])}>删除</a>
         ),
       },
-    ];
+    ] as any[];
   }, [removeTestRelation]);
 
   return (
     <div className={cx('test')}>
       <TestEntitySelectorModal
-        title="添加测试执行至当前测试计划"
+        title="添加测试执行轮次至当前测试计划"
         actionRef={selectorModalRef}
         testType={TestType.TestPlan}
         ignoreTestEntityIds={allTestEntityId}

@@ -1,0 +1,58 @@
+.progress {
+  display: flex;
+  width: 100%;
+  min-height: 8px;
+  border-radius: 9999999px;
+  background-color: #f0f0f0;
+  overflow: hidden;
+
+  &-item {
+    flex: none;
+    &:last-child {
+      border-top-right-radius: 9999999px;
+      border-bottom-right-radius: 9999999px;
+    }
+  }
+}
+
+.summary {
+  min-width: 160px;
+  max-width: 300px;
+  overflow: hidden;
+
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  li,
+  h6 {
+    display: flex;
+    align-items: center;
+    height: 32px;
+  }
+
+  li {
+    border-bottom: 1px solid var(--color-gray-4);
+  }
+
+  h6 {
+    font-size: 14px;
+    margin-top: 10px;
+    margin-bottom: 0;
+    font-weight: 600;
+  }
+
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 8px;
+  }
+
+  .num {
+    margin-left: auto;
+    font-weight: 600;
+  }
+}

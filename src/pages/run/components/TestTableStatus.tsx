@@ -19,7 +19,7 @@ const TestTableStatus: React.FC<{
     value: status || 'todo',
   });
 
-  const { run, loading, data } = useRequest(
+  const { run, data } = useRequest(
     (testId: string, status: IColor) => updateTestStatus(testId, status),
     {
       manual: true,
@@ -65,9 +65,6 @@ const TestTableStatus: React.FC<{
     </Menu>
   );
 
-  if (loading) {
-    return <Spin tip="加载中..."></Spin>;
-  }
   return (
     <Dropdown overlay={menu} trigger={readonly ? [] : ['click']}>
       <div className={[css('table-status'), css('now-status')].join(' ')}>

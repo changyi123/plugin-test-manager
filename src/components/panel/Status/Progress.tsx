@@ -1,0 +1,83 @@
+import React from 'react';
+import _, { groupBy } from 'lodash';
+import { useStatusConfig } from './hooks';
+import { Popover } from '@osui/ui';
+
+import cx from './Progress.less';
+
+const STATUS_TYPE_SEQ = ['PASSED', 'FAILED', 'EXECUTING', 'TODO'];
+
+const toStylePercent = number => {
+  return `${Math.ceil(number * 100)}%`;
+};
+
+type StatusProgressProps = {
+  className?: string;
+  statuses?: string[];
+  hasSummary?: boolean;
+};
+
+const StatusProgress: React.FC<StatusProgressProps> = props => {
+  const statusConfig = useStatusConfig();
+
+  const total = props.statuses?.length ?? 0;
+  const statuses = React.useMemo(() => {
+    const groupedStatus = groupBy(props.statuses, String);
+
+    if (!Object.keys(statusConfig).length || !total) {
+      return [];
+    }
+
+    return _.chain(props.statuses)
+      .uniq()
+      .map(statusKey => {
+        const status = statusConfig[statusKey];
+        return {
+          ...status,
+          num: (groupedStatus[statusKey] ?? []).length,
+        };
+      })
+      .sortBy(status => STATUS_TYPE_SEQ.indexOf(status?.type))
+      .value();
+  }, [props.statuses, statusConfig, total]);
+
+  const PopoverContent = React.useMemo(() => {
+    if (!props.hasSummary) return null;
+    return (
+      <div className={cx('summary')}>
+        <ul>
+          {statuses.map(status => (
+            <li key={status.key} className={cx('item')}>
+              <span className={cx('dot')} style={{ background: status.color }} />
+              <span>{status.name}</span>
+              <span className={cx('num')}>{status.num}</span>
+            </li>
+          ))}
+        </ul>
+        <h6>
+          <span>总和</span>
+          <span className={cx('num')}>{total}</span>
+        </h6>
+      </div>
+    );
+  }, [props.hasSummary, statuses, total]);
+
+  return (
+    <Popover content={PopoverContent}>
+      <div className={cx('progress')}>
+        {statuses.map(status => (
+          <span
+            className={cx('progress-item')}
+            style={{
+              width: toStylePercent(status.num / total),
+              background: status.color,
+            }}
+            key={status.key}
+          ></span>
+        ))}
+      </div>
+    </Popover>
+  );
+};
+
+export default React.memo(StatusProgress);

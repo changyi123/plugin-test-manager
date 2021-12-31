@@ -3,7 +3,7 @@ import { uniqueId } from 'lodash';
 import { Typography, message, Space, Button } from '@osui/ui';
 import { EllipsisOutlined, DownOutlined, CaretRightOutlined } from '@ant-design/icons';
 import { TestType, TestRelationType } from '@/lib/constants';
-import PanelTable, { ActionType } from '../../../../../components/panel/PanelTable';
+import PanelTable, { ActionType } from '@/components/panel/PanelTable';
 import DropDownButton from '@/components/panel/DropDownButton';
 import TestTableStatus from '@/pages/run/components/TestTableStatus';
 import { useTestConfig, useBaseAction } from '@/lib/hooks/useContext';
@@ -168,7 +168,7 @@ const Test = () => {
       //   },
       // },
     ];
-  }, [createTestDetail]);
+  }, []);
 
   // 添加测试用例添加到测试执行
   const addTestDetailToPlan = React.useCallback(
@@ -196,12 +196,12 @@ const Test = () => {
         onSelect={addTestDetailToPlan}
         actionRef={selectorModalRef}
       />
-      <Space>
-        <DropDownButton menuList={testDetailMenuList}>
-          添加测试用例 <DownOutlined />
-        </DropDownButton>
-      </Space>
       <PanelTable
+        renderActions={() => (
+          <DropDownButton menuList={testDetailMenuList}>
+            添加测试用例 <DownOutlined />
+          </DropDownButton>
+        )}
         actionRef={tableActionRef}
         actionMenuList={[
           {

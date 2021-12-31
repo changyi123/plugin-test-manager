@@ -31,7 +31,9 @@ const getOrCreateTestEntity = async (itemId: string, config?: { notice: boolean 
       items: [item],
     } = await getItemByIQL({ itemId });
 
-    const testConfig = await getTestConfig(item?.workspace?.key);
+    const testConfig = await getTestConfig({
+      workspaceKey: item?.workspace?.key,
+    });
     const itemTypeMap = testConfig?.get('itemTypeMap');
 
     if (itemTypeMap) {
@@ -107,12 +109,33 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
   }, [itemId]);
 
   const { data: testConfigParseObj } = useRequest(
-    () => getTestConfig(workspaceKey ?? workspace?.key),
+    () =>
+      getTestConfig({
+        workspaceKey: workspaceKey ?? workspace?.key,
+      }),
     {
       staleTime: 50000,
       ready: !!workspace,
       cacheKey: workspaceKey + workspace?.key,
       refreshDeps: [workspaceKey, workspace?.key],
+    },
+  );
+
+  // 获取全局配置时使用缓存
+  const { runAsync: getGlobalConfig } = useRequest(
+    async () => {
+      const testConfig = await getTestConfig({
+        global: true,
+      });
+
+      return testConfig?.get('extra') ?? { statuses: [] };
+    },
+    {
+      manual: true,
+      cacheKey: 'GLOBAL_TEST_CONFIG',
+      // 永不过期
+      cacheTime: 99999999999,
+      staleTime: 99999999999,
     },
   );
 
@@ -220,11 +243,12 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
           );
         });
       },
+      getGlobalConfig,
       openItemViewPanel: openItemDetailPanel,
     };
 
     return actions;
-  }, [testConfig?.defectsMapping, testConfig?.itemTypeMap, workspace?.objectId]);
+  }, [getGlobalConfig, testConfig.defectsMapping, testConfig?.itemTypeMap, workspace?.objectId]);
 
   return (
     <TestConfigContext.Provider value={testConfigContextValues}>

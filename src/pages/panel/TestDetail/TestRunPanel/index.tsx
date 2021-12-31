@@ -145,7 +145,7 @@ const Runs: React.FC = () => {
                 itemId={itemId}
               /> */}
                   <Button type="primary" onClick={() => createTestExecution()}>
-                    新增测试执行
+                    新增测试执行轮次
                   </Button>
                   {/* <ExtendTestExecutionModal
               trigger={<Button type="primary">继承测试执行</Button>}

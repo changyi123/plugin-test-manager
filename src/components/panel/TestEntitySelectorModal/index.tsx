@@ -34,12 +34,6 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
   const [testType, setTestType] = useSafeState<TestType>(props.testType);
 
   const eventBusRef = React.useRef<any>(new EventBus());
-  React.useEffect(() => {
-    const eventBus = eventBusRef.current;
-    return () => {
-      typeof eventBus?.disposer === 'function' && eventBus.disposer();
-    };
-  }, []);
 
   // 获取租户测试类型关联的 itemType keys
   const { data: testTypeAssItemTypeKeys, runAsync: getTestTypeAssItemTypeKeys } = useRequest(
@@ -111,6 +105,8 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
         eventBusRef.current.disposer = eventBusRef.current.register(
           AddExistedTestEventType,
           data => {
+            typeof eventBusRef?.current?.disposer?.unregister === 'function' &&
+              eventBusRef.current.disposer.unregister();
             resolve(data);
           },
         );
@@ -136,12 +132,12 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
 
   return (
     <Modal
+      visible={visible}
+      className={cx('modal')}
+      onOk={handleOkButtonClick}
       getContainer={getRootContainer}
       onCancel={() => setVisible(false)}
-      onOk={handleOkButtonClick}
       title={props.title ?? '测试管理选择'}
-      className={cx('modal')}
-      visible={visible}
     >
       <p className={cx('hint')}>请输入并从列表中选择已存在的事项</p>
       <div ref={debounceSelectContainerRef}>
@@ -149,8 +145,8 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
           mode="multiple"
           value={selectValue}
           className={cx('select')}
-          fetchOptions={getTestEntityByName}
           filterOptions={filterOptions}
+          fetchOptions={getTestEntityByName}
           onChange={value => setSelectValue(value)}
           placeholder={props.placeholder ?? '选择事项'}
           getPopupContainer={() => debounceSelectContainerRef.current}

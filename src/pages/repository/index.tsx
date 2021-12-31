@@ -1,7 +1,7 @@
 import React from 'react';
 import FolderTree from '@/pages/repository/FolderTree';
 
-import Split from '@uiw/react-split';
+import { ResizableBox } from 'react-resizable';
 import TestDetailTable from './TestDetailTable';
 import { useReactive, useRequest } from 'ahooks';
 import { getFolderTree } from '@/lib/api/repository';
@@ -118,40 +118,45 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
 
   return (
     <div className={cx('test-repository')}>
-      <Split className={cx('layout')}>
+      <ResizableBox
+        width={300}
+        height={0}
+        className={cx('left')}
+        draggableOpts={{ enableUserSelectHack: false }}
+      >
         <FolderTree
-          className={cx('left')}
           onSelect={handleSelect}
           loading={folderTreeLoading}
           treeNodeData={treeNodeData}
           onFolderTreeChange={handleFolderTreeChange}
         />
-        <div className={cx('right')}>
-          <div className={cx('header')}>
-            <Breadcrumb className={cx('breadcrumb')}>
-              {state.breadcrumb.map((title, index) => (
-                <Breadcrumb.Item
-                  className={cx(index !== state.breadcrumb.length - 1 && 'light')}
-                  key={title}
-                >
-                  {title}
-                </Breadcrumb.Item>
-              ))}
-            </Breadcrumb>
-            <Input.Search
-              className={cx('search')}
-              placeholder="请输入关键字"
-              style={{ width: 200 }}
-              value={state.searchValue}
-              onSearch={fetchFolderItems}
-              onChange={e => (state.searchValue = e.target.value)}
-            />
-          </div>
-          <div className={cx('main')}>
-            <TestDetailTable selectedFolderKey={state.selectedFolderKey} dataSource={state.items} />
-          </div>
+      </ResizableBox>
+
+      <div className={cx('right')}>
+        <div className={cx('header')}>
+          <Breadcrumb className={cx('breadcrumb')}>
+            {state.breadcrumb.map((title, index) => (
+              <Breadcrumb.Item
+                className={cx(index !== state.breadcrumb.length - 1 && 'light')}
+                key={title}
+              >
+                {title}
+              </Breadcrumb.Item>
+            ))}
+          </Breadcrumb>
+          <Input.Search
+            className={cx('search')}
+            placeholder="请输入关键字"
+            style={{ width: 200 }}
+            value={state.searchValue}
+            onSearch={fetchFolderItems}
+            onChange={e => (state.searchValue = e.target.value)}
+          />
         </div>
-      </Split>
+        <div className={cx('main')}>
+          <TestDetailTable selectedFolderKey={state.selectedFolderKey} dataSource={state.items} />
+        </div>
+      </div>
     </div>
   );
 };

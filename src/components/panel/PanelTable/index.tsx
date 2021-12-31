@@ -92,6 +92,7 @@ const PanelTable: React.FC<PanelTableProps> = props => {
                 title: '取消选择',
               },
             ]}
+            buttonProps={{ type: 'default' }}
           >
             批量选择 <DownOutlined />
           </DropDownButton>

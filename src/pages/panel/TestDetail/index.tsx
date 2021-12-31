@@ -20,7 +20,7 @@ const TestDetail: React.FC = () => {
       Component: TestPlanPanel,
     },
     {
-      tab: '测试运行',
+      tab: '测试执行',
       key: TestType.TestRun,
       Component: TestRunPanel,
     },

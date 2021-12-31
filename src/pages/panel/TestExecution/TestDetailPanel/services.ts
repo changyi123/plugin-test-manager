@@ -12,7 +12,7 @@ import { FetchAllTestStepByTestId } from '@/lib/api/runs';
 import series from 'async/series';
 
 /**
- * 创建测试运行
+ * 创建测试执行
  */
 export const createTestRunService = async (params: {
   workspaceKey: string;
@@ -39,8 +39,8 @@ export const createTestExecutionService = async (params: {
   /**
    *  s1. 查找所有的关联的测试用例
    *  s2. 创建测试执行事项
-   *  s3. 创建测试运行实体
-   *  s4. 处理关联关系，测试计划关联测试执行，测试执行关联测试运行
+   *  s3. 创建测试执行实体
+   *  s4. 处理关联关系，测试计划关联测试执行，测试执行关联测试执行
    */
 
   const { workspaceKey, testPlan, testExecution } = params;
@@ -77,7 +77,7 @@ export const createTestExecutionService = async (params: {
     to: runEntity,
   }));
 
-  // todo: 创建测试运行
+  // todo: 创建测试执行
   const relations = [].concat(testPlanExecutionRelations, testExecutionRunRelations);
 
   await createTestRelation(relations);
