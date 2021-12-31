@@ -5,6 +5,9 @@ import Comment from '@/components//common/Comment';
 import { StatusBadge } from '@/components/common/Status';
 import { updateTestStep } from '@/lib/api/runs';
 import AddDefectModal from './AddDefectModal';
+import { uniqueId } from 'lodash';
+import { useBaseAction } from '@/lib/hooks/useContext';
+import { TestType } from '@/lib/constants';
 import { SmallDefectListPopover } from './SmallDefectList';
 
 import css from './StepList.less';
@@ -41,6 +44,7 @@ export interface StepListProps {
 }
 
 export const StepItem: React.FC<IStepItemProps> = ({ index, item, saveList, testId }) => {
+  const { createItemUseModal } = useBaseAction();
   const saveItem = useCallback(
     (key: string) => {
       return value => {
@@ -51,6 +55,18 @@ export const StepItem: React.FC<IStepItemProps> = ({ index, item, saveList, test
     },
     [item, saveList, index],
   );
+
+  const createDefect = useCallback(async () => {
+    const token = uniqueId('TestPlan');
+    const { testEntity: testDefectEntity, extraData } = await createItemUseModal({
+      type: TestType.TestDefect,
+      extraData: { token },
+    });
+    // token 不相同则不创建关联
+    if (extraData.token !== token) return;
+
+    console.log('testDefectEntity', testDefectEntity);
+  }, [createItemUseModal]);
 
   const menu = (
     <Menu>
@@ -66,7 +82,7 @@ export const StepItem: React.FC<IStepItemProps> = ({ index, item, saveList, test
       />
 
       <Menu.Item key="1">
-        <a>创建缺陷</a>
+        <a onClick={createDefect}>创建缺陷</a>
       </Menu.Item>
     </Menu>
   );

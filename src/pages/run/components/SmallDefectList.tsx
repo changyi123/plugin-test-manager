@@ -1,9 +1,9 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { Popover, Skeleton, Space, Typography, Modal, Popconfirm } from '@osui/ui';
+import { Popover, Skeleton, Space, Typography, message, Popconfirm } from '@osui/ui';
 import { ExclamationCircleOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useRequest } from 'ahooks';
 import { getItemByIQL } from '@/lib/api/proxima';
-import { getRootContainer } from '@/lib/utils/helper';
+import { deleteDefect } from '@/lib/api/runs';
 
 import css from './SmallDefectList.less';
 
@@ -15,11 +15,20 @@ interface ISmallDefectListProps {
 }
 
 export const SmallDefectList: React.FC<ISmallDefectListProps> = props => {
-  const { itemIds } = props;
-  const handleDeleteRelation = useCallback((index: number) => {
-    console.log('提交', index);
-    console.log('props', props);
-  }, []);
+  const { itemIds, testId, save } = props;
+  const defectItemType = 'Mwuo9Bp0LS';
+  const handleDeleteRelation = useCallback(
+    (itemId: string) => {
+      deleteDefect(defectItemType, testId, [itemId]).then(() => {
+        message.success('删除成功');
+        const index = itemIds.findIndex(item => item === itemId);
+        const itemIdsBak = [...itemIds];
+        itemIdsBak.splice(index, 1);
+        save && save()(itemIdsBak);
+      });
+    },
+    [testId, save, itemIds],
+  );
 
   const { data, loading, error, refresh } = useRequest(() =>
     getItemByIQL({ itemId: props.itemIds }),
@@ -45,7 +54,6 @@ export const SmallDefectList: React.FC<ISmallDefectListProps> = props => {
   if (!items.length) {
     return <div></div>;
   }
-  console.log('items', items);
 
   return (
     <div className={css('list')}>
@@ -65,7 +73,7 @@ export const SmallDefectList: React.FC<ISmallDefectListProps> = props => {
                 <div className={css('list__item__handle')}>
                   <Popconfirm
                     title="当前操作会删除与该缺陷的关联关系，是否继续执行？"
-                    onConfirm={() => handleDeleteRelation(index)}
+                    onConfirm={() => handleDeleteRelation(item.objectId)}
                     okText="确定"
                     cancelText="取消"
                   >
