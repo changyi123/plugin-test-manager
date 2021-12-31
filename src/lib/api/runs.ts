@@ -11,7 +11,7 @@ import { pointerTransfer } from '@/lib/utils/helper';
 import series from 'async/series';
 import { useRequest } from 'ahooks';
 import { IRunDetail } from '@/pages/run';
-import { IColor } from '@/pages/run/components/TestStatus';
+import { Status } from '@/lib/types/Test';
 import { getItemByIQL } from '@/lib/api/proxima';
 
 export const GetTestRunsById = (itemId: string): Promise<{ list: any; total: number }> => {
@@ -558,35 +558,39 @@ export const updateTestStep = (
   });
 };
 
-export const updateTestStatus = (testId: string, status: IColor): Promise<ICommonRes> => {
+export const toggleTestRunStatus = (testId: string, status: Status): Promise<ICommonRes> => {
   return new Promise((resolve, reject) => {
-    const step = Test.createWithoutData(testId);
-    step
+    Test.createWithoutData(testId)
       .fetch()
-      .then(res => {
-        const { runDetail } = res.toJSON();
+      .then(testRun => {
+        const statusType = status.type;
+        const refDetail = testRun.get('runReferenceDetail');
+        const { runDetail } = testRun.toJSON();
         const runDetailBak = { ...runDetail };
         if (runDetail?.runs?.steps) {
           const steps = [];
           runDetail?.runs?.steps?.forEach(item => {
             // 成功，全成功 || todo，全todo
-            if (status === 'pass' || status === 'todo') {
+            if (statusType === 'PASSED' || statusType === 'TODO') {
               item.status = status;
               // 失败，todo全失败，其他状态不变
-            } else if (status === 'fail' && (item.status === 'todo' || !item.status)) {
-              item.status = 'fail';
+            } else if (statusType === 'FAILED') {
+              item.status = status.key;
             }
             // 执行中，状态不变
             steps.push(item);
           });
           runDetailBak.runs.steps = steps;
         }
-        const newTestRun = Test.createWithoutData(testId);
-        newTestRun.set({
-          status,
+        testRun.set({
+          status: status.key,
           runDetail: runDetailBak?.runs ? runDetailBak : undefined,
         });
-        return newTestRun.save();
+        // 同步修改关联的 detail 状态
+        refDetail.set({
+          status: status.key,
+        });
+        return Parse.Object.saveAll([testRun, refDetail]);
       })
       .then(() => {
         resolve({

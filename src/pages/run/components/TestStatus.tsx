@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Tooltip, Divider, Button, Space, Spin, message } from '@osui/ui';
 import css from './TestStatus.less';
 import { useRequest } from 'ahooks';
-import { updateTestStatus } from '@/lib/api/runs';
+import { toggleTestRunStatus } from '@/lib/api/runs';
 
 export type IColor = 'todo' | 'ing' | 'fail' | 'pass';
 
@@ -37,7 +37,7 @@ const TestStatus: React.FC<{
 }> = ({ status, testId, change }) => {
   const [currentColor, setCurrentColor] = useState<IColor>(status || 'todo');
   const { run, loading, data } = useRequest(
-    (testId: string, status: IColor) => updateTestStatus(testId, status),
+    (testId: string, status: IColor) => toggleTestRunStatus(testId, status as any),
     {
       manual: true,
     },

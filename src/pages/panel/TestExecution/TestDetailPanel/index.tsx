@@ -5,7 +5,7 @@ import { EllipsisOutlined, DownOutlined, CaretRightOutlined } from '@ant-design/
 import { TestType, TestRelationType } from '@/lib/constants';
 import PanelTable, { ActionType } from '@/components/panel/PanelTable';
 import DropDownButton from '@/components/panel/DropDownButton';
-import TestTableStatus from '@/pages/run/components/TestTableStatus';
+import { toggleTestRunStatus } from '@/lib/api/runs';
 import { useTestConfig, useBaseAction } from '@/lib/hooks/useContext';
 import { getTestEntitiesByRelation, removeTestRelations } from '@/lib/api/common';
 import { getItemByIQL } from '@/lib/api/proxima';
@@ -14,6 +14,7 @@ import TestEntitySelectorModal, {
 } from '@/components/panel/TestEntitySelectorModal';
 import { addTestRunToExecution } from './services';
 import TestRunModal from '@/pages/run/Modal';
+import { StatusBadge } from '@/components/common/Status';
 
 import cx from './index.less';
 
@@ -103,14 +104,12 @@ const Test = () => {
         title: '最新执行状态',
         dataIndex: 'status',
         key: 'status',
-        render: (value, item) => {
-          return (
-            <TestTableStatus
-              status={value ?? 'todo'}
-              testId={item.objectId}
-              change={() => setTimeout(() => tableActionRef.current.refresh(), 0)}
-            />
-          );
+        render: (_, record) => {
+          const handleStatusChange = async status => {
+            await toggleTestRunStatus(record.objectId, status);
+            tableActionRef.current.refresh();
+          };
+          return <StatusBadge status={record?.status} onStatusChange={handleStatusChange} />;
         },
       },
       {

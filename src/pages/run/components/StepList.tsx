@@ -2,7 +2,7 @@ import React, { useCallback } from 'react';
 import { Popover, Row, Col, Space, Divider, Button, message, Dropdown, Menu } from '@osui/ui';
 import { InfoCircleOutlined, PlusCircleOutlined } from '@ant-design/icons';
 import Comment from '@/components//common/Comment';
-import TestStatus, { IColor } from './TestStatus';
+import { StatusBadge } from '@/components/common/Status';
 import { updateTestStep } from '@/lib/api/runs';
 import AddDefectModal from './AddDefectModal';
 import { SmallDefectListPopover } from './SmallDefectList';
@@ -19,7 +19,7 @@ export interface IStepItem {
   id: string;
   actualResult: string;
   comment: string;
-  status: IColor;
+  status: string;
 }
 
 export interface IStepItemProps {
@@ -149,7 +149,7 @@ export const StepItem: React.FC<IStepItemProps> = ({ index, item, saveList, test
               </Space>
             </div>
             <div className={css('right__')}>
-              <TestStatus status={item.status || 'todo'} change={() => saveItem('status')} />
+              <StatusBadge status={item.status} onStatusChange={() => saveItem('status')} />
             </div>
           </div>
         </Col>

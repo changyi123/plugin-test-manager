@@ -16,7 +16,7 @@ import { useTestConfig, useBaseAction } from '@/lib/hooks/useContext';
 import TestEntitySelectorModal, {
   ActionType as SelectorActionType,
 } from '@/components/panel/TestEntitySelectorModal';
-import { StatusProgress, StatusBadge } from '@/components/panel/Status';
+import { StatusProgress, StatusBadge } from '@/components/common/Status';
 import { useAllRelTestEntityIds } from '@/lib/hooks/useTest';
 import { getTestEntitiesByRelation, removeTestRelations } from '@/lib/api/common';
 import { createTestExecutionService, addTestDetailToPlanService } from './services';
@@ -165,7 +165,7 @@ const Test = () => {
       {
         title: '最新执行状态',
         key: 'status',
-        render: (_, record) => <StatusBadge status={record.relRuns?.[0]?.status ?? 'TODO'} />,
+        render: (_, record) => <StatusBadge readonly status={record.status} />,
       },
       {
         title: '操作',
@@ -211,7 +211,6 @@ const Test = () => {
           showTitle: false,
         },
         tooltip: true,
-        width: 150,
         render(_, record) {
           const name = record.relExecutions?.[0]?.reference?.name;
           return <OverflowTooltip title={name}>{name}</OverflowTooltip>;
@@ -220,9 +219,8 @@ const Test = () => {
       {
         key: 'status',
         title: '执行状态',
-        width: 100,
         render(_, record) {
-          return record.status;
+          return <StatusBadge status={record.status} readonly />;
         },
       },
       {

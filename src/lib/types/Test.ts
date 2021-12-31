@@ -27,3 +27,14 @@ export type TestExecution = {
   evidence: [];
   activity: string;
 };
+
+export type Status = {
+  color: string;
+  description: string;
+  name: string;
+  key: string;
+  final: boolean;
+  native: boolean;
+  readOnly: boolean;
+  type: 'TODO' | 'PASSED' | 'EXECUTING' | 'FAILED';
+};

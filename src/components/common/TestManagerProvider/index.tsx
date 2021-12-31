@@ -131,7 +131,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
       return testConfig?.get('extra') ?? { statuses: [] };
     },
     {
-      manual: true,
+      // manual: true,
       cacheKey: 'GLOBAL_TEST_CONFIG',
       // 永不过期
       cacheTime: 99999999999,

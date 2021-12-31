@@ -1,11 +1,10 @@
 import React from 'react';
 import _, { groupBy } from 'lodash';
-import { useStatusConfig } from './hooks';
 import { Popover } from '@osui/ui';
+import { sequence } from './utils';
+import { useStatusConfig } from './hooks';
 
 import cx from './Progress.less';
-
-const STATUS_TYPE_SEQ = ['PASSED', 'FAILED', 'EXECUTING', 'TODO'];
 
 const toStylePercent = number => {
   return `${Math.ceil(number * 100)}%`;
@@ -28,17 +27,18 @@ const StatusProgress: React.FC<StatusProgressProps> = props => {
       return [];
     }
 
-    return _.chain(props.statuses)
-      .uniq()
-      .map(statusKey => {
-        const status = statusConfig[statusKey];
-        return {
-          ...status,
-          num: (groupedStatus[statusKey] ?? []).length,
-        };
-      })
-      .sortBy(status => STATUS_TYPE_SEQ.indexOf(status?.type))
-      .value();
+    return sequence(
+      _.chain(props.statuses)
+        .uniq()
+        .map(statusKey => {
+          const status = statusConfig[statusKey];
+          return {
+            ...status,
+            num: (groupedStatus[statusKey] ?? []).length,
+          };
+        })
+        .value(),
+    );
   }, [props.statuses, statusConfig, total]);
 
   const PopoverContent = React.useMemo(() => {

@@ -200,7 +200,7 @@ const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
           </Typography.Text>
         </div>
 
-        <TestStatus status={status} testId={currentTestId} change={() => () => refresh()} />
+        {/* <TestStatus status={status} testId={currentTestId} change={() => () => refresh()} /> */}
       </div>
 
       <Divider />
