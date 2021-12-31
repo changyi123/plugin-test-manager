@@ -16,6 +16,7 @@ import { useTestConfig, useBaseAction } from '@/lib/hooks/useContext';
 import TestEntitySelectorModal, {
   ActionType as SelectorActionType,
 } from '@/components/panel/TestEntitySelectorModal';
+import { StatusProgress, StatusBadge } from '@/components/panel/Status';
 import { useAllRelTestEntityIds } from '@/lib/hooks/useTest';
 import { getTestEntitiesByRelation, removeTestRelations } from '@/lib/api/common';
 import { createTestExecutionService, addTestDetailToPlanService } from './services';
@@ -164,7 +165,7 @@ const Test = () => {
       {
         title: '最新执行状态',
         key: 'status',
-        render: (_, record) => record.relRuns?.[0]?.status,
+        render: (_, record) => <StatusBadge status={record.relRuns?.[0]?.status ?? 'TODO'} />,
       },
       {
         title: '操作',

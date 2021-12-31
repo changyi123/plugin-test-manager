@@ -180,9 +180,8 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
       // item,
       workspace,
       testEntity,
-      getGlobalConfig,
     };
-  }, [testConfig.itemTypeMap, testConfig.defectsMapping, workspace, testEntity, getGlobalConfig]);
+  }, [testConfig.itemTypeMap, testConfig.defectsMapping, workspace, testEntity]);
 
   const baseActionContextValues = React.useMemo(() => {
     const actions: BaseActionContextType = {
@@ -244,11 +243,12 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
           );
         });
       },
+      getGlobalConfig,
       openItemViewPanel: openItemDetailPanel,
     };
 
     return actions;
-  }, [testConfig?.defectsMapping, testConfig?.itemTypeMap, workspace?.objectId]);
+  }, [getGlobalConfig, testConfig.defectsMapping, testConfig?.itemTypeMap, workspace?.objectId]);
 
   return (
     <TestConfigContext.Provider value={testConfigContextValues}>

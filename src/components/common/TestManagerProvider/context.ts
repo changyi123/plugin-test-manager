@@ -12,7 +12,6 @@ export type TestConfigContextType = {
   };
   workspace?: Workspace;
   testEntity?: Parse.Object<TestEntity>;
-  getGlobalConfig?: () => Record<string, any>;
 };
 /** 测试管理配置 context */
 export const TestConfigContext = React.createContext<TestConfigContextType>(
@@ -32,6 +31,8 @@ export type BaseActionContextType = {
   }>;
   /** 打开事项 panel */
   openItemViewPanel: (itemId: string) => void;
+  /** 获取全局配置 */
+  getGlobalConfig?: () => Record<string, any>;
 };
 /** proxima 操作 context */
 export const BaseActionContext = React.createContext<BaseActionContextType>(
