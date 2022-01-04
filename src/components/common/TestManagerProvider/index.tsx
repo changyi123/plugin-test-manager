@@ -209,10 +209,13 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
           name: name ?? '',
           itemTypeId: itemType?.objectId,
           workspaceId: workspace?.objectId,
-          extraData: extraData ?? {
-            type,
-            workspaceId: workspace?.objectId,
-          },
+          extraData: Object.assign(
+            {
+              type,
+              workspaceId: workspace?.objectId,
+            },
+            extraData,
+          ),
         });
 
         // 事项创建成功通知
@@ -221,7 +224,6 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
             ItemCreateSuccessEventType,
             data => {
               const { testEntity, item } = data;
-
               // 创建的测试类型是否符合预期
               let expectedTestType = testEntity?.get('type') === type;
 
