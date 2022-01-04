@@ -78,6 +78,7 @@ export const AddDefectSelect: React.FC<AddDefectSelect> = props => {
   return (
     <Spin spinning={loading}>
       <DebounceSelect
+        getPopupContainer={() => document.getElementById('dropdown_add_defect')}
         mode="multiple"
         value={selectValue}
         notFoundContent={loading ? <Spin /> : <div>未找到事项</div>}

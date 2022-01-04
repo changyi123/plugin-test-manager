@@ -1,62 +1,65 @@
-.btn {
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-}
-
-.list {
-  &__item {
+:root {
+  .btn {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
     align-items: center;
-    margin-top: 8px;
-    transition: all 0.5s;
-    &:first {
-      margin-top: 0;
-    }
-
-    &:hover {
-      background-color: #F4F4F5;
-      .list__item__handle {
-        opacity: 1;
-      }
-    }
-
-    &__detail {
+  }
+  
+  .list {
+    &__item {
       display: flex;
-      justify-content: flex-start;
+      justify-content: space-between;
       align-items: center;
-      .img {
-        width: 16px;
-        height: 16px;
-        background-color: antiquewhite;
-        border-radius: 4px;
-      }
-  
-      .key {
-        margin-left: 8px;
-        font-size: 14px;
-        font-family: PingFangSC-Regular, PingFang SC;
-        font-weight: 400;
-        color: #878C96;
-        line-height: 22px;
-      }
-  
-      .name {
-        margin-left: 8px;
-        font-size: 14px;
-        font-family: PingFangSC-Regular, PingFang SC;
-        font-weight: 400;
-        color: #1E2A3D;
-        line-height: 22px;
-        width: 155px;
-      }
-    }
-
-    &__handle {
+      margin-top: 8px;
       transition: all 0.5s;
-      opacity: 0;
-      cursor: pointer;
+      &:first {
+        margin-top: 0;
+      }
+  
+      &:hover {
+        background-color: #F4F4F5;
+        .list__item__handle {
+          opacity: 1;
+        }
+      }
+  
+      &__detail {
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        .img {
+          width: 16px;
+          height: 16px;
+          background-color: antiquewhite;
+          border-radius: 4px;
+        }
+    
+        .key {
+          margin-left: 8px;
+          font-size: 14px;
+          font-family: PingFangSC-Regular, PingFang SC;
+          font-weight: 400;
+          color: #878C96;
+          line-height: 22px;
+        }
+    
+        .name {
+          margin-left: 8px;
+          font-size: 14px;
+          font-family: PingFangSC-Regular, PingFang SC;
+          font-weight: 400;
+          color: #1E2A3D;
+          line-height: 22px;
+          width: 155px;
+        }
+      }
+  
+      &__handle {
+        transition: all 0.5s;
+        opacity: 0;
+        cursor: pointer;
+      }
     }
   }
+  
 }
