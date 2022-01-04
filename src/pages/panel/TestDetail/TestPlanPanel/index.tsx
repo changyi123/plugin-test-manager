@@ -94,7 +94,7 @@ const Plan = () => {
 
           alert({
             type: 'success',
-            message: '当前测试用例成功被添加至所选的测试计划中',
+            message: `当前测试用例添加到测试计划中`,
           });
 
           refreshDepData();
@@ -137,7 +137,7 @@ const Plan = () => {
 
       alert({
         type: 'success',
-        message: '测试计划删除成功',
+        message: '当前测试用例从测试计划中删除',
       });
     },
     [refreshDepData],

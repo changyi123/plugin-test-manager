@@ -1,7 +1,8 @@
 import React from 'react';
 
 import { uniqueId } from 'lodash';
-import { message, Table } from '@osui/ui';
+import { Table } from '@osui/ui';
+import { alert } from '@/lib/utils/helper';
 import { Workspace } from '@/lib/types/App';
 import { DownOutlined } from '@ant-design/icons';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
@@ -16,7 +17,7 @@ import { useTestConfig, useBaseAction } from '@/lib/hooks/useContext';
 import TestEntitySelectorModal, {
   ActionType as SelectorActionType,
 } from '@/components/panel/TestEntitySelectorModal';
-import { StatusProgress, StatusBadge } from '@/components/common/Status';
+import { StatusBadge } from '@/components/common/Status';
 import { useAllRelTestEntityIds } from '@/lib/hooks/useTest';
 import { getTestEntitiesByRelation, removeTestRelations } from '@/lib/api/common';
 import { createTestExecutionService, addTestDetailToPlanService } from './services';
@@ -123,7 +124,10 @@ const Test = () => {
       workspaceKey: (testExecutionData.reference.workspace as Workspace).key,
     });
 
-    console.info('testExecution', testExecution);
+    alert({
+      type: 'success',
+      message: `测试执行【${testExecution?.get('reference')?.get('name')}】新建成功`,
+    });
   }, [createItemUseModal, testEntity]);
 
   // 添加测试用例菜单
@@ -131,12 +135,23 @@ const Test = () => {
     return [
       {
         title: '已存在的测试用例',
-        onClick() {
-          selectorModalRef.current.open();
+        async onClick() {
+          const testDetailIds = await selectorModalRef.current.open();
+          await addTestDetailToPlanService({
+            testPlan: testEntity,
+            testDetailIds,
+          });
+
+          refreshDepData();
+
+          alert({
+            type: 'success',
+            message: `${testDetailIds.length} 个测试用例添加到测试计划中`,
+          });
         },
       },
     ];
-  }, []);
+  }, [refreshDepData, testEntity]);
 
   const removeTestRelation = React.useCallback(
     async relationTypeIds => {
@@ -145,7 +160,10 @@ const Test = () => {
 
       refreshDepData();
 
-      message.success('删除成功');
+      alert({
+        type: 'success',
+        message: `${relationTypeIds.length} 个测试用例从测试计划中删除`,
+      });
     },
     [refreshDepData],
   );
@@ -188,19 +206,6 @@ const Test = () => {
       },
     ];
   }, [createTestExecution]);
-
-  // 添加测试用例至测试计划
-  const addTestDetailToPlan = React.useCallback(
-    async testDetailIds => {
-      await addTestDetailToPlanService({
-        testPlan: testEntity,
-        testDetailIds,
-      });
-
-      refreshDepData();
-    },
-    [refreshDepData, testEntity],
-  );
 
   const expandedRowRender = React.useCallback(record => {
     const columns = [
@@ -247,7 +252,6 @@ const Test = () => {
         actionRef={selectorModalRef}
         title="添加测试用例到当前测试计划"
         testType={TestType.TestDetail}
-        onSelect={addTestDetailToPlan}
         ignoreTestEntityIds={testEntityIds}
       />
 

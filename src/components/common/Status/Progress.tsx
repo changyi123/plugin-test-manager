@@ -20,18 +20,23 @@ const StatusProgress: React.FC<StatusProgressProps> = props => {
   const statusConfig = useStatusConfig();
 
   const total = props.statuses?.length ?? 0;
+
   const statuses = React.useMemo(() => {
-    const groupedStatus = groupBy(props.statuses, String);
+    // 兼容不规范的 status key
+    const statuses =
+      props.statuses?.map(statusKey => (statusConfig[statusKey] ? statusKey : 'TODO')) ?? [];
+
+    const groupedStatus = groupBy(statuses, String);
 
     if (!Object.keys(statusConfig).length || !total) {
       return [];
     }
 
     return sequence(
-      _.chain(props.statuses)
+      _.chain(statuses)
         .uniq()
         .map(statusKey => {
-          const status = statusConfig[statusKey] ?? (statusConfig as any).TODO;
+          const status = statusConfig[statusKey];
           return {
             ...status,
             num: (groupedStatus[statusKey] ?? []).length,

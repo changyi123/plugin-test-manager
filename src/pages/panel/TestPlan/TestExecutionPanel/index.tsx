@@ -1,15 +1,19 @@
 import React from 'react';
 
-import { Typography, message, Button } from '@osui/ui';
-import { EllipsisOutlined } from '@ant-design/icons';
+import { message, Button } from '@osui/ui';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import { TestType, TestRelationType } from '@/lib/constants';
-import PanelTable, { ActionType } from '@/components/panel/PanelTable';
-import DropDownButton from '@/components/panel/DropDownButton';
+import PanelTable, {
+  ActionType,
+  columnBuilder,
+  BuiltinColumns,
+} from '@/components/panel/PanelTable';
+import { alert } from '@/lib/utils/helper';
 import TestEntitySelectorModal, {
   ActionType as SelectorActionType,
 } from '@/components/panel/TestEntitySelectorModal';
 import { addTestExecutionToPlanService } from './service';
+import { StatusProgress } from '@/components/common/Status';
 import { getTestEntitiesByRelation, removeTestRelations } from '@/lib/api/common';
 
 import cx from './index.less';
@@ -24,7 +28,30 @@ const Test = () => {
       return getTestEntitiesByRelation(
         TestRelationType.PlanRelExecution,
         { from: testEntity },
-        { fillItemData: true, queryParams: queryParams },
+        {
+          fillItemData: true,
+          queryParams: queryParams,
+          async resultTransfer({ list, total }) {
+            const testExecutionIds = list.map(item => item.objectId);
+            const { list: testRuns } = await getTestEntitiesByRelation(
+              TestRelationType.ExecutionRelRun,
+              {
+                from: testExecutionIds,
+              },
+              {
+                limit: 9999,
+              },
+            );
+
+            return {
+              total,
+              list: list.map(execution => ({
+                ...execution,
+                relRuns: testRuns.filter(run => run.relation.from.objectId === execution.objectId),
+              })),
+            };
+          },
+        },
       );
     },
     [testEntity],
@@ -43,8 +70,12 @@ const Test = () => {
         testPlan: testEntity,
         testExecutionIds,
       });
-
       tableActionRef.current.refresh();
+
+      alert({
+        type: 'success',
+        message: `${testExecutionIds.length} 个测试执行添加到测试计划中`,
+      });
     },
     [testEntity],
   );
@@ -55,47 +86,34 @@ const Test = () => {
 
     tableActionRef.current.refresh();
 
-    message.success('删除成功');
+    alert({
+      type: 'success',
+      message: `${relationTypeIds.length} 个测试执行从测试计划中删除`,
+    });
   }, []);
 
   // table column 数据
   const tableColumns = React.useMemo(() => {
     return [
+      columnBuilder(BuiltinColumns.ItemKey, record => ({ item: record.reference })),
+      columnBuilder(BuiltinColumns.ItemTitle, record => ({ item: record.reference })),
       {
-        title: '事项key',
-        key: 'reference.name',
-        width: 100,
+        title: '测试用例数',
+        key: 'count',
         render(_, record) {
-          const item = record?.reference;
-          return (
-            <Typography.Link
-              ellipsis={true}
-              target="_blank"
-              href={`/osc/workspaces/${item?.workspace?.key}/item/${item?.key}`}
-            >
-              {item?.key}
-            </Typography.Link>
-          );
+          return record.relRuns.length;
         },
       },
       {
-        title: '事项名',
-        key: 'reference.name',
-        render(_, record) {
-          const item = record?.reference;
-
-          return <Typography.Text ellipsis={{ tooltip: item?.name }}>{item?.name}</Typography.Text>;
+        title: '状态',
+        key: 'status',
+        dataIndex: 'status',
+        width: 180,
+        render: (_, record) => {
+          const statuses = record.relRuns.map(item => item.status);
+          return <StatusProgress hasSummary statuses={statuses} />;
         },
       },
-      // {
-      //   title: '状态',
-      //   dataIndex: 'status',
-      //   key: 'status',
-      //   render: value => {
-      //     return 'TODO: status';
-      //     // return <TestTableStatus readonly status={value ?? 'todo'} />;
-      //   },
-      // },
       {
         title: '操作',
         key: 'action',
