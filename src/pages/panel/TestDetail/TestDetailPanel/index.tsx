@@ -1,8 +1,13 @@
 import React, { useState, useCallback, useEffect, createRef } from 'react';
-import { Button, Tooltip, Dropdown, Menu, Empty, message } from '@osui/ui';
-import { ArrowsAltOutlined, ShrinkOutlined, DownOutlined } from '@ant-design/icons';
+import { Button, Tooltip, Dropdown, Menu, Empty, message, Space, Input } from '@osui/ui';
+import {
+  ArrowsAltOutlined,
+  ShrinkOutlined,
+  DownOutlined,
+  SearchOutlined,
+  BlockOutlined,
+} from '@ant-design/icons';
 import { useDrop } from 'react-dnd';
-// import Breadcrumb from './components/Breadcrumb';
 import StepItem from './components/List';
 import update from 'immutability-helper';
 import { fetchTestSteps, saveOrUpdateTestStep, Item } from '@/lib/api/detail';
@@ -13,6 +18,7 @@ import GlobalDndContext from './DndContext';
 import { TestType } from '@/lib/constants';
 import { getDevConfig } from '@/devEnv';
 import Loading from '@/components/common/Loading';
+import { useDebounceFn } from 'ahooks';
 
 import css from './index.less';
 
@@ -62,30 +68,26 @@ const StepList: React.FC<{
   if (!steps.length) {
     return (
       <Empty
+        className={css('empty')}
         description={
-          <div>
-            <h3>暂无定义测试</h3>
-            <p>测试是与条件、测试输入和预期结果相结合的一系列步骤。创建测试步骤来定义测试。</p>
+          <div className={css('empty__content')}>
+            <div className={css('empty__content__topic')}>暂无定义测试</div>
+            <div className={css('empty__content__tips')}>
+              测试是与条件、测试输入和预期结果相结合的一系列步骤。创建测试步骤来定义测试。
+            </div>
+            <div className={css('empty__content__btn')}>
+              <Space size={8}>
+                <Button type="primary" onClick={() => actionCard.addCard()}>
+                  新建步骤
+                </Button>
+                <Button type="default" onClick={() => actionCard.openCallTestModal(0)}>
+                  继承用例
+                </Button>
+              </Space>
+            </div>
           </div>
         }
-      >
-        <Dropdown
-          overlay={
-            <Menu>
-              <Menu.Item key="1" onClick={() => actionCard.addCard()}>
-                新增步骤
-              </Menu.Item>
-              <Menu.Item key="2" onClick={() => actionCard.openCallTestModal(0)}>
-                继承测试用例
-              </Menu.Item>
-            </Menu>
-          }
-        >
-          <Button type="primary">
-            添加步骤 <DownOutlined />
-          </Button>
-        </Dropdown>
-      </Empty>
+      ></Empty>
     );
   }
 
@@ -293,9 +295,25 @@ const Detail: React.FC = () => {
     [currentObjectId, fetchData, steps, testInfo?.objectId],
   );
 
+  const callTestLen = useCallback(() => {
+    return steps.filter(item => item.callTestId).length;
+  }, [steps]);
+
   const openCallTestModal = (index: number) => {
     ItemTypeModalRef.current?.open(index);
   };
+
+  const { run } = useDebounceFn(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      console.log('e', e);
+      if (!steps.length) {
+        return;
+      }
+    },
+    {
+      wait: 500,
+    },
+  );
 
   const actionCard: IActionCard = {
     moveCard,
@@ -333,12 +351,15 @@ const Detail: React.FC = () => {
         ref={ItemTypeModalRef}
         saveCard={saveCard}
       />
-      {/* <div className={css('detail__breadcrumb')}>
-        <Breadcrumb />
-      </div> */}
       <div className={css('detail__content')}>
         <div className={css('detail__content__header')}>
           <div className={css('left')}>
+            <div className={css('input')}>
+              <Input placeholder="搜索步骤" onChange={e => run(e)} suffix={<SearchOutlined />} />
+            </div>
+          </div>
+
+          <div className={css('right')}>
             <div className={css('item')}>
               <Tooltip title="全部展开" placement="bottom">
                 <Button icon={<ArrowsAltOutlined />} onClick={() => expandCard(undefined, true)} />
@@ -349,18 +370,8 @@ const Detail: React.FC = () => {
                 <Button icon={<ShrinkOutlined />} onClick={() => expandCard()} />
               </Tooltip>
             </div>
-            {/* <div className={css('input')}>
-              <Input placeholder="搜索关键字" prefix={<SearchOutlined />} />
-            </div>
-            <div className={css('item')}>
-              <Tooltip title="测试步骤教程">
-                <QuestionCircleOutlined />
-              </Tooltip>
-            </div> */}
-          </div>
-
-          <div className={css('right')}>
             <Dropdown
+              className={css('item')}
               overlay={
                 <Menu>
                   <Menu.Item key="1" onClick={() => addCard()}>
@@ -378,6 +389,12 @@ const Detail: React.FC = () => {
             </Dropdown>
           </div>
         </div>
+
+        <div className={css('detail__content__tips')}>
+          <BlockOutlined />
+          <span>当前用例被 {callTestLen()} 个用例调用</span>
+        </div>
+
         <StepList steps={steps} actionCard={actionCard} />
       </div>
     </div>

@@ -17,16 +17,7 @@
         justify-content: flex-start;
         align-items: center;
         .input {
-          width: 220px;
-          margin-left: @detailItemMarginLeft;
-        }
-
-        .item {
-          margin-left: @detailItemMarginLeft;
-
-          &:first {
-            margin-left: 0;
-          }
+          width: 180px;
         }
       }
 
@@ -37,6 +28,45 @@
         .item {
           margin-left: @detailItemMarginLeft;
         }
+      }
+    }
+
+    &__tips {
+      font-size: 12px;
+      font-family: PingFangSC-Regular, PingFang SC;
+      font-weight: 400;
+      color: #878C96;
+      margin-top: 16px;
+      line-height: 20px;
+      span {
+        margin-left: 3px;
+      }
+    }
+  }
+
+  .empty {
+    margin: 16px 0 0 0;
+    padding-top: 16px;
+    &__content {
+      &__topic {
+        font-size: 14px;
+        font-family: PingFangSC-Regular, PingFang SC;
+        font-weight: 400;
+        color: #4D545E;
+        line-height: 22px;
+      }
+
+      &__tips {
+        font-size: 12px;
+        font-family: PingFangSC-Regular, PingFang SC;
+        font-weight: 400;
+        color: #878C96;
+        line-height: 20px;
+        margin-top: 8px;
+      }
+
+      &__btn {
+        margin-top: 16px;
       }
     }
   }

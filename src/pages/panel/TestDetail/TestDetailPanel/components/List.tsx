@@ -176,7 +176,10 @@ const List: React.FC<ListProps> = (props: ListProps) => {
             </div>
           )}
           <div className={css('nav__index')}>{props.index + 1}</div>
-          <div className={css('nav__drag')} ref={node => drag(node)}>
+          <div
+            className={[css('nav__drag'), isExpand ? '' : css('nav__drag__expand')].join(' ')}
+            ref={node => drag(node)}
+          >
             <DragOutlined />
           </div>
           {isExpand && itemLen !== props.index + 1 ? (
