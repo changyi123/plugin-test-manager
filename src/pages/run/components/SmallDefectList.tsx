@@ -72,6 +72,7 @@ export const SmallDefectList: React.FC<ISmallDefectListProps> = props => {
                 </div>
                 <div className={css('list__item__handle')}>
                   <Popconfirm
+                    getPopupContainer={() => document.getElementById('small_defect_list')}
                     title="当前操作会删除与该缺陷的关联关系，是否继续执行？"
                     onConfirm={() => handleDeleteRelation(item.objectId)}
                     okText="确定"
@@ -101,23 +102,26 @@ export const SmallDefectListPopover: React.FC<ISmallDefectListProps> = props => 
   );
 
   return (
-    <Popover
-      content={
-        <SmallDefectList
-          itemIds={props.itemIds}
-          refreshNum={refreshNum}
-          testId={props.testId}
-          save={props.save}
-        />
-      }
-      onVisibleChange={handleVisibleChange}
-      trigger="click"
-    >
-      <div className={css('btn')}>
-        <ExclamationCircleOutlined style={{ color: 'red' }} />
-        <div>({props.itemIds.length})</div>
-      </div>
-    </Popover>
+    <div id="small_defect_list">
+      <Popover
+        getPopupContainer={() => document.getElementById('small_defect_list')}
+        content={
+          <SmallDefectList
+            itemIds={props.itemIds}
+            refreshNum={refreshNum}
+            testId={props.testId}
+            save={props.save}
+          />
+        }
+        onVisibleChange={handleVisibleChange}
+        trigger="click"
+      >
+        <div className={css('btn')}>
+          <ExclamationCircleOutlined style={{ color: 'red' }} />
+          <div>({props.itemIds.length})</div>
+        </div>
+      </Popover>
+    </div>
   );
 };
 

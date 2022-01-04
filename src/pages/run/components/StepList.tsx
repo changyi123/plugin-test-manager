@@ -141,13 +141,16 @@ export const StepItem: React.FC<IStepItemProps> = ({ index, item, saveList, test
                   />
                 </div>
 
-                <div className={css('btn')}>
-                  <Dropdown overlay={menu} trigger={['click']}>
+                <div className={css('btn')} id="dropdown_add_defect">
+                  <Dropdown
+                    overlay={menu}
+                    trigger={['click']}
+                    getPopupContainer={() => document.getElementById('dropdown_add_defect')}
+                  >
                     <Button type="link" icon={<PlusCircleOutlined />}>
                       添加缺陷
                     </Button>
                   </Dropdown>
-
                   {item.defectIds && (
                     <SmallDefectListPopover
                       itemIds={item.defectIds}

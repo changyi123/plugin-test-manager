@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import type { ModalProps } from '@osui/modal';
 import { Modal, Spin, message } from '@osui/ui';
 import useMergedState from 'rc-util/lib/hooks/useMergedState';
-import { getRootContainer } from '@/lib/utils/helper';
 import { getItemByIQL } from '@/lib/api/proxima';
 import DebounceSelect from '@/components/common/DebounceSelect';
 import { useSafeState, useRequest } from 'ahooks';
@@ -120,7 +119,7 @@ const AddDefectModal: React.FC<IDefectModalProps> = props => {
   return (
     <>
       <Modal
-        getContainer={getRootContainer}
+        getContainer={() => document.getElementById('dropdown_add_defect')}
         title={'请选择添加缺陷'}
         visible={isVisible}
         maskClosable={false}
