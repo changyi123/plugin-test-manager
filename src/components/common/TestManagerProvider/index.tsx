@@ -149,7 +149,9 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
     // 缺陷类型不需要创建测试实体
     const { extraData } = params;
 
-    const [itemData] = await getItemByIQL({ itemId: params.itemId });
+    const {
+      items: [itemData],
+    } = await getItemByIQL({ itemId: params.itemId });
     let testEntity = null;
 
     // 缺陷类型不需要创建测试管理测试实体
