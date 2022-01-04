@@ -2,9 +2,10 @@ import React from 'react';
 
 import { uniqueId } from 'lodash';
 import { createTestPlanService } from './services';
+import { DownOutlined } from '@ant-design/icons';
+import { StatusProgress } from '@/components/common/Status';
 import { TestType, TestRelationType } from '@/lib/constants';
 import DropDownButton from '@/components/panel/DropDownButton';
-import { EllipsisOutlined, DownOutlined } from '@ant-design/icons';
 import { useTestConfig, useBaseAction } from '@/lib/hooks/useContext';
 import PanelTable, { ActionType } from '@/components/panel/PanelTable';
 import { BuiltinColumns, columnBuilder } from '@/components/panel/PanelTable';
@@ -91,6 +92,11 @@ const Plan = () => {
           }));
           await createTestRelation(relations);
 
+          alert({
+            type: 'success',
+            message: '当前测试用例成功被添加至所选的测试计划中',
+          });
+
           refreshDepData();
         },
       },
@@ -146,6 +152,15 @@ const Plan = () => {
       columnBuilder(BuiltinColumns.ItemTitle, data => ({
         item: data.reference,
       })),
+      {
+        title: '测试计划状态',
+        key: 'status',
+        width: 190,
+        render(_, record) {
+          const detailStatuses = record.relTestDetails.map(item => item.status);
+          return <StatusProgress statuses={detailStatuses} hasSummary />;
+        },
+      },
       {
         title: '测试用例数',
         key: 'count',

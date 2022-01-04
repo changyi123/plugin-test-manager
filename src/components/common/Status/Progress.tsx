@@ -31,7 +31,7 @@ const StatusProgress: React.FC<StatusProgressProps> = props => {
       _.chain(props.statuses)
         .uniq()
         .map(statusKey => {
-          const status = statusConfig[statusKey];
+          const status = statusConfig[statusKey] ?? (statusConfig as any).TODO;
           return {
             ...status,
             num: (groupedStatus[statusKey] ?? []).length,
@@ -42,7 +42,7 @@ const StatusProgress: React.FC<StatusProgressProps> = props => {
   }, [props.statuses, statusConfig, total]);
 
   const PopoverContent = React.useMemo(() => {
-    if (!props.hasSummary) return null;
+    if (!props.hasSummary) return undefined;
     return (
       <div className={cx('summary')}>
         <ul>
