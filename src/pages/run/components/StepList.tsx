@@ -9,6 +9,7 @@ import { uniqueId } from 'lodash';
 import { useBaseAction } from '@/lib/hooks/useContext';
 import { TestType } from '@/lib/constants';
 import { SmallDefectListPopover } from './SmallDefectList';
+import { addDefect } from '@/lib/api/runs';
 
 import css from './StepList.less';
 
@@ -57,16 +58,21 @@ export const StepItem: React.FC<IStepItemProps> = ({ index, item, saveList, test
   );
 
   const createDefect = useCallback(async () => {
+    const defectItemType = 'Mwuo9Bp0LS';
     const token = uniqueId('TestPlan');
     const { testEntity: testDefectEntity, extraData } = await createItemUseModal({
       type: TestType.TestDefect,
       extraData: { token },
     });
     // token 不相同则不创建关联
+    console.log('ahwawdwadwd', extraData, token, testDefectEntity);
     if (extraData.token !== token) return;
 
     console.log('testDefectEntity', testDefectEntity);
-  }, [createItemUseModal]);
+    addDefect(defectItemType, testId, [testDefectEntity.id]).then(() => {
+      message.success('添加成功');
+    });
+  }, [createItemUseModal, testId]);
 
   const menu = (
     <Menu>
