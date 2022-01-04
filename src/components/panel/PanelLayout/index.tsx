@@ -64,7 +64,13 @@ export const alert = (props: AlertProps & { duration?: number }) => {
     container.remove();
   };
   ReactDOM.render(
-    <Alert className={cx('alert')} afterClose={removeContainerDOM} showIcon closable {...props} />,
+    <Alert
+      className={cx('alert', 't')}
+      afterClose={removeContainerDOM}
+      showIcon
+      closable
+      {...props}
+    />,
     container,
   );
   DOMContainer.appendChild(container);

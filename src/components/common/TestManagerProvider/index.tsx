@@ -149,13 +149,13 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
     // 缺陷类型不需要创建测试实体
     const { extraData } = params;
 
-    let itemData = null;
+    const {
+      items: [itemData],
+    } = await getItemByIQL({ itemId: params.itemId });
     let testEntity = null;
 
     // 缺陷类型不需要创建测试管理测试实体
-    if (extraData.type === TestType.TestDefect) {
-      [itemData] = await getItemByIQL({ itemId: params.itemId });
-    } else {
+    if (extraData.type !== TestType.TestDefect) {
       testEntity = await getOrCreateTestEntity(params.itemId, { notice: true });
       const testEntityData = testEntity?.toJSON();
       if (!testEntityData) return;
