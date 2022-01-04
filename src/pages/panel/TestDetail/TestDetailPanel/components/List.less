@@ -4,7 +4,7 @@
   // grid-template-columns: 30px 100px 10px;
   .nav {
     display: flex;
-    background-color: rgb(66, 82, 110);
+    background: #E2ECFF;
     flex-flow: column;
     border-radius: 3px;
     text-align: center;
@@ -12,8 +12,19 @@
     font-weight: bold;
 
     &__index {
-      min-width: 30px;
-      padding: 5px 3px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #4B8BFF;
+      margin: 12px 10px 0 10px;
+      text-align: center;
+      line-height: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
 
     &__up {
@@ -26,11 +37,10 @@
 
     &__drag {
       cursor: move;
-
-      &__expand {
-        margin-top: auto;
-        padding-bottom: 12px;
-      }
+      width: 20px;
+      height: 20px;
+      margin: auto 10px 12px 10px;
+      color: #878C96;
     }
 
     .call {

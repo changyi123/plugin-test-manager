@@ -1,11 +1,6 @@
 import React, { useState } from 'react';
 import { Button, Input, Divider, Dropdown, Menu, Tooltip, Popconfirm, InputNumber } from '@osui/ui';
-import {
-  DragOutlined,
-  ArrowDownOutlined,
-  ArrowUpOutlined,
-  EllipsisOutlined,
-} from '@ant-design/icons';
+import { HolderOutlined, EllipsisOutlined } from '@ant-design/icons';
 import { useDrag, useDrop } from 'react-dnd';
 
 import { TestStep, IActionCard } from '..';
@@ -170,23 +165,10 @@ const List: React.FC<ListProps> = (props: ListProps) => {
       </Divider>
       <div className={css('detail-list')} ref={preview}>
         <div className={[css('nav'), item.callTestId && css('call')].join(' ')}>
-          {isExpand && props.index !== 0 && (
-            <div className={css('nav__up')}>
-              <ArrowUpOutlined />
-            </div>
-          )}
           <div className={css('nav__index')}>{props.index + 1}</div>
-          <div
-            className={[css('nav__drag'), isExpand ? '' : css('nav__drag__expand')].join(' ')}
-            ref={node => drag(node)}
-          >
-            <DragOutlined />
+          <div className={[css('nav__drag')].join(' ')} ref={node => drag(node)}>
+            <HolderOutlined />
           </div>
-          {isExpand && itemLen !== props.index + 1 ? (
-            <div className={css('nav__icon')}>
-              <ArrowDownOutlined />
-            </div>
-          ) : null}
         </div>
 
         {!item.callTestId ? (
