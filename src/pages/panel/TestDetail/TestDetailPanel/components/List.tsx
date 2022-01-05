@@ -1,12 +1,21 @@
 import React, { useState } from 'react';
-import { Button, Input, Divider, Dropdown, Menu, Tooltip, Popconfirm, InputNumber } from '@osui/ui';
-import { HolderOutlined, EllipsisOutlined } from '@ant-design/icons';
+import {
+  Button,
+  Input,
+  Divider,
+  Dropdown,
+  Menu,
+  Tooltip,
+  Popconfirm,
+  InputNumber,
+  Space,
+} from '@osui/ui';
+import { HolderOutlined, EllipsisOutlined, CaretRightOutlined } from '@ant-design/icons';
 import { useDrag, useDrop } from 'react-dnd';
 
 import { TestStep, IActionCard } from '..';
 import { stepTools, IStepToolsKey } from './ListConfig';
 import css from './List.less';
-import Copy from '@/components/common/CopyToClipboard';
 
 const { TextArea } = Input;
 
@@ -152,7 +161,7 @@ const List: React.FC<ListProps> = (props: ListProps) => {
 
   return (
     <div ref={node => drop(node)} style={{ opacity }} className={css('around')}>
-      <Divider plain className={css('around__divider')}>
+      {/* <Divider plain className={css('around__divider')}>
         <span>
           <Button type="link" onClick={() => addCard(item.id)}>
             新步骤
@@ -162,7 +171,7 @@ const List: React.FC<ListProps> = (props: ListProps) => {
             继承测试
           </Button>
         </span>
-      </Divider>
+      </Divider> */}
       <div className={css('detail-list')} ref={preview}>
         <div className={[css('nav'), item.callTestId && css('call')].join(' ')}>
           <div className={css('nav__index')}>{props.index + 1}</div>
@@ -171,185 +180,99 @@ const List: React.FC<ListProps> = (props: ListProps) => {
           </div>
         </div>
 
-        {!item.callTestId ? (
-          isExpand ? (
-            <div className={css('list')}>
-              <div className={css('list__item')}>
-                <div className={css('list__item__topic')}>
-                  <p>
-                    行动
-                    <Copy text={action} />
-                  </p>
-                </div>
-                <div className={css('list__item__result')} onClick={() => toggleEditState(true)}>
-                  {editState ? (
-                    <TextArea
-                      placeholder={`请输入行动`}
-                      maxLength={100}
-                      autoSize={{ minRows: 2 }}
-                      value={action}
-                      onChange={e =>
-                        setItemBak({
-                          ...itemBak,
-                          action: e.target.value,
-                        })
-                      }
-                    />
-                  ) : (
-                    action || '暂无内容'
-                  )}
-                </div>
-              </div>
-
-              <div className={css('list__item')}>
-                <div className={css('list__item__topic')}>
-                  <p>
-                    数据
-                    <Copy text={data} />
-                  </p>
-                </div>
-                <div className={css('list__item__result')} onClick={() => toggleEditState(true)}>
-                  {editState ? (
-                    <TextArea
-                      maxLength={100}
-                      placeholder={`请输入数据`}
-                      autoSize={{ minRows: 2 }}
-                      value={data}
-                      onChange={e =>
-                        setItemBak({
-                          ...itemBak,
-                          data: e.target.value,
-                        })
-                      }
-                    />
-                  ) : (
-                    data || '暂无内容'
-                  )}
-                </div>
-              </div>
-
-              <div className={css('list__item')}>
-                <div className={css('list__item__topic')}>
-                  <p>
-                    预期结果
-                    <Copy text={result} />
-                  </p>
-                </div>
-                <div className={css('list__item__result')} onClick={() => toggleEditState(true)}>
-                  {editState ? (
-                    <TextArea
-                      placeholder={`请输入预期结果`}
-                      maxLength={100}
-                      autoSize={{ minRows: 2 }}
-                      value={result}
-                      onChange={e =>
-                        setItemBak({
-                          ...itemBak,
-                          result: e.target.value,
-                        })
-                      }
-                    />
-                  ) : (
-                    result || '暂无内容'
-                  )}
-                </div>
-              </div>
+        <div className={css('step')}>
+          <div className={css('step__content')}>
+            <div className={css('step__content__item')}>
+              <div className={css('step__content__item__topic')}>操作</div>
+              <div className={css('step__content__item__input')}>编写</div>
             </div>
-          ) : (
-            <div className={css('list')}>
-              <div className={css('list__item')}>
-                <div
-                  className={css('list__item__result')}
-                  onClick={() => {
-                    expandItemCard(true);
-                    toggleEditState(true);
-                  }}
-                >
-                  <div>{action}</div>
-                  <div>{data}</div>
-                  <div>{result}</div>
-                </div>
-              </div>
+
+            <div className={css('step__content__item')}>
+              <div className={css('step__content__item__topic')}>预期</div>
+              <div className={css('step__content__item__input')}>编写</div>
             </div>
-          )
+          </div>
+
+          <Divider className={css('step__line')} />
+
+          <div className={css('step__more')}>
+            <div className={css('step__more__tips')}>
+              <Space>
+                <span>更多信息</span>
+                <CaretRightOutlined />
+              </Space>
+            </div>
+          </div>
+        </div>
+
+        {isExpand ? (
+          <div className={css('tools')} onClick={e => e.stopPropagation()}>
+            <div className={css('tools__item')}>
+              <Tooltip placement="left" title={stepTools[IStepToolsKey.CLOSE].label}>
+                <div className={css('tools__item__icon')} onClick={() => expandItemCard(false)}>
+                  {stepTools[IStepToolsKey.CLOSE].icon}
+                </div>
+              </Tooltip>
+            </div>
+            <div className={css('tools__item')}>
+              <StepItemCopy
+                trigger={
+                  <div className={css('tools__item__icon')}>
+                    {stepTools[IStepToolsKey.COPY].icon}
+                  </div>
+                }
+              ></StepItemCopy>
+            </div>
+            <div className={css('tools__item')}>
+              <StepItemMove
+                trigger={
+                  <div className={css('tools__item__icon')}>
+                    {stepTools[IStepToolsKey.MOVE].icon}
+                  </div>
+                }
+              />
+            </div>
+            <div className={css('tools__item')}>
+              <StepItemDelete
+                trigger={
+                  <div className={css('tools__item__icon')}>
+                    {stepTools[IStepToolsKey.DELETE].icon}
+                  </div>
+                }
+              />
+            </div>
+          </div>
         ) : (
-          <div className={css('list')}>
-            <div className={[css('list__item'), css('call-test')].join(' ')}>
-              <div className={css('call-test-topic')}>
-                <div className={css('label')}>继承测试用例</div>
-                <Button
-                  type="link"
-                  target="_blank"
-                  href={`/osc/workspaces/${(item as any)?.itemObject?.workspace?.key}/item/${
-                    item?.itemObject?.key
-                  }`}
-                >
-                  {item?.itemObject?.key}
-                </Button>
-              </div>
-              <div className={css('list__item__result')}>{item?.itemObject?.name}</div>
+          <div className={css('tools')}>
+            <div className={[css('tools__item'), css('tools__expand')].join(' ')}>
+              <Dropdown
+                overlay={
+                  <Menu>
+                    <Menu.Item
+                      key="1"
+                      icon={stepTools[IStepToolsKey.OPEN].icon}
+                      onClick={() => expandItemCard(true)}
+                    >
+                      {stepTools[IStepToolsKey.OPEN].label}
+                    </Menu.Item>
+                    <Menu.Item key="2" icon={stepTools[IStepToolsKey.COPY].icon}>
+                      <StepItemCopy text={stepTools[IStepToolsKey.COPY].label} />
+                    </Menu.Item>
+                    <Menu.Item key="3" icon={stepTools[IStepToolsKey.MOVE].icon}>
+                      <StepItemMove text={stepTools[IStepToolsKey.MOVE].label} />
+                    </Menu.Item>
+                    <Menu.Item key="4" icon={stepTools[IStepToolsKey.DELETE].icon}>
+                      <StepItemDelete text={stepTools[IStepToolsKey.DELETE].label} />
+                    </Menu.Item>
+                  </Menu>
+                }
+                placement="bottomCenter"
+              >
+                <div className={css('tools__item__icon')}>{stepTools[IStepToolsKey.MORE].icon}</div>
+              </Dropdown>
             </div>
           </div>
         )}
-        {!editState &&
-          (isExpand ? (
-            <div className={css('tools')}>
-              <div className={css('tools__item')}>
-                <Tooltip placement="left" title={stepTools[IStepToolsKey.CLOSE].label}>
-                  <Button
-                    shape="circle"
-                    icon={stepTools[IStepToolsKey.CLOSE].icon}
-                    onClick={() => expandItemCard(false)}
-                  />
-                </Tooltip>
-              </div>
-              <div className={css('tools__item')}>
-                <StepItemCopy
-                  trigger={<Button shape="circle" icon={stepTools[IStepToolsKey.COPY].icon} />}
-                ></StepItemCopy>
-              </div>
-              <div className={css('tools__item')}>
-                <StepItemMove
-                  trigger={<Button shape="circle" icon={stepTools[IStepToolsKey.MOVE].icon} />}
-                />
-              </div>
-              <div className={css('tools__item')}>
-                <StepItemDelete
-                  trigger={<Button shape="circle" icon={stepTools[IStepToolsKey.DELETE].icon} />}
-                />
-              </div>
-            </div>
-          ) : (
-            <div className={css('tools')}>
-              <div className={[css('tools__item'), css('tools__expand')].join(' ')}>
-                <Dropdown
-                  overlay={
-                    <Menu>
-                      <Menu.Item
-                        key="1"
-                        icon={stepTools[IStepToolsKey.OPEN].icon}
-                        onClick={() => expandItemCard(true)}
-                      >
-                        {stepTools[IStepToolsKey.OPEN].label}
-                      </Menu.Item>
-                      <Menu.Item key="2" icon={stepTools[IStepToolsKey.COPY].icon}>
-                        <StepItemCopy text={stepTools[IStepToolsKey.COPY].label} />
-                      </Menu.Item>
-                      <Menu.Item key="3" icon={stepTools[IStepToolsKey.MOVE].icon}>
-                        <StepItemMove text={stepTools[IStepToolsKey.MOVE].label} />
-                      </Menu.Item>
-                      <Menu.Item key="4" icon={stepTools[IStepToolsKey.DELETE].icon}>
-                        <StepItemDelete text={stepTools[IStepToolsKey.DELETE].label} />
-                      </Menu.Item>
-                    </Menu>
-                  }
-                  placement="bottomCenter"
-                >
-                  <Button icon={<EllipsisOutlined />}></Button>
-                </Dropdown>
-              </div>
-            </div>
-          ))}
       </div>
       {isExpand && editState && (
         <div className={css('detail-footer')}>

@@ -1,12 +1,16 @@
 .detail-list {
   display: flex;
+  background: #F8FAFF;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 16px;
+  box-shadow: 0px 3px 3px 0px rgba(115, 129, 152, 0.16);
   // grid-row-gap: 10px;
   // grid-template-columns: 30px 100px 10px;
   .nav {
     display: flex;
     background: #E2ECFF;
     flex-flow: column;
-    border-radius: 3px;
     text-align: center;
     color: white;
     font-weight: bold;
@@ -45,6 +49,12 @@
 
     .call {
       background-color: #52c41a;
+    }
+  }
+
+  &:hover {
+    .tools {
+      opacity: 1;
     }
   }
 
@@ -114,21 +124,76 @@
     }
   }
 
+  .step {
+    flex: 1;
+
+    &__content {
+      display: flex;
+      justify-content: flex-start;
+      align-items: flex-start;
+
+      &__item {
+        width: 50%;
+        margin-left: 12px;
+        &__topic {
+          margin-top: 12px;
+          font-size: 12px;
+          font-family: PingFangSC-Regular, PingFang SC;
+          font-weight: 400;
+          color: #878C96;
+          line-height: 20px;
+        }
+
+        &:first-child {
+          margin: 0 12px 0 12px;
+        }
+      }
+    }
+
+    &__line {
+      margin: 12px 0;
+    }
+
+    &__more {
+      &__tips {
+        display: inline-block;
+        cursor: pointer;
+        margin-left: 12px;
+        font-size: 12px;
+        font-family: PingFangSC-Regular, PingFang SC;
+        font-weight: 400;
+        color: #878C96;
+        line-height: 20px;
+      }
+    }
+  }
+
   &-expand {
     color:red;
   }
 
   .tools {
-    margin-left: 5px;
     display: flex;
+    opacity: 0;
+    transition: all 0.3s;
     flex-flow: column;
-    border-radius: 3px;
-    background-color: rgb(237, 237, 237);
+    background: rgba(30,42,61, 0.4);
 
     &__item {
-      padding: 4px;
-      &:first-child {
-        margin-top: 0;
+      margin: 4px;
+      &__icon {
+        cursor: pointer;
+        font-size: 16px;
+        line-height: 16px;
+        text-align: center;
+        padding: 4px;
+        border-radius: 4px;
+        color: #fff;
+        transition: all 0.3s;
+
+        &:hover {
+          background: rgba(30,42,61, 0.6);
+        }
       }
     }
   }
