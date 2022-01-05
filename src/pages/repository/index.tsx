@@ -25,6 +25,11 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
   const { config } = useTestConfig();
 
   const state = useReactive({
+    pagination: {
+      offset: 0,
+      limit: 20,
+    },
+    total: 20,
     items: [],
     itemIds: [],
     breadcrumb: [],
@@ -35,8 +40,9 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
 
   const { run: fetchItems } = useRequest(getItemByIQL, {
     manual: true,
-    onSuccess({ items }) {
+    onSuccess({ items, count }) {
       state.items = items;
+      state.total = count;
     },
   });
 
@@ -63,6 +69,7 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
       });
 
       fetchItems({
+        ...state.pagination,
         excludeItemId,
         workspace: workspaceKey,
         nameLike: state.searchValue,
@@ -72,12 +79,13 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
       fetchItems({ itemId: state.itemIds, nameLike: state.searchValue });
     }
   }, [
-    fetchItems,
-    workspaceKey,
+    state.isRootFolder,
+    state.pagination,
+    state.searchValue,
     state.itemIds,
     folderTreeData,
-    state.searchValue,
-    state.isRootFolder,
+    fetchItems,
+    workspaceKey,
     config.itemTypeMap?.TestDetail,
   ]);
 
@@ -95,12 +103,23 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
     [fetchFolderItems, state],
   );
 
+  const handlePageChange = React.useCallback(
+    (currentPage, limit) => {
+      state.pagination = {
+        offset: currentPage * limit,
+        limit,
+      };
+      fetchFolderItems();
+    },
+    [fetchFolderItems, state],
+  );
+
   React.useEffect(() => {
     if (workspaceKey && config.itemTypeMap?.TestDetail && !initialRef.current) {
       initialRef.current = true;
       fetchFolderItems();
     }
-  }, [config.itemTypeMap?.TestDetail, fetchFolderItems, fetchItems, workspaceKey]);
+  }, [config.itemTypeMap?.TestDetail, fetchFolderItems, workspaceKey]);
 
   const treeNodeData = React.useMemo(() => {
     const rootFolder = {
@@ -154,7 +173,12 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
           />
         </div>
         <div className={cx('main')}>
-          <TestDetailTable selectedFolderKey={state.selectedFolderKey} dataSource={state.items} />
+          <TestDetailTable
+            total={state.total}
+            dataSource={state.items}
+            onPageChange={handlePageChange}
+            selectedFolderKey={state.selectedFolderKey}
+          />
         </div>
       </div>
     </div>

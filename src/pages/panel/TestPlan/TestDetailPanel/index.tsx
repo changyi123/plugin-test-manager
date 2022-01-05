@@ -180,11 +180,10 @@ const Test = () => {
           return record.relRuns?.length ?? 0;
         },
       },
-      {
-        title: '最新执行状态',
-        key: 'status',
-        render: (_, record) => <StatusBadge readonly status={record.status} />,
-      },
+      columnBuilder(BuiltinColumns.LatestStatus, record => ({
+        status: record.status,
+        readonly: true,
+      })),
       {
         title: '操作',
         key: 'action',
