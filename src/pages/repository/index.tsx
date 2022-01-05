@@ -141,7 +141,7 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
     <div className={cx('test-repository')}>
       <ResizableBox
         width={300}
-        height={height}
+        height={height - 90}
         className={cx('left')}
         draggableOpts={{ enableUserSelectHack: false }}
       >

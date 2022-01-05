@@ -232,14 +232,15 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
                 expectedTestType = (testConfig?.defectsMapping ?? []).includes(item?.itemType?.key);
               }
 
-              // 通知
-              alert({
-                type: 'warning',
-                message: '新建事项类型与创建的测试类型未匹配',
-              });
-
               // TODO: 消息通知
-              if (!expectedTestType) return reject('新建事项类型与创建的测试类型未匹配');
+              if (!expectedTestType) {
+                alert({
+                  type: 'warning',
+                  message: '新建事项类型与创建的测试类型未匹配',
+                });
+                reject('新建事项类型与创建的测试类型未匹配');
+                return;
+              }
               resolve(data);
             },
           );
