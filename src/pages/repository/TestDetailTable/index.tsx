@@ -2,6 +2,7 @@ import React from 'react';
 import { Table } from '@osui/ui';
 import { useDrag } from 'ahooks';
 import { ColumnProps } from 'antd/lib/table';
+import { useLayoutHeight } from '../hook';
 import { BuiltinColumns, columnBuilder } from '@/components/panel/PanelTable';
 
 type TestDetailTableProps = {
@@ -29,6 +30,8 @@ const TestDetailTable: React.FC<TestDetailTableProps> = ({
     );
     return <tr ref={ref} {...props}></tr>;
   };
+
+  const height = useLayoutHeight();
 
   const components = {
     body: {
@@ -58,7 +61,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = ({
       sticky
       scroll={{
         scrollToFirstRowOnChange: true,
-        y: 600,
+        y: height - 100,
       }}
       components={components}
       pagination={{

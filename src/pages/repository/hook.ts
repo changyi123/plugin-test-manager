@@ -67,3 +67,17 @@ export const useTreeFn = (nodes: TreeNode[]) => {
     };
   }, [nodes]);
 };
+
+/** 获取布局高度 */
+export const useLayoutHeight = () => {
+  const [height, setHeight] = React.useState(700);
+
+  React.useEffect(() => {
+    const layoutElement = document.querySelector('[data-element-id="workspace.layout.content"]');
+
+    if (layoutElement) {
+      setHeight(layoutElement.clientHeight);
+    }
+  }, []);
+  return height;
+};
