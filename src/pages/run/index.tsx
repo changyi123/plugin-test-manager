@@ -1,12 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Row, Col, Typography, Collapse, Divider, Spin, Empty, message } from '@osui/ui';
 import UploadFile from '@/components/common/UploadFile';
 import Comment from '@/components/common/Comment';
 import ItemList from './components/ItemList';
 import StepList, { IStepItem } from './components/StepList';
-import TestStatus from './components/TestStatus';
+import { StatusBadge } from '@/components/common/Status';
 import { useLocation } from 'react-router-dom';
-import { GetTestRunDetail } from '@/lib/api/runs';
+import { GetTestRunDetail, toggleTestRunStatus } from '@/lib/api/runs';
 import { useRequest } from 'ahooks';
 import { updateTestStep, InitStepByTestId } from '@/lib/api/runs';
 import Loading from '@/components/common/Loading';
@@ -138,7 +138,7 @@ const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
   // 从路由/弹窗拿
   const { data, loading, error, refresh } = useRequest(() => GetTestRunDetail(currentTestId));
 
-  const checkRunInit = React.useCallback(() => {
+  const checkRunInit = useCallback(() => {
     InitStepByTestId(currentTestId)
       .then(() => {
         message.success('初始化成功');
@@ -148,6 +148,15 @@ const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
         message.warning('初始化失败');
       });
   }, [currentTestId, refresh]);
+
+  const handleStatusChange = useCallback(
+    async (testId, status) => {
+      await toggleTestRunStatus(testId, status);
+      message.success('修改成功');
+      refresh();
+    },
+    [refresh],
+  );
 
   if (!currentTestId) {
     return <div>无</div>;
@@ -200,7 +209,10 @@ const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
           </Typography.Text>
         </div>
 
-        {/* <TestStatus status={status} testId={currentTestId} change={() => () => refresh()} /> */}
+        <StatusBadge
+          status={status}
+          onStatusChange={status => handleStatusChange(testId, status)}
+        />
       </div>
 
       <Divider />

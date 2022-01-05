@@ -521,24 +521,24 @@ export const updateTestStep = (
     } = {
       runDetail: detail,
     };
-    if (checkStatus && detail?.runs?.steps?.length) {
-      // 有一个失败
-      const hasFail = detail?.runs?.steps.some(item => item.status === 'fail');
-      // 全部pass
-      const allPass = detail?.runs?.steps.filter(item => item.status === 'pass');
-      // 全部todo
-      const allTodo = detail?.runs?.steps.filter(item => item.status === 'todo');
+    // if (checkStatus && detail?.runs?.steps?.length) {
+    //   // 有一个失败
+    //   const hasFail = detail?.runs?.steps.some(item => item.status === 'fail');
+    //   // 全部pass
+    //   const allPass = detail?.runs?.steps.filter(item => item.status === 'pass');
+    //   // 全部todo
+    //   const allTodo = detail?.runs?.steps.filter(item => item.status === 'todo');
 
-      if (hasFail) {
-        updateObj.status = 'fail';
-      } else if (allPass.length === detail?.runs?.steps?.length) {
-        updateObj.status = 'pass';
-      } else if (allTodo.length === detail?.runs?.steps?.length) {
-        updateObj.status = 'todo';
-      } else {
-        updateObj.status = 'ing';
-      }
-    }
+    //   if (hasFail) {
+    //     updateObj.status = 'fail';
+    //   } else if (allPass.length === detail?.runs?.steps?.length) {
+    //     updateObj.status = 'pass';
+    //   } else if (allTodo.length === detail?.runs?.steps?.length) {
+    //     updateObj.status = 'todo';
+    //   } else {
+    //     updateObj.status = 'ing';
+    //   }
+    // }
     step.set(updateObj);
     step.save().then(
       res => {
@@ -563,25 +563,25 @@ export const toggleTestRunStatus = (testId: string, status: Status): Promise<ICo
     Test.createWithoutData(testId)
       .fetch()
       .then(testRun => {
-        const statusType = status.type;
+        // const statusType = status.type;
         const refDetail = testRun.get('runReferenceDetail');
         const { runDetail } = testRun.toJSON();
         const runDetailBak = { ...runDetail };
-        if (runDetail?.runs?.steps) {
-          const steps = [];
-          runDetail?.runs?.steps?.forEach(item => {
-            // 成功，全成功 || todo，全todo
-            if (statusType === 'PASSED' || statusType === 'TODO') {
-              item.status = status;
-              // 失败，todo全失败，其他状态不变
-            } else if (statusType === 'FAILED') {
-              item.status = status.key;
-            }
-            // 执行中，状态不变
-            steps.push(item);
-          });
-          runDetailBak.runs.steps = steps;
-        }
+        // if (runDetail?.runs?.steps) {
+        //   const steps = [];
+        //   runDetail?.runs?.steps?.forEach(item => {
+        //     // 成功，全成功 || todo，全todo
+        //     if (statusType === 'PASSED' || statusType === 'TODO') {
+        //       item.status = status;
+        //       // 失败，todo全失败，其他状态不变
+        //     } else if (statusType === 'FAILED') {
+        //       item.status = status.key;
+        //     }
+        //     // 执行中，状态不变
+        //     steps.push(item);
+        //   });
+        //   runDetailBak.runs.steps = steps;
+        // }
         testRun.set({
           status: status.key,
           runDetail: runDetailBak?.runs ? runDetailBak : undefined,

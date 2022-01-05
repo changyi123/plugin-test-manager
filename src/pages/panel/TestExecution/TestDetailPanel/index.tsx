@@ -8,7 +8,6 @@ import DropDownButton from '@/components/panel/DropDownButton';
 import { toggleTestRunStatus } from '@/lib/api/runs';
 import { useTestConfig, useBaseAction } from '@/lib/hooks/useContext';
 import { getTestEntitiesByRelation, removeTestRelations } from '@/lib/api/common';
-import { getItemByIQL } from '@/lib/api/proxima';
 import TestEntitySelectorModal, {
   ActionType as SelectorActionType,
 } from '@/components/panel/TestEntitySelectorModal';
