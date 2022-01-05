@@ -136,11 +136,8 @@ module.exports = (cliEnv = {}, argv) => {
     mode: isProd ? 'production' : 'development',
     output: outputConfig(isProd),
     devtool: (() => {
-      if (isProd) {
-        return 'source-map';
-      }
       if (isDev) {
-        return 'inline-cheap-module-source-map';
+        return 'source-map';
       }
       return false;
     })(),
