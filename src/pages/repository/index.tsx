@@ -8,7 +8,7 @@ import { getFolderTree } from '@/lib/api/repository';
 import { useSDK } from '@projectproxima/plugin-sdk';
 import { getItemByIQL } from '@/lib/api/proxima';
 import { getDevConfig } from '@/devEnv';
-import { traverseTreeNodes } from './hook';
+import { traverseTreeNodes, useLayoutHeight } from './hook';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import TestManagerProvider from '@/components/common/TestManagerProvider';
 
@@ -106,7 +106,7 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
   const handlePageChange = React.useCallback(
     (currentPage, limit) => {
       state.pagination = {
-        offset: currentPage * limit,
+        offset: (currentPage - 1) * limit,
         limit,
       };
       fetchFolderItems();
@@ -135,11 +135,13 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
     return [rootFolder].concat(folderTreeData);
   }, [folderTreeData]);
 
+  const height = useLayoutHeight();
+
   return (
     <div className={cx('test-repository')}>
       <ResizableBox
         width={300}
-        height={0}
+        height={height}
         className={cx('left')}
         draggableOpts={{ enableUserSelectHack: false }}
       >
