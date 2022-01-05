@@ -151,7 +151,7 @@ export const StepItem: React.FC<IStepItemProps> = ({ index, item, saveList, test
                   />
                 </div>
 
-                <div className={css('btn')} id="dropdown_add_defect">
+                {/* <div className={css('btn')} id="dropdown_add_defect">
                   <Dropdown
                     overlay={menu}
                     trigger={['click']}
@@ -168,7 +168,7 @@ export const StepItem: React.FC<IStepItemProps> = ({ index, item, saveList, test
                       save={() => saveItem('defectIds')}
                     />
                   )}
-                </div>
+                </div> */}
 
                 {/* <div className={css('btn')}>
                   <Button icon={<FileAddOutlined />}>添加附件</Button>
