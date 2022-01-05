@@ -354,9 +354,9 @@ const Detail: React.FC = () => {
       <div className={css('detail__content')}>
         <div className={css('detail__content__header')}>
           <div className={css('left')}>
-            <div className={css('input')}>
+            {/* <div className={css('input')}>
               <Input placeholder="搜索步骤" onChange={e => run(e)} suffix={<SearchOutlined />} />
-            </div>
+            </div> */}
           </div>
 
           <div className={css('right')}>
@@ -390,10 +390,10 @@ const Detail: React.FC = () => {
           </div>
         </div>
 
-        <div className={css('detail__content__tips')}>
+        {/* <div className={css('detail__content__tips')}>
           <BlockOutlined />
           <span>当前用例被 {callTestLen()} 个用例调用</span>
-        </div>
+        </div> */}
 
         <StepList steps={steps} actionCard={actionCard} />
       </div>

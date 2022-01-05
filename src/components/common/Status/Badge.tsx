@@ -26,6 +26,7 @@ const Status = ({ status, hasEffect, onClick, className }: Partial<Record<string
 };
 
 const Badge: React.FC<BadgeProps> = props => {
+  const badgeRef = React.useRef();
   const statusConfig = useStatusConfig();
   const currentStatus = React.useMemo(() => {
     return statusConfig[props.status] ?? (statusConfig as any).TODO;
@@ -55,22 +56,25 @@ const Badge: React.FC<BadgeProps> = props => {
   }, [statusConfig, props]);
 
   return (
-    <Popover
-      trigger="click"
-      visible={visible}
-      placement="bottomLeft"
-      content={PopoverContent}
-      onVisibleChange={setVisible}
-      overlayClassName={cx('status-badge-overlay')}
-    >
-      <div>
-        <Status
-          status={currentStatus}
-          hasEffect={!props.readonly}
-          onClick={() => !props.readonly && setVisible(true)}
-        />
-      </div>
-    </Popover>
+    <div ref={badgeRef}>
+      <Popover
+        getPopupContainer={() => badgeRef.current}
+        trigger="click"
+        visible={visible}
+        placement="bottomLeft"
+        content={PopoverContent}
+        onVisibleChange={setVisible}
+        overlayClassName={cx('status-badge-overlay')}
+      >
+        <div>
+          <Status
+            status={currentStatus}
+            hasEffect={!props.readonly}
+            onClick={() => !props.readonly && setVisible(true)}
+          />
+        </div>
+      </Popover>
+    </div>
   );
 };
 
