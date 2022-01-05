@@ -1,34 +1,36 @@
-.status {
-  display: inline-flex;
-  padding: 0 8px;
-  align-items: center;
-
-  .dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    margin-right: 8px;
-  }
-
-  &.hover {
-    cursor: pointer;
-    border-radius: 4px;
-    transition: background 0.2s;
-    &:hover {
-      background: #f4f4f5;
+:root {
+  .status {
+    display: inline-flex;
+    padding: 0 8px;
+    align-items: center;
+  
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 8px;
+    }
+  
+    &.hover {
+      cursor: pointer;
+      border-radius: 4px;
+      transition: background 0.2s;
+      &:hover {
+        background: #f4f4f5;
+      }
+    }
+  
+    &.block {
+      display: flex;
+      height: 32px;
     }
   }
-
-  &.block {
-    display: flex;
-    height: 32px;
-  }
-}
-
-.status-badge-overlay {
-  :global {
-    .ant-popover-inner-content {
-      padding: 4px;
+  
+  .status-badge-overlay {
+    :global {
+      .ant-popover-inner-content {
+        padding: 4px;
+      }
     }
   }
 }
