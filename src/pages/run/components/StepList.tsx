@@ -60,19 +60,23 @@ export const StepItem: React.FC<IStepItemProps> = ({ index, item, saveList, test
   const createDefect = useCallback(async () => {
     const defectItemType = 'Mwuo9Bp0LS';
     const token = uniqueId('TestDefect');
-    const { item, extraData } = await createItemUseModal({
+    const { item: defectItem, extraData } = await createItemUseModal({
       type: TestType.TestDefect,
       extraData: { token },
     });
     // token 不相同则不创建关联
-    console.log('ahwawdwadwd', extraData, token, item);
+    console.log('ahwawdwadwd', extraData, token, item, defectItem);
     if (extraData.token !== token) return;
 
-    console.log('item', item);
-    addDefect(defectItemType, testId, [item.objectId]).then(() => {
+    addDefect(defectItemType, testId, [defectItem.objectId]).then(() => {
       message.success('添加成功');
+      if (item.defectIds && item.defectIds.length) {
+        saveItem('defectIds')([...item.defectIds, defectItem.objectId]);
+        return;
+      }
+      saveItem('defectIds')([defectItem.objectId]);
     });
-  }, [createItemUseModal, testId]);
+  }, [createItemUseModal, testId, item, saveItem]);
 
   const menu = (
     <Menu>
