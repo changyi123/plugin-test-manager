@@ -56,7 +56,7 @@ export const getItemByIQL = async (
 
   const { data } = await fetch.post('/parse/api/search', {
     iql: iql.toString(),
-    form: pagination.offset ?? 0,
+    from: pagination.offset ?? 0,
     size: pagination.limit ?? 0,
   });
   return data.payload;

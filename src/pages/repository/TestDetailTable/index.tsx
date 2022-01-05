@@ -5,11 +5,18 @@ import { ColumnProps } from 'antd/lib/table';
 import { BuiltinColumns, columnBuilder } from '@/components/panel/PanelTable';
 
 type TestDetailTableProps = {
-  selectedFolderKey?: string;
+  total: number;
   dataSource: any[];
+  selectedFolderKey?: string;
+  onPageChange?: (currentPage: number, pageSize: number) => void;
 };
 
-const TestDetailTable: React.FC<TestDetailTableProps> = ({ dataSource, selectedFolderKey }) => {
+const TestDetailTable: React.FC<TestDetailTableProps> = ({
+  total,
+  dataSource,
+  onPageChange,
+  selectedFolderKey,
+}) => {
   // BodyRow component
   const BodyRow = props => {
     const ref = React.useRef(null);
@@ -48,9 +55,18 @@ const TestDetailTable: React.FC<TestDetailTableProps> = ({ dataSource, selectedF
   ];
   return (
     <Table
+      sticky
+      scroll={{
+        scrollToFirstRowOnChange: true,
+        y: 600,
+      }}
       components={components}
       pagination={{
-        onChange() {},
+        total,
+        defaultPageSize: 20,
+        showSizeChanger: true,
+        onChange: onPageChange,
+        showTotal: total => <span>共 {total} 条测试用例</span>,
       }}
       rowKey="objectId"
       columns={columns}
