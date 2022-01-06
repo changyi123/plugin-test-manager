@@ -377,7 +377,7 @@ const Detail: React.FC = () => {
                   <Menu.Item key="1" onClick={() => addCard()}>
                     新增步骤
                   </Menu.Item>
-                  <Menu.Item key="2" onClick={() => openCallTestModal(0)}>
+                  <Menu.Item key="2" onClick={() => openCallTestModal(steps.length)}>
                     继承测试用例
                   </Menu.Item>
                 </Menu>

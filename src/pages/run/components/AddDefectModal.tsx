@@ -8,6 +8,7 @@ import { useSafeState, useRequest } from 'ahooks';
 import css from './StepList.less';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import { addDefect } from '@/lib/api/runs';
+import { useItemLinkTypeConfig } from './hooks';
 
 interface IDefectModalProps {
   trigger?: JSX.Element;
@@ -93,7 +94,7 @@ export const AddDefectSelect: React.FC<AddDefectSelect> = props => {
 };
 
 const AddDefectModal: React.FC<IDefectModalProps> = props => {
-  const defectItemType = 'Mwuo9Bp0LS';
+  const { TestToDefect = '' } = useItemLinkTypeConfig();
   const [isVisible, setIsVisible] = useMergedState<boolean>(!!props.visible, {
     value: props.visible,
   });
@@ -106,7 +107,7 @@ const AddDefectModal: React.FC<IDefectModalProps> = props => {
 
   const handleConfirmModal = () => {
     setConfirmLoading(true);
-    addDefect(defectItemType, props.testId, chooseItems).then(() => {
+    addDefect(TestToDefect, props.testId, chooseItems).then(() => {
       message.success('添加成功');
       setConfirmLoading(false);
       if (props.currentDefectIds) {

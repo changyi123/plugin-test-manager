@@ -4,6 +4,7 @@ import { ExclamationCircleOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useRequest } from 'ahooks';
 import { getItemByIQL } from '@/lib/api/proxima';
 import { deleteDefect } from '@/lib/api/runs';
+import { useItemLinkTypeConfig } from './hooks';
 
 import css from './SmallDefectList.less';
 
@@ -16,10 +17,10 @@ interface ISmallDefectListProps {
 
 export const SmallDefectList: React.FC<ISmallDefectListProps> = props => {
   const { itemIds, testId, save } = props;
-  const defectItemType = 'Mwuo9Bp0LS';
+  const { TestToDefect = '' } = useItemLinkTypeConfig();
   const handleDeleteRelation = useCallback(
     (itemId: string) => {
-      deleteDefect(defectItemType, testId, [itemId]).then(() => {
+      deleteDefect(TestToDefect, testId, [itemId]).then(() => {
         message.success('删除成功');
         const index = itemIds.findIndex(item => item === itemId);
         const itemIdsBak = [...itemIds];
@@ -27,7 +28,7 @@ export const SmallDefectList: React.FC<ISmallDefectListProps> = props => {
         save && save()(itemIdsBak);
       });
     },
-    [testId, save, itemIds],
+    [testId, save, itemIds, TestToDefect],
   );
 
   const { data, loading, error, refresh } = useRequest(() =>
@@ -54,6 +55,7 @@ export const SmallDefectList: React.FC<ISmallDefectListProps> = props => {
   if (!items.length) {
     return <div></div>;
   }
+  const open = (url: string) => window.open(url);
 
   return (
     <div className={css('list')}>
@@ -65,7 +67,14 @@ export const SmallDefectList: React.FC<ISmallDefectListProps> = props => {
               <div key={index} className={css('list__item')}>
                 <div className={css('list__item__detail')}>
                   <div className={css('img')}></div>
-                  <div className={css('key')}>{item.key}</div>
+                  <div
+                    className={css('key')}
+                    onClick={() =>
+                      open(`/osc/workspaces/${(item as any)?.workspace?.key}/item/${item?.key}`)
+                    }
+                  >
+                    {item.key}
+                  </div>
                   <div className={css('name')}>
                     <Typography.Text ellipsis={{ tooltip: item.name }}>{item.name}</Typography.Text>
                   </div>
