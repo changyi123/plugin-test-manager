@@ -179,6 +179,18 @@ const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
 
   const { itemDetail, runDetail, status, objectId } = data?.data;
 
+  const saveItem = (key: string) => {
+    return value => {
+      const runDetailBak = { ...runDetail };
+      runDetailBak[key] = value;
+      // saveList(itemBak, index);
+      updateTestStep(runDetailBak, objectId, true).then(() => {
+        message.success('修改成功');
+        refresh && refresh();
+      });
+    };
+  };
+
   const changeRunInfo = (info: IRunDetail['detail']) => {
     const detailBak: IRunDetail = { ...runDetail };
     detailBak.detail = info;
@@ -230,7 +242,11 @@ const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
                 <UploadFile />
               </Collapse.Panel> */}
               <Collapse.Panel header="留言(点击文本编辑)" key="3">
-                <Comment />
+                <Comment
+                  placeholder="点击输入留言"
+                  value={runDetail.comment}
+                  save={() => saveItem('comment')}
+                />
               </Collapse.Panel>
             </Collapse>
           </Collapse.Panel>
