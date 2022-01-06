@@ -7,13 +7,17 @@ import { CaretRightOutlined, EllipsisOutlined } from '@ant-design/icons';
 import PanelTable, { ActionType } from '@/components/panel/PanelTable';
 import DropDownButton from '@/components/panel/DropDownButton';
 import { ColumnsType } from 'antd/es/table';
-import { GetTestRunsById, CreateTestExecutionWithItemModal } from '@/lib/api/runs';
-import TestTableStatus from '@/pages/run/components/TestTableStatus';
+import {
+  GetTestRunsById,
+  CreateTestExecutionWithItemModal,
+  toggleTestRunStatus,
+} from '@/lib/api/runs';
 import { useTestConfig, useBaseAction } from '@/lib/hooks/useContext';
 import { TestType } from '@/lib/constants';
 import { removeTestRelations } from '@/lib/api/common';
 import TestRunModal from '@/pages/run/Modal';
 import { getDevConfig } from '@/devEnv';
+import { StatusBadge } from '@/components/common/Status';
 
 import css from './index.less';
 
@@ -75,7 +79,13 @@ const Runs: React.FC = () => {
     {
       title: '状态',
       dataIndex: 'status',
-      render: (value, item) => <TestTableStatus status={value} testId={item.testRunId} />,
+      render: (_, record) => {
+        const handleStatusChange = async status => {
+          await toggleTestRunStatus(record.testRunId, status);
+          tableActionRef.current.refresh();
+        };
+        return <StatusBadge status={record?.status} onStatusChange={handleStatusChange} />;
+      },
     },
     {
       title: '执行',
