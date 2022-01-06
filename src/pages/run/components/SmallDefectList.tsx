@@ -55,6 +55,7 @@ export const SmallDefectList: React.FC<ISmallDefectListProps> = props => {
   if (!items.length) {
     return <div></div>;
   }
+  const open = (url: string) => window.open(url);
 
   return (
     <div className={css('list')}>
@@ -66,7 +67,14 @@ export const SmallDefectList: React.FC<ISmallDefectListProps> = props => {
               <div key={index} className={css('list__item')}>
                 <div className={css('list__item__detail')}>
                   <div className={css('img')}></div>
-                  <div className={css('key')}>{item.key}</div>
+                  <div
+                    className={css('key')}
+                    onClick={() =>
+                      open(`/osc/workspaces/${(item as any)?.workspace?.key}/item/${item?.key}`)
+                    }
+                  >
+                    {item.key}
+                  </div>
                   <div className={css('name')}>
                     <Typography.Text ellipsis={{ tooltip: item.name }}>{item.name}</Typography.Text>
                   </div>
