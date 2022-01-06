@@ -8,7 +8,7 @@ type TestDetailTableProps = {
   total: number;
   dataSource: any[];
   selectedFolderKey?: string;
-  onPageChange?: (currentPage: number, pageSize: number) => void;
+  onPageChange?: (current: number, pageSize: number) => void;
 };
 
 const TestDetailTable: React.FC<TestDetailTableProps> = ({
@@ -17,6 +17,16 @@ const TestDetailTable: React.FC<TestDetailTableProps> = ({
   onPageChange,
   selectedFolderKey,
 }) => {
+  const [pagination, setPagination] = React.useState({
+    current: 1,
+    pageSize: 20,
+  });
+  React.useEffect(() => {
+    setPagination(prev => ({
+      ...prev,
+      current: 1,
+    }));
+  }, [selectedFolderKey]);
   // BodyRow component
   const BodyRow = props => {
     const ref = React.useRef(null);
@@ -29,6 +39,17 @@ const TestDetailTable: React.FC<TestDetailTableProps> = ({
     );
     return <tr ref={ref} {...props}></tr>;
   };
+
+  const handlePageChange = React.useCallback(
+    (current, pageSize) => {
+      setPagination({
+        current,
+        pageSize,
+      });
+      onPageChange(current, pageSize);
+    },
+    [onPageChange],
+  );
 
   const components = {
     body: {
@@ -58,12 +79,13 @@ const TestDetailTable: React.FC<TestDetailTableProps> = ({
       sticky
       components={components}
       pagination={{
+        ...pagination,
         total,
         size: 'small',
         defaultPageSize: 20,
         showSizeChanger: true,
         hideOnSinglePage: true,
-        onChange: onPageChange,
+        onChange: handlePageChange,
         showTotal: total => <span>共 {total} 个测试用例</span>,
       }}
       rowKey="objectId"

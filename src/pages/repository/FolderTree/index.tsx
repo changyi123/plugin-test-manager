@@ -6,7 +6,7 @@ import { hasArrayItem, getRootContainer } from '@/lib/utils/helper';
 import { createFolder, updateFolders, deleteFolder } from '@/lib/api/repository';
 import { useTestConfig, useBaseAction } from '@/lib/hooks/useContext';
 import { useTreeFn, traverseTreeNodes } from '../hook';
-import { openFolderMenu, MenuKey, FolderMenu } from '../Menu';
+import { MenuKey, FolderMenu } from '../Menu';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import { Tree, Button, Modal, Input, message, Empty, Dropdown } from '@osui/ui';
 import { PlusOutlined, CustomMore, CustomScreenOff } from '@/icons';
@@ -207,6 +207,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         message.success(`模块重命被为【${newFolderName}】`);
       } else if (actionKey === MenuKey.deleteFolder) {
         Modal.confirm({
+          className: cx('confirm'),
           getContainer: getRootContainer,
           title: '删除模块',
           content: (
@@ -352,32 +353,44 @@ const FolderTree: React.FC<FolderTreeProps> = ({
   const ToolKitButtons = [
     {
       title: '创建模块',
-      icon: <PlusOutlined />,
-      onClick() {
-        handleMenuClick(MenuKey.createFolder, selectedTreeNode);
-      },
+      Button: (
+        <Button
+          key="创建模块"
+          onClick={() => handleMenuClick(MenuKey.createFolder, selectedTreeNode)}
+          style={{ height: 24, width: 24 }}
+          icon={<PlusOutlined />}
+          type="text"
+        />
+      ),
     },
     {
       title: '折叠全部',
-      icon: <CustomScreenOff />,
-      onClick() {
-        state.expandedKeys = [];
-      },
+      Button: (
+        <Button
+          key="折叠全部"
+          style={{ height: 24, width: 24 }}
+          onClick={() => (state.expandedKeys = [])}
+          icon={<CustomScreenOff />}
+          type="text"
+        />
+      ),
     },
     {
       title: '更多',
-      icon: <CustomMore />,
-      onClick(e) {
-        if (selectedTreeNode.key === ROOT_FOLDER_KEY) return;
-        openFolderMenu(e.target, {
-          x: e.clientX,
-          y: e.clientY,
-          disabledKeys: folderMenuDisabledKeys,
-          onClick(key: MenuKey) {
-            handleMenuClick(key, selectedTreeNode || {});
-          },
-        });
-      },
+      Button: (
+        <Dropdown
+          key="更多"
+          disabled={selectedTreeNode?.key === ROOT_FOLDER_KEY}
+          overlay={
+            <FolderMenu
+              onClick={key => handleMenuClick(key, selectedTreeNode || {})}
+              disabledKeys={folderMenuDisabledKeys}
+            />
+          }
+        >
+          <CustomMore />
+        </Dropdown>
+      ),
     },
   ];
 
@@ -392,7 +405,8 @@ const FolderTree: React.FC<FolderTreeProps> = ({
       let needUpdatedFolders = [];
       if (toFolderKey !== ROOT_FOLDER_KEY) {
         needUpdatedFolders = needUpdatedFolders.concat(targetNode);
-      } else if (fromFolderKey !== ROOT_FOLDER_KEY) {
+      }
+      if (fromFolderKey !== ROOT_FOLDER_KEY) {
         needUpdatedFolders = needUpdatedFolders.concat(sourceNode);
       }
 
@@ -435,19 +449,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
 
   return (
     <div className={cx('folder-tree', className)}>
-      <div className={cx('toolkit-bar')}>
-        {ToolKitButtons.map(button => (
-          <Button
-            type="text"
-            style={{ width: 24, height: 24 }}
-            key={button.title}
-            onClick={button?.onClick}
-            title={button.title}
-            icon={button.icon}
-            size="small"
-          />
-        ))}
-      </div>
+      <div className={cx('toolkit-bar')}>{ToolKitButtons.map(({ Button }) => Button)}</div>
 
       <DirectoryTree
         treeData={treeData}

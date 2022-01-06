@@ -63,7 +63,7 @@ const Badge: React.FC<BadgeProps> = props => {
         visible={visible}
         placement="bottomLeft"
         content={PopoverContent}
-        onVisibleChange={setVisible}
+        onVisibleChange={visible => !props.readonly && setVisible(visible)}
         overlayClassName={cx('status-badge-overlay')}
       >
         <div>

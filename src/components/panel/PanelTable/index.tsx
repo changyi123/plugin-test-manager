@@ -1,6 +1,6 @@
 import React from 'react';
-import { Table } from '@osui/ui';
 import { get, uniqBy } from 'lodash';
+import { Table, Button } from '@osui/ui';
 import { TableProps } from 'antd/lib/table';
 import { DownOutlined } from '@ant-design/icons';
 import { hasArrayItem } from '@/lib/utils/helper';
@@ -96,6 +96,7 @@ const PanelTable: React.FC<PanelTableProps> = props => {
           >
             批量选择 <DownOutlined />
           </DropDownButton>
+          {/* <Button type="default">批量选择</Button> */}
           {hasArrayItem(selectedRowKeys) && hasArrayItem(actionMenuList) ? (
             <DropDownButton
               className={cx('button-select')}
@@ -123,6 +124,9 @@ const PanelTable: React.FC<PanelTableProps> = props => {
       <Table
         {...tableProps}
         {...restTableProps}
+        scroll={{
+          x: 'max-content',
+        }}
         pagination={{
           ...tableProps.pagination,
           size: 'small',

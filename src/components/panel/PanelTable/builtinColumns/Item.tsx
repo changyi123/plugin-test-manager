@@ -1,24 +1,26 @@
 import React from 'react';
 import { Typography } from '@osui/ui';
+import OverflowTooltip from '@/components/common/OverflowTooltip';
 
 import cx from './style.less';
 
 /** 事项 id */
 export const ItemKey = {
   title: '事项ID',
-  width: 120,
+  width: 186,
   cellRenderer({ item }) {
     if (!item) return <span style={{ color: '#ccc' }}>关联的事项已被删除</span>;
     return (
-      <Typography.Link
-        ellipsis={true}
-        target="_blank"
-        className={cx('item-key')}
-        // 租户处理
-        href={`/osc/workspaces/${item?.workspace?.key}/item/${item?.key}`}
-      >
-        {item?.key}
-      </Typography.Link>
+      <OverflowTooltip title={item?.key}>
+        <Typography.Link
+          target="_blank"
+          className={cx('item-key')}
+          // 租户处理
+          href={`/osc/workspaces/${item?.workspace?.key}/item/${item?.key}`}
+        >
+          {item?.key}
+        </Typography.Link>
+      </OverflowTooltip>
     );
   },
 };

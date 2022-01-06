@@ -1,0 +1,15 @@
+.inner-table {
+  :global {
+    .ant-table-cell {
+      &::before {
+        display: none !important;
+      }
+    }
+    .ant-table-thead > tr > th,
+    .ant-table-tbody > tr > td,
+    .ant-table tfoot > tr > th,
+    .ant-table tfoot > tr > td {
+      background-color: rgba(9, 30, 66, 0.02);
+    }
+  }
+}

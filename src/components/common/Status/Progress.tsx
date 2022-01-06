@@ -18,6 +18,7 @@ type StatusProgressProps = {
 
 const StatusProgress: React.FC<StatusProgressProps> = props => {
   const statusConfig = useStatusConfig();
+  const [visible, setVisible] = React.useState(false);
 
   const total = props.statuses?.length ?? 0;
 
@@ -68,7 +69,11 @@ const StatusProgress: React.FC<StatusProgressProps> = props => {
   }, [props.hasSummary, statuses, total]);
 
   return (
-    <Popover content={PopoverContent}>
+    <Popover
+      visible={visible}
+      onVisibleChange={visible => props?.hasSummary && setVisible(visible)}
+      content={PopoverContent}
+    >
       <div className={cx('progress')}>
         {statuses.map(status => (
           <span

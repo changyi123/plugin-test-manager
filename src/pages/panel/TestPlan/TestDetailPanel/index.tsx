@@ -22,6 +22,8 @@ import { useAllRelTestEntityIds } from '@/lib/hooks/useTest';
 import { getTestEntitiesByRelation, removeTestRelations } from '@/lib/api/common';
 import { createTestExecutionService, addTestDetailToPlanService } from './services';
 
+import cx from './index.less';
+
 const Test = () => {
   const { testEntity } = useTestConfig();
   const { createItemUseModal } = useBaseAction();
@@ -176,6 +178,7 @@ const Test = () => {
       {
         title: '执行轮次',
         key: 'execution',
+        width: 100,
         render: (_, record) => {
           return record.relRuns?.length ?? 0;
         },
@@ -230,7 +233,6 @@ const Test = () => {
       {
         key: 'action',
         title: '操作',
-        // fixed: 'right',
         render() {
           return (
             <>
@@ -241,7 +243,13 @@ const Test = () => {
       },
     ];
     return (
-      <Table pagination={false} rowKey="objectId" columns={columns} dataSource={record.relRuns} />
+      <Table
+        pagination={false}
+        rowKey="objectId"
+        columns={columns}
+        className={cx('inner-table')}
+        dataSource={record.relRuns}
+      />
     );
   }, []);
 
@@ -263,12 +271,12 @@ const Test = () => {
         }}
         renderActions={() => (
           <>
-            <DropDownButton menuList={testDetailMenuList}>
-              添加测试用例 <DownOutlined />
-            </DropDownButton>
-            <DropDownButton menuList={testExecutionMenuList}>
+            <DropDownButton buttonProps={{ type: 'default' }} menuList={testExecutionMenuList}>
               创建测试执行
               <DownOutlined />
+            </DropDownButton>
+            <DropDownButton menuList={testDetailMenuList}>
+              添加测试用例 <DownOutlined />
             </DropDownButton>
           </>
         )}

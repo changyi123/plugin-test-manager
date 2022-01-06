@@ -119,9 +119,15 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
 
   const handleSelect = React.useCallback(
     node => {
+      if (node.key === state.selectedFolderKey) return;
+      // 重置分页参数
+      state.pagination = {
+        ...state.pagination,
+        offset: 0,
+      };
+      state.selectedFolderKey = node.key;
       const itemIds = node.itemIds;
       state.itemIds = itemIds;
-      state.selectedFolderKey = node.key;
       state.isRootFolder = node.key === ROOT_FOLDER_KEY;
       const breadcrumbs = [];
       reverseTreeNodes(treeNodeData, node, n => {
