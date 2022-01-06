@@ -56,7 +56,7 @@ export interface IActionCard {
   cloneCard: (id: string) => void;
   deleteCard: (id: string) => void;
   addCard: (id?: string) => void;
-  saveCard: (index?: number, step?: TestStep, atIndex?: number) => void;
+  saveCard: (index?: number, step?: TestStep, atIndex?: number, doNotRefresh?: boolean) => void;
   openCallTestModal: (index: number) => void;
 }
 
@@ -275,7 +275,7 @@ const Detail: React.FC = () => {
   );
 
   const saveCard = useCallback(
-    (index?: number, step?: TestStep, atIndex?: number) => {
+    (index?: number, step?: TestStep, atIndex?: number, doNotRefresh?: boolean) => {
       let stepsbak = [...steps];
       // 指定保存哪个位置，如果无则保存全部
       if (step) {
@@ -289,7 +289,10 @@ const Detail: React.FC = () => {
         });
       }
       saveOrUpdateTestStep(stepsbak, testInfo?.objectId, currentObjectId).then(() => {
-        message.success('操作成功');
+        message.success('保存成功');
+        if (doNotRefresh) {
+          return;
+        }
         fetchData();
       });
     },

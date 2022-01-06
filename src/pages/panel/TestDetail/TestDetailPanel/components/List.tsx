@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {
-  Button,
   Divider,
   Dropdown,
   Menu,
@@ -11,7 +10,7 @@ import {
   Row,
   Col,
 } from '@osui/ui';
-import { HolderOutlined, CaretRightOutlined } from '@ant-design/icons';
+import { HolderOutlined, CaretRightOutlined, PlusOutlined } from '@ant-design/icons';
 import { useDrag, useDrop } from 'react-dnd';
 
 import { TestStep, IActionCard } from '..';
@@ -153,6 +152,31 @@ const List: React.FC<ListProps> = (props: ListProps) => {
     );
   };
 
+  const DividerLine: React.FC = props => {
+    return (
+      <div className={css('divider')}>
+        <div className={css('divider__line')}></div>
+        <Dropdown
+          overlay={
+            <Menu>
+              <Menu.Item key="1" onClick={() => addCard(item.id)}>
+                新建步骤
+              </Menu.Item>
+              <Menu.Item key="2" onClick={handleOpenModal}>
+                调用用例
+              </Menu.Item>
+            </Menu>
+          }
+          placement="bottomCenter"
+        >
+          <div className={css('divider__plus')}>
+            <PlusOutlined />
+          </div>
+        </Dropdown>
+      </div>
+    );
+  };
+
   const handleOpenModal = () => {
     const { index } = findCard(item.id);
     openCallTestModal(index);
@@ -161,19 +185,10 @@ const List: React.FC<ListProps> = (props: ListProps) => {
   const opacity = isDragging ? 0.5 : 1;
   console.log('更新啦', item.id);
 
-  return (
+  return isExpand ? (
     <div ref={node => drop(node)} style={{ opacity }} className={css('around')}>
-      {/* <Divider plain className={css('around__divider')}>
-        <span>
-          <Button type="link" onClick={() => addCard(item.id)}>
-            新步骤
-          </Button>
-          <Divider type="vertical" />
-          <Button type="link" onClick={handleOpenModal}>
-            继承测试
-          </Button>
-        </span>
-      </Divider> */}
+      <DividerLine />
+
       <div className={css('detail-list')} ref={preview}>
         <div className={[css('nav'), item.callTestId && css('call')].join(' ')}>
           <div className={css('nav__index')}>{props.index + 1}</div>
@@ -189,7 +204,20 @@ const List: React.FC<ListProps> = (props: ListProps) => {
                 <div className={css('step__fields__item')}>
                   <div className={css('step__fields__item__topic')}>操作</div>
                   <div className={css('step__fields__item__input')}>
-                    <FieldsInput value={action} />
+                    <FieldsInput
+                      value={action || '-'}
+                      change={e => {
+                        saveCard(
+                          props.index,
+                          {
+                            ...itemBak,
+                            action: e,
+                          },
+                          undefined,
+                          true,
+                        );
+                      }}
+                    />
                   </div>
                 </div>
               </Col>
@@ -198,7 +226,20 @@ const List: React.FC<ListProps> = (props: ListProps) => {
                 <div className={css('step__fields__item')}>
                   <div className={css('step__fields__item__topic')}>预期</div>
                   <div className={css('step__fields__item__input')}>
-                    <FieldsInput value={result} />
+                    <FieldsInput
+                      value={result || '-'}
+                      change={e => {
+                        saveCard(
+                          props.index,
+                          {
+                            ...itemBak,
+                            result: e,
+                          },
+                          undefined,
+                          true,
+                        );
+                      }}
+                    />
                   </div>
                 </div>
               </Col>
@@ -231,7 +272,20 @@ const List: React.FC<ListProps> = (props: ListProps) => {
                   <div className={css('step__fields__item')}>
                     <div className={css('step__fields__item__topic')}>数据</div>
                     <div className={css('step__fields__item__input')}>
-                      <FieldsInput value={data} />
+                      <FieldsInput
+                        value={data || '-'}
+                        change={e => {
+                          saveCard(
+                            props.index,
+                            {
+                              ...itemBak,
+                              data: e,
+                            },
+                            undefined,
+                            true,
+                          );
+                        }}
+                      />
                     </div>
                   </div>
                 </Col>
@@ -240,101 +294,93 @@ const List: React.FC<ListProps> = (props: ListProps) => {
           )}
         </div>
 
-        {isExpand ? (
-          <div className={css('tools')} onClick={e => e.stopPropagation()}>
-            <div className={css('tools__item')}>
-              <Tooltip placement="left" title={stepTools[IStepToolsKey.CLOSE].label}>
-                <div className={css('tools__item__icon')} onClick={() => expandItemCard(false)}>
-                  {stepTools[IStepToolsKey.CLOSE].icon}
-                </div>
-              </Tooltip>
-            </div>
-            <div className={css('tools__item')}>
-              <StepItemCopy
-                trigger={
-                  <div className={css('tools__item__icon')}>
-                    {stepTools[IStepToolsKey.COPY].icon}
-                  </div>
-                }
-              ></StepItemCopy>
-            </div>
-            <div className={css('tools__item')}>
-              <StepItemMove
-                trigger={
-                  <div className={css('tools__item__icon')}>
-                    {stepTools[IStepToolsKey.MOVE].icon}
-                  </div>
-                }
-              />
-            </div>
-            <div className={css('tools__item')}>
-              <StepItemDelete
-                trigger={
-                  <div className={css('tools__item__icon')}>
-                    {stepTools[IStepToolsKey.DELETE].icon}
-                  </div>
-                }
-              />
-            </div>
+        <div className={css('tools')} onClick={e => e.stopPropagation()}>
+          <div className={css('tools__item')}>
+            <Tooltip placement="left" title={stepTools[IStepToolsKey.CLOSE].label}>
+              <div className={css('tools__item__icon')} onClick={() => expandItemCard(false)}>
+                {stepTools[IStepToolsKey.CLOSE].icon}
+              </div>
+            </Tooltip>
           </div>
-        ) : (
-          <div className={css('tools')}>
-            <div className={[css('tools__item'), css('tools__expand')].join(' ')}>
-              <Dropdown
-                overlay={
-                  <Menu>
-                    <Menu.Item
-                      key="1"
-                      icon={stepTools[IStepToolsKey.OPEN].icon}
-                      onClick={() => expandItemCard(true)}
-                    >
-                      {stepTools[IStepToolsKey.OPEN].label}
-                    </Menu.Item>
-                    <Menu.Item key="2" icon={stepTools[IStepToolsKey.COPY].icon}>
-                      <StepItemCopy text={stepTools[IStepToolsKey.COPY].label} />
-                    </Menu.Item>
-                    <Menu.Item key="3" icon={stepTools[IStepToolsKey.MOVE].icon}>
-                      <StepItemMove text={stepTools[IStepToolsKey.MOVE].label} />
-                    </Menu.Item>
-                    <Menu.Item key="4" icon={stepTools[IStepToolsKey.DELETE].icon}>
-                      <StepItemDelete text={stepTools[IStepToolsKey.DELETE].label} />
-                    </Menu.Item>
-                  </Menu>
-                }
-                placement="bottomCenter"
-              >
-                <div className={css('tools__item__icon')}>{stepTools[IStepToolsKey.MORE].icon}</div>
-              </Dropdown>
-            </div>
-          </div>
-        )}
-      </div>
-      {isExpand && editState && (
-        <div className={css('detail-footer')}>
-          <Button
-            type="primary"
-            onClick={() => {
-              saveCard(props.index, itemBak);
-              setEditState(false);
-            }}
-          >
-            保存
-          </Button>
-          <Button
-            type="default"
-            onClick={() => {
-              if (item.id === '-1') {
-                deleteCard(item.id);
-                return;
+          <div className={css('tools__item')}>
+            <StepItemCopy
+              trigger={
+                <div className={css('tools__item__icon')}>{stepTools[IStepToolsKey.COPY].icon}</div>
               }
-              setItemBak(item);
-              toggleEditState(false);
-            }}
-          >
-            取消
-          </Button>
+            ></StepItemCopy>
+          </div>
+          <div className={css('tools__item')}>
+            <StepItemMove
+              trigger={
+                <div className={css('tools__item__icon')}>{stepTools[IStepToolsKey.MOVE].icon}</div>
+              }
+            />
+          </div>
+          <div className={css('tools__item')}>
+            <StepItemDelete
+              trigger={
+                <div className={css('tools__item__icon')}>
+                  {stepTools[IStepToolsKey.DELETE].icon}
+                </div>
+              }
+            />
+          </div>
         </div>
-      )}
+      </div>
+    </div>
+  ) : (
+    <div ref={node => drop(node)} style={{ opacity }} className={css('around')}>
+      <DividerLine />
+
+      <div className={css('detail-list')} ref={preview}>
+        <div className={[css('nav'), item.callTestId && css('call')].join(' ')}>
+          <div className={[css('nav__index'), css('nav__index__expand')].join(' ')}>
+            {props.index + 1}
+          </div>
+          <div
+            className={[css('nav__drag'), css('nav__drag__expand')].join(' ')}
+            ref={node => drag(node)}
+          >
+            <HolderOutlined />
+          </div>
+        </div>
+
+        <div className={css('step')}>
+          <div className={css('step__expand')}>{action || '-'}</div>
+        </div>
+
+        <div className={css('tools')}>
+          <div className={[css('tools__item'), css('tools__expand')].join(' ')}>
+            <Dropdown
+              overlay={
+                <Menu>
+                  <Menu.Item
+                    key="1"
+                    icon={stepTools[IStepToolsKey.OPEN].icon}
+                    onClick={() => expandItemCard(true)}
+                  >
+                    {stepTools[IStepToolsKey.OPEN].label}
+                  </Menu.Item>
+                  <Menu.Item key="2" icon={stepTools[IStepToolsKey.COPY].icon}>
+                    <StepItemCopy text={stepTools[IStepToolsKey.COPY].label} />
+                  </Menu.Item>
+                  <Menu.Item key="3" icon={stepTools[IStepToolsKey.MOVE].icon}>
+                    <StepItemMove text={stepTools[IStepToolsKey.MOVE].label} />
+                  </Menu.Item>
+                  <Menu.Item key="4" icon={stepTools[IStepToolsKey.DELETE].icon}>
+                    <StepItemDelete text={stepTools[IStepToolsKey.DELETE].label} />
+                  </Menu.Item>
+                </Menu>
+              }
+              placement="bottomCenter"
+            >
+              <div className={[css('tools__item__icon'), css('tools__item__expand')].join(' ')}>
+                {stepTools[IStepToolsKey.MORE].icon}
+              </div>
+            </Dropdown>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
