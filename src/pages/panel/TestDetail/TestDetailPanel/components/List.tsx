@@ -9,6 +9,7 @@ import {
   Space,
   Row,
   Col,
+  Image,
 } from '@osui/ui';
 import { HolderOutlined, CaretRightOutlined, PlusOutlined } from '@ant-design/icons';
 import { useDrag, useDrop } from 'react-dnd';
@@ -43,15 +44,10 @@ const List: React.FC<ListProps> = (props: ListProps) => {
     openCallTestModal,
   } = actionCard;
 
-  const [editState, setEditState] = useState<boolean>(item.isEdit || false);
   const { isExpand } = item;
   const [itemBak, setItemBak] = useState<TestStep>(item);
   const { action, data, result, showMore } = itemBak; //attachments, customFields
   const [moreInfo, setMoreInfo] = useState<boolean>(showMore);
-
-  function toggleEditState(bol?: boolean) {
-    setEditState(bol === undefined ? !editState : bol);
-  }
 
   function expandItemCard(isExpand: boolean) {
     expandCard(item.id, isExpand);
@@ -152,7 +148,7 @@ const List: React.FC<ListProps> = (props: ListProps) => {
     );
   };
 
-  const DividerLine: React.FC = props => {
+  const DividerLine: React.FC = () => {
     return (
       <div className={css('divider')}>
         <div className={css('divider__line')}></div>
@@ -199,7 +195,21 @@ const List: React.FC<ListProps> = (props: ListProps) => {
 
         {item.callTestId && (
           <div className={css('step')}>
-            <div className={css('step')}>21312</div>
+            <div className={css('step__around')}>
+              <div className={css('step__around__header')}>
+                <div className={css('tips')}>用例调用</div>
+
+                {item?.itemObject?.itemType?.icon && (
+                  <div className={css('icon')}>
+                    <Image src={item?.itemObject?.itemType?.icon} />
+                  </div>
+                )}
+
+                <div className={css('label')}>{item?.itemObject?.key}</div>
+              </div>
+
+              <div className={css('step__around__content')}>{item?.itemObject?.name}</div>
+            </div>
           </div>
         )}
 
@@ -354,7 +364,16 @@ const List: React.FC<ListProps> = (props: ListProps) => {
         </div>
 
         <div className={css('step')}>
-          <div className={css('step__expand')}>{action || '-'}</div>
+          <div className={css('step__expand')}>
+            {item.callTestId ? (
+              <div className={css('step__expand__content')}>
+                <div className={css('tips')}>用例调用</div>
+                <div className={css('label')}>{item?.itemObject?.name}</div>
+              </div>
+            ) : (
+              action || '-'
+            )}
+          </div>
         </div>
 
         <div className={css('tools')}>

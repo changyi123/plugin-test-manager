@@ -65,7 +65,6 @@ export const StepItem: React.FC<IStepItemProps> = ({ index, item, saveList, test
       extraData: { token },
     });
     // token 不相同则不创建关联
-    console.log('ahwawdwadwd', extraData, token, testDefectEntity);
     if (extraData.token !== token) return;
 
     console.log('testDefectEntity', testDefectEntity);
