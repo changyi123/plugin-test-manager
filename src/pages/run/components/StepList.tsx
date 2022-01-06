@@ -10,6 +10,7 @@ import { useBaseAction } from '@/lib/hooks/useContext';
 import { TestType } from '@/lib/constants';
 import { SmallDefectListPopover } from './SmallDefectList';
 import { addDefect } from '@/lib/api/runs';
+import { useItemLinkTypeConfig } from './hooks';
 
 import css from './StepList.less';
 
@@ -46,6 +47,7 @@ export interface StepListProps {
 
 export const StepItem: React.FC<IStepItemProps> = ({ index, item, saveList, testId }) => {
   const { createItemUseModal } = useBaseAction();
+  const { TestToDefect = '' } = useItemLinkTypeConfig();
   const saveItem = useCallback(
     (key: string) => {
       return value => {
@@ -58,7 +60,6 @@ export const StepItem: React.FC<IStepItemProps> = ({ index, item, saveList, test
   );
 
   const createDefect = useCallback(async () => {
-    const defectItemType = 'Mwuo9Bp0LS';
     const token = uniqueId('TestDefect');
     const { item: defectItem, extraData } = await createItemUseModal({
       type: TestType.TestDefect,
@@ -68,7 +69,7 @@ export const StepItem: React.FC<IStepItemProps> = ({ index, item, saveList, test
     console.log('ahwawdwadwd', extraData, token, item, defectItem);
     if (extraData.token !== token) return;
 
-    addDefect(defectItemType, testId, [defectItem.objectId]).then(() => {
+    addDefect(TestToDefect, testId, [defectItem.objectId]).then(() => {
       message.success('添加成功');
       if (item.defectIds && item.defectIds.length) {
         saveItem('defectIds')([...item.defectIds, defectItem.objectId]);
@@ -76,7 +77,7 @@ export const StepItem: React.FC<IStepItemProps> = ({ index, item, saveList, test
       }
       saveItem('defectIds')([defectItem.objectId]);
     });
-  }, [createItemUseModal, testId, item, saveItem]);
+  }, [createItemUseModal, testId, item, saveItem, TestToDefect]);
 
   const menu = (
     <Menu>

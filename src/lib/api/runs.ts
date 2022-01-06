@@ -670,7 +670,13 @@ export const deleteItemLink = (links: string[] | string) => {
   return Parse.Object.destroyAll(linkObjs);
 };
 
-export const addDefect = async (linkType: string, testId: string, defectItemIds: string[]) => {
+export const addDefect = async (linkTypeKey: string, testId: string, defectItemIds: string[]) => {
+  // 获取事项关联类型id
+  const linkTypeQuery = new Parse.Query(ItemLinkType);
+  linkTypeQuery.equalTo('key', linkTypeKey);
+  const linkTypeRes = await linkTypeQuery.first();
+  const linkType = linkTypeRes.id;
+
   const testRunQuery = new Parse.Query(Test);
   testRunQuery.equalTo('objectId', testId);
   testRunQuery.include('runReferenceDetail');
@@ -702,7 +708,17 @@ export const addDefect = async (linkType: string, testId: string, defectItemIds:
   return createItemLink(itemLink);
 };
 
-export const deleteDefect = async (linkType: string, testId: string, defectItemIds: string[]) => {
+export const deleteDefect = async (
+  linkTypeKey: string,
+  testId: string,
+  defectItemIds: string[],
+) => {
+  // 获取事项关联类型id
+  const linkTypeQuery = new Parse.Query(ItemLinkType);
+  linkTypeQuery.equalTo('key', linkTypeKey);
+  const linkTypeRes = await linkTypeQuery.first();
+  const linkType = linkTypeRes.id;
+
   const testRunQuery = new Parse.Query(Test);
   testRunQuery.equalTo('objectId', testId);
   testRunQuery.include('runReferenceDetail');
