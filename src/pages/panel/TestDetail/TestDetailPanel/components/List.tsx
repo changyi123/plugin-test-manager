@@ -197,91 +197,50 @@ const List: React.FC<ListProps> = (props: ListProps) => {
           </div>
         </div>
 
-        {item.callTestId && <div>asd</div>}
-
-        <div className={css('step')}>
-          <div className={css('step__fields')}>
-            <Row gutter={[24, 12]}>
-              <Col span={12}>
-                <div className={css('step__fields__item')}>
-                  <div className={css('step__fields__item__topic')}>操作</div>
-                  <div className={css('step__fields__item__input')}>
-                    <FieldsInput
-                      value={action || '-'}
-                      change={e => {
-                        saveCard(
-                          props.index,
-                          {
-                            ...itemBak,
-                            action: e,
-                          },
-                          undefined,
-                          true,
-                        );
-                      }}
-                    />
-                  </div>
-                </div>
-              </Col>
-
-              <Col span={12}>
-                <div className={css('step__fields__item')}>
-                  <div className={css('step__fields__item__topic')}>预期</div>
-                  <div className={css('step__fields__item__input')}>
-                    <FieldsInput
-                      value={result || '-'}
-                      change={e => {
-                        saveCard(
-                          props.index,
-                          {
-                            ...itemBak,
-                            result: e,
-                          },
-                          undefined,
-                          true,
-                        );
-                      }}
-                    />
-                  </div>
-                </div>
-              </Col>
-            </Row>
+        {item.callTestId && (
+          <div className={css('step')}>
+            <div className={css('step')}>21312</div>
           </div>
+        )}
 
-          <Divider className={css('step__line')} />
-
-          <div className={css('step__more')}>
-            <div
-              className={css('step__more__tips')}
-              onClick={e => {
-                e.stopPropagation();
-                setMoreInfo(!moreInfo);
-              }}
-            >
-              <Space size={4}>
-                <span>更多信息</span>
-                <CaretRightOutlined
-                  className={moreInfo !== undefined && (moreInfo ? css('show') : css('close'))}
-                />
-              </Space>
-            </div>
-          </div>
-
-          {moreInfo && (
-            <div className={[css('step__fields'), css('custom-fields')].join(' ')}>
+        {!item.callTestId && (
+          <div className={css('step')}>
+            <div className={css('step__fields')}>
               <Row gutter={[24, 12]}>
                 <Col span={12}>
                   <div className={css('step__fields__item')}>
-                    <div className={css('step__fields__item__topic')}>数据</div>
+                    <div className={css('step__fields__item__topic')}>操作</div>
                     <div className={css('step__fields__item__input')}>
                       <FieldsInput
-                        value={data || '-'}
+                        value={action || '-'}
                         change={e => {
                           saveCard(
                             props.index,
                             {
                               ...itemBak,
-                              data: e,
+                              action: e,
+                            },
+                            undefined,
+                            true,
+                          );
+                        }}
+                      />
+                    </div>
+                  </div>
+                </Col>
+
+                <Col span={12}>
+                  <div className={css('step__fields__item')}>
+                    <div className={css('step__fields__item__topic')}>预期</div>
+                    <div className={css('step__fields__item__input')}>
+                      <FieldsInput
+                        value={result || '-'}
+                        change={e => {
+                          saveCard(
+                            props.index,
+                            {
+                              ...itemBak,
+                              result: e,
                             },
                             undefined,
                             true,
@@ -293,8 +252,55 @@ const List: React.FC<ListProps> = (props: ListProps) => {
                 </Col>
               </Row>
             </div>
-          )}
-        </div>
+
+            <Divider className={css('step__line')} />
+
+            <div className={css('step__more')}>
+              <div
+                className={css('step__more__tips')}
+                onClick={e => {
+                  e.stopPropagation();
+                  setMoreInfo(!moreInfo);
+                }}
+              >
+                <Space size={4}>
+                  <span>更多信息</span>
+                  <CaretRightOutlined
+                    className={moreInfo !== undefined && (moreInfo ? css('show') : css('close'))}
+                  />
+                </Space>
+              </div>
+            </div>
+
+            {moreInfo && (
+              <div className={[css('step__fields'), css('custom-fields')].join(' ')}>
+                <Row gutter={[24, 12]}>
+                  <Col span={12}>
+                    <div className={css('step__fields__item')}>
+                      <div className={css('step__fields__item__topic')}>数据</div>
+                      <div className={css('step__fields__item__input')}>
+                        <FieldsInput
+                          value={data || '-'}
+                          change={e => {
+                            saveCard(
+                              props.index,
+                              {
+                                ...itemBak,
+                                data: e,
+                              },
+                              undefined,
+                              true,
+                            );
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </Col>
+                </Row>
+              </div>
+            )}
+          </div>
+        )}
 
         <div className={css('tools')} onClick={e => e.stopPropagation()}>
           <div className={css('tools__item')}>
