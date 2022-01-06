@@ -127,34 +127,12 @@
   .step {
     flex: 1;
 
-    &__content {
-      display: flex;
-      justify-content: flex-start;
-      align-items: flex-start;
-
-      &__item {
-        width: 50%;
-        margin-left: 12px;
-        &__topic {
-          margin-top: 12px;
-          font-size: 12px;
-          font-family: PingFangSC-Regular, PingFang SC;
-          font-weight: 400;
-          color: #878C96;
-          line-height: 20px;
-        }
-
-        &:first-child {
-          margin: 0 12px 0 12px;
-        }
-      }
-    }
-
     &__line {
       margin: 12px 0;
     }
 
     &__more {
+      padding-bottom: 14px;
       &__tips {
         display: inline-block;
         cursor: pointer;
@@ -164,6 +142,61 @@
         font-weight: 400;
         color: #878C96;
         line-height: 20px;
+        transition: all .3s;
+      }
+
+      .close {
+        transform: rotate(0);
+        animation: tipsRotateClose .3s;
+      }
+
+      .show {
+        transform: rotate(90deg);
+        animation: tipsRotateShow .3s;
+      }
+
+      @keyframes tipsRotateClose {
+        0% {
+          transform: rotate(90deg);
+        }
+        100% {
+          transform: rotate(0);
+        }
+      }
+
+      @keyframes tipsRotateShow {
+        0% {
+          transform: rotate(0);
+        }
+        100% {
+          transform: rotate(90deg);
+        }
+      }
+    }
+
+    &__fields {
+      margin-left: 12px;
+
+      &__item {
+        &__topic {
+          margin-top: 12px;
+          font-size: 12px;
+          font-family: PingFangSC-Regular, PingFang SC;
+          font-weight: 400;
+          color: #878C96;
+          line-height: 20px;
+        }
+
+        &__input {
+          margin-top: 8px;
+        }
+      }
+    }
+
+    .custom-fields {
+      padding-bottom: 12px;
+      .step__fields__item__topic {
+        margin-top: 0;
       }
     }
   }

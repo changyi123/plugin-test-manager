@@ -36,6 +36,7 @@ export interface TestStep {
   callTestId?: string;
   itemObject?: Item;
   isExpand?: boolean;
+  showMore?: boolean;
   isEdit?: boolean;
   id?: string;
   objectId?: string;

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import {
   Button,
-  Input,
   Divider,
   Dropdown,
   Menu,
@@ -9,15 +8,16 @@ import {
   Popconfirm,
   InputNumber,
   Space,
+  Row,
+  Col,
 } from '@osui/ui';
-import { HolderOutlined, EllipsisOutlined, CaretRightOutlined } from '@ant-design/icons';
+import { HolderOutlined, CaretRightOutlined } from '@ant-design/icons';
 import { useDrag, useDrop } from 'react-dnd';
 
 import { TestStep, IActionCard } from '..';
 import { stepTools, IStepToolsKey } from './ListConfig';
+import FieldsInput from './FieldsInput';
 import css from './List.less';
-
-const { TextArea } = Input;
 
 interface ListProps {
   item: TestStep;
@@ -47,7 +47,8 @@ const List: React.FC<ListProps> = (props: ListProps) => {
   const [editState, setEditState] = useState<boolean>(item.isEdit || false);
   const { isExpand } = item;
   const [itemBak, setItemBak] = useState<TestStep>(item);
-  const { action, data, result } = itemBak; //attachments, customFields
+  const { action, data, result, showMore } = itemBak; //attachments, customFields
+  const [moreInfo, setMoreInfo] = useState<boolean>(showMore);
 
   function toggleEditState(bol?: boolean) {
     setEditState(bol === undefined ? !editState : bol);
@@ -158,6 +159,7 @@ const List: React.FC<ListProps> = (props: ListProps) => {
   };
 
   const opacity = isDragging ? 0.5 : 1;
+  console.log('更新啦', item.id);
 
   return (
     <div ref={node => drop(node)} style={{ opacity }} className={css('around')}>
@@ -181,28 +183,61 @@ const List: React.FC<ListProps> = (props: ListProps) => {
         </div>
 
         <div className={css('step')}>
-          <div className={css('step__content')}>
-            <div className={css('step__content__item')}>
-              <div className={css('step__content__item__topic')}>操作</div>
-              <div className={css('step__content__item__input')}>编写</div>
-            </div>
+          <div className={css('step__fields')}>
+            <Row gutter={[24, 12]}>
+              <Col span={12}>
+                <div className={css('step__fields__item')}>
+                  <div className={css('step__fields__item__topic')}>操作</div>
+                  <div className={css('step__fields__item__input')}>
+                    <FieldsInput value={action} />
+                  </div>
+                </div>
+              </Col>
 
-            <div className={css('step__content__item')}>
-              <div className={css('step__content__item__topic')}>预期</div>
-              <div className={css('step__content__item__input')}>编写</div>
-            </div>
+              <Col span={12}>
+                <div className={css('step__fields__item')}>
+                  <div className={css('step__fields__item__topic')}>预期</div>
+                  <div className={css('step__fields__item__input')}>
+                    <FieldsInput value={result} />
+                  </div>
+                </div>
+              </Col>
+            </Row>
           </div>
 
           <Divider className={css('step__line')} />
 
           <div className={css('step__more')}>
-            <div className={css('step__more__tips')}>
-              <Space>
+            <div
+              className={css('step__more__tips')}
+              onClick={e => {
+                e.stopPropagation();
+                setMoreInfo(!moreInfo);
+              }}
+            >
+              <Space size={4}>
                 <span>更多信息</span>
-                <CaretRightOutlined />
+                <CaretRightOutlined
+                  className={moreInfo !== undefined && (moreInfo ? css('show') : css('close'))}
+                />
               </Space>
             </div>
           </div>
+
+          {moreInfo && (
+            <div className={[css('step__fields'), css('custom-fields')].join(' ')}>
+              <Row gutter={[24, 12]}>
+                <Col span={12}>
+                  <div className={css('step__fields__item')}>
+                    <div className={css('step__fields__item__topic')}>数据</div>
+                    <div className={css('step__fields__item__input')}>
+                      <FieldsInput value={data} />
+                    </div>
+                  </div>
+                </Col>
+              </Row>
+            </div>
+          )}
         </div>
 
         {isExpand ? (
