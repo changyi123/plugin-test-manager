@@ -70,13 +70,14 @@ export const useTreeFn = (nodes: TreeNode[]) => {
 
 /** 获取布局高度 */
 export const useLayoutHeight = () => {
+  const offsetY = 100;
   const [height, setHeight] = React.useState(700);
 
   React.useEffect(() => {
     const layoutElement = document.querySelector('[data-element-id="workspace.layout.content"]');
 
     if (layoutElement) {
-      setHeight(layoutElement.clientHeight);
+      setHeight(layoutElement.clientHeight - offsetY);
     }
   }, []);
   return height;

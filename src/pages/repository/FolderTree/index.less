@@ -95,7 +95,11 @@
       margin-top: 4px;
       cursor: pointer;
       font-size: 16px;
-      background-color: RGBA(30, 42, 61, 0.1);
+      background-color: RGBA(30, 42, 61, 0.4);
+      border-radius: 4px;
+      > svg {
+        color: #fff;
+      }
       &:hover {
         background-color: RGBA(30, 42, 61, 0.4);
       }
@@ -103,22 +107,28 @@
 
     .tree-node-length {
       margin-left: auto;
-      font-size: 12px;
-      width: 60px;
+      font-size: 14px;
+      color: var(--color-gray-7);
     }
 
     :global {
       .ant-tree-treenode {
         .ant-tree-node-content-wrapper,
         .ant-tree-switcher {
-          color: #172b4d !important;
+          color: #172b4d;
         }
         &-selected {
-          background-color: rgb(235, 242, 249);
+          background-color: rgba(226, 236, 255, 0.5);
+          border-radius: 4px;
         }
+        .ant-tree-node-content-wrapper.ant-tree-node-selected {
+          color: @highlight-color !important;
+        }
+
         &-dragover,
         &:hover {
-          background-color: rgb(216, 230, 243);
+          background-color: rgba(244, 244, 245, 0.7);
+          border-radius: 4px;
         }
         &:before {
           display: none;
@@ -131,6 +141,16 @@
     margin-top: 60px;
     .hint {
       font-size: 12px;
+    }
+  }
+}
+
+:root {
+  :global {
+    .ant-btn-dangerous {
+      color: var(--theme-error-color) !important;
+      border-color: var(--theme-error-color) !important;
+      background: var(--color-gray-1) !important;
     }
   }
 }

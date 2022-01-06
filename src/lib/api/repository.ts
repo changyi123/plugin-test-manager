@@ -1,6 +1,6 @@
 // import fetch from '../utils/fetch';
 import Parse from '@/lib/parse';
-import { Repository, Workspace } from '../models';
+import { Repository } from '../models';
 import { arrayToTree } from '@/lib/utils/arrayToTree';
 
 export const getFolderTree = async (workspaceKey: string) => {
@@ -34,7 +34,7 @@ export const createFolder = async (params: {
     name: params.name,
   });
 
-  await repository.save();
+  return await repository.save();
 };
 
 export const updateFolders = async (

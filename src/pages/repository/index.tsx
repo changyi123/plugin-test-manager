@@ -8,12 +8,12 @@ import { getFolderTree } from '@/lib/api/repository';
 import { useSDK } from '@projectproxima/plugin-sdk';
 import { getItemByIQL } from '@/lib/api/proxima';
 import { getDevConfig } from '@/devEnv';
-import { traverseTreeNodes, useLayoutHeight } from './hook';
+import { traverseTreeNodes, reverseTreeNodes, useLayoutHeight } from './hook';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import TestManagerProvider from '@/components/common/TestManagerProvider';
 
 import { Breadcrumb, Input } from '@osui/ui';
-import { MacCommandOutlined } from '@ant-design/icons';
+import { FileTextOutlined } from '@/icons';
 
 import { ROOT_FOLDER_KEY } from './constant';
 
@@ -46,7 +46,7 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
     },
   });
 
-  const { loading: folderTreeLoading, refresh: refreshFolderTree } = useRequest(
+  const { loading: folderTreeLoading, refreshAsync: refreshFolderTree } = useRequest(
     () => getFolderTree(workspaceKey),
     {
       ready: !!workspaceKey,
@@ -55,10 +55,6 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
       },
     },
   );
-
-  const handleFolderTreeChange = React.useCallback(() => {
-    refreshFolderTree();
-  }, [refreshFolderTree]);
 
   // 获取 item
   const fetchFolderItems = React.useCallback(() => {
@@ -89,20 +85,6 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
     config.itemTypeMap?.TestDetail,
   ]);
 
-  const handleSelect = React.useCallback(
-    (node, breadcrumbs) => {
-      const itemIds = node.itemIds;
-      state.itemIds = itemIds;
-      state.selectedFolderKey = node.key;
-      state.breadcrumb = breadcrumbs;
-      state.isRootFolder = node.key === ROOT_FOLDER_KEY;
-      // 第一次使用 useEffect 请求
-      if (!initialRef.current) return;
-      fetchFolderItems();
-    },
-    [fetchFolderItems, state],
-  );
-
   const handlePageChange = React.useCallback(
     (currentPage, limit) => {
       state.pagination = {
@@ -128,59 +110,80 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
       title: '未分组用例',
       parentId: null,
       itemIds: [],
-      icon: <MacCommandOutlined />,
+      icon: <FileTextOutlined />,
       // 测试案例库有且只有一个根模块
       children: [],
     };
     return [rootFolder].concat(folderTreeData);
   }, [folderTreeData]);
 
+  const handleSelect = React.useCallback(
+    node => {
+      const itemIds = node.itemIds;
+      state.itemIds = itemIds;
+      state.selectedFolderKey = node.key;
+      state.isRootFolder = node.key === ROOT_FOLDER_KEY;
+      const breadcrumbs = [];
+      reverseTreeNodes(treeNodeData, node, n => {
+        breadcrumbs.unshift(n.name);
+      });
+      state.breadcrumb = breadcrumbs;
+      // 第一次使用 useEffect 请求
+      if (!initialRef.current) return;
+      fetchFolderItems();
+    },
+    [fetchFolderItems, state, treeNodeData],
+  );
+
   const height = useLayoutHeight();
 
   return (
     <div className={cx('test-repository')}>
-      <ResizableBox
-        width={300}
-        height={height - 90}
-        className={cx('left')}
-        draggableOpts={{ enableUserSelectHack: false }}
-      >
-        <FolderTree
-          onSelect={handleSelect}
-          loading={folderTreeLoading}
-          treeNodeData={treeNodeData}
-          onFolderTreeChange={handleFolderTreeChange}
-        />
-      </ResizableBox>
+      <header className={cx('header')}>测试用例仓库</header>
+      <div className={cx('content')}>
+        <ResizableBox
+          width={300}
+          height={height}
+          className={cx('left')}
+          draggableOpts={{ enableUserSelectHack: false }}
+        >
+          <FolderTree
+            onSelect={handleSelect}
+            loading={folderTreeLoading}
+            treeNodeData={treeNodeData}
+            onFolderTreeChange={refreshFolderTree}
+          />
+        </ResizableBox>
 
-      <div className={cx('right')}>
-        <div className={cx('header')}>
-          <Breadcrumb className={cx('breadcrumb')}>
-            {state.breadcrumb.map((title, index) => (
-              <Breadcrumb.Item
-                className={cx(index !== state.breadcrumb.length - 1 && 'light')}
-                key={title}
-              >
-                {title}
-              </Breadcrumb.Item>
-            ))}
-          </Breadcrumb>
-          <Input.Search
-            className={cx('search')}
-            placeholder="请输入关键字"
-            style={{ width: 200 }}
-            value={state.searchValue}
-            onSearch={fetchFolderItems}
-            onChange={e => (state.searchValue = e.target.value)}
-          />
-        </div>
-        <div className={cx('main')}>
-          <TestDetailTable
-            total={state.total}
-            dataSource={state.items}
-            onPageChange={handlePageChange}
-            selectedFolderKey={state.selectedFolderKey}
-          />
+        <div className={cx('right')} style={{ height }}>
+          <div className={cx('breadcrumb-container')}>
+            <Breadcrumb className={cx('breadcrumb')} separator=">">
+              {state.breadcrumb.map((title, index) => (
+                <Breadcrumb.Item
+                  className={cx(index !== state.breadcrumb.length - 1 && 'light')}
+                  key={title}
+                >
+                  {title}
+                </Breadcrumb.Item>
+              ))}
+            </Breadcrumb>
+            <Input.Search
+              className={cx('search')}
+              placeholder="请输入关键字"
+              style={{ width: 200 }}
+              value={state.searchValue}
+              onSearch={fetchFolderItems}
+              onChange={e => (state.searchValue = e.target.value)}
+            />
+          </div>
+          <div className={cx('table-container')}>
+            <TestDetailTable
+              total={state.total}
+              dataSource={state.items}
+              onPageChange={handlePageChange}
+              selectedFolderKey={state.selectedFolderKey}
+            />
+          </div>
         </div>
       </div>
     </div>

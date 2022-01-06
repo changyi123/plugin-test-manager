@@ -223,6 +223,10 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
           eventBusRef.current.disposer = eventBusRef.current.register(
             ItemCreateSuccessEventType,
             data => {
+              // 清除事件监听
+              typeof eventBusRef?.current?.disposer?.unregister === 'function' &&
+                eventBusRef.current.disposer.unregister();
+
               const { testEntity, item } = data;
               // 创建的测试类型是否符合预期
               let expectedTestType = testEntity?.get('type') === type;

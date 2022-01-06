@@ -182,7 +182,7 @@ const Plan = () => {
   return (
     <div className={cx('test')}>
       <TestEntitySelectorModal
-        title="将当前用例添加至测试计划"
+        title="添加当前用例至选中的测试计划中"
         actionRef={selectorModalRef}
         testType={TestType.TestPlan}
         ignoreTestEntityIds={allTestEntityId}

@@ -3,13 +3,13 @@ import { uniq, uniqueId } from 'lodash';
 import { useReactive, useDrop } from 'ahooks';
 import { TestType } from '@/lib/constants';
 import { hasArrayItem, getRootContainer } from '@/lib/utils/helper';
-import { PlusOutlined, MoreOutlined, CompressOutlined } from '@ant-design/icons';
 import { createFolder, updateFolders, deleteFolder } from '@/lib/api/repository';
 import { useTestConfig, useBaseAction } from '@/lib/hooks/useContext';
 import { useTreeFn, traverseTreeNodes } from '../hook';
 import { openFolderMenu, MenuKey, FolderMenu } from '../Menu';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import { Tree, Button, Modal, Input, message, Empty, Dropdown } from '@osui/ui';
+import { PlusOutlined, CustomMore, CustomScreenOff } from '@/icons';
 
 import { ROOT_FOLDER_KEY } from '../constant';
 
@@ -100,8 +100,8 @@ type FolderTreeProps = {
   loading?: boolean;
   className?: string;
   treeNodeData: TreeNode[];
-  onFolderTreeChange?: () => void;
-  onSelect(node: TreeNode, breadcrumbs: string[]): void;
+  onSelect(node: TreeNode): void;
+  onFolderTreeChange?: () => Promise<any>;
 };
 
 const FolderTree: React.FC<FolderTreeProps> = ({
@@ -156,13 +156,9 @@ const FolderTree: React.FC<FolderTreeProps> = ({
   const handleSelect = React.useCallback(
     (selectedKeys, { node }) => {
       state.selectedKeys = selectedKeys;
-      const breadcrumbs = [];
-      treeFn.reverseTreeNodes(node, n => {
-        breadcrumbs.unshift(n.name);
-      });
-      onSelect(node, breadcrumbs);
+      onSelect(node);
     },
-    [onSelect, state, treeFn],
+    [onSelect, state],
   );
 
   /** 右键菜单处理函数 */
@@ -179,12 +175,22 @@ const FolderTree: React.FC<FolderTreeProps> = ({
           return;
         }
         const folderName = await openFolderNameModal({ title: '新建子模块' });
-        await createFolder({
+        const createdFolder = await createFolder({
           name: folderName,
           parentId: node?.key,
           workspaceKey: workspace?.key,
         });
         node?.key && state.expandedKeys.push(node.key);
+        const { objectId: createdFolderKey } = createdFolder.toJSON();
+        await onFolderTreeChange();
+        handleSelect([createdFolderKey], {
+          node: {
+            itemIds: [],
+            name: folderName,
+            parentId: node.key,
+            key: createdFolderKey,
+          },
+        });
         message.success('子模块新建成功');
       } else if (actionKey === MenuKey.renameFolder) {
         const newFolderName = await openFolderNameModal({
@@ -209,7 +215,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
               <div>模块下的子模块将会一同删除，模块内的用例仍保留且自动移至未分组用例下。</div>
             </>
           ),
-          okText: '继续',
+          okText: '删除',
           okButtonProps: {
             type: 'default',
             danger: true,
@@ -263,7 +269,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         });
       }
 
-      const NeedRefreshActionKeys = [MenuKey.createFolder, MenuKey.renameFolder];
+      const NeedRefreshActionKeys = [MenuKey.renameFolder];
       if (NeedRefreshActionKeys.includes(actionKey)) {
         onFolderTreeChange();
       }
@@ -353,14 +359,14 @@ const FolderTree: React.FC<FolderTreeProps> = ({
     },
     {
       title: '折叠全部',
-      icon: <CompressOutlined />,
+      icon: <CustomScreenOff />,
       onClick() {
         state.expandedKeys = [];
       },
     },
     {
       title: '更多',
-      icon: <MoreOutlined />,
+      icon: <CustomMore />,
       onClick(e) {
         if (selectedTreeNode.key === ROOT_FOLDER_KEY) return;
         openFolderMenu(e.target, {
@@ -417,10 +423,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
                 className={cx('tree-node-length')}
               >{`${node.length[0]}(${node.length[1]})`}</span>
               <Dropdown overlay={<FolderMenu onClick={({ key }) => handleMenuClick(key, node)} />}>
-                <MoreOutlined
-                  onClick={e => e.stopPropagation()}
-                  className={cx('tree-node-action')}
-                />
+                <CustomMore onClick={e => e.stopPropagation()} className={cx('tree-node-action')} />
               </Dropdown>
             </>
           ) : null}
@@ -435,6 +438,8 @@ const FolderTree: React.FC<FolderTreeProps> = ({
       <div className={cx('toolkit-bar')}>
         {ToolKitButtons.map(button => (
           <Button
+            type="text"
+            style={{ width: 24, height: 24 }}
             key={button.title}
             onClick={button?.onClick}
             title={button.title}
