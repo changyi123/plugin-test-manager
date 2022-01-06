@@ -183,19 +183,21 @@ const List: React.FC<ListProps> = (props: ListProps) => {
   };
 
   const opacity = isDragging ? 0.5 : 1;
-  console.log('更新啦', item.id);
+  console.log('更新啦', item);
 
   return isExpand ? (
     <div ref={node => drop(node)} style={{ opacity }} className={css('around')}>
       <DividerLine />
 
-      <div className={css('detail-list')} ref={preview}>
-        <div className={[css('nav'), item.callTestId && css('call')].join(' ')}>
+      <div className={[css('detail-list'), item.callTestId && css('call')].join(' ')} ref={preview}>
+        <div className={css('nav')}>
           <div className={css('nav__index')}>{props.index + 1}</div>
           <div className={[css('nav__drag')].join(' ')} ref={node => drag(node)}>
             <HolderOutlined />
           </div>
         </div>
+
+        {item.callTestId && <div>asd</div>}
 
         <div className={css('step')}>
           <div className={css('step__fields')}>
@@ -332,8 +334,8 @@ const List: React.FC<ListProps> = (props: ListProps) => {
     <div ref={node => drop(node)} style={{ opacity }} className={css('around')}>
       <DividerLine />
 
-      <div className={css('detail-list')} ref={preview}>
-        <div className={[css('nav'), item.callTestId && css('call')].join(' ')}>
+      <div className={[css('detail-list'), item.callTestId && css('call')].join(' ')} ref={preview}>
+        <div className={css('nav')}>
           <div className={[css('nav__index'), css('nav__index__expand')].join(' ')}>
             {props.index + 1}
           </div>
