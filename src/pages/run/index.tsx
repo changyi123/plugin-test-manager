@@ -3,7 +3,7 @@ import { Row, Col, Collapse, Divider, Space, Empty, message, Button } from '@osu
 import { PlusCircleOutlined } from '@ant-design/icons';
 import UploadFile from '@/components/common/UploadFile';
 import Comment from '@/components/common/Comment';
-import ItemList from './components/ItemList';
+import ItemList, { FileList } from './components/ItemList';
 import StepList, { IStepItem } from './components/StepList';
 import { StatusBadge } from '@/components/common/Status';
 import { useLocation } from 'react-router-dom';
@@ -201,8 +201,8 @@ const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
       <TestInfo detail={runDetail.detail} changeRunInfo={changeRunInfo} />
 
       <div className={css('run__around')}>
-        <Space direction="vertical" className={css('run__around__space')}>
-          <div className={css('run__around__collapse')}>
+        <div className={css('run__around__collapse')}>
+          <div className={css('run__around__collapse__item')}>
             <CustomCollapse title="总结">
               <CustomCollapse.Panel
                 title="缺陷"
@@ -215,51 +215,38 @@ const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
               >
                 <ItemList />
               </CustomCollapse.Panel>
+
+              <CustomCollapse.Panel
+                title="附件"
+                num={2}
+                titleExtra={[
+                  <Button key="1" type="link" icon={<PlusCircleOutlined />}>
+                    添加附件
+                  </Button>,
+                ]}
+              >
+                <FileList />
+              </CustomCollapse.Panel>
+
+              <CustomCollapse.Panel title="评论">
+                <FieldsInput />
+              </CustomCollapse.Panel>
             </CustomCollapse>
-            <Collapse bordered={true} defaultActiveKey={['1']}>
-              <Collapse.Panel header="总结" key="1">
-                <Collapse defaultActiveKey={['1', '2', '3']}>
-                  {/* <Collapse.Panel header="缺陷" key="1">
-                <ItemList />
-              </Collapse.Panel>
-              <Collapse.Panel header="附件" key="2">
-                <UploadFile />
-              </Collapse.Panel> */}
-                  <Collapse.Panel header="留言(点击文本编辑)" key="3">
-                    <Comment
-                      placeholder="点击输入留言"
-                      value={runDetail.comment}
-                      save={() => saveItem('comment')}
-                    />
-                  </Collapse.Panel>
-                </Collapse>
-              </Collapse.Panel>
-            </Collapse>
           </div>
 
-          <div className={css('run__around__collapse')}>
-            <Collapse defaultActiveKey={['2']}>
-              <Collapse.Panel header="详情" key="2">
-                <Collapse defaultActiveKey={['1', '2', '3']}>
-                  {/* <Collapse.Panel header="关联事项" key="1">
-                <ItemList />
-              </Collapse.Panel> */}
-                  {/* <Collapse.Panel header="前置条件" key="2.2">
-                <UploadFile />
-              </Collapse.Panel> */}
-                  <Collapse.Panel header="步骤" key="3">
-                    <StepList
-                      refresh={refresh}
-                      detail={runDetail}
-                      objectId={objectId}
-                      testId={currentTestId}
-                    />
-                  </Collapse.Panel>
-                </Collapse>
-              </Collapse.Panel>
-            </Collapse>
+          <div className={css('run__around__collapse__item')}>
+            <CustomCollapse title="测试用例详情">
+              <CustomCollapse.Panel title="测试用例关联事项" num={2}>
+                关联列表
+              </CustomCollapse.Panel>
+
+              <CustomCollapse.Panel title="用例步骤" num={2}>
+                测试步骤
+              </CustomCollapse.Panel>
+            </CustomCollapse>
           </div>
-        </Space>
+        </div>
+
         <Collapse defaultActiveKey={['1', '2']}>
           <Collapse.Panel header="总结" key="1">
             <Collapse defaultActiveKey={['1', '2', '3']}>
