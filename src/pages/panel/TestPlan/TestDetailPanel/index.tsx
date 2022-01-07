@@ -21,7 +21,7 @@ import { StatusBadge } from '@/components/common/Status';
 import { useAllRelTestEntityIds } from '@/lib/hooks/useTest';
 import { getTestEntitiesByRelation, removeTestRelations } from '@/lib/api/common';
 import { createTestExecutionService, addTestDetailToPlanService } from './services';
-import { QuestionCircleFilled } from '@/icons';
+import { QuestionCircleOutlined } from '@/icons';
 
 import cx from './index.less';
 
@@ -221,7 +221,7 @@ const Test = () => {
           <span>
             <Tooltip title="该测试用例的运行包含以下执行轮次">
               测试执行轮次
-              <QuestionCircleFilled style={{ marginLeft: 8 }} />
+              <QuestionCircleOutlined style={{ marginLeft: 8 }} />
             </Tooltip>
           </span>
         ),

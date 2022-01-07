@@ -38,7 +38,7 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
     selectedFolderKey: '',
   });
 
-  const { run: fetchItems } = useRequest(getItemByIQL, {
+  const { run: fetchItems, loading: tableLoading } = useRequest(getItemByIQL, {
     manual: true,
     onSuccess({ items, count }) {
       state.items = items;
@@ -119,12 +119,14 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
 
   const handleSelect = React.useCallback(
     node => {
-      if (node.key === state.selectedFolderKey) return;
-      // 重置分页参数
-      state.pagination = {
-        ...state.pagination,
-        offset: 0,
-      };
+      if (state.selectedFolderKey !== node?.key) {
+        // 重置分页参数
+        state.pagination = {
+          ...state.pagination,
+          offset: 0,
+        };
+      }
+
       state.selectedFolderKey = node.key;
       const itemIds = node.itemIds;
       state.itemIds = itemIds;
@@ -163,10 +165,13 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
 
         <div className={cx('right')} style={{ height }}>
           <div className={cx('breadcrumb-container')}>
-            <Breadcrumb className={cx('breadcrumb')} separator=">">
+            <Breadcrumb
+              className={cx('breadcrumb')}
+              separator={<span className={cx('separator')}>&gt;</span>}
+            >
               {state.breadcrumb.map((title, index) => (
                 <Breadcrumb.Item
-                  className={cx(index !== state.breadcrumb.length - 1 && 'light')}
+                  className={cx(index !== state.breadcrumb.length - 1 && 'secondary')}
                   key={title}
                 >
                   {title}
@@ -185,6 +190,7 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
           <div className={cx('table-container')}>
             <TestDetailTable
               total={state.total}
+              loading={tableLoading}
               dataSource={state.items}
               onPageChange={handlePageChange}
               selectedFolderKey={state.selectedFolderKey}

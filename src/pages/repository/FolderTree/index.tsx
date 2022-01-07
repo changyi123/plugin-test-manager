@@ -383,11 +383,12 @@ const FolderTree: React.FC<FolderTreeProps> = ({
 
   const handleItemDrop = React.useCallback(
     async ({ itemId, toFolderKey, fromFolderKey }) => {
+      if (fromFolderKey === toFolderKey) return;
       const sourceNode = treeFn.getTreeNodeByKey(fromFolderKey);
       const targetNode = treeFn.getTreeNodeByKey(toFolderKey);
 
       sourceNode.itemIds = sourceNode.itemIds.filter(id => id !== itemId);
-      targetNode.itemIds = targetNode.itemIds.concat(itemId);
+      targetNode.itemIds = uniq(targetNode.itemIds.concat(itemId));
 
       let needUpdatedFolders = [];
       if (toFolderKey !== ROOT_FOLDER_KEY) {

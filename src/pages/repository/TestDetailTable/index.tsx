@@ -7,12 +7,14 @@ import { BuiltinColumns, columnBuilder } from '@/components/panel/PanelTable';
 type TestDetailTableProps = {
   total: number;
   dataSource: any[];
+  loading?: boolean;
   selectedFolderKey?: string;
   onPageChange?: (current: number, pageSize: number) => void;
 };
 
 const TestDetailTable: React.FC<TestDetailTableProps> = ({
   total,
+  loading,
   dataSource,
   onPageChange,
   selectedFolderKey,
@@ -77,6 +79,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = ({
   return (
     <Table
       sticky
+      loading={loading}
       components={components}
       pagination={{
         ...pagination,
