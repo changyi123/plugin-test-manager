@@ -197,6 +197,9 @@ export interface Item {
   name?: string;
   objectId?: string;
   tenant?: string;
+  itemType?: {
+    icon?: string;
+  };
 }
 
 export const GetItemFromItemType = (itemTypeName: string, name?: string): Promise<Array<Item>> => {
