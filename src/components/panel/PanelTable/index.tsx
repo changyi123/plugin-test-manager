@@ -4,7 +4,7 @@ import { Table, Button } from '@osui/ui';
 import { TableProps } from 'antd/lib/table';
 import { DownOutlined } from '@ant-design/icons';
 import { hasArrayItem } from '@/lib/utils/helper';
-import { useAntdTable, useGetState } from 'ahooks';
+import { useAntdTable, useSafeState } from 'ahooks';
 import DropDownButton from '@/components/panel/DropDownButton';
 
 import cx from './index.less';
@@ -24,7 +24,8 @@ const PanelTable: React.FC<PanelTableProps> = props => {
   // 全量的 row 数据
   const allRowDataRef = React.useRef([]);
 
-  const [selectedRowKeys, setSelectedRowKeys] = useGetState([]);
+  const [selectedRowKeys, setSelectedRowKeys] = useSafeState([]);
+  const [batchSelect, setBatchSelect] = useSafeState(false);
 
   const { tableProps, refresh } = useAntdTable(
     ({ current, pageSize }) => {
@@ -60,61 +61,41 @@ const PanelTable: React.FC<PanelTableProps> = props => {
   }, [columns]);
 
   const rowSelection = React.useMemo(
-    () => ({
-      fixed: true,
-      hideSelectAll: true,
-      preserveSelectedRowKeys: true,
-      selectedRowKeys: selectedRowKeys,
-      onChange: selectedRowKeys => {
-        setSelectedRowKeys(selectedRowKeys);
+    () =>
+      batchSelect && {
+        fixed: true,
+        // hideSelectAll: true,
+        preserveSelectedRowKeys: true,
+        selectedRowKeys: selectedRowKeys,
+        onChange: selectedRowKeys => {
+          setSelectedRowKeys(selectedRowKeys);
+        },
       },
-    }),
-    [selectedRowKeys, setSelectedRowKeys],
+    [batchSelect, selectedRowKeys, setSelectedRowKeys],
   );
+
+  const handleBatchSelect = React.useCallback(() => {
+    setBatchSelect(prev => !prev);
+  }, [setBatchSelect]);
 
   return (
     <div className={cx('table')}>
-      <div className={cx('actions')}>
+      <div className={cx('actions-header')}>
         <div className={cx('left')}>
-          <DropDownButton
-            menuList={[
-              {
-                onClick() {
-                  const keys = tableProps.dataSource.map(data => get(data, props.rowKey as string));
-                  setSelectedRowKeys(keys);
-                },
-                title: '本页全部',
-              },
-              {
-                onClick() {
-                  setSelectedRowKeys([]);
-                },
-                title: '取消选择',
-              },
-            ]}
-            buttonProps={{ type: 'default' }}
-          >
-            批量选择 <DownOutlined />
-          </DropDownButton>
-          {/* <Button type="default">批量选择</Button> */}
-          {hasArrayItem(selectedRowKeys) && hasArrayItem(actionMenuList) ? (
-            <DropDownButton
-              className={cx('button-select')}
-              buttonProps={{ type: 'default' }}
-              menuList={(actionMenuList ?? []).map(action => ({
-                ...action,
-                onClick() {
-                  action.onClick(
-                    allRowDataRef.current.filter(row =>
-                      selectedRowKeys.includes(get(row, props.rowKey as string)),
-                    ),
-                  );
-                },
-              }))}
-            >
-              ({selectedRowKeys.length})个已选择
-              <DownOutlined />
-            </DropDownButton>
+          <Button type="default" onClick={handleBatchSelect}>
+            {batchSelect ? '取消选择' : '批量选择'}
+          </Button>
+          {batchSelect ? (
+            <div className={cx('select-tip')}>已选 {selectedRowKeys.length} 条</div>
+          ) : null}
+          {batchSelect && hasArrayItem(actionMenuList) ? (
+            <div className={cx('actions')}>
+              {actionMenuList.map((action, index) => (
+                <a key={index} onClick={action?.onClick}>
+                  {action.title}
+                </a>
+              ))}
+            </div>
           ) : null}
         </div>
         {typeof renderActions === 'function' ? (

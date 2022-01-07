@@ -177,8 +177,9 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         const folderName = await openFolderNameModal({ title: '新建子模块' });
         const createdFolder = await createFolder({
           name: folderName,
-          parentId: node?.key,
           workspaceKey: workspace?.key,
+          // 忽略根目录 folder key
+          parentId: node?.key === ROOT_FOLDER_KEY ? null : node?.key,
         });
         node?.key && state.expandedKeys.push(node.key);
         const { objectId: createdFolderKey } = createdFolder.toJSON();

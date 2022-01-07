@@ -7,7 +7,7 @@ import cx from './style.less';
 /** 事项 id */
 export const ItemKey = {
   title: '事项ID',
-  width: 186,
+  width: 170,
   cellRenderer({ item }) {
     if (!item) return <span style={{ color: '#ccc' }}>关联的事项已被删除</span>;
     return (
@@ -28,7 +28,7 @@ export const ItemKey = {
 /** 事项标题 */
 export const ItemTitle = {
   title: '标题',
-  width: 140,
+  width: 160,
   cellRenderer({ item }) {
     if (!item) return <span style={{ color: '#ccc' }}>关联的事项已被删除</span>;
     return <Typography.Text ellipsis={{ tooltip: item?.name }}>{item?.name}</Typography.Text>;

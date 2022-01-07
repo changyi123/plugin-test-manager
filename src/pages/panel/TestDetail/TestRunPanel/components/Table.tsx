@@ -74,6 +74,7 @@ const RunsTable: React.FC<RunsTableProps> = ({ data }) => {
     },
     {
       title: '操作',
+      width: 120,
       key: 'action',
       render: value => <ActionBtn itemId={value} />,
     },

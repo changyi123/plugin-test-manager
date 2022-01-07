@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { uniqueId } from 'lodash';
-import { Table } from '@osui/ui';
+import { Table, Tooltip } from '@osui/ui';
 import { alert } from '@/lib/utils/helper';
 import { Workspace } from '@/lib/types/App';
 import { DownOutlined } from '@ant-design/icons';
@@ -21,6 +21,7 @@ import { StatusBadge } from '@/components/common/Status';
 import { useAllRelTestEntityIds } from '@/lib/hooks/useTest';
 import { getTestEntitiesByRelation, removeTestRelations } from '@/lib/api/common';
 import { createTestExecutionService, addTestDetailToPlanService } from './services';
+import { QuestionCircleFilled } from '@/icons';
 
 import cx from './index.less';
 
@@ -178,7 +179,7 @@ const Test = () => {
       {
         title: '执行轮次',
         key: 'execution',
-        width: 100,
+        width: 90,
         render: (_, record) => {
           return record.relRuns?.length ?? 0;
         },
@@ -190,6 +191,9 @@ const Test = () => {
       {
         title: '操作',
         key: 'action',
+        align: 'center' as any,
+        fixed: 'right' as any,
+        width: 90,
         render: (_, record) => (
           <>
             <a onClick={() => removeTestRelation([record.testRelationId])}>删除</a>
@@ -213,10 +217,15 @@ const Test = () => {
     const columns = [
       {
         key: 'execution',
-        title: '测试运行轮次',
-        ellipsis: {
-          showTitle: false,
-        },
+        title: (
+          <span>
+            <Tooltip title="该测试用例的运行包含以下执行轮次">
+              测试执行轮次
+              <QuestionCircleFilled style={{ marginLeft: 8 }} />
+            </Tooltip>
+          </span>
+        ),
+        width: 160,
         tooltip: true,
         render(_, record) {
           const name = record.relExecutions?.[0]?.reference?.name;
@@ -225,7 +234,8 @@ const Test = () => {
       },
       {
         key: 'status',
-        title: '执行状态',
+        title: '测试执行状态',
+        width: 150,
         render(_, record) {
           return <StatusBadge status={record.status} readonly />;
         },
@@ -233,6 +243,7 @@ const Test = () => {
       {
         key: 'action',
         title: '操作',
+        width: 120,
         render() {
           return (
             <>

@@ -116,6 +116,7 @@ const Test = () => {
       },
       {
         title: '操作',
+        width: 120,
         key: 'action',
         render: (_, record) => (
           <a onClick={() => removeTestRelation([record.testRelationId])}>删除</a>
