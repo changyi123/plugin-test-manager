@@ -222,7 +222,7 @@ const List: React.FC<ListProps> = (props: ListProps) => {
                     <div className={css('step__fields__item__topic')}>操作</div>
                     <div className={css('step__fields__item__input')}>
                       <FieldsInput
-                        value={action || '-'}
+                        value={action}
                         change={e => {
                           saveCard(
                             props.index,
@@ -244,7 +244,7 @@ const List: React.FC<ListProps> = (props: ListProps) => {
                     <div className={css('step__fields__item__topic')}>预期</div>
                     <div className={css('step__fields__item__input')}>
                       <FieldsInput
-                        value={result || '-'}
+                        value={result}
                         change={e => {
                           saveCard(
                             props.index,
@@ -290,7 +290,7 @@ const List: React.FC<ListProps> = (props: ListProps) => {
                       <div className={css('step__fields__item__topic')}>数据</div>
                       <div className={css('step__fields__item__input')}>
                         <FieldsInput
-                          value={data || '-'}
+                          value={data}
                           change={e => {
                             saveCard(
                               props.index,
