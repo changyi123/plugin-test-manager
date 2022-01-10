@@ -241,7 +241,12 @@ const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
               </CustomCollapse.Panel>
 
               <CustomCollapse.Panel title="用例步骤" num={2}>
-                测试步骤
+                <StepList
+                  refresh={refresh}
+                  detail={runDetail}
+                  objectId={objectId}
+                  testId={currentTestId}
+                />
               </CustomCollapse.Panel>
             </CustomCollapse>
           </div>
