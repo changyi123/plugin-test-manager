@@ -66,7 +66,6 @@ export const StepItem: React.FC<IStepItemProps> = ({ index, item, saveList, test
       extraData: { token },
     });
     // token 不相同则不创建关联
-    console.log('ahwawdwadwd', extraData, token, item, defectItem);
     if (extraData.token !== token) return;
 
     addDefect(TestToDefect, testId, [defectItem.objectId]).then(() => {
@@ -102,23 +101,18 @@ export const StepItem: React.FC<IStepItemProps> = ({ index, item, saveList, test
     <div className={css('step-list__item')}>
       <div className={css('left')}>
         <div className={css('left__index')}>{index + 1}</div>
-        <div className={css('left__tips')}>
+        {/* <div className={css('left__tips')}>
           <Popover content={<div>继承测试用例</div>}>
             <InfoCircleOutlined />
           </Popover>
-        </div>
+        </div> */}
       </div>
 
       <div className={css('right')}>
-        <Row gutter={[0, 0]}>
-          <Col className={css('right__item')} span={8}>
+        <Row gutter={[24, 0]}>
+          <Col className={css('right__item')} span={12}>
             <div className={css('right__topic')}>行动</div>
             <div className={css('right__content')}>{item.action}</div>
-          </Col>
-
-          <Col className={css('right__item')} span={8}>
-            <div className={css('right__topic')}>数据</div>
-            <div className={css('right__content')}>{item.data}</div>
           </Col>
 
           <Col className={css('right__item')} span={8}>
@@ -127,8 +121,17 @@ export const StepItem: React.FC<IStepItemProps> = ({ index, item, saveList, test
           </Col>
         </Row>
 
+        <div className={css('right__line')}></div>
+
+        <Row gutter={[24, 0]}>
+          <Col className={css('right__item')} span={6}>
+            <div className={css('right__topic')}>数据</div>
+            <div className={css('right__content')}>{item.data}</div>
+          </Col>
+        </Row>
+
         <div className={css('right__actual')}>
-          <Col className={css('right__item')} span={24}>
+          <div className={css('right__item')}>
             <div className={css('right__topic')}>实际结果</div>
             <div className={css('right__content')}>
               <Comment
@@ -137,7 +140,7 @@ export const StepItem: React.FC<IStepItemProps> = ({ index, item, saveList, test
                 save={() => saveItem('actualResult')}
               />
             </div>
-          </Col>
+          </div>
         </div>
 
         <Col className={css('right__item')} span={24}>

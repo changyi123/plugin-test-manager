@@ -1,65 +1,11 @@
 :root {
   .run {
-    margin-top: 10px;
-
-    &__header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-
-      &__status {
-        .status-block {
-          width: 20px;
-          height: 20px;
-          border-radius: 2px;
-        }
-
-        .todo {
-          background-color: #bfbfbf;
-        }
-
-        .pass {
-          background-color: #52c41a;
-        }
-
-        .fail {
-          background-color: #fa541c;
-        }
-
-        .ing {
-          background-color: #fadb14;
-        }
-
-        .now-status {
-          display: flex;
-          justify-content: flex-end;
-          align-items: center;
-
-          &__label {
-            margin-left: 6px;
-          }
-        }
-
-        .had-status {
-          display: flex;
-          justify-content: flex-end;
-          align-items: center;
-          .status-block {
-            margin-left: 6px;
-          }
-
-          .status-pointer {
-            cursor: pointer;
-          }
-        }
-
-        &__content {
-          display: flex;
-          justify-content: flex-end;
-          align-items: center;
-        }
+    :global {
+      .ant-collapse-header {
+        background: #F4F4F5;
       }
     }
+    margin-top: 10px;
 
     .descriptions-top {
       padding-top: 10px;
@@ -67,7 +13,15 @@
 
     .info {
       &__title {
-        font-weight: 600;
+        font-size: 12px;
+        font-family: PingFangSC-Regular, PingFang SC;
+        font-weight: 400;
+        color: #878C96;
+        line-height: 20px;
+      }
+
+      &__val {
+        margin-top: 4px;
       }
 
       :global {
@@ -94,6 +48,58 @@
           margin-bottom: 0 !important;
         }
       }
+    }
+
+    &__around {
+      margin-top: 40px;
+
+      &__collapse {
+        background: #FFFFFF;
+        border-radius: 4px;
+        border: 1px solid #E9EAEC;
+
+        &__item {
+          margin-bottom: 40px;
+        }
+      }
+    }
+
+    &__total {
+      margin-top: 40px;
+    }
+
+    &__breadcrumb {
+      margin-top: 10px;
+      font-size: 14px;
+      font-family: PingFangSC-Regular, PingFang SC;
+      font-weight: 400;
+      color: #878C96;
+      line-height: 22px;
+    }
+
+    &__topic {
+      margin-top: 16px;
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+      &__label {
+        font-size: 18px;
+        font-family: PingFangSC-Medium, PingFang SC;
+        font-weight: 500;
+        color: #1E2A3D;
+        line-height: 26px;
+      }
+
+      &__status {
+        margin-left: 8px;
+      }
+    }
+
+    &__divider {
+      background: #E9EAEC;
+      border-radius: 1px;
+      opacity: 0.5;
+
     }
   }
 }

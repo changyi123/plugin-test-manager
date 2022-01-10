@@ -1,8 +1,9 @@
 import React, { useCallback, useState } from 'react';
-import { Row, Col, Typography, Collapse, Divider, Spin, Empty, message } from '@osui/ui';
+import { Row, Col, Collapse, Divider, Space, Empty, message, Button } from '@osui/ui';
+import { PlusCircleOutlined } from '@ant-design/icons';
 import UploadFile from '@/components/common/UploadFile';
 import Comment from '@/components/common/Comment';
-import ItemList from './components/ItemList';
+import ItemList, { FileList } from './components/ItemList';
 import StepList, { IStepItem } from './components/StepList';
 import { StatusBadge } from '@/components/common/Status';
 import { useLocation } from 'react-router-dom';
@@ -10,10 +11,13 @@ import { GetTestRunDetail, toggleTestRunStatus } from '@/lib/api/runs';
 import { useRequest } from 'ahooks';
 import { updateTestStep, InitStepByTestId } from '@/lib/api/runs';
 import Loading from '@/components/common/Loading';
+import FieldsInput, {
+  FieldsTimepicker,
+} from '@/pages/panel/TestDetail/TestDetailPanel/components/FieldsInput';
+import CustomCollapse from './components/Collapse';
 
 import css from './index.less';
 
-const { Paragraph } = Typography;
 export interface ITestInfo {
   topic: string;
   content: string;
@@ -28,10 +32,10 @@ function useQuery() {
 
 interface TestInfoContent {
   detail?: {
-    startTime?: string;
+    startTime?: number;
     assignee?: string;
     version?: string;
-    finishTime?: string;
+    finishTime?: number;
     executedBy?: string;
   };
   changeRunInfo: (info: IRunDetail['detail']) => void;
@@ -46,7 +50,7 @@ export interface IRunDetail {
 
 const TestInfo: React.FC<TestInfoContent> = ({ detail, changeRunInfo }) => {
   const [info, setInfo] = useState<TestInfoContent['detail']>(detail);
-  const changeStr = (key: keyof TestInfoContent['detail'], value: string) => {
+  const changeStr = (key: keyof TestInfoContent['detail'], value: string | number) => {
     setInfo({
       ...info,
       [key]: value,
@@ -57,75 +61,51 @@ const TestInfo: React.FC<TestInfoContent> = ({ detail, changeRunInfo }) => {
     });
   };
   return (
-    <Row gutter={[10, 10]} className="info">
-      <Col span={24}>
-        <div className="info__title">执行信息</div>
-      </Col>
-      <Col span={8}>
-        <div className={css('info__item')}>
-          <div className={css('info__item__label')}>开始时间</div>
-          <div className={css('info__item__value')}>
-            <Paragraph
-              className={css('info__item__paragraph')}
-              editable={{ onChange: (val: string) => changeStr('startTime', val), maxLength: 10 }}
-            >
-              {info?.startTime}
-            </Paragraph>
-          </div>
+    <Row gutter={[24, 24]} className={css('info')}>
+      <Col xs={6} xl={4}>
+        <div className={css('info__title')}>开始时间</div>
+        <div className={css('info__val')}>
+          <FieldsTimepicker
+            value={info?.startTime}
+            change={(val: number) => changeStr('startTime', val)}
+          />
         </div>
       </Col>
 
-      <Col span={8}>
-        <div className={css('info__item')}>
-          <div className={css('info__item__label')}>负责人</div>
-          <div className={css('info__item__value')}>
-            <Paragraph
-              className={css('info__item__paragraph')}
-              editable={{ onChange: (val: string) => changeStr('assignee', val), maxLength: 10 }}
-            >
-              {info?.assignee}
-            </Paragraph>
-          </div>
-        </div>
-      </Col>
-      <Col span={8}>
-        <div className={css('info__item')}>
-          <div className={css('info__item__label')}>版本</div>
-          <div className={css('info__item__value')}>
-            <Paragraph
-              className={css('info__item__paragraph')}
-              editable={{ onChange: (val: string) => changeStr('version', val), maxLength: 10 }}
-            >
-              {info?.version}
-            </Paragraph>
-          </div>
-        </div>
-      </Col>
-      <Col span={8}>
-        <div className={css('info__item')}>
-          <div className={css('info__item__label')}>完成时间</div>
-          <div className={css('info__item__value')}>
-            <Paragraph
-              className={css('info__item__paragraph')}
-              editable={{ onChange: (val: string) => changeStr('finishTime', val), maxLength: 10 }}
-            >
-              {info?.finishTime}
-            </Paragraph>
-          </div>
+      <Col xs={6} xl={4}>
+        <div className={css('info__title')}>完成时间</div>
+        <div className={css('info__val')}>
+          <FieldsTimepicker
+            value={info?.finishTime}
+            change={(val: number) => changeStr('finishTime', val)}
+          />
         </div>
       </Col>
 
-      <Col span={8}>
-        <div className={css('info__item')}>
-          <div className={css('info__item__label')}>执行人</div>
-          <div className={css('info__item__value')}>
-            <Paragraph
-              className={css('info__item__paragraph')}
-              editable={{ onChange: (val: string) => changeStr('executedBy', val), maxLength: 10 }}
-            >
-              {info?.executedBy}
-            </Paragraph>
-          </div>
+      <Col xs={6} xl={4}>
+        <div className={css('info__title')}>负责人</div>
+        <div className={css('info__val')}>
+          <FieldsInput
+            value={info?.assignee}
+            change={(val: string) => changeStr('assignee', val)}
+          />
+        </div>
+      </Col>
+
+      <Col xs={6} xl={4}>
+        <div className={css('info__title')}>执行人</div>
+        <div className={css('info__val')}>
+          <FieldsInput
+            value={info?.executedBy}
+            change={(val: string) => changeStr('executedBy', val)}
+          />
+        </div>
+      </Col>
+
+      <Col xs={6} xl={4}>
+        <div className={css('info__title')}>版本</div>
+        <div className={css('info__val')}>
+          <FieldsInput value={info?.version} change={(val: string) => changeStr('version', val)} />
         </div>
       </Col>
     </Row>
@@ -202,37 +182,77 @@ const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
 
   return (
     <div className={css('run')}>
-      {/* <div>
-        <Breadcrumb>
-          <Breadcrumb.Item>首页</Breadcrumb.Item>
-          <Breadcrumb.Item>
-            <a href="">测试执行</a>
-          </Breadcrumb.Item>
-          <Breadcrumb.Item>
-            <a href="">测试用例</a>
-          </Breadcrumb.Item>
-        </Breadcrumb>
-      </div> */}
-
-      <div className={css('run__header')}>
-        <div>
-          <Typography.Text ellipsis>
-            {itemDetail?.name}（{itemDetail?.key}）
-          </Typography.Text>
-        </div>
-
-        <StatusBadge
-          status={status}
-          onStatusChange={status => handleStatusChange(testId, status)}
-        />
+      <div className={css('run__breadcrumb')}>
+        所属项目名称 / 测试计划名称 / 执行轮次名称 / 用例名称
       </div>
 
-      <Divider />
+      <div className={css('run__topic')}>
+        <div className={css('run__topic__label')}>{itemDetail?.name}</div>
+        <div className={css('run__topic__status')}>
+          <StatusBadge
+            status={status}
+            onStatusChange={status => handleStatusChange(testId, status)}
+          />
+        </div>
+      </div>
+
+      <Divider className={css('run__divider')} />
 
       <TestInfo detail={runDetail.detail} changeRunInfo={changeRunInfo} />
 
-      <div className={css('run__total')}>
-        <Collapse defaultActiveKey={['2']}>
+      <div className={css('run__around')}>
+        <div className={css('run__around__collapse')}>
+          <div className={css('run__around__collapse__item')}>
+            <CustomCollapse title="总结">
+              <CustomCollapse.Panel
+                title="缺陷"
+                num={2}
+                titleExtra={[
+                  <Button key="1" type="link" icon={<PlusCircleOutlined />}>
+                    添加缺陷
+                  </Button>,
+                ]}
+              >
+                <ItemList />
+              </CustomCollapse.Panel>
+
+              <CustomCollapse.Panel
+                title="附件"
+                num={2}
+                titleExtra={[
+                  <Button key="1" type="link" icon={<PlusCircleOutlined />}>
+                    添加附件
+                  </Button>,
+                ]}
+              >
+                <FileList />
+              </CustomCollapse.Panel>
+
+              <CustomCollapse.Panel title="评论">
+                <FieldsInput />
+              </CustomCollapse.Panel>
+            </CustomCollapse>
+          </div>
+
+          <div className={css('run__around__collapse__item')}>
+            <CustomCollapse title="测试用例详情">
+              <CustomCollapse.Panel title="测试用例关联事项" num={2}>
+                关联列表
+              </CustomCollapse.Panel>
+
+              <CustomCollapse.Panel title="用例步骤" num={2}>
+                <StepList
+                  refresh={refresh}
+                  detail={runDetail}
+                  objectId={objectId}
+                  testId={currentTestId}
+                />
+              </CustomCollapse.Panel>
+            </CustomCollapse>
+          </div>
+        </div>
+
+        <Collapse defaultActiveKey={['1', '2']}>
           <Collapse.Panel header="总结" key="1">
             <Collapse defaultActiveKey={['1', '2', '3']}>
               {/* <Collapse.Panel header="缺陷" key="1">

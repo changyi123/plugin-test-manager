@@ -22,7 +22,7 @@ const routes = [
   },
   {
     path: '/testRun',
-    component: React.lazy(() => import('../pages/run')),
+    component: React.lazy(() => import('../pages/run/Page')),
   },
   {
     path: '/testExecution',

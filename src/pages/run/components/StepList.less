@@ -1,13 +1,16 @@
 :root {
   .step-list {
+    margin-left: 20px;
     &__item {
       display: flex;
       justify-content: space-between;
-      padding-top: 5px;
-      padding-bottom: 15px;
+      margin-bottom: 15px;
+      background: #FBFBFB;
+      border-radius: 4px;
+      overflow: hidden;
       .left {
         display: flex;
-        background-color: #bfbfbf;
+        background: #B0B5BC;
         flex-flow: column;
         text-align: center;
         padding: 6px 8px;
@@ -16,22 +19,64 @@
         &__tips {
           margin-top: auto;
         }
+
+        &__index {
+          width: 20px;
+          border-radius: 50%;
+          height: 20px;
+          background: #FFFFFF;
+          text-align: center;
+          font-size: 12px;
+          font-family: PingFangSC-Semibold, PingFang SC;
+          font-weight: 600;
+          color: #B0B5BC;
+          line-height: 20px;
+        }
       }
 
       .right {
-        margin-left: 10px;
         flex: 1;
+        padding-left: 24px;
 
         &__item {
-          border: 1px solid #bfbfbf;
-          margin-left: -1px;
-          margin-top: -1px;
-          padding: 6px;
+          padding-bottom: 12px;
         }
 
         &__topic {
-          font-size: 18px;
-          font-weight: 600;
+          margin-top: 12px;
+          font-size: 12px;
+          font-family: PingFangSC-Regular, PingFang SC;
+          font-weight: 400;
+          color: #878C96;
+          line-height: 20px;
+        }
+
+        &__content {
+          margin-top: 8px;
+          font-size: 14px;
+          font-family: PingFangSC-Regular, PingFang SC;
+          font-weight: 400;
+          color: #1E2A3D;
+          line-height: 22px;
+        }
+
+        &__actual {
+          width: 100%;
+          margin-left: -12px;
+          background: #fff;
+          border-radius: 4px;
+          padding: 12px 0 0 12px;
+          .right__topic {
+            margin-top: 0;
+          }
+        }
+
+        &__line {
+          width: 100%;
+          height: 1px;
+          background: #E9EAEC;
+          border-radius: 1px;
+          opacity: 0.5;
         }
 
         &__tools {
