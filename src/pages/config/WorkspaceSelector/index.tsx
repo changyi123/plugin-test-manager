@@ -86,7 +86,7 @@ const WorkspaceSelector: React.FC<WorkspaceSelectorProps> = props => {
             value={selectValue}
             placeholder="请选择空间"
             onChange={handleChange}
-            className={cx('select')}
+            style={{ width: '100%' }}
             getPopupContainer={() => selectContainerRef.current}
           >
             {workspaces.map(opt => (
