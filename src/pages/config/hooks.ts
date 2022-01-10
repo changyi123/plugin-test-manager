@@ -13,7 +13,7 @@ export const useSelectedWorkspace = () => {
     workspace => {
       setCurrentWorkspace(prev => {
         // 已经配置过空间的，再次修改需要刷新系统
-        if (prev) window.location.reload();
+        if (prev?.key) window.location.reload();
         return workspace;
       });
     },
