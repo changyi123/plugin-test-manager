@@ -1,14 +1,15 @@
 import React, { useCallback } from 'react';
 import { Popover, Row, Col, Space, Divider, Button, message, Dropdown, Menu } from '@osui/ui';
-import { InfoCircleOutlined, PlusCircleOutlined } from '@ant-design/icons';
+import { PlusCircleOutlined } from '@ant-design/icons';
 import Comment from '@/components//common/Comment';
 import { StatusBadge } from '@/components/common/Status';
+import FieldsInput from '@/pages/panel/TestDetail/TestDetailPanel/components/FieldsInput';
 import { updateTestStep } from '@/lib/api/runs';
 import AddDefectModal from './AddDefectModal';
 import { uniqueId } from 'lodash';
 import { useBaseAction } from '@/lib/hooks/useContext';
 import { TestType } from '@/lib/constants';
-import { SmallDefectListPopover } from './SmallDefectList';
+import SmallDefectList, { SmallDefectListPopover } from './SmallDefectList';
 import { addDefect } from '@/lib/api/runs';
 import { useItemLinkTypeConfig } from './hooks';
 
@@ -134,28 +135,39 @@ export const StepItem: React.FC<IStepItemProps> = ({ index, item, saveList, test
           <div className={css('right__item')}>
             <div className={css('right__topic')}>实际结果</div>
             <div className={css('right__content')}>
-              <Comment
-                placeholder="点击输入实际结果"
+              <FieldsInput
                 value={item.actualResult}
-                save={() => saveItem('actualResult')}
+                change={(val: string) => saveItem('actualResult')(val)}
               />
             </div>
           </div>
-        </div>
 
-        <Col className={css('right__item')} span={24}>
-          <div className={css('right__tools')}>
-            <div className={css('right__tools__left')}>
-              <Space split={<Divider type="vertical" />}>
-                <div className={css('comment')}>
-                  <Comment
-                    placeholder="点击输入留言"
-                    value={item.comment}
-                    save={() => saveItem('comment')}
-                  />
-                </div>
+          <div className={css('right__line')}></div>
 
-                <div className={css('btn')} id="dropdown_add_defect">
+          <Row className={css('answer')}>
+            <Col span={8} className={css('answer__item')}>
+              <div className={css('right__topic')}>评论</div>
+              <div className={css('right__content')}>
+                <FieldsInput
+                  value={item.comment}
+                  change={(val: string) => saveItem('comment')(val)}
+                />
+              </div>
+            </Col>
+
+            <Col span={8} className={css('answer__item')} id="dropdown_add_defect">
+              <div className={css('right__topic')}>缺陷</div>
+              <div className={css('right__content')}>
+                {item.defectIds && (
+                  <div className={css('right__content__list')}>
+                    <SmallDefectList
+                      itemIds={item.defectIds}
+                      testId={testId}
+                      save={() => saveItem('defectIds')}
+                    />
+                  </div>
+                )}
+                <div className={css('right__content__btn')}>
                   <Dropdown
                     overlay={menu}
                     trigger={['click']}
@@ -165,30 +177,21 @@ export const StepItem: React.FC<IStepItemProps> = ({ index, item, saveList, test
                       添加缺陷
                     </Button>
                   </Dropdown>
-                  {item.defectIds && (
-                    <SmallDefectListPopover
-                      itemIds={item.defectIds}
-                      testId={testId}
-                      save={() => saveItem('defectIds')}
-                    />
-                  )}
                 </div>
+              </div>
+            </Col>
 
-                {/* <div className={css('btn')}>
-                  <Button icon={<FileAddOutlined />}>添加附件</Button>
-
-                  <ExclamationCircleOutlined style={{ marginLeft: '10px', color: 'red' }} />
-                </div> */}
-              </Space>
-            </div>
-            <div className={css('right__status')}>
-              <StatusBadge
-                status={item.status}
-                onStatusChange={status => saveItem('status')(status.key)}
-              />
-            </div>
-          </div>
-        </Col>
+            <Col span={8} className={css('answer__item')}>
+              <div className={css('right__topic')}>状态</div>
+              <div className={css('right__content')}>
+                <StatusBadge
+                  status={item.status}
+                  onStatusChange={status => saveItem('status')(status.key)}
+                />
+              </div>
+            </Col>
+          </Row>
+        </div>
       </div>
     </div>
   );

@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { Row, Col, Collapse, Divider, Space, Empty, message, Button } from '@osui/ui';
+import { Row, Col, Divider, Space, Empty, message, Button } from '@osui/ui';
 import { PlusCircleOutlined } from '@ant-design/icons';
 import UploadFile from '@/components/common/UploadFile';
 import Comment from '@/components/common/Comment';
@@ -251,44 +251,6 @@ const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
             </CustomCollapse>
           </div>
         </div>
-
-        <Collapse defaultActiveKey={['1', '2']}>
-          <Collapse.Panel header="总结" key="1">
-            <Collapse defaultActiveKey={['1', '2', '3']}>
-              {/* <Collapse.Panel header="缺陷" key="1">
-                <ItemList />
-              </Collapse.Panel>
-              <Collapse.Panel header="附件" key="2">
-                <UploadFile />
-              </Collapse.Panel> */}
-              <Collapse.Panel header="留言(点击文本编辑)" key="3">
-                <Comment
-                  placeholder="点击输入留言"
-                  value={runDetail.comment}
-                  save={() => saveItem('comment')}
-                />
-              </Collapse.Panel>
-            </Collapse>
-          </Collapse.Panel>
-          <Collapse.Panel header="详情" key="2">
-            <Collapse defaultActiveKey={['1', '2', '3']}>
-              {/* <Collapse.Panel header="关联事项" key="1">
-                <ItemList />
-              </Collapse.Panel> */}
-              {/* <Collapse.Panel header="前置条件" key="2.2">
-                <UploadFile />
-              </Collapse.Panel> */}
-              <Collapse.Panel header="步骤" key="3">
-                <StepList
-                  refresh={refresh}
-                  detail={runDetail}
-                  objectId={objectId}
-                  testId={currentTestId}
-                />
-              </Collapse.Panel>
-            </Collapse>
-          </Collapse.Panel>
-        </Collapse>
       </div>
     </div>
   );

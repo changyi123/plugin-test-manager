@@ -58,6 +58,11 @@
           font-weight: 400;
           color: #1E2A3D;
           line-height: 22px;
+
+          &__btn {
+            margin-top: 8px;
+            margin-left: -4px;
+          }
         }
 
         &__actual {
@@ -65,9 +70,13 @@
           margin-left: -12px;
           background: #fff;
           border-radius: 4px;
-          padding: 12px 0 0 12px;
+          padding: 12px 0 0 0;
           .right__topic {
             margin-top: 0;
+          }
+
+          .right__item {
+            padding-left: 12px;
           }
         }
 
@@ -93,6 +102,17 @@
 
         &__status {
           margin-right: 20px;
+        }
+
+        .answer {
+          margin-bottom: 12px;
+          &__item {
+            padding: 12px 12px 14px 12px;
+            border-right: 1px solid #E9EAEC;
+            &:last-child {
+              border-right: none;
+            }
+          }
         }
       }
     }
