@@ -1,10 +1,8 @@
 import React from 'react';
-import { useHistory } from 'react-router';
 import { getTestConfig } from '@/lib/api/common';
-import { useSessionStorageState, useRequest, useSafeState } from 'ahooks';
+import { useSessionStorageState, useRequest } from 'ahooks';
 
 export const useSelectedWorkspace = () => {
-  const history = useHistory();
   const [currentWorkspace, setCurrentWorkspace] = useSessionStorageState(
     'TEST_MANAGER_CURRENT_WORKSPACE',
     {
@@ -13,10 +11,13 @@ export const useSelectedWorkspace = () => {
   );
   const toggleWorkspace = React.useCallback(
     workspace => {
-      setCurrentWorkspace(workspace);
-      history.go(0);
+      setCurrentWorkspace(prev => {
+        // 已经配置过空间的，再次修改需要刷新系统
+        if (prev) window.location.reload();
+        return workspace;
+      });
     },
-    [history, setCurrentWorkspace],
+    [setCurrentWorkspace],
   );
   return [currentWorkspace, toggleWorkspace];
 };
