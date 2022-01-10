@@ -24,6 +24,12 @@ modules:
       title: 测试用例仓库
       loadType: Micro
       route: /testRepo
+  adminPage:
+    - key: test-config
+      resource: main
+      title: 测试管理配置
+      loadType: Micro
+      route: /testConfig
 tables:
   - className: Repository
     fields:

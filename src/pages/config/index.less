@@ -1,0 +1,54 @@
+@import '@/index.global.less';
+
+.page {
+  height: 100vh;
+}
+
+.sider {
+  background-color: #fff;
+  border-right: 1px solid @border-color;
+
+  .title {
+    font-size: 18px;
+    padding: 0 16px;
+    line-height: 58px;
+    font-weight: 600;
+  }
+}
+
+.main {
+  .header,
+  .content {
+    background-color: #fff;
+    padding: 0 24px;
+  }
+
+  .header {
+    display: flex;
+    align-items: center;
+    line-height: 1.5;
+    padding-top: 12px;
+    height: auto;
+
+    .left {
+      margin-right: 2em;
+    }
+
+    .title {
+      margin-bottom: 12px;
+      font-weight: 700;
+    }
+    .description {
+      margin: 0;
+      font-size: 14px;
+    }
+
+    .workspace-selector {
+      margin-left: auto;
+    }
+  }
+
+  .content {
+    padding-top: 40px;
+  }
+}
