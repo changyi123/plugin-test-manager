@@ -1,6 +1,6 @@
 import React from 'react';
-import { getTestConfig } from '@/lib/api/common';
-import { useSessionStorageState, useRequest } from 'ahooks';
+import { useSessionStorageState, useRequest, useSafeState } from 'ahooks';
+import { getTestConfig, createEmptyTestConfig } from '@/lib/api/common';
 
 export const useSelectedWorkspace = () => {
   const [currentWorkspace, setCurrentWorkspace] = useSessionStorageState(
@@ -23,7 +23,8 @@ export const useSelectedWorkspace = () => {
 };
 
 export const useCurrentTestConfig = workspaceKey => {
-  const { data } = useRequest(
+  const [testConfig, setTestConfig] = useSafeState(null);
+  useRequest(
     () =>
       getTestConfig({
         workspaceKey,
@@ -31,8 +32,14 @@ export const useCurrentTestConfig = workspaceKey => {
     {
       ready: workspaceKey,
       refreshDeps: [workspaceKey],
+      async onSuccess(testConfig) {
+        // 不存在则新建
+        if (!testConfig) {
+          testConfig = await createEmptyTestConfig(workspaceKey);
+        }
+        setTestConfig(testConfig);
+      },
     },
   );
-
-  return data;
+  return testConfig;
 };
