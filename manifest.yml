@@ -17,19 +17,17 @@ modules:
       loadType: Micro
       route: /testPanel
   adminPage:
-    - key: test-manager-repository
-  workspacePage:
-    - key: test-repository
-      resource: main
-      title: 测试用例仓库
-      loadType: Micro
-      route: /testRepo
-  adminPage:
     - key: test-config
       resource: main
       title: 测试管理配置
       loadType: Micro
       route: /testConfig
+      workspacePage:
+    - key: test-repository
+      resource: main
+      title: 测试用例仓库
+      loadType: Micro
+      route: /testRepo
 tables:
   - className: Repository
     fields:
