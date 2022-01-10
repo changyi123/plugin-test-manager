@@ -28,6 +28,7 @@ const ItemTypeDropBox = (props: {
   const ref = React.useRef(null);
   useDrop(ref, {
     onDom(data) {
+      if (data.type === type) return;
       onDropSuccess?.(data);
     },
   });
