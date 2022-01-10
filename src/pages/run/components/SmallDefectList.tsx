@@ -73,7 +73,7 @@ export const SmallDefectList: React.FC<ISmallDefectListProps> = props => {
                       open(`/osc/workspaces/${(item as any)?.workspace?.key}/item/${item?.key}`)
                     }
                   >
-                    {item.key}
+                    <Typography.Text ellipsis={{ tooltip: item.key }}>{item.key}</Typography.Text>
                   </div>
                   <div className={css('name')}>
                     <Typography.Text ellipsis={{ tooltip: item.name }}>{item.name}</Typography.Text>

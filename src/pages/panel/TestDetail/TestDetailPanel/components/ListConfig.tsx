@@ -5,6 +5,7 @@ import {
   SwapOutlined,
   DeleteOutlined,
   ArrowsAltOutlined,
+  EllipsisOutlined,
 } from '@ant-design/icons';
 
 export enum IStepToolsKey {
@@ -13,6 +14,7 @@ export enum IStepToolsKey {
   COPY = 'copy',
   MOVE = 'move',
   DELETE = 'delete',
+  MORE = 'more',
 }
 
 export interface IStepObj {
@@ -44,5 +46,9 @@ export const stepTools: IStepTools = {
   delete: {
     label: '删除',
     icon: <DeleteOutlined />,
+  },
+  more: {
+    label: '更多',
+    icon: <EllipsisOutlined />,
   },
 };

@@ -6,6 +6,7 @@
   }
   
   .list {
+    width: 100%;
     &__item {
       display: flex;
       justify-content: space-between;
@@ -41,10 +42,13 @@
           font-weight: 400;
           color: #878C96;
           line-height: 22px;
+          flex: 1;
+          max-width: 83px;
           cursor: pointer;
         }
     
         .name {
+          flex: 1;
           margin-left: 8px;
           font-size: 14px;
           font-family: PingFangSC-Regular, PingFang SC;
