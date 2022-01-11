@@ -120,8 +120,14 @@ const StepDrop: React.FC<{
   );
 };
 
+let stepsBak = [];
+export const TestDetailContext = React.createContext({
+  searchStatus: false,
+});
+
 const Detail: React.FC = () => {
   const [steps, setSteps] = useState<Array<TestStep>>([]);
+  const [search, setSearch] = useState<boolean>(false);
   const [testInfo, setTestInfo] = useState<TestInfor>({});
   const currentObjectId: string = window?.QiankunProps?.context?.itemId || getDevConfig().itemId;
   const ItemTypeModalRef = createRef<ItemTypeModalHandle>();
@@ -134,6 +140,8 @@ const Detail: React.FC = () => {
     fetchTestSteps(currentObjectId)
       .then(({ data }) => {
         setSteps(data?.steps || []);
+        stepsBak = data?.steps;
+        setSearch(false);
         setTestInfo(data);
       })
       .finally(() => {
@@ -309,10 +317,23 @@ const Detail: React.FC = () => {
 
   const { run } = useDebounceFn(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      console.log('e', e);
-      if (!steps.length) {
+      if (!stepsBak.length) {
         return;
       }
+      if (!e.target.value) {
+        fetchData();
+        return;
+      }
+      const coverSteps = [];
+      const val = e.target.value;
+      stepsBak?.forEach(item => {
+        const str = `${item?.action} ${item?.data} ${item?.result} ${item?.itemObject?.name} ${item?.itemObject?.key}`;
+        if (str.indexOf(val) >= 0) {
+          coverSteps.push(item);
+        }
+      });
+      setSteps(coverSteps);
+      setSearch(true);
     },
     {
       wait: 500,
@@ -358,9 +379,9 @@ const Detail: React.FC = () => {
       <div className={css('detail__content')}>
         <div className={css('detail__content__header')}>
           <div className={css('left')}>
-            {/* <div className={css('input')}>
+            <div className={css('input')}>
               <Input placeholder="搜索步骤" onChange={e => run(e)} suffix={<SearchOutlined />} />
-            </div> */}
+            </div>
           </div>
 
           <div className={css('right')}>
@@ -394,12 +415,23 @@ const Detail: React.FC = () => {
           </div>
         </div>
 
-        {/* <div className={css('detail__content__tips')}>
+        <div className={css('detail__content__tips')}>
           <BlockOutlined />
-          <span>当前用例被 {callTestLen()} 个用例调用</span>
-        </div> */}
+          {search}
+          <span>
+            {search
+              ? `显示${stepsBak.length}个步骤中的${steps.length}个`
+              : `当前用例调用 ${callTestLen()} 个用例`}
+          </span>
+        </div>
 
-        <StepList steps={steps} actionCard={actionCard} />
+        <TestDetailContext.Provider
+          value={{
+            searchStatus: search,
+          }}
+        >
+          <StepList steps={steps} actionCard={actionCard} />
+        </TestDetailContext.Provider>
       </div>
     </div>
   );

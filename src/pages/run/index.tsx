@@ -157,7 +157,6 @@ const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
   }
 
   const { itemDetail, runDetail, status, objectId, defectList } = data?.data;
-  console.log('runDetail', data.data);
 
   const saveItem = (key: string) => {
     return value => {
@@ -182,10 +181,6 @@ const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
 
   return (
     <div className={css('run')}>
-      <div className={css('run__breadcrumb')}>
-        所属项目名称 / 测试计划名称 / 执行轮次名称 / 用例名称
-      </div>
-
       <div className={css('run__topic')}>
         <div className={css('run__topic__label')}>{itemDetail?.name}</div>
         <div className={css('run__topic__status')}>
