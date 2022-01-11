@@ -148,6 +148,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
           filterOptions={filterOptions}
           fetchOptions={getTestEntityByName}
           onChange={value => setSelectValue(value)}
+          notFoundContent={<div>未查询到相关事项</div>}
           placeholder={props.placeholder ?? '选择事项'}
           getPopupContainer={() => debounceSelectContainerRef.current}
         />

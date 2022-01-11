@@ -1,0 +1,46 @@
+.drop-container {
+  display: flex;
+  background-color: rgb(240, 240, 240);
+}
+
+.drop-box {
+  height: calc(100% - 34px);
+}
+
+.drop-area {
+  > h6 {
+    font-size: 16px;
+    font-weight: 700;
+  }
+  margin: 20px;
+  padding: 8px;
+  width: 200px;
+  min-height: 120px;
+  max-height: 600px;
+  background: #fff;
+  border: 1px solid rgb(187, 187, 187);
+}
+
+.drag-item {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  background: rgb(247, 247, 247);
+  padding: 3px 6px;
+  margin: 3px;
+  border-radius: 3px;
+  height: 32px;
+  cursor: move;
+  &:hover {
+    background: rgb(216, 228, 240);
+  }
+  > .icon {
+    width: 16px;
+    height: 16px;
+    margin-right: 6px;
+  }
+}
+
+.action-btn {
+  margin-top: 30px;
+}

@@ -268,6 +268,20 @@ export const getTestConfig = (params: {
 };
 
 /**
+ * 新建测试管理
+ */
+export const createEmptyTestConfig = (workspaceKey: string) => {
+  const testConfig = new TestConfig({
+    workspaceKey,
+    global: false,
+    itemTypeMap: {},
+    defectsMapping: [],
+  });
+
+  return testConfig.save();
+};
+
+/**
  * 获取租户下所有空间测试管理配置（制作单租户）
  */
 
