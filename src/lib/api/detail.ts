@@ -22,7 +22,6 @@ export const fetchTestSteps = (resource: string): Promise<ICommonRes> => {
         step?.steps?.forEach((item, index) => {
           item.id = `${step.objectId}_${index}`;
           item.objectId = `${step.objectId}_${index}`;
-          item.isEdit = false;
           item.isExpand = true;
           if (item.callTestId) {
             callTestIds.push(item.callTestId);

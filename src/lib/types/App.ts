@@ -180,7 +180,7 @@ export interface WorkspaceType extends BaseParseObject {
 }
 export interface DataSource extends BaseParseObject, SimpleBaseInfo {
   type: DataSourceClassify | PointerObject;
-  dataConfig?: { isEdit: boolean; isColor: boolean; isRanked: boolean };
+  dataConfig?: { isColor: boolean; isRanked: boolean };
   advancedConfig?: { data: AdvancedConfig[] };
 }
 export interface DataSourceClassify extends BaseParseObject {

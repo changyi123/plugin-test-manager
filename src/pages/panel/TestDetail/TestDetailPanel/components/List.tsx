@@ -241,7 +241,6 @@ const List: React.FC<ListProps> = (props: ListProps) => {
                                     action: e,
                                   },
                                   undefined,
-                                  true,
                                 );
                               }}
                             />
@@ -263,7 +262,6 @@ const List: React.FC<ListProps> = (props: ListProps) => {
                                     result: e,
                                   },
                                   undefined,
-                                  true,
                                 );
                               }}
                             />
@@ -311,7 +309,6 @@ const List: React.FC<ListProps> = (props: ListProps) => {
                                       data: e,
                                     },
                                     undefined,
-                                    true,
                                   );
                                 }}
                               />
