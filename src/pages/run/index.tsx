@@ -1,9 +1,6 @@
 import React, { useCallback, useState } from 'react';
-import { Row, Col, Divider, Space, Empty, message, Button } from '@osui/ui';
-import { PlusCircleOutlined } from '@ant-design/icons';
-import UploadFile from '@/components/common/UploadFile';
-import Comment from '@/components/common/Comment';
-import ItemList, { FileList } from './components/ItemList';
+import { Row, Col, Divider, Empty, message } from '@osui/ui';
+import ItemList from './components/ItemList';
 import StepList, { IStepItem } from './components/StepList';
 import { StatusBadge } from '@/components/common/Status';
 import { useLocation } from 'react-router-dom';
@@ -15,6 +12,8 @@ import FieldsInput, {
   FieldsTimepicker,
 } from '@/pages/panel/TestDetail/TestDetailPanel/components/FieldsInput';
 import CustomCollapse from './components/Collapse';
+import AddDefectBtn from './components/AddDefectBtn';
+import RelationTable from './components/RelationTable';
 
 import css from './index.less';
 
@@ -157,7 +156,8 @@ const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
     return <Loading tip="初始化runs中..."></Loading>;
   }
 
-  const { itemDetail, runDetail, status, objectId } = data?.data;
+  const { itemDetail, runDetail, status, objectId, defectList } = data?.data;
+  console.log('runDetail', data.data);
 
   const saveItem = (key: string) => {
     return value => {
@@ -206,41 +206,36 @@ const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
             <CustomCollapse title="总结">
               <CustomCollapse.Panel
                 title="缺陷"
-                num={2}
+                num={defectList.length}
                 titleExtra={[
-                  <Button key="1" type="link" icon={<PlusCircleOutlined />}>
-                    添加缺陷
-                  </Button>,
+                  <AddDefectBtn
+                    currentDefectIds={runDetail.defectIds}
+                    key="2"
+                    testId={objectId}
+                    save={val => saveItem('defectIds')(val)}
+                  />,
                 ]}
               >
-                <ItemList />
-              </CustomCollapse.Panel>
-
-              <CustomCollapse.Panel
-                title="附件"
-                num={2}
-                titleExtra={[
-                  <Button key="1" type="link" icon={<PlusCircleOutlined />}>
-                    添加附件
-                  </Button>,
-                ]}
-              >
-                <FileList />
+                <ItemList
+                  defects={defectList}
+                  testId={objectId}
+                  save={() => saveItem('defectIds')}
+                />
               </CustomCollapse.Panel>
 
               <CustomCollapse.Panel title="评论">
-                <FieldsInput />
+                <FieldsInput value={runDetail.comment} change={val => saveItem('comment')(val)} />
               </CustomCollapse.Panel>
             </CustomCollapse>
           </div>
 
           <div className={css('run__around__collapse__item')}>
             <CustomCollapse title="测试用例详情">
-              <CustomCollapse.Panel title="测试用例关联事项" num={2}>
-                关联列表
+              <CustomCollapse.Panel title="测试用例关联事项" num={defectList.length}>
+                <RelationTable itemId={itemDetail?.objectId} />
               </CustomCollapse.Panel>
 
-              <CustomCollapse.Panel title="用例步骤" num={2}>
+              <CustomCollapse.Panel title="用例步骤" num={runDetail?.runs?.steps?.length || 0}>
                 <StepList
                   refresh={refresh}
                   detail={runDetail}

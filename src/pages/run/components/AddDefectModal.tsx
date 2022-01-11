@@ -29,6 +29,7 @@ let chooseItems = [];
 export const AddDefectSelect: React.FC<AddDefectSelect> = props => {
   const { ignoreTestEntityIds = [] } = props;
   const { config } = useTestConfig();
+  const debounceSelectContainerRef = React.useRef();
   const { defectsMapping } = config;
   const [selectValue, setSelectValue] = useSafeState<Array<string>>([]);
   const filterOptions = React.useCallback(
@@ -77,19 +78,21 @@ export const AddDefectSelect: React.FC<AddDefectSelect> = props => {
   );
 
   return (
-    <Spin spinning={loading}>
-      <DebounceSelect
-        getPopupContainer={() => document.getElementById('dropdown_add_defect')}
-        mode="multiple"
-        value={selectValue}
-        notFoundContent={loading ? <Spin /> : <div>未找到事项</div>}
-        className={css('select')}
-        fetchOptions={getItems}
-        filterOptions={filterOptions}
-        onChange={handleSelectChange}
-        placeholder={props.placeholder ?? '选择事项'}
-      />
-    </Spin>
+    <div ref={debounceSelectContainerRef}>
+      <Spin spinning={loading}>
+        <DebounceSelect
+          getPopupContainer={() => debounceSelectContainerRef.current}
+          mode="multiple"
+          value={selectValue}
+          notFoundContent={loading ? <Spin /> : <div>未找到事项</div>}
+          className={css('select')}
+          fetchOptions={getItems}
+          filterOptions={filterOptions}
+          onChange={handleSelectChange}
+          placeholder={props.placeholder ?? '选择事项'}
+        />
+      </Spin>
+    </div>
   );
 };
 

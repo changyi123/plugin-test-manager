@@ -15,14 +15,18 @@
     
     .left {
       &__tips {
-        background: #0A50D1;
-        border-radius: 4px;
-        font-size: 12px;
-        font-family: PingFangSC-Regular, PingFang SC;
-        font-weight: 400;
-        color: #FFFFFF;
-        line-height: 20px;
-        padding: 0 14px;
+        width: 66px;
+        text-align: center;
+        &__content {
+          background: #0A50D1;
+          border-radius: 4px;
+          font-size: 12px;
+          font-family: PingFangSC-Regular, PingFang SC;
+          font-weight: 400;
+          color: #FFFFFF;
+          line-height: 20px;
+          padding: 0 14px;
+        }
       }
 
       &__icon {
@@ -41,6 +45,10 @@
         color: #878C96;
         line-height: 22px;
         cursor: pointer;
+        transition: all .3s;
+        &:hover {
+          color: #0A50D1;
+        }
       }
 
       &__name {

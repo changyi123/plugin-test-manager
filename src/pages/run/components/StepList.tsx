@@ -1,7 +1,6 @@
 import React, { useCallback } from 'react';
-import { Popover, Row, Col, Space, Divider, Button, message, Dropdown, Menu } from '@osui/ui';
+import { Row, Col, Button, message, Dropdown, Menu } from '@osui/ui';
 import { PlusCircleOutlined } from '@ant-design/icons';
-import Comment from '@/components//common/Comment';
 import { StatusBadge } from '@/components/common/Status';
 import FieldsInput from '@/pages/panel/TestDetail/TestDetailPanel/components/FieldsInput';
 import { updateTestStep } from '@/lib/api/runs';
@@ -9,7 +8,7 @@ import AddDefectModal from './AddDefectModal';
 import { uniqueId } from 'lodash';
 import { useBaseAction } from '@/lib/hooks/useContext';
 import { TestType } from '@/lib/constants';
-import SmallDefectList, { SmallDefectListPopover } from './SmallDefectList';
+import SmallDefectList from './SmallDefectList';
 import { addDefect } from '@/lib/api/runs';
 import { useItemLinkTypeConfig } from './hooks';
 
@@ -49,6 +48,7 @@ export interface StepListProps {
 export const StepItem: React.FC<IStepItemProps> = ({ index, item, saveList, testId }) => {
   const { createItemUseModal } = useBaseAction();
   const { TestToDefect = '' } = useItemLinkTypeConfig();
+  const dropDownRef = React.useRef();
   const saveItem = useCallback(
     (key: string) => {
       return value => {
@@ -99,7 +99,7 @@ export const StepItem: React.FC<IStepItemProps> = ({ index, item, saveList, test
   );
 
   return (
-    <div className={css('step-list__item')}>
+    <div className={[css('step-list__item'), css(item.status)].join(' ')}>
       <div className={css('left')}>
         <div className={css('left__index')}>{index + 1}</div>
         {/* <div className={css('left__tips')}>
@@ -167,11 +167,11 @@ export const StepItem: React.FC<IStepItemProps> = ({ index, item, saveList, test
                     />
                   </div>
                 )}
-                <div className={css('right__content__btn')}>
+                <div className={css('right__content__btn')} ref={dropDownRef}>
                   <Dropdown
                     overlay={menu}
                     trigger={['click']}
-                    getPopupContainer={() => document.getElementById('dropdown_add_defect')}
+                    getPopupContainer={() => dropDownRef.current}
                   >
                     <Button type="link" icon={<PlusCircleOutlined />}>
                       添加缺陷

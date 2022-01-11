@@ -489,10 +489,27 @@ export const GetTestRunDetail = (testId: string): Promise<ICommonRes> => {
         const {
           items: [item],
         } = await getItemByIQL({ itemId });
+        const testRunDetail = res.toJSON();
+        const defectList = [];
+        testRunDetail?.runDetail?.defectIds?.forEach((item: string) => {
+          defectList.push({
+            label: '全局',
+            value: item,
+          });
+        });
+        testRunDetail?.runDetail?.runs?.steps?.forEach((item, index) => {
+          item?.defectIds?.forEach((item2: string) => {
+            defectList.push({
+              label: `步骤${index + 1}`,
+              value: item2,
+            });
+          });
+        });
         resolve({
           success: true,
           data: {
             ...res.toJSON(),
+            defectList,
             itemDetail: item,
           },
         });
@@ -774,6 +791,59 @@ export const deleteDefect = async (
       deleteDefectItemIds.push(deleteItem.id);
     }
   });
-  console.log('deleteDefectItemIds', deleteDefectItemIds);
   return deleteItemLink(deleteDefectItemIds);
+};
+
+export const fetchDefectList = async (
+  itemIds: string[],
+): Promise<{
+  items: any;
+}> => {
+  const items = await getItemByIQL({ itemId: itemIds });
+  const ItemTypeKeys = [];
+  items?.items?.forEach(item => {
+    if (item?.itemType?.key) {
+      ItemTypeKeys.push(item?.itemType?.key);
+    }
+  });
+  return new Promise((resolve, reject) => {
+    const query = new Parse.Query(ItemType);
+    query.containedIn('key', ItemTypeKeys);
+    query.find().then(
+      res => {
+        const resArray = res?.map(item => item.toJSON());
+        items?.items?.forEach(item => {
+          resArray?.forEach(item2 => {
+            if (item?.itemType?.key === item2.key) {
+              item.itemType.icon = item2.icon;
+            }
+          });
+        });
+
+        resolve({
+          items: items.items,
+        });
+      },
+      err => {
+        reject(err);
+      },
+    );
+  });
+};
+
+export const FetchItemLinkRelation = (itemId: string): Promise<any> => {
+  return new Promise((resolve, reject) => {
+    const query = new Parse.Query(ItemLink);
+    query.equalTo('source', pointerTransfer(Item, itemId));
+    query.include(['destination.workspace', 'destination.itemType', 'destination.status']);
+    query.find().then(
+      res => {
+        const resArray = res.map(item => item.toJSON());
+        resolve(resArray);
+      },
+      err => {
+        reject(err);
+      },
+    );
+  });
 };

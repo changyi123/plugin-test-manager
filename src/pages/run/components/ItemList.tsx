@@ -1,6 +1,12 @@
-import React from 'react';
-import { List, Typography, Tooltip, Modal } from '@osui/ui';
+import React, { useCallback } from 'react';
+import { List, Typography, Tooltip, Popconfirm, message } from '@osui/ui';
 import { DeleteOutlined } from '@ant-design/icons';
+import { useRequest } from 'ahooks';
+import { deleteDefect, fetchDefectList } from '@/lib/api/runs';
+import { getRootContainer } from '@/lib/utils/helper';
+import Loading from '@/components/common/Loading';
+import ItemIcon from './ItemIcon';
+import { useItemLinkTypeConfig } from './hooks';
 
 import css from './ItemList.less';
 
@@ -15,9 +21,60 @@ const data = [
   },
 ];
 
-const ItemList: React.FC = () => {
-  const handleItemDelete = () => {
-    console.log('asdsadsad');
+interface ItemListProps {
+  defects: Array<{
+    label: string;
+    value: string;
+  }>;
+  testId: string;
+  save?: () => (value: string[]) => void;
+}
+
+function mergeData(items: any, defects: ItemListProps['defects']) {
+  items?.forEach(item => {
+    defects?.forEach(item2 => {
+      if (item.id === item2.value) {
+        item.label = item2.label;
+      }
+    });
+  });
+}
+
+const ItemList: React.FC<ItemListProps> = props => {
+  const { defects, testId, save } = props;
+  const { TestToDefect = '' } = useItemLinkTypeConfig();
+
+  const { data, loading, error } = useRequest(() =>
+    fetchDefectList(defects.map(item => item.value)),
+  );
+
+  const open = useCallback((url: string) => window.open(url), []);
+
+  if (loading) {
+    return <Loading />;
+  }
+
+  if (error) {
+    return <div>加载失败,原因{error?.message}</div>;
+  }
+
+  const { items } = data;
+
+  if (!items?.length) {
+    return <div></div>;
+  }
+
+  mergeData(items, defects);
+
+  const handleDeleteRelation = (itemId: string) => {
+    deleteDefect(TestToDefect, testId, [itemId]).then(() => {
+      message.success('删除成功');
+      const index = items.findIndex(item => item.objectId === itemId);
+      const itemIdsBak = [...items];
+      itemIdsBak.splice(index, 1);
+      const saveList = itemIdsBak.map(item => item.objectId);
+      save && save()(saveList);
+    });
   };
 
   return (
@@ -25,31 +82,44 @@ const ItemList: React.FC = () => {
       className={css('list')}
       size="small"
       bordered
-      dataSource={data}
-      renderItem={item => (
+      dataSource={items}
+      renderItem={(item: any) => (
         <List.Item>
           <div className={css('list__item')}>
             <div className={css('left')}>
-              <div className={css('left__tips')}>步骤2</div>
-              <div className={css('left__icon')}></div>
+              <div className={css('left__tips')}>
+                <div className={css('left__tips__content')}>{item.label}</div>
+              </div>
+              <div className={css('left__icon')}>
+                <ItemIcon src={item?.itemType?.icon} />
+              </div>
               <div
                 className={css('left__key')}
-                // onClick={() =>
-                //   open(`/osc/workspaces/${(item as any)?.workspace?.key}/item/${item?.key}`)
-                // }
+                onClick={() =>
+                  open(`/osc/workspaces/${(item as any)?.workspace?.key}/item/${item?.key}`)
+                }
               >
                 {item.key}
               </div>
 
               <div className={css('left__name')}>
-                <Typography.Text ellipsis={{ tooltip: item.title }}>{item.title}</Typography.Text>
+                <Typography.Text ellipsis={{ tooltip: item.name }}>{item.name}</Typography.Text>
               </div>
             </div>
 
             <div className={css('right')}>
-              <div className={css('right__icon')} onClick={() => handleItemDelete()}>
+              <div className={css('right__icon')}>
                 <Tooltip title="删除关联">
-                  <DeleteOutlined />
+                  <Popconfirm
+                    placement="left"
+                    getPopupContainer={() => getRootContainer()}
+                    title="当前操作会删除与该缺陷的关联关系，是否继续执行？"
+                    onConfirm={() => handleDeleteRelation(item.objectId)}
+                    okText="确定"
+                    cancelText="取消"
+                  >
+                    <DeleteOutlined />
+                  </Popconfirm>
                 </Tooltip>
               </div>
             </div>

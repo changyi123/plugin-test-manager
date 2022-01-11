@@ -2,9 +2,9 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { Popover, Skeleton, Space, Typography, message, Popconfirm } from '@osui/ui';
 import { ExclamationCircleOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useRequest } from 'ahooks';
-import { getItemByIQL } from '@/lib/api/proxima';
-import { deleteDefect } from '@/lib/api/runs';
+import { deleteDefect, fetchDefectList } from '@/lib/api/runs';
 import { useItemLinkTypeConfig } from './hooks';
+import ItemIcon from './ItemIcon';
 
 import css from './SmallDefectList.less';
 
@@ -31,9 +31,7 @@ export const SmallDefectList: React.FC<ISmallDefectListProps> = props => {
     [testId, save, itemIds, TestToDefect],
   );
 
-  const { data, loading, error, refresh } = useRequest(() =>
-    getItemByIQL({ itemId: props.itemIds }),
-  );
+  const { data, loading, error, refresh } = useRequest(() => fetchDefectList(props.itemIds));
 
   useEffect(() => {
     if (props.refreshNum > 1) {
@@ -66,7 +64,9 @@ export const SmallDefectList: React.FC<ISmallDefectListProps> = props => {
             return (
               <div key={index} className={css('list__item')}>
                 <div className={css('list__item__detail')}>
-                  <div className={css('img')}></div>
+                  <div className={css('img')}>
+                    <ItemIcon src={item?.itemType?.icon} />
+                  </div>
                   <div
                     className={css('key')}
                     onClick={() =>
