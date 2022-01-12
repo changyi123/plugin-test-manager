@@ -51,6 +51,7 @@ const FieldsInput: React.FC<IFieldsInputProps> = ({ value, change }) => {
 
       {edit && (
         <TextArea
+          autoSize={true}
           ref={inputRef}
           value={val}
           maxLength={200}

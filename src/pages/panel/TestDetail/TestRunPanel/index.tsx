@@ -1,18 +1,17 @@
 import React from 'react';
 import { uniqueId } from 'lodash';
-import { Button, Space, Typography, message } from '@osui/ui';
-import AddTestExecutionModal from './components/AddTestExecutionModal';
-import { CaretRightOutlined, EllipsisOutlined } from '@ant-design/icons';
+import { Button, Space, Typography, message, Tooltip, Divider } from '@osui/ui';
+// import AddTestExecutionModal from './components/AddTestExecutionModal';
+import { InfoCircleOutlined } from '@ant-design/icons';
 // import ExtendTestExecutionModal from './components/ExtendTestExecutionModal';
 import PanelTable, { ActionType } from '@/components/panel/PanelTable';
-import DropDownButton from '@/components/panel/DropDownButton';
 import { ColumnsType } from 'antd/es/table';
 import {
   GetTestRunsById,
   CreateTestExecutionWithItemModal,
   toggleTestRunStatus,
 } from '@/lib/api/runs';
-import { useTestConfig, useBaseAction } from '@/lib/hooks/useContext';
+import { useBaseAction } from '@/lib/hooks/useContext';
 import { TestType } from '@/lib/constants';
 import { removeTestRelations } from '@/lib/api/common';
 import TestRunModal from '@/pages/run/Modal';
@@ -55,70 +54,74 @@ const Runs: React.FC = () => {
     tableActionRef.current.refresh();
   }, [tableActionRef]);
 
+  const handleStatusChange = async (record, status) => {
+    await toggleTestRunStatus(record.testRunId, status);
+    tableActionRef.current.refresh();
+  };
+
   const tableColumns: ColumnsType<RunItem> = [
     {
-      title: '密钥',
+      title: (
+        <Space>
+          <div>测试执行轮次</div>
+          <div>
+            <Tooltip placement="right" title="该测试用例的运行包含以下执行轮次">
+              <InfoCircleOutlined />
+            </Tooltip>
+          </div>
+        </Space>
+      ),
       key: 'referenceId',
       render: (value, item) => (
-        <Typography.Link
-          ellipsis={true}
-          target="_blank"
-          href={`/osc/workspaces/${(item as any)?.reference?.workspace?.key}/item/${
-            (item as any)?.reference.key
-          }`}
-        >
-          {item.referenceKey}
-        </Typography.Link>
+        <Space split={<Divider type="vertical" />} size={0}>
+          <Typography.Link
+            ellipsis={true}
+            target="_blank"
+            href={`/osc/workspaces/${(item as any)?.reference?.workspace?.key}/item/${
+              (item as any)?.reference.key
+            }`}
+          >
+            {item.referenceKey}
+          </Typography.Link>
+          <div>{item.referenceName}</div>
+        </Space>
       ),
     },
     {
-      title: '摘要',
-      key: 'referenceName',
-      dataIndex: 'referenceName',
-    },
-    {
-      title: '状态',
+      title: '执行状态',
       dataIndex: 'status',
       render: (_, record) => {
-        const handleStatusChange = async status => {
-          await toggleTestRunStatus(record.testRunId, status);
-          tableActionRef.current.refresh();
-        };
-        return <StatusBadge status={record?.status} onStatusChange={handleStatusChange} />;
+        return (
+          <StatusBadge
+            status={record?.status}
+            current={false}
+            onStatusChange={status => handleStatusChange(record, status)}
+          />
+        );
       },
     },
     {
-      title: '执行',
+      title: '操作',
       key: 'testRunId',
       render: (value, item) => (
-        <TestRunModal
-          testId={item.testRunId}
-          onCancel={() => setTimeout(() => tableActionRef.current.refresh(), 200)}
-          trigger={
-            <Button size="small" type="primary" icon={<CaretRightOutlined />}>
-              执行
-            </Button>
-          }
-        />
-      ),
-    },
-    {
-      title: '操作',
-      key: 'action',
-      render: (_, record) => (
-        <DropDownButton
-          buttonProps={{ type: 'text' }}
-          menuList={[
-            {
-              title: '删除',
-              onClick() {
-                removeTestRelation([record.testRelationId]);
-              },
-            },
-          ]}
-        >
-          <EllipsisOutlined />
-        </DropDownButton>
+        <Space split={<Divider type="vertical" />} size={0} style={{ marginLeft: -4 }}>
+          <TestRunModal
+            testId={item.testRunId}
+            onCancel={() => setTimeout(() => tableActionRef.current.refresh(), 200)}
+            trigger={
+              <Button size="small" type="link">
+                执行
+              </Button>
+            }
+          />
+          <Button
+            size="small"
+            type="link"
+            onClick={() => removeTestRelation([item.testRelationId])}
+          >
+            删除
+          </Button>
+        </Space>
       ),
     },
   ];

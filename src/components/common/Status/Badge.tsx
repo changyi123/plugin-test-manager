@@ -10,6 +10,7 @@ type BadgeProps = {
   status?: string;
   readonly?: boolean;
   onStatusChange?: (status) => void;
+  current?: boolean;
 };
 
 const Status = ({ status, hasEffect, onClick, className }: Partial<Record<string, any>>) => {
@@ -58,7 +59,7 @@ const Badge: React.FC<BadgeProps> = props => {
   return (
     <div ref={badgeRef}>
       <Popover
-        getPopupContainer={() => badgeRef.current}
+        getPopupContainer={props.current ? () => badgeRef.current : undefined}
         trigger="click"
         visible={visible}
         placement="bottomLeft"
@@ -66,13 +67,11 @@ const Badge: React.FC<BadgeProps> = props => {
         onVisibleChange={visible => !props.readonly && setVisible(visible)}
         overlayClassName={cx('status-badge-overlay')}
       >
-        <div>
-          <Status
-            status={currentStatus}
-            hasEffect={!props.readonly}
-            onClick={() => !props.readonly && setVisible(true)}
-          />
-        </div>
+        <Status
+          status={currentStatus}
+          hasEffect={!props.readonly}
+          onClick={() => !props.readonly && setVisible(true)}
+        />
       </Popover>
     </div>
   );

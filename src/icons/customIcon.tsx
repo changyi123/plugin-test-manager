@@ -3,6 +3,7 @@ import Icon from '@ant-design/icons';
 import { IconComponentProps } from '@ant-design/icons/lib/components/Icon';
 
 import MoreSVG from './svg/more.svg';
+import CloseMoreSVG from './svg/close-more.svg';
 import ScreenOffSVG from './svg/screen-off.svg';
 
 const CustomIconHOC = (
@@ -17,3 +18,4 @@ const CustomIconHOC = (
 
 export const CustomMore = CustomIconHOC(MoreSVG);
 export const CustomScreenOff = CustomIconHOC(ScreenOffSVG);
+export const CloseMore = CustomIconHOC(CloseMoreSVG);

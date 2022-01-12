@@ -19,6 +19,7 @@ import { TestType } from '@/lib/constants';
 import { getDevConfig } from '@/devEnv';
 import Loading from '@/components/common/Loading';
 import { useDebounceFn } from 'ahooks';
+import { CloseMore } from '@/icons';
 
 import css from './index.less';
 
@@ -190,9 +191,20 @@ const Detail: React.FC = () => {
   const expandCard = useCallback(
     (id?: string, isExpand?: boolean) => {
       if (!id) {
+        console.log(
+          '123213',
+          steps.filter(item => {
+            item.isExpand = isExpand === undefined ? false : isExpand;
+            item.showMore = true;
+            if (item.id !== '-1') {
+              return item;
+            }
+          }),
+        );
         setSteps(
           steps.filter(item => {
             item.isExpand = isExpand === undefined ? false : isExpand;
+            item.showMore = true;
             if (item.id !== '-1') {
               return item;
             }
@@ -391,12 +403,17 @@ const Detail: React.FC = () => {
                 </Tooltip>
               </div>
               <div className={css('item')}>
-                <Tooltip title="全部收缩" placement="bottom">
+                <Tooltip title="全部收起" placement="bottom">
                   <Button icon={<ShrinkOutlined />} onClick={() => expandCard()} />
                 </Tooltip>
               </div>
+              <div className={css('item')}>
+                <Tooltip title="收起更多信息" placement="bottom">
+                  <Button icon={<CloseMore />} onClick={() => expandCard()} />
+                </Tooltip>
+              </div>
               <Dropdown
-                className={css('item')}
+                className={css('add-step')}
                 overlay={
                   <Menu>
                     <Menu.Item key="1" onClick={() => addCard()}>

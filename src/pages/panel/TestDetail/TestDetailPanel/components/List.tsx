@@ -46,9 +46,7 @@ const List: React.FC<ListProps> = (props: ListProps) => {
     openCallTestModal,
   } = actionCard;
 
-  const { isExpand } = item;
-  const [itemBak] = useState<TestStep>(item);
-  const { action, data, result, showMore } = itemBak; //attachments, customFields
+  const { action, data, result, showMore, isExpand } = item; //attachments, customFields
   const [moreInfo, setMoreInfo] = useState<boolean>(showMore);
 
   function expandItemCard(isExpand: boolean) {
@@ -237,7 +235,7 @@ const List: React.FC<ListProps> = (props: ListProps) => {
                                 saveCard(
                                   props.index,
                                   {
-                                    ...itemBak,
+                                    ...item,
                                     action: e,
                                   },
                                   undefined,
@@ -258,7 +256,7 @@ const List: React.FC<ListProps> = (props: ListProps) => {
                                 saveCard(
                                   props.index,
                                   {
-                                    ...itemBak,
+                                    ...item,
                                     result: e,
                                   },
                                   undefined,
@@ -305,7 +303,7 @@ const List: React.FC<ListProps> = (props: ListProps) => {
                                   saveCard(
                                     props.index,
                                     {
-                                      ...itemBak,
+                                      ...item,
                                       data: e,
                                     },
                                     undefined,
