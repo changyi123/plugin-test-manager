@@ -119,6 +119,7 @@ const TestInfo: React.FC<TestInfoContent> = ({ detail, changeRunInfo }) => {
   );
 };
 
+let firstLoad = true;
 const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
   const query = useQuery();
   const currentTestId = query.get('id') || testId;
@@ -152,7 +153,8 @@ const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
   if (error) {
     return <div>加载失败,原因{error?.message}</div>;
   }
-  if (loading) {
+  if (loading && firstLoad) {
+    firstLoad = false;
     return <Loading />;
   }
   if (!data?.data) {
@@ -188,73 +190,75 @@ const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
   };
 
   return (
-    <div className={css('run')}>
-      <div className={css('run__topic')}>
-        <div className={css('run__topic__label')}>{itemDetail?.name}</div>
-        <div className={css('run__topic__status')}>
-          <StatusBadge
-            status={status}
-            onStatusChange={status => handleStatusChange(testId, status)}
-          />
+    <Loading loading={loading}>
+      <div className={css('run')}>
+        <div className={css('run__topic')}>
+          <div className={css('run__topic__label')}>{itemDetail?.name}</div>
+          <div className={css('run__topic__status')}>
+            <StatusBadge
+              status={status}
+              onStatusChange={status => handleStatusChange(testId, status)}
+            />
+          </div>
         </div>
-      </div>
 
-      <Divider className={css('run__divider')} />
+        <Divider className={css('run__divider')} />
 
-      <TestInfo detail={runDetail.detail} changeRunInfo={changeRunInfo} />
+        <TestInfo detail={runDetail.detail} changeRunInfo={changeRunInfo} />
 
-      <div className={css('run__around')}>
-        <div className={css('run__around__collapse')}>
-          <div className={css('run__around__collapse__item')}>
-            <CustomCollapse title="总结">
-              <CustomCollapse.Panel
-                title="缺陷"
-                num={defectList.length}
-                titleExtra={[
-                  <AddDefectBtn
-                    currentDefectIds={runDetail.defectIds}
-                    key="2"
+        <div className={css('run__around')}>
+          <div className={css('run__around__collapse')}>
+            <div className={css('run__around__collapse__item')}>
+              <CustomCollapse title="总结">
+                <CustomCollapse.Panel
+                  title="缺陷"
+                  num={defectList.length}
+                  titleExtra={[
+                    <AddDefectBtn
+                      currentDefectIds={runDetail.defectIds}
+                      key="2"
+                      testId={objectId}
+                      save={val => saveItem('defectIds')(val)}
+                    />,
+                  ]}
+                >
+                  <ItemList
+                    defects={defectList}
                     testId={objectId}
-                    save={val => saveItem('defectIds')(val)}
-                  />,
-                ]}
-              >
-                <ItemList
-                  defects={defectList}
-                  testId={objectId}
-                  save={() => saveItem('defectIds')}
-                />
-              </CustomCollapse.Panel>
+                    save={() => saveItem('defectIds')}
+                  />
+                </CustomCollapse.Panel>
 
-              <CustomCollapse.Panel title="评论">
-                <FieldsInput
-                  borderColor="white"
-                  value={runDetail.comment}
-                  change={val => saveItem('comment')(val)}
-                />
-              </CustomCollapse.Panel>
-            </CustomCollapse>
-          </div>
+                <CustomCollapse.Panel title="评论">
+                  <FieldsInput
+                    borderColor="white"
+                    value={runDetail.comment}
+                    change={val => saveItem('comment')(val)}
+                  />
+                </CustomCollapse.Panel>
+              </CustomCollapse>
+            </div>
 
-          <div className={css('run__around__collapse__item')}>
-            <CustomCollapse title="测试用例详情">
-              <CustomCollapse.Panel title="测试用例关联事项" num={defectList.length}>
-                <RelationTable itemId={itemDetail?.objectId} />
-              </CustomCollapse.Panel>
+            <div className={css('run__around__collapse__item')}>
+              <CustomCollapse title="测试用例详情">
+                <CustomCollapse.Panel title="测试用例关联事项" num={defectList.length}>
+                  <RelationTable itemId={itemDetail?.objectId} />
+                </CustomCollapse.Panel>
 
-              <CustomCollapse.Panel title="用例步骤" num={runDetail?.runs?.steps?.length || 0}>
-                <StepList
-                  refresh={refresh}
-                  detail={runDetail}
-                  objectId={objectId}
-                  testId={currentTestId}
-                />
-              </CustomCollapse.Panel>
-            </CustomCollapse>
+                <CustomCollapse.Panel title="用例步骤" num={runDetail?.runs?.steps?.length || 0}>
+                  <StepList
+                    refresh={refresh}
+                    detail={runDetail}
+                    objectId={objectId}
+                    testId={currentTestId}
+                  />
+                </CustomCollapse.Panel>
+              </CustomCollapse>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </Loading>
   );
 };
 
