@@ -1,11 +1,12 @@
 import React from 'react';
 import { uniqueId } from 'lodash';
-import { Button, Space, Typography, message, Tooltip, Divider } from '@osui/ui';
+import { Button, Space, Typography, message, Tooltip, Divider, Popconfirm } from '@osui/ui';
 // import AddTestExecutionModal from './components/AddTestExecutionModal';
 import { InfoCircleOutlined } from '@ant-design/icons';
 // import ExtendTestExecutionModal from './components/ExtendTestExecutionModal';
 import PanelTable, { ActionType } from '@/components/panel/PanelTable';
 import { ColumnsType } from 'antd/es/table';
+import { getRootContainer } from '@/lib/utils/helper';
 import {
   GetTestRunsById,
   CreateTestExecutionWithItemModal,
@@ -114,13 +115,18 @@ const Runs: React.FC = () => {
               </Button>
             }
           />
-          <Button
-            size="small"
-            type="link"
-            onClick={() => removeTestRelation([item.testRelationId])}
+          <Popconfirm
+            placement="left"
+            getPopupContainer={() => getRootContainer()}
+            title="当前操作会删除该测试执行，是否继续执行？"
+            onConfirm={() => () => removeTestRelation([item.testRelationId])}
+            okText="确定"
+            cancelText="取消"
           >
-            删除
-          </Button>
+            <Button size="small" type="link">
+              删除
+            </Button>
+          </Popconfirm>
         </Space>
       ),
     },

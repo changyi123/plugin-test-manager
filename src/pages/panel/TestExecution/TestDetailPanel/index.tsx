@@ -1,7 +1,7 @@
 import React from 'react';
 import { uniqueId } from 'lodash';
-import { Typography, message, Space, Button } from '@osui/ui';
-import { EllipsisOutlined, DownOutlined, CaretRightOutlined } from '@ant-design/icons';
+import { Typography, message, Space, Button, Divider, Popconfirm } from '@osui/ui';
+import { DownOutlined } from '@ant-design/icons';
 import { TestType, TestRelationType } from '@/lib/constants';
 import PanelTable, { ActionType } from '@/components/panel/PanelTable';
 import DropDownButton from '@/components/panel/DropDownButton';
@@ -14,6 +14,7 @@ import TestEntitySelectorModal, {
 import { addTestRunToExecution } from './services';
 import TestRunModal from '@/pages/run/Modal';
 import { StatusBadge } from '@/components/common/Status';
+import { getRootContainer } from '@/lib/utils/helper';
 
 import cx from './index.less';
 
@@ -100,7 +101,7 @@ const Test = () => {
         },
       },
       {
-        title: '最新执行状态',
+        title: '执行状态',
         dataIndex: 'status',
         key: 'status',
         render: (_, record) => {
@@ -112,38 +113,32 @@ const Test = () => {
         },
       },
       {
-        title: '执行',
+        title: '操作',
         key: 'testRunId',
         render: (value, item) => (
-          <TestRunModal
-            testId={item.objectId}
-            onCancel={() => setTimeout(() => tableActionRef.current.refresh(), 200)}
-            trigger={
-              <Button size="small" type="primary" icon={<CaretRightOutlined />}>
-                执行
+          <Space split={<Divider type="vertical" />} size={0} style={{ marginLeft: -4 }}>
+            <TestRunModal
+              testId={item.objectId}
+              onCancel={() => setTimeout(() => tableActionRef.current.refresh(), 200)}
+              trigger={
+                <Button size="small" type="link">
+                  执行
+                </Button>
+              }
+            />
+            <Popconfirm
+              placement="left"
+              getPopupContainer={() => getRootContainer()}
+              title="当前操作会删除该测试执行，是否继续执行？"
+              onConfirm={() => () => removeTestRelation([item.testRelationId])}
+              okText="确定"
+              cancelText="取消"
+            >
+              <Button size="small" type="link">
+                删除
               </Button>
-            }
-          />
-        ),
-      },
-      {
-        title: '操作',
-        width: 120,
-        key: 'action',
-        render: (_, record) => (
-          <DropDownButton
-            buttonProps={{ type: 'text' }}
-            menuList={[
-              {
-                title: '删除',
-                onClick() {
-                  removeTestRelation([record.testRelationId]);
-                },
-              },
-            ]}
-          >
-            <EllipsisOutlined />
-          </DropDownButton>
+            </Popconfirm>
+          </Space>
         ),
       },
     ];
@@ -198,7 +193,7 @@ const Test = () => {
       <PanelTable
         renderActions={() => (
           <DropDownButton menuList={testDetailMenuList}>
-            添加测试用例 <DownOutlined />
+            添加用例 <DownOutlined />
           </DropDownButton>
         )}
         actionRef={tableActionRef}
