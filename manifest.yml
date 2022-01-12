@@ -22,7 +22,7 @@ modules:
       title: 测试管理配置
       loadType: Micro
       route: /testConfig
-      workspacePage:
+  workspacePage:
     - key: test-repository
       resource: main
       title: 测试用例仓库
