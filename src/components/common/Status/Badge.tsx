@@ -10,7 +10,7 @@ type BadgeProps = {
   status?: string;
   readonly?: boolean;
   onStatusChange?: (status) => void;
-  current?: boolean;
+  notCurrent?: boolean;
 };
 
 const Status = ({ status, hasEffect, onClick, className }: Partial<Record<string, any>>) => {
@@ -59,7 +59,7 @@ const Badge: React.FC<BadgeProps> = props => {
   return (
     <div ref={badgeRef}>
       <Popover
-        getPopupContainer={props.current ? () => badgeRef.current : undefined}
+        getPopupContainer={props.notCurrent ? undefined : () => badgeRef.current}
         trigger="click"
         visible={visible}
         placement="bottomLeft"

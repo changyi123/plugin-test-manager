@@ -95,7 +95,7 @@ const Runs: React.FC = () => {
         return (
           <StatusBadge
             status={record?.status}
-            current={false}
+            notCurrent={true}
             onStatusChange={status => handleStatusChange(record, status)}
           />
         );
