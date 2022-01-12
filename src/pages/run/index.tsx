@@ -65,6 +65,7 @@ const TestInfo: React.FC<TestInfoContent> = ({ detail, changeRunInfo }) => {
         <div className={css('info__title')}>开始时间</div>
         <div className={css('info__val')}>
           <FieldsTimepicker
+            borderColor="white"
             value={info?.startTime}
             change={(val: number) => changeStr('startTime', val)}
           />
@@ -75,6 +76,7 @@ const TestInfo: React.FC<TestInfoContent> = ({ detail, changeRunInfo }) => {
         <div className={css('info__title')}>完成时间</div>
         <div className={css('info__val')}>
           <FieldsTimepicker
+            borderColor="white"
             value={info?.finishTime}
             change={(val: number) => changeStr('finishTime', val)}
           />
@@ -85,6 +87,7 @@ const TestInfo: React.FC<TestInfoContent> = ({ detail, changeRunInfo }) => {
         <div className={css('info__title')}>负责人</div>
         <div className={css('info__val')}>
           <FieldsInput
+            borderColor="white"
             value={info?.assignee}
             change={(val: string) => changeStr('assignee', val)}
           />
@@ -95,6 +98,7 @@ const TestInfo: React.FC<TestInfoContent> = ({ detail, changeRunInfo }) => {
         <div className={css('info__title')}>执行人</div>
         <div className={css('info__val')}>
           <FieldsInput
+            borderColor="white"
             value={info?.executedBy}
             change={(val: string) => changeStr('executedBy', val)}
           />
@@ -104,7 +108,11 @@ const TestInfo: React.FC<TestInfoContent> = ({ detail, changeRunInfo }) => {
       <Col xs={6} xl={4}>
         <div className={css('info__title')}>版本</div>
         <div className={css('info__val')}>
-          <FieldsInput value={info?.version} change={(val: string) => changeStr('version', val)} />
+          <FieldsInput
+            borderColor="white"
+            value={info?.version}
+            change={(val: string) => changeStr('version', val)}
+          />
         </div>
       </Col>
     </Row>
@@ -219,7 +227,11 @@ const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
               </CustomCollapse.Panel>
 
               <CustomCollapse.Panel title="评论">
-                <FieldsInput value={runDetail.comment} change={val => saveItem('comment')(val)} />
+                <FieldsInput
+                  borderColor="white"
+                  value={runDetail.comment}
+                  change={val => saveItem('comment')(val)}
+                />
               </CustomCollapse.Panel>
             </CustomCollapse>
           </div>

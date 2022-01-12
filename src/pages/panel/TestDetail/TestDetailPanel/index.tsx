@@ -189,22 +189,12 @@ const Detail: React.FC = () => {
   );
 
   const expandCard = useCallback(
-    (id?: string, isExpand?: boolean) => {
+    (id?: string, isExpand?: boolean, showMore?: boolean) => {
       if (!id) {
-        console.log(
-          '123213',
-          steps.filter(item => {
-            item.isExpand = isExpand === undefined ? false : isExpand;
-            item.showMore = true;
-            if (item.id !== '-1') {
-              return item;
-            }
-          }),
-        );
         setSteps(
           steps.filter(item => {
             item.isExpand = isExpand === undefined ? false : isExpand;
-            item.showMore = true;
+            item.showMore = showMore;
             if (item.id !== '-1') {
               return item;
             }
@@ -389,7 +379,12 @@ const Detail: React.FC = () => {
           <div className={css('detail__content__header')}>
             <div className={css('left')}>
               <div className={css('input')}>
-                <Input placeholder="搜索步骤" onChange={e => run(e)} suffix={<SearchOutlined />} />
+                <Input
+                  placeholder="搜索步骤"
+                  onChange={e => run(e)}
+                  allowClear={true}
+                  suffix={<SearchOutlined />}
+                />
               </div>
             </div>
 
@@ -398,7 +393,7 @@ const Detail: React.FC = () => {
                 <Tooltip title="全部展开" placement="bottom">
                   <Button
                     icon={<ArrowsAltOutlined />}
-                    onClick={() => expandCard(undefined, true)}
+                    onClick={() => expandCard(undefined, true, true)}
                   />
                 </Tooltip>
               </div>
@@ -409,7 +404,7 @@ const Detail: React.FC = () => {
               </div>
               <div className={css('item')}>
                 <Tooltip title="收起更多信息" placement="bottom">
-                  <Button icon={<CloseMore />} onClick={() => expandCard()} />
+                  <Button icon={<CloseMore />} onClick={() => expandCard(undefined, true, false)} />
                 </Tooltip>
               </div>
               <Dropdown
@@ -433,8 +428,7 @@ const Detail: React.FC = () => {
           </div>
 
           <div className={css('detail__content__tips')}>
-            <BlockOutlined />
-            {search}
+            {!search ? <BlockOutlined /> : null}
             <span>
               {search
                 ? `显示${stepsBak.length}个步骤中的${steps.length}个`

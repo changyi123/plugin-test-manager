@@ -23,6 +23,7 @@ export const fetchTestSteps = (resource: string): Promise<ICommonRes> => {
           item.id = `${step.objectId}_${index}`;
           item.objectId = `${step.objectId}_${index}`;
           item.isExpand = true;
+          item.showMore = false;
           if (item.callTestId) {
             callTestIds.push(item.callTestId);
           }

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Divider,
   Dropdown,
@@ -31,6 +31,7 @@ interface IStepItemProps {
   trigger?: JSX.Element;
   text?: string;
   disabled?: boolean;
+  tooltipVisible?: boolean;
 }
 
 const List: React.FC<ListProps> = (props: ListProps) => {
@@ -48,6 +49,10 @@ const List: React.FC<ListProps> = (props: ListProps) => {
 
   const { action, data, result, showMore, isExpand } = item; //attachments, customFields
   const [moreInfo, setMoreInfo] = useState<boolean>(showMore);
+
+  useEffect(() => {
+    setMoreInfo(showMore);
+  }, [showMore]);
 
   function expandItemCard(isExpand: boolean) {
     expandCard(item.id, isExpand);
@@ -107,7 +112,11 @@ const List: React.FC<ListProps> = (props: ListProps) => {
         okText="Yes"
         cancelText="No"
       >
-        <Tooltip placement="left" title={stepTools[IStepToolsKey.MOVE].label}>
+        <Tooltip
+          visible={props.tooltipVisible}
+          placement="left"
+          title={stepTools[IStepToolsKey.MOVE].label}
+        >
           {props.trigger && React.cloneElement(props.trigger)}
           {props.text}
         </Tooltip>
@@ -125,7 +134,11 @@ const List: React.FC<ListProps> = (props: ListProps) => {
         cancelText="No"
         disabled={props.disabled}
       >
-        <Tooltip placement="left" title={stepTools[IStepToolsKey.COPY].label}>
+        <Tooltip
+          visible={props.tooltipVisible}
+          placement="left"
+          title={stepTools[IStepToolsKey.COPY].label}
+        >
           {props.trigger && React.cloneElement(props.trigger)}
           {props.text}
         </Tooltip>
@@ -143,7 +156,11 @@ const List: React.FC<ListProps> = (props: ListProps) => {
         cancelText="No"
         disabled={props.disabled}
       >
-        <Tooltip placement="left" title={stepTools[IStepToolsKey.DELETE].label}>
+        <Tooltip
+          visible={props.tooltipVisible}
+          placement="left"
+          title={stepTools[IStepToolsKey.DELETE].label}
+        >
           {props.trigger && React.cloneElement(props.trigger)}
           {props.text}
         </Tooltip>
@@ -406,13 +423,22 @@ const List: React.FC<ListProps> = (props: ListProps) => {
                           {stepTools[IStepToolsKey.OPEN].label}
                         </Menu.Item>
                         <Menu.Item key="2" icon={stepTools[IStepToolsKey.COPY].icon}>
-                          <StepItemCopy text={stepTools[IStepToolsKey.COPY].label} />
+                          <StepItemCopy
+                            tooltipVisible={false}
+                            text={stepTools[IStepToolsKey.COPY].label}
+                          />
                         </Menu.Item>
                         <Menu.Item key="3" icon={stepTools[IStepToolsKey.MOVE].icon}>
-                          <StepItemMove text={stepTools[IStepToolsKey.MOVE].label} />
+                          <StepItemMove
+                            tooltipVisible={false}
+                            text={stepTools[IStepToolsKey.MOVE].label}
+                          />
                         </Menu.Item>
                         <Menu.Item key="4" icon={stepTools[IStepToolsKey.DELETE].icon}>
-                          <StepItemDelete text={stepTools[IStepToolsKey.DELETE].label} />
+                          <StepItemDelete
+                            tooltipVisible={false}
+                            text={stepTools[IStepToolsKey.DELETE].label}
+                          />
                         </Menu.Item>
                       </Menu>
                     }
