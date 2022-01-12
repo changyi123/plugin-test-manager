@@ -108,11 +108,12 @@ const AddDefectModal: React.FC<IDefectModalProps> = props => {
     props.onCancel?.(e);
   };
 
-  const handleConfirmModal = () => {
+  const handleConfirmModal = (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
     setConfirmLoading(true);
     addDefect(TestToDefect, props.testId, chooseItems).then(() => {
       message.success('添加成功');
       setConfirmLoading(false);
+      handleCloseModal(e);
       if (props.currentDefectIds) {
         props.save && props.save()([...props.currentDefectIds, ...chooseItems]);
         return;

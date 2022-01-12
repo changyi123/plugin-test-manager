@@ -8,8 +8,6 @@ import { useBaseAction } from '@/lib/hooks/useContext';
 import { addDefect } from '@/lib/api/runs';
 import { useItemLinkTypeConfig } from './hooks';
 
-import css from './AddDefectBtn.less';
-
 const AddDefectBtn: React.FC<{
   testId: string;
   currentDefectIds: string[];

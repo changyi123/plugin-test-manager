@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { List, Typography, Tooltip, Popconfirm, message } from '@osui/ui';
 import { DeleteOutlined } from '@ant-design/icons';
 import { useRequest } from 'ahooks';
@@ -44,9 +44,13 @@ const ItemList: React.FC<ItemListProps> = props => {
   const { defects, testId, save } = props;
   const { TestToDefect = '' } = useItemLinkTypeConfig();
 
-  const { data, loading, error } = useRequest(() =>
+  const { data, loading, error, refresh } = useRequest(() =>
     fetchDefectList(defects.map(item => item.value)),
   );
+
+  useEffect(() => {
+    refresh && refresh();
+  }, [defects, refresh]);
 
   const open = useCallback((url: string) => window.open(url), []);
 
