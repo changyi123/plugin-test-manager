@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 import { Row, Col, Button, message, Dropdown, Menu } from '@osui/ui';
-import { PlusCircleOutlined } from '@ant-design/icons';
+import { PlusOutlined } from '@ant-design/icons';
 import { StatusBadge } from '@/components/common/Status';
 import FieldsInput from '@/pages/panel/TestDetail/TestDetailPanel/components/FieldsInput';
 import { updateTestStep } from '@/lib/api/runs';
@@ -175,7 +175,7 @@ export const StepItem: React.FC<IStepItemProps> = ({ index, item, saveList, test
                     trigger={['click']}
                     getPopupContainer={() => dropDownRef.current}
                   >
-                    <Button type="link" icon={<PlusCircleOutlined />}>
+                    <Button type="link" icon={<PlusOutlined />}>
                       添加缺陷
                     </Button>
                   </Dropdown>

@@ -109,8 +109,8 @@ const List: React.FC<ListProps> = (props: ListProps) => {
           </div>
         }
         onConfirm={handleMoveItem}
-        okText="Yes"
-        cancelText="No"
+        okText="确定"
+        cancelText="取消"
       >
         <Tooltip
           visible={props.tooltipVisible}
@@ -130,8 +130,8 @@ const List: React.FC<ListProps> = (props: ListProps) => {
         placement="left"
         title="你确定要克隆这一测试步骤？"
         onConfirm={handleCopyItem}
-        okText="Yes"
-        cancelText="No"
+        okText="确定"
+        cancelText="取消"
         disabled={props.disabled}
       >
         <Tooltip
@@ -152,8 +152,8 @@ const List: React.FC<ListProps> = (props: ListProps) => {
         placement="left"
         title="你确定要删除这一测试步骤？"
         onConfirm={() => deleteCard(item.id)}
-        okText="Yes"
-        cancelText="No"
+        okText="确定"
+        cancelText="取消"
         disabled={props.disabled}
       >
         <Tooltip
@@ -422,22 +422,43 @@ const List: React.FC<ListProps> = (props: ListProps) => {
                         >
                           {stepTools[IStepToolsKey.OPEN].label}
                         </Menu.Item>
-                        <Menu.Item key="2" icon={stepTools[IStepToolsKey.COPY].icon}>
+                        <Menu.Item key="2">
                           <StepItemCopy
                             tooltipVisible={false}
-                            text={stepTools[IStepToolsKey.COPY].label}
+                            trigger={
+                              <div className={css('space-width')}>
+                                <div>{stepTools[IStepToolsKey.COPY].icon}</div>
+                                <div className={css('space-width__val')}>
+                                  {stepTools[IStepToolsKey.COPY].label}
+                                </div>
+                              </div>
+                            }
                           />
                         </Menu.Item>
-                        <Menu.Item key="3" icon={stepTools[IStepToolsKey.MOVE].icon}>
+                        <Menu.Item key="3">
                           <StepItemMove
                             tooltipVisible={false}
-                            text={stepTools[IStepToolsKey.MOVE].label}
+                            trigger={
+                              <div className={css('space-width')}>
+                                <div>{stepTools[IStepToolsKey.MOVE].icon}</div>
+                                <div className={css('space-width__val')}>
+                                  {stepTools[IStepToolsKey.MOVE].label}
+                                </div>
+                              </div>
+                            }
                           />
                         </Menu.Item>
-                        <Menu.Item key="4" icon={stepTools[IStepToolsKey.DELETE].icon}>
+                        <Menu.Item key="4">
                           <StepItemDelete
                             tooltipVisible={false}
-                            text={stepTools[IStepToolsKey.DELETE].label}
+                            trigger={
+                              <div className={css('space-width')}>
+                                <div>{stepTools[IStepToolsKey.DELETE].icon}</div>
+                                <div className={css('space-width__val')}>
+                                  {stepTools[IStepToolsKey.DELETE].label}
+                                </div>
+                              </div>
+                            }
                           />
                         </Menu.Item>
                       </Menu>

@@ -63,8 +63,9 @@ export interface IActionCard {
 const StepList: React.FC<{
   steps: TestStep[];
   actionCard: IActionCard;
+  search?: boolean;
 }> = props => {
-  const { steps, actionCard } = props;
+  const { steps, actionCard, search } = props;
 
   if (!steps.length) {
     return (
@@ -76,16 +77,18 @@ const StepList: React.FC<{
             <div className={css('empty__content__tips')}>
               测试是与条件、测试输入和预期结果相结合的一系列步骤。创建测试步骤来定义测试。
             </div>
-            <div className={css('empty__content__btn')}>
-              <Space size={8}>
-                <Button type="primary" onClick={() => actionCard.addCard()}>
-                  新建步骤
-                </Button>
-                <Button type="default" onClick={() => actionCard.openCallTestModal(0)}>
-                  继承用例
-                </Button>
-              </Space>
-            </div>
+            {!search && (
+              <div className={css('empty__content__btn')}>
+                <Space size={8}>
+                  <Button type="primary" onClick={() => actionCard.addCard()}>
+                    新建步骤
+                  </Button>
+                  <Button type="default" onClick={() => actionCard.openCallTestModal(0)}>
+                    继承用例
+                  </Button>
+                </Space>
+              </div>
+            )}
           </div>
         }
       ></Empty>
@@ -441,7 +444,7 @@ const Detail: React.FC = () => {
               searchStatus: search,
             }}
           >
-            <StepList steps={steps} actionCard={actionCard} />
+            <StepList steps={steps} actionCard={actionCard} search={search} />
           </TestDetailContext.Provider>
         </div>
       </div>
