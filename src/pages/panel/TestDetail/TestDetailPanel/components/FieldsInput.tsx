@@ -9,6 +9,7 @@ interface IFieldsInputProps {
   value?: string;
   change?: (val: string) => void;
   borderColor?: 'white';
+  placeholder?: string;
 }
 
 interface IFieldsDatepickerProps {
@@ -17,7 +18,7 @@ interface IFieldsDatepickerProps {
   borderColor?: 'white';
 }
 
-const FieldsInput: React.FC<IFieldsInputProps> = ({ value, change, borderColor }) => {
+const FieldsInput: React.FC<IFieldsInputProps> = ({ value, change, borderColor, placeholder }) => {
   const [edit, setEdit] = useState<boolean>(false);
   const [val, setVal] = useState<string>(value);
   const inputRef = useRef(null);
@@ -47,7 +48,13 @@ const FieldsInput: React.FC<IFieldsInputProps> = ({ value, change, borderColor }
             setEdit(!edit);
           }}
         >
-          {val || '-'}
+          {val ? (
+            val
+          ) : placeholder ? (
+            <span className={css('placeholder')}>{placeholder}</span>
+          ) : (
+            '-'
+          )}
         </div>
       )}
 

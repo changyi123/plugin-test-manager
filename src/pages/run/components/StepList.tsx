@@ -137,6 +137,7 @@ export const StepItem: React.FC<IStepItemProps> = ({ index, item, saveList, test
             <div className={css('right__content')}>
               <FieldsInput
                 borderColor="white"
+                placeholder="点击输入结果"
                 value={item.actualResult}
                 change={(val: string) => saveItem('actualResult')(val)}
               />
@@ -150,6 +151,7 @@ export const StepItem: React.FC<IStepItemProps> = ({ index, item, saveList, test
               <div className={css('right__topic')}>评论</div>
               <div className={css('right__content')}>
                 <FieldsInput
+                  placeholder="点击输入评论"
                   borderColor="white"
                   value={item.comment}
                   change={(val: string) => saveItem('comment')(val)}
