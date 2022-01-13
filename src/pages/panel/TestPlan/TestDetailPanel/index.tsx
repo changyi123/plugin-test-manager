@@ -207,7 +207,7 @@ const Test = () => {
   const testExecutionMenuList = React.useMemo(() => {
     return [
       {
-        title: '所有测试用例',
+        title: '包含所有测试用例',
         onClick: createTestExecution,
       },
     ];
