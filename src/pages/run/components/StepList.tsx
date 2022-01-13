@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 import { Row, Col, Button, message, Dropdown, Menu } from '@osui/ui';
-import { PlusCircleOutlined } from '@ant-design/icons';
+import { PlusOutlined } from '@ant-design/icons';
 import { StatusBadge } from '@/components/common/Status';
 import FieldsInput from '@/pages/panel/TestDetail/TestDetailPanel/components/FieldsInput';
 import { updateTestStep } from '@/lib/api/runs';
@@ -136,6 +136,8 @@ export const StepItem: React.FC<IStepItemProps> = ({ index, item, saveList, test
             <div className={css('right__topic')}>实际结果</div>
             <div className={css('right__content')}>
               <FieldsInput
+                borderColor="white"
+                placeholder="点击输入结果"
                 value={item.actualResult}
                 change={(val: string) => saveItem('actualResult')(val)}
               />
@@ -149,6 +151,8 @@ export const StepItem: React.FC<IStepItemProps> = ({ index, item, saveList, test
               <div className={css('right__topic')}>评论</div>
               <div className={css('right__content')}>
                 <FieldsInput
+                  placeholder="点击输入评论"
+                  borderColor="white"
                   value={item.comment}
                   change={(val: string) => saveItem('comment')(val)}
                 />
@@ -173,7 +177,7 @@ export const StepItem: React.FC<IStepItemProps> = ({ index, item, saveList, test
                     trigger={['click']}
                     getPopupContainer={() => dropDownRef.current}
                   >
-                    <Button type="link" icon={<PlusCircleOutlined />}>
+                    <Button type="link" icon={<PlusOutlined />}>
                       添加缺陷
                     </Button>
                   </Dropdown>
@@ -185,6 +189,7 @@ export const StepItem: React.FC<IStepItemProps> = ({ index, item, saveList, test
               <div className={css('right__topic')}>状态</div>
               <div className={css('right__content')}>
                 <StatusBadge
+                  showBg={true}
                   status={item.status}
                   onStatusChange={status => saveItem('status')(status.key)}
                 />

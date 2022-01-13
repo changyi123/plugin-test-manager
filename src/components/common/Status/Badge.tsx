@@ -3,6 +3,7 @@ import { omitBy } from 'lodash';
 import { Popover } from '@osui/ui';
 import { sequence } from './utils';
 import { useStatusConfig } from './hooks';
+import { CaretDownOutlined } from '@ant-design/icons';
 
 import cx from './Badge.less';
 
@@ -10,17 +11,33 @@ type BadgeProps = {
   status?: string;
   readonly?: boolean;
   onStatusChange?: (status) => void;
+  notCurrent?: boolean;
+  showBg?: boolean;
 };
 
-const Status = ({ status, hasEffect, onClick, className }: Partial<Record<string, any>>) => {
+const Status = ({
+  status,
+  hasEffect,
+  onClick,
+  className,
+  showBg,
+}: Partial<Record<string, any>>) => {
   if (!status) return null;
   return (
     <div
       onClick={() => onClick?.(status)}
-      className={cx('status', hasEffect && 'hover', className)}
+      className={[
+        cx('status', hasEffect && 'hover', className),
+        showBg && cx('run-status', status?.key),
+      ].join(' ')}
     >
       <span style={{ background: status?.color }} className={cx('dot')} />
       <span className={cx('name')}>{status?.name}</span>
+      {showBg && (
+        <span className={cx('icon')}>
+          <CaretDownOutlined />
+        </span>
+      )}
     </div>
   );
 };
@@ -58,7 +75,7 @@ const Badge: React.FC<BadgeProps> = props => {
   return (
     <div ref={badgeRef}>
       <Popover
-        getPopupContainer={() => badgeRef.current}
+        getPopupContainer={props.notCurrent ? undefined : () => badgeRef.current}
         trigger="click"
         visible={visible}
         placement="bottomLeft"
@@ -66,13 +83,12 @@ const Badge: React.FC<BadgeProps> = props => {
         onVisibleChange={visible => !props.readonly && setVisible(visible)}
         overlayClassName={cx('status-badge-overlay')}
       >
-        <div>
-          <Status
-            status={currentStatus}
-            hasEffect={!props.readonly}
-            onClick={() => !props.readonly && setVisible(true)}
-          />
-        </div>
+        <Status
+          status={currentStatus}
+          showBg={props.showBg}
+          hasEffect={!props.readonly}
+          onClick={() => !props.readonly && setVisible(true)}
+        />
       </Popover>
     </div>
   );

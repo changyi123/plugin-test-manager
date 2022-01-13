@@ -1,5 +1,4 @@
 import React from 'react';
-import { Tabs } from '@osui/ui';
 import { TestType } from '@/lib/constants';
 import PanelLayout from '@/components/panel/PanelLayout';
 import TestDetailPanel from './TestDetailPanel';

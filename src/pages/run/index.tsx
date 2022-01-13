@@ -65,6 +65,7 @@ const TestInfo: React.FC<TestInfoContent> = ({ detail, changeRunInfo }) => {
         <div className={css('info__title')}>开始时间</div>
         <div className={css('info__val')}>
           <FieldsTimepicker
+            borderColor="white"
             value={info?.startTime}
             change={(val: number) => changeStr('startTime', val)}
           />
@@ -75,6 +76,7 @@ const TestInfo: React.FC<TestInfoContent> = ({ detail, changeRunInfo }) => {
         <div className={css('info__title')}>完成时间</div>
         <div className={css('info__val')}>
           <FieldsTimepicker
+            borderColor="white"
             value={info?.finishTime}
             change={(val: number) => changeStr('finishTime', val)}
           />
@@ -85,6 +87,7 @@ const TestInfo: React.FC<TestInfoContent> = ({ detail, changeRunInfo }) => {
         <div className={css('info__title')}>负责人</div>
         <div className={css('info__val')}>
           <FieldsInput
+            borderColor="white"
             value={info?.assignee}
             change={(val: string) => changeStr('assignee', val)}
           />
@@ -95,6 +98,7 @@ const TestInfo: React.FC<TestInfoContent> = ({ detail, changeRunInfo }) => {
         <div className={css('info__title')}>执行人</div>
         <div className={css('info__val')}>
           <FieldsInput
+            borderColor="white"
             value={info?.executedBy}
             change={(val: string) => changeStr('executedBy', val)}
           />
@@ -104,13 +108,18 @@ const TestInfo: React.FC<TestInfoContent> = ({ detail, changeRunInfo }) => {
       <Col xs={6} xl={4}>
         <div className={css('info__title')}>版本</div>
         <div className={css('info__val')}>
-          <FieldsInput value={info?.version} change={(val: string) => changeStr('version', val)} />
+          <FieldsInput
+            borderColor="white"
+            value={info?.version}
+            change={(val: string) => changeStr('version', val)}
+          />
         </div>
       </Col>
     </Row>
   );
 };
 
+let firstLoad = true;
 const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
   const query = useQuery();
   const currentTestId = query.get('id') || testId;
@@ -144,7 +153,8 @@ const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
   if (error) {
     return <div>加载失败,原因{error?.message}</div>;
   }
-  if (loading) {
+  if (loading && firstLoad) {
+    firstLoad = false;
     return <Loading />;
   }
   if (!data?.data) {
@@ -156,7 +166,7 @@ const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
     return <Loading tip="初始化runs中..."></Loading>;
   }
 
-  const { itemDetail, runDetail, status, objectId, defectList } = data?.data;
+  const { itemDetail, runDetail, status, objectId, defectList, notRepeatNum } = data?.data;
 
   const saveItem = (key: string) => {
     return value => {
@@ -180,69 +190,76 @@ const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
   };
 
   return (
-    <div className={css('run')}>
-      <div className={css('run__topic')}>
-        <div className={css('run__topic__label')}>{itemDetail?.name}</div>
-        <div className={css('run__topic__status')}>
-          <StatusBadge
-            status={status}
-            onStatusChange={status => handleStatusChange(testId, status)}
-          />
+    <Loading loading={loading}>
+      <div className={css('run')}>
+        <div className={css('run__topic')}>
+          <div className={css('run__topic__label')}>{itemDetail?.name}</div>
+          <div className={css('run__topic__status')}>
+            <StatusBadge
+              showBg={true}
+              status={status}
+              onStatusChange={status => handleStatusChange(testId, status)}
+            />
+          </div>
         </div>
-      </div>
 
-      <Divider className={css('run__divider')} />
+        <Divider className={css('run__divider')} />
 
-      <TestInfo detail={runDetail.detail} changeRunInfo={changeRunInfo} />
+        <TestInfo detail={runDetail.detail} changeRunInfo={changeRunInfo} />
 
-      <div className={css('run__around')}>
-        <div className={css('run__around__collapse')}>
-          <div className={css('run__around__collapse__item')}>
-            <CustomCollapse title="总结">
-              <CustomCollapse.Panel
-                title="缺陷"
-                num={defectList.length}
-                titleExtra={[
-                  <AddDefectBtn
-                    currentDefectIds={runDetail.defectIds}
-                    key="2"
+        <div className={css('run__around')}>
+          <div className={css('run__around__collapse')}>
+            <div className={css('run__around__collapse__item')}>
+              <CustomCollapse title="总结">
+                <CustomCollapse.Panel
+                  title="缺陷"
+                  num={notRepeatNum}
+                  titleExtra={[
+                    <AddDefectBtn
+                      currentDefectIds={runDetail.defectIds}
+                      key="2"
+                      testId={objectId}
+                      save={val => saveItem('defectIds')(val)}
+                    />,
+                  ]}
+                >
+                  <ItemList
+                    defects={defectList}
                     testId={objectId}
-                    save={val => saveItem('defectIds')(val)}
-                  />,
-                ]}
-              >
-                <ItemList
-                  defects={defectList}
-                  testId={objectId}
-                  save={() => saveItem('defectIds')}
-                />
-              </CustomCollapse.Panel>
+                    save={() => saveItem('defectIds')}
+                  />
+                </CustomCollapse.Panel>
 
-              <CustomCollapse.Panel title="评论">
-                <FieldsInput value={runDetail.comment} change={val => saveItem('comment')(val)} />
-              </CustomCollapse.Panel>
-            </CustomCollapse>
-          </div>
+                <CustomCollapse.Panel title="评论">
+                  <FieldsInput
+                    borderColor="white"
+                    value={runDetail.comment}
+                    change={val => saveItem('comment')(val)}
+                  />
+                </CustomCollapse.Panel>
+              </CustomCollapse>
+            </div>
 
-          <div className={css('run__around__collapse__item')}>
-            <CustomCollapse title="测试用例详情">
-              <CustomCollapse.Panel title="测试用例关联事项" num={defectList.length}>
-                <RelationTable itemId={itemDetail?.objectId} />
-              </CustomCollapse.Panel>
+            <div className={css('run__around__collapse__item')}>
+              <CustomCollapse title="测试用例详情">
+                <CustomCollapse.Panel title="测试用例关联事项" num={defectList.length}>
+                  <RelationTable itemId={itemDetail?.objectId} />
+                </CustomCollapse.Panel>
 
-              <CustomCollapse.Panel title="用例步骤" num={runDetail?.runs?.steps?.length || 0}>
-                <StepList
-                  refresh={refresh}
-                  detail={runDetail}
-                  objectId={objectId}
-                  testId={currentTestId}
-                />
-              </CustomCollapse.Panel>
-            </CustomCollapse>
+                <CustomCollapse.Panel title="用例步骤" num={runDetail?.runs?.steps?.length || 0}>
+                  <StepList
+                    refresh={refresh}
+                    detail={runDetail}
+                    objectId={objectId}
+                    testId={currentTestId}
+                  />
+                </CustomCollapse.Panel>
+              </CustomCollapse>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </Loading>
   );
 };
 

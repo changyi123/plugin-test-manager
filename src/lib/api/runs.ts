@@ -13,6 +13,7 @@ import { useRequest } from 'ahooks';
 import { IRunDetail } from '@/pages/run';
 import { Status } from '@/lib/types/Test';
 import { getItemByIQL } from '@/lib/api/proxima';
+import { pick } from 'lodash';
 
 export const GetTestRunsById = (itemId: string): Promise<{ list: any; total: number }> => {
   return new Promise((resolve, reject) => {
@@ -491,11 +492,17 @@ export const GetTestRunDetail = (testId: string): Promise<ICommonRes> => {
         } = await getItemByIQL({ itemId });
         const testRunDetail = res.toJSON();
         const defectList = [];
+        let notRepeatNum = 0;
+        const obj = {};
         testRunDetail?.runDetail?.defectIds?.forEach((item: string) => {
           defectList.push({
             label: '全局',
             value: item,
           });
+          if (!obj[item]) {
+            obj[item] = true;
+            notRepeatNum++;
+          }
         });
         testRunDetail?.runDetail?.runs?.steps?.forEach((item, index) => {
           item?.defectIds?.forEach((item2: string) => {
@@ -503,6 +510,10 @@ export const GetTestRunDetail = (testId: string): Promise<ICommonRes> => {
               label: `步骤${index + 1}`,
               value: item2,
             });
+            if (!obj[item2]) {
+              obj[item2] = true;
+              notRepeatNum++;
+            }
           });
         });
         resolve({
@@ -510,6 +521,7 @@ export const GetTestRunDetail = (testId: string): Promise<ICommonRes> => {
           data: {
             ...res.toJSON(),
             defectList,
+            notRepeatNum,
             itemDetail: item,
           },
         });
@@ -525,6 +537,28 @@ export const GetTestRunDetail = (testId: string): Promise<ICommonRes> => {
   });
 };
 
+const cleanRunDetail = (detail: any) => {
+  const detailBak = { ...detail };
+  const steps = [];
+  detailBak?.runs?.steps?.forEach(item => {
+    steps.push(
+      pick(item, [
+        'action',
+        'actualResult',
+        'attachments',
+        'comment',
+        'customFields',
+        'data',
+        'result',
+        'status',
+      ]),
+    );
+  });
+  detailBak.runs.steps = steps;
+  return detailBak;
+};
+
+// 更新测试运行中的步骤
 export const updateTestStep = (
   detail: IRunDetail,
   testStepId?: string,
@@ -532,30 +566,32 @@ export const updateTestStep = (
 ): Promise<ICommonRes> => {
   return new Promise((resolve, reject) => {
     const step = Test.createWithoutData(testStepId);
+    const runDetail = cleanRunDetail(detail);
     const updateObj: {
       runDetail: IRunDetail;
       status?: string;
     } = {
-      runDetail: detail,
+      runDetail,
     };
-    // if (checkStatus && detail?.runs?.steps?.length) {
-    //   // 有一个失败
-    //   const hasFail = detail?.runs?.steps.some(item => item.status === 'fail');
-    //   // 全部pass
-    //   const allPass = detail?.runs?.steps.filter(item => item.status === 'pass');
-    //   // 全部todo
-    //   const allTodo = detail?.runs?.steps.filter(item => item.status === 'todo');
+    console.log('runDetail', runDetail);
+    if (checkStatus && detail?.runs?.steps?.length) {
+      // 有一个失败
+      const hasFail = detail?.runs?.steps.some(item => item.status === 'FAILED');
+      // 全部pass
+      const allPass = detail?.runs?.steps.filter(item => item.status === 'PASSED');
+      // 全部todo
+      const allTodo = detail?.runs?.steps.filter(item => item.status === 'TODO');
 
-    //   if (hasFail) {
-    //     updateObj.status = 'fail';
-    //   } else if (allPass.length === detail?.runs?.steps?.length) {
-    //     updateObj.status = 'pass';
-    //   } else if (allTodo.length === detail?.runs?.steps?.length) {
-    //     updateObj.status = 'todo';
-    //   } else {
-    //     updateObj.status = 'ing';
-    //   }
-    // }
+      if (hasFail) {
+        updateObj.status = 'FAILED';
+      } else if (allPass.length === detail?.runs?.steps?.length) {
+        updateObj.status = 'PASSED';
+      } else if (allTodo.length === detail?.runs?.steps?.length) {
+        updateObj.status = 'TODO';
+      } else {
+        updateObj.status = 'EXECUTING';
+      }
+    }
     step.set(updateObj);
     step.save().then(
       res => {
@@ -580,25 +616,25 @@ export const toggleTestRunStatus = (testId: string, status: Status): Promise<ICo
     Test.createWithoutData(testId)
       .fetch()
       .then(testRun => {
-        // const statusType = status.type;
+        const statusType = status.type;
         const refDetail = testRun.get('runReferenceDetail');
         const { runDetail } = testRun.toJSON();
         const runDetailBak = { ...runDetail };
-        // if (runDetail?.runs?.steps) {
-        //   const steps = [];
-        //   runDetail?.runs?.steps?.forEach(item => {
-        //     // 成功，全成功 || todo，全todo
-        //     if (statusType === 'PASSED' || statusType === 'TODO') {
-        //       item.status = status;
-        //       // 失败，todo全失败，其他状态不变
-        //     } else if (statusType === 'FAILED') {
-        //       item.status = status.key;
-        //     }
-        //     // 执行中，状态不变
-        //     steps.push(item);
-        //   });
-        //   runDetailBak.runs.steps = steps;
-        // }
+        if (runDetail?.runs?.steps) {
+          const steps = [];
+          runDetail?.runs?.steps?.forEach(item => {
+            // 成功，全成功 || todo，全todo
+            if (statusType === 'PASSED' || statusType === 'TODO') {
+              item.status = status;
+              // 失败，todo全失败，其他状态不变
+            } else if (statusType === 'FAILED') {
+              item.status = status.key;
+            }
+            // 执行中，状态不变
+            steps.push(item);
+          });
+          runDetailBak.runs.steps = steps;
+        }
         testRun.set({
           status: status.key,
           runDetail: runDetailBak?.runs ? runDetailBak : undefined,

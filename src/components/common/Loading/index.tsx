@@ -4,12 +4,15 @@ import css from './index.less';
 
 interface ILoadingProps {
   tip?: string;
+  loading?: boolean;
 }
 
-const Loading: React.FC<ILoadingProps> = ({ tip = '加载中' }) => {
+const Loading: React.FC<ILoadingProps> = ({ loading, tip = '加载中', children }) => {
   return (
-    <div className={css('loading')}>
-      <Spin tip={tip} />
+    <div className={[css('loading'), loading !== undefined ? css('none') : ''].join(' ')}>
+      <Spin spinning={loading} tip={tip}>
+        {children}
+      </Spin>
     </div>
   );
 };

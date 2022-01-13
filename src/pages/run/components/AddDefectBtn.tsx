@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import { Menu, Dropdown, Button, message } from '@osui/ui';
 import { uniqueId } from 'lodash';
-import { PlusCircleOutlined } from '@ant-design/icons';
+import { PlusOutlined } from '@ant-design/icons';
 import AddDefectModal from './AddDefectModal';
 import { TestType } from '@/lib/constants';
 import { useBaseAction } from '@/lib/hooks/useContext';
@@ -52,6 +52,7 @@ const AddDefectBtn: React.FC<{
           </Menu.Item>
         }
         testId={testId}
+        currentDefectIds={currentDefectIds}
         save={() => handleAddDefect}
       />
 
@@ -69,7 +70,7 @@ const AddDefectBtn: React.FC<{
         trigger={['click']}
         getPopupContainer={() => currentRef.current}
       >
-        <Button type="link" icon={<PlusCircleOutlined />}>
+        <Button type="link" icon={<PlusOutlined />}>
           添加缺陷
         </Button>
       </Dropdown>

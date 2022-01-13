@@ -55,7 +55,7 @@ const CollapsePanel: React.FC<ICollapseProps> = props => {
           <div className={css('title')}>{title}</div>
         </div>
 
-        {num && <div className={css('num')}>{num}</div>}
+        {num > 0 && <div className={css('num')}>{num}</div>}
 
         {titleExtra && (
           <div className={css('collapse__panel__extra')}>

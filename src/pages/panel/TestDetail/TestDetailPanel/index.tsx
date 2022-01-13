@@ -19,6 +19,7 @@ import { TestType } from '@/lib/constants';
 import { getDevConfig } from '@/devEnv';
 import Loading from '@/components/common/Loading';
 import { useDebounceFn } from 'ahooks';
+import { CloseMore } from '@/icons';
 
 import css from './index.less';
 
@@ -37,7 +38,6 @@ export interface TestStep {
   itemObject?: Item;
   isExpand?: boolean;
   showMore?: boolean;
-  isEdit?: boolean;
   id?: string;
   objectId?: string;
 }
@@ -56,15 +56,16 @@ export interface IActionCard {
   cloneCard: (id: string) => void;
   deleteCard: (id: string) => void;
   addCard: (id?: string) => void;
-  saveCard: (index?: number, step?: TestStep, atIndex?: number, doNotRefresh?: boolean) => void;
+  saveCard: (index?: number, step?: TestStep, atIndex?: number) => void;
   openCallTestModal: (index: number) => void;
 }
 
 const StepList: React.FC<{
   steps: TestStep[];
   actionCard: IActionCard;
+  search?: boolean;
 }> = props => {
-  const { steps, actionCard } = props;
+  const { steps, actionCard, search } = props;
 
   if (!steps.length) {
     return (
@@ -76,16 +77,18 @@ const StepList: React.FC<{
             <div className={css('empty__content__tips')}>
               测试是与条件、测试输入和预期结果相结合的一系列步骤。创建测试步骤来定义测试。
             </div>
-            <div className={css('empty__content__btn')}>
-              <Space size={8}>
-                <Button type="primary" onClick={() => actionCard.addCard()}>
-                  新建步骤
-                </Button>
-                <Button type="default" onClick={() => actionCard.openCallTestModal(0)}>
-                  继承用例
-                </Button>
-              </Space>
-            </div>
+            {!search && (
+              <div className={css('empty__content__btn')}>
+                <Space size={8}>
+                  <Button type="primary" onClick={() => actionCard.addCard()}>
+                    新建步骤
+                  </Button>
+                  <Button type="default" onClick={() => actionCard.openCallTestModal(0)}>
+                    继承用例
+                  </Button>
+                </Space>
+              </div>
+            )}
           </div>
         }
       ></Empty>
@@ -121,6 +124,7 @@ const StepDrop: React.FC<{
 };
 
 let stepsBak = [];
+let firstLoad = true;
 export const TestDetailContext = React.createContext({
   searchStatus: false,
 });
@@ -188,11 +192,12 @@ const Detail: React.FC = () => {
   );
 
   const expandCard = useCallback(
-    (id?: string, isExpand?: boolean) => {
+    (id?: string, isExpand?: boolean, showMore?: boolean) => {
       if (!id) {
         setSteps(
           steps.filter(item => {
             item.isExpand = isExpand === undefined ? false : isExpand;
+            item.showMore = showMore;
             if (item.id !== '-1') {
               return item;
             }
@@ -266,7 +271,6 @@ const Detail: React.FC = () => {
         customFields: [],
         index: 0,
         isExpand: true,
-        isEdit: true,
         id: '-1',
       };
       const stepsbak = [...steps].filter(item => item.id !== '-1');
@@ -283,11 +287,10 @@ const Detail: React.FC = () => {
   );
 
   const saveCard = useCallback(
-    (index?: number, step?: TestStep, atIndex?: number, doNotRefresh?: boolean) => {
+    (index?: number, step?: TestStep, atIndex?: number) => {
       let stepsbak = [...steps];
       // 指定保存哪个位置，如果无则保存全部
       if (step) {
-        step.isEdit = false;
         stepsbak[index] = step;
       }
       // 新增继承测试用例
@@ -298,9 +301,6 @@ const Detail: React.FC = () => {
       }
       saveOrUpdateTestStep(stepsbak, testInfo?.objectId, currentObjectId).then(() => {
         message.success('保存成功');
-        if (doNotRefresh) {
-          return;
-        }
         fetchData();
       });
     },
@@ -351,7 +351,8 @@ const Detail: React.FC = () => {
     openCallTestModal,
   };
 
-  if (loading) {
+  if (loading && firstLoad) {
+    firstLoad = false;
     return <Loading />;
   }
 
@@ -369,71 +370,85 @@ const Detail: React.FC = () => {
   }
 
   return (
-    <div className={css('detail')}>
-      <ItemTypeModal
-        type={TestType.TestDetail}
-        itemId={currentObjectId}
-        ref={ItemTypeModalRef}
-        saveCard={saveCard}
-      />
-      <div className={css('detail__content')}>
-        <div className={css('detail__content__header')}>
-          <div className={css('left')}>
-            <div className={css('input')}>
-              <Input placeholder="搜索步骤" onChange={e => run(e)} suffix={<SearchOutlined />} />
+    <Loading loading={loading}>
+      <div className={css('detail')}>
+        <ItemTypeModal
+          type={TestType.TestDetail}
+          itemId={currentObjectId}
+          ref={ItemTypeModalRef}
+          saveCard={saveCard}
+        />
+        <div className={css('detail__content')}>
+          <div className={css('detail__content__header')}>
+            <div className={css('left')}>
+              <div className={css('input')}>
+                <Input
+                  placeholder="搜索步骤"
+                  onChange={e => run(e)}
+                  allowClear={true}
+                  suffix={<SearchOutlined />}
+                />
+              </div>
+            </div>
+
+            <div className={css('right')}>
+              <div className={css('item')}>
+                <Tooltip title="全部展开" placement="bottom">
+                  <Button
+                    icon={<ArrowsAltOutlined />}
+                    onClick={() => expandCard(undefined, true, true)}
+                  />
+                </Tooltip>
+              </div>
+              <div className={css('item')}>
+                <Tooltip title="全部收起" placement="bottom">
+                  <Button icon={<ShrinkOutlined />} onClick={() => expandCard()} />
+                </Tooltip>
+              </div>
+              <div className={css('item')}>
+                <Tooltip title="收起更多信息" placement="bottom">
+                  <Button icon={<CloseMore />} onClick={() => expandCard(undefined, true, false)} />
+                </Tooltip>
+              </div>
+              <Dropdown
+                className={css('add-step')}
+                overlay={
+                  <Menu>
+                    <Menu.Item key="1" onClick={() => addCard()}>
+                      新增步骤
+                    </Menu.Item>
+                    <Menu.Item key="2" onClick={() => openCallTestModal(steps.length)}>
+                      继承测试用例
+                    </Menu.Item>
+                  </Menu>
+                }
+              >
+                <Button type="primary">
+                  添加步骤 <DownOutlined />
+                </Button>
+              </Dropdown>
             </div>
           </div>
 
-          <div className={css('right')}>
-            <div className={css('item')}>
-              <Tooltip title="全部展开" placement="bottom">
-                <Button icon={<ArrowsAltOutlined />} onClick={() => expandCard(undefined, true)} />
-              </Tooltip>
-            </div>
-            <div className={css('item')}>
-              <Tooltip title="全部收缩" placement="bottom">
-                <Button icon={<ShrinkOutlined />} onClick={() => expandCard()} />
-              </Tooltip>
-            </div>
-            <Dropdown
-              className={css('item')}
-              overlay={
-                <Menu>
-                  <Menu.Item key="1" onClick={() => addCard()}>
-                    新增步骤
-                  </Menu.Item>
-                  <Menu.Item key="2" onClick={() => openCallTestModal(steps.length)}>
-                    继承测试用例
-                  </Menu.Item>
-                </Menu>
-              }
-            >
-              <Button type="primary">
-                添加步骤 <DownOutlined />
-              </Button>
-            </Dropdown>
+          <div className={css('detail__content__tips')}>
+            {!search ? <BlockOutlined /> : null}
+            <span>
+              {search
+                ? `显示${stepsBak.length}个步骤中的${steps.length}个`
+                : `当前用例调用 ${callTestLen()} 个用例`}
+            </span>
           </div>
-        </div>
 
-        <div className={css('detail__content__tips')}>
-          <BlockOutlined />
-          {search}
-          <span>
-            {search
-              ? `显示${stepsBak.length}个步骤中的${steps.length}个`
-              : `当前用例调用 ${callTestLen()} 个用例`}
-          </span>
+          <TestDetailContext.Provider
+            value={{
+              searchStatus: search,
+            }}
+          >
+            <StepList steps={steps} actionCard={actionCard} search={search} />
+          </TestDetailContext.Provider>
         </div>
-
-        <TestDetailContext.Provider
-          value={{
-            searchStatus: search,
-          }}
-        >
-          <StepList steps={steps} actionCard={actionCard} />
-        </TestDetailContext.Provider>
       </div>
-    </div>
+    </Loading>
   );
 };
 

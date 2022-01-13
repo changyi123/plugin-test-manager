@@ -4,6 +4,7 @@ import { Modal, Button } from '@osui/ui';
 import useMergedState from 'rc-util/lib/hooks/useMergedState';
 import TestRun from './index';
 import { getRootContainer } from '@/lib/utils/helper';
+import css from './index.less';
 
 interface ITestRunModalProps {
   trigger?: JSX.Element;
@@ -38,7 +39,11 @@ const TestRunModal: React.FC<ITestRunModalProps> = props => {
         onCancel={handleCloseModal}
         destroyOnClose
       >
-        {isVisible && <TestRun testId={props.testId} />}
+        {isVisible && (
+          <div className={css('modal-content')} id="modal-content">
+            <TestRun testId={props.testId} />
+          </div>
+        )}
       </Modal>
       {props.trigger &&
         React.cloneElement(props.trigger, {

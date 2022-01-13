@@ -34,10 +34,10 @@ export const SmallDefectList: React.FC<ISmallDefectListProps> = props => {
   const { data, loading, error, refresh } = useRequest(() => fetchDefectList(props.itemIds));
 
   useEffect(() => {
-    if (props.refreshNum > 1) {
+    if (props.refreshNum > 1 || itemIds) {
       refresh();
     }
-  }, [props.refreshNum, refresh]);
+  }, [props.refreshNum, refresh, itemIds]);
   if (loading) {
     return (
       <Space direction="vertical">
@@ -81,7 +81,7 @@ export const SmallDefectList: React.FC<ISmallDefectListProps> = props => {
                 </div>
                 <div className={css('list__item__handle')}>
                   <Popconfirm
-                    getPopupContainer={() => document.getElementById('small_defect_list')}
+                    getPopupContainer={() => document.getElementById('modal-content')}
                     title="当前操作会删除与该缺陷的关联关系，是否继续执行？"
                     onConfirm={() => handleDeleteRelation(item.objectId)}
                     okText="确定"

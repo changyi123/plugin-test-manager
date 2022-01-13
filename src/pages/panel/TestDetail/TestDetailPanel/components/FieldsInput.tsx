@@ -8,14 +8,17 @@ const { TextArea } = Input;
 interface IFieldsInputProps {
   value?: string;
   change?: (val: string) => void;
+  borderColor?: 'white';
+  placeholder?: string;
 }
 
 interface IFieldsDatepickerProps {
   value?: number;
   change?: (val: number) => void;
+  borderColor?: 'white';
 }
 
-const FieldsInput: React.FC<IFieldsInputProps> = ({ value, change }) => {
+const FieldsInput: React.FC<IFieldsInputProps> = ({ value, change, borderColor, placeholder }) => {
   const [edit, setEdit] = useState<boolean>(false);
   const [val, setVal] = useState<string>(value);
   const inputRef = useRef(null);
@@ -37,7 +40,7 @@ const FieldsInput: React.FC<IFieldsInputProps> = ({ value, change }) => {
   }, [edit]);
 
   return (
-    <div className={css('fields-input')}>
+    <div className={[borderColor && css(`${borderColor}-border`), css('fields-input')].join(' ')}>
       {!edit && (
         <div
           onClick={e => {
@@ -45,12 +48,19 @@ const FieldsInput: React.FC<IFieldsInputProps> = ({ value, change }) => {
             setEdit(!edit);
           }}
         >
-          {val || '-'}
+          {val ? (
+            val
+          ) : placeholder ? (
+            <span className={css('placeholder')}>{placeholder}</span>
+          ) : (
+            '-'
+          )}
         </div>
       )}
 
       {edit && (
         <TextArea
+          autoSize={true}
           ref={inputRef}
           value={val}
           maxLength={200}
@@ -62,7 +72,11 @@ const FieldsInput: React.FC<IFieldsInputProps> = ({ value, change }) => {
   );
 };
 
-export const FieldsTimepicker: React.FC<IFieldsDatepickerProps> = ({ value, change }) => {
+export const FieldsTimepicker: React.FC<IFieldsDatepickerProps> = ({
+  value,
+  change,
+  borderColor,
+}) => {
   const [edit, setEdit] = useState<boolean>(false);
   const [val, setVal] = useState<number>(value);
   const inputRef = useRef(null);
@@ -88,7 +102,7 @@ export const FieldsTimepicker: React.FC<IFieldsDatepickerProps> = ({ value, chan
   }, [edit]);
 
   return (
-    <div className={css('fields-input')}>
+    <div className={[borderColor && css(`${borderColor}-border`), css('fields-input')].join(' ')}>
       {!edit && (
         <div
           onClick={e => {

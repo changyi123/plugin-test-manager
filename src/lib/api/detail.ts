@@ -22,8 +22,8 @@ export const fetchTestSteps = (resource: string): Promise<ICommonRes> => {
         step?.steps?.forEach((item, index) => {
           item.id = `${step.objectId}_${index}`;
           item.objectId = `${step.objectId}_${index}`;
-          item.isEdit = false;
           item.isExpand = true;
+          item.showMore = false;
           if (item.callTestId) {
             callTestIds.push(item.callTestId);
           }
@@ -64,6 +64,7 @@ export const fetchTestSteps = (resource: string): Promise<ICommonRes> => {
   });
 };
 
+// 保存或更新测试用例的步骤
 export const saveOrUpdateTestStep = (
   testSteps: Array<ITestStep>,
   testStepId?: string,

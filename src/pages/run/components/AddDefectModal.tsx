@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import type { ModalProps } from '@osui/modal';
 import { Modal, Spin, message } from '@osui/ui';
 import useMergedState from 'rc-util/lib/hooks/useMergedState';
@@ -108,11 +108,32 @@ const AddDefectModal: React.FC<IDefectModalProps> = props => {
     props.onCancel?.(e);
   };
 
-  const handleConfirmModal = () => {
+  const isRepeat = useCallback((arr: string[]) => {
+    const hash = Object.create(null);
+    for (const i in arr) {
+      if (hash[arr[i]]) {
+        return true;
+      }
+      hash[arr[i]] = true;
+    }
+    return false;
+  }, []);
+
+  const handleConfirmModal = (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
+    if (!chooseItems || !chooseItems.length) {
+      return message.warning('请选择添加缺陷');
+    }
+    const checkArr = props.currentDefectIds
+      ? [...props.currentDefectIds, ...chooseItems]
+      : chooseItems;
+    if (isRepeat(checkArr)) {
+      return message.warning('含有重复关联事项');
+    }
     setConfirmLoading(true);
     addDefect(TestToDefect, props.testId, chooseItems).then(() => {
       message.success('添加成功');
       setConfirmLoading(false);
+      handleCloseModal(e);
       if (props.currentDefectIds) {
         props.save && props.save()([...props.currentDefectIds, ...chooseItems]);
         return;
