@@ -84,6 +84,7 @@ const WorkspaceSelector: React.FC<WorkspaceSelectorProps> = props => {
             showSearch
             onSearch={run}
             value={selectValue}
+            filterOption={false}
             placeholder="请选择空间"
             onChange={handleChange}
             style={{ width: '100%' }}
