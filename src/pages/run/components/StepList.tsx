@@ -189,6 +189,7 @@ export const StepItem: React.FC<IStepItemProps> = ({ index, item, saveList, test
               <div className={css('right__topic')}>状态</div>
               <div className={css('right__content')}>
                 <StatusBadge
+                  showBg={true}
                   status={item.status}
                   onStatusChange={status => saveItem('status')(status.key)}
                 />

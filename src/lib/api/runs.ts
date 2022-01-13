@@ -13,6 +13,7 @@ import { useRequest } from 'ahooks';
 import { IRunDetail } from '@/pages/run';
 import { Status } from '@/lib/types/Test';
 import { getItemByIQL } from '@/lib/api/proxima';
+import { pick } from 'lodash';
 
 export const GetTestRunsById = (itemId: string): Promise<{ list: any; total: number }> => {
   return new Promise((resolve, reject) => {
@@ -536,6 +537,27 @@ export const GetTestRunDetail = (testId: string): Promise<ICommonRes> => {
   });
 };
 
+const cleanRunDetail = (detail: any) => {
+  const detailBak = { ...detail };
+  const steps = [];
+  detailBak?.runs?.steps?.forEach(item => {
+    steps.push(
+      pick(item, [
+        'action',
+        'actualResult',
+        'attachments',
+        'comment',
+        'customFields',
+        'data',
+        'result',
+        'status',
+      ]),
+    );
+  });
+  detailBak.runs.steps = steps;
+  return detailBak;
+};
+
 export const updateTestStep = (
   detail: IRunDetail,
   testStepId?: string,
@@ -543,11 +565,12 @@ export const updateTestStep = (
 ): Promise<ICommonRes> => {
   return new Promise((resolve, reject) => {
     const step = Test.createWithoutData(testStepId);
+    const runDetail = cleanRunDetail(detail);
     const updateObj: {
       runDetail: IRunDetail;
       status?: string;
     } = {
-      runDetail: detail,
+      runDetail,
     };
     // if (checkStatus && detail?.runs?.steps?.length) {
     //   // 有一个失败

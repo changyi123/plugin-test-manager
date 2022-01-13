@@ -196,6 +196,7 @@ const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
           <div className={css('run__topic__label')}>{itemDetail?.name}</div>
           <div className={css('run__topic__status')}>
             <StatusBadge
+              showBg={true}
               status={status}
               onStatusChange={status => handleStatusChange(testId, status)}
             />
