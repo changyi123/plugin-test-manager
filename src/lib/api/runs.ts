@@ -524,6 +524,7 @@ const cleanSteps = (steps?: any[]) => {
         'data',
         'result',
         'status',
+        'defectIds',
       ]),
     );
   });
@@ -545,6 +546,7 @@ const cleanRunDetail = (detail: any) => {
         'data',
         'result',
         'status',
+        'defectIds',
       ]),
     );
   });
