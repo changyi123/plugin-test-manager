@@ -34,10 +34,10 @@ export const SmallDefectList: React.FC<ISmallDefectListProps> = props => {
   const { data, loading, error, refresh } = useRequest(() => fetchDefectList(props.itemIds));
 
   useEffect(() => {
-    if (props.refreshNum > 1) {
+    if (props.refreshNum > 1 || itemIds) {
       refresh();
     }
-  }, [props.refreshNum, refresh]);
+  }, [props.refreshNum, refresh, itemIds]);
   if (loading) {
     return (
       <Space direction="vertical">

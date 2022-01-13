@@ -166,7 +166,7 @@ const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
     return <Loading tip="初始化runs中..."></Loading>;
   }
 
-  const { itemDetail, runDetail, status, objectId, defectList } = data?.data;
+  const { itemDetail, runDetail, status, objectId, defectList, notRepeatNum } = data?.data;
 
   const saveItem = (key: string) => {
     return value => {
@@ -212,7 +212,7 @@ const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
               <CustomCollapse title="总结">
                 <CustomCollapse.Panel
                   title="缺陷"
-                  num={defectList.length}
+                  num={notRepeatNum}
                   titleExtra={[
                     <AddDefectBtn
                       currentDefectIds={runDetail.defectIds}

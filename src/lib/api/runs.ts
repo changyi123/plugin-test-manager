@@ -491,11 +491,17 @@ export const GetTestRunDetail = (testId: string): Promise<ICommonRes> => {
         } = await getItemByIQL({ itemId });
         const testRunDetail = res.toJSON();
         const defectList = [];
+        let notRepeatNum = 0;
+        const obj = {};
         testRunDetail?.runDetail?.defectIds?.forEach((item: string) => {
           defectList.push({
             label: '全局',
             value: item,
           });
+          if (!obj[item]) {
+            obj[item] = true;
+            notRepeatNum++;
+          }
         });
         testRunDetail?.runDetail?.runs?.steps?.forEach((item, index) => {
           item?.defectIds?.forEach((item2: string) => {
@@ -503,6 +509,10 @@ export const GetTestRunDetail = (testId: string): Promise<ICommonRes> => {
               label: `步骤${index + 1}`,
               value: item2,
             });
+            if (!obj[item2]) {
+              obj[item2] = true;
+              notRepeatNum++;
+            }
           });
         });
         resolve({
@@ -510,6 +520,7 @@ export const GetTestRunDetail = (testId: string): Promise<ICommonRes> => {
           data: {
             ...res.toJSON(),
             defectList,
+            notRepeatNum,
             itemDetail: item,
           },
         });
