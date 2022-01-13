@@ -64,6 +64,7 @@ export const fetchTestSteps = (resource: string): Promise<ICommonRes> => {
   });
 };
 
+// 保存或更新测试用例的步骤
 export const saveOrUpdateTestStep = (
   testSteps: Array<ITestStep>,
   testStepId?: string,
