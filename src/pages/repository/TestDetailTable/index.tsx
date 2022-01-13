@@ -31,15 +31,21 @@ const TestDetailTable: React.FC<TestDetailTableProps> = ({
   }, [selectedFolderKey]);
   // BodyRow component
   const BodyRow = props => {
-    const ref = React.useRef(null);
-    useDrag(
-      {
-        folderKey: selectedFolderKey,
-        itemId: props['data-row-key'],
-      },
-      ref,
-    );
-    return <tr ref={ref} {...props}></tr>;
+    // 只有 data-row 可以拖拽, placeholder node 不能拖拽
+    const DataRowComponent = props => {
+      const ref = React.useRef(null);
+      useDrag(
+        {
+          folderKey: selectedFolderKey,
+          itemId: props['data-row-key'],
+        },
+        ref,
+      );
+      return <tr ref={ref} {...props} />;
+    };
+
+    const isDataRow = props['data-row-key'] != null;
+    return isDataRow ? <DataRowComponent {...props} /> : <tr {...props} />;
   };
 
   const handlePageChange = React.useCallback(

@@ -255,6 +255,9 @@ const Test = () => {
     ];
     return (
       <Table
+        scroll={{
+          x: 'max-content',
+        }}
         pagination={false}
         rowKey="objectId"
         columns={columns}

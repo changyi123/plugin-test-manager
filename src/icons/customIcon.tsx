@@ -4,6 +4,7 @@ import { IconComponentProps } from '@ant-design/icons/lib/components/Icon';
 
 import MoreSVG from './svg/more.svg';
 import ScreenOffSVG from './svg/screen-off.svg';
+import PlusSVG from './svg/plus.svg';
 
 const CustomIconHOC = (
   component: IconComponentProps['component'],
@@ -17,3 +18,4 @@ const CustomIconHOC = (
 
 export const CustomMore = CustomIconHOC(MoreSVG);
 export const CustomScreenOff = CustomIconHOC(ScreenOffSVG);
+export const CustomPlus = CustomIconHOC(PlusSVG);

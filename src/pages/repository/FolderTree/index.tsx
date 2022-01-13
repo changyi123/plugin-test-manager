@@ -9,7 +9,7 @@ import { useTreeFn, traverseTreeNodes } from '../hook';
 import { MenuKey, FolderMenu } from '../Menu';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import { Tree, Button, Modal, Input, message, Empty, Dropdown } from '@osui/ui';
-import { PlusOutlined, CustomMore, CustomScreenOff } from '@/icons';
+import { CustomMore, CustomScreenOff, CustomPlus } from '@/icons';
 
 import { ROOT_FOLDER_KEY } from '../constant';
 
@@ -357,7 +357,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
       key="创建模块"
       onClick={() => handleMenuClick(MenuKey.createFolder, selectedTreeNode)}
       style={{ height: 24, width: 24 }}
-      icon={<PlusOutlined />}
+      icon={<CustomPlus />}
       type="text"
     />,
     <Button
@@ -377,7 +377,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         />
       }
     >
-      <CustomMore />
+      <CustomMore className={cx(selectedTreeNode?.key === ROOT_FOLDER_KEY && 'disabled')} />
     </Dropdown>,
   ];
 

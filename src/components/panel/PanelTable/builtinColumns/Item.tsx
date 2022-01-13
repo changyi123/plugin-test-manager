@@ -9,7 +9,7 @@ export const ItemKey = {
   title: '事项ID',
   width: 170,
   cellRenderer({ item }) {
-    if (!item) return <span style={{ color: '#ccc' }}>关联的事项已被删除</span>;
+    if (!item) return <span style={{ color: '#ccc' }}>事项已被删除</span>;
     return (
       <OverflowTooltip title={item?.key}>
         <Typography.Link
@@ -30,7 +30,7 @@ export const ItemTitle = {
   title: '标题',
   width: 160,
   cellRenderer({ item }) {
-    if (!item) return <span style={{ color: '#ccc' }}>关联的事项已被删除</span>;
+    if (!item) return <span style={{ color: '#ccc' }}>事项已被删除</span>;
     return <Typography.Text ellipsis={{ tooltip: item?.name }}>{item?.name}</Typography.Text>;
   },
 };
