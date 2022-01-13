@@ -70,7 +70,7 @@ export const useTreeFn = (nodes: TreeNode[]) => {
 
 /** 获取布局高度 */
 export const useLayoutHeight = () => {
-  const offsetY = 20;
+  const offsetY = 60;
   const [height, setHeight] = React.useState(700);
 
   React.useEffect(() => {
