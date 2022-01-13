@@ -79,7 +79,7 @@ const Runs: React.FC = () => {
             ellipsis={true}
             target="_blank"
             href={`/osc/workspaces/${(item as any)?.reference?.workspace?.key}/item/${
-              (item as any)?.reference.key
+              (item as any)?.reference?.key
             }`}
           >
             {item.referenceKey}

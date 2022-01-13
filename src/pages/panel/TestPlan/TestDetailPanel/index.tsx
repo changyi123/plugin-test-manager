@@ -22,6 +22,7 @@ import { useAllRelTestEntityIds } from '@/lib/hooks/useTest';
 import { getTestEntitiesByRelation, removeTestRelations } from '@/lib/api/common';
 import { createTestExecutionService, addTestDetailToPlanService } from './services';
 import { QuestionCircleOutlined } from '@/icons';
+import TestRunModal from '@/pages/run/Modal';
 
 import cx from './index.less';
 
@@ -244,11 +245,13 @@ const Test = () => {
         key: 'action',
         title: '操作',
         width: 120,
-        render() {
+        render(_, record) {
           return (
-            <>
-              <a>执行</a>
-            </>
+            <TestRunModal
+              testId={record.objectId}
+              onCancel={() => setTimeout(() => tableActionRef.current.refresh(), 200)}
+              trigger={<a>执行</a>}
+            />
           );
         },
       },

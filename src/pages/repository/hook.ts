@@ -76,6 +76,7 @@ export const useLayoutHeight = () => {
   React.useEffect(() => {
     const handleResize = () => {
       const layoutElement = document.querySelector('[data-element-id="workspace.layout.content"]');
+      console.info('layoutElement', layoutElement?.clientHeight);
       layoutElement && setHeight(layoutElement.clientHeight - offsetY);
     };
 
