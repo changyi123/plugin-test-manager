@@ -93,38 +93,6 @@ export const GetWorkspaceList = (): Promise<ICommonRes> => {
   });
 };
 
-export const SaveOrUpdateTest = (
-  obj: any,
-  type: TestType,
-  id?: string,
-  resource?: string, // 关联测试用例Id
-): Promise<ICommonRes> => {
-  return new Promise((resolve, reject) => {
-    const testObj = Test.createWithoutData(id);
-    const reference = Item.createWithoutData(resource);
-    testObj.set({
-      ...obj,
-      reference,
-      type,
-    });
-    testObj.save().then(
-      res => {
-        resolve({
-          success: true,
-          data: { ...res },
-        });
-      },
-      err => {
-        reject({
-          success: false,
-          data: { ...err },
-          message: err,
-        });
-      },
-    );
-  });
-};
-
 export const FetchAllTestStepByTestId = (
   id: string,
   callback?: (nil: null, data: any) => void,
@@ -702,7 +670,7 @@ export const InitStepByTestId = (testId: string) => {
       .then(testRuns => {
         const runDetail: any = {
           runs: {
-            steps: testRuns.data.steps || [],
+            steps: cleanSteps(testRuns?.data?.steps),
           },
         };
         return updateTestStep(runDetail, testId);
