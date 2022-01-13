@@ -184,7 +184,7 @@ const Runs: React.FC = () => {
             ]}
             rowKey="objectId"
             columns={tableColumns}
-            getDataSource={() => GetTestRunsById(itemId)}
+            getDataSource={queryParams => GetTestRunsById(itemId, queryParams)}
           />
         </div>
       </div>
