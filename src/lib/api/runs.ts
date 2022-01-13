@@ -93,38 +93,6 @@ export const GetWorkspaceList = (): Promise<ICommonRes> => {
   });
 };
 
-export const SaveOrUpdateTest = (
-  obj: any,
-  type: TestType,
-  id?: string,
-  resource?: string, // 关联测试用例Id
-): Promise<ICommonRes> => {
-  return new Promise((resolve, reject) => {
-    const testObj = Test.createWithoutData(id);
-    const reference = Item.createWithoutData(resource);
-    testObj.set({
-      ...obj,
-      reference,
-      type,
-    });
-    testObj.save().then(
-      res => {
-        resolve({
-          success: true,
-          data: { ...res },
-        });
-      },
-      err => {
-        reject({
-          success: false,
-          data: { ...err },
-          message: err,
-        });
-      },
-    );
-  });
-};
-
 export const FetchAllTestStepByTestId = (
   id: string,
   callback?: (nil: null, data: any) => void,
@@ -366,7 +334,7 @@ export const CreateTestExecutionWithTestRun = () => {
           fields: {
             runDetail: {
               runs: {
-                steps: testRuns.data.steps || [],
+                steps: cleanSteps(testRuns?.data?.steps),
               },
             },
             runReferenceDetail: Test.createWithoutData(testRuns?.data?.objectId),
@@ -426,7 +394,7 @@ export const CreateTestExecutionWithItemModal = (
             fields: {
               runDetail: {
                 runs: {
-                  steps: testRuns?.data?.steps || [],
+                  steps: cleanSteps(testRuns?.data?.steps) || [],
                 },
               },
               runReferenceDetail: Test.createWithoutData(testRuns?.data?.objectId),
@@ -538,6 +506,29 @@ export const GetTestRunDetail = (testId: string): Promise<ICommonRes> => {
       },
     );
   });
+};
+
+const cleanSteps = (steps?: any[]) => {
+  if (!steps) {
+    return [];
+  }
+  const stepsBak = [];
+  steps?.forEach(item => {
+    stepsBak.push(
+      pick(item, [
+        'action',
+        'actualResult',
+        'attachments',
+        'comment',
+        'customFields',
+        'data',
+        'result',
+        'status',
+      ]),
+    );
+  });
+
+  return stepsBak;
 };
 
 const cleanRunDetail = (detail: any) => {
@@ -679,7 +670,7 @@ export const InitStepByTestId = (testId: string) => {
       .then(testRuns => {
         const runDetail: any = {
           runs: {
-            steps: testRuns.data.steps || [],
+            steps: cleanSteps(testRuns?.data?.steps),
           },
         };
         return updateTestStep(runDetail, testId);
