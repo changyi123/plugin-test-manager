@@ -70,13 +70,16 @@ export const useTreeFn = (nodes: TreeNode[]) => {
 
 /** 获取布局高度 */
 export const useLayoutHeight = () => {
-  const offsetY = 100;
+  const offsetY = 60;
   const [height, setHeight] = React.useState(700);
 
   React.useEffect(() => {
     const layoutElement = document.querySelector('[data-element-id="workspace.layout.content"]');
 
     if (layoutElement) {
+      // 删除 child 节点的 padding
+      const workspacePluginContainerDOM = layoutElement.children?.[0] ?? ({} as any);
+      workspacePluginContainerDOM.style = 'padding: 0';
       setHeight(layoutElement.clientHeight - offsetY);
     }
   }, []);
