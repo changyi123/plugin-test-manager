@@ -15,7 +15,10 @@ import { Status } from '@/lib/types/Test';
 import { getItemByIQL } from '@/lib/api/proxima';
 import { pick } from 'lodash';
 
-export const GetTestRunsById = (itemId: string): Promise<{ list: any; total: number }> => {
+export const GetTestRunsById = (
+  itemId: string,
+  queryParams?: any,
+): Promise<{ list: any; total: number }> => {
   return new Promise((resolve, reject) => {
     const query = new Parse.Query(Test);
     const reference = Test.createWithoutData(itemId);
@@ -31,10 +34,10 @@ export const GetTestRunsById = (itemId: string): Promise<{ list: any; total: num
           testRunQuery.equalTo('runReferenceDetail', runReferenceDetail);
           testRunQuery.find().then(async testRunRes => {
             // const testRuns = testRunRes?.map(item => item.toJSON());
-            const { list: data } = await getTestEntitiesByRelation(
+            const { list: data, total } = await getTestEntitiesByRelation(
               TestRelationType.ExecutionRelRun,
               { to: testRunRes },
-              { fillItemData: true },
+              { fillItemData: true, queryParams },
             );
             const dataBak = [];
             data.forEach((item, index) => {
@@ -53,7 +56,7 @@ export const GetTestRunsById = (itemId: string): Promise<{ list: any; total: num
             // );
             resolve({
               list: dataBak,
-              total: dataBak.length,
+              total,
             });
           });
         },
