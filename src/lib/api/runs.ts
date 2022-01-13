@@ -366,7 +366,7 @@ export const CreateTestExecutionWithTestRun = () => {
           fields: {
             runDetail: {
               runs: {
-                steps: testRuns.data.steps || [],
+                steps: cleanSteps(testRuns?.data?.steps),
               },
             },
             runReferenceDetail: Test.createWithoutData(testRuns?.data?.objectId),
@@ -426,7 +426,7 @@ export const CreateTestExecutionWithItemModal = (
             fields: {
               runDetail: {
                 runs: {
-                  steps: testRuns?.data?.steps || [],
+                  steps: cleanSteps(testRuns?.data?.steps) || [],
                 },
               },
               runReferenceDetail: Test.createWithoutData(testRuns?.data?.objectId),
@@ -538,6 +538,29 @@ export const GetTestRunDetail = (testId: string): Promise<ICommonRes> => {
       },
     );
   });
+};
+
+const cleanSteps = (steps?: any[]) => {
+  if (!steps) {
+    return [];
+  }
+  const stepsBak = [];
+  steps?.forEach(item => {
+    stepsBak.push(
+      pick(item, [
+        'action',
+        'actualResult',
+        'attachments',
+        'comment',
+        'customFields',
+        'data',
+        'result',
+        'status',
+      ]),
+    );
+  });
+
+  return stepsBak;
 };
 
 const cleanRunDetail = (detail: any) => {
