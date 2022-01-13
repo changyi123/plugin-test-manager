@@ -576,7 +576,6 @@ export const updateTestStep = (
     } = {
       runDetail,
     };
-    console.log('runDetail', runDetail);
     if (checkStatus && detail?.runs?.steps?.length) {
       // 有一个失败
       const hasFail = detail?.runs?.steps.some(item => item.status === 'FAILED');
@@ -619,25 +618,26 @@ export const toggleTestRunStatus = (testId: string, status: Status): Promise<ICo
     Test.createWithoutData(testId)
       .fetch()
       .then(testRun => {
-        const statusType = status.type;
+        // const statusType = status.type;
         const refDetail = testRun.get('runReferenceDetail');
         const { runDetail } = testRun.toJSON();
         const runDetailBak = { ...runDetail };
-        if (runDetail?.runs?.steps) {
-          const steps = [];
-          runDetail?.runs?.steps?.forEach(item => {
-            // 成功，全成功 || todo，全todo
-            if (statusType === 'PASSED' || statusType === 'TODO') {
-              item.status = status;
-              // 失败，todo全失败，其他状态不变
-            } else if (statusType === 'FAILED') {
-              item.status = status.key;
-            }
-            // 执行中，状态不变
-            steps.push(item);
-          });
-          runDetailBak.runs.steps = steps;
-        }
+        // 改变总的测试运行状态不需要牵扯到步骤的状态
+        // if (runDetail?.runs?.steps) {
+        //   const steps = [];
+        //   runDetail?.runs?.steps?.forEach(item => {
+        //     // 成功，全成功 || todo，全todo
+        //     if (statusType === 'PASSED' || statusType === 'TODO') {
+        //       item.status = status;
+        //       // 失败，todo全失败，其他状态不变
+        //     } else if (statusType === 'FAILED') {
+        //       item.status = status.key;
+        //     }
+        //     // 执行中，状态不变
+        //     steps.push(item);
+        //   });
+        //   runDetailBak.runs.steps = steps;
+        // }
         testRun.set({
           status: status.key,
           runDetail: runDetailBak?.runs ? runDetailBak : undefined,
