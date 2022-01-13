@@ -40,7 +40,7 @@ const TestRunModal: React.FC<ITestRunModalProps> = props => {
         destroyOnClose
       >
         {isVisible && (
-          <div className={css('modal-content')}>
+          <div className={css('modal-content')} id="modal-content">
             <TestRun testId={props.testId} />
           </div>
         )}

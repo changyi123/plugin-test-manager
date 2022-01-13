@@ -3,7 +3,6 @@ import { List, Typography, Tooltip, Popconfirm, message } from '@osui/ui';
 import { DeleteOutlined } from '@ant-design/icons';
 import { useRequest } from 'ahooks';
 import { deleteDefect, fetchDefectList } from '@/lib/api/runs';
-import { getRootContainer } from '@/lib/utils/helper';
 import Loading from '@/components/common/Loading';
 import ItemIcon from './ItemIcon';
 import { useItemLinkTypeConfig } from './hooks';
@@ -113,18 +112,16 @@ const ItemList: React.FC<ItemListProps> = props => {
 
             <div className={css('right')}>
               <div className={css('right__icon')}>
-                <Tooltip title="删除关联">
-                  <Popconfirm
-                    placement="left"
-                    getPopupContainer={() => getRootContainer()}
-                    title="当前操作会删除与该缺陷的关联关系，是否继续执行？"
-                    onConfirm={() => handleDeleteRelation(item.objectId)}
-                    okText="确定"
-                    cancelText="取消"
-                  >
-                    <DeleteOutlined />
-                  </Popconfirm>
-                </Tooltip>
+                <Popconfirm
+                  placement="left"
+                  getPopupContainer={() => document.getElementById('modal-content')}
+                  title="当前操作会删除与该缺陷的关联关系，是否继续执行？"
+                  onConfirm={() => handleDeleteRelation(item.objectId)}
+                  okText="确定"
+                  cancelText="取消"
+                >
+                  <DeleteOutlined />
+                </Popconfirm>
               </div>
             </div>
           </div>
