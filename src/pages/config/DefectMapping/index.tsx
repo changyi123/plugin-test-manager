@@ -4,6 +4,7 @@ import { Button, message } from '@osui/ui';
 import { getAllItemTypes } from '@/lib/api/proxima';
 import { useRequest, useSafeState, useDrop, useDrag } from 'ahooks';
 import { useSelectedWorkspace, useCurrentTestConfig } from '../hooks';
+import OverflowTooltip from '@/components/common/OverflowTooltip';
 
 import cx from './index.less';
 
@@ -20,7 +21,9 @@ const ItemTypeDropBox = (props: {
     return (
       <div className={cx('drag-item')} ref={ref}>
         <img src={data.icon} className={cx('icon')} />
-        <span>{data.name}</span>
+        <OverflowTooltip title={data.name}>
+          <span>{data.name}</span>
+        </OverflowTooltip>
       </div>
     );
   };
