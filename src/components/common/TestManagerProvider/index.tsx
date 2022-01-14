@@ -37,7 +37,7 @@ const getOrCreateTestEntity = async (itemId: string, config?: { notice: boolean 
     const itemTypeMap = testConfig?.get('itemTypeMap');
 
     if (itemTypeMap) {
-      const testType = getKeyByValue(itemTypeMap, item.itemType.key) as TestType;
+      const testType = getKeyByValue(itemTypeMap, item?.itemType.key) as TestType;
       // 创建失败，通知用户无法创建测试实体
       if (!testType) {
         // 创建失败，通知用户无法创建测试实体
