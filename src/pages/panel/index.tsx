@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Empty } from '@osui/ui';
+import { Result } from '@osui/ui';
 import TestPlan from './TestPlan';
 import TestDetail from './TestDetail';
 import TestExecution from './TestExecution';
@@ -9,7 +9,6 @@ import { getDevConfig } from '@/devEnv';
 import { useSDK } from '@projectproxima/plugin-sdk';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import TestManagerProvider from '@/components/common/TestManagerProvider';
-import { AlertOutlined } from '@ant-design/icons';
 
 import cx from './index.less';
 
@@ -26,16 +25,17 @@ const TestPanel = () => {
   const panelRenderNode = React.useMemo(() => {
     if (!testEntity)
       return (
-        <Empty
-          image={<AlertOutlined style={{ transform: 'scale(.65)' }} />}
-          imageStyle={{ height: 100 }}
-          description={<span>当前事项类型不存在测试管理事项类型关联配置中</span>}
-        >
-          <span style={{ fontSize: 12, color: '#999' }}>
-            请前往 <span style={{ color: '#ccc' }}>系统设置 &gt; 插件 &gt; 测试管理配置 </span>
-            页面 ，选择事项类型关联配置进行配置
-          </span>
-        </Empty>
+        <Result
+          className={cx('empty')}
+          status="404"
+          title="当前事项类型不存在测试管理事项类型关联配置中"
+          subTitle={
+            <span>
+              请前往 <span className={cx('breadcrumb')}>系统设置 &gt; 插件 &gt; 测试管理配置 </span>
+              页面 ，选择事项类型关联配置进行配置
+            </span>
+          }
+        ></Result>
       );
     console.info('testEntity', testEntity.toJSON());
     const testType = testEntity.get('type');
