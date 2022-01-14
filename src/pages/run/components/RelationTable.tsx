@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Table } from '@osui/ui';
 import { ColumnsType } from 'antd/es/table';
 import { useRequest } from 'ahooks';
@@ -10,6 +10,7 @@ import css from './RelationTable.less';
 
 interface IRelationTable {
   itemId: string;
+  refreshNum?: number;
 }
 
 interface IItem {
@@ -33,9 +34,19 @@ interface IItemType {
   key: string;
 }
 
+let first = true;
 const RelationTable: React.FC<IRelationTable> = props => {
-  const { itemId } = props;
-  const { loading, data, error } = useRequest(() => FetchItemLinkRelation(itemId));
+  const { itemId, refreshNum } = props;
+  const { loading, data, error, refresh } = useRequest(() => FetchItemLinkRelation(itemId));
+
+  useEffect(() => {
+    if (first) {
+      first = false;
+      return;
+    }
+    refresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refresh, refreshNum]);
 
   if (loading) {
     return <Loading />;
