@@ -111,18 +111,20 @@ const ItemList: React.FC<ItemListProps> = props => {
             </div>
 
             <div className={css('right')}>
-              <div className={css('right__icon')}>
-                <Popconfirm
-                  placement="left"
-                  getPopupContainer={() => document.getElementById('modal-content')}
-                  title="当前操作会删除与该缺陷的关联关系，是否继续执行？"
-                  onConfirm={() => handleDeleteRelation(item.objectId)}
-                  okText="确定"
-                  cancelText="取消"
-                >
-                  <DeleteOutlined />
-                </Popconfirm>
-              </div>
+              {item.label === '全局' && (
+                <div className={css('right__icon')}>
+                  <Popconfirm
+                    placement="left"
+                    getPopupContainer={() => document.getElementById('modal-content')}
+                    title="当前操作会删除与该缺陷的关联关系，是否继续执行？"
+                    onConfirm={() => handleDeleteRelation(item.objectId)}
+                    okText="确定"
+                    cancelText="取消"
+                  >
+                    <DeleteOutlined />
+                  </Popconfirm>
+                </div>
+              )}
             </div>
           </div>
         </List.Item>
