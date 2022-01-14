@@ -80,6 +80,7 @@ export const FieldsTimepicker: React.FC<IFieldsDatepickerProps> = ({
   const [edit, setEdit] = useState<boolean>(false);
   const [val, setVal] = useState<number>(value);
   const inputRef = useRef(null);
+  const currentRef = useRef(null);
   const onChange = e => {
     change && change(e.valueOf());
     setVal(e.valueOf());
@@ -102,7 +103,10 @@ export const FieldsTimepicker: React.FC<IFieldsDatepickerProps> = ({
   }, [edit]);
 
   return (
-    <div className={[borderColor && css(`${borderColor}-border`), css('fields-input')].join(' ')}>
+    <div
+      className={[borderColor && css(`${borderColor}-border`), css('fields-input')].join(' ')}
+      ref={currentRef}
+    >
       {!edit && (
         <div
           onClick={e => {
@@ -116,6 +120,7 @@ export const FieldsTimepicker: React.FC<IFieldsDatepickerProps> = ({
 
       {edit && (
         <DatePicker
+          getPopupContainer={() => currentRef.current}
           value={val ? moment(val) : null}
           ref={inputRef}
           showTime
