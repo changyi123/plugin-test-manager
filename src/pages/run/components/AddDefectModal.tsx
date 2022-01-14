@@ -89,7 +89,7 @@ export const AddDefectSelect: React.FC<AddDefectSelect> = props => {
           fetchOptions={getItems}
           filterOptions={filterOptions}
           onChange={handleSelectChange}
-          placeholder={props.placeholder ?? '选择事项'}
+          placeholder={props.placeholder ?? '请输入并从列表中选择已存在的事项'}
         />
       </Spin>
     </div>
