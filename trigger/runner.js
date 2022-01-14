@@ -1,14 +1,17 @@
 const axios = require('axios');
+const path = require('path');
 const fs = require('fs');
 
 const fileName = './initialScript.js';
-const sessionToken = 'r:13b97ae28bee67165f5c0aa76674c962';
+const sessionToken = 'r:9d2ed95f4825ddbbfd030ed6f2058350';
 const params = {
   appKey: 'test_manager',
 };
 
-fs.watchFile(fileName, () => {
-  const script = fs.readFileSync(fileName, {
+const fullPath = path.join(__dirname, fileName);
+
+fs.watchFile(fullPath, () => {
+  const script = fs.readFileSync(fullPath, {
     encoding: 'utf8',
   });
 
