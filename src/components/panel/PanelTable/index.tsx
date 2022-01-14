@@ -86,12 +86,12 @@ const PanelTable: React.FC<PanelTableProps> = props => {
           {batchSelect ? (
             <div className={cx('select-tip')}>已选 {selectedRowKeys.length} 条</div>
           ) : null}
-          {batchSelect && hasArrayItem(actionMenuList) ? (
+          {batchSelect && hasArrayItem(actionMenuList) && hasArrayItem(selectedRowKeys) ? (
             <div className={cx('actions')}>
               {actionMenuList.map((action, index) => (
                 <Popconfirm
                   key={index}
-                  placement="left"
+                  placement="right"
                   getPopupContainer={() => getRootContainer()}
                   title={`当前操作会${action.title}所选的数据，是否继续执行操作？`}
                   onConfirm={() => action?.onClick(selectedRowKeys)}

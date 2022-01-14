@@ -94,8 +94,8 @@ const Runs: React.FC = () => {
       render: (_, record) => {
         return (
           <StatusBadge
+            useRootContainer
             status={record?.status}
-            notCurrent={true}
             onStatusChange={status => handleStatusChange(record, status)}
           />
         );

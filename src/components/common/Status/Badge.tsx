@@ -4,6 +4,7 @@ import { Popover } from '@osui/ui';
 import { sequence } from './utils';
 import { useStatusConfig } from './hooks';
 import { CaretDownOutlined } from '@ant-design/icons';
+import { getRootContainer } from '@/lib/utils/helper';
 
 import cx from './Badge.less';
 
@@ -11,7 +12,7 @@ type BadgeProps = {
   status?: string;
   readonly?: boolean;
   onStatusChange?: (status) => void;
-  notCurrent?: boolean;
+  useRootContainer?: boolean;
   showBg?: boolean;
 };
 
@@ -75,7 +76,7 @@ const Badge: React.FC<BadgeProps> = props => {
   return (
     <div ref={badgeRef}>
       <Popover
-        getPopupContainer={props.notCurrent ? undefined : () => badgeRef.current}
+        getPopupContainer={props.useRootContainer ? getRootContainer : () => badgeRef.current}
         trigger="click"
         visible={visible}
         placement="bottomLeft"
