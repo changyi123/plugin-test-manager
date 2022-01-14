@@ -4,10 +4,10 @@ import { Result } from '@osui/ui';
 import TestPlan from './TestPlan';
 import TestDetail from './TestDetail';
 import TestExecution from './TestExecution';
-import { TestType } from '@/lib/constants';
 import { getDevConfig } from '@/devEnv';
 import { useSDK } from '@projectproxima/plugin-sdk';
 import { useTestConfig } from '@/lib/hooks/useContext';
+import { TestType, ENTITY_NOT_FOUND } from '@/lib/constants';
 import TestManagerProvider from '@/components/common/TestManagerProvider';
 
 import cx from './index.less';
@@ -23,7 +23,7 @@ const TestPanel = () => {
   const { testEntity } = useTestConfig();
 
   const panelRenderNode = React.useMemo(() => {
-    if (!testEntity)
+    if ((testEntity as any) === ENTITY_NOT_FOUND)
       return (
         <Result
           className={cx('empty')}
@@ -37,6 +37,7 @@ const TestPanel = () => {
           }
         ></Result>
       );
+    if (!testEntity) return null;
     console.info('testEntity', testEntity.toJSON());
     const testType = testEntity.get('type');
 

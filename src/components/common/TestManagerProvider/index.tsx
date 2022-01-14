@@ -16,7 +16,7 @@ import {
   BaseActionContext,
   BaseActionContextType,
 } from './context';
-import { TestType } from '@/lib/constants';
+import { TestType, ENTITY_NOT_FOUND } from '@/lib/constants';
 
 const ItemCreateSuccessEventType = 'itemCreateSuccess';
 
@@ -99,8 +99,8 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
   React.useEffect(() => {
     const execute = async () => {
       const testEntity = await getOrCreateTestEntity(itemId);
+      setTestEntity(testEntity ?? ENTITY_NOT_FOUND);
       if (testEntity) {
-        setTestEntity(testEntity);
         const workspace = testEntity.get('reference')?.get('workspace');
         workspace && setWorkspace(workspace.toJSON());
       }

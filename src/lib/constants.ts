@@ -4,6 +4,9 @@ export const TEST_MANAGER_PLUGIN_KEY = 'test-manager';
 // 初始状态
 export const INITIAL_STATUS_KEY = 'TODO';
 
+// ENTITY NOT FOUND
+export const ENTITY_NOT_FOUND = 'ENTITY_NOT_FOUND';
+
 // proxima sdk 底座 event key
 export enum PROXIMA_EVENT_KEY {
   openItemCreateScreen = 'openItemCreateScreen',

@@ -62,6 +62,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
         limit: 50,
         nameLike: name,
         itemType: testTypeAssItemTypeKeys?.[testType] ?? [],
+        orderBy: ['修改时间', 'desc'],
       });
 
       const itemId = items.map(item => item.objectId);
