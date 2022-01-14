@@ -6,7 +6,7 @@ import { alert } from '@/lib/utils/helper';
 import { Workspace } from '@/lib/types/App';
 import { DownOutlined } from '@ant-design/icons';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
-import { TestType, TestRelationType } from '@/lib/constants';
+import { TestType, TestRelationType, INITIAL_STATUS_KEY } from '@/lib/constants';
 import PanelTable, {
   ActionType,
   BuiltinColumns,
@@ -18,11 +18,12 @@ import TestEntitySelectorModal, {
   ActionType as SelectorActionType,
 } from '@/components/panel/TestEntitySelectorModal';
 import { StatusBadge } from '@/components/common/Status';
-import { useAllRelTestEntityIds } from '@/lib/hooks/useTest';
+import { useAllRelTestEntities } from '@/lib/hooks/useTest';
+import TestRunModal from '@/pages/run/Modal';
+import { QuestionCircleOutlined } from '@/icons';
 import { getTestEntitiesByRelation, removeTestRelations } from '@/lib/api/common';
 import { createTestExecutionService, addTestDetailToPlanService } from './services';
-import { QuestionCircleOutlined } from '@/icons';
-import TestRunModal from '@/pages/run/Modal';
+import StatusProcessBar from '@/components/panel/StatusProcessBar';
 
 import cx from './index.less';
 
@@ -32,18 +33,26 @@ const Test = () => {
   const tableActionRef = React.useRef<ActionType>();
   const selectorModalRef = React.useRef<SelectorActionType>();
 
-  const { testEntityIds, refresh: getAllRelTestEntityIds } = useAllRelTestEntityIds(
+  const { testEntities: allTestEntities, refresh: getAllRelTestEntities } = useAllRelTestEntities(
     TestRelationType.PlanRelDetail,
     {
       from: testEntity,
     },
+    ['status'],
   );
+
+  const { testEntityIds, testEntityStatuses } = React.useMemo(() => {
+    return {
+      testEntityIds: allTestEntities.map(item => item.objectId),
+      testEntityStatuses: allTestEntities.map(item => item.status ?? INITIAL_STATUS_KEY),
+    };
+  }, [allTestEntities]);
 
   // 刷新依赖数据
   const refreshDepData = React.useCallback(() => {
-    getAllRelTestEntityIds();
+    getAllRelTestEntities();
     tableActionRef.current.refresh();
-  }, [getAllRelTestEntityIds]);
+  }, [getAllRelTestEntities]);
 
   const tableDataSourceGetter = React.useCallback(
     async queryParams => {
@@ -209,10 +218,13 @@ const Test = () => {
     return [
       {
         title: '包含所有测试用例',
-        onClick: createTestExecution,
+        onClick: async () => {
+          await createTestExecution();
+          refreshDepData();
+        },
       },
     ];
-  }, [createTestExecution]);
+  }, [createTestExecution, refreshDepData]);
 
   const expandedRowRender = React.useCallback(record => {
     const columns = [
@@ -278,6 +290,8 @@ const Test = () => {
         testType={TestType.TestDetail}
         ignoreTestEntityIds={testEntityIds}
       />
+
+      <StatusProcessBar statuses={testEntityStatuses} />
 
       <PanelTable
         expandable={{

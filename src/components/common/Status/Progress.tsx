@@ -14,6 +14,7 @@ type StatusProgressProps = {
   className?: string;
   statuses?: string[];
   hasSummary?: boolean;
+  onReady?: (statuses: any[]) => void;
 };
 
 const StatusProgress: React.FC<StatusProgressProps> = props => {
@@ -46,6 +47,10 @@ const StatusProgress: React.FC<StatusProgressProps> = props => {
         .value(),
     );
   }, [props.statuses, statusConfig, total]);
+
+  React.useEffect(() => {
+    props.onReady?.(statuses);
+  }, [statuses, props]);
 
   const PopoverContent = React.useMemo(() => {
     if (!props.hasSummary) return undefined;
