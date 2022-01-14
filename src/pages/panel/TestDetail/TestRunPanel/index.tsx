@@ -119,7 +119,7 @@ const Runs: React.FC = () => {
             placement="left"
             getPopupContainer={() => getRootContainer()}
             title="当前操作会删除该测试执行，是否继续执行？"
-            onConfirm={() => () => removeTestRelation([item.testRelationId])}
+            onConfirm={() => removeTestRelation([item.testRelationId])}
             okText="确定"
             cancelText="取消"
           >
@@ -177,12 +177,12 @@ const Runs: React.FC = () => {
             actionMenuList={[
               {
                 title: '删除',
-                onClick(rows) {
-                  removeTestRelation(rows.map(row => row.testRelationId));
+                onClick(selectedRowKeys) {
+                  removeTestRelation(selectedRowKeys);
                 },
               },
             ]}
-            rowKey="objectId"
+            rowKey="testRelationId"
             columns={tableColumns}
             getDataSource={queryParams => GetTestRunsById(itemId, queryParams)}
           />

@@ -143,12 +143,12 @@ const Test = () => {
         actionMenuList={[
           {
             title: '删除',
-            onClick(rows) {
-              removeTestRelation(rows.map(row => row.testRelationId));
+            onClick(selectedRowKeys) {
+              removeTestRelation(selectedRowKeys);
             },
           },
         ]}
-        rowKey="objectId"
+        rowKey="testRelationId"
         columns={tableColumns}
         getDataSource={tableDataSourceGetter}
       />
