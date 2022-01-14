@@ -2,4 +2,4 @@
 
 yarn && yarn build
 rm -rf build.zip
-zip -r build.zip dist manifest.yml
+zip -r build.zip dist trigger manifest.yml
