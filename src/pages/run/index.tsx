@@ -125,6 +125,7 @@ const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
   const currentTestId = query.get('id') || testId;
   // 从路由/弹窗拿
   const { data, loading, error, refresh } = useRequest(() => GetTestRunDetail(currentTestId));
+  const [refreshNum, setRefreshNum] = useState(0);
 
   const checkRunInit = useCallback(() => {
     InitStepByTestId(currentTestId)
@@ -145,6 +146,11 @@ const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
     },
     [refresh],
   );
+
+  const handleStepRefresh = useCallback(() => {
+    refresh();
+    setRefreshNum(refreshNum + 1);
+  }, [refresh, refreshNum]);
 
   if (!currentTestId) {
     return <div>无</div>;
@@ -243,12 +249,12 @@ const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
             <div className={css('run__around__collapse__item')}>
               <CustomCollapse title="测试用例详情">
                 <CustomCollapse.Panel title="测试用例关联事项" num={defectList.length}>
-                  <RelationTable itemId={itemDetail?.objectId} />
+                  <RelationTable itemId={itemDetail?.objectId} refreshNum={refreshNum} />
                 </CustomCollapse.Panel>
 
                 <CustomCollapse.Panel title="用例步骤" num={runDetail?.runs?.steps?.length || 0}>
                   <StepList
-                    refresh={refresh}
+                    refresh={handleStepRefresh}
                     detail={runDetail}
                     objectId={objectId}
                     testId={currentTestId}

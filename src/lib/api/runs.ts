@@ -864,6 +864,7 @@ export const fetchDefectList = async (
 };
 
 export const FetchItemLinkRelation = (itemId: string): Promise<any> => {
+  console.log('liangci');
   return new Promise((resolve, reject) => {
     const query = new Parse.Query(ItemLink);
     query.equalTo('source', pointerTransfer(Item, itemId));
