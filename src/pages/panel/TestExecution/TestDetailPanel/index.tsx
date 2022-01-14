@@ -130,7 +130,7 @@ const Test = () => {
               placement="left"
               getPopupContainer={() => getRootContainer()}
               title="当前操作会删除该测试执行，是否继续执行？"
-              onConfirm={() => () => removeTestRelation([item.testRelationId])}
+              onConfirm={() => removeTestRelation([item.testRelationId])}
               okText="确定"
               cancelText="取消"
             >
