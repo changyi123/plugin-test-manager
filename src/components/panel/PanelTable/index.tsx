@@ -1,11 +1,9 @@
 import React from 'react';
-import { get, uniqBy } from 'lodash';
+import { uniqBy } from 'lodash';
 import { Table, Button } from '@osui/ui';
 import { TableProps } from 'antd/lib/table';
-import { DownOutlined } from '@ant-design/icons';
 import { hasArrayItem } from '@/lib/utils/helper';
 import { useAntdTable, useSafeState } from 'ahooks';
-import DropDownButton from '@/components/panel/DropDownButton';
 
 import cx from './index.less';
 
