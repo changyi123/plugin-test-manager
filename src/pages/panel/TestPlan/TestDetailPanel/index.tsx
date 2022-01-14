@@ -6,7 +6,7 @@ import { alert } from '@/lib/utils/helper';
 import { Workspace } from '@/lib/types/App';
 import { DownOutlined } from '@ant-design/icons';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
-import { TestType, TestRelationType } from '@/lib/constants';
+import { TestType, TestRelationType, INITIAL_STATUS_KEY } from '@/lib/constants';
 import PanelTable, {
   ActionType,
   BuiltinColumns,
@@ -19,10 +19,11 @@ import TestEntitySelectorModal, {
 } from '@/components/panel/TestEntitySelectorModal';
 import { StatusBadge } from '@/components/common/Status';
 import { useAllRelTestEntityIds } from '@/lib/hooks/useTest';
+import TestRunModal from '@/pages/run/Modal';
+import { QuestionCircleOutlined } from '@/icons';
 import { getTestEntitiesByRelation, removeTestRelations } from '@/lib/api/common';
 import { createTestExecutionService, addTestDetailToPlanService } from './services';
-import { QuestionCircleOutlined } from '@/icons';
-import TestRunModal from '@/pages/run/Modal';
+import StatusProcessBar from '@/components/panel/StatusProcessBar';
 
 import cx from './index.less';
 
@@ -32,12 +33,21 @@ const Test = () => {
   const tableActionRef = React.useRef<ActionType>();
   const selectorModalRef = React.useRef<SelectorActionType>();
 
-  const { testEntityIds, refresh: getAllRelTestEntityIds } = useAllRelTestEntityIds(
-    TestRelationType.PlanRelDetail,
-    {
-      from: testEntity,
-    },
-  );
+  const { testEntityIds: allTestEntities, refresh: getAllRelTestEntityIds } =
+    useAllRelTestEntityIds(
+      TestRelationType.PlanRelDetail,
+      {
+        from: testEntity,
+      },
+      ['status'],
+    );
+
+  const { testEntityIds, testEntityStatuses } = React.useMemo(() => {
+    return {
+      testEntityIds: allTestEntities.map(item => item.objectId),
+      testEntityStatuses: allTestEntities.map(item => item.status ?? INITIAL_STATUS_KEY),
+    };
+  }, [allTestEntities]);
 
   // 刷新依赖数据
   const refreshDepData = React.useCallback(() => {
@@ -278,6 +288,8 @@ const Test = () => {
         testType={TestType.TestDetail}
         ignoreTestEntityIds={testEntityIds}
       />
+
+      <StatusProcessBar statuses={testEntityStatuses} />
 
       <PanelTable
         expandable={{
