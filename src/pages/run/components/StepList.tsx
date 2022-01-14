@@ -31,7 +31,7 @@ export interface IStepItemProps {
   item: IStepItem;
   index: number;
   testId: string;
-  saveList: (item: IStepItem, index: number) => void;
+  saveList: (item: IStepItem, index: number, checkStatus: boolean) => void;
 }
 
 export interface StepListProps {
@@ -50,11 +50,11 @@ export const StepItem: React.FC<IStepItemProps> = ({ index, item, saveList, test
   const { TestToDefect = '' } = useItemLinkTypeConfig();
   const dropDownRef = React.useRef();
   const saveItem = useCallback(
-    (key: string) => {
+    (key: string, checkStatus?: boolean) => {
       return value => {
         const itemBak = { ...item };
         itemBak[key] = value;
-        saveList(itemBak, index);
+        saveList(itemBak, index, checkStatus);
       };
     },
     [item, saveList, index],
@@ -191,7 +191,7 @@ export const StepItem: React.FC<IStepItemProps> = ({ index, item, saveList, test
                 <StatusBadge
                   showBg={true}
                   status={item.status}
-                  onStatusChange={status => saveItem('status')(status.key)}
+                  onStatusChange={status => saveItem('status', true)(status.key)}
                 />
               </div>
             </Col>
@@ -205,10 +205,10 @@ export const StepItem: React.FC<IStepItemProps> = ({ index, item, saveList, test
 const StepList: React.FC<StepListProps> = ({ detail, objectId, testId, refresh }) => {
   const { steps } = detail?.runs;
   const saveList = useCallback(
-    (item: IStepItem, index: number) => {
+    (item: IStepItem, index: number, checkStatus?: boolean) => {
       const detailBak = { ...detail };
       detailBak.runs.steps[index] = item;
-      updateTestStep(detailBak, objectId, true).then(() => {
+      updateTestStep(detailBak, objectId, checkStatus).then(() => {
         message.success('修改成功');
         refresh && refresh();
       });

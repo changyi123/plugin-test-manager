@@ -173,7 +173,7 @@ const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
       const runDetailBak = { ...runDetail };
       runDetailBak[key] = value;
       // saveList(itemBak, index);
-      updateTestStep(runDetailBak, objectId, true).then(() => {
+      updateTestStep(runDetailBak, objectId).then(() => {
         message.success('修改成功');
         refresh && refresh();
       });
