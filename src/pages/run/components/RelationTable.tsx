@@ -34,15 +34,17 @@ interface IItemType {
   key: string;
 }
 
+let first = true;
 const RelationTable: React.FC<IRelationTable> = props => {
   const { itemId, refreshNum } = props;
   const { loading, data, error, refresh } = useRequest(() => FetchItemLinkRelation(itemId));
 
   useEffect(() => {
-    if (data && data.length) {
-      console.log('执行了额两次', refreshNum);
-      refresh();
+    if (first) {
+      first = false;
+      return;
     }
+    refresh();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [refresh, refreshNum]);
 

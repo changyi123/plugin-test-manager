@@ -26,7 +26,7 @@ interface ItemListProps {
     value: string;
   }>;
   testId: string;
-  save?: () => (value: string[]) => void;
+  save?: () => (value: string[], refresh?: boolean) => void;
 }
 
 function mergeData(items: any, defects: ItemListProps['defects']) {
@@ -76,7 +76,7 @@ const ItemList: React.FC<ItemListProps> = props => {
       const itemIdsBak = [...items];
       itemIdsBak.splice(index, 1);
       const saveList = itemIdsBak.map(item => item.objectId);
-      save && save()(saveList);
+      save && save()(saveList, true);
     });
   };
 

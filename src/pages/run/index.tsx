@@ -175,12 +175,15 @@ const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
   const { itemDetail, runDetail, status, objectId, defectList, notRepeatNum } = data?.data;
 
   const saveItem = (key: string) => {
-    return value => {
+    return (value, refreshFun?: boolean) => {
       const runDetailBak = { ...runDetail };
       runDetailBak[key] = value;
       // saveList(itemBak, index);
       updateTestStep(runDetailBak, objectId).then(() => {
         message.success('修改成功');
+        if (refreshFun) {
+          setRefreshNum(refreshNum + 1);
+        }
         refresh && refresh();
       });
     };
@@ -225,7 +228,7 @@ const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
                       currentDefectIds={runDetail.defectIds}
                       key="2"
                       testId={objectId}
-                      save={val => saveItem('defectIds')(val)}
+                      save={val => saveItem('defectIds')(val, true)}
                     />,
                   ]}
                 >
