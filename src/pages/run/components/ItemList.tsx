@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect } from 'react';
-import { List, Typography, Tooltip, Popconfirm, message } from '@osui/ui';
+import { List, Typography, Tooltip, Popconfirm, Popover, message } from '@osui/ui';
 import { DeleteOutlined } from '@ant-design/icons';
 import { useRequest } from 'ahooks';
 import { deleteDefect, fetchDefectList } from '@/lib/api/runs';
@@ -111,7 +111,7 @@ const ItemList: React.FC<ItemListProps> = props => {
             </div>
 
             <div className={css('right')}>
-              {item.label === '全局' && (
+              {item.label === '全局' ? (
                 <div className={css('right__icon')}>
                   <Popconfirm
                     placement="left"
@@ -123,6 +123,15 @@ const ItemList: React.FC<ItemListProps> = props => {
                   >
                     <DeleteOutlined />
                   </Popconfirm>
+                </div>
+              ) : (
+                <div className={css('right__icon')}>
+                  <Popover
+                    getPopupContainer={() => document.getElementById('modal-content')}
+                    content={<div>请移步到{item.label}删除该关联</div>}
+                  >
+                    <DeleteOutlined />
+                  </Popover>
                 </div>
               )}
             </div>
