@@ -1,9 +1,9 @@
 import React from 'react';
 import { uniqBy } from 'lodash';
-import { Table, Button } from '@osui/ui';
 import { TableProps } from 'antd/lib/table';
-import { hasArrayItem } from '@/lib/utils/helper';
 import { useAntdTable, useSafeState } from 'ahooks';
+import { Table, Button, Popconfirm } from '@osui/ui';
+import { hasArrayItem, getRootContainer } from '@/lib/utils/helper';
 
 import cx from './index.less';
 
@@ -89,9 +89,17 @@ const PanelTable: React.FC<PanelTableProps> = props => {
           {batchSelect && hasArrayItem(actionMenuList) ? (
             <div className={cx('actions')}>
               {actionMenuList.map((action, index) => (
-                <a key={index} onClick={() => action?.onClick(selectedRowKeys)}>
-                  {action.title}
-                </a>
+                <Popconfirm
+                  key={index}
+                  placement="left"
+                  getPopupContainer={() => getRootContainer()}
+                  title={`当前操作会${action.title}所选的数据，是否继续执行操作？`}
+                  onConfirm={() => action?.onClick(selectedRowKeys)}
+                  okText="确定"
+                  cancelText="取消"
+                >
+                  <a>{action.title}</a>
+                </Popconfirm>
               ))}
             </div>
           ) : null}
