@@ -1,29 +1,50 @@
 import React from 'react';
-import { uniqueId } from 'lodash';
 import { Typography, message, Space, Button, Divider, Popconfirm } from '@osui/ui';
 import { DownOutlined } from '@ant-design/icons';
 import { TestType, TestRelationType } from '@/lib/constants';
 import PanelTable, { ActionType } from '@/components/panel/PanelTable';
 import DropDownButton from '@/components/panel/DropDownButton';
 import { toggleTestRunStatus } from '@/lib/api/runs';
-import { useTestConfig, useBaseAction } from '@/lib/hooks/useContext';
+import { useTestConfig } from '@/lib/hooks/useContext';
 import { getTestEntitiesByRelation, removeTestRelations } from '@/lib/api/common';
 import TestEntitySelectorModal, {
   ActionType as SelectorActionType,
 } from '@/components/panel/TestEntitySelectorModal';
 import { addTestRunToExecution } from './services';
 import TestRunModal from '@/pages/run/Modal';
-import { StatusBadge } from '@/components/common/Status';
 import { getRootContainer } from '@/lib/utils/helper';
+import { StatusBadge } from '@/components/common/Status';
+import { useAllRelTestEntities } from '@/lib/hooks/useTest';
+import { INITIAL_STATUS_KEY } from '@/lib/constants';
+import StatusProcessBar from '@/components/panel/StatusProcessBar';
 
 import cx from './index.less';
 
 const Test = () => {
   const { testEntity } = useTestConfig();
-  const { createItemUseModal } = useBaseAction();
   const tableActionRef = React.useRef<ActionType>();
 
   const selectorModalRef = React.useRef<SelectorActionType>();
+
+  const { testEntities: allTestEntities, refresh: getAllRelTestEntities } = useAllRelTestEntities(
+    TestRelationType.ExecutionRelRun,
+    {
+      from: testEntity,
+    },
+    ['runReferenceDetail', 'status'],
+  );
+
+  const { relTestDetailIds, relRunStatuses } = React.useMemo(() => {
+    return {
+      relTestDetailIds: allTestEntities.map(item => item.runReferenceDetail.objectId),
+      relRunStatuses: allTestEntities.map(item => item.status ?? INITIAL_STATUS_KEY),
+    };
+  }, [allTestEntities]);
+
+  const refreshDepData = React.useCallback(() => {
+    getAllRelTestEntities();
+    tableActionRef.current.refresh();
+  }, [getAllRelTestEntities]);
 
   const tableDataSourceGetter = React.useCallback(
     queryParams => {
@@ -40,36 +61,17 @@ const Test = () => {
     [testEntity],
   );
 
-  const createTestDetail = React.useCallback(async () => {
-    const token = uniqueId('TestDetail');
-    const res = await createItemUseModal({
-      extraData: { token },
-      // TODO: 测试执行 name
-      name: uniqueId('测试用例'),
-      type: TestType.TestExecution,
-    });
+  const removeTestRelation = React.useCallback(
+    async relationTypeIds => {
+      if (!Array.isArray(relationTypeIds)) return;
+      await removeTestRelations(relationTypeIds);
 
-    const { testEntity: testDetailEntity, extraData } = res;
-    // token 不相同则不创建关联
-    if (extraData.token !== token) return;
+      refreshDepData();
 
-    // const testExecutionData = testDetailEntity.toJSON();
-
-    // const testExecution = await createTestExecutionService({
-    //   testPlan: testEntity,
-    //   testExecution: testDetailEntity,
-    //   workspaceKey: (testExecutionData.reference.workspace as Workspace).key,
-    // });
-  }, [createItemUseModal]);
-
-  const removeTestRelation = React.useCallback(async relationTypeIds => {
-    if (!Array.isArray(relationTypeIds)) return;
-    await removeTestRelations(relationTypeIds);
-
-    tableActionRef.current.refresh();
-
-    message.success('删除成功');
-  }, []);
+      message.success('删除成功');
+    },
+    [refreshDepData],
+  );
 
   // table column 数据
   const tableColumns = React.useMemo(() => {
@@ -107,7 +109,7 @@ const Test = () => {
         render: (_, record) => {
           const handleStatusChange = async status => {
             await toggleTestRunStatus(record.objectId, status);
-            tableActionRef.current.refresh();
+            refreshDepData();
           };
           return <StatusBadge status={record?.status} onStatusChange={handleStatusChange} />;
         },
@@ -119,7 +121,7 @@ const Test = () => {
           <Space split={<Divider type="vertical" />} size={0} style={{ marginLeft: -4 }}>
             <TestRunModal
               testId={item.objectId}
-              onCancel={() => setTimeout(() => tableActionRef.current.refresh(), 200)}
+              onCancel={() => setTimeout(() => refreshDepData(), 200)}
               trigger={
                 <Button size="small" type="link">
                   执行
@@ -142,7 +144,7 @@ const Test = () => {
         ),
       },
     ];
-  }, [removeTestRelation]);
+  }, [refreshDepData, removeTestRelation]);
 
   // 添加测试用例菜单
   const testDetailMenuList = React.useMemo(() => {
@@ -155,12 +157,6 @@ const Test = () => {
           });
         },
       },
-      // {
-      //   title: '新增测试用例',
-      //   onClick() {
-      //     createTestDetail();
-      //   },
-      // },
     ];
   }, []);
 
@@ -173,14 +169,12 @@ const Test = () => {
           testExecution: testEntity,
           testIds,
         }).then(() => {
-          tableActionRef.current.refresh();
+          refreshDepData();
         });
         return;
       }
-
-      tableActionRef.current.refresh();
     },
-    [testEntity],
+    [refreshDepData, testEntity],
   );
 
   return (
@@ -189,7 +183,11 @@ const Test = () => {
         title="添加测试用例到当前测试执行"
         onSelect={addTestDetailToPlan}
         actionRef={selectorModalRef}
+        ignoreTestEntityIds={relTestDetailIds}
       />
+
+      <StatusProcessBar statuses={relRunStatuses} />
+
       <PanelTable
         renderActions={() => (
           <DropDownButton menuList={testDetailMenuList}>

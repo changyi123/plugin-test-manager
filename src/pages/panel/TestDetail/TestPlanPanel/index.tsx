@@ -17,7 +17,7 @@ import {
   removeTestRelations,
   getTestEntitiesByRelation,
 } from '@/lib/api/common';
-import { useAllRelTestEntityIds } from '@/lib/hooks/useTest';
+import { useAllRelTestEntities } from '@/lib/hooks/useTest';
 import { alert } from '@/lib/utils/helper';
 
 import cx from './index.less';
@@ -27,16 +27,18 @@ const Plan = () => {
   const { createItemUseModal } = useBaseAction();
   const tableActionRef = React.useRef<ActionType>();
   const selectorModalRef = React.useRef<SelectorActionType>();
-  const { testEntityIds: allTestEntityId, refresh: getAllRelTestEntityIds } =
-    useAllRelTestEntityIds(TestRelationType.PlanRelDetail, {
+  const { testEntities: allTestEntityId, refresh: getAllRelTestEntities } = useAllRelTestEntities(
+    TestRelationType.PlanRelDetail,
+    {
       to: testEntity,
-    });
+    },
+  );
 
   // 刷新依赖数据
   const refreshDepData = React.useCallback(() => {
-    getAllRelTestEntityIds();
+    getAllRelTestEntities();
     tableActionRef.current.refresh();
-  }, [getAllRelTestEntityIds]);
+  }, [getAllRelTestEntities]);
 
   const tableDataSourceGetter = React.useCallback(
     async queryParams => {

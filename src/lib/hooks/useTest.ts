@@ -4,7 +4,7 @@ import { getTestEntitiesByRelation } from '@/lib/api/common';
 
 type GetTestEntityParams = Parameters<typeof getTestEntitiesByRelation>;
 // 查询所有事项实体 id
-export const useAllRelTestEntityIds = (
+export const useAllRelTestEntities = (
   relType: GetTestEntityParams['0'],
   sides: GetTestEntityParams['1'],
   include?: string[],
@@ -22,8 +22,8 @@ export const useAllRelTestEntityIds = (
   });
 
   return {
-    testEntityIds: data ?? [],
     mutate,
     refresh,
+    testEntities: data ?? [],
   };
 };

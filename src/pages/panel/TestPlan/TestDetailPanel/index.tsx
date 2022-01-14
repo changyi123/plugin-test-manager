@@ -18,7 +18,7 @@ import TestEntitySelectorModal, {
   ActionType as SelectorActionType,
 } from '@/components/panel/TestEntitySelectorModal';
 import { StatusBadge } from '@/components/common/Status';
-import { useAllRelTestEntityIds } from '@/lib/hooks/useTest';
+import { useAllRelTestEntities } from '@/lib/hooks/useTest';
 import TestRunModal from '@/pages/run/Modal';
 import { QuestionCircleOutlined } from '@/icons';
 import { getTestEntitiesByRelation, removeTestRelations } from '@/lib/api/common';
@@ -33,14 +33,13 @@ const Test = () => {
   const tableActionRef = React.useRef<ActionType>();
   const selectorModalRef = React.useRef<SelectorActionType>();
 
-  const { testEntityIds: allTestEntities, refresh: getAllRelTestEntityIds } =
-    useAllRelTestEntityIds(
-      TestRelationType.PlanRelDetail,
-      {
-        from: testEntity,
-      },
-      ['status'],
-    );
+  const { testEntities: allTestEntities, refresh: getAllRelTestEntities } = useAllRelTestEntities(
+    TestRelationType.PlanRelDetail,
+    {
+      from: testEntity,
+    },
+    ['status'],
+  );
 
   const { testEntityIds, testEntityStatuses } = React.useMemo(() => {
     return {
@@ -51,9 +50,9 @@ const Test = () => {
 
   // 刷新依赖数据
   const refreshDepData = React.useCallback(() => {
-    getAllRelTestEntityIds();
+    getAllRelTestEntities();
     tableActionRef.current.refresh();
-  }, [getAllRelTestEntityIds]);
+  }, [getAllRelTestEntities]);
 
   const tableDataSourceGetter = React.useCallback(
     async queryParams => {
@@ -219,10 +218,13 @@ const Test = () => {
     return [
       {
         title: '包含所有测试用例',
-        onClick: createTestExecution,
+        onClick: async () => {
+          await createTestExecution();
+          refreshDepData();
+        },
       },
     ];
-  }, [createTestExecution]);
+  }, [createTestExecution, refreshDepData]);
 
   const expandedRowRender = React.useCallback(record => {
     const columns = [
