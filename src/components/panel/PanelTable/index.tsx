@@ -91,7 +91,7 @@ const PanelTable: React.FC<PanelTableProps> = props => {
           {batchSelect && hasArrayItem(actionMenuList) ? (
             <div className={cx('actions')}>
               {actionMenuList.map((action, index) => (
-                <a key={index} onClick={action?.onClick}>
+                <a key={index} onClick={() => action?.onClick(selectedRowKeys)}>
                   {action.title}
                 </a>
               ))}

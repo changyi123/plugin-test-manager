@@ -49,7 +49,7 @@ export const GetTestRunsById = (
               item.testRunId = testRunRes[index].toJSON().objectId;
               dataBak.push(item);
             });
-            // console.log('dataBak', dataBak);
+            console.log('dataBak', dataBak);
             // console.log(
             //   'data---------',
             //   testRunRes.map(item => item.toJSON()),
