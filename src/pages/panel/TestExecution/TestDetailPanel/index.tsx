@@ -111,7 +111,13 @@ const Test = () => {
             await toggleTestRunStatus(record.objectId, status);
             refreshDepData();
           };
-          return <StatusBadge status={record?.status} onStatusChange={handleStatusChange} />;
+          return (
+            <StatusBadge
+              status={record?.status}
+              useRootContainer
+              onStatusChange={handleStatusChange}
+            />
+          );
         },
       },
       {
