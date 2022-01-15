@@ -100,7 +100,12 @@ const ItemTypeMapping = () => {
           {renderItemTypeSelector(type)}
         </div>
       ))}
-      <Button type="primary" className={cx('action-btn')} onClick={handleSave}>
+      <Button
+        disabled={Object.keys(itemTypeMapping).length === 0}
+        type="primary"
+        className={cx('action-btn')}
+        onClick={handleSave}
+      >
         保存
       </Button>
     </div>

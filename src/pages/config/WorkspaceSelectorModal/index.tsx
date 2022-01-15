@@ -60,6 +60,9 @@ const WorkspaceSelectorModal: React.FC<WorkspaceSelectorModalProps> = ({ actionR
     <Modal
       visible={state.visible}
       title="请选择测试管理配置空间"
+      okButtonProps={{
+        disabled: !state.selectValue,
+      }}
       onOk={() => {
         state.visible = false;
         eventBusRef.current.dispatch(CLICK_OK_EVENT_TYPE);
