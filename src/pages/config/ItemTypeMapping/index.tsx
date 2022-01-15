@@ -2,7 +2,7 @@ import React from 'react';
 import { TestType } from '@/lib/constants';
 import { Select, Button, message } from '@osui/ui';
 import { useRequest, useSafeState } from 'ahooks';
-import { useSelectedWorkspace, useCurrentTestConfig } from '../hooks';
+import { useDataContext, useCurrentTestConfig } from '../hooks';
 import { getTopItemTypeFromHierarchy } from '@/lib/api/proxima';
 
 import cx from './index.less';
@@ -23,7 +23,7 @@ const TestTypes = [
 ];
 
 const ItemTypeMapping = () => {
-  const [workspace] = useSelectedWorkspace();
+  const { workspace } = useDataContext();
   const workspaceKey = workspace?.key;
   const itemTypeSchemeId = workspace?.workspaceScheme?.itemTypeScheme?.objectId;
 
@@ -31,7 +31,7 @@ const ItemTypeMapping = () => {
   const [itemTypeMapping, setItemTypeMapping] = useSafeState({} as Record<TestType, string>);
 
   useRequest(() => getTopItemTypeFromHierarchy(itemTypeSchemeId), {
-    ready: itemTypeSchemeId,
+    ready: !!itemTypeSchemeId,
     refreshDeps: [itemTypeSchemeId],
     onSuccess(itemTypes) {
       setTopItemTypes(itemTypes);
@@ -46,7 +46,7 @@ const ItemTypeMapping = () => {
   }, [setItemTypeMapping, testConfig]);
 
   useRequest(() => getTopItemTypeFromHierarchy(itemTypeSchemeId), {
-    ready: itemTypeSchemeId,
+    ready: !!itemTypeSchemeId,
     refreshDeps: [itemTypeSchemeId],
     onSuccess(itemTypes) {
       setTopItemTypes(itemTypes);

@@ -1,3 +1,5 @@
+@import '@/index.global.less';
+
 .drop-container {
   display: flex;
   background-color: rgb(240, 240, 240);
@@ -5,14 +7,20 @@
 }
 
 .drop-box {
-  height: 100%;
-  min-height: 100%;
+  min-height: ~'calc(100% - 40px)';
 }
 
 .drop-area {
+  .custom-scrollbar-mixin();
   > h6 {
+    position: sticky;
+    top: 0;
     font-size: 16px;
     font-weight: 700;
+    background-color: #fff;
+    height: 30px;
+    line-height: 30px;
+    margin: 0;
   }
   margin: 20px;
   padding: 8px;

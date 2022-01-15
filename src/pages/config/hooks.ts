@@ -1,26 +1,9 @@
 import React from 'react';
-import { useSessionStorageState, useRequest, useSafeState } from 'ahooks';
+import { DataContext } from './context';
+import { useRequest, useSafeState } from 'ahooks';
 import { getTestConfig, createEmptyTestConfig } from '@/lib/api/common';
 
-export const useSelectedWorkspace = () => {
-  const [currentWorkspace, setCurrentWorkspace] = useSessionStorageState(
-    'TEST_MANAGER_CURRENT_WORKSPACE',
-    {
-      defaultValue: {} as any,
-    },
-  );
-  const toggleWorkspace = React.useCallback(
-    workspace => {
-      setCurrentWorkspace(() => {
-        // 已经配置过空间的，再次修改需要刷新系统
-        window.location.reload();
-        return workspace;
-      });
-    },
-    [setCurrentWorkspace],
-  );
-  return [currentWorkspace, toggleWorkspace];
-};
+export const useDataContext = () => React.useContext(DataContext);
 
 export const useCurrentTestConfig = workspaceKey => {
   const [testConfig, setTestConfig] = useSafeState(null);

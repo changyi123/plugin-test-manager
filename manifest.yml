@@ -3,12 +3,16 @@ app:
   name: test-manager
 modules:
   trigger:
-  - key: test-manager-initial-script
-    events:
-      # 使用 update trigger 暂时替代
-      # - proxima:app:install
-      - proxima:app:update
-    function: test-manager-initial-script
+    - key: test-manager-initial-script
+      events:
+        # 使用 update trigger 暂时替代
+        # - proxima:app:install
+        - proxima:app:install
+      function: test-manager-initial-script
+    - key: test-manager-update-script
+      events:
+        - proxima:app:update
+      function: test-manager-initial-script
   function:
     - key: test-manager-initial-script
       handler: /trigger/initialScript.js

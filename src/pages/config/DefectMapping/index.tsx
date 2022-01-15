@@ -3,7 +3,7 @@ import { keyBy } from 'lodash';
 import { Button, message } from '@osui/ui';
 import { getAllItemTypes } from '@/lib/api/proxima';
 import { useRequest, useSafeState, useDrop, useDrag } from 'ahooks';
-import { useSelectedWorkspace, useCurrentTestConfig } from '../hooks';
+import { useDataContext, useCurrentTestConfig } from '../hooks';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 
 import cx from './index.less';
@@ -45,7 +45,7 @@ const ItemTypeDropBox = (props: {
 };
 
 const DefectMapping = () => {
-  const [workspace] = useSelectedWorkspace();
+  const { workspace } = useDataContext();
   const workspaceKey = workspace?.key;
   const [defectsItemTypeKeys, setDefectsItemTypeKeys] = useSafeState([]);
 
