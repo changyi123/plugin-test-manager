@@ -1,5 +1,5 @@
 #!/bin/bash
 
 yarn && yarn build
-rm -rf build.zip
-zip -r build.zip dist trigger manifest.yml
+rm -rf test-manager-plugin.zip
+zip -r test-manager-plugin.zip dist trigger manifest.yml
