@@ -133,17 +133,18 @@ const Runs: React.FC = () => {
   ];
 
   const createTestExecution = async () => {
-    const token = uniqueId('TestPlan');
+
+    const token = uniqueId('TestExecution');
     const { testEntity: testExecutionEntity, extraData } = await createItemUseModal({
       type: TestType.TestExecution,
       extraData: { token },
     });
     // token 不相同则不创建关联
     if (extraData.token !== token) return;
-
     CreateTestExecutionWithItemModal(itemId, testExecutionEntity).then(() => {
       tableActionRef.current.refresh();
-      message.success('测试计划创建成功');
+      /* message.success('测试计划创建成功'); */
+      message.success('测试执行轮次创建成功');
     });
   };
 
