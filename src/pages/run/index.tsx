@@ -126,11 +126,16 @@ const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
   // 从路由/弹窗拿
   const { data, loading, error, refresh } = useRequest(() => GetTestRunDetail(currentTestId));
   const [refreshNum, setRefreshNum] = useState(0);
+  // 防止重复调用
+  const isRunInitialRef = React.useRef(false);
 
   const checkRunInit = useCallback(() => {
+    if (isRunInitialRef.current || !currentTestId) return;
+    isRunInitialRef.current = true;
+    console.info('初始化测试执行数据');
     InitStepByTestId(currentTestId)
       .then(() => {
-        message.success('初始化成功');
+        // message.success('初始化成功');
         refresh();
       })
       .catch(() => {

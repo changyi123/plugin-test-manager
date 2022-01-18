@@ -170,7 +170,6 @@ const Test = () => {
   const addTestDetailToPlan = React.useCallback(
     async testIds => {
       if (testIds.length) {
-        message.info('后台添加中...');
         addTestRunToExecution({
           testExecution: testEntity,
           testIds,
