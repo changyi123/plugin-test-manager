@@ -144,7 +144,7 @@ const Runs: React.FC = () => {
     CreateTestExecutionWithItemModal(itemId, testExecutionEntity).then(() => {
       tableActionRef.current.refresh();
       /* message.success('测试计划创建成功'); */
-      message.success('测试执行轮次创建成功');
+      /* message.success('测试执行轮次创建成功'); */
     });
   };
 

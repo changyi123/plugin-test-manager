@@ -51,6 +51,7 @@ const AddDefectBtn: React.FC<{
             <a>添加缺陷</a>
           </Menu.Item>
         }
+        total = {true}
         testId={testId}
         currentDefectIds={currentDefectIds}
         save={() => handleAddDefect}

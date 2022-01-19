@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, {useCallback} from 'react';
 import { Row, Col, Button, message, Dropdown, Menu } from '@osui/ui';
 import { PlusOutlined } from '@ant-design/icons';
 import { StatusBadge } from '@/components/common/Status';
@@ -70,7 +70,7 @@ export const StepItem: React.FC<IStepItemProps> = ({ index, item, saveList, test
     if (extraData.token !== token) return;
 
     addDefect(TestToDefect, testId, [defectItem.objectId]).then(() => {
-      message.success('添加成功');
+      /* message.success('添加成功'); */ 
       if (item.defectIds && item.defectIds.length) {
         saveItem('defectIds')([...item.defectIds, defectItem.objectId]);
         return;
@@ -211,7 +211,7 @@ const StepList: React.FC<StepListProps> = ({ detail, objectId, testId, refresh }
       let update = await updateTestStep(detailBak, objectId, checkStatus);
       if(update?.success == true){
         updateDetailsStatusById(objectId).then(res=>{
-          message.success('修改成功');
+          message.success('修改成功'); 
           refresh && refresh();
         })
       }

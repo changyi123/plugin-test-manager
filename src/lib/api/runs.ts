@@ -26,22 +26,14 @@ export const updateDetailsStatusById = (runId:string):Promise<any> =>{
       //detail
       let detail = res.attributes?.runReferenceDetail;
       let detailStatus = detail.attributes?.status ?? "TODO";
-      let change = status != detailStatus;
-      if(change){
-        detail.set("status",status);
-        detail.save().then(res=>{
-          resolve({
-            success: true,
-            data: { ...res },
-          })
-        })
-      }else{
-        // PASS
+      /* let change = status != detailStatus; */
+      detail.set("status",status);
+      detail.save().then(res=>{
         resolve({
           success: true,
-          data: "",
+          data: { ...res },
         })
-      }
+      })
     })
   })
 }

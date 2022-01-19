@@ -1,4 +1,4 @@
-import React from 'react';
+import React,{useState,useEffect} from 'react';
 
 import { uniqueId } from 'lodash';
 import { Table, Tooltip } from '@osui/ui';
@@ -32,7 +32,7 @@ const Test = () => {
   const { createItemUseModal } = useBaseAction();
   const tableActionRef = React.useRef<ActionType>();
   const selectorModalRef = React.useRef<SelectorActionType>();
-
+  
   const { testEntities: allTestEntities, refresh: getAllRelTestEntities } = useAllRelTestEntities(
     TestRelationType.PlanRelDetail,
     {
@@ -261,7 +261,10 @@ const Test = () => {
           return (
             <TestRunModal
               testId={record.objectId}
-              onCancel={() => setTimeout(() => tableActionRef.current.refresh(), 200)}
+              onCancel={() => setTimeout(() =>{
+                refreshDepData();//刷新依赖数据
+                tableActionRef.current.refresh()
+              } , 200)}
               trigger={<a>执行</a>}
             />
           );
@@ -290,8 +293,8 @@ const Test = () => {
         testType={TestType.TestDetail}
         ignoreTestEntityIds={testEntityIds}
       />
-
-      <StatusProcessBar statuses={testEntityStatuses} />
+      {/* 状态条的变化 */}
+      <StatusProcessBar   statuses={testEntityStatuses} />
 
       <PanelTable
         expandable={{
