@@ -263,7 +263,7 @@ const Test = () => {
               testId={record.objectId}
               onCancel={() => setTimeout(() =>{
                 refreshDepData();//刷新依赖数据
-                tableActionRef.current.refresh()
+                /* tableActionRef.current.refresh() */
               } , 200)}
               trigger={<a>执行</a>}
             />

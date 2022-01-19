@@ -31,7 +31,7 @@ export const updateDetailsStatusById = (runId:string):Promise<any> =>{
       detail.save().then(res=>{
         resolve({
           success: true,
-          data: { ...res },
+          data: res,
         })
       })
     })
