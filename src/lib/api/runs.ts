@@ -13,7 +13,38 @@ import { useRequest } from 'ahooks';
 import { IRunDetail } from '@/pages/run';
 import { Status } from '@/lib/types/Test';
 import { getItemByIQL } from '@/lib/api/proxima';
-import { pick } from 'lodash';
+import { pick, reject } from 'lodash';
+
+
+export const updateDetailsStatusById = (runId:string):Promise<any> =>{
+  return new Promise((resolve,reject)=>{
+    //拿到test
+    const query = new Parse.Query(Test);
+    query.equalTo("objectId",runId);
+    query.first().then(res=>{
+      let status = res.attributes?.status;
+      //detail
+      let detail = res.attributes?.runReferenceDetail;
+      let detailStatus = detail.attributes?.status ?? "TODO";
+      let change = status != detailStatus;
+      if(change){
+        detail.set("status",status);
+        detail.save().then(res=>{
+          resolve({
+            success: true,
+            data: { ...res },
+          })
+        })
+      }else{
+        // PASS
+        resolve({
+          success: true,
+          data: "",
+        })
+      }
+    })
+  })
+}
 
 export const GetTestRunsById = (
   itemId: string,

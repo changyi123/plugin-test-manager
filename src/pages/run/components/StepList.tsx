@@ -3,7 +3,7 @@ import { Row, Col, Button, message, Dropdown, Menu } from '@osui/ui';
 import { PlusOutlined } from '@ant-design/icons';
 import { StatusBadge } from '@/components/common/Status';
 import FieldsInput from '@/pages/panel/TestDetail/TestDetailPanel/components/FieldsInput';
-import { updateTestStep } from '@/lib/api/runs';
+import { updateTestStep,updateDetailsStatusById } from '@/lib/api/runs';
 import AddDefectModal from './AddDefectModal';
 import { uniqueId } from 'lodash';
 import { useBaseAction } from '@/lib/hooks/useContext';
@@ -205,13 +205,16 @@ export const StepItem: React.FC<IStepItemProps> = ({ index, item, saveList, test
 const StepList: React.FC<StepListProps> = ({ detail, objectId, testId, refresh }) => {
   const { steps } = detail?.runs;
   const saveList = useCallback(
-    (item: IStepItem, index: number, checkStatus?: boolean) => {
+    async (item: IStepItem, index: number, checkStatus?: boolean) => {
       const detailBak = { ...detail };
       detailBak.runs.steps[index] = item;
-      updateTestStep(detailBak, objectId, checkStatus).then(() => {
-        message.success('修改成功');
-        refresh && refresh();
-      });
+      let update = await updateTestStep(detailBak, objectId, checkStatus);
+      if(update?.success == true){
+        updateDetailsStatusById(objectId).then(res=>{
+          message.success('修改成功');
+          refresh && refresh();
+        })
+      }
     },
     [objectId, detail, refresh],
   );
