@@ -40,38 +40,6 @@ const RelationTable: React.FC<IRelationTable> = props => {
   //通过事项id，获取关联数据
   const { loading, data, error, refresh } = useRequest(() => FetchItemLinkRelation(itemId));
 
-  function repeatFilter(arr) {
-      if (!Array.isArray(arr)) {
-          console.log('type error!')
-          return
-      }
-      var array = [];
-      var delArr = [];
-      for (var i = 0; i < arr.length; i++) {
-        if (array .indexOf(arr[i]) === -1) {
-          array .push(arr[i])
-        }else{
-          delArr.push(i);
-        }
-      }
-      return delArr;
-  }
-  //过滤数据
-  const filterData = (data:any) =>{
-    let box = [];
-    data.forEach((item,index)=>{
-      let id = item?.destination?.objectId;
-      box.push(id);
-    })
-    let rArr = repeatFilter(box);
-    let ndata = [];
-    data.forEach((item,index)=>{
-      if(!rArr.includes(index)){
-        ndata.push(item);
-      }
-    })
-    return ndata;
-  }
   
   useEffect(() => {
     if (first) {
@@ -126,7 +94,7 @@ const RelationTable: React.FC<IRelationTable> = props => {
       ),
     },
   ];
-  return <Table rowKey="objectId" dataSource={filterData(data)} columns={columns} pagination={false} />;
+  return <Table rowKey="objectId" dataSource={data} columns={columns} pagination={false} />;
 };
 
 export default RelationTable;
