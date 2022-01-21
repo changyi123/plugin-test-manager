@@ -1,11 +1,12 @@
 import React from 'react';
 import { Modal } from '@osui/ui';
-import { uniq, uniqBy } from 'lodash';
+import { uniq, uniqBy, reduce, keyBy } from 'lodash';
 import { TestType } from '@/lib/constants';
 import { getItemByIQL } from '@/lib/api/proxima';
 import { useSafeState, useRequest } from 'ahooks';
 import EventBus from '@/lib/utils/eventBus';
-import { getRootContainer } from '@/lib/utils/helper';
+import { getRootContainer, hasArrayItem } from '@/lib/utils/helper';
+import { useTestConfig } from '@/lib/hooks/useContext';
 import DebounceSelect from '@/components/common/DebounceSelect';
 import { getAllTestConfigs, getTestEntities } from '@/lib/api/common';
 
@@ -32,22 +33,74 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
   const debounceSelectContainerRef = React.useRef();
   const [selectValue, setSelectValue] = useSafeState([]);
   const [testType, setTestType] = useSafeState<TestType>(props.testType);
+  const {
+    workspace,
+    config: { isolateTestType = [] },
+  } = useTestConfig();
 
   const eventBusRef = React.useRef<any>(new EventBus());
+  // 空间条件
+  const workspaceKeyCondition = React.useMemo(
+    () => (isolateTestType.includes(testType) ? workspace?.key : ''),
+    [isolateTestType, testType, workspace?.key],
+  );
 
-  // 获取租户测试类型关联的 itemType keys
+  // 获取租户所有的配置
+  const { runAsync: getAllConfigs } = useRequest(
+    async () => getAllTestConfigs(['itemTypeMap', 'workspaceKey']),
+    {
+      manual: true,
+      cacheTime: 99999999999,
+      staleTime: 99999999999,
+      cacheKey: 'allTestConfigs',
+    },
+  );
+
   const { data: testTypeAssItemTypeKeys, runAsync: getTestTypeAssItemTypeKeys } = useRequest(
     async () => {
-      const configs = await getAllTestConfigs(['itemTypeMap']);
-      const itemTypeMaps = configs.map(config => config?.toJSON()?.itemTypeMap).filter(Boolean);
-      // 测试实体类型
-      const testTypes = Object.values(TestType);
-      return testTypes.reduce((acc, testType) => {
-        return {
-          ...acc,
-          [testType]: uniq(itemTypeMaps.map(map => map[testType]).filter(Boolean)),
-        };
-      }, {}) as Record<TestType, string[]>;
+      const configs = await getAllConfigs();
+      const itemTypeMapping: Record<TestType, string[]> = configs
+        .map(_config => {
+          const config = _config?.toJSON();
+          if (!config) return;
+          const workspaceKey = config.workspaceKey;
+          const itemTypeMapping = config.itemTypeMap;
+          const currentWorkspaceKey = workspace.key;
+          // 处理跨空间隔离
+          if (workspaceKey !== currentWorkspaceKey && hasArrayItem(isolateTestType)) {
+            return reduce(
+              itemTypeMapping,
+              (result, value, key) => {
+                return {
+                  ...result,
+                  // 如果当前空间的测试类型有空间隔离配置，则返回 []
+                  [key]: isolateTestType.includes(key as TestType) ? [] : value,
+                };
+              },
+              {},
+            );
+          }
+          return itemTypeMapping;
+        })
+        // 过滤没有值的 itemTypeMapping
+        .filter(mapping => hasArrayItem(Object.keys(mapping ?? {})))
+        .reduce((result, mapping) => {
+          return Object.keys(result).reduce((acc, key) => {
+            // 获取合并的 itemTypes
+            const getMergedItemTypes = () => {
+              const itemTypes = Array.isArray(acc[key]) ? acc[key] : [];
+              return uniq(itemTypes.concat(mapping?.[key] ?? []));
+            };
+            return {
+              ...acc,
+              [key]: getMergedItemTypes(),
+            };
+          }, result);
+        }, keyBy(Object.keys(TestType)));
+
+      console.info('itemTypeMapping', itemTypeMapping);
+
+      return itemTypeMapping;
     },
     {
       manual: true,
@@ -63,6 +116,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
         nameLike: name,
         itemType: testTypeAssItemTypeKeys?.[testType] ?? [],
         orderBy: ['修改时间', 'desc'],
+        workspace: workspaceKeyCondition,
       });
 
       const itemId = items.map(item => item.objectId);
@@ -97,6 +151,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
       if (params?.testType) {
         setTestType(params.testType);
       }
+
       if (!testTypeAssItemTypeKeys) {
         await getTestTypeAssItemTypeKeys();
       }

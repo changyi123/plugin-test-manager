@@ -56,6 +56,8 @@ tables:
     fields:
       workspaceKey:
         type: String
+      isolateTestType:
+        type: Array
       itemTypeMap:
         type: Object
       defectsMapping:

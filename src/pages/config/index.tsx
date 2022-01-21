@@ -3,6 +3,7 @@ import { useDataContext } from './hooks';
 import DataProvider from './DataProvider';
 import DefectMapping from './DefectMapping';
 import ItemTypeMapping from './ItemTypeMapping';
+import IsolateTestType from './IsolateTestType';
 import { useSafeState, useMount } from 'ahooks';
 import { DownOutlined } from '@ant-design/icons';
 import { Menu, Layout, Dropdown, Button, Result } from '@osui/ui';
@@ -24,6 +25,12 @@ const ConfigPages = [
     component: DefectMapping,
     description:
       '配置当前空间测试管理的缺陷类型，缺陷表示测试中产生不正确或意外结果的错误、缺陷、故障或故障。',
+  },
+  {
+    key: 'IsolateTestType',
+    title: '空间数据隔离配置',
+    component: IsolateTestType,
+    description: '配置当前空间内对测试用例，测试计划，测试执行，测试缺陷的空间可见范围',
   },
 ];
 

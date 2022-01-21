@@ -176,12 +176,19 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
       config: {
         itemTypeMap: testConfig.itemTypeMap,
         defectsMapping: testConfig.defectsMapping,
+        isolateTestType: testConfig.isolateTestType,
       },
       // item,
       workspace,
       testEntity,
     };
-  }, [testConfig.itemTypeMap, testConfig.defectsMapping, workspace, testEntity]);
+  }, [
+    testConfig.itemTypeMap,
+    testConfig.defectsMapping,
+    testConfig.isolateTestType,
+    workspace,
+    testEntity,
+  ]);
 
   const baseActionContextValues = React.useMemo(() => {
     const actions: BaseActionContextType = {

@@ -9,6 +9,8 @@ export type TestConfigContextType = {
     itemTypeMap: Record<TestType, 'string'>;
     // 权限关联
     defectsMapping: string[];
+    // 空间隔离配置
+    isolateTestType: TestType[];
   };
   workspace?: Workspace;
   testEntity?: Parse.Object<TestEntity>;

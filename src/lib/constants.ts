@@ -17,10 +17,11 @@ export enum PROXIMA_EVENT_KEY {
 // 测试类型
 export enum TestType {
   // 测试用例
+  // TestSet = 'TestSet',
+  // Precondition = 'Precondition',
+
   TestDetail = 'TestDetail',
-  TestSet = 'TestSet',
   TestPlan = 'TestPlan',
-  Precondition = 'Precondition',
   TestExecution = 'TestExecution',
   TestRun = 'TestRun',
 
@@ -41,3 +42,11 @@ export enum TestRelationType {
 
   // TODO: 测试集合
 }
+
+export const TestTypeNameMapping = {
+  [TestType.TestDetail]: '测试用例',
+  [TestType.TestPlan]: '测试计划',
+  [TestType.TestExecution]: '测试执行轮次',
+  [TestType.TestRun]: '测试执行',
+  [TestType.TestDefect]: '缺陷',
+};
