@@ -154,6 +154,13 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
     } = await getItemByIQL({ itemId: params.itemId });
     let testEntity = null;
 
+    // 禁止创建或或关联（当又空间隔离配置时且当前空间和事项创建空间不相同时）
+    const disabledCreateOrRelation =
+      testConfig.isolateTestType.includes(extraData.type) &&
+      workspace.key !== itemData.workspace.key;
+
+    if (disabledCreateOrRelation) return;
+
     // 缺陷类型不需要创建测试管理测试实体
     if (extraData.type !== TestType.TestDefect) {
       testEntity = await getOrCreateTestEntity(params.itemId, { notice: true });

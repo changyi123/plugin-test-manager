@@ -32,7 +32,7 @@ const Test = () => {
   const { createItemUseModal } = useBaseAction();
   const tableActionRef = React.useRef<ActionType>();
   const selectorModalRef = React.useRef<SelectorActionType>();
-  
+
   const { testEntities: allTestEntities, refresh: getAllRelTestEntities } = useAllRelTestEntities(
     TestRelationType.PlanRelDetail,
     {
