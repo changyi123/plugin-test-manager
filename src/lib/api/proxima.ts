@@ -20,6 +20,7 @@ export const getItemByIQL = async (
   params: IQLPaginationParams & {
     // like
     nameLike?: string;
+    nameOrKeyLike?: string;
     itemId?: string | string[];
     // 需要排除的事项 id
     excludeItemId?: string[];
@@ -29,8 +30,17 @@ export const getItemByIQL = async (
     orderBy?: string[];
   },
 ) => {
-  const { workspace, itemId, excludeItemId, nameLike, itemKey, itemType, orderBy, ...pagination } =
-    params;
+  const {
+    workspace,
+    itemId,
+    excludeItemId,
+    nameLike,
+    nameOrKeyLike,
+    itemKey,
+    itemType,
+    orderBy,
+    ...pagination
+  } = params;
 
   const iql = new IQLBuilder();
 
@@ -48,6 +58,13 @@ export const getItemByIQL = async (
 
   if (nameLike && typeof nameLike === 'string') {
     iql.whereLike('标题', nameLike);
+  }
+
+  if (nameOrKeyLike && typeof nameOrKeyLike === 'string') {
+    iql.or(
+      new IQLBuilder().whereLike('标题', nameOrKeyLike),
+      new IQLBuilder().whereLike('事项ID', nameOrKeyLike),
+    );
   }
 
   if (hasArrayItem(orderBy)) {

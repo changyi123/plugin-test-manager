@@ -1,4 +1,4 @@
-type Dash = '' | 'and' | 'or';
+type Hyphen = '' | 'and' | 'or';
 
 enum IQLWhereOperator {
   IN = 'IN',
@@ -8,24 +8,33 @@ enum IQLWhereOperator {
 }
 
 /**
+ * 使用连词符拼接
+ */
+const joinWithHyphen = (prevStatement, currentStatement, hyphen: Hyphen = 'and') => {
+  // 如果没有值则 hyphen 为 ''
+  if (!prevStatement?.trim() || !currentStatement?.trim()) hyphen = '';
+  return `${prevStatement} ${hyphen} ${currentStatement}`;
+};
+
+/**
  * 条件生成
  */
 const IQLWhereClauseGenerators: Record<IQLWhereOperator, (...args: any[]) => string> = {
-  [IQLWhereOperator.IN]: (key: string, data: string[], operator: Dash = '') => {
+  [IQLWhereOperator.IN]: (key: string, data: string[]) => {
     if (!Array.isArray(data)) return '';
-    return ` ${operator} ${key} in [${data.toString().replace(/([^,]+)(?=$|,)/g, `'$1'`)}]`;
+    return `${key} in [${data.toString().replace(/([^,]+)(?=$|,)/g, `'$1'`)}]`;
   },
-  [IQLWhereOperator.EQUAL]: (key: string, data: string, operator: Dash = '') => {
+  [IQLWhereOperator.EQUAL]: (key: string, data: string) => {
     if (!data) return '';
-    return ` ${operator} ${key} = '${data}'`;
+    return `${key} = '${data}'`;
   },
-  [IQLWhereOperator.NOT]: (key: string, data: string[], operator: Dash = '') => {
+  [IQLWhereOperator.NOT]: (key: string, data: string[]) => {
     if (!Array.isArray(data)) return '';
-    return ` ${operator} ${key} not in [${data.toString().replace(/([^,]+)(?=$|,)/g, `'$1'`)}]`;
+    return `${key} not in [${data.toString().replace(/([^,]+)(?=$|,)/g, `'$1'`)}]`;
   },
-  [IQLWhereOperator.LIKE]: (key: string, data: string, operator: Dash = '') => {
+  [IQLWhereOperator.LIKE]: (key: string, data: string) => {
     if (!data) return '';
-    return ` ${operator} ${key} ~ '${data}'`;
+    return `${key} ~ '${data}'`;
   },
 };
 
@@ -47,6 +56,12 @@ export class IQLBuilder {
       this._iql = iql;
     }
   }
+
+  /** 多个 where 子句拼接 */
+  or = (...subQueries: IQLBuilder[]) => {
+    this._iql.where.push({ group: subQueries, hyphen: 'or' });
+    return new IQLBuilder(this._iql);
+  };
 
   where = (key: string, data: unknown, op: IQLWhereOperator = IQLWhereOperator.EQUAL) => {
     this._iql.where.push({ key, data, op });
@@ -72,8 +87,20 @@ export class IQLBuilder {
 
   toString = () => {
     const whereClause = this._iql.where.reduce((acc, where) => {
+      const hyphen = where.hyphen ?? 'and'; // 默认条件连字符为 and
+
+      // 处理子句查询 eg: or
+      if (Array.isArray(where.group)) {
+        const groupStatement = where.group.reduce(
+          (acc, iql) => joinWithHyphen(acc, iql.toString(), hyphen),
+          '',
+        );
+        // 子查询连词符为 and
+        return joinWithHyphen(acc, `(${groupStatement})`, 'and');
+      }
+
       const IQLWhereGenerator = IQLWhereClauseGenerators[where.op];
-      return acc + IQLWhereGenerator(where.key, where.data, acc ? 'and' : '');
+      return joinWithHyphen(acc, IQLWhereGenerator(where.key, where.data), hyphen);
     }, '');
 
     const orderClause = this._iql.order.reduce((acc, order) => {
@@ -81,6 +108,6 @@ export class IQLBuilder {
     }, '');
 
     // 分隔符变为一个空格符
-    return (whereClause + orderClause).trim().replace(/[^'](\s{2,})[^']/g, ' ');
+    return (whereClause + orderClause).trim().replace(/(\s{2,})/g, ' ');
   };
 }

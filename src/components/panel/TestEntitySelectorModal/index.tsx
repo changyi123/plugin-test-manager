@@ -60,6 +60,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
     },
   );
 
+  // 获取测试实体类型关联配置
   const { data: testTypeAssItemTypeKeys, runAsync: getTestTypeAssItemTypeKeys } = useRequest(
     async () => {
       const configs = await getAllConfigs();
@@ -110,12 +111,12 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
     },
   );
 
-  /** 获取测试事项 */
-  const { runAsync: getTestEntityByName, loading: searchLoading } = useRequest(
-    async name => {
+  // 获取测试事项
+  const { runAsync: getTestEntityByKeyword, loading: searchLoading } = useRequest(
+    async keyword => {
       const { items } = await getItemByIQL({
         limit: 50,
-        nameLike: name,
+        nameOrKeyLike: keyword,
         itemType: testTypeAssItemTypeKeys?.[testType] ?? [],
         orderBy: ['修改时间', 'desc'],
         workspace: workspaceKeyCondition,
@@ -233,7 +234,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
           loading={searchLoading}
           className={cx('select')}
           filterOptions={filterOptions}
-          fetchOptions={getTestEntityByName}
+          fetchOptions={getTestEntityByKeyword}
           onChange={value => setSelectValue(value)}
           getPopupContainer={() => debounceSelectContainerRef.current}
           placeholder={props.placeholder ?? '请输入并从列表中选择已存在的事项'}
