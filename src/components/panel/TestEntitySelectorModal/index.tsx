@@ -1,10 +1,10 @@
 import React from 'react';
-import { Modal } from '@osui/ui';
-import { uniq, uniqBy, reduce, keyBy } from 'lodash';
+import { Modal, Spin } from '@osui/ui';
 import { TestType } from '@/lib/constants';
+import { uniq, reduce, keyBy } from 'lodash';
+import EventBus from '@/lib/utils/eventBus';
 import { getItemByIQL } from '@/lib/api/proxima';
 import { useSafeState, useRequest } from 'ahooks';
-import EventBus from '@/lib/utils/eventBus';
 import { getRootContainer, hasArrayItem } from '@/lib/utils/helper';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import DebounceSelect from '@/components/common/DebounceSelect';
@@ -22,13 +22,15 @@ type TestEntitySelectorProps = {
   title?: string;
   testType?: TestType;
   placeholder?: string;
+  isSingleMode?: boolean;
+  needFillValue?: boolean;
   ignoreTestEntityIds?: string[];
   onSelect?: (testIds: string[]) => void;
   actionRef?: React.ForwardedRef<ActionType>;
 };
 
 const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
-  const { actionRef, ignoreTestEntityIds = [] } = props;
+  const { actionRef, ignoreTestEntityIds = [], isSingleMode, needFillValue } = props;
   const [visible, setVisible] = useSafeState(false);
   const debounceSelectContainerRef = React.useRef();
   const [selectValue, setSelectValue] = useSafeState([]);
@@ -38,6 +40,8 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
     config: { isolateTestType = [] },
   } = useTestConfig();
 
+  // 数据缓存
+  const dataCacheDictRef = React.useRef({});
   const eventBusRef = React.useRef<any>(new EventBus());
   // 空间条件
   const workspaceKeyCondition = React.useMemo(
@@ -98,8 +102,6 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
           }, result);
         }, keyBy(Object.keys(TestType)));
 
-      console.info('itemTypeMapping', itemTypeMapping);
-
       return itemTypeMapping;
     },
     {
@@ -109,7 +111,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
   );
 
   /** 获取测试事项 */
-  const { runAsync: getTestEntityByName } = useRequest(
+  const { runAsync: getTestEntityByName, loading: searchLoading } = useRequest(
     async name => {
       const { items } = await getItemByIQL({
         limit: 50,
@@ -119,26 +121,41 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
         workspace: workspaceKeyCondition,
       });
 
-      const itemId = items.map(item => item.objectId);
-      const testEntities = await getTestEntities({ itemId });
-      const testEntitiesData = uniqBy(testEntities.map(item => item.toJSON()) as any[], 'objectId');
-      return testEntitiesData
-        .map(testEntity => {
-          const item = items.find(item => item.objectId === testEntity.reference?.objectId);
-          if (!item) return;
-          return {
-            label: (
-              <div>
-                <span style={{ display: 'inline-block', marginRight: 4, fontSize: 13 }}>
-                  {item.name}
-                </span>
-                <span style={{ fontSize: 12, color: '#aaa' }}>({item.key})</span>
-              </div>
-            ),
-            value: testEntity.objectId,
-          };
-        })
-        .filter(Boolean);
+      const itemDict = keyBy(items, 'objectId');
+      const testEntities = await getTestEntities({ itemId: Object.keys(itemDict) });
+      const testEntityDict = keyBy(
+        testEntities
+          .map(testEntity => {
+            const data = testEntity.toJSON();
+            const reference = itemDict[data.reference?.objectId];
+            // 填充 reference
+            data.reference = reference;
+            return reference ? data : null;
+          })
+          .filter(Boolean),
+        'objectId',
+      );
+
+      // 缓存 testEntity
+      dataCacheDictRef.current = {
+        ...dataCacheDictRef.current,
+        ...testEntityDict,
+      };
+
+      return Object.values(testEntityDict).map(testEntity => {
+        const item = testEntity.reference;
+        return {
+          label: (
+            <div>
+              <span style={{ display: 'inline-block', marginRight: 4, fontSize: 13 }}>
+                {item.name}
+              </span>
+              <span style={{ fontSize: 12, color: '#aaa' }}>({item.key})</span>
+            </div>
+          ),
+          value: testEntity.objectId,
+        };
+      });
     },
     {
       manual: true,
@@ -171,12 +188,17 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
   }));
 
   const handleOkButtonClick = React.useCallback(() => {
+    const filledValue = Array.isArray(selectValue)
+      ? selectValue.map(key => dataCacheDictRef.current[key])
+      : dataCacheDictRef.current[selectValue];
+
+    const selectData = needFillValue ? filledValue : selectValue;
     if (typeof props.onSelect === 'function') {
-      props.onSelect(selectValue);
+      props.onSelect(selectData);
     }
-    eventBusRef.current.dispatch(AddExistedTestEventType, selectValue);
+    eventBusRef.current.dispatch(AddExistedTestEventType, selectData);
     setVisible(false);
-  }, [props, selectValue, setVisible]);
+  }, [needFillValue, props, selectValue, setVisible]);
 
   const filterOptions = React.useCallback(
     options => {
@@ -185,6 +207,14 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
     },
     [ignoreTestEntityIds],
   );
+
+  const debounceSelectProps: any = isSingleMode
+    ? {
+        showSearch: true,
+      }
+    : {
+        mode: 'multiple',
+      };
 
   return (
     <Modal
@@ -198,15 +228,16 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
       <p className={cx('hint')}>请输入并从列表中选择已存在的事项</p>
       <div ref={debounceSelectContainerRef}>
         <DebounceSelect
-          mode="multiple"
+          {...debounceSelectProps}
           value={selectValue}
+          loading={searchLoading}
           className={cx('select')}
           filterOptions={filterOptions}
           fetchOptions={getTestEntityByName}
           onChange={value => setSelectValue(value)}
-          notFoundContent={<div>未查询到相关事项</div>}
           getPopupContainer={() => debounceSelectContainerRef.current}
           placeholder={props.placeholder ?? '请输入并从列表中选择已存在的事项'}
+          notFoundContent={searchLoading ? <Spin /> : <div>未查询到相关事项</div>}
         />
       </div>
     </Modal>

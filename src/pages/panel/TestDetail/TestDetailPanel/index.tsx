@@ -11,12 +11,13 @@ import { useDrop } from 'react-dnd';
 import StepItem from './components/List';
 import update from 'immutability-helper';
 import { fetchTestSteps, saveOrUpdateTestStep, Item } from '@/lib/api/detail';
+import { checkHasDepsLink } from '@/lib/api/runs';
+import { useTestConfig } from '@/lib/hooks/useContext';
 
-import ItemTypeModal from './components/ItemTypeModal';
-import type { ItemTypeModalHandle } from './components/ItemTypeModal';
+import TestEntitySelectorModal, { ActionType } from '@/components/panel/TestEntitySelectorModal';
+
 import GlobalDndContext from './DndContext';
 import { TestType } from '@/lib/constants';
-import { getDevConfig } from '@/devEnv';
 import Loading from '@/components/common/Loading';
 import { useDebounceFn } from 'ahooks';
 import { CloseMore } from '@/icons';
@@ -130,18 +131,19 @@ export const TestDetailContext = React.createContext({
 });
 
 const Detail: React.FC = () => {
+  const { testEntity } = useTestConfig();
   const [steps, setSteps] = useState<Array<TestStep>>([]);
   const [search, setSearch] = useState<boolean>(false);
   const [testInfo, setTestInfo] = useState<TestInfor>({});
-  const currentObjectId: string = window?.QiankunProps?.context?.itemId || getDevConfig().itemId;
-  const ItemTypeModalRef = createRef<ItemTypeModalHandle>();
-  console.log('QiankunProps', window?.QiankunProps);
+  const testEntitySelectorRef = createRef<ActionType>();
 
+  const testDetailData = testEntity.toJSON();
+  const { objectId: testDetailId } = testDetailData;
   const [loading, setLoading] = useState<boolean>(true);
 
   const fetchData = useCallback(() => {
     setLoading(true);
-    fetchTestSteps(currentObjectId)
+    fetchTestSteps(testDetailId)
       .then(({ data }) => {
         setSteps(data?.steps || []);
         stepsBak = data?.steps;
@@ -151,11 +153,11 @@ const Detail: React.FC = () => {
       .finally(() => {
         setLoading(false);
       });
-  }, [currentObjectId]);
+  }, [testDetailId]);
 
   useEffect(() => {
     fetchData();
-  }, [fetchData, currentObjectId]);
+  }, [fetchData, testDetailId]);
 
   const findCard = useCallback(
     (id: string) => {
@@ -179,7 +181,7 @@ const Detail: React.FC = () => {
         ],
       });
       if (saveSteps) {
-        saveOrUpdateTestStep(newSteps, testInfo?.objectId, currentObjectId).then(() => {
+        saveOrUpdateTestStep(newSteps, testInfo?.objectId, testDetailId).then(() => {
           message.success('操作成功');
           // setSteps([...newSteps]);
           fetchData();
@@ -188,7 +190,7 @@ const Detail: React.FC = () => {
       }
       setSteps(newSteps);
     },
-    [findCard, steps, setSteps, fetchData, testInfo?.objectId, currentObjectId],
+    [findCard, steps, setSteps, fetchData, testInfo?.objectId, testDetailId],
   );
 
   const expandCard = useCallback(
@@ -225,12 +227,12 @@ const Detail: React.FC = () => {
       const { step, index } = findCard(id);
       const stepsbak = [...steps];
       stepsbak.splice(index, 0, { ...step, id: `${step.id}1` });
-      saveOrUpdateTestStep(stepsbak, testInfo?.objectId, currentObjectId).then(() => {
+      saveOrUpdateTestStep(stepsbak, testInfo?.objectId, testDetailId).then(() => {
         message.success('操作成功');
         fetchData();
       });
     },
-    [steps, findCard, testInfo, fetchData, currentObjectId],
+    [steps, findCard, testInfo, fetchData, testDetailId],
   );
 
   const deleteCard = useCallback(
@@ -245,7 +247,7 @@ const Detail: React.FC = () => {
       const { index } = findCard(id);
       const stepsbak = [...steps];
       stepsbak.splice(index, 1);
-      saveOrUpdateTestStep(stepsbak, testInfo?.objectId, currentObjectId)
+      saveOrUpdateTestStep(stepsbak, testInfo?.objectId, testDetailId)
         .then(() => {
           message.success('操作成功');
           fetchData();
@@ -254,7 +256,7 @@ const Detail: React.FC = () => {
           message.warning(`删除失败，原因：${err}`);
         });
     },
-    [steps, setSteps, findCard, testInfo?.objectId, fetchData, currentObjectId],
+    [steps, setSteps, findCard, testInfo?.objectId, fetchData, testDetailId],
   );
 
   const addCard = useCallback(
@@ -299,20 +301,34 @@ const Detail: React.FC = () => {
           $splice: [[atIndex, 0, step]],
         });
       }
-      saveOrUpdateTestStep(stepsbak, testInfo?.objectId, currentObjectId).then(() => {
+      saveOrUpdateTestStep(stepsbak, testInfo?.objectId, testDetailId).then(() => {
         message.success('保存成功');
         fetchData();
       });
     },
-    [currentObjectId, fetchData, steps, testInfo?.objectId],
+    [testDetailId, fetchData, steps, testInfo?.objectId],
   );
 
   const callTestLen = useCallback(() => {
     return steps.filter(item => item.callTestId).length;
   }, [steps]);
 
-  const openCallTestModal = (index: number) => {
-    ItemTypeModalRef.current?.open(index);
+  const openCallTestModal = async (index: number) => {
+    const selectedEntity = await testEntitySelectorRef.current?.open();
+    const selectedItemId = selectedEntity.reference.objectId;
+    try {
+      // 验证继承的测试用例是否又循环依赖
+      await checkHasDepsLink(testDetailId, selectedItemId);
+    } catch (err) {
+      message.error(err.message);
+    }
+    saveCard(
+      undefined,
+      {
+        callTestId: selectedItemId,
+      },
+      index,
+    );
   };
 
   const { run } = useDebounceFn(
@@ -356,7 +372,7 @@ const Detail: React.FC = () => {
     return <Loading />;
   }
 
-  if (!currentObjectId) {
+  if (!testDetailId) {
     return (
       <div className={css('detail')}>
         <div>获取不了事项Id</div>
@@ -372,11 +388,14 @@ const Detail: React.FC = () => {
   return (
     <Loading loading={loading}>
       <div className={css('detail')}>
-        <ItemTypeModal
-          type={TestType.TestDetail}
-          itemId={currentObjectId}
-          ref={ItemTypeModalRef}
-          saveCard={saveCard}
+        <TestEntitySelectorModal
+          isSingleMode
+          needFillValue
+          title="请选择继承测试用例"
+          testType={TestType.TestDetail}
+          actionRef={testEntitySelectorRef}
+          // 继承测试用例不能继承自己
+          ignoreTestEntityIds={[testDetailId]}
         />
         <div className={css('detail__content')}>
           <div className={css('detail__content__header')}>
