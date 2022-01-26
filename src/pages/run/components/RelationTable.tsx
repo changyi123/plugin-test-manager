@@ -40,14 +40,12 @@ const RelationTable: React.FC<IRelationTable> = props => {
   //通过事项id，获取关联数据
   const { loading, data, error, refresh } = useRequest(() => FetchItemLinkRelation(itemId));
 
-  
   useEffect(() => {
     if (first) {
       first = false;
       return;
     }
     refresh();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [refresh, refreshNum]);
 
   if (loading) {

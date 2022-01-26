@@ -1,5 +1,5 @@
-import React, { useCallback, useState } from 'react';
-import { Row, Col, Divider, Empty, message } from '@osui/ui';
+import React, { useCallback, useMemo, useState } from 'react';
+import { Empty, message } from '@osui/ui';
 import ItemList from './components/ItemList';
 import StepList, { IStepItem } from './components/StepList';
 import { StatusBadge } from '@/components/common/Status';
@@ -8,9 +8,7 @@ import { GetTestRunDetail, toggleTestRunStatus } from '@/lib/api/runs';
 import { useRequest } from 'ahooks';
 import { updateTestStep, InitStepByTestId } from '@/lib/api/runs';
 import Loading from '@/components/common/Loading';
-import FieldsInput, {
-  FieldsTimepicker,
-} from '@/pages/panel/TestDetail/TestDetailPanel/components/FieldsInput';
+import FieldsInput from '@/pages/panel/TestDetail/TestDetailPanel/components/FieldsInput';
 import CustomCollapse from './components/Collapse';
 import AddDefectBtn from './components/AddDefectBtn';
 import RelationTable from './components/RelationTable';
@@ -47,77 +45,77 @@ export interface IRunDetail {
   };
 }
 
-const TestInfo: React.FC<TestInfoContent> = ({ detail, changeRunInfo }) => {
-  const [info, setInfo] = useState<TestInfoContent['detail']>(detail);
-  const changeStr = (key: keyof TestInfoContent['detail'], value: string | number) => {
-    setInfo({
-      ...info,
-      [key]: value,
-    });
-    changeRunInfo({
-      ...info,
-      [key]: value,
-    });
-  };
-  return (
-    <Row gutter={[24, 24]} className={css('info')}>
-      <Col xs={6} xl={4}>
-        <div className={css('info__title')}>开始时间</div>
-        <div className={css('info__val')}>
-          <FieldsTimepicker
-            borderColor="white"
-            value={info?.startTime}
-            change={(val: number) => changeStr('startTime', val)}
-          />
-        </div>
-      </Col>
+// const TestInfo: React.FC<TestInfoContent> = ({ detail, changeRunInfo }) => {
+//   const [info, setInfo] = useState<TestInfoContent['detail']>(detail);
+//   const changeStr = (key: keyof TestInfoContent['detail'], value: string | number) => {
+//     setInfo({
+//       ...info,
+//       [key]: value,
+//     });
+//     changeRunInfo({
+//       ...info,
+//       [key]: value,
+//     });
+//   };
+//   return (
+//     <Row gutter={[24, 24]} className={css('info')}>
+//       <Col xs={6} xl={4}>
+//         <div className={css('info__title')}>开始时间</div>
+//         <div className={css('info__val')}>
+//           <FieldsTimepicker
+//             borderColor="white"
+//             value={info?.startTime}
+//             change={(val: number) => changeStr('startTime', val)}
+//           />
+//         </div>
+//       </Col>
 
-      <Col xs={6} xl={4}>
-        <div className={css('info__title')}>完成时间</div>
-        <div className={css('info__val')}>
-          <FieldsTimepicker
-            borderColor="white"
-            value={info?.finishTime}
-            change={(val: number) => changeStr('finishTime', val)}
-          />
-        </div>
-      </Col>
+//       <Col xs={6} xl={4}>
+//         <div className={css('info__title')}>完成时间</div>
+//         <div className={css('info__val')}>
+//           <FieldsTimepicker
+//             borderColor="white"
+//             value={info?.finishTime}
+//             change={(val: number) => changeStr('finishTime', val)}
+//           />
+//         </div>
+//       </Col>
 
-      <Col xs={6} xl={4}>
-        <div className={css('info__title')}>负责人</div>
-        <div className={css('info__val')}>
-          <FieldsInput
-            borderColor="white"
-            value={info?.assignee}
-            change={(val: string) => changeStr('assignee', val)}
-          />
-        </div>
-      </Col>
+//       <Col xs={6} xl={4}>
+//         <div className={css('info__title')}>负责人</div>
+//         <div className={css('info__val')}>
+//           <FieldsInput
+//             borderColor="white"
+//             value={info?.assignee}
+//             change={(val: string) => changeStr('assignee', val)}
+//           />
+//         </div>
+//       </Col>
 
-      <Col xs={6} xl={4}>
-        <div className={css('info__title')}>执行人</div>
-        <div className={css('info__val')}>
-          <FieldsInput
-            borderColor="white"
-            value={info?.executedBy}
-            change={(val: string) => changeStr('executedBy', val)}
-          />
-        </div>
-      </Col>
+//       <Col xs={6} xl={4}>
+//         <div className={css('info__title')}>执行人</div>
+//         <div className={css('info__val')}>
+//           <FieldsInput
+//             borderColor="white"
+//             value={info?.executedBy}
+//             change={(val: string) => changeStr('executedBy', val)}
+//           />
+//         </div>
+//       </Col>
 
-      <Col xs={6} xl={4}>
-        <div className={css('info__title')}>版本</div>
-        <div className={css('info__val')}>
-          <FieldsInput
-            borderColor="white"
-            value={info?.version}
-            change={(val: string) => changeStr('version', val)}
-          />
-        </div>
-      </Col>
-    </Row>
-  );
-};
+//       <Col xs={6} xl={4}>
+//         <div className={css('info__title')}>版本</div>
+//         <div className={css('info__val')}>
+//           <FieldsInput
+//             borderColor="white"
+//             value={info?.version}
+//             change={(val: string) => changeStr('version', val)}
+//           />
+//         </div>
+//       </Col>
+//     </Row>
+//   );
+// };
 
 let firstLoad = true;
 const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
@@ -129,18 +127,12 @@ const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
   // 防止重复调用
   const isRunInitialRef = React.useRef(false);
 
-  const checkRunInit = useCallback(() => {
+  const checkRunInit = useCallback(async () => {
     if (isRunInitialRef.current || !currentTestId) return;
     isRunInitialRef.current = true;
     console.info('初始化测试执行数据');
-    InitStepByTestId(currentTestId)
-      .then(() => {
-        // message.success('初始化成功');
-        refresh();
-      })
-      .catch(() => {
-        message.warning('初始化失败');
-      });
+    await InitStepByTestId(currentTestId);
+    refresh();
   }, [currentTestId, refresh]);
 
   const handleStatusChange = useCallback(
@@ -179,6 +171,9 @@ const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
 
   const { itemDetail, runDetail, status, objectId, defectList, notRepeatNum } = data?.data;
 
+  // 当前测试执行已经关联的缺陷 id
+  const allRelationDefectIds = defectList.map(item => item.value);
+
   const saveItem = (key: string) => {
     return (value, refreshFun?: boolean) => {
       const runDetailBak = { ...runDetail };
@@ -194,14 +189,14 @@ const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
     };
   };
 
-  const changeRunInfo = (info: IRunDetail['detail']) => {
-    const detailBak: IRunDetail = { ...runDetail };
-    detailBak.detail = info;
-    updateTestStep(detailBak, objectId).then(() => {
-      message.success('修改成功');
-      refresh && refresh();
-    });
-  };
+  // const changeRunInfo = (info: IRunDetail['detail']) => {
+  //   const detailBak: IRunDetail = { ...runDetail };
+  //   detailBak.detail = info;
+  //   updateTestStep(detailBak, objectId).then(() => {
+  //     message.success('修改成功');
+  //     refresh && refresh();
+  //   });
+  // };
 
   return (
     <Loading loading={loading}>
@@ -227,14 +222,14 @@ const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
                 <CustomCollapse.Panel
                   title="缺陷"
                   num={notRepeatNum}
-                  titleExtra={[
+                  titleExtra={
                     <AddDefectBtn
-                      currentDefectIds={runDetail.defectIds}
-                      key="2"
                       testId={objectId}
+                      currentDefectIds={runDetail.defectIds}
+                      allRelationDefectIds={allRelationDefectIds}
                       save={val => saveItem('defectIds')(val, true)}
-                    />,
-                  ]}
+                    />
+                  }
                 >
                   <ItemList
                     defects={defectList}
@@ -261,10 +256,11 @@ const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
 
                 <CustomCollapse.Panel title="用例步骤" num={runDetail?.runs?.steps?.length || 0}>
                   <StepList
-                    refresh={handleStepRefresh}
                     detail={runDetail}
                     objectId={objectId}
                     testId={currentTestId}
+                    refresh={handleStepRefresh}
+                    allRelationDefectIds={allRelationDefectIds}
                   />
                 </CustomCollapse.Panel>
               </CustomCollapse>

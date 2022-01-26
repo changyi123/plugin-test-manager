@@ -156,7 +156,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
 
     // 禁止创建或或关联（当又空间隔离配置时且当前空间和事项创建空间不相同时）
     const disabledCreateOrRelation =
-      testConfig.isolateTestType.includes(extraData.type) &&
+      testConfig.isolateTestType?.includes(extraData.type) &&
       workspace.key !== itemData.workspace.key;
 
     if (disabledCreateOrRelation) return;

@@ -1,16 +1,10 @@
 import React, { useCallback } from 'react';
-import { Row, Col, Button, message, Dropdown, Menu } from '@osui/ui';
-import { PlusOutlined } from '@ant-design/icons';
+import { Row, Col, message } from '@osui/ui';
 import { StatusBadge } from '@/components/common/Status';
 import FieldsInput from '@/pages/panel/TestDetail/TestDetailPanel/components/FieldsInput';
 import { updateTestStep, updateDetailsStatusById } from '@/lib/api/runs';
-import AddDefectModal from './AddDefectModal';
-import { uniqueId } from 'lodash';
-import { useBaseAction } from '@/lib/hooks/useContext';
-import { TestType } from '@/lib/constants';
 import SmallDefectList from './SmallDefectList';
-import { addDefect } from '@/lib/api/runs';
-import { useItemLinkTypeConfig } from './hooks';
+import AddDefectBtn from '../components/AddDefectBtn';
 
 import css from './StepList.less';
 
@@ -32,6 +26,7 @@ export interface IStepItemProps {
   index: number;
   testId: string;
   saveList: (item: IStepItem, index: number, checkStatus: boolean) => void;
+  allRelationDefectIds?: string[];
 }
 
 export interface StepListProps {
@@ -43,12 +38,16 @@ export interface StepListProps {
   };
   objectId: string;
   refresh?: () => void;
+  allRelationDefectIds?: string[];
 }
 
-export const StepItem: React.FC<IStepItemProps> = ({ index, item, saveList, testId }) => {
-  const { createItemUseModal } = useBaseAction();
-  const { TestToDefect = '' } = useItemLinkTypeConfig();
-  const dropDownRef = React.useRef();
+export const StepItem: React.FC<IStepItemProps> = ({
+  index,
+  item,
+  testId,
+  saveList,
+  allRelationDefectIds,
+}) => {
   const saveItem = useCallback(
     (key: string, checkStatus?: boolean) => {
       return value => {
@@ -58,44 +57,6 @@ export const StepItem: React.FC<IStepItemProps> = ({ index, item, saveList, test
       };
     },
     [item, saveList, index],
-  );
-
-  const createDefect = useCallback(async () => {
-    const token = uniqueId('TestDefect');
-    const { item: defectItem, extraData } = await createItemUseModal({
-      type: TestType.TestDefect,
-      extraData: { token },
-    });
-    // token 不相同则不创建关联
-    if (extraData.token !== token) return;
-
-    addDefect(TestToDefect, testId, [defectItem.objectId]).then(() => {
-      /* message.success('添加成功'); */
-      if (item.defectIds && item.defectIds.length) {
-        saveItem('defectIds')([...item.defectIds, defectItem.objectId]);
-        return;
-      }
-      saveItem('defectIds')([defectItem.objectId]);
-    });
-  }, [createItemUseModal, testId, item, saveItem, TestToDefect]);
-
-  const menu = (
-    <Menu>
-      <AddDefectModal
-        trigger={
-          <Menu.Item key="0">
-            <a>添加缺陷</a>
-          </Menu.Item>
-        }
-        testId={testId}
-        currentDefectIds={item.defectIds}
-        save={() => saveItem('defectIds')}
-      />
-
-      <Menu.Item key="1">
-        <a onClick={createDefect}>创建缺陷</a>
-      </Menu.Item>
-    </Menu>
   );
 
   return (
@@ -171,16 +132,13 @@ export const StepItem: React.FC<IStepItemProps> = ({ index, item, saveList, test
                     />
                   </div>
                 )}
-                <div className={css('right__content__btn')} ref={dropDownRef}>
-                  <Dropdown
-                    overlay={menu}
-                    trigger={['click']}
-                    getPopupContainer={() => dropDownRef.current}
-                  >
-                    <Button type="link" icon={<PlusOutlined />}>
-                      添加缺陷
-                    </Button>
-                  </Dropdown>
+                <div className={css('right__content__btn')}>
+                  <AddDefectBtn
+                    testId={testId}
+                    save={saveItem('defectIds')}
+                    currentDefectIds={item.defectIds}
+                    allRelationDefectIds={allRelationDefectIds}
+                  />
                 </div>
               </div>
             </Col>
@@ -202,7 +160,13 @@ export const StepItem: React.FC<IStepItemProps> = ({ index, item, saveList, test
   );
 };
 
-const StepList: React.FC<StepListProps> = ({ detail, objectId, testId, refresh }) => {
+const StepList: React.FC<StepListProps> = ({
+  detail,
+  testId,
+  refresh,
+  objectId,
+  allRelationDefectIds,
+}) => {
   const { steps } = detail?.runs;
   const saveList = useCallback(
     async (item: IStepItem, index: number, checkStatus?: boolean) => {
@@ -210,7 +174,7 @@ const StepList: React.FC<StepListProps> = ({ detail, objectId, testId, refresh }
       detailBak.runs.steps[index] = item;
       const update = await updateTestStep(detailBak, objectId, checkStatus);
       if (update?.success == true) {
-        updateDetailsStatusById(objectId).then(res => {
+        updateDetailsStatusById(objectId).then(() => {
           message.success('修改成功');
           refresh && refresh();
         });
@@ -222,7 +186,14 @@ const StepList: React.FC<StepListProps> = ({ detail, objectId, testId, refresh }
     <div className={css('step-list')}>
       {steps &&
         steps?.map((item, index) => (
-          <StepItem item={item} key={index} index={index} saveList={saveList} testId={testId} />
+          <StepItem
+            item={item}
+            key={index}
+            index={index}
+            testId={testId}
+            saveList={saveList}
+            allRelationDefectIds={allRelationDefectIds}
+          />
         ))}
     </div>
   );

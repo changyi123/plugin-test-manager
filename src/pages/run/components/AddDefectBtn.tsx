@@ -11,8 +11,9 @@ import TestEntitySelectorModal, { ActionType } from '@/components/panel/TestEnti
 const AddDefectBtn: React.FC<{
   testId: string;
   currentDefectIds: string[];
+  allRelationDefectIds: string[];
   save: (id: string[]) => void;
-}> = ({ testId, save, currentDefectIds }) => {
+}> = ({ testId, save, currentDefectIds, allRelationDefectIds }) => {
   const { createItemUseModal } = useBaseAction();
   const { TestToDefect = '' } = useItemLinkTypeConfig();
   const currentRef = React.useRef(null);
@@ -60,7 +61,7 @@ const AddDefectBtn: React.FC<{
         title="请选择测试缺陷"
         testType={TestType.TestDefect}
         actionRef={testEntitySelectorRef}
-        ignoreTestEntityIds={currentDefectIds}
+        ignoreTestEntityIds={allRelationDefectIds ?? []}
       />
       <Dropdown
         key="2"
