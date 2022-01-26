@@ -3,6 +3,7 @@ import { Test, Item, Workspace, ItemType, ItemLink, ItemLinkType } from '../mode
 import { ICommonRes } from './detail';
 import { TestType, TestRelationType } from '@/lib/constants';
 import {
+  getTestEntities,
   createTestEntities,
   createTestRelation,
   getTestEntitiesByRelation,
@@ -13,30 +14,29 @@ import { useRequest } from 'ahooks';
 import { IRunDetail } from '@/pages/run';
 import { Status } from '@/lib/types/Test';
 import { getItemByIQL } from '@/lib/api/proxima';
-import { pick, reject } from 'lodash';
+import { isEqual, pick } from 'lodash';
 
-
-export const updateDetailsStatusById = (runId:string):Promise<any> =>{
-  return new Promise((resolve,reject)=>{
+export const updateDetailsStatusById = (runId: string): Promise<any> => {
+  return new Promise(resolve => {
     //拿到test
     const query = new Parse.Query(Test);
-    query.equalTo("objectId",runId);
-    query.first().then(res=>{
-      let status = res.attributes?.status;
+    query.equalTo('objectId', runId);
+    query.first().then(res => {
+      const status = res.attributes?.status;
       //detail
-      let detail = res.attributes?.runReferenceDetail;
-      let detailStatus = detail.attributes?.status ?? "TODO";
+      const detail = res.attributes?.runReferenceDetail;
+      const detailStatus = detail.attributes?.status ?? 'TODO';
       /* let change = status != detailStatus; */
-      detail.set("status",status);
-      detail.save().then(res=>{
+      detail.set('status', status);
+      detail.save().then(res => {
         resolve({
           success: true,
           data: res,
-        })
-      })
-    })
-  })
-}
+        });
+      });
+    });
+  });
+};
 
 export const GetTestRunsById = (
   itemId: string,
@@ -72,11 +72,6 @@ export const GetTestRunsById = (
               item.testRunId = testRunRes[index].toJSON().objectId;
               dataBak.push(item);
             });
-            console.log('dataBak', dataBak);
-            // console.log(
-            //   'data---------',
-            //   testRunRes.map(item => item.toJSON()),
-            // );
             resolve({
               list: dataBak,
               total,
@@ -717,18 +712,45 @@ interface IItemLink {
   linkType: string;
 }
 
-export const createItemLink = (links: IItemLink | Array<IItemLink>) => {
-  const itemLinks = Array.isArray(links) ? links : [links];
-  const linkObjs = itemLinks.map(
-    link =>
-      new ItemLink({
-        destination: pointerTransfer(Item, link.destination),
-        source: pointerTransfer(Item, link.source),
-        linkType: pointerTransfer(ItemLinkType, link.linkType),
-      }),
+export const createItemLink = async (links: IItemLink | Array<IItemLink>) => {
+  links = Array.isArray(links) ? links : [links];
+
+  const itemLinkAttrs = links.map(link => ({
+    destination: pointerTransfer(Item, link.destination),
+    source: pointerTransfer(Item, link.source),
+    linkType: pointerTransfer(ItemLinkType, link.linkType),
+  }));
+
+  const subQueries = itemLinkAttrs.map(link =>
+    new Parse.Query(ItemLink)
+      .equalTo('source', link.source)
+      .equalTo('linkType', link.linkType)
+      .equalTo('destination', link.destination)
+      .include(['destination', 'source', 'linkType']),
   );
 
-  return Parse.Object.saveAll(linkObjs);
+  // 查询已经存在的关联
+  const existedItemLinks = await new Parse.Query.or(...subQueries).find();
+
+  // 筛选出需要添加的事项关联
+  const needCreateItemLinkAttrs = existedItemLinks.reduce((res, parseObj) => {
+    const itemLink = parseObj.toJSON();
+    const needComparedValues = {
+      destination: itemLink.destination.objectId,
+      source: itemLink.source.objectId,
+      linkType: itemLink.linkType.objectId,
+    };
+    return res.filter(
+      item =>
+        !isEqual(needComparedValues, {
+          source: item.source.id,
+          destination: item.destination.id,
+          linkType: item.linkType.id,
+        }),
+    );
+  }, itemLinkAttrs);
+
+  return Parse.Object.saveAll(needCreateItemLinkAttrs.map(attr => new ItemLink(attr)));
 };
 
 export const deleteItemLink = (links: string[] | string) => {
@@ -742,55 +764,55 @@ export const deleteItemLink = (links: string[] | string) => {
   return Parse.Object.destroyAll(linkObjs);
 };
 
-export const addDefect = async (linkTypeKey: string, testId: string, defectItemIds: string[]) => {
-  // 获取事项关联类型id
-  const linkTypeQuery = new Parse.Query(ItemLinkType);
-  linkTypeQuery.equalTo('key', linkTypeKey);
-  const linkTypeRes = await linkTypeQuery.first();
-  const linkType = linkTypeRes.id;
-
-  const testRunQuery = new Parse.Query(Test);
-  testRunQuery.equalTo('objectId', testId);
-  testRunQuery.include('runReferenceDetail');
-  const res = await testRunQuery.first();
-  const run = res.toJSON();
-  // 测试用例的事项ID
-  const testItemId = run?.runReferenceDetail?.reference?.objectId;
-  const { list } = await getTestEntitiesByRelation(
-    TestRelationType.ExecutionRelRun,
-    { to: res },
-    { fillItemData: true },
-  );
-  const testExcItemId = list[0]?.reference?.objectId;
-  const itemLink: Array<IItemLink> = [];
-  defectItemIds.forEach(item => {
-    // 测试用例与缺陷关联
-    itemLink.push({
-      linkType,
-      source: testItemId,
-      destination: item,
-    });
-    // 测试执行与缺陷关联
-    itemLink.push({
-      linkType,
-      source: testExcItemId,
-      destination: item,
-    });
-  });
-  return createItemLink(itemLink);
-};
-
-export const deleteDefect = async (
-  linkTypeKey: string,
+export const addDefect = async (
+  itemLinkTypeId: string,
   testId: string,
   defectItemIds: string[],
 ) => {
-  // 获取事项关联类型id
-  const linkTypeQuery = new Parse.Query(ItemLinkType);
-  linkTypeQuery.equalTo('key', linkTypeKey);
-  const linkTypeRes = await linkTypeQuery.first();
-  const linkType = linkTypeRes.id;
+  const [
+    [testRunEntity],
+    {
+      list: [testExecution],
+    },
+  ] = await Promise.all([
+    getTestEntities(
+      {
+        id: testId,
+      },
+      { include: ['runReferenceDetail.reference'] },
+    ),
+    getTestEntitiesByRelation(TestRelationType.ExecutionRelRun, { to: testId }),
+  ]);
 
+  // 测试执行对应的测试用例的事项 id
+  const referenceDetailItemId = testRunEntity?.toJSON()?.runReferenceDetail?.reference?.objectId;
+
+  const itemLinks = defectItemIds.reduce((itemLinks, defectItemId) => {
+    // 测试用例事项和缺陷事项关联
+    itemLinks.push({
+      linkType: itemLinkTypeId,
+      source: referenceDetailItemId,
+      destination: defectItemId,
+    });
+
+    // 测试用例事项和缺陷事项关联
+    itemLinks.push({
+      linkType: itemLinkTypeId,
+      source: testExecution.reference.objectId,
+      destination: defectItemId,
+    });
+
+    return itemLinks;
+  }, [] as IItemLink[]);
+
+  return createItemLink(itemLinks);
+};
+
+export const deleteDefect = async (
+  itemLinkTypeId: string,
+  testId: string,
+  defectItemIds: string[],
+) => {
   const testRunQuery = new Parse.Query(Test);
   testRunQuery.equalTo('objectId', testId);
   testRunQuery.include('runReferenceDetail');
@@ -808,13 +830,13 @@ export const deleteDefect = async (
   defectItemIds.forEach(item => {
     // 测试用例与缺陷关联
     itemLink.push({
-      linkType,
+      linkType: itemLinkTypeId,
       source: testItemId,
       destination: item,
     });
     // 测试执行与缺陷关联
     itemLink.push({
-      linkType,
+      linkType: itemLinkTypeId,
       source: testExcItemId,
       destination: item,
     });
@@ -822,7 +844,7 @@ export const deleteDefect = async (
   const itemLinkQuery = [];
   itemLink.forEach(item => {
     const query = new Parse.Query(ItemLink);
-    query.equalTo('linkType', pointerTransfer(ItemLinkType, linkType));
+    query.equalTo('linkType', pointerTransfer(ItemLinkType, itemLinkTypeId));
     query.equalTo('destination', pointerTransfer(Item, item.destination));
     query.equalTo('source', pointerTransfer(Item, item.source));
     itemLinkQuery.push(query);
@@ -887,7 +909,6 @@ export const fetchDefectList = async (
 };
 
 export const FetchItemLinkRelation = (itemId: string): Promise<any> => {
-  console.log('liangci');
   return new Promise((resolve, reject) => {
     const query = new Parse.Query(ItemLink);
     query.equalTo('source', pointerTransfer(Item, itemId));

@@ -217,9 +217,8 @@ const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
           </div>
         </div>
 
-        <Divider className={css('run__divider')} />
-
-        <TestInfo detail={runDetail.detail} changeRunInfo={changeRunInfo} />
+        {/* <Divider className={css('run__divider')} />
+        <TestInfo detail={runDetail.detail} changeRunInfo={changeRunInfo} /> */}
 
         <div className={css('run__around')}>
           <div className={css('run__around__collapse')}>

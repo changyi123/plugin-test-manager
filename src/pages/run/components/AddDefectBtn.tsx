@@ -1,12 +1,12 @@
 import React, { useCallback } from 'react';
-import { Menu, Dropdown, Button, message } from '@osui/ui';
 import { uniqueId } from 'lodash';
-import { PlusOutlined } from '@ant-design/icons';
-import AddDefectModal from './AddDefectModal';
 import { TestType } from '@/lib/constants';
-import { useBaseAction } from '@/lib/hooks/useContext';
 import { addDefect } from '@/lib/api/runs';
 import { useItemLinkTypeConfig } from './hooks';
+import { PlusOutlined } from '@ant-design/icons';
+import { useBaseAction } from '@/lib/hooks/useContext';
+import { Menu, Dropdown, Button, message } from '@osui/ui';
+import TestEntitySelectorModal, { ActionType } from '@/components/panel/TestEntitySelectorModal';
 
 const AddDefectBtn: React.FC<{
   testId: string;
@@ -16,6 +16,7 @@ const AddDefectBtn: React.FC<{
   const { createItemUseModal } = useBaseAction();
   const { TestToDefect = '' } = useItemLinkTypeConfig();
   const currentRef = React.useRef(null);
+  const testEntitySelectorRef = React.useRef<ActionType>();
   const createDefect = useCallback(async () => {
     const token = uniqueId('TestDefect');
     const { item: defectItem, extraData } = await createItemUseModal({
@@ -25,38 +26,28 @@ const AddDefectBtn: React.FC<{
     // token 不相同则不创建关联
     if (extraData.token !== token) return;
 
-    addDefect(TestToDefect, testId, [defectItem.objectId]).then(() => {
-      message.success('添加成功');
-      if (currentDefectIds) {
-        save && save([...currentDefectIds, defectItem.objectId]);
-        return;
-      }
-      save && save([defectItem.objectId]);
-    });
+    // 创建事项关联
+    await addDefect(TestToDefect, testId, [defectItem.objectId]);
+    const needAddedItemIds = [].concat(currentDefectIds, defectItem.objectId).filter(Boolean);
+    save?.(needAddedItemIds);
+    message.success('缺陷新建成功');
   }, [createItemUseModal, testId, TestToDefect, save, currentDefectIds]);
 
-  const handleAddDefect = (itemIds: string[]) => {
-    if (currentDefectIds) {
-      save && save([...currentDefectIds, ...itemIds]);
-      return;
-    }
-    save && save(itemIds);
+  const addExistedDefect = async () => {
+    const itemIds = await testEntitySelectorRef.current.open();
+
+    // 创建事项关联
+    await addDefect(TestToDefect, testId, itemIds);
+    const needAddedItemIds = [].concat(currentDefectIds, itemIds).filter(Boolean);
+    save?.(needAddedItemIds);
+    message.success('缺陷添加成功');
   };
 
   const menu = (
     <Menu>
-      <AddDefectModal
-        trigger={
-          <Menu.Item key="0">
-            <a>添加缺陷</a>
-          </Menu.Item>
-        }
-        total = {true}
-        testId={testId}
-        currentDefectIds={currentDefectIds}
-        save={() => handleAddDefect}
-      />
-
+      <Menu.Item key="0">
+        <a onClick={addExistedDefect}>添加已存在缺陷</a>
+      </Menu.Item>
       <Menu.Item key="1">
         <a onClick={createDefect}>创建缺陷</a>
       </Menu.Item>
@@ -65,6 +56,12 @@ const AddDefectBtn: React.FC<{
 
   return (
     <div ref={currentRef}>
+      <TestEntitySelectorModal
+        title="请选择测试缺陷"
+        testType={TestType.TestDefect}
+        actionRef={testEntitySelectorRef}
+        ignoreTestEntityIds={currentDefectIds}
+      />
       <Dropdown
         key="2"
         overlay={menu}

@@ -17,7 +17,7 @@ interface IDefectModalProps {
   currentDefectIds?: string[];
   save?: () => (value: string[]) => void;
   onCancel?: ModalProps['onCancel'];
-  total?:boolean
+  total?: boolean;
 }
 
 interface AddDefectSelect {
@@ -129,7 +129,7 @@ const AddDefectModal: React.FC<IDefectModalProps> = props => {
     }
     setConfirmLoading(true);
     addDefect(TestToDefect, props.testId, chooseItems).then(() => {
-      if(props.total){
+      if (props.total) {
         message.success('添加成功');
       }
       setConfirmLoading(false);

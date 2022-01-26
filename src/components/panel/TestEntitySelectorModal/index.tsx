@@ -5,10 +5,11 @@ import { uniq, reduce, keyBy } from 'lodash';
 import EventBus from '@/lib/utils/eventBus';
 import { getItemByIQL } from '@/lib/api/proxima';
 import { useSafeState, useRequest } from 'ahooks';
-import { getRootContainer, hasArrayItem } from '@/lib/utils/helper';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import DebounceSelect from '@/components/common/DebounceSelect';
+import { getRootContainer, hasArrayItem } from '@/lib/utils/helper';
 import { getAllTestConfigs, getTestEntities } from '@/lib/api/common';
+import { TestTypeNameMapping } from '@/lib/constants';
 
 import cx from './index.less';
 
@@ -35,6 +36,11 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
   const debounceSelectContainerRef = React.useRef();
   const [selectValue, setSelectValue] = useSafeState([]);
   const [testType, setTestType] = useSafeState<TestType>(props.testType);
+  // 是否是测试缺陷类型
+  const isTestDefectType = testType === TestType.TestDefect;
+  // 测试类型名
+  const testTypeName = TestTypeNameMapping[testType] ?? '事项';
+
   const {
     workspace,
     config: { isolateTestType = [] },
@@ -51,7 +57,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
 
   // 获取租户所有的配置
   const { runAsync: getAllConfigs } = useRequest(
-    async () => getAllTestConfigs(['itemTypeMap', 'workspaceKey']),
+    async () => getAllTestConfigs(['itemTypeMap', 'defectsMapping', 'workspaceKey']),
     {
       manual: true,
       cacheTime: 99999999999,
@@ -61,7 +67,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
   );
 
   // 获取测试实体类型关联配置
-  const { data: testTypeAssItemTypeKeys, runAsync: getTestTypeAssItemTypeKeys } = useRequest(
+  const { data: testTypeMapping, runAsync: getTestTypeMapping } = useRequest(
     async () => {
       const configs = await getAllConfigs();
       const itemTypeMapping: Record<TestType, string[]> = configs
@@ -111,31 +117,56 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
     },
   );
 
+  // 获取测试缺陷类型
+  const { data: testDefectsMapping, runAsync: getTestDefectsMapping } = useRequest(async () => {
+    const configs = await getAllConfigs();
+    const isolateWithWorkspace = isolateTestType.includes(TestType.TestDefect);
+
+    return configs.reduce((acc, item) => {
+      const config = item.toJSON();
+      // 如果有缺陷隔离配置，则不处理 config
+      if (isolateWithWorkspace && config.workspaceKey !== workspace?.key) return acc;
+      return acc.concat(config.defectsMapping);
+    }, []);
+  });
+
+  // 事项类型查询条件
+  const itemTypeCondition = React.useMemo(
+    () => (isTestDefectType ? testDefectsMapping : testTypeMapping?.[testType]) ?? [],
+    [testType, testTypeMapping, isTestDefectType, testDefectsMapping],
+  );
+
   // 获取测试事项
   const { runAsync: getTestEntityByKeyword, loading: searchLoading } = useRequest(
     async keyword => {
       const { items } = await getItemByIQL({
         limit: 50,
         nameOrKeyLike: keyword,
-        itemType: testTypeAssItemTypeKeys?.[testType] ?? [],
+        itemType: itemTypeCondition,
         orderBy: ['修改时间', 'desc'],
         workspace: workspaceKeyCondition,
       });
 
       const itemDict = keyBy(items, 'objectId');
-      const testEntities = await getTestEntities({ itemId: Object.keys(itemDict) });
-      const testEntityDict = keyBy(
-        testEntities
-          .map(testEntity => {
-            const data = testEntity.toJSON();
-            const reference = itemDict[data.reference?.objectId];
-            // 填充 reference
-            data.reference = reference;
-            return reference ? data : null;
-          })
-          .filter(Boolean),
-        'objectId',
-      );
+      let testEntityDict = {} as Record<string, any>;
+      if (isTestDefectType) {
+        // 测试缺陷没有测试实体, 直接用 iql 查询出来的结果
+        testEntityDict = itemDict;
+      } else {
+        const testEntities = await getTestEntities({ itemId: Object.keys(itemDict) });
+        testEntityDict = keyBy(
+          testEntities
+            .map(testEntity => {
+              const data = testEntity.toJSON();
+              const reference = itemDict[data.reference?.objectId];
+              // 填充 reference
+              data.reference = reference;
+              return reference ? data : null;
+            })
+            .filter(Boolean),
+          'objectId',
+        );
+      }
 
       // 缓存 testEntity
       dataCacheDictRef.current = {
@@ -143,8 +174,8 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
         ...testEntityDict,
       };
 
-      return Object.values(testEntityDict).map(testEntity => {
-        const item = testEntity.reference;
+      return Object.values(testEntityDict).map(entity => {
+        const item = entity?.reference ?? entity;
         return {
           label: (
             <div>
@@ -154,7 +185,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
               <span style={{ fontSize: 12, color: '#aaa' }}>({item.key})</span>
             </div>
           ),
-          value: testEntity.objectId,
+          value: entity.objectId,
         };
       });
     },
@@ -170,9 +201,15 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
         setTestType(params.testType);
       }
 
-      if (!testTypeAssItemTypeKeys) {
-        await getTestTypeAssItemTypeKeys();
+      // 手动获取像配置数据
+      if (isTestDefectType && !testDefectsMapping) {
+        await getTestDefectsMapping();
       }
+
+      if (!isTestDefectType && !testTypeMapping) {
+        await getTestTypeMapping();
+      }
+
       setVisible(true);
 
       return new Promise(resolve => {
@@ -224,9 +261,9 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
       onOk={handleOkButtonClick}
       getContainer={getRootContainer}
       onCancel={() => setVisible(false)}
-      title={props.title ?? '测试管理选择'}
+      title={props.title ?? `请选择${testTypeName}`}
     >
-      <p className={cx('hint')}>请输入并从列表中选择已存在的事项</p>
+      <p className={cx('hint')}>请输入并从列表中选择已存在的{testTypeName}</p>
       <div ref={debounceSelectContainerRef}>
         <DebounceSelect
           {...debounceSelectProps}
@@ -237,8 +274,8 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
           fetchOptions={getTestEntityByKeyword}
           onChange={value => setSelectValue(value)}
           getPopupContainer={() => debounceSelectContainerRef.current}
-          placeholder={props.placeholder ?? '请输入并从列表中选择已存在的事项'}
-          notFoundContent={searchLoading ? <Spin /> : <div>未查询到相关事项</div>}
+          placeholder={props.placeholder ?? `请输入并从列表中选择已存在的${testTypeName}`}
+          notFoundContent={searchLoading ? <Spin /> : <div>未查询到相关{testTypeName}</div>}
         />
       </div>
     </Modal>

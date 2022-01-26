@@ -79,7 +79,9 @@ const initialScriptRunner = async () => {
     });
   }
 
-  if (!globalTestConfigData.itemLinkTypeMapping) {
+  // FIXME: 增加 skip 标识，强刷数据。下个版本移除。作用：itemTypeLink key -> objectId
+  const SKIP_FLAG = true;
+  if (SKIP_FLAG || !globalTestConfigData.itemLinkTypeMapping) {
     const itemLinkTypeAttributes = {
       key: 'TD',
       outward: '缺陷',
@@ -95,7 +97,7 @@ const initialScriptRunner = async () => {
 
     saveGlobalTestConfigData({
       itemLinkTypeMapping: {
-        TestToDefect: itemLinkType.get('key'),
+        TestToDefect: itemLinkType?.toJSON()?.objectId,
       },
     });
   }
