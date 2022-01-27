@@ -70,6 +70,8 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
         workspace: workspaceKey,
         nameLike: state.searchValue,
         itemType: [config.itemTypeMap?.TestDetail],
+        // 未分组空间按照倒序
+        orderBy: state.isRootFolder ? ['创建时间', 'desc'] : null,
       });
     } else {
       fetchItems({ itemId: state.itemIds, nameLike: state.searchValue });
