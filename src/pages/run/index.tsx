@@ -45,78 +45,6 @@ export interface IRunDetail {
   };
 }
 
-// const TestInfo: React.FC<TestInfoContent> = ({ detail, changeRunInfo }) => {
-//   const [info, setInfo] = useState<TestInfoContent['detail']>(detail);
-//   const changeStr = (key: keyof TestInfoContent['detail'], value: string | number) => {
-//     setInfo({
-//       ...info,
-//       [key]: value,
-//     });
-//     changeRunInfo({
-//       ...info,
-//       [key]: value,
-//     });
-//   };
-//   return (
-//     <Row gutter={[24, 24]} className={css('info')}>
-//       <Col xs={6} xl={4}>
-//         <div className={css('info__title')}>开始时间</div>
-//         <div className={css('info__val')}>
-//           <FieldsTimepicker
-//             borderColor="white"
-//             value={info?.startTime}
-//             change={(val: number) => changeStr('startTime', val)}
-//           />
-//         </div>
-//       </Col>
-
-//       <Col xs={6} xl={4}>
-//         <div className={css('info__title')}>完成时间</div>
-//         <div className={css('info__val')}>
-//           <FieldsTimepicker
-//             borderColor="white"
-//             value={info?.finishTime}
-//             change={(val: number) => changeStr('finishTime', val)}
-//           />
-//         </div>
-//       </Col>
-
-//       <Col xs={6} xl={4}>
-//         <div className={css('info__title')}>负责人</div>
-//         <div className={css('info__val')}>
-//           <FieldsInput
-//             borderColor="white"
-//             value={info?.assignee}
-//             change={(val: string) => changeStr('assignee', val)}
-//           />
-//         </div>
-//       </Col>
-
-//       <Col xs={6} xl={4}>
-//         <div className={css('info__title')}>执行人</div>
-//         <div className={css('info__val')}>
-//           <FieldsInput
-//             borderColor="white"
-//             value={info?.executedBy}
-//             change={(val: string) => changeStr('executedBy', val)}
-//           />
-//         </div>
-//       </Col>
-
-//       <Col xs={6} xl={4}>
-//         <div className={css('info__title')}>版本</div>
-//         <div className={css('info__val')}>
-//           <FieldsInput
-//             borderColor="white"
-//             value={info?.version}
-//             change={(val: string) => changeStr('version', val)}
-//           />
-//         </div>
-//       </Col>
-//     </Row>
-//   );
-// };
-
 let firstLoad = true;
 const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
   const query = useQuery();
@@ -189,15 +117,6 @@ const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
     };
   };
 
-  // const changeRunInfo = (info: IRunDetail['detail']) => {
-  //   const detailBak: IRunDetail = { ...runDetail };
-  //   detailBak.detail = info;
-  //   updateTestStep(detailBak, objectId).then(() => {
-  //     message.success('修改成功');
-  //     refresh && refresh();
-  //   });
-  // };
-
   return (
     <Loading loading={loading}>
       <div className={css('run')}>
@@ -211,9 +130,6 @@ const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
             />
           </div>
         </div>
-
-        {/* <Divider className={css('run__divider')} />
-        <TestInfo detail={runDetail.detail} changeRunInfo={changeRunInfo} /> */}
 
         <div className={css('run__around')}>
           <div className={css('run__around__collapse')}>
