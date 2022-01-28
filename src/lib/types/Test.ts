@@ -21,6 +21,8 @@ type BaseTestEntity = {
   };
   /** 测试执行数据 */
   runDetail: {
+    component?: string;
+    defectItemIds?: string[];
     steps: Step[];
   };
 };
@@ -30,7 +32,7 @@ export type TestEntity<TTestType extends TestType = TestType.TestDetail> =
   TTestType extends TestType.TestDetail
     ? Omit<BaseTestEntity, 'runDetail' | 'runReferenceDetail'>
     : TTestType extends TestType.TestRun
-    ? Omit<BaseTestEntity, 'status' | 'detail'>
+    ? Omit<BaseTestEntity, 'reference' | 'detail'>
     : TTestType extends TestType.TestPlan
     ? Omit<BaseTestEntity, 'status' | 'detail' | 'runDetail' | 'runReferenceDetail'>
     : BaseTestEntity;
@@ -59,7 +61,9 @@ export type Step = {
 
   // 以下字段在测试执行形成
   defectItemIds?: string[]; // 缺陷关联
-  status?: Status['key']; // 步骤状态
+  status?: Status | Status['key']; // 步骤状态
+  actualResult?: string; // 实际结果
+  comment?: string; // 评论
 
   // 以下字段为保留字段暂时不用
   attachments?: string[]; // 附件

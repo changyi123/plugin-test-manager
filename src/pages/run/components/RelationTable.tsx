@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { Table } from '@osui/ui';
 import { ColumnsType } from 'antd/es/table';
 import { useRequest } from 'ahooks';
-import { FetchItemLinkRelation } from '@/lib/api/runs';
+import { getItemLinkRelation } from '@/lib/api/runs';
 import Loading from '@/components/common/Loading';
 import ItemIcon from './ItemIcon';
 
@@ -10,7 +10,10 @@ import css from './RelationTable.less';
 
 interface IRelationTable {
   itemId: string;
-  refreshNum?: number;
+
+  actionRef: React.ForwardedRef<{
+    refresh: () => void;
+  }>;
 }
 
 interface IItem {
@@ -34,19 +37,12 @@ interface IItemType {
   key: string;
 }
 
-let first = true;
 const RelationTable: React.FC<IRelationTable> = props => {
-  const { itemId, refreshNum } = props;
+  const { itemId, actionRef } = props;
   //通过事项id，获取关联数据
-  const { loading, data, error, refresh } = useRequest(() => FetchItemLinkRelation(itemId));
+  const { loading, data, error, refresh } = useRequest(() => getItemLinkRelation(itemId));
 
-  useEffect(() => {
-    if (first) {
-      first = false;
-      return;
-    }
-    refresh();
-  }, [refresh, refreshNum]);
+  React.useImperativeHandle(actionRef, () => ({ refresh }));
 
   if (loading) {
     return <Loading />;

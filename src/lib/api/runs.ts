@@ -12,9 +12,13 @@ import { pointerTransfer } from '@/lib/utils/helper';
 import series from 'async/series';
 import { useRequest } from 'ahooks';
 import { IRunDetail } from '@/pages/run';
-import { Status } from '@/lib/types/Test';
+import { Status, TestEntity } from '@/lib/types/Test';
 import { getItemByIQL } from '@/lib/api/proxima';
-import { isEqual, pick } from 'lodash';
+import _, { isEqual, pick, flattenDeep, keyBy } from 'lodash';
+import { hasArrayItem } from '@/lib/utils/helper';
+import { compactStepModel } from '@/lib/utils/modelTransfer';
+
+type TestRunEntity = TestEntity<TestType.TestRun>;
 
 export const updateDetailsStatusById = (runId: string): Promise<any> => {
   return new Promise(resolve => {
@@ -483,7 +487,7 @@ export const GetTestRunDetail = (testId: string): Promise<ICommonRes> => {
         const defectList = [];
         let notRepeatNum = 0;
         const obj = {};
-        testRunDetail?.runDetail?.defectIds?.forEach((item: string) => {
+        testRunDetail?.runDetail?.defectItemIds?.forEach((item: string) => {
           defectList.push({
             label: '全局',
             value: item,
@@ -494,7 +498,7 @@ export const GetTestRunDetail = (testId: string): Promise<ICommonRes> => {
           }
         });
         testRunDetail?.runDetail?.runs?.steps?.forEach((item, index) => {
-          item?.defectIds?.forEach((item2: string) => {
+          item?.defectItemIds?.forEach((item2: string) => {
             defectList.push({
               label: `步骤${index + 1}`,
               value: item2,
@@ -667,40 +671,6 @@ export const toggleTestRunStatus = (testId: string, status: Status): Promise<ICo
       .catch(() => {
         reject({
           success: false,
-        });
-      });
-  });
-};
-
-export const InitStepByTestId = (testId: string) => {
-  return new Promise((resolve, reject) => {
-    const query = new Parse.Query(Test);
-    query.equalTo('objectId', testId);
-    query.include('runReferenceDetail');
-    query
-      .first()
-      .then(res => {
-        if (!res) {
-          reject('没有数据');
-        }
-        const testRun = res.toJSON();
-        const itemId = testRun?.runReferenceDetail?.reference?.objectId;
-        return FetchAllTestStepByTestId(itemId);
-      })
-      .then(testRuns => {
-        const runDetail: any = {
-          runs: {
-            steps: cleanSteps(testRuns?.data?.steps),
-          },
-        };
-        return updateTestStep(runDetail, testId);
-      })
-      .then(() => {
-        resolve({});
-      })
-      .catch(error => {
-        reject({
-          error,
         });
       });
   });
@@ -908,19 +878,117 @@ export const fetchDefectList = async (
   });
 };
 
-export const FetchItemLinkRelation = (itemId: string): Promise<any> => {
-  return new Promise((resolve, reject) => {
-    const query = new Parse.Query(ItemLink);
-    query.equalTo('source', pointerTransfer(Item, itemId));
-    query.include(['destination.workspace', 'destination.itemType', 'destination.status']);
-    query.find().then(
-      res => {
-        const resArray = res.map(item => item.toJSON());
-        resolve(resArray);
+// 更新或者保存测试用例
+export const updateTestRun = async (
+  testEntity: Parse.Object<TestRunEntity>,
+  params: {
+    steps?: Record<string, any>[];
+    status?: Status['key'];
+  },
+) => {
+  const testEntityData = testEntity.toJSON();
+  const needUpdateAttrs = {} as TestRunEntity;
+
+  if (Array.isArray(params.steps)) {
+    const steps = params.steps.map(compactStepModel);
+    Object.assign(needUpdateAttrs, {
+      runDetail: {
+        ...testEntityData.runDetail,
+        steps,
       },
-      err => {
-        reject(err);
-      },
-    );
-  });
+    });
+
+    // 有一个失败
+    const hasFail = steps.some(item => item.status === 'FAILED');
+    // 全部 pass
+    const allPass = steps.filter(item => item.status === 'PASSED');
+    // 全部 todo
+    const allTodo = steps.filter(item => item.status === 'TODO');
+
+    if (hasFail) {
+      needUpdateAttrs.status = 'FAILED';
+    } else if (allPass.length === steps?.length) {
+      needUpdateAttrs.status = 'PASSED';
+    } else if (allTodo.length === steps?.length) {
+      needUpdateAttrs.status = 'TODO';
+    } else {
+      needUpdateAttrs.status = 'EXECUTING';
+    }
+  }
+
+  if (params.status) {
+    Object.assign(needUpdateAttrs, { status: params.status });
+  }
+
+  console.log('needUpdateAttrs', needUpdateAttrs);
+
+  return testEntity.save(needUpdateAttrs);
+};
+
+export const getItemLinkRelation = async (itemId: string) => {
+  const query = new Parse.Query(ItemLink);
+  query.equalTo('source', pointerTransfer(Item, itemId));
+  query.include(['destination.workspace', 'destination.itemType', 'destination.status']);
+  const res = await query.find();
+  return res.map(item => item.toJSON());
+};
+
+/** 从测试执行中获取测试步骤 */
+export const getTestStepsByTestDetailId = async (testDetailId: string) => {
+  // 获取测试步骤
+  const fetchTestStepsAndName = async (id: string | string[]) => {
+    const testEntities = await getTestEntities({ id }, { include: ['reference'] });
+    const testData = testEntities?.map(item => item.toJSON()) ?? [];
+
+    return testData.map((item, index) => ({
+      index,
+      id: item.objectId,
+      name: item.reference?.name,
+      steps: item.detail?.steps ?? [],
+    }));
+  };
+
+  let callTestDeps = {} as Record<string, any>; // 处理循环继承
+
+  // 获取 testSteps, 将继承测试用例（callTestId） -> 测试步骤
+  const recursiveGetTestSteps = async (id: string | string[]) => {
+    const testData = await fetchTestStepsAndName(id);
+
+    const callTestIds = _.chain(testData)
+      .map(data => data.steps)
+      .flattenDeep()
+      .map(data => data.callTestId)
+      .uniq()
+      .filter(Boolean)
+      .value() as unknown as string[];
+
+    // 存在循环继承，只要有一个 id 在 dep 中，则存在循环继承
+    const circularTestId = callTestIds.find(id => callTestDeps[id]);
+    if (circularTestId != null) {
+      throw new Error(`与【${callTestDeps[circularTestId]?.name}】存在循环继承`);
+    }
+
+    callTestDeps = Object.assign({}, callTestDeps, keyBy(testData, 'id'));
+
+    if (!hasArrayItem(callTestIds)) {
+      return _.chain(testData)
+        .map(data => data.steps)
+        .flattenDeep()
+        .value();
+    } else {
+      await recursiveGetTestSteps(callTestIds);
+
+      return _.chain(testData)
+        .map(data => data.steps)
+        .flattenDeep()
+        .map(step => {
+          if (!step.callTestId) return step;
+          return callTestDeps[step.callTestId]?.steps || [];
+        })
+        .flattenDeep()
+        .value();
+    }
+  };
+
+  return recursiveGetTestSteps(testDetailId);
 };

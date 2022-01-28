@@ -2,67 +2,59 @@ import React, { useCallback } from 'react';
 import { Row, Col, message } from '@osui/ui';
 import { StatusBadge } from '@/components/common/Status';
 import FieldsInput from '@/pages/panel/TestDetail/TestDetailPanel/components/FieldsInput';
-import { updateTestStep, updateDetailsStatusById } from '@/lib/api/runs';
+import { updateTestRun, updateDetailsStatusById } from '@/lib/api/runs';
 import SmallDefectList from './SmallDefectList';
 import AddDefectBtn from '../components/AddDefectBtn';
+import { Step } from '@/lib/types/Test';
 
 import css from './StepList.less';
 
-export interface IStepItem {
+export interface TestStep extends Step {
   action: string;
   attachments: string[];
-  defectIds: string[];
-  data: string;
-  index: number;
-  result: string;
-  id: string;
   actualResult: string;
   comment: string;
   status: string;
 }
 
 export interface IStepItemProps {
-  item: IStepItem;
+  step: TestStep;
   index: number;
   testId: string;
-  saveList: (item: IStepItem, index: number, checkStatus: boolean) => void;
+  onStepChange: (item: TestStep, index: number) => void;
   allRelationDefectIds?: string[];
 }
 
 export interface StepListProps {
   testId: string;
-  detail?: {
-    runs: {
-      steps: Array<IStepItem>;
-    };
-  };
+  steps: TestStep[];
   objectId: string;
+  testRunEntity: any;
   refresh?: () => void;
   allRelationDefectIds?: string[];
 }
 
 export const StepItem: React.FC<IStepItemProps> = ({
   index,
-  item,
+  step,
   testId,
-  saveList,
+  onStepChange,
   allRelationDefectIds,
 }) => {
   const saveItem = useCallback(
-    (key: string, checkStatus?: boolean) => {
+    (key: string) => {
       return value => {
-        const itemBak = { ...item };
-        itemBak[key] = value;
-        saveList(itemBak, index, checkStatus);
+        const updatedStep = { ...step, [key]: value };
+        onStepChange(updatedStep, index);
       };
     },
-    [item, saveList, index],
+    [step, onStepChange, index],
   );
 
   return (
-    <div className={[css('step-list__item'), css(item.status)].join(' ')}>
+    <div className={[css('step-list__item'), css(step.status)].join(' ')}>
       <div className={css('left')}>
-        <div className={css('left__index', item.status)}>{index + 1}</div>
+        <div className={css('left__index', step.status)}>{index + 1}</div>
         {/* <div className={css('left__tips')}>
           <Popover content={<div>继承测试用例</div>}>
             <InfoCircleOutlined />
@@ -74,12 +66,12 @@ export const StepItem: React.FC<IStepItemProps> = ({
         <Row gutter={[24, 0]}>
           <Col className={css('right__item')} span={12}>
             <div className={css('right__topic')}>行动</div>
-            <div className={css('right__content')}>{item.action}</div>
+            <div className={css('right__content')}>{step.action}</div>
           </Col>
 
           <Col className={css('right__item')} span={8}>
             <div className={css('right__topic')}>预期结果</div>
-            <div className={css('right__content')}>{item.result}</div>
+            <div className={css('right__content')}>{step.result}</div>
           </Col>
         </Row>
 
@@ -88,7 +80,7 @@ export const StepItem: React.FC<IStepItemProps> = ({
         <Row gutter={[24, 0]}>
           <Col className={css('right__item')} span={6}>
             <div className={css('right__topic')}>数据</div>
-            <div className={css('right__content')}>{item.data}</div>
+            <div className={css('right__content')}>{step.data}</div>
           </Col>
         </Row>
 
@@ -99,7 +91,7 @@ export const StepItem: React.FC<IStepItemProps> = ({
               <FieldsInput
                 borderColor="white"
                 placeholder="点击输入结果"
-                value={item.actualResult}
+                value={step.actualResult}
                 change={(val: string) => saveItem('actualResult')(val)}
               />
             </div>
@@ -114,7 +106,7 @@ export const StepItem: React.FC<IStepItemProps> = ({
                 <FieldsInput
                   placeholder="点击输入评论"
                   borderColor="white"
-                  value={item.comment}
+                  value={step.comment}
                   change={(val: string) => saveItem('comment')(val)}
                 />
               </div>
@@ -123,20 +115,20 @@ export const StepItem: React.FC<IStepItemProps> = ({
             <Col span={8} className={css('answer__item')} id="dropdown_add_defect">
               <div className={css('right__topic')}>缺陷</div>
               <div className={css('right__content')}>
-                {item.defectIds && (
+                {step.defectItemIds && (
                   <div className={css('right__content__list')}>
                     <SmallDefectList
-                      itemIds={item.defectIds}
+                      itemIds={step.defectItemIds}
                       testId={testId}
-                      save={() => saveItem('defectIds')}
+                      save={() => saveItem('defectItemIds')}
                     />
                   </div>
                 )}
                 <div className={css('right__content__btn')}>
                   <AddDefectBtn
                     testId={testId}
-                    save={saveItem('defectIds')}
-                    currentDefectIds={item.defectIds}
+                    save={saveItem('defectItemIds')}
+                    currentDefectIds={step.defectItemIds}
                     allRelationDefectIds={allRelationDefectIds}
                   />
                 </div>
@@ -148,8 +140,8 @@ export const StepItem: React.FC<IStepItemProps> = ({
               <div className={css('right__content')}>
                 <StatusBadge
                   showBg={true}
-                  status={item.status}
-                  onStatusChange={status => saveItem('status', true)(status.key)}
+                  status={step.status}
+                  onStatusChange={status => saveItem('status')(status.key)}
                 />
               </div>
             </Col>
@@ -161,37 +153,34 @@ export const StepItem: React.FC<IStepItemProps> = ({
 };
 
 const StepList: React.FC<StepListProps> = ({
-  detail,
+  steps,
   testId,
   refresh,
-  objectId,
+  testRunEntity,
   allRelationDefectIds,
 }) => {
-  const { steps } = detail?.runs;
-  const saveList = useCallback(
-    async (item: IStepItem, index: number, checkStatus?: boolean) => {
-      const detailBak = { ...detail };
-      detailBak.runs.steps[index] = item;
-      const update = await updateTestStep(detailBak, objectId, checkStatus);
-      if (update?.success == true) {
-        updateDetailsStatusById(objectId).then(() => {
-          message.success('修改成功');
-          refresh && refresh();
-        });
-      }
+  const handleStepChange = useCallback(
+    async (item: TestStep, index: number) => {
+      steps[index] = item;
+      await updateTestRun(testRunEntity, {
+        steps,
+      });
+      refresh();
+      message.success('修改成功');
     },
-    [objectId, detail, refresh],
+    [refresh, steps, testRunEntity],
   );
+
   return (
     <div className={css('step-list')}>
       {steps &&
-        steps?.map((item, index) => (
+        steps?.map((step, index) => (
           <StepItem
-            item={item}
+            step={step}
             key={index}
             index={index}
             testId={testId}
-            saveList={saveList}
+            onStepChange={handleStepChange}
             allRelationDefectIds={allRelationDefectIds}
           />
         ))}

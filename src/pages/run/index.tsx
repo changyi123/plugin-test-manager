@@ -1,19 +1,25 @@
 import React, { useCallback, useState } from 'react';
 import { Empty, message } from '@osui/ui';
 import ItemList from './components/ItemList';
-import StepList, { IStepItem } from './components/StepList';
+import StepList, { TestStep } from './components/StepList';
 import { StatusBadge } from '@/components/common/Status';
 import { useLocation } from 'react-router-dom';
-import { GetTestRunDetail, toggleTestRunStatus } from '@/lib/api/runs';
+import { toggleTestRunStatus } from '@/lib/api/runs';
 import { useRequest } from 'ahooks';
-import { updateTestStep, InitStepByTestId } from '@/lib/api/runs';
 import Loading from '@/components/common/Loading';
 import FieldsInput from '@/pages/panel/TestDetail/TestDetailPanel/components/FieldsInput';
 import CustomCollapse from './components/Collapse';
 import AddDefectBtn from './components/AddDefectBtn';
 import RelationTable from './components/RelationTable';
+import { TestEntity } from '@/lib/types/Test';
+import { TestType } from '@/lib/constants';
+import { getTestEntities } from '@/lib/api/common';
+import { updateTestStep, getTestStepsByTestDetailId } from '@/lib/api/runs';
+import { useStatusConfig } from '@/components/common/Status/hooks';
 
 import css from './index.less';
+
+type TestRunEntity = TestEntity<TestType.TestRun>;
 
 export interface ITestInfo {
   topic: string;
@@ -27,41 +33,73 @@ function useQuery() {
   return React.useMemo(() => new URLSearchParams(search), [search]);
 }
 
-interface TestInfoContent {
-  detail?: {
-    startTime?: number;
-    assignee?: string;
-    version?: string;
-    finishTime?: number;
-    executedBy?: string;
-  };
-  changeRunInfo: (info: IRunDetail['detail']) => void;
-}
-
 export interface IRunDetail {
-  detail?: TestInfoContent['detail'];
   runs: {
-    steps: Array<IStepItem>;
+    steps: TestStep[];
   };
 }
 
-let firstLoad = true;
 const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
   const query = useQuery();
-  const currentTestId = query.get('id') || testId;
-  // 从路由/弹窗拿
-  const { data, loading, error, refresh } = useRequest(() => GetTestRunDetail(currentTestId));
-  const [refreshNum, setRefreshNum] = useState(0);
-  // 防止重复调用
-  const isRunInitialRef = React.useRef(false);
+  const relationTableActionRef = React.useRef();
+  const currentTestId = query.get('id') ?? testId;
+  // TODO: status
+  const statusConfig = useStatusConfig();
 
-  const checkRunInit = useCallback(async () => {
-    if (isRunInitialRef.current || !currentTestId) return;
-    isRunInitialRef.current = true;
-    console.info('初始化测试执行数据');
-    await InitStepByTestId(currentTestId);
-    refresh();
-  }, [currentTestId, refresh]);
+  // 从路由/弹窗拿
+  const {
+    data: runDetailData,
+    loading,
+    error,
+    refresh,
+  } = useRequest(
+    async () => {
+      let [testRunEntity] = await getTestEntities(
+        { id: currentTestId },
+        { include: ['runReferenceDetail.reference'] },
+      );
+
+      let testRunData = testRunEntity.toJSON();
+
+      // 需要初始化测试执行详情数据
+      if (!Array.isArray(testRunData.runDetail?.steps)) {
+        try {
+          const steps = await getTestStepsByTestDetailId(testRunData.runReferenceDetail.objectId);
+          testRunEntity = await testRunEntity.save({
+            runDetail: Object.assign({ steps }, testRunData.runDetail),
+          });
+
+          testRunData = testRunEntity.toJSON();
+        } catch (err) {
+          message.error(err.message);
+        }
+      }
+
+      // 缺陷列表
+      const defectList = [];
+
+      testRunData?.runDetail?.defectItemIds?.forEach((item: string) => {
+        defectList.push({
+          label: '全局',
+          value: item,
+        });
+      });
+      testRunData?.runDetail?.steps?.forEach((item, index) => {
+        item?.defectItemIds?.forEach((item2: string) => {
+          defectList.push({
+            label: `步骤${index + 1}`,
+            value: item2,
+          });
+        });
+      });
+
+      return { ...testRunData, testRunEntity, defectList };
+    },
+    {
+      ready: Boolean(testId),
+    },
+  );
+  const [refreshNum, setRefreshNum] = useState(0);
 
   const handleStatusChange = useCallback(
     async (testId, status) => {
@@ -74,30 +112,18 @@ const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
 
   const handleStepRefresh = useCallback(() => {
     refresh();
-    setRefreshNum(refreshNum + 1);
-  }, [refresh, refreshNum]);
-
-  if (!currentTestId) {
-    return <div>无</div>;
-  }
+    (relationTableActionRef.current as any).refresh();
+  }, [refresh]);
 
   if (error) {
     return <div>加载失败,原因{error?.message}</div>;
   }
-  if (loading && firstLoad) {
-    firstLoad = false;
-    return <Loading />;
-  }
-  if (!data?.data) {
+
+  if (!runDetailData) {
     return <Empty description="测试执行为空"></Empty>;
   }
 
-  if (!data?.data?.runDetail?.runs) {
-    checkRunInit();
-    return <Loading tip="初始化runs中..."></Loading>;
-  }
-
-  const { itemDetail, runDetail, status, objectId, defectList, notRepeatNum } = data?.data;
+  const { itemDetail, runDetail, status, objectId, defectList, testRunEntity } = runDetailData;
 
   // 当前测试执行已经关联的缺陷 id
   const allRelationDefectIds = defectList.map(item => item.value);
@@ -137,20 +163,20 @@ const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
               <CustomCollapse title="总结">
                 <CustomCollapse.Panel
                   title="缺陷"
-                  num={notRepeatNum}
+                  // num={notRepeatNum}
                   titleExtra={
                     <AddDefectBtn
                       testId={objectId}
-                      currentDefectIds={runDetail.defectIds}
+                      currentDefectIds={runDetail.defectItemIds}
                       allRelationDefectIds={allRelationDefectIds}
-                      save={val => saveItem('defectIds')(val, true)}
+                      save={val => saveItem('defectItemIds')(val, true)}
                     />
                   }
                 >
                   <ItemList
                     defects={defectList}
                     testId={objectId}
-                    save={() => saveItem('defectIds')}
+                    save={() => saveItem('defectItemIds')}
                   />
                 </CustomCollapse.Panel>
 
@@ -167,15 +193,16 @@ const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
             <div className={css('run__around__collapse__item')}>
               <CustomCollapse title="测试用例详情">
                 <CustomCollapse.Panel title="测试用例关联事项" num={defectList.length}>
-                  <RelationTable itemId={itemDetail?.objectId} refreshNum={refreshNum} />
+                  <RelationTable itemId={itemDetail?.objectId} actionRef={relationTableActionRef} />
                 </CustomCollapse.Panel>
 
-                <CustomCollapse.Panel title="用例步骤" num={runDetail?.runs?.steps?.length || 0}>
+                <CustomCollapse.Panel title="用例步骤" num={runDetail?.steps?.length ?? 0}>
                   <StepList
-                    detail={runDetail}
                     objectId={objectId}
                     testId={currentTestId}
+                    steps={runDetail?.steps}
                     refresh={handleStepRefresh}
+                    testRunEntity={testRunEntity}
                     allRelationDefectIds={allRelationDefectIds}
                   />
                 </CustomCollapse.Panel>
