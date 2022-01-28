@@ -2,8 +2,8 @@ const axios = require('axios');
 const path = require('path');
 const fs = require('fs');
 
-const fileName = './initialScript.js';
-const sessionToken = 'r:9d2ed95f4825ddbbfd030ed6f2058350';
+const fileName = './dataImport.js';
+const sessionToken = 'r:4590b9f3deca656618dba8d086c51665';
 const params = {
   appKey: 'test_manager',
 };

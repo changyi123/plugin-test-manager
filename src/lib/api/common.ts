@@ -3,8 +3,8 @@ import { keyBy, merge } from 'lodash';
 import { TestConfig } from '../models';
 import { getItemByIQL } from './proxima';
 import { TestType, TestRelationType } from '@/lib/constants';
-import { hasArrayItem, pointerTransfer, toArray } from '@/lib/utils/helper';
 import { Workspace, Item, Test, TestRelation } from '@/lib/models';
+import { hasArrayItem, pointerTransfer, toArray } from '@/lib/utils/helper';
 
 /** to/from -> pointer */
 const testRelationTypePointerTransfer = arr =>
@@ -276,6 +276,13 @@ export const createEmptyTestConfig = (workspaceKey: string) => {
     global: false,
     itemTypeMap: {},
     defectsMapping: [],
+    // 默认所有事项都加上空间隔离
+    isolateTestType: [
+      TestType.TestPlan,
+      TestType.TestDefect,
+      TestType.TestDetail,
+      TestType.TestExecution,
+    ],
   });
 
   return testConfig.save();

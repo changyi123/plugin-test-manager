@@ -1,15 +1,28 @@
 import React from 'react';
 
-import { pick } from 'lodash';
-import { Select, Button, Checkbox, message } from '@osui/ui';
-import { hasArrayItem } from '@/lib/utils/helper';
 import { useSafeState } from 'ahooks';
+import { pick, difference } from 'lodash';
+import { Select, Button, Checkbox, message } from '@osui/ui';
 
 import { useDataContext, useCurrentTestConfig } from '../hooks';
 import { TestTypeNameMapping, TestType } from '@/lib/constants';
 
 import cx from './index.less';
 
+// 所有隔离事项类型配置
+const AllIsolateTestType = [
+  TestType.TestDefect,
+  TestType.TestDetail,
+  TestType.TestExecution,
+  TestType.TestPlan,
+];
+
+// 判断所有测试类型是否都被设置空间隔离
+const isIsolateAllTestType = (isolation: string[]) => {
+  return difference(AllIsolateTestType, isolation).length === 0;
+};
+
+// 默认隔离方案配置
 const DefaultIsolateMode = 'disabled';
 
 const isolateModeSelectOptions = [
@@ -32,7 +45,8 @@ const IsolateTestType = () => {
   const testConfig = useCurrentTestConfig(workspaceKey);
 
   const handleSave = async () => {
-    const willUpdateIsolateTestType = isolateMode === 'enabled' ? isolateTestType : [];
+    const willUpdateIsolateTestType =
+      isolateMode === 'disabled' ? AllIsolateTestType : isolateTestType;
     await testConfig.save({
       isolateTestType: willUpdateIsolateTestType,
     });
@@ -41,8 +55,10 @@ const IsolateTestType = () => {
 
   React.useEffect(() => {
     const isolateTestType = testConfig?.get('isolateTestType');
-    setIsolateTestType(isolateTestType ?? []);
-    setIsolateMode(hasArrayItem(isolateTestType) ? 'enabled' : 'disabled');
+    // 默认隔离测试实体类型配置
+    const defaultIsolateTestType = DefaultIsolateMode === 'disabled' ? AllIsolateTestType : [];
+    setIsolateTestType(isolateTestType ? isolateTestType : defaultIsolateTestType);
+    setIsolateMode(isIsolateAllTestType(isolateTestType) ? 'disabled' : 'enabled');
   }, [setIsolateMode, setIsolateTestType, testConfig]);
 
   return (
@@ -70,11 +86,11 @@ const IsolateTestType = () => {
                   setIsolateTestType(testTypes => {
                     const checked = e.target.checked;
                     return checked
-                      ? testTypes.concat(type)
-                      : testTypes.filter(item => item !== type);
+                      ? testTypes.filter(item => item !== type)
+                      : testTypes.concat(type);
                   });
                 }}
-                checked={isolateTestType.includes(type)}
+                checked={!isolateTestType.includes(type)}
               />
               <span className={cx('action-name')}>可跨空间创建，关联{name}</span>
             </div>
