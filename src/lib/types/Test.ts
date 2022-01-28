@@ -1,32 +1,39 @@
 import { Item } from './App';
 import { TestType } from '@/lib/constants';
 
-export type TestStep = {
-  action: string;
-  data: string;
-  expectedResult: string;
-  attachments: string[];
-  index: number;
-  callTestIssueId: string;
-};
-
-/** 测试实体对应和事项一对一关联 */
-export type TestEntity = {
+// 测试实体
+type BaseTestEntity = {
+  /** 测试用例类型 */
   type: TestType;
+  /** 空间标识 */
   workspaceKey: string;
-  /** 测试详情使用 */
+  /** 测试实体关联事项 */
   reference: Item;
-  steps: TestStep[];
+  /** 测试用例最新执行状态 */
+  status: Status['key'];
+  /** 测试执行关联测试用例实体 */
+  runReferenceDetail: TestEntity;
+  /** 额外数据 */
   extra: Record<string, unknown>;
+  /** 测试用例数据 */
+  detail?: {
+    steps: Step[];
+  };
+  /** 测试执行数据 */
+  runDetail: {
+    steps: Step[];
+  };
 };
 
-export type TestExecution = {
-  actualResult: string;
-  comment: string;
-  defects: [];
-  evidence: [];
-  activity: string;
-};
+/** 测试实体类型 */
+export type TestEntity<TTestType extends TestType = TestType.TestDetail> =
+  TTestType extends TestType.TestDetail
+    ? Omit<BaseTestEntity, 'runDetail' | 'runReferenceDetail'>
+    : TTestType extends TestType.TestRun
+    ? Omit<BaseTestEntity, 'status' | 'detail'>
+    : TTestType extends TestType.TestPlan
+    ? Omit<BaseTestEntity, 'status' | 'detail' | 'runDetail' | 'runReferenceDetail'>
+    : BaseTestEntity;
 
 export type Status = {
   color: string;
@@ -37,4 +44,24 @@ export type Status = {
   native: boolean;
   readOnly: boolean;
   type: 'TODO' | 'PASSED' | 'EXECUTING' | 'FAILED';
+};
+
+export type Step = {
+  id: string; // uuid
+
+  data?: string; // 数据
+
+  action?: string; // 步骤描述
+  result?: string; // 预期结果
+
+  // 改字段区分是否是测试继承类型
+  callTestId?: string; // 测试继承（test entity id）
+
+  // 以下字段在测试执行形成
+  defectItemIds?: string[]; // 缺陷关联
+  status?: Status['key']; // 步骤状态
+
+  // 以下字段为保留字段暂时不用
+  attachments?: string[]; // 附件
+  customFields?: string[]; // 自定义字段
 };

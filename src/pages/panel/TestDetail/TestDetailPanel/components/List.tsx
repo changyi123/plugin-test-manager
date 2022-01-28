@@ -19,6 +19,7 @@ import { stepTools, IStepToolsKey } from './ListConfig';
 import FieldsInput from './FieldsInput';
 import css from './List.less';
 import { TestDetailContext } from '../index';
+import { ItemType } from '@/lib/types/App';
 
 interface ListProps {
   item: TestStep;
@@ -37,13 +38,13 @@ interface IStepItemProps {
 const List: React.FC<ListProps> = (props: ListProps) => {
   const { item, itemLen, actionCard } = props;
   const {
-    moveCard,
-    findCard,
-    expandCard,
-    cloneCard,
-    deleteCard,
-    addCard,
-    saveCard,
+    moveStep,
+    findStep,
+    expandStep,
+    cloneStep,
+    deleteStep,
+    addStep,
+    saveStep,
     openCallTestModal,
   } = actionCard;
 
@@ -55,11 +56,11 @@ const List: React.FC<ListProps> = (props: ListProps) => {
   }, [showMore]);
 
   function expandItemCard(isExpand: boolean) {
-    expandCard(item.id, isExpand);
+    expandStep(item.id, isExpand);
   }
 
   function handleCopyItem() {
-    cloneCard(item.id);
+    cloneStep(item.id);
   }
 
   const [{ isDragging }, drag, preview] = useDrag(
@@ -72,30 +73,31 @@ const List: React.FC<ListProps> = (props: ListProps) => {
         };
       },
     }),
-    [item.id, moveCard],
+    [item.id, moveStep],
   );
 
   const [, drop] = useDrop(
     () => ({
       accept: 'card',
       drop: () => {
-        saveCard();
+        saveStep();
       },
       hover({ id: draggedId }: TestStep) {
         if (draggedId !== item.id) {
-          const { index: overIndex } = findCard(item.id);
-          moveCard(draggedId, overIndex);
+          const { index: overIndex } = findStep(item.id);
+          moveStep(draggedId, overIndex);
         }
       },
     }),
-    [findCard, moveCard],
+    [findStep, moveStep],
   );
 
   const StepItemMove: React.FC<IStepItemProps> = props => {
-    const [num, setNum] = useState<number>(0);
+    const [num, setNum] = useState<number>(1);
 
     function handleMoveItem() {
-      moveCard(item.id, +num - 1, true);
+      if (num < 1) return;
+      moveStep(item.id, +num - 1, true);
     }
 
     return (
@@ -105,7 +107,7 @@ const List: React.FC<ListProps> = (props: ListProps) => {
         title={
           <div>
             <p>移动到</p>
-            <InputNumber value={num} min={0} max={itemLen} onChange={e => setNum(+e)} />
+            <InputNumber value={num} min={1} max={itemLen} onChange={e => setNum(+e)} />
           </div>
         }
         onConfirm={handleMoveItem}
@@ -151,7 +153,7 @@ const List: React.FC<ListProps> = (props: ListProps) => {
       <Popconfirm
         placement="left"
         title="你确定要删除这一测试步骤？"
-        onConfirm={() => deleteCard(item.id)}
+        onConfirm={() => deleteStep(item.id)}
         okText="确定"
         cancelText="取消"
         disabled={props.disabled}
@@ -169,17 +171,19 @@ const List: React.FC<ListProps> = (props: ListProps) => {
   };
 
   const DividerLine: React.FC = () => {
+    const { index } = findStep(item.id);
+
     return (
       <div className={css('divider')}>
         <div className={css('divider__line')}></div>
         <Dropdown
           overlay={
             <Menu>
-              <Menu.Item key="1" onClick={() => addCard(item.id)}>
-                新建步骤
+              <Menu.Item key="1" onClick={() => addStep(index)}>
+                新增步骤
               </Menu.Item>
-              <Menu.Item key="2" onClick={handleOpenModal}>
-                调用用例
+              <Menu.Item key="2" onClick={() => openCallTestModal(index)}>
+                继承测试用例
               </Menu.Item>
             </Menu>
           }
@@ -191,11 +195,6 @@ const List: React.FC<ListProps> = (props: ListProps) => {
         </Dropdown>
       </div>
     );
-  };
-
-  const handleOpenModal = () => {
-    const { index } = findCard(item.id);
-    openCallTestModal(index);
   };
 
   const opacity = isDragging ? 0.5 : 1;
@@ -224,16 +223,16 @@ const List: React.FC<ListProps> = (props: ListProps) => {
                     <div className={css('step__around__header')}>
                       <div className={css('tips')}>用例调用</div>
 
-                      {item?.itemObject?.itemType?.icon && (
+                      {(item?.itemData?.itemType as ItemType)?.icon && (
                         <div className={css('icon')}>
-                          <ItemIcon src={item?.itemObject?.itemType?.icon} />
+                          <ItemIcon src={(item?.itemData?.itemType as ItemType)?.icon} />
                         </div>
                       )}
 
-                      <div className={css('label')}>{item?.itemObject?.key}</div>
+                      <div className={css('label')}>{item?.itemData?.key}</div>
                     </div>
 
-                    <div className={css('step__around__content')}>{item?.itemObject?.name}</div>
+                    <div className={css('step__around__content')}>{item?.itemData?.name}</div>
                   </div>
                 </div>
               )}
@@ -249,7 +248,7 @@ const List: React.FC<ListProps> = (props: ListProps) => {
                             <FieldsInput
                               value={action}
                               change={e => {
-                                saveCard(
+                                saveStep(
                                   props.index,
                                   {
                                     ...item,
@@ -270,7 +269,7 @@ const List: React.FC<ListProps> = (props: ListProps) => {
                             <FieldsInput
                               value={result}
                               change={e => {
-                                saveCard(
+                                saveStep(
                                   props.index,
                                   {
                                     ...item,
@@ -317,7 +316,7 @@ const List: React.FC<ListProps> = (props: ListProps) => {
                               <FieldsInput
                                 value={data}
                                 change={e => {
-                                  saveCard(
+                                  saveStep(
                                     props.index,
                                     {
                                       ...item,
@@ -380,7 +379,6 @@ const List: React.FC<ListProps> = (props: ListProps) => {
         ) : (
           <div ref={node => drop(node)} style={{ opacity }} className={css('around')}>
             <DividerLine />
-
             <div
               className={[css('detail-list'), item.callTestId && css('call')].join(' ')}
               ref={preview}
@@ -402,7 +400,7 @@ const List: React.FC<ListProps> = (props: ListProps) => {
                   {item.callTestId ? (
                     <div className={css('step__expand__content')}>
                       <div className={css('tips')}>用例调用</div>
-                      <div className={css('label')}>{item?.itemObject?.name}</div>
+                      <div className={css('label')}>{item?.itemData?.name}</div>
                     </div>
                   ) : (
                     action || '-'

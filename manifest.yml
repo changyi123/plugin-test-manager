@@ -77,14 +77,18 @@ tables:
         type: String
       status:
         type: String
+
+      runDetail:
+        type: Object
+      # 废弃， 使用 detail 字段替代
       steps:
         type: Array
+      detail:
+        type: Object
       runReferenceDetail:
         type: Pointer
         isAppClass: true
         targetClass: Test
-      runDetail:
-        type: Object
   - className: Activity
     fields:
       resource:

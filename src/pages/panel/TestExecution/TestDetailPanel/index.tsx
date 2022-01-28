@@ -36,7 +36,7 @@ const Test = () => {
 
   const { relTestDetailIds, relRunStatuses } = React.useMemo(() => {
     return {
-      relTestDetailIds: allTestEntities.map(item => item.runReferenceDetail.objectId),
+      relTestDetailIds: allTestEntities.map(item => item.runReferenceDetail?.objectId),
       relRunStatuses: allTestEntities.map(item => item.status ?? INITIAL_STATUS_KEY),
     };
   }, [allTestEntities]);

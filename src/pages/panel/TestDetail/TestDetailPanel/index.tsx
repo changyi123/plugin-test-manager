@@ -1,16 +1,16 @@
-import React, { useState, useCallback, useEffect, createRef } from 'react';
+import React, { useState, useCallback, createRef } from 'react';
 import { Button, Tooltip, Dropdown, Menu, Empty, message, Space, Input } from '@osui/ui';
+import uuid from 'uuid/v4';
 import {
   ArrowsAltOutlined,
   ShrinkOutlined,
   DownOutlined,
   SearchOutlined,
   BlockOutlined,
-} from '@ant-design/icons';
+} from '@/icons';
 import { useDrop } from 'react-dnd';
 import StepItem from './components/List';
-import update from 'immutability-helper';
-import { fetchTestSteps, saveOrUpdateTestStep, Item } from '@/lib/api/detail';
+import { updateTestDetail } from '@/lib/api/detail';
 import { checkHasDepsLink } from '@/lib/api/runs';
 import { useTestConfig } from '@/lib/hooks/useContext';
 
@@ -19,46 +19,59 @@ import TestEntitySelectorModal, { ActionType } from '@/components/panel/TestEnti
 import GlobalDndContext from './DndContext';
 import { TestType } from '@/lib/constants';
 import Loading from '@/components/common/Loading';
-import { useDebounceFn } from 'ahooks';
+import { useDebounceFn, useRequest } from 'ahooks';
 import { CloseMore } from '@/icons';
+import { clone, cloneDeep, keyBy, uniq } from 'lodash';
+
+import { Step, TestEntity } from '@/lib/types/Test';
+import { hasArrayItem } from '@/lib/utils/helper';
+import { getTestEntities } from '@/lib/api/common';
+import { Item } from '@/lib/types/App';
 
 import css from './index.less';
+
+// 测试详情实体类型
+type TestDetailEntity = TestEntity<TestType.TestDetail>;
 
 export interface fields {
   id: string;
   value: string;
 }
-export interface TestStep {
-  action?: string;
-  data?: string;
-  result?: string;
-  attachments?: Array<string>;
-  customFields?: Array<fields>;
-  index?: number;
-  callTestId?: string;
-  itemObject?: Item;
+export interface TestStep extends Step {
+  itemData?: Item;
   isExpand?: boolean;
   showMore?: boolean;
-  id?: string;
-  objectId?: string;
 }
 
-export interface TestInfor {
-  objectId?: string;
-  resource?: string;
-}
-
-export type IExpandCard = (id?: string, isExpand?: boolean) => void;
+const getEmptyTestStep = (callTestId?: string) => {
+  const BaseTestStepFields = {
+    id: uuid(),
+    // ui 状态
+    isExpand: true,
+    showMore: false,
+  };
+  if (callTestId) {
+    return Object.assign({}, BaseTestStepFields, {
+      callTestId,
+    }) as TestStep;
+  } else {
+    return Object.assign({}, BaseTestStepFields, {
+      data: '',
+      action: '',
+      result: '',
+    }) as TestStep;
+  }
+};
 
 export interface IActionCard {
-  moveCard: (id: string, atIndex: number, saveSteps?: boolean) => void;
-  expandCard: IExpandCard;
-  findCard: (id: string) => { index: number };
-  cloneCard: (id: string) => void;
-  deleteCard: (id: string) => void;
-  addCard: (id?: string) => void;
-  saveCard: (index?: number, step?: TestStep, atIndex?: number) => void;
+  addStep: (index?: number) => void;
+  cloneStep: (id: string) => void;
+  deleteStep: (id: string) => void;
   openCallTestModal: (index: number) => void;
+  findStep: (id: string) => { index: number };
+  expandStep: (id?: string, isExpand?: boolean) => void;
+  moveStep: (id: string, atIndex: number, saveSteps?: boolean) => void;
+  saveStep: (index?: number, step?: Partial<TestStep>, atIndex?: number) => void;
 }
 
 const StepList: React.FC<{
@@ -81,7 +94,7 @@ const StepList: React.FC<{
             {!search && (
               <div className={css('empty__content__btn')}>
                 <Space size={8}>
-                  <Button type="primary" onClick={() => actionCard.addCard()}>
+                  <Button type="primary" onClick={() => actionCard.addStep()}>
                     新建步骤
                   </Button>
                   <Button type="default" onClick={() => actionCard.openCallTestModal(0)}>
@@ -124,7 +137,6 @@ const StepDrop: React.FC<{
   );
 };
 
-let stepsBak = [];
 let firstLoad = true;
 export const TestDetailContext = React.createContext({
   searchStatus: false,
@@ -132,34 +144,91 @@ export const TestDetailContext = React.createContext({
 
 const Detail: React.FC = () => {
   const { testEntity } = useTestConfig();
-  const [steps, setSteps] = useState<Array<TestStep>>([]);
-  const [search, setSearch] = useState<boolean>(false);
-  const [testInfo, setTestInfo] = useState<TestInfor>({});
+  const [search, setSearch] = useState(false);
   const testEntitySelectorRef = createRef<ActionType>();
+  const stepsStateRef = React.useRef<TestStep[]>([]);
+  const [steps, setStepsState] = useState<TestStep[]>([]);
+  const testEntityDictRef = React.useRef<Record<string, TestDetailEntity>>({});
+
+  const setSteps = useCallback(
+    (steps, notStoreToStateRef?: boolean) => {
+      setStepsState(steps);
+      if (!notStoreToStateRef) {
+        stepsStateRef.current = steps;
+      }
+    },
+    [setStepsState],
+  );
 
   const testDetailData = testEntity.toJSON();
   const { objectId: testDetailId } = testDetailData;
-  const [loading, setLoading] = useState<boolean>(true);
 
-  const fetchData = useCallback(() => {
-    setLoading(true);
-    fetchTestSteps(testDetailId)
-      .then(({ data }) => {
-        setSteps(data?.steps || []);
-        stepsBak = data?.steps;
-        setSearch(false);
-        setTestInfo(data);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, [testDetailId]);
+  const { loading, runAsync: fetchData } = useRequest(
+    async () => {
+      let { steps } = Object.assign(
+        {
+          steps: [],
+        },
+        testDetailData.detail,
+      );
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData, testDetailId]);
+      // 判断 callTestIds 是否在 testEntityDict 缓存中
+      const callTestIds = uniq(steps.map(step => step.callTestId).filter(Boolean));
+      const testEntityDictIds = Object.keys(testEntityDictRef.current);
+      const hasNotExistedIdInDict = callTestIds.some(id => !testEntityDictIds.includes(id));
 
-  const findCard = useCallback(
+      if (hasArrayItem(callTestIds)) {
+        // 没有缓存请求
+        if (hasNotExistedIdInDict) {
+          const testEntities = await getTestEntities(
+            { id: callTestIds },
+            { include: ['reference'] },
+          );
+          const testEntityDict = keyBy(
+            testEntities.map(entity => entity.toJSON()),
+            'objectId',
+          );
+          testEntityDictRef.current = Object.assign({}, testEntityDictRef.current, testEntityDict);
+        }
+
+        steps = steps.map(step => {
+          if (!step.callTestId) return step;
+          return Object.assign(
+            { itemData: testEntityDictRef.current[step.callTestId]?.reference },
+            step,
+          );
+        });
+      }
+
+      return {
+        steps,
+      };
+    },
+    {
+      onSuccess({ steps }) {
+        setSteps(() => {
+          const prevSteps = stepsStateRef.current;
+          const firstLoad = !hasArrayItem(prevSteps);
+          // 默认 ui 状态
+          const defaultStepUIState = {
+            isExpand: true,
+            showMore: false,
+          };
+          if (firstLoad) {
+            return steps.map(step => Object.assign({}, defaultStepUIState, step));
+          }
+          return steps.map(step => {
+            // 混入 ui 状态
+            const stepState = prevSteps.find(item => item.id === step.id);
+            return Object.assign({}, stepState, step);
+          });
+        });
+      },
+      ready: Boolean(testDetailData),
+    },
+  );
+
+  const findStep = useCallback(
     (id: string) => {
       const step = steps.filter(c => `${c.id}` === id)[0];
       const stepIndex = steps.findIndex(item => item.id === step.id);
@@ -171,29 +240,26 @@ const Detail: React.FC = () => {
     [steps],
   );
 
-  const moveCard = useCallback(
-    (id: string, atIndex: number, saveSteps?: boolean) => {
-      const { step, index } = findCard(id);
-      const newSteps = update(steps, {
-        $splice: [
-          [index, 1],
-          [atIndex, 0, step],
-        ],
-      });
+  const moveStep = useCallback(
+    async (id: string, atIndex: number, saveSteps?: boolean) => {
+      const { step, index } = findStep(id);
+      const newSteps = clone(steps);
+      newSteps.splice(index, 1);
+      newSteps.splice(atIndex, 0, step);
       if (saveSteps) {
-        saveOrUpdateTestStep(newSteps, testInfo?.objectId, testDetailId).then(() => {
-          message.success('操作成功');
-          // setSteps([...newSteps]);
-          fetchData();
+        await updateTestDetail(testEntity, {
+          steps: newSteps,
         });
+        message.success('移动成功');
+        fetchData();
         return;
       }
       setSteps(newSteps);
     },
-    [findCard, steps, setSteps, fetchData, testInfo?.objectId, testDetailId],
+    [findStep, steps, setSteps, testEntity, fetchData],
   );
 
-  const expandCard = useCallback(
+  const expandStep = useCallback(
     (id?: string, isExpand?: boolean, showMore?: boolean) => {
       if (!id) {
         setSteps(
@@ -222,91 +288,69 @@ const Detail: React.FC = () => {
     [steps, setSteps],
   );
 
-  const cloneCard = useCallback(
-    (id: string) => {
-      const { step, index } = findCard(id);
-      const stepsbak = [...steps];
-      stepsbak.splice(index, 0, { ...step, id: `${step.id}1` });
-      saveOrUpdateTestStep(stepsbak, testInfo?.objectId, testDetailId).then(() => {
-        message.success('操作成功');
-        fetchData();
+  const cloneStep = useCallback(
+    async (id: string) => {
+      const { step, index } = findStep(id);
+      const newSteps = [...steps];
+      newSteps.splice(
+        index,
+        0,
+        Object.assign(getEmptyTestStep(step.callTestId), step, { id: uuid() }),
+      );
+      setSteps(newSteps);
+      await updateTestDetail(testEntity, {
+        steps: newSteps,
       });
+      message.success('克隆成功');
+      fetchData();
     },
-    [steps, findCard, testInfo, fetchData, testDetailId],
+    [findStep, steps, setSteps, testEntity, fetchData],
   );
 
-  const deleteCard = useCallback(
-    (id: string) => {
-      if (id === '-1') {
-        const { index } = findCard(id);
-        const stepsbak = [...steps];
-        stepsbak.splice(index, 1);
-        setSteps(stepsbak);
-        return;
-      }
-      const { index } = findCard(id);
-      const stepsbak = [...steps];
-      stepsbak.splice(index, 1);
-      saveOrUpdateTestStep(stepsbak, testInfo?.objectId, testDetailId)
-        .then(() => {
-          message.success('操作成功');
-          fetchData();
-        })
-        .catch(err => {
-          message.warning(`删除失败，原因：${err}`);
-        });
+  const deleteStep = useCallback(
+    async (id: string) => {
+      const { index } = findStep(id);
+      const newSteps = cloneDeep(steps);
+      newSteps.splice(index, 1);
+      await updateTestDetail(testEntity, {
+        steps: newSteps,
+      });
+      fetchData();
+      message.success('删除成功');
     },
-    [steps, setSteps, findCard, testInfo?.objectId, fetchData, testDetailId],
+    [findStep, steps, testEntity, fetchData],
   );
 
-  const addCard = useCallback(
-    (id?: string) => {
-      const hasEmptyIdStep = steps.some(item => item.id === '-1');
-      if (hasEmptyIdStep) {
-        return message.warning('含有未保存的新步骤');
-      }
-      const emptyStep: TestStep = {
-        action: '',
-        data: '',
-        result: '',
-        attachments: [],
-        customFields: [],
-        index: 0,
-        isExpand: true,
-        id: '-1',
-      };
-      const stepsbak = [...steps].filter(item => item.id !== '-1');
-      if (!id) {
-        stepsbak.splice(stepsbak.length, 0, { ...emptyStep });
-        setSteps(stepsbak);
-        return;
-      }
-      const { index } = findCard(id);
-      stepsbak.splice(index, 0, { ...emptyStep, index });
-      setSteps(stepsbak);
+  /** 新增步骤，非 callTest */
+  const addStep = useCallback(
+    async (index?: number) => {
+      const newSteps = cloneDeep(steps);
+      newSteps.splice(index ?? newSteps.length, 0, getEmptyTestStep());
+      setSteps(newSteps);
     },
-    [steps, setSteps, findCard],
+    [steps, setSteps],
   );
 
-  const saveCard = useCallback(
-    (index?: number, step?: TestStep, atIndex?: number) => {
-      let stepsbak = [...steps];
+  /** 保存步骤 */
+  const saveStep = useCallback(
+    async (index?: number, step?: TestStep, atIndex?: number) => {
+      const newSteps = cloneDeep(steps);
       // 指定保存哪个位置，如果无则保存全部
       if (step) {
-        stepsbak[index] = step;
+        newSteps[index] = step;
       }
       // 新增继承测试用例
       if (atIndex !== undefined) {
-        stepsbak = update(steps, {
-          $splice: [[atIndex, 0, step]],
-        });
+        newSteps.splice(atIndex, 0, step);
       }
-      saveOrUpdateTestStep(stepsbak, testInfo?.objectId, testDetailId).then(() => {
-        message.success('保存成功');
-        fetchData();
+      setSteps(newSteps);
+      await updateTestDetail(testEntity, {
+        steps: newSteps,
       });
+      fetchData();
+      message.success('保存成功');
     },
-    [testDetailId, fetchData, steps, testInfo?.objectId],
+    [steps, setSteps, testEntity, fetchData],
   );
 
   const callTestLen = useCallback(() => {
@@ -314,26 +358,20 @@ const Detail: React.FC = () => {
   }, [steps]);
 
   const openCallTestModal = async (index: number) => {
-    const selectedEntity = await testEntitySelectorRef.current?.open();
-    const selectedItemId = selectedEntity.reference.objectId;
+    const callTestId = await testEntitySelectorRef.current?.open();
     try {
       // 验证继承的测试用例是否又循环依赖
-      await checkHasDepsLink(testDetailId, selectedItemId);
+      await checkHasDepsLink(testDetailId, callTestId);
     } catch (err) {
       message.error(err.message);
     }
-    saveCard(
-      undefined,
-      {
-        callTestId: selectedItemId,
-      },
-      index,
-    );
+
+    saveStep(undefined, getEmptyTestStep(callTestId), index);
   };
 
   const { run } = useDebounceFn(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      if (!stepsBak.length) {
+      if (!steps.length) {
         return;
       }
       if (!e.target.value) {
@@ -342,13 +380,13 @@ const Detail: React.FC = () => {
       }
       const coverSteps = [];
       const val = e.target.value;
-      stepsBak?.forEach(item => {
-        const str = `${item?.action} ${item?.data} ${item?.result} ${item?.itemObject?.name} ${item?.itemObject?.key}`;
+      steps?.forEach(item => {
+        const str = `${item?.action} ${item?.data} ${item?.result} ${item?.itemData?.name} ${item?.itemData?.key}`;
         if (str.indexOf(val) >= 0) {
           coverSteps.push(item);
         }
       });
-      setSteps(coverSteps);
+      setSteps(coverSteps, true);
       setSearch(true);
     },
     {
@@ -357,13 +395,13 @@ const Detail: React.FC = () => {
   );
 
   const actionCard: IActionCard = {
-    moveCard,
-    findCard,
-    cloneCard,
-    expandCard,
-    deleteCard,
-    addCard,
-    saveCard,
+    moveStep,
+    findStep,
+    cloneStep,
+    expandStep,
+    deleteStep,
+    addStep,
+    saveStep,
     openCallTestModal,
   };
 
@@ -390,7 +428,6 @@ const Detail: React.FC = () => {
       <div className={css('detail')}>
         <TestEntitySelectorModal
           isSingleMode
-          needFillValue
           title="请选择继承测试用例"
           testType={TestType.TestDetail}
           actionRef={testEntitySelectorRef}
@@ -415,25 +452,25 @@ const Detail: React.FC = () => {
                 <Tooltip title="全部展开" placement="bottom">
                   <Button
                     icon={<ArrowsAltOutlined />}
-                    onClick={() => expandCard(undefined, true, true)}
+                    onClick={() => expandStep(undefined, true, true)}
                   />
                 </Tooltip>
               </div>
               <div className={css('item')}>
                 <Tooltip title="全部收起" placement="bottom">
-                  <Button icon={<ShrinkOutlined />} onClick={() => expandCard()} />
+                  <Button icon={<ShrinkOutlined />} onClick={() => expandStep()} />
                 </Tooltip>
               </div>
               <div className={css('item')}>
                 <Tooltip title="收起更多信息" placement="bottom">
-                  <Button icon={<CloseMore />} onClick={() => expandCard(undefined, true, false)} />
+                  <Button icon={<CloseMore />} onClick={() => expandStep(undefined, true, false)} />
                 </Tooltip>
               </div>
               <Dropdown
                 className={css('add-step')}
                 overlay={
                   <Menu>
-                    <Menu.Item key="1" onClick={() => addCard()}>
+                    <Menu.Item key="1" onClick={() => addStep()}>
                       新增步骤
                     </Menu.Item>
                     <Menu.Item key="2" onClick={() => openCallTestModal(steps.length)}>
@@ -453,7 +490,7 @@ const Detail: React.FC = () => {
             {!search ? <BlockOutlined /> : null}
             <span>
               {search
-                ? `显示${stepsBak.length}个步骤中的${steps.length}个`
+                ? `显示${steps.length}个步骤中的${steps.length}个`
                 : `当前用例调用 ${callTestLen()} 个用例`}
             </span>
           </div>
