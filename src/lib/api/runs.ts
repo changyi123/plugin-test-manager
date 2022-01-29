@@ -11,36 +11,13 @@ import {
 import { pointerTransfer } from '@/lib/utils/helper';
 import series from 'async/series';
 import { useRequest } from 'ahooks';
-import { IRunDetail } from '@/pages/run';
 import { Status, TestEntity } from '@/lib/types/Test';
 import { getItemByIQL } from '@/lib/api/proxima';
-import _, { isEqual, pick, flattenDeep, keyBy } from 'lodash';
+import _, { isEqual, pick, keyBy } from 'lodash';
 import { hasArrayItem } from '@/lib/utils/helper';
 import { compactStepModel } from '@/lib/utils/modelTransfer';
 
 type TestRunEntity = TestEntity<TestType.TestRun>;
-
-export const updateDetailsStatusById = (runId: string): Promise<any> => {
-  return new Promise(resolve => {
-    //拿到test
-    const query = new Parse.Query(Test);
-    query.equalTo('objectId', runId);
-    query.first().then(res => {
-      const status = res.attributes?.status;
-      //detail
-      const detail = res.attributes?.runReferenceDetail;
-      const detailStatus = detail.attributes?.status ?? 'TODO';
-      /* let change = status != detailStatus; */
-      detail.set('status', status);
-      detail.save().then(res => {
-        resolve({
-          success: true,
-          data: res,
-        });
-      });
-    });
-  });
-};
 
 export const GetTestRunsById = (
   itemId: string,
@@ -91,27 +68,6 @@ export const GetTestRunsById = (
         },
       )
       .catch(() => {});
-  });
-};
-
-export const GetWorkspaceList = (): Promise<ICommonRes> => {
-  return new Promise((resolve, reject) => {
-    const query = new Parse.Query(Workspace).include('workspaceScheme.itemTypeScheme').limit(999);
-    query.find().then(
-      res => {
-        resolve({
-          success: true,
-          data: res?.map(item => item.toJSON()),
-        });
-      },
-      err => {
-        reject({
-          success: false,
-          data: { ...err },
-          message: err,
-        });
-      },
-    );
   });
 };
 
@@ -443,93 +399,6 @@ export const CreateTestExecutionWithItemModal = (
   });
 };
 
-export const GetTestExecutionList = (name?: string): Promise<ICommonRes> => {
-  return new Promise((resolve, reject) => {
-    const testExeQuery = new Parse.Query(Test);
-    testExeQuery.equalTo('type', TestType.TestExecution);
-    if (name) {
-      const itemQuery = new Parse.Query(Item);
-      itemQuery.contains('name', name);
-      testExeQuery.matchesQuery('reference', itemQuery);
-      testExeQuery.include('reference');
-    }
-    testExeQuery.find().then(
-      res => {
-        resolve({
-          success: true,
-          data: res?.map(item => item.toJSON()),
-        });
-      },
-      err => {
-        reject({
-          success: false,
-          data: { ...err },
-          message: err,
-        });
-      },
-    );
-  });
-};
-
-export const GetTestRunDetail = (testId: string): Promise<ICommonRes> => {
-  return new Promise((resolve, reject) => {
-    const testRun = new Parse.Query(Test);
-    testRun.equalTo('type', TestType.TestRun);
-    testRun.equalTo('objectId', testId);
-    testRun.include('runReferenceDetail');
-    testRun.first().then(
-      async res => {
-        const itemId = res?.toJSON()?.runReferenceDetail?.reference?.objectId;
-        const {
-          items: [item],
-        } = await getItemByIQL({ itemId });
-        const testRunDetail = res.toJSON();
-        const defectList = [];
-        let notRepeatNum = 0;
-        const obj = {};
-        testRunDetail?.runDetail?.defectItemIds?.forEach((item: string) => {
-          defectList.push({
-            label: '全局',
-            value: item,
-          });
-          if (!obj[item]) {
-            obj[item] = true;
-            notRepeatNum++;
-          }
-        });
-        testRunDetail?.runDetail?.runs?.steps?.forEach((item, index) => {
-          item?.defectItemIds?.forEach((item2: string) => {
-            defectList.push({
-              label: `步骤${index + 1}`,
-              value: item2,
-            });
-            if (!obj[item2]) {
-              obj[item2] = true;
-              notRepeatNum++;
-            }
-          });
-        });
-        resolve({
-          success: true,
-          data: {
-            ...res.toJSON(),
-            defectList,
-            notRepeatNum,
-            itemDetail: item,
-          },
-        });
-      },
-      err => {
-        reject({
-          success: false,
-          data: { ...err },
-          message: err,
-        });
-      },
-    );
-  });
-};
-
 const cleanSteps = (steps?: any[]) => {
   if (!steps) {
     return [];
@@ -552,80 +421,6 @@ const cleanSteps = (steps?: any[]) => {
   });
 
   return stepsBak;
-};
-
-const cleanRunDetail = (detail: any) => {
-  const detailBak = { ...detail };
-  const steps = [];
-  detailBak?.runs?.steps?.forEach(item => {
-    steps.push(
-      pick(item, [
-        'action',
-        'actualResult',
-        'attachments',
-        'comment',
-        'customFields',
-        'data',
-        'result',
-        'status',
-        'defectIds',
-      ]),
-    );
-  });
-  detailBak.runs.steps = steps;
-  return detailBak;
-};
-
-// 更新测试运行中的步骤
-export const updateTestStep = (
-  detail: IRunDetail,
-  testStepId?: string,
-  checkStatus?: boolean,
-): Promise<ICommonRes> => {
-  return new Promise((resolve, reject) => {
-    const step = Test.createWithoutData(testStepId);
-    const runDetail = cleanRunDetail(detail);
-    const updateObj: {
-      runDetail: IRunDetail;
-      status?: string;
-    } = {
-      runDetail,
-    };
-    if (checkStatus && detail?.runs?.steps?.length) {
-      // 有一个失败
-      const hasFail = detail?.runs?.steps.some(item => item.status === 'FAILED');
-      // 全部pass
-      const allPass = detail?.runs?.steps.filter(item => item.status === 'PASSED');
-      // 全部todo
-      const allTodo = detail?.runs?.steps.filter(item => item.status === 'TODO');
-
-      if (hasFail) {
-        updateObj.status = 'FAILED';
-      } else if (allPass.length === detail?.runs?.steps?.length) {
-        updateObj.status = 'PASSED';
-      } else if (allTodo.length === detail?.runs?.steps?.length) {
-        updateObj.status = 'TODO';
-      } else {
-        updateObj.status = 'EXECUTING';
-      }
-    }
-    step.set(updateObj);
-    step.save().then(
-      res => {
-        resolve({
-          success: true,
-          data: { ...res },
-        });
-      },
-      err => {
-        reject({
-          success: false,
-          data: { ...err },
-          message: err,
-        });
-      },
-    );
-  });
 };
 
 export const toggleTestRunStatus = (testId: string, status: Status): Promise<ICommonRes> => {
@@ -682,9 +477,9 @@ interface IItemLink {
   linkType: string;
 }
 
-export const createItemLink = async (links: IItemLink | Array<IItemLink>) => {
+// 获取所有已存在的 itemLink
+const getExistedItemLinks = async (links: IItemLink | Array<IItemLink>) => {
   links = Array.isArray(links) ? links : [links];
-
   const itemLinkAttrs = links.map(link => ({
     destination: pointerTransfer(Item, link.destination),
     source: pointerTransfer(Item, link.source),
@@ -702,14 +497,29 @@ export const createItemLink = async (links: IItemLink | Array<IItemLink>) => {
   // 查询已经存在的关联
   const existedItemLinks = await new Parse.Query.or(...subQueries).find();
 
+  return existedItemLinks;
+};
+
+export const createItemLink = async (links: IItemLink | Array<IItemLink>) => {
+  links = Array.isArray(links) ? links : [links];
+
+  const itemLinkAttrs = links.map(link => ({
+    destination: pointerTransfer(Item, link.destination),
+    source: pointerTransfer(Item, link.source),
+    linkType: pointerTransfer(ItemLinkType, link.linkType),
+  }));
+
+  const existedItemLinks = await getExistedItemLinks(links);
+
   // 筛选出需要添加的事项关联
   const needCreateItemLinkAttrs = existedItemLinks.reduce((res, parseObj) => {
     const itemLink = parseObj.toJSON();
     const needComparedValues = {
-      destination: itemLink.destination.objectId,
       source: itemLink.source.objectId,
       linkType: itemLink.linkType.objectId,
+      destination: itemLink.destination.objectId,
     };
+    console.log('needComparedValues', needComparedValues);
     return res.filter(
       item =>
         !isEqual(needComparedValues, {
@@ -719,6 +529,8 @@ export const createItemLink = async (links: IItemLink | Array<IItemLink>) => {
         }),
     );
   }, itemLinkAttrs);
+
+  console.log('needCreateItemLinkAttrs', existedItemLinks, needCreateItemLinkAttrs);
 
   return Parse.Object.saveAll(needCreateItemLinkAttrs.map(attr => new ItemLink(attr)));
 };
@@ -783,19 +595,21 @@ export const deleteDefect = async (
   testId: string,
   defectItemIds: string[],
 ) => {
-  const testRunQuery = new Parse.Query(Test);
-  testRunQuery.equalTo('objectId', testId);
-  testRunQuery.include('runReferenceDetail');
-  const res = await testRunQuery.first();
+  const res = await new Parse.Query(Test)
+    .equalTo('objectId', testId)
+    .include('runReferenceDetail')
+    .first();
   const run = res.toJSON();
   // 测试用例的事项ID
   const testItemId = run?.runReferenceDetail?.reference?.objectId;
-  const { list } = await getTestEntitiesByRelation(
+  const {
+    list: [testExecution],
+  } = await getTestEntitiesByRelation(
     TestRelationType.ExecutionRelRun,
     { to: res },
     { fillItemData: true },
   );
-  const testExcItemId = list[0]?.reference?.objectId;
+  const testExcItemId = testExecution?.reference?.objectId;
   const itemLink: Array<IItemLink> = [];
   defectItemIds.forEach(item => {
     // 测试用例与缺陷关联
@@ -811,16 +625,8 @@ export const deleteDefect = async (
       destination: item,
     });
   });
-  const itemLinkQuery = [];
-  itemLink.forEach(item => {
-    const query = new Parse.Query(ItemLink);
-    query.equalTo('linkType', pointerTransfer(ItemLinkType, itemLinkTypeId));
-    query.equalTo('destination', pointerTransfer(Item, item.destination));
-    query.equalTo('source', pointerTransfer(Item, item.source));
-    itemLinkQuery.push(query);
-  });
-  const mainQuery = Parse.Query.or(...itemLinkQuery);
-  const results = await mainQuery.find();
+
+  const results = await getExistedItemLinks(itemLink);
 
   const deleteDefectItemIds: string[] = [];
   itemLink.forEach(item => {
@@ -878,12 +684,21 @@ export const fetchDefectList = async (
   });
 };
 
-// 更新或者保存测试用例
+export const getItemLinkRelation = async (itemId: string) => {
+  const query = new Parse.Query(ItemLink);
+  query.equalTo('source', pointerTransfer(Item, itemId));
+  query.include(['destination.workspace', 'destination.itemType', 'destination.status']);
+  const res = await query.find();
+  return res.map(item => item.toJSON());
+};
+
+/** 更新测试运行 */
 export const updateTestRun = async (
   testEntity: Parse.Object<TestRunEntity>,
   params: {
-    steps?: Record<string, any>[];
     status?: Status['key'];
+    steps?: Record<string, any>[];
+    runDetail?: Partial<TestRunEntity['runDetail']>;
   },
 ) => {
   const testEntityData = testEntity.toJSON();
@@ -897,6 +712,8 @@ export const updateTestRun = async (
         steps,
       },
     });
+
+    // TODO: 引入 status config 配置
 
     // 有一个失败
     const hasFail = steps.some(item => item.status === 'FAILED');
@@ -920,17 +737,13 @@ export const updateTestRun = async (
     Object.assign(needUpdateAttrs, { status: params.status });
   }
 
-  console.log('needUpdateAttrs', needUpdateAttrs);
+  if (params.runDetail) {
+    Object.assign(needUpdateAttrs, {
+      runDetail: { ...testEntityData.runDetail, ...params.runDetail },
+    });
+  }
 
   return testEntity.save(needUpdateAttrs);
-};
-
-export const getItemLinkRelation = async (itemId: string) => {
-  const query = new Parse.Query(ItemLink);
-  query.equalTo('source', pointerTransfer(Item, itemId));
-  query.include(['destination.workspace', 'destination.itemType', 'destination.status']);
-  const res = await query.find();
-  return res.map(item => item.toJSON());
 };
 
 /** 从测试执行中获取测试步骤 */

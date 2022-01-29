@@ -2,7 +2,7 @@ import React, { useCallback } from 'react';
 import { Row, Col, message } from '@osui/ui';
 import { StatusBadge } from '@/components/common/Status';
 import FieldsInput from '@/pages/panel/TestDetail/TestDetailPanel/components/FieldsInput';
-import { updateTestRun, updateDetailsStatusById } from '@/lib/api/runs';
+import { updateTestRun } from '@/lib/api/runs';
 import SmallDefectList from './SmallDefectList';
 import AddDefectBtn from '../components/AddDefectBtn';
 import { Step } from '@/lib/types/Test';

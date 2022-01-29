@@ -26,7 +26,7 @@ interface ItemListProps {
     value: string;
   }>;
   testId: string;
-  save?: () => (value: string[], refresh?: boolean) => void;
+  save?: (id: string[]) => void;
 }
 
 function mergeData(items: any, defects: ItemListProps['defects']) {
@@ -69,15 +69,12 @@ const ItemList: React.FC<ItemListProps> = props => {
 
   mergeData(items, defects);
 
-  const handleDeleteRelation = (itemId: string) => {
-    deleteDefect(TestToDefect, testId, [itemId]).then(() => {
-      message.success('删除成功');
-      const index = items.findIndex(item => item.objectId === itemId);
-      const itemIdsBak = [...items];
-      itemIdsBak.splice(index, 1);
-      const saveList = itemIdsBak.map(item => item.objectId);
-      save && save()(saveList, true);
-    });
+  const handleDeleteRelation = async (itemId: string) => {
+    await deleteDefect(TestToDefect, testId, [itemId]);
+    message.success('删除成功');
+    const newItems = items.filter(item => item.objectId !== itemId);
+    const defectItemIds = newItems.map(item => item.objectId);
+    save?.(defectItemIds);
   };
 
   return (

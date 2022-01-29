@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback } from 'react';
 import { Empty, message } from '@osui/ui';
 import ItemList from './components/ItemList';
 import StepList, { TestStep } from './components/StepList';
@@ -14,7 +14,7 @@ import RelationTable from './components/RelationTable';
 import { TestEntity } from '@/lib/types/Test';
 import { TestType } from '@/lib/constants';
 import { getTestEntities } from '@/lib/api/common';
-import { updateTestStep, getTestStepsByTestDetailId } from '@/lib/api/runs';
+import { updateTestRun, getTestStepsByTestDetailId } from '@/lib/api/runs';
 import { useStatusConfig } from '@/components/common/Status/hooks';
 
 import css from './index.less';
@@ -93,14 +93,15 @@ const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
         });
       });
 
-      return { ...testRunData, testRunEntity, defectList };
+      // 测试执行关联的测试用例事项数据
+      const runRefTestDetailItemData = testRunData.runReferenceDetail.reference;
+
+      return { ...testRunData, runRefTestDetailItemData, testRunEntity, defectList };
     },
     {
       ready: Boolean(testId),
     },
   );
-  const [refreshNum, setRefreshNum] = useState(0);
-
   const handleStatusChange = useCallback(
     async (testId, status) => {
       await toggleTestRunStatus(testId, status);
@@ -123,23 +124,20 @@ const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
     return <Empty description="测试执行为空"></Empty>;
   }
 
-  const { itemDetail, runDetail, status, objectId, defectList, testRunEntity } = runDetailData;
+  const { runRefTestDetailItemData, runDetail, status, objectId, defectList, testRunEntity } =
+    runDetailData;
 
   // 当前测试执行已经关联的缺陷 id
   const allRelationDefectIds = defectList.map(item => item.value);
 
   const saveItem = (key: string) => {
-    return (value, refreshFun?: boolean) => {
-      const runDetailBak = { ...runDetail };
-      runDetailBak[key] = value;
-      // saveList(itemBak, index);
-      updateTestStep(runDetailBak, objectId).then(() => {
-        /* message.success('修改成功'); */
-        if (refreshFun) {
-          setRefreshNum(refreshNum + 1);
-        }
-        refresh && refresh();
+    return async value => {
+      await updateTestRun(testRunEntity, {
+        runDetail: {
+          [key]: value,
+        },
       });
+      handleStepRefresh();
     };
   };
 
@@ -147,7 +145,7 @@ const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
     <Loading loading={loading}>
       <div className={css('run')}>
         <div className={css('run__topic')}>
-          <div className={css('run__topic__label')}>{itemDetail?.name}</div>
+          <div className={css('run__topic__label')}>{runRefTestDetailItemData?.name}</div>
           <div className={css('run__topic__status')}>
             <StatusBadge
               showBg={true}
@@ -163,20 +161,20 @@ const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
               <CustomCollapse title="总结">
                 <CustomCollapse.Panel
                   title="缺陷"
-                  // num={notRepeatNum}
+                  num={runDetail.defectItemIds.length}
                   titleExtra={
                     <AddDefectBtn
                       testId={objectId}
                       currentDefectIds={runDetail.defectItemIds}
                       allRelationDefectIds={allRelationDefectIds}
-                      save={val => saveItem('defectItemIds')(val, true)}
+                      save={val => saveItem('defectItemIds')(val)}
                     />
                   }
                 >
                   <ItemList
                     defects={defectList}
                     testId={objectId}
-                    save={() => saveItem('defectItemIds')}
+                    save={val => saveItem('defectItemIds')(val)}
                   />
                 </CustomCollapse.Panel>
 
@@ -193,7 +191,10 @@ const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
             <div className={css('run__around__collapse__item')}>
               <CustomCollapse title="测试用例详情">
                 <CustomCollapse.Panel title="测试用例关联事项" num={defectList.length}>
-                  <RelationTable itemId={itemDetail?.objectId} actionRef={relationTableActionRef} />
+                  <RelationTable
+                    itemId={runRefTestDetailItemData?.objectId}
+                    actionRef={relationTableActionRef}
+                  />
                 </CustomCollapse.Panel>
 
                 <CustomCollapse.Panel title="用例步骤" num={runDetail?.steps?.length ?? 0}>

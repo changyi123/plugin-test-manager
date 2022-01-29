@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Table } from '@osui/ui';
 import { ColumnsType } from 'antd/es/table';
 import { useRequest } from 'ahooks';
@@ -41,6 +41,8 @@ const RelationTable: React.FC<IRelationTable> = props => {
   const { itemId, actionRef } = props;
   //通过事项id，获取关联数据
   const { loading, data, error, refresh } = useRequest(() => getItemLinkRelation(itemId));
+
+  console.log('data', data);
 
   React.useImperativeHandle(actionRef, () => ({ refresh }));
 

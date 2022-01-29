@@ -1,9 +1,7 @@
 import React from 'react';
 import { uniqueId } from 'lodash';
 import { Button, Space, Typography, message, Tooltip, Divider, Popconfirm } from '@osui/ui';
-// import AddTestExecutionModal from './components/AddTestExecutionModal';
 import { InfoCircleOutlined } from '@ant-design/icons';
-// import ExtendTestExecutionModal from './components/ExtendTestExecutionModal';
 import PanelTable, { ActionType } from '@/components/panel/PanelTable';
 import { ColumnsType } from 'antd/es/table';
 import { getRootContainer } from '@/lib/utils/helper';
@@ -155,19 +153,9 @@ const Runs: React.FC = () => {
           <PanelTable
             renderActions={() => (
               <div className={css('runs__new')}>
-                <Space>
-                  {/* <AddTestExecutionModal
-                trigger={<Button type="primary">新增测试执行</Button>}
-                itemId={itemId}
-              /> */}
-                  <Button type="primary" onClick={() => createTestExecution()}>
-                    新增测试执行轮次
-                  </Button>
-                  {/* <ExtendTestExecutionModal
-              trigger={<Button type="primary">继承测试执行</Button>}
-              itemId={itemId}
-            /> */}
-                </Space>
+                <Button type="primary" onClick={() => createTestExecution()}>
+                  新增测试执行轮次
+                </Button>
               </div>
             )}
             actionRef={tableActionRef}
