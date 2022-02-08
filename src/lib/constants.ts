@@ -32,7 +32,7 @@ export enum TestType {
 // 测试实体类型关联关系 (from)Rel(to)
 export enum TestRelationType {
   // 测试用例关联测试执行（1:1）
-  DetailRelRun = 'DetailRelRun',
+  DetailRelExecution = 'DetailRelExecution',
   // 测试执行轮次关联测试执行(1:N)
   ExecutionRelRun = 'ExecutionRelRun',
   // 测试计划关联测试用例(1:N)

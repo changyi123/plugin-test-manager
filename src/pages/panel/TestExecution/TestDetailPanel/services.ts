@@ -109,34 +109,6 @@ export const getItemByTestId = (testIds: string[]): Promise<Array<Parse.Object>>
   });
 };
 
-// 将测试run添加至测试执行
-export const addTestRunToExecution = async (params: {
-  testExecution: Parse.Object;
-  testIds: string[];
-}) => {
-  const itemObjs = await getItemByTestId(params.testIds);
-  const itemIds = itemObjs.map(item => item.toJSON()?.reference?.objectId);
-  return new Promise((resolve, reject) => {
-    const callTestPromises = itemIds.map(item => callback => createTestRunByItemId(item, callback));
-
-    series(callTestPromises)
-      .then((res: Array<Parse.Object>) => {
-        const relations = res?.map(testRunObj => ({
-          relationType: TestRelationType.ExecutionRelRun,
-          from: params.testExecution,
-          to: testRunObj.id,
-        }));
-        return createTestRelation(relations);
-      })
-      .then(res => {
-        resolve(res);
-      })
-      .catch(() => {
-        reject({});
-      });
-  });
-};
-
 export const createTestRunByItemId = async (
   itemId: string,
   callback?: (nil: null, data: any) => void,

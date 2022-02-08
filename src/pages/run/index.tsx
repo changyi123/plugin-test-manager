@@ -161,7 +161,7 @@ const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
               <CustomCollapse title="总结">
                 <CustomCollapse.Panel
                   title="缺陷"
-                  num={runDetail.defectItemIds.length}
+                  num={runDetail.defectItemIds?.length}
                   titleExtra={
                     <AddDefectBtn
                       testId={objectId}

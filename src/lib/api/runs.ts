@@ -1,5 +1,5 @@
 import Parse from '@/lib/parse';
-import { Test, Item, Workspace, ItemType, ItemLink, ItemLinkType } from '../models';
+import { Test, Item, ItemType, ItemLink, ItemLinkType } from '../models';
 import { ICommonRes } from './detail';
 import { TestType, TestRelationType } from '@/lib/constants';
 import {
@@ -10,66 +10,13 @@ import {
 } from '@/lib/api/common';
 import { pointerTransfer } from '@/lib/utils/helper';
 import series from 'async/series';
-import { useRequest } from 'ahooks';
 import { Status, TestEntity } from '@/lib/types/Test';
 import { getItemByIQL } from '@/lib/api/proxima';
-import _, { isEqual, pick, keyBy } from 'lodash';
+import _, { isEqual, keyBy } from 'lodash';
 import { hasArrayItem } from '@/lib/utils/helper';
 import { compactStepModel } from '@/lib/utils/modelTransfer';
 
 type TestRunEntity = TestEntity<TestType.TestRun>;
-
-export const GetTestRunsById = (
-  itemId: string,
-  queryParams?: any,
-): Promise<{ list: any; total: number }> => {
-  return new Promise((resolve, reject) => {
-    const query = new Parse.Query(Test);
-    const reference = Test.createWithoutData(itemId);
-    query.equalTo('reference', reference);
-    query.equalTo('type', TestType.TestDetail);
-    query
-      .first()
-      .then(
-        res => {
-          const runReferenceDetail = Test.createWithoutData(res.id);
-          const testRunQuery = new Parse.Query(Test);
-          testRunQuery.equalTo('type', TestType.TestRun);
-          testRunQuery.equalTo('runReferenceDetail', runReferenceDetail);
-          testRunQuery.find().then(async testRunRes => {
-            // const testRuns = testRunRes?.map(item => item.toJSON());
-            const { list: data, total } = await getTestEntitiesByRelation(
-              TestRelationType.ExecutionRelRun,
-              { to: testRunRes },
-              { fillItemData: true, queryParams },
-            );
-            const dataBak = [];
-            data.forEach((item, index) => {
-              item.referenceId = item.reference?.objectId;
-              item.referenceKey = item.reference?.key;
-              item.referenceName = item.reference?.name;
-              item.key = index + 1;
-              item.status = testRunRes[index].toJSON().status;
-              item.testRunId = testRunRes[index].toJSON().objectId;
-              dataBak.push(item);
-            });
-            resolve({
-              list: dataBak,
-              total,
-            });
-          });
-        },
-        err => {
-          reject({
-            success: false,
-            data: { ...err },
-            message: err,
-          });
-        },
-      )
-      .catch(() => {});
-  });
-};
 
 export const FetchAllTestStepByTestId = (
   id: string,
@@ -256,171 +203,78 @@ export const checkHasDepsLink = async (
   });
 };
 
-interface CreateTestExecutionReq {
-  workspaceId: string;
-  workspaceKey: string;
-  itemId: string;
-  itemTypeId: string;
-  name: string;
-}
+/** 创建测试执行实体，并将测试执行与测试执行轮次，测试用例与测试执行轮次关联 */
+export const createTestRunAndRelation = async (_testExecutionEntity, _testDetailEntity) => {
+  // 转换测试实体
+  const testExecutionEntity = pointerTransfer(Test, _testExecutionEntity);
+  const testDetailEntities = (
+    Array.isArray(_testDetailEntity) ? _testDetailEntity : [_testDetailEntity]
+  ).map(item => pointerTransfer(Test, item));
 
-let workspaceKeyBak = '';
-let itemIdBak = '';
+  const testExecutionData = testExecutionEntity.toJSON();
 
-export const CreateTestExecutionWithTestRun = () => {
-  let globalLoading = false;
-  // 1.创建一个事项
-  // 2.根据测试用例的itemId拿到全部测试步骤
-  // 3.创建TestRun和TestExecution
-  // 4.创建TestRun和TestExecution的关联关系
-  const {
-    run,
-    data: itemForTestExecution,
-    loading: startLoading,
-  } = useRequest(
-    ({ workspaceId, workspaceKey, itemId, name, itemTypeId }: CreateTestExecutionReq) => {
-      workspaceKeyBak = workspaceKey;
-      itemIdBak = itemId;
-      const workspaceObj = Workspace.createWithoutData(workspaceId);
-      const itemTypeObj = ItemType.createWithoutData(itemTypeId);
-      const itemQuery = new Item();
-      itemQuery.set({
-        itemType: itemTypeObj,
-        workspace: workspaceObj,
-        name,
-      });
-      return itemQuery.save();
+  // 批量创建，在测试执行页面存在批量创建多个测试详情实体
+  const needCreateTestRuns = testDetailEntities.map(testDetail => ({
+    type: TestType.TestRun,
+    workspaceKey: testExecutionData?.reference?.workspace?.key,
+    fields: {
+      runReferenceDetail: testDetail,
     },
-    {
-      manual: true,
-    },
-  );
-  if (startLoading) {
-    globalLoading = true;
-  }
+  }));
 
-  const { data: testRuns } = useRequest(() => FetchAllTestStepByTestId(itemIdBak), {
-    ready: !!itemForTestExecution,
-  });
+  const testRunEntities = await createTestEntities(needCreateTestRuns);
 
-  const { data: testRunObj } = useRequest(
-    () =>
-      createTestEntities([
-        {
-          type: TestType.TestRun,
-          workspaceKey: workspaceKeyBak,
-          fields: {
-            runDetail: {
-              runs: {
-                steps: cleanSteps(testRuns?.data?.steps),
-              },
-            },
-            runReferenceDetail: Test.createWithoutData(testRuns?.data?.objectId),
-          },
-        },
-        {
-          type: TestType.TestExecution,
-          workspaceKey: workspaceKeyBak,
-          fields: {
-            reference: Item.createWithoutData(
-              (itemForTestExecution as any)?.toJSON()?.reference?.objectId,
-            ),
-          },
-        },
-      ]),
-    {
-      ready: !!testRuns,
-    },
-  );
-
-  const { data: testRelationObj, loading } = useRequest(
-    () =>
-      createTestRelation([
-        {
-          relationType: TestRelationType.ExecutionRelRun,
-          from: testRunObj[1],
-          to: testRunObj[0],
-        },
-      ]),
-    {
-      ready: !!testRunObj,
-    },
-  );
-  if (!loading && testRelationObj) {
-    globalLoading = false;
-  }
-
-  return {
-    run,
-    loading: globalLoading,
-    data: testRelationObj,
-    // error,
-  };
+  await createTestRelation([
+    ...testDetailEntities.map(testDetailEntity => ({
+      relationType: TestRelationType.DetailRelExecution,
+      from: testDetailEntity,
+      to: testExecutionEntity,
+    })),
+    ...testRunEntities.map(testRunEntity => ({
+      relationType: TestRelationType.ExecutionRelRun,
+      from: testExecutionEntity,
+      to: testRunEntity,
+    })),
+  ]);
 };
 
-export const CreateTestExecutionWithItemModal = (
-  itemId: string,
-  testExecutionEntity: Parse.Object,
-) => {
-  return new Promise((resolve, reject) => {
-    FetchAllTestStepByTestId(itemId)
-      .then(testRuns => {
-        return createTestEntities([
+/** 获取测试用例下的所有测试执行 */
+export const getTestRunsAndExecutions = async (testDetailEntity, queryParams) => {
+  const testDetailData = testDetailEntity.toJSON();
+  const allTestExecutions = await getTestEntitiesByRelation(
+    TestRelationType.DetailRelExecution,
+    {
+      from: testDetailEntity,
+    },
+    {
+      fillItemData: true,
+      queryParams,
+      async resultTransfer(result) {
+        // 获取测试执行轮次关联的测试执行
+        const { list: allTestRuns } = await getTestEntitiesByRelation(
+          TestRelationType.ExecutionRelRun,
           {
-            type: TestType.TestRun,
-            workspaceKey: testRuns?.data?.reference?.workspace?.key,
-            fields: {
-              runDetail: {
-                runs: {
-                  steps: cleanSteps(testRuns?.data?.steps) || [],
-                },
-              },
-              runReferenceDetail: Test.createWithoutData(testRuns?.data?.objectId),
-            },
+            from: result.list.map(item => item.objectId),
           },
-        ]);
-      })
-      .then(([testRunEntity]) => {
-        return createTestRelation([
-          {
-            relationType: TestRelationType.ExecutionRelRun,
-            from: testExecutionEntity,
-            to: testRunEntity,
-          },
-        ]);
-      })
-      .then(() => {
-        resolve({});
-      })
-      .catch(err => {
-        console.error('err.aaaaamessage', err.message);
-        reject({});
-      });
-  });
-};
+        );
 
-const cleanSteps = (steps?: any[]) => {
-  if (!steps) {
-    return [];
-  }
-  const stepsBak = [];
-  steps?.forEach(item => {
-    stepsBak.push(
-      pick(item, [
-        'action',
-        'actualResult',
-        'attachments',
-        'comment',
-        'customFields',
-        'data',
-        'result',
-        'status',
-        'defectIds',
-      ]),
-    );
-  });
+        const testRunRelationDict = _.chain(allTestRuns)
+          .filter(run => run.runReferenceDetail.objectId === testDetailData.objectId)
+          .keyBy('relation.from.objectId')
+          .value();
 
-  return stepsBak;
+        return Object.assign({}, result, {
+          // 增加 relTestRun 字段
+          list: result.list.map(item => ({
+            ...item,
+            relTestRun: testRunRelationDict[item.objectId],
+          })),
+        });
+      },
+    },
+  );
+
+  return allTestExecutions;
 };
 
 export const toggleTestRunStatus = (testId: string, status: Status): Promise<ICommonRes> => {
@@ -519,7 +373,6 @@ export const createItemLink = async (links: IItemLink | Array<IItemLink>) => {
       linkType: itemLink.linkType.objectId,
       destination: itemLink.destination.objectId,
     };
-    console.log('needComparedValues', needComparedValues);
     return res.filter(
       item =>
         !isEqual(needComparedValues, {
@@ -529,8 +382,6 @@ export const createItemLink = async (links: IItemLink | Array<IItemLink>) => {
         }),
     );
   }, itemLinkAttrs);
-
-  console.log('needCreateItemLinkAttrs', existedItemLinks, needCreateItemLinkAttrs);
 
   return Parse.Object.saveAll(needCreateItemLinkAttrs.map(attr => new ItemLink(attr)));
 };
@@ -684,6 +535,7 @@ export const fetchDefectList = async (
   });
 };
 
+/** 获取事项关联 */
 export const getItemLinkRelation = async (itemId: string) => {
   const query = new Parse.Query(ItemLink);
   query.equalTo('source', pointerTransfer(Item, itemId));

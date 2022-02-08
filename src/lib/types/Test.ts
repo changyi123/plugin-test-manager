@@ -37,6 +37,7 @@ export type TestEntity<TTestType extends TestType = TestType.TestDetail> =
     ? Omit<BaseTestEntity, 'status' | 'detail' | 'runDetail' | 'runReferenceDetail'>
     : BaseTestEntity;
 
+/** 测试用例状态 */
 export type Status = {
   color: string;
   description: string;

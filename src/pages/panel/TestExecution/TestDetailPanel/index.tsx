@@ -4,13 +4,12 @@ import { DownOutlined } from '@ant-design/icons';
 import { TestType, TestRelationType } from '@/lib/constants';
 import PanelTable, { ActionType } from '@/components/panel/PanelTable';
 import DropDownButton from '@/components/panel/DropDownButton';
-import { toggleTestRunStatus } from '@/lib/api/runs';
+import { toggleTestRunStatus, createTestRunAndRelation } from '@/lib/api/runs';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import { getTestEntitiesByRelation, removeTestRelations } from '@/lib/api/common';
 import TestEntitySelectorModal, {
   ActionType as SelectorActionType,
 } from '@/components/panel/TestEntitySelectorModal';
-import { addTestRunToExecution } from './services';
 import TestRunModal from '@/pages/run/Modal';
 import { getRootContainer } from '@/lib/utils/helper';
 import { StatusBadge } from '@/components/common/Status';
@@ -157,37 +156,24 @@ const Test = () => {
     return [
       {
         title: '已存在的测试用例',
-        onClick() {
-          selectorModalRef.current.open({
+        async onClick() {
+          const selectedTestDetailIds = await selectorModalRef.current.open({
             testType: TestType.TestDetail,
           });
+
+          await createTestRunAndRelation(testEntity, selectedTestDetailIds);
+
+          refreshDepData();
         },
       },
     ];
-  }, []);
-
-  // 添加测试用例添加到测试执行
-  const addTestDetailToPlan = React.useCallback(
-    async testIds => {
-      if (testIds.length) {
-        addTestRunToExecution({
-          testExecution: testEntity,
-          testIds,
-        }).then(() => {
-          refreshDepData();
-        });
-        return;
-      }
-    },
-    [refreshDepData, testEntity],
-  );
+  }, [refreshDepData, testEntity]);
 
   return (
     <div className={cx('test')}>
       <TestEntitySelectorModal
-        title="添加测试用例到当前测试执行"
-        onSelect={addTestDetailToPlan}
         actionRef={selectorModalRef}
+        title="添加测试用例到当前测试执行"
         ignoreTestEntityIds={relTestDetailIds}
       />
 
