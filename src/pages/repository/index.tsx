@@ -152,6 +152,7 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
       <header className={cx('header')}>测试用例仓库</header>
       <div className={cx('content')}>
         <ResizableBox
+          axis="x"
           width={300}
           height={height}
           className={cx('left')}

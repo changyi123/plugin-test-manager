@@ -206,23 +206,25 @@ const Detail: React.FC = () => {
     },
     {
       onSuccess({ steps }) {
-        setSteps(() => {
-          const prevSteps = stepsStateRef.current;
-          const firstLoad = !hasArrayItem(prevSteps);
-          // 默认 ui 状态
-          const defaultStepUIState = {
-            isExpand: true,
-            showMore: false,
-          };
-          if (firstLoad) {
-            return steps.map(step => Object.assign({}, defaultStepUIState, step));
-          }
-          return steps.map(step => {
-            // 混入 ui 状态
-            const stepState = prevSteps.find(item => item.id === step.id);
-            return Object.assign({}, stepState, step);
-          });
-        });
+        setSteps(
+          (() => {
+            const prevSteps = stepsStateRef.current;
+            const firstLoad = !hasArrayItem(prevSteps);
+            // 默认 ui 状态
+            const defaultStepUIState = {
+              isExpand: true,
+              showMore: false,
+            };
+            if (firstLoad) {
+              return steps.map(step => Object.assign({}, defaultStepUIState, step));
+            }
+            return steps.map(step => {
+              // 混入 ui 状态
+              const stepState = prevSteps.find(item => item.id === step.id);
+              return Object.assign({}, stepState, step);
+            });
+          })(),
+        );
       },
       ready: Boolean(testDetailData),
     },
@@ -361,9 +363,10 @@ const Detail: React.FC = () => {
     const callTestId = await testEntitySelectorRef.current?.open();
     try {
       // 验证继承的测试用例是否又循环依赖
-      await getTestStepsByTestDetailId(callTestId);
+      await getTestStepsByTestDetailId(callTestId, testDetailId);
     } catch (err) {
-      message.error(err.message);
+      message.error(`不能继承该测试用例：${err.message}`);
+      return;
     }
 
     saveStep(undefined, getEmptyTestStep(callTestId), index);
@@ -371,18 +374,18 @@ const Detail: React.FC = () => {
 
   const { run } = useDebounceFn(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      if (!steps.length) {
+      if (!stepsStateRef.current?.length) {
         return;
       }
-      if (!e.target.value) {
+      const inputVal = e.target.value;
+      if (!inputVal) {
         fetchData();
         return;
       }
       const coverSteps = [];
-      const val = e.target.value;
-      steps?.forEach(item => {
+      stepsStateRef.current?.forEach(item => {
         const str = `${item?.action} ${item?.data} ${item?.result} ${item?.itemData?.name} ${item?.itemData?.key}`;
-        if (str.indexOf(val) >= 0) {
+        if (str.indexOf(inputVal) >= 0) {
           coverSteps.push(item);
         }
       });

@@ -69,7 +69,7 @@ const Runs: React.FC = () => {
               target="_blank"
               href={`/osc/workspaces/${itemData?.workspace?.key}/item/${itemData?.key}`}
             >
-              {itemData?.name}
+              {itemData?.key}
             </Typography.Link>
             <div>{itemData?.name}</div>
           </Space>
@@ -125,13 +125,9 @@ const Runs: React.FC = () => {
   ];
 
   const createTestExecution = async () => {
-    const token = uniqueId('TestExecution');
-    const { testEntity: testExecutionEntity, extraData } = await createItemUseModal({
+    const { testEntity: testExecutionEntity } = await createItemUseModal({
       type: TestType.TestExecution,
-      extraData: { token },
     });
-    // token 不相同则不创建关联
-    if (extraData.token !== token) return;
     // 创建测试执行实体并关联
     await createTestRunAndRelation(testExecutionEntity, testDetailEntity);
     tableActionRef.current.refresh();

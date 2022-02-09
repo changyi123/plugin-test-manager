@@ -124,8 +124,14 @@ const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
     return <Empty description="测试执行为空"></Empty>;
   }
 
-  const { runRefTestDetailItemData, runDetail, status, objectId, defectList, testRunEntity } =
-    runDetailData;
+  const {
+    runRefTestDetailItemData,
+    runDetail = {},
+    status,
+    objectId,
+    defectList,
+    testRunEntity,
+  } = runDetailData;
 
   // 当前测试执行已经关联的缺陷 id
   const allRelationDefectIds = defectList.map(item => item.value);

@@ -19,13 +19,9 @@ const AddDefectBtn: React.FC<{
   const currentRef = React.useRef(null);
   const testEntitySelectorRef = React.useRef<ActionType>();
   const createDefect = useCallback(async () => {
-    const token = uniqueId('TestDefect');
-    const { item: defectItem, extraData } = await createItemUseModal({
+    const { item: defectItem } = await createItemUseModal({
       type: TestType.TestDefect,
-      extraData: { token },
     });
-    // token 不相同则不创建关联
-    if (extraData.token !== token) return;
 
     // 创建事项关联
     await addDefect(TestToDefect, testId, [defectItem.objectId]);

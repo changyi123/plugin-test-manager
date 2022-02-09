@@ -105,19 +105,15 @@ const Plan = () => {
       {
         title: '新建测试计划',
         async onClick() {
-          const token = uniqueId('TestPlan');
-          const {
-            testEntity: testPlanEntity,
-            extraData,
-            item,
-          } = await createItemUseModal({
+          const { testEntity: testPlanEntity, item } = await createItemUseModal({
             type: TestType.TestPlan,
-            extraData: { token },
           });
-          // token 不相同则不创建关联
-          if (extraData.token !== token) return;
 
-          await createTestPlanService(testEntity, testPlanEntity);
+          try {
+            await createTestPlanService(testEntity, testPlanEntity);
+          } catch (err) {
+            console.error(err);
+          }
 
           refreshDepData();
 

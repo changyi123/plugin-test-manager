@@ -127,7 +127,7 @@ const Test = () => {
 
     const { testEntity: testExecutionEntity, extraData } = res;
     // token 不相同则不创建关联
-    if (extraData.token !== token) return;
+    // if (extraData.token !== token) return;
 
     const testExecutionData = testExecutionEntity.toJSON();
 

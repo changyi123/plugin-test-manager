@@ -145,36 +145,41 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
   }, [testConfigParseObj]);
 
   // 事项创建成功回调
-  const itemCreateSuccessCb = React.useCallback(async params => {
-    // 缺陷类型不需要创建测试实体
-    const { extraData } = params;
+  const itemCreateSuccessCb = React.useCallback(
+    async params => {
+      // 缺陷类型不需要创建测试实体
+      const { extraData } = params;
 
-    const {
-      items: [itemData],
-    } = await getItemByIQL({ itemId: params.itemId });
-    let testEntity = null;
+      const {
+        items: [itemData],
+      } = await getItemByIQL({ itemId: params.itemId });
+      let testEntity = null;
 
-    // 禁止创建或或关联（当又空间隔离配置时且当前空间和事项创建空间不相同时）
-    const disabledCreateOrRelation =
-      testConfig.isolateTestType?.includes(extraData.type) &&
-      workspace.key !== itemData.workspace.key;
+      // 禁止创建或或关联（当又空间隔离配置时且当前空间和事项创建空间不相同时）
+      const disabledCreateOrRelation =
+        testConfig.isolateTestType?.includes(extraData.type) &&
+        workspace.key !== itemData.workspace.key;
 
-    if (disabledCreateOrRelation) return;
+      if (disabledCreateOrRelation) return;
 
-    // 缺陷类型不需要创建测试管理测试实体
-    if (extraData.type !== TestType.TestDefect) {
-      testEntity = await getOrCreateTestEntity(params.itemId, { notice: true });
-      const testEntityData = testEntity?.toJSON();
-      if (!testEntityData) return;
-      itemData.reference = testEntityData.reference;
-    }
+      // 缺陷类型不需要创建测试管理测试实体
+      if (extraData.type !== TestType.TestDefect) {
+        testEntity = await getOrCreateTestEntity(params.itemId, { notice: true });
+        const testEntityData = testEntity?.toJSON();
+        if (!testEntityData) return;
+        itemData.reference = testEntityData.reference;
+      }
 
-    eventBusRef.current.dispatch(ItemCreateSuccessEventType, {
-      extraData,
-      testEntity,
-      item: itemData,
-    });
-  }, []);
+      console.log('dispatch', extraData);
+
+      eventBusRef.current.dispatch(ItemCreateSuccessEventType, {
+        extraData,
+        testEntity,
+        item: itemData,
+      });
+    },
+    [testConfig.isolateTestType, workspace?.key],
+  );
   useOnItemCreateSuccess(itemCreateSuccessCb);
 
   const testConfigContextValues = React.useMemo<TestConfigContextType>(() => {
@@ -237,6 +242,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
           eventBusRef.current.disposer = eventBusRef.current.register(
             ItemCreateSuccessEventType,
             data => {
+              console.log('data', data);
               // 清除事件监听
               typeof eventBusRef?.current?.disposer?.unregister === 'function' &&
                 eventBusRef.current.disposer.unregister();
