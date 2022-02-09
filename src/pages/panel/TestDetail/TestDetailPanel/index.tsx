@@ -11,7 +11,7 @@ import {
 import { useDrop } from 'react-dnd';
 import StepItem from './components/List';
 import { updateTestDetail } from '@/lib/api/detail';
-import { checkHasDepsLink } from '@/lib/api/runs';
+import { getTestStepsByTestDetailId } from '@/lib/api/runs';
 import { useTestConfig } from '@/lib/hooks/useContext';
 
 import TestEntitySelectorModal, { ActionType } from '@/components/panel/TestEntitySelectorModal';
@@ -361,7 +361,7 @@ const Detail: React.FC = () => {
     const callTestId = await testEntitySelectorRef.current?.open();
     try {
       // 验证继承的测试用例是否又循环依赖
-      await checkHasDepsLink(testDetailId, callTestId);
+      await getTestStepsByTestDetailId(callTestId);
     } catch (err) {
       message.error(err.message);
     }
