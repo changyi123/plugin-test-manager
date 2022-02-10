@@ -11,16 +11,10 @@ import FieldsInput from '@/pages/panel/TestDetail/TestDetailPanel/components/Fie
 import CustomCollapse from './components/Collapse';
 import AddDefectBtn from './components/AddDefectBtn';
 import RelationTable from './components/RelationTable';
-import { TestEntity } from '@/lib/types/Test';
-import { TestType } from '@/lib/constants';
 import { getTestEntities } from '@/lib/api/common';
 import { updateTestRun, getTestStepsByTestDetailId } from '@/lib/api/runs';
-import { useStatusConfig } from '@/components/common/Status/hooks';
 
 import css from './index.less';
-
-type TestRunEntity = TestEntity<TestType.TestRun>;
-
 export interface ITestInfo {
   topic: string;
   content: string;
@@ -43,8 +37,6 @@ const TestRun: React.FC<{ testId?: string }> = ({ testId }) => {
   const query = useQuery();
   const relationTableActionRef = React.useRef();
   const currentTestId = query.get('id') ?? testId;
-  // TODO: status
-  const statusConfig = useStatusConfig();
 
   // 从路由/弹窗拿
   const {

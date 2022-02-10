@@ -21,7 +21,7 @@ export interface IStepItemProps {
   step: TestStep;
   index: number;
   testId: string;
-  onStepChange: (item: TestStep, index: number) => void;
+  onStepChange: (item: TestStep, index: number, hideToast?: boolean) => void;
   allRelationDefectIds?: string[];
 }
 
@@ -45,7 +45,9 @@ export const StepItem: React.FC<IStepItemProps> = ({
     (key: string) => {
       return value => {
         const updatedStep = { ...step, [key]: value };
-        onStepChange(updatedStep, index);
+        // 缺陷关联和新建不用默认 toast 提示
+        const hideToast = ['defectItemIds'].includes(key);
+        onStepChange(updatedStep, index, hideToast);
       };
     },
     [step, onStepChange, index],
@@ -69,7 +71,7 @@ export const StepItem: React.FC<IStepItemProps> = ({
             <div className={css('right__content')}>{step.action}</div>
           </Col>
 
-          <Col className={css('right__item')} span={8}>
+          <Col className={css('right__item')} span={11}>
             <div className={css('right__topic')}>预期结果</div>
             <div className={css('right__content')}>{step.result}</div>
           </Col>
@@ -160,13 +162,14 @@ const StepList: React.FC<StepListProps> = ({
   allRelationDefectIds,
 }) => {
   const handleStepChange = useCallback(
-    async (item: TestStep, index: number) => {
+    async (item: TestStep, index: number, hideToast = false) => {
       steps[index] = item;
       await updateTestRun(testRunEntity, {
         steps,
       });
       refresh();
-      message.success('修改成功');
+
+      !hideToast && message.success('修改成功');
     },
     [refresh, steps, testRunEntity],
   );

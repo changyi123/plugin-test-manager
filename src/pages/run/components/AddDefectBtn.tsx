@@ -1,5 +1,4 @@
 import React, { useCallback } from 'react';
-import { uniqueId } from 'lodash';
 import { TestType } from '@/lib/constants';
 import { addDefect } from '@/lib/api/runs';
 import { useItemLinkTypeConfig } from './hooks';

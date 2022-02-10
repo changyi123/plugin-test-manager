@@ -21,7 +21,7 @@ export const SmallDefectList: React.FC<ISmallDefectListProps> = props => {
   const handleDeleteRelation = useCallback(
     (itemId: string) => {
       deleteDefect(TestToDefect, testId, [itemId]).then(() => {
-        message.success('删除成功');
+        message.success('缺陷删除成功');
         const index = itemIds.findIndex(item => item === itemId);
         const itemIdsBak = [...itemIds];
         itemIdsBak.splice(index, 1);

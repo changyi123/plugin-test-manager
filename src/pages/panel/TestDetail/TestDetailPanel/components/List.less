@@ -1,11 +1,11 @@
 .detail-list {
   display: flex;
-  background: #F8FAFF;
+  background: #f8faff;
   border-radius: 4px;
   overflow: hidden;
   .nav {
     display: flex;
-    background: #E2ECFF;
+    background: #e2ecff;
     flex-flow: column;
     text-align: center;
     color: white;
@@ -15,7 +15,7 @@
       width: 20px;
       height: 20px;
       border-radius: 50%;
-      background: #4B8BFF;
+      background: #4b8bff;
       margin: 12px 10px 0 10px;
       text-align: center;
       line-height: 20px;
@@ -44,7 +44,7 @@
       width: 20px;
       height: 20px;
       margin: auto 10px 12px 10px;
-      color: #878C96;
+      color: #878c96;
 
       &__expand {
         display: none;
@@ -113,7 +113,6 @@
           cursor: pointer;
         }
       }
-
     }
 
     .call-test {
@@ -142,6 +141,7 @@
 
   .step {
     flex: 1;
+    max-width: ~"calc(100% - 72px)";
 
     &__line {
       margin: 12px 0;
@@ -156,19 +156,19 @@
         font-size: 12px;
         font-family: PingFangSC-Regular, PingFang SC;
         font-weight: 400;
-        color: #878C96;
+        color: #878c96;
         line-height: 20px;
-        transition: all .3s;
+        transition: all 0.3s;
       }
 
       .close {
         transform: rotate(0);
-        animation: tipsRotateClose .3s;
+        animation: tipsRotateClose 0.3s;
       }
 
       .show {
         transform: rotate(90deg);
-        animation: tipsRotateShow .3s;
+        animation: tipsRotateShow 0.3s;
       }
 
       @keyframes tipsRotateClose {
@@ -194,12 +194,14 @@
       margin-left: 12px;
 
       &__item {
+        overflow: hidden;
+        word-wrap: break-word;
         &__topic {
           margin-top: 12px;
           font-size: 12px;
           font-family: PingFangSC-Regular, PingFang SC;
           font-weight: 400;
-          color: #878C96;
+          color: #878c96;
           line-height: 20px;
         }
 
@@ -220,7 +222,7 @@
       font-size: 14px;
       font-family: PingFangSC-Regular, PingFang SC;
       font-weight: 400;
-      color: #1E2A3D;
+      color: #1e2a3d;
       line-height: 22px;
       margin: 12px 0 12px 12px;
 
@@ -233,9 +235,9 @@
           font-size: 12px;
           font-family: PingFangSC-Regular, PingFang SC;
           font-weight: 400;
-          color: #FFFFFF;
+          color: #ffffff;
           line-height: 20px;
-          background: #998DD9;
+          background: #998dd9;
           border-radius: 4px;
           padding: 0 4px;
         }
@@ -245,7 +247,7 @@
           font-size: 14px;
           font-family: PingFangSC-Regular, PingFang SC;
           font-weight: 400;
-          color: #1E2A3D;
+          color: #1e2a3d;
           line-height: 22px;
         }
       }
@@ -264,9 +266,9 @@
           font-size: 12px;
           font-family: PingFangSC-Regular, PingFang SC;
           font-weight: 400;
-          color: #FFFFFF;
+          color: #ffffff;
           line-height: 20px;
-          background: #998DD9;
+          background: #998dd9;
           border-radius: 4px;
           padding: 0 4px;
         }
@@ -282,7 +284,7 @@
           font-size: 12px;
           font-family: PingFangSC-Regular, PingFang SC;
           font-weight: 400;
-          color: #878C96;
+          color: #878c96;
           line-height: 20px;
         }
       }
@@ -292,14 +294,14 @@
         font-size: 14px;
         font-family: PingFangSC-Regular, PingFang SC;
         font-weight: 400;
-        color: #1E2A3D;
+        color: #1e2a3d;
         line-height: 22px;
       }
     }
   }
 
   &-expand {
-    color:red;
+    color: red;
   }
 
   .tools {
@@ -307,7 +309,7 @@
     opacity: 0;
     transition: all 0.3s;
     flex-flow: column;
-    background: rgba(30,42,61, 0.4);
+    background: rgba(30, 42, 61, 0.4);
 
     &__item {
       margin: 4px;
@@ -322,7 +324,7 @@
         transition: all 0.3s;
 
         &:hover {
-          background: rgba(30,42,61, 0.6);
+          background: rgba(30, 42, 61, 0.6);
         }
       }
 
@@ -331,7 +333,6 @@
       }
     }
   }
-
 }
 
 .space-width {
@@ -354,12 +355,12 @@
     width: 100%;
     height: 2px;
     border-radius: 1px;
-    background: #0C62FF;
+    background: #0c62ff;
   }
   &__plus {
     width: 24px;
     height: 24px;
-    background: #0C62FF;
+    background: #0c62ff;
     border-radius: 4px;
     position: absolute;
     left: -12px;
@@ -379,10 +380,10 @@
 .around {
   .call {
     .nav {
-      background: #EAE6FF;
+      background: #eae6ff;
 
       &__index {
-        background: #8777D9;
+        background: #8777d9;
       }
     }
   }
