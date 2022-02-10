@@ -1,6 +1,6 @@
 import React from 'react';
 import { useRequest } from 'ahooks';
-import { notification } from '@osui/ui';
+import { message, notification } from '@osui/ui';
 import { EventBus } from '@/lib/utils/eventBus';
 import { useOnItemCreateSuccess } from '@/lib/hooks/useProximaSDK';
 import { openCreateItemModal, openItemDetailPanel } from '@/lib/api/sdk';
@@ -170,8 +170,6 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
         itemData.reference = testEntityData.reference;
       }
 
-      console.log('dispatch', extraData);
-
       eventBusRef.current.dispatch(ItemCreateSuccessEventType, {
         extraData,
         testEntity,
@@ -217,10 +215,12 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
 
         // TODO: 通知统一处理！
         if (!itemType?.objectId) {
-          notification.open({
-            message: '提示',
-            description: '所属空间无法创建实体，请选择其他空间事项创建',
-          });
+          // notification.open({
+          //   message: '提示',
+          //   description: '所属空间无法创建实体，请选择其他空间事项创建',
+          // });
+          // FIXME: 修改
+          message.warning('所属空间无法创建实体，请选择其他空间事项创建');
         }
 
         // 打开创建弹窗
@@ -237,16 +237,15 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
           ),
         });
 
+        // 清除事件监听
+        typeof eventBusRef?.current?.disposer?.unregister === 'function' &&
+          eventBusRef.current.disposer.unregister();
+
         // 事项创建成功通知
         return new Promise((resolve, reject) => {
           eventBusRef.current.disposer = eventBusRef.current.register(
             ItemCreateSuccessEventType,
             data => {
-              console.log('data', data);
-              // 清除事件监听
-              typeof eventBusRef?.current?.disposer?.unregister === 'function' &&
-                eventBusRef.current.disposer.unregister();
-
               const { testEntity, item } = data;
               // 创建的测试类型是否符合预期
               let expectedTestType = testEntity?.get('type') === type;

@@ -35,6 +35,18 @@ const PanelTable: React.FC<PanelTableProps> = props => {
     { defaultPageSize: 10 },
   );
 
+  React.useEffect(() => {
+    const { pagination } = tableProps;
+    // 处理删除分页数据错误场景
+    if (pagination.total && pagination.total <= pagination.pageSize * (pagination.current - 1)) {
+      tableProps.onChange(
+        Object.assign({}, pagination, {
+          current: Math.max(0, pagination.current - 1),
+        }),
+      );
+    }
+  }, [tableProps]);
+
   React.useImperativeHandle(
     actionRef,
     () => ({

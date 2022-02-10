@@ -494,7 +494,7 @@ const Detail: React.FC = () => {
             <span>
               {search
                 ? `显示${steps.length}个步骤中的${steps.length}个`
-                : `当前用例调用 ${callTestLen()} 个用例`}
+                : `当前用例继承 ${callTestLen()} 个用例`}
             </span>
           </div>
 

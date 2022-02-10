@@ -221,7 +221,7 @@ const List: React.FC<ListProps> = (props: ListProps) => {
                 <div className={css('step')}>
                   <div className={css('step__around')}>
                     <div className={css('step__around__header')}>
-                      <div className={css('tips')}>用例调用</div>
+                      <div className={css('tips')}>用例继承</div>
 
                       {(item?.itemData?.itemType as ItemType)?.icon && (
                         <div className={css('icon')}>
@@ -399,7 +399,7 @@ const List: React.FC<ListProps> = (props: ListProps) => {
                 <div className={css('step__expand')}>
                   {item.callTestId ? (
                     <div className={css('step__expand__content')}>
-                      <div className={css('tips')}>用例调用</div>
+                      <div className={css('tips')}>用例继承</div>
                       <div className={css('label')}>{item?.itemData?.name}</div>
                     </div>
                   ) : (
