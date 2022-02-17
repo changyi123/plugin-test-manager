@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { Button, message, Input } from '@osui/ui';
+import { Button, Input } from '@osui/ui';
 import { updateTestDetail } from '@/lib/api/detail';
 import { SearchOutlined, BlockOutlined } from '@/icons';
 import { useTestConfig } from '@/lib/hooks/useContext';
@@ -173,12 +173,12 @@ const Detail: React.FC = () => {
             </div>
             <div className={css('right')}>
               <div className={css('input')}>
-                <Input
+                {/* <Input
                   allowClear={true}
                   placeholder="搜索步骤"
                   suffix={<SearchOutlined />}
                   onChange={e => filterSteps(e)}
-                />
+                /> */}
               </div>
             </div>
           </div>

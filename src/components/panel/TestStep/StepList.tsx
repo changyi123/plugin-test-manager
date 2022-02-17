@@ -130,7 +130,11 @@ const StepRow: React.FC<StepRowProps> = props => {
             <span className={cx('actions')}>
               <Tooltip title="复制步骤">
                 <CopyOutlined
-                  onClick={() => actions.copy({ id: data.id, index })}
+                  onClick={() =>
+                    actionConfirm('当前操作会复制该测试用例步骤，是否继续执行？', () =>
+                      actions.copy({ id: data.id, index }),
+                    )
+                  }
                   className={cx('icon')}
                   key="CopyOutlined"
                 />
@@ -220,7 +224,7 @@ const StepList: React.FC<StepListProps> = ({ steps, actions }) => {
             .reduce((acc, field) => ({ ...acc, [field.key]: field.value }), {})
             .value(),
         };
-      }, Object.create(null))
+      }, {})
       .value();
     form.setFieldsValue(fieldValues);
   }, [form, stepRowData]);
