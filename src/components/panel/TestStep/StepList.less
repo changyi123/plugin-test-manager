@@ -1,0 +1,116 @@
+@border-color: #d8d8d8;
+@hover-background: #f0f0f0;
+@call-test-primary-color: #998dd9;
+
+.list {
+  .header,
+  .step-row {
+    display: flex;
+    align-items: stretch;
+    min-height: 40px;
+    border-bottom: 1px solid #d8d8d8;
+  }
+
+  .header {
+    color: #b0b5bc;
+    font-size: 12px;
+  }
+}
+
+.step-row {
+  position: relative;
+  width: 100%;
+  background-color: #fff;
+  &.hover {
+    background-color: @hover-background;
+  }
+
+  .actions {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    background-color: @hover-background;
+    display: flex;
+    align-items: center;
+
+    > .icon {
+      &:hover {
+        color: #4b8bff;
+      }
+      cursor: pointer;
+      margin-right: 12px;
+    }
+  }
+}
+
+.column {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &.field {
+    width: 33%;
+    justify-content: flex-start;
+  }
+
+  &.drag-area {
+    z-index: 2;
+    width: 40px;
+    position: sticky;
+    left: 0;
+  }
+}
+
+.position-tip {
+  width: 18px;
+  height: 18px;
+  color: #fff;
+  border-radius: 50%;
+  line-height: 18px;
+  text-align: center;
+  background-color: #ccc;
+  &.field {
+    background-color: #4b8bff;
+  }
+  &.call {
+    background-color: @call-test-primary-color;
+  }
+}
+
+.call-test {
+  width: 100%;
+  padding: 10px 0;
+  max-height: 60px;
+
+  > div {
+    display: flex;
+    align-items: center;
+    border-radius: 4px;
+    font-size: 12px;
+    color: #878c96;
+  }
+
+  .brand {
+    color: #fff;
+    background-color: @call-test-primary-color;
+    border-radius: 4px;
+    padding: 0 4px;
+    margin-right: 6px;
+  }
+
+  .icon {
+    width: 16px;
+    height: 16px;
+    margin-right: 4px;
+  }
+
+  .name {
+    font-size: 14px;
+    color: #333;
+  }
+
+  .line {
+    margin: 0 5px;
+  }
+}

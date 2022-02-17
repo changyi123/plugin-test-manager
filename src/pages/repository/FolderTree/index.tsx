@@ -1,5 +1,5 @@
 import React from 'react';
-import { uniq, uniqueId } from 'lodash';
+import { uniq } from 'lodash';
 import { useReactive, useDrop } from 'ahooks';
 import { TestType } from '@/lib/constants';
 import { hasArrayItem, getRootContainer } from '@/lib/utils/helper';

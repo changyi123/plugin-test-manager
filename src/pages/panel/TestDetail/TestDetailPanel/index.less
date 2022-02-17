@@ -1,12 +1,5 @@
-@detailItemMarginLeft: 4px;
-
 .detail {
   padding-bottom: 4px;
-  &__breadcrumb {
-    display: flex;
-    justify-content: flex-end;
-  }
-
   &__content {
     &__header {
       display: flex;
@@ -17,20 +10,14 @@
         display: flex;
         justify-content: flex-start;
         align-items: center;
-        .input {
-          width: 180px;
-        }
       }
 
       .right {
         display: flex;
         justify-content: flex-end;
         align-items: center;
-        .item {
-          margin-left: @detailItemMarginLeft;
-        }
-        .add-step {
-          margin-left: 16px;
+        .input {
+          width: 180px;
         }
       }
     }
@@ -39,38 +26,11 @@
       font-size: 12px;
       font-family: PingFangSC-Regular, PingFang SC;
       font-weight: 400;
-      color: #878C96;
+      color: #878c96;
       margin-top: 16px;
       line-height: 20px;
       span {
         margin-left: 3px;
-      }
-    }
-  }
-
-  .empty {
-    margin: 16px 0 0 0;
-    padding-top: 16px;
-    &__content {
-      &__topic {
-        font-size: 14px;
-        font-family: PingFangSC-Regular, PingFang SC;
-        font-weight: 400;
-        color: #4D545E;
-        line-height: 22px;
-      }
-
-      &__tips {
-        font-size: 12px;
-        font-family: PingFangSC-Regular, PingFang SC;
-        font-weight: 400;
-        color: #878C96;
-        line-height: 20px;
-        margin-top: 8px;
-      }
-
-      &__btn {
-        margin-top: 16px;
       }
     }
   }

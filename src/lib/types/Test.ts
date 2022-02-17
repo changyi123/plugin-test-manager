@@ -49,6 +49,9 @@ export type Status = {
   type: 'TODO' | 'PASSED' | 'EXECUTING' | 'FAILED';
 };
 
+/** 步骤表单 */
+export type StepField = Record<'key' | 'value', any>;
+
 export type Step = {
   id: string; // uuid
 
@@ -68,5 +71,5 @@ export type Step = {
 
   // 以下字段为保留字段暂时不用
   attachments?: string[]; // 附件
-  customFields?: string[]; // 自定义字段
+  customFields?: StepField[]; // 自定义字段
 };
