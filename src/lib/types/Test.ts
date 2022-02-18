@@ -65,7 +65,7 @@ export type Step = {
 
   // 以下字段在测试执行形成
   defectItemIds?: string[]; // 缺陷关联
-  status?: Status | Status['key']; // 步骤状态
+  status?: Status['key']; // 步骤状态
   actualResult?: string; // 实际结果
   comment?: string; // 评论
 

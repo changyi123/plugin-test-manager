@@ -1,0 +1,69 @@
+@border-color: #d8d8d8;
+@secondary-color: #999;
+
+.row {
+  display: flex;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  .position {
+    width: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .action {
+    margin-right: auto;
+  }
+
+  .status {
+    min-width: 120px;
+  }
+}
+
+.header {
+  color: #999;
+  font-weight: 700;
+  font-size: 12px;
+  line-height: 40px;
+  border-bottom: 1px solid @border-color;
+}
+
+.step {
+  padding: 10px 0;
+  border-bottom: 1px solid @border-color;
+  .position-tip {
+    width: 18px;
+    height: 18px;
+    color: #fff;
+    text-align: center;
+    line-height: 18px;
+    font-size: 12px;
+    border-radius: 50%;
+  }
+
+  .fields {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+    > div {
+      flex: none;
+      width: 33.3%;
+    }
+  }
+
+  .label {
+    color: @secondary-color;
+  }
+
+  .add-btn {
+    margin-top: 8px;
+    display: block;
+    padding-left: 0;
+  }
+
+  .fields,
+  .defects {
+    padding: 0 40px;
+  }
+}

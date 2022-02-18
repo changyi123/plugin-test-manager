@@ -10,7 +10,7 @@ import { getTestEntitiesByRelation, removeTestRelations } from '@/lib/api/common
 import TestEntitySelectorModal, {
   ActionType as SelectorActionType,
 } from '@/components/panel/TestEntitySelectorModal';
-import TestRunModal from '@/pages/run/Modal';
+import TestRunModal from '@/components/panel/TestRunModal';
 import { getRootContainer } from '@/lib/utils/helper';
 import { StatusBadge } from '@/components/common/Status';
 import { useAllRelTestEntities } from '@/lib/hooks/useTest';
