@@ -82,7 +82,7 @@ const TestStep: React.FC<TestStepProps> = ({
 
     const newSteps = Array.from(steps);
     // 继承测试用例放到最后
-    newSteps.splice(steps.length - 1, 0, getStepInitialData(callTestId));
+    newSteps.splice(steps.length, 0, getStepInitialData(callTestId));
 
     setSteps(newSteps);
   };
