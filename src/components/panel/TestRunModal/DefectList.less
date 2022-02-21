@@ -1,0 +1,61 @@
+.defect {
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  height: 48px;
+  position: relative;
+  &.hover {
+    background-color: #f0f0f0;
+  }
+}
+
+.tag {
+  font-size: 12px;
+  line-height: 20px;
+  padding: 0 12px;
+  background: #0a50d1;
+  border-radius: 4px;
+  color: #fff;
+  margin-right: 12px;
+}
+
+.icon,
+.key {
+  margin-right: 8px;
+}
+
+.key {
+  color: #999;
+}
+
+.name {
+  margin-right: auto;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 62px;
+  padding: 0 8px;
+  font-size: 12px;
+  border-radius: 4px;
+  font-weight: 600;
+  margin-left: auto;
+  margin-right: 40px;
+}
+
+.delete-btn {
+  position: absolute;
+  right: 30px;
+  top: 50%;
+  transform: translateY(-50%);
+  &.disabled {
+    cursor: not-allowed;
+    color: #ccc;
+  }
+}
+
+.add-btn {
+  margin: 15px !important;
+}

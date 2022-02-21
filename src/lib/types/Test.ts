@@ -3,6 +3,7 @@ import { TestType } from '@/lib/constants';
 
 // 测试实体
 type BaseTestEntity = {
+  objectId: string;
   /** 测试用例类型 */
   type: TestType;
   /** 空间标识 */
@@ -12,7 +13,7 @@ type BaseTestEntity = {
   /** 测试用例最新执行状态 */
   status: Status['key'];
   /** 测试执行关联测试用例实体 */
-  runReferenceDetail: TestEntity;
+  runReferenceDetail: TestEntity<TestType.TestDetail>;
   /** 额外数据 */
   extra: Record<string, unknown>;
   /** 测试用例数据 */

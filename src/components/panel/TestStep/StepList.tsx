@@ -29,6 +29,7 @@ const StepFields: React.FC<{
               Object.assign(
                 {
                   key: field.key,
+                  placeholder: `请输入${field.title}`,
                   onNext: () => nextField(stepId, field.key),
                   ref: ref => {
                     // 只有 input 类型组件需要缓存 ref
@@ -53,13 +54,9 @@ type StepRowProps = {
 
 const StepRow: React.FC<StepRowProps> = props => {
   const { data, index, actions } = props;
-  const [isHover, setIsHover] = React.useState(false);
   const rowRef = React.useRef<HTMLDivElement>();
 
-  useHover(rowRef, {
-    onEnter: setIsHover.bind(null, true),
-    onLeave: setIsHover.bind(null, false),
-  });
+  const isHover = useHover(rowRef);
 
   // 步骤表单是否完成
   const isFieldCompleted = data.fields.some(

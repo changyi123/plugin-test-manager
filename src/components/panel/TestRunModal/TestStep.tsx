@@ -1,17 +1,102 @@
 import React from 'react';
-import { Button } from '@osui/ui';
+import { useHover } from 'ahooks';
+import { Popconfirm } from '@osui/ui';
+import { DeleteOutlined } from '@/icons';
+import { updateTestRun } from '@/lib/api/runs';
+import AddDefectButton from './AddDefectButton';
 import { TabsComponentBaseProps } from './type';
+import { useItemLinkTypeConfig } from './hooks';
+import { addDefect, deleteDefect } from '@/lib/api/runs';
 import { StatusBadge } from '@/components/common/Status';
-import { PlusOutlined } from '@/icons';
 
 import cx from './TestStep.less';
 
 type TestStepProps = TabsComponentBaseProps;
 
-const TestStep: React.FC<TestStepProps> = ({ testRunData }) => {
+const TestStep: React.FC<TestStepProps> = props => {
+  const { testRunData, onDataChange, testRunEntity, allRelationDefects, onLoading } = props;
+  const { TestToDefect = '' } = useItemLinkTypeConfig();
   const steps = testRunData.runDetail?.steps ?? [];
   const [statusConfig, setStatusConfig] = React.useState({});
   const renderFieldValue = value => (value ? value : '-');
+  // 所有已关联的缺陷，测试执行内的缺陷只允许关联一次
+  const allRelationDefectItemIds = allRelationDefects.map(defect => defect.itemId);
+
+  // 添加缺陷
+  const handleDefectAdd = async (stepId, defectItemIds) => {
+    onLoading();
+    const needUpdateSteps = steps.map(step =>
+      step.id === stepId ? { ...step, defectItemIds } : step,
+    );
+    await Promise.all([
+      addDefect(TestToDefect, testRunData.objectId, defectItemIds),
+      updateTestRun(testRunEntity, { steps: needUpdateSteps }),
+    ]);
+    onDataChange();
+  };
+
+  // 删除缺陷
+  const handleDeleteDefect = async (stepId, defectItemId) => {
+    onLoading();
+    const needUpdateSteps = steps.map(step =>
+      step.id === stepId
+        ? { ...step, defectItemIds: step.defectItemIds.filter(itemId => itemId !== defectItemId) }
+        : step,
+    );
+
+    await Promise.all([
+      deleteDefect(TestToDefect, testRunData.objectId, [defectItemId]),
+      updateTestRun(testRunEntity, { steps: needUpdateSteps }),
+    ]);
+    onDataChange();
+  };
+
+  // 状态变更
+  const handleStatusChange = async (stepId, status) => {
+    onLoading();
+    const needUpdateSteps = steps.map(step => (step.id === stepId ? { ...step, status } : step));
+    await updateTestRun(testRunEntity, { steps: needUpdateSteps });
+    onDataChange();
+  };
+
+  // 步骤缺陷渲染
+  const renderStepDefectList = stepId => {
+    const relationDefectItems = allRelationDefects.filter(item => item.stepId === stepId);
+    if (!relationDefectItems.length) return null;
+
+    const DefectItem: React.FC<{ item: any; itemId: string }> = ({ item, itemId }) => {
+      const ref = React.useRef();
+      const isHover = useHover(ref);
+      return (
+        <div ref={ref} className={cx('defect', isHover && 'hover')}>
+          <img className={cx('defect-icon')} src={(item?.itemType as any)?.icon} />
+          <span className={cx('defect-key')}>{item.key}</span>
+          <span>{item.name}</span>
+          <Popconfirm
+            okText="确定"
+            cancelText="取消"
+            getPopupContainer={() =>
+              document.querySelector('[data-element-id="test-run-container"]')
+            }
+            title="当前操作会删除与该缺陷的关联关系，是否继续执行？"
+            onConfirm={() => handleDeleteDefect(stepId, item.objectId ?? itemId)}
+          >
+            <a style={{ display: isHover ? 'block' : 'none' }}>
+              <DeleteOutlined />
+            </a>
+          </Popconfirm>
+        </div>
+      );
+    };
+
+    return (
+      <div className={cx('defects')}>
+        {relationDefectItems.map(data => (
+          <DefectItem key={data.itemId} itemId={data.itemId} item={data.item ?? {}} />
+        ))}
+      </div>
+    );
+  };
 
   return (
     <div className={cx('step-list')}>
@@ -33,7 +118,11 @@ const TestStep: React.FC<TestStepProps> = ({ testRunData }) => {
             </span>
             <span className={cx('action')}>{step.action}</span>
             <span className={cx('status')}>
-              <StatusBadge status={step.status} onReady={setStatusConfig} />
+              <StatusBadge
+                status={step.status}
+                onReady={setStatusConfig}
+                onStatusChange={status => handleStatusChange(step.id, status.key)}
+              />
             </span>
           </div>
           <div className={cx('fields')}>
@@ -50,14 +139,17 @@ const TestStep: React.FC<TestStepProps> = ({ testRunData }) => {
               <span className={cx('data')}>{renderFieldValue(step.data)}</span>
             </div>
           </div>
-          <div className={cx('defects')}>
-            <span className={cx('label')}>缺陷（{step.defectItemIds?.length ?? 0}）</span>
-            <Button type="link" className={cx('add-btn')}>
-              <span>
-                <PlusOutlined />
-                添加缺陷
-              </span>
-            </Button>
+          <div className={cx('step-defects')}>
+            <div className={cx('label')}>缺陷（{step.defectItemIds?.length ?? 0}）</div>
+            {renderStepDefectList(step.id)}
+            <AddDefectButton
+              // plainStyle
+              className={cx('add-btn')}
+              testId={testRunData.objectId}
+              currentDefectIds={step.defectItemIds}
+              allRelationDefectIds={allRelationDefectItemIds}
+              onSave={defectItemIds => handleDefectAdd(step.id, defectItemIds)}
+            />
           </div>
         </div>
       ))}

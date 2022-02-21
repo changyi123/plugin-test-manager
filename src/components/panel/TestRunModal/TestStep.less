@@ -1,6 +1,10 @@
 @border-color: #d8d8d8;
 @secondary-color: #999;
 
+.step-list {
+  padding-bottom: 70px;
+}
+
 .row {
   display: flex;
   min-height: 32px;
@@ -60,10 +64,31 @@
     margin-top: 8px;
     display: block;
     padding-left: 0;
+    padding-right: 0;
   }
 
   .fields,
-  .defects {
+  .step-defects {
     padding: 0 40px;
+  }
+}
+
+.defect {
+  display: flex;
+  align-items: center;
+  height: 25px;
+  > * {
+    margin-right: 7px;
+  }
+  &-icon {
+    width: 16px;
+    height: 16px;
+  }
+
+  &-key {
+    color: @secondary-color;
+  }
+  &.hover {
+    background-color: #f0f0f0;
   }
 }
