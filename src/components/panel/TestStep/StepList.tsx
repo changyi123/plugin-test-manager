@@ -1,7 +1,9 @@
 import React from 'react';
+import ReactDOM from 'react-dom';
+
 import _ from 'lodash';
-import { Step } from '@/lib/types/Test';
 import { useHover } from 'ahooks';
+import { Step } from '@/lib/types/Test';
 import { Form, Tooltip } from '@osui/ui';
 import { StepRow, StepField } from './type';
 import { getTestEntities } from '@/lib/api/common';
@@ -9,6 +11,9 @@ import { CopyOutlined, DeleteOutlined, DragHandler } from '@/icons';
 import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd';
 import { getFieldByImpl, StepFieldImpl, BuiltinFieldKeys, actionConfirm } from './helper';
 import { useNextStepFieldContext, default as NextStepFieldProvider } from './NextStepFieldProvider';
+
+const REACT_DND_PORTAL_CLASS = 'react-beautiful-dnd-portal';
+let RBDPortal = null;
 
 import cx from './StepList.less';
 
@@ -97,61 +102,66 @@ const StepRow: React.FC<StepRowProps> = props => {
     );
   }, [data]);
 
+  const renderDraggableChild = (provider, snapshot) => {
+    const child = (
+      <div
+        ref={ref => {
+          rowRef.current = ref;
+          provider.innerRef(ref);
+        }}
+        {...provider.draggableProps}
+        className={cx('step-row', isHover && 'hover')}
+      >
+        <span className={cx('column', 'drag-area')} {...provider.dragHandleProps}>
+          {isHover ? (
+            <DragHandler />
+          ) : (
+            <span
+              className={cx('position-tip', isFieldCompleted && 'field', isCallTestStep && 'call')}
+            >
+              {index + 1}
+            </span>
+          )}
+        </span>
+        {isCallTestStep ? CallTestStepNode : StepFieldsMemoNode}
+        {isHover ? (
+          <span className={cx('actions')}>
+            <Tooltip title="复制步骤">
+              <CopyOutlined
+                onClick={() =>
+                  actionConfirm('当前操作会复制该测试用例步骤，是否继续执行？', () =>
+                    actions.copy({ id: data.id, index }),
+                  )
+                }
+                className={cx('icon')}
+                key="CopyOutlined"
+              />
+            </Tooltip>
+            <Tooltip title="删除步骤">
+              <DeleteOutlined
+                onClick={() =>
+                  actionConfirm('当前操作会删除该测试用例步骤，是否继续执行？', () =>
+                    actions.delete(data.id),
+                  )
+                }
+                className={cx('icon')}
+                key="DeleteOutlined"
+              />
+            </Tooltip>
+          </span>
+        ) : null}
+      </div>
+    );
+    const usePortal = snapshot.isDragging;
+
+    if (!usePortal) return child;
+
+    return ReactDOM.createPortal(child, RBDPortal);
+  };
+
   return (
     <Draggable index={index} draggableId={data.id}>
-      {provider => (
-        <div
-          ref={ref => {
-            rowRef.current = ref;
-            provider.innerRef(ref);
-          }}
-          {...provider.draggableProps}
-          className={cx('step-row', isHover && 'hover')}
-        >
-          <span className={cx('column', 'drag-area')} {...provider.dragHandleProps}>
-            {isHover ? (
-              <DragHandler />
-            ) : (
-              <span
-                className={cx(
-                  'position-tip',
-                  isFieldCompleted && 'field',
-                  isCallTestStep && 'call',
-                )}
-              >
-                {index + 1}
-              </span>
-            )}
-          </span>
-          {isCallTestStep ? CallTestStepNode : StepFieldsMemoNode}
-          {isHover ? (
-            <span className={cx('actions')}>
-              <Tooltip title="复制步骤">
-                <CopyOutlined
-                  onClick={() =>
-                    actionConfirm('当前操作会复制该测试用例步骤，是否继续执行？', () =>
-                      actions.copy({ id: data.id, index }),
-                    )
-                  }
-                  className={cx('icon')}
-                  key="CopyOutlined"
-                />
-              </Tooltip>
-              <Tooltip title="删除步骤">
-                <DeleteOutlined
-                  onClick={() =>
-                    actionConfirm('当前操作会删除该测试用例步骤，是否继续执行？', () =>
-                      actions.delete(data.id),
-                    )
-                  }
-                  className={cx('icon')}
-                  key="DeleteOutlined"
-                />
-              </Tooltip>
-            </span>
-          ) : null}
-        </div>
-      )}
+      {renderDraggableChild}
     </Draggable>
   );
 };
@@ -185,6 +195,15 @@ const StepList: React.FC<StepListProps> = ({ steps, actions }) => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [callTestMemoizedKey]);
+
+  // 增加 rbd portal
+  React.useEffect(() => {
+    if (!document.querySelector(REACT_DND_PORTAL_CLASS)) {
+      RBDPortal = document.createElement('div');
+      RBDPortal.classList.add(REACT_DND_PORTAL_CLASS);
+      document.body.appendChild(RBDPortal);
+    }
+  }, []);
 
   // 处理测试步骤渲染数据
   const stepRowData = React.useMemo(() => {
