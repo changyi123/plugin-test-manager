@@ -14,16 +14,22 @@ export interface ICommonRes<T = any> {
 export const updateTestDetail = async (
   testEntity: Parse.Object<TestDetailEntity>,
   params: {
-    steps: Record<string, any>[];
+    precondition?: string;
+    steps?: Record<string, any>[];
   },
 ) => {
   const testEntityData = testEntity.toJSON();
   const needUpdateAttrs = {
-    detail: {
-      ...testEntityData.detail,
-      steps: params.steps.map(compactStepModel),
-    },
+    detail: Object.assign({}, testEntityData.detail),
   };
+
+  if (params.precondition) {
+    needUpdateAttrs.detail.precondition = params.precondition;
+  }
+
+  if (params.steps) {
+    needUpdateAttrs.detail.steps = params.steps.map(compactStepModel);
+  }
 
   return testEntity.save(needUpdateAttrs);
 };

@@ -174,14 +174,19 @@ const TestRun: React.FC<TestRunType> = props => {
       (async () => {
         try {
           const steps = await getTestStepsByTestDetailId(testRunData.runReferenceDetail.objectId);
-          await updateTestRun(testRunEntity, { steps });
+          await updateTestRun(testRunEntity, {
+            steps,
+            runDetail: {
+              precondition: refTestDetailData.detail?.precondition,
+            },
+          });
           refreshTestRun();
         } catch (err) {
           message.error(err.message);
         }
       })();
     }
-  }, [testId, testRunData, refreshTestRun, testRunEntity]);
+  }, [testId, testRunData, refreshTestRun, testRunEntity, refTestDetailData.detail?.precondition]);
 
   const onDataChange = React.useCallback(() => {
     refreshTestRun();
@@ -281,7 +286,11 @@ const TestRun: React.FC<TestRunType> = props => {
         <div className={cx('main')}>
           <Collapse className={cx('collapse')} defaultActiveKey={['1']}>
             <Collapse.Panel key="1" header="前置条件">
-              <div className={cx('precondition')}>无</div>
+              <div className={cx('precondition')}>
+                {testRunData.runDetail?.precondition ??
+                  refTestDetailData.detail?.precondition ??
+                  '无'}
+              </div>
             </Collapse.Panel>
           </Collapse>
           <Collapse className={cx('collapse', 'tab')} defaultActiveKey={['1']}>

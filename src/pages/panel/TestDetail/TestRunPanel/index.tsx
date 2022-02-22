@@ -1,5 +1,4 @@
 import React from 'react';
-import { uniqueId } from 'lodash';
 import { Button, Space, Typography, message, Tooltip, Divider, Popconfirm } from '@osui/ui';
 import { InfoCircleOutlined } from '@ant-design/icons';
 import PanelTable, { ActionType } from '@/components/panel/PanelTable';
@@ -12,7 +11,7 @@ import {
 import { useBaseAction } from '@/lib/hooks/useContext';
 import { TestType } from '@/lib/constants';
 import { removeTestRelations } from '@/lib/api/common';
-import TestRunModal from '@/pages/run/Modal';
+import TestRunModal from '@/components/panel/TestRunModal';
 import { StatusBadge } from '@/components/common/Status';
 import { useTestConfig } from '@/lib/hooks/useContext';
 

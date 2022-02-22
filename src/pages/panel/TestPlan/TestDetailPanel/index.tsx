@@ -19,7 +19,7 @@ import TestEntitySelectorModal, {
 } from '@/components/panel/TestEntitySelectorModal';
 import { StatusBadge } from '@/components/common/Status';
 import { useAllRelTestEntities } from '@/lib/hooks/useTest';
-import TestRunModal from '@/pages/run/Modal';
+import TestRunModal from '@/components/panel/TestRunModal';
 import { QuestionCircleOutlined } from '@/icons';
 import { getTestEntitiesByRelation, removeTestRelations } from '@/lib/api/common';
 import { createTestExecutionService, addTestDetailToPlanService } from './services';

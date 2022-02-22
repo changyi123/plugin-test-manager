@@ -19,12 +19,13 @@ type BaseTestEntity = {
   /** 测试用例数据 */
   detail?: {
     steps: Step[];
+    precondition: string;
   };
   /** 测试执行数据 */
   runDetail: {
-    component?: string;
-    defectItemIds?: string[];
     steps: Step[];
+    precondition: string;
+    defectItemIds?: string[];
   };
 };
 
