@@ -14,7 +14,7 @@ const tableColumns = [
   {
     title: '事项类型',
     dataIndex: 'itemType',
-    render(_, itemType) {
+    render(itemType) {
       return (
         <>
           <img src={itemType.icon} width="16" height="16" />

@@ -6,7 +6,7 @@ import { hasArrayItem } from '@/lib/utils/helper';
 import Parse from '@/lib/parse';
 import fetch from '@/lib/utils/fetch';
 import { IQLBuilder } from '@/lib/utils/iql';
-import { CustomField, Workspace, ItemType, ItemTypeScheme } from '@/lib/models';
+import { CustomField, Workspace, ItemType, ItemTypeScheme, Item } from '@/lib/models';
 
 type IQLPaginationParams = {
   offset?: number;
@@ -123,4 +123,13 @@ export const getTopItemTypeFromHierarchy = async itemTypeSchemeId => {
 /** 获取所有的事项类型 */
 export const getAllItemTypes = async () => {
   return new Parse.Query(ItemType).limit(999).find();
+};
+
+/** 获取所有的事项， iql 无 itemType icon 字段，使用此方法获取 */
+export const getItemById = async itemId => {
+  const res = await new Parse.Query(Item)
+    .containedIn('objectId', itemId)
+    .include(['itemType'])
+    .findAll();
+  return res.map(item => item.toJSON());
 };

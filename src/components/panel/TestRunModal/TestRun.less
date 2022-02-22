@@ -2,84 +2,85 @@
 @primary-color: #0c62ff;
 @section-margin: 22px;
 
-.header {
-  padding-bottom: @section-margin;
-  border-bottom: 1px solid @border-color;
-  position: sticky;
-  top: 0;
-  background-color: #fff;
-  z-index: 2;
+:root {
+  .header {
+    padding-bottom: @section-margin;
+    border-bottom: 1px solid @border-color;
+    position: sticky;
+    top: 0;
+    background-color: #fff;
+    z-index: 2;
 
-  > div {
-    display: flex;
-    align-items: center;
-  }
-
-  .title {
-    font-size: 18px;
-    font-weight: 600;
-  }
-
-  .next {
-    margin-left: auto;
-    display: flex;
-    align-items: center;
-
-    .next-btn {
-      border-color: @primary-color;
-      color: @primary-color;
-      margin-right: 16px;
-    }
-    .label {
-      margin-left: 6px;
-    }
-  }
-
-  .status-btn {
-    :global {
-      .status {
-        height: 32px;
-      }
-    }
-  }
-}
-
-.main {
-  padding-top: @section-margin;
-  .collapse {
-    :global {
-      .ant-collapse-header,
-      .icon-wrapper {
-        background-color: #fff !important;
-      }
-    }
-  }
-  .tab {
-    margin-top: @section-margin;
-  }
-
-  .tabs {
-    :global {
-      .ant-tabs-tab-active {
-        :local(.num) {
-          background: #e2ecff;
-        }
-      }
-    }
-    .tab-title {
+    > div {
       display: flex;
       align-items: center;
     }
-    .num {
-      width: 18px;
-      height: 18px;
-      font-size: 12px;
-      text-align: center;
-      line-height: 20px;
-      border-radius: 50%;
-      margin-left: 4px;
-      background-color: #f5f6f8;
-      margin-top: 2px;
+
+    .title {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .next {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      .next-btn {
+        border-color: @primary-color !important;
+        color: @primary-color !important;
+        margin-right: 16px !important;
+      }
+      .label {
+        margin-left: 6px;
+      }
+    }
+
+    .status-btn {
+      :global {
+        .status {
+          height: 32px;
+        }
+      }
+    }
+  }
+
+  .main {
+    padding-top: @section-margin;
+    .collapse {
+      :global {
+        .ant-collapse-header,
+        .icon-wrapper {
+          background-color: #fff !important;
+        }
+      }
+    }
+    .tab {
+      margin-top: @section-margin;
+    }
+
+    .tabs {
+      :global {
+        .ant-tabs-tab-active {
+          :local(.num) {
+            background: #e2ecff;
+          }
+        }
+      }
+      .tab-title {
+        display: flex;
+        align-items: center;
+      }
+      .num {
+        width: 18px;
+        height: 18px;
+        font-size: 12px;
+        text-align: center;
+        line-height: 20px;
+        border-radius: 50%;
+        margin-left: 4px;
+        background-color: #f5f6f8;
+        margin-top: 2px;
+      }
     }
   }
 }

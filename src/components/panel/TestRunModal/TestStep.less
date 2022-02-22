@@ -1,94 +1,96 @@
 @border-color: #d8d8d8;
 @secondary-color: #999;
 
-.step-list {
-  padding-bottom: 70px;
-}
+:root {
+  .step-list {
+    padding-bottom: 70px;
+  }
 
-.row {
-  display: flex;
-  min-height: 32px;
-  display: flex;
-  align-items: center;
-  .position {
-    width: 40px;
+  .row {
     display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-  .action {
-    margin-right: auto;
-  }
-
-  .status {
-    min-width: 120px;
-  }
-}
-
-.header {
-  color: #999;
-  font-weight: 700;
-  font-size: 12px;
-  line-height: 40px;
-  border-bottom: 1px solid @border-color;
-}
-
-.step {
-  padding: 10px 0;
-  border-bottom: 1px solid @border-color;
-  .position-tip {
-    width: 18px;
-    height: 18px;
-    color: #fff;
-    text-align: center;
-    line-height: 18px;
-    font-size: 12px;
-    border-radius: 50%;
-  }
-
-  .fields {
+    min-height: 32px;
     display: flex;
     align-items: center;
-    margin-bottom: 8px;
-    > div {
-      flex: none;
-      width: 33.3%;
+    .position {
+      width: 40px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .action {
+      margin-right: auto;
+    }
+
+    .status {
+      min-width: 120px;
     }
   }
 
-  .label {
-    color: @secondary-color;
+  .header {
+    color: #999;
+    font-weight: 700;
+    font-size: 12px;
+    line-height: 40px;
+    border-bottom: 1px solid @border-color;
   }
 
-  .add-btn {
-    margin-top: 8px;
-    display: block;
-    padding-left: 0;
-    padding-right: 0;
+  .step {
+    padding: 10px 0;
+    border-bottom: 1px solid @border-color;
+    .position-tip {
+      width: 18px;
+      height: 18px;
+      color: #fff;
+      text-align: center;
+      line-height: 18px;
+      font-size: 12px;
+      border-radius: 50%;
+    }
+
+    .fields {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+      > div {
+        flex: none;
+        width: 33.3%;
+      }
+    }
+
+    .label {
+      color: @secondary-color;
+    }
+
+    .add-btn {
+      margin-top: 8px !important;
+      display: block !important;
+      padding-left: 0 !important;
+      padding-right: 0 !important;
+    }
+
+    .fields,
+    .step-defects {
+      padding: 0 40px;
+    }
   }
 
-  .fields,
-  .step-defects {
-    padding: 0 40px;
-  }
-}
+  .defect {
+    display: flex;
+    align-items: center;
+    height: 25px;
+    > * {
+      margin-right: 7px;
+    }
+    &-icon {
+      width: 16px;
+      height: 16px;
+    }
 
-.defect {
-  display: flex;
-  align-items: center;
-  height: 25px;
-  > * {
-    margin-right: 7px;
-  }
-  &-icon {
-    width: 16px;
-    height: 16px;
-  }
-
-  &-key {
-    color: @secondary-color;
-  }
-  &.hover {
-    background-color: #f0f0f0;
+    &-key {
+      color: @secondary-color;
+    }
+    &.hover {
+      background-color: #f0f0f0;
+    }
   }
 }

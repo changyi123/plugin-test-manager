@@ -4,7 +4,7 @@ import { useRequest } from 'ahooks';
 import { TestType } from '@/lib/constants';
 import { TestEntity } from '@/lib/types/Test';
 import { TabsComponentBaseProps } from './type';
-import { getItemByIQL } from '@/lib/api/proxima';
+import { getItemById } from '@/lib/api/proxima';
 import { getTestEntities } from '@/lib/api/common';
 import { StatusBadge } from '@/components/common/Status';
 import useMergedState from 'rc-util/lib/hooks/useMergedState';
@@ -93,10 +93,7 @@ const TestRun: React.FC<TestRunType> = props => {
 
   // 所有关联的缺陷事项
   const { data: allRelationDefectItems, loading: relationDefectsRequestLoading } = useRequest(
-    async () => {
-      const res = await getItemByIQL({ itemId: allRelationDefectIds });
-      return res.items;
-    },
+    () => getItemById(allRelationDefectIds),
     {
       ready: Boolean(allRelationDefectIds.length),
       refreshDeps: [allRelationDefectIds.toString()],
