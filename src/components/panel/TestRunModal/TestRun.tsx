@@ -251,8 +251,17 @@ const TestRun: React.FC<TestRunType> = props => {
     <Spin spinning={loading}>
       <div className={cx('test-run')} data-element-id="test-run-container">
         <div className={cx('header')}>
+          <h6 className={cx('title')}>{refTestDetailData.reference?.name}</h6>
           <div>
-            <h6 className={cx('title')}>{refTestDetailData.reference?.name}</h6>
+            <div className={cx('left')}>
+              <StatusBadge
+                showBg
+                className={cx('status-btn')}
+                status={testRunData.status}
+                onStatusChange={handleStatusChange}
+              />
+              <div className={cx('assigner')}></div>
+            </div>
             {canExecNext ? (
               <div className={cx('next')}>
                 <Button
@@ -273,15 +282,6 @@ const TestRun: React.FC<TestRunType> = props => {
                 </div>
               </div>
             ) : null}
-          </div>
-          <div>
-            <StatusBadge
-              showBg
-              className={cx('status-btn')}
-              status={testRunData.status}
-              onStatusChange={handleStatusChange}
-            />
-            <div className={cx('assigner')}></div>
           </div>
         </div>
         <div className={cx('main')}>
