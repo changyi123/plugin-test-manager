@@ -136,7 +136,7 @@ const Test = () => {
       <PanelTable
         renderActions={() => (
           <Button type="primary" onClick={addExistedTestExecution}>
-            添加测试执行轮次
+            添加测试执行任务
           </Button>
         )}
         actionRef={tableActionRef}

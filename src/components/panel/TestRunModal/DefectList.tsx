@@ -1,15 +1,14 @@
 import React from 'react';
 
-import _ from 'lodash';
 import { useHover } from 'ahooks';
 import cx from './DefectList.less';
 import { DeleteOutlined } from '@/icons';
-import { Popconfirm, Tooltip } from '@osui/ui';
 import { updateTestRun } from '@/lib/api/runs';
-import AddDefectButton from './AddDefectButton';
 import { Item, Status } from '@/lib/types/App';
+import AddDefectButton from './AddDefectButton';
 import { useItemLinkTypeConfig } from './hooks';
 import { TabsComponentBaseProps } from './type';
+import { Popconfirm, Tooltip, Empty } from '@osui/ui';
 import { addDefect, deleteDefect } from '@/lib/api/runs';
 
 const getPopupContainer = () =>
@@ -118,9 +117,12 @@ const DefectList: React.FC<DefectListProps> = ({
 
   return (
     <div>
-      {allRelationDefects.map(defect => (
-        <DefectItem defect={defect} key={defect.itemId} />
-      ))}
+      {allRelationDefects.length ? (
+        allRelationDefects.map(defect => <DefectItem defect={defect} key={defect.itemId} />)
+      ) : (
+        <Empty style={{ marginTop: 60 }} description="当前测试执行未关联缺陷" />
+      )}
+
       <AddDefectButton
         plainStyle
         className={cx('add-btn')}

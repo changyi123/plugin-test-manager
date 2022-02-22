@@ -51,7 +51,7 @@ const Runs: React.FC = () => {
     {
       title: (
         <Space>
-          <div>测试执行轮次</div>
+          <div>测试执行任务</div>
           <div>
             <Tooltip placement="right" title="该测试用例的运行包含以下执行轮次">
               <InfoCircleOutlined />
@@ -152,7 +152,7 @@ const Runs: React.FC = () => {
             renderActions={() => (
               <div className={css('runs__new')}>
                 <Button type="primary" onClick={() => createTestExecution()}>
-                  新增测试执行轮次
+                  新增测试执行任务
                 </Button>
               </div>
             )}

@@ -15,7 +15,7 @@ interface ITestRunModalProps {
 }
 
 const TestRunModal: React.FC<ITestRunModalProps> = props => {
-  const [isVisible, setIsVisible] = useMergedState(true, {
+  const [isVisible, setIsVisible] = useMergedState(false, {
     value: props.visible,
   });
 

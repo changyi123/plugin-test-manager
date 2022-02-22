@@ -12,7 +12,7 @@ const TestPlan = () => {
       Component: TestDetailPanel,
     },
     {
-      tab: '测试执行轮次',
+      tab: '测试执行任务',
       key: TestType.TestExecution,
       Component: TestExecutionPanel,
     },

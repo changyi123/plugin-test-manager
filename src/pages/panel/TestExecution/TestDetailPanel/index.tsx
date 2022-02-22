@@ -33,6 +33,12 @@ const Test = () => {
     ['runReferenceDetail', 'status'],
   );
 
+  // 所有的测试执行
+  const allTestRunIds = React.useMemo(
+    () => allTestEntities.map(entity => entity.objectId),
+    [allTestEntities],
+  );
+
   const { relTestDetailIds, relRunStatuses } = React.useMemo(() => {
     return {
       relTestDetailIds: allTestEntities.map(item => item.runReferenceDetail?.objectId),
@@ -122,10 +128,11 @@ const Test = () => {
       {
         title: '操作',
         key: 'testRunId',
-        render: (value, item) => (
+        render: (_, item) => (
           <Space split={<Divider type="vertical" />} size={0} style={{ marginLeft: -4 }}>
             <TestRunModal
               testId={item.objectId}
+              testIdSequence={allTestRunIds}
               onCancel={() => setTimeout(() => refreshDepData(), 200)}
               trigger={
                 <Button size="small" type="link">
@@ -149,7 +156,7 @@ const Test = () => {
         ),
       },
     ];
-  }, [refreshDepData, removeTestRelation]);
+  }, [allTestRunIds, refreshDepData, removeTestRelation]);
 
   // 添加测试用例菜单
   const testDetailMenuList = React.useMemo(() => {

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState, useCallback } from 'react';
 import { Button, Input } from '@osui/ui';
 import { updateTestDetail } from '@/lib/api/detail';

@@ -3,8 +3,21 @@ import { useHover } from 'ahooks';
 import classnames from 'classnames';
 import { StepFieldProps } from '../type';
 
-const Input: React.ForwardRefRenderFunction<HTMLDivElement, StepFieldProps> = (
-  { value, onNext, onChange, placeholder, ...restProps },
+const Input: React.ForwardRefRenderFunction<
+  HTMLDivElement,
+  StepFieldProps & {
+    maxLength?: number;
+  }
+> = (
+  {
+    value,
+    onKeyDownEnter,
+    onChange,
+    placeholder,
+    className,
+    maxLength = Number.MAX_SAFE_INTEGER,
+    ...restProps
+  },
   inheritedProps,
 ) => {
   const ref = React.useRef<HTMLDivElement>();
@@ -13,15 +26,29 @@ const Input: React.ForwardRefRenderFunction<HTMLDivElement, StepFieldProps> = (
 
   const isHover = useHover(ref);
 
+  const escapedKeyCodes = [
+    'Backspace',
+    'Shift',
+    'Control',
+    'Alt',
+    'ArrowUp',
+    'ArrowDown',
+    'ArrowRight',
+    'ArrowLeft',
+  ];
+
   const handleKeyDown = e => {
+    if (ref.current.innerHTML.length >= maxLength && !escapedKeyCodes.includes(e.key)) {
+      e.preventDefault();
+    }
     // 阻止 enter 回车
     if (e.key === 'Enter') {
       e.preventDefault();
-      onNext?.();
+      onKeyDownEnter?.(ref.current.innerHTML);
     }
   };
 
-  const handleOnBlur = () => {
+  const handleBlur = () => {
     onChange?.(ref.current.innerHTML);
   };
 
@@ -31,11 +58,11 @@ const Input: React.ForwardRefRenderFunction<HTMLDivElement, StepFieldProps> = (
       {...restProps}
       contentEditable
       spellCheck={false}
-      onBlur={handleOnBlur}
-      placeholder={placeholder ?? `请输入`}
+      onBlur={handleBlur}
       onKeyDown={handleKeyDown}
+      placeholder={placeholder ?? `请输入`}
       suppressContentEditableWarning={true}
-      className={classnames('test-step-field', 'input', isHover && 'hover')}
+      className={classnames('test-step-field', 'input', isHover && 'hover', className)}
     >
       {value}
     </div>

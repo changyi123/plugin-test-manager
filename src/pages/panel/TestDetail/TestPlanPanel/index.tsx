@@ -53,7 +53,7 @@ const Plan = () => {
 
       const testPlanIds = testPlans.map(item => item.objectId);
 
-      // 测试执行轮次 testRuns
+      // 测试执行任务 testRuns
       const { list: testDetails } = await getTestEntitiesByRelation(
         TestRelationType.PlanRelDetail,
         { from: testPlanIds },

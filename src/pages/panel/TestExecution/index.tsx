@@ -6,7 +6,7 @@ import TestDetailPanel from './TestDetailPanel';
 const TestExecution = () => {
   const tabs = [
     {
-      tab: '测试执行轮次',
+      tab: '测试执行任务',
       key: TestType.TestDetail,
       Component: TestDetailPanel,
     },
@@ -14,7 +14,7 @@ const TestExecution = () => {
   return (
     <PanelLayout
       tabsProps={{ destroyInactiveTabPane: true, defaultActiveKey: TestType.TestDetail }}
-      title="测试执行轮次"
+      title="测试执行任务"
       tabs={tabs}
     />
   );

@@ -3,6 +3,8 @@ export const TEST_MANAGER_PLUGIN_KEY = 'test-manager';
 
 // 初始状态
 export const INITIAL_STATUS_KEY = 'TODO';
+// 通过类型
+export const PASS_STATUS_TYPE = 'PASSED';
 
 // ENTITY NOT FOUND
 export const ENTITY_NOT_FOUND = 'ENTITY_NOT_FOUND';
@@ -33,11 +35,11 @@ export enum TestType {
 export enum TestRelationType {
   // 测试用例关联测试执行（1:1）
   DetailRelExecution = 'DetailRelExecution',
-  // 测试执行轮次关联测试执行(1:N)
+  // 测试执行任务关联测试执行(1:N)
   ExecutionRelRun = 'ExecutionRelRun',
   // 测试计划关联测试用例(1:N)
   PlanRelDetail = 'PlanRelDetail',
-  // 测试计划关联测试执行轮次(1:N)
+  // 测试计划关联测试执行任务(1:N)
   PlanRelExecution = 'PlanRelExecution',
 
   // TODO: 测试集合
@@ -46,7 +48,7 @@ export enum TestRelationType {
 export const TestTypeNameMapping = {
   [TestType.TestDetail]: '测试用例',
   [TestType.TestPlan]: '测试计划',
-  [TestType.TestExecution]: '测试执行轮次',
+  [TestType.TestExecution]: '测试执行任务',
   [TestType.TestRun]: '测试执行',
   [TestType.TestDefect]: '缺陷',
 };

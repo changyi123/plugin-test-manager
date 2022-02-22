@@ -17,7 +17,7 @@ export type StepRow = {
 export type StepFieldEventProps = {
   onChange?: (value: any) => void;
   /** 继续下一个 */
-  onNext?: () => void;
+  onKeyDownEnter?: (value?: any) => void;
 };
 
 /** 步骤表单字段 */

@@ -1,4 +1,4 @@
-import React,{useState,useEffect} from 'react';
+import React from 'react';
 
 import { uniqueId } from 'lodash';
 import { Table, Tooltip } from '@osui/ui';
@@ -125,9 +125,7 @@ const Test = () => {
       type: TestType.TestExecution,
     });
 
-    const { testEntity: testExecutionEntity, extraData } = res;
-    // token 不相同则不创建关联
-    // if (extraData.token !== token) return;
+    const { testEntity: testExecutionEntity } = res;
 
     const testExecutionData = testExecutionEntity.toJSON();
 
@@ -233,7 +231,7 @@ const Test = () => {
         title: (
           <span>
             <Tooltip title="该测试用例的运行包含以下执行轮次">
-              测试执行轮次
+              测试执行任务
               <QuestionCircleOutlined style={{ marginLeft: 8 }} />
             </Tooltip>
           </span>
@@ -261,10 +259,12 @@ const Test = () => {
           return (
             <TestRunModal
               testId={record.objectId}
-              onCancel={() => setTimeout(() =>{
-                refreshDepData();//刷新依赖数据
-                /* tableActionRef.current.refresh() */
-              } , 200)}
+              onCancel={() =>
+                setTimeout(() => {
+                  refreshDepData(); //刷新依赖数据
+                  /* tableActionRef.current.refresh() */
+                }, 200)
+              }
               trigger={<a>执行</a>}
             />
           );
@@ -294,7 +294,7 @@ const Test = () => {
         ignoreTestEntityIds={testEntityIds}
       />
       {/* 状态条的变化 */}
-      <StatusProcessBar   statuses={testEntityStatuses} />
+      <StatusProcessBar statuses={testEntityStatuses} />
 
       <PanelTable
         expandable={{

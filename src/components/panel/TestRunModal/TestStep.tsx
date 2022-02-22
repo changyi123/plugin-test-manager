@@ -1,13 +1,14 @@
 import React from 'react';
 import { useHover } from 'ahooks';
-import { Popconfirm } from '@osui/ui';
 import { DeleteOutlined } from '@/icons';
+import { Popconfirm, Empty } from '@osui/ui';
 import { updateTestRun } from '@/lib/api/runs';
 import AddDefectButton from './AddDefectButton';
 import { TabsComponentBaseProps } from './type';
 import { useItemLinkTypeConfig } from './hooks';
 import { addDefect, deleteDefect } from '@/lib/api/runs';
 import { StatusBadge } from '@/components/common/Status';
+import Input from '@/components/panel/TestStep/fields/Input';
 
 import cx from './TestStep.less';
 
@@ -59,6 +60,15 @@ const TestStep: React.FC<TestStepProps> = props => {
     onDataChange();
   };
 
+  // 实际结果变更
+  const handleActualResultChange = async (stepId, actualResult) => {
+    const needUpdateSteps = steps.map(step =>
+      step.id === stepId ? { ...step, actualResult } : step,
+    );
+
+    await updateTestRun(testRunEntity, { steps: needUpdateSteps });
+  };
+
   // 步骤缺陷渲染
   const renderStepDefectList = stepId => {
     const relationDefectItems = allRelationDefects.filter(item => item.stepId === stepId);
@@ -98,6 +108,9 @@ const TestStep: React.FC<TestStepProps> = props => {
     );
   };
 
+  if (!steps.length)
+    return <Empty style={{ marginTop: 60 }} description="当前测试执行无用例步骤" />;
+
   return (
     <div className={cx('step-list')}>
       <div className={cx('header', 'row')}>
@@ -130,9 +143,17 @@ const TestStep: React.FC<TestStepProps> = props => {
               <span className={cx('label')}>预期：</span>
               <span className={cx('data')}>{renderFieldValue(step.result)}</span>
             </div>
-            <div>
+            <div className={cx('field')}>
               <span className={cx('label')}>实际结果：</span>
-              <span className={cx('data')}>{renderFieldValue(step.actualResult)}</span>
+              <span className={cx('input')}>
+                <Input
+                  placeholder="请输入实际结果"
+                  value={step.actualResult}
+                  maxLength={500}
+                  onKeyDownEnter={value => handleActualResultChange(step.id, value)}
+                  onChange={value => handleActualResultChange(step.id, value)}
+                />
+              </span>
             </div>
             <div>
               <span className={cx('label')}>数据：</span>

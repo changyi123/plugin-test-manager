@@ -18,6 +18,14 @@
       &:focus {
         border-color: #4b8bff;
       }
+      &[placeholder]:empty:before {
+        content: attr(placeholder);
+        color: #ccc;
+      }
+
+      &[placeholder]:empty:focus:before {
+        content: '';
+      }
     }
   }
 }

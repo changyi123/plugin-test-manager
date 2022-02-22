@@ -1,19 +1,19 @@
 import React from 'react';
 import _ from 'lodash';
-import { useRequest } from 'ahooks';
-import { TestType } from '@/lib/constants';
 import { TestEntity } from '@/lib/types/Test';
+import { QuestionCircleFilled } from '@/icons';
 import { TabsComponentBaseProps } from './type';
 import { getItemById } from '@/lib/api/proxima';
 import { getTestEntities } from '@/lib/api/common';
 import { StatusBadge } from '@/components/common/Status';
-import useMergedState from 'rc-util/lib/hooks/useMergedState';
-import { Button, Checkbox, Collapse, Tabs, message, Spin } from '@osui/ui';
+import { useRequest, useSessionStorageState } from 'ahooks';
+import { TestType, PASS_STATUS_TYPE } from '@/lib/constants';
+import { Button, Checkbox, Collapse, Tabs, message, Spin, Tooltip } from '@osui/ui';
 import { updateTestRun, getTestStepsByTestDetailId, getItemLinkRelation } from '@/lib/api/runs';
 
 import TestStep from './TestStep';
-import ItemLinkTable from './ItemLinkTable';
 import DefectList from './DefectList';
+import ItemLinkTable from './ItemLinkTable';
 
 import cx from './TestRun.less';
 
@@ -45,14 +45,16 @@ type TestRunType = {
   idSequence?: string[];
 };
 
+const TEST_RUN_AUTO_NEXT_KEY = 'TEST_RUN_AUTO_NEXT';
+
 const TestRun: React.FC<TestRunType> = props => {
-  const { idSequence } = props;
-  const [autoNext, setAutoNext] = React.useState(false);
+  const { idSequence = [] } = props;
+  const [autoNext, setAutoNext] = useSessionStorageState(TEST_RUN_AUTO_NEXT_KEY, {
+    defaultValue: false,
+  });
   // 子组件 loading
   const [tabPaneLoading, setTabPaneLoading] = React.useState(false);
-  const [testId, setTestId] = useMergedState('', {
-    value: props.id,
-  });
+  const [testId, setTestId] = React.useState(props.id);
 
   const {
     loading: testRunRequestLoading,
@@ -72,6 +74,35 @@ const TestRun: React.FC<TestRunType> = props => {
     },
   );
 
+  // 能否可执行下一个执行, id 不存在 idSequence 或 已到最后一条不可执行
+  const canExecNext =
+    Array.isArray(idSequence) && ![-1, idSequence.length - 1].includes(idSequence.indexOf(testId));
+
+  // 执行下一个测试用例
+  const nextTestRun = React.useCallback(() => {
+    const nextIndex = idSequence.indexOf(testId) + 1;
+    if (!canExecNext || nextIndex === idSequence.length) {
+      return message.warning('当前测试执行为最后一条，所有测试执行已经执行完成');
+    }
+
+    console.info('idSequence', idSequence, nextIndex);
+    setTestId(idSequence[nextIndex]);
+  }, [idSequence, testId, setTestId, canExecNext]);
+
+  const handleStatusChange = React.useCallback(
+    async status => {
+      await updateTestRun(testRunEntity, {
+        status: status.key,
+      });
+      if (status.type === PASS_STATUS_TYPE && autoNext) {
+        nextTestRun();
+        return message.success('自动切换下一条测试执行');
+      }
+      refreshTestRun();
+    },
+    [autoNext, nextTestRun, refreshTestRun, testRunEntity],
+  );
+
   // 测试执行数据
   const testRunData = React.useMemo(() => {
     return testRunEntity?.toJSON() ?? ({} as TestRunEntity);
@@ -88,12 +119,13 @@ const TestRun: React.FC<TestRunType> = props => {
       return acc.concat(step.defectItemIds);
     }, testRunData?.runDetail?.defectItemIds ?? [])
     .sort()
+    .filter(Boolean)
     .uniq()
     .value();
 
   // 所有关联的缺陷事项
   const { data: allRelationDefectItems, loading: relationDefectsRequestLoading } = useRequest(
-    () => getItemById(allRelationDefectIds),
+    async () => (allRelationDefectIds.length ? getItemById(allRelationDefectIds) : []),
     {
       ready: Boolean(allRelationDefectIds.length),
       refreshDeps: [allRelationDefectIds.toString()],
@@ -135,11 +167,6 @@ const TestRun: React.FC<TestRunType> = props => {
 
     return globalDefects.concat(stepDefects);
   }, [testRunData, allRelationDefectItems]);
-
-  // 能否可执行下一个执行, id 不存在 idSequence 或 已到最后一条不可执行
-  const canExecNext =
-    true ||
-    (Array.isArray(idSequence) && [-1, idSequence.length - 1].includes(idSequence.indexOf(testId)));
 
   React.useEffect(() => {
     // 兼容测试执行无 step 情况（测试执行步骤可在执行阶段创建）
@@ -184,8 +211,6 @@ const TestRun: React.FC<TestRunType> = props => {
     refTestDetailData,
     allRelationDefects,
   ]);
-
-  const nextTestRun = React.useCallback(() => {}, []);
 
   const renderTabTitle = tab => {
     const numGetters = {
@@ -233,13 +258,23 @@ const TestRun: React.FC<TestRunType> = props => {
                 </Button>
                 <div className={cx('auto')} onClick={() => setAutoNext(!autoNext)}>
                   <Checkbox checked={autoNext} />
-                  <span className={cx('label')}>自动切换下一条</span>
+                  <span className={cx('label')}>
+                    自动切换下一条
+                    <Tooltip title="测试执行状态变更为通过时，自动切换下一条测试执行">
+                      <QuestionCircleFilled style={{ marginLeft: 6 }} />
+                    </Tooltip>
+                  </span>
                 </div>
               </div>
             ) : null}
           </div>
           <div>
-            <StatusBadge className={cx('status-btn')} showBg status={testRunData.status} />
+            <StatusBadge
+              showBg
+              className={cx('status-btn')}
+              status={testRunData.status}
+              onStatusChange={handleStatusChange}
+            />
             <div className={cx('assigner')}></div>
           </div>
         </div>

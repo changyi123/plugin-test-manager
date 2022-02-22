@@ -29,8 +29,9 @@ const StepFields: React.FC<{
               Object.assign(
                 {
                   key: field.key,
+                  maxLength: 500,
                   placeholder: `请输入${field.title}`,
-                  onNext: () => nextField(stepId, field.key),
+                  onKeyDownEnter: () => nextField(stepId, field.key),
                   ref: ref => {
                     // 只有 input 类型组件需要缓存 ref
                     field.type === 'input' && saveFieldRef(stepId, field.key, ref);
