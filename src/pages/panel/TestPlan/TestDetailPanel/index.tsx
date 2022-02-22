@@ -224,66 +224,73 @@ const Test = () => {
     ];
   }, [createTestExecution, refreshDepData]);
 
-  const expandedRowRender = React.useCallback(record => {
-    const columns = [
-      {
-        key: 'execution',
-        title: (
-          <span>
-            <Tooltip title="该测试用例的运行包含以下执行轮次">
-              测试执行任务
-              <QuestionCircleOutlined style={{ marginLeft: 8 }} />
-            </Tooltip>
-          </span>
-        ),
-        width: 160,
-        tooltip: true,
-        render(_, record) {
-          const name = record.relExecutions?.[0]?.reference?.name;
-          return <OverflowTooltip title={name}>{name}</OverflowTooltip>;
+  const expandedRowRender = React.useCallback(
+    record => {
+      // 测试执行序列
+      const testIdSequence = record.relRuns?.map(item => item?.objectId).filter(Boolean);
+
+      const columns = [
+        {
+          key: 'execution',
+          title: (
+            <span>
+              <Tooltip title="该测试用例的运行包含以下执行轮次">
+                测试执行任务
+                <QuestionCircleOutlined style={{ marginLeft: 8 }} />
+              </Tooltip>
+            </span>
+          ),
+          width: 160,
+          tooltip: true,
+          render(_, record) {
+            const name = record.relExecutions?.[0]?.reference?.name;
+            return <OverflowTooltip title={name}>{name}</OverflowTooltip>;
+          },
         },
-      },
-      {
-        key: 'status',
-        title: '测试执行状态',
-        width: 150,
-        render(_, record) {
-          return <StatusBadge status={record.status} readonly />;
+        {
+          key: 'status',
+          title: '测试执行状态',
+          width: 150,
+          render(_, record) {
+            return <StatusBadge status={record.status} readonly />;
+          },
         },
-      },
-      {
-        key: 'action',
-        title: '操作',
-        width: 120,
-        render(_, record) {
-          return (
-            <TestRunModal
-              testId={record.objectId}
-              onCancel={() =>
-                setTimeout(() => {
-                  refreshDepData(); //刷新依赖数据
-                  /* tableActionRef.current.refresh() */
-                }, 200)
-              }
-              trigger={<a>执行</a>}
-            />
-          );
+        {
+          key: 'action',
+          title: '操作',
+          width: 120,
+          render(_, record) {
+            return (
+              <TestRunModal
+                testId={record.objectId}
+                testIdSequence={testIdSequence}
+                onCancel={() =>
+                  setTimeout(() => {
+                    refreshDepData(); //刷新依赖数据
+                    /* tableActionRef.current.refresh() */
+                  }, 200)
+                }
+                trigger={<a>执行</a>}
+              />
+            );
+          },
         },
-      },
-    ];
-    return (
-      <Table
-        scroll={{
-          x: 'max-content',
-        }}
-        pagination={false}
-        rowKey="objectId"
-        columns={columns}
-        className={cx('inner-table')}
-        dataSource={record.relRuns}
-      />
-    );
-  }, []);
+      ];
+      return (
+        <Table
+          scroll={{
+            x: 'max-content',
+          }}
+          pagination={false}
+          rowKey="objectId"
+          columns={columns}
+          className={cx('inner-table')}
+          dataSource={record.relRuns}
+        />
+      );
+    },
+    [refreshDepData],
+  );
 
   return (
     <div>

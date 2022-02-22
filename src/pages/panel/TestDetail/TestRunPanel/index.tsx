@@ -27,6 +27,7 @@ const Runs: React.FC = () => {
   const { testEntity: testDetailEntity } = useTestConfig();
   const tableActionRef = React.useRef<ActionType>();
   const { createItemUseModal } = useBaseAction();
+  const [currentPageTestRunIdSequence, setCurrentPageTestRunIdSequence] = React.useState([]);
 
   const removeTestRelation = React.useCallback(async relationTypeIds => {
     if (!Array.isArray(relationTypeIds)) return;
@@ -98,6 +99,7 @@ const Runs: React.FC = () => {
           <Space split={<Divider type="vertical" />} size={0} style={{ marginLeft: -4 }}>
             <TestRunModal
               testId={testRun.objectId}
+              testIdSequence={currentPageTestRunIdSequence}
               onCancel={() => setTimeout(() => tableActionRef.current.refresh(), 200)}
               trigger={
                 <Button size="small" type="link">
@@ -133,8 +135,13 @@ const Runs: React.FC = () => {
   };
 
   const tableDataSourceGetter = React.useCallback(
-    queryParams => {
-      return getTestRunsAndExecutions(testDetailEntity, queryParams);
+    async queryParams => {
+      const data = await getTestRunsAndExecutions(testDetailEntity, queryParams);
+      // 添加测试执行序列
+      setCurrentPageTestRunIdSequence(
+        data.list.map(item => item.relTestRun?.objectId).filter(Boolean),
+      );
+      return data;
     },
     [testDetailEntity],
   );

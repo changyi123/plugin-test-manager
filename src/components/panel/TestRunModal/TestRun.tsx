@@ -94,13 +94,14 @@ const TestRun: React.FC<TestRunType> = props => {
       await updateTestRun(testRunEntity, {
         status: status.key,
       });
-      if (status.type === PASS_STATUS_TYPE && autoNext) {
+      // 通过类型状态可自动执行到下一条
+      if (status.type === PASS_STATUS_TYPE && autoNext && canExecNext) {
         nextTestRun();
         return message.success('自动切换下一条测试执行');
       }
       refreshTestRun();
     },
-    [autoNext, nextTestRun, refreshTestRun, testRunEntity],
+    [autoNext, canExecNext, nextTestRun, refreshTestRun, testRunEntity],
   );
 
   // 测试执行数据

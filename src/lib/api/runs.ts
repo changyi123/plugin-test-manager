@@ -70,6 +70,9 @@ export const getTestRunsAndExecutions = async (testDetailEntity, queryParams) =>
           {
             from: result.list.map(item => item.objectId),
           },
+          {
+            queryParams: { limit: 9999 },
+          },
         );
 
         const testRunRelationDict = _.chain(allTestRuns)
@@ -405,7 +408,7 @@ export const updateTestRun = async (
 
   if (params.runDetail) {
     Object.assign(needUpdateAttrs, {
-      runDetail: { ...testEntityData.runDetail, ...params.runDetail },
+      runDetail: { ...needUpdateAttrs.runDetail, ...params.runDetail },
     });
   }
 
