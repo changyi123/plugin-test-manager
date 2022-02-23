@@ -234,7 +234,7 @@ const Test = () => {
           key: 'execution',
           title: (
             <span>
-              <Tooltip title="该测试用例的运行包含以下执行轮次">
+              <Tooltip title="该测试用例在以下任务中进行执行">
                 测试执行任务
                 <QuestionCircleOutlined style={{ marginLeft: 8 }} />
               </Tooltip>

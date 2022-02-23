@@ -4,12 +4,12 @@ import ReactDOM from 'react-dom';
 import _ from 'lodash';
 import { useHover } from 'ahooks';
 import { Step } from '@/lib/types/Test';
-import { Form, Tooltip } from '@osui/ui';
 import { StepRow, StepField } from './type';
 import { getTestEntities } from '@/lib/api/common';
+import { Form, Tooltip, Popconfirm } from '@osui/ui';
 import { CopyOutlined, DeleteOutlined, DragHandler } from '@/icons';
 import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd';
-import { getFieldByImpl, StepFieldImpl, BuiltinFieldKeys, actionConfirm } from './helper';
+import { getFieldByImpl, StepFieldImpl, BuiltinFieldKeys, getRootContainer } from './helper';
 import { useNextStepFieldContext, default as NextStepFieldProvider } from './NextStepFieldProvider';
 
 const REACT_DND_PORTAL_CLASS = 'react-beautiful-dnd-portal';
@@ -62,7 +62,7 @@ const StepRow: React.FC<StepRowProps> = props => {
   const { data, index, actions } = props;
   const rowRef = React.useRef<HTMLDivElement>();
 
-  const isHover = useHover(rowRef);
+  const isMouseHover = useHover(rowRef);
 
   // 步骤表单是否完成
   const isFieldCompleted = data.fields.some(
@@ -103,6 +103,8 @@ const StepRow: React.FC<StepRowProps> = props => {
   }, [data]);
 
   const renderDraggableChild = (provider, snapshot) => {
+    const isHover = isMouseHover && !snapshot.isDragging;
+
     const child = (
       <div
         ref={ref => {
@@ -124,32 +126,33 @@ const StepRow: React.FC<StepRowProps> = props => {
           )}
         </span>
         {isCallTestStep ? CallTestStepNode : StepFieldsMemoNode}
-        {isHover ? (
-          <span className={cx('actions')}>
+        <span className={cx('actions')} style={{ display: isHover ? 'flex' : 'none' }}>
+          <Popconfirm
+            okText="确定"
+            placement="left"
+            cancelText="取消"
+            getPopupContainer={getRootContainer}
+            title={`当前操作会复制该测试用例步骤，是否继续执行？`}
+            onConfirm={() => actions.copy({ id: data.id, index })}
+          >
             <Tooltip title="复制步骤">
-              <CopyOutlined
-                onClick={() =>
-                  actionConfirm('当前操作会复制该测试用例步骤，是否继续执行？', () =>
-                    actions.copy({ id: data.id, index }),
-                  )
-                }
-                className={cx('icon')}
-                key="CopyOutlined"
-              />
+              <CopyOutlined className={cx('icon')} />
             </Tooltip>
+          </Popconfirm>
+
+          <Popconfirm
+            okText="确定"
+            placement="left"
+            cancelText="取消"
+            getPopupContainer={getRootContainer}
+            title={`当前操作会删除该测试用例步骤，是否继续执行？`}
+            onConfirm={() => actions.delete(data.id)}
+          >
             <Tooltip title="删除步骤">
-              <DeleteOutlined
-                onClick={() =>
-                  actionConfirm('当前操作会删除该测试用例步骤，是否继续执行？', () =>
-                    actions.delete(data.id),
-                  )
-                }
-                className={cx('icon')}
-                key="DeleteOutlined"
-              />
+              <DeleteOutlined className={cx('icon')} key="DeleteOutlined" />
             </Tooltip>
-          </span>
-        ) : null}
+          </Popconfirm>
+        </span>
       </div>
     );
     const usePortal = snapshot.isDragging;
