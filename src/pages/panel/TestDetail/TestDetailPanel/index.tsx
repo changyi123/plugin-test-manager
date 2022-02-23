@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState, useCallback } from 'react';
-import { Button } from '@osui/ui';
+import { Button, Input } from '@osui/ui';
 import { updateTestDetail } from '@/lib/api/detail';
 import { SearchOutlined, BlockOutlined } from '@/icons';
 import { useTestConfig } from '@/lib/hooks/useContext';
@@ -14,7 +14,6 @@ import { hasArrayItem } from '@/lib/utils/helper';
 import { getTestEntities } from '@/lib/api/common';
 import { Step, TestEntity } from '@/lib/types/Test';
 import TestStep from '@/components/panel/TestStep';
-import Input from '@/components/panel/TestStep/fields/Input';
 
 import css from './index.less';
 
@@ -113,11 +112,11 @@ const Detail: React.FC = () => {
     [setSteps, testEntity],
   );
 
-  const handlePreconditionChange = async precondition => {
-    await updateTestDetail(testEntity, {
+  const { run: handlePreconditionChange } = useDebounceFn(precondition => {
+    updateTestDetail(testEntity, {
       precondition,
     });
-  };
+  });
 
   const callTestLen = useCallback(() => {
     return steps.filter(item => item.callTestId).length;
@@ -171,11 +170,13 @@ const Detail: React.FC = () => {
       <div className={css('detail')}>
         <h6>前置条件</h6>
         <div className={css('precondition-input')}>
-          <Input
+          <Input.TextArea
             maxLength={1000}
+            autoSize={{ minRows: 3, maxRows: 6 }}
             placeholder="请输入测试用例前置条件"
-            onChange={handlePreconditionChange}
-            value={testDetailData.detail?.precondition}
+            defaultValue={testDetailData.detail?.precondition}
+            onBlur={e => handlePreconditionChange(e.target.value)}
+            onChange={e => handlePreconditionChange(e.target.value)}
           />
         </div>
         <h6 className={css('step-header')}>用例步骤</h6>

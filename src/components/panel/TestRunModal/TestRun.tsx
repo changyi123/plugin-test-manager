@@ -171,7 +171,12 @@ const TestRun: React.FC<TestRunType> = props => {
 
   React.useEffect(() => {
     // 兼容测试执行无 step 情况（测试执行步骤可在执行阶段创建）
-    if (testId && !Array.isArray(testRunData.runDetail?.steps) && testRunData.runReferenceDetail) {
+    if (
+      testId &&
+      testRunData &&
+      testRunData.runReferenceDetail &&
+      !Array.isArray(testRunData.runDetail?.steps)
+    ) {
       (async () => {
         try {
           const steps = await getTestStepsByTestDetailId(testRunData.runReferenceDetail.objectId);
