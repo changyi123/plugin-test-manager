@@ -9,7 +9,6 @@ import {
   getTestEntitiesByRelation,
 } from '@/lib/api/common';
 import { pointerTransfer } from '@/lib/utils/helper';
-import series from 'async/series';
 import { Status, TestEntity } from '@/lib/types/Test';
 import { getItemByIQL } from '@/lib/api/proxima';
 import _, { isEqual, keyBy } from 'lodash';
@@ -18,70 +17,7 @@ import { compactStepModel } from '@/lib/utils/modelTransfer';
 
 type TestRunEntity = TestEntity<TestType.TestRun>;
 
-export const FetchAllTestStepByTestId = (
-  id: string,
-  callback?: (nil: null, data: any) => void,
-): Promise<ICommonRes> => {
-  return new Promise((resolve, reject) => {
-    const query = new Parse.Query(Test);
-    const reference = Item.createWithoutData(id);
-    query.equalTo('reference', reference).equalTo('type', TestType.TestDetail);
-    query.first().then(
-      res => {
-        const step = res?.toJSON() || [];
-        const callTestIds = [];
-        step?.steps?.forEach((item, index) => {
-          item.id = `${step.objectId}_${index}`;
-          if (item.callTestId) {
-            callTestIds.push(item.callTestId);
-          }
-        });
-        // 如果没有继承测试用例
-        if (!callTestIds.length) {
-          resolve({
-            success: true,
-            data: step,
-          });
-          callback && callback(null, step);
-          return;
-        }
-        const callTestPromises = callTestIds.map(
-          item => callback => FetchAllTestStepByTestId(item, callback),
-        );
-
-        series(callTestPromises)
-          .then(res => {
-            const stepBackList = [];
-            step?.steps?.forEach(item => {
-              if (item.callTestId && item.callTestId === res[0]?.reference?.objectId) {
-                res[0]?.steps?.forEach(item => {
-                  stepBackList.push(item);
-                });
-                return;
-              }
-              stepBackList.push(item);
-            });
-            step.steps = stepBackList;
-            resolve({
-              success: true,
-              data: step,
-            });
-            callback && callback(null, step);
-          })
-          .catch(() => {});
-      },
-      err => {
-        reject({
-          success: false,
-          data: { ...err },
-          message: err,
-        });
-      },
-    );
-  });
-};
-
-/** 创建测试执行实体，并将测试执行与测试执行轮次，测试用例与测试执行轮次关联 */
+/** 创建测试执行实体，并将测试执行与测试执行任务，测试用例与测试执行任务关联 */
 export const createTestRunAndRelation = async (_testExecutionEntity, _testDetailEntity) => {
   // 转换测试实体
   const testExecutionEntity = pointerTransfer(Test, _testExecutionEntity);
@@ -128,11 +64,14 @@ export const getTestRunsAndExecutions = async (testDetailEntity, queryParams) =>
       fillItemData: true,
       queryParams,
       async resultTransfer(result) {
-        // 获取测试执行轮次关联的测试执行
+        // 获取测试执行任务关联的测试执行
         const { list: allTestRuns } = await getTestEntitiesByRelation(
           TestRelationType.ExecutionRelRun,
           {
             from: result.list.map(item => item.objectId),
+          },
+          {
+            queryParams: { limit: 9999 },
           },
         );
 
@@ -469,7 +408,7 @@ export const updateTestRun = async (
 
   if (params.runDetail) {
     Object.assign(needUpdateAttrs, {
-      runDetail: { ...testEntityData.runDetail, ...params.runDetail },
+      runDetail: { ...needUpdateAttrs.runDetail, ...params.runDetail },
     });
   }
 
@@ -477,7 +416,7 @@ export const updateTestRun = async (
 };
 
 /** 从测试执行中获取测试步骤 */
-export const getTestStepsByTestDetailId = async (testDetailId: string) => {
+export const getTestStepsByTestDetailId = async (testDetailId: string, currentTestId?: string) => {
   // 获取测试步骤
   const fetchTestStepsAndName = async (id: string | string[]) => {
     const testEntities = await getTestEntities({ id }, { include: ['reference'] });
@@ -491,7 +430,7 @@ export const getTestStepsByTestDetailId = async (testDetailId: string) => {
     }));
   };
 
-  let callTestDeps = {} as Record<string, any>; // 处理循环继承
+  let callTestDeps = (currentTestId ? { [currentTestId]: true } : {}) as Record<string, any>; // 处理循环继承
 
   // 获取 testSteps, 将继承测试用例（callTestId） -> 测试步骤
   const recursiveGetTestSteps = async (id: string | string[]) => {
@@ -508,7 +447,11 @@ export const getTestStepsByTestDetailId = async (testDetailId: string) => {
     // 存在循环继承，只要有一个 id 在 dep 中，则存在循环继承
     const circularTestId = callTestIds.find(id => callTestDeps[id]);
     if (circularTestId != null) {
-      throw new Error(`与【${callTestDeps[circularTestId]?.name}】存在循环继承`);
+      const circularName = testData.find(data =>
+        data.steps.some(step => step.callTestId === circularTestId),
+      )?.name;
+
+      throw new Error(`与测试用例【${circularName}】存在循环继承`);
     }
 
     callTestDeps = Object.assign({}, callTestDeps, keyBy(testData, 'id'));

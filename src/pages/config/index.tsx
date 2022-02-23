@@ -4,7 +4,7 @@ import DataProvider from './DataProvider';
 import DefectMapping from './DefectMapping';
 import ItemTypeMapping from './ItemTypeMapping';
 import IsolateTestType from './IsolateTestType';
-import { useSafeState, useMount } from 'ahooks';
+import { useSafeState } from 'ahooks';
 import { DownOutlined } from '@ant-design/icons';
 import { Menu, Layout, Dropdown, Button, Result } from '@osui/ui';
 
@@ -60,11 +60,6 @@ const WorkspaceSelector = () => {
 
 const PageContent = ({ currentConfigPage }) => {
   const { workspace, toggleWorkspace } = useDataContext();
-  useMount(() => {
-    if (!workspace) {
-      toggleWorkspace();
-    }
-  });
   if (!workspace)
     return (
       <Result

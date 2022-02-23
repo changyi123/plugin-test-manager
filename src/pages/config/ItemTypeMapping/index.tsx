@@ -18,7 +18,7 @@ const TestTypes = [
   },
   {
     type: TestType.TestExecution,
-    title: '测试执行轮次',
+    title: '测试执行任务',
   },
 ];
 

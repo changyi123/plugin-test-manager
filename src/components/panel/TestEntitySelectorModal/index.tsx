@@ -212,14 +212,13 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
 
       setVisible(true);
 
+      typeof eventBusRef?.current?.disposer?.unregister === 'function' &&
+        eventBusRef.current.disposer.unregister();
+
       return new Promise(resolve => {
         eventBusRef.current.disposer = eventBusRef.current.register(
           AddExistedTestEventType,
-          data => {
-            typeof eventBusRef?.current?.disposer?.unregister === 'function' &&
-              eventBusRef.current.disposer.unregister();
-            resolve(data);
-          },
+          resolve,
         );
       });
     },

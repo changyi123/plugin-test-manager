@@ -1,5 +1,4 @@
 import React from 'react';
-import { uniqueId } from 'lodash';
 import { Button, Space, Typography, message, Tooltip, Divider, Popconfirm } from '@osui/ui';
 import { InfoCircleOutlined } from '@ant-design/icons';
 import PanelTable, { ActionType } from '@/components/panel/PanelTable';
@@ -12,7 +11,7 @@ import {
 import { useBaseAction } from '@/lib/hooks/useContext';
 import { TestType } from '@/lib/constants';
 import { removeTestRelations } from '@/lib/api/common';
-import TestRunModal from '@/pages/run/Modal';
+import TestRunModal from '@/components/panel/TestRunModal';
 import { StatusBadge } from '@/components/common/Status';
 import { useTestConfig } from '@/lib/hooks/useContext';
 
@@ -28,6 +27,7 @@ const Runs: React.FC = () => {
   const { testEntity: testDetailEntity } = useTestConfig();
   const tableActionRef = React.useRef<ActionType>();
   const { createItemUseModal } = useBaseAction();
+  const [currentPageTestRunIdSequence, setCurrentPageTestRunIdSequence] = React.useState([]);
 
   const removeTestRelation = React.useCallback(async relationTypeIds => {
     if (!Array.isArray(relationTypeIds)) return;
@@ -51,7 +51,7 @@ const Runs: React.FC = () => {
     {
       title: (
         <Space>
-          <div>测试执行轮次</div>
+          <div>测试执行任务</div>
           <div>
             <Tooltip placement="right" title="该测试用例的运行包含以下执行轮次">
               <InfoCircleOutlined />
@@ -69,7 +69,7 @@ const Runs: React.FC = () => {
               target="_blank"
               href={`/osc/workspaces/${itemData?.workspace?.key}/item/${itemData?.key}`}
             >
-              {itemData?.name}
+              {itemData?.key}
             </Typography.Link>
             <div>{itemData?.name}</div>
           </Space>
@@ -99,6 +99,7 @@ const Runs: React.FC = () => {
           <Space split={<Divider type="vertical" />} size={0} style={{ marginLeft: -4 }}>
             <TestRunModal
               testId={testRun.objectId}
+              testIdSequence={currentPageTestRunIdSequence}
               onCancel={() => setTimeout(() => tableActionRef.current.refresh(), 200)}
               trigger={
                 <Button size="small" type="link">
@@ -125,21 +126,22 @@ const Runs: React.FC = () => {
   ];
 
   const createTestExecution = async () => {
-    const token = uniqueId('TestExecution');
-    const { testEntity: testExecutionEntity, extraData } = await createItemUseModal({
+    const { testEntity: testExecutionEntity } = await createItemUseModal({
       type: TestType.TestExecution,
-      extraData: { token },
     });
-    // token 不相同则不创建关联
-    if (extraData.token !== token) return;
     // 创建测试执行实体并关联
     await createTestRunAndRelation(testExecutionEntity, testDetailEntity);
     tableActionRef.current.refresh();
   };
 
   const tableDataSourceGetter = React.useCallback(
-    queryParams => {
-      return getTestRunsAndExecutions(testDetailEntity, queryParams);
+    async queryParams => {
+      const data = await getTestRunsAndExecutions(testDetailEntity, queryParams);
+      // 添加测试执行序列
+      setCurrentPageTestRunIdSequence(
+        data.list.map(item => item.relTestRun?.objectId).filter(Boolean),
+      );
+      return data;
     },
     [testDetailEntity],
   );
@@ -156,7 +158,7 @@ const Runs: React.FC = () => {
             renderActions={() => (
               <div className={css('runs__new')}>
                 <Button type="primary" onClick={() => createTestExecution()}>
-                  新增测试执行轮次
+                  新增测试执行任务
                 </Button>
               </div>
             )}

@@ -11,6 +11,8 @@ export const useAllRelTestEntities = (
 ) => {
   if (Array.isArray(include)) {
     include = ['objectId'].concat(include);
+  } else {
+    include = ['objectId'];
   }
   const { data, mutate, refresh } = useRequest(async () => {
     const { list } = await getTestEntitiesByRelation(relType, sides, {
@@ -18,7 +20,7 @@ export const useAllRelTestEntities = (
       useSelect: true,
       queryParams: { limit: 9999 },
     });
-    return list?.map(item => (include.length === 1 ? item.objectId : pick(item, include)));
+    return list?.map(item => (include?.length === 1 ? item.objectId : pick(item, include)));
   });
 
   return {

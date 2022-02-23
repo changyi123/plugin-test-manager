@@ -3,6 +3,7 @@ import { TestType } from '@/lib/constants';
 
 // 测试实体
 type BaseTestEntity = {
+  objectId: string;
   /** 测试用例类型 */
   type: TestType;
   /** 空间标识 */
@@ -12,18 +13,19 @@ type BaseTestEntity = {
   /** 测试用例最新执行状态 */
   status: Status['key'];
   /** 测试执行关联测试用例实体 */
-  runReferenceDetail: TestEntity;
+  runReferenceDetail: TestEntity<TestType.TestDetail>;
   /** 额外数据 */
   extra: Record<string, unknown>;
   /** 测试用例数据 */
   detail?: {
     steps: Step[];
+    precondition: string;
   };
   /** 测试执行数据 */
   runDetail: {
-    component?: string;
-    defectItemIds?: string[];
     steps: Step[];
+    precondition: string;
+    defectItemIds?: string[];
   };
 };
 
@@ -49,6 +51,9 @@ export type Status = {
   type: 'TODO' | 'PASSED' | 'EXECUTING' | 'FAILED';
 };
 
+/** 步骤表单 */
+export type StepField = Record<'key' | 'value', any>;
+
 export type Step = {
   id: string; // uuid
 
@@ -62,11 +67,11 @@ export type Step = {
 
   // 以下字段在测试执行形成
   defectItemIds?: string[]; // 缺陷关联
-  status?: Status | Status['key']; // 步骤状态
+  status?: Status['key']; // 步骤状态
   actualResult?: string; // 实际结果
   comment?: string; // 评论
 
   // 以下字段为保留字段暂时不用
   attachments?: string[]; // 附件
-  customFields?: string[]; // 自定义字段
+  customFields?: StepField[]; // 自定义字段
 };

@@ -1,5 +1,5 @@
 import React from 'react';
-import { uniq, uniqueId } from 'lodash';
+import { uniq } from 'lodash';
 import { useReactive, useDrop } from 'ahooks';
 import { TestType } from '@/lib/constants';
 import { hasArrayItem, getRootContainer } from '@/lib/utils/helper';
@@ -243,20 +243,14 @@ const FolderTree: React.FC<FolderTreeProps> = ({
       } else if (actionKey === MenuKey.expandFolder) {
         expandSubFolder(node.key);
       } else if (actionKey === MenuKey.createTest) {
-        const token = uniqueId('TestDetail');
         // 创建测试用例
-        const { testEntity, item, extraData } = await createItemUseModal({
+        const { testEntity, item } = await createItemUseModal({
           type: TestType.TestDetail,
           extraData: {
-            token,
             type: TestType.TestDetail,
             folderKey: node.key,
           },
         });
-
-        // 判断 token 是否一致
-        const isSameToken = token === (extraData as any)?.token;
-        if (!isSameToken) return;
 
         console.info('itemCreated', item.objectId, node.key);
         // 创建的测试用例不在同一个空间

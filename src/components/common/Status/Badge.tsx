@@ -14,6 +14,8 @@ type BadgeProps = {
   onStatusChange?: (status) => void;
   useRootContainer?: boolean;
   showBg?: boolean;
+  className?: string;
+  onReady?: (statusConfig) => void;
 };
 
 const Status = ({
@@ -30,9 +32,10 @@ const Status = ({
       className={[
         cx('status', hasEffect && 'hover', className),
         showBg && cx('run-status', status?.key),
+        'status',
       ].join(' ')}
     >
-      <span style={{ background: status?.color }} className={cx('dot')} />
+      <span style={{ background: status?.color }} className={cx('dot', 'status__dot')} />
       <span className={cx('name')}>{status?.name}</span>
       {showBg && (
         <span className={cx('icon')}>
@@ -45,10 +48,23 @@ const Status = ({
 
 const Badge: React.FC<BadgeProps> = props => {
   const badgeRef = React.useRef();
+  const isInitialRef = React.useRef(false);
   const statusConfig = useStatusConfig();
   const currentStatus = React.useMemo(() => {
     return statusConfig[props.status] ?? (statusConfig as any).TODO;
   }, [props.status, statusConfig]);
+
+  React.useEffect(() => {
+    if (
+      typeof props?.onReady !== 'function' ||
+      !Object.keys(statusConfig).length ||
+      isInitialRef.current
+    )
+      return;
+    isInitialRef.current = true;
+    props?.onReady(statusConfig);
+  }, [statusConfig, props]);
+
   const [visible, setVisible] = React.useState(false);
 
   const PopoverContent = React.useMemo(() => {
@@ -66,7 +82,7 @@ const Badge: React.FC<BadgeProps> = props => {
           setVisible(false);
           props?.onStatusChange(status);
         }}
-        className={cx('block')}
+        className={cx('block', 'status__block')}
         key={status.key}
         status={status}
       />
@@ -74,7 +90,7 @@ const Badge: React.FC<BadgeProps> = props => {
   }, [statusConfig, props]);
 
   return (
-    <div ref={badgeRef}>
+    <div className={props.className} ref={badgeRef}>
       <Popover
         getPopupContainer={props.useRootContainer ? getRootContainer : () => badgeRef.current}
         trigger="click"
@@ -82,7 +98,7 @@ const Badge: React.FC<BadgeProps> = props => {
         placement="bottomLeft"
         content={PopoverContent}
         onVisibleChange={visible => !props.readonly && setVisible(visible)}
-        overlayClassName={cx('status-badge-overlay')}
+        overlayClassName={cx('status-badge-overlay', 'status__overlay')}
       >
         <Status
           status={currentStatus}

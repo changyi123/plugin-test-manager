@@ -3,13 +3,10 @@ import { hasArrayItem } from '@/lib/utils/helper';
 import Parse from '@/lib/parse';
 import { TestType, TestRelationType } from '@/lib/constants';
 import {
-  getTestEntities,
   createTestRelation,
   createTestEntities,
   getTestEntitiesByRelation,
 } from '@/lib/api/common';
-import { FetchAllTestStepByTestId } from '@/lib/api/runs';
-import series from 'async/series';
 
 /**
  * 创建测试执行
@@ -105,38 +102,6 @@ export const getItemByTestId = (testIds: string[]): Promise<Array<Parse.Object>>
     query.include('reference');
     query.find().then((itemObjs: Array<Parse.Object>) => {
       resolve(itemObjs);
-    });
-  });
-};
-
-export const createTestRunByItemId = async (
-  itemId: string,
-  callback?: (nil: null, data: any) => void,
-) => {
-  return new Promise((resolve, reject) => {
-    getTestEntities({ itemId }).then(([testEntity]) => {
-      return FetchAllTestStepByTestId(itemId)
-        .then(({ data: testRuns }) => {
-          return createTestEntities([
-            {
-              type: TestType.TestRun,
-              workspaceKey: testEntity?.toJSON()?.workspaceKey,
-              fields: {
-                runDetail: {
-                  runs: testRuns || {},
-                },
-                runReferenceDetail: Test.createWithoutData(testRuns?.objectId),
-              },
-            },
-          ]);
-        })
-        .then((data: Array<Parse.Object>) => {
-          resolve(data[0]);
-          callback && callback(null, data[0]);
-        })
-        .catch(e => {
-          reject({ ...e });
-        });
     });
   });
 };

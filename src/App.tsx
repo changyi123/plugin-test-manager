@@ -45,9 +45,11 @@ const App: React.FC = props => {
     [props],
   );
 
-  notification.config({
-    getContainer: getRootContainer,
-  });
+  React.useEffect(() => {
+    notification.config({
+      getContainer: getRootContainer,
+    });
+  }, []);
 
   return (
     <PluginSDKContext.Provider value={qiankunContextValue.sdk}>

@@ -22,6 +22,8 @@ const joinWithHyphen = (prevStatement, currentStatement, hyphen: Hyphen = 'and')
 const IQLWhereClauseGenerators: Record<IQLWhereOperator, (...args: any[]) => string> = {
   [IQLWhereOperator.IN]: (key: string, data: string[]) => {
     if (!Array.isArray(data)) return '';
+    // 移除空值类型数据
+    data = data.filter(Boolean);
     return `${key} in [${data.toString().replace(/([^,]+)(?=$|,)/g, `'$1'`)}]`;
   },
   [IQLWhereOperator.EQUAL]: (key: string, data: string) => {

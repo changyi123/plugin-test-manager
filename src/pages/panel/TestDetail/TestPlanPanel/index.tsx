@@ -53,7 +53,7 @@ const Plan = () => {
 
       const testPlanIds = testPlans.map(item => item.objectId);
 
-      // 测试执行轮次 testRuns
+      // 测试执行任务 testRuns
       const { list: testDetails } = await getTestEntitiesByRelation(
         TestRelationType.PlanRelDetail,
         { from: testPlanIds },
@@ -105,19 +105,15 @@ const Plan = () => {
       {
         title: '新建测试计划',
         async onClick() {
-          const token = uniqueId('TestPlan');
-          const {
-            testEntity: testPlanEntity,
-            extraData,
-            item,
-          } = await createItemUseModal({
+          const { testEntity: testPlanEntity, item } = await createItemUseModal({
             type: TestType.TestPlan,
-            extraData: { token },
           });
-          // token 不相同则不创建关联
-          if (extraData.token !== token) return;
 
-          await createTestPlanService(testEntity, testPlanEntity);
+          try {
+            await createTestPlanService(testEntity, testPlanEntity);
+          } catch (err) {
+            console.error(err);
+          }
 
           refreshDepData();
 
