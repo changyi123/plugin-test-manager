@@ -7,6 +7,11 @@ const routes = [
     exact: true,
   },
   {
+    path: '/testPlan',
+    component: React.lazy(() => import('../pages/plan')),
+    exact: true,
+  },
+  {
     path: '/testPanel',
     component: React.lazy(() => import('../pages/panel')),
     exact: true,

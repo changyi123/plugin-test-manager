@@ -1,0 +1,50 @@
+@import '@/index.global.less';
+
+:root {
+  .layout {
+    height: 100%;
+    background-color: #fff;
+  }
+
+  .header {
+    height: 55px;
+    line-height: 55px;
+    padding-left: 24px;
+    border-bottom: 1px solid @border-color;
+    font-size: 18px;
+  }
+
+  .content {
+    display: flex;
+    flex-direction: row;
+  }
+
+  .left {
+    position: relative;
+    min-width: 300px;
+    max-width: 50%;
+    flex: none;
+
+    :global {
+      .react-resizable-handle {
+        position: absolute;
+        cursor: ew-resize;
+        width: 10px;
+        height: 100%;
+        right: 0px;
+        top: 0;
+        border-right: 1px solid @border-color;
+        &:hover {
+          border-color: var(--color-brand-5);
+        }
+      }
+    }
+  }
+
+  .right {
+    flex: 1;
+    display: flex;
+    min-width: 400px;
+    flex-direction: column;
+  }
+}

@@ -1,12 +1,11 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState, useCallback } from 'react';
-import { Button, Input } from '@osui/ui';
+import { Button, Input, Spin } from '@osui/ui';
 import { updateTestDetail } from '@/lib/api/detail';
 import { SearchOutlined, BlockOutlined } from '@/icons';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import { TestType } from '@/lib/constants';
 import { keyBy, uniq } from 'lodash';
-import Loading from '@/components/common/Loading';
 import { useDebounceFn, useRequest } from 'ahooks';
 
 import { Item } from '@/lib/types/App';
@@ -149,7 +148,7 @@ const Detail: React.FC = () => {
 
   if (loading && firstLoad) {
     firstLoad = false;
-    return <Loading />;
+    return <Spin />;
   }
 
   if (!testDetailId) {
@@ -166,7 +165,7 @@ const Detail: React.FC = () => {
   }
 
   return (
-    <Loading loading={loading}>
+    <Spin spinning={loading}>
       <div className={css('detail')}>
         <h6>前置条件</h6>
         <div className={css('precondition-input')}>
@@ -209,7 +208,7 @@ const Detail: React.FC = () => {
           />
         </div>
       </div>
-    </Loading>
+    </Spin>
   );
 };
 

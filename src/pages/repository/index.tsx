@@ -1,16 +1,16 @@
 import React from 'react';
 import FolderTree from '@/pages/repository/FolderTree';
 
-import { ResizableBox } from 'react-resizable';
+import { getDevConfig } from '@/devEnv';
 import TestDetailTable from './TestDetailTable';
 import { useReactive, useRequest } from 'ahooks';
+import { getItemByIQL } from '@/lib/api/proxima';
 import { getFolderTree } from '@/lib/api/repository';
 import { useSDK } from '@projectproxima/plugin-sdk';
-import { getItemByIQL } from '@/lib/api/proxima';
-import { getDevConfig } from '@/devEnv';
-import { traverseTreeNodes, reverseTreeNodes, useLayoutHeight } from './hook';
+import PageLayout from '@/components/common/PageLayout';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import TestManagerProvider from '@/components/common/TestManagerProvider';
+import { traverseTreeNodes, reverseTreeNodes } from './hook';
 
 import { Breadcrumb, Input } from '@osui/ui';
 import { FileTextOutlined } from '@/icons';
@@ -145,63 +145,54 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
     [fetchFolderItems, state, treeNodeData],
   );
 
-  const height = useLayoutHeight();
-
   return (
-    <div className={cx('test-repository')}>
-      <header className={cx('header')}>测试用例仓库</header>
-      <div className={cx('content')}>
-        <ResizableBox
-          axis="x"
-          width={300}
-          height={height}
-          className={cx('left')}
-          draggableOpts={{ enableUserSelectHack: false }}
-        >
-          <FolderTree
-            onSelect={handleSelect}
-            loading={folderTreeLoading}
-            treeNodeData={treeNodeData}
-            onFolderTreeChange={refreshFolderTree}
+    <PageLayout className={cx('test-repository')}>
+      <PageLayout.Header>
+        <header className={cx('header')}>测试用例仓库</header>
+      </PageLayout.Header>
+      <PageLayout.Left>
+        <FolderTree
+          onSelect={handleSelect}
+          loading={folderTreeLoading}
+          treeNodeData={treeNodeData}
+          onFolderTreeChange={refreshFolderTree}
+        />
+      </PageLayout.Left>
+      <PageLayout.Right>
+        <div className={cx('breadcrumb-container')}>
+          <Breadcrumb
+            className={cx('breadcrumb')}
+            separator={<span className={cx('separator')}>&gt;</span>}
+          >
+            {state.breadcrumb.map((title, index) => (
+              <Breadcrumb.Item
+                className={cx(index !== state.breadcrumb.length - 1 && 'secondary')}
+                key={title}
+              >
+                {title}
+              </Breadcrumb.Item>
+            ))}
+          </Breadcrumb>
+          <Input.Search
+            className={cx('search')}
+            placeholder="请输入关键字"
+            style={{ width: 200 }}
+            value={state.searchValue}
+            onSearch={fetchFolderItems}
+            onChange={e => (state.searchValue = e.target.value)}
           />
-        </ResizableBox>
-
-        <div className={cx('right')} style={{ height }}>
-          <div className={cx('breadcrumb-container')}>
-            <Breadcrumb
-              className={cx('breadcrumb')}
-              separator={<span className={cx('separator')}>&gt;</span>}
-            >
-              {state.breadcrumb.map((title, index) => (
-                <Breadcrumb.Item
-                  className={cx(index !== state.breadcrumb.length - 1 && 'secondary')}
-                  key={title}
-                >
-                  {title}
-                </Breadcrumb.Item>
-              ))}
-            </Breadcrumb>
-            <Input.Search
-              className={cx('search')}
-              placeholder="请输入关键字"
-              style={{ width: 200 }}
-              value={state.searchValue}
-              onSearch={fetchFolderItems}
-              onChange={e => (state.searchValue = e.target.value)}
-            />
-          </div>
-          <div className={cx('table-container')}>
-            <TestDetailTable
-              total={state.total}
-              loading={tableLoading}
-              dataSource={state.items}
-              onPageChange={handlePageChange}
-              selectedFolderKey={state.selectedFolderKey}
-            />
-          </div>
         </div>
-      </div>
-    </div>
+        <div className={cx('table-container')}>
+          <TestDetailTable
+            total={state.total}
+            loading={tableLoading}
+            dataSource={state.items}
+            onPageChange={handlePageChange}
+            selectedFolderKey={state.selectedFolderKey}
+          />
+        </div>
+      </PageLayout.Right>
+    </PageLayout>
   );
 };
 

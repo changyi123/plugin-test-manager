@@ -34,6 +34,11 @@ modules:
       title: 测试用例仓库
       loadType: Micro
       route: /testRepo
+    - key: test-plan
+      resource: main
+      title: 测试计划
+      loadType: Micro
+      route: /testPlan
 tables:
   - className: Repository
     fields:
