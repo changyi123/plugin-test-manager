@@ -50,7 +50,10 @@ tables:
         type: Pointer
         isAppClass: true
         targetClass: Repository
-      itemIds:
+      # 废弃暂时先不删
+      # itemIds:
+      #   type: Array
+      testDetailIds:
         type: Array
       tenant:
         type: Pointer

@@ -2,7 +2,6 @@ import React from 'react';
 import { Table } from '@osui/ui';
 import { useDrag } from 'ahooks';
 import { ColumnProps } from 'antd/lib/table';
-import { BuiltinColumns, columnBuilder } from '@/components/panel/PanelTable';
 
 type TestDetailTableProps = {
   total: number;
@@ -64,9 +63,22 @@ const TestDetailTable: React.FC<TestDetailTableProps> = ({
       row: BodyRow,
     },
   };
+
   const columns: ColumnProps<any>[] = [
-    columnBuilder(BuiltinColumns.ItemKey, item => ({ item })),
-    columnBuilder(BuiltinColumns.ItemTitle, item => ({ item })),
+    {
+      title: '事项ID',
+      key: 'key',
+      render(_, record) {
+        return record.reference.key;
+      },
+    },
+    {
+      title: '标题',
+      key: 'name',
+      render(_, record) {
+        return record.reference.name;
+      },
+    },
     {
       title: '状态',
       key: 'status',

@@ -92,7 +92,7 @@ type TreeNode = {
   name: string;
   title: React.ReactNode;
   parentId: string | null;
-  itemIds: string[];
+  testDetailIds: string[];
   children: TreeNode[];
 };
 
@@ -188,7 +188,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         handleSelect([createdFolderKey], {
           node: {
             parentId,
-            itemIds: [],
+            testDetailIds: [],
             name: folderName,
             key: createdFolderKey,
           },
@@ -258,7 +258,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         // 只有测试用例需要被添加至测试用例仓库
         if (testEntity?.get('type') !== TestType.TestDetail) return;
         // 修改 node，将创建成功的 itemKey 追加到 node 上
-        node.itemIds = (node.itemIds || []).concat(item.objectId);
+        node.testDetailIds = (node.testDetailIds || []).concat(item.objectId);
         await updateFolders([node]);
         onFolderTreeChange();
         handleSelect([node.key], {
@@ -300,9 +300,9 @@ const FolderTree: React.FC<FolderTreeProps> = ({
     return treeFn.traverseTreeNodes(node => {
       let totalLen = 0;
       traverseTreeNodes([node], node => {
-        totalLen += node.itemIds.length;
+        totalLen += node.testDetailIds?.length ?? 0;
       });
-      node.length = [node.itemIds.length, totalLen];
+      node.length = [node.testDetailIds?.length ?? 0, totalLen];
     });
   }, [treeFn]);
 
@@ -381,8 +381,8 @@ const FolderTree: React.FC<FolderTreeProps> = ({
       const sourceNode = treeFn.getTreeNodeByKey(fromFolderKey);
       const targetNode = treeFn.getTreeNodeByKey(toFolderKey);
 
-      sourceNode.itemIds = sourceNode.itemIds.filter(id => id !== itemId);
-      targetNode.itemIds = uniq(targetNode.itemIds.concat(itemId));
+      sourceNode.testDetailIds = sourceNode.testDetailIds.filter(id => id !== itemId);
+      targetNode.testDetailIds = uniq((targetNode.testDetailIds ?? []).concat(itemId));
 
       let needUpdatedFolders = [];
       if (toFolderKey !== ROOT_FOLDER_KEY) {
