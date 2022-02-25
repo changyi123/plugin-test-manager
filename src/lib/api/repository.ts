@@ -11,9 +11,9 @@ export const getFolderTree = async (workspaceKey: string) => {
   const repositories = repositoryObjects.map(item => {
     const repository = item.toJSON();
     return {
-      key: repository.objectId,
       name: repository.name,
-      itemIds: repository.itemIds ?? [],
+      key: repository.objectId,
+      testDetailIds: repository.testDetailIds ?? [],
       parentId: repository.parent?.objectId ?? null,
       workspaceKey: repository.workspaceKey,
     };
@@ -41,7 +41,7 @@ export const updateFolders = async (
   folders: {
     key: string;
     name?: string;
-    itemIds?: string[];
+    testDetailIds?: string[];
     parentId?: string;
   }[],
 ) => {
@@ -58,8 +58,8 @@ export const updateFolders = async (
       repository.set('name', folder.name);
     }
 
-    if ('itemIds' in folder) {
-      repository.set('itemIds', folder.itemIds);
+    if ('testDetailIds' in folder) {
+      repository.set('testDetailIds', folder.testDetailIds);
     }
 
     return repository;

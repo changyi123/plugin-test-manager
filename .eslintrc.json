@@ -30,6 +30,7 @@
     "no-multiple-empty-lines": 1,
     "prefer-const": "error",
     "space-infix-ops": "error",
+    "no-unused-vars": "error",
     "no-useless-escape": "off",
     "require-atomic-updates": "off",
     "react/prop-types": "off",

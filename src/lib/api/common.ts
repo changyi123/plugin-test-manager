@@ -4,7 +4,7 @@ import { TestConfig } from '../models';
 import { getItemByIQL } from './proxima';
 import { TestType, TestRelationType } from '@/lib/constants';
 import { Workspace, Item, Test, TestRelation } from '@/lib/models';
-import { hasArrayItem, pointerTransfer, toArray } from '@/lib/utils/helper';
+import { hasArrayItem, pointerTransfer, toArray, escapeMatchesQueryArg } from '@/lib/utils/helper';
 
 /** to/from -> pointer */
 const testRelationTypePointerTransfer = arr =>
@@ -246,6 +246,90 @@ export const getTestEntities = (
   }
 
   return query.find();
+};
+
+/** 获取测试实体 by parse query */
+export const getTestEntitiesByQuery = async (
+  queryParams?: Partial<{
+    in: string[];
+    type: TestType;
+    notIn: string[];
+    nameLike: string;
+    workspaceKey: string;
+  }>,
+  options?: Partial<{
+    offset: number;
+    limit: number;
+    descendingKeys: string[];
+    ascendingKeys: string[];
+    include: string[];
+  }>,
+) => {
+  const query = new Parse.Query(Test);
+
+  queryParams = queryParams ?? {};
+  options = merge(
+    {
+      include: ['reference.workspace', 'reference.itemType'],
+    },
+    options,
+  );
+
+  // 处理数组类型查询参数
+  const escapeArrayTypeParams = paramValue => {
+    return paramValue.filter(Boolean);
+  };
+
+  // 处理查询参数
+  if (queryParams.type) {
+    query.equalTo('type', queryParams.type);
+  }
+
+  if (queryParams.workspaceKey) {
+    query.equalTo('workspaceKey', queryParams.workspaceKey);
+  }
+
+  if (queryParams.nameLike) {
+    query.contains('name', escapeMatchesQueryArg(queryParams.nameLike));
+  }
+
+  if (queryParams.in) {
+    query.containedIn('objectId', escapeArrayTypeParams(queryParams.in));
+  }
+
+  if (queryParams.notIn) {
+    query.notContainedIn('objectId', escapeArrayTypeParams(queryParams.notIn));
+  }
+
+  // 需要加上 count 数据
+  query.withCount(true);
+
+  // 处理条件
+  if (options.offset != null) {
+    query.skip(options.offset ?? 0);
+  }
+
+  if (options.limit != null) {
+    query.limit(options.limit ?? 10);
+  }
+
+  if (options.descendingKeys) {
+    query.addDescending(options.descendingKeys);
+  } else if (options.ascendingKeys) {
+    query.addAscending(options.ascendingKeys);
+  }
+
+  if (options.include) {
+    query.include(options.include);
+  }
+
+  const data = await query.find();
+
+  // 对分页响应的数据结构进行兼容
+  return {
+    ...data,
+    results: data.results.map(item => item.toJSON()),
+  };
 };
 
 /**

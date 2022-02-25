@@ -34,6 +34,11 @@ modules:
       title: 测试用例仓库
       loadType: Micro
       route: /testRepo
+    - key: test-plan
+      resource: main
+      title: 测试计划
+      loadType: Micro
+      route: /testPlan
 tables:
   - className: Repository
     fields:
@@ -45,7 +50,10 @@ tables:
         type: Pointer
         isAppClass: true
         targetClass: Repository
-      itemIds:
+      # 废弃暂时先不删
+      # itemIds:
+      #   type: Array
+      testDetailIds:
         type: Array
       tenant:
         type: Pointer

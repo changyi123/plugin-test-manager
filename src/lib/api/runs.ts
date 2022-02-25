@@ -408,7 +408,12 @@ export const updateTestRun = async (
 
   if (params.runDetail) {
     Object.assign(needUpdateAttrs, {
-      runDetail: { ...needUpdateAttrs.runDetail, ...params.runDetail },
+      runDetail: Object.assign(
+        {},
+        testEntityData.runDetail,
+        needUpdateAttrs.runDetail,
+        params.runDetail,
+      ),
     });
   }
 
