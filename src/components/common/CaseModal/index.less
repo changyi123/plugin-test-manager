@@ -1,0 +1,49 @@
+.box_sel{
+    padding-bottom: 13px;
+    padding-top: 2px;
+    :global{
+        // 删除默认点击出现的蓝色边框
+        .ant-select-focused:not(.ant-select-disabled).ant-select:not(.ant-select-customize-input) .ant-select-selector {
+            border-color: #DADEE3; //前后统一颜色
+            box-shadow: none;
+        }    
+    }
+}
+.sub_title{
+    font-size: 14px;
+    display: flex;
+    justify-content: space-between;
+    .search_btn{
+        display: inline-flex;
+        align-items: center;
+    }
+    .search_btn_none{
+        display: none;
+    }
+
+    .search_input{
+        display: inline-flex;
+        align-items: center;
+    }
+
+    span .des{
+        color: #999;
+    }
+}
+:global{
+    .ant-table-tbody > tr.ant-table-row-selected > td{
+        background: white;
+        border-color: rgba(0, 0, 0, 0.08);
+    }
+    .ant-modal-title {
+        margin: 0;
+        color: var(--theme-text-color);
+        font-weight: 600;
+        font-size: 16px;
+        line-height: 22px;
+        word-wrap: break-word;
+    }
+    /* .ant-table-column-sorters::after{
+        background: white;
+    } */
+}

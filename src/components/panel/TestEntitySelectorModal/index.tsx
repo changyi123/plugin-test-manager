@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React from 'react';
 import { Modal, Spin } from '@osui/ui';
 import { TestType } from '@/lib/constants';
@@ -10,6 +11,7 @@ import DebounceSelect from '@/components/common/DebounceSelect';
 import { getRootContainer, hasArrayItem } from '@/lib/utils/helper';
 import { getAllTestConfigs, getTestEntities } from '@/lib/api/common';
 import { TestTypeNameMapping } from '@/lib/constants';
+import CaseModal from '@/components/common/CaseModal';
 
 import cx from './index.less';
 
@@ -45,6 +47,15 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
     workspace,
     config: { isolateTestType = [] },
   } = useTestConfig();
+
+  const handleOk = data => {
+    const selectData = data;
+    if (typeof props.onSelect === 'function') {
+      props.onSelect(selectData);
+    }
+    eventBusRef.current.dispatch(AddExistedTestEventType, selectData);
+    setVisible(false);
+  };
 
   // 数据缓存
   const dataCacheDictRef = React.useRef({});
@@ -212,13 +223,14 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
 
       setVisible(true);
 
-      typeof eventBusRef?.current?.disposer?.unregister === 'function' &&
-        eventBusRef.current.disposer.unregister();
-
       return new Promise(resolve => {
         eventBusRef.current.disposer = eventBusRef.current.register(
           AddExistedTestEventType,
-          resolve,
+          data => {
+            typeof eventBusRef?.current?.disposer?.unregister === 'function' &&
+              eventBusRef.current.disposer.unregister();
+            resolve(data);
+          },
         );
       });
     },
@@ -253,7 +265,16 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
         mode: 'multiple',
       };
 
-  return (
+  return testType == 'TestDetail' ? (
+    <CaseModal
+      type={isSingleMode ? 0 : 1}
+      ignoreTestEntityIds={ignoreTestEntityIds ?? []}
+      isModalVisible={visible}
+      handleCancel={() => setVisible(false)}
+      handleOk={handleOk}
+      needFillValue={needFillValue ?? null}
+    />
+  ) : (
     <Modal
       visible={visible}
       className={cx('modal')}
