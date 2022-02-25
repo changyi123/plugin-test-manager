@@ -1,0 +1,69 @@
+@import '@/index.global.less';
+
+.container {
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.toolkit-bar {
+  display: flex;
+  align-items: center;
+  background-color: #fff;
+  justify-content: flex-end;
+  border-bottom: 1px solid @border-color;
+  min-height: 46px;
+  padding-right: 16px;
+  text-align: right;
+
+  & > * {
+    margin-right: 10px;
+    &:last-child {
+      margin-right: 0;
+    }
+  }
+
+  .disabled {
+    color: var(--color-gray-5);
+    cursor: not-allowed;
+  }
+}
+
+.list {
+  padding: 8px 16px;
+}
+
+.plan {
+  padding: 12px 8px;
+  border-radius: 4px;
+
+  &.hover {
+    background-color: #e2ecff;
+  }
+  .top {
+    display: flex;
+    line-height: 34px;
+  }
+  .name {
+    font-size: 14px;
+    margin-right: auto;
+  }
+  .num {
+    color: #999;
+    font-size: 12px;
+    height: 30px;
+  }
+
+  .action {
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    &:hover {
+      background: #d4d6d9;
+    }
+  }
+}

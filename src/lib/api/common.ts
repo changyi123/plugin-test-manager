@@ -260,8 +260,8 @@ export const getTestEntitiesByQuery = async (
   options?: Partial<{
     offset: number;
     limit: number;
-    descendingKeys: string[];
-    ascendingKeys: string[];
+    descendingBy: string[];
+    ascendingBy: string[];
     include: string[];
   }>,
 ) => {
@@ -290,7 +290,10 @@ export const getTestEntitiesByQuery = async (
   }
 
   if (queryParams.nameLike) {
-    query.contains('name', escapeMatchesQueryArg(queryParams.nameLike));
+    query.matchesQuery(
+      'reference',
+      new Parse.Query(Item).matches('name', escapeMatchesQueryArg(queryParams.nameLike)),
+    );
   }
 
   if (queryParams.in) {
@@ -313,10 +316,10 @@ export const getTestEntitiesByQuery = async (
     query.limit(options.limit ?? 10);
   }
 
-  if (options.descendingKeys) {
-    query.addDescending(options.descendingKeys);
-  } else if (options.ascendingKeys) {
-    query.addAscending(options.ascendingKeys);
+  if (options.descendingBy) {
+    query.addDescending(options.descendingBy);
+  } else if (options.ascendingBy) {
+    query.addAscending(options.ascendingBy);
   }
 
   if (options.include) {
