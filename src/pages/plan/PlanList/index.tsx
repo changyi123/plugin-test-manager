@@ -2,11 +2,12 @@ import _ from 'lodash';
 import React from 'react';
 import { usePageContext } from '../hook';
 import { TestEntity } from '@/lib/types/Test';
+import { hasArrayItem } from '@/lib/utils/helper';
 import { Dropdown, Menu, Tooltip, Spin } from '@osui/ui';
 import { EllipsisOutlined, PlusOutlined } from '@/icons';
 import { StatusProgress } from '@/components/common/Status';
 import { TestType, TestRelationType } from '@/lib/constants';
-import { useInfiniteScroll, useHover, useDebounceFn } from 'ahooks';
+import { useInfiniteScroll, useHover } from 'ahooks';
 import { getTestEntitiesByRelation, getTestEntitiesByQuery } from '@/lib/api/common';
 
 import SearchInput from '@/components/plan/SearchInput';
@@ -20,7 +21,11 @@ type TestPlan = TestPlanEntity & {
   refTestDetails: Pick<TestEntity, 'status'>[];
 };
 
-const PlanItem: React.FC<{ data: TestPlan }> = ({ data }) => {
+const PlanItem: React.FC<{ data: TestPlan; onSelect: (id) => void; selectedId: string }> = ({
+  data,
+  onSelect,
+  selectedId,
+}) => {
   const ref = React.useRef();
   const isHover = useHover(ref);
   const { reference = {} as any, refTestDetails } = data;
@@ -34,7 +39,14 @@ const PlanItem: React.FC<{ data: TestPlan }> = ({ data }) => {
   };
 
   return (
-    <div ref={ref} className={cx('plan', isHover && 'hover')} key={data.objectId}>
+    <div
+      ref={ref}
+      className={cx('plan', isHover && 'hover', selectedId === data.objectId && 'selected')}
+      key={data.objectId}
+      onClick={() => {
+        onSelect(data.objectId);
+      }}
+    >
       <div className={cx('top')}>
         <span className={cx('name')}>{reference.name ?? '该事项已被删除'}</span>
         <span style={{ display: !isHover ? 'inline-block' : 'none' }} className={cx('num')}>
@@ -65,9 +77,10 @@ const PlanItem: React.FC<{ data: TestPlan }> = ({ data }) => {
 };
 
 const PlanList = () => {
-  const [search, setSearch] = React.useState('');
-  const { workspaceKey } = usePageContext();
   const listRef = React.useRef();
+  const initialRef = React.useRef(false);
+  const [search, setSearch] = React.useState('');
+  const { workspaceKey, setSelectedTestPlanId, selectedTestPlanId } = usePageContext();
 
   const { data, reload, loading } = useInfiniteScroll(
     async params => {
@@ -121,22 +134,24 @@ const PlanList = () => {
 
   const testPlans = data?.list ?? [];
 
+  React.useEffect(() => {
+    if (!initialRef.current && hasArrayItem(data?.list)) {
+      initialRef.current = true;
+      setSelectedTestPlanId(data.list[0].objectId);
+    }
+  }, [data?.list, setSelectedTestPlanId]);
+
   const handleCreate = () => {};
 
-  const { run: handleSearchInputChange } = useDebounceFn(
-    value => {
-      setSearch(value);
-      reload();
-    },
-    {
-      wait: 1000,
-    },
-  );
+  const handleSearch = value => {
+    setSearch(value);
+    reload();
+  };
 
   return (
     <div className={cx('container')}>
       <div className={cx('toolkit-bar')}>
-        <SearchInput onChange={handleSearchInputChange} />
+        <SearchInput onSearch={handleSearch} />
         <Tooltip title="新建测试计划">
           <PlusOutlined onClick={handleCreate} />
         </Tooltip>
@@ -144,7 +159,12 @@ const PlanList = () => {
       <Spin spinning={loading}>
         <div className={cx('list')} ref={listRef}>
           {testPlans.map(testPlan => (
-            <PlanItem data={testPlan} key={testPlan.objectId} />
+            <PlanItem
+              data={testPlan}
+              key={testPlan.objectId}
+              onSelect={setSelectedTestPlanId}
+              selectedId={selectedTestPlanId}
+            />
           ))}
         </div>
       </Spin>

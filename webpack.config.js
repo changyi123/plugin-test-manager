@@ -236,6 +236,7 @@ module.exports = (cliEnv = {}, argv) => {
             path.resolve(__dirname, 'src'),
             path.resolve(__dirname, 'node_modules/antd/'),
             path.resolve(__dirname, 'node_modules/@osui'),
+            path.resolve(__dirname, 'node_modules/react-base-table'),
             path.resolve(__dirname, 'node_modules/github-markdown-css'),
           ],
           use: [classNamesConfig, extractOrStyleLoaderConfig, 'css-loader', postcssLoaderConfig],

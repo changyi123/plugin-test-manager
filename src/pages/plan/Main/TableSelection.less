@@ -1,0 +1,30 @@
+@import '@/index.global.less';
+
+@selection-color: #999;
+
+.table-selection {
+  display: flex;
+  height: 100%;
+  align-items: center;
+  padding: 0 24px;
+  color: @selection-color;
+
+  .checkbox {
+    margin-right: 12px;
+  }
+
+  .num {
+    color: @highlight-color;
+  }
+
+  .line {
+    width: 1px;
+    height: 20px;
+    margin: 0 12px;
+    background-color: @selection-color;
+  }
+
+  .delete {
+    margin-left: 18px;
+  }
+}

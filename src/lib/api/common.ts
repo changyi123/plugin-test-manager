@@ -30,7 +30,9 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
       include: [],
       // 只需要测试实体数据，不需要关联关系数据
       entityOnly: false,
+      workspaceKey: '',
       queryParams: { limit: 10, offset: 0, orderBy: 'createdAt' },
+      nameLike: '',
     },
     _config,
   );
@@ -70,6 +72,19 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
   // 需要获取关联事项的实体
   query.include(includeKeys);
   query.withCount();
+
+  if (config?.nameLike) {
+    const testEntityInnerQuery = new Parse.Query(Test).matchesQuery(
+      'reference',
+      new Parse.Query(Item).matches('name', escapeMatchesQueryArg(config.nameLike)),
+    );
+
+    if (config.workspaceKey) {
+      testEntityInnerQuery.equalTo('workspaceKey', config.workspaceKey);
+    }
+
+    query.matchesQuery(relationSideKey, testEntityInnerQuery);
+  }
 
   if (config?.queryParams && typeof config?.queryParams === 'object') {
     const queryParams = config.queryParams;
