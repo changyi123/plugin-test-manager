@@ -31,6 +31,11 @@ export enum TestType {
   TestDefect = 'TestDefect',
 }
 
+export enum ModalType {
+  ModalInherit, //继承
+  ModalPlanning, //规划
+}
+
 // 测试实体类型关联关系 (from)Rel(to)
 export enum TestRelationType {
   // 测试用例关联测试执行（1:1）

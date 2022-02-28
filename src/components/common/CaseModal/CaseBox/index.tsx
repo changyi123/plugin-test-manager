@@ -1,14 +1,16 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import React, { FC, useState, useEffect } from 'react';
+import React, { FC, useState } from 'react';
 import cx from './index.less';
-import { Tree, Select } from '@osui/ui';
+import { Tree } from '@osui/ui';
 import CommonTable from '@/components/common/CommonTable';
 import { useMount, useUpdateEffect, useReactive } from 'ahooks';
-import { deepCloneTree, traverseTreeNodes } from '../utils';
-import { AutoComplete, Table } from 'antd';
+import { traverseTreeNodes } from '../utils';
+import { AutoComplete } from 'antd';
 import { SearchOutlined, CheckOutlined } from '@ant-design/icons';
+import { FolderOutlined } from '@ant-design/icons';
+import { ModalType } from '@/lib/constants';
 export interface DataType {
   key: React.Key;
   name: string;
@@ -42,6 +44,49 @@ interface BoxItem {
   onRow?: (text: string, record: any, index: any) => any;
   clickIndex?: any;
 }
+//copy的时候数据变化
+export const deepCloneTree = function (data) {
+  const toString = Object.prototype.toString;
+  const map = {
+    '[object Boolean]': 'boolean',
+    '[object Number]': 'number',
+    '[object String]': 'string',
+    '[object Function]': 'function',
+    '[object Array]': 'array',
+    '[object Date]': 'date',
+    '[object RegExp]': 'regExp',
+    '[object Undefined]': 'undefined',
+    '[object Null]': 'null',
+    '[object Object]': 'object',
+  };
+  const type = map[toString.call(data)];
+
+  let obj;
+  //在遍历得时候改变键值
+  if (data?.name) data.title = data?.name;
+  //给每个key节点添加选中和未选的图片
+  if (data?.key)
+    data.icon = ({ selected }) =>
+      selected ? <FolderOutlined style={{ color: '#0A50D1' }} /> : <FolderOutlined />;
+  if (type === 'array') {
+    obj = [];
+  } else if (type == 'object') {
+    obj = {};
+  } else {
+    //基本数据类型直接返回
+    return data;
+  }
+  if (type == 'array') {
+    for (let i = 0; i < data.length; i++) {
+      obj.push(deepCloneTree(data[i]));
+    }
+  } else if (type == 'object') {
+    for (const key in data) {
+      obj[key] = deepCloneTree(data[key]);
+    }
+  }
+  return obj;
+};
 
 const CaseBox: FC<BoxItem> = ({
   tree,
@@ -82,7 +127,7 @@ const CaseBox: FC<BoxItem> = ({
       },
       render: (text, record, index) => {
         //--index
-        if (type == 0) {
+        if (type == ModalType.ModalInherit) {
           if (clickIndex == index) {
             return <CheckOutlined style={{ color: '#0C62FF' }} />;
           }
@@ -161,18 +206,19 @@ const CaseBox: FC<BoxItem> = ({
   //内部还需要一个检索，用于
   /*-- table --*/
   return (
-    <div className={cx('box')}>
-      <span className={cx('left')}>
+    <div className={cx('case_box')}>
+      <span className={cx('case_left')}>
         {/* 搜索分组 */}
-        <span className={cx('ac')}>
+        <span className={cx('case_ac')}>
           <span className={cx('searchIcon')} style={{ width: 16 }}>
             <SearchOutlined style={{ color: '#878C96' }} />
           </span>
-          <span className={cx('searchAuto')}>
+          <span id="case_search_auto" className={cx('searchAuto')}>
             {/* 搜索框 */}
             <AutoComplete
               style={{ width: 158 }}
               options={state.options}
+              getPopupContainer={() => document.getElementById('case_search_auto')}
               placeholder="&nbsp;&nbsp; 搜索分组"
               filterOption={(inputValue, option) =>
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -182,33 +228,35 @@ const CaseBox: FC<BoxItem> = ({
             />
           </span>
         </span>
-        <span className={cx('line')}></span>
+        <span className={cx('case_line')}></span>
 
         {/* tree */}
-        {state.treed && state.treed.length > 0 ? (
-          <Tree
-            checkable={type == 0 ? false : true} /* 加上选择框 */
-            checkStrictly={type == 0 ? false : true} /* 加上选中可控 */
-            onExpand={onExpand}
-            showIcon
-            expandedKeys={expandedKeys}
-            autoExpandParent={autoExpandParent}
-            onCheck={onCheck}
-            checkedKeys={checkedKeys}
-            onSelect={onSelect}
-            selectedKeys={selectedKeys}
-            treeData={state.newTreed.length > 0 ? state.newTreed : state.treed}
-            defaultExpandAll={false}
-          />
-        ) : (
-          <div>&nbsp;&nbsp;loading</div>
-        )}
+        <span className={cx('case_sub_select')}>
+          {state.treed && state.treed.length > 0 ? (
+            <Tree
+              checkable={type == ModalType.ModalInherit ? false : true} /* 加上选择框 */
+              checkStrictly={type == ModalType.ModalInherit ? false : true} /* 加上选中可控 */
+              onExpand={onExpand}
+              showIcon
+              expandedKeys={expandedKeys}
+              autoExpandParent={autoExpandParent}
+              onCheck={onCheck}
+              checkedKeys={checkedKeys}
+              onSelect={onSelect}
+              selectedKeys={selectedKeys}
+              treeData={state.newTreed.length > 0 ? state.newTreed : state.treed}
+              defaultExpandAll={false}
+            />
+          ) : (
+            <span>&nbsp;&nbsp;loading</span>
+          )}
+        </span>
       </span>
-      <div className={cx('right')}>
+      <div className={cx('case_right')}>
         {/* 这里放table ,将commonTable提出来*/}
         <CommonTable
           rowSelection={
-            type == 0
+            type == ModalType.ModalInherit
               ? false
               : {
                   selectedRowKeys: selectedRowKeys,

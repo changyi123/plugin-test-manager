@@ -23,18 +23,20 @@ import {
   useDebounce,
   useHistoryTravel,
 } from 'ahooks';
-import { TestType } from '@/lib/constants';
+import { TestType, ModalType } from '@/lib/constants';
 import { useSDK } from '@projectproxima/plugin-sdk';
 import { getDevConfig } from '@/devEnv';
 import cx from './index.less';
 import { SearchOutlined } from '@ant-design/icons';
+import { getRootContainer } from '@/lib/utils/helper';
 interface ModelItem {
   isModalVisible: boolean;
   handleOk: (data: any) => void;
   handleCancel: () => void;
-  type: number; //0是继承，1是规划
+  type: number;
   ignoreTestEntityIds?: string[];
   needFillValue?: boolean;
+  title: string;
 }
 type CheckedType = { checked?: string[]; halfChecked?: string[] };
 const unassignedKey = 'UN_ASSIGNED_CASE_KEY'; //未分组的key
@@ -46,6 +48,7 @@ const CaseModal: FC<ModelItem> = ({
   type,
   ignoreTestEntityIds,
   needFillValue,
+  title,
 }) => {
   const [tableData, setTableData] = useState<any>([]);
   const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([]);
@@ -61,6 +64,7 @@ const CaseModal: FC<ModelItem> = ({
     total: 0,
     treeData: [], //树节点数据
     workspaceKeys: [],
+    selectWorkspaceKey: '', //选中得workspaceKey
     selectData: [], //select所有数据
     defaultValue: '', //select初始选中值
     isIsolate: false, //维护一个全局的状态，是否有权限控制，默认false
@@ -77,6 +81,7 @@ const CaseModal: FC<ModelItem> = ({
     //这两个给继承
     clickIndex: null, //继承选中的index
     clickRecord: null, //继承选中的具体record内容
+    repoKey: null,
   });
   //初始化操作
   useMount(() => {
@@ -91,9 +96,11 @@ const CaseModal: FC<ModelItem> = ({
   const { runAsync: fetchTreeData, loading: folderTreeLoading } = useRequest(getFolderTree, {
     manual: true,
   });
+  //search
   const { value: originTable, setValue: setOriginTable, reset } = useHistoryTravel<any[]>([]);
   const debouncedValue = useDebounce(state.searchValue, { wait: 500 });
 
+  //对实时数据进行监听以便缓存数据
   useUpdateEffect(() => {
     //判断是否有原始值
     let table = [];
@@ -108,7 +115,30 @@ const CaseModal: FC<ModelItem> = ({
     }
     setTableData(table);
   }, [debouncedValue]);
-
+  useUpdateEffect(() => {
+    const current = state.fullCases.filter(item => item.repoKey == state.repoKey); //当前
+    if (current[0] && current[0].repoKey == state.repoKey) {
+      //todo:不该更新得时候不更新
+      state.fullCases = state.fullCases.map(item => {
+        //对数据进行进一步处理
+        if (item.repoKey == state.repoKey) {
+          item.checkedKeys = { ...checkedKeys };
+          item.selectedRowKeys = [...selectedRowKeys];
+          // item.tableData = JSON.parse(JSON.stringify([])); //这个有可能是上一层得tableData，在不该更新得时候更新了
+        }
+        return item;
+      });
+    }
+    if (current.length == 0) {
+      const obj = {
+        repoKey: JSON.parse(JSON.stringify(state.repoKey)),
+        checkedKeys: { ...checkedKeys },
+        selectedRowKeys: [...selectedRowKeys],
+        // tableData: JSON.parse(JSON.stringify(tableData)),
+      };
+      state.fullCases.push(obj);
+    }
+  }, [state.repoKey, state.rowkeys, state.checkedKeys]);
   useUpdateEffect(() => {
     if (isModalVisible == false) {
       initData();
@@ -172,10 +202,11 @@ const CaseModal: FC<ModelItem> = ({
     //selectData的初始化
     state.selectData = repoList;
     //初始tree值
-    const treeData = repoList.length > 0 ? repoList[0] : [];
+    const treeData = state.selectData.length > 0 ? state.selectData[0] : [];
     let t = []; //给到tree的应该是一个数组
     t.push(treeData);
     //初始化的时候，未分组也是对应着workspaceKey获取的数据
+    state.repoKey = state.selectData[0].key;
     t = await getIds(t, state.workspaceKeys[0]);
     state.treeData = t;
     state.defaultValue = state.selectData[0].key || '';
@@ -212,7 +243,7 @@ const CaseModal: FC<ModelItem> = ({
     let tree = cloneDeep(t);
     //这里参考wkey需不需要给值
     const ungroupedTree = {
-      key: unassignedKey,
+      key: unassignedKey + state.repoKey,
       name: '未分组',
       title: '未分组',
       workspaceKey: key, //暂时置空
@@ -341,7 +372,6 @@ const CaseModal: FC<ModelItem> = ({
       //如果做了减法操作
       if (!node?.parentId) {
         //说明是top节点,就是单个节点,也就是只有自身
-        //console.log('--top--');
         if (!node?.children) {
           //single top这种不需要处理
         } else {
@@ -377,20 +407,19 @@ const CaseModal: FC<ModelItem> = ({
     //--add--
     if (adds.length > 0) {
       //--未分组
-      if (adds.includes(unassignedKey)) {
+      if (adds.includes(unassignedKey + state.repoKey)) {
         items = items.concat(node.items);
         //在加的时候，如果有选中，就去掉
-        /* items = unique(items); //去重 */
         let ids = [];
         items.forEach(item => {
-          ids.push(item.id);
+          ids.push(item.objectId);
         });
         ids = unique(ids);
         const its = [];
         //再ids的基础上做的items的筛选
         ids.forEach(item => {
           //如何从另一个数组里边取出一个满足该id的item
-          const it = items.find(i => i.id == item);
+          const it = items.find(i => i.objectId == item);
           its.push(it);
         });
         items = its;
@@ -418,7 +447,7 @@ const CaseModal: FC<ModelItem> = ({
 
         //set去重是到items这一层
         items.forEach(item => {
-          ids.push(item.id);
+          ids.push(item.objectId);
         });
         //整体的ids，去重
         ids = ids.concat(subIds);
@@ -468,16 +497,15 @@ const CaseModal: FC<ModelItem> = ({
       //先对id进行操作然后再请求
       let ids = [];
       items.forEach(item => {
-        ids.push(item.id);
+        ids.push(item.objectId);
       });
-      if (subs.includes(unassignedKey)) {
+      if (subs.includes(unassignedKey + state.repoKey)) {
         const subIds = [];
         node.items.forEach(item => {
           subKeys.push(item.key); //用来处理key
-          subIds.push(item.id);
+          subIds.push(item.objectId);
         });
         ids = ids.filter(item => !subIds.includes(item));
-
         const res = await fetchItems(
           {
             notIn: [...ignoreTestEntityIds],
@@ -520,8 +548,6 @@ const CaseModal: FC<ModelItem> = ({
           return item;
         });
 
-        //todo: 减去是针对subids的减去
-        //减去的话从总体减去不用再请求
         const subRes = await fetchItems(
           {
             notIn: [...ignoreTestEntityIds],
@@ -557,12 +583,7 @@ const CaseModal: FC<ModelItem> = ({
 
     //之前select的部分先去掉，然后再处理交集，上边的tableData先不处理
     setSelectedRowKeys(keys);
-
-    //(2)单个命中，这个是目前一个未选的状况
-    /* if (checkedKeysValue.checked.length == 0) {
-      setTableData([]);
-      setSelectedRowKeys([]);
-    } */
+    //search回复
     reset();
   };
 
@@ -582,10 +603,10 @@ const CaseModal: FC<ModelItem> = ({
     }
     //如果只是切换，或者新增
     if (pre.length == next.length || pre.length < next.length) {
-      if (info?.node.key == unassignedKey) {
+      if (info?.node.key == unassignedKey + state.repoKey) {
         const nodeItems = info.node.items;
         state.justSelectItems = info.node.items;
-        state.justSelectKey = unassignedKey; //当前选中的key
+        state.justSelectKey = unassignedKey + state.repoKey; //当前选中的key
         //subItems
         const subItems = nodeItems.filter(item => !items.includes(item));
         items = [...subItems, ...items];
@@ -787,13 +808,13 @@ const CaseModal: FC<ModelItem> = ({
         //如果是全部选中
         if (unkeys.length == unpackedKeys.length) {
           //console.log('全部选中');
-          if (!ckeys.checked.includes(unassignedKey)) {
+          if (!ckeys.checked.includes(unassignedKey + state.repoKey)) {
             //todo
-            ckeys.checked.push(unassignedKey);
-            if (ckeys.halfChecked.includes(unassignedKey)) {
+            ckeys.checked.push(unassignedKey + state.repoKey);
+            if (ckeys.halfChecked.includes(unassignedKey + state.repoKey)) {
               ckeys.halfChecked.splice(
                 //找到要删除的位置
-                ckeys.halfChecked.findIndex(item => item == unassignedKey),
+                ckeys.halfChecked.findIndex(item => item == unassignedKey + state.repoKey),
                 //删除一个确定值
                 1,
               );
@@ -802,18 +823,18 @@ const CaseModal: FC<ModelItem> = ({
         }
         //如果全部不选
         if (unkeys.length == 0) {
-          if (ckeys.halfChecked.includes(unassignedKey)) {
+          if (ckeys.halfChecked.includes(unassignedKey + state.repoKey)) {
             ckeys.halfChecked.splice(
               //找到要删除的位置
-              ckeys.halfChecked.findIndex(item => item == unassignedKey),
+              ckeys.halfChecked.findIndex(item => item == unassignedKey + state.repoKey),
               //删除一个确定值
               1,
             );
           }
-          if (ckeys.checked.includes(unassignedKey)) {
+          if (ckeys.checked.includes(unassignedKey + state.repoKey)) {
             ckeys.checked.splice(
               //找到要删除的位置
-              ckeys.checked.findIndex(item => item == unassignedKey),
+              ckeys.checked.findIndex(item => item == unassignedKey + state.repoKey),
               //删除一个确定值
               1,
             );
@@ -822,14 +843,14 @@ const CaseModal: FC<ModelItem> = ({
         //如果只是选中了部分
         if (unkeys.length > 0 && unkeys.length != unpackedKeys.length) {
           //减少到部分,注意不能一直往里加，只是第一次加,直到加满，一直都是这个状态
-          if (!ckeys.halfChecked.includes(unassignedKey)) {
-            ckeys.halfChecked.push(unassignedKey);
+          if (!ckeys.halfChecked.includes(unassignedKey + state.repoKey)) {
+            ckeys.halfChecked.push(unassignedKey + state.repoKey);
           }
 
-          if (ckeys.checked.includes(unassignedKey)) {
+          if (ckeys.checked.includes(unassignedKey + state.repoKey)) {
             ckeys.checked.splice(
               //找到要删除的位置
-              ckeys.checked.findIndex(item => item == unassignedKey),
+              ckeys.checked.findIndex(item => item == unassignedKey + state.repoKey),
               //删除一个确定值
               1,
             );
@@ -850,61 +871,48 @@ const CaseModal: FC<ModelItem> = ({
   };
 
   //top select
-  async function handleChange(value) {
-    setSelectedKeys([]); //点击选中给去掉
+  async function topSelect(value) {
+    //给branch选中置空
+    setSelectedKeys([]);
     let data = state.selectData.filter(item => item.key === value);
-    /* console.log('--data--', data); */
+    state.repoKey = data[0].key; //repoKey
     const key = data[0]?.workspaceKey;
     state.defaultValue = data[0].key;
 
-    const cache = state.fullCases.filter(item => item.repoKey == repoKey); //缓存
-    const currrnt = state.fullCases.filter(item => item.repoKey == value); //当前
+    //树形结构数据
+    data = await getIds(data, key);
+    state.treeData = data;
 
+    // const cache = state.fullCases.filter(item => item.repoKey == repoKey); //缓存
+    const currrnt = state.fullCases.filter(item => item.repoKey == value); //当前
     //上一波有没有缓存都会清理一下数据
     //清理完之后，下边会根据缓存取值
-    if (cache.length > 0) {
+    /* if (cache.length > 0) {
       //如果这部分已经有缓存了，这里做一下更新
       state.fullCases = state.fullCases.map(item => {
         //对数据进行进一步处理
-        if (item.key == repoKey) {
-          item.checkedKeys = { ...checkedKeys };
-          item.selectedRowKeys = [...selectedRowKeys];
-          item.tabData = [...tableData];
+        if (item.repoKey == repoKey) {
+          item.tabData = JSON.parse(JSON.stringify(tableData));
         }
         return item;
         //更新完上次的是不是要清空下
       });
-      clearTreeAndTable();
-      //如果这部分没有缓存了，就做一下更新
-    } else {
-      //进一步处理下数据
-      const obj = {
-        repoKey: repoKey,
-        checkedKeys: { ...checkedKeys },
-        selectedRowKeys: [...selectedRowKeys],
-        tableData: [...tableData],
-      };
-      state.fullCases.push(obj);
-      clearTreeAndTable();
-    }
+    } */
+    clearTreeAndTable();
 
     //使用部分，如果没有缓存，就一切都是0
     if (currrnt.length > 0) {
       //从current中取值赋值
       setCheckedKeys(currrnt[0].checkedKeys);
       setSelectedRowKeys(currrnt[0].selectedRowKeys);
-      setTableData(currrnt[0].tableData);
+      // setTableData(currrnt[0].tableData);
     }
 
-    data = await getIds(data, key);
-    state.treeData = data;
-
     setRepoKey(value);
-    setWorkspaceKey(key); //key发生了变化
+    setWorkspaceKey(key);
   }
 
   const changeSearch: () => void = (): void => {
-    //pass
     if (!state.searchChange) {
       state.searchChange = true;
     }
@@ -912,10 +920,8 @@ const CaseModal: FC<ModelItem> = ({
 
   const onSubmit = async () => {
     let testIds = [];
-    //if是继承
-
     //--如果type等于0，是单选模式--
-    if (type == 0) {
+    if (type == ModalType.ModalInherit) {
       if (state.clickRecord != null) {
         const ids = [];
         ids.push(state.clickRecord?.objectId);
@@ -936,7 +942,7 @@ const CaseModal: FC<ModelItem> = ({
     }
 
     //if是规划
-    if (type == 1) {
+    if (type == ModalType.ModalPlanning) {
       let ids = [];
       state.rowkeys.forEach(item => {
         ids.push(item);
@@ -973,17 +979,16 @@ const CaseModal: FC<ModelItem> = ({
       destroyOnClose
       maskClosable={false}
       width={1000}
-      title={type == 1 ? '规划用例' : '请选择要继承的测试用例'}
+      title={title} //?? type == 1 ? '规划用例' : '请选择要继承的测试用例'
       visible={isModalVisible}
+      getContainer={() => getRootContainer()}
       onOk={() => {
-        //触发外部的onSubmit，等于是触发handleOk
-        /* handleSubmit(); */
         onSubmit();
       }}
       footer={[
         <Row key="row">
           {/* 只有在规划的时候才显示多少条用例 */}
-          {type == 1 ? (
+          {type == ModalType.ModalPlanning ? (
             <Col span={4} style={{ textAlign: 'left' }}>
               已选择<span style={{ fontWeight: 600 }}> {state.rowkeys.length} </span>条用例
             </Col>
@@ -1047,12 +1052,13 @@ const CaseModal: FC<ModelItem> = ({
         ) : null}
       </p>
 
-      <div className={cx('box_sel')}>
+      <div id="case_top_sel" className={cx('box_sel')}>
         {state.selectData.length > 0 ? (
           <Select
             defaultValue={state.defaultValue == '' ? state.selectData[0].key : state.defaultValue}
             style={{ width: '100%' }}
-            onChange={handleChange}
+            onChange={topSelect}
+            getPopupContainer={() => document.getElementById('case_top_sel')}
           >
             {state.selectData.map(item => (
               <Select.Option value={item.key} key={item.key}>
@@ -1066,6 +1072,7 @@ const CaseModal: FC<ModelItem> = ({
       </div>
 
       <CaseBox
+        /* type写个状态机操作吧 */
         type={type}
         tree={state.treeData}
         onExpand={onExpand}
@@ -1077,10 +1084,10 @@ const CaseModal: FC<ModelItem> = ({
         selectedKeys={selectedKeys}
         tableData={tableData}
         rowSelection={rowSelection}
-        clickIndex={type == 0 ? state.clickIndex : null}
+        clickIndex={type == ModalType.ModalInherit ? state.clickIndex : null}
         //加上自定义footer的处理
         onRow={(record, index) => {
-          if (type == 0) {
+          if (type == ModalType.ModalInherit) {
             return {
               onClick: event => {
                 //和外置index，做一下选中判断
@@ -1099,5 +1106,4 @@ const CaseModal: FC<ModelItem> = ({
     </Modal>
   );
 };
-
 export default CaseModal;

@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 import React from 'react';
 import { Modal, Spin } from '@osui/ui';
-import { TestType } from '@/lib/constants';
+import { TestType, ModalType } from '@/lib/constants';
 import { uniq, reduce, keyBy } from 'lodash';
 import EventBus from '@/lib/utils/eventBus';
 import { getItemByIQL } from '@/lib/api/proxima';
@@ -267,12 +267,13 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
 
   return testType == 'TestDetail' ? (
     <CaseModal
-      type={isSingleMode ? 0 : 1}
+      type={isSingleMode ? ModalType.ModalInherit : ModalType.ModalPlanning}
       ignoreTestEntityIds={ignoreTestEntityIds ?? []}
       isModalVisible={visible}
       handleCancel={() => setVisible(false)}
       handleOk={handleOk}
       needFillValue={needFillValue ?? null}
+      title={props.title ?? ''}
     />
   ) : (
     <Modal

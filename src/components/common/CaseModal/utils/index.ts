@@ -1,18 +1,11 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable no-console */
 import { hasArrayItem } from '@/lib/utils/helper';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import React from 'react';
 type TreeNode = {
   key: string;
   children: TreeNode[];
   [key: string]: any;
 };
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { FolderOutlined } from '@ant-design/icons';
-
-// <FolderOutlined />
 
 //arr to tree 1
 export function nodesToTree(list: any[], pid: any = undefined) {
@@ -94,48 +87,4 @@ export const traverseTreeNodes = (nodes: TreeNode[], cb?: (node: TreeNode) => Tr
     traverseTreeNodes(node.children, cb);
   });
   return nodes;
-};
-
-//在copy的时候顺带添加title
-export const deepCloneTree = function (data) {
-  const toString = Object.prototype.toString;
-  const map = {
-    '[object Boolean]': 'boolean',
-    '[object Number]': 'number',
-    '[object String]': 'string',
-    '[object Function]': 'function',
-    '[object Array]': 'array',
-    '[object Date]': 'date',
-    '[object RegExp]': 'regExp',
-    '[object Undefined]': 'undefined',
-    '[object Null]': 'null',
-    '[object Object]': 'object',
-  };
-  const type = map[toString.call(data)];
-
-  let obj;
-  //在遍历得时候改变键值
-  if (data?.name) data.title = data?.name;
-  //给每个key节点添加选中和未选的图片
-  if (data?.key)
-    data.icon = ({ selected }) =>
-      selected ? <FolderOutlined style={{ color: '#0A50D1' }} /> : <FolderOutlined />;
-  if (type === 'array') {
-    obj = [];
-  } else if (type == 'object') {
-    obj = {};
-  } else {
-    //基本数据类型直接返回
-    return data;
-  }
-  if (type == 'array') {
-    for (let i = 0; i < data.length; i++) {
-      obj.push(deepCloneTree(data[i]));
-    }
-  } else if (type == 'object') {
-    for (const key in data) {
-      obj[key] = deepCloneTree(data[key]);
-    }
-  }
-  return obj;
 };
