@@ -4,8 +4,8 @@ import { UserOutlined, DeleteOutlined } from '@/icons';
 
 import cx from './TableSelection.less';
 
-const TableSelection = ({ selectedRowKeys, indeterminate, toggleAllRowsChecked, onDelete }) => {
-  const selectedRowLength = selectedRowKeys?.length ?? 0;
+const TableSelection = ({ selectedRows, toggleAllRowsChecked, toggleSelection, onDelete }) => {
+  const selectedRowLength = selectedRows?.length ?? 0;
 
   const handleCheckboxChange = e => {
     toggleAllRowsChecked(e.target.checked);
@@ -15,7 +15,6 @@ const TableSelection = ({ selectedRowKeys, indeterminate, toggleAllRowsChecked, 
     <div className={cx('table-selection')}>
       <Checkbox
         className={cx('checkbox')}
-        indeterminate={indeterminate}
         onChange={handleCheckboxChange}
         checked={Boolean(selectedRowLength)}
       />
@@ -27,13 +26,17 @@ const TableSelection = ({ selectedRowKeys, indeterminate, toggleAllRowsChecked, 
         负责人
       </Button>
       <Button
-        onClick={() => onDelete(selectedRowKeys)}
+        onClick={() => onDelete(selectedRows)}
         className={cx('delete')}
         type="link"
         icon={<DeleteOutlined />}
       >
         删除
       </Button>
+
+      <span onClick={() => toggleSelection(false)} className={cx('cancel')}>
+        取消操作
+      </span>
     </div>
   );
 };

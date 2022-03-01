@@ -1,0 +1,79 @@
+@import '@/index.global.less';
+
+.table-container {
+  display: flex;
+  height: 100%;
+  max-height: 100%;
+  overflow: hidden;
+  flex-direction: column;
+  .table {
+    flex: 1;
+    height: 100%;
+    overflow: auto;
+  }
+  .selection-header,
+  .footer {
+    flex: none;
+  }
+  :global {
+    .ant-table-thead,
+    .ant-table-row {
+      height: 40px;
+    }
+    .ant-table-body {
+      .custom-scrollbar-mixin();
+    }
+
+    .ant-table-placeholder {
+      td {
+        border: none !important;
+      }
+    }
+
+    .ant-table-selection-column {
+      padding-left: 24px !important;
+    }
+
+    .react-resizable {
+      position: relative;
+      background-clip: padding-box;
+      &:hover {
+        .resizable-handle-global {
+          border-right: 2px solid #ccc;
+        }
+      }
+    }
+  }
+}
+
+.selection-header {
+  height: 40px;
+  font-weight: normal;
+  border-bottom: 1px solid @border-color;
+}
+
+.footer {
+  height: 48px;
+  display: flex;
+  margin: 0 24px;
+  align-items: center;
+  border-top: 1px solid @border-color;
+
+  .pagination {
+    margin-left: auto;
+  }
+}
+
+.resizable-handle {
+  position: absolute;
+  right: 10px;
+  bottom: 0;
+  z-index: 1;
+  width: 10px;
+  height: 100%;
+  cursor: col-resize;
+}
+
+.column-header-row {
+  position: relative;
+}

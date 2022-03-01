@@ -3,12 +3,12 @@ import { message } from '@osui/ui';
 import { usePageContext } from '../hook';
 import { TestRelationType } from '@/lib/constants';
 import { actionConfirm } from '@/lib/utils/helper';
-import { StatusBadge } from '@/components/common/Status';
+import { StatusProgress } from '@/components/common/Status';
 import TableSelection from '@/components/common/BusinessTable/TableSelection';
 import { getTestEntitiesByRelation, removeTestRelations } from '@/lib/api/common';
 import BusinessTable, { ActionType } from '@/components/common/BusinessTable/BusinessTable';
 
-const DetailTable = () => {
+const ExecutionTable = () => {
   const actionRef = React.useRef<ActionType>();
   const {
     searchValue,
@@ -32,65 +32,37 @@ const DetailTable = () => {
   }, [searchValue, selectedTestPlanId]);
 
   const tableDataGetter = React.useCallback(
-    async queryParams => {
-      if (!selectedTestPlanId) return null;
-      const [{ list: testDetails, total }, { list: testRuns }] = await Promise.all([
-        getTestEntitiesByRelation(
-          TestRelationType.PlanRelDetail,
-          { from: selectedTestPlanId },
-          {
-            workspaceKey,
-            fillItemData: true,
-            queryParams: queryParams,
-            nameLike: searchValue,
-          },
-        ),
-        getTestEntitiesByRelation(
-          TestRelationType.PlanRelExecution,
-          { from: selectedTestPlanId },
-          {
-            fillItemData: true,
-            queryParams: { limit: 999 },
-            include: ['objectId'],
-            async resultTransfer(data) {
-              const testExecutionIds = data.list.map(item => item.objectId);
-              const { list: testRuns } = await getTestEntitiesByRelation(
-                TestRelationType.ExecutionRelRun,
-                {
-                  from: testExecutionIds,
-                },
-                {
-                  include: ['objectId'],
-                  queryParams: { limit: 999 },
-                },
-              );
-              return {
-                ...data,
-                list: testRuns.map(run => ({
-                  ...run,
-                  // 关联的 relations
-                  relExecutions: data.list.filter(
-                    item => item.objectId === run.relation.from.objectId,
-                  ),
-                })),
-              };
-            },
-          },
-        ),
-      ]);
+    queryParams => {
+      return getTestEntitiesByRelation(
+        TestRelationType.PlanRelExecution,
+        { from: selectedTestPlanId },
+        {
+          workspaceKey,
+          fillItemData: true,
+          nameLike: searchValue,
+          queryParams: queryParams,
+          async resultTransfer({ list, total }) {
+            const testExecutionIds = list.map(item => item.objectId);
+            const { list: testRuns } = await getTestEntitiesByRelation(
+              TestRelationType.ExecutionRelRun,
+              {
+                from: testExecutionIds,
+              },
+              {
+                limit: 9999,
+              },
+            );
 
-      const list = testDetails.map(detail => {
-        return {
-          ...detail,
-          // 关联的测试执行
-          relRuns: testRuns.filter(run => run.runReferenceDetail.objectId === detail.objectId),
-        };
-      });
-
-      return {
-        list,
-        total,
-      };
+            return {
+              total,
+              list: list.map(execution => ({
+                ...execution,
+                relRuns: testRuns.filter(run => run.relation.from.objectId === execution.objectId),
+              })),
+            };
+          },
+        },
+      );
     },
     [searchValue, selectedTestPlanId, workspaceKey],
   );
@@ -139,19 +111,21 @@ const DetailTable = () => {
       },
     },
     {
-      key: 'assignee',
-      title: '负责人',
-      width: 140,
+      width: 100,
+      key: 'detailNum',
+      title: '测试用例数',
       render(_, rowData) {
-        return <span data-value={rowData.reference.values.assignee}></span>;
+        return rowData.relRuns.length;
       },
     },
     {
-      key: 'latestStatus',
-      title: '最新执行状态',
-      width: 100,
+      width: 160,
+      key: 'runStatuses',
+      overflowEllipsis: false,
+      title: '测试执行状态',
       render(_, rowData) {
-        return <StatusBadge readonly status={rowData.status} />;
+        const statuses = rowData.relRuns.map(run => run.status);
+        return <StatusProgress hasSummary statuses={statuses} />;
       },
     },
     {
@@ -168,15 +142,18 @@ const DetailTable = () => {
       fixed: 'right' as any,
       render(_, rowData) {
         return (
-          <a
-            onClick={() =>
-              actionConfirm('该操作会将该测试用例从测试计划中删除，是否继续操作？', () => {
-                removeTestRelation([rowData.relation.objectId]);
-              })
-            }
-          >
-            删除
-          </a>
+          <>
+            <a
+              onClick={() =>
+                actionConfirm('该操作会将该测试用例从测试计划中删除，是否继续操作？', () => {
+                  removeTestRelation([rowData.relation.objectId]);
+                })
+              }
+            >
+              删除
+            </a>
+            <a onClick={() => console.info(11)}>添加用例</a>
+          </>
         );
       },
     },
@@ -193,4 +170,4 @@ const DetailTable = () => {
   );
 };
 
-export default DetailTable;
+export default ExecutionTable;

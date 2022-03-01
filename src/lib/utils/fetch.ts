@@ -86,7 +86,7 @@ const $fetch = async (method: Method, url: string, ...args: any) => {
 
   const response = await fetch[method](url, ...args);
   logMsg(response);
-  if (!response.data || response.data.code === 0) {
+  if (response.data) {
     return response.data;
   } else {
     const QiankunProps = (window as any).QiankunProps;

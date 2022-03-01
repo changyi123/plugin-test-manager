@@ -19,23 +19,26 @@ type PageContextType = {
   searchValue: string;
   workspaceKey: string;
   setSearchValue: (searchValue: string) => void;
-  tableActionEvent: EventEmitter<TableActionEventType>;
   selectedTestPlanId: TestPlanEntity['objectId'] | null;
   setSelectedTestPlanId: (id: TestPlanEntity['objectId']) => void;
+  mutateTestPlanEvent: EventEmitter<string>;
+  tableSelectionToggleEvent: EventEmitter<boolean>;
 };
 
 export const PageContext = React.createContext<PageContextType>({
   searchValue: '',
   workspaceKey: '',
   setSearchValue: noop,
-  tableActionEvent: null,
   selectedTestPlanId: null,
   setSelectedTestPlanId: noop,
+  mutateTestPlanEvent: null,
+  tableSelectionToggleEvent: null,
 });
 
 const PageProvider: React.FC = ({ children }) => {
   const { context } = useSDK();
-  const tableActionEvent = useEventEmitter<TableActionEventType>();
+  const mutateTestPlanEvent = useEventEmitter<string>();
+  const tableSelectionToggleEvent = useEventEmitter<boolean>();
   const [selectedTestPlanId, setSelectedTestPlanId] = React.useState(null);
   const [searchValue, setSearchValue] = React.useState('');
   const workspaceKey = context?.env?.WORKSPACE_KEY ?? getDevConfig().workspaceKey;
@@ -48,9 +51,10 @@ const PageProvider: React.FC = ({ children }) => {
             searchValue,
             workspaceKey,
             setSearchValue,
-            tableActionEvent,
             selectedTestPlanId,
+            mutateTestPlanEvent,
             setSelectedTestPlanId,
+            tableSelectionToggleEvent,
           }}
         >
           {children}

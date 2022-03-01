@@ -199,17 +199,14 @@ export const removeTestRelations = (_relations: Array<PointerType>) => {
 /**
  * 删除测试实体
  */
-export const deleteTestEntities = (testEntities: Array<Parse.Object | string>) => {
+export const deleteTestEntities = async (testEntities: Array<Parse.Object | string>) => {
   testEntities = testEntities.map(item =>
     typeof item === 'string' ? new Test({ objectId: item }) : item,
   );
   // 测试实体对应的关联关系也需要被删除
-  const testRelations = getAllTestRelations({ from: testEntities, to: testEntities });
+  const testRelations = await getAllTestRelations({ from: testEntities, to: testEntities });
 
-  return Promise.all([
-    Parse.Object.destroyAll(testEntities),
-    Parse.Object.destroyAll(testRelations),
-  ]);
+  return Parse.Object.destroyAll(testEntities.concat(testRelations));
 };
 
 /**

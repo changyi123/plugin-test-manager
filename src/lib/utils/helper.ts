@@ -1,4 +1,5 @@
-import { isEqual, findKey } from 'lodash';
+import { Modal } from '@osui/ui';
+import { isEqual, findKey, noop } from 'lodash';
 
 export const hasArrayItem = (arr?: unknown[]) => Boolean(Array.isArray(arr) && arr.length);
 
@@ -23,6 +24,22 @@ export const escapeMatchesQueryArg = (_str: unknown): RegExp => {
 
 /** 转换成数组 */
 export const toArray = data => (Array.isArray(data) ? data : [data]);
+
+/** 确认下一步 */
+export const actionConfirm = (content: string, cb = noop) => {
+  return new Promise(resolve => {
+    Modal.confirm({
+      content,
+      onOk: () => {
+        cb();
+        resolve(true);
+      },
+      title: '提示',
+      okText: '继续',
+      getContainer: getRootContainer,
+    });
+  });
+};
 
 /** panel 消息通知 */
 export { alert } from '@/components/panel/PanelLayout';

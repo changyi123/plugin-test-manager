@@ -2,9 +2,10 @@
 
 .container {
   height: 100%;
-  overflow: hidden;
+  overflow: auto;
   display: flex;
   flex-direction: column;
+  .custom-scrollbar-mixin();
 }
 
 .toolkit-bar {
@@ -16,6 +17,10 @@
   min-height: 46px;
   padding-right: 16px;
   text-align: right;
+  position: sticky;
+  top: 0;
+  left: 0;
+  z-index: 2;
 
   & > * {
     margin-right: 10px;

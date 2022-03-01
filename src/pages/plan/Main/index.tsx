@@ -2,6 +2,7 @@ import React from 'react';
 import { Tabs, Button } from '@osui/ui';
 import DetailTable from './DetailTable';
 import { usePageContext } from '../hook';
+import ExecutionTable from './ExecutionTable';
 import { AppstoreAddOutlined } from '@/icons';
 
 import SearchInput from '@/components/plan/SearchInput';
@@ -9,14 +10,18 @@ import SearchInput from '@/components/plan/SearchInput';
 import cx from './index.less';
 
 const Main = () => {
-  const { tableActionEvent, setSearchValue } = usePageContext();
+  const { tableSelectionToggleEvent, setSearchValue } = usePageContext();
   const [tableSelectionVisible, setTableSelectionVisible] = React.useState(false);
 
   const toggleTableSelection = () => {
     const visible = !tableSelectionVisible;
-    tableActionEvent.emit({ tableSelectionVisible: visible });
+    tableSelectionToggleEvent.emit(visible);
     setTableSelectionVisible(visible);
   };
+
+  tableSelectionToggleEvent.useSubscription(visible => {
+    setTableSelectionVisible(visible);
+  });
 
   const handleSearch = value => {
     setSearchValue(value);
@@ -44,7 +49,9 @@ const Main = () => {
       <Tabs.TabPane key="testDetail" tab="全部用例">
         <DetailTable />
       </Tabs.TabPane>
-      <Tabs.TabPane key="testExecution" tab="测试执行任务"></Tabs.TabPane>
+      <Tabs.TabPane key="testExecution" tab="测试执行任务">
+        <ExecutionTable />
+      </Tabs.TabPane>
     </Tabs>
   );
 };

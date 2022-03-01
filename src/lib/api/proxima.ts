@@ -131,5 +131,12 @@ export const getItemById = async itemId => {
     .containedIn('objectId', itemId)
     .include(['itemType'])
     .findAll();
+
   return res.map(item => item.toJSON());
+};
+
+/** 删除所有 */
+export const deleteItems = async itemIds => {
+  if (!Array.isArray(itemIds)) itemIds = [itemIds];
+  return fetch.$delete('/parse/api/items/bulk', { data: itemIds });
 };
