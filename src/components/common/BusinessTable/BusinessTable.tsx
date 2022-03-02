@@ -1,19 +1,20 @@
 import React from 'react';
-import { pick } from 'lodash';
+import { pick, isEqual } from 'lodash';
 import { Resizable } from 'react-resizable';
 import { TableProps } from 'antd/lib/table';
+import ColumnSetting from './ColumnSetting';
 import { Pagination, Table } from '@osui/ui';
+import { generateStorageKey } from '@/lib/utils/helper';
 import { useAntdTable, useLocalStorageState } from 'ahooks';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 
 import cx from './BusinessTable.less';
 
 const DefaultPageSize = 20;
-const TableColumnStorageKey = 'TEST_MANAGER_TABLE_COLUMN_WITH';
 
-const ResizableHeaderCell = ({ onResize, width, ...restProps }) => {
+const ResizableHeaderCell = ({ onResize, resizable, width, ...restProps }) => {
   const thProps = pick(restProps, ['children', 'rowSpan', 'colSpan', 'style', 'className']);
-  if (!width) {
+  if (!resizable) {
     return <th {...thProps} />;
   }
 
@@ -64,17 +65,51 @@ type BusinessTableProps = TableProps<any> & {
     toggleAllRowsChecked: (checked?: boolean) => void;
     toggleSelection: (visible?: boolean) => void;
   }) => React.ReactNode;
+  name?: string;
 };
 
 const BusinessTable: React.FC<BusinessTableProps> = props => {
   const { actionRef, renderSelectionActionHeader, columns, getDataSource, ...restTableProps } =
     props;
   const currentPageRowsRef = React.useRef([]);
+  const [tableColumns, setTableColumns] = React.useState([]);
   const [selectedRowKeys, setSelectedRowKeys] = React.useState([]);
   const [selectionMode, setSelectionMode] = React.useState(false);
-  const [columnsWidth, setColumnsWidth] = useLocalStorageState(TableColumnStorageKey, {
+  const LOCAL_STORAGE_KEY = generateStorageKey(props.name, 'column-width');
+  const [columnsWidth, setColumnsWidth] = useLocalStorageState(LOCAL_STORAGE_KEY, {
     defaultValue: {},
   });
+
+  const handleTableColumnChange = React.useCallback(columns => {
+    setTableColumns(prevState => {
+      const prevStateKey = prevState.map(item => item.key);
+      const columnKey = columns.map(item => item.key);
+      if (!isEqual(prevStateKey, columnKey)) {
+        return columns;
+      }
+      return prevState;
+    });
+  }, []);
+
+  const ColumnSettingMemorizedNode = React.useMemo(() => {
+    return (
+      <ColumnSetting
+        name={props.name}
+        additionalColumns={columns}
+        className={cx('column-setting')}
+        onTableColumnChange={handleTableColumnChange}
+      />
+    );
+  }, [columns, handleTableColumnChange, props.name]);
+
+  const TableHeaderRow = ({ children, className, ...restProps }) => {
+    return (
+      <tr {...restProps} className={cx(className, 'table-header')}>
+        {children}
+        <td>{ColumnSettingMemorizedNode}</td>
+      </tr>
+    );
+  };
 
   const { tableProps: antdTableProps, refresh } = useAntdTable(
     queryParams => {
@@ -103,15 +138,18 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     }));
   };
 
-  const columnsWithResizable = columns.map((col: any) => {
-    const canResize = typeof col.width === 'number';
+  const columnsWithResizableAndSettingAction = tableColumns.map((col: any) => {
+    const resizable = col.resizable ?? typeof col.width === 'number';
+
     return {
       ...col,
-      width: canResize ? columnsWidth[col.key] ?? col.width : undefined,
+      resizable,
+      width: resizable ? columnsWidth[col.key] ?? col.width : undefined,
       onCell: () =>
         ({
+          resizable,
           overflowEllipsis:
-            typeof col.overflowEllipsis === 'boolean' ? col.overflowEllipsis : Boolean(canResize),
+            typeof col.overflowEllipsis === 'boolean' ? col.overflowEllipsis : Boolean(resizable),
         } as any),
       onHeaderCell: column => ({
         ...column,
@@ -198,6 +236,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
         }}
         components={{
           header: {
+            row: TableHeaderRow,
             cell: ResizableHeaderCell,
           },
           body: {
@@ -205,12 +244,13 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
           },
         }}
         showHeader={!selectionMode}
-        columns={columnsWithResizable}
         rowSelection={rowSelectionProp}
         loading={antdTableProps.loading}
         dataSource={antdTableProps.dataSource}
+        columns={columnsWithResizableAndSettingAction}
         {...restTableProps}
       />
+
       <PaginationFooter />
     </div>
   );

@@ -129,23 +129,18 @@ const ExecutionTable = () => {
       },
     },
     {
-      key: 'times',
-      title: <span>执行任务次数</span>,
-      width: 100,
-      render(_, rowData) {
-        return rowData.relRuns.length;
-      },
-    },
-    {
       key: 'action',
-      title: '操作',
+      title: <span>操作</span>,
       fixed: 'right' as any,
       render(_, rowData) {
         return (
           <>
             <a
+              style={{
+                marginRight: 8,
+              }}
               onClick={() =>
-                actionConfirm('该操作会将该测试用例从测试计划中删除，是否继续操作？', () => {
+                actionConfirm('该操作会将该测试执行任务从测试计划中删除，是否继续操作？', () => {
                   removeTestRelation([rowData.relation.objectId]);
                 })
               }

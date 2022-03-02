@@ -6,10 +6,10 @@ import { actionConfirm } from '@/lib/utils/helper';
 import { StatusBadge } from '@/components/common/Status';
 import TableSelection from '@/components/common/BusinessTable/TableSelection';
 import { getTestEntitiesByRelation, removeTestRelations } from '@/lib/api/common';
-import BusinessTable, { ActionType } from '@/components/common/BusinessTable/BusinessTable';
+import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
 
 const DetailTable = () => {
-  const actionRef = React.useRef<ActionType>();
+  const actionRef = React.useRef<BusinessTableActionType>();
   const {
     searchValue,
     workspaceKey,
@@ -129,10 +129,11 @@ const DetailTable = () => {
     );
   };
 
-  const columnsProp = [
+  const columns = [
     {
       width: 160,
       key: 'title',
+      isSystem: true,
       title: '标题',
       render(_, rowData) {
         return rowData.reference.name;
@@ -164,6 +165,7 @@ const DetailTable = () => {
     },
     {
       key: 'action',
+      isSystem: true,
       title: '操作',
       fixed: 'right' as any,
       render(_, rowData) {
@@ -185,7 +187,7 @@ const DetailTable = () => {
   return (
     <BusinessTable
       rowKey="objectId"
-      columns={columnsProp}
+      columns={columns}
       actionRef={actionRef}
       getDataSource={tableDataGetter}
       renderSelectionActionHeader={renderSelectionActionHeader}

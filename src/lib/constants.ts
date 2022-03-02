@@ -52,3 +52,6 @@ export const TestTypeNameMapping = {
   [TestType.TestRun]: '测试执行',
   [TestType.TestDefect]: '缺陷',
 };
+
+/** 本地存储前缀 */
+export const STORAGE_PREFIX_KEY = 'plugin-test-manager';

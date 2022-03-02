@@ -1,5 +1,6 @@
 import { Modal } from '@osui/ui';
 import { isEqual, findKey, noop } from 'lodash';
+import { STORAGE_PREFIX_KEY } from '../constants';
 
 export const hasArrayItem = (arr?: unknown[]) => Boolean(Array.isArray(arr) && arr.length);
 
@@ -39,6 +40,11 @@ export const actionConfirm = (content: string, cb = noop) => {
       getContainer: getRootContainer,
     });
   });
+};
+
+/** 生成本地存储的 key */
+export const generateStorageKey = (...args: string[]) => {
+  return `${STORAGE_PREFIX_KEY}-${args.filter(Boolean).join('-')}`;
 };
 
 /** panel 消息通知 */
