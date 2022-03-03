@@ -92,6 +92,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
   }, []);
 
   const ColumnSettingMemorizedNode = React.useMemo(() => {
+    if (selectionMode) return null;
     return (
       <ColumnSetting
         name={props.name}
@@ -100,16 +101,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
         onTableColumnChange={handleTableColumnChange}
       />
     );
-  }, [columns, handleTableColumnChange, props.name]);
-
-  const TableHeaderRow = ({ children, className, ...restProps }) => {
-    return (
-      <tr {...restProps} className={cx(className, 'table-header')}>
-        {children}
-        <td>{ColumnSettingMemorizedNode}</td>
-      </tr>
-    );
-  };
+  }, [columns, handleTableColumnChange, props.name, selectionMode]);
 
   const { tableProps: antdTableProps, refresh } = useAntdTable(
     queryParams => {
@@ -227,6 +219,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
   return (
     <div className={cx('table-container')}>
       <SelectionActionHeader />
+      {ColumnSettingMemorizedNode}
       <Table
         sticky={true}
         pagination={false}
@@ -236,7 +229,6 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
         }}
         components={{
           header: {
-            row: TableHeaderRow,
             cell: ResizableHeaderCell,
           },
           body: {

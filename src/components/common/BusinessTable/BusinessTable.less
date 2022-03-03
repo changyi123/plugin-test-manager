@@ -6,6 +6,21 @@
   max-height: 100%;
   overflow: hidden;
   flex-direction: column;
+  position: relative;
+
+  .column-setting {
+    background-color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 30px;
+    width: 30px;
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    z-index: 10;
+  }
+
   .table {
     flex: 1;
     height: 100%;
@@ -76,19 +91,4 @@
 
 .column-header-row {
   position: relative;
-}
-
-.table-header {
-  position: relative;
-  .column-setting {
-    background-color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 30px;
-    width: 30px;
-    position: absolute;
-    top: 0;
-    right: 0;
-  }
 }

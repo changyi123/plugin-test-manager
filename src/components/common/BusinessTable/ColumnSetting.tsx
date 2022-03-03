@@ -10,6 +10,7 @@ import { useRequest, useLocalStorageState, useDeepCompareEffect } from 'ahooks';
 
 import cx from './ColumnSetting.less';
 
+// proxima 自定义字段渲染
 const getColumnWithTemp = field => {
   return {
     width: 140,
@@ -58,7 +59,7 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
   }, [allColumns, storageColumnKeys]);
 
   const selectColumns = React.useMemo(() => {
-    return storageColumnKeys.map(key => allColumns.find(col => col.key === key));
+    return storageColumnKeys.map(key => allColumns.find(col => col.key === key)).filter(Boolean);
   }, [allColumns, storageColumnKeys]);
 
   const selectOptions = optionalColumns.map(col => ({
@@ -67,25 +68,25 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
     data: col,
   }));
 
+  // 处理 fixed column 排列
   useDeepCompareEffect(() => {
     const systemColumns = allColumns.filter(col => col.isSystem);
 
-    const selectedColumns = storageColumnKeys
-      .map(key => allColumns.find(col => col.key === key))
+    const selectedColumns = systemColumns
+      .concat(storageColumnKeys.map(key => allColumns.find(col => col.key === key)))
       .filter(Boolean);
 
     const filteredFixedColumns = selectedColumns.filter(col => !col.fixed);
     const fixedLeftColumn = selectedColumns.find(col => col.fixed === 'left' || col.fixed === true);
     const fixedRightColumn = selectedColumns.find(col => col.fixed === 'right');
 
-    const tableColumns = systemColumns
+    const tableColumns = []
       .concat(fixedLeftColumn)
       .concat(filteredFixedColumns)
       .concat(fixedRightColumn)
       .filter(Boolean);
 
     if (tableColumns.length) {
-      console.log('tableColumns', tableColumns);
       onTableColumnChange(tableColumns);
     }
   }, [allColumns, storageColumnKeys]);
@@ -100,9 +101,9 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
     });
   };
 
-  const handleDragEnd = data => {
+  const handleColumnSort = data => {
     const { source, destination } = data;
-    if (!destination || source.index !== destination.index) return;
+    if (!destination || source.index === destination.index) return;
     setStorageColumnKeys(prevState => {
       const newColumnKeys = Array.from(prevState);
       const [splicedColumn] = newColumnKeys.splice(source.index, 1);
@@ -128,7 +129,7 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
           className={cx('field-select')}
         />
 
-        <DragDropContext onDragEnd={handleDragEnd}>
+        <DragDropContext onDragEnd={handleColumnSort}>
           <Droppable droppableId="column">
             {provider => (
               <div {...provider.droppableProps} ref={provider.innerRef} className={cx('sort-area')}>
