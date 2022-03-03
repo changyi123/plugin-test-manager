@@ -1,6 +1,6 @@
-import uuid from 'uuid/v4';
 import { keyBy } from 'lodash';
 import { Input } from './fields';
+import { v4 as uuid } from 'uuid';
 
 /** 渲染组件映射 */
 export const FieldComponentMapping = {
