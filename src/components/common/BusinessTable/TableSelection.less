@@ -3,11 +3,15 @@
 @selection-color: #999;
 
 .table-selection {
-  display: flex;
   height: 100%;
-  align-items: center;
+  display: flex;
   padding: 0 24px;
+  align-items: center;
   color: @selection-color;
+
+  .select {
+    flex: none;
+  }
 
   .checkbox {
     margin-right: 22px;
@@ -24,12 +28,23 @@
     background-color: @selection-color;
   }
 
-  .delete {
-    margin-left: 18px;
+  .action {
+    flex: none;
+    cursor: pointer;
+    & + .action {
+      margin-left: 10px;
+    }
   }
 
   .cancel {
     cursor: pointer;
     margin-left: auto;
+  }
+
+  :global {
+    .field-cell-layout {
+      flex: none;
+      max-width: 70px;
+    }
   }
 }

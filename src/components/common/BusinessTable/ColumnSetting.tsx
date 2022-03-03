@@ -1,5 +1,5 @@
 import React from 'react';
-import { noop } from 'lodash';
+import { noop, get, keyBy } from 'lodash';
 import { ColumnType } from 'antd/lib/table';
 import { Drawer, Select, Tooltip } from '@osui/ui';
 import { getCustomFields } from '@/lib/api/proxima';
@@ -7,38 +7,51 @@ import { generateStorageKey } from '@/lib/utils/helper';
 import { SettingOutlined, DeleteOutlined, DragHandler } from '@/icons';
 import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd';
 import { useRequest, useLocalStorageState, useDeepCompareEffect } from 'ahooks';
+import { TableCell, useFieldsWithFieldCellProps } from '@projectproxima/components';
 
 import cx from './ColumnSetting.less';
-
-// proxima 自定义字段渲染
-const getColumnWithTemp = field => {
-  return {
-    width: 140,
-    key: field.key,
-    resizable: true,
-    title: field.name,
-    render(_, record) {
-      return field.description + record.name;
-    },
-  };
-};
+import '@projectproxima/components/dist/main.css';
 
 type ColumnDuckTyping = ColumnType<any> & Record<string, any>;
 
 type ColumnSettingProps = {
   name?: string;
+  itemKey: string;
   className?: string;
   additionalColumns?: ColumnDuckTyping[];
   onTableColumnChange?: (column: ColumnDuckTyping) => void;
 };
 
 const ColumnSetting: React.FC<ColumnSettingProps> = props => {
-  const { className, additionalColumns = [], name, onTableColumnChange = noop } = props;
+  const { className, additionalColumns = [], name, onTableColumnChange = noop, itemKey } = props;
   const [visible, setVisible] = React.useState(false);
   const { data: customFields } = useRequest(getCustomFields, {
     cacheKey: 'CustomFields',
     staleTime: 9999999999,
   });
+
+  const fieldCellsProp = useFieldsWithFieldCellProps(customFields);
+  const fieldCellsPropDict = React.useMemo(() => {
+    return keyBy(fieldCellsProp, 'key');
+  }, [fieldCellsProp]);
+
+  // proxima 自定义字段渲染
+  const getColumnWithTemp = field => {
+    // cell text
+    return {
+      width: 140,
+      key: field.key,
+      resizable: true,
+      title: field.name,
+      render(_, record) {
+        const itemData = get(record, itemKey);
+        const { text, ...restTableCellProps } = fieldCellsPropDict[field.key] ?? {};
+        if (!text || !itemData) return '-';
+
+        return <TableCell {...restTableCellProps} text={text(itemData)} />;
+      },
+    };
+  };
 
   const LOCAL_STORAGE_KEY = generateStorageKey(name, 'column-key');
 
@@ -48,7 +61,9 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
 
   const memoizedAdditionalColumnKey = additionalColumns.map(col => col.key);
   const allColumns = React.useMemo(() => {
-    return additionalColumns.concat(customFields?.map(getColumnWithTemp) ?? []);
+    return additionalColumns
+      .map(item => ({ ...item, additional: true }))
+      .concat(customFields?.map(getColumnWithTemp) ?? []) as ColumnDuckTyping[];
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [memoizedAdditionalColumnKey, customFields]);
 
@@ -62,11 +77,28 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
     return storageColumnKeys.map(key => allColumns.find(col => col.key === key)).filter(Boolean);
   }, [allColumns, storageColumnKeys]);
 
-  const selectOptions = optionalColumns.map(col => ({
-    label: col.title,
-    value: col.key,
-    data: col,
-  }));
+  const selectOptions = optionalColumns.reduce(
+    (acc, col) => {
+      const getOptionData = col => {
+        return {
+          label: col.title,
+          value: col.key,
+          data: col,
+        };
+      };
+      if (col.additional) {
+        acc[0].options.push(getOptionData(col));
+      } else {
+        acc[1].options.push(getOptionData(col));
+      }
+
+      return acc;
+    },
+    [
+      { label: '测试管理字段', options: [] },
+      { label: '事项字段', options: [] },
+    ],
+  );
 
   // 处理 fixed column 排列
   useDeepCompareEffect(() => {

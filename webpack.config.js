@@ -163,6 +163,7 @@ module.exports = (cliEnv = {}, argv) => {
       extensions: ['.js', '.css', '.jsx', '.tsx', '.ts'],
       alias: {
         '@': path.resolve(__dirname, 'src/'),
+        parse: path.resolve(__dirname, './node_modules/parse'),
         react: path.resolve(__dirname, './node_modules/react'),
         'react-dom': path.resolve(__dirname, './node_modules/react-dom'),
       },
@@ -236,8 +237,8 @@ module.exports = (cliEnv = {}, argv) => {
             path.resolve(__dirname, 'src'),
             path.resolve(__dirname, 'node_modules/antd/'),
             path.resolve(__dirname, 'node_modules/@osui'),
-            path.resolve(__dirname, 'node_modules/react-base-table'),
             path.resolve(__dirname, 'node_modules/github-markdown-css'),
+            path.resolve(__dirname, 'node_modules/@projectproxima/components/dist'),
           ],
           use: [classNamesConfig, extractOrStyleLoaderConfig, 'css-loader', postcssLoaderConfig],
         },

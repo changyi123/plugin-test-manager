@@ -3,6 +3,8 @@ import { message } from '@osui/ui';
 import { usePageContext } from '../hook';
 import { TestRelationType } from '@/lib/constants';
 import { actionConfirm } from '@/lib/utils/helper';
+import { UserCell } from '@projectproxima/components';
+import { DeleteOutlined, UserOutlined } from '@/icons';
 import { StatusBadge } from '@/components/common/Status';
 import TableSelection from '@/components/common/BusinessTable/TableSelection';
 import { getTestEntitiesByRelation, removeTestRelations } from '@/lib/api/common';
@@ -107,24 +109,46 @@ const DetailTable = () => {
     [refreshAndMutateData],
   );
 
-  const handleDelete = rows => {
-    actionConfirm('该操作会将所选测试用例从测试计划中删除，是否继续操作？', () => {
-      removeTestRelation(rows.map(row => row.relation.objectId));
-    });
-  };
-
   const renderSelectionActionHeader = ({ selectedRows, toggleSelection, toggleAllRowsChecked }) => {
     const handleToggleSelection = visible => {
       toggleSelection(visible);
       tableSelectionToggleEvent.emit(visible);
     };
 
+    const handleDelete = () => {
+      actionConfirm('该操作会将所选测试用例从测试计划中删除，是否继续操作？', () => {
+        removeTestRelation(selectedRows.map(row => row.relation.objectId));
+      });
+    };
+
+    const handleAssigneeChange = assignees => {
+      console.log(selectedRows, assignees);
+    };
+
+    const SelectionActions = [
+      <UserCell
+        key="assignee"
+        mode="multiple"
+        readonly={false}
+        onChange={handleAssigneeChange}
+        emptyChild={
+          <a>
+            <UserOutlined /> 负责人
+          </a>
+        }
+      />,
+
+      <a key="delete" onClick={handleDelete}>
+        <DeleteOutlined /> 删除
+      </a>,
+    ];
+
     return (
       <TableSelection
-        onDelete={handleDelete}
+        actions={SelectionActions}
         selectedRows={selectedRows}
-        toggleSelection={handleToggleSelection}
-        toggleAllRowsChecked={toggleAllRowsChecked}
+        onCheck={toggleAllRowsChecked}
+        onClose={() => handleToggleSelection(false)}
       />
     );
   };
@@ -136,15 +160,7 @@ const DetailTable = () => {
       isSystem: true,
       title: '标题',
       render(_, rowData) {
-        return rowData.reference.name;
-      },
-    },
-    {
-      key: 'assignee',
-      title: '负责人',
-      width: 140,
-      render(_, rowData) {
-        return <span data-value={rowData.reference.values.assignee}></span>;
+        return rowData.reference?.name;
       },
     },
     {

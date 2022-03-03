@@ -1,40 +1,43 @@
 import React from 'react';
-import { Button, Checkbox } from '@osui/ui';
-import { UserOutlined, DeleteOutlined } from '@/icons';
+import { noop } from 'lodash';
+import { Checkbox } from '@osui/ui';
 
 import cx from './TableSelection.less';
 
-const TableSelection = ({ selectedRows, toggleAllRowsChecked, toggleSelection, onDelete }) => {
-  const selectedRowLength = selectedRows?.length ?? 0;
+type TableSelectionProps = {
+  onClose?: () => void;
+  selectedRows?: unknown[];
+  actions: React.ReactNode[];
+  onCheck?: (visible: boolean) => void;
+};
 
+const TableSelection: React.FC<TableSelectionProps> = ({
+  actions,
+  onClose = noop,
+  onCheck = noop,
+  selectedRows,
+}) => {
   const handleCheckboxChange = e => {
-    toggleAllRowsChecked(e.target.checked);
+    onCheck(e.target.checked);
   };
+
+  const checked = Boolean(selectedRows?.length);
 
   return (
     <div className={cx('table-selection')}>
-      <Checkbox
-        className={cx('checkbox')}
-        onChange={handleCheckboxChange}
-        checked={Boolean(selectedRowLength)}
-      />
-      <span>
-        已选中 <span className={cx('num')}>{selectedRowLength}</span> 项
+      <Checkbox className={cx('checkbox')} onChange={handleCheckboxChange} checked={checked} />
+      <span className={cx('select')}>
+        已选中 <span className={cx('num')}>{selectedRows?.length ?? 0}</span> 项
       </span>
       <span className={cx('line')} />
-      <Button type="link" icon={<UserOutlined />}>
-        负责人
-      </Button>
-      <Button
-        onClick={() => onDelete(selectedRows)}
-        className={cx('delete')}
-        type="link"
-        icon={<DeleteOutlined />}
-      >
-        删除
-      </Button>
 
-      <span onClick={() => toggleSelection(false)} className={cx('cancel')}>
+      {actions.map((actionNode, index) => (
+        <div className={cx('action')} key={index}>
+          {actionNode}
+        </div>
+      ))}
+
+      <span onClick={onClose} className={cx('cancel')}>
         取消操作
       </span>
     </div>

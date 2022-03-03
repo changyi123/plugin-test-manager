@@ -6,6 +6,7 @@ import { hasArrayItem } from '@/lib/utils/helper';
 import Parse from '@/lib/parse';
 import fetch from '@/lib/utils/fetch';
 import { IQLBuilder } from '@/lib/utils/iql';
+import { SYSTEM_FIELD, FIELD_TYPE_KEY_MAPPINGS } from '@/lib/constants';
 import { CustomField, Workspace, ItemType, ItemTypeScheme, Item } from '@/lib/models';
 
 type IQLPaginationParams = {
@@ -83,10 +84,27 @@ export const getItemByIQL = async (
  * 获取全部自定义字段
  */
 export const getCustomFields = async () => {
-  const query = new Parse.Query(CustomField).include('fieldType').limit(1000);
+  const query = new Parse.Query(CustomField).include('fieldType').limit(9999);
 
   const fields = await query.find();
-  return fields.map(item => item.toJSON());
+  return fields
+    .map(item => item.toJSON())
+    .filter(field => {
+      // 下列字段类型组件不支持渲染
+      const isNotAllowRenderFieldType = [
+        FIELD_TYPE_KEY_MAPPINGS.Editor,
+        FIELD_TYPE_KEY_MAPPINGS.FieldCollection,
+      ].includes(field?.fieldType?.key);
+
+      // 以下字段不支持渲染
+      const isNotAllowRenderFieldKey = [
+        SYSTEM_FIELD.Name,
+        SYSTEM_FIELD.Status,
+        SYSTEM_FIELD.SecurityLevel,
+      ].includes(field.key);
+
+      return !isNotAllowRenderFieldKey && !isNotAllowRenderFieldType;
+    });
 };
 
 /**

@@ -4,8 +4,10 @@ import { Resizable } from 'react-resizable';
 import { TableProps } from 'antd/lib/table';
 import ColumnSetting from './ColumnSetting';
 import { Pagination, Table } from '@osui/ui';
+import { useTestConfig } from '@/lib/hooks/useContext';
 import { generateStorageKey } from '@/lib/utils/helper';
 import { useAntdTable, useLocalStorageState } from 'ahooks';
+import { LibraryProvider } from '@projectproxima/components';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 
 import cx from './BusinessTable.less';
@@ -55,22 +57,30 @@ export type ActionType = {
 };
 
 type BusinessTableProps = TableProps<any> & {
-  getDataSource?: (queryParams: { offset: number; limit: number }) => Promise<{
-    list: any[];
-    total: number;
-  } | null>;
+  name?: string;
+  // 事项获取 key
+  itemKey?: string;
   actionRef?: React.ForwardedRef<ActionType>;
   renderSelectionActionHeader?: (args: {
     selectedRows: any[];
     toggleAllRowsChecked: (checked?: boolean) => void;
     toggleSelection: (visible?: boolean) => void;
   }) => React.ReactNode;
-  name?: string;
+  getDataSource?: (queryParams: { offset: number; limit: number }) => Promise<{
+    list: any[];
+    total: number;
+  } | null>;
 };
 
 const BusinessTable: React.FC<BusinessTableProps> = props => {
-  const { actionRef, renderSelectionActionHeader, columns, getDataSource, ...restTableProps } =
-    props;
+  const {
+    columns,
+    actionRef,
+    getDataSource,
+    itemKey = 'reference',
+    renderSelectionActionHeader,
+    ...restTableProps
+  } = props;
   const currentPageRowsRef = React.useRef([]);
   const [tableColumns, setTableColumns] = React.useState([]);
   const [selectedRowKeys, setSelectedRowKeys] = React.useState([]);
@@ -79,6 +89,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
   const [columnsWidth, setColumnsWidth] = useLocalStorageState(LOCAL_STORAGE_KEY, {
     defaultValue: {},
   });
+  const { workspace } = useTestConfig();
 
   const handleTableColumnChange = React.useCallback(columns => {
     setTableColumns(prevState => {
@@ -95,13 +106,14 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     if (selectionMode) return null;
     return (
       <ColumnSetting
+        itemKey={itemKey}
         name={props.name}
         additionalColumns={columns}
         className={cx('column-setting')}
         onTableColumnChange={handleTableColumnChange}
       />
     );
-  }, [columns, handleTableColumnChange, props.name, selectionMode]);
+  }, [columns, handleTableColumnChange, props.name, selectionMode, itemKey]);
 
   const { tableProps: antdTableProps, refresh } = useAntdTable(
     queryParams => {
@@ -218,32 +230,34 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
 
   return (
     <div className={cx('table-container')}>
-      <SelectionActionHeader />
-      {ColumnSettingMemorizedNode}
-      <Table
-        sticky={true}
-        pagination={false}
-        className={cx('table')}
-        scroll={{
-          x: 'max-content',
-        }}
-        components={{
-          header: {
-            cell: ResizableHeaderCell,
-          },
-          body: {
-            cell: OverflowTooltipBodyCell,
-          },
-        }}
-        showHeader={!selectionMode}
-        rowSelection={rowSelectionProp}
-        loading={antdTableProps.loading}
-        dataSource={antdTableProps.dataSource}
-        columns={columnsWithResizableAndSettingAction}
-        {...restTableProps}
-      />
+      <LibraryProvider workspaceKey={workspace?.key}>
+        <SelectionActionHeader />
+        {ColumnSettingMemorizedNode}
+        <Table
+          sticky={true}
+          pagination={false}
+          className={cx('table')}
+          scroll={{
+            x: 'max-content',
+          }}
+          components={{
+            header: {
+              cell: ResizableHeaderCell,
+            },
+            body: {
+              cell: OverflowTooltipBodyCell,
+            },
+          }}
+          showHeader={!selectionMode}
+          rowSelection={rowSelectionProp}
+          loading={antdTableProps.loading}
+          dataSource={antdTableProps.dataSource}
+          columns={columnsWithResizableAndSettingAction}
+          {...restTableProps}
+        />
 
-      <PaginationFooter />
+        <PaginationFooter />
+      </LibraryProvider>
     </div>
   );
 };
