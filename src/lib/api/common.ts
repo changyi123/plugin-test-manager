@@ -90,7 +90,7 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
     const queryParams = config.queryParams;
     query.limit(queryParams.limit);
     query.skip(queryParams.offset);
-    query.ascending(queryParams.orderBy);
+    query.descending(queryParams.orderBy);
   }
 
   const { results, count } = await query.find();

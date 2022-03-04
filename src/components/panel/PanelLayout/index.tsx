@@ -30,8 +30,8 @@ const PanelLayout: React.FC<PanelLayoutProps> = props => {
     <div className={cx('panel')}>
       {useTabsComponent ? (
         <Tabs
-          className={cx('panel__tabs')}
           destroyInactiveTabPane
+          className={cx('panel__tabs')}
           defaultActiveKey={tabs[0]?.key}
           {...tabsProps}
         >

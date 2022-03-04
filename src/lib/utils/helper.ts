@@ -47,5 +47,10 @@ export const generateStorageKey = (...args: string[]) => {
   return `${STORAGE_PREFIX_KEY}-${args.filter(Boolean).join('-')}`;
 };
 
+/** 生成跳转 URL */
+export const goToItemDetailPage = ({ workspaceKey, itemKey }) => {
+  return window.open(`/osc/${workspaceKey}/item/${itemKey}`, '_blank');
+};
+
 /** panel 消息通知 */
 export { alert } from '@/components/panel/PanelLayout';

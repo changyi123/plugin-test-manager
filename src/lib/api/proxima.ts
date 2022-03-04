@@ -158,3 +158,22 @@ export const deleteItems = async itemIds => {
   if (!Array.isArray(itemIds)) itemIds = [itemIds];
   return fetch.$delete('/parse/api/items/bulk', { data: itemIds });
 };
+
+export const updateItemAssignee = async (itemIds, assignee) => {
+  if (!Array.isArray(itemIds)) itemIds = [itemIds];
+
+  const items = await new Parse.Query(Item)
+    .containedIn('objectId', itemIds.filter(Boolean))
+    .findAll();
+
+  const needUpdatedItems = items.map(item =>
+    item.set({
+      values: {
+        ...item.get('values'),
+        assignee,
+      },
+    }),
+  );
+
+  return Parse.Object.saveAll(needUpdatedItems);
+};

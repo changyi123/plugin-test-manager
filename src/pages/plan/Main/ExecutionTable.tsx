@@ -1,12 +1,16 @@
 import React from 'react';
 import { message } from '@osui/ui';
 import { usePageContext } from '../hook';
+import { updateTestRun } from '@/lib/api/runs';
 import { TestRelationType } from '@/lib/constants';
-import { actionConfirm } from '@/lib/utils/helper';
 import { UserCell } from '@projectproxima/components';
 import { DeleteOutlined, UserOutlined } from '@/icons';
+import { updateItemAssignee } from '@/lib/api/proxima';
+import { StatusBadge } from '@/components/common/Status';
+import TestRunModal from '@/components/panel/TestRunModal';
 import { StatusProgress } from '@/components/common/Status';
-import TableSelection from '@/components/common/BusinessTable/TableSelection';
+import OverflowTooltip from '@/components/common/OverflowTooltip';
+import { actionConfirm, goToItemDetailPage } from '@/lib/utils/helper';
 import { getTestEntitiesByRelation, removeTestRelations } from '@/lib/api/common';
 import BusinessTable, { ActionType } from '@/components/common/BusinessTable/BusinessTable';
 
@@ -51,7 +55,8 @@ const ExecutionTable = () => {
                 from: testExecutionIds,
               },
               {
-                limit: 9999,
+                queryParams: { limit: 9999 },
+                include: ['runReferenceDetail.reference'],
               },
             );
 
@@ -59,7 +64,11 @@ const ExecutionTable = () => {
               total,
               list: list.map(execution => ({
                 ...execution,
-                relRuns: testRuns.filter(run => run.relation.from.objectId === execution.objectId),
+                relRuns: testRuns.filter(
+                  run =>
+                    run.relation.from.objectId === execution.objectId &&
+                    run.runReferenceDetail?.reference,
+                ),
               })),
             };
           },
@@ -76,28 +85,30 @@ const ExecutionTable = () => {
 
       refreshAndMutateData();
 
-      message.success(`${relationTypeIds.length} 个测试执行从测试计划中删除`);
+      message.success(`${relationTypeIds.length} 个测试执行从测试计划中移除`);
     },
     [refreshAndMutateData],
   );
 
-  const renderSelectionActionHeader = ({ selectedRows, toggleSelection, toggleAllRowsChecked }) => {
-    const handleToggleSelection = visible => {
-      toggleSelection(visible);
-      tableSelectionToggleEvent.emit(visible);
-    };
-
+  const selectionActionNodes = React.useMemo(() => {
     const handleDelete = () => {
-      actionConfirm('该操作会将所选测试用例从测试计划中删除，是否继续操作？', () => {
-        removeTestRelation(selectedRows.map(row => row.relation.objectId));
+      actionConfirm('该操作会将所选测试执行任务从测试计划中移除，是否继续操作？', () => {
+        removeTestRelation(actionRef.current.selectedRows.map(row => row.relation.objectId));
       });
     };
 
-    const handleAssigneeChange = assignees => {
-      console.log(selectedRows, assignees);
+    // 更新负责人
+    const handleAssigneeChange = async assignees => {
+      const itemIds = actionRef.current.selectedRows.map(row => row.reference.objectId);
+      console.info('itemDataList', itemIds);
+      await updateItemAssignee(itemIds, assignees);
+
+      refreshAndMutateData();
+
+      message.success(`${itemIds.length} 个测试负责人已更新`);
     };
 
-    const SelectionActions = [
+    return [
       <UserCell
         key="assignee"
         mode="multiple"
@@ -111,27 +122,31 @@ const ExecutionTable = () => {
       />,
 
       <a key="delete" onClick={handleDelete}>
-        <DeleteOutlined /> 删除
+        <DeleteOutlined /> 移除
       </a>,
     ];
-
-    return (
-      <TableSelection
-        actions={SelectionActions}
-        selectedRows={selectedRows}
-        onCheck={toggleAllRowsChecked}
-        onClose={() => handleToggleSelection(false)}
-      />
-    );
-  };
+  }, [refreshAndMutateData, removeTestRelation]);
 
   const columnsProp = [
     {
       width: 160,
       key: 'title',
       title: '标题',
+      isSystem: true,
       render(_, rowData) {
-        return rowData.reference.name;
+        const itemData = rowData.reference ?? {};
+        return (
+          <span
+            onClick={() =>
+              goToItemDetailPage({
+                workspaceKey: itemData.workspace?.key,
+                itemKey: itemData.key,
+              })
+            }
+          >
+            {itemData.name}
+          </span>
+        );
       },
     },
     {
@@ -156,6 +171,7 @@ const ExecutionTable = () => {
       key: 'action',
       title: <span>操作</span>,
       fixed: 'right' as any,
+      isSystem: true,
       render(_, rowData) {
         return (
           <>
@@ -164,27 +180,110 @@ const ExecutionTable = () => {
                 marginRight: 8,
               }}
               onClick={() =>
-                actionConfirm('该操作会将该测试执行任务从测试计划中删除，是否继续操作？', () => {
+                actionConfirm('该操作会将该测试执行任务从测试计划中移除，是否继续操作？', () => {
                   removeTestRelation([rowData.relation.objectId]);
                 })
               }
             >
-              删除
+              移除
             </a>
-            <a onClick={() => console.info(11)}>添加用例</a>
+            <a onClick={() => alert('TODO: 添加用例')}>添加用例</a>
           </>
         );
       },
     },
   ];
 
+  const expandedRowRender = React.useCallback(
+    record => {
+      // 测试执行序列
+      const testIdSequence = record.relRuns?.map(item => item?.objectId).filter(Boolean);
+      const handleTestRunStatusChange = async (testRunId, status) => {
+        await updateTestRun(testRunId, { status: status.key });
+        refreshAndMutateData();
+      };
+
+      const columns = [
+        {
+          key: 'detailName',
+          title: '用例标题',
+          isSystem: true,
+          fixed: true,
+          width: 160,
+          tooltip: true,
+          render(_, record) {
+            const name = record.runReferenceDetail?.reference?.name ?? (
+              <span style={{ color: '#ccc', fontSize: 12 }}>当前测试用例已被删除</span>
+            );
+            return <OverflowTooltip title={name}>{name}</OverflowTooltip>;
+          },
+        },
+        {
+          key: 'runStatus',
+          title: '用例执行状态',
+          width: 150,
+          render(_, record) {
+            return (
+              <StatusBadge
+                status={record.status}
+                onStatusChange={status => handleTestRunStatusChange(record.objectId, status)}
+              />
+            );
+          },
+        },
+        {
+          key: 'action',
+          title: '操作',
+          isSystem: true,
+          fixed: 'right' as any,
+          width: 120,
+          render(_, record) {
+            return (
+              <TestRunModal
+                testId={record.objectId}
+                testIdSequence={testIdSequence}
+                onCancel={() =>
+                  setTimeout(() => {
+                    refreshAndMutateData(); //刷新依赖数据
+                  }, 200)
+                }
+                trigger={<a>执行</a>}
+              />
+            );
+          },
+        },
+      ];
+      return (
+        <BusinessTable
+          rowKey="objectId"
+          columns={columns}
+          useColumnSetting
+          showPagination={false}
+          name="ExecutionInnerTable"
+          dataSource={record.relRuns}
+          itemKey="runReferenceDetail.reference"
+        />
+      );
+    },
+    [refreshAndMutateData],
+  );
+
   return (
     <BusinessTable
+      useColumnSetting
       rowKey="objectId"
+      itemKey="reference"
+      name="ExecutionTable"
       columns={columnsProp}
       actionRef={actionRef}
+      expandable={{
+        expandedRowRender,
+        expandRowByClick: true,
+        rowExpandable: record => Boolean(record.relRuns.length),
+      }}
       getDataSource={tableDataGetter}
-      renderSelectionActionHeader={renderSelectionActionHeader}
+      selectionActionNodes={selectionActionNodes}
+      onSelectionCancel={() => tableSelectionToggleEvent.emit(false)}
     />
   );
 };

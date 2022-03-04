@@ -17,7 +17,7 @@
     width: 30px;
     position: absolute;
     top: 5px;
-    right: 5px;
+    right: 16px;
     z-index: 10;
   }
 
@@ -25,6 +25,7 @@
     flex: 1;
     height: 100%;
     overflow: auto;
+    .custom-scrollbar-mixin();
   }
   .selection-header,
   .footer {
@@ -47,6 +48,11 @@
 
     .ant-table-selection-column {
       padding-left: 24px !important;
+    }
+
+    .ant-table-row-expand-icon-cell {
+      padding-left: 24px !important;
+      padding-right: 0 !important;
     }
 
     .react-resizable {

@@ -55,8 +55,11 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
 
   const LOCAL_STORAGE_KEY = generateStorageKey(name, 'column-key');
 
+  const additionalNotSystemColumnKeys = additionalColumns
+    .filter(col => !col.isSystem)
+    .map(col => col.key);
   const [storageColumnKeys, setStorageColumnKeys] = useLocalStorageState(LOCAL_STORAGE_KEY, {
-    defaultValue: [],
+    defaultValue: additionalNotSystemColumnKeys,
   });
 
   const memoizedAdditionalColumnKey = additionalColumns.map(col => col.key);
@@ -67,38 +70,36 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [memoizedAdditionalColumnKey, customFields]);
 
-  const optionalColumns = React.useMemo(() => {
-    return allColumns.filter(col => {
-      return !col.isSystem && storageColumnKeys.every(colKey => colKey !== col.key);
-    });
-  }, [allColumns, storageColumnKeys]);
-
   const selectColumns = React.useMemo(() => {
     return storageColumnKeys.map(key => allColumns.find(col => col.key === key)).filter(Boolean);
   }, [allColumns, storageColumnKeys]);
 
-  const selectOptions = optionalColumns.reduce(
-    (acc, col) => {
-      const getOptionData = col => {
-        return {
-          label: col.title,
-          value: col.key,
-          data: col,
+  const selectOptions = allColumns
+    .filter(col => {
+      return !col.isSystem;
+    })
+    .reduce(
+      (acc, col) => {
+        const getOptionData = col => {
+          return {
+            label: col.title,
+            value: col.key,
+            data: col,
+          };
         };
-      };
-      if (col.additional) {
-        acc[0].options.push(getOptionData(col));
-      } else {
-        acc[1].options.push(getOptionData(col));
-      }
+        if (col.additional) {
+          acc[0].options.push(getOptionData(col));
+        } else {
+          acc[1].options.push(getOptionData(col));
+        }
 
-      return acc;
-    },
-    [
-      { label: '测试管理字段', options: [] },
-      { label: '事项字段', options: [] },
-    ],
-  );
+        return acc;
+      },
+      [
+        { label: '测试管理字段', options: [] },
+        { label: '事项字段', options: [] },
+      ],
+    );
 
   // 处理 fixed column 排列
   useDeepCompareEffect(() => {
@@ -123,13 +124,9 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
     }
   }, [allColumns, storageColumnKeys]);
 
-  const handleColumnKeySelect = key => {
-    setStorageColumnKeys(prevState => {
-      if (!prevState.includes(key)) {
-        return prevState.concat(key);
-      } else {
-        return prevState.filter(k => k !== key);
-      }
+  const deleteStorageColumnKey = key => {
+    setStorageColumnKeys(prevKeys => {
+      return prevKeys.filter(k => k !== key);
     });
   };
 
@@ -153,12 +150,14 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
         <h6 className={cx('title')}>表头设置</h6>
         <Select
           showSearch
-          value={null}
+          mode="multiple"
           filterOption={true}
-          optionFilterProp="label"
           options={selectOptions}
-          onChange={handleColumnKeySelect}
+          optionFilterProp="label"
+          value={storageColumnKeys}
+          placeholder="请选择需要展示的列"
           className={cx('field-select')}
+          onChange={keys => setStorageColumnKeys(keys)}
         />
 
         <DragDropContext onDragEnd={handleColumnSort}>
@@ -178,7 +177,7 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
                         <span className={cx('title')}>{col.title}</span>
                         <DeleteOutlined
                           className={cx('icon')}
-                          onClick={() => handleColumnKeySelect(col.key)}
+                          onClick={() => deleteStorageColumnKey(col.key)}
                         />
                       </div>
                     )}

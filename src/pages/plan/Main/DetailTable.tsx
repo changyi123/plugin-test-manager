@@ -2,11 +2,11 @@ import React from 'react';
 import { message } from '@osui/ui';
 import { usePageContext } from '../hook';
 import { TestRelationType } from '@/lib/constants';
-import { actionConfirm } from '@/lib/utils/helper';
 import { UserCell } from '@projectproxima/components';
+import { updateItemAssignee } from '@/lib/api/proxima';
 import { DeleteOutlined, UserOutlined } from '@/icons';
 import { StatusBadge } from '@/components/common/Status';
-import TableSelection from '@/components/common/BusinessTable/TableSelection';
+import { actionConfirm, goToItemDetailPage } from '@/lib/utils/helper';
 import { getTestEntitiesByRelation, removeTestRelations } from '@/lib/api/common';
 import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
 
@@ -43,8 +43,8 @@ const DetailTable = () => {
           {
             workspaceKey,
             fillItemData: true,
-            queryParams: queryParams,
             nameLike: searchValue,
+            queryParams: queryParams,
           },
         ),
         getTestEntitiesByRelation(
@@ -104,28 +104,31 @@ const DetailTable = () => {
 
       refreshAndMutateData();
 
-      message.success(`${relationTypeIds.length} 个测试执行从测试计划中删除`);
+      message.success(`${relationTypeIds.length} 个测试执行从测试计划中移除`);
     },
     [refreshAndMutateData],
   );
 
-  const renderSelectionActionHeader = ({ selectedRows, toggleSelection, toggleAllRowsChecked }) => {
-    const handleToggleSelection = visible => {
-      toggleSelection(visible);
-      tableSelectionToggleEvent.emit(visible);
-    };
-
+  const selectionActionNodes = React.useMemo(() => {
     const handleDelete = () => {
-      actionConfirm('该操作会将所选测试用例从测试计划中删除，是否继续操作？', () => {
-        removeTestRelation(selectedRows.map(row => row.relation.objectId));
+      actionConfirm('该操作会将所选测试用例从测试计划中移除，是否继续操作？', () => {
+        removeTestRelation(actionRef.current.selectedRows.map(row => row.relation.objectId));
       });
     };
 
-    const handleAssigneeChange = assignees => {
-      console.log(selectedRows, assignees);
+    // 更新负责人
+    const handleAssigneeChange = async assignees => {
+      const itemIds = actionRef.current.selectedRows.map(row => row.reference.objectId);
+      await updateItemAssignee(itemIds, assignees);
+
+      setTimeout(() => {
+        refreshAndMutateData();
+      }, 1000);
+
+      message.success(`${itemIds.length} 个测试负责人已更新`);
     };
 
-    const SelectionActions = [
+    return [
       <UserCell
         key="assignee"
         mode="multiple"
@@ -139,19 +142,10 @@ const DetailTable = () => {
       />,
 
       <a key="delete" onClick={handleDelete}>
-        <DeleteOutlined /> 删除
+        <DeleteOutlined /> 移除
       </a>,
     ];
-
-    return (
-      <TableSelection
-        actions={SelectionActions}
-        selectedRows={selectedRows}
-        onCheck={toggleAllRowsChecked}
-        onClose={() => handleToggleSelection(false)}
-      />
-    );
-  };
+  }, [refreshAndMutateData, removeTestRelation]);
 
   const columns = [
     {
@@ -160,7 +154,19 @@ const DetailTable = () => {
       isSystem: true,
       title: '标题',
       render(_, rowData) {
-        return rowData.reference?.name;
+        const itemData = rowData.reference ?? {};
+        return (
+          <span
+            onClick={() =>
+              goToItemDetailPage({
+                workspaceKey: itemData.workspace?.key,
+                itemKey: itemData.key,
+              })
+            }
+          >
+            {itemData.name}
+          </span>
+        );
       },
     },
     {
@@ -188,12 +194,12 @@ const DetailTable = () => {
         return (
           <a
             onClick={() =>
-              actionConfirm('该操作会将该测试用例从测试计划中删除，是否继续操作？', () => {
+              actionConfirm('该操作会将该测试用例从测试计划中移除，是否继续操作？', () => {
                 removeTestRelation([rowData.relation.objectId]);
               })
             }
           >
-            删除
+            移除
           </a>
         );
       },
@@ -202,11 +208,14 @@ const DetailTable = () => {
 
   return (
     <BusinessTable
+      useColumnSetting
       rowKey="objectId"
       columns={columns}
+      name="DetailTable"
       actionRef={actionRef}
       getDataSource={tableDataGetter}
-      renderSelectionActionHeader={renderSelectionActionHeader}
+      selectionActionNodes={selectionActionNodes}
+      onSelectionCancel={() => tableSelectionToggleEvent.emit(false)}
     />
   );
 };

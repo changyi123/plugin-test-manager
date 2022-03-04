@@ -1,13 +1,14 @@
 import _ from 'lodash';
 import React from 'react';
-import { message } from '@osui/ui';
 import { usePageContext } from '../hook';
 import { TestEntity } from '@/lib/types/Test';
 import { deleteItems } from '@/lib/api/proxima';
+import { message, Empty, Button } from '@osui/ui';
 import { hasArrayItem } from '@/lib/utils/helper';
 import { actionConfirm } from '@/lib/utils/helper';
 import { useInfiniteScroll, useHover } from 'ahooks';
 import { useBaseAction } from '@/lib/hooks/useContext';
+import { goToItemDetailPage } from '@/lib/utils/helper';
 import { Dropdown, Menu, Tooltip, Spin } from '@osui/ui';
 import { EllipsisOutlined, PlusOutlined } from '@/icons';
 import { StatusProgress } from '@/components/common/Status';
@@ -39,8 +40,12 @@ const PlanItem: React.FC<{
   const isHover = useHover(ref);
   const { reference = {} as any, refTestDetails } = data;
 
-  const handleView = () => {
-    console.info(data.objectId);
+  const handleView = data => {
+    const itemData = data.reference ?? {};
+    goToItemDetailPage({
+      workspaceKey: itemData.workspace?.key,
+      itemKey: itemData.key,
+    });
   };
 
   return (
@@ -61,7 +66,7 @@ const PlanItem: React.FC<{
               <Menu.Item key="delete" onClick={() => onDelete(data)}>
                 删除测试计划
               </Menu.Item>
-              <Menu.Item key="view" onClick={handleView}>
+              <Menu.Item key="view" onClick={() => handleView(data)}>
                 查看测试计划
               </Menu.Item>
             </Menu>
@@ -197,23 +202,37 @@ const PlanList = () => {
   return (
     <div className={cx('container')}>
       <div className={cx('toolkit-bar')}>
-        <SearchInput onSearch={handleSearch} />
+        <SearchInput onSearch={handleSearch} placeholder="请输入测试计划标题" />
         <Tooltip title="新建测试计划">
           <PlusOutlined onClick={handleCreate} />
         </Tooltip>
       </div>
       <Spin spinning={loading}>
-        <div className={cx('list')} ref={listRef}>
-          {testPlans.map(testPlan => (
-            <PlanItem
-              data={testPlan}
-              key={testPlan.objectId}
-              onDelete={handleDelete}
-              selectedId={selectedTestPlanId}
-              onSelect={data => setSelectedTestPlanId(data.objectId)}
-            />
-          ))}
-        </div>
+        {loading || testPlans.length ? (
+          <div className={cx('list')} ref={listRef}>
+            {testPlans.map(testPlan => (
+              <PlanItem
+                data={testPlan}
+                key={testPlan.objectId}
+                onDelete={handleDelete}
+                selectedId={selectedTestPlanId}
+                onSelect={data => setSelectedTestPlanId(data.objectId)}
+              />
+            ))}
+          </div>
+        ) : (
+          <Empty
+            className={cx('empty')}
+            description={
+              <>
+                <p>暂无测试计划</p>
+                <Button onClick={handleCreate} size="small" type="primary">
+                  新建测试计划
+                </Button>
+              </>
+            }
+          />
+        )}
       </Spin>
     </div>
   );

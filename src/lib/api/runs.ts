@@ -1,6 +1,6 @@
 import Parse from '@/lib/parse';
-import { Test, Item, ItemType, ItemLink, ItemLinkType } from '../models';
 import { ICommonRes } from './detail';
+import { Test, Item, ItemType, ItemLink, ItemLinkType } from '../models';
 import { TestType, TestRelationType } from '@/lib/constants';
 import {
   getTestEntities,
@@ -8,11 +8,11 @@ import {
   createTestRelation,
   getTestEntitiesByRelation,
 } from '@/lib/api/common';
+import { getItemByIQL } from '@/lib/api/proxima';
+import { hasArrayItem } from '@/lib/utils/helper';
+import _, { isEqual, keyBy, merge } from 'lodash';
 import { pointerTransfer } from '@/lib/utils/helper';
 import { Status, TestEntity } from '@/lib/types/Test';
-import { getItemByIQL } from '@/lib/api/proxima';
-import _, { isEqual, keyBy } from 'lodash';
-import { hasArrayItem } from '@/lib/utils/helper';
 import { compactStepModel } from '@/lib/utils/modelTransfer';
 
 type TestRunEntity = TestEntity<TestType.TestRun>;
@@ -363,13 +363,22 @@ export const getItemLinkRelation = async (itemId: string) => {
 
 /** 更新测试运行 */
 export const updateTestRun = async (
-  testEntity: Parse.Object<TestRunEntity>,
+  testEntity: Parse.Object<TestRunEntity> | string,
   params: {
     status?: Status['key'];
     steps?: Record<string, any>[];
     runDetail?: Partial<TestRunEntity['runDetail']>;
   },
+  opts?: { initialization?: boolean },
 ) => {
+  opts = merge({ initialization: false }, opts);
+
+  if (typeof testEntity === 'string') {
+    [testEntity] = (await getTestEntities({
+      id: testEntity,
+    })) as [Parse.Object<TestRunEntity>];
+  }
+
   const testEntityData = testEntity.toJSON();
   const needUpdateAttrs = {} as TestRunEntity;
 
@@ -382,26 +391,28 @@ export const updateTestRun = async (
       },
     });
 
-    // TODO: 引入 status config 配置
+    // 初始化 step 不更新测试执行状态
+    if (!opts.initialization) {
+      // 有一个失败
+      const hasFail = steps.some(item => item.status === 'FAILED');
+      // 全部 pass
+      const allPass = steps.filter(item => item.status === 'PASSED');
+      // 全部 todo
+      const allTodo = steps.filter(item => item.status === 'TODO');
 
-    // 有一个失败
-    const hasFail = steps.some(item => item.status === 'FAILED');
-    // 全部 pass
-    const allPass = steps.filter(item => item.status === 'PASSED');
-    // 全部 todo
-    const allTodo = steps.filter(item => item.status === 'TODO');
-
-    if (hasFail) {
-      needUpdateAttrs.status = 'FAILED';
-    } else if (allPass.length === steps?.length) {
-      needUpdateAttrs.status = 'PASSED';
-    } else if (allTodo.length === steps?.length) {
-      needUpdateAttrs.status = 'TODO';
-    } else {
-      needUpdateAttrs.status = 'EXECUTING';
+      if (hasFail) {
+        needUpdateAttrs.status = 'FAILED';
+      } else if (allPass.length === steps?.length) {
+        needUpdateAttrs.status = 'PASSED';
+      } else if (allTodo.length === steps?.length) {
+        needUpdateAttrs.status = 'TODO';
+      } else {
+        needUpdateAttrs.status = 'EXECUTING';
+      }
     }
   }
 
+  console.log(params.status, testEntity);
   if (params.status) {
     Object.assign(needUpdateAttrs, { status: params.status });
   }
@@ -415,6 +426,12 @@ export const updateTestRun = async (
         params.runDetail,
       ),
     });
+  }
+
+  // testRun 状态更新需要映射到关联的测试用例
+  if (needUpdateAttrs.status) {
+    const testDetailEntity = testEntity.get('runReferenceDetail') as unknown as Parse.Object;
+    testDetailEntity.save('status', needUpdateAttrs.status);
   }
 
   return testEntity.save(needUpdateAttrs);
