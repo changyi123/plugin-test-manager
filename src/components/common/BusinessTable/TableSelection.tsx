@@ -8,6 +8,7 @@ import cx from './TableSelection.less';
 type TableSelectionProps = {
   selectNum?: number;
   onClose?: () => void;
+  tableExpandable?: boolean;
   actions: React.ReactNode[];
   checkboxProps?: CheckboxProps;
 };
@@ -15,11 +16,12 @@ type TableSelectionProps = {
 const TableSelection: React.FC<TableSelectionProps> = ({
   actions,
   selectNum,
-  onClose = noop,
   checkboxProps,
+  onClose = noop,
+  tableExpandable = false,
 }) => {
   return (
-    <div className={cx('table-selection')}>
+    <div className={cx('table-selection', tableExpandable && 'table-expandable')}>
       <Checkbox className={cx('checkbox')} {...checkboxProps} />
       <span className={cx('select')}>
         已选中 <span className={cx('num')}>{selectNum ?? 0}</span> 项

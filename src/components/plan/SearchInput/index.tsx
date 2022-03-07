@@ -1,8 +1,8 @@
 import React from 'react';
 import { noop } from 'lodash';
-import { Input } from '@osui/ui';
 import { useDebounceFn } from 'ahooks';
 import { SearchOutlined } from '@/icons';
+import { Input, Tooltip } from '@osui/ui';
 import { InputProps } from 'antd/lib/input/Input';
 
 import cx from './index.less';
@@ -43,7 +43,9 @@ const SearchInput: React.FC<
           defaultValue={inputValueRef.current}
         />
       ) : (
-        <SearchOutlined onClick={() => setInputVisible(true)} />
+        <Tooltip title="搜索">
+          <SearchOutlined onClick={() => setInputVisible(true)} />
+        </Tooltip>
       )}
     </div>
   );

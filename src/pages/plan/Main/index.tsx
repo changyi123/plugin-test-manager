@@ -1,9 +1,11 @@
 import React from 'react';
-import { Tabs, Button } from '@osui/ui';
 import DetailTable from './DetailTable';
 import { usePageContext } from '../hook';
+import { TestType } from '@/lib/constants';
 import ExecutionTable from './ExecutionTable';
 import { AppstoreAddOutlined } from '@/icons';
+import { Tabs, Button, Tooltip } from '@osui/ui';
+import { useBaseAction } from '@/lib/hooks/useContext';
 
 import SearchInput from '@/components/plan/SearchInput';
 
@@ -12,6 +14,7 @@ import cx from './index.less';
 const Main = () => {
   const { tableSelectionToggleEvent, setSearchValue } = usePageContext();
   const [tableSelectionVisible, setTableSelectionVisible] = React.useState(false);
+  const { createItemUseModal } = useBaseAction();
 
   const toggleTableSelection = () => {
     const visible = !tableSelectionVisible;
@@ -27,21 +30,25 @@ const Main = () => {
     setSearchValue(value);
   };
 
-  const createTestExecution = () => {
-    alert('TODO: 新建测试执行任务');
+  const createTestExecution = async () => {
+    const { testEntity: testPlanEntity } = await createItemUseModal({
+      type: TestType.TestExecution,
+    });
+
+    console.info('testPlanEntity', testPlanEntity);
   };
 
-  const addTestDetail = () => {
-    alert('TODO: 规划用例');
-  };
+  const addTestDetail = () => {};
 
   const rightExtraContent = (
     <div className={cx('extra-content')}>
       <SearchInput placeholder="请输入标题" className={cx('action')} onSearch={handleSearch} />
-      <AppstoreAddOutlined
-        onClick={() => toggleTableSelection()}
-        className={cx('action', 'selection', tableSelectionVisible && 'active')}
-      />
+      <Tooltip title="多选操作">
+        <AppstoreAddOutlined
+          onClick={() => toggleTableSelection()}
+          className={cx('action', 'selection', tableSelectionVisible && 'active')}
+        />
+      </Tooltip>
       <span className={cx('line')} />
       {/* <Button className={cx('action')}>导入导出</Button> */}
       <Button type="primary" onClick={addTestDetail} className={cx('action')}>

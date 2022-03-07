@@ -236,7 +236,6 @@ const ExecutionTable = () => {
           title: '操作',
           isSystem: true,
           fixed: 'right' as any,
-          width: 120,
           render(_, record) {
             return (
               <TestRunModal
