@@ -39,7 +39,7 @@ const Test = () => {
                 from: testExecutionIds,
               },
               {
-                limit: 9999,
+                queryParams: { limit: 9999 },
               },
             );
 

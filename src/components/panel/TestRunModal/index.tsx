@@ -1,7 +1,7 @@
 import React from 'react';
 import TestRun from './TestRun';
 import { Modal, Button } from '@osui/ui';
-import type { ModalProps } from '@osui/modal';
+import type { ModalProps } from 'antd/lib/modal';
 import useMergedState from 'rc-util/lib/hooks/useMergedState';
 import { getRootContainer } from '@/lib/utils/helper';
 

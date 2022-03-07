@@ -1,7 +1,7 @@
 import React from 'react';
 import { Menu } from '@osui/ui';
 import ReactDOM from 'react-dom';
-import { MenuItemProps, MenuProps } from '@osui/menu/es';
+import { MenuItemProps, MenuProps } from 'antd/lib/menu';
 import { getRootContainer } from '@/lib/utils/helper';
 import './index.global.less';
 

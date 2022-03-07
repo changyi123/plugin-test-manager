@@ -74,7 +74,7 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
         },
         {
           ...state.pagination,
-          ascendingKeys: state.isRootFolder ? ['createdAt'] : null,
+          ascendingBy: state.isRootFolder ? ['createdAt'] : null,
         },
       );
     } else {

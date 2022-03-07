@@ -180,12 +180,19 @@ const TestRun: React.FC<TestRunType> = props => {
       (async () => {
         try {
           const steps = await getTestStepsByTestDetailId(testRunData.runReferenceDetail.objectId);
-          await updateTestRun(testRunEntity, {
-            steps,
-            runDetail: {
-              precondition: refTestDetailData.detail?.precondition,
+          await updateTestRun(
+            testRunEntity,
+            {
+              steps,
+              runDetail: {
+                precondition: refTestDetailData.detail?.precondition,
+              },
             },
-          });
+            {
+              // 初始化更新
+              initialization: true,
+            },
+          );
           refreshTestRun();
         } catch (err) {
           message.error(err.message);

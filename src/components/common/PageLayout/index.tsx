@@ -25,7 +25,12 @@ const Left: React.FC = ({ children }) => {
 };
 
 const Right: React.FC = ({ children }) => {
-  return <div className={cx('right')}>{children}</div>;
+  const height = useLayoutHeight();
+  return (
+    <div className={cx('right')} style={{ height }}>
+      {children}
+    </div>
+  );
 };
 
 const Header: React.FC = ({ children }) => {

@@ -132,7 +132,7 @@ const StepRow: React.FC<StepRowProps> = props => {
             placement="left"
             cancelText="取消"
             getPopupContainer={getRootContainer}
-            title={`当前操作会复制该测试用例步骤，是否继续执行？`}
+            title="当前操作会复制该测试用例步骤，是否继续执行？"
             onConfirm={() => actions.copy({ id: data.id, index })}
           >
             <Tooltip title="复制步骤">
@@ -145,8 +145,8 @@ const StepRow: React.FC<StepRowProps> = props => {
             placement="left"
             cancelText="取消"
             getPopupContainer={getRootContainer}
-            title={`当前操作会删除该测试用例步骤，是否继续执行？`}
             onConfirm={() => actions.delete(data.id)}
+            title="当前操作会删除该测试用例步骤，是否继续执行？"
           >
             <Tooltip title="删除步骤">
               <DeleteOutlined className={cx('icon')} key="DeleteOutlined" />

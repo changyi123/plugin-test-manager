@@ -1,6 +1,7 @@
 import React from 'react';
 import { useLocalStorageState } from 'ahooks';
 import { useLocation } from 'react-router-dom';
+import { generateStorageKey } from '@/lib/utils/helper';
 
 export const useLayoutHeight = () => {
   const offsetY = 0; // 63
@@ -28,14 +29,16 @@ export const useLayoutHeight = () => {
 };
 
 export const useResizableWidth = () => {
+  const DEFAULT_WIDTH = 300;
   const location = useLocation();
-  const key = location.pathname;
-  return useLocalStorageState(`plugin-test-manager-resizable-width-${key}`, {
+  const LOCAL_STORAGE_KEY = generateStorageKey('resizable-width', location.pathname);
+  return useLocalStorageState(LOCAL_STORAGE_KEY, {
+    defaultValue: DEFAULT_WIDTH,
     serializer(value) {
       return String(value) ?? '300';
     },
     deserializer(value) {
-      return Number(value) ? Number(value) : 300;
+      return Number(value) ? Number(value) : DEFAULT_WIDTH;
     },
   });
 };

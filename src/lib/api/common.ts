@@ -30,7 +30,9 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
       include: [],
       // 只需要测试实体数据，不需要关联关系数据
       entityOnly: false,
+      workspaceKey: '',
       queryParams: { limit: 10, offset: 0, orderBy: 'createdAt' },
+      nameLike: '',
     },
     _config,
   );
@@ -71,11 +73,24 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
   query.include(includeKeys);
   query.withCount();
 
+  if (config?.nameLike) {
+    const testEntityInnerQuery = new Parse.Query(Test).matchesQuery(
+      'reference',
+      new Parse.Query(Item).matches('name', escapeMatchesQueryArg(config.nameLike)),
+    );
+
+    if (config.workspaceKey) {
+      testEntityInnerQuery.equalTo('workspaceKey', config.workspaceKey);
+    }
+
+    query.matchesQuery(relationSideKey, testEntityInnerQuery);
+  }
+
   if (config?.queryParams && typeof config?.queryParams === 'object') {
     const queryParams = config.queryParams;
     query.limit(queryParams.limit);
     query.skip(queryParams.offset);
-    query.ascending(queryParams.orderBy);
+    query.descending(queryParams.orderBy);
   }
 
   const { results, count } = await query.find();
@@ -184,17 +199,14 @@ export const removeTestRelations = (_relations: Array<PointerType>) => {
 /**
  * 删除测试实体
  */
-export const deleteTestEntities = (testEntities: Array<Parse.Object | string>) => {
+export const deleteTestEntities = async (testEntities: Array<Parse.Object | string>) => {
   testEntities = testEntities.map(item =>
     typeof item === 'string' ? new Test({ objectId: item }) : item,
   );
   // 测试实体对应的关联关系也需要被删除
-  const testRelations = getAllTestRelations({ from: testEntities, to: testEntities });
+  const testRelations = await getAllTestRelations({ from: testEntities, to: testEntities });
 
-  return Promise.all([
-    Parse.Object.destroyAll(testEntities),
-    Parse.Object.destroyAll(testRelations),
-  ]);
+  return Parse.Object.destroyAll(testEntities.concat(testRelations));
 };
 
 /**
@@ -260,8 +272,8 @@ export const getTestEntitiesByQuery = async (
   options?: Partial<{
     offset: number;
     limit: number;
-    descendingKeys: string[];
-    ascendingKeys: string[];
+    descendingBy: string[];
+    ascendingBy: string[];
     include: string[];
   }>,
 ) => {
@@ -290,7 +302,10 @@ export const getTestEntitiesByQuery = async (
   }
 
   if (queryParams.nameLike) {
-    query.contains('name', escapeMatchesQueryArg(queryParams.nameLike));
+    query.matchesQuery(
+      'reference',
+      new Parse.Query(Item).matches('name', escapeMatchesQueryArg(queryParams.nameLike)),
+    );
   }
 
   if (queryParams.in) {
@@ -313,10 +328,10 @@ export const getTestEntitiesByQuery = async (
     query.limit(options.limit ?? 10);
   }
 
-  if (options.descendingKeys) {
-    query.addDescending(options.descendingKeys);
-  } else if (options.ascendingKeys) {
-    query.addAscending(options.ascendingKeys);
+  if (options.descendingBy) {
+    query.addDescending(options.descendingBy);
+  } else if (options.ascendingBy) {
+    query.addAscending(options.ascendingBy);
   }
 
   if (options.include) {

@@ -1,6 +1,5 @@
 import React from 'react';
 
-import { uniqueId } from 'lodash';
 import { createTestPlanService } from './services';
 import { DownOutlined } from '@ant-design/icons';
 import { StatusProgress } from '@/components/common/Status';

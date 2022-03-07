@@ -1,23 +1,10 @@
-import uuid from 'uuid/v4';
 import { keyBy } from 'lodash';
 import { Input } from './fields';
-import { Modal } from '@osui/ui';
-import { getRootContainer } from '@/lib/utils/helper';
+import { v4 as uuid } from 'uuid';
 
 /** 渲染组件映射 */
 export const FieldComponentMapping = {
   input: Input,
-};
-
-/** 确认下一步 */
-export const actionConfirm = (content: string, cb) => {
-  Modal.confirm({
-    content,
-    onOk: cb,
-    title: '提示',
-    okText: '继续',
-    getContainer: getRootContainer,
-  });
 };
 
 /** 内置字段 key */
