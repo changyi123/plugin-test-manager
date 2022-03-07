@@ -197,6 +197,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     return (
       <div className={cx('selection-header')}>
         <TableSelection
+          tableExpandable={Boolean(expandable)}
           onClose={handleClose}
           checkboxProps={{
             checked:
