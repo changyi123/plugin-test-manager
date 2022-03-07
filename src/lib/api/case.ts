@@ -27,6 +27,13 @@ export const getAppInstallationByApp = (id: string): Promise<any> => {
   return query.find();
 };
 
+export const getAppInstallationByAppIds = (ids: string[]): Promise<any> => {
+  if (ids.length == 0) return;
+  const query = new Parse.Query(AppInstallation);
+  query.containedIn('app', ids);
+  return query.find();
+};
+
 //get workspace by scheme
 export const getWorkspacesByScheme = (id: string): Promise<any> => {
   const sheme = WorkspaceScheme.createWithoutData(id);
@@ -34,6 +41,16 @@ export const getWorkspacesByScheme = (id: string): Promise<any> => {
   query.equalTo('workspaceScheme', sheme);
   return query.find();
 };
+
+//获取所有workspaces
+export const getWorkspacesBySchemeIds = (shemesIds: string[]): Promise<any> => {
+  //todo,处理schemes相关的书
+  if (shemesIds.length == 0) return;
+  const query = new Parse.Query(Workspace);
+  query.containedIn('workspaceScheme', shemesIds);
+  return query.find();
+};
+
 //get repo by key
 export const getRepoByKey = (key: string): Promise<ICommonRes> => {
   return new Promise((resolve, reject) => {

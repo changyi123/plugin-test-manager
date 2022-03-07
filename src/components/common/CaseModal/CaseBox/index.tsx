@@ -43,6 +43,8 @@ interface BoxItem {
   type: number;
   onRow?: (text: string, record: any, index: any) => any;
   clickIndex?: any;
+  treeLoading: boolean;
+  tableLoading: boolean;
 }
 //copy的时候数据变化
 export const deepCloneTree = function (data) {
@@ -103,6 +105,8 @@ const CaseBox: FC<BoxItem> = ({
   type,
   clickIndex,
   onRow,
+  treeLoading /* tree and table loading*/,
+  tableLoading,
 }) => {
   const [sortOrderTest, setSortOrderTest] = useState<string>('descend');
   const columns = [
@@ -172,7 +176,7 @@ const CaseBox: FC<BoxItem> = ({
   function changeTableData(tableData) {
     const table = [];
     tableData.forEach(item => {
-      item.title = item?.reference?.title ?? '--该事项已被删除--';
+      item.title = item?.reference?.name ?? '--该事项已被删除--';
       table.push(item);
     });
     state.table = table;
@@ -232,8 +236,9 @@ const CaseBox: FC<BoxItem> = ({
 
         {/* tree */}
         <span className={cx('case_sub_select')}>
-          {state.treed && state.treed.length > 0 ? (
+          {state.treed && state.treed.length > 0 && !treeLoading ? (
             <Tree
+              className={cx('case_box_tree')}
               checkable={type == ModalType.ModalInherit ? false : true} /* 加上选择框 */
               checkStrictly={type == ModalType.ModalInherit ? false : true} /* 加上选中可控 */
               onExpand={onExpand}
@@ -267,6 +272,7 @@ const CaseBox: FC<BoxItem> = ({
           columns={columns}
           dataSource={state.table}
           pagination={false}
+          loading={tableLoading} /* tableLoading */
           onChange={onTableChange}
           onRow={onRow}
         />
