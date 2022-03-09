@@ -1,6 +1,9 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable no-console */
+/* eslint-disable no-unused-vars */
 import React from 'react';
 import { uniq } from 'lodash';
-import { useReactive, useDrop } from 'ahooks';
+import { useReactive, useDrop, useUpdateEffect } from 'ahooks';
 import { TestType } from '@/lib/constants';
 import { hasArrayItem, getRootContainer } from '@/lib/utils/helper';
 import { createFolder, updateFolders, deleteFolder } from '@/lib/api/repository';
@@ -102,6 +105,7 @@ type FolderTreeProps = {
   treeNodeData: TreeNode[];
   onSelect(node: TreeNode): void;
   onFolderTreeChange?: () => Promise<any>;
+  unFoldLength: number;
 };
 
 const FolderTree: React.FC<FolderTreeProps> = ({
@@ -110,6 +114,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
   loading,
   className,
   onFolderTreeChange,
+  unFoldLength,
 }) => {
   const state = useReactive({
     expandedKeys: [],
@@ -422,11 +427,14 @@ const FolderTree: React.FC<FolderTreeProps> = ({
                 <CustomMore onClick={e => e.stopPropagation()} className={cx('tree-node-action')} />
               </Dropdown>
             </>
-          ) : null}
+          ) : (
+            /* 未分组用例用例数量统计 */
+            <span className={cx('tree-node-length')}>{`${unFoldLength}(${unFoldLength})`}</span>
+          )}
         </>
       </DropTreeTitle>
     ),
-    [handleMenuClick, handleItemDrop],
+    [handleMenuClick, handleItemDrop, unFoldLength],
   );
 
   return (
