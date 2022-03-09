@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { message, Button } from '@osui/ui';
+import { Button } from '@osui/ui';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import { TestType, TestRelationType } from '@/lib/constants';
 import PanelTable, {
@@ -12,8 +12,8 @@ import { alert } from '@/lib/utils/helper';
 import TestEntitySelectorModal, {
   ActionType as SelectorActionType,
 } from '@/components/panel/TestEntitySelectorModal';
-import { addTestExecutionToPlanService } from './service';
 import { StatusProgress } from '@/components/common/Status';
+import { createTestExecutionToPlanRelations } from '@/lib/api/relations';
 import { getTestEntitiesByRelation, removeTestRelations } from '@/lib/api/common';
 
 import cx from './index.less';
@@ -65,16 +65,16 @@ const Test = () => {
   }, []);
 
   const addTestExecutionToPlan = React.useCallback(
-    async testExecutionIds => {
-      await addTestExecutionToPlanService({
+    async testExecution => {
+      await createTestExecutionToPlanRelations({
         testPlan: testEntity,
-        testExecutionIds,
+        testExecution,
       });
       tableActionRef.current.refresh();
 
       alert({
         type: 'success',
-        message: `${testExecutionIds.length} 个测试执行添加到测试计划中`,
+        message: `${testExecution.length} 个测试执行添加到测试计划中`,
       });
     },
     [testEntity],

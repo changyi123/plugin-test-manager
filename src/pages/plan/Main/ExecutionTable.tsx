@@ -10,7 +10,7 @@ import { StatusBadge } from '@/components/common/Status';
 import TestRunModal from '@/components/panel/TestRunModal';
 import { StatusProgress } from '@/components/common/Status';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
-import { actionConfirm, goToItemDetailPage } from '@/lib/utils/helper';
+import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
 import { getTestEntitiesByRelation, removeTestRelations } from '@/lib/api/common';
 import BusinessTable, { ActionType } from '@/components/common/BusinessTable/BusinessTable';
 
@@ -21,8 +21,15 @@ const ExecutionTable = () => {
     workspaceKey,
     selectedTestPlanId,
     mutateTestPlanEvent,
+    registerRefreshMethod,
     tableSelectionToggleEvent,
   } = usePageContext();
+
+  React.useEffect(() => {
+    registerRefreshMethod({
+      executionTable: actionRef.current?.refresh,
+    });
+  }, [registerRefreshMethod]);
 
   const refreshAndMutateData = React.useCallback(() => {
     actionRef.current.refresh();
@@ -136,14 +143,7 @@ const ExecutionTable = () => {
       render(_, rowData) {
         const itemData = rowData.reference ?? {};
         return (
-          <span
-            onClick={() =>
-              goToItemDetailPage({
-                workspaceKey: itemData.workspace?.key,
-                itemKey: itemData.key,
-              })
-            }
-          >
+          <span style={{ cursor: 'pointer' }} onClick={() => openItemViewScreen(itemData.objectId)}>
             {itemData.name}
           </span>
         );

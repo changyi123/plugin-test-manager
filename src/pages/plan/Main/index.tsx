@@ -4,17 +4,20 @@ import { usePageContext } from '../hook';
 import { TestType } from '@/lib/constants';
 import ExecutionTable from './ExecutionTable';
 import { AppstoreAddOutlined } from '@/icons';
-import { Tabs, Button, Tooltip } from '@osui/ui';
-import { useBaseAction } from '@/lib/hooks/useContext';
+import { Tabs, Button, Tooltip, message } from '@osui/ui';
+import { createTestExecutionAndRelations } from '@/lib/api/runs';
+import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
 
 import SearchInput from '@/components/plan/SearchInput';
 
 import cx from './index.less';
 
 const Main = () => {
-  const { tableSelectionToggleEvent, setSearchValue } = usePageContext();
+  const { tableSelectionToggleEvent, setSearchValue, selectedTestPlanId, refresh } =
+    usePageContext();
   const [tableSelectionVisible, setTableSelectionVisible] = React.useState(false);
   const { createItemUseModal } = useBaseAction();
+  const { workspace } = useTestConfig();
 
   const toggleTableSelection = () => {
     const visible = !tableSelectionVisible;
@@ -31,11 +34,21 @@ const Main = () => {
   };
 
   const createTestExecution = async () => {
-    const { testEntity: testPlanEntity } = await createItemUseModal({
+    const { testEntity: testExecutionEntity } = await createItemUseModal({
       type: TestType.TestExecution,
     });
 
-    console.info('testPlanEntity', testPlanEntity);
+    const testExecutionData = testExecutionEntity.toJSON();
+
+    await createTestExecutionAndRelations({
+      workspaceKey: workspace.key,
+      testPlan: selectedTestPlanId,
+      testExecution: testExecutionEntity,
+    });
+
+    refresh('detailTable');
+
+    message.success(`测试执行任务【${testExecutionData?.reference?.name}】新建成功`);
   };
 
   const addTestDetail = () => {};

@@ -18,41 +18,63 @@ type TestPlanEntity = TestEntity<TestType.TestPlan>;
 type PageContextType = {
   searchValue: string;
   workspaceKey: string;
-  setSearchValue: (searchValue: string) => void;
-  selectedTestPlanId: TestPlanEntity['objectId'] | null;
-  setSelectedTestPlanId: (id: TestPlanEntity['objectId']) => void;
+  refresh: (key?: string) => void;
   mutateTestPlanEvent: EventEmitter<string>;
+  setSearchValue: (searchValue: string) => void;
   tableSelectionToggleEvent: EventEmitter<boolean>;
+  selectedTestPlanId: TestPlanEntity['objectId'] | null;
+  registerRefreshMethod: (method: Record<string, () => void>) => void;
+  setSelectedTestPlanId: (id: TestPlanEntity['objectId']) => void;
 };
 
 export const PageContext = React.createContext<PageContextType>({
+  refresh: noop,
   searchValue: '',
   workspaceKey: '',
   setSearchValue: noop,
   selectedTestPlanId: null,
-  setSelectedTestPlanId: noop,
   mutateTestPlanEvent: null,
+  setSelectedTestPlanId: noop,
+  registerRefreshMethod: noop,
   tableSelectionToggleEvent: null,
 });
 
 const PageProvider: React.FC = ({ children }) => {
   const { context } = useSDK();
   const mutateTestPlanEvent = useEventEmitter<string>();
-  const tableSelectionToggleEvent = useEventEmitter<boolean>();
-  const [selectedTestPlanId, setSelectedTestPlanId] = React.useState(null);
   const [searchValue, setSearchValue] = React.useState('');
+  const tableSelectionToggleEvent = useEventEmitter<boolean>();
+  const refreshCacheRef = React.useRef<Record<string, () => void>>();
+  const [selectedTestPlanId, setSelectedTestPlanId] = React.useState(null);
   const workspaceKey = context?.env?.WORKSPACE_KEY ?? getDevConfig().workspaceKey;
+
+  const refresh = React.useCallback(key => {
+    if (key) {
+      refreshCacheRef.current[key]?.();
+    }
+    Object.values(refreshCacheRef.current).forEach(method => method?.());
+  }, []);
+
+  const registerRefreshMethod = React.useCallback(methods => {
+    console.log(refreshCacheRef.current, methods);
+    refreshCacheRef.current = {
+      ...refreshCacheRef.current,
+      ...methods,
+    };
+  }, []);
 
   return (
     <ErrorBoundary>
       <TestManagerProvider workspaceKey={workspaceKey}>
         <PageContext.Provider
           value={{
+            refresh,
             searchValue,
             workspaceKey,
             setSearchValue,
             selectedTestPlanId,
             mutateTestPlanEvent,
+            registerRefreshMethod,
             setSelectedTestPlanId,
             tableSelectionToggleEvent,
           }}

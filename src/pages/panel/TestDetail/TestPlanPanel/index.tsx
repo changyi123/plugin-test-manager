@@ -1,10 +1,10 @@
 import React from 'react';
 
-import { createTestPlanService } from './services';
 import { DownOutlined } from '@ant-design/icons';
 import { StatusProgress } from '@/components/common/Status';
 import { TestType, TestRelationType } from '@/lib/constants';
 import DropDownButton from '@/components/panel/DropDownButton';
+import { createTestDetailToPlanRelations } from '@/lib/api/relations';
 import { useTestConfig, useBaseAction } from '@/lib/hooks/useContext';
 import PanelTable, { ActionType } from '@/components/panel/PanelTable';
 import { BuiltinColumns, columnBuilder } from '@/components/panel/PanelTable';
@@ -109,7 +109,10 @@ const Plan = () => {
           });
 
           try {
-            await createTestPlanService(testEntity, testPlanEntity);
+            await createTestDetailToPlanRelations({
+              testDetail: testEntity,
+              testPlan: testPlanEntity,
+            });
           } catch (err) {
             console.error(err);
           }

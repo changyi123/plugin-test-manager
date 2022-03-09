@@ -1,6 +1,7 @@
 import { Modal } from '@osui/ui';
 import { isEqual, findKey, noop } from 'lodash';
 import { STORAGE_PREFIX_KEY } from '../constants';
+import createProximaSdk from '@projectproxima/proxima-sdk-js';
 
 export const hasArrayItem = (arr?: unknown[]) => Boolean(Array.isArray(arr) && arr.length);
 
@@ -50,6 +51,12 @@ export const generateStorageKey = (...args: string[]) => {
 /** 生成跳转 URL */
 export const goToItemDetailPage = ({ workspaceKey, itemKey }) => {
   return window.open(`/osc/${workspaceKey}/item/${itemKey}`, '_blank');
+};
+
+/** 打开测试详情弹窗 */
+export const openItemViewScreen = itemId => {
+  const proximaSDK = createProximaSdk();
+  proximaSDK.execute('openItemViewScreen', itemId);
 };
 
 /** panel 消息通知 */

@@ -21,8 +21,9 @@ import { StatusBadge } from '@/components/common/Status';
 import { useAllRelTestEntities } from '@/lib/hooks/useTest';
 import TestRunModal from '@/components/panel/TestRunModal';
 import { QuestionCircleOutlined } from '@/icons';
+import { createTestExecutionAndRelations } from '@/lib/api/runs';
 import { getTestEntitiesByRelation, removeTestRelations } from '@/lib/api/common';
-import { createTestExecutionService, addTestDetailToPlanService } from './services';
+import { createTestDetailToPlanRelations } from '@/lib/api/relations';
 import StatusProcessBar from '@/components/panel/StatusProcessBar';
 
 import cx from './index.less';
@@ -129,7 +130,7 @@ const Test = () => {
 
     const testExecutionData = testExecutionEntity.toJSON();
 
-    const testExecution = await createTestExecutionService({
+    await createTestExecutionAndRelations({
       testPlan: testEntity,
       testExecution: testExecutionEntity,
       workspaceKey: (testExecutionData.reference.workspace as Workspace).key,
@@ -137,7 +138,7 @@ const Test = () => {
 
     alert({
       type: 'success',
-      message: `测试执行【${testExecution?.get('reference')?.get('name')}】新建成功`,
+      message: `测试执行任务【${testExecutionData?.reference?.name}】新建成功`,
     });
   }, [createItemUseModal, testEntity]);
 
@@ -148,9 +149,9 @@ const Test = () => {
         title: '已存在的测试用例',
         async onClick() {
           const testDetailIds = await selectorModalRef.current.open();
-          await addTestDetailToPlanService({
+          await createTestDetailToPlanRelations({
             testPlan: testEntity,
-            testDetailIds,
+            testDetail: testDetailIds,
           });
 
           refreshDepData();

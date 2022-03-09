@@ -252,13 +252,15 @@ const FolderTree: React.FC<FolderTreeProps> = ({
           },
         });
 
+        const testEntityData = testEntity.toJSON();
+
         console.info('itemCreated', item.objectId, node.key);
         // 创建的测试用例不在同一个空间
-        if (workspace?.key !== testEntity?.get('workspaceKey')) return;
+        if (workspace?.key !== testEntityData.workspaceKey) return;
         // 只有测试用例需要被添加至测试用例仓库
-        if (testEntity?.get('type') !== TestType.TestDetail) return;
+        if (testEntityData.type !== TestType.TestDetail) return;
         // 修改 node，将创建成功的 itemKey 追加到 node 上
-        node.testDetailIds = (node.testDetailIds || []).concat(item.objectId);
+        node.testDetailIds = (node.testDetailIds || []).concat(testEntityData.objectId);
         await updateFolders([node]);
         onFolderTreeChange();
         handleSelect([node.key], {

@@ -6,17 +6,19 @@ import { UserCell } from '@projectproxima/components';
 import { updateItemAssignee } from '@/lib/api/proxima';
 import { DeleteOutlined, UserOutlined } from '@/icons';
 import { StatusBadge } from '@/components/common/Status';
-import { actionConfirm, goToItemDetailPage } from '@/lib/utils/helper';
+import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
 import { getTestEntitiesByRelation, removeTestRelations } from '@/lib/api/common';
 import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
 
 const DetailTable = () => {
   const actionRef = React.useRef<BusinessTableActionType>();
+
   const {
     searchValue,
     workspaceKey,
     selectedTestPlanId,
     mutateTestPlanEvent,
+    registerRefreshMethod,
     tableSelectionToggleEvent,
   } = usePageContext();
 
@@ -24,6 +26,12 @@ const DetailTable = () => {
     actionRef.current.refresh();
     mutateTestPlanEvent.emit(selectedTestPlanId);
   }, [mutateTestPlanEvent, selectedTestPlanId]);
+
+  React.useEffect(() => {
+    registerRefreshMethod({
+      detailTable: actionRef.current?.refresh,
+    });
+  }, [registerRefreshMethod]);
 
   tableSelectionToggleEvent.useSubscription(visible => {
     actionRef.current.toggleSelection(visible);
@@ -156,14 +164,7 @@ const DetailTable = () => {
       render(_, rowData) {
         const itemData = rowData.reference ?? {};
         return (
-          <span
-            onClick={() =>
-              goToItemDetailPage({
-                workspaceKey: itemData.workspace?.key,
-                itemKey: itemData.key,
-              })
-            }
-          >
+          <span style={{ cursor: 'pointer' }} onClick={() => openItemViewScreen(itemData.objectId)}>
             {itemData.name}
           </span>
         );
