@@ -117,11 +117,29 @@ export const getWorkspaceByKey = async key => {
 };
 
 /**
+ * 通过 workspaceId 查询 workspace
+ */
+export const getWorkspaceById = async id => {
+  if (!id) return;
+  const workspace = await new Parse.Query(Workspace).equalTo('objectId', id).first();
+  return workspace?.toJSON();
+};
+
+/**
  * 通过 itemKey 获取 itemType （不要问为什么又这个方法，proxima 处处会给你人来惊喜）
  */
 export const getItemTypeByKey = async key => {
   if (!key) return;
   const itemType = await new Parse.Query(ItemType).equalTo('key', key).first();
+  return itemType?.toJSON();
+};
+
+/**
+ * 通过 itemKey 获取 itemType （不要问为什么又这个方法，proxima 处处会给你人来惊喜）
+ */
+export const getItemTypeById = async id => {
+  if (!id) return;
+  const itemType = await new Parse.Query(ItemType).equalTo('objectId', id).first();
   return itemType?.toJSON();
 };
 
@@ -153,8 +171,8 @@ export const getItemById = async itemId => {
   return res.map(item => item.toJSON());
 };
 
-/** 删除所有 */
-export const deleteItems = async itemIds => {
+/** 删除所有事项 */
+export const deleteItems = async (itemIds: string[] | string) => {
   if (!Array.isArray(itemIds)) itemIds = [itemIds];
   return fetch.$delete('/parse/api/items/bulk', { data: itemIds });
 };

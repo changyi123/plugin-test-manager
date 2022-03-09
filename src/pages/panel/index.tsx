@@ -49,7 +49,7 @@ const TestPanel = () => {
   return <div className={cx('test-panel')}>{panelRenderNode}</div>;
 };
 
-const TestPanelPage = () => {
+const TestPanelWrapper = () => {
   const { context } = useSDK();
   const itemId = context?.itemId ?? getDevConfig().itemId;
 
@@ -60,4 +60,4 @@ const TestPanelPage = () => {
   );
 };
 
-export default React.memo(TestPanelPage);
+export default React.memo(TestPanelWrapper);

@@ -202,6 +202,7 @@ const Detail: React.FC = () => {
           </div>
           <TestStep
             canCallTest
+            controllable
             steps={steps}
             testDetailId={testDetailId}
             onChange={steps => saveStep(steps)}

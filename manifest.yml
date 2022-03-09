@@ -31,7 +31,7 @@ modules:
   workspacePage:
     - key: test-repository
       resource: main
-      title: 测试用例仓库
+      title: 测试用例库
       loadType: Micro
       route: /testRepo
     - key: test-plan
@@ -39,6 +39,12 @@ modules:
       title: 测试计划
       loadType: Micro
       route: /testPlan
+  beforeCreateOrUpdateModal:
+    - key: before-create-or-update-modal
+      resource: main
+      title: 新建事项
+      loadType: Micro
+      route: /beforeItemCreate
 tables:
   - className: Repository
     fields:

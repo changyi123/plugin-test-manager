@@ -127,3 +127,9 @@ export const FIELD_TYPE_KEY_MAPPINGS = {
   DataQuote: 'DataQuote', // 数据引用
   Actors: 'Actors', // 当前负责人(执行人)
 };
+
+export const enum ExtensionValType {
+  CREATE_OR_UPDATE_ITEM = 'CreateOrUpdateItemVal', // 新建or编辑弹窗
+}
+
+export const CREATE_ITEM_STORE_FIELD_KEY = '$testManagerPluginDetailFormValues';

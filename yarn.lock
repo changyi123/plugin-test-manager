@@ -1126,6 +1126,11 @@
     "@jridgewell/resolve-uri" "^3.0.3"
     "@jridgewell/sourcemap-codec" "^1.4.10"
 
+"@nebulare/data@^0.1.5":
+  version "0.1.5"
+  resolved "https://registry.yarnpkg.com/@nebulare/data/-/data-0.1.5.tgz#dedfe79f5953446a7dfb7d343e791a191aad4f3f"
+  integrity sha512-TTseyyvgCqfjHz814rOeMHOIB3gdtCmyC3v9JzN7MLXlkCJ0PnnwuNumW/zX6V+k5k+RgNLXVa2AHtU9CFxJJQ==
+
 "@next/eslint-plugin-next@11.1.4":
   version "11.1.4"
   resolved "https://registry.yarnpkg.com/@next/eslint-plugin-next/-/eslint-plugin-next-11.1.4.tgz#032f89b11d5a0b91748209a137e4e46294d269c2"

@@ -31,8 +31,13 @@ const GoPropsRoute = props => {
     // 跳转渲染指定的路由
     if (props?.route) {
       history.push(props?.route);
+    } else {
+      // 本地调试时用
+      if (props?.frame?.route) {
+        history.push(props?.frame?.route);
+      }
     }
-  }, [history, props?.route]);
+  }, [history, props?.frame?.route, props?.route]);
 
   return null;
 };

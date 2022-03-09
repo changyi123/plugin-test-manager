@@ -1,5 +1,6 @@
 import React from 'react';
 import { useRequest } from 'ahooks';
+import { store } from '@nebulare/data';
 import { message, notification } from '@osui/ui';
 import { EventBus } from '@/lib/utils/eventBus';
 import { useOnItemCreateSuccess } from '@/lib/hooks/useProximaSDK';
@@ -16,7 +17,12 @@ import {
   BaseActionContext,
   BaseActionContextType,
 } from './context';
-import { TestType, ENTITY_NOT_FOUND } from '@/lib/constants';
+import {
+  TestType,
+  ENTITY_NOT_FOUND,
+  ExtensionValType,
+  CREATE_ITEM_STORE_FIELD_KEY,
+} from '@/lib/constants';
 
 const ItemCreateSuccessEventType = 'itemCreateSuccess';
 
@@ -38,6 +44,9 @@ const getOrCreateTestEntity = async (itemId: string, config?: { notice: boolean 
 
     if (itemTypeMap) {
       const testType = getKeyByValue(itemTypeMap, item?.itemType.key) as TestType;
+      // 额外需要创建的字段
+      let extraFields = {};
+
       // 创建失败，通知用户无法创建测试实体
       if (!testType) {
         // 创建失败，通知用户无法创建测试实体
@@ -48,11 +57,25 @@ const getOrCreateTestEntity = async (itemId: string, config?: { notice: boolean 
           });
         return null;
       }
+
+      // 测试用例创建
+      if (testType === TestType.TestDetail) {
+        const storeValues = store.get(ExtensionValType.CREATE_OR_UPDATE_ITEM);
+        if (storeValues?.[CREATE_ITEM_STORE_FIELD_KEY]) {
+          extraFields = Object.assign({}, extraFields, {
+            detail: storeValues[CREATE_ITEM_STORE_FIELD_KEY],
+          });
+        }
+
+        console.info('extraFields', extraFields);
+      }
+
       await createTestEntities([
         {
           itemId: item.id,
           type: testType,
           workspaceKey: item?.workspace?.key,
+          fields: extraFields,
         },
       ]);
       // 重新查询 testEntity，保持返回数据一致

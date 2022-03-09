@@ -25,6 +25,11 @@ const routes = [
     path: '/testConfig',
     component: React.lazy(() => import('../pages/config')),
   },
+  {
+    path: '/beforeItemCreate',
+    component: React.lazy(() => import('../pages/modules/BeforeCreateOrUpdateModal')),
+    exact: true,
+  },
 ];
 
 export default routes;

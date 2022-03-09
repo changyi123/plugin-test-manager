@@ -1,4 +1,5 @@
 import React from 'react';
+import { noop } from 'lodash';
 import cx from './index.less';
 import { message } from '@osui/ui';
 import { useDebounceFn } from 'ahooks';
@@ -21,10 +22,12 @@ export type ActionType = {
 };
 
 type TestStepProps = {
-  steps: Step[];
+  steps?: Step[];
   testDetailId?: string;
   canCallTest?: boolean;
-  onChange?: (step) => void;
+  controllable?: boolean;
+  initialBlankStep?: boolean;
+  onChange?: (steps) => void;
   actionRef?: (action: ActionType) => void;
 };
 
@@ -33,13 +36,16 @@ const TestStep: React.FC<TestStepProps> = ({
   actionRef,
   canCallTest,
   testDetailId,
-  steps: stepsProps,
+  controllable,
+  initialBlankStep,
+  steps: stepsProps = [],
 }) => {
   // 缓存首次加载状态
   const stepsCacheRef = React.useRef([]);
+  const isInitialedBlankStepRef = React.useRef(false);
   const testEntitySelectorRef = React.createRef<TestEntitySelectorActionType>();
   const [steps, _setSteps] = React.useState(stepsProps);
-  const { run: debouncedOnChange } = useDebounceFn(onChange, {
+  const { run: debouncedOnChange } = useDebounceFn(onChange ?? noop, {
     wait: 800,
   });
 
@@ -61,10 +67,10 @@ const TestStep: React.FC<TestStepProps> = ({
 
   React.useEffect(() => {
     // 初始化时更新
-    if (!steps.length && !isEqual(stepsProps, steps)) {
+    if (controllable && !steps.length && !isEqual(stepsProps, steps)) {
       setSteps(stepsProps, true);
     }
-  }, [setSteps, steps, stepsProps]);
+  }, [setSteps, steps, stepsProps, controllable]);
 
   React.useImperativeHandle(actionRef, () => ({
     filter() {},
@@ -100,6 +106,7 @@ const TestStep: React.FC<TestStepProps> = ({
         newSteps.splice(index, 0, needCopiedStep);
         setSteps(newSteps);
       },
+
       delete(id) {
         const newSteps = Array.from(steps);
         newSteps.splice(
@@ -108,11 +115,13 @@ const TestStep: React.FC<TestStepProps> = ({
         );
         setSteps(newSteps);
       },
+
       update(values) {
         const updatedSteps = steps.map(step => Object.assign({}, step, values[step.id]));
 
         setSteps(updatedSteps);
       },
+
       add({ step, index } = {} as any) {
         if (!step) {
           step = getStepInitialData();
@@ -121,6 +130,7 @@ const TestStep: React.FC<TestStepProps> = ({
         newSteps.splice(index ?? steps.length, 0, step);
         setSteps(newSteps);
       },
+
       swap({ sourceIndex, destinationIndex }) {
         const newSteps = Array.from(steps);
         const [movedStep] = newSteps.splice(sourceIndex, 1);
@@ -130,16 +140,25 @@ const TestStep: React.FC<TestStepProps> = ({
     };
   }, [setSteps, steps]);
 
+  React.useEffect(() => {
+    if (!steps?.length && initialBlankStep && !isInitialedBlankStepRef.current) {
+      isInitialedBlankStepRef.current = true;
+      stepActions.add();
+    }
+  }, [steps, initialBlankStep, stepActions]);
+
   return (
     <div>
-      <TestEntitySelectorModal
-        isSingleMode
-        title="请选择继承测试用例"
-        testType={TestType.TestDetail}
-        actionRef={testEntitySelectorRef}
-        // 继承测试用例不能继承自己
-        ignoreTestEntityIds={[testDetailId]}
-      />
+      {canCallTest && (
+        <TestEntitySelectorModal
+          isSingleMode
+          title="请选择继承测试用例"
+          testType={TestType.TestDetail}
+          actionRef={testEntitySelectorRef}
+          // 继承测试用例不能继承自己
+          ignoreTestEntityIds={[testDetailId]}
+        />
+      )}
       <StepList actions={stepActions} steps={steps} />
       <div className={cx('actions')}>
         <a onClick={() => stepActions.add()}>
