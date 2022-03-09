@@ -6,8 +6,12 @@
 /* eslint-disable prefer-spread */
 import React, { FC, useState, useCallback } from 'react';
 import { Modal, Select, Input, Button, Row, Col } from '@osui/ui';
-import CaseBox from './CaseBox';
-import { getAppByAppKey, getAppInstallationByApp, getWorkspacesByScheme } from '@/lib/api/case';
+import CaseBox, { deepCloneTree } from './CaseBox';
+import {
+  getAppByAppKey,
+  getWorkspacesBySchemeIds,
+  getAppInstallationByAppIds,
+} from '@/lib/api/case';
 import { getTestEntitiesByQuery } from '@/lib/api/common';
 import { unique, traverseTreeNodes, treeToChildren } from './utils';
 import type { DataType } from './CaseBox/index';
@@ -24,8 +28,6 @@ import {
   useHistoryTravel,
 } from 'ahooks';
 import { TestType, ModalType } from '@/lib/constants';
-import { useSDK } from '@projectproxima/plugin-sdk';
-import { getDevConfig } from '@/devEnv';
 import cx from './index.less';
 import { SearchOutlined } from '@ant-design/icons';
 import { getRootContainer } from '@/lib/utils/helper';
@@ -58,7 +60,7 @@ const CaseModal: FC<ModelItem> = ({
   const [workspaceKey, setWorkspaceKey] = useState<string>('');
   const [selectedRowKeys, setSelectedRowKeys] = useState<any[]>([]);
   const [repoKey, setRepoKey] = useState<string>(''); //我们来处理repo
-  const { config } = useTestConfig();
+  const { config, workspace } = useTestConfig();
   const state = useReactive({
     fullCases: [], //这里维护一个全量状态,todo
     total: 0,
@@ -82,19 +84,30 @@ const CaseModal: FC<ModelItem> = ({
     clickIndex: null, //继承选中的index
     clickRecord: null, //继承选中的具体record内容
     repoKey: null,
+    repoList: [], //树形数据的存储
+    initData: {
+      tree: null,
+      table: null,
+      repoKey: null,
+      selKeys: null,
+      defaultValue: null,
+      workspaceKeys: null,
+      selectData: null,
+    },
   });
   //初始化操作
   useMount(() => {
     initData();
   });
-
   //获取itemIds
   const { runAsync: fetchItems, loading: tableLoading } = useRequest(getTestEntitiesByQuery, {
     manual: true,
+    cacheKey: 'cacheKey-Items',
   });
   //请求到tree结构的数据
   const { runAsync: fetchTreeData, loading: folderTreeLoading } = useRequest(getFolderTree, {
     manual: true,
+    cacheKey: 'cacheKey-tree',
   });
   //search
   const { value: originTable, setValue: setOriginTable, reset } = useHistoryTravel<any[]>([]);
@@ -139,108 +152,107 @@ const CaseModal: FC<ModelItem> = ({
       state.fullCases.push(obj);
     }
   }, [state.repoKey, state.rowkeys, state.checkedKeys]);
+
   useUpdateEffect(() => {
     if (isModalVisible == false) {
-      initData();
+      state.repoKey = state.initData?.repoKey ?? '';
+      state.treeData = state.initData.tree ?? [];
+      state.defaultValue = state.initData.defaultValue ?? '';
+      state.workspaceKeys = state.initData.workspaceKeys ?? [];
+      state.selectData = state.initData.selectData ?? [];
+      setSelectedKeys(state.initData.selKeys ?? []);
+      setTableData(state.initData.table ?? []);
     }
   }, [isModalVisible]);
 
   const initData = useCallback(async () => {
-    const r = await getAppByAppKey('test_manager');
-    const apps = r;
-    const list = [];
-    for (let i = 0; i < apps.length; i++) {
-      //app vs installation is 1 vs n
-      const res = getAppInstallationByApp(apps[i].id);
-      list.push(res);
-    }
-    //如果错误，抛出的是
-    const installBox = await Promise.all(list);
-    const appInstallations = [];
-    //将1 vs n找到的appInstallations 打平
-    for (let i = 0; i < installBox.length; i++) {
-      appInstallations.push.apply(appInstallations, installBox[i]);
-    }
+    const apps = await getAppByAppKey('test_manager');
+    const appInstallations = await getAppInstallationByAppIds(apps);
 
     //从这里再取到sheme数组，能拿到sheme的id
-    const shemes = [];
+    const shemeIds = [];
     for (let i = 0; i < appInstallations.length; i++) {
       const sheme = appInstallations[i]?.attributes?.workspaceScheme?.id;
-      shemes.push(sheme);
+      shemeIds.push(sheme);
     }
+    //workspaces
+    const workspaces = await getWorkspacesBySchemeIds(shemeIds);
 
-    //根据scheme去workspace表中筛选出来用该sheme创建的workspaces
-    let workspacesBox = [];
-    const wlist = [];
-    for (let i = 0; i < shemes.length; i++) {
-      const res = getWorkspacesByScheme(shemes[i]);
-      wlist.push(res);
-    }
-    workspacesBox = await Promise.all(wlist);
-    //将1 vs n 找到的workspaces打平
-    const workspaces = [];
-    for (let i = 0; i < workspacesBox.length; i++) {
-      workspaces.push.apply(workspaces, workspacesBox[i]);
-    }
+    //keys
     let workspaceKeys = [];
     for (let i = 0; i < workspaces.length; i++) {
       const key = workspaces[i]?.attributes?.key;
       workspaceKeys.push(key);
     }
-    //走隔离函数
+
+    //隔离函数
     workspaceKeys = isolateFunc(workspaceKeys);
     state.workspaceKeys = workspaceKeys;
 
-    //优化成新的树形结构
-    const repoList = [];
-    for (let i = 0; i < state.workspaceKeys.length; i++) {
-      //进行数据请求
-      const res = await fetchTreeData(state.workspaceKeys[i]);
-      //pass
-      repoList.push.apply(repoList, res);
-    }
-    //selectData的初始化
-    state.selectData = repoList;
-    //初始tree值
-    const treeData = state.selectData.length > 0 ? state.selectData[0] : [];
-    let t = []; //给到tree的应该是一个数组
-    t.push(treeData);
-    //初始化的时候，未分组也是对应着workspaceKey获取的数据
-    state.repoKey = state.selectData[0].key;
-    t = await getIds(t, state.workspaceKeys[0]);
-    state.treeData = t;
-    state.defaultValue = state.selectData[0].key || '';
+    //隔离之后的workspaces
+    state.selectData = workspaces.filter(item =>
+      state.workspaceKeys.includes(item?.attributes.key),
+    );
+    //select默认选中的数据
+    state.defaultValue = state.selectData[0]?.attributes.key || '';
+
+    //初始key值
+    const initKey = state.workspaceKeys[0] ?? '';
+
+    const initTreeData = await fetchTreeData(initKey);
+
+    state.repoKey = state.selectData[0]?.attributes.key;
+    const initNewTree = await getIds(initTreeData, initKey);
+    state.treeData = initNewTree;
+    const initTableData = initNewTree[0].items ?? [];
+    //repoKey用来记录状态
+    const initSelKeys = [unassignedKey + state.repoKey];
+    state.initData = {
+      tree: JSON.parse(JSON.stringify(initNewTree)),
+      repoKey: JSON.parse(JSON.stringify(state.repoKey)),
+      selKeys: initSelKeys,
+      table: cloneDeep(initTableData),
+      defaultValue: JSON.parse(JSON.stringify(state.defaultValue)),
+      workspaceKeys: cloneDeep(state.workspaceKeys),
+      selectData: cloneDeep(state.selectData),
+    };
+
+    //默认选中未分组，内容也要出来
+    setSelectedKeys(initSelKeys);
+    setTableData(initTableData);
   }, []);
+
   //isolate func
   const isolateFunc = (workspaceKeys: string[]): string[] => {
     //从config里边拿到隔离数组
     const itypes = config.isolateTestType ?? [];
+
     const detail = TestType.TestDetail;
     state.isIsolate = itypes.includes(detail) ? true : false;
 
     //如果做了隔离，数组里边只保留一个
+    let wks = [];
     if (state.isIsolate) {
-      workspaceKeys = [];
-      //拿到当前workspaceKey进行处理
-      const { context } = useSDK();
-      const workspaceKey = context?.env?.WORKSPACE_KEY ?? getDevConfig().workspaceKey;
-      workspaceKey.unshift(workspaceKey);
+      const workspaceKey = workspace?.key;
+      wks = workspaceKeys.filter(item => item == workspaceKey);
+    } else {
+      wks = workspaceKeys;
     }
-    return workspaceKeys;
+    return wks;
   };
 
   const clearTreeAndTable = () => {
     setCheckedKeys({ checked: [], halfChecked: [] });
     setSelectedRowKeys([]);
     setTableData([]);
-    setSelectedKeys([]);
+    // setSelectedKeys([]);
   };
   //对未分组部分数据的处理
   const getIds: (t: any[], key: string) => Promise<any[]> = async (
     t: any[],
     key: string,
   ): Promise<any[]> => {
-    let tree = cloneDeep(t);
+    const tree = cloneDeep(t);
     //这里参考wkey需不需要给值
     const ungroupedTree = {
       key: unassignedKey + state.repoKey,
@@ -251,7 +263,6 @@ const CaseModal: FC<ModelItem> = ({
     };
     //tree上的所有id
     let excludeItemId = [];
-    tree = tree.length > 1 ? [tree[1]] : [tree[0]];
     //问题是，正常切换的时候这个tree要变化，但是现在没有变化
     const packageBranchKeys = [];
     traverseTreeNodes(tree, node => {
@@ -872,33 +883,30 @@ const CaseModal: FC<ModelItem> = ({
 
   //top select
   async function topSelect(value) {
-    //给branch选中置空
-    setSelectedKeys([]);
-    let data = state.selectData.filter(item => item.key === value);
-    state.repoKey = data[0].key; //repoKey
-    const key = data[0]?.workspaceKey;
-    state.defaultValue = data[0].key;
+    const index = state.selectData.findIndex(item => item.attributes.key == value);
+    const data = state.selectData[index];
+    state.repoKey = data.attributes.key;
 
-    //树形结构数据
-    data = await getIds(data, key);
-    state.treeData = data;
+    const key = data.attributes.key;
+    state.defaultValue = key;
+
+    const initTreeData = await fetchTreeData(value);
+
+    //repoKey用来记录状态
+    const NewTree = await getIds(initTreeData, state.workspaceKeys[index]);
+    state.treeData = NewTree;
 
     // const cache = state.fullCases.filter(item => item.repoKey == repoKey); //缓存
     const currrnt = state.fullCases.filter(item => item.repoKey == value); //当前
-    //上一波有没有缓存都会清理一下数据
-    //清理完之后，下边会根据缓存取值
-    /* if (cache.length > 0) {
-      //如果这部分已经有缓存了，这里做一下更新
-      state.fullCases = state.fullCases.map(item => {
-        //对数据进行进一步处理
-        if (item.repoKey == repoKey) {
-          item.tabData = JSON.parse(JSON.stringify(tableData));
-        }
-        return item;
-        //更新完上次的是不是要清空下
-      });
-    } */
-    clearTreeAndTable();
+    //进来之后让它默认选中未分组
+    const keys = [unassignedKey + state.repoKey];
+    setSelectedKeys(keys);
+
+    // clearTreeAndTable();
+    state.searchValue = '';
+    reset();
+
+    setTableData(NewTree[0].items ?? []);
 
     //使用部分，如果没有缓存，就一切都是0
     if (currrnt.length > 0) {
@@ -907,7 +915,7 @@ const CaseModal: FC<ModelItem> = ({
       setSelectedRowKeys(currrnt[0].selectedRowKeys);
       // setTableData(currrnt[0].tableData);
     }
-
+    setSelectedRowKeys(JSON.parse(JSON.stringify(state.rowkeys)));
     setRepoKey(value);
     setWorkspaceKey(key);
   }
@@ -1000,7 +1008,7 @@ const CaseModal: FC<ModelItem> = ({
               key="back"
               onClick={e => {
                 clearTreeAndTable();
-                state.checkedKeys = [];
+                state.rowkeys = [];
                 state.fullCases = [];
                 handleCancel();
               }}
@@ -1027,7 +1035,10 @@ const CaseModal: FC<ModelItem> = ({
     >
       <p className={cx('sub_title')}>
         <span>
-          选择用例库 <span className={cx('des')}>(仅可选择当前拥有权限的用例库)</span>
+          选择空间用例库{' '}
+          <span className={cx('des')}>
+            (仅可选择当前拥有权限的空间内的用例库，空间名称即为用例库名称)
+          </span>
         </span>
         {/* search按钮 */}
         <span
@@ -1055,14 +1066,16 @@ const CaseModal: FC<ModelItem> = ({
       <div id="case_top_sel" className={cx('box_sel')}>
         {state.selectData.length > 0 ? (
           <Select
-            defaultValue={state.defaultValue == '' ? state.selectData[0].key : state.defaultValue}
+            defaultValue={
+              state.defaultValue == '' ? state.selectData[0]?.attributes.key : state.defaultValue
+            }
             style={{ width: '100%' }}
             onChange={topSelect}
             getPopupContainer={() => document.getElementById('case_top_sel')}
           >
             {state.selectData.map(item => (
-              <Select.Option value={item.key} key={item.key}>
-                {item?.name}
+              <Select.Option value={item.attributes.key} key={item.attributes.key}>
+                {item.attributes.name}
               </Select.Option>
             ))}
           </Select>
@@ -1084,6 +1097,8 @@ const CaseModal: FC<ModelItem> = ({
         selectedKeys={selectedKeys}
         tableData={tableData}
         rowSelection={rowSelection}
+        treeLoading={folderTreeLoading}
+        tableLoading={tableLoading}
         clickIndex={type == ModalType.ModalInherit ? state.clickIndex : null}
         //加上自定义footer的处理
         onRow={(record, index) => {
