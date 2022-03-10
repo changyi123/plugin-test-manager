@@ -32,8 +32,9 @@ const GoPropsRoute = props => {
     if (props?.route) {
       history.push(props?.route);
     } else {
+      console.info('props?.frame?.route', props?.frame?.route);
       // 本地调试时用
-      if (props?.frame?.route) {
+      if (props?.frame?.route && process.env.NODE_ENV === 'development') {
         history.push(props?.frame?.route);
       }
     }

@@ -69,14 +69,14 @@ const TestDetailTable: React.FC<TestDetailTableProps> = ({
       title: '事项ID',
       key: 'key',
       render(_, record) {
-        return record.reference.key;
+        return record.reference?.key;
       },
     },
     {
       title: '标题',
       key: 'name',
       render(_, record) {
-        return record.reference.name;
+        return record.reference?.name;
       },
     },
     {

@@ -23,8 +23,8 @@ type PageContextType = {
   setSearchValue: (searchValue: string) => void;
   tableSelectionToggleEvent: EventEmitter<boolean>;
   selectedTestPlanId: TestPlanEntity['objectId'] | null;
-  registerRefreshMethod: (method: Record<string, () => void>) => void;
   setSelectedTestPlanId: (id: TestPlanEntity['objectId']) => void;
+  registerRefreshMethod: (method: Record<string, () => void>) => void;
 };
 
 export const PageContext = React.createContext<PageContextType>({
@@ -56,7 +56,6 @@ const PageProvider: React.FC = ({ children }) => {
   }, []);
 
   const registerRefreshMethod = React.useCallback(methods => {
-    console.log(refreshCacheRef.current, methods);
     refreshCacheRef.current = {
       ...refreshCacheRef.current,
       ...methods,

@@ -56,12 +56,12 @@ const Input: React.ForwardRefRenderFunction<
     <div
       ref={ref}
       {...restProps}
-      contentEditable
       spellCheck={false}
       onBlur={handleBlur}
       onKeyDown={handleKeyDown}
       placeholder={placeholder ?? `请输入`}
       suppressContentEditableWarning={true}
+      contentEditable={'plaintext-only' as any}
       className={classnames('test-step-field', 'input', isHover && 'hover', className)}
     >
       {value}
