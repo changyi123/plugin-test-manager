@@ -15,3 +15,6 @@ export const Repository = Parse.Object.extend(`${appKey}_Repository`);
 export const TestConfig = Parse.Object.extend(`${appKey}_TestConfig`);
 export const TestRelation = Parse.Object.extend(`${appKey}_TestRelation`);
 export const TestExecution = Parse.Object.extend(`${appKey}_TestExecution`);
+export const App = Parse.Object.extend('App');
+export const AppInstallation = Parse.Object.extend('AppInstallation');
+export const WorkspaceScheme = Parse.Object.extend('WorkspaceScheme');
