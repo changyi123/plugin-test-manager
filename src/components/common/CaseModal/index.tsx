@@ -85,6 +85,7 @@ const CaseModal: FC<ModelItem> = ({
     clickRecord: null, //继承选中的具体record内容
     repoKey: null,
     repoList: [], //树形数据的存储
+    currentNode: [],
     initData: {
       tree: null,
       table: null,
@@ -198,7 +199,7 @@ const CaseModal: FC<ModelItem> = ({
 
     //初始key值
     const initKey = state.workspaceKeys[0] ?? '';
-
+    //没有未分组
     const initTreeData = await fetchTreeData(initKey);
 
     state.repoKey = state.selectData[0]?.attributes.key;
@@ -207,6 +208,7 @@ const CaseModal: FC<ModelItem> = ({
     const initTableData = initNewTree[0].items ?? [];
     //repoKey用来记录状态
     const initSelKeys = [unassignedKey + state.repoKey];
+    //初始值，为了关闭modal的时候还原
     state.initData = {
       tree: JSON.parse(JSON.stringify(initNewTree)),
       repoKey: JSON.parse(JSON.stringify(state.repoKey)),
@@ -217,7 +219,7 @@ const CaseModal: FC<ModelItem> = ({
       selectData: cloneDeep(state.selectData),
     };
 
-    //默认选中未分组，内容也要出来
+    //默认选中未分组，table也要出来
     setSelectedKeys(initSelKeys);
     setTableData(initTableData);
   }, []);
@@ -269,7 +271,7 @@ const CaseModal: FC<ModelItem> = ({
       excludeItemId = excludeItemId.concat(node?.testDetailIds ?? []);
       packageBranchKeys.push(node.key); //注意这部分要重新切一下
     });
-    state.packedBranchKeys = packageBranchKeys;
+    //state.packedBranchKeys = packageBranchKeys;
 
     const resP = await fetchItems(
       {
@@ -369,25 +371,31 @@ const CaseModal: FC<ModelItem> = ({
         }
       }
       //如果含有父一级
-      if (node?.parentId) {
+      /* if (node?.parentId) {
         //pass
         if (node?.children) {
           //todo 中间层
         } else {
           //todo 底部
         }
-      }
+      } */
     }
 
     if (subs.length > 0) {
+      // console.log('---sub---', subs);
       //如果做了减法操作
       if (!node?.parentId) {
         //说明是top节点,就是单个节点,也就是只有自身
         if (!node?.children) {
-          //single top这种不需要处理
+          //将当前node给到获取所有的key，然后删除
+          const subKeys = [];
+          traverseTreeNodes(node, node => {
+            subKeys.push(node.key); //注意这部分要重新切一下
+          });
         } else {
           //将children的key拿到给到checked
           const subKeys = [];
+          //获取当前node下的所有key
           node.children.forEach(item => {
             subKeys.push(item.key);
           });
@@ -397,14 +405,14 @@ const CaseModal: FC<ModelItem> = ({
         }
       }
       //如果含有父一级
-      if (node?.parentId) {
+      /* if (node?.parentId) {
         //pass
         if (node?.children) {
           //中间层
         } else {
           //底部
         }
-      }
+      } */
     }
 
     setCheckedKeys(checkedKeysValue);
@@ -538,11 +546,13 @@ const CaseModal: FC<ModelItem> = ({
       //-已分组
       else {
         let subIds = [];
-        traverseTreeNodes([info.node], node => {
+        traverseTreeNodes([node], node => {
           subIds = subIds.concat(node.testDetailIds ?? []);
         });
         subIds = subIds.concat(ignoreTestEntityIds);
-        const res = await fetchItems(
+        subKeys.concat(subIds);
+
+        /*  const res = await fetchItems(
           {
             notIn: subIds,
             in: ids,
@@ -557,7 +567,7 @@ const CaseModal: FC<ModelItem> = ({
         items = list.map(item => {
           item.key = item.objectId;
           return item;
-        });
+        }); */
 
         const subRes = await fetchItems(
           {
@@ -604,6 +614,9 @@ const CaseModal: FC<ModelItem> = ({
     const rowkeys = cloneDeep(state.rowkeys);
     let items = [];
     state.clickIndex = null;
+    const node = [];
+    node.push(info.node);
+    state.currentNode = node;
 
     const pre = selectedKeys;
     const next = selectedKeysValue;
@@ -703,7 +716,7 @@ const CaseModal: FC<ModelItem> = ({
     onChange: async (keys: React.Key[], selectedRows: DataType[]) => {
       let rowkeys = cloneDeep(state.rowkeys);
       const ckeys = cloneDeep(checkedKeys);
-
+      // console.log('--ckeys--', ckeys);
       //未分组的所有key
       const unpackedKeys = [];
       state.unpackedKeys.forEach(item => {
@@ -716,9 +729,19 @@ const CaseModal: FC<ModelItem> = ({
         packagekeys.push(item);
       });
 
-      const treeData = cloneDeep(state.treeData);
-      const tr = treeData.length > 1 ? treeData[1] : [];
-      const children = treeToChildren([tr]);
+      const treeData = cloneDeep(state.currentNode);
+      // const tr = treeData.length > 1 ? treeData[1] : [];
+      //这儿应该改为选中对应分支
+
+      const children = treeToChildren(treeData);
+
+      let excludeItemId = [];
+      const packageBranchKeys = [];
+      traverseTreeNodes(treeData, node => {
+        excludeItemId = excludeItemId.concat(node?.testDetailIds ?? []);
+        packageBranchKeys.push(node.key); //注意这部分要重新切一下
+      });
+      state.packedBranchKeys = packageBranchKeys;
       const groupBox = [];
       const groupKeys = [];
 
@@ -754,7 +777,6 @@ const CaseModal: FC<ModelItem> = ({
       state.packedBranchKeys.forEach(item => {
         branchkeys.push(item);
       });
-
       groupKeys.forEach((item, index) => {
         const items = groupKeys[index];
         const originLength = items.length;
