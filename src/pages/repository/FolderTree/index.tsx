@@ -1,9 +1,6 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable no-console */
-/* eslint-disable no-unused-vars */
 import React from 'react';
 import { uniq } from 'lodash';
-import { useReactive, useDrop, useUpdateEffect } from 'ahooks';
+import { useReactive, useDrop } from 'ahooks';
 import { TestType } from '@/lib/constants';
 import { hasArrayItem, getRootContainer } from '@/lib/utils/helper';
 import { createFolder, updateFolders, deleteFolder } from '@/lib/api/repository';
@@ -105,7 +102,6 @@ type FolderTreeProps = {
   treeNodeData: TreeNode[];
   onSelect(node: TreeNode): void;
   onFolderTreeChange?: () => Promise<any>;
-  unFoldLength: number;
 };
 
 const FolderTree: React.FC<FolderTreeProps> = ({
@@ -114,7 +110,6 @@ const FolderTree: React.FC<FolderTreeProps> = ({
   loading,
   className,
   onFolderTreeChange,
-  unFoldLength,
 }) => {
   const state = useReactive({
     expandedKeys: [],
@@ -257,15 +252,13 @@ const FolderTree: React.FC<FolderTreeProps> = ({
           },
         });
 
-        const testEntityData = testEntity.toJSON();
-
         console.info('itemCreated', item.objectId, node.key);
         // 创建的测试用例不在同一个空间
-        if (workspace?.key !== testEntityData.workspaceKey) return;
+        if (workspace?.key !== testEntity?.get('workspaceKey')) return;
         // 只有测试用例需要被添加至测试用例仓库
-        if (testEntityData.type !== TestType.TestDetail) return;
+        if (testEntity?.get('type') !== TestType.TestDetail) return;
         // 修改 node，将创建成功的 itemKey 追加到 node 上
-        node.testDetailIds = (node.testDetailIds || []).concat(testEntityData.objectId);
+        node.testDetailIds = (node.testDetailIds || []).concat(item.objectId);
         await updateFolders([node]);
         onFolderTreeChange();
         handleSelect([node.key], {
@@ -429,14 +422,11 @@ const FolderTree: React.FC<FolderTreeProps> = ({
                 <CustomMore onClick={e => e.stopPropagation()} className={cx('tree-node-action')} />
               </Dropdown>
             </>
-          ) : (
-            /* 未分组用例用例数量统计 */
-            <span className={cx('tree-node-length')}>{`${unFoldLength}(${unFoldLength})`}</span>
-          )}
+          ) : null}
         </>
       </DropTreeTitle>
     ),
-    [handleMenuClick, handleItemDrop, unFoldLength],
+    [handleMenuClick, handleItemDrop],
   );
 
   return (
