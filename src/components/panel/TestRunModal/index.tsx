@@ -2,8 +2,8 @@ import React from 'react';
 import TestRun from './TestRun';
 import { Modal, Button } from '@osui/ui';
 import type { ModalProps } from 'antd/lib/modal';
-import useMergedState from 'rc-util/lib/hooks/useMergedState';
 import { getRootContainer } from '@/lib/utils/helper';
+import useMergedState from 'rc-util/lib/hooks/useMergedState';
 
 interface ITestRunModalProps {
   testId: string;
@@ -44,9 +44,9 @@ const TestRunModal: React.FC<ITestRunModalProps> = props => {
         visible={isVisible}
         maskClosable={false}
         onCancel={handleCloseModal}
-        style={{ maxWidth: '1000px' }}
         getContainer={getRootContainer}
         footer={ModalFooterActionButtonsNode}
+        bodyStyle={{ maxWidth: '1000px', maxHeight: 'calc(100vh - 220px)', overflowY: 'auto' }}
       >
         {isVisible && <TestRun id={props.testId} idSequence={props.testIdSequence} />}
       </Modal>

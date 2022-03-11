@@ -111,6 +111,7 @@ const PlanList = () => {
           offset,
           limit: REQUEST_LIMIT,
           descendingBy: ['createdAt'],
+          ignoreDeletedItemData: true,
         },
       );
 

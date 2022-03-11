@@ -1,5 +1,5 @@
 import React from 'react';
-import { message } from '@osui/ui';
+import { notification } from '@osui/ui';
 import { usePageContext } from '../hook';
 import { TestRelationType } from '@/lib/constants';
 import { UserCell } from '@projectproxima/components';
@@ -93,7 +93,7 @@ const DetailTable = () => {
         return {
           ...detail,
           // 关联的测试执行
-          relRuns: testRuns.filter(run => run.runReferenceDetail.objectId === detail.objectId),
+          relRuns: testRuns.filter(run => run.runReferenceDetail?.objectId === detail.objectId),
         };
       });
 
@@ -112,7 +112,9 @@ const DetailTable = () => {
 
       refreshAndMutateData();
 
-      message.success(`${relationTypeIds.length} 个测试执行从测试计划中移除`);
+      notification.success({
+        message: `${relationTypeIds.length} 个测试执行从测试计划中移除`,
+      });
     },
     [refreshAndMutateData],
   );
@@ -133,7 +135,9 @@ const DetailTable = () => {
         refreshAndMutateData();
       }, 1000);
 
-      message.success(`${itemIds.length} 个测试负责人已更新`);
+      notification.success({
+        message: `${itemIds.length} 个测试负责人已更新`,
+      });
     };
 
     return [
@@ -189,7 +193,7 @@ const DetailTable = () => {
     {
       key: 'action',
       isSystem: true,
-      title: '操作',
+      title: null,
       fixed: 'right' as any,
       render(_, rowData) {
         return (

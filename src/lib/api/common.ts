@@ -33,6 +33,7 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
       workspaceKey: '',
       queryParams: { limit: 10, offset: 0, orderBy: 'createdAt' },
       nameLike: '',
+      orderBy: 'createdAt',
     },
     _config,
   );
@@ -61,7 +62,13 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
 
   // 如果 include 不是一个数组则用默认的 include
   const includeKeys = hasArrayItem(include)
-    ? include.map(includeKey => `${relationSideKey}.${includeKey}`)
+    ? include
+        .map(includeKey => {
+          // 性能优化: key 为 objectId 时过滤，减少请求响应大小
+          if (includeKey === 'objectId') return;
+          return `${relationSideKey}.${includeKey}`;
+        })
+        .filter(Boolean)
     : [relationSideKey];
 
   // 如果有 select 事项追加至 query
@@ -69,8 +76,15 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
     query.select(relationSideKey);
   }
 
-  // 需要获取关联事项的实体
-  query.include(includeKeys);
+  if (config.orderBy) {
+    query.descending(config.orderBy);
+  }
+
+  if (hasArrayItem(includeKeys)) {
+    // 需要获取关联事项的实体
+    query.include(includeKeys);
+  }
+
   query.withCount();
 
   if (config?.nameLike) {

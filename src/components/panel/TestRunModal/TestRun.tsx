@@ -5,6 +5,7 @@ import { QuestionCircleFilled } from '@/icons';
 import { TabsComponentBaseProps } from './type';
 import { getItemById } from '@/lib/api/proxima';
 import { getTestEntities } from '@/lib/api/common';
+import { getRootContainer } from '@/lib/utils/helper';
 import { StatusBadge } from '@/components/common/Status';
 import { useRequest, useSessionStorageState } from 'ahooks';
 import { TestType, PASS_STATUS_TYPE } from '@/lib/constants';
@@ -287,7 +288,10 @@ const TestRun: React.FC<TestRunType> = props => {
                   <Checkbox checked={autoNext} />
                   <span className={cx('label')}>
                     自动切换下一条
-                    <Tooltip title="测试执行状态变更为通过时，自动切换下一条测试执行">
+                    <Tooltip
+                      getPopupContainer={getRootContainer}
+                      title="测试执行状态变更为通过时，自动切换下一条测试执行"
+                    >
                       <QuestionCircleFilled style={{ marginLeft: 6 }} />
                     </Tooltip>
                   </span>

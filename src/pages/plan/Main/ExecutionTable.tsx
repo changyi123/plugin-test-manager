@@ -1,5 +1,5 @@
 import React from 'react';
-import { message } from '@osui/ui';
+import { notification } from '@osui/ui';
 import { DeleteOutlined } from '@/icons';
 import { usePageContext } from '../hook';
 import { updateTestRun } from '@/lib/api/runs';
@@ -49,7 +49,7 @@ const ExecutionTable = () => {
   }, [mutateTestPlanEvent, selectedTestPlanId]);
 
   tableSelectionToggleEvent.useSubscription(visible => {
-    innerTableRef.current.toggleSelection(visible);
+    innerTableRef.current?.toggleSelection(visible);
   });
 
   React.useEffect(() => {
@@ -104,7 +104,9 @@ const ExecutionTable = () => {
 
       refreshAndMutateData();
 
-      message.success(`${relationTypeIds.length} 个测试执行从测试计划中移除`);
+      notification.success({
+        message: `${relationTypeIds.length} 个测试执行从测试计划中移除`,
+      });
     },
     [refreshAndMutateData],
   );
@@ -126,7 +128,9 @@ const ExecutionTable = () => {
         status: status.key,
         testRun: testRunIds,
       });
-      message.success('所选测试执行状态更新成功');
+      notification.success({
+        message: '所选测试执行状态更新成功',
+      });
       refreshAndMutateData();
     };
 
@@ -164,7 +168,9 @@ const ExecutionTable = () => {
     });
 
     refreshAndMutateData();
-    message.success('测试执行创建成功');
+    notification.success({
+      message: '测试执行创建成功',
+    });
   };
 
   const columnsProp = [
@@ -202,7 +208,7 @@ const ExecutionTable = () => {
     },
     {
       key: 'action',
-      title: <span>操作</span>,
+      title: null,
       fixed: 'right' as any,
       isSystem: true,
       render(_, rowData) {
@@ -268,7 +274,7 @@ const ExecutionTable = () => {
         },
         {
           key: 'action',
-          title: '操作',
+          title: null,
           isSystem: true,
           fixed: 'right' as any,
           render(_, record) {

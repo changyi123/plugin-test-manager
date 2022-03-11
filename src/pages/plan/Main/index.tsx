@@ -4,9 +4,9 @@ import { usePageContext } from '../hook';
 import ExecutionTable from './ExecutionTable';
 import { AppstoreAddOutlined } from '@/icons';
 import { createTestRelation } from '@/lib/api/common';
-import { Tabs, Button, Tooltip, message } from '@osui/ui';
 import { useAllRelTestEntities } from '@/lib/hooks/useTest';
 import { TestType, TestRelationType } from '@/lib/constants';
+import { Tabs, Button, Tooltip, notification } from '@osui/ui';
 import { createTestExecutionAndRelations } from '@/lib/api/runs';
 import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
 import TestEntitySelectorModal, { ActionType } from '@/components/panel/TestEntitySelectorModal';
@@ -34,7 +34,7 @@ const Main = () => {
   const { createItemUseModal } = useBaseAction();
   const { workspace } = useTestConfig();
 
-  const { testEntities } = useAllRelTestEntities(TestRelationType.PlanRelDetail, {
+  const { testEntities, mutate } = useAllRelTestEntities(TestRelationType.PlanRelDetail, {
     from: selectedTestPlanId,
   });
 
@@ -66,8 +66,10 @@ const Main = () => {
     });
 
     refresh('detailTable');
-
-    message.success(`测试执行任务【${testExecutionData?.reference?.name}】新建成功`);
+    mutate();
+    notification.success({
+      message: `测试执行任务【${testExecutionData?.reference?.name}】新建成功`,
+    });
   };
 
   const addTestDetail = async () => {
@@ -80,7 +82,9 @@ const Main = () => {
     await createTestRelation(relations);
     refresh();
     mutateTestPlanEvent.emit(selectedTestPlanId);
-    message.success('测试用例以成功添加至测试计划中');
+    notification.success({
+      message: '测试用例已成功添加至测试计划中',
+    });
   };
 
   const rightExtraContent = (

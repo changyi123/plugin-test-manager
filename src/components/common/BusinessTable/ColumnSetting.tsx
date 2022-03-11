@@ -151,6 +151,7 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
         <Select
           showSearch
           mode="multiple"
+          allowClear={false}
           filterOption={true}
           tagRender={() => null}
           options={selectOptions}
