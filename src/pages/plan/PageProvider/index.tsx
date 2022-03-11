@@ -19,9 +19,9 @@ type PageContextType = {
   searchValue: string;
   workspaceKey: string;
   refresh: (key?: string) => void;
-  mutateTestPlanEvent: EventEmitter<string>;
   setSearchValue: (searchValue: string) => void;
   tableSelectionToggleEvent: EventEmitter<boolean>;
+  mutateTestPlanEvent: EventEmitter<string | undefined>;
   selectedTestPlanId: TestPlanEntity['objectId'] | null;
   setSelectedTestPlanId: (id: TestPlanEntity['objectId']) => void;
   registerRefreshMethod: (method: Record<string, () => void>) => void;
@@ -41,9 +41,9 @@ export const PageContext = React.createContext<PageContextType>({
 
 const PageProvider: React.FC = ({ children }) => {
   const { context } = useSDK();
-  const mutateTestPlanEvent = useEventEmitter<string>();
   const [searchValue, setSearchValue] = React.useState('');
   const tableSelectionToggleEvent = useEventEmitter<boolean>();
+  const mutateTestPlanEvent = useEventEmitter<string | undefined>();
   const refreshCacheRef = React.useRef<Record<string, () => void>>();
   const [selectedTestPlanId, setSelectedTestPlanId] = React.useState(null);
   const workspaceKey = context?.env?.WORKSPACE_KEY ?? getDevConfig().workspaceKey;

@@ -289,9 +289,6 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
           sticky={true}
           pagination={false}
           className={cx('table')}
-          scroll={{
-            x: 'max-content',
-          }}
           components={{
             header: {
               cell: ResizableHeaderCell,

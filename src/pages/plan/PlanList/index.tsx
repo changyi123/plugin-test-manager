@@ -3,10 +3,10 @@ import React from 'react';
 import { usePageContext } from '../hook';
 import { TestEntity } from '@/lib/types/Test';
 import { deleteItems } from '@/lib/api/proxima';
-import { message, Empty, Button } from '@osui/ui';
 import { hasArrayItem } from '@/lib/utils/helper';
 import { actionConfirm } from '@/lib/utils/helper';
 import { useInfiniteScroll, useHover } from 'ahooks';
+import { notification, Empty, Button } from '@osui/ui';
 import { useBaseAction } from '@/lib/hooks/useContext';
 import { goToItemDetailPage } from '@/lib/utils/helper';
 import { Dropdown, Menu, Tooltip, Spin } from '@osui/ui';
@@ -150,6 +150,7 @@ const PlanList = () => {
   );
 
   mutateTestPlanEvent.useSubscription(async testPlanId => {
+    testPlanId = testPlanId ?? selectedTestPlanId;
     const { list: refTestDetails } = await getTestEntitiesByRelation(
       TestRelationType.PlanRelDetail,
       {
@@ -188,17 +189,21 @@ const PlanList = () => {
       type: TestType.TestPlan,
     });
     reload();
-    message.success('测试计划新建成功');
+    notification.success({
+      message: '测试计划新建成功',
+    });
   };
 
   const handleDelete = async data => {
     await actionConfirm('该操作会当前删除测试计划以及测试计划关联的测试用例和任务，是否继续？');
     await Promise.all([
       deleteTestEntities([data.objectId]),
-      deleteItems([data.reference.objectId]),
+      data.reference && deleteItems([data.reference?.objectId]),
     ]);
     reload();
-    message.success('测试计划删除成功');
+    notification.success({
+      message: '测试计划删除成功',
+    });
   };
 
   const handleSearch = value => {

@@ -24,8 +24,8 @@ const DetailTable = () => {
 
   const refreshAndMutateData = React.useCallback(() => {
     actionRef.current.refresh();
-    mutateTestPlanEvent.emit(selectedTestPlanId);
-  }, [mutateTestPlanEvent, selectedTestPlanId]);
+    mutateTestPlanEvent.emit(undefined);
+  }, [mutateTestPlanEvent]);
 
   React.useEffect(() => {
     registerRefreshMethod({

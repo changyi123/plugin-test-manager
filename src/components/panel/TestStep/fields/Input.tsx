@@ -3,6 +3,12 @@ import { useHover } from 'ahooks';
 import classnames from 'classnames';
 import { StepFieldProps } from '../type';
 
+const escapeHtmlString = html => {
+  return html?.replace(/&\w+;/g, c => {
+    return { '&lt;': '<', '&gt;': '>', '&amp;': '&', '&quot;': '"' }[c] ?? c;
+  });
+};
+
 const Input: React.ForwardRefRenderFunction<
   HTMLDivElement,
   StepFieldProps & {
@@ -64,7 +70,7 @@ const Input: React.ForwardRefRenderFunction<
       contentEditable={'plaintext-only' as any}
       className={classnames('test-step-field', 'input', isHover && 'hover', className)}
     >
-      {value}
+      {escapeHtmlString(value)}
     </div>
   );
 };
