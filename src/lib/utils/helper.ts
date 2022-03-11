@@ -55,6 +55,7 @@ export const goToItemDetailPage = ({ workspaceKey, itemKey }) => {
 
 /** 打开测试详情弹窗 */
 export const openItemViewScreen = itemId => {
+  if (!itemId) return;
   const proximaSDK = createProximaSdk();
   proximaSDK.execute('openItemViewScreen', itemId);
 };

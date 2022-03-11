@@ -8,7 +8,6 @@ import { StatusBadge } from '@/components/common/Status';
 import TestRunModal from '@/components/panel/TestRunModal';
 import { StatusProgress } from '@/components/common/Status';
 import { TestRelationType, TestType } from '@/lib/constants';
-import OverflowTooltip from '@/components/common/OverflowTooltip';
 import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
 import { addTestDetailToExecution, updateTestRunStatus } from '@/lib/api/runs';
 import {
@@ -253,10 +252,15 @@ const ExecutionTable = () => {
           width: 160,
           tooltip: true,
           render(_, record) {
-            const name = record.runReferenceDetail?.reference?.name ?? (
-              <span style={{ color: '#ccc', fontSize: 12 }}>当前测试用例已被删除</span>
+            const detailItemData = record.runReferenceDetail?.reference ?? {};
+            return (
+              <span
+                style={{ cursor: 'pointer' }}
+                onClick={() => openItemViewScreen(detailItemData.objectId)}
+              >
+                {detailItemData.name}
+              </span>
             );
-            return <OverflowTooltip title={name}>{name}</OverflowTooltip>;
           },
         },
         {
