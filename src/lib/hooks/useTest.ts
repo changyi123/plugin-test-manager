@@ -14,14 +14,19 @@ export const useAllRelTestEntities = (
   } else {
     include = ['objectId'];
   }
-  const { data, mutate, refresh } = useRequest(async () => {
-    const { list } = await getTestEntitiesByRelation(relType, sides, {
-      include,
-      useSelect: true,
-      queryParams: { limit: 9999 },
-    });
-    return list?.map(item => (include?.length === 1 ? item.objectId : pick(item, include)));
-  });
+  const sideValues = Object.values(sides).filter(Boolean);
+  const { data, mutate, refresh } = useRequest(
+    async () => {
+      const { list } = await getTestEntitiesByRelation(relType, sides, {
+        include,
+        queryParams: { limit: 9999 },
+      });
+      return list?.map(item => (include?.length === 1 ? item.objectId : pick(item, include)));
+    },
+    {
+      ready: Boolean(sideValues.length),
+    },
+  );
 
   return {
     mutate,

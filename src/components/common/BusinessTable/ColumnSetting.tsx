@@ -152,6 +152,7 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
           showSearch
           mode="multiple"
           filterOption={true}
+          tagRender={() => null}
           options={selectOptions}
           optionFilterProp="label"
           value={storageColumnKeys}

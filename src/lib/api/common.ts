@@ -275,6 +275,7 @@ export const getTestEntitiesByQuery = async (
     descendingBy: string[];
     ascendingBy: string[];
     include: string[];
+    ignoreDeletedItemData: boolean;
   }>,
 ) => {
   const query = new Parse.Query(Test);
@@ -282,6 +283,7 @@ export const getTestEntitiesByQuery = async (
   queryParams = queryParams ?? {};
   options = merge(
     {
+      ignoreDeletedItemData: true,
       include: ['reference.workspace', 'reference.itemType'],
     },
     options,
@@ -306,6 +308,11 @@ export const getTestEntitiesByQuery = async (
       'reference',
       new Parse.Query(Item).matches('name', escapeMatchesQueryArg(queryParams.nameLike)),
     );
+  }
+
+  // 忽略被删除事项数据
+  if (options.ignoreDeletedItemData) {
+    query.exists('reference');
   }
 
   if (queryParams.in) {

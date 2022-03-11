@@ -50,7 +50,7 @@ export const generateStorageKey = (...args: string[]) => {
 
 /** 生成跳转 URL */
 export const goToItemDetailPage = ({ workspaceKey, itemKey }) => {
-  return window.open(`/osc/${workspaceKey}/item/${itemKey}`, '_blank');
+  return window.open(`/osc/workspaces/${workspaceKey}/item/${itemKey}`, '_blank');
 };
 
 /** 打开测试详情弹窗 */

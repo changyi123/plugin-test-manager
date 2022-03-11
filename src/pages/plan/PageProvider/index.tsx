@@ -1,7 +1,7 @@
 import React from 'react';
 import { noop } from 'lodash';
-import { useEventEmitter } from 'ahooks';
 import { getDevConfig } from '@/devEnv';
+import { useEventEmitter } from 'ahooks';
 import { TestType } from '@/lib/constants';
 import { TestEntity } from '@/lib/types/Test';
 import { useSDK } from '@projectproxima/plugin-sdk';

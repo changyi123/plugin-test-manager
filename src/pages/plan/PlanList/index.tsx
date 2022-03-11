@@ -13,6 +13,7 @@ import { Dropdown, Menu, Tooltip, Spin } from '@osui/ui';
 import { EllipsisOutlined, PlusOutlined } from '@/icons';
 import { StatusProgress } from '@/components/common/Status';
 import { TestType, TestRelationType } from '@/lib/constants';
+import OverflowTooltip from '@/components/common/OverflowTooltip';
 import {
   deleteTestEntities,
   getTestEntitiesByQuery,
@@ -56,8 +57,13 @@ const PlanItem: React.FC<{
       onClick={() => onSelect(data)}
     >
       <div className={cx('top')}>
-        <span className={cx('name')}>{reference.name ?? '该事项已被删除'}</span>
-        <span style={{ display: !isHover ? 'inline-block' : 'none' }} className={cx('num')}>
+        <OverflowTooltip className={cx('name')} maxline={1} title={reference?.name}>
+          <span>{reference?.name ?? '该事项已被删除'}</span>
+        </OverflowTooltip>
+        <span
+          style={{ display: !isHover ? 'inline-block' : 'none' }}
+          className={cx('num', 'right')}
+        >
           {refTestDetails.length}
         </span>
         <Dropdown
@@ -74,7 +80,7 @@ const PlanItem: React.FC<{
           trigger={['hover']}
         >
           <EllipsisOutlined
-            className={cx('action')}
+            className={cx('action', 'right')}
             style={{ display: isHover ? 'flex' : 'none' }}
           />
         </Dropdown>

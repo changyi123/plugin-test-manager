@@ -6,6 +6,12 @@
   display: flex;
   flex-direction: column;
   .custom-scrollbar-mixin();
+
+  :global {
+    .ant-spin-nested-loading .ant-spin-container {
+      height: auto;
+    }
+  }
 }
 
 .toolkit-bar {
@@ -52,6 +58,8 @@
   .top {
     display: flex;
     line-height: 34px;
+    max-width: 100%;
+    overflow: hidden;
   }
   .name {
     font-size: 14px;
@@ -60,12 +68,19 @@
   .num {
     color: #999;
     font-size: 12px;
-    height: 30px;
+    text-align: center;
+  }
+
+  .right {
+    width: 26px;
+    height: 26px;
+    min-width: 26px;
+    min-height: 26px;
+    margin-left: 8px;
   }
 
   .action {
-    width: 24px;
-    height: 24px;
+    margin-top: 2px;
     border-radius: 4px;
     display: flex;
     align-items: center;

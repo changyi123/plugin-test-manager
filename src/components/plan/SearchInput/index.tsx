@@ -21,7 +21,9 @@ const SearchInput: React.FC<
   });
 
   const handleBlur = e => {
-    setInputVisible(false);
+    if (!e.target.value) {
+      setInputVisible(false);
+    }
     props.onBlur?.(e);
   };
 
@@ -32,6 +34,12 @@ const SearchInput: React.FC<
     handleSearch(value);
   };
 
+  const handleKeyDown = e => {
+    if (e.key === 'Escape' || e.key === 'Enter') {
+      setInputVisible(false);
+    }
+  };
+
   return (
     <div className={cx('search', props.className)}>
       {inputVisible ? (
@@ -40,6 +48,7 @@ const SearchInput: React.FC<
           onBlur={handleBlur}
           className={cx('input')}
           onChange={handleChange}
+          onKeyDown={handleKeyDown}
           defaultValue={inputValueRef.current}
         />
       ) : (

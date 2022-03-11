@@ -4,7 +4,7 @@ import { useLocation } from 'react-router-dom';
 import { generateStorageKey } from '@/lib/utils/helper';
 
 export const useLayoutHeight = () => {
-  const offsetY = 0; // 63
+  const offsetY = 63; // 63
   const [height, setHeight] = React.useState(700);
 
   React.useEffect(() => {

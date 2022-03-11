@@ -10,20 +10,21 @@ import cx from './Badge.less';
 
 type BadgeProps = {
   status?: string;
-  readonly?: boolean;
-  onStatusChange?: (status) => void;
-  useRootContainer?: boolean;
   showBg?: boolean;
+  readonly?: boolean;
   className?: string;
+  useRootContainer?: boolean;
+  emptyNode?: React.ReactNode;
+  onStatusChange?: (status) => void;
   onReady?: (statusConfig) => void;
 };
 
 const Status = ({
   status,
-  hasEffect,
-  onClick,
-  className,
   showBg,
+  onClick,
+  hasEffect,
+  className,
 }: Partial<Record<string, any>>) => {
   if (!status) return null;
   return (
@@ -48,8 +49,8 @@ const Status = ({
 
 const Badge: React.FC<BadgeProps> = props => {
   const badgeRef = React.useRef();
-  const isInitialRef = React.useRef(false);
   const statusConfig = useStatusConfig();
+  const isInitialRef = React.useRef(false);
   const currentStatus = React.useMemo(() => {
     return statusConfig[props.status] ?? (statusConfig as any).TODO;
   }, [props.status, statusConfig]);
@@ -100,12 +101,16 @@ const Badge: React.FC<BadgeProps> = props => {
         onVisibleChange={visible => !props.readonly && setVisible(visible)}
         overlayClassName={cx('status-badge-overlay', 'status__overlay')}
       >
-        <Status
-          status={currentStatus}
-          showBg={props.showBg}
-          hasEffect={!props.readonly}
-          onClick={() => !props.readonly && setVisible(true)}
-        />
+        {props.emptyNode ? (
+          props.emptyNode
+        ) : (
+          <Status
+            status={currentStatus}
+            showBg={props.showBg}
+            hasEffect={!props.readonly}
+            onClick={() => !props.readonly && setVisible(true)}
+          />
+        )}
       </Popover>
     </div>
   );

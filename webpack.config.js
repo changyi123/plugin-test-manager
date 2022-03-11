@@ -5,7 +5,7 @@ const LessPluginFunctions = require('less-plugin-functions');
 const SpeedMeasurePlugin = require('speed-measure-webpack-plugin');
 const hasha = require('hasha');
 const autoprefixer = require('autoprefixer');
-const namespacePefixer = require('postcss-selector-namespace');
+const namespacePrefix = require('postcss-selector-namespace');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const WebpackBar = require('webpackbar');
 const webpack = require('webpack');
@@ -14,7 +14,7 @@ require('dotenv').config();
 const smp = new SpeedMeasurePlugin();
 
 const distOutputPath = 'dist';
-const appPerfix = 'test-manager';
+const appPrefix = 'test-manager';
 
 // 环境变量
 function resolveClientEnv(raw) {
@@ -45,19 +45,19 @@ const outputConfig = isProd =>
         filename: 'js/[name].[chunkhash].min.js',
         path: path.resolve(__dirname, distOutputPath),
         publicPath: './',
-        library: appPerfix,
+        library: appPrefix,
         libraryTarget: 'umd',
       }
     : {
         filename: 'main.js',
         path: path.resolve(__dirname, distOutputPath),
         publicPath: '/',
-        library: appPerfix,
+        library: appPrefix,
         libraryTarget: 'umd',
       };
 
 const getLocalIdent = ({ resourcePath }, localIdentName, localName) => {
-  if (localName === appPerfix) {
+  if (localName === appPrefix) {
     return localName;
   }
   if (/\.global\.(css|less)$/.test(resourcePath) || /node_modules/.test(resourcePath)) {
@@ -118,19 +118,25 @@ module.exports = (cliEnv = {}, argv) => {
     },
   };
 
-  const postcssLoaderConfig = {
-    loader: 'postcss-loader',
-    options: {
-      postcssOptions: {
-        plugins: [
-          namespacePefixer({
-            namespace: `#${appPerfix}`,
-          }),
-          autoprefixer,
-        ],
+  const getPostcssLoaderConfig = useNamespace => {
+    let plugins = [autoprefixer];
+    if (useNamespace) {
+      plugins = plugins.concat(
+        namespacePrefix({
+          namespace: `#${appPrefix}`,
+        }),
+      );
+    }
+    return {
+      loader: 'postcss-loader',
+      options: {
+        postcssOptions: {
+          plugins,
+        },
       },
-    },
+    };
   };
+
   const webpackConfig = {
     entry: './src/index.tsx',
     mode: isProd ? 'production' : 'development',
@@ -238,9 +244,23 @@ module.exports = (cliEnv = {}, argv) => {
             path.resolve(__dirname, 'node_modules/antd/'),
             path.resolve(__dirname, 'node_modules/@osui'),
             path.resolve(__dirname, 'node_modules/github-markdown-css'),
-            path.resolve(__dirname, 'node_modules/@projectproxima/components/dist'),
           ],
-          use: [classNamesConfig, extractOrStyleLoaderConfig, 'css-loader', postcssLoaderConfig],
+          use: [
+            classNamesConfig,
+            extractOrStyleLoaderConfig,
+            'css-loader',
+            getPostcssLoaderConfig(true),
+          ],
+        },
+        {
+          test: /\.css/,
+          include: [path.resolve(__dirname, 'node_modules/@projectproxima/components/dist')],
+          use: [
+            classNamesConfig,
+            extractOrStyleLoaderConfig,
+            'css-loader',
+            getPostcssLoaderConfig(false),
+          ],
         },
         {
           test: /\.less$/,
@@ -248,7 +268,7 @@ module.exports = (cliEnv = {}, argv) => {
             classNamesConfig,
             extractOrStyleLoaderConfig,
             cssLoaderConfig,
-            postcssLoaderConfig,
+            getPostcssLoaderConfig(true),
             lessLoaderConfig,
             makeStyleResourcesLoader([
               path.resolve(__dirname, 'node_modules/@osui/theme/dist/antd-vars-patch.less'),

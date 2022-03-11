@@ -1,5 +1,6 @@
 import React from 'react';
 import { pick, isEqual } from 'lodash';
+import { getDevConfig } from '@/devEnv';
 import { Resizable } from 'react-resizable';
 import { TableProps } from 'antd/lib/table';
 import ColumnSetting from './ColumnSetting';
@@ -12,7 +13,6 @@ import { useAntdTable, useLocalStorageState } from 'ahooks';
 import { LibraryProvider } from '@projectproxima/components';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import { getRootContainer, hasArrayItem } from '@/lib/utils/helper';
-import { getDevConfig } from '@/devEnv';
 
 import cx from './BusinessTable.less';
 
@@ -139,13 +139,18 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     { defaultPageSize: DefaultPageSize },
   );
 
+  const dataSource = React.useMemo(
+    () => (props.dataSource ?? antdTableProps.dataSource ?? []) as any[],
+    [antdTableProps.dataSource, props.dataSource],
+  );
+
   React.useEffect(() => {
     // 数据源变更重置 selectedRowKeys
-    if (Array.isArray(antdTableProps.dataSource) && antdTableProps.dataSource.length) {
+    if (Array.isArray(dataSource) && dataSource.length) {
       setSelectedRowKeys([]);
-      currentPageRowsRef.current = antdTableProps.dataSource;
+      currentPageRowsRef.current = dataSource;
     }
-  }, [setSelectedRowKeys, antdTableProps.dataSource]);
+  }, [setSelectedRowKeys, dataSource]);
 
   const handleResize = (key, _e, { size }) => {
     setColumnsWidth(dict => ({
@@ -184,7 +189,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
       if (checked === false) {
         setSelectedRowKeys([]);
       } else {
-        const allRowKeys = antdTableProps.dataSource.map(item => item[props.rowKey as any]);
+        const allRowKeys = dataSource.map(item => item[props.rowKey as any]);
         setSelectedRowKeys(allRowKeys);
       }
     };
@@ -200,13 +205,9 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
           tableExpandable={Boolean(expandable)}
           onClose={handleClose}
           checkboxProps={{
-            checked:
-              Boolean(selectedRows.length) &&
-              selectedRows.length === antdTableProps.dataSource.length,
             onChange: e => handleCheck(e.target.checked),
-            indeterminate:
-              Boolean(selectedRows.length) &&
-              selectedRows.length < antdTableProps.dataSource.length,
+            checked: Boolean(selectedRows.length) && selectedRows.length === dataSource.length,
+            indeterminate: Boolean(selectedRows.length) && selectedRows.length < dataSource.length,
           }}
           selectNum={selectedRows.length}
           actions={selectionActionNodes ?? []}
@@ -268,15 +269,16 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
   );
 
   React.useEffect(() => {
-    if (!initialExpandedRef.current && hasArrayItem(antdTableProps.dataSource)) {
+    if (!initialExpandedRef.current && hasArrayItem(dataSource)) {
       initialExpandedRef.current = true;
-      setExpandedKeys([antdTableProps.dataSource[0]?.[props.rowKey as string]]);
+      setExpandedKeys([dataSource[0]?.[props.rowKey as string]]);
     }
-  }, [antdTableProps.dataSource, props.rowKey, setExpandedKeys]);
+  }, [dataSource, props.rowKey, setExpandedKeys]);
 
   return (
     <div className={cx('table-container')}>
       <LibraryProvider
+        parse
         workspaceKey={workspace?.key}
         gatewayURL={proximaGatewayURL}
         getPopupContainer={getRootContainer}
@@ -298,10 +300,10 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
               cell: OverflowTooltipBodyCell,
             },
           }}
+          dataSource={dataSource}
           showHeader={!selectionMode}
           rowSelection={rowSelectionProp}
           loading={antdTableProps.loading}
-          dataSource={antdTableProps.dataSource}
           columns={columnsWithResizableAndSettingAction}
           expandable={
             expandable

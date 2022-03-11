@@ -11,11 +11,12 @@ import {
 import { getItemByIQL } from '@/lib/api/proxima';
 import { hasArrayItem } from '@/lib/utils/helper';
 import _, { isEqual, keyBy, merge } from 'lodash';
-import { pointerTransfer } from '@/lib/utils/helper';
 import { Status, TestEntity } from '@/lib/types/Test';
+import { pointerTransfer, toArray } from '@/lib/utils/helper';
 import { compactStepModel } from '@/lib/utils/modelTransfer';
 
 type TestRunEntity = TestEntity<TestType.TestRun>;
+type TestEntityParseType<TEntity extends TestEntity = TestEntity> = Parse.Object<TEntity> | string;
 
 /** 创建测试执行实体，并将测试执行与测试执行任务，测试用例与测试执行任务关联 */
 export const createTestRunAndRelation = async (_testExecutionEntity, _testDetailEntity) => {
@@ -361,7 +362,7 @@ export const getItemLinkRelation = async (itemId: string) => {
   return res.map(item => item.toJSON());
 };
 
-/** 更新测试运行 */
+/** 更新测试执行 */
 export const updateTestRun = async (
   testEntity: Parse.Object<TestRunEntity> | string,
   params: {
@@ -436,6 +437,25 @@ export const updateTestRun = async (
   return testEntity.save(needUpdateAttrs);
 };
 
+/** 批量更新测试执行状态 */
+export const updateTestRunStatus = async (params: {
+  status: string;
+  testRun: TestEntityParseType[];
+}) => {
+  const existedTestRuns = await getTestEntities({
+    id: toArray(params.testRun).map(item => item.objectId ?? item),
+  });
+
+  const needUpdatedTestEntities = existedTestRuns.reduce((acc, testRun) => {
+    testRun.set('status', params.status);
+    // 更新对应的测试用例状态
+    const runReferenceDetail = testRun.get('runReferenceDetail');
+    runReferenceDetail.set('status', params.status);
+    return acc.concat(testRun, runReferenceDetail);
+  }, []);
+
+  return Parse.Object.saveAll(needUpdatedTestEntities);
+};
 /** 从测试执行中获取测试步骤 */
 export const getTestStepsByTestDetailId = async (testDetailId: string, currentTestId?: string) => {
   // 获取测试步骤
@@ -515,11 +535,11 @@ export const createTestRun = async (params: { workspaceKey: string; testDetailId
   return createTestEntities(entities);
 };
 
-// 创建测试执行
+/** 创建测试执行 */
 export const createTestExecutionAndRelations = async (params: {
   workspaceKey: string;
-  testPlan: Parse.Object | string;
-  testExecution: Parse.Object | string;
+  testPlan: TestEntityParseType;
+  testExecution: TestEntityParseType;
   relTestDetailIds?: string[];
 }) => {
   /**
@@ -569,4 +589,49 @@ export const createTestExecutionAndRelations = async (params: {
   await createTestRelation(relations);
 
   return testExecution;
+};
+
+/** 添加测试计划到测试执行 */
+export const addTestDetailToExecution = async (params: {
+  workspaceKey: string;
+  testPlan?: TestEntityParseType;
+  testDetail: TestEntityParseType | TestEntityParseType[];
+  testExecution: TestEntityParseType;
+}) => {
+  const testDetailIds = toArray(params.testDetail).map(item => item?.objectId ?? item);
+  const { testPlan, workspaceKey, testExecution } = params;
+
+  const testRunEntities = await createTestRun({
+    testDetailIds,
+    workspaceKey,
+  });
+
+  // 测试执行&运行关联关系
+  const testExecutionRunRelations = testRunEntities.map(runEntity => ({
+    relationType: TestRelationType.ExecutionRelRun,
+    from: testExecution,
+    to: runEntity,
+  }));
+
+  let testPlanDetailRelations = [];
+
+  if (testPlan) {
+    const res = await getTestEntitiesByRelation(
+      TestRelationType.PlanRelDetail,
+      { from: testPlan },
+      // TODO: fetch all
+      { queryParams: { limit: 9999 } },
+    );
+    const allRelTestDetailIds = res.list.map(item => item.objectId);
+    // 未作关联的测试计划
+    const needRelTestDetailIds = testDetailIds.filter(id => !allRelTestDetailIds.includes(id));
+
+    testPlanDetailRelations = needRelTestDetailIds.map(testDetailId => ({
+      relationType: TestRelationType.PlanRelDetail,
+      from: testPlan,
+      to: testDetailId,
+    }));
+  }
+
+  await createTestRelation(testExecutionRunRelations.concat(testPlanDetailRelations));
 };

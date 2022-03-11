@@ -1,26 +1,45 @@
 import React from 'react';
 import DetailTable from './DetailTable';
 import { usePageContext } from '../hook';
-import { TestType } from '@/lib/constants';
 import ExecutionTable from './ExecutionTable';
 import { AppstoreAddOutlined } from '@/icons';
+import { createTestRelation } from '@/lib/api/common';
 import { Tabs, Button, Tooltip, message } from '@osui/ui';
+import { useAllRelTestEntities } from '@/lib/hooks/useTest';
+import { TestType, TestRelationType } from '@/lib/constants';
 import { createTestExecutionAndRelations } from '@/lib/api/runs';
 import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
+import TestEntitySelectorModal, { ActionType } from '@/components/panel/TestEntitySelectorModal';
 
 import SearchInput from '@/components/plan/SearchInput';
 
 import cx from './index.less';
 
+const enum TabKeyEnum {
+  testDetailTable = 'testDetailTable',
+  testExecutionTable = 'testExecutionTable',
+}
+
 const Main = () => {
-  const { tableSelectionToggleEvent, setSearchValue, selectedTestPlanId, refresh } =
-    usePageContext();
+  const testEntitySelectorRef = React.useRef<ActionType>();
+  const [activeKey, setActiveKey] = React.useState(TabKeyEnum.testDetailTable);
+  const {
+    tableSelectionToggleEvent,
+    setSearchValue,
+    selectedTestPlanId,
+    refresh,
+    mutateTestPlanEvent,
+  } = usePageContext();
   const [tableSelectionVisible, setTableSelectionVisible] = React.useState(false);
   const { createItemUseModal } = useBaseAction();
   const { workspace } = useTestConfig();
 
-  const toggleTableSelection = () => {
-    const visible = !tableSelectionVisible;
+  const { testEntities } = useAllRelTestEntities(TestRelationType.PlanRelDetail, {
+    from: selectedTestPlanId,
+  });
+
+  const toggleTableSelection = (visible?: boolean) => {
+    visible = typeof visible === 'boolean' ? visible : !tableSelectionVisible;
     tableSelectionToggleEvent.emit(visible);
     setTableSelectionVisible(visible);
   };
@@ -51,7 +70,18 @@ const Main = () => {
     message.success(`测试执行任务【${testExecutionData?.reference?.name}】新建成功`);
   };
 
-  const addTestDetail = () => {};
+  const addTestDetail = async () => {
+    const testDetailIds = await testEntitySelectorRef.current.open();
+    const relations = testDetailIds.map(testPlanId => ({
+      relationType: TestRelationType.PlanRelDetail,
+      from: selectedTestPlanId,
+      to: testPlanId,
+    }));
+    await createTestRelation(relations);
+    refresh();
+    mutateTestPlanEvent.emit(selectedTestPlanId);
+    message.success('测试用例以成功添加至测试计划中');
+  };
 
   const rightExtraContent = (
     <div className={cx('extra-content')}>
@@ -62,29 +92,46 @@ const Main = () => {
           className={cx('action', 'selection', tableSelectionVisible && 'active')}
         />
       </Tooltip>
-      <span className={cx('line')} />
       {/* <Button className={cx('action')}>导入导出</Button> */}
-      <Button type="primary" onClick={addTestDetail} className={cx('action')}>
-        规划用例
-      </Button>
-      <Button type="primary" onClick={createTestExecution} className={cx('action')}>
-        新建测试任务
-      </Button>
+      {activeKey === TabKeyEnum.testDetailTable ? (
+        <>
+          <span className={cx('line')} />
+          <Button type="primary" onClick={addTestDetail} className={cx('action')}>
+            规划用例
+          </Button>
+          <Button type="primary" onClick={createTestExecution} className={cx('action')}>
+            新建测试任务
+          </Button>
+        </>
+      ) : null}
     </div>
   );
   return (
-    <Tabs
-      destroyInactiveTabPane
-      className={cx('tabs')}
-      tabBarExtraContent={{ right: rightExtraContent }}
-    >
-      <Tabs.TabPane key="testDetail" tab="全部用例">
-        <DetailTable />
-      </Tabs.TabPane>
-      <Tabs.TabPane key="testExecution" tab="测试执行任务">
-        <ExecutionTable />
-      </Tabs.TabPane>
-    </Tabs>
+    <>
+      <TestEntitySelectorModal
+        title="选择规划的测试用例"
+        testType={TestType.TestDetail}
+        actionRef={testEntitySelectorRef}
+        ignoreTestEntityIds={testEntities}
+      />
+      <Tabs
+        activeKey={activeKey}
+        destroyInactiveTabPane
+        className={cx('tabs')}
+        onChange={key => {
+          setActiveKey(key as TabKeyEnum);
+          toggleTableSelection(false);
+        }}
+        tabBarExtraContent={{ right: rightExtraContent }}
+      >
+        <Tabs.TabPane key={TabKeyEnum.testDetailTable} tab="全部用例">
+          <DetailTable />
+        </Tabs.TabPane>
+        <Tabs.TabPane key={TabKeyEnum.testExecutionTable} tab="测试执行任务">
+          <ExecutionTable />
+        </Tabs.TabPane>
+      </Tabs>
+    </>
   );
 };
 
