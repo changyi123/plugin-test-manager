@@ -136,7 +136,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
         limit: pageSize,
       });
     },
-    { defaultPageSize: DefaultPageSize },
+    { defaultPageSize: DefaultPageSize, refreshDeps: [getDataSource] },
   );
 
   const dataSource = React.useMemo(
@@ -287,6 +287,9 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
         {ColumnSettingMemorizedNode}
         <Table
           sticky={true}
+          scroll={{
+            x: 'max-content',
+          }}
           pagination={false}
           className={cx('table')}
           components={{
