@@ -7,6 +7,7 @@ import { Step } from '@/lib/types/Test';
 import { StepRow, StepField } from './type';
 import { getTestEntities } from '@/lib/api/common';
 import { Form, Tooltip, Popconfirm } from '@osui/ui';
+import OverflowTooltip from '@/components/common/OverflowTooltip';
 import { CopyOutlined, DeleteOutlined, DragHandler } from '@/icons';
 import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd';
 import { getFieldByImpl, StepFieldImpl, BuiltinFieldKeys, getRootContainer } from './helper';
@@ -93,7 +94,9 @@ const StepRow: React.FC<StepRowProps> = props => {
           <span>{item.key}</span>
         </div>
         <div className={cx('content')}>
-          <span className={cx('name')}>{item.name}</span>
+          <OverflowTooltip className={cx('name')} title={item.name}>
+            <span>{item.name}</span>
+          </OverflowTooltip>
           <span className={cx('length')}>
             <span className={cx('line')}>|</span>共 {stepLength} 个步骤
           </span>

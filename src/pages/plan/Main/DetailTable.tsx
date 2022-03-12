@@ -92,7 +92,6 @@ const DetailTable = () => {
       const list = testDetails.map(detail => {
         return {
           ...detail,
-          // 关联的测试执行
           relRuns: testRuns.filter(run => run.runReferenceDetail?.objectId === detail.objectId),
         };
       });
@@ -113,7 +112,7 @@ const DetailTable = () => {
       refreshAndMutateData();
 
       notification.success({
-        message: `${relationTypeIds.length} 个测试执行从测试计划中移除`,
+        message: `${relationTypeIds.length} 个测试用例从测试计划中移除`,
       });
     },
     [refreshAndMutateData],

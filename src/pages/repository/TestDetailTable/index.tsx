@@ -86,9 +86,9 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
     [searchValue, testDetailIds, workspaceKey],
   );
 
-  const refreshAndMutateData = React.useCallback(() => {
-    onDataChange?.();
-    tableActionRef.current?.refresh();
+  const refreshAndMutateData = React.useCallback(async () => {
+    await onDataChange?.();
+    setTimeout(() => tableActionRef.current?.refresh());
   }, [onDataChange]);
 
   const selectionActionNodes = React.useMemo(() => {

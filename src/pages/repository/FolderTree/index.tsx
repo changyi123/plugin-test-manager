@@ -437,7 +437,9 @@ const FolderTree: React.FC<FolderTreeProps> = ({
                 <CustomMore onClick={e => e.stopPropagation()} className={cx('tree-node-action')} />
               </Dropdown>
             </>
-          ) : null}
+          ) : (
+            <span className={cx('tree-node-length')}>{`${node.length[0]}`}</span>
+          )}
         </>
       </DropTreeTitle>
     ),

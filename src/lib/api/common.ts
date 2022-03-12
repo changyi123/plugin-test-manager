@@ -1,8 +1,8 @@
 import Parse from '@/lib/parse';
 import { TestConfig } from '../models';
 import { getItemByIQL } from './proxima';
-import { keyBy, assign, omit, transform } from 'lodash';
 import { TestType, TestRelationType } from '@/lib/constants';
+import { keyBy, assign, merge, omit, transform } from 'lodash';
 import { Workspace, Item, Test, TestRelation } from '@/lib/models';
 import { hasArrayItem, pointerTransfer, toArray, escapeMatchesQueryArg } from '@/lib/utils/helper';
 
@@ -21,7 +21,7 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
   total: number;
   list: TResponseList;
 }> => {
-  const config = assign(
+  const config = merge(
     {
       // 响应数据处理
       resultTransfer: data => data,

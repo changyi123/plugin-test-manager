@@ -53,6 +53,7 @@ const RepositorySelector: React.FC<RepositorySelectorProps> = props => {
 
   const { loading, data: treeData } = useRequest(
     async () => {
+      if (!visible) return [];
       const treeData = await getFolderTree(selectedWorkspaceKey);
       traverseTreeNodes(treeData, node => {
         node.title = <OverflowTooltip title={node.name}>{node.name}</OverflowTooltip>;
@@ -60,7 +61,7 @@ const RepositorySelector: React.FC<RepositorySelectorProps> = props => {
       return treeData;
     },
     {
-      refreshDeps: [selectedWorkspaceKey],
+      refreshDeps: [visible, selectedWorkspaceKey],
       ready: Boolean(selectedWorkspaceKey),
     },
   );
@@ -99,7 +100,7 @@ const RepositorySelector: React.FC<RepositorySelectorProps> = props => {
         });
       },
     }),
-    [selectedWorkspaceKey],
+    [],
   );
 
   const handleTreeSelect = (_, { node }) => {

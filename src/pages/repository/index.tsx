@@ -11,7 +11,7 @@ import { getFolderTree } from '@/lib/api/repository';
 import { useSDK } from '@projectproxima/plugin-sdk';
 import PageLayout from '@/components/common/PageLayout';
 import { getTestEntitiesByQuery } from '@/lib/api/common';
-import { traverseTreeNodes, reverseTreeNodes } from './hook';
+import { traverseTreeNodes, reverseTreeNodes, getTreeNodeByKey } from './hook';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
 import SearchInput from '@/components/business/SearchInput';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
@@ -93,9 +93,9 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
 
   const handleTreeSelect = React.useCallback(
     selectedNode => {
-      let breadcrumbs = [];
+      const breadcrumbs = [];
       reverseTreeNodes(folderTreeData, selectedNode, node => {
-        breadcrumbs = breadcrumbs.concat(node.name ?? node.title);
+        breadcrumbs.unshift(node.name ?? node.title);
       });
       state.breadcrumbs = breadcrumbs;
       state.testDetailIds = selectedNode.testDetailIds;
@@ -104,9 +104,13 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
     [folderTreeData, state],
   );
 
-  const handleDataChange = React.useCallback(() => {
-    refreshFolderTree();
-  }, [refreshFolderTree]);
+  const handleDataChange = React.useCallback(async () => {
+    const treeData = await refreshFolderTree();
+    const selectedFolder = getTreeNodeByKey(treeData, state.selectedFolderKey);
+    if (selectedFolder) {
+      state.testDetailIds = selectedFolder.testDetailIds;
+    }
+  }, [refreshFolderTree, state]);
 
   const toggleSelection = (visible?: boolean) => {
     visible = typeof visible === 'boolean' ? visible : !state.tableSelectionVisible;
@@ -116,7 +120,7 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
 
   const createTestDetail = async () => {
     const { testEntity: testDetailEntity } = await createItemUseModal({
-      type: TestType.TestPlan,
+      type: TestType.TestDetail,
     });
 
     const testDetailData = testDetailEntity.toJSON();
