@@ -61,4 +61,4 @@ export const openItemViewScreen = itemId => {
 };
 
 /** panel 消息通知 */
-export { alert } from '@/components/panel/PanelLayout';
+export { alert } from '@/components/business/PanelLayout';

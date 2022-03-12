@@ -5,7 +5,7 @@ import { usePageContext } from '../hook';
 import { updateTestRun } from '@/lib/api/runs';
 import { deleteItems } from '@/lib/api/proxima';
 import { StatusBadge } from '@/components/common/Status';
-import TestRunModal from '@/components/panel/TestRunModal';
+import TestRunModal from '@/components/business/TestRunModal';
 import { StatusProgress } from '@/components/common/Status';
 import { TestRelationType, TestType } from '@/lib/constants';
 import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
@@ -21,7 +21,7 @@ import BusinessTable, {
 } from '@/components/common/BusinessTable/BusinessTable';
 import TestEntitySelectorModal, {
   ActionType as TestEntitySelectorActionType,
-} from '@/components/panel/TestEntitySelectorModal';
+} from '@/components/business/TestEntitySelectorModal';
 
 const ExecutionTable = () => {
   const innerTableRef = React.useRef<BusinessTableActionRef>();

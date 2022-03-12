@@ -9,7 +9,7 @@ import { TestType, TestRelationType } from '@/lib/constants';
 import { Tabs, Button, Tooltip, notification } from '@osui/ui';
 import { createTestExecutionAndRelations } from '@/lib/api/runs';
 import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
-import TestEntitySelectorModal, { ActionType } from '@/components/panel/TestEntitySelectorModal';
+import TestEntitySelectorModal, { ActionType } from '@/components/business/TestEntitySelectorModal';
 
 import SearchInput from '@/components/business/SearchInput';
 
