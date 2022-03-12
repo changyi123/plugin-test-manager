@@ -1,13 +1,21 @@
-import { hasArrayItem } from '@/lib/utils/helper';
-
 /**
  * proxima api 只为获取数据，返回数据为 JSON。不要在插件内修改 proxima 内的数据模型 ！！
  */
 import Parse from '@/lib/parse';
 import fetch from '@/lib/utils/fetch';
 import { IQLBuilder } from '@/lib/utils/iql';
-import { SYSTEM_FIELD, FIELD_TYPE_KEY_MAPPINGS } from '@/lib/constants';
-import { CustomField, Workspace, ItemType, ItemTypeScheme, Item } from '@/lib/models';
+import { hasArrayItem } from '@/lib/utils/helper';
+import { SYSTEM_FIELD, FIELD_TYPE_KEY_MAPPINGS, TEST_MANAGER_PLUGIN_KEY } from '@/lib/constants';
+import {
+  App,
+  Item,
+  ItemType,
+  Workspace,
+  CustomField,
+  ItemTypeScheme,
+  WorkspaceScheme,
+  AppInstallation,
+} from '@/lib/models';
 
 type IQLPaginationParams = {
   offset?: number;
@@ -194,4 +202,36 @@ export const updateItemAssignee = async (itemIds, assignee) => {
   );
 
   return Parse.Object.saveAll(needUpdatedItems);
+};
+
+/** 获取所有测试空间 */
+export const getAllTestWorkspaces = async () => {
+  const workspaceSchemeIds = await new Parse.Query(AppInstallation)
+    .matchesQuery('app', new Parse.Query(App).equalTo('key', TEST_MANAGER_PLUGIN_KEY))
+    .map(item => item.toJSON().workspaceScheme.objectId);
+
+  const workspaces = await new Parse.Query(Workspace)
+    .matchesQuery(
+      'workspaceScheme',
+      new Parse.Query(WorkspaceScheme).containedIn('objectId', workspaceSchemeIds),
+    )
+    .findAll();
+
+  return workspaces.map(workspace => workspace.toJSON());
+};
+
+/** FIXME: 克隆事项 */
+export const cloneItem = async (
+  itemData: {
+    objectId: string;
+    workspaceKey: string;
+    name: string;
+  }[],
+) => {
+  const result = await fetch.$post('/parse/api/items/clone', {
+    ...itemData,
+    includeStatus: false,
+  });
+
+  return result.data?.objectId;
 };

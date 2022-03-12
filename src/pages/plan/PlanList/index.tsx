@@ -20,7 +20,7 @@ import {
   getTestEntitiesByRelation,
 } from '@/lib/api/common';
 
-import SearchInput from '@/components/plan/SearchInput';
+import SearchInput from '@/components/business/SearchInput';
 
 import cx from './index.less';
 

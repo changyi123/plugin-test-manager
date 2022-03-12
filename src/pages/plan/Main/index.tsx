@@ -11,7 +11,7 @@ import { createTestExecutionAndRelations } from '@/lib/api/runs';
 import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
 import TestEntitySelectorModal, { ActionType } from '@/components/panel/TestEntitySelectorModal';
 
-import SearchInput from '@/components/plan/SearchInput';
+import SearchInput from '@/components/business/SearchInput';
 
 import cx from './index.less';
 

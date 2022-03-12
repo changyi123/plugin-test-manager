@@ -147,15 +147,15 @@ const DetailTable = () => {
         readonly={false}
         onChange={handleAssigneeChange}
         emptyChild={
-          <a>
-            <UserOutlined /> 负责人
-          </a>
+          <span>
+            <UserOutlined /> 设置负责人
+          </span>
         }
       />,
 
-      <a key="delete" onClick={handleDelete}>
+      <span key="delete" onClick={handleDelete}>
         <DeleteOutlined /> 移除
-      </a>,
+      </span>,
     ];
   }, [refreshAndMutateData, removeTestRelation]);
 

@@ -8,7 +8,7 @@ import { useTestConfig, useBaseAction } from '@/lib/hooks/useContext';
 import { useTreeFn, traverseTreeNodes } from '../hook';
 import { MenuKey, FolderMenu } from '../Menu';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
-import { Tree, Button, Modal, Input, message, Empty, Dropdown } from '@osui/ui';
+import { Tree, Button, Modal, Input, notification, Empty, Dropdown } from '@osui/ui';
 import { CustomMore, CustomScreenOff, CustomPlus } from '@/icons';
 
 import { ROOT_FOLDER_KEY } from '../constant';
@@ -37,11 +37,15 @@ const openFolderNameModal: OpenFolderNameModal = ({ title, name }) => {
       async onOk() {
         const inputValue = inputRef.state.value?.trim() ?? '';
         if (!inputValue) {
-          message.error('模块名不能为空');
+          notification.error({
+            message: '模块名不能为空',
+          });
           throw new Error('required name');
         }
         if (inputValue.length > 30) {
-          message.error('模块名最多30字符');
+          notification.error({
+            message: '模块名最多30字符',
+          });
           throw new Error('max length');
         }
         resolve(inputValue);
@@ -64,7 +68,7 @@ const DropTreeTitle = ({ children, nodeKey, onItemDrop }) => {
   useDrop(ref, {
     onDom(data, e) {
       onItemDrop({
-        itemId: data.itemId,
+        testId: data.testId,
         fromFolderKey: data.folderKey,
         toFolderKey: nodeKey,
       });
@@ -171,7 +175,9 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         });
         // 模块创建限制 5 个层级
         if (hierarchy >= 5) {
-          message.warn('限制5个层级，5个层级以上不能新建子模块');
+          notification.warn({
+            message: '限制5个层级，5个层级以上不能新建子模块',
+          });
           return;
         }
         const folderName = await openFolderNameModal({ title: '新建子模块' });
@@ -193,7 +199,9 @@ const FolderTree: React.FC<FolderTreeProps> = ({
             key: createdFolderKey,
           },
         });
-        message.success('子模块新建成功');
+        notification.success({
+          message: '子模块新建成功',
+        });
       } else if (actionKey === MenuKey.renameFolder) {
         const newFolderName = await openFolderNameModal({
           title: '重命名模块',
@@ -206,7 +214,9 @@ const FolderTree: React.FC<FolderTreeProps> = ({
             name: newFolderName,
           },
         ]);
-        message.success(`模块重命被为【${newFolderName}】`);
+        notification.success({
+          message: `模块重命被为【${newFolderName}】`,
+        });
       } else if (actionKey === MenuKey.deleteFolder) {
         Modal.confirm({
           className: cx('confirm'),
@@ -229,7 +239,9 @@ const FolderTree: React.FC<FolderTreeProps> = ({
               keys.push(node.key);
             });
             await deleteFolder(keys);
-            message.success('模块删除成功');
+            notification.success({
+              message: '模块删除成功',
+            });
             onFolderTreeChange();
             const parentNode = treeFn.getTreeNodeByKey(node.parentId);
             if (parentNode) {
@@ -312,7 +324,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
   }, [treeData]);
 
   React.useEffect(() => {
-    if (!isEmptyFolderTree && !isInitialRef.current) {
+    if (treeData?.length && !isEmptyFolderTree && !isInitialRef.current) {
       isInitialRef.current = true;
       const node = treeData[0];
       // 默认展开模块第一层
@@ -377,13 +389,13 @@ const FolderTree: React.FC<FolderTreeProps> = ({
   ];
 
   const handleItemDrop = React.useCallback(
-    async ({ itemId, toFolderKey, fromFolderKey }) => {
+    async ({ testId, toFolderKey, fromFolderKey }) => {
       if (fromFolderKey === toFolderKey) return;
       const sourceNode = treeFn.getTreeNodeByKey(fromFolderKey);
       const targetNode = treeFn.getTreeNodeByKey(toFolderKey);
 
-      sourceNode.testDetailIds = sourceNode.testDetailIds.filter(id => id !== itemId);
-      targetNode.testDetailIds = uniq((targetNode.testDetailIds ?? []).concat(itemId));
+      sourceNode.testDetailIds = sourceNode.testDetailIds.filter(id => id !== testId);
+      targetNode.testDetailIds = uniq((targetNode.testDetailIds ?? []).concat(testId));
 
       let needUpdatedFolders = [];
       if (toFolderKey !== ROOT_FOLDER_KEY) {
@@ -395,7 +407,9 @@ const FolderTree: React.FC<FolderTreeProps> = ({
 
       await updateFolders(needUpdatedFolders);
 
-      message.success('测试用例移动成功');
+      notification.success({
+        message: '测试用例移动成功',
+      });
 
       await onFolderTreeChange();
 

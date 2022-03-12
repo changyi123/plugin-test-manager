@@ -87,6 +87,9 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     itemKey = 'reference',
     showPagination = true,
     useColumnSetting = false,
+    scroll = {
+      x: 'max-content',
+    },
     ...restTableProps
   } = props;
   const currentPageRowsRef = React.useRef([]);
@@ -196,7 +199,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
 
     const handleClose = () => {
       setSelectionMode(false);
-      onSelectionCancel();
+      onSelectionCancel?.();
     };
 
     return (
@@ -287,9 +290,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
         {ColumnSettingMemorizedNode}
         <Table
           sticky={true}
-          scroll={{
-            x: 'max-content',
-          }}
+          scroll={scroll}
           pagination={false}
           className={cx('table')}
           components={{

@@ -8,6 +8,12 @@
     border-bottom: 1px solid @border-color;
     font-size: 18px;
   }
+
+  .table-container {
+    height: 100%;
+    width: 100%;
+  }
+
   .breadcrumb-container {
     flex: none;
     display: flex;
@@ -21,102 +27,43 @@
       color: var(--color-gray-6);
     }
 
+    .separator {
+      margin: 0 8px;
+    }
+
     .breadcrumb {
       margin-right: 20px;
     }
-
-    .search {
-      margin-left: auto;
-      flex: none;
-    }
   }
-  .table-container {
-    flex: 1;
-    overflow: hidden;
-    .empty {
-      padding-top: 100px;
-    }
-    :global {
-      .ant-table-wrapper,
-      .ant-spin-nested-loading,
-      .ant-spin-container {
-        height: 100%;
-      }
-      .ant-spin-container {
-        flex-direction: column;
-        position: relative;
-      }
-      .ant-table {
-        flex: 1;
-        overflow: auto;
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        bottom: 46px;
-        padding: 0 24px;
-      }
-      .ant-pagination {
-        position: absolute;
-        left: 0;
-        width: 100%;
-        bottom: 0px;
-        height: 48px;
-        margin: 0;
-        padding: 0 22px;
-        display: flex;
-        align-items: center;
-        border-top: 1px solid @border-color;
-        background-color: #fff;
-      }
-      .ant-pagination-total-text {
-        margin-right: auto;
-      }
 
-      .ant-table-thead > tr > th,
-      .ant-table-tbody > tr > td,
-      .ant-table tfoot > tr > th,
-      .ant-table tfoot > tr > td {
-        &:first-child {
-          padding-left: 0;
-        }
-      }
-    }
-  }
-}
-
-.content {
-  display: flex;
-  flex-direction: row;
-  .left {
-    position: relative;
-    min-width: 300px;
-    max-width: 50%;
+  .actions {
     flex: none;
+    display: flex;
+    margin-left: auto;
+    align-items: center;
+    > * {
+      margin-right: 8px;
+    }
 
-    :global {
-      .react-resizable-handle {
-        position: absolute;
-        cursor: ew-resize;
-        width: 10px;
-        height: 100%;
-        right: 0px;
-        top: 0;
-        border-right: 1px solid @border-color;
-        user-select: none;
-        touch-action: none;
-        &:hover {
-          border-color: var(--color-brand-5);
-        }
-      }
+    .line {
+      height: 20px;
+      width: 1px;
+      background-color: @border-color;
+      margin-left: 8px;
+      margin-right: 14px;
     }
   }
 
-  .right {
-    flex: 1;
+  .selection {
     display: flex;
-    min-width: 400px;
-    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 32px;
+    height: 32px;
+    &.active {
+      background: #e9eaec;
+      border-radius: 4px;
+    }
   }
 }
 

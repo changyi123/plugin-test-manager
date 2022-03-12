@@ -1,9 +1,10 @@
-import { useRequest } from 'ahooks';
 import { pick } from 'lodash';
-import { getTestEntitiesByRelation } from '@/lib/api/common';
+import { useRequest } from 'ahooks';
+import { TestType } from '@/lib/constants';
+import { getTestEntitiesByRelation, getTestConfig } from '@/lib/api/common';
 
 type GetTestEntityParams = Parameters<typeof getTestEntitiesByRelation>;
-// 查询所有事项实体 id
+/** 获取所有事项实体 id */
 export const useAllRelTestEntities = (
   relType: GetTestEntityParams['0'],
   sides: GetTestEntityParams['1'],
@@ -33,4 +34,22 @@ export const useAllRelTestEntities = (
     refresh,
     testEntities: data ?? [],
   };
+};
+
+/* 判断是否空间隔离 */
+export const useIsolateTestType = (workspaceKey: string, testType: TestType) => {
+  const { data: testConfig } = useRequest(
+    async () => {
+      const testConfig = await getTestConfig({ workspaceKey });
+      return testConfig.toJSON();
+    },
+    {
+      ready: Boolean(workspaceKey),
+      cacheTime: 99999999999,
+      staleTime: 99999999999,
+      refreshDeps: [workspaceKey],
+    },
+  );
+
+  return !(testConfig?.isolateTestType ?? []).includes(testType);
 };

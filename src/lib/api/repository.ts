@@ -66,7 +66,7 @@ export const updateFolders = async (
     }
 
     if ('testDetailIds' in folder) {
-      repository.set('testDetailIds', folder.testDetailIds);
+      repository.set('testDetailIds', folder.testDetailIds.filter(Boolean));
     }
 
     return repository;

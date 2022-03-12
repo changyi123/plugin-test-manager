@@ -1,7 +1,7 @@
 import Parse from '@/lib/parse';
-import { keyBy, merge } from 'lodash';
 import { TestConfig } from '../models';
 import { getItemByIQL } from './proxima';
+import { keyBy, assign, omit, transform } from 'lodash';
 import { TestType, TestRelationType } from '@/lib/constants';
 import { Workspace, Item, Test, TestRelation } from '@/lib/models';
 import { hasArrayItem, pointerTransfer, toArray, escapeMatchesQueryArg } from '@/lib/utils/helper';
@@ -21,7 +21,7 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
   total: number;
   list: TResponseList;
 }> => {
-  const config = merge(
+  const config = assign(
     {
       // 响应数据处理
       resultTransfer: data => data,
@@ -157,7 +157,7 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
       const item =
         itemMap[entity.reference?.objectId || entity?.runReferenceDetail?.reference?.objectId];
       // 测试执行没有关联的事项
-      return Object.assign({}, entity, { reference: item || null });
+      return assign({}, entity, { reference: item || null });
     });
     return buildReturnData(testEntitiesDataWithItemData);
   }
@@ -257,7 +257,7 @@ export const getTestEntities = (
   },
 ) => {
   const query = new Parse.Query(Test);
-  const config = merge({ include: ['reference.workspace', 'reference.itemType'] }, _config);
+  const config = assign({ include: ['reference.workspace', 'reference.itemType'] }, _config);
 
   if (Array.isArray(config.include)) {
     query.include(config.include);
@@ -289,13 +289,14 @@ export const getTestEntitiesByQuery = async (
     descendingBy: string[];
     ascendingBy: string[];
     include: string[];
+    select: string[];
     ignoreDeletedItemData: boolean;
   }>,
 ) => {
   const query = new Parse.Query(Test);
 
   queryParams = queryParams ?? {};
-  options = merge(
+  options = assign(
     {
       ignoreDeletedItemData: true,
       include: ['reference.workspace', 'reference.itemType'],
@@ -324,11 +325,6 @@ export const getTestEntitiesByQuery = async (
     );
   }
 
-  // 忽略被删除事项数据
-  if (options.ignoreDeletedItemData) {
-    query.exists('reference');
-  }
-
   if (queryParams.in) {
     query.containedIn('objectId', escapeArrayTypeParams(queryParams.in));
   }
@@ -341,6 +337,15 @@ export const getTestEntitiesByQuery = async (
   query.withCount(true);
 
   // 处理条件
+  if (options.select) {
+    query.select(options.select);
+  }
+
+  // 忽略被删除事项数据
+  if (options.ignoreDeletedItemData) {
+    query.exists('reference');
+  }
+
   if (options.offset != null) {
     query.skip(options.offset ?? 0);
   }
@@ -441,4 +446,28 @@ export const getUsefulItemTypes = (workspaceId: string) => {
   return new Parse.Query(Workspace)
     .includes(['workspaceTemplate'])
     .equalTo('workspace', workspaceId);
+};
+
+/** 克隆测试实体 */
+export const cloneTestEntities = async (testEntityIds: string[]) => {
+  const pointerObjectMapping = { reference: Item, runReferenceDetail: Test };
+  const newTestEntities = await new Parse.Query(Test)
+    .containedIn('objectId', testEntityIds)
+    .map(item => {
+      const values = transform(
+        omit(item.toJSON(), ['objectId', 'status']),
+        (acc, value, key) => {
+          if (pointerObjectMapping[key]) {
+            acc[key] = pointerObjectMapping[key].createWithoutData(value.objectId);
+          } else {
+            acc[key] = value;
+          }
+          return acc;
+        },
+        {},
+      );
+      return new Test(values);
+    });
+
+  return Parse.Object.saveAll(newTestEntities);
 };

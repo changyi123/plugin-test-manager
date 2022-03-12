@@ -138,15 +138,15 @@ const ExecutionTable = () => {
         onStatusChange={toggleSTestRunStatus}
         key="toggleRunStatus"
         emptyNode={
-          <a>
+          <span>
             <DeleteOutlined /> 设置状态
-          </a>
+          </span>
         }
       />,
 
-      <a key="delete" onClick={deleteTestRun}>
+      <span key="delete" onClick={deleteTestRun}>
         <DeleteOutlined /> 删除
-      </a>,
+      </span>,
     ];
   }, [refreshAndMutateData, removeTestRelation]);
 
@@ -188,7 +188,7 @@ const ExecutionTable = () => {
       },
     },
     {
-      width: 100,
+      width: 180,
       key: 'detailNum',
       title: '测试用例数',
       render(_, rowData) {
@@ -196,7 +196,7 @@ const ExecutionTable = () => {
       },
     },
     {
-      width: 160,
+      width: 180,
       key: 'runStatuses',
       overflowEllipsis: false,
       title: '测试执行状态',
