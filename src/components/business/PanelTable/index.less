@@ -1,0 +1,53 @@
+.table {
+  :global {
+    .ant-spin {
+      transform: translateX(0);
+    }
+    .ant-pagination-total-text {
+      margin-right: auto;
+      color: #878c96;
+      font-size: 12px;
+    }
+
+    .ant-table-thead > tr > th,
+    .ant-table-tbody > tr > td,
+    .ant-table tfoot > tr > th,
+    .ant-table tfoot > tr > td {
+      padding: 8px;
+      &:first-child {
+        padding-left: 0;
+      }
+    }
+
+    .ant-table-row-expand-icon-cell {
+      padding-right: 0 !important;
+    }
+  }
+}
+
+.actions-header {
+  display: flex;
+  padding-bottom: 16px;
+}
+
+.right {
+  margin-left: auto;
+  & > * {
+    margin-left: 8px;
+  }
+}
+
+.left {
+  display: flex;
+  align-items: center;
+  .select-tip {
+    margin: 0 12px;
+  }
+  .actions {
+    > a {
+      + & {
+        margin-left: 15px;
+      }
+    }
+  }
+}

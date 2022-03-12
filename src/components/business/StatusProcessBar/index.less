@@ -1,0 +1,30 @@
+.status-bar {
+  margin-bottom: 30px;
+}
+
+.summary {
+  display: flex;
+  flex-wrap: nowrap;
+
+  .item {
+    margin-right: 30px;
+    white-space: nowrap;
+  }
+  .name {
+    margin-left: 6px;
+    font-weight: 700;
+    font-size: 12px;
+  }
+  .num {
+    font-size: 38px;
+    font-weight: 700;
+  }
+
+  .total {
+    white-space: nowrap;
+    margin-left: auto;
+    > .name {
+      margin-right: 6px;
+    }
+  }
+}
