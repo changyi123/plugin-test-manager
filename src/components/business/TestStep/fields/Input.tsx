@@ -2,12 +2,7 @@ import React from 'react';
 import { useHover } from 'ahooks';
 import classnames from 'classnames';
 import { StepFieldProps } from '../type';
-
-const escapeHtmlString = html => {
-  return html?.replace(/&\w+;/g, c => {
-    return { '&lt;': '<', '&gt;': '>', '&amp;': '&', '&quot;': '"' }[c] ?? c;
-  });
-};
+import { escapeHtmlString } from '@/lib/utils/helper';
 
 const Input: React.ForwardRefRenderFunction<
   HTMLDivElement,

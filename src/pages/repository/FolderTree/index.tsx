@@ -67,6 +67,7 @@ const DropTreeTitle = ({ children, nodeKey, onItemDrop }) => {
   const dragoverClassName = cx('ant-tree-treenode-dragover');
   useDrop(ref, {
     onDom(data, e) {
+      if (data.folderKey === nodeKey) return;
       onItemDrop({
         testId: data.testId,
         fromFolderKey: data.folderKey,

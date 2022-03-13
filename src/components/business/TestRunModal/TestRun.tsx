@@ -138,7 +138,11 @@ const TestRun: React.FC<TestRunType> = props => {
   const refTestDetailItemId = refTestDetailData.reference?.objectId;
   // 事项关联
   const { data: itemLinks, loading: itemLinksRequestLoading } = useRequest(
-    () => getItemLinkRelation(refTestDetailItemId),
+    async () => {
+      const res = await getItemLinkRelation(refTestDetailItemId);
+      // 过滤掉 destination 为空（被关联方事项已经被删除）
+      return res.filter(item => item.destination);
+    },
     {
       ready: Boolean(refTestDetailItemId),
       refreshDeps: [refTestDetailItemId, allRelationDefectIds.toString()],
@@ -167,7 +171,7 @@ const TestRun: React.FC<TestRunType> = props => {
       item: defectItemDict[id],
     }));
 
-    return globalDefects.concat(stepDefects);
+    return globalDefects.concat(stepDefects).filter(data => data.item);
   }, [testRunData, allRelationDefectItems]);
 
   React.useEffect(() => {

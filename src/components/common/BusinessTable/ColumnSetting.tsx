@@ -99,7 +99,8 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
         { label: '测试管理字段', options: [] },
         { label: '事项字段', options: [] },
       ],
-    );
+    )
+    .filter(item => item.options.length);
 
   // 处理 fixed column 排列
   useDeepCompareEffect(() => {

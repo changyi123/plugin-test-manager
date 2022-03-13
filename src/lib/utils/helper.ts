@@ -60,5 +60,11 @@ export const openItemViewScreen = itemId => {
   proximaSDK.execute('openItemViewScreen', itemId);
 };
 
+export const escapeHtmlString = str => {
+  return str?.replace(/&\w+;/g, c => {
+    return { '&lt;': '<', '&gt;': '>', '&amp;': '&', '&quot;': '"' }[c] ?? c;
+  });
+};
+
 /** panel 消息通知 */
 export { alert } from '@/components/business/PanelLayout';

@@ -187,15 +187,15 @@ export const createItemLink = async (links: IItemLink | Array<IItemLink>) => {
   const needCreateItemLinkAttrs = existedItemLinks.reduce((res, parseObj) => {
     const itemLink = parseObj.toJSON();
     const needComparedValues = {
-      source: itemLink.source.objectId,
+      source: itemLink.source?.objectId,
       linkType: itemLink.linkType.objectId,
-      destination: itemLink.destination.objectId,
+      destination: itemLink.destination?.objectId,
     };
     return res.filter(
       item =>
         !isEqual(needComparedValues, {
-          source: item.source.id,
-          destination: item.destination.id,
+          source: item.source?.id,
+          destination: item.destination?.id,
           linkType: item.linkType.id,
         }),
     );
@@ -303,8 +303,8 @@ export const deleteDefect = async (
       const { linkType, source, destination } = item2.toJSON();
       if (
         linkType.objectId === item.linkType &&
-        source.objectId === item.source &&
-        destination.objectId === item.destination
+        source?.objectId === item?.source &&
+        destination?.objectId === item?.destination
       ) {
         return item2;
       }

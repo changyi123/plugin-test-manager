@@ -183,8 +183,8 @@ export const getAllTestRelations = ({
  */
 export const createTestRelation = (
   _relations: Array<{
-    from: string | Parse.Object;
     to: string | Parse.Object;
+    from: string | Parse.Object;
     relationType: TestRelationType;
   }>,
 ) => {

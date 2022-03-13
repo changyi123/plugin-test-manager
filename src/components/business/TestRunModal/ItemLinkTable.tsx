@@ -17,8 +17,8 @@ const tableColumns = [
     render(itemType) {
       return (
         <>
-          <img src={itemType.icon} width="16" height="16" />
-          <span style={{ marginLeft: 8 }}>{itemType.name}</span>
+          <img src={itemType?.icon} width="16" height="16" />
+          <span style={{ marginLeft: 8 }}>{itemType?.name}</span>
         </>
       );
     },

@@ -6,6 +6,7 @@ import { updateTestRun } from '@/lib/api/runs';
 import AddDefectButton from './AddDefectButton';
 import { TabsComponentBaseProps } from './type';
 import { useItemLinkTypeConfig } from './hooks';
+import { escapeHtmlString } from '@/lib/utils/helper';
 import { addDefect, deleteDefect } from '@/lib/api/runs';
 import { StatusBadge } from '@/components/common/Status';
 import Input from '@/components/business/TestStep/fields/Input';
@@ -19,7 +20,7 @@ const TestStep: React.FC<TestStepProps> = props => {
   const { TestToDefect = '' } = useItemLinkTypeConfig();
   const steps = testRunData.runDetail?.steps ?? [];
   const [statusConfig, setStatusConfig] = React.useState({});
-  const renderFieldValue = value => (value ? value : '-');
+  const renderFieldValue = value => (value ? escapeHtmlString(value) : '-');
   // 所有已关联的缺陷，测试执行内的缺陷只允许关联一次
   const allRelationDefectItemIds = allRelationDefects.map(defect => defect.itemId);
 
@@ -108,6 +109,12 @@ const TestStep: React.FC<TestStepProps> = props => {
     );
   };
 
+  const renderStepLength = (defectItemIds: string[]) => {
+    return (
+      defectItemIds?.filter(id => allRelationDefects.some(item => item.itemId === id)).length ?? 0
+    );
+  };
+
   if (!steps.length)
     return <Empty style={{ marginTop: 60 }} description="当前测试执行无用例步骤" />;
 
@@ -161,7 +168,7 @@ const TestStep: React.FC<TestStepProps> = props => {
             </div>
           </div>
           <div className={cx('step-defects')}>
-            <div className={cx('label')}>缺陷（{step.defectItemIds?.length ?? 0}）</div>
+            <div className={cx('label')}>缺陷（{renderStepLength(step.defectItemIds)}）</div>
             {renderStepDefectList(step.id)}
             <AddDefectButton
               // plainStyle

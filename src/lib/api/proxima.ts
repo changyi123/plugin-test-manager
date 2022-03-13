@@ -100,6 +100,7 @@ export const getCustomFields = async () => {
     .filter(field => {
       // 下列字段类型组件不支持渲染
       const isNotAllowRenderFieldType = [
+        FIELD_TYPE_KEY_MAPPINGS.File,
         FIELD_TYPE_KEY_MAPPINGS.Editor,
         FIELD_TYPE_KEY_MAPPINGS.FieldCollection,
       ].includes(field?.fieldType?.key);
