@@ -17,7 +17,7 @@ import { useTestConfig, useBaseAction } from '@/lib/hooks/useContext';
 import TestEntitySelectorModal, {
   ActionType as SelectorActionType,
 } from '@/components/business/TestEntitySelectorModal';
-import { StatusBadge } from '@/components/common/Status';
+import { StatusBadge } from '@/components/business/Status';
 import { useAllRelTestEntities } from '@/lib/hooks/useTest';
 import TestRunModal from '@/components/business/TestRunModal';
 import { QuestionCircleOutlined } from '@/icons';

@@ -1,5 +1,5 @@
 import React from 'react';
-import { StatusBadge } from '@/components/common/Status';
+import { StatusBadge } from '@/components/business/Status';
 
 /** 最新执行状态 */
 export const LatestStatus = {

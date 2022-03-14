@@ -8,7 +8,7 @@ import { TabsComponentBaseProps } from './type';
 import { useItemLinkTypeConfig } from './hooks';
 import { escapeHtmlString } from '@/lib/utils/helper';
 import { addDefect, deleteDefect } from '@/lib/api/runs';
-import { StatusBadge } from '@/components/common/Status';
+import { StatusBadge } from '@/components/business/Status';
 import Input from '@/components/business/TestStep/fields/Input';
 
 import cx from './TestStep.less';
