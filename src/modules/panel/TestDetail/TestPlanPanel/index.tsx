@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { DownOutlined } from '@ant-design/icons';
-import { StatusProgress } from '@/components/common/Status';
+import { StatusProgress } from '@/components/business/Status';
 import { TestType, TestRelationType } from '@/lib/constants';
 import DropDownButton from '@/components/business/DropDownButton';
 import { createTestDetailToPlanRelations } from '@/lib/api/relations';

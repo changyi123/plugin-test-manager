@@ -11,7 +11,7 @@ import { useBaseAction } from '@/lib/hooks/useContext';
 import { goToItemDetailPage } from '@/lib/utils/helper';
 import { Dropdown, Menu, Tooltip, Spin } from '@osui/ui';
 import { EllipsisOutlined, PlusOutlined } from '@/icons';
-import { StatusProgress } from '@/components/common/Status';
+import { StatusProgress } from '@/components/business/Status';
 import { TestType, TestRelationType } from '@/lib/constants';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import {

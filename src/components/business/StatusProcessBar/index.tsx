@@ -1,5 +1,5 @@
 import React from 'react';
-import { StatusProgress } from '@/components/common/Status';
+import { StatusProgress } from '@/components/business/Status';
 
 import cx from './index.less';
 

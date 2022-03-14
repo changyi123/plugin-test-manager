@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 import React from 'react';
 import { Modal, Spin } from '@osui/ui';
-import { TestType, ModalType } from '@/lib/constants';
+import { TestType } from '@/lib/constants';
 import { uniq, reduce, keyBy } from 'lodash';
 import EventBus from '@/lib/utils/eventBus';
 import { getItemByIQL } from '@/lib/api/proxima';
@@ -11,7 +11,6 @@ import DebounceSelect from '@/components/common/DebounceSelect';
 import { getRootContainer, hasArrayItem } from '@/lib/utils/helper';
 import { getAllTestConfigs, getTestEntities } from '@/lib/api/common';
 import { TestTypeNameMapping } from '@/lib/constants';
-import CaseModal from '@/components/common/CaseModal';
 
 import cx from './index.less';
 
@@ -265,17 +264,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
         mode: 'multiple',
       };
 
-  return testType == 'TestDetail' ? (
-    <CaseModal
-      type={isSingleMode ? ModalType.ModalInherit : ModalType.ModalPlanning}
-      ignoreTestEntityIds={ignoreTestEntityIds ?? []}
-      isModalVisible={visible}
-      handleCancel={() => setVisible(false)}
-      handleOk={handleOk}
-      needFillValue={needFillValue ?? null}
-      title={props.title ?? ''}
-    />
-  ) : (
+  return (
     <Modal
       visible={visible}
       className={cx('modal')}

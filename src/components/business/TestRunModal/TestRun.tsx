@@ -6,7 +6,7 @@ import { TabsComponentBaseProps } from './type';
 import { getItemById } from '@/lib/api/proxima';
 import { getTestEntities } from '@/lib/api/common';
 import { getRootContainer } from '@/lib/utils/helper';
-import { StatusBadge } from '@/components/common/Status';
+import { StatusBadge } from '@/components/business/Status';
 import { useRequest, useSessionStorageState } from 'ahooks';
 import { TestType, PASS_STATUS_TYPE } from '@/lib/constants';
 import { Button, Checkbox, Collapse, Tabs, message, Spin, Tooltip } from '@osui/ui';
