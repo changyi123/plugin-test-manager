@@ -224,6 +224,7 @@ const TestRun: React.FC<TestRunType> = props => {
       testRunEntity,
       refTestDetailData,
       allRelationDefects,
+      handleStatusChangeBySteps: handleStatusChange, // 监听步骤 steps 执行 handleStatusChange
     } as TabsComponentBaseProps;
   }, [
     itemLinks,
@@ -233,6 +234,7 @@ const TestRun: React.FC<TestRunType> = props => {
     testRunEntity,
     refTestDetailData,
     allRelationDefects,
+    handleStatusChange,
   ]);
 
   const renderTabTitle = tab => {
