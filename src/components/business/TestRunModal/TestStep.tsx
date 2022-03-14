@@ -136,7 +136,7 @@ const TestStep: React.FC<TestStepProps> = props => {
                 {index + 1}
               </span>
             </span>
-            <span className={cx('action')}>{step.action}</span>
+            <span className={cx('action')}>{renderFieldValue(step.action)}</span>
             <span className={cx('status')}>
               <StatusBadge
                 status={step.status}
