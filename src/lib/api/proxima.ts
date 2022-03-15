@@ -183,7 +183,10 @@ export const getItemById = async itemId => {
 /** 删除所有事项 */
 export const deleteItems = async (itemIds: string[] | string) => {
   if (!Array.isArray(itemIds)) itemIds = [itemIds];
-  return fetch.$delete('/parse/api/items/bulk', { data: itemIds });
+  const paramsData = itemIds.filter(Boolean).map(id => ({
+    objectId: id,
+  }));
+  return fetch.$delete('/parse/api/items/bulk', { data: paramsData });
 };
 
 export const updateItemAssignee = async (itemIds, assignee) => {

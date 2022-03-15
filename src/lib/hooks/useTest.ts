@@ -52,7 +52,8 @@ export const useIsolateTestType = (workspaceKey: string, testType: TestType) => 
     },
   );
 
-  return !(testConfig?.isolateTestType ?? []).includes(testType);
+  if (!Array.isArray(testConfig?.isolateTestType)) return true;
+  return testConfig.isolateTestType.includes(testType);
 };
 
 /** 获取所有的测试空间 */

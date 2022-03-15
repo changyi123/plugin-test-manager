@@ -29,6 +29,7 @@ const ItemCreateSuccessEventType = 'itemCreateSuccess';
 /** 获取测试实体，如果不存在创建 */
 const getOrCreateTestEntity = async (itemId: string, config?: { notice: boolean }) => {
   if (!itemId) return null;
+  const storeValues = store.get(ExtensionValType.CREATE_OR_UPDATE_ITEM);
   let [testEntity] = await getTestEntities({ itemId });
 
   // 查询不到测试实体则直接创建
@@ -60,7 +61,7 @@ const getOrCreateTestEntity = async (itemId: string, config?: { notice: boolean 
 
       // 测试用例创建
       if (testType === TestType.TestDetail) {
-        const storeValues = store.get(ExtensionValType.CREATE_OR_UPDATE_ITEM);
+        console.log(store, storeValues);
         if (storeValues?.[CREATE_ITEM_STORE_FIELD_KEY]) {
           extraFields = Object.assign({}, extraFields, {
             detail: storeValues[CREATE_ITEM_STORE_FIELD_KEY],

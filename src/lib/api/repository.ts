@@ -4,6 +4,7 @@
 import Parse from '@/lib/parse';
 import { Item, Repository, Test } from '../models';
 import { arrayToTree } from '@/lib/utils/arrayToTree';
+import { ROOT_FOLDER_KEY } from '@/pages/repository/constant';
 export interface ICommonRes<T = any> {
   success: boolean;
   message?: string;
@@ -52,6 +53,7 @@ export const updateFolders = async (
     parentId?: string;
   }[],
 ) => {
+  folders = folders.filter(item => item.key !== ROOT_FOLDER_KEY);
   const needUpdateRepositories = folders.map(folder => {
     const repository = new Repository({
       objectId: folder.key,
