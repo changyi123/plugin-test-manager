@@ -254,6 +254,7 @@ export const getTestEntities = (
   params: { itemId?: string | string[]; id?: string | string[] },
   _config?: {
     include?: string[];
+    orderBy?: string;
   },
 ) => {
   const query = new Parse.Query(Test);
