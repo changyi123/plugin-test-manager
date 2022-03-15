@@ -12,7 +12,7 @@ import { useBaseAction } from '@/lib/hooks/useContext';
 import { TestType } from '@/lib/constants';
 import { removeTestRelations } from '@/lib/api/common';
 import TestRunModal from '@/components/business/TestRunModal';
-import { StatusBadge } from '@/components/common/Status';
+import { StatusBadge } from '@/components/business/Status';
 import { useTestConfig } from '@/lib/hooks/useContext';
 
 import css from './index.less';

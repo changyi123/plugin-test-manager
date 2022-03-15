@@ -7,7 +7,7 @@ import { TestEntity } from '@/lib/types/Test';
 import { useSDK } from '@projectproxima/plugin-sdk';
 import { EventEmitter } from 'ahooks/lib/useEventEmitter';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
-import TestManagerProvider from '@/components/common/TestManagerProvider';
+import TestManagerProvider from '@/components/business/TestManagerProvider';
 
 export type TableActionEventType = {
   tableSelectionVisible?: boolean;

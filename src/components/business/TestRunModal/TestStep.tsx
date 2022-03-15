@@ -1,5 +1,5 @@
 import React from 'react';
-import { useHover } from 'ahooks';
+import { useHover, useUpdateEffect } from 'ahooks';
 import { DeleteOutlined } from '@/icons';
 import { Popconfirm, Empty } from '@osui/ui';
 import { updateTestRun } from '@/lib/api/runs';
@@ -8,7 +8,7 @@ import { TabsComponentBaseProps } from './type';
 import { useItemLinkTypeConfig } from './hooks';
 import { escapeHtmlString } from '@/lib/utils/helper';
 import { addDefect, deleteDefect } from '@/lib/api/runs';
-import { StatusBadge } from '@/components/common/Status';
+import { StatusBadge } from '@/components/business/Status';
 import Input from '@/components/business/TestStep/fields/Input';
 
 import cx from './TestStep.less';
@@ -16,11 +16,20 @@ import cx from './TestStep.less';
 type TestStepProps = TabsComponentBaseProps;
 
 const TestStep: React.FC<TestStepProps> = props => {
-  const { testRunData, onDataChange, testRunEntity, allRelationDefects, onLoading } = props;
+  const {
+    testRunData,
+    onDataChange,
+    testRunEntity,
+    allRelationDefects,
+    onLoading,
+    handleStatusChangeBySteps,
+  } = props;
   const { TestToDefect = '' } = useItemLinkTypeConfig();
   const steps = testRunData.runDetail?.steps ?? [];
   const [statusConfig, setStatusConfig] = React.useState({});
   const renderFieldValue = value => (value ? escapeHtmlString(value) : '-');
+  // 步骤状态更新标识，每次执行 set true，每次更新数据会 set false
+  const [statusChangeBySteps, setStatusChangeBySteps] = React.useState(false);
   // 所有已关联的缺陷，测试执行内的缺陷只允许关联一次
   const allRelationDefectItemIds = allRelationDefects.map(defect => defect.itemId);
 
@@ -58,8 +67,18 @@ const TestStep: React.FC<TestStepProps> = props => {
     onLoading();
     const needUpdateSteps = steps.map(step => (step.id === stepId ? { ...step, status } : step));
     await updateTestRun(testRunEntity, { steps: needUpdateSteps });
-    onDataChange();
+    await onDataChange();
+    setStatusChangeBySteps(true);
   };
+
+  useUpdateEffect(() => {
+    if (statusChangeBySteps && handleStatusChangeBySteps) {
+      if (statusConfig?.[testRunData?.status]?.type === 'PASSED') {
+        handleStatusChangeBySteps(statusConfig?.[testRunData?.status]);
+      }
+      setStatusChangeBySteps(false);
+    }
+  }, [handleStatusChangeBySteps]);
 
   // 实际结果变更
   const handleActualResultChange = async (stepId, actualResult) => {
@@ -136,7 +155,7 @@ const TestStep: React.FC<TestStepProps> = props => {
                 {index + 1}
               </span>
             </span>
-            <span className={cx('action')}>{step.action}</span>
+            <span className={cx('action')}>{renderFieldValue(step.action)}</span>
             <span className={cx('status')}>
               <StatusBadge
                 status={step.status}

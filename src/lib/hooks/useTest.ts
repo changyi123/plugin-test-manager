@@ -1,6 +1,7 @@
 import { pick } from 'lodash';
 import { useRequest } from 'ahooks';
 import { TestType } from '@/lib/constants';
+import { getAllTestWorkspaces } from '@/lib/api/proxima';
 import { getTestEntitiesByRelation, getTestConfig } from '@/lib/api/common';
 
 type GetTestEntityParams = Parameters<typeof getTestEntitiesByRelation>;
@@ -52,4 +53,20 @@ export const useIsolateTestType = (workspaceKey: string, testType: TestType) => 
   );
 
   return !(testConfig?.isolateTestType ?? []).includes(testType);
+};
+
+/** 获取所有的测试空间 */
+export const useAllTestWorkspace = () => {
+  const { data: allTestWorkspaces } = useRequest(
+    async () => {
+      return getAllTestWorkspaces();
+    },
+    {
+      cacheKey: 'AllTestWorkspaces',
+      cacheTime: 99999999,
+      staleTime: 99999999,
+    },
+  );
+
+  return allTestWorkspaces;
 };

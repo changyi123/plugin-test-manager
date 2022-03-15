@@ -1,17 +1,17 @@
 /* eslint-disable no-unused-vars */
 import React from 'react';
-import { Modal, Spin } from '@osui/ui';
-import { TestType, ModalType } from '@/lib/constants';
+import { TestType } from '@/lib/constants';
 import { uniq, reduce, keyBy } from 'lodash';
 import EventBus from '@/lib/utils/eventBus';
+import { Modal, Spin, Button } from '@osui/ui';
 import { getItemByIQL } from '@/lib/api/proxima';
 import { useSafeState, useRequest } from 'ahooks';
+import TestDetailSelector from './TestDetailSelector';
+import { TestTypeNameMapping } from '@/lib/constants';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import DebounceSelect from '@/components/common/DebounceSelect';
 import { getRootContainer, hasArrayItem } from '@/lib/utils/helper';
 import { getAllTestConfigs, getTestEntities } from '@/lib/api/common';
-import { TestTypeNameMapping } from '@/lib/constants';
-import CaseModal from '@/components/common/CaseModal';
 
 import cx from './index.less';
 
@@ -21,7 +21,7 @@ export type ActionType = {
   open: (params?: { testType?: TestType; ignoreTestEntityIds?: string[] }) => any;
 };
 
-type TestEntitySelectorProps = {
+export type TestEntitySelectorProps = {
   title?: string;
   testType?: TestType;
   placeholder?: string;
@@ -33,10 +33,11 @@ type TestEntitySelectorProps = {
 };
 
 const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
-  const { actionRef, ignoreTestEntityIds = [], isSingleMode, needFillValue } = props;
-  const [visible, setVisible] = useSafeState(false);
+  const { actionRef, ignoreTestEntityIds = [], isSingleMode = false, needFillValue } = props;
+  const [visible, setVisible] = useSafeState(true);
   const debounceSelectContainerRef = React.useRef();
   const [selectValue, setSelectValue] = useSafeState([]);
+  const [selectedTestDetails, setSelectedTestDetails] = React.useState([]);
   const [testType, setTestType] = useSafeState<TestType>(props.testType);
   // 是否是测试缺陷类型
   const isTestDefectType = testType === TestType.TestDefect;
@@ -237,17 +238,19 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
   }));
 
   const handleOkButtonClick = React.useCallback(() => {
-    const filledValue = Array.isArray(selectValue)
-      ? selectValue.map(key => dataCacheDictRef.current[key])
-      : dataCacheDictRef.current[selectValue];
+    let selectedData = selectedTestDetails;
+    if (testType !== TestType.TestDetail) {
+      const filledValue = Array.isArray(selectValue)
+        ? selectValue.map(key => dataCacheDictRef.current[key])
+        : dataCacheDictRef.current[selectValue];
 
-    const selectData = needFillValue ? filledValue : selectValue;
-    if (typeof props.onSelect === 'function') {
-      props.onSelect(selectData);
+      selectedData = needFillValue ? filledValue : selectValue;
     }
-    eventBusRef.current.dispatch(AddExistedTestEventType, selectData);
+
+    typeof props.onSelect === 'function' && props.onSelect(selectedData);
+    eventBusRef.current.dispatch(AddExistedTestEventType, selectedData);
     setVisible(false);
-  }, [needFillValue, props, selectValue, setVisible]);
+  }, [needFillValue, props, selectValue, selectedTestDetails, setVisible, testType]);
 
   const filterOptions = React.useCallback(
     options => {
@@ -257,48 +260,90 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
     [ignoreTestEntityIds],
   );
 
-  const debounceSelectProps: any = isSingleMode
-    ? {
-        showSearch: true,
-      }
-    : {
-        mode: 'multiple',
-      };
+  // 测试执行，计划，缺陷选择器
+  const testEntitySelectorNode = React.useMemo(() => {
+    const debounceSelectProps: any = isSingleMode
+      ? {
+          showSearch: true,
+        }
+      : {
+          mode: 'multiple',
+        };
+    return (
+      <>
+        <p className={cx('hint')}>请输入并从列表中选择已存在的{testTypeName}</p>
+        <div ref={debounceSelectContainerRef}>
+          <DebounceSelect
+            {...debounceSelectProps}
+            value={selectValue}
+            loading={searchLoading}
+            className={cx('select')}
+            filterOptions={filterOptions}
+            fetchOptions={getTestEntityByKeyword}
+            onChange={value => setSelectValue(value)}
+            getPopupContainer={() => debounceSelectContainerRef.current}
+            placeholder={props.placeholder ?? `请输入并从列表中选择已存在的${testTypeName}`}
+            notFoundContent={searchLoading ? <Spin /> : <div>未查询到相关{testTypeName}</div>}
+          />
+        </div>
+      </>
+    );
+  }, [
+    filterOptions,
+    getTestEntityByKeyword,
+    isSingleMode,
+    props.placeholder,
+    searchLoading,
+    selectValue,
+    setSelectValue,
+    testTypeName,
+  ]);
 
-  return testType == 'TestDetail' ? (
-    <CaseModal
-      type={isSingleMode ? ModalType.ModalInherit : ModalType.ModalPlanning}
-      ignoreTestEntityIds={ignoreTestEntityIds ?? []}
-      isModalVisible={visible}
-      handleCancel={() => setVisible(false)}
-      handleOk={handleOk}
-      needFillValue={needFillValue ?? null}
-      title={props.title ?? ''}
-    />
-  ) : (
-    <Modal
-      visible={visible}
-      className={cx('modal')}
-      onOk={handleOkButtonClick}
-      getContainer={getRootContainer}
-      onCancel={() => setVisible(false)}
-      title={props.title ?? `请选择${testTypeName}`}
-    >
-      <p className={cx('hint')}>请输入并从列表中选择已存在的{testTypeName}</p>
-      <div ref={debounceSelectContainerRef}>
-        <DebounceSelect
-          {...debounceSelectProps}
-          value={selectValue}
-          loading={searchLoading}
-          className={cx('select')}
-          filterOptions={filterOptions}
-          fetchOptions={getTestEntityByKeyword}
-          onChange={value => setSelectValue(value)}
-          getPopupContainer={() => debounceSelectContainerRef.current}
-          placeholder={props.placeholder ?? `请输入并从列表中选择已存在的${testTypeName}`}
-          notFoundContent={searchLoading ? <Spin /> : <div>未查询到相关{testTypeName}</div>}
-        />
+  // 测试计划选择器
+  const testDetailSelectorNode = React.useMemo(() => {
+    return (
+      <TestDetailSelector
+        isSingleMode={isSingleMode}
+        workspaceKey={workspace.key}
+        ignoreTestDetailIds={ignoreTestEntityIds}
+        isWorkspaceIsolate={isolateTestType.includes(TestType.TestDetail)}
+        onTestDetailSelect={testDetails => setSelectedTestDetails(testDetails)}
+      />
+    );
+  }, [isolateTestType, workspace.key, isSingleMode, ignoreTestEntityIds]);
+
+  const ModalFooterNode = React.useMemo(() => {
+    return (
+      <div className={cx('footer')}>
+        {testType === TestType.TestDetail ? (
+          <div className={cx('info')}>
+            已选择<strong className={cx('num')}>{selectedTestDetails.length}</strong>条用例
+          </div>
+        ) : null}
+        <div className={cx('actions')}>
+          <Button onClick={() => setVisible(false)}>取消</Button>
+          <Button type="primary" onClick={handleOkButtonClick}>
+            确定
+          </Button>
+        </div>
       </div>
+    );
+  }, [handleOkButtonClick, selectedTestDetails, setVisible, testType]);
+
+  return (
+    <Modal
+      destroyOnClose
+      closable={false}
+      keyboard={false}
+      visible={visible}
+      maskClosable={false}
+      className={cx('modal')}
+      getContainer={getRootContainer}
+      footer={ModalFooterNode}
+      title={props.title ?? `请选择${testTypeName}`}
+      width={testType === TestType.TestDetail ? 800 : 500}
+    >
+      {testType === TestType.TestDetail ? testDetailSelectorNode : testEntitySelectorNode}
     </Modal>
   );
 };

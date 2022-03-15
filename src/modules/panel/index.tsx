@@ -8,7 +8,7 @@ import { getDevConfig } from '@/devEnv';
 import { useSDK } from '@projectproxima/plugin-sdk';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import { TestType, ENTITY_NOT_FOUND } from '@/lib/constants';
-import TestManagerProvider from '@/components/common/TestManagerProvider';
+import TestManagerProvider from '@/components/business/TestManagerProvider';
 
 import cx from './index.less';
 

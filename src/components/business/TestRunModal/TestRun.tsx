@@ -6,7 +6,7 @@ import { TabsComponentBaseProps } from './type';
 import { getItemById } from '@/lib/api/proxima';
 import { getTestEntities } from '@/lib/api/common';
 import { getRootContainer } from '@/lib/utils/helper';
-import { StatusBadge } from '@/components/common/Status';
+import { StatusBadge } from '@/components/business/Status';
 import { useRequest, useSessionStorageState } from 'ahooks';
 import { TestType, PASS_STATUS_TYPE } from '@/lib/constants';
 import { Button, Checkbox, Collapse, Tabs, message, Spin, Tooltip } from '@osui/ui';
@@ -65,7 +65,7 @@ const TestRun: React.FC<TestRunType> = props => {
     async () => {
       const data = await getTestEntities(
         { id: testId },
-        { include: ['runReferenceDetail.reference'] },
+        { include: ['runReferenceDetail.reference'], orderBy: 'createdAt' },
       );
       return data?.[0] as Parse.Object<TestRunEntity>;
     },
@@ -224,6 +224,7 @@ const TestRun: React.FC<TestRunType> = props => {
       testRunEntity,
       refTestDetailData,
       allRelationDefects,
+      handleStatusChangeBySteps: handleStatusChange, // 监听步骤 steps 执行 handleStatusChange
     } as TabsComponentBaseProps;
   }, [
     itemLinks,
@@ -233,6 +234,7 @@ const TestRun: React.FC<TestRunType> = props => {
     testRunEntity,
     refTestDetailData,
     allRelationDefects,
+    handleStatusChange,
   ]);
 
   const renderTabTitle = tab => {
@@ -244,7 +246,7 @@ const TestRun: React.FC<TestRunType> = props => {
         return itemLinks?.length ?? 0;
       },
       defect() {
-        return allRelationDefectIds?.length ?? 0;
+        return allRelationDefectItems?.length ?? 0;
       },
     };
 

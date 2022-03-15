@@ -6,12 +6,13 @@ import { deleteItems } from '@/lib/api/proxima';
 import { hasArrayItem } from '@/lib/utils/helper';
 import { actionConfirm } from '@/lib/utils/helper';
 import { useInfiniteScroll, useHover } from 'ahooks';
+import { useOnItemCreateSuccess } from '@/lib/hooks/useProximaSDK';
 import { notification, Empty, Button } from '@osui/ui';
 import { useBaseAction } from '@/lib/hooks/useContext';
 import { goToItemDetailPage } from '@/lib/utils/helper';
 import { Dropdown, Menu, Tooltip, Spin } from '@osui/ui';
 import { EllipsisOutlined, PlusOutlined } from '@/icons';
-import { StatusProgress } from '@/components/common/Status';
+import { StatusProgress } from '@/components/business/Status';
 import { TestType, TestRelationType } from '@/lib/constants';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import {
@@ -49,6 +50,10 @@ const PlanItem: React.FC<{
     });
   };
 
+  // 说明该 事项 已经被删除, 删除的则不在做展示
+  if (_.isEmpty(reference)) {
+    return null;
+  }
   return (
     <div
       ref={ref}
@@ -188,7 +193,6 @@ const PlanList = () => {
     await createItemUseModal({
       type: TestType.TestPlan,
     });
-    reload();
     notification.success({
       message: '测试计划新建成功',
     });
@@ -210,6 +214,9 @@ const PlanList = () => {
     setSearch(value);
     reload();
   };
+
+  // 监听 事项创建刷新 左侧测试计划列表
+  useOnItemCreateSuccess(reload);
 
   return (
     <div className={cx('container')}>

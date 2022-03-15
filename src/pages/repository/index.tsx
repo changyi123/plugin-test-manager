@@ -15,7 +15,7 @@ import { traverseTreeNodes, reverseTreeNodes, getTreeNodeByKey } from './hook';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
 import SearchInput from '@/components/business/SearchInput';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
-import TestManagerProvider from '@/components/common/TestManagerProvider';
+import TestManagerProvider from '@/components/business/TestManagerProvider';
 import { useBaseAction } from '@/lib/hooks/useContext';
 import { updateFolders } from '@/lib/api/repository';
 

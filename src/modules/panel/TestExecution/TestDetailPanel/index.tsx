@@ -12,7 +12,7 @@ import TestEntitySelectorModal, {
 } from '@/components/business/TestEntitySelectorModal';
 import TestRunModal from '@/components/business/TestRunModal';
 import { getRootContainer } from '@/lib/utils/helper';
-import { StatusBadge } from '@/components/common/Status';
+import { StatusBadge } from '@/components/business/Status';
 import { useAllRelTestEntities } from '@/lib/hooks/useTest';
 import { INITIAL_STATUS_KEY } from '@/lib/constants';
 import StatusProcessBar from '@/components/business/StatusProcessBar';

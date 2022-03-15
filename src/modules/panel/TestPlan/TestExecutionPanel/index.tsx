@@ -12,7 +12,7 @@ import { alert } from '@/lib/utils/helper';
 import TestEntitySelectorModal, {
   ActionType as SelectorActionType,
 } from '@/components/business/TestEntitySelectorModal';
-import { StatusProgress } from '@/components/common/Status';
+import { StatusProgress } from '@/components/business/Status';
 import { createTestExecutionToPlanRelations } from '@/lib/api/relations';
 import { getTestEntitiesByRelation, removeTestRelations } from '@/lib/api/common';
 
