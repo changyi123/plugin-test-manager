@@ -23,6 +23,7 @@ const enum TabKeyEnum {
 const Main = () => {
   const testEntitySelectorRef = React.useRef<ActionType>();
   const [activeKey, setActiveKey] = React.useState(TabKeyEnum.testDetailTable);
+  const [value, setValue] = React.useState(''); // 用于回显searchInput的值
   const {
     tableSelectionToggleEvent,
     setSearchValue,
@@ -91,7 +92,15 @@ const Main = () => {
 
   const rightExtraContent = (
     <div className={cx('extra-content')}>
-      <SearchInput placeholder="请输入标题" className={cx('action')} onSearch={handleSearch} />
+      <SearchInput
+        placeholder="请输入标题"
+        value={value}
+        className={cx('action')}
+        onChange={val => {
+          setValue(val as unknown as string);
+        }}
+        onSearch={handleSearch}
+      />
       <Tooltip title="多选操作">
         <AppstoreAddOutlined
           onClick={() => toggleTableSelection()}
@@ -127,6 +136,8 @@ const Main = () => {
         onChange={key => {
           setActiveKey(key as TabKeyEnum);
           toggleTableSelection(false);
+          handleSearch('');
+          setValue('');
         }}
         tabBarExtraContent={{ right: rightExtraContent }}
       >

@@ -117,7 +117,7 @@ const StepRow: React.FC<StepRowProps> = props => {
         {...provider.draggableProps}
         className={cx('step-row', isHover && 'hover')}
       >
-        <span className={cx('column', 'drag-area')} {...provider.dragHandleProps}>
+        <span className={cx('column', 'drag-area', 'number')} {...provider.dragHandleProps}>
           {isHover ? (
             <DragHandler />
           ) : (
