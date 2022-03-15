@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { useRequest } from 'ahooks';
 import { TestType } from '@/lib/constants';
 import { hasArrayItem } from '@/lib/utils/helper';
@@ -7,6 +7,7 @@ import { getAllTestWorkspaces } from '@/lib/api/proxima';
 import { useIsolateTestType } from '@/lib/hooks/useTest';
 import { traverseTreeNodes } from '@/pages/repository/hook';
 import { Modal, Select, Tree, Empty, Spin } from '@osui/ui';
+import { isEmpty } from 'lodash';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import EventBus from '@/lib/utils/eventBus';
 
@@ -31,13 +32,16 @@ const RepositorySelector: React.FC<RepositorySelectorProps> = props => {
   const { actionRef, title = '复制用例' } = props;
 
   const eventBusRef = React.useRef(new EventBus());
-  const treeSelectedNodeRef = React.useRef<any>();
+  const [treeSelectedNode, setTreeSelectedNode] = React.useState<any>();
   const [visible, setVisible] = React.useState(false);
   const [workspaceKey, setWorkspaceKey] = React.useState('');
   const [selectedWorkspaceKey, setSelectedWorkspaceKey] = React.useState('');
 
   // 空间隔离
   const isWorkspaceIsolate = useIsolateTestType(workspaceKey, TestType.TestDetail);
+
+  // 在提交之后置空用户所选的模块
+  const resetTreeSelect = () => setTreeSelectedNode(null);
 
   const { data: allTestWorkspaces } = useRequest(
     async () => {
@@ -90,6 +94,7 @@ const RepositorySelector: React.FC<RepositorySelectorProps> = props => {
         setSelectedWorkspaceKey(workspaceKey);
         return new Promise(resolve => {
           const disposer = eventBusRef.current.register(SubmitEventKey, node => {
+            resetTreeSelect();
             disposer.unregister();
             resolve({
               repositoryKey: node.key,
@@ -104,14 +109,13 @@ const RepositorySelector: React.FC<RepositorySelectorProps> = props => {
   );
 
   const handleTreeSelect = (_, { node }) => {
-    treeSelectedNodeRef.current = node;
+    setTreeSelectedNode(node);
   };
 
-  const handleSubmit = () => {
-    treeSelectedNodeRef.current &&
-      eventBusRef.current.dispatch(SubmitEventKey, treeSelectedNodeRef.current);
+  const handleSubmit = useCallback(() => {
+    !isEmpty(treeSelectedNode) && eventBusRef.current.dispatch(SubmitEventKey, treeSelectedNode);
     setVisible(false);
-  };
+  }, [treeSelectedNode]);
 
   return (
     <Modal
@@ -120,6 +124,7 @@ const RepositorySelector: React.FC<RepositorySelectorProps> = props => {
       closable={false}
       title={title}
       visible={visible}
+      okButtonProps={{ disabled: isEmpty(treeSelectedNode) }}
       className={cx('modal')}
     >
       <div className={cx('repository-selector')}>
