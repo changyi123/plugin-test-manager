@@ -110,8 +110,8 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
 
   const scrollMemo = useMemo(() => {
     return {
-      ...scroll,
       y: size?.height - 88, // 当前容器高度减去footer和header高度
+      ...scroll,
     };
   }, [scroll, size]);
 

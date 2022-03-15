@@ -34,7 +34,7 @@ export type TestEntitySelectorProps = {
 
 const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
   const { actionRef, ignoreTestEntityIds = [], isSingleMode = false, needFillValue } = props;
-  const [visible, setVisible] = useSafeState(true);
+  const [visible, setVisible] = useSafeState(false);
   const debounceSelectContainerRef = React.useRef();
   const [selectValue, setSelectValue] = useSafeState([]);
   const [selectedTestDetails, setSelectedTestDetails] = React.useState([]);
