@@ -55,21 +55,6 @@ const RepositorySelector: React.FC<RepositorySelectorProps> = props => {
     },
   );
 
-  const { loading, data: treeData } = useRequest(
-    async () => {
-      if (!visible) return [];
-      const treeData = await getFolderTree(selectedWorkspaceKey);
-      traverseTreeNodes(treeData, node => {
-        node.title = <OverflowTooltip title={node.name}>{node.name}</OverflowTooltip>;
-      });
-      return treeData;
-    },
-    {
-      refreshDeps: [visible, selectedWorkspaceKey],
-      ready: Boolean(selectedWorkspaceKey),
-    },
-  );
-
   const options = React.useMemo(() => {
     return (
       allTestWorkspaces?.map(workspace => ({
@@ -84,6 +69,21 @@ const RepositorySelector: React.FC<RepositorySelectorProps> = props => {
       })) ?? []
     );
   }, [allTestWorkspaces]);
+
+  const { loading, data: treeData } = useRequest(
+    async () => {
+      if (!visible) return [];
+      const treeData = await getFolderTree(selectedWorkspaceKey);
+      traverseTreeNodes(treeData, node => {
+        node.title = <OverflowTooltip title={node.name}>{node.name}</OverflowTooltip>;
+      });
+      return treeData;
+    },
+    {
+      refreshDeps: [visible, selectedWorkspaceKey],
+      ready: Boolean(selectedWorkspaceKey),
+    },
+  );
 
   React.useImperativeHandle(
     actionRef,
