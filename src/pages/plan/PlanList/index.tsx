@@ -49,6 +49,10 @@ const PlanItem: React.FC<{
     });
   };
 
+  // 说明该 事项 已经被删除, 删除的则不在做展示
+  if (_.isEmpty(reference)) {
+    return null;
+  }
   return (
     <div
       ref={ref}
