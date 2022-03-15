@@ -6,7 +6,7 @@ import { AppstoreAddOutlined } from '@/icons';
 import { createTestRelation } from '@/lib/api/common';
 import { useAllRelTestEntities } from '@/lib/hooks/useTest';
 import { TestType, TestRelationType } from '@/lib/constants';
-import { Tabs, Button, Tooltip, notification } from '@osui/ui';
+import { Tabs, Button, Tooltip, notification, message } from '@osui/ui';
 import { createTestExecutionAndRelations } from '@/lib/api/runs';
 import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
 import TestEntitySelectorModal, { ActionType } from '@/components/business/TestEntitySelectorModal';
@@ -59,7 +59,7 @@ const Main = () => {
 
     const testExecutionData = testExecutionEntity.toJSON();
 
-    message.success('测试执行任务正在创建');
+    message.loading('测试执行任务正在创建');
 
     await createTestExecutionAndRelations({
       workspaceKey: workspace.key,
