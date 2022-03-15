@@ -6,6 +6,7 @@ import { deleteItems } from '@/lib/api/proxima';
 import { hasArrayItem } from '@/lib/utils/helper';
 import { actionConfirm } from '@/lib/utils/helper';
 import { useInfiniteScroll, useHover } from 'ahooks';
+import { useOnItemCreateSuccess } from '@/lib/hooks/useProximaSDK';
 import { notification, Empty, Button } from '@osui/ui';
 import { useBaseAction } from '@/lib/hooks/useContext';
 import { goToItemDetailPage } from '@/lib/utils/helper';
@@ -192,7 +193,6 @@ const PlanList = () => {
     await createItemUseModal({
       type: TestType.TestPlan,
     });
-    reload();
     notification.success({
       message: '测试计划新建成功',
     });
@@ -214,6 +214,9 @@ const PlanList = () => {
     setSearch(value);
     reload();
   };
+
+  // 监听 事项创建刷新 左侧测试计划列表
+  useOnItemCreateSuccess(reload);
 
   return (
     <div className={cx('container')}>
