@@ -65,7 +65,7 @@ const TestRun: React.FC<TestRunType> = props => {
     async () => {
       const data = await getTestEntities(
         { id: testId },
-        { include: ['runReferenceDetail.reference'] },
+        { include: ['runReferenceDetail.reference'], orderBy: 'createdAt' },
       );
       return data?.[0] as Parse.Object<TestRunEntity>;
     },
