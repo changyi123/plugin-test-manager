@@ -112,6 +112,11 @@ const RepositorySelector: React.FC<RepositorySelectorProps> = props => {
     setTreeSelectedNode(node);
   };
 
+  const onCancel = () => {
+    setVisible(false);
+    resetTreeSelect();
+  };
+
   const handleSubmit = useCallback(() => {
     !isEmpty(treeSelectedNode) && eventBusRef.current.dispatch(SubmitEventKey, treeSelectedNode);
     setVisible(false);
@@ -119,7 +124,7 @@ const RepositorySelector: React.FC<RepositorySelectorProps> = props => {
 
   return (
     <Modal
-      onCancel={() => setVisible(false)}
+      onCancel={onCancel}
       onOk={handleSubmit}
       closable={false}
       title={title}

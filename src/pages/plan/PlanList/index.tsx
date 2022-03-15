@@ -215,8 +215,8 @@ const PlanList = () => {
     reload();
   };
 
-  // 监听 事项创建刷新 左侧测试计划列表
-  useOnItemCreateSuccess(reload);
+  // 监听 事项创建刷新 左侧测试计划列表，需要个延时立即刷新数据未更新
+  useOnItemCreateSuccess(() => setTimeout(reload, 1000));
 
   return (
     <div className={cx('container')}>
