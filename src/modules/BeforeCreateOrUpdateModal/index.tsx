@@ -16,6 +16,7 @@ const getUpdateParamsByStoreValues = storeValues => ({
 
 const BeforeCreateOrUpdateModal = () => {
   const { context } = useSDK();
+  const storeValues = store.get(ExtensionValType.CREATE_OR_UPDATE_ITEM);
 
   const { data: itemTypeMappingDict } = useRequest(
     async () => {
@@ -24,6 +25,7 @@ const BeforeCreateOrUpdateModal = () => {
       return keyBy(allConfigs, 'workspaceKey');
     },
     {
+      ready: Boolean(storeValues.extraData),
       cacheKey: 'ALL_CONFIGS',
       cacheTime: 9999999999,
       staleTime: 9999999999,
@@ -74,13 +76,12 @@ const BeforeCreateOrUpdateModal = () => {
   }, []);
 
   const testDetailFormVisible = React.useMemo(() => {
+    if (!storeValues.extraData) return false;
     const testDetailRefItemTypeKey =
       itemTypeMappingDict?.[currentModalValues.workspaceKey]?.itemTypeMap?.[TestType.TestDetail];
 
     return testDetailRefItemTypeKey && testDetailRefItemTypeKey === currentModalValues.itemTypeKey;
-  }, [currentModalValues, itemTypeMappingDict]);
-
-  const storeValues = store.get(ExtensionValType.CREATE_OR_UPDATE_ITEM);
+  }, [currentModalValues, itemTypeMappingDict, storeValues]);
 
   React.useEffect(() => {
     if (initialRef.current) return;
