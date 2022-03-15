@@ -59,6 +59,8 @@ const Main = () => {
 
     const testExecutionData = testExecutionEntity.toJSON();
 
+    message.success('测试执行任务正在创建');
+
     await createTestExecutionAndRelations({
       workspaceKey: workspace.key,
       testPlan: selectedTestPlanId,
