@@ -49,15 +49,6 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
     config: { isolateTestType = [] },
   } = useTestConfig();
 
-  const handleOk = data => {
-    const selectData = data;
-    if (typeof props.onSelect === 'function') {
-      props.onSelect(selectData);
-    }
-    eventBusRef.current.dispatch(AddExistedTestEventType, selectData);
-    setVisible(false);
-  };
-
   // 数据缓存
   const dataCacheDictRef = React.useRef({});
   const eventBusRef = React.useRef<any>(new EventBus());
@@ -225,14 +216,10 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
       setVisible(true);
 
       return new Promise(resolve => {
-        eventBusRef.current.disposer = eventBusRef.current.register(
-          AddExistedTestEventType,
-          data => {
-            typeof eventBusRef?.current?.disposer?.unregister === 'function' &&
-              eventBusRef.current.disposer.unregister();
-            resolve(data);
-          },
-        );
+        const disposer = eventBusRef.current.register(AddExistedTestEventType, data => {
+          disposer.unregister();
+          resolve(data);
+        });
       });
     },
   }));

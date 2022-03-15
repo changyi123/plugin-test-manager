@@ -104,7 +104,10 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
         getAllTestDetailEntityIds(selectedWorkspaceKey),
       ]);
 
-      const allTestDetailIdSet = new Set<string>(allTestDetailIds);
+      const allTestDetailIdSet = new Set<string>(
+        // 排除被忽略的 detailId
+        allTestDetailIds.filter(id => !ignoreTestDetailIds?.includes(id)),
+      );
       traverseTreeNodes(treeNodes, node => {
         // FIXME: 优化渲染 title 逻辑
         node.title = <OverflowTooltip title={node.name}>{node.name}</OverflowTooltip>;
@@ -258,6 +261,8 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
   React.useEffect(() => {
     setFolderSearchValue('');
     baseSearchState.nameLike = '';
+    // 单选模式切换时重置选中项
+    isSingleMode && setSelectedTestDetailIds([]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedWorkspaceKey]);
 

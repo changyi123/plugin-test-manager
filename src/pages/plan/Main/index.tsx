@@ -118,8 +118,6 @@ const Main = () => {
     </div>
   );
 
-  console.log(selectedTestPlan.refTestDetails?.map(item => item.objectId) ?? []);
-
   return (
     <>
       <TestEntitySelectorModal
