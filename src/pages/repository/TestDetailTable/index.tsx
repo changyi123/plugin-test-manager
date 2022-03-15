@@ -56,6 +56,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
     props;
   const tableActionRef = React.useRef<BusinessTableActionType>();
   const repositorySelectorRef = React.useRef<RepositorySelectorActionType>();
+  const [tableLoading, setTableLoading] = React.useState(false);
 
   const { workspace } = useTestConfig();
   const workspaceKey = workspace?.key;
@@ -113,6 +114,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
 
     // 更新负责人
     const toggleAssignee = async assignees => {
+      setTableLoading(true);
       const itemIds = tableActionRef.current.selectedRows
         .map(row => row.reference?.objectId)
         .filter(Boolean);
@@ -125,6 +127,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
       notification.success({
         message: `${tableActionRef.current.selectedRows.length} 个测试负责人已更新`,
       });
+      setTableLoading(false);
     };
 
     // 复制测试用例
@@ -232,6 +235,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         actionRef={tableActionRef}
         getDataSource={dataSourceGetter}
         onSelectionCancel={onSelectionCancel}
+        loading={tableLoading}
         selectionActionNodes={selectionActionNodes}
       />
       <RepositorySelector actionRef={repositorySelectorRef} />
