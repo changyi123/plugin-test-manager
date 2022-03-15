@@ -132,6 +132,9 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
 
     // 复制测试用例
     const copyTestDetail = async () => {
+      // eslint-disable-next-line no-console
+      console.log(111111111);
+
       const testEntityIds = tableActionRef.current.selectedRows.map(row => row.objectId);
       const targetRepository = await repositorySelectorRef.current.open({ workspaceKey });
       const clonedTestEntities = await cloneTestEntities(testEntityIds);
