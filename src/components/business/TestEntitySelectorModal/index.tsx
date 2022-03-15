@@ -304,13 +304,13 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
     return (
       <TestDetailSelector
         isSingleMode={isSingleMode}
-        workspaceKey={workspace.key}
+        workspaceKey={workspace?.key}
         ignoreTestDetailIds={ignoreTestEntityIds}
         isWorkspaceIsolate={isolateTestType.includes(TestType.TestDetail)}
         onTestDetailSelect={testDetails => setSelectedTestDetails(testDetails)}
       />
     );
-  }, [isolateTestType, workspace.key, isSingleMode, ignoreTestEntityIds]);
+  }, [isolateTestType, workspace?.key, isSingleMode, ignoreTestEntityIds]);
 
   const ModalFooterNode = React.useMemo(() => {
     return (
