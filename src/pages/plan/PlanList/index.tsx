@@ -97,11 +97,12 @@ const PlanItem: React.FC<{
 
 const PlanList = () => {
   const listRef = React.useRef();
-  const initialRef = React.useRef(false);
   const [search, setSearch] = React.useState('');
   const { createItemUseModal } = useBaseAction();
-  const { workspaceKey, setSelectedTestPlanId, selectedTestPlanId, mutateTestPlanEvent } =
+  const { workspaceKey, setSelectedTestPlan, selectedTestPlan, mutateTestPlanEvent } =
     usePageContext();
+
+  const selectedTestPlanId = selectedTestPlan.objectId;
 
   const { data, reload, loading, mutate } = useInfiniteScroll(
     async params => {
@@ -183,11 +184,16 @@ const PlanList = () => {
   const testPlans = data?.list ?? [];
 
   React.useEffect(() => {
-    if (!initialRef.current && hasArrayItem(data?.list)) {
-      initialRef.current = true;
-      setSelectedTestPlanId(data.list[0].objectId);
+    if (hasArrayItem(data?.list)) {
+      // 默认选中第一项
+      if (_.isEqual(selectedTestPlan, {})) {
+        setSelectedTestPlan(data.list[0]);
+      } else {
+        const testPlan = data.list.find(item => item.objectId === selectedTestPlan.objectId);
+        setSelectedTestPlan(testPlan);
+      }
     }
-  }, [data?.list, setSelectedTestPlanId]);
+  }, [data?.list, selectedTestPlan, setSelectedTestPlan]);
 
   const handleCreate = async () => {
     await createItemUseModal({
@@ -235,7 +241,7 @@ const PlanList = () => {
                 key={testPlan.objectId}
                 onDelete={handleDelete}
                 selectedId={selectedTestPlanId}
-                onSelect={data => setSelectedTestPlanId(data.objectId)}
+                onSelect={data => setSelectedTestPlan(data)}
               />
             ))}
           </div>

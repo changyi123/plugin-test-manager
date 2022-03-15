@@ -4,7 +4,6 @@ import { usePageContext } from '../hook';
 import ExecutionTable from './ExecutionTable';
 import { AppstoreAddOutlined } from '@/icons';
 import { createTestRelation } from '@/lib/api/common';
-import { useAllRelTestEntities } from '@/lib/hooks/useTest';
 import { TestType, TestRelationType } from '@/lib/constants';
 import { Tabs, Button, Tooltip, notification, message } from '@osui/ui';
 import { createTestExecutionAndRelations } from '@/lib/api/runs';
@@ -25,19 +24,17 @@ const Main = () => {
   const [activeKey, setActiveKey] = React.useState(TabKeyEnum.testDetailTable);
   const [value, setValue] = React.useState(''); // 用于回显searchInput的值
   const {
-    tableSelectionToggleEvent,
-    setSearchValue,
-    selectedTestPlanId,
     refresh,
+    setSearchValue,
+    selectedTestPlan,
     mutateTestPlanEvent,
+    tableSelectionToggleEvent,
   } = usePageContext();
   const [tableSelectionVisible, setTableSelectionVisible] = React.useState(false);
   const { createItemUseModal } = useBaseAction();
   const { workspace } = useTestConfig();
 
-  const { testEntities, mutate } = useAllRelTestEntities(TestRelationType.PlanRelDetail, {
-    from: selectedTestPlanId,
-  });
+  const selectedTestPlanId = selectedTestPlan.objectId;
 
   const toggleTableSelection = (visible?: boolean) => {
     visible = typeof visible === 'boolean' ? visible : !tableSelectionVisible;
@@ -69,7 +66,6 @@ const Main = () => {
     });
 
     refresh('detailTable');
-    mutate();
     notification.success({
       message: `测试执行任务【${testExecutionData?.reference?.name}】新建成功`,
     });
@@ -121,13 +117,16 @@ const Main = () => {
       ) : null}
     </div>
   );
+
+  console.log(selectedTestPlan.refTestDetails?.map(item => item.objectId) ?? []);
+
   return (
     <>
       <TestEntitySelectorModal
         title="选择规划的测试用例"
         testType={TestType.TestDetail}
         actionRef={testEntitySelectorRef}
-        ignoreTestEntityIds={testEntities}
+        ignoreTestEntityIds={selectedTestPlan.refTestDetails?.map(item => item.objectId) ?? []}
       />
       <Tabs
         activeKey={activeKey}

@@ -30,11 +30,13 @@ const ExecutionTable = () => {
   const {
     searchValue,
     workspaceKey,
-    selectedTestPlanId,
+    selectedTestPlan,
     mutateTestPlanEvent,
     registerRefreshMethod,
     tableSelectionToggleEvent,
   } = usePageContext();
+
+  const selectedTestPlanId = selectedTestPlan.objectId;
 
   React.useEffect(() => {
     registerRefreshMethod({

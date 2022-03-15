@@ -13,17 +13,19 @@ export type TableActionEventType = {
   tableSelectionVisible?: boolean;
 };
 
-type TestPlanEntity = TestEntity<TestType.TestPlan>;
+type TestPlanEntity = TestEntity<TestType.TestPlan> & {
+  refTestDetails: TestEntity[];
+};
 
 type PageContextType = {
   searchValue: string;
   workspaceKey: string;
   refresh: (key?: string) => void;
+  selectedTestPlan: TestPlanEntity | null;
   setSearchValue: (searchValue: string) => void;
   tableSelectionToggleEvent: EventEmitter<boolean>;
   mutateTestPlanEvent: EventEmitter<string | undefined>;
-  selectedTestPlanId: TestPlanEntity['objectId'] | null;
-  setSelectedTestPlanId: (id: TestPlanEntity['objectId']) => void;
+  setSelectedTestPlan: (testPlan: TestPlanEntity) => void;
   registerRefreshMethod: (method: Record<string, () => void>) => void;
 };
 
@@ -32,11 +34,11 @@ export const PageContext = React.createContext<PageContextType>({
   searchValue: '',
   workspaceKey: '',
   setSearchValue: noop,
-  selectedTestPlanId: null,
   mutateTestPlanEvent: null,
-  setSelectedTestPlanId: noop,
+  setSelectedTestPlan: noop,
   registerRefreshMethod: noop,
   tableSelectionToggleEvent: null,
+  selectedTestPlan: {} as TestPlanEntity,
 });
 
 const PageProvider: React.FC = ({ children }) => {
@@ -45,8 +47,8 @@ const PageProvider: React.FC = ({ children }) => {
   const tableSelectionToggleEvent = useEventEmitter<boolean>();
   const mutateTestPlanEvent = useEventEmitter<string | undefined>();
   const refreshCacheRef = React.useRef<Record<string, () => void>>();
-  const [selectedTestPlanId, setSelectedTestPlanId] = React.useState(null);
   const workspaceKey = context?.env?.WORKSPACE_KEY ?? getDevConfig().workspaceKey;
+  const [selectedTestPlan, setSelectedTestPlan] = React.useState({} as TestPlanEntity);
 
   const refresh = React.useCallback(key => {
     if (key) {
@@ -71,10 +73,10 @@ const PageProvider: React.FC = ({ children }) => {
             searchValue,
             workspaceKey,
             setSearchValue,
-            selectedTestPlanId,
+            selectedTestPlan,
+            setSelectedTestPlan,
             mutateTestPlanEvent,
             registerRefreshMethod,
-            setSelectedTestPlanId,
             tableSelectionToggleEvent,
           }}
         >
