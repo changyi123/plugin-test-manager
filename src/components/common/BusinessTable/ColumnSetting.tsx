@@ -76,7 +76,8 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
 
   const selectOptions = allColumns
     .filter(col => {
-      return !col.isSystem;
+      // 系统字段和附件不用展示
+      return !col.isSystem && !['Annex'].includes(col.key as string);
     })
     .reduce(
       (acc, col) => {
