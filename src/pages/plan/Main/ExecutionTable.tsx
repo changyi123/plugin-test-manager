@@ -38,7 +38,7 @@ const ExecutionTable = () => {
     tableSelectionToggleEvent,
   } = usePageContext();
 
-  const selectedTestPlanId = selectedTestPlan.objectId;
+  const selectedTestPlanId = selectedTestPlan?.objectId;
 
   React.useEffect(() => {
     registerRefreshMethod({
@@ -56,7 +56,9 @@ const ExecutionTable = () => {
   });
 
   React.useEffect(() => {
-    executionTableActionRef.current.refresh();
+    if (selectedTestPlanId) {
+      executionTableActionRef.current.refresh();
+    }
   }, [searchValue, selectedTestPlanId]);
 
   const tableDataGetter = React.useCallback(

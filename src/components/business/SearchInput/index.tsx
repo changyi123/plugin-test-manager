@@ -10,6 +10,7 @@ import cx from './index.less';
 const SearchInput: React.FC<
   InputProps & {
     text?: string;
+    onChange?: (value: string) => void;
     onSearch?: (value: string) => void;
   }
 > = props => {

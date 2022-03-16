@@ -9,14 +9,14 @@ import TableSelection from './TableSelection';
 import { useSDK } from '@projectproxima/plugin-sdk';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import { generateStorageKey } from '@/lib/utils/helper';
-import { useAntdTable, useLocalStorageState, useSize } from 'ahooks';
 import { LibraryProvider } from '@projectproxima/components';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import { getRootContainer, hasArrayItem } from '@/lib/utils/helper';
+import { useAntdTable, useLocalStorageState, useSize } from 'ahooks';
 
 import cx from './BusinessTable.less';
 
-const DefaultPageSize = 20;
+const DefaultPageSize = 10;
 
 const ResizableHeaderCell = ({ onResize, resizable, width, ...restProps }) => {
   const thProps = pick(restProps, ['children', 'rowSpan', 'colSpan', 'style', 'className']);
@@ -68,6 +68,7 @@ type BusinessTableProps = TableProps<any> & {
   showPagination?: boolean;
   useColumnSetting?: boolean;
   onSelectionCancel?: () => void;
+  setIsCheck?: (check: boolean) => void;
   selectionActionNodes?: React.ReactNode[];
   actionRef?: React.ForwardedRef<ActionType>;
   getDataSource?: (queryParams: { offset: number; limit: number }) => Promise<{
@@ -84,6 +85,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     getDataSource,
     onSelectionCancel,
     selectionActionNodes,
+    setIsCheck,
     itemKey = 'reference',
     showPagination = true,
     useColumnSetting = false,
@@ -163,6 +165,10 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
       currentPageRowsRef.current = dataSource;
     }
   }, [setSelectedRowKeys, dataSource]);
+
+  React.useEffect(() => {
+    setIsCheck?.(selectedRowKeys?.length > 0);
+  }, [selectedRowKeys, setIsCheck]);
 
   const handleResize = (key, _e, { size }) => {
     setColumnsWidth(dict => ({
@@ -245,6 +251,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
           size="small"
           showSizeChanger={true}
           className={cx('pagination')}
+          pageSizeOptions={[10, 20, 50]}
           defaultPageSize={DefaultPageSize}
           onChange={handlePaginationChange}
           {...pagination}

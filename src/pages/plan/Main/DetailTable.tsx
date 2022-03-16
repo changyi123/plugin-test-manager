@@ -22,12 +22,14 @@ const DetailTable = () => {
     tableSelectionToggleEvent,
   } = usePageContext();
 
-  const selectedTestPlanId = selectedTestPlan.objectId;
+  const selectedTestPlanId = selectedTestPlan?.objectId;
 
   const refreshAndMutateData = React.useCallback(() => {
     actionRef.current.refresh();
     mutateTestPlanEvent.emit(undefined);
   }, [mutateTestPlanEvent]);
+
+  const [isCheck, setIsCheck] = React.useState(false);
 
   React.useEffect(() => {
     registerRefreshMethod({
@@ -40,7 +42,9 @@ const DetailTable = () => {
   });
 
   React.useEffect(() => {
-    actionRef.current.refresh();
+    if (selectedTestPlanId) {
+      actionRef.current.refresh();
+    }
   }, [searchValue, selectedTestPlanId]);
 
   const tableDataGetter = React.useCallback(
@@ -122,9 +126,11 @@ const DetailTable = () => {
 
   const selectionActionNodes = React.useMemo(() => {
     const handleDelete = () => {
-      actionConfirm('该操作会将所选测试用例从测试计划中移除，是否继续操作？', () => {
-        removeTestRelation(actionRef.current.selectedRows.map(row => row.relation.objectId));
-      });
+      if (isCheck) {
+        actionConfirm('该操作会将所选测试用例从测试计划中移除，是否继续操作？', () => {
+          removeTestRelation(actionRef.current.selectedRows.map(row => row.relation.objectId));
+        });
+      }
     };
 
     // 更新负责人
@@ -145,7 +151,7 @@ const DetailTable = () => {
       <UserCell
         key="assignee"
         mode="multiple"
-        readonly={false}
+        readonly={!isCheck}
         onChange={handleAssigneeChange}
         emptyChild={
           <span>
@@ -158,7 +164,7 @@ const DetailTable = () => {
         <DeleteOutlined /> 移除
       </span>,
     ];
-  }, [refreshAndMutateData, removeTestRelation]);
+  }, [refreshAndMutateData, removeTestRelation, isCheck]);
 
   const columns = [
     {
@@ -220,6 +226,7 @@ const DetailTable = () => {
       name="DetailTable"
       actionRef={actionRef}
       getDataSource={tableDataGetter}
+      setIsCheck={setIsCheck}
       selectionActionNodes={selectionActionNodes}
       onSelectionCancel={() => tableSelectionToggleEvent.emit(false)}
     />

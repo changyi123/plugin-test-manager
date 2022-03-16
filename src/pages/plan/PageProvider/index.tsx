@@ -25,7 +25,7 @@ type PageContextType = {
   setSearchValue: (searchValue: string) => void;
   tableSelectionToggleEvent: EventEmitter<boolean>;
   mutateTestPlanEvent: EventEmitter<string | undefined>;
-  setSelectedTestPlan: (testPlan: TestPlanEntity) => void;
+  setSelectedTestPlan: (testPlan: TestPlanEntity | null) => void;
   registerRefreshMethod: (method: Record<string, () => void>) => void;
 };
 
@@ -48,7 +48,7 @@ const PageProvider: React.FC = ({ children }) => {
   const mutateTestPlanEvent = useEventEmitter<string | undefined>();
   const refreshCacheRef = React.useRef<Record<string, () => void>>();
   const workspaceKey = context?.env?.WORKSPACE_KEY ?? getDevConfig().workspaceKey;
-  const [selectedTestPlan, setSelectedTestPlan] = React.useState({} as TestPlanEntity);
+  const [selectedTestPlan, setSelectedTestPlan] = React.useState(null);
 
   const refresh = React.useCallback(key => {
     if (key) {

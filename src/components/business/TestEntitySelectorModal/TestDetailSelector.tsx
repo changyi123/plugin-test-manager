@@ -23,6 +23,11 @@ import cx from './TestDetailSelector.less';
 
 const REQUEST_LIMIT = 20;
 
+const DEFAULT_CHECKED_KEY = {
+  checked: [],
+  halfChecked: [],
+};
+
 type TestDetailSelectorProps = {
   workspaceKey: string;
   isSingleMode?: boolean;
@@ -47,13 +52,11 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
   });
 
   // 目录搜索
-  const [folderSearchValue, setFolderSearchValue] = React.useState(null);
+  const [folderSearchValue, setFolderSearchValue] = React.useState('');
+  const [detailSearchValue, setDetailSearchValue] = React.useState('');
 
   // tree checked key
-  const [folderCheckedKey, setFolderCheckedKey] = React.useState({
-    checked: [],
-    halfChecked: [],
-  });
+  const [folderCheckedKey, setFolderCheckedKey] = React.useState(DEFAULT_CHECKED_KEY);
   // 选中目录树
   const [selectedNode, setSelectedNode] = React.useState(null);
   // 选中测试用例 id
@@ -197,7 +200,6 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
     },
     {
       target: detailSelectorRef,
-      threshold: 300,
       reloadDeps: [JSON.stringify(baseSearchState), JSON.stringify(selectedNode?.testDetailIds)],
       isNoMore: data => data?.offset === undefined,
     },
@@ -243,7 +245,7 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
 
     // 切换
     setSelectedWorkspaceKey(key);
-    setFolderCheckedKey(folderCheckedCacheRef.current[key] ?? []);
+    setFolderCheckedKey(folderCheckedCacheRef.current[key] ?? DEFAULT_CHECKED_KEY);
   };
 
   const handleTestDetailCheck = (checked, key) => {
@@ -260,6 +262,7 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
 
   React.useEffect(() => {
     setFolderSearchValue('');
+    setDetailSearchValue('');
     baseSearchState.nameLike = '';
     // 单选模式切换时重置选中项
     isSingleMode && setSelectedTestDetailIds([]);
@@ -275,7 +278,6 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
     if (!currentFolderTestDetailIds || isSingleMode) return;
     setFolderCheckedKey(prevState => {
       const newState = cloneDeep(prevState);
-
       // 判断 selectedTestDetailIds 包含当前所有节点的 testDetailIds
       const isIncludeAll =
         selectedTestDetailIds.length &&
@@ -311,12 +313,14 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
         <SearchInput
           text="搜索"
           className={cx('search')}
-          value={baseSearchState.nameLike}
+          value={detailSearchValue}
+          onChange={value => setDetailSearchValue(value)}
           onSearch={value => (baseSearchState.nameLike = value)}
         />
       </div>
       <Select
         showSearch
+        getPopupContainer={trigNode => trigNode.parentElement}
         optionFilterProp="title"
         value={selectedWorkspaceKey}
         disabled={isWorkspaceIsolate}

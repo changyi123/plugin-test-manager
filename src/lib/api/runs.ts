@@ -77,7 +77,7 @@ export const getTestRunsAndExecutions = async (testDetailEntity, queryParams) =>
         );
 
         const testRunRelationDict = _.chain(allTestRuns)
-          .filter(run => run.runReferenceDetail.objectId === testDetailData.objectId)
+          .filter(run => run.runReferenceDetail?.objectId === testDetailData.objectId)
           .keyBy('relation.from.objectId')
           .value();
 
@@ -102,8 +102,6 @@ export const toggleTestRunStatus = (testId: string, status: Status): Promise<ICo
       .then(testRun => {
         // const statusType = status.type;
         const refDetail = testRun.get('runReferenceDetail');
-        const { runDetail } = testRun.toJSON();
-        const runDetailBak = { ...runDetail };
         // 改变总的测试运行状态不需要牵扯到步骤的状态
         // if (runDetail?.runs?.steps) {
         //   const steps = [];
@@ -122,7 +120,6 @@ export const toggleTestRunStatus = (testId: string, status: Status): Promise<ICo
         // }
         testRun.set({
           status: status.key,
-          runDetail: runDetailBak?.runs ? runDetailBak : undefined,
         });
         // 同步修改关联的 detail 状态
         refDetail.set({

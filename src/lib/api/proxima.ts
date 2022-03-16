@@ -101,6 +101,7 @@ export const getCustomFields = async () => {
       // 下列字段类型组件不支持渲染
       const isNotAllowRenderFieldType = [
         FIELD_TYPE_KEY_MAPPINGS.File,
+        FIELD_TYPE_KEY_MAPPINGS.Annex,
         FIELD_TYPE_KEY_MAPPINGS.Editor,
         FIELD_TYPE_KEY_MAPPINGS.FieldCollection,
       ].includes(field?.fieldType?.key);
@@ -183,10 +184,15 @@ export const getItemById = async itemId => {
 /** 删除所有事项 */
 export const deleteItems = async (itemIds: string[] | string) => {
   if (!Array.isArray(itemIds)) itemIds = [itemIds];
-  const paramsData = itemIds.filter(Boolean).map(id => ({
-    objectId: id,
-  }));
-  return fetch.$delete('/parse/api/items/bulk', { data: paramsData });
+  itemIds = itemIds.filter(Boolean);
+  return Parse.Cloud.run('deleteItems', {
+    itemIds,
+  });
+
+  // const paramsData = itemIds.filter(Boolean).map(id => ({
+  //   objectId: id,
+  // }));
+  // return fetch.$delete('/parse/api/items/bulk', { data: paramsData });
 };
 
 export const updateItemAssignee = async (itemIds, assignee) => {

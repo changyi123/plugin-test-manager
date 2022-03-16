@@ -57,18 +57,20 @@ const RepositorySelector: React.FC<RepositorySelectorProps> = props => {
 
   const options = React.useMemo(() => {
     return (
-      allTestWorkspaces?.map(workspace => ({
-        label: (
-          <p>
-            <span>{workspace.name}</span>
-            <span style={{ color: '#aaa', fontSize: 12 }}>({workspace.key})</span>
-          </p>
-        ),
-        title: workspace.name + workspace.key,
-        value: workspace.key,
-      })) ?? []
+      allTestWorkspaces
+        ?.filter(workspace => selectedWorkspaceKey === workspace.key)
+        ?.map(workspace => ({
+          label: (
+            <p>
+              <span>{workspace.name}</span>
+              <span style={{ color: '#aaa', fontSize: 12 }}>({workspace.key})</span>
+            </p>
+          ),
+          title: workspace.name + workspace.key,
+          value: workspace.key,
+        })) ?? []
     );
-  }, [allTestWorkspaces]);
+  }, [allTestWorkspaces, selectedWorkspaceKey]);
 
   const { loading, data: treeData } = useRequest(
     async () => {
