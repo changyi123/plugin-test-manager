@@ -79,6 +79,7 @@ const TestStep: React.FC<TestStepProps> = ({
   const openCallTestModal = async () => {
     const [callTestId] = await testEntitySelectorRef.current?.open();
     try {
+      if (!callTestId) return;
       // 验证继承的测试用例是否又循环依赖
       await getTestStepsByTestDetailId(callTestId, testDetailId);
     } catch (err) {

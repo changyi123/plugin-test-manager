@@ -156,9 +156,9 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
           </span>
         }
       />,
-      <span key="copy" onClick={copyTestDetail}>
-        <SwitcherOutlined /> 复制
-      </span>,
+      // <span key="copy" onClick={copyTestDetail}>
+      //   <SwitcherOutlined /> 复制
+      // </span>,
       <span key="delete" onClick={deleteTestDetail}>
         <DeleteOutlined /> 删除
       </span>,
