@@ -134,10 +134,9 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
   });
 
   // 事项类型查询条件
-  const itemTypeCondition = React.useMemo(
-    () => (isTestDefectType ? testDefectsMapping : testTypeMapping?.[testType]) ?? [],
-    [testType, testTypeMapping, isTestDefectType, testDefectsMapping],
-  );
+  const itemTypeCondition = React.useMemo(() => {
+    return (isTestDefectType ? testDefectsMapping : testTypeMapping?.[testType]) ?? [];
+  }, [testType, testTypeMapping, isTestDefectType, testDefectsMapping]);
 
   // 获取测试事项
   const { runAsync: getTestEntityByKeyword, loading: searchLoading } = useRequest(

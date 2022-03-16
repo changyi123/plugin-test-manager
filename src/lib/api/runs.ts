@@ -77,7 +77,7 @@ export const getTestRunsAndExecutions = async (testDetailEntity, queryParams) =>
         );
 
         const testRunRelationDict = _.chain(allTestRuns)
-          .filter(run => run.runReferenceDetail.objectId === testDetailData.objectId)
+          .filter(run => run.runReferenceDetail?.objectId === testDetailData.objectId)
           .keyBy('relation.from.objectId')
           .value();
 

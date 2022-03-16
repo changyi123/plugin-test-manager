@@ -184,7 +184,7 @@ const TestRun: React.FC<TestRunType> = props => {
     ) {
       (async () => {
         try {
-          const steps = await getTestStepsByTestDetailId(testRunData.runReferenceDetail.objectId);
+          const steps = await getTestStepsByTestDetailId(testRunData.runReferenceDetail?.objectId);
           await updateTestRun(
             testRunEntity,
             {

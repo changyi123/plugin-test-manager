@@ -9,14 +9,14 @@ import TableSelection from './TableSelection';
 import { useSDK } from '@projectproxima/plugin-sdk';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import { generateStorageKey } from '@/lib/utils/helper';
-import { useAntdTable, useLocalStorageState, useSize } from 'ahooks';
 import { LibraryProvider } from '@projectproxima/components';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import { getRootContainer, hasArrayItem } from '@/lib/utils/helper';
+import { useAntdTable, useLocalStorageState, useSize } from 'ahooks';
 
 import cx from './BusinessTable.less';
 
-const DefaultPageSize = 20;
+const DefaultPageSize = 10;
 
 const ResizableHeaderCell = ({ onResize, resizable, width, ...restProps }) => {
   const thProps = pick(restProps, ['children', 'rowSpan', 'colSpan', 'style', 'className']);
@@ -245,6 +245,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
           size="small"
           showSizeChanger={true}
           className={cx('pagination')}
+          pageSizeOptions={[10, 20, 50]}
           defaultPageSize={DefaultPageSize}
           onChange={handlePaginationChange}
           {...pagination}

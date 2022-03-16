@@ -52,7 +52,8 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
   });
 
   // 目录搜索
-  const [folderSearchValue, setFolderSearchValue] = React.useState(null);
+  const [folderSearchValue, setFolderSearchValue] = React.useState('');
+  const [detailSearchValue, setDetailSearchValue] = React.useState('');
 
   // tree checked key
   const [folderCheckedKey, setFolderCheckedKey] = React.useState(DEFAULT_CHECKED_KEY);
@@ -199,7 +200,6 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
     },
     {
       target: detailSelectorRef,
-      threshold: 300,
       reloadDeps: [JSON.stringify(baseSearchState), JSON.stringify(selectedNode?.testDetailIds)],
       isNoMore: data => data?.offset === undefined,
     },
@@ -262,6 +262,7 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
 
   React.useEffect(() => {
     setFolderSearchValue('');
+    setDetailSearchValue('');
     baseSearchState.nameLike = '';
     // 单选模式切换时重置选中项
     isSingleMode && setSelectedTestDetailIds([]);
@@ -312,7 +313,8 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
         <SearchInput
           text="搜索"
           className={cx('search')}
-          value={baseSearchState.nameLike}
+          value={detailSearchValue}
+          onChange={value => setDetailSearchValue(value)}
           onSearch={value => (baseSearchState.nameLike = value)}
         />
       </div>

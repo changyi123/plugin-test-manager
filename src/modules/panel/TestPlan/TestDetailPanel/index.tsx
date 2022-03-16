@@ -104,7 +104,7 @@ const Test = () => {
         return {
           ...detail,
           // 关联的测试执行
-          relRuns: testRuns.filter(run => run.runReferenceDetail.objectId === detail.objectId),
+          relRuns: testRuns.filter(run => run.runReferenceDetail?.objectId === detail.objectId),
         };
       });
 

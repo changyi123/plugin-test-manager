@@ -47,7 +47,6 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
       render(_, record) {
         const itemData = get(record, itemKey);
         const { text, ...restTableCellProps } = fieldCellsPropDict[field.key] ?? {};
-        console.log(restTableCellProps, itemData, text(itemData));
         if (!text || !itemData) return '-';
 
         return <TableCell {...restTableCellProps} text={text(itemData)} />;
