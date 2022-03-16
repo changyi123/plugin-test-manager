@@ -23,6 +23,8 @@ import TestEntitySelectorModal, {
   ActionType as TestEntitySelectorActionType,
 } from '@/components/business/TestEntitySelectorModal';
 
+import cx from './executionTable.less';
+
 const ExecutionTable = () => {
   const innerTableRef = React.useRef<BusinessTableActionRef>();
   const executionTableActionRef = React.useRef<BusinessTableActionRef>();
@@ -137,6 +139,7 @@ const ExecutionTable = () => {
 
     return [
       <StatusBadge
+        useRootContainer
         onStatusChange={toggleSTestRunStatus}
         key="toggleRunStatus"
         emptyNode={
@@ -209,7 +212,7 @@ const ExecutionTable = () => {
     },
     {
       key: 'action',
-      title: null,
+      title: '操作',
       fixed: 'right' as any,
       isSystem: true,
       render(_, rowData) {
@@ -272,6 +275,7 @@ const ExecutionTable = () => {
           render(_, record) {
             return (
               <StatusBadge
+                useRootContainer
                 status={record.status}
                 onStatusChange={status => handleTestRunStatusChange(record.objectId, status)}
               />
@@ -280,7 +284,7 @@ const ExecutionTable = () => {
         },
         {
           key: 'action',
-          title: null,
+          title: '操作',
           isSystem: true,
           fixed: 'right' as any,
           render(_, record) {
@@ -301,6 +305,7 @@ const ExecutionTable = () => {
       ];
       return (
         <BusinessTable
+          className={cx('expand-table')}
           rowKey="objectId"
           columns={columns}
           useColumnSetting

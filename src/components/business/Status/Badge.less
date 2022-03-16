@@ -1,16 +1,16 @@
 :root {
   .status {
     display: inline-flex;
-    padding: 0 8px;
+    padding: 0 21px;
     align-items: center;
-  
+
     .dot {
       width: 8px;
       height: 8px;
       border-radius: 50%;
       margin-right: 8px;
     }
-  
+
     &.hover {
       cursor: pointer;
       border-radius: 4px;
@@ -19,7 +19,7 @@
         background: #f4f4f5;
       }
     }
-  
+
     &.block {
       display: flex;
       height: 32px;
@@ -48,12 +48,17 @@
   .FAILED {
     background: #FFEBE5;
   }
-  
+
   .status-badge-overlay {
     :global {
+      // 需要覆盖 popover本身的padding达到ui效果
       .ant-popover-inner-content {
-        padding: 4px;
+        padding: 13px 0 !important;
       }
     }
+  }
+
+  .effect-status {
+    padding: 0 8px;
   }
 }

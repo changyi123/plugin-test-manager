@@ -108,6 +108,7 @@ const Badge: React.FC<BadgeProps> = props => {
             status={currentStatus}
             showBg={props.showBg}
             hasEffect={!props.readonly}
+            className={cx('effect-status')}
             onClick={() => !props.readonly && setVisible(true)}
           />
         )}

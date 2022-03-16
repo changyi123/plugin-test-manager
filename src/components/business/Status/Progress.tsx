@@ -17,6 +17,8 @@ type StatusProgressProps = {
   onReady?: (statuses: any[]) => void;
 };
 
+const POPOVER_COLOR = '#4D545E';
+
 const StatusProgress: React.FC<StatusProgressProps> = props => {
   const statusConfig = useStatusConfig();
   const [visible, setVisible] = React.useState(false);
@@ -60,24 +62,25 @@ const StatusProgress: React.FC<StatusProgressProps> = props => {
           {statuses.map(status => (
             <li key={status.key} className={cx('item')}>
               <span className={cx('dot')} style={{ background: status.color }} />
-              <span>{status.name}</span>
-              <span className={cx('num')}>{status.num}</span>
+              <span className={cx('font')}>{status.name}</span>
+              <span className={cx('font', 'num')}>{status.num}</span>
             </li>
           ))}
         </ul>
         <h6>
-          <span>总和</span>
-          <span className={cx('num')}>{total}</span>
+          <span className={cx('font')}>总和</span>
+          <span className={cx('font', 'num')}>{total}</span>
         </h6>
       </div>
     );
-  }, [props.hasSummary, statuses, total]);
+  }, [props.hasSummary, statuses]);
 
   return (
     <Popover
       visible={visible}
       onVisibleChange={visible => props?.hasSummary && setVisible(visible)}
       content={PopoverContent}
+      color={POPOVER_COLOR}
     >
       <div className={cx('progress')}>
         {statuses.map(status => (
