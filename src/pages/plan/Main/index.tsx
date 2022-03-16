@@ -34,7 +34,7 @@ const Main = () => {
   const { createItemUseModal } = useBaseAction();
   const { workspace } = useTestConfig();
 
-  const selectedTestPlanId = selectedTestPlan.objectId;
+  const selectedTestPlanId = selectedTestPlan?.objectId;
 
   const toggleTableSelection = (visible?: boolean) => {
     visible = typeof visible === 'boolean' ? visible : !tableSelectionVisible;
@@ -124,7 +124,7 @@ const Main = () => {
         title="选择规划的测试用例"
         testType={TestType.TestDetail}
         actionRef={testEntitySelectorRef}
-        ignoreTestEntityIds={selectedTestPlan.refTestDetails?.map(item => item.objectId) ?? []}
+        ignoreTestEntityIds={selectedTestPlan?.refTestDetails?.map(item => item.objectId) ?? []}
       />
       <Tabs
         activeKey={activeKey}
