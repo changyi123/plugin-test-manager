@@ -22,7 +22,7 @@ const DetailTable = () => {
     tableSelectionToggleEvent,
   } = usePageContext();
 
-  const selectedTestPlanId = selectedTestPlan.objectId;
+  const selectedTestPlanId = selectedTestPlan?.objectId;
 
   const refreshAndMutateData = React.useCallback(() => {
     actionRef.current.refresh();
@@ -42,7 +42,9 @@ const DetailTable = () => {
   });
 
   React.useEffect(() => {
-    actionRef.current.refresh();
+    if (selectedTestPlanId) {
+      actionRef.current.refresh();
+    }
   }, [searchValue, selectedTestPlanId]);
 
   const tableDataGetter = React.useCallback(

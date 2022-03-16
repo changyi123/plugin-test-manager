@@ -6,7 +6,6 @@ import { deleteItems } from '@/lib/api/proxima';
 import { hasArrayItem } from '@/lib/utils/helper';
 import { actionConfirm } from '@/lib/utils/helper';
 import { useInfiniteScroll, useHover } from 'ahooks';
-import { useOnItemCreateSuccess } from '@/lib/hooks/useProximaSDK';
 import { notification, Empty, Button } from '@osui/ui';
 import { useBaseAction } from '@/lib/hooks/useContext';
 import { goToItemDetailPage } from '@/lib/utils/helper';
@@ -15,6 +14,7 @@ import { EllipsisOutlined, PlusOutlined } from '@/icons';
 import { StatusProgress } from '@/components/business/Status';
 import { TestType, TestRelationType } from '@/lib/constants';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
+import { useOnItemCreateSuccess } from '@/lib/hooks/useProximaSDK';
 import {
   deleteTestEntities,
   getTestEntitiesByQuery,
@@ -50,10 +50,6 @@ const PlanItem: React.FC<{
     });
   };
 
-  // 说明该 事项 已经被删除, 删除的则不在做展示
-  if (_.isEmpty(reference)) {
-    return null;
-  }
   return (
     <div
       ref={ref}
@@ -102,7 +98,7 @@ const PlanList = () => {
   const { workspaceKey, setSelectedTestPlan, selectedTestPlan, mutateTestPlanEvent } =
     usePageContext();
 
-  const selectedTestPlanId = selectedTestPlan.objectId;
+  const selectedTestPlanId = selectedTestPlan?.objectId;
 
   const { data, reload, loading, mutate } = useInfiniteScroll(
     async params => {
@@ -186,10 +182,10 @@ const PlanList = () => {
   React.useEffect(() => {
     if (hasArrayItem(data?.list)) {
       // 默认选中第一项
-      if (_.isEqual(selectedTestPlan, {})) {
+      if (selectedTestPlan == null) {
         setSelectedTestPlan(data.list[0]);
       } else {
-        const testPlan = data.list.find(item => item.objectId === selectedTestPlan.objectId);
+        const testPlan = data.list.find(item => item.objectId === selectedTestPlan?.objectId);
         setSelectedTestPlan(testPlan);
       }
     }
@@ -211,6 +207,8 @@ const PlanList = () => {
       deleteItems([data.reference?.objectId]),
     ]);
     reload();
+    // 重新选中
+    setSelectedTestPlan({} as any);
     notification.success({
       message: '测试计划删除成功',
     });
