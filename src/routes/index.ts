@@ -27,7 +27,7 @@ const routes = [
   },
   {
     path: '/beforeItemCreate',
-    component: React.lazy(() => import('../modules/BeforeCreateOrUpdateModal')),
+    component: React.lazy(() => import('../modules/beforeCreateOrUpdateModal')),
     exact: true,
   },
 ];

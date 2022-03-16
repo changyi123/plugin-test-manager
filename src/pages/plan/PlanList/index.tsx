@@ -6,6 +6,7 @@ import { deleteItems } from '@/lib/api/proxima';
 import { hasArrayItem } from '@/lib/utils/helper';
 import { actionConfirm } from '@/lib/utils/helper';
 import { useInfiniteScroll, useHover } from 'ahooks';
+import { useOnItemCreateSuccess } from '@/lib/hooks/useProximaSDK';
 import { notification, Empty, Button } from '@osui/ui';
 import { useBaseAction } from '@/lib/hooks/useContext';
 import { goToItemDetailPage } from '@/lib/utils/helper';
@@ -49,6 +50,10 @@ const PlanItem: React.FC<{
     });
   };
 
+  // 说明该 事项 已经被删除, 删除的则不在做展示
+  if (_.isEmpty(reference)) {
+    return null;
+  }
   return (
     <div
       ref={ref}
@@ -92,11 +97,12 @@ const PlanItem: React.FC<{
 
 const PlanList = () => {
   const listRef = React.useRef();
-  const initialRef = React.useRef(false);
   const [search, setSearch] = React.useState('');
   const { createItemUseModal } = useBaseAction();
-  const { workspaceKey, setSelectedTestPlanId, selectedTestPlanId, mutateTestPlanEvent } =
+  const { workspaceKey, setSelectedTestPlan, selectedTestPlan, mutateTestPlanEvent } =
     usePageContext();
+
+  const selectedTestPlanId = selectedTestPlan.objectId;
 
   const { data, reload, loading, mutate } = useInfiniteScroll(
     async params => {
@@ -178,17 +184,21 @@ const PlanList = () => {
   const testPlans = data?.list ?? [];
 
   React.useEffect(() => {
-    if (!initialRef.current && hasArrayItem(data?.list)) {
-      initialRef.current = true;
-      setSelectedTestPlanId(data.list[0].objectId);
+    if (hasArrayItem(data?.list)) {
+      // 默认选中第一项
+      if (_.isEqual(selectedTestPlan, {})) {
+        setSelectedTestPlan(data.list[0]);
+      } else {
+        const testPlan = data.list.find(item => item.objectId === selectedTestPlan.objectId);
+        setSelectedTestPlan(testPlan);
+      }
     }
-  }, [data?.list, setSelectedTestPlanId]);
+  }, [data?.list, selectedTestPlan, setSelectedTestPlan]);
 
   const handleCreate = async () => {
     await createItemUseModal({
       type: TestType.TestPlan,
     });
-    reload();
     notification.success({
       message: '测试计划新建成功',
     });
@@ -198,7 +208,7 @@ const PlanList = () => {
     await actionConfirm('该操作会当前删除测试计划以及测试计划关联的测试用例和任务，是否继续？');
     await Promise.all([
       deleteTestEntities([data.objectId]),
-      data.reference && deleteItems([data.reference?.objectId]),
+      deleteItems([data.reference?.objectId]),
     ]);
     reload();
     notification.success({
@@ -210,6 +220,9 @@ const PlanList = () => {
     setSearch(value);
     reload();
   };
+
+  // 监听 事项创建刷新 左侧测试计划列表，需要个延时立即刷新数据未更新
+  useOnItemCreateSuccess(() => setTimeout(reload, 1000));
 
   return (
     <div className={cx('container')}>
@@ -228,7 +241,7 @@ const PlanList = () => {
                 key={testPlan.objectId}
                 onDelete={handleDelete}
                 selectedId={selectedTestPlanId}
-                onSelect={data => setSelectedTestPlanId(data.objectId)}
+                onSelect={data => setSelectedTestPlan(data)}
               />
             ))}
           </div>

@@ -30,11 +30,13 @@ const ExecutionTable = () => {
   const {
     searchValue,
     workspaceKey,
-    selectedTestPlanId,
+    selectedTestPlan,
     mutateTestPlanEvent,
     registerRefreshMethod,
     tableSelectionToggleEvent,
   } = usePageContext();
+
+  const selectedTestPlanId = selectedTestPlan.objectId;
 
   React.useEffect(() => {
     registerRefreshMethod({
@@ -306,6 +308,7 @@ const ExecutionTable = () => {
           actionRef={innerTableRef}
           name="ExecutionInnerTable"
           dataSource={record.relRuns}
+          scroll={{ x: 'max-content', y: 500 }}
           itemKey="runReferenceDetail.reference"
           selectionActionNodes={InnerTableSelectionActionNodes}
           onSelectionCancel={() => tableSelectionToggleEvent.emit(false)}

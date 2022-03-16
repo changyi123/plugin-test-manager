@@ -9,12 +9,13 @@ import cx from './index.less';
 
 const SearchInput: React.FC<
   InputProps & {
+    text?: string;
     onSearch?: (value: string) => void;
   }
 > = props => {
   const inputValueRef = React.useRef('');
   const inputRef = React.useRef<any>(null);
-  const { onSearch = noop, ...restInputProps } = props;
+  const { onSearch = noop, text, ...restInputProps } = props;
   const [inputVisible, setInputVisible] = React.useState(false);
 
   const { run: handleSearch } = useDebounceFn(onSearch, {
@@ -55,14 +56,17 @@ const SearchInput: React.FC<
         />
       ) : (
         <Tooltip title="搜索">
-          <SearchOutlined
+          <div
             onClick={() => {
               setInputVisible(true);
               setTimeout(() => {
                 inputRef.current.focus();
               }, 300);
             }}
-          />
+          >
+            <SearchOutlined />
+            {text ? <span className={cx('text')}>{text}</span> : null}
+          </div>
         </Tooltip>
       )}
     </div>

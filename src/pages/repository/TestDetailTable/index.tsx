@@ -100,10 +100,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         .filter(Boolean);
 
       actionConfirm('该操作会将所选的测试用例删除，是否继续操作？', async () => {
-        await Promise.all([
-          deleteTestEntities(testDetailIds),
-          data.reference && deleteItems(itemIds),
-        ]);
+        await Promise.all([deleteTestEntities(testDetailIds), deleteItems(itemIds)]);
         refreshAndMutateData();
 
         notification.success({
@@ -176,7 +173,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
       actionConfirm('该操作会将当前测试用例删除，是否继续操作？', async () => {
         await Promise.all([
           deleteTestEntities([data.objectId]),
-          data.reference && deleteItems([data.reference?.objectId]),
+          deleteItems([data.reference?.objectId]),
         ]);
         refreshAndMutateData();
       });

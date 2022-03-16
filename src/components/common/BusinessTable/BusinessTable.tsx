@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, useRef } from 'react';
 import { pick, isEqual } from 'lodash';
 import { getDevConfig } from '@/devEnv';
 import { Resizable } from 'react-resizable';
@@ -9,7 +9,7 @@ import TableSelection from './TableSelection';
 import { useSDK } from '@projectproxima/plugin-sdk';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import { generateStorageKey } from '@/lib/utils/helper';
-import { useAntdTable, useLocalStorageState } from 'ahooks';
+import { useAntdTable, useLocalStorageState, useSize } from 'ahooks';
 import { LibraryProvider } from '@projectproxima/components';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import { getRootContainer, hasArrayItem } from '@/lib/utils/helper';
@@ -105,6 +105,15 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
   const { workspace } = useTestConfig();
   const { context } = useSDK();
   const proximaGatewayURL = context?.PROXIMA_GATEWAY ?? getDevConfig()?.baseURL;
+  const ref = useRef(null);
+  const size = useSize(ref);
+
+  const scrollMemo = useMemo(() => {
+    return {
+      y: size?.height - 88, // 当前容器高度减去footer和header高度
+      ...scroll,
+    };
+  }, [scroll, size]);
 
   const handleTableColumnChange = React.useCallback(columns => {
     setTableColumns(prevState => {
@@ -279,7 +288,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
   }, [dataSource, props.rowKey, setExpandedKeys]);
 
   return (
-    <div className={cx('table-container')}>
+    <div className={cx('table-container')} ref={ref}>
       <LibraryProvider
         parse
         workspaceKey={workspace?.key}
@@ -290,7 +299,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
         {ColumnSettingMemorizedNode}
         <Table
           sticky={true}
-          scroll={scroll}
+          scroll={scrollMemo}
           pagination={false}
           className={cx('table')}
           components={{

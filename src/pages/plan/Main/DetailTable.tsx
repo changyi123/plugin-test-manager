@@ -16,11 +16,13 @@ const DetailTable = () => {
   const {
     searchValue,
     workspaceKey,
-    selectedTestPlanId,
+    selectedTestPlan,
     mutateTestPlanEvent,
     registerRefreshMethod,
     tableSelectionToggleEvent,
   } = usePageContext();
+
+  const selectedTestPlanId = selectedTestPlan.objectId;
 
   const refreshAndMutateData = React.useCallback(() => {
     actionRef.current.refresh();

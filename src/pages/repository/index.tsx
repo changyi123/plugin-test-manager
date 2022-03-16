@@ -31,8 +31,8 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
     breadcrumbs: [],
     searchValue: '',
     testDetailIds: [],
-    tableSelectionVisible: false,
     selectedFolderKey: '',
+    tableSelectionVisible: false,
   });
 
   const {
