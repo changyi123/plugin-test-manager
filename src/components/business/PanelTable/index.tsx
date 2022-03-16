@@ -17,8 +17,15 @@ type PanelTableProps = TableProps<any> & {
 };
 
 const PanelTable: React.FC<PanelTableProps> = props => {
-  const { columns, actionMenuList, getDataSource, actionRef, renderActions, ...restTableProps } =
-    props;
+  const {
+    columns,
+    actionMenuList,
+    getDataSource,
+    actionRef,
+    renderActions,
+    scroll,
+    ...restTableProps
+  } = props;
   // 全量的 row 数据
   const allRowDataRef = React.useRef([]);
 
@@ -123,9 +130,7 @@ const PanelTable: React.FC<PanelTableProps> = props => {
       <Table
         {...tableProps}
         {...restTableProps}
-        scroll={{
-          x: 'max-content',
-        }}
+        scroll={scroll}
         pagination={{
           ...tableProps.pagination,
           size: 'small',
@@ -140,6 +145,12 @@ const PanelTable: React.FC<PanelTableProps> = props => {
       />
     </div>
   );
+};
+
+PanelTable.defaultProps = {
+  scroll: {
+    x: 'max-content',
+  },
 };
 
 export { columnBuilder } from './builtinColumns/base';

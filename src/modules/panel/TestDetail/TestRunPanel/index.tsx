@@ -16,6 +16,7 @@ import { StatusBadge } from '@/components/business/Status';
 import { useTestConfig } from '@/lib/hooks/useContext';
 
 import css from './index.less';
+import OverflowTooltip from '@/components/common/OverflowTooltip';
 
 export interface RunsTableProps {
   data?: any;
@@ -60,18 +61,20 @@ const Runs: React.FC = () => {
         </Space>
       ),
       key: 'referenceId',
+      width: '65%',
       render: (_, record) => {
         const itemData = record?.reference ?? {};
         return (
           <Space split={<Divider type="vertical" />} size={0}>
             <Typography.Link
+              className={css('link')}
               ellipsis={true}
               target="_blank"
               href={`/osc/workspaces/${itemData?.workspace?.key}/item/${itemData?.key}`}
             >
-              {itemData?.key}
+              <OverflowTooltip title={itemData?.key}> {itemData?.key}</OverflowTooltip>
             </Typography.Link>
-            <div>{itemData?.name}</div>
+            <OverflowTooltip title={itemData?.name}>{itemData?.name}</OverflowTooltip>
           </Space>
         );
       },
@@ -155,6 +158,7 @@ const Runs: React.FC = () => {
       <div className={css('runs')}>
         <div className={css('runs__content')}>
           <PanelTable
+            scroll={null}
             renderActions={() => (
               <div className={css('runs__new')}>
                 <Button type="primary" onClick={() => createTestExecution()}>
