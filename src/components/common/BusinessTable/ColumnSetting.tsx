@@ -3,11 +3,12 @@ import { noop, get, keyBy } from 'lodash';
 import { ColumnType } from 'antd/lib/table';
 import { Drawer, Select, Tooltip } from '@osui/ui';
 import { getCustomFields } from '@/lib/api/proxima';
+import { TableCell } from '@projectproxima/components';
 import { generateStorageKey } from '@/lib/utils/helper';
+import { useFieldsWithFieldCellProps } from '@/lib/hooks/useProxima';
 import { SettingOutlined, DeleteOutlined, DragHandler } from '@/icons';
 import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd';
 import { useRequest, useLocalStorageState, useDeepCompareEffect } from 'ahooks';
-import { TableCell, useFieldsWithFieldCellProps } from '@projectproxima/components';
 
 import cx from './ColumnSetting.less';
 import '@projectproxima/components/dist/main.css';
@@ -46,6 +47,7 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
       render(_, record) {
         const itemData = get(record, itemKey);
         const { text, ...restTableCellProps } = fieldCellsPropDict[field.key] ?? {};
+        console.log(restTableCellProps, itemData, text(itemData));
         if (!text || !itemData) return '-';
 
         return <TableCell {...restTableCellProps} text={text(itemData)} />;
@@ -76,8 +78,8 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
 
   const selectOptions = allColumns
     .filter(col => {
-      // 系统字段和附件不用展示
-      return !col.isSystem && !['Annex'].includes(col.key as string);
+      // 系统字段不用展示
+      return !col.isSystem;
     })
     .reduce(
       (acc, col) => {

@@ -206,6 +206,7 @@ export interface Item extends BaseParseObject {
   name: string;
   ancestors: ItemId[];
   itemType: ItemType | PointerObject;
+  itemGroup: any;
   ancestorsCount: number;
   subItemCount: number;
   status: Status | PointerObject;

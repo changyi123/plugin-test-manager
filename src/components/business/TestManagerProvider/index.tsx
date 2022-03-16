@@ -61,7 +61,6 @@ const getOrCreateTestEntity = async (itemId: string, config?: { notice: boolean 
 
       // 测试用例创建
       if (testType === TestType.TestDetail) {
-        console.log(store, storeValues);
         if (storeValues?.[CREATE_ITEM_STORE_FIELD_KEY]) {
           extraFields = Object.assign({}, extraFields, {
             detail: storeValues[CREATE_ITEM_STORE_FIELD_KEY],
