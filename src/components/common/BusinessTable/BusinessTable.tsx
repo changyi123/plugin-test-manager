@@ -68,6 +68,7 @@ type BusinessTableProps = TableProps<any> & {
   showPagination?: boolean;
   useColumnSetting?: boolean;
   onSelectionCancel?: () => void;
+  setIsCheck?: (check: boolean) => void;
   selectionActionNodes?: React.ReactNode[];
   actionRef?: React.ForwardedRef<ActionType>;
   getDataSource?: (queryParams: { offset: number; limit: number }) => Promise<{
@@ -84,6 +85,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     getDataSource,
     onSelectionCancel,
     selectionActionNodes,
+    setIsCheck,
     itemKey = 'reference',
     showPagination = true,
     useColumnSetting = false,
@@ -163,6 +165,10 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
       currentPageRowsRef.current = dataSource;
     }
   }, [setSelectedRowKeys, dataSource]);
+
+  React.useEffect(() => {
+    setIsCheck?.(selectedRowKeys?.length > 0);
+  }, [selectedRowKeys, setIsCheck]);
 
   const handleResize = (key, _e, { size }) => {
     setColumnsWidth(dict => ({

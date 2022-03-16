@@ -58,6 +58,8 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
   const repositorySelectorRef = React.useRef<RepositorySelectorActionType>();
   const [tableLoading, setTableLoading] = React.useState(false);
 
+  const [isCheck, setIsCheck] = React.useState(false);
+
   const { workspace } = useTestConfig();
   const workspaceKey = workspace?.key;
 
@@ -148,7 +150,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
       <UserCell
         key="assignee"
         mode="multiple"
-        readonly={false}
+        readonly={!isCheck}
         onChange={toggleAssignee}
         emptyChild={
           <span>
@@ -156,14 +158,14 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
           </span>
         }
       />,
-      // <span key="copy" onClick={copyTestDetail}>
-      //   <SwitcherOutlined /> 复制
-      // </span>,
-      <span key="delete" onClick={deleteTestDetail}>
+      <span key="copy" onClick={isCheck && copyTestDetail}>
+        <SwitcherOutlined /> 复制
+      </span>,
+      <span key="delete" onClick={isCheck && deleteTestDetail}>
         <DeleteOutlined /> 删除
       </span>,
     ];
-  }, [refreshAndMutateData, workspaceKey]);
+  }, [refreshAndMutateData, workspaceKey, isCheck]);
 
   const columns = React.useMemo(() => {
     const deleteTestDetail = data => {
@@ -230,6 +232,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         itemKey="reference"
         name="TestDetailTable"
         actionRef={tableActionRef}
+        setIsCheck={setIsCheck}
         getDataSource={dataSourceGetter}
         onSelectionCancel={onSelectionCancel}
         loading={tableLoading}
