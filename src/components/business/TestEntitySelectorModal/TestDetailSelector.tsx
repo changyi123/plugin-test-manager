@@ -317,6 +317,7 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
       </div>
       <Select
         showSearch
+        getPopupContainer={trigNode => trigNode.parentElement}
         optionFilterProp="title"
         value={selectedWorkspaceKey}
         disabled={isWorkspaceIsolate}
