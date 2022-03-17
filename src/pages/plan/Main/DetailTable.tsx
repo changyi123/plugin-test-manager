@@ -227,6 +227,7 @@ const DetailTable = () => {
       actionRef={actionRef}
       getDataSource={tableDataGetter}
       setIsCheck={setIsCheck}
+      isCheck={isCheck}
       selectionActionNodes={selectionActionNodes}
       onSelectionCancel={() => tableSelectionToggleEvent.emit(false)}
     />
