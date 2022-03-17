@@ -209,7 +209,8 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
   const handleFolderCheckAll = (checked, testDetailIds) => {
     setSelectedTestDetailIds(prevState => {
       if (checked) {
-        return Array.from([].concat(testDetailIds, prevState));
+        // 先排除再全选
+        return exclude(prevState, testDetailIds).concat(testDetailIds);
       } else {
         // 取消选中选差集
         return exclude(prevState, testDetailIds);
