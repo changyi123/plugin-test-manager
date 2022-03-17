@@ -57,10 +57,11 @@ type StepRowProps = {
   data: StepRow;
   index: number;
   actions: any;
+  enableDelete?: boolean;
 };
 
 const StepRow: React.FC<StepRowProps> = props => {
-  const { data, index, actions } = props;
+  const { data, index, actions, enableDelete } = props;
   const rowRef = React.useRef<HTMLDivElement>();
 
   const isMouseHover = useHover(rowRef);
@@ -142,19 +143,20 @@ const StepRow: React.FC<StepRowProps> = props => {
               <CopyOutlined className={cx('icon')} />
             </Tooltip>
           </Popconfirm>
-
-          <Popconfirm
-            okText="确定"
-            placement="left"
-            cancelText="取消"
-            getPopupContainer={getRootContainer}
-            onConfirm={() => actions.delete(data.id)}
-            title="当前操作会删除该测试用例步骤，是否继续执行？"
-          >
-            <Tooltip title="删除步骤">
-              <DeleteOutlined className={cx('icon')} key="DeleteOutlined" />
-            </Tooltip>
-          </Popconfirm>
+          {enableDelete ? (
+            <Popconfirm
+              okText="确定"
+              placement="left"
+              cancelText="取消"
+              getPopupContainer={getRootContainer}
+              onConfirm={() => actions.delete(data.id)}
+              title="当前操作会删除该测试用例步骤，是否继续执行？"
+            >
+              <Tooltip title="删除步骤">
+                <DeleteOutlined className={cx('icon')} key="DeleteOutlined" />
+              </Tooltip>
+            </Popconfirm>
+          ) : null}
         </span>
       </div>
     );
@@ -305,7 +307,13 @@ const StepList: React.FC<StepListProps> = ({ steps, actions }) => {
               {provider => (
                 <div className={cx('body')} {...provider.droppableProps} ref={provider.innerRef}>
                   {stepRowData.map((row, index) => (
-                    <StepRow actions={actions} key={row.id} data={row} index={index} />
+                    <StepRow
+                      actions={actions}
+                      key={row.id}
+                      data={row}
+                      index={index}
+                      enableDelete={stepRowData.length > 1}
+                    />
                   ))}
                   {provider.placeholder}
                 </div>

@@ -158,6 +158,7 @@ const TestStep: React.FC<TestStepProps> = props => {
             <span className={cx('action')}>{renderFieldValue(step.action)}</span>
             <span className={cx('status')}>
               <StatusBadge
+                showBg
                 status={step.status}
                 onReady={setStatusConfig}
                 onStatusChange={status => handleStatusChange(step.id, status.key)}
