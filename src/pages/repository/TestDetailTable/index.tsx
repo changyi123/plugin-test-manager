@@ -8,6 +8,7 @@ import { UserCell } from '@projectproxima/components';
 import { updateItemAssignee } from '@/lib/api/proxima';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { DeleteOutlined, UserOutlined, SwitcherOutlined, DragHandler } from '@/icons';
 import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
 import { deleteTestEntities, getTestEntitiesByQuery, cloneTestEntities } from '@/lib/api/common';
@@ -82,11 +83,12 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
       );
 
       return {
-        list: data.results,
+        // 加拖拽依赖的 folderKey 数据
+        list: data.results.map(item => ({ ...item, folderKey })),
         total: data.count,
       };
     },
-    [searchValue, testDetailIds, workspaceKey],
+    [searchValue, testDetailIds, workspaceKey, folderKey],
   );
 
   const refreshAndMutateData = React.useCallback(async () => {
@@ -95,7 +97,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
   }, [onDataChange]);
 
   const selectionActionNodes = React.useMemo(() => {
-    const deleteTestDetail = data => {
+    const deleteTestDetail = () => {
       const testDetailIds = tableActionRef.current.selectedRows.map(row => row.objectId);
       const itemIds = tableActionRef.current.selectedRows
         .map(row => row.reference?.objectId)
@@ -129,7 +131,8 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
       setTableLoading(false);
     };
 
-    // 复制测试用例
+    // 复制测试用例 本期不上
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const copyTestDetail = async () => {
       const testEntityIds = tableActionRef.current.selectedRows.map(row => row.objectId);
       const targetRepository = await repositorySelectorRef.current.open({ workspaceKey });
@@ -158,10 +161,10 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
           </span>
         }
       />,
-      <span key="copy" onClick={isCheck && copyTestDetail}>
-        <SwitcherOutlined /> 复制
-      </span>,
-      <span key="delete" onClick={isCheck && deleteTestDetail}>
+      // <span key="copy" onClick={isCheck && copyTestDetail}>
+      //   <SwitcherOutlined /> 复制
+      // </span>,
+      <span key="delete" onClick={isCheck ? deleteTestDetail : undefined}>
         <DeleteOutlined /> 删除
       </span>,
     ];
@@ -181,9 +184,12 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
     return [
       {
         width: 40,
-        key: `move_${folderKey}`,
+        key: `move`,
         isSystem: true,
+        fixed: true,
+        shouldCellUpdate: (record, prevRecord) => record.folderKey !== prevRecord.folderKey,
         render(_, rowData) {
+          const folderKey = rowData.folderKey;
           return <RowDragHandler folderKey={folderKey} testId={rowData.objectId} />;
         },
       },
@@ -221,7 +227,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         },
       },
     ];
-  }, [folderKey, refreshAndMutateData]);
+  }, [refreshAndMutateData]);
 
   return (
     <>
