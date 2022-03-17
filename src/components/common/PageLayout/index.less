@@ -4,6 +4,13 @@
   .layout {
     height: 100%;
     background-color: #fff;
+
+    :global {
+      // 强制覆盖测试管理固定列的阴影透明度
+      .ant-table-ping-right .ant-table-cell-fix-right-first::after {
+        box-shadow: inset -10px 0 8px -8px rgb(0 0 0 / 6%) !important;
+      }
+    }
   }
 
   .header {

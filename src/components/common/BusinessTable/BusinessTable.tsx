@@ -141,7 +141,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
         itemKey={itemKey}
         name={props.name}
         additionalColumns={columns}
-        className={cx('column-setting')}
+        className={`${cx('column-setting')} extra-column-setting`}
         onTableColumnChange={handleTableColumnChange}
       />
     );
