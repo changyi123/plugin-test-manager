@@ -9,7 +9,14 @@ import { useTreeFn, traverseTreeNodes } from '../hook';
 import { MenuKey, FolderMenu } from '../Menu';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import { Tree, Button, Modal, Input, notification, Empty, Dropdown } from '@osui/ui';
-import { CustomMore, CustomScreenOff, CustomPlus } from '@/icons';
+import {
+  CustomMore,
+  CustomScreenOff,
+  CustomPlus,
+  CaretDownOutlined,
+  FileClose,
+  FileOpen,
+} from '@/icons';
 
 import { ROOT_FOLDER_KEY } from '../constant';
 
@@ -460,6 +467,8 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         onRightClick={handleRightClick}
         selectedKeys={state.selectedKeys}
         expandedKeys={state.expandedKeys}
+        icon={({ expanded }) => (expanded ? <FileOpen /> : <FileClose />)}
+        switcherIcon={<CaretDownOutlined style={{ color: '#878C96' }} />}
       />
       {EmptyNode}
     </div>

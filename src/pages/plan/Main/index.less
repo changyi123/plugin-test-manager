@@ -4,11 +4,15 @@
   height: 100%;
   :global {
     .ant-tabs-nav {
-      padding: 0 22px;
+      padding: 0 17px;
       margin-bottom: 0;
     }
     .ant-tabs-content {
       height: 100%;
+    }
+    // 有双倍边距
+    .ant-tabs-nav::before {
+      border-bottom-width: 1px !important;
     }
   }
 

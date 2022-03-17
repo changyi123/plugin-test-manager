@@ -13,7 +13,7 @@ import { getTestEntitiesByQuery } from '@/lib/api/common';
 import SearchInput from '@/components/business/SearchInput';
 import { useListener } from '@projectproxima/proxima-sdk-js';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
-import { FileTextOutlined, AppstoreAddOutlined } from '@/icons';
+import { AppstoreAddOutlined, FileClose } from '@/icons';
 import TestDetailTable, { ActionType } from './TestDetailTable';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import TestManagerProvider from '@/components/business/TestManagerProvider';
@@ -87,7 +87,7 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
         title: '未分组用例',
         parentId: null,
         testDetailIds: Array.from(allTestDetailIdSet),
-        icon: <FileTextOutlined />,
+        icon: <FileClose />,
         children: [],
       };
 

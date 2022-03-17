@@ -342,21 +342,23 @@ const ExecutionTable = () => {
       const relPageChange = current => setPageNum(current);
 
       return (
-        <BusinessTable
-          className={cx('expand-table')}
-          rowKey="objectId"
-          columns={columns}
-          useColumnSetting
-          showPagination={true}
-          actionRef={innerTableRef}
-          name="ExecutionInnerTable"
-          dataSource={record.relRuns.slice((pageNum - 1) * 10, pageNum * 10)}
-          scroll={{ x: 'max-content', y: 500 }}
-          itemKey="runReferenceDetail.reference"
-          PaginationFooterRender={PaginationFooterRender}
-          selectionActionNodes={InnerTableSelectionActionNodes}
-          onSelectionCancel={() => tableSelectionToggleEvent.emit(false)}
-        />
+        <div className={cx('expand-container')}>
+          <BusinessTable
+            className={cx('expand-table')}
+            rowKey="objectId"
+            columns={columns}
+            useColumnSetting
+            showPagination={true}
+            actionRef={innerTableRef}
+            name="ExecutionInnerTable"
+            dataSource={record.relRuns.slice((pageNum - 1) * 10, pageNum * 10)}
+            scroll={{ x: 'max-content', y: 500 }}
+            itemKey="runReferenceDetail.reference"
+            PaginationFooterRender={PaginationFooterRender}
+            selectionActionNodes={InnerTableSelectionActionNodes}
+            onSelectionCancel={() => tableSelectionToggleEvent.emit(false)}
+          />
+        </div>
       );
     },
     [InnerTableSelectionActionNodes, refreshAndMutateData, tableSelectionToggleEvent, pageNum],

@@ -70,11 +70,13 @@
       align-items: center;
       list-style: none;
       border-bottom: 1px solid #f0f0f0;
+
       &.effect {
         cursor: pointer;
-        &:hover {
-          background-color: #f0f0f0;
-        }
+      }
+
+      &:hover {
+        background-color: #f0f0f0;
       }
     }
 
@@ -144,7 +146,6 @@
         }
         &:before {
           background-color: @tree-node-selected-background;
-          border-radius: 4px;
         }
       }
 
@@ -157,6 +158,10 @@
         line-height: @tree-node-height;
         align-items: center;
         overflow: hidden;
+      }
+
+      .ant-tree-treenode::before {
+        bottom: 0 !important;
       }
     }
   }

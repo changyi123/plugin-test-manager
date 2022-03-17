@@ -11,6 +11,8 @@ import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
 import { getTestEntitiesByRelation, removeTestRelations } from '@/lib/api/common';
 import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
 
+import cx from './DetailTable.less';
+
 const DetailTable = () => {
   const actionRef = React.useRef<BusinessTableActionType>();
 
@@ -176,7 +178,7 @@ const DetailTable = () => {
 
   const columns = [
     {
-      width: 160,
+      width: 320,
       key: 'title',
       isSystem: true,
       title: '标题',
@@ -192,15 +194,15 @@ const DetailTable = () => {
     {
       key: 'latestStatus',
       title: '最新执行状态',
-      width: 100,
+      width: 200,
       render(_, rowData) {
-        return <StatusBadge readonly status={rowData.status} />;
+        return <StatusBadge readonly status={rowData.status} className={cx('cell-min')} />;
       },
     },
     {
       key: 'times',
       title: <span>执行任务次数</span>,
-      width: 100,
+      width: 200,
       render(_, rowData) {
         return rowData.relRuns.length;
       },
@@ -208,7 +210,7 @@ const DetailTable = () => {
     {
       key: 'action',
       isSystem: true,
-      title: null,
+      title: '操作',
       fixed: 'right' as any,
       render(_, rowData) {
         return (
@@ -235,6 +237,7 @@ const DetailTable = () => {
       actionRef={actionRef}
       getDataSource={tableDataGetter}
       setIsCheck={setIsCheck}
+      isCheck={isCheck}
       selectionActionNodes={selectionActionNodes}
       onSelectionCancel={() => tableSelectionToggleEvent.emit(false)}
     />

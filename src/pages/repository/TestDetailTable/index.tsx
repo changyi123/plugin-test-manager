@@ -239,6 +239,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         name="TestDetailTable"
         actionRef={tableActionRef}
         setIsCheck={setIsCheck}
+        isCheck={isCheck}
         getDataSource={dataSourceGetter}
         onSelectionCancel={onSelectionCancel}
         loading={tableLoading}

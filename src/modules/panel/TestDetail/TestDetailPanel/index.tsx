@@ -15,6 +15,7 @@ import { Step, TestEntity } from '@/lib/types/Test';
 import TestStep from '@/components/business/TestStep';
 
 import css from './index.less';
+import { getStepInitialData } from '@/components/business/TestStep/helper';
 
 // 测试详情实体类型
 type TestDetailEntity = TestEntity<TestType.TestDetail>;
@@ -33,7 +34,7 @@ const Detail: React.FC = () => {
   const { testEntity } = useTestConfig();
   const [search, setSearch] = useState(false);
   const stepsStateRef = React.useRef<TestStep[]>([]);
-  const [steps, setStepsState] = useState<TestStep[]>([]);
+  const [steps, setStepsState] = useState<TestStep[]>([getStepInitialData()]);
   const testEntityDictRef = React.useRef<Record<string, TestDetailEntity>>({});
 
   const setSteps = useCallback(
