@@ -4,7 +4,7 @@ import FolderTree from '@/pages/repository/FolderTree';
 import { Tooltip, Button, notification } from '@osui/ui';
 import { getDevConfig } from '@/devEnv';
 import { TestType } from '@/lib/constants';
-import { FileTextOutlined, AppstoreAddOutlined } from '@/icons';
+import { FileClose, AppstoreAddOutlined } from '@/icons';
 import TestDetailTable, { ActionType } from './TestDetailTable';
 import { useReactive, useRequest } from 'ahooks';
 import { getFolderTree } from '@/lib/api/repository';
@@ -80,7 +80,7 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
         title: '未分组用例',
         parentId: null,
         testDetailIds: Array.from(allTestDetailIdSet),
-        icon: <FileTextOutlined />,
+        icon: <FileClose />,
         children: [],
       };
 

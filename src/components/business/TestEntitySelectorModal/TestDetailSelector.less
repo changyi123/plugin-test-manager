@@ -144,7 +144,6 @@
         }
         &:before {
           background-color: @tree-node-selected-background;
-          border-radius: 4px;
         }
       }
 
@@ -157,6 +156,10 @@
         line-height: @tree-node-height;
         align-items: center;
         overflow: hidden;
+      }
+
+      .ant-tree-treenode::before {
+        bottom: 0 !important;
       }
     }
   }

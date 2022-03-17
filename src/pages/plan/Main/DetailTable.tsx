@@ -200,7 +200,7 @@ const DetailTable = () => {
     {
       key: 'action',
       isSystem: true,
-      title: null,
+      title: '操作',
       fixed: 'right' as any,
       render(_, rowData) {
         return (

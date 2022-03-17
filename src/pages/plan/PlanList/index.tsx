@@ -225,7 +225,11 @@ const PlanList = () => {
   return (
     <div className={cx('container')}>
       <div className={cx('toolkit-bar')}>
-        <SearchInput onSearch={handleSearch} placeholder="请输入测试计划标题" />
+        <SearchInput
+          onSearch={handleSearch}
+          placeholder="请输入测试计划标题"
+          className={cx('plan-search')}
+        />
         <Tooltip title="新建测试计划">
           <PlusOutlined onClick={handleCreate} />
         </Tooltip>
