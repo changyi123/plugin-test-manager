@@ -13,7 +13,8 @@ import { hasArrayItem, escapeMatchesQueryArg } from '@/lib/utils/helper';
 import { Select, Tree, Empty, Checkbox, Spin, Tooltip, Input } from '@osui/ui';
 import {
   CaretDownOutlined,
-  FileTextOutlined,
+  FileClose,
+  FileOpen,
   CaretUpOutlined,
   SearchOutlined,
   CheckOutlined,
@@ -131,7 +132,7 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
         title: '未分组用例',
         parentId: null,
         testDetailIds: Array.from(allTestDetailIdSet),
-        icon: <FileTextOutlined />,
+        icon: <FileClose />,
         children: [],
       };
 
@@ -344,6 +345,8 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
                 <Tree.DirectoryTree
                   showIcon
                   {...TreeComponentCheckProps}
+                  icon={({ expanded }) => (expanded ? <FileOpen /> : <FileClose />)}
+                  switcherIcon={<CaretDownOutlined style={{ color: '#878C96' }} />}
                   treeData={treeData}
                   onCheck={handleCheck}
                   className={cx('tree')}
@@ -376,6 +379,7 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
                           baseSearchState.orderByCratedAt === 'asc' ? 'desc' : 'asc';
                       }}
                     >
+                      <span>{baseSearchState.orderByCratedAt === 'asc' ? '最早' : '最晚'}</span>
                       <span className={cx('icon')}>
                         <CaretUpOutlined
                           className={cx(baseSearchState.orderByCratedAt === 'asc' && 'activity')}
@@ -384,7 +388,6 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
                           className={cx(baseSearchState.orderByCratedAt === 'desc' && 'activity')}
                         />
                       </span>
-                      <span>{baseSearchState.orderByCratedAt === 'asc' ? '最早' : '最晚'}</span>
                     </span>
                   </Tooltip>
                 </div>
