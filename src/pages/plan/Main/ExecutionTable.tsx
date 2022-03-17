@@ -1,13 +1,14 @@
 import React from 'react';
-import { notification } from '@osui/ui';
+import { notification, Pagination } from '@osui/ui';
 import { DeleteOutlined } from '@/icons';
 import { usePageContext } from '../hook';
 import { updateTestRun } from '@/lib/api/runs';
 import { deleteItems } from '@/lib/api/proxima';
 import { StatusBadge } from '@/components/business/Status';
-import TestRunModal from '@/components/business/TestRunModal';
-import { StatusProgress } from '@/components/business/Status';
 import { TestRelationType, TestType } from '@/lib/constants';
+import { useListener } from '@projectproxima/proxima-sdk-js';
+import { StatusProgress } from '@/components/business/Status';
+import TestRunModal from '@/components/business/TestRunModal';
 import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
 import { addTestDetailToExecution, updateTestRunStatus } from '@/lib/api/runs';
 import {
@@ -29,6 +30,15 @@ const ExecutionTable = () => {
   const innerTableRef = React.useRef<BusinessTableActionRef>();
   const executionTableActionRef = React.useRef<BusinessTableActionRef>();
   const testEntitySelectorRef = React.useRef<TestEntitySelectorActionType>();
+
+  // 事项数据更新后刷新列表
+  useListener('updateItemList', () => {
+    setTimeout(() => {
+      innerTableRef.current.refresh();
+      executionTableActionRef.current.refresh();
+    }, 400);
+  });
+
   const {
     searchValue,
     workspaceKey,
@@ -62,7 +72,7 @@ const ExecutionTable = () => {
   }, [searchValue, selectedTestPlanId]);
 
   const tableDataGetter = React.useCallback(
-    (queryParams, expandedRowKeys) => {
+    queryParams => {
       return getTestEntitiesByRelation(
         TestRelationType.PlanRelExecution,
         { from: selectedTestPlanId },
@@ -72,12 +82,12 @@ const ExecutionTable = () => {
           nameLike: searchValue,
           queryParams: queryParams,
           async resultTransfer({ list, total }) {
-            // const testExecutionIds = list.map(item => item.objectId);
+            const testExecutionIds = list.map(item => item.objectId);
 
             const { list: testRuns } = await getTestEntitiesByRelation(
               TestRelationType.ExecutionRelRun,
               {
-                from: expandedRowKeys || [],
+                from: testExecutionIds,
               },
               {
                 queryParams: { limit: 9999 },
@@ -89,7 +99,6 @@ const ExecutionTable = () => {
               total,
               list: list.map(execution => ({
                 ...execution,
-                // relRuns: [],
                 relRuns: testRuns.filter(
                   run =>
                     run.relation.from.objectId === execution.objectId &&
@@ -243,6 +252,8 @@ const ExecutionTable = () => {
     },
   ];
 
+  const [pageNum, setPageNum] = React.useState(1);
+
   const expandedRowRender = React.useCallback(
     record => {
       // 测试执行序列
@@ -307,24 +318,48 @@ const ExecutionTable = () => {
           },
         },
       ];
+
+      const PaginationFooterRender = () => {
+        return (
+          <div className={cx('footer')}>
+            <div className={cx('num')}>
+              共 <span>{record.relRuns.length}</span> 个
+            </div>
+            <Pagination
+              size="small"
+              showSizeChanger={true}
+              className={cx('pagination')}
+              pageSizeOptions={[10]}
+              defaultPageSize={10}
+              current={pageNum}
+              onChange={relPageChange}
+              total={record.relRuns.length}
+            />
+          </div>
+        );
+      };
+
+      const relPageChange = current => setPageNum(current);
+
       return (
         <BusinessTable
           className={cx('expand-table')}
           rowKey="objectId"
           columns={columns}
           useColumnSetting
-          showPagination={false}
+          showPagination={true}
           actionRef={innerTableRef}
           name="ExecutionInnerTable"
-          dataSource={record.relRuns}
+          dataSource={record.relRuns.slice((pageNum - 1) * 10, pageNum * 10)}
           scroll={{ x: 'max-content', y: 500 }}
           itemKey="runReferenceDetail.reference"
+          PaginationFooterRender={PaginationFooterRender}
           selectionActionNodes={InnerTableSelectionActionNodes}
           onSelectionCancel={() => tableSelectionToggleEvent.emit(false)}
         />
       );
     },
-    [InnerTableSelectionActionNodes, refreshAndMutateData, tableSelectionToggleEvent],
+    [InnerTableSelectionActionNodes, refreshAndMutateData, tableSelectionToggleEvent, pageNum],
   );
 
   return (

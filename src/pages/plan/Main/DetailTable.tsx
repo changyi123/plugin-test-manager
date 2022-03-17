@@ -6,12 +6,20 @@ import { UserCell } from '@projectproxima/components';
 import { updateItemAssignee } from '@/lib/api/proxima';
 import { DeleteOutlined, UserOutlined } from '@/icons';
 import { StatusBadge } from '@/components/business/Status';
+import { useListener } from '@projectproxima/proxima-sdk-js';
 import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
 import { getTestEntitiesByRelation, removeTestRelations } from '@/lib/api/common';
 import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
 
 const DetailTable = () => {
   const actionRef = React.useRef<BusinessTableActionType>();
+
+  // 事项数据更新后刷新列表
+  useListener('updateItemList', () => {
+    setTimeout(() => {
+      actionRef.current.refresh();
+    }, 400);
+  });
 
   const {
     searchValue,
