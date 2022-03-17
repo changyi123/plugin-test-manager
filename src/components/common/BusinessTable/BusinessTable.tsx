@@ -71,10 +71,8 @@ type BusinessTableProps = TableProps<any> & {
   setIsCheck?: (check: boolean) => void;
   selectionActionNodes?: React.ReactNode[];
   actionRef?: React.ForwardedRef<ActionType>;
-  getDataSource?: (
-    queryParams: { offset: number; limit: number },
-    expandedRowKeys?: string[],
-  ) => Promise<{
+  PaginationFooterRender?: any;
+  getDataSource?: (queryParams: { offset: number; limit: number }) => Promise<{
     list: any[];
     total: number;
   } | null>;
@@ -92,6 +90,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     itemKey = 'reference',
     showPagination = true,
     useColumnSetting = false,
+    PaginationFooterRender,
     scroll = {
       x: 'max-content',
     },
@@ -152,15 +151,12 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     queryParams => {
       if (!queryParams) return null;
       const { current, pageSize } = queryParams;
-      return getDataSource?.(
-        {
-          offset: (current - 1) * pageSize,
-          limit: pageSize,
-        },
-        expandedRowKeys,
-      );
+      return getDataSource?.({
+        offset: (current - 1) * pageSize,
+        limit: pageSize,
+      });
     },
-    { defaultPageSize: pagesize, refreshDeps: [getDataSource, expandedRowKeys] },
+    { defaultPageSize: pagesize, refreshDeps: [getDataSource] },
   );
 
   const dataSource = React.useMemo(
@@ -346,7 +342,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
           }
           {...restTableProps}
         />
-        <PaginationFooter />
+        {PaginationFooterRender ? <PaginationFooterRender /> : <PaginationFooter />}
       </LibraryProvider>
     </div>
   );

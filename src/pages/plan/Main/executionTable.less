@@ -6,8 +6,22 @@
     .ant-table-tbody > tr > td,
     .ant-table-thead > tr > th,
     .ant-table .ant-table-container::after,
-    .ant-table-thead > tr > th:not(:last-child):not(.ant-table-selection-column):not(.ant-table-row-expand-icon-cell):not([colspan])::before{
-      background-color: #FBFBFB;
+    .ant-table-thead
+      > tr
+      > th:not(:last-child):not(.ant-table-selection-column):not(.ant-table-row-expand-icon-cell):not([colspan])::before {
+      background-color: #fbfbfb;
     }
+  }
+}
+
+.footer {
+  height: 48px;
+  display: flex;
+  margin: 0 24px;
+  align-items: center;
+  border-top: 1px solid @border-color;
+
+  .pagination {
+    margin-left: auto;
   }
 }
