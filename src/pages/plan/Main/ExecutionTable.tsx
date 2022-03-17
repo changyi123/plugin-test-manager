@@ -5,9 +5,10 @@ import { usePageContext } from '../hook';
 import { updateTestRun } from '@/lib/api/runs';
 import { deleteItems } from '@/lib/api/proxima';
 import { StatusBadge } from '@/components/business/Status';
-import TestRunModal from '@/components/business/TestRunModal';
-import { StatusProgress } from '@/components/business/Status';
 import { TestRelationType, TestType } from '@/lib/constants';
+import { useListener } from '@projectproxima/proxima-sdk-js';
+import { StatusProgress } from '@/components/business/Status';
+import TestRunModal from '@/components/business/TestRunModal';
 import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
 import { addTestDetailToExecution, updateTestRunStatus } from '@/lib/api/runs';
 import {
@@ -29,6 +30,15 @@ const ExecutionTable = () => {
   const innerTableRef = React.useRef<BusinessTableActionRef>();
   const executionTableActionRef = React.useRef<BusinessTableActionRef>();
   const testEntitySelectorRef = React.useRef<TestEntitySelectorActionType>();
+
+  // 事项数据更新后刷新列表
+  useListener('updateItemList', () => {
+    setTimeout(() => {
+      innerTableRef.current.refresh();
+      executionTableActionRef.current.refresh();
+    }, 400);
+  });
+
   const {
     searchValue,
     workspaceKey,

@@ -100,7 +100,7 @@ const PlanList = () => {
 
   const selectedTestPlanId = selectedTestPlan?.objectId;
 
-  const { data, reload, loading, mutate } = useInfiniteScroll(
+  const { data, reload, loading, mutate, loadingMore } = useInfiniteScroll(
     async params => {
       const { offset = 0 } = params ?? ({} as any);
       const { results, count } = await getTestEntitiesByQuery(
@@ -230,7 +230,7 @@ const PlanList = () => {
           <PlusOutlined onClick={handleCreate} />
         </Tooltip>
       </div>
-      <Spin spinning={loading}>
+      <Spin spinning={loading || loadingMore}>
         {loading || testPlans.length ? (
           <div className={cx('list')} ref={listRef}>
             {testPlans.map(testPlan => (

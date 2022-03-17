@@ -1,23 +1,23 @@
 import React from 'react';
-import FolderTree from '@/pages/repository/FolderTree';
-
-import { Tooltip, Button, notification } from '@osui/ui';
 import { getDevConfig } from '@/devEnv';
 import { TestType } from '@/lib/constants';
+import { useReactive, useRequest } from 'ahooks';
+import { useSDK } from '@projectproxima/plugin-sdk';
+import { updateFolders } from '@/lib/api/repository';
+import { getFolderTree } from '@/lib/api/repository';
+import { useBaseAction } from '@/lib/hooks/useContext';
+import FolderTree from '@/pages/repository/FolderTree';
+import PageLayout from '@/components/common/PageLayout';
+import { Tooltip, Button, notification } from '@osui/ui';
+import { getTestEntitiesByQuery } from '@/lib/api/common';
+import SearchInput from '@/components/business/SearchInput';
+import { useListener } from '@projectproxima/proxima-sdk-js';
+import ErrorBoundary from '@/components/common/ErrorBoundary';
 import { FileTextOutlined, AppstoreAddOutlined } from '@/icons';
 import TestDetailTable, { ActionType } from './TestDetailTable';
-import { useReactive, useRequest } from 'ahooks';
-import { getFolderTree } from '@/lib/api/repository';
-import { useSDK } from '@projectproxima/plugin-sdk';
-import PageLayout from '@/components/common/PageLayout';
-import { getTestEntitiesByQuery } from '@/lib/api/common';
-import { traverseTreeNodes, reverseTreeNodes, getTreeNodeByKey } from './hook';
-import ErrorBoundary from '@/components/common/ErrorBoundary';
-import SearchInput from '@/components/business/SearchInput';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import TestManagerProvider from '@/components/business/TestManagerProvider';
-import { useBaseAction } from '@/lib/hooks/useContext';
-import { updateFolders } from '@/lib/api/repository';
+import { traverseTreeNodes, reverseTreeNodes, getTreeNodeByKey } from './hook';
 
 import { ROOT_FOLDER_KEY } from './constant';
 
@@ -26,6 +26,13 @@ import cx from './index.less';
 const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) => {
   const tableActionRef = React.useRef<ActionType>();
   const { createItemUseModal } = useBaseAction();
+
+  // 事项数据更新后刷新列表
+  useListener('updateItemList', () => {
+    setTimeout(() => {
+      tableActionRef.current.refresh();
+    }, 400);
+  });
 
   const state = useReactive({
     breadcrumbs: [],
