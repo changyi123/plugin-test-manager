@@ -123,6 +123,7 @@ const PlanList = () => {
           from: results.map(item => item.objectId),
         },
         {
+          select: ['status'],
           include: ['status'],
           queryParams: { limit: 9999, offset: 0 },
         },
@@ -195,6 +196,7 @@ const PlanList = () => {
     await createItemUseModal({
       type: TestType.TestPlan,
     });
+    reload();
     notification.success({
       message: '测试计划新建成功',
     });

@@ -5,7 +5,7 @@ import ExecutionTable from './ExecutionTable';
 import { AppstoreAddOutlined } from '@/icons';
 import { createTestRelation } from '@/lib/api/common';
 import { TestType, TestRelationType } from '@/lib/constants';
-import { Tabs, Button, Tooltip, notification, message } from '@osui/ui';
+import { Tabs, Button, Tooltip, notification } from '@osui/ui';
 import { createTestExecutionAndRelations } from '@/lib/api/runs';
 import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
 import TestEntitySelectorModal, { ActionType } from '@/components/business/TestEntitySelectorModal';
@@ -57,8 +57,6 @@ const Main = () => {
 
     const testExecutionData = testExecutionEntity.toJSON();
 
-    message.loading('测试执行任务正在创建');
-
     await createTestExecutionAndRelations({
       workspaceKey: workspace.key,
       testPlan: selectedTestPlanId,
@@ -93,7 +91,7 @@ const Main = () => {
         value={value}
         className={cx('action')}
         onChange={val => {
-          setValue(val as unknown as string);
+          setValue(val);
         }}
         onSearch={handleSearch}
       />

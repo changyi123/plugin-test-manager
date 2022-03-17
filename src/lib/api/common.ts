@@ -28,15 +28,22 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
       // 需要填充 item 数据则自动转换未 json 格式
       fillItemData: false,
       include: [],
-      // 只需要测试实体数据，不需要关联关系数据
-      entityOnly: false,
+      // 需要关联方 id
+      needOriginSideId: true,
+      select: [],
       workspaceKey: '',
       queryParams: { limit: 10, offset: 0, orderBy: 'createdAt' },
       nameLike: '',
-      orderBy: 'createdAt',
+      descendingBy: 'createdAt',
     },
     _config,
   );
+
+  // 查另一向的关联关系
+  const sideMapping = {
+    from: 'to',
+    to: 'from',
+  };
   // 查询必须要要有关联类型
   if (!relType) return;
   // 测试实体 key
@@ -52,11 +59,6 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
     } else {
       query.equalTo(sideKey, pointerTransfer(Test, side as PointerType));
     }
-    // 查另一向的关联关系
-    const sideMapping = {
-      from: 'to',
-      to: 'from',
-    };
     relationSideKey = sideMapping[sideKey];
   });
 
@@ -72,12 +74,17 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
     : [relationSideKey];
 
   // 如果有 select 事项追加至 query
-  if (config.entityOnly) {
-    query.select(relationSideKey);
+  if (config.select || config.needOriginSideId) {
+    const select = (Array.isArray(config.select) ? config.select : [config.select]).map(
+      key => `${relationSideKey}.${key}`,
+    );
+    const otherSide = config.needOriginSideId && `${sideMapping[relationSideKey]}.objectId`;
+    const selectKeys = [relationSideKey, otherSide, ...select].filter(Boolean);
+    query.select(selectKeys);
   }
 
-  if (config.orderBy) {
-    query.descending(config.orderBy);
+  if (config.descendingBy) {
+    query.descending(config.descendingBy);
   }
 
   if (hasArrayItem(includeKeys)) {
@@ -104,7 +111,6 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
     const queryParams = config.queryParams;
     query.limit(queryParams.limit);
     query.skip(queryParams.offset);
-    query.descending(queryParams.orderBy);
   }
 
   const { results, count } = await query.find();
@@ -122,6 +128,7 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
     return responseData;
   };
 
+  console.time('results');
   // 需要填充 item 数据则自动转换未 json 格式，非批量数据不做处理
   if (Array.isArray(results)) {
     const itemIds = [];
@@ -161,6 +168,7 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
     });
     return buildReturnData(testEntitiesDataWithItemData);
   }
+  console.timeEnd('results');
   // 异常响应数据兼容处理
   return buildReturnData([]);
 };

@@ -17,6 +17,9 @@ import cx from './index.less';
 
 const AddExistedTestEventType = 'ADD_EXISTED_TEST';
 
+let PreviousMessageData = null;
+let PreviousButtonClicked = false;
+
 export type ActionType = {
   open: (params?: { testType?: TestType; ignoreTestEntityIds?: string[] }) => any;
 };
@@ -217,13 +220,23 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
       return new Promise(resolve => {
         const disposer = eventBusRef.current.register(AddExistedTestEventType, data => {
           disposer.unregister();
+          const messageData = JSON.stringify(data);
+          if (PreviousMessageData === messageData) return;
+          PreviousMessageData = messageData;
           resolve(data);
+          // 下一轮事件循环取消锁
+          setTimeout(() => {
+            PreviousButtonClicked = false;
+            PreviousMessageData = null;
+          });
         });
       });
     },
   }));
 
   const handleOkButtonClick = React.useCallback(() => {
+    if (PreviousButtonClicked) return;
+    PreviousButtonClicked = true;
     let selectedData = selectedTestDetails;
     if (testType !== TestType.TestDetail) {
       const filledValue = Array.isArray(selectValue)
@@ -319,6 +332,10 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
   return (
     <Modal
       destroyOnClose
+      afterClose={() => {
+        PreviousButtonClicked = false;
+        PreviousMessageData = null;
+      }}
       closable={false}
       keyboard={false}
       visible={visible}
