@@ -12,9 +12,9 @@ import { useRequest, useReactive, useInfiniteScroll } from 'ahooks';
 import { hasArrayItem, escapeMatchesQueryArg } from '@/lib/utils/helper';
 import { Select, Tree, Empty, Checkbox, Spin, Tooltip, Input } from '@osui/ui';
 import {
+  CaretDownOutlined,
   FileTextOutlined,
   CaretUpOutlined,
-  CaretDownOutlined,
   SearchOutlined,
   CheckOutlined,
 } from '@/icons';
