@@ -16,7 +16,7 @@ import { useAntdTable, useLocalStorageState, useSize } from 'ahooks';
 
 import cx from './BusinessTable.less';
 
-const DefaultPageSize = 10;
+const DEFAULT_PAGE_SIZE = 10;
 
 const ResizableHeaderCell = ({ onResize, resizable, width, ...restProps }) => {
   const thProps = pick(restProps, ['children', 'rowSpan', 'colSpan', 'style', 'className']);
@@ -103,10 +103,14 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
   const [expandedRowKeys, setExpandedKeys] = React.useState([]);
   const [selectedRowKeys, setSelectedRowKeys] = React.useState<string[] | undefined>(undefined);
   const [selectionMode, setSelectionMode] = React.useState(false);
-  const LOCAL_STORAGE_KEY = generateStorageKey(props.name, 'column-width');
+  const COLUMN_WIDTH_STORAGE_KEY = generateStorageKey(props.name, 'column-width');
+  const PAGESIZE_STORAGE_KEY = generateStorageKey(props.name, 'default-pagesize');
   const [tableColumns, setTableColumns] = React.useState(useColumnSetting ? [] : columns);
-  const [columnsWidth, setColumnsWidth] = useLocalStorageState(LOCAL_STORAGE_KEY, {
+  const [columnsWidth, setColumnsWidth] = useLocalStorageState(COLUMN_WIDTH_STORAGE_KEY, {
     defaultValue: {},
+  });
+  const [pagesize, setPageSize] = useLocalStorageState(PAGESIZE_STORAGE_KEY, {
+    defaultValue: DEFAULT_PAGE_SIZE,
   });
   const { workspace } = useTestConfig();
   const { context } = useSDK();
@@ -139,7 +143,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
         itemKey={itemKey}
         name={props.name}
         additionalColumns={columns}
-        className={cx('column-setting')}
+        className={`${cx('column-setting')} extra-column-setting`}
         onTableColumnChange={handleTableColumnChange}
       />
     );
@@ -154,7 +158,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
         limit: pageSize,
       });
     },
-    { defaultPageSize: DefaultPageSize, refreshDeps: [getDataSource] },
+    { defaultPageSize: pagesize, refreshDeps: [getDataSource] },
   );
 
   const dataSource = React.useMemo(
@@ -246,6 +250,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
 
     const pagination = antdTableProps.pagination;
     const handlePaginationChange = (current, pageSize) => {
+      setPageSize(pageSize);
       antdTableProps.onChange({ current, pageSize });
     };
 
@@ -259,7 +264,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
           showSizeChanger={true}
           className={cx('pagination')}
           pageSizeOptions={[10, 20, 50]}
-          defaultPageSize={DefaultPageSize}
+          defaultPageSize={pagesize}
           onChange={handlePaginationChange}
           {...pagination}
         />

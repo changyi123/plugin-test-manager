@@ -100,7 +100,7 @@ const PlanList = () => {
 
   const selectedTestPlanId = selectedTestPlan?.objectId;
 
-  const { data, reload, loading, mutate } = useInfiniteScroll(
+  const { data, reload, loading, mutate, loadingMore } = useInfiniteScroll(
     async params => {
       const { offset = 0 } = params ?? ({} as any);
       const { results, count } = await getTestEntitiesByQuery(
@@ -225,12 +225,16 @@ const PlanList = () => {
   return (
     <div className={cx('container')}>
       <div className={cx('toolkit-bar')}>
-        <SearchInput onSearch={handleSearch} placeholder="请输入测试计划标题" />
+        <SearchInput
+          onSearch={handleSearch}
+          placeholder="请输入测试计划标题"
+          className={cx('plan-search')}
+        />
         <Tooltip title="新建测试计划">
           <PlusOutlined onClick={handleCreate} />
         </Tooltip>
       </div>
-      <Spin spinning={loading}>
+      <Spin spinning={loading || loadingMore}>
         {loading || testPlans.length ? (
           <div className={cx('list')} ref={listRef}>
             {testPlans.map(testPlan => (
