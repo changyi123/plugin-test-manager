@@ -78,8 +78,8 @@ const ExecutionTable = () => {
         { from: selectedTestPlanId },
         {
           workspaceKey,
-          fillItemData: true,
           nameLike: searchValue,
+          include: ['reference'],
           queryParams: queryParams,
           async resultTransfer({ list, total }) {
             const testExecutionIds = list.map(item => item.objectId);
@@ -91,7 +91,8 @@ const ExecutionTable = () => {
               },
               {
                 queryParams: { limit: 9999 },
-                include: ['runReferenceDetail.reference'],
+                select: ['status', 'runReferenceDetail.reference'],
+                include: ['status', 'runReferenceDetail.reference'],
               },
             );
 
@@ -285,7 +286,7 @@ const ExecutionTable = () => {
         },
         {
           key: 'runStatus',
-          title: '用例执行状态',
+          title: '测试执行状态',
           width: 150,
           render(_, record) {
             return (
@@ -327,12 +328,12 @@ const ExecutionTable = () => {
             </div>
             <Pagination
               size="small"
-              showSizeChanger={true}
-              className={cx('pagination')}
-              pageSizeOptions={[10]}
-              defaultPageSize={10}
               current={pageNum}
+              defaultPageSize={10}
+              pageSizeOptions={[10]}
+              showSizeChanger={false}
               onChange={relPageChange}
+              className={cx('pagination')}
               total={record.relRuns.length}
             />
           </div>
@@ -351,12 +352,12 @@ const ExecutionTable = () => {
             showPagination={true}
             actionRef={innerTableRef}
             name="ExecutionInnerTable"
-            dataSource={record.relRuns.slice((pageNum - 1) * 10, pageNum * 10)}
             scroll={{ x: 'max-content', y: 500 }}
             itemKey="runReferenceDetail.reference"
             PaginationFooterRender={PaginationFooterRender}
             selectionActionNodes={InnerTableSelectionActionNodes}
             onSelectionCancel={() => tableSelectionToggleEvent.emit(false)}
+            dataSource={record.relRuns.slice((pageNum - 1) * 10, pageNum * 10)}
           />
         </div>
       );
