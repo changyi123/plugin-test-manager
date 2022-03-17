@@ -1853,10 +1853,10 @@
   resolved "https://registry.yarnpkg.com/@popperjs/core/-/core-2.11.2.tgz#830beaec4b4091a9e9398ac50f865ddea52186b9"
   integrity sha512-92FRmppjjqz29VMJ2dn+xdyXZBrMlE42AV6Kq6BwjWV7CNUW1hs2FtxSNLQE+gJhaZ6AAmYuO9y8dshhcBl7vA==
 
-"@projectproxima/components@^0.0.6":
-  version "0.0.6"
-  resolved "https://registry.yarnpkg.com/@projectproxima/components/-/components-0.0.6.tgz#1a9aa5174c141131b92b2956d874bb0536c9f819"
-  integrity sha512-LbhOAy9hV4VkYNV7VOhutzWlVw0++EsT7bjI2EdpbYE9YLV8Euq6KBHOhhmLF3vv9WLzl2PDxqf2ZC5hqXsABw==
+"@projectproxima/components@0.0.7":
+  version "0.0.7"
+  resolved "https://registry.yarnpkg.com/@projectproxima/components/-/components-0.0.7.tgz#c5d056c6767486d14dcc0c982e9a569611bf6cd1"
+  integrity sha512-lClSkZ/YhGCg+pLEZZODwCZqBmBCU2w7jFHUytpAjO3mfc1L5ekqapNY5Ld8ySxAM7JZa7LHMfDiXPdmpVuv9w==
   dependencies:
     "@ant-design/icons" "4.7.0"
     "@osui/theme" "^1.1.10"

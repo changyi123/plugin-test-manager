@@ -12,7 +12,6 @@ import {
   ItemType,
   Workspace,
   CustomField,
-  ItemTypeScheme,
   WorkspaceScheme,
   AppInstallation,
 } from '@/lib/models';
@@ -158,11 +157,13 @@ export const getWorkspaceByName = (name?: string) => {
 };
 
 /** 获取层级视图顶级事项类型 */
-export const getTopItemTypeFromHierarchy = async itemTypeSchemeId => {
-  const itemTypeScheme = await new Parse.Query(ItemTypeScheme)
-    .equalTo('objectId', itemTypeSchemeId)
+export const getTopItemTypeFromHierarchy = async workspaceSchemeId => {
+  const itemTypeScheme = await new Parse.Query(WorkspaceScheme)
+    .include('itemTypeScheme')
+    .equalTo('objectId', workspaceSchemeId)
     .first();
-  const hierarchy = JSON.parse(itemTypeScheme?.get('hierarchy'));
+
+  const hierarchy = JSON.parse(itemTypeScheme.toJSON().itemTypeScheme.hierarchy);
   return hierarchy;
 };
 
