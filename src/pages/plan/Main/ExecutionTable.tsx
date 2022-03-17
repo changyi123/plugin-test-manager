@@ -62,7 +62,7 @@ const ExecutionTable = () => {
   }, [searchValue, selectedTestPlanId]);
 
   const tableDataGetter = React.useCallback(
-    queryParams => {
+    (queryParams, expandedRowKeys) => {
       return getTestEntitiesByRelation(
         TestRelationType.PlanRelExecution,
         { from: selectedTestPlanId },
@@ -72,11 +72,12 @@ const ExecutionTable = () => {
           nameLike: searchValue,
           queryParams: queryParams,
           async resultTransfer({ list, total }) {
-            const testExecutionIds = list.map(item => item.objectId);
+            // const testExecutionIds = list.map(item => item.objectId);
+
             const { list: testRuns } = await getTestEntitiesByRelation(
               TestRelationType.ExecutionRelRun,
               {
-                from: testExecutionIds,
+                from: expandedRowKeys || [],
               },
               {
                 queryParams: { limit: 9999 },
@@ -88,6 +89,7 @@ const ExecutionTable = () => {
               total,
               list: list.map(execution => ({
                 ...execution,
+                // relRuns: [],
                 relRuns: testRuns.filter(
                   run =>
                     run.relation.from.objectId === execution.objectId &&
@@ -341,7 +343,7 @@ const ExecutionTable = () => {
         expandable={{
           expandedRowRender,
           expandRowByClick: true,
-          rowExpandable: record => Boolean(record.relRuns.length),
+          // rowExpandable: record => Boolean(record.relRuns.length),
         }}
         getDataSource={tableDataGetter}
         actionRef={executionTableActionRef}
