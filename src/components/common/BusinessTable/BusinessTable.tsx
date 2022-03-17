@@ -71,7 +71,10 @@ type BusinessTableProps = TableProps<any> & {
   setIsCheck?: (check: boolean) => void;
   selectionActionNodes?: React.ReactNode[];
   actionRef?: React.ForwardedRef<ActionType>;
-  getDataSource?: (queryParams: { offset: number; limit: number }) => Promise<{
+  getDataSource?: (
+    queryParams: { offset: number; limit: number },
+    expandedRowKeys?: string[],
+  ) => Promise<{
     list: any[];
     total: number;
   } | null>;
@@ -145,12 +148,15 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     queryParams => {
       if (!queryParams) return null;
       const { current, pageSize } = queryParams;
-      return getDataSource?.({
-        offset: (current - 1) * pageSize,
-        limit: pageSize,
-      });
+      return getDataSource?.(
+        {
+          offset: (current - 1) * pageSize,
+          limit: pageSize,
+        },
+        expandedRowKeys,
+      );
     },
-    { defaultPageSize: DefaultPageSize, refreshDeps: [getDataSource] },
+    { defaultPageSize: DefaultPageSize, refreshDeps: [getDataSource, expandedRowKeys] },
   );
 
   const dataSource = React.useMemo(
