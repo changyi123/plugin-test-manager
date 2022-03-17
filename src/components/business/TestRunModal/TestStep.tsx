@@ -166,7 +166,7 @@ const TestStep: React.FC<TestStepProps> = props => {
             </span>
           </div>
           <div className={cx('fields')}>
-            <div>
+            <div className={cx('field')}>
               <span className={cx('label')}>预期：</span>
               <span className={cx('data')}>{renderFieldValue(step.result)}</span>
             </div>
@@ -182,7 +182,7 @@ const TestStep: React.FC<TestStepProps> = props => {
                 />
               </span>
             </div>
-            <div>
+            <div className={cx('field')}>
               <span className={cx('label')}>数据：</span>
               <span className={cx('data')}>{renderFieldValue(step.data)}</span>
             </div>

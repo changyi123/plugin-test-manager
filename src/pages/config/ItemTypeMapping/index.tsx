@@ -25,14 +25,14 @@ const TestTypes = [
 const ItemTypeMapping = () => {
   const { workspace } = useDataContext();
   const workspaceKey = workspace?.key;
-  const itemTypeSchemeId = workspace?.workspaceScheme?.itemTypeScheme?.objectId;
+  const workspaceSchemeId = workspace?.workspaceScheme?.objectId;
 
   const [topItemTypes, setTopItemTypes] = useSafeState([]);
   const [itemTypeMapping, setItemTypeMapping] = useSafeState({} as Record<TestType, string>);
 
-  useRequest(() => getTopItemTypeFromHierarchy(itemTypeSchemeId), {
-    ready: !!itemTypeSchemeId,
-    refreshDeps: [itemTypeSchemeId],
+  useRequest(() => getTopItemTypeFromHierarchy(workspaceSchemeId), {
+    ready: !!workspaceSchemeId,
+    refreshDeps: [workspaceSchemeId],
     onSuccess(itemTypes) {
       setTopItemTypes(itemTypes);
     },
@@ -44,14 +44,6 @@ const ItemTypeMapping = () => {
     const data = testConfig?.toJSON();
     setItemTypeMapping(data?.itemTypeMap ?? {});
   }, [setItemTypeMapping, testConfig]);
-
-  useRequest(() => getTopItemTypeFromHierarchy(itemTypeSchemeId), {
-    ready: !!itemTypeSchemeId,
-    refreshDeps: [itemTypeSchemeId],
-    onSuccess(itemTypes) {
-      setTopItemTypes(itemTypes);
-    },
-  });
 
   const renderItemTypeSelector = React.useCallback(
     type => {

@@ -319,11 +319,20 @@ export const getTestEntitiesByQuery = async (
     query.equalTo('workspaceKey', queryParams.workspaceKey);
   }
 
-  if (queryParams.nameLike) {
-    query.matchesQuery(
-      'reference',
-      new Parse.Query(Item).matches('name', escapeMatchesQueryArg(queryParams.nameLike)),
-    );
+  // 忽略被删除事项数据
+  if (queryParams.nameLike || options.ignoreDeletedItemData) {
+    const itemSubQuery = new Parse.Query(Item);
+    if (queryParams.nameLike) {
+      itemSubQuery.matches('name', escapeMatchesQueryArg(queryParams.nameLike));
+    }
+    if (options.ignoreDeletedItemData && queryParams.workspaceKey) {
+      itemSubQuery.matchesKeyInQuery(
+        'workspace',
+        'objectId',
+        new Parse.Query(Workspace).equalTo('key', queryParams.workspaceKey),
+      );
+    }
+    query.matchesKeyInQuery('reference', 'objectId', itemSubQuery);
   }
 
   if (queryParams.in) {
@@ -340,11 +349,6 @@ export const getTestEntitiesByQuery = async (
   // 处理条件
   if (options.select) {
     query.select(options.select);
-  }
-
-  // 忽略被删除事项数据
-  if (options.ignoreDeletedItemData) {
-    query.exists('reference');
   }
 
   if (options.offset != null) {
