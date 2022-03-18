@@ -77,7 +77,7 @@ const DetailTable = () => {
           { from: selectedTestPlanId },
           {
             fillItemData: true,
-            queryParams: { limit: 999 },
+            queryParams: { limit: 9999 },
             include: ['objectId'],
             async resultTransfer(data) {
               const testExecutionIds = data.list.map(item => item.objectId);
@@ -87,8 +87,8 @@ const DetailTable = () => {
                   from: testExecutionIds,
                 },
                 {
-                  include: ['objectId'],
-                  queryParams: { limit: 999 },
+                  include: ['objectId', 'runReferenceDetail'],
+                  queryParams: { limit: 9999 },
                 },
               );
               return {

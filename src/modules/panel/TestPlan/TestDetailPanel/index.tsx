@@ -70,9 +70,7 @@ const Test = () => {
           TestRelationType.PlanRelExecution,
           { from: testEntity },
           {
-            fillItemData: true,
-            queryParams: { limit: 999 },
-            include: ['objectId'],
+            queryParams: { limit: 9999 },
             async resultTransfer(data) {
               const testExecutionIds = data.list.map(item => item.objectId);
               const { list: testRuns } = await getTestEntitiesByRelation(
@@ -81,8 +79,8 @@ const Test = () => {
                   from: testExecutionIds,
                 },
                 {
-                  include: ['objectId'],
-                  queryParams: { limit: 999 },
+                  include: ['objectId', 'runReferenceDetail'],
+                  queryParams: { limit: 9999 },
                 },
               );
               return {
@@ -186,7 +184,7 @@ const Test = () => {
       columnBuilder(BuiltinColumns.ItemKey, record => ({ item: record.reference })),
       columnBuilder(BuiltinColumns.ItemTitle, record => ({ item: record.reference })),
       {
-        title: '执行轮次',
+        title: '执行任务数',
         key: 'execution',
         width: 90,
         render: (_, record) => {

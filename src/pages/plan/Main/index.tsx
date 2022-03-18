@@ -5,8 +5,8 @@ import ExecutionTable from './ExecutionTable';
 import { AppstoreAddOutlined } from '@/icons';
 import { createTestRelation } from '@/lib/api/common';
 import { TestType, TestRelationType } from '@/lib/constants';
-import { Tabs, Button, Tooltip, notification } from '@osui/ui';
 import { createTestExecutionAndRelations } from '@/lib/api/runs';
+import { Tabs, Button, Tooltip, notification, Spin } from '@osui/ui';
 import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
 import TestEntitySelectorModal, { ActionType } from '@/components/business/TestEntitySelectorModal';
 
@@ -55,18 +55,31 @@ const Main = () => {
       type: TestType.TestExecution,
     });
 
-    const testExecutionData = testExecutionEntity.toJSON();
+    try {
+      notification.open({
+        message: '测试执行任务正在创建中',
+        icon: <Spin spinning={true} />,
+        duration: null,
+      });
+      const testExecutionData = testExecutionEntity.toJSON();
 
-    await createTestExecutionAndRelations({
-      workspaceKey: workspace.key,
-      testPlan: selectedTestPlanId,
-      testExecution: testExecutionEntity,
-    });
+      await createTestExecutionAndRelations({
+        workspaceKey: workspace.key,
+        testPlan: selectedTestPlanId,
+        testExecution: testExecutionEntity,
+      });
 
-    refresh('detailTable');
-    notification.success({
-      message: `测试执行任务【${testExecutionData?.reference?.name}】新建成功`,
-    });
+      refresh('detailTable');
+      notification.destroy();
+      notification.success({
+        message: `测试执行任务【${testExecutionData?.reference?.name}】新建成功`,
+      });
+    } catch (err) {
+      notification.error({
+        message: '测试执行任务新建失败',
+      });
+      notification.destroy();
+    }
   };
 
   const addTestDetail = async () => {

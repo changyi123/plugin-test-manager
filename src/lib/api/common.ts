@@ -6,6 +6,8 @@ import { keyBy, assign, merge, omit, transform } from 'lodash';
 import { Workspace, Item, Test, TestRelation } from '@/lib/models';
 import { hasArrayItem, pointerTransfer, toArray, escapeMatchesQueryArg } from '@/lib/utils/helper';
 
+const BATCH_SIZE = 200;
+
 /** to/from -> pointer */
 const testRelationTypePointerTransfer = arr =>
   hasArrayItem(arr) ? arr.map(item => pointerTransfer(TestRelation, item)) : [];
@@ -127,8 +129,6 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
     }
     return responseData;
   };
-
-  console.time('results');
   // 需要填充 item 数据则自动转换未 json 格式，非批量数据不做处理
   if (Array.isArray(results)) {
     const itemIds = [];
@@ -168,7 +168,6 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
     });
     return buildReturnData(testEntitiesDataWithItemData);
   }
-  console.timeEnd('results');
   // 异常响应数据兼容处理
   return buildReturnData([]);
 };
@@ -205,7 +204,7 @@ export const createTestRelation = (
       }),
   );
 
-  return Parse.Object.saveAll(relations);
+  return Parse.Object.saveAll(relations, { batchSize: BATCH_SIZE });
 };
 
 /**
@@ -215,7 +214,7 @@ export const createTestRelation = (
 export const removeTestRelations = (_relations: Array<PointerType>) => {
   const relations = _relations.map(rel => pointerTransfer(TestRelation, rel));
 
-  return Parse.Object.destroyAll(relations);
+  return Parse.Object.destroyAll(relations, { batchSize: BATCH_SIZE });
 };
 
 /**
@@ -252,7 +251,7 @@ export const createTestEntities = (
       }),
   );
 
-  return Parse.Object.saveAll(newTestEntities);
+  return Parse.Object.saveAll(newTestEntities, { batchSize: BATCH_SIZE });
 };
 
 /**

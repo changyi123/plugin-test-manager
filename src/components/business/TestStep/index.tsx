@@ -16,6 +16,7 @@ import TestEntitySelectorModal, {
 } from '@/components/business/TestEntitySelectorModal';
 
 import { Step } from '@/lib/types/Test';
+import { hasArrayItem } from '@/lib/utils/helper';
 
 export type ActionType = {
   filter: (stepIds: string[]) => void;
@@ -25,8 +26,6 @@ type TestStepProps = {
   steps?: Step[];
   testDetailId?: string;
   canCallTest?: boolean;
-  controllable?: boolean;
-  initialBlankStep?: boolean;
   onChange?: (steps) => void;
   actionRef?: (action: ActionType) => void;
 };
@@ -36,26 +35,18 @@ const TestStep: React.FC<TestStepProps> = ({
   actionRef,
   canCallTest,
   testDetailId,
-  controllable,
-  initialBlankStep,
   steps: stepsProps = [],
 }) => {
-  // 缓存首次加载状态
-  const stepsCacheRef = React.useRef([]);
-  const isInitialedBlankStepRef = React.useRef(false);
+  const isInitialStepRef = React.useRef(false);
   const testEntitySelectorRef = React.createRef<TestEntitySelectorActionType>();
-  const [steps, _setSteps] = React.useState(stepsProps);
+  const [steps, _setSteps] = React.useState([]);
   const { run: debouncedOnChange } = useDebounceFn(onChange ?? noop, {
     wait: 800,
   });
 
   const setSteps = React.useCallback(
-    (newSteps, isInitial = false) => {
+    newSteps => {
       _setSteps(newSteps);
-      // 初始化对 step 数据进行缓存
-      if (isInitial) {
-        stepsCacheRef.current = newSteps;
-      }
       // 向上级组件通信
       if (!isEqual(stepsProps, newSteps)) {
         // stepsCacheRef.current
@@ -64,35 +55,6 @@ const TestStep: React.FC<TestStepProps> = ({
     },
     [stepsProps, _setSteps, debouncedOnChange],
   );
-
-  React.useEffect(() => {
-    // 初始化时更新
-    if (controllable && !steps.length && !isEqual(stepsProps, steps)) {
-      setSteps(stepsProps, true);
-    }
-  }, [setSteps, steps, stepsProps, controllable]);
-
-  React.useImperativeHandle(actionRef, () => ({
-    filter() {},
-  }));
-
-  const openCallTestModal = async () => {
-    const [callTestId] = await testEntitySelectorRef.current?.open();
-    try {
-      if (!callTestId) return;
-      // 验证继承的测试用例是否又循环依赖
-      await getTestStepsByTestDetailId(callTestId, testDetailId);
-    } catch (err) {
-      message.error(`不能继承该测试用例：${err.message}`);
-      return;
-    }
-
-    const newSteps = Array.from(steps);
-    // 继承测试用例放到最后
-    newSteps.splice(steps.length, 0, getStepInitialData(callTestId));
-
-    setSteps(newSteps);
-  };
 
   const stepActions = React.useMemo(() => {
     return {
@@ -141,12 +103,38 @@ const TestStep: React.FC<TestStepProps> = ({
     };
   }, [setSteps, steps]);
 
+  // 数据初始化
   React.useEffect(() => {
-    if (!steps?.length && initialBlankStep && !isInitialedBlankStepRef.current) {
-      isInitialedBlankStepRef.current = true;
-      stepActions.add();
+    if (!isInitialStepRef.current) {
+      const hasStepsProp = hasArrayItem(stepsProps);
+      if (hasStepsProp) {
+        setSteps(stepsProps);
+        isInitialStepRef.current = true;
+      }
     }
-  }, [steps, initialBlankStep, stepActions]);
+  }, [setSteps, stepsProps, stepActions]);
+
+  React.useImperativeHandle(actionRef, () => ({
+    filter() {},
+  }));
+
+  const openCallTestModal = async () => {
+    const [callTestId] = await testEntitySelectorRef.current?.open();
+    try {
+      if (!callTestId) return;
+      // 验证继承的测试用例是否又循环依赖
+      await getTestStepsByTestDetailId(callTestId, testDetailId);
+    } catch (err) {
+      message.error(`不能继承该测试用例：${err.message}`);
+      return;
+    }
+
+    const newSteps = Array.from(steps);
+    // 继承测试用例放到最后
+    newSteps.splice(steps.length, 0, getStepInitialData(callTestId));
+
+    setSteps(newSteps);
+  };
 
   return (
     <div>
