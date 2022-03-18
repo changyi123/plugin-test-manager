@@ -112,7 +112,7 @@ const ExpandedTable = (props: ExpandedTableProps) => {
     );
   };
 
-  const relPageChange = current => setPageNum(current);
+  const relPageChange = (current: number, size?: number) => setPageNum(current);
 
   return (
     <div className={cx('expand-container')}>
@@ -126,6 +126,7 @@ const ExpandedTable = (props: ExpandedTableProps) => {
         name="ExecutionInnerTable"
         scroll={{ x: 'max-content', y: 500 }}
         itemKey="runReferenceDetail.reference"
+        expandChangePage={relPageChange}
         PaginationFooterRender={PaginationFooterRender}
         selectionActionNodes={InnerTableSelectionActionNodes}
         onSelectionCancel={() => tableSelectionToggleEvent.emit(false)}
