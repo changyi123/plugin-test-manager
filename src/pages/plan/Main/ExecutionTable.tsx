@@ -58,6 +58,7 @@ const ExecutionTable = () => {
   }, [registerRefreshMethod]);
 
   const refreshAndMutateData = React.useCallback(() => {
+    innerTableRef.current.expandChangePage(1);
     executionTableActionRef.current.refresh();
     mutateTestPlanEvent.emit(selectedTestPlanId);
   }, [mutateTestPlanEvent, selectedTestPlanId]);

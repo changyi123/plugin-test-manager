@@ -58,6 +58,7 @@ const OverflowTooltipBodyCell = props => {
 export type ActionType = {
   refresh: () => void;
   propsOnChange: (props: any) => void;
+  expandChangePage?: (num: number) => void;
   toggleSelection: (visible?: boolean) => void;
   selectedRows: any[];
 };
@@ -71,6 +72,7 @@ type BusinessTableProps = TableProps<any> & {
   onSelectionCancel?: () => void;
   isCheck?: boolean;
   setIsCheck?: (check: boolean) => void;
+  expandChangePage?: (num: number, size?: number) => void;
   selectionActionNodes?: React.ReactNode[];
   actionRef?: React.ForwardedRef<ActionType>;
   PaginationFooterRender?: any;
@@ -90,6 +92,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     selectionActionNodes,
     isCheck,
     setIsCheck,
+    expandChangePage,
     itemKey = 'reference',
     showPagination = true,
     useColumnSetting = false,
@@ -294,6 +297,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
       },
       refresh,
       propsOnChange: antdTableProps.onChange,
+      expandChangePage,
       selectedRows: selectedRowKeys?.map(key =>
         currentPageRowsRef.current.find(row => row[props.rowKey as any] === key),
       ),
