@@ -35,6 +35,7 @@ const DetailTable = () => {
   const selectedTestPlanId = selectedTestPlan?.objectId;
 
   const refreshAndMutateData = React.useCallback(() => {
+    actionRef.current.propsOnChange({ current: 1 });
     actionRef.current.refresh();
     mutateTestPlanEvent.emit(undefined);
   }, [mutateTestPlanEvent]);
