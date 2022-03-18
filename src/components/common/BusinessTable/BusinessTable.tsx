@@ -57,6 +57,7 @@ const OverflowTooltipBodyCell = props => {
 
 export type ActionType = {
   refresh: () => void;
+  propsOnChange: (props: any) => void;
   toggleSelection: (visible?: boolean) => void;
   selectedRows: any[];
 };
@@ -292,6 +293,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
         setSelectionMode(visible);
       },
       refresh,
+      propsOnChange: antdTableProps.onChange,
       selectedRows: selectedRowKeys?.map(key =>
         currentPageRowsRef.current.find(row => row[props.rowKey as any] === key),
       ),
