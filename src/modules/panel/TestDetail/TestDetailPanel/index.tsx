@@ -34,7 +34,7 @@ const Detail: React.FC = () => {
   const { testEntity } = useTestConfig();
   const [search, setSearch] = useState(false);
   const stepsStateRef = React.useRef<TestStep[]>([]);
-  const [steps, setStepsState] = useState<TestStep[]>([getStepInitialData()]);
+  const [steps, setStepsState] = useState<TestStep[]>([]);
   const testEntityDictRef = React.useRef<Record<string, TestDetailEntity>>({});
 
   const setSteps = useCallback(
@@ -93,7 +93,7 @@ const Detail: React.FC = () => {
     },
     {
       onSuccess({ steps }) {
-        setSteps(steps);
+        setSteps(steps.length ? steps : [getStepInitialData()]);
       },
       ready: Boolean(testDetailData),
     },
@@ -203,7 +203,6 @@ const Detail: React.FC = () => {
           </div>
           <TestStep
             canCallTest
-            controllable
             steps={steps}
             testDetailId={testDetailId}
             onChange={steps => saveStep(steps)}

@@ -2,6 +2,7 @@ import React from 'react';
 import { Input } from '@osui/ui';
 import { TestEntity } from '@/lib/types/Test';
 import TestStep from '@/components/business/TestStep';
+import { getStepInitialData } from '@/components/business/TestStep/helper';
 
 import cx from './TestDetailForm.less';
 
@@ -40,9 +41,7 @@ const TestDetailForm: React.FC<TestDetailFormProps> = ({ onChange, values }) => 
       </div>
       <h6 className={cx('step-title')}>用例步骤</h6>
       <TestStep
-        controllable
-        initialBlankStep
-        steps={values?.steps ?? []}
+        steps={values?.steps ?? [getStepInitialData()]}
         onChange={steps => saveValues({ steps })}
       />
     </div>
