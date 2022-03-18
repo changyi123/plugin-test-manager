@@ -30,6 +30,11 @@ const Test = () => {
     },
   );
 
+  const refresh = React.useCallback(() => {
+    tableActionRef.current.refresh();
+    getAllRelTestEntities();
+  }, [getAllRelTestEntities]);
+
   const tableDataSourceGetter = React.useCallback(
     queryParams => {
       return getTestEntitiesByRelation(
@@ -77,22 +82,20 @@ const Test = () => {
         testPlan: testEntity,
         testExecution,
       });
-      tableActionRef.current.refresh();
-      getAllRelTestEntities();
-
+      refresh();
       alert({
         type: 'success',
         message: `${testExecution.length} 个测试执行添加到测试计划中`,
       });
     },
-    [getAllRelTestEntities, testEntity],
+    [refresh, testEntity],
   );
 
   const removeTestRelation = React.useCallback(async relationTypeIds => {
     if (!Array.isArray(relationTypeIds)) return;
     await removeTestRelations(relationTypeIds);
 
-    tableActionRef.current.refresh();
+    refresh();
 
     alert({
       type: 'success',
