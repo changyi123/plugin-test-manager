@@ -15,6 +15,7 @@ import cx from './DetailTable.less';
 
 const DetailTable = () => {
   const actionRef = React.useRef<BusinessTableActionType>();
+  const [tableLoading, setTableLoading] = React.useState(false);
 
   // 事项数据更新后刷新列表
   useListener('updateItemList', () => {
@@ -146,6 +147,7 @@ const DetailTable = () => {
 
     // 更新负责人
     const handleAssigneeChange = async assignees => {
+      setTableLoading(true);
       const itemIds = actionRef.current.selectedRows.map(row => row.reference.objectId);
       await updateItemAssignee(itemIds, assignees);
 
@@ -153,6 +155,7 @@ const DetailTable = () => {
         refreshAndMutateData();
       }, 1000);
 
+      setTableLoading(false);
       notification.success({
         message: `${itemIds.length} 个测试负责人已更新`,
       });
@@ -234,11 +237,12 @@ const DetailTable = () => {
       useColumnSetting
       rowKey="objectId"
       columns={columns}
+      isCheck={isCheck}
       name="DetailTable"
       actionRef={actionRef}
-      getDataSource={tableDataGetter}
+      loading={tableLoading}
       setIsCheck={setIsCheck}
-      isCheck={isCheck}
+      getDataSource={tableDataGetter}
       selectionActionNodes={selectionActionNodes}
       onSelectionCancel={() => tableSelectionToggleEvent.emit(false)}
     />

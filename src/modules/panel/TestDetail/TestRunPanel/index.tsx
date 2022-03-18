@@ -2,7 +2,7 @@ import React from 'react';
 import { Button, Space, Typography, message, Tooltip, Divider, Popconfirm } from '@osui/ui';
 import { InfoCircleOutlined } from '@ant-design/icons';
 import PanelTable, { ActionType } from '@/components/business/PanelTable';
-import { getRootContainer } from '@/lib/utils/helper';
+import { getRootContainer, goToItemDetailPage } from '@/lib/utils/helper';
 import {
   toggleTestRunStatus,
   createTestRunAndRelation,
@@ -69,8 +69,12 @@ const Runs: React.FC = () => {
             <Typography.Link
               className={css('link')}
               ellipsis={true}
-              target="_blank"
-              href={`/osc/workspaces/${itemData?.workspace?.key}/item/${itemData?.key}`}
+              onClick={() =>
+                goToItemDetailPage({
+                  workspaceKey: itemData?.workspace?.key,
+                  itemKey: itemData?.key,
+                })
+              }
             >
               <OverflowTooltip title={itemData?.key}> {itemData?.key}</OverflowTooltip>
             </Typography.Link>

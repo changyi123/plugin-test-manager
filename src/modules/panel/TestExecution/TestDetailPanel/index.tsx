@@ -11,7 +11,7 @@ import TestEntitySelectorModal, {
   ActionType as SelectorActionType,
 } from '@/components/business/TestEntitySelectorModal';
 import TestRunModal from '@/components/business/TestRunModal';
-import { getRootContainer } from '@/lib/utils/helper';
+import { getRootContainer, goToItemDetailPage } from '@/lib/utils/helper';
 import { StatusBadge } from '@/components/business/Status';
 import { useAllRelTestEntities } from '@/lib/hooks/useTest';
 import { INITIAL_STATUS_KEY } from '@/lib/constants';
@@ -91,7 +91,12 @@ const Test = () => {
             <Typography.Link
               ellipsis={true}
               target="_blank"
-              href={`/osc/workspaces/${item?.workspace?.key}/item/${item?.key}`}
+              onClick={() =>
+                goToItemDetailPage({
+                  workspaceKey: item?.workspace?.key,
+                  itemKey: item?.key,
+                })
+              }
             >
               {item?.key}
             </Typography.Link>

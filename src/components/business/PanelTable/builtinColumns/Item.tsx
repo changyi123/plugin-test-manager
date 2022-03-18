@@ -1,5 +1,6 @@
 import React from 'react';
 import { Typography } from '@osui/ui';
+import { goToItemDetailPage } from '@/lib/utils/helper';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 
 import cx from './style.less';
@@ -15,8 +16,12 @@ export const ItemKey = {
         <Typography.Link
           target="_blank"
           className={cx('item-key')}
-          // 租户处理
-          href={`/osc/workspaces/${item?.workspace?.key}/item/${item?.key}`}
+          onClick={() =>
+            goToItemDetailPage({
+              workspaceKey: item?.workspace?.key,
+              itemKey: item?.key,
+            })
+          }
         >
           {item?.key}
         </Typography.Link>
