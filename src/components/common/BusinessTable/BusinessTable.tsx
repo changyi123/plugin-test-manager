@@ -17,6 +17,7 @@ import { useAntdTable, useLocalStorageState, useSize } from 'ahooks';
 import cx from './BusinessTable.less';
 
 const DEFAULT_PAGE_SIZE = 10;
+const MIN_COLUMN_WIDTH = 120;
 
 const ResizableHeaderCell = ({ onResize, resizable, width, ...restProps }) => {
   const thProps = pick(restProps, ['children', 'rowSpan', 'colSpan', 'style', 'className']);
@@ -187,7 +188,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
   const handleResize = (key, _e, { size }) => {
     setColumnsWidth(dict => ({
       ...dict,
-      [key]: size.width,
+      [key]: Math.max(MIN_COLUMN_WIDTH, size.width),
     }));
   };
 
