@@ -14,7 +14,6 @@ import { EllipsisOutlined, PlusOutlined } from '@/icons';
 import { StatusProgress } from '@/components/business/Status';
 import { TestType, TestRelationType } from '@/lib/constants';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
-import { useOnItemCreateSuccess } from '@/lib/hooks/useProximaSDK';
 import {
   deleteTestEntities,
   getTestEntitiesByQuery,
@@ -220,9 +219,6 @@ const PlanList = () => {
     setSearch(value);
     reload();
   };
-
-  // 监听 事项创建刷新 左侧测试计划列表，需要个延时立即刷新数据未更新
-  useOnItemCreateSuccess(() => setTimeout(reload, 1000));
 
   return (
     <div className={cx('container')}>
