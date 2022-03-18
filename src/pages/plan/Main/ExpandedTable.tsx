@@ -5,28 +5,35 @@ import TestRunModal from '@/components/business/TestRunModal';
 import { BusinessTable } from '@/components/common/BusinessTable';
 
 import cx from './executionTable.less';
+import { actionConfirm } from '@/lib/utils/helper';
+import { deleteTestEntities } from '@/lib/api/common';
+import { updateTestRunStatus } from '@/lib/api/runs';
+import { notification } from '@osui/ui';
+import { DeleteOutlined } from '@/icons';
 
 interface ExpandedTableProps {
-  InnerTableSelectionActionNodes: any;
   refreshAndMutateData: () => void;
   tableSelectionToggleEvent: any;
   record: any;
   updateTestRun: any;
   openItemViewScreen: any;
   innerTableRef: any;
+  innerTableRefs?: any;
+  removeTestRelation: any;
 }
 
 const ExpandedTable = (props: ExpandedTableProps) => {
   const [pageNum, setPageNum] = React.useState(1);
 
   const {
-    InnerTableSelectionActionNodes,
+    innerTableRefs,
     refreshAndMutateData,
     tableSelectionToggleEvent,
     record,
     updateTestRun,
     openItemViewScreen,
     innerTableRef,
+    removeTestRelation,
   } = props;
 
   // 测试执行序列
@@ -35,6 +42,61 @@ const ExpandedTable = (props: ExpandedTableProps) => {
     await updateTestRun(testRunId, { status: status.key });
     refreshAndMutateData();
   };
+
+  const InnerTableSelectionActionNodes = React.useMemo(() => {
+    const deleteTestRun = () => {
+      const selectedRows = (
+        Object.values(innerTableRefs.current).reduce((res: any, ref: any) => {
+          return res.concat(ref.selectedRows);
+        }, []) as any[]
+      )
+        .filter(Boolean)
+        .filter(row => record.objectId === row.relation.from.objectId);
+
+      actionConfirm('该操作会将所选测试执行删除，是否继续操作？', () => {
+        // 删除关联关系，删除测试实体
+        deleteTestEntities(selectedRows.map(row => row.objectId));
+        removeTestRelation(selectedRows.map(row => row.relation.objectId));
+      });
+    };
+
+    const toggleSTestRunStatus = async status => {
+      const selectedRows = (
+        Object.values(innerTableRefs.current).reduce((res: any, ref: any) => {
+          return res.concat(ref.selectedRows);
+        }, []) as any[]
+      )
+        .filter(Boolean)
+        .filter(row => record.objectId === row.relation.from.objectId);
+
+      const testRunIds = selectedRows.map(item => item.objectId);
+      await updateTestRunStatus({
+        status: status.key,
+        testRun: testRunIds,
+      });
+      notification.success({
+        message: '所选测试执行状态更新成功',
+      });
+      refreshAndMutateData();
+    };
+
+    return [
+      <StatusBadge
+        useRootContainer
+        onStatusChange={toggleSTestRunStatus}
+        key="toggleRunStatus"
+        emptyNode={
+          <span>
+            <DeleteOutlined /> 设置状态
+          </span>
+        }
+      />,
+
+      <span key="delete" onClick={deleteTestRun}>
+        <DeleteOutlined /> 删除
+      </span>,
+    ];
+  }, [refreshAndMutateData, removeTestRelation]);
 
   const columns = [
     {

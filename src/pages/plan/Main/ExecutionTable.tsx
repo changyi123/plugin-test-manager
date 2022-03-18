@@ -58,8 +58,9 @@ const ExecutionTable = () => {
   }, [registerRefreshMethod]);
 
   const refreshAndMutateData = React.useCallback(() => {
-    // FIXME:
-    // innerTableRef.current.expandChangePage(1);
+    Object.values(innerTableRefs.current).forEach(ref => {
+      ref?.expandChangePage(1);
+    });
     executionTableActionRef.current.refresh();
     mutateTestPlanEvent.emit(selectedTestPlanId);
   }, [mutateTestPlanEvent, selectedTestPlanId]);
@@ -132,49 +133,6 @@ const ExecutionTable = () => {
     },
     [refreshAndMutateData],
   );
-
-  const InnerTableSelectionActionNodes = React.useMemo(() => {
-    const selectedRows = Object.values(innerTableRefs.current).reduce((res, ref) => {
-      return res.concat(ref.selectedRows);
-    }, []);
-
-    const deleteTestRun = () => {
-      actionConfirm('该操作会将所选测试执行删除，是否继续操作？', () => {
-        // 删除关联关系，删除测试实体
-        deleteTestEntities(selectedRows.map(row => row.objectId));
-        removeTestRelation(selectedRows.map(row => row.relation.objectId));
-      });
-    };
-
-    const toggleSTestRunStatus = async status => {
-      const testRunIds = selectedRows.map(item => item.objectId);
-      await updateTestRunStatus({
-        status: status.key,
-        testRun: testRunIds,
-      });
-      notification.success({
-        message: '所选测试执行状态更新成功',
-      });
-      refreshAndMutateData();
-    };
-
-    return [
-      <StatusBadge
-        useRootContainer
-        onStatusChange={toggleSTestRunStatus}
-        key="toggleRunStatus"
-        emptyNode={
-          <span>
-            <DeleteOutlined /> 设置状态
-          </span>
-        }
-      />,
-
-      <span key="delete" onClick={deleteTestRun}>
-        <DeleteOutlined /> 删除
-      </span>,
-    ];
-  }, [refreshAndMutateData, removeTestRelation]);
 
   const addTestDetail = async rowData => {
     const ignoreTestDetailIds = rowData.relRuns
@@ -263,7 +221,8 @@ const ExecutionTable = () => {
   const expandedRowRender = React.useCallback(
     record => (
       <ExpandedTable
-        InnerTableSelectionActionNodes={InnerTableSelectionActionNodes}
+        innerTableRefs={innerTableRefs}
+        removeTestRelation={removeTestRelation}
         refreshAndMutateData={refreshAndMutateData}
         tableSelectionToggleEvent={tableSelectionToggleEvent}
         record={record}
@@ -274,7 +233,7 @@ const ExecutionTable = () => {
         }
       />
     ),
-    [InnerTableSelectionActionNodes, refreshAndMutateData, tableSelectionToggleEvent],
+    [refreshAndMutateData, removeTestRelation, tableSelectionToggleEvent],
   );
 
   return (
