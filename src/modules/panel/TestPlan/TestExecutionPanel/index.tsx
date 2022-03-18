@@ -12,6 +12,7 @@ import { alert } from '@/lib/utils/helper';
 import TestEntitySelectorModal, {
   ActionType as SelectorActionType,
 } from '@/components/business/TestEntitySelectorModal';
+import { useAllRelTestEntities } from '@/lib/hooks/useTest';
 import { StatusProgress } from '@/components/business/Status';
 import { createTestExecutionToPlanRelations } from '@/lib/api/relations';
 import { getTestEntitiesByRelation, removeTestRelations } from '@/lib/api/common';
@@ -22,6 +23,12 @@ const Test = () => {
   const { testEntity } = useTestConfig();
   const tableActionRef = React.useRef<ActionType>();
   const selectorModalRef = React.useRef<SelectorActionType>();
+  const { testEntities: allTestEntities, refresh: getAllRelTestEntities } = useAllRelTestEntities(
+    TestRelationType.PlanRelExecution,
+    {
+      from: testEntity,
+    },
+  );
 
   const tableDataSourceGetter = React.useCallback(
     queryParams => {
@@ -71,13 +78,14 @@ const Test = () => {
         testExecution,
       });
       tableActionRef.current.refresh();
+      getAllRelTestEntities();
 
       alert({
         type: 'success',
         message: `${testExecution.length} 个测试执行添加到测试计划中`,
       });
     },
-    [testEntity],
+    [getAllRelTestEntities, testEntity],
   );
 
   const removeTestRelation = React.useCallback(async relationTypeIds => {
@@ -128,9 +136,10 @@ const Test = () => {
   return (
     <div className={cx('test')}>
       <TestEntitySelectorModal
-        title="添加测试执行至当前测试计划"
         actionRef={selectorModalRef}
+        title="添加测试执行至当前测试计划"
         onSelect={addTestExecutionToPlan}
+        ignoreTestEntityIds={allTestEntities}
       />
 
       <PanelTable

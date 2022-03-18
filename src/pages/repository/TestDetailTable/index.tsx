@@ -186,7 +186,6 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         width: 40,
         key: `move`,
         isSystem: true,
-        fixed: true,
         shouldCellUpdate: (record, prevRecord) => record.folderKey !== prevRecord.folderKey,
         render(_, rowData) {
           const folderKey = rowData.folderKey;
