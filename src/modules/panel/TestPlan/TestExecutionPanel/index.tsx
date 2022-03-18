@@ -91,17 +91,20 @@ const Test = () => {
     [refresh, testEntity],
   );
 
-  const removeTestRelation = React.useCallback(async relationTypeIds => {
-    if (!Array.isArray(relationTypeIds)) return;
-    await removeTestRelations(relationTypeIds);
+  const removeTestRelation = React.useCallback(
+    async relationTypeIds => {
+      if (!Array.isArray(relationTypeIds)) return;
+      await removeTestRelations(relationTypeIds);
 
-    refresh();
+      refresh();
 
-    alert({
-      type: 'success',
-      message: `${relationTypeIds.length} 个测试执行从测试计划中删除`,
-    });
-  }, []);
+      alert({
+        type: 'success',
+        message: `${relationTypeIds.length} 个测试执行从测试计划中删除`,
+      });
+    },
+    [refresh],
+  );
 
   // table column 数据
   const tableColumns = React.useMemo(() => {

@@ -24,6 +24,7 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
   list: TResponseList;
 }> => {
   const config = merge(
+    // {},
     {
       // 响应数据处理
       resultTransfer: data => data,

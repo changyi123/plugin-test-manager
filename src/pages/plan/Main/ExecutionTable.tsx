@@ -26,14 +26,16 @@ import TestEntitySelectorModal, {
 import ExpandedTable from './ExpandedTable';
 
 const ExecutionTable = () => {
-  const innerTableRef = React.useRef<BusinessTableActionRef>();
+  const innerTableRefs = React.useRef<Record<string, BusinessTableActionRef>>({});
   const executionTableActionRef = React.useRef<BusinessTableActionRef>();
   const testEntitySelectorRef = React.useRef<TestEntitySelectorActionType>();
 
   // 事项数据更新后刷新列表
   useListener('updateItemList', () => {
     setTimeout(() => {
-      innerTableRef.current.refresh();
+      Object.values(innerTableRefs.current).forEach(ref => {
+        ref?.refresh();
+      });
       executionTableActionRef.current.refresh();
     }, 400);
   });
@@ -61,7 +63,9 @@ const ExecutionTable = () => {
   }, [mutateTestPlanEvent, selectedTestPlanId]);
 
   tableSelectionToggleEvent.useSubscription(visible => {
-    innerTableRef.current?.toggleSelection(visible);
+    Object.values(innerTableRefs.current).forEach(ref => {
+      ref?.toggleSelection(visible);
+    });
   });
 
   React.useEffect(() => {
@@ -128,8 +132,11 @@ const ExecutionTable = () => {
   );
 
   const InnerTableSelectionActionNodes = React.useMemo(() => {
+    const selectedRows = Object.values(innerTableRefs.current).reduce((res, ref) => {
+      return res.concat(ref.selectedRows);
+    }, []);
+
     const deleteTestRun = () => {
-      const selectedRows = innerTableRef.current.selectedRows;
       actionConfirm('该操作会将所选测试执行删除，是否继续操作？', () => {
         // 删除关联关系，删除测试实体
         deleteTestEntities(selectedRows.map(row => row.objectId));
@@ -138,7 +145,6 @@ const ExecutionTable = () => {
     };
 
     const toggleSTestRunStatus = async status => {
-      const selectedRows = innerTableRef.current.selectedRows;
       const testRunIds = selectedRows.map(item => item.objectId);
       await updateTestRunStatus({
         status: status.key,
@@ -261,7 +267,9 @@ const ExecutionTable = () => {
         record={record}
         updateTestRun={updateTestRun}
         openItemViewScreen={openItemViewScreen}
-        innerTableRef={innerTableRef}
+        innerTableRef={ref =>
+          (innerTableRefs.current = { ...innerTableRefs.current, [record.objectId]: ref })
+        }
       />
     ),
     [InnerTableSelectionActionNodes, refreshAndMutateData, tableSelectionToggleEvent],
