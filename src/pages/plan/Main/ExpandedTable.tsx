@@ -174,7 +174,7 @@ const ExpandedTable = (props: ExpandedTableProps) => {
     );
   };
 
-  const relPageChange = (current: number, size?: number) => setPageNum(current);
+  const relPageChange = (current: number) => setPageNum(current);
 
   return (
     <div className={cx('expand-container')}>

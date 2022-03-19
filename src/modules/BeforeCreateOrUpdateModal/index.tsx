@@ -11,7 +11,7 @@ import { ExtensionValType, TestType, CREATE_ITEM_STORE_FIELD_KEY } from '@/lib/c
 
 const getUpdateParamsByStoreValues = storeValues => ({
   workspaceId: get(storeValues, 'workspace[0]'),
-  itemTypeId: get(storeValues, 'itemType[0]'),
+  itemTypeId: get(storeValues, 'itemType[0]') ?? get(storeValues, 'itemTypeValue'),
 });
 
 const BeforeCreateOrUpdateModal = () => {
@@ -32,7 +32,6 @@ const BeforeCreateOrUpdateModal = () => {
     },
   );
 
-  const initialRef = React.useRef(false);
   const workspaceMappingCacheRef = React.useRef({});
   const itemTypeMappingCacheRef = React.useRef({});
 
@@ -84,16 +83,13 @@ const BeforeCreateOrUpdateModal = () => {
   }, [currentModalValues, itemTypeMappingDict, storeValues]);
 
   React.useEffect(() => {
-    if (initialRef.current) return;
-    initialRef.current = true;
-    updateCurrentModalValues(getUpdateParamsByStoreValues(storeValues));
-  }, [storeValues, updateCurrentModalValues]);
-
-  React.useEffect(() => {
     const handleCreateOrUpdateItemMsg = values => {
       updateCurrentModalValues(getUpdateParamsByStoreValues(values));
     };
-
+    // 主动获取值，store 触发更新时，插件可能没有就绪
+    updateCurrentModalValues(
+      getUpdateParamsByStoreValues(store.get(ExtensionValType.CREATE_OR_UPDATE_ITEM)),
+    );
     store.on(ExtensionValType.CREATE_OR_UPDATE_ITEM, handleCreateOrUpdateItemMsg);
     return () => {
       store.off(ExtensionValType.CREATE_OR_UPDATE_ITEM, handleCreateOrUpdateItemMsg);
@@ -102,7 +98,6 @@ const BeforeCreateOrUpdateModal = () => {
 
   const handleDetailFormChange = values => {
     const prevStoreValues = store.get(ExtensionValType.CREATE_OR_UPDATE_ITEM);
-    console.log('prevStoreValues', prevStoreValues);
     store.set(ExtensionValType.CREATE_OR_UPDATE_ITEM, {
       ...prevStoreValues,
       [CREATE_ITEM_STORE_FIELD_KEY]: values,

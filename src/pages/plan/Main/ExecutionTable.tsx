@@ -1,15 +1,13 @@
 import React from 'react';
 import { notification } from '@osui/ui';
-import { DeleteOutlined } from '@/icons';
 import { usePageContext } from '../hook';
 import { updateTestRun } from '@/lib/api/runs';
 import { deleteItems } from '@/lib/api/proxima';
-import { StatusBadge } from '@/components/business/Status';
 import { TestRelationType, TestType } from '@/lib/constants';
 import { useListener } from '@projectproxima/proxima-sdk-js';
 import { StatusProgress } from '@/components/business/Status';
 import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
-import { addTestDetailToExecution, updateTestRunStatus } from '@/lib/api/runs';
+import { addTestDetailToExecution } from '@/lib/api/runs';
 import {
   deleteTestEntities,
   removeTestRelations,
@@ -29,6 +27,7 @@ const ExecutionTable = () => {
   const innerTableRefs = React.useRef<Record<string, BusinessTableActionRef>>({});
   const executionTableActionRef = React.useRef<BusinessTableActionRef>();
   const testEntitySelectorRef = React.useRef<TestEntitySelectorActionType>();
+  const [ignoreTestEntityIds, setIgnoreTestEntityIds] = React.useState([]);
 
   // 事项数据更新后刷新列表
   useListener('updateItemList', () => {
@@ -139,9 +138,9 @@ const ExecutionTable = () => {
       .map(run => run.runReferenceDetail?.objectId)
       .filter(Boolean);
 
-    const testDetailIds = await testEntitySelectorRef.current.open({
-      ignoreTestEntityIds: ignoreTestDetailIds,
-    });
+    setIgnoreTestEntityIds(ignoreTestDetailIds);
+
+    const testDetailIds = await testEntitySelectorRef.current.open();
 
     await addTestDetailToExecution({
       testDetail: testDetailIds,
@@ -151,6 +150,7 @@ const ExecutionTable = () => {
     });
 
     refreshAndMutateData();
+    setIgnoreTestEntityIds([]);
     notification.success({
       message: '测试执行创建成功',
     });
@@ -242,6 +242,7 @@ const ExecutionTable = () => {
         title="添加测试用例"
         testType={TestType.TestDetail}
         actionRef={testEntitySelectorRef}
+        ignoreTestEntityIds={ignoreTestEntityIds}
       />
       <BusinessTable
         useColumnSetting
