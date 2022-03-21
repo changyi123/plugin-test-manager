@@ -1,4 +1,5 @@
 import React from 'react';
+import { Workspace } from '@/lib/models';
 import { SYSTEM_FIELD } from '@/lib/constants';
 
 /** 获取看板卡片渲染字段 props */
@@ -46,4 +47,25 @@ export const useFieldsWithFieldCellProps = fields => {
   }, [fields]);
 
   return fieldsWithFieldCellProps;
+};
+
+// TODO: 此处逻辑需要同步至 proxima-share-component
+/** 获取用户表格字段 userData 数据 */
+export const useUserCellUserDataProp = workspaceKey => {
+  const [userData, setUserData] = React.useState({});
+
+  React.useEffect(() => {
+    (async () => {
+      if (!workspaceKey) return;
+      const query = new Parse.Query(Parse.Role)
+        .matchesQuery('workspace', new Parse.Query(Workspace).equalTo('key', workspaceKey))
+        .startsWith('name', 'all_member_workspace')
+        .select('objectId');
+      const value = await query.find();
+      const userRoles = value.map(v => v.toJSON().objectId) || [];
+      setUserData({ userRoles });
+    })();
+  }, [workspaceKey]);
+
+  return userData;
 };

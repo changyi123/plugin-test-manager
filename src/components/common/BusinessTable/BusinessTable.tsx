@@ -303,7 +303,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
         currentPageRowsRef.current.find(row => row[props.rowKey as any] === key),
       ),
     }),
-    [props.rowKey, refresh, selectedRowKeys],
+    [antdTableProps.onChange, expandChangePage, props.rowKey, refresh, selectedRowKeys],
   );
 
   React.useEffect(() => {

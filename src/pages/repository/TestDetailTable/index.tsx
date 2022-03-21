@@ -12,6 +12,7 @@ import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
 import { DeleteOutlined, UserOutlined, SwitcherOutlined, DragHandler } from '@/icons';
 import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
 import { deleteTestEntities, getTestEntitiesByQuery, cloneTestEntities } from '@/lib/api/common';
+import { useUserCellUserDataProp } from '@/lib/hooks/useProxima';
 
 import cx from './index.less';
 
@@ -63,6 +64,8 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
 
   const { workspace } = useTestConfig();
   const workspaceKey = workspace?.key;
+
+  const userData = useUserCellUserDataProp(workspaceKey);
 
   React.useImperativeHandle(actionRef, () => tableActionRef.current);
 
@@ -151,9 +154,11 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
 
     return [
       <UserCell
+        value={[]}
         key="assignee"
         mode="multiple"
         readonly={!isCheck}
+        userData={userData}
         onChange={toggleAssignee}
         emptyChild={
           <span>
@@ -168,7 +173,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         <DeleteOutlined /> 删除
       </span>,
     ];
-  }, [refreshAndMutateData, workspaceKey, isCheck]);
+  }, [isCheck, userData, refreshAndMutateData, workspaceKey]);
 
   const columns = React.useMemo(() => {
     const deleteTestDetail = data => {
