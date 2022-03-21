@@ -10,6 +10,7 @@ import { useListener } from '@projectproxima/proxima-sdk-js';
 import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
 import { getTestEntitiesByRelation, removeTestRelations } from '@/lib/api/common';
 import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
+import { useUserCellUserDataProp } from '@/lib/hooks/useProxima';
 
 import cx from './DetailTable.less';
 
@@ -32,6 +33,8 @@ const DetailTable = () => {
     registerRefreshMethod,
     tableSelectionToggleEvent,
   } = usePageContext();
+
+  const userData = useUserCellUserDataProp(workspaceKey);
 
   const selectedTestPlanId = selectedTestPlan?.objectId;
 
@@ -163,9 +166,11 @@ const DetailTable = () => {
 
     return [
       <UserCell
+        value={[]}
         key="assignee"
         mode="multiple"
         readonly={!isCheck}
+        userData={userData}
         onChange={handleAssigneeChange}
         emptyChild={
           <span>
@@ -178,7 +183,7 @@ const DetailTable = () => {
         <DeleteOutlined /> 移除
       </span>,
     ];
-  }, [refreshAndMutateData, removeTestRelation, isCheck]);
+  }, [userData, isCheck, removeTestRelation, refreshAndMutateData]);
 
   const columns = [
     {
