@@ -20,6 +20,7 @@ import TestManagerProvider from '@/components/business/TestManagerProvider';
 import { traverseTreeNodes, reverseTreeNodes, getTreeNodeByKey } from './hook';
 
 import { ROOT_FOLDER_KEY } from './constant';
+import RepoDropDown from './RepoDropDown';
 
 import cx from './index.less';
 
@@ -186,6 +187,7 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
             <Button type="primary" onClick={createTestDetail} className={cx('action')}>
               新建测试用例
             </Button>
+            <RepoDropDown />
           </div>
         </div>
         <div className={cx('table-container')}>
@@ -205,6 +207,7 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
 
 const TestRepositoryPage = () => {
   const { context } = useSDK();
+
   const workspaceKey = context?.env?.WORKSPACE_KEY ?? getDevConfig().workspaceKey;
   return (
     <ErrorBoundary>

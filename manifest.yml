@@ -16,6 +16,10 @@ modules:
   function:
     - key: test-manager-initial-script
       handler: /trigger/initialScript.js
+    - key: test-manager-export-script
+      handler: /trigger/export.js
+    - key: test-manager-import-script
+      handler: /trigger/import.js
   itemPanel:
     - key: test-manager-test-detail
       resource: main
@@ -45,6 +49,16 @@ modules:
       title: 新建事项
       loadType: Micro
       route: /beforeItemCreate
+  importAndExport:
+    import: test-manager-import-script
+    export: test-manager-export-script
+    itemType:
+      - key: test-detail
+        title: 测试用例
+      - key: test-plan
+        title: 测试计划
+      - key: test-repository
+        title: 测试用例库
 tables:
   - className: Repository
     fields:
