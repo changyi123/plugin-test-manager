@@ -55,8 +55,6 @@ modules:
     itemType:
       - key: group
         title: 所属分组
-      - key: title
-        title: 用例标题
       - key: priority
         title: 优先级
       - key: preconditions
