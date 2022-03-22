@@ -18,6 +18,8 @@ modules:
       handler: /trigger/initialScript.js
     - key: test-manager-validate-script
       handler: /trigger/validate.js
+    - key: test-manager-export-script
+      handler: /trigger/export.js
     - key: test-manager-import-script
       handler: /trigger/import.js
   itemPanel:
@@ -51,7 +53,7 @@ modules:
       route: /beforeItemCreate
   importAndExport:
     import: test-manager-import-script
-    validate: test-manager-validate-script
+    export: test-manager-export-script
     itemType:
       - key: group
         title: 所属分组
