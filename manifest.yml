@@ -53,12 +53,18 @@ modules:
     import: test-manager-import-script
     export: test-manager-export-script
     itemType:
-      - key: test-detail
-        title: 测试用例
-      - key: test-plan
-        title: 测试计划
-      - key: test-repository
-        title: 测试用例库
+      - key: group
+        title: 所属分组
+      - key: title
+        title: 用例标题
+      - key: priority
+        title: 优先级
+      - key: preconditions
+        title: 前置条件
+      - key: stepDetail
+        title: 步骤描述
+      - key: results
+        title: 预期结果
 tables:
   - className: Repository
     fields:
