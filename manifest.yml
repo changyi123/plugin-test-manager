@@ -57,11 +57,11 @@ modules:
         title: 所属分组
       - key: priority
         title: 优先级
-      - key: preconditions
+      - key: precondition
         title: 前置条件
-      - key: stepDetail
+      - key: action
         title: 步骤描述
-      - key: results
+      - key: result
         title: 预期结果
 tables:
   - className: Repository
