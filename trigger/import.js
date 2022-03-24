@@ -1,35 +1,37 @@
-const triggerParams = {
-    data: [{
-            id: 'qATTCWHO4A',
-            name: '测试032201',
-            workspace: 'LPT1',
-            itemType: 'hqTQcpfaiO',
-            status: 'HqdG1eLkKc'
-        },
-        {
-            id: '5t2whqoHD11',
-            name: '测试032202',
-            workspace: 'LPT1',
-            itemType: 'hqTQcpfaiO',
-            status: 'HqdG1eLkKc'
-        }
-    ],
-    appFieldsData: [{
-            group: '44/234234/jyt',
-            priority: '高',
-            action: '1.xxx\r\n2.www',
-            result: '1.xxx\r\n2.www',
-            itemId: 'qATTCWHO4A'
-        },
-        {
-            group: '',
-            priority: '中',
-            action: '1.xxx\r\n2.www',
-            result: '1.xxx\r\n2.www',
-            itemId: '5t2whqoHD1'
-        }
-    ]
-}
+// const triggerParams = {
+//     data: [
+//         // {
+//         //     id: 'qATTCWHO4A',
+//         //     name: '测试032201',
+//         //     workspace: 'LPT1',
+//         //     itemType: 'hqTQcpfaiO',
+//         //     status: 'HqdG1eLkKc'
+//         // },
+//         {
+//             id: '5t2whqoHD11',
+//             name: '测试032202',
+//             workspace: 'LPT1',
+//             itemType: 'hqTQcpfaiO',
+//             status: 'HqdG1eLkKc'
+//         }
+//     ],
+//     appFieldsData: [
+//         // {
+//         //     group: '44/234234/jyt',
+//         //     priority: '高',
+//         //     action: '1.xxx\r\n2.www',
+//         //     result: '1.xxx\r\n2.www',
+//         //     itemId: 'qATTCWHO4A'
+//         // },
+//         {
+//             group: '测试01/测试02/测试04',
+//             priority: '中',
+//             action: '1.xxx\r\n2.www',
+//             result: '1.xxx\r\n2.www',
+//             itemId: '5t2whqoHD1'
+//         }
+//     ]
+// }
 
 const {
     data,
@@ -43,34 +45,7 @@ const TEST_MANAGER_TEST = `${APP_KEY}_Test`;
 
 const TEST_MANAGER_REPO = `${APP_KEY}_Repository`;
 
-const arrayToTree = treeArray => {
-    const r = [],
-        tmpMap = {};
-
-    for (let i = 0, l = treeArray.length; i < l; i++) {
-        // 以每条数据的id作为obj的key值，数据作为value值存入到一个临时对象里面
-        tmpMap[treeArray[i].key] = treeArray[i];
-    }
-
-    for (let i = 0, l = treeArray.length; i < l; i++) {
-        const key = tmpMap[treeArray[i].parentId];
-
-        // 循环每一条数据的pid，假如这个临时对象有这个key值，就代表这个key对应的数据有children，需要Push进去
-        if (key) {
-            if (!key.children) {
-                key.children = [];
-                key.children.push(treeArray[i]);
-            } else {
-                key.children.push(treeArray[i]);
-            }
-        } else {
-            // 如果没有这个Key值，那就代表没有父级,直接放在最外层
-            r.push(treeArray[i]);
-        }
-    }
-    return r;
-}
-
+const splitGroup = group => group.split('/');
 
 // 根据事项数据获取 workspaceKey 
 const getWorkspaceKey = datas => datas.find(d => d.workspace)?.workspace;
@@ -120,6 +95,9 @@ const createTestMangerTest = async () => {
 // 导入成功后，创建事项数据后的回调函数
 const importCallBack = async () => {
     const testManagerTestData = await createTestMangerTest();
+    const RepoParseObj = await apis.getParseModel(false, TEST_MANAGER_REPO);
+
+    const workspaceKey = getWorkspaceKey(data);
 
     const testDataList = testManagerTestData.map(d => ({
         itemId: d.get('reference').id,
@@ -139,9 +117,73 @@ const importCallBack = async () => {
             parentId: _data.parent?.objectId ?? null,
             workspaceKey: _data.workspaceKey,
         };
-    })
+    });
 
-    console.log(222, testDataList, arrayToTree(newRepoData))
+    appFieldsData.forEach(async d => {
+        if (!d.group) {
+            // 加入未分组
+            console.log('加入未分组')
+        } else {
+            const groups = splitGroup(d.group);
+
+            if (groups.length > 5) {
+                // 暂不做任何处理
+                console.log('超过5级，暂不做任何处理')
+            }
+
+            const getRepoDataByGroup = (treeData, groupName) => treeData?.find(tree => tree.name === groupName);
+
+            if (groups.length > 0 && groups.length <= 5) {
+                const groupObj = await groups.reduce(async (prev, cur) => {
+                    const getParentId = params => params.key || params.objectId;
+                    const createRepo = async params => {
+                        const parent = getParentId(params);
+
+                        const repo = new RepoParseObj({
+                            parent: parent ? RepoParseObj.createWithoutData(parent) : undefined,
+                            name: cur,
+                            workspaceKey,
+                        })
+
+                        await repo.save();
+
+                        return repo.toJSON();
+                    };
+                    const getPrev = async (newPrev, oldPrev) => {
+
+                        newPrev = newPrev || await createRepo(oldPrev);
+                        return newPrev;
+                    };
+                    const _prev = await prev;
+
+                    prev = await getPrev(getRepoDataByGroup(newRepoData, cur), _prev)
+
+                    return prev;
+                }, {})
+
+                if (groupObj) {
+                    console.log('groupObj', groupObj)
+
+                    const repository = new RepoParseObj({
+                        objectId: groupObj.key,
+                    });
+
+                    const getTestDetailIds = () => {
+                        const id = testDataList.find(list => list.itemId === d.itemId)?.data.toJSON().objectId;
+
+                        return [...new Set([...groupObj.testDetailIds, id].filter(Boolean))]
+                    }
+
+                    repository.set('testDetailIds', getTestDetailIds());
+
+                    await apis.saveAllObject([repository])
+                }
+            }
+        }
+
+
+
+    })
 }
 
 importCallBack()
