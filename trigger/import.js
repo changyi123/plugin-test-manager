@@ -1,37 +1,35 @@
-// const triggerParams = {
-//     data: [
-//         // {
-//         //     id: 'qATTCWHO4A',
-//         //     name: '测试032201',
-//         //     workspace: 'LPT1',
-//         //     itemType: 'hqTQcpfaiO',
-//         //     status: 'HqdG1eLkKc'
-//         // },
-//         {
-//             id: '5t2whqoHD11',
-//             name: '测试032202',
-//             workspace: 'LPT1',
-//             itemType: 'hqTQcpfaiO',
-//             status: 'HqdG1eLkKc'
-//         }
-//     ],
-//     appFieldsData: [
-//         // {
-//         //     group: '44/234234/jyt',
-//         //     priority: '高',
-//         //     action: '1.xxx\r\n2.www',
-//         //     result: '1.xxx\r\n2.www',
-//         //     itemId: 'qATTCWHO4A'
-//         // },
-//         {
-//             group: '测试01/测试02/测试04',
-//             priority: '中',
-//             action: '1.xxx\r\n2.www',
-//             result: '1.xxx\r\n2.www',
-//             itemId: '5t2whqoHD1'
-//         }
-//     ]
-// }
+const triggerParams = {
+    data: [{
+            id: 'qATTCWHO4A',
+            name: '测试032201',
+            workspace: 'LPT1',
+            itemType: 'hqTQcpfaiO',
+            status: 'HqdG1eLkKc'
+        },
+        {
+            id: '5t2whqoHD11',
+            name: '测试032202',
+            workspace: 'LPT1',
+            itemType: 'hqTQcpfaiO',
+            status: 'HqdG1eLkKc'
+        }
+    ],
+    appFieldsData: [{
+            group: '44/55/66',
+            priority: '高',
+            action: '1.xxx\r\n2.www',
+            result: '1.xxx\r\n2.www',
+            itemId: 'qATTCWHO4A'
+        },
+        {
+            group: '测试01/测试02/测试041',
+            priority: '中',
+            action: '1.xxx\r\n2.www',
+            result: '1.xxx\r\n2.www',
+            itemId: '5t2whqoHD1'
+        }
+    ]
+}
 
 const {
     data,
@@ -92,98 +90,141 @@ const createTestMangerTest = async () => {
     return newData;
 }
 
-// 导入成功后，创建事项数据后的回调函数
-const importCallBack = async () => {
-    const testManagerTestData = await createTestMangerTest();
-    const RepoParseObj = await apis.getParseModel(false, TEST_MANAGER_REPO);
+const handleRroupPath = datas => {
+    const getPath = (gro, _datas, path = []) => {
+        path.push(gro.name);
 
-    const workspaceKey = getWorkspaceKey(data);
+        if (gro.parentId) {
+            path = getPath(_datas.find(d => d.objectId === gro.parentId), _datas, path)
+        }
 
-    const testDataList = testManagerTestData.map(d => ({
-        itemId: d.get('reference').id,
-        data: d,
+        return path
+    }
+
+    return datas.map(d => ({
+        ...d,
+        path: getPath(d, datas).reverse().join('/')
     }))
+}
 
+const getRepoData = async () => {
     const repoData = await apis.getAllData(false, TEST_MANAGER_REPO, {
         workspaceKey: getWorkspaceKey(data)
     });
 
     const newRepoData = repoData.map(d => {
         const _data = d.toJSON();
+
         return {
             name: _data.name,
-            key: _data.objectId,
+            objectId: _data.objectId,
             testDetailIds: _data.testDetailIds ?? [],
             parentId: _data.parent?.objectId ?? null,
             workspaceKey: _data.workspaceKey,
         };
     });
 
-    appFieldsData.forEach(async d => {
-        if (!d.group) {
-            // 加入未分组
-            console.log('加入未分组')
-        } else {
-            const groups = splitGroup(d.group);
+    return handleRroupPath(newRepoData)
+}
 
-            if (groups.length > 5) {
-                // 暂不做任何处理
-                console.log('超过5级，暂不做任何处理')
-            }
+const getParent = (RepoParseObj, datas, repoData) => {
+    const _data = datas.find(d => d.path === repoData.path.replace(`/${repoData.name}`, ''));
 
-            const getRepoDataByGroup = (treeData, groupName) => treeData?.find(tree => tree.name === groupName);
+    return _data?.objectId && RepoParseObj.createWithoutData(_data.objectId)
+}
 
-            if (groups.length > 0 && groups.length <= 5) {
-                const groupObj = await groups.reduce(async (prev, cur) => {
-                    const getParentId = params => params.key || params.objectId;
-                    const createRepo = async params => {
-                        const parent = getParentId(params);
-
-                        const repo = new RepoParseObj({
-                            parent: parent ? RepoParseObj.createWithoutData(parent) : undefined,
-                            name: cur,
-                            workspaceKey,
-                        })
-
-                        await repo.save();
-
-                        return repo.toJSON();
-                    };
-                    const getPrev = async (newPrev, oldPrev) => {
-
-                        newPrev = newPrev || await createRepo(oldPrev);
-                        return newPrev;
-                    };
-                    const _prev = await prev;
-
-                    prev = await getPrev(getRepoDataByGroup(newRepoData, cur), _prev)
-
-                    return prev;
-                }, {})
-
-                if (groupObj) {
-                    console.log('groupObj', groupObj)
-
-                    const repository = new RepoParseObj({
-                        objectId: groupObj.key,
-                    });
-
-                    const getTestDetailIds = () => {
-                        const id = testDataList.find(list => list.itemId === d.itemId)?.data.toJSON().objectId;
-
-                        return [...new Set([...groupObj.testDetailIds, id].filter(Boolean))]
-                    }
-
-                    repository.set('testDetailIds', getTestDetailIds());
-
-                    await apis.saveAllObject([repository])
-                }
-            }
-        }
-
-
-
+const saveRepo = async (RepoParseObj, gro, parent, i) => {
+    const repo = new RepoParseObj({
+        parent: i === 0 ? undefined : parent,
+        workspaceKey: getWorkspaceKey(data),
+        name: gro.name,
     })
+
+    await repo.save();
+}
+
+const handleRepoData = (RepoParseObj, datas, newRepoData, i) => {
+
+    return datas.map(async gro => {
+        const parent = i === 0 ? undefined : getParent(RepoParseObj, newRepoData, gro);
+
+        console.log(333, parent)
+        return await saveRepo(RepoParseObj, gro, parent, i)
+    })
+}
+
+const createRepoGroup = async (datas, i) => {
+    const RepoParseObj = await apis.getParseModel(false, TEST_MANAGER_REPO);
+    const newRepoData = await getRepoData();
+
+    const _data = datas.filter(d => d.index === i)
+
+    return handleRepoData(RepoParseObj, _data, newRepoData, i);
+}
+
+const getImportGroupData = () => appFieldsData.map(d => d.group?.split('/').reduce((prev, cur, index) => {
+    prev[index] = {
+        name: cur,
+        parent: index === 0 ? null : prev[index - 1].name,
+        path: index === 0 ? cur : `${prev[index-1].path}/${cur}`,
+        index,
+    }
+
+    return prev;
+}, [])).flat();
+
+const getToCreateGroupData = async () => {
+    const newRepoData = await getRepoData();
+
+    return getImportGroupData().filter(d => !newRepoData.some(g => g.path === d.path))
+}
+
+const handleFieldsData = async (testManagerTestData) => {
+    const repoDatas = await getRepoData();
+    const RepoParseObj = await apis.getParseModel(false, TEST_MANAGER_REPO);
+
+    const newRepoObj = appFieldsData.map(field => {
+        const repoData = repoDatas.find(gro => gro.path === field.group);
+
+        
+        const repository = new RepoParseObj({
+            objectId: repoData.objectId,
+        });
+
+        const getAddId = () => {
+            const testMap = new Map()
+
+            testManagerTestData.forEach(d => {
+                const _data = d.toJSON();
+                testMap.set(_data.reference.objectId, _data.objectId)
+            })
+
+            return testMap.get(field.itemId)
+        }
+        
+        const getDetailIds = () => repoData.testDetailIds.concat(getAddId())
+
+        repository.set('testDetailIds', getDetailIds())
+
+        return repository
+    })
+
+    return await apis.saveAllObject(newRepoObj);
+}
+
+// 导入成功后，创建事项数据后的回调函数
+const importCallBack = async () => {
+    const testManagerTestData = await createTestMangerTest();
+    const toCreateGroupData = await getToCreateGroupData();
+
+    // 创建用例库
+    for (let i = 0; i < 5; i++) {
+        await createRepoGroup(toCreateGroupData, i)
+    }
+
+    // 绑定用例到用例库
+    handleFieldsData(testManagerTestData)
+
 }
 
 importCallBack()

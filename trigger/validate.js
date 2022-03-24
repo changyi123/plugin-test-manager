@@ -65,7 +65,6 @@ const getDataByFieldKey = (datas, maps) => datas.reduce((prev, cur) => {
     return prev;
 }, []);
 
-
 // 校验数据
 const validateAppData = d => ({
     errors: getErrors(d) || [],
