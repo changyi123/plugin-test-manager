@@ -4,6 +4,15 @@ import { isEqual, findKey, noop } from 'lodash';
 import { STORAGE_PREFIX_KEY } from '../constants';
 import createProximaSdk from '@projectproxima/proxima-sdk-js';
 
+/** 获取租户信息 */
+export const getTenantKey = (defaultValue?: string) => {
+  return (window as any)?.env?.PROXIMA_APP_ID ?? defaultValue ?? 'osc';
+};
+/** 获取 proxima baseUrl */
+export const getProximaBasePath = () => {
+  return /^\/project\//.test(window.location.pathname) ? '/project/' : '';
+};
+
 export const hasArrayItem = (arr?: unknown[]) => Boolean(Array.isArray(arr) && arr.length);
 
 export const getRootContainer = () =>
@@ -52,7 +61,10 @@ export const generateStorageKey = (...args: string[]) => {
 
 /** 生成跳转 URL */
 export const goToItemDetailPage = ({ workspaceKey, itemKey }) => {
-  return window.open(`/project/osc/workspaces/${workspaceKey}/item/${itemKey}`, '_blank');
+  return window.open(
+    `${getProximaBasePath()}/${getTenantKey('osc')}/workspaces/${workspaceKey}/item/${itemKey}`,
+    '_blank',
+  );
 };
 
 /** 打开测试详情弹窗 */
@@ -62,6 +74,7 @@ export const openItemViewScreen = itemId => {
   proximaSDK.execute('openItemViewScreen', itemId);
 };
 
+/** 编码 html 字符串 */
 export const escapeHtmlString = str => {
   return str?.replace(/&\w+;/g, c => {
     return { '&lt;': '<', '&gt;': '>', '&amp;': '&', '&quot;': '"' }[c] ?? c;
@@ -71,6 +84,11 @@ export const escapeHtmlString = str => {
 /** 申城排序索引 */
 export const generateSortIndex = (index = 0) => {
   return Math.floor(Date.now() / 1000) * 10e5 + index;
+};
+
+/** 生成静态资源文件地址 */
+export const generateStaticFileUrl = (url: string) => {
+  return `${getProximaBasePath()}${url}`;
 };
 
 /** panel 消息通知 */

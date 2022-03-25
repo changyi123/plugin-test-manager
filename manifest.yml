@@ -80,9 +80,6 @@ tables:
         type: Array
       sortIndex:
         type: Number
-      tenant:
-        type: Pointer
-        targetClass: Tenant
   - className: TestConfig
     fields:
       workspaceKey:

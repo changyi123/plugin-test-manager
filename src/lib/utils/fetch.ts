@@ -1,6 +1,7 @@
 import { message } from '@osui/ui';
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
+import { getTenantKey } from '@/lib/utils/helper';
 import { getDevConfig, getParseReqHeader } from '@/devEnv';
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 interface FetchInstance extends AxiosInstance {
   $get<T = any>(url: string, config?: AxiosRequestConfig): Promise<T>;
 
@@ -18,17 +19,18 @@ interface FetchInstance extends AxiosInstance {
 }
 const { baseURL, env } = getDevConfig();
 
-// TODO:临时从localStorage中获取sessionToken
-const { sessionToken } = JSON.parse(localStorage.getItem('Parse/proxima-core/currentUser')) ?? {};
+// 获取当前租户的 key 没有则使用原有版本的 key
+const tenantKey = getTenantKey('proxima-core');
+const currentUserStorageKey = `Parse/${tenantKey}/currentUser`;
+const { sessionToken } = JSON.parse(localStorage.getItem(currentUserStorageKey)) ?? {};
 // const reg = /sessionToken=([^;]+)/;
 // const result = reg.exec(document.cookie);
 // const sessionToken = result?.[1];
-const id = process.env.PROXIMA_APP_ID;
 
 const config: AxiosRequestConfig = {
   timeout: 15 * 1000,
   headers: {
-    'X-Parse-Application-Id': id,
+    'X-Parse-Application-Id': tenantKey,
     'X-Parse-Session-Token': sessionToken,
   },
 };
