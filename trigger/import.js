@@ -1,35 +1,35 @@
-const triggerParams = {
-    data: [{
-            id: 'qATTCWHO4A',
-            name: '测试032201',
-            workspace: 'LPT1',
-            itemType: 'hqTQcpfaiO',
-            status: 'HqdG1eLkKc'
-        },
-        {
-            id: '5t2whqoHD11',
-            name: '测试032202',
-            workspace: 'LPT1',
-            itemType: 'hqTQcpfaiO',
-            status: 'HqdG1eLkKc'
-        }
-    ],
-    appFieldsData: [{
-            group: '44/55/66',
-            priority: '高',
-            action: '1.xxx\r\n2.www',
-            result: '1.xxx\r\n2.www',
-            itemId: 'qATTCWHO4A'
-        },
-        {
-            group: '测试01/测试02/测试041',
-            priority: '中',
-            action: '1.xxx\r\n2.www',
-            result: '1.xxx\r\n2.www',
-            itemId: '5t2whqoHD1'
-        }
-    ]
-}
+// const triggerParams = {
+//     data: [{
+//             id: 'qATTCWHO4A',
+//             name: '测试032201',
+//             workspace: 'LPT1',
+//             itemType: 'hqTQcpfaiO',
+//             status: 'HqdG1eLkKc'
+//         },
+//         {
+//             id: '5t2whqoHD11',
+//             name: '测试032202',
+//             workspace: 'LPT1',
+//             itemType: 'hqTQcpfaiO',
+//             status: 'HqdG1eLkKc'
+//         }
+//     ],
+//     appFieldsData: [{
+//             group: '44/55/66',
+//             priority: '高',
+//             action: '1.xxx\r\n2.www',
+//             result: '1.xxx\r\n2.www',
+//             itemId: 'qATTCWHO4A'
+//         },
+//         {
+//             group: '测试01/测试02/测试041',
+//             priority: '中',
+//             action: '1.xxx\r\n2.www',
+//             result: '1.xxx\r\n2.www',
+//             itemId: '5t2whqoHD1'
+//         }
+//     ]
+// }
 
 const {
     data,
