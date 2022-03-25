@@ -1,35 +1,35 @@
-const triggerParams = {
-    data: [{
-            id: 'qATTCWHO4A',
-            name: '测试032201',
-            workspace: 'nF6ZkIdLox',
-            itemType: 'hqTQcpfaiO',
-            status: 'HqdG1eLkKc'
-        },
-        {
-            id: '5t2whqoHD11',
-            name: '测试032202',
-            workspace: 'nF6ZkIdLox',
-            itemType: 'hqTQcpfaiO',
-            status: 'HqdG1eLkKc'
-        }
-    ],
-    appFieldsData: [{
-            group: '44/234234/jyt1',
-            priority: '高',
-            action: '1.xxx\r\n2.www',
-            result: '1.xxx\r\n2.www',
-            itemId: 'qATTCWHO4A'
-        },
-        {
-            group: '测试01/测试03/测试06',
-            priority: '中',
-            action: '1.xxx\r\n2.www',
-            result: '1.xxx\r\n2.www',
-            itemId: '5t2whqoHD1'
-        }
-    ]
-}
+// const triggerParams = {
+//     data: [{
+//             id: 'qATTCWHO4A',
+//             name: '测试032201',
+//             workspace: 'nF6ZkIdLox',
+//             itemType: 'hqTQcpfaiO',
+//             status: 'HqdG1eLkKc'
+//         },
+//         {
+//             id: '5t2whqoHD11',
+//             name: '测试032202',
+//             workspace: 'nF6ZkIdLox',
+//             itemType: 'hqTQcpfaiO',
+//             status: 'HqdG1eLkKc'
+//         }
+//     ],
+//     appFieldsData: [{
+//             group: '44/234234/jyt1',
+//             priority: '高',
+//             action: '1.xxx\r\n2.www',
+//             result: '1.xxx\r\n2.www',
+//             itemId: 'qATTCWHO4A'
+//         },
+//         {
+//             group: '测试01/测试03/测试06',
+//             priority: '中',
+//             action: '1.xxx\r\n2.www',
+//             result: '1.xxx\r\n2.www',
+//             itemId: '5t2whqoHD1'
+//         }
+//     ]
+// }
 
 const {
     data,
@@ -46,6 +46,15 @@ const splitGroup = group => group.split('/');
 
 const clone = d => JSON.parse(JSON.stringify(d));
 
+const isTwoChar = d => /[^\x00-\xff]/g.test(d);
+
+const getCharNum = d => d.split('').reduce((prev, cur) => {
+
+    prev = prev + isTwoChar(cur) ? 2 : 1;
+
+    return prev;
+}, 0)
+
 // 根据事项数据获取 workspaceKey 
 const getWorkspaceKey = async () => {
     const objectId = clone(data).find(d => d.workspace)?.workspace;
@@ -61,17 +70,28 @@ const workspaceKey = await getWorkspaceKey();
 
 const getActionAndResultIndex = value => value.match(/^[0-9]+/)[0];
 
-const getResultData = (action, results) =>
-    results.split(/\r\n/g).find(r => getActionAndResultIndex(r) === getActionAndResultIndex(action))
+const getActionAndResultData = datas => (getCharNum(datas) > 500 ? '' : datas).replace(/^【\d+】/, '')
 
+const splitData = datas => datas?.split(/[\r\n]+/g) ?? [];
 
 const getStepsData = datas => {
-    if (!datas.action) return [];
+    const stepsMap = new Map();
 
-    return datas.action.split(/\r\n/g).map(d => ({
-        action: d,
-        result: getResultData(d, datas.result)
-    }))
+    splitData(datas.action).forEach((action, index) => {
+        stepsMap.set(index, {
+            action: getActionAndResultData(action),
+            result: stepsMap.get(index)?.result,
+        })
+    })
+
+    splitData(datas.result).forEach((result, index) => {
+        stepsMap.set(index, {
+            action: stepsMap.get(index)?.action,
+            result: getActionAndResultData(result),
+        })
+    })
+
+    return [...Object.values(stepsMap)];
 }
 
 // 创建测试用例数据，返回测试用例
@@ -84,13 +104,14 @@ const createTestMangerTest = async () => {
             type: 'TestDetail',
             reference: itemParseObj.createWithoutData(_data.itemId),
             detail: {
-                precondition: _data.precondition,
+                precondition: getCharNum(_data.precondition) > 500 ? '' : _data.precondition,
                 steps: getStepsData(_data)
             }
         }))
         .map(row => {
             const newTestInstance = testInstance.clone()
             newTestInstance.set(row);
+
             return newTestInstance
         })
 
@@ -143,32 +164,24 @@ const getParent = (RepoParseObj, datas, repoData) => {
     return _data?.objectId && RepoParseObj.createWithoutData(_data.objectId)
 }
 
-const saveRepo = async (RepoParseObj, gro, parent, i) => {
-    const repo = new RepoParseObj({
-        parent: i === 0 ? undefined : parent,
-        workspaceKey,
-        name: gro.name,
-    })
-
-    await repo.save();
-}
-
-const handleRepoData = (RepoParseObj, datas, newRepoData, i) => {
-
-    return datas.map(async gro => {
-        const parent = i === 0 ? undefined : getParent(RepoParseObj, newRepoData, gro);
-
-        return await saveRepo(RepoParseObj, gro, parent, i)
-    })
-}
-
 const createRepoGroup = async (datas, i) => {
     const RepoParseObj = await apis.getParseModel(false, TEST_MANAGER_REPO);
     const newRepoData = await getRepoData();
 
-    const _data = datas.filter(d => d.index === i)
+    const repos = datas.map(gro => {
+        const parent = i === 0 ? undefined : getParent(RepoParseObj, newRepoData, gro);
 
-    return handleRepoData(RepoParseObj, _data, newRepoData, i);
+        const repo = new RepoParseObj({
+            parent: parent,
+            workspaceKey,
+            name: gro.name,
+        })
+
+        return repo
+    
+    })
+
+    return await apis.saveAllObject(repos)
 }
 
 const getImportGroupData = () => appFieldsData.map(d => d.group?.split('/').reduce((prev, cur, index) => {
@@ -195,9 +208,8 @@ const handleFieldsData = async (testManagerTestData) => {
     const newRepoObj = appFieldsData.map(field => {
         const repoData = repoDatas.find(gro => gro.path === field.group);
 
-        
         const repository = new RepoParseObj({
-            objectId: repoData.objectId,
+            objectId: repoData?.objectId,
         });
 
         const getAddId = () => {
@@ -215,8 +227,8 @@ const handleFieldsData = async (testManagerTestData) => {
 
         repository.set('testDetailIds', getDetailIds())
 
-        return repository
-    })
+        return repoData?.objectId ? repository : undefined;
+    }).filter(Boolean)
 
     return await apis.saveAllObject(newRepoObj);
 }
@@ -229,18 +241,28 @@ const importCallBack = async () => {
     // 得到需要创建的用例库数据
     const toCreateGroupData = await getToCreateGroupData();
 
+    const newToCreateGroupData =  toCreateGroupData.reduce((prev, cur) => {
+        prev.set(cur.index, (prev.get(cur.index) || []).concat([cur]))
+        return prev;
+    }, new Map());
+    
     // 创建用例库
     for (let i = 0; i < 5; i++) {
-        await createRepoGroup(toCreateGroupData, i)
+        if (newToCreateGroupData.get(i)) {
+            await createRepoGroup(newToCreateGroupData.get(i), i)
+        }
     }
 
     // 绑定测试用例到用例库
-    handleFieldsData(testManagerTestData)
+    await handleFieldsData(testManagerTestData);
+
+    const href = `osc/workspaces/${workspaceKey}`
+    window.open(href)
+
+    return {
+        code: 200,
+        message: '成功',
+    }
 }
 
-importCallBack()
-
-return {
-    code: 200,
-    message: '成功',
-};
+return importCallBack()
