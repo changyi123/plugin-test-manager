@@ -20,6 +20,7 @@ fs.watchFile(fullPath, () => {
       script,
       params,
       sessionToken,
+      // applicationId: 'zhengzhou',
     })
     .then(res => {
       console.info(new Date().toUTCString(), res.data);
