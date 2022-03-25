@@ -1,41 +1,40 @@
-// const triggerParams = {
-//     data: [{
-//             id: 'qATTCWHO4A',
-//             name: '测试032201',
-//             workspace: 'LPT1',
-//             itemType: 'hqTQcpfaiO',
-//             status: 'HqdG1eLkKc'
-//         },
-//         {
-//             id: '5t2whqoHD11',
-//             name: '测试032202',
-//             workspace: 'LPT1',
-//             itemType: 'hqTQcpfaiO',
-//             status: 'HqdG1eLkKc'
-//         }
-//     ],
-//     appFieldsData: [{
-//             group: '44/55/66',
-//             priority: '高',
-//             action: '1.xxx\r\n2.www',
-//             result: '1.xxx\r\n2.www',
-//             itemId: 'qATTCWHO4A'
-//         },
-//         {
-//             group: '测试01/测试02/测试041',
-//             priority: '中',
-//             action: '1.xxx\r\n2.www',
-//             result: '1.xxx\r\n2.www',
-//             itemId: '5t2whqoHD1'
-//         }
-//     ]
-// }
+const triggerParams = {
+    data: [{
+            id: 'qATTCWHO4A',
+            name: '测试032201',
+            workspace: 'nF6ZkIdLox',
+            itemType: 'hqTQcpfaiO',
+            status: 'HqdG1eLkKc'
+        },
+        {
+            id: '5t2whqoHD11',
+            name: '测试032202',
+            workspace: 'nF6ZkIdLox',
+            itemType: 'hqTQcpfaiO',
+            status: 'HqdG1eLkKc'
+        }
+    ],
+    appFieldsData: [{
+            group: '44/234234/jyt1',
+            priority: '高',
+            action: '1.xxx\r\n2.www',
+            result: '1.xxx\r\n2.www',
+            itemId: 'qATTCWHO4A'
+        },
+        {
+            group: '测试01/测试03/测试06',
+            priority: '中',
+            action: '1.xxx\r\n2.www',
+            result: '1.xxx\r\n2.www',
+            itemId: '5t2whqoHD1'
+        }
+    ]
+}
 
 const {
     data,
     appFieldsData,
 } = triggerParams;
-
 
 const APP_KEY = 'test_manager';
 
@@ -45,8 +44,20 @@ const TEST_MANAGER_REPO = `${APP_KEY}_Repository`;
 
 const splitGroup = group => group.split('/');
 
+const clone = d => JSON.parse(JSON.stringify(d));
+
 // 根据事项数据获取 workspaceKey 
-const getWorkspaceKey = datas => datas.find(d => d.workspace)?.workspace;
+const getWorkspaceKey = async () => {
+    const objectId = clone(data).find(d => d.workspace)?.workspace;
+
+    const workspace = await apis.getData(false, 'Workspace', {
+        objectId
+    })
+
+    return workspace.toJSON().key;
+};
+
+const workspaceKey = await getWorkspaceKey();
 
 const getActionAndResultIndex = value => value.match(/^[0-9]+/)[0];
 
@@ -67,8 +78,6 @@ const getStepsData = datas => {
 const createTestMangerTest = async () => {
     const itemParseObj = await apis.getParseModel(false, 'Item');
     const testInstance = await apis.getParseObject(false, TEST_MANAGER_TEST);
-
-    const workspaceKey = getWorkspaceKey(data);
 
     const _data = appFieldsData.map(_data => ({
             workspaceKey,
@@ -107,9 +116,10 @@ const handleRroupPath = datas => {
     }))
 }
 
+// 根据空间 key 查询用例库数据
 const getRepoData = async () => {
     const repoData = await apis.getAllData(false, TEST_MANAGER_REPO, {
-        workspaceKey: getWorkspaceKey(data)
+        workspaceKey,
     });
 
     const newRepoData = repoData.map(d => {
@@ -124,7 +134,7 @@ const getRepoData = async () => {
         };
     });
 
-    return handleRroupPath(newRepoData)
+    return handleRroupPath(newRepoData);
 }
 
 const getParent = (RepoParseObj, datas, repoData) => {
@@ -136,7 +146,7 @@ const getParent = (RepoParseObj, datas, repoData) => {
 const saveRepo = async (RepoParseObj, gro, parent, i) => {
     const repo = new RepoParseObj({
         parent: i === 0 ? undefined : parent,
-        workspaceKey: getWorkspaceKey(data),
+        workspaceKey,
         name: gro.name,
     })
 
@@ -148,7 +158,6 @@ const handleRepoData = (RepoParseObj, datas, newRepoData, i) => {
     return datas.map(async gro => {
         const parent = i === 0 ? undefined : getParent(RepoParseObj, newRepoData, gro);
 
-        console.log(333, parent)
         return await saveRepo(RepoParseObj, gro, parent, i)
     })
 }
@@ -214,7 +223,10 @@ const handleFieldsData = async (testManagerTestData) => {
 
 // 导入成功后，创建事项数据后的回调函数
 const importCallBack = async () => {
+    // 创建测试用例数据
     const testManagerTestData = await createTestMangerTest();
+
+    // 得到需要创建的用例库数据
     const toCreateGroupData = await getToCreateGroupData();
 
     // 创建用例库
@@ -222,9 +234,8 @@ const importCallBack = async () => {
         await createRepoGroup(toCreateGroupData, i)
     }
 
-    // 绑定用例到用例库
+    // 绑定测试用例到用例库
     handleFieldsData(testManagerTestData)
-
 }
 
 importCallBack()

@@ -3,7 +3,7 @@ const path = require('path');
 const fs = require('fs');
 
 const fileName = './import.js';
-const sessionToken = 'r:f16d78a1cd69bd8a201023c55b2b134d';
+const sessionToken = 'r:1b1f2ffcf92ae9d1fe7df759536d33f7';
 const params = {
   appKey: 'test_manager',
 };
