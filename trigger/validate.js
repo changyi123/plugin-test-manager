@@ -1,14 +1,14 @@
 // const triggerParams = {
 //     data: [{
-//             '所属分组': 'a/2/3/4/5/6/7',
+//             '所属分组': '1/2/3/4/5/6/7',
 //             '用例标题': '',
 //             '优先级': 1,
 //             '前置条件': 'aaaaaaa',
-//             '步骤描述': '【1】 步骤1\r\n【2】 步骤2',
+//             '步骤描述': '1000条',
 //             '预期结果': '【2】 结果2\r\n【3】 结果3',
 //         },
 //         {
-//             '所属分组': 'a/2/3',
+//             '所属分组': '1/2/3/4/5/6/7',
 //             '用例标题': '',
 //             '优先级': 1,
 //             '前置条件': '111111111',
@@ -46,6 +46,9 @@ const {
     appFieldsData,
     fieldMapping
 } = triggerParams;
+// console.log('validate-map', fieldMapping)
+// console.log('validate-data', data)
+// console.log('validate-appFieldsData', appFieldsData)
 
 
 // 判断数据是否超过 1000 条
@@ -71,18 +74,24 @@ const isFilterGroup = group => group?.split?.('/').length > 5;
 
 const getGroupIndex = (item, index) => isFilterGroup(item.group) ? index : null;
 
+const isTwoChar = d => /[^\x00-\xff]/g.test(d);
+
+const getCharNum = d => d?.split?.('').reduce((prev, cur) => {
+    prev = prev + (isTwoChar(cur) ? 2 : 1);
+
+    return prev;
+}, 0)
+
 const getConditionIndex = (item, index) => getCharNum(item.precondition) > 500 ? index : null;
 
-const splitData = datas => datas?.split(/[\r\n]+/g) ?? [];
+const splitData = datas => datas?.split(/[\n]+/g) ?? [];
 
 const commonMap = (d, fn) => d?.map((item, index) => fn(item, index)).filter(item => item !== null);
 
 const validateActions = datas => commonMap(datas, getConditionIndex);
 
 const getIndexObj = (item, index, type) => {
-    // const _data = commonMap(splitData(item[type]), getConditionIndex)
-
-    const _data = splitData(item[type]).map((item, i) => getCharNum(item) > 500 ? i : null).filter(Boolean);
+    const _data = splitData(item[type]).map((item, i) => getCharNum(item) > 500 ? i : null).filter(d => d !== null);
 
     return _data?.length ? ({
         index: index,
@@ -90,16 +99,7 @@ const getIndexObj = (item, index, type) => {
     }) : null
 };
 
-const getStepsIndex = (datas, type) => datas?.map((item, index) => getIndexObj(item, index, type)).filter(item => item !== null)
-
-const isTwoChar = d => /[^\x00-\xff]/g.test(d);
-
-const getCharNum = d => d.split('').reduce((prev, cur) => {
-
-    prev = prev + isTwoChar(cur) ? 2 : 1;
-
-    return prev;
-}, 0)
+const getStepsIndex = (datas, type) => datas?.map((item, index) => getIndexObj(item, index, type)).filter(item => item !== null);
 
 const getFieldErrorsData = (errors, datas, getFn, getTips) => errors.concat(commonMap(datas, getFn).map(i => getTips(i)));
 
@@ -128,12 +128,12 @@ const getErrors = (datas, errors = []) => {
 
     // 校验步骤描述
     if (getStepsIndex(datas, 'action')?.length) {
-        errors = getStepErrorsData(errors, datas, 'action', i => `前置条件 限制 500 个字符,第 ${i.index + 1} 条的 ${i.action.join('、')} 字符数超过限制，此条前置条件将不予以导入`)
+        errors = getStepErrorsData(errors, datas, 'action', i => `步骤描述 限制 500 个字符,第 ${i.index + 1} 条的 ${i.action.map(d => d+1).join('、')} 条字符数超过限制，此条步骤描述将不予以导入`)
     }
 
     // 校验预期结果
     if (getStepsIndex(datas, 'result')?.length) {
-        errors = getStepErrorsData(errors, datas, 'result', i => `前置条件 限制 500 个字符,第 ${i.index + 1} 条的 ${i.result.join('、')} 字符数超过限制，此条前置条件将不予以导入`)
+        errors = getStepErrorsData(errors, datas, 'result', i => `预期结果 限制 500 个字符,第 ${i.index + 1} 条的 ${i.result.map(d => d+1).join('、')} 条字符数超过限制，此条预期结果将不予以导入`)
     }
 
     return errors;
@@ -174,8 +174,8 @@ const getDataByFieldKey = (datas, maps) => datas.reduce((prev, cur) => {
 // 校验数据
 const validateAppData = d => ({
     errors: getErrors(d) || [],
-    error_count: getErrors(d)?.length || 0,
-    data: getDataByFieldKey(filterData(getDataByLength(clone(d))), fieldMapping) || null,
+    errorCount: getErrors(d)?.length || 0,
+    data: getDataByFieldKey(filterData(getDataByLength(clone(d))), fieldMapping) || [],
     stop: false,
 })
 
