@@ -105,12 +105,12 @@ const createTestMangerTest = async () => {
                 steps: getStepsData(_data)
             }
         })
-        }).map(row => {
-            const newTestInstance = testInstance.clone()
-            newTestInstance.set(row);
+    }).map(row => {
+        const newTestInstance = testInstance.clone()
+        newTestInstance.set(row);
 
-            return newTestInstance
-        })
+        return newTestInstance
+    })
 
     const newData = await apis.saveAllObject(_data);
 
