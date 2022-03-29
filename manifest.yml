@@ -55,10 +55,10 @@ modules:
     itemType:
       - key: group
         title: 所属分组
-      - key: name
-        title: 用例标题
-      - key: priority
-        title: 优先级
+      # - key: name
+      #   title: 用例标题
+      # - key: priority
+      #   title: 优先级
       - key: precondition
         title: 前置条件
       - key: action
