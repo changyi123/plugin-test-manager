@@ -1,54 +1,12 @@
-// const triggerParams = {
-//     data: [{
-//             '所属分组': '1/2/3/4/5/6/7',
-//             '用例标题': '',
-//             '优先级': 1,
-//             '前置条件': 'aaaaaaa',
-//             '步骤描述': '1000条',
-//             '预期结果': '【2】 结果2\r\n【3】 结果3',
-//         },
-//         {
-//             '所属分组': '1/2/3/4/5/6/7',
-//             '用例标题': '',
-//             '优先级': 1,
-//             '前置条件': '111111111',
-//             '步骤描述': '1、xxx\r\n2、www',
-//             '预期结果': '1、xxx\r\n2、www',
-//         }
-//     ],
-//     appFieldsData: [{
-//             group: '44/234234/jyt1',
-//             priority: '高',
-//             action: '1.xxx\r\n2.www',
-//             result: '1.xxx\r\n2.www',
-//             itemId: 'qATTCWHO4A'
-//         },
-//         {
-//             group: '测试01/测试03/测试06',
-//             priority: '中',
-//             action: '1.xxx\r\n2.www',
-//             result: '1.xxx\r\n2.www',
-//             itemId: '5t2whqoHD1'
-//         }
-//     ],
-//     fieldMapping: {
-//         '所属分组': 'group',
-//         '优先级': 'priority',
-//         '用例标题': 'name',
-//         '前置条件': 'precondition',
-//         '步骤描述': 'action',
-//         '预期结果': 'result',
-//     }
-// }
-
 const {
     data,
     appFieldsData,
     fieldMapping
 } = triggerParams;
-// console.log('validate-map', fieldMapping)
-// console.log('validate-data', data)
-// console.log('validate-appFieldsData', appFieldsData)
+
+console.log('validate', triggerParams)
+console.log('validate-data', data)
+console.log('validate-appFieldsData', appFieldsData)
 
 
 // 判断数据是否超过 1000 条
@@ -172,11 +130,15 @@ const getDataByFieldKey = (datas, maps) => datas.reduce((prev, cur) => {
 }, []);
 
 // 校验数据
-const validateAppData = d => ({
-    errors: getErrors(d) || [],
-    errorCount: getErrors(d)?.length || 0,
-    data: getDataByFieldKey(filterData(getDataByLength(clone(d))), fieldMapping) || [],
-    stop: false,
-})
+const validateAppData = d => {
+    console.log('newData', getDataByFieldKey(filterData(getDataByLength(clone(d))), fieldMapping))
+
+    return ({
+        errors: getErrors(d) || [],
+        errorCount: getErrors(d)?.length || 0,
+        data: getDataByFieldKey(filterData(getDataByLength(clone(d))), fieldMapping) || [],
+        stop: false,
+    })
+}
 
 return validateAppData(getDataByFieldMaping(data, fieldMapping))

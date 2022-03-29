@@ -1,38 +1,3 @@
-// const triggerParams = {
-//     data: [{
-//             id: 'qATTCWHO4A',
-//             name: '测试032201',
-//             workspace: 'nF6ZkIdLox',
-//             itemType: 'hqTQcpfaiO',
-//             status: 'HqdG1eLkKc'
-//         },
-//         {
-//             id: '5t2whqoHD11',
-//             name: '测试032202',
-//             workspace: 'nF6ZkIdLox',
-//             itemType: 'hqTQcpfaiO',
-//             status: 'HqdG1eLkKc'
-//         }
-//     ],
-//     appFieldsData: [{
-//             group: '1/2/3/4/5',
-//             priority: '高',
-//             precondition: 'sdgagasgasg',
-//             action: '【1】测试步骤描述\r\n【2】测试22222',
-//             result: '【1】测试预期结果\r\n【2】测试22222',
-//             itemId: 'qATTCWHO4A'
-//         },
-//         {
-//             group: '1/2/3/4/5',
-//             priority: '中',
-//             precondition: 'sdgagasgasg',
-//             action: '1.xxx\r\n2.www',
-//             result: '1.xxx\r\n2.www',
-//             itemId: '5t2whqoHD1'
-//         }
-//     ]
-// }
-
 const {
     data,
     appFieldsData,
