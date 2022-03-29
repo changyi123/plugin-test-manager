@@ -3,9 +3,9 @@ const {
     appFieldsData,
 } = triggerParams;
 
-console.log('import', triggerParams)
-console.log('import-data', data)
-console.log('import-appFieldsData', appFieldsData)
+// console.log('import', triggerParams)
+// console.log('import-data', data)
+// console.log('import-appFieldsData', appFieldsData)
 
 // uuid
 function getRandomIntInclusive(min, max) {
@@ -94,22 +94,19 @@ const getStepsData = datas => {
 const createTestMangerTest = async () => {
     const itemParseObj = await apis.getParseModel(false, 'Item');
     const testInstance = await apis.getParseObject(false, TEST_MANAGER_TEST);
-    const mathData = Math.floor(Date.now() / 10);
+    const mathData = Math.floor(Date.now() / 1000);
 
-    const _data = appFieldsData.map((_data, index) => {
-
-        return ({
-            workspaceKey,
-            type: 'TestDetail',
-            reference: itemParseObj.createWithoutData(_data.itemId),
-            detail: {
-                precondition: getCharNum(_data.precondition) > 500 ? '' : _data.precondition,
-                steps: getStepsData(_data)
-            },
-            // TODO 辅助排序
-            // sortIndex: mathData + (index + 1) * 10e11 
-        })
-    }).map(row => {
+    const _data = appFieldsData.map((_data, index) => ({
+        workspaceKey,
+        type: 'TestDetail',
+        reference: itemParseObj.createWithoutData(_data.itemId),
+        detail: {
+            precondition: getCharNum(_data.precondition) > 500 ? '' : _data.precondition,
+            steps: getStepsData(_data)
+        },
+        // TODO 辅助排序
+        // sortIndex: mathData + (index + 1) * 10e9
+    })).map(row => {
         const newTestInstance = testInstance.clone()
         newTestInstance.set(row);
 
@@ -153,8 +150,8 @@ const getRepoData = async () => {
             testDetailIds: _data?.testDetailIds ?? [],
             parentId: _data.parent?.objectId ?? null,
             workspaceKey: _data.workspaceKey,
-        } : undefined;
-    }).filter(Boolean);
+        } : null;
+    }).filter(d => d !== null);
 
     return handleRroupPath(newRepoData);
 }
@@ -215,13 +212,18 @@ const getToCreateGroupData = async () => {
 const handleFieldsData = async (testManagerTestData) => {
     const RepoParseObj = await apis.getParseModel(false, TEST_MANAGER_REPO);
     const repoDatas = await getRepoData();
+    const repositoryMap = new Map();
 
     const newRepoObj = appFieldsData.map(field => {
         const repoData = repoDatas.find(gro => gro.path === field.group);
 
-        const repository = new RepoParseObj({
-            objectId: repoData?.objectId,
-        });
+        if (!repositoryMap.has(repoData?.objectId)) {
+            const repository = new RepoParseObj({
+                objectId: repoData?.objectId,
+            });
+    
+            repositoryMap.set(repoData?.objectId, repository)
+        }
 
         const getAddId = () => {
             const testMap = new Map()
@@ -237,29 +239,25 @@ const handleFieldsData = async (testManagerTestData) => {
         }
         
         const getDetailIds = () => {
-            const ids = repoData?.testDetailIds ?? [];
+            const ids = repositoryMap.get(repoData?.objectId).toJSON()?.testDetailIds ?? [];
             
             return ids?.concat([getAddId()])
         }
 
-        repository.set('testDetailIds', getDetailIds())
+        repositoryMap.get(repoData?.objectId).set('testDetailIds', getDetailIds());
 
-        return repoData?.objectId ? repository : undefined;
-    }).filter(Boolean)
+        return repoData?.objectId ? repositoryMap.get(repoData?.objectId) : null;
+    }).filter(d => d !== null)
 
     return await apis.saveAllObject(newRepoObj);
 }
 
 const createRepoGroupList = async datas => {
-    const _data = [...datas.entries()].sort((a, b) => a[0] - b[0])
-
-    return await _data.reduce(async (prev, [order, groups]) => {
-        const _prev = await createRepoGroup(groups, order);
-
-        prev.push(_prev);
-
-        return prev;
-    }, [])
+    for (let i = 0; i < 5; i++) {
+        if (datas.get(i)) {
+            await createRepoGroup(datas.get(i), i)
+        }
+    }
 }
 
 // 导入成功后，创建事项数据后的回调函数
