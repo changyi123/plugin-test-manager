@@ -55,10 +55,8 @@ modules:
     itemType:
       - key: group
         title: 所属分组
-      # - key: name
-      #   title: 用例标题
-      # - key: priority
-      #   title: 优先级
+      - key: priority
+        title: 优先级
       - key: precondition
         title: 前置条件
       - key: action
@@ -78,16 +76,11 @@ tables:
         type: Pointer
         isAppClass: true
         targetClass: Repository
-      # 废弃暂时先不删
-      # itemIds:
-      #   type: Array
       testDetailIds:
         type: Array
       tenant:
         type: Pointer
         targetClass: Tenant
-      type:
-        type: Number
   - className: TestConfig
     fields:
       workspaceKey:
@@ -113,7 +106,6 @@ tables:
         type: String
       status:
         type: String
-
       runDetail:
         type: Object
       # 废弃， 使用 detail 字段替代
@@ -121,6 +113,8 @@ tables:
         type: Array
       detail:
         type: Object
+      sortIndex:
+        type: Number
       runReferenceDetail:
         type: Pointer
         isAppClass: true

@@ -94,7 +94,7 @@ const getStepsData = datas => {
 const createTestMangerTest = async () => {
     const itemParseObj = await apis.getParseModel(false, 'Item');
     const testInstance = await apis.getParseObject(false, TEST_MANAGER_TEST);
-    const mathData = Math.floor(Date.now() / 1000);
+    const mathData = Math.floor(Date.now() / 1000) * 1000;
 
     const _data = appFieldsData.map((_data, index) => ({
         workspaceKey,
@@ -104,8 +104,7 @@ const createTestMangerTest = async () => {
             precondition: getCharNum(_data.precondition) > 500 ? '' : _data.precondition,
             steps: getStepsData(_data)
         },
-        // TODO 辅助排序
-        // sortIndex: mathData + (index + 1) * 10e9
+        sortIndex: mathData + index
     })).map(row => {
         const newTestInstance = testInstance.clone()
         newTestInstance.set(row);
