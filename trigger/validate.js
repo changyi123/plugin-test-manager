@@ -53,7 +53,7 @@ const getIndexObj = (item, index, type) => {
 
     return _data?.length ? ({
         index: index,
-        action: _data
+        errors: _data
     }) : null
 };
 
@@ -86,12 +86,17 @@ const getErrors = (datas, errors = []) => {
 
     // 校验步骤描述
     if (getStepsIndex(datas, 'action')?.length) {
-        errors = getStepErrorsData(errors, datas, 'action', i => `步骤描述 限制 500 个字符,第 ${i.index + 1} 条的 ${i.action.map(d => d+1).join('、')} 条字符数超过限制，此条步骤描述将不予以导入`)
+        errors = getStepErrorsData(errors, datas, 'action', i => `步骤描述 限制 500 个字符,第 ${i.index + 1} 条用例的 ${i.errors.map(d => d+1).join('、')} 条步骤描述超过限制，此条步骤描述将不予以导入`)
     }
 
     // 校验预期结果
     if (getStepsIndex(datas, 'result')?.length) {
-        errors = getStepErrorsData(errors, datas, 'result', i => `预期结果 限制 500 个字符,第 ${i.index + 1} 条的 ${i.result.map(d => d+1).join('、')} 条字符数超过限制，此条预期结果将不予以导入`)
+        errors = getStepErrorsData(errors, datas, 'result', i => `预期结果 限制 500 个字符,第 ${i.index + 1} 条用例的 ${i.errors.map(d => d+1).join('、')} 条预期结果超过限制，此条预期结果将不予以导入`)
+    }
+
+    // 校验数据
+    if (getStepsIndex(datas, 'data')?.length) {
+        errors = getStepErrorsData(errors, datas, 'data', i => `数据 限制 500 个字符,第 ${i.index + 1} 条用例的 ${i.errors.map(d => d+1).join('、')} 条数据超过限制，此条数据将不予以导入`)
     }
 
     return errors;

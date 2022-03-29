@@ -64,6 +64,7 @@ const getStepsData = datas => {
         stepsMap.set(index, {
             action: getActionAndResultData(action),
             result: stepsMap.get(index)?.result,
+            data: stepsMap.get(index)?.data,
             id: stepsMap.get(index)?.id || uuidv4(),
         })
     })
@@ -72,6 +73,16 @@ const getStepsData = datas => {
         stepsMap.set(index, {
             action: stepsMap.get(index)?.action,
             result: getActionAndResultData(result),
+            data: stepsMap.get(index)?.data,
+            id: stepsMap.get(index)?.id || uuidv4(),
+        })
+    })
+
+    splitData(datas.data).forEach((_data, index) => {
+        stepsMap.set(index, {
+            data: getActionAndResultData(_data),
+            action: stepsMap.get(index)?.action,
+            result: stepsMap.get(index)?.result,
             id: stepsMap.get(index)?.id || uuidv4(),
         })
     })
@@ -235,12 +246,16 @@ const handleFieldsData = async (testManagerTestData) => {
     return await apis.saveAllObject(newRepoObj);
 }
 
-const createRepoGroupList = async newToCreateGroupData => {
-    for (let i = 0; i < 5; i++) {
-        if (newToCreateGroupData.get(i)) {
-            await createRepoGroup(newToCreateGroupData.get(i), i)
-        }
-    }
+const createRepoGroupList = async datas => {
+    const _data = [...datas.entries()].sort((a, b) => a[0] - b[0])
+
+    return await _data.reduce(async (prev, [order, groups]) => {
+        const _prev = await createRepoGroup(groups, order);
+
+        prev.push(_prev);
+
+        return prev;
+    }, [])
 }
 
 // 导入成功后，创建事项数据后的回调函数
@@ -257,12 +272,7 @@ const importCallBack = async () => {
     }, new Map());
     
     // 创建用例库
-    await createRepoGroupList(newToCreateGroupData)
-    // for (let i = 0; i < 5; i++) {
-    //     if (newToCreateGroupData.get(i)) {
-    //         await createRepoGroup(newToCreateGroupData.get(i), i)
-    //     }
-    // }
+    await createRepoGroupList(newToCreateGroupData);
 
     // 绑定测试用例到用例库
     await handleFieldsData(testManagerTestData);
@@ -274,11 +284,6 @@ const importCallBack = async () => {
         code: 200,
         message: '成功',
     }
-}
+};
 
-return importCallBack()
-
-// return {
-//     code: 200,
-//     message: '成功',
-// }
+return importCallBack();

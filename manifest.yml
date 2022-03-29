@@ -65,6 +65,8 @@ modules:
         title: 步骤描述
       - key: result
         title: 预期结果
+      - key: data
+        title: 数据
 tables:
   - className: Repository
     fields:
