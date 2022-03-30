@@ -42,7 +42,7 @@ const getCharNum = d => d?.split?.('').reduce((prev, cur) => {
 
 const getConditionIndex = (item, index) => getCharNum(item.precondition) > 500 ? index : null;
 
-const splitData = datas => datas?.split(/[\n]+/g) ?? [];
+const splitData = datas => datas?.split(/[\r\n]+/g) ?? [];
 
 const commonMap = (d, fn) => d?.map((item, index) => fn(item, index)).filter(item => item !== null);
 

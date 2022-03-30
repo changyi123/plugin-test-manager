@@ -3,9 +3,9 @@ const {
     appFieldsData,
 } = triggerParams;
 
-// console.log('import', triggerParams)
-// console.log('import-data', data)
-// console.log('import-appFieldsData', appFieldsData)
+console.log('import', triggerParams)
+console.log('import-data', data)
+console.log('import-appFieldsData', appFieldsData)
 
 // uuid
 function getRandomIntInclusive(min, max) {
@@ -55,7 +55,7 @@ const getActionAndResultIndex = value => value.match(/^[0-9]+/)[0];
 
 const getActionAndResultData = datas => (getCharNum(datas) > 500 ? '' : datas).replace(/^【\d+】/, '')
 
-const splitData = datas => datas?.split(/[\n]+/g) ?? [];
+const splitData = datas => datas?.split(/[\r\n]+/g) ?? [];
 
 const getStepsData = datas => {
     const stepsMap = new Map();
