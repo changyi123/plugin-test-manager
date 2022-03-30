@@ -22,14 +22,18 @@ import { useAllRelTestEntities } from '@/lib/hooks/useTest';
 import TestRunModal from '@/components/business/TestRunModal';
 import { QuestionCircleOutlined } from '@/icons';
 import { createTestExecutionAndRelations } from '@/lib/api/runs';
-import { getTestEntitiesByRelation, removeTestRelations } from '@/lib/api/common';
+import {
+  getTestEntitiesByRelation,
+  removeTestRelationsWithCondition,
+  getTestEntitiesByRelationWithOrder,
+} from '@/lib/api/common';
 import { createTestDetailToPlanRelations } from '@/lib/api/relations';
 import StatusProcessBar from '@/components/business/StatusProcessBar';
 
 import cx from './index.less';
 
 const Test = () => {
-  const { testEntity } = useTestConfig();
+  const { testEntity, workspace } = useTestConfig();
   const { createItemUseModal } = useBaseAction();
   const tableActionRef = React.useRef<ActionType>();
   const selectorModalRef = React.useRef<SelectorActionType>();
@@ -58,12 +62,13 @@ const Test = () => {
   const tableDataSourceGetter = React.useCallback(
     async queryParams => {
       const [{ list: testDetails, total }, { list: testRuns }] = await Promise.all([
-        getTestEntitiesByRelation(
+        getTestEntitiesByRelationWithOrder(
           TestRelationType.PlanRelDetail,
           { from: testEntity },
           {
             fillItemData: true,
             queryParams: queryParams,
+            workspaceKey: workspace?.key,
           },
         ),
         getTestEntitiesByRelation(
@@ -111,7 +116,7 @@ const Test = () => {
         total,
       };
     },
-    [testEntity],
+    [testEntity, workspace?.key],
   );
 
   // 创建测试执行
@@ -164,18 +169,21 @@ const Test = () => {
   }, [refreshDepData, testEntity]);
 
   const removeTestRelation = React.useCallback(
-    async relationTypeIds => {
-      if (!Array.isArray(relationTypeIds)) return;
-      await removeTestRelations(relationTypeIds);
+    async testDetailIds => {
+      if (!Array.isArray(testDetailIds)) return;
+      await removeTestRelationsWithCondition(TestRelationType.PlanRelDetail, {
+        from: testEntity,
+        to: testDetailIds,
+      });
 
       refreshDepData();
 
       alert({
         type: 'success',
-        message: `${relationTypeIds.length} 个测试用例从测试计划中删除`,
+        message: `${testDetailIds.length} 个测试用例从测试计划中删除`,
       });
     },
-    [refreshDepData],
+    [refreshDepData, testEntity],
   );
 
   // table column 数据
@@ -203,7 +211,7 @@ const Test = () => {
         width: 90,
         render: (_, record) => (
           <>
-            <a onClick={() => removeTestRelation([record.testRelationId])}>删除</a>
+            <a onClick={() => removeTestRelation([record.objectId])}>删除</a>
           </>
         ),
       },
@@ -329,7 +337,7 @@ const Test = () => {
             },
           },
         ]}
-        rowKey="testRelationId"
+        rowKey="objectId"
         columns={tableColumns}
         getDataSource={tableDataSourceGetter}
       />

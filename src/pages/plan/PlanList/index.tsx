@@ -111,7 +111,6 @@ const PlanList = () => {
         {
           offset,
           limit: REQUEST_LIMIT,
-          descendingBy: ['createdAt'],
           ignoreDeletedItemData: true,
         },
       );
@@ -122,6 +121,7 @@ const PlanList = () => {
           from: results.map(item => item.objectId),
         },
         {
+          workspaceKey,
           select: ['status'],
           include: ['status'],
           queryParams: { limit: 9999, offset: 0 },

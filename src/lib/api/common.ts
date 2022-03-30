@@ -1,8 +1,7 @@
 import Parse from '@/lib/parse';
 import { TestConfig } from '../models';
-import { getItemByIQL } from './proxima';
+import { assign, omit, transform } from 'lodash';
 import { TestType, TestRelationType } from '@/lib/constants';
-import { keyBy, assign, merge, omit, transform } from 'lodash';
 import { Workspace, Item, Test, TestRelation } from '@/lib/models';
 import { hasArrayItem, pointerTransfer, toArray, escapeMatchesQueryArg } from '@/lib/utils/helper';
 
@@ -13,7 +12,8 @@ const testRelationTypePointerTransfer = arr =>
   hasArrayItem(arr) ? arr.map(item => pointerTransfer(TestRelation, item)) : [];
 
 /**
- * 根据关联类型查询测试实体（分页，批量查询，填充 proxima 事项数据）
+ * FIXME: 后续需要优化此方法
+ * 根据关联类型查询测试实体，顺序无法保证
  */
 export const getTestEntitiesByRelation = async <TResponseList extends any[] = any[]>(
   relType: TestRelationType,
@@ -23,24 +23,26 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
   total: number;
   list: TResponseList;
 }> => {
-  const config = merge(
-    // {},
+  const config = assign(
+    {},
     {
       // 响应数据处理
       resultTransfer: data => data,
-      // 需要填充 item 数据则自动转换未 json 格式
       fillItemData: false,
       include: [],
       // 需要关联方 id
       needOriginSideId: true,
       select: [],
       workspaceKey: '',
-      queryParams: { limit: 10, offset: 0, orderBy: 'createdAt' },
+      queryParams: { limit: 10, offset: 0 },
       nameLike: '',
-      descendingBy: 'createdAt',
     },
     _config,
   );
+
+  if (config.descendingBy) {
+    throw new Error('该方法不支持排序使用 getTestEntitiesByRelationWithOrder 方法替代');
+  }
 
   // 查另一向的关联关系
   const sideMapping = {
@@ -51,7 +53,11 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
   if (!relType) return;
   // 测试实体 key
   let relationSideKey = '';
-  const include = config.include;
+  let { include, select } = config;
+  if (config.fillItemData) {
+    include = include.concat('reference');
+    select = select.concat('reference');
+  }
   const query = new Parse.Query(TestRelation).equalTo('relationType', relType);
 
   // 只支持单方关联查询
@@ -77,17 +83,13 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
     : [relationSideKey];
 
   // 如果有 select 事项追加至 query
-  if (config.select || config.needOriginSideId) {
+  if (select || config.needOriginSideId) {
     const select = (Array.isArray(config.select) ? config.select : [config.select]).map(
       key => `${relationSideKey}.${key}`,
     );
     const otherSide = config.needOriginSideId && `${sideMapping[relationSideKey]}.objectId`;
     const selectKeys = [relationSideKey, otherSide, ...select].filter(Boolean);
     query.select(selectKeys);
-  }
-
-  if (config.descendingBy) {
-    query.descending(config.descendingBy);
   }
 
   if (hasArrayItem(includeKeys)) {
@@ -97,23 +99,32 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
 
   query.withCount();
 
-  if (config?.nameLike) {
-    const testEntityInnerQuery = new Parse.Query(Test).matchesQuery(
-      'reference',
-      new Parse.Query(Item).matches('name', escapeMatchesQueryArg(config.nameLike)),
-    );
+  // 测试执行实体不是一个 proxima 事项。当查询执行的时候需要给排除
+  const useItemSubQuery =
+    relType !== TestRelationType.ExecutionRelRun || relationSideKey !== sideMapping.from;
 
-    if (config.workspaceKey) {
-      testEntityInnerQuery.equalTo('workspaceKey', config.workspaceKey);
+  if (useItemSubQuery) {
+    const referenceItemQuery = new Parse.Query(Item);
+    if (config?.nameLike) {
+      referenceItemQuery.matches('name', escapeMatchesQueryArg(config.nameLike));
     }
-
-    query.matchesQuery(relationSideKey, testEntityInnerQuery);
+    if (config.workspaceKey) {
+      referenceItemQuery.matchesKeyInQuery(
+        'workspace',
+        'objectId',
+        new Parse.Query(Workspace).equalTo('key', config.workspaceKey),
+      );
+    }
+    query.matchesQuery(
+      relationSideKey,
+      new Parse.Query(Test).matchesQuery('reference', referenceItemQuery),
+    );
   }
 
   if (config?.queryParams && typeof config?.queryParams === 'object') {
-    const queryParams = config.queryParams;
-    query.limit(queryParams.limit);
-    query.skip(queryParams.offset);
+    const { queryParams } = config;
+    query.limit(queryParams.limit ?? 0);
+    query.skip(queryParams.offset ?? 0);
   }
 
   const { results, count } = await query.find();
@@ -155,22 +166,145 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
         ...assignData,
       };
     });
-    if (!config?.fillItemData) return buildReturnData(testEntitiesData);
-
-    // 从 iql 中获取 item 相关数据
-    const { items } = await getItemByIQL({ itemId: itemIds, limit: config?.queryParams?.limit });
-    const itemMap = keyBy(items, 'objectId');
-    const testEntitiesDataWithItemData = testEntitiesData.map(entity => {
-      // 第二个兼容test run
-      const item =
-        itemMap[entity.reference?.objectId || entity?.runReferenceDetail?.reference?.objectId];
-      // 测试执行没有关联的事项
-      return assign({}, entity, { reference: item || null });
-    });
-    return buildReturnData(testEntitiesDataWithItemData);
+    return buildReturnData(testEntitiesData);
   }
   // 异常响应数据兼容处理
   return buildReturnData([]);
+};
+
+/**
+ * 根据关联类型查询测试实体，支持排序
+ */
+export const getTestEntitiesByRelationWithOrder = async <TResponseList extends any[] = any[]>(
+  relType: TestRelationType,
+  sides: Partial<Record<'from' | 'to', Array<PointerType> | PointerType>> = {},
+  _config?: any,
+): Promise<{
+  total: number;
+  list: TResponseList;
+}> => {
+  const config = assign(
+    {},
+    {
+      // 响应数据处理
+      include: [],
+      select: [],
+      nameLike: '',
+      workspaceKey: '',
+      // 需要关联方 id
+      needOriginSideId: true,
+      // 需要关联关系数据
+      needRelationData: true,
+      ascendingBy: ['sortIndex', 'createdAt'],
+      descendingBy: [],
+      resultTransfer: data => data,
+      queryParams: { limit: 10, offset: 0 },
+    },
+    _config,
+  );
+
+  let { include, select } = config;
+  if (config.fillItemData) {
+    include = include.concat('reference');
+    select = select.concat('reference');
+  }
+
+  // 查另一向的关联关系
+  const sideMapping = {
+    from: 'to',
+    to: 'from',
+  };
+  // 查询必须要要有关联类型
+  if (!relType) return;
+  // 测试实体 key
+  const originalSideKey = Object.keys(sides).filter(Boolean)[0];
+  const relationSideKey = sideMapping[originalSideKey];
+
+  // 关联方 objectId
+  const originalSideIds = toArray(sides[originalSideKey])
+    .filter(Boolean)
+    .map(item => item?.objectId ?? item);
+
+  const query = new Parse.Query(Test);
+
+  if (hasArrayItem(include)) {
+    query.include(include);
+  }
+
+  if (hasArrayItem(select)) {
+    query.include(select);
+  }
+
+  // 处理关联表子查询
+  const testRelationQuery = new Parse.Query(TestRelation)
+    .equalTo('relationType', relType)
+    .containedIn(originalSideKey, originalSideIds);
+
+  query.matchesKeyInQuery('objectId', relationSideKey, testRelationQuery);
+
+  // 测试执行实体不是一个 proxima 事项。当查询执行的时候需要给排除
+  const useItemSubQuery =
+    relType !== TestRelationType.ExecutionRelRun || relationSideKey !== sideMapping.from;
+
+  if (useItemSubQuery) {
+    // 处理事项关联子查询
+    const referenceItemQuery = new Parse.Query(Item);
+    if (config.nameLike) {
+      referenceItemQuery.matches('name', escapeMatchesQueryArg(config.nameLike));
+    }
+
+    // name like 应该需要传 workspaceKey 避免全表查询
+    if (config.workspaceKey) {
+      referenceItemQuery.matchesKeyInQuery(
+        'workspace',
+        'objectId',
+        new Parse.Query(Workspace).equalTo('key', config.workspaceKey),
+      );
+    }
+
+    query.matchesKeyInQuery('reference', 'objectId', referenceItemQuery);
+  }
+
+  if (hasArrayItem(select)) {
+    query.select(select);
+  }
+
+  if (hasArrayItem(include)) {
+    query.include(include);
+  }
+
+  if (config.ascendingBy) {
+    query.addAscending(config.ascendingBy);
+  } else if (config.descendingBy) {
+    query.addDescending(config.descendingBy);
+  }
+
+  if (config.queryParams && typeof config.queryParams === 'object') {
+    const { queryParams } = config;
+    query.limit(queryParams.limit ?? 0);
+    query.skip(queryParams.offset ?? 0);
+  }
+
+  query.withCount(true);
+
+  const { results, count } = await query.find();
+
+  const resultData = results.map(item => item.toJSON());
+
+  // 生成标准数据
+  const buildReturnData = async list => {
+    const responseData = {
+      list,
+      total: count,
+    };
+    if (typeof config.resultTransfer === 'function') {
+      // 响应数据处理
+      return config.resultTransfer(responseData);
+    }
+    return responseData;
+  };
+
+  return buildReturnData(resultData);
 };
 
 /**
@@ -216,6 +350,27 @@ export const removeTestRelations = (_relations: Array<PointerType>) => {
   const relations = _relations.map(rel => pointerTransfer(TestRelation, rel));
 
   return Parse.Object.destroyAll(relations, { batchSize: BATCH_SIZE });
+};
+
+/** 根据关联条件接触关联关系 */
+export const removeTestRelationsWithCondition = async (
+  relType: TestRelationType,
+  sides: Partial<Record<'from' | 'to', Array<PointerType> | PointerType>> = {},
+) => {
+  const query = new Parse.Query(TestRelation).equalTo('relationType', relType);
+
+  Object.entries(sides).forEach(([sideKey, value]) => {
+    query.containedIn(
+      sideKey,
+      toArray(value).map(item => item?.objectId ?? item),
+    );
+  });
+
+  query.select(['objectId']).limit(9999);
+
+  const testRelations = await query.find();
+
+  return removeTestRelations(testRelations);
 };
 
 /**
@@ -306,8 +461,10 @@ export const getTestEntitiesByQuery = async (
 
   queryParams = queryParams ?? {};
   options = assign(
+    {},
     {
       ignoreDeletedItemData: true,
+      ascendingBy: ['sortIndex', 'createdAt'],
       include: ['reference.workspace', 'reference.itemType'],
     },
     options,
@@ -446,10 +603,6 @@ export const getItemTypeMap = () => {
     res = Object.entries(itemTypeMap);
     return res;
   }, {});
-};
-
-export const updateTestConfig = () => {
-  // TODO
 };
 
 /**

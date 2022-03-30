@@ -6,14 +6,15 @@ import {
   getTestEntities,
   createTestEntities,
   createTestRelation,
+  getTestEntitiesByQuery,
   getTestEntitiesByRelation,
 } from '@/lib/api/common';
 import { getItemByIQL } from '@/lib/api/proxima';
 import { hasArrayItem } from '@/lib/utils/helper';
 import _, { isEqual, keyBy, merge } from 'lodash';
 import { Status, TestEntity } from '@/lib/types/Test';
-import { pointerTransfer, toArray } from '@/lib/utils/helper';
 import { compactStepModel } from '@/lib/utils/modelTransfer';
+import { pointerTransfer, toArray, generateSortIndex } from '@/lib/utils/helper';
 
 type TestRunEntity = TestEntity<TestType.TestRun>;
 type TestEntityParseType<TEntity extends TestEntity = TestEntity> = Parse.Object<TEntity> | string;
@@ -22,25 +23,21 @@ type TestEntityParseType<TEntity extends TestEntity = TestEntity> = Parse.Object
 export const createTestRunAndRelation = async (_testExecutionEntity, _testDetailEntity) => {
   // 转换测试实体
   const testExecutionEntity = pointerTransfer(Test, _testExecutionEntity);
-  const testDetailEntities = (
+  const testDetailIds = (
     Array.isArray(_testDetailEntity) ? _testDetailEntity : [_testDetailEntity]
-  ).map(item => pointerTransfer(Test, item));
+  ).map(item => item?.objectId ?? item);
 
+  // 创建测试执行时需要重新获取 testDetailEntity
   const testExecutionData = testExecutionEntity.toJSON();
 
   // 批量创建，在测试执行页面存在批量创建多个测试详情实体
-  const needCreateTestRuns = testDetailEntities.map(testDetail => ({
-    type: TestType.TestRun,
-    workspaceKey: testExecutionData?.reference?.workspace?.key,
-    fields: {
-      runReferenceDetail: testDetail,
-    },
-  }));
-
-  const testRunEntities = await createTestEntities(needCreateTestRuns);
+  const testRunEntities = await createTestRun({
+    testDetailIds,
+    workspaceKey: testExecutionData.workspaceKey,
+  });
 
   await createTestRelation([
-    ...testDetailEntities.map(testDetailEntity => ({
+    ...testRunEntities.map(testDetailEntity => ({
       relationType: TestRelationType.DetailRelExecution,
       from: testDetailEntity,
       to: testExecutionEntity,
@@ -65,6 +62,7 @@ export const getTestRunsAndExecutions = async (testDetailEntity, queryParams) =>
       fillItemData: true,
       queryParams,
       async resultTransfer(result) {
+        console.log('result', result);
         // 获取测试执行任务关联的测试执行
         const { list: allTestRuns } = await getTestEntitiesByRelation(
           TestRelationType.ExecutionRelRun,
@@ -100,24 +98,7 @@ export const toggleTestRunStatus = (testId: string, status: Status): Promise<ICo
     Test.createWithoutData(testId)
       .fetch()
       .then(testRun => {
-        // const statusType = status.type;
         const refDetail = testRun.get('runReferenceDetail');
-        // 改变总的测试运行状态不需要牵扯到步骤的状态
-        // if (runDetail?.runs?.steps) {
-        //   const steps = [];
-        //   runDetail?.runs?.steps?.forEach(item => {
-        //     // 成功，全成功 || todo，全todo
-        //     if (statusType === 'PASSED' || statusType === 'TODO') {
-        //       item.status = status;
-        //       // 失败，todo全失败，其他状态不变
-        //     } else if (statusType === 'FAILED') {
-        //       item.status = status.key;
-        //     }
-        //     // 执行中，状态不变
-        //     steps.push(item);
-        //   });
-        //   runDetailBak.runs.steps = steps;
-        // }
         testRun.set({
           status: status.key,
         });
@@ -273,7 +254,7 @@ export const deleteDefect = async (
   } = await getTestEntitiesByRelation(
     TestRelationType.ExecutionRelRun,
     { to: res },
-    { fillItemData: true },
+    { include: ['reference'] },
   );
   const testExcItemId = testExecution?.reference?.objectId;
   const itemLink: Array<IItemLink> = [];
@@ -522,11 +503,27 @@ export const getTestStepsByTestDetailId = async (testDetailId: string, currentTe
  */
 export const createTestRun = async (params: { workspaceKey: string; testDetailIds: string[] }) => {
   const { workspaceKey, testDetailIds } = params;
-  const entities = testDetailIds.map(id => ({
+
+  const { results: testDetailEntities } = await getTestEntitiesByQuery(
+    {
+      in: testDetailIds,
+      type: TestType.TestDetail,
+    },
+    {
+      select: ['sortIndex'],
+      ignoreDeletedItemData: false,
+    },
+  );
+
+  // 批量 sortIndex
+  const batchSortIndex = generateSortIndex();
+  const entities = testDetailEntities.map((testDetail, index) => ({
     type: TestType.TestRun,
     workspaceKey,
     fields: {
-      runReferenceDetail: Test.createWithoutData(id),
+      runReferenceDetail: Test.createWithoutData(testDetail.objectId),
+      // 测试执行的排序索引继承自 sortIndex
+      sortIndex: testDetail.sortIndex ?? batchSortIndex + index,
     },
   }));
   return createTestEntities(entities);

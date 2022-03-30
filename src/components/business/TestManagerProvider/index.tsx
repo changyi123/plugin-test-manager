@@ -1,20 +1,20 @@
 import React from 'react';
 import { useRequest } from 'ahooks';
 import { store } from '@nebulare/data';
-import { message, notification } from '@osui/ui';
+import { alert } from '@/lib/utils/helper';
+import { Workspace } from '@/lib/types/App';
+import { TestEntity } from '@/lib/types/Test';
 import { EventBus } from '@/lib/utils/eventBus';
+import { message, notification } from '@osui/ui';
 import { useOnItemCreateSuccess } from '@/lib/hooks/useProximaSDK';
 import { openCreateItemModal, openItemDetailPanel } from '@/lib/api/sdk';
 import { getTestConfig, createTestEntities, getTestEntities } from '@/lib/api/common';
 import { getItemByIQL, getWorkspaceByKey, getItemTypeByKey } from '@/lib/api/proxima';
-import { Workspace } from '@/lib/types/App';
-import { TestEntity } from '@/lib/types/Test';
-import { getKeyByValue } from '@/lib/utils/helper';
-import { alert } from '@/lib/utils/helper';
+import { getKeyByValue, generateSortIndex } from '@/lib/utils/helper';
 import {
   TestConfigContext,
-  TestConfigContextType,
   BaseActionContext,
+  TestConfigContextType,
   BaseActionContextType,
 } from './context';
 import {
@@ -61,21 +61,27 @@ const getOrCreateTestEntity = async (itemId: string, config?: { notice: boolean 
 
       // 测试用例创建
       if (testType === TestType.TestDetail) {
+        // 测试用例创建时需要生成默认 sortIndex
+        extraFields = {
+          ...extraFields,
+          sortIndex: generateSortIndex(),
+        };
+        // 添加事项创建 panel 的数据
         if (storeValues?.[CREATE_ITEM_STORE_FIELD_KEY]) {
-          extraFields = Object.assign({}, extraFields, {
+          extraFields = {
+            ...extraFields,
             detail: storeValues[CREATE_ITEM_STORE_FIELD_KEY],
-          });
+          };
         }
-
         console.info('extraFields', extraFields);
       }
 
       await createTestEntities([
         {
-          itemId: item.id,
           type: testType,
-          workspaceKey: item?.workspace?.key,
+          itemId: item.id,
           fields: extraFields,
+          workspaceKey: item?.workspace?.key,
         },
       ]);
       // 重新查询 testEntity，保持返回数据一致

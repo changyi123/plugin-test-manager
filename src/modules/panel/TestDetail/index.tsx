@@ -19,11 +19,11 @@ const TestDetail: React.FC = () => {
       key: TestType.TestPlan,
       Component: TestPlanPanel,
     },
-    {
-      tab: '测试执行',
-      key: TestType.TestRun,
-      Component: TestRunPanel,
-    },
+    // {
+    //   tab: '测试执行',
+    //   key: TestType.TestRun,
+    //   Component: TestRunPanel,
+    // },
   ];
   return (
     <PanelLayout

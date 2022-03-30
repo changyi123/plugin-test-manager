@@ -6,7 +6,10 @@ import PanelTable, { ActionType } from '@/components/business/PanelTable';
 import DropDownButton from '@/components/business/DropDownButton';
 import { toggleTestRunStatus, createTestRunAndRelation } from '@/lib/api/runs';
 import { useTestConfig } from '@/lib/hooks/useContext';
-import { getTestEntitiesByRelation, removeTestRelations } from '@/lib/api/common';
+import {
+  removeTestRelationsWithCondition,
+  getTestEntitiesByRelationWithOrder,
+} from '@/lib/api/common';
 import TestEntitySelectorModal, {
   ActionType as SelectorActionType,
 } from '@/components/business/TestEntitySelectorModal';
@@ -53,13 +56,13 @@ const Test = () => {
 
   const tableDataSourceGetter = React.useCallback(
     queryParams => {
-      return getTestEntitiesByRelation(
+      return getTestEntitiesByRelationWithOrder(
         TestRelationType.ExecutionRelRun,
         { from: testEntity },
         {
-          fillItemData: true,
           queryParams: queryParams,
-          include: ['runReferenceDetail'],
+          select: ['status', 'runReferenceDetail'],
+          include: ['status', 'runReferenceDetail.reference'],
         },
       );
     },
@@ -67,15 +70,18 @@ const Test = () => {
   );
 
   const removeTestRelation = React.useCallback(
-    async relationTypeIds => {
-      if (!Array.isArray(relationTypeIds)) return;
-      await removeTestRelations(relationTypeIds);
+    async testRunIds => {
+      if (!Array.isArray(testRunIds)) return;
+      await removeTestRelationsWithCondition(TestRelationType.ExecutionRelRun, {
+        from: testEntity,
+        to: testRunIds,
+      });
 
       refreshDepData();
 
       message.success('删除成功');
     },
-    [refreshDepData],
+    [refreshDepData, testEntity],
   );
 
   // table column 数据
@@ -83,10 +89,10 @@ const Test = () => {
     return [
       {
         title: '事项key',
-        key: 'reference.name',
+        key: 'key',
         width: 100,
         render(_, record) {
-          const item = record?.reference;
+          const item = record?.runReferenceDetail?.reference;
           return (
             <Typography.Link
               ellipsis={true}
@@ -105,9 +111,9 @@ const Test = () => {
       },
       {
         title: '事项名',
-        key: 'reference.name',
+        key: 'name',
         render(_, record) {
-          const name = record?.reference?.name;
+          const name = record?.runReferenceDetail?.reference?.name;
 
           return <Typography.Text ellipsis={{ tooltip: name }}>{name}</Typography.Text>;
         },
@@ -146,15 +152,15 @@ const Test = () => {
               }
             />
             <Popconfirm
-              placement="left"
-              getPopupContainer={() => getRootContainer()}
-              title="当前操作会删除该测试执行，是否继续执行？"
-              onConfirm={() => removeTestRelation([item.testRelationId])}
               okText="确定"
+              placement="left"
               cancelText="取消"
+              title="当前操作会移除该测试执行，是否继续执行？"
+              getPopupContainer={() => getRootContainer()}
+              onConfirm={() => removeTestRelation([item.objectId])}
             >
               <Button size="small" type="link">
-                删除
+                移除
               </Button>
             </Popconfirm>
           </Space>
@@ -206,7 +212,7 @@ const Test = () => {
             },
           },
         ]}
-        rowKey="testRelationId"
+        rowKey="objectId"
         columns={tableColumns}
         getDataSource={tableDataSourceGetter}
       />

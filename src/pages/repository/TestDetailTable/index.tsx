@@ -79,10 +79,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
           in: testDetailIds ?? null,
           type: TestType.TestDetail,
         },
-        {
-          descendingBy: ['createdAt'],
-          ...paginationParams,
-        },
+        paginationParams,
       );
 
       return {
