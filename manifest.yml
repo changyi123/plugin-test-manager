@@ -63,6 +63,8 @@ modules:
         title: 步骤描述
       - key: result
         title: 预期结果
+      - key: data
+        title: 数据
 tables:
   - className: Repository
     fields:
@@ -74,16 +76,11 @@ tables:
         type: Pointer
         isAppClass: true
         targetClass: Repository
-      # 废弃暂时先不删
-      # itemIds:
-      #   type: Array
       testDetailIds:
         type: Array
       tenant:
         type: Pointer
         targetClass: Tenant
-      type:
-        type: Number
   - className: TestConfig
     fields:
       workspaceKey:
@@ -109,7 +106,6 @@ tables:
         type: String
       status:
         type: String
-
       runDetail:
         type: Object
       # 废弃， 使用 detail 字段替代
@@ -117,6 +113,8 @@ tables:
         type: Array
       detail:
         type: Object
+      sortIndex:
+        type: Number
       runReferenceDetail:
         type: Pointer
         isAppClass: true
