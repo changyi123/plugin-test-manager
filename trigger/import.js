@@ -12,7 +12,7 @@ function getRandomIntInclusive(min, max) {
     min = Math.ceil(min);
     max = Math.floor(max);
     return Math.floor(Math.random() * (max - min + 1)) + min; //含最大值，含最小值 
-  }
+}
 function uuidv4() {
     return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
       (c ^ getRandomIntInclusive(0, 100) & 15 >> c / 4).toString(16)
@@ -94,7 +94,7 @@ const getStepsData = datas => {
 const createTestMangerTest = async () => {
     const itemParseObj = await apis.getParseModel(false, 'Item');
     const testInstance = await apis.getParseObject(false, TEST_MANAGER_TEST);
-    const mathData = Math.floor(Date.now() / 1000) * 1000;
+    const mathData = Math.floor(Date.now() / 1000) * 10e5;
 
     const _data = appFieldsData.map((_data, index) => ({
         workspaceKey,
@@ -208,6 +208,19 @@ const getToCreateGroupData = async () => {
     return filterImportGroupData(getImportGroupData()).filter(d => !newRepoData.some(g => g.path === d.path))
 }
 
+const getAddId = (datas, field) => {
+    const testMap = datas.reduce((prev, cur) => {
+        const _cur = cur?.toJSON();
+        if (_cur) {
+            prev.set(_cur.reference?.objectId, _cur.objectId)
+        }
+
+        return prev;
+    }, new Map())
+
+    return testMap.get(field.itemId)
+}
+
 const handleFieldsData = async (testManagerTestData) => {
     const RepoParseObj = await apis.getParseModel(false, TEST_MANAGER_REPO);
     const repoDatas = await getRepoData();
@@ -223,24 +236,11 @@ const handleFieldsData = async (testManagerTestData) => {
     
             repositoryMap.set(repoData?.objectId, repository)
         }
-
-        const getAddId = () => {
-            const testMap = new Map()
-
-            testManagerTestData.forEach(d => {
-                const _data = d?.toJSON();
-                if (_data) {
-                    testMap.set(_data.reference?.objectId, _data.objectId)
-                }
-            })
-
-            return testMap.get(field.itemId)
-        }
         
         const getDetailIds = () => {
-            const ids = repositoryMap.get(repoData?.objectId).toJSON()?.testDetailIds ?? [];
+            const ids = (repoData?.testDetailIds ?? []).concat(repositoryMap.get(repoData?.objectId).toJSON()?.testDetailIds ?? []);
             
-            return ids?.concat([getAddId()])
+            return ids?.concat([getAddId(testManagerTestData, field)])
         }
 
         repositoryMap.get(repoData?.objectId).set('testDetailIds', getDetailIds());
