@@ -1,13 +1,33 @@
 const {
     data,
     appFieldsData,
-    fieldMapping
+    fieldMapping,
+    workspaceId,
 } = triggerParams;
 
 console.log('validate', triggerParams)
 console.log('validate-data', data)
 console.log('validate-appFieldsData', appFieldsData)
 
+
+// 根据 workspaceKId 获取事项类型
+const getItemTypeName = async () => {
+    const workspace = await apis.getData(false, 'Workspace', {
+        objectId: 'GcusZCgR5D'
+    });
+
+    const testMangerConfig = await apis.getData(false, 'test_manager_TestConfig', {
+        workspaceKey: workspace.toJSON().key
+    });
+
+    const itemType = await apis.getData(false, 'ItemType', {
+        key: testMangerConfig.toJSON()?.itemTypeMap?.TestDetail
+    });
+
+    return itemType.toJSON().name;
+};
+
+const itemTypeName = await getItemTypeName();
 
 // 判断数据是否超过 1000 条
 const isMoreThanThousands = d => d?.length > 1000;
@@ -127,6 +147,7 @@ const getDataByFieldKey = (datas, maps) => datas.reduce((prev, cur) => {
         curPrev = {
             ...curPrev,
             [getFiledByValue(key, maps)]: value,
+            '事项类型': itemTypeName,
         }
         return curPrev
     }, {}))
@@ -142,6 +163,10 @@ const validateAppData = d => {
         errors: getErrors(d) || [],
         errorCount: getErrors(d)?.length || 0,
         data: getDataByFieldKey(filterData(getDataByLength(clone(d))), fieldMapping) || [],
+        fieldMapping: {
+            ...fieldMapping,
+            "事项类型": "itemType",
+        },
         stop: false,
     })
 }
