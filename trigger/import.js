@@ -267,7 +267,7 @@ const importCallBack = async () => {
     // 得到需要创建的用例库数据
     const toCreateGroupData = await getToCreateGroupData();
 
-    if (toCreateGroupData.lenght) {
+    if (toCreateGroupData.length) {
         const newToCreateGroupData =  toCreateGroupData.reduce((prev, cur) => {
             prev.set(cur.index, (prev.get(cur.index) || []).concat([cur]))
             return prev;
