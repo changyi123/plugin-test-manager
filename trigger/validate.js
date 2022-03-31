@@ -13,7 +13,7 @@ console.log('validate-appFieldsData', appFieldsData)
 // 根据 workspaceKId 获取事项类型
 const getItemTypeName = async () => {
     const workspace = await apis.getData(false, 'Workspace', {
-        objectId: 'GcusZCgR5D'
+        objectId: workspaceId
     });
 
     const testMangerConfig = await apis.getData(false, 'test_manager_TestConfig', {
