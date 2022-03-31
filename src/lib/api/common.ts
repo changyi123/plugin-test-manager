@@ -227,14 +227,6 @@ export const getTestEntitiesByRelationWithOrder = async <TResponseList extends a
 
   const query = new Parse.Query(Test);
 
-  if (hasArrayItem(include)) {
-    query.include(include);
-  }
-
-  if (hasArrayItem(select)) {
-    query.include(select);
-  }
-
   // 处理关联表子查询
   const testRelationQuery = new Parse.Query(TestRelation)
     .equalTo('relationType', relType)
@@ -265,12 +257,12 @@ export const getTestEntitiesByRelationWithOrder = async <TResponseList extends a
     query.matchesKeyInQuery('reference', 'objectId', referenceItemQuery);
   }
 
-  if (hasArrayItem(select)) {
-    query.select(select);
-  }
-
   if (hasArrayItem(include)) {
     query.include(include);
+  }
+
+  if (hasArrayItem(select)) {
+    query.include(select);
   }
 
   if (config.ascendingBy) {
@@ -281,7 +273,7 @@ export const getTestEntitiesByRelationWithOrder = async <TResponseList extends a
 
   if (config.queryParams && typeof config.queryParams === 'object') {
     const { queryParams } = config;
-    query.limit(queryParams.limit ?? 0);
+    query.limit(queryParams.limit ?? 10);
     query.skip(queryParams.offset ?? 0);
   }
 

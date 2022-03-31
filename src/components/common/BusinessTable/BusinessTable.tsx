@@ -58,7 +58,6 @@ const OverflowTooltipBodyCell = props => {
 
 export type ActionType = {
   refresh: () => void;
-  propsOnChange: (props: any) => void;
   expandChangePage?: (num: number) => void;
   toggleSelection: (visible?: boolean) => void;
   selectedRows: any[];
@@ -170,6 +169,18 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     () => (props.dataSource ?? antdTableProps.dataSource ?? []) as any[],
     [antdTableProps.dataSource, props.dataSource],
   );
+
+  React.useEffect(() => {
+    const { pagination } = antdTableProps;
+    // 处理删除分页数据错误场景
+    if (pagination.total && pagination.total <= pagination.pageSize * (pagination.current - 1)) {
+      antdTableProps.onChange(
+        Object.assign({}, pagination, {
+          current: Math.max(0, pagination.current - 1),
+        }),
+      );
+    }
+  }, [antdTableProps]);
 
   React.useEffect(() => {
     // 数据源变更重置 selectedRowKeys
@@ -297,13 +308,12 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
         setSelectionMode(visible);
       },
       refresh,
-      propsOnChange: antdTableProps.onChange,
       expandChangePage,
       selectedRows: selectedRowKeys?.map(key =>
         currentPageRowsRef.current.find(row => row[props.rowKey as any] === key),
       ),
     }),
-    [antdTableProps.onChange, expandChangePage, props.rowKey, refresh, selectedRowKeys],
+    [expandChangePage, props.rowKey, refresh, selectedRowKeys],
   );
 
   React.useEffect(() => {
