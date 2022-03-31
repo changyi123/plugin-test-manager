@@ -175,8 +175,9 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
 
       const baseQueryParams = omit(baseSearchState, ['orderByCratedAt']);
       const baseQueryOptions = {
-        ascendingBy: baseSearchState.orderByCratedAt === 'asc' ? ['createdAt'] : null,
-        descendingBy: baseSearchState.orderByCratedAt === 'desc' ? ['createdAt'] : null,
+        ascendingBy: baseSearchState.orderByCratedAt === 'asc' ? ['sortIndex', 'createdAt'] : null,
+        descendingBy:
+          baseSearchState.orderByCratedAt === 'desc' ? ['sortIndex', 'createdAt'] : null,
       };
       const { results, count } = await getTestEntitiesByQuery(
         {

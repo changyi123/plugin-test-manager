@@ -7,10 +7,14 @@ import { updateItemAssignee } from '@/lib/api/proxima';
 import { DeleteOutlined, UserOutlined } from '@/icons';
 import { StatusBadge } from '@/components/business/Status';
 import { useListener } from '@projectproxima/proxima-sdk-js';
-import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
-import { getTestEntitiesByRelation, removeTestRelations } from '@/lib/api/common';
-import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
 import { useUserCellUserDataProp } from '@/lib/hooks/useProxima';
+import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
+import {
+  getTestEntitiesByRelation,
+  removeTestRelationsWithCondition,
+  getTestEntitiesByRelationWithOrder,
+} from '@/lib/api/common';
+import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
 
 import cx from './DetailTable.less';
 
@@ -39,10 +43,9 @@ const DetailTable = () => {
   const selectedTestPlanId = selectedTestPlan?.objectId;
 
   const refreshAndMutateData = React.useCallback(() => {
-    actionRef.current.propsOnChange({ current: 1 });
     actionRef.current.refresh();
-    mutateTestPlanEvent.emit(undefined);
-  }, [mutateTestPlanEvent]);
+    mutateTestPlanEvent.emit(selectedTestPlanId);
+  }, [selectedTestPlanId, mutateTestPlanEvent]);
 
   const [isCheck, setIsCheck] = React.useState(false);
 
@@ -66,7 +69,7 @@ const DetailTable = () => {
     async queryParams => {
       if (!selectedTestPlanId) return null;
       const [{ list: testDetails, total }, { list: testRuns }] = await Promise.all([
-        getTestEntitiesByRelation(
+        getTestEntitiesByRelationWithOrder(
           TestRelationType.PlanRelDetail,
           { from: selectedTestPlanId },
           {
@@ -76,13 +79,15 @@ const DetailTable = () => {
             queryParams: queryParams,
           },
         ),
-        getTestEntitiesByRelation(
+        getTestEntitiesByRelationWithOrder(
           TestRelationType.PlanRelExecution,
           { from: selectedTestPlanId },
           {
+            workspaceKey,
             fillItemData: true,
             queryParams: { limit: 9999 },
             include: ['objectId'],
+            select: ['objectId'],
             async resultTransfer(data) {
               const testExecutionIds = data.list.map(item => item.objectId);
               const { list: testRuns } = await getTestEntitiesByRelation(
@@ -91,7 +96,8 @@ const DetailTable = () => {
                   from: testExecutionIds,
                 },
                 {
-                  include: ['objectId', 'runReferenceDetail'],
+                  include: ['objectId'],
+                  select: ['objectId', 'runReferenceDetail'],
                   queryParams: { limit: 9999 },
                 },
               );
@@ -113,6 +119,7 @@ const DetailTable = () => {
       const list = testDetails.map(detail => {
         return {
           ...detail,
+          selectedTestPlanId,
           relRuns: testRuns.filter(run => run.runReferenceDetail?.objectId === detail.objectId),
         };
       });
@@ -126,14 +133,17 @@ const DetailTable = () => {
   );
 
   const removeTestRelation = React.useCallback(
-    async relationTypeIds => {
-      if (!Array.isArray(relationTypeIds)) return;
-      await removeTestRelations(relationTypeIds);
+    async (selectedTestPlanId, testDetailIds) => {
+      if (!Array.isArray(testDetailIds)) return;
+      await removeTestRelationsWithCondition(TestRelationType.PlanRelDetail, {
+        from: selectedTestPlanId,
+        to: testDetailIds,
+      });
 
       refreshAndMutateData();
 
       notification.success({
-        message: `${relationTypeIds.length} 个测试用例从测试计划中移除`,
+        message: `${testDetailIds.length} 个测试用例从测试计划中移除`,
       });
     },
     [refreshAndMutateData],
@@ -143,7 +153,10 @@ const DetailTable = () => {
     const handleDelete = () => {
       if (isCheck) {
         actionConfirm('该操作会将所选测试用例从测试计划中移除，是否继续操作？', () => {
-          removeTestRelation(actionRef.current.selectedRows.map(row => row.relation.objectId));
+          removeTestRelation(
+            selectedTestPlanId,
+            actionRef.current.selectedRows.map(row => row.objectId),
+          );
         });
       }
     };
@@ -183,7 +196,7 @@ const DetailTable = () => {
         <DeleteOutlined /> 移除
       </span>,
     ];
-  }, [userData, isCheck, removeTestRelation, refreshAndMutateData]);
+  }, [isCheck, userData, removeTestRelation, selectedTestPlanId, refreshAndMutateData]);
 
   const columns = [
     {
@@ -226,7 +239,7 @@ const DetailTable = () => {
           <a
             onClick={() =>
               actionConfirm('该操作会将该测试用例从测试计划中移除，是否继续操作？', () => {
-                removeTestRelation([rowData.relation.objectId]);
+                removeTestRelation(rowData.selectedTestPlanId, [rowData.objectId]);
               })
             }
           >

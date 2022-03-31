@@ -5,10 +5,10 @@ import { QuestionCircleFilled } from '@/icons';
 import { TabsComponentBaseProps } from './type';
 import { getItemById } from '@/lib/api/proxima';
 import { getTestEntities } from '@/lib/api/common';
-import { getRootContainer } from '@/lib/utils/helper';
 import { StatusBadge } from '@/components/business/Status';
 import { useRequest, useSessionStorageState } from 'ahooks';
 import { TestType, PASS_STATUS_TYPE } from '@/lib/constants';
+import { getRootContainer, generateStorageKey } from '@/lib/utils/helper';
 import { Button, Checkbox, Collapse, Tabs, message, Spin, Tooltip } from '@osui/ui';
 import { updateTestRun, getTestStepsByTestDetailId, getItemLinkRelation } from '@/lib/api/runs';
 
@@ -46,32 +46,36 @@ type TestRunType = {
   idSequence?: string[];
 };
 
-const TEST_RUN_AUTO_NEXT_KEY = 'TEST_RUN_AUTO_NEXT';
+const TEST_RUN_AUTO_NEXT_KEY = 'test-run-auto-next';
 
 const TestRun: React.FC<TestRunType> = props => {
   const { idSequence = [] } = props;
-  const [autoNext, setAutoNext] = useSessionStorageState(TEST_RUN_AUTO_NEXT_KEY, {
-    defaultValue: false,
-  });
+  const [autoNext, setAutoNext] = useSessionStorageState(
+    generateStorageKey(TEST_RUN_AUTO_NEXT_KEY),
+    {
+      defaultValue: false,
+    },
+  );
   // 子组件 loading
   const [tabPaneLoading, setTabPaneLoading] = React.useState(false);
   const [testId, setTestId] = React.useState(props.id);
 
   const {
-    loading: testRunRequestLoading,
     data: testRunEntity,
     refresh: refreshTestRun,
+    loading: testRunRequestLoading,
   } = useRequest(
     async () => {
       const data = await getTestEntities(
         { id: testId },
-        { include: ['runReferenceDetail.reference'], orderBy: 'createdAt' },
+        { include: ['runReferenceDetail.reference'] },
       );
       return data?.[0] as Parse.Object<TestRunEntity>;
     },
     {
       ready: Boolean(testId),
       refreshDeps: [testId],
+      loadingDelay: 400,
     },
   );
 

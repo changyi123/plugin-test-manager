@@ -2,9 +2,9 @@ import { pick } from 'lodash';
 import { useRequest } from 'ahooks';
 import { TestType } from '@/lib/constants';
 import { getAllTestWorkspaces } from '@/lib/api/proxima';
-import { getTestEntitiesByRelation, getTestConfig } from '@/lib/api/common';
+import { getTestEntitiesByRelationWithOrder, getTestConfig } from '@/lib/api/common';
 
-type GetTestEntityParams = Parameters<typeof getTestEntitiesByRelation>;
+type GetTestEntityParams = Parameters<typeof getTestEntitiesByRelationWithOrder>;
 /** 获取所有事项实体 id */
 export const useAllRelTestEntities = (
   relType: GetTestEntityParams['0'],
@@ -19,7 +19,7 @@ export const useAllRelTestEntities = (
   const sideValues = Object.values(sides).filter(Boolean);
   const { data, mutate, refresh } = useRequest(
     async () => {
-      const { list } = await getTestEntitiesByRelation(relType, sides, {
+      const { list } = await getTestEntitiesByRelationWithOrder(relType, sides, {
         include,
         queryParams: { limit: 9999 },
       });

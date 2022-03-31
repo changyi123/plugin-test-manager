@@ -117,13 +117,13 @@ const Runs: React.FC = () => {
             <Popconfirm
               placement="left"
               getPopupContainer={() => getRootContainer()}
-              title="当前操作会删除该测试执行，是否继续执行？"
+              title="当前操作会移除该测试执行，是否继续执行？"
               onConfirm={() => removeTestRelation([record.relation.objectId])}
               okText="确定"
               cancelText="取消"
             >
               <Button size="small" type="link">
-                删除
+                移除
               </Button>
             </Popconfirm>
           </Space>

@@ -84,6 +84,7 @@ const ExecutionTable = () => {
         {
           workspaceKey,
           nameLike: searchValue,
+          select: ['reference'],
           include: ['reference'],
           queryParams: queryParams,
           async resultTransfer({ list, total }) {
@@ -105,11 +106,17 @@ const ExecutionTable = () => {
               total,
               list: list.map(execution => ({
                 ...execution,
-                relRuns: testRuns.filter(
-                  run =>
-                    run.relation.from.objectId === execution.objectId &&
-                    run.runReferenceDetail?.reference,
-                ),
+                relRuns: testRuns
+                  .filter(
+                    run =>
+                      run.relation.from.objectId === execution.objectId &&
+                      run.runReferenceDetail?.reference,
+                  )
+                  .sort(
+                    (a, b) =>
+                      a.sortIndex - b.sortIndex ||
+                      Number(new Date(a.createdAt)) - Number(new Date(b.createdAt)),
+                  ),
               })),
             };
           },

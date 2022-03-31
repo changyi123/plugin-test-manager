@@ -66,5 +66,10 @@ export const escapeHtmlString = str => {
   });
 };
 
+/** 申城排序索引 */
+export const generateSortIndex = (index = 0) => {
+  return Math.floor(Date.now() / 1000) * 10e5 + index;
+};
+
 /** panel 消息通知 */
 export { alert } from '@/components/business/PanelLayout';

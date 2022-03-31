@@ -96,7 +96,7 @@ const ExpandedTable = (props: ExpandedTableProps) => {
         <DeleteOutlined /> 删除
       </span>,
     ];
-  }, [refreshAndMutateData, removeTestRelation]);
+  }, [innerTableRefs, record.objectId, refreshAndMutateData, removeTestRelation]);
 
   const columns = [
     {
@@ -179,16 +179,16 @@ const ExpandedTable = (props: ExpandedTableProps) => {
   return (
     <div className={cx('expand-container')}>
       <BusinessTable
-        className={cx('expand-table')}
         rowKey="objectId"
         columns={columns}
         useColumnSetting
         showPagination={true}
         actionRef={innerTableRef}
         name="ExecutionInnerTable"
+        className={cx('expand-table')}
+        expandChangePage={relPageChange}
         scroll={{ x: 'max-content', y: 500 }}
         itemKey="runReferenceDetail.reference"
-        expandChangePage={relPageChange}
         PaginationFooterRender={PaginationFooterRender}
         selectionActionNodes={InnerTableSelectionActionNodes}
         onSelectionCancel={() => tableSelectionToggleEvent.emit(false)}
