@@ -19,7 +19,8 @@
     "sourceType": "module"
   },
   "globals": {
-    "apis": "readonly"
+    "apis": "readonly",
+    "triggerParams": "readonly"
   },
   "rules": {
     "prettier/prettier": "error",
