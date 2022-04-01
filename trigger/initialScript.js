@@ -115,6 +115,5 @@ const initialScriptRunner = async () => {
   await apis.saveAllObject([globalTestConfig]);
 };
 
-initialScriptRunner().then(() => {
-  console.info('测试管理插件初始化成功');
-});
+await initialScriptRunner();
+console.info('测试管理插件初始化成功');
