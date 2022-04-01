@@ -187,7 +187,7 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
             <Button type="primary" onClick={createTestDetail} className={cx('action')}>
               新建测试用例
             </Button>
-            <RepoDropDown />
+            <RepoDropDown folderKey={state.selectedFolderKey} treeNodeData={folderTreeData} />
           </div>
         </div>
         <div className={cx('table-container')}>

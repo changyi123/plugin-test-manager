@@ -1,8 +1,15 @@
 import React, { useCallback } from 'react';
 import { Button, Dropdown, Menu } from '@osui/ui';
 import { useTestConfig } from '@/lib/hooks/useContext';
+import importFn, { TreeNode } from './import';
 
-const RepoDropDown = () => {
+const RepoDropDown = ({
+  folderKey,
+  treeNodeData,
+}: {
+  folderKey?: string;
+  treeNodeData?: TreeNode[];
+}) => {
   const { workspace } = useTestConfig();
 
   const menuClick = useCallback(
@@ -11,15 +18,30 @@ const RepoDropDown = () => {
         // 跳转到导入页面
         const href = `/osc/workspaces/${workspace.key}/import/${workspace.objectId}?app=test_manager`;
         window.open(href);
+      } else {
+        importFn({
+          type: key,
+          folderKey,
+          treeData: treeNodeData,
+          workspace: workspace.key,
+        });
       }
+      // if (key === 'exportCurrentGroup') {
+      //   // 'ROOT_FOLDER'
+      //   importFn(key, folderKey);
+      // }
+      // if (key === 'exportAll') {
+      //   importFn(key, folderKey);
+      // }
     },
-    [workspace],
+    [workspace, folderKey, treeNodeData],
   );
 
   const menu = (
     <Menu onClick={e => menuClick(e.key)}>
       <Menu.Item key="import">导入用例</Menu.Item>
-      <Menu.Item key="export">导出用例</Menu.Item>
+      <Menu.Item key="exportCurrentGroup">导出当前分组下的所有用例</Menu.Item>
+      <Menu.Item key="exportAll">导出所有用例</Menu.Item>
     </Menu>
   );
 
