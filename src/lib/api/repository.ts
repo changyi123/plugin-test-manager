@@ -5,6 +5,7 @@ import Parse from '@/lib/parse';
 import { Item, Repository, Test } from '../models';
 import { arrayToTree } from '@/lib/utils/arrayToTree';
 import { ROOT_FOLDER_KEY } from '@/pages/repository/constant';
+import { generateSortIndex } from '../utils/helper';
 export interface ICommonRes<T = any> {
   success: boolean;
   message?: string;
@@ -14,7 +15,7 @@ export interface ICommonRes<T = any> {
 export const getFolderTree = async (workspaceKey: string) => {
   const repositoryObjects = await new Parse.Query(Repository)
     .equalTo('workspaceKey', workspaceKey)
-    .addAscending(['createdAt'])
+    .addAscending(['sortIndex', 'createdAt'])
     .find();
   const repositories = repositoryObjects.map(item => {
     const repository = item.toJSON();
@@ -35,11 +36,15 @@ export const createFolder = async (params: {
   parentId?: string;
   name: string;
   workspaceKey: string;
+  sortIndex?: number
 }) => {
+  const batchSortIndex = generateSortIndex();
+
   const repository = new Repository({
     parent: params.parentId ? Repository.createWithoutData(params.parentId) : undefined,
     workspaceKey: params.workspaceKey,
     name: params.name,
+    sortIndex: params.sortIndex ?? batchSortIndex + 1
   });
 
   return await repository.save();
