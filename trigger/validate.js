@@ -21,10 +21,10 @@ const getItemTypeName = async () => {
     });
 
     const itemType = await apis.getData(false, 'ItemType', {
-        key: testMangerConfig.toJSON()?.itemTypeMap?.TestDetail
+        key: testMangerConfig?.toJSON()?.itemTypeMap?.TestDetail
     });
 
-    return itemType.toJSON().name;
+    return itemType?.toJSON().name;
 };
 
 const itemTypeName = await getItemTypeName();
@@ -119,6 +119,10 @@ const getErrors = (datas, errors = []) => {
         errors = getStepErrorsData(errors, datas, 'data', i => `数据 限制 500 个字符,第 ${i.index + 1} 条用例的 ${i.errors.map(d => d+1).join('、')} 条数据超过限制，此条数据将不予以导入`)
     }
 
+    if (!itemTypeName) {
+        errors = ['事项类型关联未配置，所有数据不予导入，请先配置关联的事项类型', ...errors]
+    }
+
     return errors;
 }
 
@@ -143,7 +147,7 @@ const getDataByFieldMaping = (datas, maps) => datas?.reduce((prev, cur) => {
 }, []);
 
 const getDataByFieldKey = (datas, maps) => datas.reduce((prev, cur) => {
-    prev.push([...Object.entries(cur)].reduce((curPrev, [key, value]) => {
+    itemTypeName && prev.push([...Object.entries(cur)].reduce((curPrev, [key, value]) => {
         curPrev = {
             ...curPrev,
             [getFiledByValue(key, maps)]: value,
