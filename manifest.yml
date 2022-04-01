@@ -49,10 +49,10 @@ modules:
       title: 新建事项
       loadType: Micro
       route: /beforeItemCreate
-  importAndExport:
-    import: test-manager-import-script
+  importer:
+    function: test-manager-import-script
     validate: test-manager-validate-script
-    itemType:
+    itemFields: 
       - key: group
         title: 所属分组
       - key: priority

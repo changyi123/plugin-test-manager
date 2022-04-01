@@ -2,8 +2,8 @@ const axios = require('axios');
 const path = require('path');
 const fs = require('fs');
 
-const fileName = './validate.js';
-const sessionToken = 'r:1b1f2ffcf92ae9d1fe7df759536d33f7';
+const fileName = './import.js';
+const sessionToken = 'r:a52fa1e8b36fccd30286097ae2494cd2';
 const params = {
   appKey: 'test_manager',
 };

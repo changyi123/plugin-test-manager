@@ -3,16 +3,16 @@ const {
     appFieldsData,
 } = triggerParams;
 
-// console.log('import', triggerParams)
-// console.log('import-data', data)
-// console.log('import-appFieldsData', appFieldsData)
+console.log('import', triggerParams)
+console.log('import-data', data)
+console.log('import-appFieldsData', appFieldsData)
 
 // uuid
 function getRandomIntInclusive(min, max) {
     min = Math.ceil(min);
     max = Math.floor(max);
     return Math.floor(Math.random() * (max - min + 1)) + min; //含最大值，含最小值 
-  }
+}
 function uuidv4() {
     return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
       (c ^ getRandomIntInclusive(0, 100) & 15 >> c / 4).toString(16)
@@ -55,34 +55,34 @@ const getActionAndResultIndex = value => value.match(/^[0-9]+/)[0];
 
 const getActionAndResultData = datas => (getCharNum(datas) > 500 ? '' : datas).replace(/^【\d+】/, '')
 
-const splitData = datas => datas?.split(/[\n]+/g) ?? [];
+const splitData = datas => datas?.split(/[\r\n]+/g);
 
 const getStepsData = datas => {
     const stepsMap = new Map();
 
-    splitData(datas.action).forEach((action, index) => {
+    splitData(datas.action)?.forEach((action, index) => {
         stepsMap.set(index, {
             action: getActionAndResultData(action),
-            result: stepsMap.get(index)?.result,
-            data: stepsMap.get(index)?.data,
+            result: stepsMap.get(index)?.result ?? '',
+            data: stepsMap.get(index)?.data ?? '',
             id: stepsMap.get(index)?.id || uuidv4(),
         })
     })
 
-    splitData(datas.result).forEach((result, index) => {
+    splitData(datas.result)?.forEach((result, index) => {
         stepsMap.set(index, {
-            action: stepsMap.get(index)?.action,
+            action: stepsMap.get(index)?.action ?? '',
             result: getActionAndResultData(result),
-            data: stepsMap.get(index)?.data,
+            data: stepsMap.get(index)?.data ?? '',
             id: stepsMap.get(index)?.id || uuidv4(),
         })
     })
 
-    splitData(datas.data).forEach((_data, index) => {
+    splitData(datas.data)?.forEach((_data, index) => {
         stepsMap.set(index, {
             data: getActionAndResultData(_data),
-            action: stepsMap.get(index)?.action,
-            result: stepsMap.get(index)?.result,
+            action: stepsMap.get(index)?.action ?? '',
+            result: stepsMap.get(index)?.result ?? '',
             id: stepsMap.get(index)?.id || uuidv4(),
         })
     })
@@ -94,7 +94,7 @@ const getStepsData = datas => {
 const createTestMangerTest = async () => {
     const itemParseObj = await apis.getParseModel(false, 'Item');
     const testInstance = await apis.getParseObject(false, TEST_MANAGER_TEST);
-    const mathData = Math.floor(Date.now() / 1000) * 1000;
+    const mathData = Math.floor(Date.now() / 1000) * 10e5;
 
     const _data = appFieldsData.map((_data, index) => ({
         workspaceKey,
@@ -156,7 +156,7 @@ const getRepoData = async () => {
 }
 
 const getParent = (RepoParseObj, datas, repoData) => {
-    const _data = datas.find(d => d.path === repoData.path.replace(`/${repoData.name}`, ''));
+    const _data = datas.find(d => d?.path === repoData.path.replace(`/${repoData.name}`, ''));
 
     return _data?.objectId && RepoParseObj.createWithoutData(_data.objectId)
 }
@@ -181,7 +181,7 @@ const createRepoGroup = async (datas, i) => {
     return await apis.saveAllObject(repos)
 }
 
-const isSameGroup = (datas, group) => datas.some(d => d.index === group.index && d.path === group.path);
+const isSameGroup = (datas, group) => datas?.some(d => d?.index === group?.index && d?.path === group?.path);
 
 const filterImportGroupData = datas => datas?.reduce((prev, cur) => {
     if (!isSameGroup(prev, cur)) {
@@ -205,7 +205,20 @@ const getImportGroupData = () => appFieldsData.map(d => d.group?.split('/').redu
 const getToCreateGroupData = async () => {
     const newRepoData = await getRepoData();
 
-    return filterImportGroupData(getImportGroupData()).filter(d => !newRepoData.some(g => g.path === d.path))
+    return filterImportGroupData(getImportGroupData()).filter(d => !newRepoData.some(g => g?.path === d?.path))
+}
+
+const getAddId = (datas, field) => {
+    const testMap = datas.reduce((prev, cur) => {
+        const _cur = cur?.toJSON();
+        if (_cur) {
+            prev.set(_cur.reference?.objectId, _cur.objectId)
+        }
+
+        return prev;
+    }, new Map())
+
+    return testMap.get(field.itemId)
 }
 
 const handleFieldsData = async (testManagerTestData) => {
@@ -223,24 +236,11 @@ const handleFieldsData = async (testManagerTestData) => {
     
             repositoryMap.set(repoData?.objectId, repository)
         }
-
-        const getAddId = () => {
-            const testMap = new Map()
-
-            testManagerTestData.forEach(d => {
-                const _data = d?.toJSON();
-                if (_data) {
-                    testMap.set(_data.reference?.objectId, _data.objectId)
-                }
-            })
-
-            return testMap.get(field.itemId)
-        }
         
         const getDetailIds = () => {
-            const ids = repositoryMap.get(repoData?.objectId).toJSON()?.testDetailIds ?? [];
+            const ids = (repoData?.testDetailIds ?? []).concat(repositoryMap.get(repoData?.objectId).toJSON()?.testDetailIds ?? []);
             
-            return ids?.concat([getAddId()])
+            return ids?.concat([getAddId(testManagerTestData, field)])
         }
 
         repositoryMap.get(repoData?.objectId).set('testDetailIds', getDetailIds());
@@ -267,13 +267,15 @@ const importCallBack = async () => {
     // 得到需要创建的用例库数据
     const toCreateGroupData = await getToCreateGroupData();
 
-    const newToCreateGroupData =  toCreateGroupData.reduce((prev, cur) => {
-        prev.set(cur.index, (prev.get(cur.index) || []).concat([cur]))
-        return prev;
-    }, new Map());
-    
-    // 创建用例库
-    await createRepoGroupList(newToCreateGroupData);
+    if (toCreateGroupData.length) {
+        const newToCreateGroupData =  toCreateGroupData.reduce((prev, cur) => {
+            prev.set(cur.index, (prev.get(cur.index) || []).concat([cur]))
+            return prev;
+        }, new Map());
+        
+        // 创建用例库
+        await createRepoGroupList(newToCreateGroupData);
+    }
 
     // 绑定测试用例到用例库
     await handleFieldsData(testManagerTestData);
