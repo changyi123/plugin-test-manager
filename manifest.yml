@@ -78,6 +78,8 @@ tables:
         targetClass: Repository
       testDetailIds:
         type: Array
+      sortIndex:
+        type: Number
       tenant:
         type: Pointer
         targetClass: Tenant

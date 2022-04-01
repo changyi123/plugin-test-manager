@@ -164,14 +164,16 @@ const getParent = (RepoParseObj, datas, repoData) => {
 const createRepoGroup = async (datas, i) => {
     const RepoParseObj = await apis.getParseModel(false, TEST_MANAGER_REPO);
     const newRepoData = await getRepoData();
+    const mathData = Math.floor(Date.now() / 1000) * 10e5;
 
-    const repos = datas.map(gro => {
+    const repos = datas.map((gro, index) => {
         const parent = i === 0 ? undefined : getParent(RepoParseObj, newRepoData, gro);
 
         const repo = new RepoParseObj({
             parent: parent,
             workspaceKey,
             name: gro.name,
+            sortIndex: mathData + index
         })
 
         return repo
