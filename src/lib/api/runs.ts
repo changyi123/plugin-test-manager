@@ -510,6 +510,8 @@ export const createTestRun = async (params: { workspaceKey: string; testDetailId
       type: TestType.TestDetail,
     },
     {
+      offset: 0,
+      limit: 9999,
       select: ['sortIndex'],
       ignoreDeletedItemData: false,
     },

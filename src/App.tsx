@@ -60,7 +60,7 @@ const App: React.FC = props => {
   return (
     <PluginSDKContext.Provider value={qiankunContextValue.sdk}>
       <ConfigProvider locale={zhCN} getPopupContainer={() => document.getElementById(rootElement)}>
-        {process.env.NODE_ENV === 'production' || process.env.PROXIMA_DEV_MODE === 'embed' ? (
+        {process.env.NODE_ENV === 'production' || window.__POWERED_BY_QIANKUN__ ? (
           <MemoryRouter>
             <GoPropsRoute {...props} />
             <Switch>

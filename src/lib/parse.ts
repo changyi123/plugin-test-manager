@@ -1,7 +1,7 @@
 import { getParseReqHeader, getDevConfig } from '@/devEnv';
 let Parse;
 
-if (process.env.NODE_ENV === 'production' || process.env.PROXIMA_DEV_MODE === 'embed') {
+if (process.env.NODE_ENV === 'production' || window.__POWERED_BY_QIANKUN__) {
   Parse = window.QiankunProps?.Parse;
 } else {
   const { baseURL, env } = getDevConfig();
