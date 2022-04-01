@@ -133,9 +133,11 @@ const getFiledByValue = (name, maps) => {
 }
 
 const getCurData = (cur, maps) => [...Object.entries(cur)].reduce((curPrev, [key, value]) => {
-    curPrev = {
-        ...curPrev,
-        [maps[key]]: value
+    if (maps[key]) {
+        curPrev = {
+            ...curPrev,
+            [maps[key]]: value
+        }
     }
     return curPrev
 }, {})

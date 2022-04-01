@@ -31,11 +31,11 @@ const clone = d => JSON.parse(JSON.stringify(d));
 
 const isTwoChar = d => /[^\x00-\xff]/g.test(d);
 
-const getCharNum = d => d?.split?.('').reduce((prev, cur) => {
+const getCharNum = d => d?.split('').reduce((prev, cur) => {
     prev = prev + (isTwoChar(cur) ? 2 : 1);
 
     return prev;
-}, 0)
+}, 0) ?? 0;
 
 // 根据事项数据获取 workspaceKey 
 const getWorkspaceKey = async () => {
@@ -164,7 +164,7 @@ const getParent = (RepoParseObj, datas, repoData) => {
 const createRepoGroup = async (datas, i) => {
     const RepoParseObj = await apis.getParseModel(false, TEST_MANAGER_REPO);
     const newRepoData = await getRepoData();
-    const mathData = Math.floor(Date.now() / 1000) * 10e5;
+    const mathData = Math.floor(Date.now() / 1000) * 10e5 + i * 1000;
 
     const repos = datas.map((gro, index) => {
         const parent = i === 0 ? undefined : getParent(RepoParseObj, newRepoData, gro);
@@ -177,7 +177,7 @@ const createRepoGroup = async (datas, i) => {
         })
 
         return repo
-    
+
     })
 
     return await apis.saveAllObject(repos)
@@ -202,12 +202,12 @@ const getImportGroupData = () => appFieldsData.map(d => d.group?.split('/').redu
     }
 
     return prev;
-}, [])).flat();
+}, [])).filter(Boolean).flat();
 
 const getToCreateGroupData = async () => {
     const newRepoData = await getRepoData();
 
-    return filterImportGroupData(getImportGroupData()).filter(d => !newRepoData.some(g => g?.path === d?.path))
+    return filterImportGroupData(getImportGroupData())?.filter(d => !newRepoData.some(g => g?.path === d?.path))
 }
 
 const getAddId = (datas, field) => {
@@ -235,13 +235,13 @@ const handleFieldsData = async (testManagerTestData) => {
             const repository = new RepoParseObj({
                 objectId: repoData?.objectId,
             });
-    
+
             repositoryMap.set(repoData?.objectId, repository)
         }
-        
+
         const getDetailIds = () => {
             const ids = (repoData?.testDetailIds ?? []).concat(repositoryMap.get(repoData?.objectId).toJSON()?.testDetailIds ?? []);
-            
+
             return ids?.concat([getAddId(testManagerTestData, field)])
         }
 
@@ -274,7 +274,7 @@ const importCallBack = async () => {
             prev.set(cur.index, (prev.get(cur.index) || []).concat([cur]))
             return prev;
         }, new Map());
-        
+
         // 创建用例库
         await createRepoGroupList(newToCreateGroupData);
     }
@@ -292,3 +292,8 @@ const importCallBack = async () => {
 };
 
 return importCallBack();
+
+// return {
+//     code: 200,
+//     message: '成功',
+// }
