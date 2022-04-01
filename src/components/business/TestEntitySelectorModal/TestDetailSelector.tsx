@@ -49,7 +49,7 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
   const baseSearchState = useReactive({
     nameLike: '',
     notIn: ignoreTestDetailIds ?? null,
-    orderByCratedAt: 'desc' as 'asc' | 'desc',
+    orderByCratedAt: 'asc' as 'asc' | 'desc',
   });
 
   // 目录搜索
