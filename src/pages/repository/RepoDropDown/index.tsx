@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import { Button, Dropdown, Menu } from '@osui/ui';
 import { useTestConfig } from '@/lib/hooks/useContext';
-import importFn, { TreeNode } from './import';
+import importFn, { TreeNode } from './export';
 
 const RepoDropDown = ({
   folderKey,
