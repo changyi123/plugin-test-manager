@@ -203,16 +203,19 @@ const filterImportGroupData = datas =>
 const getImportGroupData = () =>
   appFieldsData
     .map(d =>
-      d.group?.split('/').reduce((prev, cur, index) => {
-        prev[index] = {
-          name: cur,
-          parent: index === 0 ? null : prev[index - 1].name,
-          path: index === 0 ? cur : `${prev[index - 1].path}/${cur}`,
-          index,
-        };
+      d.group
+        ?.split('/')
+        .reduce((prev, cur, index) => {
+          prev[index] = {
+            name: cur,
+            parent: index === 0 ? null : prev[index - 1].name,
+            path: index === 0 ? cur : `${prev[index - 1].path}/${cur}`,
+            index,
+          };
 
-        return prev;
-      }, []),
+          return prev;
+        }, [])
+        .filter(g => g.name),
     )
     .filter(Boolean)
     .flat();

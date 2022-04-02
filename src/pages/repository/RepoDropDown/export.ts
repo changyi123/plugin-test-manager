@@ -156,21 +156,17 @@ const getIds = (childrens: ITreeNode[], data: string[]) =>
     return _prev;
   }, data);
 
+const getCurTestDetailIds = (testRepoData, folderKey) => {
+  const curTestRepo = testRepoData.find(groups => groups.key === folderKey);
+
+  return getIds(curTestRepo.children ?? [], curTestRepo.testDetailIds ?? []);
+};
+
 /** 导出用例 */
 const importTestInfo = async (args: ImportArgs, excelData = []) => {
   const { type, treeData, folderKey, workspaceKey } = args;
 
-  const newTreeData = handleTreeData(clone(treeData));
-
-  const testRepoData = treeToArray(newTreeData);
-
-  let curTestDetailIds = [];
-
-  if (type === 'exportCurrentGroup') {
-    const curTestRepo = testRepoData.find(groups => groups.key === folderKey);
-
-    curTestDetailIds = getIds(curTestRepo.children ?? [], curTestRepo.testDetailIds ?? []);
-  }
+  const testRepoData = treeToArray(handleTreeData(clone(treeData)));
 
   const { results } = await getTestEntitiesByQuery(
     Object.assign(
@@ -180,7 +176,7 @@ const importTestInfo = async (args: ImportArgs, excelData = []) => {
       },
       type === 'exportCurrentGroup'
         ? {
-            in: curTestDetailIds,
+            in: getCurTestDetailIds(testRepoData, folderKey),
           }
         : {},
     ),
@@ -203,6 +199,9 @@ const exportExcelFile = (array: any[], sheetName = 'sheet1', fileName = 'example
       [sheetName]: jsonWorkSheet,
     },
   };
+
+  // eslint-disable-next-line no-console
+  console.log(11111, xlsx)
 
   return xlsx.writeFile(workBook, fileName);
 };
