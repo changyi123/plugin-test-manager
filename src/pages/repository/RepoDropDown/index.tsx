@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import { Button, Dropdown, Menu } from '@osui/ui';
 import { useTestConfig } from '@/lib/hooks/useContext';
-import importFn, { TreeNode } from './export';
+import importTestInfo, { TreeNode } from './export';
 
 const RepoDropDown = ({
   folderKey,
@@ -19,20 +19,13 @@ const RepoDropDown = ({
         const href = `/osc/workspaces/${workspace.key}/import/${workspace.objectId}?app=test_manager`;
         window.open(href);
       } else {
-        importFn({
+        importTestInfo({
           type: key,
           folderKey,
           treeData: treeNodeData,
-          workspace: workspace.key,
+          workspaceKey: workspace.key,
         });
       }
-      // if (key === 'exportCurrentGroup') {
-      //   // 'ROOT_FOLDER'
-      //   importFn(key, folderKey);
-      // }
-      // if (key === 'exportAll') {
-      //   importFn(key, folderKey);
-      // }
     },
     [workspace, folderKey, treeNodeData],
   );

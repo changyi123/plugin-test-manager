@@ -88,14 +88,18 @@ const createTestMangerTest = async () => {
   const testInstance = await apis.getParseObject(false, TEST_MANAGER_TEST);
   const mathData = Math.floor(Date.now() / 1000) * 10e5;
 
-  const _data = appFieldsData
+  const isNotHaveMap = appFieldsData.length;
+  const _appFieldsData = isNotHaveMap ? appFieldsData : data;
+
+  const _data = _appFieldsData
     .map((_data, index) => ({
       workspaceKey,
       type: 'TestDetail',
-      reference: itemParseObj.createWithoutData(_data.itemId),
+      reference: itemParseObj.createWithoutData(isNotHaveMap ? _data.itemId : _data.id),
       detail: {
-        precondition: getCharNum(_data.precondition) > 500 ? '' : _data.precondition,
-        steps: getStepsData(_data),
+        precondition:
+          (isNotHaveMap && getCharNum(_data.precondition)) > 500 ? '' : _data.precondition,
+        steps: isNotHaveMap ? getStepsData(_data) : [],
       },
       sortIndex: mathData + index,
     }))
