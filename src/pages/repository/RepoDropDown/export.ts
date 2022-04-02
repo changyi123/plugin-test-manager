@@ -173,11 +173,17 @@ const importTestInfo = async (args: ImportArgs, excelData = []) => {
   }
 
   const { results } = await getTestEntitiesByQuery(
-    {
-      in: curTestDetailIds,
-      type: TestType.TestDetail,
-      workspaceKey: workspaceKey,
-    },
+    Object.assign(
+      {
+        type: TestType.TestDetail,
+        workspaceKey: workspaceKey,
+      },
+      type === 'exportCurrentGroup'
+        ? {
+            in: curTestDetailIds,
+          }
+        : {},
+    ),
     {
       limit: 9999,
     },
