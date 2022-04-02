@@ -193,10 +193,24 @@ const importTestInfo = async (args: ImportArgs, excelData = []) => {
 /** 导出用例数据 */
 const exportExcelFile = (array: any[], sheetName = 'sheet1', fileName = 'example.xlsx') => {
   const jsonWorkSheet = xlsx.utils.json_to_sheet(array);
+
+  // eslint-disable-next-line no-console
+  console.log(111111, jsonWorkSheet);
   const workBook: any = {
     SheetNames: [sheetName],
     Sheets: {
-      [sheetName]: jsonWorkSheet,
+      [sheetName]: Object.assign({}, jsonWorkSheet, {
+        '!cols': [
+          { wch: 30 }, // 第一列
+          { wch: 20 }, // 第二列
+          { wch: 10 }, // 第三列
+          { wch: 10 }, // 第四列
+          { wch: 30 }, // 第五列
+          { wch: 50 }, // 第六列
+          { wch: 50 }, // 第七列
+          { wch: 10 }, // 第八列
+        ],
+      }),
     },
   };
 
