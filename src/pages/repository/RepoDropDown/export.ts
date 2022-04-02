@@ -194,8 +194,6 @@ const importTestInfo = async (args: ImportArgs, excelData = []) => {
 const exportExcelFile = (array: any[], sheetName = 'sheet1', fileName = 'example.xlsx') => {
   const jsonWorkSheet = xlsx.utils.json_to_sheet(array);
 
-  // eslint-disable-next-line no-console
-  console.log(111111, jsonWorkSheet);
   const workBook: any = {
     SheetNames: [sheetName],
     Sheets: {
