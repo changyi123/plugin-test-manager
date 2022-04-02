@@ -200,9 +200,6 @@ const exportExcelFile = (array: any[], sheetName = 'sheet1', fileName = 'example
     },
   };
 
-  // eslint-disable-next-line no-console
-  console.log(11111, xlsx)
-
   return xlsx.writeFile(workBook, fileName);
 };
 
