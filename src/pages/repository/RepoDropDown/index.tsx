@@ -21,10 +21,9 @@ const RepoDropDown = ({
       } else {
         importTestInfo({
           type: key,
-          folderKey,
+          checkGroupKey: folderKey,
           treeData: treeNodeData,
-          workspaceKey: workspace.key,
-          workspaceName: workspace.name,
+          workspace,
         });
       }
     },
@@ -34,7 +33,7 @@ const RepoDropDown = ({
   const menu = (
     <Menu onClick={e => menuClick(e.key)}>
       <Menu.Item key="import">导入用例</Menu.Item>
-      <Menu.Item key="exportCurrentGroup">导出当前分组下的所有用例</Menu.Item>
+      <Menu.Item key="exportGroup">导出当前分组下的所有用例</Menu.Item>
       <Menu.Item key="exportAll">导出所有用例</Menu.Item>
     </Menu>
   );

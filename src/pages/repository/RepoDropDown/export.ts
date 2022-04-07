@@ -8,6 +8,9 @@ import { CustomField, TestConfig } from '@/lib/models';
 import { Item } from '@/lib/types/App';
 import { Step } from '@/lib/types/Test';
 import { clone } from 'lodash';
+import { getFolderTree } from '@/lib/api/repository';
+import { traverseTreeNodes } from '../hook';
+import { ROOT_FOLDER_KEY } from '../constant';
 
 export type TreeNode = {
   key: string;
@@ -34,10 +37,9 @@ const treeToArray = (datas: any[]): any[] =>
 
 interface ImportArgs {
   type: string;
-  workspaceKey: string;
-  folderKey: string;
-  treeData: TreeNode[];
-  workspaceName: string;
+  checkGroupKey: string;
+  workspace: Record<string, any>;
+  treeData?: TreeNode[];
 }
 
 const getPath = (curObj: any, pObj?: any): string =>
@@ -171,21 +173,69 @@ const getCurTestDetailIds = (testRepoData, folderKey) => {
   return getIds(curTestRepo.children ?? [], curTestRepo.testDetailIds ?? []);
 };
 
+const getTreeData = async (workspaceKey: string) => {
+  // 获取当前空间内所有的测试实体
+  const getAllTestDetailEntityIds = async spaceKey => {
+    const { results: data } = await getTestEntitiesByQuery(
+      {
+        type: TestType.TestDetail,
+        workspaceKey: spaceKey,
+      },
+      {
+        limit: 99999,
+        include: [],
+        select: ['objectId'],
+      },
+    );
+
+    return data.map(item => item.objectId);
+  };
+  const [treeNodes, allTestDetailIds] = await Promise.all([
+    getFolderTree(workspaceKey),
+    getAllTestDetailEntityIds(workspaceKey),
+  ]);
+
+  const allTestDetailIdSet = new Set<string>(allTestDetailIds);
+  traverseTreeNodes(treeNodes, node => {
+    // 测试实体在测试模块内只能被关联一次
+    node.testDetailIds = node.testDetailIds.filter(id => {
+      if (allTestDetailIdSet.has(id)) {
+        allTestDetailIdSet.delete(id);
+        return true;
+      }
+      return false;
+    });
+  });
+
+  const RootFolder = {
+    key: ROOT_FOLDER_KEY,
+    name: '未分组用例',
+    title: '未分组用例',
+    parentId: null,
+    testDetailIds: Array.from(allTestDetailIdSet),
+    children: [],
+  };
+
+  return [RootFolder].concat(treeNodes);
+};
+
 /** 导出用例 */
 const importTestInfo = async (args: ImportArgs, excelData = []) => {
-  const { type, treeData, folderKey, workspaceKey, workspaceName } = args;
+  const { type, treeData, checkGroupKey, workspace } = args;
 
-  const testRepoData = treeToArray(handleTreeData(clone(treeData)));
+  const _treeData = treeData ?? (await getTreeData(workspace.key));
+
+  const testRepoData = treeToArray(handleTreeData(clone(_treeData)));
 
   const { results } = await getTestEntitiesByQuery(
     Object.assign(
       {
         type: TestType.TestDetail,
-        workspaceKey: workspaceKey,
+        workspaceKey: workspace.key,
       },
-      type === 'exportCurrentGroup'
+      type === 'exportGroup'
         ? {
-            in: getCurTestDetailIds(testRepoData, folderKey),
+            in: getCurTestDetailIds(testRepoData, checkGroupKey),
           }
         : {},
     ),
@@ -196,7 +246,7 @@ const importTestInfo = async (args: ImportArgs, excelData = []) => {
 
   excelData = await getExcelData(results, testRepoData);
 
-  exportExcelFile(excelData, 'sheet1', `测试管理导出-${workspaceName}.xlsx`);
+  exportExcelFile(excelData, 'sheet1', `测试管理导出-${workspace.name}.xlsx`);
 };
 
 function s2ab(s: any) {
