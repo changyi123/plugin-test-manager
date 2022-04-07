@@ -113,19 +113,19 @@ const getTestInfo = data => {
 
 const getTestInfoByDetail = (detail: { steps?: Step[]; precondition?: string }) => {
   return {
-    前置条件: detail.precondition ?? '',
-    ...getSteps(detail.steps),
+    前置条件: detail?.precondition ?? '',
+    ...getSteps(detail?.steps),
   };
 };
 
 const getSteps = (steps?: Step[]) => {
   const data = steps
-    .filter(d => !d.callTestId)
+    ?.filter(d => !d.callTestId)
     ?.reduce(
       (prev, cur, index) => {
         prev = {
           action: prev.action.concat(`【${index + 1}】${cur.action}`),
-          result: prev.action.concat(`【${index + 1}】${cur.result}`),
+          result: prev.result.concat(`【${index + 1}】${cur.result}`),
         };
 
         return prev;
@@ -137,8 +137,8 @@ const getSteps = (steps?: Step[]) => {
     );
 
   return {
-    步骤描述: data.action.join('\r\n') ?? '',
-    预期结果: data.result.join('\r\n') ?? '',
+    步骤描述: data?.action.join('\r\n') ?? '',
+    预期结果: data?.result.join('\r\n') ?? '',
   };
 };
 
