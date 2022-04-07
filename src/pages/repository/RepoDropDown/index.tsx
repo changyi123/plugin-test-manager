@@ -24,6 +24,7 @@ const RepoDropDown = ({
           folderKey,
           treeData: treeNodeData,
           workspaceKey: workspace.key,
+          workspaceName: workspace.name,
         });
       }
     },

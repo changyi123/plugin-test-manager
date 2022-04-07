@@ -1,8 +1,10 @@
 import * as xlsx from 'xlsx';
+import xlsxStyle from 'xlsx-style';
+import FileSave from 'file-saver';
 import Parse from '@/lib/parse';
 import { getTestEntitiesByQuery } from '@/lib/api/common';
 import { TestType } from '@/lib/constants';
-import { CustomField } from '@/lib/models';
+import { CustomField, TestConfig } from '@/lib/models';
 import { Item } from '@/lib/types/App';
 import { Step } from '@/lib/types/Test';
 import { clone } from 'lodash';
@@ -35,6 +37,7 @@ interface ImportArgs {
   workspaceKey: string;
   folderKey: string;
   treeData: TreeNode[];
+  workspaceName: string;
 }
 
 const getPath = (curObj: any, pObj?: any): string =>
@@ -60,10 +63,18 @@ const getTestPriorityInfo = async (filedKey: string) => {
 };
 
 const getItemStatus = async () => {
-  const query = new Parse.Query(Parse.Object.extend('Status'));
+  const query = new Parse.Query(TestConfig).equalTo('global', true);
   const data = await query.find();
 
-  return data.map(d => d.toJSON());
+  return data
+    .map(d => d.toJSON())
+    .reduce((prev, cur) => {
+      cur.status.forEach(c => {
+        prev.set(c.key, c.name);
+      });
+
+      return prev;
+    }, new Map());
 };
 
 const getGroupPath = (repoData: any[], objectId: string) => {
@@ -74,13 +85,9 @@ const getGroupPath = (repoData: any[], objectId: string) => {
   };
 };
 
-const getStatus = (item: any, statusList: any[]) => {
-  const status = statusList.find(list => list.objectId === item.status?.objectId)?.name;
-
-  return {
-    执行状态: status ?? '',
-  };
-};
+const getStatus = (statusMap: any, status?: string) => ({
+  最新执行状态: statusMap.get(status || 'TODO') ?? '',
+});
 
 /** 获取导出 excel 表数据 */
 const getExcelData = async (datas: any[], repoData: any[]) => {
@@ -91,7 +98,7 @@ const getExcelData = async (datas: any[], repoData: any[]) => {
     ...getGroupPath(repoData, test.objectId),
     ...getItemInfo(test.reference, priorityInfo),
     ...getTestInfo(test),
-    ...getStatus(test.reference, itemStatus),
+    ...getStatus(itemStatus, test.status),
   }));
 };
 
@@ -110,20 +117,22 @@ const getTestInfoByDetail = (detail: { steps?: Step[]; precondition?: string }) 
 };
 
 const getSteps = (steps?: Step[]) => {
-  const data = steps?.reduce(
-    (prev, cur, index) => {
-      prev = {
-        action: prev.action.concat(`【${index + 1}】${cur.action}`),
-        result: prev.action.concat(`【${index + 1}】${cur.result}`),
-      };
+  const data = steps
+    .filter(d => !d.callTestId)
+    ?.reduce(
+      (prev, cur, index) => {
+        prev = {
+          action: prev.action.concat(`【${index + 1}】${cur.action}`),
+          result: prev.action.concat(`【${index + 1}】${cur.result}`),
+        };
 
-      return prev;
-    },
-    {
-      action: [],
-      result: [],
-    },
-  );
+        return prev;
+      },
+      {
+        action: [],
+        result: [],
+      },
+    );
 
   return {
     步骤描述: data.action.join('\r\n') ?? '',
@@ -133,7 +142,7 @@ const getSteps = (steps?: Step[]) => {
 
 /** 获取负责人 */
 const getAssignee = (values?: Record<string, unknown>): string =>
-  (values?.assignee as any[])?.map(val => val.label).join(',') ?? '';
+  (values?.assignee as any[])?.map(val => val.username).join(',') ?? '';
 
 /** 获取优先级 */
 const getPriority = (values?: Record<string, unknown>, priInfo?: any) =>
@@ -164,7 +173,7 @@ const getCurTestDetailIds = (testRepoData, folderKey) => {
 
 /** 导出用例 */
 const importTestInfo = async (args: ImportArgs, excelData = []) => {
-  const { type, treeData, folderKey, workspaceKey } = args;
+  const { type, treeData, folderKey, workspaceKey, workspaceName } = args;
 
   const testRepoData = treeToArray(handleTreeData(clone(treeData)));
 
@@ -187,12 +196,56 @@ const importTestInfo = async (args: ImportArgs, excelData = []) => {
 
   excelData = await getExcelData(results, testRepoData);
 
-  exportExcelFile(excelData);
+  exportExcelFile(excelData, 'sheet1', `测试管理导出-${workspaceName}.xlsx`);
 };
+
+function s2ab(s: any) {
+  if (typeof ArrayBuffer !== 'undefined') {
+    const buf = new ArrayBuffer(s.length);
+    const view = new Uint8Array(buf);
+    for (let i = 0; i != s.length; ++i) {
+      view[i] = s.charCodeAt(i) & 0xff;
+    }
+    return buf;
+  } else {
+    const buf = new Array(s.length);
+    for (let i = 0; i != s.length; ++i) {
+      buf[i] = s.charCodeAt(i) & 0xff;
+    }
+    return buf;
+  }
+}
 
 /** 导出用例数据 */
 const exportExcelFile = (array: any[], sheetName = 'sheet1', fileName = 'example.xlsx') => {
-  const jsonWorkSheet = xlsx.utils.json_to_sheet(array);
+  const defaultCellStyle = {
+    font: {
+      name: '宋体',
+      sz: 11,
+      color: {
+        auto: 1,
+      },
+    },
+    alignment: {
+      wrapText: true,
+      vertical: 'center',
+      indent: 0,
+    },
+  };
+
+  const jsonWorkSheet = Object.entries(xlsx.utils.json_to_sheet(array)).reduce(
+    (prev, [key, value]: any[]) => {
+      prev[key] = /[A-Z]{1}\d+/g.test(key)
+        ? {
+            ...value,
+            s: defaultCellStyle,
+          }
+        : value;
+
+      return prev;
+    },
+    {},
+  );
 
   const workBook: any = {
     SheetNames: [sheetName],
@@ -201,18 +254,36 @@ const exportExcelFile = (array: any[], sheetName = 'sheet1', fileName = 'example
         '!cols': [
           { wch: 30 }, // 第一列
           { wch: 20 }, // 第二列
-          { wch: 10 }, // 第三列
+          { wch: 20 }, // 第三列
           { wch: 10 }, // 第四列
           { wch: 30 }, // 第五列
           { wch: 50 }, // 第六列
           { wch: 50 }, // 第七列
-          { wch: 10 }, // 第八列
+          { wch: 20 }, // 第八列
         ],
       }),
     },
   };
 
-  return xlsx.writeFile(workBook, fileName);
+  const wbout = xlsxStyle.write(
+    workBook,
+    {
+      bookType: 'xlsx',
+      bookSST: false,
+      type: 'binary',
+      cellStyles: true,
+    },
+    {
+      defaultCellStyle,
+    },
+  );
+
+  return FileSave.saveAs(
+    new Blob([s2ab(wbout) as any], {
+      type: 'application/onctet-stream',
+    }),
+    fileName,
+  );
 };
 
 export default importTestInfo;
