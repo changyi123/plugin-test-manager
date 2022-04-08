@@ -202,7 +202,7 @@ const PlanList = () => {
   };
 
   const handleDelete = async data => {
-    await actionConfirm('该操作会当前删除测试计划以及测试计划关联的测试用例和任务，是否继续？');
+    await actionConfirm('该操作会删除当前测试计划以及测试计划关联的测试用例和任务，是否继续？');
     await Promise.all([
       deleteTestEntities([data.objectId]),
       deleteItems([data.reference?.objectId]),

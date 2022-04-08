@@ -122,7 +122,7 @@ const TestRun: React.FC<TestRunType> = props => {
   // 关联的缺陷 id
   const allRelationDefectIds = _.chain(testRunData?.runDetail?.steps)
     .reduce((acc, step) => {
-      return acc.concat(step.defectItemIds);
+      return acc.concat(step?.defectItemIds);
     }, testRunData?.runDetail?.defectItemIds ?? [])
     .sort()
     .filter(Boolean)
@@ -160,7 +160,7 @@ const TestRun: React.FC<TestRunType> = props => {
     const defectItemDict = _.keyBy(allRelationDefectItems, 'objectId');
 
     const stepDefects = steps.reduce((acc, step) => {
-      const stepDefects = step.defectItemIds?.map(id => ({
+      const stepDefects = step?.defectItemIds?.map(id => ({
         itemId: id,
         type: 'step',
         stepId: step.id,

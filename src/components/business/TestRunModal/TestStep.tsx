@@ -51,7 +51,7 @@ const TestStep: React.FC<TestStepProps> = props => {
     onLoading();
     const needUpdateSteps = steps.map(step =>
       step.id === stepId
-        ? { ...step, defectItemIds: step.defectItemIds.filter(itemId => itemId !== defectItemId) }
+        ? { ...step, defectItemIds: step?.defectItemIds.filter(itemId => itemId !== defectItemId) }
         : step,
     );
 
@@ -188,13 +188,13 @@ const TestStep: React.FC<TestStepProps> = props => {
             </div>
           </div>
           <div className={cx('step-defects')}>
-            <div className={cx('label')}>缺陷（{renderStepLength(step.defectItemIds)}）</div>
+            <div className={cx('label')}>缺陷（{renderStepLength(step?.defectItemIds)}）</div>
             {renderStepDefectList(step.id)}
             <AddDefectButton
               // plainStyle
               className={cx('add-btn')}
               testId={testRunData.objectId}
-              currentDefectIds={step.defectItemIds}
+              currentDefectIds={step?.defectItemIds ?? []}
               allRelationDefectIds={allRelationDefectItemIds}
               onSave={defectItemIds => handleDefectAdd(step.id, defectItemIds)}
             />
