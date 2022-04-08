@@ -142,7 +142,7 @@ const getSteps = (steps?: Step[]) => {
   return {
     步骤描述: data?.action.join('\r\n') ?? '',
     预期结果: data?.result.join('\r\n') ?? '',
-    实际结果: data?.data.join('\r\n') ?? '',
+    数据: data?.data.join('\r\n') ?? '',
   };
 };
 
