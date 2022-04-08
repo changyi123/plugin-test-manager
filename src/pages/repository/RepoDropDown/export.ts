@@ -126,6 +126,7 @@ const getSteps = (steps?: Step[]) => {
         prev = {
           action: prev.action.concat(`【${index + 1}】${cur.action}`),
           result: prev.result.concat(`【${index + 1}】${cur.result}`),
+          data: prev.data.concat(`【${index + 1}】${cur.data}`),
         };
 
         return prev;
@@ -133,12 +134,14 @@ const getSteps = (steps?: Step[]) => {
       {
         action: [],
         result: [],
+        data: [],
       },
     );
 
   return {
     步骤描述: data?.action.join('\r\n') ?? '',
     预期结果: data?.result.join('\r\n') ?? '',
+    实际结果: data?.data.join('\r\n') ?? '',
   };
 };
 
@@ -309,7 +312,8 @@ const exportExcelFile = (array: any[], sheetName = 'sheet1', fileName = 'example
           { wch: 30 }, // 第五列
           { wch: 50 }, // 第六列
           { wch: 50 }, // 第七列
-          { wch: 20 }, // 第八列
+          { wch: 50 }, // 第八列
+          { wch: 20 }, // 第九列
         ],
       }),
     },
