@@ -11,6 +11,7 @@ import { clone } from 'lodash';
 import { getFolderTree } from '@/lib/api/repository';
 import { traverseTreeNodes } from '../hook';
 import { ROOT_FOLDER_KEY } from '../constant';
+import { escapeHtmlString } from '@/lib/utils/helper';
 
 export type TreeNode = {
   key: string;
@@ -124,9 +125,9 @@ const getSteps = (steps?: Step[]) => {
     ?.reduce(
       (prev, cur, index) => {
         prev = {
-          action: prev.action.concat(`【${index + 1}】${cur.action}`),
-          result: prev.result.concat(`【${index + 1}】${cur.result}`),
-          data: prev.data.concat(`【${index + 1}】${cur.data}`),
+          action: prev.action.concat(`【${index + 1}】${escapeHtmlString(cur.action)}`),
+          result: prev.result.concat(`【${index + 1}】${escapeHtmlString(cur.result)}`),
+          data: prev.data.concat(`【${index + 1}】${escapeHtmlString(cur.data)}`),
         };
 
         return prev;
