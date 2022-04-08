@@ -4,9 +4,11 @@ import { useTestConfig } from '@/lib/hooks/useContext';
 import importTestInfo, { TreeNode } from './export';
 
 const RepoDropDown = ({
+  type,
   folderKey,
   treeNodeData,
 }: {
+  type: string;
   folderKey?: string;
   treeNodeData?: TreeNode[];
 }) => {
@@ -32,9 +34,18 @@ const RepoDropDown = ({
 
   const menu = (
     <Menu onClick={e => menuClick(e.key)}>
-      <Menu.Item key="import">导入用例</Menu.Item>
-      <Menu.Item key="exportGroup">导出当前分组下的所有用例</Menu.Item>
-      <Menu.Item key="exportAll">导出所有用例</Menu.Item>
+      {type === 'repository' && (
+        <>
+          <Menu.Item key="import">导入用例</Menu.Item>
+          <Menu.Item key="exportGroup">导出当前分组下的所有用例</Menu.Item>
+          <Menu.Item key="exportAll">导出所有用例</Menu.Item>
+        </>
+      )}
+      {type === 'plan' && (
+        <>
+          <Menu.Item key="exportGroup">导出当前执行计划下的所有用例</Menu.Item>
+        </>
+      )}
     </Menu>
   );
 

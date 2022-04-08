@@ -11,6 +11,7 @@ import { clone } from 'lodash';
 import { getFolderTree } from '@/lib/api/repository';
 import { traverseTreeNodes } from '../hook';
 import { ROOT_FOLDER_KEY } from '../constant';
+import { escapeHtmlString } from '@/lib/utils/helper';
 
 export type TreeNode = {
   key: string;
@@ -124,8 +125,9 @@ const getSteps = (steps?: Step[]) => {
     ?.reduce(
       (prev, cur, index) => {
         prev = {
-          action: prev.action.concat(`【${index + 1}】${cur.action}`),
-          result: prev.result.concat(`【${index + 1}】${cur.result}`),
+          action: prev.action.concat(`【${index + 1}】${escapeHtmlString(cur.action)}`),
+          result: prev.result.concat(`【${index + 1}】${escapeHtmlString(cur.result)}`),
+          data: prev.data.concat(`【${index + 1}】${escapeHtmlString(cur.data)}`),
         };
 
         return prev;
@@ -133,12 +135,14 @@ const getSteps = (steps?: Step[]) => {
       {
         action: [],
         result: [],
+        data: [],
       },
     );
 
   return {
     步骤描述: data?.action.join('\r\n') ?? '',
     预期结果: data?.result.join('\r\n') ?? '',
+    实际结果: data?.data.join('\r\n') ?? '',
   };
 };
 
@@ -309,7 +313,8 @@ const exportExcelFile = (array: any[], sheetName = 'sheet1', fileName = 'example
           { wch: 30 }, // 第五列
           { wch: 50 }, // 第六列
           { wch: 50 }, // 第七列
-          { wch: 20 }, // 第八列
+          { wch: 50 }, // 第八列
+          { wch: 20 }, // 第九列
         ],
       }),
     },
