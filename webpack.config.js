@@ -182,6 +182,7 @@ module.exports = (cliEnv = {}, argv) => {
         http: false,
         https: false,
         child_process: false,
+        crypto: false,
       },
     },
     devServer: {

@@ -36,7 +36,7 @@ export const createFolder = async (params: {
   parentId?: string;
   name: string;
   workspaceKey: string;
-  sortIndex?: number
+  sortIndex?: number;
 }) => {
   const batchSortIndex = generateSortIndex();
 
@@ -44,7 +44,7 @@ export const createFolder = async (params: {
     parent: params.parentId ? Repository.createWithoutData(params.parentId) : undefined,
     workspaceKey: params.workspaceKey,
     name: params.name,
-    sortIndex: params.sortIndex ?? batchSortIndex + 1
+    sortIndex: params.sortIndex ?? batchSortIndex + 1,
   });
 
   return await repository.save();
