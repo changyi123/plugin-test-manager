@@ -84,7 +84,9 @@ export const generateSortIndex = (index = 0) => {
 };
 /** 生成静态资源文件地址 */
 export const generateStaticFileUrl = (url: string) => {
-  return `${getProximaBasePath()}${url}`;
+  // 对数据进行兼容
+  const isStartWithProjectPath = /^\/project/.test(url);
+  return `${!isStartWithProjectPath ? getProximaBasePath() : ''}${url}`;
 };
 
 /** panel 消息通知 */
