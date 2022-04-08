@@ -26,6 +26,21 @@ type ITreeNode = TreeNode & {
   path?: string;
 };
 
+const OSnow = () => {
+  const agent = navigator.userAgent.toLowerCase();
+  const isMac = /macintosh|mac os x/i.test(navigator.userAgent);
+
+  if (agent.indexOf('win32') >= 0 || agent.indexOf('wow32') >= 0) {
+    return 'win32';
+  }
+  if (agent.indexOf('win64') >= 0 || agent.indexOf('wow64') >= 0) {
+    return 'win64';
+  }
+  if (isMac) {
+    return 'mac';
+  }
+};
+
 const treeToArray = (datas: any[]): any[] =>
   clone(datas).reduce((prev, cur) => {
     prev = prev.concat(cur);
@@ -139,10 +154,12 @@ const getSteps = (steps?: Step[]) => {
       },
     );
 
+  const code = OSnow() === 'mac' ? '\r' : '\r\n';
+
   return {
-    步骤描述: data?.action.join('\r\n') ?? '',
-    预期结果: data?.result.join('\r\n') ?? '',
-    数据: data?.data.join('\r\n') ?? '',
+    步骤描述: data?.action.join(code) ?? '',
+    预期结果: data?.result.join(code) ?? '',
+    数据: data?.data.join(code) ?? '',
   };
 };
 
