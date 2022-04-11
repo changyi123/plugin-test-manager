@@ -1,5 +1,7 @@
 const { data, fieldMapping, workspaceId } = triggerParams;
 
+console.log('vali-1111', data);
+
 // 根据 workspaceKId 获取事项类型
 const getItemTypeName = async () => {
   const workspace = await apis.getData(false, 'Workspace', {

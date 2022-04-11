@@ -1,5 +1,7 @@
 const { data, appFieldsData } = triggerParams;
 
+console.log('import-22222', data);
+
 // uuid
 function getRandomIntInclusive(min, max) {
   min = Math.ceil(min);
