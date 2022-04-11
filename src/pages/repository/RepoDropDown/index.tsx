@@ -18,7 +18,7 @@ const RepoDropDown = ({
     (key: string) => {
       if (key === 'import') {
         // 跳转到导入页面
-        const href = `/osc/workspaces/${workspace.key}/import/${workspace.objectId}?app=test_manager`;
+        const href = `/osc/workspaces/${workspace.key}/import/${workspace.objectId}?app=test_manager&&disableToggleWorkspace`;
         window.open(href);
       } else {
         importTestInfo({
