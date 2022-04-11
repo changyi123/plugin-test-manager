@@ -87,7 +87,7 @@ const getItemStatus = async () => {
   return data
     .map(d => d.toJSON())
     .reduce((prev, cur) => {
-      cur.status.forEach(c => {
+      cur.status?.forEach(c => {
         prev.set(c.key, c.name);
       });
 
@@ -104,7 +104,7 @@ const getGroupPath = (repoData: any[], objectId: string) => {
 };
 
 const getStatus = (statusMap: any, status?: string) => ({
-  最新执行状态: statusMap.get(status || 'TODO') ?? '',
+  最新执行状态: statusMap.get(status || 'TODO') ?? '未开始',
 });
 
 /** 获取导出 excel 表数据 */
