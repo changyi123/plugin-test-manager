@@ -9,7 +9,7 @@
     "start": "webpack server --mode=development",
     "build-app": "sh ./build-app.sh",
     "lint": "eslint src --ext .js,.jsx,.ts,.tsx",
-    "prepare": "npx patch-package"
+    "postinstall": "patch-package"
   },
   "repository": {
     "type": "git"
@@ -52,7 +52,6 @@
     "less-loader": "^10.0.1",
     "less-plugin-functions": "^1.0.0",
     "mini-css-extract-plugin": "^2.3.0",
-    "patch-package": "^6.4.7",
     "postcss": "^8.3.6",
     "postcss-loader": "^6.1.1",
     "postcss-selector-namespace": "^3.0.1",
@@ -66,7 +65,8 @@
     "webpack-cli": "^4.8.0",
     "webpack-dev-server": "^4.5.0",
     "webpack-merge": "^5.8.0",
-    "webpackbar": "^5.0.0-3"
+    "webpackbar": "^5.0.0-3",
+    "postinstall-postinstall": "^2.1.0"
   },
   "dependencies": {
     "@ant-design/icons": "^4.7.0",
@@ -96,6 +96,7 @@
     "url": "^0.11.0",
     "uuid": "^8.3.2",
     "xlsx": "^0.18.5",
-    "xlsx-style": "^0.8.13"
+    "xlsx-style": "^0.8.13",
+    "patch-package": "^6.4.7"
   }
 }
