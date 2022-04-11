@@ -49,7 +49,7 @@ const workspaceKey = await getWorkspaceKey();
 const getActionAndResultData = datas =>
   (getCharNum(datas) > 500 ? '' : datas).replace(/^【\d+】/, '');
 
-const splitData = datas => datas?.split(/[\r\n]+/g);
+const splitData = datas => datas?.split?.(/[\r\n]+/g);
 
 const getStepsData = datas => {
   const stepsMap = new Map();

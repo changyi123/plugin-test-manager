@@ -22,10 +22,10 @@ const getItemTypeName = async () => {
 const itemTypeName = await getItemTypeName();
 
 // 判断数据是否超过 1000 条
-const isMoreThanThousands = d => d?.length > 1000;
+const isMoreThanThousands = d => d?.length > 500;
 
 // 根据数据是否超过 1000 条来截取数据
-const getDataByLength = d => (isMoreThanThousands(d) ? d.slice(0, 1000) : d);
+const getDataByLength = d => (isMoreThanThousands(d) ? d.slice(0, 500) : d);
 
 const isFilter = d => d.name && !isFilterGroup(d.group);
 
@@ -33,7 +33,7 @@ const filterData = d => d.filter(item => isFilter(item));
 
 const clone = d => JSON.parse(JSON.stringify(d));
 
-const errorLog1 = '单次导入最多支持1000条，超过1000条，导入前1000条';
+const errorLog1 = '单次导入最多支持500条，超过500条，导入前500条';
 
 const getNullNameIndex = (item, index) => (item.name ? null : index);
 
@@ -53,7 +53,7 @@ const getCharNum = d =>
 
 const getConditionIndex = (item, index) => (getCharNum(item.precondition) > 500 ? index : null);
 
-const splitData = datas => datas?.split(/[\r\n]+/g) ?? [];
+const splitData = datas => datas?.split?.(/[\r\n]+/g) ?? [];
 
 const commonMap = (d, fn) => d?.map((item, index) => fn(item, index)).filter(item => item !== null);
 
@@ -80,7 +80,7 @@ const getStepErrorsData = (errors, datas, type, getTips) =>
   errors.concat(getStepsIndex(datas, type).map(i => getTips(i)));
 
 const getErrors = (datas, errors = []) => {
-  // 校验用例数量是否超过 1000
+  // 校验用例数量是否超过 500
   if (isMoreThanThousands(datas)) {
     !errors.includes(errorLog1) && errors.push(errorLog1);
   }
