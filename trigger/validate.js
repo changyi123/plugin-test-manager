@@ -58,7 +58,7 @@ const splitData = datas => datas?.split?.(/[\r\n]+/g) ?? [];
 const commonMap = (d, fn) => d?.map((item, index) => fn(item, index)).filter(item => item !== null);
 
 const getIndexObj = (item, index, type) => {
-  const _data = splitData(item[type])
+  const _data = splitData(`${item[type] ?? ''}`)
     .map((item, i) => (getCharNum(item) > 500 ? i : null))
     .filter(d => d !== null);
 

@@ -1,6 +1,6 @@
 const { data, appFieldsData } = triggerParams;
 
-console.log('import-22222', data);
+console.log('import-22222', appFieldsData);
 
 // uuid
 function getRandomIntInclusive(min, max) {
@@ -54,7 +54,7 @@ const splitData = datas => datas?.split?.(/[\r\n]+/g);
 const getStepsData = datas => {
   const stepsMap = new Map();
 
-  splitData(datas.action)?.forEach((action, index) => {
+  splitData(`${datas.action ?? ''}`)?.forEach((action, index) => {
     stepsMap.set(index, {
       action: getActionAndResultData(action),
       result: stepsMap.get(index)?.result ?? '',
@@ -63,7 +63,7 @@ const getStepsData = datas => {
     });
   });
 
-  splitData(datas.result)?.forEach((result, index) => {
+  splitData(`${datas.result ?? ''}`)?.forEach((result, index) => {
     stepsMap.set(index, {
       action: stepsMap.get(index)?.action ?? '',
       result: getActionAndResultData(result),
@@ -72,7 +72,7 @@ const getStepsData = datas => {
     });
   });
 
-  splitData(datas.data)?.forEach((_data, index) => {
+  splitData(`${datas.data ?? ''}`)?.forEach((_data, index) => {
     stepsMap.set(index, {
       data: getActionAndResultData(_data),
       action: stepsMap.get(index)?.action ?? '',
