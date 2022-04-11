@@ -154,7 +154,7 @@ const getSteps = (steps?: Step[]) => {
       },
     );
 
-  const code = OSnow() === 'mac' ? '\r' : '\r\n';
+  const code = OSnow() === 'mac' ? '\n' : '\r\n';
 
   return {
     步骤描述: data?.action.join(code) ?? '',
