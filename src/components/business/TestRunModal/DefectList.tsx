@@ -128,7 +128,7 @@ const DefectList: React.FC<DefectListProps> = ({
         className={cx('add-btn')}
         testId={testRunData.objectId}
         allRelationDefectIds={allRelationDefectItemIds}
-        currentDefectIds={testRunData.runDetail.defectItemIds}
+        currentDefectIds={testRunData.runDetail?.defectItemIds}
         onSave={defectItemIds => handleDefectAdd(defectItemIds)}
       />
     </div>
