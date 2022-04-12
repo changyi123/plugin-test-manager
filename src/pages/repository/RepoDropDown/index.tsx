@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { Button, Dropdown, Menu } from '@osui/ui';
+import { Button, Dropdown, Menu, message } from '@osui/ui';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import importTestInfo, { TreeNode } from './export';
 
@@ -18,9 +18,13 @@ const RepoDropDown = ({
     (key: string) => {
       if (key === 'import') {
         // 跳转到导入页面
-        const href = `/osc/workspaces/${workspace.key}/import/${workspace.objectId}?app=test_manager`;
+        const href = `/osc/workspaces/${workspace.key}/import/${workspace.objectId}?app=test_manager&&disableToggleWorkspace`;
         window.open(href);
       } else {
+        if (type === 'repository' && key === 'exportGroup' && !folderKey) {
+          message.warning('未选择用例库，请先选择需要导出的用例库');
+        }
+
         importTestInfo({
           type: key,
           checkGroupKey: folderKey,
@@ -29,7 +33,7 @@ const RepoDropDown = ({
         });
       }
     },
-    [workspace, folderKey, treeNodeData],
+    [workspace, type, folderKey, treeNodeData],
   );
 
   const menu = (

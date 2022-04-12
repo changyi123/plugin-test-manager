@@ -1,5 +1,7 @@
 const { data, appFieldsData } = triggerParams;
 
+console.log('import-22222', appFieldsData);
+
 // uuid
 function getRandomIntInclusive(min, max) {
   min = Math.ceil(min);
@@ -55,7 +57,7 @@ const pickStepIndex = data => {
 const getActionAndResultData = datas =>
   (getCharNum(datas) > 500 ? '' : datas).replace(/^【\d+】/, '');
 
-const splitData = datas => datas?.split(/[\r\n]+/g);
+const splitData = datas => datas?.split?.(/[\r\n]+/g);
 
 const getStepsData = datas => {
   const stepsMap = new Map();
@@ -67,7 +69,7 @@ const getStepsData = datas => {
     isStrictEOLModeReg.test(datas.result) &&
     isStrictEOLModeReg.test(datas.data);
 
-  splitData(datas.action)?.forEach((action, index) => {
+  splitData(datas.action ?? '')?.forEach((action, index) => {
     stepsMap.set(isStrictEOLMode ? pickStepIndex(action) : index, {
       action: getActionAndResultData(action),
       result: stepsMap.get(index)?.result ?? '',
@@ -76,7 +78,7 @@ const getStepsData = datas => {
     });
   });
 
-  splitData(datas.result)?.forEach((result, index) => {
+  splitData(datas.result ?? '')?.forEach((result, index) => {
     stepsMap.set(isStrictEOLMode ? pickStepIndex(result) : index, {
       action: stepsMap.get(index)?.action ?? '',
       result: getActionAndResultData(result),
@@ -85,7 +87,7 @@ const getStepsData = datas => {
     });
   });
 
-  splitData(datas.data)?.forEach((_data, index) => {
+  splitData(datas.data ?? '')?.forEach((_data, index) => {
     stepsMap.set(isStrictEOLMode ? pickStepIndex(_data) : index, {
       data: getActionAndResultData(_data),
       action: stepsMap.get(index)?.action ?? '',

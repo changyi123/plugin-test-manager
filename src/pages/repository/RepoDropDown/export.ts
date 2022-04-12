@@ -165,7 +165,10 @@ const getSteps = (steps?: Step[]) => {
 
 /** 获取负责人 */
 const getAssignee = (values?: Record<string, unknown>): string =>
-  (values?.assignee as any[])?.map(val => val.username).join(',') ?? '';
+  (values?.assignee as any[])
+    ?.map(val => (val.value ? val.username : ''))
+    .filter(Boolean)
+    .join(',') ?? '';
 
 /** 获取优先级 */
 const getPriority = (values?: Record<string, unknown>, priInfo?: any) =>
@@ -191,7 +194,7 @@ const getIds = (childrens: ITreeNode[], data: string[]) =>
 const getCurTestDetailIds = (testRepoData, folderKey) => {
   const curTestRepo = testRepoData.find(groups => groups.key === folderKey);
 
-  return getIds(curTestRepo.children ?? [], curTestRepo.testDetailIds ?? []);
+  return getIds(curTestRepo?.children ?? [], curTestRepo?.testDetailIds ?? []);
 };
 
 const getTreeData = async (workspaceKey: string) => {

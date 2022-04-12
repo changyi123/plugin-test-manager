@@ -1,5 +1,7 @@
 const { data, fieldMapping, workspaceId } = triggerParams;
 
+console.log('vali-1111', data);
+
 // 根据 workspaceKId 获取事项类型
 const getItemTypeName = async () => {
   const workspace = await apis.getData(false, 'Workspace', {
@@ -51,12 +53,12 @@ const getCharNum = d =>
 
 const getConditionIndex = (item, index) => (getCharNum(item.precondition) > 500 ? index : null);
 
-const splitData = datas => datas?.split(/[\r\n]+/g) ?? [];
+const splitData = datas => datas?.split?.(/[\r\n]+/g) ?? [];
 
 const commonMap = (d, fn) => d?.map((item, index) => fn(item, index)).filter(item => item !== null);
 
 const getIndexObj = (item, index, type) => {
-  const _data = splitData(item[type])
+  const _data = splitData(`${item[type] ?? ''}`)
     .map((item, i) => (getCharNum(item) > 500 ? i : null))
     .filter(d => d !== null);
 
