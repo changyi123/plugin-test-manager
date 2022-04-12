@@ -7,7 +7,7 @@ import { TestType } from '@/lib/constants';
 import { CustomField, TestConfig } from '@/lib/models';
 import { Item } from '@/lib/types/App';
 import { Step } from '@/lib/types/Test';
-import { clone } from 'lodash';
+import { clone, filter } from 'lodash';
 import { getFolderTree } from '@/lib/api/repository';
 import { traverseTreeNodes } from '../hook';
 import { ROOT_FOLDER_KEY } from '../constant';
@@ -165,7 +165,10 @@ const getSteps = (steps?: Step[]) => {
 
 /** 获取负责人 */
 const getAssignee = (values?: Record<string, unknown>): string =>
-  (values?.assignee as any[])?.map(val => val.username).join(',') ?? '';
+  (values?.assignee as any[])
+    ?.map(val => (val.value ? val.username : ''))
+    .filter(Boolean)
+    .join(',') ?? '';
 
 /** 获取优先级 */
 const getPriority = (values?: Record<string, unknown>, priInfo?: any) =>
