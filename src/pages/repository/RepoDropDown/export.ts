@@ -7,7 +7,7 @@ import { TestType } from '@/lib/constants';
 import { CustomField, TestConfig } from '@/lib/models';
 import { Item } from '@/lib/types/App';
 import { Step } from '@/lib/types/Test';
-import { clone, filter } from 'lodash';
+import { clone } from 'lodash';
 import { getFolderTree } from '@/lib/api/repository';
 import { traverseTreeNodes } from '../hook';
 import { ROOT_FOLDER_KEY } from '../constant';
@@ -194,7 +194,7 @@ const getIds = (childrens: ITreeNode[], data: string[]) =>
 const getCurTestDetailIds = (testRepoData, folderKey) => {
   const curTestRepo = testRepoData.find(groups => groups.key === folderKey);
 
-  return getIds(curTestRepo.children ?? [], curTestRepo.testDetailIds ?? []);
+  return getIds(curTestRepo?.children ?? [], curTestRepo?.testDetailIds ?? []);
 };
 
 const getTreeData = async (workspaceKey: string) => {
