@@ -44,6 +44,14 @@ const getWorkspaceKey = async () => {
 
 const workspaceKey = await getWorkspaceKey();
 
+// 步骤每项的开始标志
+const stepStartToken = '【\\d+】';
+// 步骤换行符标志
+const stepEOLToken = '\\r\\n';
+// 提取步骤 index
+const pickStepIndex = data => {
+  return data.replace(/【(\d+)】.*?$/, '$1');
+};
 const getActionAndResultData = datas =>
   (getCharNum(datas) > 500 ? '' : datas).replace(/^【\d+】/, '');
 
@@ -52,8 +60,15 @@ const splitData = datas => datas?.split(/[\r\n]+/g);
 const getStepsData = datas => {
   const stepsMap = new Map();
 
+  const isStrictEOLModeReg = new RegExp(`(^|(${stepEOLToken}))${stepStartToken}`, 'g');
+  // 严格换行模式
+  const isStrictEOLMode =
+    isStrictEOLModeReg.test(datas.action) &&
+    isStrictEOLModeReg.test(datas.result) &&
+    isStrictEOLModeReg.test(datas.data);
+
   splitData(datas.action)?.forEach((action, index) => {
-    stepsMap.set(index, {
+    stepsMap.set(isStrictEOLMode ? pickStepIndex(action) : index, {
       action: getActionAndResultData(action),
       result: stepsMap.get(index)?.result ?? '',
       data: stepsMap.get(index)?.data ?? '',
@@ -62,7 +77,7 @@ const getStepsData = datas => {
   });
 
   splitData(datas.result)?.forEach((result, index) => {
-    stepsMap.set(index, {
+    stepsMap.set(isStrictEOLMode ? pickStepIndex(result) : index, {
       action: stepsMap.get(index)?.action ?? '',
       result: getActionAndResultData(result),
       data: stepsMap.get(index)?.data ?? '',
@@ -71,7 +86,7 @@ const getStepsData = datas => {
   });
 
   splitData(datas.data)?.forEach((_data, index) => {
-    stepsMap.set(index, {
+    stepsMap.set(isStrictEOLMode ? pickStepIndex(_data) : index, {
       data: getActionAndResultData(_data),
       action: stepsMap.get(index)?.action ?? '',
       result: stepsMap.get(index)?.result ?? '',
