@@ -47,15 +47,15 @@ const getWorkspaceKey = async () => {
 const workspaceKey = await getWorkspaceKey();
 
 // 步骤每项的开始标志
-const stepStartToken = '【\\d+】';
+const stepStartToken = '【\\d+】|\\d+\\.*';
 // 步骤换行符标志
 const stepEOLToken = '\\r\\n';
 // 提取步骤 index
 const pickStepIndex = data => {
-  return data.replace(/【(\d+)】.*?$/, '$1');
+  return data.replace(/【?(\d+)】?\.*.*?$/, '$1');
 };
 const getActionAndResultData = datas =>
-  (getCharNum(datas) > 500 ? '' : datas).replace(/^【\d+】/, '');
+  (getCharNum(datas) > 500 ? '' : datas).replace(/^(【\d+】|\d+\.*)/, '');
 
 const splitData = datas => datas?.split?.(/[\r\n]+/g);
 
