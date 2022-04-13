@@ -37,7 +37,7 @@ const errorLog1 = '单次导入最多支持1000条，超过1000条，导入前10
 
 const getNullNameIndex = (item, index) => (item.name ? null : index);
 
-const isFilterGroup = group => group?.split?.('/').length > 5;
+const isFilterGroup = group => group?.split?.('/').filter(d => d.replace(/\s*/g, '')).length > 5;
 
 const getGroupIndex = (item, index) => (isFilterGroup(item.group) ? index : null);
 

@@ -217,11 +217,12 @@ const filterImportGroupData = datas =>
     return prev;
   }, []);
 
+const getGroupPath = group => group?.split('/').filter(d => d.replace(/\s*/g, ''));
+
 const getImportGroupData = () =>
   appFieldsData
     .map(d =>
-      d.group
-        ?.split('/')
+      getGroupPath(d.group)
         .reduce((prev, cur, index) => {
           prev[index] = {
             name: cur,
@@ -265,7 +266,7 @@ const handleFieldsData = async testManagerTestData => {
 
   const newRepoObj = appFieldsData
     .map(field => {
-      const repoData = repoDatas.find(gro => gro.path === field.group);
+      const repoData = repoDatas.find(gro => gro.path === getGroupPath(field.group).join('/'));
 
       if (!repositoryMap.has(repoData?.objectId)) {
         const repository = new RepoParseObj({
