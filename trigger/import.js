@@ -27,7 +27,7 @@ const clone = d => JSON.parse(JSON.stringify(d));
 const isTwoChar = d => /[^\x00-\xff]/g.test(d);
 
 const getCharNum = d =>
-  d?.split('').reduce((prev, cur) => {
+  d?.split?.('').reduce((prev, cur) => {
     prev = prev + (isTwoChar(cur) ? 2 : 1);
 
     return prev;
