@@ -96,7 +96,7 @@ const getStepsData = datas => {
     });
   });
 
-  return [...stepsMap.values()];
+  return [...stepsMap.values()].filter(d => d.data || d.action || d.result);
 };
 
 // 创建测试用例数据，返回测试用例
