@@ -1,8 +1,6 @@
 import React from 'react';
-import { noop } from 'lodash';
 import cx from './index.less';
 import { message } from '@osui/ui';
-import { useDebounceFn } from 'ahooks';
 import { isEqual, pick } from 'lodash';
 import { PlusOutlined } from '@/icons';
 import { TestType } from '@/lib/constants';
@@ -40,9 +38,6 @@ const TestStep: React.FC<TestStepProps> = ({
   const isInitialStepRef = React.useRef(false);
   const testEntitySelectorRef = React.createRef<TestEntitySelectorActionType>();
   const [steps, _setSteps] = React.useState([]);
-  const { run: debouncedOnChange } = useDebounceFn(onChange ?? noop, {
-    wait: 800,
-  });
 
   const setSteps = React.useCallback(
     newSteps => {
@@ -50,10 +45,10 @@ const TestStep: React.FC<TestStepProps> = ({
       // 向上级组件通信
       if (!isEqual(stepsProps, newSteps)) {
         // stepsCacheRef.current
-        debouncedOnChange?.(newSteps);
+        onChange?.(newSteps);
       }
     },
-    [stepsProps, _setSteps, debouncedOnChange],
+    [stepsProps, _setSteps, onChange],
   );
 
   const stepActions = React.useMemo(() => {

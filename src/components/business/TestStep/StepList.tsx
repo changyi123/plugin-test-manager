@@ -34,7 +34,6 @@ const StepFields: React.FC<{
               field.component,
               Object.assign(
                 {
-                  contentEditable: true,
                   key: field.key,
                   maxLength: 500,
                   placeholder: `请输入${field.title}`,

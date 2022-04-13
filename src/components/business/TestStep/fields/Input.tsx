@@ -2,7 +2,6 @@ import React from 'react';
 import { useHover } from 'ahooks';
 import classnames from 'classnames';
 import { StepFieldProps } from '../type';
-import { escapeHtmlString } from '@/lib/utils/helper';
 
 const Input: React.ForwardRefRenderFunction<
   HTMLDivElement,
@@ -24,6 +23,17 @@ const Input: React.ForwardRefRenderFunction<
   const ref = React.useRef<HTMLDivElement>();
 
   React.useImperativeHandle(inheritedProps, () => ref.current);
+
+  React.useEffect(() => {
+    const handlePaste = e => {
+      let data = e.clipboardData.getData('text/html') || e.clipboardData.getData('text/plain');
+      const regex = /<(?!(\/\s*)?(a|b|i|em|s|strong|u)[>,\s])([^>])*>/g;
+      data = data.replace(regex, '');
+      document.execCommand('insertHTML', false, data);
+      e.preventDefault();
+    };
+    ref.current.addEventListener('paste', handlePaste);
+  }, []);
 
   const isHover = useHover(ref);
 
@@ -56,16 +66,16 @@ const Input: React.ForwardRefRenderFunction<
   return (
     <div
       ref={ref}
-      contentEditable={'plaintext-only' as any}
       {...restProps}
       spellCheck={false}
       onBlur={handleBlur}
+      contentEditable={true}
       onKeyDown={handleKeyDown}
       placeholder={placeholder ?? `请输入`}
       suppressContentEditableWarning={true}
       className={classnames('test-step-field', 'input', isHover && 'hover', className)}
     >
-      {escapeHtmlString(value)}
+      {value}
     </div>
   );
 };
