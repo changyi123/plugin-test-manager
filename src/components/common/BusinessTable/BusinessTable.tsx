@@ -61,6 +61,7 @@ export type ActionType = {
   expandChangePage?: (num: number) => void;
   toggleSelection: (visible?: boolean) => void;
   selectedRows: any[];
+  resetSelectedRows: () => void;
 };
 
 type BusinessTableProps = TableProps<any> & {
@@ -105,6 +106,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
   const currentPageRowsRef = React.useRef([]);
   const initialExpandedRef = React.useRef(false);
   const [expandedRowKeys, setExpandedKeys] = React.useState([]);
+  const [selectedRowDatas, setSelectedRowDatas] = React.useState<string[] | undefined>(undefined);
   const [selectedRowKeys, setSelectedRowKeys] = React.useState<string[] | undefined>(undefined);
   const [selectionMode, setSelectionMode] = React.useState(false);
   const COLUMN_WIDTH_STORAGE_KEY = generateStorageKey(props.name, 'column-width');
@@ -187,11 +189,10 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     if (Array.isArray(dataSource) && dataSource.length) {
       currentPageRowsRef.current = dataSource;
     }
-    setSelectedRowKeys(undefined);
-  }, [setSelectedRowKeys, dataSource]);
+  }, [dataSource]);
 
   React.useEffect(() => {
-    if (isCheck !== selectedRowKeys?.length > 0) {
+    if (!!isCheck !== selectedRowKeys?.length > 0) {
       setIsCheck?.(selectedRowKeys?.length > 0);
     }
   }, [selectedRowKeys, setIsCheck, isCheck]);
@@ -227,15 +228,21 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
   const SelectionActionHeader = () => {
     if (!selectionMode) return null;
     const selectedRows = selectedRowKeys?.map(key =>
-      currentPageRowsRef.current.find(row => row[props.rowKey as any] === key),
+      dataSource.find(row => row[props.rowKey as any] === key),
     );
 
     const handleCheck = checked => {
+      const allRowKeys = dataSource.map(item => item[props.rowKey as any]);
+      const _selectedRowKeys = selectedRowKeys?.filter(d => !allRowKeys.includes(d)) ?? [];
+      const _selectedRowDatas =
+        selectedRowDatas?.filter(d => !allRowKeys.includes(d[props.rowKey as string])) ?? [];
+
       if (checked === false) {
-        setSelectedRowKeys(undefined);
+        setSelectedRowKeys(_selectedRowKeys);
+        setSelectedRowDatas(_selectedRowDatas);
       } else {
-        const allRowKeys = dataSource.map(item => item[props.rowKey as any]);
-        setSelectedRowKeys(allRowKeys);
+        setSelectedRowKeys(_selectedRowKeys.concat(allRowKeys));
+        setSelectedRowDatas(_selectedRowDatas.concat(dataSource));
       }
     };
 
@@ -251,7 +258,9 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
           onClose={handleClose}
           checkboxProps={{
             onChange: e => handleCheck(e.target.checked),
-            checked: Boolean(selectedRows?.length) && selectedRows.length === dataSource.length,
+            checked:
+              Boolean(selectedRows?.length) &&
+              dataSource.filter(d => selectedRows.includes(d)).length === dataSource.length,
             indeterminate: Boolean(selectedRows?.length) && selectedRows.length < dataSource.length,
           }}
           selectNum={selectedRows?.length}
@@ -295,8 +304,20 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
         maxWidth: 32,
         columnWidth: 32,
         selectedRowKeys,
-        onChange(selectedRowKeys) {
-          setSelectedRowKeys(selectedRowKeys);
+        onChange(rowKeys: string[]) {
+          const curKeys = dataSource.map(d => d[props.rowKey as string]);
+          const _selectedRowKeys = selectedRowKeys?.filter(d => !curKeys.includes(d)) ?? [];
+          const _selectedRowDatas =
+            selectedRowDatas?.filter(d => !curKeys.includes(d[props.rowKey as string])) ?? [];
+
+          const _rowKeys = rowKeys.concat(_selectedRowKeys);
+
+          const curRowDatas = dataSource.filter(d => rowKeys.includes(d[props.rowKey as string]));
+
+          const _rowDatas = curRowDatas.concat(_selectedRowDatas);
+
+          setSelectedRowKeys(_rowKeys);
+          setSelectedRowDatas(_rowDatas);
         },
       }
     : undefined;
@@ -309,11 +330,13 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
       },
       refresh,
       expandChangePage,
-      selectedRows: selectedRowKeys?.map(key =>
-        currentPageRowsRef.current.find(row => row[props.rowKey as any] === key),
-      ),
+      selectedRows: selectedRowDatas,
+      resetSelectedRows: () => {
+        setSelectedRowKeys(undefined);
+        setSelectedRowDatas(undefined);
+      },
     }),
-    [expandChangePage, props.rowKey, refresh, selectedRowKeys],
+    [expandChangePage, selectedRowDatas, refresh],
   );
 
   React.useEffect(() => {

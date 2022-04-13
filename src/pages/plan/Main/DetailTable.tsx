@@ -145,8 +145,10 @@ const DetailTable = () => {
       notification.success({
         message: `${testDetailIds.length} 个测试用例从测试计划中移除`,
       });
+
+      actionRef.current.resetSelectedRows();
     },
-    [refreshAndMutateData],
+    [refreshAndMutateData, actionRef],
   );
 
   const selectionActionNodes = React.useMemo(() => {

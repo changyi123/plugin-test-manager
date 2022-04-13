@@ -110,6 +110,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         notification.success({
           message: `${tableActionRef.current.selectedRows.length} 个测试用例已被删除`,
         });
+        tableActionRef.current.resetSelectedRows();
       });
     };
 
@@ -170,7 +171,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         <DeleteOutlined /> 删除
       </span>,
     ];
-  }, [isCheck, userData, refreshAndMutateData, workspaceKey]);
+  }, [isCheck, tableActionRef, userData, refreshAndMutateData, workspaceKey]);
 
   const columns = React.useMemo(() => {
     const deleteTestDetail = data => {

@@ -136,8 +136,12 @@ const ExecutionTable = () => {
       notification.success({
         message: `${relationTypeIds.length} 个测试执行从测试计划中移除`,
       });
+
+      Object.values(innerTableRefs.current).forEach((res: any) => {
+        res.resetSelectedRows();
+      });
     },
-    [refreshAndMutateData],
+    [refreshAndMutateData, innerTableRefs],
   );
 
   const addTestDetail = async rowData => {
