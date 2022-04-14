@@ -10,6 +10,7 @@ import { useItemLinkTypeConfig } from './hooks';
 import { TabsComponentBaseProps } from './type';
 import { Popconfirm, Tooltip, Empty } from '@osui/ui';
 import { addDefect, deleteDefect } from '@/lib/api/runs';
+import { generateStaticFileUrl } from '@/lib/utils/helper';
 
 const getPopupContainer = () =>
   document.querySelector('[data-element-id="test-run-container"]') as HTMLDivElement;
@@ -79,7 +80,12 @@ const DefectList: React.FC<DefectListProps> = ({
     return (
       <div ref={ref} className={cx('defect', isHover && 'hover')}>
         <span className={cx('tag')}>{isGlobalDefect ? '全局' : `步骤${position}`}</span>
-        <img className={cx('icon')} src={(item.itemType as any)?.icon} width="16" height="16" />
+        <img
+          className={cx('icon')}
+          src={generateStaticFileUrl((item.itemType as any)?.icon)}
+          width="16"
+          height="16"
+        />
         <span className={cx('key')}>{item.key}</span>
         <span>{item.name}</span>
 

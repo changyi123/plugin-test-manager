@@ -1,6 +1,7 @@
 import React from 'react';
-import { TabsComponentBaseProps } from './type';
 import { Table } from '@osui/ui';
+import { TabsComponentBaseProps } from './type';
+import { generateStaticFileUrl } from '@/lib/utils/helper';
 
 const tableColumns = [
   {
@@ -17,7 +18,7 @@ const tableColumns = [
     render(itemType) {
       return (
         <>
-          <img src={itemType?.icon} width="16" height="16" />
+          <img src={generateStaticFileUrl(itemType?.icon)} width="16" height="16" />
           <span style={{ marginLeft: 8 }}>{itemType?.name}</span>
         </>
       );

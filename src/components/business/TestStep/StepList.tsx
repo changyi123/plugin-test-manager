@@ -12,6 +12,7 @@ import { CopyOutlined, DeleteOutlined, DragHandler } from '@/icons';
 import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd';
 import { getFieldByImpl, StepFieldImpl, BuiltinFieldKeys, getRootContainer } from './helper';
 import { useNextStepFieldContext, default as NextStepFieldProvider } from './NextStepFieldProvider';
+import { generateStaticFileUrl } from '@/lib/utils/helper';
 
 const REACT_DND_PORTAL_CLASS = 'react-beautiful-dnd-portal';
 let RBDPortal = null;
@@ -91,7 +92,7 @@ const StepRow: React.FC<StepRowProps> = props => {
       <div className={cx('call-test')}>
         <div>
           <span className={cx('brand')}>用例继承</span>
-          <img className={cx('icon')} src={itemType.icon} />
+          <img className={cx('icon')} src={generateStaticFileUrl(itemType.icon)} />
           <span>{item.key}</span>
         </div>
         <div className={cx('content')}>

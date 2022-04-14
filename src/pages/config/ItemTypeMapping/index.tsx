@@ -4,6 +4,7 @@ import { Select, Button, message } from '@osui/ui';
 import { useRequest, useSafeState } from 'ahooks';
 import { useDataContext, useCurrentTestConfig } from '../hooks';
 import { getTopItemTypeFromHierarchy } from '@/lib/api/proxima';
+import { generateStaticFileUrl } from '@/lib/utils/helper';
 
 import cx from './index.less';
 
@@ -50,7 +51,7 @@ const ItemTypeMapping = () => {
       const options = topItemTypes.map(itemType => ({
         label: (
           <span className={cx('item-type-selector-label')}>
-            <img className={cx('icon')} src={itemType.icon}></img>
+            <img className={cx('icon')} src={generateStaticFileUrl(itemType.icon)}></img>
             <span>{itemType.name}</span>
           </span>
         ),
