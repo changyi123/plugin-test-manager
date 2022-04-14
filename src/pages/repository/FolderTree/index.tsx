@@ -8,7 +8,8 @@ import { useTestConfig, useBaseAction } from '@/lib/hooks/useContext';
 import { useTreeFn, traverseTreeNodes } from '../hook';
 import { MenuKey, FolderMenu } from '../Menu';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
-import { Tree, Button, Modal, Input, notification, Empty, Dropdown } from '@osui/ui';
+import { Tree, Button, Input, notification, Empty, Dropdown } from '@osui/ui';
+import { Modal } from 'antd';
 import {
   CustomMore,
   CustomScreenOff,
@@ -230,10 +231,13 @@ const FolderTree: React.FC<FolderTreeProps> = ({
           className: cx('confirm'),
           getContainer: getRootContainer,
           title: '删除模块',
+          width: 500,
           content: (
             <>
               <div>确定删除【{node.name}】模块吗？</div>
-              <div>模块下的子模块将会一同删除，模块内的用例仍保留且自动移至未分组用例下。</div>
+              <div style={{ marginLeft: 14 }}>
+                模块下的子模块将会一同删除，模块内的用例仍保留且自动移至未分组用例下。
+              </div>
             </>
           ),
           okText: '删除',
