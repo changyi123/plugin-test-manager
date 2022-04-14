@@ -88,7 +88,9 @@ export const generateSortIndex = (index = 0) => {
 
 /** 生成静态资源文件地址 */
 export const generateStaticFileUrl = (url: string) => {
-  return `${/^\/project\//.test(url) ? url : getProximaBasePath()}${url}`;
+  const isFullUrl = /^(https?:)?\/\//.test(url);
+  if (isFullUrl) return url;
+  return `${/^\/project\//.test(url) ? '' : getProximaBasePath()}${url}`;
 };
 
 /** panel 消息通知 */
