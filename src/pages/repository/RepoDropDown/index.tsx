@@ -2,6 +2,7 @@ import React, { useCallback } from 'react';
 import { Button, Dropdown, Menu, message } from '@osui/ui';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import importTestInfo, { TreeNode } from './export';
+import { getProximaBasePath } from '@/lib/utils/helper';
 
 const RepoDropDown = ({
   type,
@@ -18,7 +19,9 @@ const RepoDropDown = ({
     (key: string) => {
       if (key === 'import') {
         // 跳转到导入页面
-        const href = `/osc/workspaces/${workspace.key}/import/${workspace.objectId}?app=test_manager&&disableToggleWorkspace`;
+        const href = `${getProximaBasePath()}osc/workspaces/${workspace.key}/import/${
+          workspace.objectId
+        }?app=test_manager&&disableToggleWorkspace`;
         window.open(href);
       } else {
         if (type === 'repository' && key === 'exportGroup' && !folderKey) {
