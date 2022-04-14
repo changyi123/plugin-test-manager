@@ -18,10 +18,9 @@ const RepoDropDown = ({
   const menuClick = useCallback(
     (key: string) => {
       if (key === 'import') {
+        const baseUrl = getProximaBasePath() ? getProximaBasePath() : '/';
         // 跳转到导入页面
-        const href = `${getProximaBasePath()}osc/workspaces/${workspace.key}/import/${
-          workspace.objectId
-        }?app=test_manager&&disableToggleWorkspace`;
+        const href = `${baseUrl}osc/workspaces/${workspace.key}/import/${workspace.objectId}?app=test_manager&&disableToggleWorkspace`;
         window.open(href);
       } else {
         if (type === 'repository' && key === 'exportGroup' && !folderKey) {
