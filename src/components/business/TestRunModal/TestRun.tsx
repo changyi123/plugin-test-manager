@@ -250,7 +250,7 @@ const TestRun: React.FC<TestRunType> = props => {
         return itemLinks?.length ?? 0;
       },
       defect() {
-        return allRelationDefectItems?.length ?? 0;
+        return allRelationDefects?.length ?? 0;
       },
     };
 

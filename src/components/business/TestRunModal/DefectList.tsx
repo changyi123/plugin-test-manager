@@ -36,7 +36,7 @@ const DefectList: React.FC<DefectListProps> = ({
 
   // 添加缺陷
   const handleDefectAdd = async defectItemIds => {
-    onLoading();
+    // onLoading();
     await Promise.all([
       addDefect(TestToDefect, testRunData.objectId, defectItemIds),
       updateTestRun(testRunEntity, {
@@ -136,6 +136,7 @@ const DefectList: React.FC<DefectListProps> = ({
         allRelationDefectIds={allRelationDefectItemIds}
         currentDefectIds={testRunData.runDetail?.defectItemIds}
         onSave={defectItemIds => handleDefectAdd(defectItemIds)}
+        onLoading={onLoading}
       />
     </div>
   );
