@@ -47,7 +47,7 @@ const getWorkspaceKey = async () => {
 const workspaceKey = await getWorkspaceKey();
 
 // 步骤每项的开始标志
-const stepStartToken = '【\\d+】|\\d+\\.*';
+const stepStartToken = '【\\d+】|\\d+\\.+';
 // 步骤换行符标志
 const stepEOLToken = '\\r\\n';
 // 提取步骤 index
