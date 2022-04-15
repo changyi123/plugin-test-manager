@@ -55,7 +55,7 @@ const pickStepIndex = data => {
   return data.replace(/【?(\d+)】?\.*.*?$/, '$1');
 };
 const getActionAndResultData = datas =>
-  (getCharNum(datas) > 500 ? '' : datas).replace(/^(【\d+】|\d+\.*)/, '');
+  (getCharNum(datas) > 500 ? '' : datas).replace(/^(【\d+】|\d+\.+)/, '');
 
 const splitData = datas => datas?.split?.(/[\r\n]+/g);
 
