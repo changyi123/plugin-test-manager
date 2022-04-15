@@ -257,9 +257,7 @@ const TestRun: React.FC<TestRunType> = props => {
     return (
       <div className={cx('tab-title')}>
         {tab.title}
-        {numGetters[tab.key]?.() ? (
-          <span className={cx('num')}>{numGetters[tab.key]?.()}</span>
-        ) : null}
+        <span className={cx('num')}>{numGetters[tab.key]?.() ?? ''}</span>
       </div>
     );
   };
