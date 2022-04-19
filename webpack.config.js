@@ -17,12 +17,13 @@ const distOutputPath = 'dist';
 const appPrefix = 'test-manager';
 
 // 环境变量
-function resolveClientEnv(raw) {
+function resolveClientEnv(raw, cliEnv) {
   const prefixRE = /^PROXIMA_/;
+  const assignedEnv = Object.assign({}, cliEnv, process.env);
   const env = {};
-  Object.keys(process.env).forEach(key => {
+  Object.keys(assignedEnv).forEach(key => {
     if (prefixRE.test(key) || key === 'NODE_ENV') {
-      env[key] = process.env[key];
+      env[key] = assignedEnv[key];
     }
   });
 
@@ -206,12 +207,12 @@ module.exports = (cliEnv = {}, argv) => {
     },
     plugins: [
       new WebpackBar(),
-      new webpack.DefinePlugin({ ...resolveClientEnv() }),
+      new webpack.DefinePlugin({ ...resolveClientEnv(false, cliEnv) }),
       new HtmlWebpackPlugin({
         template: path.resolve(__dirname, 'public/index.html'),
         filename: 'index.html',
         inject: true,
-        templateParameters: () => resolveClientEnv(true),
+        templateParameters: () => resolveClientEnv(true, cliEnv),
       }),
       isProd &&
         new MiniCssExtractPlugin({
