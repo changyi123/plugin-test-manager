@@ -46,7 +46,12 @@ const TestRunModal: React.FC<ITestRunModalProps> = props => {
         onCancel={handleCloseModal}
         getContainer={getRootContainer}
         footer={ModalFooterActionButtonsNode}
-        bodyStyle={{ maxWidth: '1000px', maxHeight: 'calc(100vh - 220px)', overflowY: 'auto' }}
+        bodyStyle={{
+          maxWidth: '1000px',
+          maxHeight: 'calc(100vh - 220px)',
+          overflowY: 'auto',
+          padding: '0 24px',
+        }}
       >
         {isVisible && <TestRun id={props.testId} idSequence={props.testIdSequence} />}
       </Modal>

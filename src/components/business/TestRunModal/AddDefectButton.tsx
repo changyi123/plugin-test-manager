@@ -14,10 +14,19 @@ type AddDefectButtonProps = {
   currentDefectIds: string[];
   allRelationDefectIds: string[];
   onSave: (ids: string[]) => void;
+  onLoading?: (load?: boolean) => void;
 };
 
 const AddDefectButton: React.FC<AddDefectButtonProps> = props => {
-  const { testId, onSave, currentDefectIds, allRelationDefectIds, className, plainStyle } = props;
+  const {
+    testId,
+    onSave,
+    onLoading,
+    currentDefectIds,
+    allRelationDefectIds,
+    className,
+    plainStyle,
+  } = props;
   const { createItemUseModal } = useBaseAction();
   const { TestToDefect = '' } = useItemLinkTypeConfig();
   const currentRef = React.useRef(null);
@@ -27,16 +36,18 @@ const AddDefectButton: React.FC<AddDefectButtonProps> = props => {
       type: TestType.TestDefect,
     });
 
+    onLoading?.();
     // 创建事项关联
     await addDefect(TestToDefect, testId, [defectItem.objectId]);
     const needAddedItemIds = [].concat(currentDefectIds, defectItem.objectId).filter(Boolean);
     onSave?.(needAddedItemIds);
     message.success('缺陷新建成功');
-  }, [createItemUseModal, testId, TestToDefect, onSave, currentDefectIds]);
+  }, [createItemUseModal, testId, TestToDefect, onSave, currentDefectIds, onLoading]);
 
   const addExistedDefect = async () => {
     const itemIds = await testEntitySelectorRef.current.open();
 
+    onLoading?.();
     // 创建事项关联
     await addDefect(TestToDefect, testId, itemIds);
     const needAddedItemIds = [].concat(currentDefectIds, itemIds).filter(Boolean);
