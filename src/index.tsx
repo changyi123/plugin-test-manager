@@ -7,7 +7,7 @@ import { ProximaSDK } from '@projectproxima/plugin-sdk';
 const rootElement = '#test-manager';
 
 // eslint-disable-next-line no-console
-console.log('%cPLUGIN-VERSION:', 'font-size: 18px; font-weight: 700; color: skyblue');
+console.log('%cPLUGIN-VERSION:', 'font-size: 16px; font-weight: 700; color: skyblue');
 // eslint-disable-next-line no-console
 console.table({
   Branch: (process.env as any)?.PROXIMA_BRANCH,
