@@ -62,7 +62,6 @@ export const getTestRunsAndExecutions = async (testDetailEntity, queryParams) =>
       fillItemData: true,
       queryParams,
       async resultTransfer(result) {
-        console.log('result', result);
         // 获取测试执行任务关联的测试执行
         const { list: allTestRuns } = await getTestEntitiesByRelation(
           TestRelationType.ExecutionRelRun,

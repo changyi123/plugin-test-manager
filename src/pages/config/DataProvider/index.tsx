@@ -1,6 +1,7 @@
 import React from 'react';
 import { DataContext } from '../context';
-import { useSessionStorageState } from 'ahooks';
+import { getTestConfig } from '@/lib/api/common';
+import { useSessionStorageState, useRequest } from 'ahooks';
 import WorkspaceSelectorModal from '../WorkspaceSelectorModal';
 
 const DataProvider = ({ children }) => {
@@ -12,8 +13,15 @@ const DataProvider = ({ children }) => {
   );
   const workspaceSelectorRef = React.useRef<any>();
 
+  const { data: globalConfig, refreshAsync: refreshGlobalConfig } = useRequest(async () => {
+    const globalConfig = await getTestConfig({ global: true });
+    return globalConfig.toJSON();
+  });
+
   const value = React.useMemo(() => {
     return {
+      globalConfig,
+      refreshGlobalConfig,
       workspace: currentWorkspace,
       /** 切换 workspace */
       toggleWorkspace: async () => {
@@ -21,7 +29,7 @@ const DataProvider = ({ children }) => {
         setCurrentWorkspace(workspace);
       },
     };
-  }, [currentWorkspace, setCurrentWorkspace]);
+  }, [currentWorkspace, globalConfig, refreshGlobalConfig, setCurrentWorkspace]);
 
   return (
     <DataContext.Provider value={value}>

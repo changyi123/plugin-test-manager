@@ -58,6 +58,13 @@ export const TestTypeNameMapping = {
   [TestType.TestDefect]: '缺陷',
 };
 
+// 内置三种事项类型标识
+export const BuiltinItemTypeMapping = {
+  [TestType.TestDetail]: 'test_manager_detail',
+  [TestType.TestPlan]: 'test_manager_plan',
+  [TestType.TestExecution]: 'test_manager_execution',
+};
+
 /** 本地存储前缀 */
 export const STORAGE_PREFIX_KEY = 'plugin-test-manager';
 

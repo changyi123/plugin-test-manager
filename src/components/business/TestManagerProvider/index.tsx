@@ -187,7 +187,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
       // 禁止创建或或关联（当又空间隔离配置时且当前空间和事项创建空间不相同时）
       const disabledCreateOrRelation =
         testConfig.isolateTestType?.includes(extraData.type) &&
-        workspace.key !== itemData.workspace.key;
+        workspace.key !== itemData.workspace?.key;
 
       if (disabledCreateOrRelation) return;
 
@@ -234,7 +234,6 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
       async createItemUseModal(params) {
         const { extraData, type, name } = params;
         let itemTypeKey = testConfig?.itemTypeMap?.[type] as string;
-
         // 获取缺陷事项类型 key
         if (type === TestType.TestDefect) {
           itemTypeKey = testConfig.defectsMapping?.[0];
