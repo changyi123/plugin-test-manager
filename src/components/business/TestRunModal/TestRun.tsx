@@ -250,16 +250,14 @@ const TestRun: React.FC<TestRunType> = props => {
         return itemLinks?.length ?? 0;
       },
       defect() {
-        return allRelationDefectItems?.length ?? 0;
+        return allRelationDefects?.length ?? 0;
       },
     };
 
     return (
       <div className={cx('tab-title')}>
         {tab.title}
-        {numGetters[tab.key]?.() ? (
-          <span className={cx('num')}>{numGetters[tab.key]?.()}</span>
-        ) : null}
+        <span className={cx('num')}>{numGetters[tab.key]?.() ?? ''}</span>
       </div>
     );
   };

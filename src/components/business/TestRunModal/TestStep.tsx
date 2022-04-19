@@ -36,7 +36,7 @@ const TestStep: React.FC<TestStepProps> = props => {
 
   // 添加缺陷
   const handleDefectAdd = async (stepId, defectItemIds) => {
-    onLoading();
+    // onLoading();
     const needUpdateSteps = steps.map(step =>
       step.id === stepId ? { ...step, defectItemIds } : step,
     );
@@ -201,6 +201,7 @@ const TestStep: React.FC<TestStepProps> = props => {
               currentDefectIds={step.defectItemIds}
               allRelationDefectIds={allRelationDefectItemIds}
               onSave={defectItemIds => handleDefectAdd(step.id, defectItemIds)}
+              onLoading={onLoading}
             />
           </div>
         </div>
