@@ -72,8 +72,7 @@ const getStepsData = datas => {
 
   const isStrictEOLModeReg = new RegExp(`(^|(${stepEOLToken}))${stepStartToken}`, 'g');
 
-  const getIsStrict = step =>
-    replaceRn(step) ? isStrictEOLModeReg.test(replaceRn(datas.action)) : true;
+  const getIsStrict = step => (replaceRn(step) ? isStrictEOLModeReg.test(replaceRn(step)) : true);
 
   // 严格换行模式
   const isStrictEOLMode =
