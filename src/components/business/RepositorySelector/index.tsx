@@ -1,15 +1,14 @@
-import React, { useCallback } from 'react';
+import { isEmpty } from 'lodash';
 import { useRequest } from 'ahooks';
+import React, { useCallback } from 'react';
 import { TestType } from '@/lib/constants';
+import EventBus from '@/lib/utils/eventBus';
 import { hasArrayItem } from '@/lib/utils/helper';
 import { getFolderTree } from '@/lib/api/repository';
-import { getAllTestWorkspaces } from '@/lib/api/proxima';
-import { useIsolateTestType } from '@/lib/hooks/useTest';
 import { traverseTreeNodes } from '@/pages/repository/hook';
 import { Modal, Select, Tree, Empty, Spin } from '@osui/ui';
-import { isEmpty } from 'lodash';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
-import EventBus from '@/lib/utils/eventBus';
+import { useIsolateTestType, useAllTestWorkspace } from '@/lib/hooks/useTest';
 
 import cx from './index.less';
 
@@ -43,17 +42,7 @@ const RepositorySelector: React.FC<RepositorySelectorProps> = props => {
   // 在提交之后置空用户所选的模块
   const resetTreeSelect = () => setTreeSelectedNode(null);
 
-  const { data: allTestWorkspaces } = useRequest(
-    async () => {
-      return getAllTestWorkspaces();
-    },
-    {
-      cacheKey: 'AllTestWorkspaces',
-      cacheTime: 99999999,
-      staleTime: 99999999,
-      // ready: Boolean(workspaceKey && isWorkspaceIsolate),
-    },
-  );
+  const allTestWorkspaces = useAllTestWorkspace();
 
   const options = React.useMemo(() => {
     return (

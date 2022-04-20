@@ -1,11 +1,12 @@
 /**
  * proxima api 只为获取数据，返回数据为 JSON。不要在插件内修改 proxima 内的数据模型 ！！
  */
-import { pick } from 'lodash';
 import Parse from '@/lib/parse';
 import fetch from '@/lib/utils/fetch';
+import { pick, unionBy } from 'lodash';
 import { IQLBuilder } from '@/lib/utils/iql';
 import { hasArrayItem } from '@/lib/utils/helper';
+import { WorkspaceScheme as WorkspaceSchemeType } from '@/lib/types/App';
 import {
   SYSTEM_FIELD,
   FIELD_TYPE_KEY_MAPPINGS,
@@ -248,14 +249,12 @@ export const updateItemAssignee = async (itemIds, assignee) => {
 
 /** 获取所有测试空间 */
 export const getAllTestWorkspaces = async () => {
-  const workspaceSchemeIds = await new Parse.Query(AppInstallation)
-    .matchesQuery('app', new Parse.Query(App).equalTo('key', TEST_MANAGER_PLUGIN_KEY))
-    .map(item => item.toJSON().workspaceScheme.objectId);
+  const workspaceSchemes = await getPluginBoundWorkspaceSchemes();
 
   const workspaces = await new Parse.Query(Workspace)
-    .matchesQuery(
+    .containedIn(
       'workspaceScheme',
-      new Parse.Query(WorkspaceScheme).containedIn('objectId', workspaceSchemeIds),
+      (await workspaceSchemes).map(item => item.objectId),
     )
     .findAll();
 
@@ -278,19 +277,26 @@ export const cloneItem = async (
   return result.data?.objectId;
 };
 
+// 获取插件关联的工作空间
+export const getPluginBoundWorkspaceSchemes = async (includeKeys = [] as string[]) => {
+  // 查询 include
+  const queryInclude = ['workspaceScheme'].concat(includeKeys.map(key => `workspaceScheme.${key}`));
+
+  const boundWorkspaceSchemas: WorkspaceSchemeType[] = await new Parse.Query(AppInstallation)
+    .matchesQuery('app', new Parse.Query(App).equalTo('key', TEST_MANAGER_PLUGIN_KEY))
+    .include(queryInclude)
+    .map(item => item.toJSON().workspaceScheme);
+
+  return unionBy(boundWorkspaceSchemas, 'objectId');
+};
+
 /** 更新被测试管理插件关联的事项层级方案 */
 export const updateUsedHierarchySchema = async () => {
   const builtinItemTypes = await getBuiltinItemTypes();
 
-  const workspaceSchemeIds = await new Parse.Query(AppInstallation)
-    .matchesQuery('app', new Parse.Query(App).equalTo('key', TEST_MANAGER_PLUGIN_KEY))
-    .map(item => item.toJSON().workspaceScheme.objectId);
+  const workspaceSchemes = await getPluginBoundWorkspaceSchemes(['itemTypeScheme']);
 
-  const itemTypeSchemes = await new Parse.Query(WorkspaceScheme)
-    .containedIn('objectId', workspaceSchemeIds)
-    .include(['itemTypeScheme'])
-    .map(item => item.toJSON().itemTypeScheme);
-
+  const itemTypeSchemes = workspaceSchemes.map(item => item.itemTypeScheme);
   const needUpdatedParseObjects = itemTypeSchemes.reduce((res, itemTypeScheme) => {
     const hierarchy = JSON.parse(itemTypeScheme.hierarchy ?? '{}');
     // 事项层级方案中不存在的事项类型
