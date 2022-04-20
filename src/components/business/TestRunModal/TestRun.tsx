@@ -15,7 +15,7 @@ import { updateTestRun, getTestStepsByTestDetailId, getItemLinkRelation } from '
 import TestStep from './TestStep';
 import DefectList from './DefectList';
 import ItemLinkTable from './ItemLinkTable';
-import AttachmentList from './AttachmentList';
+import AttachmentUpload from './AttachmentUpload';
 
 import cx from './TestRun.less';
 
@@ -39,7 +39,7 @@ const TestRunDetailTabs = [
   {
     title: '附件',
     key: 'attachment',
-    component: AttachmentList,
+    component: AttachmentUpload,
   },
 ];
 
