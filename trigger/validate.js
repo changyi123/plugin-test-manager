@@ -14,10 +14,6 @@ const getItemTypeName = async () => {
 
   const itemType = await apis.getData(false, 'ItemType', {
     key: testMangerConfig?.toJSON()?.itemTypeMap?.TestDetail,
-    // 测试管理隐藏事项不被过滤
-    __context: {
-      displayModule: 'plugin.testManager',
-    },
   });
 
   return itemType?.toJSON().name;
@@ -59,7 +55,9 @@ const splitSteps = datas => datas?.replace(/^[\r\n]+/g, '')?.split(/(?=【\d+】
 
 const testStep = datas => /(?=【\d+】)/g.test(datas);
 
-const testSteps = datas => splitSteps(datas).some(d => !testStep(d));
+const isSteps = datas => /【\d+】/g.test(datas);
+
+const testSteps = datas => (isSteps(datas) ? splitSteps(datas).some(d => !testStep(d)) : false);
 
 const getCharNumErrorIndex = datas =>
   splitSteps(datas)
