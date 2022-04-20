@@ -55,7 +55,9 @@ const splitSteps = datas => datas?.replace(/^[\r\n]+/g, '')?.split(/(?=【\d+】
 
 const testStep = datas => /(?=【\d+】)/g.test(datas);
 
-const testSteps = datas => splitSteps(datas).some(d => !testStep(d));
+const isSteps = datas => /【\d+】/g.test(datas);
+
+const testSteps = datas => (isSteps(datas) ? splitSteps(datas).some(d => !testStep(d)) : false);
 
 const getCharNumErrorIndex = datas =>
   splitSteps(datas)
