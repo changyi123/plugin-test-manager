@@ -15,6 +15,7 @@ import { updateTestRun, getTestStepsByTestDetailId, getItemLinkRelation } from '
 import TestStep from './TestStep';
 import DefectList from './DefectList';
 import ItemLinkTable from './ItemLinkTable';
+import AttachmentList from './AttachmentList';
 
 import cx from './TestRun.less';
 
@@ -34,6 +35,11 @@ const TestRunDetailTabs = [
     title: '关联事项',
     key: 'itemLink',
     component: ItemLinkTable,
+  },
+  {
+    title: '附件',
+    key: 'attachment',
+    component: AttachmentList,
   },
 ];
 
@@ -257,7 +263,9 @@ const TestRun: React.FC<TestRunType> = props => {
     return (
       <div className={cx('tab-title')}>
         {tab.title}
-        <span className={cx('num')}>{numGetters[tab.key]?.() ?? ''}</span>
+        {tab.key !== 'attachment' && (
+          <span className={cx('num')}>{numGetters[tab.key]?.() ?? ''}</span>
+        )}
       </div>
     );
   };

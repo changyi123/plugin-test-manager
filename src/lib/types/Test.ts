@@ -26,6 +26,7 @@ type BaseTestEntity = {
     steps: Step[];
     precondition: string;
     defectItemIds?: string[];
+    attachments?: Attachment[]; // 附件
   };
 };
 
@@ -53,6 +54,14 @@ export type Status = {
 
 /** 步骤表单 */
 export type StepField = Record<'key' | 'value', any>;
+
+// 附件
+export type Attachment = {
+  key: string; // 文件 ID
+  name: string; // 文件名称
+  url: string; // 文件地址
+  size: string; // 文件大小
+};
 
 export type Step = {
   id: string; // uuid
