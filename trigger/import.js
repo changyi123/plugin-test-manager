@@ -71,11 +71,13 @@ const getStepsData = datas => {
   const stepsMap = new Map();
 
   const isStrictEOLModeReg = new RegExp(`(^|(${stepEOLToken}))${stepStartToken}`, 'g');
+
+  const getIsStrict = step =>
+    replaceRn(step) ? isStrictEOLModeReg.test(replaceRn(datas.action)) : true;
+
   // 严格换行模式
   const isStrictEOLMode =
-    isStrictEOLModeReg.test(replaceRn(datas.action)) &&
-    isStrictEOLModeReg.test(replaceRn(datas.result)) &&
-    isStrictEOLModeReg.test(replaceRn(datas.data));
+    getIsStrict(datas.action) && getIsStrict(datas.result) && getIsStrict(datas.data);
 
   splitSteps(datas.action ?? '')?.forEach((action, index) => {
     const _index = isStrictEOLMode ? pickStepIndex(action) : index;
