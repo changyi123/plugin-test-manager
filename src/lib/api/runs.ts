@@ -554,7 +554,7 @@ export const createTestExecutionAndRelations = async (params: {
       TestRelationType.PlanRelDetail,
       { from: testPlan },
       // TODO: fetch all
-      { queryParams: { limit: 9999 } },
+      { queryParams: { limit: 9999 }, workspaceKey },
     );
     relTestDetailIds = res.list.map(item => item.objectId);
   }
