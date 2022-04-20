@@ -62,7 +62,6 @@ export const getTestRunsAndExecutions = async (testDetailEntity, queryParams) =>
       fillItemData: true,
       queryParams,
       async resultTransfer(result) {
-        console.log('result', result);
         // 获取测试执行任务关联的测试执行
         const { list: allTestRuns } = await getTestEntitiesByRelation(
           TestRelationType.ExecutionRelRun,
@@ -554,7 +553,7 @@ export const createTestExecutionAndRelations = async (params: {
       TestRelationType.PlanRelDetail,
       { from: testPlan },
       // TODO: fetch all
-      { queryParams: { limit: 9999 } },
+      { queryParams: { limit: 9999 }, workspaceKey },
     );
     relTestDetailIds = res.list.map(item => item.objectId);
   }

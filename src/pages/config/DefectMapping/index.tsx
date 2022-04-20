@@ -2,10 +2,10 @@ import React from 'react';
 import { keyBy } from 'lodash';
 import { Button, message } from '@osui/ui';
 import { getAllItemTypes } from '@/lib/api/proxima';
-import { useRequest, useSafeState, useDrop, useDrag } from 'ahooks';
+import { generateStaticFileUrl } from '@/lib/utils/helper';
 import { useDataContext, useCurrentTestConfig } from '../hooks';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
-import { generateStaticFileUrl } from '@/lib/utils/helper';
+import { useRequest, useSafeState, useDrop, useDrag } from 'ahooks';
 
 import cx from './index.less';
 
@@ -46,7 +46,7 @@ const ItemTypeDropBox = (props: {
 };
 
 const DefectMapping = () => {
-  const { workspace } = useDataContext();
+  const { workspace, globalConfig } = useDataContext();
   const workspaceKey = workspace?.key;
   const [defectsItemTypeKeys, setDefectsItemTypeKeys] = useSafeState([]);
 
@@ -58,7 +58,7 @@ const DefectMapping = () => {
 
   const { data } = useRequest(
     async () => {
-      const itemTypes = await getAllItemTypes();
+      const itemTypes = await getAllItemTypes(!!globalConfig.extra.isolateTestType);
       return keyBy(
         itemTypes.map(item => item.toJSON()),
         'key',

@@ -27,12 +27,10 @@ const GoPropsRoute = props => {
   const history = useHistory();
 
   useEffect(() => {
-    console.info('子应用接收route:', props?.route);
     // 跳转渲染指定的路由
     if (props?.route) {
       history.push(props?.route);
     } else {
-      console.info('props?.frame?.route', props?.frame?.route);
       // 本地调试时用
       if (props?.frame?.route && process.env.NODE_ENV === 'development') {
         history.push(props?.frame?.route);

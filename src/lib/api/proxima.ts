@@ -1,11 +1,17 @@
 /**
  * proxima api 只为获取数据，返回数据为 JSON。不要在插件内修改 proxima 内的数据模型 ！！
  */
+import { pick } from 'lodash';
 import Parse from '@/lib/parse';
 import fetch from '@/lib/utils/fetch';
 import { IQLBuilder } from '@/lib/utils/iql';
 import { hasArrayItem } from '@/lib/utils/helper';
-import { SYSTEM_FIELD, FIELD_TYPE_KEY_MAPPINGS, TEST_MANAGER_PLUGIN_KEY } from '@/lib/constants';
+import {
+  SYSTEM_FIELD,
+  FIELD_TYPE_KEY_MAPPINGS,
+  TEST_MANAGER_PLUGIN_KEY,
+  BuiltinItemTypeMapping,
+} from '@/lib/constants';
 import {
   App,
   Item,
@@ -83,6 +89,7 @@ export const getItemByIQL = async (
     iql: iql.toString(),
     from: pagination.offset ?? 0,
     size: pagination.limit ?? 0,
+    displayContext: TEST_MANAGER_PLUGIN_KEY,
   });
   return data.payload;
 };
@@ -139,7 +146,11 @@ export const getWorkspaceById = async id => {
  */
 export const getItemTypeByKey = async key => {
   if (!key) return;
-  const itemType = await new Parse.Query(ItemType).equalTo('key', key).first();
+  const itemType = await new Parse.Query(ItemType).equalTo('key', key).first({
+    context: {
+      displayModule: 'plugin.testManager',
+    },
+  });
   return itemType?.toJSON();
 };
 
@@ -168,8 +179,28 @@ export const getTopItemTypeFromHierarchy = async workspaceSchemeId => {
 };
 
 /** 获取所有的事项类型 */
-export const getAllItemTypes = async () => {
-  return new Parse.Query(ItemType).limit(999).find();
+export const getAllItemTypes = async (showHiddenItemType = false) => {
+  return new Parse.Query(ItemType).limit(9999).find({
+    context: {
+      displayModule: showHiddenItemType ? 'plugin.testManager' : '',
+    },
+  });
+};
+
+/** 获取内置事项类型 */
+export const getBuiltinItemTypes = async () => {
+  // 内置事项类型的 key
+  const builtinItemTypeKeys = Object.values(BuiltinItemTypeMapping);
+  const itemTypes = await new Parse.Query(ItemType)
+    .containedIn('key', builtinItemTypeKeys)
+    .limit(9999)
+    .find({
+      context: {
+        displayModule: 'plugin.testManager',
+      },
+    });
+  const itemTypesData = itemTypes.map(item => item.toJSON());
+  return itemTypesData.filter(itemType => builtinItemTypeKeys.includes(itemType.key));
 };
 
 /** 获取所有的事项， iql 无 itemType icon 字段，使用此方法获取 */
@@ -245,4 +276,40 @@ export const cloneItem = async (
   });
 
   return result.data?.objectId;
+};
+
+/** 更新被测试管理插件关联的事项层级方案 */
+export const updateUsedHierarchySchema = async () => {
+  const builtinItemTypes = await getBuiltinItemTypes();
+
+  const workspaceSchemeIds = await new Parse.Query(AppInstallation)
+    .matchesQuery('app', new Parse.Query(App).equalTo('key', TEST_MANAGER_PLUGIN_KEY))
+    .map(item => item.toJSON().workspaceScheme.objectId);
+
+  const itemTypeSchemes = await new Parse.Query(WorkspaceScheme)
+    .containedIn('objectId', workspaceSchemeIds)
+    .include(['itemTypeScheme'])
+    .map(item => item.toJSON().itemTypeScheme);
+
+  const needUpdatedParseObjects = itemTypeSchemes.reduce((res, itemTypeScheme) => {
+    const hierarchy = JSON.parse(itemTypeScheme.hierarchy ?? '{}');
+    // 事项层级方案中不存在的事项类型
+    const notExistedBuiltinItemTypesInHierarchy = builtinItemTypes.filter(
+      itemType => !hierarchy.some(item => itemType.key === item.key),
+    );
+
+    if (notExistedBuiltinItemTypesInHierarchy.length) {
+      const itemTypeSchemeParseObj = Parse.Object.fromJSON(itemTypeScheme);
+      const pickUsefulFields = itemType => pick(itemType, ['objectId', 'icon', 'name', 'key']);
+      itemTypeSchemeParseObj.set({
+        hierarchy: JSON.stringify(
+          notExistedBuiltinItemTypesInHierarchy.map(pickUsefulFields).concat(hierarchy),
+        ),
+      });
+      return res.concat(itemTypeSchemeParseObj);
+    }
+    return res;
+  }, []);
+
+  await Parse.Object.saveAll(needUpdatedParseObjects);
 };
