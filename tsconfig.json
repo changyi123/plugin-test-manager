@@ -6,6 +6,7 @@
     "importHelpers": true,
     "allowJs": true,
     "jsx": "react-jsx",
+    "downlevelIteration": true,
     "esModuleInterop": true,
     "sourceMap": true,
     "baseUrl": "./",

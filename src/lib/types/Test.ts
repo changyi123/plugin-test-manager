@@ -57,10 +57,13 @@ export type StepField = Record<'key' | 'value', any>;
 
 // 附件
 export type Attachment = {
-  key: string; // 文件 ID
-  name: string; // 文件名称
   url: string; // 文件地址
-  size: string; // 文件大小
+  status: string; // 上传状态
+  name: string;
+  size: number;
+  uid: string;
+  time?: string; // 上传时间
+  [key: string]: any;
 };
 
 export type Step = {
