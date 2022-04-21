@@ -46,57 +46,75 @@ const getWorkspaceKey = async () => {
 
 const workspaceKey = await getWorkspaceKey();
 
-// 步骤每项的开始标志
-const stepStartToken = '【\\d+】|\\d+\\.+';
-// 步骤换行符标志
-const stepEOLToken = '\\r\\n';
-// 提取步骤 index
-const pickStepIndex = data => {
-  return data.replace(/【?(\d+)】?\.*.*?$/, '$1');
-};
-const getActionAndResultData = datas =>
-  (getCharNum(datas) > 500 ? '' : datas).replace(/^(【\d+】|\d+\.+)/, '');
+const replaceRn = datas => datas?.replace(/^[\r\n]+/g, '');
 
-const splitData = datas => datas?.split?.(/[\r\n]+/g);
+const splitSteps = datas => replaceRn(datas)?.split(/(?=【\d+】)/g) ?? [];
+
+// 步骤每项的开始标志
+// const stepStartToken = '【\\d+】|\\d+\\.+';
+// const stepStartToken = '【\\d+】';
+// 步骤换行符标志
+// const stepEOLToken = '[\\r\\n]';
+// 提取步骤 index
+// const pickStepIndex = data => {
+//   return +data.replace(/【?(\d+)】?\.*.*?$/, '$1');
+// };
+const pickStepIndex = data => {
+  return +data.replace(/【(\d+)】(.|[\r\n])*?$/, '$1');
+};
+// const getActionAndResultData = datas => datas.replace(/^(【\d+】|\d+\.+)/, '');
+const getStepData = datas => datas.replace(/^【\d+】/g, '');
+
+// const splitData = datas => datas?.split?.(/[\r\n]+/g);
+
+// const isStrictEOLModeReg = new RegExp(`(^|(${stepEOLToken}))${stepStartToken}`, 'g');
+// const isStrictEOLModeReg = /(^|([\r\n]))【\d+】/g;
+
+const getIsStrict = step => (replaceRn(step) ? /(^|([\r\n]))【\d+】/g.test(replaceRn(step)) : true);
+
+const isStrictEOLMode = datas =>
+  getIsStrict(datas.action) && getIsStrict(datas.result) && getIsStrict(datas.data);
 
 const getStepsData = datas => {
   const stepsMap = new Map();
 
-  const isStrictEOLModeReg = new RegExp(`(^|(${stepEOLToken}))${stepStartToken}`, 'g');
   // 严格换行模式
-  const isStrictEOLMode =
-    isStrictEOLModeReg.test(datas.action) &&
-    isStrictEOLModeReg.test(datas.result) &&
-    isStrictEOLModeReg.test(datas.data);
+  const isStrictMode = isStrictEOLMode(datas);
 
-  splitData(datas.action ?? '')?.forEach((action, index) => {
-    stepsMap.set(isStrictEOLMode ? pickStepIndex(action) : index, {
-      action: getActionAndResultData(action),
-      result: stepsMap.get(index)?.result ?? '',
-      data: stepsMap.get(index)?.data ?? '',
-      id: stepsMap.get(index)?.id || uuidv4(),
+  splitSteps(datas.action ?? '')?.forEach((action, index) => {
+    const _index = isStrictMode ? pickStepIndex(action) : index;
+    stepsMap.set(_index, {
+      action: getStepData(action),
+      result: stepsMap.get(_index)?.result ?? '',
+      data: stepsMap.get(_index)?.data ?? '',
+      id: stepsMap.get(_index)?.id || uuidv4(),
     });
   });
 
-  splitData(datas.result ?? '')?.forEach((result, index) => {
-    stepsMap.set(isStrictEOLMode ? pickStepIndex(result) : index, {
-      action: stepsMap.get(index)?.action ?? '',
-      result: getActionAndResultData(result),
-      data: stepsMap.get(index)?.data ?? '',
-      id: stepsMap.get(index)?.id || uuidv4(),
+  splitSteps(datas.result ?? '')?.forEach((result, index) => {
+    const _index = isStrictMode ? pickStepIndex(result) : index;
+    stepsMap.set(_index, {
+      action: stepsMap.get(_index)?.action ?? '',
+      result: getStepData(result),
+      data: stepsMap.get(_index)?.data ?? '',
+      id: stepsMap.get(_index)?.id || uuidv4(),
     });
   });
 
-  splitData(datas.data ?? '')?.forEach((_data, index) => {
-    stepsMap.set(isStrictEOLMode ? pickStepIndex(_data) : index, {
-      data: getActionAndResultData(_data),
-      action: stepsMap.get(index)?.action ?? '',
-      result: stepsMap.get(index)?.result ?? '',
-      id: stepsMap.get(index)?.id || uuidv4(),
+  splitSteps(datas.data ?? '')?.forEach((_data, index) => {
+    const _index = isStrictMode ? pickStepIndex(_data) : index;
+    stepsMap.set(_index, {
+      data: getStepData(_data),
+      action: stepsMap.get(_index)?.action ?? '',
+      result: stepsMap.get(_index)?.result ?? '',
+      id: stepsMap.get(_index)?.id || uuidv4(),
     });
   });
 
-  return [...stepsMap.values()].filter(d => d.data || d.action || d.result);
+  return [...stepsMap.entries()]
+    .sort((a, b) => a[0] - b[0])
+    .map(v => v[1])
+    .filter(d => d.data || d.action || d.result);
 };
 
 // 创建测试用例数据，返回测试用例
@@ -116,7 +134,7 @@ const createTestMangerTest = async () => {
       detail: {
         precondition:
           (isNotHaveMap && getCharNum(_data.precondition)) > 500 ? '' : _data.precondition,
-        steps: isNotHaveMap ? getStepsData(_data) : [],
+        steps: isNotHaveMap ? getStepsData(clone(_data)) : [],
       },
       sortIndex: mathData + index,
     }))
@@ -217,7 +235,7 @@ const filterImportGroupData = datas =>
     return prev;
   }, []);
 
-const getGroupPath = group => group?.split('/').filter(d => d.replace(/\s*/g, '')) ?? [];
+const getGroupPath = group => group?.split('/').filter(d => d.trim()) ?? [];
 
 const getImportGroupData = () =>
   appFieldsData
