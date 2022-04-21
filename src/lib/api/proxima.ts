@@ -160,7 +160,11 @@ export const getItemTypeByKey = async key => {
  */
 export const getItemTypeById = async id => {
   if (!id) return;
-  const itemType = await new Parse.Query(ItemType).equalTo('objectId', id).first();
+  const itemType = await new Parse.Query(ItemType).equalTo('objectId', id).first({
+    context: {
+      displayModule: 'plugin.testManager',
+    },
+  });
   return itemType?.toJSON();
 };
 
