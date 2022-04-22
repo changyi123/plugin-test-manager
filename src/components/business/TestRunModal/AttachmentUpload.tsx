@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button, Upload } from 'antd';
 import { TabsComponentBaseProps } from './type';
 import { DeleteOutlined, DownloadOutlined, UploadOutlined, LoadingOutlined } from '@/icons';
 import Parse from '@/lib/parse';
 
-import { message } from '@osui/ui';
+import { Checkbox, message } from '@osui/ui';
 import { updateTestRun } from '@/lib/api/runs';
 import dayjs from 'dayjs';
 
@@ -13,7 +13,17 @@ import { actionConfirm } from '@/lib/utils/helper';
 type AttachmentUploadProps = TabsComponentBaseProps;
 
 const AttachmentList: React.FC<any> = props => {
-  const { fileList, setFileList, testRunData, testRunEntity } = props;
+  const { fileRef, fileList, setFileList, testRunData, testRunEntity, onDataChange } = props;
+
+  const [checkList, stCheckList] = useState<any[]>([]);
+  const [isBatch, setIsBatch] = useState(false);
+  const [indeterminate, setIndeterminate] = useState(false);
+  const [checkedAll, setCheckedAll] = useState(false);
+
+  useEffect(() => {
+    setCheckedAll(checkList.length === fileList.length);
+    setIndeterminate(!!checkList.length && checkList.length < fileList.length);
+  }, [checkList, fileList]);
 
   const deleteFileLise = file => {
     const arr = file.url.split('/');
@@ -21,24 +31,23 @@ const AttachmentList: React.FC<any> = props => {
     Parse.Cloud.run('deleteFile', {
       fileName: fileName,
     })
-      .then(() => {
+      .then(async () => {
         const fileArr = fileList.filter(v => v.uid !== file.uid);
 
-        updateTestRun(testRunEntity, {
+        await updateTestRun(testRunEntity, {
           runDetail: {
             ...(testRunData.runDetail ?? {}),
             attachments: fileArr,
           },
         });
 
+        fileRef.current.delete(file.uid);
+
         setFileList(fileArr);
+        onDataChange();
       })
       .catch(error => {
         message.error(error.message);
-        // const data = cloneDeep(fileList);
-        // const index = fileList.findIndex(v => v.uid === file.uid);
-        // data[index].status = 'done';
-        // setFileList(data);
       });
   };
 
@@ -61,48 +70,139 @@ const AttachmentList: React.FC<any> = props => {
     xhr.send();
   };
 
+  const checkoutAll = e => {
+    setCheckedAll(e.target.checked);
+    stCheckList(e.target.checked ? fileList.map(d => d.uid) : []);
+    indeterminate && setIndeterminate(false);
+  };
+
   return (
     <>
-      <div className={cx('file-cont')}>
-        <div className={cx('file-list-header')}></div>
-        {fileList?.map(file => (
-          <div className={cx('file-list')} key={file.uid}>
-            <div className={cx('name', 'text')}>{file.name}</div>
-            <div className={cx('status', 'text')}>
-              {file.status === 'uploading' ? (
-                <div className={cx('status-icon')}>
-                  <LoadingOutlined />
-                  <span className={cx('icon-text')}>上传中</span>
+      {fileList.length ? (
+        <div className={cx('file-cont')}>
+          <div className={cx('file-list-header')}>
+            <Button onClick={() => setIsBatch(x => !x)}>{isBatch ? '取消操作' : '批量操作'}</Button>
+            {isBatch && (
+              <>
+                <div className={cx('file-check')}>
+                  <Checkbox
+                    indeterminate={indeterminate}
+                    onChange={checkoutAll}
+                    checked={checkedAll}
+                  >
+                    已选择
+                    <span style={{ padding: '0 4px', color: '#0045d9' }}>{checkList.length}</span>项
+                  </Checkbox>
                 </div>
-              ) : (
-                <div className={cx('status-icon')}>
-                  <span className={cx('upload-done-icon')}></span>
-                  <span className={cx('icon-text')}>上传完成</span>
+                <div className={cx('file-batch-action')}>
+                  <div
+                    className={cx('action-icon')}
+                    onClick={() => {
+                      if (checkList.length) {
+                        fileList
+                          .filter(flie => checkList.includes(flie.uid))
+                          .forEach(flie => {
+                            downLoadFile(flie);
+                          });
+                      } else {
+                        message.warning('请选择附件');
+                      }
+                    }}
+                  >
+                    <DownloadOutlined className={cx('icon')} />
+                    下载
+                  </div>
+                  <div
+                    className={cx('action-icon')}
+                    onClick={() => {
+                      if (checkList.length) {
+                        actionConfirm(
+                          '该操作会将该附件从测试用例中移除，是否继续操作？',
+                          async () => {
+                            const list = fileList.filter(file => !checkList.includes(file.uid));
+
+                            await updateTestRun(testRunEntity, {
+                              runDetail: {
+                                ...(testRunData.runDetail ?? {}),
+                                attachments: list,
+                              },
+                            });
+
+                            checkList.forEach(file => fileRef.current.delete(file.uid));
+                            setFileList(list);
+                            setCheckedAll(false);
+                            stCheckList([]);
+
+                            onDataChange();
+                          },
+                        );
+                      } else {
+                        message.warning('请选择附件');
+                      }
+                    }}
+                  >
+                    <DeleteOutlined className={cx('icon')} />
+                    删除
+                  </div>
                 </div>
-              )}
-            </div>
-            <div className={cx('size', 'text')}>{file.size}kb</div>
-            <div className={cx('upload-time', 'text')}>{file.time}</div>
-            <div className={cx('action')}>
-              <DownloadOutlined className={cx('icon')} onClick={() => downLoadFile(file)} />
-              <DeleteOutlined
-                className={cx('icon')}
-                onClick={() =>
-                  actionConfirm('该操作会将该附件从测试用例中移除，是否继续操作？', () => {
-                    deleteFileLise(file);
-                  })
-                }
-              />
-            </div>
+              </>
+            )}
           </div>
-        ))}
-      </div>
+          <Checkbox.Group
+            value={checkList}
+            onChange={checkValue => stCheckList(checkValue)}
+            style={{ width: '100%' }}
+          >
+            {fileList?.map(file => (
+              <div className={cx('file-list')} key={file.uid}>
+                <div className={cx('list-cont')}>
+                  <div className={cx('name', 'text')}>
+                    {isBatch && (
+                      <div className={cx('file-checkbox')}>
+                        <Checkbox value={file.uid}></Checkbox>
+                      </div>
+                    )}
+                    <div className={cx('name-cont')}>{file.name}</div>
+                  </div>
+                  <div className={cx('size', 'text')}>{file.size}kb</div>
+                  <div className={cx('status', 'text')}>
+                    {file.status === 'uploading' && <LoadingOutlined />}
+                  </div>
+                </div>
+                <div className={cx('action-time')}>
+                  <div className={cx('upload-time', 'text')}>{file.time}</div>
+                  <div className={cx('action')}>
+                    <div className={cx('action-icon')} onClick={() => downLoadFile(file)}>
+                      <DownloadOutlined className={cx('icon')} />
+                      下载
+                    </div>
+                    <div
+                      className={cx('action-icon')}
+                      onClick={() =>
+                        actionConfirm('该操作会将该附件从测试用例中移除，是否继续操作？', () => {
+                          deleteFileLise(file);
+                          onDataChange();
+                        })
+                      }
+                    >
+                      <DeleteOutlined className={cx('icon')} />
+                      删除
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </Checkbox.Group>
+        </div>
+      ) : (
+        ''
+      )}
     </>
   );
 };
 
 const AttachmentUpload: React.FC<AttachmentUploadProps> = props => {
-  const { testRunData, testRunEntity } = props;
+  const { testRunData, testRunEntity, onDataChange } = props;
 
   const fileRef = React.useRef(new Map());
 
@@ -131,7 +231,7 @@ const AttachmentUpload: React.FC<AttachmentUploadProps> = props => {
           uid: fileData.file.uid,
           name: fileData.file.name,
           size: fileData.file.size,
-          time: dayjs().format('YYYY-MM-DD hh:mm:ss'),
+          time: dayjs().format('YYYY-MM-DD hh:mm'),
           // status: 'done',
           url: res.toJSON().url,
         });
@@ -145,6 +245,7 @@ const AttachmentUpload: React.FC<AttachmentUploadProps> = props => {
         });
 
         setFileList(getFileList());
+        onDataChange();
       },
       error => {
         message.error(error.message);
@@ -173,13 +274,15 @@ const AttachmentUpload: React.FC<AttachmentUploadProps> = props => {
   const AttachmentLists = React.useMemo(
     () => (
       <AttachmentList
+        fileRef={fileRef}
         fileList={fileList}
         setFileList={setFileList}
         testRunEntity={testRunEntity}
         testRunData={testRunData}
+        onDataChange={onDataChange}
       />
     ),
-    [fileList, setFileList, testRunEntity, testRunData],
+    [fileRef, fileList, setFileList, testRunEntity, testRunData, onDataChange],
   );
 
   return (

@@ -1,6 +1,42 @@
 :root {
   .file-cont {
-    // .file-list
+    margin-bottom: 12px;
+
+    .file-list-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 12px;
+
+      .file-check {
+        padding-left: 12px;
+        padding-right: 4px;
+        border-right: 1px solid #d9d0d0;
+      }
+
+      .file-batch-action {
+        display: flex;
+        padding-left: 12px;
+
+        .action-icon {
+          color: #333;
+          font-size: 14px;
+          margin-right: 12px;
+          justify-content: center;
+
+          &:hover {
+            color: #3683ff !important;
+          }
+
+          &:active {
+            color: #0045d9 !important;
+          }
+        }
+
+        .icon {
+          margin-right: 4px;
+        }
+      }
+    }
 
     .file-list {
       display: flex;
@@ -16,17 +52,44 @@
 
       &:hover {
         background-color: #f4f4f5;
+
+        .action-time {
+          .upload-time {
+            display: none;
+          }
+
+          .action {
+            display: flex;
+          }
+        }
       }
 
-      .name {
-        width: 30%;
-        text-overflow: ellipsis;
-        overflow: hidden;
-        white-space: nowrap;
+      .list-cont {
+        display: flex;
+        width: 60%;
+
+        .name {
+          display: flex;
+          width: 70%;
+
+          .name-cont {
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
+          }
+
+          .file-checkbox {
+            margin-right: 8px;
+          }
+        }
+
+        .size {
+          width: 120px;
+        }
       }
 
       .status {
-        width: 100px;
+        width: 20px;
 
         .status-icon {
           display: flex;
@@ -36,7 +99,7 @@
             width: 10px;
             height: 10px;
             border-radius: 50%;
-            margin-right: 4px;
+            margin-right: 12px;
             background-color: rgb(54, 179, 126);
           }
 
@@ -46,33 +109,40 @@
         }
       }
 
-      .size {
-        width: 80px;
-      }
+      .action-time {
+        display: flex;
+        justify-content: center;
+        width: 160px;
 
-      .upload-time {
-        width: 15%;
-        text-overflow: ellipsis;
-        overflow: hidden;
-        white-space: nowrap;
-      }
+        .upload-time {
+          text-overflow: ellipsis;
+          overflow: hidden;
+          white-space: nowrap;
+        }
 
-      .action {
-        width: 90px;
-        text-align: center;
+        .action {
+          display: none;
+          padding: 0 8px;
 
-        .icon {
-          margin-right: 8px;
+          .action-icon {
+            color: #333;
+            font-size: 14px;
+            margin-right: 8px;
+            justify-content: center;
 
-          &:hover {
-            color: #39f !important;
+            &:hover {
+              color: #39f !important;
+            }
+          }
+
+          .icon {
+            margin-right: 4px;
           }
         }
       }
 
       .text {
         font-size: 14px;
-        line-height: 20px;
         padding: 0 8px;
       }
     }

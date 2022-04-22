@@ -258,14 +258,15 @@ const TestRun: React.FC<TestRunType> = props => {
       defect() {
         return allRelationDefects?.length ?? 0;
       },
+      attachment() {
+        return testRunData.runDetail?.attachments?.length ?? 0;
+      },
     };
 
     return (
       <div className={cx('tab-title')}>
         {tab.title}
-        {tab.key !== 'attachment' && (
-          <span className={cx('num')}>{numGetters[tab.key]?.() ?? ''}</span>
-        )}
+        <span className={cx('num')}>{numGetters[tab.key]?.() ?? ''}</span>
       </div>
     );
   };
