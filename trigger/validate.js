@@ -116,14 +116,14 @@ const getTestDetailsErrors = datas =>
     }
 
     // 校验预期结果格式
-    if (testSteps(cur.reslut)) {
+    if (testSteps(cur.result)) {
       prev = prev.concat([`第 ${index + 1} 条预期结果格式错误，不予以导入`]);
     }
 
     // 校验预期结果字数
-    if (getCharNumErrorIndex(cur.reslut).length) {
+    if (getCharNumErrorIndex(cur.result).length) {
       prev = prev.concat(
-        `第 ${index + 1} 条用例的 ${getCharNumErrorIndex(cur.reslut)
+        `第 ${index + 1} 条用例的 ${getCharNumErrorIndex(cur.result)
           .map(d => d + 1)
           .join('、')} 条预期结果超过限制，预期结果 限制 500 个字符，不予以导入`,
       );
