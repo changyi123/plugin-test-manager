@@ -36,7 +36,7 @@ const isolateModeSelectOptions = [
   },
 ];
 
-const IsolateTestType = () => {
+const IsolatedTestType = () => {
   const { workspace } = useDataContext();
   const workspaceKey = workspace?.key;
   const [isolateMode, setIsolateMode] = useSafeState<'enabled' | 'disabled'>(DefaultIsolateMode);
@@ -104,4 +104,4 @@ const IsolateTestType = () => {
   );
 };
 
-export default IsolateTestType;
+export default IsolatedTestType;

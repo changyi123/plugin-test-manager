@@ -61,8 +61,8 @@ const Test = () => {
         { from: testEntity },
         {
           queryParams: queryParams,
-          select: ['status', 'runReferenceDetail'],
-          include: ['status', 'runReferenceDetail.reference'],
+          select: ['status', 'sortIndex', 'runReferenceDetail'],
+          include: ['status', 'sortIndex', 'runReferenceDetail.reference'],
         },
       );
     },

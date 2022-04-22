@@ -266,8 +266,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
         });
 
         // 清除事件监听
-        typeof eventBusRef?.current?.disposer?.unregister === 'function' &&
-          eventBusRef.current.disposer.unregister();
+        eventBusRef.current.disposer?.unregister?.();
 
         // 事项创建成功通知
         return new Promise((resolve, reject) => {

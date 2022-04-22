@@ -52,10 +52,10 @@ const Input: React.ForwardRefRenderFunction<
     if (ref.current.innerHTML.length >= maxLength && !escapedKeyCodes.includes(e.key)) {
       e.preventDefault();
     }
-    // 阻止 enter 回车
-    if (e.key === 'Enter') {
-      e.preventDefault();
+
+    if (e.key === 'Enter' && e.altKey) {
       onKeyDownEnter?.(ref.current.innerHTML);
+      e.preventDefault();
     }
   };
 

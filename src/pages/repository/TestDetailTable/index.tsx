@@ -181,6 +181,9 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
           deleteItems([data.reference?.objectId]),
         ]);
         refreshAndMutateData();
+        notification.success({
+          message: '测试用例删除成功',
+        });
       });
     };
 
