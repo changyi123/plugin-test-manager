@@ -6,7 +6,7 @@ import Parse from '@/lib/parse';
 
 import { message } from '@osui/ui';
 import { updateTestRun } from '@/lib/api/runs';
-// import { Dayjs } from 'dayjs';
+import dayjs from 'dayjs';
 
 import cx from './AttachmentUpload.less';
 import { actionConfirm } from '@/lib/utils/helper';
@@ -42,9 +42,29 @@ const AttachmentList: React.FC<any> = props => {
       });
   };
 
+  const downLoadFile = file => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', file.url, true);
+    xhr.responseType = 'blob';
+    xhr.onload = () => {
+      if (xhr.status === 200) {
+        // 获取文件blob数据并保存
+        const urlObject = window.URL;
+        const export_blob = new Blob([xhr.response]);
+        const link = document.createElement('a');
+        link.href = urlObject.createObjectURL(export_blob);
+        link.download = file.name;
+        link.click();
+        // document.body.removeChild(link);
+      }
+    };
+    xhr.send();
+  };
+
   return (
     <>
       <div className={cx('file-cont')}>
+        <div className={cx('file-list-header')}></div>
         {fileList?.map(file => (
           <div className={cx('file-list')} key={file.uid}>
             <div className={cx('name', 'text')}>{file.name}</div>
@@ -61,10 +81,10 @@ const AttachmentList: React.FC<any> = props => {
                 </div>
               )}
             </div>
-            <div className={cx('size', 'text')}>{file.size}</div>
+            <div className={cx('size', 'text')}>{file.size}kb</div>
             <div className={cx('upload-time', 'text')}>{file.time}</div>
             <div className={cx('action')}>
-              <DownloadOutlined className={cx('icon')} />
+              <DownloadOutlined className={cx('icon')} onClick={() => downLoadFile(file)} />
               <DeleteOutlined
                 className={cx('icon')}
                 onClick={() =>
@@ -111,6 +131,7 @@ const AttachmentUpload: React.FC<AttachmentUploadProps> = props => {
           uid: fileData.file.uid,
           name: fileData.file.name,
           size: fileData.file.size,
+          time: dayjs().format('YYYY-MM-DD hh:mm:ss'),
           // status: 'done',
           url: res.toJSON().url,
         });
@@ -127,6 +148,7 @@ const AttachmentUpload: React.FC<AttachmentUploadProps> = props => {
       },
       error => {
         message.error(error.message);
+        fileRef.current.delete(fileData.file.uid);
         setFileList(getFileList(true));
       },
     );
