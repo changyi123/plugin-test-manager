@@ -16,6 +16,7 @@ import TestStep from './TestStep';
 import DefectList from './DefectList';
 import ItemLinkTable from './ItemLinkTable';
 import AttachmentUpload from './AttachmentUpload';
+import TestComment from './TestComment';
 
 import cx from './TestRun.less';
 
@@ -337,6 +338,11 @@ const TestRun: React.FC<TestRunType> = props => {
                   </Tabs.TabPane>
                 ))}
               </Tabs>
+            </Collapse.Panel>
+          </Collapse>
+          <Collapse className={cx('collapse')} defaultActiveKey={['1']}>
+            <Collapse.Panel key="1" header="评论">
+              <TestComment />
             </Collapse.Panel>
           </Collapse>
         </div>

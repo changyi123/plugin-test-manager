@@ -128,7 +128,12 @@ const AttachmentList: React.FC<any> = props => {
                               },
                             });
 
-                            checkList.forEach(file => fileRef.current.delete(file.uid));
+                            fileRef.current.clear();
+                            if (!checkedAll) {
+                              list.forEach(file => {
+                                fileRef.current.set(file.uid, file);
+                              });
+                            }
                             setFileList(list);
                             setCheckedAll(false);
                             stCheckList([]);
