@@ -1,10 +1,9 @@
 import React from 'react';
+import { useReactive } from 'ahooks';
 import { Modal, Select } from '@osui/ui';
 import EventBus from '@/lib/utils/eventBus';
-import { useReactive, useRequest } from 'ahooks';
 import { getRootContainer } from '@/lib/utils/helper';
-
-import { getAllTestWorkspaces } from '@/lib/api/proxima';
+import { useAllTestWorkspace } from '@/lib/hooks/useTest';
 
 const CLICK_OK_EVENT_TYPE = 'CLICK_OK_EVENT_TYPE';
 
@@ -22,14 +21,7 @@ const WorkspaceSelectorModal: React.FC<WorkspaceSelectorModalProps> = ({ actionR
 
   const eventBusRef = React.useRef(new EventBus());
 
-  const { data: workspaces } = useRequest(
-    async () => {
-      return getAllTestWorkspaces();
-    },
-    {
-      debounceWait: 500,
-    },
-  );
+  const workspaces = useAllTestWorkspace();
 
   const workspaceOptions = React.useMemo(() => {
     if (!workspaces) return [];

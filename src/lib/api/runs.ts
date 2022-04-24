@@ -62,7 +62,6 @@ export const getTestRunsAndExecutions = async (testDetailEntity, queryParams) =>
       fillItemData: true,
       queryParams,
       async resultTransfer(result) {
-        console.log('result', result);
         // 获取测试执行任务关联的测试执行
         const { list: allTestRuns } = await getTestEntitiesByRelation(
           TestRelationType.ExecutionRelRun,
@@ -309,25 +308,31 @@ export const fetchDefectList = async (
   return new Promise((resolve, reject) => {
     const query = new Parse.Query(ItemType);
     query.containedIn('key', ItemTypeKeys);
-    query.find().then(
-      res => {
-        const resArray = res?.map(item => item.toJSON());
-        items?.items?.forEach(item => {
-          resArray?.forEach(item2 => {
-            if (item?.itemType?.key === item2.key) {
-              item.itemType.icon = item2.icon;
-            }
+    query
+      .find({
+        context: {
+          displayModule: 'plugin.testManager',
+        },
+      })
+      .then(
+        res => {
+          const resArray = res?.map(item => item.toJSON());
+          items?.items?.forEach(item => {
+            resArray?.forEach(item2 => {
+              if (item?.itemType?.key === item2.key) {
+                item.itemType.icon = item2.icon;
+              }
+            });
           });
-        });
 
-        resolve({
-          items: items.items,
-        });
-      },
-      err => {
-        reject(err);
-      },
-    );
+          resolve({
+            items: items.items,
+          });
+        },
+        err => {
+          reject(err);
+        },
+      );
   });
 };
 

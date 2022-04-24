@@ -52,7 +52,7 @@ modules:
   importer:
     function: test-manager-import-script
     validate: test-manager-validate-script
-    itemFields: 
+    itemFields:
       - key: group
         title: 所属分组
       # - key: priority
@@ -65,6 +65,55 @@ modules:
         title: 预期结果
       - key: data
         title: 数据
+  customItemType:
+    - key: test_manager_detail
+      name: 测试用例
+      icon: /icons/BookMark.svg
+      description: 测试管理-测试用例
+      displayConditions:
+        displayModules:
+          adminPage:
+            - automation
+            - itemType
+            - hierarchy
+            - linkType
+            - screenScheme
+            - workflowScheme
+          plugin:
+            - testManager
+        displayContext: test_manager
+    - key: test_manager_plan
+      name: 测试计划
+      icon: /icons/Flag.svg
+      description: 测试管理-测试计划
+      displayConditions:
+        displayModules:
+          adminPage:
+            - automation
+            - itemType
+            - hierarchy
+            - linkType
+            - screenScheme
+            - workflowScheme
+          plugin:
+            - testManager
+        displayContext: test_manager
+    - key: test_manager_execution
+      name: 测试执行任务
+      icon: /icons/Signet.svg
+      description: 测试管理-测试执行任务
+      displayConditions:
+        displayModules:
+          adminPage:
+            - automation
+            - itemType
+            - hierarchy
+            - linkType
+            - screenScheme
+            - workflowScheme
+          plugin:
+            - testManager
+        displayContext: test_manager
 tables:
   - className: Repository
     fields:

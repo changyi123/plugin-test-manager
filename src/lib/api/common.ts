@@ -1,8 +1,8 @@
 import Parse from '@/lib/parse';
 import { TestConfig } from '../models';
 import { assign, omit, transform } from 'lodash';
-import { TestType, TestRelationType } from '@/lib/constants';
 import { Workspace, Item, Test, TestRelation } from '@/lib/models';
+import { TestType, TestRelationType } from '@/lib/constants';
 import { hasArrayItem, pointerTransfer, toArray, escapeMatchesQueryArg } from '@/lib/utils/helper';
 
 const BATCH_SIZE = 200;
@@ -555,24 +555,13 @@ export const getTestConfig = (params: {
 };
 
 /**
- * 新建测试管理
+ * 对全部测试管理配置进行更新
  */
-export const createEmptyTestConfig = (workspaceKey: string) => {
-  const testConfig = new TestConfig({
-    workspaceKey,
-    global: false,
-    itemTypeMap: {},
-    defectsMapping: [],
-    // 默认所有事项都加上空间隔离
-    isolateTestType: [
-      TestType.TestPlan,
-      TestType.TestDefect,
-      TestType.TestDetail,
-      TestType.TestExecution,
-    ],
-  });
+export const updateAllTestConfigs = async fields => {
+  const testConfigs = await new Parse.Query(TestConfig).notEqualTo('global', true).findAll();
 
-  return testConfig.save();
+  const needUpdatedTestConfigs = testConfigs.map(testConfig => testConfig.set(fields));
+  await Parse.Object.saveAll(needUpdatedTestConfigs);
 };
 
 /**
@@ -628,4 +617,19 @@ export const cloneTestEntities = async (testEntityIds: string[]) => {
     });
 
   return Parse.Object.saveAll(newTestEntities);
+};
+
+/** 更新全局配置 */
+export const updateGlobalConfig = async fields => {
+  const globalConfig = await getTestConfig({ global: true });
+  const globalConfigData = globalConfig.toJSON();
+
+  if (Object.prototype.hasOwnProperty.call(fields, 'extra')) {
+    fields.extra = Object.assign(globalConfigData.extra, fields.extra);
+  }
+
+  await globalConfig.save({
+    ...globalConfigData,
+    ...fields,
+  });
 };

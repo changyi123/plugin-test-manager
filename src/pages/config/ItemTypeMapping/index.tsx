@@ -24,7 +24,8 @@ const TestTypes = [
 ];
 
 const ItemTypeMapping = () => {
-  const { workspace } = useDataContext();
+  const { workspace, globalConfig } = useDataContext();
+  const isolatedSystem = Boolean(globalConfig?.extra?.isolatedSystem);
   const workspaceKey = workspace?.key;
   const workspaceSchemeId = workspace?.workspaceScheme?.objectId;
 
@@ -61,6 +62,7 @@ const ItemTypeMapping = () => {
       return (
         <Select
           options={options}
+          disabled={isolatedSystem}
           onChange={val => {
             setItemTypeMapping(prev => ({
               ...prev,
@@ -73,7 +75,7 @@ const ItemTypeMapping = () => {
         ></Select>
       );
     },
-    [topItemTypes, itemTypeMapping, setItemTypeMapping],
+    [topItemTypes, itemTypeMapping, isolatedSystem, setItemTypeMapping],
   );
 
   // 保存
@@ -94,7 +96,7 @@ const ItemTypeMapping = () => {
         </div>
       ))}
       <Button
-        disabled={Object.keys(itemTypeMapping).length === 0}
+        disabled={Object.keys(itemTypeMapping).length === 0 || isolatedSystem}
         type="primary"
         className={cx('action-btn')}
         onClick={handleSave}
