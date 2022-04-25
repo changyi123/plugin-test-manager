@@ -5,6 +5,7 @@ import { useReactive, useRequest } from 'ahooks';
 import { useSDK } from '@projectproxima/plugin-sdk';
 import { updateFolders } from '@/lib/api/repository';
 import { getFolderTree } from '@/lib/api/repository';
+import { pluginVersionLog } from '@/lib/utils/helper';
 import { useBaseAction } from '@/lib/hooks/useContext';
 import FolderTree from '@/pages/repository/FolderTree';
 import PageLayout from '@/components/common/PageLayout';
@@ -23,6 +24,8 @@ import { ROOT_FOLDER_KEY } from './constant';
 import RepoDropDown from './RepoDropDown';
 
 import cx from './index.less';
+
+pluginVersionLog();
 
 const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) => {
   const tableActionRef = React.useRef<ActionType>();
