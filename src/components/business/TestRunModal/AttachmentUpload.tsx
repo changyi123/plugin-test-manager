@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Button, Upload } from 'antd';
+import { Button, Upload, Checkbox, message } from 'antd';
 import { TabsComponentBaseProps } from './type';
 import { DeleteOutlined, DownloadOutlined, UploadOutlined, LoadingOutlined } from '@/icons';
 import Parse from '@/lib/parse';
 
-import { Checkbox, message } from '@osui/ui';
 import { updateTestRun } from '@/lib/api/runs';
 import dayjs from 'dayjs';
 
@@ -121,6 +120,19 @@ const AttachmentList: React.FC<any> = props => {
                           async () => {
                             const list = fileList.filter(file => !checkList.includes(file.uid));
 
+                            Promise.all(
+                              fileList
+                                .filter(file => checkList.includes(file.uid))
+                                .map(file => {
+                                  const arr = file.url.split('/');
+                                  const fileName = arr[arr.length - 1];
+
+                                  return Parse.Cloud.run('deleteFile', {
+                                    fileName: fileName,
+                                  });
+                                }),
+                            );
+
                             await updateTestRun(testRunEntity, {
                               runDetail: {
                                 ...(testRunData.runDetail ?? {}),
@@ -211,13 +223,18 @@ const AttachmentUpload: React.FC<AttachmentUploadProps> = props => {
 
   const fileRef = React.useRef(new Map());
 
-  const [fileList, setFileList] = useState<any[]>(testRunData.runDetail?.attachments ?? []);
+  const [fileList, setFileList] = useState<any[]>([]);
+
+  useEffect(() => {
+    setFileList(testRunData.runDetail?.attachments ?? []);
+  }, [testRunData.runDetail?.attachments]);
 
   const saveParseFile = async fileData => {
-    const getFileList = (isError = false) =>
-      (isError
-        ? [...fileRef.current.values()].filter(d => d.uid !== fileData.file.uid)
-        : [...fileRef.current.values()]
+    const getFileList = (isError = false) => {
+      const _list = (
+        isError
+          ? [...fileRef.current.values()].filter(d => d.uid !== fileData.file.uid)
+          : [...fileRef.current.values()]
       )
         .concat(fileList)
         .reduce((prev, cur) => {
@@ -225,6 +242,14 @@ const AttachmentUpload: React.FC<AttachmentUploadProps> = props => {
 
           return prev;
         }, []);
+
+      return [
+        ..._list.filter(d => !d.time),
+        ..._list
+          .filter(d => d.time)
+          .sort((a, b) => (dayjs(b.time) as any) - (dayjs(a.time) as any)),
+      ];
+    };
 
     setFileList(getFileList());
 
@@ -236,7 +261,7 @@ const AttachmentUpload: React.FC<AttachmentUploadProps> = props => {
           uid: fileData.file.uid,
           name: fileData.file.name,
           size: parseInt(`${fileData.file.size / 1024}`),
-          time: dayjs().format('YYYY-MM-DD hh:mm'),
+          time: dayjs().format('YYYY-MM-DD HH:mm'),
           // status: 'done',
           url: res.toJSON().url,
         });
