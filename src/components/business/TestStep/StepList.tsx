@@ -37,7 +37,7 @@ const StepFields: React.FC<{
                 {
                   key: field.key,
                   maxLength: 500,
-                  placeholder: `请输入${field.title}`,
+                  placeholder: `请输入${field.title}（Alt+Enter切换下一列）`,
                   onKeyDownEnter: () => nextField(stepId, field.key),
                   ref: ref => {
                     // 只有 input 类型组件需要缓存 ref
