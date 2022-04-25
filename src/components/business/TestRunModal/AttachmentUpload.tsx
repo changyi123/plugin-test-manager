@@ -227,6 +227,7 @@ const AttachmentUpload: React.FC<AttachmentUploadProps> = props => {
 
   useEffect(() => {
     setFileList(testRunData.runDetail?.attachments ?? []);
+    fileRef.current.clear();
   }, [testRunData.runDetail?.attachments]);
 
   const saveParseFile = async fileData => {
@@ -260,7 +261,7 @@ const AttachmentUpload: React.FC<AttachmentUploadProps> = props => {
         fileRef.current.set(fileData.file.uid, {
           uid: fileData.file.uid,
           name: fileData.file.name,
-          size: parseInt(`${fileData.file.size / 1024}`),
+          size: parseFloat(`${fileData.file.size / 1024}`).toFixed(2),
           time: dayjs().format('YYYY-MM-DD HH:mm'),
           // status: 'done',
           url: res.toJSON().url,
@@ -304,7 +305,7 @@ const AttachmentUpload: React.FC<AttachmentUploadProps> = props => {
       fileRef.current.set(fileData.file.uid, {
         uid: fileData.file.uid,
         name: fileData.file.name,
-        size: parseInt(`${fileData.file.size / 1024}`),
+        size: parseFloat(`${fileData.file.size / 1024}`).toFixed(2),
         status: 'uploading',
       });
 
