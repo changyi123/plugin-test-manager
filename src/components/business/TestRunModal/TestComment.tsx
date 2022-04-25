@@ -1,10 +1,7 @@
 import React from 'react';
-
-import useFields from 'proxima-sdk/hooks/useFields';
+// import { EditorField } from 'proxima-components';
 
 const TestComment: React.FC<any> = () => {
-  console.log(11111, useFields);
-
   return <>评论111111</>;
 };
 

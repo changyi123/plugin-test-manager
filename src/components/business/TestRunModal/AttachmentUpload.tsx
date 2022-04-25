@@ -235,7 +235,7 @@ const AttachmentUpload: React.FC<AttachmentUploadProps> = props => {
         fileRef.current.set(fileData.file.uid, {
           uid: fileData.file.uid,
           name: fileData.file.name,
-          size: fileData.file.size,
+          size: parseInt(`${fileData.file.size / 1024}`),
           time: dayjs().format('YYYY-MM-DD hh:mm'),
           // status: 'done',
           url: res.toJSON().url,
@@ -264,11 +264,22 @@ const AttachmentUpload: React.FC<AttachmentUploadProps> = props => {
     name: 'file',
     multiple: true,
     showUploadList: false,
+    beforeUpload: file => {
+      return new Promise<boolean>(resolve => {
+        // 限制大小
+        if (file.size / 1024 / 1024 > 50) {
+          message.error(`${file.name}大小不能超过${50}MB`, 2);
+          return Upload.LIST_IGNORE;
+        } else {
+          return resolve(true);
+        }
+      });
+    },
     customRequest: async fileData => {
       fileRef.current.set(fileData.file.uid, {
         uid: fileData.file.uid,
         name: fileData.file.name,
-        size: fileData.file.size,
+        size: parseInt(`${fileData.file.size / 1024}`),
         status: 'uploading',
       });
 
