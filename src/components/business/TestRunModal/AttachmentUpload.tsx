@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Button, Upload, Checkbox, message } from 'antd';
+import { Button, Upload, Checkbox, message, Image } from 'antd';
 import { TabsComponentBaseProps } from './type';
 import { DeleteOutlined, DownloadOutlined, UploadOutlined, LoadingOutlined } from '@/icons';
 import Parse from '@/lib/parse';
@@ -74,6 +74,8 @@ const AttachmentList: React.FC<any> = props => {
     stCheckList(e.target.checked ? fileList.map(d => d.uid) : []);
     indeterminate && setIndeterminate(false);
   };
+
+  const testImg = name => /\.(png|jpe?g|gif|svg)(\?.*)?$/.test(name);
 
   return (
     <>
@@ -179,7 +181,14 @@ const AttachmentList: React.FC<any> = props => {
                         <Checkbox value={file.uid}></Checkbox>
                       </div>
                     )}
-                    <div className={cx('name-cont')}>{file.name}</div>
+                    <div className={cx('name-cont')}>
+                      <div className={cx('name-text')}>{file.name}</div>
+                      {testImg && file.url && (
+                        <div className={cx('name-img')}>
+                          <Image src={file.url}></Image>
+                        </div>
+                      )}
+                    </div>
                   </div>
                   <div className={cx('size', 'text')}>{file.size}kb</div>
                   <div className={cx('status', 'text')}>

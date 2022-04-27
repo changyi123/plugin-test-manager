@@ -73,9 +73,35 @@
           width: 70%;
 
           .name-cont {
-            text-overflow: ellipsis;
-            overflow: hidden;
-            white-space: nowrap;
+            position: relative;
+            display: inherit;
+            width: 70%;
+
+            .name-text {
+              text-overflow: ellipsis;
+              overflow: hidden;
+              white-space: nowrap;
+            }
+
+            &:hover {
+              .name-img {
+                display: inline-flex;
+              }
+            }
+
+            .name-img {
+              display: none;
+              position: absolute;
+              padding: 1px;
+              background-color: #fff;
+              top: 0;
+              left: 0;
+              width: 160px;
+              box-shadow: 0px 0px 6px 0px #a8a3a3;
+              border-radius: 2px;
+              transform: translate(10%, -100%);
+              z-index: 1;
+            }
           }
 
           .file-checkbox {
