@@ -384,7 +384,7 @@ export const updateTestRun = async (
       // 全部 pass
       const hasAllPass = steps.every(item => item.status === 'PASSED');
       // 全部 todo
-      const hasAllTodo = steps.every(item => item.status === 'TODO' || item.status == null);
+      const hasAllTodo = steps.every(item => item.status === 'TODO');
 
       if (hasFail) {
         needUpdateAttrs.status = 'FAILED';
