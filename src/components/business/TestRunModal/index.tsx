@@ -13,19 +13,22 @@ interface ITestRunModalProps {
   onCancel?: ModalProps['onCancel'];
 }
 
+let prevVisibleState = false;
+
 const TestRunModal: React.FC<ITestRunModalProps> = props => {
-  const [isVisible, setIsVisible] = React.useState(props.visible);
+  const [isVisible, setIsVisible] = React.useState(props.visible ?? prevVisibleState);
 
   React.useEffect(() => {
     if (typeof props.visible === 'boolean') {
+      prevVisibleState = props.visible;
       setIsVisible(props.visible);
     }
   }, [props.visible]);
 
   const handleCloseModal = React.useCallback(
     e => {
-      console.info('close modal---', e);
       setIsVisible(false);
+      prevVisibleState = false;
       props.onCancel?.(e);
     },
     [props, setIsVisible],
@@ -38,8 +41,6 @@ const TestRunModal: React.FC<ITestRunModalProps> = props => {
       </>
     );
   }, [handleCloseModal]);
-
-  console.info('isVisible----->', isVisible);
 
   return (
     <>
@@ -65,8 +66,8 @@ const TestRunModal: React.FC<ITestRunModalProps> = props => {
         React.cloneElement(props.trigger, {
           ...props.trigger.props,
           onClick: e => {
-            console.info('trigger------>', e);
             setIsVisible(true);
+            prevVisibleState = props.visible;
             props.trigger?.props?.onClick?.(e);
           },
         })}
