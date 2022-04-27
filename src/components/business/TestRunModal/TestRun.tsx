@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import _ from 'lodash';
 import { TestEntity } from '@/lib/types/Test';
 import { QuestionCircleFilled } from '@/icons';
@@ -16,7 +16,7 @@ import TestStep from './TestStep';
 import DefectList from './DefectList';
 import ItemLinkTable from './ItemLinkTable';
 import AttachmentUpload from './AttachmentUpload';
-// import TestComment from './TestComment';
+import TestComment from './TestComment';
 
 import cx from './TestRun.less';
 
@@ -272,6 +272,17 @@ const TestRun: React.FC<TestRunType> = props => {
     );
   };
 
+  const TestCommentsList = useMemo(
+    () => (
+      <TestComment
+        testRunEntity={testRunEntity}
+        testRunData={testRunData}
+        onDataChange={onDataChange}
+      />
+    ),
+    [testRunEntity, testRunData, onDataChange],
+  );
+
   const loading =
     tabPaneLoading ||
     testRunRequestLoading ||
@@ -340,11 +351,11 @@ const TestRun: React.FC<TestRunType> = props => {
               </Tabs>
             </Collapse.Panel>
           </Collapse>
-          {/* <Collapse className={cx('collapse')} defaultActiveKey={['1']}>
+          <Collapse className={cx('collapse')} defaultActiveKey={['1']}>
             <Collapse.Panel key="1" header="评论">
-              <TestComment />
+              {TestCommentsList}
             </Collapse.Panel>
-          </Collapse> */}
+          </Collapse>
         </div>
       </div>
     </Spin>

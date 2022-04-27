@@ -28,6 +28,8 @@ type BaseTestEntity = {
     defectItemIds?: string[];
     attachments?: Attachment[]; // 附件
   };
+  /** 测试用例评论数据 */
+  comments: comment[];
 };
 
 /** 测试实体类型 */
@@ -86,4 +88,11 @@ export type Step = {
   // 以下字段为保留字段暂时不用
   attachments?: string[]; // 附件
   customFields?: StepField[]; // 自定义字段
+};
+
+export type comment = {
+  id: string; // 评论 ID
+  value: any; // 评论内容
+  createTime: string; // 评论时间
+  createUserId: string; // 评论用户 id
 };
