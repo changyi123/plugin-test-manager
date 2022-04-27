@@ -4,11 +4,13 @@ import { DataContext } from '../context';
 import { TestConfig } from '@/lib/models';
 import { getTestConfig } from '@/lib/api/common';
 import { generateDefaultTestConfig } from '../helper';
+import { generateStorageKey } from '@/lib/utils/helper';
 import { useAllTestWorkspace } from '@/lib/hooks/useTest';
-import { useSessionStorageState, useRequest } from 'ahooks';
+import { useLocalStorageState, useRequest } from 'ahooks';
 import { updateUsedHierarchySchema } from '@/lib/api/proxima';
 import WorkspaceSelectorModal from '../WorkspaceSelectorModal';
 
+const CurrentWorkspaceStorageKey = generateStorageKey('current-workspace');
 /**
  * 空间配置初始化
  * 1. 为所有空间创建空间级别的配置
@@ -71,12 +73,9 @@ const useConfigBootstrap = globalConfig => {
 };
 
 const DataProvider = ({ children }) => {
-  const [currentWorkspace, setCurrentWorkspace] = useSessionStorageState(
-    'TEST_MANAGER_CURRENT_WORKSPACE',
-    {
-      defaultValue: null,
-    },
-  );
+  const [currentWorkspace, setCurrentWorkspace] = useLocalStorageState(CurrentWorkspaceStorageKey, {
+    defaultValue: null,
+  });
   const workspaceSelectorRef = React.useRef<any>();
 
   const { data: globalConfig, refreshAsync: refreshGlobalConfig } = useRequest(async () => {
