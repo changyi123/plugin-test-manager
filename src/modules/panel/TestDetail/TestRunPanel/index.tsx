@@ -11,7 +11,9 @@ import {
 import { useBaseAction } from '@/lib/hooks/useContext';
 import { TestType } from '@/lib/constants';
 import { removeTestRelations } from '@/lib/api/common';
-import TestRunModal from '@/components/business/TestRunModal';
+import TestRunModal, {
+  ActionType as TestRunModalActionType,
+} from '@/components/business/TestRunModal';
 import { StatusBadge } from '@/components/business/Status';
 import { useTestConfig } from '@/lib/hooks/useContext';
 
@@ -27,6 +29,7 @@ export const RunsContext = React.createContext<{ refresh?: () => void }>({});
 const Runs: React.FC = () => {
   const { testEntity: testDetailEntity } = useTestConfig();
   const tableActionRef = React.useRef<ActionType>();
+  const testRunModalActionRef = React.useRef<TestRunModalActionType>();
   const { createItemUseModal } = useBaseAction();
   const [currentPageTestRunIdSequence, setCurrentPageTestRunIdSequence] = React.useState([]);
 
@@ -104,16 +107,19 @@ const Runs: React.FC = () => {
         const testRun = record.relTestRun ?? {};
         return (
           <Space split={<Divider type="vertical" />} size={0} style={{ marginLeft: -4 }}>
-            <TestRunModal
-              testId={testRun.objectId}
-              testIdSequence={currentPageTestRunIdSequence}
-              onCancel={() => setTimeout(() => tableActionRef.current.refresh(), 200)}
-              trigger={
-                <Button size="small" type="link">
-                  执行
-                </Button>
-              }
-            />
+            <Button
+              size="small"
+              type="link"
+              onClick={async () => {
+                await testRunModalActionRef.current.open({
+                  testId: testRun.objectId,
+                  testIdSequence: currentPageTestRunIdSequence,
+                });
+                tableActionRef.current.refresh();
+              }}
+            >
+              执行
+            </Button>
             <Popconfirm
               placement="left"
               getPopupContainer={() => getRootContainer()}
@@ -184,6 +190,8 @@ const Runs: React.FC = () => {
             getDataSource={tableDataSourceGetter}
           />
         </div>
+
+        <TestRunModal actionRef={testRunModalActionRef} />
       </div>
     </RunsContext.Provider>
   );

@@ -379,19 +379,21 @@ export const updateTestRun = async (
     if (!opts.initialization) {
       // 有一个失败
       const hasFail = steps.some(item => item.status === 'FAILED');
+      // 有一个正在执行
+      const hasExecuting = steps.some(item => item.status === 'EXECUTING');
       // 全部 pass
-      const allPass = steps.filter(item => item.status === 'PASSED');
+      const hasAllPass = steps.every(item => item.status === 'PASSED');
       // 全部 todo
-      const allTodo = steps.filter(item => item.status === 'TODO');
+      const hasAllTodo = steps.every(item => item.status === 'TODO' || item.status == null);
 
       if (hasFail) {
         needUpdateAttrs.status = 'FAILED';
-      } else if (allPass.length === steps?.length) {
-        needUpdateAttrs.status = 'PASSED';
-      } else if (allTodo.length === steps?.length) {
-        needUpdateAttrs.status = 'TODO';
-      } else {
+      } else if (hasExecuting) {
         needUpdateAttrs.status = 'EXECUTING';
+      } else if (hasAllPass) {
+        needUpdateAttrs.status = 'PASSED';
+      } else if (hasAllTodo) {
+        needUpdateAttrs.status = 'TODO';
       }
     }
   }
