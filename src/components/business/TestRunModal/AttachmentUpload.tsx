@@ -345,7 +345,7 @@ const AttachmentUpload: React.FC<AttachmentUploadProps> = props => {
           type="link"
           size="small"
           icon={<UploadOutlined />}
-          style={{ padding: 0, marginBottom: '4px' }}
+          style={{ padding: 0, marginBottom: '12px' }}
         >
           上传附件
         </Button>
