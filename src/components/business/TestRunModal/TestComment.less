@@ -1,4 +1,55 @@
 :root {
   .commont-box {
+    cursor: pointer;
+
+    .comment-list {
+      margin-bottom: 12px;
+
+      &:hover {
+        .delete-btn {
+          visibility: inherit;
+        }
+      }
+
+      .delete-btn {
+        visibility: hidden;
+        margin-left: 8px;
+      }
+
+      .comment-list-header {
+        display: flex;
+        align-items: center;
+
+        .user-box {
+          display: flex;
+          align-items: center;
+          margin-right: 12px;
+
+          .user-code {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            color: #fff;
+            line-height: 24px;
+            font-weight: bold;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: #39f;
+            margin-right: 8px;
+          }
+
+          .user-name {
+            line-height: 20px;
+          }
+        }
+      }
+
+      .comment-editor {
+        margin-left: 40px;
+        width: calc(100% - 40px);
+      }
+    }
   }
 }

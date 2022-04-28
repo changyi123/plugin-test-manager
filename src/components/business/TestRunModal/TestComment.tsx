@@ -46,10 +46,10 @@ const TestComment: React.FC<any> = (props: any) => {
   const { data: userInfo, mutate } = useGetUserById(ids);
 
   React.useEffect(() => {
-    const data = userInfo.map(d => d.toJSON());
+    const data = userInfo?.map(d => d.toJSON()) ?? [];
     if (data.length) {
       setTestCommentList(
-        testRunData.comments.map(d => ({
+        (testRunData.comments ?? []).map(d => ({
           ...d,
           user: data.find(f => f.objectId === d.createUserId),
         })),
@@ -111,30 +111,55 @@ const TestComment: React.FC<any> = (props: any) => {
   };
 
   const readpnlyEditor = useMemo(() => {
-    console.log(111);
+    const UserField = ({ user }) => {
+      return (
+        <div className={cx('user-box')}>
+          <div className={cx('user-code')}>{user.username.trim().split('')[0]}</div>
+          <div className={cx('user-name')}>{user.nickname}</div>
+        </div>
+      );
+    };
+
+    const deleteComment = async data => {
+      await updateTestRun(testRunEntity, {
+        comments: testRunData.comments?.filter(d => d.id !== data.id),
+      });
+      onDataChange();
+    };
 
     return (
       <>
-        {testCommentList.length &&
+        {!!testCommentList.length &&
           testCommentList.map(comment => (
             <div className={cx('comment-list')} key={comment.id}>
               <div className={cx('comment-list-header')}>
-                {comment.createUserId}
-                {/* <UserField user={comment.createUserId} /> */}
-                <div>{comment.createTime}</div>
+                <UserField user={comment.user} />
+                <div>
+                  {comment.createTime}
+                  <Button
+                    className={cx('delete-btn')}
+                    size="small"
+                    type="link"
+                    onClick={() => deleteComment(comment)}
+                  >
+                    删除
+                  </Button>
+                </div>
               </div>
-              <EditorField
-                name={comment.id}
-                value={comment.value}
-                readonly
-                hiddenLabel
-                hideEditBtn
-              />
+              <div className={cx('comment-editor')}>
+                <EditorField
+                  name={comment.id}
+                  value={comment.value}
+                  readonly
+                  hiddenLabel
+                  hideEditBtn
+                />
+              </div>
             </div>
           ))}
       </>
     );
-  }, [testCommentList]);
+  }, [onDataChange, testCommentList, testRunData.comments, testRunEntity]);
 
   return (
     <>
