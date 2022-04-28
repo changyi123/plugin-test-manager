@@ -1,12 +1,13 @@
 import React, { useMemo } from 'react';
 import { EditorField } from '@projectproxima/components';
-import { Button, Input, Space } from 'antd';
-
-import cx from './TestComment.less';
 import { useCurrentUser, useGetUserById } from '@/lib/api/user';
+import { Button, Input } from '@osui/ui';
 import { updateTestRun } from '@/lib/api/runs';
 import { v4 as uuid } from 'uuid';
 import dayjs from 'dayjs';
+import { Space } from 'antd';
+
+import cx from './TestComment.less';
 
 const defaultValue = [
   {
@@ -114,7 +115,9 @@ const TestComment: React.FC<any> = (props: any) => {
     const UserField = ({ user }) => {
       return (
         <div className={cx('user-box')}>
-          <div className={cx('user-code')}>{user.username.trim().split('')[0]}</div>
+          <div className={cx('user-code')}>
+            {user.username.trim().split('')[0].toLocaleUpperCase()}
+          </div>
           <div className={cx('user-name')}>{user.nickname}</div>
         </div>
       );
