@@ -3,7 +3,6 @@ import TestRun from './TestRun';
 import { Modal, Button } from '@osui/ui';
 import type { ModalProps } from 'antd/lib/modal';
 import { getRootContainer } from '@/lib/utils/helper';
-import useMergedState from 'rc-util/lib/hooks/useMergedState';
 
 interface ITestRunModalProps {
   testId: string;
@@ -14,14 +13,22 @@ interface ITestRunModalProps {
   onCancel?: ModalProps['onCancel'];
 }
 
+let prevVisibleState = false;
+
 const TestRunModal: React.FC<ITestRunModalProps> = props => {
-  const [isVisible, setIsVisible] = useMergedState(false, {
-    value: props.visible,
-  });
+  const [isVisible, setIsVisible] = React.useState(props.visible ?? prevVisibleState);
+
+  React.useEffect(() => {
+    if (typeof props.visible === 'boolean') {
+      prevVisibleState = props.visible;
+      setIsVisible(props.visible);
+    }
+  }, [props.visible]);
 
   const handleCloseModal = React.useCallback(
     e => {
       setIsVisible(false);
+      prevVisibleState = false;
       props.onCancel?.(e);
     },
     [props, setIsVisible],
@@ -59,7 +66,8 @@ const TestRunModal: React.FC<ITestRunModalProps> = props => {
         React.cloneElement(props.trigger, {
           ...props.trigger.props,
           onClick: e => {
-            setIsVisible(!isVisible);
+            setIsVisible(true);
+            prevVisibleState = props.visible;
             props.trigger?.props?.onClick?.(e);
           },
         })}
