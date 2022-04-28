@@ -118,7 +118,7 @@ const TestComment: React.FC<any> = (props: any) => {
           <div className={cx('user-code')}>
             {user.username.trim().split('')[0].toLocaleUpperCase()}
           </div>
-          <div className={cx('user-name')}>{user.nickname}</div>
+          <div className={cx('user-name', user.enabled ? '' : 'enabled')}>{user.nickname}</div>
         </div>
       );
     };
