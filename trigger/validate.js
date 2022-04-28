@@ -65,7 +65,7 @@ const testSteps = datas => (isSteps(datas) ? splitSteps(datas).some(d => !testSt
 
 const getCharNumErrorIndex = datas =>
   splitSteps(datas)
-    .map((d, index) => (getCharNum(d) > 500 ? index : null))
+    .map((d, index) => (getCharNum(d) > 1000 ? index : null))
     .filter(d => d !== null);
 
 const getValidateErrors = (datas, errors = []) => {
@@ -95,9 +95,9 @@ const getTestDetailsErrors = datas =>
     }
 
     // 校验前置条件字数
-    if (getCharNum(cur.precondition) > 500) {
+    if (getCharNum(cur.precondition) > 1000) {
       prev = prev.concat([
-        `第 ${index + 1} 条前置条件字符数超过限制，前置条件 限制 500 个字符，不予以导入`,
+        `第 ${index + 1} 条前置条件字符数超过限制，前置条件 限制 1000 个字符，不予以导入`,
       ]);
     }
 
@@ -111,7 +111,7 @@ const getTestDetailsErrors = datas =>
       prev = prev.concat(
         `第 ${index + 1} 条用例的 ${getCharNumErrorIndex(cur.action)
           .map(d => d + 1)
-          .join('、')} 条步骤描述超过限制，步骤描述 限制 500 个字符，不予以导入`,
+          .join('、')} 条步骤描述超过限制，步骤描述 限制 1000 个字符，不予以导入`,
       );
     }
 
@@ -125,7 +125,7 @@ const getTestDetailsErrors = datas =>
       prev = prev.concat(
         `第 ${index + 1} 条用例的 ${getCharNumErrorIndex(cur.result)
           .map(d => d + 1)
-          .join('、')} 条预期结果超过限制，预期结果 限制 500 个字符，不予以导入`,
+          .join('、')} 条预期结果超过限制，预期结果 限制 1000 个字符，不予以导入`,
       );
     }
 
@@ -139,7 +139,7 @@ const getTestDetailsErrors = datas =>
       prev = prev.concat(
         `第 ${index + 1} 条用例的 ${getCharNumErrorIndex(cur.data)
           .map(d => d + 1)
-          .join('、')} 条数据超过限制，数据 限制 500 个字符，不予以导入`,
+          .join('、')} 条数据超过限制，数据 限制 1000 个字符，不予以导入`,
       );
     }
 

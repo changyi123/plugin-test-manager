@@ -133,7 +133,7 @@ const createTestMangerTest = async () => {
       reference: itemParseObj.createWithoutData(isNotHaveMap ? _data.itemId : _data.id),
       detail: {
         precondition:
-          (isNotHaveMap && getCharNum(_data.precondition)) > 500 ? '' : _data.precondition,
+          (isNotHaveMap && getCharNum(_data.precondition)) > 1000 ? '' : _data.precondition,
         steps: isNotHaveMap ? getStepsData(clone(_data)) : [],
       },
       sortIndex: mathData + index,
