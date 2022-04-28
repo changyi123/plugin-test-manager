@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Checkbox, message, Image } from 'antd';
-import { Button, Upload } from '@osui/ui';
+import { Checkbox, message, Image, Upload } from 'antd';
+import { Button } from '@osui/ui';
 import { TabsComponentBaseProps } from './type';
 import { DeleteOutlined, DownloadOutlined, UploadOutlined, LoadingOutlined } from '@/icons';
 import Parse from '@/lib/parse';
@@ -184,7 +184,7 @@ const AttachmentList: React.FC<any> = props => {
                     )}
                     <div className={cx('name-cont')}>
                       <div className={cx('name-text')}>{file.name}</div>
-                      {testImg && file.url && (
+                      {testImg(file.name) && file.url && (
                         <div className={cx('name-img')}>
                           <Image src={file.url}></Image>
                         </div>
@@ -222,7 +222,7 @@ const AttachmentList: React.FC<any> = props => {
           </Checkbox.Group>
         </div>
       ) : (
-        ''
+        <p style={{ color: '#b0b5bc' }}>当前测试执行无附件数据</p>
       )}
     </>
   );
@@ -341,7 +341,12 @@ const AttachmentUpload: React.FC<AttachmentUploadProps> = props => {
     <>
       {AttachmentLists}
       <Upload {...uploadProps}>
-        <Button type="link" icon={<UploadOutlined />} style={{ padding: 0 }}>
+        <Button
+          type="link"
+          size="small"
+          icon={<UploadOutlined />}
+          style={{ padding: 0, marginBottom: '4px' }}
+        >
           上传附件
         </Button>
       </Upload>

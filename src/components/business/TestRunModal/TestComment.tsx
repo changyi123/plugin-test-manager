@@ -132,7 +132,7 @@ const TestComment: React.FC<any> = (props: any) => {
 
     return (
       <>
-        {!!testCommentList.length &&
+        {testCommentList.length ? (
           testCommentList.map(comment => (
             <div className={cx('comment-list')} key={comment.id}>
               <div className={cx('comment-list-header')}>
@@ -159,7 +159,10 @@ const TestComment: React.FC<any> = (props: any) => {
                 />
               </div>
             </div>
-          ))}
+          ))
+        ) : (
+          <p style={{ color: '#b0b5bc' }}>当前测试用例无评论数据</p>
+        )}
       </>
     );
   }, [onDataChange, testCommentList, testRunData.comments, testRunEntity]);
