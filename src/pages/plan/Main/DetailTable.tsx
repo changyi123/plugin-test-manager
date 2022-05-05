@@ -73,7 +73,6 @@ const DetailTable = () => {
           TestRelationType.PlanRelDetail,
           { from: selectedTestPlanId },
           {
-            workspaceKey,
             fillItemData: true,
             nameLike: searchValue,
             queryParams: queryParams,
@@ -83,7 +82,6 @@ const DetailTable = () => {
           TestRelationType.PlanRelExecution,
           { from: selectedTestPlanId },
           {
-            workspaceKey,
             fillItemData: true,
             queryParams: { limit: 9999 },
             include: ['objectId'],
