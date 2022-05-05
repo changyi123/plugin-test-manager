@@ -22,6 +22,10 @@ const defaultValue = [
 
 const getText = (values: any[]): string =>
   values.reduce((prev, cur) => {
+    if (cur.type === 'img') {
+      prev = prev.concat(cur.url ?? '');
+    }
+
     prev = prev.concat(cur.text ?? '');
 
     if (cur.children) {
