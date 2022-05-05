@@ -2,7 +2,10 @@ import React from 'react';
 import Main from './Main';
 import PlanList from './PlanList';
 import PageProvider from './PageProvider';
+import { logPluginVersion } from '@/lib/utils/helper';
 import PageLayout from '@/components/common/PageLayout';
+
+logPluginVersion();
 
 const TestPlanPage = () => {
   return (

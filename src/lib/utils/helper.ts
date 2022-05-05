@@ -93,5 +93,16 @@ export const generateStaticFileUrl = (url: string) => {
   return `${/^\/project\//.test(url) ? '' : getProximaBasePath()}${url}`;
 };
 
+/** 插件版本输出 */
+export const logPluginVersion = () => {
+  // eslint-disable-next-line no-console
+  console.log('%cPLUGIN-VERSION:', 'font-size: 16px; font-weight: 700; color: skyblue');
+  // eslint-disable-next-line no-console
+  console.table({
+    Branch: (process.env as any)?.PROXIMA_BRANCH,
+    Commit: (process.env as any)?.PROXIMA_COMMIT,
+  });
+};
+
 /** panel 消息通知 */
 export { alert } from '@/components/business/PanelLayout';

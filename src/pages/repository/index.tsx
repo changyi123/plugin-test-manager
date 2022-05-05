@@ -5,15 +5,16 @@ import { useReactive, useRequest } from 'ahooks';
 import { useSDK } from '@projectproxima/plugin-sdk';
 import { updateFolders } from '@/lib/api/repository';
 import { getFolderTree } from '@/lib/api/repository';
+import { logPluginVersion } from '@/lib/utils/helper';
 import { useBaseAction } from '@/lib/hooks/useContext';
 import FolderTree from '@/pages/repository/FolderTree';
 import PageLayout from '@/components/common/PageLayout';
+import { AppstoreAddOutlined, FileClose } from '@/icons';
 import { Tooltip, Button, notification } from '@osui/ui';
 import { getTestEntitiesByQuery } from '@/lib/api/common';
 import SearchInput from '@/components/business/SearchInput';
 import { useListener } from '@projectproxima/proxima-sdk-js';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
-import { AppstoreAddOutlined, FileClose } from '@/icons';
 import TestDetailTable, { ActionType } from './TestDetailTable';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import TestManagerProvider from '@/components/business/TestManagerProvider';
@@ -23,6 +24,8 @@ import { ROOT_FOLDER_KEY } from './constant';
 import RepoDropDown from './RepoDropDown';
 
 import cx from './index.less';
+
+logPluginVersion();
 
 const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) => {
   const tableActionRef = React.useRef<ActionType>();

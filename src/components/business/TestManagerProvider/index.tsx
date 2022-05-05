@@ -48,7 +48,6 @@ const getOrCreateTestEntity = async (itemId: string, config?: { notice: boolean 
       // 额外需要创建的字段
       let extraFields = {};
 
-      // 创建失败，通知用户无法创建测试实体
       if (!testType) {
         // 创建失败，通知用户无法创建测试实体
         config?.notice === true &&
