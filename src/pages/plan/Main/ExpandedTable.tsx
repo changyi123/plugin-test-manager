@@ -1,7 +1,9 @@
 import React from 'react';
 import { Pagination } from 'antd';
 import { StatusBadge } from '@/components/business/Status';
-import TestRunModal from '@/components/business/TestRunModal';
+import TestRunModal, {
+  ActionType as TestRunModalActionType,
+} from '@/components/business/TestRunModal';
 import { BusinessTable } from '@/components/common/BusinessTable';
 
 import cx from './executionTable.less';
@@ -24,6 +26,7 @@ interface ExpandedTableProps {
 
 const ExpandedTable = (props: ExpandedTableProps) => {
   const [pageNum, setPageNum] = React.useState(1);
+  const testRunModalActionRef = React.useRef<TestRunModalActionType>();
 
   const {
     innerTableRefs,
@@ -139,16 +142,18 @@ const ExpandedTable = (props: ExpandedTableProps) => {
       fixed: 'right' as any,
       render(_, record) {
         return (
-          <TestRunModal
-            testId={record.objectId}
-            testIdSequence={testIdSequence}
-            onCancel={() =>
-              setTimeout(() => {
-                refreshAndMutateData(); //刷新依赖数据
-              }, 200)
-            }
-            trigger={<a>执行</a>}
-          />
+          <a
+            onClick={async () => {
+              await testRunModalActionRef.current.open({
+                testId: record.objectId,
+                testIdSequence,
+              });
+              // 刷新依赖数据
+              refreshAndMutateData();
+            }}
+          >
+            执行
+          </a>
         );
       },
     },
@@ -194,6 +199,7 @@ const ExpandedTable = (props: ExpandedTableProps) => {
         onSelectionCancel={() => tableSelectionToggleEvent.emit(false)}
         dataSource={record.relRuns.slice((pageNum - 1) * 10, pageNum * 10)}
       />
+      <TestRunModal actionRef={testRunModalActionRef} />
     </div>
   );
 };

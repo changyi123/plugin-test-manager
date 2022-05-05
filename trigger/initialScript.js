@@ -1,4 +1,4 @@
-const APP_KEY = 'test_manager';
+const APP_KEY = global.appKey ?? 'test_manager';
 
 const TestConfigClass = `${APP_KEY}_TestConfig`;
 
@@ -117,5 +117,9 @@ const initialScriptRunner = async () => {
   await apis.saveAllObject([globalTestConfig]);
 };
 
-await initialScriptRunner();
-console.info('测试管理插件初始化成功');
+try {
+  await initialScriptRunner();
+  console.info('测试管理插件初始化成功');
+} catch (error) {
+  console.error(error);
+}
