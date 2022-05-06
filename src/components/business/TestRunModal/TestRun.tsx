@@ -66,6 +66,7 @@ const TestRun: React.FC<TestRunType> = props => {
   // 子组件 loading
   const [tabPaneLoading, setTabPaneLoading] = React.useState(false);
   const [testId, setTestId] = React.useState(props.id);
+  const modelScrollRef = React.useRef();
 
   const {
     data: testRunEntity,
@@ -278,9 +279,10 @@ const TestRun: React.FC<TestRunType> = props => {
         testRunEntity={testRunEntity}
         testRunData={testRunData}
         onDataChange={onDataChange}
+        modelScrollRef={modelScrollRef}
       />
     ),
-    [testRunEntity, testRunData, onDataChange],
+    [testRunEntity, testRunData, onDataChange, modelScrollRef],
   );
 
   const loading =
@@ -290,75 +292,77 @@ const TestRun: React.FC<TestRunType> = props => {
     itemLinksRequestLoading;
 
   return (
-    <Spin spinning={loading}>
-      <div className={cx('test-run')} data-element-id="test-run-container">
-        <div className={cx('header')}>
-          <h6 className={cx('title')}>{refTestDetailData.reference?.name}</h6>
-          <div>
-            <div className={cx('left')}>
-              <StatusBadge
-                showBg
-                className={cx('status-btn')}
-                status={testRunData.status}
-                onStatusChange={handleStatusChange}
-              />
-              <div className={cx('assigner')}></div>
-            </div>
-            {canExecNext ? (
-              <div className={cx('next')}>
-                <Button
-                  onClick={nextTestRun}
-                  className={cx('next-btn')}
-                  loading={testRunRequestLoading}
-                >
-                  执行下一条
-                </Button>
-                <div className={cx('auto')} onClick={() => setAutoNext(!autoNext)}>
-                  <Checkbox checked={autoNext} />
-                  <span className={cx('label')}>
-                    自动切换下一条
-                    <Tooltip
-                      getPopupContainer={getRootContainer}
-                      title="测试执行状态变更为通过时，自动切换下一条测试执行"
-                    >
-                      <QuestionCircleFilled style={{ marginLeft: 6 }} />
-                    </Tooltip>
-                  </span>
-                </div>
+    <div ref={modelScrollRef}>
+      <Spin spinning={loading}>
+        <div className={cx('test-run')} data-element-id="test-run-container">
+          <div className={cx('header')}>
+            <h6 className={cx('title')}>{refTestDetailData.reference?.name}</h6>
+            <div>
+              <div className={cx('left')}>
+                <StatusBadge
+                  showBg
+                  className={cx('status-btn')}
+                  status={testRunData.status}
+                  onStatusChange={handleStatusChange}
+                />
+                <div className={cx('assigner')}></div>
               </div>
-            ) : null}
+              {canExecNext ? (
+                <div className={cx('next')}>
+                  <Button
+                    onClick={nextTestRun}
+                    className={cx('next-btn')}
+                    loading={testRunRequestLoading}
+                  >
+                    执行下一条
+                  </Button>
+                  <div className={cx('auto')} onClick={() => setAutoNext(!autoNext)}>
+                    <Checkbox checked={autoNext} />
+                    <span className={cx('label')}>
+                      自动切换下一条
+                      <Tooltip
+                        getPopupContainer={getRootContainer}
+                        title="测试执行状态变更为通过时，自动切换下一条测试执行"
+                      >
+                        <QuestionCircleFilled style={{ marginLeft: 6 }} />
+                      </Tooltip>
+                    </span>
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          </div>
+          <div className={cx('main')}>
+            <Collapse className={cx('collapse')} defaultActiveKey={['1']}>
+              <Collapse.Panel key="1" header="前置条件">
+                <div className={cx('precondition')}>
+                  {testRunData.runDetail?.precondition ??
+                    refTestDetailData.detail?.precondition ??
+                    '无'}
+                </div>
+              </Collapse.Panel>
+            </Collapse>
+            <Collapse className={cx('collapse', 'tab')} defaultActiveKey={['1']}>
+              <Collapse.Panel key="1" header="测试执行详情">
+                <Tabs className={cx('tabs')}>
+                  {TestRunDetailTabs.map(tab => (
+                    <Tabs.TabPane key={tab.key} tab={(() => renderTabTitle(tab))()}>
+                      {tab.component &&
+                        React.createElement(tab.component, TabPaneChildrenProps as any)}
+                    </Tabs.TabPane>
+                  ))}
+                </Tabs>
+              </Collapse.Panel>
+            </Collapse>
+            <Collapse className={cx('collapse')} defaultActiveKey={['1']}>
+              <Collapse.Panel key="1" header="评论">
+                {TestCommentsList}
+              </Collapse.Panel>
+            </Collapse>
           </div>
         </div>
-        <div className={cx('main')}>
-          <Collapse className={cx('collapse')} defaultActiveKey={['1']}>
-            <Collapse.Panel key="1" header="前置条件">
-              <div className={cx('precondition')}>
-                {testRunData.runDetail?.precondition ??
-                  refTestDetailData.detail?.precondition ??
-                  '无'}
-              </div>
-            </Collapse.Panel>
-          </Collapse>
-          <Collapse className={cx('collapse', 'tab')} defaultActiveKey={['1']}>
-            <Collapse.Panel key="1" header="测试执行详情">
-              <Tabs className={cx('tabs')}>
-                {TestRunDetailTabs.map(tab => (
-                  <Tabs.TabPane key={tab.key} tab={(() => renderTabTitle(tab))()}>
-                    {tab.component &&
-                      React.createElement(tab.component, TabPaneChildrenProps as any)}
-                  </Tabs.TabPane>
-                ))}
-              </Tabs>
-            </Collapse.Panel>
-          </Collapse>
-          <Collapse className={cx('collapse')} defaultActiveKey={['1']}>
-            <Collapse.Panel key="1" header="评论">
-              {TestCommentsList}
-            </Collapse.Panel>
-          </Collapse>
-        </div>
-      </div>
-    </Spin>
+      </Spin>
+    </div>
   );
 };
 
