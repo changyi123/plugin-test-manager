@@ -25,30 +25,40 @@ const AttachmentList: React.FC<any> = props => {
     setIndeterminate(!!checkList.length && checkList.length < fileList.length);
   }, [checkList, fileList]);
 
-  const deleteFileLise = file => {
-    const arr = file.url.split('/');
-    const fileName = arr[arr.length - 1];
-    Parse.Cloud.run('deleteFile', {
-      fileName: fileName,
-    })
-      .then(async () => {
-        const fileArr = fileList.filter(v => v.uid !== file.uid);
-
-        await updateTestRun(testRunEntity, {
-          runDetail: {
-            ...(testRunData.runDetail ?? {}),
-            attachments: fileArr,
-          },
-        });
-
-        fileRef.current.delete(file.uid);
-
-        setFileList(fileArr);
-        onDataChange();
-      })
-      .catch(error => {
-        message.error(error.message);
+  const deleteFileLise = async file => {
+    if (!file.url) {
+      await updateTestRun(testRunEntity, {
+        runDetail: {
+          ...(testRunData.runDetail ?? {}),
+          attachments: fileList.filter(v => v.uid !== file.uid),
+        },
       });
+      onDataChange();
+    } else {
+      const arr = file.url.split('/');
+      const fileName = arr[arr.length - 1];
+      Parse.Cloud.run('deleteFile', {
+        fileName: fileName,
+      })
+        .then(async () => {
+          const fileArr = fileList.filter(v => v.uid !== file.uid);
+
+          await updateTestRun(testRunEntity, {
+            runDetail: {
+              ...(testRunData.runDetail ?? {}),
+              attachments: fileArr,
+            },
+          });
+
+          fileRef.current.delete(file.uid);
+
+          setFileList(fileArr);
+          onDataChange();
+        })
+        .catch(error => {
+          message.error(error.message);
+        });
+    }
   };
 
   const downLoadFile = file => {
@@ -127,12 +137,14 @@ const AttachmentList: React.FC<any> = props => {
                               fileList
                                 .filter(file => checkList.includes(file.uid))
                                 .map(file => {
-                                  const arr = file.url.split('/');
-                                  const fileName = arr[arr.length - 1];
+                                  if (file.url) {
+                                    const arr = file.url.split('/');
+                                    const fileName = arr[arr.length - 1];
 
-                                  return Parse.Cloud.run('deleteFile', {
-                                    fileName: fileName,
-                                  });
+                                    return Parse.Cloud.run('deleteFile', {
+                                      fileName: fileName,
+                                    });
+                                  }
                                 }),
                             );
 
@@ -240,6 +252,12 @@ const AttachmentUpload: React.FC<AttachmentUploadProps> = props => {
     fileRef.current.clear();
   }, [testRunData.runDetail?.attachments]);
 
+  useEffect(() => {
+    if (fileList.length !== 0 && fileList.filter(d => d.status).length === 0) {
+      onDataChange();
+    }
+  }, [fileList, onDataChange]);
+
   const saveParseFile = async fileData => {
     const getFileList = (isError = false) => {
       const _list = (
@@ -273,7 +291,6 @@ const AttachmentUpload: React.FC<AttachmentUploadProps> = props => {
           name: fileData.file.name,
           size: parseFloat(`${fileData.file.size / 1024}`).toFixed(2),
           time: dayjs().format('YYYY-MM-DD HH:mm'),
-          // status: 'done',
           url: res.toJSON().url,
         });
 
@@ -286,7 +303,6 @@ const AttachmentUpload: React.FC<AttachmentUploadProps> = props => {
         });
 
         setFileList(getFileList());
-        onDataChange();
       },
       error => {
         message.error(error.message);
