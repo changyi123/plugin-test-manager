@@ -24,14 +24,14 @@ const TEST_MANAGER_REPO = `${APP_KEY}_Repository`;
 const clone = d => JSON.parse(JSON.stringify(d));
 
 // eslint-disable-next-line no-control-regex
-const isTwoChar = d => /[^\x00-\xff]/g.test(d);
+// const isTwoChar = d => /[^\x00-\xff]/g.test(d);
 
-const getCharNum = d =>
-  d?.split?.('').reduce((prev, cur) => {
-    prev = prev + (isTwoChar(cur) ? 2 : 1);
+// const getCharNum = d =>
+//   d?.split?.('').reduce((prev, cur) => {
+//     prev = prev + (isTwoChar(cur) ? 2 : 1);
 
-    return prev;
-  }, 0) ?? 0;
+//     return prev;
+//   }, 0) ?? 0;
 
 // 根据事项数据获取 workspaceKey
 const getWorkspaceKey = async () => {
@@ -132,8 +132,7 @@ const createTestMangerTest = async () => {
       type: 'TestDetail',
       reference: itemParseObj.createWithoutData(isNotHaveMap ? _data.itemId : _data.id),
       detail: {
-        precondition:
-          (isNotHaveMap && getCharNum(_data.precondition)) > 500 ? '' : _data.precondition,
+        precondition: _data.precondition,
         steps: isNotHaveMap ? getStepsData(clone(_data)) : [],
       },
       sortIndex: mathData + index,

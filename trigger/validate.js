@@ -95,9 +95,9 @@ const getTestDetailsErrors = datas =>
     }
 
     // 校验前置条件字数
-    if (getCharNum(cur.precondition) > 500) {
+    if (getCharNum(cur.precondition) > 1000) {
       prev = prev.concat([
-        `第 ${index + 1} 条前置条件字符数超过限制，前置条件 限制 500 个字符，不予以导入`,
+        `第 ${index + 1} 条前置条件字符数超过限制，前置条件 限制 1000 个字符，不予以导入`,
       ]);
     }
 
