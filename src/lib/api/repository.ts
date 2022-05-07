@@ -18,6 +18,7 @@ export const getFolderTree = async (workspaceKey: string) => {
     .addAscending(['sortIndex', 'createdAt'])
     .limit(9999)
     .find();
+
   const repositories = repositoryObjects.map(item => {
     const repository = item.toJSON();
     return {
