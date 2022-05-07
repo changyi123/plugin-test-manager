@@ -1,0 +1,15 @@
+{
+  "name": "scripts",
+  "version": "1.0.0",
+  "description": "",
+  "private": true,
+  "scripts": {},
+  "repository": {},
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {},
+  "dependencies": {
+    "node-fetch": "^3.2.4",
+    "tiny-async-pool": "^2.0.1"
+  }
+}
