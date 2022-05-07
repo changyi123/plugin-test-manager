@@ -13,7 +13,9 @@ import {
 import TestEntitySelectorModal, {
   ActionType as SelectorActionType,
 } from '@/components/business/TestEntitySelectorModal';
-import TestRunModal from '@/components/business/TestRunModal';
+import TestRunModal, {
+  ActionType as TestRunModalActionType,
+} from '@/components/business/TestRunModal';
 import { getRootContainer, goToItemDetailPage } from '@/lib/utils/helper';
 import { StatusBadge } from '@/components/business/Status';
 import { useAllRelTestEntities } from '@/lib/hooks/useTest';
@@ -27,6 +29,7 @@ const Test = () => {
   const tableActionRef = React.useRef<ActionType>();
 
   const selectorModalRef = React.useRef<SelectorActionType>();
+  const testRunModalActionRef = React.useRef<TestRunModalActionType>();
 
   const { testEntities: allTestEntities, refresh: getAllRelTestEntities } = useAllRelTestEntities(
     TestRelationType.ExecutionRelRun,
@@ -141,16 +144,19 @@ const Test = () => {
         key: 'testRunId',
         render: (_, item) => (
           <Space split={<Divider type="vertical" />} size={0} style={{ marginLeft: -4 }}>
-            <TestRunModal
-              testId={item.objectId}
-              testIdSequence={allTestRunIds}
-              onCancel={() => setTimeout(() => refreshDepData(), 200)}
-              trigger={
-                <Button size="small" type="link">
-                  执行
-                </Button>
-              }
-            />
+            <Button
+              onClick={async () => {
+                await testRunModalActionRef.current.open({
+                  testId: item.objectId,
+                  testIdSequence: allTestRunIds,
+                });
+                refreshDepData();
+              }}
+              size="small"
+              type="link"
+            >
+              执行
+            </Button>
             <Popconfirm
               okText="确定"
               placement="left"
@@ -216,6 +222,8 @@ const Test = () => {
         columns={tableColumns}
         getDataSource={tableDataSourceGetter}
       />
+
+      <TestRunModal actionRef={testRunModalActionRef} />
     </div>
   );
 };

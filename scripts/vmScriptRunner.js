@@ -1,9 +1,13 @@
+/**
+ * vm 本地脚本调试
+ */
+
 const axios = require('axios');
 const path = require('path');
 const fs = require('fs');
 
-const fileName = './dataImport.js';
-const sessionToken = 'r:4590b9f3deca656618dba8d086c51665';
+const fileName = '../trigger/import/import.js';
+const sessionToken = 'r:a52fa1e8b36fccd30286097ae2494cd2';
 const params = {
   appKey: 'test_manager',
 };
@@ -20,6 +24,7 @@ fs.watchFile(fullPath, () => {
       script,
       params,
       sessionToken,
+      // applicationId: 'zhengzhou',
     })
     .then(res => {
       console.info(new Date().toUTCString(), res.data);

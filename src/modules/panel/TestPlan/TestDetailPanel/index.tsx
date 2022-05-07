@@ -19,7 +19,9 @@ import TestEntitySelectorModal, {
 } from '@/components/business/TestEntitySelectorModal';
 import { StatusBadge } from '@/components/business/Status';
 import { useAllRelTestEntities } from '@/lib/hooks/useTest';
-import TestRunModal from '@/components/business/TestRunModal';
+import TestRunModal, {
+  ActionType as TestRunModalActionType,
+} from '@/components/business/TestRunModal';
 import { QuestionCircleOutlined } from '@/icons';
 import { createTestExecutionAndRelations } from '@/lib/api/runs';
 import {
@@ -37,6 +39,7 @@ const Test = () => {
   const { createItemUseModal } = useBaseAction();
   const tableActionRef = React.useRef<ActionType>();
   const selectorModalRef = React.useRef<SelectorActionType>();
+  const testRunModalActionRef = React.useRef<TestRunModalActionType>();
 
   const { testEntities: allTestEntities, refresh: getAllRelTestEntities } = useAllRelTestEntities(
     TestRelationType.PlanRelDetail,
@@ -268,17 +271,17 @@ const Test = () => {
           width: 120,
           render(_, record) {
             return (
-              <TestRunModal
-                testId={record.objectId}
-                testIdSequence={testIdSequence}
-                onCancel={() =>
-                  setTimeout(() => {
-                    refreshDepData(); //刷新依赖数据
-                    /* tableActionRef.current.refresh() */
-                  }, 200)
-                }
-                trigger={<a>执行</a>}
-              />
+              <a
+                onClick={async () => {
+                  await testRunModalActionRef.current.open({
+                    testId: record.objectId,
+                    testIdSequence,
+                  });
+                  refreshDepData(); //刷新依赖数据
+                }}
+              >
+                执行
+              </a>
             );
           },
         },
@@ -341,6 +344,8 @@ const Test = () => {
         columns={tableColumns}
         getDataSource={tableDataSourceGetter}
       />
+
+      <TestRunModal actionRef={testRunModalActionRef} />
     </div>
   );
 };
