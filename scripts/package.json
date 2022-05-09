@@ -2,6 +2,7 @@
   "name": "scripts",
   "version": "1.0.0",
   "description": "",
+  "type": "commonjs",
   "private": true,
   "scripts": {},
   "repository": {},
@@ -9,7 +10,7 @@
   "license": "ISC",
   "devDependencies": {},
   "dependencies": {
-    "node-fetch": "^3.2.4",
+    "node-fetch": "1",
     "tiny-async-pool": "^2.0.1"
   }
 }
