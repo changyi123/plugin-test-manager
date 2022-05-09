@@ -15,12 +15,14 @@ import {
   getTestEntitiesByRelationWithOrder,
 } from '@/lib/api/common';
 import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
+import { useGetRepositoryData } from '@/lib/hooks/useTest';
 
 import cx from './DetailTable.less';
 
 const DetailTable = () => {
   const actionRef = React.useRef<BusinessTableActionType>();
   const [tableLoading, setTableLoading] = React.useState(false);
+  const [columns, setColumns] = React.useState<any[] | undefined>([]);
 
   // 事项数据更新后刷新列表
   useListener('updateItemList', () => {
@@ -127,7 +129,7 @@ const DetailTable = () => {
         total,
       };
     },
-    [searchValue, selectedTestPlanId, workspaceKey],
+    [searchValue, selectedTestPlanId],
   );
 
   const removeTestRelation = React.useCallback(
@@ -198,58 +200,82 @@ const DetailTable = () => {
     ];
   }, [isCheck, userData, removeTestRelation, selectedTestPlanId, refreshAndMutateData]);
 
-  const columns = [
-    {
-      width: 320,
-      key: 'title',
-      isSystem: true,
-      title: '标题',
-      render(_, rowData) {
-        const itemData = rowData.reference ?? {};
-        return (
-          <span style={{ cursor: 'pointer' }} onClick={() => openItemViewScreen(itemData.objectId)}>
-            {itemData.name}
-          </span>
-        );
-      },
-    },
-    {
-      key: 'latestStatus',
-      title: '最新执行状态',
-      width: 200,
-      render(_, rowData) {
-        return <StatusBadge readonly status={rowData.status} className={cx('cell-min')} />;
-      },
-    },
-    {
-      key: 'times',
-      title: <span>执行任务次数</span>,
-      width: 200,
-      render(_, rowData) {
-        return rowData.relRuns.length;
-      },
-    },
-    {
-      key: 'action',
-      isSystem: true,
-      title: '操作',
-      fixed: 'right' as any,
-      render(_, rowData) {
-        return (
-          <a
-            onClick={() =>
-              actionConfirm('该操作会将该测试用例从测试计划中移除，是否继续操作？', () => {
-                removeTestRelation(rowData.selectedTestPlanId, [rowData.objectId]);
-              })
-            }
-          >
-            移除
-          </a>
-        );
-      },
-    },
-  ];
+  const repoData = useGetRepositoryData(workspaceKey);
 
+  React.useEffect(() => {
+    if (repoData) {
+      const repoDataMap = new Map();
+      repoData.forEach(d => {
+        repoDataMap.set(d.objectId, d);
+      });
+
+      const _columns = [
+        {
+          width: 320,
+          key: 'title',
+          isSystem: true,
+          title: '标题',
+          render(_, rowData) {
+            const itemData = rowData.reference ?? {};
+            return (
+              <span
+                style={{ cursor: 'pointer' }}
+                onClick={() => openItemViewScreen(itemData.objectId)}
+              >
+                {itemData.name}
+              </span>
+            );
+          },
+        },
+        {
+          key: 'latestStatus',
+          title: '最新执行状态',
+          width: 200,
+          render(_, rowData) {
+            return <StatusBadge readonly status={rowData.status} className={cx('cell-min')} />;
+          },
+        },
+        {
+          key: 'owningRepository',
+          title: '所属模块',
+          width: 140,
+          render(_, rowData) {
+            const repoObj = repoDataMap.get(rowData.repository?.objectId);
+
+            return <span>{repoObj?.path ?? '未分组'}</span>;
+          },
+        },
+        {
+          key: 'times',
+          title: <span>执行任务次数</span>,
+          width: 200,
+          render(_, rowData) {
+            return rowData.relRuns.length;
+          },
+        },
+        {
+          key: 'action',
+          isSystem: true,
+          title: '操作',
+          fixed: 'right' as any,
+          render(_, rowData) {
+            return (
+              <a
+                onClick={() =>
+                  actionConfirm('该操作会将该测试用例从测试计划中移除，是否继续操作？', () => {
+                    removeTestRelation(rowData.selectedTestPlanId, [rowData.objectId]);
+                  })
+                }
+              >
+                移除
+              </a>
+            );
+          },
+        },
+      ];
+      setColumns(_columns);
+    }
+  }, [removeTestRelation, repoData]);
   return (
     <BusinessTable
       useColumnSetting

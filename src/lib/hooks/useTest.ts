@@ -3,6 +3,7 @@ import { useRequest } from 'ahooks';
 import { TestType } from '@/lib/constants';
 import { getAllTestWorkspaces } from '@/lib/api/proxima';
 import { getTestEntitiesByRelationWithOrder, getTestConfig } from '@/lib/api/common';
+import { getRepositoryData } from '../api/repository';
 
 type GetTestEntityParams = Parameters<typeof getTestEntitiesByRelationWithOrder>;
 /** 获取所有事项实体 id */
@@ -70,4 +71,12 @@ export const useAllTestWorkspace = () => {
   );
 
   return allTestWorkspaces;
+};
+
+export const useGetRepositoryData = (workspaceKey: string) => {
+  const { data: repositoryData } = useRequest(async () => {
+    return getRepositoryData(workspaceKey);
+  });
+
+  return repositoryData;
 };
