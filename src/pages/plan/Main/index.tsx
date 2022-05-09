@@ -11,6 +11,7 @@ import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
 import TestEntitySelectorModal, { ActionType } from '@/components/business/TestEntitySelectorModal';
 
 import SearchInput from '@/components/business/SearchInput';
+import RepoDropDown from '@/pages/repository/RepoDropDown';
 
 import cx from './index.less';
 
@@ -121,9 +122,15 @@ const Main = () => {
           <Button type="primary" onClick={addTestDetail} className={cx('action')}>
             规划用例
           </Button>
-          <Button type="primary" onClick={createTestExecution} className={cx('action')}>
+          <Button
+            type="primary"
+            onClick={createTestExecution}
+            className={cx('action')}
+            style={{ marginRight: 8 }}
+          >
             新建测试任务
           </Button>
+          <RepoDropDown type="plan" selectedTestPlanId={selectedTestPlanId} />
         </>
       ) : null}
     </div>

@@ -8,10 +8,12 @@ const RepoDropDown = ({
   type,
   folderKey,
   treeNodeData,
+  selectedTestPlanId,
 }: {
   type: string;
   folderKey?: string;
   treeNodeData?: TreeNode[];
+  selectedTestPlanId?: string;
 }) => {
   const { workspace } = useTestConfig();
 
@@ -49,7 +51,9 @@ const RepoDropDown = ({
       )}
       {type === 'plan' && (
         <>
-          <Menu.Item key="exportGroup">导出当前执行计划下的所有用例</Menu.Item>
+          <Menu.Item key="exportGroup" disabled={!selectedTestPlanId}>
+            导出当前计划关联测试用例
+          </Menu.Item>
         </>
       )}
     </Menu>
