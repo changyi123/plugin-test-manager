@@ -1,8 +1,12 @@
+/**
+ * vm 本地脚本调试
+ */
+
 const axios = require('axios');
 const path = require('path');
 const fs = require('fs');
 
-const fileName = './import.js';
+const fileName = '../trigger/import/import.js';
 const sessionToken = 'r:a52fa1e8b36fccd30286097ae2494cd2';
 const params = {
   appKey: 'test_manager',
