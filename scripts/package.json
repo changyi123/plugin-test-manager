@@ -1,0 +1,16 @@
+{
+  "name": "scripts",
+  "version": "1.0.0",
+  "description": "",
+  "type": "commonjs",
+  "private": true,
+  "scripts": {},
+  "repository": {},
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {},
+  "dependencies": {
+    "node-fetch": "1",
+    "tiny-async-pool": "^2.0.1"
+  }
+}

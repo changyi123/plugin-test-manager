@@ -2,6 +2,10 @@ app:
   uuid: bf73e61c-e15a-4461-a1f7-f940c2009332
   name: test-manager
 modules:
+  webtrigger:
+    # 动态配置 one 路由
+    - key: gitee-menus
+      function: gitee-menus
   trigger:
     - key: test-manager-initial-script
       events:
@@ -14,12 +18,14 @@ modules:
         - proxima:app:update
       function: test-manager-initial-script
   function:
+    - key: gitee-menus
+      handler: /trigger/webTrigger/gitee-menus.js
     - key: test-manager-initial-script
-      handler: /trigger/initialScript.js
+      handler: /trigger/appTrigger/initialScript.js
     - key: test-manager-validate-script
-      handler: /trigger/validate.js
+      handler: /trigger/import/validate.js
     - key: test-manager-import-script
-      handler: /trigger/import.js
+      handler: /trigger/import/import.js
   itemPanel:
     - key: test-manager-test-detail
       resource: main
@@ -38,11 +44,25 @@ modules:
       title: 测试计划
       loadType: Micro
       route: /testPlan
+      hidden: true
     - key: test-repository
       resource: main
       title: 测试用例库
       loadType: Micro
       route: /testRepo
+      hidden: true
+    # - key: main-test-plan
+    #   resource: main
+    #   title: 测试计划
+    #   loadType: Micro
+    #   route: /testPlan
+    #   hidden: true
+    # - key: main-test-repository
+    #   resource: main
+    #   title: 测试用例库
+    #   loadType: Micro
+    #   route: /testRepo
+    #   hidden: true
   beforeCreateOrUpdateModal:
     - key: before-create-or-update-modal
       resource: main
