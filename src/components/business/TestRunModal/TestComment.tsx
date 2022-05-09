@@ -36,7 +36,7 @@ const getText = (values: any[]): string =>
   }, '');
 
 const TestComment: React.FC<any> = (props: any) => {
-  const { testRunEntity, testRunData, onDataChange } = props;
+  const { testRunEntity, testRunData, onDataChange, modelScrollRef } = props;
 
   // 当前编辑器中显示的文本
   const { data: currentUser } = useCurrentUser();
@@ -49,6 +49,13 @@ const TestComment: React.FC<any> = (props: any) => {
   const changeHandle = value => setCommentValue(value);
 
   const { data: userInfo, mutate } = useGetUserById(ids);
+
+  React.useEffect(() => {
+    if (showEditor) {
+      modelScrollRef.current.parentElement.scrollTop =
+        modelScrollRef.current.parentElement.scrollHeight;
+    }
+  }, [modelScrollRef, showEditor]);
 
   React.useEffect(() => {
     const data = userInfo?.map(d => d.toJSON()) ?? [];

@@ -29,7 +29,7 @@ const itemTypeName = await getItemTypeName();
 const isMoreThanThousands = d => d?.length > 1000;
 
 // 去除首位空格
-const trimData = datas => datas?.trim() ?? '';
+const trimData = datas => `${datas}`?.trim() ?? '';
 
 // 根据数据是否超过 1000 条来截取数据
 const getDataByLength = d => (isMoreThanThousands(d) ? d.slice(0, 1000) : d);

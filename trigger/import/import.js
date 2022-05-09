@@ -234,7 +234,7 @@ const filterImportGroupData = datas =>
     return prev;
   }, []);
 
-const getGroupPath = group => group?.split('/').filter(d => d.trim()) ?? [];
+const getGroupPath = group => group?.split('/').filter(d => `${d}`.trim()) ?? [];
 
 const getImportGroupData = () =>
   appFieldsData
