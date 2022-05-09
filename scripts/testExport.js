@@ -2,7 +2,6 @@ const _ = require('lodash');
 const xlsx = require('xlsx');
 const fetch = require('node-fetch');
 const asyncPool = require('tiny-async-pool');
-const dayjs = require('dayjs');
 
 // api 依赖数据
 // iECTM demp
@@ -11,7 +10,7 @@ const workspaceIds = ['demp', 'iECTM'];
 
 const requestParams = {
   cookie:
-    'USER_REALM_KEY="eyJyZWFsbVV1aWQiOiJvc2MiLCJjbGllbnRJZCI6Im9uZS1zc28ifQ=="; PRE-GW-SESSION=e640f8fb0c70467e80874e227548afce',
+    'USER_REALM_KEY="eyJyZWFsbVV1aWQiOiJvc2MiLCJjbGllbnRJZCI6Im9uZS1zc28ifQ=="; PRE-GW-SESSION=93ac9043c93f4537b3a22aca9b056356',
   baseUrl: 'http://devops.inspur.com/api/icase/osc',
 };
 
@@ -21,7 +20,7 @@ const exportTask = async workspaceId => {
     // 获取所有用例
     async getAllTestList() {
       const allTestListResp = await fetch(
-        `${requestParams.baseUrl}/${workspaceId}/testCases?page=1&pageSize=999`,
+        `${requestParams.baseUrl}/${workspaceId}/testCases?page=1&pageSize=9999`,
         {
           headers: {
             cookie: requestParams.cookie,
@@ -206,9 +205,9 @@ const exportTask = async workspaceId => {
   const writeXlsx = data => {
     const fieldDataAndTitleTransformers = {
       levelId: data => ['优先级', ['最高', '较高', '普通', '较低', '最低'][data ?? 1]],
-      updateTime: data => ['更新时间', dayjs(new Date(data)).format('YYYY/MM/DD HH:mm')],
+      updateTime: data => ['更新时间', { t: 'd', v: new Date(data ?? Date.now()) }],
       updateByName: '更新人',
-      createdAt: data => ['创建时间', dayjs(new Date(data)).format('YYYY/MM/DD HH:mm')],
+      createdAt: data => ['创建时间', { t: 'd', v: new Date(data ?? Date.now()) }],
       createdBy: '创建人',
       preCondition: '前置条件',
       action: '步骤',
@@ -232,7 +231,7 @@ const exportTask = async workspaceId => {
       return acc.concat(result);
     }, []);
 
-    const ws = xlsx.utils.json_to_sheet(transformedData);
+    const ws = xlsx.utils.json_to_sheet(transformedData, { dateNF: 'yyyy/mm/dd HH:mm:ss' });
     const wb = xlsx.utils.book_new();
     xlsx.utils.book_append_sheet(wb, ws, 'SheetJS');
 
