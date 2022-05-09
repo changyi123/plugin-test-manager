@@ -44,23 +44,25 @@ modules:
       title: 测试计划
       loadType: Micro
       route: /testPlan
+      hidden: true
     - key: test-repository
       resource: main
       title: 测试用例库
       loadType: Micro
       route: /testRepo
-    - key: main-test-plan
-      resource: main
-      title: 测试计划
-      loadType: Micro
-      route: /testPlan
       hidden: true
-    - key: main-test-repository
-      resource: main
-      title: 测试用例库
-      loadType: Micro
-      route: /testRepo
-      hidden: true
+    # - key: main-test-plan
+    #   resource: main
+    #   title: 测试计划
+    #   loadType: Micro
+    #   route: /testPlan
+    #   hidden: true
+    # - key: main-test-repository
+    #   resource: main
+    #   title: 测试用例库
+    #   loadType: Micro
+    #   route: /testRepo
+    #   hidden: true
   beforeCreateOrUpdateModal:
     - key: before-create-or-update-modal
       resource: main
