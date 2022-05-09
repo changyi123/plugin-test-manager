@@ -196,7 +196,8 @@ const getRepoData = async () => {
 };
 
 const getParent = (RepoParseObj, datas, repoData) => {
-  const _data = datas.find(d => d?.path === repoData.path.replace(`/${repoData.name}`, ''));
+  const pathReg = new RegExp(`(/${repoData.name})$`, 'g');
+  const _data = datas.find(d => d?.path === repoData.path.replace(pathReg, ''));
 
   return _data?.objectId && RepoParseObj.createWithoutData(_data.objectId);
 };
@@ -234,7 +235,7 @@ const filterImportGroupData = datas =>
     return prev;
   }, []);
 
-const getGroupPath = group => group?.split('/').filter(d => d.trim()) ?? [];
+const getGroupPath = group => group?.split('/').filter(d => `${d}`.trim()) ?? [];
 
 const getImportGroupData = () =>
   appFieldsData
