@@ -13,7 +13,8 @@ import { actionConfirm } from '@/lib/utils/helper';
 type AttachmentUploadProps = TabsComponentBaseProps;
 
 const AttachmentList: React.FC<any> = props => {
-  const { fileRef, fileList, setFileList, testRunData, testRunEntity, onDataChange } = props;
+  const { fileRef, fileList, setFileList, testRunData, testRunEntity, onDataChange, onLoading } =
+    props;
 
   const [checkList, stCheckList] = useState<any[]>([]);
   const [isBatch, setIsBatch] = useState(false);
@@ -62,6 +63,7 @@ const AttachmentList: React.FC<any> = props => {
   };
 
   const downLoadFile = file => {
+    onLoading();
     const xhr = new XMLHttpRequest();
     xhr.open('GET', file.url, true);
     xhr.responseType = 'blob';
@@ -78,6 +80,7 @@ const AttachmentList: React.FC<any> = props => {
       }
     };
     xhr.send();
+    onLoading(false);
   };
 
   const checkoutAll = e => {
@@ -241,7 +244,7 @@ const AttachmentList: React.FC<any> = props => {
 };
 
 const AttachmentUpload: React.FC<AttachmentUploadProps> = props => {
-  const { testRunData, testRunEntity, onDataChange } = props;
+  const { testRunData, testRunEntity, onDataChange, onLoading } = props;
 
   const fileRef = React.useRef(new Map());
 
@@ -348,9 +351,10 @@ const AttachmentUpload: React.FC<AttachmentUploadProps> = props => {
         testRunEntity={testRunEntity}
         testRunData={testRunData}
         onDataChange={onDataChange}
+        onLoading={onLoading}
       />
     ),
-    [fileRef, fileList, setFileList, testRunEntity, testRunData, onDataChange],
+    [fileRef, fileList, setFileList, testRunEntity, testRunData, onDataChange, onLoading],
   );
 
   return (

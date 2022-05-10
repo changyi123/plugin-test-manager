@@ -69,6 +69,7 @@ const DetailTable = () => {
 
   const tableDataGetter = React.useCallback(
     async queryParams => {
+      setTableLoading(true);
       if (!selectedTestPlanId) return null;
       const [{ list: testDetails, total }, { list: testRuns }] = await Promise.all([
         getTestEntitiesByRelationWithOrder(
@@ -123,6 +124,7 @@ const DetailTable = () => {
           relRuns: testRuns.filter(run => run.runReferenceDetail?.objectId === detail.objectId),
         };
       });
+      setTableLoading(false);
 
       return {
         list,

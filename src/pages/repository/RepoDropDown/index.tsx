@@ -9,27 +9,30 @@ const RepoDropDown = ({
   folderKey,
   treeNodeData,
   selectedTestPlanId,
+  setPageLoading,
 }: {
   type: string;
   folderKey?: string;
   treeNodeData?: TreeNode[];
   selectedTestPlanId?: string;
+  setPageLoading?: (val: boolean) => void;
 }) => {
   const { workspace } = useTestConfig();
 
   const menuClick = useCallback(
-    (key: string) => {
+    async (key: string) => {
       if (key === 'import') {
         const baseUrl = getProximaBasePath() ? getProximaBasePath() : '/';
         // 跳转到导入页面
         const href = `${baseUrl}osc/workspaces/${workspace.key}/import/${workspace.objectId}?app=test_manager&&disableToggleWorkspace`;
         window.open(href);
       } else {
+        setPageLoading?.(true);
         if (type === 'repository' && key === 'exportGroup' && !folderKey) {
           message.warning('未选择用例库，请先选择需要导出的用例库');
         }
 
-        importTestInfo(
+        await importTestInfo(
           Object.assign(
             {},
             type === 'plan'
@@ -46,9 +49,10 @@ const RepoDropDown = ({
                 },
           ),
         );
+        setPageLoading?.(false);
       }
     },
-    [workspace, type, folderKey, selectedTestPlanId, treeNodeData],
+    [setPageLoading, workspace, type, folderKey, selectedTestPlanId, treeNodeData],
   );
 
   const menu = (
