@@ -3,3 +3,5 @@ test-manager-plugin.zip
 dist
 .DS_Store
 .idea
+**/*.xlsx
+manifest.yml
