@@ -17,10 +17,12 @@ export interface IEventBus {
 // event-bus.ts
 export class EventBus implements IEventBus {
   private subscribers: Subscriber;
+  public disposer: () => void;
   private static nextId = 0;
 
   constructor() {
     this.subscribers = {};
+    this.disposer = () => {};
   }
 
   public dispatch<T>(event: string, arg?: T): void {
@@ -43,10 +45,6 @@ export class EventBus implements IEventBus {
       delete this.subscribers[event][id];
       if (Object.keys(this.subscribers[event]).length === 0) delete this.subscribers[event];
     };
-  }
-
-  public disposer(): any {
-    return null;
   }
 
   private getNextId(): number {

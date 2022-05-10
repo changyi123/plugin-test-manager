@@ -87,7 +87,6 @@ const RepositorySelector: React.FC<RepositorySelectorProps> = props => {
         return new Promise(resolve => {
           eventBusRef.current.disposer = eventBusRef.current.register(SubmitEventKey, node => {
             resetTreeSelect();
-            eventBusRef.current.disposer();
             resolve({
               repositoryKey: node.key,
               workspaceKey: node.workspaceKey,
