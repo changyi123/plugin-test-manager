@@ -17,10 +17,12 @@ export interface IEventBus {
 // event-bus.ts
 export class EventBus implements IEventBus {
   private subscribers: Subscriber;
+  public disposer: () => void;
   private static nextId = 0;
 
   constructor() {
     this.subscribers = {};
+    this.disposer = () => {};
   }
 
   public dispatch<T>(event: string, arg?: T): void {

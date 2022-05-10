@@ -222,7 +222,6 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
         eventBusRef.current.disposer = eventBusRef.current.register(
           AddExistedTestEventType,
           data => {
-            eventBusRef.current.disposer();
             const messageData = JSON.stringify(data);
             if (PreviousMessageData === messageData) return;
             PreviousMessageData = messageData;

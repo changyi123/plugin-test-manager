@@ -261,12 +261,11 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
           ),
         });
 
+        // 清除事件监听
         eventBus.disposer();
         // 事项创建成功通知
         return new Promise((resolve, reject) => {
           eventBus.disposer = eventBus.register(messageKey, data => {
-            // 清除事件监听
-            eventBus.disposer();
             const { testEntity, item } = data;
             // 创建的测试类型是否符合预期
             let expectedTestType = testEntity?.get('type') === type;
