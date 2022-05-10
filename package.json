@@ -55,6 +55,7 @@
     "postcss": "^8.3.6",
     "postcss-loader": "^6.1.1",
     "postcss-selector-namespace": "^3.0.1",
+    "postinstall-postinstall": "^2.1.0",
     "prettier": "2.4.0",
     "speed-measure-webpack-plugin": "^1.5.0",
     "style-loader": "^3.2.1",
@@ -65,8 +66,7 @@
     "webpack-cli": "^4.8.0",
     "webpack-dev-server": "^4.5.0",
     "webpack-merge": "^5.8.0",
-    "webpackbar": "^5.0.0-3",
-    "postinstall-postinstall": "^2.1.0"
+    "webpackbar": "^5.0.0-3"
   },
   "dependencies": {
     "@ant-design/icons": "^4.7.0",
@@ -74,7 +74,7 @@
     "@osui/icons": "^1.1.1",
     "@osui/theme": "^1.2.10",
     "@osui/ui": "^1.2.16",
-    "@projectproxima/components": "^0.1.0",
+    "@projectproxima/components": "0.1.0",
     "@projectproxima/plugin-sdk": "^0.1.8",
     "@projectproxima/proxima-sdk-js": "^0.4.4",
     "@types/react-beautiful-dnd": "^13.1.2",
@@ -85,6 +85,7 @@
     "file-saver": "^2.0.5",
     "lodash": "^4.17.21",
     "parse": "3.4.1",
+    "patch-package": "^6.4.7",
     "rc-util": "^5.18.1",
     "react": "^17.0.2",
     "react-base-table": "^1.13.0",
@@ -96,7 +97,6 @@
     "url": "^0.11.0",
     "uuid": "^8.3.2",
     "xlsx": "^0.18.5",
-    "xlsx-style": "^0.8.13",
-    "patch-package": "^6.4.7"
+    "xlsx-style": "^0.8.13"
   }
 }

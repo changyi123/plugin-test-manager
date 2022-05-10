@@ -2,7 +2,11 @@ const APP_KEY = global.appKey ?? 'test_manager';
 
 const TestConfigClass = `${APP_KEY}_TestConfig`;
 
-console.info('开始执行测试管理初始化脚本');
+const log = (msg, ...restArgs) => {
+  console.info(`[testManager] ${msg}`, ...restArgs);
+};
+
+log('开始执行测试管理初始化脚本');
 
 // 内置状态配置
 const initializedStatuses = [
@@ -118,8 +122,9 @@ const initialScriptRunner = async () => {
 };
 
 try {
-  await initialScriptRunner();
-  console.info('测试管理插件初始化成功');
+  initialScriptRunner().then(() => {
+    log('测试管理插件初始化成功');
+  });
 } catch (error) {
-  console.error(error);
+  log('error:', error);
 }

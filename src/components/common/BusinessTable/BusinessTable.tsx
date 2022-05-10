@@ -356,7 +356,6 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
         workspaceKey={workspace?.key}
         gatewayURL={proximaGatewayURL}
         getPopupContainer={getRootContainer}
-        applicationId={pluginSDKContext?.context?.env.PROXIMA_APP_ID ?? 'proxima-core'}
       >
         <SelectionActionHeader />
         {ColumnSettingMemorizedNode}
