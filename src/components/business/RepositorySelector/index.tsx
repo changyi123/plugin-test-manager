@@ -83,10 +83,10 @@ const RepositorySelector: React.FC<RepositorySelectorProps> = props => {
         setVisible(true);
         setWorkspaceKey(workspaceKey);
         setSelectedWorkspaceKey(workspaceKey);
+        eventBusRef.current.disposer();
         return new Promise(resolve => {
-          const disposer = eventBusRef.current.register(SubmitEventKey, node => {
+          eventBusRef.current.disposer = eventBusRef.current.register(SubmitEventKey, node => {
             resetTreeSelect();
-            disposer.unregister();
             resolve({
               repositoryKey: node.key,
               workspaceKey: node.workspaceKey,

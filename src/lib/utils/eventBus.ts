@@ -1,7 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-types */
-export interface Registry {
-  unregister: () => void;
-}
+export type Disposer = () => void;
 
 export interface Callable {
   [key: string]: Function;
@@ -13,16 +11,18 @@ export interface Subscriber {
 
 export interface IEventBus {
   dispatch<T>(event: string, arg?: T): void;
-  register(event: string, callback: Function): Registry;
+  register(event: string, callback: Function): Disposer;
 }
 
 // event-bus.ts
 export class EventBus implements IEventBus {
   private subscribers: Subscriber;
+  public disposer: () => void;
   private static nextId = 0;
 
   constructor() {
     this.subscribers = {};
+    this.disposer = () => {};
   }
 
   public dispatch<T>(event: string, arg?: T): void {
@@ -35,18 +35,20 @@ export class EventBus implements IEventBus {
     Object.keys(subscriber).forEach(key => subscriber[key]?.(arg));
   }
 
-  public register(event: string, callback: Function): Registry {
+  public register(event: string, callback: Function): Disposer {
     const id = this.getNextId();
     if (!this.subscribers[event]) this.subscribers[event] = {};
 
     this.subscribers[event][id] = callback;
 
-    return {
-      unregister: () => {
-        delete this.subscribers[event][id];
-        if (Object.keys(this.subscribers[event]).length === 0) delete this.subscribers[event];
-      },
+    return () => {
+      delete this.subscribers[event][id];
+      if (Object.keys(this.subscribers[event]).length === 0) delete this.subscribers[event];
     };
+  }
+
+  public disposer(): any {
+    return null;
   }
 
   private getNextId(): number {

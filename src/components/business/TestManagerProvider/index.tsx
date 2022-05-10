@@ -1,4 +1,5 @@
 import React from 'react';
+import { v4 as uuid } from 'uuid';
 import { useRequest } from 'ahooks';
 import { store } from '@nebulare/data';
 import { alert } from '@/lib/utils/helper';
@@ -98,6 +99,10 @@ type RepositoryDataProviderProps = {
   children: React.ReactNode;
 };
 
+const eventBus = new EventBus();
+// 消息 key，区分消息源。防止多个消息同时被接收
+const messageKey = ItemCreateSuccessEventType + uuid();
+
 const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
   itemId,
   children,
@@ -105,15 +110,6 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
 }) => {
   const [workspace, setWorkspace] = React.useState<Workspace>();
   const [testEntity, setTestEntity] = React.useState<Parse.Object<TestEntity>>();
-
-  // 事项创建成功 Emitter
-  const eventBusRef = React.useRef<any>(new EventBus());
-  React.useEffect(() => {
-    const eventBus = eventBusRef.current;
-    return () => {
-      typeof eventBus?.disposer === 'function' && eventBus.disposer();
-    };
-  }, []);
 
   React.useEffect(() => {
     const execute = async () => {
@@ -197,8 +193,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
         if (!testEntityData) return;
         itemData.reference = testEntityData.reference;
       }
-
-      eventBusRef.current.dispatch(ItemCreateSuccessEventType, {
+      eventBus.dispatch(messageKey, {
         extraData,
         testEntity,
         item: itemData,
@@ -206,7 +201,8 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
     },
     [testConfig.isolateTestType, workspace?.key],
   );
-  useOnItemCreateSuccess(itemCreateSuccessCb);
+
+  useOnItemCreateSuccess(messageKey, itemCreateSuccessCb);
 
   const testConfigContextValues = React.useMemo<TestConfigContextType>(() => {
     return {
@@ -259,40 +255,37 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
             {
               type,
               workspaceId: workspace?.objectId,
+              messageKey: messageKey,
             },
             extraData,
           ),
         });
 
         // 清除事件监听
-        eventBusRef.current.disposer?.unregister?.();
-
+        eventBus.disposer();
         // 事项创建成功通知
         return new Promise((resolve, reject) => {
-          eventBusRef.current.disposer = eventBusRef.current.register(
-            ItemCreateSuccessEventType,
-            data => {
-              const { testEntity, item } = data;
-              // 创建的测试类型是否符合预期
-              let expectedTestType = testEntity?.get('type') === type;
+          eventBus.disposer = eventBus.register(messageKey, data => {
+            const { testEntity, item } = data;
+            // 创建的测试类型是否符合预期
+            let expectedTestType = testEntity?.get('type') === type;
 
-              // 判断事项类型 key 是否在 defectsMapping 中
-              if (type === TestType.TestDefect) {
-                expectedTestType = (testConfig?.defectsMapping ?? []).includes(item?.itemType?.key);
-              }
+            // 判断事项类型 key 是否在 defectsMapping 中
+            if (type === TestType.TestDefect) {
+              expectedTestType = (testConfig?.defectsMapping ?? []).includes(item?.itemType?.key);
+            }
 
-              // TODO: 消息通知
-              if (!expectedTestType) {
-                alert({
-                  type: 'warning',
-                  message: '新建事项类型与创建的测试类型未匹配',
-                });
-                reject('新建事项类型与创建的测试类型未匹配');
-                return;
-              }
-              resolve(data);
-            },
-          );
+            // TODO: 消息通知
+            if (!expectedTestType) {
+              alert({
+                type: 'warning',
+                message: '新建事项类型与创建的测试类型未匹配',
+              });
+              reject('新建事项类型与创建的测试类型未匹配');
+              return;
+            }
+            resolve(data);
+          });
         });
       },
       getGlobalConfig,
