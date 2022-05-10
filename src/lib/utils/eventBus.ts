@@ -47,9 +47,9 @@ export class EventBus implements IEventBus {
     };
   }
 
-  public disposer(): any {
-    return null;
-  }
+  // public disposer(): any {
+  //   return null;
+  // }
 
   private getNextId(): number {
     return EventBus.nextId++;
