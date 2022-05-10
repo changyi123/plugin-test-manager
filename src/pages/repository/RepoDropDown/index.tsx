@@ -29,15 +29,26 @@ const RepoDropDown = ({
           message.warning('未选择用例库，请先选择需要导出的用例库');
         }
 
-        importTestInfo({
-          type: key,
-          checkGroupKey: folderKey,
-          treeData: treeNodeData,
-          workspace,
-        });
+        importTestInfo(
+          Object.assign(
+            {},
+            type === 'plan'
+              ? {
+                  type: key,
+                  checkedId: selectedTestPlanId,
+                  workspace,
+                }
+              : {
+                  type: key,
+                  checkedId: folderKey,
+                  treeData: treeNodeData,
+                  workspace,
+                },
+          ),
+        );
       }
     },
-    [workspace, type, folderKey, treeNodeData],
+    [workspace, type, folderKey, selectedTestPlanId, treeNodeData],
   );
 
   const menu = (
@@ -51,7 +62,7 @@ const RepoDropDown = ({
       )}
       {type === 'plan' && (
         <>
-          <Menu.Item key="exportGroup" disabled={!selectedTestPlanId}>
+          <Menu.Item key="exportPlan" disabled={!selectedTestPlanId}>
             导出当前计划关联测试用例
           </Menu.Item>
         </>
