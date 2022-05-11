@@ -2,7 +2,12 @@ import { pick } from 'lodash';
 import { useRequest } from 'ahooks';
 import { TestType } from '@/lib/constants';
 import { getAllTestWorkspaces } from '@/lib/api/proxima';
-import { getTestEntitiesByRelationWithOrder, getTestConfig } from '@/lib/api/common';
+import {
+  getTestConfig,
+  getAllTestConfigs,
+  getTestEntitiesByRelationWithOrder,
+} from '@/lib/api/common';
+import React from 'react';
 
 type GetTestEntityParams = Parameters<typeof getTestEntitiesByRelationWithOrder>;
 /** 获取所有事项实体 id */
@@ -64,10 +69,55 @@ export const useAllTestWorkspace = () => {
     },
     {
       cacheKey: 'AllTestWorkspaces',
-      cacheTime: 99999999,
-      staleTime: 99999999,
+      cacheTime: 99999999999,
+      staleTime: 99999999999,
     },
   );
 
   return allTestWorkspaces;
+};
+
+/** 获取所有的测试管理配置 */
+export const useAllTestConfigs = (
+  selectedFields = ['itemTypeMap', 'defectsMapping', 'workspaceKey'],
+) => {
+  const { data: testConfigs } = useRequest(async () => getAllTestConfigs(selectedFields), {
+    cacheTime: 99999999999,
+    staleTime: 99999999999,
+    cacheKey: 'allTestConfigs',
+  });
+
+  return testConfigs;
+};
+
+/** 获取测试管理类型关联的事项类型 */
+export const useTestTypeUsedItemTypes = () => {
+  const testConfigs = useAllTestConfigs();
+
+  return React.useMemo(() => {
+    const transformResult = (data: Record<string, Set<unknown>>) => {
+      const results = {} as Record<TestType, string[]>;
+      for (const [key, set] of Object.entries(data)) {
+        results[key] = Array.from(set);
+      }
+      return results;
+    };
+    const testTypeUsedItemTypes = {
+      [TestType.TestDetail]: new Set(),
+      [TestType.TestPlan]: new Set(),
+      [TestType.TestExecution]: new Set(),
+    };
+
+    if (!testConfigs) return transformResult(testTypeUsedItemTypes);
+    const testConfigData = testConfigs.map(item => item.toJSON());
+
+    testConfigData.forEach(data => {
+      Object.keys(testTypeUsedItemTypes).forEach(key => {
+        const itemTypeKey = data?.itemTypeMap?.[key];
+        itemTypeKey && testTypeUsedItemTypes[key].add(itemTypeKey);
+      });
+    });
+
+    return transformResult(testTypeUsedItemTypes);
+  }, [testConfigs]);
 };
