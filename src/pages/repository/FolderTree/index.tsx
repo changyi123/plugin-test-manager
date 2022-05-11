@@ -8,8 +8,7 @@ import { useTestConfig, useBaseAction } from '@/lib/hooks/useContext';
 import { useTreeFn, traverseTreeNodes } from '../hook';
 import { MenuKey, FolderMenu } from '../Menu';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
-import { Tree, Button, Input, notification, Empty, Dropdown } from '@osui/ui';
-import { Modal } from 'antd';
+import { Tree, Button, Input, notification, Empty, Dropdown, Modal } from 'antd';
 import {
   CustomMore,
   CustomScreenOff,

@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { Button, Dropdown, Menu, message } from '@osui/ui';
+import { Button, Dropdown, Menu, message } from 'antd';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import importTestInfo, { TreeNode } from './export';
 import { getProximaBasePath } from '@/lib/utils/helper';

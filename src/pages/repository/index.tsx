@@ -10,7 +10,7 @@ import { useBaseAction } from '@/lib/hooks/useContext';
 import FolderTree from '@/pages/repository/FolderTree';
 import PageLayout from '@/components/common/PageLayout';
 import { AppstoreAddOutlined, FileClose } from '@/icons';
-import { Tooltip, Button, notification } from '@osui/ui';
+import { Tooltip, Button, notification } from 'antd';
 import { getTestEntitiesByQuery } from '@/lib/api/common';
 import SearchInput from '@/components/business/SearchInput';
 import { useListener } from '@projectproxima/proxima-sdk-js';

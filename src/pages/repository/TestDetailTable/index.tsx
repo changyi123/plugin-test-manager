@@ -2,7 +2,7 @@ import React from 'react';
 import { useDrag } from 'ahooks';
 import { TestType } from '@/lib/constants';
 import { deleteItems } from '@/lib/api/proxima';
-import { notification, Tooltip } from '@osui/ui';
+import { notification, Tooltip } from 'antd';
 import { updateFolders } from '@/lib/api/repository';
 import { UserCell } from '@projectproxima/components';
 import { updateItemAssignee } from '@/lib/api/proxima';
