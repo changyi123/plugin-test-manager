@@ -15,7 +15,8 @@ while true; do
 done
 
 sed -e "s/{workspacePageHidden}/${workspacePageHidden}/g" manifest.yml.tmpl > manifest.yml
+echo -e "branch: $branch\ncommit: $commit\n$workspacePageHidden" > version.yml
 
 yarn && yarn build -- --env PROXIMA_COMMIT="$commit" PROXIMA_BRANCH="$branch"
 rm -rf test-manager-plugin.zip
-zip -r test-manager-plugin.zip dist trigger manifest.yml
+zip -r "test-manager-plugin-${branch}.zip" version.yml dist trigger manifest.yml
