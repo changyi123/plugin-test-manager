@@ -1,6 +1,6 @@
 import React from 'react';
 import cx from './index.less';
-import { message } from '@osui/ui';
+import { message } from 'antd';
 import { isEqual, pick } from 'lodash';
 import { PlusOutlined } from '@/icons';
 import { TestType } from '@/lib/constants';

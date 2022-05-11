@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, Space, Typography, message, Tooltip, Divider, Popconfirm } from '@osui/ui';
+import { Button, Space, Typography, message, Tooltip, Divider, Popconfirm } from 'antd';
 import { InfoCircleOutlined } from '@ant-design/icons';
 import PanelTable, { ActionType } from '@/components/business/PanelTable';
 import { getRootContainer, goToItemDetailPage } from '@/lib/utils/helper';

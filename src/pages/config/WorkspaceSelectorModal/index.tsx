@@ -1,6 +1,6 @@
 import React from 'react';
 import { useReactive } from 'ahooks';
-import { Modal, Select } from '@osui/ui';
+import { Modal, Select } from 'antd';
 import EventBus from '@/lib/utils/eventBus';
 import { getRootContainer } from '@/lib/utils/helper';
 import { useAllTestWorkspace } from '@/lib/hooks/useTest';

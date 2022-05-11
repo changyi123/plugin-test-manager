@@ -2,7 +2,7 @@ import React from 'react';
 
 import { useSafeState } from 'ahooks';
 import { pick, difference } from 'lodash';
-import { Select, Button, Checkbox, message } from '@osui/ui';
+import { Select, Button, Checkbox, message } from 'antd';
 
 import { useDataContext, useCurrentTestConfig } from '../hooks';
 import { TestTypeNameMapping, TestType } from '@/lib/constants';

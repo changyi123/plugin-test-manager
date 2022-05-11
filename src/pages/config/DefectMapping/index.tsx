@@ -1,6 +1,6 @@
 import React from 'react';
 import { keyBy } from 'lodash';
-import { Button, message } from '@osui/ui';
+import { Button, message } from 'antd';
 import { getAllItemTypes } from '@/lib/api/proxima';
 import { generateStaticFileUrl } from '@/lib/utils/helper';
 import { useDataContext, useCurrentTestConfig } from '../hooks';

@@ -3,7 +3,7 @@ import React from 'react';
 import { TestType } from '@/lib/constants';
 import { uniq, reduce, keyBy } from 'lodash';
 import EventBus from '@/lib/utils/eventBus';
-import { Modal, Spin, Button } from '@osui/ui';
+import { Modal, Spin, Button } from 'antd';
 import { getItemByIQL } from '@/lib/api/proxima';
 import { useSafeState, useRequest } from 'ahooks';
 import TestDetailSelector from './TestDetailSelector';

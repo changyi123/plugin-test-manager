@@ -1,7 +1,7 @@
 import React from 'react';
 import { useHover, useUpdateEffect } from 'ahooks';
 import { DeleteOutlined } from '@/icons';
-import { Popconfirm, Empty } from '@osui/ui';
+import { Popconfirm, Empty } from 'antd';
 import { updateTestRun } from '@/lib/api/runs';
 import AddDefectButton from './AddDefectButton';
 import { TabsComponentBaseProps } from './type';

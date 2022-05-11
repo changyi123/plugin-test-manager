@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState, useCallback } from 'react';
-import { Button, Input, Spin } from '@osui/ui';
+import { Button, Input, Spin } from 'antd';
 import { updateTestDetail } from '@/lib/api/detail';
 import { SearchOutlined, BlockOutlined } from '@/icons';
 import { useTestConfig } from '@/lib/hooks/useContext';

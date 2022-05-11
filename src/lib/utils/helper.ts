@@ -1,5 +1,5 @@
 import { Modal } from 'antd';
-// import { Modal } from '@osui/ui';
+// import { Modal } from 'antd';
 import { isEqual, findKey, noop } from 'lodash';
 import { STORAGE_PREFIX_KEY } from '../constants';
 import createProximaSdk from '@projectproxima/proxima-sdk-js';

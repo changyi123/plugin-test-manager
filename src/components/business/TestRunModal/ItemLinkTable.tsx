@@ -1,5 +1,5 @@
 import React from 'react';
-import { Table } from '@osui/ui';
+import { Table } from 'antd';
 import { TabsComponentBaseProps } from './type';
 import { generateStaticFileUrl } from '@/lib/utils/helper';
 

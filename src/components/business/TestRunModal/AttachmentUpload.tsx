@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Checkbox, message, Image, Upload } from 'antd';
-import { Button } from '@osui/ui';
+import { Button } from 'antd';
 import { TabsComponentBaseProps } from './type';
 import { DeleteOutlined, DownloadOutlined, UploadOutlined, LoadingOutlined } from '@/icons';
 import Parse from '@/lib/parse';

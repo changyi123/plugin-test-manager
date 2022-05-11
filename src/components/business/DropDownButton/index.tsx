@@ -3,7 +3,7 @@ import classnames from 'classnames';
 import { ButtonProps } from 'antd/lib/button';
 import { MenuItemProps } from 'antd/lib/menu';
 import { DropDownProps } from 'antd/lib/Dropdown';
-import { Button, Dropdown, Menu } from '@osui/ui';
+import { Button, Dropdown, Menu } from 'antd';
 
 import './index.less';
 

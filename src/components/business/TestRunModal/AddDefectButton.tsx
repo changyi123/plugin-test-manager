@@ -4,7 +4,7 @@ import { addDefect } from '@/lib/api/runs';
 import { useItemLinkTypeConfig } from './hooks';
 import { PlusOutlined } from '@ant-design/icons';
 import { useBaseAction } from '@/lib/hooks/useContext';
-import { Menu, Dropdown, Button, message } from '@osui/ui';
+import { Menu, Dropdown, Button, message } from 'antd';
 import TestEntitySelectorModal, { ActionType } from '@/components/business/TestEntitySelectorModal';
 
 type AddDefectButtonProps = {

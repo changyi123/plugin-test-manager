@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Result } from '@osui/ui';
+import { Result } from 'antd';
 import TestPlan from './TestPlan';
 import TestDetail from './TestDetail';
 import TestExecution from './TestExecution';

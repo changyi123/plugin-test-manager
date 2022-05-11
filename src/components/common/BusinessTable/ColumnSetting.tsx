@@ -1,7 +1,7 @@
 import React from 'react';
 import { noop, get, keyBy } from 'lodash';
 import { ColumnType } from 'antd/lib/table';
-import { Drawer, Select, Tooltip } from '@osui/ui';
+import { Drawer, Select, Tooltip } from 'antd';
 import { getCustomFields } from '@/lib/api/proxima';
 import { TableCell } from '@projectproxima/components';
 import { generateStorageKey } from '@/lib/utils/helper';

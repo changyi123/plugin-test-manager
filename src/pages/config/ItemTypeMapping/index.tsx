@@ -1,6 +1,6 @@
 import React from 'react';
 import { TestType } from '@/lib/constants';
-import { Select, Button, message } from '@osui/ui';
+import { Select, Button, message } from 'antd';
 import { useRequest, useSafeState } from 'ahooks';
 import { useDataContext, useCurrentTestConfig } from '../hooks';
 import { getTopItemTypeFromHierarchy } from '@/lib/api/proxima';

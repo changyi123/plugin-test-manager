@@ -10,7 +10,7 @@ import SearchInput from '@/components/business/SearchInput';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import { useRequest, useReactive, useInfiniteScroll } from 'ahooks';
 import { hasArrayItem, escapeMatchesQueryArg } from '@/lib/utils/helper';
-import { Select, Tree, Empty, Checkbox, Spin, Tooltip, Input } from '@osui/ui';
+import { Select, Tree, Empty, Checkbox, Spin, Tooltip, Input } from 'antd';
 import {
   CaretDownOutlined,
   FileClose,

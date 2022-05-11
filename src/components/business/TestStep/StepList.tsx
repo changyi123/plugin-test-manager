@@ -6,7 +6,7 @@ import { useHover } from 'ahooks';
 import { Step } from '@/lib/types/Test';
 import { StepRow, StepField } from './type';
 import { getTestEntities } from '@/lib/api/common';
-import { Form, Tooltip, Popconfirm } from '@osui/ui';
+import { Form, Tooltip, Popconfirm } from 'antd';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import { CopyOutlined, DeleteOutlined, DragHandler } from '@/icons';
 import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd';

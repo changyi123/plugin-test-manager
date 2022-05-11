@@ -1,6 +1,6 @@
 import React from 'react';
 import { noop } from 'lodash';
-import { Checkbox } from '@osui/ui';
+import { Checkbox } from 'antd';
 import { CheckboxProps } from 'antd/lib/checkbox';
 
 import cx from './TableSelection.less';

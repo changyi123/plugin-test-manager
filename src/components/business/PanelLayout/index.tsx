@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { useMount } from 'ahooks';
-import { Tabs, Alert } from '@osui/ui';
+import { Tabs, Alert } from 'antd';
 import { AlertProps } from 'antd/lib/alert';
 import { TabPaneProps, TabsProps } from 'antd/lib/tabs';
 

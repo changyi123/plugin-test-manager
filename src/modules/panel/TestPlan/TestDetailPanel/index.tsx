@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { uniqueId } from 'lodash';
-import { Table, Tooltip } from '@osui/ui';
+import { Table, Tooltip } from 'antd';
 import { alert } from '@/lib/utils/helper';
 import { Workspace } from '@/lib/types/App';
 import { DownOutlined } from '@ant-design/icons';

@@ -1,4 +1,4 @@
-import { message } from '@osui/ui';
+import { message } from 'antd';
 import { getTenantKey } from '@/lib/utils/helper';
 import { getDevConfig, getParseReqHeader } from '@/devEnv';
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';

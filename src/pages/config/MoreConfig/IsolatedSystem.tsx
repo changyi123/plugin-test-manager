@@ -1,7 +1,7 @@
 import React from 'react';
 import { Modal, message } from 'antd';
 import { useDataContext } from '../hooks';
-import { Switch, Form, List } from '@osui/ui';
+import { Switch, Form, List } from 'antd';
 import { getRootContainer } from '@/lib/utils/helper';
 import { BuiltinItemTypeMapping } from '@/lib/constants';
 import { updateGlobalConfig, updateAllTestConfigs } from '@/lib/api/common';

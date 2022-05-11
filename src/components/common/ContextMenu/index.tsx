@@ -1,5 +1,5 @@
 import React from 'react';
-import { Menu } from '@osui/ui';
+import { Menu } from 'antd';
 import ReactDOM from 'react-dom';
 import { MenuItemProps, MenuProps } from 'antd/lib/menu';
 import { getRootContainer } from '@/lib/utils/helper';

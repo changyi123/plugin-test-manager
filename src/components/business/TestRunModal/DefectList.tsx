@@ -8,7 +8,7 @@ import { Item, Status } from '@/lib/types/App';
 import AddDefectButton from './AddDefectButton';
 import { useItemLinkTypeConfig } from './hooks';
 import { TabsComponentBaseProps } from './type';
-import { Popconfirm, Tooltip, Empty } from '@osui/ui';
+import { Popconfirm, Tooltip, Empty } from 'antd';
 import { addDefect, deleteDefect } from '@/lib/api/runs';
 import { generateStaticFileUrl } from '@/lib/utils/helper';
 

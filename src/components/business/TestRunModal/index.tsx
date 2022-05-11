@@ -1,6 +1,6 @@
 import React from 'react';
 import TestRun from './TestRun';
-import { Modal, Button } from '@osui/ui';
+import { Modal, Button } from 'antd';
 import EventBus from '@/lib/utils/eventBus';
 import { getRootContainer } from '@/lib/utils/helper';
 

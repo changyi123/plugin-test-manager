@@ -1,5 +1,5 @@
 import React from 'react';
-import { Typography } from '@osui/ui';
+import { Typography } from 'antd';
 import { goToItemDetailPage } from '@/lib/utils/helper';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 

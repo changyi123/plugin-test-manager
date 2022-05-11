@@ -1,5 +1,5 @@
 import React from 'react';
-import { Typography, message, Space, Button, Divider, Popconfirm } from '@osui/ui';
+import { Typography, message, Space, Button, Divider, Popconfirm } from 'antd';
 import { DownOutlined } from '@ant-design/icons';
 import { TestType, TestRelationType } from '@/lib/constants';
 import PanelTable, { ActionType } from '@/components/business/PanelTable';

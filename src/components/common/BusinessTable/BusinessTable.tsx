@@ -4,7 +4,7 @@ import { getDevConfig } from '@/devEnv';
 import { Resizable } from 'react-resizable';
 import { TableProps } from 'antd/lib/table';
 import ColumnSetting from './ColumnSetting';
-import { Pagination, Table } from '@osui/ui';
+import { Pagination, Table } from 'antd';
 import TableSelection from './TableSelection';
 import { PluginSDKContext, useSDK } from '@projectproxima/plugin-sdk';
 import { useTestConfig } from '@/lib/hooks/useContext';

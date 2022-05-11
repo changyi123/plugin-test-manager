@@ -2,7 +2,7 @@ import React from 'react';
 import { uniqBy } from 'lodash';
 import { TableProps } from 'antd/lib/table';
 import { useAntdTable, useSafeState } from 'ahooks';
-import { Table, Button, Popconfirm } from '@osui/ui';
+import { Table, Button, Popconfirm } from 'antd';
 import { hasArrayItem, getRootContainer } from '@/lib/utils/helper';
 
 import cx from './index.less';

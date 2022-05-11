@@ -7,7 +7,7 @@ import ItemTypeMapping from './ItemTypeMapping';
 import IsolatedTestType from './IsolatedTestType';
 import { DownOutlined } from '@ant-design/icons';
 import { useLocalStorageState, useSafeState } from 'ahooks';
-import { Menu, Layout, Dropdown, Button, Result } from '@osui/ui';
+import { Menu, Layout, Dropdown, Button, Result } from 'antd';
 
 import IsolatedSystem from './MoreConfig/IsolatedSystem';
 

@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Button } from '@osui/ui';
+import { Button } from 'antd';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import { TestType, TestRelationType } from '@/lib/constants';
 import PanelTable, {

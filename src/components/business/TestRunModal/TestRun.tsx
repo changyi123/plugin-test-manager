@@ -9,7 +9,7 @@ import { StatusBadge } from '@/components/business/Status';
 import { useRequest, useSessionStorageState } from 'ahooks';
 import { TestType, PASS_STATUS_TYPE } from '@/lib/constants';
 import { getRootContainer, generateStorageKey } from '@/lib/utils/helper';
-import { Button, Checkbox, Collapse, Tabs, message, Spin, Tooltip } from '@osui/ui';
+import { Button, Checkbox, Collapse, Tabs, message, Spin, Tooltip } from 'antd';
 import { updateTestRun, getTestStepsByTestDetailId, getItemLinkRelation } from '@/lib/api/runs';
 
 import TestStep from './TestStep';

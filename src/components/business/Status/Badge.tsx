@@ -1,6 +1,6 @@
 import React from 'react';
 import { omitBy } from 'lodash';
-import { Popover } from '@osui/ui';
+import { Popover } from 'antd';
 import { sequence } from './utils';
 import { useStatusConfig } from './hooks';
 import { CaretDownOutlined } from '@ant-design/icons';

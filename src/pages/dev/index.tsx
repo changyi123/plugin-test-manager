@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, message, Input, Select, Radio, Layout, Form, Collapse } from '@osui/ui';
+import { Button, message, Input, Select, Radio, Layout, Form, Collapse } from 'antd';
 import { useLocalStorageState, useSafeState } from 'ahooks';
 import { merge } from 'lodash';
 import Parse from '@/lib/parse';

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Input } from '@osui/ui';
+import { Input } from 'antd';
 import { TestEntity } from '@/lib/types/Test';
 import TestStep from '@/components/business/TestStep';
 import { getStepInitialData } from '@/components/business/TestStep/helper';

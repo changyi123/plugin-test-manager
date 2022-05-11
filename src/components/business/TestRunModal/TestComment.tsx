@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { EditorField } from '@projectproxima/components';
 import { useCurrentUser, useGetUserById } from '@/lib/api/user';
-import { Button, Input } from '@osui/ui';
+import { Button, Input } from 'antd';
 import { updateTestRun } from '@/lib/api/runs';
 import { v4 as uuid } from 'uuid';
 import dayjs from 'dayjs';

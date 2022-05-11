@@ -5,7 +5,7 @@ import { alert } from '@/lib/utils/helper';
 import { Workspace } from '@/lib/types/App';
 import { TestEntity } from '@/lib/types/Test';
 import { EventBus } from '@/lib/utils/eventBus';
-import { message, notification } from '@osui/ui';
+import { message, notification } from 'antd';
 import { useOnItemCreateSuccess } from '@/lib/hooks/useProximaSDK';
 import { openCreateItemModal, openItemDetailPanel } from '@/lib/api/sdk';
 import { getTestConfig, createTestEntities, getTestEntities } from '@/lib/api/common';
