@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import { Button, Dropdown, Menu, message } from '@osui/ui';
 import { useTestConfig } from '@/lib/hooks/useContext';
-import importTestInfo, { TreeNode } from './export';
+import importTestInfo, { TreeNode, downloadExampleFile } from './export';
 import { getProximaBasePath } from '@/lib/utils/helper';
 
 const RepoDropDown = ({
@@ -22,6 +22,8 @@ const RepoDropDown = ({
         // 跳转到导入页面
         const href = `${baseUrl}osc/workspaces/${workspace.key}/import/${workspace.objectId}?app=test_manager&&disableToggleWorkspace`;
         window.open(href);
+      } else if (key === 'example') {
+        downloadExampleFile();
       } else {
         if (type === 'repository' && key === 'exportGroup' && !folderKey) {
           message.warning('未选择用例库，请先选择需要导出的用例库');
@@ -43,6 +45,7 @@ const RepoDropDown = ({
       {type === 'repository' && (
         <>
           <Menu.Item key="import">导入用例</Menu.Item>
+          <Menu.Item key="example">用例导入模板文件下载</Menu.Item>
           <Menu.Item key="exportGroup">导出当前分组下的所有用例</Menu.Item>
           <Menu.Item key="exportAll">导出所有用例</Menu.Item>
         </>
