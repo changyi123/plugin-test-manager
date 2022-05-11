@@ -6,7 +6,7 @@ import { AppstoreAddOutlined } from '@/icons';
 import { createTestRelation } from '@/lib/api/common';
 import { TestType, TestRelationType } from '@/lib/constants';
 import { createTestExecutionAndRelations } from '@/lib/api/runs';
-import { Tabs, Button, Tooltip, notification, Spin } from '@osui/ui';
+import { Tabs, Button, Tooltip, notification, Spin } from 'antd';
 import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
 import TestEntitySelectorModal, { ActionType } from '@/components/business/TestEntitySelectorModal';
 
@@ -115,7 +115,6 @@ const Main = () => {
           className={cx('action', 'selection', tableSelectionVisible && 'active')}
         />
       </Tooltip>
-      {/* <Button className={cx('action')}>导入导出</Button> */}
       {activeKey === TabKeyEnum.testDetailTable ? (
         <>
           <span className={cx('line')} />

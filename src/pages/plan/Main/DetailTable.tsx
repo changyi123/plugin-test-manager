@@ -1,5 +1,5 @@
 import React from 'react';
-import { notification } from '@osui/ui';
+import { notification } from 'antd';
 import { usePageContext } from '../hook';
 import { TestRelationType } from '@/lib/constants';
 import { UserCell } from '@projectproxima/components';

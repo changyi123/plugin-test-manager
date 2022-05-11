@@ -10,7 +10,7 @@ import cx from './executionTable.less';
 import { actionConfirm } from '@/lib/utils/helper';
 import { deleteTestEntities } from '@/lib/api/common';
 import { updateTestRunStatus } from '@/lib/api/runs';
-import { notification } from '@osui/ui';
+import { notification } from 'antd';
 import { DeleteOutlined } from '@/icons';
 
 interface ExpandedTableProps {

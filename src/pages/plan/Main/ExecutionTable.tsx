@@ -1,5 +1,5 @@
 import React from 'react';
-import { notification } from '@osui/ui';
+import { notification } from 'antd';
 import { usePageContext } from '../hook';
 import { updateTestRun } from '@/lib/api/runs';
 import { deleteItems } from '@/lib/api/proxima';
