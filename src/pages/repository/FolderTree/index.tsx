@@ -17,6 +17,7 @@ import {
   FileClose,
   FileOpen,
 } from '@/icons';
+import { getTreeNodeByKey } from '../hook';
 
 import { ROOT_FOLDER_KEY } from '../constant';
 
@@ -253,8 +254,8 @@ const FolderTree: React.FC<FolderTreeProps> = ({
             notification.success({
               message: '模块删除成功',
             });
-            onFolderTreeChange();
-            const parentNode = treeFn.getTreeNodeByKey(node.parentId);
+            const refreshedTreeData = await onFolderTreeChange();
+            const parentNode = getTreeNodeByKey(refreshedTreeData, node.parentId);
             if (parentNode) {
               // 删除后选中模块置于被删除模块的父级
               handleSelect([node.parentId], {
@@ -263,7 +264,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
             } else {
               // 当前模块无父级需要冲选择到新模块
               handleSelect([ROOT_FOLDER_KEY], {
-                node: treeFn.getTreeNodeByKey(ROOT_FOLDER_KEY),
+                node: getTreeNodeByKey(refreshedTreeData, ROOT_FOLDER_KEY),
               });
             }
           },

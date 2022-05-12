@@ -353,6 +353,26 @@ const importTestInfo = async (args: ImportArgs, excelData = []) => {
   exportExcelFile(excelData, 'sheet1', `测试管理导出-${workspace.name}.xlsx`);
 };
 
+/** 下载 excel 用例导出文件 */
+export const downloadExampleFile = async () => {
+  exportExcelFile(
+    [
+      {
+        所属分组: '分组1/分组2',
+        标题: '测试用例标题（样例数据，执行用例导入时请删除该数据）',
+        优先级: '优先级可填值范围：最高，较高，普通，较低，最低',
+        前置条件: '测试用例前置条件',
+        负责人: '用户名',
+        步骤描述: '【1】需要以【序号】开头\n【2】步骤描述中换行符会被保留',
+        预期结果: '【1】需要以【序号】开头\n【2】预期结果中换行符会被保留',
+        数据: '【1】需要以【序号】开头\n【2】数据中换行符会被保留',
+      },
+    ],
+    'sheet1',
+    `测试管理导入模板.xlsx`,
+  );
+};
+
 function s2ab(s: any) {
   if (typeof ArrayBuffer !== 'undefined') {
     const buf = new ArrayBuffer(s.length);

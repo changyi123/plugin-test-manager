@@ -38,8 +38,8 @@ const getGiteeMenusConfig = (appId, workspaceKey) => {
   };
 
   const menus = [
-    { name: '测试计划', pageKey: 'main-test-plan' },
-    { name: '测试用例库', pageKey: 'main-test-repository' },
+    { name: '测试计划', pageKey: 'test-plan' },
+    { name: '测试用例库', pageKey: 'test-repository' },
   ].map(generateGiteeMenu);
 
   return menus;

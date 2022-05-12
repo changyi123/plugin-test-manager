@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import _ from 'lodash';
 import { TestEntity } from '@/lib/types/Test';
 import { QuestionCircleFilled } from '@/icons';
@@ -273,7 +273,7 @@ const TestRun: React.FC<TestRunType> = props => {
     );
   };
 
-  const TestCommentsList = useMemo(
+  const TestCommentsList = React.useMemo(
     () => (
       <TestComment
         testRunEntity={testRunEntity}

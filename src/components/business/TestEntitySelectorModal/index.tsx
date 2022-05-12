@@ -217,19 +217,22 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
 
       setVisible(true);
 
+      eventBusRef.current.disposer();
       return new Promise(resolve => {
-        const disposer = eventBusRef.current.register(AddExistedTestEventType, data => {
-          disposer.unregister();
-          const messageData = JSON.stringify(data);
-          if (PreviousMessageData === messageData) return;
-          PreviousMessageData = messageData;
-          resolve(data);
-          // 下一轮事件循环取消锁
-          setTimeout(() => {
-            PreviousButtonClicked = false;
-            PreviousMessageData = null;
-          });
-        });
+        eventBusRef.current.disposer = eventBusRef.current.register(
+          AddExistedTestEventType,
+          data => {
+            const messageData = JSON.stringify(data);
+            if (PreviousMessageData === messageData) return;
+            PreviousMessageData = messageData;
+            resolve(data);
+            // 下一轮事件循环取消锁
+            setTimeout(() => {
+              PreviousButtonClicked = false;
+              PreviousMessageData = null;
+            });
+          },
+        );
       });
     },
   }));
