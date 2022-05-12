@@ -12,11 +12,14 @@ export interface ICommonRes<T = any> {
   data?: T;
 }
 
-export const getRepositoryData = async (workspaceKey: string) => {
-  const repositoryData = await new Parse.Query(Repository)
-    .equalTo('workspaceKey', workspaceKey)
-    .limit(9999)
-    .find();
+export const getRepositoryData = async (workspaceKey?: string) => {
+  const query = new Parse.Query(Repository);
+
+  if (workspaceKey) {
+    query.equalTo('workspaceKey', workspaceKey);
+  }
+
+  const repositoryData = await query.limit(9999).find();
 
   const handleRroupPath = datas => {
     const getPath = (gro, _datas, path = []) => {

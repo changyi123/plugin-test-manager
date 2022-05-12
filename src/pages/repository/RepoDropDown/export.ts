@@ -304,16 +304,16 @@ const importTestInfo = async (args: ImportArgs, excelData = []) => {
   const { type, treeData, checkedId, workspace } = args;
 
   if (type === 'exportPlan') {
-    // 获取用例库数据，数据包含 path 用例库路径
-    const repoData = await getRepositoryData(workspace.key);
+    // 获取用例库数据，数据包含 path 用例库路径,允许跨空间
+    const repoData = await getRepositoryData();
 
     // 获取当前测试计划下的测试用例
     const testDataIds = await getTestIdsByFrom(checkedId);
-    // 获取测试用例
+    // 获取测试用例,允许跨空间
     const { results } = await getTestEntitiesByQuery(
       {
         type: TestType.TestDetail,
-        workspaceKey: workspace.key,
+        // workspaceKey: workspace.key,
         in: testDataIds,
       },
       {

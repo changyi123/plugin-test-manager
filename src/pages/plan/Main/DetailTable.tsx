@@ -202,7 +202,7 @@ const DetailTable = () => {
     ];
   }, [isCheck, userData, removeTestRelation, selectedTestPlanId, refreshAndMutateData]);
 
-  const repoData = useGetRepositoryData(workspaceKey);
+  const repoData = useGetRepositoryData();
 
   React.useEffect(() => {
     if (repoData) {

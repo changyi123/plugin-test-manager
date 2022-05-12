@@ -73,7 +73,7 @@ export const useAllTestWorkspace = () => {
   return allTestWorkspaces;
 };
 
-export const useGetRepositoryData = (workspaceKey: string) => {
+export const useGetRepositoryData = (workspaceKey?: string) => {
   const { data: repositoryData } = useRequest(async () => {
     return getRepositoryData(workspaceKey);
   });
