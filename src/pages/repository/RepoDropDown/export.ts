@@ -157,7 +157,7 @@ const getExcelData = async (datas: any[], repoData: any[], query?: any) => {
 
   return datas.map(test => ({
     ...testPlanObj,
-    ...getTestGroupPath(repoData, test.repository.objectId),
+    ...getTestGroupPath(repoData, test.repository?.objectId),
     ...getItemInfo(test.reference, priorityInfo),
     ...getTestInfo(test),
     ...getStatus(itemStatus, test.status),
