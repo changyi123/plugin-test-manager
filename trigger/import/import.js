@@ -196,8 +196,8 @@ const getRepoData = async () => {
 };
 
 const getParent = (RepoParseObj, datas, repoData) => {
-  const pathReg = new RegExp(`(/${repoData.name})$`, 'g');
-  const _data = datas.find(d => d?.path === repoData.path.replace(pathReg, ''));
+  const getParPath = path => (path ? `${path ?? ''}/` : '');
+  const _data = datas.find(d => `${getParPath(d?.path)}${repoData.name}` === repoData.path);
 
   return _data?.objectId && RepoParseObj.createWithoutData(_data.objectId);
 };
