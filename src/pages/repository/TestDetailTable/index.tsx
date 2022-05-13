@@ -54,8 +54,7 @@ type TestDetailTableProps = {
 };
 
 const TestDetailTable: React.FC<TestDetailTableProps> = props => {
-  const { searchValue, testDetailIds, onDataChange, actionRef, onSelectionCancel, folderKey } =
-    props;
+  const { searchValue, onDataChange, actionRef, onSelectionCancel, folderKey } = props;
   const tableActionRef = React.useRef<BusinessTableActionType>();
   const repositorySelectorRef = React.useRef<RepositorySelectorActionType>();
   const [tableLoading, setTableLoading] = React.useState(false);
@@ -76,8 +75,9 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         {
           workspaceKey,
           nameLike: searchValue,
-          in: testDetailIds ?? null,
+          // in: testDetailIds ?? null,
           type: TestType.TestDetail,
+          repository: folderKey,
         },
         paginationParams,
       );
@@ -88,7 +88,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         total: data.count,
       };
     },
-    [searchValue, testDetailIds, workspaceKey, folderKey],
+    [searchValue, workspaceKey, folderKey],
   );
 
   const refreshAndMutateData = React.useCallback(async () => {

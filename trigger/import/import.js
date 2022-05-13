@@ -264,51 +264,72 @@ const getToCreateGroupData = async () => {
   );
 };
 
-const getAddId = (datas, field) => {
-  const testMap = datas.reduce((prev, cur) => {
-    const _cur = cur?.toJSON();
-    if (_cur) {
-      prev.set(_cur.reference?.objectId, _cur.objectId);
-    }
+// const getAddId = (datas, field) => {
+//   const testMap = datas.reduce((prev, cur) => {
+//     const _cur = cur?.toJSON();
+//     if (_cur) {
+//       prev.set(_cur.reference?.objectId, _cur.objectId);
+//     }
 
-    return prev;
-  }, new Map());
+//     return prev;
+//   }, new Map());
 
-  return testMap.get(field.itemId);
-};
+//   return testMap.get(field.itemId);
+// };
 
 const handleFieldsData = async testManagerTestData => {
-  const RepoParseObj = await apis.getParseModel(false, TEST_MANAGER_REPO);
+  const TestParseObj = await apis.getParseModel(false, TEST_MANAGER_TEST);
   const repoDatas = await getRepoData();
-  const repositoryMap = new Map();
+  const testRepoMap = new Map();
 
-  const newRepoObj = appFieldsData
-    .map(field => {
-      const repoData = repoDatas.find(gro => gro.path === getGroupPath(field.group).join('/'));
+  appFieldsData.forEach(field => {
+    const repoData = repoDatas.find(gro => gro.path === getGroupPath(field.group).join('/'));
 
-      if (!repositoryMap.has(repoData?.objectId)) {
-        const repository = new RepoParseObj({
-          objectId: repoData?.objectId,
+    repoData && testRepoMap.set(field.itemId, TestParseObj.createWithoutData(repoData.objectId));
+  });
+
+  const needToUpdateRepoTest = testManagerTestData
+    .map(item => {
+      if (testRepoMap.get(item.objectId)) {
+        const testParse = new TestParseObj({
+          objectId: item?.objectId,
         });
 
-        repositoryMap.set(repoData?.objectId, repository);
+        testParse.set('repository', testRepoMap.get(item.objectId));
+        return testParse;
       }
 
-      const getDetailIds = () => {
-        const ids = (repoData?.testDetailIds ?? []).concat(
-          repositoryMap.get(repoData?.objectId).toJSON()?.testDetailIds ?? [],
-        );
-
-        return ids?.concat([getAddId(testManagerTestData, field)]);
-      };
-
-      repositoryMap.get(repoData?.objectId).set('testDetailIds', getDetailIds());
-
-      return repoData?.objectId ? repositoryMap.get(repoData?.objectId) : null;
+      return null;
     })
     .filter(d => d !== null);
 
-  return await apis.saveAllObject(newRepoObj);
+  // const newRepoObj = appFieldsData
+  //   .map(field => {
+  //     const repoData = repoDatas.find(gro => gro.path === getGroupPath(field.group).join('/'));
+
+  //     if (!repositoryMap.has(repoData?.objectId)) {
+  //       const repository = new TestParseObj({
+  //         objectId: item?.objectId,
+  //       });
+
+  //       repositoryMap.set(repoData?.objectId, repository);
+  //     }
+
+  //     const getDetailIds = () => {
+  //       const ids = (repoData?.testDetailIds ?? []).concat(
+  //         repositoryMap.get(repoData?.objectId).toJSON()?.testDetailIds ?? [],
+  //       );
+
+  //       return ids?.concat([getAddId(testManagerTestData, field)]);
+  //     };
+
+  //     repositoryMap.get(repoData?.objectId).set('testDetailIds', getDetailIds());
+
+  //     return repoData?.objectId ? repositoryMap.get(repoData?.objectId) : null;
+  //   })
+  //   .filter(d => d !== null);
+
+  return await apis.saveAllObject(needToUpdateRepoTest);
 };
 
 const createRepoGroupList = async datas => {

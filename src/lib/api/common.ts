@@ -4,6 +4,7 @@ import { assign, omit, transform } from 'lodash';
 import { Workspace, Item, Test, TestRelation } from '@/lib/models';
 import { TestType, TestRelationType } from '@/lib/constants';
 import { hasArrayItem, pointerTransfer, toArray, escapeMatchesQueryArg } from '@/lib/utils/helper';
+import { ROOT_FOLDER_KEY } from '@/pages/repository/constant';
 
 const BATCH_SIZE = 200;
 
@@ -438,6 +439,7 @@ export const getTestEntitiesByQuery = async (
     notIn: string[];
     nameLike: string;
     workspaceKey: string;
+    repository: string;
   }>,
   options?: Partial<{
     offset: number;
@@ -474,6 +476,13 @@ export const getTestEntitiesByQuery = async (
 
   if (queryParams.workspaceKey) {
     query.equalTo('workspaceKey', queryParams.workspaceKey);
+  }
+
+  if (queryParams.repository) {
+    query.equalTo(
+      'repository',
+      queryParams.repository === ROOT_FOLDER_KEY ? undefined : queryParams.repository,
+    );
   }
 
   // 忽略被删除事项数据
