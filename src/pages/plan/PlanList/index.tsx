@@ -121,6 +121,8 @@ const PlanList = () => {
           from: results.map(item => item.objectId),
         },
         {
+          // FIXME: 优化查询速度
+          workspaceKey,
           select: ['status'],
           include: ['status'],
           queryParams: { limit: 9999, offset: 0 },
