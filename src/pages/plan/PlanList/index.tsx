@@ -158,6 +158,8 @@ const PlanList = () => {
         from: testPlanId,
       },
       {
+        // FIXME: 优化查询速度
+        workspaceKey,
         include: ['status'],
         queryParams: { limit: 9999, offset: 0 },
       },
