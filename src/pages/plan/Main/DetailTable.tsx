@@ -73,6 +73,8 @@ const DetailTable = () => {
           TestRelationType.PlanRelDetail,
           { from: selectedTestPlanId },
           {
+            // FIXME: 优化执行
+            workspaceKey,
             fillItemData: true,
             nameLike: searchValue,
             queryParams: queryParams,
@@ -82,6 +84,8 @@ const DetailTable = () => {
           TestRelationType.PlanRelExecution,
           { from: selectedTestPlanId },
           {
+            // FIXME: 优化执行
+            workspaceKey,
             fillItemData: true,
             queryParams: { limit: 9999 },
             include: ['objectId'],
