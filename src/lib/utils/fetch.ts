@@ -19,8 +19,7 @@ interface FetchInstance extends AxiosInstance {
 }
 const { baseURL, env } = getDevConfig();
 
-// 获取当前租户的 key 没有则使用原有版本的 key
-const tenantKey = getTenantKey('proxima-core');
+const tenantKey = getTenantKey();
 const currentUserStorageKey = `Parse/${tenantKey}/currentUser`;
 const { sessionToken } = JSON.parse(localStorage.getItem(currentUserStorageKey)) ?? {};
 // const reg = /sessionToken=([^;]+)/;

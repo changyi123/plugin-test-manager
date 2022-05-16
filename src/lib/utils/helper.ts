@@ -5,8 +5,9 @@ import { STORAGE_PREFIX_KEY } from '../constants';
 import createProximaSdk from '@projectproxima/proxima-sdk-js';
 
 /** 获取租户信息 */
-export const getTenantKey = (defaultValue?: string) => {
-  return (window as any)?.env?.PROXIMA_APP_ID ?? defaultValue ?? 'osc';
+export const getTenantKey = () => {
+  // dev 环境默认取 env 中的 PROXIMA_APP_ID
+  return (window as any)?.env?.PROXIMA_APP_ID ?? process.env.PROXIMA_APP_ID ?? 'osc';
 };
 /** 获取 proxima baseUrl */
 export const getProximaBasePath = () => {
@@ -62,7 +63,7 @@ export const generateStorageKey = (...args: string[]) => {
 /** 生成跳转 URL */
 export const goToItemDetailPage = ({ workspaceKey, itemKey }) => {
   return window.open(
-    `${getProximaBasePath()}/${getTenantKey('osc')}/workspaces/${workspaceKey}/item/${itemKey}`,
+    `${getProximaBasePath()}/${getTenantKey()}/workspaces/${workspaceKey}/item/${itemKey}`,
     '_blank',
   );
 };
