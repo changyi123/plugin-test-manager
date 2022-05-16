@@ -120,6 +120,8 @@ const PlanList = () => {
           from: results.map(item => item.objectId),
         },
         {
+          // FIXME: 优化查询速度
+          workspaceKey,
           select: ['status'],
           include: ['status'],
           queryParams: { limit: 9999, offset: 0 },
@@ -157,6 +159,8 @@ const PlanList = () => {
         from: testPlanId,
       },
       {
+        // FIXME: 优化查询速度
+        workspaceKey,
         include: ['status'],
         queryParams: { limit: 9999, offset: 0 },
       },
