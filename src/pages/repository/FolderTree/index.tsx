@@ -1,4 +1,5 @@
 import React from 'react';
+// import { constant, uniq } from 'lodash';
 import { uniq } from 'lodash';
 import { useReactive, useDrop } from 'ahooks';
 import { TestType } from '@/lib/constants';
@@ -22,6 +23,7 @@ import { getTreeNodeByKey } from '../hook';
 import { ROOT_FOLDER_KEY } from '../constant';
 
 import cx from './index.less';
+import { getTestEntities } from '@/lib/api/common';
 
 const { DirectoryTree } = Tree;
 
@@ -411,18 +413,27 @@ const FolderTree: React.FC<FolderTreeProps> = ({
       const sourceNode = treeFn.getTreeNodeByKey(fromFolderKey);
       const targetNode = treeFn.getTreeNodeByKey(toFolderKey);
 
-      sourceNode.testDetailIds = sourceNode.testDetailIds.filter(id => id !== testId);
-      targetNode.testDetailIds = uniq((targetNode.testDetailIds ?? []).concat(testId));
+      // sourceNode.testDetailIds = sourceNode.testDetailIds.filter(id => id !== testId);
+      // targetNode.testDetailIds = uniq((targetNode.testDetailIds ?? []).concat(testId));
 
-      let needUpdatedFolders = [];
-      if (toFolderKey !== ROOT_FOLDER_KEY) {
-        needUpdatedFolders = needUpdatedFolders.concat(targetNode);
-      }
-      if (fromFolderKey !== ROOT_FOLDER_KEY) {
-        needUpdatedFolders = needUpdatedFolders.concat(sourceNode);
-      }
+      const testEntity = await getTestEntities({
+        id: testId,
+      });
 
-      await updateFolders(needUpdatedFolders);
+      testEntity.save({
+        ...testEntity.toJSON(),
+        repository: targetNode?.objectId === ROOT_FOLDER_KEY ? undefined : targetNode,
+      });
+
+      // let needUpdatedFolders = [];
+      // if (toFolderKey !== ROOT_FOLDER_KEY) {
+      //   needUpdatedFolders = needUpdatedFolders.concat(targetNode);
+      // }
+      // if (fromFolderKey !== ROOT_FOLDER_KEY) {
+      //   needUpdatedFolders = needUpdatedFolders.concat(sourceNode);
+      // }
+
+      // await updateFolders(needUpdatedFolders);
 
       notification.success({
         message: '测试用例移动成功',
