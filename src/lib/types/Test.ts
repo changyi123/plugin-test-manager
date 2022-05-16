@@ -30,6 +30,9 @@ type BaseTestEntity = {
   };
   /** 测试用例评论数据 */
   comments: comment[];
+
+  createdBy: any;
+  updatedBy: any;
 };
 
 /** 测试实体类型 */

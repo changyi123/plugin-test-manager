@@ -426,6 +426,8 @@ export const updateTestRun = async (
     testDetailEntity.save('status', needUpdateAttrs.status);
   }
 
+  testEntity.set('updatedBy', Parse.User.current());
+
   return testEntity.save(needUpdateAttrs);
 };
 
