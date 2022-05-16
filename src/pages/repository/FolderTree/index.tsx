@@ -6,7 +6,8 @@ import { TestType } from '@/lib/constants';
 import { hasArrayItem, getRootContainer } from '@/lib/utils/helper';
 import { createFolder, updateFolders, deleteFolder } from '@/lib/api/repository';
 import { useTestConfig, useBaseAction } from '@/lib/hooks/useContext';
-import { useTreeFn, traverseTreeNodes } from '../hook';
+import { traverseTreeNodes } from '../util';
+import { useTreeFn } from '../hook';
 import { MenuKey, FolderMenu } from '../Menu';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import { Tree, Button, Input, notification, Empty, Dropdown, Modal } from 'antd';
@@ -18,12 +19,12 @@ import {
   FileClose,
   FileOpen,
 } from '@/icons';
-import { getTreeNodeByKey } from '../hook';
+import { getTreeNodeByKey } from '../util';
 
-import { ROOT_FOLDER_KEY } from '../constant';
+import { UNGROUPED_FOLDER_KEY } from '../constant';
 
 import cx from './index.less';
-import { getTestEntities } from '@/lib/api/common';
+import { updateTestEntities } from '@/lib/api/common';
 
 const { DirectoryTree } = Tree;
 
@@ -192,7 +193,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
           return;
         }
         const folderName = await openFolderNameModal({ title: '新建子模块' });
-        const parentId = node?.key === ROOT_FOLDER_KEY ? null : node?.key;
+        const parentId = node?.key === UNGROUPED_FOLDER_KEY ? null : node?.key;
         const createdFolder = await createFolder({
           name: folderName,
           workspaceKey: workspace?.key,
@@ -265,8 +266,8 @@ const FolderTree: React.FC<FolderTreeProps> = ({
               });
             } else {
               // 当前模块无父级需要冲选择到新模块
-              handleSelect([ROOT_FOLDER_KEY], {
-                node: getTreeNodeByKey(refreshedTreeData, ROOT_FOLDER_KEY),
+              handleSelect([UNGROUPED_FOLDER_KEY], {
+                node: getTreeNodeByKey(refreshedTreeData, UNGROUPED_FOLDER_KEY),
               });
             }
           },
@@ -317,7 +318,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
   const handleRightClick = React.useCallback(({ event, node }) => {
     event.preventDefault();
     // 所有案例无右侧菜单
-    if (node.key === ROOT_FOLDER_KEY) return;
+    if (node.key === UNGROUPED_FOLDER_KEY) return;
   }, []);
 
   const handleExpand = React.useCallback(
@@ -395,7 +396,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
     />,
     <Dropdown
       key="更多"
-      disabled={selectedTreeNode?.key === ROOT_FOLDER_KEY}
+      disabled={selectedTreeNode?.key === UNGROUPED_FOLDER_KEY}
       overlay={
         <FolderMenu
           onClick={({ key }) => handleMenuClick(key, selectedTreeNode || {})}
@@ -403,7 +404,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         />
       }
     >
-      <CustomMore className={cx(selectedTreeNode?.key === ROOT_FOLDER_KEY && 'disabled')} />
+      <CustomMore className={cx(selectedTreeNode?.key === UNGROUPED_FOLDER_KEY && 'disabled')} />
     </Dropdown>,
   ];
 
@@ -411,35 +412,21 @@ const FolderTree: React.FC<FolderTreeProps> = ({
     async ({ testId, toFolderKey, fromFolderKey }) => {
       if (fromFolderKey === toFolderKey) return;
       const sourceNode = treeFn.getTreeNodeByKey(fromFolderKey);
-      const targetNode = treeFn.getTreeNodeByKey(toFolderKey);
 
-      // sourceNode.testDetailIds = sourceNode.testDetailIds.filter(id => id !== testId);
-      // targetNode.testDetailIds = uniq((targetNode.testDetailIds ?? []).concat(testId));
-
-      const testEntity = await getTestEntities({
-        id: testId,
-      });
-
-      testEntity.save({
-        ...testEntity.toJSON(),
-        repository: targetNode?.objectId === ROOT_FOLDER_KEY ? undefined : targetNode,
-      });
-
-      // let needUpdatedFolders = [];
-      // if (toFolderKey !== ROOT_FOLDER_KEY) {
-      //   needUpdatedFolders = needUpdatedFolders.concat(targetNode);
-      // }
-      // if (fromFolderKey !== ROOT_FOLDER_KEY) {
-      //   needUpdatedFolders = needUpdatedFolders.concat(sourceNode);
-      // }
-
-      // await updateFolders(needUpdatedFolders);
+      await updateTestEntities([
+        {
+          objectId: testId,
+          // 未分组用例用力的 repository 為 null
+          repository: toFolderKey === UNGROUPED_FOLDER_KEY ? null : toFolderKey,
+        },
+      ]);
 
       notification.success({
         message: '测试用例移动成功',
       });
 
       await onFolderTreeChange();
+      sourceNode.testDetailIds = sourceNode.testDetailIds.filter(id => id !== testId);
 
       handleSelect([sourceNode.key], {
         node: sourceNode,
@@ -456,7 +443,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
             <span className={cx('tree-node-name')}>{node.name}</span>
           </OverflowTooltip>
 
-          {node.key !== ROOT_FOLDER_KEY ? (
+          {node.key !== UNGROUPED_FOLDER_KEY ? (
             <>
               <span
                 className={cx('tree-node-length')}

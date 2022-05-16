@@ -3,7 +3,7 @@ import _ from 'lodash';
 import { TestEntity } from '@/lib/types/Test';
 import { QuestionCircleFilled } from '@/icons';
 import { TabsComponentBaseProps } from './type';
-import { getItemById } from '@/lib/api/proxima';
+import { getItemByIds } from '@/lib/api/proxima';
 import { getTestEntities } from '@/lib/api/common';
 import { StatusBadge } from '@/components/business/Status';
 import { useRequest, useSessionStorageState } from 'ahooks';
@@ -139,7 +139,7 @@ const TestRun: React.FC<TestRunType> = props => {
 
   // 所有关联的缺陷事项
   const { data: allRelationDefectItems, loading: relationDefectsRequestLoading } = useRequest(
-    async () => (allRelationDefectIds.length ? getItemById(allRelationDefectIds) : []),
+    async () => (allRelationDefectIds.length ? getItemByIds(allRelationDefectIds) : []),
     {
       ready: Boolean(allRelationDefectIds.length),
       refreshDeps: [allRelationDefectIds.toString()],

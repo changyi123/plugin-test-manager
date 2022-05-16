@@ -1,16 +1,16 @@
 import React from 'react';
-import { omit, cloneDeep } from 'lodash';
 import { TestType } from '@/lib/constants';
+import { omit, pick, cloneDeep } from 'lodash';
 import { getFolderTree } from '@/lib/api/repository';
 import { useAllTestWorkspace } from '@/lib/hooks/useTest';
 import { getTestEntitiesByQuery } from '@/lib/api/common';
 import { includeAll, exclude, includeItem } from './helper';
-import { traverseTreeNodes } from '@/pages/repository/hook';
 import SearchInput from '@/components/business/SearchInput';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import { useRequest, useReactive, useInfiniteScroll } from 'ahooks';
 import { hasArrayItem, escapeMatchesQueryArg } from '@/lib/utils/helper';
 import { Select, Tree, Empty, Checkbox, Spin, Tooltip, Input } from 'antd';
+import { traverseTreeNodes, appendGroupedDetailIdsToTreeNode } from '@/pages/repository/util';
 import {
   CaretDownOutlined,
   FileClose,
@@ -97,33 +97,24 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
           {
             limit: 99999,
             include: [],
-            select: ['objectId'],
+            select: ['objectId', 'repository'],
           },
         );
 
-        return data.map(item => item.objectId);
+        return data.map(item => pick(item, ['objectId', 'repository']));
       };
+
       const [treeNodes, allTestDetailIds] = await Promise.all([
         getFolderTree(selectedWorkspaceKey),
         getAllTestDetailEntityIds(selectedWorkspaceKey),
       ]);
 
-      const allTestDetailIdSet = new Set<string>(
-        // 排除被忽略的 detailId
-        allTestDetailIds.filter(id => !ignoreTestDetailIds?.includes(id)),
-      );
+      const ungroupedDetailIds = appendGroupedDetailIdsToTreeNode(treeNodes, allTestDetailIds);
+
       traverseTreeNodes(treeNodes, node => {
         // FIXME: 优化渲染 title 逻辑
         node.title = <OverflowTooltip title={node.name}>{node.name}</OverflowTooltip>;
         node.disableCheckbox = !node.testDetailIds.length;
-        // 测试实体在测试模块内只能被关联一次
-        node.testDetailIds = node.testDetailIds.filter(id => {
-          if (allTestDetailIdSet.has(id)) {
-            allTestDetailIdSet.delete(id);
-            return true;
-          }
-          return false;
-        });
       });
 
       const RootFolder = {
@@ -131,7 +122,7 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
         name: '未分组用例',
         title: '未分组用例',
         parentId: null,
-        testDetailIds: Array.from(allTestDetailIdSet),
+        testDetailIds: ungroupedDetailIds,
         icon: <FileClose />,
         children: [],
       };
@@ -141,6 +132,9 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
     {
       ready: Boolean(selectedWorkspaceKey),
       refreshDeps: [selectedWorkspaceKey],
+      cacheKey: `Repository_${selectedWorkspaceKey}`,
+      staleTime: 999999999,
+      cacheTime: 999999999,
     },
   );
 
@@ -188,6 +182,7 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
         {
           offset,
           limit: REQUEST_LIMIT,
+          ignoreDeletedItemData: false,
           ...baseQueryOptions,
         },
       );

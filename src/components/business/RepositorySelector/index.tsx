@@ -5,7 +5,7 @@ import { TestType } from '@/lib/constants';
 import EventBus from '@/lib/utils/eventBus';
 import { hasArrayItem } from '@/lib/utils/helper';
 import { getFolderTree } from '@/lib/api/repository';
-import { traverseTreeNodes } from '@/pages/repository/hook';
+import { traverseTreeNodes } from '@/pages/repository/util';
 import { Modal, Select, Tree, Empty, Spin } from 'antd';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import { useIsolateTestType, useAllTestWorkspace } from '@/lib/hooks/useTest';

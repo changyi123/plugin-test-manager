@@ -1,9 +1,9 @@
 import React from 'react';
+import { pick } from 'lodash';
 import { getDevConfig } from '@/devEnv';
 import { TestType } from '@/lib/constants';
 import { useReactive, useRequest } from 'ahooks';
 import { useSDK } from '@projectproxima/plugin-sdk';
-import { updateFolders } from '@/lib/api/repository';
 import { getFolderTree } from '@/lib/api/repository';
 import { logPluginVersion } from '@/lib/utils/helper';
 import { useBaseAction } from '@/lib/hooks/useContext';
@@ -18,9 +18,9 @@ import ErrorBoundary from '@/components/common/ErrorBoundary';
 import TestDetailTable, { ActionType } from './TestDetailTable';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import TestManagerProvider from '@/components/business/TestManagerProvider';
-import { traverseTreeNodes, reverseTreeNodes, getTreeNodeByKey } from './hook';
+import { reverseTreeNodes, getTreeNodeByKey, appendGroupedDetailIdsToTreeNode } from './util';
 
-import { ROOT_FOLDER_KEY } from './constant';
+import { UNGROUPED_FOLDER_KEY } from './constant';
 import RepoDropDown from './RepoDropDown';
 
 import cx from './index.less';
@@ -62,35 +62,26 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
           {
             limit: 99999,
             include: [],
-            select: ['objectId'],
+            select: ['objectId', 'repository'],
           },
         );
 
-        return data.map(item => item.objectId);
+        return data.map(item => pick(item, ['objectId', 'repository']));
       };
+
       const [treeNodes, allTestDetailIds] = await Promise.all([
         getFolderTree(workspaceKey),
         getAllTestDetailEntityIds(workspaceKey),
       ]);
 
-      const allTestDetailIdSet = new Set<string>(allTestDetailIds);
-      traverseTreeNodes(treeNodes, node => {
-        // 测试实体在测试模块内只能被关联一次
-        node.testDetailIds = node.testDetailIds.filter(id => {
-          if (allTestDetailIdSet.has(id)) {
-            allTestDetailIdSet.delete(id);
-            return true;
-          }
-          return false;
-        });
-      });
+      const ungroupedDetailIds = appendGroupedDetailIdsToTreeNode(treeNodes, allTestDetailIds);
 
       const RootFolder = {
-        key: ROOT_FOLDER_KEY,
+        key: UNGROUPED_FOLDER_KEY,
         name: '未分组用例',
         title: '未分组用例',
         parentId: null,
-        testDetailIds: Array.from(allTestDetailIdSet),
+        testDetailIds: ungroupedDetailIds,
         icon: <FileClose />,
         children: [],
       };
@@ -98,7 +89,7 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
       return [RootFolder].concat(treeNodes);
     },
     {
-      ready: !!workspaceKey,
+      ready: Boolean(workspaceKey),
     },
   );
 
@@ -132,15 +123,17 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
   const createTestDetail = async () => {
     const { testEntity: testDetailEntity } = await createItemUseModal({
       type: TestType.TestDetail,
+      extraData: {
+        fields: {
+          repository:
+            state.selectedFolderKey === UNGROUPED_FOLDER_KEY ? null : state.selectedFolderKey,
+        },
+      },
     });
 
     const testDetailData = testDetailEntity.toJSON();
-    await updateFolders([
-      {
-        key: state.selectedFolderKey,
-        testDetailIds: state.testDetailIds.concat(testDetailData.objectId),
-      },
-    ]);
+    // TODO: 创建时加入到测试执行中
+
     notification.success({
       message: `测试用例【${testDetailData.reference.name}】新建成功`,
     });
