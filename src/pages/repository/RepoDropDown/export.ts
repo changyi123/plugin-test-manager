@@ -11,7 +11,6 @@ import { Step } from '@/lib/types/Test';
 // import { getFolderTree, getRepositoryData } from '@/lib/api/repository';
 import { getRepositoryData } from '@/lib/api/repository';
 // import { traverseTreeNodes } from '../hook';
-// import { ROOT_FOLDER_KEY } from '../constant';
 import { escapeHtmlString } from '@/lib/utils/helper';
 
 export type TreeNode = {
@@ -277,7 +276,7 @@ const getItemInfo = (datas: Item, priInfo: any) => ({
 //   });
 
 //   const RootFolder = {
-//     key: ROOT_FOLDER_KEY,
+//     key: UNGROUPED_FOLDER_KEY,
 //     name: '未分组用例',
 //     title: '未分组用例',
 //     parentId: null,

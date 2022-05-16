@@ -6,3 +6,5 @@ dist
 manifest.yml
 version.yml
 test-manager-plugin*.zip
+.env
+manifest.yml

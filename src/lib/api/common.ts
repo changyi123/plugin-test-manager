@@ -1,10 +1,9 @@
 import Parse from '@/lib/parse';
 import { TestConfig } from '../models';
 import { assign, omit, transform } from 'lodash';
-import { Workspace, Item, Test, TestRelation } from '@/lib/models';
+import { Workspace, Item, Test, TestRelation, Repository } from '@/lib/models';
 import { TestType, TestRelationType } from '@/lib/constants';
 import { hasArrayItem, pointerTransfer, toArray, escapeMatchesQueryArg } from '@/lib/utils/helper';
-import { ROOT_FOLDER_KEY } from '@/pages/repository/constant';
 
 const BATCH_SIZE = 200;
 
@@ -387,6 +386,7 @@ export const createTestEntities = (
     type: TestType;
     itemId?: string;
     workspaceKey: string;
+    repository?: string;
     fields?: Record<string, unknown>;
   }>,
 ) => {
@@ -395,7 +395,10 @@ export const createTestEntities = (
       new Test({
         type: entity.type,
         workspaceKey: entity.workspaceKey,
-        reference: entity.itemId ? Item.createWithoutData(entity.itemId) : null,
+        repository: entity.repository
+          ? pointerTransfer(Repository, entity.repository as any)
+          : null,
+        reference: entity.itemId ? pointerTransfer(Item, entity.itemId) : null,
         ...(entity.fields || {}),
       }),
   );
@@ -439,7 +442,6 @@ export const getTestEntitiesByQuery = async (
     notIn: string[];
     nameLike: string;
     workspaceKey: string;
-    repository: string;
   }>,
   options?: Partial<{
     offset: number;
@@ -476,13 +478,6 @@ export const getTestEntitiesByQuery = async (
 
   if (queryParams.workspaceKey) {
     query.equalTo('workspaceKey', queryParams.workspaceKey);
-  }
-
-  if (queryParams.repository) {
-    query.equalTo(
-      'repository',
-      queryParams.repository === ROOT_FOLDER_KEY ? undefined : queryParams.repository,
-    );
   }
 
   // 忽略被删除事项数据
@@ -542,6 +537,24 @@ export const getTestEntitiesByQuery = async (
     ...data,
     results: data.results.map(item => item.toJSON()),
   };
+};
+
+/**
+ * 更新用例
+ */
+
+export const updateTestEntities = async (testEntities: Record<'objectId' | string, any>[]) => {
+  const needUpdateTestEntities = testEntities.map(({ objectId, repository }) => {
+    const test = Test.createWithoutData(objectId);
+
+    if (repository !== undefined) {
+      test.set('repository', pointerTransfer(Repository, repository));
+    }
+
+    return test;
+  });
+
+  return await Parse.Object.saveAll(needUpdateTestEntities);
 };
 
 /**

@@ -209,10 +209,11 @@ export const getBuiltinItemTypes = async () => {
 };
 
 /** 获取所有的事项， iql 无 itemType icon 字段，使用此方法获取 */
-export const getItemById = async itemId => {
+export const getItemByIds = async (itemIds: string[]) => {
   const res = await new Parse.Query(Item)
-    .containedIn('objectId', itemId)
-    .include(['itemType'])
+    .containedIn('objectId', itemIds)
+    .select('itemType', 'workspace', 'name')
+    .include(['itemType', 'workspace'])
     .findAll();
 
   return res.map(item => item.toJSON());

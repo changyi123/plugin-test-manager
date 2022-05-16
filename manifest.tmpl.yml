@@ -1,6 +1,6 @@
 app:
   uuid: bf73e61c-e15a-4461-a1f7-f940c2009332
-  name: test-manager
+  name: test_manager
 modules:
   webtrigger:
     # 动态配置 one 路由
@@ -145,8 +145,9 @@ tables:
         type: Pointer
         isAppClass: true
         targetClass: Repository
-      testDetailIds:
-        type: Array
+      # deprecated 使用 Test 表的 repository 替代
+      # testDetailIds:
+      #   type: Array
       sortIndex:
         type: Number
   - className: TestConfig
@@ -176,17 +177,27 @@ tables:
         type: String
       runDetail:
         type: Object
-      # 废弃， 使用 detail 字段替代
-      steps:
-        type: Array
+      # deprecated 使用 detail 字段替代
+      # steps:
+      #   type: Array
       detail:
         type: Object
       sortIndex:
         type: Number
+      createdBy:
+        type: Pointer
+        targetClass: _User
+      updatedBy:
+        type: Pointer
+        targetClass: _User
       runReferenceDetail:
         type: Pointer
         isAppClass: true
         targetClass: Test
+      repository:
+        type: Pointer
+        isAppClass: true
+        targetClass: Repository
   - className: Activity
     fields:
       resource:
@@ -211,6 +222,12 @@ tables:
         type: Pointer
         isAppClass: true
         targetClass: Test
+      createdBy:
+        type: Pointer
+        targetClass: _User
+      updatedBy:
+        type: Pointer
+        targetClass: _User
       relationType:
         type: String
 resources:

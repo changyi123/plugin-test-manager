@@ -10,7 +10,7 @@ import { message, notification } from 'antd';
 import { useOnItemCreateSuccess } from '@/lib/hooks/useProximaSDK';
 import { openCreateItemModal, openItemDetailPanel } from '@/lib/api/sdk';
 import { getTestConfig, createTestEntities, getTestEntities } from '@/lib/api/common';
-import { getItemByIQL, getWorkspaceByKey, getItemTypeByKey } from '@/lib/api/proxima';
+import { getItemByIds, getWorkspaceByKey, getItemTypeByKey } from '@/lib/api/proxima';
 import { getKeyByValue, generateSortIndex } from '@/lib/utils/helper';
 import {
   TestConfigContext,
@@ -28,16 +28,17 @@ import {
 const ItemCreateSuccessEventType = 'itemCreateSuccess';
 
 /** 获取测试实体，如果不存在创建 */
-const getOrCreateTestEntity = async (itemId: string, config?: { notice: boolean }) => {
+const getOrCreateTestEntity = async (
+  itemId: string,
+  options?: { fields: Record<string, any>; notice: boolean },
+) => {
   if (!itemId) return null;
   const storeValues = store.get(ExtensionValType.CREATE_OR_UPDATE_ITEM);
   let [testEntity] = await getTestEntities({ itemId });
 
   // 查询不到测试实体则直接创建
   if (!testEntity) {
-    const {
-      items: [item],
-    } = await getItemByIQL({ itemId });
+    const [item] = await getItemByIds([itemId]);
 
     const testConfig = await getTestConfig({
       workspaceKey: item?.workspace?.key,
@@ -51,7 +52,7 @@ const getOrCreateTestEntity = async (itemId: string, config?: { notice: boolean 
 
       if (!testType) {
         // 创建失败，通知用户无法创建测试实体
-        config?.notice === true &&
+        options?.notice === true &&
           notification.open({
             message: '提示',
             description: '事项所属空间未配置测试管理关联类型',
@@ -79,9 +80,10 @@ const getOrCreateTestEntity = async (itemId: string, config?: { notice: boolean 
       await createTestEntities([
         {
           type: testType,
-          itemId: item.id,
           fields: extraFields,
+          itemId: item.objectId,
           workspaceKey: item?.workspace?.key,
+          repository: options.fields?.repository,
         },
       ]);
       // 重新查询 testEntity，保持返回数据一致
@@ -174,9 +176,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
       // 缺陷类型不需要创建测试实体
       const { extraData } = params;
 
-      const {
-        items: [itemData],
-      } = await getItemByIQL({ itemId: params.itemId });
+      const [itemData] = await getItemByIds([params.itemId]);
       let testEntity = null;
 
       // 禁止创建或或关联（当又空间隔离配置时且当前空间和事项创建空间不相同时）
@@ -188,7 +188,10 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
 
       // 缺陷类型不需要创建测试管理测试实体
       if (extraData.type !== TestType.TestDefect) {
-        testEntity = await getOrCreateTestEntity(params.itemId, { notice: true });
+        testEntity = await getOrCreateTestEntity(params.itemId, {
+          fields: extraData.fields,
+          notice: true,
+        });
         const testEntityData = testEntity?.toJSON();
         if (!testEntityData) return;
         itemData.reference = testEntityData.reference;
