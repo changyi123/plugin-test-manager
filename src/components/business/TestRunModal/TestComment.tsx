@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { EditorField } from '@projectproxima/components';
+// import { EditorField } from '@projectproxima/components';
 import { useCurrentUser, useGetUserById } from '@/lib/api/user';
 import { Button, Input } from 'antd';
 import { updateTestRun } from '@/lib/api/runs';
@@ -45,8 +45,8 @@ const TestComment: React.FC<any> = (props: any) => {
   const [ids, setIds] = React.useState([]);
   const [showEditor, setShowEditor] = React.useState(false);
   const [disable, setDisable] = React.useState(true);
-  const [placeholder] = React.useState('在此输入评论内容');
-  const changeHandle = value => setCommentValue(value);
+  // const [placeholder] = React.useState('在此输入评论内容');
+  // const changeHandle = value => setCommentValue(value);
 
   const { data: userInfo, mutate } = useGetUserById(ids);
 
@@ -69,19 +69,19 @@ const TestComment: React.FC<any> = (props: any) => {
     }
   }, [userInfo, testRunData.comments]);
 
-  const Editor = useMemo(() => {
-    return (
-      <EditorField
-        editMode
-        name="comment-editor"
-        value={commentValue}
-        placeholder={placeholder}
-        hiddenLabel
-        onChange={changeHandle}
-        watchChange
-      />
-    );
-  }, [commentValue, placeholder]);
+  // const Editor = useMemo(() => {
+  //   return (
+  //     <EditorField
+  //       editMode
+  //       name="comment-editor"
+  //       value={commentValue}
+  //       placeholder={placeholder}
+  //       hiddenLabel
+  //       onChange={changeHandle}
+  //       watchChange
+  //     />
+  //   );
+  // }, [commentValue, placeholder]);
 
   React.useEffect(() => {
     if (testRunData.comments) {
@@ -161,13 +161,13 @@ const TestComment: React.FC<any> = (props: any) => {
                 </div>
               </div>
               <div className={cx('comment-editor')}>
-                <EditorField
+                {/* <EditorField
                   name={comment.id}
                   value={comment.value}
                   readonly
                   hiddenLabel
                   hideEditBtn
-                />
+                /> */}
               </div>
             </div>
           ))
@@ -186,7 +186,7 @@ const TestComment: React.FC<any> = (props: any) => {
           <Input placeholder="编写评论" onFocus={() => setShowEditor(true)} />
         ) : (
           <>
-            {Editor}
+            {/* {Editor} */}
             <Space style={{ marginTop: '12px' }}>
               <Button disabled={disable} onClick={submitTestComment}>
                 保存
