@@ -135,7 +135,7 @@ const DetailTable = () => {
         total,
       };
     },
-    [searchValue, selectedTestPlanId],
+    [searchValue, selectedTestPlanId, workspaceKey],
   );
 
   const removeTestRelation = React.useCallback(

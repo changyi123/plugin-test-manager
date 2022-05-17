@@ -1,8 +1,8 @@
 import Parse from '@/lib/parse';
 import { TestConfig } from '../models';
 import { assign, omit, transform } from 'lodash';
-import { Workspace, Item, Test, TestRelation, Repository } from '@/lib/models';
 import { TestType, TestRelationType } from '@/lib/constants';
+import { Workspace, Item, Test, TestRelation, Repository } from '@/lib/models';
 import { hasArrayItem, pointerTransfer, toArray, escapeMatchesQueryArg } from '@/lib/utils/helper';
 
 const BATCH_SIZE = 200;
@@ -543,7 +543,6 @@ export const getTestEntitiesByQuery = async (
 /**
  * 更新用例
  */
-
 export const updateTestEntities = async (testEntities: Record<'objectId' | string, any>[]) => {
   const needUpdateTestEntities = testEntities.map(({ objectId, repository }) => {
     const test = Test.createWithoutData(objectId);
