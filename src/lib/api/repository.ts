@@ -12,9 +12,9 @@ export interface ICommonRes<T = any> {
   data?: T;
 }
 
-export const getRepositoryData = async (workspaceKey: string) => {
+export const getRepositoryData = async (workspaceKeys: string[]) => {
   const repositoryData = await new Parse.Query(Repository)
-    .equalTo('workspaceKey', workspaceKey)
+    .containedIn('workspaceKey', workspaceKeys)
     .limit(9999)
     .find();
 

@@ -84,7 +84,7 @@ export const useGetTestRepoGroup = (rowData: any) => {
     async () => {
       const repoMap = new Map();
 
-      const repoData = await getRepositoryData(rowData?.workspaceKey);
+      const repoData = await getRepositoryData([rowData?.workspaceKey]);
 
       if (repoData) {
         handleRroupPath(getRepoData(repoData))?.forEach(d => {
