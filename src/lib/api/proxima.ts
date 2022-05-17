@@ -324,3 +324,15 @@ export const updateUsedHierarchySchema = async () => {
 
   await Parse.Object.saveAll(needUpdatedParseObjects);
 };
+
+/** 获取空间下成员 */
+export const getWorkspaceRoleMembers = async (params: {
+  workspaceKey: string;
+  keyword?: string;
+}) => {
+  const result = await fetch.$get(`/parse/api/workspaceRoles/${params.workspaceKey}/members`, {
+    params: { keyword: params.keyword ?? '' },
+  });
+
+  return result;
+};

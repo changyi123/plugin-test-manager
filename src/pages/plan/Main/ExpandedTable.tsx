@@ -6,7 +6,7 @@ import TestRunModal, {
 } from '@/components/business/TestRunModal';
 import { BusinessTable } from '@/components/common/BusinessTable';
 
-import cx from './executionTable.less';
+import cx from './ExecutionTable.less';
 import { actionConfirm } from '@/lib/utils/helper';
 import { deleteTestEntities } from '@/lib/api/common';
 import { updateTestRunStatus } from '@/lib/api/runs';
@@ -47,23 +47,24 @@ const ExpandedTable = (props: ExpandedTableProps) => {
     refreshAndMutateData();
   };
 
-  const InnerTableSelectionActionNodes = React.useMemo(() => {
-    const deleteTestRun = () => {
-      const selectedRows = (
-        Object.values(innerTableRefs.current).reduce((res: any, ref: any) => {
-          return res.concat(ref.selectedRows);
-        }, []) as any[]
-      )
-        .filter(Boolean)
-        .filter(row => record.objectId === row.relation.from.objectId);
-
+  /** 根据列表记录删除测试执行 */
+  const deleteTestRunByRows = React.useCallback(
+    rows => {
       actionConfirm('该操作会将所选测试执行删除，是否继续操作？', () => {
         // 删除关联关系，删除测试实体
-        deleteTestEntities(selectedRows.map(row => row.objectId));
-        removeTestRelation(selectedRows.map(row => row.relation.objectId));
+        deleteTestEntities(rows.map(row => row.objectId));
+        removeTestRelation(
+          rows.map(row => row.relation.objectId),
+          {
+            message: `${rows.length} 个测试执行任务被删除`,
+          },
+        );
       });
-    };
+    },
+    [removeTestRelation],
+  );
 
+  const InnerTableSelectionActionNodes = React.useMemo(() => {
     const toggleSTestRunStatus = async status => {
       const selectedRows = (
         Object.values(innerTableRefs.current).reduce((res: any, ref: any) => {
@@ -84,6 +85,18 @@ const ExpandedTable = (props: ExpandedTableProps) => {
       refreshAndMutateData();
     };
 
+    const deleteTestRun = () => {
+      const selectedRows = (
+        Object.values(innerTableRefs.current).reduce((res: any, ref: any) => {
+          return res.concat(ref.selectedRows);
+        }, []) as any[]
+      )
+        .filter(Boolean)
+        .filter(row => record.objectId === row.relation.from.objectId);
+
+      deleteTestRunByRows(selectedRows);
+    };
+
     return [
       <StatusBadge
         useRootContainer
@@ -100,7 +113,7 @@ const ExpandedTable = (props: ExpandedTableProps) => {
         <DeleteOutlined /> 删除
       </span>,
     ];
-  }, [innerTableRefs, record.objectId, refreshAndMutateData, removeTestRelation]);
+  }, [deleteTestRunByRows, innerTableRefs, record.objectId, refreshAndMutateData]);
 
   const columns = [
     {
@@ -151,18 +164,28 @@ const ExpandedTable = (props: ExpandedTableProps) => {
       fixed: 'right' as any,
       render(_, record) {
         return (
-          <a
-            onClick={async () => {
-              await testRunModalActionRef.current.open({
-                testId: record.objectId,
-                testIdSequence,
-              });
-              // 刷新依赖数据
-              refreshAndMutateData();
-            }}
-          >
-            执行
-          </a>
+          <>
+            <a
+              onClick={async () => {
+                await testRunModalActionRef.current.open({
+                  testId: record.objectId,
+                  testIdSequence,
+                });
+                // 刷新依赖数据
+                refreshAndMutateData();
+              }}
+            >
+              执行
+            </a>
+            <a
+              style={{ marginLeft: 10 }}
+              onClick={async () => {
+                deleteTestRunByRows([record]);
+              }}
+            >
+              删除
+            </a>
+          </>
         );
       },
     },

@@ -1,8 +1,8 @@
 import Parse from '@/lib/parse';
 import { TestConfig } from '../models';
 import { assign, omit, transform } from 'lodash';
-import { Workspace, Item, Test, TestRelation, Repository } from '@/lib/models';
 import { TestType, TestRelationType } from '@/lib/constants';
+import { Workspace, Item, Test, TestRelation, Repository } from '@/lib/models';
 import { hasArrayItem, pointerTransfer, toArray, escapeMatchesQueryArg } from '@/lib/utils/helper';
 
 const BATCH_SIZE = 200;
@@ -381,7 +381,7 @@ export const deleteTestEntities = async (testEntities: Array<Parse.Object | stri
 /**
  * 创建测试实体
  */
-export const createTestEntities = (
+export const createTestEntities = async (
   entities: Array<{
     type: TestType;
     itemId?: string;
@@ -400,6 +400,7 @@ export const createTestEntities = (
           : null,
         reference: entity.itemId ? pointerTransfer(Item, entity.itemId) : null,
         ...(entity.fields || {}),
+        createdBy: Parse.User.current(),
       }),
   );
 
@@ -542,7 +543,6 @@ export const getTestEntitiesByQuery = async (
 /**
  * 更新用例
  */
-
 export const updateTestEntities = async (testEntities: Record<'objectId' | string, any>[]) => {
   const needUpdateTestEntities = testEntities.map(({ objectId, repository }) => {
     const test = Test.createWithoutData(objectId);
@@ -550,6 +550,8 @@ export const updateTestEntities = async (testEntities: Record<'objectId' | strin
     if (repository !== undefined) {
       test.set('repository', pointerTransfer(Repository, repository));
     }
+
+    test.set('updatedBy', Parse.User.current());
 
     return test;
   });

@@ -127,14 +127,14 @@ const ExecutionTable = () => {
   );
 
   const removeTestRelation = React.useCallback(
-    async relationTypeIds => {
+    async (relationTypeIds, options = {}) => {
       if (!Array.isArray(relationTypeIds)) return;
       await removeTestRelations(relationTypeIds);
 
       refreshAndMutateData();
 
       notification.success({
-        message: `${relationTypeIds.length} 个测试执行从测试计划中移除`,
+        message: options?.message ?? `${relationTypeIds.length} 个测试执行从测试计划中移除`,
       });
 
       Object.values(innerTableRefs.current).forEach((res: any) => {
