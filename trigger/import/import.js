@@ -279,23 +279,25 @@ const getToCreateGroupData = async () => {
 
 const handleFieldsData = async testManagerTestData => {
   const TestParseObj = await apis.getParseModel(false, TEST_MANAGER_TEST);
+  const RepoParseObj = await apis.getParseModel(false, TEST_MANAGER_REPO);
   const repoDatas = await getRepoData();
   const testRepoMap = new Map();
 
   appFieldsData.forEach(field => {
     const repoData = repoDatas.find(gro => gro.path === getGroupPath(field.group).join('/'));
 
-    repoData && testRepoMap.set(field.itemId, TestParseObj.createWithoutData(repoData.objectId));
+    repoData && testRepoMap.set(field.itemId, RepoParseObj.createWithoutData(repoData.objectId));
   });
 
   const needToUpdateRepoTest = testManagerTestData
     .map(item => {
-      if (testRepoMap.get(item.objectId)) {
+      const repoMap = testRepoMap.get(item.toJSON().reference?.objectId);
+      if (repoMap) {
         const testParse = new TestParseObj({
-          objectId: item?.objectId,
+          objectId: item?.id,
         });
 
-        testParse.set('repository', testRepoMap.get(item.objectId));
+        testParse.set('repository', repoMap);
         return testParse;
       }
 

@@ -68,6 +68,12 @@
       border-color: #0c62ff !important;
       box-shadow: none !important;
     }
+
+    .ant-table-thead
+      > tr
+      > th:not(:last-child):not(.ant-table-selection-column):not(.ant-table-row-expand-icon-cell):not([colspan])::before {
+      width: 0 !important;
+    }
   }
   // 去掉倒计时
   .osui-message-count-down-close {
