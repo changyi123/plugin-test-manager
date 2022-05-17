@@ -95,7 +95,7 @@ export const useGetTestRepoGroup = (rowData: any) => {
       return repoMap.get(rowData.repository.objectId);
     },
     {
-      cacheKey: `TextRepoGroup${rowData.workspaceKey}${rowData.repository.objectId}`,
+      cacheKey: `TextRepoGroup${rowData.workspaceKey}${rowData.repository?.objectId ?? ''}`,
       cacheTime: 99999999999,
       staleTime: 99999999999,
     },
