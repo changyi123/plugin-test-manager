@@ -15,9 +15,9 @@ import {
   getTestEntitiesByRelationWithOrder,
 } from '@/lib/api/common';
 import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
-import { getRepositoryData } from '@/lib/api/repository';
 
 import cx from './DetailTable.less';
+import RepositoryGroup from '@/components/business/RepositoryGroup';
 
 const DetailTable = () => {
   const actionRef = React.useRef<BusinessTableActionType>();
@@ -70,7 +70,6 @@ const DetailTable = () => {
     async queryParams => {
       setTableLoading(true);
       if (!selectedTestPlanId) return null;
-      const repoData = await getRepositoryData();
 
       const [{ list: testDetails, total }, { list: testRuns }] = await Promise.all([
         getTestEntitiesByRelationWithOrder(
@@ -107,11 +106,6 @@ const DetailTable = () => {
                   queryParams: { limit: 9999 },
                 },
               );
-              // const repoData = await getRepositoryData();
-
-              // console.log('====================================');
-              // console.log(2222, repoData);
-              // console.log('====================================');
 
               return {
                 ...data,
@@ -121,7 +115,6 @@ const DetailTable = () => {
                   relExecutions: data.list.filter(
                     item => item.objectId === run.relation.from.objectId,
                   ),
-                  // repoPath: repoData?.find(d => d.objectId === run.repository?.objectId)?.path,
                 })),
               };
             },
@@ -134,7 +127,6 @@ const DetailTable = () => {
           ...detail,
           selectedTestPlanId,
           relRuns: testRuns.filter(run => run.runReferenceDetail?.objectId === detail.objectId),
-          repoPath: repoData?.find(d => d.objectId === detail.repository?.objectId)?.path,
         };
       });
       setTableLoading(false);
@@ -239,11 +231,11 @@ const DetailTable = () => {
       },
     },
     {
-      key: 'owningRepository',
+      key: 'repositoryGroup',
       title: '所属模块',
-      width: 180,
+      width: 240,
       render(_, rowData) {
-        return <span>{rowData?.repoPath ?? '未分组'}</span>;
+        return <RepositoryGroup rowData={rowData}></RepositoryGroup>;
       },
     },
     {

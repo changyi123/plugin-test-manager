@@ -9,6 +9,7 @@ import {
   getTestEntitiesByRelationWithOrder,
 } from '@/lib/api/common';
 import React from 'react';
+import { getRepoData, handleRroupPath } from '@/components/business/RepositoryGroup/repository';
 
 type GetTestEntityParams = Parameters<typeof getTestEntitiesByRelationWithOrder>;
 /** 获取所有事项实体 id */
@@ -78,12 +79,29 @@ export const useAllTestWorkspace = () => {
   return allTestWorkspaces;
 };
 
-export const useGetRepositoryData = (workspaceKey?: string) => {
-  const { data: repositoryData } = useRequest(async () => {
-    return getRepositoryData(workspaceKey);
-  });
+export const useGetTestRepoGroup = (rowData: any) => {
+  const { data } = useRequest(
+    async () => {
+      const repoMap = new Map();
 
-  return repositoryData;
+      const repoData = await getRepositoryData(rowData?.workspaceKey);
+
+      if (repoData) {
+        handleRroupPath(getRepoData(repoData))?.forEach(d => {
+          repoMap.set(d.objectId, d.path);
+        });
+      }
+
+      return repoMap.get(rowData.repository.objectId);
+    },
+    {
+      cacheKey: `TextRepoGroup${rowData.workspaceKey}${rowData.repository.objectId}`,
+      cacheTime: 99999999999,
+      staleTime: 99999999999,
+    },
+  );
+
+  return data;
 };
 
 /** 获取所有的测试管理配置 */
