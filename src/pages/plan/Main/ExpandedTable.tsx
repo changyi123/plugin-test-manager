@@ -122,6 +122,14 @@ const ExpandedTable = (props: ExpandedTableProps) => {
       },
     },
     {
+      key: 'owningRepository',
+      title: '所属模块',
+      width: 180,
+      render(_, rowData) {
+        return <span>{rowData?.repoPath ?? '未分组'}</span>;
+      },
+    },
+    {
       key: 'runStatus',
       title: '测试执行状态',
       width: 150,
