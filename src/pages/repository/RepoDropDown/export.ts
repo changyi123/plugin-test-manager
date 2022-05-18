@@ -185,7 +185,7 @@ const getTestIdsByFrom = async (id: string) => {
     .filter(Boolean);
 };
 
-const getTestRepoGroupIds = (datas: any[], checkedId: string) => {
+export const getTestRepoGroupIds = (datas: any[], checkedId: string) => {
   const treeData = arrayToTree(
     datas.map(d => ({
       name: d.name,
@@ -265,7 +265,7 @@ const importTestInfo = async (args: ImportArgs, excelData = []) => {
         ? results
         : results.filter(d =>
             checkedId === UNGROUPED_FOLDER_KEY
-              ? !d.repository
+              ? !d.repository?.name
               : groupIds.includes(d.repository?.objectId),
           );
 
