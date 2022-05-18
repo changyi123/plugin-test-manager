@@ -261,6 +261,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
           onClose={handleClose}
           checkboxProps={{
             onChange: e => handleCheck(e.target.checked),
+            disabled: antdTableProps.loading,
             checked:
               Boolean(selectedRows?.length) &&
               dataSource.filter(d => selectedRows.includes(d)).length === dataSource.length,

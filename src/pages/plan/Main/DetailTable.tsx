@@ -68,8 +68,8 @@ const DetailTable = () => {
 
   const tableDataGetter = React.useCallback(
     async queryParams => {
-      setTableLoading(true);
       if (!selectedTestPlanId) return null;
+      setTableLoading(true);
 
       const [{ list: testDetails, total }, { list: testRuns }] = await Promise.all([
         getTestEntitiesByRelationWithOrder(
@@ -77,7 +77,7 @@ const DetailTable = () => {
           { from: selectedTestPlanId },
           {
             // FIXME: 优化查询速度
-            workspaceKey,
+            // workspaceKey,
             fillItemData: true,
             nameLike: searchValue,
             queryParams: queryParams,
@@ -88,7 +88,7 @@ const DetailTable = () => {
           { from: selectedTestPlanId },
           {
             // FIXME: 优化查询速度
-            workspaceKey,
+            // workspaceKey,
             fillItemData: true,
             queryParams: { limit: 9999 },
             include: ['objectId'],
@@ -136,7 +136,7 @@ const DetailTable = () => {
         total,
       };
     },
-    [searchValue, selectedTestPlanId, workspaceKey],
+    [searchValue, selectedTestPlanId],
   );
 
   const removeTestRelation = React.useCallback(

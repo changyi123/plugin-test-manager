@@ -190,7 +190,7 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
             />
           </div>
         </div>
-        <div className={cx('table-container')}>
+        <div className={cx('table-container')} style={{ height: 'calc(100% - 55px)' }}>
           <TestDetailTable
             actionRef={tableActionRef}
             onDataChange={handleDataChange}
