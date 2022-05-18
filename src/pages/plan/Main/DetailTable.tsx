@@ -68,8 +68,8 @@ const DetailTable = () => {
 
   const tableDataGetter = React.useCallback(
     async queryParams => {
-      setTableLoading(true);
       if (!selectedTestPlanId) return null;
+      setTableLoading(true);
 
       const [{ list: testDetails, total }, { list: testRuns }] = await Promise.all([
         getTestEntitiesByRelationWithOrder(
