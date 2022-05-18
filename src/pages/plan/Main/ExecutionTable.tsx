@@ -41,7 +41,7 @@ const ExecutionTable = () => {
 
   const {
     searchValue,
-    workspaceKey,
+    // workspaceKey,
     selectedTestPlan,
     mutateTestPlanEvent,
     registerRefreshMethod,
@@ -82,7 +82,7 @@ const ExecutionTable = () => {
         TestRelationType.PlanRelExecution,
         { from: selectedTestPlanId },
         {
-          workspaceKey,
+          // workspaceKey,
           nameLike: searchValue,
           select: ['reference'],
           include: ['reference'],
@@ -123,7 +123,7 @@ const ExecutionTable = () => {
         },
       );
     },
-    [searchValue, selectedTestPlanId, workspaceKey],
+    [searchValue, selectedTestPlanId],
   );
 
   const removeTestRelation = React.useCallback(
