@@ -7,11 +7,9 @@ import { TestType } from '@/lib/constants';
 import { CustomField, TestConfig, TestRelation } from '@/lib/models';
 import { Item } from '@/lib/types/App';
 import { Step } from '@/lib/types/Test';
-// import { clone } from 'lodash';
-// import { getFolderTree, getRepositoryData } from '@/lib/api/repository';
 import { getRepositoryData } from '@/lib/api/repository';
-// import { traverseTreeNodes } from '../hook';
 import { escapeHtmlString } from '@/lib/utils/helper';
+import { getRepoData, handleRroupPath } from '@/components/business/RepositoryGroup/repository';
 
 export type TreeNode = {
   key: string;
@@ -22,56 +20,12 @@ export type TreeNode = {
   children: TreeNode[];
 };
 
-// type ITreeNode = TreeNode & {
-//   path?: string;
-// };
-
-// const OSnow = () => {
-//   const agent = navigator.userAgent.toLowerCase();
-//   const isMac = /macintosh|mac os x/i.test(navigator.userAgent);
-
-//   if (agent.indexOf('win32') >= 0 || agent.indexOf('wow32') >= 0) {
-//     return 'win32';
-//   }
-//   if (agent.indexOf('win64') >= 0 || agent.indexOf('wow64') >= 0) {
-//     return 'win64';
-//   }
-//   if (isMac) {
-//     return 'mac';
-//   }
-// };
-
-// const treeToArray = (datas: any[]): any[] =>
-//   clone(datas).reduce((prev, cur) => {
-//     prev = prev.concat(cur);
-
-//     if (cur.children?.length) {
-//       prev = prev.concat(treeToArray(cur.children));
-//     }
-//     return prev;
-//   }, []);
-
 interface ImportArgs {
   type: string;
   checkedId: string;
   workspace: Record<string, any>;
   treeData?: TreeNode[];
 }
-
-// const getPath = (curObj: any, pObj?: any): string =>
-//   !pObj ? curObj.name : `${pObj.path}/${curObj.name}`;
-
-// const handleTreeData = (treeDatas: ITreeNode[], parentData?: ITreeNode): ITreeNode[] => {
-//   treeDatas.forEach(tree => {
-//     tree.path = getPath(tree, parentData);
-
-//     if (tree.children?.length) {
-//       tree.children = handleTreeData(tree.children, tree);
-//     }
-//   });
-
-//   return treeDatas;
-// };
 
 const getTestPriorityInfo = async (filedKey: string) => {
   const query = new Parse.Query(CustomField).equalTo('key', filedKey);
@@ -95,38 +49,13 @@ const getItemStatus = async () => {
     }, new Map());
 };
 
-// const getGroupPath = (repoData: any[], objectId: string) => {
-//   const groupName = repoData.find(repo => repo.testDetailIds.includes(objectId))?.path;
-
-//   return {
-//     所属分组: groupName === '未分组用例' ? '' : groupName,
-//   };
-// };
-
-const getTestGroupPath = (repoData: any[], objectId?: string) => {
-  const repoObj = repoData.find(d => d.objectId === objectId);
-
-  return {
-    所属分组: repoObj?.path ?? '',
-  };
-};
+const getTestGroupPath = (path?: string) => ({
+  所属分组: path ?? '',
+});
 
 const getStatus = (statusMap: any, status?: string) => ({
   最新执行状态: statusMap.get(status || 'TODO') ?? '未开始',
 });
-
-/** 获取导出 excel 表数据 */
-// const getExcelData = async (datas: any[], repoData: any[]) => {
-//   const priorityInfo = await getTestPriorityInfo('priority');
-//   const itemStatus = await getItemStatus();
-
-//   return datas.map(test => ({
-//     ...getGroupPath(repoData, test.objectId),
-//     ...getItemInfo(test.reference, priorityInfo),
-//     ...getTestInfo(test),
-//     ...getStatus(itemStatus, test.status),
-//   }));
-// };
 
 const getTestPlan = planData => {
   return {
@@ -134,18 +63,35 @@ const getTestPlan = planData => {
   };
 };
 
-const getExcelData = async (datas: any[], repoData: any[], query?: any) => {
+/** 获取导出 excel 表数据 */
+const getExcelData = async (data: any) => {
+  const { results, repoData, workspaceKey, planId } = data;
   const priorityInfo = await getTestPriorityInfo('priority');
   const itemStatus = await getItemStatus();
+  const repoDataMap = new Map();
+
+  const _repoData =
+    repoData ??
+    (await getRepositoryData(
+      results.reduce((prev, cur) => {
+        !prev.includes(cur.workspaceKey) && (prev = prev.concat(cur.workspaceKey));
+
+        return prev;
+      }, []),
+    ));
+
+  handleRroupPath(getRepoData(_repoData)).forEach(d => {
+    repoDataMap.set(d.objectId, d.path);
+  });
 
   let testPlanObj = {};
 
-  if (query) {
+  if (planId) {
     const { results: testPlan } = await getTestEntitiesByQuery(
       {
         type: TestType.TestPlan,
-        workspaceKey: query.workspaceKey,
-        in: [query.planId],
+        workspaceKey: workspaceKey,
+        in: [planId],
       },
       {
         limit: 9999,
@@ -155,9 +101,9 @@ const getExcelData = async (datas: any[], repoData: any[], query?: any) => {
     testPlanObj = getTestPlan(testPlan[0]);
   }
 
-  return datas.map(test => ({
+  return results.map(test => ({
     ...testPlanObj,
-    ...getTestGroupPath(repoData, test.repository?.objectId),
+    ...getTestGroupPath(repoDataMap.get(test.repository?.objectId)),
     ...getItemInfo(test.reference, priorityInfo),
     ...getTestInfo(test),
     ...getStatus(itemStatus, test.status),
@@ -225,68 +171,6 @@ const getItemInfo = (datas: Item, priInfo: any) => ({
   优先级: getPriority(datas?.values, priInfo),
 });
 
-// const getIds = (childrens: ITreeNode[], data: string[]) =>
-//   childrens.reduce((prev, cur) => {
-//     let _prev = prev.concat(cur.testDetailIds);
-//     if (cur.children) {
-//       _prev = getIds(cur.children, _prev);
-//     }
-
-//     return _prev;
-//   }, data);
-
-// const getCurTestDetailIds = (testRepoData, folderKey) => {
-//   const curTestRepo = testRepoData.find(groups => groups.key === folderKey);
-
-//   return getIds(curTestRepo?.children ?? [], curTestRepo?.testDetailIds ?? []);
-// };
-
-// const getTreeData = async (workspaceKey: string) => {
-//   // 获取当前空间内所有的测试实体
-//   const getAllTestDetailEntityIds = async spaceKey => {
-//     const { results: data } = await getTestEntitiesByQuery(
-//       {
-//         type: TestType.TestDetail,
-//         workspaceKey: spaceKey,
-//       },
-//       {
-//         limit: 99999,
-//         include: [],
-//         select: ['objectId'],
-//       },
-//     );
-
-//     return data.map(item => item.objectId);
-//   };
-//   const [treeNodes, allTestDetailIds] = await Promise.all([
-//     getFolderTree(workspaceKey),
-//     getAllTestDetailEntityIds(workspaceKey),
-//   ]);
-
-//   const allTestDetailIdSet = new Set<string>(allTestDetailIds);
-//   traverseTreeNodes(treeNodes, node => {
-//     // 测试实体在测试模块内只能被关联一次
-//     node.testDetailIds = node.testDetailIds.filter(id => {
-//       if (allTestDetailIdSet.has(id)) {
-//         allTestDetailIdSet.delete(id);
-//         return true;
-//       }
-//       return false;
-//     });
-//   });
-
-//   const RootFolder = {
-//     key: UNGROUPED_FOLDER_KEY,
-//     name: '未分组用例',
-//     title: '未分组用例',
-//     parentId: null,
-//     testDetailIds: Array.from(allTestDetailIdSet),
-//     children: [],
-//   };
-
-//   return [RootFolder].concat(treeNodes);
-// };
-
 const getTestIdsByFrom = async (id: string) => {
   const query = new Parse.Query(TestRelation).equalTo('from', id).limit(9999);
   const data = await query.find();
@@ -302,8 +186,6 @@ const getTestIdsByFrom = async (id: string) => {
 /** 导出用例 */
 const importTestInfo = async (args: ImportArgs, excelData = []) => {
   const { type, checkedId, workspace } = args;
-  // 获取用例库数据，数据包含 path 用例库路径,允许跨空间
-  const repoData = await getRepositoryData(type === 'exportPlan' ? undefined : workspace.key);
 
   if (type === 'exportPlan') {
     // 获取当前测试计划下的测试用例
@@ -320,14 +202,13 @@ const importTestInfo = async (args: ImportArgs, excelData = []) => {
       },
     );
 
-    excelData = await getExcelData(results, repoData, {
+    excelData = await getExcelData({
+      results,
       workspaceKey: workspace.key,
       planId: checkedId,
     });
   } else {
-    // const _treeData = treeData ?? (await getTreeData(workspace.key));
-
-    // const testRepoData = treeToArray(handleTreeData(clone(_treeData)));
+    const repoData = await getRepositoryData([workspace.key]);
 
     // 用例库导出不允许跨空间
     const { results } = await getTestEntitiesByQuery(
@@ -347,7 +228,7 @@ const importTestInfo = async (args: ImportArgs, excelData = []) => {
       },
     );
 
-    excelData = await getExcelData(results, repoData);
+    excelData = await getExcelData({ results, repoData });
   }
 
   exportExcelFile(excelData, 'sheet1', `测试管理导出-${workspace.name}.xlsx`);

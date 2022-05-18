@@ -12,53 +12,13 @@ export interface ICommonRes<T = any> {
   data?: T;
 }
 
-export const getRepositoryData = async (workspaceKey?: string) => {
-  const query = new Parse.Query(Repository);
+export const getRepositoryData = async (workspaceKeys: string[]) => {
+  const repositoryData = await new Parse.Query(Repository)
+    .containedIn('workspaceKey', workspaceKeys)
+    .limit(9999)
+    .find();
 
-  if (workspaceKey) {
-    query.equalTo('workspaceKey', workspaceKey);
-  }
-
-  const repositoryData = await query.limit(9999).find();
-
-  const handleRroupPath = datas => {
-    const getPath = (gro, _datas, path = []) => {
-      path.push(gro.name);
-
-      if (gro.parentId) {
-        path = getPath(
-          _datas.find(d => d.objectId === gro.parentId),
-          _datas,
-          path,
-        );
-      }
-
-      return path;
-    };
-
-    return datas.map(d => ({
-      ...d,
-      path: getPath(d, datas).reverse().join('/'),
-    }));
-  };
-
-  const newRepoData = repositoryData
-    .map(d => {
-      const _data = d?.toJSON();
-
-      return _data
-        ? {
-            name: _data.name,
-            objectId: _data.objectId,
-            testDetailIds: _data?.testDetailIds ?? [],
-            parentId: _data.parent?.objectId ?? null,
-            workspaceKey: _data.workspaceKey,
-          }
-        : null;
-    })
-    .filter(d => d !== null);
-
-  return handleRroupPath(newRepoData);
+  return repositoryData.map(d => d.toJSON());
 };
 
 export const getFolderTree = async (workspaceKey: string) => {

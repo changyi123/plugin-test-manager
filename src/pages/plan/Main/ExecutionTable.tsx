@@ -22,7 +22,6 @@ import TestEntitySelectorModal, {
 } from '@/components/business/TestEntitySelectorModal';
 
 import ExpandedTable from './ExpandedTable';
-import { getRepositoryData } from '@/lib/api/repository';
 
 const ExecutionTable = () => {
   const innerTableRefs = React.useRef<Record<string, BusinessTableActionRef>>({});
@@ -103,8 +102,6 @@ const ExecutionTable = () => {
               },
             );
 
-            const repoData = await getRepositoryData();
-
             return {
               total,
               list: list.map(execution => ({
@@ -119,13 +116,7 @@ const ExecutionTable = () => {
                     (a, b) =>
                       a.sortIndex - b.sortIndex ||
                       Number(new Date(a.createdAt)) - Number(new Date(b.createdAt)),
-                  )
-                  .map(d => ({
-                    ...d,
-                    repoPath: repoData?.find(
-                      repo => repo.objectId === d.runReferenceDetail.repository?.objectId,
-                    )?.path,
-                  })),
+                  ),
               })),
             };
           },

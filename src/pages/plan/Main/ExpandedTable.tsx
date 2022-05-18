@@ -12,6 +12,7 @@ import { deleteTestEntities } from '@/lib/api/common';
 import { updateTestRunStatus } from '@/lib/api/runs';
 import { notification } from 'antd';
 import { DeleteOutlined } from '@/icons';
+import RepositoryGroup from '@/components/business/RepositoryGroup';
 
 interface ExpandedTableProps {
   refreshAndMutateData: () => void;
@@ -135,11 +136,11 @@ const ExpandedTable = (props: ExpandedTableProps) => {
       },
     },
     {
-      key: 'owningRepository',
+      key: 'repositoryGroup',
       title: '所属模块',
-      width: 180,
+      width: 240,
       render(_, rowData) {
-        return <span>{rowData?.repoPath ?? '未分组'}</span>;
+        return <RepositoryGroup rowData={rowData.runReferenceDetail}></RepositoryGroup>;
       },
     },
     {

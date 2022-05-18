@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { Button, Dropdown, Menu, message } from 'antd';
+import { Button, Dropdown, Menu, message, notification, Spin } from 'antd';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import importTestInfo, { TreeNode, downloadExampleFile } from './export';
 import { getProximaBasePath } from '@/lib/utils/helper';
@@ -29,6 +29,11 @@ const RepoDropDown = ({
       } else if (key === 'example') {
         downloadExampleFile();
       } else {
+        notification.open({
+          message: '测试管理用例导出中',
+          icon: <Spin spinning={true} />,
+          duration: null,
+        });
         setPageLoading?.(true);
         if (type === 'repository' && key === 'exportGroup' && !folderKey) {
           message.warning('未选择用例库，请先选择需要导出的用例库');
@@ -52,6 +57,10 @@ const RepoDropDown = ({
           ),
         );
         setPageLoading?.(false);
+        notification.destroy();
+        notification.success({
+          message: '测试管理用例导出完成',
+        });
       }
     },
     [setPageLoading, workspace, type, folderKey, selectedTestPlanId, treeNodeData],
