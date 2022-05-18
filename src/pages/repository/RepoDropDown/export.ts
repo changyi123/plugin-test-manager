@@ -10,6 +10,8 @@ import { Step } from '@/lib/types/Test';
 import { getRepositoryData } from '@/lib/api/repository';
 import { escapeHtmlString } from '@/lib/utils/helper';
 import { getRepoData, handleRroupPath } from '@/components/business/RepositoryGroup/repository';
+import { UNGROUPED_FOLDER_KEY } from '../constant';
+import { arrayToTree } from '@/lib/utils/arrayToTree';
 
 export type TreeNode = {
   key: string;
@@ -183,6 +185,41 @@ const getTestIdsByFrom = async (id: string) => {
     .filter(Boolean);
 };
 
+const getTestRepoGroupIds = (datas: any[], checkedId: string) => {
+  const treeData = arrayToTree(
+    datas.map(d => ({
+      name: d.name,
+      key: d.objectId,
+      parentId: d.parent?.objectId ?? null,
+      workspaceKey: d.workspaceKey,
+    })),
+  );
+
+  const treeToArray = data =>
+    data.reduce((prev, cur) => {
+      prev = prev.concat([cur]);
+
+      if (cur.children?.length) {
+        prev = prev.concat(treeToArray(cur.children));
+      }
+
+      return prev;
+    }, []);
+
+  const getGroupIds = data =>
+    data.reduce((prev, cur) => {
+      prev = prev.concat([cur.key]);
+
+      if (cur.children?.length) {
+        prev = prev.concat(getGroupIds(cur.children));
+      }
+
+      return prev;
+    }, []);
+
+  return getGroupIds(treeToArray(treeData).filter(d => d.key === checkedId));
+};
+
 /** 导出用例 */
 const importTestInfo = async (args: ImportArgs, excelData = []) => {
   const { type, checkedId, workspace } = args;
@@ -212,23 +249,27 @@ const importTestInfo = async (args: ImportArgs, excelData = []) => {
 
     // 用例库导出不允许跨空间
     const { results } = await getTestEntitiesByQuery(
-      Object.assign(
-        {
-          type: TestType.TestDetail,
-          workspaceKey: workspace.key,
-        },
-        type === 'exportGroup'
-          ? {
-              repository: checkedId,
-            }
-          : {},
-      ),
+      {
+        type: TestType.TestDetail,
+        workspaceKey: workspace.key,
+      },
       {
         limit: 9999,
       },
     );
 
-    excelData = await getExcelData({ results, repoData });
+    const groupIds = getTestRepoGroupIds(repoData, checkedId);
+
+    const _results =
+      type === 'exportAll'
+        ? results
+        : results.filter(d =>
+            checkedId === UNGROUPED_FOLDER_KEY
+              ? !d.repository
+              : groupIds.includes(d.repository?.objectId),
+          );
+
+    excelData = await getExcelData({ results: _results, repoData });
   }
 
   exportExcelFile(excelData, 'sheet1', `测试管理导出-${workspace.name}.xlsx`);
