@@ -72,6 +72,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
   const dataSourceGetter = React.useCallback(
     async paginationParams => {
       if (!workspaceKey) return null;
+      setTableLoading(true);
       const data = await getTestEntitiesByQuery(
         {
           workspaceKey,
@@ -81,6 +82,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         },
         paginationParams,
       );
+      setTableLoading(false);
 
       return {
         // 加拖拽依赖的 folderKey 数据
@@ -92,8 +94,10 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
   );
 
   const refreshAndMutateData = React.useCallback(async () => {
+    setTableLoading(true);
     await onDataChange?.();
     setTimeout(() => tableActionRef.current?.refresh());
+    setTableLoading(false);
   }, [onDataChange]);
 
   const selectionActionNodes = React.useMemo(() => {
