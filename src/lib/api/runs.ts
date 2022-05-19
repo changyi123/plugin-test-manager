@@ -353,6 +353,7 @@ export const updateTestRun = async (
     steps?: Record<string, any>[];
     runDetail?: Partial<TestRunEntity['runDetail']>;
     comments?: Record<string, any>[];
+    executor?: any;
   },
   opts?: { initialization?: boolean },
 ) => {
@@ -411,6 +412,14 @@ export const updateTestRun = async (
         needUpdateAttrs.runDetail,
         params.runDetail,
       ),
+    });
+  }
+
+  if (params.executor) {
+    Object.assign(needUpdateAttrs, {
+      runDetail: Object.assign({}, testEntityData.runDetail, needUpdateAttrs.runDetail, {
+        executor: params.executor,
+      }),
     });
   }
 
