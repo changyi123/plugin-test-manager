@@ -82,6 +82,8 @@ export const useAllTestWorkspace = () => {
 export const useGetTestRepoGroup = (rowData: any) => {
   const { data } = useRequest(
     async () => {
+      if (!rowData?.workspaceKey) return null;
+
       const repoMap = new Map();
 
       const repoData = await getRepositoryData([rowData?.workspaceKey]);
@@ -102,6 +104,25 @@ export const useGetTestRepoGroup = (rowData: any) => {
   );
 
   return data;
+};
+
+export const useGetUserNameByName = (name: string) => {
+  const { data } = useRequest(
+    async () => {
+      if (!name) return null;
+
+      const [userInfo] = await new Parse.Query(Parse.User).containedIn('username', [name]).find();
+
+      return userInfo.toJSON().nickname;
+    },
+    {
+      cacheKey: `executor${name ?? ''}`,
+      cacheTime: 99999999999,
+      staleTime: 99999999999,
+    },
+  );
+
+  return data ?? '';
 };
 
 /** 获取所有的测试管理配置 */
