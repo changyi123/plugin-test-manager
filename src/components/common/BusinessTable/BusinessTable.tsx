@@ -1,10 +1,11 @@
 import React, { useMemo, useRef } from 'react';
 import { pick, isEqual } from 'lodash';
 import { getDevConfig } from '@/devEnv';
+import { TitleCellOption } from './type';
+import { Pagination, Table } from 'antd';
 import { Resizable } from 'react-resizable';
 import { TableProps } from 'antd/lib/table';
 import ColumnSetting from './ColumnSetting';
-import { Pagination, Table } from 'antd';
 import TableSelection from './TableSelection';
 import { useSDK } from '@projectproxima/plugin-sdk';
 import { useTestConfig } from '@/lib/hooks/useContext';
@@ -64,24 +65,25 @@ export type ActionType = {
   resetSelectedRows: () => void;
 };
 
-type BusinessTableProps = TableProps<any> & {
-  name?: string;
-  // 事项获取 key
-  itemKey?: string;
-  showPagination?: boolean;
-  useColumnSetting?: boolean;
-  onSelectionCancel?: () => void;
-  isCheck?: boolean;
-  setIsCheck?: (check: boolean) => void;
-  expandChangePage?: (num: number, size?: number) => void;
-  selectionActionNodes?: React.ReactNode[];
-  actionRef?: React.ForwardedRef<ActionType>;
-  PaginationFooterRender?: any;
-  getDataSource?: (queryParams: { offset: number; limit: number }) => Promise<{
-    list: any[];
-    total: number;
-  } | null>;
-};
+type BusinessTableProps = TableProps<any> &
+  TitleCellOption & {
+    name?: string;
+    // 事项获取 key
+    itemKey?: string;
+    showPagination?: boolean;
+    useColumnSetting?: boolean;
+    onSelectionCancel?: () => void;
+    isCheck?: boolean;
+    setIsCheck?: (check: boolean) => void;
+    expandChangePage?: (num: number, size?: number) => void;
+    selectionActionNodes?: React.ReactNode[];
+    actionRef?: React.ForwardedRef<ActionType>;
+    PaginationFooterRender?: any;
+    getDataSource?: (queryParams: { offset: number; limit: number }) => Promise<{
+      list: any[];
+      total: number;
+    } | null>;
+  };
 
 const BusinessTable: React.FC<BusinessTableProps> = props => {
   const {
@@ -89,6 +91,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     actionRef,
     expandable,
     getDataSource,
+    titleCellOption,
     onSelectionCancel,
     selectionActionNodes,
     isCheck,
@@ -151,12 +154,21 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
       <ColumnSetting
         itemKey={itemKey}
         name={props.name}
+        titleCellOption={titleCellOption}
         additionalColumns={columns}
         className={`${cx('column-setting')} extra-column-setting`}
         onTableColumnChange={handleTableColumnChange}
       />
     );
-  }, [columns, handleTableColumnChange, props.name, selectionMode, itemKey, useColumnSetting]);
+  }, [
+    selectionMode,
+    useColumnSetting,
+    itemKey,
+    props.name,
+    titleCellOption,
+    columns,
+    handleTableColumnChange,
+  ]);
 
   const { tableProps: antdTableProps, refresh } = useAntdTable(
     queryParams => {

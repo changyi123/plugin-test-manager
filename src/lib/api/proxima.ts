@@ -98,8 +98,11 @@ export const getItemByIQL = async (
 /**
  * 获取全部自定义字段
  */
-export const getCustomFields = async () => {
-  const query = new Parse.Query(CustomField).include('fieldType').limit(9999);
+export const getCustomFields = async (keys = [] as string[]) => {
+  const query = new Parse.Query(CustomField)
+    .containedIn('key', keys)
+    .include('fieldType')
+    .limit(9999);
 
   const fields = await query.find();
   return fields
