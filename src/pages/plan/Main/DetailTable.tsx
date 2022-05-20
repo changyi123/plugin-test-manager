@@ -269,6 +269,10 @@ const DetailTable = () => {
 
   return (
     <BusinessTable
+      titleCellOption={{
+        workspaceKey,
+        testType: 'TestDetail',
+      }}
       useColumnSetting
       rowKey="objectId"
       columns={columns}

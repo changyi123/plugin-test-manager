@@ -1,21 +1,24 @@
 import React from 'react';
-import { noop, get, keyBy } from 'lodash';
+import { get, keyBy, noop } from 'lodash';
+import { TitleCellOption } from './type';
 import { ColumnType } from 'antd/lib/table';
 import { Drawer, Select, Tooltip } from 'antd';
 import { getCustomFields } from '@/lib/api/proxima';
+import { useTestTypeScreenFieldKeys } from './hook';
 import { TableCell } from '@projectproxima/components';
 import { generateStorageKey } from '@/lib/utils/helper';
+import { useNoExpiredRequest } from '@/lib/hooks/useRequest';
+import { useDeepCompareEffect, useLocalStorageState } from 'ahooks';
 import { useFieldsWithFieldCellProps } from '@/lib/hooks/useProxima';
-import { SettingOutlined, DeleteOutlined, DragHandler } from '@/icons';
+import { DeleteOutlined, DragHandler, SettingOutlined } from '@/icons';
 import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd';
-import { useRequest, useLocalStorageState, useDeepCompareEffect } from 'ahooks';
 
-import cx from './ColumnSetting.less';
 import '@projectproxima/components/dist/main.css';
+import cx from './ColumnSetting.less';
 
 type ColumnDuckTyping = ColumnType<any> & Record<string, any>;
 
-type ColumnSettingProps = {
+type ColumnSettingProps = TitleCellOption & {
   name?: string;
   itemKey: string;
   className?: string;
@@ -24,11 +27,19 @@ type ColumnSettingProps = {
 };
 
 const ColumnSetting: React.FC<ColumnSettingProps> = props => {
-  const { className, additionalColumns = [], name, onTableColumnChange = noop, itemKey } = props;
+  const {
+    className,
+    additionalColumns = [],
+    name,
+    onTableColumnChange = noop,
+    itemKey,
+    titleCellOption,
+  } = props;
   const [visible, setVisible] = React.useState(false);
-  const { data: customFields } = useRequest(getCustomFields, {
-    cacheKey: 'CustomFields',
-    staleTime: 9999999999,
+  const keys = useTestTypeScreenFieldKeys(titleCellOption);
+  const { data: customFields } = useNoExpiredRequest(() => getCustomFields(keys), {
+    cacheKey: `CustomFields_${keys.toString()}`,
+    refreshDeps: [keys],
   });
 
   const fieldCellsProp = useFieldsWithFieldCellProps(customFields);
@@ -59,6 +70,7 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
   const additionalNotSystemColumnKeys = additionalColumns
     .filter(col => !col.isSystem)
     .map(col => col.key);
+
   const [storageColumnKeys, setStorageColumnKeys] = useLocalStorageState(LOCAL_STORAGE_KEY, {
     defaultValue: additionalNotSystemColumnKeys,
   });

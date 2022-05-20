@@ -12,6 +12,10 @@ export const ItemLinkType = Parse.Object.extend('ItemLinkType');
 export const ItemTypeScheme = Parse.Object.extend('ItemTypeScheme');
 export const AppInstallation = Parse.Object.extend('AppInstallation');
 export const WorkspaceScheme = Parse.Object.extend('WorkspaceScheme');
+export const ItemTypeScreenScheme = Parse.Object.extend('ItemTypeScreenScheme');
+export const ItemTypeScreenSchemeMapping = Parse.Object.extend('ItemTypeScreenSchemeMapping');
+export const Screen = Parse.Object.extend('Screen');
+
 
 export const Test = Parse.Object.extend(`${appKey}_Test`);
 export const Repository = Parse.Object.extend(`${appKey}_Repository`);
