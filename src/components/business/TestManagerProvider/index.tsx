@@ -259,6 +259,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
               type,
               workspaceId: workspace?.objectId,
               messageKey: messageKey,
+              hideMessage: true,
             },
             extraData,
           ),
