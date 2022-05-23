@@ -27,11 +27,11 @@ type BaseTestEntity = {
     precondition: string;
     defectItemIds?: string[];
     attachments?: Attachment[]; // 附件
-    executor?: string; // 执行人
   };
   /** 测试用例评论数据 */
   comments: comment[];
 
+  executor: any; // 执行人
   createdBy: any;
   updatedBy: any;
 };

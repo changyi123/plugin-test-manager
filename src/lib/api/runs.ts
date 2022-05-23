@@ -416,11 +416,7 @@ export const updateTestRun = async (
   }
 
   if (params.executor) {
-    Object.assign(needUpdateAttrs, {
-      runDetail: Object.assign({}, testEntityData.runDetail, needUpdateAttrs.runDetail, {
-        executor: params.executor,
-      }),
-    });
+    Object.assign(needUpdateAttrs, { executor: params.executor });
   }
 
   if (params.comments) {
