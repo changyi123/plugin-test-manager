@@ -31,7 +31,7 @@ type BaseTestEntity = {
   /** 测试用例评论数据 */
   comments: comment[];
 
-  executor: any; // 执行人
+  executor: any[]; // 执行人信息
   createdBy: any;
   updatedBy: any;
 };

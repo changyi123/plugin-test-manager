@@ -401,7 +401,7 @@ export const updateTestRun = async (
   }
 
   if (params.status) {
-    Object.assign(needUpdateAttrs, { status: params.status });
+    Object.assign(needUpdateAttrs, { status: params.status, executor: params.executor });
   }
 
   if (params.runDetail) {
@@ -413,10 +413,6 @@ export const updateTestRun = async (
         params.runDetail,
       ),
     });
-  }
-
-  if (params.executor) {
-    Object.assign(needUpdateAttrs, { executor: params.executor });
   }
 
   if (params.comments) {

@@ -162,6 +162,14 @@ const ExpandedTable = (props: ExpandedTableProps) => {
       },
     },
     {
+      key: 'executor',
+      title: '上次执行人',
+      width: 150,
+      render(_, record) {
+        return <Executor executor={record?.executor} />;
+      },
+    },
+    {
       key: 'action',
       title: '操作',
       isSystem: true,
@@ -191,14 +199,6 @@ const ExpandedTable = (props: ExpandedTableProps) => {
             </a>
           </>
         );
-      },
-    },
-    {
-      key: 'executor',
-      title: '执行人',
-      width: 150,
-      render(_, record) {
-        return <Executor executor={record.runDetail?.executor} />;
       },
     },
   ];

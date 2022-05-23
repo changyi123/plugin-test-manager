@@ -122,7 +122,7 @@ export const useGetUserNameByName = (name: string) => {
     },
   );
 
-  return data ?? '';
+  return data;
 };
 
 /** 获取所有的测试管理配置 */

@@ -106,9 +106,11 @@ const TestRun: React.FC<TestRunType> = props => {
 
   const handleStatusChange = React.useCallback(
     async status => {
+      const oldExecutor: any = testRunEntity.toJSON()?.executor;
+
       await updateTestRun(testRunEntity, {
         status: status.key,
-        executor: userInfo?.toJSON()?.username,
+        executor: [userInfo, ...oldExecutor],
       });
       // 通过类型状态可自动执行到下一条
       if (status.type === PASS_STATUS_TYPE && autoNext && canExecNext) {

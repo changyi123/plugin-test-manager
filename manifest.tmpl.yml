@@ -184,6 +184,8 @@ tables:
         type: Object
       sortIndex:
         type: Number
+      executor: 
+        type: Array
       createdBy:
         type: Pointer
         targetClass: _User
