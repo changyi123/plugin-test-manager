@@ -353,7 +353,6 @@ export const updateTestRun = async (
     steps?: Record<string, any>[];
     runDetail?: Partial<TestRunEntity['runDetail']>;
     comments?: Record<string, any>[];
-    executor?: any;
   },
   opts?: { initialization?: boolean },
 ) => {
@@ -400,8 +399,23 @@ export const updateTestRun = async (
     }
   }
 
+  const userInfo = await Parse.User.current();
+
+  const getUerInfo = () => {
+    const uesr = userInfo.toJSON();
+    return {
+      objectId: uesr.objectId,
+      username: uesr.username,
+      nickname: uesr.nickname,
+      enabled: uesr.enabled,
+    };
+  };
+
   if (params.status) {
-    Object.assign(needUpdateAttrs, { status: params.status, executor: params.executor });
+    Object.assign(needUpdateAttrs, {
+      status: params.status,
+      executor: [getUerInfo(), ...(needUpdateAttrs.executor ?? [])],
+    });
   }
 
   if (params.runDetail) {

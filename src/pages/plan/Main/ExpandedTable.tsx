@@ -13,8 +13,6 @@ import { updateTestRunStatus } from '@/lib/api/runs';
 import { notification } from 'antd';
 import { DeleteOutlined } from '@/icons';
 import RepositoryGroup from '@/components/business/RepositoryGroup';
-import Executor from './Executor';
-import { useCurrentUser } from '@/lib/api/user';
 
 interface ExpandedTableProps {
   refreshAndMutateData: () => void;
@@ -30,7 +28,6 @@ interface ExpandedTableProps {
 const ExpandedTable = (props: ExpandedTableProps) => {
   const [pageNum, setPageNum] = React.useState(1);
   const testRunModalActionRef = React.useRef<TestRunModalActionType>();
-  const { data: userInfo } = useCurrentUser();
 
   const {
     innerTableRefs,
@@ -46,8 +43,7 @@ const ExpandedTable = (props: ExpandedTableProps) => {
   // 测试执行序列
   const testIdSequence = record.relRuns?.map(item => item?.objectId).filter(Boolean);
   const handleTestRunStatusChange = async (testRunId, status) => {
-    // TODO 添加执行人
-    await updateTestRun(testRunId, { status: status.key, executor: userInfo?.toJSON()?.username });
+    await updateTestRun(testRunId, { status: status.key });
     refreshAndMutateData();
   };
 
@@ -166,7 +162,7 @@ const ExpandedTable = (props: ExpandedTableProps) => {
       title: '上次执行人',
       width: 150,
       render(_, record) {
-        return <Executor executor={record?.executor} />;
+        return <span>{record?.executor?.[0]?.nickname ?? '--'}</span>;
       },
     },
     {

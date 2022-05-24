@@ -19,7 +19,6 @@ import AttachmentUpload from './AttachmentUpload';
 // import TestComment from './TestComment';
 
 import cx from './TestRun.less';
-import { useCurrentUser } from '@/lib/api/user';
 
 // 测试执行详情 tabs
 const TestRunDetailTabs = [
@@ -68,7 +67,6 @@ const TestRun: React.FC<TestRunType> = props => {
   const [tabPaneLoading, setTabPaneLoading] = React.useState(false);
   const [testId, setTestId] = React.useState(props.id);
   const modelScrollRef = React.useRef();
-  const { data: userInfo } = useCurrentUser();
 
   const {
     data: testRunEntity,
@@ -106,11 +104,8 @@ const TestRun: React.FC<TestRunType> = props => {
 
   const handleStatusChange = React.useCallback(
     async status => {
-      const oldExecutor: any = testRunEntity.toJSON()?.executor;
-
       await updateTestRun(testRunEntity, {
         status: status.key,
-        executor: [userInfo, ...oldExecutor],
       });
       // 通过类型状态可自动执行到下一条
       if (status.type === PASS_STATUS_TYPE && autoNext && canExecNext) {
@@ -119,7 +114,7 @@ const TestRun: React.FC<TestRunType> = props => {
       }
       refreshTestRun();
     },
-    [autoNext, canExecNext, nextTestRun, refreshTestRun, testRunEntity, userInfo],
+    [autoNext, canExecNext, nextTestRun, refreshTestRun, testRunEntity],
   );
 
   // 测试执行数据
