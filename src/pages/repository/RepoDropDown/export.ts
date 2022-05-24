@@ -272,7 +272,13 @@ const importTestInfo = async (args: ImportArgs, excelData = []) => {
     excelData = await getExcelData({ results: _results, repoData });
   }
 
-  exportExcelFile(excelData, 'sheet1', `测试管理导出-${workspace.name}.xlsx`);
+  exportExcelFile(
+    excelData,
+    'sheet1',
+    `${type === 'exportPlan' ? '测试计划关联用例导出' : '测试管理用例库导出'}-${
+      workspace.name
+    }.xlsx`,
+  );
 };
 
 /** 下载 excel 用例导出文件 */
