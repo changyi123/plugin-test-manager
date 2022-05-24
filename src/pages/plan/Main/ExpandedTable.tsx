@@ -5,8 +5,8 @@ import TestRunModal, {
   ActionType as TestRunModalActionType,
 } from '@/components/business/TestRunModal';
 import { BusinessTable } from '@/components/common/BusinessTable';
+import dayjs from 'dayjs';
 
-import cx from './ExecutionTable.less';
 import { actionConfirm } from '@/lib/utils/helper';
 import { deleteTestEntities } from '@/lib/api/common';
 import { updateTestRunStatus } from '@/lib/api/runs';
@@ -14,6 +14,8 @@ import { notification } from 'antd';
 import { DeleteOutlined } from '@/icons';
 import RepositoryGroup from '@/components/business/RepositoryGroup';
 import { TitleCellOption } from '@/components/common/BusinessTable/type';
+
+import cx from './ExecutionTable.less';
 
 type ExpandedTableProps = TitleCellOption & {
   refreshAndMutateData: () => void;
@@ -165,6 +167,30 @@ const ExpandedTable = (props: ExpandedTableProps) => {
       width: 150,
       render(_, record) {
         return <span>{record?.executor?.[0]?.nickname ?? '--'}</span>;
+      },
+    },
+    {
+      width: 120,
+      key: 'itemId',
+      title: '用例 ID',
+      render(_, rowData) {
+        return <span>{rowData?.runReferenceDetail?.reference?.key ?? ''}</span>;
+      },
+    },
+    {
+      width: 120,
+      key: 'creater',
+      title: '创建人',
+      render(_, rowData) {
+        return <span>{rowData?.runReferenceDetail?.reference?.createdBy.nickname ?? ''}</span>;
+      },
+    },
+    {
+      width: 220,
+      key: 'createTime',
+      title: '创建时间',
+      render(_, rowData) {
+        return <span>{dayjs(rowData?.createdAt ?? '').format('YYYY-MM-DD HH:mm')}</span>;
       },
     },
     {

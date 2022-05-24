@@ -15,6 +15,7 @@ import {
   getTestEntitiesByRelationWithOrder,
 } from '@/lib/api/common';
 import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
+import dayjs from 'dayjs';
 
 import cx from './DetailTable.less';
 import RepositoryGroup from '@/components/business/RepositoryGroup';
@@ -241,9 +242,33 @@ const DetailTable = () => {
     {
       key: 'times',
       title: <span>执行任务次数</span>,
-      width: 200,
+      width: 100,
       render(_, rowData) {
         return rowData.relRuns.length;
+      },
+    },
+    {
+      width: 120,
+      key: 'itemId',
+      title: '用例 ID',
+      render(_, rowData) {
+        return <span>{rowData?.reference?.key ?? ''}</span>;
+      },
+    },
+    {
+      width: 120,
+      key: 'creater',
+      title: '创建人',
+      render(_, rowData) {
+        return <span>{rowData?.reference?.createdBy.nickname ?? ''}</span>;
+      },
+    },
+    {
+      width: 220,
+      key: 'createTime',
+      title: '创建时间',
+      render(_, rowData) {
+        return <span>{dayjs(rowData?.createdAt ?? '').format('YYYY-MM-DD HH:mm')}</span>;
       },
     },
     {
