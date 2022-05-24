@@ -41,7 +41,7 @@ const ExecutionTable = () => {
 
   const {
     searchValue,
-    // workspaceKey,
+    workspaceKey,
     selectedTestPlan,
     mutateTestPlanEvent,
     registerRefreshMethod,
@@ -232,6 +232,10 @@ const ExecutionTable = () => {
   const expandedRowRender = React.useCallback(
     record => (
       <ExpandedTable
+        titleCellOption={{
+          workspaceKey,
+          testType: 'TestDetail',
+        }}
         innerTableRefs={innerTableRefs}
         removeTestRelation={removeTestRelation}
         refreshAndMutateData={refreshAndMutateData}
@@ -244,7 +248,7 @@ const ExecutionTable = () => {
         }
       />
     ),
-    [refreshAndMutateData, removeTestRelation, tableSelectionToggleEvent],
+    [refreshAndMutateData, removeTestRelation, tableSelectionToggleEvent, workspaceKey],
   );
 
   return (
@@ -256,6 +260,10 @@ const ExecutionTable = () => {
         ignoreTestEntityIds={ignoreTestEntityIds}
       />
       <BusinessTable
+        titleCellOption={{
+          workspaceKey,
+          testType: 'TestExecution',
+        }}
         useColumnSetting
         rowKey="objectId"
         itemKey="reference"

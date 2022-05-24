@@ -13,8 +13,9 @@ import { updateTestRunStatus } from '@/lib/api/runs';
 import { notification } from 'antd';
 import { DeleteOutlined } from '@/icons';
 import RepositoryGroup from '@/components/business/RepositoryGroup';
+import { TitleCellOption } from '@/components/common/BusinessTable/type';
 
-interface ExpandedTableProps {
+type ExpandedTableProps = TitleCellOption & {
   refreshAndMutateData: () => void;
   tableSelectionToggleEvent: any;
   record: any;
@@ -23,7 +24,7 @@ interface ExpandedTableProps {
   innerTableRef: any;
   innerTableRefs?: any;
   removeTestRelation: any;
-}
+};
 
 const ExpandedTable = (props: ExpandedTableProps) => {
   const [pageNum, setPageNum] = React.useState(1);
@@ -38,6 +39,7 @@ const ExpandedTable = (props: ExpandedTableProps) => {
     openItemViewScreen,
     innerTableRef,
     removeTestRelation,
+    titleCellOption,
   } = props;
 
   // 测试执行序列
@@ -232,6 +234,7 @@ const ExpandedTable = (props: ExpandedTableProps) => {
         name="ExecutionInnerTable"
         className={cx('expand-table')}
         expandChangePage={relPageChange}
+        titleCellOption={titleCellOption}
         scroll={{ x: 'max-content', y: 500 }}
         itemKey="runReferenceDetail.reference"
         PaginationFooterRender={PaginationFooterRender}

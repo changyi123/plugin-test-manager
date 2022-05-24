@@ -1,7 +1,9 @@
 import React from 'react';
+import _ from 'lodash';
 import Parse from '@/lib/parse';
-import { Workspace } from '@/lib/models';
 import { SYSTEM_FIELD } from '@/lib/constants';
+import { useNoExpiredRequest } from './useRequest';
+import { Workspace, Screen, ItemTypeScreenSchemeMapping, WorkspaceScheme } from '@/lib/models';
 
 /** 获取看板卡片渲染字段 props */
 export const useFieldsWithFieldCellProps = fields => {
@@ -69,4 +71,109 @@ export const useUserCellUserDataProp = workspaceKey => {
   }, [workspaceKey]);
 
   return userData;
+};
+
+const SystemFieldKeys = [
+  // 'createdBy',
+  // 'updatedBy',
+  'createdAt',
+  'updatedAt',
+  'workspace',
+  'priority',
+  'assignee',
+  'name',
+  'key',
+  'status',
+  'version',
+  // 'sprint',
+] as const;
+/** 获取空间界面方案自定义字段 keys */
+export const useUsedScreenFieldKeys = (
+  workspaceKey: string,
+  itemTypeKey: string,
+  systemFieldKeys = SystemFieldKeys,
+) => {
+  /** 从界面类型方案中获取 screenId */
+  const getScreenIdByScreenScheme = screenScheme => {
+    const ScreenTypes = ['defaultScreen', 'editScreen', 'updateScreen', 'viewScreen'];
+    return [...new Set(ScreenTypes.map(type => screenScheme[type]?.objectId).filter(Boolean))];
+  };
+
+  // 获取空间界面方案关联的全部方案
+  const { data: itemUsedFieldKeyMapping } = useNoExpiredRequest(
+    async () => {
+      const workspaceScheme = await new Parse.Query(WorkspaceScheme)
+        .select(['itemTypeScreenScheme'])
+        .include(['itemTypeScreenScheme.defaultScreenScheme'])
+        .matchesKeyInQuery(
+          'objectId',
+          'workspaceScheme',
+          new Parse.Query(Workspace).equalTo('key', workspaceKey),
+        )
+        .first();
+
+      const {
+        itemTypeScreenScheme: { itemTypeScreenSchemeMappings, defaultScreenScheme },
+      } = workspaceScheme.toJSON();
+
+      const itemTypeKeyScreenSchemeMapping = {
+        default: getScreenIdByScreenScheme(defaultScreenScheme),
+      };
+
+      if (itemTypeScreenSchemeMappings.length > 0) {
+        const itemTypeMappings = await new Parse.Query(ItemTypeScreenSchemeMapping)
+          .include(['itemType', 'screenScheme'])
+          .select(['itemType', 'screenScheme'])
+          .containedIn(
+            'objectId',
+            itemTypeScreenSchemeMappings.map(item => item.objectId),
+          )
+          .findAll();
+
+        itemTypeMappings.forEach(data => {
+          const { itemType, screenScheme } = data.toJSON();
+          itemTypeKeyScreenSchemeMapping[itemType.key] = getScreenIdByScreenScheme(screenScheme);
+        });
+      }
+
+      const needQueryScreenIds = Object.values(itemTypeKeyScreenSchemeMapping).reduce(
+        (acc, screenIds) => {
+          return [...new Set(acc.concat(screenIds))];
+        },
+        [],
+      );
+
+      const screens = await new Parse.Query(Screen)
+        .containedIn('objectId', needQueryScreenIds)
+        .select(['customFieldKeys'])
+        .findAll();
+
+      const itemTypeScreenUsedFieldKeysMapping = _.keyBy(
+        screens.map(i => i.toJSON()),
+        'objectId',
+      );
+
+      const itemUsedFieldKeyMapping = {};
+      Object.entries(itemTypeKeyScreenSchemeMapping).forEach(([itemTypeKey, screenIds]) => {
+        itemUsedFieldKeyMapping[itemTypeKey] = _.chain(screenIds)
+          .map(id => itemTypeScreenUsedFieldKeysMapping[id]?.customFieldKeys)
+          .flattenDeep()
+          .uniq()
+          .value();
+      }, {});
+
+      return itemUsedFieldKeyMapping as Record<'default' | string, string[]>;
+    },
+    {
+      refreshDeps: [workspaceKey],
+      cacheKey: `ItemTypeUsedFieldKey_${workspaceKey}`,
+    },
+  );
+
+  return React.useMemo(() => {
+    return [].concat(
+      systemFieldKeys,
+      itemUsedFieldKeyMapping?.[itemTypeKey] ?? itemUsedFieldKeyMapping?.default ?? [],
+    );
+  }, [itemUsedFieldKeyMapping, itemTypeKey, systemFieldKeys]);
 };
