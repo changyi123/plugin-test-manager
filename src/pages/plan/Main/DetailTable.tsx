@@ -242,7 +242,7 @@ const DetailTable = () => {
     {
       key: 'times',
       title: <span>执行任务次数</span>,
-      width: 100,
+      width: 140,
       render(_, rowData) {
         return rowData.relRuns.length;
       },

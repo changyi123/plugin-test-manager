@@ -48,7 +48,7 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
 
   const baseSearchState = useReactive({
     nameLike: '',
-    notIn: ignoreTestDetailIds ?? null,
+    // notIn: ignoreTestDetailIds ?? null,
     orderByCratedAt: 'asc' as 'asc' | 'desc',
   });
 
@@ -255,7 +255,11 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
   };
 
   const TreeComponentCheckProps = React.useMemo(() => {
-    return isSingleMode ? {} : { checkable: true, checkStrictly: true };
+    return isSingleMode
+      ? {}
+      : {
+          // checkable: true, checkStrictly: true
+        };
   }, [isSingleMode]);
 
   React.useEffect(() => {
@@ -403,7 +407,10 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
                             onChange={ev => {
                               handleTestDetailCheck(ev.target.checked, testDetail.objectId);
                             }}
-                            checked={selectedTestDetailIds.includes(testDetail.objectId)}
+                            disabled={ignoreTestDetailIds.includes(testDetail.objectId)}
+                            checked={[...ignoreTestDetailIds, ...selectedTestDetailIds].includes(
+                              testDetail.objectId,
+                            )}
                           />
                         ) : null}
                         <OverflowTooltip title={testDetail.reference?.name}>
