@@ -163,7 +163,7 @@ const ExpandedTable = (props: ExpandedTableProps) => {
     },
     {
       key: 'executor',
-      title: '上次执行人',
+      title: '最新执行人',
       width: 150,
       render(_, record) {
         return <span>{record?.executor?.[0]?.nickname ?? '--'}</span>;
