@@ -224,11 +224,11 @@ const DetailTable = () => {
       },
     },
     {
-      key: 'latestStatus',
-      title: '最新执行状态',
-      width: 200,
+      width: 120,
+      key: 'itemId',
+      title: '用例 ID',
       render(_, rowData) {
-        return <StatusBadge readonly status={rowData.status} className={cx('cell-min')} />;
+        return <span>{rowData?.reference?.key ?? ''}</span>;
       },
     },
     {
@@ -237,22 +237,6 @@ const DetailTable = () => {
       width: 240,
       render(_, rowData) {
         return <RepositoryGroup rowData={rowData}></RepositoryGroup>;
-      },
-    },
-    {
-      key: 'times',
-      title: <span>执行任务次数</span>,
-      width: 140,
-      render(_, rowData) {
-        return rowData.relRuns.length;
-      },
-    },
-    {
-      width: 120,
-      key: 'itemId',
-      title: '用例 ID',
-      render(_, rowData) {
-        return <span>{rowData?.reference?.key ?? ''}</span>;
       },
     },
     {
@@ -269,6 +253,22 @@ const DetailTable = () => {
       title: '创建时间',
       render(_, rowData) {
         return <span>{dayjs(rowData?.createdAt ?? '').format('YYYY-MM-DD HH:mm')}</span>;
+      },
+    },
+    {
+      key: 'latestStatus',
+      title: '最新执行状态',
+      width: 200,
+      render(_, rowData) {
+        return <StatusBadge readonly status={rowData.status} className={cx('cell-min')} />;
+      },
+    },
+    {
+      key: 'times',
+      title: <span>执行任务次数</span>,
+      width: 140,
+      render(_, rowData) {
+        return rowData.relRuns.length;
       },
     },
     {
