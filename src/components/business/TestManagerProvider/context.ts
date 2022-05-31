@@ -24,6 +24,7 @@ export type BaseActionContextType = {
   /** 新建事项，并会生成对应的测试实体 */
   createItemUseModal: <Extra extends Record<string, any>>(params: {
     name?: string;
+    hideMessage?: boolean;
     type: TestType;
     extraData?: Extra;
   }) => Promise<{

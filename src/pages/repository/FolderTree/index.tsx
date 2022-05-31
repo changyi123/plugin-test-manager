@@ -293,6 +293,9 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         // 修改 node，将创建成功的 itemKey 追加到 node 上
         node.testDetailIds = (node.testDetailIds || []).concat(testEntityData.objectId);
         await updateFolders([node]);
+        notification.success({
+          message: `测试用例【${testEntityData.reference.name}】新建成功`,
+        });
         onFolderTreeChange();
         handleSelect([node.key], {
           node: node,

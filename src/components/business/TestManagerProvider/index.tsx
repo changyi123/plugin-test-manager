@@ -230,7 +230,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
   const baseActionContextValues = React.useMemo(() => {
     const actions: BaseActionContextType = {
       async createItemUseModal(params) {
-        const { extraData, type, name } = params;
+        const { extraData, type, name, hideMessage } = params;
         let itemTypeKey = testConfig?.itemTypeMap?.[type] as string;
         // 获取缺陷事项类型 key
         if (type === TestType.TestDefect) {
@@ -256,10 +256,10 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
           workspaceId: workspace?.objectId,
           extraData: Object.assign(
             {
+              hideMessage: hideMessage ?? true,
               type,
               workspaceId: workspace?.objectId,
               messageKey: messageKey,
-              hideMessage: true,
             },
             extraData,
           ),
