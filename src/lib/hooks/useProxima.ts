@@ -74,18 +74,19 @@ export const useUserCellUserDataProp = workspaceKey => {
 };
 
 const SystemFieldKeys = [
-  // 'createdBy',
-  // 'updatedBy',
-  'createdAt',
-  'updatedAt',
-  'workspace',
-  'priority',
-  'assignee',
-  'name',
-  'key',
-  'status',
-  'version',
-  // 'sprint',
+  // SYSTEM_FIELD.UpdatedBy
+  // SYSTEM_FIELD.CreatedBy,
+  // SYSTEM_FIELD.Sprint,
+  // SYSTEM_FIELD.ItemType,
+  SYSTEM_FIELD.Key,
+  SYSTEM_FIELD.Name,
+  SYSTEM_FIELD.Status,
+  SYSTEM_FIELD.Version,
+  SYSTEM_FIELD.Priority,
+  SYSTEM_FIELD.CreatedAt,
+  SYSTEM_FIELD.UpdatedAt,
+  SYSTEM_FIELD.Assignee,
+  SYSTEM_FIELD.Workspace,
 ] as const;
 /** 获取空间界面方案自定义字段 keys */
 export const useUsedScreenFieldKeys = (
