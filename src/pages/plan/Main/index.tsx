@@ -85,11 +85,16 @@ const Main = () => {
 
   const addTestDetail = async () => {
     const testDetailIds = await testEntitySelectorRef.current.open();
-    const relations = testDetailIds.map(testPlanId => ({
-      relationType: TestRelationType.PlanRelDetail,
-      from: selectedTestPlanId,
-      to: testPlanId,
-    }));
+
+    const ignoreTestDetailIds = selectedTestPlan?.refTestDetails?.map(item => item.objectId) ?? [];
+
+    const relations = testDetailIds
+      .filter(d => !ignoreTestDetailIds.includes(d))
+      .map(testPlanId => ({
+        relationType: TestRelationType.PlanRelDetail,
+        from: selectedTestPlanId,
+        to: testPlanId,
+      }));
     await createTestRelation(relations);
     refresh();
     mutateTestPlanEvent.emit(selectedTestPlanId);
