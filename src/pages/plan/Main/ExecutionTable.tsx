@@ -153,8 +153,11 @@ const ExecutionTable = () => {
 
     const testDetailIds = await testEntitySelectorRef.current.open();
 
+    // 去重
+    const newTestDetailIds = testDetailIds.filter(d => !ignoreTestDetailIds.includes(d));
+
     await addTestDetailToExecution({
-      testDetail: testDetailIds,
+      testDetail: newTestDetailIds,
       testPlan: selectedTestPlanId,
       testExecution: rowData.objectId,
       workspaceKey: rowData.workspaceKey,
