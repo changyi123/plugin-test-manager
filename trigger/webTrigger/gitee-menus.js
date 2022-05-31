@@ -15,7 +15,7 @@ const getWorkspaceKey = () => {
 };
 
 const getTenantKey = () => {
-  return global.headers['x-parse-application-id'];
+  return global.applicationId ?? global.headers['x-proxima-tenant'];
 };
 
 const getGiteeMenusConfig = (appId, workspaceKey) => {
