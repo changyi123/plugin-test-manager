@@ -23,11 +23,15 @@ const createTestRelationTableUniqueSQL = async () => {
 `;
 
   try {
-    await global.pgClient.query(createUniqueSQL);
+    await pgClient.query(createUniqueSQL);
     log('关联关系表唯一索引创建成功');
   } catch (err) {
     log('createUniqueSQL run error', err);
   }
 };
 
-await createTestRelationTableUniqueSQL();
+try {
+  await createTestRelationTableUniqueSQL();
+} catch (err) {
+  log('createTestRelationTableUniqueSQL run error', err);
+}
