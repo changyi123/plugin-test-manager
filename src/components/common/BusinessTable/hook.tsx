@@ -14,6 +14,7 @@ export const useTestTypeScreenFieldKeys = ({
       return itemTypeMap;
     },
     {
+      ready: Boolean(workspaceKey),
       cacheKey: `ItemTypeMapping_${workspaceKey}`,
     },
   );
