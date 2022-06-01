@@ -96,7 +96,7 @@ export const useUsedScreenFieldKeys = (
 ) => {
   /** 从界面类型方案中获取 screenId */
   const getScreenIdByScreenScheme = screenScheme => {
-    const ScreenTypes = ['defaultScreen', 'editScreen', 'updateScreen', 'viewScreen'];
+    const ScreenTypes = ['defaultScreen', 'viewScreen', 'createScreen', 'editScreen'];
     return [...new Set(ScreenTypes.map(type => screenScheme[type]?.objectId).filter(Boolean))];
   };
 
