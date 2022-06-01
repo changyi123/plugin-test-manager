@@ -185,13 +185,17 @@ const Test = () => {
             testType: TestType.TestDetail,
           });
 
-          await createTestRunAndRelation(testEntity, selectedTestDetailIds);
+          const _selectedTestDetailIds = selectedTestDetailIds.filter(
+            d => !(relTestDetailIds ?? []).includes(d),
+          );
+
+          await createTestRunAndRelation(testEntity, _selectedTestDetailIds);
 
           refreshDepData();
         },
       },
     ];
-  }, [refreshDepData, testEntity]);
+  }, [refreshDepData, testEntity, relTestDetailIds]);
 
   return (
     <div className={cx('test')}>

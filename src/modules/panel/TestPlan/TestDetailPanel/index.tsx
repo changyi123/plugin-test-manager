@@ -155,9 +155,11 @@ const Test = () => {
         title: '已存在的测试用例',
         async onClick() {
           const testDetailIds = await selectorModalRef.current.open();
+          const _testDetailIds = testDetailIds.filter(d => !(testEntityIds ?? []).includes(d));
+
           await createTestDetailToPlanRelations({
             testPlan: testEntity,
-            testDetail: testDetailIds,
+            testDetail: _testDetailIds,
           });
 
           refreshDepData();
@@ -169,7 +171,7 @@ const Test = () => {
         },
       },
     ];
-  }, [refreshDepData, testEntity]);
+  }, [refreshDepData, testEntity, testEntityIds]);
 
   const removeTestRelation = React.useCallback(
     async testDetailIds => {
