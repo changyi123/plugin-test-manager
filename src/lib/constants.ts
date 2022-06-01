@@ -115,7 +115,7 @@ export const FIELD_TYPE_KEY_MAPPINGS = {
   Status: 'Status', // 事项状态 -> status
   FieldCollection: 'FieldCollection', // 字段集合
   ItemLevel: 'ItemLevel', // 事项层级
-  Link: 'Link', // 事项管理
+  Link: 'Link', // 事项关联
   Version: 'Version', // 版本 -> version
   Sprint: 'Sprint', // 迭代 -> sprint
   Assignee: 'Assignee', // 负责人

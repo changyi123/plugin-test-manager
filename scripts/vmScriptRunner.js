@@ -6,8 +6,8 @@ const axios = require('axios');
 const path = require('path');
 const fs = require('fs');
 
-const fileName = '../trigger/import/import.js';
-const sessionToken = 'r:a52fa1e8b36fccd30286097ae2494cd2';
+const fileName = '../trigger/appTrigger/sqlRunner.js';
+const sessionToken = 'r:31305af20e6efcd6af1021992ec68afe';
 const params = {
   appKey: 'test_manager',
 };

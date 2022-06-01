@@ -113,6 +113,8 @@ export const getCustomFields = async (keys = [] as string[]) => {
         FIELD_TYPE_KEY_MAPPINGS.File,
         FIELD_TYPE_KEY_MAPPINGS.Annex,
         FIELD_TYPE_KEY_MAPPINGS.Editor,
+        FIELD_TYPE_KEY_MAPPINGS.Link,
+        FIELD_TYPE_KEY_MAPPINGS.ItemLevel,
         FIELD_TYPE_KEY_MAPPINGS.FieldCollection,
       ].includes(field?.fieldType?.key);
 
