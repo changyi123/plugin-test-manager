@@ -149,7 +149,10 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
     const { source, destination } = data;
     if (!destination || source.index === destination.index) return;
     setStorageColumnKeys(prevState => {
-      const newColumnKeys = Array.from(prevState);
+      // 获取最新显示在面板的列字段
+      const _prevState = prevState.filter(p => (selectColumns?.map(d => d.key) ?? []).includes(p));
+
+      const newColumnKeys = Array.from(_prevState);
       const [splicedColumn] = newColumnKeys.splice(source.index, 1);
       newColumnKeys.splice(destination.index, 0, splicedColumn);
       return newColumnKeys;
