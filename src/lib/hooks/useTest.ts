@@ -80,7 +80,7 @@ export const useAllTestWorkspace = () => {
 };
 
 export const useGetTestRepoGroup = (rowData: any) => {
-  const { data } = useRequest(
+  const { data, loading } = useRequest(
     async () => {
       if (!rowData?.workspaceKey) return null;
 
@@ -103,7 +103,7 @@ export const useGetTestRepoGroup = (rowData: any) => {
     },
   );
 
-  return data;
+  return { data, loading };
 };
 
 export const useGetUserNameByName = (name: string) => {
