@@ -75,11 +75,11 @@ export const useUserCellUserDataProp = workspaceKey => {
 
 const SystemFieldKeys = [
   // SYSTEM_FIELD.UpdatedBy
-  // SYSTEM_FIELD.CreatedBy,
   // SYSTEM_FIELD.Sprint,
   // SYSTEM_FIELD.ItemType,
-  // SYSTEM_FIELD.CreatedAt,
   // SYSTEM_FIELD.UpdatedAt,
+  SYSTEM_FIELD.CreatedAt,
+  SYSTEM_FIELD.CreatedBy,
   SYSTEM_FIELD.Key,
   SYSTEM_FIELD.Name,
   SYSTEM_FIELD.Status,
