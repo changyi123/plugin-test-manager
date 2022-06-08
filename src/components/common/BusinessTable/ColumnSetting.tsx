@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { get, keyBy, noop } from 'lodash';
 import { TitleCellOption } from './type';
 import { ColumnType } from 'antd/lib/table';
@@ -22,6 +22,7 @@ type ColumnSettingProps = TitleCellOption & {
   name?: string;
   itemKey: string;
   className?: string;
+  defaultColumnKey?: string[];
   additionalColumns?: ColumnDuckTyping[];
   onTableColumnChange?: (column: ColumnDuckTyping) => void;
 };
@@ -31,6 +32,7 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
     className,
     additionalColumns = [],
     name,
+    defaultColumnKey,
     onTableColumnChange = noop,
     itemKey,
     titleCellOption,
@@ -115,6 +117,19 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
       ],
     )
     .filter(item => item.options.length);
+
+  useEffect(() => {
+    if (defaultColumnKey?.length) {
+      setStorageColumnKeys(prevState => {
+        return defaultColumnKey.reduce((prev, cur) => {
+          if (!prev.includes(cur)) {
+            prev = prev.concat([cur]);
+          }
+          return prev;
+        }, prevState ?? []);
+      });
+    }
+  }, [defaultColumnKey, setStorageColumnKeys]);
 
   // 处理 fixed column 排列
   useDeepCompareEffect(() => {

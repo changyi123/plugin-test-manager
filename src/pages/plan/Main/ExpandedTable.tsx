@@ -5,7 +5,6 @@ import TestRunModal, {
   ActionType as TestRunModalActionType,
 } from '@/components/business/TestRunModal';
 import { BusinessTable } from '@/components/common/BusinessTable';
-import dayjs from 'dayjs';
 
 import { actionConfirm } from '@/lib/utils/helper';
 import { deleteTestEntities } from '@/lib/api/common';
@@ -156,22 +155,6 @@ const ExpandedTable = (props: ExpandedTableProps) => {
       },
     },
     {
-      width: 120,
-      key: 'creater',
-      title: '创建人',
-      render(_, rowData) {
-        return <span>{rowData?.runReferenceDetail?.reference?.createdBy.nickname ?? ''}</span>;
-      },
-    },
-    {
-      width: 220,
-      key: 'createTime',
-      title: '创建时间',
-      render(_, rowData) {
-        return <span>{dayjs(rowData?.createdAt ?? '').format('YYYY-MM-DD HH:mm')}</span>;
-      },
-    },
-    {
       key: 'runStatus',
       title: '测试执行状态',
       width: 150,
@@ -255,6 +238,7 @@ const ExpandedTable = (props: ExpandedTableProps) => {
         rowKey="objectId"
         columns={columns}
         useColumnSetting
+        defaultColumnKey={['createdBy', 'createdAt']}
         showPagination={true}
         actionRef={innerTableRef}
         name="ExecutionInnerTable"

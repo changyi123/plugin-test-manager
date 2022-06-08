@@ -13,7 +13,6 @@ import { DeleteOutlined, UserOutlined, SwitcherOutlined, DragHandler } from '@/i
 import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
 import { deleteTestEntities, getTestEntitiesByQuery, cloneTestEntities } from '@/lib/api/common';
 import { useUserCellUserDataProp } from '@/lib/hooks/useProxima';
-import dayjs from 'dayjs';
 
 import cx from './index.less';
 
@@ -238,22 +237,22 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
           return <RepositoryGroup rowData={rowData}></RepositoryGroup>;
         },
       },
-      {
-        width: 120,
-        key: 'creater',
-        title: '创建人',
-        render(_, rowData) {
-          return <span>{rowData?.reference?.createdBy.nickname ?? ''}</span>;
-        },
-      },
-      {
-        width: 220,
-        key: 'createTime',
-        title: '创建时间',
-        render(_, rowData) {
-          return <span>{dayjs(rowData?.createdAt ?? '').format('YYYY-MM-DD HH:mm')}</span>;
-        },
-      },
+      // {
+      //   width: 120,
+      //   key: 'creater',
+      //   title: '创建人',
+      //   render(_, rowData) {
+      //     return <span>{rowData?.reference?.createdBy.nickname ?? ''}</span>;
+      //   },
+      // },
+      // {
+      //   width: 220,
+      //   key: 'createTime',
+      //   title: '创建时间',
+      //   render(_, rowData) {
+      //     return <span>{dayjs(rowData?.createdAt ?? '').format('YYYY-MM-DD HH:mm')}</span>;
+      //   },
+      // },
       {
         title: null,
         key: 'title',
@@ -282,6 +281,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         rowKey="objectId"
         useColumnSetting
         columns={columns}
+        defaultColumnKey={['createdBy', 'createdAt']}
         itemKey="reference"
         name="TestDetailTable"
         actionRef={tableActionRef}

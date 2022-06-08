@@ -74,6 +74,7 @@ type BusinessTableProps = TableProps<any> &
     useColumnSetting?: boolean;
     onSelectionCancel?: () => void;
     isCheck?: boolean;
+    defaultColumnKey?: string[];
     setIsCheck?: (check: boolean) => void;
     expandChangePage?: (num: number, size?: number) => void;
     selectionActionNodes?: React.ReactNode[];
@@ -88,6 +89,7 @@ type BusinessTableProps = TableProps<any> &
 const BusinessTable: React.FC<BusinessTableProps> = props => {
   const {
     columns,
+    defaultColumnKey,
     actionRef,
     expandable,
     getDataSource,
@@ -154,6 +156,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
       <ColumnSetting
         itemKey={itemKey}
         name={props.name}
+        defaultColumnKey={defaultColumnKey}
         titleCellOption={titleCellOption}
         additionalColumns={columns}
         className={`${cx('column-setting')} extra-column-setting`}
@@ -167,6 +170,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     props.name,
     titleCellOption,
     columns,
+    defaultColumnKey,
     handleTableColumnChange,
   ]);
 
