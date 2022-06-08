@@ -571,8 +571,7 @@ export const createTestExecutionAndRelations = async (params: {
       // TODO: fetch all
       {
         queryParams: { limit: 9999 },
-        // 新建测试任务查询关联用例测试执行，跨空间
-        // workspaceKey
+        workspaceKey,
       },
     );
     relTestDetailIds = res.list.map(item => item.objectId);
