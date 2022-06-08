@@ -1,4 +1,4 @@
-import React, { useMemo, useRef } from 'react';
+import React, { useMemo, useRef, useContext } from 'react';
 import { pick, isEqual } from 'lodash';
 import { getDevConfig } from '@/devEnv';
 import { TitleCellOption } from './type';
@@ -11,6 +11,7 @@ import { useSDK } from '@projectproxima/plugin-sdk';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import { generateStorageKey } from '@/lib/utils/helper';
 import { LibraryProvider } from '@projectproxima/components';
+import { PluginSDKContext } from '@projectproxima/plugin-sdk';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import { getRootContainer, hasArrayItem } from '@/lib/utils/helper';
 import { useAntdTable, useLocalStorageState, useSize } from 'ahooks';
@@ -109,7 +110,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     ...restTableProps
   } = props;
 
-  // const pluginSDKContext: any = useContext(PluginSDKContext);
+  const pluginSDKContext: any = useContext(PluginSDKContext);
 
   const currentPageRowsRef = React.useRef([]);
   const initialExpandedRef = React.useRef(false);
@@ -369,12 +370,11 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
   return (
     <div className={cx('table-container')} ref={ref}>
       <LibraryProvider
-        parse
         workspaceKey={workspace?.key}
         gatewayURL={proximaGatewayURL}
         getPopupContainer={getRootContainer}
-        // applicationId={pluginSDKContext?.context?.env.PROXIMA_APP_ID ?? 'proxima-core'}
-        // sessionToken={pluginSDKContext?.context?.env.sessionToken ?? ''}
+        applicationId={pluginSDKContext?.context?.env.PROXIMA_APP_ID ?? 'proxima-core'}
+        sessionToken={pluginSDKContext?.context?.env.sessionToken ?? ''}
       >
         <SelectionActionHeader />
         {ColumnSettingMemorizedNode}
