@@ -3,13 +3,13 @@ import { Checkbox, message, Image, Upload } from 'antd';
 import { Button } from 'antd';
 import { TabsComponentBaseProps } from './type';
 import { DeleteOutlined, DownloadOutlined, UploadOutlined, LoadingOutlined } from '@/icons';
-import Parse from '@/lib/parse';
-
+import { actionConfirm } from '@/lib/utils/helper';
 import { updateTestRun } from '@/lib/api/runs';
+import Parse from '@/lib/parse';
 import dayjs from 'dayjs';
 
 import cx from './AttachmentUpload.less';
-import { actionConfirm } from '@/lib/utils/helper';
+
 type AttachmentUploadProps = TabsComponentBaseProps;
 
 const AttachmentList: React.FC<any> = props => {
@@ -249,17 +249,24 @@ const AttachmentUpload: React.FC<AttachmentUploadProps> = props => {
   const fileRef = React.useRef(new Map());
 
   const [fileList, setFileList] = useState<any[]>([]);
+  const [uploadTimes, setUploadTimes] = useState(0);
 
   useEffect(() => {
     setFileList(testRunData.runDetail?.attachments ?? []);
     fileRef.current.clear();
   }, [testRunData.runDetail?.attachments]);
 
+  // 上传附件结束后刷新页面操作
   useEffect(() => {
-    if (fileList.length !== 0 && fileList.filter(d => d.status).length === 0) {
-      onDataChange();
+    if (uploadTimes) {
+      const fileNums = fileList.length - (testRunData.runDetail?.attachments?.length ?? 0);
+
+      if (fileNums === uploadTimes) {
+        onDataChange();
+        setUploadTimes(0);
+      }
     }
-  }, [fileList, onDataChange]);
+  }, [fileList, onDataChange, testRunData, uploadTimes]);
 
   const saveParseFile = async fileData => {
     const getFileList = (isError = false) => {
@@ -306,6 +313,7 @@ const AttachmentUpload: React.FC<AttachmentUploadProps> = props => {
         });
 
         setFileList(getFileList());
+        setUploadTimes(i => i + 1);
       },
       error => {
         message.error(error.message);
