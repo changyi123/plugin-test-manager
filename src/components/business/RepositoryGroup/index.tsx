@@ -6,7 +6,7 @@ const RepositoryGroup = ({ rowData }: { rowData: any }) => {
 
   return (
     <>
-      <span>{!loading ? testRepoGroup ?? '--'}</span>
+      <span>{!loading ? testRepoGroup : '--'}</span>
     </>
   );
 };
