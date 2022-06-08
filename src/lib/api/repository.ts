@@ -18,7 +18,7 @@ export const getRepositoryData = async (workspaceKeys: string[]) => {
     .limit(9999)
     .find();
 
-  return repositoryData.map(d => d.toJSON());
+  return repositoryData.map(d => d?.toJSON());
 };
 
 export const getFolderTree = async (workspaceKey: string) => {
