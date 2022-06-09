@@ -1190,10 +1190,10 @@
   resolved "https://registry.yarnpkg.com/@popperjs/core/-/core-2.11.5.tgz#db5a11bf66bdab39569719555b0f76e138d7bd64"
   integrity sha512-9X2obfABZuDVLCgPK9aX0a/x4jaOEweTTWE2+9sr0Qqqevj2Uv5XorvusThmc9XGYpS9yI+fhh8RTafBtGposw==
 
-"@projectproxima/components@0.3.3":
-  version "0.3.3"
-  resolved "https://registry.yarnpkg.com/@projectproxima/components/-/components-0.3.3.tgz#b8de180f4235da0724c59a2f0fc2ff4a52cb7739"
-  integrity sha512-4Xoy/Xqq2F+ayZQWdVdGNt5ZmQkmwhRRwDmj3cGO76XmRZ+gKLUdNwZzObDSe4xVTsDXncDq6h4nYC3je5ToXg==
+"@projectproxima/components@0.3.4":
+  version "0.3.4"
+  resolved "https://registry.yarnpkg.com/@projectproxima/components/-/components-0.3.4.tgz#c49e1c15d64d76b2870a853861b38fb055a544e5"
+  integrity sha512-Kq/dUxZEvAt+6QnCwcPuG8/OxVn0EAn8HAHrFnrLu8cXTdNCBqiYJY7xEDjjBaFLRRftt1bM8OI6i/U7huJoyg==
   dependencies:
     "@ant-design/icons" "4.7.0"
     "@projectproxima/plugin-loader" "^0.1.9"
