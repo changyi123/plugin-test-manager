@@ -241,6 +241,16 @@ module.exports = (cliEnv = {}, argv) => {
         },
         {
           test: /\.css/,
+          include: [path.resolve(__dirname, 'node_modules/@projectproxima/components/dist')],
+          use: [
+            classNamesConfig,
+            extractOrStyleLoaderConfig,
+            'css-loader',
+            getPostcssLoaderConfig(false),
+          ],
+        },
+        {
+          test: /\.css/,
           include: [
             path.resolve(__dirname, 'src'),
             path.resolve(__dirname, 'node_modules/antd/'),
@@ -252,16 +262,6 @@ module.exports = (cliEnv = {}, argv) => {
             extractOrStyleLoaderConfig,
             'css-loader',
             getPostcssLoaderConfig(true),
-          ],
-        },
-        {
-          test: /\.css/,
-          include: [path.resolve(__dirname, 'node_modules/@projectproxima/components/dist')],
-          use: [
-            classNamesConfig,
-            extractOrStyleLoaderConfig,
-            'css-loader',
-            getPostcssLoaderConfig(false),
           ],
         },
         {

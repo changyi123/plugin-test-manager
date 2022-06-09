@@ -100,8 +100,8 @@ export const logPluginVersion = () => {
   console.log('%cPLUGIN-VERSION:', 'font-size: 16px; font-weight: 700; color: skyblue');
   // eslint-disable-next-line no-console
   console.table({
-    Branch: (process.env as any)?.PROXIMA_BRANCH,
-    Commit: (process.env as any)?.PROXIMA_COMMIT,
+    Branch: (process.env as any)?.PROXIMA_VERSION_BRANCH,
+    Commit: (process.env as any)?.PROXIMA_VERSION_COMMIT,
   });
 };
 

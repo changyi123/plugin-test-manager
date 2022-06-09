@@ -1,6 +1,6 @@
+@import '~antd/dist/antd.less';
 @import '~@osui/theme/dist/theme/vars.css';
 
-// 修复 osui 错误样式
 :root {
   --menu-bg: rgba(255, 255, 255);
 }
@@ -74,10 +74,6 @@
       > th:not(:last-child):not(.ant-table-selection-column):not(.ant-table-row-expand-icon-cell):not([colspan])::before {
       width: 0 !important;
     }
-  }
-  // 去掉倒计时
-  .osui-message-count-down-close {
-    display: none !important;
   }
 
   .ant-modal-confirm-body {
