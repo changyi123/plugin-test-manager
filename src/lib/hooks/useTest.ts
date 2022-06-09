@@ -80,7 +80,7 @@ export const useAllTestWorkspace = () => {
 };
 
 export const useGetTestRepoGroup = (rowData: any) => {
-  const { data } = useRequest(
+  const { data, loading } = useRequest(
     async () => {
       if (!rowData?.workspaceKey) return null;
 
@@ -94,7 +94,7 @@ export const useGetTestRepoGroup = (rowData: any) => {
         });
       }
 
-      return repoMap.get(rowData.repository.objectId);
+      return rowData.repository?.objectId ? repoMap.get(rowData.repository.objectId) : '未分组';
     },
     {
       cacheKey: `TextRepoGroup${rowData.workspaceKey}${rowData.repository?.objectId ?? ''}`,
@@ -103,7 +103,7 @@ export const useGetTestRepoGroup = (rowData: any) => {
     },
   );
 
-  return data;
+  return { data, loading };
 };
 
 export const useGetUserNameByName = (name: string) => {
