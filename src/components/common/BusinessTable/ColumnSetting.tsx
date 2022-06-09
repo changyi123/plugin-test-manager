@@ -70,7 +70,7 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
   const LOCAL_STORAGE_KEY = generateStorageKey(name, 'column-key');
 
   const [storageColumnKeys, setStorageColumnKeys] = useLocalStorageState(LOCAL_STORAGE_KEY, {
-    defaultValue: defaultColumnKey,
+    defaultValue: defaultColumnKey ?? [],
   });
 
   const memoizedAdditionalColumnKey = additionalColumns.map(col => col.key);
