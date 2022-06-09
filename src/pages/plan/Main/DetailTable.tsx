@@ -223,14 +223,6 @@ const DetailTable = () => {
       },
     },
     {
-      width: 120,
-      key: 'itemId',
-      title: '用例 ID',
-      render(_, rowData) {
-        return <span>{rowData?.reference?.key ?? ''}</span>;
-      },
-    },
-    {
       key: 'repositoryGroup',
       title: '所属模块',
       width: 240,
@@ -282,7 +274,14 @@ const DetailTable = () => {
         testType: 'TestDetail',
       }}
       useColumnSetting
-      defaultColumnKey={['createdBy', 'createdAt']}
+      defaultColumnKey={[
+        'key',
+        'repositoryGroup',
+        'latestStatus',
+        'times',
+        'createdBy',
+        'createdAt',
+      ]}
       rowKey="objectId"
       columns={columns}
       isCheck={isCheck}

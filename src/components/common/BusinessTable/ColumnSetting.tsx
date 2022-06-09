@@ -69,12 +69,8 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
 
   const LOCAL_STORAGE_KEY = generateStorageKey(name, 'column-key');
 
-  const additionalNotSystemColumnKeys = additionalColumns
-    .filter(col => !col.isSystem)
-    .map(col => col.key);
-
   const [storageColumnKeys, setStorageColumnKeys] = useLocalStorageState(LOCAL_STORAGE_KEY, {
-    defaultValue: additionalNotSystemColumnKeys,
+    defaultValue: defaultColumnKey,
   });
 
   const memoizedAdditionalColumnKey = additionalColumns.map(col => col.key);
@@ -117,19 +113,6 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
       ],
     )
     .filter(item => item.options.length);
-
-  useEffect(() => {
-    if (defaultColumnKey?.length) {
-      setStorageColumnKeys(prevState => {
-        return defaultColumnKey.reduce((prev, cur) => {
-          if (!prev.includes(cur)) {
-            prev = prev.concat([cur]);
-          }
-          return prev;
-        }, prevState ?? []);
-      });
-    }
-  }, [defaultColumnKey, setStorageColumnKeys]);
 
   // 处理 fixed column 排列
   useDeepCompareEffect(() => {

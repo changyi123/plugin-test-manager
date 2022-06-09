@@ -139,14 +139,6 @@ const ExpandedTable = (props: ExpandedTableProps) => {
       },
     },
     {
-      width: 120,
-      key: 'itemId',
-      title: '用例 ID',
-      render(_, rowData) {
-        return <span>{rowData?.runReferenceDetail?.reference?.key ?? ''}</span>;
-      },
-    },
-    {
       key: 'repositoryGroup',
       title: '所属模块',
       width: 240,
@@ -238,7 +230,14 @@ const ExpandedTable = (props: ExpandedTableProps) => {
         rowKey="objectId"
         columns={columns}
         useColumnSetting
-        defaultColumnKey={['createdBy', 'createdAt']}
+        defaultColumnKey={[
+          'key',
+          'repositoryGroup',
+          'runStatus',
+          'executor',
+          'createdBy',
+          'createdAt',
+        ]}
         showPagination={true}
         actionRef={innerTableRef}
         name="ExecutionInnerTable"
