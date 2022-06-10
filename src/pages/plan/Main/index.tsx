@@ -90,12 +90,17 @@ const Main = () => {
       from: selectedTestPlanId,
       to: testPlanId,
     }));
-    await createTestRelation(relations);
-    refresh();
-    mutateTestPlanEvent.emit(selectedTestPlanId);
-    notification.success({
-      message: '测试用例已成功添加至测试计划中',
-    });
+    try {
+      await createTestRelation(relations);
+      notification.success({
+        message: '测试用例已成功添加至测试计划中',
+      });
+    } catch (err) {
+      console.error(err);
+    } finally {
+      refresh();
+      mutateTestPlanEvent.emit(selectedTestPlanId);
+    }
   };
 
   const rightExtraContent = (

@@ -71,7 +71,7 @@
   "dependencies": {
     "@ant-design/icons": "^4.7.0",
     "@nebulare/data": "^0.1.5",
-    "@projectproxima/components": "0.3.4",
+    "@projectproxima/components": "0.3.4-remove-editor",
     "@osui/theme": "^1.2.10",
     "@projectproxima/plugin-sdk": "^0.1.8",
     "@projectproxima/proxima-sdk-js": "^0.4.4",
