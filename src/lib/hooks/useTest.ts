@@ -1,7 +1,7 @@
 import { pick } from 'lodash';
 import { useRequest } from 'ahooks';
 import { TestType } from '@/lib/constants';
-import { getAllTestWorkspaces } from '@/lib/api/proxima';
+import { getPluginBoundWorkspaces } from '@/lib/api/proxima';
 import { getRepositoryData } from '../api/repository';
 import {
   getTestConfig,
@@ -67,7 +67,7 @@ export const useIsolateTestType = (workspaceKey: string, testType: TestType) => 
 export const useAllTestWorkspace = () => {
   const { data: allTestWorkspaces } = useRequest(
     async () => {
-      return getAllTestWorkspaces();
+      return getPluginBoundWorkspaces();
     },
     {
       cacheKey: 'AllTestWorkspaces',

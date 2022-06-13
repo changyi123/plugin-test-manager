@@ -46,27 +46,22 @@ const getGiteeMenusConfig = (appId, workspaceKey) => {
 };
 
 const appQuery = await apis.getParseQuery(false, 'App');
-const appInstallationQuery = await apis.getParseQuery(false, 'AppInstallation');
-const workspaceQuery = await apis.getParseQuery(false, 'Workspace');
-
 const workspaceKey = getWorkspaceKey();
 
 const responser = async () => {
   if (!workspaceKey) throw new Error('NO_WORKSPACE_KEY');
-  appInstallationQuery.matchesQuery('app', appQuery.equalTo('key', APP_KEY));
-  const appInstallationParseObjs = await appInstallationQuery.find(ParseBaseQueryOptions);
-  // 应用关联的空间模板
-  const appRefWorkspaceSchemas =
-    appInstallationParseObjs?.map(item => item?.toJSON()?.workspaceScheme?.objectId) ?? [];
+  const app = await appQuery
+    .equalTo('key', APP_KEY)
+    .include('workspaces')
+    .first()
+    .then(item => item.toJSON());
 
-  const workspace = await workspaceQuery
-    .containedIn('workspaceScheme', appRefWorkspaceSchemas)
-    .equalTo('key', workspaceKey)
-    .first(ParseBaseQueryOptions);
+  const appRefWorkspaces = app.workspaces;
+  const hasTestManagerPlugin = appRefWorkspaces.find(workspace => workspace.key === workspaceKey);
 
-  if (!workspace) throw new Error('NOT_FOUND_WORKSPACE');
+  if (!hasTestManagerPlugin) throw new Error('CURRENT_WORKSPACE_NOT_TEST_INSTALLED');
 
-  const appId = appInstallationParseObjs?.[0]?.toJSON()?.app?.objectId;
+  const appId = app?.objectId;
   return getGiteeMenusConfig(appId, workspaceKey);
 };
 

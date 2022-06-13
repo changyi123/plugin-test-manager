@@ -77,9 +77,17 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
 
   const memoizedAdditionalColumnKey = additionalColumns.map(col => col.key);
   const allColumns = React.useMemo(() => {
+    const columnKeySet = new Set();
     return additionalColumns
       .map(item => ({ ...item, additional: true }))
-      .concat(customFields?.map(getColumnWithTemp) ?? []) as ColumnDuckTyping[];
+      .concat(customFields?.map(getColumnWithTemp) ?? [])
+      .filter(column => {
+        if (columnKeySet.has(column.key)) {
+          return false;
+        }
+        columnKeySet.add(column.key);
+        return true;
+      }) as ColumnDuckTyping[];
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [memoizedAdditionalColumnKey, customFields]);
 
@@ -115,6 +123,8 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
       ],
     )
     .filter(item => item.options.length);
+
+  console.log('selectOptions', selectOptions);
 
   // 处理 fixed column 排列
   useDeepCompareEffect(() => {

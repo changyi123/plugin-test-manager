@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default class ErrorBoundary extends React.Component<
+class ErrorBoundary extends React.Component<
   unknown,
   {
     error?: Error;
@@ -33,3 +33,5 @@ export default class ErrorBoundary extends React.Component<
     return this.props.children;
   }
 }
+
+export default ErrorBoundary as any;

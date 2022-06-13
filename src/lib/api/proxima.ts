@@ -1,27 +1,18 @@
 /**
  * proxima api 只为获取数据，返回数据为 JSON。不要在插件内修改 proxima 内的数据模型 ！！
  */
+import { pick } from 'lodash';
 import Parse from '@/lib/parse';
 import fetch from '@/lib/utils/fetch';
-import { pick, unionBy } from 'lodash';
 import { IQLBuilder } from '@/lib/utils/iql';
 import { hasArrayItem } from '@/lib/utils/helper';
-import { WorkspaceScheme as WorkspaceSchemeType } from '@/lib/types/App';
 import {
   SYSTEM_FIELD,
   FIELD_TYPE_KEY_MAPPINGS,
   TEST_MANAGER_PLUGIN_KEY,
   BuiltinItemTypeMapping,
 } from '@/lib/constants';
-import {
-  App,
-  Item,
-  ItemType,
-  Workspace,
-  CustomField,
-  WorkspaceScheme,
-  AppInstallation,
-} from '@/lib/models';
+import { App, Item, ItemType, Workspace, CustomField, ItemTypeScheme } from '@/lib/models';
 
 type IQLPaginationParams = {
   offset?: number;
@@ -173,15 +164,11 @@ export const getItemTypeById = async id => {
   return itemType?.toJSON();
 };
 
-export const getWorkspaceByName = (name?: string) => {
-  return new Parse.Query(Workspace).include(['workspaceScheme']).contains('name', name).find();
-};
-
 /** 获取层级视图顶级事项类型 */
-export const getTopItemTypeFromHierarchy = async workspaceSchemeId => {
-  const itemTypeScheme = await new Parse.Query(WorkspaceScheme)
+export const getTopItemTypeFromHierarchy = async workspaceId => {
+  const itemTypeScheme = await new Parse.Query(Workspace)
     .include('itemTypeScheme')
-    .equalTo('objectId', workspaceSchemeId)
+    .equalTo('objectId', workspaceId)
     .first();
 
   const hierarchy = JSON.parse(itemTypeScheme.toJSON().itemTypeScheme.hierarchy);
@@ -257,20 +244,6 @@ export const updateItemAssignee = async (itemIds, assignee) => {
   return Parse.Object.saveAll(needUpdatedItems);
 };
 
-/** 获取所有测试空间 */
-export const getAllTestWorkspaces = async () => {
-  const workspaceSchemes = await getPluginBoundWorkspaceSchemes();
-
-  const workspaces = await new Parse.Query(Workspace)
-    .containedIn(
-      'workspaceScheme',
-      (await workspaceSchemes).map(item => item.objectId),
-    )
-    .findAll();
-
-  return workspaces.map(workspace => workspace.toJSON());
-};
-
 /** FIXME: 克隆事项 */
 export const cloneItem = async (
   itemData: {
@@ -288,34 +261,41 @@ export const cloneItem = async (
 };
 
 // 获取插件关联的工作空间
-export const getPluginBoundWorkspaceSchemes = async (includeKeys = [] as string[]) => {
-  // 查询 include
-  const queryInclude = ['workspaceScheme'].concat(includeKeys.map(key => `workspaceScheme.${key}`));
+export const getPluginBoundWorkspaces = async () => {
+  const pluginApp = await new Parse.Query(App)
+    .equalTo('key', TEST_MANAGER_PLUGIN_KEY)
+    .include('workspaces')
+    .first();
 
-  const boundWorkspaceSchemas: WorkspaceSchemeType[] = await new Parse.Query(AppInstallation)
-    .matchesQuery('app', new Parse.Query(App).equalTo('key', TEST_MANAGER_PLUGIN_KEY))
-    .include(queryInclude)
-    .map(item => item.toJSON().workspaceScheme);
+  const boundWorkspaces = pluginApp?.toJSON()?.workspaces ?? [];
 
-  return unionBy(boundWorkspaceSchemas, 'objectId');
+  return boundWorkspaces;
 };
 
 /** 更新被测试管理插件关联的事项层级方案 */
 export const updateUsedHierarchySchema = async () => {
   const builtinItemTypes = await getBuiltinItemTypes();
 
-  const workspaceSchemes = await getPluginBoundWorkspaceSchemes(['itemTypeScheme']);
+  const workspaces = await getPluginBoundWorkspaces();
 
-  const itemTypeSchemes = workspaceSchemes.map(item => item.itemTypeScheme);
+  const itemTypeSchemeIds = workspaces.map(item => item.itemTypeScheme?.objectId).filter(Boolean);
+
+  const itemTypeSchemes = await new Parse.Query(ItemTypeScheme)
+    .containedIn('objectId', itemTypeSchemeIds)
+    .findAll()
+    .then(list => list.map(item => item.toJSON()));
   const needUpdatedParseObjects = itemTypeSchemes.reduce((res, itemTypeScheme) => {
-    const hierarchy = JSON.parse(itemTypeScheme.hierarchy ?? '{}');
+    const hierarchy = JSON.parse(itemTypeScheme.hierarchy ?? '[]');
     // 事项层级方案中不存在的事项类型
     const notExistedBuiltinItemTypesInHierarchy = builtinItemTypes.filter(
       itemType => !hierarchy.some(item => itemType.key === item.key),
     );
 
     if (notExistedBuiltinItemTypesInHierarchy.length) {
-      const itemTypeSchemeParseObj = Parse.Object.fromJSON(itemTypeScheme);
+      const itemTypeSchemeParseObj = Parse.Object.fromJSON({
+        ...itemTypeScheme,
+        className: 'ItemTypeScheme',
+      });
       const pickUsefulFields = itemType => pick(itemType, ['objectId', 'icon', 'name', 'key']);
       itemTypeSchemeParseObj.set({
         hierarchy: JSON.stringify(

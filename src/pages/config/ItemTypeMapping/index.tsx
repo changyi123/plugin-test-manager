@@ -27,14 +27,14 @@ const ItemTypeMapping = () => {
   const { workspace, globalConfig } = useDataContext();
   const isolatedSystem = Boolean(globalConfig?.extra?.isolatedSystem);
   const workspaceKey = workspace?.key;
-  const workspaceSchemeId = workspace?.workspaceScheme?.objectId;
+  const workspaceId = workspace?.objectId;
 
   const [topItemTypes, setTopItemTypes] = useSafeState([]);
   const [itemTypeMapping, setItemTypeMapping] = useSafeState({} as Record<TestType, string>);
 
-  useRequest(() => getTopItemTypeFromHierarchy(workspaceSchemeId), {
-    ready: !!workspaceSchemeId,
-    refreshDeps: [workspaceSchemeId],
+  useRequest(() => getTopItemTypeFromHierarchy(workspaceId), {
+    ready: !!workspaceId,
+    refreshDeps: [workspaceId],
     onSuccess(itemTypes) {
       setTopItemTypes(itemTypes);
     },
