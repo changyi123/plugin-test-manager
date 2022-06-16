@@ -15,15 +15,21 @@ const getWorkspaceKey = () => {
 };
 
 const getTenantKey = () => {
-  return global.applicationId ?? global.headers['x-proxima-tenant'];
+  return global.applicationId ?? global.headers['x-proxima-tenant'] ?? 'osc';
+};
+
+/** 获取产品前缀 */
+const getProductPrefix = () => {
+  return global.headers['x-proxima-prefix'] ?? 'project';
 };
 
 const getGiteeMenusConfig = (appId, workspaceKey) => {
-  const tenantKey = getTenantKey() ?? 'osc';
+  const tenantKey = getTenantKey();
+  const productPrefix = getProductPrefix();
 
   // 生成菜单
   const generateGiteeMenu = ({ name, pageKey }) => {
-    const proximaRoutePrefix = `/project/${tenantKey}/workspaces/${workspaceKey}`;
+    const proximaRoutePrefix = `/${productPrefix}/${tenantKey}/workspaces/${workspaceKey}`;
     const giteeRoutePrefix = `/${tenantKey}/${workspaceKey}/proxima`;
 
     return {
