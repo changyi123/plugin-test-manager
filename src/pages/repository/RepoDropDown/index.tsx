@@ -22,9 +22,9 @@ const RepoDropDown = ({
   const menuClick = useCallback(
     async (key: string) => {
       if (key === 'import') {
-        const baseUrl = getProximaBasePath() ? getProximaBasePath() : '/';
+        const baseUrl = getProximaBasePath() ? `${getProximaBasePath()}` : '/';
         // 跳转到导入页面
-        const href = `${baseUrl}${getTenantKey()}/workspaces/${workspace.key}/import/${
+        const href = `${baseUrl}/${getTenantKey()}/workspaces/${workspace.key}/import/${
           workspace.objectId
         }?app=test_manager&&disableToggleWorkspace`;
         window.open(href);

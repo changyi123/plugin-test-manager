@@ -11,7 +11,7 @@ export const getTenantKey = () => {
 };
 /** 获取 proxima baseUrl */
 export const getProximaBasePath = () => {
-  return /^\/(project|proxima)\//.exec(window.location.pathname)?.[1] ?? '';
+  return /^(\/(?:project|proxima))\//.exec(window.location.pathname)?.[1] ?? '';
 };
 
 export const hasArrayItem = (arr?: unknown[]) => Boolean(Array.isArray(arr) && arr.length);
