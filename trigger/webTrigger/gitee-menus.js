@@ -15,7 +15,7 @@ const getWorkspaceKey = () => {
 };
 
 const getTenantKey = () => {
-  return global.applicationId ?? global.headers['x-proxima-tenant'] ?? ?? 'osc'
+  return global.applicationId ?? global.headers['x-proxima-tenant'] ?? 'osc';
 };
 
 /** 获取产品前缀 */
