@@ -80,30 +80,31 @@ export const useAllTestWorkspace = () => {
 };
 
 export const useGetTestRepoGroup = (rowData: any) => {
-  const { data } = useRequest(
+  const { data: repoMap, loading } = useRequest(
     async () => {
       if (!rowData?.workspaceKey) return null;
-
-      const repoMap = new Map();
-
       const repoData = await getRepositoryData([rowData?.workspaceKey]);
 
-      if (repoData) {
-        handleRroupPath(getRepoData(repoData))?.forEach(d => {
-          repoMap.set(d.objectId, d.path);
-        });
-      }
+      const repoMap = handleRroupPath(getRepoData(repoData)).reduce((prev, cur) => {
+        if (cur.objectId) {
+          prev[cur.objectId] = cur.path;
+        }
+        return prev;
+      }, {});
 
-      return repoMap.get(rowData.repository.objectId);
+      return repoMap;
     },
     {
-      cacheKey: `TextRepoGroup${rowData.workspaceKey}${rowData.repository?.objectId ?? ''}`,
+      cacheKey: `TextRepoGroup${rowData.workspaceKey}`,
+      refreshDeps: [rowData.workspaceKey],
       cacheTime: 99999999999,
       staleTime: 99999999999,
     },
   );
 
-  return data;
+  const data = repoMap?.[rowData.repository?.objectId ?? ''] ?? '未分组';
+
+  return { data, loading };
 };
 
 export const useGetUserNameByName = (name: string) => {

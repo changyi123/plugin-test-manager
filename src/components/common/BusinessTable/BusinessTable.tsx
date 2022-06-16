@@ -7,13 +7,12 @@ import { Resizable } from 'react-resizable';
 import { TableProps } from 'antd/lib/table';
 import ColumnSetting from './ColumnSetting';
 import TableSelection from './TableSelection';
-import { useSDK } from '@projectproxima/plugin-sdk';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import { generateStorageKey } from '@/lib/utils/helper';
 import { LibraryProvider } from '@projectproxima/components';
-import { PluginSDKContext } from '@projectproxima/plugin-sdk';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import { getRootContainer, hasArrayItem } from '@/lib/utils/helper';
+import { useSDK, PluginSDKContext } from '@projectproxima/plugin-sdk';
 import { useAntdTable, useLocalStorageState, useSize } from 'ahooks';
 
 import cx from './BusinessTable.less';
@@ -110,7 +109,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     ...restTableProps
   } = props;
 
-  const pluginSDKContext: any = useContext(PluginSDKContext);
+  const pluginSDKContext: any = React.useContext(PluginSDKContext);
 
   const currentPageRowsRef = React.useRef([]);
   const initialExpandedRef = React.useRef(false);
@@ -373,8 +372,8 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
         workspaceKey={workspace?.key}
         gatewayURL={proximaGatewayURL}
         getPopupContainer={getRootContainer}
-        applicationId={pluginSDKContext?.context?.env.PROXIMA_APP_ID ?? 'proxima-core'}
         sessionToken={pluginSDKContext?.context?.env.sessionToken ?? ''}
+        applicationId={pluginSDKContext?.context?.env.PROXIMA_APP_ID ?? 'proxima-core'}
       >
         <SelectionActionHeader />
         {ColumnSettingMemorizedNode}

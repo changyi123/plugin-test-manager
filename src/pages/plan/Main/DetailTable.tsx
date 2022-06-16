@@ -76,8 +76,10 @@ const DetailTable = () => {
           TestRelationType.PlanRelDetail,
           { from: selectedTestPlanId },
           {
+            include: ['repository'],
+            select: ['type', 'sortIndex', 'reference', 'repository', 'workspaceKey', 'createdAt'],
             // FIXME: 优化查询速度
-            // workspaceKey,
+            workspaceKey,
             fillItemData: true,
             nameLike: searchValue,
             queryParams: queryParams,
@@ -136,7 +138,7 @@ const DetailTable = () => {
         total,
       };
     },
-    [searchValue, selectedTestPlanId],
+    [searchValue, selectedTestPlanId, workspaceKey],
   );
 
   const removeTestRelation = React.useCallback(

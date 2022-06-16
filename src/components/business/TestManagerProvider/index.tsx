@@ -83,7 +83,7 @@ const getOrCreateTestEntity = async (
           fields: extraFields,
           itemId: item.objectId,
           workspaceKey: item?.workspace?.key,
-          repository: options.fields?.repository,
+          repository: options?.fields?.repository,
         },
       ]);
       // 重新查询 testEntity，保持返回数据一致

@@ -262,7 +262,7 @@ export const getTestEntitiesByRelationWithOrder = async <TResponseList extends a
   }
 
   if (hasArrayItem(select)) {
-    query.include(select);
+    query.select(select);
   }
 
   if (config.ascendingBy) {
