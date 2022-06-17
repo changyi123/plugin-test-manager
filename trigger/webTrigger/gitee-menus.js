@@ -59,7 +59,7 @@ const responser = async () => {
   const app = await appQuery
     .equalTo('key', APP_KEY)
     .include('workspaces')
-    .first()
+    .first(ParseBaseQueryOptions)
     .then(item => item.toJSON());
 
   const appRefWorkspaces = app.workspaces;

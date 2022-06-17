@@ -122,8 +122,6 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
     )
     .filter(item => item.options.length);
 
-  console.log('selectOptions', selectOptions);
-
   // 处理 fixed column 排列
   useDeepCompareEffect(() => {
     const systemColumns = allColumns.filter(col => col.isSystem);
