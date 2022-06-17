@@ -46,7 +46,7 @@ const openFolderNameModal: OpenFolderNameModal = ({ title, name }) => {
       content: input,
       getContainer: getRootContainer,
       async onOk() {
-        const inputValue = inputRef.state.value?.trim() ?? '';
+        const inputValue = inputRef.input.value?.trim() ?? '';
         if (!inputValue) {
           notification.error({
             message: '模块名不能为空',
