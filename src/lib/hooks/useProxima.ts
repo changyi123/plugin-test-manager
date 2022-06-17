@@ -3,7 +3,7 @@ import _ from 'lodash';
 import Parse from '@/lib/parse';
 import { SYSTEM_FIELD } from '@/lib/constants';
 import { useNoExpiredRequest } from './useRequest';
-import { Workspace, Screen, ItemTypeScreenSchemeMapping, WorkspaceScheme } from '@/lib/models';
+import { Workspace, Screen, ItemTypeScreenSchemeMapping } from '@/lib/models';
 
 /** 获取看板卡片渲染字段 props */
 export const useFieldsWithFieldCellProps = fields => {
@@ -103,19 +103,16 @@ export const useUsedScreenFieldKeys = (
   // 获取空间界面方案关联的全部方案
   const { data: itemUsedFieldKeyMapping } = useNoExpiredRequest(
     async () => {
-      const workspaceScheme = await new Parse.Query(WorkspaceScheme)
+      const workspace = await new Parse.Query(Workspace)
         .select(['itemTypeScreenScheme'])
         .include(['itemTypeScreenScheme.defaultScreenScheme'])
-        .matchesKeyInQuery(
-          'objectId',
-          'workspaceScheme',
-          new Parse.Query(Workspace).equalTo('key', workspaceKey),
-        )
-        .first();
+        .equalTo('key', workspaceKey)
+        .first()
+        .then(item => item.toJSON());
 
       const {
         itemTypeScreenScheme: { itemTypeScreenSchemeMappings, defaultScreenScheme },
-      } = workspaceScheme.toJSON();
+      } = workspace;
 
       const itemTypeKeyScreenSchemeMapping = {
         default: getScreenIdByScreenScheme(defaultScreenScheme),

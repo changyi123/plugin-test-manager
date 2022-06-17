@@ -101,18 +101,10 @@ export interface ItemTypeScreenScheme extends BaseParseObject, SimpleBaseInfo {
   itemTypeScreenSchemeMappings: ItemTypeScreenSchemeMapping[];
 }
 
-export interface WorkspaceScheme extends BaseParseObject, SimpleBaseInfo {
-  workflowScheme: WorkflowScheme;
-  itemTypeScheme: ItemTypeScheme;
-  itemTypeScreenScheme: ItemTypeScreenScheme;
-}
-
 export interface Workspace extends BaseParseObject, BaseInfo {
   name: string;
   // 这个字段已经没用了
   // itemTypes: ItemTypes;
-  workspaceScheme: WorkspaceScheme;
-  // 没有，迁移到了 WorkspaceScheme
   // itemTypeScheme: ItemTypeScheme;
   // itemTypeScreenScheme: ItemTypeScreenScheme;
   companyManaged?: boolean;
