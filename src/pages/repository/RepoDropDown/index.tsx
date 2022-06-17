@@ -2,7 +2,7 @@ import React, { useCallback } from 'react';
 import { Button, Dropdown, Menu, message, notification, Spin } from 'antd';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import importTestInfo, { TreeNode, downloadExampleFile } from './export';
-import { getProximaBasePath } from '@/lib/utils/helper';
+import { getProximaBasePath, getTenantKey } from '@/lib/utils/helper';
 
 const RepoDropDown = ({
   type,
@@ -22,9 +22,11 @@ const RepoDropDown = ({
   const menuClick = useCallback(
     async (key: string) => {
       if (key === 'import') {
-        const baseUrl = getProximaBasePath() ? getProximaBasePath() : '/';
+        const baseUrl = getProximaBasePath() ? `${getProximaBasePath()}` : '/';
         // 跳转到导入页面
-        const href = `${baseUrl}osc/workspaces/${workspace.key}/import/${workspace.objectId}?app=test_manager&&disableToggleWorkspace`;
+        const href = `${baseUrl}/${getTenantKey()}/workspaces/${workspace.key}/import/${
+          workspace.objectId
+        }?app=test_manager&&disableToggleWorkspace`;
         window.open(href);
       } else if (key === 'example') {
         downloadExampleFile();

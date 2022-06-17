@@ -22,6 +22,7 @@ type ColumnSettingProps = TitleCellOption & {
   name?: string;
   itemKey: string;
   className?: string;
+  defaultColumnKey?: string[];
   additionalColumns?: ColumnDuckTyping[];
   onTableColumnChange?: (column: ColumnDuckTyping) => void;
 };
@@ -31,6 +32,7 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
     className,
     additionalColumns = [],
     name,
+    defaultColumnKey,
     onTableColumnChange = noop,
     itemKey,
     titleCellOption,
@@ -67,12 +69,8 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
 
   const LOCAL_STORAGE_KEY = generateStorageKey(name, 'column-key');
 
-  const additionalNotSystemColumnKeys = additionalColumns
-    .filter(col => !col.isSystem)
-    .map(col => col.key);
-
   const [storageColumnKeys, setStorageColumnKeys] = useLocalStorageState(LOCAL_STORAGE_KEY, {
-    defaultValue: additionalNotSystemColumnKeys,
+    defaultValue: defaultColumnKey ?? [],
   });
 
   const memoizedAdditionalColumnKey = additionalColumns.map(col => col.key);
