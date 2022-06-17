@@ -18,6 +18,11 @@ const urlOptions = [
     label: '81.61 独立部署',
     value: 'http://192.168.81.61',
   },
+  {
+    env: 'single',
+    label: '48.29 验证',
+    value: 'http://192.168.48.29',
+  },
 ];
 
 const Dev: React.FC = () => {
