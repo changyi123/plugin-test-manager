@@ -15,7 +15,6 @@ import {
   getTestEntitiesByRelationWithOrder,
 } from '@/lib/api/common';
 import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
-import dayjs from 'dayjs';
 
 import cx from './DetailTable.less';
 import RepositoryGroup from '@/components/business/RepositoryGroup';
@@ -226,35 +225,11 @@ const DetailTable = () => {
       },
     },
     {
-      width: 120,
-      key: 'itemId',
-      title: '用例 ID',
-      render(_, rowData) {
-        return <span>{rowData?.reference?.key ?? ''}</span>;
-      },
-    },
-    {
       key: 'repositoryGroup',
       title: '所属模块',
       width: 240,
       render(_, rowData) {
         return <RepositoryGroup rowData={rowData}></RepositoryGroup>;
-      },
-    },
-    {
-      width: 120,
-      key: 'creater',
-      title: '创建人',
-      render(_, rowData) {
-        return <span>{rowData?.reference?.createdBy.nickname ?? ''}</span>;
-      },
-    },
-    {
-      width: 220,
-      key: 'createTime',
-      title: '创建时间',
-      render(_, rowData) {
-        return <span>{dayjs(rowData?.createdAt ?? '').format('YYYY-MM-DD HH:mm')}</span>;
       },
     },
     {
@@ -301,6 +276,14 @@ const DetailTable = () => {
         testType: 'TestDetail',
       }}
       useColumnSetting
+      defaultColumnKey={[
+        'key',
+        'repositoryGroup',
+        'latestStatus',
+        'times',
+        'createdBy',
+        'createdAt',
+      ]}
       rowKey="objectId"
       columns={columns}
       isCheck={isCheck}
