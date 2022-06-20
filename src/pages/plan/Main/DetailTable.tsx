@@ -79,7 +79,7 @@ const DetailTable = () => {
             include: ['repository'],
             select: ['type', 'sortIndex', 'reference', 'repository', 'workspaceKey', 'createdAt'],
             // FIXME: 优化查询速度
-            workspaceKey,
+            // workspaceKey,
             fillItemData: true,
             nameLike: searchValue,
             queryParams: queryParams,
