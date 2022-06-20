@@ -118,7 +118,7 @@ export const useUsedScreenFieldKeys = (
         default: getScreenIdByScreenScheme(defaultScreenScheme),
       };
 
-      if (itemTypeScreenSchemeMappings.length > 0) {
+      if (itemTypeScreenSchemeMappings?.length > 0) {
         const itemTypeMappings = await new Parse.Query(ItemTypeScreenSchemeMapping)
           .include(['itemType', 'screenScheme'])
           .select(['itemType', 'screenScheme'])

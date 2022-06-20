@@ -29,13 +29,13 @@ type ColumnSettingProps = TitleCellOption & {
 
 const ColumnSetting: React.FC<ColumnSettingProps> = props => {
   const {
-    className,
-    additionalColumns = [],
     name,
-    defaultColumnKey,
-    onTableColumnChange = noop,
     itemKey,
+    className,
     titleCellOption,
+    defaultColumnKey,
+    additionalColumns = [],
+    onTableColumnChange = noop,
   } = props;
   const [visible, setVisible] = React.useState(false);
   const keys = useTestTypeScreenFieldKeys(titleCellOption);
