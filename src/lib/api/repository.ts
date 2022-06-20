@@ -24,7 +24,7 @@ export const getRepositoryData = async (workspaceKeys: string[]) => {
 export const getFolderTree = async (workspaceKey: string) => {
   const repositoryObjects = await new Parse.Query(Repository)
     .equalTo('workspaceKey', workspaceKey)
-    .addAscending(['sortIndex', 'createdAt'])
+    .addAscending(['createdAt', 'sortIndex'])
     .limit(9999)
     .find();
 
