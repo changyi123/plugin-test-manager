@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useContext } from 'react';
+import React, { useMemo, useRef } from 'react';
 import { pick, isEqual } from 'lodash';
 import { getDevConfig } from '@/devEnv';
 import { TitleCellOption } from './type';
@@ -9,7 +9,7 @@ import ColumnSetting from './ColumnSetting';
 import TableSelection from './TableSelection';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import { generateStorageKey } from '@/lib/utils/helper';
-import { LibraryProvider } from '@projectproxima/components';
+import { LibraryProvider, useDataQuoteStore } from '@projectproxima/components';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import { getRootContainer, hasArrayItem } from '@/lib/utils/helper';
 import { useSDK, PluginSDKContext } from '@projectproxima/plugin-sdk';
@@ -191,6 +191,11 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     [antdTableProps.dataSource, props.dataSource],
   );
 
+  const referenceList = useMemo(
+    () => dataSource?.map(d => d?.reference).filter(Boolean),
+    [dataSource],
+  );
+
   React.useEffect(() => {
     const { pagination } = antdTableProps;
     // 处理删除分页数据错误场景
@@ -244,7 +249,10 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     };
   });
 
-  const SelectionActionHeader = () => {
+  const SelectionActionHeader = ({ referenceList = [] }) => {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    useDataQuoteStore(referenceList);
+
     if (!selectionMode) return null;
     const selectedRows = selectedRowKeys?.map(key =>
       dataSource.find(row => row[props.rowKey as any] === key),
@@ -375,7 +383,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
         sessionToken={pluginSDKContext?.context?.env.sessionToken ?? ''}
         applicationId={pluginSDKContext?.context?.env.PROXIMA_APP_ID ?? 'proxima-core'}
       >
-        <SelectionActionHeader />
+        <SelectionActionHeader referenceList={referenceList} />
         {ColumnSettingMemorizedNode}
         <Table
           sticky={true}
