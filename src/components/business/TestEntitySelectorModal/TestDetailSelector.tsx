@@ -21,6 +21,7 @@ import {
 } from '@/icons';
 
 import cx from './TestDetailSelector.less';
+import TestDetailsSelectorList from './TestDetailsSelectorList';
 
 const REQUEST_LIMIT = 20;
 
@@ -356,7 +357,8 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
                 />
               </div>
               <div className={cx('detail-selector-container')}>
-                <div className={cx('detail', 'header')}>
+                <TestDetailsSelectorList></TestDetailsSelectorList>
+                {/* <div className={cx('detail', 'header')}>
                   {!isSingleMode ? (
                     <Checkbox
                       disabled={!selectedNode?.testDetailIds.length}
@@ -426,7 +428,7 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
                   </ul>
                 ) : testDetailDataLoading ? null : (
                   <Empty style={{ paddingTop: 100 }} description="当前目录未关联测试用例" />
-                )}
+                )} */}
               </div>
             </div>
           ) : repositoryTreeDataLoading ? null : (
