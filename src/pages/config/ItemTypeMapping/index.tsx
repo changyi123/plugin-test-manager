@@ -1,9 +1,10 @@
 import React from 'react';
 import { TestType } from '@/lib/constants';
-import { Select, Button, message } from '@osui/ui';
+import { Select, Button, message } from 'antd';
 import { useRequest, useSafeState } from 'ahooks';
 import { useDataContext, useCurrentTestConfig } from '../hooks';
 import { getTopItemTypeFromHierarchy } from '@/lib/api/proxima';
+import { generateStaticFileUrl } from '@/lib/utils/helper';
 
 import cx from './index.less';
 
@@ -23,16 +24,17 @@ const TestTypes = [
 ];
 
 const ItemTypeMapping = () => {
-  const { workspace } = useDataContext();
+  const { workspace, globalConfig } = useDataContext();
+  const isolatedSystem = Boolean(globalConfig?.extra?.isolatedSystem);
   const workspaceKey = workspace?.key;
-  const itemTypeSchemeId = workspace?.workspaceScheme?.itemTypeScheme?.objectId;
+  const workspaceId = workspace?.objectId;
 
   const [topItemTypes, setTopItemTypes] = useSafeState([]);
   const [itemTypeMapping, setItemTypeMapping] = useSafeState({} as Record<TestType, string>);
 
-  useRequest(() => getTopItemTypeFromHierarchy(itemTypeSchemeId), {
-    ready: !!itemTypeSchemeId,
-    refreshDeps: [itemTypeSchemeId],
+  useRequest(() => getTopItemTypeFromHierarchy(workspaceId), {
+    ready: !!workspaceId,
+    refreshDeps: [workspaceId],
     onSuccess(itemTypes) {
       setTopItemTypes(itemTypes);
     },
@@ -45,20 +47,12 @@ const ItemTypeMapping = () => {
     setItemTypeMapping(data?.itemTypeMap ?? {});
   }, [setItemTypeMapping, testConfig]);
 
-  useRequest(() => getTopItemTypeFromHierarchy(itemTypeSchemeId), {
-    ready: !!itemTypeSchemeId,
-    refreshDeps: [itemTypeSchemeId],
-    onSuccess(itemTypes) {
-      setTopItemTypes(itemTypes);
-    },
-  });
-
   const renderItemTypeSelector = React.useCallback(
     type => {
       const options = topItemTypes.map(itemType => ({
         label: (
           <span className={cx('item-type-selector-label')}>
-            <img className={cx('icon')} src={itemType.icon}></img>
+            <img className={cx('icon')} src={generateStaticFileUrl(itemType.icon)}></img>
             <span>{itemType.name}</span>
           </span>
         ),
@@ -68,6 +62,7 @@ const ItemTypeMapping = () => {
       return (
         <Select
           options={options}
+          disabled={isolatedSystem}
           onChange={val => {
             setItemTypeMapping(prev => ({
               ...prev,
@@ -80,7 +75,7 @@ const ItemTypeMapping = () => {
         ></Select>
       );
     },
-    [topItemTypes, itemTypeMapping, setItemTypeMapping],
+    [topItemTypes, itemTypeMapping, isolatedSystem, setItemTypeMapping],
   );
 
   // 保存
@@ -101,7 +96,7 @@ const ItemTypeMapping = () => {
         </div>
       ))}
       <Button
-        disabled={Object.keys(itemTypeMapping).length === 0}
+        disabled={Object.keys(itemTypeMapping).length === 0 || isolatedSystem}
         type="primary"
         className={cx('action-btn')}
         onClick={handleSave}

@@ -1,0 +1,13 @@
+diff --git a/node_modules/antd/lib/tooltip/style/index-pure.less b/node_modules/antd/lib/tooltip/style/index-pure.less
+index b24c2f7..d37a895 100644
+--- a/node_modules/antd/lib/tooltip/style/index-pure.less
++++ b/node_modules/antd/lib/tooltip/style/index-pure.less
+@@ -84,7 +84,7 @@
+       // Use linear gradient to mix box shadow of tooltip inner
+       --antd-arrow-background-color: linear-gradient(
+         to right bottom,
+-        fadeout(@tooltip-bg, 10%),
++        fadeout(#000, 10%),
+         @tooltip-bg
+       );
+ 

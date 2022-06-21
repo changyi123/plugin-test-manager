@@ -1,12 +1,14 @@
+import { getTenantKey } from '@/lib/utils/helper';
 import { getParseReqHeader, getDevConfig } from '@/devEnv';
 let Parse;
 
-if (process.env.NODE_ENV === 'production' || process.env.PROXIMA_DEV_MODE === 'embed') {
+if (process.env.NODE_ENV === 'production' || window.__POWERED_BY_QIANKUN__) {
   Parse = window.QiankunProps?.Parse;
 } else {
   const { baseURL, env } = getDevConfig();
   Parse = typeof window === 'undefined' ? require('parse/node') : require('parse');
-  const PROXIMA_APP_ID = process.env.PROXIMA_APP_ID;
+  // dev 环境使用默认的 env PROXIMA_APP_ID
+  const PROXIMA_APP_ID = getTenantKey();
   // 和 one 集成环境需要添加 header
   if (env === 'one') {
     Parse?.CoreManager?.set('REQUEST_HEADERS', getParseReqHeader());

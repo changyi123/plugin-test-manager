@@ -1,19 +1,30 @@
 import React from 'react';
+// import { constant, uniq } from 'lodash';
 import { uniq } from 'lodash';
 import { useReactive, useDrop } from 'ahooks';
 import { TestType } from '@/lib/constants';
 import { hasArrayItem, getRootContainer } from '@/lib/utils/helper';
 import { createFolder, updateFolders, deleteFolder } from '@/lib/api/repository';
 import { useTestConfig, useBaseAction } from '@/lib/hooks/useContext';
-import { useTreeFn, traverseTreeNodes } from '../hook';
+import { traverseTreeNodes } from '../util';
+import { useTreeFn } from '../hook';
 import { MenuKey, FolderMenu } from '../Menu';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
-import { Tree, Button, Modal, Input, message, Empty, Dropdown } from '@osui/ui';
-import { CustomMore, CustomScreenOff, CustomPlus } from '@/icons';
+import { Tree, Button, Input, notification, Empty, Dropdown, Modal } from 'antd';
+import {
+  CustomMore,
+  CustomScreenOff,
+  CustomPlus,
+  CaretDownOutlined,
+  FileClose,
+  FileOpen,
+} from '@/icons';
+import { getTreeNodeByKey } from '../util';
 
-import { ROOT_FOLDER_KEY } from '../constant';
+import { UNGROUPED_FOLDER_KEY } from '../constant';
 
 import cx from './index.less';
+import { updateTestEntities } from '@/lib/api/common';
 
 const { DirectoryTree } = Tree;
 
@@ -35,13 +46,17 @@ const openFolderNameModal: OpenFolderNameModal = ({ title, name }) => {
       content: input,
       getContainer: getRootContainer,
       async onOk() {
-        const inputValue = inputRef.state.value?.trim() ?? '';
+        const inputValue = inputRef.input.value?.trim() ?? '';
         if (!inputValue) {
-          message.error('模块名不能为空');
+          notification.error({
+            message: '模块名不能为空',
+          });
           throw new Error('required name');
         }
         if (inputValue.length > 30) {
-          message.error('模块名最多30字符');
+          notification.error({
+            message: '模块名最多30字符',
+          });
           throw new Error('max length');
         }
         resolve(inputValue);
@@ -63,8 +78,9 @@ const DropTreeTitle = ({ children, nodeKey, onItemDrop }) => {
   const dragoverClassName = cx('ant-tree-treenode-dragover');
   useDrop(ref, {
     onDom(data, e) {
+      if (data.folderKey === nodeKey) return;
       onItemDrop({
-        itemId: data.itemId,
+        testId: data.testId,
         fromFolderKey: data.folderKey,
         toFolderKey: nodeKey,
       });
@@ -171,11 +187,13 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         });
         // 模块创建限制 5 个层级
         if (hierarchy >= 5) {
-          message.warn('限制5个层级，5个层级以上不能新建子模块');
+          notification.warn({
+            message: '限制5个层级，5个层级以上不能新建子模块',
+          });
           return;
         }
         const folderName = await openFolderNameModal({ title: '新建子模块' });
-        const parentId = node?.key === ROOT_FOLDER_KEY ? null : node?.key;
+        const parentId = node?.key === UNGROUPED_FOLDER_KEY ? null : node?.key;
         const createdFolder = await createFolder({
           name: folderName,
           workspaceKey: workspace?.key,
@@ -193,7 +211,9 @@ const FolderTree: React.FC<FolderTreeProps> = ({
             key: createdFolderKey,
           },
         });
-        message.success('子模块新建成功');
+        notification.success({
+          message: '子模块新建成功',
+        });
       } else if (actionKey === MenuKey.renameFolder) {
         const newFolderName = await openFolderNameModal({
           title: '重命名模块',
@@ -206,16 +226,21 @@ const FolderTree: React.FC<FolderTreeProps> = ({
             name: newFolderName,
           },
         ]);
-        message.success(`模块重命被为【${newFolderName}】`);
+        notification.success({
+          message: `模块重命被为【${newFolderName}】`,
+        });
       } else if (actionKey === MenuKey.deleteFolder) {
         Modal.confirm({
           className: cx('confirm'),
           getContainer: getRootContainer,
           title: '删除模块',
+          width: 500,
           content: (
             <>
               <div>确定删除【{node.name}】模块吗？</div>
-              <div>模块下的子模块将会一同删除，模块内的用例仍保留且自动移至未分组用例下。</div>
+              <div style={{ marginLeft: 14 }}>
+                模块下的子模块将会一同删除，模块内的用例仍保留且自动移至未分组用例下。
+              </div>
             </>
           ),
           okText: '删除',
@@ -229,13 +254,20 @@ const FolderTree: React.FC<FolderTreeProps> = ({
               keys.push(node.key);
             });
             await deleteFolder(keys);
-            message.success('模块删除成功');
-            onFolderTreeChange();
-            const parentNode = treeFn.getTreeNodeByKey(node.parentId);
+            notification.success({
+              message: '模块删除成功',
+            });
+            const refreshedTreeData = await onFolderTreeChange();
+            const parentNode = getTreeNodeByKey(refreshedTreeData, node.parentId);
             if (parentNode) {
               // 删除后选中模块置于被删除模块的父级
               handleSelect([node.parentId], {
                 node: parentNode,
+              });
+            } else {
+              // 当前模块无父级需要冲选择到新模块
+              handleSelect([UNGROUPED_FOLDER_KEY], {
+                node: getTreeNodeByKey(refreshedTreeData, UNGROUPED_FOLDER_KEY),
               });
             }
           },
@@ -247,19 +279,26 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         const { testEntity, item } = await createItemUseModal({
           type: TestType.TestDetail,
           extraData: {
+            fields: {
+              repository: node.key === UNGROUPED_FOLDER_KEY ? null : node.key,
+            },
             type: TestType.TestDetail,
             folderKey: node.key,
           },
         });
 
         console.info('itemCreated', item.objectId, node.key);
+        const testEntityData = testEntity.toJSON();
         // 创建的测试用例不在同一个空间
-        if (workspace?.key !== testEntity?.get('workspaceKey')) return;
+        if (workspace?.key !== testEntityData?.workspaceKey) return;
         // 只有测试用例需要被添加至测试用例仓库
-        if (testEntity?.get('type') !== TestType.TestDetail) return;
+        if (testEntityData.type !== TestType.TestDetail) return;
         // 修改 node，将创建成功的 itemKey 追加到 node 上
-        node.testDetailIds = (node.testDetailIds || []).concat(item.objectId);
+        node.testDetailIds = (node.testDetailIds || []).concat(testEntityData.objectId);
         await updateFolders([node]);
+        notification.success({
+          message: `测试用例【${testEntityData.reference.name}】新建成功`,
+        });
         onFolderTreeChange();
         handleSelect([node.key], {
           node: node,
@@ -285,7 +324,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
   const handleRightClick = React.useCallback(({ event, node }) => {
     event.preventDefault();
     // 所有案例无右侧菜单
-    if (node.key === ROOT_FOLDER_KEY) return;
+    if (node.key === UNGROUPED_FOLDER_KEY) return;
   }, []);
 
   const handleExpand = React.useCallback(
@@ -311,7 +350,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
   }, [treeData]);
 
   React.useEffect(() => {
-    if (!isEmptyFolderTree && !isInitialRef.current) {
+    if (treeData?.length && !isEmptyFolderTree && !isInitialRef.current) {
       isInitialRef.current = true;
       const node = treeData[0];
       // 默认展开模块第一层
@@ -363,7 +402,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
     />,
     <Dropdown
       key="更多"
-      disabled={selectedTreeNode?.key === ROOT_FOLDER_KEY}
+      disabled={selectedTreeNode?.key === UNGROUPED_FOLDER_KEY}
       overlay={
         <FolderMenu
           onClick={({ key }) => handleMenuClick(key, selectedTreeNode || {})}
@@ -371,32 +410,29 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         />
       }
     >
-      <CustomMore className={cx(selectedTreeNode?.key === ROOT_FOLDER_KEY && 'disabled')} />
+      <CustomMore className={cx(selectedTreeNode?.key === UNGROUPED_FOLDER_KEY && 'disabled')} />
     </Dropdown>,
   ];
 
   const handleItemDrop = React.useCallback(
-    async ({ itemId, toFolderKey, fromFolderKey }) => {
+    async ({ testId, toFolderKey, fromFolderKey }) => {
       if (fromFolderKey === toFolderKey) return;
       const sourceNode = treeFn.getTreeNodeByKey(fromFolderKey);
-      const targetNode = treeFn.getTreeNodeByKey(toFolderKey);
 
-      sourceNode.testDetailIds = sourceNode.testDetailIds.filter(id => id !== itemId);
-      targetNode.testDetailIds = uniq((targetNode.testDetailIds ?? []).concat(itemId));
+      await updateTestEntities([
+        {
+          objectId: testId,
+          // 未分组用例用力的 repository 為 null
+          repository: toFolderKey === UNGROUPED_FOLDER_KEY ? null : toFolderKey,
+        },
+      ]);
 
-      let needUpdatedFolders = [];
-      if (toFolderKey !== ROOT_FOLDER_KEY) {
-        needUpdatedFolders = needUpdatedFolders.concat(targetNode);
-      }
-      if (fromFolderKey !== ROOT_FOLDER_KEY) {
-        needUpdatedFolders = needUpdatedFolders.concat(sourceNode);
-      }
-
-      await updateFolders(needUpdatedFolders);
-
-      message.success('测试用例移动成功');
+      notification.success({
+        message: '测试用例移动成功',
+      });
 
       await onFolderTreeChange();
+      sourceNode.testDetailIds = sourceNode.testDetailIds.filter(id => id !== testId);
 
       handleSelect([sourceNode.key], {
         node: sourceNode,
@@ -413,7 +449,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
             <span className={cx('tree-node-name')}>{node.name}</span>
           </OverflowTooltip>
 
-          {node.key !== ROOT_FOLDER_KEY ? (
+          {node.key !== UNGROUPED_FOLDER_KEY ? (
             <>
               <span
                 className={cx('tree-node-length')}
@@ -422,7 +458,9 @@ const FolderTree: React.FC<FolderTreeProps> = ({
                 <CustomMore onClick={e => e.stopPropagation()} className={cx('tree-node-action')} />
               </Dropdown>
             </>
-          ) : null}
+          ) : (
+            <span className={cx('tree-node-length')}>{`${node.length[0]}`}</span>
+          )}
         </>
       </DropTreeTitle>
     ),
@@ -442,6 +480,8 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         onRightClick={handleRightClick}
         selectedKeys={state.selectedKeys}
         expandedKeys={state.expandedKeys}
+        icon={({ expanded }) => (expanded ? <FileOpen /> : <FileClose />)}
+        switcherIcon={<CaretDownOutlined style={{ color: '#878C96' }} />}
       />
       {EmptyNode}
     </div>

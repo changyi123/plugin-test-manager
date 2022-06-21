@@ -1,7 +1,7 @@
 import React, { useEffect, Suspense, useMemo } from 'react';
 import { getRootContainer } from '@/lib/utils/helper';
 import { PluginSDKContext } from '@projectproxima/plugin-sdk';
-import { ConfigProvider, message, notification } from '@osui/ui';
+import { message, notification, ConfigProvider } from 'antd';
 import { MemoryRouter, Switch, Route, useHistory, HashRouter } from 'react-router-dom';
 
 import zhCN from 'antd/lib/locale/zh_CN';
@@ -27,12 +27,16 @@ const GoPropsRoute = props => {
   const history = useHistory();
 
   useEffect(() => {
-    console.info('子应用接收route:', props?.route);
     // 跳转渲染指定的路由
     if (props?.route) {
       history.push(props?.route);
+    } else {
+      // 本地调试时用
+      if (props?.frame?.route && process.env.NODE_ENV === 'development') {
+        history.push(props?.frame?.route);
+      }
     }
-  }, [history, props?.route]);
+  }, [history, props?.frame?.route, props?.route]);
 
   return null;
 };
@@ -54,11 +58,11 @@ const App: React.FC = props => {
   return (
     <PluginSDKContext.Provider value={qiankunContextValue.sdk}>
       <ConfigProvider locale={zhCN} getPopupContainer={() => document.getElementById(rootElement)}>
-        {process.env.NODE_ENV === 'production' || process.env.PROXIMA_DEV_MODE === 'embed' ? (
+        {process.env.NODE_ENV === 'production' || window.__POWERED_BY_QIANKUN__ ? (
           <MemoryRouter>
             <GoPropsRoute {...props} />
             <Switch>
-              <Suspense fallback={<div>Loading...</div>}>
+              <Suspense fallback={null}>
                 {routes.map(({ path, component, exact }) => (
                   <Route path={path} component={component} exact={exact} key={path} />
                 ))}
@@ -68,7 +72,7 @@ const App: React.FC = props => {
         ) : (
           <HashRouter>
             <Switch>
-              <Suspense fallback={<div>Loading...</div>}>
+              <Suspense fallback={null}>
                 {routes.map(({ path, component, exact }) => (
                   <Route path={path} component={component} exact={exact} key={path} />
                 ))}

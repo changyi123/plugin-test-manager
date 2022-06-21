@@ -19,7 +19,9 @@
     "sourceType": "module"
   },
   "globals": {
-    "apis": "readonly"
+    "apis": "readonly",
+    "pgClient": "readonly",
+    "triggerParams": "readonly"
   },
   "rules": {
     "prettier/prettier": "error",
@@ -30,7 +32,7 @@
     "no-multiple-empty-lines": 1,
     "prefer-const": "error",
     "space-infix-ops": "error",
-    "no-unused-vars": "error",
+    "no-unused-vars": "off",
     "no-useless-escape": "off",
     "require-atomic-updates": "off",
     "react/prop-types": "off",

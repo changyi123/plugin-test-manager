@@ -7,6 +7,8 @@ import CloseMoreSVG from './svg/close-more.svg';
 import ScreenOffSVG from './svg/screen-off.svg';
 import PlusSVG from './svg/plus.svg';
 import DragHandlerSVG from './svg/drag-handler.svg';
+import FileOpenSVG from './svg/file-open.svg';
+import FileCloseSVG from './svg/file-close.svg';
 
 const CustomIconHOC = (
   component: IconComponentProps['component'],
@@ -23,3 +25,5 @@ export const CustomScreenOff = CustomIconHOC(ScreenOffSVG);
 export const CustomPlus = CustomIconHOC(PlusSVG);
 export const CloseMore = CustomIconHOC(CloseMoreSVG);
 export const DragHandler = CustomIconHOC(DragHandlerSVG);
+export const FileOpen = CustomIconHOC(FileOpenSVG);
+export const FileClose = CustomIconHOC(FileCloseSVG);

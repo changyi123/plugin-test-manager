@@ -1,202 +1,203 @@
 import React from 'react';
-import FolderTree from '@/pages/repository/FolderTree';
-
+import { pick } from 'lodash';
 import { getDevConfig } from '@/devEnv';
-import TestDetailTable from './TestDetailTable';
-import { useReactive, useRequest } from 'ahooks';
-import { getFolderTree } from '@/lib/api/repository';
-import { useSDK } from '@projectproxima/plugin-sdk';
-import { useTestConfig } from '@/lib/hooks/useContext';
-import PageLayout from '@/components/common/PageLayout';
-import { getTestEntitiesByQuery } from '@/lib/api/common';
-import TestManagerProvider from '@/components/common/TestManagerProvider';
-import { traverseTreeNodes, reverseTreeNodes } from './hook';
 import { TestType } from '@/lib/constants';
+import { useReactive, useRequest } from 'ahooks';
+import { useSDK } from '@projectproxima/plugin-sdk';
+import { getFolderTree } from '@/lib/api/repository';
+import { logPluginVersion } from '@/lib/utils/helper';
+import { useBaseAction } from '@/lib/hooks/useContext';
+import FolderTree from '@/pages/repository/FolderTree';
+import PageLayout from '@/components/common/PageLayout';
+import { AppstoreAddOutlined, FileClose } from '@/icons';
+import { Tooltip, Button, notification } from 'antd';
+import { getTestEntitiesByQuery } from '@/lib/api/common';
+import SearchInput from '@/components/business/SearchInput';
+import { useListener } from '@projectproxima/proxima-sdk-js';
+import ErrorBoundary from '@/components/common/ErrorBoundary';
+import TestDetailTable, { ActionType } from './TestDetailTable';
+import OverflowTooltip from '@/components/common/OverflowTooltip';
+import TestManagerProvider from '@/components/business/TestManagerProvider';
+import { reverseTreeNodes, getTreeNodeByKey, appendGroupedDetailIdsToTreeNode } from './util';
 
-import { Breadcrumb, Input } from '@osui/ui';
-import { FileTextOutlined } from '@/icons';
-
-import { ROOT_FOLDER_KEY } from './constant';
+import { UNGROUPED_FOLDER_KEY } from './constant';
+import RepoDropDown from './RepoDropDown';
 
 import cx from './index.less';
 
+logPluginVersion();
+
 const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) => {
-  const initialRef = React.useRef(false);
-  const [folderTreeData, setFolderTreeData] = React.useState([]);
-  const { config } = useTestConfig();
+  const tableActionRef = React.useRef<ActionType>();
+  const { createItemUseModal } = useBaseAction();
+
+  // 事项数据更新后刷新列表
+  useListener('updateItemList', () => {
+    setTimeout(() => {
+      tableActionRef.current.refresh();
+    }, 400);
+  });
 
   const state = useReactive({
-    pagination: {
-      offset: 0,
-      limit: 20,
-    },
-    total: 20,
-    items: [],
-    breadcrumb: [],
+    breadcrumbs: [],
     searchValue: '',
     testDetailIds: [],
-    isRootFolder: false,
     selectedFolderKey: '',
+    tableSelectionVisible: false,
   });
 
-  const { run: fetchItems, loading: tableLoading } = useRequest(getTestEntitiesByQuery, {
-    manual: true,
-    onSuccess(data) {
-      state.items = data.results;
-      state.total = data.count;
-    },
-  });
+  const {
+    data: folderTreeData = [],
+    loading: folderTreeLoading,
+    refreshAsync: refreshFolderTree,
+  } = useRequest(
+    async () => {
+      // 获取当前空间内所有的测试实体
+      const getAllTestDetailEntityIds = async workspaceKey => {
+        const { results: data } = await getTestEntitiesByQuery(
+          {
+            type: TestType.TestDetail,
+            workspaceKey,
+          },
+          {
+            limit: 99999,
+            include: [],
+            select: ['objectId', 'repository'],
+          },
+        );
 
-  const { loading: folderTreeLoading, refreshAsync: refreshFolderTree } = useRequest(
-    () => getFolderTree(workspaceKey),
-    {
-      ready: !!workspaceKey,
-      onSuccess(data) {
-        setFolderTreeData(data);
-      },
-    },
-  );
-
-  // 获取 item
-  const fetchFolderItems = React.useCallback(() => {
-    if (state.isRootFolder) {
-      let excludeItemId = [];
-      traverseTreeNodes(folderTreeData, node => {
-        excludeItemId = excludeItemId.concat(node.testDetailIds);
-      });
-
-      fetchItems(
-        {
-          workspaceKey,
-          notIn: excludeItemId,
-          type: TestType.TestDetail,
-          nameLike: state.searchValue,
-        },
-        {
-          ...state.pagination,
-          ascendingKeys: state.isRootFolder ? ['createdAt'] : null,
-        },
-      );
-    } else {
-      fetchItems({
-        workspaceKey,
-        in: state.testDetailIds,
-        type: TestType.TestDetail,
-        nameLike: state.searchValue,
-      });
-    }
-  }, [
-    state.isRootFolder,
-    state.pagination,
-    state.searchValue,
-    state.testDetailIds,
-    folderTreeData,
-    fetchItems,
-    workspaceKey,
-  ]);
-
-  const handlePageChange = React.useCallback(
-    (currentPage, limit) => {
-      state.pagination = {
-        offset: (currentPage - 1) * limit,
-        limit,
+        return data.map(item => pick(item, ['objectId', 'repository']));
       };
-      fetchFolderItems();
+
+      const [treeNodes, allTestDetailIds] = await Promise.all([
+        getFolderTree(workspaceKey),
+        getAllTestDetailEntityIds(workspaceKey),
+      ]);
+
+      const ungroupedDetailIds = appendGroupedDetailIdsToTreeNode(treeNodes, allTestDetailIds);
+
+      const RootFolder = {
+        key: UNGROUPED_FOLDER_KEY,
+        name: '未分组用例',
+        title: '未分组用例',
+        parentId: null,
+        testDetailIds: ungroupedDetailIds,
+        icon: <FileClose />,
+        children: [],
+      };
+
+      return [RootFolder].concat(treeNodes);
     },
-    [fetchFolderItems, state],
+    {
+      ready: Boolean(workspaceKey),
+    },
   );
 
-  React.useEffect(() => {
-    if (workspaceKey && config.itemTypeMap?.TestDetail && !initialRef.current) {
-      initialRef.current = true;
-      fetchFolderItems();
-    }
-  }, [config.itemTypeMap?.TestDetail, fetchFolderItems, workspaceKey]);
-
-  const treeNodeData = React.useMemo(() => {
-    const rootFolder = {
-      key: ROOT_FOLDER_KEY,
-      name: '未分组用例',
-      title: '未分组用例',
-      parentId: null,
-      testDetailIds: [],
-      icon: <FileTextOutlined />,
-      // 测试案例库有且只有一个根模块
-      children: [],
-    };
-    return [rootFolder].concat(folderTreeData);
-  }, [folderTreeData]);
-
-  const handleSelect = React.useCallback(
-    node => {
-      if (state.selectedFolderKey !== node?.key) {
-        // 重置分页参数
-        state.pagination = {
-          ...state.pagination,
-          offset: 0,
-        };
-      }
-
-      state.selectedFolderKey = node.key;
-      const testDetailIds = node.testDetailIds;
-      state.testDetailIds = testDetailIds;
-      state.isRootFolder = node.key === ROOT_FOLDER_KEY;
+  const handleTreeSelect = React.useCallback(
+    selectedNode => {
       const breadcrumbs = [];
-      reverseTreeNodes(treeNodeData, node, n => {
-        breadcrumbs.unshift(n.name);
+      reverseTreeNodes(folderTreeData, selectedNode, node => {
+        breadcrumbs.unshift(node.name ?? node.title);
       });
-      state.breadcrumb = breadcrumbs;
-      // 第一次使用 useEffect 请求
-      if (!initialRef.current) return;
-      fetchFolderItems();
+      state.breadcrumbs = breadcrumbs;
+      state.testDetailIds = selectedNode.testDetailIds;
+      state.selectedFolderKey = selectedNode.key;
     },
-    [fetchFolderItems, state, treeNodeData],
+    [folderTreeData, state],
   );
+
+  const handleDataChange = React.useCallback(async () => {
+    const treeData = await refreshFolderTree();
+    const selectedFolder = getTreeNodeByKey(treeData, state.selectedFolderKey);
+    if (selectedFolder) {
+      state.testDetailIds = selectedFolder.testDetailIds;
+    }
+  }, [refreshFolderTree, state]);
+
+  const toggleSelection = (visible?: boolean) => {
+    visible = typeof visible === 'boolean' ? visible : !state.tableSelectionVisible;
+    state.tableSelectionVisible = visible;
+    tableActionRef.current.toggleSelection(visible);
+  };
+
+  const createTestDetail = async () => {
+    const { testEntity: testDetailEntity } = await createItemUseModal({
+      type: TestType.TestDetail,
+      extraData: {
+        fields: {
+          repository:
+            state.selectedFolderKey === UNGROUPED_FOLDER_KEY ? null : state.selectedFolderKey,
+        },
+      },
+    });
+
+    const testDetailData = testDetailEntity.toJSON();
+    // TODO: 创建时加入到测试执行中
+
+    notification.success({
+      message: `测试用例【${testDetailData.reference.name}】新建成功`,
+    });
+    tableActionRef.current.refresh();
+    handleDataChange();
+  };
 
   return (
     <PageLayout className={cx('test-repository')}>
       <PageLayout.Header>
-        <header className={cx('header')}>测试用例仓库</header>
+        <header className={cx('header')}>测试用例库</header>
       </PageLayout.Header>
       <PageLayout.Left>
         <FolderTree
-          onSelect={handleSelect}
+          onSelect={handleTreeSelect}
           loading={folderTreeLoading}
-          treeNodeData={treeNodeData}
+          treeNodeData={folderTreeData}
           onFolderTreeChange={refreshFolderTree}
         />
       </PageLayout.Left>
       <PageLayout.Right>
         <div className={cx('breadcrumb-container')}>
-          <Breadcrumb
-            className={cx('breadcrumb')}
-            separator={<span className={cx('separator')}>&gt;</span>}
-          >
-            {state.breadcrumb.map((title, index) => (
-              <Breadcrumb.Item
-                className={cx(index !== state.breadcrumb.length - 1 && 'secondary')}
-                key={title}
-              >
-                {title}
-              </Breadcrumb.Item>
-            ))}
-          </Breadcrumb>
-          <Input.Search
-            className={cx('search')}
-            placeholder="请输入关键字"
-            style={{ width: 200 }}
-            value={state.searchValue}
-            onSearch={fetchFolderItems}
-            onChange={e => (state.searchValue = e.target.value)}
-          />
+          <OverflowTooltip title={state.breadcrumbs.join('>')} className={cx('breadcrumb')}>
+            <div>
+              {state.breadcrumbs.map((title, index) => (
+                <span
+                  className={cx(index !== state.breadcrumbs.length - 1 && 'secondary')}
+                  key={index}
+                >
+                  {title}
+                  {index !== state.breadcrumbs.length - 1 && (
+                    <span className={cx('separator')}>&gt;</span>
+                  )}
+                </span>
+              ))}
+            </div>
+          </OverflowTooltip>
+          <div className={cx('actions')}>
+            <SearchInput onSearch={value => (state.searchValue = value as any)} />
+            <Tooltip title="多选操作">
+              <AppstoreAddOutlined
+                onClick={() => toggleSelection()}
+                className={cx('action', 'selection', state.tableSelectionVisible && 'active')}
+              />
+            </Tooltip>
+            <span className={cx('line')} />
+            <Button type="primary" onClick={createTestDetail} className={cx('action')}>
+              新建测试用例
+            </Button>
+            <RepoDropDown
+              type="repository"
+              folderKey={state.selectedFolderKey}
+              treeNodeData={folderTreeData}
+            />
+          </div>
         </div>
-        <div className={cx('table-container')}>
+        <div className={cx('table-container')} style={{ height: 'calc(100% - 55px)' }}>
           <TestDetailTable
-            total={state.total}
-            loading={tableLoading}
-            dataSource={state.items}
-            onPageChange={handlePageChange}
-            selectedFolderKey={state.selectedFolderKey}
+            actionRef={tableActionRef}
+            onDataChange={handleDataChange}
+            searchValue={state.searchValue}
+            testDetailIds={state.testDetailIds}
+            folderKey={state.selectedFolderKey}
+            onSelectionCancel={() => toggleSelection(false)}
           />
         </div>
       </PageLayout.Right>
@@ -206,11 +207,14 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
 
 const TestRepositoryPage = () => {
   const { context } = useSDK();
+
   const workspaceKey = context?.env?.WORKSPACE_KEY ?? getDevConfig().workspaceKey;
   return (
-    <TestManagerProvider workspaceKey={workspaceKey}>
-      <TestRepository workspaceKey={workspaceKey} />
-    </TestManagerProvider>
+    <ErrorBoundary>
+      <TestManagerProvider workspaceKey={workspaceKey}>
+        <TestRepository workspaceKey={workspaceKey} />
+      </TestManagerProvider>
+    </ErrorBoundary>
   );
 };
 

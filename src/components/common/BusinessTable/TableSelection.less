@@ -1,0 +1,54 @@
+@import '@/index.global.less';
+
+@selection-color: #999;
+
+.table-selection {
+  height: 100%;
+  display: flex;
+  padding: 0 24px;
+  align-items: center;
+  color: @selection-color;
+
+  &.table-expandable {
+    margin-left: 48px;
+  }
+
+  .select {
+    flex: none;
+  }
+
+  .checkbox {
+    margin-right: 22px;
+  }
+
+  .num {
+    color: @highlight-color;
+  }
+
+  .line {
+    width: 1px;
+    height: 20px;
+    margin: 0 12px;
+    background-color: @selection-color;
+  }
+
+  .action {
+    flex: none;
+    cursor: pointer;
+    & + .action {
+      margin-left: 10px;
+    }
+  }
+
+  .cancel {
+    cursor: pointer;
+    margin-left: auto;
+  }
+
+  :global {
+    .field-cell-layout {
+      flex: none;
+      max-width: 90px;
+    }
+  }
+}

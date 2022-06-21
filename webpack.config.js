@@ -5,7 +5,7 @@ const LessPluginFunctions = require('less-plugin-functions');
 const SpeedMeasurePlugin = require('speed-measure-webpack-plugin');
 const hasha = require('hasha');
 const autoprefixer = require('autoprefixer');
-const namespacePefixer = require('postcss-selector-namespace');
+const namespacePrefix = require('postcss-selector-namespace');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const WebpackBar = require('webpackbar');
 const webpack = require('webpack');
@@ -14,15 +14,16 @@ require('dotenv').config();
 const smp = new SpeedMeasurePlugin();
 
 const distOutputPath = 'dist';
-const appPerfix = 'test-manager';
+const appPrefix = 'test-manager';
 
 // 环境变量
-function resolveClientEnv(raw) {
+function resolveClientEnv(raw, cliEnv) {
   const prefixRE = /^PROXIMA_/;
+  const assignedEnv = Object.assign({}, cliEnv, process.env);
   const env = {};
-  Object.keys(process.env).forEach(key => {
+  Object.keys(assignedEnv).forEach(key => {
     if (prefixRE.test(key) || key === 'NODE_ENV') {
-      env[key] = process.env[key];
+      env[key] = assignedEnv[key];
     }
   });
 
@@ -45,19 +46,19 @@ const outputConfig = isProd =>
         filename: 'js/[name].[chunkhash].min.js',
         path: path.resolve(__dirname, distOutputPath),
         publicPath: './',
-        library: appPerfix,
+        library: appPrefix,
         libraryTarget: 'umd',
       }
     : {
         filename: 'main.js',
         path: path.resolve(__dirname, distOutputPath),
         publicPath: '/',
-        library: appPerfix,
+        library: appPrefix,
         libraryTarget: 'umd',
       };
 
 const getLocalIdent = ({ resourcePath }, localIdentName, localName) => {
-  if (localName === appPerfix) {
+  if (localName === appPrefix) {
     return localName;
   }
   if (/\.global\.(css|less)$/.test(resourcePath) || /node_modules/.test(resourcePath)) {
@@ -118,19 +119,25 @@ module.exports = (cliEnv = {}, argv) => {
     },
   };
 
-  const postcssLoaderConfig = {
-    loader: 'postcss-loader',
-    options: {
-      postcssOptions: {
-        plugins: [
-          namespacePefixer({
-            namespace: `#${appPerfix}`,
-          }),
-          autoprefixer,
-        ],
+  const getPostcssLoaderConfig = useNamespace => {
+    let plugins = [autoprefixer];
+    if (useNamespace) {
+      plugins = plugins.concat(
+        namespacePrefix({
+          namespace: `#${appPrefix}`,
+        }),
+      );
+    }
+    return {
+      loader: 'postcss-loader',
+      options: {
+        postcssOptions: {
+          plugins,
+        },
       },
-    },
+    };
   };
+
   const webpackConfig = {
     entry: './src/index.tsx',
     mode: isProd ? 'production' : 'development',
@@ -163,6 +170,7 @@ module.exports = (cliEnv = {}, argv) => {
       extensions: ['.js', '.css', '.jsx', '.tsx', '.ts'],
       alias: {
         '@': path.resolve(__dirname, 'src/'),
+        parse: path.resolve(__dirname, './node_modules/parse'),
         react: path.resolve(__dirname, './node_modules/react'),
         'react-dom': path.resolve(__dirname, './node_modules/react-dom'),
       },
@@ -175,6 +183,7 @@ module.exports = (cliEnv = {}, argv) => {
         http: false,
         https: false,
         child_process: false,
+        crypto: false,
       },
     },
     devServer: {
@@ -198,12 +207,12 @@ module.exports = (cliEnv = {}, argv) => {
     },
     plugins: [
       new WebpackBar(),
-      new webpack.DefinePlugin({ ...resolveClientEnv() }),
+      new webpack.DefinePlugin({ ...resolveClientEnv(false, cliEnv) }),
       new HtmlWebpackPlugin({
         template: path.resolve(__dirname, 'public/index.html'),
         filename: 'index.html',
         inject: true,
-        templateParameters: () => resolveClientEnv(true),
+        templateParameters: () => resolveClientEnv(true, cliEnv),
       }),
       isProd &&
         new MiniCssExtractPlugin({
@@ -232,13 +241,28 @@ module.exports = (cliEnv = {}, argv) => {
         },
         {
           test: /\.css/,
+          include: [path.resolve(__dirname, 'node_modules/@projectproxima/components/dist')],
+          use: [
+            classNamesConfig,
+            extractOrStyleLoaderConfig,
+            'css-loader',
+            getPostcssLoaderConfig(false),
+          ],
+        },
+        {
+          test: /\.css/,
           include: [
             path.resolve(__dirname, 'src'),
             path.resolve(__dirname, 'node_modules/antd/'),
             path.resolve(__dirname, 'node_modules/@osui'),
             path.resolve(__dirname, 'node_modules/github-markdown-css'),
           ],
-          use: [classNamesConfig, extractOrStyleLoaderConfig, 'css-loader', postcssLoaderConfig],
+          use: [
+            classNamesConfig,
+            extractOrStyleLoaderConfig,
+            'css-loader',
+            getPostcssLoaderConfig(true),
+          ],
         },
         {
           test: /\.less$/,
@@ -246,7 +270,7 @@ module.exports = (cliEnv = {}, argv) => {
             classNamesConfig,
             extractOrStyleLoaderConfig,
             cssLoaderConfig,
-            postcssLoaderConfig,
+            getPostcssLoaderConfig(true),
             lessLoaderConfig,
             makeStyleResourcesLoader([
               path.resolve(__dirname, 'node_modules/@osui/theme/dist/antd-vars-patch.less'),

@@ -1,0 +1,37 @@
+:root {
+  :global {
+    .test-step-field {
+      font-size: 14px;
+      &.input {
+        white-space: pre-line;
+        user-modify: read-write-plaintext-only;
+        -webkit-user-modify: read-write-plaintext-only;
+        height: 100%;
+        text-align: left;
+        outline: none;
+        margin-bottom: -2px;
+        border-radius: 0;
+        background-color: transparent;
+        // height: 100%;
+        border: none;
+        border-bottom: 2px solid transparent;
+        word-break: break-all;
+        cursor: text;
+        padding: 8px;
+        width: 100%;
+        &.hover,
+        &:focus {
+          border-color: #4b8bff;
+        }
+        &[placeholder]:empty:before {
+          content: attr(placeholder);
+          color: #ccc;
+        }
+
+        &[placeholder]:empty:focus:before {
+          content: '';
+        }
+      }
+    }
+  }
+}

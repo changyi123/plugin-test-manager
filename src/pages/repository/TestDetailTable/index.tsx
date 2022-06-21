@@ -1,118 +1,275 @@
 import React from 'react';
-import { Table } from '@osui/ui';
 import { useDrag } from 'ahooks';
-import { ColumnProps } from 'antd/lib/table';
+import { TestType } from '@/lib/constants';
+import { deleteItems } from '@/lib/api/proxima';
+import { notification, Tooltip } from 'antd';
+import { updateFolders } from '@/lib/api/repository';
+import { UserCell } from '@projectproxima/components';
+import { updateItemAssignee } from '@/lib/api/proxima';
+import { useTestConfig } from '@/lib/hooks/useContext';
+import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import { DeleteOutlined, UserOutlined, SwitcherOutlined, DragHandler } from '@/icons';
+import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
+import { deleteTestEntities, getTestEntitiesByQuery, cloneTestEntities } from '@/lib/api/common';
+import { useUserCellUserDataProp } from '@/lib/hooks/useProxima';
 
-type TestDetailTableProps = {
-  total: number;
-  dataSource: any[];
-  loading?: boolean;
-  selectedFolderKey?: string;
-  onPageChange?: (current: number, pageSize: number) => void;
+import cx from './index.less';
+
+import RepositorySelector, {
+  ActionType as RepositorySelectorActionType,
+} from '@/components/business/RepositorySelector';
+import RepositoryGroup from '@/components/business/RepositoryGroup';
+
+const RowDragHandler = data => {
+  const ref = React.useRef();
+  useDrag(data, ref, {
+    onDragStart(e) {
+      const dragElem = Array.from(
+        document
+          .querySelector(`[data-row-key="${data.testId}"]`)
+          ?.querySelectorAll('.ant-table-cell') ?? [],
+      ).find(dom => dom.querySelector(`[data-element-id="row-title"]`));
+
+      e.dataTransfer.setDragImage(dragElem, 0, 0);
+    },
+  });
+  return (
+    <Tooltip overlayClassName={cx('tooltip')} title="拖动至用例分组">
+      <span ref={ref}>
+        <DragHandler />
+      </span>
+    </Tooltip>
+  );
 };
 
-const TestDetailTable: React.FC<TestDetailTableProps> = ({
-  total,
-  loading,
-  dataSource,
-  onPageChange,
-  selectedFolderKey,
-}) => {
-  const [pagination, setPagination] = React.useState({
-    current: 1,
-    pageSize: 20,
-  });
-  React.useEffect(() => {
-    setPagination(prev => ({
-      ...prev,
-      current: 1,
-    }));
-  }, [selectedFolderKey]);
-  // BodyRow component
-  const BodyRow = props => {
-    // 只有 data-row 可以拖拽, placeholder node 不能拖拽
-    const DataRowComponent = props => {
-      const ref = React.useRef(null);
-      useDrag(
+export type ActionType = BusinessTableActionType;
+
+type TestDetailTableProps = {
+  folderKey?: string;
+  searchValue?: string;
+  testDetailIds?: string[];
+  onDataChange?: () => void;
+  onSelectionCancel?: () => void;
+  actionRef?: React.ForwardedRef<ActionType>;
+};
+
+const TestDetailTable: React.FC<TestDetailTableProps> = props => {
+  const { searchValue, onDataChange, actionRef, onSelectionCancel, testDetailIds, folderKey } =
+    props;
+  const tableActionRef = React.useRef<BusinessTableActionType>();
+  const repositorySelectorRef = React.useRef<RepositorySelectorActionType>();
+  const [tableLoading, setTableLoading] = React.useState(false);
+
+  const [isCheck, setIsCheck] = React.useState(false);
+
+  const { workspace } = useTestConfig();
+  const workspaceKey = workspace?.key;
+
+  const userData = useUserCellUserDataProp(workspaceKey);
+
+  React.useImperativeHandle(actionRef, () => tableActionRef.current);
+
+  const dataSourceGetter = React.useCallback(
+    async paginationParams => {
+      if (!workspaceKey) return null;
+      setTableLoading(true);
+      const data = await getTestEntitiesByQuery(
         {
-          folderKey: selectedFolderKey,
-          itemId: props['data-row-key'],
+          workspaceKey,
+          nameLike: searchValue,
+          in: testDetailIds ?? [],
+          type: TestType.TestDetail,
         },
-        ref,
+        paginationParams,
       );
-      return <tr ref={ref} {...props} />;
-    };
+      setTableLoading(false);
 
-    const isDataRow = props['data-row-key'] != null;
-    return isDataRow ? <DataRowComponent {...props} /> : <tr {...props} />;
-  };
-
-  const handlePageChange = React.useCallback(
-    (current, pageSize) => {
-      setPagination({
-        current,
-        pageSize,
-      });
-      onPageChange(current, pageSize);
+      return {
+        // 加拖拽依赖的 folderKey 数据
+        list: data.results.map(item => ({ ...item, folderKey })),
+        total: data.count,
+      };
     },
-    [onPageChange],
+    [workspaceKey, testDetailIds, searchValue, folderKey],
   );
 
-  const components = {
-    body: {
-      row: BodyRow,
-    },
-  };
+  const refreshAndMutateData = React.useCallback(async () => {
+    setTableLoading(true);
+    await onDataChange?.();
+    setTimeout(() => tableActionRef.current?.refresh());
+    setTableLoading(false);
+  }, [onDataChange]);
 
-  const columns: ColumnProps<any>[] = [
-    {
-      title: '事项ID',
-      key: 'key',
-      render(_, record) {
-        return record.reference.key;
+  const selectionActionNodes = React.useMemo(() => {
+    const deleteTestDetail = () => {
+      const testDetailIds = tableActionRef.current.selectedRows.map(row => row.objectId);
+      const itemIds = tableActionRef.current.selectedRows
+        .map(row => row.reference?.objectId)
+        .filter(Boolean);
+
+      actionConfirm('该操作会将所选的测试用例删除，是否继续操作？', async () => {
+        await Promise.all([deleteTestEntities(testDetailIds), deleteItems(itemIds)]);
+        refreshAndMutateData();
+
+        notification.success({
+          message: `${tableActionRef.current.selectedRows.length} 个测试用例已被删除`,
+        });
+        tableActionRef.current.resetSelectedRows();
+      });
+    };
+
+    // 更新负责人
+    const toggleAssignee = async assignees => {
+      setTableLoading(true);
+      const itemIds = tableActionRef.current.selectedRows
+        .map(row => row.reference?.objectId)
+        .filter(Boolean);
+      await updateItemAssignee(itemIds, assignees);
+
+      setTimeout(() => {
+        refreshAndMutateData();
+      }, 1000);
+
+      notification.success({
+        message: `${tableActionRef.current.selectedRows.length} 个测试负责人已更新`,
+      });
+      setTableLoading(false);
+    };
+
+    // 复制测试用例 本期不上
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const copyTestDetail = async () => {
+      const testEntityIds = tableActionRef.current.selectedRows.map(row => row.objectId);
+      const targetRepository = await repositorySelectorRef.current.open({ workspaceKey });
+      const clonedTestEntities = await cloneTestEntities(testEntityIds);
+      const cloneTestEntityIds = clonedTestEntities.map(item => item.toJSON().objectId);
+      await updateFolders([
+        {
+          key: targetRepository.repositoryKey,
+          testDetailIds: targetRepository.testDetailIds.concat(cloneTestEntityIds),
+        },
+      ]);
+      if (targetRepository.workspaceKey === workspaceKey) {
+        refreshAndMutateData();
+      }
+    };
+
+    return [
+      <UserCell
+        value={[]}
+        key="assignee"
+        mode="multiple"
+        readonly={!isCheck}
+        userData={userData}
+        onChange={toggleAssignee}
+        emptyChild={
+          <span>
+            <UserOutlined /> 设置负责人
+          </span>
+        }
+      />,
+      // <span key="copy" onClick={isCheck && copyTestDetail}>
+      //   <SwitcherOutlined /> 复制
+      // </span>,
+      <span key="delete" onClick={isCheck ? deleteTestDetail : undefined}>
+        <DeleteOutlined /> 删除
+      </span>,
+    ];
+  }, [isCheck, tableActionRef, userData, refreshAndMutateData, workspaceKey]);
+
+  const columns = React.useMemo(() => {
+    const deleteTestDetail = data => {
+      actionConfirm('该操作会将当前测试用例删除，是否继续操作？', async () => {
+        await Promise.all([
+          deleteTestEntities([data.objectId]),
+          deleteItems([data.reference?.objectId]),
+        ]);
+        refreshAndMutateData();
+        notification.success({
+          message: '测试用例删除成功',
+        });
+      });
+    };
+
+    return [
+      {
+        width: 40,
+        key: `move`,
+        isSystem: true,
+        shouldCellUpdate: (record, prevRecord) => record.folderKey !== prevRecord.folderKey,
+        render(_, rowData) {
+          const folderKey = rowData.folderKey;
+          return <RowDragHandler folderKey={folderKey} testId={rowData.objectId} />;
+        },
       },
-    },
-    {
-      title: '标题',
-      key: 'name',
-      render(_, record) {
-        return record.reference.name;
+      {
+        width: 160,
+        key: 'title',
+        title: '标题',
+        isSystem: true,
+        render(_, rowData) {
+          const itemData = rowData.reference ?? {};
+          return (
+            <span
+              data-element-id="row-title"
+              style={{ cursor: 'pointer' }}
+              onClick={() => openItemViewScreen(itemData.objectId)}
+            >
+              {itemData.name}
+            </span>
+          );
+        },
       },
-    },
-    {
-      title: '状态',
-      key: 'status',
-      render() {
-        return null;
+      {
+        key: 'repositoryGroup',
+        title: '所属模块',
+        width: 200,
+        render(_, rowData) {
+          return <RepositoryGroup rowData={rowData}></RepositoryGroup>;
+        },
       },
-    },
-    {
-      title: '执行人',
-      key: '',
-      render() {
-        return null;
+      {
+        title: null,
+        key: 'action',
+        isSystem: true,
+        fixed: 'right' as any,
+        render(_, rowData) {
+          return (
+            <>
+              <a style={{ marginRight: 10 }} onClick={() => deleteTestDetail(rowData)}>
+                删除
+              </a>
+            </>
+          );
+        },
       },
-    },
-  ];
+    ];
+  }, [refreshAndMutateData]);
+
   return (
-    <Table
-      sticky
-      loading={loading}
-      components={components}
-      pagination={{
-        ...pagination,
-        total,
-        size: 'small',
-        defaultPageSize: 20,
-        showSizeChanger: true,
-        hideOnSinglePage: true,
-        onChange: handlePageChange,
-        showTotal: total => <span>共 {total} 个测试用例</span>,
-      }}
-      rowKey="objectId"
-      columns={columns}
-      dataSource={dataSource}
-    />
+    <>
+      <BusinessTable
+        titleCellOption={{
+          workspaceKey,
+          testType: 'TestDetail',
+        }}
+        rowKey="objectId"
+        useColumnSetting
+        columns={columns}
+        defaultColumnKey={['key', 'repositoryGroup', 'createdBy', 'createdAt']}
+        itemKey="reference"
+        name="TestDetailTable"
+        actionRef={tableActionRef}
+        setIsCheck={setIsCheck}
+        isCheck={isCheck}
+        getDataSource={dataSourceGetter}
+        onSelectionCancel={onSelectionCancel}
+        loading={tableLoading}
+        selectionActionNodes={selectionActionNodes}
+      />
+      <RepositorySelector actionRef={repositorySelectorRef} />
+    </>
   );
 };
 

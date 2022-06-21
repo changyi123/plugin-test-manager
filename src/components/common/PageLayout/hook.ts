@@ -1,41 +1,35 @@
 import React from 'react';
-import { useLocalStorageState } from 'ahooks';
 import { useLocation } from 'react-router-dom';
+import { useLocalStorageState, useSize } from 'ahooks';
+import { generateStorageKey } from '@/lib/utils/helper';
 
 export const useLayoutHeight = () => {
-  const offsetY = 0; // 63
-  const [height, setHeight] = React.useState(700);
+  const offsetY = 63; // 63
+
+  const size = useSize(document.querySelector('[data-element-id="workspace.layout.content"]'));
 
   React.useEffect(() => {
-    const handleResize = () => {
-      const layoutElement = document.querySelector('[data-element-id="workspace.layout.content"]');
-      console.info('layoutElement', layoutElement?.clientHeight);
-      layoutElement && setHeight(layoutElement.clientHeight - offsetY);
-    };
-
     const layoutElement = document.querySelector('[data-element-id="workspace.layout.content"]');
     if (layoutElement) {
       // 删除 child 节点的 padding
       const workspacePluginContainerDOM = layoutElement.children?.[0] ?? ({} as any);
       workspacePluginContainerDOM.style = 'padding: 0';
-      handleResize();
     }
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
   }, []);
-  return height;
+  return (size?.height ?? 700) - offsetY;
 };
 
 export const useResizableWidth = () => {
+  const DEFAULT_WIDTH = 300;
   const location = useLocation();
-  const key = location.pathname;
-  return useLocalStorageState(`plugin-test-manager-resizable-width-${key}`, {
+  const LOCAL_STORAGE_KEY = generateStorageKey('resizable-width', location.pathname);
+  return useLocalStorageState(LOCAL_STORAGE_KEY, {
+    defaultValue: DEFAULT_WIDTH,
     serializer(value) {
       return String(value) ?? '300';
     },
     deserializer(value) {
-      return Number(value) ? Number(value) : 300;
+      return Number(value) ? Number(value) : DEFAULT_WIDTH;
     },
   });
 };

@@ -1,0 +1,393 @@
+import * as xlsx from 'xlsx';
+import xlsxStyle from 'xlsx-style';
+import FileSave from 'file-saver';
+import Parse from '@/lib/parse';
+import { getTestEntitiesByQuery } from '@/lib/api/common';
+import { TestType } from '@/lib/constants';
+import { CustomField, TestConfig, TestRelation } from '@/lib/models';
+import { Item } from '@/lib/types/App';
+import { Step } from '@/lib/types/Test';
+import { getRepositoryData } from '@/lib/api/repository';
+import { escapeHtmlString } from '@/lib/utils/helper';
+import { getRepoData, handleRroupPath } from '@/components/business/RepositoryGroup/repository';
+import { UNGROUPED_FOLDER_KEY } from '../constant';
+import { arrayToTree } from '@/lib/utils/arrayToTree';
+
+export type TreeNode = {
+  key: string;
+  name: string;
+  title: React.ReactNode;
+  parentId: string | null;
+  testDetailIds: string[];
+  children: TreeNode[];
+};
+
+interface ImportArgs {
+  type: string;
+  checkedId: string;
+  workspace: Record<string, any>;
+  treeData?: TreeNode[];
+}
+
+const getTestPriorityInfo = async (filedKey: string) => {
+  const query = new Parse.Query(CustomField).equalTo('key', filedKey);
+  const data = await query.find();
+
+  return data.map(d => d.toJSON()).find(d => d.key === filedKey);
+};
+
+const getItemStatus = async () => {
+  const query = new Parse.Query(TestConfig).equalTo('global', true);
+  const data = await query.find();
+
+  return data
+    .map(d => d.toJSON())
+    .reduce((prev, cur) => {
+      cur?.extra?.statuses?.forEach(c => {
+        prev.set(c.key, c.name);
+      });
+
+      return prev;
+    }, new Map());
+};
+
+const getTestGroupPath = (path?: string) => ({
+  所属分组: path ?? '',
+});
+
+const getStatus = (statusMap: any, status?: string) => ({
+  最新执行状态: statusMap.get(status || 'TODO') ?? '未开始',
+});
+
+const getTestPlan = planData => {
+  return {
+    测试计划: planData?.reference.name ?? '',
+  };
+};
+
+/** 获取导出 excel 表数据 */
+const getExcelData = async (data: any) => {
+  const { results, repoData, workspaceKey, planId } = data;
+  const priorityInfo = await getTestPriorityInfo('priority');
+  const itemStatus = await getItemStatus();
+  const repoDataMap = new Map();
+
+  const _repoData =
+    repoData ??
+    (await getRepositoryData(
+      results.reduce((prev, cur) => {
+        !prev.includes(cur.workspaceKey) && (prev = prev.concat(cur.workspaceKey));
+
+        return prev;
+      }, []),
+    ));
+
+  handleRroupPath(getRepoData(_repoData)).forEach(d => {
+    repoDataMap.set(d.objectId, d.path);
+  });
+
+  let testPlanObj = {};
+
+  if (planId) {
+    const { results: testPlan } = await getTestEntitiesByQuery(
+      {
+        type: TestType.TestPlan,
+        workspaceKey: workspaceKey,
+        in: [planId],
+      },
+      {
+        limit: 9999,
+      },
+    );
+
+    testPlanObj = getTestPlan(testPlan[0]);
+  }
+
+  return results.map(test => ({
+    ...testPlanObj,
+    ...getTestGroupPath(repoDataMap.get(test.repository?.objectId)),
+    ...getItemInfo(test.reference, priorityInfo),
+    ...getTestInfo(test),
+    ...getStatus(itemStatus, test.status),
+  }));
+};
+
+/** 获取测试用例数据 */
+const getTestInfo = data => {
+  return {
+    ...getTestInfoByDetail(data.detail),
+  };
+};
+
+const getTestInfoByDetail = (detail: { steps?: Step[]; precondition?: string }) => {
+  return {
+    前置条件: detail?.precondition ?? '',
+    ...getSteps(detail?.steps),
+  };
+};
+
+const getSteps = (steps?: Step[]) => {
+  const data = steps
+    ?.filter(d => !d.callTestId)
+    ?.reduce(
+      (prev, cur, index) => {
+        prev = {
+          action: prev.action.concat(`【${index + 1}】${escapeHtmlString(cur.action)}`),
+          result: prev.result.concat(`【${index + 1}】${escapeHtmlString(cur.result)}`),
+          data: prev.data.concat(`【${index + 1}】${escapeHtmlString(cur.data)}`),
+        };
+
+        return prev;
+      },
+      {
+        action: [],
+        result: [],
+        data: [],
+      },
+    );
+
+  // const code = OSnow() === 'mac' ? '\n' : '\r\n';
+
+  return {
+    步骤描述: data?.action.join('') ?? '',
+    预期结果: data?.result.join('') ?? '',
+    数据: data?.data.join('') ?? '',
+  };
+};
+
+/** 获取负责人 */
+const getAssignee = (values?: Record<string, unknown>): string =>
+  (values?.assignee as any[])
+    ?.map(val => (val.value ? val.username : ''))
+    .filter(Boolean)
+    .join(',') ?? '';
+
+/** 获取优先级 */
+const getPriority = (values?: Record<string, unknown>, priInfo?: any) =>
+  priInfo?.data.customData.find(list => list.key === values?.priority)?.name ?? '';
+
+/** 获取事项数据 */
+const getItemInfo = (datas: Item, priInfo: any) => ({
+  标题: datas.name,
+  负责人: getAssignee(datas?.values),
+  优先级: getPriority(datas?.values, priInfo),
+});
+
+const getTestIdsByFrom = async (id: string) => {
+  const query = new Parse.Query(TestRelation).equalTo('from', id).limit(9999);
+  const data = await query.find();
+
+  return data
+    .reduce((prev, cur) => {
+      prev = prev.concat(cur.toJSON().to?.objectId);
+      return prev;
+    }, [])
+    .filter(Boolean);
+};
+
+export const getTestRepoGroupIds = (datas: any[], checkedId: string) => {
+  const treeData = arrayToTree(
+    datas.map(d => ({
+      name: d.name,
+      key: d.objectId,
+      parentId: d.parent?.objectId ?? null,
+      workspaceKey: d.workspaceKey,
+    })),
+  );
+
+  const treeToArray = data =>
+    data.reduce((prev, cur) => {
+      prev = prev.concat([cur]);
+
+      if (cur.children?.length) {
+        prev = prev.concat(treeToArray(cur.children));
+      }
+
+      return prev;
+    }, []);
+
+  const getGroupIds = data =>
+    data.reduce((prev, cur) => {
+      prev = prev.concat([cur.key]);
+
+      if (cur.children?.length) {
+        prev = prev.concat(getGroupIds(cur.children));
+      }
+
+      return prev;
+    }, []);
+
+  return getGroupIds(treeToArray(treeData).filter(d => d.key === checkedId));
+};
+
+/** 导出用例 */
+const importTestInfo = async (args: ImportArgs, excelData = []) => {
+  const { type, checkedId, workspace } = args;
+
+  if (type === 'exportPlan') {
+    // 获取当前测试计划下的测试用例
+    const testDataIds = await getTestIdsByFrom(checkedId);
+    // 获取测试用例,允许跨空间
+    const { results } = await getTestEntitiesByQuery(
+      {
+        type: TestType.TestDetail,
+        // workspaceKey: workspace.key,
+        in: testDataIds,
+      },
+      {
+        limit: 9999,
+      },
+    );
+
+    excelData = await getExcelData({
+      results,
+      workspaceKey: workspace.key,
+      planId: checkedId,
+    });
+  } else {
+    const repoData = await getRepositoryData([workspace.key]);
+
+    // 用例库导出不允许跨空间
+    const { results } = await getTestEntitiesByQuery(
+      {
+        type: TestType.TestDetail,
+        workspaceKey: workspace.key,
+      },
+      {
+        limit: 9999,
+      },
+    );
+
+    const groupIds = getTestRepoGroupIds(repoData, checkedId);
+
+    const _results =
+      type === 'exportAll'
+        ? results
+        : results.filter(d =>
+            checkedId === UNGROUPED_FOLDER_KEY
+              ? !d.repository?.name
+              : groupIds.includes(d.repository?.objectId),
+          );
+
+    excelData = await getExcelData({ results: _results, repoData });
+  }
+
+  exportExcelFile(
+    excelData,
+    'sheet1',
+    `${type === 'exportPlan' ? '测试计划关联用例导出' : '测试管理用例库导出'}-${
+      workspace.name
+    }.xlsx`,
+  );
+};
+
+/** 下载 excel 用例导出文件 */
+export const downloadExampleFile = async () => {
+  exportExcelFile(
+    [
+      {
+        所属分组: '分组1/分组2',
+        标题: '测试用例标题（样例数据，执行用例导入时请删除该数据）',
+        优先级: '优先级可填值范围：最高，较高，普通，较低，最低',
+        前置条件: '测试用例前置条件',
+        负责人: '用户名',
+        步骤描述: '【1】需要以【序号】开头\n【2】步骤描述中换行符会被保留',
+        预期结果: '【1】需要以【序号】开头\n【2】预期结果中换行符会被保留',
+        数据: '【1】需要以【序号】开头\n【2】数据中换行符会被保留',
+      },
+    ],
+    'sheet1',
+    `测试管理导入模板.xlsx`,
+  );
+};
+
+function s2ab(s: any) {
+  if (typeof ArrayBuffer !== 'undefined') {
+    const buf = new ArrayBuffer(s.length);
+    const view = new Uint8Array(buf);
+    for (let i = 0; i != s.length; ++i) {
+      view[i] = s.charCodeAt(i) & 0xff;
+    }
+    return buf;
+  } else {
+    const buf = new Array(s.length);
+    for (let i = 0; i != s.length; ++i) {
+      buf[i] = s.charCodeAt(i) & 0xff;
+    }
+    return buf;
+  }
+}
+
+/** 导出用例数据 */
+const exportExcelFile = (array: any[], sheetName = 'sheet1', fileName = 'example.xlsx') => {
+  const defaultCellStyle = {
+    font: {
+      name: '宋体',
+      sz: 11,
+      color: {
+        auto: 1,
+      },
+    },
+    alignment: {
+      wrapText: true,
+      vertical: 'center',
+      indent: 0,
+    },
+  };
+
+  const jsonWorkSheet = Object.entries(xlsx.utils.json_to_sheet(array)).reduce(
+    (prev, [key, value]: any[]) => {
+      prev[key] = /[A-Z]{1}\d+/g.test(key)
+        ? {
+            ...value,
+            s: defaultCellStyle,
+          }
+        : value;
+
+      return prev;
+    },
+    {},
+  );
+
+  const workBook: any = {
+    SheetNames: [sheetName],
+    Sheets: {
+      [sheetName]: Object.assign({}, jsonWorkSheet, {
+        '!cols': [
+          { wch: 30 }, // 第一列
+          { wch: 20 }, // 第二列
+          { wch: 20 }, // 第三列
+          { wch: 10 }, // 第四列
+          { wch: 30 }, // 第五列
+          { wch: 50 }, // 第六列
+          { wch: 50 }, // 第七列
+          { wch: 50 }, // 第八列
+          { wch: 20 }, // 第九列
+          { wch: 20 }, // 第十列
+        ],
+      }),
+    },
+  };
+
+  const wbout = xlsxStyle.write(
+    workBook,
+    {
+      bookType: 'xlsx',
+      bookSST: false,
+      type: 'binary',
+      cellStyles: true,
+    },
+    {
+      defaultCellStyle,
+    },
+  );
+
+  return FileSave.saveAs(
+    new Blob([s2ab(wbout) as any], {
+      type: 'application/onctet-stream',
+    }),
+    fileName,
+  );
+};
+
+export default importTestInfo;

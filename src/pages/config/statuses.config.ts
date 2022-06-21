@@ -10,7 +10,7 @@ export default [
     type: 'PASSED',
   },
   {
-    color: '#B0B5BC',
+    color: '#4B8BFF',
     description: '测试执行待执行',
     name: '待执行',
     key: 'TODO',

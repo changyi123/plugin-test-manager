@@ -1,4 +1,10 @@
 node_modules
-test-manager-plugin.zip
 dist
 .DS_Store
+.idea
+**/*.xlsx
+manifest.yml
+version.yml
+test-manager-plugin*.zip
+.env
+manifest.yml

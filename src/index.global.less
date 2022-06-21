@@ -1,6 +1,6 @@
+@import '~antd/dist/antd.less';
 @import '~@osui/theme/dist/theme/vars.css';
 
-// 修复 osui 错误样式
 :root {
   --menu-bg: rgba(255, 255, 255);
 }
@@ -11,20 +11,83 @@
     padding: 0;
     margin: 0;
   }
+
+  .ant-btn.ant-btn-primary:hover,
+  .ant-btn.ant-btn-primary:focus {
+    color: #fff !important;
+    border-color: #4b8bff !important;
+    background: #4b8bff !important;
+  }
+
+  .ant-btn.ant-btn-primary:active {
+    color: #fff !important;
+    border-color: #0a50d1 !important;
+    background: #0a50d1 !important;
+    box-shadow: 0 0 0 1px #77a7ff !important;
+  }
+
+  .ant-btn.ant-btn-default:hover,
+  .ant-btn.ant-btn-default:focus {
+    color: #1e2a3d !important;
+    border-color: #f4f4f5 !important;
+    background: #f4f4f5 !important;
+    box-shadow: 0 0 0 1px #77a7ff !important;
+  }
+
+  .ant-btn.ant-btn-default:active {
+    color: #1e2a3d !important;
+    background: #e9eaec !important;
+    border-color: #77a7ff !important;
+  }
+
+  .ant-btn.ant-btn-default.ant-btn-dangerous {
+    color: #ff5630 !important;
+    border-color: #ff5630 !important;
+    background: #fff !important;
+    box-shadow: none !important;
+  }
+
   #test-manager {
     position: relative;
     height: 100%;
+
+    .ant-tooltip-arrow-content,
+    .ant-tooltip-inner {
+      background-color: #576473 !important;
+      --antd-arrow-background-color: #576473 !important;
+    }
+
+    .ant-input:focus,
+    .ant-input-focused {
+      border-color: #0c62ff !important;
+      box-shadow: none !important;
+    }
+
+    .ant-select-focused:not(.ant-select-disabled).ant-select:not(.ant-select-customize-input)
+      .ant-select-selector {
+      border-color: #0c62ff !important;
+      box-shadow: none !important;
+    }
+
+    .ant-table-thead
+      > tr
+      > th:not(:last-child):not(.ant-table-selection-column):not(.ant-table-row-expand-icon-cell):not([colspan])::before {
+      width: 0 !important;
+    }
+    
   }
-  // 去掉倒计时
-  .osui-message-count-down-close {
-    display: none !important;
+
+  .ant-modal-confirm-body {
+    .anticon.anticon-exclamation-circle {
+      font-size: 36px !important;
+    }
   }
 }
 
 .custom-scrollbar-mixin() {
   &::-webkit-scrollbar {
     background-color: #fff;
-    width: 16px;
+    width: 6px;
   }
 
   &::-webkit-scrollbar-track {
@@ -35,14 +98,31 @@
   &::-webkit-scrollbar-thumb {
     background-color: #babac0;
     border-radius: 16px;
-    border: 4px solid #fff;
+    border: 4px solid #b5bac5;
+    // visibility: hidden;
   }
 
   /* set button(top and bottom of the scrollbar) */
   &::-webkit-scrollbar-button {
     display: none;
   }
+  // &:hover {
+  //   &::-webkit-scrollbar-thumb {
+  //     visibility: visible;
+  //   }
+  // }
+}
+
+.field-value {
+  .anticon-down,
+  .anticon-calendar {
+    display: none;
+  }
 }
 
 @border-color: #e9eaec;
 @highlight-color: #0a50d1;
+
+// 测试管理的左侧menu 激活态和 hover颜色
+@plan-item-hover: #f4f4f4;
+@plan-item-focus: #e2ecff;

@@ -1,4 +1,18 @@
-import { isEqual, findKey } from 'lodash';
+import { Modal } from 'antd';
+// import { Modal } from 'antd';
+import { isEqual, findKey, noop } from 'lodash';
+import { STORAGE_PREFIX_KEY } from '../constants';
+import createProximaSdk from '@projectproxima/proxima-sdk-js';
+
+/** 获取租户信息 */
+export const getTenantKey = () => {
+  // dev 环境默认取 env 中的 PROXIMA_APP_ID
+  return (window as any)?.env?.PROXIMA_APP_ID ?? process.env.PROXIMA_APP_ID ?? 'osc';
+};
+/** 获取 proxima baseUrl */
+export const getProximaBasePath = () => {
+  return /^(\/(?:project|proxima))\//.exec(window.location.pathname)?.[1] ?? '';
+};
 
 export const hasArrayItem = (arr?: unknown[]) => Boolean(Array.isArray(arr) && arr.length);
 
@@ -24,5 +38,72 @@ export const escapeMatchesQueryArg = (_str: unknown): RegExp => {
 /** 转换成数组 */
 export const toArray = data => (Array.isArray(data) ? data : [data]);
 
+/** 确认下一步 */
+export const actionConfirm = (content: string, cb = noop) => {
+  return new Promise(resolve => {
+    Modal.confirm({
+      content,
+      onOk: () => {
+        cb();
+        resolve(true);
+      },
+      width: 500,
+      title: '提示',
+      okText: '继续',
+      getContainer: getRootContainer,
+    });
+  });
+};
+
+/** 生成本地存储的 key */
+export const generateStorageKey = (...args: string[]) => {
+  return `${STORAGE_PREFIX_KEY}-${args.filter(Boolean).join('-')}`;
+};
+
+/** 生成跳转 URL */
+export const goToItemDetailPage = ({ workspaceKey, itemKey }) => {
+  return window.open(
+    `${getProximaBasePath()}/${getTenantKey()}/workspaces/${workspaceKey}/item/${itemKey}`,
+    '_blank',
+  );
+};
+
+/** 打开测试详情弹窗 */
+export const openItemViewScreen = itemId => {
+  if (!itemId) return;
+  const proximaSDK = createProximaSdk();
+  proximaSDK.execute('openItemViewScreen', itemId);
+};
+
+/** 编码 html 字符串 */
+export const escapeHtmlString = str => {
+  return str?.replace(/&\w+;/g, c => {
+    return { '&lt;': '<', '&gt;': '>', '&amp;': '&', '&quot;': '"' }[c] ?? c;
+  });
+};
+
+/** 申城排序索引 */
+export const generateSortIndex = (index = 0) => {
+  return Math.floor(Date.now() / 1000) * 10e5 + index;
+};
+
+/** 生成静态资源文件地址 */
+export const generateStaticFileUrl = (url: string) => {
+  const isFullUrl = /^(https?:)?\/\//.test(url);
+  if (isFullUrl) return url;
+  return `${/^\/project\//.test(url) ? '' : getProximaBasePath()}${url}`;
+};
+
+/** 插件版本输出 */
+export const logPluginVersion = () => {
+  // eslint-disable-next-line no-console
+  console.log('%cPLUGIN-VERSION:', 'font-size: 16px; font-weight: 700; color: skyblue');
+  // eslint-disable-next-line no-console
+  console.table({
+    Branch: (process.env as any)?.PROXIMA_VERSION_BRANCH,
+    Commit: (process.env as any)?.PROXIMA_VERSION_COMMIT,
+  });
+};
+
 /** panel 消息通知 */
-export { alert } from '@/components/panel/PanelLayout';
+export { alert } from '@/components/business/PanelLayout';

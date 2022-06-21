@@ -2,10 +2,18 @@ type FieldId = string;
 type CustomFieldKey = string;
 
 export type ObjectId = string;
+export type ItemKey = string;
 
 // export type DSL = Record<string, unknown>;
 
 export type IQL = string;
+export type RouterQuery = Record<string, string | number>;
+
+export interface OptionProps {
+  key?: string;
+  label: string;
+  value: string;
+}
 
 export interface SimpleBaseInfo {
   description: string;
@@ -31,7 +39,6 @@ export interface AdvancedConfig {
   parentValue?: string;
 }
 export interface BaseParseObject extends Parse.JSONBaseAttributes {
-  objectId: ObjectId;
   updatedBy?: User | PointerObject;
   createdBy?: User | PointerObject;
   // 有acl，暂不写
@@ -39,10 +46,6 @@ export interface BaseParseObject extends Parse.JSONBaseAttributes {
 
 export interface PointerObject extends Parse.Pointer {
   __type: 'Pointer';
-}
-
-export interface Tenant extends BaseParseObject, BaseInfo {
-  emailDomain: string;
 }
 
 export interface Status extends BaseParseObject, SimpleBaseInfo {
@@ -56,6 +59,7 @@ export interface Workflow extends BaseParseObject, SimpleBaseInfo {
   usageScheme: { id: string; name: string }[];
   releaseStatus: boolean;
   initial: Status;
+  transitions: any[];
 }
 
 export interface WorkflowScheme extends BaseParseObject, SimpleBaseInfo {
@@ -63,15 +67,16 @@ export interface WorkflowScheme extends BaseParseObject, SimpleBaseInfo {
   workspaceKeys: string[];
 }
 
-export interface Screen extends BaseParseObject {
-  [key: string]: any;
+export interface Screen extends BaseParseObject, SimpleBaseInfo {
+  config?: Record<string, any>;
+  layout: Record<string, any>;
+  customFieldKeys: CustomFieldKey[];
+  validations?: any;
 }
 
 export interface ItemTypeScheme extends BaseParseObject, SimpleBaseInfo {
   // 这个字段已经没用了
   // itemTypes: ItemTypes;
-  // 目前 所有 ItemTypeScheme 得 tenant 都 是undefined的
-  tenant: Tenant;
   // 目前是undefined
   defaultItemType: any;
   // 数组字符串
@@ -80,44 +85,31 @@ export interface ItemTypeScheme extends BaseParseObject, SimpleBaseInfo {
 }
 
 export interface ScreenScheme extends BaseParseObject, SimpleBaseInfo {
-  cardOperationInterface: ScreenScheme;
   createScreen: Screen;
-  // 目前undefined
-  tenant: Tenant;
   defaultScreen: Screen;
   viewScreen: Screen;
   editScreen: Screen;
-  cardTypeLevel: ItemTypeScheme;
-}
-export interface ItemTypeScreenScheme extends BaseParseObject, SimpleBaseInfo {
-  // 目前都是undefined的
-  tenant: Tenant;
-  // 目前是undefined
-  defalutScreen: any;
-  defaultScreenScheme: ScreenScheme;
-  itemTypeScreenSchemeMappings: any[];
 }
 
-export interface WorkspaceScheme extends BaseParseObject, SimpleBaseInfo {
-  workflowScheme: WorkflowScheme;
-  tenant: Tenant;
-  itemTypeScheme: ItemTypeScheme;
-  itemTypeScreenScheme: ItemTypeScreenScheme;
-  cardWorkflow: string;
+export interface ItemTypeScreenSchemeMapping extends BaseParseObject {
+  itemType: ItemType;
+  screenScheme: ScreenScheme;
+}
+
+export interface ItemTypeScreenScheme extends BaseParseObject, SimpleBaseInfo {
+  defaultScreenScheme: ScreenScheme;
+  itemTypeScreenSchemeMappings: ItemTypeScreenSchemeMapping[];
 }
 
 export interface Workspace extends BaseParseObject, BaseInfo {
-  key: string;
   name: string;
-  tenant: Tenant;
   // 这个字段已经没用了
   // itemTypes: ItemTypes;
-  workspaceScheme: WorkspaceScheme;
-  // 没有，迁移到了 WorkspaceScheme
   // itemTypeScheme: ItemTypeScheme;
   // itemTypeScreenScheme: ItemTypeScreenScheme;
   companyManaged?: boolean;
   lead: User;
+  icon: string;
 }
 
 export interface Forest {
@@ -129,12 +121,10 @@ export interface ItemForest extends BaseParseObject {
   version: number;
   workspace?: Workspace;
   filter?: Filter;
-  tenant: Tenant;
   forest?: Forest;
 }
 
 export interface ItemType extends BaseParseObject, BaseInfo {
-  tenant?: Tenant;
   color?: string;
   icon?: any;
   workflow?: Workflow;
@@ -159,7 +149,6 @@ export interface Filter extends BaseParseObject, SimpleBaseInfo {
 }
 
 export interface User extends BaseParseObject {
-  tenant: Tenant | PointerObject;
   username: string;
   avatar?: File;
 
@@ -180,16 +169,35 @@ export interface WorkspaceType extends BaseParseObject {
 }
 export interface DataSource extends BaseParseObject, SimpleBaseInfo {
   type: DataSourceClassify | PointerObject;
-  dataConfig?: { isColor: boolean; isRanked: boolean };
+  dataConfig?: { isEdit: boolean; isColor: boolean; isRanked: boolean };
   advancedConfig?: { data: AdvancedConfig[] };
 }
 export interface DataSourceClassify extends BaseParseObject {
   name: string;
 }
+// 字段行为fields
+export interface BehaviorConditionProps {
+  type: OptionProps;
+  value: OptionProps | OptionProps[];
+  isEffective: OptionProps;
+  valueRelation?: OptionProps[];
+}
+export interface BehaviorProps {
+  conditionList: BehaviorConditionProps[];
+  fieldBehavior: string[];
+}
+export interface BehaviorFieldsProps {
+  key: string;
+  name: string;
+  label: string;
+  value: string;
+  serviceScript?: string;
+  behaviorarray: BehaviorProps;
+}
 export interface FieldBehavior extends BaseParseObject, SimpleBaseInfo {
   applicationNum: string;
   config: {
-    fields: any[]; // 数据结构比较复杂
+    fields: BehaviorFieldsProps[];
     itemType: string[];
     itemTypeObj: { label: string; value: string }[];
   };
@@ -197,21 +205,22 @@ export interface FieldBehavior extends BaseParseObject, SimpleBaseInfo {
 export interface Group extends BaseParseObject {
   key: string;
   name: string;
-  users: User;
+  users: User[];
 }
 
 type ItemId = ObjectId;
 export interface Item extends BaseParseObject {
-  key: string;
   name: string;
+  key: string;
   ancestors: ItemId[];
   itemType: ItemType | PointerObject;
   ancestorsCount: number;
   subItemCount: number;
   status: Status | PointerObject;
   workspace: Workspace | PointerObject;
-  tenant: Tenant | PointerObject;
   values: Record<string, unknown>;
+  board: Board | PointerObject;
+  itemGroup: ItemGroup | PointerObject;
 }
 export interface Comment extends BaseParseObject {
   parent: Comment | PointerObject;
@@ -297,10 +306,22 @@ export interface CustomField extends BaseParseObject {
   required: boolean;
   validation?: RegularProps; // 文本字段的正则校验配置
 }
+
+interface StatusChangeItem {
+  name: string;
+  type: 'Start' | 'InProgress' | 'Finished';
+}
+
+export interface StatusItem {
+  __new: StatusChangeItem;
+  __old: StatusChangeItem;
+}
+
 export interface ItemChange extends BaseParseObject {
   itemUpdatedBy?: User | PointerObject;
-  operation?: 'insert' | 'update';
-  content?: Record<FiledKey, unknown>[];
+  cloneFrom?: ItemChange;
+  operation?: 'insert' | 'update' | 'clone';
+  content?: Record<FiledKey, any>[];
   item?: Item | PointerObject;
 }
 
@@ -308,7 +329,13 @@ export interface ItemLinkType extends BaseParseObject {
   name: string;
   inward?: string;
   outward?: string;
+  type?: string; // 事项类型
+  inwardItemType?: string; // 关联方事项类型
+  outwardItemType?: string; // 被关联方事项类型
+  inwardItemTypeMappings?: string[]; // 关联方指定的事项类型
+  outwardItemTypeMappings?: string[]; // 被关联方指定的事项类型
 }
+
 export interface ItemLink extends BaseParseObject {
   source?: Item | PointerObject;
   destination?: Item | PointerObject;
@@ -318,16 +345,19 @@ export interface ItemLink extends BaseParseObject {
 export interface ItemTypes extends BaseParseObject {
   key: string;
   name: string;
-  tenant: Tenant;
 }
 
 export interface WorkDay extends BaseParseObject {
-  tenant: Tenant;
   values: number[];
 }
 
+export interface DateTimeConfiguration extends BaseParseObject {
+  values: {
+    dateFormat: 'absolute' | 'relative';
+  };
+}
+
 export interface Holiday extends BaseParseObject {
-  tenant: Tenant;
   name: string;
   date: string;
   type: number;
@@ -349,18 +379,103 @@ export interface Gantt extends BaseParseObject {
     SS: string;
     SF: string;
   };
+  milestone: {
+    itemType?: string;
+    startDate?: string;
+  };
+  otherConfig: {
+    autoPatch?: boolean;
+  };
+}
+export interface GanttBaseline extends BaseParseObject {
+  name: string;
+  view: View | PointerObject;
+  description: string;
 }
 
+export interface GanttBaselineItemLog extends BaseParseObject {
+  item: Item | PointerObject;
+  baseline: GanttBaseline | PointerObject;
+  content: Record<string, unknown>;
+}
 export interface ProcessBar extends BaseParseObject {
-  tenant?: Tenant;
   percentage: number;
   key: string;
 }
 type File = { name: string; url: string; __type: string };
 export interface Attachment extends BaseParseObject {
-  tenant?: Tenant;
   file?: File;
   item?: Item | PointerObject;
+}
+
+export interface Board extends BaseParseObject {
+  workspace?: Workspace | PointerObject;
+  key?: string;
+  icon: string;
+}
+
+export interface ItemGroup extends BaseParseObject {
+  workspace?: Workspace | PointerObject;
+  name?: string;
+  sort?: number;
+}
+
+export interface VersionItem {
+  objectId: string;
+  name: string;
+  status: { name: string; type: string };
+}
+
+export interface Version extends BaseParseObject {
+  description?: string;
+  name?: string;
+  workspace?: Workspace | PointerObject;
+  startDate?: ParseDate;
+  items?: VersionItem[];
+  released?: boolean;
+  releaseDate?: ParseDate;
+  action?: string;
+}
+
+export interface Sprint extends BaseParseObject, SimpleBaseInfo {
+  workspace?: Workspace | PointerObject;
+  startDate?: ParseDate;
+  endDate?: ParseDate;
+  items?: Item[];
+  activated?: boolean;
+  completed?: boolean;
+  capacity?: number;
+}
+
+// 权限类别枚举
+export enum CategoryEnum {
+  Private = 'private',
+  Share = 'share',
+}
+
+export interface ViewPermission {
+  category: CategoryEnum;
+  shareList: { roleType: any; roleId: ObjectId; name?: string }[];
+  defaultCategory?: CategoryEnum; // 存放接口返回的类型，如果接口中有数据就不让编辑
+}
+
+export interface View extends BaseParseObject, BaseInfo {
+  name: string;
+  key?: string;
+  workspace?: Workspace;
+  component: ViewType;
+  isDefault: boolean;
+  query?: IQL;
+  permission?: ViewPermission;
+  isShow?: boolean;
+}
+
+export interface Board extends BaseParseObject, BaseInfo {
+  isFilter: boolean;
+  views: PointerObject[]; // view pointer
+  lead: Parse.User;
+  filter: Filter;
+  isDefault: boolean;
 }
 
 export interface Role extends BaseParseObject {
@@ -371,6 +486,7 @@ export interface Role extends BaseParseObject {
   tag: string;
   roles: Role[];
   objectId: string;
+  description: string;
 }
 
 export interface Permission extends BaseParseObject {
@@ -384,10 +500,21 @@ export interface Permission extends BaseParseObject {
 
 export interface Privilege extends BaseParseObject {
   workspace: Workspace;
+  board: Board;
   objectId: string;
   role: Role;
+  groups?: Group;
   permission: Permission;
 }
+
+export interface Priority extends BaseParseObject {
+  name: string;
+  key: string;
+  color: string;
+  description?: string;
+  order: number;
+}
+
 export interface ConstructionDetail {
   isShowAncestors?: boolean;
   isShowDescendants?: boolean;
@@ -401,3 +528,20 @@ export type RoleType = {
   permissions?: string[];
   boards?: Record<string, string[]>;
 };
+//视图
+export type ViewType =
+  | 'Default'
+  | 'Structure'
+  | 'Kanban'
+  | 'Gantt'
+  | 'StoryMapping'
+  | 'Calendar'
+  | 'Split';
+
+export type PaginationType = {
+  defaultPageSize?: number;
+  defaultPageIndex?: number;
+  replaceRouterPagination?: (index?: number, size?: number) => void;
+};
+
+export type LayoutProps = { complete: boolean };

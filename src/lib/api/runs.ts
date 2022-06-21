@@ -1,45 +1,43 @@
 import Parse from '@/lib/parse';
-import { Test, Item, ItemType, ItemLink, ItemLinkType } from '../models';
 import { ICommonRes } from './detail';
+import { Test, Item, ItemType, ItemLink, ItemLinkType } from '../models';
 import { TestType, TestRelationType } from '@/lib/constants';
 import {
   getTestEntities,
   createTestEntities,
   createTestRelation,
+  getTestEntitiesByQuery,
   getTestEntitiesByRelation,
 } from '@/lib/api/common';
-import { pointerTransfer } from '@/lib/utils/helper';
-import { Status, TestEntity } from '@/lib/types/Test';
 import { getItemByIQL } from '@/lib/api/proxima';
-import _, { isEqual, keyBy } from 'lodash';
 import { hasArrayItem } from '@/lib/utils/helper';
+import _, { isEqual, keyBy, merge } from 'lodash';
+import { Status, TestEntity } from '@/lib/types/Test';
 import { compactStepModel } from '@/lib/utils/modelTransfer';
+import { pointerTransfer, toArray, generateSortIndex } from '@/lib/utils/helper';
 
 type TestRunEntity = TestEntity<TestType.TestRun>;
+type TestEntityParseType<TEntity extends TestEntity = TestEntity> = Parse.Object<TEntity> | string;
 
 /** 创建测试执行实体，并将测试执行与测试执行任务，测试用例与测试执行任务关联 */
 export const createTestRunAndRelation = async (_testExecutionEntity, _testDetailEntity) => {
   // 转换测试实体
   const testExecutionEntity = pointerTransfer(Test, _testExecutionEntity);
-  const testDetailEntities = (
+  const testDetailIds = (
     Array.isArray(_testDetailEntity) ? _testDetailEntity : [_testDetailEntity]
-  ).map(item => pointerTransfer(Test, item));
+  ).map(item => item?.objectId ?? item);
 
+  // 创建测试执行时需要重新获取 testDetailEntity
   const testExecutionData = testExecutionEntity.toJSON();
 
   // 批量创建，在测试执行页面存在批量创建多个测试详情实体
-  const needCreateTestRuns = testDetailEntities.map(testDetail => ({
-    type: TestType.TestRun,
-    workspaceKey: testExecutionData?.reference?.workspace?.key,
-    fields: {
-      runReferenceDetail: testDetail,
-    },
-  }));
-
-  const testRunEntities = await createTestEntities(needCreateTestRuns);
+  const testRunEntities = await createTestRun({
+    testDetailIds,
+    workspaceKey: testExecutionData.workspaceKey,
+  });
 
   await createTestRelation([
-    ...testDetailEntities.map(testDetailEntity => ({
+    ...testRunEntities.map(testDetailEntity => ({
       relationType: TestRelationType.DetailRelExecution,
       from: testDetailEntity,
       to: testExecutionEntity,
@@ -76,7 +74,7 @@ export const getTestRunsAndExecutions = async (testDetailEntity, queryParams) =>
         );
 
         const testRunRelationDict = _.chain(allTestRuns)
-          .filter(run => run.runReferenceDetail.objectId === testDetailData.objectId)
+          .filter(run => run.runReferenceDetail?.objectId === testDetailData.objectId)
           .keyBy('relation.from.objectId')
           .value();
 
@@ -99,29 +97,9 @@ export const toggleTestRunStatus = (testId: string, status: Status): Promise<ICo
     Test.createWithoutData(testId)
       .fetch()
       .then(testRun => {
-        // const statusType = status.type;
         const refDetail = testRun.get('runReferenceDetail');
-        const { runDetail } = testRun.toJSON();
-        const runDetailBak = { ...runDetail };
-        // 改变总的测试运行状态不需要牵扯到步骤的状态
-        // if (runDetail?.runs?.steps) {
-        //   const steps = [];
-        //   runDetail?.runs?.steps?.forEach(item => {
-        //     // 成功，全成功 || todo，全todo
-        //     if (statusType === 'PASSED' || statusType === 'TODO') {
-        //       item.status = status;
-        //       // 失败，todo全失败，其他状态不变
-        //     } else if (statusType === 'FAILED') {
-        //       item.status = status.key;
-        //     }
-        //     // 执行中，状态不变
-        //     steps.push(item);
-        //   });
-        //   runDetailBak.runs.steps = steps;
-        // }
         testRun.set({
           status: status.key,
-          runDetail: runDetailBak?.runs ? runDetailBak : undefined,
         });
         // 同步修改关联的 detail 状态
         refDetail.set({
@@ -186,15 +164,15 @@ export const createItemLink = async (links: IItemLink | Array<IItemLink>) => {
   const needCreateItemLinkAttrs = existedItemLinks.reduce((res, parseObj) => {
     const itemLink = parseObj.toJSON();
     const needComparedValues = {
-      source: itemLink.source.objectId,
+      source: itemLink.source?.objectId,
       linkType: itemLink.linkType.objectId,
-      destination: itemLink.destination.objectId,
+      destination: itemLink.destination?.objectId,
     };
     return res.filter(
       item =>
         !isEqual(needComparedValues, {
-          source: item.source.id,
-          destination: item.destination.id,
+          source: item.source?.id,
+          destination: item.destination?.id,
           linkType: item.linkType.id,
         }),
     );
@@ -275,7 +253,7 @@ export const deleteDefect = async (
   } = await getTestEntitiesByRelation(
     TestRelationType.ExecutionRelRun,
     { to: res },
-    { fillItemData: true },
+    { include: ['reference'] },
   );
   const testExcItemId = testExecution?.reference?.objectId;
   const itemLink: Array<IItemLink> = [];
@@ -302,8 +280,8 @@ export const deleteDefect = async (
       const { linkType, source, destination } = item2.toJSON();
       if (
         linkType.objectId === item.linkType &&
-        source.objectId === item.source &&
-        destination.objectId === item.destination
+        source?.objectId === item?.source &&
+        destination?.objectId === item?.destination
       ) {
         return item2;
       }
@@ -330,25 +308,31 @@ export const fetchDefectList = async (
   return new Promise((resolve, reject) => {
     const query = new Parse.Query(ItemType);
     query.containedIn('key', ItemTypeKeys);
-    query.find().then(
-      res => {
-        const resArray = res?.map(item => item.toJSON());
-        items?.items?.forEach(item => {
-          resArray?.forEach(item2 => {
-            if (item?.itemType?.key === item2.key) {
-              item.itemType.icon = item2.icon;
-            }
+    query
+      .find({
+        context: {
+          displayModule: 'plugin.testManager',
+        },
+      })
+      .then(
+        res => {
+          const resArray = res?.map(item => item.toJSON());
+          items?.items?.forEach(item => {
+            resArray?.forEach(item2 => {
+              if (item?.itemType?.key === item2.key) {
+                item.itemType.icon = item2.icon;
+              }
+            });
           });
-        });
 
-        resolve({
-          items: items.items,
-        });
-      },
-      err => {
-        reject(err);
-      },
-    );
+          resolve({
+            items: items.items,
+          });
+        },
+        err => {
+          reject(err);
+        },
+      );
   });
 };
 
@@ -361,15 +345,25 @@ export const getItemLinkRelation = async (itemId: string) => {
   return res.map(item => item.toJSON());
 };
 
-/** 更新测试运行 */
+/** 更新测试执行 */
 export const updateTestRun = async (
-  testEntity: Parse.Object<TestRunEntity>,
+  testEntity: Parse.Object<TestRunEntity> | string,
   params: {
     status?: Status['key'];
     steps?: Record<string, any>[];
     runDetail?: Partial<TestRunEntity['runDetail']>;
+    comments?: Record<string, any>[];
   },
+  opts?: { initialization?: boolean },
 ) => {
+  opts = merge({ initialization: false }, opts);
+
+  if (typeof testEntity === 'string') {
+    [testEntity] = (await getTestEntities({
+      id: testEntity,
+    })) as [Parse.Object<TestRunEntity>];
+  }
+
   const testEntityData = testEntity.toJSON();
   const needUpdateAttrs = {} as TestRunEntity;
 
@@ -382,28 +376,46 @@ export const updateTestRun = async (
       },
     });
 
-    // TODO: 引入 status config 配置
+    // 初始化 step 不更新测试执行状态
+    if (!opts.initialization) {
+      // 有一个失败
+      const hasFail = steps.some(item => item.status === 'FAILED');
+      // 有一个正在执行
+      const hasExecuting = steps.some(item => item.status === 'EXECUTING');
+      // 全部 pass
+      const hasAllPass = steps.every(item => item.status === 'PASSED');
+      // 全部 todo
+      const hasAllTodo = steps.every(item => item.status === 'TODO');
 
-    // 有一个失败
-    const hasFail = steps.some(item => item.status === 'FAILED');
-    // 全部 pass
-    const allPass = steps.filter(item => item.status === 'PASSED');
-    // 全部 todo
-    const allTodo = steps.filter(item => item.status === 'TODO');
-
-    if (hasFail) {
-      needUpdateAttrs.status = 'FAILED';
-    } else if (allPass.length === steps?.length) {
-      needUpdateAttrs.status = 'PASSED';
-    } else if (allTodo.length === steps?.length) {
-      needUpdateAttrs.status = 'TODO';
-    } else {
-      needUpdateAttrs.status = 'EXECUTING';
+      if (hasFail) {
+        needUpdateAttrs.status = 'FAILED';
+      } else if (hasExecuting) {
+        needUpdateAttrs.status = 'EXECUTING';
+      } else if (hasAllPass) {
+        needUpdateAttrs.status = 'PASSED';
+      } else if (hasAllTodo) {
+        needUpdateAttrs.status = 'TODO';
+      }
     }
   }
 
+  const userInfo = await Parse.User.current();
+
+  const getUerInfo = () => {
+    const uesr = userInfo.toJSON();
+    return {
+      objectId: uesr.objectId,
+      username: uesr.username,
+      nickname: uesr.nickname,
+      enabled: uesr.enabled,
+    };
+  };
+
   if (params.status) {
-    Object.assign(needUpdateAttrs, { status: params.status });
+    Object.assign(needUpdateAttrs, {
+      status: params.status,
+      executor: [getUerInfo(), ...(needUpdateAttrs.executor ?? [])],
+    });
   }
 
   if (params.runDetail) {
@@ -417,9 +429,42 @@ export const updateTestRun = async (
     });
   }
 
+  if (params.comments) {
+    Object.assign(needUpdateAttrs, {
+      comments: params.comments,
+    });
+  }
+
+  // testRun 状态更新需要映射到关联的测试用例
+  if (needUpdateAttrs.status) {
+    const testDetailEntity = testEntity.get('runReferenceDetail') as unknown as Parse.Object;
+    testDetailEntity.save('status', needUpdateAttrs.status);
+  }
+
+  testEntity.set('updatedBy', Parse.User.current());
+
   return testEntity.save(needUpdateAttrs);
 };
 
+/** 批量更新测试执行状态 */
+export const updateTestRunStatus = async (params: {
+  status: string;
+  testRun: TestEntityParseType[];
+}) => {
+  const existedTestRuns = await getTestEntities({
+    id: toArray(params.testRun).map(item => item.objectId ?? item),
+  });
+
+  const needUpdatedTestEntities = existedTestRuns.reduce((acc, testRun) => {
+    testRun.set('status', params.status);
+    // 更新对应的测试用例状态
+    const runReferenceDetail = testRun.get('runReferenceDetail');
+    runReferenceDetail.set('status', params.status);
+    return acc.concat(testRun, runReferenceDetail);
+  }, []);
+
+  return Parse.Object.saveAll(needUpdatedTestEntities);
+};
 /** 从测试执行中获取测试步骤 */
 export const getTestStepsByTestDetailId = async (testDetailId: string, currentTestId?: string) => {
   // 获取测试步骤
@@ -482,4 +527,140 @@ export const getTestStepsByTestDetailId = async (testDetailId: string, currentTe
   };
 
   return recursiveGetTestSteps(testDetailId);
+};
+
+/**
+ * 创建测试执行
+ */
+export const createTestRun = async (params: { workspaceKey: string; testDetailIds: string[] }) => {
+  const { workspaceKey, testDetailIds } = params;
+
+  const { results: testDetailEntities } = await getTestEntitiesByQuery(
+    {
+      in: testDetailIds,
+      type: TestType.TestDetail,
+    },
+    {
+      offset: 0,
+      limit: 9999,
+      select: ['sortIndex'],
+    },
+  );
+
+  // 批量 sortIndex
+  const batchSortIndex = generateSortIndex();
+  const entities = testDetailEntities.map((testDetail, index) => ({
+    type: TestType.TestRun,
+    workspaceKey,
+    fields: {
+      runReferenceDetail: Test.createWithoutData(testDetail.objectId),
+      // 测试执行的排序索引继承自 sortIndex
+      sortIndex: testDetail.sortIndex ?? batchSortIndex + index,
+    },
+  }));
+  return createTestEntities(entities);
+};
+
+/** 创建测试执行 */
+export const createTestExecutionAndRelations = async (params: {
+  workspaceKey: string;
+  testPlan: TestEntityParseType;
+  testExecution: TestEntityParseType;
+  relTestDetailIds?: string[];
+}) => {
+  /**
+   *  s1. 查找所有的关联的测试用例
+   *  s2. 创建测试执行事项
+   *  s3. 创建测试执行实体
+   *  s4. 处理关联关系，测试计划关联测试执行，测试执行关联测试执行
+   */
+
+  const { workspaceKey, testPlan, testExecution } = params;
+  let relTestDetailIds = params.relTestDetailIds || [];
+
+  // 没有 relTestDetails 则创建全部
+  if (!hasArrayItem(relTestDetailIds)) {
+    const res = await getTestEntitiesByRelation(
+      TestRelationType.PlanRelDetail,
+      { from: testPlan },
+      // TODO: fetch all
+      {
+        queryParams: { limit: 9999 },
+        workspaceKey,
+      },
+    );
+    relTestDetailIds = res.list.map(item => item.objectId);
+  }
+
+  const testRunEntities = await createTestRun({
+    workspaceKey,
+    testDetailIds: relTestDetailIds,
+  });
+
+  const testPlanExecutionRelations = [
+    {
+      from: testPlan,
+      to: testExecution,
+      relationType: TestRelationType.PlanRelExecution,
+    },
+  ];
+
+  // 测试执行&运行关联关系
+  const testExecutionRunRelations = testRunEntities.map(runEntity => ({
+    relationType: TestRelationType.ExecutionRelRun,
+    from: testExecution,
+    to: runEntity,
+  }));
+
+  // todo: 创建测试执行
+  const relations = [].concat(testPlanExecutionRelations, testExecutionRunRelations);
+
+  await createTestRelation(relations);
+
+  return testExecution;
+};
+
+/** 添加测试计划到测试执行 */
+export const addTestDetailToExecution = async (params: {
+  workspaceKey: string;
+  testPlan?: TestEntityParseType;
+  testDetail: TestEntityParseType | TestEntityParseType[];
+  testExecution: TestEntityParseType;
+}) => {
+  const testDetailIds = toArray(params.testDetail).map(item => item?.objectId ?? item);
+  const { testPlan, workspaceKey, testExecution } = params;
+
+  const testRunEntities = await createTestRun({
+    testDetailIds,
+    workspaceKey,
+  });
+
+  // 测试执行&运行关联关系
+  const testExecutionRunRelations = testRunEntities.map(runEntity => ({
+    relationType: TestRelationType.ExecutionRelRun,
+    from: testExecution,
+    to: runEntity,
+  }));
+
+  let testPlanDetailRelations = [];
+
+  if (testPlan) {
+    const res = await getTestEntitiesByRelation(
+      TestRelationType.PlanRelDetail,
+      { from: testPlan },
+      // TODO: fetch all
+      { queryParams: { limit: 9999 } },
+    );
+    const allRelTestDetailIds = res.list.map(item => item.objectId);
+    // 未作关联的测试计划
+    const needRelTestDetailIds = testDetailIds.filter(id => !allRelTestDetailIds.includes(id));
+
+    testPlanDetailRelations = needRelTestDetailIds.map(testDetailId => ({
+      relationType: TestRelationType.PlanRelDetail,
+      from: testPlan,
+      to: testDetailId,
+    }));
+  }
+
+  await createTestRelation(testExecutionRunRelations.concat(testPlanDetailRelations));
 };

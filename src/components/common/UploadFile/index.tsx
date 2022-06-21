@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { CloudUploadOutlined, DownloadOutlined } from '@ant-design/icons';
 import { cloneDeep } from 'lodash';
 
-import { message, Upload } from '@osui/ui';
+import { message, Upload } from 'antd';
 import Parse from '@/lib/parse';
 
 import cx from './index.less';

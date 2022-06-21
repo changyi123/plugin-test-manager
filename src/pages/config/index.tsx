@@ -1,16 +1,31 @@
 import React from 'react';
+import { isNil } from 'lodash';
 import { useDataContext } from './hooks';
 import DataProvider from './DataProvider';
 import DefectMapping from './DefectMapping';
 import ItemTypeMapping from './ItemTypeMapping';
-import IsolateTestType from './IsolateTestType';
-import { useSafeState } from 'ahooks';
+import IsolatedTestType from './IsolatedTestType';
 import { DownOutlined } from '@ant-design/icons';
-import { Menu, Layout, Dropdown, Button, Result } from '@osui/ui';
+import { useLocalStorageState, useSafeState } from 'ahooks';
+import { Menu, Layout, Dropdown, Button, Result } from 'antd';
+
+import IsolatedSystem from './MoreConfig/IsolatedSystem';
 
 import cx from './index.less';
 
 const { Sider, Content, Header } = Layout;
+
+// 更多配置
+const MORE_CONFIG_STORAGE_KEY = 'more-config';
+const MoreConfigPages = [
+  {
+    key: 'IsolatedSystem',
+    title: '测试管理系统隔离',
+    component: IsolatedSystem,
+    description: '配置测试管理系统与业务系统进行隔离',
+    isGlobalConfig: true,
+  },
+];
 
 const ConfigPages = [
   {
@@ -21,21 +36,24 @@ const ConfigPages = [
   },
   {
     key: 'defectsMapping',
-    title: '缺陷类型关联',
+    title: '缺陷类型关联配置',
     component: DefectMapping,
     description:
       '配置当前空间测试管理的缺陷类型，缺陷表示测试中产生不正确或意外结果的错误、缺陷、故障或故障。',
   },
   {
-    key: 'IsolateTestType',
+    key: 'IsolatedTestType',
     title: '空间数据隔离配置',
-    component: IsolateTestType,
+    component: IsolatedTestType,
     description: '配置当前空间内对测试用例，测试计划，测试执行，测试缺陷的空间可见范围',
   },
 ];
 
+const ALLConfigPages = [].concat(ConfigPages, MoreConfigPages);
+
 const WorkspaceSelector = () => {
   const { workspace, toggleWorkspace } = useDataContext();
+
   return (
     <Dropdown
       overlay={
@@ -60,7 +78,7 @@ const WorkspaceSelector = () => {
 
 const PageContent = ({ currentConfigPage }) => {
   const { workspace, toggleWorkspace } = useDataContext();
-  if (!workspace)
+  if (!workspace && !currentConfigPage.isGlobalConfig)
     return (
       <Result
         title="请选择需要配置的空间"
@@ -79,17 +97,45 @@ const PageContent = ({ currentConfigPage }) => {
 };
 
 const Config = () => {
+  const [showMoreConfigPages] = useLocalStorageState(MORE_CONFIG_STORAGE_KEY, {
+    defaultValue: false,
+    deserializer(val) {
+      return !isNil(val);
+    },
+  });
+
   const [selectedKey, setSelectedKey] = useSafeState(ConfigPages[0].key);
-  const currentConfigPage = ConfigPages.find(item => item.key === selectedKey);
+  const currentConfigPage = ALLConfigPages.find(item => item.key === selectedKey) ?? ({} as any);
+
+  const renderMenuItems = menuList => {
+    return (
+      <>
+        {menuList.map(menu => (
+          <Menu.Item key={menu.key}>{menu.title}</Menu.Item>
+        ))}
+      </>
+    );
+  };
 
   return (
     <Layout className={cx('page')}>
       <Sider className={cx('sider')} width={250}>
         <h1 className={cx('title')}>测试管理配置</h1>
-        <Menu selectedKeys={[selectedKey]} onClick={({ key }) => setSelectedKey(key)}>
-          {ConfigPages.map(menu => (
-            <Menu.Item key={menu.key}>{menu.title}</Menu.Item>
-          ))}
+        <Menu
+          mode="inline"
+          openKeys={['MORE_CONFIG']}
+          selectedKeys={[selectedKey]}
+          onClick={({ key }) => setSelectedKey(key)}
+        >
+          {renderMenuItems(ConfigPages)}
+          {showMoreConfigPages ? (
+            <>
+              <Menu.Divider />
+              <Menu.SubMenu key="MORE_CONFIG" title="更多配置">
+                {renderMenuItems(MoreConfigPages)}
+              </Menu.SubMenu>
+            </>
+          ) : null}
         </Menu>
       </Sider>
       <DataProvider>
@@ -100,7 +146,7 @@ const Config = () => {
               <p className={cx('description')}>{currentConfigPage.description}</p>
             </div>
             <div className={cx('right')}>
-              <WorkspaceSelector />
+              {currentConfigPage.isGlobalConfig ? null : <WorkspaceSelector />}
             </div>
           </Header>
           <Content className={cx('content')}>

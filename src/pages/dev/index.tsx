@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, message, Input, Select, Radio, Layout, Form, Collapse } from '@osui/ui';
+import { Button, message, Input, Select, Radio, Layout, Form, Collapse } from 'antd';
 import { useLocalStorageState, useSafeState } from 'ahooks';
 import { merge } from 'lodash';
 import Parse from '@/lib/parse';
@@ -17,6 +17,11 @@ const urlOptions = [
     env: 'single',
     label: '81.61 独立部署',
     value: 'http://192.168.81.61',
+  },
+  {
+    env: 'single',
+    label: '48.29 验证',
+    value: 'http://192.168.48.29',
   },
 ];
 

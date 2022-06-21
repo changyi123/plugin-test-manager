@@ -12,11 +12,6 @@ const routes = [
     exact: true,
   },
   {
-    path: '/testPanel',
-    component: React.lazy(() => import('../pages/panel')),
-    exact: true,
-  },
-  {
     path: '/dev',
     component: React.lazy(() => import('../pages/dev')),
     exact: true,
@@ -24,6 +19,16 @@ const routes = [
   {
     path: '/testConfig',
     component: React.lazy(() => import('../pages/config')),
+  },
+  {
+    path: '/testPanel',
+    component: React.lazy(() => import('../modules/panel')),
+    exact: true,
+  },
+  {
+    path: '/beforeItemCreate',
+    component: React.lazy(() => import('../modules/beforeCreateOrUpdateModal')),
+    exact: true,
   },
 ];
 

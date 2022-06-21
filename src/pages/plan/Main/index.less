@@ -1,0 +1,47 @@
+@import '@/index.global.less';
+
+.tabs {
+  height: 100%;
+  :global {
+    .ant-tabs-nav {
+      padding: 0 17px;
+      margin-bottom: 0;
+    }
+    .ant-tabs-content {
+      height: 100%;
+    }
+    // 有双倍边距
+    .ant-tabs-nav::before {
+      border-bottom-width: 1px !important;
+    }
+  }
+
+  .selection {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 32px;
+    height: 32px;
+    &.active {
+      background: #e9eaec;
+      border-radius: 4px;
+    }
+  }
+
+  .extra-content {
+    display: flex;
+    align-items: center;
+    font-size: 16px;
+    .action + .action {
+      margin-left: 8px;
+    }
+
+    .line {
+      height: 20px;
+      width: 1px;
+      background-color: @border-color;
+      margin-left: 8px;
+      margin-right: 14px;
+    }
+  }
+}

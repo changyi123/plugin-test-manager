@@ -26,7 +26,14 @@ type BaseTestEntity = {
     steps: Step[];
     precondition: string;
     defectItemIds?: string[];
+    attachments?: Attachment[]; // 附件
   };
+  /** 测试用例评论数据 */
+  comments: comment[];
+
+  executor: any[]; // 执行人信息
+  createdBy: any;
+  updatedBy: any;
 };
 
 /** 测试实体类型 */
@@ -54,6 +61,17 @@ export type Status = {
 /** 步骤表单 */
 export type StepField = Record<'key' | 'value', any>;
 
+// 附件
+export type Attachment = {
+  url: string; // 文件地址
+  status: string; // 上传状态
+  name: string;
+  size: number;
+  uid: string;
+  time?: string; // 上传时间
+  [key: string]: any;
+};
+
 export type Step = {
   id: string; // uuid
 
@@ -74,4 +92,11 @@ export type Step = {
   // 以下字段为保留字段暂时不用
   attachments?: string[]; // 附件
   customFields?: StepField[]; // 自定义字段
+};
+
+export type comment = {
+  id: string; // 评论 ID
+  value: any; // 评论内容
+  createTime: string; // 评论时间
+  createUserId: string; // 评论用户 id
 };

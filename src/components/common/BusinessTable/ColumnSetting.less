@@ -1,0 +1,36 @@
+:root {
+  .title {
+    font-size: 16px;
+  }
+
+  .field-select {
+    margin: 0 2px;
+    width: 100%;
+  }
+
+  .sort-area {
+    padding-top: 20px;
+  }
+
+  .sort-item {
+    display: flex;
+    height: 32px;
+    align-items: center;
+    padding: 0 2px;
+    border-radius: 4px;
+    .title {
+      font-size: 14px;
+      margin-left: 6px;
+      margin-right: auto;
+    }
+    .icon {
+      cursor: pointer;
+      &:hover {
+        color: RGB(24, 144, 255);
+      }
+    }
+    &.dragging {
+      background: RGBA(24, 144, 255, 0.1);
+    }
+  }
+}

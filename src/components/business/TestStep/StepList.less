@@ -1,0 +1,134 @@
+@border-color: #d8d8d8;
+@hover-background: #FBFBFB;
+@call-test-primary-color: #998dd9;
+
+:root {
+  .header,
+  .step-row {
+    display: flex;
+    align-items: stretch;
+    min-height: 40px;
+    border-bottom: 1px solid #d8d8d8;
+  }
+
+  .header {
+    color: #b0b5bc;
+    font-size: 12px;
+  }
+
+  .step-row {
+    position: relative;
+    width: 100%;
+    background-color: #fff;
+    &.hover {
+      background-color: @hover-background;
+    }
+
+    .actions {
+      position: absolute;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      display: flex;
+      align-items: center;
+
+      > .icon {
+        &:hover {
+          color: #4b8bff !important;
+        }
+        cursor: pointer;
+        margin-right: 12px;
+      }
+    }
+  }
+
+  .column {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &.field {
+      width: ~'calc(33% - 25px)';
+      justify-content: flex-start;
+    }
+
+    &.drag-area {
+      z-index: 2;
+      width: 40px;
+      position: sticky;
+      left: 0;
+    }
+    &.number {
+      display: flex;
+      align-items: self-start;
+      margin-top: 10px;
+    }
+
+    :global {
+      .test-step-field.input {
+        padding-left: 0px;
+      }
+    }
+  }
+
+  .position-tip {
+    width: 18px;
+    height: 18px;
+    color: #fff;
+    border-radius: 50%;
+    line-height: 18px;
+    text-align: center;
+    background-color: #ccc;
+    &.field {
+      background-color: #4b8bff;
+    }
+    &.call {
+      background-color: @call-test-primary-color;
+    }
+  }
+
+  .call-test {
+    width: 100%;
+    padding: 10px 0;
+    padding-right: 50px;
+    max-height: 60px;
+
+    > div {
+      display: flex;
+      align-items: center;
+      border-radius: 4px;
+      font-size: 12px;
+      color: #878c96;
+      width: 100%;
+      overflow: hidden;
+    }
+
+    .length {
+      flex: none;
+      margin-right: 10px;
+    }
+
+    .brand {
+      color: #fff;
+      background-color: @call-test-primary-color;
+      border-radius: 4px;
+      padding: 0 4px;
+      margin-right: 6px;
+    }
+
+    .icon {
+      width: 16px;
+      height: 16px;
+      margin-right: 4px;
+    }
+
+    .name {
+      font-size: 14px;
+      color: #333;
+    }
+
+    .line {
+      margin: 0 5px;
+    }
+  }
+}

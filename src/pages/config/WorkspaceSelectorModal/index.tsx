@@ -1,10 +1,9 @@
 import React from 'react';
-import { Modal, Select } from '@osui/ui';
+import { useReactive } from 'ahooks';
+import { Modal, Select } from 'antd';
 import EventBus from '@/lib/utils/eventBus';
-import { useReactive, useRequest } from 'ahooks';
 import { getRootContainer } from '@/lib/utils/helper';
-
-import { getWorkspaceByName } from '@/lib/api/proxima';
+import { useAllTestWorkspace } from '@/lib/hooks/useTest';
 
 const CLICK_OK_EVENT_TYPE = 'CLICK_OK_EVENT_TYPE';
 
@@ -18,42 +17,48 @@ const WorkspaceSelectorModal: React.FC<WorkspaceSelectorModalProps> = ({ actionR
   const state = useReactive({
     visible: false,
     selectValue: null,
-    workspaces: [],
   });
 
   const eventBusRef = React.useRef(new EventBus());
 
-  const { run } = useRequest(
-    async name => {
-      return getWorkspaceByName(name ?? '');
-    },
-    {
-      debounceWait: 500,
-      onSuccess(workspaces) {
-        const workspacesData = workspaces?.map(parseObj => parseObj.toJSON()) ?? [];
-        state.workspaces = workspacesData;
-      },
-    },
-  );
+  const workspaces = useAllTestWorkspace();
 
-  React.useImperativeHandle(actionRef, () => ({
-    open(selectedWorkspace) {
-      if (selectedWorkspace) {
-        state.selectValue = selectedWorkspace?.key;
-      }
-      state.visible = true;
-      return new Promise(resolve => {
-        eventBusRef.current.register(CLICK_OK_EVENT_TYPE, () => {
-          const selectedWorkspace = state.workspaces.find(
-            workspace => workspace.key === state.selectValue,
-          );
-          if (selectedWorkspace) {
-            resolve(selectedWorkspace);
-          }
+  const workspaceOptions = React.useMemo(() => {
+    if (!workspaces) return [];
+    return workspaces.map(workspace => ({
+      label: (
+        <span>
+          {workspace.name}
+          <span style={{ color: '#ccc', fontSize: 12 }}>（{workspace.key}）</span>
+        </span>
+      ),
+      data: workspace.name + workspace.key,
+      value: workspace.key,
+    }));
+  }, [workspaces]);
+
+  React.useImperativeHandle(
+    actionRef,
+    () => ({
+      open(selectedWorkspace) {
+        if (selectedWorkspace) {
+          state.selectValue = selectedWorkspace?.key;
+        }
+        state.visible = true;
+        return new Promise(resolve => {
+          eventBusRef.current.register(CLICK_OK_EVENT_TYPE, () => {
+            const selectedWorkspace = workspaces.find(
+              workspace => workspace.key === state.selectValue,
+            );
+            if (selectedWorkspace) {
+              resolve(selectedWorkspace);
+            }
+          });
         });
-      });
-    },
-  }));
+      },
+    }),
+    [state, workspaces],
+  );
 
   const selectContainerRef = React.useRef();
   return (
@@ -75,21 +80,14 @@ const WorkspaceSelectorModal: React.FC<WorkspaceSelectorModalProps> = ({ actionR
       <div ref={selectContainerRef}>
         <Select
           showSearch
-          onSearch={run}
-          filterOption={false}
+          optionFilterProp="data"
           placeholder="请选择空间"
           style={{ width: '100%' }}
           value={state.selectValue}
+          options={workspaceOptions}
           onChange={value => (state.selectValue = value)}
           getPopupContainer={() => selectContainerRef.current}
-        >
-          {state.workspaces.map(opt => (
-            <Select.Option value={opt.key} key={opt.key}>
-              {opt.name}
-              <span style={{ color: '#ccc', fontSize: 12 }}>（{opt.key}）</span>
-            </Select.Option>
-          ))}
-        </Select>
+        />
       </div>
     </Modal>
   );

@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { SelectProps } from 'antd/es/select';
 import { debounce, isObject, uniqWith } from 'lodash';
 
-import { Select, Spin } from '@osui/ui';
+import { Select, Spin } from 'antd';
 
 import OverflowTooltip from '../OverflowTooltip';
 
