@@ -69,10 +69,10 @@ const TestDetailsSelectorList: React.FC<any> = () => {
   };
 
   useEffect(() => {
-    const _checkedReport = [...Object.keys(reportCheckedValue)];
-    if (_checkedReport.length && _checkedReport.length !== checkData.length) {
-      checkedAll && setCheckedAll(v => !v);
-    }
+    // const _checkedReport = [...Object.keys(reportCheckedValue)];
+    // if (_checkedReport.length && _checkedReport.length !== checkData.length) {
+    //   checkedAll && setCheckedAll(v => !v);
+    // }
     const selectedReport = [...Object.values(reportCheckedValue)].filter((d: any) => d.checked);
     const indetReport = [...Object.values(reportCheckedValue)].filter((d: any) => d.indeterminate);
     if (selectedReport.length === checkData.length) {
@@ -93,6 +93,16 @@ const TestDetailsSelectorList: React.FC<any> = () => {
       checkedAll && setCheckedAll(false);
     }
   }, [checkData, reportCheckedValue]);
+
+  useEffect(() => {
+    // const checkedTestValue = [...Object.entries(reportCheckedValue)].reduce(
+    //   (prev, [key, value]) => {
+    //     const delValue = checkData.find(d => d.value === type).children.map(d => d.value);
+    //     return prev;
+    //   },
+    //   {},
+    // );
+  }, [reportCheckedValue]);
 
   const checkReport = (e, type: string) => {
     const delValue = checkData.find(d => d.value === type).children.map(d => d.value);
