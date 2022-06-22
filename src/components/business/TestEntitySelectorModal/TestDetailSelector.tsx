@@ -361,6 +361,7 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
                   workspaceKey={workspaceKey}
                   selectedNode={selectedNode}
                   ignoreTestDetailIds={ignoreTestDetailIds}
+                  selectedTestDetailIds={selectedTestDetailIds}
                   setSelectedTestDetailIds={setSelectedTestDetailIds}
                 />
                 {/* <div className={cx('detail', 'header')}>
