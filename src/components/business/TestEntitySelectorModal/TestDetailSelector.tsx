@@ -204,37 +204,37 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
   );
 
   // 当前目录全选
-  const handleFolderCheckAll = (checked, testDetailIds) => {
-    setSelectedTestDetailIds(prevState => {
-      if (checked) {
-        // 先排除再全选
-        return exclude(prevState, testDetailIds).concat(testDetailIds);
-      } else {
-        // 取消选中选差集
-        return exclude(prevState, testDetailIds);
-      }
-    });
-  };
+  // const handleFolderCheckAll = (checked, testDetailIds) => {
+  //   setSelectedTestDetailIds(prevState => {
+  //     if (checked) {
+  //       // 先排除再全选
+  //       return exclude(prevState, testDetailIds).concat(testDetailIds);
+  //     } else {
+  //       // 取消选中选差集
+  //       return exclude(prevState, testDetailIds);
+  //     }
+  //   });
+  // };
 
-  const handleCheck = (_, { checked, node }) => {
-    if (!node.testDetailIds.length) return;
-    const testDetailIds = node.testDetailIds;
-    handleFolderCheckAll(checked, testDetailIds);
+  // const handleCheck = (_, { checked, node }) => {
+  //   if (!node.testDetailIds.length) return;
+  //   const testDetailIds = node.testDetailIds;
+  //   handleFolderCheckAll(checked, testDetailIds);
 
-    setFolderCheckedKey(prevState => {
-      if (checked) {
-        return {
-          ...prevState,
-          checked: prevState.checked.concat(node.key),
-        };
-      } else {
-        return {
-          ...prevState,
-          checked: exclude(prevState.checked, [node.key]),
-        };
-      }
-    });
-  };
+  //   setFolderCheckedKey(prevState => {
+  //     if (checked) {
+  //       return {
+  //         ...prevState,
+  //         checked: prevState.checked.concat(node.key),
+  //       };
+  //     } else {
+  //       return {
+  //         ...prevState,
+  //         checked: exclude(prevState.checked, [node.key]),
+  //       };
+  //     }
+  //   });
+  // };
 
   const handleWorkspaceChange = key => {
     folderCheckedCacheRef.current = {
@@ -247,13 +247,13 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
     setFolderCheckedKey(folderCheckedCacheRef.current[key] ?? DEFAULT_CHECKED_KEY);
   };
 
-  const handleTestDetailCheck = (checked, key) => {
-    const needUpdateTestDetailIds = checked
-      ? selectedTestDetailIds.concat(key)
-      : selectedTestDetailIds.filter(k => k !== key);
+  // const handleTestDetailCheck = (checked, key) => {
+  //   const needUpdateTestDetailIds = checked
+  //     ? selectedTestDetailIds.concat(key)
+  //     : selectedTestDetailIds.filter(k => k !== key);
 
-    setSelectedTestDetailIds(needUpdateTestDetailIds);
-  };
+  //   setSelectedTestDetailIds(needUpdateTestDetailIds);
+  // };
 
   const TreeComponentCheckProps = React.useMemo(() => {
     return isSingleMode
@@ -349,7 +349,7 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
                   icon={({ expanded }) => (expanded ? <FileOpen /> : <FileClose />)}
                   switcherIcon={<CaretDownOutlined style={{ color: '#878C96' }} />}
                   treeData={treeData}
-                  onCheck={handleCheck}
+                  // onCheck={handleCheck}
                   className={cx('tree')}
                   checkedKeys={folderCheckedKey}
                   onSelect={(_, { node }) => setSelectedNode(node)}
@@ -357,7 +357,12 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
                 />
               </div>
               <div className={cx('detail-selector-container')}>
-                <TestDetailsSelectorList></TestDetailsSelectorList>
+                <TestDetailsSelectorList
+                  workspaceKey={workspaceKey}
+                  selectedNode={selectedNode}
+                  ignoreTestDetailIds={ignoreTestDetailIds}
+                  setSelectedTestDetailIds={setSelectedTestDetailIds}
+                />
                 {/* <div className={cx('detail', 'header')}>
                   {!isSingleMode ? (
                     <Checkbox
