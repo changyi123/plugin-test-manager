@@ -13,6 +13,7 @@ import { notification } from 'antd';
 import { DeleteOutlined } from '@/icons';
 import RepositoryGroup from '@/components/business/RepositoryGroup';
 import { TitleCellOption } from '@/components/common/BusinessTable/type';
+import Field from '@/components/common/Field';
 
 import cx from './ExecutionTable.less';
 
@@ -162,10 +163,18 @@ const ExpandedTable = (props: ExpandedTableProps) => {
     },
     {
       key: 'executor',
-      title: '最新执行人',
+      title: '最近操作执行人',
       width: 150,
       render(_, record) {
-        return <span>{record?.executor?.[0]?.nickname ?? '--'}</span>;
+        return <Field.User readonly userInfo={record?.executor?.[0]} />;
+      },
+    },
+    {
+      key: 'designee',
+      title: '执行人',
+      width: 150,
+      render(_, record) {
+        return <Field.User onChange={console.log} userInfo={record?.designee} />;
       },
     },
     {
@@ -233,10 +242,11 @@ const ExpandedTable = (props: ExpandedTableProps) => {
         defaultColumnKey={[
           'key',
           'repositoryGroup',
+          'designee',
           'runStatus',
-          'executor',
           'createdBy',
           'createdAt',
+          'executor',
         ]}
         showPagination={true}
         actionRef={innerTableRef}

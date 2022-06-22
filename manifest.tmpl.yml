@@ -194,7 +194,11 @@ tables:
         type: Object
       sortIndex:
         type: Number
-      executor: 
+      # 最新执行操作人（不能手动修改）
+      executor:
+        type: Array
+      # 执行人（手动指派）
+      designee:
         type: Array
       createdBy:
         type: Pointer
