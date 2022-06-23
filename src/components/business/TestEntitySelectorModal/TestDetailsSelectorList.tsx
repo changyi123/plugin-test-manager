@@ -1,30 +1,20 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useMemo, useState } from 'react';
-import { Checkbox, Select } from 'antd';
+import { Checkbox, Select, Spin, Tooltip } from 'antd';
 import { CheckboxValueType } from 'antd/lib/checkbox/Group';
 import { getTestEntitiesByQuery } from '@/lib/api/common';
 import { useRequest } from 'ahooks';
 
-// 接受参数：
-// 1、所选测试用例库信息 selectedNode
-// 2、当前测试计划下已关联用例 ignoreTestDetailIds
-
-// 返回数据
-// 1、选中目标测试用例 selectedTestDetailIds
-
-// 实现交互
-// 1、切换当前用例库和当前用例库的子用例库交互
-// 2、全选交互，全选选择所有用例库，选择用例库全选用例库下的测试用例，选择测试用例半选用例库，半选全选
-
-// 左侧树交互优化：
-// 1、折叠和点击交互分开
+import cx from './TestDetailsSelectorList.less';
+import { CaretDownOutlined, CaretUpOutlined } from '@ant-design/icons';
 
 interface TestDetailsSelectorListProps {
   workspaceKey?: string;
   selectedNode?: any;
+  detailSearchValue?: string;
   ignoreTestDetailIds?: string[];
-  selectedTestDetailIds: string[];
-  setSelectedTestDetailIds: (val: any) => void;
+  selectedTestDetailIds?: string[];
+  setSelectedTestDetailIds?: (val: any) => void;
 }
 
 const reportTreeToArray = (datas: any[], parent?: any, ignoreIds = []) => {
@@ -34,19 +24,19 @@ const reportTreeToArray = (datas: any[], parent?: any, ignoreIds = []) => {
       value: cur.key,
       label: cur.name,
       testIds: filterIgnoreIds(cur.testDetailIds ?? [], ignoreIds),
-      path: `${parent?.path ? parent?.path + '/' : ''}` + cur.name,
+      path: `${parent?.path ? parent?.path + '/' : ''}${cur.name}`,
     };
     prev = prev.concat(_cur);
 
     if (_cur.children?.length) {
-      prev = prev.concat(reportTreeToArray(_cur.children, _cur));
+      prev = prev.concat(reportTreeToArray(_cur.children, _cur, ignoreIds));
     }
 
     return prev;
   }, []);
 };
 
-const getReportData = datas => reportTreeToArray([datas ?? {}]);
+const getReportData = (datas, ignoreIds = []) => reportTreeToArray([datas ?? {}], null, ignoreIds);
 
 const getTestDetailIdsByReport = (datas, filed = 'testIds') =>
   datas.map(d => d[filed] ?? []).flat();
@@ -76,6 +66,11 @@ const getReportCheckedValue = (testIds: any[], checkTestValue: string[], type = 
   return !!_testIds.length && testIds.length !== _testIds.length;
 };
 
+const getPath = (path: string, name: string) => {
+  const reg = new RegExp(`(${name})$`, 'g');
+  return path.replace(reg, '');
+};
+
 const selectOptions = [
   {
     value: 'showCur',
@@ -90,6 +85,7 @@ const selectOptions = [
 const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
   workspaceKey,
   selectedNode,
+  detailSearchValue,
   ignoreTestDetailIds,
   selectedTestDetailIds,
   setSelectedTestDetailIds,
@@ -97,6 +93,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
   const CheckboxGroup = Checkbox.Group;
   const [checkData, setCheckData] = useState([]);
   const [showType, setShowType] = useState('showChild');
+  const [orderByCratedAt, setOrderByCratedAt] = useState<'asc' | 'desc'>('asc');
 
   const curSelectIdsLength = useMemo(
     () => getTestDetailIdsByReport(checkData).filter(d => selectedTestDetailIds.includes(d)).length,
@@ -106,9 +103,14 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
   // 查询当前用例库下所有测试用例
   const { data: curTestList = [], loading: curTestListLoading } = useRequest(
     async () => {
+      const baseQueryOptions = {
+        ascendingBy: orderByCratedAt === 'asc' ? ['sortIndex', 'createdAt'] : null,
+        descendingBy: orderByCratedAt === 'desc' ? ['sortIndex', 'createdAt'] : null,
+      };
       // 获取当前空间内所有的测试实体
       const { results: data } = await getTestEntitiesByQuery(
         {
+          nameLike: detailSearchValue,
           in: getTestDetailIdsByReport(getReportData(selectedNode), 'testDetailIds'),
           workspaceKey,
         },
@@ -116,6 +118,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
           limit: 99999,
           include: ['objectId', 'repository', 'reference'],
           select: ['objectId', 'repository', 'reference'],
+          ...baseQueryOptions,
         },
       );
 
@@ -123,44 +126,43 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
         ...d,
         label: d.reference.name,
         value: d.objectId,
-        disabled: ignoreTestDetailIds?.includes(d.objectId) ?? false,
       }));
     },
     {
-      ready: Boolean(selectedNode),
-      refreshDeps: [selectedNode, ignoreTestDetailIds],
-      cacheKey: `Repository_${selectedNode?.key ?? ''}`,
+      refreshDeps: [detailSearchValue, orderByCratedAt, selectedNode],
+      cacheKey: `Repository_${selectedNode?.key ?? ''}${detailSearchValue ?? ''}${orderByCratedAt}`,
       staleTime: 999999999,
       cacheTime: 999999999,
     },
   );
 
   useEffect(() => {
-    if (!curTestListLoading && curTestList?.length) {
+    if (!curTestListLoading) {
+      if (!curTestList.length) return setCheckData([]);
       const curTestListMap = new Map();
 
-      curTestList.forEach(test => {
+      curTestList?.forEach(test => {
         curTestListMap.set(test.objectId, test);
       });
-      const reportData =
+
+      const reportData = getReportData(
         showType === 'showCur'
-          ? [
-              {
-                ...selectedNode,
-                children: [],
-                testDetailList: selectedNode.testDetailIds?.map(d => curTestListMap.get(d)) ?? [],
-              },
-            ]
-          : getReportData(selectedNode);
+          ? {
+              ...selectedNode,
+              children: [],
+            }
+          : selectedNode,
+        ignoreTestDetailIds,
+      );
 
       const _checkData = reportData.map(report => ({
         ...report,
-        testDetailList: report.testDetailIds?.map(d => curTestListMap.get(d)) ?? [],
+        testDetailList: report.testDetailIds?.map(d => curTestListMap.get(d) ?? []) ?? [],
       }));
 
       setCheckData(_checkData);
     }
-  }, [curTestListLoading, curTestList, showType]);
+  }, [curTestListLoading, curTestList, showType, ignoreTestDetailIds]);
 
   const checkAllTest = e => {
     const allTestIds = getTestDetailIdsByReport(checkData, 'testDetailIds');
@@ -172,74 +174,113 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
 
   const checkReport = (e, boxNode) => {
     setSelectedTestDetailIds(val => [
-      [
-        ...val.filter(d => !boxNode.testIds.includes(d)),
-        ...(e.target.checked ? boxNode.testIds : []),
-      ],
+      ...val.filter(d => !boxNode.testIds.includes(d)),
+      ...(e.target.checked ? boxNode.testIds : []),
     ]);
   };
 
   const checkTest = (value: CheckboxValueType[], testIds: string[]) => {
-    setSelectedTestDetailIds(val => [...val.filter(d => !testIds.includes(d)), ...value]);
+    setSelectedTestDetailIds(val => [
+      ...new Set([...val.filter(d => !testIds.includes(d)), ...value]),
+    ]);
   };
 
   return (
-    <>
-      <div>
-        <Checkbox
-          disabled={!selectedNode?.key}
-          indeterminate={getCheckedValue(
-            checkData,
-            [...ignoreTestDetailIds, ...selectedTestDetailIds],
-            'indeterminate',
-          )}
-          checked={getCheckedValue(
-            checkData,
-            [...ignoreTestDetailIds, ...selectedTestDetailIds],
-            'checked',
-          )}
-          onChange={checkAllTest}
-        >
-          已选中
-          <span>{curSelectIdsLength}</span>
-          <span> / {getTestDetailIdsByReport(checkData).length}</span>
-        </Checkbox>
-        <div>
-          <Select
-            value={showType}
-            options={selectOptions}
-            onChange={val => setShowType(val)}
-          ></Select>
-        </div>
-      </div>
-      {checkData.map(box => (
-        <div key={box.value}>
+    <Spin spinning={curTestListLoading}>
+      <>
+        <div className={cx('detail-selector-header')}>
           <Checkbox
-            indeterminate={getReportCheckedValue(
-              box.testDetailIds,
+            disabled={!selectedNode?.key}
+            indeterminate={getCheckedValue(
+              checkData,
               [...ignoreTestDetailIds, ...selectedTestDetailIds],
               'indeterminate',
             )}
-            checked={getReportCheckedValue(
-              box.testDetailIds,
+            checked={getCheckedValue(
+              checkData,
               [...ignoreTestDetailIds, ...selectedTestDetailIds],
               'checked',
             )}
-            onChange={e => checkReport(e, box)}
+            onChange={checkAllTest}
           >
-            {box.path}
+            已选中
+            <span> {curSelectIdsLength}</span>
+            <span> / {getTestDetailIdsByReport(checkData).length}</span>
           </Checkbox>
-          {box.testDetailList.length && (
-            <CheckboxGroup
-              options={box.testDetailList}
-              value={[...ignoreTestDetailIds, ...selectedTestDetailIds]}
-              onChange={val => checkTest(val, box.testIds)}
-            ></CheckboxGroup>
-          )}
+          <div className={cx('detail-header-right')}>
+            <Select
+              value={showType}
+              options={selectOptions}
+              onChange={val => setShowType(val)}
+            ></Select>
+            <Tooltip title="创建时间排序">
+              <span
+                className={cx('action')}
+                onClick={() => {
+                  setOrderByCratedAt(val => (val === 'asc' ? 'desc' : 'asc'));
+                }}
+              >
+                <span>{orderByCratedAt === 'asc' ? '最早' : '最晚'}</span>
+                <span className={cx('icon')}>
+                  <CaretUpOutlined className={cx(orderByCratedAt === 'asc' && 'activity')} />
+                  <CaretDownOutlined className={cx(orderByCratedAt === 'desc' && 'activity')} />
+                </span>
+              </span>
+            </Tooltip>
+          </div>
         </div>
-      ))}
-    </>
+        <div
+          className={cx('detail-selector-body')}
+          style={{
+            overflow: 'hidden auto',
+            height: 'calc(100% - 40px)',
+          }}
+        >
+          {checkData.map(box => (
+            <>
+              {box.testDetailList.length ? (
+                <div className={cx('detail-list')} key={box.value}>
+                  <div className={cx('detail-list-box')}>
+                    <Checkbox
+                      indeterminate={getReportCheckedValue(
+                        box.testDetailIds,
+                        [...ignoreTestDetailIds, ...selectedTestDetailIds],
+                        'indeterminate',
+                      )}
+                      checked={getReportCheckedValue(
+                        box.testDetailIds,
+                        [...ignoreTestDetailIds, ...selectedTestDetailIds],
+                        'checked',
+                      )}
+                      onChange={e => checkReport(e, box)}
+                    >
+                      {getPath(box.path, box.name)}
+                      <strong>{box.name}</strong>
+                    </Checkbox>
+                  </div>
+                  <div className={cx('detail-list-group')}>
+                    <CheckboxGroup
+                      options={box.testDetailList.map(d => ({
+                        ...d,
+                        disabled: ignoreTestDetailIds?.includes(d.objectId) ?? false,
+                      }))}
+                      value={[...ignoreTestDetailIds, ...selectedTestDetailIds]}
+                      onChange={val =>
+                        checkTest(
+                          val.filter(d => !ignoreTestDetailIds.includes(d as string)),
+                          box.testIds,
+                        )
+                      }
+                    ></CheckboxGroup>
+                  </div>
+                </div>
+              ) : null}
+            </>
+          ))}
+        </div>
+      </>
+    </Spin>
   );
 };
 
-export default TestDetailsSelectorList;
+export default React.memo(TestDetailsSelectorList);

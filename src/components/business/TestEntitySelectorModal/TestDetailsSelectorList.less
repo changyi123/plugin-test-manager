@@ -1,0 +1,69 @@
+@tree-node-selected-color: #0c62ff !important;
+
+:root {
+  .detail-selector-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 16px;
+
+    .detail-header-right {
+      display: flex;
+      align-items: center;
+
+      .action {
+        margin-left: 6px;
+        flex: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        .check-icon {
+          font-size: 16px;
+          color: #0c62ff;
+        }
+        .icon {
+          width: 12px;
+          font-size: 10px;
+          display: flex;
+          flex-direction: column;
+        }
+        .activity {
+          color: @tree-node-selected-color;
+        }
+        :global {
+          .anticon-caret-up {
+            margin-bottom: -3px;
+          }
+        }
+      }
+    }
+  }
+
+  .detail-selector-body {
+    .detail-list {
+      margin-bottom: 12px;
+
+      .detail-list-box {
+        padding: 6px 16px;
+        background-color: #f4f6f8;
+      }
+
+      .detail-list-group {
+        :global {
+          .ant-checkbox-group {
+            width: 100%;
+            .ant-checkbox-group-item {
+              width: 100%;
+              padding: 6px 16px;
+              border-bottom: 1px solid #f4f6f8;
+            }
+          }
+        }
+      }
+    }
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
