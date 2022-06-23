@@ -139,12 +139,11 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
   useEffect(() => {
     if (!curTestListLoading) {
       if (!curTestList.length) return setCheckData([]);
-      const curTestListMap = new Map();
+      // const curTestListMap = new Map();
 
-      curTestList?.forEach(test => {
-        curTestListMap.set(test.objectId, test);
-      });
-
+      // curTestList?.forEach(test => {
+      //   curTestListMap.set(test.objectId, test);
+      // });
       const reportData = getReportData(
         showType === 'showCur'
           ? {
@@ -157,7 +156,8 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
 
       const _checkData = reportData.map(report => ({
         ...report,
-        testDetailList: report.testDetailIds?.map(d => curTestListMap.get(d) ?? []) ?? [],
+        // testDetailList: report.testDetailIds?.map(d => curTestListMap.get(d) ?? []) ?? [],
+        testDetailList: curTestList.filter(d => report.testDetailIds.includes(d.objectId)) ?? [],
       }));
 
       setCheckData(_checkData);
@@ -165,7 +165,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
   }, [curTestListLoading, curTestList, showType, ignoreTestDetailIds]);
 
   const checkAllTest = e => {
-    const allTestIds = getTestDetailIdsByReport(checkData, 'testDetailIds');
+    const allTestIds = getTestDetailIdsByReport(checkData, 'testIds');
     setSelectedTestDetailIds(val => [
       ...val.filter(d => !allTestIds.includes(d)),
       ...(e.target.checked ? allTestIds : []),
