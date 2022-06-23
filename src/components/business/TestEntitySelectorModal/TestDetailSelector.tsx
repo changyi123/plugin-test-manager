@@ -360,7 +360,7 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
                 <TestDetailsSelectorList
                   workspaceKey={workspaceKey}
                   selectedNode={selectedNode}
-                  ignoreTestDetailIds={ignoreTestDetailIds}
+                  ignoreTestDetailIds={ignoreTestDetailIds ?? []}
                   selectedTestDetailIds={selectedTestDetailIds}
                   setSelectedTestDetailIds={setSelectedTestDetailIds}
                 />

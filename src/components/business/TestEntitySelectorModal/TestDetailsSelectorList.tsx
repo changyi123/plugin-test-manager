@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { useEffect, useState } from 'react';
-import { Checkbox } from 'antd';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Checkbox, Select } from 'antd';
 import { CheckboxValueType } from 'antd/lib/checkbox/Group';
 import { getTestEntitiesByQuery } from '@/lib/api/common';
 import { useRequest } from 'ahooks';
@@ -18,7 +18,6 @@ import { useRequest } from 'ahooks';
 
 // 左侧树交互优化：
 // 1、折叠和点击交互分开
-// checkedAllValue： {nodeKey: {}}
 
 interface TestDetailsSelectorListProps {
   workspaceKey?: string;
@@ -28,12 +27,13 @@ interface TestDetailsSelectorListProps {
   setSelectedTestDetailIds: (val: any) => void;
 }
 
-const reportTreeToArray = (datas: any[], parent?: any) => {
+const reportTreeToArray = (datas: any[], parent?: any, ignoreIds = []) => {
   return datas?.reduce((prev, cur) => {
     const _cur = {
       ...cur,
       value: cur.key,
       label: cur.name,
+      testIds: filterIgnoreIds(cur.testDetailIds ?? [], ignoreIds),
       path: `${parent?.path ? parent?.path + '/' : ''}` + cur.name,
     };
     prev = prev.concat(_cur);
@@ -48,12 +48,13 @@ const reportTreeToArray = (datas: any[], parent?: any) => {
 
 const getReportData = datas => reportTreeToArray([datas ?? {}]);
 
-const getTestDetailIdsByReport = datas => datas.map(d => d.testDetailIds ?? []).flat();
+const getTestDetailIdsByReport = (datas, filed = 'testIds') =>
+  datas.map(d => d[filed] ?? []).flat();
 
-const getCheckedValue = (curNode: any, checkTestValue: string[], type = 'checked') => {
+const getCheckedValue = (checkData: any[], checkTestValue: string[], type = 'checked') => {
   if (!checkTestValue.length) return false;
 
-  const allTestIds = getTestDetailIdsByReport(getReportData(curNode));
+  const allTestIds = getTestDetailIdsByReport(checkData, 'testDetailIds');
   const _allTestIds = allTestIds.filter(id => !checkTestValue.includes(id));
 
   if (type === 'checked') {
@@ -63,7 +64,10 @@ const getCheckedValue = (curNode: any, checkTestValue: string[], type = 'checked
   return !!_allTestIds.length && allTestIds.length !== _allTestIds.length;
 };
 
-const getReportCheckedValue = (testIds: any, checkTestValue: string[], type = 'checked') => {
+const filterIgnoreIds = (ids: string[], ignoreIds: string[]) =>
+  ids?.filter(d => !ignoreIds.includes(d)) ?? [];
+
+const getReportCheckedValue = (testIds: any[], checkTestValue: string[], type = 'checked') => {
   const _testIds = testIds.filter(id => !checkTestValue.includes(id));
   if (type === 'checked') {
     return !_testIds.length;
@@ -71,6 +75,17 @@ const getReportCheckedValue = (testIds: any, checkTestValue: string[], type = 'c
 
   return !!_testIds.length && testIds.length !== _testIds.length;
 };
+
+const selectOptions = [
+  {
+    value: 'showCur',
+    label: '显示当前分组用例',
+  },
+  {
+    value: 'showChild',
+    label: '显示子分组用例',
+  },
+];
 
 const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
   workspaceKey,
@@ -80,8 +95,13 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
   setSelectedTestDetailIds,
 }) => {
   const CheckboxGroup = Checkbox.Group;
-
   const [checkData, setCheckData] = useState([]);
+  const [showType, setShowType] = useState('showChild');
+
+  const curSelectIdsLength = useMemo(
+    () => getTestDetailIdsByReport(checkData).filter(d => selectedTestDetailIds.includes(d)).length,
+    [selectedTestDetailIds, checkData],
+  );
 
   // 查询当前用例库下所有测试用例
   const { data: curTestList = [], loading: curTestListLoading } = useRequest(
@@ -89,7 +109,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
       // 获取当前空间内所有的测试实体
       const { results: data } = await getTestEntitiesByQuery(
         {
-          in: getTestDetailIdsByReport(getReportData(selectedNode)),
+          in: getTestDetailIdsByReport(getReportData(selectedNode), 'testDetailIds'),
           workspaceKey,
         },
         {
@@ -122,17 +142,28 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
       curTestList.forEach(test => {
         curTestListMap.set(test.objectId, test);
       });
-      const _checkData = getReportData(selectedNode).map(report => ({
+      const reportData =
+        showType === 'showCur'
+          ? [
+              {
+                ...selectedNode,
+                children: [],
+                testDetailList: selectedNode.testDetailIds?.map(d => curTestListMap.get(d)) ?? [],
+              },
+            ]
+          : getReportData(selectedNode);
+
+      const _checkData = reportData.map(report => ({
         ...report,
         testDetailList: report.testDetailIds?.map(d => curTestListMap.get(d)) ?? [],
       }));
 
       setCheckData(_checkData);
     }
-  }, [curTestListLoading, curTestList]);
+  }, [curTestListLoading, curTestList, showType]);
 
   const checkAllTest = e => {
-    const allTestIds = getTestDetailIdsByReport(getReportData(selectedNode));
+    const allTestIds = getTestDetailIdsByReport(checkData, 'testDetailIds');
     setSelectedTestDetailIds(val => [
       ...val.filter(d => !allTestIds.includes(d)),
       ...(e.target.checked ? allTestIds : []),
@@ -140,11 +171,10 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
   };
 
   const checkReport = (e, boxNode) => {
-    const boxNodeTestIds = boxNode.testDetailIds ?? [];
     setSelectedTestDetailIds(val => [
       [
-        ...val.filter(d => !boxNodeTestIds.includes(d)),
-        ...(e.target.checked ? boxNodeTestIds : []),
+        ...val.filter(d => !boxNode.testIds.includes(d)),
+        ...(e.target.checked ? boxNode.testIds : []),
       ],
     ]);
   };
@@ -155,25 +185,44 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
 
   return (
     <>
-      <Checkbox
-        disabled={!selectedNode?.key}
-        indeterminate={getCheckedValue(selectedNode, selectedTestDetailIds, 'indeterminate')}
-        checked={getCheckedValue(selectedNode, selectedTestDetailIds, 'checked')}
-        onChange={checkAllTest}
-      >
-        全选
-      </Checkbox>
+      <div>
+        <Checkbox
+          disabled={!selectedNode?.key}
+          indeterminate={getCheckedValue(
+            checkData,
+            [...ignoreTestDetailIds, ...selectedTestDetailIds],
+            'indeterminate',
+          )}
+          checked={getCheckedValue(
+            checkData,
+            [...ignoreTestDetailIds, ...selectedTestDetailIds],
+            'checked',
+          )}
+          onChange={checkAllTest}
+        >
+          已选中
+          <span>{curSelectIdsLength}</span>
+          <span> / {getTestDetailIdsByReport(checkData).length}</span>
+        </Checkbox>
+        <div>
+          <Select
+            value={showType}
+            options={selectOptions}
+            onChange={val => setShowType(val)}
+          ></Select>
+        </div>
+      </div>
       {checkData.map(box => (
         <div key={box.value}>
           <Checkbox
             indeterminate={getReportCheckedValue(
-              box.testDetailIds ?? [],
-              selectedTestDetailIds,
+              box.testDetailIds,
+              [...ignoreTestDetailIds, ...selectedTestDetailIds],
               'indeterminate',
             )}
             checked={getReportCheckedValue(
-              box.testDetailIds ?? [],
-              selectedTestDetailIds,
+              box.testDetailIds,
+              [...ignoreTestDetailIds, ...selectedTestDetailIds],
               'checked',
             )}
             onChange={e => checkReport(e, box)}
@@ -183,8 +232,8 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
           {box.testDetailList.length && (
             <CheckboxGroup
               options={box.testDetailList}
-              value={selectedTestDetailIds}
-              onChange={val => checkTest(val, box.testDetailIds)}
+              value={[...ignoreTestDetailIds, ...selectedTestDetailIds]}
+              onChange={val => checkTest(val, box.testIds)}
             ></CheckboxGroup>
           )}
         </div>
