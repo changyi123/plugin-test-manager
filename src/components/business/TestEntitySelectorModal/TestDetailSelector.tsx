@@ -11,9 +11,9 @@ import { hasArrayItem, escapeMatchesQueryArg } from '@/lib/utils/helper';
 import { Select, Tree, Empty, Input } from 'antd';
 import { traverseTreeNodes, appendGroupedDetailIdsToTreeNode } from '@/pages/repository/util';
 import { CaretDownOutlined, FileClose, FileOpen, SearchOutlined } from '@/icons';
+import TestDetailsSelectorList from './TestDetailsSelectorList';
 
 import cx from './TestDetailSelector.less';
-import TestDetailsSelectorList from './TestDetailsSelectorList';
 
 const DEFAULT_CHECKED_KEY = {
   checked: [],
@@ -38,12 +38,6 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
     onTestDetailSelect,
     isWorkspaceIsolate,
   } = props;
-
-  // const baseSearchState = useReactive({
-  //   nameLike: '',
-  //   // notIn: ignoreTestDetailIds ?? null,
-  //   orderByCratedAt: 'asc' as 'asc' | 'desc',
-  // });
 
   // 目录搜索
   const [folderSearchValue, setFolderSearchValue] = React.useState('');
@@ -242,13 +236,6 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
           allowClear
           onSearch={val => setDetailSearchValue(val)}
         />
-        {/* <SearchInput
-          text="搜索"
-          className={cx('search')}
-          value={detailSearchValue}
-          onChange={value => setDetailSearchValue(value)}
-          onSearch={value => (baseSearchState.nameLike = value)}
-        /> */}
       </div>
       <div className={cx('main')}>
         {hasArrayItem(repositoryTreeData) ? (
@@ -268,6 +255,7 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
                 switcherIcon={<CaretDownOutlined style={{ color: '#878C96' }} />}
                 treeData={treeData}
                 className={cx('tree')}
+                expandAction={false}
                 checkedKeys={folderCheckedKey}
                 onSelect={(_, { node }) => setSelectedNode(node)}
                 selectedKeys={[selectedNode?.key].filter(Boolean)}

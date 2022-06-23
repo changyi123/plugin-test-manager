@@ -473,6 +473,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
 
       <DirectoryTree
         treeData={treeData}
+        expandAction={false}
         className={cx('tree')}
         onExpand={handleExpand}
         onSelect={handleSelect}
