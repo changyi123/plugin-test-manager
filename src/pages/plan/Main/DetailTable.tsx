@@ -41,6 +41,7 @@ const DetailTable = () => {
 
   const userData = useUserCellUserDataProp(workspaceKey);
 
+  const allSelectableRowKeys = selectedTestPlan?.refTestDetails?.map(detail => detail.objectId);
   const selectedTestPlanId = selectedTestPlan?.objectId;
 
   const refreshAndMutateData = React.useCallback(() => {
@@ -79,7 +80,7 @@ const DetailTable = () => {
             include: ['repository'],
             select: ['type', 'sortIndex', 'reference', 'repository', 'workspaceKey', 'createdAt'],
             // FIXME: 优化查询速度
-            // workspaceKey,
+            workspaceKey,
             fillItemData: true,
             nameLike: searchValue,
             queryParams: queryParams,
@@ -90,7 +91,7 @@ const DetailTable = () => {
           { from: selectedTestPlanId },
           {
             // FIXME: 优化查询速度
-            // workspaceKey,
+            workspaceKey,
             fillItemData: true,
             queryParams: { limit: 9999 },
             include: ['objectId'],
@@ -155,7 +156,7 @@ const DetailTable = () => {
         message: `${testDetailIds.length} 个测试用例从测试计划中移除`,
       });
 
-      actionRef.current.resetSelectedRows();
+      actionRef.current.resetSelectedRowKeys();
     },
     [refreshAndMutateData, actionRef],
   );
@@ -164,10 +165,7 @@ const DetailTable = () => {
     const handleDelete = () => {
       if (isCheck) {
         actionConfirm('该操作会将所选测试用例从测试计划中移除，是否继续操作？', () => {
-          removeTestRelation(
-            selectedTestPlanId,
-            actionRef.current.selectedRows.map(row => row.objectId),
-          );
+          removeTestRelation(selectedTestPlanId, actionRef.current.selectedRowKeys);
         });
       }
     };
@@ -175,8 +173,8 @@ const DetailTable = () => {
     // 更新负责人
     const handleAssigneeChange = async assignees => {
       setTableLoading(true);
-      const itemIds = actionRef.current.selectedRows.map(row => row.reference.objectId);
-      await updateItemAssignee(itemIds, assignees);
+      const testIds = actionRef.current.selectedRowKeys;
+      await updateItemAssignee(testIds, assignees);
 
       setTimeout(() => {
         refreshAndMutateData();
@@ -184,7 +182,7 @@ const DetailTable = () => {
 
       setTableLoading(false);
       notification.success({
-        message: `${itemIds.length} 个测试负责人已更新`,
+        message: `${testIds.length} 个测试负责人已更新`,
       });
     };
 
@@ -197,7 +195,7 @@ const DetailTable = () => {
         userData={userData}
         onChange={handleAssigneeChange}
         emptyChild={
-          <span>
+          <span className="user-field">
             <UserOutlined /> 设置负责人
           </span>
         }
@@ -292,6 +290,7 @@ const DetailTable = () => {
       loading={tableLoading}
       setIsCheck={setIsCheck}
       getDataSource={tableDataGetter}
+      allSelectableRowKeys={allSelectableRowKeys}
       selectionActionNodes={selectionActionNodes}
       onSelectionCancel={() => tableSelectionToggleEvent.emit(false)}
     />

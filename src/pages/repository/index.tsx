@@ -1,7 +1,9 @@
 import React from 'react';
 import { pick } from 'lodash';
+import { FileClose } from '@/icons';
 import { getDevConfig } from '@/devEnv';
 import { TestType } from '@/lib/constants';
+import { Button, notification } from 'antd';
 import { useReactive, useRequest } from 'ahooks';
 import { useSDK } from '@projectproxima/plugin-sdk';
 import { getFolderTree } from '@/lib/api/repository';
@@ -9,8 +11,6 @@ import { logPluginVersion } from '@/lib/utils/helper';
 import { useBaseAction } from '@/lib/hooks/useContext';
 import FolderTree from '@/pages/repository/FolderTree';
 import PageLayout from '@/components/common/PageLayout';
-import { AppstoreAddOutlined, FileClose } from '@/icons';
-import { Tooltip, Button, notification } from 'antd';
 import { getTestEntitiesByQuery } from '@/lib/api/common';
 import SearchInput from '@/components/business/SearchInput';
 import { useListener } from '@projectproxima/proxima-sdk-js';
@@ -172,13 +172,15 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
             </div>
           </OverflowTooltip>
           <div className={cx('actions')}>
-            <SearchInput onSearch={value => (state.searchValue = value as any)} />
-            <Tooltip title="多选操作">
-              <AppstoreAddOutlined
-                onClick={() => toggleSelection()}
-                className={cx('action', 'selection', state.tableSelectionVisible && 'active')}
-              />
-            </Tooltip>
+            <SearchInput
+              showInput
+              placeholder="请输入搜索关键字"
+              onSearch={value => (state.searchValue = value as any)}
+            />
+            <Button onClick={() => toggleSelection()}>
+              {state.tableSelectionVisible ? '取消操作' : '批量操作'}
+            </Button>
+
             <span className={cx('line')} />
             <Button type="primary" onClick={createTestDetail} className={cx('action')}>
               新建测试用例

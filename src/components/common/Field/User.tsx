@@ -10,9 +10,13 @@ type UserFieldProps = {
   userInfo: UserInfo | UserInfo[];
 } & PickedUserCellProps;
 
-const UserField: React.FC<UserFieldProps> = ({ userInfo, ...restUserCellProps }) => {
-  const userData = toArray(userInfo);
-  return <UserCell userData={userData} {...restUserCellProps} />;
+const UserField: React.FC<UserFieldProps> = ({
+  userInfo,
+  readonly = true,
+  ...restUserCellProps
+}) => {
+  const value = toArray(userInfo).filter(Boolean);
+  return <UserCell readonly={readonly} value={value} {...restUserCellProps} />;
 };
 
 export default UserField;

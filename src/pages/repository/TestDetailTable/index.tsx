@@ -7,9 +7,8 @@ import { updateFolders } from '@/lib/api/repository';
 import { UserCell } from '@projectproxima/components';
 import { updateItemAssignee } from '@/lib/api/proxima';
 import { useTestConfig } from '@/lib/hooks/useContext';
+import { DeleteOutlined, UserOutlined, DragHandler } from '@/icons';
 import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { DeleteOutlined, UserOutlined, SwitcherOutlined, DragHandler } from '@/icons';
 import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
 import { deleteTestEntities, getTestEntitiesByQuery, cloneTestEntities } from '@/lib/api/common';
 import { useUserCellUserDataProp } from '@/lib/hooks/useProxima';
@@ -103,36 +102,30 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
 
   const selectionActionNodes = React.useMemo(() => {
     const deleteTestDetail = () => {
-      const testDetailIds = tableActionRef.current.selectedRows.map(row => row.objectId);
-      const itemIds = tableActionRef.current.selectedRows
-        .map(row => row.reference?.objectId)
-        .filter(Boolean);
+      const testDetailIds = tableActionRef.current.selectedRowKeys;
 
       actionConfirm('该操作会将所选的测试用例删除，是否继续操作？', async () => {
-        await Promise.all([deleteTestEntities(testDetailIds), deleteItems(itemIds)]);
+        await Promise.all([deleteTestEntities(testDetailIds), deleteItems(testDetailIds)]);
         refreshAndMutateData();
 
         notification.success({
-          message: `${tableActionRef.current.selectedRows.length} 个测试用例已被删除`,
+          message: `${tableActionRef.current.selectedRowKeys.length} 个测试用例已被删除`,
         });
-        tableActionRef.current.resetSelectedRows();
+        tableActionRef.current.resetSelectedRowKeys();
       });
     };
 
     // 更新负责人
     const toggleAssignee = async assignees => {
       setTableLoading(true);
-      const itemIds = tableActionRef.current.selectedRows
-        .map(row => row.reference?.objectId)
-        .filter(Boolean);
-      await updateItemAssignee(itemIds, assignees);
+      await updateItemAssignee(tableActionRef.current.selectedRowKeys, assignees);
 
       setTimeout(() => {
         refreshAndMutateData();
       }, 1000);
 
       notification.success({
-        message: `${tableActionRef.current.selectedRows.length} 个测试负责人已更新`,
+        message: `${tableActionRef.current.selectedRowKeys.length} 个测试负责人已更新`,
       });
       setTableLoading(false);
     };
@@ -140,7 +133,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
     // 复制测试用例 本期不上
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const copyTestDetail = async () => {
-      const testEntityIds = tableActionRef.current.selectedRows.map(row => row.objectId);
+      const testEntityIds = tableActionRef.current.selectedRowKeys;
       const targetRepository = await repositorySelectorRef.current.open({ workspaceKey });
       const clonedTestEntities = await cloneTestEntities(testEntityIds);
       const cloneTestEntityIds = clonedTestEntities.map(item => item.toJSON().objectId);
@@ -164,7 +157,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         userData={userData}
         onChange={toggleAssignee}
         emptyChild={
-          <span>
+          <span className="user-field">
             <UserOutlined /> 设置负责人
           </span>
         }
@@ -260,12 +253,13 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         defaultColumnKey={['key', 'repositoryGroup', 'createdBy', 'createdAt']}
         itemKey="reference"
         name="TestDetailTable"
-        actionRef={tableActionRef}
-        setIsCheck={setIsCheck}
         isCheck={isCheck}
-        getDataSource={dataSourceGetter}
-        onSelectionCancel={onSelectionCancel}
         loading={tableLoading}
+        setIsCheck={setIsCheck}
+        actionRef={tableActionRef}
+        getDataSource={dataSourceGetter}
+        allSelectableRowKeys={testDetailIds}
+        onSelectionCancel={onSelectionCancel}
         selectionActionNodes={selectionActionNodes}
       />
       <RepositorySelector actionRef={repositorySelectorRef} />

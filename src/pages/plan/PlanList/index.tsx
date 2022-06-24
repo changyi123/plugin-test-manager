@@ -121,7 +121,7 @@ const PlanList = () => {
         },
         {
           // FIXME: 优化查询速度
-          // workspaceKey,
+          workspaceKey,
           select: ['status'],
           include: ['status'],
           queryParams: { limit: 9999, offset: 0 },
@@ -160,9 +160,10 @@ const PlanList = () => {
       },
       {
         // FIXME: 优化查询速度
-        // workspaceKey,
+        workspaceKey,
         include: ['status'],
-        queryParams: { limit: 9999, offset: 0 },
+        select: ['status'],
+        queryParams: { limit: 99999, offset: 0 },
       },
     );
     mutate(data => {

@@ -1,47 +1,49 @@
 import React from 'react';
-import { Pagination } from 'antd';
-import { StatusBadge } from '@/components/business/Status';
 import TestRunModal, {
   ActionType as TestRunModalActionType,
 } from '@/components/business/TestRunModal';
-import { BusinessTable } from '@/components/common/BusinessTable';
 
-import { actionConfirm } from '@/lib/utils/helper';
-import { deleteTestEntities } from '@/lib/api/common';
-import { updateTestRunStatus } from '@/lib/api/runs';
-import { notification } from 'antd';
-import { DeleteOutlined } from '@/icons';
-import RepositoryGroup from '@/components/business/RepositoryGroup';
-import { TitleCellOption } from '@/components/common/BusinessTable/type';
 import Field from '@/components/common/Field';
+import { Pagination, notification } from 'antd';
+import { actionConfirm } from '@/lib/utils/helper';
+import { updateTestRunStatus } from '@/lib/api/runs';
+import { UserCell } from '@projectproxima/components';
+import { StatusBadge } from '@/components/business/Status';
+import { useUserCellUserDataProp } from '@/lib/hooks/useProxima';
+import { BusinessTable } from '@/components/common/BusinessTable';
+import RepositoryGroup from '@/components/business/RepositoryGroup';
+import { DeleteOutlined, FlagOutlined, UserOutlined } from '@/icons';
+import { TitleCellOption } from '@/components/common/BusinessTable/type';
+import { deleteTestEntities, updateTestRunDesignee } from '@/lib/api/common';
 
 import cx from './ExecutionTable.less';
 
 type ExpandedTableProps = TitleCellOption & {
   refreshAndMutateData: () => void;
-  tableSelectionToggleEvent: any;
   record: any;
   updateTestRun: any;
-  openItemViewScreen: any;
   innerTableRef: any;
   innerTableRefs?: any;
+  openItemViewScreen: any;
   removeTestRelation: any;
+  tableSelectionToggleEvent: any;
 };
 
 const ExpandedTable = (props: ExpandedTableProps) => {
   const [pageNum, setPageNum] = React.useState(1);
   const testRunModalActionRef = React.useRef<TestRunModalActionType>();
+  const [isCheck, setIsCheck] = React.useState(false);
 
   const {
-    innerTableRefs,
-    refreshAndMutateData,
-    tableSelectionToggleEvent,
     record,
     updateTestRun,
-    openItemViewScreen,
     innerTableRef,
-    removeTestRelation,
+    innerTableRefs,
     titleCellOption,
+    removeTestRelation,
+    openItemViewScreen,
+    refreshAndMutateData,
+    tableSelectionToggleEvent,
   } = props;
 
   // 测试执行序列
@@ -68,20 +70,16 @@ const ExpandedTable = (props: ExpandedTableProps) => {
     [removeTestRelation],
   );
 
+  const userData = useUserCellUserDataProp(titleCellOption.workspaceKey);
+
   const InnerTableSelectionActionNodes = React.useMemo(() => {
     const toggleSTestRunStatus = async status => {
-      const selectedRows = (
-        Object.values(innerTableRefs.current).reduce((res: any, ref: any) => {
-          return res.concat(ref.selectedRows);
-        }, []) as any[]
-      )
-        .filter(Boolean)
-        .filter(row => record.objectId === row.relation.from.objectId);
+      const refs = Object.values(innerTableRefs.current) as any[];
+      const testRunIds = refs.reduce((acc, ref) => Array.from(acc.concat(ref.selectedRowKeys)), []);
 
-      const testRunIds = selectedRows.map(item => item.objectId);
       await updateTestRunStatus({
         status: status.key,
-        testRun: testRunIds,
+        testRunIds,
       });
       notification.success({
         message: '所选测试执行状态更新成功',
@@ -101,14 +99,48 @@ const ExpandedTable = (props: ExpandedTableProps) => {
       deleteTestRunByRows(selectedRows);
     };
 
+    // 更新测试执行人
+    const handleDesigneeChange = async users => {
+      const selectedRows = (
+        Object.values(innerTableRefs.current).reduce((res: any, ref: any) => {
+          return res.concat(ref.selectedRows);
+        }, []) as any[]
+      )
+        .filter(Boolean)
+        .filter(row => record.objectId === row.relation.from.objectId);
+
+      const testRunIds = selectedRows.map(item => item.objectId);
+
+      users = users.map(user => ({
+        ...user,
+        objectId: user.value,
+      }));
+
+      await updateTestRunDesignee(testRunIds, users);
+      refreshAndMutateData();
+    };
+
     return [
+      <UserCell
+        value={[]}
+        key="assignee"
+        mode="multiple"
+        readonly={!isCheck}
+        userData={userData}
+        onChange={handleDesigneeChange}
+        emptyChild={
+          <span className="user-field">
+            <UserOutlined /> 更改执行人
+          </span>
+        }
+      />,
       <StatusBadge
         useRootContainer
         onStatusChange={toggleSTestRunStatus}
         key="toggleRunStatus"
         emptyNode={
           <span>
-            <DeleteOutlined /> 设置状态
+            <FlagOutlined /> 更改执行状态
           </span>
         }
       />,
@@ -117,7 +149,14 @@ const ExpandedTable = (props: ExpandedTableProps) => {
         <DeleteOutlined /> 删除
       </span>,
     ];
-  }, [deleteTestRunByRows, innerTableRefs, record.objectId, refreshAndMutateData]);
+  }, [
+    isCheck,
+    userData,
+    innerTableRefs,
+    record.objectId,
+    deleteTestRunByRows,
+    refreshAndMutateData,
+  ]);
 
   const columns = [
     {
@@ -174,7 +213,7 @@ const ExpandedTable = (props: ExpandedTableProps) => {
       title: '执行人',
       width: 150,
       render(_, record) {
-        return <Field.User onChange={console.log} userInfo={record?.designee} />;
+        return <Field.User userInfo={record?.designee} />;
       },
     },
     {
@@ -249,11 +288,13 @@ const ExpandedTable = (props: ExpandedTableProps) => {
           'executor',
         ]}
         showPagination={true}
+        setIsCheck={setIsCheck}
         actionRef={innerTableRef}
         name="ExecutionInnerTable"
         className={cx('expand-table')}
         expandChangePage={relPageChange}
         titleCellOption={titleCellOption}
+        allSelectableRowKeys={testIdSequence}
         scroll={{ x: 'max-content', y: 500 }}
         itemKey="runReferenceDetail.reference"
         PaginationFooterRender={PaginationFooterRender}

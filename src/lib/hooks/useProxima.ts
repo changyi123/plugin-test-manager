@@ -97,7 +97,7 @@ export const useUsedScreenFieldKeys = (
   /** 从界面类型方案中获取 screenId */
   const getScreenIdByScreenScheme = screenScheme => {
     const ScreenTypes = ['defaultScreen', 'viewScreen', 'createScreen', 'editScreen'];
-    return [...new Set(ScreenTypes.map(type => screenScheme[type]?.objectId).filter(Boolean))];
+    return [...new Set(ScreenTypes.map(type => screenScheme?.[type]?.objectId).filter(Boolean))];
   };
 
   // 获取空间界面方案关联的全部方案
@@ -110,9 +110,8 @@ export const useUsedScreenFieldKeys = (
         .first()
         .then(item => item.toJSON());
 
-      const {
-        itemTypeScreenScheme: { itemTypeScreenSchemeMappings, defaultScreenScheme },
-      } = workspace;
+      const { itemTypeScreenSchemeMappings, defaultScreenScheme } =
+        workspace?.itemTypeScreenScheme ?? {};
 
       const itemTypeKeyScreenSchemeMapping = {
         default: getScreenIdByScreenScheme(defaultScreenScheme),

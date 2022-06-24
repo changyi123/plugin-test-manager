@@ -2,11 +2,10 @@ import React from 'react';
 import DetailTable from './DetailTable';
 import { usePageContext } from '../hook';
 import ExecutionTable from './ExecutionTable';
-import { AppstoreAddOutlined } from '@/icons';
 import { createTestRelation } from '@/lib/api/common';
+import { Tabs, Button, notification, Spin } from 'antd';
 import { TestType, TestRelationType } from '@/lib/constants';
 import { createTestExecutionAndRelations } from '@/lib/api/runs';
-import { Tabs, Button, Tooltip, notification, Spin } from 'antd';
 import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
 import TestEntitySelectorModal, { ActionType } from '@/components/business/TestEntitySelectorModal';
 
@@ -106,23 +105,26 @@ const Main = () => {
   const rightExtraContent = (
     <div className={cx('extra-content')}>
       <SearchInput
-        placeholder="请输入标题"
+        showInput
         value={value}
+        placeholder="请输入标题"
         className={cx('action')}
         onChange={val => {
           setValue(val);
         }}
         onSearch={handleSearch}
       />
-      <Tooltip title="多选操作">
-        <AppstoreAddOutlined
-          onClick={() => toggleTableSelection()}
-          className={cx('action', 'selection', tableSelectionVisible && 'active')}
-        />
-      </Tooltip>
+      <Button className={cx('action')} onClick={() => toggleTableSelection()}>
+        {tableSelectionVisible ? '取消操作' : '批量操作'}
+      </Button>
       {activeKey === TabKeyEnum.testDetailTable ? (
         <>
-          <span className={cx('line')} />
+          <RepoDropDown
+            className={cx('action')}
+            buttonText="导入导出"
+            type="plan"
+            selectedTestPlanId={selectedTestPlanId}
+          />
           <Button type="primary" onClick={addTestDetail} className={cx('action')}>
             规划用例
           </Button>
@@ -134,7 +136,6 @@ const Main = () => {
           >
             新建测试任务
           </Button>
-          <RepoDropDown type="plan" selectedTestPlanId={selectedTestPlanId} />
         </>
       ) : null}
     </div>

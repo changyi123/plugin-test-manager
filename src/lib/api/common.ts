@@ -657,3 +657,22 @@ export const updateGlobalConfig = async fields => {
     ...fields,
   });
 };
+
+/** 更新测试执行执行人 */
+export const updateTestRunDesignee = async (testRunIds, designees) => {
+  const testRuns = await Parse.Object.fetchAllIfNeeded(
+    testRunIds.map(id => new Test({ objectId: id })),
+  );
+
+  testRuns.forEach(testRun => testRun.set('designee', designees));
+
+  await Parse.Object.saveAll(testRuns);
+};
+
+/** 获取测试关联的事项id */
+export const getRefItemIdsByTestIds = async (testIds: string[]) => {
+  return new Parse.Query(Test)
+    .select('reference')
+    .containedIn('objectId', testIds)
+    .map(i => i?.toJSON().reference?.objectId);
+};

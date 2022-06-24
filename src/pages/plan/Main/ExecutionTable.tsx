@@ -28,7 +28,6 @@ const ExecutionTable = () => {
   const executionTableActionRef = React.useRef<BusinessTableActionRef>();
   const testEntitySelectorRef = React.useRef<TestEntitySelectorActionType>();
   const [ignoreTestEntityIds, setIgnoreTestEntityIds] = React.useState([]);
-
   // 事项数据更新后刷新列表
   useListener('updateItemList', () => {
     setTimeout(() => {
@@ -56,13 +55,20 @@ const ExecutionTable = () => {
     });
   }, [registerRefreshMethod]);
 
-  const refreshAndMutateData = React.useCallback(() => {
-    Object.values(innerTableRefs.current).forEach(ref => {
-      ref?.expandChangePage(1);
-    });
-    executionTableActionRef.current.refresh();
-    mutateTestPlanEvent.emit(selectedTestPlanId);
-  }, [mutateTestPlanEvent, selectedTestPlanId]);
+  const refreshAndMutateData = React.useCallback(
+    (shouldRestCurrentPage = false) => {
+      // 是否需要重置当前页
+      if (shouldRestCurrentPage) {
+        Object.values(innerTableRefs.current).forEach(ref => {
+          ref?.expandChangePage(1);
+        });
+      }
+
+      executionTableActionRef.current.refresh();
+      mutateTestPlanEvent.emit(selectedTestPlanId);
+    },
+    [mutateTestPlanEvent, selectedTestPlanId],
+  );
 
   tableSelectionToggleEvent.useSubscription(visible => {
     Object.values(innerTableRefs.current).forEach(ref => {
@@ -82,7 +88,8 @@ const ExecutionTable = () => {
         TestRelationType.PlanRelExecution,
         { from: selectedTestPlanId },
         {
-          // workspaceKey,
+          // FIXME: 优化查询速度
+          workspaceKey,
           nameLike: searchValue,
           select: ['reference'],
           include: ['reference'],
@@ -123,7 +130,7 @@ const ExecutionTable = () => {
         },
       );
     },
-    [searchValue, selectedTestPlanId],
+    [searchValue, selectedTestPlanId, workspaceKey],
   );
 
   const removeTestRelation = React.useCallback(
@@ -239,11 +246,11 @@ const ExecutionTable = () => {
           workspaceKey,
           testType: 'TestDetail',
         }}
+        record={record}
         innerTableRefs={innerTableRefs}
         removeTestRelation={removeTestRelation}
         refreshAndMutateData={refreshAndMutateData}
         tableSelectionToggleEvent={tableSelectionToggleEvent}
-        record={record}
         updateTestRun={updateTestRun}
         openItemViewScreen={openItemViewScreen}
         innerTableRef={ref =>
