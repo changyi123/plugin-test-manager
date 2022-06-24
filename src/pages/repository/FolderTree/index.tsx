@@ -185,10 +185,10 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         treeFn.reverseTreeNodes(node, () => {
           hierarchy++;
         });
-        // 模块创建限制 5 个层级
-        if (hierarchy >= 5) {
+        // 模块创建限制 8 个层级
+        if (hierarchy >= 8) {
           notification.warn({
-            message: '限制5个层级，5个层级以上不能新建子模块',
+            message: '限制8个层级，8个层级以上不能新建子模块',
           });
           return;
         }
