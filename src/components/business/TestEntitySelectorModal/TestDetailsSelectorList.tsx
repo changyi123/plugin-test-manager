@@ -190,7 +190,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
       <>
         <div className={cx('detail-selector-header')}>
           <Checkbox
-            disabled={!selectedNode?.key}
+            disabled={getCheckedValue(checkData, ignoreTestDetailIds, 'checked')}
             indeterminate={getCheckedValue(
               checkData,
               [...ignoreTestDetailIds, ...selectedTestDetailIds],
@@ -250,6 +250,11 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
                       checked={getReportCheckedValue(
                         box.testDetailIds,
                         [...ignoreTestDetailIds, ...selectedTestDetailIds],
+                        'checked',
+                      )}
+                      disabled={getReportCheckedValue(
+                        box.testDetailIds,
+                        ignoreTestDetailIds,
                         'checked',
                       )}
                       onChange={e => checkReport(e, box)}
