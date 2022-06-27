@@ -5,18 +5,27 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 4px 16px;
+    padding: 8px 16px;
 
     .detail-header-right {
       display: flex;
       align-items: center;
 
       .action {
-        margin-left: 6px;
+        margin-left: 8px;
         flex: none;
         cursor: pointer;
         display: flex;
         align-items: center;
+        border: 1px solid #d9d9d9;
+        line-height: 32px;
+        border-radius: 2px;
+        padding: 0px 8px;
+
+        &:hover {
+          border-color: #3683ff;
+        }
+
         .check-icon {
           font-size: 16px;
           color: #0c62ff;
@@ -44,8 +53,28 @@
       margin-bottom: 12px;
 
       .detail-list-box {
-        padding: 6px 16px;
+        padding: 9px 16px;
         background-color: #f4f6f8;
+
+        .path {
+          display: flex;
+          align-items: center;
+
+          .par-path {
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            max-width: 380px;
+          }
+
+          .path-name {
+            font-weight: bold;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            max-width: 80px;
+          }
+        }
       }
 
       .detail-list-group {
@@ -54,7 +83,7 @@
             width: 100%;
             .ant-checkbox-group-item {
               width: 100%;
-              padding: 6px 16px;
+              padding: 9px 16px;
               border-bottom: 1px solid #f4f6f8;
             }
           }

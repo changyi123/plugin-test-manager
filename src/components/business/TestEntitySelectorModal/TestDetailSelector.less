@@ -1,6 +1,6 @@
 @import '@/index.global.less';
 
-@tree-node-height: 40px !important;
+@tree-node-height: 32px !important;
 @tree-node-selected-color: #0c62ff !important;
 @tree-node-selected-background: #e6f3ff !important;
 @border-color: #dadee3;
@@ -31,12 +31,13 @@
     margin-top: 12px;
 
     .folder-selector {
+      position: relative;
       flex: 30%;
-      overflow-y: auto;
       border-right: 1px solid @border-color;
       .custom-scrollbar-mixin();
 
       .search-input {
+        position: absolute;
         box-shadow: 0 0 0 1px #f0f0f0;
         height: 40px;
         :global {
@@ -48,16 +49,24 @@
           }
         }
       }
+      .tree {
+        overflow-y: auto;
+        margin-top: 40px;
+      }
     }
   }
 
   .title {
     display: flex;
     align-items: center;
-    height: 40px;
+    font-size: 14px;
+    line-height: 32px;
+    font-weight: bold;
+
     .description {
       color: #999;
       font-size: 13px;
+      font-weight: 400;
     }
     .search {
       font-size: 16px;
@@ -121,8 +130,10 @@
     :global {
       .ant-tree-switcher {
         > span {
-          line-height: @tree-node-height;
+          display: inline-flex;
           font-size: 13px;
+          height: @tree-node-height;
+          align-items: center;
         }
       }
       .ant-tree-checkbox {
@@ -149,6 +160,7 @@
         line-height: @tree-node-height;
         align-items: center;
         overflow: hidden;
+        padding: 0;
       }
 
       .ant-tree-treenode::before {

@@ -68,7 +68,7 @@ const getReportCheckedValue = (testIds: any[], checkTestValue: string[], type = 
 
 const getPath = (path: string, name: string) => {
   const reg = new RegExp(`(${name})$`, 'g');
-  return path.replace(reg, '');
+  return path.replace(reg, '').replace(/(\/)$/g, '');
 };
 
 const selectOptions = [
@@ -233,7 +233,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
           className={cx('detail-selector-body')}
           style={{
             overflow: 'hidden auto',
-            height: 'calc(100% - 40px)',
+            height: 'calc(100% - 48px)',
           }}
         >
           {checkData.map(box => (
@@ -259,8 +259,13 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
                       )}
                       onChange={e => checkReport(e, box)}
                     >
-                      {getPath(box.path, box.name)}
-                      <strong>{box.name}</strong>
+                      <div className={cx('path')}>
+                        <span className={cx('par-path')}>{getPath(box.path, box.name)}</span>
+                        <span className={cx('path-name')}>
+                          {getPath(box.path, box.name) ? '/' : ''}
+                          {box.name}
+                        </span>
+                      </div>
                     </Checkbox>
                   </div>
                   <div className={cx('detail-list-group')}>

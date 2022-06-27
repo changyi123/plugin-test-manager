@@ -259,6 +259,7 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
                 checkedKeys={folderCheckedKey}
                 onSelect={(_, { node }) => setSelectedNode(node)}
                 selectedKeys={[selectedNode?.key].filter(Boolean)}
+                rootStyle={{ height: 'calc(100% - 40px)' }}
               />
             </div>
             <div className={cx('detail-selector-container')}>
