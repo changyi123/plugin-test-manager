@@ -70,7 +70,6 @@ type BusinessTableProps = TableProps<any> &
     name?: string;
     // 事项获取 key
     itemKey?: string;
-    isCheck?: boolean;
     showPagination?: boolean;
     useColumnSetting?: boolean;
     defaultColumnKey?: string[];
@@ -78,7 +77,8 @@ type BusinessTableProps = TableProps<any> &
     // 所有可选的 row 标识
     allSelectableRowKeys?: string[];
     onSelectionCancel?: () => void;
-    setIsCheck?: (check: boolean) => void;
+    // 是否已经有列被选中
+    onHasRowSelected?: (check: boolean) => void;
     selectionActionNodes?: React.ReactNode[];
     actionRef?: React.ForwardedRef<ActionType>;
     expandChangePage?: (num: number, size?: number) => void;
@@ -98,8 +98,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     titleCellOption,
     onSelectionCancel,
     selectionActionNodes,
-    isCheck,
-    setIsCheck,
+    onHasRowSelected,
     expandChangePage,
     itemKey = 'reference',
     showPagination = true,
@@ -228,10 +227,8 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
   }, [dataSource]);
 
   React.useEffect(() => {
-    if (!!isCheck !== selectedRowKeys?.length > 0) {
-      setIsCheck?.(selectedRowKeys?.length > 0);
-    }
-  }, [selectedRowKeys, setIsCheck, isCheck]);
+    onHasRowSelected?.(selectedRowKeys?.length > 0);
+  }, [selectedRowKeys, onHasRowSelected]);
 
   const handleResize = (key, _e, { size }) => {
     setColumnsWidth(dict => ({

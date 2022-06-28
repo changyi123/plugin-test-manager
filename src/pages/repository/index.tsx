@@ -117,6 +117,7 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
   const toggleSelection = (visible?: boolean) => {
     visible = typeof visible === 'boolean' ? visible : !state.tableSelectionVisible;
     state.tableSelectionVisible = visible;
+    tableActionRef.current.resetSelectedRowKeys();
     tableActionRef.current.toggleSelection(visible);
   };
 

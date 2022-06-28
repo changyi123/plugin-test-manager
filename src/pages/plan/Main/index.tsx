@@ -131,14 +131,20 @@ const Main = () => {
             type="plan"
             selectedTestPlanId={selectedTestPlanId}
           />
-          <Button type="primary" onClick={addTestDetail} className={cx('action')}>
+          <Button
+            type="primary"
+            onClick={addTestDetail}
+            className={cx('action')}
+            disabled={!selectedTestPlan}
+          >
             规划用例
           </Button>
           <Button
             type="primary"
-            onClick={createTestExecution}
             className={cx('action')}
             style={{ marginRight: 8 }}
+            disabled={!selectedTestPlan}
+            onClick={createTestExecution}
           >
             新建测试任务
           </Button>

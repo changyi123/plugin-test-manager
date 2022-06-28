@@ -3,16 +3,12 @@ import { notification } from 'antd';
 import { usePageContext } from '../hook';
 import { updateTestRun } from '@/lib/api/runs';
 import { deleteItems } from '@/lib/api/proxima';
+import { addTestDetailToExecution } from '@/lib/api/runs';
 import { TestRelationType, TestType } from '@/lib/constants';
 import { useListener } from '@projectproxima/proxima-sdk-js';
 import { StatusProgress } from '@/components/business/Status';
 import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
-import { addTestDetailToExecution } from '@/lib/api/runs';
-import {
-  deleteTestEntities,
-  removeTestRelations,
-  getTestEntitiesByRelation,
-} from '@/lib/api/common';
+import { deleteTestEntities, getTestEntitiesByRelation } from '@/lib/api/common';
 
 import BusinessTable, {
   ActionType as BusinessTableActionRef,
@@ -24,7 +20,9 @@ import TestEntitySelectorModal, {
 import ExpandedTable from './ExpandedTable';
 
 const ExecutionTable = () => {
-  const innerTableRefs = React.useRef<Record<string, BusinessTableActionRef>>({});
+  const innerTableRefs = React.useRef<
+    Record<string, React.MutableRefObject<BusinessTableActionRef>>
+  >({});
   const executionTableActionRef = React.useRef<BusinessTableActionRef>();
   const testEntitySelectorRef = React.useRef<TestEntitySelectorActionType>();
   const [ignoreTestEntityIds, setIgnoreTestEntityIds] = React.useState([]);
@@ -32,7 +30,7 @@ const ExecutionTable = () => {
   useListener('updateItemList', () => {
     setTimeout(() => {
       Object.values(innerTableRefs.current).forEach(ref => {
-        ref?.refresh();
+        ref?.current.refresh();
       });
       executionTableActionRef.current.refresh();
     }, 400);
@@ -56,11 +54,17 @@ const ExecutionTable = () => {
   }, [registerRefreshMethod]);
 
   const refreshAndMutateData = React.useCallback(
-    (shouldRestCurrentPage = false) => {
+    (options?: { shouldRestCurrentPage?: boolean; shouldRestSelectedRowKeys?: boolean }) => {
       // 是否需要重置当前页
-      if (shouldRestCurrentPage) {
+      if (options?.shouldRestCurrentPage) {
         Object.values(innerTableRefs.current).forEach(ref => {
-          ref?.expandChangePage(1);
+          ref?.current.expandChangePage(1);
+        });
+      }
+
+      if (options?.shouldRestSelectedRowKeys) {
+        Object.values(innerTableRefs.current).forEach(ref => {
+          ref?.current.resetSelectedRowKeys();
         });
       }
 
@@ -72,7 +76,8 @@ const ExecutionTable = () => {
 
   tableSelectionToggleEvent.useSubscription(visible => {
     Object.values(innerTableRefs.current).forEach(ref => {
-      ref?.toggleSelection(visible);
+      ref?.current.resetSelectedRowKeys();
+      ref?.current.toggleSelection(visible);
     });
   });
 
@@ -117,6 +122,7 @@ const ExecutionTable = () => {
                   'runReferenceDetail.reference',
                   'runReferenceDetail.repository',
                   'executor',
+                  'designee',
                 ],
               },
             );
@@ -143,24 +149,6 @@ const ExecutionTable = () => {
       );
     },
     [searchValue, selectedTestPlanId, workspaceKey],
-  );
-
-  const removeTestRelation = React.useCallback(
-    async (relationTypeIds, options = {}) => {
-      if (!Array.isArray(relationTypeIds)) return;
-      await removeTestRelations(relationTypeIds);
-
-      refreshAndMutateData();
-
-      notification.success({
-        message: options?.message ?? `${relationTypeIds.length} 个测试执行从测试计划中移除`,
-      });
-
-      Object.values(innerTableRefs.current).forEach((res: any) => {
-        res.resetSelectedRows();
-      });
-    },
-    [refreshAndMutateData, innerTableRefs],
   );
 
   const addTestDetail = async rowData => {
@@ -235,10 +223,12 @@ const ExecutionTable = () => {
                 marginRight: 8,
               }}
               onClick={() =>
-                actionConfirm('该操作会将该测试执行任务删除，是否继续操作？', () => {
-                  deleteTestEntities([rowData.objectId]);
-                  deleteItems([rowData.reference.objectId]);
-                  removeTestRelation([rowData.relation.objectId]);
+                actionConfirm('该操作会将该测试执行任务删除，是否继续操作？', async () => {
+                  await Promise.all([
+                    deleteTestEntities([rowData.objectId]),
+                    deleteItems([rowData.reference.objectId]),
+                  ]);
+                  refreshAndMutateData();
                 })
               }
             >
@@ -259,18 +249,16 @@ const ExecutionTable = () => {
           testType: 'TestDetail',
         }}
         record={record}
-        innerTableRefs={innerTableRefs}
-        removeTestRelation={removeTestRelation}
-        refreshAndMutateData={refreshAndMutateData}
-        tableSelectionToggleEvent={tableSelectionToggleEvent}
         updateTestRun={updateTestRun}
+        refreshAndMutateData={refreshAndMutateData}
         openItemViewScreen={openItemViewScreen}
+        tableSelectionToggleEvent={tableSelectionToggleEvent}
         innerTableRef={ref =>
           (innerTableRefs.current = { ...innerTableRefs.current, [record.objectId]: ref })
         }
       />
     ),
-    [refreshAndMutateData, removeTestRelation, tableSelectionToggleEvent, workspaceKey],
+    [refreshAndMutateData, tableSelectionToggleEvent, workspaceKey],
   );
 
   return (

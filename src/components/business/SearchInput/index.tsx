@@ -17,7 +17,7 @@ const SearchInput: React.FC<
 > = props => {
   const inputValueRef = React.useRef('');
   const inputRef = React.useRef<any>(null);
-  const { onSearch = noop, text, ...restInputProps } = props;
+  const { onSearch = noop, text, showInput, ...restInputProps } = props;
   const [inputVisible, setInputVisible] = React.useState(false);
 
   const { run: handleSearch } = useDebounceFn(onSearch, {
@@ -46,7 +46,7 @@ const SearchInput: React.FC<
 
   return (
     <div className={cx('search', props.className)}>
-      {props.showInput || inputVisible ? (
+      {showInput || inputVisible ? (
         <Input
           {...restInputProps}
           onBlur={handleBlur}

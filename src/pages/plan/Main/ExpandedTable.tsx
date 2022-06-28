@@ -10,37 +10,34 @@ import { updateTestRunStatus } from '@/lib/api/runs';
 import { UserCell } from '@projectproxima/components';
 import { StatusBadge } from '@/components/business/Status';
 import { useUserCellUserDataProp } from '@/lib/hooks/useProxima';
-import { BusinessTable } from '@/components/common/BusinessTable';
 import RepositoryGroup from '@/components/business/RepositoryGroup';
 import { DeleteOutlined, FlagOutlined, UserOutlined } from '@/icons';
 import { TitleCellOption } from '@/components/common/BusinessTable/type';
 import { deleteTestEntities, updateTestRunDesignee } from '@/lib/api/common';
+import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
 
 import cx from './ExecutionTable.less';
 
 type ExpandedTableProps = TitleCellOption & {
-  refreshAndMutateData: () => void;
   record: any;
   updateTestRun: any;
   innerTableRef: any;
-  innerTableRefs?: any;
   openItemViewScreen: any;
-  removeTestRelation: any;
   tableSelectionToggleEvent: any;
+  refreshAndMutateData: (option?: any) => void;
 };
 
 const ExpandedTable = (props: ExpandedTableProps) => {
   const [pageNum, setPageNum] = React.useState(1);
+  const tableActionRef = React.useRef<BusinessTableActionType>();
   const testRunModalActionRef = React.useRef<TestRunModalActionType>();
-  const [isCheck, setIsCheck] = React.useState(false);
+  const [hasRowSelected, setHasRowSelected] = React.useState(false);
 
   const {
     record,
     updateTestRun,
     innerTableRef,
-    innerTableRefs,
     titleCellOption,
-    removeTestRelation,
     openItemViewScreen,
     refreshAndMutateData,
     tableSelectionToggleEvent,
@@ -53,29 +50,32 @@ const ExpandedTable = (props: ExpandedTableProps) => {
     refreshAndMutateData();
   };
 
+  React.useImperativeHandle(innerTableRef, () => tableActionRef, []);
+
   /** 根据列表记录删除测试执行 */
-  const deleteTestRunByRows = React.useCallback(
-    rows => {
-      actionConfirm('该操作会将所选测试执行删除，是否继续操作？', () => {
+  const deleteTestRunByIds = React.useCallback(
+    testRunIds => {
+      actionConfirm('该操作会将所选测试执行删除，是否继续操作？', async () => {
         // 删除关联关系，删除测试实体
-        deleteTestEntities(rows.map(row => row.objectId));
-        removeTestRelation(
-          rows.map(row => row.relation.objectId),
-          {
-            message: `${rows.length} 个测试执行任务被删除`,
-          },
-        );
+        await deleteTestEntities(testRunIds);
+        notification.success({
+          message: `${testRunIds.length} 个测试执行任务被删除`,
+        });
+        refreshAndMutateData({
+          shouldRestCurrentPage: true,
+          shouldRestSelectedRowKeys: true,
+        });
       });
     },
-    [removeTestRelation],
+    [refreshAndMutateData],
   );
 
   const userData = useUserCellUserDataProp(titleCellOption.workspaceKey);
 
   const InnerTableSelectionActionNodes = React.useMemo(() => {
+    const getTestRunIds = () => tableActionRef.current.selectedRowKeys;
     const toggleSTestRunStatus = async status => {
-      const refs = Object.values(innerTableRefs.current) as any[];
-      const testRunIds = refs.reduce((acc, ref) => Array.from(acc.concat(ref.selectedRowKeys)), []);
+      const testRunIds = getTestRunIds();
 
       await updateTestRunStatus({
         status: status.key,
@@ -88,28 +88,14 @@ const ExpandedTable = (props: ExpandedTableProps) => {
     };
 
     const deleteTestRun = () => {
-      const selectedRows = (
-        Object.values(innerTableRefs.current).reduce((res: any, ref: any) => {
-          return res.concat(ref.selectedRows);
-        }, []) as any[]
-      )
-        .filter(Boolean)
-        .filter(row => record.objectId === row.relation.from.objectId);
+      const testRunIds = getTestRunIds();
 
-      deleteTestRunByRows(selectedRows);
+      deleteTestRunByIds(testRunIds);
     };
 
     // 更新测试执行人
     const handleDesigneeChange = async users => {
-      const selectedRows = (
-        Object.values(innerTableRefs.current).reduce((res: any, ref: any) => {
-          return res.concat(ref.selectedRows);
-        }, []) as any[]
-      )
-        .filter(Boolean)
-        .filter(row => record.objectId === row.relation.from.objectId);
-
-      const testRunIds = selectedRows.map(item => item.objectId);
+      const testRunIds = getTestRunIds();
 
       users = users.map(user => ({
         ...user,
@@ -125,8 +111,8 @@ const ExpandedTable = (props: ExpandedTableProps) => {
         value={[]}
         key="assignee"
         mode="multiple"
-        readonly={!isCheck}
         userData={userData}
+        readonly={!hasRowSelected}
         onChange={handleDesigneeChange}
         emptyChild={
           <span className="user-field">
@@ -136,6 +122,7 @@ const ExpandedTable = (props: ExpandedTableProps) => {
       />,
       <StatusBadge
         useRootContainer
+        readonly={!hasRowSelected}
         onStatusChange={toggleSTestRunStatus}
         key="toggleRunStatus"
         emptyNode={
@@ -145,18 +132,11 @@ const ExpandedTable = (props: ExpandedTableProps) => {
         }
       />,
 
-      <span key="delete" onClick={deleteTestRun}>
+      <span key="delete" onClick={() => hasRowSelected && deleteTestRun()}>
         <DeleteOutlined /> 删除
       </span>,
     ];
-  }, [
-    isCheck,
-    userData,
-    innerTableRefs,
-    record.objectId,
-    deleteTestRunByRows,
-    refreshAndMutateData,
-  ]);
+  }, [userData, hasRowSelected, refreshAndMutateData, deleteTestRunByIds]);
 
   const columns = [
     {
@@ -239,7 +219,7 @@ const ExpandedTable = (props: ExpandedTableProps) => {
             <a
               style={{ marginLeft: 10 }}
               onClick={async () => {
-                deleteTestRunByRows([record]);
+                deleteTestRunByIds([record.objectId]);
               }}
             >
               删除
@@ -288,12 +268,12 @@ const ExpandedTable = (props: ExpandedTableProps) => {
           'executor',
         ]}
         showPagination={true}
-        setIsCheck={setIsCheck}
-        actionRef={innerTableRef}
+        actionRef={tableActionRef}
         name="ExecutionInnerTable"
         className={cx('expand-table')}
         expandChangePage={relPageChange}
         titleCellOption={titleCellOption}
+        onHasRowSelected={setHasRowSelected}
         allSelectableRowKeys={testIdSequence}
         scroll={{ x: 'max-content', y: 500 }}
         itemKey="runReferenceDetail.reference"

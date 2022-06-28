@@ -60,7 +60,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
   const repositorySelectorRef = React.useRef<RepositorySelectorActionType>();
   const [tableLoading, setTableLoading] = React.useState(false);
 
-  const [isCheck, setIsCheck] = React.useState(false);
+  const [hasRowSelected, setHasRowSelected] = React.useState(false);
 
   const { workspace } = useTestConfig();
   const workspaceKey = workspace?.key;
@@ -153,7 +153,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         value={[]}
         key="assignee"
         mode="multiple"
-        readonly={!isCheck}
+        readonly={!hasRowSelected}
         userData={userData}
         onChange={toggleAssignee}
         emptyChild={
@@ -165,11 +165,11 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
       // <span key="copy" onClick={isCheck && copyTestDetail}>
       //   <SwitcherOutlined /> 复制
       // </span>,
-      <span key="delete" onClick={isCheck ? deleteTestDetail : undefined}>
+      <span key="delete" onClick={hasRowSelected ? deleteTestDetail : undefined}>
         <DeleteOutlined /> 删除
       </span>,
     ];
-  }, [isCheck, tableActionRef, userData, refreshAndMutateData, workspaceKey]);
+  }, [hasRowSelected, tableActionRef, userData, refreshAndMutateData, workspaceKey]);
 
   const columns = React.useMemo(() => {
     const deleteTestDetail = data => {
@@ -253,12 +253,11 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         defaultColumnKey={['key', 'repositoryGroup', 'createdBy', 'createdAt']}
         itemKey="reference"
         name="TestDetailTable"
-        isCheck={isCheck}
         loading={tableLoading}
-        setIsCheck={setIsCheck}
         actionRef={tableActionRef}
         getDataSource={dataSourceGetter}
         allSelectableRowKeys={testDetailIds}
+        onHasRowSelected={setHasRowSelected}
         onSelectionCancel={onSelectionCancel}
         selectionActionNodes={selectionActionNodes}
       />

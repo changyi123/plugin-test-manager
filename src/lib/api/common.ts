@@ -660,9 +660,7 @@ export const updateGlobalConfig = async fields => {
 
 /** 更新测试执行执行人 */
 export const updateTestRunDesignee = async (testRunIds, designees) => {
-  const testRuns = await Parse.Object.fetchAllIfNeeded(
-    testRunIds.map(id => new Test({ objectId: id })),
-  );
+  const testRuns = await Parse.Object.fetchAll(testRunIds.map(id => new Test({ objectId: id })));
 
   testRuns.forEach(testRun => testRun.set('designee', designees));
 

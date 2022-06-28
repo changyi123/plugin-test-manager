@@ -39,7 +39,7 @@ const TableSelection: React.FC<TableSelectionProps> = ({
       <span className={cx('line')} />
 
       {actions.map((actionNode, index) => (
-        <div className={cx('action')} key={index}>
+        <div className={cx('action', !selectNum && 'disabled')} key={index}>
           {actionNode}
         </div>
       ))}
