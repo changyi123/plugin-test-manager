@@ -2,6 +2,7 @@
 
 @selection-color: #999;
 @action-color: #0045d9;
+@action-disabled-color: #999;
 
 .table-selection {
   height: 100%;
@@ -41,6 +42,14 @@
     flex: none;
     cursor: pointer;
     color: @action-color;
+    &.disabled {
+      color: @action-disabled-color;
+      :global {
+        .user-field {
+          color: @action-disabled-color;
+        }
+      }
+    }
     :global {
       .user-field {
         color: @action-color;
