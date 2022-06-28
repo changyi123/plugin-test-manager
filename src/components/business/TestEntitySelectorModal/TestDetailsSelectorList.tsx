@@ -66,11 +66,6 @@ const getReportCheckedValue = (testIds: any[], checkTestValue: string[], type = 
   return !!_testIds.length && testIds.length !== _testIds.length;
 };
 
-const getPath = (path: string, name: string) => {
-  const reg = new RegExp(`(${name})$`, 'g');
-  return path.replace(reg, '').replace(/(\/)$/g, '');
-};
-
 const selectOptions = [
   {
     value: 'showCur',
@@ -259,13 +254,22 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
                       )}
                       onChange={e => checkReport(e, box)}
                     >
-                      <div className={cx('path')}>
-                        <span className={cx('par-path')}>{getPath(box.path, box.name)}</span>
-                        <span className={cx('path-name')}>
-                          {getPath(box.path, box.name) ? '/' : ''}
-                          {box.name}
+                      <Tooltip title={box.path}>
+                        <span className={cx('flex-box')}>
+                          <span className={cx('path')}>
+                            {box.path.split('/').map((name, index) => (
+                              <span key={index}>
+                                {index !== 0 ? '/' : ''}
+                                {index + 1 === box.path.split('/').length ? (
+                                  <span className={cx('cur-path')}>{name}</span>
+                                ) : (
+                                  name
+                                )}
+                              </span>
+                            ))}
+                          </span>
                         </span>
-                      </div>
+                      </Tooltip>
                     </Checkbox>
                   </div>
                   <div className={cx('detail-list-group')}>

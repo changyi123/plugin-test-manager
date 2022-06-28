@@ -56,23 +56,20 @@
         padding: 9px 16px;
         background-color: #f4f6f8;
 
-        .path {
+        .flex-box {
           display: flex;
           align-items: center;
 
-          .par-path {
+          .path {
+            flex: 1;
             overflow: hidden;
             white-space: nowrap;
             text-overflow: ellipsis;
-            max-width: 380px;
-          }
+            max-width: 420px;
 
-          .path-name {
-            font-weight: bold;
-            overflow: hidden;
-            white-space: nowrap;
-            text-overflow: ellipsis;
-            max-width: 80px;
+            .cur-path {
+              font-weight: bold;
+            }
           }
         }
       }
