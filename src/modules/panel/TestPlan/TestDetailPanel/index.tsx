@@ -46,7 +46,9 @@ const Test = () => {
     {
       from: testEntity,
     },
-    ['status'],
+    {
+      include: ['status'],
+    },
   );
 
   const { testEntityIds, testEntityStatuses } = React.useMemo(() => {

@@ -16,18 +16,20 @@ type GetTestEntityParams = Parameters<typeof getTestEntitiesByRelationWithOrder>
 export const useAllRelTestEntities = (
   relType: GetTestEntityParams['0'],
   sides: GetTestEntityParams['1'],
-  include?: string[],
+  options?: {
+    include: string[];
+  },
 ) => {
-  if (Array.isArray(include)) {
-    include = ['objectId'].concat(include);
-  } else {
-    include = ['objectId'];
+  let include = ['objectId'];
+  if (Array.isArray(options?.include)) {
+    include = ['objectId'].concat(options.include);
   }
   const sideValues = Object.values(sides).filter(Boolean);
   const { data, mutate, refresh } = useRequest(
     async () => {
       const { list } = await getTestEntitiesByRelationWithOrder(relType, sides, {
         include,
+        select: include,
         queryParams: { limit: 9999 },
       });
       return list?.map(item => (include?.length === 1 ? item.objectId : pick(item, include)));

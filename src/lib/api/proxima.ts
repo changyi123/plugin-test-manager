@@ -13,6 +13,7 @@ import {
   BuiltinItemTypeMapping,
 } from '@/lib/constants';
 import { App, Item, ItemType, Workspace, CustomField, ItemTypeScheme } from '@/lib/models';
+import { getRefItemIdsByTestIds } from './common';
 
 type IQLPaginationParams = {
   offset?: number;
@@ -225,8 +226,10 @@ export const deleteItems = async (itemIds: string[] | string) => {
   // return fetch.$delete('/parse/api/items/bulk', { data: paramsData });
 };
 
-export const updateItemAssignee = async (itemIds, assignee) => {
-  if (!Array.isArray(itemIds)) itemIds = [itemIds];
+export const updateItemAssignee = async (testIds, assignee) => {
+  if (!Array.isArray(testIds)) testIds = [testIds];
+  // 获取 itemId
+  const itemIds = await getRefItemIdsByTestIds(testIds);
 
   const items = await new Parse.Query(Item)
     .containedIn('objectId', itemIds.filter(Boolean))

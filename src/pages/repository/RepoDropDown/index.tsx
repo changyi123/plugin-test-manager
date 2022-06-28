@@ -1,18 +1,23 @@
 import React, { useCallback } from 'react';
-import { Button, Dropdown, Menu, message, notification, Spin } from 'antd';
+import classnames from 'classnames';
 import { useTestConfig } from '@/lib/hooks/useContext';
-import importTestInfo, { TreeNode, downloadExampleFile } from './export';
 import { getProximaBasePath, getTenantKey } from '@/lib/utils/helper';
+import importTestInfo, { TreeNode, downloadExampleFile } from './export';
+import { Button, Dropdown, Menu, message, notification, Spin } from 'antd';
 
 const RepoDropDown = ({
   type,
   folderKey,
+  buttonText,
+  className,
   treeNodeData,
-  selectedTestPlanId,
   setPageLoading,
+  selectedTestPlanId,
 }: {
   type: string;
+  className?: string;
   folderKey?: string;
+  buttonText?: string;
   treeNodeData?: TreeNode[];
   selectedTestPlanId?: string;
   setPageLoading?: (val: boolean) => void;
@@ -91,7 +96,7 @@ const RepoDropDown = ({
   return (
     <>
       <Dropdown overlay={menu} placement="bottomLeft">
-        <Button>更多操作</Button>
+        <Button className={classnames(className)}>{buttonText ?? '更多操作'}</Button>
       </Dropdown>
     </>
   );

@@ -36,7 +36,9 @@ const Test = () => {
     {
       from: testEntity,
     },
-    ['runReferenceDetail', 'status'],
+    {
+      include: ['runReferenceDetail', 'status'],
+    },
   );
 
   // 所有的测试执行

@@ -23,6 +23,11 @@ const urlOptions = [
     label: '48.29 验证',
     value: 'http://192.168.48.29',
   },
+  {
+    env: 'single',
+    label: '80.87 验证',
+    value: 'http://192.168.80.87',
+  },
 ];
 
 const Dev: React.FC = () => {
