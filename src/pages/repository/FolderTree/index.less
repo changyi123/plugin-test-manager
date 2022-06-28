@@ -7,26 +7,35 @@
   flex-direction: column;
 
   :global {
-    .ant-tree-iconEle,
     .ant-tree-switcher,
     .ant-tree-treenode,
     .ant-tree-node-content-wrapper {
-      line-height: 33px !important;
+      line-height: 32px !important;
+      font-size: 14px;
+    }
+    .ant-tree-iconEle {
+      width: 22px !important;
+      line-height: 32px !important;
       font-size: 14px;
     }
 
     .ant-tree-switcher-icon {
       font-size: 13px;
-      padding: 4px;
+      vertical-align: middle;
+    }
+
+    .ant-tree-indent-unit {
+      width: 14px;
     }
 
     .ant-tree-treenode {
-      padding: 0 4px !important;
+      padding: 0 4px 0 0 !important;
     }
     .ant-tree-node-content-wrapper {
       flex: 1 !important;
       overflow: hidden;
       display: flex;
+      padding: 0;
     }
     .ant-tree-title {
       flex: 1;

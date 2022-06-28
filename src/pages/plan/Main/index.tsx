@@ -92,7 +92,6 @@ const Main = () => {
     const testDetailIds = await testEntitySelectorRef.current.open();
 
     const ignoreTestDetailIds = selectedTestPlan?.refTestDetails?.map(item => item.objectId) ?? [];
-
     const relations = testDetailIds
       .filter(d => !ignoreTestDetailIds.includes(d))
       .map(testPlanId => ({
@@ -100,6 +99,13 @@ const Main = () => {
         from: selectedTestPlanId,
         to: testPlanId,
       }));
+
+    if (!relations.length) {
+      return notification.warning({
+        message: '未选择测试用例',
+      });
+    }
+
     await createTestRelation(relations);
     refresh();
     mutateTestPlanEvent.emit(selectedTestPlanId);

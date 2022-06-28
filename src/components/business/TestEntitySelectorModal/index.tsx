@@ -339,15 +339,18 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
         PreviousButtonClicked = false;
         PreviousMessageData = null;
       }}
-      closable={false}
       keyboard={false}
       visible={visible}
       maskClosable={false}
       className={cx('modal')}
       getContainer={getRootContainer}
       footer={ModalFooterNode}
+      onCancel={() => setVisible(false)}
       title={props.title ?? `请选择${testTypeName}`}
       width={testType === TestType.TestDetail ? 800 : 500}
+      bodyStyle={{
+        padding: '16px 24px',
+      }}
     >
       {testType === TestType.TestDetail ? testDetailSelectorNode : testEntitySelectorNode}
     </Modal>

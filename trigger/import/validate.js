@@ -34,7 +34,7 @@ const trimData = datas => `${datas}`?.trim() ?? '';
 // 根据数据是否超过 1000 条来截取数据
 const getDataByLength = d => (isMoreThanThousands(d) ? d.slice(0, 1000) : d);
 
-const isFilterGroup = group => group?.split?.('/').filter(d => trimData(d)).length > 5;
+const isFilterGroup = group => group?.split?.('/').filter(d => trimData(d)).length > 8;
 
 // 过滤不符合条件数据
 const filterData = d => d.filter(item => item.name && !isFilterGroup(item.group));
@@ -90,7 +90,7 @@ const getTestDetailsErrors = datas =>
     // 校验所属分组
     if (isFilterGroup(cur.group)) {
       prev = prev.concat([
-        `第 ${index + 1} 条所属分组层数超过限制，所属分组 只能导入 5 层，不予以导入`,
+        `第 ${index + 1} 条所属分组层数超过限制，所属分组 只能导入 8 层，不予以导入`,
       ]);
     }
 

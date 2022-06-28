@@ -1,6 +1,6 @@
 @import '@/index.global.less';
 
-@tree-node-height: 40px !important;
+@tree-node-height: 32px !important;
 @tree-node-selected-color: #0c62ff !important;
 @tree-node-selected-background: #e6f3ff !important;
 
@@ -37,8 +37,10 @@
   :global {
     .ant-tree-switcher {
       > span {
-        line-height: @tree-node-height;
+        display: inline-flex;
         font-size: 13px;
+        height: @tree-node-height;
+        align-items: center;
       }
     }
     .ant-tree-node-selected {
@@ -63,6 +65,7 @@
       line-height: @tree-node-height;
       align-items: center;
       overflow: hidden;
+      padding: 0;
     }
   }
 }

@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React from 'react';
 import { notification } from 'antd';
 import { usePageContext } from '../hook';
@@ -106,7 +107,7 @@ const DetailTable = () => {
                 },
                 {
                   include: ['objectId'],
-                  select: ['objectId', 'runReferenceDetail'],
+                  select: ['objectId', 'runReferenceDetail', 'repository'],
                   queryParams: { limit: 9999 },
                 },
               );
