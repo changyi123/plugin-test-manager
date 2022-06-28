@@ -209,15 +209,17 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
             )}
             onChange={checkAllTest}
           >
-            已选中
-            <span> {curSelectIdsLength}</span>
-            <span>
-              /
-              {
-                getTestDetailIdsByReport(checkData, 'testDetailList').filter(
-                  d => !ignoreTestDetailIds.includes(d.objectId),
-                ).length
-              }
+            <span className={cx('check-all-title')}>
+              已选中
+              <span className={cx('num')}> {curSelectIdsLength}</span>
+              <span>
+                {' / '}
+                {
+                  getTestDetailIdsByReport(checkData, 'testDetailList').filter(
+                    d => !ignoreTestDetailIds.includes(d.objectId),
+                  ).length
+                }
+              </span>
             </span>
           </Checkbox>
           <div className={cx('detail-header-right')}>
@@ -274,28 +276,30 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
                     >
                       <Tooltip title={box.path}>
                         <span className={cx('flex-box')}>
-                          <span className={cx('path')}>
-                            {box.path.split('/').map((name, index) => (
-                              <span key={index}>
-                                {index !== 0 ? '/' : ''}
-                                {index + 1 === box.path.split('/').length ? (
-                                  <span className={cx('cur-path')}>{name}</span>
-                                ) : (
-                                  name
-                                )}
-                              </span>
-                            ))}
-                          </span>
+                          {box.path !== box.name && (
+                            <span className={cx('path')}>
+                              {box.path
+                                .split('/')
+                                .slice(0, box.path.split('/').length - 1)
+                                .map((name, index) => (
+                                  <span key={index}>
+                                    {`${name} `}
+                                    {' / '}
+                                  </span>
+                                ))}
+                            </span>
+                          )}
+                          <span className={cx('cur-path')}>{box.name}</span>
                         </span>
                       </Tooltip>
                     </Checkbox>
                   </div>
                   <div className={cx('detail-list-group')}>
                     <CheckboxGroup
-                      options={box.testDetailList.map(d => ({
-                        ...d,
-                        disabled: ignoreTestDetailIds?.includes(d.objectId) ?? false,
-                      }))}
+                      // options={box.testDetailList.map(d => ({
+                      //   ...d,
+                      //   disabled: ignoreTestDetailIds?.includes(d.objectId) ?? false,
+                      // }))}
                       value={[...ignoreTestDetailIds, ...selectedTestDetailIds]}
                       onChange={val =>
                         checkTest(
@@ -303,7 +307,22 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
                           box.testIds,
                         )
                       }
-                    ></CheckboxGroup>
+                    >
+                      {box.testDetailList
+                        .map(d => ({
+                          ...d,
+                          disabled: ignoreTestDetailIds?.includes(d.objectId) ?? false,
+                        }))
+                        .map(box => (
+                          <div key={box.value}>
+                            <Checkbox disabled={box.disabled} value={box.value}>
+                              <Tooltip title={box.label}>
+                                <span className={cx('group-title')}>{box.label}</span>
+                              </Tooltip>
+                            </Checkbox>
+                          </div>
+                        ))}
+                    </CheckboxGroup>
                   </div>
                 </div>
               ) : null}

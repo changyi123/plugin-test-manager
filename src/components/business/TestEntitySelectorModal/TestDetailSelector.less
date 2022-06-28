@@ -52,6 +52,12 @@
       .tree {
         overflow-y: auto;
         margin-top: 40px;
+
+        :global {
+          .ant-tree-indent-unit {
+            width: 14px;
+          }
+        }
       }
     }
   }
@@ -62,10 +68,11 @@
     font-size: 14px;
     line-height: 32px;
     font-weight: bold;
+    color: #091940;
 
     .description {
-      color: #999;
-      font-size: 13px;
+      color: #848c9f;
+      font-size: 14px;
       font-weight: 400;
     }
     .search {
@@ -153,6 +160,7 @@
 
       .ant-tree-iconEle {
         padding-right: 20px;
+        width: 22px !important;
       }
 
       .ant-tree-node-content-wrapper {

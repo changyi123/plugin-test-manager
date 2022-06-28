@@ -96,7 +96,7 @@ const Main = () => {
       }));
 
     if (!relations.length) {
-      return notification.success({
+      return notification.warning({
         message: '未选择测试用例',
       });
     }
