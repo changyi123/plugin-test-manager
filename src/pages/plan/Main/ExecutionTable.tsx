@@ -97,8 +97,20 @@ const ExecutionTable = () => {
               },
               {
                 queryParams: { limit: 9999 },
-                select: ['status', 'sortIndex', 'runReferenceDetail.reference', 'executor'],
-                include: ['status', 'sortIndex', 'runReferenceDetail.reference', 'executor'],
+                select: [
+                  'status',
+                  'sortIndex',
+                  'runReferenceDetail.reference',
+                  'runReferenceDetail.repository',
+                  'executor',
+                ],
+                include: [
+                  'status',
+                  'sortIndex',
+                  'runReferenceDetail.reference',
+                  'runReferenceDetail.repository',
+                  'executor',
+                ],
               },
             );
 

@@ -82,8 +82,10 @@ export const useAllTestWorkspace = () => {
 export const useGetTestRepoGroup = (rowData: any) => {
   const { data: repoMap, loading } = useRequest(
     async () => {
-      if (!rowData?.workspaceKey) return null;
-      const repoData = await getRepositoryData([rowData?.workspaceKey]);
+      if (!rowData?.workspaceKey && !rowData.repository?.workspaceKey) return null;
+      const repoData = await getRepositoryData([
+        rowData?.workspaceKey ?? rowData.repository?.workspaceKey,
+      ]);
 
       const repoMap = handleRroupPath(getRepoData(repoData)).reduce((prev, cur) => {
         if (cur.objectId) {
@@ -95,8 +97,8 @@ export const useGetTestRepoGroup = (rowData: any) => {
       return repoMap;
     },
     {
-      cacheKey: `TextRepoGroup${rowData.workspaceKey}`,
-      refreshDeps: [rowData.workspaceKey],
+      cacheKey: `TextRepoGroup${rowData?.workspaceKey ?? rowData.repository?.workspaceKey}`,
+      refreshDeps: [rowData?.workspaceKey ?? rowData.repository?.workspaceKey],
       cacheTime: 99999999999,
       staleTime: 99999999999,
     },
