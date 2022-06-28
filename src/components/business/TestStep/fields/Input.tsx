@@ -26,7 +26,7 @@ const Input: React.ForwardRefRenderFunction<
 
   React.useEffect(() => {
     const handlePaste = e => {
-      let data = e.clipboardData.getData('text/html') || e.clipboardData.getData('text/plain');
+      let data = e.clipboardData.getData('text/plain') || e.clipboardData.getData('text/plain');
       const regex = /<(?!(\/\s*)?(a|b|i|em|s|strong|u)[>,\s])([^>])*>/g;
       data = data.replace(regex, '');
       document.execCommand('insertHTML', false, data);

@@ -80,6 +80,7 @@ const Test = () => {
           TestRelationType.PlanRelExecution,
           { from: testEntity },
           {
+            include: ['reference'],
             queryParams: { limit: 9999 },
             async resultTransfer(data) {
               const testExecutionIds = data.list.map(item => item.objectId);

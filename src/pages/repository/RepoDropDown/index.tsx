@@ -79,8 +79,8 @@ const RepoDropDown = ({
         <>
           <Menu.Item key="import">导入用例</Menu.Item>
           <Menu.Item key="example">用例导入模板文件下载</Menu.Item>
-          <Menu.Item key="exportGroup">导出当前分组下的所有用例</Menu.Item>
           <Menu.Item key="exportAll">导出所有用例</Menu.Item>
+          <Menu.Item key="exportGroup">导出当前分组下的所有用例</Menu.Item>
         </>
       )}
       {type === 'plan' && (

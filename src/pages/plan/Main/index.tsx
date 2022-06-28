@@ -42,6 +42,12 @@ const Main = () => {
     setTableSelectionVisible(visible);
   };
 
+  // 所选测试计划改变，重置选中的 row
+  React.useEffect(() => {
+    toggleTableSelection(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedTestPlan]);
+
   tableSelectionToggleEvent.useSubscription(visible => {
     setTableSelectionVisible(visible);
   });
@@ -121,7 +127,7 @@ const Main = () => {
         <>
           <RepoDropDown
             className={cx('action')}
-            buttonText="导入导出"
+            buttonText="导出用例"
             type="plan"
             selectedTestPlanId={selectedTestPlanId}
           />

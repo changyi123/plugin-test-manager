@@ -5,7 +5,6 @@ import PanelLayout from '@/components/business/PanelLayout';
 
 import TestDetailPanel from './TestDetailPanel';
 import TestPlanPanel from './TestPlanPanel';
-import TestRunPanel from './TestRunPanel';
 
 const TestDetail: React.FC = () => {
   const tabs = [
@@ -19,11 +18,6 @@ const TestDetail: React.FC = () => {
       key: TestType.TestPlan,
       Component: TestPlanPanel,
     },
-    // {
-    //   tab: '测试执行',
-    //   key: TestType.TestRun,
-    //   Component: TestRunPanel,
-    // },
   ];
   return (
     <PanelLayout
