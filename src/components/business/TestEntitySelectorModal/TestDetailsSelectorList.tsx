@@ -1,7 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useMemo, useState } from 'react';
-import { Checkbox, Select, Spin, Tooltip } from 'antd';
-import { CheckboxValueType } from 'antd/lib/checkbox/Group';
+import { Checkbox, Empty, Select, Spin, Tooltip } from 'antd';
 import { getTestEntitiesByQuery } from '@/lib/api/common';
 import { useRequest } from 'ahooks';
 
@@ -44,11 +43,11 @@ const getTestDetailIdsByReport = (datas, filed = 'testIds') =>
 const getCheckedValue = (checkData: any[], checkTestValue: string[], type = 'checked') => {
   if (!checkTestValue.length) return false;
 
-  const allTestIds = getTestDetailIdsByReport(checkData, 'testDetailIds');
+  const allTestIds = getTestDetailIdsByReport(checkData, 'testDetailList').map(d => d.objectId);
   const _allTestIds = allTestIds.filter(id => !checkTestValue.includes(id));
 
   if (type === 'checked') {
-    return !_allTestIds.length;
+    return !!allTestIds.length && !_allTestIds.length;
   }
 
   return !!_allTestIds.length && allTestIds.length !== _allTestIds.length;
@@ -68,12 +67,12 @@ const getReportCheckedValue = (testIds: any[], checkTestValue: string[], type = 
 
 const selectOptions = [
   {
-    value: 'showCur',
-    label: '显示当前分组用例',
-  },
-  {
     value: 'showChild',
     label: '显示子分组用例',
+  },
+  {
+    value: 'showCur',
+    label: '显示当前分组用例',
   },
 ];
 
@@ -97,14 +96,6 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
       ).length,
     [selectedTestDetailIds, checkData],
   );
-
-  useEffect(() => {
-    if (selectedTestDetailIds.length && checkData.length) {
-      const curIds = getTestDetailIdsByReport(checkData, 'testDetailList').map(d => d.objectId);
-
-      setSelectedTestDetailIds(selectedTestDetailIds.filter(d => curIds.includes(d)));
-    }
-  }, [checkData]);
 
   // 查询当前用例库下所有测试用例
   const { data: curTestList = [], loading: curTestListLoading } = useRequest(
@@ -145,11 +136,6 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
   useEffect(() => {
     if (!curTestListLoading) {
       if (!curTestList.length) return setCheckData([]);
-      // const curTestListMap = new Map();
-
-      // curTestList?.forEach(test => {
-      //   curTestListMap.set(test.objectId, test);
-      // });
       const reportData = getReportData(
         showType === 'showCur'
           ? {
@@ -162,7 +148,6 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
 
       const _checkData = reportData.map(report => ({
         ...report,
-        // testDetailList: report.testDetailIds?.map(d => curTestListMap.get(d) ?? []) ?? [],
         testDetailList: curTestList.filter(d => report.testDetailIds.includes(d.objectId)) ?? [],
       }));
 
@@ -171,7 +156,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
   }, [curTestListLoading, curTestList, showType, ignoreTestDetailIds]);
 
   const checkAllTest = e => {
-    const allTestIds = getTestDetailIdsByReport(checkData, 'testIds');
+    const allTestIds = getTestDetailIdsByReport(checkData, 'testDetailList').map(d => d.objectId);
     setSelectedTestDetailIds(val => [
       ...val.filter(d => !allTestIds.includes(d)),
       ...(e.target.checked ? allTestIds : []),
@@ -179,15 +164,17 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
   };
 
   const checkReport = (e, boxNode) => {
+    const checkedIds = boxNode?.testDetailList.map(d => d.objectId) ?? [];
     setSelectedTestDetailIds(val => [
-      ...val.filter(d => !boxNode.testIds.includes(d)),
-      ...(e.target.checked ? boxNode.testIds : []),
+      ...val.filter(d => !checkedIds.includes(d)),
+      ...(e.target.checked ? checkedIds : []),
     ]);
   };
 
-  const checkTest = (value: CheckboxValueType[], testIds: string[]) => {
+  const checkTest = (checked: boolean, value: string) => {
     setSelectedTestDetailIds(val => [
-      ...new Set([...val.filter(d => !testIds.includes(d)), ...value]),
+      ...val.filter(d => ![value].includes(d)),
+      ...(checked ? [value] : []),
     ]);
   };
 
@@ -251,83 +238,79 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
             height: 'calc(100% - 48px)',
           }}
         >
-          {checkData.map(box => (
-            <>
-              {box.testDetailList.length ? (
-                <div className={cx('detail-list')} key={box.value}>
-                  <div className={cx('detail-list-box')}>
-                    <Checkbox
-                      indeterminate={getReportCheckedValue(
-                        box.testDetailIds,
-                        [...ignoreTestDetailIds, ...selectedTestDetailIds],
-                        'indeterminate',
-                      )}
-                      checked={getReportCheckedValue(
-                        box.testDetailIds,
-                        [...ignoreTestDetailIds, ...selectedTestDetailIds],
-                        'checked',
-                      )}
-                      disabled={getReportCheckedValue(
-                        box.testDetailIds,
-                        ignoreTestDetailIds,
-                        'checked',
-                      )}
-                      onChange={e => checkReport(e, box)}
-                    >
-                      <Tooltip title={box.path}>
-                        <span className={cx('flex-box')}>
-                          {box.path !== box.name && (
-                            <span className={cx('path')}>
-                              {box.path
-                                .split('/')
-                                .slice(0, box.path.split('/').length - 1)
-                                .map((name, index) => (
-                                  <span key={index}>
-                                    {`${name} `}
-                                    {' / '}
-                                  </span>
-                                ))}
-                            </span>
-                          )}
-                          <span className={cx('cur-path')}>{box.name}</span>
-                        </span>
-                      </Tooltip>
-                    </Checkbox>
+          {checkData.length ? (
+            checkData.map(box => (
+              <>
+                {box.testDetailList.length ? (
+                  <div className={cx('detail-list')} key={box.value}>
+                    <div className={cx('detail-list-box')}>
+                      <Checkbox
+                        indeterminate={getReportCheckedValue(
+                          box.testDetailList.map(d => d.objectId),
+                          [...ignoreTestDetailIds, ...selectedTestDetailIds],
+                          'indeterminate',
+                        )}
+                        checked={getReportCheckedValue(
+                          box.testDetailList.map(d => d.objectId),
+                          [...ignoreTestDetailIds, ...selectedTestDetailIds],
+                          'checked',
+                        )}
+                        disabled={getReportCheckedValue(
+                          box.testDetailList.map(d => d.objectId),
+                          ignoreTestDetailIds,
+                          'checked',
+                        )}
+                        onChange={e => checkReport(e, box)}
+                      >
+                        <Tooltip title={box.path}>
+                          <span className={cx('flex-box')}>
+                            {box.path !== box.name && (
+                              <span className={cx('path')}>
+                                {box.path
+                                  .split('/')
+                                  .slice(0, box.path.split('/').length - 1)
+                                  .map((name, index) => (
+                                    <span key={index}>
+                                      {`${name} `}
+                                      {' / '}
+                                    </span>
+                                  ))}
+                              </span>
+                            )}
+                            <span className={cx('cur-path')}>{box.name}</span>
+                          </span>
+                        </Tooltip>
+                      </Checkbox>
+                    </div>
+                    <div className={cx('detail-list-group')}>
+                      <CheckboxGroup value={[...ignoreTestDetailIds, ...selectedTestDetailIds]}>
+                        {box.testDetailList
+                          .map(d => ({
+                            ...d,
+                            disabled: ignoreTestDetailIds?.includes(d.objectId) ?? false,
+                          }))
+                          .map(box => (
+                            <div key={box.value}>
+                              <Checkbox
+                                disabled={box.disabled}
+                                value={box.value}
+                                onChange={e => checkTest(e.target.checked, e.target.value)}
+                              >
+                                <Tooltip title={box.label}>
+                                  <span className={cx('group-title')}>{box.label}</span>
+                                </Tooltip>
+                              </Checkbox>
+                            </div>
+                          ))}
+                      </CheckboxGroup>
+                    </div>
                   </div>
-                  <div className={cx('detail-list-group')}>
-                    <CheckboxGroup
-                      // options={box.testDetailList.map(d => ({
-                      //   ...d,
-                      //   disabled: ignoreTestDetailIds?.includes(d.objectId) ?? false,
-                      // }))}
-                      value={[...ignoreTestDetailIds, ...selectedTestDetailIds]}
-                      onChange={val =>
-                        checkTest(
-                          val.filter(d => !ignoreTestDetailIds.includes(d as string)),
-                          box.testIds,
-                        )
-                      }
-                    >
-                      {box.testDetailList
-                        .map(d => ({
-                          ...d,
-                          disabled: ignoreTestDetailIds?.includes(d.objectId) ?? false,
-                        }))
-                        .map(box => (
-                          <div key={box.value}>
-                            <Checkbox disabled={box.disabled} value={box.value}>
-                              <Tooltip title={box.label}>
-                                <span className={cx('group-title')}>{box.label}</span>
-                              </Tooltip>
-                            </Checkbox>
-                          </div>
-                        ))}
-                    </CheckboxGroup>
-                  </div>
-                </div>
-              ) : null}
-            </>
-          ))}
+                ) : null}
+              </>
+            ))
+          ) : (
+            <Empty className={cx('empty-test')} />
+          )}
         </div>
       </>
     </Spin>
