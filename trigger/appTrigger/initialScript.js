@@ -122,7 +122,7 @@ const initialScriptRunner = async () => {
 };
 
 try {
-  initialScriptRunner().then(() => {
+  await initialScriptRunner().then(() => {
     log('测试管理插件初始化成功');
   });
 } catch (error) {
