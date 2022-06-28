@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Checkbox, Empty, Select, Spin, Tooltip } from 'antd';
 import { getTestEntitiesByQuery } from '@/lib/api/common';
 import { useRequest } from 'ahooks';
+import emptyImg from '@/icons/svg/empty-data.png';
 
 import cx from './TestDetailsSelectorList.less';
 import { CaretDownOutlined, CaretUpOutlined } from '@ant-design/icons';
@@ -309,7 +310,11 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
               </>
             ))
           ) : (
-            <Empty className={cx('empty-test')} />
+            <Empty
+              className={cx('empty-test')}
+              image={emptyImg}
+              description={'当前用例库暂无用例'}
+            />
           )}
         </div>
       </>
