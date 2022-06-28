@@ -91,9 +91,20 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
   const [orderByCratedAt, setOrderByCratedAt] = useState<'asc' | 'desc'>('asc');
 
   const curSelectIdsLength = useMemo(
-    () => getTestDetailIdsByReport(checkData).filter(d => selectedTestDetailIds.includes(d)).length,
+    () =>
+      getTestDetailIdsByReport(checkData, 'testDetailList').filter(d =>
+        selectedTestDetailIds.includes(d.objectId),
+      ).length,
     [selectedTestDetailIds, checkData],
   );
+
+  useEffect(() => {
+    if (selectedTestDetailIds.length && checkData.length) {
+      const curIds = getTestDetailIdsByReport(checkData, 'testDetailList').map(d => d.objectId);
+
+      setSelectedTestDetailIds(selectedTestDetailIds.filter(d => curIds.includes(d)));
+    }
+  }, [checkData]);
 
   // 查询当前用例库下所有测试用例
   const { data: curTestList = [], loading: curTestListLoading } = useRequest(
@@ -200,7 +211,14 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
           >
             已选中
             <span> {curSelectIdsLength}</span>
-            <span> / {getTestDetailIdsByReport(checkData).length}</span>
+            <span>
+              /
+              {
+                getTestDetailIdsByReport(checkData, 'testDetailList').filter(
+                  d => !ignoreTestDetailIds.includes(d.objectId),
+                ).length
+              }
+            </span>
           </Checkbox>
           <div className={cx('detail-header-right')}>
             <Select
