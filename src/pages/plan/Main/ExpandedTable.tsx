@@ -5,13 +5,14 @@ import TestRunModal, {
 
 import Field from '@/components/common/Field';
 import { Pagination, notification } from 'antd';
-import { actionConfirm } from '@/lib/utils/helper';
 import { updateTestRunStatus } from '@/lib/api/runs';
 import { UserCell } from '@projectproxima/components';
 import { StatusBadge } from '@/components/business/Status';
+import { useMemoizedFn, useLocalStorageState } from 'ahooks';
 import { useUserCellUserDataProp } from '@/lib/hooks/useProxima';
 import RepositoryGroup from '@/components/business/RepositoryGroup';
 import { DeleteOutlined, FlagOutlined, UserOutlined } from '@/icons';
+import { actionConfirm, generateStorageKey } from '@/lib/utils/helper';
 import { TitleCellOption } from '@/components/common/BusinessTable/type';
 import { deleteTestEntities, updateTestRunDesignee } from '@/lib/api/common';
 import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
@@ -27,12 +28,9 @@ type ExpandedTableProps = TitleCellOption & {
   refreshAndMutateData: (option?: any) => void;
 };
 
-const ExpandedTable = (props: ExpandedTableProps) => {
-  const [pageNum, setPageNum] = React.useState(1);
-  const tableActionRef = React.useRef<BusinessTableActionType>();
-  const testRunModalActionRef = React.useRef<TestRunModalActionType>();
-  const [hasRowSelected, setHasRowSelected] = React.useState(false);
+const DefaultTablePageSize = 10;
 
+const ExpandedTable = (props: ExpandedTableProps) => {
   const {
     record,
     updateTestRun,
@@ -42,6 +40,15 @@ const ExpandedTable = (props: ExpandedTableProps) => {
     refreshAndMutateData,
     tableSelectionToggleEvent,
   } = props;
+
+  const PageSizeStorageKey = generateStorageKey('expand-table-default-pagesize');
+  const [pageNum, setPageNum] = React.useState(1);
+  const [pageSize, setPageSize] = useLocalStorageState(PageSizeStorageKey, {
+    defaultValue: DefaultTablePageSize,
+  });
+  const tableActionRef = React.useRef<BusinessTableActionType>();
+  const testRunModalActionRef = React.useRef<TestRunModalActionType>();
+  const [hasRowSelected, setHasRowSelected] = React.useState(false);
 
   // 测试执行序列
   const testIdSequence = record.relRuns?.map(item => item?.objectId).filter(Boolean);
@@ -53,22 +60,31 @@ const ExpandedTable = (props: ExpandedTableProps) => {
   React.useImperativeHandle(innerTableRef, () => tableActionRef, []);
 
   /** 根据列表记录删除测试执行 */
-  const deleteTestRunByIds = React.useCallback(
-    testRunIds => {
-      actionConfirm('该操作会将所选测试执行删除，是否继续操作？', async () => {
-        // 删除关联关系，删除测试实体
-        await deleteTestEntities(testRunIds);
-        notification.success({
-          message: `${testRunIds.length} 个测试执行任务被删除`,
-        });
-        refreshAndMutateData({
-          shouldRestCurrentPage: true,
-          shouldRestSelectedRowKeys: true,
-        });
+  const deleteTestRunByIds = useMemoizedFn((testRunIds, forceRestCurrentPage = false) => {
+    actionConfirm('该操作会将所选测试执行删除，是否继续操作？', async () => {
+      // 删除关联关系，删除测试实体
+      await deleteTestEntities(testRunIds);
+      notification.success({
+        message: `${testRunIds.length} 个测试执行任务被删除`,
       });
-    },
-    [refreshAndMutateData],
-  );
+      const refreshAndMutateDataOptions = {
+        shouldRestSelectedRowKeys: true,
+      } as Record<string, any>;
+
+      // 批量删除重置回第一页
+      if (forceRestCurrentPage) {
+        refreshAndMutateDataOptions.shouldRestCurrentPage = true;
+      } else {
+        const testRunsTotal = record.relRuns?.length;
+        const remainder = testRunsTotal % pageSize;
+        // 单条用例删除需要判断当前页是否有数据，无数据跳上一页
+        if (remainder === 1) {
+          setPageNum(prevPageNum => Math.max(1, prevPageNum - 1));
+        }
+      }
+      refreshAndMutateData(refreshAndMutateDataOptions);
+    });
+  });
 
   const userData = useUserCellUserDataProp(titleCellOption.workspaceKey);
 
@@ -90,7 +106,7 @@ const ExpandedTable = (props: ExpandedTableProps) => {
     const deleteTestRun = () => {
       const testRunIds = getTestRunIds();
 
-      deleteTestRunByIds(testRunIds);
+      deleteTestRunByIds(testRunIds, true);
     };
 
     // 更新测试执行人
@@ -238,19 +254,22 @@ const ExpandedTable = (props: ExpandedTableProps) => {
         </div>
         <Pagination
           size="small"
+          showSizeChanger
           current={pageNum}
-          defaultPageSize={10}
-          pageSizeOptions={[10]}
-          showSizeChanger={false}
-          onChange={relPageChange}
+          pageSize={pageSize}
+          onChange={handlePageChange}
           className={cx('pagination')}
           total={record.relRuns.length}
+          pageSizeOptions={[10, 50, 100]}
         />
       </div>
     );
   };
 
-  const relPageChange = (current: number) => setPageNum(current);
+  const handlePageChange = (current: number, pageSize: number) => {
+    setPageNum(current);
+    setPageSize(pageSize);
+  };
 
   return (
     <div className={cx('expand-container')}>
@@ -271,16 +290,16 @@ const ExpandedTable = (props: ExpandedTableProps) => {
         actionRef={tableActionRef}
         name="ExecutionInnerTable"
         className={cx('expand-table')}
-        expandChangePage={relPageChange}
         titleCellOption={titleCellOption}
+        expandChangePage={handlePageChange}
         onHasRowSelected={setHasRowSelected}
         allSelectableRowKeys={testIdSequence}
-        scroll={{ x: 'max-content', y: 500 }}
+        scroll={{ x: 'max-content', y: 'max-content' }}
         itemKey="runReferenceDetail.reference"
         PaginationFooterRender={PaginationFooterRender}
         selectionActionNodes={InnerTableSelectionActionNodes}
         onSelectionCancel={() => tableSelectionToggleEvent.emit(false)}
-        dataSource={record.relRuns.slice((pageNum - 1) * 10, pageNum * 10)}
+        dataSource={record.relRuns.slice((pageNum - 1) * pageSize, pageNum * pageSize)}
       />
       <TestRunModal actionRef={testRunModalActionRef} />
     </div>
