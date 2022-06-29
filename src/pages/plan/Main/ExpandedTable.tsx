@@ -46,6 +46,7 @@ const ExpandedTable = (props: ExpandedTableProps) => {
   const [pageSize, setPageSize] = useLocalStorageState(PageSizeStorageKey, {
     defaultValue: DefaultTablePageSize,
   });
+
   const tableActionRef = React.useRef<BusinessTableActionType>();
   const testRunModalActionRef = React.useRef<TestRunModalActionType>();
   const [hasRowSelected, setHasRowSelected] = React.useState(false);
@@ -268,7 +269,9 @@ const ExpandedTable = (props: ExpandedTableProps) => {
 
   const handlePageChange = (current: number, pageSize: number) => {
     setPageNum(current);
-    setPageSize(pageSize);
+    if (typeof pageSize === 'number') {
+      setPageSize(pageSize);
+    }
   };
 
   return (
