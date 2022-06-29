@@ -127,8 +127,10 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
       }));
     },
     {
-      refreshDeps: [detailSearchValue, orderByCratedAt, selectedNode],
-      cacheKey: `Repository_${selectedNode?.key ?? ''}${detailSearchValue ?? ''}${orderByCratedAt}`,
+      refreshDeps: [detailSearchValue, orderByCratedAt, selectedNode, workspaceKey],
+      cacheKey: `Repository_${selectedNode?.key ?? ''}${
+        detailSearchValue ?? ''
+      }${orderByCratedAt}${workspaceKey}`,
       staleTime: 999999999,
       cacheTime: 999999999,
     },
