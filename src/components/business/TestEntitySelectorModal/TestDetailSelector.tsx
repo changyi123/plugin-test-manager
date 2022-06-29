@@ -264,7 +264,7 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
             </div>
             <div className={cx('detail-selector-container')}>
               <TestDetailsSelectorList
-                workspaceKey={workspaceKey}
+                workspaceKey={selectedWorkspaceKey}
                 selectedNode={selectedNode}
                 detailSearchValue={detailSearchValue}
                 ignoreTestDetailIds={ignoreTestDetailIds ?? []}
