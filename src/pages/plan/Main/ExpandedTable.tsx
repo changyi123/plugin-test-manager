@@ -8,7 +8,7 @@ import { Pagination, notification } from 'antd';
 import { updateTestRunStatus } from '@/lib/api/runs';
 import { UserCell } from '@projectproxima/components';
 import { StatusBadge } from '@/components/business/Status';
-import { useMemoizedFn, useLocalStorageState } from 'ahooks';
+import { useMemoizedFn, useSessionStorageState } from 'ahooks';
 import { useUserCellUserDataProp } from '@/lib/hooks/useProxima';
 import RepositoryGroup from '@/components/business/RepositoryGroup';
 import { DeleteOutlined, FlagOutlined, UserOutlined } from '@/icons';
@@ -41,9 +41,9 @@ const ExpandedTable = (props: ExpandedTableProps) => {
     tableSelectionToggleEvent,
   } = props;
 
-  const PageSizeStorageKey = generateStorageKey('expand-table-default-pagesize');
+  const PageSizeStorageKey = generateStorageKey('expand-table-default-pagesize', record.objectId);
   const [pageNum, setPageNum] = React.useState(1);
-  const [pageSize, setPageSize] = useLocalStorageState(PageSizeStorageKey, {
+  const [pageSize, setPageSize] = useSessionStorageState(PageSizeStorageKey, {
     defaultValue: DefaultTablePageSize,
   });
 

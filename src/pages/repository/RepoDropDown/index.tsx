@@ -1,5 +1,6 @@
-import React, { useCallback } from 'react';
 import classnames from 'classnames';
+import React, { useCallback } from 'react';
+import { CustomMore } from '@/icons';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import { getProximaBasePath, getTenantKey } from '@/lib/utils/helper';
 import importTestInfo, { TreeNode, downloadExampleFile } from './export';
@@ -8,7 +9,6 @@ import { Button, Dropdown, Menu, message, notification, Spin } from 'antd';
 const RepoDropDown = ({
   type,
   folderKey,
-  buttonText,
   className,
   treeNodeData,
   setPageLoading,
@@ -17,7 +17,6 @@ const RepoDropDown = ({
   type: string;
   className?: string;
   folderKey?: string;
-  buttonText?: string;
   treeNodeData?: TreeNode[];
   selectedTestPlanId?: string;
   setPageLoading?: (val: boolean) => void;
@@ -78,15 +77,15 @@ const RepoDropDown = ({
       {type === 'repository' && (
         <>
           <Menu.Item key="import">导入用例</Menu.Item>
-          <Menu.Item key="example">用例导入模板文件下载</Menu.Item>
-          <Menu.Item key="exportAll">导出所有用例</Menu.Item>
-          <Menu.Item key="exportGroup">导出当前分组下的所有用例</Menu.Item>
+          <Menu.Item key="example">导入模板文件下载</Menu.Item>
+          <Menu.Item key="exportAll">导出（所有用例）</Menu.Item>
+          <Menu.Item key="exportGroup">导出（当前分组）</Menu.Item>
         </>
       )}
       {type === 'plan' && (
         <>
           <Menu.Item key="exportPlan" disabled={!selectedTestPlanId}>
-            导出当前计划关联测试用例
+            导出（当前计划）
           </Menu.Item>
         </>
       )}
@@ -96,7 +95,7 @@ const RepoDropDown = ({
   return (
     <>
       <Dropdown overlay={menu} placement="bottomLeft">
-        <Button className={classnames(className)}>{buttonText ?? '更多操作'}</Button>
+        <Button className={classnames(className)} icon={<CustomMore />} />
       </Dropdown>
     </>
   );

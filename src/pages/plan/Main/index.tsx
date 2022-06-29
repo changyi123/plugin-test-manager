@@ -131,12 +131,6 @@ const Main = () => {
       </Button>
       {activeKey === TabKeyEnum.testDetailTable ? (
         <>
-          <RepoDropDown
-            className={cx('action')}
-            buttonText="导出用例"
-            type="plan"
-            selectedTestPlanId={selectedTestPlanId}
-          />
           <Button
             type="primary"
             onClick={addTestDetail}
@@ -148,12 +142,16 @@ const Main = () => {
           <Button
             type="primary"
             className={cx('action')}
-            style={{ marginRight: 8 }}
             disabled={!selectedTestPlan}
             onClick={createTestExecution}
           >
             新建测试任务
           </Button>
+          <RepoDropDown
+            type="plan"
+            className={cx('action')}
+            selectedTestPlanId={selectedTestPlanId}
+          />
         </>
       ) : null}
     </div>
