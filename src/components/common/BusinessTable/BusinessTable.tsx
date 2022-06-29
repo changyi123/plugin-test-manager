@@ -19,6 +19,8 @@ import cx from './BusinessTable.less';
 
 const DEFAULT_PAGE_SIZE = 10;
 const MIN_COLUMN_WIDTH = 120;
+const OFFSET_HEIGHT = 88;
+const SELECTION_HEADER_HEIGHT = 40;
 
 const ResizableHeaderCell = ({ onResize, resizable, width, ...restProps }) => {
   const thProps = pick(restProps, ['children', 'rowSpan', 'colSpan', 'style', 'className']);
@@ -133,11 +135,12 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
   const size = useSize(ref);
 
   const scrollMemo = useMemo(() => {
+    const selectionHeaderHeight = selectionMode ? SELECTION_HEADER_HEIGHT : 0;
     return {
-      y: size?.height - 88, // 当前容器高度减去footer和header高度
+      y: size?.height - OFFSET_HEIGHT - selectionHeaderHeight, // 当前容器高度减去footer和header高度
       ...scroll,
     };
-  }, [scroll, size]);
+  }, [scroll, selectionMode, size?.height]);
 
   const handleTableColumnChange = React.useCallback(columns => {
     setTableColumns(prevState => {
