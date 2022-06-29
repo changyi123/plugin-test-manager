@@ -26,6 +26,8 @@ const ExecutionTable = () => {
   const executionTableActionRef = React.useRef<BusinessTableActionRef>();
   const testEntitySelectorRef = React.useRef<TestEntitySelectorActionType>();
   const [ignoreTestEntityIds, setIgnoreTestEntityIds] = React.useState([]);
+  const [loading, setLoading] = React.useState(false);
+
   // 事项数据更新后刷新列表
   useListener('updateItemList', () => {
     setTimeout(() => {
@@ -162,6 +164,7 @@ const ExecutionTable = () => {
 
     // 去重
     const newTestDetailIds = testDetailIds.filter(d => !ignoreTestDetailIds.includes(d));
+    setLoading(true);
 
     await addTestDetailToExecution({
       testDetail: newTestDetailIds,
@@ -171,6 +174,7 @@ const ExecutionTable = () => {
     });
 
     refreshAndMutateData();
+    setLoading(false);
     setIgnoreTestEntityIds([]);
     notification.success({
       message: '测试执行创建成功',
@@ -274,6 +278,7 @@ const ExecutionTable = () => {
           workspaceKey,
           testType: 'TestExecution',
         }}
+        loading={loading}
         useColumnSetting
         rowKey="objectId"
         itemKey="reference"

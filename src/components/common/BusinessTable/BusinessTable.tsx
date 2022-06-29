@@ -398,7 +398,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
           }}
           dataSource={dataSource}
           rowSelection={rowSelectionProp}
-          loading={antdTableProps.loading}
+          loading={antdTableProps.loading || restTableProps.loading}
           columns={columnsWithResizableAndSettingAction}
           expandable={
             expandable
