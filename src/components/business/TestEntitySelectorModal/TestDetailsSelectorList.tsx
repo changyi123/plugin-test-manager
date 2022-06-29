@@ -92,9 +92,9 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
 
   const curSelectIdsLength = useMemo(
     () =>
-      getTestDetailIdsByReport(checkData, 'testDetailList').filter(d =>
-        selectedTestDetailIds.includes(d.objectId),
-      ).length,
+      getTestDetailIdsByReport(checkData, 'testDetailList')
+        .filter(d => !ignoreTestDetailIds.includes(d.objectId))
+        .filter(d => selectedTestDetailIds.includes(d.objectId)).length,
     [selectedTestDetailIds, checkData],
   );
 

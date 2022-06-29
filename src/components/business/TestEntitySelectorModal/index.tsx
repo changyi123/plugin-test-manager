@@ -321,7 +321,11 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
       <div className={cx('footer')}>
         {testType === TestType.TestDetail ? (
           <div className={cx('info')}>
-            已选择<strong className={cx('num')}>{selectedTestDetails.length}</strong>条用例
+            已选择
+            <strong className={cx('num')}>
+              {selectedTestDetails.filter(d => !ignoreTestEntityIds.includes(d)).length}
+            </strong>
+            条用例
           </div>
         ) : null}
         <div className={cx('actions')}>
@@ -332,7 +336,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
         </div>
       </div>
     );
-  }, [handleOkButtonClick, selectedTestDetails, setVisible, testType]);
+  }, [handleOkButtonClick, selectedTestDetails, setVisible, testType, ignoreTestEntityIds]);
 
   return (
     <Modal
