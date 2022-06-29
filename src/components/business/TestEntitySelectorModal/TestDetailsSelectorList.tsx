@@ -181,12 +181,25 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
     ]);
   };
 
+  const isNotData = data => {
+    if (data.length === 1) {
+      return data[0].testDetailIds.length;
+    }
+
+    return data.length;
+  };
+
   return (
     <Spin spinning={curTestListLoading}>
       <>
         <div className={cx('detail-selector-header')}>
           <Checkbox
-            disabled={getCheckedValue(checkData, ignoreTestDetailIds, 'checked')}
+            disabled={
+              getCheckedValue(checkData, ignoreTestDetailIds, 'checked') ||
+              !getTestDetailIdsByReport(checkData, 'testDetailList').filter(
+                d => !ignoreTestDetailIds.includes(d.objectId),
+              ).length
+            }
             indeterminate={getCheckedValue(
               checkData,
               [...ignoreTestDetailIds, ...selectedTestDetailIds],
@@ -241,7 +254,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
             height: 'calc(100% - 48px)',
           }}
         >
-          {checkData.length ? (
+          {isNotData(checkData) ? (
             checkData.map(box => (
               <>
                 {box.testDetailList.length ? (

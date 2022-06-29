@@ -349,7 +349,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
       footer={ModalFooterNode}
       onCancel={() => setVisible(false)}
       title={props.title ?? `请选择${testTypeName}`}
-      width={testType === TestType.TestDetail ? 800 : 500}
+      width={testType === TestType.TestDetail ? 1000 : 500}
       bodyStyle={{
         padding: '16px 24px',
       }}
