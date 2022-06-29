@@ -6,12 +6,13 @@ import EventBus from '@/lib/utils/eventBus';
 import { Modal, Spin, Button } from 'antd';
 import { getItemByIQL } from '@/lib/api/proxima';
 import { useSafeState, useRequest } from 'ahooks';
-import TestDetailSelector from './TestDetailSelector';
 import { TestTypeNameMapping } from '@/lib/constants';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import DebounceSelect from '@/components/common/DebounceSelect';
 import { getRootContainer, hasArrayItem } from '@/lib/utils/helper';
 import { getAllTestConfigs, getTestEntities } from '@/lib/api/common';
+import InheritTestDetail from './InheritTestDetail';
+import TestDetailSelector from './TestDetailSelector';
 
 import cx from './index.less';
 
@@ -303,8 +304,9 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
 
   // 测试计划选择器
   const testDetailSelectorNode = React.useMemo(() => {
+    const TestComponets = isSingleMode ? InheritTestDetail : TestDetailSelector;
     return (
-      <TestDetailSelector
+      <TestComponets
         isSingleMode={isSingleMode}
         workspaceKey={workspace?.key}
         ignoreTestDetailIds={ignoreTestEntityIds}
