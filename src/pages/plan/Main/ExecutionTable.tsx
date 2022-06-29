@@ -8,7 +8,11 @@ import { TestRelationType, TestType } from '@/lib/constants';
 import { useListener } from '@projectproxima/proxima-sdk-js';
 import { StatusProgress } from '@/components/business/Status';
 import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
-import { deleteTestEntities, getTestEntitiesByRelation } from '@/lib/api/common';
+import {
+  deleteTestEntities,
+  getTestEntitiesByRelation,
+  getTestEntitiesByRelationWithOrder,
+} from '@/lib/api/common';
 
 import BusinessTable, {
   ActionType as BusinessTableActionRef,
@@ -90,65 +94,71 @@ const ExecutionTable = () => {
   }, [searchValue, selectedTestPlanId]);
 
   const tableDataGetter = React.useCallback(
-    queryParams => {
-      return getTestEntitiesByRelation(
-        TestRelationType.PlanRelExecution,
-        { from: selectedTestPlanId },
-        {
-          // FIXME: 优化查询速度
-          workspaceKey,
-          nameLike: searchValue,
-          select: ['reference'],
-          include: ['reference'],
-          queryParams: queryParams,
-          async resultTransfer({ list, total }) {
-            const testExecutionIds = list.map(item => item.objectId);
+    async queryParams => {
+      try {
+        setLoading(true);
+        return await getTestEntitiesByRelationWithOrder(
+          TestRelationType.PlanRelExecution,
+          { from: selectedTestPlanId },
+          {
+            // FIXME: 优化查询速度
+            workspaceKey,
+            nameLike: searchValue,
+            select: ['reference'],
+            include: ['reference'],
+            descendingBy: 'createdAt',
+            queryParams: queryParams,
+            async resultTransfer({ list, total }) {
+              const testExecutionIds = list.map(item => item.objectId);
 
-            const { list: testRuns } = await getTestEntitiesByRelation(
-              TestRelationType.ExecutionRelRun,
-              {
-                from: testExecutionIds,
-              },
-              {
-                queryParams: { limit: 9999 },
-                select: [
-                  'status',
-                  'sortIndex',
-                  'runReferenceDetail.reference',
-                  'runReferenceDetail.repository',
-                  'executor',
-                ],
-                include: [
-                  'status',
-                  'sortIndex',
-                  'runReferenceDetail.reference',
-                  'runReferenceDetail.repository',
-                  'executor',
-                  'designee',
-                ],
-              },
-            );
+              const { list: testRuns } = await getTestEntitiesByRelation(
+                TestRelationType.ExecutionRelRun,
+                {
+                  from: testExecutionIds,
+                },
+                {
+                  queryParams: { limit: 9999 },
+                  select: [
+                    'status',
+                    'sortIndex',
+                    'runReferenceDetail.reference',
+                    'runReferenceDetail.repository',
+                    'executor',
+                  ],
+                  include: [
+                    'status',
+                    'sortIndex',
+                    'runReferenceDetail.reference',
+                    'runReferenceDetail.repository',
+                    'executor',
+                    'designee',
+                  ],
+                },
+              );
 
-            return {
-              total,
-              list: list.map(execution => ({
-                ...execution,
-                relRuns: testRuns
-                  .filter(
-                    run =>
-                      run.relation.from.objectId === execution.objectId &&
-                      run.runReferenceDetail?.reference,
-                  )
-                  .sort(
-                    (a, b) =>
-                      a.sortIndex - b.sortIndex ||
-                      Number(new Date(a.createdAt)) - Number(new Date(b.createdAt)),
-                  ),
-              })),
-            };
+              return {
+                total,
+                list: list.map(execution => ({
+                  ...execution,
+                  relRuns: testRuns
+                    .filter(
+                      run =>
+                        run.relation.from.objectId === execution.objectId &&
+                        run.runReferenceDetail?.reference,
+                    )
+                    .sort(
+                      (a, b) =>
+                        a.sortIndex - b.sortIndex ||
+                        Number(new Date(a.createdAt)) - Number(new Date(b.createdAt)),
+                    ),
+                })),
+              };
+            },
           },
-        },
-      );
+        );
+      } finally {
+        setLoading(false);
+      }
     },
     [searchValue, selectedTestPlanId, workspaceKey],
   );
