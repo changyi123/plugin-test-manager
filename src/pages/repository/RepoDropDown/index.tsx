@@ -76,16 +76,16 @@ const RepoDropDown = ({
     <Menu onClick={e => menuClick(e.key)}>
       {type === 'repository' && (
         <>
-          <Menu.Item key="import">导入用例</Menu.Item>
-          <Menu.Item key="example">导入模板文件下载</Menu.Item>
-          <Menu.Item key="exportAll">导出（所有用例）</Menu.Item>
-          <Menu.Item key="exportGroup">导出（当前分组）</Menu.Item>
+          <Menu.Item key="import">用例导入</Menu.Item>
+          <Menu.Item key="example">用例导入模板下载</Menu.Item>
+          <Menu.Item key="exportAll">用例导出（所有分组）</Menu.Item>
+          <Menu.Item key="exportGroup">用例导出（当前分组）</Menu.Item>
         </>
       )}
       {type === 'plan' && (
         <>
           <Menu.Item key="exportPlan" disabled={!selectedTestPlanId}>
-            导出（当前计划）
+            用例导出（当前计划）
           </Menu.Item>
         </>
       )}
