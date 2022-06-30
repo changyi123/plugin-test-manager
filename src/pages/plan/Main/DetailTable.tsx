@@ -213,6 +213,7 @@ const DetailTable = () => {
     {
       width: 320,
       key: 'title',
+      fixed: true,
       isSystem: true,
       title: '标题',
       render(_, rowData) {

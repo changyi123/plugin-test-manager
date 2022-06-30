@@ -39,7 +39,7 @@
     "no-console": [
       "error",
       {
-        "allow": ["info", "error"]
+        "allow": ["info", "error", "time", "timeEnd"]
       }
     ],
     "@typescript-eslint/no-var-requires": "off",

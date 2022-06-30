@@ -109,14 +109,18 @@ const ExecutionTable = () => {
             descendingBy: 'createdAt',
             queryParams: queryParams,
             async resultTransfer({ list, total }) {
+              console.time('PlanRelExecution-resultTransfer');
               const testExecutionIds = list.map(item => item.objectId);
 
+              console.time('PlanRelExecution-getTestEntitiesByRelation');
               const { list: testRuns } = await getTestEntitiesByRelation(
                 TestRelationType.ExecutionRelRun,
                 {
                   from: testExecutionIds,
                 },
                 {
+                  // FIXME: 优化查询速度
+                  workspaceKey,
                   queryParams: { limit: 9999 },
                   select: [
                     'status',
@@ -135,24 +139,36 @@ const ExecutionTable = () => {
                   ],
                 },
               );
+              console.timeEnd('PlanRelExecution-getTestEntitiesByRelation');
 
-              return {
+              console.time('PlanRelExecution-testRunMap');
+              const testRunMap = testRuns
+                // 过滤测试用例事项已被删除的执行
+                .filter(run => run.runReferenceDetail?.reference)
+                // 对测试用例进行排序
+                .sort(
+                  (a, b) =>
+                    a.sortIndex - b.sortIndex ||
+                    Number(new Date(a.createdAt)) - Number(new Date(b.createdAt)),
+                )
+                .reduce((map, run) => {
+                  const key = run.relation.from.objectId;
+                  const storeTestRuns = map.get(key) ?? [];
+                  map.set(key, storeTestRuns.concat(run));
+                  return map;
+                }, new Map());
+
+              const result = {
                 total,
                 list: list.map(execution => ({
                   ...execution,
-                  relRuns: testRuns
-                    .filter(
-                      run =>
-                        run.relation.from.objectId === execution.objectId &&
-                        run.runReferenceDetail?.reference,
-                    )
-                    .sort(
-                      (a, b) =>
-                        a.sortIndex - b.sortIndex ||
-                        Number(new Date(a.createdAt)) - Number(new Date(b.createdAt)),
-                    ),
+                  relRuns: testRunMap.get(execution.objectId) ?? [],
                 })),
               };
+              console.timeEnd('PlanRelExecution-testRunMap');
+              console.timeEnd('PlanRelExecution-resultTransfer');
+
+              return result;
             },
           },
         );

@@ -103,6 +103,11 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
   const useItemSubQuery =
     relType !== TestRelationType.ExecutionRelRun || relationSideKey !== sideMapping.from;
 
+  const testQuery = new Parse.Query(Test);
+  if (config?.workspaceKey) {
+    testQuery.equalTo('workspaceKey', config.workspaceKey);
+  }
+
   if (useItemSubQuery) {
     const referenceItemQuery = new Parse.Query(Item);
     if (config?.nameLike) {
@@ -115,11 +120,12 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
         new Parse.Query(Workspace).equalTo('key', config.workspaceKey),
       );
     }
-    query.matchesQuery(
-      relationSideKey,
-      new Parse.Query(Test).matchesQuery('reference', referenceItemQuery),
-    );
+
+    // 增减事项筛选
+    testQuery.matchesQuery('reference', referenceItemQuery);
   }
+
+  query.matchesQuery(relationSideKey, testQuery);
 
   if (config?.queryParams && typeof config?.queryParams === 'object') {
     const { queryParams } = config;
