@@ -109,7 +109,6 @@ const ExecutionTable = () => {
             descendingBy: 'createdAt',
             queryParams: queryParams,
             async resultTransfer({ list, total }) {
-              console.time('PlanRelExecution-resultTransfer');
               const testExecutionIds = list.map(item => item.objectId);
 
               console.time('PlanRelExecution-getTestEntitiesByRelation');
@@ -140,8 +139,6 @@ const ExecutionTable = () => {
                 },
               );
               console.timeEnd('PlanRelExecution-getTestEntitiesByRelation');
-
-              console.time('PlanRelExecution-testRunMap');
               const testRunMap = testRuns
                 // 过滤测试用例事项已被删除的执行
                 .filter(run => run.runReferenceDetail?.reference)
@@ -165,9 +162,6 @@ const ExecutionTable = () => {
                   relRuns: testRunMap.get(execution.objectId) ?? [],
                 })),
               };
-              console.timeEnd('PlanRelExecution-testRunMap');
-              console.timeEnd('PlanRelExecution-resultTransfer');
-
               return result;
             },
           },

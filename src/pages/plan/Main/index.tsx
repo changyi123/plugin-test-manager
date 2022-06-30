@@ -115,7 +115,7 @@ const Main = () => {
   };
 
   const searchInputPlaceholder =
-    activeKey === TabKeyEnum.testDetailTable ? '请输入测试用例标题' : '请输出测试执行任务标题';
+    activeKey === TabKeyEnum.testDetailTable ? '请输入测试用例标题' : '请输入测试执行任务标题';
   const rightExtraContent = (
     <div className={cx('extra-content')}>
       <SearchInput

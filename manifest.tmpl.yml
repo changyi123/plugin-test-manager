@@ -17,14 +17,6 @@ modules:
       events:
         - proxima:app:install
       function: test-manager-initial-script
-    - key: test-manager-sql-runner-update
-      events:
-          - proxima:app:update
-      function: test-manager-sql-runner
-    - key: test-manager-sql-runner-install
-      events:
-          - proxima:app:install
-      function: test-manager-sql-runner
   function:
     - key: gitee-menus
       handler: /trigger/webTrigger/gitee-menus.js
@@ -34,8 +26,6 @@ modules:
       handler: /trigger/import/validate.js
     - key: test-manager-import-script
       handler: /trigger/import/import.js
-    - key: test-manager-sql-runner
-      handler: /trigger/appTrigger/SQLRunner.js
   itemPanel:
     - key: test-manager-test-detail
       resource: main

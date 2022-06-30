@@ -149,29 +149,24 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
   };
   // 需要填充 item 数据则自动转换未 json 格式，非批量数据不做处理
   if (Array.isArray(results)) {
-    const itemIds = [];
-    const testEntitiesData = results.map(relation => {
-      const relationData = relation.toJSON();
-      // 从 relation 中获取测试实体， from or to 查批量数据
-      const testEntityData = relationData[relationSideKey];
-      // 防止为空
-      if (testEntityData?.reference?.objectId) {
-        itemIds.push(testEntityData?.reference?.objectId);
-        // 兼容test runs
-      } else if (testEntityData?.runReferenceDetail?.reference?.objectId) {
-        itemIds.push(testEntityData?.runReferenceDetail?.reference?.objectId);
-      }
+    console.time('testEntitiesDataJSON');
+    const testEntitiesData = results
+      .map(item => item.toJSON())
+      .map(relationData => {
+        // 从 relation 中获取测试实体， from or to 查批量数据
+        const testEntityData = relationData[relationSideKey];
 
-      // 当前关联数据
-      const assignData = config.entityOnly
-        ? {}
-        : { relation: relationData, testRelationId: relationData.objectId };
+        // 当前关联数据
+        const assignData = config.entityOnly
+          ? {}
+          : { relation: relationData, testRelationId: relationData.objectId };
 
-      return {
-        ...testEntityData,
-        ...assignData,
-      };
-    });
+        return {
+          ...testEntityData,
+          ...assignData,
+        };
+      });
+    console.timeEnd('testEntitiesDataJSON');
     return buildReturnData(testEntitiesData);
   }
   // 异常响应数据兼容处理
