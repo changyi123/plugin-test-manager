@@ -106,7 +106,13 @@ const Main = () => {
       });
     }
 
-    await createTestRelation(relations);
+    try {
+      await createTestRelation(relations);
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.log('error', error);
+    }
+
     refresh();
     mutateTestPlanEvent.emit(selectedTestPlanId);
     notification.success({
