@@ -99,8 +99,10 @@ export const useGetTestRepoGroup = (rowData: any) => {
       return repoMap;
     },
     {
-      cacheKey: `TextRepoGroup${rowData?.workspaceKey ?? rowData.repository?.workspaceKey}`,
-      refreshDeps: [rowData?.workspaceKey ?? rowData.repository?.workspaceKey],
+      cacheKey: `TextRepoGroup${rowData?.workspaceKey ?? rowData.repository?.workspaceKey}${
+        rowData?.folderKey ?? ''
+      }`,
+      refreshDeps: [rowData?.workspaceKey ?? rowData.repository?.workspaceKey, rowData?.folderKey],
       cacheTime: 99999999999,
       staleTime: 99999999999,
     },
