@@ -4,11 +4,12 @@ import { usePageContext } from '../hook';
 import ExecutionTable from './ExecutionTable';
 import { AppstoreAddOutlined } from '@/icons';
 import { createTestRelation } from '@/lib/api/common';
-import { TestType, TestRelationType } from '@/lib/constants';
+import { TestType, TestRelationType, extendFields, RepositoryModel } from '@/lib/constants';
 import { createTestExecutionAndRelations } from '@/lib/api/runs';
 import { Tabs, Button, Tooltip, notification, Spin } from 'antd';
 import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
 import TestEntitySelectorModal, { ActionType } from '@/components/business/TestEntitySelectorModal';
+import FilterSearch from '@/components/common/FilterSearch';
 
 import SearchInput from '@/components/business/SearchInput';
 import RepoDropDown from '@/pages/repository/RepoDropDown';
@@ -25,6 +26,7 @@ const Main = () => {
   const [activeKey, setActiveKey] = React.useState(TabKeyEnum.testDetailTable);
   const [value, setValue] = React.useState(''); // 用于回显searchInput的值
   const {
+    setSearchParams,
     refresh,
     setSearchValue,
     selectedTestPlan,
@@ -105,15 +107,17 @@ const Main = () => {
 
   const rightExtraContent = (
     <div className={cx('extra-content')}>
-      <SearchInput
-        placeholder="请输入标题"
-        value={value}
-        className={cx('action')}
-        onChange={val => {
-          setValue(val);
-        }}
-        onSearch={handleSearch}
-      />
+      {activeKey === TabKeyEnum.testExecutionTable && (
+        <SearchInput
+          placeholder="请输入标题"
+          value={value}
+          className={cx('action')}
+          onChange={val => {
+            setValue(val);
+          }}
+          onSearch={handleSearch}
+        />
+      )}
       <Tooltip title="多选操作">
         <AppstoreAddOutlined
           onClick={() => toggleTableSelection()}
@@ -155,15 +159,24 @@ const Main = () => {
         onChange={key => {
           setActiveKey(key as TabKeyEnum);
           toggleTableSelection(false);
-          handleSearch('');
-          setValue('');
+          setSearchParams([{}, {}]);
         }}
         tabBarExtraContent={{ right: rightExtraContent }}
       >
         <Tabs.TabPane key={TabKeyEnum.testDetailTable} tab="全部用例">
+          <FilterSearch
+            fields={['createdBy', 'priority', 'assignee', 'createdAt']}
+            extendFields={extendFields.filter(item => item.key === RepositoryModel)}
+            onSearch={setSearchParams}
+          />
           <DetailTable />
         </Tabs.TabPane>
         <Tabs.TabPane key={TabKeyEnum.testExecutionTable} tab="测试执行任务">
+          <FilterSearch
+            fields={['createdBy', 'priority', 'assignee', 'createdAt']}
+            extendFields={extendFields}
+            onSearch={setSearchParams}
+          />
           <ExecutionTable />
         </Tabs.TabPane>
       </Tabs>

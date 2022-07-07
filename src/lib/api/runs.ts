@@ -405,9 +405,8 @@ export const updateTestRun = async (
     const uesr = userInfo.toJSON();
     return {
       objectId: uesr.objectId,
-      username: uesr.username,
-      nickname: uesr.nickname,
-      enabled: uesr.enabled,
+      __type: 'Pointer',
+      className: '_User',
     };
   };
 

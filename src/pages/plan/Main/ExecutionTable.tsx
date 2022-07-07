@@ -8,18 +8,22 @@ import { useListener } from '@projectproxima/proxima-sdk-js';
 import { StatusProgress } from '@/components/business/Status';
 import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
 import { addTestDetailToExecution } from '@/lib/api/runs';
+import { isEmpty } from 'lodash';
 import {
   deleteTestEntities,
   removeTestRelations,
   getTestEntitiesByRelation,
+  fetchItemFromIql,
 } from '@/lib/api/common';
-
+import { useTestConfig } from '@/lib/hooks/useContext';
 import BusinessTable, {
   ActionType as BusinessTableActionRef,
 } from '@/components/common/BusinessTable/BusinessTable';
 import TestEntitySelectorModal, {
   ActionType as TestEntitySelectorActionType,
 } from '@/components/business/TestEntitySelectorModal';
+import { Item, Test } from '@/lib/models';
+import { selectorToParse } from '@/lib/utils/iql';
 
 import ExpandedTable from './ExpandedTable';
 
@@ -28,6 +32,7 @@ const ExecutionTable = () => {
   const executionTableActionRef = React.useRef<BusinessTableActionRef>();
   const testEntitySelectorRef = React.useRef<TestEntitySelectorActionType>();
   const [ignoreTestEntityIds, setIgnoreTestEntityIds] = React.useState([]);
+  const { workspace } = useTestConfig();
 
   // 事项数据更新后刷新列表
   useListener('updateItemList', () => {
@@ -41,6 +46,7 @@ const ExecutionTable = () => {
 
   const {
     searchValue,
+    selectors,
     workspaceKey,
     selectedTestPlan,
     mutateTestPlanEvent,
@@ -74,36 +80,69 @@ const ExecutionTable = () => {
     if (selectedTestPlanId) {
       executionTableActionRef.current.refresh();
     }
-  }, [searchValue, selectedTestPlanId]);
+  }, [searchValue, selectors, selectedTestPlanId]);
 
   const tableDataGetter = React.useCallback(
-    queryParams => {
+    async queryParams => {
+      // 没有获取到时候，不要触发查询
+      if (!workspace) {
+        return { total: 0, list: [] };
+      }
       return getTestEntitiesByRelation(
         TestRelationType.PlanRelExecution,
         { from: selectedTestPlanId },
         {
-          // workspaceKey,
           nameLike: searchValue,
           select: ['reference'],
           include: ['reference'],
+          workspace,
           queryParams: queryParams,
-          async resultTransfer({ list, total }) {
+          async resultTransfer({ list }) {
             const testExecutionIds = list.map(item => item.objectId);
 
+            // 测试执行
             const { list: testRuns } = await getTestEntitiesByRelation(
               TestRelationType.ExecutionRelRun,
               {
                 from: testExecutionIds,
               },
               {
+                workspace,
                 queryParams: { limit: 9999 },
-                select: ['status', 'sortIndex', 'runReferenceDetail.reference', 'executor'],
-                include: ['status', 'sortIndex', 'runReferenceDetail.reference', 'executor'],
+                select: ['status', 'sortIndex', 'runReferenceDetail', 'executor'],
+                include: ['status', 'sortIndex', 'runReferenceDetail', 'executor'],
+                parseMiddleware: async query => {
+                  const testQuery = new Parse.Query(Test);
+                  const [itemSelector, testManageSelector] = [selectors?.[0], selectors?.[1]];
+                  let needUpdate = false;
+                  if (!isEmpty(itemSelector)) {
+                    const ids = await fetchItemFromIql(itemSelector, workspace);
+                    needUpdate = true;
+                    if (ids?.length) {
+                      testQuery.containedIn(
+                        'reference',
+                        ids.map(id => Item.createWithoutData(id)),
+                      );
+                    } else {
+                      testQuery.doesNotExist('reference');
+                    }
+                  }
+                  if (!isEmpty(testManageSelector)) {
+                    needUpdate = true;
+                    selectorToParse(testQuery, testManageSelector);
+                  }
+                  if (needUpdate) {
+                    query.matchesQuery(
+                      'to',
+                      new Parse.Query(Test).matchesQuery('runReferenceDetail', testQuery),
+                    );
+                  }
+                },
               },
             );
 
             return {
-              total,
+              total: testRuns?.length,
               list: list.map(execution => ({
                 ...execution,
                 relRuns: testRuns
@@ -123,7 +162,7 @@ const ExecutionTable = () => {
         },
       );
     },
-    [searchValue, selectedTestPlanId],
+    [searchValue, selectedTestPlanId, selectors, workspace],
   );
 
   const removeTestRelation = React.useCallback(

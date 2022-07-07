@@ -1,0 +1,62 @@
+.filter-tag-btn {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 4px 8px;
+  height: 28px;
+  font-size: 12px;
+  border-radius: 4px;
+  vertical-align: middle;
+
+  :global {
+    .filter-tag-btn-text {
+      margin-left: 4px !important;
+    }
+  }
+}
+
+.filter-tag-icon {
+  margin-top: -2px;
+  font-size: 12px;
+  vertical-align: middle;
+}
+
+.filter-search-wrap {
+  display: flex;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  min-height: 28px;
+  padding: 12px 24px;
+  border-bottom: 1px solid #DADDE3;
+
+  :global {
+    .field-value-overlay {
+      height: 0;
+    }
+    .ant-picker-input {
+      display: none;
+    }
+    .ant-picker-range-separator {
+      display: none;
+    }
+    .ant-picker-range {
+      position: absolute;
+      left: 30px;  
+      padding: 0;
+    }
+    .field-layout {
+      position: absolute;
+      left: 30px;  
+      width: 0;
+    }
+    .field-cell-layout {
+      position: absolute;
+      left: 30px;  
+      width: 1px;
+    }
+    .ant-popover-open {
+      position: absolute;
+      left: 30px;
+      margin-top: -20px;
+    }
+  }
+}
