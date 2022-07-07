@@ -1,0 +1,64 @@
+:root {
+  .plan-selector-container {
+    position: relative;
+    cursor: pointer;
+
+    .title {
+      font-size: 18px;
+      font-weight: 500;
+      color: #1e2a3d;
+      line-height: 26px;
+
+      &:hover {
+        color: #0c62ff;
+      }
+    }
+  }
+  .selector-box {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 160px;
+    background-color: #fff;
+    box-shadow: 0 0 2px 0px #beb7b7;
+    z-index: 1;
+
+    .search-box {
+      padding: 4px;
+    }
+
+    .selector-list {
+      overflow: auto;
+      max-height: 250px;
+      border-top: 1px solid #ccc;
+      border-bottom: 1px solid #ccc;
+
+      .plan-name {
+        padding: 8px;
+        font-size: 14px;
+        line-height: 20px;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        white-space: nowrap;
+
+        &:hover {
+          background-color: #ccc;
+          color: #0c62ff;
+        }
+      }
+    }
+
+    .check-all {
+      padding: 8px;
+      font-size: 14px;
+      line-height: 20px;
+      text-align: center;
+      cursor: pointer;
+
+      &:hover {
+        color: #0c62ff;
+        background-color: #ccc;
+      }
+    }
+  }
+}

@@ -8,16 +8,17 @@ import {
   getTestEntitiesByRelation,
 } from '@/lib/api/common';
 import { TestRelationType, TestType } from '@/lib/constants';
-import SearchInput from '../SearchInput';
 import _ from 'lodash';
 import { TestPlanEntity } from '@/pages/plan/type';
 import { TestEntity } from '@/lib/types/Test';
 import { deleteItems } from '@/lib/api/proxima';
-
-import cx from './index.less';
-import { StatusProgress } from '../Status';
 import { actionConfirm, goToItemDetailPage } from '@/lib/utils/helper';
 import { MoreOutlined } from '@ant-design/icons';
+import { useBaseAction } from '@/lib/hooks/useContext';
+import { StatusProgress } from '../Status';
+import SearchInput from '../SearchInput';
+
+import cx from './index.less';
 
 type TestPlan = TestPlanEntity & {
   refTestDetails: Pick<TestEntity, 'status'>[];
@@ -28,6 +29,7 @@ const TestPlanList: React.FC<any> = () => {
   const { workspaceKey, setSelectedTestPlan } = usePageContext();
   const [tableLoading, setTableLoading] = useState(false);
   const [searchValue, setSearchValue] = useState('');
+  const { createItemUseModal } = useBaseAction();
 
   const tableDataGetter = useCallback(
     async queryParams => {
@@ -42,6 +44,7 @@ const TestPlanList: React.FC<any> = () => {
         {
           ...queryParams,
           ignoreDeletedItemData: true,
+          descendingBy: ['createdAt'],
         },
       );
 
@@ -111,7 +114,7 @@ const TestPlanList: React.FC<any> = () => {
       title: '计划名称',
       render(_, rowData) {
         return (
-          <span style={{ cursor: 'pointer' }} onClick={() => setSelectedTestPlan(rowData)}>
+          <span className={cx('test-plan-title')} onClick={() => setSelectedTestPlan(rowData)}>
             {(rowData.reference ?? {}).name}
           </span>
         );
@@ -136,7 +139,7 @@ const TestPlanList: React.FC<any> = () => {
       align: 'right',
       width: 100,
       render(_, rowData) {
-        return rowData?.refTestDetails?.length ?? 0;
+        return <span style={{ color: '#0C62FF' }}>{rowData?.refTestDetails?.length ?? 0}</span>;
       },
     },
     {
@@ -167,6 +170,16 @@ const TestPlanList: React.FC<any> = () => {
     },
   ];
 
+  const handleCreate = async () => {
+    await createItemUseModal({
+      type: TestType.TestPlan,
+    });
+    actionRef.current.refresh();
+    notification.success({
+      message: '测试计划新建成功',
+    });
+  };
+
   return (
     <div className={cx('test-plan-container')} style={{ height: 'calc(100% - 48px)' }}>
       <div className={cx('plan-header')}>
@@ -174,10 +187,13 @@ const TestPlanList: React.FC<any> = () => {
         <div className={cx('header-right')}>
           <SearchInput
             showInput
+            allowClear
             placeholder="请输入搜索关键字"
             onSearch={value => setSearchValue(value)}
           />
-          <Button type="primary">新建测试计划</Button>
+          <Button type="primary" onClick={() => handleCreate()}>
+            新建测试计划
+          </Button>
         </div>
       </div>
       <BusinessTable
