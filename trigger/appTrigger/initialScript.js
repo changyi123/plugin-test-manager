@@ -63,6 +63,60 @@ const getOrCreateParseObject = async (parseClass, attributes) => {
   return parseObject;
 };
 
+let MaxExecuteTimes = 5;
+const executeSQL = async () => {
+  const createTestRelationTableUniqueSQL = async () => {
+    const createUniqueSQL = `
+      CREATE UNIQUE INDEX IF NOT EXISTS test_manager_test_relation_table_from_to_unique ON "test_manager_TestRelation" ("from",
+      "to",
+      "relationType");
+  `;
+
+    const deleteDuplicateRelationRowIfExists = async () => {
+      // 查走重复列数据
+      const queryDuplicateRelationRowSQL = `
+        SELECT max("objectId")
+        FROM "test_manager_TestRelation"
+        GROUP BY "from",
+                "to",
+                "relationType"
+        HAVING count(*) > 1
+      `;
+
+      const deleteDuplicateRelationRowSQL = `
+        DELETE
+        FROM "test_manager_TestRelation"
+        WHERE "objectId" in (${queryDuplicateRelationRowSQL});
+      `;
+
+      const result = await pgClient.query(queryDuplicateRelationRowSQL);
+
+      if (MaxExecuteTimes > 0 && result?.rowCount) {
+        MaxExecuteTimes -= 1;
+        // 删除重复列数据
+        await pgClient.query(deleteDuplicateRelationRowSQL);
+        await deleteDuplicateRelationRowIfExists();
+      }
+      return;
+    };
+
+    try {
+      await deleteDuplicateRelationRowIfExists();
+      await pgClient.query(createUniqueSQL);
+      log('关联关系表唯一索引创建成功');
+    } catch (err) {
+      log('createUniqueSQL run error', err);
+    }
+  };
+
+  try {
+    log('开始执行插件 SQL 脚本');
+    await createTestRelationTableUniqueSQL();
+  } catch (err) {
+    log('createUniqueSQL run error', err);
+  }
+};
+
 const initialScriptRunner = async () => {
   const appInstance = await apis.getData(false, 'App', { key: APP_KEY });
   if (!appInstance) return;
@@ -122,9 +176,11 @@ const initialScriptRunner = async () => {
 };
 
 try {
-  await initialScriptRunner().then(() => {
-    log('测试管理插件初始化成功');
-  });
+  await initialScriptRunner()
+    .then(() => executeSQL())
+    .then(() => {
+      log('测试管理插件初始化成功');
+    });
 } catch (error) {
   log('error:', error);
 }

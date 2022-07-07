@@ -1,6 +1,13 @@
 @import '@/index.global.less';
 
 @selection-color: #999;
+@action-color: #0045d9;
+@action-disabled-color: #999;
+
+.disabled-action() {
+  color: @action-disabled-color;
+  cursor: not-allowed;
+}
 
 .table-selection {
   height: 100%;
@@ -18,7 +25,12 @@
   }
 
   .checkbox {
-    margin-right: 22px;
+    padding-right: 14px;
+  }
+
+  .checkbox-label {
+    margin-right: 6px;
+    color: #213053;
   }
 
   .num {
@@ -35,6 +47,20 @@
   .action {
     flex: none;
     cursor: pointer;
+    color: @action-color;
+    &.disabled {
+      .disabled-action();
+      :global {
+        .user-field {
+          .disabled-action();
+        }
+      }
+    }
+    :global {
+      .user-field {
+        color: @action-color;
+      }
+    }
     & + .action {
       margin-left: 10px;
     }

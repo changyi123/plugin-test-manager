@@ -6,12 +6,13 @@ import EventBus from '@/lib/utils/eventBus';
 import { Modal, Spin, Button } from 'antd';
 import { getItemByIQL } from '@/lib/api/proxima';
 import { useSafeState, useRequest } from 'ahooks';
-import TestDetailSelector from './TestDetailSelector';
 import { TestTypeNameMapping } from '@/lib/constants';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import DebounceSelect from '@/components/common/DebounceSelect';
 import { getRootContainer, hasArrayItem } from '@/lib/utils/helper';
 import { getAllTestConfigs, getTestEntities } from '@/lib/api/common';
+import InheritTestDetail from './InheritTestDetail';
+import TestDetailSelector from './TestDetailSelector';
 
 import cx from './index.less';
 
@@ -303,8 +304,9 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
 
   // 测试计划选择器
   const testDetailSelectorNode = React.useMemo(() => {
+    const TestComponets = isSingleMode ? InheritTestDetail : TestDetailSelector;
     return (
-      <TestDetailSelector
+      <TestComponets
         isSingleMode={isSingleMode}
         workspaceKey={workspace?.key}
         ignoreTestDetailIds={ignoreTestEntityIds}
@@ -319,7 +321,11 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
       <div className={cx('footer')}>
         {testType === TestType.TestDetail ? (
           <div className={cx('info')}>
-            已选择<strong className={cx('num')}>{selectedTestDetails.length}</strong>条用例
+            已选择
+            <strong className={cx('num')}>
+              {selectedTestDetails.filter(d => !ignoreTestEntityIds.includes(d)).length}
+            </strong>
+            条用例
           </div>
         ) : null}
         <div className={cx('actions')}>
@@ -330,7 +336,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
         </div>
       </div>
     );
-  }, [handleOkButtonClick, selectedTestDetails, setVisible, testType]);
+  }, [handleOkButtonClick, selectedTestDetails, setVisible, testType, ignoreTestEntityIds]);
 
   return (
     <Modal
@@ -339,15 +345,18 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
         PreviousButtonClicked = false;
         PreviousMessageData = null;
       }}
-      closable={false}
       keyboard={false}
       visible={visible}
       maskClosable={false}
       className={cx('modal')}
       getContainer={getRootContainer}
       footer={ModalFooterNode}
+      onCancel={() => setVisible(false)}
       title={props.title ?? `请选择${testTypeName}`}
-      width={testType === TestType.TestDetail ? 800 : 500}
+      width={testType === TestType.TestDetail ? 1000 : 500}
+      bodyStyle={{
+        padding: '16px 24px',
+      }}
     >
       {testType === TestType.TestDetail ? testDetailSelectorNode : testEntitySelectorNode}
     </Modal>

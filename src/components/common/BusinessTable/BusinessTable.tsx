@@ -1,5 +1,4 @@
 import React, { useMemo, useRef } from 'react';
-import { pick, isEqual } from 'lodash';
 import { getDevConfig } from '@/devEnv';
 import { TitleCellOption } from './type';
 import { Pagination, Table } from 'antd';
@@ -7,18 +6,21 @@ import { Resizable } from 'react-resizable';
 import { TableProps } from 'antd/lib/table';
 import ColumnSetting from './ColumnSetting';
 import TableSelection from './TableSelection';
+import { pick, isEqual, difference } from 'lodash';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import { generateStorageKey } from '@/lib/utils/helper';
-import { LibraryProvider, useDataQuoteStore } from '@projectproxima/components';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import { getRootContainer, hasArrayItem } from '@/lib/utils/helper';
 import { useSDK, PluginSDKContext } from '@projectproxima/plugin-sdk';
 import { useAntdTable, useLocalStorageState, useSize } from 'ahooks';
+import { LibraryProvider, useDataQuoteStore } from '@projectproxima/components';
 
 import cx from './BusinessTable.less';
 
 const DEFAULT_PAGE_SIZE = 10;
 const MIN_COLUMN_WIDTH = 120;
+const OFFSET_HEIGHT = 88;
+const SELECTION_HEADER_HEIGHT = 40;
 
 const ResizableHeaderCell = ({ onResize, resizable, width, ...restProps }) => {
   const thProps = pick(restProps, ['children', 'rowSpan', 'colSpan', 'style', 'className']);
@@ -61,8 +63,8 @@ export type ActionType = {
   refresh: () => void;
   expandChangePage?: (num: number) => void;
   toggleSelection: (visible?: boolean) => void;
-  selectedRows: any[];
-  resetSelectedRows: () => void;
+  selectedRowKeys: any[];
+  resetSelectedRowKeys: () => void;
 };
 
 type BusinessTableProps = TableProps<any> &
@@ -72,14 +74,16 @@ type BusinessTableProps = TableProps<any> &
     itemKey?: string;
     showPagination?: boolean;
     useColumnSetting?: boolean;
-    onSelectionCancel?: () => void;
-    isCheck?: boolean;
     defaultColumnKey?: string[];
-    setIsCheck?: (check: boolean) => void;
-    expandChangePage?: (num: number, size?: number) => void;
+    PaginationFooterRender?: any;
+    // 所有可选的 row 标识
+    allSelectableRowKeys?: string[];
+    onSelectionCancel?: () => void;
+    // 是否已经有列被选中
+    onHasRowSelected?: (check: boolean) => void;
     selectionActionNodes?: React.ReactNode[];
     actionRef?: React.ForwardedRef<ActionType>;
-    PaginationFooterRender?: any;
+    expandChangePage?: (num: number, size?: number) => void;
     getDataSource?: (queryParams: { offset: number; limit: number }) => Promise<{
       list: any[];
       total: number;
@@ -96,8 +100,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     titleCellOption,
     onSelectionCancel,
     selectionActionNodes,
-    isCheck,
-    setIsCheck,
+    onHasRowSelected,
     expandChangePage,
     itemKey = 'reference',
     showPagination = true,
@@ -114,7 +117,6 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
   const currentPageRowsRef = React.useRef([]);
   const initialExpandedRef = React.useRef(false);
   const [expandedRowKeys, setExpandedKeys] = React.useState([]);
-  const [selectedRowDatas, setSelectedRowDatas] = React.useState<string[] | undefined>(undefined);
   const [selectedRowKeys, setSelectedRowKeys] = React.useState<string[] | undefined>(undefined);
   const [selectionMode, setSelectionMode] = React.useState(false);
   const COLUMN_WIDTH_STORAGE_KEY = generateStorageKey(props.name, 'column-width');
@@ -133,11 +135,12 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
   const size = useSize(ref);
 
   const scrollMemo = useMemo(() => {
+    const selectionHeaderHeight = selectionMode ? SELECTION_HEADER_HEIGHT : 0;
     return {
-      y: size?.height - 88, // 当前容器高度减去footer和header高度
+      y: size?.height - OFFSET_HEIGHT - selectionHeaderHeight, // 当前容器高度减去footer和header高度
       ...scroll,
     };
-  }, [scroll, size]);
+  }, [scroll, selectionMode, size?.height]);
 
   const handleTableColumnChange = React.useCallback(columns => {
     setTableColumns(prevState => {
@@ -191,6 +194,17 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     [antdTableProps.dataSource, props.dataSource],
   );
 
+  // 当前页可选的 row keys
+  const currentPageSelectableRowKeys = React.useMemo(() => {
+    return dataSource.map(data => data[props.rowKey as string]) ?? [];
+  }, [dataSource, props.rowKey]);
+
+  // 所有可选的 row keys
+  const allSelectableRowKeys = React.useMemo(() => {
+    // 没有全部的则使用当前页的所有 rowKeys
+    return props.allSelectableRowKeys ?? [];
+  }, [props.allSelectableRowKeys]);
+
   const referenceList = useMemo(
     () => dataSource?.map(d => d?.reference).filter(Boolean),
     [dataSource],
@@ -216,10 +230,8 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
   }, [dataSource]);
 
   React.useEffect(() => {
-    if (!!isCheck !== selectedRowKeys?.length > 0) {
-      setIsCheck?.(selectedRowKeys?.length > 0);
-    }
-  }, [selectedRowKeys, setIsCheck, isCheck]);
+    onHasRowSelected?.(selectedRowKeys?.length > 0);
+  }, [selectedRowKeys, onHasRowSelected]);
 
   const handleResize = (key, _e, { size }) => {
     setColumnsWidth(dict => ({
@@ -254,22 +266,13 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     useDataQuoteStore(referenceList);
 
     if (!selectionMode) return null;
-    const selectedRows = selectedRowKeys?.map(key =>
-      dataSource.find(row => row[props.rowKey as any] === key),
-    );
 
     const handleCheck = checked => {
-      const allRowKeys = dataSource.map(item => item[props.rowKey as any]);
-      const _selectedRowKeys = selectedRowKeys?.filter(d => !allRowKeys.includes(d)) ?? [];
-      const _selectedRowDatas =
-        selectedRowDatas?.filter(d => !allRowKeys.includes(d[props.rowKey as string])) ?? [];
-
-      if (checked === false) {
-        setSelectedRowKeys(_selectedRowKeys);
-        setSelectedRowDatas(_selectedRowDatas);
+      if (checked) {
+        setSelectedRowKeys(allSelectableRowKeys);
       } else {
-        setSelectedRowKeys(_selectedRowKeys.concat(allRowKeys));
-        setSelectedRowDatas(_selectedRowDatas.concat(dataSource));
+        // 取差集
+        setSelectedRowKeys([]);
       }
     };
 
@@ -278,20 +281,26 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
       onSelectionCancel?.();
     };
 
+    const disableTableSelectAll = !Array.isArray(props.allSelectableRowKeys);
+    // 是否全等 rowKey
+    const isSameWithAllRowKeys = !difference(allSelectableRowKeys, selectedRowKeys).length;
+    const allRowSelectionChecked = isSameWithAllRowKeys;
+    // 有选中的值，但不全等全部 rowKey 则为半选
+    const allRowSelectionIndeterminate = !isSameWithAllRowKeys && !!selectedRowKeys?.length;
+
     return (
       <div className={cx('selection-header')}>
         <TableSelection
-          tableExpandable={Boolean(expandable)}
           onClose={handleClose}
+          tableExpandable={Boolean(expandable)}
+          disableSelectAll={disableTableSelectAll}
           checkboxProps={{
-            onChange: e => handleCheck(e.target.checked),
+            checked: allRowSelectionChecked,
             disabled: antdTableProps.loading,
-            checked:
-              Boolean(selectedRows?.length) &&
-              dataSource.filter(d => selectedRows.includes(d)).length === dataSource.length,
-            indeterminate: Boolean(selectedRows?.length) && selectedRows.length < dataSource.length,
+            onChange: e => handleCheck(e.target.checked),
+            indeterminate: allRowSelectionIndeterminate,
           }}
-          selectNum={selectedRows?.length}
+          selectNum={selectedRowKeys?.length}
           actions={selectionActionNodes ?? []}
         />
       </div>
@@ -333,19 +342,12 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
         columnWidth: 32,
         selectedRowKeys,
         onChange(rowKeys: string[]) {
-          const curKeys = dataSource.map(d => d[props.rowKey as string]);
-          const _selectedRowKeys = selectedRowKeys?.filter(d => !curKeys.includes(d)) ?? [];
-          const _selectedRowDatas =
-            selectedRowDatas?.filter(d => !curKeys.includes(d[props.rowKey as string])) ?? [];
+          const _selectedRowKeys =
+            selectedRowKeys?.filter(d => !currentPageSelectableRowKeys.includes(d)) ?? [];
 
           const _rowKeys = rowKeys.concat(_selectedRowKeys);
 
-          const curRowDatas = dataSource.filter(d => rowKeys.includes(d[props.rowKey as string]));
-
-          const _rowDatas = curRowDatas.concat(_selectedRowDatas);
-
           setSelectedRowKeys(_rowKeys);
-          setSelectedRowDatas(_rowDatas);
         },
       }
     : undefined;
@@ -357,14 +359,13 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
         setSelectionMode(visible);
       },
       refresh,
+      selectedRowKeys,
       expandChangePage,
-      selectedRows: selectedRowDatas,
-      resetSelectedRows: () => {
+      resetSelectedRowKeys: () => {
         setSelectedRowKeys(undefined);
-        setSelectedRowDatas(undefined);
       },
     }),
-    [expandChangePage, selectedRowDatas, refresh],
+    [expandChangePage, selectedRowKeys, refresh],
   );
 
   React.useEffect(() => {
@@ -399,9 +400,8 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
             },
           }}
           dataSource={dataSource}
-          showHeader={!selectionMode}
           rowSelection={rowSelectionProp}
-          loading={antdTableProps.loading}
+          loading={antdTableProps.loading || restTableProps.loading}
           columns={columnsWithResizableAndSettingAction}
           expandable={
             expandable

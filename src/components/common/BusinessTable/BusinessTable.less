@@ -32,6 +32,18 @@
     flex: none;
   }
   :global {
+    .ant-table {
+      height: 100%;
+
+      .ant-table-container {
+        height: 100%;
+
+        .ant-table-body {
+          height: 100%;
+        }
+      }
+    }
+
     .ant-table-thead,
     .ant-table-row {
       height: 40px;
@@ -55,6 +67,7 @@
 
     .ant-table-selection-column {
       padding-left: 24px !important;
+      padding-right: 0px;
     }
 
     .ant-table-row-expand-icon-cell {

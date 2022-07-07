@@ -1,5 +1,6 @@
 import React from 'react';
 import TestRun from './TestRun';
+import classnames from 'classnames';
 import { Modal, Button } from 'antd';
 import EventBus from '@/lib/utils/eventBus';
 import { getRootContainer } from '@/lib/utils/helper';
@@ -8,12 +9,13 @@ export type ActionType = {
   open: (data: { testId: string; testIdSequence?: string[] }) => Promise<void>;
 };
 interface ITestRunModalProps {
+  className?: string;
   actionRef?: React.ForwardedRef<ActionType>;
 }
 
 const CancelEventType = 'CancelEventType';
 
-const TestRunModal: React.FC<ITestRunModalProps> = ({ actionRef }) => {
+const TestRunModal: React.FC<ITestRunModalProps> = ({ actionRef, className }) => {
   const [isVisible, setIsVisible] = React.useState(false);
   const [testRunDepData, setTestRunDepData] = React.useState(
     {} as Parameters<ActionType['open']>[0],
@@ -57,6 +59,7 @@ const TestRunModal: React.FC<ITestRunModalProps> = ({ actionRef }) => {
         maskClosable={false}
         onCancel={handleCloseModal}
         getContainer={getRootContainer}
+        className={classnames(className)}
         footer={ModalFooterActionButtonsNode}
         bodyStyle={{
           maxWidth: '1000px',

@@ -157,7 +157,7 @@ const getSteps = (steps?: Step[]) => {
 
 /** 获取负责人 */
 const getAssignee = (values?: Record<string, unknown>): string =>
-  (values?.assignee as any[])
+  (Array.isArray(values?.assignee) ? values?.assignee : [])
     ?.map(val => (val.value ? val.username : ''))
     .filter(Boolean)
     .join(',') ?? '';

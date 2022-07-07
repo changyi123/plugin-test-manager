@@ -1,28 +1,19 @@
 import React from 'react';
 import { TestType } from '@/lib/constants';
-import { omit, pick, cloneDeep } from 'lodash';
+import { pick, cloneDeep } from 'lodash';
 import { getFolderTree } from '@/lib/api/repository';
 import { useAllTestWorkspace } from '@/lib/hooks/useTest';
 import { getTestEntitiesByQuery } from '@/lib/api/common';
 import { includeAll, exclude, includeItem } from './helper';
-import SearchInput from '@/components/business/SearchInput';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
-import { useRequest, useReactive, useInfiniteScroll } from 'ahooks';
+import { useRequest } from 'ahooks';
 import { hasArrayItem, escapeMatchesQueryArg } from '@/lib/utils/helper';
-import { Select, Tree, Empty, Checkbox, Spin, Tooltip, Input } from 'antd';
+import { Select, Tree, Empty, Input } from 'antd';
 import { traverseTreeNodes, appendGroupedDetailIdsToTreeNode } from '@/pages/repository/util';
-import {
-  CaretDownOutlined,
-  FileClose,
-  FileOpen,
-  CaretUpOutlined,
-  SearchOutlined,
-  CheckOutlined,
-} from '@/icons';
+import { CaretDownOutlined, FileClose, FileOpen, SearchOutlined } from '@/icons';
+import TestDetailsSelectorList from './TestDetailsSelectorList';
 
 import cx from './TestDetailSelector.less';
-
-const REQUEST_LIMIT = 20;
 
 const DEFAULT_CHECKED_KEY = {
   checked: [],
@@ -37,6 +28,8 @@ type TestDetailSelectorProps = {
   onTestDetailSelect?: (testDetails) => void;
 };
 
+const { Search } = Input;
+
 const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
   const {
     workspaceKey,
@@ -45,12 +38,6 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
     onTestDetailSelect,
     isWorkspaceIsolate,
   } = props;
-
-  const baseSearchState = useReactive({
-    nameLike: '',
-    // notIn: ignoreTestDetailIds ?? null,
-    orderByCratedAt: 'asc' as 'asc' | 'desc',
-  });
 
   // 目录搜索
   const [folderSearchValue, setFolderSearchValue] = React.useState('');
@@ -65,7 +52,6 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
   // 选中空间
   const [selectedWorkspaceKey, setSelectedWorkspaceKey] = React.useState(workspaceKey);
 
-  const detailSelectorRef = React.useRef();
   const folderCheckedCacheRef = React.useRef({} as Record<string, any>);
 
   // 测试案例库选中
@@ -163,78 +149,6 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
     return newTreeData.filter(node => node.children?.length || (node as any).display);
   }, [repositoryTreeData, folderSearchValue]);
 
-  const { data: testDetailData, loading: testDetailDataLoading } = useInfiniteScroll(
-    async params => {
-      const { offset = 0 } = params ?? ({} as any);
-
-      const baseQueryParams = omit(baseSearchState, ['orderByCratedAt']);
-      const baseQueryOptions = {
-        ascendingBy: baseSearchState.orderByCratedAt === 'asc' ? ['sortIndex', 'createdAt'] : null,
-        descendingBy:
-          baseSearchState.orderByCratedAt === 'desc' ? ['sortIndex', 'createdAt'] : null,
-      };
-      const { results, count } = await getTestEntitiesByQuery(
-        {
-          ...baseQueryParams,
-          in: selectedNode.testDetailIds,
-          workspaceKey: selectedWorkspaceKey,
-        },
-        {
-          offset,
-          limit: REQUEST_LIMIT,
-          ignoreDeletedItemData: false,
-          ...baseQueryOptions,
-        },
-      );
-
-      const nextOffset = offset + REQUEST_LIMIT;
-
-      return {
-        count,
-        list: results,
-        offset: nextOffset < count ? nextOffset : undefined,
-      };
-    },
-    {
-      target: detailSelectorRef,
-      reloadDeps: [JSON.stringify(baseSearchState), JSON.stringify(selectedNode?.testDetailIds)],
-      isNoMore: data => data?.offset === undefined,
-    },
-  );
-
-  // 当前目录全选
-  const handleFolderCheckAll = (checked, testDetailIds) => {
-    setSelectedTestDetailIds(prevState => {
-      if (checked) {
-        // 先排除再全选
-        return exclude(prevState, testDetailIds).concat(testDetailIds);
-      } else {
-        // 取消选中选差集
-        return exclude(prevState, testDetailIds);
-      }
-    });
-  };
-
-  const handleCheck = (_, { checked, node }) => {
-    if (!node.testDetailIds.length) return;
-    const testDetailIds = node.testDetailIds;
-    handleFolderCheckAll(checked, testDetailIds);
-
-    setFolderCheckedKey(prevState => {
-      if (checked) {
-        return {
-          ...prevState,
-          checked: prevState.checked.concat(node.key),
-        };
-      } else {
-        return {
-          ...prevState,
-          checked: exclude(prevState.checked, [node.key]),
-        };
-      }
-    });
-  };
-
   const handleWorkspaceChange = key => {
     folderCheckedCacheRef.current = {
       ...folderCheckedCacheRef.current,
@@ -244,14 +158,6 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
     // 切换
     setSelectedWorkspaceKey(key);
     setFolderCheckedKey(folderCheckedCacheRef.current[key] ?? DEFAULT_CHECKED_KEY);
-  };
-
-  const handleTestDetailCheck = (checked, key) => {
-    const needUpdateTestDetailIds = checked
-      ? selectedTestDetailIds.concat(key)
-      : selectedTestDetailIds.filter(k => k !== key);
-
-    setSelectedTestDetailIds(needUpdateTestDetailIds);
   };
 
   const TreeComponentCheckProps = React.useMemo(() => {
@@ -265,7 +171,7 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
   React.useEffect(() => {
     setFolderSearchValue('');
     setDetailSearchValue('');
-    baseSearchState.nameLike = '';
+    // baseSearchState.nameLike = '';
     // 单选模式切换时重置选中项
     isSingleMode && setSelectedTestDetailIds([]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -312,128 +218,65 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
       <div className={cx('title')}>
         选择用例库
         <span className={cx('description')}>（仅可选择当前拥有权限的用例库）</span>
-        <SearchInput
-          text="搜索"
+      </div>
+      <div className={cx('search-box')}>
+        <Select
+          showSearch
+          getPopupContainer={trigNode => trigNode.parentElement}
+          optionFilterProp="title"
+          value={selectedWorkspaceKey}
+          disabled={isWorkspaceIsolate}
+          options={workspaceSelectOptions}
+          onChange={handleWorkspaceChange}
+          className={cx('workspace-selector')}
+        />
+        <Search
           className={cx('search')}
-          value={detailSearchValue}
-          onChange={value => setDetailSearchValue(value)}
-          onSearch={value => (baseSearchState.nameLike = value)}
+          placeholder="请输入用例标题"
+          allowClear
+          onSearch={val => setDetailSearchValue(val)}
         />
       </div>
-      <Select
-        showSearch
-        getPopupContainer={trigNode => trigNode.parentElement}
-        optionFilterProp="title"
-        value={selectedWorkspaceKey}
-        disabled={isWorkspaceIsolate}
-        options={workspaceSelectOptions}
-        onChange={handleWorkspaceChange}
-        className={cx('workspace-selector')}
-      />
-      <Spin spinning={testDetailDataLoading}>
-        <div className={cx('main')}>
-          {hasArrayItem(repositoryTreeData) ? (
-            <div className={cx('selector-container')}>
-              <div className={cx('folder-selector')}>
-                <Input
-                  placeholder="搜索用例库分组"
-                  value={folderSearchValue}
-                  className={cx('search-input')}
-                  addonBefore={<SearchOutlined />}
-                  onChange={e => setFolderSearchValue(e.target.value)}
-                />
-                <Tree.DirectoryTree
-                  showIcon
-                  {...TreeComponentCheckProps}
-                  icon={({ expanded }) => (expanded ? <FileOpen /> : <FileClose />)}
-                  switcherIcon={<CaretDownOutlined style={{ color: '#878C96' }} />}
-                  treeData={treeData}
-                  onCheck={handleCheck}
-                  className={cx('tree')}
-                  checkedKeys={folderCheckedKey}
-                  onSelect={(_, { node }) => setSelectedNode(node)}
-                  selectedKeys={[selectedNode?.key].filter(Boolean)}
-                />
-              </div>
-              <div className={cx('detail-selector-container')}>
-                <div className={cx('detail', 'header')}>
-                  {!isSingleMode ? (
-                    <Checkbox
-                      disabled={!selectedNode?.testDetailIds.length}
-                      onChange={ev => {
-                        handleFolderCheckAll(ev.target.checked, selectedNode.testDetailIds);
-                      }}
-                      checked={
-                        selectedNode?.testDetailIds.length &&
-                        includeAll(selectedTestDetailIds, selectedNode?.testDetailIds)
-                      }
-                      className={cx('checkbox')}
-                    />
-                  ) : null}
-                  <span>共 {testDetailData?.count ?? 0} 条用例</span>
-                  <Tooltip title="创建时间排序">
-                    <span
-                      className={cx('action')}
-                      onClick={() => {
-                        baseSearchState.orderByCratedAt =
-                          baseSearchState.orderByCratedAt === 'asc' ? 'desc' : 'asc';
-                      }}
-                    >
-                      <span>{baseSearchState.orderByCratedAt === 'asc' ? '最早' : '最晚'}</span>
-                      <span className={cx('icon')}>
-                        <CaretUpOutlined
-                          className={cx(baseSearchState.orderByCratedAt === 'asc' && 'activity')}
-                        />
-                        <CaretDownOutlined
-                          className={cx(baseSearchState.orderByCratedAt === 'desc' && 'activity')}
-                        />
-                      </span>
-                    </span>
-                  </Tooltip>
-                </div>
-                {hasArrayItem(testDetailData?.list) ? (
-                  <ul ref={detailSelectorRef} className={cx('detail-selector')}>
-                    {testDetailData.list.map(testDetail => (
-                      <li
-                        onClick={() =>
-                          isSingleMode && setSelectedTestDetailIds([testDetail.objectId])
-                        }
-                        className={cx('detail', isSingleMode && 'effect')}
-                        key={testDetail.objectId}
-                      >
-                        {!isSingleMode ? (
-                          <Checkbox
-                            className={cx('checkbox')}
-                            onChange={ev => {
-                              handleTestDetailCheck(ev.target.checked, testDetail.objectId);
-                            }}
-                            disabled={ignoreTestDetailIds.includes(testDetail.objectId)}
-                            checked={[...ignoreTestDetailIds, ...selectedTestDetailIds].includes(
-                              testDetail.objectId,
-                            )}
-                          />
-                        ) : null}
-                        <OverflowTooltip title={testDetail.reference?.name}>
-                          {testDetail.reference?.name ?? '事项被删除'}
-                        </OverflowTooltip>
-                        {isSingleMode && selectedTestDetailIds.includes(testDetail.objectId) ? (
-                          <div className={cx('action')}>
-                            <CheckOutlined className={cx('check-icon')} />
-                          </div>
-                        ) : null}
-                      </li>
-                    ))}
-                  </ul>
-                ) : testDetailDataLoading ? null : (
-                  <Empty style={{ paddingTop: 100 }} description="当前目录未关联测试用例" />
-                )}
-              </div>
+      <div className={cx('main')}>
+        {hasArrayItem(repositoryTreeData) ? (
+          <div className={cx('selector-container')}>
+            <div className={cx('folder-selector')}>
+              <Input
+                placeholder="搜索用例库分组"
+                value={folderSearchValue}
+                className={cx('search-input')}
+                addonBefore={<SearchOutlined />}
+                onChange={e => setFolderSearchValue(e.target.value)}
+              />
+              <Tree.DirectoryTree
+                showIcon
+                {...TreeComponentCheckProps}
+                icon={({ expanded }) => (expanded ? <FileOpen /> : <FileClose />)}
+                switcherIcon={<CaretDownOutlined style={{ color: '#878C96' }} />}
+                treeData={treeData}
+                className={cx('tree')}
+                expandAction={false}
+                checkedKeys={folderCheckedKey}
+                onSelect={(_, { node }) => setSelectedNode(node)}
+                selectedKeys={[selectedNode?.key].filter(Boolean)}
+                rootStyle={{ height: 'calc(100% - 40px)' }}
+              />
             </div>
-          ) : repositoryTreeDataLoading ? null : (
-            <Empty style={{ paddingTop: 100 }} description="当前用例库未创建用例模块" />
-          )}
-        </div>
-      </Spin>
+            <div className={cx('detail-selector-container')}>
+              <TestDetailsSelectorList
+                workspaceKey={selectedWorkspaceKey}
+                selectedNode={selectedNode}
+                detailSearchValue={detailSearchValue}
+                ignoreTestDetailIds={ignoreTestDetailIds ?? []}
+                selectedTestDetailIds={selectedTestDetailIds}
+                setSelectedTestDetailIds={setSelectedTestDetailIds}
+              />
+            </div>
+          </div>
+        ) : repositoryTreeDataLoading ? null : (
+          <Empty style={{ paddingTop: 100 }} description="当前用例库未创建用例模块" />
+        )}
+      </div>
     </div>
   );
 };

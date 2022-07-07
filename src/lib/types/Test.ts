@@ -1,6 +1,13 @@
 import { Item } from './App';
 import { TestType } from '@/lib/constants';
 
+export type UserInfo = {
+  disabled: boolean;
+  nickname: string;
+  objectId: string;
+  username: string;
+};
+
 // 测试实体
 type BaseTestEntity = {
   objectId: string;
@@ -29,9 +36,11 @@ type BaseTestEntity = {
     attachments?: Attachment[]; // 附件
   };
   /** 测试用例评论数据 */
-  comments: comment[];
-
-  executor: any[]; // 执行人信息
+  comments: Comment[];
+  /** 最新操作执行人 */
+  executor: UserInfo[];
+  /** 指派执行人 */
+  designee: UserInfo[];
   createdBy: any;
   updatedBy: any;
 };

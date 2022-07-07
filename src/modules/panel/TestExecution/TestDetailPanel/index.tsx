@@ -36,7 +36,9 @@ const Test = () => {
     {
       from: testEntity,
     },
-    ['runReferenceDetail', 'status'],
+    {
+      include: ['runReferenceDetail', 'status'],
+    },
   );
 
   // 所有的测试执行
@@ -227,7 +229,7 @@ const Test = () => {
         getDataSource={tableDataSourceGetter}
       />
 
-      <TestRunModal actionRef={testRunModalActionRef} />
+      <TestRunModal className={cx('run-modal')} actionRef={testRunModalActionRef} />
     </div>
   );
 };

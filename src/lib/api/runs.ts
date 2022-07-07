@@ -446,12 +446,9 @@ export const updateTestRun = async (
 };
 
 /** 批量更新测试执行状态 */
-export const updateTestRunStatus = async (params: {
-  status: string;
-  testRun: TestEntityParseType[];
-}) => {
+export const updateTestRunStatus = async (params: { status: string; testRunIds: string[] }) => {
   const existedTestRuns = await getTestEntities({
-    id: toArray(params.testRun).map(item => item.objectId ?? item),
+    id: toArray(params.testRunIds),
   });
 
   const needUpdatedTestEntities = existedTestRuns.reduce((acc, testRun) => {
@@ -585,7 +582,7 @@ export const createTestExecutionAndRelations = async (params: {
       // TODO: fetch all
       {
         queryParams: { limit: 9999 },
-        workspaceKey,
+        // workspaceKey,
       },
     );
     relTestDetailIds = res.list.map(item => item.objectId);

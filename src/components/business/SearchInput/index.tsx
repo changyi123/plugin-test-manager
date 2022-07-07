@@ -10,13 +10,14 @@ import cx from './index.less';
 const SearchInput: React.FC<
   InputProps & {
     text?: string;
+    showInput?: boolean;
     onChange?: (value: string) => void;
     onSearch?: (value: string) => void;
   }
 > = props => {
   const inputValueRef = React.useRef('');
   const inputRef = React.useRef<any>(null);
-  const { onSearch = noop, text, ...restInputProps } = props;
+  const { onSearch = noop, text, showInput, ...restInputProps } = props;
   const [inputVisible, setInputVisible] = React.useState(false);
 
   const { run: handleSearch } = useDebounceFn(onSearch, {
@@ -45,7 +46,7 @@ const SearchInput: React.FC<
 
   return (
     <div className={cx('search', props.className)}>
-      {inputVisible ? (
+      {showInput || inputVisible ? (
         <Input
           {...restInputProps}
           onBlur={handleBlur}
@@ -53,6 +54,7 @@ const SearchInput: React.FC<
           className={cx('input')}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
+          suffix={<SearchOutlined />}
           defaultValue={inputValueRef.current}
         />
       ) : (

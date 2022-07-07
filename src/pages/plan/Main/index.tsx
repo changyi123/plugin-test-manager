@@ -2,11 +2,10 @@ import React from 'react';
 import DetailTable from './DetailTable';
 import { usePageContext } from '../hook';
 import ExecutionTable from './ExecutionTable';
-import { AppstoreAddOutlined } from '@/icons';
 import { createTestRelation } from '@/lib/api/common';
 import { TestType, TestRelationType, extendFields, RepositoryModel } from '@/lib/constants';
+import { Tabs, Button, notification, Spin } from 'antd';
 import { createTestExecutionAndRelations } from '@/lib/api/runs';
-import { Tabs, Button, Tooltip, notification, Spin } from 'antd';
 import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
 import TestEntitySelectorModal, { ActionType } from '@/components/business/TestEntitySelectorModal';
 import FilterSearch from '@/components/common/FilterSearch';
@@ -44,6 +43,12 @@ const Main = () => {
     tableSelectionToggleEvent.emit(visible);
     setTableSelectionVisible(visible);
   };
+
+  // 所选测试计划改变，重置选中的 row
+  React.useEffect(() => {
+    toggleTableSelection(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedTestPlan]);
 
   tableSelectionToggleEvent.useSubscription(visible => {
     setTableSelectionVisible(visible);
@@ -89,7 +94,6 @@ const Main = () => {
     const testDetailIds = await testEntitySelectorRef.current.open();
 
     const ignoreTestDetailIds = selectedTestPlan?.refTestDetails?.map(item => item.objectId) ?? [];
-
     const relations = testDetailIds
       .filter(d => !ignoreTestDetailIds.includes(d))
       .map(testPlanId => ({
@@ -97,7 +101,20 @@ const Main = () => {
         from: selectedTestPlanId,
         to: testPlanId,
       }));
-    await createTestRelation(relations);
+
+    if (!relations.length) {
+      return notification.warning({
+        message: '未选择测试用例',
+      });
+    }
+
+    try {
+      await createTestRelation(relations);
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.log('error', error);
+    }
+
     refresh();
     mutateTestPlanEvent.emit(selectedTestPlanId);
     notification.success({
@@ -118,27 +135,32 @@ const Main = () => {
           onSearch={handleSearch}
         />
       )}
-      <Tooltip title="多选操作">
-        <AppstoreAddOutlined
-          onClick={() => toggleTableSelection()}
-          className={cx('action', 'selection', tableSelectionVisible && 'active')}
-        />
-      </Tooltip>
+      <Button className={cx('action')} onClick={() => toggleTableSelection()}>
+        {tableSelectionVisible ? '取消操作' : '批量操作'}
+      </Button>
       {activeKey === TabKeyEnum.testDetailTable ? (
         <>
-          <span className={cx('line')} />
-          <Button type="primary" onClick={addTestDetail} className={cx('action')}>
+          <Button
+            type="primary"
+            onClick={addTestDetail}
+            className={cx('action')}
+            disabled={!selectedTestPlan}
+          >
             规划用例
           </Button>
           <Button
             type="primary"
-            onClick={createTestExecution}
             className={cx('action')}
-            style={{ marginRight: 8 }}
+            disabled={!selectedTestPlan}
+            onClick={createTestExecution}
           >
             新建测试任务
           </Button>
-          <RepoDropDown type="plan" selectedTestPlanId={selectedTestPlanId} />
+          <RepoDropDown
+            type="plan"
+            className={cx('action')}
+            selectedTestPlanId={selectedTestPlanId}
+          />
         </>
       ) : null}
     </div>

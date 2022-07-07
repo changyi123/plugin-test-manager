@@ -113,6 +113,11 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
   const useItemSubQuery =
     relType !== TestRelationType.ExecutionRelRun || relationSideKey !== sideMapping.from;
 
+  const testQuery = new Parse.Query(Test);
+  if (config?.workspaceKey) {
+    testQuery.equalTo('workspaceKey', config.workspaceKey);
+  }
+
   if (useItemSubQuery) {
     const referenceItemQuery = new Parse.Query(Item);
     if (config?.nameLike) {
@@ -125,11 +130,12 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
         new Parse.Query(Workspace).equalTo('key', config.workspaceKey),
       );
     }
-    query.matchesQuery(
-      relationSideKey,
-      new Parse.Query(Test).matchesQuery('reference', referenceItemQuery),
-    );
+
+    // 增减事项筛选
+    testQuery.matchesQuery('reference', referenceItemQuery);
   }
+
+  query.matchesQuery(relationSideKey, testQuery);
 
   if (config?.queryParams && typeof config?.queryParams === 'object') {
     const { queryParams } = config;
@@ -157,29 +163,24 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
   };
   // 需要填充 item 数据则自动转换未 json 格式，非批量数据不做处理
   if (Array.isArray(results)) {
-    const itemIds = [];
-    const testEntitiesData = results.map(relation => {
-      const relationData = relation.toJSON();
-      // 从 relation 中获取测试实体， from or to 查批量数据
-      const testEntityData = relationData[relationSideKey];
-      // 防止为空
-      if (testEntityData?.reference?.objectId) {
-        itemIds.push(testEntityData?.reference?.objectId);
-        // 兼容test runs
-      } else if (testEntityData?.runReferenceDetail?.reference?.objectId) {
-        itemIds.push(testEntityData?.runReferenceDetail?.reference?.objectId);
-      }
+    console.time('testEntitiesDataJSON');
+    const testEntitiesData = results
+      .map(item => item.toJSON())
+      .map(relationData => {
+        // 从 relation 中获取测试实体， from or to 查批量数据
+        const testEntityData = relationData[relationSideKey];
 
-      // 当前关联数据
-      const assignData = config.entityOnly
-        ? {}
-        : { relation: relationData, testRelationId: relationData.objectId };
+        // 当前关联数据
+        const assignData = config.entityOnly
+          ? {}
+          : { relation: relationData, testRelationId: relationData.objectId };
 
-      return {
-        ...testEntityData,
-        ...assignData,
-      };
-    });
+        return {
+          ...testEntityData,
+          ...assignData,
+        };
+      });
+    console.timeEnd('testEntitiesDataJSON');
     return buildReturnData(testEntitiesData);
   }
   // 异常响应数据兼容处理
@@ -682,3 +683,20 @@ export async function fetchItemFromIql(selector: ItemSelectors, workspace) {
     })
     .then(data => data?.payload?.rows);
 }
+
+/** 更新测试执行执行人 */
+export const updateTestRunDesignee = async (testRunIds, designees) => {
+  const testRuns = await Parse.Object.fetchAll(testRunIds.map(id => new Test({ objectId: id })));
+
+  testRuns.forEach(testRun => testRun.set('designee', designees));
+
+  await Parse.Object.saveAll(testRuns);
+};
+
+/** 获取测试关联的事项id */
+export const getRefItemIdsByTestIds = async (testIds: string[]) => {
+  return new Parse.Query(Test)
+    .select('reference')
+    .containedIn('objectId', testIds)
+    .map(i => i?.toJSON().reference?.objectId);
+};

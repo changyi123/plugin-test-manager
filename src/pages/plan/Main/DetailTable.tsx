@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React from 'react';
 import { notification } from 'antd';
 import { usePageContext } from '../hook';
@@ -43,6 +44,7 @@ const DetailTable = () => {
 
   const userData = useUserCellUserDataProp(workspaceKey);
 
+  const allSelectableRowKeys = selectedTestPlan?.refTestDetails?.map(detail => detail.objectId);
   const selectedTestPlanId = selectedTestPlan?.objectId;
 
   const refreshAndMutateData = React.useCallback(() => {
@@ -50,7 +52,7 @@ const DetailTable = () => {
     mutateTestPlanEvent.emit(selectedTestPlanId);
   }, [selectedTestPlanId, mutateTestPlanEvent]);
 
-  const [isCheck, setIsCheck] = React.useState(false);
+  const [hasRowSelected, setHasRowSelected] = React.useState(false);
 
   React.useEffect(() => {
     registerRefreshMethod({
@@ -60,6 +62,7 @@ const DetailTable = () => {
 
   tableSelectionToggleEvent.useSubscription(visible => {
     actionRef.current.toggleSelection(visible);
+    actionRef.current.resetSelectedRowKeys();
   });
 
   React.useEffect(() => {
@@ -85,6 +88,8 @@ const DetailTable = () => {
             selectors,
             include: ['repository'],
             select: ['type', 'sortIndex', 'reference', 'repository', 'workspaceKey', 'createdAt'],
+            // FIXME: 优化查询速度
+            workspaceKey,
             fillItemData: true,
             queryParams: queryParams,
             workspace,
@@ -97,6 +102,8 @@ const DetailTable = () => {
             // FIXME: 优化查询速度
             // workspaceKey,
             selectors,
+            workspace,
+            workspaceKey,
             fillItemData: true,
             queryParams: { limit: 9999 },
             include: ['objectId'],
@@ -110,7 +117,7 @@ const DetailTable = () => {
                 },
                 {
                   include: ['objectId'],
-                  select: ['objectId', 'runReferenceDetail'],
+                  select: ['objectId', 'runReferenceDetail', 'repository'],
                   queryParams: { limit: 9999 },
                 },
               );
@@ -162,19 +169,16 @@ const DetailTable = () => {
         message: `${testDetailIds.length} 个测试用例从测试计划中移除`,
       });
 
-      actionRef.current.resetSelectedRows();
+      actionRef.current.resetSelectedRowKeys();
     },
     [refreshAndMutateData, actionRef],
   );
 
   const selectionActionNodes = React.useMemo(() => {
     const handleDelete = () => {
-      if (isCheck) {
+      if (hasRowSelected) {
         actionConfirm('该操作会将所选测试用例从测试计划中移除，是否继续操作？', () => {
-          removeTestRelation(
-            selectedTestPlanId,
-            actionRef.current.selectedRows.map(row => row.objectId),
-          );
+          removeTestRelation(selectedTestPlanId, actionRef.current.selectedRowKeys);
         });
       }
     };
@@ -182,8 +186,8 @@ const DetailTable = () => {
     // 更新负责人
     const handleAssigneeChange = async assignees => {
       setTableLoading(true);
-      const itemIds = actionRef.current.selectedRows.map(row => row.reference.objectId);
-      await updateItemAssignee(itemIds, assignees);
+      const testIds = actionRef.current.selectedRowKeys;
+      await updateItemAssignee(testIds, assignees);
 
       setTimeout(() => {
         refreshAndMutateData();
@@ -191,7 +195,7 @@ const DetailTable = () => {
 
       setTableLoading(false);
       notification.success({
-        message: `${itemIds.length} 个测试负责人已更新`,
+        message: `${testIds.length} 个测试负责人已更新`,
       });
     };
 
@@ -200,26 +204,27 @@ const DetailTable = () => {
         value={[]}
         key="assignee"
         mode="multiple"
-        readonly={!isCheck}
         userData={userData}
+        readonly={!hasRowSelected}
         onChange={handleAssigneeChange}
         emptyChild={
-          <span>
+          <span className="user-field">
             <UserOutlined /> 设置负责人
           </span>
         }
       />,
 
-      <span key="delete" onClick={handleDelete}>
+      <span key="delete" onClick={() => hasRowSelected && handleDelete()}>
         <DeleteOutlined /> 移除
       </span>,
     ];
-  }, [isCheck, userData, removeTestRelation, selectedTestPlanId, refreshAndMutateData]);
+  }, [hasRowSelected, userData, removeTestRelation, selectedTestPlanId, refreshAndMutateData]);
 
   const columns = [
     {
       width: 320,
       key: 'title',
+      fixed: true,
       isSystem: true,
       title: '标题',
       render(_, rowData) {
@@ -293,12 +298,12 @@ const DetailTable = () => {
       ]}
       rowKey="objectId"
       columns={columns}
-      isCheck={isCheck}
       name="DetailTable"
       actionRef={actionRef}
       loading={tableLoading}
-      setIsCheck={setIsCheck}
       getDataSource={tableDataGetter}
+      onHasRowSelected={setHasRowSelected}
+      allSelectableRowKeys={allSelectableRowKeys}
       selectionActionNodes={selectionActionNodes}
       onSelectionCancel={() => tableSelectionToggleEvent.emit(false)}
     />

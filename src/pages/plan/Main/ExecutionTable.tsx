@@ -3,17 +3,17 @@ import { notification } from 'antd';
 import { usePageContext } from '../hook';
 import { updateTestRun } from '@/lib/api/runs';
 import { deleteItems } from '@/lib/api/proxima';
+import { addTestDetailToExecution } from '@/lib/api/runs';
 import { TestRelationType, TestType } from '@/lib/constants';
 import { useListener } from '@projectproxima/proxima-sdk-js';
 import { StatusProgress } from '@/components/business/Status';
 import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
-import { addTestDetailToExecution } from '@/lib/api/runs';
 import { isEmpty } from 'lodash';
 import {
   deleteTestEntities,
-  removeTestRelations,
   getTestEntitiesByRelation,
   fetchItemFromIql,
+  getTestEntitiesByRelationWithOrder,
 } from '@/lib/api/common';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import BusinessTable, {
@@ -28,17 +28,20 @@ import { selectorToParse } from '@/lib/utils/iql';
 import ExpandedTable from './ExpandedTable';
 
 const ExecutionTable = () => {
-  const innerTableRefs = React.useRef<Record<string, BusinessTableActionRef>>({});
+  const innerTableRefs = React.useRef<
+    Record<string, React.MutableRefObject<BusinessTableActionRef>>
+  >({});
   const executionTableActionRef = React.useRef<BusinessTableActionRef>();
   const testEntitySelectorRef = React.useRef<TestEntitySelectorActionType>();
   const [ignoreTestEntityIds, setIgnoreTestEntityIds] = React.useState([]);
   const { workspace } = useTestConfig();
+  const [loading, setLoading] = React.useState(false);
 
   // 事项数据更新后刷新列表
   useListener('updateItemList', () => {
     setTimeout(() => {
       Object.values(innerTableRefs.current).forEach(ref => {
-        ref?.refresh();
+        ref?.current.refresh();
       });
       executionTableActionRef.current.refresh();
     }, 400);
@@ -62,17 +65,31 @@ const ExecutionTable = () => {
     });
   }, [registerRefreshMethod]);
 
-  const refreshAndMutateData = React.useCallback(() => {
-    Object.values(innerTableRefs.current).forEach(ref => {
-      ref?.expandChangePage(1);
-    });
-    executionTableActionRef.current.refresh();
-    mutateTestPlanEvent.emit(selectedTestPlanId);
-  }, [mutateTestPlanEvent, selectedTestPlanId]);
+  const refreshAndMutateData = React.useCallback(
+    (options?: { shouldRestCurrentPage?: boolean; shouldRestSelectedRowKeys?: boolean }) => {
+      // 是否需要重置当前页
+      if (options?.shouldRestCurrentPage) {
+        Object.values(innerTableRefs.current).forEach(ref => {
+          ref?.current.expandChangePage(1);
+        });
+      }
+
+      if (options?.shouldRestSelectedRowKeys) {
+        Object.values(innerTableRefs.current).forEach(ref => {
+          ref?.current.resetSelectedRowKeys();
+        });
+      }
+
+      executionTableActionRef.current.refresh();
+      mutateTestPlanEvent.emit(selectedTestPlanId);
+    },
+    [mutateTestPlanEvent, selectedTestPlanId],
+  );
 
   tableSelectionToggleEvent.useSubscription(visible => {
     Object.values(innerTableRefs.current).forEach(ref => {
-      ref?.toggleSelection(visible);
+      ref?.current.resetSelectedRowKeys();
+      ref?.current.toggleSelection(visible);
     });
   });
 
@@ -84,103 +101,112 @@ const ExecutionTable = () => {
 
   const tableDataGetter = React.useCallback(
     async queryParams => {
-      // 没有获取到时候，不要触发查询
-      if (!workspace) {
-        return { total: 0, list: [] };
-      }
-      return getTestEntitiesByRelation(
-        TestRelationType.PlanRelExecution,
-        { from: selectedTestPlanId },
-        {
-          nameLike: searchValue,
-          select: ['reference'],
-          include: ['reference'],
-          workspace,
-          queryParams: queryParams,
-          async resultTransfer({ list }) {
-            const testExecutionIds = list.map(item => item.objectId);
+      try {
+        // 空间不存在，不执行函数
+        if (!workspace) return { total: 0, list: [] };
+        setLoading(true);
+        return await getTestEntitiesByRelationWithOrder(
+          TestRelationType.PlanRelExecution,
+          { from: selectedTestPlanId },
+          {
+            // FIXME: 优化查询速度
+            workspaceKey,
+            nameLike: searchValue,
+            select: ['reference'],
+            include: ['reference'],
+            descendingBy: 'createdAt',
+            queryParams: queryParams,
+            async resultTransfer({ list, total }) {
+              const testExecutionIds = list.map(item => item.objectId);
 
-            // 测试执行
-            const { list: testRuns } = await getTestEntitiesByRelation(
-              TestRelationType.ExecutionRelRun,
-              {
-                from: testExecutionIds,
-              },
-              {
-                workspace,
-                queryParams: { limit: 9999 },
-                select: ['status', 'sortIndex', 'runReferenceDetail', 'executor'],
-                include: ['status', 'sortIndex', 'runReferenceDetail', 'executor'],
-                parseMiddleware: async query => {
-                  const testQuery = new Parse.Query(Test);
-                  const [itemSelector, testManageSelector] = [selectors?.[0], selectors?.[1]];
-                  let needUpdate = false;
-                  if (!isEmpty(itemSelector)) {
-                    const ids = await fetchItemFromIql(itemSelector, workspace);
-                    needUpdate = true;
-                    if (ids?.length) {
-                      testQuery.containedIn(
-                        'reference',
-                        ids.map(id => Item.createWithoutData(id)),
-                      );
-                    } else {
-                      testQuery.doesNotExist('reference');
-                    }
-                  }
-                  if (!isEmpty(testManageSelector)) {
-                    needUpdate = true;
-                    selectorToParse(testQuery, testManageSelector);
-                  }
-                  if (needUpdate) {
-                    query.matchesQuery(
-                      'to',
-                      new Parse.Query(Test).matchesQuery('runReferenceDetail', testQuery),
-                    );
-                  }
+              console.time('PlanRelExecution-getTestEntitiesByRelation');
+              const { list: testRuns } = await getTestEntitiesByRelation(
+                TestRelationType.ExecutionRelRun,
+                {
+                  from: testExecutionIds,
                 },
-              },
-            );
+                {
+                  // FIXME: 优化查询速度
+                  workspaceKey,
+                  queryParams: { limit: 9999 },
+                  select: [
+                    'status',
+                    'sortIndex',
+                    'runReferenceDetail.reference',
+                    'runReferenceDetail.repository',
+                    'executor',
+                    'designee',
+                  ],
+                  include: [
+                    'status',
+                    'sortIndex',
+                    'runReferenceDetail.reference',
+                    'runReferenceDetail.repository',
+                    'executor',
+                    'designee',
+                  ],
+                  parseMiddleware: async query => {
+                    const testQuery = new Parse.Query(Test);
+                    const [itemSelector, testManageSelector] = [selectors?.[0], selectors?.[1]];
+                    let needUpdate = false;
+                    if (!isEmpty(itemSelector)) {
+                      const ids = await fetchItemFromIql(itemSelector, workspace);
+                      needUpdate = true;
+                      if (ids?.length) {
+                        testQuery.containedIn(
+                          'reference',
+                          ids.map(id => Item.createWithoutData(id)),
+                        );
+                      } else {
+                        testQuery.doesNotExist('reference');
+                      }
+                    }
+                    if (!isEmpty(testManageSelector)) {
+                      needUpdate = true;
+                      selectorToParse(testQuery, testManageSelector);
+                    }
+                    if (needUpdate) {
+                      query.matchesQuery(
+                        'to',
+                        new Parse.Query(Test).matchesQuery('runReferenceDetail', testQuery),
+                      );
+                    }
+                  },
+                },
+              );
+              console.timeEnd('PlanRelExecution-getTestEntitiesByRelation');
+              const testRunMap = testRuns
+                // 过滤测试用例事项已被删除的执行
+                .filter(run => run.runReferenceDetail?.reference)
+                // 对测试用例进行排序
+                .sort(
+                  (a, b) =>
+                    a.sortIndex - b.sortIndex ||
+                    Number(new Date(a.createdAt)) - Number(new Date(b.createdAt)),
+                )
+                .reduce((map, run) => {
+                  const key = run.relation.from.objectId;
+                  const storeTestRuns = map.get(key) ?? [];
+                  map.set(key, storeTestRuns.concat(run));
+                  return map;
+                }, new Map());
 
-            return {
-              total: testRuns?.length,
-              list: list.map(execution => ({
-                ...execution,
-                relRuns: testRuns
-                  .filter(
-                    run =>
-                      run.relation.from.objectId === execution.objectId &&
-                      run.runReferenceDetail?.reference,
-                  )
-                  .sort(
-                    (a, b) =>
-                      a.sortIndex - b.sortIndex ||
-                      Number(new Date(a.createdAt)) - Number(new Date(b.createdAt)),
-                  ),
-              })),
-            };
+              const result = {
+                total,
+                list: list.map(execution => ({
+                  ...execution,
+                  relRuns: testRunMap.get(execution.objectId) ?? [],
+                })),
+              };
+              return result;
+            },
           },
-        },
-      );
+        );
+      } finally {
+        setLoading(false);
+      }
     },
-    [searchValue, selectedTestPlanId, selectors, workspace],
-  );
-
-  const removeTestRelation = React.useCallback(
-    async (relationTypeIds, options = {}) => {
-      if (!Array.isArray(relationTypeIds)) return;
-      await removeTestRelations(relationTypeIds);
-
-      refreshAndMutateData();
-
-      notification.success({
-        message: options?.message ?? `${relationTypeIds.length} 个测试执行从测试计划中移除`,
-      });
-
-      Object.values(innerTableRefs.current).forEach((res: any) => {
-        res.resetSelectedRows();
-      });
-    },
-    [refreshAndMutateData, innerTableRefs],
+    [searchValue, selectedTestPlanId, workspaceKey],
   );
 
   const addTestDetail = async rowData => {
@@ -194,6 +220,7 @@ const ExecutionTable = () => {
 
     // 去重
     const newTestDetailIds = testDetailIds.filter(d => !ignoreTestDetailIds.includes(d));
+    setLoading(true);
 
     await addTestDetailToExecution({
       testDetail: newTestDetailIds,
@@ -203,6 +230,7 @@ const ExecutionTable = () => {
     });
 
     refreshAndMutateData();
+    setLoading(false);
     setIgnoreTestEntityIds([]);
     notification.success({
       message: '测试执行创建成功',
@@ -255,10 +283,12 @@ const ExecutionTable = () => {
                 marginRight: 8,
               }}
               onClick={() =>
-                actionConfirm('该操作会将该测试执行任务删除，是否继续操作？', () => {
-                  deleteTestEntities([rowData.objectId]);
-                  deleteItems([rowData.reference.objectId]);
-                  removeTestRelation([rowData.relation.objectId]);
+                actionConfirm('该操作会将该测试执行任务删除，是否继续操作？', async () => {
+                  await Promise.all([
+                    deleteTestEntities([rowData.objectId]),
+                    deleteItems([rowData.reference.objectId]),
+                  ]);
+                  refreshAndMutateData();
                 })
               }
             >
@@ -278,19 +308,17 @@ const ExecutionTable = () => {
           workspaceKey,
           testType: 'TestDetail',
         }}
-        innerTableRefs={innerTableRefs}
-        removeTestRelation={removeTestRelation}
-        refreshAndMutateData={refreshAndMutateData}
-        tableSelectionToggleEvent={tableSelectionToggleEvent}
         record={record}
         updateTestRun={updateTestRun}
+        refreshAndMutateData={refreshAndMutateData}
         openItemViewScreen={openItemViewScreen}
+        tableSelectionToggleEvent={tableSelectionToggleEvent}
         innerTableRef={ref =>
           (innerTableRefs.current = { ...innerTableRefs.current, [record.objectId]: ref })
         }
       />
     ),
-    [refreshAndMutateData, removeTestRelation, tableSelectionToggleEvent, workspaceKey],
+    [refreshAndMutateData, tableSelectionToggleEvent, workspaceKey],
   );
 
   return (
@@ -306,6 +334,7 @@ const ExecutionTable = () => {
           workspaceKey,
           testType: 'TestExecution',
         }}
+        loading={loading}
         useColumnSetting
         rowKey="objectId"
         itemKey="reference"
