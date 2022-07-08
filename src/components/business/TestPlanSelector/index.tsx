@@ -8,6 +8,7 @@ import { TestType } from '@/lib/constants';
 import SearchInput from '../SearchInput';
 
 import cx from './index.less';
+import { DownOutlined } from '@ant-design/icons';
 
 const REQUEST_LIMIT = 10;
 
@@ -34,6 +35,7 @@ const TestPlanSelector: React.FC = () => {
       );
 
       const nextOffset = offset + REQUEST_LIMIT;
+
       return {
         list: results,
         offset: nextOffset < count ? nextOffset : undefined,
@@ -86,12 +88,16 @@ const TestPlanSelector: React.FC = () => {
         </div>
       </div>
     );
-  }, [data]);
+  }, [data, listRef]);
 
   return (
     <div className={cx('plan-selector-container')}>
       <Dropdown overlay={menu} trigger={['click']}>
-        <div className={cx('title')}>{selectedTestPlan?.reference?.name ?? ''}</div>
+        <div className={cx('title')}>
+          <span>{selectedTestPlan?.reference?.name ?? ''}</span>
+
+          <DownOutlined className={cx('icon')} />
+        </div>
       </Dropdown>
     </div>
   );
