@@ -21,6 +21,10 @@ import TestRunModal, {
 } from '@/components/business/TestRunModal';
 import { useMemoizedFn } from 'ahooks';
 import { usePageContext } from '../hook';
+import { DeleteOutlined, UserOutlined } from '@ant-design/icons';
+import { updateItemAssignee } from '@/lib/api/proxima';
+import { UserCell } from '@projectproxima/components';
+import { useUserCellUserDataProp } from '@/lib/hooks/useProxima';
 
 interface TestEntityListProps {
   allTestDetailIds: string[];
@@ -35,10 +39,26 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   currentTestEntityIds,
   allTestDetailIdsRefresh,
 }) => {
-  const { workspaceKey, searchValue, selectedTestPlan } = usePageContext();
+  const {
+    workspaceKey,
+    searchValue,
+    selectedTestPlan,
+    registerRefreshMethod,
+    mutateTestPlanEvent,
+    tableSelectionToggleEvent,
+  } = usePageContext();
   const actionRef = React.useRef<BusinessTableActionType>();
   const testRunModalActionRef = React.useRef<TestRunModalActionType>();
+  const userData = useUserCellUserDataProp(workspaceKey);
+
   const [tableLoading, setTableLoading] = useState(false);
+  const [hasRowSelected, setHasRowSelected] = useState(false);
+
+  React.useEffect(() => {
+    registerRefreshMethod({
+      detailTable: actionRef.current?.refresh,
+    });
+  }, [registerRefreshMethod]);
 
   const tableDataGetter = useCallback(
     async queryParams => {
@@ -361,6 +381,60 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     },
   ];
 
+  const allSelectableRowKeys = selectedTestPlan?.refTestDetails?.map(detail => detail.objectId);
+
+  const selectionActionNodes = React.useMemo(() => {
+    const handleDelete = () => {
+      if (hasRowSelected) {
+        actionConfirm('该操作会将所选测试用例从测试计划中移除，是否继续操作？', () => {
+          removeTestRelation(selectedTestPlan?.objectId, actionRef.current.selectedRowKeys);
+        });
+      }
+    };
+
+    // 更新负责人
+    const handleAssigneeChange = async assignees => {
+      setTableLoading(true);
+      const testIds = actionRef.current.selectedRowKeys;
+      await updateItemAssignee(testIds, assignees);
+
+      setTimeout(() => {
+        actionRef.current.refresh();
+        mutateTestPlanEvent.emit(selectedTestPlan?.objectId);
+      }, 1000);
+
+      setTableLoading(false);
+      notification.success({
+        message: `${testIds.length} 个测试负责人已更新`,
+      });
+    };
+
+    return [
+      <UserCell
+        value={[]}
+        key="assignee"
+        mode="multiple"
+        userData={userData}
+        readonly={!hasRowSelected}
+        onChange={handleAssigneeChange}
+        emptyChild={
+          <span className="user-field">
+            <UserOutlined /> 设置负责人
+          </span>
+        }
+      />,
+
+      <span key="delete" onClick={() => hasRowSelected && handleDelete()}>
+        <DeleteOutlined /> 移除
+      </span>,
+    ];
+  }, [userData, hasRowSelected, removeTestRelation, selectedTestPlan, mutateTestPlanEvent]);
+
+  tableSelectionToggleEvent.useSubscription(visible => {
+    actionRef.current.toggleSelection(visible);
+    actionRef.current.resetSelectedRowKeys();
+  });
+
   return (
     <div className={cx('test-entity-list-box')} style={{ height: 'calc(100% - 36px)' }}>
       <BusinessTable
@@ -376,6 +450,10 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         actionRef={actionRef}
         loading={tableLoading}
         getDataSource={tableDataGetter}
+        onHasRowSelected={setHasRowSelected}
+        allSelectableRowKeys={allSelectableRowKeys}
+        selectionActionNodes={selectionActionNodes}
+        onSelectionCancel={() => tableSelectionToggleEvent.emit(false)}
       />
       <TestRunModal actionRef={testRunModalActionRef} />
     </div>
