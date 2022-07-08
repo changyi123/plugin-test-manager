@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button, Spin, notification } from 'antd';
 import TestPlanList from '@/components/business/TestPlanList';
 import PageLayout from '@/components/common/PageLayout';
@@ -12,28 +12,44 @@ import { TestRelationType, TestType } from '@/lib/constants';
 import { actionConfirm } from '@/lib/utils/helper';
 import { useRequest } from 'ahooks';
 import {
+  createTestRelation,
   deleteTestEntities,
-  getTestEntitiesByQuery,
   getTestEntitiesByRelationWithOrder,
 } from '@/lib/api/common';
 import { deleteItems } from '@/lib/api/proxima';
 import { usePageContext } from '../hook';
-import Main from '../Main';
 import ExcetionList from './ExcetionList';
 import { useResizeContainerDOM } from './hooks';
 
 import cx from './index.less';
+import TestEntityList from '../TestEntityList';
+import SearchInput from '@/components/business/SearchInput';
+import RepoDropDown from '@/pages/repository/RepoDropDown';
+import TestEntitySelectorModal, { ActionType } from '@/components/business/TestEntitySelectorModal';
 
 const PlanPageLayout: React.FC<any> = () => {
-  const { workspaceKey, selectedTestPlan, setSelectedTestPlan } = usePageContext();
+  const {
+    refresh,
+    workspaceKey,
+    selectedTestPlan,
+    searchValue,
+    setSearchValue,
+    setSelectedTestPlan,
+    mutateTestPlanEvent,
+    tableSelectionToggleEvent,
+  } = usePageContext();
   const { createItemUseModal } = useBaseAction();
   useResizeContainerDOM(selectedTestPlan?.objectId);
+  const testEntitySelectorRef = React.useRef<ActionType>();
+  const [tableSelectionVisible, setTableSelectionVisible] = React.useState(false);
 
-  const [activedType, setActivedType] = useState('allTest');
+  const [activedType, setActivedType] = useState('testPlan');
   const [selectedExcetion, setSelectedExcetion] = useState<Record<string, any> | undefined>(
     undefined,
   );
   const [refreshExcetion, setRefreshExcetion] = useState(false);
+  const [currentTestEntityIds] = useState<string[] | undefined>(undefined);
+  const [value, setValue] = useState('');
 
   // 创建测试执行任务
   const createTestExecution = async () => {
@@ -69,17 +85,17 @@ const PlanPageLayout: React.FC<any> = () => {
   };
 
   // 获取当前计划或者当前测试任务的全部测试用例 ID
-  const { data: allTestDetailIds, refresh: detailRefresh } = useRequest(
+  const { data: allTestDetailIds, refresh: allTestDetailIdsRefresh } = useRequest(
     async () => {
       if (!selectedTestPlan?.objectId) return [];
 
       const relationType =
-        activedType === 'allTest'
+        activedType === 'testPlan'
           ? TestRelationType.PlanRelDetail
           : TestRelationType.ExecutionRelRun;
 
       const from =
-        activedType === 'allTest' ? [selectedTestPlan?.objectId] : [selectedExcetion?.objectId];
+        activedType === 'testPlan' ? [selectedTestPlan?.objectId] : [selectedExcetion?.objectId];
 
       const relationData = await getTestEntitiesByRelationWithOrder(
         relationType,
@@ -99,66 +115,62 @@ const PlanPageLayout: React.FC<any> = () => {
     },
     {
       refreshDeps: [selectedTestPlan, activedType, selectedExcetion],
-      staleTime: 999999999,
-      cacheTime: 999999999,
     },
-  );
-
-  const tableDataGetter = useCallback(
-    async queryParams => {
-      const testType = activedType === 'allTest' ? TestType.TestDetail : TestType.TestRun;
-
-      const include =
-        activedType === 'allTest'
-          ? ['repository', 'reference']
-          : [
-              'runReferenceDetail.reference',
-              'runReferenceDetail.repository',
-              'executor',
-              'designee',
-            ];
-
-      const select =
-        activedType === 'allTest'
-          ? ['type', 'sortIndex', 'reference', 'repository', 'workspaceKey', 'createdAt']
-          : [
-              'status',
-              'sortIndex',
-              'runReferenceDetail.reference',
-              'runReferenceDetail.repository',
-              'executor',
-              'designee',
-            ];
-      const descendingBy = activedType === 'allTest' ? ['sortIndex', 'createdAt'] : ['createdAt'];
-
-      const { results: testDetails, count } = await getTestEntitiesByQuery(
-        {
-          in: allTestDetailIds ?? [],
-          type: testType,
-          nameLike: '',
-          workspaceKey,
-        },
-        {
-          ...queryParams,
-          descendingBy,
-          select,
-          include,
-        },
-      );
-
-      return {
-        list: testDetails,
-        total: count,
-      };
-    },
-    [workspaceKey, allTestDetailIds],
   );
 
   useEffect(() => {
-    if (activedType === 'allTest') {
+    searchValue && setSearchValue('');
+  }, [activedType, selectedExcetion]);
+
+  useEffect(() => {
+    if (activedType === 'testPlan') {
       selectedExcetion && setSelectedExcetion(undefined);
     }
   }, [activedType]);
+
+  const toggleTableSelection = (visible?: boolean) => {
+    visible = typeof visible === 'boolean' ? visible : !tableSelectionVisible;
+    tableSelectionToggleEvent.emit(visible);
+    setTableSelectionVisible(visible);
+  };
+
+  tableSelectionToggleEvent.useSubscription(visible => {
+    setTableSelectionVisible(visible);
+  });
+
+  const addTestDetail = async () => {
+    const testDetailIds = await testEntitySelectorRef.current.open();
+
+    const ignoreTestDetailIds = selectedTestPlan?.refTestDetails?.map(item => item.objectId) ?? [];
+    const relations = testDetailIds
+      .filter(d => !ignoreTestDetailIds.includes(d))
+      .map(testPlanId => ({
+        relationType: TestRelationType.PlanRelDetail,
+        from: selectedTestPlan?.objectId,
+        to: testPlanId,
+      }));
+
+    if (!relations.length) {
+      return notification.warning({
+        message: '未选择测试用例',
+      });
+    }
+
+    try {
+      await createTestRelation(relations);
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.log('error', error);
+    }
+    await allTestDetailIdsRefresh();
+
+    mutateTestPlanEvent.emit(selectedTestPlan?.objectId);
+    // actionRef.current.refresh();
+    refresh('detailTable');
+    notification.success({
+      message: '测试用例已成功添加至测试计划中',
+    });
+  };
 
   return (
     <div className={cx('test-plan-page')}>
@@ -176,21 +188,21 @@ const PlanPageLayout: React.FC<any> = () => {
                 <TestPlanSelector />
                 <div className={cx('test-tabs')}>
                   <div
-                    className={cx('tab-title', activedType === 'allTest' ? 'actived' : '')}
-                    onClick={() => setActivedType('allTest')}
+                    className={cx('tab-title', activedType === 'testPlan' ? 'actived' : '')}
+                    onClick={() => setActivedType('testPlan')}
                   >
                     全部用例
                   </div>
                   <div
-                    className={cx('tab-title', activedType === 'excetion' ? 'actived' : '')}
-                    onClick={() => setActivedType('excetion')}
+                    className={cx('tab-title', activedType === 'TestExecution' ? 'actived' : '')}
+                    onClick={() => setActivedType('testExecution')}
                   >
                     测试执行任务
                   </div>
                 </div>
               </div>
               <div className={cx('header-right')}>
-                {activedType === 'excetion' && (
+                {activedType === 'TestExecution' && (
                   <div className={cx('complete-rate-box')}>
                     <span className={cx('rate')}>完成率 30%</span>
                     <div className={cx('progress')}>
@@ -236,7 +248,51 @@ const PlanPageLayout: React.FC<any> = () => {
           </PageLayout.Header>
           <PageLayout.Left>{/* <PlanList /> */}</PageLayout.Left>
           <PageLayout.Right>
-            <Main />
+            <div className={cx('extra-content')}>
+              <SearchInput
+                showInput
+                allowClear
+                defaultValue={value}
+                className={cx('action')}
+                placeholder={'请输入测试用例标题'}
+                onChange={val => setValue(val)}
+                onSearch={val => {
+                  setSearchValue(val);
+                }}
+              />
+              <Button className={cx('action')} onClick={() => toggleTableSelection()}>
+                {tableSelectionVisible ? '取消操作' : '批量操作'}
+              </Button>
+              <>
+                <Button
+                  type="primary"
+                  onClick={addTestDetail}
+                  className={cx('action')}
+                  disabled={!selectedTestPlan}
+                >
+                  规划用例
+                </Button>
+                <RepoDropDown
+                  type="plan"
+                  className={cx('action')}
+                  selectedTestPlanId={selectedTestPlan?.objectId}
+                />
+              </>
+            </div>
+            <TestEntityList
+              allTestDetailIds={allTestDetailIds}
+              currentTestEntityIds={currentTestEntityIds}
+              activedType={activedType}
+              allTestDetailIdsRefresh={allTestDetailIdsRefresh}
+            />
+            <TestEntitySelectorModal
+              title="选择规划的测试用例"
+              testType={TestType.TestDetail}
+              actionRef={testEntitySelectorRef}
+              ignoreTestEntityIds={
+                selectedTestPlan?.refTestDetails?.map(item => item.objectId) ?? []
+              }
+            />
           </PageLayout.Right>
         </PageLayout>
       )}
