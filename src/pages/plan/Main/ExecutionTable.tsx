@@ -127,6 +127,7 @@ const ExecutionTable = () => {
                     'runReferenceDetail.reference',
                     'runReferenceDetail.repository',
                     'executor',
+                    'designee',
                   ],
                   include: [
                     'status',
