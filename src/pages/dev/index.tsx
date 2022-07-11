@@ -3,7 +3,6 @@ import { Button, message, Input, Select, Radio, Layout, Form, Collapse } from 'a
 import { useLocalStorageState, useSafeState } from 'ahooks';
 import { merge } from 'lodash';
 import Parse from '@/lib/parse';
-import RepositoryFolderTree from '@/components/business/RepositoryFolderTree';
 
 const DEV_STORAGE_KEY = 'test_manager_dev';
 
@@ -124,7 +123,6 @@ const Dev: React.FC = () => {
           </Collapse>
         </Form>
       </Layout.Content>
-      <RepositoryFolderTree onFolderSelect={console.log} workspaceKey={'CSDAFSA'} />
     </Layout>
   );
 };

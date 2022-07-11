@@ -1,7 +1,7 @@
-import _ from 'lodash';
 import React from 'react';
 import { Tree } from 'antd';
 import { TestType } from '@/lib/constants';
+import _, { CollectionChain } from 'lodash';
 import { hasArrayItem } from '@/lib/utils/helper';
 import { getTestEntitiesByQuery } from '@/lib/api/common';
 import { useNoExpiredRequest } from '@/lib/hooks/useRequest';
@@ -70,12 +70,12 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
 
   const { data: treeData } = useRequest(
     async () => {
-      const processChain = _.chain(allTestDetails);
+      let processChain: CollectionChain<any> = _.chain(allTestDetails);
 
       // 如果有用例 id 范围，则过滤用例
       if (hasArrayItem(scopedTestDetailIds)) {
         const scopedTestDetailIdSet = new Set(scopedTestDetailIds);
-        processChain.filter(test => scopedTestDetailIdSet.has(test.objectId));
+        processChain = processChain.filter(test => scopedTestDetailIdSet.has(test.objectId));
       }
 
       const repositoryTestDetailIdMap = processChain
@@ -149,7 +149,7 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
         ids = selectedFolder.ids;
       }
 
-      onFolderSelect(ids, {
+      onFolderSelect?.(ids, {
         selectedFolder,
       });
     }
