@@ -335,7 +335,7 @@ const handleFieldsData = async testManagerTestData => {
 };
 
 const createRepoGroupList = async datas => {
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < 8; i++) {
     if (datas.get(i)) {
       await createRepoGroup(datas.get(i), i);
     }
