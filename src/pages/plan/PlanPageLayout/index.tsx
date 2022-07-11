@@ -14,13 +14,17 @@ import { createTestRelation } from '@/lib/api/common';
 import { usePageContext } from '../hook';
 import ExecutionList from './ExecutionList';
 import { useResizeContainerDOM } from './hooks';
-import RepositoryFolderTree from '@/components/business/RepositoryFolderTree';
+import RepositoryFolderTree, {
+  ActionType as FolderTreeActionType,
+} from '@/components/business/RepositoryFolderTree';
 
 import cx from './index.less';
 import TestEntityList from '../TestEntityList';
 import SearchInput from '@/components/business/SearchInput';
 import RepoDropDown from '@/pages/repository/RepoDropDown';
-import TestEntitySelectorModal, { ActionType } from '@/components/business/TestEntitySelectorModal';
+import TestEntitySelectorModal, {
+  ActionType as ModelActionType,
+} from '@/components/business/TestEntitySelectorModal';
 
 const PlanPageLayout: React.FC<any> = () => {
   const {
@@ -38,7 +42,8 @@ const PlanPageLayout: React.FC<any> = () => {
     string[] | undefined
   >(undefined);
   useResizeContainerDOM(selectedTestPlan?.objectId);
-  const testEntitySelectorRef = React.useRef<ActionType>();
+  const testEntitySelectorRef = React.useRef<ModelActionType>();
+  const folderTreeRef = React.useRef<FolderTreeActionType>();
   const [tableSelectionVisible, setTableSelectionVisible] = React.useState(false);
 
   const [activedType, setActivedType] = useState('TestPlan');
@@ -47,6 +52,7 @@ const PlanPageLayout: React.FC<any> = () => {
   );
   const [refreshExecution, setRefreshExecution] = useState(false);
   const [value, setValue] = useState('');
+  const [foldSearchValue, setFoldSearchValue] = useState('');
   const [showType, setShowType] = useState('showCur');
 
   // 创建测试执行任务
@@ -248,7 +254,19 @@ const PlanPageLayout: React.FC<any> = () => {
             )}
           </PageLayout.Header>
           <PageLayout.Left>
+            <SearchInput
+              showInput
+              allowClear
+              className={cx('fold-search')}
+              defaultValue={foldSearchValue}
+              placeholder={'请输入用例库标题'}
+              onChange={val => setFoldSearchValue(val)}
+              onSearch={val => {
+                folderTreeRef.current.filterFolder(val);
+              }}
+            />
             <RepositoryFolderTree
+              actionRef={folderTreeRef}
               shouldIncludeSubFolder={showType === 'showChild'}
               workspaceKey={workspaceKey}
               onFolderSelect={handleFolderSelect}

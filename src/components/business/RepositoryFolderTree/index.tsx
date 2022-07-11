@@ -16,7 +16,7 @@ import cx from './style.less';
 
 const { DirectoryTree } = Tree;
 
-type ActionType = {
+export type ActionType = {
   /** 筛选目录 */
   filterFolder: (text: string) => void;
   /** 重置筛选 */
