@@ -6,6 +6,7 @@ import { TestRelationType } from '@/lib/constants';
 import { Spin, Tabs } from 'antd';
 
 import cx from './index.less';
+import { usePageContext } from '../../hook';
 
 interface ExcetionListProps {
   planId: string;
@@ -29,6 +30,7 @@ const ExcetionList: React.FC<ExcetionListProps> = ({
   refreshExcetion,
   setRefreshExcetion,
 }) => {
+  const { tableSelectionToggleEvent } = usePageContext();
   const { data, refresh, loading } = useRequest(
     async () => {
       const relationData = await getTestEntitiesByRelationWithOrder(
@@ -73,7 +75,10 @@ const ExcetionList: React.FC<ExcetionListProps> = ({
           {data?.length ? (
             <Tabs
               defaultActiveKey={selectedExcetion?.objectId}
-              onChange={val => setSelectedExcetion(data.find(d => d.objectId === val))}
+              onChange={val => {
+                tableSelectionToggleEvent.emit(false);
+                setSelectedExcetion(data.find(d => d.objectId === val));
+              }}
             >
               {data.map(d => (
                 <TabPane key={d.objectId} tab={d.reference.name} />

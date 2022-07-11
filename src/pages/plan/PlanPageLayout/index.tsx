@@ -189,13 +189,19 @@ const PlanPageLayout: React.FC<any> = () => {
                 <div className={cx('test-tabs')}>
                   <div
                     className={cx('tab-title', activedType === 'testPlan' ? 'actived' : '')}
-                    onClick={() => setActivedType('testPlan')}
+                    onClick={() => {
+                      tableSelectionToggleEvent.emit(false);
+                      setActivedType('testPlan');
+                    }}
                   >
                     全部用例
                   </div>
                   <div
                     className={cx('tab-title', activedType === 'TestExecution' ? 'actived' : '')}
-                    onClick={() => setActivedType('testExecution')}
+                    onClick={() => {
+                      tableSelectionToggleEvent.emit(false);
+                      setActivedType('testExecution');
+                    }}
                   >
                     测试执行任务
                   </div>
@@ -249,35 +255,38 @@ const PlanPageLayout: React.FC<any> = () => {
           <PageLayout.Left>{/* <PlanList /> */}</PageLayout.Left>
           <PageLayout.Right>
             <div className={cx('extra-content')}>
-              <SearchInput
-                showInput
-                allowClear
-                defaultValue={value}
-                className={cx('action')}
-                placeholder={'请输入测试用例标题'}
-                onChange={val => setValue(val)}
-                onSearch={val => {
-                  setSearchValue(val);
-                }}
-              />
-              <Button className={cx('action')} onClick={() => toggleTableSelection()}>
-                {tableSelectionVisible ? '取消操作' : '批量操作'}
-              </Button>
-              <>
-                <Button
-                  type="primary"
-                  onClick={addTestDetail}
+              <div className={cx('extra-content-left')}>1111</div>
+              <div className={cx('extra-content-right')}>
+                <SearchInput
+                  showInput
+                  allowClear
+                  defaultValue={value}
                   className={cx('action')}
-                  disabled={!selectedTestPlan}
-                >
-                  规划用例
-                </Button>
-                <RepoDropDown
-                  type="plan"
-                  className={cx('action')}
-                  selectedTestPlanId={selectedTestPlan?.objectId}
+                  placeholder={'请输入测试用例标题'}
+                  onChange={val => setValue(val)}
+                  onSearch={val => {
+                    setSearchValue(val);
+                  }}
                 />
-              </>
+                <Button className={cx('action')} onClick={() => toggleTableSelection()}>
+                  {tableSelectionVisible ? '取消操作' : '批量操作'}
+                </Button>
+                <>
+                  <Button
+                    type="primary"
+                    onClick={addTestDetail}
+                    className={cx('action')}
+                    disabled={!selectedTestPlan}
+                  >
+                    规划用例
+                  </Button>
+                  <RepoDropDown
+                    type="plan"
+                    className={cx('action')}
+                    selectedTestPlanId={selectedTestPlan?.objectId}
+                  />
+                </>
+              </div>
             </div>
             <TestEntityList
               allTestDetailIds={allTestDetailIds}

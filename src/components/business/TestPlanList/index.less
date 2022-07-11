@@ -22,11 +22,33 @@
     }
   }
 
-  .test-plan-title {
-    cursor: pointer;
+  .plan-table-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 
     &:hover {
-      color: #0c62ff;
+      .plan-table-title-right {
+        display: block;
+      }
+    }
+
+    .plan-table-title-left {
+      flex: 0.9;
+
+      .test-plan-title {
+        cursor: pointer;
+        margin-left: 8px;
+
+        &:hover {
+          color: #0c62ff;
+        }
+      }
+    }
+
+    .plan-table-title-right {
+      display: none;
+      flex: 0.1;
     }
   }
 }
