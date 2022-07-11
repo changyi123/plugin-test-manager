@@ -12,23 +12,23 @@ interface ExcetionListProps {
   planId: string;
   workspaceKey: string;
   activedType: string;
-  excetionId?: string;
-  selectedExcetion?: Record<string, any>;
-  setSelectedExcetion?: (val: Record<string, any>) => void;
-  refreshExcetion?: boolean;
-  setRefreshExcetion?: (val: boolean) => void;
+  executionId?: string;
+  selectedExecution?: Record<string, any>;
+  setSelectedExecution?: (val: Record<string, any>) => void;
+  refreshExecution?: boolean;
+  setRefreshExecution?: (val: boolean) => void;
 }
 
 const { TabPane } = Tabs;
 
-const ExcetionList: React.FC<ExcetionListProps> = ({
+const ExecutionList: React.FC<ExcetionListProps> = ({
   planId,
   activedType,
   workspaceKey,
-  selectedExcetion,
-  setSelectedExcetion,
-  refreshExcetion,
-  setRefreshExcetion,
+  selectedExecution,
+  setSelectedExecution,
+  refreshExecution,
+  setRefreshExecution,
 }) => {
   const { tableSelectionToggleEvent } = usePageContext();
   const { data, refresh, loading } = useRequest(
@@ -40,7 +40,7 @@ const ExcetionList: React.FC<ExcetionListProps> = ({
         },
         {
           workspaceKey,
-          select: ['reference'],
+          select: ['reference', 'workspaceKey'],
           include: ['reference'],
           descendingBy: 'createdAt',
         },
@@ -56,28 +56,28 @@ const ExcetionList: React.FC<ExcetionListProps> = ({
   );
 
   useEffect(() => {
-    if (refreshExcetion) {
+    if (refreshExecution) {
       refresh();
-      setRefreshExcetion(false);
+      setRefreshExecution(false);
     }
-  }, [refreshExcetion]);
+  }, [refreshExecution]);
 
   useEffect(() => {
-    if (!selectedExcetion?.objectId && data?.length) {
-      setSelectedExcetion(data[0]);
+    if (!selectedExecution?.objectId && data?.length) {
+      setSelectedExecution(data[0]);
     }
-  }, [selectedExcetion, data]);
+  }, [selectedExecution, data]);
 
   return (
     <div className={cx('tab-list')}>
-      {activedType === 'excetion' && (
+      {activedType === 'execution' && (
         <Spin spinning={loading}>
           {data?.length ? (
             <Tabs
-              defaultActiveKey={selectedExcetion?.objectId}
+              defaultActiveKey={selectedExecution?.objectId}
               onChange={val => {
                 tableSelectionToggleEvent.emit(false);
-                setSelectedExcetion(data.find(d => d.objectId === val));
+                setSelectedExecution(data.find(d => d.objectId === val));
               }}
             >
               {data.map(d => (
@@ -93,4 +93,4 @@ const ExcetionList: React.FC<ExcetionListProps> = ({
   );
 };
 
-export default ExcetionList;
+export default ExecutionList;

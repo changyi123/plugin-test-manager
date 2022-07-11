@@ -3,9 +3,9 @@ export const handleRroupPath = datas => {
   const getPath = (gro, _datas, path = []) => {
     path.push(gro.name);
 
-    if (gro.parentId) {
+    if (gro.parentKey) {
       path = getPath(
-        _datas.find(d => d.objectId === gro.parentId),
+        _datas.find(d => d.objectId === gro.parentKey),
         _datas,
         path,
       );
@@ -28,7 +28,7 @@ export const getRepoData = datas =>
         ? {
             name: d.name,
             objectId: d.objectId,
-            parentId: d.parent?.objectId ?? null,
+            parentKey: d.parent?.objectId ?? null,
             workspaceKey: d.workspaceKey,
           }
         : null;

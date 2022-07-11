@@ -1,8 +1,9 @@
 import { pick } from 'lodash';
 import { useRequest } from 'ahooks';
 import { TestType } from '@/lib/constants';
+import { useNoExpiredRequest } from '@/lib/hooks/useRequest';
 import { getPluginBoundWorkspaces } from '@/lib/api/proxima';
-import { getRepositoryData } from '../api/repository';
+import { getFolderTree, getRepositoryData } from '../api/repository';
 import {
   getTestConfig,
   getAllTestConfigs,
@@ -63,6 +64,14 @@ export const useIsolateTestType = (workspaceKey: string, testType: TestType) => 
 
   if (!Array.isArray(testConfig?.isolateTestType)) return true;
   return testConfig.isolateTestType.includes(testType);
+};
+
+/** 请求用例库模块 */
+export const useTestRepositoryFolderTree = workspaceKey => {
+  return useNoExpiredRequest(() => getFolderTree(workspaceKey), {
+    cacheKey: `folder_tree_${workspaceKey}`,
+    refreshDeps: [workspaceKey],
+  });
 };
 
 /** 获取所有的测试空间 */

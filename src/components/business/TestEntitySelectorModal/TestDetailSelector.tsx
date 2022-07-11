@@ -103,17 +103,17 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
         node.disableCheckbox = !node.testDetailIds.length;
       });
 
-      const RootFolder = {
+      const folder = {
         key: `ROOT_FOLDER_${selectedWorkspaceKey}`,
-        name: '未分组用例',
-        title: '未分组用例',
-        parentId: null,
+        name: '全部用例',
+        title: '全部用例',
+        parentKey: null,
         testDetailIds: ungroupedDetailIds,
         icon: <FileClose />,
-        children: [],
+        children: treeNodes,
       };
 
-      return [RootFolder].concat(treeNodes);
+      return [folder];
     },
     {
       ready: Boolean(selectedWorkspaceKey),

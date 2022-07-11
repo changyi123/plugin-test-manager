@@ -76,17 +76,19 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
 
       const ungroupedDetailIds = appendGroupedDetailIdsToTreeNode(treeNodes, allTestDetailIds);
 
-      const RootFolder = {
-        key: UNGROUPED_FOLDER_KEY,
-        name: '未分组用例',
-        title: '未分组用例',
-        parentId: null,
-        testDetailIds: ungroupedDetailIds,
-        icon: <FileClose />,
-        children: [],
-      };
+      const folders = [
+        {
+          parentKey: null,
+          name: '全部用例',
+          title: '全部用例',
+          icon: <FileClose />,
+          children: treeNodes,
+          key: UNGROUPED_FOLDER_KEY,
+          testDetailIds: ungroupedDetailIds,
+        },
+      ];
 
-      return [RootFolder].concat(treeNodes);
+      return folders;
     },
     {
       ready: Boolean(workspaceKey),

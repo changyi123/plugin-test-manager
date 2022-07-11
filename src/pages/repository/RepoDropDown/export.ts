@@ -17,7 +17,7 @@ export type TreeNode = {
   key: string;
   name: string;
   title: React.ReactNode;
-  parentId: string | null;
+  parentKey: string | null;
   testDetailIds: string[];
   children: TreeNode[];
 };
@@ -190,7 +190,7 @@ export const getTestRepoGroupIds = (datas: any[], checkedId: string) => {
     datas.map(d => ({
       name: d.name,
       key: d.objectId,
-      parentId: d.parent?.objectId ?? null,
+      parentKey: d.parent?.objectId ?? null,
       workspaceKey: d.workspaceKey,
     })),
   );

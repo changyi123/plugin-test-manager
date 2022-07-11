@@ -25,7 +25,7 @@ export const getFolderTree = async (workspaceKey: string) => {
   const repositoryObjects = await new Parse.Query(Repository)
     .equalTo('workspaceKey', workspaceKey)
     .addAscending(['createdAt', 'sortIndex'])
-    .limit(9999)
+    .limit(99999)
     .find();
 
   const repositories = repositoryObjects.map(item => {
@@ -33,7 +33,7 @@ export const getFolderTree = async (workspaceKey: string) => {
     return {
       name: repository.name,
       key: repository.objectId,
-      parentId: repository.parent?.objectId ?? null,
+      parentKey: repository.parent?.objectId ?? null,
       workspaceKey: repository.workspaceKey,
     };
   });
@@ -43,7 +43,7 @@ export const getFolderTree = async (workspaceKey: string) => {
 };
 
 export const createFolder = async (params: {
-  parentId?: string;
+  parentKey?: string;
   name: string;
   workspaceKey: string;
   sortIndex?: number;
@@ -51,7 +51,7 @@ export const createFolder = async (params: {
   const batchSortIndex = generateSortIndex();
 
   const repository = new Repository({
-    parent: params.parentId ? Repository.createWithoutData(params.parentId) : undefined,
+    parent: params.parentKey ? Repository.createWithoutData(params.parentKey) : undefined,
     workspaceKey: params.workspaceKey,
     name: params.name,
     sortIndex: params.sortIndex ?? batchSortIndex + 1,
@@ -65,7 +65,7 @@ export const updateFolders = async (
     key: string;
     name?: string;
     testDetailIds?: string[];
-    parentId?: string;
+    parentKey?: string;
   }[],
 ) => {
   folders = folders.filter(item => item.key !== UNGROUPED_FOLDER_KEY);
@@ -74,8 +74,8 @@ export const updateFolders = async (
       objectId: folder.key,
     });
 
-    if ('parentId' in folder) {
-      repository.set('parent', folder.parentId && Repository.createWithoutData(folder.parentId));
+    if ('parentKey' in folder) {
+      repository.set('parent', folder.parentKey && Repository.createWithoutData(folder.parentKey));
     }
 
     if ('name' in folder) {

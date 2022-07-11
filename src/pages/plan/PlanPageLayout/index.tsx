@@ -10,16 +10,13 @@ import { createTestExecutionAndRelations } from '@/lib/api/runs';
 import { useBaseAction } from '@/lib/hooks/useContext';
 import { TestRelationType, TestType } from '@/lib/constants';
 import { actionConfirm } from '@/lib/utils/helper';
-import { useRequest } from 'ahooks';
-import {
-  createTestRelation,
-  deleteTestEntities,
-  getTestEntitiesByRelationWithOrder,
-} from '@/lib/api/common';
+import { useScopedTestDetailIds } from './hooks';
+import { createTestRelation, deleteTestEntities } from '@/lib/api/common';
 import { deleteItems } from '@/lib/api/proxima';
 import { usePageContext } from '../hook';
-import ExcetionList from './ExcetionList';
+import ExecutionList from './ExecutionList';
 import { useResizeContainerDOM } from './hooks';
+import RepositoryFolderTree from '@/components/business/RepositoryFolderTree';
 
 import cx from './index.less';
 import TestEntityList from '../TestEntityList';
@@ -39,16 +36,18 @@ const PlanPageLayout: React.FC<any> = () => {
     tableSelectionToggleEvent,
   } = usePageContext();
   const { createItemUseModal } = useBaseAction();
+  const [requestScopedTestDetailIds, setRequestScopedTestDetailIds] = React.useState<
+    string[] | undefined
+  >(undefined);
   useResizeContainerDOM(selectedTestPlan?.objectId);
   const testEntitySelectorRef = React.useRef<ActionType>();
   const [tableSelectionVisible, setTableSelectionVisible] = React.useState(false);
 
-  const [activedType, setActivedType] = useState('testPlan');
-  const [selectedExcetion, setSelectedExcetion] = useState<Record<string, any> | undefined>(
+  const [activedType, setActivedType] = useState('TestPlan');
+  const [selectedExecution, setSelectedExecution] = useState<Record<string, any> | undefined>(
     undefined,
   );
-  const [refreshExcetion, setRefreshExcetion] = useState(false);
-  const [currentTestEntityIds] = useState<string[] | undefined>(undefined);
+  const [refreshExecution, setRefreshExecution] = useState(false);
   const [value, setValue] = useState('');
 
   // 创建测试执行任务
@@ -75,7 +74,7 @@ const PlanPageLayout: React.FC<any> = () => {
       notification.success({
         message: `测试执行任务【${testExecutionData?.reference?.name}】新建成功`,
       });
-      setRefreshExcetion(true);
+      setRefreshExecution(true);
     } catch (err) {
       notification.error({
         message: '测试执行任务新建失败',
@@ -84,47 +83,26 @@ const PlanPageLayout: React.FC<any> = () => {
     }
   };
 
-  // 获取当前计划或者当前测试任务的全部测试用例 ID
-  const { data: allTestDetailIds, refresh: allTestDetailIdsRefresh } = useRequest(
-    async () => {
-      if (!selectedTestPlan?.objectId) return [];
-
-      const relationType =
-        activedType === 'testPlan'
-          ? TestRelationType.PlanRelDetail
-          : TestRelationType.ExecutionRelRun;
-
-      const from =
-        activedType === 'testPlan' ? [selectedTestPlan?.objectId] : [selectedExcetion?.objectId];
-
-      const relationData = await getTestEntitiesByRelationWithOrder(
-        relationType,
-        {
-          from: from,
-        },
-        {
-          workspaceKey,
-          select: ['objectId'],
-          include: ['reference'],
-          queryParams: { limit: 9999 },
-          descendingBy: 'createdAt',
-        },
-      );
-
-      return relationData?.list.map(d => d.objectId);
-    },
-    {
-      refreshDeps: [selectedTestPlan, activedType, selectedExcetion],
-    },
-  );
+  // 获取测试计划范围
+  const { data: scopedTestDetail } = useScopedTestDetailIds({
+    workspaceKey,
+    type: activedType === 'TestPlan' ? 'Plan' : 'Execution',
+    testPlanId: selectedTestPlan?.objectId,
+    testExecutionId: selectedExecution?.objectId,
+  });
 
   useEffect(() => {
     searchValue && setSearchValue('');
-  }, [activedType, selectedExcetion]);
+  }, [activedType, selectedExecution]);
+
+  // 处理 folder tree change
+  const handleFolderSelect = ids => {
+    setRequestScopedTestDetailIds(ids);
+  };
 
   useEffect(() => {
-    if (activedType === 'testPlan') {
-      selectedExcetion && setSelectedExcetion(undefined);
+    if (activedType === 'TestPlan') {
+      selectedExecution && setSelectedExecution(undefined);
     }
   }, [activedType]);
 
@@ -162,7 +140,7 @@ const PlanPageLayout: React.FC<any> = () => {
       // eslint-disable-next-line no-console
       console.log('error', error);
     }
-    await allTestDetailIdsRefresh();
+    // await allTestDetailIdsRefresh();
 
     mutateTestPlanEvent.emit(selectedTestPlan?.objectId);
     // actionRef.current.refresh();
@@ -170,6 +148,12 @@ const PlanPageLayout: React.FC<any> = () => {
     notification.success({
       message: '测试用例已成功添加至测试计划中',
     });
+  };
+
+  const getRate = (statusData = []) => {
+    const filterStatusByType = type => statusData.filter(d => d === type);
+
+    return Math.floor(filterStatusByType('PASS').length / statusData.length);
   };
 
   return (
@@ -188,10 +172,10 @@ const PlanPageLayout: React.FC<any> = () => {
                 <TestPlanSelector />
                 <div className={cx('test-tabs')}>
                   <div
-                    className={cx('tab-title', activedType === 'testPlan' ? 'actived' : '')}
+                    className={cx('tab-title', activedType === 'TestPlan' ? 'actived' : '')}
                     onClick={() => {
                       tableSelectionToggleEvent.emit(false);
-                      setActivedType('testPlan');
+                      setActivedType('TestPlan');
                     }}
                   >
                     全部用例
@@ -200,7 +184,7 @@ const PlanPageLayout: React.FC<any> = () => {
                     className={cx('tab-title', activedType === 'TestExecution' ? 'actived' : '')}
                     onClick={() => {
                       tableSelectionToggleEvent.emit(false);
-                      setActivedType('testExecution');
+                      setActivedType('TestExecution');
                     }}
                   >
                     测试执行任务
@@ -210,49 +194,60 @@ const PlanPageLayout: React.FC<any> = () => {
               <div className={cx('header-right')}>
                 {activedType === 'TestExecution' && (
                   <div className={cx('complete-rate-box')}>
-                    <span className={cx('rate')}>完成率 30%</span>
+                    <span className={cx('rate')}>
+                      完成率 {getRate(scopedTestDetail?.scopedTestDetailStatus)}%
+                    </span>
                     <div className={cx('progress')}>
-                      <StatusProgress hasSummary statuses={[]} />
+                      <StatusProgress
+                        hasSummary
+                        statuses={scopedTestDetail?.scopedTestDetailStatus}
+                      />
                     </div>
                   </div>
                 )}
               </div>
             </div>
             <div className={cx('action-box')}>
-              <ExcetionList
+              <ExecutionList
                 planId={selectedTestPlan?.objectId}
                 activedType={activedType}
                 workspaceKey={workspaceKey}
-                selectedExcetion={selectedExcetion}
-                setSelectedExcetion={setSelectedExcetion}
-                refreshExcetion={refreshExcetion}
-                setRefreshExcetion={setRefreshExcetion}
+                selectedExecution={selectedExecution}
+                setSelectedExecution={setSelectedExecution}
+                refreshExecution={refreshExecution}
+                setRefreshExecution={setRefreshExecution}
               />
               <div className={cx('box-right')}>
-                {activedType === 'excetion' && (
+                {/* {activedType === 'TestExecution' && (
                   <Button
-                    disabled={!selectedExcetion?.objectId}
+                    disabled={!selectedExecution?.objectId}
                     onClick={() =>
                       actionConfirm('该操作会将该测试执行任务删除，是否继续操作？', async () => {
                         await Promise.all([
-                          deleteTestEntities([selectedExcetion?.objectId]),
-                          deleteItems([selectedExcetion.reference.objectId]),
+                          deleteTestEntities([selectedExecution?.objectId]),
+                          deleteItems([selectedExecution.reference.objectId]),
                         ]);
-                        setSelectedExcetion(undefined);
-                        setRefreshExcetion(true);
+                        setSelectedExecution(undefined);
+                        setRefreshExecution(true);
                       })
                     }
                   >
                     删除当前任务
                   </Button>
-                )}
+                )} */}
                 <Button type="primary" onClick={createTestExecution}>
                   新建测试执行任务
                 </Button>
               </div>
             </div>
           </PageLayout.Header>
-          <PageLayout.Left>{/* <PlanList /> */}</PageLayout.Left>
+          <PageLayout.Left>
+            <RepositoryFolderTree
+              workspaceKey={workspaceKey}
+              onFolderSelect={handleFolderSelect}
+              scopedTestDetailIds={scopedTestDetail?.scopedTestDetailIds}
+            />
+          </PageLayout.Left>
           <PageLayout.Right>
             <div className={cx('extra-content')}>
               <div className={cx('extra-content-left')}>1111</div>
@@ -289,10 +284,8 @@ const PlanPageLayout: React.FC<any> = () => {
               </div>
             </div>
             <TestEntityList
-              allTestDetailIds={allTestDetailIds}
-              currentTestEntityIds={currentTestEntityIds}
               activedType={activedType}
-              allTestDetailIdsRefresh={allTestDetailIdsRefresh}
+              requestScopedTestDetailIds={requestScopedTestDetailIds}
             />
             <TestEntitySelectorModal
               title="选择规划的测试用例"
