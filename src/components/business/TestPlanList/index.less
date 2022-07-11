@@ -1,0 +1,32 @@
+.test-plan-container {
+  .plan-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+
+    .header-left {
+      font-size: 18px;
+      font-weight: 500;
+      color: #1e2a3d;
+      line-height: 26px;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+
+      > * {
+        margin-right: 8px;
+      }
+    }
+  }
+
+  .test-plan-title {
+    cursor: pointer;
+
+    &:hover {
+      color: #0c62ff;
+    }
+  }
+}

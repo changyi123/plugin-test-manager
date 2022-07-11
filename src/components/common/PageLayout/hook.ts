@@ -7,6 +7,9 @@ export const useLayoutHeight = () => {
   const offsetY = 63; // 63
 
   const size = useSize(document.querySelector('[data-element-id="workspace.layout.content"]'));
+  const pageHeader = useSize(
+    document.querySelector('[data-element-id="test-manager-page-layout-header"]'),
+  );
 
   React.useEffect(() => {
     const layoutElement = document.querySelector('[data-element-id="workspace.layout.content"]');
@@ -16,7 +19,7 @@ export const useLayoutHeight = () => {
       workspacePluginContainerDOM.style = 'padding: 0';
     }
   }, []);
-  return (size?.height ?? 700) - offsetY;
+  return (size?.height ?? 700) - (pageHeader?.height ?? offsetY);
 };
 
 export const useResizableWidth = () => {

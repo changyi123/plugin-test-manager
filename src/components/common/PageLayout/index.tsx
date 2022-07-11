@@ -34,7 +34,11 @@ const Right: React.FC = ({ children }) => {
 };
 
 const Header: React.FC = ({ children }) => {
-  return <div className={cx('header')}>{children}</div>;
+  return (
+    <div data-element-id="test-manager-page-layout-header" className={cx('header')}>
+      {children}
+    </div>
+  );
 };
 
 type PageLayoutProps = {
