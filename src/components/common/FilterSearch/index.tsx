@@ -1,4 +1,11 @@
-import React, { useCallback, useState, useRef, useMemo } from 'react';
+import React, {
+  useCallback,
+  useState,
+  useRef,
+  useMemo,
+  useImperativeHandle,
+  forwardRef,
+} from 'react';
 import SearchInput from './SearchInput';
 import { Button } from 'antd';
 import AddFilterIcon from '@/icons/svg/add-filter.svg';
@@ -19,11 +26,25 @@ interface FilterSearchProps {
   extendFields: any[];
 }
 
-const FilterSearch: React.FC<FilterSearchProps> = ({ fields, onSearch, extendFields }) => {
+interface FilterRefMethod {
+  reset: () => void;
+}
+
+const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearchProps> = (
+  { fields, onSearch, extendFields },
+  ref,
+) => {
   const { workspace } = useTestConfig();
   const [search, setSearch] = useState('');
   const [selectors, setSelectors] = useState<Selectors>({});
   const currentSelectors = useRef<Selectors>({});
+
+  useImperativeHandle(ref, () => ({
+    reset: () => {
+      setSearch('');
+      handleSetSelectors({});
+    },
+  }));
 
   const handleSetSelectors = useCallback(data => {
     setSelectors(data);
@@ -210,4 +231,4 @@ const FilterSearch: React.FC<FilterSearchProps> = ({ fields, onSearch, extendFie
   );
 };
 
-export default FilterSearch;
+export default forwardRef(FilterSearch);

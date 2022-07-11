@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import DetailTable from './DetailTable';
 import { usePageContext } from '../hook';
 import ExecutionTable from './ExecutionTable';
@@ -36,6 +36,9 @@ const Main = () => {
   const { createItemUseModal } = useBaseAction();
   const { workspace } = useTestConfig();
 
+  const detailSearchRef = useRef(null);
+  const executionRef = useRef(null);
+
   const selectedTestPlanId = selectedTestPlan?.objectId;
 
   const toggleTableSelection = (visible?: boolean) => {
@@ -47,6 +50,9 @@ const Main = () => {
   // 所选测试计划改变，重置选中的 row
   React.useEffect(() => {
     toggleTableSelection(false);
+    // 还原筛选器数据
+    detailSearchRef.current?.reset();
+    executionRef.current?.reset();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedTestPlan]);
 
@@ -187,6 +193,7 @@ const Main = () => {
       >
         <Tabs.TabPane key={TabKeyEnum.testDetailTable} tab="全部用例">
           <FilterSearch
+            ref={detailSearchRef}
             fields={['createdBy', 'priority', 'assignee', 'createdAt']}
             extendFields={extendFields.filter(item => item.key === RepositoryModel)}
             onSearch={setSearchParams}
@@ -195,6 +202,7 @@ const Main = () => {
         </Tabs.TabPane>
         <Tabs.TabPane key={TabKeyEnum.testExecutionTable} tab="测试执行任务">
           <FilterSearch
+            ref={executionRef}
             fields={['createdBy', 'priority', 'assignee', 'createdAt']}
             extendFields={extendFields}
             onSearch={setSearchParams}
