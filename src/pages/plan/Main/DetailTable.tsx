@@ -282,31 +282,33 @@ const DetailTable = () => {
   ];
 
   return (
-    <BusinessTable
-      titleCellOption={{
-        workspaceKey,
-        testType: 'TestDetail',
-      }}
-      useColumnSetting
-      defaultColumnKey={[
-        'key',
-        'repositoryGroup',
-        'latestStatus',
-        'times',
-        'createdBy',
-        'createdAt',
-      ]}
-      rowKey="objectId"
-      columns={columns}
-      name="DetailTable"
-      actionRef={actionRef}
-      loading={tableLoading}
-      getDataSource={tableDataGetter}
-      onHasRowSelected={setHasRowSelected}
-      allSelectableRowKeys={allSelectableRowKeys}
-      selectionActionNodes={selectionActionNodes}
-      onSelectionCancel={() => tableSelectionToggleEvent.emit(false)}
-    />
+    <div className={cx('detail-table-wrap')}>
+      <BusinessTable
+        titleCellOption={{
+          workspaceKey,
+          testType: 'TestDetail',
+        }}
+        useColumnSetting
+        defaultColumnKey={[
+          'key',
+          'repositoryGroup',
+          'latestStatus',
+          'times',
+          'createdBy',
+          'createdAt',
+        ]}
+        rowKey="objectId"
+        columns={columns}
+        name="DetailTable"
+        actionRef={actionRef}
+        loading={tableLoading}
+        getDataSource={tableDataGetter}
+        onHasRowSelected={setHasRowSelected}
+        allSelectableRowKeys={allSelectableRowKeys}
+        selectionActionNodes={selectionActionNodes}
+        onSelectionCancel={() => tableSelectionToggleEvent.emit(false)}
+      />
+    </div>
   );
 };
 

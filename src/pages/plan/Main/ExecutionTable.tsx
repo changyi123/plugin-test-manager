@@ -26,6 +26,7 @@ import { Item, Test } from '@/lib/models';
 import { selectorToParse } from '@/lib/utils/iql';
 
 import ExpandedTable from './ExpandedTable';
+import cx from './DetailTable.less';
 
 const ExecutionTable = () => {
   const innerTableRefs = React.useRef<
@@ -206,7 +207,7 @@ const ExecutionTable = () => {
         setLoading(false);
       }
     },
-    [searchValue, selectedTestPlanId, workspaceKey],
+    [searchValue, selectedTestPlanId, selectors, workspace, workspaceKey],
   );
 
   const addTestDetail = async rowData => {
@@ -329,24 +330,26 @@ const ExecutionTable = () => {
         actionRef={testEntitySelectorRef}
         ignoreTestEntityIds={ignoreTestEntityIds}
       />
-      <BusinessTable
-        titleCellOption={{
-          workspaceKey,
-          testType: 'TestExecution',
-        }}
-        loading={loading}
-        useColumnSetting
-        rowKey="objectId"
-        itemKey="reference"
-        name="ExecutionTable"
-        columns={columnsProp}
-        expandable={{
-          expandedRowRender,
-          expandRowByClick: true,
-        }}
-        getDataSource={tableDataGetter}
-        actionRef={executionTableActionRef}
-      />
+      <div className={cx('detail-table-wrap')}>
+        <BusinessTable
+          titleCellOption={{
+            workspaceKey,
+            testType: 'TestExecution',
+          }}
+          loading={loading}
+          useColumnSetting
+          rowKey="objectId"
+          itemKey="reference"
+          name="ExecutionTable"
+          columns={columnsProp}
+          expandable={{
+            expandedRowRender,
+            expandRowByClick: true,
+          }}
+          getDataSource={tableDataGetter}
+          actionRef={executionTableActionRef}
+        />
+      </div>
     </>
   );
 };

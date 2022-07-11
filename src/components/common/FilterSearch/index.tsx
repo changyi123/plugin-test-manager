@@ -130,7 +130,10 @@ const FilterSearch: React.FC<FilterSearchProps> = ({ fields, onSearch, extendFie
       // 得等上一个popover注销完，才能打开新的popover
       setTimeout(() => {
         if (filterId && filterDetail) {
-          const props = getFieldValueProps(filterDetail, document.querySelector('#filter-btn'));
+          const props = getFieldValueProps(
+            filterDetail,
+            document.querySelector(`#filter-search-selector-${filterId}`),
+          );
           // 打开值的选择器
           openFieldValuePopover(props as any);
         }
@@ -175,10 +178,13 @@ const FilterSearch: React.FC<FilterSearchProps> = ({ fields, onSearch, extendFie
           <SelectorTag
             key={item?.fieldId}
             data={item}
-            onClick={(dom, data) => {
+            onClick={data => {
               const backup = cloneDeep(data);
               backup.value = generateFieldValue(backup);
-              const props = getFieldValueProps(backup, dom.parentNode);
+              const props = getFieldValueProps(
+                backup,
+                document.querySelector(`#filter-search-selector-${item?.fieldId}`),
+              );
               openFieldValuePopover(props as any);
             }}
             onDelete={onDeleteSelector}

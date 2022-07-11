@@ -11,10 +11,10 @@ import { FILTER_EXPRESSIONS } from '@/lib/constants';
 interface SelectorTagProps {
   data: SelectCase;
   onDelete: (id: string) => void;
-  onClick: (e, data: SelectCase) => void;
+  onClick: (data: SelectCase) => void;
 }
 const SelectorTag: React.FC<SelectorTagProps> = ({ data, onDelete, onClick }) => {
-  const { fieldName, value, component, expression: _expression } = data;
+  const { fieldName, value, component, fieldId, expression: _expression } = data;
 
   const [_value, count] = useMemo(() => {
     let content = null;
@@ -44,8 +44,8 @@ const SelectorTag: React.FC<SelectorTagProps> = ({ data, onDelete, onClick }) =>
   }, [_expression, component]);
 
   return (
-    <div className={cx('search-criteria')}>
-      <div className={cx('search-tag')} onClick={e => onClick(e.target, data)}>
+    <div className={cx('search-criteria')} id={`filter-search-selector-${fieldId}`}>
+      <div className={cx('search-tag')} onClick={() => onClick(data)}>
         <div className={cx('name')}>{fieldName}</div>
         {expressionText && <div className={cx('expression', 'ml4')}>{expressionText}</div>}
         {_value && _value !== 'NULL' && <div className={cx('value', 'ml4')}>{_value}</div>}
@@ -54,7 +54,7 @@ const SelectorTag: React.FC<SelectorTagProps> = ({ data, onDelete, onClick }) =>
           className={cx('search-criteria-icon')}
           onClick={e => {
             e.stopPropagation();
-            onDelete(data.fieldId);
+            onDelete(fieldId);
           }}
         />
       </div>
