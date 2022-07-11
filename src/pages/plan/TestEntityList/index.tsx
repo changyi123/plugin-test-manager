@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useCallback, useState } from 'react';
 import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
 import {
@@ -6,6 +7,7 @@ import {
   getTestEntitiesByRelation,
   getTestEntitiesByRelationWithOrder,
   removeTestRelationsWithCondition,
+  updateTestRunDesignee,
 } from '@/lib/api/common';
 import { TestRelationType, TestType } from '@/lib/constants';
 
@@ -15,29 +17,29 @@ import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
 import RepositoryGroup from '@/components/business/RepositoryGroup';
 import { StatusBadge } from '@/components/business/Status';
 import { notification } from 'antd';
-import { updateTestRun } from '@/lib/api/runs';
+import { updateTestRun, updateTestRunStatus } from '@/lib/api/runs';
 import TestRunModal, {
   ActionType as TestRunModalActionType,
 } from '@/components/business/TestRunModal';
 import { useMemoizedFn } from 'ahooks';
 import { usePageContext } from '../hook';
-import { DeleteOutlined, UserOutlined } from '@ant-design/icons';
+import { DeleteOutlined, FlagOutlined, UserOutlined } from '@ant-design/icons';
 import { updateItemAssignee } from '@/lib/api/proxima';
 import { UserCell } from '@projectproxima/components';
 import { useUserCellUserDataProp } from '@/lib/hooks/useProxima';
 
 interface TestEntityListProps {
-  allTestDetailIds: string[];
-  currentTestEntityIds?: string[];
+  requestScopedTestDetailIds?: string[];
   activedType: string;
-  allTestDetailIdsRefresh: () => void;
+  selectedExecution?: Record<string, any>;
+  scopedTestDetailRefresh?: () => void;
 }
 
 const TestEntityList: React.FC<TestEntityListProps> = ({
   activedType,
-  allTestDetailIds,
-  currentTestEntityIds,
-  allTestDetailIdsRefresh,
+  requestScopedTestDetailIds,
+  selectedExecution,
+  scopedTestDetailRefresh,
 }) => {
   const {
     workspaceKey,
@@ -60,49 +62,37 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     });
   }, [registerRefreshMethod]);
 
+  // 获取当前计划或者当前测试任务的全部测试用例 ID
   const tableDataGetter = useCallback(
     async queryParams => {
       setTableLoading(true);
-      const testType = activedType === 'testPlan' ? TestType.TestDetail : TestType.TestRun;
       const include =
-        activedType === 'testPlan'
+        activedType === 'TestPlan'
           ? ['repository', 'reference']
-          : [
-              'runReferenceDetail.reference',
-              'runReferenceDetail.repository',
-              'executor',
-              'designee',
-            ];
+          : ['reference', 'repository', 'executor', 'designee'];
 
       const select =
-        activedType === 'testPlan'
+        activedType === 'TestPlan'
           ? ['type', 'sortIndex', 'reference', 'repository', 'workspaceKey', 'createdAt']
-          : [
-              'status',
-              'sortIndex',
-              'runReferenceDetail.reference',
-              'runReferenceDetail.repository',
-              'executor',
-              'designee',
-            ];
-      const ascendingBy = activedType === 'testPlan' ? ['sortIndex', 'createdAt'] : ['createdAt'];
+          : ['status', 'sortIndex', 'reference', 'repository', 'executor', 'designee'];
+      const descendingBy = activedType === 'TestPlan' ? ['sortIndex', 'createdAt'] : ['createdAt'];
 
       const { results: testDetails, count } = await getTestEntitiesByQuery(
         {
-          in: currentTestEntityIds ?? allTestDetailIds ?? [],
-          type: testType,
+          in: requestScopedTestDetailIds ?? [],
+          type: TestType.TestDetail,
           nameLike: searchValue,
           workspaceKey,
         },
         {
           ...queryParams,
-          ascendingBy,
+          descendingBy,
           select,
           include,
         },
       );
 
-      if (activedType === 'testPlan') {
+      if (activedType === 'TestPlan') {
         const { list: testRuns } = await getTestEntitiesByRelationWithOrder(
           TestRelationType.PlanRelExecution,
           { from: [selectedTestPlan.objectId] },
@@ -164,14 +154,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         total: count,
       };
     },
-    [
-      activedType,
-      currentTestEntityIds,
-      allTestDetailIds,
-      workspaceKey,
-      selectedTestPlan,
-      searchValue,
-    ],
+    [workspaceKey, requestScopedTestDetailIds, searchValue],
   );
 
   const removeTestRelation = React.useCallback(
@@ -181,7 +164,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         from: selectedTestPlanId,
         to: testDetailIds,
       });
-      await allTestDetailIdsRefresh();
+      await scopedTestDetailRefresh();
 
       notification.success({
         message: `${testDetailIds.length} 个测试用例从测试计划中移除`,
@@ -190,7 +173,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
 
       actionRef.current.resetSelectedRowKeys();
     },
-    [allTestDetailIdsRefresh, actionRef],
+    [actionRef],
   );
 
   const allTestColumns = [
@@ -230,7 +213,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       title: <span>执行任务次数</span>,
       width: 140,
       render(_, rowData) {
-        return rowData.relRuns.length;
+        return rowData.relRuns?.length ?? 0;
       },
     },
     {
@@ -264,28 +247,29 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     actionConfirm('该操作会将所选测试执行删除，是否继续操作？', async () => {
       // 删除关联关系，删除测试实体
       await deleteTestEntities(testRunIds);
+      await scopedTestDetailRefresh();
       notification.success({
         message: `${testRunIds.length} 个测试执行任务被删除`,
       });
       // eslint-disable-next-line no-console
       console.log(1111, forceRestCurrentPage);
 
-      //   const refreshAndMutateDataOptions = {
-      //     shouldRestSelectedRowKeys: true,
-      //   } as Record<string, any>;
+      // const refreshAndMutateDataOptions = {
+      //   shouldRestSelectedRowKeys: true,
+      // } as Record<string, any>;
 
-      // 批量删除重置回第一页
-      //   if (forceRestCurrentPage) {
-      //     refreshAndMutateDataOptions.shouldRestCurrentPage = true;
-      //   } else {
-      //     const testRunsTotal = record.relRuns?.length;
-      //     const remainder = testRunsTotal % pageSize;
-      //     // 单条用例删除需要判断当前页是否有数据，无数据跳上一页
-      //     if (remainder === 1) {
-      //       setPageNum(prevPageNum => Math.max(1, prevPageNum - 1));
-      //     }
+      // // 批量删除重置回第一页
+      // if (forceRestCurrentPage) {
+      //   refreshAndMutateDataOptions.shouldRestCurrentPage = true;
+      // } else {
+      //   const testRunsTotal = record.relRuns?.length;
+      //   const remainder = testRunsTotal % pageSize;
+      //   // 单条用例删除需要判断当前页是否有数据，无数据跳上一页
+      //   if (remainder === 1) {
+      //     setPageNum(prevPageNum => Math.max(1, prevPageNum - 1));
       //   }
-      //   refreshAndMutateData(refreshAndMutateDataOptions);
+      // }
+      // refreshAndMutateData(refreshAndMutateDataOptions);
     });
   });
 
@@ -298,7 +282,8 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       width: 160,
       tooltip: true,
       render(_, record) {
-        const detailItemData = record.runReferenceDetail?.reference ?? {};
+        const detailItemData = record?.reference ?? {};
+
         return (
           <span
             style={{ cursor: 'pointer' }}
@@ -314,7 +299,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       title: '所属模块',
       width: 240,
       render(_, rowData) {
-        return <RepositoryGroup rowData={rowData.runReferenceDetail}></RepositoryGroup>;
+        return <RepositoryGroup rowData={rowData}></RepositoryGroup>;
       },
     },
     {
@@ -359,7 +344,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
               onClick={async () => {
                 await testRunModalActionRef.current.open({
                   testId: record.objectId,
-                  testIdSequence: [],
+                  testIdSequence,
                 });
                 // 刷新依赖数据
                 actionRef.current.refresh();
@@ -382,6 +367,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   ];
 
   const allSelectableRowKeys = selectedTestPlan?.refTestDetails?.map(detail => detail.objectId);
+  const testIdSequence = selectedExecution?.relRuns?.map(item => item?.objectId).filter(Boolean);
 
   const selectionActionNodes = React.useMemo(() => {
     const handleDelete = () => {
@@ -430,6 +416,72 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     ];
   }, [userData, hasRowSelected, removeTestRelation, selectedTestPlan, mutateTestPlanEvent]);
 
+  const InnerTableSelectionActionNodes = React.useMemo(() => {
+    const getTestRunIds = () => actionRef.current.selectedRowKeys;
+    const toggleSTestRunStatus = async status => {
+      const testRunIds = getTestRunIds();
+
+      await updateTestRunStatus({
+        status: status.key,
+        testRunIds,
+      });
+      notification.success({
+        message: '所选测试执行状态更新成功',
+      });
+      // refreshAndMutateData();
+    };
+
+    const deleteTestRun = () => {
+      const testRunIds = getTestRunIds();
+
+      deleteTestRunByIds(testRunIds, true);
+    };
+
+    // 更新测试执行人
+    const handleDesigneeChange = async users => {
+      const testRunIds = getTestRunIds();
+
+      users = users.map(user => ({
+        ...user,
+        objectId: user.value,
+      }));
+
+      await updateTestRunDesignee(testRunIds, users);
+      // refreshAndMutateData();
+    };
+
+    return [
+      <UserCell
+        value={[]}
+        key="assignee"
+        mode="multiple"
+        userData={userData}
+        readonly={!hasRowSelected}
+        onChange={handleDesigneeChange}
+        emptyChild={
+          <span className="user-field">
+            <UserOutlined /> 更改执行人
+          </span>
+        }
+      />,
+      <StatusBadge
+        useRootContainer
+        readonly={!hasRowSelected}
+        onStatusChange={toggleSTestRunStatus}
+        key="toggleRunStatus"
+        emptyNode={
+          <span>
+            <FlagOutlined /> 更改执行状态
+          </span>
+        }
+      />,
+
+      <span key="delete" onClick={() => hasRowSelected && deleteTestRun()}>
+        <DeleteOutlined /> 删除
+      </span>,
+    ];
+  }, [userData, hasRowSelected, deleteTestRunByIds]);
+
   tableSelectionToggleEvent.useSubscription(visible => {
     actionRef.current.toggleSelection(visible);
     actionRef.current.resetSelectedRowKeys();
@@ -440,19 +492,21 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       <BusinessTable
         titleCellOption={{
           workspaceKey,
-          testType: activedType === 'testPlan' ? 'TestDetail' : 'TestRun',
+          testType: 'TestDetail',
         }}
         useColumnSetting
         defaultColumnKey={['createdBy', 'createdAt']}
         rowKey="objectId"
-        columns={activedType === 'testPlan' ? allTestColumns : excetionColumns}
+        columns={activedType === 'TestPlan' ? allTestColumns : excetionColumns}
         name="TestEntityList"
         actionRef={actionRef}
         loading={tableLoading}
         getDataSource={tableDataGetter}
         onHasRowSelected={setHasRowSelected}
-        allSelectableRowKeys={allSelectableRowKeys}
-        selectionActionNodes={selectionActionNodes}
+        allSelectableRowKeys={activedType === 'TestPlan' ? allSelectableRowKeys : testIdSequence}
+        selectionActionNodes={
+          activedType === 'TestPlan' ? selectionActionNodes : InnerTableSelectionActionNodes
+        }
         onSelectionCancel={() => tableSelectionToggleEvent.emit(false)}
       />
       <TestRunModal actionRef={testRunModalActionRef} />

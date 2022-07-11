@@ -1,12 +1,14 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect } from 'react';
 import { useRequest } from 'ahooks';
-import { getTestEntitiesByRelationWithOrder } from '@/lib/api/common';
+import { deleteTestEntities, getTestEntitiesByRelationWithOrder } from '@/lib/api/common';
 import { TestRelationType } from '@/lib/constants';
-import { Spin, Tabs } from 'antd';
+import { Dropdown, Menu, Spin, Tabs } from 'antd';
+import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
+import { deleteItems } from '@/lib/api/proxima';
+import { usePageContext } from '../../hook';
 
 import cx from './index.less';
-import { usePageContext } from '../../hook';
 
 interface ExcetionListProps {
   planId: string;
@@ -33,6 +35,7 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
   const { tableSelectionToggleEvent } = usePageContext();
   const { data, refresh, loading } = useRequest(
     async () => {
+      if (activedType !== 'TestExecution') return [];
       const relationData = await getTestEntitiesByRelationWithOrder(
         TestRelationType.PlanRelExecution,
         {
@@ -49,9 +52,7 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
       return relationData?.list;
     },
     {
-      refreshDeps: [planId],
-      staleTime: 999999999,
-      cacheTime: 999999999,
+      refreshDeps: [planId, activedType],
     },
   );
 
@@ -68,9 +69,33 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
     }
   }, [selectedExecution, data]);
 
+  const menuClick = (type: string, data) => {
+    if (type === 'check') {
+      openItemViewScreen(data.objectId);
+    }
+    if (type === 'delete') {
+      actionConfirm('该操作会将该测试执行任务删除，是否继续操作？', async () => {
+        await Promise.all([
+          deleteTestEntities([data?.objectId]),
+          deleteItems([data.reference.objectId]),
+        ]);
+        setSelectedExecution(undefined);
+        setRefreshExecution(true);
+      });
+    }
+  };
+
+  const menu = data => (
+    <Menu onClick={e => menuClick(e.key, data)}>
+      <Menu.Item key="check">查看任务</Menu.Item>
+      {/* <Menu.Item key="add">添加用例</Menu.Item> */}
+      <Menu.Item key="delete">删除任务</Menu.Item>
+    </Menu>
+  );
+
   return (
     <div className={cx('tab-list')}>
-      {activedType === 'execution' && (
+      {activedType === 'TestExecution' && (
         <Spin spinning={loading}>
           {data?.length ? (
             <Tabs
@@ -81,7 +106,14 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
               }}
             >
               {data.map(d => (
-                <TabPane key={d.objectId} tab={d.reference.name} />
+                <TabPane
+                  key={d.objectId}
+                  tab={
+                    <Dropdown overlay={menu(d)}>
+                      <div onClick={e => e.preventDefault()}>{d.reference.name}</div>
+                    </Dropdown>
+                  }
+                />
               ))}
             </Tabs>
           ) : (

@@ -93,7 +93,7 @@ export const useAllTestWorkspace = () => {
 export const useGetTestRepoGroup = (rowData: any) => {
   const { data: repoMap, loading } = useRequest(
     async () => {
-      if (!rowData?.workspaceKey && !rowData.repository?.workspaceKey) return null;
+      if (!rowData?.workspaceKey && !rowData?.repository?.workspaceKey) return null;
       const repoData = await getRepositoryData([
         rowData?.workspaceKey ?? rowData.repository?.workspaceKey,
       ]);

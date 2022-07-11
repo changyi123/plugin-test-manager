@@ -114,14 +114,25 @@
   justify-content: space-between;
   padding: 8px 24px;
   font-size: 16px;
-  border-bottom: 1px solid #DADDE3;
+  border-bottom: 1px solid #dadde3;
+
+  .extra-content-left {
+    font-size: 14px;
+    font-weight: 400;
+    color: #213053;
+    line-height: 22px;
+  }
 
   .extra-content-right {
     display: flex;
-  }
 
-  .action + .action {
-    margin-left: 8px;
+    > * {
+      margin-right: 8px;
+
+      &:last-child {
+        margin-right: 0;
+      }
+    }
   }
 
   .line {

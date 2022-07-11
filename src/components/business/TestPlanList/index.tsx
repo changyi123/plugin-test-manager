@@ -116,7 +116,7 @@ const TestPlanList: React.FC<any> = () => {
         return (
           <div className={cx('plan-table-title')}>
             <div className={cx('plan-table-title-left')}>
-              <Image src={generateStaticFileUrl('../../../icons/test-plan.png')} />
+              <Image src={generateStaticFileUrl(rowData.reference.itemType.icon)} />
               <span className={cx('test-plan-title')} onClick={() => setSelectedTestPlan(rowData)}>
                 {(rowData.reference ?? {}).name}
               </span>

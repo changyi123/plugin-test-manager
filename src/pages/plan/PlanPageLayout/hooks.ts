@@ -2,8 +2,8 @@ import React from 'react';
 import { get } from 'lodash';
 import { Test } from '@/lib/models';
 import { TestRelationType } from '@/lib/constants';
-import { useNoExpiredRequest } from '@/lib/hooks/useRequest';
 import { getTestEntitiesByRelationWithOrder } from '@/lib/api/common';
+import { useRequest } from 'ahooks';
 
 export const useResizeContainerDOM = (objectId?: string) => {
   React.useEffect(() => {
@@ -28,7 +28,7 @@ type ScopedTestDetailIdsParams = {
 /** 获取测试用例范围 */
 export const useScopedTestDetailIds = (params: ScopedTestDetailIdsParams) => {
   const { workspaceKey, testPlanId, testExecutionId, type } = params;
-  return useNoExpiredRequest(
+  return useRequest(
     async () => {
       if (type === 'Plan') {
         // 测试全部用例的范围
@@ -49,7 +49,9 @@ export const useScopedTestDetailIds = (params: ScopedTestDetailIdsParams) => {
             select: ['objectId'],
           },
         );
-        return allRelTestDetailList?.map(detail => get(detail, 'objectId')) ?? [];
+        return {
+          scopedTestDetailIds: allRelTestDetailList?.map(detail => get(detail, 'objectId')) ?? [],
+        };
       } else if (type === 'Execution') {
         // 测试执行的用例范围
         const { list: allRelTestRunList } = await getTestEntitiesByRelationWithOrder(
@@ -69,13 +71,18 @@ export const useScopedTestDetailIds = (params: ScopedTestDetailIdsParams) => {
             select: ['objectId', 'runReferenceDetail'],
           },
         );
-        return allRelTestRunList?.map(run => get(run, 'runReferenceDetail.objectId')) ?? [];
+
+        return {
+          scopedTestDetailIds:
+            allRelTestRunList?.map(run => get(run, 'runReferenceDetail.objectId')) ?? [],
+          scopedTestDetailStatus:
+            allRelTestRunList?.map(run => get(run, 'runReferenceDetail.status') ?? 'TODO') ?? [],
+        };
       }
     },
     {
-      cacheKey: `scoped_test_detail_ids_${params.workspaceKey}_${params.testPlanId}_${params.testExecutionId}`,
       ready: Boolean(workspaceKey && (testPlanId ?? testExecutionId)),
-      refreshDeps: [workspaceKey, testPlanId, testExecutionId],
+      refreshDeps: [workspaceKey, testPlanId, testExecutionId, type],
     },
   );
 };
