@@ -2,12 +2,12 @@ import React from 'react';
 
 const routes = [
   {
-    path: '/testRepo',
+    path: '/repository',
     component: React.lazy(() => import('../pages/repository')),
     exact: true,
   },
   {
-    path: '/testPlan',
+    path: '/plan',
     component: React.lazy(() => import('../pages/plan')),
     exact: true,
   },
@@ -17,16 +17,16 @@ const routes = [
     exact: true,
   },
   {
-    path: '/testConfig',
+    path: '/config',
     component: React.lazy(() => import('../pages/config')),
   },
   {
-    path: '/testPanel',
+    path: '/panelModule',
     component: React.lazy(() => import('../modules/panel')),
     exact: true,
   },
   {
-    path: '/beforeItemCreate',
+    path: '/beforeItemCreateModule',
     component: React.lazy(() => import('../modules/beforeCreateOrUpdateModal')),
     exact: true,
   },

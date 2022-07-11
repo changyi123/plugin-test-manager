@@ -3,8 +3,8 @@ import { pick } from 'lodash';
 import { FileClose } from '@/icons';
 import { getDevConfig } from '@/devEnv';
 import { TestType } from '@/lib/constants';
-import { Button, notification } from 'antd';
 import { useReactive, useRequest } from 'ahooks';
+import { Button, notification, Select } from 'antd';
 import { useSDK } from '@projectproxima/plugin-sdk';
 import { getFolderTree } from '@/lib/api/repository';
 import { logPluginVersion } from '@/lib/utils/helper';
@@ -18,18 +18,37 @@ import ErrorBoundary from '@/components/common/ErrorBoundary';
 import TestDetailTable, { ActionType } from './TestDetailTable';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import TestManagerProvider from '@/components/business/TestManagerProvider';
-import { reverseTreeNodes, getTreeNodeByKey, appendGroupedDetailIdsToTreeNode } from './util';
+import {
+  reverseTreeNodes,
+  getTreeNodeByKey,
+  traverseTreeNodes,
+  appendGroupedDetailIdsToTreeNode,
+} from './util';
 
 import { UNGROUPED_FOLDER_KEY } from './constant';
 import RepoDropDown from './RepoDropDown';
 
 import cx from './index.less';
 
+type GroupedMode = 'all' | 'current';
+
+/** 分组模式筛选器 */
+const GroupModeSelector = (props: { mode: GroupedMode; onChange: (mode: GroupedMode) => void }) => {
+  return (
+    <Select value={props.mode} onChange={props.onChange}>
+      <Select.Option value="all">显示子分组用例</Select.Option>
+      <Select.Option value="current">显示当前分组用例</Select.Option>
+    </Select>
+  );
+};
+
 logPluginVersion();
 
 const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) => {
   const tableActionRef = React.useRef<ActionType>();
+  const prevSelectedTreeNodeRef = React.useRef(null);
   const { createItemUseModal } = useBaseAction();
+  const [groupedMode, setGroupedMode] = React.useState<GroupedMode>('all');
 
   // 事项数据更新后刷新列表
   useListener('updateItemList', () => {
@@ -96,17 +115,37 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
   );
 
   const handleTreeSelect = React.useCallback(
-    selectedNode => {
+    (_selectedNode?: any) => {
+      const selectedNode = _selectedNode ?? prevSelectedTreeNodeRef.current;
+      prevSelectedTreeNodeRef.current = selectedNode;
+
+      if (!selectedNode) return;
+
       const breadcrumbs = [];
       reverseTreeNodes(folderTreeData, selectedNode, node => {
         breadcrumbs.unshift(node.name ?? node.title);
       });
       state.breadcrumbs = breadcrumbs;
-      state.testDetailIds = selectedNode.testDetailIds;
       state.selectedFolderKey = selectedNode.key;
+
+      let testDetailIds = [];
+      // 包含子分组的所有用例
+      if (groupedMode === 'all') {
+        traverseTreeNodes([selectedNode], node => {
+          testDetailIds = testDetailIds.concat(node.testDetailIds);
+        });
+      } else {
+        testDetailIds = selectedNode.testDetailIds;
+      }
+      state.testDetailIds = testDetailIds;
     },
-    [folderTreeData, state],
+    [folderTreeData, state, groupedMode],
   );
+
+  React.useEffect(() => {
+    handleTreeSelect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [groupedMode]);
 
   const handleDataChange = React.useCallback(async () => {
     const treeData = await refreshFolderTree();
@@ -180,10 +219,10 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
               placeholder="请输入搜索关键字"
               onSearch={value => (state.searchValue = value as any)}
             />
+            <GroupModeSelector mode={groupedMode} onChange={mode => setGroupedMode(mode)} />
             <Button onClick={() => toggleSelection()}>
               {state.tableSelectionVisible ? '取消操作' : '批量操作'}
             </Button>
-
             <span className={cx('line')} />
             <Button type="primary" onClick={createTestDetail} className={cx('action')}>
               新建测试用例
