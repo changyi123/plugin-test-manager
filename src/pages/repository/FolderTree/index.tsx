@@ -449,18 +449,10 @@ const FolderTree: React.FC<FolderTreeProps> = ({
             <span className={cx('tree-node-name')}>{node.name}</span>
           </OverflowTooltip>
 
-          {node.key !== UNGROUPED_FOLDER_KEY ? (
-            <>
-              <span
-                className={cx('tree-node-length')}
-              >{`${node.length[0]}(${node.length[1]})`}</span>
-              <Dropdown overlay={<FolderMenu onClick={({ key }) => handleMenuClick(key, node)} />}>
-                <CustomMore onClick={e => e.stopPropagation()} className={cx('tree-node-action')} />
-              </Dropdown>
-            </>
-          ) : (
-            <span className={cx('tree-node-length')}>{`${node.length[0]}`}</span>
-          )}
+          <span className={cx('tree-node-length')}>{`${node.length[0]}(${node.length[1]})`}</span>
+          <Dropdown overlay={<FolderMenu onClick={({ key }) => handleMenuClick(key, node)} />}>
+            <CustomMore onClick={e => e.stopPropagation()} className={cx('tree-node-action')} />
+          </Dropdown>
         </>
       </DropTreeTitle>
     ),

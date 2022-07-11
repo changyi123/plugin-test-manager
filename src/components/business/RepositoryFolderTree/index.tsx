@@ -2,19 +2,26 @@ import React from 'react';
 import { Tree } from 'antd';
 import { TestType } from '@/lib/constants';
 import _, { CollectionChain } from 'lodash';
-import { hasArrayItem } from '@/lib/utils/helper';
 import { getTestEntitiesByQuery } from '@/lib/api/common';
 import { useNoExpiredRequest } from '@/lib/hooks/useRequest';
 import { FileOpen, FileClose, CaretDownOutlined } from '@/icons';
 import { useTestRepositoryFolderTree } from '@/lib/hooks/useTest';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import { UNGROUPED_FOLDER_KEY } from '@/pages/repository/constant';
+import { hasArrayItem, escapeMatchesQueryArg } from '@/lib/utils/helper';
 import { useRequest, useMemoizedFn, useDeepCompareEffect } from 'ahooks';
-import { traverseTreeNodes, getTreeNodeByKey } from '@/pages/repository/util';
+import { traverseTreeNodes, getTreeNodeByKey, reverseTreeNodes } from '@/pages/repository/util';
 
 import cx from './style.less';
 
 const { DirectoryTree } = Tree;
+
+type ActionType = {
+  /** 筛选目录 */
+  filterFolder: (text: string) => void;
+  /** 重置筛选 */
+  restFilter: () => void;
+};
 
 type RepositoryTreeProps = {
   /** 空间标识 */
@@ -30,10 +37,12 @@ type RepositoryTreeProps = {
       selectedFolder: any;
     },
   ) => void;
+  actionRef?: React.ForwardedRef<ActionType>;
 };
 
 const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
   const {
+    actionRef,
     workspaceKey,
     onFolderSelect,
     scopedTestDetailIds,
@@ -42,11 +51,13 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
   const [treeSelectedKeys, setTreeSelectedKeys] = React.useState([]);
   const [treeExpandedKeys, setTreeExpandedKeys] = React.useState([]);
   const isFirstFolderActivatedRef = React.useRef(false);
+  const [autoExpandParent, setAutoExpandParent] = React.useState(true);
+  // 匹配的目录名
+  const [matchedFolderText, setMatchedFolderText] = React.useState({});
 
-  const { data: folderTreeNodes, loading: folderTreeNodesLoading } =
-    useTestRepositoryFolderTree(workspaceKey);
+  const { data: folderTreeNodes } = useTestRepositoryFolderTree(workspaceKey);
 
-  const { data: allTestDetails, loading: allTestDetailsLoading } = useNoExpiredRequest(
+  const { data: allTestDetails } = useNoExpiredRequest(
     async () => {
       // 请求所有的用例数据
       const { results } = await getTestEntitiesByQuery(
@@ -130,6 +141,45 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
     }
   }, [treeData]);
 
+  React.useImperativeHandle(
+    actionRef,
+    () => ({
+      filterFolder(text) {
+        // 重置 matched
+        setMatchedFolderText({});
+        text = text?.trim();
+        const needExpandedKeys = [];
+        if (text) {
+          const matchRegExp = escapeMatchesQueryArg(text);
+          const matchedText = {};
+          traverseTreeNodes(treeData, node => {
+            const matched = node.name?.match(matchRegExp);
+            if (matched) {
+              matchedText[node.key] = matched[0];
+              needExpandedKeys.push(node.key);
+            }
+          });
+          setMatchedFolderText(matchedText);
+        } else {
+          // 无输入项，重置选中元素的父级
+          const selectedNode = getTreeNodeByKey(treeData, treeSelectedKeys[0]);
+          reverseTreeNodes(treeData, selectedNode, node => {
+            needExpandedKeys.push(node.key);
+          });
+        }
+        setAutoExpandParent(true);
+        setTreeExpandedKeys(needExpandedKeys);
+      },
+      restFilter() {
+        // 重置 matched
+        setMatchedFolderText({});
+        setAutoExpandParent(false);
+        setTreeExpandedKeys([]);
+      },
+    }),
+    [treeData, treeSelectedKeys],
+  );
+
   // workspaceKey 改变重置选中节点
   React.useEffect(() => {
     isFirstFolderActivatedRef.current = false;
@@ -158,11 +208,18 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
   // 树节点渲染
   const titleRender = useMemoizedFn(node => {
     const [currentNum, childNodeNum] = node.amount;
+    const matchedText = matchedFolderText[node.key];
+    const highlightMatchedNodeName = matchedText
+      ? node.name.replace(matchedText, `<span class="highlight">${matchedText}</span>`)
+      : `<span>${node.name}</span>`;
 
     return (
       <>
         <OverflowTooltip title={node.name}>
-          <span className={cx('tree-node-name')}>{node.name}</span>
+          <span
+            className={cx('tree-node-name')}
+            dangerouslySetInnerHTML={{ __html: highlightMatchedNodeName }}
+          />
         </OverflowTooltip>
 
         <span className={cx('tree-node-length')}>{`${currentNum}(${childNodeNum})`}</span>
@@ -171,6 +228,7 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
   });
 
   const handleTreeExpand = useMemoizedFn(expandedKeys => {
+    setAutoExpandParent(false);
     setTreeExpandedKeys(expandedKeys);
   });
   const handleTreeSelect = useMemoizedFn(selectedKeys => {
@@ -183,9 +241,6 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
     // if (node.key === UNGROUPED_FOLDER_KEY) return;
   });
 
-  // 是否正在加载
-  const loading = folderTreeNodesLoading && allTestDetailsLoading;
-
   return (
     <div>
       <DirectoryTree
@@ -195,9 +250,10 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
         titleRender={titleRender}
         onExpand={handleTreeExpand}
         onSelect={handleTreeSelect}
-        onRightClick={handleTreeRightClick}
         selectedKeys={treeSelectedKeys}
         expandedKeys={treeExpandedKeys}
+        autoExpandParent={autoExpandParent}
+        onRightClick={handleTreeRightClick}
         icon={({ expanded }) => (expanded ? <FileOpen /> : <FileClose />)}
         switcherIcon={<CaretDownOutlined style={{ color: '#878C96' }} />}
       />

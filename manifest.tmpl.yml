@@ -31,25 +31,25 @@ modules:
       resource: main
       title: 测试管理
       loadType: Micro
-      route: /testPanel
+      route: /panelModule
   adminPage:
     - key: test-config
       resource: main
       title: 测试管理配置
       loadType: Micro
-      route: /testConfig
+      route: /config
   workspacePage:
     - key: test-plan
       resource: main
       title: 测试计划
       loadType: Micro
-      route: /testPlan
+      route: /plan
       {workspacePageHidden}
     - key: test-repository
       resource: main
       title: 测试用例库
       loadType: Micro
-      route: /testRepo
+      route: /repository
       {workspacePageHidden}
     # - key: main-test-plan
     #   resource: main
@@ -61,14 +61,14 @@ modules:
     #   resource: main
     #   title: 测试用例库
     #   loadType: Micro
-    #   route: /testRepo
+    #   route: /repository
     #   hidden: true
   beforeCreateOrUpdateModal:
     - key: before-create-or-update-modal
       resource: main
       title: 新建事项
       loadType: Micro
-      route: /beforeItemCreate
+      route: /beforeItemCreateModule
   importer:
     function: test-manager-import-script
     validate: test-manager-validate-script
