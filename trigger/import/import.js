@@ -153,9 +153,9 @@ const handleRroupPath = datas => {
   const getPath = (gro, _datas, path = []) => {
     path.push(gro.name);
 
-    if (gro.parentId) {
+    if (gro.parentKey) {
       path = getPath(
-        _datas.find(d => d.objectId === gro.parentId),
+        _datas.find(d => d.objectId === gro.parentKey),
         _datas,
         path,
       );
@@ -185,7 +185,7 @@ const getRepoData = async () => {
             name: _data.name,
             objectId: _data.objectId,
             testDetailIds: _data?.testDetailIds ?? [],
-            parentId: _data.parent?.objectId ?? null,
+            parentKey: _data.parent?.objectId ?? null,
             workspaceKey: _data.workspaceKey,
           }
         : null;

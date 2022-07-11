@@ -51,7 +51,7 @@ export const reverseTreeNodes = (
   while (currentNode) {
     if (currentNode) {
       cb(currentNode);
-      currentNode = nodeKeyMap[currentNode.parentId];
+      currentNode = nodeKeyMap[currentNode.parentKey];
     }
   }
 };

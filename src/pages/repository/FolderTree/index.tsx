@@ -107,7 +107,7 @@ type TreeNode = {
   key: string;
   name: string;
   title: React.ReactNode;
-  parentId: string | null;
+  parentKey: string | null;
   testDetailIds: string[];
   children: TreeNode[];
 };
@@ -193,19 +193,19 @@ const FolderTree: React.FC<FolderTreeProps> = ({
           return;
         }
         const folderName = await openFolderNameModal({ title: '新建子模块' });
-        const parentId = node?.key === UNGROUPED_FOLDER_KEY ? null : node?.key;
+        const parentKey = node?.key === UNGROUPED_FOLDER_KEY ? null : node?.key;
         const createdFolder = await createFolder({
           name: folderName,
           workspaceKey: workspace?.key,
           // 忽略根目录 folder key
-          parentId,
+          parentKey,
         });
         node?.key && state.expandedKeys.push(node.key);
         const { objectId: createdFolderKey } = createdFolder.toJSON();
         await onFolderTreeChange();
         handleSelect([createdFolderKey], {
           node: {
-            parentId,
+            parentKey,
             testDetailIds: [],
             name: folderName,
             key: createdFolderKey,
@@ -258,10 +258,10 @@ const FolderTree: React.FC<FolderTreeProps> = ({
               message: '模块删除成功',
             });
             const refreshedTreeData = await onFolderTreeChange();
-            const parentNode = getTreeNodeByKey(refreshedTreeData, node.parentId);
+            const parentNode = getTreeNodeByKey(refreshedTreeData, node.parentKey);
             if (parentNode) {
               // 删除后选中模块置于被删除模块的父级
-              handleSelect([node.parentId], {
+              handleSelect([node.parentKey], {
                 node: parentNode,
               });
             } else {
@@ -346,7 +346,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
   }, [treeFn]);
 
   const isEmptyFolderTree = React.useMemo(() => {
-    return hasArrayItem(treeData) && treeData.length === 1;
+    return hasArrayItem(treeData) && treeData[0].children?.length === 0;
   }, [treeData]);
 
   React.useEffect(() => {

@@ -35,7 +35,7 @@ export interface AdvancedConfig {
   id: string;
   label: string;
   value: string;
-  parentId?: string;
+  parentKey?: string;
   parentValue?: string;
 }
 export interface BaseParseObject extends Parse.JSONBaseAttributes {
