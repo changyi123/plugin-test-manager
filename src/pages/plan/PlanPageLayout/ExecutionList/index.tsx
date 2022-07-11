@@ -1,7 +1,11 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect } from 'react';
 import { useRequest } from 'ahooks';
-import { deleteTestEntities, getTestEntitiesByRelationWithOrder } from '@/lib/api/common';
+import {
+  deleteTestEntities,
+  getTestEntitiesByRelation,
+  getTestEntitiesByRelationWithOrder,
+} from '@/lib/api/common';
 import { TestRelationType } from '@/lib/constants';
 import { Dropdown, Menu, Spin, Tabs } from 'antd';
 import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
@@ -36,7 +40,7 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
   const { data, refresh, loading } = useRequest(
     async () => {
       if (activedType !== 'TestExecution') return [];
-      const relationData = await getTestEntitiesByRelationWithOrder(
+      const { list } = await getTestEntitiesByRelationWithOrder(
         TestRelationType.PlanRelExecution,
         {
           from: [planId],
@@ -49,7 +53,56 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
         },
       );
 
-      return relationData?.list;
+      const testExecutionIds = list.map(item => item.objectId);
+
+      const { list: testRuns } = await getTestEntitiesByRelation(
+        TestRelationType.ExecutionRelRun,
+        {
+          from: testExecutionIds,
+        },
+        {
+          // FIXME: 优化查询速度
+          workspaceKey,
+          queryParams: { limit: 9999 },
+          select: [
+            'status',
+            'sortIndex',
+            'runReferenceDetail.reference',
+            'runReferenceDetail.repository',
+            'executor',
+            'designee',
+          ],
+          include: [
+            'status',
+            'sortIndex',
+            'runReferenceDetail.reference',
+            'runReferenceDetail.repository',
+            'executor',
+            'designee',
+          ],
+        },
+      );
+
+      const testRunMap = testRuns
+        // 过滤测试用例事项已被删除的执行
+        .filter(run => run.runReferenceDetail?.reference)
+        // 对测试用例进行排序
+        .sort(
+          (a, b) =>
+            a.sortIndex - b.sortIndex ||
+            Number(new Date(a.createdAt)) - Number(new Date(b.createdAt)),
+        )
+        .reduce((map, run) => {
+          const key = run.relation.from.objectId;
+          const storeTestRuns = map.get(key) ?? [];
+          map.set(key, storeTestRuns.concat(run));
+          return map;
+        }, new Map());
+
+      return list.map(execution => ({
+        ...execution,
+        testRuns: testRunMap.get(execution.objectId) ?? [],
+      }));
     },
     {
       refreshDeps: [planId, activedType],

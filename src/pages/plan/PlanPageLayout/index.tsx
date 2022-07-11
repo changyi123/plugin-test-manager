@@ -116,7 +116,7 @@ const PlanPageLayout: React.FC<any> = () => {
   });
 
   const addTestExecutionDetail = useCallback(async () => {
-    const ignoreTestDetailIds = selectedExecution.relRuns
+    const ignoreTestDetailIds = selectedExecution.testRuns
       .map(run => run.runReferenceDetail?.objectId)
       .filter(Boolean);
 

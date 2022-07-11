@@ -243,7 +243,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   };
 
   /** 根据列表记录删除测试执行 */
-  const deleteTestRunByIds = useMemoizedFn((testRunIds, forceRestCurrentPage = false) => {
+  const deleteTestRunByIds = useMemoizedFn(testRunIds => {
     actionConfirm('该操作会将所选测试执行删除，是否继续操作？', async () => {
       // 删除关联关系，删除测试实体
       await deleteTestEntities(testRunIds);
@@ -252,7 +252,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         message: `${testRunIds.length} 个测试执行任务被删除`,
       });
       // eslint-disable-next-line no-console
-      console.log(1111, forceRestCurrentPage);
+      // console.log(1111, forceRestCurrentPage);
 
       // const refreshAndMutateDataOptions = {
       //   shouldRestSelectedRowKeys: true,
@@ -434,7 +434,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     const deleteTestRun = () => {
       const testRunIds = getTestRunIds();
 
-      deleteTestRunByIds(testRunIds, true);
+      deleteTestRunByIds(testRunIds);
     };
 
     // 更新测试执行人
