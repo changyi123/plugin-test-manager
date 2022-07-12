@@ -9,6 +9,7 @@ import { EventEmitter } from 'ahooks/lib/useEventEmitter';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
 import TestManagerProvider from '@/components/business/TestManagerProvider';
 import { SearchSelectors } from '@/lib/utils/iql';
+import { isEqual } from 'lodash';
 
 export type TableActionEventType = {
   tableSelectionVisible?: boolean;
@@ -70,9 +71,13 @@ const PageProvider: React.FC = ({ children }) => {
     };
   }, []);
 
-  const setSearchParams = useCallback(data => {
-    setSelectors(data);
-  }, []);
+  const setSearchParams = useCallback(
+    data => {
+      if (isEqual(data, selectors)) return;
+      setSelectors(data);
+    },
+    [selectors],
+  );
 
   return (
     <ErrorBoundary>
