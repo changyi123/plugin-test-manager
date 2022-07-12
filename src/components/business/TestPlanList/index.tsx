@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from 'react';
 import { usePageContext } from '@/pages/plan/hook';
 import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
-import { Button, Dropdown, Menu, notification } from 'antd';
+import { Button, Image, Dropdown, Menu, notification } from 'antd';
 import {
   deleteTestEntities,
   getTestEntitiesByQuery,
@@ -12,8 +12,8 @@ import _ from 'lodash';
 import { TestPlanEntity } from '@/pages/plan/type';
 import { TestEntity } from '@/lib/types/Test';
 import { deleteItems } from '@/lib/api/proxima';
-import { actionConfirm, goToItemDetailPage } from '@/lib/utils/helper';
-import { MoreOutlined } from '@ant-design/icons';
+import { actionConfirm, generateStaticFileUrl, goToItemDetailPage } from '@/lib/utils/helper';
+import { EllipsisOutlined } from '@ant-design/icons';
 import { useBaseAction } from '@/lib/hooks/useContext';
 import { StatusProgress } from '../Status';
 import SearchInput from '../SearchInput';
@@ -114,9 +114,31 @@ const TestPlanList: React.FC<any> = () => {
       title: '计划名称',
       render(_, rowData) {
         return (
-          <span className={cx('test-plan-title')} onClick={() => setSelectedTestPlan(rowData)}>
-            {(rowData.reference ?? {}).name}
-          </span>
+          <div className={cx('plan-table-title')}>
+            <div className={cx('plan-table-title-left')}>
+              <Image src={generateStaticFileUrl(rowData.reference.itemType.icon)} />
+              <span className={cx('test-plan-title')} onClick={() => setSelectedTestPlan(rowData)}>
+                {(rowData.reference ?? {}).name}
+              </span>
+            </div>
+            <div className={cx('plan-table-title-right')}>
+              <Dropdown
+                overlay={
+                  <Menu>
+                    <Menu.Item key="delete" onClick={() => handleDelete(rowData)}>
+                      删除测试计划
+                    </Menu.Item>
+                    <Menu.Item key="view" onClick={() => handleView(rowData)}>
+                      查看测试计划
+                    </Menu.Item>
+                  </Menu>
+                }
+                trigger={['hover']}
+              >
+                <EllipsisOutlined className={cx('action', 'right')} style={{ display: 'flex' }} />
+              </Dropdown>
+            </div>
+          </div>
         );
       },
     },
@@ -140,32 +162,6 @@ const TestPlanList: React.FC<any> = () => {
       width: 100,
       render(_, rowData) {
         return <span style={{ color: '#0C62FF' }}>{rowData?.refTestDetails?.length ?? 0}</span>;
-      },
-    },
-    {
-      key: 'action',
-      isSystem: true,
-      title: '操作',
-      width: 120,
-      fixed: 'right' as any,
-      render(_, rowData) {
-        return (
-          <Dropdown
-            overlay={
-              <Menu>
-                <Menu.Item key="delete" onClick={() => handleDelete(rowData)}>
-                  删除测试计划
-                </Menu.Item>
-                <Menu.Item key="view" onClick={() => handleView(rowData)}>
-                  查看测试计划
-                </Menu.Item>
-              </Menu>
-            }
-            trigger={['hover']}
-          >
-            <MoreOutlined className={cx('action', 'right')} style={{ display: 'flex' }} />
-          </Dropdown>
-        );
       },
     },
   ];
