@@ -12,7 +12,6 @@ import { useBaseAction } from '@/lib/hooks/useContext';
 import FolderTree from '@/pages/repository/FolderTree';
 import PageLayout from '@/components/common/PageLayout';
 import { getTestEntitiesByQuery } from '@/lib/api/common';
-import SearchInput from '@/components/business/SearchInput';
 import { useListener } from '@projectproxima/proxima-sdk-js';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
 import TestDetailTable, { ActionType } from './TestDetailTable';
@@ -27,7 +26,8 @@ import {
 
 import { UNGROUPED_FOLDER_KEY } from './constant';
 import RepoDropDown from './RepoDropDown';
-
+import FilterSearch from '@/components/common/FilterSearch';
+import { SearchSelectors } from '@/lib/utils/iql';
 import cx from './index.less';
 
 type GroupedMode = 'all' | 'current';
@@ -59,7 +59,7 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
 
   const state = useReactive({
     breadcrumbs: [],
-    searchValue: '',
+    selectors: [],
     testDetailIds: [],
     selectedFolderKey: '',
     tableSelectionVisible: false,
@@ -214,11 +214,6 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
             </div>
           </OverflowTooltip>
           <div className={cx('actions')}>
-            <SearchInput
-              showInput
-              placeholder="请输入搜索关键字"
-              onSearch={value => (state.searchValue = value as any)}
-            />
             <GroupModeSelector mode={groupedMode} onChange={mode => setGroupedMode(mode)} />
             <Button onClick={() => toggleSelection()}>
               {state.tableSelectionVisible ? '取消操作' : '批量操作'}
@@ -235,10 +230,15 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
           </div>
         </div>
         <div className={cx('table-container')} style={{ height: 'calc(100% - 55px)' }}>
+          <FilterSearch
+            fields={['createdBy', 'priority', 'assignee', 'createdAt']}
+            extendFields={[]}
+            onSearch={data => (state.selectors = data)}
+          />
           <TestDetailTable
             actionRef={tableActionRef}
             onDataChange={handleDataChange}
-            searchValue={state.searchValue}
+            selectors={state.selectors as SearchSelectors}
             testDetailIds={state.testDetailIds}
             folderKey={state.selectedFolderKey}
             onSelectionCancel={() => toggleSelection(false)}

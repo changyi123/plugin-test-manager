@@ -1,13 +1,14 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import DetailTable from './DetailTable';
 import { usePageContext } from '../hook';
 import ExecutionTable from './ExecutionTable';
 import { createTestRelation } from '@/lib/api/common';
+import { TestType, TestRelationType, extendFields, RepositoryModel } from '@/lib/constants';
 import { Tabs, Button, notification, Spin } from 'antd';
-import { TestType, TestRelationType } from '@/lib/constants';
 import { createTestExecutionAndRelations } from '@/lib/api/runs';
 import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
 import TestEntitySelectorModal, { ActionType } from '@/components/business/TestEntitySelectorModal';
+import FilterSearch from '@/components/common/FilterSearch';
 
 import SearchInput from '@/components/business/SearchInput';
 import RepoDropDown from '@/pages/repository/RepoDropDown';
@@ -24,6 +25,7 @@ const Main = () => {
   const [activeKey, setActiveKey] = React.useState(TabKeyEnum.testDetailTable);
   const [value, setValue] = React.useState(''); // 用于回显searchInput的值
   const {
+    setSearchParams,
     refresh,
     setSearchValue,
     selectedTestPlan,
@@ -33,6 +35,9 @@ const Main = () => {
   const [tableSelectionVisible, setTableSelectionVisible] = React.useState(false);
   const { createItemUseModal } = useBaseAction();
   const { workspace } = useTestConfig();
+
+  const detailSearchRef = useRef(null);
+  const executionRef = useRef(null);
 
   const selectedTestPlanId = selectedTestPlan?.objectId;
 
@@ -45,6 +50,9 @@ const Main = () => {
   // 所选测试计划改变，重置选中的 row
   React.useEffect(() => {
     toggleTableSelection(false);
+    // 还原筛选器数据
+    detailSearchRef.current?.reset();
+    executionRef.current?.reset();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedTestPlan]);
 
@@ -120,20 +128,19 @@ const Main = () => {
     });
   };
 
-  const searchInputPlaceholder =
-    activeKey === TabKeyEnum.testDetailTable ? '请输入测试用例标题' : '请输入测试执行任务标题';
   const rightExtraContent = (
     <div className={cx('extra-content')}>
-      <SearchInput
-        showInput
-        value={value}
-        className={cx('action')}
-        placeholder={searchInputPlaceholder}
-        onChange={val => {
-          setValue(val);
-        }}
-        onSearch={handleSearch}
-      />
+      {activeKey === TabKeyEnum.testExecutionTable && (
+        <SearchInput
+          placeholder="请输入标题"
+          value={value}
+          className={cx('action')}
+          onChange={val => {
+            setValue(val);
+          }}
+          onSearch={handleSearch}
+        />
+      )}
       <Button className={cx('action')} onClick={() => toggleTableSelection()}>
         {tableSelectionVisible ? '取消操作' : '批量操作'}
       </Button>
@@ -180,15 +187,26 @@ const Main = () => {
         onChange={key => {
           setActiveKey(key as TabKeyEnum);
           toggleTableSelection(false);
-          handleSearch('');
-          setValue('');
+          setSearchParams([{}, {}]);
         }}
         tabBarExtraContent={{ right: rightExtraContent }}
       >
         <Tabs.TabPane key={TabKeyEnum.testDetailTable} tab="全部用例">
+          <FilterSearch
+            ref={detailSearchRef}
+            fields={['createdBy', 'priority', 'assignee', 'createdAt']}
+            extendFields={extendFields.filter(item => item.key === RepositoryModel)}
+            onSearch={setSearchParams}
+          />
           <DetailTable />
         </Tabs.TabPane>
         <Tabs.TabPane key={TabKeyEnum.testExecutionTable} tab="测试执行任务">
+          <FilterSearch
+            ref={executionRef}
+            fields={['createdBy', 'priority', 'assignee', 'createdAt']}
+            extendFields={extendFields}
+            onSearch={setSearchParams}
+          />
           <ExecutionTable />
         </Tabs.TabPane>
       </Tabs>

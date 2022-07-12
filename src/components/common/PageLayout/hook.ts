@@ -4,7 +4,7 @@ import { useLocalStorageState, useSize } from 'ahooks';
 import { generateStorageKey } from '@/lib/utils/helper';
 
 export const useLayoutHeight = () => {
-  const offsetY = 63; // 63
+  const offsetY = 63;
 
   const size = useSize(document.querySelector('[data-element-id="workspace.layout.content"]'));
   const pageHeader = useSize(

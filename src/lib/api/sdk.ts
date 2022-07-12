@@ -1,5 +1,6 @@
 import createProximaSdk from '@projectproxima/proxima-sdk-js';
 import { TEST_MANAGER_PLUGIN_KEY } from '@/lib/constants';
+import { CustomField } from '@/lib/models';
 
 const proximaSDK = createProximaSdk();
 
@@ -32,4 +33,52 @@ export const openCreateItemModal = ({ itemTypeId, workspaceId, name, extraData }
  */
 export const openItemDetailPanel = (itemId: string) => {
   proximaSDK.execute('openItemViewScreen', itemId);
+};
+
+/**
+ * 打开筛选器popver
+ */
+export const openFilterPopover = async ({ fields, selectors, onChange, extendFields, dom }) => {
+  // 获取字段的fieldType
+  const customFields = await new Parse.Query(CustomField)
+    .include('fieldType')
+    .containedIn('key', fields)
+    .find();
+  // proximaSDK.execute不能传递函数，限制太多
+  window.QiankunProps.openFilterPopover({
+    selectors,
+    list: [...customFields.map(item => item.toJSON()), ...extendFields],
+    onChange,
+    dom,
+  });
+};
+
+/**
+ * 打开筛选器选值popver
+ */
+export const openFieldValuePopover = async ({
+  isExtend,
+  value,
+  fieldKey,
+  workspace,
+  onChange,
+  onClose,
+  field,
+  fetchMethod,
+  dom,
+  expression,
+}) => {
+  // proximaSDK.execute不能传递函数，限制太多
+  window.QiankunProps.openFieldValuePopover({
+    isExtend,
+    workspace,
+    fieldKey,
+    onChange,
+    value,
+    onClose,
+    field,
+    fetchMethod,
+    dom,
+    expression,
+  });
 };

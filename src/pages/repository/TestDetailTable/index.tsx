@@ -12,6 +12,7 @@ import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
 import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
 import { deleteTestEntities, getTestEntitiesByQuery, cloneTestEntities } from '@/lib/api/common';
 import { useUserCellUserDataProp } from '@/lib/hooks/useProxima';
+import { SearchSelectors } from '@/lib/utils/iql';
 
 import cx from './index.less';
 
@@ -46,7 +47,7 @@ export type ActionType = BusinessTableActionType;
 
 type TestDetailTableProps = {
   folderKey?: string;
-  searchValue?: string;
+  selectors?: SearchSelectors;
   testDetailIds?: string[];
   onDataChange?: () => void;
   onSelectionCancel?: () => void;
@@ -54,8 +55,7 @@ type TestDetailTableProps = {
 };
 
 const TestDetailTable: React.FC<TestDetailTableProps> = props => {
-  const { searchValue, onDataChange, actionRef, onSelectionCancel, testDetailIds, folderKey } =
-    props;
+  const { selectors, onDataChange, actionRef, onSelectionCancel, testDetailIds, folderKey } = props;
   const tableActionRef = React.useRef<BusinessTableActionType>();
   const repositorySelectorRef = React.useRef<RepositorySelectorActionType>();
   const [tableLoading, setTableLoading] = React.useState(false);
@@ -71,12 +71,12 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
 
   const dataSourceGetter = React.useCallback(
     async paginationParams => {
-      if (!workspaceKey) return null;
+      if (!workspace) return null;
       setTableLoading(true);
       const data = await getTestEntitiesByQuery(
         {
-          workspaceKey,
-          nameLike: searchValue,
+          workspace,
+          selectors,
           in: testDetailIds ?? [],
           type: TestType.TestDetail,
         },
@@ -90,7 +90,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         total: data.count,
       };
     },
-    [workspaceKey, testDetailIds, searchValue, folderKey],
+    [workspace, testDetailIds, selectors, folderKey],
   );
 
   const refreshAndMutateData = React.useCallback(async () => {

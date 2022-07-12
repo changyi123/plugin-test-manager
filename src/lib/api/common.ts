@@ -1,9 +1,19 @@
 import Parse from '@/lib/parse';
 import { TestConfig } from '../models';
-import { assign, omit, transform } from 'lodash';
+import { assign, omit, transform, isEmpty } from 'lodash';
 import { TestType, TestRelationType } from '@/lib/constants';
 import { Workspace, Item, Test, TestRelation, Repository } from '@/lib/models';
+import { Workspace as WorkspaceType } from '@/lib/types/App';
 import { hasArrayItem, pointerTransfer, toArray, escapeMatchesQueryArg } from '@/lib/utils/helper';
+import fetch from '@/lib/utils/fetch';
+import {
+  selectorToParse,
+  ItemSelectors,
+  withWorkspace,
+  selectorToIql,
+  withItemType,
+  SearchSelectors,
+} from '@/lib/utils/iql';
 
 const BATCH_SIZE = 200;
 
@@ -133,6 +143,10 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
     query.skip(queryParams.offset ?? 0);
   }
 
+  if (config.parseMiddleware) {
+    await config.parseMiddleware(query);
+  }
+
   const { results, count } = await query.find();
 
   // 生成标准数据
@@ -200,6 +214,8 @@ export const getTestEntitiesByRelationWithOrder = async <TResponseList extends a
       descendingBy: [],
       resultTransfer: data => data,
       queryParams: { limit: 10, offset: 0 },
+      selectors: [],
+      workspace: null,
     },
     _config,
   );
@@ -226,7 +242,7 @@ export const getTestEntitiesByRelationWithOrder = async <TResponseList extends a
     .filter(Boolean)
     .map(item => item?.objectId ?? item);
 
-  const query = new Parse.Query(Test);
+  let query = new Parse.Query(Test);
 
   // 处理关联表子查询
   const testRelationQuery = new Parse.Query(TestRelation)
@@ -235,27 +251,26 @@ export const getTestEntitiesByRelationWithOrder = async <TResponseList extends a
 
   query.matchesKeyInQuery('objectId', relationSideKey, testRelationQuery);
 
+  // 测试管理内部字段筛选
+  const testManageSelector = config.selectors?.[1];
+  if (!isEmpty(testManageSelector)) {
+    // 装载测试管理筛选条件
+    query = Parse.Query.and(selectorToParse(new Parse.Query(Test), testManageSelector), query);
+  }
+
   // 测试执行实体不是一个 proxima 事项。当查询执行的时候需要给排除
   const useItemSubQuery =
     relType !== TestRelationType.ExecutionRelRun || relationSideKey !== sideMapping.from;
 
   if (useItemSubQuery) {
-    // 处理事项关联子查询
-    const referenceItemQuery = new Parse.Query(Item);
-    if (config.nameLike) {
-      referenceItemQuery.matches('name', escapeMatchesQueryArg(config.nameLike));
+    // 事项查询条件的selector
+    const itemSelector = config.selectors?.[0];
+    if (!isEmpty(itemSelector)) {
+      const ids = await fetchItemFromIql(itemSelector, config.workspace);
+      // 处理事项关联子查询
+      const referenceItemQuery = new Parse.Query(Item).containedIn('objectId', ids);
+      query.matchesKeyInQuery('reference', 'objectId', referenceItemQuery);
     }
-
-    // name like 应该需要传 workspaceKey 避免全表查询
-    if (config.workspaceKey) {
-      referenceItemQuery.matchesKeyInQuery(
-        'workspace',
-        'objectId',
-        new Parse.Query(Workspace).equalTo('key', config.workspaceKey),
-      );
-    }
-
-    query.matchesKeyInQuery('reference', 'objectId', referenceItemQuery);
   }
 
   if (hasArrayItem(include)) {
@@ -444,6 +459,8 @@ export const getTestEntitiesByQuery = async (
     notIn: string[];
     nameLike: string;
     workspaceKey: string;
+    selectors: SearchSelectors;
+    workspace?: WorkspaceType;
   }>,
   options?: Partial<{
     offset: number;
@@ -482,19 +499,11 @@ export const getTestEntitiesByQuery = async (
     query.equalTo('workspaceKey', queryParams.workspaceKey);
   }
 
-  // 忽略被删除事项数据
-  if (queryParams.nameLike || options.ignoreDeletedItemData) {
-    const itemSubQuery = new Parse.Query(Item);
-    if (queryParams.nameLike) {
-      itemSubQuery.matches('name', escapeMatchesQueryArg(queryParams.nameLike));
-    }
-    if (options.ignoreDeletedItemData && queryParams.workspaceKey) {
-      itemSubQuery.matchesKeyInQuery(
-        'workspace',
-        'objectId',
-        new Parse.Query(Workspace).equalTo('key', queryParams.workspaceKey),
-      );
-    }
+  const itemSelector = queryParams.selectors?.[0];
+  if (!isEmpty(itemSelector)) {
+    const ids = await fetchItemFromIql(itemSelector, queryParams.workspace);
+    // 处理事项关联子查询
+    const itemSubQuery = new Parse.Query(Item).containedIn('objectId', ids);
     query.matchesKeyInQuery('reference', 'objectId', itemSubQuery);
   }
 
@@ -658,6 +667,22 @@ export const updateGlobalConfig = async fields => {
     ...fields,
   });
 };
+
+export async function fetchItemFromIql(selector: ItemSelectors, workspace) {
+  let iql = selectorToIql(selector);
+  // 组装空间
+  iql = withWorkspace(iql, workspace);
+  // 组装事项
+  iql = withItemType(iql, '测试用例');
+  return fetch
+    .$post('/parse/api/search/structure', {
+      from: 0,
+      size: 9999,
+      iql,
+      displayContext: 'test_manager',
+    })
+    .then(data => data?.payload?.rows);
+}
 
 /** 更新测试执行执行人 */
 export const updateTestRunDesignee = async (testRunIds, designees) => {
