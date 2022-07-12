@@ -1,5 +1,6 @@
 import React from 'react';
 import { pick } from 'lodash';
+import { MenuKey } from './Menu';
 import { FileClose } from '@/icons';
 import { getDevConfig } from '@/devEnv';
 import { TestType } from '@/lib/constants';
@@ -103,6 +104,7 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
           icon: <FileClose />,
           children: treeNodes,
           key: UNGROUPED_FOLDER_KEY,
+          disabledMenuKeys: [MenuKey.deleteFolder, MenuKey.renameFolder],
           testDetailIds: ungroupedDetailIds,
         },
       ];
@@ -219,7 +221,6 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
             <Button onClick={() => toggleSelection()}>
               {state.tableSelectionVisible ? '取消操作' : '批量操作'}
             </Button>
-            <span className={cx('line')} />
             <Button type="primary" onClick={createTestDetail} className={cx('action')}>
               新建测试用例
             </Button>
@@ -230,7 +231,7 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
             />
           </div>
         </div>
-        <div className={cx('table-container')} style={{ height: 'calc(100% - 55px)' }}>
+        <div className={cx('table-container')} style={{ height: 'calc(100% - 105px)' }}>
           <FilterSearch
             fields={['createdBy', 'priority', 'assignee', 'createdAt']}
             extendFields={[]}

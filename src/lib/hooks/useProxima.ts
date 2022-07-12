@@ -108,7 +108,7 @@ export const useUsedScreenFieldKeys = (
         .include(['itemTypeScreenScheme.defaultScreenScheme'])
         .equalTo('key', workspaceKey)
         .first()
-        .then(item => item.toJSON());
+        .then(item => item?.toJSON());
 
       const { itemTypeScreenSchemeMappings, defaultScreenScheme } =
         workspace?.itemTypeScreenScheme ?? {};
