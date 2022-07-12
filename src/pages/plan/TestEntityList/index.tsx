@@ -29,6 +29,7 @@ import { UserCell } from '@projectproxima/components';
 import { useUserCellUserDataProp } from '@/lib/hooks/useProxima';
 
 interface TestEntityListProps {
+  loading?: boolean;
   requestScopedTestDetailIds?: string[];
   activedType: string;
   selectedExecution?: Record<string, any>;
@@ -36,6 +37,7 @@ interface TestEntityListProps {
 }
 
 const TestEntityList: React.FC<TestEntityListProps> = ({
+  loading,
   activedType,
   requestScopedTestDetailIds,
   selectedExecution,
@@ -500,7 +502,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         columns={activedType === 'TestPlan' ? allTestColumns : excetionColumns}
         name="TestEntityList"
         actionRef={actionRef}
-        loading={tableLoading}
+        loading={tableLoading || loading}
         getDataSource={tableDataGetter}
         onHasRowSelected={setHasRowSelected}
         allSelectableRowKeys={activedType === 'TestPlan' ? allSelectableRowKeys : testIdSequence}
