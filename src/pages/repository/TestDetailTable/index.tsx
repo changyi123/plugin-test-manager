@@ -3,6 +3,7 @@ import { useDrag } from 'ahooks';
 import { TestType } from '@/lib/constants';
 import { deleteItems } from '@/lib/api/proxima';
 import { notification, Tooltip } from 'antd';
+import { UNGROUPED_FOLDER_KEY } from '../constant';
 import { updateFolders } from '@/lib/api/repository';
 import { UserCell } from '@projectproxima/components';
 import { updateItemAssignee } from '@/lib/api/proxima';
@@ -23,6 +24,7 @@ import RepositoryGroup from '@/components/business/RepositoryGroup';
 
 const RowDragHandler = data => {
   const ref = React.useRef();
+
   useDrag(data, ref, {
     onDragStart(e) {
       const dragElem = Array.from(
@@ -192,8 +194,14 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         isSystem: true,
         shouldCellUpdate: (record, prevRecord) => record.folderKey !== prevRecord.folderKey,
         render(_, rowData) {
-          const folderKey = rowData.folderKey;
-          return <RowDragHandler folderKey={folderKey} testId={rowData.objectId} />;
+          const folderKey = rowData?.repository?.objectId ?? UNGROUPED_FOLDER_KEY;
+          return (
+            <RowDragHandler
+              folderKey={folderKey}
+              testId={rowData.objectId}
+              currentFolderKey={rowData?.folderKey}
+            />
+          );
         },
       },
       {

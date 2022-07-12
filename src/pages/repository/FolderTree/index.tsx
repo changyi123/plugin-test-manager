@@ -10,7 +10,7 @@ import { traverseTreeNodes } from '../util';
 import { useTreeFn } from '../hook';
 import { MenuKey, FolderMenu } from '../Menu';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
-import { Tree, Button, Input, notification, Empty, Dropdown, Modal } from 'antd';
+import { Tree, Button, Input, notification, Dropdown, Modal } from 'antd';
 import {
   CustomMore,
   CustomScreenOff,
@@ -83,6 +83,7 @@ const DropTreeTitle = ({ children, nodeKey, onItemDrop }) => {
         testId: data.testId,
         fromFolderKey: data.folderKey,
         toFolderKey: nodeKey,
+        currentFolderKey: data.currentFolderKey,
       });
       const treeElementNode = (e.target as any).closest('.ant-tree-treenode');
       treeElementNode.classList.remove(dragoverClassName);
@@ -416,9 +417,10 @@ const FolderTree: React.FC<FolderTreeProps> = ({
   ];
 
   const handleItemDrop = React.useCallback(
-    async ({ testId, toFolderKey, fromFolderKey }) => {
+    async ({ testId, toFolderKey, fromFolderKey, currentFolderKey }) => {
       if (fromFolderKey === toFolderKey) return;
       const sourceNode = treeFn.getTreeNodeByKey(fromFolderKey);
+      const currentFolderNode = treeFn.getTreeNodeByKey(currentFolderKey);
 
       await updateTestEntities([
         {
@@ -434,9 +436,10 @@ const FolderTree: React.FC<FolderTreeProps> = ({
 
       await onFolderTreeChange();
       sourceNode.testDetailIds = sourceNode.testDetailIds.filter(id => id !== testId);
+      currentFolderNode.testDetailIds = currentFolderNode.testDetailIds.filter(id => id !== testId);
 
-      handleSelect([sourceNode.key], {
-        node: sourceNode,
+      handleSelect([currentFolderNode.key], {
+        node: currentFolderNode,
       });
     },
     [handleSelect, onFolderTreeChange, treeFn],

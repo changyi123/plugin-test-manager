@@ -114,10 +114,15 @@ const ExpandedTable = (props: ExpandedTableProps) => {
     const handleDesigneeChange = async users => {
       const testRunIds = getTestRunIds();
 
-      users = users.map(user => ({
-        ...user,
-        objectId: user.value,
-      }));
+      const getUerInfo = userId => {
+        return {
+          objectId: userId,
+          __type: 'Pointer',
+          className: '_User',
+        };
+      };
+
+      users = users.map(user => getUerInfo(user.value));
 
       await updateTestRunDesignee(testRunIds, users);
       refreshAndMutateData();

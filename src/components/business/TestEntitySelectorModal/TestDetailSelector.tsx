@@ -51,6 +51,7 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
   const [selectedTestDetailIds, setSelectedTestDetailIds] = React.useState([]);
   // 选中空间
   const [selectedWorkspaceKey, setSelectedWorkspaceKey] = React.useState(workspaceKey);
+  const [expandedKeys, setExpandedKeys] = React.useState([]);
 
   const folderCheckedCacheRef = React.useRef({} as Record<string, any>);
 
@@ -211,6 +212,7 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
 
   React.useEffect(() => {
     setSelectedNode(repositoryTreeData[0]);
+    setExpandedKeys([repositoryTreeData[0]?.key]);
   }, [repositoryTreeData]);
 
   return (
@@ -251,6 +253,8 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
               <Tree.DirectoryTree
                 showIcon
                 {...TreeComponentCheckProps}
+                expandedKeys={expandedKeys}
+                onExpand={expandedKeys => setExpandedKeys(expandedKeys)}
                 icon={({ expanded }) => (expanded ? <FileOpen /> : <FileClose />)}
                 switcherIcon={<CaretDownOutlined style={{ color: '#878C96' }} />}
                 treeData={treeData}

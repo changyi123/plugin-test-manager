@@ -56,10 +56,14 @@
     overflow: hidden;
     width: 100%;
     align-items: center;
+
     &-name {
       margin-right: 8px;
-      :global(.highlight) {
-        color: #1e80ff;
+      &.highlight {
+        background-color: rgba(31, 214, 255, 0.2);
+      }
+      .matched {
+        color: rgb(255, 0, 0);
       }
     }
     &-length,

@@ -1,24 +1,17 @@
 import React from 'react';
-import { TestType } from '@/lib/constants';
-import { omit, pick, cloneDeep } from 'lodash';
-import { getFolderTree } from '@/lib/api/repository';
+import { omit } from 'lodash';
 import { useAllTestWorkspace } from '@/lib/hooks/useTest';
 import { getTestEntitiesByQuery } from '@/lib/api/common';
-import { includeAll, exclude, includeItem } from './helper';
 import SearchInput from '@/components/business/SearchInput';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
-import { useRequest, useReactive, useInfiniteScroll } from 'ahooks';
-import { hasArrayItem, escapeMatchesQueryArg } from '@/lib/utils/helper';
-import { Select, Tree, Empty, Checkbox, Spin, Tooltip, Input } from 'antd';
-import { traverseTreeNodes, appendGroupedDetailIdsToTreeNode } from '@/pages/repository/util';
+import { hasArrayItem } from '@/lib/utils/helper';
+import { useReactive, useInfiniteScroll, useDebounce } from 'ahooks';
+import { Select, Empty, Checkbox, Spin, Tooltip, Input } from 'antd';
 import {
-  CaretDownOutlined,
-  FileClose,
-  FileOpen,
-  CaretUpOutlined,
-  SearchOutlined,
-  CheckOutlined,
-} from '@/icons';
+  ActionType,
+  default as RepositoryFolderTree,
+} from '@/components/business/RepositoryFolderTree';
+import { CaretDownOutlined, CaretUpOutlined, SearchOutlined, CheckOutlined } from '@/icons';
 
 import cx from './InheritTestDetail.less';
 
@@ -52,14 +45,14 @@ const InheritTestDetail: React.FC<InheritTestDetailProps> = props => {
     orderByCratedAt: 'asc' as 'asc' | 'desc',
   });
 
+  const repositoryFolderTreeRef = React.useRef<ActionType>();
   // 目录搜索
   const [folderSearchValue, setFolderSearchValue] = React.useState('');
   const [detailSearchValue, setDetailSearchValue] = React.useState('');
+  const [requestScopedTestDetailIds, setRequestScopedTestDetailIds] = React.useState([]);
 
   // tree checked key
   const [folderCheckedKey, setFolderCheckedKey] = React.useState(DEFAULT_CHECKED_KEY);
-  // 选中目录树
-  const [selectedNode, setSelectedNode] = React.useState(null);
   // 选中测试用例 id
   const [selectedTestDetailIds, setSelectedTestDetailIds] = React.useState([]);
   // 选中空间
@@ -85,84 +78,6 @@ const InheritTestDetail: React.FC<InheritTestDetailProps> = props => {
     );
   }, [allTestWorkspaces]);
 
-  const { data: repositoryTreeData = [], loading: repositoryTreeDataLoading } = useRequest(
-    async () => {
-      // 获取当前空间内所有的测试实体
-      const getAllTestDetailEntityIds = async workspaceKey => {
-        const { results: data } = await getTestEntitiesByQuery(
-          {
-            type: TestType.TestDetail,
-            workspaceKey,
-          },
-          {
-            limit: 99999,
-            include: [],
-            select: ['objectId', 'repository'],
-          },
-        );
-
-        return data.map(item => pick(item, ['objectId', 'repository']));
-      };
-
-      const [treeNodes, allTestDetailIds] = await Promise.all([
-        getFolderTree(selectedWorkspaceKey),
-        getAllTestDetailEntityIds(selectedWorkspaceKey),
-      ]);
-
-      const ungroupedDetailIds = appendGroupedDetailIdsToTreeNode(treeNodes, allTestDetailIds);
-
-      traverseTreeNodes(treeNodes, node => {
-        // FIXME: 优化渲染 title 逻辑
-        node.title = <OverflowTooltip title={node.name}>{node.name}</OverflowTooltip>;
-        node.disableCheckbox = !node.testDetailIds.length;
-      });
-
-      const folder = {
-        key: `ROOT_FOLDER_${selectedWorkspaceKey}`,
-        name: '全部用例',
-        title: '全部用例',
-        parentKey: null,
-        testDetailIds: ungroupedDetailIds,
-        icon: <FileClose />,
-        children: treeNodes,
-      };
-
-      return [folder];
-    },
-    {
-      ready: Boolean(selectedWorkspaceKey),
-      refreshDeps: [selectedWorkspaceKey],
-      cacheKey: `Repository_${selectedWorkspaceKey}`,
-      staleTime: 999999999,
-      cacheTime: 999999999,
-    },
-  );
-
-  const treeData = React.useMemo(() => {
-    if (!folderSearchValue) return repositoryTreeData;
-
-    const newTreeData = cloneDeep(repositoryTreeData);
-    const escapedRegExp = escapeMatchesQueryArg(folderSearchValue);
-    traverseTreeNodes(newTreeData, node => {
-      node.display = escapedRegExp.test(node.name);
-    });
-
-    traverseTreeNodes(newTreeData, node => {
-      let hasDisplay = node.display;
-      hasDisplay ||
-        traverseTreeNodes([node], node => {
-          if (node.display) {
-            hasDisplay = true;
-          }
-        });
-      if (!hasDisplay) {
-        node.children = [];
-      }
-    });
-
-    return newTreeData.filter(node => node.children?.length || (node as any).display);
-  }, [repositoryTreeData, folderSearchValue]);
-
   const { data: testDetailData, loading: testDetailDataLoading } = useInfiniteScroll(
     async params => {
       const { offset = 0 } = params ?? ({} as any);
@@ -176,7 +91,7 @@ const InheritTestDetail: React.FC<InheritTestDetailProps> = props => {
       const { results, count } = await getTestEntitiesByQuery(
         {
           ...baseQueryParams,
-          in: selectedNode.testDetailIds,
+          in: requestScopedTestDetailIds,
           workspaceKey: selectedWorkspaceKey,
         },
         {
@@ -197,43 +112,10 @@ const InheritTestDetail: React.FC<InheritTestDetailProps> = props => {
     },
     {
       target: detailSelectorRef,
-      reloadDeps: [JSON.stringify(baseSearchState), JSON.stringify(selectedNode?.testDetailIds)],
+      reloadDeps: [JSON.stringify(baseSearchState), requestScopedTestDetailIds.toString()],
       isNoMore: data => data?.offset === undefined,
     },
   );
-
-  // 当前目录全选
-  const handleFolderCheckAll = (checked, testDetailIds) => {
-    setSelectedTestDetailIds(prevState => {
-      if (checked) {
-        // 先排除再全选
-        return exclude(prevState, testDetailIds).concat(testDetailIds);
-      } else {
-        // 取消选中选差集
-        return exclude(prevState, testDetailIds);
-      }
-    });
-  };
-
-  const handleCheck = (_, { checked, node }) => {
-    if (!node.testDetailIds.length) return;
-    const testDetailIds = node.testDetailIds;
-    handleFolderCheckAll(checked, testDetailIds);
-
-    setFolderCheckedKey(prevState => {
-      if (checked) {
-        return {
-          ...prevState,
-          checked: prevState.checked.concat(node.key),
-        };
-      } else {
-        return {
-          ...prevState,
-          checked: exclude(prevState.checked, [node.key]),
-        };
-      }
-    });
-  };
 
   const handleWorkspaceChange = key => {
     folderCheckedCacheRef.current = {
@@ -254,13 +136,10 @@ const InheritTestDetail: React.FC<InheritTestDetailProps> = props => {
     setSelectedTestDetailIds(needUpdateTestDetailIds);
   };
 
-  const TreeComponentCheckProps = React.useMemo(() => {
-    return isSingleMode
-      ? {}
-      : {
-          // checkable: true, checkStrictly: true
-        };
-  }, [isSingleMode]);
+  const debouncedFolderSearchValue = useDebounce(folderSearchValue, { wait: 400 });
+  React.useEffect(() => {
+    repositoryFolderTreeRef.current.filterFolder(debouncedFolderSearchValue);
+  }, [debouncedFolderSearchValue]);
 
   React.useEffect(() => {
     setFolderSearchValue('');
@@ -274,38 +153,6 @@ const InheritTestDetail: React.FC<InheritTestDetailProps> = props => {
   React.useEffect(() => {
     onTestDetailSelect?.(selectedTestDetailIds);
   }, [onTestDetailSelect, selectedTestDetailIds]);
-
-  React.useEffect(() => {
-    const currentFolderTestDetailIds = selectedNode?.testDetailIds;
-    if (!currentFolderTestDetailIds || isSingleMode) return;
-    setFolderCheckedKey(prevState => {
-      const newState = cloneDeep(prevState);
-      // 判断 selectedTestDetailIds 包含当前所有节点的 testDetailIds
-      const isIncludeAll =
-        selectedTestDetailIds.length &&
-        currentFolderTestDetailIds.length &&
-        includeAll(selectedTestDetailIds, currentFolderTestDetailIds);
-
-      if (isIncludeAll) {
-        newState.checked = newState.checked.concat(selectedNode.key);
-        newState.halfChecked = exclude(newState.halfChecked, [selectedNode.key]);
-      } else {
-        // 判断 selectedTestDetailIds 含当前节点的任意 testDetailIds
-        const isIncludeItem = includeItem(selectedTestDetailIds, currentFolderTestDetailIds);
-        if (isIncludeItem) {
-          newState.halfChecked = newState.halfChecked.concat(selectedNode.key);
-        } else {
-          newState.halfChecked = exclude(newState.halfChecked, [selectedNode.key]);
-        }
-        newState.checked = exclude(newState.checked, [selectedNode.key]);
-      }
-      return newState;
-    });
-  }, [isSingleMode, selectedNode, selectedTestDetailIds]);
-
-  React.useEffect(() => {
-    setSelectedNode(repositoryTreeData[0]);
-  }, [repositoryTreeData]);
 
   return (
     <div className={cx('container')}>
@@ -332,106 +179,83 @@ const InheritTestDetail: React.FC<InheritTestDetailProps> = props => {
       />
       <Spin spinning={testDetailDataLoading}>
         <div className={cx('main')}>
-          {hasArrayItem(repositoryTreeData) ? (
-            <div className={cx('selector-container')}>
-              <div className={cx('folder-selector')}>
-                <Input
-                  placeholder="搜索用例库分组"
-                  value={folderSearchValue}
-                  className={cx('search-input')}
-                  addonBefore={<SearchOutlined />}
-                  onChange={e => setFolderSearchValue(e.target.value)}
-                />
-                <Tree.DirectoryTree
-                  showIcon
-                  {...TreeComponentCheckProps}
-                  icon={({ expanded }) => (expanded ? <FileOpen /> : <FileClose />)}
-                  switcherIcon={<CaretDownOutlined style={{ color: '#878C96' }} />}
-                  treeData={treeData}
-                  onCheck={handleCheck}
-                  className={cx('tree')}
-                  checkedKeys={folderCheckedKey}
-                  onSelect={(_, { node }) => setSelectedNode(node)}
-                  selectedKeys={[selectedNode?.key].filter(Boolean)}
-                />
-              </div>
-              <div className={cx('detail-selector-container')}>
-                <div className={cx('detail', 'header')}>
-                  {!isSingleMode ? (
-                    <Checkbox
-                      disabled={!selectedNode?.testDetailIds.length}
-                      onChange={ev => {
-                        handleFolderCheckAll(ev.target.checked, selectedNode.testDetailIds);
-                      }}
-                      checked={
-                        selectedNode?.testDetailIds.length &&
-                        includeAll(selectedTestDetailIds, selectedNode?.testDetailIds)
-                      }
-                      className={cx('checkbox')}
-                    />
-                  ) : null}
-                  <span>共 {testDetailData?.count ?? 0} 条用例</span>
-                  <Tooltip title="创建时间排序">
-                    <span
-                      className={cx('action')}
-                      onClick={() => {
-                        baseSearchState.orderByCratedAt =
-                          baseSearchState.orderByCratedAt === 'asc' ? 'desc' : 'asc';
-                      }}
-                    >
-                      <span>{baseSearchState.orderByCratedAt === 'asc' ? '最早' : '最晚'}</span>
-                      <span className={cx('icon')}>
-                        <CaretUpOutlined
-                          className={cx(baseSearchState.orderByCratedAt === 'asc' && 'activity')}
-                        />
-                        <CaretDownOutlined
-                          className={cx(baseSearchState.orderByCratedAt === 'desc' && 'activity')}
-                        />
-                      </span>
-                    </span>
-                  </Tooltip>
-                </div>
-                {hasArrayItem(testDetailData?.list) ? (
-                  <ul ref={detailSelectorRef} className={cx('detail-selector')}>
-                    {testDetailData.list.map(testDetail => (
-                      <li
-                        onClick={() =>
-                          isSingleMode && setSelectedTestDetailIds([testDetail.objectId])
-                        }
-                        className={cx('detail', isSingleMode && 'effect')}
-                        key={testDetail.objectId}
-                      >
-                        {!isSingleMode ? (
-                          <Checkbox
-                            className={cx('checkbox')}
-                            onChange={ev => {
-                              handleTestDetailCheck(ev.target.checked, testDetail.objectId);
-                            }}
-                            disabled={ignoreTestDetailIds.includes(testDetail.objectId)}
-                            checked={[...ignoreTestDetailIds, ...selectedTestDetailIds].includes(
-                              testDetail.objectId,
-                            )}
-                          />
-                        ) : null}
-                        <OverflowTooltip title={testDetail.reference?.name}>
-                          {testDetail.reference?.name ?? '事项被删除'}
-                        </OverflowTooltip>
-                        {isSingleMode && selectedTestDetailIds.includes(testDetail.objectId) ? (
-                          <div className={cx('action')}>
-                            <CheckOutlined className={cx('check-icon')} />
-                          </div>
-                        ) : null}
-                      </li>
-                    ))}
-                  </ul>
-                ) : testDetailDataLoading ? null : (
-                  <Empty style={{ paddingTop: 100 }} description="当前目录未关联测试用例" />
-                )}
-              </div>
+          <div className={cx('selector-container')}>
+            <div className={cx('folder-selector')}>
+              <Input
+                placeholder="搜索用例库分组"
+                value={folderSearchValue}
+                className={cx('search-input')}
+                addonBefore={<SearchOutlined />}
+                onChange={e => setFolderSearchValue(e.target.value)}
+              />
+              <RepositoryFolderTree
+                workspaceKey={workspaceKey}
+                shouldIncludeSubFolder={false}
+                actionRef={repositoryFolderTreeRef}
+                onFolderSelect={ids => setRequestScopedTestDetailIds(ids)}
+              />
             </div>
-          ) : repositoryTreeDataLoading ? null : (
-            <Empty style={{ paddingTop: 100 }} description="当前用例库未创建用例模块" />
-          )}
+            <div className={cx('detail-selector-container')}>
+              <div className={cx('detail', 'header')}>
+                <span>共 {testDetailData?.count ?? 0} 条用例</span>
+                <Tooltip title="创建时间排序">
+                  <span
+                    className={cx('action')}
+                    onClick={() => {
+                      baseSearchState.orderByCratedAt =
+                        baseSearchState.orderByCratedAt === 'asc' ? 'desc' : 'asc';
+                    }}
+                  >
+                    <span>{baseSearchState.orderByCratedAt === 'asc' ? '最早' : '最晚'}</span>
+                    <span className={cx('icon')}>
+                      <CaretUpOutlined
+                        className={cx(baseSearchState.orderByCratedAt === 'asc' && 'activity')}
+                      />
+                      <CaretDownOutlined
+                        className={cx(baseSearchState.orderByCratedAt === 'desc' && 'activity')}
+                      />
+                    </span>
+                  </span>
+                </Tooltip>
+              </div>
+              {hasArrayItem(testDetailData?.list) ? (
+                <ul ref={detailSelectorRef} className={cx('detail-selector')}>
+                  {testDetailData.list.map(testDetail => (
+                    <li
+                      onClick={() =>
+                        isSingleMode && setSelectedTestDetailIds([testDetail.objectId])
+                      }
+                      className={cx('detail', isSingleMode && 'effect')}
+                      key={testDetail.objectId}
+                    >
+                      {!isSingleMode ? (
+                        <Checkbox
+                          className={cx('checkbox')}
+                          onChange={ev => {
+                            handleTestDetailCheck(ev.target.checked, testDetail.objectId);
+                          }}
+                          disabled={ignoreTestDetailIds.includes(testDetail.objectId)}
+                          checked={[...ignoreTestDetailIds, ...selectedTestDetailIds].includes(
+                            testDetail.objectId,
+                          )}
+                        />
+                      ) : null}
+                      <OverflowTooltip title={testDetail.reference?.name}>
+                        {testDetail.reference?.name ?? '事项被删除'}
+                      </OverflowTooltip>
+                      {isSingleMode && selectedTestDetailIds.includes(testDetail.objectId) ? (
+                        <div className={cx('action')}>
+                          <CheckOutlined className={cx('check-icon')} />
+                        </div>
+                      ) : null}
+                    </li>
+                  ))}
+                </ul>
+              ) : testDetailDataLoading ? null : (
+                <Empty style={{ paddingTop: 100 }} description="当前目录未关联测试用例" />
+              )}
+            </div>
+          </div>
         </div>
       </Spin>
     </div>

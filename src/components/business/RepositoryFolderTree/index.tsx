@@ -16,7 +16,7 @@ import cx from './style.less';
 
 const { DirectoryTree } = Tree;
 
-type ActionType = {
+export type ActionType = {
   /** 筛选目录 */
   filterFolder: (text: string) => void;
   /** 重置筛选 */
@@ -150,7 +150,7 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
         text = text?.trim();
         const needExpandedKeys = [];
         if (text) {
-          const matchRegExp = escapeMatchesQueryArg(text);
+          const matchRegExp = escapeMatchesQueryArg(text, ['i', 'g']);
           const matchedText = {};
           traverseTreeNodes(treeData, node => {
             const matched = node.name?.match(matchRegExp);
@@ -209,15 +209,16 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
   const titleRender = useMemoizedFn(node => {
     const [currentNum, childNodeNum] = node.amount;
     const matchedText = matchedFolderText[node.key];
+    const matchedClassName = cx('matched');
     const highlightMatchedNodeName = matchedText
-      ? node.name.replace(matchedText, `<span class="highlight">${matchedText}</span>`)
+      ? node.name.replace(matchedText, `<span class="${matchedClassName}">${matchedText}</span>`)
       : `<span>${node.name}</span>`;
 
     return (
       <>
         <OverflowTooltip title={node.name}>
           <span
-            className={cx('tree-node-name')}
+            className={cx('tree-node-name', Boolean(matchedText) && 'highlight')}
             dangerouslySetInnerHTML={{ __html: highlightMatchedNodeName }}
           />
         </OverflowTooltip>
