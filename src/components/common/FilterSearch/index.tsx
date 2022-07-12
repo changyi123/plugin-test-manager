@@ -46,10 +46,17 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
     },
   }));
 
-  const handleSetSelectors = useCallback(data => {
-    setSelectors(data);
-    currentSelectors.current = data;
-  }, []);
+  const handleSetSelectors = useCallback(
+    data => {
+      // 因为name字段不在筛选器中维护，要手动合并name
+      if (selectors?.name) {
+        data.name = selectors?.name;
+      }
+      setSelectors(data);
+      currentSelectors.current = data;
+    },
+    [selectors?.name],
+  );
 
   const searchFn = useCallback(() => {
     const ids = extendFields.map(item => item.key);
