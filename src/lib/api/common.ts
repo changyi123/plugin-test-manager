@@ -1,7 +1,7 @@
 import Parse from '@/lib/parse';
 import { TestConfig } from '../models';
 import { assign, omit, transform, isEmpty } from 'lodash';
-import { TestType, TestRelationType } from '@/lib/constants';
+import { TestType, TestRelationType, RepositoryModel } from '@/lib/constants';
 import { Workspace, Item, Test, TestRelation, Repository } from '@/lib/models';
 import { Workspace as WorkspaceType } from '@/lib/types/App';
 import { hasArrayItem, pointerTransfer, toArray, escapeMatchesQueryArg } from '@/lib/utils/helper';
@@ -505,6 +505,15 @@ export const getTestEntitiesByQuery = async (
     // 处理事项关联子查询
     const itemSubQuery = new Parse.Query(Item).containedIn('objectId', ids);
     query.matchesKeyInQuery('reference', 'objectId', itemSubQuery);
+  }
+
+  const repositorySelector = queryParams.selectors?.[1]?.[RepositoryModel];
+  // 为用例类型需要拼上repository的查询条件
+  if (!isEmpty(repositorySelector) && queryParams.type === TestType.TestDetail) {
+    const repositoryIdList = (repositorySelector.value as any[]).map(
+      repository => repository.objectId,
+    );
+    query.containedIn('repository', repositoryIdList);
   }
 
   if (queryParams.in) {

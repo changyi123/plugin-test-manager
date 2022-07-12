@@ -16,6 +16,7 @@ import { getTestEntitiesByQuery } from '@/lib/api/common';
 import { useListener } from '@projectproxima/proxima-sdk-js';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
 import TestDetailTable, { ActionType } from './TestDetailTable';
+import { extendFields, RepositoryModel } from '@/lib/constants';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import TestManagerProvider from '@/components/business/TestManagerProvider';
 import {
@@ -234,8 +235,8 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
         <div className={cx('table-container')} style={{ height: 'calc(100% - 105px)' }}>
           <FilterSearch
             fields={['createdBy', 'priority', 'assignee', 'createdAt']}
-            extendFields={[]}
             onSearch={data => (state.selectors = data)}
+            extendFields={extendFields.filter(field => field.key === RepositoryModel)}
           />
           <TestDetailTable
             actionRef={tableActionRef}
