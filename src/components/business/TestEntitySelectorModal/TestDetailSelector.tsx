@@ -1,19 +1,14 @@
 import React from 'react';
-import { TestType } from '@/lib/constants';
-import { pick, cloneDeep } from 'lodash';
-import { getFolderTree } from '@/lib/api/repository';
+import { cloneDeep } from 'lodash';
 import { useAllTestWorkspace } from '@/lib/hooks/useTest';
-import { getTestEntitiesByQuery } from '@/lib/api/common';
 import { includeAll, exclude, includeItem } from './helper';
-import OverflowTooltip from '@/components/common/OverflowTooltip';
-import { useRequest } from 'ahooks';
-import { hasArrayItem, escapeMatchesQueryArg } from '@/lib/utils/helper';
-import { Select, Tree, Empty, Input } from 'antd';
-import { traverseTreeNodes, appendGroupedDetailIdsToTreeNode } from '@/pages/repository/util';
-import { CaretDownOutlined, FileClose, FileOpen, SearchOutlined } from '@/icons';
+import { useDebounce } from 'ahooks';
+import { Select, Input } from 'antd';
+import { SearchOutlined } from '@/icons';
 import TestDetailsSelectorList from './TestDetailsSelectorList';
 
 import cx from './TestDetailSelector.less';
+import RepositoryFolderTree, { ActionType } from '../RepositoryFolderTree';
 
 const DEFAULT_CHECKED_KEY = {
   checked: [],
@@ -39,6 +34,8 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
     isWorkspaceIsolate,
   } = props;
 
+  const repositoryFolderTreeRef = React.useRef<ActionType>();
+
   // 目录搜索
   const [folderSearchValue, setFolderSearchValue] = React.useState('');
   const [detailSearchValue, setDetailSearchValue] = React.useState('');
@@ -51,7 +48,6 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
   const [selectedTestDetailIds, setSelectedTestDetailIds] = React.useState([]);
   // 选中空间
   const [selectedWorkspaceKey, setSelectedWorkspaceKey] = React.useState(workspaceKey);
-  const [expandedKeys, setExpandedKeys] = React.useState([]);
 
   const folderCheckedCacheRef = React.useRef({} as Record<string, any>);
 
@@ -72,84 +68,6 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
     );
   }, [allTestWorkspaces]);
 
-  const { data: repositoryTreeData = [], loading: repositoryTreeDataLoading } = useRequest(
-    async () => {
-      // 获取当前空间内所有的测试实体
-      const getAllTestDetailEntityIds = async workspaceKey => {
-        const { results: data } = await getTestEntitiesByQuery(
-          {
-            type: TestType.TestDetail,
-            workspaceKey,
-          },
-          {
-            limit: 99999,
-            include: [],
-            select: ['objectId', 'repository'],
-          },
-        );
-
-        return data.map(item => pick(item, ['objectId', 'repository']));
-      };
-
-      const [treeNodes, allTestDetailIds] = await Promise.all([
-        getFolderTree(selectedWorkspaceKey),
-        getAllTestDetailEntityIds(selectedWorkspaceKey),
-      ]);
-
-      const ungroupedDetailIds = appendGroupedDetailIdsToTreeNode(treeNodes, allTestDetailIds);
-
-      traverseTreeNodes(treeNodes, node => {
-        // FIXME: 优化渲染 title 逻辑
-        node.title = <OverflowTooltip title={node.name}>{node.name}</OverflowTooltip>;
-        node.disableCheckbox = !node.testDetailIds.length;
-      });
-
-      const folder = {
-        key: `ROOT_FOLDER_${selectedWorkspaceKey}`,
-        name: '全部用例',
-        title: '全部用例',
-        parentKey: null,
-        testDetailIds: ungroupedDetailIds,
-        icon: <FileClose />,
-        children: treeNodes,
-      };
-
-      return [folder];
-    },
-    {
-      ready: Boolean(selectedWorkspaceKey),
-      refreshDeps: [selectedWorkspaceKey],
-      cacheKey: `Repository_${selectedWorkspaceKey}`,
-      staleTime: 999999999,
-      cacheTime: 999999999,
-    },
-  );
-
-  const treeData = React.useMemo(() => {
-    if (!folderSearchValue) return repositoryTreeData;
-
-    const newTreeData = cloneDeep(repositoryTreeData);
-    const escapedRegExp = escapeMatchesQueryArg(folderSearchValue);
-    traverseTreeNodes(newTreeData, node => {
-      node.display = escapedRegExp.test(node.name);
-    });
-
-    traverseTreeNodes(newTreeData, node => {
-      let hasDisplay = node.display;
-      hasDisplay ||
-        traverseTreeNodes([node], node => {
-          if (node.display) {
-            hasDisplay = true;
-          }
-        });
-      if (!hasDisplay) {
-        node.children = [];
-      }
-    });
-
-    return newTreeData.filter(node => node.children?.length || (node as any).display);
-  }, [repositoryTreeData, folderSearchValue]);
-
   const handleWorkspaceChange = key => {
     folderCheckedCacheRef.current = {
       ...folderCheckedCacheRef.current,
@@ -161,18 +79,14 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
     setFolderCheckedKey(folderCheckedCacheRef.current[key] ?? DEFAULT_CHECKED_KEY);
   };
 
-  const TreeComponentCheckProps = React.useMemo(() => {
-    return isSingleMode
-      ? {}
-      : {
-          // checkable: true, checkStrictly: true
-        };
-  }, [isSingleMode]);
+  const debouncedFolderSearchValue = useDebounce(folderSearchValue, { wait: 400 });
+  React.useEffect(() => {
+    repositoryFolderTreeRef.current.filterFolder(debouncedFolderSearchValue);
+  }, [debouncedFolderSearchValue]);
 
   React.useEffect(() => {
     setFolderSearchValue('');
     setDetailSearchValue('');
-    // baseSearchState.nameLike = '';
     // 单选模式切换时重置选中项
     isSingleMode && setSelectedTestDetailIds([]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -210,11 +124,6 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
     });
   }, [isSingleMode, selectedNode, selectedTestDetailIds]);
 
-  React.useEffect(() => {
-    setSelectedNode(repositoryTreeData[0]);
-    setExpandedKeys([repositoryTreeData[0]?.key]);
-  }, [repositoryTreeData]);
-
   return (
     <div className={cx('container')}>
       <div className={cx('title')}>
@@ -240,46 +149,36 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
         />
       </div>
       <div className={cx('main')}>
-        {hasArrayItem(repositoryTreeData) ? (
-          <div className={cx('selector-container')}>
-            <div className={cx('folder-selector')}>
-              <Input
-                placeholder="搜索用例库分组"
-                value={folderSearchValue}
-                className={cx('search-input')}
-                addonBefore={<SearchOutlined />}
-                onChange={e => setFolderSearchValue(e.target.value)}
-              />
-              <Tree.DirectoryTree
-                showIcon
-                {...TreeComponentCheckProps}
-                expandedKeys={expandedKeys}
-                onExpand={expandedKeys => setExpandedKeys(expandedKeys)}
-                icon={({ expanded }) => (expanded ? <FileOpen /> : <FileClose />)}
-                switcherIcon={<CaretDownOutlined style={{ color: '#878C96' }} />}
-                treeData={treeData}
-                className={cx('tree')}
-                expandAction={false}
-                checkedKeys={folderCheckedKey}
-                onSelect={(_, { node }) => setSelectedNode(node)}
-                selectedKeys={[selectedNode?.key].filter(Boolean)}
-                rootStyle={{ height: 'calc(100% - 40px)' }}
-              />
-            </div>
-            <div className={cx('detail-selector-container')}>
-              <TestDetailsSelectorList
-                workspaceKey={selectedWorkspaceKey}
-                selectedNode={selectedNode}
-                detailSearchValue={detailSearchValue}
-                ignoreTestDetailIds={ignoreTestDetailIds ?? []}
-                selectedTestDetailIds={selectedTestDetailIds}
-                setSelectedTestDetailIds={setSelectedTestDetailIds}
+        <div className={cx('selector-container')}>
+          <div className={cx('folder-selector')}>
+            <Input
+              placeholder="搜索用例库分组"
+              value={folderSearchValue}
+              className={cx('search-input')}
+              addonBefore={<SearchOutlined />}
+              onChange={e => setFolderSearchValue(e.target.value)}
+            />
+            <div className={cx('tree-box')}>
+              <RepositoryFolderTree
+                workspaceKey={workspaceKey}
+                shouldIncludeSubFolder={false}
+                actionRef={repositoryFolderTreeRef}
+                onFolderSelect={(_, nodeInfo) => setSelectedNode(nodeInfo.selectedFolder)}
               />
             </div>
           </div>
-        ) : repositoryTreeDataLoading ? null : (
-          <Empty style={{ paddingTop: 100 }} description="当前用例库未创建用例模块" />
-        )}
+          <div className={cx('detail-selector-container')}>
+            <TestDetailsSelectorList
+              workspaceKey={selectedWorkspaceKey}
+              selectedNode={selectedNode}
+              detailSearchValue={detailSearchValue}
+              ignoreTestDetailIds={ignoreTestDetailIds ?? []}
+              selectedTestDetailIds={selectedTestDetailIds}
+              setSelectedTestDetailIds={setSelectedTestDetailIds}
+            />
+          </div>
+        </div>
+        {/* <Empty style={{ paddingTop: 100 }} description="当前用例库未创建用例模块" /> */}
       </div>
     </div>
   );
