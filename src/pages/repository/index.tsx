@@ -144,6 +144,7 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
 
   React.useEffect(() => {
     handleTreeSelect();
+    tableActionRef.current.resetSelectedRowKeys();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [groupedMode]);
 

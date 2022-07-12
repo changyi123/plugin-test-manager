@@ -1,6 +1,7 @@
 import createProximaSdk from '@projectproxima/proxima-sdk-js';
 import { TEST_MANAGER_PLUGIN_KEY } from '@/lib/constants';
 import { CustomField } from '@/lib/models';
+import Parse from '@/lib/parse';
 
 const proximaSDK = createProximaSdk();
 
