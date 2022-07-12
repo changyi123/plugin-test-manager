@@ -17,14 +17,16 @@ import { useResizeContainerDOM } from './hooks';
 import RepositoryFolderTree, {
   ActionType as FolderTreeActionType,
 } from '@/components/business/RepositoryFolderTree';
-
-import cx from './index.less';
+import { useLocation } from 'react-router-dom';
 import TestEntityList from '../TestEntityList';
 import SearchInput from '@/components/business/SearchInput';
 import RepoDropDown from '@/pages/repository/RepoDropDown';
 import TestEntitySelectorModal, {
   ActionType as ModelActionType,
 } from '@/components/business/TestEntitySelectorModal';
+import useGetTestPlanById from '@/components/business/TestPlanList/hooks';
+
+import cx from './index.less';
 
 const PlanPageLayout: React.FC<any> = () => {
   const {
@@ -54,6 +56,24 @@ const PlanPageLayout: React.FC<any> = () => {
   const [value, setValue] = useState('');
   const [foldSearchValue, setFoldSearchValue] = useState('');
   const [showType, setShowType] = useState('showCur');
+  const [loading, setLoading] = useState(false);
+
+  const {
+    query: { planId, actionType },
+  } = useLocation();
+  const { data: planData } = useGetTestPlanById([planId ?? '']);
+
+  useEffect(() => {
+    if (planId && planData?.list?.length && !selectedTestPlan) {
+      setSelectedTestPlan(planData?.list.find(d => d.objectId === planId) as any);
+    }
+  }, [planData, planId, selectedTestPlan]);
+
+  useEffect(() => {
+    if (actionType && !activedType) {
+      setActivedType(actionType);
+    }
+  }, [actionType, activedType]);
 
   // 创建测试执行任务
   const createTestExecution = async () => {
@@ -125,6 +145,7 @@ const PlanPageLayout: React.FC<any> = () => {
     const ignoreTestDetailIds = selectedExecution.testRuns
       .map(run => run.runReferenceDetail?.objectId)
       .filter(Boolean);
+    setLoading(true);
 
     const testDetailIds = await testEntitySelectorRef.current.open();
 
@@ -139,6 +160,7 @@ const PlanPageLayout: React.FC<any> = () => {
     });
 
     scopedTestDetailRefresh();
+    setLoading(false);
     notification.success({
       message: '测试执行创建成功',
     });
@@ -325,6 +347,7 @@ const PlanPageLayout: React.FC<any> = () => {
               </div>
             </div>
             <TestEntityList
+              loading={loading}
               activedType={activedType}
               requestScopedTestDetailIds={requestScopedTestDetailIds}
               selectedExecution={selectedExecution}
