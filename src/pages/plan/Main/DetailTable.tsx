@@ -19,10 +19,12 @@ import { BusinessTable, BusinessTableActionType } from '@/components/common/Busi
 
 import cx from './DetailTable.less';
 import RepositoryGroup from '@/components/business/RepositoryGroup';
+import { useTestConfig } from '@/lib/hooks/useContext';
 
 const DetailTable = () => {
   const actionRef = React.useRef<BusinessTableActionType>();
   const [tableLoading, setTableLoading] = React.useState(false);
+  const { workspace } = useTestConfig();
 
   // 事项数据更新后刷新列表
   useListener('updateItemList', () => {
@@ -32,7 +34,7 @@ const DetailTable = () => {
   });
 
   const {
-    searchValue,
+    selectors,
     workspaceKey,
     selectedTestPlan,
     mutateTestPlanEvent,
@@ -67,11 +69,15 @@ const DetailTable = () => {
     if (selectedTestPlanId) {
       actionRef.current.refresh();
     }
-  }, [searchValue, selectedTestPlanId]);
+  }, [selectors, selectedTestPlanId]);
 
   const tableDataGetter = React.useCallback(
     async queryParams => {
       if (!selectedTestPlanId) return null;
+      // 没有获取到时候，不要触发查询
+      if (!workspace) {
+        return { total: 0, list: [] };
+      }
       setTableLoading(true);
 
       const [{ list: testDetails, total }, { list: testRuns }] = await Promise.all([
@@ -79,13 +85,14 @@ const DetailTable = () => {
           TestRelationType.PlanRelDetail,
           { from: selectedTestPlanId },
           {
+            selectors,
             include: ['repository'],
             select: ['type', 'sortIndex', 'reference', 'repository', 'workspaceKey', 'createdAt'],
             // FIXME: 优化查询速度
             workspaceKey,
             fillItemData: true,
-            nameLike: searchValue,
             queryParams: queryParams,
+            workspace,
           },
         ),
         getTestEntitiesByRelationWithOrder(
@@ -93,6 +100,9 @@ const DetailTable = () => {
           { from: selectedTestPlanId },
           {
             // FIXME: 优化查询速度
+            // workspaceKey,
+            selectors,
+            workspace,
             workspaceKey,
             fillItemData: true,
             queryParams: { limit: 9999 },
@@ -134,6 +144,7 @@ const DetailTable = () => {
           relRuns: testRuns.filter(run => run.runReferenceDetail?.objectId === detail.objectId),
         };
       });
+
       setTableLoading(false);
 
       return {
@@ -141,7 +152,7 @@ const DetailTable = () => {
         total,
       };
     },
-    [searchValue, selectedTestPlanId, workspaceKey],
+    [selectedTestPlanId, workspace, selectors],
   );
 
   const removeTestRelation = React.useCallback(
@@ -271,31 +282,33 @@ const DetailTable = () => {
   ];
 
   return (
-    <BusinessTable
-      titleCellOption={{
-        workspaceKey,
-        testType: 'TestDetail',
-      }}
-      useColumnSetting
-      defaultColumnKey={[
-        'key',
-        'repositoryGroup',
-        'latestStatus',
-        'times',
-        'createdBy',
-        'createdAt',
-      ]}
-      rowKey="objectId"
-      columns={columns}
-      name="DetailTable"
-      actionRef={actionRef}
-      loading={tableLoading}
-      getDataSource={tableDataGetter}
-      onHasRowSelected={setHasRowSelected}
-      allSelectableRowKeys={allSelectableRowKeys}
-      selectionActionNodes={selectionActionNodes}
-      onSelectionCancel={() => tableSelectionToggleEvent.emit(false)}
-    />
+    <div className={cx('detail-table-wrap')}>
+      <BusinessTable
+        titleCellOption={{
+          workspaceKey,
+          testType: 'TestDetail',
+        }}
+        useColumnSetting
+        defaultColumnKey={[
+          'key',
+          'repositoryGroup',
+          'latestStatus',
+          'times',
+          'createdBy',
+          'createdAt',
+        ]}
+        rowKey="objectId"
+        columns={columns}
+        name="DetailTable"
+        actionRef={actionRef}
+        loading={tableLoading}
+        getDataSource={tableDataGetter}
+        onHasRowSelected={setHasRowSelected}
+        allSelectableRowKeys={allSelectableRowKeys}
+        selectionActionNodes={selectionActionNodes}
+        onSelectionCancel={() => tableSelectionToggleEvent.emit(false)}
+      />
+    </div>
   );
 };
 

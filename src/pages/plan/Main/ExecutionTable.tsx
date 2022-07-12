@@ -8,20 +8,25 @@ import { TestRelationType, TestType } from '@/lib/constants';
 import { useListener } from '@projectproxima/proxima-sdk-js';
 import { StatusProgress } from '@/components/business/Status';
 import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
+import { isEmpty } from 'lodash';
 import {
   deleteTestEntities,
   getTestEntitiesByRelation,
+  fetchItemFromIql,
   getTestEntitiesByRelationWithOrder,
 } from '@/lib/api/common';
-
+import { useTestConfig } from '@/lib/hooks/useContext';
 import BusinessTable, {
   ActionType as BusinessTableActionRef,
 } from '@/components/common/BusinessTable/BusinessTable';
 import TestEntitySelectorModal, {
   ActionType as TestEntitySelectorActionType,
 } from '@/components/business/TestEntitySelectorModal';
+import { Item, Test } from '@/lib/models';
+import { selectorToParse } from '@/lib/utils/iql';
 
 import ExpandedTable from './ExpandedTable';
+import cx from './DetailTable.less';
 
 const ExecutionTable = () => {
   const innerTableRefs = React.useRef<
@@ -30,6 +35,7 @@ const ExecutionTable = () => {
   const executionTableActionRef = React.useRef<BusinessTableActionRef>();
   const testEntitySelectorRef = React.useRef<TestEntitySelectorActionType>();
   const [ignoreTestEntityIds, setIgnoreTestEntityIds] = React.useState([]);
+  const { workspace } = useTestConfig();
   const [loading, setLoading] = React.useState(false);
 
   // 事项数据更新后刷新列表
@@ -44,6 +50,7 @@ const ExecutionTable = () => {
 
   const {
     searchValue,
+    selectors,
     workspaceKey,
     selectedTestPlan,
     mutateTestPlanEvent,
@@ -91,11 +98,13 @@ const ExecutionTable = () => {
     if (selectedTestPlanId) {
       executionTableActionRef.current.refresh();
     }
-  }, [searchValue, selectedTestPlanId]);
+  }, [searchValue, selectors, selectedTestPlanId]);
 
   const tableDataGetter = React.useCallback(
     async queryParams => {
       try {
+        // 空间不存在，不执行函数
+        if (!workspace) return { total: 0, list: [] };
         setLoading(true);
         return await getTestEntitiesByRelationWithOrder(
           TestRelationType.PlanRelExecution,
@@ -137,6 +146,33 @@ const ExecutionTable = () => {
                     'executor',
                     'designee',
                   ],
+                  parseMiddleware: async query => {
+                    const testQuery = new Parse.Query(Test);
+                    const [itemSelector, testManageSelector] = [selectors?.[0], selectors?.[1]];
+                    let needUpdate = false;
+                    if (!isEmpty(itemSelector)) {
+                      const ids = await fetchItemFromIql(itemSelector, workspace);
+                      needUpdate = true;
+                      if (ids?.length) {
+                        testQuery.containedIn(
+                          'reference',
+                          ids.map(id => Item.createWithoutData(id)),
+                        );
+                      } else {
+                        testQuery.doesNotExist('reference');
+                      }
+                    }
+                    if (!isEmpty(testManageSelector)) {
+                      needUpdate = true;
+                      selectorToParse(testQuery, testManageSelector);
+                    }
+                    if (needUpdate) {
+                      query.matchesQuery(
+                        'to',
+                        new Parse.Query(Test).matchesQuery('runReferenceDetail', testQuery),
+                      );
+                    }
+                  },
                 },
               );
               console.timeEnd('PlanRelExecution-getTestEntitiesByRelation');
@@ -171,7 +207,7 @@ const ExecutionTable = () => {
         setLoading(false);
       }
     },
-    [searchValue, selectedTestPlanId, workspaceKey],
+    [searchValue, selectedTestPlanId, selectors, workspace, workspaceKey],
   );
 
   const addTestDetail = async rowData => {
@@ -294,24 +330,26 @@ const ExecutionTable = () => {
         actionRef={testEntitySelectorRef}
         ignoreTestEntityIds={ignoreTestEntityIds}
       />
-      <BusinessTable
-        titleCellOption={{
-          workspaceKey,
-          testType: 'TestExecution',
-        }}
-        loading={loading}
-        useColumnSetting
-        rowKey="objectId"
-        itemKey="reference"
-        name="ExecutionTable"
-        columns={columnsProp}
-        expandable={{
-          expandedRowRender,
-          expandRowByClick: true,
-        }}
-        getDataSource={tableDataGetter}
-        actionRef={executionTableActionRef}
-      />
+      <div className={cx('detail-table-wrap')}>
+        <BusinessTable
+          titleCellOption={{
+            workspaceKey,
+            testType: 'TestExecution',
+          }}
+          loading={loading}
+          useColumnSetting
+          rowKey="objectId"
+          itemKey="reference"
+          name="ExecutionTable"
+          columns={columnsProp}
+          expandable={{
+            expandedRowRender,
+            expandRowByClick: true,
+          }}
+          getDataSource={tableDataGetter}
+          actionRef={executionTableActionRef}
+        />
+      </div>
     </>
   );
 };

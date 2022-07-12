@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { noop } from 'lodash';
 import { getDevConfig } from '@/devEnv';
 import { useEventEmitter } from 'ahooks';
@@ -8,6 +8,7 @@ import { useSDK } from '@projectproxima/plugin-sdk';
 import { EventEmitter } from 'ahooks/lib/useEventEmitter';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
 import TestManagerProvider from '@/components/business/TestManagerProvider';
+import { SearchSelectors } from '@/lib/utils/iql';
 
 export type TableActionEventType = {
   tableSelectionVisible?: boolean;
@@ -18,6 +19,8 @@ type TestPlanEntity = TestEntity<TestType.TestPlan> & {
 };
 
 type PageContextType = {
+  selectors: SearchSelectors;
+  setSearchParams: (data: SearchSelectors) => void;
   searchValue: string;
   workspaceKey: string;
   refresh: (key?: string) => void;
@@ -30,6 +33,8 @@ type PageContextType = {
 };
 
 export const PageContext = React.createContext<PageContextType>({
+  selectors: [{}, {}],
+  setSearchParams: noop,
   refresh: noop,
   searchValue: '',
   workspaceKey: '',
@@ -44,6 +49,7 @@ export const PageContext = React.createContext<PageContextType>({
 const PageProvider: React.FC = ({ children }) => {
   const { context } = useSDK();
   const [searchValue, setSearchValue] = React.useState('');
+  const [selectors, setSelectors] = React.useState();
   const tableSelectionToggleEvent = useEventEmitter<boolean>();
   const mutateTestPlanEvent = useEventEmitter<string | undefined>();
   const refreshCacheRef = React.useRef<Record<string, () => void>>();
@@ -64,11 +70,17 @@ const PageProvider: React.FC = ({ children }) => {
     };
   }, []);
 
+  const setSearchParams = useCallback(data => {
+    setSelectors(data);
+  }, []);
+
   return (
     <ErrorBoundary>
       <TestManagerProvider workspaceKey={workspaceKey}>
         <PageContext.Provider
           value={{
+            selectors,
+            setSearchParams,
             refresh,
             searchValue,
             workspaceKey,

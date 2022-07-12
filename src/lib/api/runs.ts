@@ -402,12 +402,11 @@ export const updateTestRun = async (
   const userInfo = await Parse.User.current();
 
   const getUerInfo = () => {
-    const uesr = userInfo.toJSON();
+    const user = userInfo.toJSON();
     return {
-      objectId: uesr.objectId,
-      username: uesr.username,
-      nickname: uesr.nickname,
-      enabled: uesr.enabled,
+      objectId: user.objectId,
+      __type: 'Pointer',
+      className: '_User',
     };
   };
 

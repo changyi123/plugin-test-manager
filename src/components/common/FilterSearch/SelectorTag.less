@@ -1,0 +1,58 @@
+.search-tag {
+  display: flex;
+  align-items: center;
+  padding-left: 8px;
+
+  .name {
+    height: 20px;
+    font-size: 12px;
+    font-family: PingFangSC-Regular, PingFang SC;
+    font-weight: 400;
+    color: #848C9F;
+    line-height: 20px;
+  }
+
+  .value {
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .ml4 {
+    margin-left: 4px;
+  }
+
+  .count {
+    padding: 0 4px;
+    height: 16px;
+    line-height: 16px;
+    background: #B5BAC5;
+    border-radius: 8px;
+    color: #FFFFFF;
+    font-size: 12px;
+  }
+}
+
+.search-criteria {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-right: 8px;
+  margin-bottom: 12px;
+  padding: 4px 8px 4px 0;
+  width: max-content;
+  height: 28px;
+  background-color: #F5F6F8;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #F1F2F4;
+  }
+
+  &.active {
+    background: #0C62FF;
+  }
+}

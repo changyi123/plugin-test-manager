@@ -368,22 +368,23 @@ const FolderTree: React.FC<FolderTreeProps> = ({
 
     if (!isEmptyFolderTree) return null;
 
-    return (
-      <Empty
-        className={cx('empty')}
-        description={
-          <>
-            <p>模块为空</p>
-            <p className={cx('hint')}>请先新建模块</p>
-          </>
-        }
-      >
-        <Button type="primary" size="small" onClick={() => handleMenuClick(MenuKey.createFolder)}>
-          新建模块
-        </Button>
-      </Empty>
-    );
-  }, [handleMenuClick, isEmptyFolderTree, loading]);
+    return null;
+    // return (
+    //   <Empty
+    //     className={cx('empty')}
+    //     description={
+    //       <>
+    //         <p>模块为空</p>
+    //         <p className={cx('hint')}>请先新建模块</p>
+    //       </>
+    //     }
+    //   >
+    //     <Button type="primary" size="small" onClick={() => handleMenuClick(MenuKey.createFolder)}>
+    //       新建模块
+    //     </Button>
+    //   </Empty>
+    // );
+  }, [isEmptyFolderTree, loading]);
 
   const ToolKitButtons = [
     <Button
@@ -450,7 +451,14 @@ const FolderTree: React.FC<FolderTreeProps> = ({
           </OverflowTooltip>
 
           <span className={cx('tree-node-length')}>{`${node.length[0]}(${node.length[1]})`}</span>
-          <Dropdown overlay={<FolderMenu onClick={({ key }) => handleMenuClick(key, node)} />}>
+          <Dropdown
+            overlay={
+              <FolderMenu
+                disabledKeys={node.disabledMenuKeys}
+                onClick={({ key }) => handleMenuClick(key, node)}
+              />
+            }
+          >
             <CustomMore onClick={e => e.stopPropagation()} className={cx('tree-node-action')} />
           </Dropdown>
         </>

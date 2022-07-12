@@ -1,5 +1,6 @@
 import React from 'react';
 import { pick } from 'lodash';
+import { MenuKey } from './Menu';
 import { FileClose } from '@/icons';
 import { getDevConfig } from '@/devEnv';
 import { TestType } from '@/lib/constants';
@@ -12,10 +13,10 @@ import { useBaseAction } from '@/lib/hooks/useContext';
 import FolderTree from '@/pages/repository/FolderTree';
 import PageLayout from '@/components/common/PageLayout';
 import { getTestEntitiesByQuery } from '@/lib/api/common';
-import SearchInput from '@/components/business/SearchInput';
 import { useListener } from '@projectproxima/proxima-sdk-js';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
 import TestDetailTable, { ActionType } from './TestDetailTable';
+import { extendFields, RepositoryModel } from '@/lib/constants';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import TestManagerProvider from '@/components/business/TestManagerProvider';
 import {
@@ -27,7 +28,8 @@ import {
 
 import { UNGROUPED_FOLDER_KEY } from './constant';
 import RepoDropDown from './RepoDropDown';
-
+import FilterSearch from '@/components/common/FilterSearch';
+import { SearchSelectors } from '@/lib/utils/iql';
 import cx from './index.less';
 
 type GroupedMode = 'all' | 'current';
@@ -59,7 +61,7 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
 
   const state = useReactive({
     breadcrumbs: [],
-    searchValue: '',
+    selectors: [],
     testDetailIds: [],
     selectedFolderKey: '',
     tableSelectionVisible: false,
@@ -103,6 +105,7 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
           icon: <FileClose />,
           children: treeNodes,
           key: UNGROUPED_FOLDER_KEY,
+          disabledMenuKeys: [MenuKey.deleteFolder, MenuKey.renameFolder],
           testDetailIds: ungroupedDetailIds,
         },
       ];
@@ -144,6 +147,7 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
 
   React.useEffect(() => {
     handleTreeSelect();
+    tableActionRef.current.resetSelectedRowKeys();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [groupedMode]);
 
@@ -214,16 +218,10 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
             </div>
           </OverflowTooltip>
           <div className={cx('actions')}>
-            <SearchInput
-              showInput
-              placeholder="请输入搜索关键字"
-              onSearch={value => (state.searchValue = value as any)}
-            />
             <GroupModeSelector mode={groupedMode} onChange={mode => setGroupedMode(mode)} />
             <Button onClick={() => toggleSelection()}>
               {state.tableSelectionVisible ? '取消操作' : '批量操作'}
             </Button>
-            <span className={cx('line')} />
             <Button type="primary" onClick={createTestDetail} className={cx('action')}>
               新建测试用例
             </Button>
@@ -234,11 +232,16 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
             />
           </div>
         </div>
-        <div className={cx('table-container')} style={{ height: 'calc(100% - 55px)' }}>
+        <div className={cx('table-container')} style={{ height: 'calc(100% - 105px)' }}>
+          <FilterSearch
+            fields={['createdBy', 'priority', 'assignee', 'createdAt']}
+            onSearch={data => (state.selectors = data)}
+            extendFields={extendFields.filter(field => field.key === RepositoryModel)}
+          />
           <TestDetailTable
             actionRef={tableActionRef}
             onDataChange={handleDataChange}
-            searchValue={state.searchValue}
+            selectors={state.selectors as SearchSelectors}
             testDetailIds={state.testDetailIds}
             folderKey={state.selectedFolderKey}
             onSelectionCancel={() => toggleSelection(false)}

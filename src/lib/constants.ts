@@ -145,3 +145,242 @@ export const enum ExtensionValType {
 }
 
 export const CREATE_ITEM_STORE_FIELD_KEY = '$testManagerPluginDetailFormValues';
+
+// 筛选 - 不同字段包含的条件
+export const FILTER_EXPR_NAME = {
+  Text_Contain: 'Text_Contain',
+  Text_Not_Contain: 'Text_Not_Contain',
+  Text_Equal: 'Text_Equal',
+  Text_Not_Equal: 'Text_Not_Equal',
+  Text_Empty: 'Text_Empty',
+  Text_Not_Empty: 'Text_Not_Empty',
+  Number_Equal: 'Number_Equal',
+  Number_Not_Equal: 'Number_Not_Equal',
+  Number_Less_Than: 'Number_Less_Than',
+  Number_Greater_Than: 'Number_Greater_Than',
+  Dropdown_Equal: 'Dropdown_Equal',
+  Dropdown_Contain: 'Dropdown_Contain',
+  Dropdown_Not_Contain: 'Dropdown_Not_Contain',
+  User_Contain: 'User_Contain',
+  User_Not_Contain: 'User_Not_Contain',
+  Workspace_Equal: 'Workspace_Equal',
+  Workspace_Not_Equal: 'Workspace_Not_Equal',
+  Workspace_Contain: 'Workspace_Contain',
+  Workspace_Not_Contain: 'Workspace_Not_Contain',
+  ItemType_Equal: 'ItemType_Equal',
+  ItemType_Not_Equal: 'ItemType_Not_Equal',
+  ItemType_Contain: 'ItemType_Contain',
+  ItemType_Not_Contain: 'ItemType_Not_Contain',
+  Key_Equal: 'Key_Equal',
+  Key_Not_Equal: 'Key_Not_Equal',
+  Key_Less_Than: 'Key_Less_Than',
+  Key_Greater_Than: 'Key_Greater_Than',
+  Status_Contain: 'Status_Contain',
+  Status_Not_Contain: 'Status_Not_Contain',
+  CreatedBy_Equal: 'CreatedBy_Equal',
+  CreatedBy_Not_Equal: 'CreatedBy_Not_Equal',
+  CreatedBy_Contain: 'CreatedBy_Contain',
+  CreatedBy_Not_Contain: 'CreatedBy_Not_Contain',
+  UpdatedBy_Equal: 'UpdatedBy_Equal',
+  UpdatedBy_Not_Equal: 'UpdatedBy_Not_Equal',
+  UpdatedBy_Contain: 'UpdatedBy_Contain',
+  UpdatedBy_Not_Contain: 'UpdatedBy_Not_Contain',
+  Date_Range: 'Date_Range',
+  CreatedAt_Range: 'CreatedAt_Range',
+  UpdatedAt_Range: 'UpdatedAt_Range',
+  BindWorkspace_Equal: 'BindWorkspace_Equal',
+  BindWorkspace_Not_Equal: 'BindWorkspace_Not_Equal',
+  BindWorkspace_Contain: 'BindWorkspace_Contain',
+  BindWorkspace_Not_Contain: 'BindWorkspace_Not_Contain',
+  Assignee_Contain: 'Assignee_Contain',
+  Assignee_Not_Contain: 'Assignee_Not_Contain',
+  Priority_Equal: 'Priority_Equal',
+  Priority_Not_Equal: 'Priority_Not_Equal',
+  Priority_Less_Than: 'Priority_Less_Than',
+  Priority_Greater_Than: 'Priority_Greater_Than',
+  Priority_Contain: 'Priority_Contain',
+  Priority_Not_Contain: 'Priority_Not_Contain',
+  ItemGroup_Contain: 'ItemGroup_Contain',
+  ItemGroup_Not_Contain: 'ItemGroup_Not_Contain',
+  StatusType_Contain: 'StatusType_Contain',
+  StatusType_Not_Contain: 'StatusType_Not_Contain',
+  Tag_Contain: 'Tag_Contain',
+  Tag_Not_Contain: 'Tag_Not_Contain',
+};
+
+export const FILTER_EXPRESSIONS = {
+  Text: [
+    // { label: '等于', value: FILTER_EXPR_NAME.Text_Equal },
+    { label: '包含', value: FILTER_EXPR_NAME.Text_Contain },
+    { label: '不包含', value: FILTER_EXPR_NAME.Text_Not_Contain },
+    { label: '为空', value: FILTER_EXPR_NAME.Text_Empty },
+    { label: '不为空', value: FILTER_EXPR_NAME.Text_Not_Empty },
+    // { label: '不等于', value: FILTER_EXPR_NAME.Text_Not_Equal },
+  ],
+  Number: [
+    { label: '等于', value: FILTER_EXPR_NAME.Number_Equal },
+    { label: '不等于', value: FILTER_EXPR_NAME.Number_Not_Equal },
+    { label: '小于', value: FILTER_EXPR_NAME.Number_Less_Than },
+    { label: '大于', value: FILTER_EXPR_NAME.Number_Greater_Than },
+  ],
+  Dropdown: [
+    { label: '属于', value: FILTER_EXPR_NAME.Dropdown_Contain },
+    { label: '不属于', value: FILTER_EXPR_NAME.Dropdown_Not_Contain },
+  ],
+  DataQuote: [
+    { label: '属于', value: FILTER_EXPR_NAME.Dropdown_Contain },
+    { label: '不属于', value: FILTER_EXPR_NAME.Dropdown_Not_Contain },
+  ],
+  Version: [
+    { label: '属于', value: FILTER_EXPR_NAME.Dropdown_Contain },
+    { label: '不属于', value: FILTER_EXPR_NAME.Dropdown_Not_Contain },
+  ],
+  Sprint: [
+    { label: '属于', value: FILTER_EXPR_NAME.Dropdown_Contain },
+    { label: '不属于', value: FILTER_EXPR_NAME.Dropdown_Not_Contain },
+  ],
+  User: [
+    { label: '属于', value: FILTER_EXPR_NAME.User_Contain },
+    { label: '不属于', value: FILTER_EXPR_NAME.User_Not_Contain },
+  ],
+  Workspace: [
+    { label: '属于', value: FILTER_EXPR_NAME.Workspace_Contain },
+    { label: '不属于', value: FILTER_EXPR_NAME.Workspace_Not_Contain },
+  ],
+  BindWorkspace: [
+    { label: '属于', value: FILTER_EXPR_NAME.BindWorkspace_Contain },
+    { label: '不属于', value: FILTER_EXPR_NAME.BindWorkspace_Not_Contain },
+  ],
+  ItemType: [
+    //事项类型
+    { label: '属于', value: FILTER_EXPR_NAME.ItemType_Contain },
+    { label: '不属于', value: FILTER_EXPR_NAME.ItemType_Not_Contain },
+  ],
+  Key: [
+    //事项ID
+    { label: '等于', value: FILTER_EXPR_NAME.Key_Equal },
+    { label: '不等于', value: FILTER_EXPR_NAME.Key_Not_Equal },
+    { label: '小于', value: FILTER_EXPR_NAME.Key_Less_Than },
+    { label: '大于', value: FILTER_EXPR_NAME.Key_Greater_Than },
+  ],
+  Status: [
+    { label: '属于', value: FILTER_EXPR_NAME.Status_Contain },
+    { label: '不属于', value: FILTER_EXPR_NAME.Status_Not_Contain },
+  ],
+  createdBy: [
+    // parse默认字段，首字母小写
+    { label: '属于', value: FILTER_EXPR_NAME.CreatedBy_Contain },
+    { label: '不属于', value: FILTER_EXPR_NAME.CreatedBy_Not_Contain },
+  ],
+  updatedBy: [
+    // parse默认字段，首字母小写
+    { label: '属于', value: FILTER_EXPR_NAME.UpdatedBy_Contain },
+    { label: '不属于', value: FILTER_EXPR_NAME.UpdatedBy_Not_Contain },
+  ],
+  Assignee: [
+    // 负责人
+    { label: '属于', value: FILTER_EXPR_NAME.Assignee_Contain },
+    { label: '不属于', value: FILTER_EXPR_NAME.Assignee_Not_Contain },
+  ],
+  Priority: [
+    // 优先级
+    { label: '属于', value: FILTER_EXPR_NAME.Priority_Contain },
+    { label: '不属于', value: FILTER_EXPR_NAME.Priority_Not_Contain },
+    { label: '小于', value: FILTER_EXPR_NAME.Priority_Less_Than },
+    { label: '大于', value: FILTER_EXPR_NAME.Priority_Greater_Than },
+  ],
+  ItemGroup: [
+    { label: '属于', value: FILTER_EXPR_NAME.ItemGroup_Contain },
+    { label: '不属于', value: FILTER_EXPR_NAME.ItemGroup_Not_Contain },
+  ],
+  StatusType: [
+    { label: '属于', value: FILTER_EXPR_NAME.StatusType_Contain },
+    { label: '不属于', value: FILTER_EXPR_NAME.StatusType_Not_Contain },
+  ],
+  Tag: [
+    { label: '属于', value: FILTER_EXPR_NAME.Tag_Contain },
+    { label: '不属于', value: FILTER_EXPR_NAME.Tag_Not_Contain },
+  ],
+};
+
+export const IQL_CONDITION = {
+  NOT_EQUAL: '!=',
+  EQUAL: '=',
+  GREATER_THAN: '>',
+  LESS_THAN: '<',
+  GREATER_THAN_EQUAL: '>=',
+  LESS_THAN_EQUAL: '<=',
+  NOT_CONTAIN: 'not in',
+  CONTAIN: 'in',
+  TEXT_CONTAIN: '~',
+  TEXT_NOT_CONTAIN: '!~',
+  ORDER_BY: 'order by',
+  // is后面只能跟null或者empty
+  IS: 'is',
+  IS_NOT: 'is not',
+  DESC: 'desc',
+  ASC: 'asc',
+  AND: 'and',
+  _AND_: ' and ',
+  _OR_: ' or ',
+};
+
+export const isUseOptionLabel = (component: string): boolean => {
+  return [
+    FIELD_TYPE_KEY_MAPPINGS.Workspace,
+    FIELD_TYPE_KEY_MAPPINGS.ItemType,
+    FIELD_TYPE_KEY_MAPPINGS.ItemGroup,
+    FIELD_TYPE_KEY_MAPPINGS.Priority,
+    FIELD_TYPE_KEY_MAPPINGS.BindWorkspace,
+    FIELD_TYPE_KEY_MAPPINGS.Version,
+    FIELD_TYPE_KEY_MAPPINGS.Sprint,
+    FIELD_TYPE_KEY_MAPPINGS.Tag,
+  ].includes(component);
+};
+
+export const isUseOptionValue = (component: string): boolean => {
+  return [FIELD_TYPE_KEY_MAPPINGS.Dropdown].includes(component);
+};
+
+export const appKey = window.QiankunProps?.frame?.app?.key || 'test_manager';
+
+export const RepositoryModel = `${appKey}_Repository`;
+
+export const extendFields = [
+  {
+    key: RepositoryModel,
+    name: '所属模块',
+    objectId: RepositoryModel,
+    fieldType: {
+      isExtend: true,
+      dataType: 'object',
+      objectId: RepositoryModel,
+      key: RepositoryModel,
+      name: '所属模块',
+    },
+  },
+  {
+    key: 'test_designee',
+    name: '执行人',
+    objectId: 'test_designee',
+    fieldType: {
+      component: 'User',
+      dataType: 'object',
+      objectId: 'test_designee',
+      key: 'User',
+      name: '执行人',
+    },
+  },
+  {
+    key: 'test_executor',
+    name: '最新执行人',
+    objectId: 'test_executor',
+    fieldType: {
+      component: 'User',
+      dataType: 'object',
+      objectId: 'test_executor',
+      key: 'User',
+      name: '最新执行人',
+    },
+  },
+];
