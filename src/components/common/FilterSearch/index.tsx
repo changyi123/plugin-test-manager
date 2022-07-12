@@ -131,11 +131,13 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
   // 组装打开字段值选择器的函数
   const getFieldValueProps = useCallback(
     (data, dom) => {
-      const fieldId = data.objectId || data.key;
+      const fieldId = data.fieldId;
       const props = {
         isExtend: data?.isExtend,
-        fieldKey: data?.key,
-        field: systemExtendFields.find(item => item.key === fieldId),
+        fieldId,
+        field: systemExtendFields.find(item => item.objectId === fieldId) || {
+          fieldType: { component: data.key },
+        },
         value: data?.value,
         workspace: workspace?.objectId,
         onChange: updateSelectorValue,
