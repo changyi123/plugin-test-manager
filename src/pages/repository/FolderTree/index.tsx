@@ -77,13 +77,13 @@ const DropTreeTitle = ({ children, nodeKey, onItemDrop }) => {
   const ref = React.useRef(null);
   const dragoverClassName = cx('ant-tree-treenode-dragover');
   useDrop(ref, {
-    onDom(data, e) {
-      if (data.folderKey === nodeKey) return;
+    onDom(_, e) {
+      const data = JSON.parse(e.dataTransfer.getData('data'));
+      // if (data.folderKey === nodeKey) return;
       onItemDrop({
         testId: data.testId,
         fromFolderKey: data.folderKey,
         toFolderKey: nodeKey,
-        currentFolderKey: data.currentFolderKey,
       });
       const treeElementNode = (e.target as any).closest('.ant-tree-treenode');
       treeElementNode.classList.remove(dragoverClassName);
@@ -417,10 +417,10 @@ const FolderTree: React.FC<FolderTreeProps> = ({
   ];
 
   const handleItemDrop = React.useCallback(
-    async ({ testId, toFolderKey, fromFolderKey, currentFolderKey }) => {
+    async ({ testId, toFolderKey, fromFolderKey }) => {
+      console.log('toFolderKey, fromFolderKey', toFolderKey, fromFolderKey);
       if (fromFolderKey === toFolderKey) return;
-      const sourceNode = treeFn.getTreeNodeByKey(fromFolderKey);
-      const currentFolderNode = treeFn.getTreeNodeByKey(currentFolderKey);
+      const currentFolderNode = treeFn.getTreeNodeByKey(state.selectedKeys[0]);
 
       await updateTestEntities([
         {
@@ -435,14 +435,14 @@ const FolderTree: React.FC<FolderTreeProps> = ({
       });
 
       await onFolderTreeChange();
-      sourceNode.testDetailIds = sourceNode.testDetailIds.filter(id => id !== testId);
-      currentFolderNode.testDetailIds = currentFolderNode.testDetailIds.filter(id => id !== testId);
+      // sourceNode.testDetailIds = sourceNode.testDetailIds.filter(id => id !== testId);
+      // currentFolderNode.testDetailIds = currentFolderNode.testDetailIds.filter(id => id !== testId);
 
       handleSelect([currentFolderNode.key], {
         node: currentFolderNode,
       });
     },
-    [handleSelect, onFolderTreeChange, treeFn],
+    [handleSelect, onFolderTreeChange, treeFn, state.selectedKeys],
   );
 
   const titleRender = React.useCallback(

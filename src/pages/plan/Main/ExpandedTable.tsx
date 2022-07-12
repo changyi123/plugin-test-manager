@@ -114,7 +114,7 @@ const ExpandedTable = (props: ExpandedTableProps) => {
     const handleDesigneeChange = async users => {
       const testRunIds = getTestRunIds();
 
-      const getUerInfo = userId => {
+      const getUserInfo = userId => {
         return {
           objectId: userId,
           __type: 'Pointer',
@@ -122,7 +122,7 @@ const ExpandedTable = (props: ExpandedTableProps) => {
         };
       };
 
-      users = users.map(user => getUerInfo(user.value));
+      users = users.map(user => getUserInfo(user.value));
 
       await updateTestRunDesignee(testRunIds, users);
       refreshAndMutateData();
@@ -215,7 +215,10 @@ const ExpandedTable = (props: ExpandedTableProps) => {
       title: '执行人',
       width: 150,
       render(_, record) {
-        return <Field.User userInfo={record?.designee} />;
+        // FIXME: 暂不清楚为什么 designee 返回为什么是一个字符串
+        const designee =
+          typeof record?.designee === 'string' ? JSON.parse(record.designee) : record?.designee;
+        return <Field.User userInfo={designee} />;
       },
     },
     {
