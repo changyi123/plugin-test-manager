@@ -113,8 +113,8 @@ const ExecutionTable = () => {
             // FIXME: 优化查询速度
             workspaceKey,
             nameLike: searchValue,
-            select: ['reference'],
             include: ['reference'],
+            select: ['reference', 'workspaceKey'],
             descendingBy: 'createdAt',
             queryParams: queryParams,
             async resultTransfer({ list, total }) {
