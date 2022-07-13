@@ -10,6 +10,7 @@ import { TestRelationType } from '@/lib/constants';
 import { Dropdown, Menu, Spin, Tabs } from 'antd';
 import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
 import { deleteItems } from '@/lib/api/proxima';
+import { useLocation } from 'react-router-dom';
 import { usePageContext } from '../../hook';
 
 import cx from './index.less';
@@ -37,6 +38,10 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
   setRefreshExecution,
 }) => {
   const { tableSelectionToggleEvent } = usePageContext();
+  const {
+    query: { executionId },
+  } = useLocation();
+
   const { data, refresh, loading } = useRequest(
     async () => {
       if (activedType !== 'TestExecution') return [];
@@ -108,6 +113,12 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
       refreshDeps: [planId, activedType],
     },
   );
+
+  useEffect(() => {
+    if (!selectedExecution?.objectId && executionId) {
+      setSelectedExecution(data.find(d => d.objectId === executionId));
+    }
+  }, [executionId, selectedExecution]);
 
   useEffect(() => {
     if (refreshExecution) {

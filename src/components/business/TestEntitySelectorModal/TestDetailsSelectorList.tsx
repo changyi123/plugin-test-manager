@@ -23,7 +23,7 @@ const reportTreeToArray = (datas: any[], parent?: any, ignoreIds = []) => {
       ...cur,
       value: cur.key,
       label: cur.name,
-      testIds: filterIgnoreIds(cur.testDetailIds ?? [], ignoreIds),
+      testIds: filterIgnoreIds(cur.ids ?? [], ignoreIds),
       path: `${parent?.path ? parent?.path + '/' : ''}${cur.name}`,
     };
     prev = prev.concat(_cur);
@@ -105,11 +105,12 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
         ascendingBy: orderByCratedAt === 'asc' ? ['sortIndex', 'createdAt'] : null,
         descendingBy: orderByCratedAt === 'desc' ? ['sortIndex', 'createdAt'] : null,
       };
+
       // 获取当前空间内所有的测试实体
       const { results: data } = await getTestEntitiesByQuery(
         {
           nameLike: detailSearchValue,
-          in: getTestDetailIdsByReport(getReportData(selectedNode), 'testDetailIds'),
+          in: getTestDetailIdsByReport(getReportData(selectedNode), 'ids'),
           workspaceKey,
         },
         {
@@ -128,7 +129,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
     },
     {
       refreshDeps: [detailSearchValue, orderByCratedAt, selectedNode, workspaceKey],
-      cacheKey: `Repository_${selectedNode?.key ?? ''}${
+      cacheKey: `Repository_${selectedNode?.key ?? ''}${selectedNode?.ids.join('_') ?? ''}${
         detailSearchValue ?? ''
       }${orderByCratedAt}${workspaceKey}`,
       staleTime: 999999999,
@@ -151,7 +152,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
 
       const _checkData = reportData.map(report => ({
         ...report,
-        testDetailList: curTestList.filter(d => report.testDetailIds.includes(d.objectId)) ?? [],
+        testDetailList: curTestList.filter(d => report.ids.includes(d.objectId)) ?? [],
       }));
 
       setCheckData(_checkData);
@@ -183,7 +184,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
 
   const isNotData = data => {
     if (data.length === 1) {
-      return data[0].testDetailIds.length;
+      return data[0].ids.length;
     }
 
     return data.length;
@@ -247,13 +248,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
             </Tooltip>
           </div>
         </div>
-        <div
-          className={cx('detail-selector-body')}
-          style={{
-            overflow: 'hidden auto',
-            height: 'calc(100% - 48px)',
-          }}
-        >
+        <div className={cx('detail-selector-body')}>
           {isNotData(checkData) ? (
             checkData.map(box => (
               <>

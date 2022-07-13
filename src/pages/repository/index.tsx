@@ -235,15 +235,19 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
         <div className={cx('table-container')} style={{ height: 'calc(100% - 105px)' }}>
           <FilterSearch
             fields={['createdBy', 'priority', 'assignee', 'createdAt']}
-            onSearch={data => (state.selectors = data)}
+            onSearch={data => {
+              state.selectors = data;
+              // 添加筛选项目需要重置批量选中的 row
+              tableActionRef.current.resetSelectedRowKeys();
+            }}
             extendFields={extendFields.filter(field => field.key === RepositoryModel)}
           />
           <TestDetailTable
             actionRef={tableActionRef}
             onDataChange={handleDataChange}
-            selectors={state.selectors as SearchSelectors}
             testDetailIds={state.testDetailIds}
             folderKey={state.selectedFolderKey}
+            selectors={state.selectors as SearchSelectors}
             onSelectionCancel={() => toggleSelection(false)}
           />
         </div>

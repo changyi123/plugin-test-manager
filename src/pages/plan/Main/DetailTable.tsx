@@ -104,7 +104,7 @@ const DetailTable = () => {
           {
             // FIXME: 优化查询速度
             // workspaceKey,
-            selectors,
+            // selectors, 查询测试计划下的测试执行数据，无需筛选器
             workspace,
             workspaceKey,
             fillItemData: true,

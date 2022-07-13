@@ -3,6 +3,7 @@ import { useDrag } from 'ahooks';
 import { TestType } from '@/lib/constants';
 import { deleteItems } from '@/lib/api/proxima';
 import { notification, Tooltip } from 'antd';
+import { UNGROUPED_FOLDER_KEY } from '../constant';
 import { updateFolders } from '@/lib/api/repository';
 import { UserCell } from '@projectproxima/components';
 import { updateItemAssignee } from '@/lib/api/proxima';
@@ -23,7 +24,8 @@ import RepositoryGroup from '@/components/business/RepositoryGroup';
 
 const RowDragHandler = data => {
   const ref = React.useRef();
-  useDrag(data, ref, {
+
+  useDrag(null, ref, {
     onDragStart(e) {
       const dragElem = Array.from(
         document
@@ -31,6 +33,8 @@ const RowDragHandler = data => {
           ?.querySelectorAll('.ant-table-cell') ?? [],
       ).find(dom => dom.querySelector(`[data-element-id="row-title"]`));
 
+      // 使用 dataTransfer 传入数据
+      e.dataTransfer.setData('data', JSON.stringify(data));
       e.dataTransfer.setDragImage(dragElem, 0, 0);
     },
   });
@@ -188,11 +192,13 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
     return [
       {
         width: 40,
-        key: `move`,
+        key: 'move',
+        fixed: true,
         isSystem: true,
-        shouldCellUpdate: (record, prevRecord) => record.folderKey !== prevRecord.folderKey,
+        shouldCellUpdate: (record, prevRecord) =>
+          record.repository?.objectId !== prevRecord.repository?.objectId,
         render(_, rowData) {
-          const folderKey = rowData.folderKey;
+          const folderKey = rowData?.repository?.objectId ?? UNGROUPED_FOLDER_KEY;
           return <RowDragHandler folderKey={folderKey} testId={rowData.objectId} />;
         },
       },

@@ -401,7 +401,7 @@ export const updateTestRun = async (
 
   const userInfo = await Parse.User.current();
 
-  const getUerInfo = () => {
+  const getUserInfo = () => {
     const user = userInfo.toJSON();
     return {
       objectId: user.objectId,
@@ -413,7 +413,7 @@ export const updateTestRun = async (
   if (params.status) {
     Object.assign(needUpdateAttrs, {
       status: params.status,
-      executor: [getUerInfo(), ...(needUpdateAttrs.executor ?? [])],
+      executor: [getUserInfo(), ...(needUpdateAttrs.executor ?? [])],
     });
   }
 

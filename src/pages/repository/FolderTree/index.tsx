@@ -10,7 +10,7 @@ import { traverseTreeNodes } from '../util';
 import { useTreeFn } from '../hook';
 import { MenuKey, FolderMenu } from '../Menu';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
-import { Tree, Button, Input, notification, Empty, Dropdown, Modal } from 'antd';
+import { Tree, Button, Input, notification, Dropdown, Modal } from 'antd';
 import {
   CustomMore,
   CustomScreenOff,
@@ -77,8 +77,9 @@ const DropTreeTitle = ({ children, nodeKey, onItemDrop }) => {
   const ref = React.useRef(null);
   const dragoverClassName = cx('ant-tree-treenode-dragover');
   useDrop(ref, {
-    onDom(data, e) {
-      if (data.folderKey === nodeKey) return;
+    onDom(_, e) {
+      const data = JSON.parse(e.dataTransfer.getData('data'));
+      // if (data.folderKey === nodeKey) return;
       onItemDrop({
         testId: data.testId,
         fromFolderKey: data.folderKey,
@@ -418,7 +419,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
   const handleItemDrop = React.useCallback(
     async ({ testId, toFolderKey, fromFolderKey }) => {
       if (fromFolderKey === toFolderKey) return;
-      const sourceNode = treeFn.getTreeNodeByKey(fromFolderKey);
+      const currentFolderNode = treeFn.getTreeNodeByKey(state.selectedKeys[0]);
 
       await updateTestEntities([
         {
@@ -432,14 +433,15 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         message: '测试用例移动成功',
       });
 
-      await onFolderTreeChange();
-      sourceNode.testDetailIds = sourceNode.testDetailIds.filter(id => id !== testId);
+      const refreshedTreeNodes = await onFolderTreeChange();
 
-      handleSelect([sourceNode.key], {
-        node: sourceNode,
+      const newCurrentFolderNode = getTreeNodeByKey(refreshedTreeNodes, state.selectedKeys[0]);
+
+      handleSelect([currentFolderNode.key], {
+        node: newCurrentFolderNode,
       });
     },
-    [handleSelect, onFolderTreeChange, treeFn],
+    [treeFn, state.selectedKeys, onFolderTreeChange, handleSelect],
   );
 
   const titleRender = React.useCallback(

@@ -265,12 +265,27 @@ export const getTestEntitiesByRelationWithOrder = async <TResponseList extends a
   if (useItemSubQuery) {
     // 事项查询条件的selector
     const itemSelector = config.selectors?.[0];
+    const referenceItemQuery = new Parse.Query(Item);
     if (!isEmpty(itemSelector)) {
       const ids = await fetchItemFromIql(itemSelector, config.workspace);
       // 处理事项关联子查询
-      const referenceItemQuery = new Parse.Query(Item).containedIn('objectId', ids);
-      query.matchesKeyInQuery('reference', 'objectId', referenceItemQuery);
+      referenceItemQuery.containedIn('objectId', ids);
     }
+
+    if (config.nameLike) {
+      referenceItemQuery.matches('name', escapeMatchesQueryArg(config.nameLike));
+    }
+
+    // name like 应该需要传 workspaceKey 避免全表查询
+    if (config.workspaceKey) {
+      referenceItemQuery.matchesKeyInQuery(
+        'workspace',
+        'objectId',
+        new Parse.Query(Workspace).equalTo('key', config.workspaceKey),
+      );
+    }
+
+    query.matchesKeyInQuery('reference', 'objectId', referenceItemQuery);
   }
 
   if (hasArrayItem(include)) {
@@ -448,7 +463,7 @@ export const getTestEntities = (
     query.containedIn('reference', toArray(params.itemId));
   }
 
-  return query.find();
+  return query.findAll();
 };
 
 /** 获取测试实体 by parse query */
@@ -522,6 +537,21 @@ export const getTestEntitiesByQuery = async (
 
   if (queryParams.notIn) {
     query.notContainedIn('objectId', escapeArrayTypeParams(queryParams.notIn));
+  }
+
+  if (queryParams?.nameLike) {
+    const referenceItemQuery = new Parse.Query(Item);
+    if (queryParams.workspaceKey) {
+      referenceItemQuery.matchesKeyInQuery(
+        'workspace',
+        'objectId',
+        new Parse.Query(Workspace).equalTo('key', queryParams.workspaceKey),
+      );
+    }
+    referenceItemQuery.matches('name', escapeMatchesQueryArg(queryParams.nameLike));
+
+    // 增减事项筛选
+    query.matchesQuery('reference', referenceItemQuery);
   }
 
   // 需要加上 count 数据

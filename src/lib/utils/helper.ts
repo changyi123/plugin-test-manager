@@ -29,10 +29,10 @@ export const pointerTransfer = (parseModel, pointer: PointerType) => {
 };
 
 /** 处理 Parse.Query.matches 参数，避免 postgreSQL 正则查询错误 */
-export const escapeMatchesQueryArg = (_str: unknown): RegExp => {
+export const escapeMatchesQueryArg = (_str: unknown, flags?: RegExp['flags'][]): RegExp => {
   // 对正则关键特殊字符进行转义
   const str = _str?.toString() ?? '';
-  return new RegExp(str.trim().replace(/[!$()*+.:?=[\]^{|}]/g, '\\$&'));
+  return new RegExp(str.trim().replace(/[!$()*+.:?=[\]^{|}]/g, '\\$&'), flags?.join('') ?? '');
 };
 
 /** 转换成数组 */

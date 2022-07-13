@@ -36,6 +36,12 @@
       border-right: 1px solid @border-color;
       .custom-scrollbar-mixin();
 
+      .tree-box {
+        margin-top: 40px;
+        max-height: ~'calc(100% - 40px)';
+        overflow-y: auto;
+      }
+
       .search-input {
         position: absolute;
         box-shadow: 0 0 0 1px #dadee3;
