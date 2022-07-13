@@ -448,7 +448,7 @@ export const getTestEntities = (
     query.containedIn('reference', toArray(params.itemId));
   }
 
-  return query.find();
+  return query.findAll();
 };
 
 /** 获取测试实体 by parse query */
