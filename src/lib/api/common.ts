@@ -524,6 +524,21 @@ export const getTestEntitiesByQuery = async (
     query.notContainedIn('objectId', escapeArrayTypeParams(queryParams.notIn));
   }
 
+  if (queryParams?.nameLike) {
+    const referenceItemQuery = new Parse.Query(Item);
+    if (queryParams.workspaceKey) {
+      referenceItemQuery.matchesKeyInQuery(
+        'workspace',
+        'objectId',
+        new Parse.Query(Workspace).equalTo('key', queryParams.workspaceKey),
+      );
+    }
+    referenceItemQuery.matches('name', escapeMatchesQueryArg(queryParams.nameLike));
+
+    // 增减事项筛选
+    query.matchesQuery('reference', referenceItemQuery);
+  }
+
   // 需要加上 count 数据
   query.withCount(true);
 

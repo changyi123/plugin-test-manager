@@ -128,16 +128,10 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
       }));
     },
     {
-      refreshDeps: [
-        detailSearchValue,
-        orderByCratedAt,
-        selectedNode?.key,
-        selectedNode?.children,
-        workspaceKey,
-      ],
-      cacheKey: `Repository_${selectedNode?.key ?? ''}${
-        selectedNode?.children?.map(d => d.key).join('_') ?? ''
-      }${detailSearchValue ?? ''}${orderByCratedAt}${workspaceKey}`,
+      refreshDeps: [detailSearchValue, orderByCratedAt, selectedNode, workspaceKey],
+      cacheKey: `Repository_${selectedNode?.key ?? ''}${selectedNode?.ids.join('_') ?? ''}${
+        detailSearchValue ?? ''
+      }${orderByCratedAt}${workspaceKey}`,
       staleTime: 999999999,
       cacheTime: 999999999,
     },
