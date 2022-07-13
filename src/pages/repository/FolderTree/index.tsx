@@ -433,15 +433,15 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         message: '测试用例移动成功',
       });
 
-      await onFolderTreeChange();
-      // sourceNode.testDetailIds = sourceNode.testDetailIds.filter(id => id !== testId);
-      // currentFolderNode.testDetailIds = currentFolderNode.testDetailIds.filter(id => id !== testId);
+      const refreshedTreeNodes = await onFolderTreeChange();
+
+      const newCurrentFolderNode = getTreeNodeByKey(refreshedTreeNodes, state.selectedKeys[0]);
 
       handleSelect([currentFolderNode.key], {
-        node: currentFolderNode,
+        node: newCurrentFolderNode,
       });
     },
-    [handleSelect, onFolderTreeChange, treeFn, state.selectedKeys],
+    [treeFn, state.selectedKeys, onFolderTreeChange, handleSelect],
   );
 
   const titleRender = React.useCallback(
