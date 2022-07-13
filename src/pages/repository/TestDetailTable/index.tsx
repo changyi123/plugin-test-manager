@@ -25,7 +25,7 @@ import RepositoryGroup from '@/components/business/RepositoryGroup';
 const RowDragHandler = data => {
   const ref = React.useRef();
 
-  useDrag(data, ref, {
+  useDrag(null, ref, {
     onDragStart(e) {
       const dragElem = Array.from(
         document
@@ -33,6 +33,8 @@ const RowDragHandler = data => {
           ?.querySelectorAll('.ant-table-cell') ?? [],
       ).find(dom => dom.querySelector(`[data-element-id="row-title"]`));
 
+      // 使用 dataTransfer 传入数据
+      e.dataTransfer.setData('data', JSON.stringify(data));
       e.dataTransfer.setDragImage(dragElem, 0, 0);
     },
   });
@@ -192,16 +194,12 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         width: 40,
         key: `move`,
         isSystem: true,
-        shouldCellUpdate: (record, prevRecord) => record.folderKey !== prevRecord.folderKey,
+        shouldCellUpdate: (record, prevRecord) =>
+          record.repository?.objectId !== prevRecord.repository?.objectId,
         render(_, rowData) {
           const folderKey = rowData?.repository?.objectId ?? UNGROUPED_FOLDER_KEY;
-          return (
-            <RowDragHandler
-              folderKey={folderKey}
-              testId={rowData.objectId}
-              currentFolderKey={rowData?.folderKey}
-            />
-          );
+          console.log('folderKey', folderKey);
+          return <RowDragHandler folderKey={folderKey} testId={rowData.objectId} />;
         },
       },
       {

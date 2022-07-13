@@ -46,10 +46,17 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
     },
   }));
 
-  const handleSetSelectors = useCallback(data => {
-    setSelectors(data);
-    currentSelectors.current = data;
-  }, []);
+  const handleSetSelectors = useCallback(
+    data => {
+      // 因为name字段不在筛选器中维护，要手动合并name
+      if (selectors?.name) {
+        data.name = selectors?.name;
+      }
+      setSelectors(data);
+      currentSelectors.current = data;
+    },
+    [selectors?.name],
+  );
 
   const searchFn = useCallback(() => {
     const ids = extendFields.map(item => item.key);
@@ -124,11 +131,13 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
   // 组装打开字段值选择器的函数
   const getFieldValueProps = useCallback(
     (data, dom) => {
-      const fieldId = data.objectId || data.key;
+      const fieldId = data.fieldId;
       const props = {
         isExtend: data?.isExtend,
-        fieldKey: data?.key,
-        field: systemExtendFields.find(item => item.key === fieldId),
+        fieldId,
+        field: systemExtendFields.find(item => item.objectId === fieldId) || {
+          fieldType: { component: data.key },
+        },
         value: data?.value,
         workspace: workspace?.objectId,
         onChange: updateSelectorValue,

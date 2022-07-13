@@ -12,7 +12,6 @@ import FilterSearch from '@/components/common/FilterSearch';
 
 import SearchInput from '@/components/business/SearchInput';
 import RepoDropDown from '@/pages/repository/RepoDropDown';
-
 import cx from './index.less';
 
 const enum TabKeyEnum {
@@ -53,6 +52,7 @@ const Main = () => {
     // 还原筛选器数据
     detailSearchRef.current?.reset();
     executionRef.current?.reset();
+    setSearchParams([{}, {}]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedTestPlan]);
 
