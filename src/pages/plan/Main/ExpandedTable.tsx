@@ -215,9 +215,7 @@ const ExpandedTable = (props: ExpandedTableProps) => {
       title: '执行人',
       width: 150,
       render(_, record) {
-        // FIXME: 暂不清楚为什么 designee 返回为什么是一个字符串
-        const designee =
-          typeof record?.designee === 'string' ? JSON.parse(record.designee) : record?.designee;
+        const designee = record?.designee;
         return <Field.User userInfo={designee} />;
       },
     },

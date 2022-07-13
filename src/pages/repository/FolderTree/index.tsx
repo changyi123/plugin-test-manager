@@ -418,7 +418,6 @@ const FolderTree: React.FC<FolderTreeProps> = ({
 
   const handleItemDrop = React.useCallback(
     async ({ testId, toFolderKey, fromFolderKey }) => {
-      console.log('toFolderKey, fromFolderKey', toFolderKey, fromFolderKey);
       if (fromFolderKey === toFolderKey) return;
       const currentFolderNode = treeFn.getTreeNodeByKey(state.selectedKeys[0]);
 
