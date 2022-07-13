@@ -47,15 +47,21 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
   }));
 
   const handleSetSelectors = useCallback(
-    data => {
+    (data, searchValue?) => {
       // 因为name字段不在筛选器中维护，要手动合并name
-      if (selectors?.name) {
-        data.name = selectors?.name;
-      }
+      data.name = {
+        isExtend: false,
+        component: 'name',
+        expression: '',
+        fieldId: 'name',
+        fieldName: '标题',
+        key: 'name',
+        value: searchValue === undefined ? search : searchValue,
+      };
       setSelectors(data);
       currentSelectors.current = data;
     },
-    [selectors?.name],
+    [search],
   );
 
   const searchFn = useCallback(() => {
@@ -74,17 +80,11 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
       setSearch(value);
       // 往selectors中塞name
       const data = cloneDeep(currentSelectors.current);
-      data.name = {
-        isExtend: false,
-        component: 'name',
-        expression: '',
-        fieldId: 'name',
-        fieldName: '标题',
-        key: 'name',
-        value,
-      };
-      handleSetSelectors(data);
-      handleSearch();
+      handleSetSelectors(data, value);
+      // 避免查数据的时候，拿不到最新的iql
+      setTimeout(() => {
+        handleSearch();
+      }, 200);
     },
     [handleSearch, handleSetSelectors],
   );
