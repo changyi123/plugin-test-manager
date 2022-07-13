@@ -459,31 +459,31 @@ export const withItemId = (iql: IQL, itemIds: string[]): IQL => {
 export const selectorToParse = (query, selectors) => {
   if (!isEmpty(selectors)) {
     const selectorValues = Object.values(selectors);
+    let userQuery = null;
+    // 统一处理执行人和最新执行人的查询
+    const jointUserQuery = (component, expression, fieldId, ids) => {
+      if (!userQuery) {
+        userQuery = new Parse.Query(Test).equalTo('type', 'TestRun');
+      }
+      if (expression.split(`${component}_`).join('') === 'Contain') {
+        userQuery.containedIn(
+          fieldId.split('test_').join(''),
+          ids.map(id => User.createWithoutData(id)),
+        );
+      } else {
+        userQuery.notContainedIn(
+          fieldId.split('test_').join(''),
+          ids.map(id => User.createWithoutData(id)),
+        );
+      }
+    };
     selectorValues.forEach(selector => {
       const { component, expression, value, fieldId } = selector as SelectCase;
       const ids = (value as any)?.map(item => item.value);
       if (!ids?.length) return;
       if (component === 'User') {
-        // 查人
-        if (expression.split(`${component}_`).join('') === 'Contain') {
-          query.matchesKeyInQuery(
-            'objectId',
-            'runReferenceDetail',
-            new Parse.Query(Test).equalTo('type', 'TestRun').containedIn(
-              fieldId.split('test_').join(''),
-              ids.map(id => User.createWithoutData(id)),
-            ),
-          );
-        } else {
-          query.matchesKeyInQuery(
-            'objectId',
-            'runReferenceDetail',
-            new Parse.Query(Test).equalTo('type', 'TestRun').notContainedIn(
-              fieldId.split('test_').join(''),
-              ids.map(id => User.createWithoutData(id)),
-            ),
-          );
-        }
+        // 执行人和最新执行人
+        jointUserQuery(component, expression, fieldId, ids);
       } else if (component === RepositoryModel) {
         // 所属模块
         if (expression.split(`${component}_`).join('') === 'Contain') {
@@ -499,6 +499,9 @@ export const selectorToParse = (query, selectors) => {
         }
       }
     });
+    if (userQuery) {
+      query.matchesKeyInQuery('objectId', 'runReferenceDetail', userQuery);
+    }
   }
   return query;
 };
