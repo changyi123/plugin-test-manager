@@ -63,6 +63,7 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
     breadcrumbs: [],
     selectors: [],
     testDetailIds: [],
+    folderTestDetailIds: [],
     selectedFolderKey: '',
     tableSelectionVisible: false,
   });
@@ -140,7 +141,8 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
       } else {
         testDetailIds = selectedNode.testDetailIds;
       }
-      state.testDetailIds = testDetailIds;
+      state.testDetailIds = [...testDetailIds];
+      state.folderTestDetailIds = [...testDetailIds];
     },
     [folderTreeData, state, groupedMode],
   );
@@ -154,10 +156,43 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
   const handleDataChange = React.useCallback(async () => {
     const treeData = await refreshFolderTree();
     const selectedFolder = getTreeNodeByKey(treeData, state.selectedFolderKey);
+    const testDetailIds = selectedFolder.testDetailIds ?? [];
     if (selectedFolder) {
-      state.testDetailIds = selectedFolder.testDetailIds;
+      state.folderTestDetailIds = [...testDetailIds];
+      state.testDetailIds = [...testDetailIds];
     }
   }, [refreshFolderTree, state]);
+
+  const { runAsync: getTestDetailIds } = useRequest(
+    async selectors => {
+      const { results: testDetails } = await getTestEntitiesByQuery(
+        {
+          workspaceKey,
+          selectors,
+          in: state.folderTestDetailIds ?? [],
+          type: TestType.TestDetail,
+        },
+        {
+          offset: 0,
+          limit: 99999,
+          select: ['objectId'],
+        },
+      );
+      return testDetails.map(test => test.objectId);
+    },
+    {
+      manual: true,
+    },
+  );
+
+  // 处理筛选器搜索
+  const handleSelectorSearch = async selectors => {
+    state.selectors = selectors;
+    // 添加筛选项目需要重置批量选中的 row
+    tableActionRef.current.resetSelectedRowKeys();
+    const testDetailIds = await getTestDetailIds(selectors);
+    state.testDetailIds = testDetailIds;
+  };
 
   const toggleSelection = (visible?: boolean) => {
     visible = typeof visible === 'boolean' ? visible : !state.tableSelectionVisible;
@@ -234,12 +269,8 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
         </div>
         <div className={cx('table-container')} style={{ height: 'calc(100% - 105px)' }}>
           <FilterSearch
+            onSearch={handleSelectorSearch}
             fields={['createdBy', 'priority', 'assignee', 'createdAt']}
-            onSearch={data => {
-              state.selectors = data;
-              // 添加筛选项目需要重置批量选中的 row
-              tableActionRef.current.resetSelectedRowKeys();
-            }}
             extendFields={extendFields.filter(field => field.key === RepositoryModel)}
           />
           <TestDetailTable
@@ -247,7 +278,6 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
             onDataChange={handleDataChange}
             testDetailIds={state.testDetailIds}
             folderKey={state.selectedFolderKey}
-            selectors={state.selectors as SearchSelectors}
             onSelectionCancel={() => toggleSelection(false)}
           />
         </div>

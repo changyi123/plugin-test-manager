@@ -15,7 +15,6 @@ import {
   fetchItemFromIql,
   getTestEntitiesByRelationWithOrder,
 } from '@/lib/api/common';
-import { useTestConfig } from '@/lib/hooks/useContext';
 import BusinessTable, {
   ActionType as BusinessTableActionRef,
 } from '@/components/common/BusinessTable/BusinessTable';
@@ -35,7 +34,6 @@ const ExecutionTable = () => {
   const executionTableActionRef = React.useRef<BusinessTableActionRef>();
   const testEntitySelectorRef = React.useRef<TestEntitySelectorActionType>();
   const [ignoreTestEntityIds, setIgnoreTestEntityIds] = React.useState([]);
-  const { workspace } = useTestConfig();
   const [loading, setLoading] = React.useState(false);
 
   // 事项数据更新后刷新列表
@@ -109,7 +107,7 @@ const ExecutionTable = () => {
     async queryParams => {
       try {
         // 空间不存在，不执行函数
-        if (!workspace) return { total: 0, list: [] };
+        if (!workspaceKey) return { total: 0, list: [] };
         setLoading(true);
         return await getTestEntitiesByRelationWithOrder(
           TestRelationType.PlanRelExecution,
@@ -156,7 +154,7 @@ const ExecutionTable = () => {
                     const [itemSelector, testManageSelector] = [selectors?.[0], selectors?.[1]];
                     let needUpdate = false;
                     if (!isEmpty(itemSelector)) {
-                      const ids = await fetchItemFromIql(itemSelector, workspace);
+                      const ids = await fetchItemFromIql(itemSelector, workspaceKey);
                       needUpdate = true;
                       if (ids?.length) {
                         testQuery.containedIn(
@@ -212,7 +210,7 @@ const ExecutionTable = () => {
         setLoading(false);
       }
     },
-    [searchValue, selectedTestPlanId, selectors, workspace, workspaceKey],
+    [searchValue, selectedTestPlanId, selectors, workspaceKey],
   );
 
   const addTestDetail = async rowData => {

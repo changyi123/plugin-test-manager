@@ -206,6 +206,8 @@ export const FILTER_EXPR_NAME = {
   StatusType_Not_Contain: 'StatusType_Not_Contain',
   Tag_Contain: 'Tag_Contain',
   Tag_Not_Contain: 'Tag_Not_Contain',
+  Test_Repository_Not_Contain: 'test_manager_Repository_Not_Contain',
+  Test_Repository_Contain: 'test_manager_Repository_Contain',
 };
 
 export const FILTER_EXPRESSIONS = {

@@ -3,7 +3,6 @@ import { TestConfig } from '../models';
 import { assign, omit, transform, isEmpty } from 'lodash';
 import { TestType, TestRelationType, RepositoryModel } from '@/lib/constants';
 import { Workspace, Item, Test, TestRelation, Repository } from '@/lib/models';
-import { Workspace as WorkspaceType } from '@/lib/types/App';
 import { hasArrayItem, pointerTransfer, toArray, escapeMatchesQueryArg } from '@/lib/utils/helper';
 import fetch from '@/lib/utils/fetch';
 import {
@@ -215,7 +214,6 @@ export const getTestEntitiesByRelationWithOrder = async <TResponseList extends a
       resultTransfer: data => data,
       queryParams: { limit: 10, offset: 0 },
       selectors: [],
-      workspace: null,
     },
     _config,
   );
@@ -266,7 +264,7 @@ export const getTestEntitiesByRelationWithOrder = async <TResponseList extends a
     // 事项查询条件的selector
     const itemSelector = config.selectors?.[0];
     if (!isEmpty(itemSelector)) {
-      const ids = await fetchItemFromIql(itemSelector, config.workspace);
+      const ids = await fetchItemFromIql(itemSelector, config.workspaceKey);
       // 处理事项关联子查询
       const referenceItemQuery = new Parse.Query(Item).containedIn('objectId', ids);
       query.matchesKeyInQuery('reference', 'objectId', referenceItemQuery);
@@ -460,7 +458,6 @@ export const getTestEntitiesByQuery = async (
     nameLike: string;
     workspaceKey: string;
     selectors: SearchSelectors;
-    workspace?: WorkspaceType;
   }>,
   options?: Partial<{
     offset: number;
@@ -501,19 +498,16 @@ export const getTestEntitiesByQuery = async (
 
   const itemSelector = queryParams.selectors?.[0];
   if (!isEmpty(itemSelector)) {
-    const ids = await fetchItemFromIql(itemSelector, queryParams.workspace);
+    const ids = await fetchItemFromIql(itemSelector, queryParams.workspaceKey);
     // 处理事项关联子查询
     const itemSubQuery = new Parse.Query(Item).containedIn('objectId', ids);
     query.matchesKeyInQuery('reference', 'objectId', itemSubQuery);
   }
 
-  const repositorySelector = queryParams.selectors?.[1]?.[RepositoryModel];
+  const repositorySelector = queryParams.selectors?.[1];
   // 为用例类型需要拼上repository的查询条件
   if (!isEmpty(repositorySelector) && queryParams.type === TestType.TestDetail) {
-    const repositoryIdList = (repositorySelector.value as any[]).map(
-      repository => repository.objectId,
-    );
-    query.containedIn('repository', repositoryIdList);
+    selectorToParse(query, repositorySelector);
   }
 
   if (queryParams.in) {
@@ -692,10 +686,10 @@ export const updateGlobalConfig = async fields => {
   });
 };
 
-export async function fetchItemFromIql(selector: ItemSelectors, workspace) {
+export async function fetchItemFromIql(selector: ItemSelectors, workspaceKey) {
   let iql = selectorToIql(selector);
   // 组装空间
-  iql = withWorkspace(iql, workspace);
+  iql = withWorkspace(iql, workspaceKey);
   // 组装事项
   iql = withItemType(iql, '测试用例');
   return fetch
