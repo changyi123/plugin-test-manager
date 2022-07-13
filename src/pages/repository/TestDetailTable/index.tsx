@@ -192,13 +192,13 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
     return [
       {
         width: 40,
-        key: `move`,
+        key: 'move',
+        fixed: true,
         isSystem: true,
         shouldCellUpdate: (record, prevRecord) =>
           record.repository?.objectId !== prevRecord.repository?.objectId,
         render(_, rowData) {
           const folderKey = rowData?.repository?.objectId ?? UNGROUPED_FOLDER_KEY;
-          console.log('folderKey', folderKey);
           return <RowDragHandler folderKey={folderKey} testId={rowData.objectId} />;
         },
       },

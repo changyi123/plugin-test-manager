@@ -245,9 +245,9 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
           <TestDetailTable
             actionRef={tableActionRef}
             onDataChange={handleDataChange}
-            selectors={state.selectors as SearchSelectors}
             testDetailIds={state.testDetailIds}
             folderKey={state.selectedFolderKey}
+            selectors={state.selectors as SearchSelectors}
             onSelectionCancel={() => toggleSelection(false)}
           />
         </div>
