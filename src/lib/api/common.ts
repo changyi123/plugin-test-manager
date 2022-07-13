@@ -448,7 +448,7 @@ export const getTestEntities = (
     query.containedIn('reference', toArray(params.itemId));
   }
 
-  return query.find();
+  return query.findAll();
 };
 
 /** 获取测试实体 by parse query */
@@ -522,6 +522,21 @@ export const getTestEntitiesByQuery = async (
 
   if (queryParams.notIn) {
     query.notContainedIn('objectId', escapeArrayTypeParams(queryParams.notIn));
+  }
+
+  if (queryParams?.nameLike) {
+    const referenceItemQuery = new Parse.Query(Item);
+    if (queryParams.workspaceKey) {
+      referenceItemQuery.matchesKeyInQuery(
+        'workspace',
+        'objectId',
+        new Parse.Query(Workspace).equalTo('key', queryParams.workspaceKey),
+      );
+    }
+    referenceItemQuery.matches('name', escapeMatchesQueryArg(queryParams.nameLike));
+
+    // 增减事项筛选
+    query.matchesQuery('reference', referenceItemQuery);
   }
 
   // 需要加上 count 数据
