@@ -456,47 +456,54 @@ export const withItemId = (iql: IQL, itemIds: string[]): IQL => {
   return result;
 };
 
+// 根据筛选器，拼接query
+export const simpleToParse = (query, selector: SelectCase) => {
+  if (isEmpty(selector)) return;
+  const { component, expression, value, fieldId } = selector;
+  const ids = (value as any)?.map(item => item.value);
+  if (!ids?.length) return;
+  if (component === 'User') {
+    if (expression.split(`${component}_`).join('') === 'Contain') {
+      query.containedIn(
+        fieldId.split('test_').join(''),
+        ids.map(id => User.createWithoutData(id)),
+      );
+    } else {
+      query.notContainedIn(
+        fieldId.split('test_').join(''),
+        ids.map(id => User.createWithoutData(id)),
+      );
+    }
+  } else if (component === RepositoryModel) {
+    // 所属模块
+    if (expression.split(`${component}_`).join('') === 'Contain') {
+      query.containedIn(
+        'repository',
+        ids.map(id => Repository.createWithoutData(id)),
+      );
+    } else {
+      query.notContainedIn(
+        'repository',
+        ids.map(id => Repository.createWithoutData(id)),
+      );
+    }
+  }
+};
+
 export const selectorToParse = (query, selectors) => {
   if (!isEmpty(selectors)) {
     const selectorValues = Object.values(selectors);
     let userQuery = null;
-    // 统一处理执行人和最新执行人的查询
-    const jointUserQuery = (component, expression, fieldId, ids) => {
-      if (!userQuery) {
-        userQuery = new Parse.Query(Test).equalTo('type', 'TestRun');
-      }
-      if (expression.split(`${component}_`).join('') === 'Contain') {
-        userQuery.containedIn(
-          fieldId.split('test_').join(''),
-          ids.map(id => User.createWithoutData(id)),
-        );
-      } else {
-        userQuery.notContainedIn(
-          fieldId.split('test_').join(''),
-          ids.map(id => User.createWithoutData(id)),
-        );
-      }
-    };
-    selectorValues.forEach(selector => {
-      const { component, expression, value, fieldId } = selector as SelectCase;
-      const ids = (value as any)?.map(item => item.value);
-      if (!ids?.length) return;
+    selectorValues.forEach((selector: SelectCase) => {
+      const { component } = selector;
       if (component === 'User') {
         // 执行人和最新执行人
-        jointUserQuery(component, expression, fieldId, ids);
-      } else if (component === RepositoryModel) {
-        // 所属模块
-        if (expression.split(`${component}_`).join('') === 'Contain') {
-          query.containedIn(
-            'repository',
-            ids.map(id => Repository.createWithoutData(id)),
-          );
-        } else {
-          query.notContainedIn(
-            'repository',
-            ids.map(id => Repository.createWithoutData(id)),
-          );
+        if (!userQuery) {
+          userQuery = new Parse.Query(Test).equalTo('type', 'TestRun');
         }
+        simpleToParse(userQuery, selector);
+      } else if (component === RepositoryModel) {
+        simpleToParse(query, selector);
       }
     });
     if (userQuery) {
