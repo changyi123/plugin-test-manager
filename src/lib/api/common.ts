@@ -265,12 +265,27 @@ export const getTestEntitiesByRelationWithOrder = async <TResponseList extends a
   if (useItemSubQuery) {
     // 事项查询条件的selector
     const itemSelector = config.selectors?.[0];
+    const referenceItemQuery = new Parse.Query(Item);
     if (!isEmpty(itemSelector)) {
       const ids = await fetchItemFromIql(itemSelector, config.workspace);
       // 处理事项关联子查询
-      const referenceItemQuery = new Parse.Query(Item).containedIn('objectId', ids);
-      query.matchesKeyInQuery('reference', 'objectId', referenceItemQuery);
+      referenceItemQuery.containedIn('objectId', ids);
     }
+
+    if (config.nameLike) {
+      referenceItemQuery.matches('name', escapeMatchesQueryArg(config.nameLike));
+    }
+
+    // name like 应该需要传 workspaceKey 避免全表查询
+    if (config.workspaceKey) {
+      referenceItemQuery.matchesKeyInQuery(
+        'workspace',
+        'objectId',
+        new Parse.Query(Workspace).equalTo('key', config.workspaceKey),
+      );
+    }
+
+    query.matchesKeyInQuery('reference', 'objectId', referenceItemQuery);
   }
 
   if (hasArrayItem(include)) {
