@@ -1,7 +1,7 @@
 import Parse from '@/lib/parse';
 import { TestConfig } from '../models';
 import { assign, omit, transform, isEmpty } from 'lodash';
-import { TestType, TestRelationType, RepositoryModel } from '@/lib/constants';
+import { TestType, TestRelationType } from '@/lib/constants';
 import { Workspace, Item, Test, TestRelation, Repository } from '@/lib/models';
 import { hasArrayItem, pointerTransfer, toArray, escapeMatchesQueryArg } from '@/lib/utils/helper';
 import fetch from '@/lib/utils/fetch';
@@ -484,7 +484,7 @@ export const getTestEntitiesByQuery = async (
     ignoreDeletedItemData: boolean;
   }>,
 ) => {
-  const query = new Parse.Query(Test);
+  let query = new Parse.Query(Test);
 
   queryParams = queryParams ?? {};
   options = assign(
@@ -519,12 +519,6 @@ export const getTestEntitiesByQuery = async (
     query.matchesKeyInQuery('reference', 'objectId', itemSubQuery);
   }
 
-  const repositorySelector = queryParams.selectors?.[1];
-  // 为用例类型需要拼上repository的查询条件
-  if (!isEmpty(repositorySelector) && queryParams.type === TestType.TestDetail) {
-    selectorToParse(query, repositorySelector);
-  }
-
   if (queryParams.in) {
     query.containedIn('objectId', escapeArrayTypeParams(queryParams.in));
   }
@@ -546,6 +540,12 @@ export const getTestEntitiesByQuery = async (
 
     // 增减事项筛选
     query.matchesQuery('reference', referenceItemQuery);
+  }
+
+  const repositorySelector = queryParams.selectors?.[1];
+  // 为用例类型需要拼上repository的查询条件
+  if (!isEmpty(repositorySelector) && queryParams.type === TestType.TestDetail) {
+    query = Parse.Query.and(selectorToParse(new Parse.Query(Test), repositorySelector), query);
   }
 
   // 需要加上 count 数据

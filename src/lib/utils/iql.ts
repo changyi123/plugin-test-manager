@@ -7,7 +7,7 @@ import {
 } from '@/lib/constants';
 import { getEndOfDayUnix, getStartOfDayUnix, DateTimestampRang } from './date';
 import matchBracket from 'find-matching-bracket';
-import { User, Repository, Test } from '@/lib/models';
+import { User, Test } from '@/lib/models';
 import { RepositoryModel } from '@/lib/constants';
 
 type Hyphen = '' | 'and' | 'or';
@@ -487,14 +487,15 @@ export const selectorToParse = (query, selectors) => {
       } else if (component === RepositoryModel) {
         // 所属模块
         if (expression.split(`${component}_`).join('') === 'Contain') {
-          query.containedIn(
-            'repository',
-            ids.map(id => Repository.createWithoutData(id)),
-          );
+          query.containedIn('repository', ids);
         } else {
-          query.notContainedIn(
-            'repository',
-            ids.map(id => Repository.createWithoutData(id)),
+          query.matchesKeyInQuery(
+            'objectId',
+            'objectId',
+            Parse.Query.or(
+              new Parse.Query(Test).doesNotExist('repository'),
+              new Parse.Query(Test).notContainedIn('repository', ids),
+            ),
           );
         }
       }
