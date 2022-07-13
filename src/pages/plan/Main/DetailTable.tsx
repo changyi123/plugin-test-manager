@@ -99,9 +99,8 @@ const DetailTable = () => {
           { from: selectedTestPlanId },
           {
             // FIXME: 优化查询速度
-            // workspaceKey,
-            selectors,
             workspaceKey,
+            selectors,
             fillItemData: true,
             queryParams: { limit: 9999 },
             include: ['objectId'],

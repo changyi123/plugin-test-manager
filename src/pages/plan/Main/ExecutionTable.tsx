@@ -92,7 +92,13 @@ const ExecutionTable = () => {
     });
   });
 
-  const refresh = React.useCallback(() => executionTableActionRef.current.refresh(), []);
+  const refresh = React.useCallback(async () => {
+    await executionTableActionRef.current.refresh();
+    // 切换分页
+    Object.values(innerTableRefs.current).forEach(ref => {
+      ref?.current.expandChangePage(1);
+    });
+  }, []);
 
   const { run: refreshDebounce } = useDebounceFn(refresh, { wait: 300 });
 
