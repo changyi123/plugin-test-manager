@@ -20,6 +20,7 @@ import { BusinessTable, BusinessTableActionType } from '@/components/common/Busi
 import cx from './DetailTable.less';
 import RepositoryGroup from '@/components/business/RepositoryGroup';
 import { useTestConfig } from '@/lib/hooks/useContext';
+import { useDebounceFn } from 'ahooks';
 
 const DetailTable = () => {
   const actionRef = React.useRef<BusinessTableActionType>();
@@ -65,9 +66,11 @@ const DetailTable = () => {
     actionRef.current.resetSelectedRowKeys();
   });
 
+  const { run: refreshDebounce } = useDebounceFn(() => actionRef.current.refresh(), { wait: 300 });
+
   React.useEffect(() => {
     if (selectedTestPlanId) {
-      actionRef.current.refresh();
+      refreshDebounce();
     }
   }, [selectors, selectedTestPlanId]);
 

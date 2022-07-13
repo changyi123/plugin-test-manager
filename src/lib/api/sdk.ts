@@ -60,7 +60,7 @@ export const openFilterPopover = async ({ fields, selectors, onChange, extendFie
 export const openFieldValuePopover = async ({
   isExtend,
   value,
-  fieldKey,
+  fieldId,
   workspace,
   onChange,
   onClose,
@@ -73,7 +73,7 @@ export const openFieldValuePopover = async ({
   window.QiankunProps.openFieldValuePopover({
     isExtend,
     workspace,
-    fieldKey,
+    fieldId,
     onChange,
     value,
     onClose,

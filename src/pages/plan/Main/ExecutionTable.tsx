@@ -24,7 +24,7 @@ import TestEntitySelectorModal, {
 } from '@/components/business/TestEntitySelectorModal';
 import { Item, Test } from '@/lib/models';
 import { selectorToParse } from '@/lib/utils/iql';
-
+import { useDebounceFn } from 'ahooks';
 import ExpandedTable from './ExpandedTable';
 import cx from './DetailTable.less';
 
@@ -94,10 +94,15 @@ const ExecutionTable = () => {
     });
   });
 
+  const refresh = React.useCallback(() => executionTableActionRef.current.refresh(), []);
+
+  const { run: refreshDebounce } = useDebounceFn(refresh, { wait: 300 });
+
   React.useEffect(() => {
     if (selectedTestPlanId) {
-      executionTableActionRef.current.refresh();
+      refreshDebounce();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchValue, selectors, selectedTestPlanId]);
 
   const tableDataGetter = React.useCallback(
