@@ -8,7 +8,7 @@ import { TestRelationType, TestType } from '@/lib/constants';
 import { useListener } from '@projectproxima/proxima-sdk-js';
 import { StatusProgress } from '@/components/business/Status';
 import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
-import { isEmpty } from 'lodash';
+import { isEmpty, omit, pick } from 'lodash';
 import {
   deleteTestEntities,
   getTestEntitiesByRelation,
@@ -22,7 +22,7 @@ import TestEntitySelectorModal, {
   ActionType as TestEntitySelectorActionType,
 } from '@/components/business/TestEntitySelectorModal';
 import { Item, Test } from '@/lib/models';
-import { selectorToParse } from '@/lib/utils/iql';
+import { selectorToParse, simpleToParse } from '@/lib/utils/iql';
 import { useDebounceFn } from 'ahooks';
 import ExpandedTable from './ExpandedTable';
 import cx from './DetailTable.less';
@@ -171,15 +171,30 @@ const ExecutionTable = () => {
                         testQuery.doesNotExist('reference');
                       }
                     }
+
                     if (!isEmpty(testManageSelector)) {
                       needUpdate = true;
-                      selectorToParse(testQuery, testManageSelector);
+                      // 处理非执行人的字段
+                      selectorToParse(testQuery, omit(testManageSelector, ['test_executor']));
                     }
+
+                    let jointQuery = new Parse.Query(Test).matchesQuery(
+                      'runReferenceDetail',
+                      testQuery,
+                    );
+
+                    // 处理执行人
+                    const userSelector = pick(testManageSelector, ['test_executor']);
+                    if (!isEmpty(userSelector)) {
+                      const userQuery = new Parse.Query(Test);
+                      Object.keys(userSelector).forEach(key => {
+                        simpleToParse(userQuery, userSelector[key]);
+                      });
+                      jointQuery = Parse.Query.and(jointQuery, userQuery);
+                    }
+
                     if (needUpdate) {
-                      query.matchesQuery(
-                        'to',
-                        new Parse.Query(Test).matchesQuery('runReferenceDetail', testQuery),
-                      );
+                      query.matchesQuery('to', jointQuery);
                     }
                   },
                 },
