@@ -38,9 +38,7 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
   setRefreshExecution,
 }) => {
   const { tableSelectionToggleEvent } = usePageContext();
-  const {
-    query: { executionId },
-  } = useLocation();
+  const { query } = useLocation();
 
   const { data, refresh, loading } = useRequest(
     async () => {
@@ -115,10 +113,10 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
   );
 
   useEffect(() => {
-    if (!selectedExecution?.objectId && executionId) {
-      setSelectedExecution(data.find(d => d.objectId === executionId));
+    if (!selectedExecution?.objectId && query?.executionId) {
+      setSelectedExecution(data.find(d => d.objectId === query?.executionId));
     }
-  }, [executionId, selectedExecution]);
+  }, [query?.executionId, selectedExecution]);
 
   useEffect(() => {
     if (refreshExecution) {

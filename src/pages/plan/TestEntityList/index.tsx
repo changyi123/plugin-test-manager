@@ -71,30 +71,66 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       const include =
         activedType === 'TestPlan'
           ? ['repository', 'reference']
-          : ['reference', 'repository', 'executor', 'designee'];
+          : [
+              'status',
+              'sortIndex',
+              'runReferenceDetail.reference',
+              'runReferenceDetail.repository',
+              'executor',
+              'designee',
+            ];
 
       const select =
         activedType === 'TestPlan'
           ? ['type', 'sortIndex', 'reference', 'repository', 'workspaceKey', 'createdAt']
-          : ['status', 'sortIndex', 'reference', 'repository', 'executor', 'designee'];
-      const descendingBy = activedType === 'TestPlan' ? ['sortIndex', 'createdAt'] : ['createdAt'];
+          : [
+              'status',
+              'sortIndex',
+              'runReferenceDetail.reference',
+              'runReferenceDetail.repository',
+              'executor',
+              'designee',
+            ];
 
-      const { results: testDetails, count } = await getTestEntitiesByQuery(
-        {
-          in: requestScopedTestDetailIds ?? [],
-          type: TestType.TestDetail,
-          nameLike: searchValue,
-          workspaceKey,
-        },
-        {
-          ...queryParams,
-          descendingBy,
-          select,
-          include,
-        },
-      );
+      if (activedType === 'TestExecution' && selectedExecution.objectId) {
+        const { list, total } = await getTestEntitiesByRelation(
+          TestRelationType.ExecutionRelRun,
+          {
+            from: [selectedExecution.objectId],
+          },
+          {
+            include,
+            select,
+            ...queryParams,
+          },
+        );
+
+        setTableLoading(false);
+
+        return {
+          list: list.map(d => ({
+            ...d,
+            reference: d.runReferenceDetail.reference,
+          })),
+          total,
+        };
+      }
 
       if (activedType === 'TestPlan') {
+        const { results: testDetails, count } = await getTestEntitiesByQuery(
+          {
+            in: requestScopedTestDetailIds ?? [],
+            type: TestType.TestDetail,
+            nameLike: searchValue,
+            workspaceKey,
+          },
+          {
+            ...queryParams,
+            descendingBy: ['sortIndex', 'createdAt'],
+            select,
+            include,
+          },
+        );
         const { list: testRuns } = await getTestEntitiesByRelationWithOrder(
           TestRelationType.PlanRelExecution,
           { from: [selectedTestPlan.objectId] },
@@ -148,15 +184,13 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           total: count,
         };
       }
-
       setTableLoading(false);
-
       return {
-        list: testDetails,
-        total: count,
+        list: [],
+        total: 0,
       };
     },
-    [workspaceKey, requestScopedTestDetailIds, searchValue],
+    [workspaceKey, requestScopedTestDetailIds, selectedExecution, searchValue],
   );
 
   const removeTestRelation = React.useCallback(
@@ -284,7 +318,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       width: 160,
       tooltip: true,
       render(_, record) {
-        const detailItemData = record?.reference ?? {};
+        const detailItemData = record?.runReferenceDetail?.reference ?? {};
 
         return (
           <span
@@ -301,7 +335,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       title: '所属模块',
       width: 240,
       render(_, rowData) {
-        return <RepositoryGroup rowData={rowData}></RepositoryGroup>;
+        return <RepositoryGroup rowData={rowData.runReferenceDetail}></RepositoryGroup>;
       },
     },
     {
@@ -369,7 +403,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   ];
 
   const allSelectableRowKeys = selectedTestPlan?.refTestDetails?.map(detail => detail.objectId);
-  const testIdSequence = selectedExecution?.relRuns?.map(item => item?.objectId).filter(Boolean);
+  const testIdSequence = selectedExecution?.testRuns?.map(item => item?.objectId).filter(Boolean);
 
   const selectionActionNodes = React.useMemo(() => {
     const handleDelete = () => {
@@ -420,6 +454,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
 
   const InnerTableSelectionActionNodes = React.useMemo(() => {
     const getTestRunIds = () => actionRef.current.selectedRowKeys;
+
     const toggleSTestRunStatus = async status => {
       const testRunIds = getTestRunIds();
 
@@ -430,6 +465,8 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       notification.success({
         message: '所选测试执行状态更新成功',
       });
+      actionRef.current.refresh();
+      mutateTestPlanEvent.emit(selectedTestPlan?.objectId);
       // refreshAndMutateData();
     };
 
@@ -449,6 +486,8 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       }));
 
       await updateTestRunDesignee(testRunIds, users);
+      actionRef.current.refresh();
+      mutateTestPlanEvent.emit(selectedTestPlan?.objectId);
       // refreshAndMutateData();
     };
 

@@ -17,14 +17,14 @@ import { useResizeContainerDOM } from './hooks';
 import RepositoryFolderTree, {
   ActionType as FolderTreeActionType,
 } from '@/components/business/RepositoryFolderTree';
-import { useLocation } from 'react-router-dom';
 import TestEntityList from '../TestEntityList';
 import SearchInput from '@/components/business/SearchInput';
 import RepoDropDown from '@/pages/repository/RepoDropDown';
 import TestEntitySelectorModal, {
   ActionType as ModelActionType,
 } from '@/components/business/TestEntitySelectorModal';
-import useGetTestPlanById from '@/components/business/TestPlanList/hooks';
+// import { useLocation } from 'react-router-dom';
+// import useGetTestPlanById from '@/components/business/TestPlanList/hooks';
 
 import cx from './index.less';
 
@@ -58,22 +58,20 @@ const PlanPageLayout: React.FC<any> = () => {
   const [showType, setShowType] = useState('showCur');
   const [loading, setLoading] = useState(false);
 
-  const {
-    query: { planId, actionType },
-  } = useLocation();
-  const { data: planData } = useGetTestPlanById([planId ?? '']);
+  // const { query } = useLocation();
+  // const { data: planData } = useGetTestPlanById([query?.planId ?? '']);
 
-  useEffect(() => {
-    if (planId && planData?.list?.length && !selectedTestPlan) {
-      setSelectedTestPlan(planData?.list.find(d => d.objectId === planId) as any);
-    }
-  }, [planData, planId, selectedTestPlan]);
+  // useEffect(() => {
+  //   if (query?.planId && planData?.list?.length && !selectedTestPlan) {
+  //     setSelectedTestPlan(planData?.list.find(d => d.objectId === query?.planId) as any);
+  //   }
+  // }, [planData, query?.planId, selectedTestPlan]);
 
-  useEffect(() => {
-    if (actionType && !activedType) {
-      setActivedType(actionType);
-    }
-  }, [actionType, activedType]);
+  // useEffect(() => {
+  //   if (query?.actionType && !activedType) {
+  //     setActivedType(query?.actionType);
+  //   }
+  // }, [query?.actionType, activedType]);
 
   // 创建测试执行任务
   const createTestExecution = async () => {
