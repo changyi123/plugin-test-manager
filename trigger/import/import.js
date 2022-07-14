@@ -149,7 +149,7 @@ const createTestMangerTest = async () => {
   return newData;
 };
 
-const handleRroupPath = datas => {
+const handleRepoPath = datas => {
   const getPath = (gro, _datas, path = []) => {
     path.push(gro.name);
 
@@ -192,7 +192,7 @@ const getRepoData = async () => {
     })
     .filter(d => d !== null);
 
-  return handleRroupPath(newRepoData);
+  return handleRepoPath(newRepoData);
 };
 
 const getParent = (RepoParseObj, datas, repoData) => {

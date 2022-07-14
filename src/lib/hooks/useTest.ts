@@ -10,7 +10,7 @@ import {
   getTestEntitiesByRelationWithOrder,
 } from '@/lib/api/common';
 import React from 'react';
-import { getRepoData, handleRroupPath } from '@/components/business/RepositoryGroup/repository';
+import { getRepoData, handleRepoPath } from '@/components/business/RepositoryGroup/repository';
 
 type GetTestEntityParams = Parameters<typeof getTestEntitiesByRelationWithOrder>;
 /** 获取所有事项实体 id */
@@ -98,7 +98,7 @@ export const useGetTestRepoGroup = (rowData: any) => {
         rowData?.workspaceKey ?? rowData.repository?.workspaceKey,
       ]);
 
-      const repoMap = handleRroupPath(getRepoData(repoData)).reduce((prev, cur) => {
+      const repoMap = handleRepoPath(getRepoData(repoData)).reduce((prev, cur) => {
         if (cur.objectId) {
           prev[cur.objectId] = cur.path;
         }

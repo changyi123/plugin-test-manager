@@ -98,6 +98,22 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
         }, new Map())
         .value();
 
+      const notExistedFolderKeySet = new Set([...repositoryTestDetailIdMap.keys()]);
+      // 处理 repository 被删除的数据
+      traverseTreeNodes(folderTreeNodes, node => {
+        notExistedFolderKeySet.delete(node.key);
+      });
+
+      let unGroupedFolderIds = [];
+      notExistedFolderKeySet.forEach(key => {
+        unGroupedFolderIds = unGroupedFolderIds.concat(repositoryTestDetailIdMap.get(key));
+      });
+
+      repositoryTestDetailIdMap.set(
+        UNGROUPED_FOLDER_KEY,
+        unGroupedFolderIds.concat(repositoryTestDetailIdMap.get(UNGROUPED_FOLDER_KEY)),
+      );
+
       const folderTreeNodesWithRoot = [
         {
           parentKey: null,

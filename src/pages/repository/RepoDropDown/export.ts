@@ -9,7 +9,7 @@ import { Item } from '@/lib/types/App';
 import { Step } from '@/lib/types/Test';
 import { getRepositoryData } from '@/lib/api/repository';
 import { escapeHtmlString } from '@/lib/utils/helper';
-import { getRepoData, handleRroupPath } from '@/components/business/RepositoryGroup/repository';
+import { getRepoData, handleRepoPath } from '@/components/business/RepositoryGroup/repository';
 import { UNGROUPED_FOLDER_KEY } from '../constant';
 import { arrayToTree } from '@/lib/utils/arrayToTree';
 
@@ -82,7 +82,7 @@ const getExcelData = async (data: any) => {
       }, []),
     ));
 
-  handleRroupPath(getRepoData(_repoData)).forEach(d => {
+  handleRepoPath(getRepoData(_repoData)).forEach(d => {
     repoDataMap.set(d.objectId, d.path);
   });
 
