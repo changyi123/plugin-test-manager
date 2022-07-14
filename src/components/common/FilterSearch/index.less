@@ -1,12 +1,27 @@
 .filter-tag-btn {
   display: inline-block;
-  margin-left: 8px;
   margin-bottom: 12px;
   padding: 4px 8px;
   height: 28px;
   font-size: 12px;
   border-radius: 4px;
   vertical-align: middle;
+
+  &:hover {
+    background-color: #FFFFFF !important;
+
+    .filter-tag-btn-text {
+      color: #1890ff;
+    }
+
+    svg {
+      fill: #1890ff;
+    }
+  }
+
+  &:active {
+    background-color: #FFFFFF !important;
+  }
 
   :global {
     .filter-tag-btn-text {

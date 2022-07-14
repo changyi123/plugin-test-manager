@@ -38,6 +38,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
   const [search, setSearch] = useState('');
   const [selectors, setSelectors] = useState<Selectors>({});
   const currentSelectors = useRef<Selectors>({});
+  const [activeSelector, setActiveSelector] = useState('');
 
   useImperativeHandle(ref, () => ({
     reset: () => {
@@ -132,6 +133,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
   const getFieldValueProps = useCallback(
     (data, dom) => {
       const fieldId = data.fieldId;
+      setActiveSelector(fieldId);
       const props = {
         isExtend: data?.isExtend,
         fieldId,
@@ -141,7 +143,10 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
         value: data?.value,
         workspace: workspace?.objectId,
         onChange: updateSelectorValue,
-        onClose: handleSearch,
+        onClose: () => {
+          setActiveSelector('');
+          handleSearch();
+        },
         expression: data.expression,
         dom,
       };
@@ -207,6 +212,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
         .map(item => (
           <SelectorTag
             key={item?.fieldId}
+            active={item?.fieldId === activeSelector}
             data={item}
             onClick={data => {
               const backup = cloneDeep(data);

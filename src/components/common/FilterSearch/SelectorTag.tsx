@@ -12,8 +12,9 @@ interface SelectorTagProps {
   data: SelectCase;
   onDelete: (id: string) => void;
   onClick: (data: SelectCase) => void;
+  active?: boolean;
 }
-const SelectorTag: React.FC<SelectorTagProps> = ({ data, onDelete, onClick }) => {
+const SelectorTag: React.FC<SelectorTagProps> = ({ data, onDelete, onClick, active }) => {
   const { fieldName, value, component, fieldId, expression: _expression } = data;
 
   const [_value, count] = useMemo(() => {
@@ -44,7 +45,7 @@ const SelectorTag: React.FC<SelectorTagProps> = ({ data, onDelete, onClick }) =>
   }, [_expression, component]);
 
   return (
-    <div className={cx('search-criteria')}>
+    <div className={cx('search-criteria', { active })}>
       {/* 挂载popover的节点 */}
       <span id={`filter-search-selector-${fieldId}`}></span>
       <div className={cx('search-tag')} onClick={() => onClick(data)}>
