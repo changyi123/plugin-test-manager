@@ -344,6 +344,11 @@ export const isUseOptionValue = (component: string): boolean => {
   return [FIELD_TYPE_KEY_MAPPINGS.Dropdown].includes(component);
 };
 
+// 全局配置缓存 key
+export const GlobalConfigStorageKey = 'test_manager_global_config';
+// 当前空间缓存 key
+export const CurrentWorkspaceConfigStorageKey = 'test_manager_current_workspace_config';
+
 export const appKey = window.QiankunProps?.frame?.app?.key || 'test_manager';
 
 export const SelectorNullValue = 'NULL';

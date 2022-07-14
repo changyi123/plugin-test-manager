@@ -1,7 +1,12 @@
 import Parse from '@/lib/parse';
 import { TestConfig } from '../models';
 import { assign, omit, transform, isEmpty } from 'lodash';
-import { TestType, TestRelationType } from '@/lib/constants';
+import {
+  TestType,
+  TestRelationType,
+  GlobalConfigStorageKey,
+  CurrentWorkspaceConfigStorageKey,
+} from '@/lib/constants';
 import { Workspace, Item, Test, TestRelation, Repository } from '@/lib/models';
 import { hasArrayItem, pointerTransfer, toArray, escapeMatchesQueryArg } from '@/lib/utils/helper';
 import fetch from '@/lib/utils/fetch';
@@ -603,9 +608,31 @@ export const updateTestEntities = async (testEntities: Record<'objectId' | strin
 };
 
 /**
+ * 获取测试管理配置，走缓存
+ */
+export const getTestConfigFromCache = async (params: {
+  workspaceKey?: string;
+  global?: boolean;
+}) => {
+  // 从 localStorage 中获取配置，不存在则需要重新获取
+  const localStorageKey = params.global ? GlobalConfigStorageKey : CurrentWorkspaceConfigStorageKey;
+  let testConfig = null;
+  try {
+    const storageConfigData = localStorage.getItem(localStorageKey);
+    if (!storageConfigData) throw new Error('not found storage data');
+    testConfig = JSON.parse(storageConfigData);
+  } catch (err) {
+    const parseObject = await getTestConfig(params);
+    testConfig = parseObject?.toJSON();
+  }
+
+  return testConfig;
+};
+
+/**
  * 获取测试管理配置
  */
-export const getTestConfig = (params: {
+export const getTestConfig = async (params: {
   workspaceKey?: string;
   global?: boolean;
 }): Promise<Parse.Object> => {
@@ -617,8 +644,18 @@ export const getTestConfig = (params: {
   if (typeof params.global === 'boolean') {
     query.equalTo('global', params.global);
   }
+  const config = await query.first();
+  // FIXME: 优化响应数据缓存方式
+  const configData = config?.toJSON();
 
-  return query.first();
+  const storageConfigData = JSON.stringify(configData);
+  if (configData.global) {
+    localStorage.setItem(GlobalConfigStorageKey, storageConfigData);
+  } else {
+    localStorage.setItem(CurrentWorkspaceConfigStorageKey, storageConfigData);
+  }
+
+  return config;
 };
 
 /**
@@ -705,8 +742,10 @@ export async function fetchItemFromIql(selector: ItemSelectors, workspaceKey) {
   let iql = selectorToIql(selector);
   // 组装空间
   iql = withWorkspace(iql, workspaceKey);
-  // 组装事项
-  iql = withItemType(iql, '测试用例');
+
+  const testConfig = await getTestConfigFromCache({ workspaceKey });
+  // 当前 iql 查询只针对测试用例
+  iql = withItemType(iql, testConfig?.itemTypeMap?.[TestType.TestDetail]);
   return fetch
     .$post('/parse/api/search/structure', {
       from: 0,

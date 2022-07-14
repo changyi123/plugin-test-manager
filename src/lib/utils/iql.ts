@@ -443,7 +443,7 @@ export const withItemType = (iql: IQL, itemType: string): IQL => {
   const itemTypeCase =
     itemType &&
     !hasItemType(excludeIqlFunctionContext(iql)) &&
-    `事项类型 ${IQL_CONDITION.EQUAL} '${itemType}'`;
+    `itemTypeKey ${IQL_CONDITION.EQUAL} '${itemType}'`;
   const result = mergeIQL(iql, itemTypeCase);
   return result;
 };
