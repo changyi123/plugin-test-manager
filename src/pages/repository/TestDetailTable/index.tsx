@@ -13,7 +13,6 @@ import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
 import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
 import { deleteTestEntities, getTestEntitiesByQuery, cloneTestEntities } from '@/lib/api/common';
 import { useUserCellUserDataProp } from '@/lib/hooks/useProxima';
-import { SearchSelectors } from '@/lib/utils/iql';
 
 import cx from './index.less';
 
@@ -98,7 +97,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
   const refreshAndMutateData = React.useCallback(async () => {
     setTableLoading(true);
     await onDataChange?.();
-    setTimeout(() => tableActionRef.current?.refresh());
+    // setTimeout(() => tableActionRef.current?.refresh());
     setTableLoading(false);
   }, [onDataChange]);
 

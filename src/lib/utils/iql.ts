@@ -7,8 +7,8 @@ import {
 } from '@/lib/constants';
 import { getEndOfDayUnix, getStartOfDayUnix, DateTimestampRang } from './date';
 import matchBracket from 'find-matching-bracket';
-import { User, Test } from '@/lib/models';
-import { RepositoryModel } from '@/lib/constants';
+import { User, Test, Repository } from '@/lib/models';
+import { RepositoryModel, SelectorNullValue } from '@/lib/constants';
 
 type Hyphen = '' | 'and' | 'or';
 
@@ -475,18 +475,45 @@ export const simpleToParse = (query, selector: SelectCase) => {
       );
     }
   } else if (component === RepositoryModel) {
+    // 未分组用例查询
+    const notExistedRepositoryQuery = Parse.Query.or(
+      new Parse.Query(Test).doesNotExist('repository'),
+      new Parse.Query(Test).doesNotMatchKeyInQuery(
+        'repository',
+        'objectId',
+        new Parse.Query(Repository),
+      ),
+    );
+    // 是否有未分组的值
+    const hasNullValue = ids.includes(SelectorNullValue);
     // 所属模块
     if (expression.split(`${component}_`).join('') === 'Contain') {
-      query.containedIn('repository', ids);
+      if (hasNullValue) {
+        // 存在未分组的用例需要将未分组的查询条件带上
+        query.matchesKeyInQuery(
+          'objectId',
+          'objectId',
+          Parse.Query.or(
+            notExistedRepositoryQuery,
+            new Parse.Query(Test).containedIn('repository', ids),
+          ),
+        );
+      } else {
+        query.containedIn('repository', ids);
+      }
     } else {
-      query.matchesKeyInQuery(
-        'objectId',
-        'objectId',
-        Parse.Query.or(
-          new Parse.Query(Test).doesNotExist('repository'),
-          new Parse.Query(Test).notContainedIn('repository', ids),
-        ),
-      );
+      if (!hasNullValue) {
+        query.matchesKeyInQuery(
+          'objectId',
+          'objectId',
+          Parse.Query.or(
+            notExistedRepositoryQuery,
+            new Parse.Query(Test).notContainedIn('repository', ids),
+          ),
+        );
+      } else {
+        query.notContainedIn('repository', ids);
+      }
     }
   }
 };

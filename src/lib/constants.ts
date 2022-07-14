@@ -346,6 +346,8 @@ export const isUseOptionValue = (component: string): boolean => {
 
 export const appKey = window.QiankunProps?.frame?.app?.key || 'test_manager';
 
+export const SelectorNullValue = 'NULL';
+
 export const RepositoryModel = `${appKey}_Repository`;
 
 export const extendFields = [

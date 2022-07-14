@@ -4,7 +4,6 @@ import { MenuKey } from './Menu';
 import { FileClose } from '@/icons';
 import { getDevConfig } from '@/devEnv';
 import { TestType } from '@/lib/constants';
-import { useReactive, useRequest } from 'ahooks';
 import { Button, notification, Select } from 'antd';
 import { useSDK } from '@projectproxima/plugin-sdk';
 import { getFolderTree } from '@/lib/api/repository';
@@ -15,6 +14,7 @@ import PageLayout from '@/components/common/PageLayout';
 import { getTestEntitiesByQuery } from '@/lib/api/common';
 import { useListener } from '@projectproxima/proxima-sdk-js';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
+import { useReactive, useRequest, useMemoizedFn } from 'ahooks';
 import TestDetailTable, { ActionType } from './TestDetailTable';
 import { extendFields, RepositoryModel } from '@/lib/constants';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
@@ -29,7 +29,6 @@ import {
 import { UNGROUPED_FOLDER_KEY } from './constant';
 import RepoDropDown from './RepoDropDown';
 import FilterSearch from '@/components/common/FilterSearch';
-import { SearchSelectors } from '@/lib/utils/iql';
 import cx from './index.less';
 
 type GroupedMode = 'all' | 'current';
@@ -61,9 +60,9 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
 
   const state = useReactive({
     breadcrumbs: [],
-    selectors: [],
+    selectors: [] as any,
     testDetailIds: [],
-    folderTestDetailIds: [],
+    selectedNode: null,
     selectedFolderKey: '',
     tableSelectionVisible: false,
   });
@@ -118,58 +117,13 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
     },
   );
 
-  const handleTreeSelect = React.useCallback(
-    (_selectedNode?: any) => {
-      const selectedNode = _selectedNode ?? prevSelectedTreeNodeRef.current;
-      prevSelectedTreeNodeRef.current = selectedNode;
-
-      if (!selectedNode) return;
-
-      const breadcrumbs = [];
-      reverseTreeNodes(folderTreeData, selectedNode, node => {
-        breadcrumbs.unshift(node.name ?? node.title);
-      });
-      state.breadcrumbs = breadcrumbs;
-      state.selectedFolderKey = selectedNode.key;
-
-      let testDetailIds = [];
-      // 包含子分组的所有用例
-      if (groupedMode === 'all') {
-        traverseTreeNodes([selectedNode], node => {
-          testDetailIds = testDetailIds.concat(node.testDetailIds);
-        });
-      } else {
-        testDetailIds = selectedNode.testDetailIds;
-      }
-      state.testDetailIds = [...testDetailIds];
-      state.folderTestDetailIds = [...testDetailIds];
-    },
-    [folderTreeData, state, groupedMode],
-  );
-
-  React.useEffect(() => {
-    handleTreeSelect();
-    tableActionRef.current.resetSelectedRowKeys();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [groupedMode]);
-
-  const handleDataChange = React.useCallback(async () => {
-    const treeData = await refreshFolderTree();
-    const selectedFolder = getTreeNodeByKey(treeData, state.selectedFolderKey);
-    const testDetailIds = selectedFolder.testDetailIds ?? [];
-    if (selectedFolder) {
-      state.folderTestDetailIds = [...testDetailIds];
-      state.testDetailIds = [...testDetailIds];
-    }
-  }, [refreshFolderTree, state]);
-
   const { runAsync: getTestDetailIds } = useRequest(
-    async selectors => {
+    async (scopedTestDetailIds: string[]) => {
       const { results: testDetails } = await getTestEntitiesByQuery(
         {
           workspaceKey,
-          selectors,
-          in: state.folderTestDetailIds ?? [],
+          selectors: state.selectors,
+          in: scopedTestDetailIds,
           type: TestType.TestDetail,
         },
         {
@@ -185,13 +139,60 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
     },
   );
 
+  // 更新表单 testDetailIds
+  const refreshTestDetailIds = useMemoizedFn(async (selectedNode?: any) => {
+    selectedNode = selectedNode ?? state.selectedNode;
+    state.selectedNode = selectedNode;
+    let scopedTestDetailIds = [];
+    // 包含子分组的所有用例
+    if (groupedMode === 'all') {
+      traverseTreeNodes([selectedNode], node => {
+        scopedTestDetailIds = scopedTestDetailIds.concat(node.testDetailIds);
+      });
+    } else {
+      scopedTestDetailIds = selectedNode.testDetailIds;
+    }
+    state.testDetailIds = await getTestDetailIds(scopedTestDetailIds);
+  });
+
+  const handleTreeSelect = React.useCallback(
+    (_selectedNode?: any) => {
+      const selectedNode = _selectedNode ?? prevSelectedTreeNodeRef.current;
+      prevSelectedTreeNodeRef.current = selectedNode;
+
+      if (!selectedNode) return;
+
+      const breadcrumbs = [];
+      reverseTreeNodes(folderTreeData, selectedNode, node => {
+        breadcrumbs.unshift(node.name ?? node.title);
+      });
+      state.breadcrumbs = breadcrumbs;
+      state.selectedFolderKey = selectedNode.key;
+      refreshTestDetailIds(selectedNode);
+    },
+    [folderTreeData, refreshTestDetailIds, state],
+  );
+
+  React.useEffect(() => {
+    handleTreeSelect();
+    tableActionRef.current.resetSelectedRowKeys();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [groupedMode]);
+
+  const handleDataChange = React.useCallback(async () => {
+    const treeData = await refreshFolderTree();
+    const selectedFolder = getTreeNodeByKey(treeData, state.selectedFolderKey);
+    if (selectedFolder) {
+      refreshTestDetailIds(selectedFolder);
+    }
+  }, [refreshFolderTree, refreshTestDetailIds, state]);
+
   // 处理筛选器搜索
   const handleSelectorSearch = async selectors => {
     state.selectors = selectors;
     // 添加筛选项目需要重置批量选中的 row
     tableActionRef.current.resetSelectedRowKeys();
-    const testDetailIds = await getTestDetailIds(selectors);
-    state.testDetailIds = testDetailIds;
+    await refreshTestDetailIds();
   };
 
   const toggleSelection = (visible?: boolean) => {
@@ -218,8 +219,8 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
     notification.success({
       message: `测试用例【${testDetailData.reference.name}】新建成功`,
     });
-    tableActionRef.current.refresh();
-    handleDataChange();
+    await handleDataChange();
+    // tableActionRef.current.refresh();
   };
 
   return (
