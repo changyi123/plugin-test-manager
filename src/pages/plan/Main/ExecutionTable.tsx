@@ -175,7 +175,10 @@ const ExecutionTable = () => {
                     if (!isEmpty(testManageSelector)) {
                       needUpdate = true;
                       // 处理非执行人的字段
-                      selectorToParse(testQuery, omit(testManageSelector, ['test_executor']));
+                      selectorToParse(
+                        testQuery,
+                        omit(testManageSelector, ['test_executor', 'test_designee']),
+                      );
                     }
 
                     let jointQuery = new Parse.Query(Test).matchesQuery(
@@ -184,7 +187,10 @@ const ExecutionTable = () => {
                     );
 
                     // 处理执行人
-                    const userSelector = pick(testManageSelector, ['test_executor']);
+                    const userSelector = pick(testManageSelector, [
+                      'test_executor',
+                      'test_designee',
+                    ]);
                     if (!isEmpty(userSelector)) {
                       const userQuery = new Parse.Query(Test);
                       Object.keys(userSelector).forEach(key => {
