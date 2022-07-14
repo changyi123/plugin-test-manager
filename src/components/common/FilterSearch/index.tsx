@@ -133,11 +133,12 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
   const getFieldValueProps = useCallback(
     (data, dom) => {
       const fieldId = data.fieldId;
+      const systemTarget = systemExtendFields.find(item => item.objectId === fieldId);
       setActiveSelector(fieldId);
       const props = {
-        isExtend: data?.isExtend,
+        isExtend: systemTarget?.fieldType?.isExtend,
         fieldId,
-        field: systemExtendFields.find(item => item.objectId === fieldId) || {
+        field: systemTarget || {
           fieldType: { component: data.key },
         },
         value: data?.value,
