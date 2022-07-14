@@ -351,7 +351,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
   }, [treeData]);
 
   React.useEffect(() => {
-    if (treeData?.length && !isEmptyFolderTree && !isInitialRef.current) {
+    if (treeData?.length && !isInitialRef.current) {
       isInitialRef.current = true;
       const node = treeData[0];
       // 默认展开模块第一层
@@ -360,7 +360,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         node,
       });
     }
-  }, [handleSelect, treeData, handleExpand, isEmptyFolderTree]);
+  }, [handleSelect, treeData, handleExpand]);
 
   // 空目录展示
   const EmptyNode = React.useMemo(() => {
