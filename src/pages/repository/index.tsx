@@ -4,7 +4,6 @@ import { MenuKey } from './Menu';
 import { FileClose } from '@/icons';
 import { getDevConfig } from '@/devEnv';
 import { TestType } from '@/lib/constants';
-import { useReactive, useRequest } from 'ahooks';
 import { Button, notification, Select } from 'antd';
 import { useSDK } from '@projectproxima/plugin-sdk';
 import { getFolderTree } from '@/lib/api/repository';
@@ -15,6 +14,7 @@ import PageLayout from '@/components/common/PageLayout';
 import { getTestEntitiesByQuery } from '@/lib/api/common';
 import { useListener } from '@projectproxima/proxima-sdk-js';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
+import { useReactive, useRequest, useMemoizedFn } from 'ahooks';
 import TestDetailTable, { ActionType } from './TestDetailTable';
 import { extendFields, RepositoryModel } from '@/lib/constants';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
@@ -29,7 +29,6 @@ import {
 import { UNGROUPED_FOLDER_KEY } from './constant';
 import RepoDropDown from './RepoDropDown';
 import FilterSearch from '@/components/common/FilterSearch';
-import { SearchSelectors } from '@/lib/utils/iql';
 import cx from './index.less';
 
 type GroupedMode = 'all' | 'current';
@@ -61,8 +60,9 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
 
   const state = useReactive({
     breadcrumbs: [],
-    selectors: [],
+    selectors: [] as any,
     testDetailIds: [],
+    selectedNode: null,
     selectedFolderKey: '',
     tableSelectionVisible: false,
   });
@@ -117,6 +117,44 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
     },
   );
 
+  const { runAsync: getTestDetailIds } = useRequest(
+    async (scopedTestDetailIds: string[]) => {
+      const { results: testDetails } = await getTestEntitiesByQuery(
+        {
+          workspaceKey,
+          selectors: state.selectors,
+          in: scopedTestDetailIds,
+          type: TestType.TestDetail,
+        },
+        {
+          offset: 0,
+          limit: 99999,
+          select: ['objectId'],
+        },
+      );
+      return testDetails.map(test => test.objectId);
+    },
+    {
+      manual: true,
+    },
+  );
+
+  // 更新表单 testDetailIds
+  const refreshTestDetailIds = useMemoizedFn(async (selectedNode?: any) => {
+    selectedNode = selectedNode ?? state.selectedNode;
+    state.selectedNode = selectedNode;
+    let scopedTestDetailIds = [];
+    // 包含子分组的所有用例
+    if (groupedMode === 'all') {
+      traverseTreeNodes([selectedNode], node => {
+        scopedTestDetailIds = scopedTestDetailIds.concat(node.testDetailIds);
+      });
+    } else {
+      scopedTestDetailIds = selectedNode.testDetailIds;
+    }
+    state.testDetailIds = await getTestDetailIds(scopedTestDetailIds);
+  });
+
   const handleTreeSelect = React.useCallback(
     (_selectedNode?: any) => {
       const selectedNode = _selectedNode ?? prevSelectedTreeNodeRef.current;
@@ -130,19 +168,9 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
       });
       state.breadcrumbs = breadcrumbs;
       state.selectedFolderKey = selectedNode.key;
-
-      let testDetailIds = [];
-      // 包含子分组的所有用例
-      if (groupedMode === 'all') {
-        traverseTreeNodes([selectedNode], node => {
-          testDetailIds = testDetailIds.concat(node.testDetailIds);
-        });
-      } else {
-        testDetailIds = selectedNode.testDetailIds;
-      }
-      state.testDetailIds = testDetailIds;
+      refreshTestDetailIds(selectedNode);
     },
-    [folderTreeData, state, groupedMode],
+    [folderTreeData, refreshTestDetailIds, state],
   );
 
   React.useEffect(() => {
@@ -155,9 +183,17 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
     const treeData = await refreshFolderTree();
     const selectedFolder = getTreeNodeByKey(treeData, state.selectedFolderKey);
     if (selectedFolder) {
-      state.testDetailIds = selectedFolder.testDetailIds;
+      refreshTestDetailIds(selectedFolder);
     }
-  }, [refreshFolderTree, state]);
+  }, [refreshFolderTree, refreshTestDetailIds, state]);
+
+  // 处理筛选器搜索
+  const handleSelectorSearch = async selectors => {
+    state.selectors = selectors;
+    // 添加筛选项目需要重置批量选中的 row
+    tableActionRef.current.resetSelectedRowKeys();
+    await refreshTestDetailIds();
+  };
 
   const toggleSelection = (visible?: boolean) => {
     visible = typeof visible === 'boolean' ? visible : !state.tableSelectionVisible;
@@ -183,8 +219,8 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
     notification.success({
       message: `测试用例【${testDetailData.reference.name}】新建成功`,
     });
-    tableActionRef.current.refresh();
-    handleDataChange();
+    await handleDataChange();
+    // tableActionRef.current.refresh();
   };
 
   return (
@@ -234,12 +270,8 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
         </div>
         <div className={cx('table-container')} style={{ height: 'calc(100% - 105px)' }}>
           <FilterSearch
+            onSearch={handleSelectorSearch}
             fields={['createdBy', 'priority', 'assignee', 'createdAt']}
-            onSearch={data => {
-              state.selectors = data;
-              // 添加筛选项目需要重置批量选中的 row
-              tableActionRef.current.resetSelectedRowKeys();
-            }}
             extendFields={extendFields.filter(field => field.key === RepositoryModel)}
           />
           <TestDetailTable
@@ -247,7 +279,6 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
             onDataChange={handleDataChange}
             testDetailIds={state.testDetailIds}
             folderKey={state.selectedFolderKey}
-            selectors={state.selectors as SearchSelectors}
             onSelectionCancel={() => toggleSelection(false)}
           />
         </div>

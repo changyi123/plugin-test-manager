@@ -12,8 +12,8 @@ import {
 import { getItemByIQL } from '@/lib/api/proxima';
 import { hasArrayItem } from '@/lib/utils/helper';
 import _, { isEqual, keyBy, merge } from 'lodash';
-import { Status, TestEntity } from '@/lib/types/Test';
 import { compactStepModel } from '@/lib/utils/modelTransfer';
+import { Status, TestEntity, UserPointerInfo } from '@/lib/types/Test';
 import { pointerTransfer, toArray, generateSortIndex } from '@/lib/utils/helper';
 
 type TestRunEntity = TestEntity<TestType.TestRun>;
@@ -356,6 +356,23 @@ export const updateTestRun = async (
   },
   opts?: { initialization?: boolean },
 ) => {
+  const userInfo = await Parse.User.current();
+  /** 设置最新执行人 */
+  const setExecutor = async needUpdateAttrs => {
+    const getCurrentUserInfo = () => {
+      const user = userInfo.toJSON();
+      return {
+        objectId: user.objectId,
+        __type: 'Pointer',
+        className: '_User',
+      } as UserPointerInfo;
+    };
+    // 最新执行人存最近三条数据，多存无意
+    needUpdateAttrs.executor = [getCurrentUserInfo(), ...(needUpdateAttrs.executor ?? [])].slice(
+      0,
+      3,
+    );
+  };
   opts = merge({ initialization: false }, opts);
 
   if (typeof testEntity === 'string') {
@@ -396,25 +413,15 @@ export const updateTestRun = async (
       } else if (hasAllTodo) {
         needUpdateAttrs.status = 'TODO';
       }
+      setExecutor(needUpdateAttrs);
     }
   }
-
-  const userInfo = await Parse.User.current();
-
-  const getUserInfo = () => {
-    const user = userInfo.toJSON();
-    return {
-      objectId: user.objectId,
-      __type: 'Pointer',
-      className: '_User',
-    };
-  };
 
   if (params.status) {
     Object.assign(needUpdateAttrs, {
       status: params.status,
-      executor: [getUserInfo(), ...(needUpdateAttrs.executor ?? [])],
     });
+    setExecutor(needUpdateAttrs);
   }
 
   if (params.runDetail) {
@@ -450,9 +457,20 @@ export const updateTestRunStatus = async (params: { status: string; testRunIds: 
   const existedTestRuns = await getTestEntities({
     id: toArray(params.testRunIds),
   });
-
+  const userInfo = await Parse.User.current();
+  /** 设置最新执行人 */
+  const getCurrentUserInfo = () => {
+    const user = userInfo.toJSON();
+    return {
+      objectId: user.objectId,
+      __type: 'Pointer',
+      className: '_User',
+    } as UserPointerInfo;
+  };
   const needUpdatedTestEntities = existedTestRuns.reduce((acc, testRun) => {
     testRun.set('status', params.status);
+    // 更新状态需要
+    testRun.set('executor', [getCurrentUserInfo(), ...(testRun.get('executor') ?? [])].slice(0, 3));
     // 更新对应的测试用例状态
     const runReferenceDetail = testRun.get('runReferenceDetail');
     runReferenceDetail.set('status', params.status);

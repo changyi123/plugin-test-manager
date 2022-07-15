@@ -8,14 +8,13 @@ import { TestRelationType, TestType } from '@/lib/constants';
 import { useListener } from '@projectproxima/proxima-sdk-js';
 import { StatusProgress } from '@/components/business/Status';
 import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
-import { isEmpty } from 'lodash';
+import { isEmpty, omit, pick } from 'lodash';
 import {
   deleteTestEntities,
   getTestEntitiesByRelation,
   fetchItemFromIql,
   getTestEntitiesByRelationWithOrder,
 } from '@/lib/api/common';
-import { useTestConfig } from '@/lib/hooks/useContext';
 import BusinessTable, {
   ActionType as BusinessTableActionRef,
 } from '@/components/common/BusinessTable/BusinessTable';
@@ -23,7 +22,7 @@ import TestEntitySelectorModal, {
   ActionType as TestEntitySelectorActionType,
 } from '@/components/business/TestEntitySelectorModal';
 import { Item, Test } from '@/lib/models';
-import { selectorToParse } from '@/lib/utils/iql';
+import { selectorToParse, simpleToParse } from '@/lib/utils/iql';
 import { useDebounceFn } from 'ahooks';
 import ExpandedTable from './ExpandedTable';
 import cx from './DetailTable.less';
@@ -35,7 +34,6 @@ const ExecutionTable = () => {
   const executionTableActionRef = React.useRef<BusinessTableActionRef>();
   const testEntitySelectorRef = React.useRef<TestEntitySelectorActionType>();
   const [ignoreTestEntityIds, setIgnoreTestEntityIds] = React.useState([]);
-  const { workspace } = useTestConfig();
   const [loading, setLoading] = React.useState(false);
 
   // 事项数据更新后刷新列表
@@ -94,7 +92,13 @@ const ExecutionTable = () => {
     });
   });
 
-  const refresh = React.useCallback(() => executionTableActionRef.current.refresh(), []);
+  const refresh = React.useCallback(async () => {
+    await executionTableActionRef.current.refresh();
+    // 切换分页
+    Object.values(innerTableRefs.current).forEach(ref => {
+      ref?.current.expandChangePage(1);
+    });
+  }, []);
 
   const { run: refreshDebounce } = useDebounceFn(refresh, { wait: 300 });
 
@@ -109,7 +113,7 @@ const ExecutionTable = () => {
     async queryParams => {
       try {
         // 空间不存在，不执行函数
-        if (!workspace) return { total: 0, list: [] };
+        if (!workspaceKey) return { total: 0, list: [] };
         setLoading(true);
         return await getTestEntitiesByRelationWithOrder(
           TestRelationType.PlanRelExecution,
@@ -156,7 +160,7 @@ const ExecutionTable = () => {
                     const [itemSelector, testManageSelector] = [selectors?.[0], selectors?.[1]];
                     let needUpdate = false;
                     if (!isEmpty(itemSelector)) {
-                      const ids = await fetchItemFromIql(itemSelector, workspace);
+                      const ids = await fetchItemFromIql(itemSelector, workspaceKey);
                       needUpdate = true;
                       if (ids?.length) {
                         testQuery.containedIn(
@@ -167,15 +171,36 @@ const ExecutionTable = () => {
                         testQuery.doesNotExist('reference');
                       }
                     }
+
                     if (!isEmpty(testManageSelector)) {
                       needUpdate = true;
-                      selectorToParse(testQuery, testManageSelector);
-                    }
-                    if (needUpdate) {
-                      query.matchesQuery(
-                        'to',
-                        new Parse.Query(Test).matchesQuery('runReferenceDetail', testQuery),
+                      // 处理非执行人的字段
+                      selectorToParse(
+                        testQuery,
+                        omit(testManageSelector, ['test_executor', 'test_designee']),
                       );
+                    }
+
+                    let jointQuery = new Parse.Query(Test).matchesQuery(
+                      'runReferenceDetail',
+                      testQuery,
+                    );
+
+                    // 处理执行人
+                    const userSelector = pick(testManageSelector, [
+                      'test_executor',
+                      'test_designee',
+                    ]);
+                    if (!isEmpty(userSelector)) {
+                      const userQuery = new Parse.Query(Test);
+                      Object.keys(userSelector).forEach(key => {
+                        simpleToParse(userQuery, userSelector[key]);
+                      });
+                      jointQuery = Parse.Query.and(jointQuery, userQuery);
+                    }
+
+                    if (needUpdate) {
+                      query.matchesQuery('to', jointQuery);
                     }
                   },
                 },
@@ -212,7 +237,7 @@ const ExecutionTable = () => {
         setLoading(false);
       }
     },
-    [searchValue, selectedTestPlanId, selectors, workspace, workspaceKey],
+    [searchValue, selectedTestPlanId, selectors, workspaceKey],
   );
 
   const addTestDetail = async rowData => {

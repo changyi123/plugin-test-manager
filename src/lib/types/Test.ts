@@ -1,11 +1,10 @@
 import { Item } from './App';
 import { TestType } from '@/lib/constants';
 
-export type UserInfo = {
-  disabled: boolean;
-  nickname: string;
+export type UserPointerInfo = {
+  __type: 'Pointer';
+  className: '_User';
   objectId: string;
-  username: string;
 };
 
 // 测试实体
@@ -38,9 +37,9 @@ type BaseTestEntity = {
   /** 测试用例评论数据 */
   comments: Comment[];
   /** 最新操作执行人 */
-  executor: UserInfo[];
+  executor: UserPointerInfo[];
   /** 指派执行人 */
-  designee: UserInfo[];
+  designee: UserPointerInfo[];
   createdBy: any;
   updatedBy: any;
 };

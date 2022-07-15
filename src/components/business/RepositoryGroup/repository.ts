@@ -1,5 +1,5 @@
 // 处理用例库数据，获取用例库完整路径
-export const handleRroupPath = datas => {
+export const handleRepoPath = datas => {
   const getPath = (gro, _datas, path = []) => {
     path.push(gro.name);
 

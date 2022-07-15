@@ -206,6 +206,8 @@ export const FILTER_EXPR_NAME = {
   StatusType_Not_Contain: 'StatusType_Not_Contain',
   Tag_Contain: 'Tag_Contain',
   Tag_Not_Contain: 'Tag_Not_Contain',
+  Test_Repository_Not_Contain: 'test_manager_Repository_Not_Contain',
+  Test_Repository_Contain: 'test_manager_Repository_Contain',
 };
 
 export const FILTER_EXPRESSIONS = {
@@ -342,7 +344,14 @@ export const isUseOptionValue = (component: string): boolean => {
   return [FIELD_TYPE_KEY_MAPPINGS.Dropdown].includes(component);
 };
 
+// 全局配置缓存 key
+export const GlobalConfigStorageKey = 'test_manager_global_config';
+// 当前空间缓存 key
+export const CurrentWorkspaceConfigStorageKey = 'test_manager_current_workspace_config';
+
 export const appKey = window.QiankunProps?.frame?.app?.key || 'test_manager';
+
+export const SelectorNullValue = 'NULL';
 
 export const RepositoryModel = `${appKey}_Repository`;
 

@@ -13,7 +13,6 @@ import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
 import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
 import { deleteTestEntities, getTestEntitiesByQuery, cloneTestEntities } from '@/lib/api/common';
 import { useUserCellUserDataProp } from '@/lib/hooks/useProxima';
-import { SearchSelectors } from '@/lib/utils/iql';
 
 import cx from './index.less';
 
@@ -51,7 +50,6 @@ export type ActionType = BusinessTableActionType;
 
 type TestDetailTableProps = {
   folderKey?: string;
-  selectors?: SearchSelectors;
   testDetailIds?: string[];
   onDataChange?: () => void;
   onSelectionCancel?: () => void;
@@ -59,7 +57,7 @@ type TestDetailTableProps = {
 };
 
 const TestDetailTable: React.FC<TestDetailTableProps> = props => {
-  const { selectors, onDataChange, actionRef, onSelectionCancel, testDetailIds, folderKey } = props;
+  const { onDataChange, actionRef, onSelectionCancel, testDetailIds, folderKey } = props;
   const tableActionRef = React.useRef<BusinessTableActionType>();
   const repositorySelectorRef = React.useRef<RepositorySelectorActionType>();
   const [tableLoading, setTableLoading] = React.useState(false);
@@ -75,12 +73,11 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
 
   const dataSourceGetter = React.useCallback(
     async paginationParams => {
-      if (!workspace) return null;
+      if (!workspaceKey) return null;
       setTableLoading(true);
       const data = await getTestEntitiesByQuery(
         {
-          workspace,
-          selectors,
+          workspaceKey,
           in: testDetailIds ?? [],
           type: TestType.TestDetail,
         },
@@ -94,13 +91,13 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         total: data.count,
       };
     },
-    [workspace, testDetailIds, selectors, folderKey],
+    [workspaceKey, testDetailIds, folderKey],
   );
 
   const refreshAndMutateData = React.useCallback(async () => {
     setTableLoading(true);
     await onDataChange?.();
-    setTimeout(() => tableActionRef.current?.refresh());
+    // setTimeout(() => tableActionRef.current?.refresh());
     setTableLoading(false);
   }, [onDataChange]);
 

@@ -7,8 +7,8 @@ import {
 } from '@/lib/constants';
 import { getEndOfDayUnix, getStartOfDayUnix, DateTimestampRang } from './date';
 import matchBracket from 'find-matching-bracket';
-import { User, Repository, Test } from '@/lib/models';
-import { RepositoryModel } from '@/lib/constants';
+import { User, Test, Repository } from '@/lib/models';
+import { RepositoryModel, SelectorNullValue } from '@/lib/constants';
 
 type Hyphen = '' | 'and' | 'or';
 
@@ -443,7 +443,7 @@ export const withItemType = (iql: IQL, itemType: string): IQL => {
   const itemTypeCase =
     itemType &&
     !hasItemType(excludeIqlFunctionContext(iql)) &&
-    `事项类型 ${IQL_CONDITION.EQUAL} '${itemType}'`;
+    `itemTypeKey ${IQL_CONDITION.EQUAL} '${itemType}'`;
   const result = mergeIQL(iql, itemTypeCase);
   return result;
 };
@@ -456,47 +456,82 @@ export const withItemId = (iql: IQL, itemIds: string[]): IQL => {
   return result;
 };
 
+// 根据筛选器，拼接query
+export const simpleToParse = (query, selector: SelectCase) => {
+  if (isEmpty(selector)) return;
+  const { component, expression, value, fieldId } = selector;
+  const ids = (value as any)?.map(item => item.value);
+  if (!ids?.length) return;
+  if (component === 'User') {
+    if (expression.split(`${component}_`).join('') === 'Contain') {
+      query.containedIn(
+        fieldId.split('test_').join(''),
+        ids.map(id => User.createWithoutData(id)),
+      );
+    } else {
+      query.notContainedIn(
+        fieldId.split('test_').join(''),
+        ids.map(id => User.createWithoutData(id)),
+      );
+    }
+  } else if (component === RepositoryModel) {
+    // 未分组用例查询
+    const notExistedRepositoryQuery = Parse.Query.or(
+      new Parse.Query(Test).doesNotExist('repository'),
+      new Parse.Query(Test).doesNotMatchKeyInQuery(
+        'repository',
+        'objectId',
+        new Parse.Query(Repository),
+      ),
+    );
+    // 是否有未分组的值
+    const hasNullValue = ids.includes(SelectorNullValue);
+    // 所属模块
+    if (expression.split(`${component}_`).join('') === 'Contain') {
+      if (hasNullValue) {
+        // 存在未分组的用例需要将未分组的查询条件带上
+        query.matchesKeyInQuery(
+          'objectId',
+          'objectId',
+          Parse.Query.or(
+            notExistedRepositoryQuery,
+            new Parse.Query(Test).containedIn('repository', ids),
+          ),
+        );
+      } else {
+        query.containedIn('repository', ids);
+      }
+    } else {
+      if (!hasNullValue) {
+        query.matchesKeyInQuery(
+          'objectId',
+          'objectId',
+          Parse.Query.or(
+            notExistedRepositoryQuery,
+            new Parse.Query(Test).notContainedIn('repository', ids),
+          ),
+        );
+      } else {
+        query.notContainedIn('repository', ids);
+      }
+    }
+  }
+};
+
 export const selectorToParse = (query, selectors) => {
   if (!isEmpty(selectors)) {
     const selectorValues = Object.values(selectors);
     let userQuery = null;
-    // 统一处理执行人和最新执行人的查询
-    const jointUserQuery = (component, expression, fieldId, ids) => {
-      if (!userQuery) {
-        userQuery = new Parse.Query(Test).equalTo('type', 'TestRun');
-      }
-      if (expression.split(`${component}_`).join('') === 'Contain') {
-        userQuery.containedIn(
-          fieldId.split('test_').join(''),
-          ids.map(id => User.createWithoutData(id)),
-        );
-      } else {
-        userQuery.notContainedIn(
-          fieldId.split('test_').join(''),
-          ids.map(id => User.createWithoutData(id)),
-        );
-      }
-    };
-    selectorValues.forEach(selector => {
-      const { component, expression, value, fieldId } = selector as SelectCase;
-      const ids = (value as any)?.map(item => item.value);
-      if (!ids?.length) return;
+    selectorValues.forEach((selector: SelectCase) => {
+      const { component } = selector;
       if (component === 'User') {
         // 执行人和最新执行人
-        jointUserQuery(component, expression, fieldId, ids);
-      } else if (component === RepositoryModel) {
-        // 所属模块
-        if (expression.split(`${component}_`).join('') === 'Contain') {
-          query.containedIn(
-            'repository',
-            ids.map(id => Repository.createWithoutData(id)),
-          );
-        } else {
-          query.notContainedIn(
-            'repository',
-            ids.map(id => Repository.createWithoutData(id)),
-          );
+        if (!userQuery) {
+          userQuery = new Parse.Query(Test).equalTo('type', 'TestRun');
         }
+        simpleToParse(userQuery, selector);
+      } else if (component === RepositoryModel) {
+        simpleToParse(query, selector);
       }
     });
     if (userQuery) {

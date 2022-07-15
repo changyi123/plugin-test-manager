@@ -19,14 +19,11 @@ import { BusinessTable, BusinessTableActionType } from '@/components/common/Busi
 
 import cx from './DetailTable.less';
 import RepositoryGroup from '@/components/business/RepositoryGroup';
-import { useTestConfig } from '@/lib/hooks/useContext';
 import { useDebounceFn } from 'ahooks';
 
 const DetailTable = () => {
   const actionRef = React.useRef<BusinessTableActionType>();
   const [tableLoading, setTableLoading] = React.useState(false);
-  const { workspace } = useTestConfig();
-
   // 事项数据更新后刷新列表
   useListener('updateItemList', () => {
     setTimeout(() => {
@@ -78,7 +75,7 @@ const DetailTable = () => {
     async queryParams => {
       if (!selectedTestPlanId) return null;
       // 没有获取到时候，不要触发查询
-      if (!workspace) {
+      if (!workspaceKey) {
         return { total: 0, list: [] };
       }
       setTableLoading(true);
@@ -95,7 +92,6 @@ const DetailTable = () => {
             workspaceKey,
             fillItemData: true,
             queryParams: queryParams,
-            workspace,
           },
         ),
         getTestEntitiesByRelationWithOrder(
@@ -103,10 +99,8 @@ const DetailTable = () => {
           { from: selectedTestPlanId },
           {
             // FIXME: 优化查询速度
-            // workspaceKey,
-            // selectors, 查询测试计划下的测试执行数据，无需筛选器
-            workspace,
             workspaceKey,
+            selectors,
             fillItemData: true,
             queryParams: { limit: 9999 },
             include: ['objectId'],
@@ -155,7 +149,7 @@ const DetailTable = () => {
         total,
       };
     },
-    [selectedTestPlanId, workspace, selectors],
+    [selectedTestPlanId, workspaceKey, selectors],
   );
 
   const removeTestRelation = React.useCallback(

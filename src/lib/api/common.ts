@@ -1,9 +1,13 @@
 import Parse from '@/lib/parse';
 import { TestConfig } from '../models';
 import { assign, omit, transform, isEmpty } from 'lodash';
-import { TestType, TestRelationType, RepositoryModel } from '@/lib/constants';
+import {
+  TestType,
+  TestRelationType,
+  GlobalConfigStorageKey,
+  CurrentWorkspaceConfigStorageKey,
+} from '@/lib/constants';
 import { Workspace, Item, Test, TestRelation, Repository } from '@/lib/models';
-import { Workspace as WorkspaceType } from '@/lib/types/App';
 import { hasArrayItem, pointerTransfer, toArray, escapeMatchesQueryArg } from '@/lib/utils/helper';
 import fetch from '@/lib/utils/fetch';
 import {
@@ -228,7 +232,6 @@ export const getTestEntitiesByRelationWithOrder = async <TResponseList extends a
       resultTransfer: data => data,
       queryParams: { limit: 10, offset: 0 },
       selectors: [],
-      workspace: null,
     },
     _config,
   );
@@ -280,7 +283,7 @@ export const getTestEntitiesByRelationWithOrder = async <TResponseList extends a
     const itemSelector = config.selectors?.[0];
     const referenceItemQuery = new Parse.Query(Item);
     if (!isEmpty(itemSelector)) {
-      const ids = await fetchItemFromIql(itemSelector, config.workspace);
+      const ids = await fetchItemFromIql(itemSelector, config.workspaceKey);
       // 处理事项关联子查询
       referenceItemQuery.containedIn('objectId', ids);
     }
@@ -488,7 +491,6 @@ export const getTestEntitiesByQuery = async (
     nameLike: string;
     workspaceKey: string;
     selectors: SearchSelectors;
-    workspace?: WorkspaceType;
   }>,
   options?: Partial<{
     offset: number;
@@ -500,7 +502,7 @@ export const getTestEntitiesByQuery = async (
     ignoreDeletedItemData: boolean;
   }>,
 ) => {
-  const query = new Parse.Query(Test);
+  let query = new Parse.Query(Test);
 
   queryParams = queryParams ?? {};
   options = assign(
@@ -529,19 +531,10 @@ export const getTestEntitiesByQuery = async (
 
   const itemSelector = queryParams.selectors?.[0];
   if (!isEmpty(itemSelector)) {
-    const ids = await fetchItemFromIql(itemSelector, queryParams.workspace);
+    const ids = await fetchItemFromIql(itemSelector, queryParams.workspaceKey);
     // 处理事项关联子查询
     const itemSubQuery = new Parse.Query(Item).containedIn('objectId', ids);
     query.matchesKeyInQuery('reference', 'objectId', itemSubQuery);
-  }
-
-  const repositorySelector = queryParams.selectors?.[1]?.[RepositoryModel];
-  // 为用例类型需要拼上repository的查询条件
-  if (!isEmpty(repositorySelector) && queryParams.type === TestType.TestDetail) {
-    const repositoryIdList = (repositorySelector.value as any[]).map(
-      repository => repository.objectId,
-    );
-    query.containedIn('repository', repositoryIdList);
   }
 
   if (queryParams.in) {
@@ -565,6 +558,12 @@ export const getTestEntitiesByQuery = async (
 
     // 增减事项筛选
     query.matchesQuery('reference', referenceItemQuery);
+  }
+
+  const repositorySelector = queryParams.selectors?.[1];
+  // 为用例类型需要拼上repository的查询条件
+  if (!isEmpty(repositorySelector) && queryParams.type === TestType.TestDetail) {
+    query = Parse.Query.and(selectorToParse(new Parse.Query(Test), repositorySelector), query);
   }
 
   // 需要加上 count 数据
@@ -622,9 +621,31 @@ export const updateTestEntities = async (testEntities: Record<'objectId' | strin
 };
 
 /**
+ * 获取测试管理配置，走缓存
+ */
+export const getTestConfigFromCache = async (params: {
+  workspaceKey?: string;
+  global?: boolean;
+}) => {
+  // 从 localStorage 中获取配置，不存在则需要重新获取
+  const localStorageKey = params.global ? GlobalConfigStorageKey : CurrentWorkspaceConfigStorageKey;
+  let testConfig = null;
+  try {
+    const storageConfigData = localStorage.getItem(localStorageKey);
+    if (!storageConfigData) throw new Error('not found storage data');
+    testConfig = JSON.parse(storageConfigData);
+  } catch (err) {
+    const parseObject = await getTestConfig(params);
+    testConfig = parseObject?.toJSON();
+  }
+
+  return testConfig;
+};
+
+/**
  * 获取测试管理配置
  */
-export const getTestConfig = (params: {
+export const getTestConfig = async (params: {
   workspaceKey?: string;
   global?: boolean;
 }): Promise<Parse.Object> => {
@@ -636,8 +657,18 @@ export const getTestConfig = (params: {
   if (typeof params.global === 'boolean') {
     query.equalTo('global', params.global);
   }
+  const config = await query.first();
+  // FIXME: 优化响应数据缓存方式
+  const configData = config?.toJSON();
 
-  return query.first();
+  const storageConfigData = JSON.stringify(configData);
+  if (configData.global) {
+    localStorage.setItem(GlobalConfigStorageKey, storageConfigData);
+  } else {
+    localStorage.setItem(CurrentWorkspaceConfigStorageKey, storageConfigData);
+  }
+
+  return config;
 };
 
 /**
@@ -720,12 +751,14 @@ export const updateGlobalConfig = async fields => {
   });
 };
 
-export async function fetchItemFromIql(selector: ItemSelectors, workspace) {
+export async function fetchItemFromIql(selector: ItemSelectors, workspaceKey) {
   let iql = selectorToIql(selector);
   // 组装空间
-  iql = withWorkspace(iql, workspace);
-  // 组装事项
-  iql = withItemType(iql, '测试用例');
+  iql = withWorkspace(iql, workspaceKey);
+
+  const testConfig = await getTestConfigFromCache({ workspaceKey });
+  // 当前 iql 查询只针对测试用例
+  iql = withItemType(iql, testConfig?.itemTypeMap?.[TestType.TestDetail]);
   return fetch
     .$post('/parse/api/search/structure', {
       from: 0,
