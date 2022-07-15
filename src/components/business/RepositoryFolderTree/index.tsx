@@ -84,7 +84,7 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
       let processChain: CollectionChain<any> = _.chain(allTestDetails);
 
       // 如果有用例 id 范围，则过滤用例
-      if (hasArrayItem(scopedTestDetailIds)) {
+      if (Array.isArray(scopedTestDetailIds)) {
         const scopedTestDetailIdSet = new Set(scopedTestDetailIds);
         processChain = processChain.filter(test => scopedTestDetailIdSet.has(test.objectId));
       }
@@ -93,7 +93,7 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
         .reduce((map, test) => {
           const repositoryId = test.repository?.objectId ?? UNGROUPED_FOLDER_KEY;
           const existedTestDetailIds = map.get(repositoryId) ?? [];
-          map.set(repositoryId, [...existedTestDetailIds, test.objectId]);
+          map.set(repositoryId, [...existedTestDetailIds, test.objectId].filter(Boolean));
           return map;
         }, new Map())
         .value();
@@ -104,16 +104,14 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
         notExistedFolderKeySet.delete(node.key);
       });
 
-      let unGroupedFolderIds = [];
+      let unGroupedFolderIds = repositoryTestDetailIdMap.get(UNGROUPED_FOLDER_KEY) ?? [];
       notExistedFolderKeySet.forEach(key => {
         unGroupedFolderIds = unGroupedFolderIds.concat(repositoryTestDetailIdMap.get(key));
       });
 
       repositoryTestDetailIdMap.set(
         UNGROUPED_FOLDER_KEY,
-        Array.from(
-          new Set(unGroupedFolderIds.concat(repositoryTestDetailIdMap.get(UNGROUPED_FOLDER_KEY))),
-        ),
+        Array.from(new Set(unGroupedFolderIds)).filter(Boolean),
       );
 
       const folderTreeNodesWithRoot = [
