@@ -63,15 +63,16 @@ const PlanPageLayout: React.FC<any> = () => {
 
   // useEffect(() => {
   //   if (query?.planId && planData?.list?.length && !selectedTestPlan) {
-  //     setSelectedTestPlan(planData?.list.find(d => d.objectId === query?.planId) as any);
+  //     const curPlan: any = planData?.list.find(d => d.objectId === query?.planId);
+  //     curPlan && setSelectedTestPlan(curPlan);
   //   }
-  // }, [planData, query?.planId, selectedTestPlan]);
+  // }, [planData, query?.planId]);
 
   // useEffect(() => {
   //   if (query?.actionType && !activedType) {
   //     setActivedType(query?.actionType);
   //   }
-  // }, [query?.actionType, activedType]);
+  // }, [query?.actionType]);
 
   // 创建测试执行任务
   const createTestExecution = async () => {

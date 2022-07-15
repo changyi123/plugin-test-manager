@@ -99,9 +99,10 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
             from: [selectedExecution.objectId],
           },
           {
+            queryParams,
             include,
             select,
-            ...queryParams,
+            testDetailIds: requestScopedTestDetailIds,
           },
         );
 
@@ -539,7 +540,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         defaultColumnKey={['createdBy', 'createdAt']}
         rowKey="objectId"
         columns={activedType === 'TestPlan' ? allTestColumns : excetionColumns}
-        name="TestEntityList"
+        name={activedType === 'TestPlan' ? 'AllTestEntity' : 'TestExecutionList'}
         actionRef={actionRef}
         loading={tableLoading || loading}
         getDataSource={tableDataGetter}

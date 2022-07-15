@@ -46,6 +46,7 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
       workspaceKey: '',
       queryParams: { limit: 10, offset: 0 },
       nameLike: '',
+      testDetailIds: [],
     },
     _config,
   );
@@ -118,11 +119,23 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
     testQuery.equalTo('workspaceKey', config.workspaceKey);
   }
 
+  if (hasArrayItem(config.testDetailIds)) {
+    const testRunQuery = new Parse.Query(Test);
+
+    testRunQuery.containedIn(
+      'objectId',
+      config.testDetailIds.map(item => pointerTransfer(Test, item)),
+    );
+
+    testQuery.matchesQuery('runReferenceDetail', testRunQuery);
+  }
+
   if (useItemSubQuery) {
     const referenceItemQuery = new Parse.Query(Item);
     if (config?.nameLike) {
       referenceItemQuery.matches('name', escapeMatchesQueryArg(config.nameLike));
     }
+
     if (config.workspaceKey) {
       referenceItemQuery.matchesKeyInQuery(
         'workspace',
