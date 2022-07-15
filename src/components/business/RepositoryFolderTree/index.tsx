@@ -84,7 +84,7 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
       let processChain: CollectionChain<any> = _.chain(allTestDetails);
 
       // 如果有用例 id 范围，则过滤用例
-      if (hasArrayItem(scopedTestDetailIds)) {
+      if (scopedTestDetailIds) {
         const scopedTestDetailIdSet = new Set(scopedTestDetailIds);
         processChain = processChain.filter(test => scopedTestDetailIdSet.has(test.objectId));
       }
@@ -109,10 +109,13 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
         unGroupedFolderIds = unGroupedFolderIds.concat(repositoryTestDetailIdMap.get(key));
       });
 
-      repositoryTestDetailIdMap.set(
-        UNGROUPED_FOLDER_KEY,
-        unGroupedFolderIds.concat(repositoryTestDetailIdMap.get(UNGROUPED_FOLDER_KEY)),
-      );
+      repositoryTestDetailIdMap.set(UNGROUPED_FOLDER_KEY, [
+        ...new Set(
+          unGroupedFolderIds
+            .concat(repositoryTestDetailIdMap.get(UNGROUPED_FOLDER_KEY))
+            .filter(Boolean),
+        ),
+      ]);
 
       const folderTreeNodesWithRoot = [
         {

@@ -102,7 +102,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
             queryParams,
             include,
             select,
-            testDetailIds: requestScopedTestDetailIds,
+            testDetailIds: requestScopedTestDetailIds.filter(Boolean),
           },
         );
 

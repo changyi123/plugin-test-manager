@@ -23,8 +23,8 @@ import RepoDropDown from '@/pages/repository/RepoDropDown';
 import TestEntitySelectorModal, {
   ActionType as ModelActionType,
 } from '@/components/business/TestEntitySelectorModal';
-// import { useLocation } from 'react-router-dom';
-// import useGetTestPlanById from '@/components/business/TestPlanList/hooks';
+import { useLocation } from 'react-router-dom';
+import useGetTestPlanById from '@/components/business/TestPlanList/hooks';
 
 import cx from './index.less';
 
@@ -58,21 +58,21 @@ const PlanPageLayout: React.FC<any> = () => {
   const [showType, setShowType] = useState('showCur');
   const [loading, setLoading] = useState(false);
 
-  // const { query } = useLocation();
-  // const { data: planData } = useGetTestPlanById([query?.planId ?? '']);
+  const { query } = useLocation();
+  const { data: planData } = useGetTestPlanById(query?.planId);
 
-  // useEffect(() => {
-  //   if (query?.planId && planData?.list?.length && !selectedTestPlan) {
-  //     const curPlan: any = planData?.list.find(d => d.objectId === query?.planId);
-  //     curPlan && setSelectedTestPlan(curPlan);
-  //   }
-  // }, [planData, query?.planId]);
+  useEffect(() => {
+    if (query?.planId && planData?.list?.length && !selectedTestPlan) {
+      const curPlan: any = planData?.list.find(d => d.objectId === query?.planId);
+      curPlan && setSelectedTestPlan(curPlan);
+    }
+  }, [planData, query?.planId]);
 
-  // useEffect(() => {
-  //   if (query?.actionType && !activedType) {
-  //     setActivedType(query?.actionType);
-  //   }
-  // }, [query?.actionType]);
+  useEffect(() => {
+    if (query?.actionType && !activedType) {
+      setActivedType(query?.actionType);
+    }
+  }, [query?.actionType]);
 
   // 创建测试执行任务
   const createTestExecution = async () => {

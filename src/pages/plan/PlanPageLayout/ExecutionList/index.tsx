@@ -126,10 +126,10 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
   }, [refreshExecution]);
 
   useEffect(() => {
-    if (!selectedExecution?.objectId && data?.length) {
+    if (data?.length) {
       setSelectedExecution(data[0]);
     }
-  }, [selectedExecution, data]);
+  }, [data, planId]);
 
   const menuClick = (type: string, data) => {
     if (type === 'check') {

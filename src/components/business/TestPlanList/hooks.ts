@@ -9,13 +9,13 @@ type TestPlan = TestPlanEntity & {
   refTestDetails: Pick<TestEntity, 'status'>[];
 };
 
-const useGetTestPlanById = (ids: string[], workspaceKey?: string) => {
+const useGetTestPlanById = (id?: string, workspaceKey?: string) => {
   const { data, loading } = useRequest(
     async () => {
-      if (!ids?.length) return null;
+      if (!id) return {};
       const { results, count } = await getTestEntitiesByQuery(
         {
-          in: ids,
+          in: [id ?? ''],
           workspaceKey,
           type: TestType.TestPlan,
         },
@@ -56,8 +56,8 @@ const useGetTestPlanById = (ids: string[], workspaceKey?: string) => {
       };
     },
     {
-      cacheKey: `test_plan${ids.join('_')}`,
-      refreshDeps: [ids],
+      cacheKey: `test_plan_${id ?? ''}`,
+      refreshDeps: [id, workspaceKey],
       cacheTime: 99999999999,
       staleTime: 99999999999,
     },
