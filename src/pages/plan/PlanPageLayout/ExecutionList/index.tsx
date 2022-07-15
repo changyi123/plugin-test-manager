@@ -1,11 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect } from 'react';
 import { useRequest } from 'ahooks';
-import {
-  deleteTestEntities,
-  getTestEntitiesByRelation,
-  getTestEntitiesByRelationWithOrder,
-} from '@/lib/api/common';
+import { deleteTestEntities, getTestEntitiesByRelationWithOrder } from '@/lib/api/common';
 import { TestRelationType } from '@/lib/constants';
 import { Dropdown, Menu, Spin, Tabs } from 'antd';
 import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
@@ -56,56 +52,7 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
         },
       );
 
-      const testExecutionIds = list.map(item => item.objectId);
-
-      const { list: testRuns } = await getTestEntitiesByRelation(
-        TestRelationType.ExecutionRelRun,
-        {
-          from: testExecutionIds,
-        },
-        {
-          // FIXME: 优化查询速度
-          workspaceKey,
-          queryParams: { limit: 9999 },
-          select: [
-            'status',
-            'sortIndex',
-            'runReferenceDetail.reference',
-            'runReferenceDetail.repository',
-            'executor',
-            'designee',
-          ],
-          include: [
-            'status',
-            'sortIndex',
-            'runReferenceDetail.reference',
-            'runReferenceDetail.repository',
-            'executor',
-            'designee',
-          ],
-        },
-      );
-
-      const testRunMap = testRuns
-        // 过滤测试用例事项已被删除的执行
-        .filter(run => run.runReferenceDetail?.reference)
-        // 对测试用例进行排序
-        .sort(
-          (a, b) =>
-            a.sortIndex - b.sortIndex ||
-            Number(new Date(a.createdAt)) - Number(new Date(b.createdAt)),
-        )
-        .reduce((map, run) => {
-          const key = run.relation.from.objectId;
-          const storeTestRuns = map.get(key) ?? [];
-          map.set(key, storeTestRuns.concat(run));
-          return map;
-        }, new Map());
-
-      return list.map(execution => ({
-        ...execution,
-        testRuns: testRunMap.get(execution.objectId) ?? [],
-      }));
+      return list;
     },
     {
       refreshDeps: [planId, activedType],
@@ -150,7 +97,6 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
   const menu = data => (
     <Menu onClick={e => menuClick(e.key, data)}>
       <Menu.Item key="check">查看任务</Menu.Item>
-      {/* <Menu.Item key="add">添加用例</Menu.Item> */}
       <Menu.Item key="delete">删除任务</Menu.Item>
     </Menu>
   );

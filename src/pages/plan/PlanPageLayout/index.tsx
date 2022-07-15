@@ -5,7 +5,6 @@ import TestPlanList from '@/components/business/TestPlanList';
 import PageLayout from '@/components/common/PageLayout';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import TestPlanSelector from '@/components/business/TestPlanSelector';
-import { StatusProgress } from '@/components/business/Status';
 import { addTestDetailToExecution, createTestExecutionAndRelations } from '@/lib/api/runs';
 import { useBaseAction } from '@/lib/hooks/useContext';
 import { TestRelationType, TestType } from '@/lib/constants';
@@ -25,6 +24,7 @@ import TestEntitySelectorModal, {
 } from '@/components/business/TestEntitySelectorModal';
 import { useLocation } from 'react-router-dom';
 import useGetTestPlanById from '@/components/business/TestPlanList/hooks';
+import ExecutionStatus from './ExecutionStatus';
 
 import cx from './index.less';
 
@@ -52,6 +52,8 @@ const PlanPageLayout: React.FC<any> = () => {
   const [selectedExecution, setSelectedExecution] = useState<Record<string, any> | undefined>(
     undefined,
   );
+  const [curTestRuns, setCurTestRuns] = useState<Record<string, any>[] | undefined>(undefined);
+
   const [refreshExecution, setRefreshExecution] = useState(false);
   const [value, setValue] = useState('');
   const [foldSearchValue, setFoldSearchValue] = useState('');
@@ -108,7 +110,7 @@ const PlanPageLayout: React.FC<any> = () => {
   };
 
   // 获取测试计划范围
-  const { data: scopedTestDetail, refresh: scopedTestDetailRefresh } = useScopedTestDetailIds({
+  const { data: scopedTestDetailIds, refresh: scopedTestDetailRefresh } = useScopedTestDetailIds({
     workspaceKey,
     type: activedType === 'TestPlan' ? 'Plan' : 'Execution',
     testPlanId: selectedTestPlan?.objectId,
@@ -198,12 +200,6 @@ const PlanPageLayout: React.FC<any> = () => {
     });
   };
 
-  const getRate = (statusData = []) => {
-    if (!statusData?.length) return 0;
-    const filterStatusByType = type => statusData.filter(d => d === type);
-    return Math.floor((filterStatusByType('PASSED').length / statusData.length) * 100);
-  };
-
   return (
     <div className={cx('test-plan-page')}>
       {!selectedTestPlan?.objectId ? (
@@ -241,17 +237,10 @@ const PlanPageLayout: React.FC<any> = () => {
               </div>
               <div className={cx('header-right')}>
                 {activedType === 'TestExecution' && (
-                  <div className={cx('complete-rate-box')}>
-                    <span className={cx('rate')}>
-                      完成率 {getRate(scopedTestDetail?.scopedTestDetailStatus)}%
-                    </span>
-                    <div className={cx('progress')}>
-                      <StatusProgress
-                        hasSummary
-                        statuses={scopedTestDetail?.scopedTestDetailStatus}
-                      />
-                    </div>
-                  </div>
+                  <ExecutionStatus
+                    selectedExecution={selectedExecution}
+                    setCurTestRuns={setCurTestRuns}
+                  />
                 )}
               </div>
             </div>
@@ -291,7 +280,7 @@ const PlanPageLayout: React.FC<any> = () => {
               shouldIncludeSubFolder={showType === 'showChild'}
               workspaceKey={workspaceKey}
               onFolderSelect={handleFolderSelect}
-              scopedTestDetailIds={scopedTestDetail?.scopedTestDetailIds}
+              scopedTestDetailIds={scopedTestDetailIds}
             />
           </PageLayout.Left>
           <PageLayout.Right>
@@ -350,6 +339,7 @@ const PlanPageLayout: React.FC<any> = () => {
               activedType={activedType}
               requestScopedTestDetailIds={requestScopedTestDetailIds}
               selectedExecution={selectedExecution}
+              curTestRuns={curTestRuns}
               scopedTestDetailRefresh={scopedTestDetailRefresh}
             />
             <TestEntitySelectorModal

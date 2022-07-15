@@ -49,9 +49,7 @@ export const useScopedTestDetailIds = (params: ScopedTestDetailIdsParams) => {
             select: ['objectId'],
           },
         );
-        return {
-          scopedTestDetailIds: allRelTestDetailList?.map(detail => get(detail, 'objectId')) ?? [],
-        };
+        return allRelTestDetailList?.map(detail => get(detail, 'objectId')) ?? [];
       } else if (type === 'Execution') {
         // 测试执行的用例范围
         const { list: allRelTestRunList } = await getTestEntitiesByRelationWithOrder(
@@ -72,12 +70,7 @@ export const useScopedTestDetailIds = (params: ScopedTestDetailIdsParams) => {
           },
         );
 
-        return {
-          scopedTestDetailIds:
-            allRelTestRunList?.map(run => get(run, 'runReferenceDetail.objectId')) ?? [],
-          scopedTestDetailStatus:
-            allRelTestRunList?.map(run => get(run, 'runReferenceDetail.status') ?? 'TODO') ?? [],
-        };
+        return allRelTestRunList?.map(run => get(run, 'runReferenceDetail.objectId')) ?? [];
       }
     },
     {

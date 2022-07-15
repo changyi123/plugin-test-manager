@@ -33,6 +33,7 @@ interface TestEntityListProps {
   requestScopedTestDetailIds?: string[];
   activedType: string;
   selectedExecution?: Record<string, any>;
+  curTestRuns?: Record<string, any>[];
   scopedTestDetailRefresh?: () => void;
 }
 
@@ -41,6 +42,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   activedType,
   requestScopedTestDetailIds,
   selectedExecution,
+  curTestRuns,
   scopedTestDetailRefresh,
 }) => {
   const {
@@ -49,6 +51,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     selectedTestPlan,
     registerRefreshMethod,
     mutateTestPlanEvent,
+    mutateStatusEvent,
     tableSelectionToggleEvent,
   } = usePageContext();
   const actionRef = React.useRef<BusinessTableActionType>();
@@ -277,6 +280,8 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   const handleTestRunStatusChange = async (testRunId, status) => {
     await updateTestRun(testRunId, { status: status.key });
     actionRef.current.refresh();
+    mutateStatusEvent.emit('refreshExecutionStatus');
+    // TODO
   };
 
   /** 根据列表记录删除测试执行 */
@@ -404,7 +409,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   ];
 
   const allSelectableRowKeys = selectedTestPlan?.refTestDetails?.map(detail => detail.objectId);
-  const testIdSequence = selectedExecution?.testRuns?.map(item => item?.objectId).filter(Boolean);
+  const testIdSequence = curTestRuns?.map(item => item?.objectId).filter(Boolean);
 
   const selectionActionNodes = React.useMemo(() => {
     const handleDelete = () => {
@@ -468,6 +473,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       });
       actionRef.current.refresh();
       mutateTestPlanEvent.emit(selectedTestPlan?.objectId);
+      mutateStatusEvent.emit('refreshExecutionStatus');
       // refreshAndMutateData();
     };
 
