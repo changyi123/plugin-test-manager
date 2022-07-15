@@ -462,17 +462,47 @@ export const simpleToParse = (query, selector: SelectCase) => {
   const { component, expression, value, fieldId } = selector;
   const ids = (value as any)?.map(item => item.value);
   if (!ids?.length) return;
+  // 是否有未分组的值
+  const hasNullValue = ids.includes(SelectorNullValue);
   if (component === 'User') {
     if (expression.split(`${component}_`).join('') === 'Contain') {
-      query.containedIn(
-        fieldId.split('test_').join(''),
-        ids.map(id => User.createWithoutData(id)),
-      );
+      if (hasNullValue) {
+        query.matchesKeyInQuery(
+          'objectId',
+          'objectId',
+          Parse.Query.or(
+            new Parse.Query(Test).doesNotExist(fieldId.split('test_').join('')),
+            new Parse.Query(Test).containedIn(
+              fieldId.split('test_').join(''),
+              ids.map(id => User.createWithoutData(id)),
+            ),
+          ),
+        );
+      } else {
+        query.containedIn(
+          fieldId.split('test_').join(''),
+          ids.map(id => User.createWithoutData(id)),
+        );
+      }
     } else {
-      query.notContainedIn(
-        fieldId.split('test_').join(''),
-        ids.map(id => User.createWithoutData(id)),
-      );
+      if (hasNullValue) {
+        query.notContainedIn(
+          fieldId.split('test_').join(''),
+          ids.map(id => User.createWithoutData(id)),
+        );
+      } else {
+        query.matchesKeyInQuery(
+          'objectId',
+          'objectId',
+          Parse.Query.or(
+            new Parse.Query(Test).notContainedIn(
+              fieldId.split('test_').join(''),
+              ids.map(id => User.createWithoutData(id)),
+            ),
+            new Parse.Query(Test).doesNotExist(fieldId.split('test_').join('')),
+          ),
+        );
+      }
     }
   } else if (component === RepositoryModel) {
     // 未分组用例查询
@@ -484,8 +514,6 @@ export const simpleToParse = (query, selector: SelectCase) => {
         new Parse.Query(Repository),
       ),
     );
-    // 是否有未分组的值
-    const hasNullValue = ids.includes(SelectorNullValue);
     // 所属模块
     if (expression.split(`${component}_`).join('') === 'Contain') {
       if (hasNullValue) {

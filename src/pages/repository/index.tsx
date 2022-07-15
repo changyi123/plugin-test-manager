@@ -11,6 +11,7 @@ import { logPluginVersion } from '@/lib/utils/helper';
 import { useBaseAction } from '@/lib/hooks/useContext';
 import FolderTree from '@/pages/repository/FolderTree';
 import PageLayout from '@/components/common/PageLayout';
+import { repositoryFolderTreeEvent } from '@/lib/events';
 import { getTestEntitiesByQuery } from '@/lib/api/common';
 import { useListener } from '@projectproxima/proxima-sdk-js';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
@@ -86,6 +87,9 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
             select: ['objectId', 'repository'],
           },
         );
+
+        // 刷新右侧表单的所属模块字段
+        repositoryFolderTreeEvent.dispatch();
 
         return data.map(item => pick(item, ['objectId', 'repository']));
       };

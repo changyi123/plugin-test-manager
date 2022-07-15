@@ -11,6 +11,8 @@ import {
 } from '@/lib/api/common';
 import React from 'react';
 import { getRepoData, handleRepoPath } from '@/components/business/RepositoryGroup/repository';
+import { repositoryFolderTreeEvent } from '@/lib/events';
+import { hasArrayItem } from '../utils/helper';
 
 type GetTestEntityParams = Parameters<typeof getTestEntitiesByRelationWithOrder>;
 /** 获取所有事项实体 id */
@@ -91,33 +93,45 @@ export const useAllTestWorkspace = () => {
 };
 
 export const useGetTestRepoGroup = (rowData: any) => {
-  const { data: repoMap, loading } = useRequest(
-    async () => {
-      if (!rowData?.workspaceKey && !rowData?.repository?.workspaceKey) return null;
-      const repoData = await getRepositoryData([
-        rowData?.workspaceKey ?? rowData.repository?.workspaceKey,
-      ]);
+  const workspaceKey = rowData?.repository?.workspaceKey ?? rowData?.workspaceKey;
+  const folderKey = rowData?.repository?.objectId ?? rowData?.folderKey;
 
-      const repoMap = handleRepoPath(getRepoData(repoData)).reduce((prev, cur) => {
+  const { data: repositoryData, refreshAsync: refreshRepositoryData } = useRequest(
+    () => {
+      console.log('repositoryData', workspaceKey);
+      return getRepositoryData([workspaceKey]);
+    },
+    {
+      cacheKey: `repository_data_${workspaceKey}`,
+      refreshDeps: [workspaceKey],
+      debounceWait: 300,
+    },
+  );
+
+  const { data: repositoryDict, loading } = useRequest(
+    async () => {
+      if (!hasArrayItem(repositoryData)) return null;
+      console.log('repositoryDict', folderKey);
+      return handleRepoPath(getRepoData(repositoryData)).reduce((prev, cur) => {
         if (cur.objectId) {
           prev[cur.objectId] = cur.path;
         }
         return prev;
       }, {});
-
-      return repoMap;
     },
     {
-      cacheKey: `TextRepoGroup${rowData?.workspaceKey ?? rowData?.repository?.workspaceKey}${
-        rowData?.folderKey ?? ''
-      }`,
-      refreshDeps: [rowData?.workspaceKey ?? rowData?.repository?.workspaceKey, rowData?.folderKey],
-      cacheTime: 99999999999,
-      staleTime: 99999999999,
+      cacheKey: `repository_data_${folderKey}`,
+      refreshDeps: [repositoryData, folderKey],
     },
   );
 
-  const data = repoMap?.[rowData?.repository?.objectId ?? ''] ?? '未分组';
+  React.useEffect(() => {
+    return repositoryFolderTreeEvent.register(() => {
+      refreshRepositoryData();
+    });
+  }, [refreshRepositoryData]);
+
+  const data = repositoryDict?.[rowData?.repository?.objectId ?? ''] ?? '未分组';
 
   return { data, loading };
 };
