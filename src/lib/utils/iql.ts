@@ -469,9 +469,16 @@ export const simpleToParse = (query, selector: SelectCase) => {
         ids.map(id => User.createWithoutData(id)),
       );
     } else {
-      query.notContainedIn(
-        fieldId.split('test_').join(''),
-        ids.map(id => User.createWithoutData(id)),
+      query.matchesKeyInQuery(
+        'objectId',
+        'objectId',
+        Parse.Query.or(
+          new Parse.Query(Test).notContainedIn(
+            fieldId.split('test_').join(''),
+            ids.map(id => User.createWithoutData(id)),
+          ),
+          new Parse.Query(Test).doesNotExist(fieldId.split('test_').join('')),
+        ),
       );
     }
   } else if (component === RepositoryModel) {
