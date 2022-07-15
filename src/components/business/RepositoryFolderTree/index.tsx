@@ -113,7 +113,7 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
         UNGROUPED_FOLDER_KEY,
         Array.from(
           new Set(unGroupedFolderIds.concat(repositoryTestDetailIdMap.get(UNGROUPED_FOLDER_KEY))),
-        ),
+        ).filter(Boolean),
       );
 
       const folderTreeNodesWithRoot = [
