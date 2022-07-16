@@ -163,10 +163,7 @@ const ExecutionTable = () => {
                       const ids = await fetchItemFromIql(itemSelector, workspaceKey);
                       needUpdate = true;
                       if (ids?.length) {
-                        testQuery.containedIn(
-                          'reference',
-                          ids.map(id => Item.createWithoutData(id)),
-                        );
+                        testQuery.containedIn('reference', ids);
                       } else {
                         testQuery.doesNotExist('reference');
                       }
