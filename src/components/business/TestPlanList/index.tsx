@@ -35,8 +35,8 @@ const TestPlanList: React.FC<any> = () => {
 
   React.useEffect(() => {
     // 还原筛选器数据
-    // detailSearchRef.current?.reset();
-    // setSearchParams([{}, {}]);
+    detailSearchRef.current?.reset();
+    setSearchParams([{}, {}]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedTestPlan]);
 

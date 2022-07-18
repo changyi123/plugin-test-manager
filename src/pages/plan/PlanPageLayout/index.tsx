@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Button, Spin, notification, Select } from 'antd';
 import TestPlanList from '@/components/business/TestPlanList';
 import PageLayout from '@/components/common/PageLayout';
@@ -7,7 +7,7 @@ import { ArrowLeftOutlined } from '@ant-design/icons';
 import TestPlanSelector from '@/components/business/TestPlanSelector';
 import { addTestDetailToExecution, createTestExecutionAndRelations } from '@/lib/api/runs';
 import { useBaseAction } from '@/lib/hooks/useContext';
-import { TestRelationType, TestType } from '@/lib/constants';
+import { extendFields, RepositoryModel, TestRelationType, TestType } from '@/lib/constants';
 import { useScopedTestDetailIds } from './hooks';
 import { createTestRelation } from '@/lib/api/common';
 import { usePageContext } from '../hook';
@@ -24,18 +24,17 @@ import TestEntitySelectorModal, {
 } from '@/components/business/TestEntitySelectorModal';
 import { useLocation } from 'react-router-dom';
 import useGetTestPlanById from '@/components/business/TestPlanList/hooks';
+import FilterSearch from '@/components/common/FilterSearch';
 import ExecutionStatus from './ExecutionStatus';
 
 import cx from './index.less';
-import FilterSearch from '@/components/common/FilterSearch';
 
 const PlanPageLayout: React.FC<any> = () => {
   const {
     refresh,
     workspaceKey,
     selectedTestPlan,
-    searchValue,
-    setSearchValue,
+    setSearchParams,
     setSelectedTestPlan,
     mutateTestPlanEvent,
     tableSelectionToggleEvent,
@@ -47,6 +46,7 @@ const PlanPageLayout: React.FC<any> = () => {
   useResizeContainerDOM(selectedTestPlan?.objectId);
   const testEntitySelectorRef = React.useRef<ModelActionType>();
   const folderTreeRef = React.useRef<FolderTreeActionType>();
+  const detailSearchRef = useRef(null);
   const [tableSelectionVisible, setTableSelectionVisible] = React.useState(false);
 
   const [activedType, setActivedType] = useState('TestPlan');
@@ -56,7 +56,6 @@ const PlanPageLayout: React.FC<any> = () => {
   const [curTestRuns, setCurTestRuns] = useState<Record<string, any>[] | undefined>(undefined);
 
   const [refreshExecution, setRefreshExecution] = useState(false);
-  const [value, setValue] = useState('');
   const [foldSearchValue, setFoldSearchValue] = useState('');
   const [showType, setShowType] = useState('showCur');
   const [loading, setLoading] = useState(false);
@@ -119,7 +118,8 @@ const PlanPageLayout: React.FC<any> = () => {
   });
 
   useEffect(() => {
-    searchValue && setSearchValue('');
+    detailSearchRef.current?.reset();
+    setSearchParams([{}, {}]);
   }, [activedType, selectedExecution]);
 
   // 处理 folder tree change
@@ -290,17 +290,6 @@ const PlanPageLayout: React.FC<any> = () => {
                 {activedType === 'TestExecution' ? selectedExecution?.reference.name : '全部用例'}
               </div>
               <div className={cx('extra-content-right')}>
-                <SearchInput
-                  showInput
-                  allowClear
-                  defaultValue={value}
-                  className={cx('action')}
-                  placeholder={'请输入测试用例标题'}
-                  onChange={val => setValue(val)}
-                  onSearch={val => {
-                    setSearchValue(val);
-                  }}
-                />
                 <Select
                   value={showType}
                   options={[
@@ -335,12 +324,12 @@ const PlanPageLayout: React.FC<any> = () => {
                 </>
               </div>
             </div>
-            {/* <FilterSearch
+            <FilterSearch
               ref={detailSearchRef}
               fields={['createdBy', 'priority', 'assignee', 'createdAt']}
               extendFields={extendFields.filter(item => item.key === RepositoryModel)}
               onSearch={setSearchParams}
-            /> */}
+            />
             <TestEntityList
               loading={loading}
               activedType={activedType}

@@ -10,8 +10,6 @@ import {
   updateTestRunDesignee,
 } from '@/lib/api/common';
 import { TestRelationType, TestType } from '@/lib/constants';
-
-import cx from './index.less';
 import Field from '@/components/common/Field';
 import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
 import RepositoryGroup from '@/components/business/RepositoryGroup';
@@ -22,11 +20,13 @@ import TestRunModal, {
   ActionType as TestRunModalActionType,
 } from '@/components/business/TestRunModal';
 import { useMemoizedFn } from 'ahooks';
-import { usePageContext } from '../hook';
 import { DeleteOutlined, FlagOutlined, UserOutlined } from '@ant-design/icons';
 import { updateItemAssignee } from '@/lib/api/proxima';
 import { UserCell } from '@projectproxima/components';
 import { useUserCellUserDataProp } from '@/lib/hooks/useProxima';
+import { usePageContext } from '../hook';
+
+import cx from './index.less';
 
 interface TestEntityListProps {
   loading?: boolean;
@@ -47,7 +47,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
 }) => {
   const {
     workspaceKey,
-    searchValue,
+    selectors,
     selectedTestPlan,
     registerRefreshMethod,
     mutateTestPlanEvent,
@@ -102,6 +102,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
             from: [selectedExecution.objectId],
           },
           {
+            selectors,
             queryParams,
             include,
             select,
@@ -125,7 +126,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           {
             in: requestScopedTestDetailIds ?? [],
             type: TestType.TestDetail,
-            nameLike: searchValue,
+            selectors,
             workspaceKey,
           },
           {
@@ -194,7 +195,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         total: 0,
       };
     },
-    [workspaceKey, requestScopedTestDetailIds, selectedExecution, searchValue],
+    [workspaceKey, requestScopedTestDetailIds, selectedExecution, selectors],
   );
 
   const removeTestRelation = React.useCallback(
