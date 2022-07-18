@@ -27,6 +27,7 @@ import useGetTestPlanById from '@/components/business/TestPlanList/hooks';
 import ExecutionStatus from './ExecutionStatus';
 
 import cx from './index.less';
+import FilterSearch from '@/components/common/FilterSearch';
 
 const PlanPageLayout: React.FC<any> = () => {
   const {
@@ -334,6 +335,12 @@ const PlanPageLayout: React.FC<any> = () => {
                 </>
               </div>
             </div>
+            {/* <FilterSearch
+              ref={detailSearchRef}
+              fields={['createdBy', 'priority', 'assignee', 'createdAt']}
+              extendFields={extendFields.filter(item => item.key === RepositoryModel)}
+              onSearch={setSearchParams}
+            /> */}
             <TestEntityList
               loading={loading}
               activedType={activedType}

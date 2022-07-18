@@ -1,13 +1,13 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { usePageContext } from '@/pages/plan/hook';
 import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
-import { Button, Image, Dropdown, Menu, notification } from 'antd';
+import { Button, Dropdown, Menu, notification } from 'antd';
 import {
   deleteTestEntities,
   getTestEntitiesByQuery,
   getTestEntitiesByRelation,
 } from '@/lib/api/common';
-import { TestRelationType, TestType } from '@/lib/constants';
+import { extendFields, RepositoryModel, TestRelationType, TestType } from '@/lib/constants';
 import _ from 'lodash';
 import { TestPlanEntity } from '@/pages/plan/type';
 import { TestEntity } from '@/lib/types/Test';
@@ -16,9 +16,9 @@ import { actionConfirm, generateStaticFileUrl, goToItemDetailPage } from '@/lib/
 import { EllipsisOutlined } from '@ant-design/icons';
 import { useBaseAction } from '@/lib/hooks/useContext';
 import { StatusProgress } from '../Status';
-import SearchInput from '../SearchInput';
 
 import cx from './index.less';
+import FilterSearch from '@/components/common/FilterSearch';
 
 type TestPlan = TestPlanEntity & {
   refTestDetails: Pick<TestEntity, 'status'>[];
@@ -26,10 +26,19 @@ type TestPlan = TestPlanEntity & {
 
 const TestPlanList: React.FC<any> = () => {
   const actionRef = React.useRef<BusinessTableActionType>();
-  const { workspaceKey, setSelectedTestPlan } = usePageContext();
+  const { workspaceKey, selectedTestPlan, setSelectedTestPlan, selectors, setSearchParams } =
+    usePageContext();
   const [tableLoading, setTableLoading] = useState(false);
-  const [searchValue, setSearchValue] = useState('');
   const { createItemUseModal } = useBaseAction();
+
+  const detailSearchRef = useRef(null);
+
+  React.useEffect(() => {
+    // 还原筛选器数据
+    // detailSearchRef.current?.reset();
+    // setSearchParams([{}, {}]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedTestPlan]);
 
   const tableDataGetter = useCallback(
     async queryParams => {
@@ -37,8 +46,8 @@ const TestPlanList: React.FC<any> = () => {
 
       const { results, count } = await getTestEntitiesByQuery(
         {
+          selectors,
           workspaceKey,
-          nameLike: searchValue,
           type: TestType.TestPlan,
         },
         {
@@ -80,7 +89,7 @@ const TestPlanList: React.FC<any> = () => {
         total: count,
       };
     },
-    [workspaceKey, searchValue],
+    [workspaceKey, selectors],
   );
 
   const handleDelete = async data => {
@@ -116,7 +125,12 @@ const TestPlanList: React.FC<any> = () => {
         return (
           <div className={cx('plan-table-title')}>
             <div className={cx('plan-table-title-left')}>
-              <Image src={generateStaticFileUrl(rowData.reference.itemType.icon)} />
+              <img
+                className={cx('icon')}
+                src={generateStaticFileUrl((rowData.reference.itemType as any)?.icon)}
+                width="16"
+                height="16"
+              />
               <span className={cx('test-plan-title')} onClick={() => setSelectedTestPlan(rowData)}>
                 {(rowData.reference ?? {}).name}
               </span>
@@ -177,19 +191,23 @@ const TestPlanList: React.FC<any> = () => {
   };
 
   return (
-    <div className={cx('test-plan-container')} style={{ height: 'calc(100% - 48px)' }}>
+    <div className={cx('test-plan-container')}>
       <div className={cx('plan-header')}>
-        <div className={cx('header-left')}>测试计划</div>
-        <div className={cx('header-right')}>
-          <SearchInput
-            showInput
-            allowClear
-            placeholder="请输入搜索关键字"
-            onSearch={value => setSearchValue(value)}
+        <div className={cx('plan-header-body')}>
+          <div className={cx('header-left')}>测试计划</div>
+          <div className={cx('header-right')}>
+            <Button type="primary" onClick={() => handleCreate()}>
+              新建测试计划
+            </Button>
+          </div>
+        </div>
+        <div className={cx('plan-header-slot')}>
+          <FilterSearch
+            ref={detailSearchRef}
+            fields={['createdBy', 'priority', 'assignee', 'createdAt']}
+            extendFields={extendFields.filter(item => item.key === RepositoryModel)}
+            onSearch={setSearchParams}
           />
-          <Button type="primary" onClick={() => handleCreate()}>
-            新建测试计划
-          </Button>
         </div>
       </div>
       <BusinessTable

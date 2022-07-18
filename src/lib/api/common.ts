@@ -531,7 +531,8 @@ export const getTestEntitiesByQuery = async (
 
   const itemSelector = queryParams.selectors?.[0];
   if (!isEmpty(itemSelector)) {
-    const ids = await fetchItemFromIql(itemSelector, queryParams.workspaceKey);
+    const ids = await fetchItemFromIql(itemSelector, queryParams.workspaceKey, queryParams.type);
+
     // 处理事项关联子查询
     const itemSubQuery = new Parse.Query(Item).containedIn('objectId', ids);
     query.matchesKeyInQuery('reference', 'objectId', itemSubQuery);
@@ -751,14 +752,18 @@ export const updateGlobalConfig = async fields => {
   });
 };
 
-export async function fetchItemFromIql(selector: ItemSelectors, workspaceKey) {
+export async function fetchItemFromIql(
+  selector: ItemSelectors,
+  workspaceKey,
+  type = TestType.TestDetail,
+) {
   let iql = selectorToIql(selector);
   // 组装空间
   iql = withWorkspace(iql, workspaceKey);
 
   const testConfig = await getTestConfigFromCache({ workspaceKey });
   // 当前 iql 查询只针对测试用例
-  iql = withItemType(iql, testConfig?.itemTypeMap?.[TestType.TestDetail]);
+  iql = withItemType(iql, testConfig?.itemTypeMap?.[type]);
   return fetch
     .$post('/parse/api/search/structure', {
       from: 0,

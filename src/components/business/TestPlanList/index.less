@@ -1,9 +1,18 @@
 .test-plan-container {
+  height: ~'calc(100% - 98px)';
   .plan-header {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16px;
+    flex-direction: column;
+
+    .plan-header-body {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .plan-header-slot {
+      border-top: 1px solid #dadde3;
+      margin-top: 12px;
+    }
 
     .header-left {
       font-size: 18px;
