@@ -351,7 +351,10 @@ export const CurrentWorkspaceConfigStorageKey = 'test_manager_current_workspace_
 
 export const appKey = window.QiankunProps?.frame?.app?.key || 'test_manager';
 
+// 筛选器 无 选项
 export const SelectorNullValue = 'NULL';
+// 筛选器 CurrentUser 选项
+export const SelectorCurrentUserValue = 'currentUser';
 
 export const RepositoryModel = `${appKey}_Repository`;
 
@@ -393,3 +396,5 @@ export const extendFields = [
     },
   },
 ];
+
+export const UserTypeSelectorFieldKeys = ['test_designee', 'test_executor'];

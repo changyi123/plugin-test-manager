@@ -6,6 +6,7 @@ import React, {
   useImperativeHandle,
   forwardRef,
 } from 'react';
+import { useNoExpiredRequest } from '@/lib/hooks/useRequest';
 import SearchInput from './SearchInput';
 import { Button } from 'antd';
 import AddFilterIcon from '@/icons/svg/add-filter.svg';
@@ -16,7 +17,12 @@ import cx from './index.less';
 import SelectorTag from './SelectorTag';
 import { Selectors, isDate, SearchSelectors } from '@/lib/utils/iql';
 import dayjs from 'dayjs';
-import { extendFields as systemExtendFields, RepositoryModel } from '@/lib/constants';
+import {
+  RepositoryModel,
+  SelectorCurrentUserValue,
+  UserTypeSelectorFieldKeys,
+  extendFields as systemExtendFields,
+} from '@/lib/constants';
 import { Repository } from '@/lib/models';
 import { useDebounceFn } from 'ahooks';
 
@@ -65,14 +71,42 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
     [search],
   );
 
+  const { data: currentUser } = useNoExpiredRequest(
+    async () => {
+      const currentUserObject = await Parse.User.current();
+      return currentUserObject?.toJSON();
+    },
+    {
+      cacheKey: 'currentUser',
+    },
+  );
+
   const searchFn = useCallback(() => {
     const ids = extendFields.map(item => item.key);
     // 事项的字段
     const itemSelector = omit(currentSelectors.current, ids);
     // 测试管理的字段
     const testManageSelector = pick(currentSelectors.current, ids);
+
+    Object.entries(testManageSelector).forEach(selector => {
+      const [selectorKey, data] = selector;
+      if (UserTypeSelectorFieldKeys.includes(selectorKey)) {
+        if (Array.isArray(data.value)) {
+          data.value = data.value.map(user => {
+            // currentUser 需要替换成当前用户的id
+            if (user.value === SelectorCurrentUserValue) {
+              return {
+                ...user,
+                value: currentUser.objectId,
+              };
+            }
+            return user;
+          });
+        }
+      }
+    });
     onSearch([itemSelector, testManageSelector]);
-  }, [extendFields, onSearch]);
+  }, [extendFields, onSearch, currentUser]);
 
   const { run: handleSearch } = useDebounceFn(searchFn, { wait: 300 });
 
