@@ -423,17 +423,16 @@ export const excludeIqlFunctionContext = (iql: IQL): IQL => {
   return result;
 };
 
-export const hasWorksapce = (iql: IQL): boolean => !!iql?.includes('所属空间');
+export const hasWorkspace = (iql: IQL): boolean => !!iql?.includes('所属空间');
 
 export const hasItemType = (iql: IQL): boolean => !!iql?.includes('事项类型');
 
 // 给IQL加上默认空间
-export const withWorkspace = (iql: IQL, workspace): IQL => {
-  const workspaceName = workspace?.name;
+export const withWorkspace = (iql: IQL, workspaceKey): IQL => {
   const workspaceCase =
-    workspaceName &&
-    !hasWorksapce(excludeIqlFunctionContext(iql)) &&
-    `所属空间 ${IQL_CONDITION.EQUAL} '${workspaceName}'`;
+    workspaceKey &&
+    !hasWorkspace(excludeIqlFunctionContext(iql)) &&
+    `workspaceKey ${IQL_CONDITION.EQUAL} '${workspaceKey}'`;
   const result = mergeIQL(iql, workspaceCase);
   return result;
 };
@@ -506,13 +505,11 @@ export const simpleToParse = (query, selector: SelectCase) => {
     }
   } else if (component === RepositoryModel) {
     // 未分组用例查询
-    const notExistedRepositoryQuery = Parse.Query.or(
-      new Parse.Query(Test).doesNotExist('repository'),
-      new Parse.Query(Test).doesNotMatchKeyInQuery(
-        'repository',
-        'objectId',
-        new Parse.Query(Repository),
-      ),
+    const notExistedRepositoryQuery = new Parse.Query(Test).doesNotExist('repository');
+    const deletedRepositoryQuery = new Parse.Query(Test).doesNotMatchKeyInQuery(
+      'repository',
+      'objectId',
+      new Parse.Query(Repository),
     );
     // 所属模块
     if (expression.split(`${component}_`).join('') === 'Contain') {
@@ -522,6 +519,7 @@ export const simpleToParse = (query, selector: SelectCase) => {
           'objectId',
           'objectId',
           Parse.Query.or(
+            deletedRepositoryQuery,
             notExistedRepositoryQuery,
             new Parse.Query(Test).containedIn('repository', ids),
           ),
@@ -535,12 +533,21 @@ export const simpleToParse = (query, selector: SelectCase) => {
           'objectId',
           'objectId',
           Parse.Query.or(
+            deletedRepositoryQuery,
             notExistedRepositoryQuery,
             new Parse.Query(Test).notContainedIn('repository', ids),
           ),
         );
       } else {
-        query.notContainedIn('repository', ids);
+        query.doesNotMatchKeyInQuery(
+          'objectId',
+          'objectId',
+          Parse.Query.or(
+            deletedRepositoryQuery,
+            notExistedRepositoryQuery,
+            new Parse.Query(Test).containedIn('repository', ids),
+          ),
+        );
       }
     }
   }

@@ -97,10 +97,7 @@ export const useGetTestRepoGroup = (rowData: any) => {
   const folderKey = rowData?.repository?.objectId ?? rowData?.folderKey;
 
   const { data: repositoryData, refreshAsync: refreshRepositoryData } = useRequest(
-    () => {
-      console.log('repositoryData', workspaceKey);
-      return getRepositoryData([workspaceKey]);
-    },
+    () => getRepositoryData([workspaceKey]),
     {
       cacheKey: `repository_data_${workspaceKey}`,
       refreshDeps: [workspaceKey],
@@ -111,7 +108,6 @@ export const useGetTestRepoGroup = (rowData: any) => {
   const { data: repositoryDict, loading } = useRequest(
     async () => {
       if (!hasArrayItem(repositoryData)) return null;
-      console.log('repositoryDict', folderKey);
       return handleRepoPath(getRepoData(repositoryData)).reduce((prev, cur) => {
         if (cur.objectId) {
           prev[cur.objectId] = cur.path;
