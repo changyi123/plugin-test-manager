@@ -40,6 +40,7 @@ export const useFieldsWithFieldCellProps = fields => {
           property: {
             ...field.property,
             hiddenAvatar: true,
+            displayDeletedUser: true,
           },
           objectId: field.objectId,
           type: field.fieldType?.key,
