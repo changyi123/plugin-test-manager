@@ -21,7 +21,7 @@ const ExecutionStatus: React.FC<ExecutionStatusProps> = ({ selectedExecution, se
       const { list: testRuns } = await getTestEntitiesByRelation(
         TestRelationType.ExecutionRelRun,
         {
-          from: [selectedExecution.objectId],
+          from: [selectedExecution?.objectId ?? ''],
         },
         {
           // FIXME: 优化查询速度

@@ -7,7 +7,7 @@ import {
   getTestEntitiesByQuery,
   getTestEntitiesByRelation,
 } from '@/lib/api/common';
-import { extendFields, RepositoryModel, TestRelationType, TestType } from '@/lib/constants';
+import { TestRelationType, TestType } from '@/lib/constants';
 import _ from 'lodash';
 import { TestPlanEntity } from '@/pages/plan/type';
 import { TestEntity } from '@/lib/types/Test';
@@ -16,9 +16,9 @@ import { actionConfirm, generateStaticFileUrl, goToItemDetailPage } from '@/lib/
 import { EllipsisOutlined } from '@ant-design/icons';
 import { useBaseAction } from '@/lib/hooks/useContext';
 import { StatusProgress } from '../Status';
+import FilterSearch from '@/components/common/FilterSearch';
 
 import cx from './index.less';
-import FilterSearch from '@/components/common/FilterSearch';
 
 type TestPlan = TestPlanEntity & {
   refTestDetails: Pick<TestEntity, 'status'>[];
@@ -205,7 +205,7 @@ const TestPlanList: React.FC<any> = () => {
           <FilterSearch
             ref={detailSearchRef}
             fields={['createdBy', 'priority', 'assignee', 'createdAt']}
-            extendFields={extendFields.filter(item => item.key === RepositoryModel)}
+            extendFields={[]}
             onSearch={setSearchParams}
           />
         </div>

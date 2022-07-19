@@ -294,25 +294,6 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       notification.success({
         message: `${testRunIds.length} 个测试执行任务被删除`,
       });
-      // eslint-disable-next-line no-console
-      // console.log(1111, forceRestCurrentPage);
-
-      // const refreshAndMutateDataOptions = {
-      //   shouldRestSelectedRowKeys: true,
-      // } as Record<string, any>;
-
-      // // 批量删除重置回第一页
-      // if (forceRestCurrentPage) {
-      //   refreshAndMutateDataOptions.shouldRestCurrentPage = true;
-      // } else {
-      //   const testRunsTotal = record.relRuns?.length;
-      //   const remainder = testRunsTotal % pageSize;
-      //   // 单条用例删除需要判断当前页是否有数据，无数据跳上一页
-      //   if (remainder === 1) {
-      //     setPageNum(prevPageNum => Math.max(1, prevPageNum - 1));
-      //   }
-      // }
-      // refreshAndMutateData(refreshAndMutateDataOptions);
     });
   });
 

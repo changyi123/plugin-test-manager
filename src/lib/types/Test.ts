@@ -33,6 +33,8 @@ type BaseTestEntity = {
     precondition: string;
     defectItemIds?: string[];
     attachments?: Attachment[]; // 附件
+    /** 执行结果描述 */
+    executeResultDesc?: Record<string, any>[];
   };
   /** 测试用例评论数据 */
   comments: Comment[];
@@ -95,7 +97,7 @@ export type Step = {
   defectItemIds?: string[]; // 缺陷关联
   status?: Status['key']; // 步骤状态
   actualResult?: string; // 实际结果
-  comment?: string; // 评论
+  comment?: Record<string, any>[]; // 评论
 
   // 以下字段为保留字段暂时不用
   attachments?: string[]; // 附件

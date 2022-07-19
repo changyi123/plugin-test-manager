@@ -66,6 +66,8 @@ const PlanPageLayout: React.FC<any> = () => {
   useEffect(() => {
     if (query?.planId && planData?.list?.length && !selectedTestPlan) {
       const curPlan: any = planData?.list.find(d => d.objectId === query?.planId);
+      // eslint-disable-next-line no-console
+      console.log(11111, curPlan);
       curPlan && setSelectedTestPlan(curPlan);
     }
   }, [planData, query?.planId]);
@@ -276,13 +278,15 @@ const PlanPageLayout: React.FC<any> = () => {
                 folderTreeRef.current.filterFolder(val);
               }}
             />
-            <RepositoryFolderTree
-              actionRef={folderTreeRef}
-              shouldIncludeSubFolder={showType === 'showChild'}
-              workspaceKey={workspaceKey}
-              onFolderSelect={handleFolderSelect}
-              scopedTestDetailIds={scopedTestDetailIds}
-            />
+            <div className={cx('tree-box')}>
+              <RepositoryFolderTree
+                actionRef={folderTreeRef}
+                shouldIncludeSubFolder={showType === 'showChild'}
+                workspaceKey={workspaceKey}
+                onFolderSelect={handleFolderSelect}
+                scopedTestDetailIds={scopedTestDetailIds}
+              />
+            </div>
           </PageLayout.Left>
           <PageLayout.Right>
             <div className={cx('extra-content')}>

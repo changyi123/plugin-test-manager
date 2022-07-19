@@ -204,6 +204,7 @@ const TestStep: React.FC<TestStepProps> = props => {
               onLoading={onLoading}
             />
           </div>
+          <div className={cx('comment')}>22222</div>
         </div>
       ))}
     </div>
