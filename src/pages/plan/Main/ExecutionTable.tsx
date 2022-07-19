@@ -162,7 +162,7 @@ const ExecutionTable = () => {
                     if (!isEmpty(itemSelector)) {
                       // 只有一个选择器，且 name value 为空时，不需要执行 iql 筛选逻辑
                       if (
-                        Object.keys(itemSelector).length === 0 &&
+                        Object.keys(itemSelector).length === 1 &&
                         itemSelector.name &&
                         !itemSelector.name.value
                       )
