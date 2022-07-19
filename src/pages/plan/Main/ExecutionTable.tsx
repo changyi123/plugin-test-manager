@@ -21,7 +21,7 @@ import BusinessTable, {
 import TestEntitySelectorModal, {
   ActionType as TestEntitySelectorActionType,
 } from '@/components/business/TestEntitySelectorModal';
-import { Item, Test } from '@/lib/models';
+import { Test } from '@/lib/models';
 import { selectorToParse, simpleToParse } from '@/lib/utils/iql';
 import { useDebounceFn } from 'ahooks';
 import ExpandedTable from './ExpandedTable';
@@ -157,9 +157,16 @@ const ExecutionTable = () => {
                   ],
                   parseMiddleware: async query => {
                     const testQuery = new Parse.Query(Test);
-                    const [itemSelector, testManageSelector] = [selectors?.[0], selectors?.[1]];
+                    const [itemSelector, testManageSelector] = selectors ?? [];
                     let needUpdate = false;
                     if (!isEmpty(itemSelector)) {
+                      // 只有一个选择器，且 name value 为空时，不需要执行 iql 筛选逻辑
+                      if (
+                        Object.keys(itemSelector).length === 0 &&
+                        itemSelector.name &&
+                        !itemSelector.name.value
+                      )
+                        return;
                       const ids = await fetchItemFromIql(itemSelector, workspaceKey);
                       needUpdate = true;
                       if (ids?.length) {
