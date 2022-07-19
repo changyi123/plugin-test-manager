@@ -161,18 +161,19 @@ const ExecutionTable = () => {
                     let needUpdate = false;
                     if (!isEmpty(itemSelector)) {
                       // 只有一个选择器，且 name value 为空时，不需要执行 iql 筛选逻辑
-                      if (
+                      const onlyOneEmptyNameSelector =
                         Object.keys(itemSelector).length === 1 &&
                         itemSelector.name &&
-                        !itemSelector.name.value
-                      )
-                        return;
-                      const ids = await fetchItemFromIql(itemSelector, workspaceKey);
-                      needUpdate = true;
-                      if (ids?.length) {
-                        testQuery.containedIn('reference', ids);
-                      } else {
-                        testQuery.doesNotExist('reference');
+                        !itemSelector.name.value;
+
+                      if (!onlyOneEmptyNameSelector) {
+                        const ids = await fetchItemFromIql(itemSelector, workspaceKey);
+                        needUpdate = true;
+                        if (ids?.length) {
+                          testQuery.containedIn('reference', ids);
+                        } else {
+                          testQuery.doesNotExist('reference');
+                        }
                       }
                     }
 
