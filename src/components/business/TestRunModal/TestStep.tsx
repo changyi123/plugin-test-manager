@@ -13,6 +13,7 @@ import Input from '@/components/business/TestStep/fields/Input';
 import { generateStaticFileUrl } from '@/lib/utils/helper';
 
 import cx from './TestStep.less';
+import ExecutionEditor from './ExecutionEditor';
 
 type TestStepProps = TabsComponentBaseProps;
 
@@ -88,6 +89,16 @@ const TestStep: React.FC<TestStepProps> = props => {
     );
 
     await updateTestRun(testRunEntity, { steps: needUpdateSteps });
+  };
+
+  // 执行步骤评论变更
+  const onCommentChange = async (val, stepId) => {
+    const needUpdateSteps = steps.map(step =>
+      step.id === stepId ? { ...step, comment: val } : step,
+    );
+
+    await updateTestRun(testRunEntity, { steps: needUpdateSteps });
+    await onDataChange();
   };
 
   // 步骤缺陷渲染
@@ -204,7 +215,14 @@ const TestStep: React.FC<TestStepProps> = props => {
               onLoading={onLoading}
             />
           </div>
-          <div className={cx('comment')}>22222</div>
+          <div className={cx('comment')}>
+            <ExecutionEditor
+              value={step.comment}
+              isStep={true}
+              onCommentChange={val => onCommentChange(val, step.id)}
+              {...props}
+            />
+          </div>
         </div>
       ))}
     </div>

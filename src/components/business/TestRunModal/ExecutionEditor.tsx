@@ -18,15 +18,16 @@ const defaultEditorValue = [
 ];
 
 interface ExecutionEditorProps extends TabsComponentBaseProps {
-  value?: string;
-  isExecution?: boolean;
+  value?: Record<string, any>[];
+  isStep?: boolean;
+  onCommentChange?: (val: Record<string, any>[]) => void;
 }
 
 const ExecutionEditor: React.FC<ExecutionEditorProps> = props => {
-  const { testRunData, testRunEntity, onDataChange, value, isExecution } = props;
+  const { testRunData, testRunEntity, onDataChange, value, isStep, onCommentChange } = props;
   const executeResultDesc = useMemo(
-    () => (isExecution ? testRunData?.runDetail?.executeResultDesc : value ?? undefined),
-    [testRunData, value, isExecution],
+    () => (isStep ? value : testRunData?.runDetail?.executeResultDesc ?? undefined),
+    [testRunData, value, isStep],
   );
 
   const submitExecuteResultDesc = async val => {
@@ -37,12 +38,12 @@ const ExecutionEditor: React.FC<ExecutionEditorProps> = props => {
       },
     });
 
-    onDataChange();
+    await onDataChange();
   };
 
   const readonlyEditor = useMemo(() => {
     return (
-      <>
+      <div className={cx('commont-box')}>
         <EditorField
           name="readonly-editor"
           value={executeResultDesc ?? defaultEditorValue}
@@ -51,14 +52,14 @@ const ExecutionEditor: React.FC<ExecutionEditorProps> = props => {
           hiddenLabel
           hideEditBtn
         />
-      </>
+      </div>
     );
   }, [executeResultDesc]);
 
   return (
     <>
-      {executeResultDesc && <div className={cx('commont-box')}>{readonlyEditor}</div>}
-      <Editor onSubmit={submitExecuteResultDesc} />
+      {readonlyEditor}
+      <Editor onSubmit={isStep ? onCommentChange : submitExecuteResultDesc} />
     </>
   );
 };

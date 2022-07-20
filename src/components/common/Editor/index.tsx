@@ -1,5 +1,4 @@
 import React, { useCallback, useState } from 'react';
-import { useDebounceFn } from 'ahooks';
 import { Button, Input, Space } from 'antd';
 import { EditorField } from '@projectproxima/components';
 
@@ -43,13 +42,12 @@ const Editor: React.FC<EditorProps> = ({ className, value, onSubmit }) => {
   );
   const [showEditor, setShowEditor] = React.useState(false);
 
-  const submitEditor = useCallback(() => {
-    onSubmit(editorValue);
+  const submitEditor = useCallback(async () => {
+    await onSubmit(editorValue);
+    setEditorValue(defaultEditorValue);
     setShowEditor(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editorValue]);
-
-  const { run: onChange } = useDebounceFn(setEditorValue, { wait: 500 });
 
   return (
     <div className={cx('test-editor-container', `${className ?? ''}`)}>
@@ -65,7 +63,7 @@ const Editor: React.FC<EditorProps> = ({ className, value, onSubmit }) => {
             value={editorValue}
             placeholder="请输入内容"
             hiddenLabel
-            onChange={onChange}
+            onChange={setEditorValue}
             watchChange
           />
           <Space style={{ marginTop: '12px' }}>
