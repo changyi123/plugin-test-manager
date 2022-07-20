@@ -67,6 +67,7 @@ const Main = () => {
   const createTestExecution = async () => {
     const { testEntity: testExecutionEntity } = await createItemUseModal({
       type: TestType.TestExecution,
+      extraData: { planId: selectedTestPlanId },
     });
 
     try {
