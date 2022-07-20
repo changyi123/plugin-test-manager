@@ -16,7 +16,7 @@ const UserField: React.FC<UserFieldProps> = ({
   ...restUserCellProps
 }) => {
   const value = toArray(userInfo).filter(Boolean);
-  return <UserCell readonly={readonly} value={value} {...restUserCellProps} />;
+  return <UserCell displayDeletedUser readonly={readonly} value={value} {...restUserCellProps} />;
 };
 
 export default UserField;

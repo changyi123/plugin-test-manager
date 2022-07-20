@@ -48,7 +48,6 @@ logPluginVersion();
 
 const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) => {
   const tableActionRef = React.useRef<ActionType>();
-  const prevSelectedTreeNodeRef = React.useRef(null);
   const { createItemUseModal } = useBaseAction();
   const [groupedMode, setGroupedMode] = React.useState<GroupedMode>('all');
 
@@ -114,6 +113,9 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
         },
       ];
 
+      // 更新 selectedNode
+      state.selectedNode = getTreeNodeByKey(folders, state.selectedFolderKey);
+
       return folders;
     },
     {
@@ -161,8 +163,11 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
 
   const handleTreeSelect = React.useCallback(
     (_selectedNode?: any) => {
-      const selectedNode = _selectedNode ?? prevSelectedTreeNodeRef.current;
-      prevSelectedTreeNodeRef.current = selectedNode;
+      if (_selectedNode) {
+        state.selectedNode = _selectedNode;
+      }
+
+      const selectedNode = _selectedNode ?? state.selectedNode;
 
       if (!selectedNode) return;
 
