@@ -11,9 +11,9 @@ import { addDefect, deleteDefect } from '@/lib/api/runs';
 import { StatusBadge } from '@/components/business/Status';
 import Input from '@/components/business/TestStep/fields/Input';
 import { generateStaticFileUrl } from '@/lib/utils/helper';
+import ExecutionEditor from './ExecutionEditor';
 
 import cx from './TestStep.less';
-import ExecutionEditor from './ExecutionEditor';
 
 type TestStepProps = TabsComponentBaseProps;
 
