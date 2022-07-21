@@ -1,5 +1,6 @@
 .test-plan-container {
   height: ~'calc(100% - 98px)';
+
   .plan-header {
     display: flex;
     flex-direction: column;
@@ -8,10 +9,10 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      padding: 12px 24px;
     }
     .plan-header-slot {
       border-top: 1px solid #dadde3;
-      margin-top: 12px;
     }
 
     .header-left {
@@ -24,9 +25,45 @@
     .header-right {
       display: flex;
       align-items: center;
+    }
+  }
 
-      > * {
-        margin-right: 8px;
+  :global {
+    .test-plan-title-box {
+      position: relative;
+
+      .test-plan-title {
+        padding: 0 24px;
+      }
+
+      .icon {
+        position: absolute;
+        content: '';
+        top: 0;
+        left: 0;
+        height: 22px;
+      }
+
+      &:hover {
+        .plan-table-title-menu {
+          display: flex;
+        }
+      }
+
+      .plan-table-title-menu {
+        display: none;
+        align-items: center;
+        justify-content: center;
+        position: absolute;
+        content: '';
+        top: 0;
+        right: 0;
+        height: 22px;
+        width: 22px;
+        height: 22px;
+        border-radius: 4px;
+        background-color: #f1f2f4;
+        font-weight: bold;
       }
     }
   }
@@ -59,5 +96,20 @@
       display: none;
       flex: 0.1;
     }
+  }
+}
+
+:global {
+  .ant-tooltip .ant-tooltip-content .ant-tooltip-inner {
+    .test-plan-title-box .icon,
+    .test-plan-title-box .plan-table-title-menu {
+      display: none;
+    }
+  }
+}
+
+:root {
+  .test-manager-filter {
+    padding: 12px 24px;
   }
 }

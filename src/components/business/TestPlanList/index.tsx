@@ -123,19 +123,17 @@ const TestPlanList: React.FC<any> = () => {
       title: '计划名称',
       render(_, rowData) {
         return (
-          <div className={cx('plan-table-title')}>
-            <div className={cx('plan-table-title-left')}>
-              <img
-                className={cx('icon')}
-                src={generateStaticFileUrl((rowData.reference.itemType as any)?.icon)}
-                width="16"
-                height="16"
-              />
-              <span className={cx('test-plan-title')} onClick={() => setSelectedTestPlan(rowData)}>
-                {(rowData.reference ?? {}).name}
-              </span>
+          <div className={'test-plan-title-box'}>
+            <img
+              className={'icon'}
+              src={generateStaticFileUrl((rowData.reference.itemType as any)?.icon)}
+              width="16"
+              height="16"
+            />
+            <div className={'test-plan-title'} onClick={() => setSelectedTestPlan(rowData)}>
+              {(rowData.reference ?? {}).name}
             </div>
-            <div className={cx('plan-table-title-right')}>
+            <div className={'plan-table-title-menu'}>
               <Dropdown
                 overlay={
                   <Menu>
@@ -153,6 +151,36 @@ const TestPlanList: React.FC<any> = () => {
               </Dropdown>
             </div>
           </div>
+          // <div className={cx('plan-table-title')}>
+          //   <div className={cx('plan-table-title-left')}>
+          //     <img
+          //       className={cx('icon')}
+          //       src={generateStaticFileUrl((rowData.reference.itemType as any)?.icon)}
+          //       width="16"
+          //       height="16"
+          //     />
+          //     <span className={cx('test-plan-title')} onClick={() => setSelectedTestPlan(rowData)}>
+          //       {(rowData.reference ?? {}).name}
+          //     </span>
+          //   </div>
+          //   <div className={cx('plan-table-title-right')}>
+          //     <Dropdown
+          //       overlay={
+          //         <Menu>
+          //           <Menu.Item key="delete" onClick={() => handleDelete(rowData)}>
+          //             删除测试计划
+          //           </Menu.Item>
+          //           <Menu.Item key="view" onClick={() => handleView(rowData)}>
+          //             查看测试计划
+          //           </Menu.Item>
+          //         </Menu>
+          //       }
+          //       trigger={['hover']}
+          //     >
+          //       <EllipsisOutlined className={cx('action', 'right')} style={{ display: 'flex' }} />
+          //     </Dropdown>
+          //   </div>
+          // </div>
         );
       },
     },
@@ -203,6 +231,7 @@ const TestPlanList: React.FC<any> = () => {
         </div>
         <div className={cx('plan-header-slot')}>
           <FilterSearch
+            className={cx('test-manager-filter')}
             ref={detailSearchRef}
             fields={['createdBy', 'priority', 'assignee', 'createdAt']}
             extendFields={[]}

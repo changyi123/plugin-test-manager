@@ -80,7 +80,7 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
 
   const menuClick = (type: string, data) => {
     if (type === 'check') {
-      openItemViewScreen(data.objectId);
+      openItemViewScreen(data.reference.objectId);
     }
     if (type === 'delete') {
       actionConfirm('该操作会将该测试执行任务删除，是否继续操作？', async () => {

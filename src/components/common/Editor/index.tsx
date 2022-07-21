@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from 'react';
 import { Button, Input, Space } from 'antd';
 import { EditorField } from '@projectproxima/components';
-// import { EditorField } from 'proxima-sdk/components/fileds/editor/Field';
+// import { EditorField } from 'proxima-sdk/components/Components/Fileds/Editor/Field';
 
 import cx from './index.less';
 

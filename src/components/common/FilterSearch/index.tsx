@@ -30,6 +30,7 @@ interface FilterSearchProps {
   fields: string[];
   onSearch: (data: SearchSelectors) => void;
   extendFields: any[];
+  className?: string;
 }
 
 interface FilterRefMethod {
@@ -37,7 +38,7 @@ interface FilterRefMethod {
 }
 
 const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearchProps> = (
-  { fields, onSearch, extendFields },
+  { fields, onSearch, extendFields, className },
   ref,
 ) => {
   const { workspace } = useTestConfig();
@@ -240,7 +241,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
   }, []);
 
   return (
-    <div className={cx('filter-search-wrap')}>
+    <div className={cx('filter-search-wrap', `${className ?? ''}`)}>
       <SearchInput onChange={onChangeInput} placeholder="请输入标题关键字/事项ID" value={search} />
       {currentSelector
         ?.filter(item => item?.fieldId !== 'name')

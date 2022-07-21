@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { updateTestRun } from '@/lib/api/runs';
 import { EditorField } from '@projectproxima/components';
-// import { EditorField } from 'proxima-sdk/components/fileds/editor/Field';
+// import { EditorField } from 'proxima-sdk/components/Components/Fileds/Editor/Field';
 import Editor from '@/components/common/Editor';
 import { TabsComponentBaseProps } from './type';
 
