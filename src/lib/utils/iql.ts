@@ -560,7 +560,7 @@ export const selectorToParse = (query, selectors) => {
     selectorValues.forEach((selector: SelectCase) => {
       const { component } = selector;
       if (component === 'User') {
-        // 执行人和最新执行人
+        // 执行人和最新操作执行人
         if (!userQuery) {
           userQuery = new Parse.Query(Test).equalTo('type', 'TestRun');
         }

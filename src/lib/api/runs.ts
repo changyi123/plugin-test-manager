@@ -357,7 +357,7 @@ export const updateTestRun = async (
   opts?: { initialization?: boolean },
 ) => {
   const userInfo = await Parse.User.current();
-  /** 设置最新执行人 */
+  /** 设置最新操作执行人 */
   const setExecutor = async needUpdateAttrs => {
     const getCurrentUserInfo = () => {
       const user = userInfo.toJSON();
@@ -367,7 +367,7 @@ export const updateTestRun = async (
         className: '_User',
       } as UserPointerInfo;
     };
-    // 最新执行人存最近三条数据，多存无意
+    // 最新操作执行人存最近三条数据，多存无意
     needUpdateAttrs.executor = [getCurrentUserInfo(), ...(needUpdateAttrs.executor ?? [])].slice(
       0,
       3,
@@ -458,7 +458,7 @@ export const updateTestRunStatus = async (params: { status: string; testRunIds: 
     id: toArray(params.testRunIds),
   });
   const userInfo = await Parse.User.current();
-  /** 设置最新执行人 */
+  /** 设置最新操作执行人 */
   const getCurrentUserInfo = () => {
     const user = userInfo.toJSON();
     return {

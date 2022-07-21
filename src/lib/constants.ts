@@ -385,14 +385,14 @@ export const extendFields = [
   },
   {
     key: 'test_executor',
-    name: '最新执行人',
+    name: '最新操作执行人',
     objectId: 'test_executor',
     fieldType: {
       component: 'User',
       dataType: 'object',
       objectId: 'test_executor',
       key: 'User',
-      name: '最新执行人',
+      name: '最新操作执行人',
     },
   },
 ];
