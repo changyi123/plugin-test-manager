@@ -71,7 +71,7 @@ const getLocalIdent = ({ resourcePath }, localIdentName, localName) => {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 module.exports = (cliEnv = {}, argv) => {
   const mode = argv.mode;
-  const { PROXIMA_DEV_MODE, PROXIMA_USE_EXTERNALS } = process.env;
+  // const { PROXIMA_DEV_MODE, PROXIMA_USE_EXTERNALS } = process.env;
 
   if (!['production', 'development'].includes(mode)) {
     throw new Error('The mode is required for NODE_ENV, BABEL_ENV but was not specified.');
@@ -149,23 +149,16 @@ module.exports = (cliEnv = {}, argv) => {
       return false;
     })(),
     // 生产环境使用 proxima-app 传入的
-    externals:
-      PROXIMA_USE_EXTERNALS && (isProd || PROXIMA_DEV_MODE === 'embed')
-        ? {
-            react: {
-              amd: 'react',
-              commonjs: 'react',
-              commonjs2: 'react',
-              root: '_PROXIMA_React',
-            },
-            'react-dom': {
-              amd: 'react-dom',
-              commonjs: 'react-dom',
-              commonjs2: 'react-dom',
-              root: '_PROXIMA_ReactDOM',
-            },
-          }
-        : undefined,
+    externals: [
+      function ({ request }, callback) {
+        if (request.startsWith('proxima-sdk')) {
+          return callback(null, 'commonjs2 ' + request);
+        }
+
+        // 继续下一步且不外部化引用
+        callback();
+      },
+    ],
     resolve: {
       extensions: ['.js', '.css', '.jsx', '.tsx', '.ts'],
       alias: {
@@ -296,5 +289,6 @@ module.exports = (cliEnv = {}, argv) => {
       ],
     },
   };
+
   return isProd ? webpackConfig : smp.wrap(webpackConfig);
 };

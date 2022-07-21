@@ -14,4 +14,6 @@ declare let __webpack_public_path__: string;
 
 declare module 'parse';
 
+// declare module 'proxima-sdk/components/fileds/editor/Field';
+
 declare type PointerType = string | Parse.Object | Parse.Pointer;
