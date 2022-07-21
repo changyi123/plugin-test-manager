@@ -2,7 +2,7 @@ const ParseBaseQueryOptions = {
   sessionToken: global.sessionToken,
 };
 // 获取请求的参数
-const { itemId, action, planId } = global.body;
+const { itemId, action, planId, checkStatus } = global.body;
 
 // 根据事项id获取计划id
 async function fetchPlanFromItemId(id) {
@@ -78,8 +78,8 @@ if (action === 'has-test') {
     .equalTo('type', 'TestPlan')
     .equalTo('objectId', planId)
     .first(ParseBaseQueryOptions);
-  if (data.get('reference').get('status').get('name') === '测试完成') {
-    return { code: -1, message: '测试计划已完成' };
+  if (!checkStatus.include(data.get('reference').get('status').get('name'))) {
+    return { code: -1, message: `测试计划状态不属于${checkStatus.join('、')}` };
   }
   return { code: 0 };
 }
