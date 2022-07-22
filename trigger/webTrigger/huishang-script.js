@@ -63,6 +63,7 @@ if (action === 'has-test') {
   // 测试计划状态【已完成】时，校验所有的测试执行任务必须【已完成】
   const plan = await fetchPlanFromItemId(itemId);
   const runs = await fetchRunsFromPlanId(plan.id);
+  if (!runs?.length) return { code: -1, message: '没有测试执行任务' };
   const hasUnPass = runs.find(item => item.get('to').get('status') !== 'PASSED');
   if (hasUnPass) {
     return { code: -1, message: '所有的测试执行任务必须【已完成】' };
@@ -78,7 +79,7 @@ if (action === 'has-test') {
     .equalTo('type', 'TestPlan')
     .equalTo('objectId', planId)
     .first(ParseBaseQueryOptions);
-  if (!checkStatus.include(data.get('reference').get('status').get('name'))) {
+  if (!checkStatus.includes(data.get('reference').get('status').get('name'))) {
     return { code: -1, message: `测试计划状态不属于${checkStatus.join('、')}` };
   }
   return { code: 0 };
