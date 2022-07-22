@@ -4,7 +4,7 @@ import Editor from '@/components/common/Editor';
 import { TabsComponentBaseProps } from './type';
 import { components } from 'proxima-sdk';
 
-const EditorField = components.Components.EditorField;
+const { Field } = components.Components.Editor;
 
 import cx from './ExecutionEditor.less';
 
@@ -46,7 +46,7 @@ const ExecutionEditor: React.FC<ExecutionEditorProps> = props => {
   const readonlyEditor = useMemo(() => {
     return (
       <div className={cx('commont-box')}>
-        <EditorField
+        <Field
           name="readonly-editor"
           value={executeResultDesc ?? defaultEditorValue}
           placeholder=""

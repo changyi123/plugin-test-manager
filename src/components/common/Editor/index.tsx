@@ -2,7 +2,7 @@ import React, { useCallback, useState } from 'react';
 import { Button, Input, Space } from 'antd';
 import { components } from 'proxima-sdk';
 
-const EditorField = components.Components.EditorField;
+const { Field } = components.Components.Editor;
 
 import cx from './index.less';
 
@@ -59,7 +59,7 @@ const Editor: React.FC<EditorProps> = ({ className, value, onSubmit }) => {
         </>
       ) : (
         <>
-          <EditorField
+          <Field
             editMode
             name="comment-editor"
             value={editorValue}
