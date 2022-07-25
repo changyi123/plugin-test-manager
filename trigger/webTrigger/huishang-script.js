@@ -107,14 +107,10 @@ if (action === 'has-test') {
   }
   return { code: 0 };
 } else if (action === 'runs-done') {
-  // itemTypeKey === 'test_manager_execution' &&
   // 检测测试执行任务状态改为【已完成】时，校验下所有的用例是否都执行
   const testQuery = await apis.getParseQuery(false, 'test_manager_Test');
-  const itemQuery = await apis.getParseModel(false, 'Item');
-  const testData = await testQuery
-    .equalTo('reference', itemQuery.createWithoutData(itemId))
-    .first(ParseBaseQueryOptions);
-  const testRuns = await fetchTestRunStatusByExecutionId(testData.get('objectId'));
+  const testData = await testQuery.equalTo('reference', itemId).first(ParseBaseQueryOptions);
+  const testRuns = await fetchTestRunStatusByExecutionId(testData.id);
   const todoTest = testRuns.filter(
     test => !test.get('to').get('status') || test.get('to').get('status') === 'TODO',
   );
