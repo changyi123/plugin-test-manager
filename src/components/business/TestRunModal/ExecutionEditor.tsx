@@ -2,9 +2,9 @@ import React, { useMemo } from 'react';
 import { updateTestRun } from '@/lib/api/runs';
 import Editor from '@/components/common/Editor';
 import { TabsComponentBaseProps } from './type';
-import { components } from 'proxima-sdk';
+// import { components } from 'proxima-sdk';
 
-const { Field } = components.Components.Editor;
+// const { Field } = components.Components.Editor.Common.Editor;
 
 import cx from './ExecutionEditor.less';
 
@@ -43,24 +43,24 @@ const ExecutionEditor: React.FC<ExecutionEditorProps> = props => {
     await onDataChange();
   };
 
-  const readonlyEditor = useMemo(() => {
-    return (
-      <div className={cx('commont-box')}>
-        <Field
-          name="readonly-editor"
-          value={executeResultDesc ?? defaultEditorValue}
-          placeholder=""
-          readonly
-          hiddenLabel
-          hideEditBtn
-        />
-      </div>
-    );
-  }, [executeResultDesc]);
+  // const readonlyEditor = useMemo(() => {
+  //   return (
+  //     <div className={cx('commont-box')}>
+  //       <Field
+  //         name="readonly-editor"
+  //         value={executeResultDesc ?? defaultEditorValue}
+  //         placeholder=""
+  //         readonly
+  //         hiddenLabel
+  //         hideEditBtn
+  //       />
+  //     </div>
+  //   );
+  // }, [executeResultDesc]);
 
   return (
     <>
-      {readonlyEditor}
+      {/* {readonlyEditor} */}
       <Editor onSubmit={isStep ? onCommentChange : submitExecuteResultDesc} />
     </>
   );

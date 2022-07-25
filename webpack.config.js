@@ -168,7 +168,7 @@ module.exports = (cliEnv = {}, argv) => {
       return false;
     })(),
     // 生产环境使用 proxima-app 传入的
-    externals: isProd || PROXIMA_USE_EXTERNAL_DEPENDENCIES ? getExternalDependencies() : undefined,
+    // externals: isProd || PROXIMA_USE_EXTERNAL_DEPENDENCIES ? getExternalDependencies() : undefined,
     resolve: {
       extensions: ['.js', '.css', '.jsx', '.tsx', '.ts'],
       alias: {

@@ -1,8 +1,8 @@
 import React, { useCallback, useState } from 'react';
 import { Button, Input, Space } from 'antd';
-import { components } from 'proxima-sdk';
+// import { components } from 'proxima-sdk';
 
-const { Field } = components.Components.Editor;
+// const { Field } = components.Components.Common.Editor;
 
 import cx from './index.less';
 
@@ -59,7 +59,7 @@ const Editor: React.FC<EditorProps> = ({ className, value, onSubmit }) => {
         </>
       ) : (
         <>
-          <Field
+          {/* <Field
             editMode
             name="comment-editor"
             value={editorValue}
@@ -67,7 +67,7 @@ const Editor: React.FC<EditorProps> = ({ className, value, onSubmit }) => {
             hiddenLabel
             onChange={setEditorValue}
             watchChange
-          />
+          /> */}
           <Space style={{ marginTop: '12px' }}>
             <Button type="primary" disabled={!getText(editorValue).trim()} onClick={submitEditor}>
               保存
