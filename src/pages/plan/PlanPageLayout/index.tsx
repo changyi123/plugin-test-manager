@@ -37,6 +37,7 @@ const PlanPageLayout: React.FC<any> = () => {
     setSearchParams,
     setSelectedTestPlan,
     mutateTestPlanEvent,
+    mutateStatusEvent,
     tableSelectionToggleEvent,
   } = usePageContext();
   const { createItemUseModal } = useBaseAction();
@@ -57,18 +58,28 @@ const PlanPageLayout: React.FC<any> = () => {
 
   const [refreshExecution, setRefreshExecution] = useState(false);
   const [foldSearchValue, setFoldSearchValue] = useState('');
-  const [showType, setShowType] = useState('showCur');
+  const [showType, setShowType] = useState('showChild');
   const [loading, setLoading] = useState(false);
 
   const { query } = useLocation();
-  const { data: planData } = useGetTestPlanById(query?.planId);
+  const { data: planData, refresh: refreshPlanData } = useGetTestPlanById(
+    selectedTestPlan?.objectId,
+    workspaceKey,
+  );
 
   useEffect(() => {
-    if (query?.planId && planData?.list?.length && !selectedTestPlan) {
-      const curPlan: any = planData?.list.find(d => d.objectId === query?.planId);
+    if ((planData as any)?.objectId) {
+      const oldPlanTestIds = selectedTestPlan?.refTestDetails?.map(item => item.objectId) ?? [];
+      const newPlanTestIds = (planData as any)?.refTestDetails?.map(item => item.objectId) ?? [];
+
+      if (oldPlanTestIds?.length !== newPlanTestIds.length) {
+        setSelectedTestPlan(planData as any);
+      }
+    }
+
+    if (query?.planId && planData && !selectedTestPlan) {
       // eslint-disable-next-line no-console
-      console.log(11111, curPlan);
-      curPlan && setSelectedTestPlan(curPlan);
+      planData && setSelectedTestPlan(planData as any);
     }
   }, [planData, query?.planId]);
 
@@ -146,12 +157,12 @@ const PlanPageLayout: React.FC<any> = () => {
   });
 
   const addTestExecutionDetail = useCallback(async () => {
-    const ignoreTestDetailIds = selectedExecution.testRuns
+    const ignoreTestDetailIds = curTestRuns
       .map(run => run.runReferenceDetail?.objectId)
       .filter(Boolean);
-    setLoading(true);
 
     const testDetailIds = await testEntitySelectorRef.current.open();
+    setLoading(true);
 
     // 去重
     const newTestDetailIds = testDetailIds.filter(d => !ignoreTestDetailIds.includes(d));
@@ -164,11 +175,12 @@ const PlanPageLayout: React.FC<any> = () => {
     });
 
     scopedTestDetailRefresh();
+    mutateStatusEvent.emit('refreshExecutionStatus');
     setLoading(false);
     notification.success({
       message: '测试执行创建成功',
     });
-  }, [selectedExecution]);
+  }, [selectedExecution, curTestRuns]);
 
   const addTestDetail = async () => {
     const testDetailIds = await testEntitySelectorRef.current.open();
@@ -198,6 +210,8 @@ const PlanPageLayout: React.FC<any> = () => {
 
     mutateTestPlanEvent.emit(selectedTestPlan?.objectId);
     refresh('detailTable');
+    refreshPlanData();
+    // planDataMutate(selectedTestPlan?.objectId);
     notification.success({
       message: '测试用例已成功添加至测试计划中',
     });
@@ -329,6 +343,7 @@ const PlanPageLayout: React.FC<any> = () => {
               </div>
             </div>
             <FilterSearch
+              className={cx('plan-page-layout-search')}
               ref={detailSearchRef}
               fields={['createdBy', 'priority', 'assignee', 'createdAt']}
               extendFields={extendFields.filter(item => item.key === RepositoryModel)}
@@ -341,6 +356,7 @@ const PlanPageLayout: React.FC<any> = () => {
               selectedExecution={selectedExecution}
               curTestRuns={curTestRuns}
               scopedTestDetailRefresh={scopedTestDetailRefresh}
+              refreshPlanData={refreshPlanData}
             />
             <TestEntitySelectorModal
               title="选择规划的测试用例"
@@ -349,7 +365,7 @@ const PlanPageLayout: React.FC<any> = () => {
               ignoreTestEntityIds={
                 activedType === 'TestPlan'
                   ? selectedTestPlan?.refTestDetails?.map(item => item.objectId) ?? []
-                  : selectedExecution?.testRuns?.map(d => d.objectId) ?? []
+                  : curTestRuns?.map(run => run.runReferenceDetail?.objectId) ?? []
               }
             />
           </PageLayout.Right>

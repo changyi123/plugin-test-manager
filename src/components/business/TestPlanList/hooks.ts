@@ -10,10 +10,10 @@ type TestPlan = TestPlanEntity & {
 };
 
 const useGetTestPlanById = (id?: string, workspaceKey?: string) => {
-  const { data, loading } = useRequest(
+  const data = useRequest(
     async () => {
       if (!id) return {};
-      const { results, count } = await getTestEntitiesByQuery(
+      const { results } = await getTestEntitiesByQuery(
         {
           in: [id ?? ''],
           workspaceKey,
@@ -50,20 +50,16 @@ const useGetTestPlanById = (id?: string, workspaceKey?: string) => {
         })
         .value() as TestPlan[];
 
-      return {
-        list: testPlans,
-        total: count,
-      };
+      return testPlans?.[0];
     },
     {
-      cacheKey: `test_plan_${id ?? ''}`,
       refreshDeps: [id, workspaceKey],
       cacheTime: 99999999999,
       staleTime: 99999999999,
     },
   );
 
-  return { data, loading };
+  return data;
 };
 
 export default useGetTestPlanById;

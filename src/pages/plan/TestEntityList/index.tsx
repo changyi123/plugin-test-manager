@@ -34,6 +34,7 @@ interface TestEntityListProps {
   activedType: string;
   selectedExecution?: Record<string, any>;
   curTestRuns?: Record<string, any>[];
+  refreshPlanData?: () => void;
   scopedTestDetailRefresh?: () => void;
 }
 
@@ -43,6 +44,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   requestScopedTestDetailIds,
   selectedExecution,
   curTestRuns,
+  refreshPlanData,
   scopedTestDetailRefresh,
 }) => {
   const {
@@ -213,6 +215,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       actionRef.current.refresh();
 
       actionRef.current.resetSelectedRowKeys();
+      refreshPlanData();
     },
     [actionRef],
   );
@@ -291,6 +294,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       // 删除关联关系，删除测试实体
       await deleteTestEntities(testRunIds);
       await scopedTestDetailRefresh();
+      mutateStatusEvent.emit('refreshExecutionStatus');
       notification.success({
         message: `${testRunIds.length} 个测试执行任务被删除`,
       });

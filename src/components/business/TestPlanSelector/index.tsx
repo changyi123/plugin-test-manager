@@ -28,7 +28,7 @@ const TestPlanSelector: React.FC = () => {
         },
         {
           offset,
-          limit: REQUEST_LIMIT,
+          limit: 9999,
           descendingBy: ['createdAt'],
           ignoreDeletedItemData: true,
         },

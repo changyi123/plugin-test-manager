@@ -108,6 +108,7 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
           {data?.length ? (
             <Tabs
               defaultActiveKey={selectedExecution?.objectId}
+              tabPosition={'top'}
               onChange={val => {
                 tableSelectionToggleEvent.emit(false);
                 setSelectedExecution(data.find(d => d.objectId === val));
