@@ -50,6 +50,8 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
       workspaceKey: '',
       queryParams: { limit: 10, offset: 0 },
       nameLike: '',
+      testDetailIds: [],
+      selectors: [],
     },
     _config,
   );
@@ -72,7 +74,7 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
     include = include.concat('reference');
     select = select.concat('reference');
   }
-  const query = new Parse.Query(TestRelation).equalTo('relationType', relType);
+  let query = new Parse.Query(TestRelation).equalTo('relationType', relType);
 
   // 只支持单方关联查询
   Object.entries(sides).forEach(([sideKey, side]) => {
@@ -111,7 +113,11 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
     query.include(includeKeys);
   }
 
-  query.withCount();
+  const testManageSelector = config.selectors?.[1];
+  if (!isEmpty(testManageSelector)) {
+    // 装载测试管理筛选条件
+    query = Parse.Query.and(selectorToParse(new Parse.Query(Test), testManageSelector), query);
+  }
 
   // 测试执行实体不是一个 proxima 事项。当查询执行的时候需要给排除
   const useItemSubQuery =
@@ -122,11 +128,30 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
     testQuery.equalTo('workspaceKey', config.workspaceKey);
   }
 
+  if (config.testDetailIds) {
+    const testRunQuery = new Parse.Query(Test);
+
+    testRunQuery.containedIn(
+      'objectId',
+      config.testDetailIds.map(item => pointerTransfer(Test, item)),
+    );
+
+    testQuery.matchesQuery('runReferenceDetail', testRunQuery);
+  }
+
   if (useItemSubQuery) {
+    const itemSelector = config.selectors?.[0];
     const referenceItemQuery = new Parse.Query(Item);
+    if (!isEmpty(itemSelector)) {
+      const ids = await fetchItemFromIql(itemSelector, config.workspaceKey);
+      // 处理事项关联子查询
+      referenceItemQuery.containedIn('objectId', ids);
+    }
+
     if (config?.nameLike) {
       referenceItemQuery.matches('name', escapeMatchesQueryArg(config.nameLike));
     }
+
     if (config.workspaceKey) {
       referenceItemQuery.matchesKeyInQuery(
         'workspace',
@@ -150,6 +175,8 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
   if (config.parseMiddleware) {
     await config.parseMiddleware(query);
   }
+
+  query.withCount();
 
   const { results, count } = await query.find();
 
@@ -518,7 +545,8 @@ export const getTestEntitiesByQuery = async (
 
   const itemSelector = queryParams.selectors?.[0];
   if (!isEmpty(itemSelector)) {
-    const ids = await fetchItemFromIql(itemSelector, queryParams.workspaceKey);
+    const ids = await fetchItemFromIql(itemSelector, queryParams.workspaceKey, queryParams.type);
+
     // 处理事项关联子查询
     const itemSubQuery = new Parse.Query(Item).containedIn('objectId', ids);
     query.matchesKeyInQuery('reference', 'objectId', itemSubQuery);
@@ -738,14 +766,18 @@ export const updateGlobalConfig = async fields => {
   });
 };
 
-export async function fetchItemFromIql(selector: ItemSelectors, workspaceKey) {
+export async function fetchItemFromIql(
+  selector: ItemSelectors,
+  workspaceKey,
+  type = TestType.TestDetail,
+) {
   let iql = selectorToIql(selector);
   // 组装空间
   iql = withWorkspace(iql, workspaceKey);
 
   const testConfig = await getTestConfigFromCache({ workspaceKey });
   // 当前 iql 查询只针对测试用例
-  iql = withItemType(iql, testConfig?.itemTypeMap?.[TestType.TestDetail]);
+  iql = withItemType(iql, testConfig?.itemTypeMap?.[type]);
   return fetch
     .$post('/parse/api/search/structure', {
       from: 0,

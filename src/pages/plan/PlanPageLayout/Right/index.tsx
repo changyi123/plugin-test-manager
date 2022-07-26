@@ -1,0 +1,199 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+import React, { useCallback, useRef, useState } from 'react';
+import { Button, notification, Select } from 'antd';
+import FilterSearch from '@/components/common/FilterSearch';
+import RepoDropDown from '@/pages/repository/RepoDropDown';
+import TestEntitySelectorModal, {
+  ActionType as ModelActionType,
+} from '@/components/business/TestEntitySelectorModal';
+import { extendFields, RepositoryModel, TestRelationType, TestType } from '@/lib/constants';
+import TestEntityList from '../../TestEntityList';
+import { usePageContext } from '../../hook';
+
+import cx from './index.less';
+import { addTestDetailToExecution } from '@/lib/api/runs';
+import { createTestRelation } from '@/lib/api/common';
+
+const options = [
+  {
+    value: 'showChild',
+    label: '显示子分组用例',
+  },
+  {
+    value: 'showCur',
+    label: '显示当前分组用例',
+  },
+];
+
+interface RightProps {
+  activedType?: string;
+  selectedExecution?: Record<string, any>;
+  showType?: string;
+  setShowType?: (val: string) => void;
+  curTestRuns?: Record<string, any>[];
+  scopedTestDetailRefresh?: () => void;
+  refreshPlanData?: () => void;
+  requestScopedTestDetailIds?: string[];
+}
+
+const Right: React.FC<RightProps> = props => {
+  const {
+    activedType,
+    selectedExecution,
+    showType,
+    setShowType,
+    curTestRuns,
+    scopedTestDetailRefresh,
+    refreshPlanData,
+    requestScopedTestDetailIds,
+  } = props;
+
+  const {
+    refresh,
+    selectedTestPlan,
+    setSearchParams,
+    mutateTestPlanEvent,
+    mutateStatusEvent,
+    tableSelectionToggleEvent,
+  } = usePageContext();
+
+  const testEntitySelectorRef = useRef<ModelActionType>();
+  const detailSearchRef = useRef(null);
+
+  const [tableSelectionVisible, setTableSelectionVisible] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const toggleTableSelection = (visible?: boolean) => {
+    visible = typeof visible === 'boolean' ? visible : !tableSelectionVisible;
+    tableSelectionToggleEvent.emit(visible);
+    setTableSelectionVisible(visible);
+  };
+
+  tableSelectionToggleEvent.useSubscription(visible => {
+    setTableSelectionVisible(visible);
+  });
+
+  const addTestExecutionDetail = useCallback(async () => {
+    const ignoreTestDetailIds = curTestRuns
+      .map(run => run.runReferenceDetail?.objectId)
+      .filter(Boolean);
+
+    const testDetailIds = await testEntitySelectorRef.current.open();
+    setLoading(true);
+
+    // 去重
+    const newTestDetailIds = testDetailIds.filter(d => !ignoreTestDetailIds.includes(d));
+
+    await addTestDetailToExecution({
+      testDetail: newTestDetailIds,
+      testPlan: selectedTestPlan?.objectId,
+      testExecution: selectedExecution.objectId,
+      workspaceKey: selectedExecution.workspaceKey,
+    });
+
+    scopedTestDetailRefresh();
+    mutateStatusEvent.emit('refreshExecutionStatus');
+    setLoading(false);
+    notification.success({
+      message: '测试执行创建成功',
+    });
+  }, [selectedExecution, curTestRuns]);
+
+  const addTestDetail = async () => {
+    const testDetailIds = await testEntitySelectorRef.current.open();
+
+    const ignoreTestDetailIds = selectedTestPlan?.refTestDetails?.map(item => item.objectId) ?? [];
+    const relations = testDetailIds
+      .filter(d => !ignoreTestDetailIds.includes(d))
+      .map(testPlanId => ({
+        relationType: TestRelationType.PlanRelDetail,
+        from: selectedTestPlan?.objectId,
+        to: testPlanId,
+      }));
+
+    if (!relations.length) {
+      return notification.warning({
+        message: '未选择测试用例',
+      });
+    }
+
+    try {
+      await createTestRelation(relations);
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.log('error', error);
+    }
+    scopedTestDetailRefresh();
+
+    mutateTestPlanEvent.emit(selectedTestPlan?.objectId);
+    refresh('detailTable');
+    refreshPlanData();
+    // planDataMutate(selectedTestPlan?.objectId);
+    notification.success({
+      message: '测试用例已成功添加至测试计划中',
+    });
+  };
+
+  return (
+    <div className={cx('right-box')}>
+      <div className={cx('box-header')}>
+        <div className={cx('extra-content')}>
+          <div className={cx('extra-content-left')}>
+            {activedType === 'TestExecution' ? selectedExecution?.reference.name : '全部用例'}
+          </div>
+          <div className={cx('extra-content-right')}>
+            <Select value={showType} options={options} onChange={val => setShowType(val)}></Select>
+            <Button className={cx('action')} onClick={() => toggleTableSelection()}>
+              {tableSelectionVisible ? '取消操作' : '批量操作'}
+            </Button>
+            <>
+              <Button
+                type="primary"
+                onClick={activedType === 'TestPlan' ? addTestDetail : addTestExecutionDetail}
+                className={cx('action')}
+                disabled={!selectedTestPlan}
+              >
+                规划用例
+              </Button>
+              <RepoDropDown
+                type="plan"
+                className={cx('action')}
+                selectedTestPlanId={selectedTestPlan?.objectId}
+              />
+            </>
+          </div>
+        </div>
+        <FilterSearch
+          className={cx('plan-page-layout-search')}
+          ref={detailSearchRef}
+          fields={['createdBy', 'priority', 'assignee', 'createdAt']}
+          extendFields={extendFields.filter(item => item.key === RepositoryModel)}
+          onSearch={setSearchParams}
+        />
+      </div>
+      <div className={cx('box-body')}>
+        <TestEntityList
+          loading={loading}
+          activedType={activedType}
+          requestScopedTestDetailIds={requestScopedTestDetailIds}
+          selectedExecution={selectedExecution}
+          curTestRuns={curTestRuns}
+          scopedTestDetailRefresh={scopedTestDetailRefresh}
+          refreshPlanData={refreshPlanData}
+        />
+        <TestEntitySelectorModal
+          title="选择规划的测试用例"
+          testType={TestType.TestDetail}
+          actionRef={testEntitySelectorRef}
+          ignoreTestEntityIds={
+            activedType === 'TestPlan'
+              ? selectedTestPlan?.refTestDetails?.map(item => item.objectId) ?? []
+              : curTestRuns?.map(run => run.runReferenceDetail?.objectId) ?? []
+          }
+        />
+      </div>
+    </div>
+  );
+};
+
+export default Right;

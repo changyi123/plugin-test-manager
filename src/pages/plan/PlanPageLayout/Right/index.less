@@ -1,0 +1,60 @@
+@import '@/index.global.less';
+.right-box {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+
+  .box-body {
+    display: flex;
+    height: ~'calc(100% - 94px)';
+  }
+
+  .box-header {
+    display: flex;
+    flex-direction: column;
+
+    .extra-content {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 24px;
+      font-size: 16px;
+      border-bottom: 1px solid #dadde3;
+
+      .extra-content-left {
+        font-size: 14px;
+        font-weight: 400;
+        color: #213053;
+        line-height: 22px;
+        max-width: 240px;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+
+      .extra-content-right {
+        display: flex;
+
+        > * {
+          margin-right: 8px;
+
+          &:last-child {
+            margin-right: 0;
+          }
+        }
+      }
+
+      .line {
+        height: 20px;
+        width: 1px;
+        background-color: @border-color;
+        margin-left: 8px;
+        margin-right: 14px;
+      }
+    }
+
+    .plan-page-layout-search {
+      padding: 8px 24px;
+    }
+  }
+}

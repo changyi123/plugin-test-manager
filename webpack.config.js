@@ -39,6 +39,25 @@ function resolveClientEnv(raw, cliEnv) {
   };
 }
 
+const getExternalDependencies = () => {
+  // 暂时先加 proxima-key 测试，后续增加更多的模块
+  const UseExternalDependencyKeys = ['react', 'react-dom', 'proxima-sdk'];
+  const SharedComponentKey = 'proxima_shared_components';
+
+  return UseExternalDependencyKeys.reduce(
+    (deps, key) => ({
+      ...deps,
+      [key]: {
+        commonjs2: key,
+        commonjs: key,
+        amd: key,
+        root: [SharedComponentKey, key],
+      },
+    }),
+    {},
+  );
+};
+
 // output配置
 const outputConfig = isProd =>
   isProd
@@ -71,7 +90,7 @@ const getLocalIdent = ({ resourcePath }, localIdentName, localName) => {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 module.exports = (cliEnv = {}, argv) => {
   const mode = argv.mode;
-  const { PROXIMA_DEV_MODE, PROXIMA_USE_EXTERNALS } = process.env;
+  const { PROXIMA_USE_EXTERNAL_DEPENDENCIES } = process.env;
 
   if (!['production', 'development'].includes(mode)) {
     throw new Error('The mode is required for NODE_ENV, BABEL_ENV but was not specified.');
@@ -149,23 +168,7 @@ module.exports = (cliEnv = {}, argv) => {
       return false;
     })(),
     // 生产环境使用 proxima-app 传入的
-    externals:
-      PROXIMA_USE_EXTERNALS && (isProd || PROXIMA_DEV_MODE === 'embed')
-        ? {
-            react: {
-              amd: 'react',
-              commonjs: 'react',
-              commonjs2: 'react',
-              root: '_PROXIMA_React',
-            },
-            'react-dom': {
-              amd: 'react-dom',
-              commonjs: 'react-dom',
-              commonjs2: 'react-dom',
-              root: '_PROXIMA_ReactDOM',
-            },
-          }
-        : undefined,
+    // externals: isProd || PROXIMA_USE_EXTERNAL_DEPENDENCIES ? getExternalDependencies() : undefined,
     resolve: {
       extensions: ['.js', '.css', '.jsx', '.tsx', '.ts'],
       alias: {
@@ -296,5 +299,6 @@ module.exports = (cliEnv = {}, argv) => {
       ],
     },
   };
+
   return isProd ? webpackConfig : smp.wrap(webpackConfig);
 };

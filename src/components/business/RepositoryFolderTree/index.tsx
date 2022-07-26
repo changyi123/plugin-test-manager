@@ -84,7 +84,7 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
       let processChain: CollectionChain<any> = _.chain(allTestDetails);
 
       // 如果有用例 id 范围，则过滤用例
-      if (Array.isArray(scopedTestDetailIds)) {
+      if (scopedTestDetailIds) {
         const scopedTestDetailIdSet = new Set(scopedTestDetailIds);
         processChain = processChain.filter(test => scopedTestDetailIdSet.has(test.objectId));
       }

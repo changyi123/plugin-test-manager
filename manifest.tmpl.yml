@@ -6,6 +6,8 @@ modules:
     # 动态配置 one 路由
     - key: gitee-menus
       function: gitee-menus
+    - key: huishang-script
+      function: huishang-script
   trigger:
     - key: test-manager-initial-script-update
       events:
@@ -26,6 +28,8 @@ modules:
       handler: /trigger/import/validate.js
     - key: test-manager-import-script
       handler: /trigger/import/import.js
+    - key: huishang-script
+      handler: /trigger/webTrigger/huishang-script.js
   itemPanel:
     - key: test-manager-test-detail
       resource: main

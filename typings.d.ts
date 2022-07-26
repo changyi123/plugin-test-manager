@@ -15,3 +15,5 @@ declare let __webpack_public_path__: string;
 declare module 'parse';
 
 declare type PointerType = string | Parse.Object | Parse.Pointer;
+
+declare module 'proxima-sdk';

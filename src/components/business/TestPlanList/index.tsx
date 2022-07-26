@@ -1,7 +1,7 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { usePageContext } from '@/pages/plan/hook';
 import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
-import { Button, Image, Dropdown, Menu, notification } from 'antd';
+import { Button, Dropdown, Menu, notification } from 'antd';
 import {
   deleteTestEntities,
   getTestEntitiesByQuery,
@@ -16,7 +16,7 @@ import { actionConfirm, generateStaticFileUrl, goToItemDetailPage } from '@/lib/
 import { EllipsisOutlined } from '@ant-design/icons';
 import { useBaseAction } from '@/lib/hooks/useContext';
 import { StatusProgress } from '../Status';
-import SearchInput from '../SearchInput';
+import FilterSearch from '@/components/common/FilterSearch';
 
 import cx from './index.less';
 
@@ -26,10 +26,19 @@ type TestPlan = TestPlanEntity & {
 
 const TestPlanList: React.FC<any> = () => {
   const actionRef = React.useRef<BusinessTableActionType>();
-  const { workspaceKey, setSelectedTestPlan } = usePageContext();
+  const { workspaceKey, selectedTestPlan, setSelectedTestPlan, selectors, setSearchParams } =
+    usePageContext();
   const [tableLoading, setTableLoading] = useState(false);
-  const [searchValue, setSearchValue] = useState('');
   const { createItemUseModal } = useBaseAction();
+
+  const detailSearchRef = useRef(null);
+
+  React.useEffect(() => {
+    // 还原筛选器数据
+    detailSearchRef.current?.reset();
+    setSearchParams([{}, {}]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedTestPlan]);
 
   const tableDataGetter = useCallback(
     async queryParams => {
@@ -37,8 +46,8 @@ const TestPlanList: React.FC<any> = () => {
 
       const { results, count } = await getTestEntitiesByQuery(
         {
+          selectors,
           workspaceKey,
-          nameLike: searchValue,
           type: TestType.TestPlan,
         },
         {
@@ -80,7 +89,7 @@ const TestPlanList: React.FC<any> = () => {
         total: count,
       };
     },
-    [workspaceKey, searchValue],
+    [workspaceKey, selectors],
   );
 
   const handleDelete = async data => {
@@ -114,14 +123,17 @@ const TestPlanList: React.FC<any> = () => {
       title: '计划名称',
       render(_, rowData) {
         return (
-          <div className={cx('plan-table-title')}>
-            <div className={cx('plan-table-title-left')}>
-              <Image src={generateStaticFileUrl(rowData.reference.itemType.icon)} />
-              <span className={cx('test-plan-title')} onClick={() => setSelectedTestPlan(rowData)}>
-                {(rowData.reference ?? {}).name}
-              </span>
+          <div className={'test-plan-title-box'}>
+            <img
+              className={'icon'}
+              src={generateStaticFileUrl((rowData.reference.itemType as any)?.icon)}
+              width="16"
+              height="16"
+            />
+            <div className={'test-plan-title'} onClick={() => setSelectedTestPlan(rowData)}>
+              {(rowData.reference ?? {}).name}
             </div>
-            <div className={cx('plan-table-title-right')}>
+            <div className={'plan-table-title-menu'}>
               <Dropdown
                 overlay={
                   <Menu>
@@ -139,6 +151,36 @@ const TestPlanList: React.FC<any> = () => {
               </Dropdown>
             </div>
           </div>
+          // <div className={cx('plan-table-title')}>
+          //   <div className={cx('plan-table-title-left')}>
+          //     <img
+          //       className={cx('icon')}
+          //       src={generateStaticFileUrl((rowData.reference.itemType as any)?.icon)}
+          //       width="16"
+          //       height="16"
+          //     />
+          //     <span className={cx('test-plan-title')} onClick={() => setSelectedTestPlan(rowData)}>
+          //       {(rowData.reference ?? {}).name}
+          //     </span>
+          //   </div>
+          //   <div className={cx('plan-table-title-right')}>
+          //     <Dropdown
+          //       overlay={
+          //         <Menu>
+          //           <Menu.Item key="delete" onClick={() => handleDelete(rowData)}>
+          //             删除测试计划
+          //           </Menu.Item>
+          //           <Menu.Item key="view" onClick={() => handleView(rowData)}>
+          //             查看测试计划
+          //           </Menu.Item>
+          //         </Menu>
+          //       }
+          //       trigger={['hover']}
+          //     >
+          //       <EllipsisOutlined className={cx('action', 'right')} style={{ display: 'flex' }} />
+          //     </Dropdown>
+          //   </div>
+          // </div>
         );
       },
     },
@@ -177,19 +219,24 @@ const TestPlanList: React.FC<any> = () => {
   };
 
   return (
-    <div className={cx('test-plan-container')} style={{ height: 'calc(100% - 48px)' }}>
+    <div className={cx('test-plan-container')}>
       <div className={cx('plan-header')}>
-        <div className={cx('header-left')}>测试计划</div>
-        <div className={cx('header-right')}>
-          <SearchInput
-            showInput
-            allowClear
-            placeholder="请输入搜索关键字"
-            onSearch={value => setSearchValue(value)}
+        <div className={cx('plan-header-body')}>
+          <div className={cx('header-left')}>测试计划</div>
+          <div className={cx('header-right')}>
+            <Button type="primary" onClick={() => handleCreate()}>
+              新建测试计划
+            </Button>
+          </div>
+        </div>
+        <div className={cx('plan-header-slot')}>
+          <FilterSearch
+            className={cx('test-manager-filter')}
+            ref={detailSearchRef}
+            fields={['createdBy', 'priority', 'assignee', 'createdAt']}
+            extendFields={[]}
+            onSearch={setSearchParams}
           />
-          <Button type="primary" onClick={() => handleCreate()}>
-            新建测试计划
-          </Button>
         </div>
       </div>
       <BusinessTable

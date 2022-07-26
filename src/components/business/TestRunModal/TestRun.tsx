@@ -16,6 +16,7 @@ import TestStep from './TestStep';
 import DefectList from './DefectList';
 import ItemLinkTable from './ItemLinkTable';
 import AttachmentUpload from './AttachmentUpload';
+// import ExecutionEditor from './ExecutionEditor';
 // import TestComment from './TestComment';
 
 import cx from './TestRun.less';
@@ -27,6 +28,11 @@ const TestRunDetailTabs = [
     key: 'step',
     component: TestStep,
   },
+  // {
+  //   title: '执行结果描述',
+  //   key: 'resultDesc',
+  //   component: ExecutionEditor,
+  // },
   {
     title: '缺陷',
     key: 'defect',
@@ -268,7 +274,9 @@ const TestRun: React.FC<TestRunType> = props => {
     return (
       <div className={cx('tab-title')}>
         {tab.title}
-        <span className={cx('num')}>{numGetters[tab.key]?.() ?? ''}</span>
+        {tab.key !== 'resultDesc' && (
+          <span className={cx('num')}>{numGetters[tab.key]?.() ?? ''}</span>
+        )}
       </div>
     );
   };
