@@ -18,10 +18,14 @@ const ExecutionStatus: React.FC<ExecutionStatusProps> = ({ selectedExecution, se
   const { workspaceKey, mutateStatusEvent } = usePageContext();
   const { data, refresh, loading } = useRequest(
     async () => {
+      console.log(1111, selectedExecution?.objectId);
+      if (!selectedExecution?.objectId) return [];
+      console.log(2222, selectedExecution?.objectId);
+
       const { list: testRuns } = await getTestEntitiesByRelation(
         TestRelationType.ExecutionRelRun,
         {
-          from: [selectedExecution?.objectId ?? ''],
+          from: [selectedExecution?.objectId],
         },
         {
           // FIXME: 优化查询速度
@@ -56,6 +60,8 @@ const ExecutionStatus: React.FC<ExecutionStatusProps> = ({ selectedExecution, se
             Number(new Date(a.createdAt)) - Number(new Date(b.createdAt)),
         );
 
+      console.log(11111, testRunList);
+
       return testRunList;
     },
     {
@@ -71,6 +77,8 @@ const ExecutionStatus: React.FC<ExecutionStatusProps> = ({ selectedExecution, se
 
   useEffect(() => {
     if (!loading && data) {
+      console.log(22222, data);
+
       setCurTestRuns(data);
     }
   }, [loading, data]);

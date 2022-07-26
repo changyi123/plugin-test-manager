@@ -44,7 +44,7 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
       const { list } = await getTestEntitiesByRelationWithOrder(
         TestRelationType.PlanRelExecution,
         {
-          from: [planId],
+          from: planId ? [planId] : [],
         },
         {
           workspaceKey,

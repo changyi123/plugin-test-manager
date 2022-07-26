@@ -35,7 +35,7 @@ export const useScopedTestDetailIds = (params: ScopedTestDetailIdsParams) => {
         const { list: allRelTestDetailList } = await getTestEntitiesByRelationWithOrder(
           TestRelationType.PlanRelDetail,
           {
-            from: Test.createWithoutData(testPlanId),
+            from: testPlanId ? Test.createWithoutData(testPlanId) : [],
           },
           {
             // FIXME: 性能优化
@@ -55,7 +55,7 @@ export const useScopedTestDetailIds = (params: ScopedTestDetailIdsParams) => {
         const { list: allRelTestRunList } = await getTestEntitiesByRelationWithOrder(
           TestRelationType.ExecutionRelRun,
           {
-            from: Test.createWithoutData(testExecutionId),
+            from: testExecutionId ? Test.createWithoutData(testExecutionId) : [],
           },
           {
             // FIXME: 性能优化
