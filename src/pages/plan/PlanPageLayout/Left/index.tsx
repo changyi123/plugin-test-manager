@@ -18,6 +18,7 @@ const Left: React.FC<LeftProps> = ({ showType, handleFolderSelect, scopedTestDet
   const folderTreeRef = React.useRef<FolderTreeActionType>();
 
   const [foldSearchValue, setFoldSearchValue] = useState('');
+
   return (
     <>
       <SearchInput

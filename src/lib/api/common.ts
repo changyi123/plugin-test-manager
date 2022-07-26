@@ -50,7 +50,7 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
       workspaceKey: '',
       queryParams: { limit: 10, offset: 0 },
       nameLike: '',
-      testDetailIds: [],
+      testDetailIds: undefined,
       selectors: [],
     },
     _config,

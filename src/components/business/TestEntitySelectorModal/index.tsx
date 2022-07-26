@@ -219,6 +219,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
       setVisible(true);
 
       eventBusRef.current.disposer();
+
       return new Promise(resolve => {
         eventBusRef.current.disposer = eventBusRef.current.register(
           AddExistedTestEventType,

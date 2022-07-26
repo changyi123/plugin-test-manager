@@ -18,9 +18,7 @@ const ExecutionStatus: React.FC<ExecutionStatusProps> = ({ selectedExecution, se
   const { workspaceKey, mutateStatusEvent } = usePageContext();
   const { data, refresh, loading } = useRequest(
     async () => {
-      console.log(1111, selectedExecution?.objectId);
       if (!selectedExecution?.objectId) return [];
-      console.log(2222, selectedExecution?.objectId);
 
       const { list: testRuns } = await getTestEntitiesByRelation(
         TestRelationType.ExecutionRelRun,
@@ -60,8 +58,6 @@ const ExecutionStatus: React.FC<ExecutionStatusProps> = ({ selectedExecution, se
             Number(new Date(a.createdAt)) - Number(new Date(b.createdAt)),
         );
 
-      console.log(11111, testRunList);
-
       return testRunList;
     },
     {
@@ -77,8 +73,6 @@ const ExecutionStatus: React.FC<ExecutionStatusProps> = ({ selectedExecution, se
 
   useEffect(() => {
     if (!loading && data) {
-      console.log(22222, data);
-
       setCurTestRuns(data);
     }
   }, [loading, data]);
@@ -95,7 +89,7 @@ const ExecutionStatus: React.FC<ExecutionStatusProps> = ({ selectedExecution, se
     <Spin spinning={loading}>
       {data && (
         <div className={cx('complete-rate-box')}>
-          <span className={cx('rate')}>完成率 {getRate(status)}%</span>
+          <span className={cx('rate')}>通过率 {getRate(status)}%</span>
           <div className={cx('progress')}>
             <StatusProgress hasSummary statuses={status} />
           </div>
