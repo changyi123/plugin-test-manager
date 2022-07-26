@@ -39,6 +39,8 @@ export const getFolderTree = async (workspaceKey: string) => {
   });
   const folderTree = arrayToTree(repositories);
 
+  (folderTree as any).flattenedTreeData = repositories;
+
   return folderTree;
 };
 

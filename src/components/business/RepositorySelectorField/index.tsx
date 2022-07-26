@@ -1,0 +1,247 @@
+import React from 'react';
+import { cloneDeep } from 'lodash';
+import { Select, Tree, Input } from 'antd';
+import { SelectProps } from 'antd/lib/select';
+import { getWorkspaceById } from '@/lib/api/proxima';
+import { getFolderTree } from '@/lib/api/repository';
+import OverflowTooltip from '@/components/common/OverflowTooltip';
+import { useMemoizedFn, useRequest, useControllableValue } from 'ahooks';
+import { hasArrayItem, escapeMatchesQueryArg } from '@/lib/utils/helper';
+import { FileOpen, FileClose, CaretDownOutlined, SearchOutlined } from '@/icons';
+import { traverseTreeNodes, getTreeNodeByKey, reverseTreeNodes } from '@/pages/repository/util';
+
+import cx from './style.less';
+
+type RepositorySelectorInputProps = {
+  workspaceId?: string;
+  workspaceKey?: string;
+} & SelectProps;
+
+const RepositorySelectorInput: React.FC<RepositorySelectorInputProps> = props => {
+  const {
+    workspaceId,
+    workspaceKey: workspaceKeyProp,
+    value,
+    onChange,
+    ...restSelectProps
+  } = props;
+  const [selectedValue, setSelectedValue] = useControllableValue(
+    {
+      onChange,
+      value,
+    },
+    {
+      valuePropName: 'value',
+      trigger: 'onChange',
+    },
+  );
+
+  const [selectOpenProp, setSelectOpenProp] = React.useState(false);
+  const [treeSelectedKeys, setTreeSelectedKeys] = React.useState([]);
+  const [treeExpandedKeys, setTreeExpandedKeys] = React.useState([]);
+  const [treeAutoExpandParent, setTreeAutoExpandParent] = React.useState(true);
+  // 搜索值
+  const [searchText, setSearchText] = React.useState('');
+  // 匹配的目录名
+  const [matchedFolderText, setMatchedFolderText] = React.useState({});
+  // 获取 workspaceKey
+  const { data: workspaceKey = workspaceKeyProp } = useRequest(
+    async () => {
+      const workspace = await getWorkspaceById(workspaceId);
+      return workspace.key;
+    },
+    {
+      ready: Boolean(workspaceId),
+      refreshDeps: [workspaceId],
+    },
+  );
+
+  // 获取目录数据
+  const { data: folderTreeData } = useRequest(
+    async () => {
+      // 重置为初始化状态
+      setTreeSelectedKeys([]);
+      setSelectedValue([]);
+      setMatchedFolderText({});
+      setSearchText('');
+
+      const folderTreeData = await getFolderTree(workspaceKey);
+
+      return folderTreeData;
+    },
+    {
+      refreshDeps: [workspaceKey],
+    },
+  );
+
+  // 获取目录树数据
+  const { data: treeData } = useRequest(
+    async () => {
+      // 重置为初始态
+      setMatchedFolderText({});
+
+      const text = searchText?.trim();
+      const needExpandedKeys = [];
+      const matchedText = {};
+
+      if (text) {
+        const matchRegExp = escapeMatchesQueryArg(text, ['i', 'g']);
+        traverseTreeNodes(folderTreeData, node => {
+          const matched = node.name?.match(matchRegExp);
+          if (matched) {
+            matchedText[node.key] = matched[0];
+            needExpandedKeys.push(node.key);
+          }
+        });
+        setMatchedFolderText(matchedText);
+      } else {
+        // 无输入项，重置选中元素的父级
+        const selectedNode = getTreeNodeByKey(folderTreeData, treeSelectedKeys[0]);
+        reverseTreeNodes(folderTreeData, selectedNode, node => {
+          needExpandedKeys.push(node.key);
+        });
+      }
+
+      setTreeAutoExpandParent(true);
+      setTreeExpandedKeys(needExpandedKeys);
+
+      if (text) {
+        const clonedFolderTreeData = cloneDeep(folderTreeData);
+        // 标记节点的显示隐藏状态
+        const getDisplayFolderKey = (nodes, parentKeys = [], result = []) => {
+          if (hasArrayItem(nodes)) {
+            nodes.forEach(node => {
+              parentKeys = parentKeys.concat(node.key);
+              if (matchedText[node.key]) {
+                result = result.concat(parentKeys);
+              }
+              result = getDisplayFolderKey(node.children, parentKeys, result);
+              const index = parentKeys.indexOf(node.key);
+              parentKeys = parentKeys.slice(0, index);
+            });
+          }
+
+          return result;
+        };
+
+        const displayFolderKeySet = new Set(getDisplayFolderKey(clonedFolderTreeData));
+
+        const filterHiddenNodes = nodes => {
+          const filteredNodes = nodes.filter(node => displayFolderKeySet.has(node.key));
+          filteredNodes.forEach(node => {
+            if (hasArrayItem(node.children)) {
+              node.children = filterHiddenNodes(node.children);
+            }
+          });
+          return filteredNodes;
+        };
+        return filterHiddenNodes(clonedFolderTreeData);
+      }
+
+      return folderTreeData;
+    },
+    {
+      refreshDeps: [folderTreeData, searchText],
+      debounceWait: 500,
+    },
+  );
+
+  // 扁平化的树形结构
+  const selectOptions = React.useMemo(() => {
+    const flattenedTreeData = (folderTreeData as any)?.flattenedTreeData ?? [];
+    return flattenedTreeData.map(data => ({
+      value: data.key,
+      label: data.name,
+    }));
+  }, [folderTreeData]);
+
+  const dropdownRender = useMemoizedFn(() => {
+    const titleRender = node => {
+      const matchedClassName = cx('matched');
+      const matchedText = matchedFolderText[node.key];
+      const highlightMatchedNodeName = matchedText
+        ? node.name.replace(matchedText, `<span class="${matchedClassName}">${matchedText}</span>`)
+        : `<span>${node.name}</span>`;
+      return (
+        <>
+          <OverflowTooltip title={node.name}>
+            <span
+              className={cx('tree-node-name', Boolean(matchedText) && 'highlight')}
+              dangerouslySetInnerHTML={{ __html: highlightMatchedNodeName }}
+            />
+          </OverflowTooltip>
+        </>
+      );
+    };
+
+    const handleTreeExpand = expandedKeys => {
+      setTreeAutoExpandParent(false);
+      setTreeExpandedKeys(expandedKeys);
+    };
+    const handleTreeSelect = selectedKeys => {
+      setTreeSelectedKeys(selectedKeys);
+      setSelectedValue(selectedKeys);
+      // 选中值后关闭下拉框
+      setSelectOpenProp(false);
+    };
+
+    return (
+      <>
+        <div className={cx('search-input-container')}>
+          <Input
+            value={searchText}
+            prefix={<SearchOutlined />}
+            className={cx('search-input')}
+            placeholder="请输入模块关键字搜索"
+            onChange={e => setSearchText(e.target.value)}
+          />
+        </div>
+
+        <Tree.DirectoryTree
+          treeData={treeData}
+          expandAction={false}
+          className={cx('tree')}
+          titleRender={titleRender}
+          onExpand={handleTreeExpand}
+          onSelect={handleTreeSelect}
+          selectedKeys={treeSelectedKeys}
+          expandedKeys={treeExpandedKeys}
+          autoExpandParent={treeAutoExpandParent}
+          icon={({ expanded }) => (expanded ? <FileOpen /> : <FileClose />)}
+          switcherIcon={<CaretDownOutlined style={{ color: '#878C96' }} />}
+        />
+      </>
+    );
+  });
+
+  const handleDropdownVisibleChange = useMemoizedFn(open => {
+    // 打卡下拉框需要重置搜索框文本
+    if (open) {
+      setSearchText('');
+    }
+    setSelectOpenProp(open);
+  });
+
+  // 默认值初始化
+  const isDefaultValueInitialRef = React.useRef(false);
+  React.useEffect(() => {
+    if (!isDefaultValueInitialRef.current && selectedValue && treeData) {
+      isDefaultValueInitialRef.current = true;
+      setTreeSelectedKeys(selectedValue);
+    }
+  }, [selectedValue, treeData]);
+
+  return (
+    <Select
+      open={selectOpenProp}
+      value={selectedValue}
+      options={selectOptions}
+      placeholder="请选择用例库模块"
+      dropdownRender={dropdownRender}
+      onDropdownVisibleChange={handleDropdownVisibleChange}
+      {...restSelectProps}
+    />
+  );
+};
+
+export default RepositorySelectorInput;

@@ -107,6 +107,7 @@ const BeforeCreateOrUpdateModal = () => {
   return testDetailFormVisible ? (
     <TestDetailForm
       onChange={handleDetailFormChange}
+      extraData={storeValues?.extraData}
       values={storeValues?.[CREATE_ITEM_STORE_FIELD_KEY]}
     />
   ) : null;

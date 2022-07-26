@@ -215,10 +215,8 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
     const { testEntity: testDetailEntity } = await createItemUseModal({
       type: TestType.TestDetail,
       extraData: {
-        fields: {
-          repository:
-            state.selectedFolderKey === UNGROUPED_FOLDER_KEY ? null : state.selectedFolderKey,
-        },
+        repository:
+          state.selectedFolderKey === UNGROUPED_FOLDER_KEY ? null : state.selectedFolderKey,
       },
     });
 

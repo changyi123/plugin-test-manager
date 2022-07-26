@@ -173,8 +173,35 @@ const Test = () => {
           });
         },
       },
+      {
+        title: '新建测试用例',
+        async onClick() {
+          const {
+            testEntity: newTestDetail,
+            item: { name },
+          } = await createItemUseModal({
+            hideMessage: true,
+            type: TestType.TestDetail,
+            extraData: {
+              folderKey: null,
+            },
+          });
+
+          await createTestDetailToPlanRelations({
+            testPlan: testEntity,
+            testDetail: newTestDetail,
+          });
+
+          refreshDepData();
+
+          alert({
+            type: 'success',
+            message: `测试用例 ${name} 已被添加到测试计划中`,
+          });
+        },
+      },
     ];
-  }, [refreshDepData, testEntity, testEntityIds]);
+  }, [createItemUseModal, refreshDepData, testEntity, testEntityIds]);
 
   const removeTestRelation = React.useCallback(
     async testDetailIds => {
