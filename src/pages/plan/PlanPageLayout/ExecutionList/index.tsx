@@ -9,6 +9,8 @@ import { deleteItems } from '@/lib/api/proxima';
 import { useLocation } from 'react-router-dom';
 import { usePageContext } from '../../hook';
 
+// import more from '@/icons/svg/more.svg';
+
 import cx from './index.less';
 
 interface ExcetionListProps {
@@ -48,7 +50,7 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
           workspaceKey,
           select: ['reference', 'workspaceKey'],
           include: ['reference'],
-          descendingBy: 'createdAt',
+          ascendingBy: 'createdAt',
         },
       );
 
@@ -118,6 +120,10 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
                 <TabPane
                   key={d.objectId}
                   tab={
+                    // <div>
+                    //   <div onClick={e => e.preventDefault()}>{d.reference.name}</div>
+                    //   <img src={'../../../../icons/svg/more.svg'} />
+                    // </div>
                     <Dropdown overlay={menu(d)}>
                       <div onClick={e => e.preventDefault()}>{d.reference.name}</div>
                     </Dropdown>

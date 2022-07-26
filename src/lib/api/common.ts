@@ -128,7 +128,7 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
     testQuery.equalTo('workspaceKey', config.workspaceKey);
   }
 
-  if (hasArrayItem(config.testDetailIds)) {
+  if (config.testDetailIds) {
     const testRunQuery = new Parse.Query(Test);
 
     testRunQuery.containedIn(

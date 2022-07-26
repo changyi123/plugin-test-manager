@@ -522,7 +522,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   });
 
   return (
-    <div className={cx('test-entity-list-box')} style={{ height: 'calc(100% - 36px)' }}>
+    <div className={cx('test-entity-list-box')}>
       <BusinessTable
         titleCellOption={{
           workspaceKey,
