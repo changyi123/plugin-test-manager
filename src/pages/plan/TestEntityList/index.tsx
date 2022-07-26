@@ -69,132 +69,135 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     });
   }, [registerRefreshMethod]);
 
-  // 获取当前计划或者当前测试任务的全部测试用例 ID
-  const tableDataGetter = useCallback(
+  const testPlanTableDataGetter = useCallback(
     async queryParams => {
       setTableLoading(true);
-      const include =
-        activedType === 'TestPlan'
-          ? ['repository', 'reference']
-          : [
-              'status',
-              'sortIndex',
-              'runReferenceDetail.reference',
-              'runReferenceDetail.repository',
-              'executor',
-              'designee',
-            ];
+      const include = ['repository', 'reference'];
 
-      const select =
-        activedType === 'TestPlan'
-          ? ['type', 'sortIndex', 'reference', 'repository', 'workspaceKey', 'createdAt']
-          : [
-              'status',
-              'sortIndex',
-              'runReferenceDetail.reference',
-              'runReferenceDetail.repository',
-              'executor',
-              'designee',
-            ];
+      const select = ['type', 'sortIndex', 'reference', 'repository', 'workspaceKey', 'createdAt'];
 
-      if (activedType === 'TestExecution' && selectedExecution.objectId) {
-        const { list, total } = await getTestEntitiesByRelation(
-          TestRelationType.ExecutionRelRun,
-          {
-            from: [selectedExecution.objectId],
+      const { results: testDetails, count } = await getTestEntitiesByQuery(
+        {
+          in: requestScopedTestDetailIds ?? [],
+          type: TestType.TestDetail,
+          selectors,
+          workspaceKey,
+        },
+        {
+          ...queryParams,
+          descendingBy: ['sortIndex', 'createdAt'],
+          select,
+          include,
+        },
+      );
+      const { list: testRuns } = await getTestEntitiesByRelationWithOrder(
+        TestRelationType.PlanRelExecution,
+        { from: [selectedTestPlan.objectId] },
+        {
+          // FIXME: 优化查询速度
+          workspaceKey,
+          fillItemData: true,
+          queryParams: { limit: 9999 },
+          include: ['objectId'],
+          select: ['objectId'],
+          async resultTransfer(data) {
+            const testExecutionIds = data.list.map(item => item.objectId);
+            const { list: testRuns } = await getTestEntitiesByRelation(
+              TestRelationType.ExecutionRelRun,
+              {
+                from: testExecutionIds,
+              },
+              {
+                include: ['objectId'],
+                select: ['objectId', 'runReferenceDetail', 'repository'],
+                queryParams: { limit: 9999 },
+              },
+            );
+
+            return {
+              ...data,
+              list: testRuns.map(run => ({
+                ...run,
+                // 关联的 relations
+                relExecutions: data.list.filter(
+                  item => item.objectId === run.relation.from.objectId,
+                ),
+              })),
+            };
           },
-          {
-            selectors,
-            queryParams,
-            include,
-            select,
-            testDetailIds: requestScopedTestDetailIds.filter(Boolean),
-          },
-        );
+        },
+      );
 
-        setTableLoading(false);
-
+      const list = testDetails.map(detail => {
         return {
-          list: list.map(d => ({
-            ...d,
-            reference: d.runReferenceDetail.reference,
-          })),
-          total,
+          ...detail,
+          selectedTestPlanId: selectedTestPlan.objectId,
+          relRuns: testRuns.filter(run => run.runReferenceDetail?.objectId === detail.objectId),
         };
-      }
+      });
 
-      if (activedType === 'TestPlan') {
-        const { results: testDetails, count } = await getTestEntitiesByQuery(
-          {
-            in: requestScopedTestDetailIds ?? [],
-            type: TestType.TestDetail,
-            selectors,
-            workspaceKey,
-          },
-          {
-            ...queryParams,
-            descendingBy: ['sortIndex', 'createdAt'],
-            select,
-            include,
-          },
-        );
-        const { list: testRuns } = await getTestEntitiesByRelationWithOrder(
-          TestRelationType.PlanRelExecution,
-          { from: [selectedTestPlan.objectId] },
-          {
-            // FIXME: 优化查询速度
-            workspaceKey,
-            fillItemData: true,
-            queryParams: { limit: 9999 },
-            include: ['objectId'],
-            select: ['objectId'],
-            async resultTransfer(data) {
-              const testExecutionIds = data.list.map(item => item.objectId);
-              const { list: testRuns } = await getTestEntitiesByRelation(
-                TestRelationType.ExecutionRelRun,
-                {
-                  from: testExecutionIds,
-                },
-                {
-                  include: ['objectId'],
-                  select: ['objectId', 'runReferenceDetail', 'repository'],
-                  queryParams: { limit: 9999 },
-                },
-              );
-
-              return {
-                ...data,
-                list: testRuns.map(run => ({
-                  ...run,
-                  // 关联的 relations
-                  relExecutions: data.list.filter(
-                    item => item.objectId === run.relation.from.objectId,
-                  ),
-                })),
-              };
-            },
-          },
-        );
-
-        const list = testDetails.map(detail => {
-          return {
-            ...detail,
-            selectedTestPlanId: selectedTestPlan.objectId,
-            relRuns: testRuns.filter(run => run.runReferenceDetail?.objectId === detail.objectId),
-          };
-        });
-
-        setTableLoading(false);
-
-        return {
-          list,
-          total: count,
-        };
-      }
       setTableLoading(false);
+
       return {
-        list: [],
-        total: 0,
+        list,
+        total: count,
+      };
+    },
+    [workspaceKey, requestScopedTestDetailIds, selectedExecution, selectors],
+  );
+
+  // 获取当前计划或者当前测试任务的全部测试用例 ID
+  const executionTableDataGetter = useCallback(
+    async queryParams => {
+      setTableLoading(true);
+      const include = [
+        'status',
+        'sortIndex',
+        'runReferenceDetail.reference',
+        'runReferenceDetail.repository',
+        'executor',
+        'designee',
+      ];
+
+      const select = [
+        'status',
+        'sortIndex',
+        'runReferenceDetail.reference',
+        'runReferenceDetail.repository',
+        'executor',
+        'designee',
+      ];
+
+      if (!selectedExecution?.objectId) {
+        setTableLoading(false);
+        return {
+          list: [],
+          total: 0,
+        };
+      }
+
+      const { list, total } = await getTestEntitiesByRelation(
+        TestRelationType.ExecutionRelRun,
+        {
+          from: selectedExecution?.objectId,
+        },
+        {
+          selectors,
+          queryParams,
+          include,
+          select,
+          testDetailIds: requestScopedTestDetailIds?.filter(Boolean),
+        },
+      );
+
+      setTableLoading(false);
+
+      return {
+        list: list.map(d => ({
+          ...d,
+          reference: d.runReferenceDetail.reference,
+        })),
+        total,
       };
     },
     [workspaceKey, requestScopedTestDetailIds, selectedExecution, selectors],
@@ -523,26 +526,45 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
 
   return (
     <div className={cx('test-entity-list-box')}>
-      <BusinessTable
-        titleCellOption={{
-          workspaceKey,
-          testType: 'TestDetail',
-        }}
-        useColumnSetting
-        defaultColumnKey={['createdBy', 'createdAt']}
-        rowKey="objectId"
-        columns={activedType === 'TestPlan' ? allTestColumns : excetionColumns}
-        name={activedType === 'TestPlan' ? 'AllTestEntity' : 'TestExecutionList'}
-        actionRef={actionRef}
-        loading={tableLoading || loading}
-        getDataSource={tableDataGetter}
-        onHasRowSelected={setHasRowSelected}
-        allSelectableRowKeys={activedType === 'TestPlan' ? allSelectableRowKeys : testIdSequence}
-        selectionActionNodes={
-          activedType === 'TestPlan' ? selectionActionNodes : InnerTableSelectionActionNodes
-        }
-        onSelectionCancel={() => tableSelectionToggleEvent.emit(false)}
-      />
+      {activedType === 'TestPlan' ? (
+        <BusinessTable
+          titleCellOption={{
+            workspaceKey,
+            testType: 'TestDetail',
+          }}
+          useColumnSetting
+          defaultColumnKey={['createdBy', 'createdAt']}
+          rowKey="objectId"
+          columns={allTestColumns}
+          name={'AllTestEntity'}
+          actionRef={actionRef}
+          loading={tableLoading || loading}
+          getDataSource={testPlanTableDataGetter}
+          onHasRowSelected={setHasRowSelected}
+          allSelectableRowKeys={allSelectableRowKeys}
+          selectionActionNodes={selectionActionNodes}
+          onSelectionCancel={() => tableSelectionToggleEvent.emit(false)}
+        />
+      ) : (
+        <BusinessTable
+          titleCellOption={{
+            workspaceKey,
+            testType: 'TestDetail',
+          }}
+          useColumnSetting
+          defaultColumnKey={['createdBy', 'createdAt']}
+          rowKey="objectId"
+          columns={excetionColumns}
+          name={'TestExecutionList'}
+          actionRef={actionRef}
+          loading={tableLoading || loading}
+          getDataSource={executionTableDataGetter}
+          onHasRowSelected={setHasRowSelected}
+          allSelectableRowKeys={testIdSequence}
+          selectionActionNodes={InnerTableSelectionActionNodes}
+          onSelectionCancel={() => tableSelectionToggleEvent.emit(false)}
+        />
+      )}
       <TestRunModal actionRef={testRunModalActionRef} />
     </div>
   );

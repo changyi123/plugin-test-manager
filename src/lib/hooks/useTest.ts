@@ -97,9 +97,9 @@ export const useGetTestRepoGroup = (rowData: any) => {
   const folderKey = rowData?.repository?.objectId ?? rowData?.folderKey;
 
   const { data: repositoryData, refreshAsync: refreshRepositoryData } = useRequest(
-    () => getRepositoryData([workspaceKey]),
+    () => workspaceKey && getRepositoryData([workspaceKey]),
     {
-      cacheKey: `repository_data_${workspaceKey}`,
+      cacheKey: `repository_data_${workspaceKey ?? ''}`,
       refreshDeps: [workspaceKey],
       debounceWait: 300,
     },

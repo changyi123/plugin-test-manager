@@ -279,6 +279,7 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
         </div>
         <div className={cx('table-container')} style={{ height: 'calc(100% - 105px)' }}>
           <FilterSearch
+            className={cx('filter-search-box')}
             onSearch={handleSelectorSearch}
             fields={['createdBy', 'priority', 'assignee', 'createdAt']}
             extendFields={extendFields.filter(field => field.key === RepositoryModel)}

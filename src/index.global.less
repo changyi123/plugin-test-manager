@@ -55,9 +55,11 @@
       tr:hover td.ant-table-cell {
         background: #fafbfb !important;
       }
-      tr td.ant-table-cell {
-        padding: 9.5px 16px 9.5px 24px !important;
-      }
+    }
+
+    .ant-table-container table > thead > tr:first-child th:first-child,
+    .ant-table-container table > tbody > .ant-table-row .ant-table-cell:first-child {
+      padding: 9.5px 16px 9.5px 24px !important;
     }
 
     .ant-tooltip-arrow-content,
@@ -86,12 +88,6 @@
       > tr
       > th:not(:last-child):not(.ant-table-selection-column):not(.ant-table-row-expand-icon-cell):not([colspan])::before {
       width: 0 !important;
-    }
-
-    .ant-table-thead {
-      tr th.ant-table-cell {
-        padding: 9.5px 16px 9.5px 24px !important;
-      }
     }
   }
 
