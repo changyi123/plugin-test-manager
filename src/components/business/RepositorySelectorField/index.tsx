@@ -56,14 +56,18 @@ const RepositorySelectorInput: React.FC<RepositorySelectorInputProps> = props =>
     },
   );
 
+  const prevWorkspaceKeyRef = React.useRef(null);
   // 获取目录数据
   const { data: folderTreeData } = useRequest(
     async () => {
-      // 重置为初始化状态
-      setTreeSelectedKeys([]);
-      setSelectedValue([]);
-      setMatchedFolderText({});
-      setSearchText('');
+      if (prevWorkspaceKeyRef.current && prevWorkspaceKeyRef.current !== workspaceKey) {
+        // 重置为初始化状态
+        prevWorkspaceKeyRef.current = workspaceKey;
+        setTreeSelectedKeys([]);
+        setSelectedValue([]);
+        setMatchedFolderText({});
+        setSearchText('');
+      }
 
       const folderTreeData = await getFolderTree(workspaceKey);
 
@@ -178,6 +182,7 @@ const RepositorySelectorInput: React.FC<RepositorySelectorInputProps> = props =>
       setTreeAutoExpandParent(false);
       setTreeExpandedKeys(expandedKeys);
     };
+
     const handleTreeSelect = selectedKeys => {
       setTreeSelectedKeys(selectedKeys);
       setSelectedValue(selectedKeys);
@@ -222,10 +227,16 @@ const RepositorySelectorInput: React.FC<RepositorySelectorInputProps> = props =>
     setSelectOpenProp(open);
   });
 
+  const handleClear = useMemoizedFn(() => {
+    setTreeSelectedKeys([]);
+    setSelectedValue([]);
+  });
+
   // 默认值初始化
   const isDefaultValueInitialRef = React.useRef(false);
   React.useEffect(() => {
-    if (!isDefaultValueInitialRef.current && selectedValue && treeData) {
+    console.log('selectedValue', selectedValue);
+    if (!isDefaultValueInitialRef.current && selectedValue?.[0] && treeData) {
       isDefaultValueInitialRef.current = true;
       setTreeSelectedKeys(selectedValue);
     }
@@ -233,12 +244,15 @@ const RepositorySelectorInput: React.FC<RepositorySelectorInputProps> = props =>
 
   return (
     <Select
+      allowClear
       open={selectOpenProp}
       value={selectedValue}
+      onClear={handleClear}
       options={selectOptions}
-      placeholder="请选择用例库模块"
       dropdownRender={dropdownRender}
+      placeholder="请选择用例所属模块，为空默认为未分组"
       onDropdownVisibleChange={handleDropdownVisibleChange}
+      getPopupContainer={triggerNode => triggerNode.parentElement}
       {...restSelectProps}
     />
   );

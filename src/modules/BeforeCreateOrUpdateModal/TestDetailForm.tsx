@@ -29,29 +29,33 @@ const TestDetailForm: React.FC<TestDetailFormProps> = ({ onChange, values, extra
     onChange(valuesRef.current);
   };
 
-  const repositorySelectedKeys =
-    values?.repository ?? extraData?.repository
-      ? [values?.repository ?? extraData?.repository]
-      : null;
+  React.useEffect(() => {
+    if (extraData?.repository && !valuesRef.current.repository) {
+      saveValues({
+        repository: extraData?.repository,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [extraData?.repository]);
 
-  const handleRepositoryKeysSelect = folderKeys => {
+  const repositorySelectedKeys = values?.repository ? [values.repository] : [];
+
+  const handleRepositoryKeysSelect = repository => {
     saveValues({
-      repository: folderKeys?.[0] ?? null,
+      repository: repository?.[0] ?? null,
     });
   };
 
   return (
     <div className={cx('form')}>
-      <div className={cx('field-col', 'field-component-wrapper-form')}>
-        <div className={cx('field-label')}>所属模块</div>
-        <RepositorySelectorField
-          value={repositorySelectedKeys}
-          onChange={handleRepositoryKeysSelect}
-          className={cx('repository-selector')}
-          workspaceId={extraData?.workspaceId}
-        />
-      </div>
-      <div className={cx('folder')}></div>
+      <h6 className={cx('field-label')}>所属模块</h6>
+      <RepositorySelectorField
+        value={repositorySelectedKeys}
+        onChange={handleRepositoryKeysSelect}
+        className={cx('repository-selector')}
+        workspaceId={extraData?.workspaceId}
+      />
+
       <h6 className={cx('step-title', 'field-label')}>前置条件</h6>
       <div className={cx('precondition')}>
         <Input.TextArea
