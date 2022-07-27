@@ -79,7 +79,7 @@ const PlanPageLayout: React.FC<any> = () => {
     detailSearchRef.current?.reset();
     setSearchParams([{}, {}]);
     pageLeftRef.current?.reset();
-  }, [activedType, selectedExecution]);
+  }, [activedType, selectedExecution, selectedTestPlan]);
 
   // 处理 folder tree change
   const handleFolderSelect = ids => {

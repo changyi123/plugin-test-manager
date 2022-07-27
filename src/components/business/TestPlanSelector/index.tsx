@@ -50,6 +50,8 @@ const TestPlanSelector: React.FC = () => {
 
   const handleClick = planData => {
     setSelectedTestPlan(planData);
+    // setSearch('');
+    // reload();
   };
 
   const menu = useCallback(() => {
@@ -64,6 +66,7 @@ const TestPlanSelector: React.FC = () => {
         >
           <SearchInput
             showInput
+            value={search}
             allowClear
             placeholder="请输入搜索关键字"
             onSearch={value => {
@@ -101,7 +104,7 @@ const TestPlanSelector: React.FC = () => {
         </div>
       </div>
     );
-  }, [data, listRef]);
+  }, [data, listRef, search]);
 
   return (
     <div className={cx('plan-selector-container')}>
