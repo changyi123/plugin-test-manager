@@ -30,7 +30,7 @@ const ItemCreateSuccessEventType = 'itemCreateSuccess';
 /** 获取测试实体，如果不存在创建 */
 const getOrCreateTestEntity = async (
   itemId: string,
-  options?: { fields: Record<string, any>; notice: boolean },
+  options?: { repository?: string | null; fields: Record<string, any>; notice: boolean },
 ) => {
   if (!itemId) return null;
   const storeValues = store.get(ExtensionValType.CREATE_OR_UPDATE_ITEM);
@@ -49,6 +49,8 @@ const getOrCreateTestEntity = async (
       const testType = getKeyByValue(itemTypeMap, item?.itemType.key) as TestType;
       // 额外需要创建的字段
       let extraFields = {};
+      // 测试用例所属模块字段
+      let repository = options?.repository;
 
       if (!testType) {
         // 创建失败，通知用户无法创建测试实体
@@ -69,9 +71,13 @@ const getOrCreateTestEntity = async (
         };
         // 添加事项创建 panel 的数据
         if (storeValues?.[CREATE_ITEM_STORE_FIELD_KEY]) {
+          const { repository: storedRepository, ...detail } =
+            storeValues[CREATE_ITEM_STORE_FIELD_KEY];
+
+          repository = storedRepository;
           extraFields = {
             ...extraFields,
-            detail: storeValues[CREATE_ITEM_STORE_FIELD_KEY],
+            detail,
           };
         }
         console.info('extraFields', extraFields);
@@ -79,11 +85,11 @@ const getOrCreateTestEntity = async (
 
       await createTestEntities([
         {
+          repository,
           type: testType,
           fields: extraFields,
           itemId: item.objectId,
           workspaceKey: item?.workspace?.key,
-          repository: options?.fields?.repository,
         },
       ]);
       // 重新查询 testEntity，保持返回数据一致
@@ -189,6 +195,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
       // 缺陷类型不需要创建测试管理测试实体
       if (extraData.type !== TestType.TestDefect) {
         testEntity = await getOrCreateTestEntity(params.itemId, {
+          repository: extraData?.repository,
           fields: extraData.fields,
           notice: true,
         });
