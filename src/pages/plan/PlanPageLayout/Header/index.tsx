@@ -38,6 +38,7 @@ const Header: React.FC<HeaderProps> = ({
   const createTestExecution = async () => {
     const { testEntity: testExecutionEntity } = await createItemUseModal({
       type: TestType.TestExecution,
+      extraData: { planId: selectedTestPlan?.objectId },
     });
 
     try {
