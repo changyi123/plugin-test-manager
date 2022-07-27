@@ -31,24 +31,26 @@ async function fetchTestFromPlanId(id) {
 }
 
 // 通过测试计划id获取测试执行
-async function fetchRunsFromPlanId(id) {
+async function fetchExecutionFromPlanId(id) {
   // 获取testExecution
   const relateQuery = await apis.getParseQuery(false, 'test_manager_TestRelation');
   const executions = await relateQuery
     .equalTo('relationType', 'PlanRelExecution')
     .equalTo('from', id)
+    .include('to.reference.status')
     .findAll(ParseBaseQueryOptions);
+  return executions;
   // 获取测试执行
-  const executeQuery = await apis.getParseQuery(false, 'test_manager_TestRelation');
-  const runs = await executeQuery
-    .containedIn(
-      'from',
-      executions.map(item => item.get('to').id),
-    )
-    .include('to.runReferenceDetail.reference.status')
-    .equalTo('relationType', 'ExecutionRelRun')
-    .findAll(ParseBaseQueryOptions);
-  return runs;
+  // const executeQuery = await apis.getParseQuery(false, 'test_manager_TestRelation');
+  // const runs = await executeQuery
+  //   .containedIn(
+  //     'from',
+  //     executions.map(item => item.get('to').id),
+  //   )
+  //   .include('to.runReferenceDetail.reference.status')
+  //   .equalTo('relationType', 'ExecutionRelRun')
+  //   .findAll(ParseBaseQueryOptions);
+  // return runs;
 }
 
 // 通过测试执行任务 id 判断测试执行是否都执行
@@ -85,13 +87,10 @@ if (action === 'has-test') {
   // itemTypeKey === 'test_manager_plan' &&
   // 测试计划状态【已完成】时，校验所有的测试执行任务必须【已完成】
   const plan = await fetchPlanFromItemId(itemId);
-  const runs = await fetchRunsFromPlanId(plan.id);
+  const runs = await fetchExecutionFromPlanId(plan.id);
   if (!runs?.length) return { code: -1, message: '没有测试执行任务' };
   const hasUnPass = runs.find(
-    item =>
-      !checkStatus.includes(
-        item.get('to').get('runReferenceDetail')?.get('reference')?.toJSON().status.name,
-      ),
+    item => !checkStatus.includes(item.get('to')?.get('reference')?.toJSON().status.name),
   );
   if (hasUnPass) {
     return {
