@@ -45,7 +45,7 @@ async function fetchRunsFromPlanId(id) {
       'from',
       executions.map(item => item.get('to').id),
     )
-    .include('to')
+    .include('to.runReferenceDetail.reference.status')
     .equalTo('relationType', 'ExecutionRelRun')
     .findAll(ParseBaseQueryOptions);
   return runs;
@@ -87,9 +87,17 @@ if (action === 'has-test') {
   const plan = await fetchPlanFromItemId(itemId);
   const runs = await fetchRunsFromPlanId(plan.id);
   if (!runs?.length) return { code: -1, message: '没有测试执行任务' };
-  const hasUnPass = runs.find(item => item.get('to').get('status') !== 'PASSED');
+  const hasUnPass = runs.find(
+    item =>
+      !checkStatus.includes(
+        item.get('to').get('runReferenceDetail')?.get('reference')?.toJSON().status.name,
+      ),
+  );
   if (hasUnPass) {
-    return { code: -1, message: '所有的测试执行任务必须【已完成】' };
+    return {
+      code: -1,
+      message: `所有的测试执行任务必须${checkStatus.map(status => `【${status}】`)}`,
+    };
   }
   return { code: 0 };
 } else if (action === 'create-execution') {
