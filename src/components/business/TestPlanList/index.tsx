@@ -151,49 +151,23 @@ const TestPlanList: React.FC<any> = () => {
               </Dropdown>
             </div>
           </div>
-          // <div className={cx('plan-table-title')}>
-          //   <div className={cx('plan-table-title-left')}>
-          //     <img
-          //       className={cx('icon')}
-          //       src={generateStaticFileUrl((rowData.reference.itemType as any)?.icon)}
-          //       width="16"
-          //       height="16"
-          //     />
-          //     <span className={cx('test-plan-title')} onClick={() => setSelectedTestPlan(rowData)}>
-          //       {(rowData.reference ?? {}).name}
-          //     </span>
-          //   </div>
-          //   <div className={cx('plan-table-title-right')}>
-          //     <Dropdown
-          //       overlay={
-          //         <Menu>
-          //           <Menu.Item key="delete" onClick={() => handleDelete(rowData)}>
-          //             删除测试计划
-          //           </Menu.Item>
-          //           <Menu.Item key="view" onClick={() => handleView(rowData)}>
-          //             查看测试计划
-          //           </Menu.Item>
-          //         </Menu>
-          //       }
-          //       trigger={['hover']}
-          //     >
-          //       <EllipsisOutlined className={cx('action', 'right')} style={{ display: 'flex' }} />
-          //     </Dropdown>
-          //   </div>
-          // </div>
         );
       },
     },
     {
       key: 'completionRate',
-      title: '完成率',
+      title: '执行通过率',
       width: 200,
       render(_, rowData) {
+        const status = rowData?.refTestDetails.map(testDetail => testDetail.status) ?? [];
+        const passNum = status.filter(d => d === 'PASSED') ?? [];
+        const rate = status.length === 0 ? 0 : passNum.length / status.length;
+
         return (
-          <StatusProgress
-            hasSummary
-            statuses={rowData?.refTestDetails.map(testDetail => testDetail.status)}
-          />
+          <div className={cx('table-rate')}>
+            <StatusProgress hasSummary statuses={status} />
+            <span className={cx('rate')}>{`${Math.floor(rate) * 100}%`}</span>
+          </div>
         );
       },
     },

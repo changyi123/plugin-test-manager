@@ -89,7 +89,7 @@ const ExecutionStatus: React.FC<ExecutionStatusProps> = ({ selectedExecution, se
     <Spin spinning={loading}>
       {data && (
         <div className={cx('complete-rate-box')}>
-          <span className={cx('rate')}>通过率 {getRate(status)}%</span>
+          <span className={cx('rate')}>执行通过率 {getRate(status)}%</span>
           <div className={cx('progress')}>
             <StatusProgress hasSummary statuses={status} />
           </div>
