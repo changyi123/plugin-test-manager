@@ -166,7 +166,7 @@ const TestPlanList: React.FC<any> = () => {
         return (
           <div className={cx('table-rate')}>
             <StatusProgress hasSummary statuses={status} />
-            <span className={cx('rate')}>{`${Math.floor(rate) * 100}%`}</span>
+            <span className={cx('rate')}>{`${Math.floor(rate * 100)}%`}</span>
           </div>
         );
       },

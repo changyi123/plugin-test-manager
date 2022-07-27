@@ -11,6 +11,7 @@ import Right from './Right';
 
 import cx from './index.less';
 import Left from './Left';
+import NoData from './NoData';
 
 const PlanPageLayout: React.FC<any> = () => {
   const { workspaceKey, selectedTestPlan, setSearchParams, setSelectedTestPlan } = usePageContext();
@@ -107,26 +108,36 @@ const PlanPageLayout: React.FC<any> = () => {
               setCurTestRuns={setCurTestRuns}
             />
           </PageLayout.Header>
-          <PageLayout.Left>
-            <Left
-              actionRef={pageLeftRef}
-              showType={showType}
-              handleFolderSelect={handleFolderSelect}
-              scopedTestDetailIds={scopedTestDetailIds}
-            />
-          </PageLayout.Left>
-          <PageLayout.Right>
-            <Right
-              activedType={activedType}
-              selectedExecution={selectedExecution}
-              showType={showType}
-              setShowType={setShowType}
-              curTestRuns={curTestRuns}
-              scopedTestDetailRefresh={scopedTestDetailRefresh}
-              refreshPlanData={refreshPlanData}
-              requestScopedTestDetailIds={requestScopedTestDetailIds}
-            />
-          </PageLayout.Right>
+          {activedType === 'TestExecution' && !selectedExecution?.objectId && (
+            <PageLayout.NoData>
+              <NoData setRefreshExecution={setRefreshExecution} />
+            </PageLayout.NoData>
+          )}
+          {(activedType === 'TestPlan' || selectedExecution?.objectId) && (
+            <PageLayout.Left>
+              <Left
+                actionRef={pageLeftRef}
+                showType={showType}
+                handleFolderSelect={handleFolderSelect}
+                scopedTestDetailIds={scopedTestDetailIds}
+              />
+            </PageLayout.Left>
+          )}
+          {(activedType === 'TestPlan' || selectedExecution?.objectId) && (
+            <PageLayout.Right>
+              <Right
+                activedType={activedType}
+                selectedExecution={selectedExecution}
+                showType={showType}
+                setShowType={setShowType}
+                curTestRuns={curTestRuns}
+                scopedTestDetailRefresh={scopedTestDetailRefresh}
+                refreshPlanData={refreshPlanData}
+                requestScopedTestDetailIds={requestScopedTestDetailIds}
+              />
+            </PageLayout.Right>
+          )}
+          )
         </PageLayout>
       )}
     </div>

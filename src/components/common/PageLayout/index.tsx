@@ -33,6 +33,15 @@ const Right: React.FC = ({ children }) => {
   );
 };
 
+const NoData: React.FC = ({ children }) => {
+  const height = useLayoutHeight();
+  return (
+    <div className={cx('no-data')} style={{ height }}>
+      {children}
+    </div>
+  );
+};
+
 const Header: React.FC = ({ children }) => {
   return (
     <div data-element-id="test-manager-page-layout-header" className={cx('header')}>
@@ -68,6 +77,7 @@ const PageLayout = (props: React.PropsWithChildren<PageLayoutProps>) => {
       <div className={cx('content')}>
         {getValidateRenderElement(Left)}
         {getValidateRenderElement(Right)}
+        {getValidateRenderElement(NoData)}
       </div>
     </div>
   );
@@ -76,5 +86,6 @@ const PageLayout = (props: React.PropsWithChildren<PageLayoutProps>) => {
 PageLayout.Left = Left;
 PageLayout.Right = Right;
 PageLayout.Header = Header;
+PageLayout.NoData = NoData;
 
 export default PageLayout;

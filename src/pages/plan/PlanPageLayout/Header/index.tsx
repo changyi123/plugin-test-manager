@@ -117,11 +117,13 @@ const Header: React.FC<HeaderProps> = ({
             refreshExecution={refreshExecution}
             setRefreshExecution={setRefreshExecution}
           />
-          <div className={cx('box-right')}>
-            <Button type="primary" onClick={createTestExecution}>
-              新建测试执行任务
-            </Button>
-          </div>
+          {selectedExecution?.objectId && (
+            <div className={cx('box-right')}>
+              <Button type="primary" onClick={createTestExecution}>
+                新建测试执行任务
+              </Button>
+            </div>
+          )}
         </div>
       )}
     </>

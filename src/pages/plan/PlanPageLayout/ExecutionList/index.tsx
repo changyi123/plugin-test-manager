@@ -107,7 +107,7 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
     <div className={cx('tab-list')}>
       {activedType === 'TestExecution' && (
         <Spin spinning={loading}>
-          {data?.length ? (
+          {!!data?.length && (
             <Tabs
               defaultActiveKey={selectedExecution?.objectId}
               tabPosition={'top'}
@@ -131,8 +131,6 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
                 />
               ))}
             </Tabs>
-          ) : (
-            '无测试任务'
           )}
         </Spin>
       )}
