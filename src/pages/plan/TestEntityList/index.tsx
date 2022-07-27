@@ -379,6 +379,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
                 });
                 // 刷新依赖数据
                 actionRef.current.refresh();
+                mutateStatusEvent.emit('refreshExecutionStatus');
               }}
             >
               执行

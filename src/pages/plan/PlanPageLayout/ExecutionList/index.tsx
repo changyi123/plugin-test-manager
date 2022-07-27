@@ -1,15 +1,14 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRequest } from 'ahooks';
 import { deleteTestEntities, getTestEntitiesByRelationWithOrder } from '@/lib/api/common';
 import { TestRelationType } from '@/lib/constants';
-import { Dropdown, Menu, Spin, Tabs } from 'antd';
+import { Dropdown, Menu, Spin } from 'antd';
+import { EllipsisOutlined } from '@ant-design/icons';
 import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
 import { deleteItems } from '@/lib/api/proxima';
 import { useLocation } from 'react-router-dom';
 import { usePageContext } from '../../hook';
-
-// import more from '@/icons/svg/more.svg';
 
 import cx from './index.less';
 
@@ -24,8 +23,6 @@ interface ExcetionListProps {
   setRefreshExecution?: (val: boolean) => void;
 }
 
-const { TabPane } = Tabs;
-
 const ExecutionList: React.FC<ExcetionListProps> = ({
   planId,
   activedType,
@@ -37,6 +34,13 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
 }) => {
   const { tableSelectionToggleEvent } = usePageContext();
   const { query } = useLocation();
+  const [activedId, setActivedId] = useState('');
+
+  useEffect(() => {
+    if (selectedExecution?.objectId) {
+      setActivedId(selectedExecution?.objectId);
+    }
+  }, [selectedExecution]);
 
   const { data, refresh, loading } = useRequest(
     async () => {
@@ -50,7 +54,8 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
           workspaceKey,
           select: ['reference', 'workspaceKey'],
           include: ['reference'],
-          ascendingBy: 'createdAt',
+          descendingBy: ['createdAt'],
+          ascendingBy: undefined,
         },
       );
 
@@ -103,34 +108,77 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
     </Menu>
   );
 
+  const showList = (data ?? [])?.slice(0, 5);
+  const hideList = (data ?? [])?.slice(5, data?.length ?? 0);
+
+  const hideMenu = () => (
+    <Menu>
+      {hideList.map(d => (
+        <Menu.Item key={d.objectId}>
+          <div
+            className={cx('hide-list-menu')}
+            onClick={e => {
+              e.preventDefault();
+              setActivedId(d.objectId);
+              tableSelectionToggleEvent.emit(false);
+              setSelectedExecution(d);
+            }}
+          >
+            <div className={cx('name')}>{d.reference.name}</div>
+            <div className={cx('icon')}>
+              <Dropdown overlay={menu(d)} trigger={['hover']}>
+                <EllipsisOutlined className={cx('action', 'right')} style={{ display: 'flex' }} />
+              </Dropdown>
+            </div>
+          </div>
+        </Menu.Item>
+      ))}
+    </Menu>
+  );
+
   return (
     <div className={cx('tab-list')}>
       {activedType === 'TestExecution' && (
         <Spin spinning={loading}>
           {!!data?.length && (
-            <Tabs
-              defaultActiveKey={selectedExecution?.objectId}
-              tabPosition={'top'}
-              onChange={val => {
-                tableSelectionToggleEvent.emit(false);
-                setSelectedExecution(data.find(d => d.objectId === val));
-              }}
-            >
-              {data.map(d => (
-                <TabPane
-                  key={d.objectId}
-                  tab={
-                    // <div>
-                    //   <div onClick={e => e.preventDefault()}>{d.reference.name}</div>
-                    //   <img src={'../../../../icons/svg/more.svg'} />
-                    // </div>
-                    <Dropdown overlay={menu(d)}>
-                      <div onClick={e => e.preventDefault()}>{d.reference.name}</div>
+            <>
+              <div className={cx('show-list')}>
+                {showList.map((d, index) => (
+                  <div
+                    className={cx('execution-menu', `${activedId === d.objectId ? 'actived' : ''}`)}
+                    key={index}
+                    onClick={e => {
+                      e.preventDefault();
+                      setActivedId(d.objectId);
+                      tableSelectionToggleEvent.emit(false);
+                      setSelectedExecution(d);
+                    }}
+                  >
+                    <div className={cx('name')} onClick={e => e.preventDefault()}>
+                      {d.reference.name}
+                    </div>
+                    <div className={cx('icon')}>
+                      <Dropdown overlay={menu(d)} trigger={['hover']}>
+                        <EllipsisOutlined
+                          className={cx('action', 'right')}
+                          style={{ display: 'flex' }}
+                        />
+                      </Dropdown>
+                    </div>
+                  </div>
+                ))}
+                {!!hideList.length && (
+                  <div className={cx('hide-list-icon')}>
+                    <Dropdown overlay={hideMenu} trigger={['hover']}>
+                      <EllipsisOutlined
+                        className={cx('action', 'right')}
+                        style={{ display: 'flex' }}
+                      />
                     </Dropdown>
-                  }
-                />
-              ))}
-            </Tabs>
+                  </div>
+                )}
+              </div>
+            </>
           )}
         </Spin>
       )}
