@@ -12,6 +12,7 @@ import { createTestRelation } from '@/lib/api/common';
 import { useUpdateEffect } from 'ahooks';
 import TestEntityList from '../../TestEntityList';
 import { usePageContext } from '../../hook';
+import { useSetTableHeight } from './hooks';
 
 import cx from './index.less';
 
@@ -57,6 +58,8 @@ const Right: React.FC<RightProps> = props => {
     mutateStatusEvent,
     tableSelectionToggleEvent,
   } = usePageContext();
+
+  useSetTableHeight();
 
   const testEntitySelectorRef = useRef<ModelActionType>();
   const detailSearchRef = useRef(null);
@@ -143,7 +146,7 @@ const Right: React.FC<RightProps> = props => {
 
   return (
     <div className={cx('right-box')}>
-      <div className={cx('box-header')}>
+      <div data-element-id="test-manager-execution-table-header" className={cx('box-header')}>
         <div className={cx('extra-content')}>
           <div className={cx('extra-content-left')}>
             {activedType === 'TestExecution' ? selectedExecution?.reference.name : '全部用例'}
@@ -178,7 +181,7 @@ const Right: React.FC<RightProps> = props => {
           onSearch={setSearchParams}
         />
       </div>
-      <div className={cx('box-body')}>
+      <div data-element-id="test-manager-execution-table-body" className={cx('box-body')}>
         <TestEntityList
           loading={loading}
           activedType={activedType}
