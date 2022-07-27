@@ -85,7 +85,6 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         },
         {
           ...queryParams,
-          descendingBy: ['sortIndex', 'createdAt'],
           select,
           include,
         },
