@@ -78,10 +78,16 @@ const Right: React.FC<RightProps> = props => {
   });
 
   useUpdateEffect(() => {
-    if (activedType && selectedExecution?.objectId && selectedTestPlan?.objectId) {
+    if (activedType && selectedExecution?.objectId) {
       detailSearchRef.current.reset();
     }
-  }, [activedType, selectedExecution?.objectId, selectedTestPlan]);
+  }, [activedType, selectedExecution?.objectId]);
+
+  useUpdateEffect(() => {
+    if (selectedTestPlan?.objectId) {
+      detailSearchRef.current.reset();
+    }
+  }, [selectedTestPlan?.objectId]);
 
   const addTestExecutionDetail = useCallback(async () => {
     const ignoreTestDetailIds = curTestRuns
