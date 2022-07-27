@@ -36,6 +36,7 @@ interface RightProps {
   scopedTestDetailRefresh?: () => void;
   refreshPlanData?: () => void;
   requestScopedTestDetailIds?: string[];
+  pageLeftRef?: any;
 }
 
 const Right: React.FC<RightProps> = props => {
@@ -48,6 +49,7 @@ const Right: React.FC<RightProps> = props => {
     scopedTestDetailRefresh,
     refreshPlanData,
     requestScopedTestDetailIds,
+    pageLeftRef,
   } = props;
 
   const {
@@ -201,6 +203,9 @@ const Right: React.FC<RightProps> = props => {
           title="选择规划的测试用例"
           testType={TestType.TestDetail}
           actionRef={testEntitySelectorRef}
+          afterClose={() => {
+            pageLeftRef.current?.refresh();
+          }}
           ignoreTestEntityIds={
             activedType === 'TestPlan'
               ? selectedTestPlan?.refTestDetails?.map(item => item.objectId) ?? []

@@ -34,10 +34,17 @@ export type TestEntitySelectorProps = {
   ignoreTestEntityIds?: string[];
   onSelect?: (testIds: string[]) => void;
   actionRef?: React.ForwardedRef<ActionType>;
+  afterClose?: () => void;
 };
 
 const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
-  const { actionRef, ignoreTestEntityIds = [], isSingleMode = false, needFillValue } = props;
+  const {
+    actionRef,
+    ignoreTestEntityIds = [],
+    isSingleMode = false,
+    needFillValue,
+    afterClose,
+  } = props;
   const [visible, setVisible] = useSafeState(false);
   const debounceSelectContainerRef = React.useRef();
   const [selectValue, setSelectValue] = useSafeState([]);
@@ -345,6 +352,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
       afterClose={() => {
         PreviousButtonClicked = false;
         PreviousMessageData = null;
+        afterClose();
       }}
       keyboard={false}
       visible={visible}

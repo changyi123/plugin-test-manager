@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React from 'react';
 import { Tree } from 'antd';
 import { TestType } from '@/lib/constants';
@@ -21,6 +22,8 @@ export type ActionType = {
   filterFolder: (text: string) => void;
   /** 重置筛选 */
   restFilter: () => void;
+  /** 重新查询 treeData */
+  refresh: () => void;
 };
 
 type RepositoryTreeProps = {
@@ -79,7 +82,7 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
     },
   );
 
-  const { data: treeData } = useRequest(
+  const { data: treeData, refresh: refreshTreeData } = useRequest(
     async () => {
       let processChain: CollectionChain<any> = _.chain(allTestDetails);
 
@@ -190,7 +193,10 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
         // 重置 matched
         setMatchedFolderText({});
         setAutoExpandParent(false);
-        setTreeExpandedKeys([]);
+        setTreeExpandedKeys([UNGROUPED_FOLDER_KEY]);
+      },
+      refresh() {
+        refreshTreeData();
       },
     }),
     [treeData, treeSelectedKeys],

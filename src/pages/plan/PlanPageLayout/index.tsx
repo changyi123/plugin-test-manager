@@ -127,6 +127,7 @@ const PlanPageLayout: React.FC<any> = () => {
           {(activedType === 'TestPlan' || selectedExecution?.objectId) && (
             <PageLayout.Right>
               <Right
+                pageLeftRef={pageLeftRef}
                 activedType={activedType}
                 selectedExecution={selectedExecution}
                 showType={showType}

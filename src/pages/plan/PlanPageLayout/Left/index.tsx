@@ -30,6 +30,9 @@ const Left: React.FC<LeftProps> = ({
       setFoldSearchValue('');
       folderTreeRef.current.restFilter();
     },
+    refresh: () => {
+      folderTreeRef.current?.refresh();
+    },
   }));
 
   return (
