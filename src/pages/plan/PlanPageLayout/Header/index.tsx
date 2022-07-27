@@ -97,14 +97,6 @@ const Header: React.FC<HeaderProps> = ({
             </div>
           </div>
         </div>
-        <div className={cx('header-right')}>
-          {activedType === 'TestExecution' && (
-            <ExecutionStatus
-              selectedExecution={selectedExecution}
-              setCurTestRuns={setCurTestRuns}
-            />
-          )}
-        </div>
       </div>
       {activedType === 'TestExecution' && (
         <div className={cx('action-box')}>
@@ -119,6 +111,12 @@ const Header: React.FC<HeaderProps> = ({
           />
           {selectedExecution?.objectId && (
             <div className={cx('box-right')}>
+              <div className={cx('rate')}>
+                <ExecutionStatus
+                  selectedExecution={selectedExecution}
+                  setCurTestRuns={setCurTestRuns}
+                />
+              </div>
               <Button type="primary" onClick={createTestExecution}>
                 新建测试执行任务
               </Button>
