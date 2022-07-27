@@ -19,6 +19,7 @@ const PlanPageLayout: React.FC<any> = () => {
   >(undefined);
   useResizeContainerDOM(selectedTestPlan?.objectId);
   const detailSearchRef = useRef(null);
+  const pageLeftRef = useRef(null);
 
   const [activedType, setActivedType] = useState('TestPlan');
   const [selectedExecution, setSelectedExecution] = useState<Record<string, any> | undefined>(
@@ -75,6 +76,7 @@ const PlanPageLayout: React.FC<any> = () => {
   useEffect(() => {
     detailSearchRef.current?.reset();
     setSearchParams([{}, {}]);
+    pageLeftRef.current?.reset();
   }, [activedType, selectedExecution]);
 
   // 处理 folder tree change
@@ -107,6 +109,7 @@ const PlanPageLayout: React.FC<any> = () => {
           </PageLayout.Header>
           <PageLayout.Left>
             <Left
+              actionRef={pageLeftRef}
               showType={showType}
               handleFolderSelect={handleFolderSelect}
               scopedTestDetailIds={scopedTestDetailIds}

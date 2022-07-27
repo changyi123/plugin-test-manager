@@ -7,12 +7,13 @@ import TestEntitySelectorModal, {
   ActionType as ModelActionType,
 } from '@/components/business/TestEntitySelectorModal';
 import { extendFields, RepositoryModel, TestRelationType, TestType } from '@/lib/constants';
+import { addTestDetailToExecution } from '@/lib/api/runs';
+import { createTestRelation } from '@/lib/api/common';
+import { useUpdateEffect } from 'ahooks';
 import TestEntityList from '../../TestEntityList';
 import { usePageContext } from '../../hook';
 
 import cx from './index.less';
-import { addTestDetailToExecution } from '@/lib/api/runs';
-import { createTestRelation } from '@/lib/api/common';
 
 const options = [
   {
@@ -72,6 +73,12 @@ const Right: React.FC<RightProps> = props => {
   tableSelectionToggleEvent.useSubscription(visible => {
     setTableSelectionVisible(visible);
   });
+
+  useUpdateEffect(() => {
+    if (activedType && selectedExecution?.objectId) {
+      detailSearchRef.current.reset();
+    }
+  }, [activedType, selectedExecution?.objectId]);
 
   const addTestExecutionDetail = useCallback(async () => {
     const ignoreTestDetailIds = curTestRuns

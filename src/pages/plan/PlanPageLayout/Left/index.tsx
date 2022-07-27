@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useImperativeHandle, useState } from 'react';
 import SearchInput from '@/components/business/SearchInput';
 import RepositoryFolderTree, {
   ActionType as FolderTreeActionType,
@@ -11,13 +11,26 @@ interface LeftProps {
   showType?: string;
   handleFolderSelect?: (val: string[]) => void;
   scopedTestDetailIds?: string[];
+  actionRef?: any;
 }
 
-const Left: React.FC<LeftProps> = ({ showType, handleFolderSelect, scopedTestDetailIds }) => {
+const Left: React.FC<LeftProps> = ({
+  showType,
+  handleFolderSelect,
+  scopedTestDetailIds,
+  actionRef,
+}) => {
   const { workspaceKey } = usePageContext();
   const folderTreeRef = React.useRef<FolderTreeActionType>();
 
   const [foldSearchValue, setFoldSearchValue] = useState('');
+
+  useImperativeHandle(actionRef, () => ({
+    reset: () => {
+      setFoldSearchValue('');
+      folderTreeRef.current.restFilter();
+    },
+  }));
 
   return (
     <>
@@ -25,7 +38,7 @@ const Left: React.FC<LeftProps> = ({ showType, handleFolderSelect, scopedTestDet
         showInput
         allowClear
         className={cx('fold-search')}
-        defaultValue={foldSearchValue}
+        value={foldSearchValue}
         placeholder={'请输入用例库标题'}
         onChange={val => setFoldSearchValue(val)}
         onSearch={val => {
