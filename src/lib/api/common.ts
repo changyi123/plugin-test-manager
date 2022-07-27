@@ -124,17 +124,32 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
     relType !== TestRelationType.ExecutionRelRun || relationSideKey !== sideMapping.from;
 
   const testQuery = new Parse.Query(Test);
+
   if (config?.workspaceKey) {
     testQuery.equalTo('workspaceKey', config.workspaceKey);
   }
 
-  if (config.testDetailIds) {
+  if (relType === TestRelationType.ExecutionRelRun) {
     const testRunQuery = new Parse.Query(Test);
 
-    testRunQuery.containedIn(
-      'objectId',
-      config.testDetailIds.map(item => pointerTransfer(Test, item)),
-    );
+    if (config.testDetailIds) {
+      testRunQuery.containedIn(
+        'objectId',
+        config.testDetailIds.map(item => pointerTransfer(Test, item)),
+      );
+    }
+
+    const itemSelector = config.selectors?.[0];
+    const referenceItemQuery = new Parse.Query(Item);
+
+    if (!isEmpty(itemSelector)) {
+      const ids = await fetchItemFromIql(itemSelector, config.workspaceKey, config.type);
+      // 处理事项关联子查询
+      referenceItemQuery.containedIn('objectId', ids);
+
+      // 增减事项筛选
+      testRunQuery.matchesQuery('reference', referenceItemQuery);
+    }
 
     testQuery.matchesQuery('runReferenceDetail', testRunQuery);
   }
@@ -143,11 +158,13 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
     const itemSelector = config.selectors?.[0];
     const referenceItemQuery = new Parse.Query(Item);
     if (!isEmpty(itemSelector)) {
-      const ids = await fetchItemFromIql(itemSelector, config.workspaceKey);
+      const ids = await fetchItemFromIql(itemSelector, config.workspaceKey, config.type);
       // 处理事项关联子查询
       referenceItemQuery.containedIn('objectId', ids);
-    }
 
+      // 增减事项筛选
+      testQuery.matchesQuery('reference', referenceItemQuery);
+    }
     if (config?.nameLike) {
       referenceItemQuery.matches('name', escapeMatchesQueryArg(config.nameLike));
     }
