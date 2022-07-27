@@ -1,10 +1,11 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useCallback, useState } from 'react';
-import { Dropdown } from 'antd';
+import { Dropdown, Empty } from 'antd';
 import { getTestEntitiesByQuery } from '@/lib/api/common';
 import { usePageContext } from '@/pages/plan/hook';
 import { useInfiniteScroll } from 'ahooks';
 import { TestType } from '@/lib/constants';
+import emptyImg from '@/icons/svg/empty-data.png';
 import SearchInput from '../SearchInput';
 
 import cx from './index.less';
@@ -72,11 +73,23 @@ const TestPlanSelector: React.FC = () => {
           />
         </div>
         <div className={cx('selector-list')} ref={listRef}>
-          {(data?.list ?? []).map(d => (
-            <div className={cx('plan-name')} key={d.objectId} onClick={() => handleClick(d)}>
-              {d?.reference?.name}
-            </div>
-          ))}
+          {data?.list?.length ? (
+            data?.list.map(d => (
+              <div className={cx('plan-name')} key={d.objectId} onClick={() => handleClick(d)}>
+                {d?.reference?.name}
+              </div>
+            ))
+          ) : (
+            <Empty
+              description="无数据"
+              image={emptyImg}
+              imageStyle={{
+                height: 70,
+                width: '100%',
+                padding: '8px 0',
+              }}
+            ></Empty>
+          )}
         </div>
         <div
           className={cx('check-all')}

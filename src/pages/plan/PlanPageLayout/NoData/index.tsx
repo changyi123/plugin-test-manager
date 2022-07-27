@@ -3,6 +3,7 @@ import { Button, Empty, notification, Spin } from 'antd';
 import { useBaseAction } from '@/lib/hooks/useContext';
 import { TestType } from '@/lib/constants';
 import { createTestExecutionAndRelations } from '@/lib/api/runs';
+import emptyImg from '@/icons/svg/empty-data.png';
 import { usePageContext } from '../../hook';
 
 import cx from './index.less';
@@ -49,7 +50,7 @@ const NoData: React.FC<NoDataProps> = ({ setRefreshExecution }) => {
   };
   return (
     <div className={cx('no-data-box')}>
-      <Empty description="暂无测试执行任务">
+      <Empty description="暂无测试执行任务" image={emptyImg}>
         <Button type="primary" onClick={createTestExecution}>
           新建测试执行任务
         </Button>

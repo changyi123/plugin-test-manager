@@ -375,7 +375,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
               onClick={async () => {
                 await testRunModalActionRef.current.open({
                   testId: record.objectId,
-                  testIdSequence,
+                  testIdSequence: curTestRuns?.map(item => item?.objectId),
                 });
                 // 刷新依赖数据
                 actionRef.current.refresh();
@@ -397,8 +397,10 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     },
   ];
 
-  const allSelectableRowKeys = selectedTestPlan?.refTestDetails?.map(detail => detail.objectId);
-  const testIdSequence = curTestRuns?.map(item => item?.objectId).filter(Boolean);
+  const testIdSequence = curTestRuns
+    ?.filter(d => requestScopedTestDetailIds?.includes(d.runReferenceDetail.objectId))
+    ?.map(item => item?.objectId)
+    .filter(Boolean);
 
   const selectionActionNodes = React.useMemo(() => {
     const handleDelete = () => {
@@ -533,7 +535,14 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
             testType: 'TestDetail',
           }}
           useColumnSetting
-          defaultColumnKey={['createdBy', 'createdAt']}
+          defaultColumnKey={[
+            'key',
+            'repositoryGroup',
+            'latestStatus',
+            'times',
+            'createdBy',
+            'createdAt',
+          ]}
           rowKey="objectId"
           columns={allTestColumns}
           name={'AllTestEntity'}
@@ -541,7 +550,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           loading={tableLoading || loading}
           getDataSource={testPlanTableDataGetter}
           onHasRowSelected={setHasRowSelected}
-          allSelectableRowKeys={allSelectableRowKeys}
+          allSelectableRowKeys={requestScopedTestDetailIds}
           selectionActionNodes={selectionActionNodes}
           onSelectionCancel={() => tableSelectionToggleEvent.emit(false)}
         />
@@ -552,7 +561,15 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
             testType: 'TestDetail',
           }}
           useColumnSetting
-          defaultColumnKey={['createdBy', 'createdAt']}
+          defaultColumnKey={[
+            'key',
+            'repositoryGroup',
+            'designee',
+            'runStatus',
+            'createdBy',
+            'createdAt',
+            'executor',
+          ]}
           rowKey="objectId"
           columns={excetionColumns}
           name={'TestExecutionList'}

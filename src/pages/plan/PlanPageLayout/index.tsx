@@ -54,9 +54,10 @@ const PlanPageLayout: React.FC<any> = () => {
   }, [planData, query?.planId]);
 
   useEffect(() => {
-    if (!selectedTestPlan?.objectId) {
+    if (selectedTestPlan?.objectId) {
       activedType !== 'TestPlan' && setActivedType('TestPlan');
       showType !== 'showChild' && setShowType('showChild');
+      setSelectedExecution(undefined);
     }
   }, [selectedTestPlan]);
 
