@@ -1,5 +1,4 @@
-import * as xlsx from 'xlsx';
-import xlsxStyle from 'xlsx-style';
+import { utils as xlsxUtils, write as xlsxWrite } from 'sheetjs-style';
 import FileSave from 'file-saver';
 import Parse from '@/lib/parse';
 import { getTestEntitiesByQuery } from '@/lib/api/common';
@@ -147,11 +146,12 @@ const getSteps = (steps?: Step[]) => {
     );
 
   // const code = OSnow() === 'mac' ? '\n' : '\r\n';
+  const BreakLineCode = '\n';
 
   return {
-    步骤描述: data?.action.join('') ?? '',
-    预期结果: data?.result.join('') ?? '',
-    数据: data?.data.join('') ?? '',
+    步骤描述: data?.action.join(BreakLineCode) ?? '',
+    预期结果: data?.result.join(BreakLineCode) ?? '',
+    数据: data?.data.join(BreakLineCode) ?? '',
   };
 };
 
@@ -335,7 +335,7 @@ const exportExcelFile = (array: any[], sheetName = 'sheet1', fileName = 'example
     },
   };
 
-  const jsonWorkSheet = Object.entries(xlsx.utils.json_to_sheet(array)).reduce(
+  const jsonWorkSheet = Object.entries(xlsxUtils.json_to_sheet(array)).reduce(
     (prev, [key, value]: any[]) => {
       prev[key] = /[A-Z]{1}\d+/g.test(key)
         ? {
@@ -369,18 +369,12 @@ const exportExcelFile = (array: any[], sheetName = 'sheet1', fileName = 'example
     },
   };
 
-  const wbout = xlsxStyle.write(
-    workBook,
-    {
-      bookType: 'xlsx',
-      bookSST: false,
-      type: 'binary',
-      cellStyles: true,
-    },
-    {
-      defaultCellStyle,
-    },
-  );
+  const wbout = xlsxWrite(workBook, {
+    bookType: 'xlsx',
+    bookSST: false,
+    type: 'binary',
+    cellStyles: true,
+  });
 
   return FileSave.saveAs(
     new Blob([s2ab(wbout) as any], {
