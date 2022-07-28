@@ -20,6 +20,7 @@ const NoData: React.FC<NoDataProps> = ({ setRefreshExecution }) => {
   const createTestExecution = async () => {
     const { testEntity: testExecutionEntity } = await createItemUseModal({
       type: TestType.TestExecution,
+      extraData: { planId: selectedTestPlan?.objectId },
     });
 
     try {
