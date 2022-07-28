@@ -81,6 +81,7 @@ const StatusProgress: React.FC<StatusProgressProps> = props => {
       onVisibleChange={visible => props?.hasSummary && setVisible(visible)}
       content={PopoverContent}
       color={POPOVER_COLOR}
+      overlayClassName={cx('test-entity-status')}
     >
       <div className={cx('progress')}>
         {statuses.map(status => (

@@ -267,7 +267,8 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     {
       key: 'action',
       isSystem: true,
-      title: '',
+      title: '操作',
+      width: 140,
       fixed: 'right' as any,
       render(_, rowData) {
         return (
@@ -366,7 +367,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     },
     {
       key: 'action',
-      title: '',
+      title: '操作',
       isSystem: true,
       fixed: 'right' as any,
       render(_, record) {

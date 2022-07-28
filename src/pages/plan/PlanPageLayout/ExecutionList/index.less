@@ -27,8 +27,8 @@
 
   .execution-menu {
     position: relative;
-    max-width: 100px;
-    margin-right: 12px;
+    max-width: 130px;
+    margin-right: 6px;
     cursor: pointer;
     border-top-left-radius: 2px;
     border-top-right-radius: 2px;
@@ -45,8 +45,6 @@
     }
 
     &.actived {
-      background: #e6f3ff;
-
       &::after {
         position: absolute;
         content: '';
@@ -64,7 +62,7 @@
     }
 
     .name {
-      width: 120px;
+      // width: 120px;
       font-size: 14px;
       font-weight: 400;
       color: #213053;
@@ -96,17 +94,26 @@
 .hide-list-icon {
   cursor: pointer;
 
-  .more {
-    font-size: 14px;
-    font-weight: 400;
-    color: #9097a9;
-    line-height: 40px;
+  .more-box {
+    display: flex;
+    align-items: center;
+
+    .icon {
+      color: #9097a9;
+      margin-right: 4px;
+    }
+    .more {
+      font-size: 14px;
+      font-weight: 400;
+      color: #9097a9;
+      line-height: 40px;
+    }
   }
 }
 
 .hide-list-menu {
   position: relative;
-  max-width: 100px;
+  max-width: 160px;
   margin-right: 12px;
   cursor: pointer;
 

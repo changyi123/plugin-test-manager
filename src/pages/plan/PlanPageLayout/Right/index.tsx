@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useCallback, useRef, useState } from 'react';
-import { Button, notification, Select } from 'antd';
+import { Button, notification, Select, Tooltip } from 'antd';
 import FilterSearch from '@/components/common/FilterSearch';
 import RepoDropDown from '@/pages/repository/RepoDropDown';
 import TestEntitySelectorModal, {
@@ -157,7 +157,13 @@ const Right: React.FC<RightProps> = props => {
       <div data-element-id="test-manager-execution-table-header" className={cx('box-header')}>
         <div className={cx('extra-content')}>
           <div className={cx('extra-content-left')}>
-            {activedType === 'TestExecution' ? selectedExecution?.reference.name : '全部用例'}
+            {activedType === 'TestExecution' ? (
+              <Tooltip title={selectedExecution?.reference.name ?? ''}>
+                {selectedExecution?.reference.name}
+              </Tooltip>
+            ) : (
+              '全部用例'
+            )}
           </div>
           <div className={cx('extra-content-right')}>
             <Select

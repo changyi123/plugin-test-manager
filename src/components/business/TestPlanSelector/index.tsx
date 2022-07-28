@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useCallback, useState } from 'react';
-import { Dropdown, Empty } from 'antd';
+import { Dropdown, Empty, Tooltip } from 'antd';
 import { getTestEntitiesByQuery } from '@/lib/api/common';
 import { usePageContext } from '@/pages/plan/hook';
 import { useDebounce, useRequest } from 'ahooks';
@@ -70,7 +70,9 @@ const TestPlanSelector: React.FC = () => {
           {data?.length ? (
             data.map(d => (
               <div className={cx('plan-name')} key={d.objectId} onClick={() => handleClick(d)}>
-                {d?.reference?.name}
+                <Tooltip placement="topLeft" title={d?.reference?.name ?? ''}>
+                  {d?.reference?.name}
+                </Tooltip>
               </div>
             ))
           ) : (
@@ -91,7 +93,7 @@ const TestPlanSelector: React.FC = () => {
             setSelectedTestPlan(undefined);
           }}
         >
-          查看全部
+          查看全部计划
         </div>
       </div>
     );
@@ -101,7 +103,9 @@ const TestPlanSelector: React.FC = () => {
     <div className={cx('plan-selector-container')}>
       <Dropdown overlay={menu} trigger={['click']}>
         <div className={cx('title')}>
-          <span className={cx('name')}>{selectedTestPlan?.reference?.name ?? ''}</span>
+          <Tooltip title={selectedTestPlan?.reference?.name ?? ''}>
+            <span className={cx('name')}>{selectedTestPlan?.reference?.name ?? ''}</span>
+          </Tooltip>
           <DropDown className={cx('icon')} />
         </div>
       </Dropdown>

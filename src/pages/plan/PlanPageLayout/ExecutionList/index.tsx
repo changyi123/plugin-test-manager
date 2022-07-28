@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useRequest } from 'ahooks';
 import { deleteTestEntities, getTestEntitiesByRelationWithOrder } from '@/lib/api/common';
 import { TestRelationType } from '@/lib/constants';
-import { Dropdown, Menu, Spin } from 'antd';
+import { Dropdown, Menu, Spin, Tooltip } from 'antd';
 import { EllipsisOutlined } from '@ant-design/icons';
 import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
 import { deleteItems } from '@/lib/api/proxima';
@@ -155,7 +155,9 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
                     }}
                   >
                     <div className={cx('name')} onClick={e => e.preventDefault()}>
-                      {d.reference.name}
+                      <Tooltip placement="topLeft" title={d?.reference?.name ?? ''}>
+                        {d?.reference?.name}
+                      </Tooltip>
                     </div>
                     <div className={cx('icon')}>
                       <Dropdown overlay={menu(d)} trigger={['hover']}>
@@ -170,11 +172,10 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
                 {!!hideList.length && (
                   <div className={cx('hide-list-icon')}>
                     <Dropdown overlay={hideMenu} trigger={['hover']}>
-                      {/* <EllipsisOutlined
-                        className={cx('action', 'right')}
-                        style={{ display: 'flex' }}
-                      /> */}
-                      <span className={cx('more')}>更多</span>
+                      <div className={cx('more-box')}>
+                        <EllipsisOutlined className={cx('icon')} />
+                        <span className={cx('more')}>更多</span>
+                      </div>
                     </Dropdown>
                   </div>
                 )}

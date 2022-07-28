@@ -47,6 +47,12 @@
     box-shadow: none !important;
   }
 
+  .ant-tooltip-arrow {
+    .ant-tooltip-arrow-content {
+      --antd-arrow-background-color: #576473 !important;
+    }
+  }
+
   // .ant-tooltip-arrow .ant-tooltip-arrow-content::before {
   //   background: linear-gradient(to left, rgb(77, 84, 94) 50%, rgb(77, 84, 94) 50%) no-repeat -10px -10px !important;
   // }
@@ -59,12 +65,16 @@
     position: relative;
     height: 100%;
 
+    // .ant-table-ping-left .ant-table-cell-fix-left {
+    //   border-right: 1px solid #eee;
+    // }
     .ant-table-ping-left .ant-table-cell-fix-left,
     .ant-table-ping-right .ant-table-cell-fix-right {
       box-shadow: 0px 2px 4px 0 #eee;
+      // border-left: 1px solid #eee;
 
       &::after {
-        box-shadow: none;
+        box-shadow: none !important;
       }
     }
 
