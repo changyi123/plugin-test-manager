@@ -319,7 +319,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     return (
       <div className={cx('footer')}>
         <div className={cx('num')}>
-          共 <span>{pagination.total}</span> 个
+          共 <span>{pagination.total}</span> 条
         </div>
         <Pagination
           size="small"

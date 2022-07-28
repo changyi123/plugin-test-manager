@@ -67,7 +67,7 @@ const StatusProgress: React.FC<StatusProgressProps> = props => {
             </li>
           ))}
         </ul>
-        <h6>
+        <h6 className={cx(`${total === 0 ? 'total-null' : ''}`)}>
           <span className={cx('font')}>总和</span>
           <span className={cx('font', 'num')}>{total}</span>
         </h6>

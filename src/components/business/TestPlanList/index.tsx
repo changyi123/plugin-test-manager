@@ -180,6 +180,16 @@ const TestPlanList: React.FC<any> = () => {
         return <span style={{ color: '#0C62FF' }}>{rowData?.refTestDetails?.length ?? 0}</span>;
       },
     },
+    {
+      key: 'action',
+      title: '',
+      isSystem: true,
+      fixed: 'right' as any,
+      width: 40,
+      render(_) {
+        return <span></span>;
+      },
+    },
   ];
 
   const handleCreate = async () => {
