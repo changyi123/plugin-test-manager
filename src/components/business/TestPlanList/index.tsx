@@ -13,10 +13,10 @@ import { TestPlanEntity } from '@/pages/plan/type';
 import { TestEntity } from '@/lib/types/Test';
 import { deleteItems } from '@/lib/api/proxima';
 import { actionConfirm, generateStaticFileUrl, goToItemDetailPage } from '@/lib/utils/helper';
-import { EllipsisOutlined } from '@ant-design/icons';
 import { useBaseAction } from '@/lib/hooks/useContext';
 import { StatusProgress } from '../Status';
 import FilterSearch from '@/components/common/FilterSearch';
+import { FullScreen } from '@/icons';
 
 import cx from './index.less';
 
@@ -147,7 +147,7 @@ const TestPlanList: React.FC<any> = () => {
                 }
                 trigger={['hover']}
               >
-                <EllipsisOutlined className={cx('action', 'right')} style={{ display: 'flex' }} />
+                <FullScreen className={cx('action', 'right')} style={{ display: 'flex' }} />
               </Dropdown>
             </div>
           </div>
@@ -157,7 +157,7 @@ const TestPlanList: React.FC<any> = () => {
     {
       key: 'completionRate',
       title: '执行通过率',
-      width: 200,
+      width: 240,
       render(_, rowData) {
         const status = rowData?.refTestDetails.map(testDetail => testDetail.status) ?? [];
         const passNum = status.filter(d => d === 'PASSED') ?? [];

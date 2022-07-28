@@ -238,7 +238,7 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
 
     return (
       <>
-        <OverflowTooltip title={node.name}>
+        <OverflowTooltip className={cx('tree-node-tips')} title={node.name}>
           <span
             className={cx('tree-node-name', Boolean(matchedText) && 'highlight')}
             dangerouslySetInnerHTML={{ __html: highlightMatchedNodeName }}

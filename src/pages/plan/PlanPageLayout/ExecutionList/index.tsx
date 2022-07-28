@@ -170,10 +170,11 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
                 {!!hideList.length && (
                   <div className={cx('hide-list-icon')}>
                     <Dropdown overlay={hideMenu} trigger={['hover']}>
-                      <EllipsisOutlined
+                      {/* <EllipsisOutlined
                         className={cx('action', 'right')}
                         style={{ display: 'flex' }}
-                      />
+                      /> */}
+                      <span className={cx('more')}>更多</span>
                     </Dropdown>
                   </div>
                 )}

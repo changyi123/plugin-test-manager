@@ -6,8 +6,8 @@ import { usePageContext } from '@/pages/plan/hook';
 import { useDebounce, useRequest } from 'ahooks';
 import { TestType } from '@/lib/constants';
 import emptyImg from '@/icons/svg/empty-data.png';
-import { DownOutlined } from '@ant-design/icons';
 import SearchInput from '../SearchInput';
+import { DropDown } from '@/icons';
 
 import cx from './index.less';
 
@@ -101,9 +101,8 @@ const TestPlanSelector: React.FC = () => {
     <div className={cx('plan-selector-container')}>
       <Dropdown overlay={menu} trigger={['click']}>
         <div className={cx('title')}>
-          <span>{selectedTestPlan?.reference?.name ?? ''}</span>
-
-          <DownOutlined className={cx('icon')} />
+          <span className={cx('name')}>{selectedTestPlan?.reference?.name ?? ''}</span>
+          <DropDown className={cx('icon')} />
         </div>
       </Dropdown>
     </div>

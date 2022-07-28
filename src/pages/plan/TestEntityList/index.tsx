@@ -36,6 +36,7 @@ interface TestEntityListProps {
   curTestRuns?: Record<string, any>[];
   refreshPlanData?: () => void;
   scopedTestDetailRefresh?: () => void;
+  tableSelectionVisible?: boolean;
 }
 
 const TestEntityList: React.FC<TestEntityListProps> = ({
@@ -46,6 +47,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   curTestRuns,
   refreshPlanData,
   scopedTestDetailRefresh,
+  tableSelectionVisible,
 }) => {
   const {
     workspaceKey,
@@ -265,7 +267,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     {
       key: 'action',
       isSystem: true,
-      title: '操作',
+      title: '',
       fixed: 'right' as any,
       render(_, rowData) {
         return (
@@ -364,7 +366,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     },
     {
       key: 'action',
-      title: '操作',
+      title: '',
       isSystem: true,
       fixed: 'right' as any,
       render(_, record) {
@@ -530,6 +532,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     <div className={cx('test-entity-list-box')}>
       {activedType === 'TestPlan' ? (
         <BusinessTable
+          className={cx(`${tableSelectionVisible ? 'batch-action' : ''}`)}
           titleCellOption={{
             workspaceKey,
             testType: 'TestDetail',
@@ -556,6 +559,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         />
       ) : (
         <BusinessTable
+          className={cx(`${tableSelectionVisible ? 'batch-action' : ''}`)}
           titleCellOption={{
             workspaceKey,
             testType: 'TestDetail',

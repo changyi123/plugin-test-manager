@@ -109,6 +109,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     scroll = {
       x: 'max-content',
     },
+    className,
     ...restTableProps
   } = props;
 
@@ -390,7 +391,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
           sticky={true}
           scroll={scrollMemo}
           pagination={false}
-          className={cx('table')}
+          className={cx('table', `${className ?? ''}`)}
           components={{
             header: {
               cell: ResizableHeaderCell,

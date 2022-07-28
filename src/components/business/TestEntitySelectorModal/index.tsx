@@ -352,7 +352,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
       afterClose={() => {
         PreviousButtonClicked = false;
         PreviousMessageData = null;
-        afterClose();
+        afterClose?.();
       }}
       keyboard={false}
       visible={visible}

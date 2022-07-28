@@ -160,7 +160,12 @@ const Right: React.FC<RightProps> = props => {
             {activedType === 'TestExecution' ? selectedExecution?.reference.name : '全部用例'}
           </div>
           <div className={cx('extra-content-right')}>
-            <Select value={showType} options={options} onChange={val => setShowType(val)}></Select>
+            <Select
+              className={cx('select-group')}
+              value={showType}
+              options={options}
+              onChange={val => setShowType(val)}
+            ></Select>
             <Button className={cx('action')} onClick={() => toggleTableSelection()}>
               {tableSelectionVisible ? '取消操作' : '批量操作'}
             </Button>
@@ -198,6 +203,7 @@ const Right: React.FC<RightProps> = props => {
           curTestRuns={curTestRuns}
           scopedTestDetailRefresh={scopedTestDetailRefresh}
           refreshPlanData={refreshPlanData}
+          tableSelectionVisible={tableSelectionVisible}
         />
         <TestEntitySelectorModal
           title="选择规划的测试用例"
