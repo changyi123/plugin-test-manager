@@ -106,7 +106,15 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
       const testDetailIds = tableActionRef.current.selectedRowKeys;
 
       actionConfirm('该操作会将所选的测试用例删除，是否继续操作？', async () => {
-        await Promise.all([deleteTestEntities(testDetailIds), deleteItems(testDetailIds)]);
+        // 获取所选的测试用例事项 id
+        const { results } = await getTestEntitiesByQuery(
+          {
+            in: testDetailIds,
+          },
+          { select: ['reference'], limit: 9999 },
+        );
+        const itemIds = results.map(test => test.reference?.objectId);
+        await Promise.all([deleteTestEntities(testDetailIds), deleteItems(itemIds)]);
         refreshAndMutateData();
 
         notification.success({
