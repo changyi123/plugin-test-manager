@@ -107,11 +107,12 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
 
       actionConfirm('该操作会将所选的测试用例删除，是否继续操作？', async () => {
         // 获取所选的测试用例事项 id
+        setTableLoading(true);
         const { results } = await getTestEntitiesByQuery(
           {
             in: testDetailIds,
           },
-          { select: ['reference'], limit: 9999 },
+          { select: ['reference'], include: [], limit: 9999 },
         );
         const itemIds = results.map(test => test.reference?.objectId);
         await Promise.all([deleteTestEntities(testDetailIds), deleteItems(itemIds)]);
