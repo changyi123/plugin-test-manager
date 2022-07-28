@@ -3,28 +3,28 @@ import React, { useCallback, useState } from 'react';
 import { Dropdown, Empty } from 'antd';
 import { getTestEntitiesByQuery } from '@/lib/api/common';
 import { usePageContext } from '@/pages/plan/hook';
-import { useInfiniteScroll } from 'ahooks';
+import { useDebounce, useRequest } from 'ahooks';
 import { TestType } from '@/lib/constants';
 import emptyImg from '@/icons/svg/empty-data.png';
+import { DownOutlined } from '@ant-design/icons';
 import SearchInput from '../SearchInput';
 
 import cx from './index.less';
-import { DownOutlined } from '@ant-design/icons';
-
-const REQUEST_LIMIT = 10;
 
 const TestPlanSelector: React.FC = () => {
   const listRef = React.useRef();
   const { workspaceKey, selectedTestPlan, setSelectedTestPlan } = usePageContext();
   const [search, setSearch] = useState('');
 
-  const { data, reload } = useInfiniteScroll(
+  const searchValue = useDebounce(search, { wait: 500 });
+
+  const { data } = useRequest(
     async params => {
       const { offset = 0 } = params ?? ({} as any);
-      const { results, count } = await getTestEntitiesByQuery(
+      const { results } = await getTestEntitiesByQuery(
         {
           workspaceKey,
-          nameLike: search,
+          nameLike: searchValue,
           type: TestType.TestPlan,
         },
         {
@@ -35,16 +35,10 @@ const TestPlanSelector: React.FC = () => {
         },
       );
 
-      const nextOffset = offset + REQUEST_LIMIT;
-
-      return {
-        list: results,
-        offset: nextOffset < count ? nextOffset : undefined,
-      };
+      return results;
     },
     {
-      target: listRef,
-      isNoMore: data => data?.offset === undefined,
+      refreshDeps: [searchValue, workspaceKey],
     },
   );
 
@@ -69,15 +63,12 @@ const TestPlanSelector: React.FC = () => {
             value={search}
             allowClear
             placeholder="请输入搜索关键字"
-            onSearch={value => {
-              setSearch(value);
-              reload();
-            }}
+            onChange={value => setSearch(value)}
           />
         </div>
         <div className={cx('selector-list')} ref={listRef}>
-          {data?.list?.length ? (
-            data?.list.map(d => (
+          {data?.length ? (
+            data.map(d => (
               <div className={cx('plan-name')} key={d.objectId} onClick={() => handleClick(d)}>
                 {d?.reference?.name}
               </div>

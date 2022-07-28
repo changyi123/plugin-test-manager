@@ -165,7 +165,7 @@ const TestPlanList: React.FC<any> = () => {
 
         return (
           <div className={cx('table-rate')}>
-            <StatusProgress hasSummary statuses={status} />
+            <StatusProgress className={cx('status')} hasSummary statuses={status} />
             <span className={cx('rate')}>{`${Math.floor(rate * 100)}%`}</span>
           </div>
         );
@@ -177,7 +177,7 @@ const TestPlanList: React.FC<any> = () => {
       align: 'right',
       width: 100,
       render(_, rowData) {
-        return <span style={{ color: '#0C62FF' }}>{rowData?.refTestDetails?.length ?? 0}</span>;
+        return <span>{rowData?.refTestDetails?.length ?? 0}</span>;
       },
     },
     {
