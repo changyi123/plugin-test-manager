@@ -4,7 +4,7 @@ import { StatusProgress } from '@/components/business/Status';
 import { Spin } from 'antd';
 import { useRequest } from 'ahooks';
 import { TestRelationType } from '@/lib/constants';
-import { getTestEntitiesByRelation } from '@/lib/api/common';
+import { getTestEntitiesByRelationWithOrder } from '@/lib/api/common';
 import { usePageContext } from '../../hook';
 
 import cx from './index.less';
@@ -20,7 +20,7 @@ const ExecutionStatus: React.FC<ExecutionStatusProps> = ({ selectedExecution, se
     async () => {
       if (!selectedExecution?.objectId) return [];
 
-      const { list: testRuns } = await getTestEntitiesByRelation(
+      const { list: testRuns } = await getTestEntitiesByRelationWithOrder(
         TestRelationType.ExecutionRelRun,
         {
           from: [selectedExecution?.objectId],
@@ -29,6 +29,7 @@ const ExecutionStatus: React.FC<ExecutionStatusProps> = ({ selectedExecution, se
           // FIXME: 优化查询速度
           workspaceKey,
           queryParams: { limit: 9999 },
+          descendingBy: 'createdAt',
           select: [
             'status',
             'sortIndex',

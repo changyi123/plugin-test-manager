@@ -4,7 +4,6 @@ import { BusinessTable, BusinessTableActionType } from '@/components/common/Busi
 import {
   deleteTestEntities,
   getTestEntitiesByQuery,
-  getTestEntitiesByRelation,
   removeTestRelationsWithCondition,
   updateTestRunDesignee,
   fetchItemFromIql,
@@ -170,16 +169,17 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         'designee',
       ];
 
-      const { list, total } = await getTestEntitiesByRelation(
+      const { list, total } = await getTestEntitiesByRelationWithOrder(
         TestRelationType.ExecutionRelRun,
         {
-          from: selectedExecution?.objectId,
+          from: [selectedExecution?.objectId],
         },
         {
           queryParams,
           include,
           select,
           testDetailIds: requestScopedTestDetailIds?.filter(Boolean),
+          descendingBy: 'createdAt',
           parseMiddleware: async query => {
             const testQuery = new Parse.Query(Test);
             const [itemSelector, testManageSelector] = selectors ?? [];
@@ -236,12 +236,12 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         list: list.map(d => ({
           ...d,
           reference: d.runReferenceDetail.reference,
-          testIdSequence: curTestRuns?.map(d => d.objectId),
+          // testIdSequence: curTestRuns?.map(d => d.objectId),
         })),
         total,
       };
     },
-    [workspaceKey, requestScopedTestDetailIds, selectedExecution, selectors, curTestRuns],
+    [workspaceKey, requestScopedTestDetailIds, selectedExecution, selectors],
   );
 
   const removeTestRelation = React.useCallback(
@@ -424,8 +424,8 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
             <a
               onClick={async () => {
                 await testRunModalActionRef.current.open({
-                  testId: (record as any).objectId,
-                  testIdSequence: (record as any)?.testIdSequence ?? [],
+                  testId: record.objectId,
+                  testIdSequence: curTestRuns?.map(run => run.objectId),
                 });
                 // 刷新依赖数据
                 actionRef.current.refresh();
@@ -633,7 +633,10 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           onSelectionCancel={() => tableSelectionToggleEvent.emit(false)}
         />
       )}
-      <TestRunModal actionRef={testRunModalActionRef} />
+      <TestRunModal
+        actionRef={testRunModalActionRef}
+        idSequence={curTestRuns?.map(run => run.objectId)}
+      />
     </div>
   );
 };

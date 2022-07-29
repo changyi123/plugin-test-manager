@@ -263,6 +263,7 @@ export const getTestEntitiesByRelationWithOrder = async <TResponseList extends a
       resultTransfer: data => data,
       queryParams: { limit: 10, offset: 0 },
       selectors: [],
+      testDetailIds: undefined,
     },
     _config,
   );
@@ -290,13 +291,13 @@ export const getTestEntitiesByRelationWithOrder = async <TResponseList extends a
     .map(item => item?.objectId ?? item);
 
   const query = new Parse.Query(Test);
+  // const queryRelation = new Parse.Query(TestRelation).equalTo('relationType', relType);
+  // const testQuery = new Parse.Query(Test);
 
   // 处理关联表子查询
   const testRelationQuery = new Parse.Query(TestRelation)
     .equalTo('relationType', relType)
     .containedIn(originalSideKey, originalSideIds);
-
-  query.matchesKeyInQuery('objectId', relationSideKey, testRelationQuery);
 
   // 测试执行实体不是一个 proxima 事项。当查询执行的时候需要给排除
   const useItemSubQuery =
@@ -327,6 +328,37 @@ export const getTestEntitiesByRelationWithOrder = async <TResponseList extends a
 
     query.matchesKeyInQuery('reference', 'objectId', referenceItemQuery);
   }
+
+  if (relType === TestRelationType.ExecutionRelRun) {
+    const testRunQuery = new Parse.Query(Test);
+
+    if (config.testDetailIds) {
+      testRunQuery.containedIn(
+        'objectId',
+        config.testDetailIds.map(item => pointerTransfer(Test, item)),
+      );
+    }
+
+    // const itemSelector = config.selectors?.[0];
+    // const referenceItemQuery = new Parse.Query(Item);
+
+    // if (!isEmpty(itemSelector)) {
+    //   const ids = await fetchItemFromIql(itemSelector, config.workspaceKey, config.type);
+    //   // 处理事项关联子查询
+    //   referenceItemQuery.containedIn('objectId', ids);
+
+    //   // 增减事项筛选
+    //   testRunQuery.matchesQuery('reference', referenceItemQuery);
+    // }
+
+    query.matchesQuery('runReferenceDetail', testRunQuery);
+  }
+
+  if (config.parseMiddleware) {
+    await config.parseMiddleware(testRelationQuery);
+  }
+
+  query.matchesKeyInQuery('objectId', relationSideKey, testRelationQuery);
 
   if (hasArrayItem(include)) {
     query.include(include);

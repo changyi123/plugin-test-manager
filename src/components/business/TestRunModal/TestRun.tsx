@@ -97,8 +97,6 @@ const TestRun: React.FC<TestRunType> = props => {
   const canExecNext =
     Array.isArray(idSequence) && ![-1, idSequence.length - 1].includes(idSequence.indexOf(testId));
 
-  console.log(11111, idSequence);
-
   // 执行下一个测试用例
   const nextTestRun = React.useCallback(() => {
     const nextIndex = idSequence.indexOf(testId) + 1;
