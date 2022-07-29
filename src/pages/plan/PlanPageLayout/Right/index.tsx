@@ -1,6 +1,5 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-import React, { useCallback, useRef, useState } from 'react';
-import { Button, notification, Select } from 'antd';
+import React, { useCallback, useRef, useMemo, useState } from 'react';
+import { Button, notification, Select, Tooltip } from 'antd';
 import FilterSearch from '@/components/common/FilterSearch';
 import RepoDropDown from '@/pages/repository/RepoDropDown';
 import TestEntitySelectorModal, {
@@ -115,7 +114,19 @@ const Right: React.FC<RightProps> = props => {
     notification.success({
       message: '测试执行创建成功',
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedExecution, curTestRuns]);
+
+  const filterSearchExtendFieldsProps = useMemo(() => {
+    const fieldsMapping = {
+      // 测试用例类型筛选，只有测试用例库模块
+      TestPlan: extendFields.filter(field => field.key === RepositoryModel),
+      // 测试执行搜索
+      TestExecution: extendFields,
+    };
+
+    return fieldsMapping[activedType];
+  }, [activedType]);
 
   const addTestDetail = async () => {
     const testDetailIds = await testEntitySelectorRef.current.open();
@@ -157,10 +168,21 @@ const Right: React.FC<RightProps> = props => {
       <div data-element-id="test-manager-execution-table-header" className={cx('box-header')}>
         <div className={cx('extra-content')}>
           <div className={cx('extra-content-left')}>
-            {activedType === 'TestExecution' ? selectedExecution?.reference.name : '全部用例'}
+            {activedType === 'TestExecution' ? (
+              <Tooltip title={selectedExecution?.reference.name ?? ''}>
+                {selectedExecution?.reference.name}
+              </Tooltip>
+            ) : (
+              '全部用例'
+            )}
           </div>
           <div className={cx('extra-content-right')}>
-            <Select value={showType} options={options} onChange={val => setShowType(val)}></Select>
+            <Select
+              className={cx('select-group')}
+              value={showType}
+              options={options}
+              onChange={val => setShowType(val)}
+            ></Select>
             <Button className={cx('action')} onClick={() => toggleTableSelection()}>
               {tableSelectionVisible ? '取消操作' : '批量操作'}
             </Button>
@@ -182,11 +204,11 @@ const Right: React.FC<RightProps> = props => {
           </div>
         </div>
         <FilterSearch
-          className={cx('plan-page-layout-search')}
           ref={detailSearchRef}
-          fields={['createdBy', 'priority', 'assignee', 'createdAt']}
-          extendFields={extendFields.filter(item => item.key === RepositoryModel)}
           onSearch={setSearchParams}
+          className={cx('plan-page-layout-search')}
+          extendFields={filterSearchExtendFieldsProps}
+          fields={['createdBy', 'priority', 'assignee', 'createdAt']}
         />
       </div>
       <div data-element-id="test-manager-execution-table-body" className={cx('box-body')}>
@@ -198,6 +220,7 @@ const Right: React.FC<RightProps> = props => {
           curTestRuns={curTestRuns}
           scopedTestDetailRefresh={scopedTestDetailRefresh}
           refreshPlanData={refreshPlanData}
+          tableSelectionVisible={tableSelectionVisible}
         />
         <TestEntitySelectorModal
           title="选择规划的测试用例"

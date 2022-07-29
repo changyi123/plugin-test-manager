@@ -8,7 +8,7 @@
       font-weight: 500;
       color: #1e2a3d;
       line-height: 26px;
-      max-width: 240px;
+      max-width: 280px;
       overflow: hidden;
       white-space: nowrap;
       text-overflow: ellipsis;
@@ -16,11 +16,20 @@
       &:hover {
         color: #0c62ff;
       }
-    }
 
-    .icon {
-      font-size: 14px;
-      margin-left: 4px;
+      .name {
+        color: #091940;
+        font-weight: 600;
+      }
+
+      .icon {
+        margin-left: 8px;
+
+        svg {
+          width: 16px;
+          height: 16px;
+        }
+      }
     }
   }
 
@@ -34,14 +43,14 @@
     z-index: 1;
 
     .search-box {
-      padding: 4px;
+      padding: 4px 8px;
     }
 
     .selector-list {
       overflow: auto;
       max-height: 250px;
-      border-top: 1px solid #DADDE3;
-      border-bottom: 1px solid #DADDE3;
+      border-top: 1px solid #f1f2f4;
+      border-bottom: 1px solid #f1f2f4;
 
       .plan-name {
         padding: 8px;
@@ -52,7 +61,7 @@
         white-space: nowrap;
 
         &:hover {
-          background-color: #DADDE3;
+          background-color: #dadde3;
           color: #0c62ff;
         }
       }
@@ -64,10 +73,10 @@
       line-height: 20px;
       text-align: center;
       cursor: pointer;
+      color: #0c62ff;
 
       &:hover {
-        color: #0c62ff;
-        background-color: #DADDE3;
+        background-color: #dadde3;
       }
     }
   }

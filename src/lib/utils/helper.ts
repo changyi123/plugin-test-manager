@@ -105,5 +105,18 @@ export const logPluginVersion = () => {
   });
 };
 
+export const inIframe = (): boolean => {
+  const isServer = (): boolean => typeof window === 'undefined';
+  const inServer = isServer();
+
+  if (inServer) return false;
+  try {
+    return window.self !== window.top;
+  } catch (e) {
+    console.info('inIframe', e);
+    return true;
+  }
+};
+
 /** panel 消息通知 */
 export { alert } from '@/components/business/PanelLayout';

@@ -42,7 +42,7 @@ const Left: React.FC<LeftProps> = ({
         allowClear
         className={cx('fold-search')}
         value={foldSearchValue}
-        placeholder={'请输入用例库标题'}
+        placeholder={'请输入所属模块名称'}
         onChange={val => setFoldSearchValue(val)}
         onSearch={val => {
           folderTreeRef.current.filterFolder(val);

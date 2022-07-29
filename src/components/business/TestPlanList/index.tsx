@@ -13,10 +13,10 @@ import { TestPlanEntity } from '@/pages/plan/type';
 import { TestEntity } from '@/lib/types/Test';
 import { deleteItems } from '@/lib/api/proxima';
 import { actionConfirm, generateStaticFileUrl, goToItemDetailPage } from '@/lib/utils/helper';
-import { EllipsisOutlined } from '@ant-design/icons';
 import { useBaseAction } from '@/lib/hooks/useContext';
 import { StatusProgress } from '../Status';
 import FilterSearch from '@/components/common/FilterSearch';
+import { FullScreen } from '@/icons';
 
 import cx from './index.less';
 
@@ -54,6 +54,7 @@ const TestPlanList: React.FC<any> = () => {
           ...queryParams,
           ignoreDeletedItemData: true,
           descendingBy: ['createdAt'],
+          include: ['reference.status'],
         },
       );
 
@@ -147,7 +148,7 @@ const TestPlanList: React.FC<any> = () => {
                 }
                 trigger={['hover']}
               >
-                <EllipsisOutlined className={cx('action', 'right')} style={{ display: 'flex' }} />
+                <FullScreen className={cx('action', 'right')} style={{ display: 'flex' }} />
               </Dropdown>
             </div>
           </div>
@@ -157,7 +158,7 @@ const TestPlanList: React.FC<any> = () => {
     {
       key: 'completionRate',
       title: '执行通过率',
-      width: 200,
+      width: 240,
       render(_, rowData) {
         const status = rowData?.refTestDetails.map(testDetail => testDetail.status) ?? [];
         const passNum = status.filter(d => d === 'PASSED') ?? [];
@@ -172,7 +173,7 @@ const TestPlanList: React.FC<any> = () => {
       },
     },
     {
-      key: 'testNums',
+      key: 'testNum',
       title: '规划用例数',
       align: 'right',
       width: 100,
@@ -230,12 +231,12 @@ const TestPlanList: React.FC<any> = () => {
         }}
         useColumnSetting
         defaultColumnKey={[
-          'createdBy',
-          'assignee',
           'status',
-          'completionRate',
+          'testNum',
+          'assignee',
           'createdAt',
-          'testNums',
+          'createdBy',
+          'completionRate',
         ]}
         rowKey="objectId"
         columns={columns}

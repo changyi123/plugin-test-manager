@@ -27,8 +27,8 @@
 
   .execution-menu {
     position: relative;
-    max-width: 100px;
-    margin-right: 12px;
+    max-width: 130px;
+    margin-right: 6px;
     cursor: pointer;
     border-top-left-radius: 2px;
     border-top-right-radius: 2px;
@@ -45,8 +45,6 @@
     }
 
     &.actived {
-      background: #e6f3ff;
-
       &::after {
         position: absolute;
         content: '';
@@ -54,17 +52,17 @@
         left: 0;
         width: 100%;
         height: 0;
-        border-bottom: 1px solid #0c62ff;
+        border-bottom: 1px solid #3683ff;
       }
 
       .name {
         font-weight: bold;
-        color: #0c62ff;
+        color: #3683ff;
       }
     }
 
     .name {
-      width: 120px;
+      // width: 120px;
       font-size: 14px;
       font-weight: 400;
       color: #213053;
@@ -87,27 +85,35 @@
       width: 22px;
       height: 22px;
       border-radius: 4px;
-      color: #0c62ff;
-      // background-color: #f1f2f4;
+      color: #3683ff;
       font-weight: bold;
     }
   }
 }
 
 .hide-list-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 22px;
-  height: 32px;
   cursor: pointer;
-  background-color: #e6f3ff;
-  border-radius: 2px;
+
+  .more-box {
+    display: flex;
+    align-items: center;
+
+    .icon {
+      color: #9097a9;
+      margin-right: 4px;
+    }
+    .more {
+      font-size: 14px;
+      font-weight: 400;
+      color: #9097a9;
+      line-height: 40px;
+    }
+  }
 }
 
 .hide-list-menu {
   position: relative;
-  max-width: 100px;
+  max-width: 160px;
   margin-right: 12px;
   cursor: pointer;
 
@@ -116,7 +122,7 @@
       display: flex;
     }
     .name {
-      color: #0c62ff;
+      color: #3683ff;
     }
   }
 
@@ -144,7 +150,7 @@
     width: 22px;
     height: 22px;
     border-radius: 4px;
-    color: #0c62ff;
+    color: #3683ff;
     // background-color: #f1f2f4;
     font-weight: bold;
   }

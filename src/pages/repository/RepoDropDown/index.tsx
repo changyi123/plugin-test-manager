@@ -2,9 +2,9 @@ import classnames from 'classnames';
 import React, { useCallback } from 'react';
 import { CustomMore } from '@/icons';
 import { useTestConfig } from '@/lib/hooks/useContext';
-import { getProximaBasePath, getTenantKey } from '@/lib/utils/helper';
 import importTestInfo, { TreeNode, downloadExampleFile } from './export';
 import { Button, Dropdown, Menu, message, notification, Spin } from 'antd';
+import { getProximaBasePath, getTenantKey, inIframe } from '@/lib/utils/helper';
 
 const RepoDropDown = ({
   type,
@@ -25,12 +25,15 @@ const RepoDropDown = ({
 
   const menuClick = useCallback(
     async (key: string) => {
+      // iframe 中跳转链接增加隐藏 header 和 sider 属性
+      const appendedQueryString = inIframe() ? '&hiddenSider=true&hiddenHeader=true' : '';
+
       if (key === 'import') {
         const baseUrl = getProximaBasePath() ? `${getProximaBasePath()}` : '/';
         // 跳转到导入页面
         const href = `${baseUrl}/${getTenantKey()}/workspaces/${workspace.key}/import/${
           workspace.objectId
-        }?app=test_manager&&disableToggleWorkspace`;
+        }?app=test_manager&&disableToggleWorkspace${appendedQueryString}`;
         window.open(href);
       } else if (key === 'example') {
         downloadExampleFile();
