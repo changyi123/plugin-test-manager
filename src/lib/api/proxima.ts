@@ -113,7 +113,7 @@ export const getCustomFields = async (keys = [] as string[]) => {
       // 以下字段不支持渲染
       const isNotAllowRenderFieldKey = [
         SYSTEM_FIELD.Name,
-        SYSTEM_FIELD.Status,
+        // SYSTEM_FIELD.Status,
         SYSTEM_FIELD.SecurityLevel,
       ].includes(field.key);
 
