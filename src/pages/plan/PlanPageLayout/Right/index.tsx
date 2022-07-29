@@ -1,5 +1,4 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useRef, useMemo, useState } from 'react';
 import { Button, notification, Select, Tooltip } from 'antd';
 import FilterSearch from '@/components/common/FilterSearch';
 import RepoDropDown from '@/pages/repository/RepoDropDown';
@@ -115,7 +114,19 @@ const Right: React.FC<RightProps> = props => {
     notification.success({
       message: '测试执行创建成功',
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedExecution, curTestRuns]);
+
+  const filterSearchExtendFieldsProps = useMemo(() => {
+    const fieldsMapping = {
+      // 测试用例类型筛选，只有测试用例库模块
+      TestPlan: extendFields.filter(field => field.key === RepositoryModel),
+      // 测试执行搜索
+      TestExecution: extendFields,
+    };
+
+    return fieldsMapping[activedType];
+  }, [activedType]);
 
   const addTestDetail = async () => {
     const testDetailIds = await testEntitySelectorRef.current.open();
@@ -193,11 +204,11 @@ const Right: React.FC<RightProps> = props => {
           </div>
         </div>
         <FilterSearch
-          className={cx('plan-page-layout-search')}
           ref={detailSearchRef}
-          fields={['createdBy', 'priority', 'assignee', 'createdAt']}
-          extendFields={extendFields.filter(item => item.key === RepositoryModel)}
           onSearch={setSearchParams}
+          className={cx('plan-page-layout-search')}
+          extendFields={filterSearchExtendFieldsProps}
+          fields={['createdBy', 'priority', 'assignee', 'createdAt']}
         />
       </div>
       <div data-element-id="test-manager-execution-table-body" className={cx('box-body')}>
