@@ -69,7 +69,14 @@ const TestPlanSelector: React.FC = () => {
         <div className={cx('selector-list')} ref={listRef}>
           {data?.length ? (
             data.map(d => (
-              <div className={cx('plan-name')} key={d.objectId} onClick={() => handleClick(d)}>
+              <div
+                className={cx(
+                  'plan-name',
+                  `${d.objectId === selectedTestPlan?.objectId ? 'actived' : ''}`,
+                )}
+                key={d.objectId}
+                onClick={() => handleClick(d)}
+              >
                 <Tooltip placement="topLeft" title={d?.reference?.name ?? ''}>
                   {d?.reference?.name}
                 </Tooltip>
