@@ -74,7 +74,7 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
     include = include.concat('reference');
     select = select.concat('reference');
   }
-  let query = new Parse.Query(TestRelation).equalTo('relationType', relType);
+  const query = new Parse.Query(TestRelation).equalTo('relationType', relType);
 
   // 只支持单方关联查询
   Object.entries(sides).forEach(([sideKey, side]) => {
@@ -113,11 +113,11 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
     query.include(includeKeys);
   }
 
-  const testManageSelector = config.selectors?.[1];
-  if (!isEmpty(testManageSelector)) {
-    // 装载测试管理筛选条件
-    query = Parse.Query.and(selectorToParse(new Parse.Query(Test), testManageSelector), query);
-  }
+  // const testManageSelector = config.selectors?.[1];
+  // if (!isEmpty(testManageSelector)) {
+  //   // 装载测试管理筛选条件
+  //   query = Parse.Query.and(selectorToParse(new Parse.Query(Test), testManageSelector), query);
+  // }
 
   // 测试执行实体不是一个 proxima 事项。当查询执行的时候需要给排除
   const useItemSubQuery =
@@ -289,7 +289,7 @@ export const getTestEntitiesByRelationWithOrder = async <TResponseList extends a
     .filter(Boolean)
     .map(item => item?.objectId ?? item);
 
-  let query = new Parse.Query(Test);
+  const query = new Parse.Query(Test);
 
   // 处理关联表子查询
   const testRelationQuery = new Parse.Query(TestRelation)
@@ -297,13 +297,6 @@ export const getTestEntitiesByRelationWithOrder = async <TResponseList extends a
     .containedIn(originalSideKey, originalSideIds);
 
   query.matchesKeyInQuery('objectId', relationSideKey, testRelationQuery);
-
-  // 测试管理内部字段筛选
-  const testManageSelector = config.selectors?.[1];
-  if (!isEmpty(testManageSelector)) {
-    // 装载测试管理筛选条件
-    query = Parse.Query.and(selectorToParse(new Parse.Query(Test), testManageSelector), query);
-  }
 
   // 测试执行实体不是一个 proxima 事项。当查询执行的时候需要给排除
   const useItemSubQuery =
