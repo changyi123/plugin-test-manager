@@ -303,6 +303,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       actionRef.current.refresh();
       actionRef.current.resetSelectedRowKeys();
       mutateStatusEvent.emit('refreshExecutionStatus');
+      tableSelectionToggleEvent.emit(false);
       notification.success({
         message: `${testRunIds.length} 个测试执行任务被删除`,
       });
@@ -414,6 +415,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         actionConfirm('该操作会将所选测试用例从测试计划中移除，是否继续操作？', () => {
           removeTestRelation(selectedTestPlan?.objectId, actionRef.current.selectedRowKeys);
           actionRef.current.resetSelectedRowKeys();
+          tableSelectionToggleEvent.emit(false);
         });
       }
     };
