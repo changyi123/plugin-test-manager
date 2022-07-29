@@ -129,7 +129,7 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
     testQuery.equalTo('workspaceKey', config.workspaceKey);
   }
 
-  if (relType === TestRelationType.ExecutionRelRun) {
+  if (relType === TestRelationType.ExecutionRelRun && relationSideKey === sideMapping.from) {
     const testRunQuery = new Parse.Query(Test);
 
     if (config.testDetailIds) {
@@ -139,17 +139,17 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
       );
     }
 
-    const itemSelector = config.selectors?.[0];
-    const referenceItemQuery = new Parse.Query(Item);
+    // const itemSelector = config.selectors?.[0];
+    // const referenceItemQuery = new Parse.Query(Item);
 
-    if (!isEmpty(itemSelector)) {
-      const ids = await fetchItemFromIql(itemSelector, config.workspaceKey, config.type);
-      // 处理事项关联子查询
-      referenceItemQuery.containedIn('objectId', ids);
+    // if (!isEmpty(itemSelector)) {
+    //   const ids = await fetchItemFromIql(itemSelector, config.workspaceKey, config.type);
+    //   // 处理事项关联子查询
+    //   referenceItemQuery.containedIn('objectId', ids);
 
-      // 增减事项筛选
-      testRunQuery.matchesQuery('reference', referenceItemQuery);
-    }
+    //   // 增减事项筛选
+    //   testRunQuery.matchesQuery('reference', referenceItemQuery);
+    // }
 
     testQuery.matchesQuery('runReferenceDetail', testRunQuery);
   }

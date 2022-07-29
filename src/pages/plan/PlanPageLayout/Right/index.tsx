@@ -217,7 +217,6 @@ const Right: React.FC<RightProps> = props => {
           activedType={activedType}
           requestScopedTestDetailIds={requestScopedTestDetailIds}
           selectedExecution={selectedExecution}
-          curTestRuns={curTestRuns}
           scopedTestDetailRefresh={scopedTestDetailRefresh}
           refreshPlanData={refreshPlanData}
           tableSelectionVisible={tableSelectionVisible}

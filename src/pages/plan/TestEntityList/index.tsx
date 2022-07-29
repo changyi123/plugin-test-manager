@@ -19,7 +19,7 @@ import { getTestRunsByTestDetails, updateTestRun, updateTestRunStatus } from '@/
 import TestRunModal, {
   ActionType as TestRunModalActionType,
 } from '@/components/business/TestRunModal';
-import { useMemoizedFn } from 'ahooks';
+import { useMemoizedFn, useRequest } from 'ahooks';
 import { DeleteOutlined, FlagOutlined, UserOutlined } from '@ant-design/icons';
 import { updateItemAssignee } from '@/lib/api/proxima';
 import { UserCell } from '@projectproxima/components';
@@ -35,7 +35,6 @@ interface TestEntityListProps {
   requestScopedTestDetailIds?: string[];
   activedType: string;
   selectedExecution?: Record<string, any>;
-  curTestRuns?: Record<string, any>[];
   refreshPlanData?: () => void;
   scopedTestDetailRefresh?: () => void;
   tableSelectionVisible?: boolean;
@@ -46,7 +45,6 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   activedType,
   requestScopedTestDetailIds,
   selectedExecution,
-  curTestRuns,
   refreshPlanData,
   scopedTestDetailRefresh,
   tableSelectionVisible,
@@ -72,6 +70,117 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       detailTable: actionRef.current?.refresh,
     });
   }, [registerRefreshMethod]);
+
+  const getTestRunsTableData = async queryParams => {
+    if (!selectedExecution?.objectId || !requestScopedTestDetailIds?.length) {
+      return {
+        list: [],
+        total: 0,
+      };
+    }
+
+    setTableLoading(true);
+    const include = queryParams?.include ?? [
+      'status',
+      'sortIndex',
+      'runReferenceDetail.reference',
+      'runReferenceDetail.repository',
+      'executor',
+      'designee',
+    ];
+
+    const select = queryParams?.select ?? [
+      'status',
+      'sortIndex',
+      'runReferenceDetail.reference',
+      'runReferenceDetail.repository',
+      'executor',
+      'designee',
+    ];
+
+    const { list, total } = await getTestEntitiesByRelationWithOrder(
+      TestRelationType.ExecutionRelRun,
+      {
+        from: [selectedExecution?.objectId],
+      },
+      {
+        queryParams,
+        include,
+        select,
+        testDetailIds: requestScopedTestDetailIds?.filter(Boolean),
+        descendingBy: 'createdAt',
+        parseMiddleware: async query => {
+          const testQuery = new Parse.Query(Test);
+          const [itemSelector, testManageSelector] = selectors ?? [];
+          let needUpdate = false;
+          if (!isEmpty(itemSelector)) {
+            // 只有一个选择器，且 name value 为空时，不需要执行 iql 筛选逻辑
+            const onlyOneEmptyNameSelector =
+              Object.keys(itemSelector).length === 1 &&
+              itemSelector.name &&
+              !itemSelector.name.value;
+
+            if (!onlyOneEmptyNameSelector) {
+              const ids = await fetchItemFromIql(itemSelector, workspaceKey);
+              needUpdate = true;
+              if (ids?.length) {
+                testQuery.containedIn('reference', ids);
+              } else {
+                testQuery.doesNotExist('reference');
+              }
+            }
+          }
+
+          if (!isEmpty(testManageSelector)) {
+            needUpdate = true;
+            // 处理非执行人的字段
+            selectorToParse(
+              testQuery,
+              omit(testManageSelector, ['test_executor', 'test_designee']),
+            );
+          }
+
+          let jointQuery = new Parse.Query(Test).matchesQuery('runReferenceDetail', testQuery);
+
+          // 处理执行人
+          const userSelector = pick(testManageSelector, ['test_executor', 'test_designee']);
+          if (!isEmpty(userSelector)) {
+            const userQuery = new Parse.Query(Test);
+            Object.keys(userSelector).forEach(key => {
+              simpleToParse(userQuery, userSelector[key]);
+            });
+            jointQuery = Parse.Query.and(jointQuery, userQuery);
+          }
+
+          if (needUpdate) {
+            query.matchesQuery('to', jointQuery);
+          }
+        },
+      },
+    );
+
+    setTableLoading(false);
+
+    return {
+      list,
+      total,
+    };
+  };
+
+  const { data: allTestRuns } = useRequest(
+    async () => {
+      const { list } = await getTestRunsTableData({
+        limit: 9999,
+        include: [],
+        exclude: ['objectId'],
+      });
+
+      return list;
+    },
+    {
+      refreshDeps: [workspaceKey, requestScopedTestDetailIds, selectedExecution, selectors],
+    },
+  );
 
   const testPlanTableDataGetter = useCallback(
     async queryParams => {
@@ -143,100 +252,12 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   // 获取当前计划或者当前测试任务的全部测试用例 ID
   const executionTableDataGetter = useCallback(
     async queryParams => {
-      if (!selectedExecution?.objectId || !requestScopedTestDetailIds?.length) {
-        return {
-          list: [],
-          total: 0,
-        };
-      }
-
-      setTableLoading(true);
-      const include = [
-        'status',
-        'sortIndex',
-        'runReferenceDetail.reference',
-        'runReferenceDetail.repository',
-        'executor',
-        'designee',
-      ];
-
-      const select = [
-        'status',
-        'sortIndex',
-        'runReferenceDetail.reference',
-        'runReferenceDetail.repository',
-        'executor',
-        'designee',
-      ];
-
-      const { list, total } = await getTestEntitiesByRelationWithOrder(
-        TestRelationType.ExecutionRelRun,
-        {
-          from: [selectedExecution?.objectId],
-        },
-        {
-          queryParams,
-          include,
-          select,
-          testDetailIds: requestScopedTestDetailIds?.filter(Boolean),
-          descendingBy: 'createdAt',
-          parseMiddleware: async query => {
-            const testQuery = new Parse.Query(Test);
-            const [itemSelector, testManageSelector] = selectors ?? [];
-            let needUpdate = false;
-            if (!isEmpty(itemSelector)) {
-              // 只有一个选择器，且 name value 为空时，不需要执行 iql 筛选逻辑
-              const onlyOneEmptyNameSelector =
-                Object.keys(itemSelector).length === 1 &&
-                itemSelector.name &&
-                !itemSelector.name.value;
-
-              if (!onlyOneEmptyNameSelector) {
-                const ids = await fetchItemFromIql(itemSelector, workspaceKey);
-                needUpdate = true;
-                if (ids?.length) {
-                  testQuery.containedIn('reference', ids);
-                } else {
-                  testQuery.doesNotExist('reference');
-                }
-              }
-            }
-
-            if (!isEmpty(testManageSelector)) {
-              needUpdate = true;
-              // 处理非执行人的字段
-              selectorToParse(
-                testQuery,
-                omit(testManageSelector, ['test_executor', 'test_designee']),
-              );
-            }
-
-            let jointQuery = new Parse.Query(Test).matchesQuery('runReferenceDetail', testQuery);
-
-            // 处理执行人
-            const userSelector = pick(testManageSelector, ['test_executor', 'test_designee']);
-            if (!isEmpty(userSelector)) {
-              const userQuery = new Parse.Query(Test);
-              Object.keys(userSelector).forEach(key => {
-                simpleToParse(userQuery, userSelector[key]);
-              });
-              jointQuery = Parse.Query.and(jointQuery, userQuery);
-            }
-
-            if (needUpdate) {
-              query.matchesQuery('to', jointQuery);
-            }
-          },
-        },
-      );
-
-      setTableLoading(false);
+      const { list, total } = await getTestRunsTableData(queryParams);
 
       return {
         list: list.map(d => ({
           ...d,
           reference: d.runReferenceDetail.reference,
-          // testIdSequence: curTestRuns?.map(d => d.objectId),
         })),
         total,
       };
@@ -349,7 +370,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     });
   });
 
-  const testIdSequence = curTestRuns
+  const testIdSequence = allTestRuns
     ?.filter(d => requestScopedTestDetailIds?.includes(d.runReferenceDetail.objectId))
     ?.map(item => item?.objectId)
     .filter(Boolean);
@@ -418,6 +439,8 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       title: '操作',
       isSystem: true,
       fixed: 'right' as any,
+      shouldCellUpdate: (record, prevRecord) =>
+        record.repository?.objectId !== prevRecord.repository?.objectId,
       render(_, record) {
         return (
           <>
@@ -425,7 +448,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
               onClick={async () => {
                 await testRunModalActionRef.current.open({
                   testId: record.objectId,
-                  testIdSequence: curTestRuns?.map(run => run.objectId),
+                  testIdSequence: allTestRuns?.map(run => run.objectId),
                 });
                 // 刷新依赖数据
                 actionRef.current.refresh();
@@ -635,7 +658,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       )}
       <TestRunModal
         actionRef={testRunModalActionRef}
-        idSequence={curTestRuns?.map(run => run.objectId)}
+        idSequence={allTestRuns?.map(run => run.objectId)}
       />
     </div>
   );
