@@ -527,8 +527,9 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       const testRunIds = getTestRunIds();
 
       users = users.map(user => ({
-        ...user,
         objectId: user.value,
+        __type: 'Pointer',
+        className: '_User',
       }));
 
       await updateTestRunDesignee(testRunIds, users);
