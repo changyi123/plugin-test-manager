@@ -42,13 +42,30 @@
     position: absolute;
     top: 100%;
     left: 0;
-    width: 200px;
+    width: 240px;
     background-color: #fff;
     box-shadow: 0 0 2px 0px #beb7b7;
+    border-radius: 4px;
+    margin-top: 8px;
     z-index: 1;
 
     .search-box {
-      padding: 4px 8px;
+      :global {
+        .ant-input-affix-wrapper {
+          line-height: 34px !important;
+          border: none !important;
+
+          &.ant-input-affix-wrapper-focused {
+            border: none !important;
+            box-shadow: none !important;
+          }
+
+          &:focus {
+            border: none !important;
+            box-shadow: none !important;
+          }
+        }
+      }
     }
 
     .selector-list {
@@ -66,13 +83,13 @@
         white-space: nowrap;
 
         &.actived {
-          background-color: #dadde3;
           color: #0c62ff;
+          background-color: #e6f3ff;
         }
 
         &:hover {
-          background-color: #dadde3;
-          color: #3683ff;
+          background-color: #f5f6f8;
+          // color: #0c62ff;
         }
       }
     }
