@@ -678,3 +678,40 @@ export const addTestDetailToExecution = async (params: {
 
   await createTestRelation(testExecutionRunRelations.concat(testPlanDetailRelations));
 };
+
+// 根据测试用例获取测试执行,
+export const getTestRunsByTestDetails = async ({ testDetailIds, workspaceKey, executionIds }) => {
+  if (!testDetailIds?.length) return null;
+  const testQuery = new Parse.Query(Test);
+
+  testQuery
+    .equalTo('workspaceKey', workspaceKey)
+    .equalTo('type', TestType.TestRun)
+    .containedIn('runReferenceDetail', testDetailIds);
+
+  const testRunsList = await testQuery.findAll();
+
+  const tuns = await getTestEntitiesByRelation(
+    TestRelationType.ExecutionRelRun,
+    {
+      from: executionIds,
+    },
+    {
+      workspaceKey,
+      include: ['objectId'],
+      select: ['objectId'],
+      queryParams: { limit: 9999 },
+      async resultTransfer(data) {
+        const ids = data?.list?.map(d => d.objectId);
+        const runs = testRunsList.map(d => d.toJSON()).filter(d => ids.includes(d.objectId));
+
+        return {
+          list: runs,
+          count: testRunsList?.length ?? 0,
+        };
+      },
+    },
+  );
+
+  return tuns.list;
+};

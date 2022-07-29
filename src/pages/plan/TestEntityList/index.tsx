@@ -5,10 +5,10 @@ import {
   deleteTestEntities,
   getTestEntitiesByQuery,
   getTestEntitiesByRelation,
-  getTestEntitiesByRelationWithOrder,
   removeTestRelationsWithCondition,
   updateTestRunDesignee,
   fetchItemFromIql,
+  getTestEntitiesByRelationWithOrder,
 } from '@/lib/api/common';
 import { TestRelationType, TestType } from '@/lib/constants';
 import Field from '@/components/common/Field';
@@ -16,7 +16,7 @@ import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
 import RepositoryGroup from '@/components/business/RepositoryGroup';
 import { StatusBadge } from '@/components/business/Status';
 import { notification } from 'antd';
-import { updateTestRun, updateTestRunStatus } from '@/lib/api/runs';
+import { getTestRunsByTestDetails, updateTestRun, updateTestRunStatus } from '@/lib/api/runs';
 import TestRunModal, {
   ActionType as TestRunModalActionType,
 } from '@/components/business/TestRunModal';
@@ -76,6 +76,13 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
 
   const testPlanTableDataGetter = useCallback(
     async queryParams => {
+      if (!requestScopedTestDetailIds?.length) {
+        return {
+          list: [],
+          total: 0,
+        };
+      }
+
       setTableLoading(true);
 
       const include = ['repository', 'reference'];
@@ -95,7 +102,8 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           include,
         },
       );
-      const { list: testRuns } = await getTestEntitiesByRelationWithOrder(
+
+      const { list: executionList } = await getTestEntitiesByRelationWithOrder(
         TestRelationType.PlanRelExecution,
         { from: [selectedTestPlan.objectId] },
         {
@@ -105,39 +113,21 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           queryParams: { limit: 9999 },
           include: ['objectId'],
           select: ['objectId'],
-          async resultTransfer(data) {
-            const testExecutionIds = data.list.map(item => item.objectId);
-            const { list: testRuns } = await getTestEntitiesByRelation(
-              TestRelationType.ExecutionRelRun,
-              {
-                from: testExecutionIds,
-              },
-              {
-                include: ['objectId'],
-                select: ['objectId', 'runReferenceDetail', 'repository'],
-                queryParams: { limit: 9999 },
-              },
-            );
-
-            return {
-              ...data,
-              list: testRuns.map(run => ({
-                ...run,
-                // 关联的 relations
-                relExecutions: data.list.filter(
-                  item => item.objectId === run.relation.from.objectId,
-                ),
-              })),
-            };
-          },
         },
       );
+
+      // FIXME优化全部用例查询测试执行次数方法
+      const testRuns = await getTestRunsByTestDetails({
+        testDetailIds: testDetails?.map(d => d.objectId) ?? [],
+        executionIds: executionList.map(d => d.objectId),
+        workspaceKey,
+      });
 
       const list = testDetails.map(detail => {
         return {
           ...detail,
           selectedTestPlanId: selectedTestPlan.objectId,
-          relRuns: testRuns.filter(run => run.runReferenceDetail?.objectId === detail.objectId),
+          relRuns: testRuns?.filter(run => run.runReferenceDetail?.objectId === detail.objectId),
         };
       });
 
@@ -154,6 +144,13 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   // 获取当前计划或者当前测试任务的全部测试用例 ID
   const executionTableDataGetter = useCallback(
     async queryParams => {
+      if (!selectedExecution?.objectId || !requestScopedTestDetailIds?.length) {
+        return {
+          list: [],
+          total: 0,
+        };
+      }
+
       setTableLoading(true);
       const include = [
         'status',
@@ -172,14 +169,6 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         'executor',
         'designee',
       ];
-
-      if (!selectedExecution?.objectId) {
-        setTableLoading(false);
-        return {
-          list: [],
-          total: 0,
-        };
-      }
 
       const { list, total } = await getTestEntitiesByRelation(
         TestRelationType.ExecutionRelRun,
