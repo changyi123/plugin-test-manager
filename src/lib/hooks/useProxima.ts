@@ -1,6 +1,7 @@
-import React from 'react';
 import _ from 'lodash';
+import React from 'react';
 import Parse from '@/lib/parse';
+import { useDeepCompareEffect } from 'ahooks';
 import { SYSTEM_FIELD } from '@/lib/constants';
 import { useNoExpiredRequest } from './useRequest';
 import { Workspace, Screen, ItemTypeScreenSchemeMapping } from '@/lib/models';
@@ -89,12 +90,14 @@ const SystemFieldKeys = [
   SYSTEM_FIELD.Assignee,
   SYSTEM_FIELD.Workspace,
 ] as const;
+
 /** 获取空间界面方案自定义字段 keys */
 export const useUsedScreenFieldKeys = (
   workspaceKey: string,
   itemTypeKey: string,
-  systemFieldKeys = SystemFieldKeys,
+  shouldHiddenFieldKeys = [],
 ) => {
+  const [result, setResult] = React.useState([]);
   /** 从界面类型方案中获取 screenId */
   const getScreenIdByScreenScheme = screenScheme => {
     const ScreenTypes = ['defaultScreen', 'viewScreen', 'createScreen', 'editScreen'];
@@ -168,10 +171,17 @@ export const useUsedScreenFieldKeys = (
     },
   );
 
-  return React.useMemo(() => {
-    return [].concat(
-      systemFieldKeys,
-      itemUsedFieldKeyMapping?.[itemTypeKey] ?? itemUsedFieldKeyMapping?.default ?? [],
+  useDeepCompareEffect(() => {
+    const fieldKeys = _.difference(
+      [].concat(
+        SystemFieldKeys,
+        itemUsedFieldKeyMapping?.[itemTypeKey] ?? itemUsedFieldKeyMapping?.default ?? [],
+      ),
+      shouldHiddenFieldKeys,
     );
-  }, [itemUsedFieldKeyMapping, itemTypeKey, systemFieldKeys]);
+
+    setResult(fieldKeys);
+  }, [itemUsedFieldKeyMapping, itemTypeKey]);
+
+  return result;
 };

@@ -54,6 +54,7 @@ const TestPlanList: React.FC<any> = () => {
           ...queryParams,
           ignoreDeletedItemData: true,
           descendingBy: ['createdAt'],
+          include: ['reference.status'],
         },
       );
 
@@ -172,7 +173,7 @@ const TestPlanList: React.FC<any> = () => {
       },
     },
     {
-      key: 'testNums',
+      key: 'testNum',
       title: '规划用例数',
       align: 'right',
       width: 100,
@@ -230,12 +231,12 @@ const TestPlanList: React.FC<any> = () => {
         }}
         useColumnSetting
         defaultColumnKey={[
-          'createdBy',
-          'assignee',
           'status',
-          'completionRate',
+          'testNum',
+          'assignee',
           'createdAt',
-          'testNums',
+          'createdBy',
+          'completionRate',
         ]}
         rowKey="objectId"
         columns={columns}
