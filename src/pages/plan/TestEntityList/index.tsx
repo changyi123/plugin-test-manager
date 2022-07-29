@@ -236,11 +236,12 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         list: list.map(d => ({
           ...d,
           reference: d.runReferenceDetail.reference,
+          testIdSequence: curTestRuns?.map(d => d.objectId),
         })),
         total,
       };
     },
-    [workspaceKey, requestScopedTestDetailIds, selectedExecution, selectors],
+    [workspaceKey, requestScopedTestDetailIds, selectedExecution, selectors, curTestRuns],
   );
 
   const removeTestRelation = React.useCallback(
@@ -348,6 +349,11 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     });
   });
 
+  const testIdSequence = curTestRuns
+    ?.filter(d => requestScopedTestDetailIds?.includes(d.runReferenceDetail.objectId))
+    ?.map(item => item?.objectId)
+    .filter(Boolean);
+
   const excetionColumns = [
     {
       key: 'detailName',
@@ -418,8 +424,8 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
             <a
               onClick={async () => {
                 await testRunModalActionRef.current.open({
-                  testId: record.objectId,
-                  testIdSequence: curTestRuns?.map(item => item?.objectId),
+                  testId: (record as any).objectId,
+                  testIdSequence: (record as any)?.testIdSequence ?? [],
                 });
                 // 刷新依赖数据
                 actionRef.current.refresh();
@@ -441,11 +447,6 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       },
     },
   ];
-
-  const testIdSequence = curTestRuns
-    ?.filter(d => requestScopedTestDetailIds?.includes(d.runReferenceDetail.objectId))
-    ?.map(item => item?.objectId)
-    .filter(Boolean);
 
   const selectionActionNodes = React.useMemo(() => {
     const handleDelete = () => {
