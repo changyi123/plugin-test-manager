@@ -380,7 +380,7 @@ export const extendFields = [
       dataType: 'object',
       objectId: 'test_designee',
       key: 'User',
-      name: '执行人',
+      name: '用户',
     },
   },
   {
@@ -392,7 +392,7 @@ export const extendFields = [
       dataType: 'object',
       objectId: 'test_executor',
       key: 'User',
-      name: '最新操作执行人',
+      name: '用户',
     },
   },
 ];
