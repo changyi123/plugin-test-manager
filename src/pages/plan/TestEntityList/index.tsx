@@ -8,6 +8,7 @@ import {
   getTestEntitiesByRelationWithOrder,
   removeTestRelationsWithCondition,
   updateTestRunDesignee,
+  fetchItemFromIql,
 } from '@/lib/api/common';
 import { TestRelationType, TestType } from '@/lib/constants';
 import Field from '@/components/common/Field';
@@ -25,8 +26,10 @@ import { updateItemAssignee } from '@/lib/api/proxima';
 import { UserCell } from '@projectproxima/components';
 import { useUserCellUserDataProp } from '@/lib/hooks/useProxima';
 import { usePageContext } from '../hook';
-
+import { Test } from '@/lib/models';
 import cx from './index.less';
+import { isEmpty, omit, pick } from 'lodash';
+import { selectorToParse, simpleToParse } from '@/lib/utils/iql';
 
 interface TestEntityListProps {
   loading?: boolean;
@@ -183,11 +186,57 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           from: selectedExecution?.objectId,
         },
         {
-          selectors,
           queryParams,
           include,
           select,
           testDetailIds: requestScopedTestDetailIds?.filter(Boolean),
+          parseMiddleware: async query => {
+            const testQuery = new Parse.Query(Test);
+            const [itemSelector, testManageSelector] = selectors ?? [];
+            let needUpdate = false;
+            if (!isEmpty(itemSelector)) {
+              // 只有一个选择器，且 name value 为空时，不需要执行 iql 筛选逻辑
+              const onlyOneEmptyNameSelector =
+                Object.keys(itemSelector).length === 1 &&
+                itemSelector.name &&
+                !itemSelector.name.value;
+
+              if (!onlyOneEmptyNameSelector) {
+                const ids = await fetchItemFromIql(itemSelector, workspaceKey);
+                needUpdate = true;
+                if (ids?.length) {
+                  testQuery.containedIn('reference', ids);
+                } else {
+                  testQuery.doesNotExist('reference');
+                }
+              }
+            }
+
+            if (!isEmpty(testManageSelector)) {
+              needUpdate = true;
+              // 处理非执行人的字段
+              selectorToParse(
+                testQuery,
+                omit(testManageSelector, ['test_executor', 'test_designee']),
+              );
+            }
+
+            let jointQuery = new Parse.Query(Test).matchesQuery('runReferenceDetail', testQuery);
+
+            // 处理执行人
+            const userSelector = pick(testManageSelector, ['test_executor', 'test_designee']);
+            if (!isEmpty(userSelector)) {
+              const userQuery = new Parse.Query(Test);
+              Object.keys(userSelector).forEach(key => {
+                simpleToParse(userQuery, userSelector[key]);
+              });
+              jointQuery = Parse.Query.and(jointQuery, userQuery);
+            }
+
+            if (needUpdate) {
+              query.matchesQuery('to', jointQuery);
+            }
+          },
         },
       );
 
