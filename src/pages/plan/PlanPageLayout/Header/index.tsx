@@ -19,6 +19,7 @@ interface HeaderProps {
   refreshExecution?: boolean;
   setRefreshExecution?: (val: boolean) => void;
   setCurTestRuns?: (val: Record<string, any>[] | undefined) => void;
+  setLoading?: (val: boolean) => void;
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -29,6 +30,7 @@ const Header: React.FC<HeaderProps> = ({
   refreshExecution,
   setRefreshExecution,
   setCurTestRuns,
+  setLoading,
 }) => {
   const { workspaceKey, selectedTestPlan, setSelectedTestPlan, tableSelectionToggleEvent } =
     usePageContext();
@@ -109,6 +111,7 @@ const Header: React.FC<HeaderProps> = ({
             setSelectedExecution={setSelectedExecution}
             refreshExecution={refreshExecution}
             setRefreshExecution={setRefreshExecution}
+            setLoading={setLoading}
           />
           {selectedExecution?.objectId && (
             <div className={cx('box-right')}>

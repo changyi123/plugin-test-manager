@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useRequest } from 'ahooks';
 import { deleteTestEntities, getTestEntitiesByRelationWithOrder } from '@/lib/api/common';
 import { TestRelationType } from '@/lib/constants';
-import { Dropdown, Menu, Spin, Tooltip } from 'antd';
+import { Dropdown, Menu, Tooltip } from 'antd';
 import { EllipsisOutlined } from '@ant-design/icons';
 import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
 import { deleteItems } from '@/lib/api/proxima';
@@ -21,6 +21,7 @@ interface ExcetionListProps {
   setSelectedExecution?: (val: Record<string, any>) => void;
   refreshExecution?: boolean;
   setRefreshExecution?: (val: boolean) => void;
+  setLoading?: (val: boolean) => void;
 }
 
 const ExecutionList: React.FC<ExcetionListProps> = ({
@@ -31,6 +32,7 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
   setSelectedExecution,
   refreshExecution,
   setRefreshExecution,
+  setLoading,
 }) => {
   const { tableSelectionToggleEvent } = usePageContext();
   const { query } = useLocation();
@@ -65,6 +67,10 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
       refreshDeps: [planId, activedType],
     },
   );
+
+  useEffect(() => {
+    setLoading?.(loading);
+  }, [loading]);
 
   useEffect(() => {
     if (!selectedExecution?.objectId && query?.executionId) {
@@ -139,7 +145,7 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
   return (
     <div className={cx('tab-list')}>
       {activedType === 'TestExecution' && (
-        <Spin spinning={loading}>
+        <>
           {!!data?.length && (
             <>
               <div className={cx('show-list')}>
@@ -182,7 +188,7 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
               </div>
             </>
           )}
-        </Spin>
+        </>
       )}
     </div>
   );

@@ -74,6 +74,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   const testPlanTableDataGetter = useCallback(
     async queryParams => {
       setTableLoading(true);
+
       const include = ['repository', 'reference'];
 
       const select = ['type', 'sortIndex', 'reference', 'repository', 'workspaceKey', 'createdAt'];
@@ -268,7 +269,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       key: 'action',
       isSystem: true,
       title: '操作',
-      width: 140,
+      width: 90,
       fixed: 'right' as any,
       render(_, rowData) {
         return (
@@ -299,6 +300,8 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       // 删除关联关系，删除测试实体
       await deleteTestEntities(testRunIds);
       await scopedTestDetailRefresh();
+      actionRef.current.refresh();
+      actionRef.current.resetSelectedRowKeys();
       mutateStatusEvent.emit('refreshExecutionStatus');
       notification.success({
         message: `${testRunIds.length} 个测试执行任务被删除`,
@@ -410,6 +413,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       if (hasRowSelected) {
         actionConfirm('该操作会将所选测试用例从测试计划中移除，是否继续操作？', () => {
           removeTestRelation(selectedTestPlan?.objectId, actionRef.current.selectedRowKeys);
+          actionRef.current.resetSelectedRowKeys();
         });
       }
     };

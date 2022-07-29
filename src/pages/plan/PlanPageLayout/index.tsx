@@ -1,5 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useRef, useState } from 'react';
+import { Spin } from 'antd';
 import TestPlanList from '@/components/business/TestPlanList';
 import PageLayout from '@/components/common/PageLayout';
 import { useLocation } from 'react-router-dom';
@@ -8,10 +9,10 @@ import { useScopedTestDetailIds, useResizeContainerDOM } from './hooks';
 import { usePageContext } from '../hook';
 import Header from './Header';
 import Right from './Right';
-
-import cx from './index.less';
 import Left from './Left';
 import NoData from './NoData';
+
+import cx from './index.less';
 
 const PlanPageLayout: React.FC<any> = () => {
   const { workspaceKey, selectedTestPlan, setSearchParams, setSelectedTestPlan } = usePageContext();
@@ -30,6 +31,7 @@ const PlanPageLayout: React.FC<any> = () => {
 
   const [refreshExecution, setRefreshExecution] = useState(false);
   const [showType, setShowType] = useState('showChild');
+  const [loading, setLoading] = useState(false);
 
   const { query } = useLocation();
   const { data: planData, refresh: refreshPlanData } = useGetTestPlanById(
@@ -107,11 +109,14 @@ const PlanPageLayout: React.FC<any> = () => {
               refreshExecution={refreshExecution}
               setRefreshExecution={setRefreshExecution}
               setCurTestRuns={setCurTestRuns}
+              setLoading={setLoading}
             />
           </PageLayout.Header>
           {activedType === 'TestExecution' && !selectedExecution?.objectId && (
             <PageLayout.NoData>
-              <NoData setRefreshExecution={setRefreshExecution} />
+              <Spin spinning={loading}>
+                <NoData setRefreshExecution={setRefreshExecution} />
+              </Spin>
             </PageLayout.NoData>
           )}
           {(activedType === 'TestPlan' || selectedExecution?.objectId) && (

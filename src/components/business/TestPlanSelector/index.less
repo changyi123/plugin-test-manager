@@ -4,22 +4,27 @@
     cursor: pointer;
 
     .title {
+      display: flex;
+      align-items: center;
       font-size: 18px;
       font-weight: 500;
       color: #1e2a3d;
       line-height: 26px;
-      max-width: 280px;
-      overflow: hidden;
-      white-space: nowrap;
-      text-overflow: ellipsis;
 
       &:hover {
         color: #0c62ff;
       }
 
       .name {
+        display: block;
         color: #091940;
         font-weight: 600;
+        max-width: 208px;
+        overflow: hidden;
+        font-size: 18px;
+        font-weight: 500;
+        white-space: nowrap;
+        text-overflow: ellipsis;
       }
 
       .icon {
