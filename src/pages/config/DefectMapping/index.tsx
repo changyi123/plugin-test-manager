@@ -5,7 +5,10 @@ import { getAllItemTypes } from '@/lib/api/proxima';
 import { useDataContext, useCurrentTestConfig } from '../hooks';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import { useRequest, useSafeState, useDrop, useDrag } from 'ahooks';
-import { ItemIcon } from '@projectproxima/components';
+// import { ItemIcon } from '@projectproxima/components';
+// import { components } from 'proxima-sdk';
+
+// const { ItemIcon } = components.Components.Common.ItemIcon;
 
 import cx from './index.less';
 
@@ -21,7 +24,7 @@ const ItemTypeDropBox = (props: {
     useDrag({ type, key: data.key }, ref);
     return (
       <div className={cx('drag-item')} ref={ref}>
-        <ItemIcon className={cx('icon')} icon={data.icon}></ItemIcon>
+        {/* <ItemIcon className={cx('icon')} icon={data.icon}></ItemIcon> */}
         <OverflowTooltip title={data.name}>
           <span>{data.name}</span>
         </OverflowTooltip>

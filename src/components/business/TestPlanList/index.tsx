@@ -17,7 +17,10 @@ import { useBaseAction } from '@/lib/hooks/useContext';
 import { StatusProgress } from '../Status';
 import FilterSearch from '@/components/common/FilterSearch';
 import { FullScreen } from '@/icons';
-import { ItemIcon } from '@projectproxima/components';
+// import { ItemIcon } from '@projectproxima/components';
+import { components } from 'proxima-sdk';
+
+const { ItemIcon } = components.Components.Common;
 
 import cx from './index.less';
 
@@ -126,7 +129,9 @@ const TestPlanList: React.FC<any> = () => {
       render(_, rowData) {
         return (
           <div className={'test-plan-title-box'}>
-            <ItemIcon className={'icon'} icon={rowData.reference.itemType?.icon}></ItemIcon>
+            {ItemIcon && (
+              <ItemIcon className={'icon'} icon={rowData.reference.itemType?.icon}></ItemIcon>
+            )}
             <div className={'test-plan-title'} onClick={() => setSelectedTestPlan(rowData)}>
               {(rowData.reference ?? {}).name}
             </div>
