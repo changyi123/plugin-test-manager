@@ -12,11 +12,12 @@ import _ from 'lodash';
 import { TestPlanEntity } from '@/pages/plan/type';
 import { TestEntity } from '@/lib/types/Test';
 import { deleteItems } from '@/lib/api/proxima';
-import { actionConfirm, generateStaticFileUrl, goToItemDetailPage } from '@/lib/utils/helper';
+import { actionConfirm, goToItemDetailPage } from '@/lib/utils/helper';
 import { useBaseAction } from '@/lib/hooks/useContext';
 import { StatusProgress } from '../Status';
 import FilterSearch from '@/components/common/FilterSearch';
 import { FullScreen } from '@/icons';
+import { ItemIcon } from '@projectproxima/components';
 
 import cx from './index.less';
 
@@ -125,12 +126,7 @@ const TestPlanList: React.FC<any> = () => {
       render(_, rowData) {
         return (
           <div className={'test-plan-title-box'}>
-            <img
-              className={'icon'}
-              src={generateStaticFileUrl((rowData.reference.itemType as any)?.icon)}
-              width="16"
-              height="16"
-            />
+            <ItemIcon className={'icon'} icon={rowData.reference.itemType?.icon}></ItemIcon>
             <div className={'test-plan-title'} onClick={() => setSelectedTestPlan(rowData)}>
               {(rowData.reference ?? {}).name}
             </div>

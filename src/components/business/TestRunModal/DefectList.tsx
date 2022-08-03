@@ -10,7 +10,7 @@ import { useItemLinkTypeConfig } from './hooks';
 import { TabsComponentBaseProps } from './type';
 import { Popconfirm, Tooltip, Empty } from 'antd';
 import { addDefect, deleteDefect } from '@/lib/api/runs';
-import { generateStaticFileUrl } from '@/lib/utils/helper';
+import { ItemIcon } from '@projectproxima/components';
 
 const getPopupContainer = () =>
   document.querySelector('[data-element-id="test-run-container"]') as HTMLDivElement;
@@ -80,12 +80,7 @@ const DefectList: React.FC<DefectListProps> = ({
     return (
       <div ref={ref} className={cx('defect', isHover && 'hover')}>
         <span className={cx('tag')}>{isGlobalDefect ? '全局' : `步骤${position}`}</span>
-        <img
-          className={cx('icon')}
-          src={generateStaticFileUrl((item.itemType as any)?.icon)}
-          width="16"
-          height="16"
-        />
+        <ItemIcon className={cx('icon')} icon={(item.itemType as any)?.icon}></ItemIcon>
         <span className={cx('key')}>{item.key}</span>
         <span>{item.name}</span>
 

@@ -171,7 +171,7 @@ const Right: React.FC<RightProps> = props => {
             {activedType === 'TestExecution' ? (
               <>
                 <Tooltip title={selectedExecution?.reference.name ?? ''} placement="topLeft">
-                  {selectedExecution?.reference.name}
+                  <div className={cx('title')}>{selectedExecution?.reference.name}</div>
                 </Tooltip>
                 <div className={cx('rate')}>
                   <ExecutionStatus

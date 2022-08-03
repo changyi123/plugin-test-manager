@@ -3,8 +3,8 @@ import { TestType } from '@/lib/constants';
 import { Select, Button, message } from 'antd';
 import { useRequest, useSafeState } from 'ahooks';
 import { useDataContext, useCurrentTestConfig } from '../hooks';
+import { ItemIcon } from '@projectproxima/components';
 import { getTopItemTypeFromHierarchy } from '@/lib/api/proxima';
-import { generateStaticFileUrl } from '@/lib/utils/helper';
 
 import cx from './index.less';
 
@@ -52,7 +52,7 @@ const ItemTypeMapping = () => {
       const options = topItemTypes.map(itemType => ({
         label: (
           <span className={cx('item-type-selector-label')}>
-            <img className={cx('icon')} src={generateStaticFileUrl(itemType.icon)}></img>
+            <ItemIcon className={cx('icon')} icon={itemType.icon}></ItemIcon>
             <span>{itemType.name}</span>
           </span>
         ),

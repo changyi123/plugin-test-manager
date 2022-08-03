@@ -10,7 +10,7 @@ import { escapeHtmlString } from '@/lib/utils/helper';
 import { addDefect, deleteDefect } from '@/lib/api/runs';
 import { StatusBadge } from '@/components/business/Status';
 import Input from '@/components/business/TestStep/fields/Input';
-import { generateStaticFileUrl } from '@/lib/utils/helper';
+import { ItemIcon } from '@projectproxima/components';
 // import ExecutionEditor from './ExecutionEditor';
 
 import cx from './TestStep.less';
@@ -111,10 +111,7 @@ const TestStep: React.FC<TestStepProps> = props => {
       const isHover = useHover(ref);
       return (
         <div ref={ref} className={cx('defect', isHover && 'hover')}>
-          <img
-            className={cx('defect-icon')}
-            src={generateStaticFileUrl((item?.itemType as any)?.icon)}
-          />
+          <ItemIcon className={cx('defect-icon')} icon={(item?.itemType as any)?.icon}></ItemIcon>
           <span className={cx('defect-key')}>{item.key}</span>
           <span>{item.name}</span>
           <Popconfirm
