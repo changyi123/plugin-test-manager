@@ -14,6 +14,8 @@ export enum PROXIMA_EVENT_KEY {
   openItemCreateScreen = 'openItemCreateScreen',
   openItemViewScreen = 'openItemViewScreen',
   itemSaveSuccess = 'itemSaveSuccess',
+  // 事项批量创建，继续创建下一个事项
+  itemBatchCreateSuccess = 'itemBatchCreateSuccess',
 }
 
 // 测试类型

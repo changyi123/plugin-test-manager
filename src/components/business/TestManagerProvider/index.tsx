@@ -2,14 +2,19 @@ import React from 'react';
 import { v4 as uuid } from 'uuid';
 import { useRequest } from 'ahooks';
 import { store } from '@nebulare/data';
-import { alert } from '@/lib/utils/helper';
 import { Workspace } from '@/lib/types/App';
 import { TestEntity } from '@/lib/types/Test';
 import { EventBus } from '@/lib/utils/eventBus';
 import { message, notification } from 'antd';
+import { alert, hasArrayItem } from '@/lib/utils/helper';
 import { useOnItemCreateSuccess } from '@/lib/hooks/useProximaSDK';
 import { openCreateItemModal, openItemDetailPanel } from '@/lib/api/sdk';
-import { getTestConfig, createTestEntities, getTestEntities } from '@/lib/api/common';
+import {
+  getTestConfig,
+  getTestEntities,
+  createTestEntities,
+  getTestConfigByWorkspaceKeys,
+} from '@/lib/api/common';
 import { getItemByIds, getWorkspaceByKey, getItemTypeByKey } from '@/lib/api/proxima';
 import { getKeyByValue, generateSortIndex } from '@/lib/utils/helper';
 import {
@@ -24,6 +29,7 @@ import {
   ExtensionValType,
   CREATE_ITEM_STORE_FIELD_KEY,
 } from '@/lib/constants';
+import { union } from 'lodash';
 
 const ItemCreateSuccessEventType = 'itemCreateSuccess';
 
@@ -99,6 +105,119 @@ const getOrCreateTestEntity = async (
   }
 
   return testEntity;
+};
+
+/** 获取并创建多个测试实体 */
+const getOrBatchCreateTestEntities = async (
+  itemIdList: string[],
+  options?: { repository?: string | null; fields: Record<string, any>; notice: boolean },
+) => {
+  if (!Array.isArray(itemIdList)) return null;
+  const storeValues = store.get(ExtensionValType.CREATE_OR_UPDATE_ITEM);
+  let testEntities = await getTestEntities({ itemId: itemIdList });
+
+  // 查询结果数量小于实际参数数量（事项不存在对应的测试管理实体数据）
+  // 创建测试管理实体
+  if (testEntities.length < itemIdList.length) {
+    // 批量获取无法保证顺序，所以需要重新排序
+    const shuffledItemDataList = await getItemByIds(itemIdList);
+    const itemDataList = itemIdList.map(id =>
+      shuffledItemDataList.find(itemData => itemData.objectId === id),
+    );
+    const firstItemData = itemDataList[0];
+    // 第一项不存在则执行返回
+    if (!firstItemData) return null;
+
+    // 多空间 key
+    const multipleWorkspaceKeys: string[] = union(
+      itemDataList.map(itemData => itemData?.workspace?.key).filter(Boolean),
+    );
+    // 获取空间配置数据
+    const testConfigs = await getTestConfigByWorkspaceKeys(multipleWorkspaceKeys);
+
+    // 多空间事项类型映射配置
+    const itemTypeMappingWorkspaceMap = testConfigs.reduce(
+      (acc, cur) => ({
+        ...acc,
+        [cur.workspaceKey]: cur.itemTypeMap,
+      }),
+      {},
+    );
+
+    // 根据 itemData 匹配测试实体类型
+    const getMatchedTestType = itemData =>
+      getKeyByValue(
+        itemTypeMappingWorkspaceMap[itemData.workspace?.key],
+        itemData.itemType?.key,
+      ) as TestType;
+
+    // 过滤事项关联和第一个不一致的用例数据
+    const firstItemMatchTestType = getMatchedTestType(firstItemData);
+
+    // 需要被创建测试实体的事项数据
+    // 1. 和第一个事项对应的测试实体需要保持一致，不一致忽略创建
+    // 2. 创建支持跨空间创建，不同空间对应不同的事项类型，需要对该逻辑进行处理
+    const needCreatedItemDataList = itemDataList.filter(
+      itemData => getMatchedTestType(itemData) === firstItemMatchTestType,
+    );
+
+    if (!firstItemMatchTestType) {
+      // 创建失败，通知用户无法创建测试实体
+      options?.notice === true &&
+        notification.open({
+          message: '提示',
+          description: '事项所属空间未配置测试管理关联类型',
+        });
+      return null;
+    }
+
+    // 额外需要创建的字段
+    let extraFields = {};
+    // 测试用例所属模块字段
+    let repository = options?.repository;
+
+    // 测试用例创建
+    if (firstItemMatchTestType === TestType.TestDetail) {
+      // 测试用例创建时需要生成默认 sortIndex
+      extraFields = {
+        ...extraFields,
+        sortIndex: generateSortIndex(),
+      };
+      // 添加事项创建 panel 的数据
+      if (storeValues?.[CREATE_ITEM_STORE_FIELD_KEY]) {
+        const { repository: storedRepository, ...detail } =
+          storeValues[CREATE_ITEM_STORE_FIELD_KEY];
+
+        repository = storedRepository;
+        extraFields = {
+          ...extraFields,
+          detail,
+        };
+      }
+      console.info('extraFields', extraFields);
+    }
+
+    const needCreatedTestEntities = needCreatedItemDataList.map(itemData => ({
+      repository,
+      type: firstItemMatchTestType,
+      fields: extraFields,
+      itemId: itemData.objectId,
+      workspaceKey: itemData.workspace?.key,
+    }));
+
+    await createTestEntities(needCreatedTestEntities);
+
+    const itemId = needCreatedItemDataList.map(itemData => itemData.objectId);
+
+    // 重新查询 testEntity，保持返回数据一致
+    testEntities = await getTestEntities({ itemId });
+    console.info(
+      'new testEntity',
+      testEntities?.map(item => item.toJSON()),
+    );
+  }
+
+  return testEntities;
 };
 
 type RepositoryDataProviderProps = {
@@ -212,7 +331,44 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
     [testConfig.isolateTestType, workspace?.key],
   );
 
-  useOnItemCreateSuccess(messageKey, itemCreateSuccessCb);
+  // 事项批量创建成功回调
+  const itemBatchCreateSuccessCb = React.useCallback(
+    async params => {
+      // 缺陷类型不需要创建测试实体
+      const { extraData, itemIdList } = params;
+
+      const itemDataList = await getItemByIds(itemIdList);
+      let testEntities = [];
+
+      const isIsolated = testConfig.isolateTestType?.includes(extraData.type);
+      // 禁止创建或或关联（当又空间隔离配置时且当前空间和事项创建空间不相同时）
+      const needRelatedItemIdList = itemDataList.filter(itemData => {
+        // 测试隔离需要将非当前空间的事项给排除
+        if (isIsolated) return workspace.key !== itemData.workspace?.key;
+        return true;
+      });
+
+      if (!hasArrayItem(needRelatedItemIdList)) return;
+
+      // 缺陷类型不需要创建测试管理测试实体
+      if (extraData.type !== TestType.TestDefect) {
+        testEntities = await getOrBatchCreateTestEntities(needRelatedItemIdList, {
+          repository: extraData?.repository,
+          fields: extraData.fields,
+          notice: true,
+        });
+        if (!hasArrayItem(testEntities)) return;
+
+        eventBus.dispatch(messageKey, {
+          extraData,
+          testEntities,
+        });
+      }
+    },
+    [testConfig.isolateTestType, workspace?.key],
+  );
+
+  useOnItemCreateSuccess(messageKey, itemCreateSuccessCb, itemBatchCreateSuccessCb);
 
   const testConfigContextValues = React.useMemo<TestConfigContextType>(() => {
     return {

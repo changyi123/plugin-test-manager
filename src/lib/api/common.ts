@@ -701,6 +701,13 @@ export const getTestConfigFromCache = async (params: {
   return testConfig;
 };
 
+/** 根据 workspace key 获取配置 */
+export const getTestConfigByWorkspaceKeys = async (workspaceKeys: string[]) => {
+  return await new Parse.Query(TestConfig)
+    .containedIn('workspaceKey', workspaceKeys)
+    .map(item => item.toJSON());
+};
+
 /**
  * 获取测试管理配置
  */
