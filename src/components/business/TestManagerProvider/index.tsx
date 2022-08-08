@@ -301,6 +301,8 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
       // 缺陷类型不需要创建测试实体
       const { extraData } = params;
 
+      if (extraData?.useItemBatchCreate) return;
+
       const [itemData] = await getItemByIds([params.itemId]);
       let testEntity = null;
 
@@ -326,6 +328,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
         extraData,
         testEntity,
         item: itemData,
+        useItemBatchCreate: false,
       });
     },
     [testConfig.isolateTestType, workspace?.key],
@@ -336,32 +339,37 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
     async params => {
       // 缺陷类型不需要创建测试实体
       const { extraData, itemIdList } = params;
+      if (!extraData?.useItemBatchCreate) return;
 
-      const itemDataList = await getItemByIds(itemIdList);
-      let testEntities = [];
+      const originalItemList = await getItemByIds(itemIdList);
+      let testEntityList = [];
 
       const isIsolated = testConfig.isolateTestType?.includes(extraData.type);
       // 禁止创建或或关联（当又空间隔离配置时且当前空间和事项创建空间不相同时）
-      const needRelatedItemIdList = itemDataList.filter(itemData => {
+      const itemList = originalItemList.filter(itemData => {
         // 测试隔离需要将非当前空间的事项给排除
-        if (isIsolated) return workspace.key !== itemData.workspace?.key;
+        if (isIsolated) return workspace.key === itemData.workspace?.key;
         return true;
       });
 
-      if (!hasArrayItem(needRelatedItemIdList)) return;
+      if (!hasArrayItem(itemList)) return;
 
       // 缺陷类型不需要创建测试管理测试实体
       if (extraData.type !== TestType.TestDefect) {
-        testEntities = await getOrBatchCreateTestEntities(needRelatedItemIdList, {
+        const ids = itemList.map(itemData => itemData.objectId);
+        testEntityList = await getOrBatchCreateTestEntities(ids, {
           repository: extraData?.repository,
           fields: extraData.fields,
           notice: true,
         });
-        if (!hasArrayItem(testEntities)) return;
+
+        if (!hasArrayItem(testEntityList)) return;
 
         eventBus.dispatch(messageKey, {
+          itemList,
           extraData,
-          testEntities,
+          testEntityList,
+          useItemBatchCreate: true,
         });
       }
     },
@@ -433,13 +441,18 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
         // 事项创建成功通知
         return new Promise((resolve, reject) => {
           eventBus.disposer = eventBus.register(messageKey, data => {
-            const { testEntity, item } = data;
+            const { testEntity, item, testEntityList, itemList, useItemBatchCreate } = data;
+            const willValidateItem = useItemBatchCreate ? itemList[0] : item;
+            const willValidateTestEntity = useItemBatchCreate ? testEntityList[0] : testEntity;
+
             // 创建的测试类型是否符合预期
-            let expectedTestType = testEntity?.get('type') === type;
+            let expectedTestType = willValidateTestEntity?.get('type') === type;
 
             // 判断事项类型 key 是否在 defectsMapping 中
             if (type === TestType.TestDefect) {
-              expectedTestType = (testConfig?.defectsMapping ?? []).includes(item?.itemType?.key);
+              expectedTestType = (testConfig?.defectsMapping ?? []).includes(
+                willValidateItem?.itemType?.key,
+              );
             }
 
             // TODO: 消息通知
@@ -451,6 +464,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
               reject('新建事项类型与创建的测试类型未匹配');
               return;
             }
+
             resolve(data);
           });
         });

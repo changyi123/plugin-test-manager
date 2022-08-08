@@ -212,19 +212,21 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
   };
 
   const createTestDetail = async () => {
-    const { testEntity: testDetailEntity } = await createItemUseModal({
+    const { testEntityList } = await createItemUseModal({
       type: TestType.TestDetail,
       extraData: {
+        useItemBatchCreate: true,
         repository:
           state.selectedFolderKey === UNGROUPED_FOLDER_KEY ? null : state.selectedFolderKey,
       },
     });
 
-    const testDetailData = testDetailEntity.toJSON();
-    // TODO: 创建时加入到测试执行中
-
+    const successMessage =
+      testEntityList.length > 1
+        ? `${testEntityList.length}个测试用例新建成功`
+        : `测试用例【${testEntityList[0]?.toJSON().reference.name}】新建成功`;
     notification.success({
-      message: `测试用例【${testDetailData.reference.name}】新建成功`,
+      message: successMessage,
     });
     await handleDataChange();
     // tableActionRef.current.refresh();

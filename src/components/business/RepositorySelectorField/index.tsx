@@ -235,7 +235,6 @@ const RepositorySelectorInput: React.FC<RepositorySelectorInputProps> = props =>
   // 默认值初始化
   const isDefaultValueInitialRef = React.useRef(false);
   React.useEffect(() => {
-    console.log('selectedValue', selectedValue);
     if (!isDefaultValueInitialRef.current && selectedValue?.[0] && treeData) {
       isDefaultValueInitialRef.current = true;
       setTreeSelectedKeys(selectedValue);
