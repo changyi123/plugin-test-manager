@@ -17,22 +17,45 @@ const previousMessageToken = {
 };
 
 /** 监听事项创建成功 */
-export const useOnItemCreateSuccess = (key, cb) => {
-  callbackMap.set(key, cb);
-  const getMessageToken = params => params?.extraData?.messageKey + params?.itemId;
-  const memoizedCallback = React.useCallback(params => {
+export const useOnItemCreateSuccess = (key, saveCallback, batchCreateCallback) => {
+  callbackMap.set(key, [saveCallback, batchCreateCallback]);
+  const memoizedItemSaveCallback = React.useCallback(params => {
+    const extraData = params?.extraData ?? {};
+    const getMessageToken = params => extraData.messageKey + params?.itemId;
     const messageToken = getMessageToken(params);
-    const callback = callbackMap.get(params?.extraData?.messageKey);
+    const [callback] = callbackMap.get(extraData.messageKey);
 
     // 监听 key 为 TEST_MANAGER_PLUGIN_KEY 的事件
     if (
       callback &&
+      !extraData.useItemBatchCreate &&
       messageToken !== previousMessageToken.get() &&
-      params?.extraData?.key === TEST_MANAGER_PLUGIN_KEY
+      extraData.key === TEST_MANAGER_PLUGIN_KEY
     ) {
       previousMessageToken.set(messageToken);
       callback(params);
     }
   }, []);
-  useListener(PROXIMA_EVENT_KEY.itemSaveSuccess, memoizedCallback);
+
+  const memoizedItemBatchCreateCallback = React.useCallback(params => {
+    const extraData = params?.extraData ?? {};
+
+    const getMessageToken = params => extraData.messageKey + params?.itemIdList?.toString();
+
+    const messageToken = getMessageToken(params);
+    const [, callback] = callbackMap.get(extraData.messageKey);
+
+    if (
+      callback &&
+      extraData.useItemBatchCreate &&
+      messageToken !== previousMessageToken.get() &&
+      extraData.key === TEST_MANAGER_PLUGIN_KEY
+    ) {
+      previousMessageToken.set(messageToken);
+      callback(params);
+    }
+  }, []);
+
+  useListener(PROXIMA_EVENT_KEY.itemSaveSuccess, memoizedItemSaveCallback);
+  useListener(PROXIMA_EVENT_KEY.itemBatchCreateSuccess, memoizedItemBatchCreateCallback);
 };

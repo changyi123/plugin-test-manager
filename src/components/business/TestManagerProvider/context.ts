@@ -28,9 +28,12 @@ export type BaseActionContextType = {
     type: TestType;
     extraData?: Extra;
   }) => Promise<{
-    item: Item;
-    extraData?: Extra;
-    testEntity: Parse.Object<TestEntity>;
+    extraData: Extra;
+    useItemBatchCreate: boolean;
+    item?: Item;
+    itemList?: Item[];
+    testEntity?: Parse.Object<TestEntity>;
+    testEntityList?: Parse.Object<TestEntity>[];
   }>;
   /** 打开事项 panel */
   openItemViewPanel: (itemId: string) => void;

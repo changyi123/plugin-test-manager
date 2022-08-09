@@ -3,6 +3,8 @@ import { getRootContainer } from '@/lib/utils/helper';
 import { PluginSDKContext } from '@projectproxima/plugin-sdk';
 import { message, notification, ConfigProvider } from 'antd';
 import { MemoryRouter, Switch, Route, useHistory, HashRouter } from 'react-router-dom';
+import { lib } from 'proxima-sdk';
+const { default: I18n } = lib.I18n;
 
 import zhCN from 'antd/lib/locale/zh_CN';
 
@@ -57,30 +59,35 @@ const App: React.FC = props => {
 
   return (
     <PluginSDKContext.Provider value={qiankunContextValue.sdk}>
-      <ConfigProvider locale={zhCN} getPopupContainer={() => document.getElementById(rootElement)}>
-        {process.env.NODE_ENV === 'production' || window.__POWERED_BY_QIANKUN__ ? (
-          <MemoryRouter>
-            <GoPropsRoute {...props} />
-            <Switch>
-              <Suspense fallback={null}>
-                {routes.map(({ path, component, exact }) => (
-                  <Route path={path} component={component} exact={exact} key={path} />
-                ))}
-              </Suspense>
-            </Switch>
-          </MemoryRouter>
-        ) : (
-          <HashRouter>
-            <Switch>
-              <Suspense fallback={null}>
-                {routes.map(({ path, component, exact }) => (
-                  <Route path={path} component={component} exact={exact} key={path} />
-                ))}
-              </Suspense>
-            </Switch>
-          </HashRouter>
-        )}
-      </ConfigProvider>
+      <I18n>
+        <ConfigProvider
+          locale={zhCN}
+          getPopupContainer={() => document.getElementById(rootElement)}
+        >
+          {process.env.NODE_ENV === 'production' || window.__POWERED_BY_QIANKUN__ ? (
+            <MemoryRouter>
+              <GoPropsRoute {...props} />
+              <Switch>
+                <Suspense fallback={null}>
+                  {routes.map(({ path, component, exact }) => (
+                    <Route path={path} component={component} exact={exact} key={path} />
+                  ))}
+                </Suspense>
+              </Switch>
+            </MemoryRouter>
+          ) : (
+            <HashRouter>
+              <Switch>
+                <Suspense fallback={null}>
+                  {routes.map(({ path, component, exact }) => (
+                    <Route path={path} component={component} exact={exact} key={path} />
+                  ))}
+                </Suspense>
+              </Switch>
+            </HashRouter>
+          )}
+        </ConfigProvider>
+      </I18n>
     </PluginSDKContext.Provider>
   );
 };
