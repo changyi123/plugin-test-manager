@@ -592,6 +592,23 @@ export const getTestEntitiesByQuery = async (
     // 处理事项关联子查询
     const itemSubQuery = new Parse.Query(Item).containedIn('objectId', ids);
     query.matchesKeyInQuery('reference', 'objectId', itemSubQuery);
+  } else {
+    // ignoreDeletedItemData 参数需要过滤被删除的事项
+    // 走 iql 查询会过滤不存在的事项 id
+    // 不存在 iql 筛选器需要使用 parse 条件过滤
+    if (options.ignoreDeletedItemData) {
+      const referenceItemQuery = new Parse.Query(Item);
+      if (queryParams.workspaceKey) {
+        referenceItemQuery.matchesKeyInQuery(
+          'workspace',
+          'objectId',
+          new Parse.Query(Workspace).equalTo('key', queryParams.workspaceKey),
+        );
+      }
+
+      // 增减事项筛选
+      query.matchesQuery('reference', referenceItemQuery);
+    }
   }
 
   if (queryParams.in) {
@@ -600,21 +617,6 @@ export const getTestEntitiesByQuery = async (
 
   if (queryParams.notIn) {
     query.notContainedIn('objectId', escapeArrayTypeParams(queryParams.notIn));
-  }
-
-  if (queryParams?.nameLike) {
-    const referenceItemQuery = new Parse.Query(Item);
-    if (queryParams.workspaceKey) {
-      referenceItemQuery.matchesKeyInQuery(
-        'workspace',
-        'objectId',
-        new Parse.Query(Workspace).equalTo('key', queryParams.workspaceKey),
-      );
-    }
-    referenceItemQuery.matches('name', escapeMatchesQueryArg(queryParams.nameLike));
-
-    // 增减事项筛选
-    query.matchesQuery('reference', referenceItemQuery);
   }
 
   const repositorySelector = queryParams.selectors?.[1];

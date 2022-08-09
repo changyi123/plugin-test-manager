@@ -129,7 +129,7 @@ const Test = () => {
   const createTestExecution = React.useCallback(async () => {
     const token = uniqueId('TestPlan');
     const res = await createItemUseModal({
-      extraData: { token },
+      extraData: { token, planId: testEntity?.id },
       // TODO: 测试执行 name
       name: uniqueId('测试执行'),
       type: TestType.TestExecution,
