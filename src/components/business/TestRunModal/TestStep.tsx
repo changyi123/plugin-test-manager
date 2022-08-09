@@ -11,7 +11,7 @@ import { addDefect, deleteDefect } from '@/lib/api/runs';
 import { StatusBadge } from '@/components/business/Status';
 import Input from '@/components/business/TestStep/fields/Input';
 import { generateStaticFileUrl } from '@/lib/utils/helper';
-// import ExecutionEditor from './ExecutionEditor';
+import ExecutionEditor from './ExecutionEditor';
 
 import cx from './TestStep.less';
 
@@ -92,14 +92,14 @@ const TestStep: React.FC<TestStepProps> = props => {
   };
 
   // 执行步骤评论变更
-  // const onCommentChange = async (val, stepId) => {
-  //   const needUpdateSteps = steps.map(step =>
-  //     step.id === stepId ? { ...step, comment: val } : step,
-  //   );
+  const onCommentChange = async (val, stepId) => {
+    const needUpdateSteps = steps.map(step =>
+      step.id === stepId ? { ...step, comment: val } : step,
+    );
 
-  //   await updateTestRun(testRunEntity, { steps: needUpdateSteps });
-  //   await onDataChange();
-  // };
+    await updateTestRun(testRunEntity, { steps: needUpdateSteps });
+    await onDataChange();
+  };
 
   // 步骤缺陷渲染
   const renderStepDefectList = stepId => {
@@ -215,14 +215,14 @@ const TestStep: React.FC<TestStepProps> = props => {
               onLoading={onLoading}
             />
           </div>
-          {/* <div className={cx('comment')}>
+          <div className={cx('comment')}>
             <ExecutionEditor
               value={step.comment}
               isStep={true}
               onCommentChange={val => onCommentChange(val, step.id)}
               {...props}
             />
-          </div> */}
+          </div>
         </div>
       ))}
     </div>
