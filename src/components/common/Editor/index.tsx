@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Button, Space } from 'antd';
 import { components } from 'proxima-sdk';
 
@@ -13,10 +13,22 @@ interface EditorProps {
   name?: string;
 }
 
+const defaultEditorValue = [
+  {
+    type: 'p',
+    children: [
+      {
+        text: '',
+      },
+    ],
+  },
+];
+
 const Editor: React.FC<EditorProps> = ({ value, name, onSubmit }) => {
-  const [editorValue, setEditorValue] = useState<Record<string, any>[] | undefined>(undefined);
+  const [editorValue, setEditorValue] = useState<Record<string, any>[] | undefined>(
+    value ?? defaultEditorValue,
+  );
   const [showEditor, setShowEditor] = useState(false);
-  const ref = useRef(null);
 
   const submitEditor = useCallback(async () => {
     setShowEditor(false);
@@ -29,12 +41,11 @@ const Editor: React.FC<EditorProps> = ({ value, name, onSubmit }) => {
       <div onClick={() => setShowEditor(true)}>
         <Field
           name={name ?? 'comment-editor'}
-          value={editorValue ?? value}
+          value={editorValue}
           placeholder="请输入内容"
           hiddenLabel
           onChange={setEditorValue}
           watchChange
-          ref={ref}
           readonly={!showEditor}
           editMode={showEditor}
           hideEditBtn
@@ -47,7 +58,7 @@ const Editor: React.FC<EditorProps> = ({ value, name, onSubmit }) => {
           </Button>
           <Button
             onClick={() => {
-              setEditorValue(value);
+              setEditorValue(value ?? defaultEditorValue);
               setShowEditor(false);
             }}
           >
