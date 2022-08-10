@@ -295,7 +295,11 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       render(_, rowData) {
         const itemData = rowData.reference ?? {};
         return (
-          <span style={{ cursor: 'pointer' }} onClick={() => openItemViewScreen(itemData.objectId)}>
+          <span
+            data-drawer-handle-target
+            style={{ cursor: 'pointer' }}
+            onClick={() => openItemViewScreen(itemData.objectId)}
+          >
             {itemData.name}
           </span>
         );
@@ -388,6 +392,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
 
         return (
           <span
+            data-drawer-handle-target
             style={{ cursor: 'pointer' }}
             onClick={() => openItemViewScreen(detailItemData.objectId)}
           >

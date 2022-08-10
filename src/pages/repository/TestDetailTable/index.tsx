@@ -217,6 +217,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
           const itemData = rowData.reference ?? {};
           return (
             <span
+              data-drawer-handle-target
               data-element-id="row-title"
               style={{ cursor: 'pointer' }}
               onClick={() => openItemViewScreen(itemData.objectId)}

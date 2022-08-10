@@ -453,10 +453,6 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
             const willValidateItem = useItemBatchCreate ? itemList[0] : item;
             const willValidateTestEntity = useItemBatchCreate ? testEntityList[0] : testEntity;
 
-            console.log('useItemBatchCreate', useItemBatchCreate);
-            console.log('willValidateItem', willValidateItem, itemList);
-            console.log('willValidateTestEntity', willValidateTestEntity, testEntityList);
-
             // 创建的测试类型是否符合预期
             let expectedTestType = willValidateTestEntity?.get('type') === type;
 
