@@ -1,5 +1,5 @@
 import React, { useCallback, useRef, useState } from 'react';
-import { Button, Input, Space } from 'antd';
+import { Button, Space } from 'antd';
 import { components } from 'proxima-sdk';
 
 const { Field } = components.Components.Common.Editor;
@@ -39,52 +39,50 @@ const getText = (values: any[]): string =>
     return prev;
   }, '');
 
-const Editor: React.FC<EditorProps> = ({ className, value, name, onSubmit }) => {
+const Editor: React.FC<EditorProps> = ({ value, name, onSubmit }) => {
   const [editorValue, setEditorValue] = useState<Record<string, any>[]>(
     value ?? defaultEditorValue,
   );
-  const [showEditor, setShowEditor] = React.useState(false);
+  const [showEditor, setShowEditor] = useState(false);
   const ref = useRef(null);
 
   const submitEditor = useCallback(async () => {
-    await onSubmit(editorValue);
-    setEditorValue(defaultEditorValue);
+    setEditorValue(editorValue);
     setShowEditor(false);
+    await onSubmit(editorValue);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editorValue]);
 
   return (
-    <div className={cx('test-editor-container', `${className ?? ''}`)}>
-      {!showEditor ? (
-        <>
-          <Input placeholder="点击输入内容" onFocus={() => setShowEditor(true)} />
-        </>
-      ) : (
-        <>
-          <Field
-            editMode
-            name={name ?? 'comment-editor'}
-            value={editorValue}
-            placeholder="请输入内容"
-            hiddenLabel
-            onChange={setEditorValue}
-            watchChange
-            ref={ref}
-          />
-          <Space style={{ marginTop: '12px' }}>
-            <Button type="primary" disabled={!getText(editorValue).trim()} onClick={submitEditor}>
-              保存
-            </Button>
-            <Button
-              onClick={() => {
-                setEditorValue(defaultEditorValue);
-                setShowEditor(false);
-              }}
-            >
-              取消
-            </Button>
-          </Space>
-        </>
+    <div className={cx('test-editor-container', `${showEditor ? '' : 'readonly'}`)}>
+      <div onClick={() => setShowEditor(true)}>
+        <Field
+          name={name ?? 'comment-editor'}
+          value={editorValue}
+          placeholder="请输入内容"
+          hiddenLabel
+          onChange={setEditorValue}
+          watchChange
+          ref={ref}
+          readonly={!showEditor}
+          editMode={showEditor}
+          hideEditBtn
+        />
+      </div>
+      {showEditor && (
+        <Space style={{ marginTop: '12px' }}>
+          <Button type="primary" disabled={!getText(editorValue).trim()} onClick={submitEditor}>
+            保存
+          </Button>
+          <Button
+            onClick={() => {
+              setEditorValue(editorValue);
+              setShowEditor(false);
+            }}
+          >
+            取消
+          </Button>
+        </Space>
       )}
     </div>
   );

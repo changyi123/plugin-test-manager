@@ -115,7 +115,9 @@ const getTestDetailsErrors = datas =>
             .join('、')} 条步骤描述超过限制，步骤描述 限制 500 个字符，不予以导入`,
         );
       }
-    } else {
+    }
+
+    if (cur.action && !isSteps(cur.action)) {
       prev = prev.concat([`步骤描述格式错误，不予以导入`]);
     }
 
@@ -133,7 +135,9 @@ const getTestDetailsErrors = datas =>
             .join('、')} 条预期结果超过限制，预期结果 限制 500 个字符，不予以导入`,
         );
       }
-    } else {
+    }
+
+    if (cur.result && !isSteps(cur.result)) {
       prev = prev.concat([`预期结果格式错误，不予以导入`]);
     }
 
@@ -151,8 +155,10 @@ const getTestDetailsErrors = datas =>
             .join('、')} 条数据超过限制，数据 限制 500 个字符，不予以导入`,
         );
       }
-    } else {
-      prev = prev.concat([`数据格式错误，不予以导入`]);
+    }
+
+    if (cur.data && !isSteps(cur.data)) {
+      prev = prev.concat([`预期结果格式错误，不予以导入`]);
     }
 
     return prev;

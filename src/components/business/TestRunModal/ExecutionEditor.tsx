@@ -2,22 +2,8 @@ import React, { useMemo } from 'react';
 import { updateTestRun } from '@/lib/api/runs';
 import Editor from '@/components/common/Editor';
 import { TabsComponentBaseProps } from './type';
-import { components } from 'proxima-sdk';
-
-const { Field } = components.Components.Common.Editor;
 
 import cx from './ExecutionEditor.less';
-
-const defaultEditorValue = [
-  {
-    type: 'p',
-    children: [
-      {
-        text: '',
-      },
-    ],
-  },
-];
 
 interface ExecutionEditorProps extends TabsComponentBaseProps {
   value?: Record<string, any>[];
@@ -44,26 +30,15 @@ const ExecutionEditor: React.FC<ExecutionEditorProps> = props => {
     await onDataChange();
   };
 
-  const readonlyEditor = useMemo(() => {
-    return (
-      <div className={cx('commont-box')}>
-        <Field
-          name={name ?? 'readonly-editor'}
-          value={executeResultDesc ?? defaultEditorValue}
-          placeholder=""
-          readonly
-          hiddenLabel
-          hideEditBtn
-        />
-      </div>
-    );
-  }, [executeResultDesc, name]);
-
   return (
-    <>
-      {readonlyEditor}
-      <Editor onSubmit={isStep ? onCommentChange : submitExecuteResultDesc} />
-    </>
+    <div className={cx(`${isStep ? 'step-editor-box' : ''}`)}>
+      {!!isStep && <div className={cx('step-desc')}>步骤概述</div>}
+      <Editor
+        onSubmit={isStep ? onCommentChange : submitExecuteResultDesc}
+        name={name ?? 'readonly-editor'}
+        value={executeResultDesc}
+      />
+    </div>
   );
 };
 
