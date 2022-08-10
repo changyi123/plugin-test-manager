@@ -110,10 +110,14 @@ const getOrCreateTestEntity = async (
 /** 获取并创建多个测试实体 */
 const getOrBatchCreateTestEntities = async (
   itemIdList: string[],
-  options?: { repository?: string | null; fields: Record<string, any>; notice: boolean },
+  options?: {
+    repository?: string | null;
+    fields: Record<string, any>;
+    storeValueList: Record<string, any>[];
+    notice: boolean;
+  },
 ) => {
   if (!Array.isArray(itemIdList)) return null;
-  const storeValues = store.get(ExtensionValType.CREATE_OR_UPDATE_ITEM);
   let testEntities = await getTestEntities({ itemId: itemIdList });
 
   // 查询结果数量小于实际参数数量（事项不存在对应的测试管理实体数据）
@@ -171,33 +175,28 @@ const getOrBatchCreateTestEntities = async (
       return null;
     }
 
-    // 额外需要创建的字段
-    let extraFields = {};
-    // 测试用例所属模块字段
-    let repository = options?.repository;
-
     // 测试用例创建
-    if (firstItemMatchTestType === TestType.TestDetail) {
-      // 添加事项创建 panel 的数据
-      if (storeValues?.[CREATE_ITEM_STORE_FIELD_KEY]) {
-        const { repository: storedRepository, ...detail } =
-          storeValues[CREATE_ITEM_STORE_FIELD_KEY];
-
-        repository = storedRepository;
-        extraFields = {
-          ...extraFields,
-          detail,
-        };
-      }
-      console.info('extraFields', extraFields);
-    }
+    // 添加事项创建 panel 的数据
+    const storeValueWithItemIdMap = (
+      Array.isArray(options.storeValueList) ? options.storeValueList : []
+    )
+      .filter(Boolean)
+      .reduce(
+        (map, { itemId, ...restFields }) => ({
+          ...map,
+          [itemId]: restFields[CREATE_ITEM_STORE_FIELD_KEY],
+        }),
+        {},
+      );
 
     const needCreatedTestEntities = needCreatedItemDataList.map((itemData, index) => {
-      let fields = extraFields;
+      const { repository, ...restFields } = storeValueWithItemIdMap[itemData.objectId];
+
+      let fields = restFields;
       // 测试用例创建时需要生成默认 sortIndex
       if (firstItemMatchTestType === TestType.TestDetail) {
         fields = {
-          ...extraFields,
+          detail: restFields,
           sortIndex: generateSortIndex(index + 1),
         };
       }
@@ -343,7 +342,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
   const itemBatchCreateSuccessCb = React.useCallback(
     async params => {
       // 缺陷类型不需要创建测试实体
-      const { extraData, itemIdList } = params;
+      const { extraData, storeValueList, itemIdList } = params;
       if (!extraData?.useItemBatchCreate) return;
 
       let testEntityList = [];
@@ -366,9 +365,10 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
       if (extraData.type !== TestType.TestDefect) {
         const ids = itemList.map(itemData => itemData.objectId);
         testEntityList = await getOrBatchCreateTestEntities(ids, {
-          repository: extraData?.repository,
-          fields: extraData.fields,
           notice: true,
+          storeValueList,
+          fields: extraData.fields,
+          repository: extraData?.repository,
         });
 
         if (!hasArrayItem(testEntityList)) return;
