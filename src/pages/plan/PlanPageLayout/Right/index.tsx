@@ -112,7 +112,7 @@ const Right: React.FC<RightProps> = props => {
     mutateStatusEvent.emit('refreshExecutionStatus');
     setLoading(false);
     notification.success({
-      message: '测试执行创建成功',
+      message: '用例执行创建成功',
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedExecution, curTestRuns]);

@@ -217,8 +217,9 @@ const TestStep: React.FC<TestStepProps> = props => {
           <div className={cx('comment')}>
             <ExecutionEditor
               value={step.comment}
-              isStep={true}
               onCommentChange={val => onCommentChange(val, step.id)}
+              name={step.id}
+              isStep={true}
               {...props}
             />
           </div>

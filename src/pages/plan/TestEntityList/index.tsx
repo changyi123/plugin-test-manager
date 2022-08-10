@@ -365,7 +365,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       mutateStatusEvent.emit('refreshExecutionStatus');
       tableSelectionToggleEvent.emit(false);
       notification.success({
-        message: `${testRunIds.length} 个测试执行任务被删除`,
+        message: `${testRunIds.length} 个用例执行被删除`,
       });
     });
   });

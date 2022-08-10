@@ -22,11 +22,12 @@ const defaultEditorValue = [
 interface ExecutionEditorProps extends TabsComponentBaseProps {
   value?: Record<string, any>[];
   isStep?: boolean;
+  name?: string;
   onCommentChange?: (val: Record<string, any>[]) => void;
 }
 
 const ExecutionEditor: React.FC<ExecutionEditorProps> = props => {
-  const { testRunData, testRunEntity, onDataChange, value, isStep, onCommentChange } = props;
+  const { testRunData, testRunEntity, onDataChange, value, name, isStep, onCommentChange } = props;
   const executeResultDesc = useMemo(
     () => (isStep ? value : testRunData?.runDetail?.executeResultDesc ?? undefined),
     [testRunData, value, isStep],
@@ -47,7 +48,7 @@ const ExecutionEditor: React.FC<ExecutionEditorProps> = props => {
     return (
       <div className={cx('commont-box')}>
         <Field
-          name="readonly-editor"
+          name={name ?? 'readonly-editor'}
           value={executeResultDesc ?? defaultEditorValue}
           placeholder=""
           readonly
@@ -56,7 +57,7 @@ const ExecutionEditor: React.FC<ExecutionEditorProps> = props => {
         />
       </div>
     );
-  }, [executeResultDesc]);
+  }, [executeResultDesc, name]);
 
   return (
     <>
