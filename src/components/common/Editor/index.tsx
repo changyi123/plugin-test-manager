@@ -76,7 +76,7 @@ const Editor: React.FC<EditorProps> = ({ value, name, onSubmit }) => {
           </Button>
           <Button
             onClick={() => {
-              setEditorValue(editorValue);
+              setEditorValue(value);
               setShowEditor(false);
             }}
           >
