@@ -29,6 +29,7 @@ import { Test } from '@/lib/models';
 import cx from './index.less';
 import { isEmpty, omit, pick } from 'lodash';
 import { selectorToParse, simpleToParse } from '@/lib/utils/iql';
+import { useListener } from '@projectproxima/proxima-sdk-js';
 
 interface TestEntityListProps {
   loading?: boolean;
@@ -70,6 +71,13 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       detailTable: actionRef.current?.refresh,
     });
   }, [registerRefreshMethod]);
+
+  // 事项数据更新后刷新列表
+  useListener('updateItemList', () => {
+    setTimeout(() => {
+      actionRef.current.refresh();
+    }, 400);
+  });
 
   const getTestRunsTableData = async queryParams => {
     if (!selectedExecution?.objectId || !requestScopedTestDetailIds?.length) {
