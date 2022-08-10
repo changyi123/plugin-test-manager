@@ -55,7 +55,7 @@ const getCharNum = d =>
     return prev;
   }, 0);
 
-const splitSteps = datas => datas?.replace(/^[\r\n]+/g, '')?.split(/(?=【\d+】)/g) ?? [];
+const splitSteps = datas => datas?.replace?.(/^[\r\n]+/g, '')?.split(/(?=【\d+】)/g) ?? [];
 
 const testStep = datas => /(?=【\d+】)/g.test(datas);
 
@@ -107,12 +107,16 @@ const getTestDetailsErrors = datas =>
     }
 
     // 校验步骤描述字数
-    if (getCharNumErrorIndex(cur.action).length) {
-      prev = prev.concat(
-        `第 ${index + 1} 条用例的 ${getCharNumErrorIndex(cur.action)
-          .map(d => d + 1)
-          .join('、')} 条步骤描述超过限制，步骤描述 限制 500 个字符，不予以导入`,
-      );
+    if (isSteps(cur.action)) {
+      if (getCharNumErrorIndex(cur.action).length) {
+        prev = prev.concat(
+          `第 ${index + 1} 条用例的 ${getCharNumErrorIndex(cur.action)
+            .map(d => d + 1)
+            .join('、')} 条步骤描述超过限制，步骤描述 限制 500 个字符，不予以导入`,
+        );
+      }
+    } else {
+      prev = prev.concat([`步骤描述格式错误，不予以导入`]);
     }
 
     // 校验预期结果格式
@@ -121,12 +125,16 @@ const getTestDetailsErrors = datas =>
     }
 
     // 校验预期结果字数
-    if (getCharNumErrorIndex(cur.result).length) {
-      prev = prev.concat(
-        `第 ${index + 1} 条用例的 ${getCharNumErrorIndex(cur.result)
-          .map(d => d + 1)
-          .join('、')} 条预期结果超过限制，预期结果 限制 500 个字符，不予以导入`,
-      );
+    if (isSteps(cur.result)) {
+      if (getCharNumErrorIndex(cur.result).length) {
+        prev = prev.concat(
+          `第 ${index + 1} 条用例的 ${getCharNumErrorIndex(cur.result)
+            .map(d => d + 1)
+            .join('、')} 条预期结果超过限制，预期结果 限制 500 个字符，不予以导入`,
+        );
+      }
+    } else {
+      prev = prev.concat([`预期结果格式错误，不予以导入`]);
     }
 
     // 校验数据格式
@@ -135,12 +143,16 @@ const getTestDetailsErrors = datas =>
     }
 
     // 校验数据字数
-    if (getCharNumErrorIndex(cur.data).length) {
-      prev = prev.concat(
-        `第 ${index + 1} 条用例的 ${getCharNumErrorIndex(cur.data)
-          .map(d => d + 1)
-          .join('、')} 条数据超过限制，数据 限制 500 个字符，不予以导入`,
-      );
+    if (isSteps(cur.data)) {
+      if (getCharNumErrorIndex(cur.data).length) {
+        prev = prev.concat(
+          `第 ${index + 1} 条用例的 ${getCharNumErrorIndex(cur.data)
+            .map(d => d + 1)
+            .join('、')} 条数据超过限制，数据 限制 500 个字符，不予以导入`,
+        );
+      }
+    } else {
+      prev = prev.concat([`数据格式错误，不予以导入`]);
     }
 
     return prev;
