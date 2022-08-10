@@ -13,41 +13,12 @@ interface EditorProps {
   name?: string;
 }
 
-const defaultEditorValue = [
-  {
-    type: 'p',
-    children: [
-      {
-        text: '',
-      },
-    ],
-  },
-];
-
-const getText = (values: any[]): string =>
-  values.reduce((prev, cur) => {
-    if (cur.type === 'img') {
-      prev = prev.concat(cur.url ?? '');
-    }
-
-    prev = prev.concat(cur.text ?? '');
-
-    if (cur.children) {
-      prev = prev.concat(getText(cur.children));
-    }
-
-    return prev;
-  }, '');
-
 const Editor: React.FC<EditorProps> = ({ value, name, onSubmit }) => {
-  const [editorValue, setEditorValue] = useState<Record<string, any>[]>(
-    value ?? defaultEditorValue,
-  );
+  const [editorValue, setEditorValue] = useState<Record<string, any>[] | undefined>(undefined);
   const [showEditor, setShowEditor] = useState(false);
   const ref = useRef(null);
 
   const submitEditor = useCallback(async () => {
-    setEditorValue(editorValue);
     setShowEditor(false);
     await onSubmit(editorValue);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -58,7 +29,7 @@ const Editor: React.FC<EditorProps> = ({ value, name, onSubmit }) => {
       <div onClick={() => setShowEditor(true)}>
         <Field
           name={name ?? 'comment-editor'}
-          value={editorValue}
+          value={editorValue ?? value}
           placeholder="请输入内容"
           hiddenLabel
           onChange={setEditorValue}
@@ -71,7 +42,7 @@ const Editor: React.FC<EditorProps> = ({ value, name, onSubmit }) => {
       </div>
       {showEditor && (
         <Space style={{ marginTop: '12px' }}>
-          <Button type="primary" disabled={!getText(editorValue).trim()} onClick={submitEditor}>
+          <Button type="primary" onClick={submitEditor}>
             保存
           </Button>
           <Button

@@ -48,6 +48,7 @@
       }
 
       .tab-title {
+        position: relative;
         font-size: 18px;
         font-weight: 500;
         color: #213053;
@@ -57,6 +58,16 @@
 
         &.actived {
           color: #0c62ff;
+
+          &::after {
+            position: absolute;
+            content: '';
+            bottom: -6px;
+            left: 0;
+            height: 0;
+            width: 100%;
+            border-bottom: 2px solid #0c62ff;
+          }
         }
       }
     }
