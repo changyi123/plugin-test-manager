@@ -1,7 +1,9 @@
 import React from 'react';
 import { Table } from 'antd';
 import { TabsComponentBaseProps } from './type';
-import { generateStaticFileUrl } from '@/lib/utils/helper';
+import { components } from 'proxima-sdk';
+
+const { ItemIcon } = components.Components.Common;
 
 const tableColumns = [
   {
@@ -18,8 +20,8 @@ const tableColumns = [
     render(itemType) {
       return (
         <>
-          <img src={generateStaticFileUrl(itemType?.icon)} width="16" height="16" />
-          <span style={{ marginLeft: 8 }}>{itemType?.name}</span>
+          <ItemIcon icon={itemType?.icon}></ItemIcon>
+          <span>{itemType?.name}</span>
         </>
       );
     },

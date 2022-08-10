@@ -16,7 +16,7 @@ import TestStep from './TestStep';
 import DefectList from './DefectList';
 import ItemLinkTable from './ItemLinkTable';
 import AttachmentUpload from './AttachmentUpload';
-// import ExecutionEditor from './ExecutionEditor';
+import ExecutionEditor from './ExecutionEditor';
 // import TestComment from './TestComment';
 
 import cx from './TestRun.less';
@@ -28,11 +28,11 @@ const TestRunDetailTabs = [
     key: 'step',
     component: TestStep,
   },
-  // {
-  //   title: '执行结果描述',
-  //   key: 'resultDesc',
-  //   component: ExecutionEditor,
-  // },
+  {
+    title: '执行结果描述',
+    key: 'resultDesc',
+    component: ExecutionEditor,
+  },
   {
     title: '缺陷',
     key: 'defect',
@@ -356,7 +356,14 @@ const TestRun: React.FC<TestRunType> = props => {
                   {TestRunDetailTabs.map(tab => (
                     <Tabs.TabPane key={tab.key} tab={(() => renderTabTitle(tab))()}>
                       {tab.component &&
-                        React.createElement(tab.component, TabPaneChildrenProps as any)}
+                        React.createElement(
+                          tab.component,
+                          Object.assign(
+                            {},
+                            TabPaneChildrenProps,
+                            tab.key === 'resultDesc' ? { name: tab.key } : {},
+                          ),
+                        )}
                     </Tabs.TabPane>
                   ))}
                 </Tabs>

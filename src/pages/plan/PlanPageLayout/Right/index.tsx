@@ -12,6 +12,7 @@ import { useUpdateEffect } from 'ahooks';
 import TestEntityList from '../../TestEntityList';
 import { usePageContext } from '../../hook';
 import { useSetTableHeight } from './hooks';
+import ExecutionStatus from '../ExecutionStatus';
 
 import cx from './index.less';
 
@@ -31,7 +32,6 @@ interface RightProps {
   selectedExecution?: Record<string, any>;
   showType?: string;
   setShowType?: (val: string) => void;
-  curTestRuns?: Record<string, any>[];
   scopedTestDetailRefresh?: () => void;
   refreshPlanData?: () => void;
   requestScopedTestDetailIds?: string[];
@@ -44,7 +44,6 @@ const Right: React.FC<RightProps> = props => {
     selectedExecution,
     showType,
     setShowType,
-    curTestRuns,
     scopedTestDetailRefresh,
     refreshPlanData,
     requestScopedTestDetailIds,
@@ -64,6 +63,7 @@ const Right: React.FC<RightProps> = props => {
 
   const testEntitySelectorRef = useRef<ModelActionType>();
   const detailSearchRef = useRef(null);
+  const [curTestRuns, setCurTestRuns] = useState<Record<string, any>[] | undefined>(undefined);
 
   const [tableSelectionVisible, setTableSelectionVisible] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -112,7 +112,7 @@ const Right: React.FC<RightProps> = props => {
     mutateStatusEvent.emit('refreshExecutionStatus');
     setLoading(false);
     notification.success({
-      message: '测试执行创建成功',
+      message: '用例执行创建成功',
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedExecution, curTestRuns]);
@@ -169,9 +169,17 @@ const Right: React.FC<RightProps> = props => {
         <div className={cx('extra-content')}>
           <div className={cx('extra-content-left')}>
             {activedType === 'TestExecution' ? (
-              <Tooltip title={selectedExecution?.reference.name ?? ''} placement="topLeft">
-                {selectedExecution?.reference.name}
-              </Tooltip>
+              <>
+                <Tooltip title={selectedExecution?.reference.name ?? ''} placement="topLeft">
+                  <div className={cx('title')}>{selectedExecution?.reference.name}</div>
+                </Tooltip>
+                <div className={cx('rate')}>
+                  <ExecutionStatus
+                    selectedExecution={selectedExecution}
+                    setCurTestRuns={setCurTestRuns}
+                  />
+                </div>
+              </>
             ) : (
               '全部用例'
             )}

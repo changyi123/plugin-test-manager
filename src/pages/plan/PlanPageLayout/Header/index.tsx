@@ -6,7 +6,6 @@ import { useBaseAction } from '@/lib/hooks/useContext';
 import { createTestExecutionAndRelations } from '@/lib/api/runs';
 import { TestType } from '@/lib/constants';
 import ExecutionList from '../ExecutionList';
-import ExecutionStatus from '../ExecutionStatus';
 import { usePageContext } from '../../hook';
 
 import cx from './index.less';
@@ -18,7 +17,6 @@ interface HeaderProps {
   setSelectedExecution?: (val: Record<string, any> | undefined) => void;
   refreshExecution?: boolean;
   setRefreshExecution?: (val: boolean) => void;
-  setCurTestRuns?: (val: Record<string, any>[] | undefined) => void;
   setLoading?: (val: boolean) => void;
 }
 
@@ -29,7 +27,6 @@ const Header: React.FC<HeaderProps> = ({
   setSelectedExecution,
   refreshExecution,
   setRefreshExecution,
-  setCurTestRuns,
   setLoading,
 }) => {
   const { workspaceKey, selectedTestPlan, setSelectedTestPlan, tableSelectionToggleEvent } =
@@ -115,12 +112,6 @@ const Header: React.FC<HeaderProps> = ({
           />
           {selectedExecution?.objectId && (
             <div className={cx('box-right')}>
-              <div className={cx('rate')}>
-                <ExecutionStatus
-                  selectedExecution={selectedExecution}
-                  setCurTestRuns={setCurTestRuns}
-                />
-              </div>
               <Button type="primary" onClick={createTestExecution}>
                 新建测试执行任务
               </Button>

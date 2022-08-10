@@ -27,7 +27,6 @@ const PlanPageLayout: React.FC<any> = () => {
   const [selectedExecution, setSelectedExecution] = useState<Record<string, any> | undefined>(
     undefined,
   );
-  const [curTestRuns, setCurTestRuns] = useState<Record<string, any>[] | undefined>(undefined);
 
   const [refreshExecution, setRefreshExecution] = useState(false);
   const [showType, setShowType] = useState('showChild');
@@ -108,7 +107,6 @@ const PlanPageLayout: React.FC<any> = () => {
               setSelectedExecution={setSelectedExecution}
               refreshExecution={refreshExecution}
               setRefreshExecution={setRefreshExecution}
-              setCurTestRuns={setCurTestRuns}
               setLoading={setLoading}
             />
           </PageLayout.Header>
@@ -137,7 +135,6 @@ const PlanPageLayout: React.FC<any> = () => {
                 selectedExecution={selectedExecution}
                 showType={showType}
                 setShowType={setShowType}
-                curTestRuns={curTestRuns}
                 scopedTestDetailRefresh={scopedTestDetailRefresh}
                 refreshPlanData={refreshPlanData}
                 requestScopedTestDetailIds={requestScopedTestDetailIds}

@@ -2,10 +2,12 @@ import React from 'react';
 import { keyBy } from 'lodash';
 import { Button, message } from 'antd';
 import { getAllItemTypes } from '@/lib/api/proxima';
-import { generateStaticFileUrl } from '@/lib/utils/helper';
 import { useDataContext, useCurrentTestConfig } from '../hooks';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import { useRequest, useSafeState, useDrop, useDrag } from 'ahooks';
+import { components } from 'proxima-sdk';
+
+const { ItemIcon } = components.Components.Common;
 
 import cx from './index.less';
 
@@ -21,7 +23,7 @@ const ItemTypeDropBox = (props: {
     useDrag({ type, key: data.key }, ref);
     return (
       <div className={cx('drag-item')} ref={ref}>
-        <img src={generateStaticFileUrl(data.icon)} className={cx('icon')} />
+        <ItemIcon className={cx('icon')} icon={data.icon}></ItemIcon>
         <OverflowTooltip title={data.name}>
           <span>{data.name}</span>
         </OverflowTooltip>

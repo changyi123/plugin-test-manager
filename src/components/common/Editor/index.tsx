@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { Button, Input, Space } from 'antd';
 import { components } from 'proxima-sdk';
 
@@ -10,6 +10,7 @@ interface EditorProps {
   className?: string;
   value?: Record<string, any>[];
   onSubmit?: (val?: Record<string, any>) => void;
+  name?: string;
 }
 
 const defaultEditorValue = [
@@ -38,11 +39,12 @@ const getText = (values: any[]): string =>
     return prev;
   }, '');
 
-const Editor: React.FC<EditorProps> = ({ className, value, onSubmit }) => {
+const Editor: React.FC<EditorProps> = ({ className, value, name, onSubmit }) => {
   const [editorValue, setEditorValue] = useState<Record<string, any>[]>(
     value ?? defaultEditorValue,
   );
   const [showEditor, setShowEditor] = React.useState(false);
+  const ref = useRef(null);
 
   const submitEditor = useCallback(async () => {
     await onSubmit(editorValue);
@@ -61,12 +63,13 @@ const Editor: React.FC<EditorProps> = ({ className, value, onSubmit }) => {
         <>
           <Field
             editMode
-            name="comment-editor"
+            name={name ?? 'comment-editor'}
             value={editorValue}
             placeholder="请输入内容"
             hiddenLabel
             onChange={setEditorValue}
             watchChange
+            ref={ref}
           />
           <Space style={{ marginTop: '12px' }}>
             <Button type="primary" disabled={!getText(editorValue).trim()} onClick={submitEditor}>

@@ -13,13 +13,12 @@ import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
 import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
 import { deleteTestEntities, getTestEntitiesByQuery, cloneTestEntities } from '@/lib/api/common';
 import { useUserCellUserDataProp } from '@/lib/hooks/useProxima';
-
-import cx from './index.less';
-
 import RepositorySelector, {
   ActionType as RepositorySelectorActionType,
 } from '@/components/business/RepositorySelector';
 import RepositoryGroup from '@/components/business/RepositoryGroup';
+
+import cx from './index.less';
 
 const RowDragHandler = data => {
   const ref = React.useRef();

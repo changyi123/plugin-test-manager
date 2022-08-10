@@ -22,14 +22,24 @@
       border-bottom: 1px solid #e9eaec;
 
       .extra-content-left {
-        font-size: 14px;
-        font-weight: 400;
-        color: #213053;
-        line-height: 22px;
-        max-width: 240px;
-        overflow: hidden;
-        white-space: nowrap;
-        text-overflow: ellipsis;
+        display: flex;
+        align-items: center;
+
+        .title {
+          font-size: 14px;
+          font-weight: 400;
+          color: #213053;
+          line-height: 22px;
+          max-width: 180px;
+          overflow: hidden;
+          white-space: nowrap;
+          text-overflow: ellipsis;
+        }
+
+        .rate {
+          width: 280px;
+          margin-left: 12px;
+        }
       }
 
       .extra-content-right {
