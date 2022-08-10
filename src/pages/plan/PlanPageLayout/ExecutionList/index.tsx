@@ -58,6 +58,7 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
           include: ['reference'],
           descendingBy: ['createdAt'],
           ascendingBy: undefined,
+          queryParams: { limit: 999, offset: 0 },
         },
       );
 
