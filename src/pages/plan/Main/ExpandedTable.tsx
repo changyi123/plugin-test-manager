@@ -172,6 +172,7 @@ const ExpandedTable = (props: ExpandedTableProps) => {
         const detailItemData = record.runReferenceDetail?.reference ?? {};
         return (
           <span
+            data-drawer-handle-target
             style={{ cursor: 'pointer' }}
             onClick={() => openItemViewScreen(detailItemData.objectId)}
           >

@@ -178,11 +178,6 @@ const getOrBatchCreateTestEntities = async (
 
     // 测试用例创建
     if (firstItemMatchTestType === TestType.TestDetail) {
-      // 测试用例创建时需要生成默认 sortIndex
-      extraFields = {
-        ...extraFields,
-        sortIndex: generateSortIndex(),
-      };
       // 添加事项创建 panel 的数据
       if (storeValues?.[CREATE_ITEM_STORE_FIELD_KEY]) {
         const { repository: storedRepository, ...detail } =
@@ -197,13 +192,23 @@ const getOrBatchCreateTestEntities = async (
       console.info('extraFields', extraFields);
     }
 
-    const needCreatedTestEntities = needCreatedItemDataList.map(itemData => ({
-      repository,
-      type: firstItemMatchTestType,
-      fields: extraFields,
-      itemId: itemData.objectId,
-      workspaceKey: itemData.workspace?.key,
-    }));
+    const needCreatedTestEntities = needCreatedItemDataList.map((itemData, index) => {
+      let fields = extraFields;
+      // 测试用例创建时需要生成默认 sortIndex
+      if (firstItemMatchTestType === TestType.TestDetail) {
+        fields = {
+          ...extraFields,
+          sortIndex: generateSortIndex(index + 1),
+        };
+      }
+      return {
+        fields,
+        repository,
+        type: firstItemMatchTestType,
+        itemId: itemData.objectId,
+        workspaceKey: itemData.workspace?.key,
+      };
+    });
 
     await createTestEntities(needCreatedTestEntities);
 
@@ -341,19 +346,22 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
       const { extraData, itemIdList } = params;
       if (!extraData?.useItemBatchCreate) return;
 
-      const originalItemList = await getItemByIds(itemIdList);
       let testEntityList = [];
+      const shuffledItemDataList = await getItemByIds(itemIdList);
 
       const isIsolated = testConfig.isolateTestType?.includes(extraData.type);
-      // 禁止创建或或关联（当又空间隔离配置时且当前空间和事项创建空间不相同时）
-      const itemList = originalItemList.filter(itemData => {
-        // 测试隔离需要将非当前空间的事项给排除
-        if (isIsolated) return workspace.key === itemData.workspace?.key;
-        return true;
-      });
+
+      const itemList = itemIdList
+        // 批量查询，不能保证顺序，需要重新排序
+        .map(id => shuffledItemDataList.find(itemData => itemData.objectId === id))
+        // 禁止创建或或关联（当又空间隔离配置时且当前空间和事项创建空间不相同时）
+        .filter(itemData => {
+          // 测试隔离需要将非当前空间的事项给排除
+          if (isIsolated) return workspace.key === itemData.workspace?.key;
+          return true;
+        });
 
       if (!hasArrayItem(itemList)) return;
-
       // 缺陷类型不需要创建测试管理测试实体
       if (extraData.type !== TestType.TestDefect) {
         const ids = itemList.map(itemData => itemData.objectId);
