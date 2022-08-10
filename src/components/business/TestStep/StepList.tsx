@@ -12,10 +12,9 @@ import { CopyOutlined, DeleteOutlined, DragHandler } from '@/icons';
 import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd';
 import { getFieldByImpl, StepFieldImpl, BuiltinFieldKeys, getRootContainer } from './helper';
 import { useNextStepFieldContext, default as NextStepFieldProvider } from './NextStepFieldProvider';
-// import { ItemIcon } from '@projectproxima/components';
-// import { components } from 'proxima-sdk';
+import { components } from 'proxima-sdk';
 
-// const { ItemIcon } = components.Components.Common.ItemIcon;
+const { ItemIcon } = components.Components.Common;
 
 const REACT_DND_PORTAL_CLASS = 'react-beautiful-dnd-portal';
 let RBDPortal = null;
@@ -95,7 +94,7 @@ const StepRow: React.FC<StepRowProps> = props => {
       <div className={cx('call-test')}>
         <div>
           <span className={cx('brand')}>用例继承</span>
-          {/* <ItemIcon className={cx('icon')} icon={itemType.icon}></ItemIcon> */}
+          <ItemIcon className={cx('icon')} icon={itemType.icon}></ItemIcon>
           <span>{item.key}</span>
         </div>
         <div className={cx('content')}>

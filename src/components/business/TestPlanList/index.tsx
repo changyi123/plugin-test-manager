@@ -17,7 +17,6 @@ import { useBaseAction } from '@/lib/hooks/useContext';
 import { StatusProgress } from '../Status';
 import FilterSearch from '@/components/common/FilterSearch';
 import { FullScreen } from '@/icons';
-// import { ItemIcon } from '@projectproxima/components';
 import { components } from 'proxima-sdk';
 
 const { ItemIcon } = components.Components.Common;

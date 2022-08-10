@@ -1,10 +1,9 @@
 import React from 'react';
 import { Table } from 'antd';
 import { TabsComponentBaseProps } from './type';
-// import { ItemIcon } from '@projectproxima/components';
-// import { components } from 'proxima-sdk';
+import { components } from 'proxima-sdk';
 
-// const { ItemIcon } = components.Components.Common.ItemIcon;
+const { ItemIcon } = components.Components.Common;
 
 const tableColumns = [
   {
@@ -21,8 +20,8 @@ const tableColumns = [
     render(itemType) {
       return (
         <>
-          {/* <ItemIcon icon={itemType?.icon}></ItemIcon> */}
-          <span style={{ marginLeft: 8 }}>{itemType?.name}</span>
+          <ItemIcon icon={itemType?.icon}></ItemIcon>
+          <span>{itemType?.name}</span>
         </>
       );
     },
