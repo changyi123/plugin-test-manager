@@ -37,7 +37,7 @@ const Editor: React.FC<EditorProps> = ({ value, name, onSubmit }) => {
   }, [editorValue]);
 
   return (
-    <div className={cx('test-editor-container', `${showEditor ? '' : 'readonly'}`)}>
+    <div className={cx('test-editor-container')}>
       <div onClick={() => setShowEditor(true)}>
         <Field
           name={name ?? 'comment-editor'}
@@ -46,7 +46,7 @@ const Editor: React.FC<EditorProps> = ({ value, name, onSubmit }) => {
           hiddenLabel
           onChange={setEditorValue}
           watchChange
-          readonly={!showEditor}
+          readonly={false}
           editMode={showEditor}
           hideEditBtn
         />
