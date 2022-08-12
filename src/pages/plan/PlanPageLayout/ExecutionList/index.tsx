@@ -8,6 +8,7 @@ import { EllipsisOutlined } from '@ant-design/icons';
 import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
 import { deleteItems } from '@/lib/api/proxima';
 import { useLocation } from 'react-router-dom';
+import { useListener } from '@projectproxima/proxima-sdk-js';
 import { usePageContext } from '../../hook';
 
 import cx from './index.less';
@@ -37,6 +38,13 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
   const { tableSelectionToggleEvent } = usePageContext();
   const { query } = useLocation();
   const [activedId, setActivedId] = useState('');
+
+  // 事项数据更新后刷新列表
+  useListener('updateItemList', () => {
+    setTimeout(() => {
+      refresh();
+    }, 400);
+  });
 
   useEffect(() => {
     if (selectedExecution?.objectId) {
@@ -87,7 +95,7 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
   }, [refreshExecution]);
 
   useEffect(() => {
-    if (data?.length) {
+    if (data?.length && !activedId) {
       setSelectedExecution(data[0]);
     }
   }, [data, planId]);

@@ -26,10 +26,11 @@ import { UserCell } from '@projectproxima/components';
 import { useUserCellUserDataProp } from '@/lib/hooks/useProxima';
 import { usePageContext } from '../hook';
 import { Test } from '@/lib/models';
-import cx from './index.less';
 import { isEmpty, omit, pick } from 'lodash';
 import { selectorToParse, simpleToParse } from '@/lib/utils/iql';
 import { useListener } from '@projectproxima/proxima-sdk-js';
+
+import cx from './index.less';
 
 interface TestEntityListProps {
   loading?: boolean;
