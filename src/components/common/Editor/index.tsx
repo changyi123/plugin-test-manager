@@ -60,6 +60,7 @@ const Editor: React.FC<EditorProps> = ({ value, name, onSubmit, isReset, setIsRe
           readonly={false}
           editMode={showEditor}
           hideEditBtn
+          hideMention
         />
       </div>
       {showEditor && (
