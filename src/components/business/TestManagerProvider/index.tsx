@@ -190,7 +190,7 @@ const getOrBatchCreateTestEntities = async (
       );
 
     const needCreatedTestEntities = needCreatedItemDataList.map((itemData, index) => {
-      const { repository, ...restFields } = storeValueWithItemIdMap[itemData.objectId];
+      const { repository, ...restFields } = storeValueWithItemIdMap[itemData.objectId] ?? {};
 
       let fields = restFields;
       // 测试用例创建时需要生成默认 sortIndex
