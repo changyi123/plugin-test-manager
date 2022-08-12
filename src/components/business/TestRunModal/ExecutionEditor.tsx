@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { updateTestRun } from '@/lib/api/runs';
 import Editor from '@/components/common/Editor';
 import { TabsComponentBaseProps } from './type';
@@ -14,10 +14,17 @@ interface ExecutionEditorProps extends TabsComponentBaseProps {
 
 const ExecutionEditor: React.FC<ExecutionEditorProps> = props => {
   const { testRunData, testRunEntity, onDataChange, value, name, isStep, onCommentChange } = props;
+  const [isReset, setIsReset] = useState(false);
   const executeResultDesc = useMemo(
     () => (isStep ? value : testRunData?.runDetail?.executeResultDesc ?? undefined),
     [testRunData, value, isStep],
   );
+
+  useEffect(() => {
+    if (testRunData) {
+      setIsReset(true);
+    }
+  }, [testRunData]);
 
   const submitExecuteResultDesc = async val => {
     await updateTestRun(testRunEntity, {
@@ -37,6 +44,8 @@ const ExecutionEditor: React.FC<ExecutionEditorProps> = props => {
         onSubmit={isStep ? onCommentChange : submitExecuteResultDesc}
         name={name ?? 'readonly-editor'}
         value={executeResultDesc}
+        isReset={isReset}
+        setIsReset={setIsReset}
       />
     </div>
   );

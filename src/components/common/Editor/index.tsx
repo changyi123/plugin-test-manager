@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Button, Space } from 'antd';
 import { components } from 'proxima-sdk';
 
@@ -11,6 +11,8 @@ interface EditorProps {
   value?: Record<string, any>[];
   onSubmit?: (val?: Record<string, any>) => void;
   name?: string;
+  isReset?: boolean;
+  setIsReset?: (val: boolean) => void;
 }
 
 const defaultEditorValue = [
@@ -24,7 +26,7 @@ const defaultEditorValue = [
   },
 ];
 
-const Editor: React.FC<EditorProps> = ({ value, name, onSubmit }) => {
+const Editor: React.FC<EditorProps> = ({ value, name, onSubmit, isReset, setIsReset }) => {
   const [editorValue, setEditorValue] = useState<Record<string, any>[] | undefined>(
     value ?? defaultEditorValue,
   );
@@ -35,6 +37,15 @@ const Editor: React.FC<EditorProps> = ({ value, name, onSubmit }) => {
     await onSubmit(editorValue);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editorValue]);
+
+  useEffect(() => {
+    if (isReset) {
+      setEditorValue(value ?? defaultEditorValue);
+      setShowEditor(false);
+      setIsReset(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isReset]);
 
   return (
     <div className={cx('test-editor-container')}>
