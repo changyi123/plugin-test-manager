@@ -1,6 +1,7 @@
 import React from 'react';
 import { Typography, message, Space, Button, Divider, Popconfirm } from 'antd';
 import { DownOutlined } from '@ant-design/icons';
+import { useRequest } from 'ahooks';
 import { TestType, TestRelationType } from '@/lib/constants';
 import PanelTable, { ActionType } from '@/components/business/PanelTable';
 import DropDownButton from '@/components/business/DropDownButton';
@@ -9,6 +10,7 @@ import { useTestConfig } from '@/lib/hooks/useContext';
 import {
   removeTestRelationsWithCondition,
   getTestEntitiesByRelationWithOrder,
+  getTestEntitiesByRelation,
 } from '@/lib/api/common';
 import TestEntitySelectorModal, {
   ActionType as SelectorActionType,
@@ -58,6 +60,23 @@ const Test = () => {
     getAllRelTestEntities();
     tableActionRef.current.refresh();
   }, [getAllRelTestEntities]);
+
+  const { data: testPlanData } = useRequest(
+    async () => {
+      const { list: planData } = await getTestEntitiesByRelation(
+        TestRelationType.PlanRelExecution,
+        { to: testEntity },
+        {
+          fillItemData: true,
+        },
+      );
+
+      return planData[0];
+    },
+    {
+      refreshDeps: [testEntity.id],
+    },
+  );
 
   const tableDataSourceGetter = React.useCallback(
     queryParams => {
@@ -129,7 +148,7 @@ const Test = () => {
         key: 'status',
         render: (_, record) => {
           const handleStatusChange = async status => {
-            await toggleTestRunStatus(record.objectId, status);
+            await toggleTestRunStatus(record.objectId, status, testPlanData.objectId);
             refreshDepData();
           };
           return (
@@ -175,7 +194,7 @@ const Test = () => {
         ),
       },
     ];
-  }, [allTestRunIds, refreshDepData, removeTestRelation]);
+  }, [allTestRunIds, refreshDepData, removeTestRelation, testPlanData]);
 
   // 添加测试用例菜单
   const testDetailMenuList = React.useMemo(() => {
@@ -232,7 +251,7 @@ const Test = () => {
       <TestRunModal
         className={cx('run-modal')}
         actionRef={testRunModalActionRef}
-        selectedTestPlanId={testEntity.id}
+        selectedTestPlanId={testPlanData?.objectId}
       />
     </div>
   );

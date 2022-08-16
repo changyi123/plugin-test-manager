@@ -92,7 +92,11 @@ export const getTestRunsAndExecutions = async (testDetailEntity, queryParams) =>
   return allTestExecutions;
 };
 
-export const toggleTestRunStatus = (testId: string, status: Status): Promise<ICommonRes> => {
+export const toggleTestRunStatus = (
+  testId: string,
+  status: Status,
+  planId?: string,
+): Promise<ICommonRes> => {
   return new Promise((resolve, reject) => {
     Test.createWithoutData(testId)
       .fetch()
@@ -102,9 +106,14 @@ export const toggleTestRunStatus = (testId: string, status: Status): Promise<ICo
           status: status.key,
         });
         // 同步修改关联的 detail 状态
-        refDetail.set({
-          status: status.key,
-        });
+        planId &&
+          refDetail.set({
+            // status: status.key,
+            detailStatus: {
+              ...(refDetail.get('detailStatus') ?? {}),
+              [planId]: status.key,
+            },
+          });
         return Parse.Object.saveAll([testRun, refDetail]);
       })
       .then(() => {

@@ -47,6 +47,7 @@ const Runs: React.FC = () => {
   }, [tableActionRef]);
 
   const handleStatusChange = async (testRunId, status) => {
+    // TODO 更新测试用例状态方法需修改，测试计划下测试用例状态映射值
     await toggleTestRunStatus(testRunId, status);
     tableActionRef.current.refresh();
   };
