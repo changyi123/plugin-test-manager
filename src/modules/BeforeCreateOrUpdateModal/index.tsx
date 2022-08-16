@@ -17,6 +17,7 @@ const getUpdateParamsByStoreValues = storeValues => ({
 const BeforeCreateOrUpdateModal = () => {
   const { context } = useSDK();
   const storeValues = store.get(ExtensionValType.CREATE_OR_UPDATE_ITEM);
+  const [testDetailValues, setTestDetailValues] = React.useState(storeValues);
 
   const { data: itemTypeMappingDict } = useRequest(
     async () => {
@@ -75,12 +76,12 @@ const BeforeCreateOrUpdateModal = () => {
   }, []);
 
   const testDetailFormVisible = React.useMemo(() => {
-    if (!storeValues.extraData) return false;
+    // if (!storeValues.extraData) return false;
     const testDetailRefItemTypeKey =
       itemTypeMappingDict?.[currentModalValues.workspaceKey]?.itemTypeMap?.[TestType.TestDetail];
 
     return testDetailRefItemTypeKey && testDetailRefItemTypeKey === currentModalValues.itemTypeKey;
-  }, [currentModalValues, itemTypeMappingDict, storeValues]);
+  }, [currentModalValues, itemTypeMappingDict]);
 
   React.useEffect(() => {
     const handleCreateOrUpdateItemMsg = values => {
@@ -102,13 +103,14 @@ const BeforeCreateOrUpdateModal = () => {
       ...prevStoreValues,
       [CREATE_ITEM_STORE_FIELD_KEY]: values,
     });
+    setTestDetailValues(values);
   };
 
   return testDetailFormVisible ? (
     <TestDetailForm
       onChange={handleDetailFormChange}
       extraData={storeValues?.extraData}
-      values={storeValues?.[CREATE_ITEM_STORE_FIELD_KEY]}
+      values={testDetailValues}
     />
   ) : null;
 };
