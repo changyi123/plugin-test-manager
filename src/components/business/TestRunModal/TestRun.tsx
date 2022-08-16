@@ -57,12 +57,13 @@ type TestRunType = {
   id: string;
   /** 测试执行序列 */
   idSequence?: string[];
+  selectedTestPlanId?: string; // 当前测试计划 ID
 };
 
 const TEST_RUN_AUTO_NEXT_KEY = 'test-run-auto-next';
 
 const TestRun: React.FC<TestRunType> = props => {
-  const { idSequence = [] } = props;
+  const { idSequence = [], selectedTestPlanId } = props;
   const [autoNext, setAutoNext] = useSessionStorageState(
     generateStorageKey(TEST_RUN_AUTO_NEXT_KEY),
     {
@@ -112,6 +113,7 @@ const TestRun: React.FC<TestRunType> = props => {
     async status => {
       await updateTestRun(testRunEntity, {
         status: status.key,
+        planId: selectedTestPlanId,
       });
       // 通过类型状态可自动执行到下一条
       if (status.type === PASS_STATUS_TYPE && autoNext && canExecNext) {
@@ -120,7 +122,7 @@ const TestRun: React.FC<TestRunType> = props => {
       }
       refreshTestRun();
     },
-    [autoNext, canExecNext, nextTestRun, refreshTestRun, testRunEntity],
+    [autoNext, canExecNext, nextTestRun, refreshTestRun, testRunEntity, selectedTestPlanId],
   );
 
   // 测试执行数据

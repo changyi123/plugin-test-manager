@@ -16,8 +16,10 @@ type BaseTestEntity = {
   workspaceKey: string;
   /** 测试实体关联事项 */
   reference: Item;
-  /** 测试用例最新执行状态 */
+  /** 测试用例最新执行状态，改为测试执行状态 */
   status: Status['key'];
+  /** 隔离测试计划下测试用例最新状态 */
+  detailStatus: Status['detailStatus'];
   /** 测试执行关联测试用例实体 */
   runReferenceDetail: TestEntity<TestType.TestDetail>;
   /** 额外数据 */
@@ -66,6 +68,7 @@ export type Status = {
   native: boolean;
   readOnly: boolean;
   type: 'TODO' | 'PASSED' | 'EXECUTING' | 'FAILED';
+  detailStatus: Record<string, string>;
 };
 
 /** 步骤表单 */

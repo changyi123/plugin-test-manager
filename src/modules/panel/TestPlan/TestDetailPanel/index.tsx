@@ -47,16 +47,18 @@ const Test = () => {
       from: testEntity,
     },
     {
-      include: ['status'],
+      include: ['status', 'detailStatus'],
     },
   );
 
   const { testEntityIds, testEntityStatuses } = React.useMemo(() => {
     return {
       testEntityIds: allTestEntities.map(item => item.objectId),
-      testEntityStatuses: allTestEntities.map(item => item.status ?? INITIAL_STATUS_KEY),
+      testEntityStatuses: allTestEntities.map(
+        item => item.detailStatus?.[testEntity.id] ?? INITIAL_STATUS_KEY,
+      ),
     };
-  }, [allTestEntities]);
+  }, [allTestEntities, testEntity]);
 
   // 刷新依赖数据
   const refreshDepData = React.useCallback(() => {
@@ -74,6 +76,7 @@ const Test = () => {
             fillItemData: true,
             queryParams: queryParams,
             workspaceKey: workspace?.key,
+            select: ['detailStatus'],
           },
         ),
         getTestEntitiesByRelation(
@@ -112,6 +115,7 @@ const Test = () => {
       const list = testDetails.map(detail => {
         return {
           ...detail,
+          planId: testEntity.id,
           // 关联的测试执行
           relRuns: testRuns.filter(run => run.runReferenceDetail?.objectId === detail.objectId),
         };
@@ -234,10 +238,12 @@ const Test = () => {
           return record.relRuns?.length ?? 0;
         },
       },
-      columnBuilder(BuiltinColumns.LatestStatus, record => ({
-        status: record.status,
-        readonly: true,
-      })),
+      columnBuilder(BuiltinColumns.LatestStatus, record => {
+        return {
+          status: record.detailStatus?.[testEntity.id],
+          readonly: true,
+        };
+      }),
       {
         title: '操作',
         key: 'action',
@@ -251,7 +257,7 @@ const Test = () => {
         ),
       },
     ];
-  }, [removeTestRelation]);
+  }, [removeTestRelation, testEntity]);
 
   // 添加测试执行菜单
   const testExecutionMenuList = React.useMemo(() => {
@@ -377,7 +383,7 @@ const Test = () => {
         getDataSource={tableDataSourceGetter}
       />
 
-      <TestRunModal actionRef={testRunModalActionRef} />
+      <TestRunModal actionRef={testRunModalActionRef} selectedTestPlanId={testEntity.id} />
     </div>
   );
 };

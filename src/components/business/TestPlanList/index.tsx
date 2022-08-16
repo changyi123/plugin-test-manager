@@ -69,8 +69,8 @@ const TestPlanList: React.FC<any> = () => {
         {
           // FIXME: 优化查询速度
           workspaceKey,
-          select: ['status'],
-          include: ['status'],
+          select: ['detailStatus'],
+          include: ['detailStatus'],
           queryParams: { limit: 9999, offset: 0 },
         },
       );
@@ -160,7 +160,9 @@ const TestPlanList: React.FC<any> = () => {
       title: '执行通过率',
       width: 240,
       render(_, rowData) {
-        const status = rowData?.refTestDetails.map(testDetail => testDetail.status) ?? [];
+        const status =
+          rowData?.refTestDetails.map(testDetail => testDetail.detailStatus?.[rowData.objectId]) ??
+          [];
         const passNum = status.filter(d => d === 'PASSED') ?? [];
         const rate = status.length === 0 ? 0 : passNum.length / status.length;
 

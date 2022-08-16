@@ -12,11 +12,17 @@ interface ITestRunModalProps {
   className?: string;
   actionRef?: React.ForwardedRef<ActionType>;
   idSequence?: string[];
+  selectedTestPlanId?: string;
 }
 
 const CancelEventType = 'CancelEventType';
 
-const TestRunModal: React.FC<ITestRunModalProps> = ({ actionRef, className, idSequence }) => {
+const TestRunModal: React.FC<ITestRunModalProps> = ({
+  actionRef,
+  className,
+  idSequence,
+  selectedTestPlanId,
+}) => {
   const [isVisible, setIsVisible] = React.useState(false);
   const [testRunDepData, setTestRunDepData] = React.useState(
     {} as Parameters<ActionType['open']>[0],
@@ -73,6 +79,7 @@ const TestRunModal: React.FC<ITestRunModalProps> = ({ actionRef, className, idSe
           <TestRun
             id={testRunDepData.testId}
             idSequence={testRunDepData.testIdSequence ?? idSequence}
+            selectedTestPlanId={selectedTestPlanId}
           />
         )}
       </Modal>

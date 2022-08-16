@@ -90,6 +90,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
 
     setTableLoading(true);
     const include = queryParams?.include ?? [
+      'detailStatus',
       'status',
       'sortIndex',
       'runReferenceDetail.reference',
@@ -99,6 +100,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     ];
 
     const select = queryParams?.select ?? [
+      'detailStatus',
       'status',
       'sortIndex',
       'runReferenceDetail.reference',
@@ -204,7 +206,15 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
 
       const include = ['repository', 'reference'];
 
-      const select = ['type', 'sortIndex', 'reference', 'repository', 'workspaceKey', 'createdAt'];
+      const select = [
+        'type',
+        'sortIndex',
+        'reference',
+        'repository',
+        'workspaceKey',
+        'createdAt',
+        'detailStatus',
+      ];
 
       const { results: testDetails, count } = await getTestEntitiesByQuery(
         {
@@ -327,7 +337,13 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       title: '最新执行状态',
       width: 200,
       render(_, rowData) {
-        return <StatusBadge readonly status={rowData.status} className={cx('cell-min')} />;
+        return (
+          <StatusBadge
+            readonly
+            status={rowData.detailStatus?.[rowData.selectedTestPlanId]}
+            className={cx('cell-min')}
+          />
+        );
       },
     },
     {
@@ -360,12 +376,15 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     },
   ];
 
-  const handleTestRunStatusChange = async (testRunId, status) => {
-    await updateTestRun(testRunId, { status: status.key });
-    actionRef.current.refresh();
-    mutateStatusEvent.emit('refreshExecutionStatus');
-    // TODO
-  };
+  const handleTestRunStatusChange = useCallback(
+    async (testRunId, status) => {
+      await updateTestRun(testRunId, { status: status.key, planId: selectedTestPlan.objectId });
+      actionRef.current.refresh();
+      mutateStatusEvent.emit('refreshExecutionStatus');
+      // TODO
+    },
+    [selectedTestPlan?.objectId],
+  );
 
   /** 根据列表记录删除测试执行 */
   const deleteTestRunByIds = useMemoizedFn(testRunIds => {
@@ -542,6 +561,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
 
       await updateTestRunStatus({
         status: status.key,
+        planId: selectedTestPlan.objectId,
         testRunIds,
       });
       notification.success({
@@ -673,6 +693,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       <TestRunModal
         actionRef={testRunModalActionRef}
         idSequence={allTestRuns?.map(run => run.objectId)}
+        selectedTestPlanId={selectedTestPlan.objectId}
       />
     </div>
   );

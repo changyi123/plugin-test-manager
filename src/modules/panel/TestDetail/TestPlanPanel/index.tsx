@@ -157,7 +157,9 @@ const Plan = () => {
         key: 'status',
         width: 190,
         render(_, record) {
-          const detailStatuses = record.relTestDetails.map(item => item.status);
+          const detailStatuses = record.relTestDetails.map(
+            item => item.detailStatus?.[record.objectId],
+          );
           return <StatusProgress statuses={detailStatuses} hasSummary />;
         },
       },

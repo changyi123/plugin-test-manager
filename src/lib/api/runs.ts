@@ -350,6 +350,7 @@ export const updateTestRun = async (
   testEntity: Parse.Object<TestRunEntity> | string,
   params: {
     status?: Status['key'];
+    planId?: string;
     steps?: Record<string, any>[];
     runDetail?: Partial<TestRunEntity['runDetail']>;
     comments?: Record<string, any>[];
@@ -442,9 +443,12 @@ export const updateTestRun = async (
   }
 
   // testRun 状态更新需要映射到关联的测试用例
-  if (needUpdateAttrs.status) {
+  if (needUpdateAttrs.status && params.planId) {
     const testDetailEntity = testEntity.get('runReferenceDetail') as unknown as Parse.Object;
-    testDetailEntity.save('status', needUpdateAttrs.status);
+    testDetailEntity.save('detailStatus', {
+      ...(testDetailEntity.get('detailStatus') ?? {}),
+      [params.planId]: needUpdateAttrs.status,
+    });
   }
 
   testEntity.set('updatedBy', Parse.User.current());
@@ -453,7 +457,11 @@ export const updateTestRun = async (
 };
 
 /** 批量更新测试执行状态 */
-export const updateTestRunStatus = async (params: { status: string; testRunIds: string[] }) => {
+export const updateTestRunStatus = async (params: {
+  status: string;
+  testRunIds: string[];
+  planId?: string;
+}) => {
   const existedTestRuns = await getTestEntities({
     id: toArray(params.testRunIds),
   });
@@ -473,7 +481,10 @@ export const updateTestRunStatus = async (params: { status: string; testRunIds: 
     testRun.set('executor', [getCurrentUserInfo(), ...(testRun.get('executor') ?? [])].slice(0, 3));
     // 更新对应的测试用例状态
     const runReferenceDetail = testRun.get('runReferenceDetail');
-    runReferenceDetail.set('status', params.status);
+    runReferenceDetail.set('detailStatus', {
+      ...(runReferenceDetail.get('detailStatus') ?? {}),
+      [params.planId]: params.status,
+    });
     return acc.concat(testRun, runReferenceDetail);
   }, []);
 

@@ -177,8 +177,12 @@ tables:
         type: String
       type:
         type: String
+      # 测试执行状态字段
       status:
         type: String
+      # 测试计划的测试用例状态映射值
+      detailStatus:
+        type: Object
       runDetail:
         type: Object
       # deprecated 使用 detail 字段替代

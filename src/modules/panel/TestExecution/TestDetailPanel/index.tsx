@@ -229,7 +229,11 @@ const Test = () => {
         getDataSource={tableDataSourceGetter}
       />
 
-      <TestRunModal className={cx('run-modal')} actionRef={testRunModalActionRef} />
+      <TestRunModal
+        className={cx('run-modal')}
+        actionRef={testRunModalActionRef}
+        selectedTestPlanId={testEntity.id}
+      />
     </div>
   );
 };
