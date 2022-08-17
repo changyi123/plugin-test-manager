@@ -6,8 +6,8 @@ const axios = require('axios');
 const path = require('path');
 const fs = require('fs');
 
-const fileName = '../trigger/appTrigger/huishang-script.js';
-const sessionToken = 'r:962e0921f7025e6a6f5e5380df16165a';
+const fileName = '../trigger/report/stats.js';
+const sessionToken = 'r:04b625b85cf368d985751025df820e53';
 const params = {
   appKey: 'test_manager',
 };
@@ -24,7 +24,7 @@ fs.watchFile(fullPath, () => {
       script,
       params,
       sessionToken,
-      // applicationId: 'osc',
+      applicationId: 'osc',
     })
     .then(res => {
       console.info(new Date().toUTCString(), res.data);
