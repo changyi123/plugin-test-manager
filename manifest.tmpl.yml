@@ -249,6 +249,16 @@ tables:
         targetClass: _User
       relationType:
         type: String
+  - className: WordTemplate
+    fields:
+      name:
+        type: String
+      fileUrl:
+        type: String
+      # enable:
+      #   type: Boolean
+      # command:
+      #   type: Array
 resources:
   - key: main
     path: ./dist/
