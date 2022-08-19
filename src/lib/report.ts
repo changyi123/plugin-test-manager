@@ -6,7 +6,7 @@ import { UserOptions } from 'docx-templates/lib/types';
 import { mergeWith, isPlainObject, keyBy } from 'lodash';
 
 /** 插件请求前缀 */
-const PluginWebTriggerPrefix = '/api/project/app/osc/test_manager/webhooks/';
+const PluginWebTriggerPrefix = '/api/app/osc/test_manager/webhooks/';
 
 export default class TemplateGenerator {
   /** 导致模板编译失败错误 */
@@ -113,15 +113,13 @@ export default class TemplateGenerator {
   /** 获取模板数据集合 */
   private getTemplateVariables = async (testPlanIds: string[]) => {
     // 获取统计数据
-    const statsData = await fetch.$get(`${PluginWebTriggerPrefix}/report/stats`, {
-      data: { testPlanIds },
+    const statsData = await fetch.$post(`${PluginWebTriggerPrefix}/report-stats`, {
+      testPlanIds,
     });
     // TODO: 从 data-set 中获取项目配置，目前写死
-    const DataSetSourcePath = ['base/data', 'hs/data'] as const;
+    const DataSetSourcePath = ['base', 'extensions-huishang'] as const;
     const dataSetFetchQueue = DataSetSourcePath.map(source =>
-      fetch.$get(`${PluginWebTriggerPrefix}/report/${source}`, {
-        data: statsData,
-      }),
+      fetch.$post(`${PluginWebTriggerPrefix}/report-data-${source}`, statsData),
     );
 
     const dataSetList = await Promise.all(dataSetFetchQueue);
