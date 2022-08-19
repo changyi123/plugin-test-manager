@@ -17,3 +17,4 @@ declare module 'parse';
 declare type PointerType = string | Parse.Object | Parse.Pointer;
 
 declare module 'proxima-sdk';
+declare module 'vm';

@@ -113,3 +113,19 @@ export type comment = {
   createTime: string; // 评论时间
   createUserId: string; // 评论用户 id
 };
+
+/** word 测试报告模板 */
+export type WordTemplate = {
+  name: string;
+  // 该模板是否可用
+  enable: boolean;
+  // 文件地址
+  fileUrl: string;
+
+  // TODO: 数据集
+  dataSet: any[];
+  // TODO: 空间
+  workspace: any[];
+  // TODO: 前置执行脚本
+  preExecuteScript: string;
+};

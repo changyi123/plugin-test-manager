@@ -18,6 +18,7 @@ export const User = Parse.Object.extend('User');
 export const Test = Parse.Object.extend(`${appKey}_Test`);
 export const Repository = Parse.Object.extend(RepositoryModel);
 export const TestConfig = Parse.Object.extend(`${appKey}_TestConfig`);
+export const WordTemplate = Parse.Object.extend(`${appKey}_WordTemplate`);
 export const TestRelation = Parse.Object.extend(`${appKey}_TestRelation`);
 export const TestExecution = Parse.Object.extend(`${appKey}_TestExecution`);
 export const WordTemplate = Parse.Object.extend(`${appKey}_WordTemplate`);

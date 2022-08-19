@@ -40,8 +40,12 @@ function resolveClientEnv(raw, cliEnv) {
 }
 
 const getExternalDependencies = () => {
+  // docx template 构建排除此依赖
+  const DocxTemplateDepDependencyKeys = ['vm', 'stream'];
   // 暂时先加 proxima-key 测试，后续增加更多的模块
-  const UseExternalDependencyKeys = ['react', 'react-dom', 'proxima-sdk'];
+  const UseExternalDependencyKeys = ['react', 'react-dom', 'proxima-sdk'].concat(
+    DocxTemplateDepDependencyKeys,
+  );
   const SharedComponentKey = 'proxima_shared_components';
 
   return UseExternalDependencyKeys.reduce(
@@ -207,6 +211,15 @@ module.exports = (cliEnv = {}, argv) => {
         'Access-Control-Allow-Headers': '*',
         'Access-Control-Allow-Methods': '*',
       },
+      // proxy: {
+      //   '/api': {
+      //     target: process.env.PROXIMA_GATEWAY,
+      //     changeOrigin: true,
+      //     pathRewrite: {
+      //       '^/api': '/',
+      //     },
+      //   },
+      // },
     },
     plugins: [
       new WebpackBar(),

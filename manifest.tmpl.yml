@@ -8,6 +8,12 @@ modules:
       function: gitee-menus
     - key: huishang-script
       function: huishang-script
+    - key: report-stats
+      function: report-stats
+    - key: report-data-base
+      function: report-data-base
+    - key: report-data-extensions-huishang
+      function: report-data-extensions-huishang
   trigger:
     - key: test-manager-initial-script-update
       events:
@@ -19,22 +25,32 @@ modules:
       events:
         - proxima:app:install
       function: test-manager-initial-script
-  testReport:
-    - key: test-manager-report-stats
-      function: test-manager-report-stats
   function:
+      # 左侧导航菜单
     - key: gitee-menus
       handler: /trigger/webTrigger/gitee-menus.js
+      # 插件初始化脚本
     - key: test-manager-initial-script
       handler: /trigger/appTrigger/initialScript.js
+      # 用例导入脚本
     - key: test-manager-validate-script
       handler: /trigger/import/validate.js
     - key: test-manager-import-script
       handler: /trigger/import/import.js
+
+      # 徽商验证脚本
     - key: huishang-script
       handler: /trigger/webTrigger/huishang-script.js
-    - key: test-manager-report-stats
-      handler: /trigger/report/stats.js
+      # 测试报告统计数据
+    - key: report-stats
+      handler: /trigger/webTrigger/report/stats.js
+      # 测试报告模板基础数据
+    - key: report-data-base
+      handler: /trigger/webTrigger/report/data/base.js
+      # 测试报告拓展数据
+    - key: report-data-extensions-huishang
+      handler: /trigger/webTrigger/report/data/extensions/huishang.js
+
   itemPanel:
     - key: test-manager-test-detail
       resource: main
@@ -249,6 +265,16 @@ tables:
         targetClass: _User
       relationType:
         type: String
+  - className: WordTemplate
+    fields:
+      name:
+        type: String
+      fileUrl:
+        type: String
+      # enable:
+      #   type: Boolean
+      # command:
+      #   type: Array
 resources:
   - key: main
     path: ./dist/

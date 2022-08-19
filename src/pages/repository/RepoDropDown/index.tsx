@@ -2,6 +2,7 @@ import classnames from 'classnames';
 import React, { useCallback } from 'react';
 import { CustomMore } from '@/icons';
 import { useTestConfig } from '@/lib/hooks/useContext';
+import { MenuItemProps } from 'antd/lib/menu/MenuItem';
 import importTestInfo, { TreeNode, downloadExampleFile } from './export';
 import { Button, Dropdown, Menu, message, notification, Spin } from 'antd';
 import { getProximaBasePath, getTenantKey, inIframe } from '@/lib/utils/helper';
@@ -12,6 +13,7 @@ const RepoDropDown = ({
   className,
   treeNodeData,
   setPageLoading,
+  extraMenuOptions,
   selectedTestPlanId,
 }: {
   type: string;
@@ -19,12 +21,14 @@ const RepoDropDown = ({
   folderKey?: string;
   treeNodeData?: TreeNode[];
   selectedTestPlanId?: string;
+  extraMenuOptions?: MenuItemProps[];
   setPageLoading?: (val: boolean) => void;
 }) => {
   const { workspace } = useTestConfig();
 
   const menuClick = useCallback(
-    async (key: string) => {
+    async e => {
+      const key = e.key;
       // iframe 中跳转链接增加隐藏 header 和 sider 属性
       const appendedQueryString = inIframe() ? '&hiddenSider=true&hiddenHeader=true' : '';
 
@@ -37,7 +41,8 @@ const RepoDropDown = ({
         window.open(href);
       } else if (key === 'example') {
         downloadExampleFile();
-      } else {
+      } else if (['exportAll', 'exportGroup', 'exportPlan'].includes(key)) {
+        // 导出逻辑
         notification.open({
           message: '测试管理用例导出中',
           icon: <Spin spinning={true} />,
@@ -70,13 +75,26 @@ const RepoDropDown = ({
         notification.success({
           message: '测试管理用例导出完成',
         });
+      } else {
+        // 触发 extraOptions 中的 onClick 事件
+        if (!Array.isArray(extraMenuOptions)) return;
+        const option = extraMenuOptions[Number(key)];
+        option.onClick(e);
       }
     },
-    [setPageLoading, workspace, type, folderKey, selectedTestPlanId, treeNodeData],
+    [
+      workspace,
+      setPageLoading,
+      type,
+      folderKey,
+      selectedTestPlanId,
+      treeNodeData,
+      extraMenuOptions,
+    ],
   );
 
   const menu = (
-    <Menu onClick={e => menuClick(e.key)}>
+    <Menu onClick={e => menuClick(e)}>
       {type === 'repository' && (
         <>
           <Menu.Item key="import">用例导入</Menu.Item>
@@ -92,6 +110,9 @@ const RepoDropDown = ({
           </Menu.Item>
         </>
       )}
+      {Array.isArray(extraMenuOptions)
+        ? extraMenuOptions.map((prop, index) => <Menu.Item key={index} {...prop} />)
+        : null}
     </Menu>
   );
 
