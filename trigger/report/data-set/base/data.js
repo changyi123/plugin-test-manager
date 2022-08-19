@@ -68,13 +68,9 @@ const getDefectId = datas => {
     .map(d => d.steps)
     .flat()
     .map(d => d.defectItemIds ?? [])
-    .flat()
-    .filter(Boolean);
-  const runDefectItemIds = runDetails
-    .map(d => d?.defectItemIds ?? [])
-    .flat()
-    .filter(Boolean);
-  return [...stepDefectIds, ...runDefectItemIds];
+    .flat();
+  const runDefectItemIds = runDetails.map(d => d?.defectItemIds ?? []).flat();
+  return [...new Set([...stepDefectIds, ...runDefectItemIds])].filter(Boolean);
 };
 
 const getDataByFiled = (datas, filed) =>
