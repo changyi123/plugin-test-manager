@@ -1,12 +1,10 @@
-// const { data } = global;
-
 const ParseBaseQueryOptions = {
   sessionToken: global.sessionToken,
 };
 
-const { planStats, globalConfig } = global?.data;
-console.log(3333, global);
-const testStatusType = globalConfig?.testStatusType;
+const { planStats, globalConfig } = global.body;
+
+const testStatusType = globalConfig.testStatusType;
 
 const getTestCount = (data, type) => data.get(type)?.length ?? 0;
 

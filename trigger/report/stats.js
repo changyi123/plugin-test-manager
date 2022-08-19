@@ -1,6 +1,6 @@
 const APP_KEY = global.appKey ?? 'test_manager';
 
-const { planId } = global;
+const { testPlanIds } = global.body;
 
 const ParseBaseQueryOptions = {
   sessionToken: global.sessionToken,
@@ -135,7 +135,7 @@ try {
   const planDetailsRel = await getTestEntityByRelation(
     PlanRelDetail,
     {
-      from: planId ?? [],
+      from: testPlanIds ?? [],
     },
     {
       queryParams: {
@@ -149,7 +149,7 @@ try {
   const planExecutionRel = await getTestEntityByRelation(
     PlanRelExecution,
     {
-      from: planId ?? [],
+      from: testPlanIds ?? [],
     },
     {
       queryParams: {
@@ -193,31 +193,47 @@ try {
   const testRuns = getToByFrom(executionRunRel, 'testRuns');
   const testExecution = getToByFrom(planExecutionRel, 'testExecutions', true);
 
-  const planStats = planId.reduce((prev, cur) => {
-    if (cur) {
-      prev = {
-        [cur]: {
-          ...getToByFrom(planDetailsRel, 'allTestCases')[cur],
-          reference: testExecution[cur]?.reference,
-          testExecutions: testExecution[cur]?.testExecutions.map(d => ({
-            ...d,
-            testRun: testRuns[d.objectId]?.testRuns ?? [],
-          })),
-          defects: defectItem,
-        },
-      };
-    }
-    return prev;
-  }, {});
+  // const planStats = planId.reduce((prev, cur) => {
+  //   if (cur) {
+  //     prev = {
+  //       [cur]: {
+  //         ...getToByFrom(planDetailsRel, 'allTestCases')[cur],
+  //         reference: testExecution[cur]?.reference,
+  //         testExecutions: testExecution[cur]?.testExecutions.map(d => ({
+  //           ...d,
+  //           testRun: testRuns[d.objectId]?.testRuns ?? [],
+  //         })),
+  //         defects: defectItem,
+  //       },
+  //     };
+  //   }
+  //   return prev;
+  // }, {});
+
+  const planStats = testPlanIds.map(planId => ({
+    key: planId,
+    ...getToByFrom(planDetailsRel, 'allTestCases')[planId],
+    reference: testExecution[planId]?.reference,
+    testExecutions: testExecution[planId]?.testExecutions.map(d => ({
+      ...d,
+      testRun: testRuns[d.objectId]?.testRuns ?? [],
+    })),
+    defects: defectItem,
+  }));
 
   return {
     planStats,
     globalConfig: {
       ...(global.extra ?? {}),
+      testStatusType: [
+        { key: 'TODO', type: 'TODO', name: '未开始' },
+        { key: 'PASSED', type: 'PASSED', name: '通过' },
+        { key: 'EXECUTING', type: 'EXECUTING', name: '正在执行' },
+        { key: 'FAILED', type: 'FAILED', name: '失败' },
+      ],
     },
   };
 } catch (err) {
-  // console.error(err);
   console.error('report stats error', err);
   return [];
 }
