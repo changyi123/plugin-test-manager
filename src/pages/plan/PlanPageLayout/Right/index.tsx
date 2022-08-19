@@ -13,6 +13,7 @@ import TestEntityList from '../../TestEntityList';
 import { usePageContext } from '../../hook';
 import { useSetTableHeight } from './hooks';
 import ExecutionStatus from '../ExecutionStatus';
+import WordReport from '@/lib/report';
 
 import cx from './index.less';
 
@@ -163,6 +164,13 @@ const Right: React.FC<RightProps> = props => {
     });
   };
 
+  const generateReport = async () => {
+    new WordReport().generateReport({
+      fileName: `${selectedTestPlan.reference.name}-测试报告`,
+      testPlanIds: [selectedTestPlan?.objectId],
+    });
+  };
+
   return (
     <div className={cx('right-box')}>
       <div data-element-id="test-manager-execution-table-header" className={cx('box-header')}>
@@ -207,6 +215,12 @@ const Right: React.FC<RightProps> = props => {
                 type="plan"
                 className={cx('action')}
                 selectedTestPlanId={selectedTestPlan?.objectId}
+                extraMenuOptions={[
+                  {
+                    children: '生成测试报告',
+                    onClick: generateReport,
+                  },
+                ]}
               />
             </>
           </div>
