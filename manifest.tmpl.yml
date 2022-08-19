@@ -8,6 +8,8 @@ modules:
       function: gitee-menus
     - key: huishang-script
       function: huishang-script
+    - key: report-stats
+      function: report-stats
   trigger:
     - key: test-manager-initial-script-update
       events:
@@ -33,7 +35,7 @@ modules:
       handler: /trigger/import/import.js
     - key: huishang-script
       handler: /trigger/webTrigger/huishang-script.js
-    - key: test-manager-report-stats
+    - key: report-stats
       handler: /trigger/report/stats.js
   itemPanel:
     - key: test-manager-test-detail
