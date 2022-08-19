@@ -211,6 +211,15 @@ module.exports = (cliEnv = {}, argv) => {
         'Access-Control-Allow-Headers': '*',
         'Access-Control-Allow-Methods': '*',
       },
+      // proxy: {
+      //   '/api': {
+      //     target: process.env.PROXIMA_GATEWAY,
+      //     changeOrigin: true,
+      //     pathRewrite: {
+      //       '^/api': '/',
+      //     },
+      //   },
+      // },
     },
     plugins: [
       new WebpackBar(),
