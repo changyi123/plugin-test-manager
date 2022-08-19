@@ -226,11 +226,11 @@ try {
     key: planId,
     ...getToByFrom(planDetailsRel, 'allTestCases')[planId],
     reference: testExecution[planId]?.reference,
-    testExecutions: testExecution[planId]?.testExecutions.map(d => ({
+    allTestExecutions: testExecution[planId]?.testExecutions.map(d => ({
       ...d,
       testRun: testRuns[d.objectId]?.testRuns ?? [],
     })),
-    defects: defectItem,
+    allDefects: defectItem,
   }));
 
   return {
