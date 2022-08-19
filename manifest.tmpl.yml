@@ -21,9 +21,6 @@ modules:
       events:
         - proxima:app:install
       function: test-manager-initial-script
-  testReport:
-    - key: test-manager-report-stats
-      function: test-manager-report-stats
   function:
     - key: gitee-menus
       handler: /trigger/webTrigger/gitee-menus.js
