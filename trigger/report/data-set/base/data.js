@@ -1,30 +1,12 @@
-const data = {
-  planStats: [
-    {
-      key: 'JjIzu5xHUg',
-      allTestCases: [],
-      reference: {},
-      allTestExecutions: [],
-      allDefects: [],
-    },
-  ],
-  globalConfig: {
-    testStatusType: [
-      { key: 'TODO', type: 'TODO', name: '未开始' },
-      { key: 'PASSED', type: 'PASSED', name: '通过' },
-      { key: 'EXECUTING', type: 'EXECUTING', name: '正在执行' },
-      { key: 'FAILED', type: 'FAILED', name: '失败' },
-    ],
-  },
-};
+// const { data } = global;
 
 const ParseBaseQueryOptions = {
   sessionToken: global.sessionToken,
 };
 
-const { planStats, globalConfig } = data;
-
-const testStatusType = globalConfig.testStatusType;
+const { planStats, globalConfig } = global?.data;
+console.log(3333, global);
+const testStatusType = globalConfig?.testStatusType;
 
 const getTestCount = (data, type) => data.get(type)?.length ?? 0;
 
@@ -49,7 +31,7 @@ const getBaseCase = data => {
 };
 
 const getCaseData = data => {
-  const caseData = data.reduce((prev, cur) => {
+  const caseData = data?.reduce((prev, cur) => {
     const caseInfo = getBaseCase(cur);
     const newTestMap = new Map();
     testStatusType.forEach(d => {
@@ -69,15 +51,13 @@ const getCaseData = data => {
 
   return {
     total: caseData.total,
-    passedPercent: Math.floor(
-      (getTestCount(caseData.allTestMap, 'PASSED') / (caseData.total ?? 1)) * 100,
-    ),
-    failedPercent: Math.floor(
-      (getTestCount(caseData.allTestMap, 'FAILED') / (caseData.total ?? 1)) * 100,
-    ),
+    passedPercent:
+      Math.floor((getTestCount(caseData.allTestMap, 'PASSED') / (caseData.total ?? 1)) * 100) || 0,
+    failedPercent:
+      Math.floor((getTestCount(caseData.allTestMap, 'FAILED') / (caseData.total ?? 1)) * 100) || 0,
     statusList: testStatusType.map(d => ({
       ...d,
-      count: getTestCount(caseData.allTestMap, d.key) + 0,
+      count: getTestCount(caseData.allTestMap, d.key),
     })),
   };
 };
@@ -100,8 +80,8 @@ const getDefectId = datas => {
 };
 
 const getDataByFiled = (datas, filed) =>
-  datas.reduce((prev, cur) => {
-    prev = prev.concat(cur[filed]);
+  datas?.reduce((prev, cur) => {
+    prev = prev.concat(cur?.[filed]);
     return prev;
   }, []);
 
@@ -116,14 +96,14 @@ const getDefect = (datas, typeList) => {
   const defects = getDataByFiled(datas, 'allDefects');
   const defectMap = new Map();
 
-  typeList.forEach(d => {
+  typeList?.forEach(d => {
     defectMap.set(d.key, defects.filter(e => e.status.objectId === d.objectId) ?? []);
   });
 
   return {
     count: defects.length,
     fixed: defectMap.get('Finished').length,
-    legacy: defects.length - defectMap.get('Finished').length,
+    legacy: defects.length - defectMap.get('Finished')?.length,
   };
 };
 

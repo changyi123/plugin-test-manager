@@ -1,6 +1,6 @@
 const APP_KEY = global.appKey ?? 'test_manager';
 
-const planId = ['JjIzu5xHUg'];
+const { planId } = global;
 
 const ParseBaseQueryOptions = {
   sessionToken: global.sessionToken,
