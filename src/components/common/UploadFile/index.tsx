@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { CloudUploadOutlined, DownloadOutlined } from '@ant-design/icons';
 import { cloneDeep } from 'lodash';
 
@@ -24,58 +24,19 @@ export interface AnnexProps {
   readonly?: boolean;
   onChange?: (data: annexData[]) => void;
   desc?: string;
+  maxCount?: number;
 }
 
 const UploadFile: React.FC<AnnexProps> = props => {
-  const { readonly, onChange, value, desc } = props;
+  const { readonly, onChange, value, desc, maxCount } = props;
   const [fileList, setFileList] = useState(EMPTY_FILE_LIST);
   const [flag, setFlag] = useState(false);
 
   useEffect(() => {
     setFileList(value || EMPTY_FILE_LIST);
   }, [value]);
-
-  useEffect(() => {
-    if (flag) {
-      onChange?.(fileList);
-      setFlag(false);
-    }
-  }, [flag, onChange, fileList]);
-
-  const draggerProps = {
-    fileList: fileList,
-    name: 'annex',
-    multiple: true,
-    disabled: readonly,
-    showUploadList: {
-      showDownloadIcon: true,
-      downloadIcon: <DownloadOutlined />,
-    },
-    customRequest(fileData) {
-      const fileArr = cloneDeep(fileList);
-      fileArr.unshift({
-        uid: fileData.file.uid,
-        name: fileData.file.name,
-        status: 'uploading',
-      });
-      setFileList(fileArr);
-      const parseFile = new Parse.File(fileData.file.name, fileData.file);
-      parseFile.save().then(
-        res => {
-          fileArr[0].status = 'done';
-          fileArr[0].href = res._url;
-          fileArr[0].linkProps = { download: fileArr[0].name };
-          setFileList(fileArr);
-          setFlag(true);
-        },
-        error => {
-          message.error(error.message);
-          fileArr.shift();
-          setFileList(fileArr);
-        },
-      );
-    },
-    onRemove(file) {
+  const onRemove = useCallback(
+    file => {
       const arr = file.href.split('/');
       const fileName = arr[arr.length - 1];
       Parse.Cloud.run('deleteFile', {
@@ -94,6 +55,56 @@ const UploadFile: React.FC<AnnexProps> = props => {
           setFileList(data);
         });
     },
+    [fileList],
+  );
+  useEffect(() => {
+    if (flag) {
+      onChange?.(fileList);
+      if (maxCount === 1 && fileList.length === 2) {
+        onRemove(fileList[1]);
+      }
+      setFlag(false);
+    }
+  }, [flag, onChange, fileList, maxCount, onRemove]);
+  const draggerProps = {
+    fileList: fileList,
+    name: 'annex',
+    multiple: true,
+    disabled: readonly,
+    showUploadList: {
+      showDownloadIcon: true,
+      downloadIcon: <DownloadOutlined />,
+    },
+    customRequest(fileData) {
+      const fileArr = cloneDeep(fileList);
+      fileArr.unshift({
+        uid: fileData.file.uid,
+        name: fileData.file.name,
+        status: 'uploading',
+      });
+      // 超过最大数量进行限制
+      if (fileArr.length > maxCount) {
+        message.error(`文件数量不能超过${maxCount}`);
+        return;
+      }
+      setFileList(fileArr);
+      const parseFile = new Parse.File(fileData.file.name, fileData.file);
+      parseFile.save().then(
+        res => {
+          fileArr[0].status = 'done';
+          fileArr[0].href = res._url;
+          fileArr[0].linkProps = { download: fileArr[0].name };
+          setFileList(fileArr);
+          setFlag(true);
+        },
+        error => {
+          message.error(error.message);
+          fileArr.shift();
+          setFileList(fileArr);
+        },
+      );
+    },
+    onRemove: onRemove,
     onDownload(file) {
       // 由于返回的url与系统url不同源，所以不能使用a标签进行下载
       const xhr = new XMLHttpRequest();
@@ -115,7 +126,7 @@ const UploadFile: React.FC<AnnexProps> = props => {
   };
 
   return (
-    <Dragger {...draggerProps}>
+    <Dragger {...draggerProps} maxCount={1}>
       <p className={cx('upload-drag-text')}>
         <CloudUploadOutlined className={cx('upload')} />
         <span>{desc}</span>
