@@ -121,14 +121,16 @@ const getDate = () => {
   const date = new Date();
   const array = new Array(7).fill();
 
-  return array.reduce((prev, _, index) => {
-    const n = index ? 1 : 0;
-    date.setDate(date.getDate() - n);
+  return array
+    .reduce((prev, _, index) => {
+      const n = index ? 1 : 0;
+      date.setDate(date.getDate() - n);
 
-    prev = prev.concat(`${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`);
+      prev = prev.concat(`${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`);
 
-    return prev;
-  }, []);
+      return prev;
+    }, [])
+    .reverse();
 };
 
 // TODO 获取折线图配置
