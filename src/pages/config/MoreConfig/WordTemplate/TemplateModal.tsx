@@ -5,6 +5,8 @@ import UploadFile from '@/components/common/UploadFile';
 
 import { WordTemplateInterface } from './index';
 
+import cx from './index.less';
+
 interface ModalProps {
   visible: boolean;
   handleCancel: () => void;
@@ -42,6 +44,7 @@ const TemplateModal: React.FC<ModalProps> = ({
       onCancel={handleCancel}
       width={600}
       maskClosable={false}
+      className={cx('word_template_modal')}
     >
       <Form
         name="basic"
@@ -59,11 +62,11 @@ const TemplateModal: React.FC<ModalProps> = ({
         </Form.Item>
 
         <Form.Item label="应用空间" name="dataSet">
-          <Select placeholder="请选择" />
+          <Select placeholder="请选择" disabled />
         </Form.Item>
 
         <Form.Item label="数据集" name="workspace">
-          <Select placeholder="请选择" />
+          <Select placeholder="请选择" disabled />
         </Form.Item>
 
         <Form.Item
