@@ -10,6 +10,7 @@ import { useLocalStorageState, useSafeState } from 'ahooks';
 import { Menu, Layout, Dropdown, Button, Result } from 'antd';
 
 import IsolatedSystem from './MoreConfig/IsolatedSystem';
+import WordTemplate from './MoreConfig/WordTemplate';
 
 import cx from './index.less';
 
@@ -23,6 +24,13 @@ const MoreConfigPages = [
     title: '测试管理系统隔离',
     component: IsolatedSystem,
     description: '配置测试管理系统与业务系统进行隔离',
+    isGlobalConfig: true,
+  },
+  {
+    key: 'WordTemplate',
+    title: '测试报告模板管理',
+    component: WordTemplate,
+    description: '模板管理',
     isGlobalConfig: true,
   },
 ];
@@ -98,7 +106,7 @@ const PageContent = ({ currentConfigPage }) => {
 
 const Config = () => {
   const [showMoreConfigPages] = useLocalStorageState(MORE_CONFIG_STORAGE_KEY, {
-    defaultValue: false,
+    defaultValue: true,
     deserializer(val) {
       return !isNil(val);
     },
