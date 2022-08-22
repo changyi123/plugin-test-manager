@@ -32,7 +32,7 @@ const getBaseCase = data => {
   };
 };
 
-const getCaseData = data => {
+const getTestCaseData = data => {
   const caseData = data?.reduce((prev, cur) => {
     const caseInfo = getBaseCase(cur);
     const newTestMap = new Map();
@@ -83,14 +83,14 @@ const getDataByFiled = (datas, filed) =>
     return prev;
   }, []);
 
-const getExecution = datas =>
+const getTestExecution = datas =>
   getDataByFiled(datas, 'allTestExecutions').map(d => ({
     key: d.objectId,
     defectCount: getDefectId(d.testRun).length,
     testRunCount: d.testRun?.length ?? 0,
   }));
 
-const getDefect = (datas, typeList) => {
+const getTestDefect = (datas, typeList) => {
   const defects = getDataByFiled(datas, 'allDefects');
   const defectMap = new Map();
 
@@ -237,9 +237,9 @@ try {
   const defectTypeList = await getStatusList();
 
   return {
-    case: getCaseData(planStats),
-    execution: getExecution(planStats),
-    defect: getDefect(planStats, defectTypeList),
+    testCase: getTestCaseData(planStats),
+    testExecution: getTestExecution(planStats),
+    testDefect: getTestDefect(planStats, defectTypeList),
   };
 } catch (error) {
   console.error('report base error', error);
