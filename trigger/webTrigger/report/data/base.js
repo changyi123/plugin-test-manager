@@ -102,6 +102,118 @@ const getDefect = (datas, typeList) => {
     count: defects.length,
     fixed: defectMap.get('Finished').length,
     legacy: defects.length - defectMap.get('Finished')?.length,
+    charts: {
+      trendLine: getTrendLine(),
+      levelPie: getLevelPie(),
+      statusBar: getStatusBar(),
+    },
+  };
+};
+
+const getDate = () => {
+  const date = new Date();
+  const array = new Array(7).fill();
+
+  return array.reduce((prev, _, index) => {
+    const n = index ? 1 : 0;
+    date.setDate(date.getDate() - n);
+
+    prev = prev.concat(`${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`);
+
+    return prev;
+  }, []);
+};
+
+// TODO 获取折线图配置
+const getTrendLine = () => {
+  // 基础假数据
+  return {
+    title: {
+      text: '缺陷收敛趋势图',
+      left: 'center',
+    },
+    legend: {
+      left: 'right',
+    },
+    xAxis: {
+      type: 'category',
+      data: getDate(),
+    },
+    yAxis: {
+      type: 'value',
+    },
+    series: [
+      {
+        data: [7, 5, 6, 10, 3, 2, 1],
+        type: 'line',
+      },
+    ],
+  };
+};
+
+// TODO 获取饼图配置
+const getLevelPie = () => {
+  return {
+    title: {
+      text: '缺陷严重程度统计表',
+      left: 'center',
+    },
+    color: ['#ee6666', '#5470c6', '#91cc75', '#fac858'],
+    tooltip: {
+      trigger: 'item',
+    },
+    legend: {
+      orient: 'center',
+      left: 'right',
+      top: '35%',
+    },
+    series: [
+      {
+        name: 'Access From',
+        type: 'pie',
+        radius: '50%',
+        data: [
+          { value: 15, name: '严重' },
+          { value: 33, name: '一般' },
+          { value: 8, name: '微小' },
+          { value: 2, name: '建议' },
+        ],
+        emphasis: {
+          itemStyle: {
+            shadowBlur: 10,
+            shadowOffsetX: 0,
+            shadowColor: 'rgba(0, 0, 0, 0.5)',
+          },
+        },
+      },
+    ],
+  };
+};
+
+// TODO 获取柱状图配置
+const getStatusBar = () => {
+  return {
+    title: {
+      text: '缺陷状态分析',
+      left: 'center',
+    },
+    xAxis: {
+      type: 'category',
+      data: ['已关闭', '已否决已关闭', '遗留'],
+    },
+    yAxis: {
+      type: 'value',
+    },
+    series: [
+      {
+        data: [48, 8, 2],
+        type: 'bar',
+        label: {
+          show: true,
+          position: 'top',
+        },
+      },
+    ],
   };
 };
 
