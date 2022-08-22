@@ -7,6 +7,49 @@ const APP_KEY = global.appKey ?? 'test_manager';
 
 const testPlanIds = global?.body?.testPlanIds ?? [];
 
+// 压缩响应数据大小，移除无用数据字段
+const compactData = (data, extraKeys = []) => {
+  function pick(object, paths) {
+    if (!paths) return object;
+    let index = -1;
+    const length = paths.length;
+    const result = {};
+
+    while (++index < length) {
+      const path = paths[index];
+      const value = object[path];
+      result[path] = value;
+    }
+    return result;
+  }
+  // 获取需要被忽略的数据 key
+  const getIgnoredDataKeys = data => {
+    switch (data.className) {
+      case 'Item':
+        return ['objectId', 'className', 'createdAt', 'values'].concat(extraKeys);
+      case 'test_manager_Test':
+        return [
+          'type',
+          'status',
+          'objectId',
+          'className',
+          'reference',
+          'runDetail',
+          'detailStatus',
+        ].concat(extraKeys);
+      default:
+        return null;
+    }
+  };
+
+  // 事项类型数据
+  if (Array.isArray(data)) {
+    return data.map(item => pick(item, getIgnoredDataKeys(item)));
+  }
+
+  return pick(data, getIgnoredDataKeys(data));
+};
+
 const ParseBaseQueryOptions = {
   sessionToken: global.sessionToken,
 };
@@ -230,7 +273,7 @@ try {
       ...d,
       testRun: testRuns[d.objectId]?.testRuns ?? [],
     })),
-    allDefects: defectItem,
+    allDefects: defectItem.map(compactData),
   }));
 
   return {
