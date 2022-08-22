@@ -32,7 +32,7 @@ const getBaseCase = data => {
   };
 };
 
-const getCaseData = data => {
+const getTestCaseData = data => {
   const caseData = data?.reduce((prev, cur) => {
     const caseInfo = getBaseCase(cur);
     const newTestMap = new Map();
@@ -83,7 +83,7 @@ const getDataByFiled = (datas, filed) =>
     return prev;
   }, []);
 
-const getExecution = datas =>
+const getTestExecution = datas =>
   getDataByFiled(datas, 'allTestExecutions').map(d => ({
     name: d.reference?.name,
     key: d.objectId,
@@ -91,7 +91,7 @@ const getExecution = datas =>
     testRunCount: d.testRun?.length ?? 0,
   }));
 
-const getDefect = (datas, typeList) => {
+const getTestDefect = (datas, typeList) => {
   const defects = getDataByFiled(datas, 'allDefects');
   const defectMap = new Map();
 
@@ -99,10 +99,17 @@ const getDefect = (datas, typeList) => {
     defectMap.set(d.key, defects.filter(e => e.status.objectId === d.objectId) ?? []);
   });
 
+  const getLegacyDefectList = () =>
+    [...defectMap.entries()]
+      .filter(([key, _]) => key !== 'Finished')
+      .map(([_, value]) => value)
+      .flat();
+
   return {
     count: defects.length,
     fixed: defectMap.get('Finished').length,
     legacy: defects.length - defectMap.get('Finished')?.length,
+    legacyDefectList: getLegacyDefectList(),
     charts: {
       trendLine: getTrendLine(),
       levelPie: getLevelPie(),
@@ -115,14 +122,16 @@ const getDate = () => {
   const date = new Date();
   const array = new Array(7).fill();
 
-  return array.reduce((prev, _, index) => {
-    const n = index ? 1 : 0;
-    date.setDate(date.getDate() - n);
+  return array
+    .reduce((prev, _, index) => {
+      const n = index ? 1 : 0;
+      date.setDate(date.getDate() - n);
 
-    prev = prev.concat(`${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`);
+      prev = prev.concat(`${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`);
 
-    return prev;
-  }, []);
+      return prev;
+    }, [])
+    .reverse();
 };
 
 // TODO 获取折线图配置
@@ -242,9 +251,9 @@ try {
   const defectTypeList = await getStatusList();
 
   return {
-    testCase: getCaseData(planStats),
-    testExecution: getExecution(planStats),
-    defect: getDefect(planStats, defectTypeList),
+    testCase: getTestCaseData(planStats),
+    testExecution: getTestExecution(planStats),
+    testDefect: getTestDefect(planStats, defectTypeList),
   };
 } catch (error) {
   console.error('report base error', error);
