@@ -85,6 +85,7 @@ const getDataByFiled = (datas, filed) =>
 
 const getExecution = datas =>
   getDataByFiled(datas, 'allTestExecutions').map(d => ({
+    name: d.reference?.name,
     key: d.objectId,
     defectCount: getDefectId(d.testRun).length,
     testRunCount: d.testRun?.length ?? 0,
@@ -187,6 +188,10 @@ const getLevelPie = () => {
         },
       },
     ],
+    imageOptions: {
+      width: 12,
+      height: 10.95,
+    },
   };
 };
 
@@ -237,8 +242,8 @@ try {
   const defectTypeList = await getStatusList();
 
   return {
-    case: getCaseData(planStats),
-    execution: getExecution(planStats),
+    testCase: getCaseData(planStats),
+    testExecution: getExecution(planStats),
     defect: getDefect(planStats, defectTypeList),
   };
 } catch (error) {

@@ -79,6 +79,7 @@
     "ahooks": "3.1.9",
     "antd": "^4.21.0",
     "axios": "^0.21.4",
+    "buffer": "^6.0.3",
     "classnames": "^2.3.1",
     "docx-templates": "^4.9.2",
     "echarts": "^5.3.3",

@@ -4,15 +4,23 @@ import { createReport } from 'docx-templates';
 import { WordTemplate } from '@/lib/types/Test';
 import { UserOptions } from 'docx-templates/lib/types';
 import { mergeWith, isPlainObject, keyBy } from 'lodash';
+import { NullishCommandResultError, ObjectCommandResultError } from 'docx-templates/lib/errors';
+
+// Buffer polifile
+window.Buffer = window.Buffer || require('buffer').Buffer;
 
 /** 插件请求前缀 */
 const PluginWebTriggerPrefix = '/api/app/osc/test_manager/webhooks/';
-
+const DefaultImageOptions = {
+  width: 12,
+  height: 9.6,
+  extension: '.png',
+};
 export default class TemplateGenerator {
   /** 导致模板编译失败错误 */
-  fatalErrorMessageList: string[];
+  fatalErrorMessageList: string[] = [];
   /** 模板引用变量未定义错误 */
-  invalidVariableMessageList: string[];
+  invalidVariableMessageList: string[] = [];
 
   /** 生成进度 */
   processPercent: 0;
@@ -25,11 +33,11 @@ export default class TemplateGenerator {
     cmdDelimiter: ['{', '}'],
     rejectNullish: true,
     noSandbox: true,
-    failFast: false,
+    // failFast: false,
     additionalJsContext: {
       // 绘制图表
       drawChart: options => {
-        const { imageOptions = {}, ...restChartOptions } = options;
+        const { imageOptions, ...restChartOptions } = options;
 
         const generateEchartImageData = chartOptions => {
           const div = document.createElement('div');
@@ -50,7 +58,11 @@ export default class TemplateGenerator {
           return data;
         };
 
-        return { ...imageOptions, data: generateEchartImageData(restChartOptions) };
+        return {
+          ...DefaultImageOptions,
+          ...imageOptions,
+          data: generateEchartImageData(restChartOptions),
+        };
       },
 
       // 渲染 html
@@ -59,16 +71,18 @@ export default class TemplateGenerator {
         return htmlString;
       },
     },
-    errorHandler: (error, code) => {
-      // TODO: 异常处理
-      switch (code) {
-        case 'NullishCommandResultError': // 空值处理错误
-        case 'ObjectCommandResultError': // 插入 object 对象错误
-          this.invalidVariableMessageList.push(error.message);
-          return '';
-        default:
-          this.fatalErrorMessageList.push(error.message);
+    errorHandler: (error, _code) => {
+      const isErrorType = errorType =>
+        Array.isArray(errorType)
+          ? errorType.some(ErrorConstructor => error instanceof ErrorConstructor)
+          : error instanceof errorType;
+
+      if (isErrorType([NullishCommandResultError, ObjectCommandResultError])) {
+        this.invalidVariableMessageList.push(error.message);
+      } else {
+        this.fatalErrorMessageList.push(error.message);
       }
+      return '';
     },
   };
 
@@ -83,23 +97,27 @@ export default class TemplateGenerator {
     const docTemplateOptions = { ...this.docTemplateBasicOptions, ...mixTemplateOptions };
     // FIXME:
     const fileUrl =
-      this.wordTemplate?.fileUrl ?? 'http://192.168.48.34/parse/files/osc/template.docx';
+      this.wordTemplate?.fileUrl ??
+      'http://192.168.48.34/parse/files/osc/%E5%89%AF%E6%9C%AC%E6%B5%8B%E8%AF%95%E6%8A%A5%E5%91%8A.docx';
 
-    const { data: templateFile } = await fetch.$get(fileUrl, {
+    const templateFile = await fetch.$get(fileUrl, {
       responseType: 'arraybuffer',
     });
 
-    const templateVariables = await this.getTemplateVariables(testPlanIds);
-
     const reportData = await createReport({
       template: templateFile,
-      data: templateVariables,
+      data: async () => {
+        const templateData = await this.getTemplateVariables(testPlanIds);
+        console.log('templateData', templateData);
+        return templateData;
+      },
       ...docTemplateOptions,
     });
 
     // 模板编译错误不生成报告
     if (this.fatalErrorMessageList.length) {
-      throw new Error();
+      // throw new Error();
+      console.log(this.fatalErrorMessageList);
     }
 
     // 忽略该类型错误
@@ -117,6 +135,7 @@ export default class TemplateGenerator {
       testPlanIds,
     });
     // TODO: 从 data-set 中获取项目配置，目前写死
+    // 'extensions-huishang'
     const DataSetSourcePath = ['base', 'extensions-huishang'] as const;
     const dataSetFetchQueue = DataSetSourcePath.map(source =>
       fetch.$post(`${PluginWebTriggerPrefix}/report-data-${source}`, statsData),
@@ -126,7 +145,7 @@ export default class TemplateGenerator {
 
     const mergedDataSetVariables = mergeWith(
       dataSetList[0],
-      dataSetList.slice(1),
+      ...dataSetList.slice(1),
       (objValue, srcValue) => {
         const isPlainObjectTypedArray = arr => arr.every(item => isPlainObject(item));
         // 数组对象需要按照相同项的 key 合并
@@ -137,7 +156,8 @@ export default class TemplateGenerator {
           isPlainObjectTypedArray(srcValue)
         ) {
           const sourceKeyMap = keyBy(srcValue, 'key');
-          return objValue.map(item => ({
+          return objValue.map((item, index) => ({
+            _seqNumber: index + 1,
             ...item,
             ...sourceKeyMap[item.key],
           }));
