@@ -142,20 +142,20 @@ const getToByFrom = (datas, filed, isHanleRef = false) =>
     if (!prev[cur.from.objectId]?.reference && isHanleRef) {
       prev = {
         ...prev,
-        [cur.from.objectId]: {
+        [cur.from.objectId]: compactData({
           ...(prev[cur.from.objectId] ?? {}),
           reference: cur.from.reference,
-        },
+        }),
       };
     }
 
     if (cur.from.objectId) {
       prev = {
         ...prev,
-        [cur.from.objectId]: {
+        [cur.from.objectId]: compactData({
           ...(prev[cur.from.objectId] ?? {}),
           [filed]: (prev[cur.from.objectId]?.[filed] ?? []).concat(cur.to),
-        },
+        }),
       };
     }
 
@@ -248,30 +248,13 @@ try {
   const testRuns = getToByFrom(executionRunRel, 'testRuns');
   const testExecution = getToByFrom(planExecutionRel, 'testExecutions', true);
 
-  // const planStats = planId.reduce((prev, cur) => {
-  //   if (cur) {
-  //     prev = {
-  //       [cur]: {
-  //         ...getToByFrom(planDetailsRel, 'allTestCases')[cur],
-  //         reference: testExecution[cur]?.reference,
-  //         testExecutions: testExecution[cur]?.testExecutions.map(d => ({
-  //           ...d,
-  //           testRun: testRuns[d.objectId]?.testRuns ?? [],
-  //         })),
-  //         defects: defectItem,
-  //       },
-  //     };
-  //   }
-  //   return prev;
-  // }, {});
-
   const planStats = testPlanIds.map(planId => ({
     key: planId,
     ...getToByFrom(planDetailsRel, 'allTestCases')[planId],
     reference: testExecution[planId]?.reference,
     allTestExecutions: testExecution[planId]?.testExecutions.map(d => ({
       ...d,
-      testRun: testRuns[d.objectId]?.testRuns ?? [],
+      testRun: (testRuns[d.objectId]?.testRuns ?? []).map(compactData),
     })),
     allDefects: defectItem.map(compactData),
   }));
