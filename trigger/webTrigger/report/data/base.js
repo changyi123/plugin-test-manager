@@ -98,10 +98,17 @@ const getTestDefect = (datas, typeList) => {
     defectMap.set(d.key, defects.filter(e => e.status.objectId === d.objectId) ?? []);
   });
 
+  const getLegacyDefectList = () =>
+    [...defectMap.entries()]
+      .filter(([key, _]) => key !== 'Finished')
+      .map(([_, value]) => value)
+      .flat();
+
   return {
     count: defects.length,
     fixed: defectMap.get('Finished').length,
     legacy: defects.length - defectMap.get('Finished')?.length,
+    legacyDefectList: getLegacyDefectList(),
     charts: {
       trendLine: getTrendLine(),
       levelPie: getLevelPie(),
