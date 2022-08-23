@@ -4,14 +4,25 @@
 
 const { planStats } = global.body;
 
+// TODO: 严重程度自定义字段 Key
+const SeverityLevelFieldKey = 'Dropdown';
+// 已完成的状态类型
+const FinishedStatusType = 'Finished';
+
 // 日期格式化
-function formatDate(timeStamp, formatstr) {
+function formatDate(timeStamp, formatStr) {
+  function $addZero(v, size) {
+    for (var i = 0, len = size - (v + '').length; i < len; i++) {
+      v = '0' + v;
+    }
+    return v + '';
+  }
   if (!timeStamp) {
     return '暂无';
   }
   const date = new Date(timeStamp);
-  var arrweek = ['日', '一', '二', '三', '四', '五', '六'];
-  var str = formatstr
+  var week = ['日', '一', '二', '三', '四', '五', '六'];
+  var str = formatStr
     .replace(/yyyy|YYYY/, date.getFullYear())
     .replace(/yy|YY/, $addZero(date.getFullYear() % 100, 2))
     .replace(/mm|MM/, $addZero(date.getMonth() + 1, 2))
@@ -25,20 +36,13 @@ function formatDate(timeStamp, formatstr) {
     .replace(/ss|SS/, $addZero(date.getSeconds(), 2))
     .replace(/s|S/g, date.getSeconds())
     .replace(/w|g/, $addZero(date.getDay(), 2))
-    .replace(/W/g, arrweek[date.getDay()]);
+    .replace(/W/g, week[date.getDay()]);
   return str;
-}
-function $addZero(v, size) {
-  for (var i = 0, len = size - (v + '').length; i < len; i++) {
-    v = '0' + v;
-  }
-  return v + '';
 }
 
 const ParseBaseQueryOptions = {
   sessionToken: global.sessionToken,
 };
-const customFieldKey = 'Dropdown';
 
 const executionInit = executions => {
   const executionResult = executions.map(ele => {
@@ -54,21 +58,24 @@ const executionInit = executions => {
   });
   return executionResult;
 };
+
 // 饼图数据初始化
-const levelPieInit = defects => {
-  const fieldOption = field?.data?.customData?.map(ele => {
+const generateLevelPieOption = defects => {
+  const fieldOption = severityLevelField?.data?.customData?.map(ele => {
     return {
       ...ele,
       count: 0,
     };
   });
+
   defects.forEach(defect => {
     fieldOption.forEach(option => {
-      if (defect?.values?.[customFieldKey]?.includes(option.value)) {
+      if (defect?.values?.[SeverityLevelFieldKey]?.includes(option.value)) {
         option.count++;
       }
     });
   });
+
   return fieldOption.map(ele => {
     return {
       name: ele.label,
@@ -78,10 +85,26 @@ const levelPieInit = defects => {
 };
 // 查询缺陷字段详情，获取option
 const appQuery = await apis.getParseQuery(false, 'CustomField');
-const field = await appQuery
-  .equalTo('key', customFieldKey)
-  .first(ParseBaseQueryOptions)
-  .then(item => item.toJSON());
+const severityLevelField = await appQuery
+  .equalTo('key', SeverityLevelFieldKey)
+  .first({ json: true, ...ParseBaseQueryOptions });
+
+// 严重等级的 Mapping
+const SeverityLevelLabelMapping = severityLevelField?.data?.customData?.reduce(
+  (res, data) => ({
+    ...res,
+    [data.value]: data.label,
+  }),
+  {},
+);
+
+// 遗留的数据类型
+const legacyDefectList = planStats.allDefects
+  .filter(defect => defect.status.type !== FinishedStatusType)
+  .map(defect => ({
+    key: defect.key,
+    severityLevel: SeverityLevelLabelMapping[defect.values[SeverityLevelFieldKey]],
+  }));
 
 const cumulatedExecutions = planStats.reduce((acc, plan) => {
   return acc.concat(plan.allTestExecutions).filter(Boolean);
@@ -115,11 +138,13 @@ const result = {
                 formatter: '{d}',
               },
             },
-            data: levelPieInit(cumulatedDefects),
+            data: generateLevelPieOption(cumulatedDefects),
           },
         ],
       },
     },
+    // 遗留缺陷 mixin 数据
+    legacyDefectList,
   },
 };
 

@@ -69,6 +69,7 @@ const getDefectId = datas => {
     .flat()
     .map(d => d.defectItemIds ?? [])
     .flat();
+
   const runDefectItemIds = runDetails.map(d => d?.defectItemIds ?? []).flat();
   return [...new Set([...stepDefectIds, ...runDefectItemIds])].filter(Boolean);
 };
