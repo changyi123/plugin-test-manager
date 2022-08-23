@@ -2,10 +2,6 @@
  * @file 测试报告模板基础数据
  * */
 
-const ParseBaseQueryOptions = {
-  sessionToken: global.sessionToken,
-};
-
 const { planStats, globalConfig } = global.body;
 
 const testStatusType = globalConfig.statuses;
@@ -91,25 +87,16 @@ const getTestExecution = datas =>
     testRunCount: d.testRun?.length ?? 0,
   }));
 
-const getDefect = (datas, typeList) => {
+const getDefect = datas => {
   const defects = getDataByFiled(datas, 'allDefects');
-  const defectMap = new Map();
-
-  typeList?.forEach(d => {
-    defectMap.set(d.key, defects.filter(e => e.status.objectId === d.objectId) ?? []);
-  });
-
-  const getLegacyDefectList = () =>
-    [...defectMap.entries()]
-      .filter(([key, _]) => key !== 'Finished')
-      .map(([_, value]) => value)
-      .flat();
+  const legacyList = defects.filter(d => d.status.type !== 'Finished');
+  const getLength = list => list.length ?? 0;
 
   return {
-    count: defects.length,
-    fixed: defectMap.get('Finished').length,
-    legacy: defects.length - defectMap.get('Finished')?.length,
-    legacyDefectList: getLegacyDefectList(),
+    count: getLength(defects),
+    fixed: getLength(defects) - getLength(legacyList),
+    legacy: getLength(legacyList),
+    legacyDefectList: legacyList,
     charts: {
       trendLine: getTrendLine(),
       levelPie: getLevelPie(),
@@ -228,29 +215,11 @@ const getStatusBar = () => {
   };
 };
 
-const getStatusList = async () => {
-  const statusQuery = await apis.getParseQuery(false, 'Status');
-  statusQuery.equalTo('isDefault', true);
-
-  const list = await statusQuery.find(ParseBaseQueryOptions);
-
-  return list
-    .map(d => d.toJSON())
-    .map(d => ({
-      key: d.type,
-      name: d.name,
-      type: d.type,
-      objectId: d.objectId,
-    }));
-};
-
 try {
-  const defectTypeList = await getStatusList();
-
   return {
     testCase: getTestCaseData(planStats),
     testExecution: getTestExecution(planStats),
-    defect: getDefect(planStats, defectTypeList),
+    defect: getDefect(planStats),
   };
 } catch (error) {
   console.error('report base error', error);

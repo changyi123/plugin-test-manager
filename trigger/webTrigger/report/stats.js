@@ -27,6 +27,16 @@ const compactData = (data, extraKeys = []) => {
     switch (data.className) {
       case 'Item':
         return ['objectId', 'className', 'createdAt', 'values'].concat(extraKeys);
+      case 'Status':
+        return [
+          'objectId',
+          'className',
+          'createdAt',
+          'name',
+          'type',
+          'isDefault',
+          'description',
+        ].concat(extraKeys);
       case 'test_manager_Test':
         return [
           'type',
@@ -109,7 +119,7 @@ const getTestEntityByRelation = async (relType, side, _config = {}) => {
   return data?.map(test => test.toJSON()) ?? [];
 };
 
-const getDefectItem = async (ids, config = {}) => {
+const getItemData = async (ids, config = {}) => {
   const itemQuery = await apis.getParseQuery(false, 'Item');
 
   itemQuery.containedIn('objectId', ids);
@@ -132,9 +142,9 @@ const getDefectItem = async (ids, config = {}) => {
     itemQuery.skip(queryParams.offset ?? 0);
   }
 
-  const data = await itemQuery.find(ParseBaseQueryOptions);
+  const data = await itemQuery.find({ ...ParseBaseQueryOptions, json: true });
 
-  return data?.map(item => item.toJSON()) ?? [];
+  return data ?? [];
 };
 
 const getToByFrom = (datas, filed, isHanleRef = false) =>
@@ -142,20 +152,23 @@ const getToByFrom = (datas, filed, isHanleRef = false) =>
     if (!prev[cur.from.objectId]?.reference && isHanleRef) {
       prev = {
         ...prev,
-        [cur.from.objectId]: compactData({
+        [cur.from.objectId]: {
           ...(prev[cur.from.objectId] ?? {}),
           reference: cur.from.reference,
-        }),
+        },
       };
     }
 
     if (cur.from.objectId) {
       prev = {
         ...prev,
-        [cur.from.objectId]: compactData({
+        [cur.from.objectId]: {
           ...(prev[cur.from.objectId] ?? {}),
-          [filed]: (prev[cur.from.objectId]?.[filed] ?? []).concat(cur.to),
-        }),
+          [filed]: (prev[cur.from.objectId]?.[filed] ?? []).concat(cur.to).map(d => ({
+            ...d,
+            reference: compactData(d.reference ?? {}),
+          })),
+        },
       };
     }
 
@@ -222,27 +235,18 @@ try {
       queryParams: {
         limit: 9999,
       },
-      include: [
-        'sortIndex',
-        'to.runReferenceDetail',
-        'to.runReferenceDetail.reference',
-        'to.runDetail',
-      ],
-      select: [
-        'sortIndex',
-        'to.runReferenceDetail',
-        'to.runReferenceDetail.reference',
-        'to.runDetail',
-      ],
+      include: ['sortIndex', 'to.runDetail'],
+      select: ['sortIndex', 'to.runDetail'],
     },
   );
 
   const globalConfig = await getGlobalConfig();
 
-  const defectItem = await getDefectItem(getDefectId(executionRunRel), {
+  const defectItem = await getItemData(getDefectId(executionRunRel), {
     queryParams: {
       limit: 9999,
     },
+    include: ['status'],
   });
 
   const testRuns = getToByFrom(executionRunRel, 'testRuns');
@@ -250,13 +254,16 @@ try {
 
   const planStats = testPlanIds.map(planId => ({
     key: planId,
-    ...getToByFrom(planDetailsRel, 'allTestCases')[planId],
-    reference: testExecution[planId]?.reference,
+    allTestCases: compactData(getToByFrom(planDetailsRel, 'allTestCases')[planId].allTestCases),
+    reference: compactData(testExecution[planId]?.reference, ['name']),
     allTestExecutions: testExecution[planId]?.testExecutions.map(d => ({
-      ...d,
-      testRun: (testRuns[d.objectId]?.testRuns ?? []).map(compactData),
+      ...compactData(d),
+      testRun: compactData(testRuns[d.objectId]?.testRuns ?? []),
     })),
-    allDefects: defectItem.map(compactData),
+    allDefects: defectItem.map(d => ({
+      ...compactData(d),
+      status: compactData(d.status),
+    })),
   }));
 
   return {
