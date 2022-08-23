@@ -135,7 +135,7 @@ const result = {
             label: {
               normal: {
                 position: 'inner',
-                formatter: '{d}',
+                formatter: '{c}',
               },
             },
             data: generateLevelPieOption(cumulatedDefects),
