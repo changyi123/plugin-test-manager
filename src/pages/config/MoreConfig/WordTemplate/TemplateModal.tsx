@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useEffect } from 'react';
 
 import { Modal, Form, Input, Select } from 'antd';
@@ -25,8 +26,8 @@ const TemplateModal: React.FC<ModalProps> = ({
   useEffect(() => {
     if (templateData) {
       // TODO:schema数据类型的问题
-      if (templateData.fileUrl && typeof templateData.fileUrl === 'string') {
-        templateData.fileUrl = JSON.parse(templateData.fileUrl);
+      if (templateData.file && typeof templateData.file === 'string') {
+        templateData.file = JSON.parse(templateData.file);
       }
       form.setFieldsValue(templateData);
     }
@@ -36,6 +37,33 @@ const TemplateModal: React.FC<ModalProps> = ({
     handleSubmit(values);
   };
   const onFinish = () => {};
+
+  // 上传字段适配
+  const UploadFieldAdapterProps = {
+    getValueFromEvent: files => {
+      const file = files[0];
+      if (!file) return files;
+      return {
+        ...file,
+        url: file.href,
+      };
+    },
+    getValueProps: file => {
+      const fileList = file
+        ? [
+            {
+              ...file,
+              href: file.url,
+            },
+          ]
+        : [];
+
+      return {
+        value: fileList,
+      };
+    },
+  };
+
   return (
     <Modal
       title="上传测试模板"
@@ -61,20 +89,27 @@ const TemplateModal: React.FC<ModalProps> = ({
           <Input placeholder="请输入模板名称" />
         </Form.Item>
 
-        <Form.Item label="应用空间" name="dataSet">
+        {/* <Form.Item label="应用空间" name="dataSet">
           <Select placeholder="请选择" disabled />
         </Form.Item>
 
         <Form.Item label="数据集" name="workspace">
           <Select placeholder="请选择" disabled />
-        </Form.Item>
+        </Form.Item> */}
 
         <Form.Item
+          name="file"
           label="模板上传"
-          name="fileUrl"
+          {...UploadFieldAdapterProps}
           rules={[{ required: true, message: '请上传模板!' }]}
         >
-          <UploadFile maxCount={1} />
+          <UploadFile
+            uploadProps={{
+              // 只支持 doc 和 docx 类型的文件上传
+              accept: '.doc,.docx',
+            }}
+            maxCount={1}
+          />
         </Form.Item>
       </Form>
     </Modal>

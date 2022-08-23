@@ -3,21 +3,15 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import Parse from '@/lib/parse';
 import { WordTemplate as WordTemplateObject } from '@/lib/models';
 
+import { FileType } from '@/lib/types/Test';
 import { Button, Table, message, Space, Modal } from 'antd';
 import TemplateModal from './TemplateModal';
 import cx from './index.less';
 
-export interface FileInterface {
-  href: string;
-  name: string;
-  status: string;
-  uid: string;
-}
-
 export interface WordTemplateInterface {
   objectId?: string;
   name: string;
-  fileUrl: FileInterface[] | string;
+  file: FileType;
   dataSet?: string[];
   workspace?: string[];
 }
@@ -58,20 +52,8 @@ export const wordTemplateApi = {
 const WordTemplate: React.FC = () => {
   const columns = [
     {
-      title: '标题',
+      title: '模板名称',
       dataIndex: 'name',
-    },
-    {
-      title: '是否可用',
-      dataIndex: 'age',
-    },
-    {
-      title: '应用空间',
-      dataIndex: 'address1',
-    },
-    {
-      title: '数据集',
-      dataIndex: 'address2',
     },
     {
       title: '操作',
@@ -112,10 +94,12 @@ const WordTemplate: React.FC = () => {
   useEffect(() => {
     getList();
   }, [getList]);
+
   const templateConfig = record => {
     setTemplateData(record);
     setVisible(true);
   };
+
   const templateDelete = record => {
     Modal.confirm({
       centered: true,

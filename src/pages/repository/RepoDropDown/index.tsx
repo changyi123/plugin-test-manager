@@ -75,22 +75,9 @@ const RepoDropDown = ({
         notification.success({
           message: '测试管理用例导出完成',
         });
-      } else {
-        // 触发 extraOptions 中的 onClick 事件
-        if (!Array.isArray(extraMenuOptions)) return;
-        const option = extraMenuOptions[Number(key)];
-        option.onClick(e);
       }
     },
-    [
-      workspace,
-      setPageLoading,
-      type,
-      folderKey,
-      selectedTestPlanId,
-      treeNodeData,
-      extraMenuOptions,
-    ],
+    [workspace, setPageLoading, type, folderKey, selectedTestPlanId, treeNodeData],
   );
 
   const menu = (

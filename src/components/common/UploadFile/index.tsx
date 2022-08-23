@@ -2,6 +2,8 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { CloudUploadOutlined, DownloadOutlined } from '@ant-design/icons';
 import { cloneDeep } from 'lodash';
 
+import { UploadProps } from 'antd/lib/upload';
+
 import { message, Upload } from 'antd';
 import Parse from '@/lib/parse';
 
@@ -25,10 +27,11 @@ export interface AnnexProps {
   onChange?: (data: annexData[]) => void;
   desc?: string;
   maxCount?: number;
+  uploadProps?: UploadProps;
 }
 
 const UploadFile: React.FC<AnnexProps> = props => {
-  const { readonly, onChange, value, desc, maxCount } = props;
+  const { readonly, onChange, value, desc, maxCount, uploadProps } = props;
   const [fileList, setFileList] = useState(EMPTY_FILE_LIST);
   const [flag, setFlag] = useState(false);
 
@@ -66,7 +69,9 @@ const UploadFile: React.FC<AnnexProps> = props => {
       setFlag(false);
     }
   }, [flag, onChange, fileList, maxCount, onRemove]);
+
   const draggerProps = {
+    ...uploadProps,
     fileList: fileList,
     name: 'annex',
     multiple: true,

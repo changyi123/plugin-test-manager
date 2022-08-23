@@ -34,7 +34,7 @@ type BaseTestEntity = {
     steps: Step[];
     precondition: string;
     defectItemIds?: string[];
-    attachments?: Attachment[]; // 附件
+    attachments?: FileType[]; // 附件
     /** 执行结果描述 */
     executeResultDesc?: Record<string, any>[];
   };
@@ -75,7 +75,7 @@ export type Status = {
 export type StepField = Record<'key' | 'value', any>;
 
 // 附件
-export type Attachment = {
+export type FileType = {
   url: string; // 文件地址
   status: string; // 上传状态
   name: string;
@@ -107,7 +107,7 @@ export type Step = {
   customFields?: StepField[]; // 自定义字段
 };
 
-export type comment = {
+export type Comment = {
   id: string; // 评论 ID
   value: any; // 评论内容
   createTime: string; // 评论时间
@@ -120,7 +120,7 @@ export type WordTemplate = {
   // 该模板是否可用
   enable: boolean;
   // 文件地址
-  fileUrl: string;
+  file: FileType;
 
   // TODO: 数据集
   dataSet: any[];

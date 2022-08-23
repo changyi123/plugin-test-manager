@@ -10,7 +10,7 @@ import { NullishCommandResultError, ObjectCommandResultError } from 'docx-templa
 window.Buffer = window.Buffer || require('buffer').Buffer;
 
 /** 插件请求前缀 */
-const PluginWebTriggerPrefix = '/api/app/osc/test_manager/webhooks/';
+const PluginWebTriggerPrefix = '/api/app/osc/test_manager/webhooks';
 const DefaultImageOptions = {
   width: 12,
   height: 9.6,
@@ -86,7 +86,9 @@ export default class TemplateGenerator {
     },
   };
 
-  constructor() {}
+  constructor(wordTemplateData) {
+    this.wordTemplate = wordTemplateData;
+  }
 
   /** 生成测试报告 */
   generateReport = async (
@@ -95,10 +97,8 @@ export default class TemplateGenerator {
   ) => {
     const { fileName = '测试报告', testPlanIds } = options;
     const docTemplateOptions = { ...this.docTemplateBasicOptions, ...mixTemplateOptions };
-    // FIXME:
-    const fileUrl =
-      this.wordTemplate?.fileUrl ??
-      'http://192.168.48.34/parse/files/osc/%E5%89%AF%E6%9C%AC%E6%B5%8B%E8%AF%95%E6%8A%A5%E5%91%8A.docx';
+    const fileUrl = this.wordTemplate.file.url;
+    if (!fileUrl) return;
 
     const templateFile = await fetch.$get(fileUrl, {
       responseType: 'arraybuffer',

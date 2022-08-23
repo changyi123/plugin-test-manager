@@ -197,10 +197,6 @@ const getLevelPie = () => {
         },
       },
     ],
-    imageOptions: {
-      width: 12,
-      height: 10.95,
-    },
   };
 };
 
@@ -253,7 +249,7 @@ try {
   return {
     testCase: getTestCaseData(planStats),
     testExecution: getTestExecution(planStats),
-    testDefect: getTestDefect(planStats, defectTypeList),
+    defect: getTestDefect(planStats, defectTypeList),
   };
 } catch (error) {
   console.error('report base error', error);

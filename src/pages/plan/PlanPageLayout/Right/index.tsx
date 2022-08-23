@@ -14,6 +14,7 @@ import { usePageContext } from '../../hook';
 import { useSetTableHeight } from './hooks';
 import ExecutionStatus from '../ExecutionStatus';
 import WordReport from '@/lib/report';
+import { getFirstWordTemplate } from '@/lib/api/report';
 
 import cx from './index.less';
 
@@ -165,7 +166,9 @@ const Right: React.FC<RightProps> = props => {
   };
 
   const generateReport = async () => {
-    new WordReport().generateReport({
+    // TODO: 选取测试报告，当前只取系统第一个
+    const wordTemplate = await getFirstWordTemplate();
+    new WordReport(wordTemplate).generateReport({
       fileName: `${selectedTestPlan.reference.name}-测试报告`,
       testPlanIds: [selectedTestPlan?.objectId],
     });

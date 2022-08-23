@@ -269,8 +269,8 @@ tables:
     fields:
       name:
         type: String
-      fileUrl:
-        type: String
+      file:
+        type: Object
       # enable:
       #   type: Boolean
       # command:

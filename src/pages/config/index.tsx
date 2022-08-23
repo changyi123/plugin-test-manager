@@ -30,7 +30,7 @@ const MoreConfigPages = [
     key: 'WordTemplate',
     title: '测试报告模板管理',
     component: WordTemplate,
-    description: '模板管理',
+    description: '测试报告模板管理',
     isGlobalConfig: true,
   },
 ];
