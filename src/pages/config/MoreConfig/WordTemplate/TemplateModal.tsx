@@ -42,7 +42,7 @@ const TemplateModal: React.FC<ModalProps> = ({
   const UploadFieldAdapterProps = {
     getValueFromEvent: files => {
       const file = files[0];
-      if (!file) return files;
+      if (!file) return null;
       return {
         ...file,
         url: file.href,

@@ -4,7 +4,10 @@
 
 const { planStats } = global.body;
 
-// TODO: 严重程度自定义字段 Key
+// TODO: 替换下列常量
+// 测试执行任务
+const InProgressAtFieldKey = 'inProgressAt';
+// 严重程度自定义字段 Key
 const SeverityLevelFieldKey = 'Dropdown';
 // 已完成的状态类型
 const FinishedStatusType = 'Finished';
@@ -51,7 +54,7 @@ const executionInit = executions => {
       executionDateRange: `${formatDate(
         ele?.reference?.values?.finishAt,
         'YYYY.MM.DD',
-      )} - ${formatDate(ele?.reference?.values?.inProgressAt, 'YYYY.MM.DD')}`,
+      )} - ${formatDate(ele?.reference?.values?.[InProgressAtFieldKey], 'YYYY.MM.DD')}`,
       fixedDefectCount: 0,
       legacyDefectCount: 0,
     };
@@ -98,14 +101,6 @@ const SeverityLevelLabelMapping = severityLevelField?.data?.customData?.reduce(
   {},
 );
 
-// 遗留的数据类型
-const legacyDefectList = planStats.allDefects
-  .filter(defect => defect.status.type !== FinishedStatusType)
-  .map(defect => ({
-    key: defect.key,
-    severityLevel: SeverityLevelLabelMapping[defect.values[SeverityLevelFieldKey]],
-  }));
-
 const cumulatedExecutions = planStats.reduce((acc, plan) => {
   return acc.concat(plan.allTestExecutions).filter(Boolean);
 }, []);
@@ -113,6 +108,14 @@ const cumulatedExecutions = planStats.reduce((acc, plan) => {
 const cumulatedDefects = planStats.reduce((acc, plan) => {
   return acc.concat(plan.allDefects).filter(Boolean);
 }, []);
+
+// 遗留的数据类型
+const legacyDefectList = cumulatedDefects
+  .filter(defect => defect.status.type !== FinishedStatusType)
+  .map(defect => ({
+    key: defect.key,
+    severityLevel: SeverityLevelLabelMapping[defect.values[SeverityLevelFieldKey]],
+  }));
 
 const result = {
   testExecution: executionInit(cumulatedExecutions),
