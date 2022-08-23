@@ -110,6 +110,14 @@ const WordTemplate: React.FC = () => {
           await wordTemplateApi.delete({ objectId: record.objectId });
           getList();
           message.success('删除成功！');
+          // 删除模板数据后删除文件
+          const arr = record.file?.href?.split('/') || [];
+          const fileName = arr[arr.length - 1];
+          if (fileName) {
+            Parse.Cloud.run('deleteFile', {
+              fileName: fileName,
+            });
+          }
         } catch (error) {
           message.error(error?.message || '删除失败！');
         }
