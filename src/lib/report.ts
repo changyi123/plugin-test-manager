@@ -13,7 +13,7 @@ window.Buffer = window.Buffer || require('buffer').Buffer;
 const PluginWebTriggerPrefix = '/api/app/osc/test_manager/webhooks';
 const DefaultImageOptions = {
   width: 12,
-  height: 9,
+  height: 10,
   extension: '.png',
 };
 export default class TemplateGenerator {
@@ -37,7 +37,12 @@ export default class TemplateGenerator {
     additionalJsContext: {
       // 绘制图表
       drawIMAGEChart: options => {
-        const { imageOptions, ...restChartOptions } = options;
+        const { imageOptions: incomingImageOptions, ...restChartOptions } = options;
+
+        const imageOptions = {
+          ...DefaultImageOptions,
+          ...incomingImageOptions,
+        };
 
         const generateEchartImageData = chartOptions => {
           const div = document.createElement('div');
@@ -49,9 +54,19 @@ export default class TemplateGenerator {
           // 截图需要关闭动画效果
           chart.setOption(Object.assign(chartOptions, { animation: false }));
 
+          const hasRectAttributes = Boolean(imageOptions.width && imageOptions.height);
+          const AMP = 1000;
+          const ChartRectAttributes = hasRectAttributes
+            ? {
+                width: imageOptions.width * AMP,
+                height: imageOptions.height * AMP,
+              }
+            : {};
+
           const dataURL = chart.getDataURL({
             type: 'png',
             pixelRatio: 2,
+            ...ChartRectAttributes,
           });
           const data = dataURL.slice('data:image/png;base64,'.length);
           div.remove();
