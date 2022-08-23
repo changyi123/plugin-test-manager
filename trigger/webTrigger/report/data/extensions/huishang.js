@@ -38,7 +38,9 @@ function $addZero(v, size) {
 const ParseBaseQueryOptions = {
   sessionToken: global.sessionToken,
 };
-const customFieldKey = 'Dropdown';
+
+// TODO: 严重程度的 key
+const CustomFieldKey = 'Dropdown';
 
 const executionInit = executions => {
   const executionResult = executions.map(ele => {
@@ -64,7 +66,7 @@ const levelPieInit = defects => {
   });
   defects.forEach(defect => {
     fieldOption.forEach(option => {
-      if (defect?.values?.[customFieldKey]?.includes(option.value)) {
+      if (defect?.values?.[CustomFieldKey]?.includes(option.value)) {
         option.count++;
       }
     });
@@ -79,7 +81,7 @@ const levelPieInit = defects => {
 // 查询缺陷字段详情，获取option
 const appQuery = await apis.getParseQuery(false, 'CustomField');
 const field = await appQuery
-  .equalTo('key', customFieldKey)
+  .equalTo('key', CustomFieldKey)
   .first(ParseBaseQueryOptions)
   .then(item => item.toJSON());
 

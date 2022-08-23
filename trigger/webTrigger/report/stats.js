@@ -109,7 +109,7 @@ const getTestEntityByRelation = async (relType, side, _config = {}) => {
   return data?.map(test => test.toJSON()) ?? [];
 };
 
-const getDefectItem = async (ids, config = {}) => {
+const getItemData = async (ids, config = {}) => {
   const itemQuery = await apis.getParseQuery(false, 'Item');
 
   itemQuery.containedIn('objectId', ids);
@@ -132,9 +132,9 @@ const getDefectItem = async (ids, config = {}) => {
     itemQuery.skip(queryParams.offset ?? 0);
   }
 
-  const data = await itemQuery.find(ParseBaseQueryOptions);
+  const data = await itemQuery.find({ ...ParseBaseQueryOptions, json: true });
 
-  return data?.map(item => item.toJSON()) ?? [];
+  return data ?? [];
 };
 
 const getToByFrom = (datas, filed, isHanleRef = false) =>
@@ -239,10 +239,11 @@ try {
 
   const globalConfig = await getGlobalConfig();
 
-  const defectItem = await getDefectItem(getDefectId(executionRunRel), {
+  const defectItem = await getItemData(getDefectId(executionRunRel), {
     queryParams: {
       limit: 9999,
     },
+    include: ['status'],
   });
 
   const testRuns = getToByFrom(executionRunRel, 'testRuns');

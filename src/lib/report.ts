@@ -13,7 +13,7 @@ window.Buffer = window.Buffer || require('buffer').Buffer;
 const PluginWebTriggerPrefix = '/api/app/osc/test_manager/webhooks';
 const DefaultImageOptions = {
   width: 12,
-  height: 9.6,
+  height: 9,
   extension: '.png',
 };
 export default class TemplateGenerator {

@@ -73,6 +73,7 @@ const getDefectId = datas => {
     .flat()
     .map(d => d.defectItemIds ?? [])
     .flat();
+
   const runDefectItemIds = runDetails.map(d => d?.defectItemIds ?? []).flat();
   return [...new Set([...stepDefectIds, ...runDefectItemIds])].filter(Boolean);
 };
@@ -245,12 +246,10 @@ const getStatusList = async () => {
 };
 
 try {
-  const defectTypeList = await getStatusList();
-
   return {
     testCase: getTestCaseData(planStats),
     testExecution: getTestExecution(planStats),
-    defect: getDefect(planStats, defectTypeList),
+    defect: getDefect(planStats),
   };
 } catch (error) {
   console.error('report base error', error);
