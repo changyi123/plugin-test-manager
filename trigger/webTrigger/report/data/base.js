@@ -154,6 +154,7 @@ const getTrendLine = () => {
     },
     series: [
       {
+        name: '缺陷数',
         data: [7, 5, 6, 10, 3, 2, 1],
         type: 'line',
       },
