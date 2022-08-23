@@ -91,7 +91,7 @@ const getTestExecution = datas =>
     testRunCount: d.testRun?.length ?? 0,
   }));
 
-const getTestDefect = (datas, typeList) => {
+const getDefect = (datas, typeList) => {
   const defects = getDataByFiled(datas, 'allDefects');
   const defectMap = new Map();
 
@@ -254,7 +254,7 @@ try {
   return {
     testCase: getTestCaseData(planStats),
     testExecution: getTestExecution(planStats),
-    testDefect: getTestDefect(planStats, defectTypeList),
+    defect: getDefect(planStats, defectTypeList),
   };
 } catch (error) {
   console.error('report base error', error);
