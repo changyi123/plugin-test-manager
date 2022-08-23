@@ -26,17 +26,9 @@ const compactData = (data, extraKeys = []) => {
   const getIgnoredDataKeys = data => {
     switch (data.className) {
       case 'Item':
-        return ['objectId', 'className', 'createdAt', 'values'].concat(extraKeys);
+        return ['objectId', 'className', 'createdAt', 'values', 'name', 'key'].concat(extraKeys);
       case 'Status':
-        return [
-          'objectId',
-          'className',
-          'createdAt',
-          'name',
-          'type',
-          'isDefault',
-          'description',
-        ].concat(extraKeys);
+        return ['objectId', 'name', 'type'].concat(extraKeys);
       case 'test_manager_Test':
         return [
           'type',

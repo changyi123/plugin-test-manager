@@ -36,7 +36,7 @@ export default class TemplateGenerator {
     // failFast: false,
     additionalJsContext: {
       // 绘制图表
-      drawChart: options => {
+      drawIMAGEChart: options => {
         const { imageOptions, ...restChartOptions } = options;
 
         const generateEchartImageData = chartOptions => {
@@ -65,10 +65,38 @@ export default class TemplateGenerator {
         };
       },
 
-      // 渲染 html
-      renderHTML: htmlString => {
-        // TODO: 处理保留标签
-        return htmlString;
+      //TODO: 针对复杂样式的表格（单元格合并，动态列）使用 html 形式渲染 table
+      injectHTMLTable: options => {
+        const { columns, dataSource } = options;
+        const Table = document.createElement('table');
+        const THead = document.createElement('thead');
+
+        const TableGenerators = {
+          _setAttribute: (dom, options) => {
+            const { colspan, rowspan, name } = options;
+            dom.setAttribute('colspan', colspan);
+            dom.setAttribute('rowspan', rowspan);
+            dom.innerHTML = name;
+          },
+
+          tr: (options, container) => {
+            const tr = document.createElement('tr');
+            TableGenerators._setAttribute(tr, options);
+            container.appendChild(tr);
+          },
+
+          th: (options, container) => {
+            const th = document.createElement('th');
+            TableGenerators._setAttribute(th, options);
+            container.appendChild(th);
+          },
+
+          td: (options, container) => {
+            const td = document.createElement('td');
+            TableGenerators._setAttribute(td, options);
+            container.appendChild(td);
+          },
+        };
       },
     },
     errorHandler: (error, _code) => {
@@ -157,6 +185,7 @@ export default class TemplateGenerator {
         ) {
           const sourceKeyMap = keyBy(srcValue, 'key');
           return objValue.map((item, index) => ({
+            // 列表默认加上序号
             _seqNumber: index + 1,
             ...item,
             ...sourceKeyMap[item.key],
