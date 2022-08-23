@@ -91,7 +91,7 @@ const getTestExecution = datas =>
     testRunCount: d.testRun?.length ?? 0,
   }));
 
-const getTestDefect = (datas, typeList) => {
+const getDefect = (datas, typeList) => {
   const defects = getDataByFiled(datas, 'allDefects');
   const defectMap = new Map();
 
@@ -154,6 +154,7 @@ const getTrendLine = () => {
     },
     series: [
       {
+        name: '缺陷数',
         data: [7, 5, 6, 10, 3, 2, 1],
         type: 'line',
       },
@@ -249,7 +250,7 @@ try {
   return {
     testCase: getTestCaseData(planStats),
     testExecution: getTestExecution(planStats),
-    defect: getTestDefect(planStats, defectTypeList),
+    defect: getDefect(planStats, defectTypeList),
   };
 } catch (error) {
   console.error('report base error', error);
