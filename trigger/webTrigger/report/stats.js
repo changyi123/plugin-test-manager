@@ -218,6 +218,14 @@ try {
     },
   );
 
+  if (planExecutionRel?.length === 0) {
+    return {
+      planStats: {},
+      globalConfig,
+      errors: ['测试计划无测试执行任务'],
+    };
+  }
+
   const executionRunRel = await getTestEntityByRelation(
     ExecutionRelRun,
     {
@@ -246,7 +254,9 @@ try {
 
   const planStats = testPlanIds.map(planId => ({
     key: planId,
-    allTestCases: compactData(getToByFrom(planDetailsRel, 'allTestCases')[planId].allTestCases),
+    allTestCases: compactData(
+      getToByFrom(planDetailsRel, 'allTestCases')?.[planId]?.allTestCases ?? [],
+    ),
     reference: compactData(testExecution[planId]?.reference, ['name']),
     allTestExecutions: testExecution[planId]?.testExecutions.map(d => ({
       ...compactData(d),
