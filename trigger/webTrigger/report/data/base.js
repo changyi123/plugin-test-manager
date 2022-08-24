@@ -162,6 +162,9 @@ const getTrendLine = datas => {
         name: '缺陷数',
         data: yData,
         type: 'line',
+        label: {
+          show: true,
+        },
       },
     ],
   };
