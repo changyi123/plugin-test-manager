@@ -48,24 +48,34 @@ export default class TemplateGenerator {
           const div = document.createElement('div');
           (
             div as any
-          ).style = `position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: -9999; opacity: 0;`;
+          ).style = `position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -9999; opacity: 0;`;
           document.body.appendChild(div);
 
-          const hasRectAttributes = Boolean(
+          const UseCustomChartSize = Boolean(
             imageOptions.useCustomSize && imageOptions.width && imageOptions.height,
           );
 
-          // 放大倍率
-          const AMP = 100;
-          const ChartRectAttributes = hasRectAttributes
-            ? {
-                width: imageOptions.width * AMP,
-                height: imageOptions.height * AMP,
-              }
-            : {};
+          let chartRectOptions = {};
+
+          if (UseCustomChartSize) {
+            // 放大倍率
+            const AMP = 100;
+
+            const CustomChartSize = {
+              width: imageOptions.width * AMP,
+              height: imageOptions.height * AMP,
+            } as const;
+
+            chartRectOptions = CustomChartSize;
+            Object.entries(CustomChartSize).forEach(([key, value]) => {
+              (div as any).style[key] = `${value}px`;
+            });
+          }
+
           const chart = echarts.init(div, {
-            ...ChartRectAttributes,
+            ...chartRectOptions,
           });
+
           // 截图需要关闭动画效果
           chart.setOption(Object.assign(chartOptions, { animation: false }));
 
@@ -74,6 +84,7 @@ export default class TemplateGenerator {
             // pixelRatio: 2,
           });
           const data = dataURL.slice('data:image/png;base64,'.length);
+          chart.dispose();
           div.remove();
           return data;
         };

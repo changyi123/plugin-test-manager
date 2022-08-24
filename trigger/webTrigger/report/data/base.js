@@ -171,6 +171,7 @@ const getLevelPie = () => {
         name: 'Access From',
         type: 'pie',
         radius: '50%',
+        center: ['50%', '50%'],
         data: [
           { value: 15, name: '严重' },
           { value: 33, name: '一般' },
@@ -190,7 +191,7 @@ const getLevelPie = () => {
       // 调整 height，防止饼图失真
       useCustomSize: true,
       width: 12,
-      height: 10,
+      height: 9.16,
     },
   };
 };
