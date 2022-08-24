@@ -6,6 +6,7 @@ import { MenuItemProps } from 'antd/lib/menu/MenuItem';
 import importTestInfo, { TreeNode, downloadExampleFile } from './export';
 import { Button, Dropdown, Menu, message, notification, Spin } from 'antd';
 import { getProximaBasePath, getTenantKey, inIframe } from '@/lib/utils/helper';
+import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/hook';
 
 const RepoDropDown = ({
   type,
@@ -25,6 +26,11 @@ const RepoDropDown = ({
   setPageLoading?: (val: boolean) => void;
 }) => {
   const { workspace } = useTestConfig();
+  // 条件判断是否需要获取 screenKey
+  const testDetailFieldKeys = useTestTypeScreenFieldKeys({
+    testType: 'TestDetail',
+    workspaceKey: workspace?.key,
+  });
 
   const menuClick = useCallback(
     async e => {
@@ -40,7 +46,7 @@ const RepoDropDown = ({
         }?app=test_manager&&disableToggleWorkspace${appendedQueryString}`;
         window.open(href);
       } else if (key === 'example') {
-        downloadExampleFile();
+        downloadExampleFile(testDetailFieldKeys);
       } else if (['exportAll', 'exportGroup', 'exportPlan'].includes(key)) {
         // 导出逻辑
         notification.open({
@@ -77,7 +83,15 @@ const RepoDropDown = ({
         });
       }
     },
-    [workspace, setPageLoading, type, folderKey, selectedTestPlanId, treeNodeData],
+    [
+      workspace,
+      testDetailFieldKeys,
+      setPageLoading,
+      type,
+      folderKey,
+      selectedTestPlanId,
+      treeNodeData,
+    ],
   );
 
   const menu = (

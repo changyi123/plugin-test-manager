@@ -11,6 +11,9 @@ import { escapeHtmlString } from '@/lib/utils/helper';
 import { getRepoData, handleRepoPath } from '@/components/business/RepositoryGroup/repository';
 import { UNGROUPED_FOLDER_KEY } from '../constant';
 import { arrayToTree } from '@/lib/utils/arrayToTree';
+import { getCustomFields } from '@/lib/api/proxima';
+import { SYSTEM_FIELD } from '@/lib/constants';
+import { difference } from 'lodash';
 
 export type TreeNode = {
   key: string;
@@ -282,7 +285,17 @@ const importTestInfo = async (args: ImportArgs, excelData = []) => {
 };
 
 /** 下载 excel 用例导出文件 */
-export const downloadExampleFile = async () => {
+export const downloadExampleFile = async fieldKeys => {
+  // 获取需要导出的自定义字段
+  const SystemFieldKeys = Object.values(SYSTEM_FIELD);
+  const CustomFieldKeys = difference(fieldKeys, SystemFieldKeys);
+  const CustomFields = await getCustomFields(CustomFieldKeys);
+  const ExportCustomFields = CustomFields.reduce((res, field) => {
+    return {
+      ...res,
+      [field.name]: field.description ?? '',
+    };
+  }, {});
   exportExcelFile(
     [
       {
@@ -294,6 +307,7 @@ export const downloadExampleFile = async () => {
         步骤描述: '【1】需要以【序号】开头\n【2】步骤描述中换行符会被保留',
         预期结果: '【1】需要以【序号】开头\n【2】预期结果中换行符会被保留',
         数据: '【1】需要以【序号】开头\n【2】数据中换行符会被保留',
+        ...ExportCustomFields,
       },
     ],
     'sheet1',
