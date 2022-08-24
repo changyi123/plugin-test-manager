@@ -11,4 +11,5 @@ export type TabsComponentBaseProps = {
   onDataChange: () => void;
   onLoading: (loading?: boolean) => void;
   handleStatusChangeBySteps?: (status) => void;
+  selectedTestPlanId?: string;
 };
