@@ -272,8 +272,8 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
             </Button>
             <RepoDropDown
               type="repository"
-              folderKey={state.selectedFolderKey}
               treeNodeData={folderTreeData}
+              folderKey={state.selectedFolderKey}
             />
           </div>
         </div>
