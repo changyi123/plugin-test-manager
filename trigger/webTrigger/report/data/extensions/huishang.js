@@ -8,7 +8,7 @@ const { planStats } = global.body;
 // 测试执行任务
 const InProgressAtFieldKey = 'inProgressAt';
 // 严重程度自定义字段 Key
-const SeverityLevelFieldKey = 'Dropdown';
+const SeverityLevelFieldKey = 'severity';
 // 已完成的状态类型
 const FinishedStatusType = 'Finished';
 
@@ -138,7 +138,7 @@ const result = {
             label: {
               normal: {
                 position: 'inner',
-                formatter: '{d}',
+                formatter: '{c}',
               },
             },
             data: generateLevelPieOption(cumulatedDefects),
