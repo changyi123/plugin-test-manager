@@ -28,7 +28,7 @@ const compactData = (data, extraKeys = []) => {
       case 'Item':
         return ['objectId', 'className', 'createdAt', 'values', 'name', 'key'].concat(extraKeys);
       case 'Status':
-        return ['objectId', 'name', 'type'].concat(extraKeys);
+        return ['objectId', 'className', 'name', 'type'].concat(extraKeys);
       case 'test_manager_Test':
         return [
           'type',
@@ -146,7 +146,7 @@ const getToByFrom = (datas, filed, isHanleRef = false) =>
         ...prev,
         [cur.from.objectId]: {
           ...(prev[cur.from.objectId] ?? {}),
-          reference: cur.from.reference,
+          reference: cur.from?.reference ?? {},
         },
       };
     }
@@ -158,7 +158,7 @@ const getToByFrom = (datas, filed, isHanleRef = false) =>
           ...(prev[cur.from.objectId] ?? {}),
           [filed]: (prev[cur.from.objectId]?.[filed] ?? []).concat(cur.to).map(d => ({
             ...d,
-            reference: compactData(d.reference ?? {}),
+            reference: compactData(d?.reference ?? {}),
           })),
         },
       };
