@@ -13,7 +13,7 @@ window.Buffer = window.Buffer || require('buffer').Buffer;
 const PluginWebTriggerPrefix = '/api/app/osc/test_manager/webhooks';
 const DefaultImageOptions = {
   width: 12,
-  height: 10,
+  height: 9,
   extension: '.png',
 };
 export default class TemplateGenerator {
@@ -50,23 +50,28 @@ export default class TemplateGenerator {
             div as any
           ).style = `position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: -9999; opacity: 0;`;
           document.body.appendChild(div);
-          const chart = echarts.init(div);
-          // 截图需要关闭动画效果
-          chart.setOption(Object.assign(chartOptions, { animation: false }));
 
-          const hasRectAttributes = Boolean(imageOptions.width && imageOptions.height);
-          const AMP = 1000;
+          const hasRectAttributes = Boolean(
+            imageOptions.useCustomSize && imageOptions.width && imageOptions.height,
+          );
+
+          // 放大倍率
+          const AMP = 100;
           const ChartRectAttributes = hasRectAttributes
             ? {
                 width: imageOptions.width * AMP,
                 height: imageOptions.height * AMP,
               }
             : {};
+          const chart = echarts.init(div, {
+            ...ChartRectAttributes,
+          });
+          // 截图需要关闭动画效果
+          chart.setOption(Object.assign(chartOptions, { animation: false }));
 
           const dataURL = chart.getDataURL({
             type: 'png',
-            pixelRatio: 2,
-            ...ChartRectAttributes,
+            // pixelRatio: 2,
           });
           const data = dataURL.slice('data:image/png;base64,'.length);
           div.remove();
