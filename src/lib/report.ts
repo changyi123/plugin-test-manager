@@ -37,7 +37,12 @@ export default class TemplateGenerator {
     additionalJsContext: {
       // 绘制图表
       drawIMAGEChart: options => {
-        const { imageOptions, ...restChartOptions } = options;
+        const { imageOptions: incomingImageOptions, ...restChartOptions } = options;
+
+        const imageOptions = {
+          ...DefaultImageOptions,
+          ...incomingImageOptions,
+        };
 
         const generateEchartImageData = chartOptions => {
           const div = document.createElement('div');
@@ -45,13 +50,28 @@ export default class TemplateGenerator {
             div as any
           ).style = `position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: -9999; opacity: 0;`;
           document.body.appendChild(div);
-          const chart = echarts.init(div);
+
+          const hasRectAttributes = Boolean(
+            imageOptions.useCustomSize && imageOptions.width && imageOptions.height,
+          );
+
+          // 放大倍率
+          const AMP = 100;
+          const ChartRectAttributes = hasRectAttributes
+            ? {
+                width: imageOptions.width * AMP,
+                height: imageOptions.height * AMP,
+              }
+            : {};
+          const chart = echarts.init(div, {
+            ...ChartRectAttributes,
+          });
           // 截图需要关闭动画效果
           chart.setOption(Object.assign(chartOptions, { animation: false }));
 
           const dataURL = chart.getDataURL({
             type: 'png',
-            pixelRatio: 2,
+            // pixelRatio: 2,
           });
           const data = dataURL.slice('data:image/png;base64,'.length);
           div.remove();

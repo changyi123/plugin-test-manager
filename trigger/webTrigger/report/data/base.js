@@ -188,7 +188,9 @@ const getLevelPie = () => {
     ],
     imageOptions: {
       // 调整 height，防止饼图失真
-      height: 9.81,
+      useCustomSize: true,
+      width: 12,
+      height: 10.8,
     },
   };
 };
