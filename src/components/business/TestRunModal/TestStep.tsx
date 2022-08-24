@@ -27,6 +27,7 @@ const TestStep: React.FC<TestStepProps> = props => {
     allRelationDefects,
     onLoading,
     handleStatusChangeBySteps,
+    selectedTestPlanId,
   } = props;
   const { TestToDefect = '' } = useItemLinkTypeConfig();
   const steps = testRunData.runDetail?.steps ?? [];
@@ -45,7 +46,7 @@ const TestStep: React.FC<TestStepProps> = props => {
     );
     await Promise.all([
       addDefect(TestToDefect, testRunData.objectId, defectItemIds),
-      updateTestRun(testRunEntity, { steps: needUpdateSteps }),
+      updateTestRun(testRunEntity, { steps: needUpdateSteps, planId: selectedTestPlanId }),
     ]);
     onDataChange();
   };
@@ -61,7 +62,7 @@ const TestStep: React.FC<TestStepProps> = props => {
 
     await Promise.all([
       deleteDefect(TestToDefect, testRunData.objectId, [defectItemId]),
-      updateTestRun(testRunEntity, { steps: needUpdateSteps }),
+      updateTestRun(testRunEntity, { steps: needUpdateSteps, planId: selectedTestPlanId }),
     ]);
     onDataChange();
   };
@@ -70,7 +71,7 @@ const TestStep: React.FC<TestStepProps> = props => {
   const handleStatusChange = async (stepId, status) => {
     onLoading();
     const needUpdateSteps = steps.map(step => (step.id === stepId ? { ...step, status } : step));
-    await updateTestRun(testRunEntity, { steps: needUpdateSteps });
+    await updateTestRun(testRunEntity, { steps: needUpdateSteps, planId: selectedTestPlanId });
     await onDataChange();
     setStatusChangeBySteps(true);
   };

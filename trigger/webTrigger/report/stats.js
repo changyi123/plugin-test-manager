@@ -46,10 +46,10 @@ const compactData = (data, extraKeys = []) => {
 
   // 事项类型数据
   if (Array.isArray(data)) {
-    return data.map(item => pick(item, getIgnoredDataKeys(item)));
+    return data.map(item => pick(item, getIgnoredDataKeys(item ?? {})));
   }
 
-  return pick(data, getIgnoredDataKeys(data));
+  return pick(data, getIgnoredDataKeys(data ?? {}));
 };
 
 const ParseBaseQueryOptions = {
@@ -126,6 +126,12 @@ const getItemData = async (ids, config = {}) => {
 
   if (hasArrayItem(config.select)) {
     itemQuery.include(config.select);
+  }
+
+  if (hasArrayItem(config.ascendingBy)) {
+    itemQuery.addAscending(config.ascendingBy);
+  } else if (config.descendingBy) {
+    itemQuery.addDescending(config.descendingBy);
   }
 
   if (config.queryParams && typeof config.queryParams === 'object') {
@@ -218,6 +224,14 @@ try {
     },
   );
 
+  // if (planExecutionRel?.length === 0) {
+  //   return {
+  //     planStats: {},
+  //     globalConfig,
+  //     errors: ['测试计划无测试执行任务'],
+  //   };
+  // }
+
   const executionRunRel = await getTestEntityByRelation(
     ExecutionRelRun,
     {
@@ -239,6 +253,7 @@ try {
       limit: 9999,
     },
     include: ['status'],
+    ascendingBy: ['createdAt'],
   });
 
   const testRuns = getToByFrom(executionRunRel, 'testRuns');
@@ -246,7 +261,9 @@ try {
 
   const planStats = testPlanIds.map(planId => ({
     key: planId,
-    allTestCases: compactData(getToByFrom(planDetailsRel, 'allTestCases')[planId].allTestCases),
+    allTestCases: compactData(
+      getToByFrom(planDetailsRel, 'allTestCases')?.[planId]?.allTestCases ?? [],
+    ),
     reference: compactData(testExecution[planId]?.reference, ['name']),
     allTestExecutions: testExecution[planId]?.testExecutions.map(d => ({
       ...compactData(d),
@@ -257,6 +274,8 @@ try {
       status: compactData(d.status),
     })),
   }));
+
+  // console.log(1111, planStats[0].allDefects);
 
   return {
     planStats,

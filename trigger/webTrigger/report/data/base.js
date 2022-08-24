@@ -50,9 +50,9 @@ const getTestCaseData = data => {
   return {
     total: caseData.total,
     passedPercent:
-      Math.floor((getTestCount(caseData.allTestMap, 'PASSED') / (caseData.total ?? 1)) * 100) || 0,
+      Math.round((getTestCount(caseData.allTestMap, 'PASSED') / (caseData.total ?? 1)) * 100) || 0,
     failedPercent:
-      Math.floor((getTestCount(caseData.allTestMap, 'FAILED') / (caseData.total ?? 1)) * 100) || 0,
+      Math.round((getTestCount(caseData.allTestMap, 'FAILED') / (caseData.total ?? 1)) * 100) || 0,
     statusList: testStatusType.map(d => ({
       ...d,
       count: getTestCount(caseData.allTestMap, d.key),
@@ -75,14 +75,16 @@ const getDefectId = datas => {
 };
 
 const getDataByFiled = (datas, filed) =>
-  datas?.reduce((prev, cur) => {
-    prev = prev.concat(cur?.[filed]);
-    return prev;
-  }, []);
+  datas
+    ?.reduce((prev, cur) => {
+      prev = prev.concat(cur?.[filed]);
+      return prev;
+    }, [])
+    .filter(Boolean);
 
 const getTestExecution = datas =>
   getDataByFiled(datas, 'allTestExecutions').map(d => ({
-    name: d.reference?.name,
+    name: d?.reference?.name ?? '',
     key: d.objectId,
     defectCount: getDefectId(d.testRun).length,
     testRunCount: d.testRun?.length ?? 0,
@@ -99,31 +101,46 @@ const getDefect = datas => {
     legacy: getLength(legacyList),
     legacyDefectList: legacyList,
     charts: {
-      trendLine: getTrendLine(),
-      levelPie: getLevelPie(),
-      statusBar: getStatusBar(),
+      trendLine: getTrendLine(defects),
+      levelPie: getLevelPie(defects),
+      statusBar: getStatusBar(defects),
     },
   };
 };
 
-const getDate = () => {
-  const date = new Date();
-  const array = new Array(7).fill();
+const getLineData = datas => {
+  const defectListMap = new Map();
 
-  return array
-    .reduce((prev, _, index) => {
-      const n = index ? 1 : 0;
-      date.setDate(date.getDate() - n);
+  const getDateArray = array =>
+    array?.map(d => {
+      const date = new Date(d.createdAt);
+      const _date = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+      defectListMap.set(_date, (defectListMap.get(_date) ?? []).concat(d));
+      return _date;
+    }) ?? [];
 
-      prev = prev.concat(`${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`);
+  const array = [...new Set(getDateArray(datas))];
 
-      return prev;
-    }, [])
-    .reverse();
+  return {
+    xData: array,
+    yData: array.map(d => defectListMap.get(d)?.length ?? 0),
+  };
+
+  // return array
+  //   .reduce((prev, _, index) => {
+  //     const n = index ? 1 : 0;
+  //     date.setDate(date.getDate() - n);
+
+  //     prev = prev.concat(`${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`);
+
+  //     return prev;
+  //   }, [])
+  //   .reverse();
 };
 
 // TODO 获取折线图配置
-const getTrendLine = () => {
+const getTrendLine = datas => {
+  const { xData, yData } = getLineData(datas);
   // 基础假数据
   return {
     title: {
@@ -135,7 +152,7 @@ const getTrendLine = () => {
     },
     xAxis: {
       type: 'category',
-      data: getDate(),
+      data: xData,
     },
     yAxis: {
       type: 'value',
@@ -143,7 +160,7 @@ const getTrendLine = () => {
     series: [
       {
         name: '缺陷数',
-        data: [7, 5, 6, 10, 3, 2, 1],
+        data: yData,
         type: 'line',
       },
     ],
@@ -151,7 +168,7 @@ const getTrendLine = () => {
 };
 
 // TODO 获取饼图配置
-const getLevelPie = () => {
+const getLevelPie = _ => {
   return {
     title: {
       text: '缺陷严重程度统计表',
@@ -173,10 +190,10 @@ const getLevelPie = () => {
         radius: '50%',
         center: ['50%', '50%'],
         data: [
-          { value: 15, name: '严重' },
-          { value: 33, name: '一般' },
-          { value: 8, name: '微小' },
-          { value: 2, name: '建议' },
+          { value: 0, name: '严重' },
+          { value: 0, name: '一般' },
+          { value: 0, name: '微小' },
+          { value: 0, name: '建议' },
         ],
         emphasis: {
           itemStyle: {
@@ -196,8 +213,21 @@ const getLevelPie = () => {
   };
 };
 
+const getBarData = datas => {
+  const statusMap = new Map();
+  datas.forEach(d => {
+    statusMap.set(d.status.name, (statusMap.get(d.status.name) ?? []).concat(d));
+  });
+
+  const xData = [...statusMap.keys()];
+
+  return { xData, yData: xData.map(d => statusMap.get(d)?.length ?? 0) };
+};
+
 // TODO 获取柱状图配置
-const getStatusBar = () => {
+const getStatusBar = datas => {
+  const { xData, yData } = getBarData(datas);
+
   return {
     title: {
       text: '缺陷状态分析',
@@ -205,14 +235,14 @@ const getStatusBar = () => {
     },
     xAxis: {
       type: 'category',
-      data: ['已关闭', '已否决已关闭', '遗留'],
+      data: xData,
     },
     yAxis: {
       type: 'value',
     },
     series: [
       {
-        data: [48, 8, 2],
+        data: yData,
         type: 'bar',
         label: {
           show: true,
