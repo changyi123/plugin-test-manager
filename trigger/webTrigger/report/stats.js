@@ -5,6 +5,8 @@
 
 const APP_KEY = global.appKey ?? 'test_manager';
 
+const PROXIMA_GATEWAY = global?.env?.PROXIMA_GATEWAY ?? '';
+
 const testPlanIds = global?.body?.testPlanIds ?? [];
 
 // 压缩响应数据大小，移除无用数据字段
@@ -70,7 +72,7 @@ const defaultConfig = {
   needOriginSideId: true,
   // 需要关联关系数据
   needRelationData: true,
-  ascendingBy: ['sortIndex', 'createdAt'],
+  ascendingBy: ['createdAt'],
   descendingBy: [],
   resultTransfer: data => data,
   queryParams: {
@@ -98,6 +100,12 @@ const getTestEntityByRelation = async (relType, side, _config = {}) => {
 
   if (hasArrayItem(select)) {
     testRelationQuery.include(select);
+  }
+
+  if (hasArrayItem(config.ascendingBy)) {
+    testRelationQuery.addAscending(config.ascendingBy);
+  } else if (config.descendingBy) {
+    testRelationQuery.addDescending(config.descendingBy);
   }
 
   if (config.queryParams && typeof config.queryParams === 'object') {
@@ -195,6 +203,16 @@ const getGlobalConfig = async () => {
   return globalConfig?.extra ?? {};
 };
 
+const getDefectStatusList = async defectId => {
+  if (!defectId) return [];
+  const res = await apis.get(`${PROXIMA_GATEWAY}/parse/api/workflows/item/${defectId}`, {
+    'X-Parse-Session-Token': global.sessionToken,
+    'X-Parse-Application-Id': global.applicationId,
+  });
+
+  return res?.data?.nodes ?? [];
+};
+
 try {
   const planDetailsRel = await getTestEntityByRelation(
     PlanRelDetail,
@@ -221,16 +239,9 @@ try {
       },
       include: ['to.reference', 'from.reference'],
       select: ['to.reference', 'from.reference'],
+      ascendingBy: ['createdAt'],
     },
   );
-
-  // if (planExecutionRel?.length === 0) {
-  //   return {
-  //     planStats: {},
-  //     globalConfig,
-  //     errors: ['测试计划无测试执行任务'],
-  //   };
-  // }
 
   const executionRunRel = await getTestEntityByRelation(
     ExecutionRelRun,
@@ -241,8 +252,8 @@ try {
       queryParams: {
         limit: 9999,
       },
-      include: ['sortIndex', 'to.runDetail'],
-      select: ['sortIndex', 'to.runDetail'],
+      include: ['to.runDetail'],
+      select: ['to.runDetail', 'to.status'],
     },
   );
 
@@ -275,11 +286,24 @@ try {
     })),
   }));
 
-  // console.log(1111, planStats[0].allDefects);
+  const defectId = defectItem?.[0]?.objectId ?? '';
+
+  const defectStatusList = await getDefectStatusList(defectId);
 
   return {
     planStats,
-    globalConfig,
+    globalConfig: {
+      ...globalConfig,
+      defectStatusList: defectStatusList
+        .filter(d => d.statusId !== 'start_node')
+        .map(d => ({
+          id: d.id,
+          statusId: d.statusId,
+          key: d.key,
+          name: d.name,
+          type: d.type,
+        })),
+    },
   };
 } catch (err) {
   console.error('report stats error', err);

@@ -2,9 +2,10 @@
  * @file 测试报告模板基础数据
  * */
 
-const { planStats, globalConfig } = global.body;
+const { planStats, globalConfig } = global?.body ?? {};
 
-const testStatusType = globalConfig.statuses;
+const testStatusType = globalConfig?.statuses ?? [];
+const defectStatusList = globalConfig?.defectStatusList ?? [];
 
 const getTestCount = (data, type) => data.get(type)?.length ?? 0;
 
@@ -82,17 +83,32 @@ const getDataByFiled = (datas, filed) =>
     }, [])
     .filter(Boolean);
 
+const getFixCount = (datas, ids) => {
+  const defects = getDataByFiled(datas, 'allDefects')?.filter(
+    d => ids?.includes(d.objectId) && d.status.type === 'Finished',
+  );
+
+  return defects.length ?? 0;
+};
+
 const getTestExecution = datas =>
-  getDataByFiled(datas, 'allTestExecutions').map(d => ({
-    name: d?.reference?.name ?? '',
-    key: d.objectId,
-    defectCount: getDefectId(d.testRun).length,
-    testRunCount: d.testRun?.length ?? 0,
-  }));
+  getDataByFiled(datas, 'allTestExecutions').map(d => {
+    const defects = getDefectId(d.testRun);
+    const fixed = getFixCount(datas, defects);
+
+    return {
+      name: d?.reference?.name ?? '',
+      key: d.objectId,
+      defectCount: defects.length,
+      testRunCount: d.testRun.filter(d => d.status && d.status !== 'TODO')?.length ?? 0,
+      fixedDefectCount: fixed,
+      legacyDefectCount: defects.length - fixed,
+    };
+  });
 
 const getDefect = datas => {
   const defects = getDataByFiled(datas, 'allDefects');
-  const legacyList = defects.filter(d => d.status.type !== 'Finished');
+  const legacyList = defects.filter(d => d.status?.type !== 'Finished');
   const getLength = list => list.length ?? 0;
 
   return {
@@ -140,19 +156,33 @@ const getLineData = datas => {
 
 // TODO 获取折线图配置
 const getTrendLine = datas => {
+  if (!datas?.length) {
+    return {
+      noData: true,
+    };
+  }
   const { xData, yData } = getLineData(datas);
   // 基础假数据
   return {
     title: {
       text: '缺陷收敛趋势图',
       left: 'center',
+      textStyle: {
+        fontSize: 24,
+      },
     },
     legend: {
       left: 'right',
+      textStyle: {
+        fontSize: 18,
+      },
     },
     xAxis: {
       type: 'category',
       data: xData,
+      axisLabel: {
+        rotate: 45,
+      },
     },
     yAxis: {
       type: 'value',
@@ -168,11 +198,19 @@ const getTrendLine = datas => {
 };
 
 // TODO 获取饼图配置
-const getLevelPie = _ => {
+const getLevelPie = datas => {
+  if (!datas?.length) {
+    return {
+      noData: true,
+    };
+  }
   return {
     title: {
       text: '缺陷严重程度统计表',
       left: 'center',
+      textStyle: {
+        fontSize: 24,
+      },
     },
     color: ['#ee6666', '#5470c6', '#91cc75', '#fac858'],
     tooltip: {
@@ -182,6 +220,9 @@ const getLevelPie = _ => {
       orient: 'center',
       left: 'right',
       top: '35%',
+      textStyle: {
+        fontSize: 18,
+      },
     },
     series: [
       {
@@ -214,27 +255,39 @@ const getLevelPie = _ => {
 
 const getBarData = datas => {
   const statusMap = new Map();
-  datas.forEach(d => {
-    statusMap.set(d.status.name, (statusMap.get(d.status.name) ?? []).concat(d));
-  });
+  const xData = defectStatusList.map(d => {
+    const _data = datas.filter(e => e.status.name === d.name);
+    statusMap.set(d.name, (statusMap.get(d.name) ?? []).concat(_data));
 
-  const xData = [...statusMap.keys()];
+    return d.name;
+  });
 
   return { xData, yData: xData.map(d => statusMap.get(d)?.length ?? 0) };
 };
 
 // TODO 获取柱状图配置
 const getStatusBar = datas => {
+  if (!datas?.length) {
+    return {
+      noData: true,
+    };
+  }
   const { xData, yData } = getBarData(datas);
 
   return {
     title: {
       text: '缺陷状态分析',
       left: 'center',
+      textStyle: {
+        fontSize: 24,
+      },
     },
     xAxis: {
       type: 'category',
       data: xData,
+      axisLabel: {
+        rotate: 45,
+      },
     },
     yAxis: {
       type: 'value',
