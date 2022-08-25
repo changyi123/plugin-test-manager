@@ -5,8 +5,12 @@
 const { planStats } = global?.body ?? {};
 
 // TODO: 替换下列常量
-// 测试执行任务
-const InProgressAtFieldKey = 'inProgressAt';
+// 测试执行任务开始时间
+const ExecutionStartDateFieldKey = 'date_plan_start_date';
+// 测试执行任务结束时间 (徽商生产环境)
+const ExecutionEndFieldKey = 'date_end_date';
+// 徽商测试环境的结束时间（备选）
+const ExecutionEndAlternateFieldKey = 'date_plan_completion_date';
 // 严重程度自定义字段 Key
 const SeverityLevelFieldKey = 'severity';
 // 已完成的状态类型
@@ -81,12 +85,20 @@ const executionInit = executions => {
     const defects = getDefectId(ele.testRun);
     const fixedCount = getFixCount(cumulatedDefects, defects);
 
+    const itemValues = ele?.reference?.values ?? {};
+
+    // 测试执行任务计划开始日期
+    const executionStartDate = itemValues[ExecutionStartDateFieldKey];
+    // 测试执行任务计划完成时间，兼容性取值方案
+    const executionEndDate =
+      itemValues[ExecutionEndFieldKey] ?? itemValues[ExecutionEndAlternateFieldKey];
+
     return {
       key: ele.objectId,
-      executionDateRange: `${formatDate(
-        ele?.reference?.values?.finishAt,
+      executionDateRange: `${formatDate(executionStartDate, 'YYYY.MM.DD')} - ${formatDate(
+        executionEndDate,
         'YYYY.MM.DD',
-      )} - ${formatDate(ele?.reference?.values?.[InProgressAtFieldKey], 'YYYY.MM.DD')}`,
+      )}`,
       fixedDefectCount: fixedCount,
       legacyDefectCount: defects.length - fixedCount,
     };
@@ -145,41 +157,38 @@ const result = {
   testExecution: executionInit(cumulatedExecutions),
   defect: {
     charts: {
-      levelPie: cumulatedDefects?.length
-        ? {
-            title: {
-              text: '缺陷严重程度统计表',
-              left: 'center',
-              textStyle: {
-                fontSize: 24,
-              },
-            },
-            legend: {
-              orient: 'center',
-              left: 'right',
-              top: '35%',
-              textStyle: {
-                fontSize: 18,
-              },
-            },
-            series: [
-              {
-                name: 'Access From',
-                type: 'pie',
-                radius: '50%',
-                label: {
-                  normal: {
-                    position: 'inner',
-                    formatter: '{c}',
-                  },
-                },
-                data: generateLevelPieOption(cumulatedDefects),
-              },
-            ],
-          }
-        : {
-            noData: true,
+      levelPie: {
+        noData: !cumulatedDefects?.length,
+        title: {
+          text: '缺陷严重程度统计表',
+          left: 'center',
+          textStyle: {
+            fontSize: 24,
           },
+        },
+        legend: {
+          orient: 'center',
+          left: 'right',
+          top: '35%',
+          textStyle: {
+            fontSize: 18,
+          },
+        },
+        series: [
+          {
+            name: 'Access From',
+            type: 'pie',
+            radius: '50%',
+            label: {
+              normal: {
+                position: 'inner',
+                formatter: '{c}',
+              },
+            },
+            data: generateLevelPieOption(cumulatedDefects),
+          },
+        ],
+      },
     },
     // 遗留缺陷 mixin 数据
     legacyDefectList,
