@@ -14,7 +14,7 @@ const CurrentWorkspaceStorageKey = generateStorageKey('current-workspace');
 /**
  * 空间配置初始化
  * 1. 为所有空间创建空间级别的配置
- * 2. 开启事项隔离后，为所有事项类型层级方案增加内置事项类型
+ * 2. 开启事项隔离后，为所有类型层级方案增加内置类型
  */
 const useConfigBootstrap = globalConfig => {
   const allWorkspaces = useAllTestWorkspace();

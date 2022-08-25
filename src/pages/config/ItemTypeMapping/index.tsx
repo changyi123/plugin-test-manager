@@ -72,7 +72,7 @@ const ItemTypeMapping = () => {
             }));
           }}
           value={selectedItemType}
-          placeholder="请选择事项类型"
+          placeholder="请选择类型"
           className={cx('item-type-selector')}
         ></Select>
       );
@@ -86,7 +86,7 @@ const ItemTypeMapping = () => {
       itemTypeMap: itemTypeMapping,
     });
 
-    message.success('事项类型关联配置保存成功');
+    message.success('类型关联配置保存成功');
   };
 
   return (

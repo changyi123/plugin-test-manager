@@ -60,7 +60,7 @@ export const TestTypeNameMapping = {
   [TestType.TestDefect]: '缺陷',
 };
 
-// 内置三种事项类型标识
+// 内置三种类型标识
 export const BuiltinItemTypeMapping = {
   [TestType.TestDetail]: 'test_manager_detail',
   [TestType.TestPlan]: 'test_manager_plan',
@@ -112,7 +112,7 @@ export const FIELD_TYPE_KEY_MAPPINGS = {
   Workflow: 'Workflow', // 流程状态 -> list
   Workspace: 'Workspace', //空间 -> list
   Name: 'Name', // 事项标题 -> list
-  ItemType: 'ItemType', // 事项类型 -> list
+  ItemType: 'ItemType', // 类型 -> list
   Screen: 'Screen', // 界面类型 -> screen
   Status: 'Status', // 事项状态 -> status
   FieldCollection: 'FieldCollection', // 字段集合
@@ -256,7 +256,7 @@ export const FILTER_EXPRESSIONS = {
     { label: '不属于', value: FILTER_EXPR_NAME.BindWorkspace_Not_Contain },
   ],
   ItemType: [
-    //事项类型
+    //类型
     { label: '属于', value: FILTER_EXPR_NAME.ItemType_Contain },
     { label: '不属于', value: FILTER_EXPR_NAME.ItemType_Not_Contain },
   ],

@@ -155,7 +155,7 @@ const Detail: React.FC = () => {
   if (!testDetailId) {
     return (
       <div className={css('detail')}>
-        <div>获取不了事项Id</div>
+        <div>获取不了 Key</div>
         <div>
           <Button type="primary" onClick={() => window?.QiankunProps?.onRefreshContext()}>
             重新加载

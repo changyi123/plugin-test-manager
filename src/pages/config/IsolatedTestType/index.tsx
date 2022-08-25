@@ -9,7 +9,7 @@ import { TestTypeNameMapping, TestType } from '@/lib/constants';
 
 import cx from './index.less';
 
-// 所有隔离事项类型配置
+// 所有隔离类型配置
 const AllIsolateTestType = [
   TestType.TestDefect,
   TestType.TestDetail,

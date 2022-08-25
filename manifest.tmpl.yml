@@ -114,7 +114,7 @@ modules:
     - key: test_manager_detail
       name: 测试用例
       icon: /icons/Issue_Story.svg
-      description: 测试管理事项类型-测试用例
+      description: 测试管理类型-测试用例
       displayConditions:
         displayModules:
           adminPage:
@@ -130,7 +130,7 @@ modules:
     - key: test_manager_plan
       name: 测试计划
       icon: /icons/Issue_Plan.svg
-      description: 测试管理事项类型-测试计划
+      description: 测试管理类型-测试计划
       displayConditions:
         displayModules:
           adminPage:
@@ -146,7 +146,7 @@ modules:
     - key: test_manager_execution
       name: 测试执行任务
       icon: /icons/Issue_Approval.svg
-      description: 测试管理事项类型-测试执行任务
+      description: 测试管理类型-测试执行任务
       displayConditions:
         displayModules:
           adminPage:

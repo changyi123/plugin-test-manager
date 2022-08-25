@@ -375,7 +375,7 @@ const getNameByPrefix = name => {
     description: `测试管理_${name}（忽改）`,
   };
 };
-// 事项类型标题
+// 类型标题
 const BaseItemTypes = [
   { name: '测试用例', alias: 'testCase' },
   {
@@ -413,7 +413,7 @@ const initialScriptRunner = async () => {
     };
   };
 
-  // 前置数据创建（事项类型，状态）
+  // 前置数据创建（类型，状态）
   const createPrepareData = async () => {
     let itemTypes = await apis.getAllData(false, 'ItemType', { key: APP_KEY });
     let statues = await apis.getAllData(false, 'Status', { description: '测试管理_状态' });
@@ -478,7 +478,7 @@ const initialScriptRunner = async () => {
       getNameByPrefix('空间配置方案'),
     );
     if (workspaceScheme) return workspaceScheme;
-    // 事项类型层级方案
+    // 类型层级方案
     let itemTypeScheme = await apis.getData(
       false,
       'ItemTypeScheme',
@@ -503,7 +503,7 @@ const initialScriptRunner = async () => {
     let [screen, screenScheme, itemTypeScreenScheme] = await Promise.all([
       apis.getData(false, 'Screen', getNameByPrefix('界面')),
       apis.getData(false, 'ScreenScheme', getNameByPrefix('界面方案')),
-      apis.getData(false, 'ItemTypeScreenScheme', getNameByPrefix('事项类型界面方案')),
+      apis.getData(false, 'ItemTypeScreenScheme', getNameByPrefix('类型界面方案')),
     ]);
 
     if (!screen) {
@@ -541,13 +541,13 @@ const initialScriptRunner = async () => {
       const parseObject = await apis.getParseObject(false, 'ItemTypeScreenScheme');
       parseObject.set({
         ...getCommonFields(),
-        ...getNameByPrefix('事项类型界面方案'),
+        ...getNameByPrefix('类型界面方案'),
         defaultScreenScheme: screenScheme,
       });
 
       [itemTypeScreenScheme] = await apis.saveAllObject([parseObject]);
 
-      console.info('事项类型界面方案创建成功');
+      console.info('类型界面方案创建成功');
     }
 
     // 空间工作流方案

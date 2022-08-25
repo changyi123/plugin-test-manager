@@ -17,7 +17,7 @@ const ItemTypeDropBox = (props: {
   onDropSuccess?: (data: { key: string; type: 'moveIn' | 'moveOut' }) => void;
 }) => {
   const { itemTypes, type, onDropSuccess } = props;
-  // 拖拽事项类型
+  // 拖拽类型
   const ItemTypeDragItem = ({ data }) => {
     const ref = React.useRef(null);
     useDrag({ type, key: data.key }, ref);
@@ -102,7 +102,7 @@ const DefectMapping = () => {
     <>
       <div className={cx('drop-container')}>
         <div className={cx('drop-area')}>
-          <h6>可用事项类型</h6>
+          <h6>可用类型</h6>
           <ItemTypeDropBox
             type="moveOut"
             onDropSuccess={handleDropSuccess}
