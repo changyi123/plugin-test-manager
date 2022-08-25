@@ -29,7 +29,7 @@ function formatDate(timeStamp, formatStr) {
   }
   const date = new Date(timeStamp);
   // TODO bug 解析时间减了1天
-  date.setDate(date.getDate() + 1);
+  // date.setDate(date.getDate() + 1);
   // TODO 时间解析不对
   const week = ['日', '一', '二', '三', '四', '五', '六'];
   const str = formatStr
@@ -125,12 +125,14 @@ const generateLevelPieOption = defects => {
     });
   });
 
-  return fieldOption.map(ele => {
-    return {
-      name: ele.label,
-      value: ele.count,
-    };
-  });
+  return fieldOption
+    .filter(d => d.count)
+    .map(ele => {
+      return {
+        name: ele.label,
+        value: ele.count,
+      };
+    });
 };
 // 查询缺陷字段详情，获取option
 const appQuery = await apis.getParseQuery(false, 'CustomField');
@@ -186,10 +188,8 @@ const result = {
             type: 'pie',
             radius: '50%',
             label: {
-              normal: {
-                position: 'inner',
-                formatter: '{c}',
-              },
+              fontSize: 16,
+              formatter: '{c}',
             },
             data: generateLevelPieOption(cumulatedDefects),
           },

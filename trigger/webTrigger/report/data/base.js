@@ -164,24 +164,34 @@ const getTrendLine = datas => {
       text: '缺陷收敛趋势图',
       left: 'center',
       textStyle: {
-        fontSize: 24,
+        fontSize: 28,
       },
     },
     legend: {
       left: 'right',
       textStyle: {
-        fontSize: 18,
+        fontSize: 20,
       },
     },
     xAxis: {
       type: 'category',
       data: xData,
       axisLabel: {
+        show: true,
+        textStyle: {
+          fontSize: 16,
+        },
         rotate: 45,
       },
     },
     yAxis: {
       type: 'value',
+      axisLabel: {
+        show: true,
+        textStyle: {
+          fontSize: 16,
+        },
+      },
     },
     series: [
       {
@@ -204,10 +214,20 @@ const getLevelPie = datas => {
       text: '缺陷严重程度统计表',
       left: 'center',
       textStyle: {
-        fontSize: 24,
+        fontSize: 28,
       },
     },
-    color: ['#ee6666', '#5470c6', '#91cc75', '#fac858'],
+    color: [
+      '#ee6666',
+      '#5470c6',
+      '#91cc75',
+      '#fac858',
+      '#73c0de',
+      '#3ba272',
+      '#fc8452',
+      '#9a60b4',
+      '#ea7ccc',
+    ],
     tooltip: {
       trigger: 'item',
     },
@@ -216,7 +236,7 @@ const getLevelPie = datas => {
       left: 'right',
       top: '35%',
       textStyle: {
-        fontSize: 18,
+        fontSize: 20,
       },
     },
     series: [
@@ -224,7 +244,10 @@ const getLevelPie = datas => {
         name: '严重程度',
         type: 'pie',
         radius: '50%',
-        center: ['50%', '50%'],
+        label: {
+          fontSize: 16,
+          formatter: '{c}',
+        },
         data: [
           { value: 0, name: '严重' },
           { value: 0, name: '一般' },
@@ -271,18 +294,28 @@ const getStatusBar = datas => {
       text: '缺陷状态分析',
       left: 'center',
       textStyle: {
-        fontSize: 24,
+        fontSize: 28,
       },
     },
     xAxis: {
       type: 'category',
       data: xData,
       axisLabel: {
+        show: true,
+        textStyle: {
+          fontSize: 16,
+        },
         rotate: 45,
       },
     },
     yAxis: {
       type: 'value',
+      axisLabel: {
+        show: true,
+        textStyle: {
+          fontSize: 16,
+        },
+      },
     },
     series: [
       {
