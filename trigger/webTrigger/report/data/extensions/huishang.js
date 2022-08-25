@@ -125,14 +125,12 @@ const generateLevelPieOption = defects => {
     });
   });
 
-  return fieldOption
-    .filter(d => d.count)
-    .map(ele => {
-      return {
-        name: ele.label,
-        value: ele.count,
-      };
-    });
+  return fieldOption.map(ele => {
+    return {
+      name: ele.label,
+      value: ele.count,
+    };
+  });
 };
 // 查询缺陷字段详情，获取option
 const appQuery = await apis.getParseQuery(false, 'CustomField');
