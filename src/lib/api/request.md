@@ -16,7 +16,7 @@
      .equalTo('reference', ItemPointer);
    ```
 
-3. 事项类型与测试类型改变关联，重新索引
+3. 类型与测试类型改变关联，重新索引
 
    ```javascript
    // destroyAll

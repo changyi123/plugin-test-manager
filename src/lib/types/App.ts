@@ -329,11 +329,11 @@ export interface ItemLinkType extends BaseParseObject {
   name: string;
   inward?: string;
   outward?: string;
-  type?: string; // 事项类型
-  inwardItemType?: string; // 关联方事项类型
-  outwardItemType?: string; // 被关联方事项类型
-  inwardItemTypeMappings?: string[]; // 关联方指定的事项类型
-  outwardItemTypeMappings?: string[]; // 被关联方指定的事项类型
+  type?: string; // 类型
+  inwardItemType?: string; // 关联方类型
+  outwardItemType?: string; // 被关联方类型
+  inwardItemTypeMappings?: string[]; // 关联方指定的类型
+  outwardItemTypeMappings?: string[]; // 被关联方指定的类型
 }
 
 export interface ItemLink extends BaseParseObject {

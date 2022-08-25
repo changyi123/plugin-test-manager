@@ -38,9 +38,9 @@ const MoreConfigPages = [
 const ConfigPages = [
   {
     key: 'ItemTypeMapping',
-    title: '事项类型关联配置',
+    title: '类型关联配置',
     component: ItemTypeMapping,
-    description: '配置当前空间测试管理类型关联的事项类型',
+    description: '配置当前空间测试管理类型关联的类型',
   },
   {
     key: 'defectsMapping',

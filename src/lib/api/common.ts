@@ -760,7 +760,7 @@ export const getAllTestConfigs = (selectKeys?: string[]) => {
 };
 
 /**
- * 获取整个租户测试类型关联的事项类型
+ * 获取整个租户测试类型关联的类型
  */
 export const getItemTypeMap = () => {
   return new Parse.Query(TestConfig).reduce((res, { itemTypeMap }) => {

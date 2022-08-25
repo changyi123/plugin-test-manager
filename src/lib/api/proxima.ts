@@ -61,7 +61,7 @@ export const getItemByIQL = async (
 
   Array.isArray(excludeItemId) && iql.whereNot('id', excludeItemId);
   Array.isArray(itemId) ? iql.whereIn('id', itemId) : iql.where('id', itemId);
-  Array.isArray(itemKey) ? iql.whereIn('事项ID', itemKey) : iql.where('事项ID', itemKey);
+  Array.isArray(itemKey) ? iql.whereIn('key', itemKey) : iql.where('key', itemKey);
 
   if (nameLike && typeof nameLike === 'string') {
     iql.whereLike('标题', nameLike);
@@ -70,7 +70,7 @@ export const getItemByIQL = async (
   if (nameOrKeyLike && typeof nameOrKeyLike === 'string') {
     iql.or(
       new IQLBuilder().whereLike('标题', nameOrKeyLike),
-      new IQLBuilder().whereLike('事项ID', nameOrKeyLike),
+      new IQLBuilder().whereLike('key', nameOrKeyLike),
     );
   }
 
@@ -165,7 +165,7 @@ export const getItemTypeById = async id => {
   return itemType?.toJSON();
 };
 
-/** 获取层级视图顶级事项类型 */
+/** 获取层级视图顶级类型 */
 export const getTopItemTypeFromHierarchy = async workspaceId => {
   const itemTypeScheme = await new Parse.Query(Workspace)
     .include('itemTypeScheme')
@@ -176,7 +176,7 @@ export const getTopItemTypeFromHierarchy = async workspaceId => {
   return hierarchy;
 };
 
-/** 获取所有的事项类型 */
+/** 获取所有的类型 */
 export const getAllItemTypes = async (showHiddenItemType = false) => {
   return new Parse.Query(ItemType).limit(9999).find({
     context: {
@@ -185,9 +185,9 @@ export const getAllItemTypes = async (showHiddenItemType = false) => {
   });
 };
 
-/** 获取内置事项类型 */
+/** 获取内置类型 */
 export const getBuiltinItemTypes = async () => {
-  // 内置事项类型的 key
+  // 内置类型的 key
   const builtinItemTypeKeys = Object.values(BuiltinItemTypeMapping);
   const itemTypes = await new Parse.Query(ItemType)
     .containedIn('key', builtinItemTypeKeys)
@@ -289,7 +289,7 @@ export const updateUsedHierarchySchema = async () => {
     .then(list => list.map(item => item.toJSON()));
   const needUpdatedParseObjects = itemTypeSchemes.reduce((res, itemTypeScheme) => {
     const hierarchy = JSON.parse(itemTypeScheme.hierarchy ?? '[]');
-    // 事项层级方案中不存在的事项类型
+    // 事项层级方案中不存在的类型
     const notExistedBuiltinItemTypesInHierarchy = builtinItemTypes.filter(
       itemType => !hierarchy.some(item => itemType.key === item.key),
     );

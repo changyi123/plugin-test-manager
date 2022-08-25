@@ -237,7 +237,7 @@ const getComponentValue: (selector: SelectCase) => componentValueProps = selecto
     return { curIqlValue: `'${usernames[0]}'`, nullIql };
   }
 
-  // 空间类型、事项类型、事项组、优先级、绑定空间、状态类型 使用事项名称
+  // 空间类型、类型、事项组、优先级、绑定空间、状态类型 使用事项名称
   if (isUseOptionLabel(component)) {
     // 当条件是 属于_Contain 或 不属于_Not_Contain 时，需要支持多选
     if (expression.includes('_Not_Contain') || expression.includes('_Contain')) {
@@ -320,7 +320,7 @@ const getCurIqlValue = (fieldName: string, selector): IQL => {
 // 标题搜索 xx => (xx or yy)
 const toIqlName = (selector: SelectCase) => {
   const { value } = selector;
-  return value ? `('标题' ~ '${value}' or '事项ID' = '${value}')` : '';
+  return value ? `('标题' ~ '${value}' or 'key' = '${value}')` : '';
 };
 
 // iql语句转换
@@ -425,7 +425,7 @@ export const excludeIqlFunctionContext = (iql: IQL): IQL => {
 
 export const hasWorkspace = (iql: IQL): boolean => !!iql?.includes('所属空间');
 
-export const hasItemType = (iql: IQL): boolean => !!iql?.includes('事项类型');
+export const hasItemType = (iql: IQL): boolean => !!iql?.includes('类型');
 
 // 给IQL加上默认空间
 export const withWorkspace = (iql: IQL, workspaceKey): IQL => {
@@ -437,7 +437,7 @@ export const withWorkspace = (iql: IQL, workspaceKey): IQL => {
   return result;
 };
 
-// 给IQL加上默认事项类型
+// 给IQL加上默认类型
 export const withItemType = (iql: IQL, itemType: string): IQL => {
   const itemTypeCase =
     itemType &&

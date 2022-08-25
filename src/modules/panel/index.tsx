@@ -28,11 +28,11 @@ const TestPanel = () => {
         <Result
           className={cx('empty')}
           status="404"
-          title="当前事项类型不存在测试管理事项类型关联配置中"
+          title="当前类型不存在测试管理类型关联配置中"
           subTitle={
             <span>
               请前往 <span className={cx('breadcrumb')}>系统设置 &gt; 插件 &gt; 测试管理配置 </span>
-              页面 ，选择事项类型关联配置进行配置
+              页面 ，选择类型关联配置进行配置
             </span>
           }
         ></Result>

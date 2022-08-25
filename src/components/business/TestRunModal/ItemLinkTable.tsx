@@ -7,7 +7,7 @@ const { ItemIcon } = components.Components.Common;
 
 const tableColumns = [
   {
-    title: '事项ID',
+    title: 'Key',
     dataIndex: 'key',
   },
   {
@@ -15,7 +15,7 @@ const tableColumns = [
     dataIndex: 'name',
   },
   {
-    title: '事项类型',
+    title: '类型',
     dataIndex: 'itemType',
     render(itemType) {
       return (

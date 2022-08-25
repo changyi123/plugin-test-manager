@@ -164,7 +164,7 @@ export const useAllTestConfigs = (
   return testConfigs;
 };
 
-/** 获取测试管理类型关联的事项类型 */
+/** 获取测试管理类型关联的类型 */
 export const useTestTypeUsedItemTypes = () => {
   const testConfigs = useAllTestConfigs();
 

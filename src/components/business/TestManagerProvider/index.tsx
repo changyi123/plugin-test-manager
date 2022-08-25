@@ -139,7 +139,7 @@ const getOrBatchCreateTestEntities = async (
     // 获取空间配置数据
     const testConfigs = await getTestConfigByWorkspaceKeys(multipleWorkspaceKeys);
 
-    // 多空间事项类型映射配置
+    // 多空间类型映射配置
     const itemTypeMappingWorkspaceMap = testConfigs.reduce(
       (acc, cur) => ({
         ...acc,
@@ -160,7 +160,7 @@ const getOrBatchCreateTestEntities = async (
 
     // 需要被创建测试实体的事项数据
     // 1. 和第一个事项对应的测试实体需要保持一致，不一致忽略创建
-    // 2. 创建支持跨空间创建，不同空间对应不同的事项类型，需要对该逻辑进行处理
+    // 2. 创建支持跨空间创建，不同空间对应不同的类型，需要对该逻辑进行处理
     const needCreatedItemDataList = itemDataList.filter(
       itemData => getMatchedTestType(itemData) === firstItemMatchTestType,
     );
@@ -411,7 +411,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
       async createItemUseModal(params) {
         const { extraData, type, name, hideMessage } = params;
         let itemTypeKey = testConfig?.itemTypeMap?.[type] as string;
-        // 获取缺陷事项类型 key
+        // 获取缺陷类型 key
         if (type === TestType.TestDefect) {
           itemTypeKey = testConfig.defectsMapping?.[0];
         }
@@ -456,7 +456,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
             // 创建的测试类型是否符合预期
             let expectedTestType = willValidateTestEntity?.get('type') === type;
 
-            // 判断事项类型 key 是否在 defectsMapping 中
+            // 判断类型 key 是否在 defectsMapping 中
             if (type === TestType.TestDefect) {
               expectedTestType = (testConfig?.defectsMapping ?? []).includes(
                 willValidateItem?.itemType?.key,
@@ -467,9 +467,9 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
             if (!expectedTestType) {
               alert({
                 type: 'warning',
-                message: '新建事项类型与创建的测试类型未匹配',
+                message: '新建类型与创建的测试类型未匹配',
               });
-              reject('新建事项类型与创建的测试类型未匹配');
+              reject('新建类型与创建的测试类型未匹配');
               return;
             }
 
