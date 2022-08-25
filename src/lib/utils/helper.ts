@@ -14,6 +14,10 @@ export const getProximaBasePath = () => {
   return /^(\/(?:project|proxima))\//.exec(window.location.pathname)?.[1] ?? '';
 };
 
+// 获取 webTrigger 前缀
+export const getPluginWebTriggerBaseUrl = () =>
+  `/api${getProximaBasePath()}/app/${getTenantKey()}/test_manager/webhooks`;
+
 export const hasArrayItem = (arr?: unknown[]) => Boolean(Array.isArray(arr) && arr.length);
 
 export const getRootContainer = () =>
