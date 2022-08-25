@@ -229,7 +229,7 @@ const getLevelPie = datas => {
     },
     series: [
       {
-        name: 'Access From',
+        name: '严重程度',
         type: 'pie',
         radius: '50%',
         center: ['50%', '50%'],

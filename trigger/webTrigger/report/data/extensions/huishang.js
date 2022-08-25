@@ -24,6 +24,8 @@ function formatDate(timeStamp, formatStr) {
     return '暂无';
   }
   const date = new Date(timeStamp);
+  // TODO bug 解析时间减了1天
+  date.setDate(date.getDate() + 1);
   // TODO 时间解析不对
   const week = ['日', '一', '二', '三', '四', '五', '六'];
   const str = formatStr
@@ -144,42 +146,57 @@ const legacyDefectList = cumulatedDefects
 const result = {
   testExecution: executionInit(cumulatedExecutions),
   defect: {
+    fixed:
+      cumulatedDefects?.filter(d => d.status?.type === 'Finished' && d.status?.name === '已关闭')
+        ?.length ?? 0,
+    valid: cumulatedDefects?.filter(d => d.status?.name !== '已取消')?.length ?? 0,
     charts: {
-      levelPie: cumulatedDefects?.length
-        ? {
-            title: {
-              text: '缺陷严重程度统计表',
-              left: 'center',
-              textStyle: {
-                fontSize: 24,
-              },
-            },
-            legend: {
-              orient: 'center',
-              left: 'right',
-              top: '35%',
-              textStyle: {
-                fontSize: 18,
-              },
-            },
-            series: [
-              {
-                name: 'Access From',
-                type: 'pie',
-                radius: '50%',
-                label: {
-                  normal: {
-                    position: 'inner',
-                    formatter: '{c}',
-                  },
-                },
-                data: generateLevelPieOption(cumulatedDefects),
-              },
-            ],
-          }
-        : {
-            noData: true,
+      levelPie: {
+        noData: !cumulatedDefects?.length,
+        title: {
+          text: '缺陷严重程度统计表',
+          left: 'center',
+          textStyle: {
+            fontSize: 24,
           },
+        },
+        legend: {
+          orient: 'center',
+          left: 'right',
+          top: '35%',
+          textStyle: {
+            fontSize: 18,
+          },
+        },
+        series: [
+          {
+            name: '严重程度',
+            type: 'pie',
+            radius: '50%',
+            center: ['50%', '50%'],
+            label: {
+              normal: {
+                position: 'inner',
+                formatter: '{c}',
+              },
+            },
+            data: generateLevelPieOption(cumulatedDefects),
+            emphasis: {
+              itemStyle: {
+                shadowBlur: 10,
+                shadowOffsetX: 0,
+                shadowColor: 'rgba(0, 0, 0, 0.5)',
+              },
+            },
+          },
+        ],
+        imageOptions: {
+          // 调整 height，防止饼图失真
+          useCustomSize: true,
+          width: 12,
+          height: 9.16,
+        },
+      },
     },
     // 遗留缺陷 mixin 数据
     legacyDefectList,
