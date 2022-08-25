@@ -4,13 +4,13 @@ import { createReport } from 'docx-templates';
 import { WordTemplate } from '@/lib/types/Test';
 import { UserOptions } from 'docx-templates/lib/types';
 import { mergeWith, isPlainObject, keyBy } from 'lodash';
+import { getPluginWebTriggerBaseUrl } from '@/lib/utils/helper';
 import { NullishCommandResultError, ObjectCommandResultError } from 'docx-templates/lib/errors';
 
 // Buffer polifile
 window.Buffer = window.Buffer || require('buffer').Buffer;
 
 /** 插件请求前缀 */
-const PluginWebTriggerPrefix = '/api/app/osc/test_manager/webhooks';
 const DefaultImageOptions = {
   width: 12,
   height: 9,
@@ -27,6 +27,9 @@ export default class TemplateGenerator {
 
   /** 测试模板数据 */
   wordTemplate: WordTemplate;
+
+  /** webTrigger baseURL */
+  private PluginWebTriggerBaseUrl: string;
 
   /** 基础配置 */
   private docTemplateBasicOptions: Partial<UserOptions> = {
@@ -97,38 +100,38 @@ export default class TemplateGenerator {
       },
 
       //TODO: 针对复杂样式的表格（单元格合并，动态列）使用 html 形式渲染 table
-      injectHTMLTable: options => {
-        const { columns, dataSource } = options;
-        const Table = document.createElement('table');
-        const THead = document.createElement('thead');
+      // injectHTMLTable: options => {
+      //   const { columns, dataSource } = options;
+      //   const Table = document.createElement('table');
+      //   const THead = document.createElement('thead');
 
-        const TableGenerators = {
-          _setAttribute: (dom, options) => {
-            const { colspan, rowspan, name } = options;
-            dom.setAttribute('colspan', colspan);
-            dom.setAttribute('rowspan', rowspan);
-            dom.innerHTML = name;
-          },
+      //   const TableGenerators = {
+      //     _setAttribute: (dom, options) => {
+      //       const { colspan, rowspan, name } = options;
+      //       dom.setAttribute('colspan', colspan);
+      //       dom.setAttribute('rowspan', rowspan);
+      //       dom.innerHTML = name;
+      //     },
 
-          tr: (options, container) => {
-            const tr = document.createElement('tr');
-            TableGenerators._setAttribute(tr, options);
-            container.appendChild(tr);
-          },
+      //     tr: (options, container) => {
+      //       const tr = document.createElement('tr');
+      //       TableGenerators._setAttribute(tr, options);
+      //       container.appendChild(tr);
+      //     },
 
-          th: (options, container) => {
-            const th = document.createElement('th');
-            TableGenerators._setAttribute(th, options);
-            container.appendChild(th);
-          },
+      //     th: (options, container) => {
+      //       const th = document.createElement('th');
+      //       TableGenerators._setAttribute(th, options);
+      //       container.appendChild(th);
+      //     },
 
-          td: (options, container) => {
-            const td = document.createElement('td');
-            TableGenerators._setAttribute(td, options);
-            container.appendChild(td);
-          },
-        };
-      },
+      //     td: (options, container) => {
+      //       const td = document.createElement('td');
+      //       TableGenerators._setAttribute(td, options);
+      //       container.appendChild(td);
+      //     },
+      //   };
+      // },
     },
     errorHandler: (error, _code) => {
       const isErrorType = errorType =>
@@ -147,6 +150,7 @@ export default class TemplateGenerator {
 
   constructor(wordTemplateData) {
     this.wordTemplate = wordTemplateData;
+    this.PluginWebTriggerBaseUrl = getPluginWebTriggerBaseUrl();
   }
 
   /** 生成测试报告 */
@@ -167,7 +171,7 @@ export default class TemplateGenerator {
       template: templateFile,
       data: async () => {
         const templateData = await this.getTemplateVariables(testPlanIds);
-        console.log('templateData', templateData);
+        console.info('templateData', templateData);
         return templateData;
       },
       ...docTemplateOptions,
@@ -176,12 +180,12 @@ export default class TemplateGenerator {
     // 模板编译错误不生成报告
     if (this.fatalErrorMessageList.length) {
       // throw new Error();
-      console.log(this.fatalErrorMessageList);
+      console.error('fatalErrors', this.fatalErrorMessageList);
     }
 
     // 忽略该类型错误
     if (this.invalidVariableMessageList) {
-      console.error('');
+      console.error('invalidVariable', this.invalidVariableMessageList);
     }
 
     this.saveWordFile(reportData, fileName);
@@ -189,15 +193,16 @@ export default class TemplateGenerator {
 
   /** 获取模板数据集合 */
   private getTemplateVariables = async (testPlanIds: string[]) => {
+    const { PluginWebTriggerBaseUrl } = this;
     // 获取统计数据
-    const statsData = await fetch.$post(`${PluginWebTriggerPrefix}/report-stats`, {
+    const statsData = await fetch.$post(`${PluginWebTriggerBaseUrl}/report-stats`, {
       testPlanIds,
     });
     // TODO: 从 data-set 中获取项目配置，目前写死
     // 'extensions-huishang'
     const DataSetSourcePath = ['base', 'extensions-huishang'] as const;
     const dataSetFetchQueue = DataSetSourcePath.map(source =>
-      fetch.$post(`${PluginWebTriggerPrefix}/report-data-${source}`, statsData),
+      fetch.$post(`${PluginWebTriggerBaseUrl}/report-data-${source}`, statsData),
     );
 
     const dataSetList = await Promise.all(dataSetFetchQueue);
