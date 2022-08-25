@@ -156,14 +156,10 @@ const getLineData = datas => {
 
 // TODO 获取折线图配置
 const getTrendLine = datas => {
-  if (!datas?.length) {
-    return {
-      noData: true,
-    };
-  }
   const { xData, yData } = getLineData(datas);
   // 基础假数据
   return {
+    noData: !datas?.length,
     title: {
       text: '缺陷收敛趋势图',
       left: 'center',
@@ -202,12 +198,8 @@ const getTrendLine = datas => {
 
 // TODO 获取饼图配置
 const getLevelPie = datas => {
-  if (!datas?.length) {
-    return {
-      noData: true,
-    };
-  }
   return {
+    noData: !datas?.length,
     title: {
       text: '缺陷严重程度统计表',
       left: 'center',
@@ -271,14 +263,10 @@ const getBarData = datas => {
 
 // TODO 获取柱状图配置
 const getStatusBar = datas => {
-  if (!datas?.length) {
-    return {
-      noData: true,
-    };
-  }
   const { xData, yData } = getBarData(datas);
 
   return {
+    noData: !datas?.length,
     title: {
       text: '缺陷状态分析',
       left: 'center',
