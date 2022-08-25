@@ -192,6 +192,9 @@ const getTrendLine = datas => {
         name: '缺陷数',
         data: yData,
         type: 'line',
+        label: {
+          show: true,
+        },
       },
     ],
   };
@@ -229,6 +232,7 @@ const getLevelPie = datas => {
         name: 'Access From',
         type: 'pie',
         radius: '50%',
+        center: ['50%', '50%'],
         data: [
           { value: 0, name: '严重' },
           { value: 0, name: '一般' },
@@ -248,7 +252,7 @@ const getLevelPie = datas => {
       // 调整 height，防止饼图失真
       useCustomSize: true,
       width: 12,
-      height: 10,
+      height: 9.16,
     },
   };
 };

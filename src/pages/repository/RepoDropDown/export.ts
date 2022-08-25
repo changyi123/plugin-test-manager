@@ -293,7 +293,7 @@ export const downloadExampleFile = async fieldKeys => {
   const ExportCustomFields = CustomFields.reduce((res, field) => {
     return {
       ...res,
-      [field.name]: field.description ?? '',
+      [field.name]: '请输入内容',
     };
   }, {});
   exportExcelFile(
