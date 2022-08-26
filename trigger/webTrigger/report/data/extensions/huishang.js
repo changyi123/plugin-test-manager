@@ -74,7 +74,7 @@ const getDefectId = datas => {
 };
 
 const getFixCount = (datas, ids) => {
-  const defects = datas?.filter(d => ids?.includes(d.objectId) && d.status.type === 'Finished');
+  const defects = datas?.filter(d => ids?.includes(d.objectId) && d.status?.type === 'Finished');
 
   return defects.length ?? 0;
 };

@@ -85,7 +85,7 @@ const getDataByFiled = (datas, filed) =>
 
 const getFixCount = (datas, ids) => {
   const defects = getDataByFiled(datas, 'allDefects')?.filter(
-    d => ids?.includes(d.objectId) && d.status.type === 'Finished',
+    d => ids?.includes(d.objectId) && d.status?.type === 'Finished',
   );
 
   return defects.length ?? 0;
