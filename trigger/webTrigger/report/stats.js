@@ -267,6 +267,7 @@ try {
   const defectStatusList = await getDefectStatusList(defectId);
 
   const testRuns = getToByFrom(executionRunRel, 'testRuns');
+
   const testExecution = getToByFrom(planExecutionRel, 'testExecutions', true);
 
   const planStats = testPlanIds.map(planId => ({
