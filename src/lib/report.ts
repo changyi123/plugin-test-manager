@@ -39,7 +39,7 @@ export default class TemplateGenerator {
     // failFast: false,
     additionalJsContext: {
       // 绘制图表
-      drawIMAGEChart: options => {
+      drawChartIMAGE: options => {
         const { imageOptions: incomingImageOptions, ...restChartOptions } = options;
 
         const imageOptions = {
