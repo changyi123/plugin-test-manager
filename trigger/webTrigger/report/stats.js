@@ -4,6 +4,7 @@
  * */
 
 const APP_KEY = global.appKey ?? 'test_manager';
+const DEFAULT_STATUS = 'TODO';
 
 const testPlanIds = global?.body?.testPlanIds ?? [];
 
@@ -208,6 +209,16 @@ const getDefectStatusList = async defectId => {
   return res?.nodes ?? [];
 };
 
+const addDefaultStatus = data => {
+  return data?.map(item => ({
+    ...item,
+    to: {
+      ...item.to,
+      status: item.to.status ?? DEFAULT_STATUS,
+    },
+  }));
+};
+
 try {
   const [planDetailsRel, planExecutionRel, globalConfig] = await Promise.all([
     getTestEntityByRelation(
@@ -222,7 +233,8 @@ try {
         include: ['to.reference'],
         select: ['to.reference'],
       },
-    ),
+    ) // 添加默认状态类型
+      .then(addDefaultStatus),
     getTestEntityByRelation(
       PlanRelExecution,
       {
@@ -252,7 +264,9 @@ try {
       include: ['to.runDetail'],
       select: ['to.runDetail', 'to.status'],
     },
-  );
+  )
+    // 添加默认状态类型
+    .then(addDefaultStatus);
 
   const defectItem = await getItemData(getDefectId(executionRunRel), {
     queryParams: {
