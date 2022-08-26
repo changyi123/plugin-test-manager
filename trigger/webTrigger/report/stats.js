@@ -5,12 +5,6 @@
 
 const APP_KEY = global.appKey ?? 'test_manager';
 
-const PROXIMA_GATEWAY = global?.env?.PROXIMA_GATEWAY ?? '';
-
-const GATEWAY = global?.headers?.['x-forwarded-prefix'] ?? '';
-
-console.log('global', global);
-
 const testPlanIds = global?.body?.testPlanIds ?? [];
 
 // 压缩响应数据大小，移除无用数据字段
@@ -209,7 +203,7 @@ const getGlobalConfig = async () => {
 
 const getDefectStatusList = async defectId => {
   if (!defectId) return [];
-  const res = await apis.requestCoreApi('get', `/api/workflows/item/${defectId}`);
+  const res = await apis.requestCoreApi('GET', `/parse/api/workflows/item/${defectId}`);
 
   return res?.data?.nodes ?? [];
 };
