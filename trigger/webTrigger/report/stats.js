@@ -209,10 +209,7 @@ const getGlobalConfig = async () => {
 
 const getDefectStatusList = async defectId => {
   if (!defectId) return [];
-  const res = await apis.requestCoreApi(
-    'get',
-    `${PROXIMA_GATEWAY}${GATEWAY}/parse/api/workflows/item/${defectId}`,
-  );
+  const res = await apis.requestCoreApi('get', `/api/workflows/item/${defectId}`);
 
   return res?.data?.nodes ?? [];
 };
