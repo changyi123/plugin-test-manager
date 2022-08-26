@@ -218,34 +218,36 @@ const getDefectStatusList = async defectId => {
 };
 
 try {
-  const planDetailsRel = await getTestEntityByRelation(
-    PlanRelDetail,
-    {
-      from: testPlanIds,
-    },
-    {
-      queryParams: {
-        limit: 9999,
+  const [planDetailsRel, planExecutionRel, globalConfig] = await Promise.all([
+    getTestEntityByRelation(
+      PlanRelDetail,
+      {
+        from: testPlanIds,
       },
-      include: ['to.reference'],
-      select: ['to.reference'],
-    },
-  );
-
-  const planExecutionRel = await getTestEntityByRelation(
-    PlanRelExecution,
-    {
-      from: testPlanIds,
-    },
-    {
-      queryParams: {
-        limit: 9999,
+      {
+        queryParams: {
+          limit: 9999,
+        },
+        include: ['to.reference'],
+        select: ['to.reference'],
       },
-      include: ['to.reference', 'from.reference'],
-      select: ['to.reference', 'from.reference'],
-      ascendingBy: ['createdAt'],
-    },
-  );
+    ),
+    getTestEntityByRelation(
+      PlanRelExecution,
+      {
+        from: testPlanIds,
+      },
+      {
+        queryParams: {
+          limit: 9999,
+        },
+        include: ['to.reference', 'from.reference'],
+        select: ['to.reference', 'from.reference'],
+        ascendingBy: ['createdAt'],
+      },
+    ),
+    getGlobalConfig(),
+  ]);
 
   const executionRunRel = await getTestEntityByRelation(
     ExecutionRelRun,
@@ -261,8 +263,6 @@ try {
     },
   );
 
-  const globalConfig = await getGlobalConfig();
-
   const defectItem = await getItemData(getDefectId(executionRunRel), {
     queryParams: {
       limit: 9999,
@@ -270,6 +270,10 @@ try {
     include: ['status'],
     ascendingBy: ['createdAt'],
   });
+
+  const defectId = defectItem?.[0]?.objectId ?? '';
+
+  const defectStatusList = await getDefectStatusList(defectId);
 
   const testRuns = getToByFrom(executionRunRel, 'testRuns');
   const testExecution = getToByFrom(planExecutionRel, 'testExecutions', true);
@@ -289,10 +293,6 @@ try {
       status: compactData(d.status),
     })),
   }));
-
-  const defectId = defectItem?.[0]?.objectId ?? '';
-
-  const defectStatusList = await getDefectStatusList(defectId);
 
   return {
     planStats,
