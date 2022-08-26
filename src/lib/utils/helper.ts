@@ -15,8 +15,11 @@ export const getProximaBasePath = () => {
 };
 
 // 获取 webTrigger 前缀
-export const getPluginWebTriggerBaseUrl = () =>
-  `/api${getProximaBasePath()}/app/${getTenantKey()}/test_manager/webhooks`;
+export const getPluginWebTriggerBaseUrl = () => {
+  // 集成环境需要先判断前缀
+  const ApiPrefix = inIframe() ? getProximaBasePath() : '';
+  return `/api${ApiPrefix}/app/${getTenantKey()}/test_manager/webhooks`;
+};
 
 export const hasArrayItem = (arr?: unknown[]) => Boolean(Array.isArray(arr) && arr.length);
 
