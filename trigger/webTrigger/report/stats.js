@@ -205,7 +205,7 @@ const getDefectStatusList = async defectId => {
   if (!defectId) return [];
   const res = await apis.requestCoreApi('GET', `/parse/api/workflows/item/${defectId}`);
 
-  return res?.data?.nodes ?? [];
+  return res?.nodes ?? [];
 };
 
 try {
