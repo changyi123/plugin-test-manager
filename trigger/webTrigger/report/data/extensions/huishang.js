@@ -27,8 +27,7 @@ function formatDate(timeStamp, formatStr) {
   if (!timeStamp) {
     return '暂无';
   }
-  // TODO 时区问题
-  const date = new Date(timeStamp + 16 * 60 * 60 * 1000);
+  const date = new Date(timeStamp);
   const week = ['日', '一', '二', '三', '四', '五', '六'];
   const str = formatStr
     .replace(/yyyy|YYYY/, date.getFullYear())
