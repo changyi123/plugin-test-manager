@@ -152,7 +152,40 @@ const legacyDefectList = cumulatedDefects
     severityLevel: SeverityLevelLabelMapping[defect.values[SeverityLevelFieldKey]],
   }));
 
+const DefaultStartDateTimeStamp = Number.MAX_SAFE_INTEGER;
+const DefaultEndDateTimeStamp = Number.MIN_SAFE_INTEGER;
+
+// 获取测试区间
+const planDuration = cumulatedExecutions
+  .reduce(
+    (duration, execution) => {
+      const itemValues = execution?.reference?.values ?? {};
+
+      // 测试执行任务计划开始日期
+      const executionStartDate =
+        itemValues[ExecutionStartDateFieldKey] ?? DefaultStartDateTimeStamp;
+      // 测试执行任务计划完成时间，兼容性取值方案
+      const executionEndDate =
+        itemValues[ExecutionEndFieldKey] ??
+        itemValues[ExecutionEndAlternateFieldKey] ??
+        DefaultEndDateTimeStamp;
+
+      return [Math.min(duration[0], executionStartDate), Math.max(duration[1], executionEndDate)];
+    },
+    [DefaultStartDateTimeStamp, DefaultEndDateTimeStamp],
+  )
+  .map(timeStamp => {
+    // 等于初始值需要重置为 null
+    timeStamp = [DefaultStartDateTimeStamp, DefaultEndDateTimeStamp].includes(timeStamp)
+      ? null
+      : timeStamp;
+    return formatDate(timeStamp, 'YYYY.MM.DD');
+  });
+
 const result = {
+  info: {
+    planDuration,
+  },
   testExecution: executionInit(cumulatedExecutions),
   defect: {
     fixed:
