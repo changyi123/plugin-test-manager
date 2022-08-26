@@ -104,7 +104,7 @@ const TestPlanSelector: React.FC = () => {
         </div>
       </div>
     );
-  }, [data, listRef, search]);
+  }, [data, listRef, search, selectedTestPlan?.objectId]);
 
   return (
     <div className={cx('plan-selector-container')}>
