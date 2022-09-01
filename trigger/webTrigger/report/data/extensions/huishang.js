@@ -190,7 +190,7 @@ const result = {
   testExecution: executionInit(cumulatedExecutions),
   defect: {
     fixed:
-      cumulatedDefects?.filter(d => d.status?.type === 'Finished' && d.status?.name === '已关闭')
+      cumulatedDefects?.filter(d => d.status?.type === 'Finished' && d.status?.name !== '已取消')
         ?.length ?? 0,
     valid: cumulatedDefects?.filter(d => d.status?.name !== '已取消')?.length ?? 0,
     charts: {

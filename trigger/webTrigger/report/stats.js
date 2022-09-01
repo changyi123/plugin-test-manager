@@ -273,7 +273,7 @@ try {
       limit: 9999,
     },
     include: ['status', 'values'],
-    select: ['status', 'values'],
+    select: ['status', 'values', 'name', 'key'],
     ascendingBy: ['createdAt'],
   });
 
