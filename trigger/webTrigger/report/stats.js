@@ -98,7 +98,7 @@ const getTestEntityByRelation = async (relType, side, _config = {}) => {
   }
 
   if (hasArrayItem(select)) {
-    testRelationQuery.select(select);
+    testRelationQuery.include(select);
   }
 
   if (hasArrayItem(config.ascendingBy)) {
@@ -154,17 +154,17 @@ const getItemData = async (ids, config = {}) => {
 
 const getToByFrom = (datas, filed, isHanleRef = false) =>
   (datas ?? []).reduce((prev, cur) => {
-    if (!prev[cur.from.objectId]?.reference && isHanleRef) {
+    if (!prev[cur.from?.objectId]?.reference && isHanleRef) {
       prev = {
         ...prev,
-        [cur.from.objectId]: {
-          ...(prev[cur.from.objectId] ?? {}),
+        [cur.from?.objectId]: {
+          ...(prev[cur.from?.objectId] ?? {}),
           reference: cur.from?.reference ?? {},
         },
       };
     }
 
-    if (cur.from.objectId) {
+    if (cur.from?.objectId) {
       prev = {
         ...prev,
         [cur.from.objectId]: {
@@ -261,7 +261,7 @@ try {
       queryParams: {
         limit: 9999,
       },
-      include: ['to.runDetail'],
+      include: ['to.runDetail', 'to.status'],
       select: ['to.runDetail', 'to.status'],
     },
   )
@@ -272,8 +272,8 @@ try {
     queryParams: {
       limit: 9999,
     },
-    include: ['status'],
-    select: ['status'],
+    include: ['status', 'values'],
+    select: ['status', 'values'],
     ascendingBy: ['createdAt'],
   });
 
