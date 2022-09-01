@@ -93,7 +93,8 @@ const getFixCount = (datas, ids) => {
 
 const getTestExecution = datas =>
   getDataByFiled(datas, 'allTestExecutions').map(d => {
-    const defects = getDefectId(d.testRun);
+    const defectItemIds = getDataByFiled(datas, 'allDefects').map(d => d.objectId);
+    const defects = getDefectId(d.testRun).filter(d => defectItemIds.includes(d));
     const fixed = getFixCount(datas, defects);
 
     return {

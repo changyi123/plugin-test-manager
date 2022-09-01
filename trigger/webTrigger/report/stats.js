@@ -98,7 +98,7 @@ const getTestEntityByRelation = async (relType, side, _config = {}) => {
   }
 
   if (hasArrayItem(select)) {
-    testRelationQuery.include(select);
+    testRelationQuery.select(select);
   }
 
   if (hasArrayItem(config.ascendingBy)) {
@@ -132,7 +132,7 @@ const getItemData = async (ids, config = {}) => {
   }
 
   if (hasArrayItem(config.select)) {
-    itemQuery.include(config.select);
+    itemQuery.select(config.select);
   }
 
   if (hasArrayItem(config.ascendingBy)) {
@@ -273,6 +273,7 @@ try {
       limit: 9999,
     },
     include: ['status'],
+    select: ['status'],
     ascendingBy: ['createdAt'],
   });
 

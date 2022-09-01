@@ -81,7 +81,8 @@ const getFixCount = (datas, ids) => {
 
 const executionInit = executions => {
   const executionResult = executions.map(ele => {
-    const defects = getDefectId(ele.testRun);
+    const defectItemIds = cumulatedDefects.map(d => d.objectId);
+    const defects = getDefectId(ele.testRun).filter(d => defectItemIds.includes(d));
     const fixedCount = getFixCount(cumulatedDefects, defects);
 
     const itemValues = ele?.reference?.values ?? {};
