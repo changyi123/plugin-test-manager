@@ -18,8 +18,10 @@ done
 sed "s/{workspacePageHidden}/${workspacePageHidden}/g" manifest.tmpl.yml > manifest.yml
 echo -e "branch: $branch\ncommit: \"$commit\"\ndate: $date\n$workspacePageHidden\n" > version.yml
 
-yarn && yarn build -- --env PROXIMA_VERSION_COMMIT="$commit" PROXIMA_VERSION_BRANCH="$branch" PROXIMA_VERSION_DATE="$date"
+# yarn && yarn build -- --env PROXIMA_VERSION_COMMIT="$commit" PROXIMA_VERSION_BRANCH="$branch" PROXIMA_VERSION_DATE="$date"
 
-filename=`echo test-manager-plugin-${branch}.zip | sed 's!/!-!g'`
-rm -rf $filename
-zip -r $filename version.yml dist trigger manifest.yml
+yarn build-package
+
+# filename=`echo test-manager-plugin-${branch}.zip | sed 's!/!-!g'`
+# rm -rf $filename
+# zip -r $filename version.yml dist trigger manifest.yml

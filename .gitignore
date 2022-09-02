@@ -5,6 +5,6 @@ dist
 **/*.xlsx
 manifest.yml
 version.yml
-test-manager-plugin*.zip
+test-manager*.zip
 .env
 manifest.yml

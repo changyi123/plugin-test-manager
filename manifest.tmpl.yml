@@ -1,6 +1,7 @@
 app:
   uuid: bf73e61c-e15a-4461-a1f7-f940c2009332
   name: test_manager
+  version: "0.0.111"
 modules:
   webtrigger:
     # 动态配置 one 路由
@@ -26,30 +27,25 @@ modules:
         - proxima:app:install
       function: test-manager-initial-script
   function:
-      # 左侧导航菜单
     - key: gitee-menus
-      handler: /trigger/webTrigger/gitee-menus.js
-      # 插件初始化脚本
+      handler: index.runGiteeMenus
     - key: test-manager-initial-script
-      handler: /trigger/appTrigger/initialScript.js
-      # 用例导入脚本
+      handler: trigger.runInitialScript
     - key: test-manager-validate-script
-      handler: /trigger/import/validate.js
+      handler: importer.runValidate
     - key: test-manager-import-script
-      handler: /trigger/import/import.js
-
-      # 徽商验证脚本
+      handler: importer.runImport
     - key: huishang-script
-      handler: /trigger/webTrigger/huishang-script.js
+      handler: index.runHuishangScript
       # 测试报告统计数据
     - key: report-stats
-      handler: /trigger/webTrigger/report/stats.js
+      handler: index.requestReportStats
       # 测试报告模板基础数据
     - key: report-data-base
-      handler: /trigger/webTrigger/report/data/base.js
+      handler: index.requestReportDataBase
       # 测试报告拓展数据
     - key: report-data-extensions-huishang
-      handler: /trigger/webTrigger/report/data/extensions/huishang.js
+      handler: index.requestReportDataExtensionsBase
 
   itemPanel:
     - key: test-manager-test-detail
@@ -277,4 +273,4 @@ tables:
       #   type: Array
 resources:
   - key: main
-    path: ./dist/
+    path: ./static/dist
