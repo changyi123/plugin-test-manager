@@ -1080,10 +1080,10 @@
     fs-extra "^10.1.0"
     rollup "^2.75.6"
 
-"@giteeteam/apps-cli@0.1.8":
-  version "0.1.8"
-  resolved "https://registry.npmmirror.com/@giteeteam/apps-cli/-/apps-cli-0.1.8.tgz#dcaefb428dcc0c22c7f7f7027574be80a4030870"
-  integrity sha512-+dDGP1oEjO8C7yXIRMTpWLvpipJrxSoPUVDup9MEH0Hifo8zH4poCDmeer2uzTwgWeaOh6aPzzJfEMKzPICesw==
+"@giteeteam/apps-cli@0.1.10":
+  version "0.1.10"
+  resolved "https://registry.npmmirror.com/@giteeteam/apps-cli/-/apps-cli-0.1.10.tgz#28ba990e4f82546b1e6066556db52b5d24877fb0"
+  integrity sha512-oHNXJI92XvfdTupGz3DjldVS2cDQHVkvzwOPFQ0lwQqnDHo3d0Kn4VBYJf9P/WifxD0gjiy8hxcpcPSASN01ww==
   dependencies:
     "@giteeteam/apps-bundler" "^0.1.6"
     archiver "^5.3.1"

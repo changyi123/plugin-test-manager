@@ -58,21 +58,15 @@ export const runGiteeMenus = async () => {
 
   const responser = async () => {
     if (!workspaceKey) throw new Error('NO_WORKSPACE_KEY');
-    // const app = await appQuery
-    //   .equalTo('key', APP_KEY)
-    //   .include('workspaces')
-    //   .first(ParseBaseQueryOptions);
-
-    // const appRefWorkspaces = app.workspaces;
-    // const hasTestManagerPlugin = appRefWorkspaces.find(workspace => workspace.key === workspaceKey);
 
     const appWorkspace = await getParseQuery(false, 'AppsWorkspace')
       .equalTo('appKey', APP_KEY)
       .include('workspaces')
       .first(ParseBaseQueryOptions);
 
-    const global = appWorkspace ? appWorkspace.get('global') : true;
-    if (!global) {
+    const isGlobalPlugin = appWorkspace ? appWorkspace.get('global') : true;
+
+    if (!isGlobalPlugin) {
       const hasTestManagerPlugin = appWorkspace
         ?.get('workspaces')
         ?.some(workspace => workspace.key === workspaceKey);
