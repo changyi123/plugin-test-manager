@@ -1,6 +1,6 @@
 import Parse from '@/lib/parse';
 import { TestConfig } from '../models';
-import { assign, omit, transform, isEmpty } from 'lodash';
+import { assign, cloneDeep, omit, transform, isEmpty } from 'lodash';
 import {
   TestType,
   TestRelationType,
@@ -20,6 +20,19 @@ import {
 } from '@/lib/utils/iql';
 
 const BATCH_SIZE = 200;
+const TEST_KEYS = [
+  'linkType',
+  'linkItems',
+  'status',
+  'referenceCase',
+  'type',
+  'caseStatus',
+  'repository',
+  'designee',
+  'executor',
+  'sortIndex',
+];
+const TEST_PREFIX = 'r_test_manager_';
 
 /** to/from -> pointer */
 const testRelationTypePointerTransfer = arr =>
@@ -855,3 +868,53 @@ export const getRefItemIdsByTestIds = async (testIds: string[]) => {
     .containedIn('objectId', testIds)
     .map(i => i?.toJSON().reference?.objectId);
 };
+
+// 为对象加上测试管理前缀，以便存入数据库
+export function testEntityToItemValues(data: Record<string, any>) {
+  // 浅拷贝一份数据，避免影响调用方
+  const values = cloneDeep(data);
+  // 存的时候，如果带了测试管理字段需要加上前缀
+  const keys = Object.keys(values);
+  keys.forEach(key => {
+    if (TEST_KEYS.includes(key)) {
+      values[`${TEST_PREFIX}${key}`] = values[key];
+      delete values[key];
+    }
+  });
+  return values;
+}
+
+// 事项数据转变成测试管理实体，去掉测试管理前缀
+export function itemToTestEnTity(item) {
+  // 把values抛出最外面
+  const values = item.values || {};
+  // 如果数据包含测试管理字段，需要重新编译
+  const keys = Object.keys(values);
+  keys.forEach(key => {
+    const splitKey = key.split(TEST_PREFIX).join('');
+    if (TEST_KEYS.includes(splitKey)) {
+      values[splitKey] = values[key];
+      delete values[key];
+    }
+  });
+  return {
+    id: item.objectId,
+    ...omit(item, ['values']),
+    ...values,
+  };
+}
+
+// 调proxima接口更新事项
+export async function updateItem(id: string, data: Record<string, any>) {
+  return fetch
+    .$put(`/parse/api/items/${id}`, { values: testEntityToItemValues(data) })
+    .then(data => data.item);
+}
+
+// 查事项详情
+export async function fetchItem(id: string) {
+  const data = new Parse.Query(Item).equalTo('objectId', id).first();
+  if (!data) return;
+  // 转变成测试管理的数据格式
+  return itemToTestEnTity(data.toJSON());
+}
