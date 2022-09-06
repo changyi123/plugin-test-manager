@@ -21,3 +21,40 @@ export const enum TestLinkType {
   /** 测试执行任务关联测试计划（N:1）*/
   ExecutionLinkPlan = 'ExecutionLinkPlan',
 }
+
+/** 测试管理自定义字段 key 映射 */
+export const TestFiledKeyMapping = {
+  linkType: 'r_test_manager_linkType',
+  linkItems: 'r_test_manager_linkItems',
+  status: 'r_test_manager_status',
+  referenceCase: 'r_test_manager_referenceCase',
+  type: 'r_test_manager_type',
+  caseStatus: 'r_test_manager_caseStatus',
+  repository: 'r_test_manager_repository',
+  designee: 'r_test_manager_designee',
+  executor: 'r_test_manager_executor',
+  sortIndex: 'r_test_manager_sortIndex',
+} as const;
+
+/** 测试管理自定义字段 name 映射，用户拼接 IQL 查询条件 */
+export const TestFiledNameMapping = {
+  linkType: '测试关联类型',
+  linkItems: '测试关联项',
+  status: '测试执行状态',
+  referenceCase: '测试用例引用',
+  type: '测试类型',
+  caseStatus: '用例最新执行状态',
+  repository: '测试用例库分组',
+  designee: '测试负责人',
+  executor: '测试最新执行人',
+  sortIndex: '测试用例排序索引',
+} as const;
+
+/** 测试管理事项 values key 关联映射 */
+export const ItemValuesStorageKeyMapping = {
+  ...TestFiledKeyMapping,
+
+  detail: 'r_test_manager_detail',
+  runDetail: 'r_test_manager_runDetail',
+  comment: 'r_test_manager_comment',
+} as const;

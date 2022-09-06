@@ -1,4 +1,12 @@
-import { TestType, TestLinkType } from '../constant';
+import { TestType, TestLinkType, ItemValuesStorageKeyMapping } from '../constant';
+
+type ValueOf<T> = T[keyof T];
+
+/** 测试用例字段 Key */
+export type TestEntityKey = keyof typeof ItemValuesStorageKeyMapping;
+
+/** 事项 values 字段 Key */
+export type ItemValuesKey = ValueOf<typeof ItemValuesStorageKeyMapping>;
 
 type UserPointerInfo = {
   __type: 'Pointer';
@@ -48,6 +56,11 @@ export type BaseTestEntity = {
   designee: UserPointerInfo[];
   createdBy: any;
   updatedBy: any;
+
+  /** 事项自定义字段 */
+  values: Record<string, any>;
+  /** 事项名称 */
+  name: string;
 };
 
 type CaseFieldKeys = 'detail' | 'caseStatus';
