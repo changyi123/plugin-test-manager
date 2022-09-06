@@ -1,1 +1,1 @@
-export { runInitialScript } from './trigger/initialScript';
+export { runInitialScript } from './modules/trigger/initialScript';

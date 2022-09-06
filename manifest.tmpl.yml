@@ -29,7 +29,7 @@ modules:
       function: test-manager-initial-script
   function:
     - key: gitee-menus
-      handler: index.runGiteeMenus
+      handler: web.runGiteeMenus
     - key: test-manager-initial-script
       handler: trigger.runInitialScript
     - key: test-manager-validate-script
@@ -37,16 +37,16 @@ modules:
     - key: test-manager-import-script
       handler: importer.runImport
     - key: huishang-script
-      handler: index.runHuishangScript
+      handler: web.runHuishangScript
       # 测试报告统计数据
     - key: report-stats
-      handler: index.requestReportStats
+      handler: web.requestReportStats
       # 测试报告模板基础数据
     - key: report-data-base
-      handler: index.requestReportDataBase
+      handler: web.requestReportDataBase
       # 测试报告拓展数据
     - key: report-data-extensions-huishang
-      handler: index.requestReportDataExtensionsBase
+      handler: web.requestReportDataExtensionsBase
 
   itemPanel:
     - key: test-manager-test-detail

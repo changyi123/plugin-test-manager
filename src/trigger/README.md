@@ -45,6 +45,8 @@ curl --location --request POST 'localhost:8500/v1/apps/test_manager/production/0
 
 ```
 
-### 结构
+### 目录结构
 
-lib 下放共用方法（临时方案），后期需要单独抽出来，和前端共用同一个
+`modules` 按照 trigger 类型存放文件
+`libs` 存放 vm 中可访问公用的类型，方法等文件
+`modules/api` 存放后端相关的接口

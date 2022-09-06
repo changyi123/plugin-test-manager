@@ -11,7 +11,7 @@
     "build-app": "sh ./build-app.sh",
     "lint": "eslint src --ext .js,.jsx,.ts,.tsx",
     "postinstall": "patch-package",
-    "dev-vm": "node scripts/vmDebugger.js"
+    "dev-trigger": "node scripts/triggerDev.js"
   },
   "repository": {
     "type": "git"
