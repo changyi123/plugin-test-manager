@@ -21,7 +21,7 @@ const SrcDirectory = path.resolve(__dirname, '../dist');
 
 const execCommand = async cmd =>
   promisify(require('child_process').exec)(cmd, {
-    cwd: '../',
+    cwd: path.resolve(__dirname, '../'),
   });
 
 const watcher = chokidar.watch(TriggerSourceDirectory);
@@ -52,7 +52,7 @@ const progress = {
   end: () => {
     progress.bar.update(progress._total);
   },
-  stop: async () => {
+  stop: () => {
     clearInterval(progress._timer);
     progress.bar.update(progress._total);
     progress.bar.stop();
@@ -64,24 +64,24 @@ let lock = false;
 const directoryWatcher = async (event, path) => {
   if (lock) return;
   lock = true;
+  let error = null;
   try {
     progress.start();
     await execCommand('npx giteeteam-apps-cli build --no-zip --prod -c version.yml');
     await fs.copy(SrcDirectory, DestDirectory, { overwrite: true });
     progress.end();
   } catch (err) {
-    console.info(err);
+    error = err;
   } finally {
     lock = false;
     progress.stop();
-    console.info(`${path} changed, ${colors.yellowBright('app build success')}`);
+    console.info(`${path} changed;`);
+    if (error) {
+      console.info(`${colors.redBright(error.message)}`);
+    } else {
+      console.info(`${colors.yellowBright('app build success')}`);
+    }
   }
 };
 
 watcher.on('all', debounce(directoryWatcher, 500));
-
-process.on('SIGINT', signal => {
-  if (['SIGINT', 'SIGKILL', 'SIGSTOP'].includes(signal)) {
-    process.exit(0);
-  }
-});

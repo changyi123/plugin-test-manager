@@ -1,7 +1,7 @@
 app:
   uuid: bf73e61c-e15a-4461-a1f7-f940c2009332
   name: test_manager
-  version: "0.0.111"
+  version: "0.0.115"
 modules:
   webtrigger:
     # 动态配置 one 路由
@@ -106,6 +106,67 @@ modules:
         title: 预期结果
       - key: data
         title: 数据
+  # 初始化 dataType 为 object， array 的数据类型
+  customFieldType:
+    - key: plain_object
+      name: 测试管理基础字段类型（对象）
+      description: 测试管理基础字段类型（勿删改）
+      dataType: object
+    - key: plain_array
+      name: 测试管理基础字段类型（数组）
+      description: 测试管理基础字段类型（勿删改）
+      dataType: array
+  customField:
+      # 描述关联关系的配置（使用事项关联不需要处理）
+    - key: linkType
+      name: 测试关联类型
+      linkedCase: 
+      description: 测试管理内置自定义字段（勿删改）
+      # Enum 关联关系维护在被关联方
+      # 1. 测试用例关联计划（N:1）           CaseLinkPlan
+      # 2. 测试执行关联测试执行任务（N:1）    RunLinkExecution
+      # 3. 测试执行任务关联测试计划（N:1）    ExecutionLinkPlan
+      type: Text
+    - key: linkItems
+      name: 测试关联项
+      description: 测试管理内置自定义字段（勿删改）
+      type: _self:plain_array
+    - key: status
+      name: 测试执行状态
+      description: 测试管理内置自定义字段（勿删改）
+      type: Text
+    - key: referenceCase
+      name: 测试用例引用
+      description: 测试管理内置自定义字段（勿删改）
+      type: Text
+    - key: type
+      description: 测试管理内置自定义字段（勿删改）
+      name: 测试类型
+      type: Text
+    - key: caseStatus
+      name: 用例最新执行状态
+      description: 测试管理内置自定义字段（勿删改）
+      type: _self:plain_object
+    - key: repository
+      name: 测试用例库模块
+      description: 测试管理内置自定义字段（勿删改）
+      type: Text
+    - key: repository
+      name: 测试用例库分组
+      description: 测试管理内置自定义字段（勿删改）
+      type: Text
+    - key: designee
+      name: 测试负责人
+      description: 测试管理内置自定义字段（勿删改）
+      type: User
+    - key: executor
+      name: 测试最新执行人
+      description: 测试管理内置自定义字段（勿删改）
+      type: User
+    - key: sortIndex
+      name: 测试用例排序索引
+      description: 测试管理内置自定义字段（勿删改）
+      type: Number
   customItemType:
     - key: test_manager_detail
       name: 测试用例
@@ -155,6 +216,15 @@ modules:
           plugin:
             - testManager
         displayContext: test_manager
+    # 测试执行事项类型，所有测试执行都是用该事项类型
+    - key: test_manager_run
+      name: 测试执行
+      description: 测试管理类型-测试执行
+      displayConditions:
+        displayModules:
+          plugin:
+            - testManager
+        displayContext: test_manager
 tables:
   - className: Repository
     fields:
@@ -185,64 +255,6 @@ tables:
         type: Boolean
       extra:
         type: Object
-  - className: Test
-    fields:
-      reference:
-        type: Pointer
-        targetClass: Item
-      workspaceKey:
-        type: String
-      type:
-        type: String
-      # 测试执行状态字段
-      status:
-        type: String
-      # 测试计划的测试用例状态映射值
-      detailStatus:
-        type: Object
-      runDetail:
-        type: Object
-      # deprecated 使用 detail 字段替代
-      # steps:
-      #   type: Array
-      detail:
-        type: Object
-      sortIndex:
-        type: Number
-      # 最新执行操作人（不能手动修改）
-      executor:
-        type: Array
-      # 执行人（手动指派）
-      designee:
-        type: Array
-      createdBy:
-        type: Pointer
-        targetClass: _User
-      updatedBy:
-        type: Pointer
-        targetClass: _User
-      runReferenceDetail:
-        type: Pointer
-        isAppClass: true
-        targetClass: Test
-      repository:
-        type: Pointer
-        isAppClass: true
-        targetClass: Repository
-  - className: Activity
-    fields:
-      resource:
-        type: String
-      avatar:
-        type: String
-      log:
-        type: String
-      type:
-        type: Number
-      originValue:
-        type: String
-      newValue:
-        type: String
   - className: TestRelation
     fields:
       from:

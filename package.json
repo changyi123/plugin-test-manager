@@ -5,12 +5,13 @@
   "private": true,
   "scripts": {
     "build": "cd static && webpack --mode=production",
-    "build-package": "giteeteam-apps-cli build --prod -c version.yml",
+    "build-package": "giteeteam-apps-cli build --no-zip --prod -c version.yml",
     "dev": "yarn start",
     "start": "cd static && webpack server --mode=development",
     "build-app": "sh ./build-app.sh",
     "lint": "eslint src --ext .js,.jsx,.ts,.tsx",
-    "postinstall": "patch-package"
+    "postinstall": "patch-package",
+    "dev-vm": "node scripts/vmDebugger.js"
   },
   "repository": {
     "type": "git"

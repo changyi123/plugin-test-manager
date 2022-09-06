@@ -10,18 +10,27 @@ workspacePageHidden="hidden: false"
 while true; do
     read -p "是否要隐藏测试管理面板? N?" i
     case $i in
-        [Yy1]* ) workspacePageHidden="hidden: true"; break;;
-        * ) break;;
+    [Yy1]*)
+        workspacePageHidden="hidden: true"
+        break
+        ;;
+    *) break ;;
     esac
 done
 
-sed "s/{workspacePageHidden}/${workspacePageHidden}/g" manifest.tmpl.yml > manifest.yml
-echo -e "branch: $branch\ncommit: \"$commit\"\ndate: $date\n$workspacePageHidden\n" > version.yml
+sed "s/{workspacePageHidden}/${workspacePageHidden}/g" manifest.tmpl.yml >manifest.yml
+echo -e "branch: $branch\ncommit: \"$commit\"\ndate: $date\n$workspacePageHidden\n" >version.yml
 
-# yarn && yarn build -- --env PROXIMA_VERSION_COMMIT="$commit" PROXIMA_VERSION_BRANCH="$branch" PROXIMA_VERSION_DATE="$date"
+yarn && yarn build -- --env PROXIMA_VERSION_COMMIT="$commit" PROXIMA_VERSION_BRANCH="$branch" PROXIMA_VERSION_DATE="$date"
 
 yarn build-package
 
+filename=$(echo test-manager-plugin-${branch}.zip | sed 's!/!-!g')
+rm -rf $filename
+cd dist && zip -r $filename * && mv $filename ..
+echo '插件包构建成功'
+
+# 新版应用中心没有初始化逻辑，暂时先保留
 # filename=`echo test-manager-plugin-${branch}.zip | sed 's!/!-!g'`
 # rm -rf $filename
 # zip -r $filename version.yml dist trigger manifest.yml
