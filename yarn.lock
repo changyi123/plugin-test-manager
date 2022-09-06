@@ -1069,23 +1069,22 @@
     minimatch "^3.0.4"
     strip-json-comments "^3.1.1"
 
-"@giteeteam/apps-bundler@^0.1.6":
-  version "0.1.6"
-  resolved "https://registry.npmmirror.com/@giteeteam/apps-bundler/-/apps-bundler-0.1.6.tgz#daba933c71b498182029bf4a0c7f106640846a77"
-  integrity sha512-6n8vYkMpuCjeMrStHvYGvMQnknZ0uHR3qaWetGAj01KF7n1SObbmooaR1k5bBIpsKWjcoLcHbC/iG3f+jI2S3g==
+"@giteeteam/apps-bundler@^0.1.7":
+  version "0.1.7"
+  resolved "https://registry.npmmirror.com/@giteeteam/apps-bundler/-/apps-bundler-0.1.7.tgz#f23aaa248841dee5811bcbced52b60902c84c392"
+  integrity sha512-pUqybMUdboPhcqtZpeCbr2IwQlk8MfbdlmCNiumdLR5LOyFlwEia74rxp6e/O+9o6NGR8i4cRtDGPNkTjAqzmA==
   dependencies:
     "@rollup/plugin-commonjs" "^22.0.0"
     "@rollup/plugin-node-resolve" "^13.3.0"
     esbuild "^0.14.43"
-    fs-extra "^10.1.0"
     rollup "^2.75.6"
 
-"@giteeteam/apps-cli@0.1.10":
-  version "0.1.10"
-  resolved "https://registry.npmmirror.com/@giteeteam/apps-cli/-/apps-cli-0.1.10.tgz#28ba990e4f82546b1e6066556db52b5d24877fb0"
-  integrity sha512-oHNXJI92XvfdTupGz3DjldVS2cDQHVkvzwOPFQ0lwQqnDHo3d0Kn4VBYJf9P/WifxD0gjiy8hxcpcPSASN01ww==
+"@giteeteam/apps-cli@0.1.11":
+  version "0.1.11"
+  resolved "https://registry.npmmirror.com/@giteeteam/apps-cli/-/apps-cli-0.1.11.tgz#1ffea8a7798f3dfaf2c2544d8021c111716fe0fe"
+  integrity sha512-PGnWQ77Zx/opIO17MHMFp0PkYfnxBG0JlN1mSlipvv2BpOMbdrdwZR+tMJU1ZWXJhVXQZ0AzWg3wwvO1bVzv3A==
   dependencies:
-    "@giteeteam/apps-bundler" "^0.1.6"
+    "@giteeteam/apps-bundler" "^0.1.7"
     archiver "^5.3.1"
     chalk "^4.1.2"
     commander "^9.3.0"

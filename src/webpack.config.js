@@ -162,7 +162,7 @@ module.exports = (cliEnv = {}, argv) => {
   };
 
   const webpackConfig = {
-    entry: './src/index.tsx',
+    entry: './app/index.tsx',
     mode: isProd ? 'production' : 'development',
     output: outputConfig(isProd),
     devtool: (() => {
@@ -176,7 +176,8 @@ module.exports = (cliEnv = {}, argv) => {
     resolve: {
       extensions: ['.js', '.css', '.jsx', '.tsx', '.ts'],
       alias: {
-        '@': path.resolve(__dirname, 'src/'),
+        '@': path.resolve(__dirname, 'app/'),
+        common: path.resolve(__dirname, 'common/'),
         parse: path.resolve(__dirname, '../node_modules/parse'),
         react: path.resolve(__dirname, '../node_modules/react'),
         'react-dom': path.resolve(__dirname, '../node_modules/react-dom'),
@@ -225,7 +226,7 @@ module.exports = (cliEnv = {}, argv) => {
       new WebpackBar(),
       new webpack.DefinePlugin({ ...resolveClientEnv(false, cliEnv) }),
       new HtmlWebpackPlugin({
-        template: path.resolve(__dirname, 'public/index.html'),
+        template: path.resolve(__dirname, 'app/public/index.html'),
         filename: 'index.html',
         inject: true,
         templateParameters: () => resolveClientEnv(true, cliEnv),

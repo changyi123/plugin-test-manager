@@ -1,27 +1,29 @@
-import { Item } from './App';
-import { TestType } from '@/lib/constants';
+import { TestType, TestLinkType } from '../constant';
 
-export type UserPointerInfo = {
+type UserPointerInfo = {
   __type: 'Pointer';
   className: '_User';
   objectId: string;
 };
 
 // 测试实体
-type BaseTestEntity = {
+export type BaseTestEntity = {
+  /** 事项 ObjectId */
   objectId: string;
-  /** 测试用例类型 */
+  /** 测试实体类型 */
   type: TestType;
-  /** 空间标识 */
-  workspaceKey: string;
-  /** 测试实体关联事项 */
-  reference: Item;
+  /** 测试关联项 */
+  linkItems: string[];
+  /** 测试管理关联类型 */
+  linkType: TestLinkType;
+  /** 空间数据 */
+  workspace: { objectId: string; name: string; key: string };
   /** 测试用例最新执行状态，改为测试执行状态 */
   status: Status['key'];
   /** 隔离测试计划下测试用例最新状态 */
-  detailStatus: Status['detailStatus'];
+  caseStatus: Status['caseStatus'];
   /** 测试执行关联测试用例实体 */
-  runReferenceDetail: TestEntity<TestType.TestDetail>;
+  referenceCase: TestEntity<TestType.Case>;
   /** 额外数据 */
   extra: Record<string, unknown>;
   /** 测试用例数据 */
@@ -38,7 +40,7 @@ type BaseTestEntity = {
     /** 执行结果描述 */
     executeResultDesc?: Record<string, any>[];
   };
-  /** 测试用例评论数据 */
+  /** 测试执行评论数据 */
   comments: Comment[];
   /** 最新操作执行人 */
   executor: UserPointerInfo[];
@@ -48,15 +50,17 @@ type BaseTestEntity = {
   updatedBy: any;
 };
 
+type CaseFieldKeys = 'detail' | 'caseStatus';
+type RunFieldKeys = 'comments' | 'executor' | 'designee' | 'runDetail' | 'linkedCase' | 'status';
+
 /** 测试实体类型 */
-export type TestEntity<TTestType extends TestType = TestType.TestDetail> =
-  TTestType extends TestType.TestDetail
-    ? Omit<BaseTestEntity, 'runDetail' | 'runReferenceDetail'>
-    : TTestType extends TestType.TestRun
-    ? Omit<BaseTestEntity, 'reference' | 'detail'>
-    : TTestType extends TestType.TestPlan
-    ? Omit<BaseTestEntity, 'status' | 'detail' | 'runDetail' | 'runReferenceDetail'>
-    : BaseTestEntity;
+export type TestEntity<TTestType extends TestType = TestType.Case> = TTestType extends TestType.Case
+  ? Omit<BaseTestEntity, RunFieldKeys>
+  : TTestType extends TestType.Run
+  ? Omit<BaseTestEntity, CaseFieldKeys>
+  : TTestType extends TestType.Plan
+  ? Omit<BaseTestEntity, CaseFieldKeys | RunFieldKeys>
+  : null;
 
 /** 测试用例状态 */
 export type Status = {
@@ -68,7 +72,7 @@ export type Status = {
   native: boolean;
   readOnly: boolean;
   type: 'TODO' | 'PASSED' | 'EXECUTING' | 'FAILED';
-  detailStatus: Record<string, string>;
+  caseStatus: Record<string, string>;
 };
 
 /** 步骤表单 */
@@ -112,20 +116,4 @@ export type Comment = {
   value: any; // 评论内容
   createTime: string; // 评论时间
   createUserId: string; // 评论用户 id
-};
-
-/** word 测试报告模板 */
-export type WordTemplate = {
-  name: string;
-  // 该模板是否可用
-  enable: boolean;
-  // 文件地址
-  file: FileType;
-
-  // TODO: 数据集
-  dataSet: any[];
-  // TODO: 空间
-  workspace: any[];
-  // TODO: 前置执行脚本
-  preExecuteScript: string;
 };
