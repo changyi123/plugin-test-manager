@@ -4,12 +4,14 @@
   "description": "",
   "private": true,
   "scripts": {
-    "build": "webpack --mode=production",
+    "build": "cd static && webpack --mode=production",
+    "build-package": "giteeteam-apps-cli build --no-zip --prod -c version.yml",
     "dev": "yarn start",
-    "start": "webpack server --mode=development",
+    "start": "cd static && webpack server --mode=development",
     "build-app": "sh ./build-app.sh",
     "lint": "eslint src --ext .js,.jsx,.ts,.tsx",
-    "postinstall": "patch-package"
+    "postinstall": "patch-package",
+    "dev-vm": "node scripts/vmDebugger.js"
   },
   "repository": {
     "type": "git"
@@ -22,6 +24,7 @@
     "@babel/preset-react": "^7.14.5",
     "@ecomfe/class-names-loader": "^2.0.0",
     "@ecomfe/eslint-config": "^7.4.0",
+    "@giteeteam/apps-cli": "0.1.10",
     "@svgr/webpack": "^5.5.0",
     "@types/eslint": "^7.28.0",
     "@types/lodash": "^4.14.177",
@@ -70,6 +73,7 @@
   },
   "dependencies": {
     "@ant-design/icons": "^4.7.0",
+    "@giteeteam/apps-team-api": "^0.1.8",
     "@nebulare/data": "^0.1.5",
     "@osui/theme": "^1.2.10",
     "@projectproxima/components": "0.3.4-remove-editor-0.1",

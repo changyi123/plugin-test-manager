@@ -10,6 +10,9 @@
   "license": "ISC",
   "devDependencies": {},
   "dependencies": {
+    "chokidar": "^3.5.3",
+    "cli-progress": "^3.11.2",
+    "fs-extra": "^10.1.0",
     "node-fetch": "1",
     "tiny-async-pool": "^2.0.1"
   }

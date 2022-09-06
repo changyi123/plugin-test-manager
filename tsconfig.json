@@ -16,14 +16,11 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "paths": {
-      "@/*": ["src/*"],
+      "@/*": ["static/src/*"]
     },
     "lib": ["dom", "dom.iterable", "esnext", "ESNext.Intl", "ES2018.Intl"],
     "allowSyntheticDefaultImports": true
   },
-  "include": [
-    "src/**/*",
-    "typings.d.ts",
-  ],
-  "exclude": ["node_modules", "dist"],
+  "include": ["static/src/**/*", "/src/**/*", "typings.d.ts"],
+  "exclude": ["node_modules", "dist"]
 }
