@@ -39,7 +39,6 @@ export const itemToTestEntity = item => {
     'name',
     'values',
     'objectId',
-    'objectId',
     'itemType',
     'workspace',
     'createdAt',
