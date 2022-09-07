@@ -9,22 +9,21 @@ const colors = require('ansi-colors');
 const debounce = require('lodash/debounce');
 const cliProgress = require('cli-progress');
 
+const resolve = (...args) => path.resolve(__dirname, ...args);
+
 /** webTrigger 监听目录 */
-const TriggerSourceDirectory = path.resolve(__dirname, '../src');
+const TriggerSourceDirectory = '../src/trigger';
 /** vm 执行目录 */
-const DestDirectory = path.resolve(
-  __dirname,
-  '../../../minio/test_manager/production/0.0.1/server-side',
-);
+const DestDirectory = '../../../minio/test_manager/production/0.0.1/server-side';
 /** webTrigger 构建输出目录 */
-const SrcDirectory = path.resolve(__dirname, '../dist');
+const SrcDirectory = '../dist';
 
 const execCommand = async cmd =>
   promisify(require('child_process').exec)(cmd, {
     cwd: path.resolve(__dirname, '../'),
   });
 
-const watcher = chokidar.watch(TriggerSourceDirectory);
+const watcher = chokidar.watch(resolve(TriggerSourceDirectory));
 const progress = {
   percent: 0,
   _total: 100,
@@ -67,8 +66,8 @@ const directoryWatcher = async (event, path) => {
   let error = null;
   try {
     progress.start();
-    await execCommand('npx giteeteam-apps-cli build --no-zip --prod -c version.yml');
-    await fs.copy(SrcDirectory, DestDirectory, { overwrite: true });
+    await execCommand('yarn build-package');
+    await fs.copy(resolve(SrcDirectory), resolve(DestDirectory), { overwrite: true });
     progress.end();
   } catch (err) {
     error = err;

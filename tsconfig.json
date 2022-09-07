@@ -16,11 +16,12 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "paths": {
-      "@/*": ["static/src/*"]
+      "@/*": ["src/app/*"],
+      "common/*": ["src/common/*"]
     },
     "lib": ["dom", "dom.iterable", "esnext", "ESNext.Intl", "ES2018.Intl"],
     "allowSyntheticDefaultImports": true
   },
-  "include": ["static/src/**/*", "/src/**/*", "typings.d.ts"],
+  "include": ["src/**/*", "typings.d.ts", "webpack.config.js"],
   "exclude": ["node_modules", "dist"]
 }

@@ -1,3 +1,5 @@
+export * from 'common/constant';
+
 // 测试管理事件默认 key
 export const TEST_MANAGER_PLUGIN_KEY = 'test_manager';
 
