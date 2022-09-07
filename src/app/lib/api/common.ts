@@ -1,6 +1,6 @@
 import Parse from '@/lib/parse';
 import { TestConfig } from '../models';
-import { assign, cloneDeep, omit, transform, isEmpty } from 'lodash';
+import { assign, omit, transform, isEmpty } from 'lodash';
 import {
   TestType,
   TestRelationType,
@@ -18,21 +18,10 @@ import {
   withItemType,
   SearchSelectors,
 } from '@/lib/utils/iql';
+import { itemToTestEntity, testEntityToItemValues } from 'common/utils/dataTransfer';
+import { ItemValuesStorageKeyMapping } from 'common/constant';
 
 const BATCH_SIZE = 200;
-const TEST_KEYS = [
-  'linkType',
-  'linkItems',
-  'status',
-  'referenceCase',
-  'type',
-  'caseStatus',
-  'repository',
-  'designee',
-  'executor',
-  'sortIndex',
-];
-const TEST_PREFIX = 'r_test_manager_';
 
 /** to/from -> pointer */
 const testRelationTypePointerTransfer = arr =>
@@ -869,52 +858,41 @@ export const getRefItemIdsByTestIds = async (testIds: string[]) => {
     .map(i => i?.toJSON().reference?.objectId);
 };
 
-// 为对象加上测试管理前缀，以便存入数据库
-export function testEntityToItemValues(data: Record<string, any>) {
-  // 浅拷贝一份数据，避免影响调用方
-  const values = cloneDeep(data);
-  // 存的时候，如果带了测试管理字段需要加上前缀
-  const keys = Object.keys(values);
-  keys.forEach(key => {
-    if (TEST_KEYS.includes(key)) {
-      values[`${TEST_PREFIX}${key}`] = values[key];
-      delete values[key];
-    }
-  });
-  return values;
-}
-
-// 事项数据转变成测试管理实体，去掉测试管理前缀
-export function itemToTestEnTity(item) {
-  // 把values抛出最外面
-  const values = item.values || {};
-  // 如果数据包含测试管理字段，需要重新编译
-  const keys = Object.keys(values);
-  keys.forEach(key => {
-    const splitKey = key.split(TEST_PREFIX).join('');
-    if (TEST_KEYS.includes(splitKey)) {
-      values[splitKey] = values[key];
-      delete values[key];
-    }
-  });
-  return {
-    id: item.objectId,
-    ...omit(item, ['values']),
-    ...values,
-  };
-}
-
-// 调proxima接口更新事项
+// 调proxima接口更新单个事项
 export async function updateItem(id: string, data: Record<string, any>) {
   return fetch
     .$put(`/parse/api/items/${id}`, { values: testEntityToItemValues(data) })
     .then(data => data.item);
 }
 
+// 转化批量编辑的values
+function transBulkValues(values) {
+  const res = [];
+  Object.keys(values).forEach(key => {
+    const newKey = ItemValuesStorageKeyMapping[key] || key;
+    // 看看键需不需要转变成测试管理键
+    res.push({ key: newKey, action: 'update', data: values[key] });
+  });
+  return res;
+}
+
+// 调proxima接口批量更新事项
+export async function bulkItems(data: Record<string, any>[]) {
+  // 组装批量数据
+  if (!data?.length) return;
+  const postData = data.map(item => {
+    return {
+      objectId: item.objectId,
+      values: transBulkValues(item.values),
+    };
+  });
+  return fetch.$post(`/parse/api/items/bulk`, { data: postData }).then(data => data.item);
+}
+
 // 查事项详情
 export async function fetchItem(id: string) {
-  const data = new Parse.Query(Item).equalTo('objectId', id).first();
+  const data = await new Parse.Query(Item).equalTo('objectId', id).first({ json: true });
   if (!data) return;
   // 转变成测试管理的数据格式
-  return itemToTestEnTity(data.toJSON());
+  return itemToTestEntity(data);
 }
