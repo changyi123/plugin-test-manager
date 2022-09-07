@@ -886,7 +886,7 @@ export async function bulkItems(data: Record<string, any>[]) {
       values: transBulkValues(item.values),
     };
   });
-  return fetch.$post(`/parse/api/items/bulk`, { data: postData }).then(data => data.item);
+  return fetch.$post(`/parse/api/items/bulk`, { data: postData });
 }
 
 // 查事项详情
