@@ -12,7 +12,7 @@ const cliProgress = require('cli-progress');
 const resolve = (...args) => path.resolve(__dirname, ...args);
 
 /** webTrigger 监听目录 */
-const TriggerSourceDirectory = '../src/trigger';
+const SourceFileOrDirectories = ['../src/trigger', '../src/common'];
 /** vm 执行目录 */
 const DestDirectory = '../../../minio/test_manager/production/0.0.1/server-side';
 /** webTrigger 构建输出目录 */
@@ -23,7 +23,7 @@ const execCommand = async cmd =>
     cwd: path.resolve(__dirname, '../'),
   });
 
-const watcher = chokidar.watch(resolve(TriggerSourceDirectory));
+const watcher = chokidar.watch(SourceFileOrDirectories.map(path => resolve(path)));
 const progress = {
   percent: 0,
   _total: 100,

@@ -64,7 +64,11 @@ export const runGiteeMenus = async () => {
       .include('workspaces')
       .first(ParseBaseQueryOptions);
 
+    const d1 = Date.now();
+
     const isGlobalPlugin = appWorkspace ? appWorkspace.get('global') : true;
+
+    console.info('isGlobalPlugin', Date.now() - d1);
 
     if (!isGlobalPlugin) {
       const hasTestManagerPlugin = appWorkspace

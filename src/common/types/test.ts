@@ -14,7 +14,7 @@ type UserPointerInfo = {
   objectId: string;
 };
 
-// 测试实体
+/** 测试基础实体类型 */
 export type BaseTestEntity = {
   /** 事项 ObjectId */
   objectId: string;
