@@ -16,6 +16,9 @@ modules:
       function: report-data-base
     - key: report-data-extensions-huishang
       function: report-data-extensions-huishang
+      # 查询实体数据
+    - key: api-query-test-entity
+      function: api-query-test-entity
   trigger:
     - key: test-manager-initial-script-update
       events:
@@ -47,6 +50,9 @@ modules:
       # 测试报告拓展数据
     - key: report-data-extensions-huishang
       handler: web.requestReportDataExtensionsBase
+
+    - key: api-query-test-entity
+      handler: api.queryTestEntity
 
   itemPanel:
     - key: test-manager-test-detail
