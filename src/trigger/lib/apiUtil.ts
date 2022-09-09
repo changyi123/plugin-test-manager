@@ -1,4 +1,4 @@
-import { ResponseType, PaginationParams, PaginationResponse } from 'common/types/api';
+import { ResponseType, PaginationParams, PaginationResponse } from '../../common/types/api';
 
 /** 从 VM 运行时获取请求数据 */
 export const getReqInfoFromVMRuntime = <TPayload, THeader = any>(): {
@@ -26,14 +26,15 @@ export const buildResponse = <T extends any>(data: T) => {
   // 异常类型 data 类型返回为 string
   return {
     status,
-    data,
+    data: status === 'error' ? (data as Error).message : data,
+    stack: status === 'error' ? (data as Error).stack : undefined,
   } as ResponseType<T extends ErrorConstructor ? string : T>;
 };
 
 /** 构建分页响应数据 */
 export const buildPaginationResponse = <T extends any>(
   list: T,
-  paginationResponseOptions: PaginationParams & { total: number },
+  paginationResponseOptions?: PaginationParams & { total: number },
 ) => {
   let status = 'ok';
   if (list instanceof Error) {
@@ -42,9 +43,13 @@ export const buildPaginationResponse = <T extends any>(
 
   return {
     status,
-    data: {
-      list,
-      ...paginationResponseOptions,
-    },
+    data:
+      status === 'error'
+        ? (list as Error).message
+        : {
+            list,
+            ...paginationResponseOptions,
+          },
+    stack: status === 'error' ? (list as Error).stack : undefined,
   } as PaginationResponse<T extends ErrorConstructor ? string : T[keyof T]>;
 };

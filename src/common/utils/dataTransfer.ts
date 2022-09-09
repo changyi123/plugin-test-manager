@@ -2,8 +2,8 @@
  * @file 测试实体数据和事项数据之间相互转换
  */
 import omit from 'lodash/omit';
-import { ItemValuesStorageKeyMapping } from 'common/constant';
-import { TestEntityKey, BaseTestEntity } from 'common/types/test';
+import { ItemValuesStorageKeyMapping } from '../constant';
+import { TestEntityKey, BaseTestEntity } from '../types/test';
 
 /** 测试管理实体转换 item values只转换自定义字段。workspace，itemTypes 不进行处理 */
 export const testEntityToItemValues = data => {

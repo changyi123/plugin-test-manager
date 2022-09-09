@@ -3,15 +3,16 @@
  */
 
 // app cli 不支持指定 tsconfig 需要使用相对路径
-import { TestEntity } from '../../../common/types/test';
+import { getReqInfoFromVMRuntime } from '../../lib/apiUtil';
 import { QueryTestEntityPayload } from '../../../common/types/api';
-import { buildPaginationResponse, getReqInfoFromVMRuntime } from '../../../common/utils/api';
+import { iqlRequest } from '../../lib/iqlRequest';
 
 /** 查询测试类型实体数据 */
-export const queryTestEntity = () => {
+export const queryTestEntity = async () => {
   const { payload } = getReqInfoFromVMRuntime<QueryTestEntityPayload>();
-  const { pageSize, current, id } = payload;
-  //   // TODO: 处理实体查询逻辑
-  console.info('id---->', id);
-  return buildPaginationResponse<TestEntity[]>([], { total: 0, pageSize, current });
+  const { offset, limit, ...params } = payload;
+
+  return iqlRequest(params, {
+    pagination: { limit, offset },
+  });
 };

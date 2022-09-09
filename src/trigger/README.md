@@ -31,7 +31,7 @@ PGSQL_CLIENT_PASSWORD=proxima
 `APPS_DIR` 设置为本地文件夹的相对路径
 `yarn start` 启动项目
 
-2. 调整 `script/vmDebugger` 中的 `DestDirectory` 路径和 `APPS_DIR` 保持一致， 执行 `yarn dev-vm` 启动 webTrigger 构建
+2. 调整 `script/vmDebugger` 中的 `DestDirectory` 路径和 `APPS_DIR` 保持一致， 执行 `yarn dev-trigger` 启动 webTrigger 构建
 3. 使用 postman 调试接口，导入下列的 curl，修改参数
 
 ```json

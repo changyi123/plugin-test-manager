@@ -36,8 +36,8 @@ export const TestFiledKeyMapping = {
   sortIndex: 'r_test_manager_sortIndex',
 } as const;
 
-/** 测试管理自定义字段 name 映射，用户拼接 IQL 查询条件 */
-export const TestFiledNameMapping = {
+/** 测试管理内置自定义字段 name 映射，用户拼接 IQL 查询条件 */
+export const BuiltinFieldNameMapping = {
   linkType: '测试关联类型',
   linkItems: '测试关联项',
   status: '测试执行状态',
@@ -50,6 +50,20 @@ export const TestFiledNameMapping = {
   sortIndex: '测试用例排序索引',
 } as const;
 
+export const SystemFieldNameMapping = {
+  id: 'id',
+  name: '标题',
+  key: 'key',
+  workspace: '所属空间',
+  itemType: '类型',
+  status: '状态',
+} as const;
+
+export const IQLFieldNameMapping = {
+  ...BuiltinFieldNameMapping,
+  ...SystemFieldNameMapping,
+} as const;
+
 /** 测试管理事项 values key 关联映射 */
 export const ItemValuesStorageKeyMapping = {
   ...TestFiledKeyMapping,
@@ -57,4 +71,25 @@ export const ItemValuesStorageKeyMapping = {
   detail: 'r_test_manager_detail',
   runDetail: 'r_test_manager_runDetail',
   comment: 'r_test_manager_comment',
+} as const;
+
+/** proxima 系统字段 */
+export const SystemField = {
+  SecurityLevel: 'securityLevel',
+  ItemType: 'itemType',
+  Name: 'name',
+  Workflow: 'workflow',
+  Workspace: 'workspace',
+  Status: 'status',
+  Board: 'board',
+  ItemGroup: 'itemGroup',
+  Key: 'key', //事项ID
+  CreatedAt: 'createdAt', // 创建时间
+  UpdatedAt: 'updatedAt', // 修改时间
+  CreatedBy: 'createdBy', // 创建人
+  UpdatedBy: 'updatedBy', // 修改人
+  Sprint: 'sprint', // 迭代
+  Version: 'version', // 版本
+  Assignee: 'assignee', // 负责人
+  Priority: 'priority', // 优先级
 } as const;
