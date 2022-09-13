@@ -3,15 +3,41 @@
  */
 
 // app cli 不支持指定 tsconfig 需要使用相对路径
-import { TestEntity } from '../../../common/types/test';
-import { QueryTestEntityPayload } from '../../../common/types/api';
-import { buildPaginationResponse, getReqInfoFromVMRuntime } from '../../../common/utils/api';
+import { iqlRequest } from '../../lib/iqlRequest';
+import { getReqInfoFromVMRuntime } from '../../lib/apiUtil';
+import { QueryTestEntityPayload, QueryLinkedTestEntityPayload } from '../../../common/types/api';
 
 /** 查询测试类型实体数据 */
-export const queryTestEntity = () => {
-  const { payload } = getReqInfoFromVMRuntime<QueryTestEntityPayload>();
-  const { pageSize, current, id } = payload;
-  //   // TODO: 处理实体查询逻辑
-  console.info('id---->', id);
-  return buildPaginationResponse<TestEntity[]>([], { total: 0, pageSize, current });
+export const queryTestEntity = async () => {
+  const { body } = getReqInfoFromVMRuntime<QueryTestEntityPayload>();
+  const { offset, limit, query = {}, fields } = body;
+
+  return iqlRequest({
+    query,
+    pagination: { limit, offset },
+    fields,
+  });
+};
+
+/** 查询关联的测试实体数据 */
+export const queryLinkedTestEntity = async () => {
+  const { body } = getReqInfoFromVMRuntime<QueryLinkedTestEntityPayload>();
+  const { offset, limit, query = {}, fields, linkItems, linkType, type } = body;
+
+  const appendSourceField = data => {
+    console.info('data ---->', data);
+    return data;
+  };
+
+  return iqlRequest({
+    query: {
+      ...query,
+      linkItems,
+      linkType,
+      type,
+    },
+    pagination: { limit, offset },
+    fields,
+    dataTransfer: appendSourceField,
+  });
 };
