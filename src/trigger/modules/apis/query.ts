@@ -3,4 +3,4 @@
  */
 
 /** 关联关系查询 */
-const getLinkedTestEntities = () => {};
+export const getLinkedTestEntities = () => {};

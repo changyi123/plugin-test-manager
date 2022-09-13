@@ -19,6 +19,8 @@ modules:
       # 查询实体数据
     - key: api-query-test-entity
       function: api-query-test-entity
+    - key: api-delete-test-entity
+      function: api-delete-test-entity
   trigger:
     - key: test-manager-initial-script-update
       events:
@@ -53,6 +55,8 @@ modules:
 
     - key: api-query-test-entity
       handler: api.queryTestEntity
+    - key: api-delete-test-entity
+      handler: api.deleteTestEntity
 
   itemPanel:
     - key: test-manager-test-detail
