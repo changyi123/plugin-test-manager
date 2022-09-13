@@ -2,14 +2,14 @@ import cloneDeep from 'lodash/cloneDeep';
 import { ResponseType, PaginationParams, PaginationResponse } from '../../common/types/api';
 
 /** 从 VM 运行时获取请求数据 */
-export const getReqInfoFromVMRuntime = <TPayload, THeader = any>(): {
-  payload: TPayload;
+export const getReqInfoFromVMRuntime = <TBody, THeader = any>(): {
+  body: TBody;
   headers: THeader;
   env: Record<'appKey' | 'sessionToken' | 'applicationId', string>;
 } => {
-  const { appKey, sessionToken, applicationId, headers, ...payload } = global as any;
+  const { appKey, sessionToken, applicationId, headers, body } = global as any;
   return {
-    payload: cloneDeep(payload),
+    body: cloneDeep(body),
     headers: cloneDeep(headers),
     env: {
       appKey,

@@ -9,8 +9,8 @@ import { QueryTestEntityPayload, QueryLinkedTestEntityPayload } from '../../../c
 
 /** 查询测试类型实体数据 */
 export const queryTestEntity = async () => {
-  const { payload } = getReqInfoFromVMRuntime<QueryTestEntityPayload>();
-  const { offset, limit, query, fields } = payload;
+  const { body } = getReqInfoFromVMRuntime<QueryTestEntityPayload>();
+  const { offset, limit, query, fields } = body;
 
   return iqlRequest({
     query,
@@ -21,8 +21,8 @@ export const queryTestEntity = async () => {
 
 /** 查询关联的测试实体数据 */
 export const queryLinkedTestEntity = async () => {
-  const { payload } = getReqInfoFromVMRuntime<QueryLinkedTestEntityPayload>();
-  const { offset, limit, query, fields, linkItems, linkType, type } = payload;
+  const { body } = getReqInfoFromVMRuntime<QueryLinkedTestEntityPayload>();
+  const { offset, limit, query, fields, linkItems, linkType, type } = body;
 
   const appendSourceField = data => {
     console.info('data ---->', data);
