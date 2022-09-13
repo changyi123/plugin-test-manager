@@ -87,8 +87,6 @@ export const SystemField = {
   Workflow: 'workflow',
   Workspace: 'workspace',
   Status: 'status',
-  Board: 'board',
-  ItemGroup: 'itemGroup',
   Key: 'key', //事项ID
   CreatedAt: 'createdAt', // 创建时间
   UpdatedAt: 'updatedAt', // 修改时间
