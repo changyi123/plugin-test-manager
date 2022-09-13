@@ -1,9 +1,11 @@
 import { PaginationParams } from '../types/api';
 import { SystemField, AppKey } from '../constant';
-import { default as IQLBuilder, Operator } from '../../common/utils/iqlBuilder';
+import { default as IQLBuilder, Operator, Composition } from '../../common/utils/iqlBuilder';
+
+export { Operator } from '../../common/utils/iqlBuilder';
 
 type BuildParams = {
-  payload: Record<string, any | [any, Operator]>;
+  payload: Record<string, any | { value: any; composition?: Composition; operator?: Operator }>;
   /** 限制返回字段 */
   fields?: string[];
 } & PaginationParams;
@@ -28,20 +30,24 @@ const searchParamsBuilder = (params: BuildParams) => {
 
   Object.entries(payload).forEach(([key, value]) => {
     if (value) {
-      value = Array.isArray(value) ? value : [value];
+      value =
+        typeof value === 'object' && Object.hasOwnProperty.call(value, 'value')
+          ? [value.value, value.operator, value.composition]
+          : [value];
       iqlBuilder.where(key, ...value);
     }
   });
 
   const iql = iqlBuilder.build();
 
-  console.info('iql ------>', iql);
+  console.info('iql search -->', iql);
 
   return {
     iql,
     size: limit,
     from: offset,
     fields: fields,
+    // 隐藏事项需要被查询
     displayContext: AppKey,
   };
 };

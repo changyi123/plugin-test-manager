@@ -1,33 +1,32 @@
+import dayjs from 'dayjs';
 import { buildPaginationResponse } from './apiUtil';
 import { TestEntity } from '../../common/types/test';
 import { requestCoreApi } from '@giteeteam/apps-team-api';
 import { PaginationParams, PaginationResponse } from '../../common/types/api';
 
-import {} from '../../common/types/api';
-import { IQLFieldNameMapping } from '../../common/constant';
+import { IQLFieldNameMapping, IQLSearchFieldKeys } from '../../common/constant';
 import { itemToTestEntity } from '../../common/utils/dataTransfer';
-import iqlSearchParamsBuilder from '../../common/utils/iqlSearchParamsBuilder';
-
-const IQLFiledKeySet = new Set(Object.keys(IQLFieldNameMapping));
+import iqlSearchParamsBuilder, { Operator } from '../../common/utils/iqlSearchParamsBuilder';
 
 type IQLFiledKeys = keyof typeof IQLFieldNameMapping;
 
-type RequestParams = Partial<Record<IQLFiledKeys, any>>;
-
-type ResultOptions = {
+type RequestParams = {
+  query?: Partial<Record<IQLFiledKeys, any>>;
   pagination?: PaginationParams;
+  fields?: string[];
+  dataTransfer?: (data: TestEntity[]) => Promise<any>;
 };
 
 /** iql 请求查询 */
-export const iqlRequest = async (params: RequestParams, options: ResultOptions) => {
-  const { pagination = {} } = options;
+export const iqlRequest = async (params: RequestParams) => {
+  const { pagination = {}, fields, query, dataTransfer } = params;
   try {
-    const customFieldParams = Object.keys(params)
-      .filter(key => !IQLFiledKeySet.has(key))
+    const customFieldParams = Object.keys(query)
+      .filter(key => !IQLSearchFieldKeys.includes(key as any))
       .reduce(
         (prev, key) => ({
           ...prev,
-          [key]: params[key],
+          [key]: query[key],
         }),
         {},
       );
@@ -35,13 +34,33 @@ export const iqlRequest = async (params: RequestParams, options: ResultOptions) 
     // TODO: 处理自定义字段查询条件
     console.info('customFieldParams', customFieldParams);
 
-    // 已经在系统上注册的可以直接作为参数
-    const registeredFieldParams = Object.keys(params)
-      .filter(key => IQLFiledKeySet.has(key))
+    // iql 查询条件参数转换
+    const SearchParamsTransformStrategies = {
+      // name 转换成 like
+      name: value => ({
+        value: value,
+        operator: Operator.Like,
+      }),
+      createdAt: value => {
+        const getStandardDateValue = date => dayjs(date).format('YYYY-MM-DD');
+        return Array.isArray(value)
+          ? {
+              value: value.map(getStandardDateValue),
+              operator: Operator.DateRange,
+            }
+          : null;
+      },
+    };
+
+    // IQLFieldNameMapping 中包含的自定义参数可以做默认的参数
+    const registeredFieldParams = Object.keys(query)
+      .filter(key => IQLSearchFieldKeys.includes(key as any))
       .reduce(
         (prev, key) => ({
           ...prev,
-          [IQLFieldNameMapping[key]]: params[key],
+          [IQLFieldNameMapping[key]]: SearchParamsTransformStrategies[key]
+            ? SearchParamsTransformStrategies[key](query[key])
+            : query[key],
         }),
         {},
       );
@@ -57,11 +76,15 @@ export const iqlRequest = async (params: RequestParams, options: ResultOptions) 
       '/parse/api/search',
       iqlSearchParamsBuilder({
         payload,
+        fields,
         ...pagination,
       }),
     );
 
-    const testEntityList = items.map(itemToTestEntity);
+    const testEntityList =
+      typeof dataTransfer === 'function'
+        ? await dataTransfer(items.map(itemToTestEntity))
+        : items.map(itemToTestEntity);
 
     return buildPaginationResponse(testEntityList, {
       total: count,

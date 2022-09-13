@@ -23,7 +23,6 @@ const execCommand = async cmd =>
     cwd: path.resolve(__dirname, '../'),
   });
 
-const watcher = chokidar.watch(SourceFileOrDirectories.map(path => resolve(path)));
 const progress = {
   percent: 0,
   _total: 100,
@@ -58,11 +57,9 @@ const progress = {
   },
 };
 
-let lock = false;
-
-const directoryWatcher = async (event, path) => {
-  if (lock) return;
-  lock = true;
+const triggerDirectoryWatcher = async (event, path) => {
+  if (triggerDirectoryWatcher.lock) return;
+  triggerDirectoryWatcher.lock = true;
   let error = null;
   try {
     progress.start();
@@ -72,7 +69,7 @@ const directoryWatcher = async (event, path) => {
   } catch (err) {
     error = err;
   } finally {
-    lock = false;
+    triggerDirectoryWatcher.lock = false;
     progress.stop();
     console.info(`${path} changed;`);
     if (error) {
@@ -82,5 +79,8 @@ const directoryWatcher = async (event, path) => {
     }
   }
 };
+triggerDirectoryWatcher.lock = false;
 
-watcher.on('all', debounce(directoryWatcher, 500));
+chokidar
+  .watch(SourceFileOrDirectories.map(path => resolve(path)))
+  .on('all', debounce(triggerDirectoryWatcher, 500));

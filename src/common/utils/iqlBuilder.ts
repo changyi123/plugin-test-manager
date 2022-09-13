@@ -8,6 +8,7 @@ export const enum Operator {
   GreaterThanEqual = '>=',
   LessThan = '>',
   LessThanEqual = '<=',
+  DateRange = 'DateRange',
 }
 export const enum Composition {
   And = 'and',
@@ -32,6 +33,10 @@ const whereProcessor = (column, value, operator: Operator) => {
     case Operator.LessThanEqual:
       // value 不为 number 类型则忽略此条件
       return typeof value === 'number' ? `'${column}' ${operator} "${value}"` : '';
+    case Operator.DateRange:
+      return Array.isArray(value)
+        ? `'${column}' >= '${value[0]}' and '${column}' <= '${value[1]}'`
+        : '';
   }
 };
 
@@ -48,24 +53,28 @@ export default class IQLBuilder {
   // 兼容子条件查询
   where = (
     column: string | IQLBuilder,
-    value?: any | Composition,
+    value?: any,
     operator?: Operator,
     composition?: Composition,
   ) => {
     if (utils.isIQLBuilder(column)) {
       this._context.where.push({
+        operator,
         builder: column,
         composition: value ?? Composition.And,
       });
       return this;
-    } else if (column && !value) {
+    } else if (column && !value && !operator && composition) {
+      // 处理子句聚合查询
       this._context.where.push({
         iqlStr: column,
+        composition,
       });
       return this;
     }
 
-    if (Array.isArray(value)) {
+    // 处理 value 为数组类型的值的操作符
+    if (Array.isArray(value) && !operator) {
       operator = Operator.In;
     }
 
@@ -104,10 +113,13 @@ export default class IQLBuilder {
   build = () => {
     const whereIQLString = this._context.where.reduce((iql, where) => {
       const { column, value, operator, composition, builder, iqlStr } = where;
+      let isComplexSubIql = false;
       let sub = '';
       if (builder) {
+        isComplexSubIql = true;
         sub = `(${builder.toString()})`;
       } else if (iqlStr) {
+        isComplexSubIql = true;
         sub = iqlStr;
       } else {
         sub = whereProcessor(column, value, operator);
@@ -115,7 +127,11 @@ export default class IQLBuilder {
 
       if (!iql) return sub;
 
-      sub = `(${iql}) ${composition} (${sub})`;
+      if (isComplexSubIql) {
+        sub = `(${iql}) ${composition} ${sub}`;
+      } else {
+        sub = `${iql} ${composition} ${sub}`;
+      }
 
       return sub;
     }, '');

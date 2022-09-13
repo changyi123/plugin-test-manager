@@ -54,15 +54,21 @@ export const SystemFieldNameMapping = {
   id: 'id',
   name: '标题',
   key: 'key',
-  workspace: '所属空间',
   itemType: '类型',
   status: '状态',
+  workspace: '所属空间',
+  createdAt: '创建时间',
+  workspaceKey: 'workspaceKey',
 } as const;
 
 export const IQLFieldNameMapping = {
   ...BuiltinFieldNameMapping,
   ...SystemFieldNameMapping,
 } as const;
+
+export const IQLSearchFieldKeys = Object.keys(
+  IQLFieldNameMapping,
+) as (keyof typeof IQLFieldNameMapping)[];
 
 /** 测试管理事项 values key 关联映射 */
 export const ItemValuesStorageKeyMapping = {
