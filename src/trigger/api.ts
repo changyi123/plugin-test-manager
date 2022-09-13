@@ -1,1 +1,1 @@
-export { queryTestEntity } from './modules/api/query';
+export { queryTestEntity, queryLinkedTestEntity } from './modules/api/query';

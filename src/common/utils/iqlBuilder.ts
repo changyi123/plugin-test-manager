@@ -1,0 +1,141 @@
+export const enum Operator {
+  Equal = '=',
+  NotEqual = '!=',
+  In = 'in',
+  NotIn = 'not in',
+  Like = '~',
+  GreaterThan = '>',
+  GreaterThanEqual = '>=',
+  LessThan = '>',
+  LessThanEqual = '<=',
+  DateRange = 'DateRange',
+}
+export const enum Composition {
+  And = 'and',
+  Or = 'or',
+}
+
+/** 条件处理 */
+const whereProcessor = (column, value, operator: Operator) => {
+  switch (operator) {
+    case Operator.In:
+    case Operator.NotIn:
+      value = Array.isArray(value) ? value : [value];
+      return `'${column}' ${operator} [${value.map(val => `"${val}"`).join(', ')}]`;
+    case Operator.Like:
+    case Operator.Equal:
+    case Operator.NotEqual:
+      if (typeof value === 'number') return `'${column}' ${operator} ${value}`;
+      return `'${column}' ${operator} "${value}"`;
+    case Operator.GreaterThan:
+    case Operator.GreaterThanEqual:
+    case Operator.LessThan:
+    case Operator.LessThanEqual:
+      // value 不为 number 类型则忽略此条件
+      return typeof value === 'number' ? `'${column}' ${operator} "${value}"` : '';
+    case Operator.DateRange:
+      return Array.isArray(value)
+        ? `'${column}' >= '${value[0]}' and '${column}' <= '${value[1]}'`
+        : '';
+  }
+};
+
+const utils = {
+  isIQLBuilder: arg => arg instanceof IQLBuilder,
+};
+
+export default class IQLBuilder {
+  _context = {
+    where: [],
+    order: [],
+  };
+
+  // 兼容子条件查询
+  where = (
+    column: string | IQLBuilder,
+    value?: any,
+    operator?: Operator,
+    composition?: Composition,
+  ) => {
+    if (utils.isIQLBuilder(column)) {
+      this._context.where.push({
+        operator,
+        builder: column,
+        composition: value ?? Composition.And,
+      });
+      return this;
+    } else if (column && !value && !operator && composition) {
+      // 处理子句聚合查询
+      this._context.where.push({
+        iqlStr: column,
+        composition,
+      });
+      return this;
+    }
+
+    // 处理 value 为数组类型的值的操作符
+    if (Array.isArray(value) && !operator) {
+      operator = Operator.In;
+    }
+
+    this._context.where.push({
+      value,
+      column,
+      composition: composition ?? Composition.And,
+      operator: operator ?? Operator.Equal,
+    });
+
+    return this;
+  };
+
+  and = (...ops: (IQLBuilder | string)[]) => this._composition(Composition.And, ...ops);
+  or = (...ops: (IQLBuilder | string)[]) => this._composition(Composition.Or, ...ops);
+
+  _composition(composition: Composition, ...ops: (IQLBuilder | string)[]) {
+    if (ops.length < 2) return;
+    ops.forEach(op => {
+      const where = {} as any;
+
+      if (utils.isIQLBuilder(op)) {
+        where.builder = op;
+      } else {
+        where.iqlStr = op;
+      }
+
+      this._context.where.push({
+        ...where,
+        composition,
+      });
+    });
+    return this;
+  }
+
+  build = () => {
+    const whereIQLString = this._context.where.reduce((iql, where) => {
+      const { column, value, operator, composition, builder, iqlStr } = where;
+      let isComplexSubIql = false;
+      let sub = '';
+      if (builder) {
+        isComplexSubIql = true;
+        sub = `(${builder.toString()})`;
+      } else if (iqlStr) {
+        isComplexSubIql = true;
+        sub = iqlStr;
+      } else {
+        sub = whereProcessor(column, value, operator);
+      }
+
+      if (!iql) return sub;
+
+      if (isComplexSubIql) {
+        sub = `(${iql}) ${composition} ${sub}`;
+      } else {
+        sub = `${iql} ${composition} ${sub}`;
+      }
+
+      return sub;
+    }, '');
+
+    return whereIQLString;
+  };
+}
