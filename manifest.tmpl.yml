@@ -21,6 +21,8 @@ modules:
       function: api-query-test-entity
     - key: api-delete-test-entity
       function: api-delete-test-entity
+    - key: api-update-test-entity
+      function: api-update-test-entity
   trigger:
     - key: test-manager-initial-script-update
       events:
@@ -57,6 +59,8 @@ modules:
       handler: api.queryTestEntity
     - key: api-delete-test-entity
       handler: api.deleteTestEntity
+    - key: api-update-test-entity
+      handler: api.updateTestEntity
 
   itemPanel:
     - key: test-manager-test-detail

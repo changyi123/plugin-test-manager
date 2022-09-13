@@ -23,9 +23,19 @@ export type PaginationResponse<T> = ResponseType<
   }
 >;
 
+export type UpdateParams = {
+  data?: ItemParams[];
+};
+
+export type ItemParams = {
+  object: string;
+  values?: Record<string, unknown>;
+};
+
 /**
  * 查询测试实体
  * @example POST /api/project/app/osc/test_manager/webhooks/api-query-test-entity
  */
-export type QueryTestEntityPayload = PaginationParams & { id: string[] };
+export type QueryTestEntityPayload = PaginationParams &
+  UpdateParams & { id: string[]; type?: 'Plan' | 'Case' | 'Run' | 'Execution' };
 export type QueryTestEntityResponse = PaginationResponse<TestEntity>;
