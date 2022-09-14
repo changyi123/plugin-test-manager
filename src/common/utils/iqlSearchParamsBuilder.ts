@@ -1,5 +1,5 @@
 import { PaginationParams } from '../types/api';
-import { SystemField, AppKey } from '../constant';
+import { SystemField, AppKey, TestFiledKeyMapping } from '../constant';
 import { default as IQLBuilder, Operator, Composition } from '../../common/utils/iqlBuilder';
 
 export { Operator } from '../../common/utils/iqlBuilder';
@@ -12,8 +12,7 @@ type BuildParams = {
 
 // iql 请求默认返回字段
 export const DefaultFields = [
-  'values',
-  'objectId',
+  SystemField.Id,
   SystemField.Key,
   SystemField.Name,
   SystemField.Status,
@@ -21,7 +20,14 @@ export const DefaultFields = [
   SystemField.CreatedAt,
   SystemField.CreatedBy,
   SystemField.Workspace,
-] as const;
+  SystemField.Assignee,
+  SystemField.Priority,
+  // SystemField.UpdatedAt,
+  // SystemField.UpdatedBy,
+  // 'values',
+  // 测试管理自定义字段
+  ...Object.values(TestFiledKeyMapping),
+];
 
 const searchParamsBuilder = (params: BuildParams) => {
   const { payload, fields = DefaultFields, offset = 0, limit = 10 } = params;
@@ -46,7 +52,7 @@ const searchParamsBuilder = (params: BuildParams) => {
     iql,
     size: limit,
     from: offset,
-    fields: fields,
+    fields,
     // 隐藏事项需要被查询
     displayContext: AppKey,
   };

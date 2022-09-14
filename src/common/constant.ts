@@ -1,7 +1,7 @@
 export const AppKey = 'test_manager' as const;
 
 /** 测试实体类型 */
-export const enum TestType {
+export enum TestType {
   /** 测试执行 */
   Run = 'TestRun',
   /** 测试用例 */
@@ -13,7 +13,7 @@ export const enum TestType {
 }
 
 /** 测试关联类型 */
-export const enum TestLinkType {
+export enum TestLinkType {
   /** 测试用例关联计划（N:1）*/
   CaseLinkPlan = 'CaseLinkPlan',
   /** 测试执行关联测试执行任务（N:1）*/
@@ -34,7 +34,16 @@ export const TestFiledKeyMapping = {
   designee: 'r_test_manager_designee',
   executor: 'r_test_manager_executor',
   sortIndex: 'r_test_manager_sortIndex',
+
+  // 以下字段以字符串形式存入，存入前需要 stringify，返回需要 parse
+  detail: 'r_test_manager_detail',
+  runDetail: 'r_test_manager_runDetail',
+  comment: 'r_test_manager_comment',
 } as const;
+
+export const TestFiledKeyKeys = Object.keys(
+  TestFiledKeyMapping,
+) as (keyof typeof TestFiledKeyMapping)[];
 
 /** 测试管理内置自定义字段 name 映射，用户拼接 IQL 查询条件 */
 export const BuiltinFieldNameMapping = {
@@ -70,15 +79,6 @@ export const IQLSearchFieldKeys = Object.keys(
   IQLFieldNameMapping,
 ) as (keyof typeof IQLFieldNameMapping)[];
 
-/** 测试管理事项 values key 关联映射 */
-export const ItemValuesStorageKeyMapping = {
-  ...TestFiledKeyMapping,
-
-  detail: 'r_test_manager_detail',
-  runDetail: 'r_test_manager_runDetail',
-  comment: 'r_test_manager_comment',
-} as const;
-
 /** proxima 系统字段 */
 export const SystemField = {
   SecurityLevel: 'securityLevel',
@@ -96,4 +96,5 @@ export const SystemField = {
   Version: 'version', // 版本
   Assignee: 'assignee', // 负责人
   Priority: 'priority', // 优先级
+  Id: 'id',
 } as const;

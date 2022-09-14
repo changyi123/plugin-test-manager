@@ -88,7 +88,7 @@ export type QueryLinkedTestEntityPayload = CommonTestEntityQueryPayload & {
   /** 关联类型 */
   linkType: TestLinkType;
   /** 关联 items id */
-  linkItems: string[] | string[];
+  linkItems: string | string[];
   /** destination 查询实体类型 */
   type: TestType;
 };
@@ -101,3 +101,29 @@ export type QueryLinkedTestEntityResponse<T extends TestType> = PaginationRespon
     destination: string;
   }
 >;
+
+/**
+ * 删除测试实体
+ * @example POST /api/project/app/osc/test_manager/webhooks/api-batch-delete
+ */
+export type BatchDeletePayload = {
+  ids: string[];
+  /** 跳过更新关联数据 */
+  skipDeletedLinkItems: boolean;
+};
+
+/**
+ * 更新测试实体数据
+ * @example POST /api/project/app/osc/test_manager/webhooks/api-batch-update
+ */
+export type BatchUpdatePayload = {
+  data: (Partial<TestEntity> & { objectId: string })[];
+};
+
+/**
+ * 创建测试实体
+ * @example POST /api/project/app/osc/test_manager/webhooks/api-batch-create
+ */
+export type BatchCreatePayload = {
+  data: (Partial<TestEntity> & { name: string; workspace: string; itemType: string })[];
+};
