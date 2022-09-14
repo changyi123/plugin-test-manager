@@ -1,7 +1,7 @@
 export const AppKey = 'test_manager' as const;
 
 /** 测试实体类型 */
-export const enum TestType {
+export enum TestType {
   /** 测试执行 */
   Run = 'TestRun',
   /** 测试用例 */
@@ -13,7 +13,7 @@ export const enum TestType {
 }
 
 /** 测试关联类型 */
-export const enum TestLinkType {
+export enum TestLinkType {
   /** 测试用例关联计划（N:1）*/
   CaseLinkPlan = 'CaseLinkPlan',
   /** 测试执行关联测试执行任务（N:1）*/
@@ -35,6 +35,10 @@ export const TestFiledKeyMapping = {
   executor: 'r_test_manager_executor',
   sortIndex: 'r_test_manager_sortIndex',
 } as const;
+
+export const TestFiledKeyKeys = Object.keys(
+  TestFiledKeyMapping,
+) as (keyof typeof TestFiledKeyMapping)[];
 
 /** 测试管理内置自定义字段 name 映射，用户拼接 IQL 查询条件 */
 export const BuiltinFieldNameMapping = {
