@@ -38,7 +38,7 @@ export type PaginationResponse<T> = ResponseType<
 >;
 
 /** 测试实体查询支持快捷查询 */
-type Query = Partial<{
+export type Query = Partial<{
   /** 事项名称
    *  iql: name ~ ''
    */

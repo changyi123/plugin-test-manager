@@ -1,34 +1,23 @@
-import { toArray } from '@/lib/utils/helper';
-import { TestRelationType } from '@/lib/constants';
-import { createTestRelation } from '@/lib/api/common';
-
-type SingleType = string | Parse.Object;
-type MultipleType = Array<SingleType> | SingleType;
+import { updateItem } from '@/lib/api/common';
+import { BaseTestEntity } from 'common/types/test';
+import { TestLinkType } from 'common/constant';
+import { uniq } from 'lodash';
 
 /** 测试用例添加至测试计划 1:N */
 export const createTestDetailToPlanRelations = async (params: {
-  testPlan: SingleType;
-  testDetail: MultipleType;
+  testPlan: string[]; // 测试计划id
+  testDetail: BaseTestEntity; // 测试用例数据
 }) => {
-  const relations = toArray(params.testDetail).map(testDetail => ({
-    relationType: TestRelationType.PlanRelDetail,
-    from: params.testPlan,
-    to: testDetail,
-  }));
-
-  return createTestRelation(relations);
+  // 获取当前测试用例已有的测试计划id
+  const { linkItems, objectId } = params.testDetail;
+  // 提交数据
+  return updateItem(objectId, {
+    linkType: TestLinkType.CaseLinkPlan,
+    linkItems: uniq([...(linkItems || []), ...params.testPlan]), // 合并测试计划列表，并去重
+  });
 };
 
-/** 将测试任务添加至测试计划 1:N */
-export const createTestExecutionToPlanRelations = async (params: {
-  testPlan: SingleType;
-  testExecution: MultipleType;
-}) => {
-  const relations = toArray(params.testExecution).map(testExecution => ({
-    relationType: TestRelationType.PlanRelExecution,
-    from: params.testPlan,
-    to: testExecution,
-  }));
-
-  return createTestRelation(relations);
-};
+/**
+ * @deprecated 将测试任务添加至测试计划 1:N
+ */
+export const createTestExecutionToPlanRelations = async () => {};

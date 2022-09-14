@@ -1,8 +1,7 @@
-import React from 'react';
+import React, { useRef, useCallback, useMemo, useState } from 'react';
 
 import { DownOutlined } from '@ant-design/icons';
 import { StatusProgress } from '@/components/business/Status';
-import { TestType, TestRelationType } from '@/lib/constants';
 import DropDownButton from '@/components/business/DropDownButton';
 import { createTestDetailToPlanRelations } from '@/lib/api/relations';
 import { useTestConfig, useBaseAction } from '@/lib/hooks/useContext';
@@ -11,87 +10,57 @@ import { BuiltinColumns, columnBuilder } from '@/components/business/PanelTable'
 import TestEntitySelectorModal, {
   ActionType as SelectorActionType,
 } from '@/components/business/TestEntitySelectorModal';
-import {
-  createTestRelation,
-  removeTestRelations,
-  getTestEntitiesByRelation,
-} from '@/lib/api/common';
-import { useAllRelTestEntities } from '@/lib/hooks/useTest';
+import { removeCaseLinkPlan, fetchLinkList } from '@/lib/api/common';
 import { alert } from '@/lib/utils/helper';
-
+import { TestLinkType, TestType } from 'common/constant';
 import cx from './index.less';
 
 const Plan = () => {
   const { testEntity } = useTestConfig();
   const { createItemUseModal } = useBaseAction();
-  const tableActionRef = React.useRef<ActionType>();
-  const selectorModalRef = React.useRef<SelectorActionType>();
-  const { testEntities: allTestEntityId, refresh: getAllRelTestEntities } = useAllRelTestEntities(
-    TestRelationType.PlanRelDetail,
-    {
-      to: testEntity,
-    },
-  );
+  const tableActionRef = useRef<ActionType>();
+  const selectorModalRef = useRef<SelectorActionType>();
 
-  // 刷新依赖数据
-  const refreshDepData = React.useCallback(() => {
-    getAllRelTestEntities();
+  const [planIds, setPlanIds] = useState();
+
+  // 刷新数据
+  const refreshDepData = useCallback(() => {
     tableActionRef.current.refresh();
-  }, [getAllRelTestEntities]);
+  }, []);
 
-  const tableDataSourceGetter = React.useCallback(
-    async queryParams => {
-      const { list: testPlans, total } = await getTestEntitiesByRelation(
-        TestRelationType.PlanRelDetail,
-        { to: testEntity },
-        {
-          fillItemData: true,
-          queryParams: queryParams,
-        },
-      );
+  const fetchPlanList = useCallback(async () => {
+    // 获取测试用例关联的测试计划
+    const data = await fetchLinkList({
+      linkItems: testEntity.objectId,
+      linkType: TestLinkType.CaseLinkPlan,
+      type: TestType.Case,
+    });
+    return data;
+    // 获取统计数量
+  }, [testEntity.objectId]);
 
-      const testPlanIds = testPlans.map(item => item.objectId);
-
-      // 测试执行任务 testRuns
-      const { list: testDetails } = await getTestEntitiesByRelation(
-        TestRelationType.PlanRelDetail,
-        { from: testPlanIds },
-        {
-          queryParams: { limit: 9999 },
-        },
-      );
-
-      const list = testPlans.map(plan => {
-        const relTestDetails = testDetails.filter(
-          detail => detail.relation?.from?.objectId === plan.objectId,
-        );
-        return {
-          ...plan,
-          relTestDetails,
-        };
-      });
-
-      return {
-        total,
-        list,
-      };
-    },
-    [testEntity],
-  );
+  // 更新列表数据
+  const tableDataSourceGetter = useCallback(async () => {
+    const { list, total } = await fetchPlanList();
+    // 测试计划列表
+    setPlanIds(list?.map(item => item.objectId));
+    return {
+      total,
+      list,
+    };
+  }, [fetchPlanList]);
 
   // 添加测试计划菜单
-  const testPlanMenuList = React.useMemo(() => {
+  const testPlanMenuList = useMemo(() => {
     return [
       {
         title: '已存在的测试计划',
         async onClick() {
           const testPlanIds = await selectorModalRef.current.open();
-          const relations = testPlanIds.map(testPlanId => ({
-            relationType: TestRelationType.PlanRelDetail,
-            from: testPlanId,
-            to: testEntity,
-          }));
-          await createTestRelation(relations);
+          await createTestDetailToPlanRelations({
+            testDetail: testEntity,
+            testPlan: testPlanIds,
+          });
 
           alert({
             type: 'success',
@@ -111,7 +80,7 @@ const Plan = () => {
           try {
             await createTestDetailToPlanRelations({
               testDetail: testEntity,
-              testPlan: testPlanEntity,
+              testPlan: [testPlanEntity.objectId],
             });
           } catch (err) {
             console.error(err);
@@ -128,10 +97,10 @@ const Plan = () => {
     ];
   }, [createItemUseModal, refreshDepData, testEntity]);
 
-  const removeTestRelation = React.useCallback(
+  const removeTestRelation = useCallback(
     async relationTypeIds => {
       if (!Array.isArray(relationTypeIds)) return;
-      await removeTestRelations(relationTypeIds);
+      await removeCaseLinkPlan({ testPlan: relationTypeIds, testDetail: testEntity });
 
       refreshDepData();
 
@@ -140,11 +109,11 @@ const Plan = () => {
         message: '当前测试用例从测试计划中删除',
       });
     },
-    [refreshDepData],
+    [refreshDepData, testEntity],
   );
 
   // table column 数据
-  const tableColumns = React.useMemo(() => {
+  const tableColumns = useMemo(() => {
     return [
       columnBuilder(BuiltinColumns.ItemKey, data => ({
         item: data.reference,
@@ -175,11 +144,17 @@ const Plan = () => {
         key: 'action',
         fixed: 'right',
         render: (_, record) => (
-          <a onClick={() => removeTestRelation([record.testRelationId])}>删除</a>
+          <a
+            onClick={() =>
+              removeCaseLinkPlan({ testPlan: [record.testRelationId], testDetail: testEntity })
+            }
+          >
+            删除
+          </a>
         ),
       },
     ] as any[];
-  }, [removeTestRelation]);
+  }, [testEntity]);
 
   return (
     <div className={cx('test')}>
@@ -187,7 +162,7 @@ const Plan = () => {
         title="添加当前用例至选中的测试计划中"
         actionRef={selectorModalRef}
         testType={TestType.TestPlan}
-        ignoreTestEntityIds={allTestEntityId}
+        ignoreTestEntityIds={planIds}
       />
       <PanelTable
         renderActions={() => (
