@@ -76,7 +76,7 @@ const Main = () => {
         icon: <Spin spinning={true} />,
         duration: null,
       });
-      const testExecutionData = testExecutionEntity.toJSON();
+      const testExecutionData = testExecutionEntity;
 
       await createTestExecutionAndRelations({
         workspaceKey: workspace.key,

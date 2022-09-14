@@ -38,8 +38,8 @@ const TestPanel = () => {
         ></Result>
       );
     if (!testEntity) return null;
-    console.info('testEntity', testEntity.toJSON());
-    const testType = testEntity.get('type');
+    console.info('testEntity', testEntity);
+    const testType = testEntity.type;
 
     const TestPanelComponent = TestPanelComponents[testType];
 

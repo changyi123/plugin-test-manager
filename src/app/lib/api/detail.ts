@@ -10,7 +10,9 @@ export interface ICommonRes<T = any> {
   data?: T;
 }
 
-// 更新或者保存测试用例
+/**
+ * @deprecated 更新或者保存测试用例
+ */
 export const updateTestDetail = async (
   testEntity: Parse.Object<TestDetailEntity>,
   params: {
