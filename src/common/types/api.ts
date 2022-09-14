@@ -98,10 +98,11 @@ export type QueryLinkedTestEntityPayload = CommonTestEntityQueryPayload & LinkQu
 /** 查询关联测试实体 */
 export type QueryLinkedTestEntityResponse<T extends TestType> = PaginationResponse<
   TestEntity<T> & {
-    // 关联方 source 数据
-    source: string;
-    // 被关联方 source 数据
-    destination: string;
+    /** 关联方 source id 数据
+     *  兼容测试计划关联测试用例为多对多关联，响应值为数组
+     * linkType = caseLinkPlan, destType = testCase 该情况为多个 id，其他的情况只有一个 id
+     */
+    source: string[];
   }
 >;
 

@@ -56,6 +56,9 @@ export const iqlRequest = async (params: RequestParams) => {
     const query = cloneDeep(originalQuery) ?? {};
     const pagination = Object.assign({}, DefaultPagination, originalPagination);
 
+    // 反向关联方的字段 map
+    const backwardLinkSourceMap = {} as Record<string, string[]>;
+
     // 处理关联关系查询
     if (linkQuery) {
       const { linkType, destinationType, sourceIds } = linkQuery;
@@ -101,7 +104,10 @@ export const iqlRequest = async (params: RequestParams) => {
         const destinationIds = Array.from(
           new Set(
             sourceData.reduce((res, data) => {
-              return res.concat(data.linkItems ?? []);
+              const linkItems = data.linkItems ?? [];
+              // 添加反向关联的映射
+              backwardLinkSourceMap[data.objectId] = linkItems;
+              return res.concat(linkItems);
             }, []),
           ),
         );
@@ -172,20 +178,38 @@ export const iqlRequest = async (params: RequestParams) => {
       }),
     );
 
-    const testEntityList =
-      typeof dataTransfer === 'function'
-        ? await dataTransfer(items.map(itemToTestEntity))
-        : items.map(itemToTestEntity);
-
     // 关联查询添加 source 字段
-    const appendSourceField = testEntityList => {
+    const appendLinkSourceField = testEntityList => {
       if (linkQuery) {
+        const { linkType, destinationType } = linkQuery;
+        const isForwardLinkQuery = getLinkTypes(linkType)[0] === destinationType;
+        if (isForwardLinkQuery) {
+          testEntityList = testEntityList.map(data => ({
+            ...data,
+            source: data.linkItems,
+          }));
+        } else {
+          const getSourceFromLinkSourceMap = destinationId => {
+            return Object.entries(backwardLinkSourceMap)
+              .filter(([, destIds]) => destIds.includes(destinationId))
+              ?.map(data => data[0]);
+          };
+          testEntityList = testEntityList.map(data => ({
+            ...data,
+            source: getSourceFromLinkSourceMap(data.objectId),
+          }));
+        }
         console.info('testEntityList', testEntityList);
       }
       return testEntityList;
     };
 
-    return buildPaginationResponse(testEntityList, {
+    const testEntityList = appendLinkSourceField(items.map(itemToTestEntity));
+
+    const result =
+      typeof dataTransfer === 'function' ? await dataTransfer(testEntityList) : testEntityList;
+
+    return buildPaginationResponse(result, {
       total: count,
       ...pagination,
     }) as PaginationResponse<TestEntity>;
