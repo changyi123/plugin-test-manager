@@ -88,7 +88,7 @@ export type QueryLinkedTestEntityPayload = CommonTestEntityQueryPayload & {
   /** 关联类型 */
   linkType: TestLinkType;
   /** 关联 items id */
-  linkItems: string[] | string[];
+  linkItems: string | string[];
   /** destination 查询实体类型 */
   type: TestType;
 };
