@@ -24,21 +24,14 @@ export const testEntityFieldTypeValidator = data => {
     const fieldKey = key as typeof ValidateFields[0];
     // 测试自定义字段校验
     if (ValidateFields.includes(fieldKey)) {
-      switch (fieldKey) {
-        case 'linkItems':
-          if (!Array.isArray(value)) throwArgumentError('linkItems', 'objectId[]');
-
-        case 'linkType':
-          if (!Object.values(TestLinkType).includes(value))
-            throwArgumentError(key, 'TestLinkType Enum');
-        case 'type':
-          if (!Object.values(TestType).includes(value)) throwArgumentError(key, 'TestType Enum');
-
-        // case 'detail':
-        // case 'runDetail':
-        //   if (!value || typeof value !== 'object') throwArgumentError(key);
-        default:
-          return;
+      if (fieldKey === 'linkItems') {
+        Array.isArray(value) || throwArgumentError('linkItems', 'objectId[]');
+      } else if (fieldKey === 'linkType') {
+        Object.values(TestLinkType).includes(value) || throwArgumentError(key, 'TestLinkType Enum');
+      } else if (fieldKey === 'type') {
+        Object.values(TestType).includes(value) || throwArgumentError(key, 'TestType Enum');
+      } else if (['detail', 'runDetail'].includes(fieldKey)) {
+        (value && typeof value === 'object') || throwArgumentError(key);
       }
     }
   });

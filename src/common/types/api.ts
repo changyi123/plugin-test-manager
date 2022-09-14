@@ -10,6 +10,16 @@ type FieldKey = keyof typeof IQLFieldNameMapping;
 
 export type StatusCode = 'ok' | 'error';
 
+/** 关联类型查询参数 */
+export type LinkQueryPayload = {
+  /** 关联类型 */
+  linkType: TestLinkType;
+  /** 关联 items id */
+  sourceIds: string | string[];
+  /** destination 查询实体类型 */
+  destinationType: TestType;
+};
+
 export type ResponseType<T> = {
   status: StatusCode;
   data: T;
@@ -84,14 +94,7 @@ export type QueryTestEntityResponse<T extends TestType> = PaginationResponse<Tes
  * 查询关联测试实体
  * @example POST /api/project/app/osc/test_manager/webhooks/api-query-linked-test-entity
  */
-export type QueryLinkedTestEntityPayload = CommonTestEntityQueryPayload & {
-  /** 关联类型 */
-  linkType: TestLinkType;
-  /** 关联 items id */
-  linkItems: string | string[];
-  /** destination 查询实体类型 */
-  type: TestType;
-};
+export type QueryLinkedTestEntityPayload = CommonTestEntityQueryPayload & LinkQueryPayload;
 /** 查询关联测试实体 */
 export type QueryLinkedTestEntityResponse<T extends TestType> = PaginationResponse<
   TestEntity<T> & {

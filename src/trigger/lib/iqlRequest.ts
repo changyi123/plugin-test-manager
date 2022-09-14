@@ -1,26 +1,117 @@
 import dayjs from 'dayjs';
+import cloneDeep from 'lodash/cloneDeep';
 import { buildPaginationResponse } from './apiUtil';
 import { TestEntity } from '../../common/types/test';
 import { requestCoreApi } from '@giteeteam/apps-team-api';
-import { PaginationParams, PaginationResponse } from '../../common/types/api';
 
-import { IQLFieldNameMapping, IQLSearchFieldKeys } from '../../common/constant';
+import { throwArgumentError } from '../lib/validator';
 import { itemToTestEntity } from '../../common/utils/dataTransfer';
+import {
+  IQLSearchFieldKeys,
+  IQLFieldNameMapping,
+  IQLMinimumFieldKeys,
+  TestFiledKeyMapping,
+} from '../../common/constant';
 import iqlSearchParamsBuilder, { Operator } from '../../common/utils/iqlSearchParamsBuilder';
+import { PaginationParams, PaginationResponse, LinkQueryPayload } from '../../common/types/api';
 
 type IQLFiledKeys = keyof typeof IQLFieldNameMapping;
 
 type RequestParams = {
-  query?: Partial<Record<IQLFiledKeys, any>>;
-  pagination?: PaginationParams;
   fields?: string[];
+  linkQuery?: LinkQueryPayload;
+  pagination?: PaginationParams;
+  query?: Partial<Record<IQLFiledKeys, any>>;
   dataTransfer?: (data: TestEntity[]) => Promise<any>;
+};
+
+// 全部数据
+const InfinityLimit = 99999;
+
+const DefaultPagination = {
+  offset: 0,
+  limit: 10,
+};
+
+/** 获取关联方，被关联方的类型 */
+const getLinkTypes = linkType => {
+  return linkType
+    .match(/^(\w+)Link(\w+)$/)
+    .slice(1, 3)
+    .map(type => `Test${type}`);
 };
 
 /** iql 请求查询 */
 export const iqlRequest = async (params: RequestParams) => {
-  const { pagination = {}, fields, query, dataTransfer } = params;
   try {
+    const {
+      pagination: originalPagination,
+      fields,
+      query: originalQuery,
+      dataTransfer,
+      linkQuery,
+    } = params;
+
+    // 参数处理
+    const query = cloneDeep(originalQuery) ?? {};
+    const pagination = Object.assign({}, DefaultPagination, originalPagination);
+
+    // 处理关联关系查询
+    if (linkQuery) {
+      const { linkType, destinationType, sourceIds } = linkQuery;
+      const linkTestTypes = getLinkTypes(linkType);
+
+      // linkType 和 destinationType 未对应抛错
+      if (!linkTestTypes.includes(destinationType))
+        throwArgumentError('destinationTestType', linkTestTypes.join(' or '));
+
+      // 正向关联查询
+      // 正向关联查询参数 eg：linkType = CaseLinkPlan destinationType = TestCase
+      const isForwardLinkQuery = linkTestTypes[0] === destinationType;
+
+      if (isForwardLinkQuery) {
+        // 因为关联查询的 linkItems 字段存在多的一方
+        // 使用 linkItems 可以直接查询出正向关联的数据
+        query.linkType = linkType;
+        query.type = destinationType;
+        query.linkItems = sourceIds;
+      } else {
+        // 反向关联查询
+        // eg： linkType = CaseLinkPlan destinationType = TestPlan
+        // 查出用例关联的测试计划的数据 步骤：
+        // 1. iql 查出所有的测试用例
+        // 2. 合并所有的 linkItems 字段数据（plan objectId）
+        // 3. 根据合并后的 plan objectId 查出所有的用例
+
+        // iql 查出所有的测试用例
+        const {
+          data: { list: sourceData },
+        } = await iqlRequest({
+          query: {
+            id: sourceIds,
+          },
+          pagination: {
+            limit: InfinityLimit,
+            offset: 0,
+          },
+          fields: [...IQLMinimumFieldKeys, TestFiledKeyMapping.linkItems],
+        });
+
+        // 合并所有的 linkItems 字段数据
+        const destinationIds = Array.from(
+          new Set(
+            sourceData.reduce((res, data) => {
+              return res.concat(data.linkItems ?? []);
+            }, []),
+          ),
+        );
+
+        // 根据合并后的 plan objectId 查出所有的用例（拼接 Query）
+        query.id = destinationIds;
+        query.type = destinationType;
+      }
+    }
+
     const customFieldParams = Object.keys(query)
       .filter(key => !IQLSearchFieldKeys.includes(key as any))
       .reduce(
@@ -85,6 +176,14 @@ export const iqlRequest = async (params: RequestParams) => {
       typeof dataTransfer === 'function'
         ? await dataTransfer(items.map(itemToTestEntity))
         : items.map(itemToTestEntity);
+
+    // 关联查询添加 source 字段
+    const appendSourceField = testEntityList => {
+      if (linkQuery) {
+        console.info('testEntityList', testEntityList);
+      }
+      return testEntityList;
+    };
 
     return buildPaginationResponse(testEntityList, {
       total: count,
