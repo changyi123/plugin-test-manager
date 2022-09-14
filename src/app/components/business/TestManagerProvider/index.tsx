@@ -9,12 +9,7 @@ import { message, notification } from 'antd';
 import { alert, hasArrayItem } from '@/lib/utils/helper';
 import { useOnItemCreateSuccess } from '@/lib/hooks/useProximaSDK';
 import { openCreateItemModal, openItemDetailPanel } from '@/lib/api/sdk';
-import {
-  getTestConfig,
-  getTestEntities,
-  createTestEntities,
-  getTestConfigByWorkspaceKeys,
-} from '@/lib/api/common';
+import { getTestConfig, createTestEntities, getTestConfigByWorkspaceKeys } from '@/lib/api/common';
 import { getItemByIds, getWorkspaceByKey, getItemTypeByKey } from '@/lib/api/proxima';
 import { getKeyByValue, generateSortIndex } from '@/lib/utils/helper';
 import {
@@ -30,6 +25,7 @@ import {
   CREATE_ITEM_STORE_FIELD_KEY,
 } from '@/lib/constants';
 import { union } from 'lodash';
+import { fetchItems, fetchItem } from '@/lib/api/common';
 
 const ItemCreateSuccessEventType = 'itemCreateSuccess';
 
@@ -40,7 +36,7 @@ const getOrCreateTestEntity = async (
 ) => {
   if (!itemId) return null;
   const storeValues = store.get(ExtensionValType.CREATE_OR_UPDATE_ITEM);
-  let [testEntity] = await getTestEntities({ itemId });
+  let testEntity = await fetchItem(itemId);
 
   // 查询不到测试实体则直接创建
   if (!testEntity) {
@@ -99,8 +95,8 @@ const getOrCreateTestEntity = async (
         },
       ]);
       // 重新查询 testEntity，保持返回数据一致
-      [testEntity] = await getTestEntities({ itemId });
-      console.info('new testEntity', testEntity?.toJSON());
+      testEntity = await fetchItem(itemId);
+      console.info('new testEntity', testEntity);
     }
   }
 
@@ -118,7 +114,7 @@ const getOrBatchCreateTestEntities = async (
   },
 ) => {
   if (!Array.isArray(itemIdList)) return null;
-  let testEntities = await getTestEntities({ itemId: itemIdList });
+  let testEntities = await fetchItems(itemIdList);
 
   // 查询结果数量小于实际参数数量（事项不存在对应的测试管理实体数据）
   // 创建测试管理实体
@@ -214,7 +210,7 @@ const getOrBatchCreateTestEntities = async (
     const itemId = needCreatedItemDataList.map(itemData => itemData.objectId);
 
     // 重新查询 testEntity，保持返回数据一致
-    testEntities = await getTestEntities({ itemId });
+    testEntities = await fetchItems(itemId);
     console.info(
       'new testEntity',
       testEntities?.map(item => item.toJSON()),
@@ -240,7 +236,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
   workspaceKey,
 }) => {
   const [workspace, setWorkspace] = React.useState<Workspace>();
-  const [testEntity, setTestEntity] = React.useState<Parse.Object<TestEntity>>();
+  const [testEntity, setTestEntity] = React.useState<TestEntity>();
 
   React.useEffect(() => {
     const execute = async () => {
@@ -254,10 +250,11 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
   React.useEffect(() => {
     const execute = async () => {
       const testEntity = await getOrCreateTestEntity(itemId);
-      setTestEntity(testEntity ?? ENTITY_NOT_FOUND);
+      // TODO: 类型问题
+      setTestEntity((testEntity ?? ENTITY_NOT_FOUND) as unknown as TestEntity);
       if (testEntity) {
-        const workspace = testEntity.get('reference')?.get('workspace');
-        workspace && setWorkspace(workspace.toJSON());
+        const workspace = testEntity.workspace;
+        workspace && setWorkspace(workspace as Workspace);
       }
     };
     execute();
