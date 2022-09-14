@@ -1,6 +1,6 @@
 import Parse from '@/lib/parse';
 import { TestConfig } from '../models';
-import { assign, omit, transform, isEmpty } from 'lodash';
+import { assign, omit, transform, isEmpty, without } from 'lodash';
 import {
   TestType,
   TestRelationType,
@@ -20,6 +20,9 @@ import {
 } from '@/lib/utils/iql';
 import { itemToTestEntity, testEntityToItemValues } from 'common/utils/dataTransfer';
 import { ItemValuesStorageKeyMapping } from 'common/constant';
+import { BaseTestEntity } from 'common/types/test';
+import { TestLinkType } from 'common/constant';
+import { Query } from 'common/types/api';
 
 const BATCH_SIZE = 200;
 
@@ -440,7 +443,7 @@ export const createTestRelation = (
 };
 
 /**
- * 解除关联关系
+ * @deprecated 解除关联关系
  */
 
 export const removeTestRelations = (_relations: Array<PointerType>) => {
@@ -448,6 +451,19 @@ export const removeTestRelations = (_relations: Array<PointerType>) => {
 
   return Parse.Object.destroyAll(relations, { batchSize: BATCH_SIZE });
 };
+
+/** 移除-测试用例关联测试计划 */
+export function removeCaseLinkPlan({
+  testPlan,
+  testDetail,
+}: {
+  testPlan: string[];
+  testDetail: BaseTestEntity;
+}): Promise<BaseTestEntity> {
+  const { objectId, linkItems } = testDetail;
+  // 排除数据
+  return updateItem(objectId, { linkItems: without(linkItems, ...testPlan) });
+}
 
 /** 根据关联条件接触关联关系 */
 export const removeTestRelationsWithCondition = async (
@@ -513,7 +529,7 @@ export const createTestEntities = async (
 };
 
 /**
- * 获取测试实体
+ *  @deprecated 获取测试实体
  */
 export const getTestEntities = (
   params: { itemId?: string | string[]; id?: string | string[] },
@@ -889,10 +905,31 @@ export async function bulkItems(data: Record<string, any>[]) {
   return fetch.$post(`/parse/api/items/bulk`, { data: postData });
 }
 
-// 查事项详情
+// 查单个事项
 export async function fetchItem(id: string) {
-  const data = await new Parse.Query(Item).equalTo('objectId', id).first({ json: true });
+  const data = await new Parse.Query(Item).equalTo('objectId', id).findAll({ json: true });
   if (!data) return;
   // 转变成测试管理的数据格式
   return itemToTestEntity(data);
+}
+
+// 批量查事项详情
+export async function fetchItems(ids: string[]) {
+  const data = await new Parse.Query(Item).containedIn('objectId', ids).findAll({ json: true });
+  if (!data?.length) return [];
+  // 转变成测试管理的数据格式
+  return data.map(item => itemToTestEntity(item));
+}
+
+interface FetchLinkParams {
+  linkType: TestLinkType;
+  linkItems: string[] | string;
+  query?: Query;
+}
+
+/**
+ * 获取测试实体关联的列表
+ */
+export async function fetchLinkList(data: FetchLinkParams) {
+  return fetch.$post(`/test_manager/webhooks/api-query-linked-test-entity`, { data });
 }

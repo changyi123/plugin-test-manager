@@ -1,16 +1,15 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState, useCallback } from 'react';
 import { Button, Input, Spin } from 'antd';
-import { updateTestDetail } from '@/lib/api/detail';
-import { SearchOutlined, BlockOutlined } from '@/icons';
+import { BlockOutlined } from '@/icons';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import { TestType } from '@/lib/constants';
-import { keyBy, uniq } from 'lodash';
+import { cloneDeep, keyBy, uniq } from 'lodash';
 import { useDebounceFn, useRequest } from 'ahooks';
 
 import { Item } from '@/lib/types/App';
 import { hasArrayItem } from '@/lib/utils/helper';
-import { getTestEntities } from '@/lib/api/common';
+import { fetchItems, updateItem } from '@/lib/api/common';
 import { Step, TestEntity } from '@/lib/types/Test';
 import TestStep from '@/components/business/TestStep';
 
@@ -47,7 +46,7 @@ const Detail: React.FC = () => {
     [setStepsState],
   );
 
-  const testDetailData = testEntity.toJSON();
+  const testDetailData = testEntity;
   const { objectId: testDetailId } = testDetailData;
 
   const { loading, runAsync: fetchData } = useRequest(
@@ -67,14 +66,8 @@ const Detail: React.FC = () => {
       if (hasArrayItem(callTestIds)) {
         // 没有缓存请求
         if (hasNotExistedIdInDict) {
-          const testEntities = await getTestEntities(
-            { id: callTestIds },
-            { include: ['reference'] },
-          );
-          const testEntityDict = keyBy(
-            testEntities.map(entity => entity.toJSON()),
-            'objectId',
-          );
+          const testEntities = await fetchItems(callTestIds);
+          const testEntityDict = keyBy(testEntities, 'objectId');
           testEntityDictRef.current = Object.assign({}, testEntityDictRef.current, testEntityDict);
         }
 
@@ -105,17 +98,17 @@ const Detail: React.FC = () => {
       if (!newSteps) return;
       setSteps(newSteps);
 
-      await updateTestDetail(testEntity, {
-        steps: newSteps,
-      });
+      const cpDetail = cloneDeep(testEntity.detail);
+      cpDetail.steps = newSteps;
+      await updateItem(testEntity.objectId, { detail: cpDetail });
     },
     [setSteps, testEntity],
   );
 
   const { run: handlePreconditionChange } = useDebounceFn(precondition => {
-    updateTestDetail(testEntity, {
-      precondition,
-    });
+    const cpDetail = cloneDeep(testEntity.detail);
+    cpDetail.precondition = precondition;
+    updateItem(testEntity.objectId, { detail: cpDetail });
   });
 
   const callTestLen = useCallback(() => {
