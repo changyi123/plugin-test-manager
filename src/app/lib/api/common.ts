@@ -1,8 +1,7 @@
 import Parse from '@/lib/parse';
 import { TestConfig } from '../models';
-import { assign, omit, transform, isEmpty, without } from 'lodash';
+import { assign, omit, transform, isEmpty, without, cloneDeep } from 'lodash';
 import {
-  TestType,
   TestRelationType,
   GlobalConfigStorageKey,
   CurrentWorkspaceConfigStorageKey,
@@ -19,9 +18,8 @@ import {
   SearchSelectors,
 } from '@/lib/utils/iql';
 import { itemToTestEntity, testEntityToItemValues } from 'common/utils/dataTransfer';
-import { ItemValuesStorageKeyMapping } from 'common/constant';
 import { BaseTestEntity } from 'common/types/test';
-import { TestLinkType } from 'common/constant';
+import { TestLinkType, TestType, ItemValuesStorageKeyMapping } from 'common/constant';
 import { Query } from 'common/types/api';
 
 const BATCH_SIZE = 200;
@@ -639,7 +637,7 @@ export const getTestEntitiesByQuery = async (
 
   const repositorySelector = queryParams.selectors?.[1];
   // 为用例类型需要拼上repository的查询条件
-  if (!isEmpty(repositorySelector) && queryParams.type === TestType.TestDetail) {
+  if (!isEmpty(repositorySelector) && queryParams.type === TestType.Case) {
     query = Parse.Query.and(selectorToParse(new Parse.Query(Test), repositorySelector), query);
   }
 
@@ -838,7 +836,7 @@ export const updateGlobalConfig = async fields => {
 export async function fetchItemFromIql(
   selector: ItemSelectors,
   workspaceKey,
-  type = TestType.TestDetail,
+  type = TestType.Case,
 ) {
   let iql = selectorToIql(selector);
   // 组装空间
@@ -876,6 +874,11 @@ export const getRefItemIdsByTestIds = async (testIds: string[]) => {
 
 // 调proxima接口更新单个事项
 export async function updateItem(id: string, data: Record<string, any>) {
+  // detail字段需要特殊处理
+  const cpData = cloneDeep(data);
+  if (cpData.detail && typeof cpData.detail === 'object') {
+    cpData.detail = JSON.stringify(cpData.detail);
+  }
   return fetch
     .$put(`/parse/api/items/${id}`, { values: testEntityToItemValues(data) })
     .then(data => data.item);
@@ -886,8 +889,12 @@ function transBulkValues(values) {
   const res = [];
   Object.keys(values).forEach(key => {
     const newKey = ItemValuesStorageKeyMapping[key] || key;
+    let data = values[key];
+    if (key === 'detail' && typeof data === 'object') {
+      data = JSON.stringify(data);
+    }
     // 看看键需不需要转变成测试管理键
-    res.push({ key: newKey, action: 'update', data: values[key] });
+    res.push({ key: newKey, action: 'update', data });
   });
   return res;
 }
@@ -905,12 +912,34 @@ export async function bulkItems(data: Record<string, any>[]) {
   return fetch.$post(`/parse/api/items/bulk`, { data: postData });
 }
 
+// 有几个参数返回时要做类型转换
+export function transferObject(data) {
+  const targetKey = ['detail', 'runDetail', 'comment'];
+  const transfer = value => {
+    if (!value) return;
+    targetKey.forEach(key => {
+      if (value[key] && typeof value[key] === 'string') {
+        try {
+          value[key] = JSON.parse(value[key]);
+        } catch (e) {
+          return {};
+        }
+      }
+    });
+  };
+  // 先检查最外层数据
+  transfer(data);
+  // 再检查values内部数据
+  transfer(data.values);
+  return data;
+}
+
 // 查单个事项
 export async function fetchItem(id: string) {
   const data = await new Parse.Query(Item).equalTo('objectId', id).findAll({ json: true });
   if (!data) return;
   // 转变成测试管理的数据格式
-  return itemToTestEntity(data);
+  return transferObject(itemToTestEntity(data));
 }
 
 // 批量查事项详情
@@ -918,12 +947,13 @@ export async function fetchItems(ids: string[]) {
   const data = await new Parse.Query(Item).containedIn('objectId', ids).findAll({ json: true });
   if (!data?.length) return [];
   // 转变成测试管理的数据格式
-  return data.map(item => itemToTestEntity(item));
+  return data.map(item => transferObject(itemToTestEntity(item)));
 }
 
 interface FetchLinkParams {
   linkType: TestLinkType;
   linkItems: string[] | string;
+  type: TestType;
   query?: Query;
 }
 
@@ -931,5 +961,13 @@ interface FetchLinkParams {
  * 获取测试实体关联的列表
  */
 export async function fetchLinkList(data: FetchLinkParams) {
-  return fetch.$post(`/test_manager/webhooks/api-query-linked-test-entity`, { data });
+  const { status, data: res } = await fetch.$post(
+    `/test_manager/webhooks/api-query-linked-test-entity`,
+    { data },
+  );
+  if (status !== 'ok') {
+    // 报错
+    throw new Error('fetch link list error');
+  }
+  return { ...res, list: res.list.map(item => transferObject(itemToTestEntity(item))) };
 }

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Item, Workspace } from '@/lib/types/App';
-import { TestType } from '@/lib/constants';
+import { TestType } from 'common/constant';
 import { BaseTestEntity } from 'common/types/test';
 
 export type TestConfigContextType = {

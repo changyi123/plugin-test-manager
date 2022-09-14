@@ -2,7 +2,6 @@ import React, { useRef, useCallback, useMemo, useState } from 'react';
 
 import { DownOutlined } from '@ant-design/icons';
 import { StatusProgress } from '@/components/business/Status';
-import { TestType } from '@/lib/constants';
 import DropDownButton from '@/components/business/DropDownButton';
 import { createTestDetailToPlanRelations } from '@/lib/api/relations';
 import { useTestConfig, useBaseAction } from '@/lib/hooks/useContext';
@@ -13,7 +12,7 @@ import TestEntitySelectorModal, {
 } from '@/components/business/TestEntitySelectorModal';
 import { removeCaseLinkPlan, fetchLinkList } from '@/lib/api/common';
 import { alert } from '@/lib/utils/helper';
-import { TestLinkType } from 'common/constant';
+import { TestLinkType, TestType } from 'common/constant';
 import cx from './index.less';
 
 const Plan = () => {
@@ -31,14 +30,11 @@ const Plan = () => {
 
   const fetchPlanList = useCallback(async () => {
     // 获取测试用例关联的测试计划
-    const { status, data } = await fetchLinkList({
+    const data = await fetchLinkList({
       linkItems: testEntity.objectId,
       linkType: TestLinkType.CaseLinkPlan,
+      type: TestType.Case,
     });
-    if (status !== 'ok') {
-      // 报错
-      throw new Error('fetch link list error');
-    }
     return data;
     // 获取统计数量
   }, [testEntity.objectId]);
