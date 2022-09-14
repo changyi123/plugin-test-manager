@@ -1,9 +1,8 @@
 import React from 'react';
-import { get } from 'lodash';
-import { Test } from '@/lib/models';
-import { TestRelationType } from '@/lib/constants';
-import { getTestEntitiesByRelationWithOrder } from '@/lib/api/common';
+import { TestLinkType, TestType } from '@/lib/constants';
 import { useRequest } from 'ahooks';
+import { get } from 'lodash';
+import { getlinkedTestEntityByQuery } from '@/lib/api/item';
 
 export const useResizeContainerDOM = (objectId?: string) => {
   React.useEffect(() => {
@@ -32,45 +31,28 @@ export const useScopedTestDetailIds = (params: ScopedTestDetailIdsParams) => {
     async () => {
       if (type === 'Plan') {
         // 测试全部用例的范围
-        const { list: allRelTestDetailList } = await getTestEntitiesByRelationWithOrder(
-          TestRelationType.PlanRelDetail,
-          {
-            from: testPlanId ? Test.createWithoutData(testPlanId) : [],
+        const { list: details } = await getlinkedTestEntityByQuery({
+          query: {
+            workspaceKey: workspaceKey,
           },
-          {
-            // FIXME: 性能优化
-            workspaceKey,
-            // 查全部
-            queryParams: {
-              limit: 99999,
-              offset: 0,
-            },
-            include: [],
-            select: ['objectId'],
-          },
-        );
-        return allRelTestDetailList?.map(detail => get(detail, 'objectId')) ?? [];
+          linkType: TestLinkType.CaseLinkPlan,
+          linkItems: [testPlanId],
+          type: TestType.TestDetail,
+        });
+
+        return details?.map(detail => get(detail, 'objectId')) ?? [];
       } else if (type === 'Execution') {
         // 测试执行的用例范围
-        const { list: allRelTestRunList } = await getTestEntitiesByRelationWithOrder(
-          TestRelationType.ExecutionRelRun,
-          {
-            from: testExecutionId ? Test.createWithoutData(testExecutionId) : [],
+        const { list: runs } = await getlinkedTestEntityByQuery({
+          query: {
+            workspaceKey: workspaceKey,
           },
-          {
-            // FIXME: 性能优化
-            workspaceKey,
-            // 查全部
-            queryParams: {
-              limit: 99999,
-              offset: 0,
-            },
-            include: ['runReferenceDetail'],
-            select: ['objectId', 'runReferenceDetail'],
-          },
-        );
+          linkType: TestLinkType.RunLinkExecution,
+          linkItems: [testExecutionId],
+          type: TestType.TestDetail,
+        });
 
-        return allRelTestRunList?.map(run => get(run, 'runReferenceDetail.objectId')) ?? [];
+        return runs?.map(run => get(run, 'objectId')) ?? [];
       }
     },
     {

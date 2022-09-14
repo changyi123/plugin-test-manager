@@ -2,7 +2,7 @@ app:
   key: test_manager
   uuid: bf73e61c-e15a-4461-a1f7-f940c2009332
   name: test_manager
-  version: "0.0.128"
+  version: "0.0.130"
 modules:
   webtrigger:
     # 动态配置 one 路由
@@ -63,9 +63,9 @@ modules:
     - key: api-query-linked-test-entity
       handler: api.queryLinkedTestEntity
     - key: api-delete-test-entity
-      handler: api.deleteTestEntity
+      handler: api.batchDelete
     - key: api-update-test-entity
-      handler: api.updateTestEntity
+      handler: api.batchUpdate
 
   itemPanel:
     - key: test-manager-test-detail

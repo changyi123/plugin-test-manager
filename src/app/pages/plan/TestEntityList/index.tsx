@@ -3,11 +3,8 @@ import React, { useCallback, useState } from 'react';
 import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
 import {
   deleteTestEntities,
-  getTestEntitiesByQuery,
   removeTestRelationsWithCondition,
   updateTestRunDesignee,
-  fetchItemFromIql,
-  getTestEntitiesByRelationWithOrder,
 } from '@/lib/api/common';
 import { TestRelationType, TestType } from '@/lib/constants';
 import Field from '@/components/common/Field';
@@ -15,7 +12,7 @@ import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
 import RepositoryGroup from '@/components/business/RepositoryGroup';
 import { StatusBadge } from '@/components/business/Status';
 import { notification } from 'antd';
-import { getTestRunsByTestDetails, updateTestRun, updateTestRunStatus } from '@/lib/api/runs';
+import { updateTestRunStatus } from '@/lib/api/runs';
 import TestRunModal, {
   ActionType as TestRunModalActionType,
 } from '@/components/business/TestRunModal';
@@ -25,12 +22,10 @@ import { updateItemAssignee } from '@/lib/api/proxima';
 import { UserCell } from '@projectproxima/components';
 import { useUserCellUserDataProp } from '@/lib/hooks/useProxima';
 import { usePageContext } from '../hook';
-import { Test } from '@/lib/models';
-import { isEmpty, omit, pick } from 'lodash';
-import { selectorToParse, simpleToParse } from '@/lib/utils/iql';
 import { useListener } from '@projectproxima/proxima-sdk-js';
 
 import cx from './index.less';
+import { getTestEntityByQuery } from '@/lib/api/item';
 
 interface TestEntityListProps {
   loading?: boolean;
@@ -80,6 +75,8 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     }, 400);
   });
 
+  // TODO 查询测试用例数据，测试执行数据，统计数据
+
   const getTestRunsTableData = async queryParams => {
     if (!selectedExecution?.objectId || !requestScopedTestDetailIds?.length) {
       return {
@@ -109,72 +106,72 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       'designee',
     ];
 
-    const { list, total } = await getTestEntitiesByRelationWithOrder(
-      TestRelationType.ExecutionRelRun,
-      {
-        from: [selectedExecution?.objectId],
-      },
-      {
-        queryParams,
-        include,
-        select,
-        testDetailIds: requestScopedTestDetailIds?.filter(Boolean),
-        descendingBy: 'createdAt',
-        parseMiddleware: async query => {
-          const testQuery = new Parse.Query(Test);
-          const [itemSelector, testManageSelector] = selectors ?? [];
-          let needUpdate = false;
-          if (!isEmpty(itemSelector)) {
-            // 只有一个选择器，且 name value 为空时，不需要执行 iql 筛选逻辑
-            const onlyOneEmptyNameSelector =
-              Object.keys(itemSelector).length === 1 &&
-              itemSelector.name &&
-              !itemSelector.name.value;
+    // const { list, total } = await getTestEntitiesByRelationWithOrder(
+    //   TestRelationType.ExecutionRelRun,
+    //   {
+    //     from: [selectedExecution?.objectId],
+    //   },
+    //   {
+    //     queryParams,
+    //     include,
+    //     select,
+    //     testDetailIds: requestScopedTestDetailIds?.filter(Boolean),
+    //     descendingBy: 'createdAt',
+    //     parseMiddleware: async query => {
+    //       const testQuery = new Parse.Query(Test);
+    //       const [itemSelector, testManageSelector] = selectors ?? [];
+    //       let needUpdate = false;
+    //       if (!isEmpty(itemSelector)) {
+    //         // 只有一个选择器，且 name value 为空时，不需要执行 iql 筛选逻辑
+    //         const onlyOneEmptyNameSelector =
+    //           Object.keys(itemSelector).length === 1 &&
+    //           itemSelector.name &&
+    //           !itemSelector.name.value;
 
-            if (!onlyOneEmptyNameSelector) {
-              const ids = await fetchItemFromIql(itemSelector, workspaceKey);
-              needUpdate = true;
-              if (ids?.length) {
-                testQuery.containedIn('reference', ids);
-              } else {
-                testQuery.doesNotExist('reference');
-              }
-            }
-          }
+    //         if (!onlyOneEmptyNameSelector) {
+    //           const ids = await fetchItemFromIql(itemSelector, workspaceKey);
+    //           needUpdate = true;
+    //           if (ids?.length) {
+    //             testQuery.containedIn('reference', ids);
+    //           } else {
+    //             testQuery.doesNotExist('reference');
+    //           }
+    //         }
+    //       }
 
-          if (!isEmpty(testManageSelector)) {
-            needUpdate = true;
-            // 处理非执行人的字段
-            selectorToParse(
-              testQuery,
-              omit(testManageSelector, ['test_executor', 'test_designee']),
-            );
-          }
+    //       if (!isEmpty(testManageSelector)) {
+    //         needUpdate = true;
+    //         // 处理非执行人的字段
+    //         selectorToParse(
+    //           testQuery,
+    //           omit(testManageSelector, ['test_executor', 'test_designee']),
+    //         );
+    //       }
 
-          let jointQuery = new Parse.Query(Test).matchesQuery('runReferenceDetail', testQuery);
+    //       let jointQuery = new Parse.Query(Test).matchesQuery('runReferenceDetail', testQuery);
 
-          // 处理执行人
-          const userSelector = pick(testManageSelector, ['test_executor', 'test_designee']);
-          if (!isEmpty(userSelector)) {
-            const userQuery = new Parse.Query(Test);
-            Object.keys(userSelector).forEach(key => {
-              simpleToParse(userQuery, userSelector[key]);
-            });
-            jointQuery = Parse.Query.and(jointQuery, userQuery);
-          }
+    //       // 处理执行人
+    //       const userSelector = pick(testManageSelector, ['test_executor', 'test_designee']);
+    //       if (!isEmpty(userSelector)) {
+    //         const userQuery = new Parse.Query(Test);
+    //         Object.keys(userSelector).forEach(key => {
+    //           simpleToParse(userQuery, userSelector[key]);
+    //         });
+    //         jointQuery = Parse.Query.and(jointQuery, userQuery);
+    //       }
 
-          if (needUpdate) {
-            query.matchesQuery('to', jointQuery);
-          }
-        },
-      },
-    );
+    //       if (needUpdate) {
+    //         query.matchesQuery('to', jointQuery);
+    //       }
+    //     },
+    //   },
+    // );
 
     setTableLoading(false);
 
     return {
-      list,
-      total,
+      list: [],
+      total: 0,
     };
   };
 
@@ -203,66 +200,27 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       }
 
       setTableLoading(true);
-
-      const include = ['repository', 'reference'];
-
-      const select = [
-        'type',
-        'sortIndex',
-        'reference',
-        'repository',
-        'workspaceKey',
-        'createdAt',
-        'detailStatus',
-      ];
-
-      const { results: testDetails, count } = await getTestEntitiesByQuery(
-        {
-          in: requestScopedTestDetailIds ?? [],
+      const { list: testDeatils, total } = await getTestEntityByQuery({
+        query: {
+          workspaceKey: workspaceKey,
           type: TestType.TestDetail,
-          selectors,
-          workspaceKey,
+          id: requestScopedTestDetailIds,
         },
-        {
-          ...queryParams,
-          select,
-          include,
-        },
-      );
-
-      const { list: executionList } = await getTestEntitiesByRelationWithOrder(
-        TestRelationType.PlanRelExecution,
-        { from: [selectedTestPlan.objectId] },
-        {
-          // FIXME: 优化查询速度
-          workspaceKey,
-          fillItemData: true,
-          queryParams: { limit: 9999 },
-          include: ['objectId'],
-          select: ['objectId'],
-        },
-      );
-
-      // FIXME优化全部用例查询测试执行次数方法
-      const testRuns = await getTestRunsByTestDetails({
-        testDetailIds: testDetails?.map(d => d.objectId) ?? [],
-        executionIds: executionList.map(d => d.objectId),
-        workspaceKey,
+        ...queryParams,
+        descending: ['createdAt'],
       });
 
-      const list = testDetails.map(detail => {
-        return {
-          ...detail,
-          selectedTestPlanId: selectedTestPlan.objectId,
-          relRuns: testRuns?.filter(run => run.runReferenceDetail?.objectId === detail.objectId),
-        };
-      });
+      const list = testDeatils.map(detail => ({
+        ...detail,
+        selectedTestPlanId: selectedTestPlan.objectId,
+        relRuns: [],
+      }));
 
       setTableLoading(false);
 
       return {
-        list,
-        total: count,
+        list: list,
+        total: total,
       };
     },
     [workspaceKey, requestScopedTestDetailIds, selectedExecution, selectors],
@@ -312,7 +270,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       isSystem: true,
       title: '标题',
       render(_, rowData) {
-        const itemData = rowData.reference ?? {};
+        const itemData = rowData ?? {};
         return (
           <span
             data-drawer-handle-target
@@ -378,7 +336,8 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
 
   const handleTestRunStatusChange = useCallback(
     async (testRunId, status) => {
-      await updateTestRun(testRunId, { status: status.key, planId: selectedTestPlan.objectId });
+      // TODO 更新测试执行状态
+      // await updateTestRun(testRunId, { status: status.key, planId: selectedTestPlan.objectId });
       actionRef.current.refresh();
       mutateStatusEvent.emit('refreshExecutionStatus');
       // TODO
@@ -390,6 +349,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   const deleteTestRunByIds = useMemoizedFn(testRunIds => {
     actionConfirm('该操作会将所选测试执行删除，是否继续操作？', async () => {
       // 删除关联关系，删除测试实体
+      // TODO 删除测试实体
       await deleteTestEntities(testRunIds);
       await scopedTestDetailRefresh();
       actionRef.current.refresh();

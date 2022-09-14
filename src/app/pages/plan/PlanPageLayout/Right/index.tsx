@@ -6,8 +6,6 @@ import TestEntitySelectorModal, {
   ActionType as ModelActionType,
 } from '@/components/business/TestEntitySelectorModal';
 import { extendFields, RepositoryModel, TestRelationType, TestType } from '@/lib/constants';
-import { addTestDetailToExecution } from '@/lib/api/runs';
-import { createTestRelation } from '@/lib/api/common';
 import { useUpdateEffect } from 'ahooks';
 import TestEntityList from '../../TestEntityList';
 import { usePageContext } from '../../hook';
@@ -91,22 +89,23 @@ const Right: React.FC<RightProps> = props => {
   }, [selectedTestPlan?.objectId]);
 
   const addTestExecutionDetail = useCallback(async () => {
-    const ignoreTestDetailIds = curTestRuns
-      .map(run => run.runReferenceDetail?.objectId)
-      .filter(Boolean);
+    // const ignoreTestDetailIds = curTestRuns
+    //   .map(run => run.runReferenceDetail?.objectId)
+    //   .filter(Boolean);
 
-    const testDetailIds = await testEntitySelectorRef.current.open();
-    setLoading(true);
+    // const testDetailIds = await testEntitySelectorRef.current.open();
+    // setLoading(true);
 
     // 去重
-    const newTestDetailIds = testDetailIds.filter(d => !ignoreTestDetailIds.includes(d));
+    // const newTestDetailIds = testDetailIds.filter(d => !ignoreTestDetailIds.includes(d));
 
-    await addTestDetailToExecution({
-      testDetail: newTestDetailIds,
-      testPlan: selectedTestPlan?.objectId,
-      testExecution: selectedExecution.objectId,
-      workspaceKey: selectedExecution.workspaceKey,
-    });
+    // TODO 新增测试用例到测试执行任务
+    // await addTestDetailToExecution({
+    //   testDetail: newTestDetailIds,
+    //   testPlan: selectedTestPlan?.objectId,
+    //   testExecution: selectedExecution.objectId,
+    //   workspaceKey: selectedExecution.workspaceKey,
+    // });
 
     scopedTestDetailRefresh();
     mutateStatusEvent.emit('refreshExecutionStatus');
@@ -147,7 +146,8 @@ const Right: React.FC<RightProps> = props => {
     }
 
     try {
-      await createTestRelation(relations);
+      // TODO 新增测试用例到测试计划
+      // await createTestRelation(relations);
     } catch (error) {
       // eslint-disable-next-line no-console
       console.log('error', error);

@@ -2,7 +2,6 @@ import React from 'react';
 import { Button, Empty, notification, Spin } from 'antd';
 import { useBaseAction } from '@/lib/hooks/useContext';
 import { TestType } from '@/lib/constants';
-import { createTestExecutionAndRelations } from '@/lib/api/runs';
 import emptyImg from '@/icons/svg/empty-data.png';
 import { usePageContext } from '../../hook';
 
@@ -23,31 +22,33 @@ const NoData: React.FC<NoDataProps> = ({ setRefreshExecution }) => {
       extraData: { planId: selectedTestPlan?.objectId },
     });
 
-    try {
-      notification.open({
-        message: '测试执行任务正在创建中',
-        icon: <Spin spinning={true} />,
-        duration: null,
-      });
-      const testExecutionData = testExecutionEntity.toJSON();
+    // TODO 创建测试执行，创建测试执行任务和执行关系，创建执行和用例关系
 
-      await createTestExecutionAndRelations({
-        workspaceKey: workspaceKey,
-        testPlan: selectedTestPlan?.objectId,
-        testExecution: testExecutionEntity,
-      });
+    // try {
+    //   notification.open({
+    //     message: '测试执行任务正在创建中',
+    //     icon: <Spin spinning={true} />,
+    //     duration: null,
+    //   });
+    //   const testExecutionData = testExecutionEntity.toJSON();
 
-      notification.destroy();
-      notification.success({
-        message: `测试执行任务【${testExecutionData?.reference?.name}】新建成功`,
-      });
-      setRefreshExecution(true);
-    } catch (err) {
-      notification.error({
-        message: '测试执行任务新建失败',
-      });
-      notification.destroy();
-    }
+    //   await createTestExecutionAndRelations({
+    //     workspaceKey: workspaceKey,
+    //     testPlan: selectedTestPlan?.objectId,
+    //     testExecution: testExecutionEntity,
+    //   });
+
+    //   notification.destroy();
+    //   notification.success({
+    //     message: `测试执行任务【${testExecutionData?.reference?.name}】新建成功`,
+    //   });
+    //   setRefreshExecution(true);
+    // } catch (err) {
+    //   notification.error({
+    //     message: '测试执行任务新建失败',
+    //   });
+    //   notification.destroy();
+    // }
   };
   return (
     <div className={cx('no-data-box')}>

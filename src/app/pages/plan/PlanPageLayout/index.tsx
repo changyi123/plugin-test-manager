@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useRef, useState } from 'react';
 import { Spin } from 'antd';
 import TestPlanList from '@/components/business/TestPlanList';
@@ -49,9 +48,9 @@ const PlanPageLayout: React.FC<any> = () => {
     }
 
     if (query?.planId && planData && !selectedTestPlan) {
-      // eslint-disable-next-line no-console
-      planData && setSelectedTestPlan(planData as any);
+      planData && setSelectedTestPlan(planData);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [planData, query?.planId]);
 
   useEffect(() => {
@@ -60,12 +59,14 @@ const PlanPageLayout: React.FC<any> = () => {
       showType !== 'showChild' && setShowType('showChild');
       setSelectedExecution(undefined);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedTestPlan]);
 
   useEffect(() => {
     if (query?.actionType && !activedType) {
       setActivedType(query?.actionType);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query?.actionType]);
 
   // 获取测试计划范围
@@ -80,6 +81,7 @@ const PlanPageLayout: React.FC<any> = () => {
     detailSearchRef.current?.reset();
     setSearchParams([{}, {}]);
     pageLeftRef.current?.reset();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activedType, selectedExecution, selectedTestPlan]);
 
   // 处理 folder tree change
@@ -91,6 +93,7 @@ const PlanPageLayout: React.FC<any> = () => {
     if (activedType === 'TestPlan') {
       selectedExecution && setSelectedExecution(undefined);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activedType]);
 
   return (
@@ -141,7 +144,6 @@ const PlanPageLayout: React.FC<any> = () => {
               />
             </PageLayout.Right>
           )}
-          )
         </PageLayout>
       )}
     </div>

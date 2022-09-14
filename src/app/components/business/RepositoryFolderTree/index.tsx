@@ -221,7 +221,7 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
         ids = selectedFolder.ids;
       }
 
-      onFolderSelect?.(ids, {
+      onFolderSelect?.(scopedTestDetailIds, {
         selectedFolder,
       });
     }

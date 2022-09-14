@@ -1,8 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from 'react';
 import { useRequest } from 'ahooks';
-import { deleteTestEntities, getTestEntitiesByRelationWithOrder } from '@/lib/api/common';
-import { TestRelationType } from '@/lib/constants';
+import { deleteTestEntities } from '@/lib/api/common';
 import { Dropdown, Menu, Tooltip } from 'antd';
 import { EllipsisOutlined } from '@ant-design/icons';
 import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
@@ -55,22 +54,23 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
   const { data, refresh, loading } = useRequest(
     async () => {
       if (activedType !== 'TestExecution') return [];
-      const { list } = await getTestEntitiesByRelationWithOrder(
-        TestRelationType.PlanRelExecution,
-        {
-          from: planId ? [planId] : [],
-        },
-        {
-          workspaceKey,
-          select: ['reference', 'workspaceKey'],
-          include: ['reference'],
-          descendingBy: ['createdAt'],
-          ascendingBy: undefined,
-          queryParams: { limit: 999, offset: 0 },
-        },
-      );
+      // TODO 查询测试执行任务数据
+      // const { list } = await getTestEntitiesByRelationWithOrder(
+      //   TestRelationType.PlanRelExecution,
+      //   {
+      //     from: planId ? [planId] : [],
+      //   },
+      //   {
+      //     workspaceKey,
+      //     select: ['reference', 'workspaceKey'],
+      //     include: ['reference'],
+      //     descendingBy: ['createdAt'],
+      //     ascendingBy: undefined,
+      //     queryParams: { limit: 999, offset: 0 },
+      //   },
+      // );
 
-      return list;
+      return [];
     },
     {
       refreshDeps: [planId, activedType],

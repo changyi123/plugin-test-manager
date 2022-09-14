@@ -71,7 +71,7 @@ export const iqlRequest = async (params: RequestParams) => {
 
     const {
       payload: { count, items },
-    } = await requestCoreApi(
+    }: any = await requestCoreApi(
       'POST',
       '/parse/api/search',
       iqlSearchParamsBuilder({

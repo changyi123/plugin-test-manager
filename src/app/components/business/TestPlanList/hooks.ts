@@ -1,54 +1,37 @@
-import { getTestEntitiesByQuery, getTestEntitiesByRelation } from '@/lib/api/common';
-import { TestRelationType, TestType } from '@/lib/constants';
-import { TestEntity } from '@/lib/types/Test';
-import { TestPlanEntity } from '@/pages/plan/type';
+import { getlinkedTestEntityByQuery, getTestEntityByQuery } from '@/lib/api/item';
+import { TestLinkType, TestType } from '@/lib/constants';
 import { useRequest } from 'ahooks';
 import _ from 'lodash';
-
-type TestPlan = TestPlanEntity & {
-  refTestDetails: Pick<TestEntity, 'status'>[];
-};
 
 const useGetTestPlanById = (id?: string, workspaceKey?: string) => {
   const data = useRequest(
     async () => {
       if (!id) return {};
-      const { results } = await getTestEntitiesByQuery(
-        {
-          in: [id ?? ''],
-          workspaceKey,
-          type: TestType.TestPlan,
+      const { list: testPlan } = await getTestEntityByQuery({
+        query: {
+          workspaceKey: workspaceKey,
+          type: 'TestPlan',
+          id,
         },
-        {
-          ignoreDeletedItemData: true,
-          descendingBy: ['createdAt'],
-        },
-      );
+      });
 
-      const { list: allRelationTestDetails } = await getTestEntitiesByRelation(
-        TestRelationType.PlanRelDetail,
-        {
-          from: results.map(item => item.objectId),
+      const { list: linkTestDetails } = await getlinkedTestEntityByQuery({
+        query: {
+          workspaceKey: workspaceKey,
         },
-        {
-          // FIXME: 优化查询速度
-          workspaceKey,
-          select: ['status'],
-          include: ['status'],
-          queryParams: { limit: 9999, offset: 0 },
-        },
-      );
+        linkType: TestLinkType.CaseLinkPlan,
+        linkItems: [id],
+        type: TestType.TestDetail,
+      });
 
-      const testPlans = _.chain(results)
+      const testPlans = _.chain(testPlan)
         .map(testPlan => {
           return {
             ...testPlan,
-            refTestDetails: allRelationTestDetails.filter(
-              testDetail => _.get(testDetail, 'relation.from.objectId') === testPlan.objectId,
-            ),
+            refTestDetails: linkTestDetails.filter(d => d.linkItems.includes(testPlan.objectId)),
           };
         })
-        .value() as TestPlan[];
+        .value();
 
       return testPlans?.[0];
     },

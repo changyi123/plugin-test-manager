@@ -1,3 +1,2 @@
 export { queryTestEntity, queryLinkedTestEntity } from './modules/api/query';
-export { deleteTestEntity } from './modules/api/delete';
-export { updateTestEntity } from './modules/api/update';
+export { batchDelete, batchUpdate, batchCreate } from './modules/api/batch';
