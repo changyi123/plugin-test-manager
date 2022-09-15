@@ -62,7 +62,7 @@ export const appendGroupedDetailIdsToTreeNode = (treeNodes, testDetails) => {
   const repoRelTestDetailMap = new Map();
 
   testDetails.forEach(test => {
-    const repositoryKey = test.repository?.objectId ?? UnGroupedKey;
+    const repositoryKey = test.repository ?? UnGroupedKey;
     if (!repoRelTestDetailMap.has(repositoryKey)) {
       repoRelTestDetailMap.set(repositoryKey, new Set());
     }

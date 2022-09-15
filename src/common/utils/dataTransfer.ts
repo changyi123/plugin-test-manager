@@ -91,7 +91,7 @@ export const itemToTestEntity = item => {
   const values = item.values;
 
   const testEntity = Object.entries(TestFiledKeyMapping).reduce((res, [fieldKey, valuesKey]) => {
-    const data = values[valuesKey];
+    const data = values?.[valuesKey];
 
     const testEntityData = data
       ? {

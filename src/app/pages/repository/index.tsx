@@ -222,7 +222,6 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
       message: successMessage,
     });
     await handleDataChange();
-    // tableActionRef.current.refresh();
   };
 
   return (

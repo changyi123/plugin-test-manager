@@ -26,81 +26,83 @@ import {
 } from '@/lib/constants';
 import { union } from 'lodash';
 import { fetchItems, fetchItem } from '@/lib/api/common';
+import { updateTestEntity } from '@/lib/api/item';
 
 const ItemCreateSuccessEventType = 'itemCreateSuccess';
 
 /** 获取测试实体，如果不存在创建 */
 const getOrCreateTestEntity = async (
-  itemId: string,
-  options?: { repository?: string | null; fields: Record<string, any>; notice: boolean },
+  itemId: string | null,
+  options?: { extraData?: Record<string, any>; notice: boolean },
 ) => {
   if (!itemId) return null;
   const storeValues = store.get(ExtensionValType.CREATE_OR_UPDATE_ITEM);
   let testEntity = await fetchItem(itemId);
 
-  //   // 查询不到测试实体则直接创建
-  //   if (!testEntity) {
-  //     const [item] = await getItemByIds([itemId]);
+  // 查询不到测试实体则直接创建
+  if (!testEntity) {
+    const [item] = await getItemByIds([itemId]);
 
-  //     const testConfig = await getTestConfig({
-  //       workspaceKey: item?.workspace?.key,
-  //     });
-  //     const itemTypeMap = testConfig?.get('itemTypeMap');
+    const testConfig = await getTestConfig({
+      workspaceKey: item?.workspace?.key,
+    });
+    const itemTypeMap = testConfig?.get('itemTypeMap');
 
-  //     if (itemTypeMap) {
-  //       const testType = getKeyByValue(itemTypeMap, item?.itemType.key) as TestType;
-  //       // 额外需要创建的字段
-  //       let extraFields = {};
-  //       // 测试用例所属模块字段
-  //       let repository = options?.repository;
+    if (itemTypeMap) {
+      const testType = getKeyByValue(itemTypeMap, item?.itemType.key) as TestType;
+      // 额外需要创建的字段
+      let extraFields = {};
+      // 测试用例所属模块字段
+      // let repository = options?.repository;
 
-  //       if (!testType) {
-  //         // 创建失败，通知用户无法创建测试实体
-  //         options?.notice === true &&
-  //           notification.open({
-  //             message: '提示',
-  //             description: '事项所属空间未配置测试管理关联类型',
-  //           });
-  //         return null;
-  //       }
+      if (!testType) {
+        // 创建失败，通知用户无法创建测试实体
+        options?.notice === true &&
+          notification.open({
+            message: '提示',
+            description: '事项所属空间未配置测试管理关联类型',
+          });
+        return null;
+      }
 
-  //       // 测试用例创建
-  //       if (testType === TestType.TestDetail) {
-  //         // 测试用例创建时需要生成默认 sortIndex
-  //         extraFields = {
-  //           ...extraFields,
-  //           sortIndex: generateSortIndex(),
-  //         };
-  //         // 添加事项创建 panel 的数据
-  //         if (storeValues?.[CREATE_ITEM_STORE_FIELD_KEY]) {
-  //           const { repository: storedRepository, ...detail } =
-  //             storeValues[CREATE_ITEM_STORE_FIELD_KEY];
+      // 测试用例创建
+      if (testType === TestType.Case) {
+        // 测试用例创建时需要生成默认 sortIndex
+        extraFields = {
+          ...extraFields,
+          sortIndex: generateSortIndex(),
+        };
+        // 添加事项创建 panel 的数据
+        if (storeValues?.[CREATE_ITEM_STORE_FIELD_KEY]) {
+          // const { repository: storedRepository, ...detail } =
+          //   storeValues[CREATE_ITEM_STORE_FIELD_KEY];
 
-  //           repository = storedRepository;
-  //           extraFields = {
-  //             ...extraFields,
-  //             detail,
-  //           };
-  //         }
-  //         console.info('extraFields', extraFields);
-  //       }
-
-  // await createTestEntities([
-  //   {
-  //     repository,
-  //     type: testType,
-  //     fields: extraFields,
-  //     itemId: item.objectId,
-  //     workspaceKey: item?.workspace?.key,
-  //   },
-  // ]);
+          // // repository = storedRepository;
+          // extraFields = {
+          //   ...extraFields,
+          //   detail,
+          // };
+        }
+        console.info('extraFields', extraFields);
+      }
+      // testEntity = await updateTestEntity([
+      //   {
+      //     objectId: testEntity.objectId,
+      //     key: testEntity.key,
+      //     values: {
+      //       r_test_manager_type: extraData.type,
+      //       r_test_manager_repository: extraData?.repository,
+      //     },
+      //   },
+      // ]);
+    }
+  }
   // 重新查询 testEntity，保持返回数据一致
   testEntity = await fetchItem(itemId);
   console.info('new testEntity', testEntity);
-};
 
-//   return testEntity;
-// };
+  return testEntity;
+};
 
 /** 获取并创建多个测试实体 */
 const getOrBatchCreateTestEntities = async (
@@ -304,7 +306,6 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
       if (extraData?.useItemBatchCreate) return;
 
       const [itemData] = await getItemByIds([params.itemId]);
-      let testEntity = null;
 
       // 禁止创建或或关联（当又空间隔离配置时且当前空间和事项创建空间不相同时）
       const disabledCreateOrRelation =
@@ -312,49 +313,42 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
         workspace.key !== itemData.workspace?.key;
 
       if (disabledCreateOrRelation) return;
+      let testEntity;
 
       // 缺陷类型不需要创建测试管理测试实体
       if (extraData.type !== TestType.TestDefect) {
-        // TODO 更新测试实体自定义字段数据
-        // testEntity = await getOrCreateTestEntity(params.itemId, {
-        //   repository: extraData?.repository,
-        //   fields: extraData.fields,
+        // testEntity = await getOrCreateTestEntity(itemData.objectId, {
         //   notice: true,
+        //   extraData,
         // });
-        // const data = await fetch.post('/api/app/osc/test_manager/webhooks/api-update-test-entity', {
-        //   data: [
-        //     {
-        //       objectId: itemData.objectId,
-        //       key: itemData.key,
-        //       values: {
-        //         r_test_manager_type: extraData.type,
-        //       },
-        //     },
-        //   ],
-        // });
-        // console.log('update------>', data);
-        const testEntityData = testEntity?.toJSON();
-        if (!testEntityData) return;
-        itemData.reference = testEntityData.reference;
+        testEntity = await updateTestEntity([
+          {
+            objectId: testEntity.objectId,
+            key: testEntity.key,
+            values: {
+              r_test_manager_type: extraData.type,
+              r_test_manager_repository: extraData?.repository,
+            },
+          },
+        ]);
       }
       eventBus.dispatch(messageKey, {
         extraData,
-        testEntity,
+        testEntity: testEntity,
         item: itemData,
         useItemBatchCreate: false,
       });
     },
-    [testConfig.isolateTestType, workspace?.key],
+    [testConfig.isolateTestType, workspace.key],
   );
 
   // 事项批量创建成功回调
   const itemBatchCreateSuccessCb = React.useCallback(
     async params => {
       // 缺陷类型不需要创建测试实体
-      const { extraData, storeValueList, itemIdList } = params;
+      const { extraData, itemIdList } = params;
       if (!extraData?.useItemBatchCreate) return;
 
-      let testEntityList = [];
       const shuffledItemDataList = await getItemByIds(itemIdList);
 
       const isIsolated = testConfig.isolateTestType?.includes(extraData.type);
@@ -372,20 +366,23 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
       if (!hasArrayItem(itemList)) return;
       // 缺陷类型不需要创建测试管理测试实体
       if (extraData.type !== TestType.TestDefect) {
-        const ids = itemList.map(itemData => itemData.objectId);
-        testEntityList = await getOrBatchCreateTestEntities(ids, {
-          notice: true,
-          storeValueList,
-          fields: extraData.fields,
-          repository: extraData?.repository,
-        });
+        const detailList = itemList.map(itemData => ({
+          objectId: itemData.objectId,
+          name: itemData.name,
+          key: itemData.key,
+          values: {
+            r_test_manager_type: extraData.type,
+            r_test_manager_repository: extraData?.repository,
+          },
+        }));
+        const { data: testEntityList } = await updateTestEntity(detailList);
 
         if (!hasArrayItem(testEntityList)) return;
 
         eventBus.dispatch(messageKey, {
           itemList,
-          extraData,
           testEntityList,
+          extraData,
           useItemBatchCreate: true,
         });
       }
@@ -458,12 +455,15 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
         // 事项创建成功通知
         return new Promise((resolve, reject) => {
           eventBus.disposer = eventBus.register(messageKey, data => {
-            const { testEntity, item, testEntityList, itemList, useItemBatchCreate } = data;
+            const { testEntity, testEntityList, item, itemList, useItemBatchCreate } = data;
             const willValidateItem = useItemBatchCreate ? itemList[0] : item;
-            const willValidateTestEntity = useItemBatchCreate ? testEntityList[0] : testEntity;
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const willValidateTestEntity = useItemBatchCreate ? testEntityList?.[0] : testEntity;
 
             // 创建的测试类型是否符合预期
-            let expectedTestType = willValidateTestEntity?.get('type') === type;
+            // let expectedTestType = willValidateTestEntity?.type === type;
+            // TODO 待修改,更新接口返回数据
+            let expectedTestType = true;
 
             // 判断类型 key 是否在 defectsMapping 中
             if (type === TestType.TestDefect) {

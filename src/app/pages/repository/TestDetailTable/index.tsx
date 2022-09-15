@@ -4,7 +4,6 @@ import { notification, Tooltip } from 'antd';
 import { UNGROUPED_FOLDER_KEY } from '../constant';
 import { updateFolders } from '@/lib/api/repository';
 import { UserCell } from '@projectproxima/components';
-import { updateItemAssignee } from '@/lib/api/proxima';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import { DeleteOutlined, UserOutlined, DragHandler } from '@/icons';
 import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
@@ -15,7 +14,7 @@ import RepositorySelector, {
   ActionType as RepositorySelectorActionType,
 } from '@/components/business/RepositorySelector';
 import RepositoryGroup from '@/components/business/RepositoryGroup';
-import { deleteTestEntity, getTestEntityByQuery } from '@/lib/api/item';
+import { deleteTestEntity, getTestEntityByQuery, updateTestEntity } from '@/lib/api/item';
 import { TestType } from '@/lib/constants';
 
 import cx from './index.less';
@@ -118,13 +117,20 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
     };
 
     // 更新负责人
-    const toggleAssignee = async assignees => {
+    const toggleAssignee = async assignee => {
       setTableLoading(true);
-      // await updateItemAssignee(tableActionRef.current.selectedRowKeys, assignees);
+      const updateValues = tableActionRef.current.selectedRowKeys.map(d => ({
+        objectId: d,
+        values: {
+          assignee,
+        },
+      }));
+
+      await updateTestEntity(updateValues);
 
       setTimeout(() => {
         refreshAndMutateData();
-      }, 1000);
+      }, 500);
 
       notification.success({
         message: `${tableActionRef.current.selectedRowKeys.length} 个测试负责人已更新`,

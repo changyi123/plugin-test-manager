@@ -11,6 +11,7 @@ import { useTreeFn } from '../hook';
 import { MenuKey, FolderMenu } from '../Menu';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import { Tree, Button, Input, notification, Dropdown, Modal } from 'antd';
+import { updateTestEntity } from '@/lib/api/item';
 import {
   CustomMore,
   CustomScreenOff,
@@ -24,7 +25,6 @@ import { getTreeNodeByKey } from '../util';
 import { UNGROUPED_FOLDER_KEY } from '../constant';
 
 import cx from './index.less';
-import { updateTestEntities } from '@/lib/api/common';
 
 const { DirectoryTree } = Tree;
 
@@ -417,14 +417,14 @@ const FolderTree: React.FC<FolderTreeProps> = ({
     async ({ testId, toFolderKey, fromFolderKey }) => {
       if (fromFolderKey === toFolderKey) return;
       const currentFolderNode = treeFn.getTreeNodeByKey(state.selectedKeys[0]);
-
-      await updateTestEntities([
-        {
-          objectId: testId,
-          // 未分组用例用力的 repository 為 null
-          repository: toFolderKey === UNGROUPED_FOLDER_KEY ? null : toFolderKey,
+      const updateValues = [testId].map(d => ({
+        objectId: d,
+        values: {
+          r_test_manager_repository: toFolderKey,
         },
-      ]);
+      }));
+
+      await updateTestEntity(updateValues);
 
       notification.success({
         message: '测试用例移动成功',
