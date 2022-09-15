@@ -1,5 +1,5 @@
 import React from 'react';
-import { TestType } from 'common/constant';
+import { TestType } from '@/lib/constants';
 import { addDefect } from '@/lib/api/runs';
 import { useItemLinkTypeConfig } from './hooks';
 import { PlusOutlined } from '@ant-design/icons';

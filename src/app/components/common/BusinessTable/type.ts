@@ -1,4 +1,4 @@
-import { TestType } from 'common/constant';
+import { TestType } from '@/lib/constants';
 
 /** table 表头 cell 的类型 */
 export type TitleCellOption = {

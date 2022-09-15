@@ -24,8 +24,7 @@ import TestEntitySelectorModal, {
 import { Test } from '@/lib/models';
 import { selectorToParse, simpleToParse } from '@/lib/utils/iql';
 import { useDebounceFn } from 'ahooks';
-import ExpandedTable from './ExpandedTable';
-import { TestType } from 'common/constant';
+import { TestType } from '@/lib/constants';
 import cx from './DetailTable.less';
 
 const ExecutionTable = () => {

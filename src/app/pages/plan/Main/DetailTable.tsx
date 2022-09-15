@@ -20,7 +20,7 @@ import { BusinessTable, BusinessTableActionType } from '@/components/common/Busi
 import cx from './DetailTable.less';
 import RepositoryGroup from '@/components/business/RepositoryGroup';
 import { useDebounceFn } from 'ahooks';
-import { TestType } from 'common/constant';
+import { TestType } from '@/lib/constants';
 
 const DetailTable = () => {
   const actionRef = React.useRef<BusinessTableActionType>();

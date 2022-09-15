@@ -4,7 +4,7 @@ import { ArrowLeftOutlined, ExportOutlined } from '@/icons';
 import TestPlanSelector from '@/components/business/TestPlanSelector';
 import { useBaseAction } from '@/lib/hooks/useContext';
 import { createTestExecutionAndRelations } from '@/lib/api/runs';
-import { TestType } from 'common/constant';
+import { TestType } from '@/lib/constants';
 import ExecutionList from '../ExecutionList';
 import { usePageContext } from '../../hook';
 import WordReport from '@/lib/report';

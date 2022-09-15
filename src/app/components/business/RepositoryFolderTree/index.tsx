@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React from 'react';
 import { Tree } from 'antd';
-import { TestType } from 'common/constant';
+import { TestType } from '@/lib/constants';
 import _, { CollectionChain } from 'lodash';
 import { getTestEntitiesByQuery } from '@/lib/api/common';
 import { useNoExpiredRequest } from '@/lib/hooks/useRequest';

@@ -3,7 +3,7 @@ import React, { useState, useCallback } from 'react';
 import { Button, Input, Spin } from 'antd';
 import { BlockOutlined } from '@/icons';
 import { useTestConfig } from '@/lib/hooks/useContext';
-import { TestType } from 'common/constant';
+import { TestType } from '@/lib/constants';
 import { cloneDeep, keyBy, uniq } from 'lodash';
 import { useDebounceFn, useRequest } from 'ahooks';
 

@@ -2,7 +2,7 @@ import React from 'react';
 // import { constant, uniq } from 'lodash';
 import { uniq } from 'lodash';
 import { useReactive, useDrop } from 'ahooks';
-import { TestType } from 'common/constant';
+import { TestType } from '@/lib/constants';
 import { hasArrayItem, getRootContainer } from '@/lib/utils/helper';
 import { createFolder, updateFolders, deleteFolder } from '@/lib/api/repository';
 import { useTestConfig, useBaseAction } from '@/lib/hooks/useContext';

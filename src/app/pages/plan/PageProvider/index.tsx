@@ -2,7 +2,7 @@ import React, { useCallback } from 'react';
 import { noop } from 'lodash';
 import { getDevConfig } from '@/devEnv';
 import { useEventEmitter } from 'ahooks';
-import { TestType } from 'common/constant';
+import { TestType } from '@/lib/constants';
 import { TestEntity } from '@/lib/types/Test';
 import { useSDK } from '@projectproxima/plugin-sdk';
 import { EventEmitter } from 'ahooks/lib/useEventEmitter';

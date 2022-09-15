@@ -7,7 +7,7 @@ import importTestInfo, { TreeNode, downloadExampleFile } from './export';
 import { Button, Dropdown, Menu, message, notification, Spin } from 'antd';
 import { getProximaBasePath, getTenantKey, inIframe } from '@/lib/utils/helper';
 import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/hook';
-import { TestType } from 'common/constant';
+import { TestType } from '@/lib/constants';
 
 const RepoDropDown = ({
   type,

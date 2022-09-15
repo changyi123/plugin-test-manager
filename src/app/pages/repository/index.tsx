@@ -3,7 +3,6 @@ import { pick } from 'lodash';
 import { MenuKey } from './Menu';
 import { FileClose } from '@/icons';
 import { getDevConfig } from '@/devEnv';
-import { TestType } from 'common/constant';
 import { Button, notification, Select } from 'antd';
 import { useSDK } from '@projectproxima/plugin-sdk';
 import { getFolderTree } from '@/lib/api/repository';
@@ -17,7 +16,7 @@ import { useListener } from '@projectproxima/proxima-sdk-js';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
 import { useReactive, useRequest, useMemoizedFn } from 'ahooks';
 import TestDetailTable, { ActionType } from './TestDetailTable';
-import { extendFields, RepositoryModel } from '@/lib/constants';
+import { extendFields, RepositoryModel, TestType } from '@/lib/constants';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import TestManagerProvider from '@/components/business/TestManagerProvider';
 import {

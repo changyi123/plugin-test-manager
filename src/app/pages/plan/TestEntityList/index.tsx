@@ -9,8 +9,7 @@ import {
   fetchItemFromIql,
   getTestEntitiesByRelationWithOrder,
 } from '@/lib/api/common';
-import { TestRelationType } from '@/lib/constants';
-import { TestType } from 'common/constant';
+import { TestRelationType, TestType } from '@/lib/constants';
 import Field from '@/components/common/Field';
 import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
 import RepositoryGroup from '@/components/business/RepositoryGroup';

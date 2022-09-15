@@ -9,7 +9,7 @@ import {
   getTestRunsAndExecutions,
 } from '@/lib/api/runs';
 import { useBaseAction } from '@/lib/hooks/useContext';
-import { TestType } from 'common/constant';
+import { TestType } from '@/lib/constants';
 import { removeTestRelations } from '@/lib/api/common';
 import TestRunModal, {
   ActionType as TestRunModalActionType,

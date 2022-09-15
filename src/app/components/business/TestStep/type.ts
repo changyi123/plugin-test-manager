@@ -1,4 +1,4 @@
-import { TestType } from 'common/constant';
+import { TestType } from '@/lib/constants';
 import {
   TestEntity,
   Step as StepDeclaration,

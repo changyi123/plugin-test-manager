@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button, Empty, notification, Spin } from 'antd';
 import { useBaseAction } from '@/lib/hooks/useContext';
-import { TestType } from 'common/constant';
+import { TestType } from '@/lib/constants';
 import { createTestExecutionAndRelations } from '@/lib/api/runs';
 import emptyImg from '@/icons/svg/empty-data.png';
 import { usePageContext } from '../../hook';

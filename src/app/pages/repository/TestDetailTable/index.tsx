@@ -1,6 +1,6 @@
 import React from 'react';
 import { useDrag } from 'ahooks';
-import { TestType } from 'common/constant';
+import { TestType } from '@/lib/constants';
 import { deleteItems } from '@/lib/api/proxima';
 import { notification, Tooltip } from 'antd';
 import { UNGROUPED_FOLDER_KEY } from '../constant';

@@ -1,8 +1,7 @@
 import Parse from '@/lib/parse';
 import { ICommonRes } from './detail';
 import { Test, Item, ItemType, ItemLink, ItemLinkType } from '../models';
-import { TestRelationType } from '@/lib/constants';
-import { TestType } from 'common/constant';
+import { TestRelationType, TestType } from '@/lib/constants';
 import {
   getTestEntities,
   createTestEntities,

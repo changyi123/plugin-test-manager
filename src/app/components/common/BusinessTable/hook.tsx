@@ -1,7 +1,7 @@
 import { useUsedScreenFieldKeys } from '@/lib/hooks/useProxima';
 import { useNoExpiredRequest } from '@/lib/hooks/useRequest';
 import { getTestConfig } from '@/lib/api/common';
-import { TestType } from 'common/constant';
+import { TestType } from '@/lib/constants';
 import { TitleCellOption } from './type';
 
 const TestIncludeFiledKeys = ['status'];

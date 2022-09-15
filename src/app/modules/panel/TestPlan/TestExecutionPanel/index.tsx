@@ -2,8 +2,7 @@ import React from 'react';
 
 import { Button } from 'antd';
 import { useTestConfig } from '@/lib/hooks/useContext';
-import { TestRelationType } from '@/lib/constants';
-import { TestType } from 'common/constant';
+import { TestRelationType, TestType } from '@/lib/constants';
 import PanelTable, {
   ActionType,
   columnBuilder,

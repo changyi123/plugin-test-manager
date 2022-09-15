@@ -8,7 +8,7 @@ import { getTestEntities } from '@/lib/api/common';
 import { StatusBadge } from '@/components/business/Status';
 import { useRequest, useSessionStorageState } from 'ahooks';
 import { PASS_STATUS_TYPE } from '@/lib/constants';
-import { TestType } from 'common/constant';
+import { TestType } from '@/lib/constants';
 import { getRootContainer, generateStorageKey } from '@/lib/utils/helper';
 import { Button, Checkbox, Collapse, Tabs, message, Spin, Tooltip } from 'antd';
 import { updateTestRun, getTestStepsByTestDetailId, getItemLinkRelation } from '@/lib/api/runs';

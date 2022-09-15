@@ -3,7 +3,7 @@
 // export * from 'common/types/test';
 
 import { Item } from './App';
-import { TestType } from 'common/constant';
+import { TestType } from '@/lib/constants';
 
 export type UserPointerInfo = {
   __type: 'Pointer';

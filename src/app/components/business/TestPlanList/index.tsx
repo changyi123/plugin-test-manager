@@ -7,8 +7,7 @@ import {
   getTestEntitiesByQuery,
   getTestEntitiesByRelation,
 } from '@/lib/api/common';
-import { TestRelationType } from '@/lib/constants';
-import { TestType } from 'common/constant';
+import { TestRelationType, TestType } from '@/lib/constants';
 import _ from 'lodash';
 import { TestPlanEntity } from '@/pages/plan/type';
 import { TestEntity } from '@/lib/types/Test';

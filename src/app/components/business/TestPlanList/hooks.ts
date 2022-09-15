@@ -1,6 +1,6 @@
 import { getTestEntitiesByQuery, getTestEntitiesByRelation } from '@/lib/api/common';
 import { TestRelationType } from '@/lib/constants';
-import { TestType } from 'common/constant';
+import { TestType } from '@/lib/constants';
 import { TestEntity } from '@/lib/types/Test';
 import { TestPlanEntity } from '@/pages/plan/type';
 import { useRequest } from 'ahooks';

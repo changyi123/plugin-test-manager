@@ -1,4 +1,4 @@
-import { TestType } from 'common/constant';
+import { TestType } from '@/lib/constants';
 import { TestEntity } from '@/lib/types/Test';
 import { Item, ItemLink } from '@/lib/types/App';
 

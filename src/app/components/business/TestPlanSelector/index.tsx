@@ -4,7 +4,7 @@ import { Dropdown, Empty, Tooltip } from 'antd';
 import { getTestEntitiesByQuery } from '@/lib/api/common';
 import { usePageContext } from '@/pages/plan/hook';
 import { useDebounce, useRequest } from 'ahooks';
-import { TestType } from 'common/constant';
+import { TestType } from '@/lib/constants';
 import emptyImg from '@/icons/svg/empty-data.png';
 import SearchInput from '../SearchInput';
 import { DropDown } from '@/icons';

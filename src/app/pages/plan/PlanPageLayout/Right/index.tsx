@@ -5,8 +5,7 @@ import RepoDropDown from '@/pages/repository/RepoDropDown';
 import TestEntitySelectorModal, {
   ActionType as ModelActionType,
 } from '@/components/business/TestEntitySelectorModal';
-import { extendFields, RepositoryModel, TestRelationType } from '@/lib/constants';
-import { TestType } from 'common/constant';
+import { extendFields, RepositoryModel, TestRelationType, TestType } from '@/lib/constants';
 import { addTestDetailToExecution } from '@/lib/api/runs';
 import { createTestRelation } from '@/lib/api/common';
 import { useUpdateEffect } from 'ahooks';

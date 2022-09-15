@@ -2,7 +2,7 @@ import { utils as xlsxUtils, write as xlsxWrite } from 'sheetjs-style';
 import FileSave from 'file-saver';
 import Parse from '@/lib/parse';
 import { getTestEntitiesByQuery } from '@/lib/api/common';
-import { TestType } from 'common/constant';
+import { TestType } from '@/lib/constants';
 import { CustomField, TestConfig, TestRelation } from '@/lib/models';
 import { Item } from '@/lib/types/App';
 import { Step } from '@/lib/types/Test';
