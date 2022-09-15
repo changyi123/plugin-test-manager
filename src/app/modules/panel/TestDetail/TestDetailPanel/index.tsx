@@ -73,10 +73,7 @@ const Detail: React.FC = () => {
 
         steps = steps.map(step => {
           if (!step.callTestId) return step;
-          return Object.assign(
-            { itemData: testEntityDictRef.current[step.callTestId]?.reference },
-            step,
-          );
+          return Object.assign({ itemData: testEntityDictRef.current[step.callTestId] }, step);
         });
       }
 

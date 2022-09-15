@@ -51,7 +51,8 @@ const TestRunDetailTabs = [
   },
 ];
 
-type TestRunEntity = TestEntity<TestType.Run>;
+// TODO: 类型问题
+type TestRunEntity = TestEntity<TestType.Run> | any;
 type TestDetailEntity = TestEntity<TestType.Case>;
 
 type TestRunType = {
@@ -133,11 +134,12 @@ const TestRun: React.FC<TestRunType> = props => {
 
   // 测试执行关联的测试用例
   const refTestDetailData = React.useMemo(() => {
-    return testRunData.runReferenceDetail ?? ({} as TestDetailEntity);
+    return testRunData ?? ({} as TestDetailEntity);
   }, [testRunData]);
 
+  // TODO: 类型问题
   // 关联的缺陷 id
-  const allRelationDefectIds = _.chain(testRunData?.runDetail?.steps)
+  const allRelationDefectIds = (_.chain(testRunData?.runDetail?.steps) as unknown as any[])
     .reduce((acc, step) => {
       return acc.concat(step.defectItemIds);
     }, testRunData?.runDetail?.defectItemIds ?? [])

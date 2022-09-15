@@ -110,8 +110,8 @@ const TestPlanSelector: React.FC = () => {
     <div className={cx('plan-selector-container')}>
       <Dropdown overlay={menu} trigger={['click']}>
         <div className={cx('title')}>
-          <Tooltip title={selectedTestPlan?.reference?.name ?? ''} placement="topLeft">
-            <span className={cx('name')}>{selectedTestPlan?.reference?.name ?? ''}</span>
+          <Tooltip title={selectedTestPlan?.name ?? ''} placement="topLeft">
+            <span className={cx('name')}>{selectedTestPlan?.name ?? ''}</span>
           </Tooltip>
           <DropDown className={cx('icon')} />
         </div>

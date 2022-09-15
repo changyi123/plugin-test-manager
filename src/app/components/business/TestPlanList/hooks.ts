@@ -7,7 +7,7 @@ import { useRequest } from 'ahooks';
 import _ from 'lodash';
 
 type TestPlan = TestPlanEntity & {
-  refTestDetails: Pick<TestEntity, 'status'>[];
+  refTestDetails: TestEntity[];
 };
 
 const useGetTestPlanById = (id?: string, workspaceKey?: string) => {

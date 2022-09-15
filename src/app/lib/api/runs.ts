@@ -453,7 +453,7 @@ export const updateTestRun = async (
 
   // testRun 状态更新需要映射到关联的测试用例
   if (needUpdateAttrs.status && params.planId) {
-    const testDetailEntity = testEntity.get('runReferenceDetail') as unknown as Parse.Object;
+    const testDetailEntity = testEntity as unknown as Parse.Object;
     testDetailEntity.save('detailStatus', {
       ...(testDetailEntity.get('detailStatus') ?? {}),
       [params.planId]: needUpdateAttrs.status,

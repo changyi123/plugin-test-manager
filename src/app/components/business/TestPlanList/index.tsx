@@ -10,7 +10,6 @@ import {
 import { TestRelationType, TestType } from '@/lib/constants';
 import _ from 'lodash';
 import { TestPlanEntity } from '@/pages/plan/type';
-import { TestEntity } from '@/lib/types/Test';
 import { deleteItems } from '@/lib/api/proxima';
 import { actionConfirm, goToItemDetailPage } from '@/lib/utils/helper';
 import { useBaseAction } from '@/lib/hooks/useContext';
@@ -23,8 +22,9 @@ const { ItemIcon } = components.Components.Common;
 
 import cx from './index.less';
 
+// TODO: 类型问题
 type TestPlan = TestPlanEntity & {
-  refTestDetails: Pick<TestEntity, 'status'>[];
+  refTestDetails: any[];
 };
 
 const TestPlanList: React.FC<any> = () => {

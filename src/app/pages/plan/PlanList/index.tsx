@@ -27,7 +27,7 @@ const REQUEST_LIMIT = 10;
 
 type TestPlanEntity = TestEntity<TestType.Plan>;
 type TestPlan = TestPlanEntity & {
-  refTestDetails: Pick<TestEntity, 'status'>[];
+  refTestDetails: TestEntity[];
 };
 
 const PlanItem: React.FC<{
@@ -38,7 +38,7 @@ const PlanItem: React.FC<{
 }> = ({ data, onSelect, selectedId, onDelete }) => {
   const ref = React.useRef();
   const isHover = useHover(ref);
-  const { reference = {} as any, refTestDetails } = data;
+  const { reference = {} as any, refTestDetails } = data as any;
 
   const handleView = data => {
     const itemData = data.reference ?? {};

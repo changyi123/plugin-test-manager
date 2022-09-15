@@ -19,7 +19,7 @@ import {
 } from '@/lib/utils/iql';
 import { itemToTestEntity, testEntityToItemValues } from 'common/utils/dataTransfer';
 import { BaseTestEntity } from 'common/types/test';
-import { TestLinkType, TestType, ItemValuesStorageKeyMapping } from 'common/constant';
+import { TestLinkType, TestType, TestFiledKeyMapping } from 'common/constant';
 import { Query } from 'common/types/api';
 
 const BATCH_SIZE = 200;
@@ -890,7 +890,7 @@ export async function updateItem(id: string, data: Record<string, any>) {
 function transBulkValues(values) {
   const res = [];
   Object.keys(values).forEach(key => {
-    const newKey = ItemValuesStorageKeyMapping[key] || key;
+    const newKey = TestFiledKeyMapping[key] || key;
     let data = values[key];
     if (key === 'detail' && typeof data === 'object') {
       data = JSON.stringify(data);
