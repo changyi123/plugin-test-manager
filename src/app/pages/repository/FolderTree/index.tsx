@@ -25,7 +25,6 @@ import { UNGROUPED_FOLDER_KEY } from '../constant';
 
 import cx from './index.less';
 import { updateTestEntities } from '@/lib/api/common';
-import { TestType } from 'common/constant';
 
 const { DirectoryTree } = Tree;
 

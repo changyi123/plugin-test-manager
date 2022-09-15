@@ -102,7 +102,6 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     selectionActionNodes,
     onHasRowSelected,
     expandChangePage,
-    itemKey = 'reference',
     showPagination = true,
     useColumnSetting = false,
     PaginationFooterRender,
@@ -158,7 +157,6 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     if (selectionMode || !useColumnSetting) return null;
     return (
       <ColumnSetting
-        itemKey={itemKey}
         name={props.name}
         defaultColumnKey={defaultColumnKey}
         titleCellOption={titleCellOption}
@@ -170,7 +168,6 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
   }, [
     selectionMode,
     useColumnSetting,
-    itemKey,
     props.name,
     titleCellOption,
     columns,

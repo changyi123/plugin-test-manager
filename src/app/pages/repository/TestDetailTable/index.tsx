@@ -1,6 +1,5 @@
 import React from 'react';
 import { useDrag } from 'ahooks';
-import { deleteItems } from '@/lib/api/proxima';
 import { notification, Tooltip } from 'antd';
 import { UNGROUPED_FOLDER_KEY } from '../constant';
 import { updateFolders } from '@/lib/api/repository';
@@ -10,15 +9,16 @@ import { useTestConfig } from '@/lib/hooks/useContext';
 import { DeleteOutlined, UserOutlined, DragHandler } from '@/icons';
 import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
 import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
-import { deleteTestEntities, getTestEntitiesByQuery, cloneTestEntities } from '@/lib/api/common';
+import { cloneTestEntities } from '@/lib/api/common';
 import { useUserCellUserDataProp } from '@/lib/hooks/useProxima';
 import RepositorySelector, {
   ActionType as RepositorySelectorActionType,
 } from '@/components/business/RepositorySelector';
 import RepositoryGroup from '@/components/business/RepositoryGroup';
+import { deleteTestEntity, getTestEntityByQuery } from '@/lib/api/item';
+import { TestType } from '@/lib/constants';
 
 import cx from './index.less';
-import { TestType } from 'common/constant';
 
 const RowDragHandler = data => {
   const ref = React.useRef();
@@ -74,22 +74,21 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
     async paginationParams => {
       if (!workspaceKey) return null;
       setTableLoading(true);
-      // const data = await getTestEntitiesByQuery(
-      //   {
-      //     workspaceKey,
-      //     in: testDetailIds ?? [],
-      //     type: TestType.Case,
-      //   },
-      //   paginationParams,
-      // );
+      const { list: data } = await getTestEntityByQuery({
+        query: {
+          workspaceKey: workspaceKey,
+          type: TestType.Case,
+          id: testDetailIds,
+        },
+        ...paginationParams,
+      });
+
       setTableLoading(false);
 
       return {
         // 加拖拽依赖的 folderKey 数据
-        // list: data.results.map(item => ({ ...item, folderKey })),
-        // total: data.count,
-        list: [],
-        total: 0,
+        list: data.map(item => ({ ...item, folderKey })),
+        total: data.count,
       };
     },
     [workspaceKey, testDetailIds, folderKey],
@@ -98,7 +97,6 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
   const refreshAndMutateData = React.useCallback(async () => {
     setTableLoading(true);
     await onDataChange?.();
-    // setTimeout(() => tableActionRef.current?.refresh());
     setTableLoading(false);
   }, [onDataChange]);
 
@@ -109,14 +107,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
       actionConfirm('该操作会将所选的测试用例删除，是否继续操作？', async () => {
         // 获取所选的测试用例事项 id
         setTableLoading(true);
-        const { results } = await getTestEntitiesByQuery(
-          {
-            in: testDetailIds,
-          },
-          { select: ['reference'], include: [], limit: 9999 },
-        );
-        const itemIds = results.map(test => test.reference?.objectId);
-        await Promise.all([deleteTestEntities(testDetailIds), deleteItems(itemIds)]);
+        await deleteTestEntity(testDetailIds);
         refreshAndMutateData();
 
         notification.success({
@@ -129,7 +120,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
     // 更新负责人
     const toggleAssignee = async assignees => {
       setTableLoading(true);
-      await updateItemAssignee(tableActionRef.current.selectedRowKeys, assignees);
+      // await updateItemAssignee(tableActionRef.current.selectedRowKeys, assignees);
 
       setTimeout(() => {
         refreshAndMutateData();
@@ -185,10 +176,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
   const columns = React.useMemo(() => {
     const deleteTestDetail = data => {
       actionConfirm('该操作会将当前测试用例删除，是否继续操作？', async () => {
-        await Promise.all([
-          deleteTestEntities([data.objectId]),
-          deleteItems([data.reference?.objectId]),
-        ]);
+        await deleteTestEntity([data.objectId]);
         refreshAndMutateData();
         notification.success({
           message: '测试用例删除成功',
@@ -215,7 +203,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         title: '标题',
         isSystem: true,
         render(_, rowData) {
-          const itemData = rowData.reference ?? {};
+          const itemData = rowData ?? {};
           return (
             <span
               data-drawer-handle-target
@@ -265,7 +253,6 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         useColumnSetting
         columns={columns}
         defaultColumnKey={['key', 'repositoryGroup', 'createdBy', 'createdAt']}
-        itemKey="reference"
         name="TestDetailTable"
         loading={tableLoading}
         actionRef={tableActionRef}
