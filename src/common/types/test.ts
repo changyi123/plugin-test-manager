@@ -1,12 +1,12 @@
-import { TestType, TestLinkType, ItemValuesStorageKeyMapping } from '../constant';
+import { TestType, TestLinkType, TestFiledKeyMapping } from '../constant';
 
 type ValueOf<T> = T[keyof T];
 
 /** 测试用例字段 Key */
-export type TestEntityKey = keyof typeof ItemValuesStorageKeyMapping;
+export type TestEntityKey = keyof typeof TestFiledKeyMapping;
 
 /** 事项 values 字段 Key */
-export type ItemValuesKey = ValueOf<typeof ItemValuesStorageKeyMapping>;
+export type ItemValuesKey = ValueOf<typeof TestFiledKeyMapping>;
 
 type UserPointerInfo = {
   __type: 'Pointer';
@@ -73,7 +73,7 @@ export type TestEntity<TTestType extends TestType = TestType.Case> = TTestType e
   ? Omit<BaseTestEntity, CaseFieldKeys>
   : TTestType extends TestType.Plan
   ? Omit<BaseTestEntity, CaseFieldKeys | RunFieldKeys>
-  : null;
+  : BaseTestEntity;
 
 /** 测试用例状态 */
 export type Status = {

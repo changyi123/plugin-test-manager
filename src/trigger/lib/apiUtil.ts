@@ -6,10 +6,10 @@ export const getReqInfoFromVMRuntime = <TBody, THeader = any>(): {
   body: TBody;
   headers: THeader;
 } => {
-  const { headers, body } = global as any;
+  const { headers = {}, body = {} } = global as any;
   return {
-    body: cloneDeep(body),
-    headers: cloneDeep(headers),
+    body: cloneDeep(body) as TBody,
+    headers: cloneDeep(headers) as THeader,
   };
 };
 
