@@ -29,15 +29,10 @@ export const queryLinkedTestEntity = async () => {
     // 请求参数校验
     testEntityFieldTypeValidator({ linkType, type: destinationType, linkItems: sourceIds });
 
-    const appendLinkField = data => {
-      return data;
-    };
-
     return iqlRequest({
       query,
       fields,
       pagination: { limit, offset },
-      dataTransfer: appendLinkField,
       linkQuery: {
         linkType,
         sourceIds,

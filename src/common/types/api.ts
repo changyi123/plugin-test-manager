@@ -67,6 +67,10 @@ export type Query = Partial<{
    *  iql: 测试用例库模块 in []
    */
   repository: string | string[];
+  /** 关联的测试用例查询
+   *  iql: 测试用例引用 in []
+   */
+  referenceCase: string | string[];
 }>;
 
 /** 测试实体查询的通用  */
