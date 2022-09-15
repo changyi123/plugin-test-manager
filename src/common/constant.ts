@@ -102,3 +102,6 @@ export const SystemField = {
   Priority: 'priority', // 优先级
   Id: 'id',
 } as const;
+
+/** iql 最小返回字段 */
+export const IQLMinimumFieldKeys = [SystemField.Id] as const;

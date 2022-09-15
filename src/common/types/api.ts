@@ -10,6 +10,16 @@ type FieldKey = keyof typeof IQLFieldNameMapping;
 
 export type StatusCode = 'ok' | 'error';
 
+/** 关联类型查询参数 */
+export type LinkQueryPayload = {
+  /** 关联类型 */
+  linkType: TestLinkType;
+  /** 关联 items id */
+  sourceIds: string | string[];
+  /** destination 查询实体类型 */
+  destinationType: TestType;
+};
+
 export type ResponseType<T> = {
   status: StatusCode;
   data: T;
@@ -57,6 +67,10 @@ export type Query = Partial<{
    *  iql: 测试用例库模块 in []
    */
   repository: string | string[];
+  /** 关联的测试用例查询
+   *  iql: 测试用例引用 in []
+   */
+  referenceCase: string | string[];
 }>;
 
 /** 测试实体查询的通用  */
@@ -84,21 +98,15 @@ export type QueryTestEntityResponse<T extends TestType> = PaginationResponse<Tes
  * 查询关联测试实体
  * @example POST /api/project/app/osc/test_manager/webhooks/api-query-linked-test-entity
  */
-export type QueryLinkedTestEntityPayload = CommonTestEntityQueryPayload & {
-  /** 关联类型 */
-  linkType: TestLinkType;
-  /** 关联 items id */
-  linkItems: string | string[];
-  /** destination 查询实体类型 */
-  type: TestType;
-};
+export type QueryLinkedTestEntityPayload = CommonTestEntityQueryPayload & LinkQueryPayload;
 /** 查询关联测试实体 */
 export type QueryLinkedTestEntityResponse<T extends TestType> = PaginationResponse<
   TestEntity<T> & {
-    // 关联方 source 数据
-    source: string;
-    // 被关联方 source 数据
-    destination: string;
+    /** 关联方 source id 数据
+     *  兼容测试计划关联测试用例为多对多关联，响应值为数组
+     * linkType = caseLinkPlan, destType = testCase 该情况为多个 id，其他的情况只有一个 id
+     */
+    source: string[];
   }
 >;
 
