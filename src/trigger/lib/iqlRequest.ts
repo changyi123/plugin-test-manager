@@ -1,18 +1,20 @@
 import dayjs from 'dayjs';
 import cloneDeep from 'lodash/cloneDeep';
+import { iqlSearch } from '../lib/coreApi';
 import { buildPaginationResponse } from './apiUtil';
 import { TestEntity } from '../../common/types/test';
-import { requestCoreApi } from '@giteeteam/apps-team-api';
 
 import { throwArgumentError } from '../lib/validator';
 import { itemToTestEntity } from '../../common/utils/dataTransfer';
 import {
+  InfinityLimit,
+  IQLUsefulFieldKeys,
   IQLSearchFieldKeys,
   IQLFieldNameMapping,
-  IQLMinimumFieldKeys,
   TestFiledKeyMapping,
+  IQLRequiredFieldKeys,
 } from '../../common/constant';
-import iqlSearchParamsBuilder, { Operator } from '../../common/utils/iqlSearchParamsBuilder';
+import { iqlSearchParamsBuilder, Operator } from '../../common/utils/iqlSearchParamsBuilder';
 import { PaginationParams, PaginationResponse, LinkQueryPayload } from '../../common/types/api';
 
 type IQLFiledKeys = keyof typeof IQLFieldNameMapping;
@@ -24,9 +26,6 @@ type RequestParams = {
   query?: Partial<Record<IQLFiledKeys, any>>;
   dataTransfer?: (data: TestEntity[]) => Promise<any>;
 };
-
-// 全部数据
-const InfinityLimit = 99999;
 
 const DefaultPagination = {
   offset: 0,
@@ -41,15 +40,18 @@ const getLinkTypes = linkType => {
     .map(type => `Test${type}`);
 };
 
+type IqlRequestType = <TResp extends TestEntity = TestEntity>(
+  params: RequestParams,
+) => Promise<PaginationResponse<TResp>>;
 /** iql 请求查询 */
-export const iqlRequest = async (params: RequestParams) => {
+export const iqlRequest: IqlRequestType = async params => {
   try {
     const {
-      pagination: originalPagination,
-      fields,
-      query: originalQuery,
-      dataTransfer,
       linkQuery,
+      dataTransfer,
+      query: originalQuery,
+      fields = IQLUsefulFieldKeys,
+      pagination: originalPagination,
     } = params;
 
     // 参数处理
@@ -97,7 +99,7 @@ export const iqlRequest = async (params: RequestParams) => {
             limit: InfinityLimit,
             offset: 0,
           },
-          fields: [...IQLMinimumFieldKeys, TestFiledKeyMapping.linkItems],
+          fields: [...IQLRequiredFieldKeys, TestFiledKeyMapping.linkItems],
         });
 
         // 合并所有的 linkItems 字段数据
@@ -168,9 +170,7 @@ export const iqlRequest = async (params: RequestParams) => {
 
     const {
       payload: { count, items },
-    } = await requestCoreApi(
-      'POST',
-      '/parse/api/search',
+    } = await iqlSearch(
       iqlSearchParamsBuilder({
         payload,
         fields,
@@ -212,7 +212,7 @@ export const iqlRequest = async (params: RequestParams) => {
     return buildPaginationResponse(result, {
       total: count,
       ...pagination,
-    }) as PaginationResponse<TestEntity>;
+    });
   } catch (err) {
     return buildPaginationResponse(err);
   }
