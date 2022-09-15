@@ -1,7 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React from 'react';
 import { Tree } from 'antd';
-import { TestType } from '@/lib/constants';
 import _, { CollectionChain } from 'lodash';
 import { getTestEntitiesByQuery } from '@/lib/api/common';
 import { useNoExpiredRequest } from '@/lib/hooks/useRequest';
@@ -14,6 +13,8 @@ import { useRequest, useMemoizedFn, useDeepCompareEffect } from 'ahooks';
 import { traverseTreeNodes, getTreeNodeByKey, reverseTreeNodes } from '@/pages/repository/util';
 
 import cx from './style.less';
+import { getTestEntityByQuery } from '@/lib/api/item';
+import { TestType } from 'common/constant';
 
 const { DirectoryTree } = Tree;
 
@@ -63,18 +64,14 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
   const { data: allTestDetails } = useNoExpiredRequest(
     async () => {
       // 请求所有的用例数据
-      const { results } = await getTestEntitiesByQuery(
-        {
-          type: TestType.TestDetail,
-          workspaceKey,
+      const { list } = await getTestEntityByQuery({
+        query: {
+          workspaceKey: workspaceKey,
+          type: TestType.Case,
         },
-        {
-          limit: 99999,
-          select: ['repository'],
-        },
-      );
+      });
 
-      return results;
+      return list;
     },
     {
       cacheKey: `folder_tree_data_workspaceKey${workspaceKey}`,

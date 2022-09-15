@@ -21,21 +21,23 @@ const TestPlanSelector: React.FC = () => {
   const { data } = useRequest(
     async params => {
       const { offset = 0 } = params ?? ({} as any);
-      const { results } = await getTestEntitiesByQuery(
-        {
-          workspaceKey,
-          nameLike: searchValue,
-          type: TestType.TestPlan,
-        },
-        {
-          offset,
-          limit: 9999,
-          descendingBy: ['createdAt'],
-          ignoreDeletedItemData: true,
-        },
-      );
+      // const { results } = await getTestEntitiesByQuery(
+      //   {
+      //     workspaceKey,
+      //     nameLike: searchValue,
+      //     type: TestType.TestPlan,
+      //   },
+      //   {
+      //     offset,
+      //     limit: 9999,
+      //     descendingBy: ['createdAt'],
+      //     ignoreDeletedItemData: true,
+      //   },
+      // );
 
-      return results;
+      // return results;
+
+      return [];
     },
     {
       refreshDeps: [searchValue, workspaceKey],

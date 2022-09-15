@@ -2,7 +2,6 @@ import React, { useCallback, useRef, useState } from 'react';
 import { usePageContext } from '@/pages/plan/hook';
 import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
 import { Button, Dropdown, Menu, notification } from 'antd';
-import { TestLinkType, TestType } from '@/lib/constants';
 import _ from 'lodash';
 import { actionConfirm, goToItemDetailPage } from '@/lib/utils/helper';
 import { useBaseAction } from '@/lib/hooks/useContext';
@@ -15,6 +14,7 @@ const { ItemIcon } = components.Components.Common;
 
 import cx from './index.less';
 import { deleteTestEntity, getlinkedTestEntityByQuery, getTestEntityByQuery } from '@/lib/api/item';
+import { TestLinkType, TestType } from 'common/constant';
 
 const TestPlanList: React.FC<any> = () => {
   const actionRef = React.useRef<BusinessTableActionType>();
@@ -38,7 +38,7 @@ const TestPlanList: React.FC<any> = () => {
       const { list, total } = await getTestEntityByQuery({
         query: {
           workspaceKey: workspaceKey,
-          type: TestType.TestPlan,
+          type: TestType.Plan,
         },
         selectors,
         ...queryParams,
@@ -50,8 +50,8 @@ const TestPlanList: React.FC<any> = () => {
           workspaceKey: workspaceKey,
         },
         linkType: TestLinkType.CaseLinkPlan,
-        linkItems: list.map(d => d.objectId),
-        type: TestType.TestDetail,
+        sourceIds: list.map(d => d.objectId),
+        destinationType: TestType.Case,
       });
 
       const testPlans = _.chain(list)
@@ -166,7 +166,7 @@ const TestPlanList: React.FC<any> = () => {
 
   const handleCreate = async () => {
     await createItemUseModal({
-      type: TestType.TestPlan,
+      type: TestType.Plan,
     });
     actionRef.current.refresh();
     notification.success({

@@ -104,25 +104,22 @@ const Plan = () => {
       {
         title: '新建测试计划',
         async onClick() {
-          const { testEntity: testPlanEntity, item } = await createItemUseModal({
-            type: TestType.TestPlan,
-          });
-
-          try {
-            await createTestDetailToPlanRelations({
-              testDetail: testEntity,
-              testPlan: testPlanEntity,
-            });
-          } catch (err) {
-            console.error(err);
-          }
-
-          refreshDepData();
-
-          alert({
-            type: 'success',
-            message: `测试计划【${item.name}】新建成功`,
-          });
+          // const { testEntity: testPlanEntity, item } = await createItemUseModal({
+          //   type: TestType.TestPlan,
+          // });
+          // try {
+          //   await createTestDetailToPlanRelations({
+          //     testDetail: testEntity,
+          //     testPlan: testPlanEntity,
+          //   });
+          // } catch (err) {
+          //   console.error(err);
+          // }
+          // refreshDepData();
+          // alert({
+          //   type: 'success',
+          //   message: `测试计划【${item.name}】新建成功`,
+          // });
         },
       },
     ];

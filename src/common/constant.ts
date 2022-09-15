@@ -10,6 +10,8 @@ export enum TestType {
   Plan = 'TestPlan',
   /** 测试执行任务 */
   Execution = 'TestExecution',
+  /** 测试缺陷 */
+  Defect = 'TestDefect',
 }
 
 /** 测试关联类型 */
@@ -43,10 +45,12 @@ export const TestFiledKeyKeys = Object.keys(
 /** 测试管理内置自定义字段 name 映射，用户拼接 IQL 查询条件 */
 export const BuiltinFieldNameMapping = {
   linkType: '测试关联类型',
-  linkItems: '测试关联项',
+  // linkItems: '测试关联项',
+  sourceIds: '测试关联项',
+  destinationType: '测试类型',
   status: '测试执行状态',
   referenceCase: '测试用例引用',
-  type: '测试类型',
+  // type: '测试类型',
   caseStatus: '用例最新执行状态',
   repository: '测试用例库分组',
   designee: '测试负责人',

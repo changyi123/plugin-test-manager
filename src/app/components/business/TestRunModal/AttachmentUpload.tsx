@@ -305,12 +305,12 @@ const AttachmentUpload: React.FC<AttachmentUploadProps> = props => {
         });
 
         // 存储关系到测试用例
-        await updateTestRun(testRunEntity, {
-          runDetail: {
-            ...(testRunData.runDetail ?? {}),
-            attachments: getFileList(),
-          },
-        });
+        // await updateTestRun(testRunEntity, {
+        //   runDetail: {
+        //     ...(testRunData.runDetail ?? {}),
+        //     attachments: getFileList(),
+        //   },
+        // });
 
         setFileList(getFileList());
         setUploadTimes(i => i + 1);

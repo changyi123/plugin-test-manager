@@ -22,7 +22,7 @@ export const queryTestEntity = async () => {
 /** 查询关联的测试实体数据 */
 export const queryLinkedTestEntity = async () => {
   const { body } = getReqInfoFromVMRuntime<QueryLinkedTestEntityPayload>();
-  const { offset, limit, query = {}, fields, linkItems, linkType, type } = body;
+  const { offset, limit, query = {}, fields, sourceIds, linkType, destinationType } = body;
 
   const appendSourceField = data => {
     console.info('data ---->', data);
@@ -32,9 +32,9 @@ export const queryLinkedTestEntity = async () => {
   return iqlRequest({
     query: {
       ...query,
-      linkItems,
+      sourceIds,
       linkType,
-      type,
+      destinationType,
     },
     pagination: { limit, offset },
     fields,

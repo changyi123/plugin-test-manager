@@ -70,7 +70,7 @@ type CommonTestEntityQueryPayload = PaginationParams & {
   /** 升序字段 */
   ascending?: FieldKey[];
   /** 降序字段 */
-  descending: FieldKey[];
+  descending?: FieldKey[];
 };
 
 /**
@@ -88,9 +88,9 @@ export type QueryLinkedTestEntityPayload = CommonTestEntityQueryPayload & {
   /** 关联类型 */
   linkType: TestLinkType;
   /** 关联 items id */
-  linkItems: string[] | string[];
+  sourceIds: string[] | string[];
   /** destination 查询实体类型 */
-  type: TestType;
+  destinationType: TestType;
 };
 /** 查询关联测试实体 */
 export type QueryLinkedTestEntityResponse<T extends TestType> = PaginationResponse<

@@ -1,8 +1,8 @@
 import React from 'react';
-import { TestLinkType, TestType } from '@/lib/constants';
 import { useRequest } from 'ahooks';
 import { get } from 'lodash';
 import { getlinkedTestEntityByQuery } from '@/lib/api/item';
+import { TestLinkType, TestType } from 'common/constant';
 
 export const useResizeContainerDOM = (objectId?: string) => {
   React.useEffect(() => {
@@ -36,8 +36,8 @@ export const useScopedTestDetailIds = (params: ScopedTestDetailIdsParams) => {
             workspaceKey: workspaceKey,
           },
           linkType: TestLinkType.CaseLinkPlan,
-          linkItems: [testPlanId],
-          type: TestType.TestDetail,
+          sourceIds: [testPlanId],
+          destinationType: TestType.Case,
         });
 
         return details?.map(detail => get(detail, 'objectId')) ?? [];
@@ -48,11 +48,11 @@ export const useScopedTestDetailIds = (params: ScopedTestDetailIdsParams) => {
             workspaceKey: workspaceKey,
           },
           linkType: TestLinkType.RunLinkExecution,
-          linkItems: [testExecutionId],
-          type: TestType.TestDetail,
+          sourceIds: [testExecutionId],
+          destinationType: TestType.Run,
         });
 
-        return runs?.map(run => get(run, 'objectId')) ?? [];
+        return runs?.map(run => get(run, 'referenceCase.objectId')) ?? [];
       }
     },
     {

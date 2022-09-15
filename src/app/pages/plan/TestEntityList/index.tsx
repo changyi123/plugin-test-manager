@@ -6,7 +6,6 @@ import {
   removeTestRelationsWithCondition,
   updateTestRunDesignee,
 } from '@/lib/api/common';
-import { TestRelationType, TestType } from '@/lib/constants';
 import Field from '@/components/common/Field';
 import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
 import RepositoryGroup from '@/components/business/RepositoryGroup';
@@ -25,7 +24,9 @@ import { usePageContext } from '../hook';
 import { useListener } from '@projectproxima/proxima-sdk-js';
 
 import cx from './index.less';
-import { getTestEntityByQuery } from '@/lib/api/item';
+import { getlinkedTestEntityByQuery, getTestEntityByQuery } from '@/lib/api/item';
+import { TestLinkType, TestType } from 'common/constant';
+import { TestRelationType } from '@/lib/constants';
 
 interface TestEntityListProps {
   loading?: boolean;
@@ -190,6 +191,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     },
   );
 
+  // TODO 获取全部用例 getter
   const testPlanTableDataGetter = useCallback(
     async queryParams => {
       if (!requestScopedTestDetailIds?.length) {
@@ -198,17 +200,27 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           total: 0,
         };
       }
-
       setTableLoading(true);
       const { list: testDeatils, total } = await getTestEntityByQuery({
         query: {
           workspaceKey: workspaceKey,
-          type: TestType.TestDetail,
+          type: TestType.Case,
           id: requestScopedTestDetailIds,
         },
         ...queryParams,
+        selectors,
         descending: ['createdAt'],
       });
+
+      // TODO 待修改
+      // const { list: runs } = await getlinkedTestEntityByQuery({
+      //   query: {
+      //     workspaceKey: workspaceKey,
+      //   },
+      //   linkType: TestLinkType.CaseLinkPlan,
+      //   sourceIds: list.map(d => d.objectId),
+      //   destinationType: TestType.Case,
+      // });
 
       const list = testDeatils.map(detail => ({
         ...detail,
@@ -223,19 +235,25 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         total: total,
       };
     },
-    [workspaceKey, requestScopedTestDetailIds, selectedExecution, selectors],
+    [workspaceKey, requestScopedTestDetailIds, selectors],
   );
 
   // 获取当前计划或者当前测试任务的全部测试用例 ID
   const executionTableDataGetter = useCallback(
     async queryParams => {
-      const { list, total } = await getTestRunsTableData(queryParams);
+      const { list, total } = await getlinkedTestEntityByQuery({
+        query: {
+          workspaceKey: workspaceKey,
+          referenceCase: requestScopedTestDetailIds,
+        },
+        ...queryParams,
+        linkType: TestLinkType.RunLinkExecution,
+        sourceIds: [selectedExecution.objectId],
+        destinationType: TestType.Run,
+      });
 
       return {
-        list: list.map(d => ({
-          ...d,
-          reference: d.runReferenceDetail.reference,
-        })),
+        list,
         total,
       };
     },

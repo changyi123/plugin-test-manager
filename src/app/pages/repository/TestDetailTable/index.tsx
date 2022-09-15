@@ -1,6 +1,5 @@
 import React from 'react';
 import { useDrag } from 'ahooks';
-import { TestType } from '@/lib/constants';
 import { deleteItems } from '@/lib/api/proxima';
 import { notification, Tooltip } from 'antd';
 import { UNGROUPED_FOLDER_KEY } from '../constant';
@@ -19,6 +18,7 @@ import RepositorySelector, {
 import RepositoryGroup from '@/components/business/RepositoryGroup';
 
 import cx from './index.less';
+import { TestType } from 'common/constant';
 
 const RowDragHandler = data => {
   const ref = React.useRef();
@@ -74,20 +74,22 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
     async paginationParams => {
       if (!workspaceKey) return null;
       setTableLoading(true);
-      const data = await getTestEntitiesByQuery(
-        {
-          workspaceKey,
-          in: testDetailIds ?? [],
-          type: TestType.TestDetail,
-        },
-        paginationParams,
-      );
+      // const data = await getTestEntitiesByQuery(
+      //   {
+      //     workspaceKey,
+      //     in: testDetailIds ?? [],
+      //     type: TestType.Case,
+      //   },
+      //   paginationParams,
+      // );
       setTableLoading(false);
 
       return {
         // 加拖拽依赖的 folderKey 数据
-        list: data.results.map(item => ({ ...item, folderKey })),
-        total: data.count,
+        // list: data.results.map(item => ({ ...item, folderKey })),
+        // total: data.count,
+        list: [],
+        total: 0,
       };
     },
     [workspaceKey, testDetailIds, folderKey],

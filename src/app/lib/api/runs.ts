@@ -1,7 +1,6 @@
 import Parse from '@/lib/parse';
 import { ICommonRes } from './detail';
 import { Test, Item, ItemType, ItemLink, ItemLinkType } from '../models';
-import { TestType, TestRelationType } from '@/lib/constants';
 import {
   getTestEntities,
   createTestEntities,
@@ -13,10 +12,13 @@ import { getItemByIQL } from '@/lib/api/proxima';
 import { hasArrayItem } from '@/lib/utils/helper';
 import _, { isEqual, keyBy, merge } from 'lodash';
 import { compactStepModel } from '@/lib/utils/modelTransfer';
-import { Status, TestEntity, UserPointerInfo } from '@/lib/types/Test';
+import { Status, UserPointerInfo } from '@/lib/types/Test';
 import { pointerTransfer, toArray, generateSortIndex } from '@/lib/utils/helper';
+import { TestLinkType, TestType } from 'common/constant';
+import { TestEntity } from 'common/types/test';
+import { TestRelationType } from '../constants';
 
-type TestRunEntity = TestEntity<TestType.TestRun>;
+type TestRunEntity = TestEntity<TestType.Run>;
 type TestEntityParseType<TEntity extends TestEntity = TestEntity> = Parse.Object<TEntity> | string;
 
 /** 创建测试执行实体，并将测试执行与测试执行任务，测试用例与测试执行任务关联 */
@@ -36,18 +38,18 @@ export const createTestRunAndRelation = async (_testExecutionEntity, _testDetail
     workspaceKey: testExecutionData.workspaceKey,
   });
 
-  await createTestRelation([
-    ...testRunEntities.map(testDetailEntity => ({
-      relationType: TestRelationType.DetailRelExecution,
-      from: testDetailEntity,
-      to: testExecutionEntity,
-    })),
-    ...testRunEntities.map(testRunEntity => ({
-      relationType: TestRelationType.ExecutionRelRun,
-      from: testExecutionEntity,
-      to: testRunEntity,
-    })),
-  ]);
+  // await createTestRelation([
+  //   ...testRunEntities.map(testDetailEntity => ({
+  //     relationType: TestRelationType.DetailRelExecution,
+  //     from: testDetailEntity,
+  //     to: testExecutionEntity,
+  //   })),
+  //   ...testRunEntities.map(testRunEntity => ({
+  //     relationType: TestRelationType.ExecutionRelRun,
+  //     from: testExecutionEntity,
+  //     to: testRunEntity,
+  //   })),
+  // ]);
 };
 
 /** 获取测试用例下的所有测试执行 */
@@ -453,11 +455,11 @@ export const updateTestRun = async (
 
   // testRun 状态更新需要映射到关联的测试用例
   if (needUpdateAttrs.status && params.planId) {
-    const testDetailEntity = testEntity.get('runReferenceDetail') as unknown as Parse.Object;
-    testDetailEntity.save('detailStatus', {
-      ...(testDetailEntity.get('detailStatus') ?? {}),
-      [params.planId]: needUpdateAttrs.status,
-    });
+    // const testDetailEntity = testEntity.get('runReferenceDetail') as unknown as Parse.Object;
+    // testDetailEntity.save('detailStatus', {
+    //   ...(testDetailEntity.get('detailStatus') ?? {}),
+    //   [params.planId]: needUpdateAttrs.status,
+    // });
   }
 
   testEntity.set('updatedBy', Parse.User.current());
@@ -567,32 +569,32 @@ export const getTestStepsByTestDetailId = async (testDetailId: string, currentTe
  * 创建测试执行
  */
 export const createTestRun = async (params: { workspaceKey: string; testDetailIds: string[] }) => {
-  const { workspaceKey, testDetailIds } = params;
+  // const { workspaceKey, testDetailIds } = params;
 
-  const { results: testDetailEntities } = await getTestEntitiesByQuery(
-    {
-      in: testDetailIds,
-      type: TestType.TestDetail,
-    },
-    {
-      offset: 0,
-      limit: 9999,
-      select: ['sortIndex'],
-    },
-  );
+  // const { results: testDetailEntities } = await getTestEntitiesByQuery(
+  //   {
+  //     in: testDetailIds,
+  //     type: TestType.TestDetail,
+  //   },
+  //   {
+  //     offset: 0,
+  //     limit: 9999,
+  //     select: ['sortIndex'],
+  //   },
+  // );
 
   // 批量 sortIndex
-  const batchSortIndex = generateSortIndex();
-  const entities = testDetailEntities.map((testDetail, index) => ({
-    type: TestType.TestRun,
-    workspaceKey,
-    fields: {
-      runReferenceDetail: Test.createWithoutData(testDetail.objectId),
-      // 测试执行的排序索引继承自 sortIndex
-      sortIndex: testDetail.sortIndex ?? batchSortIndex + index,
-    },
-  }));
-  return createTestEntities(entities);
+  // const batchSortIndex = generateSortIndex();
+  // const entities = testDetailEntities.map((testDetail, index) => ({
+  //   type: TestType.Run,
+  //   workspaceKey,
+  //   fields: {
+  //     runReferenceDetail: Test.createWithoutData(testDetail.objectId),
+  //     // 测试执行的排序索引继承自 sortIndex
+  //     sortIndex: testDetail.sortIndex ?? batchSortIndex + index,
+  //   },
+  // }));
+  // return createTestEntities(entities);
 };
 
 /** 创建测试执行 */
@@ -640,16 +642,16 @@ export const createTestExecutionAndRelations = async (params: {
   ];
 
   // 测试执行&运行关联关系
-  const testExecutionRunRelations = testRunEntities.map(runEntity => ({
-    relationType: TestRelationType.ExecutionRelRun,
-    from: testExecution,
-    to: runEntity,
-  }));
+  // const testExecutionRunRelations = testRunEntities.map(runEntity => ({
+  //   relationType: TestRelationType.ExecutionRelRun,
+  //   from: testExecution,
+  //   to: runEntity,
+  // }));
 
   // todo: 创建测试执行
-  const relations = [].concat(testPlanExecutionRelations, testExecutionRunRelations);
+  // const relations = [].concat(testPlanExecutionRelations, testExecutionRunRelations);
 
-  await createTestRelation(relations);
+  // await createTestRelation(relations);
 
   return testExecution;
 };
@@ -670,11 +672,11 @@ export const addTestDetailToExecution = async (params: {
   });
 
   // 测试执行&运行关联关系
-  const testExecutionRunRelations = testRunEntities.map(runEntity => ({
-    relationType: TestRelationType.ExecutionRelRun,
-    from: testExecution,
-    to: runEntity,
-  }));
+  // const testExecutionRunRelations = testRunEntities.map(runEntity => ({
+  //   relationType: TestRelationType.ExecutionRelRun,
+  //   from: testExecution,
+  //   to: runEntity,
+  // }));
 
   let testPlanDetailRelations = [];
 
@@ -696,7 +698,7 @@ export const addTestDetailToExecution = async (params: {
     }));
   }
 
-  await createTestRelation(testExecutionRunRelations.concat(testPlanDetailRelations));
+  // await createTestRelation(testExecutionRunRelations.concat(testPlanDetailRelations));
 };
 
 // 根据测试用例获取测试执行,
@@ -706,7 +708,7 @@ export const getTestRunsByTestDetails = async ({ testDetailIds, workspaceKey, ex
 
   testQuery
     .equalTo('workspaceKey', workspaceKey)
-    .equalTo('type', TestType.TestRun)
+    .equalTo('type', TestType.Run)
     .containedIn('runReferenceDetail', testDetailIds);
 
   const testRunsList = await testQuery.findAll();

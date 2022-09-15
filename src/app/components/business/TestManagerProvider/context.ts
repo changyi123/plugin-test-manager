@@ -1,7 +1,7 @@
 import React from 'react';
 import { TestEntity } from '@/lib/types/Test';
 import { Item, Workspace } from '@/lib/types/App';
-import { TestType } from '@/lib/constants';
+import { TestType } from 'common/constant';
 
 export type TestConfigContextType = {
   config: {

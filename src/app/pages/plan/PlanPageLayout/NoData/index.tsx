@@ -17,13 +17,11 @@ const NoData: React.FC<NoDataProps> = ({ setRefreshExecution }) => {
 
   // 创建测试执行任务
   const createTestExecution = async () => {
-    const { testEntity: testExecutionEntity } = await createItemUseModal({
-      type: TestType.TestExecution,
-      extraData: { planId: selectedTestPlan?.objectId },
-    });
-
+    // const { testEntity: testExecutionEntity } = await createItemUseModal({
+    //   type: TestType.TestExecution,
+    //   extraData: { planId: selectedTestPlan?.objectId },
+    // });
     // TODO 创建测试执行，创建测试执行任务和执行关系，创建执行和用例关系
-
     // try {
     //   notification.open({
     //     message: '测试执行任务正在创建中',
@@ -31,7 +29,6 @@ const NoData: React.FC<NoDataProps> = ({ setRefreshExecution }) => {
     //     duration: null,
     //   });
     //   const testExecutionData = testExecutionEntity.toJSON();
-
     //   await createTestExecutionAndRelations({
     //     workspaceKey: workspaceKey,
     //     testPlan: selectedTestPlan?.objectId,

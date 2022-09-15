@@ -64,10 +64,11 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
   const dataCacheDictRef = React.useRef({});
   const eventBusRef = React.useRef<any>(new EventBus());
   // 空间条件
-  const workspaceKeyCondition = React.useMemo(
-    () => (isolateTestType.includes(testType) ? workspace?.key : ''),
-    [isolateTestType, testType, workspace?.key],
-  );
+  const workspaceKeyCondition = '';
+  // const workspaceKeyCondition = React.useMemo(
+  //   () => (isolateTestType.includes(testType) ? workspace?.key : ''),
+  //   [isolateTestType, testType, workspace?.key],
+  // );
 
   // 获取租户所有的配置
   const { runAsync: getAllConfigs } = useRequest(
@@ -99,7 +100,8 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
                 return {
                   ...result,
                   // 如果当前空间的测试类型有空间隔离配置，则返回 []
-                  [key]: isolateTestType.includes(key as TestType) ? [] : value,
+                  // [key]: isolateTestType.includes(key as TestType) ? [] : value,
+                  [key]: '',
                 };
               },
               {},
@@ -134,7 +136,8 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
   // 获取测试缺陷类型
   const { data: testDefectsMapping, runAsync: getTestDefectsMapping } = useRequest(async () => {
     const configs = await getAllConfigs();
-    const isolateWithWorkspace = isolateTestType.includes(TestType.TestDefect);
+    // const isolateWithWorkspace = isolateTestType.includes(TestType.TestDefect);
+    const isolateWithWorkspace = false;
 
     return configs.reduce((acc, item) => {
       const config = item.toJSON();
@@ -318,7 +321,8 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
         isSingleMode={isSingleMode}
         workspaceKey={workspace?.key}
         ignoreTestDetailIds={ignoreTestEntityIds}
-        isWorkspaceIsolate={isolateTestType.includes(TestType.TestDetail)}
+        // isWorkspaceIsolate={isolateTestType.includes(TestType.TestDetail)}
+        isWorkspaceIsolate={false}
         onTestDetailSelect={testDetails => setSelectedTestDetails(testDetails)}
       />
     );

@@ -23,14 +23,10 @@ import {
   TestConfigContextType,
   BaseActionContextType,
 } from './context';
-import {
-  TestType,
-  ENTITY_NOT_FOUND,
-  ExtensionValType,
-  CREATE_ITEM_STORE_FIELD_KEY,
-} from '@/lib/constants';
+import { ENTITY_NOT_FOUND, ExtensionValType, CREATE_ITEM_STORE_FIELD_KEY } from '@/lib/constants';
 import { union } from 'lodash';
 import fetch from '@/lib/utils/fetch';
+import { TestType } from 'common/constant';
 
 const ItemCreateSuccessEventType = 'itemCreateSuccess';
 
@@ -195,7 +191,7 @@ const getOrBatchCreateTestEntities = async (
 
       let fields = restFields;
       // 测试用例创建时需要生成默认 sortIndex
-      if (firstItemMatchTestType === TestType.TestDetail) {
+      if (firstItemMatchTestType === TestType.Case) {
         fields = {
           detail: restFields,
           sortIndex: generateSortIndex(index + 1),
@@ -320,7 +316,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
       if (disabledCreateOrRelation) return;
 
       // 缺陷类型不需要创建测试管理测试实体
-      if (extraData.type !== TestType.TestDefect) {
+      if (extraData.type !== TestType.Defect) {
         // TODO 更新测试实体自定义字段数据
         // testEntity = await getOrCreateTestEntity(params.itemId, {
         //   repository: extraData?.repository,
@@ -377,7 +373,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
 
       if (!hasArrayItem(itemList)) return;
       // 缺陷类型不需要创建测试管理测试实体
-      if (extraData.type !== TestType.TestDefect) {
+      if (extraData.type !== TestType.Defect) {
         const ids = itemList.map(itemData => itemData.objectId);
         testEntityList = await getOrBatchCreateTestEntities(ids, {
           notice: true,
@@ -427,7 +423,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
         const { extraData, type, name, hideMessage } = params;
         let itemTypeKey = testConfig?.itemTypeMap?.[type] as string;
         // 获取缺陷类型 key
-        if (type === TestType.TestDefect) {
+        if (type === TestType.Defect) {
           itemTypeKey = testConfig.defectsMapping?.[0];
         }
 
@@ -464,7 +460,6 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
         // 事项创建成功通知
         return new Promise((resolve, reject) => {
           eventBus.disposer = eventBus.register(messageKey, data => {
-            debugger;
             const { testEntity, item, testEntityList, itemList, useItemBatchCreate } = data;
             const willValidateItem = useItemBatchCreate ? itemList[0] : item;
             const willValidateTestEntity = useItemBatchCreate ? testEntityList[0] : testEntity;
@@ -473,7 +468,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
             let expectedTestType = willValidateTestEntity?.get('type') === type;
 
             // 判断类型 key 是否在 defectsMapping 中
-            if (type === TestType.TestDefect) {
+            if (type === TestType.Defect) {
               expectedTestType = (testConfig?.defectsMapping ?? []).includes(
                 willValidateItem?.itemType?.key,
               );

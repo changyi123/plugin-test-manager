@@ -2,7 +2,6 @@ import React from 'react';
 // import { constant, uniq } from 'lodash';
 import { uniq } from 'lodash';
 import { useReactive, useDrop } from 'ahooks';
-import { TestType } from '@/lib/constants';
 import { hasArrayItem, getRootContainer } from '@/lib/utils/helper';
 import { createFolder, updateFolders, deleteFolder } from '@/lib/api/repository';
 import { useTestConfig, useBaseAction } from '@/lib/hooks/useContext';
@@ -25,6 +24,7 @@ import { UNGROUPED_FOLDER_KEY } from '../constant';
 
 import cx from './index.less';
 import { updateTestEntities } from '@/lib/api/common';
+import { TestType } from 'common/constant';
 
 const { DirectoryTree } = Tree;
 
@@ -149,9 +149,9 @@ const FolderTree: React.FC<FolderTreeProps> = ({
 
   const folderMenuDisabledKeys = React.useMemo(() => {
     const keys = [];
-    if (!itemTypeMap?.TestDetail) {
-      keys.push(MenuKey.createTest);
-    }
+    // if (!itemTypeMap?.Case) {
+    //   keys.push(MenuKey.createTest);
+    // }
     return keys;
   }, [itemTypeMap]);
 
@@ -278,10 +278,10 @@ const FolderTree: React.FC<FolderTreeProps> = ({
       } else if (actionKey === MenuKey.createTest) {
         // 创建测试用例
         const { testEntity, item } = await createItemUseModal({
-          type: TestType.TestDetail,
+          type: TestType.Case,
           extraData: {
             repository: node.key === UNGROUPED_FOLDER_KEY ? null : node.key,
-            type: TestType.TestDetail,
+            type: TestType.Case,
           },
         });
 
@@ -290,7 +290,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         // 创建的测试用例不在同一个空间
         if (workspace?.key !== testEntityData?.workspaceKey) return;
         // 只有测试用例需要被添加至测试用例仓库
-        if (testEntityData.type !== TestType.TestDetail) return;
+        // if (testEntityData.type !== TestType.Case) return;
         // 修改 node，将创建成功的 itemKey 追加到 node 上
         node.testDetailIds = (node.testDetailIds || []).concat(testEntityData.objectId);
         await updateFolders([node]);

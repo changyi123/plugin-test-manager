@@ -38,36 +38,33 @@ const Header: React.FC<HeaderProps> = ({
 
   // 创建测试执行任务
   const createTestExecution = async () => {
-    const { testEntity: testExecutionEntity } = await createItemUseModal({
-      type: TestType.TestExecution,
-      extraData: { planId: selectedTestPlan?.objectId },
-    });
-
-    try {
-      notification.open({
-        message: '测试执行任务正在创建中',
-        icon: <Spin spinning={true} />,
-        duration: null,
-      });
-      const testExecutionData = testExecutionEntity.toJSON();
-
-      await createTestExecutionAndRelations({
-        workspaceKey: workspaceKey,
-        testPlan: selectedTestPlan?.objectId,
-        testExecution: testExecutionEntity,
-      });
-
-      notification.destroy();
-      notification.success({
-        message: `测试执行任务【${testExecutionData?.reference?.name}】新建成功`,
-      });
-      setRefreshExecution(true);
-    } catch (err) {
-      notification.error({
-        message: '测试执行任务新建失败',
-      });
-      notification.destroy();
-    }
+    // const { testEntity: testExecutionEntity } = await createItemUseModal({
+    //   type: TestType.TestExecution,
+    //   extraData: { planId: selectedTestPlan?.objectId },
+    // });
+    // try {
+    //   notification.open({
+    //     message: '测试执行任务正在创建中',
+    //     icon: <Spin spinning={true} />,
+    //     duration: null,
+    //   });
+    //   const testExecutionData = testExecutionEntity.toJSON();
+    //   await createTestExecutionAndRelations({
+    //     workspaceKey: workspaceKey,
+    //     testPlan: selectedTestPlan?.objectId,
+    //     testExecution: testExecutionEntity,
+    //   });
+    //   notification.destroy();
+    //   notification.success({
+    //     message: `测试执行任务【${testExecutionData?.reference?.name}】新建成功`,
+    //   });
+    //   setRefreshExecution(true);
+    // } catch (err) {
+    //   notification.error({
+    //     message: '测试执行任务新建失败',
+    //   });
+    //   notification.destroy();
+    // }
   };
 
   const generateReport = async () => {

@@ -170,8 +170,8 @@ const Right: React.FC<RightProps> = props => {
           <div className={cx('extra-content-left')}>
             {activedType === 'TestExecution' ? (
               <>
-                <Tooltip title={selectedExecution?.reference.name ?? ''} placement="topLeft">
-                  <div className={cx('title')}>{selectedExecution?.reference.name}</div>
+                <Tooltip title={selectedExecution?.name ?? ''} placement="topLeft">
+                  <div className={cx('title')}>{selectedExecution?.name}</div>
                 </Tooltip>
                 <div className={cx('rate')}>
                   <ExecutionStatus

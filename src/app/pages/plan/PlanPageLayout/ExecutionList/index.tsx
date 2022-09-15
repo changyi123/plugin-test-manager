@@ -11,6 +11,8 @@ import { useListener } from '@projectproxima/proxima-sdk-js';
 import { usePageContext } from '../../hook';
 
 import cx from './index.less';
+import { getlinkedTestEntityByQuery } from '@/lib/api/item';
+import { TestLinkType, TestType } from 'common/constant';
 
 interface ExcetionListProps {
   planId: string;
@@ -70,7 +72,17 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
       //   },
       // );
 
-      return [];
+      const { list } = await getlinkedTestEntityByQuery({
+        query: {
+          workspaceKey: workspaceKey,
+        },
+        linkType: TestLinkType.ExecutionLinkPlan,
+        sourceIds: [planId],
+        destinationType: TestType.Execution,
+      });
+      console.log('list----->', list);
+
+      return list;
     },
     {
       refreshDeps: [planId, activedType],
@@ -102,14 +114,11 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
 
   const menuClick = (type: string, data) => {
     if (type === 'check') {
-      openItemViewScreen(data.reference.objectId);
+      openItemViewScreen(data.objectId);
     }
     if (type === 'delete') {
       actionConfirm('该操作会将该测试执行任务删除，是否继续操作？', async () => {
-        await Promise.all([
-          deleteTestEntities([data?.objectId]),
-          deleteItems([data.reference.objectId]),
-        ]);
+        // await Promise.all([deleteTestEntities([data?.objectId]), deleteItems([data.objectId])]);
         setSelectedExecution(undefined);
         setRefreshExecution(true);
       });
@@ -139,7 +148,7 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
               setSelectedExecution(d);
             }}
           >
-            <div className={cx('name')}>{d.reference.name}</div>
+            <div className={cx('name')}>{d.name}</div>
             <div className={cx('icon')}>
               <Dropdown overlay={menu(d)} trigger={['hover']}>
                 <EllipsisOutlined className={cx('action', 'right')} style={{ display: 'flex' }} />
@@ -170,8 +179,8 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
                     }}
                   >
                     <div className={cx('name')} onClick={e => e.preventDefault()}>
-                      <Tooltip placement="topLeft" title={d?.reference?.name ?? ''}>
-                        {d?.reference?.name}
+                      <Tooltip placement="topLeft" title={d?.name ?? ''}>
+                        {d?.name}
                       </Tooltip>
                     </div>
                     <div className={cx('icon')}>

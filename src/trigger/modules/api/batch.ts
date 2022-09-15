@@ -22,14 +22,14 @@ export const batchDelete = async () => {
         data: { list: linkedItems },
       } = await iqlRequest({
         query: {
-          linkItems: body.ids,
+          sourceIds: body.ids,
         },
         pagination: { limit: 99999 },
         fields: ['objectId', 'values'],
       });
       // 2. 更新数据
       const needUpdateItemValues = linkedItems.map(item => {
-        return pick(item, ['objectId', 'linkItems']);
+        return pick(item, ['objectId', 'sourceIds']);
       });
 
       tasks.push(batchUpdateItems(needUpdateItemValues));

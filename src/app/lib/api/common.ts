@@ -2,7 +2,6 @@ import Parse from '@/lib/parse';
 import { TestConfig } from '../models';
 import { assign, omit, transform, isEmpty } from 'lodash';
 import {
-  TestType,
   TestRelationType,
   GlobalConfigStorageKey,
   CurrentWorkspaceConfigStorageKey,
@@ -19,7 +18,7 @@ import {
   SearchSelectors,
 } from '@/lib/utils/iql';
 import { itemToTestEntity, testEntityToItemValues } from 'common/utils/dataTransfer';
-import { ItemValuesStorageKeyMapping } from 'common/constant';
+import { ItemValuesStorageKeyMapping, TestType } from 'common/constant';
 
 const BATCH_SIZE = 200;
 
@@ -623,7 +622,7 @@ export const getTestEntitiesByQuery = async (
 
   const repositorySelector = queryParams.selectors?.[1];
   // 为用例类型需要拼上repository的查询条件
-  if (!isEmpty(repositorySelector) && queryParams.type === TestType.TestDetail) {
+  if (!isEmpty(repositorySelector) && queryParams.type === TestType.Case) {
     query = Parse.Query.and(selectorToParse(new Parse.Query(Test), repositorySelector), query);
   }
 
@@ -822,7 +821,7 @@ export const updateGlobalConfig = async fields => {
 export async function fetchItemFromIql(
   selector: ItemSelectors,
   workspaceKey,
-  type = TestType.TestDetail,
+  type = TestType.Case,
 ) {
   let iql = selectorToIql(selector);
   // 组装空间

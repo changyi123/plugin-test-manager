@@ -132,27 +132,27 @@ const Test = () => {
   // 创建测试执行
   const createTestExecution = React.useCallback(async () => {
     const token = uniqueId('TestPlan');
-    const res = await createItemUseModal({
-      extraData: { token, planId: testEntity?.id },
-      // TODO: 测试执行 name
-      name: uniqueId('测试执行'),
-      type: TestType.TestExecution,
-    });
+    // const res = await createItemUseModal({
+    //   extraData: { token, planId: testEntity?.id },
+    //   // TODO: 测试执行 name
+    //   name: uniqueId('测试执行'),
+    //   type: TestType.TestExecution,
+    // });
 
-    const { testEntity: testExecutionEntity } = res;
+    // const { testEntity: testExecutionEntity } = res;
 
-    const testExecutionData = testExecutionEntity.toJSON();
+    // const testExecutionData = testExecutionEntity.toJSON();
 
-    await createTestExecutionAndRelations({
-      testPlan: testEntity,
-      testExecution: testExecutionEntity,
-      workspaceKey: (testExecutionData.reference.workspace as Workspace).key,
-    });
+    // await createTestExecutionAndRelations({
+    //   testPlan: testEntity,
+    //   testExecution: testExecutionEntity,
+    //   workspaceKey: (testExecutionData.reference.workspace as Workspace).key,
+    // });
 
-    alert({
-      type: 'success',
-      message: `测试执行任务【${testExecutionData?.reference?.name}】新建成功`,
-    });
+    // alert({
+    //   type: 'success',
+    //   message: `测试执行任务【${testExecutionData?.reference?.name}】新建成功`,
+    // });
   }, [createItemUseModal, testEntity]);
 
   // 添加测试用例菜单
@@ -180,28 +180,28 @@ const Test = () => {
       {
         title: '新建测试用例',
         async onClick() {
-          const {
-            testEntity: newTestDetail,
-            item: { name },
-          } = await createItemUseModal({
-            hideMessage: true,
-            type: TestType.TestDetail,
-            extraData: {
-              folderKey: null,
-            },
-          });
+          // const {
+          //   testEntity: newTestDetail,
+          //   item: { name },
+          // } = await createItemUseModal({
+          //   hideMessage: true,
+          //   type: TestType.TestDetail,
+          //   extraData: {
+          //     folderKey: null,
+          //   },
+          // });
 
-          await createTestDetailToPlanRelations({
-            testPlan: testEntity,
-            testDetail: newTestDetail,
-          });
+          // await createTestDetailToPlanRelations({
+          //   testPlan: testEntity,
+          //   testDetail: newTestDetail,
+          // });
 
-          refreshDepData();
+          // refreshDepData();
 
-          alert({
-            type: 'success',
-            message: `测试用例 ${name} 已被添加到测试计划中`,
-          });
+          // alert({
+          //   type: 'success',
+          //   message: `测试用例 ${name} 已被添加到测试计划中`,
+          // });
         },
       },
     ];

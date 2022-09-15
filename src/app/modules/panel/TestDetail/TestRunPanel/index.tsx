@@ -140,12 +140,12 @@ const Runs: React.FC = () => {
   ];
 
   const createTestExecution = async () => {
-    const { testEntity: testExecutionEntity } = await createItemUseModal({
-      type: TestType.TestExecution,
-    });
-    // 创建测试执行实体并关联
-    await createTestRunAndRelation(testExecutionEntity, testDetailEntity);
-    tableActionRef.current.refresh();
+    // const { testEntity: testExecutionEntity } = await createItemUseModal({
+    //   type: TestType.TestExecution,
+    // });
+    // // 创建测试执行实体并关联
+    // await createTestRunAndRelation(testExecutionEntity, testDetailEntity);
+    // tableActionRef.current.refresh();
   };
 
   const tableDataSourceGetter = React.useCallback(
