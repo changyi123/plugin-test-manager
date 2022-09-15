@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 import React from 'react';
-import { TestType } from '@/lib/constants';
+import { TestType } from 'common/constant';
 import { uniq, reduce, keyBy } from 'lodash';
 import EventBus from '@/lib/utils/eventBus';
 import { Modal, Spin, Button } from 'antd';

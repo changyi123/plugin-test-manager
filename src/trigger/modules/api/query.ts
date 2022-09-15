@@ -25,7 +25,6 @@ export const queryLinkedTestEntity = async () => {
   const { offset, limit, query = {}, fields, sourceIds, linkType, destinationType } = body;
 
   const appendSourceField = data => {
-    console.info('data ---->', data);
     return data;
   };
 

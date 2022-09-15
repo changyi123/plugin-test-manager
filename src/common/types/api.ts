@@ -28,7 +28,7 @@ export type PaginationResponse<T> = ResponseType<
 >;
 
 /** 测试实体查询支持快捷查询 */
-type Query = Partial<{
+export type Query = Partial<{
   /** 事项名称
    *  iql: name ~ ''
    */
@@ -88,9 +88,9 @@ export type QueryLinkedTestEntityPayload = CommonTestEntityQueryPayload & {
   /** 关联类型 */
   linkType: TestLinkType;
   /** 关联 items id */
-  sourceIds: string[] | string[];
+  linkItems: string | string[];
   /** destination 查询实体类型 */
-  destinationType: TestType;
+  type: TestType;
 };
 /** 查询关联测试实体 */
 export type QueryLinkedTestEntityResponse<T extends TestType> = PaginationResponse<

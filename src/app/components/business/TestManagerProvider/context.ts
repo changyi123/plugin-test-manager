@@ -1,7 +1,7 @@
 import React from 'react';
-import { TestEntity } from '@/lib/types/Test';
 import { Item, Workspace } from '@/lib/types/App';
 import { TestType } from 'common/constant';
+import { BaseTestEntity } from 'common/types/test';
 
 export type TestConfigContextType = {
   config: {
@@ -13,7 +13,7 @@ export type TestConfigContextType = {
     isolateTestType: TestType[];
   };
   workspace?: Workspace;
-  testEntity?: Parse.Object<TestEntity>;
+  testEntity?: BaseTestEntity;
 };
 /** 测试管理配置 context */
 export const TestConfigContext = React.createContext<TestConfigContextType>(
@@ -32,8 +32,8 @@ export type BaseActionContextType = {
     useItemBatchCreate: boolean;
     item?: Item;
     itemList?: Item[];
-    testEntity?: Parse.Object<TestEntity>;
-    testEntityList?: Parse.Object<TestEntity>[];
+    testEntity?: BaseTestEntity;
+    testEntityList?: BaseTestEntity[];
   }>;
   /** 打开事项 panel */
   openItemViewPanel: (itemId: string) => void;

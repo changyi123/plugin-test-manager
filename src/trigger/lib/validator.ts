@@ -1,10 +1,15 @@
 /* eslint-disable no-fallthrough */
 import { TestType, TestLinkType, TestFiledKeyKeys } from '../../common/constant';
 
-const throwBadRequest = (key, expectedType?: string) => {
-  throw new Error(`The ${key} is invalid. ${expectedType ? `Expect ${expectedType}` : ''}`);
+export const throwArgumentError = (key, expectedType?: string) => {
+  throw new Error(
+    `The ${key} data-type is error. ${expectedType ? `Expected ${expectedType}` : ''}`,
+  );
 };
 
+export const throwMissingFieldError = key => {
+  throw new Error(`The ${key} field is Required.`);
+};
 /** 需要校验的字段 */
 const ValidateFields = ['detail', 'runDetail', ...TestFiledKeyKeys] as (
   | typeof TestFiledKeyKeys[0]
@@ -13,7 +18,7 @@ const ValidateFields = ['detail', 'runDetail', ...TestFiledKeyKeys] as (
 )[];
 
 /** 校验测试字段 */
-export const validateTestEntityFields = data => {
+export const testEntityFieldTypeValidator = data => {
   // 校验
   Object.entries((data ?? {}) as Record<string, any>).forEach(([key, value]) => {
     const fieldKey = key as typeof ValidateFields[0];
@@ -21,15 +26,25 @@ export const validateTestEntityFields = data => {
     if (ValidateFields.includes(fieldKey)) {
       switch (fieldKey) {
         case 'linkItems':
-          if (!Array.isArray(value)) {
-            throwBadRequest('linkItems', 'string[]');
-          }
+          if (!Array.isArray(value)) throwArgumentError('linkItems', 'objectId[]');
+
         case 'linkType':
-          if (Object.values(TestLinkType).includes(value))
-            throwBadRequest('linkType', 'TestLinkType Enum');
+          if (!Object.values(TestLinkType).includes(value))
+            throwArgumentError(key, 'TestLinkType Enum');
         case 'type':
-          if (Object.values(TestType).includes(value)) throwBadRequest('type', 'TestType Enum');
+          if (!Object.values(TestType).includes(value)) throwArgumentError(key, 'TestType Enum');
+
+        // case 'detail':
+        // case 'runDetail':
+        //   if (!value || typeof value !== 'object') throwArgumentError(key);
+        default:
+          return;
       }
     }
   });
+};
+
+/** 新建测试实体必填数据校验 */
+export const testEntityInitRequiredValidator = data => {
+  if (!data.type) throwMissingFieldError('type');
 };

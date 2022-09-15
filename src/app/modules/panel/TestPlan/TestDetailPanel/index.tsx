@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useState, useMemo } from 'react';
 
 import { uniqueId } from 'lodash';
 import { Table, Tooltip } from 'antd';
@@ -6,7 +6,7 @@ import { alert } from '@/lib/utils/helper';
 import { Workspace } from '@/lib/types/App';
 import { DownOutlined } from '@ant-design/icons';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
-import { TestType, TestRelationType, INITIAL_STATUS_KEY } from '@/lib/constants';
+import { TestRelationType, INITIAL_STATUS_KEY } from '@/lib/constants';
 import PanelTable, {
   ActionType,
   BuiltinColumns,
@@ -18,7 +18,6 @@ import TestEntitySelectorModal, {
   ActionType as SelectorActionType,
 } from '@/components/business/TestEntitySelectorModal';
 import { StatusBadge } from '@/components/business/Status';
-import { useAllRelTestEntities } from '@/lib/hooks/useTest';
 import TestRunModal, {
   ActionType as TestRunModalActionType,
 } from '@/components/business/TestRunModal';
@@ -28,10 +27,11 @@ import {
   getTestEntitiesByRelation,
   removeTestRelationsWithCondition,
   getTestEntitiesByRelationWithOrder,
+  fetchLinkList,
 } from '@/lib/api/common';
 import { createTestDetailToPlanRelations } from '@/lib/api/relations';
 import StatusProcessBar from '@/components/business/StatusProcessBar';
-
+import { TestLinkType, TestType } from 'common/constant';
 import cx from './index.less';
 
 const Test = () => {
@@ -41,33 +41,38 @@ const Test = () => {
   const selectorModalRef = React.useRef<SelectorActionType>();
   const testRunModalActionRef = React.useRef<TestRunModalActionType>();
 
-  const { testEntities: allTestEntities, refresh: getAllRelTestEntities } = useAllRelTestEntities(
-    TestRelationType.PlanRelDetail,
-    {
-      from: testEntity,
-    },
-    {
-      include: ['status', 'detailStatus'],
-    },
-  );
+  const [allTestEntities, setAllTestEntities] = useState([]);
 
-  const { testEntityIds, testEntityStatuses } = React.useMemo(() => {
+  // 获取计划下的测试用例
+  const getAllRelTestEntities = useCallback(async () => {
+    const linkItems = testEntity.objectId;
+    if (!linkItems) return;
+    const { list } = await fetchLinkList({
+      linkType: TestLinkType.CaseLinkPlan,
+      type: TestType.Plan,
+      linkItems,
+    });
+    setAllTestEntities(list);
+  }, [testEntity.objectId]);
+
+  const { testEntityIds, testEntityStatuses } = useMemo(() => {
     return {
       testEntityIds: allTestEntities.map(item => item.objectId),
       testEntityStatuses: allTestEntities.map(
-        item => item.detailStatus?.[testEntity.id] ?? INITIAL_STATUS_KEY,
+        item => item.detailStatus?.[testEntity.objectId] ?? INITIAL_STATUS_KEY,
       ),
     };
   }, [allTestEntities, testEntity]);
 
   // 刷新依赖数据
-  const refreshDepData = React.useCallback(() => {
+  const refreshDepData = useCallback(() => {
     getAllRelTestEntities();
     tableActionRef.current.refresh();
   }, [getAllRelTestEntities]);
 
-  const tableDataSourceGetter = React.useCallback(
+  const tableDataSourceGetter = useCallback(
     async queryParams => {
+      // TODO
       const [{ list: testDetails, total }, { list: testRuns }] = await Promise.all([
         getTestEntitiesByRelationWithOrder(
           TestRelationType.PlanRelDetail,
@@ -115,7 +120,7 @@ const Test = () => {
       const list = testDetails.map(detail => {
         return {
           ...detail,
-          planId: testEntity.id,
+          planId: testEntity.objectId,
           // 关联的测试执行
           relRuns: testRuns.filter(run => run.runReferenceDetail?.objectId === detail.objectId),
         };
@@ -130,33 +135,33 @@ const Test = () => {
   );
 
   // 创建测试执行
-  const createTestExecution = React.useCallback(async () => {
+  const createTestExecution = useCallback(async () => {
     const token = uniqueId('TestPlan');
-    // const res = await createItemUseModal({
-    //   extraData: { token, planId: testEntity?.id },
-    //   // TODO: 测试执行 name
-    //   name: uniqueId('测试执行'),
-    //   type: TestType.TestExecution,
-    // });
+    const res = await createItemUseModal({
+      extraData: { token, planId: testEntity?.objectId },
+      // TODO: 测试执行 name
+      name: uniqueId('测试执行'),
+      type: TestType.Run,
+    });
 
-    // const { testEntity: testExecutionEntity } = res;
+    const { testEntity: testExecutionEntity } = res;
 
-    // const testExecutionData = testExecutionEntity.toJSON();
+    const testExecutionData = testExecutionEntity;
 
-    // await createTestExecutionAndRelations({
-    //   testPlan: testEntity,
-    //   testExecution: testExecutionEntity,
-    //   workspaceKey: (testExecutionData.reference.workspace as Workspace).key,
-    // });
+    await createTestExecutionAndRelations({
+      testPlan: testEntity,
+      testExecution: testExecutionEntity,
+      workspaceKey: (testExecutionData.reference.workspace as Workspace).key,
+    });
 
-    // alert({
-    //   type: 'success',
-    //   message: `测试执行任务【${testExecutionData?.reference?.name}】新建成功`,
-    // });
+    alert({
+      type: 'success',
+      message: `测试执行任务【${testExecutionData?.reference?.name}】新建成功`,
+    });
   }, [createItemUseModal, testEntity]);
 
   // 添加测试用例菜单
-  const testDetailMenuList = React.useMemo(() => {
+  const testDetailMenuList = useMemo(() => {
     return [
       {
         title: '已存在的测试用例',
@@ -180,34 +185,34 @@ const Test = () => {
       {
         title: '新建测试用例',
         async onClick() {
-          // const {
-          //   testEntity: newTestDetail,
-          //   item: { name },
-          // } = await createItemUseModal({
-          //   hideMessage: true,
-          //   type: TestType.TestDetail,
-          //   extraData: {
-          //     folderKey: null,
-          //   },
-          // });
+          const {
+            testEntity: newTestDetail,
+            item: { name },
+          } = await createItemUseModal({
+            hideMessage: true,
+            type: TestType.Case,
+            extraData: {
+              folderKey: null,
+            },
+          });
 
-          // await createTestDetailToPlanRelations({
-          //   testPlan: testEntity,
-          //   testDetail: newTestDetail,
-          // });
+          await createTestDetailToPlanRelations({
+            testPlan: testEntity,
+            testDetail: newTestDetail,
+          });
 
-          // refreshDepData();
+          refreshDepData();
 
-          // alert({
-          //   type: 'success',
-          //   message: `测试用例 ${name} 已被添加到测试计划中`,
-          // });
+          alert({
+            type: 'success',
+            message: `测试用例 ${name} 已被添加到测试计划中`,
+          });
         },
       },
     ];
   }, [createItemUseModal, refreshDepData, testEntity, testEntityIds]);
 
-  const removeTestRelation = React.useCallback(
+  const removeTestRelation = useCallback(
     async testDetailIds => {
       if (!Array.isArray(testDetailIds)) return;
       await removeTestRelationsWithCondition(TestRelationType.PlanRelDetail, {
@@ -226,7 +231,7 @@ const Test = () => {
   );
 
   // table column 数据
-  const tableColumns = React.useMemo(() => {
+  const tableColumns = useMemo(() => {
     return [
       columnBuilder(BuiltinColumns.ItemKey, record => ({ item: record.reference })),
       columnBuilder(BuiltinColumns.ItemTitle, record => ({ item: record.reference })),
@@ -240,7 +245,7 @@ const Test = () => {
       },
       columnBuilder(BuiltinColumns.LatestStatus, record => {
         return {
-          status: record.detailStatus?.[testEntity.id],
+          status: record.detailStatus?.[testEntity.objectId],
           readonly: true,
         };
       }),
@@ -260,7 +265,7 @@ const Test = () => {
   }, [removeTestRelation, testEntity]);
 
   // 添加测试执行菜单
-  const testExecutionMenuList = React.useMemo(() => {
+  const testExecutionMenuList = useMemo(() => {
     return [
       {
         title: '包含所有测试用例',
@@ -272,7 +277,7 @@ const Test = () => {
     ];
   }, [createTestExecution, refreshDepData]);
 
-  const expandedRowRender = React.useCallback(
+  const expandedRowRender = useCallback(
     record => {
       // 测试执行序列
       const testIdSequence = record.relRuns?.map(item => item?.objectId).filter(Boolean);
@@ -345,7 +350,7 @@ const Test = () => {
       <TestEntitySelectorModal
         actionRef={selectorModalRef}
         title="添加测试用例到当前测试计划"
-        testType={TestType.TestDetail}
+        testType={TestType.Plan}
         ignoreTestEntityIds={testEntityIds}
       />
       {/* 状态条的变化 */}

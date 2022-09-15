@@ -2,7 +2,7 @@ app:
   key: test_manager
   uuid: bf73e61c-e15a-4461-a1f7-f940c2009332
   name: test_manager
-  version: "0.0.130"
+  version: "0.0.13002"
 modules:
   webtrigger:
     # 动态配置 one 路由
@@ -21,10 +21,11 @@ modules:
       function: api-query-test-entity
     - key: api-query-linked-test-entity
       function: api-query-linked-test-entity
-    - key: api-delete-test-entity
-      function: api-delete-test-entity
-    - key: api-update-test-entity
-      function: api-update-test-entity
+    # 批量操作（删除，更新）
+    - key: api-batch-delete
+      function: api-batch-delete
+    - key: api-batch-update
+      function: api-batch-update
   trigger:
     - key: test-manager-initial-script-update
       events:
@@ -57,14 +58,16 @@ modules:
     - key: report-data-extensions-huishang
       handler: web.requestReportDataExtensionsBase
 
-    # api backend Query
+      # api backend Query
     - key: api-query-test-entity
       handler: api.queryTestEntity
     - key: api-query-linked-test-entity
       handler: api.queryLinkedTestEntity
-    - key: api-delete-test-entity
+
+     # api batch
+    - key: api-batch-delete
       handler: api.batchDelete
-    - key: api-update-test-entity
+    - key: api-batch-update
       handler: api.batchUpdate
 
   itemPanel:
@@ -128,12 +131,13 @@ modules:
         title: 数据
   # 初始化 dataType 为 object， array 的数据类型
   customFieldType:
-    - key: plain_object
+    - key: es_object
       name: 测试管理基础字段类型（对象）
       description: 测试管理基础字段类型（勿删改）
       dataType: object
-    - key: plain_array
-      name: 测试管理基础字段类型（数组）
+    - key: es_array_keyword
+      # 字符串数组，keyword 可以使用 es keyword 类型查询
+      name: 测试管理基础字段类型（字符串数组）
       description: 测试管理基础字段类型（勿删改）
       dataType: array
   customField:
@@ -150,7 +154,7 @@ modules:
     - key: linkItems
       name: 测试关联项
       description: 测试管理内置自定义字段（勿删改）
-      type: _self:plain_array
+      type: _self:es_array_keyword
     - key: status
       name: 测试执行状态
       description: 测试管理内置自定义字段（勿删改）
@@ -166,7 +170,7 @@ modules:
     - key: caseStatus
       name: 用例最新执行状态
       description: 测试管理内置自定义字段（勿删改）
-      type: _self:plain_object
+      type: _self:es_object
     - key: repository
       name: 测试用例库模块
       description: 测试管理内置自定义字段（勿删改）
@@ -183,6 +187,19 @@ modules:
       name: 测试用例排序索引
       description: 测试管理内置自定义字段（勿删改）
       type: Number
+    # 下面字段也保存入 es，方便 iql 直接查询。以字符串类型存储。防止 es 创建索引时定义默认类型，防止后续更新是出现类型错误
+    - key: detail
+      name: 测试用例详情
+      description: 测试管理内置自定义字段（勿删改）
+      type: Text
+    - key: runDetail
+      name: 测试执行详情
+      description: 测试管理内置自定义字段（勿删改）
+      type: Text
+    - key: comment
+      name: 测试执行评论
+      description: 测试管理内置自定义字段（勿删改）
+      type: Text
   customItemType:
     - key: test_manager_detail
       name: 测试用例
@@ -197,6 +214,7 @@ modules:
             - linkType
             - screenScheme
             - workflowScheme
+            - fieldBehavior
           plugin:
             - testManager
         displayContext: test_manager
@@ -213,6 +231,7 @@ modules:
             - linkType
             - screenScheme
             - workflowScheme
+            - fieldBehavior
           plugin:
             - testManager
         displayContext: test_manager
@@ -229,6 +248,7 @@ modules:
             - linkType
             - screenScheme
             - workflowScheme
+            - fieldBehavior
           plugin:
             - testManager
         displayContext: test_manager
