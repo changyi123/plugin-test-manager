@@ -2,8 +2,8 @@ import pick from 'lodash/pick';
 import { iqlRequest } from '../../lib/iqlRequest';
 import { buildResponse } from '../../lib/apiUtil';
 import { getReqInfoFromVMRuntime } from '../../lib/apiUtil';
-import { TestFiledKeyMapping, SystemField } from '../../../common/constant';
 import { batchDeleteItems, batchUpdateItems } from '../../lib/batchRequest';
+import { TestFiledKeyMapping, IQLMinimumFieldKeys } from '../../../common/constant';
 import { BatchDeletePayload, BatchUpdatePayload } from '../../../common/types/api';
 import { throwArgumentError, testEntityFieldTypeValidator } from '../../lib/validator';
 
@@ -26,7 +26,7 @@ export const batchDelete = async () => {
           linkItems: ids,
         },
         pagination: { limit: 99999 },
-        fields: [SystemField.Id, TestFiledKeyMapping.linkItems],
+        fields: [...IQLMinimumFieldKeys, TestFiledKeyMapping.linkItems],
       });
 
       // 2. 更新数据
