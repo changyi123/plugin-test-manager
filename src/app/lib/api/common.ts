@@ -34,7 +34,7 @@ const testRelationTypePointerTransfer = arr =>
  */
 export const getTestEntitiesByRelation = async <TResponseList extends any[] = any[]>(
   relType: TestRelationType,
-  sides: Partial<Record<'from' | 'to', Array<PointerType> | PointerType>> = {},
+  sides: Partial<Record<'from' | 'to', Array<any> | any>> = {},
   _config?: any,
 ): Promise<{
   total: number;
@@ -85,7 +85,7 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
     if (Array.isArray(side)) {
       query.containedIn(sideKey, testRelationTypePointerTransfer(side));
     } else {
-      query.equalTo(sideKey, pointerTransfer(Test, side as PointerType));
+      query.equalTo(sideKey, pointerTransfer(Test, side as BaseTestEntity));
     }
     relationSideKey = sideMapping[sideKey];
   });
@@ -243,7 +243,7 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
  */
 export const getTestEntitiesByRelationWithOrder = async <TResponseList extends any[] = any[]>(
   relType: TestRelationType,
-  sides: Partial<Record<'from' | 'to', Array<PointerType> | PointerType>> = {},
+  sides: Partial<Record<'from' | 'to', Array<any> | any>> = {},
   _config?: any,
 ): Promise<{
   total: number;
@@ -431,8 +431,8 @@ export const createTestRelation = (
   const relations = _relations.map(
     rel =>
       new TestRelation({
-        to: pointerTransfer(Test, rel.to),
-        from: pointerTransfer(Test, rel.from),
+        to: pointerTransfer(Test, rel.to as any),
+        from: pointerTransfer(Test, rel.from as any),
         relationType: rel.relationType,
       }),
   );
@@ -444,7 +444,7 @@ export const createTestRelation = (
  * @deprecated 解除关联关系
  */
 
-export const removeTestRelations = (_relations: Array<PointerType>) => {
+export const removeTestRelations = (_relations: Array<BaseTestEntity>) => {
   const relations = _relations.map(rel => pointerTransfer(TestRelation, rel));
 
   return Parse.Object.destroyAll(relations, { batchSize: BATCH_SIZE });
@@ -463,10 +463,12 @@ export function removeCaseLinkPlan({
   return updateItem(objectId, { linkItems: without(linkItems, ...testPlan) });
 }
 
-/** 根据关联条件接触关联关系 */
+/**
+ *  根据关联条件接触关联关系
+ */
 export const removeTestRelationsWithCondition = async (
   relType: TestRelationType,
-  sides: Partial<Record<'from' | 'to', Array<PointerType> | PointerType>> = {},
+  sides: Partial<Record<'from' | 'to', Array<any> | any>> = {},
 ) => {
   const query = new Parse.Query(TestRelation).equalTo('relationType', relType);
 
@@ -517,7 +519,7 @@ export const createTestEntities = async (
         repository: entity.repository
           ? pointerTransfer(Repository, entity.repository as any)
           : null,
-        reference: entity.itemId ? pointerTransfer(Item, entity.itemId) : null,
+        reference: entity.itemId ? pointerTransfer(Item, entity.itemId as any) : null,
         ...(entity.fields || {}),
         createdBy: Parse.User.current(),
       }),

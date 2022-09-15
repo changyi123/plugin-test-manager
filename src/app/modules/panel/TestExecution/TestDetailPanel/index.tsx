@@ -2,7 +2,8 @@ import React from 'react';
 import { Typography, message, Space, Button, Divider, Popconfirm } from 'antd';
 import { DownOutlined } from '@ant-design/icons';
 import { useRequest } from 'ahooks';
-import { TestType, TestRelationType } from '@/lib/constants';
+import { TestRelationType } from '@/lib/constants';
+import { TestType } from 'common/constant';
 import PanelTable, { ActionType } from '@/components/business/PanelTable';
 import DropDownButton from '@/components/business/DropDownButton';
 import { toggleTestRunStatus, createTestRunAndRelation } from '@/lib/api/runs';
@@ -74,7 +75,7 @@ const Test = () => {
       return planData[0];
     },
     {
-      refreshDeps: [testEntity.id],
+      refreshDeps: [testEntity.objectId],
     },
   );
 
@@ -203,7 +204,7 @@ const Test = () => {
         title: '已存在的测试用例',
         async onClick() {
           const selectedTestDetailIds = await selectorModalRef.current.open({
-            testType: TestType.TestDetail,
+            testType: TestType.Case,
           });
 
           const _selectedTestDetailIds = selectedTestDetailIds.filter(

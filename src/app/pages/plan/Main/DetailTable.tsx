@@ -20,6 +20,7 @@ import { BusinessTable, BusinessTableActionType } from '@/components/common/Busi
 import cx from './DetailTable.less';
 import RepositoryGroup from '@/components/business/RepositoryGroup';
 import { useDebounceFn } from 'ahooks';
+import { TestType } from 'common/constant';
 
 const DetailTable = () => {
   const actionRef = React.useRef<BusinessTableActionType>();
@@ -287,7 +288,7 @@ const DetailTable = () => {
       <BusinessTable
         titleCellOption={{
           workspaceKey,
-          testType: 'TestDetail',
+          testType: TestType.Case,
         }}
         useColumnSetting
         defaultColumnKey={[

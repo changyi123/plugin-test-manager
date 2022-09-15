@@ -7,7 +7,8 @@ import { getItemByIds } from '@/lib/api/proxima';
 import { getTestEntities } from '@/lib/api/common';
 import { StatusBadge } from '@/components/business/Status';
 import { useRequest, useSessionStorageState } from 'ahooks';
-import { TestType, PASS_STATUS_TYPE } from '@/lib/constants';
+import { PASS_STATUS_TYPE } from '@/lib/constants';
+import { TestType } from 'common/constant';
 import { getRootContainer, generateStorageKey } from '@/lib/utils/helper';
 import { Button, Checkbox, Collapse, Tabs, message, Spin, Tooltip } from 'antd';
 import { updateTestRun, getTestStepsByTestDetailId, getItemLinkRelation } from '@/lib/api/runs';
@@ -50,8 +51,8 @@ const TestRunDetailTabs = [
   },
 ];
 
-type TestRunEntity = TestEntity<TestType.TestRun>;
-type TestDetailEntity = TestEntity<TestType.TestDetail>;
+type TestRunEntity = TestEntity<TestType.Run>;
+type TestDetailEntity = TestEntity<TestType.Case>;
 
 type TestRunType = {
   id: string;

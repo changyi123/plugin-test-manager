@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React from 'react';
 import { Tree } from 'antd';
-import { TestType } from '@/lib/constants';
+import { TestType } from 'common/constant';
 import _, { CollectionChain } from 'lodash';
 import { getTestEntitiesByQuery } from '@/lib/api/common';
 import { useNoExpiredRequest } from '@/lib/hooks/useRequest';
@@ -65,7 +65,7 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
       // 请求所有的用例数据
       const { results } = await getTestEntitiesByQuery(
         {
-          type: TestType.TestDetail,
+          type: TestType.Case,
           workspaceKey,
         },
         {

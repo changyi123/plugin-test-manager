@@ -4,7 +4,7 @@ import { ArrowLeftOutlined, ExportOutlined } from '@/icons';
 import TestPlanSelector from '@/components/business/TestPlanSelector';
 import { useBaseAction } from '@/lib/hooks/useContext';
 import { createTestExecutionAndRelations } from '@/lib/api/runs';
-import { TestType } from '@/lib/constants';
+import { TestType } from 'common/constant';
 import ExecutionList from '../ExecutionList';
 import { usePageContext } from '../../hook';
 import WordReport from '@/lib/report';
@@ -39,7 +39,7 @@ const Header: React.FC<HeaderProps> = ({
   // 创建测试执行任务
   const createTestExecution = async () => {
     const { testEntity: testExecutionEntity } = await createItemUseModal({
-      type: TestType.TestExecution,
+      type: TestType.Execution,
       extraData: { planId: selectedTestPlan?.objectId },
     });
 
@@ -49,7 +49,7 @@ const Header: React.FC<HeaderProps> = ({
         icon: <Spin spinning={true} />,
         duration: null,
       });
-      const testExecutionData = testExecutionEntity.toJSON();
+      const testExecutionData = testExecutionEntity;
 
       await createTestExecutionAndRelations({
         workspaceKey: workspaceKey,
@@ -59,7 +59,7 @@ const Header: React.FC<HeaderProps> = ({
 
       notification.destroy();
       notification.success({
-        message: `测试执行任务【${testExecutionData?.reference?.name}】新建成功`,
+        message: `测试执行任务【${testExecutionData?.name}】新建成功`,
       });
       setRefreshExecution(true);
     } catch (err) {

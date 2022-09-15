@@ -3,7 +3,7 @@
 // export * from 'common/types/test';
 
 import { Item } from './App';
-import { TestType } from '@/lib/constants';
+import { TestType } from 'common/constant';
 
 export type UserPointerInfo = {
   __type: 'Pointer';
@@ -25,7 +25,7 @@ type BaseTestEntity = {
   /** 隔离测试计划下测试用例最新状态 */
   detailStatus: Status['detailStatus'];
   /** 测试执行关联测试用例实体 */
-  runReferenceDetail: TestEntity<TestType.TestDetail>;
+  runReferenceDetail: TestEntity<TestType.Case>;
   /** 额外数据 */
   extra: Record<string, unknown>;
   /** 测试用例数据 */
@@ -53,14 +53,13 @@ type BaseTestEntity = {
 };
 
 /** 测试实体类型 */
-export type TestEntity<TTestType extends TestType = TestType.TestDetail> =
-  TTestType extends TestType.TestDetail
-    ? Omit<BaseTestEntity, 'runDetail' | 'runReferenceDetail'>
-    : TTestType extends TestType.TestRun
-    ? Omit<BaseTestEntity, 'reference' | 'detail'>
-    : TTestType extends TestType.TestPlan
-    ? Omit<BaseTestEntity, 'status' | 'detail' | 'runDetail' | 'runReferenceDetail'>
-    : BaseTestEntity;
+export type TestEntity<TTestType extends TestType = TestType.Case> = TTestType extends TestType.Case
+  ? Omit<BaseTestEntity, 'runDetail' | 'runReferenceDetail'>
+  : TTestType extends TestType.Run
+  ? Omit<BaseTestEntity, 'reference' | 'detail'>
+  : TTestType extends TestType.Plan
+  ? Omit<BaseTestEntity, 'status' | 'detail' | 'runDetail' | 'runReferenceDetail'>
+  : BaseTestEntity;
 
 /** 测试用例状态 */
 export type Status = {

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useDrag } from 'ahooks';
-import { TestType } from '@/lib/constants';
+import { TestType } from 'common/constant';
 import { deleteItems } from '@/lib/api/proxima';
 import { notification, Tooltip } from 'antd';
 import { UNGROUPED_FOLDER_KEY } from '../constant';
@@ -78,7 +78,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         {
           workspaceKey,
           in: testDetailIds ?? [],
-          type: TestType.TestDetail,
+          type: TestType.Case,
         },
         paginationParams,
       );
@@ -257,7 +257,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
       <BusinessTable
         titleCellOption={{
           workspaceKey,
-          testType: 'TestDetail',
+          testType: TestType.Case,
         }}
         rowKey="objectId"
         useColumnSetting

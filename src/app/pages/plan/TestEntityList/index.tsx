@@ -9,7 +9,8 @@ import {
   fetchItemFromIql,
   getTestEntitiesByRelationWithOrder,
 } from '@/lib/api/common';
-import { TestRelationType, TestType } from '@/lib/constants';
+import { TestRelationType } from '@/lib/constants';
+import { TestType } from 'common/constant';
 import Field from '@/components/common/Field';
 import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
 import RepositoryGroup from '@/components/business/RepositoryGroup';
@@ -219,7 +220,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       const { results: testDetails, count } = await getTestEntitiesByQuery(
         {
           in: requestScopedTestDetailIds ?? [],
-          type: TestType.TestDetail,
+          type: TestType.Case,
           selectors,
           workspaceKey,
         },
@@ -639,7 +640,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           className={cx(`${tableSelectionVisible ? 'batch-action' : ''}`)}
           titleCellOption={{
             workspaceKey,
-            testType: 'TestDetail',
+            testType: TestType.Case,
           }}
           useColumnSetting
           defaultColumnKey={[
@@ -666,7 +667,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           className={cx(`${tableSelectionVisible ? 'batch-action' : ''}`)}
           titleCellOption={{
             workspaceKey,
-            testType: 'TestDetail',
+            testType: TestType.Case,
           }}
           useColumnSetting
           defaultColumnKey={[

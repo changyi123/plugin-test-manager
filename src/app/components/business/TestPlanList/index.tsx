@@ -7,7 +7,8 @@ import {
   getTestEntitiesByQuery,
   getTestEntitiesByRelation,
 } from '@/lib/api/common';
-import { TestRelationType, TestType } from '@/lib/constants';
+import { TestRelationType } from '@/lib/constants';
+import { TestType } from 'common/constant';
 import _ from 'lodash';
 import { TestPlanEntity } from '@/pages/plan/type';
 import { TestEntity } from '@/lib/types/Test';
@@ -51,7 +52,7 @@ const TestPlanList: React.FC<any> = () => {
         {
           selectors,
           workspaceKey,
-          type: TestType.TestPlan,
+          type: TestType.Plan,
         },
         {
           ...queryParams,
@@ -197,7 +198,7 @@ const TestPlanList: React.FC<any> = () => {
 
   const handleCreate = async () => {
     await createItemUseModal({
-      type: TestType.TestPlan,
+      type: TestType.Plan,
     });
     actionRef.current.refresh();
     notification.success({
@@ -229,7 +230,7 @@ const TestPlanList: React.FC<any> = () => {
       <BusinessTable
         titleCellOption={{
           workspaceKey,
-          testType: 'TestPlan',
+          testType: TestType.Plan,
         }}
         useColumnSetting
         defaultColumnKey={[

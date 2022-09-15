@@ -3,7 +3,7 @@ import cx from './index.less';
 import { message } from 'antd';
 import { isEqual, pick } from 'lodash';
 import { PlusOutlined } from '@/icons';
-import { TestType } from '@/lib/constants';
+import { TestType } from 'common/constant';
 import { getStepInitialData } from './helper';
 import { getTestStepsByTestDetailId } from '@/lib/api/runs';
 
@@ -137,7 +137,7 @@ const TestStep: React.FC<TestStepProps> = ({
         <TestEntitySelectorModal
           isSingleMode
           title="请选择继承测试用例"
-          testType={TestType.TestDetail}
+          testType={TestType.Case}
           actionRef={testEntitySelectorRef}
           // 继承测试用例不能继承自己
           ignoreTestEntityIds={[testDetailId]}

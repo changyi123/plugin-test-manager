@@ -5,7 +5,8 @@ import RepoDropDown from '@/pages/repository/RepoDropDown';
 import TestEntitySelectorModal, {
   ActionType as ModelActionType,
 } from '@/components/business/TestEntitySelectorModal';
-import { extendFields, RepositoryModel, TestRelationType, TestType } from '@/lib/constants';
+import { extendFields, RepositoryModel, TestRelationType } from '@/lib/constants';
+import { TestType } from 'common/constant';
 import { addTestDetailToExecution } from '@/lib/api/runs';
 import { createTestRelation } from '@/lib/api/common';
 import { useUpdateEffect } from 'ahooks';
@@ -231,7 +232,7 @@ const Right: React.FC<RightProps> = props => {
         />
         <TestEntitySelectorModal
           title="选择规划的测试用例"
-          testType={TestType.TestDetail}
+          testType={TestType.Case}
           actionRef={testEntitySelectorRef}
           afterClose={() => {
             pageLeftRef.current?.refresh();

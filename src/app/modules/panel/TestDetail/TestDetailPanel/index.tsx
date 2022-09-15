@@ -3,7 +3,7 @@ import React, { useState, useCallback } from 'react';
 import { Button, Input, Spin } from 'antd';
 import { BlockOutlined } from '@/icons';
 import { useTestConfig } from '@/lib/hooks/useContext';
-import { TestType } from '@/lib/constants';
+import { TestType } from 'common/constant';
 import { cloneDeep, keyBy, uniq } from 'lodash';
 import { useDebounceFn, useRequest } from 'ahooks';
 
@@ -17,7 +17,7 @@ import css from './index.less';
 import { getStepInitialData } from '@/components/business/TestStep/helper';
 
 // 测试详情实体类型
-type TestDetailEntity = TestEntity<TestType.TestDetail>;
+type TestDetailEntity = TestEntity<TestType.Case>;
 
 export interface fields {
   id: string;

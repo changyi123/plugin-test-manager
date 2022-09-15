@@ -3,7 +3,8 @@ import DetailTable from './DetailTable';
 import { usePageContext } from '../hook';
 import ExecutionTable from './ExecutionTable';
 import { createTestRelation } from '@/lib/api/common';
-import { TestType, TestRelationType, extendFields, RepositoryModel } from '@/lib/constants';
+import { TestRelationType, extendFields, RepositoryModel } from '@/lib/constants';
+import { TestType } from 'common/constant';
 import { Tabs, Button, notification, Spin } from 'antd';
 import { createTestExecutionAndRelations } from '@/lib/api/runs';
 import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
@@ -66,7 +67,7 @@ const Main = () => {
 
   const createTestExecution = async () => {
     const { testEntity: testExecutionEntity } = await createItemUseModal({
-      type: TestType.TestExecution,
+      type: TestType.Execution,
       extraData: { planId: selectedTestPlanId },
     });
 
@@ -87,7 +88,7 @@ const Main = () => {
       refresh('detailTable');
       notification.destroy();
       notification.success({
-        message: `测试执行任务【${testExecutionData?.reference?.name}】新建成功`,
+        message: `测试执行任务【${testExecutionData?.name}】新建成功`,
       });
     } catch (err) {
       notification.error({
@@ -177,7 +178,7 @@ const Main = () => {
     <>
       <TestEntitySelectorModal
         title="选择规划的测试用例"
-        testType={TestType.TestDetail}
+        testType={TestType.Case}
         actionRef={testEntitySelectorRef}
         ignoreTestEntityIds={selectedTestPlan?.refTestDetails?.map(item => item.objectId) ?? []}
       />

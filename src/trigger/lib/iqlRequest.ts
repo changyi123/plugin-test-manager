@@ -69,9 +69,10 @@ export const iqlRequest = async (params: RequestParams) => {
       ...registeredFieldParams,
     };
 
+    // TODO: 类型问题
     const {
       payload: { count, items },
-    } = await requestCoreApi(
+    } = (await requestCoreApi(
       'POST',
       '/parse/api/search',
       iqlSearchParamsBuilder({
@@ -79,7 +80,7 @@ export const iqlRequest = async (params: RequestParams) => {
         fields,
         ...pagination,
       }),
-    );
+    )) as any;
 
     const testEntityList =
       typeof dataTransfer === 'function'

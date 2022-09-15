@@ -1,7 +1,8 @@
 import Parse from '@/lib/parse';
 import { ICommonRes } from './detail';
 import { Test, Item, ItemType, ItemLink, ItemLinkType } from '../models';
-import { TestType, TestRelationType } from '@/lib/constants';
+import { TestRelationType } from '@/lib/constants';
+import { TestType } from 'common/constant';
 import {
   getTestEntities,
   createTestEntities,
@@ -16,8 +17,8 @@ import { compactStepModel } from '@/lib/utils/modelTransfer';
 import { Status, TestEntity, UserPointerInfo } from '@/lib/types/Test';
 import { pointerTransfer, toArray, generateSortIndex } from '@/lib/utils/helper';
 
-type TestRunEntity = TestEntity<TestType.TestRun>;
-type TestEntityParseType<TEntity extends TestEntity = TestEntity> = Parse.Object<TEntity> | string;
+type TestRunEntity = TestEntity<TestType.Run>;
+type TestEntityParseType = any;
 
 /** 创建测试执行实体，并将测试执行与测试执行任务，测试用例与测试执行任务关联 */
 export const createTestRunAndRelation = async (_testExecutionEntity, _testDetailEntity) => {
@@ -572,7 +573,7 @@ export const createTestRun = async (params: { workspaceKey: string; testDetailId
   const { results: testDetailEntities } = await getTestEntitiesByQuery(
     {
       in: testDetailIds,
-      type: TestType.TestDetail,
+      type: TestType.Case,
     },
     {
       offset: 0,
@@ -584,7 +585,7 @@ export const createTestRun = async (params: { workspaceKey: string; testDetailId
   // 批量 sortIndex
   const batchSortIndex = generateSortIndex();
   const entities = testDetailEntities.map((testDetail, index) => ({
-    type: TestType.TestRun,
+    type: TestType.Run,
     workspaceKey,
     fields: {
       runReferenceDetail: Test.createWithoutData(testDetail.objectId),
@@ -706,7 +707,7 @@ export const getTestRunsByTestDetails = async ({ testDetailIds, workspaceKey, ex
 
   testQuery
     .equalTo('workspaceKey', workspaceKey)
-    .equalTo('type', TestType.TestRun)
+    .equalTo('type', TestType.Run)
     .containedIn('runReferenceDetail', testDetailIds);
 
   const testRunsList = await testQuery.findAll();

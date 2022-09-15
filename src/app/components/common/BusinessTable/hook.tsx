@@ -1,7 +1,7 @@
 import { useUsedScreenFieldKeys } from '@/lib/hooks/useProxima';
 import { useNoExpiredRequest } from '@/lib/hooks/useRequest';
 import { getTestConfig } from '@/lib/api/common';
-import { TestType } from '@/lib/constants';
+import { TestType } from 'common/constant';
 import { TitleCellOption } from './type';
 
 const TestIncludeFiledKeys = ['status'];
@@ -23,6 +23,6 @@ export const useTestTypeScreenFieldKeys = ({
   );
   const itemTypeKey = itemTypeMap?.[testType];
   // 除测试计划外其他测试类型需要隐藏状态字段
-  const shouldHiddenFieldKeys = testType !== TestType.TestPlan ? TestIncludeFiledKeys : [];
+  const shouldHiddenFieldKeys = testType !== TestType.Plan ? TestIncludeFiledKeys : [];
   return useUsedScreenFieldKeys(workspaceKey, itemTypeKey, shouldHiddenFieldKeys);
 };

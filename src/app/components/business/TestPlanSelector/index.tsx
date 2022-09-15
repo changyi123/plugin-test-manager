@@ -4,7 +4,7 @@ import { Dropdown, Empty, Tooltip } from 'antd';
 import { getTestEntitiesByQuery } from '@/lib/api/common';
 import { usePageContext } from '@/pages/plan/hook';
 import { useDebounce, useRequest } from 'ahooks';
-import { TestType } from '@/lib/constants';
+import { TestType } from 'common/constant';
 import emptyImg from '@/icons/svg/empty-data.png';
 import SearchInput from '../SearchInput';
 import { DropDown } from '@/icons';
@@ -25,7 +25,7 @@ const TestPlanSelector: React.FC = () => {
         {
           workspaceKey,
           nameLike: searchValue,
-          type: TestType.TestPlan,
+          type: TestType.Plan,
         },
         {
           offset,

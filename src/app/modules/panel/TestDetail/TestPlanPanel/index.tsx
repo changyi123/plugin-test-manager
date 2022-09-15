@@ -74,7 +74,7 @@ const Plan = () => {
         title: '新建测试计划',
         async onClick() {
           const { testEntity: testPlanEntity, item } = await createItemUseModal({
-            type: TestType.TestPlan,
+            type: TestType.Plan,
           });
 
           try {
@@ -161,7 +161,7 @@ const Plan = () => {
       <TestEntitySelectorModal
         title="添加当前用例至选中的测试计划中"
         actionRef={selectorModalRef}
-        testType={TestType.TestPlan}
+        testType={TestType.Plan}
         ignoreTestEntityIds={planIds}
       />
       <PanelTable

@@ -1,7 +1,7 @@
 export const AppKey = 'test_manager' as const;
 
 /** 测试实体类型 */
-export const enum TestType {
+export enum TestType {
   /** 测试执行 */
   Run = 'TestRun',
   /** 测试用例 */
@@ -10,6 +10,7 @@ export const enum TestType {
   Plan = 'TestPlan',
   /** 测试执行任务 */
   Execution = 'TestExecution',
+  TestDefect = 'TestDefect', // 避免大量ts报错
 }
 
 /** 测试关联类型 */

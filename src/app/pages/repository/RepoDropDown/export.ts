@@ -2,7 +2,7 @@ import { utils as xlsxUtils, write as xlsxWrite } from 'sheetjs-style';
 import FileSave from 'file-saver';
 import Parse from '@/lib/parse';
 import { getTestEntitiesByQuery } from '@/lib/api/common';
-import { TestType } from '@/lib/constants';
+import { TestType } from 'common/constant';
 import { CustomField, TestConfig, TestRelation } from '@/lib/models';
 import { Item } from '@/lib/types/App';
 import { Step } from '@/lib/types/Test';
@@ -93,7 +93,7 @@ const getExcelData = async (data: any) => {
   if (planId) {
     const { results: testPlan } = await getTestEntitiesByQuery(
       {
-        type: TestType.TestPlan,
+        type: TestType.Plan,
         workspaceKey: workspaceKey,
         in: [planId],
       },
@@ -233,7 +233,7 @@ const importTestInfo = async (args: ImportArgs, excelData = []) => {
     // 获取测试用例,允许跨空间
     const { results } = await getTestEntitiesByQuery(
       {
-        type: TestType.TestDetail,
+        type: TestType.Case,
         // workspaceKey: workspace.key,
         in: testDataIds,
       },
@@ -253,7 +253,7 @@ const importTestInfo = async (args: ImportArgs, excelData = []) => {
     // 用例库导出不允许跨空间
     const { results } = await getTestEntitiesByQuery(
       {
-        type: TestType.TestDetail,
+        type: TestType.Case,
         workspaceKey: workspace.key,
       },
       {

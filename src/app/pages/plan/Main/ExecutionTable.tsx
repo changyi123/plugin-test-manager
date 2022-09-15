@@ -4,7 +4,7 @@ import { usePageContext } from '../hook';
 import { updateTestRun } from '@/lib/api/runs';
 import { deleteItems } from '@/lib/api/proxima';
 import { addTestDetailToExecution } from '@/lib/api/runs';
-import { TestRelationType, TestType } from '@/lib/constants';
+import { TestRelationType } from '@/lib/constants';
 import { useListener } from '@projectproxima/proxima-sdk-js';
 import { StatusProgress } from '@/components/business/Status';
 import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
@@ -25,6 +25,7 @@ import { Test } from '@/lib/models';
 import { selectorToParse, simpleToParse } from '@/lib/utils/iql';
 import { useDebounceFn } from 'ahooks';
 import ExpandedTable from './ExpandedTable';
+import { TestType } from 'common/constant';
 import cx from './DetailTable.less';
 
 const ExecutionTable = () => {
@@ -346,7 +347,7 @@ const ExecutionTable = () => {
       <ExpandedTable
         titleCellOption={{
           workspaceKey,
-          testType: 'TestDetail',
+          testType: TestType.Case,
         }}
         record={record}
         updateTestRun={updateTestRun}
@@ -365,7 +366,7 @@ const ExecutionTable = () => {
     <>
       <TestEntitySelectorModal
         title="添加测试用例"
-        testType={TestType.TestDetail}
+        testType={TestType.Case}
         actionRef={testEntitySelectorRef}
         ignoreTestEntityIds={ignoreTestEntityIds}
       />
@@ -373,7 +374,7 @@ const ExecutionTable = () => {
         <BusinessTable
           titleCellOption={{
             workspaceKey,
-            testType: 'TestExecution',
+            testType: TestType.Execution,
           }}
           loading={loading}
           useColumnSetting

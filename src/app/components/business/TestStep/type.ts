@@ -1,4 +1,4 @@
-import { TestType } from '@/lib/constants';
+import { TestType } from 'common/constant';
 import {
   TestEntity,
   Step as StepDeclaration,
@@ -11,7 +11,7 @@ export type StepRow = {
   id: StepDeclaration['id'];
   callTestId: StepDeclaration['callTestId'];
   fields: StepField[];
-  callTestEntity: TestEntity<TestType.TestDetail>;
+  callTestEntity: TestEntity<TestType.Case>;
 };
 
 export type StepFieldEventProps = {

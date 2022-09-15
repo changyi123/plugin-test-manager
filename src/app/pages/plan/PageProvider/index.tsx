@@ -2,7 +2,7 @@ import React, { useCallback } from 'react';
 import { noop } from 'lodash';
 import { getDevConfig } from '@/devEnv';
 import { useEventEmitter } from 'ahooks';
-import { TestType } from '@/lib/constants';
+import { TestType } from 'common/constant';
 import { TestEntity } from '@/lib/types/Test';
 import { useSDK } from '@projectproxima/plugin-sdk';
 import { EventEmitter } from 'ahooks/lib/useEventEmitter';
@@ -15,7 +15,7 @@ export type TableActionEventType = {
   tableSelectionVisible?: boolean;
 };
 
-type TestPlanEntity = TestEntity<TestType.TestPlan> & {
+type TestPlanEntity = TestEntity<TestType.Plan> & {
   refTestDetails: TestEntity[];
 };
 
