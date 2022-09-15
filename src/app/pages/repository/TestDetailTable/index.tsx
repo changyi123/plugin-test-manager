@@ -259,7 +259,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
       <BusinessTable
         titleCellOption={{
           workspaceKey,
-          testType: 'TestDetail',
+          testType: TestType.Case,
         }}
         rowKey="objectId"
         useColumnSetting

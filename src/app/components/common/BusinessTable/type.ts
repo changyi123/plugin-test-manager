@@ -4,7 +4,7 @@ import { TestType } from '@/lib/constants';
 export type TitleCellOption = {
   titleCellOption: {
     /** table 的类型 */
-    testType: keyof typeof TestType;
+    testType: TestType;
     /** table 空间 */
     workspaceKey: string;
   };

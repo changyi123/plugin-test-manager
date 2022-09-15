@@ -198,7 +198,7 @@ const TestPlanList: React.FC<any> = () => {
       <BusinessTable
         titleCellOption={{
           workspaceKey,
-          testType: 'TestPlan',
+          testType: TestType.Plan,
         }}
         useColumnSetting
         defaultColumnKey={[

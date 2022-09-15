@@ -7,6 +7,7 @@ import importTestInfo, { TreeNode, downloadExampleFile } from './export';
 import { Button, Dropdown, Menu, message, notification, Spin } from 'antd';
 import { getProximaBasePath, getTenantKey, inIframe } from '@/lib/utils/helper';
 import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/hook';
+import { TestType } from '@/lib/constants';
 
 const RepoDropDown = ({
   type,
@@ -28,7 +29,7 @@ const RepoDropDown = ({
   const { workspace } = useTestConfig();
   // 条件判断是否需要获取 screenKey
   const testDetailFieldKeys = useTestTypeScreenFieldKeys({
-    testType: 'TestDetail',
+    testType: TestType.Case,
     workspaceKey: workspace?.key,
   });
 

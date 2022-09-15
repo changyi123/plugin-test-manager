@@ -10,8 +10,7 @@ export enum TestType {
   Plan = 'TestPlan',
   /** 测试执行任务 */
   Execution = 'TestExecution',
-  /** 测试缺陷 */
-  Defect = 'TestDefect',
+  TestDefect = 'TestDefect', // 避免大量ts报错
 }
 
 /** 测试关联类型 */

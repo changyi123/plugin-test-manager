@@ -3,7 +3,6 @@ import { pick } from 'lodash';
 import { MenuKey } from './Menu';
 import { FileClose } from '@/icons';
 import { getDevConfig } from '@/devEnv';
-import { TestType } from '@/lib/constants';
 import { Button, notification, Select } from 'antd';
 import { useSDK } from '@projectproxima/plugin-sdk';
 import { getFolderTree } from '@/lib/api/repository';
@@ -17,7 +16,7 @@ import { useListener } from '@projectproxima/proxima-sdk-js';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
 import { useReactive, useRequest, useMemoizedFn } from 'ahooks';
 import TestDetailTable, { ActionType } from './TestDetailTable';
-import { extendFields, RepositoryModel } from '@/lib/constants';
+import { extendFields, RepositoryModel, TestType } from '@/lib/constants';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import TestManagerProvider from '@/components/business/TestManagerProvider';
 import {
@@ -75,22 +74,22 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
     async () => {
       // 获取当前空间内所有的测试实体
       const getAllTestDetailEntityIds = async workspaceKey => {
-        // const { results: data } = await getTestEntitiesByQuery(
-        //   {
-        //     type: TestType.TestDetail,
-        //     workspaceKey,
-        //   },
-        //   {
-        //     limit: 99999,
-        //     include: [],
-        //     select: ['objectId', 'repository'],
-        //   },
-        // );
+        const { results: data } = await getTestEntitiesByQuery(
+          {
+            type: TestType.Case,
+            workspaceKey,
+          },
+          {
+            limit: 99999,
+            include: [],
+            select: ['objectId', 'repository'],
+          },
+        );
 
         // 刷新右侧表单的所属模块字段
         repositoryFolderTreeEvent.dispatch();
 
-        return [].map(item => pick(item, ['objectId', 'repository']));
+        return data.map(item => pick(item, ['objectId', 'repository']));
       };
 
       const [treeNodes, allTestDetailIds] = await Promise.all([
@@ -125,20 +124,20 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
 
   const { runAsync: getTestDetailIds } = useRequest(
     async (scopedTestDetailIds: string[]) => {
-      // const { results: testDetails } = await getTestEntitiesByQuery(
-      //   {
-      //     workspaceKey,
-      //     selectors: state.selectors,
-      //     in: scopedTestDetailIds,
-      //     type: TestType.TestDetail,
-      //   },
-      //   {
-      //     offset: 0,
-      //     limit: 99999,
-      //     select: ['objectId'],
-      //   },
-      // );
-      return [].map(test => test.objectId);
+      const { results: testDetails } = await getTestEntitiesByQuery(
+        {
+          workspaceKey,
+          selectors: state.selectors,
+          in: scopedTestDetailIds,
+          type: TestType.Case,
+        },
+        {
+          offset: 0,
+          limit: 99999,
+          select: ['objectId'],
+        },
+      );
+      return testDetails.map(test => test.objectId);
     },
     {
       manual: true,
@@ -212,17 +211,19 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
   };
 
   const createTestDetail = async () => {
-    // const { testEntityList } = await createItemUseModal({
-    //   type: TestType.TestDetail,
-    //   extraData: {
-    //     useItemBatchCreate: true,
-    //     repository:
-    //       state.selectedFolderKey === UNGROUPED_FOLDER_KEY ? null : state.selectedFolderKey,
-    //   },
-    // });
+    const { testEntityList } = await createItemUseModal({
+      type: TestType.Case,
+      extraData: {
+        useItemBatchCreate: true,
+        repository:
+          state.selectedFolderKey === UNGROUPED_FOLDER_KEY ? null : state.selectedFolderKey,
+      },
+    });
 
     const successMessage =
-      [].length > 1 ? `${[].length}个测试用例新建成功` : `测试用例【.reference.name}】新建成功`;
+      testEntityList.length > 1
+        ? `${testEntityList.length}个测试用例新建成功`
+        : `测试用例【${testEntityList[0]?.name}】新建成功`;
     notification.success({
       message: successMessage,
     });

@@ -7,7 +7,7 @@ import { getItemByIds } from '@/lib/api/proxima';
 import { getTestEntities } from '@/lib/api/common';
 import { StatusBadge } from '@/components/business/Status';
 import { useRequest, useSessionStorageState } from 'ahooks';
-import { TestType, PASS_STATUS_TYPE } from '@/lib/constants';
+import { PASS_STATUS_TYPE, TestType } from '@/lib/constants';
 import { getRootContainer, generateStorageKey } from '@/lib/utils/helper';
 import { Button, Checkbox, Collapse, Tabs, message, Spin, Tooltip } from 'antd';
 import { updateTestRun, getTestStepsByTestDetailId, getItemLinkRelation } from '@/lib/api/runs';
@@ -50,8 +50,9 @@ const TestRunDetailTabs = [
   },
 ];
 
-type TestRunEntity = TestEntity<TestType.TestRun>;
-type TestDetailEntity = TestEntity<TestType.TestDetail>;
+// TODO: 类型问题
+type TestRunEntity = TestEntity<TestType.Run> | any;
+type TestDetailEntity = TestEntity<TestType.Case>;
 
 type TestRunType = {
   id: string;
@@ -132,11 +133,12 @@ const TestRun: React.FC<TestRunType> = props => {
 
   // 测试执行关联的测试用例
   const refTestDetailData = React.useMemo(() => {
-    return testRunData.runReferenceDetail ?? ({} as TestDetailEntity);
+    return testRunData ?? ({} as TestDetailEntity);
   }, [testRunData]);
 
+  // TODO: 类型问题
   // 关联的缺陷 id
-  const allRelationDefectIds = _.chain(testRunData?.runDetail?.steps)
+  const allRelationDefectIds = (_.chain(testRunData?.runDetail?.steps) as unknown as any[])
     .reduce((acc, step) => {
       return acc.concat(step.defectItemIds);
     }, testRunData?.runDetail?.defectItemIds ?? [])

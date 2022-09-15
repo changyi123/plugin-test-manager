@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 import React from 'react';
-import { TestType } from 'common/constant';
+import { TestType } from '@/lib/constants';
 import { uniq, reduce, keyBy } from 'lodash';
 import EventBus from '@/lib/utils/eventBus';
 import { Modal, Spin, Button } from 'antd';
@@ -253,7 +253,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
     if (PreviousButtonClicked) return;
     PreviousButtonClicked = true;
     let selectedData = selectedTestDetails;
-    if (testType !== TestType.TestDetail) {
+    if (testType !== TestType.Case) {
       const filledValue = Array.isArray(selectValue)
         ? selectValue.map(key => dataCacheDictRef.current[key])
         : dataCacheDictRef.current[selectValue];
@@ -321,8 +321,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
         isSingleMode={isSingleMode}
         workspaceKey={workspace?.key}
         ignoreTestDetailIds={ignoreTestEntityIds}
-        // isWorkspaceIsolate={isolateTestType.includes(TestType.TestDetail)}
-        isWorkspaceIsolate={false}
+        isWorkspaceIsolate={isolateTestType.includes(TestType.Case)}
         onTestDetailSelect={testDetails => setSelectedTestDetails(testDetails)}
       />
     );
@@ -331,7 +330,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
   const ModalFooterNode = React.useMemo(() => {
     return (
       <div className={cx('footer')}>
-        {testType === TestType.TestDetail ? (
+        {testType === TestType.Case ? (
           <div className={cx('info')}>
             已选择
             <strong className={cx('num')}>
@@ -366,12 +365,12 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
       footer={ModalFooterNode}
       onCancel={() => setVisible(false)}
       title={props.title ?? `请选择${testTypeName}`}
-      width={testType === TestType.TestDetail ? 1000 : 500}
+      width={testType === TestType.Case ? 1000 : 500}
       bodyStyle={{
         padding: '16px 24px',
       }}
     >
-      {testType === TestType.TestDetail ? testDetailSelectorNode : testEntitySelectorNode}
+      {testType === TestType.Case ? testDetailSelectorNode : testEntitySelectorNode}
     </Modal>
   );
 };

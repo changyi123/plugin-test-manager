@@ -2,6 +2,7 @@ import { utils as xlsxUtils, write as xlsxWrite } from 'sheetjs-style';
 import FileSave from 'file-saver';
 import Parse from '@/lib/parse';
 import { getTestEntitiesByQuery } from '@/lib/api/common';
+import { TestType } from '@/lib/constants';
 import { CustomField, TestConfig, TestRelation } from '@/lib/models';
 import { Item } from '@/lib/types/App';
 import { Step } from '@/lib/types/Test';
@@ -90,18 +91,16 @@ const getExcelData = async (data: any) => {
   let testPlanObj = {};
 
   if (planId) {
-    // const { results: testPlan } = await getTestEntitiesByQuery(
-    //   {
-    //     type: TestType.TestPlan,
-    //     workspaceKey: workspaceKey,
-    //     in: [planId],
-    //   },
-    //   {
-    //     limit: 9999,
-    //   },
-    // );
-
-    const testPlan = [];
+    const { results: testPlan } = await getTestEntitiesByQuery(
+      {
+        type: TestType.Plan,
+        workspaceKey: workspaceKey,
+        in: [planId],
+      },
+      {
+        limit: 9999,
+      },
+    );
 
     testPlanObj = getTestPlan(testPlan[0]);
   }
@@ -232,19 +231,19 @@ const importTestInfo = async (args: ImportArgs, excelData = []) => {
     // 获取当前测试计划下的测试用例
     const testDataIds = await getTestIdsByFrom(checkedId);
     // 获取测试用例,允许跨空间
-    // const { results } = await getTestEntitiesByQuery(
-    //   {
-    //     type: TestType.TestDetail,
-    //     // workspaceKey: workspace.key,
-    //     in: testDataIds,
-    //   },
-    //   {
-    //     limit: 9999,
-    //   },
-    // );
+    const { results } = await getTestEntitiesByQuery(
+      {
+        type: TestType.Case,
+        // workspaceKey: workspace.key,
+        in: testDataIds,
+      },
+      {
+        limit: 9999,
+      },
+    );
 
     excelData = await getExcelData({
-      results: [],
+      results,
       workspaceKey: workspace.key,
       planId: checkedId,
     });
@@ -252,17 +251,15 @@ const importTestInfo = async (args: ImportArgs, excelData = []) => {
     const repoData = await getRepositoryData([workspace.key]);
 
     // 用例库导出不允许跨空间
-    // const { results } = await getTestEntitiesByQuery(
-    //   {
-    //     type: TestType.TestDetail,
-    //     workspaceKey: workspace.key,
-    //   },
-    //   {
-    //     limit: 9999,
-    //   },
-    // );
-
-    const results = [];
+    const { results } = await getTestEntitiesByQuery(
+      {
+        type: TestType.Case,
+        workspaceKey: workspace.key,
+      },
+      {
+        limit: 9999,
+      },
+    );
 
     const groupIds = getTestRepoGroupIds(repoData, checkedId);
 

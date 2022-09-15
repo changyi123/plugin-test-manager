@@ -166,9 +166,10 @@ export const iqlRequest = async (params: RequestParams) => {
       ...registeredFieldParams,
     };
 
+    // TODO: 类型问题
     const {
       payload: { count, items },
-    }: any = await requestCoreApi(
+    } = (await requestCoreApi(
       'POST',
       '/parse/api/search',
       iqlSearchParamsBuilder({
@@ -176,7 +177,7 @@ export const iqlRequest = async (params: RequestParams) => {
         fields,
         ...pagination,
       }),
-    );
+    )) as any;
 
     // 关联查询添加 source 字段
     const appendLinkSourceField = testEntityList => {

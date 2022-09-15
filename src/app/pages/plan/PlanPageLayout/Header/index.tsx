@@ -74,7 +74,7 @@ const Header: React.FC<HeaderProps> = ({
       const wordTemplate = await getFirstWordTemplate();
       const wordTemplateGenerator = new WordReport(wordTemplate);
       await wordTemplateGenerator.generateReport({
-        fileName: `${selectedTestPlan.reference.name}-测试报告`,
+        fileName: `${selectedTestPlan.name}-测试报告`,
         testPlanIds: [selectedTestPlan?.objectId],
       });
     } catch (err) {

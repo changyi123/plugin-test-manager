@@ -15,7 +15,7 @@ export type TableActionEventType = {
   tableSelectionVisible?: boolean;
 };
 
-type TestPlanEntity = TestEntity<TestType.TestPlan> & {
+type TestPlanEntity = TestEntity<TestType.Plan> & {
   refTestDetails: TestEntity[];
 };
 
