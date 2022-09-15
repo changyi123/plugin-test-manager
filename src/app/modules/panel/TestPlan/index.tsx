@@ -8,18 +8,18 @@ const TestPlan = () => {
   const tabs = [
     {
       tab: '测试用例',
-      key: TestType.TestDetail,
+      key: TestType.Case,
       Component: TestDetailPanel,
     },
     {
       tab: '测试执行任务',
-      key: TestType.TestExecution,
+      key: TestType.Execution,
       Component: TestExecutionPanel,
     },
   ];
   return (
     <PanelLayout
-      tabsProps={{ destroyInactiveTabPane: true, defaultActiveKey: TestType.TestDetail }}
+      tabsProps={{ destroyInactiveTabPane: true, defaultActiveKey: TestType.Case }}
       title="测试计划"
       tabs={tabs}
     />

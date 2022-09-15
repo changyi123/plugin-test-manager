@@ -78,7 +78,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         {
           workspaceKey,
           in: testDetailIds ?? [],
-          type: TestType.TestDetail,
+          type: TestType.Case,
         },
         paginationParams,
       );
@@ -257,7 +257,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
       <BusinessTable
         titleCellOption={{
           workspaceKey,
-          testType: 'TestDetail',
+          testType: TestType.Case,
         }}
         rowKey="objectId"
         useColumnSetting

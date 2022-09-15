@@ -3,9 +3,9 @@ import { TestEntity } from '@/lib/types/Test';
 import { Item, ItemLink } from '@/lib/types/App';
 
 export type TabsComponentBaseProps = {
-  testRunData: TestEntity<TestType.TestRun>;
+  testRunData: TestEntity<TestType.Run>;
   testRunEntity: Parse.Object<TabsComponentBaseProps['testRunData']>;
-  refTestDetailData: TestEntity<TestType.TestDetail>;
+  refTestDetailData: TestEntity<TestType.Case>;
   allRelationDefects: { type: 'global' | 'step'; itemId: string; stepId?: string; item: Item }[];
   itemLinks: ItemLink[];
   onDataChange: () => void;

@@ -3,7 +3,6 @@ import { pick } from 'lodash';
 import { MenuKey } from './Menu';
 import { FileClose } from '@/icons';
 import { getDevConfig } from '@/devEnv';
-import { TestType } from '@/lib/constants';
 import { Button, notification, Select } from 'antd';
 import { useSDK } from '@projectproxima/plugin-sdk';
 import { getFolderTree } from '@/lib/api/repository';
@@ -17,7 +16,7 @@ import { useListener } from '@projectproxima/proxima-sdk-js';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
 import { useReactive, useRequest, useMemoizedFn } from 'ahooks';
 import TestDetailTable, { ActionType } from './TestDetailTable';
-import { extendFields, RepositoryModel } from '@/lib/constants';
+import { extendFields, RepositoryModel, TestType } from '@/lib/constants';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import TestManagerProvider from '@/components/business/TestManagerProvider';
 import {
@@ -77,7 +76,7 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
       const getAllTestDetailEntityIds = async workspaceKey => {
         const { results: data } = await getTestEntitiesByQuery(
           {
-            type: TestType.TestDetail,
+            type: TestType.Case,
             workspaceKey,
           },
           {
@@ -130,7 +129,7 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
           workspaceKey,
           selectors: state.selectors,
           in: scopedTestDetailIds,
-          type: TestType.TestDetail,
+          type: TestType.Case,
         },
         {
           offset: 0,
@@ -213,7 +212,7 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
 
   const createTestDetail = async () => {
     const { testEntityList } = await createItemUseModal({
-      type: TestType.TestDetail,
+      type: TestType.Case,
       extraData: {
         useItemBatchCreate: true,
         repository:
@@ -224,7 +223,7 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
     const successMessage =
       testEntityList.length > 1
         ? `${testEntityList.length}个测试用例新建成功`
-        : `测试用例【${testEntityList[0]?.toJSON().reference.name}】新建成功`;
+        : `测试用例【${testEntityList[0]?.name}】新建成功`;
     notification.success({
       message: successMessage,
     });

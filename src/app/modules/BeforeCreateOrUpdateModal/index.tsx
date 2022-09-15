@@ -78,7 +78,7 @@ const BeforeCreateOrUpdateModal = () => {
   const testDetailFormVisible = React.useMemo(() => {
     // if (!storeValues.extraData) return false;
     const testDetailRefItemTypeKey =
-      itemTypeMappingDict?.[currentModalValues.workspaceKey]?.itemTypeMap?.[TestType.TestDetail];
+      itemTypeMappingDict?.[currentModalValues.workspaceKey]?.itemTypeMap?.[TestType.Case];
 
     return testDetailRefItemTypeKey && testDetailRefItemTypeKey === currentModalValues.itemTypeKey;
   }, [currentModalValues, itemTypeMappingDict]);

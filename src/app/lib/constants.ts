@@ -1,3 +1,5 @@
+import { TestType } from 'common/constant';
+
 export * from 'common/constant';
 
 // 测试管理事件默认 key
@@ -20,21 +22,6 @@ export enum PROXIMA_EVENT_KEY {
   itemBatchCreateSuccess = 'itemBatchCreateSuccess',
 }
 
-// 测试类型
-export enum TestType {
-  // 测试用例
-  // TestSet = 'TestSet',
-  // Precondition = 'Precondition',
-
-  TestDetail = 'TestDetail',
-  TestPlan = 'TestPlan',
-  TestExecution = 'TestExecution',
-  TestRun = 'TestRun',
-
-  // 测试缺陷
-  TestDefect = 'TestDefect',
-}
-
 export enum ModalType {
   ModalInherit, //继承
   ModalPlanning, //规划
@@ -55,18 +42,18 @@ export enum TestRelationType {
 }
 
 export const TestTypeNameMapping = {
-  [TestType.TestDetail]: '测试用例',
-  [TestType.TestPlan]: '测试计划',
-  [TestType.TestExecution]: '测试执行任务',
-  [TestType.TestRun]: '测试执行',
+  [TestType.Case]: '测试用例',
+  [TestType.Plan]: '测试计划',
+  [TestType.Execution]: '测试执行任务',
+  [TestType.Run]: '测试执行',
   [TestType.TestDefect]: '缺陷',
 };
 
 // 内置三种类型标识
 export const BuiltinItemTypeMapping = {
-  [TestType.TestDetail]: 'test_manager_detail',
-  [TestType.TestPlan]: 'test_manager_plan',
-  [TestType.TestExecution]: 'test_manager_execution',
+  [TestType.Case]: 'test_manager_detail',
+  [TestType.Plan]: 'test_manager_plan',
+  [TestType.Execution]: 'test_manager_execution',
 };
 
 /** 本地存储前缀 */

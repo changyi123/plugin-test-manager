@@ -19,7 +19,7 @@ const NoData: React.FC<NoDataProps> = ({ setRefreshExecution }) => {
   // 创建测试执行任务
   const createTestExecution = async () => {
     const { testEntity: testExecutionEntity } = await createItemUseModal({
-      type: TestType.TestExecution,
+      type: TestType.Execution,
       extraData: { planId: selectedTestPlan?.objectId },
     });
 
@@ -29,7 +29,7 @@ const NoData: React.FC<NoDataProps> = ({ setRefreshExecution }) => {
         icon: <Spin spinning={true} />,
         duration: null,
       });
-      const testExecutionData = testExecutionEntity.toJSON();
+      const testExecutionData = testExecutionEntity;
 
       await createTestExecutionAndRelations({
         workspaceKey: workspaceKey,
@@ -39,7 +39,7 @@ const NoData: React.FC<NoDataProps> = ({ setRefreshExecution }) => {
 
       notification.destroy();
       notification.success({
-        message: `测试执行任务【${testExecutionData?.reference?.name}】新建成功`,
+        message: `测试执行任务【${testExecutionData?.name}】新建成功`,
       });
       setRefreshExecution(true);
     } catch (err) {

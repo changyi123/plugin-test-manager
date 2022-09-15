@@ -39,7 +39,7 @@ const Header: React.FC<HeaderProps> = ({
   // 创建测试执行任务
   const createTestExecution = async () => {
     const { testEntity: testExecutionEntity } = await createItemUseModal({
-      type: TestType.TestExecution,
+      type: TestType.Execution,
       extraData: { planId: selectedTestPlan?.objectId },
     });
 
@@ -49,7 +49,7 @@ const Header: React.FC<HeaderProps> = ({
         icon: <Spin spinning={true} />,
         duration: null,
       });
-      const testExecutionData = testExecutionEntity.toJSON();
+      const testExecutionData = testExecutionEntity;
 
       await createTestExecutionAndRelations({
         workspaceKey: workspaceKey,
@@ -59,7 +59,7 @@ const Header: React.FC<HeaderProps> = ({
 
       notification.destroy();
       notification.success({
-        message: `测试执行任务【${testExecutionData?.reference?.name}】新建成功`,
+        message: `测试执行任务【${testExecutionData?.name}】新建成功`,
       });
       setRefreshExecution(true);
     } catch (err) {
@@ -77,7 +77,7 @@ const Header: React.FC<HeaderProps> = ({
       const wordTemplate = await getFirstWordTemplate();
       const wordTemplateGenerator = new WordReport(wordTemplate);
       await wordTemplateGenerator.generateReport({
-        fileName: `${selectedTestPlan.reference.name}-测试报告`,
+        fileName: `${selectedTestPlan.name}-测试报告`,
         testPlanIds: [selectedTestPlan?.objectId],
       });
     } catch (err) {

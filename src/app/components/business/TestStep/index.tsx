@@ -137,7 +137,7 @@ const TestStep: React.FC<TestStepProps> = ({
         <TestEntitySelectorModal
           isSingleMode
           title="请选择继承测试用例"
-          testType={TestType.TestDetail}
+          testType={TestType.Case}
           actionRef={testEntitySelectorRef}
           // 继承测试用例不能继承自己
           ignoreTestEntityIds={[testDetailId]}
