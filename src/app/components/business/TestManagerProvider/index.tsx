@@ -323,8 +323,8 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
         // });
         testEntity = await updateTestEntity([
           {
-            objectId: testEntity.objectId,
-            key: testEntity.key,
+            objectId: itemData.objectId,
+            key: itemData.key,
             values: {
               r_test_manager_type: extraData.type,
               r_test_manager_repository: extraData?.repository,
@@ -339,7 +339,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
         useItemBatchCreate: false,
       });
     },
-    [testConfig.isolateTestType, workspace.key],
+    [testConfig.isolateTestType, workspace?.key],
   );
 
   // 事项批量创建成功回调
@@ -377,7 +377,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
         }));
         const { data: testEntityList } = await updateTestEntity(detailList);
 
-        if (!hasArrayItem(testEntityList)) return;
+        // if (!hasArrayItem(testEntityList)) return;
 
         eventBus.dispatch(messageKey, {
           itemList,
