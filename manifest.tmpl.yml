@@ -21,11 +21,14 @@ modules:
       function: api-query-test-entity
     - key: api-query-linked-test-entity
       function: api-query-linked-test-entity
-    # 批量操作（删除，更新）
+    # 批量操作（删除，更新，创建测试执行）
     - key: api-batch-delete
       function: api-batch-delete
     - key: api-batch-update
       function: api-batch-update
+    - key: api-batch-create-test-run
+      function: api-batch-create-test-run
+
   trigger:
     - key: test-manager-initial-script-update
       events:
@@ -69,6 +72,8 @@ modules:
       handler: api.batchDelete
     - key: api-batch-update
       handler: api.batchUpdate
+    - key: api-batch-create-test-run
+      handler: api.batchCreateTestRun
 
   itemPanel:
     - key: test-manager-test-detail

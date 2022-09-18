@@ -130,8 +130,11 @@ export type BatchUpdatePayload = {
 
 /**
  * 创建测试实体
- * @example POST /api/project/app/osc/test_manager/webhooks/api-batch-create
+ * @example POST /api/project/app/osc/test_manager/webhooks/api-batch-create-test-run
  */
-export type BatchCreatePayload = {
-  data: (Partial<TestEntity> & { name: string; workspace: string; itemType: string })[];
+export type BatchCreateTestRunPayload = {
+  /** 测试执行任务 id */
+  executionId?: string;
+  /** 测试执行任务 id */
+  caseIds: string[];
 };

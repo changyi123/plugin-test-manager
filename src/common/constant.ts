@@ -100,5 +100,35 @@ export const SystemField = {
   Id: 'id',
 } as const;
 
-/** iql 最小返回字段 */
-export const IQLMinimumFieldKeys = [SystemField.Id] as const;
+/** iql 必须的返回字段 */
+export const IQLRequiredFieldKeys = [SystemField.Id];
+
+/** iql 有业务意义的返回字段 */
+export const IQLUsefulFieldKeys = [
+  SystemField.Id,
+  SystemField.Key,
+  SystemField.Name,
+  SystemField.Status,
+  SystemField.ItemType,
+  SystemField.CreatedAt,
+  SystemField.CreatedBy,
+  SystemField.Workspace,
+  SystemField.Assignee,
+  SystemField.Priority,
+  // SystemField.UpdatedAt,
+  // SystemField.UpdatedBy,
+  // 'values',
+  // 测试管理自定义字段
+  ...Object.values(TestFiledKeyMapping),
+];
+
+/** 无限分页 */
+export const InfinityLimit = 99999;
+
+/** 内置类型映射 */
+export const BuiltInItemTypeMapping = {
+  [TestType.Run]: 'test_manager_run',
+  [TestType.Plan]: 'test_manager_plan',
+  [TestType.Case]: 'test_manager_detail',
+  [TestType.Execution]: 'test_manager_execution',
+};
