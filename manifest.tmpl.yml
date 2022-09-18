@@ -28,6 +28,9 @@ modules:
       function: api-batch-update
     - key: api-batch-create-test-run
       function: api-batch-create-test-run
+    # 数据统计
+    - key: api-stats-test-plan
+      function: api-stats-test-plan
 
   trigger:
     - key: test-manager-initial-script-update
@@ -74,6 +77,10 @@ modules:
       handler: api.batchUpdate
     - key: api-batch-create-test-run
       handler: api.batchCreateTestRun
+
+    # api stats
+    - key: api-stats-test-plan
+      handler: api.testPlanStats
 
   itemPanel:
     - key: test-manager-test-detail
