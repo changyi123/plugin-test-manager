@@ -24,7 +24,6 @@ import {
   CREATE_ITEM_STORE_FIELD_KEY,
   TestType,
 } from '@/lib/constants';
-import { fetchItem } from '@/lib/api/common';
 import { updateTestEntity } from '@/lib/api/item';
 
 const ItemCreateSuccessEventType = 'itemCreateSuccess';
@@ -51,6 +50,7 @@ const getOrCreateTestEntity = async (
   const itemTypeMap = testConfig?.get('itemTypeMap');
 
   if (itemTypeMap) {
+    let needCreatedItem = {};
     const testType = getKeyByValue(itemTypeMap, itemData?.itemType.key) as TestType;
     // 额外需要创建的字段
     let extraFields = {};
@@ -84,22 +84,26 @@ const getOrCreateTestEntity = async (
 
           return prev;
         }, {});
-        const needCreatedItem = {
-          objectId: itemData.objectId,
-          name: itemData.name,
-          values: {
-            ...fields,
-            r_test_manager_type: type,
-            r_test_manager_repository: storedRepository,
-            r_test_manager_sortIndex: generateSortIndex(1),
-          },
+        needCreatedItem = {
+          ...fields,
+          r_test_manager_repository: storedRepository,
+          r_test_manager_sortIndex: generateSortIndex(1),
         };
-        const { data } = await updateTestEntity(needCreatedItem);
-
-        testEntity = data?.[0];
       }
       console.info('extraFields', extraFields);
     }
+
+    const { data } = await updateTestEntity([
+      {
+        objectId: itemData.objectId,
+        name: itemData.name,
+        values: {
+          ...needCreatedItem,
+          r_test_manager_type: type,
+        },
+      },
+    ]);
+    testEntity = data?.[0];
   }
   console.info('new testEntity', testEntity);
 
