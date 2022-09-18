@@ -14,6 +14,10 @@ export const enum Composition {
   And = 'and',
   Or = 'or',
 }
+export const enum OrderKeyword {
+  DESC = 'desc',
+  ASC = 'asc',
+}
 
 /** 条件处理 */
 const whereProcessor = (column, value, operator: Operator) => {
@@ -38,6 +42,10 @@ const whereProcessor = (column, value, operator: Operator) => {
         ? `'${column}' >= '${value[0]}' and '${column}' <= '${value[1]}'`
         : '';
   }
+};
+
+const OrderProcessor = (column, order: OrderKeyword) => {
+  return `${column} ${order}`;
 };
 
 const utils = {
@@ -88,6 +96,27 @@ export default class IQLBuilder {
     return this;
   };
 
+  order = (column: string | { type: OrderKeyword; column: string }) => {
+    let order = null;
+    if (typeof column === 'string') {
+      // 倒序
+      if (column.startsWith('-')) {
+        order = {
+          type: OrderKeyword.DESC,
+          column: column.replace(/^-/, ''),
+        };
+      } else {
+        order = {
+          type: OrderKeyword.ASC,
+          column: column,
+        };
+      }
+    } else if (column?.type && column?.column) {
+      order = column;
+    }
+    order && this._context.order.push(order);
+  };
+
   and = (...ops: (IQLBuilder | string)[]) => this._composition(Composition.And, ...ops);
   or = (...ops: (IQLBuilder | string)[]) => this._composition(Composition.Or, ...ops);
 
@@ -111,7 +140,7 @@ export default class IQLBuilder {
   }
 
   build = () => {
-    const whereIQLString = this._context.where.reduce((iql, where) => {
+    const iqlWhereString = this._context.where.reduce((iql, where) => {
       const { column, value, operator, composition, builder, iqlStr } = where;
       let isComplexSubIql = false;
       let sub = '';
@@ -136,6 +165,12 @@ export default class IQLBuilder {
       return sub;
     }, '');
 
-    return whereIQLString;
+    const iqlOrderString = this._context.order.reduce((iql, order, index) => {
+      const orderSyntaxStr = !iql ? 'order by' : '';
+      const endToken = index + 1 !== this._context.order.length ? ', ' : '';
+      return `${orderSyntaxStr} ${OrderProcessor(order.column, order.type)}${endToken}`;
+    }, '');
+
+    return `${iqlWhereString} ${iqlOrderString}`;
   };
 }
