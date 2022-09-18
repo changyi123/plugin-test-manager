@@ -17,10 +17,12 @@ const concatCustomFields = fields => {
 /** 查询测试类型实体数据 */
 export const queryTestEntity = async () => {
   const { body } = getReqInfoFromVMRuntime<QueryTestEntityPayload>();
-  const { offset, limit, query = {}, fields } = body;
+  const { offset, limit, query = {}, fields, descending, ascending } = body;
 
   return iqlRequest({
     query,
+    ascending,
+    descending,
     pagination: { limit, offset },
     fields: concatCustomFields(fields),
   });
@@ -30,13 +32,25 @@ export const queryTestEntity = async () => {
 export const queryLinkedTestEntity = async () => {
   try {
     const { body } = getReqInfoFromVMRuntime<QueryLinkedTestEntityPayload>();
-    const { offset, limit, query, fields, sourceIds, linkType, destinationType } = body;
+    const {
+      offset,
+      limit,
+      query,
+      fields,
+      sourceIds,
+      linkType,
+      destinationType,
+      descending,
+      ascending,
+    } = body;
 
     // 请求参数校验
     testEntityFieldTypeValidator({ linkType, type: destinationType, linkItems: sourceIds });
 
     return iqlRequest({
       query,
+      ascending,
+      descending,
       fields: concatCustomFields(fields),
       pagination: { limit, offset },
       linkQuery: {

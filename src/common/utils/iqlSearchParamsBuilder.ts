@@ -5,13 +5,15 @@ import { default as IQLBuilder, Operator, Composition } from '../../common/utils
 export { Operator } from '../../common/utils/iqlBuilder';
 
 type BuildParams = {
+  /** 排序 */
+  order?: string[];
   payload: Record<string, any | { value: any; composition?: Composition; operator?: Operator }>;
   /** 限制返回字段 */
   fields?: string[];
 } & PaginationParams;
 
 export const iqlSearchParamsBuilder = (params: BuildParams) => {
-  const { payload, fields, offset = 0, limit = 10 } = params;
+  const { payload, fields, offset = 0, limit = 10, order } = params;
 
   const iqlBuilder = new IQLBuilder();
 
@@ -23,6 +25,10 @@ export const iqlSearchParamsBuilder = (params: BuildParams) => {
           : [value];
       iqlBuilder.where(key, ...value);
     }
+  });
+
+  order.forEach(o => {
+    iqlBuilder.order(o);
   });
 
   const iql = iqlBuilder.build();
