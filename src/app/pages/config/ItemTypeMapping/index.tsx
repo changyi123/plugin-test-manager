@@ -12,15 +12,15 @@ import cx from './index.less';
 
 const TestTypes = [
   {
-    type: TestType.TestDetail,
+    type: TestType.Case,
     title: '测试用例',
   },
   {
-    type: TestType.TestPlan,
+    type: TestType.Plan,
     title: '测试计划',
   },
   {
-    type: TestType.TestExecution,
+    type: TestType.Execution,
     title: '测试执行任务',
   },
 ];

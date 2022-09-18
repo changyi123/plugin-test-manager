@@ -231,7 +231,7 @@ const Right: React.FC<RightProps> = props => {
         />
         <TestEntitySelectorModal
           title="选择规划的测试用例"
-          testType={TestType.TestDetail}
+          testType={TestType.Case}
           actionRef={testEntitySelectorRef}
           afterClose={() => {
             pageLeftRef.current?.refresh();

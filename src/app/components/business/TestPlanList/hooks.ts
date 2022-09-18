@@ -1,12 +1,13 @@
 import { getTestEntitiesByQuery, getTestEntitiesByRelation } from '@/lib/api/common';
-import { TestRelationType, TestType } from '@/lib/constants';
+import { TestRelationType } from '@/lib/constants';
+import { TestType } from '@/lib/constants';
 import { TestEntity } from '@/lib/types/Test';
 import { TestPlanEntity } from '@/pages/plan/type';
 import { useRequest } from 'ahooks';
 import _ from 'lodash';
 
 type TestPlan = TestPlanEntity & {
-  refTestDetails: Pick<TestEntity, 'status'>[];
+  refTestDetails: TestEntity[];
 };
 
 const useGetTestPlanById = (id?: string, workspaceKey?: string) => {
@@ -17,7 +18,7 @@ const useGetTestPlanById = (id?: string, workspaceKey?: string) => {
         {
           in: [id ?? ''],
           workspaceKey,
-          type: TestType.TestPlan,
+          type: TestType.Plan,
         },
         {
           ignoreDeletedItemData: true,

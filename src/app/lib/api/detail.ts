@@ -3,7 +3,7 @@ import { TestEntity } from '@/lib/types/Test';
 import { compactStepModel } from '@/lib/utils/modelTransfer';
 
 // 测试详情实体类型
-type TestDetailEntity = TestEntity<TestType.TestDetail>;
+type TestDetailEntity = TestEntity<TestType.Case>;
 export interface ICommonRes<T = any> {
   success: boolean;
   message?: string;

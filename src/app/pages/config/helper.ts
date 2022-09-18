@@ -8,11 +8,6 @@ export const generateDefaultTestConfig = (workspaceKey: string, isolatedSystem =
     itemTypeMap: isolatedSystem ? BuiltinItemTypeMapping : {},
     defectsMapping: [],
     // 默认所有事项都加上空间隔离
-    isolateTestType: [
-      TestType.TestPlan,
-      TestType.TestDefect,
-      TestType.TestDetail,
-      TestType.TestExecution,
-    ],
+    isolateTestType: [TestType.Plan, TestType.TestDefect, TestType.Case, TestType.Execution],
   };
 };

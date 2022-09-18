@@ -2,7 +2,7 @@ import React from 'react';
 
 import { Button } from 'antd';
 import { useTestConfig } from '@/lib/hooks/useContext';
-import { TestType, TestRelationType } from '@/lib/constants';
+import { TestRelationType, TestType } from '@/lib/constants';
 import PanelTable, {
   ActionType,
   columnBuilder,
@@ -72,23 +72,20 @@ const Test = () => {
   // 创建测试执行
   const addExistedTestExecution = React.useCallback(async () => {
     selectorModalRef.current.open({
-      testType: TestType.TestExecution,
+      testType: TestType.Execution,
     });
   }, []);
 
   const addTestExecutionToPlan = React.useCallback(
     async testExecution => {
-      await createTestExecutionToPlanRelations({
-        testPlan: testEntity,
-        testExecution,
-      });
+      await createTestExecutionToPlanRelations();
       refresh();
       alert({
         type: 'success',
         message: `${testExecution.length} 个测试执行添加到测试计划中`,
       });
     },
-    [refresh, testEntity],
+    [refresh],
   );
 
   const removeTestRelation = React.useCallback(

@@ -17,7 +17,7 @@ import css from './index.less';
 import { getStepInitialData } from '@/components/business/TestStep/helper';
 
 // 测试详情实体类型
-type TestDetailEntity = TestEntity<TestType.TestDetail>;
+type TestDetailEntity = TestEntity<TestType.Case>;
 
 export interface fields {
   id: string;
@@ -73,10 +73,7 @@ const Detail: React.FC = () => {
 
         steps = steps.map(step => {
           if (!step.callTestId) return step;
-          return Object.assign(
-            { itemData: testEntityDictRef.current[step.callTestId]?.reference },
-            step,
-          );
+          return Object.assign({ itemData: testEntityDictRef.current[step.callTestId] }, step);
         });
       }
 

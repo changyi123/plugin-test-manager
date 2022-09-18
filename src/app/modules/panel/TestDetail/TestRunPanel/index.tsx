@@ -141,7 +141,7 @@ const Runs: React.FC = () => {
 
   const createTestExecution = async () => {
     const { testEntity: testExecutionEntity } = await createItemUseModal({
-      type: TestType.TestExecution,
+      type: TestType.Execution,
     });
     // 创建测试执行实体并关联
     await createTestRunAndRelation(testExecutionEntity, testDetailEntity);

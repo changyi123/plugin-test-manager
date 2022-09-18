@@ -177,9 +177,9 @@ export const useTestTypeUsedItemTypes = () => {
       return results;
     };
     const testTypeUsedItemTypes = {
-      [TestType.TestDetail]: new Set(),
-      [TestType.TestPlan]: new Set(),
-      [TestType.TestExecution]: new Set(),
+      [TestType.Case]: new Set(),
+      [TestType.Plan]: new Set(),
+      [TestType.Execution]: new Set(),
     };
 
     if (!testConfigs) return transformResult(testTypeUsedItemTypes);

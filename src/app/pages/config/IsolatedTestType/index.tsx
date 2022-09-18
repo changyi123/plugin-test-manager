@@ -10,12 +10,7 @@ import { TestTypeNameMapping, TestType } from '@/lib/constants';
 import cx from './index.less';
 
 // 所有隔离类型配置
-const AllIsolateTestType = [
-  TestType.TestDefect,
-  TestType.TestDetail,
-  TestType.TestExecution,
-  TestType.TestPlan,
-];
+const AllIsolateTestType = [TestType.TestDefect, TestType.Case, TestType.Execution, TestType.Plan];
 
 // 判断所有测试类型是否都被设置空间隔离
 const isIsolateAllTestType = (isolation: string[]) => {
@@ -74,9 +69,9 @@ const IsolatedTestType = () => {
           <p>跨空间测试数据操作配置</p>
           {Object.entries(
             pick(TestTypeNameMapping, [
-              TestType.TestDetail,
-              TestType.TestPlan,
-              TestType.TestExecution,
+              TestType.Case,
+              TestType.Plan,
+              TestType.Execution,
               TestType.TestDefect,
             ]),
           ).map(([type, name]) => (
