@@ -31,6 +31,8 @@ modules:
     # 数据统计
     - key: api-stats-test-plan
       function: api-stats-test-plan
+    - key: api-stats-test-execution
+      function: api-stats-test-execution
 
   trigger:
     - key: test-manager-initial-script-update
@@ -81,6 +83,8 @@ modules:
     # api stats
     - key: api-stats-test-plan
       handler: api.testPlanStats
+    - key: api-stats-test-execution
+      handler: api.testExecutionStats
 
   itemPanel:
     - key: test-manager-test-detail
