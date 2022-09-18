@@ -37,7 +37,7 @@ const RepositorySelector: React.FC<RepositorySelectorProps> = props => {
   const [selectedWorkspaceKey, setSelectedWorkspaceKey] = React.useState('');
 
   // 空间隔离
-  const isWorkspaceIsolate = useIsolateTestType(workspaceKey, TestType.TestDetail);
+  const isWorkspaceIsolate = useIsolateTestType(workspaceKey, TestType.Case);
 
   // 在提交之后置空用户所选的模块
   const resetTreeSelect = () => setTreeSelectedNode(null);

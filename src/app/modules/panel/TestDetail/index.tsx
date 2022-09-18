@@ -10,21 +10,17 @@ const TestDetail: React.FC = () => {
   const tabs = [
     {
       tab: '详情',
-      key: TestType.TestDetail,
+      key: TestType.Case,
       Component: TestDetailPanel,
     },
     {
       tab: '测试计划',
-      key: TestType.TestPlan,
+      key: TestType.Plan,
       Component: TestPlanPanel,
     },
   ];
   return (
-    <PanelLayout
-      tabsProps={{ defaultActiveKey: TestType.TestDetail }}
-      title="测试管理"
-      tabs={tabs}
-    />
+    <PanelLayout tabsProps={{ defaultActiveKey: TestType.Case }} title="测试管理" tabs={tabs} />
   );
 };
 

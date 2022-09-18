@@ -23,6 +23,6 @@ export const useTestTypeScreenFieldKeys = ({
   );
   const itemTypeKey = itemTypeMap?.[testType];
   // 除测试计划外其他测试类型需要隐藏状态字段
-  const shouldHiddenFieldKeys = testType !== TestType.TestPlan ? TestIncludeFiledKeys : [];
+  const shouldHiddenFieldKeys = testType !== TestType.Plan ? TestIncludeFiledKeys : [];
   return useUsedScreenFieldKeys(workspaceKey, itemTypeKey, shouldHiddenFieldKeys);
 };

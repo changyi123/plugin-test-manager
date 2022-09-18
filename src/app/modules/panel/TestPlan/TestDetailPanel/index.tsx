@@ -72,7 +72,6 @@ const Test = () => {
 
   const tableDataSourceGetter = useCallback(
     async queryParams => {
-      // TODO
       const [{ list: testDetails, total }, { list: testRuns }] = await Promise.all([
         getTestEntitiesByRelationWithOrder(
           TestRelationType.PlanRelDetail,
@@ -117,6 +116,8 @@ const Test = () => {
         ),
       ]);
 
+      // TODO: 得获取测试用例，以及关联的测试执行
+
       const list = testDetails.map(detail => {
         return {
           ...detail,
@@ -151,12 +152,12 @@ const Test = () => {
     await createTestExecutionAndRelations({
       testPlan: testEntity,
       testExecution: testExecutionEntity,
-      workspaceKey: (testExecutionData.reference.workspace as Workspace).key,
+      workspaceKey: (testExecutionData.workspace as Workspace).key,
     });
 
     alert({
       type: 'success',
-      message: `测试执行任务【${testExecutionData?.reference?.name}】新建成功`,
+      message: `测试执行任务【${testExecutionData?.name}】新建成功`,
     });
   }, [createItemUseModal, testEntity]);
 
@@ -170,7 +171,7 @@ const Test = () => {
           const _testDetailIds = testDetailIds.filter(d => !(testEntityIds ?? []).includes(d));
 
           await createTestDetailToPlanRelations({
-            testPlan: testEntity,
+            testPlan: [testEntity?.objectId],
             testDetail: _testDetailIds,
           });
 
@@ -197,7 +198,7 @@ const Test = () => {
           });
 
           await createTestDetailToPlanRelations({
-            testPlan: testEntity,
+            testPlan: [testEntity?.objectId],
             testDetail: newTestDetail,
           });
 
@@ -388,7 +389,7 @@ const Test = () => {
         getDataSource={tableDataSourceGetter}
       />
 
-      <TestRunModal actionRef={testRunModalActionRef} selectedTestPlanId={testEntity.id} />
+      <TestRunModal actionRef={testRunModalActionRef} selectedTestPlanId={testEntity.objectId} />
     </div>
   );
 };

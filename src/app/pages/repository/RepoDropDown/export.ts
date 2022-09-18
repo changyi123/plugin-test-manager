@@ -93,7 +93,7 @@ const getExcelData = async (data: any) => {
   if (planId) {
     const { results: testPlan } = await getTestEntitiesByQuery(
       {
-        type: TestType.TestPlan,
+        type: TestType.Plan,
         workspaceKey: workspaceKey,
         in: [planId],
       },
@@ -233,7 +233,7 @@ const importTestInfo = async (args: ImportArgs, excelData = []) => {
     // 获取测试用例,允许跨空间
     const { results } = await getTestEntitiesByQuery(
       {
-        type: TestType.TestDetail,
+        type: TestType.Case,
         // workspaceKey: workspace.key,
         in: testDataIds,
       },
@@ -253,7 +253,7 @@ const importTestInfo = async (args: ImportArgs, excelData = []) => {
     // 用例库导出不允许跨空间
     const { results } = await getTestEntitiesByQuery(
       {
-        type: TestType.TestDetail,
+        type: TestType.Case,
         workspaceKey: workspace.key,
       },
       {

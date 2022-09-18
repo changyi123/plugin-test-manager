@@ -19,10 +19,10 @@ import {
   BaseActionContextType,
 } from './context';
 import {
-  TestType,
   ENTITY_NOT_FOUND,
   ExtensionValType,
   CREATE_ITEM_STORE_FIELD_KEY,
+  TestType,
 } from '@/lib/constants';
 import { union } from 'lodash';
 import { fetchItems, fetchItem } from '@/lib/api/common';
@@ -65,7 +65,7 @@ const getOrCreateTestEntity = async (
       }
 
       // 测试用例创建
-      if (testType === TestType.TestDetail) {
+      if (testType === TestType.Case) {
         // 测试用例创建时需要生成默认 sortIndex
         extraFields = {
           ...extraFields,
@@ -190,7 +190,7 @@ const getOrBatchCreateTestEntities = async (
 
       let fields = restFields;
       // 测试用例创建时需要生成默认 sortIndex
-      if (firstItemMatchTestType === TestType.TestDetail) {
+      if (firstItemMatchTestType === TestType.Case) {
         fields = {
           detail: restFields,
           sortIndex: generateSortIndex(index + 1),
@@ -383,7 +383,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
 
   useOnItemCreateSuccess(messageKey, itemCreateSuccessCb, itemBatchCreateSuccessCb);
 
-  const testConfigContextValues = React.useMemo<TestConfigContextType>(() => {
+  const testConfigContextValues = React.useMemo(() => {
     return {
       // TODO: fetch config
       config: {
@@ -482,7 +482,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
   }, [getGlobalConfig, testConfig.defectsMapping, testConfig?.itemTypeMap, workspace?.objectId]);
 
   return (
-    <TestConfigContext.Provider value={testConfigContextValues}>
+    <TestConfigContext.Provider value={testConfigContextValues as any}>
       <BaseActionContext.Provider value={baseActionContextValues}>
         {children}
       </BaseActionContext.Provider>

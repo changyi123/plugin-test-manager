@@ -11,7 +11,7 @@ import { useBaseAction } from '@/lib/hooks/useContext';
 import { goToItemDetailPage } from '@/lib/utils/helper';
 import { EllipsisOutlined, PlusOutlined } from '@/icons';
 import { StatusProgress } from '@/components/business/Status';
-import { TestType, TestRelationType } from '@/lib/constants';
+import { TestRelationType, TestType } from '@/lib/constants';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import {
   deleteTestEntities,
@@ -25,9 +25,9 @@ import cx from './index.less';
 
 const REQUEST_LIMIT = 10;
 
-type TestPlanEntity = TestEntity<TestType.TestPlan>;
+type TestPlanEntity = TestEntity<TestType.Plan>;
 type TestPlan = TestPlanEntity & {
-  refTestDetails: Pick<TestEntity, 'status'>[];
+  refTestDetails: TestEntity[];
 };
 
 const PlanItem: React.FC<{
@@ -38,7 +38,7 @@ const PlanItem: React.FC<{
 }> = ({ data, onSelect, selectedId, onDelete }) => {
   const ref = React.useRef();
   const isHover = useHover(ref);
-  const { reference = {} as any, refTestDetails } = data;
+  const { reference = {} as any, refTestDetails } = data as any;
 
   const handleView = data => {
     const itemData = data.reference ?? {};
@@ -105,7 +105,7 @@ const PlanList = () => {
         {
           workspaceKey,
           nameLike: search,
-          type: TestType.TestPlan,
+          type: TestType.Plan,
         },
         {
           offset,
@@ -196,7 +196,7 @@ const PlanList = () => {
 
   const handleCreate = async () => {
     await createItemUseModal({
-      type: TestType.TestPlan,
+      type: TestType.Plan,
     });
     reload();
     notification.success({

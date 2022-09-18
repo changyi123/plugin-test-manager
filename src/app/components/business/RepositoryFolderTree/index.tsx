@@ -65,7 +65,7 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
       // 请求所有的用例数据
       const { results } = await getTestEntitiesByQuery(
         {
-          type: TestType.TestDetail,
+          type: TestType.Case,
           workspaceKey,
         },
         {
