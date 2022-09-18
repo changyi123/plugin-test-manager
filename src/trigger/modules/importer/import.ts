@@ -27,16 +27,6 @@ const TEST_MANAGER_REPO = `Repository`;
 
 const clone = d => JSON.parse(JSON.stringify(d));
 
-// eslint-disable-next-line no-control-regex
-// const isTwoChar = d => /[^\x00-\xff]/g.test(d);
-
-// const getCharNum = d =>
-//   d?.split?.('').reduce((prev, cur) => {
-//     prev = prev + (isTwoChar(cur) ? 2 : 1);
-
-//     return prev;
-//   }, 0) ?? 0;
-
 const replaceRn = datas => datas?.replace(/^[\r\n]+/g, '');
 
 const splitSteps = datas => replaceRn(datas)?.split(/(?=【\d+】)/g) ?? [];
@@ -53,13 +43,7 @@ const splitSteps = datas => replaceRn(datas)?.split(/(?=【\d+】)/g) ?? [];
 const pickStepIndex = data => {
   return +data.replace(/【(\d+)】(.|[\r\n])*?$/, '$1');
 };
-// const getActionAndResultData = datas => datas.replace(/^(【\d+】|\d+\.+)/, '');
 const getStepData = datas => datas.replace(/^【\d+】/g, '');
-
-// const splitData = datas => datas?.split?.(/[\r\n]+/g);
-
-// const isStrictEOLModeReg = new RegExp(`(^|(${stepEOLToken}))${stepStartToken}`, 'g');
-// const isStrictEOLModeReg = /(^|([\r\n]))【\d+】/g;
 
 const getIsStrict = step => (replaceRn(step) ? /(^|([\r\n]))【\d+】/g.test(replaceRn(step)) : true);
 
@@ -107,19 +91,6 @@ const getStepsData = datas => {
     .map(v => v[1])
     .filter(d => d.data || d.action || d.result);
 };
-
-// const getAddId = (datas, field) => {
-//   const testMap = datas.reduce((prev, cur) => {
-//     const _cur = cur?.toJSON();
-//     if (_cur) {
-//       prev.set(_cur.reference?.objectId, _cur.objectId);
-//     }
-
-//     return prev;
-//   }, new Map());
-
-//   return testMap.get(field.itemId);
-// };
 
 export const runImport = async () => {
   const { data, appFieldsData } = global.triggerParams;
@@ -292,32 +263,6 @@ export const runImport = async () => {
       })
       .filter(d => d !== null);
 
-    // const newRepoObj = appFieldsData
-    //   .map(field => {
-    //     const repoData = repoDatas.find(gro => gro.path === getGroupPath(field.group).join('/'));
-
-    //     if (!repositoryMap.has(repoData?.objectId)) {
-    //       const repository = new TestParseObj({
-    //         objectId: item?.objectId,
-    //       });
-
-    //       repositoryMap.set(repoData?.objectId, repository);
-    //     }
-
-    //     const getDetailIds = () => {
-    //       const ids = (repoData?.testDetailIds ?? []).concat(
-    //         repositoryMap.get(repoData?.objectId).toJSON()?.testDetailIds ?? [],
-    //       );
-
-    //       return ids?.concat([getAddId(testManagerTestData, field)]);
-    //     };
-
-    //     repositoryMap.get(repoData?.objectId).set('testDetailIds', getDetailIds());
-
-    //     return repoData?.objectId ? repositoryMap.get(repoData?.objectId) : null;
-    //   })
-    //   .filter(d => d !== null);
-
     return await saveAllObject(needToUpdateRepoTest);
   };
 
@@ -370,9 +315,6 @@ export const runImport = async () => {
 
     // 绑定测试用例到用例库
     await handleFieldsData(testManagerTestData);
-
-    // const href = `osc/workspaces/${workspaceKey}`
-    // window.open(href)
 
     return {
       code: 200,

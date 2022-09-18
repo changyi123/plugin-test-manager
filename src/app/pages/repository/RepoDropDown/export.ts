@@ -2,7 +2,7 @@ import { utils as xlsxUtils, write as xlsxWrite } from 'sheetjs-style';
 import FileSave from 'file-saver';
 import Parse from '@/lib/parse';
 import { getTestEntitiesByQuery } from '@/lib/api/common';
-import { TestType } from '@/lib/constants';
+import { TestLinkType, TestType } from '@/lib/constants';
 import { CustomField, TestConfig, TestRelation } from '@/lib/models';
 import { Item } from '@/lib/types/App';
 import { Step } from '@/lib/types/Test';
@@ -14,6 +14,7 @@ import { arrayToTree } from '@/lib/utils/arrayToTree';
 import { getCustomFields } from '@/lib/api/proxima';
 import { SYSTEM_FIELD } from '@/lib/constants';
 import { difference } from 'lodash';
+import { getlinkedTestEntityByQuery, getTestEntityByQuery } from '@/lib/api/item';
 
 export type TreeNode = {
   key: string;
@@ -57,9 +58,12 @@ const getTestGroupPath = (path?: string) => ({
   所属分组: path ?? '',
 });
 
-const getStatus = (statusMap: any, status?: string) => ({
-  最新执行状态: statusMap.get(status || 'TODO') ?? '未开始',
-});
+const getStatus = (statusMap: any, status?: Record<string, string>, planId?: string) =>
+  planId
+    ? {
+        最新执行状态: statusMap.get(status?.[planId] || 'TODO') ?? '未开始',
+      }
+    : {};
 
 const getTestPlan = planData => {
   return {
@@ -91,33 +95,30 @@ const getExcelData = async (data: any) => {
   let testPlanObj = {};
 
   if (planId) {
-    const { results: testPlan } = await getTestEntitiesByQuery(
-      {
+    const { list: testPlan } = await getTestEntityByQuery({
+      query: {
         type: TestType.Plan,
-        workspaceKey: workspaceKey,
-        in: [planId],
+        workspaceKey,
+        id: planId,
       },
-      {
-        limit: 9999,
-      },
-    );
+    });
 
     testPlanObj = getTestPlan(testPlan[0]);
   }
 
-  return results.map(test => ({
+  return results.map(item => ({
     ...testPlanObj,
-    ...getTestGroupPath(repoDataMap.get(test.repository?.objectId)),
-    ...getItemInfo(test.reference, priorityInfo),
-    ...getTestInfo(test),
-    ...getStatus(itemStatus, test.status),
+    ...getTestGroupPath(repoDataMap.get(item.repository)),
+    ...getItemInfo(item, priorityInfo),
+    ...getTestInfo(item),
+    ...getStatus(itemStatus, item.status, planId),
   }));
 };
 
 /** 获取测试用例数据 */
 const getTestInfo = data => {
   return {
-    ...getTestInfoByDetail(data.detail),
+    ...getTestInfoByDetail(data),
   };
 };
 
@@ -170,10 +171,10 @@ const getPriority = (values?: Record<string, unknown>, priInfo?: any) =>
   priInfo?.data.customData.find(list => list.key === values?.priority)?.name ?? '';
 
 /** 获取事项数据 */
-const getItemInfo = (datas: Item, priInfo: any) => ({
-  标题: datas.name,
-  负责人: getAssignee(datas?.values),
-  优先级: getPriority(datas?.values, priInfo),
+const getItemInfo = (item: Item, priInfo: any) => ({
+  标题: item.name,
+  负责人: getAssignee(item?.values),
+  优先级: getPriority(item?.values, priInfo),
 });
 
 const getTestIdsByFrom = async (id: string) => {
@@ -188,7 +189,7 @@ const getTestIdsByFrom = async (id: string) => {
     .filter(Boolean);
 };
 
-export const getTestRepoGroupIds = (datas: any[], checkedId: string) => {
+export const getTestRepoGroupIds = (datas: any[], checkRepoKey: string) => {
   const treeData = arrayToTree(
     datas.map(d => ({
       name: d.name,
@@ -220,7 +221,7 @@ export const getTestRepoGroupIds = (datas: any[], checkedId: string) => {
       return prev;
     }, []);
 
-  return getGroupIds(treeToArray(treeData).filter(d => d.key === checkedId));
+  return getGroupIds(treeToArray(treeData).filter(d => d.key === checkRepoKey));
 };
 
 /** 导出用例 */
@@ -229,18 +230,14 @@ const importTestInfo = async (args: ImportArgs, excelData = []) => {
 
   if (type === 'exportPlan') {
     // 获取当前测试计划下的测试用例
-    const testDataIds = await getTestIdsByFrom(checkedId);
-    // 获取测试用例,允许跨空间
-    const { results } = await getTestEntitiesByQuery(
-      {
-        type: TestType.Case,
-        // workspaceKey: workspace.key,
-        in: testDataIds,
+    const { list: results } = await getlinkedTestEntityByQuery({
+      query: {
+        workspaceKey: workspace.key,
       },
-      {
-        limit: 9999,
-      },
-    );
+      linkType: TestLinkType.CaseLinkPlan,
+      sourceIds: [checkedId],
+      destinationType: TestType.Case,
+    });
 
     excelData = await getExcelData({
       results,
@@ -248,28 +245,26 @@ const importTestInfo = async (args: ImportArgs, excelData = []) => {
       planId: checkedId,
     });
   } else {
+    const checkRepoKey = checkedId;
     const repoData = await getRepositoryData([workspace.key]);
 
     // 用例库导出不允许跨空间
-    const { results } = await getTestEntitiesByQuery(
-      {
+    const { list: results } = await getTestEntityByQuery({
+      query: {
         type: TestType.Case,
         workspaceKey: workspace.key,
       },
-      {
-        limit: 9999,
-      },
-    );
+    });
 
-    const groupIds = getTestRepoGroupIds(repoData, checkedId);
+    const groupIds = getTestRepoGroupIds(repoData, checkRepoKey);
 
     const _results =
       type === 'exportAll'
         ? results
         : results.filter(d =>
-            checkedId === UNGROUPED_FOLDER_KEY
+            checkRepoKey === UNGROUPED_FOLDER_KEY
               ? !d.repository?.name
-              : groupIds.includes(d.repository?.objectId),
+              : groupIds.includes(d.repository),
           );
 
     excelData = await getExcelData({ results: _results, repoData });
