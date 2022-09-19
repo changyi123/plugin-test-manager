@@ -80,6 +80,7 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
             workspaceKey: workspaceKey,
             type: TestType.Case,
           },
+          limit: 9999,
           descending: [],
           onlySelectId: false,
         });

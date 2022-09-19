@@ -123,6 +123,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
           id: getTestDetailIdsByReport(getReportData(selectedNode), 'ids'),
         },
         ...baseQueryOptions,
+        limit: 9999,
         onlySelectId: false,
       });
 

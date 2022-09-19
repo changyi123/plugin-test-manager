@@ -9,7 +9,7 @@ const trimData = datas => `${datas}`?.trim() ?? '';
 // 根据数据是否超过 1000 条来截取数据
 const getDataByLength = d => (isMoreThanThousands(d) ? d.slice(0, 1000) : d);
 
-const isFilterGroup = group => group?.split?.('/').filter(d => trimData(d)).length > 8;
+const isFilterGroup = group => `${group ?? ''}`?.split('/').filter(d => trimData(d)).length > 8;
 
 // 过滤不符合条件数据
 const filterData = d => d.filter(item => item.name && !isFilterGroup(item.group));
@@ -24,7 +24,7 @@ const isTwoChar = d => /[^\x00-\xff]/g.test(d);
 
 // 获取字符串字符数
 const getCharNum = d =>
-  d?.split?.('').reduce((prev, cur) => {
+  `${d ?? ''}`?.split('').reduce((prev, cur) => {
     prev = prev + (isTwoChar(cur) ? 2 : 1);
 
     return prev;
@@ -182,7 +182,7 @@ export const runValidate = async () => {
             curPrev = {
               ...curPrev,
               [getFiledByValue(key, maps)]: value,
-              事项类型: itemTypeName,
+              类型: itemTypeName,
             };
             return curPrev;
           }, {}),
@@ -200,7 +200,7 @@ export const runValidate = async () => {
       : getDataByFieldKey(filterData(getDataByLength(clone(d))), fieldMapping) || [],
     fieldMapping: {
       ...fieldMapping,
-      事项类型: 'itemType',
+      类型: 'itemType',
     },
     stop: false,
   });

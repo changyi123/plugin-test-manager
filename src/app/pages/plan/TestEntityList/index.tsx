@@ -1,11 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useCallback, useState } from 'react';
 import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
-import {
-  deleteTestEntities,
-  removeTestRelationsWithCondition,
-  updateTestRunDesignee,
-} from '@/lib/api/common';
+import { deleteTestEntities, updateTestRunDesignee } from '@/lib/api/common';
 import Field from '@/components/common/Field';
 import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
 import RepositoryGroup from '@/components/business/RepositoryGroup';
@@ -17,16 +13,20 @@ import TestRunModal, {
 } from '@/components/business/TestRunModal';
 import { useMemoizedFn, useRequest } from 'ahooks';
 import { DeleteOutlined, FlagOutlined, UserOutlined } from '@ant-design/icons';
-import { updateItemAssignee } from '@/lib/api/proxima';
 import { UserCell } from '@projectproxima/components';
 import { useUserCellUserDataProp } from '@/lib/hooks/useProxima';
 import { usePageContext } from '../hook';
 import { useListener } from '@projectproxima/proxima-sdk-js';
 
 import cx from './index.less';
-import { getlinkedTestEntityByQuery, getTestEntityByQuery } from '@/lib/api/item';
+import {
+  deleteTestEntity,
+  getlinkedTestEntityByQuery,
+  getStatsTestPlan,
+  getTestEntityByQuery,
+  updateTestEntity,
+} from '@/lib/api/item';
 import { TestLinkType, TestType } from 'common/constant';
-import { TestRelationType } from '@/lib/constants';
 
 interface TestEntityListProps {
   loading?: boolean;
@@ -87,86 +87,6 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     }
 
     setTableLoading(true);
-    const include = queryParams?.include ?? [
-      'detailStatus',
-      'status',
-      'sortIndex',
-      'runReferenceDetail.reference',
-      'runReferenceDetail.repository',
-      'executor',
-      'designee',
-    ];
-
-    const select = queryParams?.select ?? [
-      'detailStatus',
-      'status',
-      'sortIndex',
-      'runReferenceDetail.reference',
-      'runReferenceDetail.repository',
-      'executor',
-      'designee',
-    ];
-
-    // const { list, total } = await getTestEntitiesByRelationWithOrder(
-    //   TestRelationType.ExecutionRelRun,
-    //   {
-    //     from: [selectedExecution?.objectId],
-    //   },
-    //   {
-    //     queryParams,
-    //     include,
-    //     select,
-    //     testDetailIds: requestScopedTestDetailIds?.filter(Boolean),
-    //     descendingBy: 'createdAt',
-    //     parseMiddleware: async query => {
-    //       const testQuery = new Parse.Query(Test);
-    //       const [itemSelector, testManageSelector] = selectors ?? [];
-    //       let needUpdate = false;
-    //       if (!isEmpty(itemSelector)) {
-    //         // 只有一个选择器，且 name value 为空时，不需要执行 iql 筛选逻辑
-    //         const onlyOneEmptyNameSelector =
-    //           Object.keys(itemSelector).length === 1 &&
-    //           itemSelector.name &&
-    //           !itemSelector.name.value;
-
-    //         if (!onlyOneEmptyNameSelector) {
-    //           const ids = await fetchItemFromIql(itemSelector, workspaceKey);
-    //           needUpdate = true;
-    //           if (ids?.length) {
-    //             testQuery.containedIn('reference', ids);
-    //           } else {
-    //             testQuery.doesNotExist('reference');
-    //           }
-    //         }
-    //       }
-
-    //       if (!isEmpty(testManageSelector)) {
-    //         needUpdate = true;
-    //         // 处理非执行人的字段
-    //         selectorToParse(
-    //           testQuery,
-    //           omit(testManageSelector, ['test_executor', 'test_designee']),
-    //         );
-    //       }
-
-    //       let jointQuery = new Parse.Query(Test).matchesQuery('runReferenceDetail', testQuery);
-
-    //       // 处理执行人
-    //       const userSelector = pick(testManageSelector, ['test_executor', 'test_designee']);
-    //       if (!isEmpty(userSelector)) {
-    //         const userQuery = new Parse.Query(Test);
-    //         Object.keys(userSelector).forEach(key => {
-    //           simpleToParse(userQuery, userSelector[key]);
-    //         });
-    //         jointQuery = Parse.Query.and(jointQuery, userQuery);
-    //       }
-
-    //       if (needUpdate) {
-    //         query.matchesQuery('to', jointQuery);
-    //       }
-    //     },
-    //   },
-    // );
 
     setTableLoading(false);
 
@@ -212,20 +132,15 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         descending: ['createdAt'],
       });
 
-      // TODO 待修改
-      // const { list: runs } = await getlinkedTestEntityByQuery({
-      //   query: {
-      //     workspaceKey: workspaceKey,
-      //   },
-      //   linkType: TestLinkType.CaseLinkPlan,
-      //   sourceIds: list.map(d => d.objectId),
-      //   destinationType: TestType.Case,
-      // });
+      const stats = await getStatsTestPlan({
+        planIds: [selectedTestPlan.objectId] as any,
+        select: ['executionCount'],
+      });
 
       const list = testDeatils.map(detail => ({
         ...detail,
         selectedTestPlanId: selectedTestPlan.objectId,
-        relRuns: [],
+        ...(stats?.[selectedTestPlan.objectId] ?? {}),
       }));
 
       setTableLoading(false);
@@ -235,10 +150,10 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         total: total,
       };
     },
-    [workspaceKey, requestScopedTestDetailIds, selectors],
+    [workspaceKey, requestScopedTestDetailIds, selectedTestPlan.objectId, selectors],
   );
 
-  // 获取当前计划或者当前测试任务的全部测试用例 ID
+  // 获取执行任务 getter
   const executionTableDataGetter = useCallback(
     async queryParams => {
       const { list, total } = await getlinkedTestEntityByQuery({
@@ -261,12 +176,9 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   );
 
   const removeTestRelation = React.useCallback(
-    async (selectedTestPlanId, testDetailIds) => {
+    async (_, testDetailIds) => {
       if (!Array.isArray(testDetailIds)) return;
-      await removeTestRelationsWithCondition(TestRelationType.PlanRelDetail, {
-        from: selectedTestPlanId,
-        to: testDetailIds,
-      });
+      await deleteTestEntity(testDetailIds);
       await scopedTestDetailRefresh();
 
       notification.success({
@@ -327,7 +239,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       title: <span>执行任务次数</span>,
       width: 140,
       render(_, rowData) {
-        return rowData.relRuns?.length ?? 0;
+        return rowData.executionCount ?? 0;
       },
     },
     {
@@ -345,7 +257,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
               });
             }}
           >
-            移除
+            移除1
           </a>
         );
       },
@@ -485,8 +397,8 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   const selectionActionNodes = React.useMemo(() => {
     const handleDelete = () => {
       if (hasRowSelected) {
-        actionConfirm('该操作会将所选测试用例从测试计划中移除，是否继续操作？', () => {
-          removeTestRelation(selectedTestPlan?.objectId, actionRef.current.selectedRowKeys);
+        actionConfirm('该操作会将所选测试用例从测试计划中移除，是否继续操作？', async () => {
+          await deleteTestEntity(actionRef.current.selectedRowKeys);
           actionRef.current.resetSelectedRowKeys();
           tableSelectionToggleEvent.emit(false);
         });
@@ -497,7 +409,15 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     const handleAssigneeChange = async assignees => {
       setTableLoading(true);
       const testIds = actionRef.current.selectedRowKeys;
-      await updateItemAssignee(testIds, assignees);
+
+      await updateTestEntity(
+        testIds.map(d => ({
+          objectId: d,
+          values: {
+            assignees,
+          },
+        })),
+      );
 
       setTimeout(() => {
         actionRef.current.refresh();

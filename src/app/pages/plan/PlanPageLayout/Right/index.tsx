@@ -5,12 +5,13 @@ import RepoDropDown from '@/pages/repository/RepoDropDown';
 import TestEntitySelectorModal, {
   ActionType as ModelActionType,
 } from '@/components/business/TestEntitySelectorModal';
-import { extendFields, RepositoryModel, TestRelationType, TestType } from '@/lib/constants';
+import { extendFields, RepositoryModel, TestLinkType, TestType } from '@/lib/constants';
 import { useUpdateEffect } from 'ahooks';
 import TestEntityList from '../../TestEntityList';
 import { usePageContext } from '../../hook';
 import { useSetTableHeight } from './hooks';
 import ExecutionStatus from '../ExecutionStatus';
+import { updateTestEntity } from '@/lib/api/item';
 
 import cx from './index.less';
 
@@ -128,26 +129,24 @@ const Right: React.FC<RightProps> = props => {
   }, [activedType]);
 
   const addTestDetail = async () => {
-    const testDetailIds = await testEntitySelectorRef.current.open();
-
+    const itemData = await testEntitySelectorRef.current.open();
     const ignoreTestDetailIds = selectedTestPlan?.refTestDetails?.map(item => item.objectId) ?? [];
-    const relations = testDetailIds
-      .filter(d => !ignoreTestDetailIds.includes(d))
-      .map(testPlanId => ({
-        relationType: TestRelationType.PlanRelDetail,
-        from: selectedTestPlan?.objectId,
-        to: testPlanId,
-      }));
+    const needUpdateTest = itemData.filter(d => !ignoreTestDetailIds.includes(d.objectId));
 
-    if (!relations.length) {
+    if (!needUpdateTest.length) {
       return notification.warning({
         message: '未选择测试用例',
       });
     }
 
     try {
-      // TODO 新增测试用例到测试计划
-      // await createTestRelation(relations);
+      await updateTestEntity(
+        needUpdateTest.map(item => ({
+          objectId: item.objectId,
+          linkType: TestLinkType.CaseLinkPlan,
+          linkItems: (item.linkItems ?? []).concat(selectedTestPlan.objectId),
+        })),
+      );
     } catch (error) {
       // eslint-disable-next-line no-console
       console.log('error', error);
