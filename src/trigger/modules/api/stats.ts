@@ -16,12 +16,12 @@ type TestRunEntityType = TestEntity<TestType.Run>;
 type TestCaseEntityType = TestEntity<TestType.Case>;
 type TestExecutionEntityType = TestEntity<TestType.Execution>;
 
-const buildStatusResult = (ids, selectKeys) => {
+const buildStatsResult = (ids, selectKeys, defaultValues = {}) => {
   // {[id]: Record<selectKeys>: undefined}
   return ids.reduce(
     (acc, id) => ({
       ...acc,
-      [id]: Object.fromEntries(selectKeys.map(key => [key])),
+      [id]: Object.fromEntries(selectKeys.map(key => [key, defaultValues?.[key]])),
     }),
     {},
   );
@@ -38,7 +38,11 @@ export const testPlanStats = async () => {
 
   try {
     // 创建
-    const result = buildStatusResult(planIds, select);
+    const result = buildStatsResult(planIds, select, {
+      caseCount: 0,
+      caseStatus: {},
+      executionCount: 0,
+    });
     // 测试执行用例统计数据
     if (select.includes('caseStatus') || select.includes('caseCount')) {
       const {
@@ -129,7 +133,9 @@ export const testExecutionStats = async () => {
 
   try {
     // 创建
-    const result = buildStatusResult(executionIds, select);
+    const result = buildStatsResult(executionIds, select, {
+      runStatus: {},
+    });
     // 测试执行用例统计数据
     if (select.includes('runStatus')) {
       const {
