@@ -80,7 +80,6 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
           id: testDetailIds,
         },
         ...paginationParams,
-        descending: ['createdAt'],
       });
 
       setTableLoading(false);

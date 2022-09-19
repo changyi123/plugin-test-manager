@@ -52,6 +52,8 @@ const TestPlanList: React.FC<any> = () => {
         linkType: TestLinkType.CaseLinkPlan,
         sourceIds: list.map(d => d.objectId),
         destinationType: TestType.Case,
+        descending: [],
+        onlySelectId: false,
       });
 
       const testPlans = _.chain(list)

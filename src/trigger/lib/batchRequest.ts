@@ -1,3 +1,4 @@
+import pick from 'lodash/pick';
 import { logTimeCost } from '../lib/logger';
 import parallelLimit from 'async/parallelLimit';
 import { deleteItems, updateItems, createItems } from './coreApi';
@@ -16,20 +17,23 @@ export const batchDeleteItems = async (itemIds: string[]) => {
 
 /** 更新测试实体 */
 export const batchUpdateItems = async (data: Partial<TestEntity>[]) => {
-  const itemData = data.map(data => ({
-    ...data,
-    objectId: data.objectId,
-    originalValues: data.values,
-    values: testEntityToItemValues(data),
-  }));
+  const itemData = data.map(data => {
+    // 允许更新自定义字段（支持内置字段 assignee. property）
+    // 其他自定义字段不能进行更新
+    const customValues = pick(data.values, ['assignee', 'property']);
+    return {
+      ...data,
+      objectId: data.objectId,
+      originalValues: customValues,
+      values: testEntityToItemValues(data),
+    };
+  });
 
   const taskQueue = itemData.map(item => async () => {
     const values = compactNilValue({
-      // TODO: 还有哪些字段需要批量更新？
       name: item.name,
       values: {
-        // TODO: 不允许更新非测试管理的自定义字段？
-        // ...item.originalValues,
+        ...item.originalValues,
         ...item.values,
       },
     });

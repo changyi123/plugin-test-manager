@@ -147,7 +147,7 @@ export const runValidate = async () => {
     });
 
     const itemType = await getData(false, 'ItemType', {
-      key: testMangerConfig?.get('itemTypeMap')?.TestDetail,
+      key: testMangerConfig?.get('itemTypeMap')?.TestCase,
       // 测试管理隐藏事项不被过滤
       __context: {
         displayModule: 'plugin.testManager',

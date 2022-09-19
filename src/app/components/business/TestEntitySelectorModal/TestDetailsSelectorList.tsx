@@ -6,6 +6,9 @@ import emptyImg from '@/icons/svg/empty-data.png';
 import cx from './TestDetailsSelectorList.less';
 import { CaretDownOutlined, CaretUpOutlined } from '@ant-design/icons';
 import { getTestEntityByQuery } from '@/lib/api/item';
+import { TestType } from '@/lib/constants';
+import { FieldKey } from 'common/types/api';
+
 interface TestDetailsSelectorListProps {
   workspaceKey?: string;
   selectedNode?: any;
@@ -99,21 +102,31 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
   // 查询当前用例库下所有测试用例
   const { data: curTestList = [], loading: curTestListLoading } = useRequest(
     async () => {
-      const baseQueryOptions = {
-        ascending: orderByCratedAt === 'asc' ? ['sortIndex', 'createdAt'] : [],
-        descending: orderByCratedAt === 'desc' ? ['sortIndex', 'createdAt'] : [],
-      } as any;
+      const baseQueryOptions: {
+        ascending?: FieldKey[];
+        descending: FieldKey[];
+      } =
+        orderByCratedAt === 'asc'
+          ? {
+              ascending: ['createdAt'],
+              descending: [],
+            }
+          : {
+              descending: ['createdAt'],
+            };
 
-      // 获取用例id
-      const detailIds = getTestDetailIdsByReport(getReportData(selectedNode), 'ids');
-
-      // 获取当前空间内所有的测试实体
-      const { list } = await getTestEntityByQuery({
-        query: { id: detailIds, name: detailSearchValue, workspaceKey },
+      const { list: data } = await getTestEntityByQuery({
+        query: {
+          workspaceKey: workspaceKey,
+          type: TestType.Case,
+          name: detailSearchValue,
+          id: getTestDetailIdsByReport(getReportData(selectedNode), 'ids'),
+        },
         ...baseQueryOptions,
+        onlySelectId: false,
       });
 
-      return list.map(d => ({
+      return data.map(d => ({
         ...d,
         label: d.name,
         value: d.objectId,

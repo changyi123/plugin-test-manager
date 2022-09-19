@@ -1,6 +1,6 @@
 import React from 'react';
 import { Input } from 'antd';
-import { TestEntity } from '@/lib/types/Test';
+import { Step } from '@/lib/types/Test';
 import TestStep from '@/components/business/TestStep';
 import { getStepInitialData } from '@/components/business/TestStep/helper';
 import RepositorySelectorField from '@/components/business/RepositorySelectorField';
@@ -9,8 +9,8 @@ import cx from './TestDetailForm.less';
 
 export type ValueType = {
   repository: string | null;
-  steps: TestEntity['detail']['steps'];
-  precondition: TestEntity['detail']['precondition'];
+  steps: Step[];
+  precondition: string;
 };
 
 type TestDetailFormProps = {

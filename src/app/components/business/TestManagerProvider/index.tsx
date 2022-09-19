@@ -25,204 +25,142 @@ import {
   TestType,
 } from '@/lib/constants';
 import { updateTestEntity } from '@/lib/api/item';
-import { getItemByIQL } from '@/lib/api/proxima';
 
 const ItemCreateSuccessEventType = 'itemCreateSuccess';
 
 /** 获取测试实体，如果不存在创建 */
 const getOrCreateTestEntity = async (
-  itemId: string | null,
-  options?: { extraData?: Record<string, any>; notice: boolean },
+  itemId: string,
+  options?: {
+    repository?: string | null;
+    fields: Record<string, any>;
+    itemData?: Record<string, any>;
+    type?: string;
+    notice: boolean;
+  },
 ) => {
   if (!itemId) return null;
+  let testEntity;
+  const { itemData, type } = options;
   const storeValues = store.get(ExtensionValType.CREATE_OR_UPDATE_ITEM);
-  let {
-    items: [testEntity],
-  } = await getItemByIQL({ itemId });
 
-  // 查询不到测试实体则直接创建
-  if (!testEntity) {
-    const [item] = await getItemByIds([itemId]);
+  const testConfig = await getTestConfig({
+    workspaceKey: itemData?.workspace?.key,
+  });
+  const itemTypeMap = testConfig?.get('itemTypeMap');
 
-    const testConfig = await getTestConfig({
-      workspaceKey: item?.workspace?.key,
-    });
-    const itemTypeMap = testConfig?.get('itemTypeMap');
-
-    if (itemTypeMap) {
-      const testType = getKeyByValue(itemTypeMap, item?.itemType.key) as TestType;
-      // 额外需要创建的字段
-      let extraFields = {};
-      // 测试用例所属模块字段
-      // let repository = options?.repository;
-
-      if (!testType) {
-        // 创建失败，通知用户无法创建测试实体
-        options?.notice === true &&
-          notification.open({
-            message: '提示',
-            description: '事项所属空间未配置测试管理关联类型',
-          });
-        return null;
-      }
-
-      // 测试用例创建
-      if (testType === TestType.Case) {
-        // 测试用例创建时需要生成默认 sortIndex
-        extraFields = {
-          ...extraFields,
-          sortIndex: generateSortIndex(),
-        };
-        // 添加事项创建 panel 的数据
-        if (storeValues?.[CREATE_ITEM_STORE_FIELD_KEY]) {
-          // const { repository: storedRepository, ...detail } =
-          //   storeValues[CREATE_ITEM_STORE_FIELD_KEY];
-          // // repository = storedRepository;
-          // extraFields = {
-          //   ...extraFields,
-          //   detail,
-          // };
-        }
-        console.info('extraFields', extraFields);
-      }
-      // testEntity = await updateTestEntity([
-      //   {
-      //     objectId: testEntity.objectId,
-      //     key: testEntity.key,
-      //     values: {
-      //       r_test_manager_type: extraData.type,
-      //       r_test_manager_repository: extraData?.repository,
-      //     },
-      //   },
-      // ]);
+  if (itemTypeMap) {
+    let needCreatedItem = {};
+    const testType = getKeyByValue(itemTypeMap, itemData?.itemType.key) as TestType;
+    // 额外需要创建的字段
+    let extraFields = {};
+    if (!testType) {
+      // 创建失败，通知用户无法创建测试实体
+      options?.notice === true &&
+        notification.open({
+          message: '提示',
+          description: '事项所属空间未配置测试管理关联类型',
+        });
+      return null;
     }
-  }
-  // 重新查询 testEntity，保持返回数据一致
-  const {
-    items: [newTestEntity],
-  } = await getItemByIQL({ itemId });
-  testEntity = newTestEntity;
 
+    // 测试用例创建
+    if (testType === TestType.Case) {
+      // 测试用例创建时需要生成默认 sortIndex
+      extraFields = {
+        ...extraFields,
+        sortIndex: generateSortIndex(),
+      };
+      // 添加事项创建 panel 的数据
+      if (storeValues?.[CREATE_ITEM_STORE_FIELD_KEY]) {
+        const { repository: storedRepository, ...detail } =
+          storeValues[CREATE_ITEM_STORE_FIELD_KEY];
+        // extraFields = {
+        //   ...extraFields,
+        //   detail,
+        // };
+        const fields = Object.entries(detail).reduce((prev, [filed, value]) => {
+          prev[`r_test_manager_${filed}`] = value;
+
+          return prev;
+        }, {});
+        needCreatedItem = {
+          ...fields,
+          r_test_manager_repository: storedRepository,
+          r_test_manager_sortIndex: generateSortIndex(1),
+        };
+      }
+      console.info('extraFields', extraFields);
+    }
+
+    const { data } = await updateTestEntity([
+      {
+        objectId: itemData.objectId,
+        name: itemData.name,
+        values: {
+          ...needCreatedItem,
+          r_test_manager_type: type,
+        },
+      },
+    ]);
+    testEntity = data?.[0];
+  }
   console.info('new testEntity', testEntity);
+
   return testEntity;
 };
 
 /** 获取并创建多个测试实体 */
-// const getOrBatchCreateTestEntities = async (
-//   itemIdList: string[],
-//   options?: {
-//     repository?: string | null;
-//     fields: Record<string, any>;
-//     storeValueList: Record<string, any>[];
-//     notice: boolean;
-//   },
-// ) => {
-//   if (!Array.isArray(itemIdList)) return null;
-//   let testEntities = await fetchItems(itemIdList);
+const getOrBatchCreateTestEntities = async (
+  itemIdList: string[],
+  options?: {
+    repository?: string | null;
+    fields: Record<string, any>;
+    itemList?: Record<string, any>[];
+    storeValueList: Record<string, any>[];
+    type: string;
+    notice: boolean;
+  },
+) => {
+  const { itemList, type } = options;
+  if (!Array.isArray(itemIdList)) return null;
 
-//   // 查询结果数量小于实际参数数量（事项不存在对应的测试管理实体数据）
-//   // 创建测试管理实体
-//   if (testEntities.length < itemIdList.length) {
-//     // 批量获取无法保证顺序，所以需要重新排序
-//     const shuffledItemDataList = await getItemByIds(itemIdList);
-//     const itemDataList = itemIdList.map(id =>
-//       shuffledItemDataList.find(itemData => itemData.objectId === id),
-//     );
-//     const firstItemData = itemDataList[0];
-//     // 第一项不存在则执行返回
-//     if (!firstItemData) return null;
+  // 测试用例创建
+  // 添加事项创建 panel 的数据
+  const storeValueWithItemIdMap = (
+    Array.isArray(options.storeValueList) ? options.storeValueList : []
+  )
+    .filter(Boolean)
+    .reduce(
+      (map, { itemId, ...restFields }) => ({
+        ...map,
+        [itemId]: restFields[CREATE_ITEM_STORE_FIELD_KEY],
+      }),
+      {},
+    );
 
-//     // 多空间 key
-//     const multipleWorkspaceKeys: string[] = union(
-//       itemDataList.map(itemData => itemData?.workspace?.key).filter(Boolean),
-//     );
-//     // 获取空间配置数据
-//     const testConfigs = await getTestConfigByWorkspaceKeys(multipleWorkspaceKeys);
+  const needCreatedTestEntities = itemList.map((item, index) => {
+    const restFields = storeValueWithItemIdMap[item.objectId] ?? {};
 
-//     // 多空间类型映射配置
-//     const itemTypeMappingWorkspaceMap = testConfigs.reduce(
-//       (acc, cur) => ({
-//         ...acc,
-//         [cur.workspaceKey]: cur.itemTypeMap,
-//       }),
-//       {},
-//     );
+    const fields = Object.entries(restFields).reduce((prev, [filed, value]) => {
+      prev[`r_test_manager_${filed}`] = value;
 
-//     // 根据 itemData 匹配测试实体类型
-//     const getMatchedTestType = itemData =>
-//       getKeyByValue(
-//         itemTypeMappingWorkspaceMap[itemData.workspace?.key],
-//         itemData.itemType?.key,
-//       ) as TestType;
+      return prev;
+    }, {});
+    return {
+      name: item.name,
+      objectId: item.objectId,
+      values: {
+        ...fields,
+        r_test_manager_sortIndex: generateSortIndex(index + 1),
+        r_test_manager_type: type,
+      },
+    };
+  });
+  const { data: details } = await updateTestEntity(needCreatedTestEntities);
 
-//     // 过滤事项关联和第一个不一致的用例数据
-//     const firstItemMatchTestType = getMatchedTestType(firstItemData);
-
-//     // 需要被创建测试实体的事项数据
-//     // 1. 和第一个事项对应的测试实体需要保持一致，不一致忽略创建
-//     // 2. 创建支持跨空间创建，不同空间对应不同的类型，需要对该逻辑进行处理
-//     const needCreatedItemDataList = itemDataList.filter(
-//       itemData => getMatchedTestType(itemData) === firstItemMatchTestType,
-//     );
-
-//     if (!firstItemMatchTestType) {
-//       // 创建失败，通知用户无法创建测试实体
-//       options?.notice === true &&
-//         notification.open({
-//           message: '提示',
-//           description: '事项所属空间未配置测试管理关联类型',
-//         });
-//       return null;
-//     }
-
-//     // 测试用例创建
-//     // 添加事项创建 panel 的数据
-//     const storeValueWithItemIdMap = (
-//       Array.isArray(options.storeValueList) ? options.storeValueList : []
-//     )
-//       .filter(Boolean)
-//       .reduce(
-//         (map, { itemId, ...restFields }) => ({
-//           ...map,
-//           [itemId]: restFields[CREATE_ITEM_STORE_FIELD_KEY],
-//         }),
-//         {},
-//       );
-
-//     const needCreatedTestEntities = needCreatedItemDataList.map((itemData, index) => {
-//       const { repository, ...restFields } = storeValueWithItemIdMap[itemData.objectId] ?? {};
-
-//       let fields = restFields;
-//       // 测试用例创建时需要生成默认 sortIndex
-//       if (firstItemMatchTestType === TestType.Case) {
-//         fields = {
-//           detail: restFields,
-//           sortIndex: generateSortIndex(index + 1),
-//         };
-//       }
-//       return {
-//         fields,
-//         repository,
-//         type: firstItemMatchTestType,
-//         itemId: itemData.objectId,
-//         workspaceKey: itemData.workspace?.key,
-//       };
-//     });
-
-//     await createTestEntities(needCreatedTestEntities);
-
-//     const itemId = needCreatedItemDataList.map(itemData => itemData.objectId);
-
-//     // 重新查询 testEntity，保持返回数据一致
-//     testEntities = await fetchItems(itemId);
-//     console.info(
-//       'new testEntity',
-//       testEntities?.map(item => item.toJSON()),
-//     );
-//   }
-
-//   return testEntities;
-// };
+  return details;
+};
 
 type RepositoryDataProviderProps = {
   itemId?: string;
@@ -320,20 +258,13 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
 
       // 缺陷类型不需要创建测试管理测试实体
       if (extraData.type !== TestType.TestDefect) {
-        // testEntity = await getOrCreateTestEntity(itemData.objectId, {
-        //   notice: true,
-        //   extraData,
-        // });
-        testEntity = await updateTestEntity([
-          {
-            objectId: itemData.objectId,
-            key: itemData.key,
-            values: {
-              r_test_manager_type: extraData.type,
-              r_test_manager_repository: extraData?.repository,
-            },
-          },
-        ]);
+        testEntity = await getOrCreateTestEntity(params.itemId, {
+          repository: extraData?.repository,
+          fields: extraData.fields,
+          itemData,
+          type: extraData.type,
+          notice: true,
+        });
       }
       eventBus.dispatch(messageKey, {
         extraData,
@@ -349,7 +280,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
   const itemBatchCreateSuccessCb = React.useCallback(
     async params => {
       // 缺陷类型不需要创建测试实体
-      const { extraData, itemIdList } = params;
+      const { extraData, storeValueList, itemIdList } = params;
       if (!extraData?.useItemBatchCreate) return;
 
       const shuffledItemDataList = await getItemByIds(itemIdList);
@@ -369,16 +300,17 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
       if (!hasArrayItem(itemList)) return;
       // 缺陷类型不需要创建测试管理测试实体
       if (extraData.type !== TestType.TestDefect) {
-        const detailList = itemList.map(itemData => ({
-          objectId: itemData.objectId,
-          name: itemData.name,
-          key: itemData.key,
-          values: {
-            r_test_manager_type: extraData.type,
-            r_test_manager_repository: extraData?.repository,
+        const testEntityList = await getOrBatchCreateTestEntities(
+          itemList.map(d => d.objectId),
+          {
+            notice: true,
+            storeValueList,
+            itemList,
+            fields: extraData.fields,
+            type: extraData.type,
+            repository: extraData?.repository,
           },
-        }));
-        const { data: testEntityList } = await updateTestEntity(detailList);
+        );
 
         // if (!hasArrayItem(testEntityList)) return;
 

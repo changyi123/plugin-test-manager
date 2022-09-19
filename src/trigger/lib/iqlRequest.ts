@@ -194,7 +194,6 @@ export const iqlRequest: IqlRequestType = async params => {
       ...registeredFieldParams,
     };
 
-    // TODO: 类型问题
     const {
       payload: { count, items },
     } = await iqlSearch(
@@ -204,7 +203,7 @@ export const iqlRequest: IqlRequestType = async params => {
         fields,
         ...pagination,
       }),
-    )
+    );
 
     // 关联查询添加 source 字段
     const appendLinkSourceField = testEntityList => {
