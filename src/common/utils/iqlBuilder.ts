@@ -167,8 +167,8 @@ export default class IQLBuilder {
 
     const iqlOrderString = this._context.order.reduce((iql, order, index) => {
       const orderSyntaxStr = !iql ? 'order by' : '';
-      const endToken = index + 1 !== this._context.order.length ? ', ' : '';
-      return `${iql} ${orderSyntaxStr} ${OrderProcessor(order.column, order.type)}${endToken}`;
+      const endToken = index + 1 !== this._context.order.length ? ',' : '';
+      return `${iql}${orderSyntaxStr} ${OrderProcessor(order.column, order.type)}${endToken}`;
     }, '');
 
     return `${iqlWhereString} ${iqlOrderString}`;
