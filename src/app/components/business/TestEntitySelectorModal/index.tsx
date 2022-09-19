@@ -65,11 +65,11 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
   const dataCacheDictRef = React.useRef({});
   const eventBusRef = React.useRef<any>(new EventBus());
   // 空间条件
-  const workspaceKeyCondition = '';
-  // const workspaceKeyCondition = React.useMemo(
-  //   () => (isolateTestType.includes(testType) ? workspace?.key : ''),
-  //   [isolateTestType, testType, workspace?.key],
-  // );
+  // TODO 空间隔离
+  const workspaceKeyCondition = React.useMemo(
+    () => (isolateTestType.includes(testType) ? workspace?.key : ''),
+    [isolateTestType, testType, workspace?.key],
+  );
 
   // 获取租户所有的配置
   const { runAsync: getAllConfigs } = useRequest(
@@ -137,8 +137,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
   // 获取测试缺陷类型
   const { data: testDefectsMapping, runAsync: getTestDefectsMapping } = useRequest(async () => {
     const configs = await getAllConfigs();
-    // const isolateWithWorkspace = isolateTestType.includes(TestType.TestDefect);
-    const isolateWithWorkspace = false;
+    const isolateWithWorkspace = isolateTestType.includes(TestType.TestDefect);
 
     return configs.reduce((acc, item) => {
       const config = item.toJSON();

@@ -2,7 +2,6 @@
 import React from 'react';
 import { Tree } from 'antd';
 import _, { CollectionChain } from 'lodash';
-import { getTestEntitiesByQuery } from '@/lib/api/common';
 import { useNoExpiredRequest } from '@/lib/hooks/useRequest';
 import { FileOpen, FileClose, CaretDownOutlined } from '@/icons';
 import { useTestRepositoryFolderTree } from '@/lib/hooks/useTest';
@@ -11,10 +10,10 @@ import { UNGROUPED_FOLDER_KEY } from '@/pages/repository/constant';
 import { hasArrayItem, escapeMatchesQueryArg } from '@/lib/utils/helper';
 import { useRequest, useMemoizedFn, useDeepCompareEffect } from 'ahooks';
 import { traverseTreeNodes, getTreeNodeByKey, reverseTreeNodes } from '@/pages/repository/util';
+import { getTestEntityByQuery } from '@/lib/api/item';
+import { TestType } from '@/lib/constants';
 
 import cx from './style.less';
-import { getTestEntityByQuery } from '@/lib/api/item';
-import { TestType } from 'common/constant';
 
 const { DirectoryTree } = Tree;
 
