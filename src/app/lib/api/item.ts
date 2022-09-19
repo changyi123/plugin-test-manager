@@ -3,13 +3,9 @@ import { QueryLinkedTestEntityPayload, QueryTestEntityPayload } from 'common/typ
 
 // 查询测试用例事项
 export const getTestEntityByQuery = async (props: QueryTestEntityPayload) => {
-  const _props = Object.assign({}, props, {
-    descending: ['createdAt'],
-  });
-
   const {
     data: { data },
-  } = await fetch.post('/api/app/osc/test_manager/webhooks/api-query-test-entity', _props);
+  } = await fetch.post('/api/app/osc/test_manager/webhooks/api-query-test-entity', props);
 
   return {
     list: data.list ?? [],

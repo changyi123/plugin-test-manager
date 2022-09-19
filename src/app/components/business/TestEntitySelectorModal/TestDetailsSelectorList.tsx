@@ -1,12 +1,14 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useMemo, useState } from 'react';
 import { Checkbox, Empty, Select, Spin, Tooltip } from 'antd';
-import { getTestEntitiesByQuery } from '@/lib/api/common';
 import { useRequest } from 'ahooks';
 import emptyImg from '@/icons/svg/empty-data.png';
 
 import cx from './TestDetailsSelectorList.less';
 import { CaretDownOutlined, CaretUpOutlined } from '@ant-design/icons';
+import { getTestEntityByQuery } from '@/lib/api/item';
+import { TestType } from '@/lib/constants';
+import { FieldKey } from 'common/types/api';
 
 interface TestDetailsSelectorListProps {
   workspaceKey?: string;
@@ -101,29 +103,31 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
   // 查询当前用例库下所有测试用例
   const { data: curTestList = [], loading: curTestListLoading } = useRequest(
     async () => {
-      const baseQueryOptions = {
-        ascendingBy: orderByCratedAt === 'asc' ? ['sortIndex', 'createdAt'] : null,
-        descendingBy: orderByCratedAt === 'desc' ? ['sortIndex', 'createdAt'] : null,
-      };
+      const baseQueryOptions: {
+        ascending?: FieldKey[];
+        descending?: FieldKey[];
+      } =
+        orderByCratedAt === 'asc'
+          ? {
+              ascending: ['createdAt'],
+            }
+          : {
+              descending: ['createdAt'],
+            };
 
-      // 获取当前空间内所有的测试实体
-      const { results: data } = await getTestEntitiesByQuery(
-        {
-          nameLike: detailSearchValue,
-          in: getTestDetailIdsByReport(getReportData(selectedNode), 'ids'),
-          workspaceKey,
+      const { list: data } = await getTestEntityByQuery({
+        query: {
+          workspaceKey: workspaceKey,
+          type: TestType.Case,
+          name: detailSearchValue,
+          id: getTestDetailIdsByReport(getReportData(selectedNode), 'ids'),
         },
-        {
-          limit: 99999,
-          include: ['objectId', 'repository', 'reference'],
-          select: ['objectId', 'repository', 'reference'],
-          ...baseQueryOptions,
-        },
-      );
+        ...baseQueryOptions,
+      });
 
       return data.map(d => ({
         ...d,
-        label: d.reference.name,
+        label: d.name,
         value: d.objectId,
       }));
     },

@@ -91,7 +91,7 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
 
       const repositoryTestDetailIdMap = processChain
         .reduce((map, test) => {
-          const repositoryId = test.repository?.objectId ?? UNGROUPED_FOLDER_KEY;
+          const repositoryId = test.repository ?? UNGROUPED_FOLDER_KEY;
           const existedTestDetailIds = map.get(repositoryId) ?? [];
           map.set(repositoryId, [...existedTestDetailIds, test.objectId].filter(Boolean));
           return map;

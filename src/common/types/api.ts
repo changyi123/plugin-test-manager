@@ -6,7 +6,7 @@ import { TestEntity } from '../types/test';
 import { TestLinkType, TestType, IQLFieldNameMapping } from '../constant';
 
 /** 已知字段 */
-type FieldKey = keyof typeof IQLFieldNameMapping;
+export type FieldKey = keyof typeof IQLFieldNameMapping;
 
 export type StatusCode = 'ok' | 'error';
 
