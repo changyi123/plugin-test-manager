@@ -1,17 +1,13 @@
-import React from 'react';
+import React, { useCallback, useState } from 'react';
 import { Typography, message, Space, Button, Divider, Popconfirm } from 'antd';
 import { DownOutlined } from '@ant-design/icons';
 import { useRequest } from 'ahooks';
-import { TestRelationType, TestType } from '@/lib/constants';
+import { TestRelationType, TestType, TestLinkType } from '@/lib/constants';
 import PanelTable, { ActionType } from '@/components/business/PanelTable';
 import DropDownButton from '@/components/business/DropDownButton';
 import { toggleTestRunStatus, createTestRunAndRelation } from '@/lib/api/runs';
 import { useTestConfig } from '@/lib/hooks/useContext';
-import {
-  removeTestRelationsWithCondition,
-  getTestEntitiesByRelationWithOrder,
-  getTestEntitiesByRelation,
-} from '@/lib/api/common';
+import { getTestEntitiesByRelation } from '@/lib/api/common';
 import TestEntitySelectorModal, {
   ActionType as SelectorActionType,
 } from '@/components/business/TestEntitySelectorModal';
@@ -20,28 +16,31 @@ import TestRunModal, {
 } from '@/components/business/TestRunModal';
 import { getRootContainer, goToItemDetailPage } from '@/lib/utils/helper';
 import { StatusBadge } from '@/components/business/Status';
-import { useAllRelTestEntities } from '@/lib/hooks/useTest';
 import { INITIAL_STATUS_KEY } from '@/lib/constants';
 import StatusProcessBar from '@/components/business/StatusProcessBar';
-
+import { fetchLinkList, removeCaseLinkPlan } from '@/lib/api/common';
 import cx from './index.less';
 
 const Test = () => {
-  const { testEntity } = useTestConfig();
+  const { testEntity, workspace } = useTestConfig();
   const tableActionRef = React.useRef<ActionType>();
 
   const selectorModalRef = React.useRef<SelectorActionType>();
   const testRunModalActionRef = React.useRef<TestRunModalActionType>();
 
-  const { testEntities: allTestEntities, refresh: getAllRelTestEntities } = useAllRelTestEntities(
-    TestRelationType.ExecutionRelRun,
-    {
-      from: testEntity,
-    },
-    {
-      include: ['runReferenceDetail', 'status'],
-    },
-  );
+  const [allTestEntities, setAllTestEntities] = useState([]);
+
+  // 获取测试任务下的测试执行
+  const getAllRelTestEntities = useCallback(async () => {
+    const { list, total } = await fetchLinkList({
+      linkType: TestLinkType.RunLinkExecution,
+      sourceIds: testEntity?.objectId,
+      destinationType: TestType.Execution,
+      workspace: workspace?.objectId,
+    });
+    setAllTestEntities(list);
+    return { list, total };
+  }, [testEntity?.objectId, workspace?.objectId]);
 
   // 所有的测试执行
   const allTestRunIds = React.useMemo(
@@ -57,9 +56,8 @@ const Test = () => {
   }, [allTestEntities]);
 
   const refreshDepData = React.useCallback(() => {
-    getAllRelTestEntities();
     tableActionRef.current.refresh();
-  }, [getAllRelTestEntities]);
+  }, []);
 
   const { data: testPlanData } = useRequest(
     async () => {
@@ -79,33 +77,28 @@ const Test = () => {
   );
 
   const tableDataSourceGetter = React.useCallback(
-    queryParams => {
-      return getTestEntitiesByRelationWithOrder(
-        TestRelationType.ExecutionRelRun,
-        { from: testEntity },
-        {
-          queryParams: queryParams,
-          select: ['status', 'sortIndex', 'runReferenceDetail'],
-          include: ['status', 'sortIndex', 'runReferenceDetail.reference'],
-        },
-      );
-    },
-    [testEntity],
+    () => getAllRelTestEntities(),
+    [getAllRelTestEntities],
   );
 
   const removeTestRelation = React.useCallback(
     async testRunIds => {
       if (!Array.isArray(testRunIds)) return;
-      await removeTestRelationsWithCondition(TestRelationType.ExecutionRelRun, {
-        from: testEntity,
-        to: testRunIds,
-      });
+      // 删除测试任务和测试执行的关联
+      await Promise.all(
+        testRunIds.map(id =>
+          removeCaseLinkPlan({
+            testPlan: [testEntity?.objectId],
+            testDetail: allTestEntities.find(item => item.objectId === id),
+          }),
+        ),
+      );
 
       refreshDepData();
 
       message.success('删除成功');
     },
-    [refreshDepData, testEntity],
+    [allTestEntities, refreshDepData, testEntity?.objectId],
   );
 
   // table column 数据

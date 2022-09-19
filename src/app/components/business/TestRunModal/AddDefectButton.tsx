@@ -32,16 +32,16 @@ const AddDefectButton: React.FC<AddDefectButtonProps> = props => {
   const currentRef = React.useRef(null);
   const testEntitySelectorRef = React.useRef<ActionType>();
   const createDefect = React.useCallback(async () => {
-    const { item: defectItem } = await createItemUseModal({
-      type: TestType.TestDefect,
-    });
+    // const { item: defectItem } = await createItemUseModal({
+    //   type: TestType.TestDefect,
+    // });
 
-    onLoading?.();
-    // 创建事项关联
-    await addDefect(TestToDefect, testId, [defectItem.objectId]);
-    const needAddedItemIds = [].concat(currentDefectIds, defectItem.objectId).filter(Boolean);
-    onSave?.(needAddedItemIds);
-    message.success('缺陷新建成功');
+    // onLoading?.();
+    // // 创建事项关联
+    // await addDefect(TestToDefect, testId, [defectItem.objectId]);
+    // const needAddedItemIds = [].concat(currentDefectIds, defectItem.objectId).filter(Boolean);
+    // onSave?.(needAddedItemIds);
+    // message.success('缺陷新建成功');
   }, [createItemUseModal, testId, TestToDefect, onSave, currentDefectIds, onLoading]);
 
   const addExistedDefect = async () => {

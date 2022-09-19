@@ -10,9 +10,10 @@ import { TestTypeNameMapping } from '@/lib/constants';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import DebounceSelect from '@/components/common/DebounceSelect';
 import { getRootContainer, hasArrayItem } from '@/lib/utils/helper';
-import { getAllTestConfigs, getTestEntities } from '@/lib/api/common';
+import { getAllTestConfigs } from '@/lib/api/common';
 import InheritTestDetail from './InheritTestDetail';
 import TestDetailSelector from './TestDetailSelector';
+import { TestFiledKeyMapping } from 'common/constant';
 
 import cx from './index.less';
 
@@ -64,6 +65,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
   const dataCacheDictRef = React.useRef({});
   const eventBusRef = React.useRef<any>(new EventBus());
   // 空间条件
+  // TODO 空间隔离
   const workspaceKeyCondition = React.useMemo(
     () => (isolateTestType.includes(testType) ? workspace?.key : ''),
     [isolateTestType, testType, workspace?.key],
@@ -99,7 +101,8 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
                 return {
                   ...result,
                   // 如果当前空间的测试类型有空间隔离配置，则返回 []
-                  [key]: isolateTestType.includes(key as TestType) ? [] : value,
+                  // [key]: isolateTestType.includes(key as TestType) ? [] : value,
+                  [key]: '',
                 };
               },
               {},
@@ -144,42 +147,23 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
     }, []);
   });
 
-  // 类型查询条件
-  const itemTypeCondition = React.useMemo(() => {
-    return (isTestDefectType ? testDefectsMapping : testTypeMapping?.[testType]) ?? [];
-  }, [testType, testTypeMapping, isTestDefectType, testDefectsMapping]);
-
-  // 获取测试事项
+  // 获取测试用例
   const { runAsync: getTestEntityByKeyword, loading: searchLoading } = useRequest(
     async keyword => {
       const { items } = await getItemByIQL({
         limit: 50,
         nameOrKeyLike: keyword,
-        itemType: itemTypeCondition,
+        [TestFiledKeyMapping.type]: testType,
         orderBy: ['修改时间', 'desc'],
         workspace: workspaceKeyCondition,
       });
 
       const itemDict = keyBy(items, 'objectId');
-      let testEntityDict = {} as Record<string, any>;
-      if (isTestDefectType) {
-        // 测试缺陷没有测试实体, 直接用 iql 查询出来的结果
-        testEntityDict = itemDict;
-      } else {
-        const testEntities = await getTestEntities({ itemId: Object.keys(itemDict) });
-        testEntityDict = keyBy(
-          testEntities
-            .map(testEntity => {
-              const data = testEntity.toJSON();
-              const reference = itemDict[data.reference?.objectId];
-              // 填充 reference
-              data.reference = reference;
-              return reference ? data : null;
-            })
-            .filter(Boolean),
-          'objectId',
-        );
-      }
+      const testEntityDict = itemDict as Record<string, any>;
+      // if (isTestDefectType) {
+      //   // 测试缺陷没有测试实体, 直接用 iql 查询出来的结果
+      //   testEntityDict = itemDict;
+      // }
 
       // 缓存 testEntity
       dataCacheDictRef.current = {
@@ -187,8 +171,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
         ...testEntityDict,
       };
 
-      return Object.values(testEntityDict).map(entity => {
-        const item = entity?.reference ?? entity;
+      return Object.values(testEntityDict).map(item => {
         return {
           label: (
             <div>
@@ -198,7 +181,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
               <span style={{ fontSize: 12, color: '#aaa' }}>({item.key})</span>
             </div>
           ),
-          value: entity.objectId,
+          value: item.objectId,
         };
       });
     },

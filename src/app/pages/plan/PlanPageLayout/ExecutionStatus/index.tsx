@@ -3,8 +3,6 @@ import React, { useEffect } from 'react';
 import { StatusProgress } from '@/components/business/Status';
 import { Spin } from 'antd';
 import { useRequest } from 'ahooks';
-import { TestRelationType } from '@/lib/constants';
-import { getTestEntitiesByRelationWithOrder } from '@/lib/api/common';
 import { usePageContext } from '../../hook';
 
 import cx from './index.less';
@@ -19,37 +17,38 @@ const ExecutionStatus: React.FC<ExecutionStatusProps> = ({ selectedExecution, se
   const { data, refresh, loading } = useRequest(
     async () => {
       if (!selectedExecution?.objectId) return [];
+      // TODO 查询测试执行任务状态 统计数据
 
-      const { list: testRuns } = await getTestEntitiesByRelationWithOrder(
-        TestRelationType.ExecutionRelRun,
-        {
-          from: [selectedExecution?.objectId],
-        },
-        {
-          // FIXME: 优化查询速度
-          workspaceKey,
-          queryParams: { limit: 9999 },
-          descendingBy: 'createdAt',
-          select: [
-            'status',
-            'sortIndex',
-            'runReferenceDetail.reference',
-            'runReferenceDetail.repository',
-            'executor',
-            'designee',
-          ],
-          include: [
-            'status',
-            'sortIndex',
-            'runReferenceDetail.reference',
-            'runReferenceDetail.repository',
-            'executor',
-            'designee',
-          ],
-        },
-      );
+      // const { list: testRuns } = await getTestEntitiesByRelationWithOrder(
+      //   TestRelationType.ExecutionRelRun,
+      //   {
+      //     from: [selectedExecution?.objectId],
+      //   },
+      //   {
+      //     // FIXME: 优化查询速度
+      //     workspaceKey,
+      //     queryParams: { limit: 9999 },
+      //     descendingBy: 'createdAt',
+      //     select: [
+      //       'status',
+      //       'sortIndex',
+      //       'runReferenceDetail.reference',
+      //       'runReferenceDetail.repository',
+      //       'executor',
+      //       'designee',
+      //     ],
+      //     include: [
+      //       'status',
+      //       'sortIndex',
+      //       'runReferenceDetail.reference',
+      //       'runReferenceDetail.repository',
+      //       'executor',
+      //       'designee',
+      //     ],
+      //   },
+      // );
 
-      const testRunList = testRuns
+      const testRunList = []
         // 过滤测试用例事项已被删除的执行
         .filter(run => run.runReferenceDetail?.reference)
         // 对测试用例进行排序

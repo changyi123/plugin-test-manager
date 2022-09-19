@@ -2,15 +2,7 @@ import React, { useCallback, useRef, useState } from 'react';
 import { usePageContext } from '@/pages/plan/hook';
 import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
 import { Button, Dropdown, Menu, notification } from 'antd';
-import {
-  deleteTestEntities,
-  getTestEntitiesByQuery,
-  getTestEntitiesByRelation,
-} from '@/lib/api/common';
-import { TestRelationType, TestType } from '@/lib/constants';
 import _ from 'lodash';
-import { TestPlanEntity } from '@/pages/plan/type';
-import { deleteItems } from '@/lib/api/proxima';
 import { actionConfirm, goToItemDetailPage } from '@/lib/utils/helper';
 import { useBaseAction } from '@/lib/hooks/useContext';
 import { StatusProgress } from '../Status';
@@ -21,11 +13,8 @@ import { components } from 'proxima-sdk';
 const { ItemIcon } = components.Components.Common;
 
 import cx from './index.less';
-
-// TODO: 类型问题
-type TestPlan = TestPlanEntity & {
-  refTestDetails: any[];
-};
+import { deleteTestEntity, getlinkedTestEntityByQuery, getTestEntityByQuery } from '@/lib/api/item';
+import { TestLinkType, TestType } from 'common/constant';
 
 const TestPlanList: React.FC<any> = () => {
   const actionRef = React.useRef<BusinessTableActionType>();
@@ -46,51 +35,41 @@ const TestPlanList: React.FC<any> = () => {
   const tableDataGetter = useCallback(
     async queryParams => {
       setTableLoading(true);
-
-      const { results, count } = await getTestEntitiesByQuery(
-        {
-          selectors,
-          workspaceKey,
+      const { list, total } = await getTestEntityByQuery({
+        query: {
+          workspaceKey: workspaceKey,
           type: TestType.Plan,
         },
-        {
-          ...queryParams,
-          ignoreDeletedItemData: true,
-          descendingBy: ['createdAt'],
-          include: ['reference.status'],
-        },
-      );
+        selectors,
+        ...queryParams,
+        descending: ['createdAt'],
+      });
 
-      const { list: allRelationTestDetails } = await getTestEntitiesByRelation(
-        TestRelationType.PlanRelDetail,
-        {
-          from: results.map(item => item.objectId),
+      const { list: linkTestDetails } = await getlinkedTestEntityByQuery({
+        query: {
+          workspaceKey: workspaceKey,
         },
-        {
-          // FIXME: 优化查询速度
-          workspaceKey,
-          select: ['detailStatus'],
-          include: ['detailStatus'],
-          queryParams: { limit: 9999, offset: 0 },
-        },
-      );
+        linkType: TestLinkType.CaseLinkPlan,
+        sourceIds: list.map(d => d.objectId),
+        destinationType: TestType.Case,
+        descending: [],
+        onlySelectId: false,
+      });
 
-      const testPlans = _.chain(results)
+      const testPlans = _.chain(list)
         .map(testPlan => {
           return {
             ...testPlan,
-            refTestDetails: allRelationTestDetails.filter(
-              testDetail => _.get(testDetail, 'relation.from.objectId') === testPlan.objectId,
-            ),
+            refTestDetails: linkTestDetails.filter(d => d.linkItems?.includes(testPlan.objectId)),
           };
         })
-        .value() as TestPlan[];
+        .value();
 
       setTableLoading(false);
 
       return {
-        list: testPlans,
-        total: count,
+        list: testPlans ?? [],
+        total: total ?? 0,
       };
     },
     [workspaceKey, selectors],
@@ -98,23 +77,19 @@ const TestPlanList: React.FC<any> = () => {
 
   const handleDelete = async data => {
     await actionConfirm('该操作会当前删除测试计划以及测试计划关联的测试用例和任务，是否继续？');
-    await Promise.all([
-      deleteTestEntities([data.objectId]),
-      deleteItems([data.reference?.objectId]),
-    ]);
+    await deleteTestEntity([data.objectId]);
     actionRef.current.refresh();
     // 重新选中
-    setSelectedTestPlan({} as any);
+    setSelectedTestPlan(null);
     notification.success({
       message: '测试计划删除成功',
     });
   };
 
   const handleView = data => {
-    const itemData = data.reference ?? {};
     goToItemDetailPage({
-      workspaceKey: itemData.workspace?.key,
-      itemKey: itemData.key,
+      workspaceKey: data.workspace?.key,
+      itemKey: data.key,
     });
   };
 
@@ -128,11 +103,9 @@ const TestPlanList: React.FC<any> = () => {
       render(_, rowData) {
         return (
           <div className={'test-plan-title-box'}>
-            {ItemIcon && (
-              <ItemIcon className={'icon'} icon={rowData.reference.itemType?.icon}></ItemIcon>
-            )}
+            {ItemIcon && <ItemIcon className={'icon'} icon={rowData.itemType?.icon}></ItemIcon>}
             <div className={'test-plan-title'} onClick={() => setSelectedTestPlan(rowData)}>
-              {(rowData.reference ?? {}).name}
+              {rowData.name}
             </div>
             <div className={'plan-table-title-menu'}>
               <Dropdown
@@ -160,9 +133,7 @@ const TestPlanList: React.FC<any> = () => {
       title: '执行通过率',
       width: 240,
       render(_, rowData) {
-        const status =
-          rowData?.refTestDetails.map(testDetail => testDetail.detailStatus?.[rowData.objectId]) ??
-          [];
+        const status = rowData?.refTestDetails.map(d => d.caseStatus?.[rowData.objectId]) ?? [];
         const passNum = status.filter(d => d === 'PASSED') ?? [];
         const rate = status.length === 0 ? 0 : passNum.length / status.length;
 

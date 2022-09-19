@@ -11,7 +11,6 @@ import { useBaseAction } from '@/lib/hooks/useContext';
 import FolderTree from '@/pages/repository/FolderTree';
 import PageLayout from '@/components/common/PageLayout';
 import { repositoryFolderTreeEvent } from '@/lib/events';
-import { getTestEntitiesByQuery } from '@/lib/api/common';
 import { useListener } from '@projectproxima/proxima-sdk-js';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
 import { useReactive, useRequest, useMemoizedFn } from 'ahooks';
@@ -29,6 +28,8 @@ import {
 import { UNGROUPED_FOLDER_KEY } from './constant';
 import RepoDropDown from './RepoDropDown';
 import FilterSearch from '@/components/common/FilterSearch';
+import { getTestEntityByQuery } from '@/lib/api/item';
+
 import cx from './index.less';
 
 type GroupedMode = 'all' | 'current';
@@ -74,17 +75,14 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
     async () => {
       // 获取当前空间内所有的测试实体
       const getAllTestDetailEntityIds = async workspaceKey => {
-        const { results: data } = await getTestEntitiesByQuery(
-          {
+        const { list: data } = await getTestEntityByQuery({
+          query: {
+            workspaceKey: workspaceKey,
             type: TestType.Case,
-            workspaceKey,
           },
-          {
-            limit: 99999,
-            include: [],
-            select: ['objectId', 'repository'],
-          },
-        );
+          descending: [],
+          onlySelectId: false,
+        });
 
         // 刷新右侧表单的所属模块字段
         repositoryFolderTreeEvent.dispatch();
@@ -124,19 +122,19 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
 
   const { runAsync: getTestDetailIds } = useRequest(
     async (scopedTestDetailIds: string[]) => {
-      const { results: testDetails } = await getTestEntitiesByQuery(
-        {
-          workspaceKey,
-          selectors: state.selectors,
-          in: scopedTestDetailIds,
+      const { list: testDetails } = await getTestEntityByQuery({
+        query: {
+          workspaceKey: workspaceKey,
           type: TestType.Case,
+          id: scopedTestDetailIds,
         },
-        {
-          offset: 0,
-          limit: 99999,
-          select: ['objectId'],
-        },
-      );
+        selectors: state.selectors,
+        offset: 0,
+        limit: 99999,
+        descending: [],
+        onlySelectId: false,
+      });
+
       return testDetails.map(test => test.objectId);
     },
     {
@@ -220,15 +218,15 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
       },
     });
 
-    const successMessage =
-      testEntityList.length > 1
-        ? `${testEntityList.length}个测试用例新建成功`
-        : `测试用例【${testEntityList[0]?.name}】新建成功`;
+    // const successMessage =
+    //   testEntityList.length > 1
+    //     ? `${testEntityList.length}个测试用例新建成功`
+    //     : `测试用例【${testEntityList[0]?.name}】新建成功`;
+    const successMessage = `测试用例【${testEntityList?.[0]?.name}】新建成功`;
     notification.success({
       message: successMessage,
     });
     await handleDataChange();
-    // tableActionRef.current.refresh();
   };
 
   return (

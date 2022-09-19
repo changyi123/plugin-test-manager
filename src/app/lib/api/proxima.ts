@@ -1,7 +1,7 @@
 /**
  * proxima api 只为获取数据，返回数据为 JSON。不要在插件内修改 proxima 内的数据模型 ！！
  */
-import { pick } from 'lodash';
+import { pick, findKey } from 'lodash';
 import Parse from '@/lib/parse';
 import fetch from '@/lib/utils/fetch';
 import { IQLBuilder } from '@/lib/utils/iql';
@@ -20,7 +20,9 @@ import {
   CustomField,
   ItemTypeScheme,
 } from '@/lib/models';
-import { getRefItemIdsByTestIds } from './common';
+import { getRefItemIdsByTestIds, transferObject } from './common';
+import { TestFiledKeyMapping, BuiltinFieldNameMapping } from '@/lib/constants';
+import { itemToTestEntity } from 'common/utils/dataTransfer';
 
 type IQLPaginationParams = {
   offset?: number;
@@ -42,6 +44,8 @@ export const getItemByIQL = async (
     itemType?: string | string[];
     workspace?: string | string[];
     orderBy?: string[];
+    r_test_manager_type?: string | string[];
+    r_test_manager_repository?: string | string[];
   },
 ) => {
   const {
@@ -81,17 +85,45 @@ export const getItemByIQL = async (
     );
   }
 
+  // 传入测试管理类型
+  const TestFiledValues = Object.values(TestFiledKeyMapping);
+  const testFields = Object.keys(params).reduce((res, key) => {
+    if (TestFiledValues.includes(key as any)) {
+      return [...res, key];
+    }
+    return res;
+  }, []);
+  if (testFields?.length) {
+    testFields.forEach(field => {
+      // 找回定义的key
+      const key = findKey(TestFiledKeyMapping, o => o === field);
+      // 查询值
+      const values = params[field];
+      // 查询条件名称
+      const searchName = BuiltinFieldNameMapping[key];
+      // 拼接查询条件
+      Array.isArray(values) ? iql.whereIn(searchName, values) : iql.where(searchName, values);
+    });
+  }
+
+  // TODO: orderby没有兼容字段
   if (hasArrayItem(orderBy)) {
     iql.orderBy(orderBy[0] || '修改时间', (orderBy[1] as any) || 'desc');
   }
 
-  const { data } = await fetch.post('/parse/api/search', {
+  const {
+    data: { payload },
+  } = await fetch.post('/parse/api/search', {
     iql: iql.toString(),
     from: pagination.offset ?? 0,
     size: pagination.limit ?? 0,
     displayContext: TEST_MANAGER_PLUGIN_KEY,
   });
-  return data.payload;
+  // 转换成测试管理的格式
+  if (payload?.items) {
+    payload.items = payload.items.map(item => transferObject(itemToTestEntity(item)));
+  }
+  return payload;
 };
 
 /**

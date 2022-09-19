@@ -112,10 +112,10 @@ const TestRun: React.FC<TestRunType> = props => {
 
   const handleStatusChange = React.useCallback(
     async status => {
-      await updateTestRun(testRunEntity, {
-        status: status.key,
-        planId: selectedTestPlanId,
-      });
+      // await updateTestRun(testRunEntity, {
+      //   status: status.key,
+      //   planId: selectedTestPlanId,
+      // });
       // 通过类型状态可自动执行到下一条
       if (status.type === PASS_STATUS_TYPE && autoNext && canExecNext) {
         nextTestRun();
@@ -207,19 +207,19 @@ const TestRun: React.FC<TestRunType> = props => {
       (async () => {
         try {
           const steps = await getTestStepsByTestDetailId(testRunData.runReferenceDetail?.objectId);
-          await updateTestRun(
-            testRunEntity,
-            {
-              steps,
-              runDetail: {
-                precondition: refTestDetailData.detail?.precondition,
-              },
-            },
-            {
-              // 初始化更新
-              initialization: true,
-            },
-          );
+          // await updateTestRun(
+          //   testRunEntity,
+          //   {
+          //     steps,
+          //     runDetail: {
+          //       precondition: refTestDetailData.detail?.precondition,
+          //     },
+          //   },
+          //   {
+          //     // 初始化更新
+          //     initialization: true,
+          //   },
+          // );
           refreshTestRun();
         } catch (err) {
           message.error(err.message);

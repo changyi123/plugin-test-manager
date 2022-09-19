@@ -1,9 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React from 'react';
 import { Tree } from 'antd';
-import { TestType } from '@/lib/constants';
 import _, { CollectionChain } from 'lodash';
-import { getTestEntitiesByQuery } from '@/lib/api/common';
 import { useNoExpiredRequest } from '@/lib/hooks/useRequest';
 import { FileOpen, FileClose, CaretDownOutlined } from '@/icons';
 import { useTestRepositoryFolderTree } from '@/lib/hooks/useTest';
@@ -12,6 +10,8 @@ import { UNGROUPED_FOLDER_KEY } from '@/pages/repository/constant';
 import { hasArrayItem, escapeMatchesQueryArg } from '@/lib/utils/helper';
 import { useRequest, useMemoizedFn, useDeepCompareEffect } from 'ahooks';
 import { traverseTreeNodes, getTreeNodeByKey, reverseTreeNodes } from '@/pages/repository/util';
+import { getTestEntityByQuery } from '@/lib/api/item';
+import { TestType } from '@/lib/constants';
 
 import cx from './style.less';
 
@@ -63,18 +63,16 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
   const { data: allTestDetails } = useNoExpiredRequest(
     async () => {
       // 请求所有的用例数据
-      const { results } = await getTestEntitiesByQuery(
-        {
+      const { list } = await getTestEntityByQuery({
+        query: {
+          workspaceKey: workspaceKey,
           type: TestType.Case,
-          workspaceKey,
         },
-        {
-          limit: 99999,
-          select: ['repository'],
-        },
-      );
+        descending: [],
+        onlySelectId: false,
+      });
 
-      return results;
+      return list;
     },
     {
       cacheKey: `folder_tree_data_workspaceKey${workspaceKey}`,
@@ -94,7 +92,7 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
 
       const repositoryTestDetailIdMap = processChain
         .reduce((map, test) => {
-          const repositoryId = test.repository?.objectId ?? UNGROUPED_FOLDER_KEY;
+          const repositoryId = test.repository ?? UNGROUPED_FOLDER_KEY;
           const existedTestDetailIds = map.get(repositoryId) ?? [];
           map.set(repositoryId, [...existedTestDetailIds, test.objectId].filter(Boolean));
           return map;
@@ -221,7 +219,7 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
         ids = selectedFolder.ids;
       }
 
-      onFolderSelect?.(ids, {
+      onFolderSelect?.(scopedTestDetailIds, {
         selectedFolder,
       });
     }

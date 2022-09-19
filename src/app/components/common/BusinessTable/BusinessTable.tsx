@@ -102,7 +102,6 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     selectionActionNodes,
     onHasRowSelected,
     expandChangePage,
-    itemKey = 'reference',
     showPagination = true,
     useColumnSetting = false,
     PaginationFooterRender,
@@ -158,7 +157,6 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     if (selectionMode || !useColumnSetting) return null;
     return (
       <ColumnSetting
-        itemKey={itemKey}
         name={props.name}
         defaultColumnKey={defaultColumnKey}
         titleCellOption={titleCellOption}
@@ -170,7 +168,6 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
   }, [
     selectionMode,
     useColumnSetting,
-    itemKey,
     props.name,
     titleCellOption,
     columns,
@@ -205,11 +202,6 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     // 没有全部的则使用当前页的所有 rowKeys
     return props.allSelectableRowKeys ?? [];
   }, [props.allSelectableRowKeys]);
-
-  const referenceList = useMemo(
-    () => dataSource?.map(d => d?.reference).filter(Boolean),
-    [dataSource],
-  );
 
   React.useEffect(() => {
     const { pagination } = antdTableProps;
@@ -265,9 +257,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
   const SelectionActionHeader = ({ referenceList = [] }) => {
     // eslint-disable-next-line react-hooks/rules-of-hooks
     useDataQuoteStore(referenceList);
-
     if (!selectionMode) return null;
-
     const handleCheck = checked => {
       if (checked) {
         setSelectedRowKeys(allSelectableRowKeys);
@@ -276,12 +266,10 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
         setSelectedRowKeys([]);
       }
     };
-
     const handleClose = () => {
       setSelectionMode(false);
       onSelectionCancel?.();
     };
-
     const disableTableSelectAll = !Array.isArray(props.allSelectableRowKeys);
     // 是否全等 rowKey
     const isSameWithAllRowKeys = !difference(allSelectableRowKeys, selectedRowKeys).length;
@@ -310,7 +298,6 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
 
   const PaginationFooter = () => {
     if (!showPagination) return null;
-
     const pagination = antdTableProps.pagination;
     const handlePaginationChange = (current, pageSize) => {
       setPageSize(pageSize);
@@ -385,7 +372,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
         sessionToken={pluginSDKContext?.context?.env.sessionToken ?? ''}
         applicationId={pluginSDKContext?.context?.env.PROXIMA_APP_ID ?? 'proxima-core'}
       >
-        <SelectionActionHeader referenceList={referenceList} />
+        <SelectionActionHeader referenceList={dataSource} />
         {ColumnSettingMemorizedNode}
         <Table
           sticky={true}

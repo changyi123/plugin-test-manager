@@ -14,6 +14,7 @@ export type TestConfigContextType = {
   };
   workspace?: Workspace;
   testEntity?: BaseTestEntity;
+  setTestEntity: (data: BaseTestEntity) => void;
 };
 /** 测试管理配置 context */
 export const TestConfigContext = React.createContext<TestConfigContextType>(

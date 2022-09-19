@@ -10,34 +10,43 @@ import { BuiltinColumns, columnBuilder } from '@/components/business/PanelTable'
 import TestEntitySelectorModal, {
   ActionType as SelectorActionType,
 } from '@/components/business/TestEntitySelectorModal';
-import { removeCaseLinkPlan, fetchLinkList } from '@/lib/api/common';
+import { removeCaseLinkPlan } from '@/lib/api/common';
 import { alert } from '@/lib/utils/helper';
-import { TestLinkType, TestType } from 'common/constant';
+import { TestType } from 'common/constant';
 import cx from './index.less';
+import { getItemByIQL } from '@/lib/api/proxima';
 
 const Plan = () => {
-  const { testEntity } = useTestConfig();
+  const { testEntity, setTestEntity } = useTestConfig();
   const { createItemUseModal } = useBaseAction();
   const tableActionRef = useRef<ActionType>();
   const selectorModalRef = useRef<SelectorActionType>();
 
-  const [planIds, setPlanIds] = useState();
+  const [planIds, setPlanIds] = useState([]);
+
+  // 更新provider
+  const updateTestEntity = useCallback(async () => {
+    const {
+      items: [data],
+    } = await getItemByIQL({ itemId: testEntity.objectId });
+    setTestEntity(data);
+  }, [setTestEntity, testEntity.objectId]);
 
   // 刷新数据
-  const refreshDepData = useCallback(() => {
+  const refreshDepData = useCallback(async () => {
+    await updateTestEntity();
     tableActionRef.current.refresh();
-  }, []);
+  }, [updateTestEntity]);
 
   const fetchPlanList = useCallback(async () => {
-    // 获取测试用例关联的测试计划
-    const data = await fetchLinkList({
-      linkItems: testEntity.objectId,
-      linkType: TestLinkType.CaseLinkPlan,
-      type: TestType.Case,
-    });
-    return data;
+    const planList = testEntity?.linkItems;
+    if (!planList.length) return { list: [], total: 0 };
+    // 获取测试计划
+    const { items: data } = await getItemByIQL({ itemId: planList });
+    // 获取统计数
+    return { list: data, total: data?.length };
     // 获取统计数量
-  }, [testEntity.objectId]);
+  }, [testEntity?.linkItems]);
 
   // 更新列表数据
   const tableDataSourceGetter = useCallback(async () => {
@@ -115,18 +124,18 @@ const Plan = () => {
   // table column 数据
   const tableColumns = useMemo(() => {
     return [
-      columnBuilder(BuiltinColumns.ItemKey, data => ({
-        item: data.reference,
+      columnBuilder(BuiltinColumns.ItemKey, item => ({
+        item,
       })),
-      columnBuilder(BuiltinColumns.ItemTitle, data => ({
-        item: data.reference,
+      columnBuilder(BuiltinColumns.ItemTitle, item => ({
+        item,
       })),
       {
         title: '测试计划状态',
         key: 'status',
         width: 190,
         render(_, record) {
-          const detailStatuses = record.relTestDetails.map(
+          const detailStatuses = record?.relTestDetails?.map(
             item => item.detailStatus?.[record.objectId],
           );
           return <StatusProgress statuses={detailStatuses} hasSummary />;
@@ -143,18 +152,10 @@ const Plan = () => {
         title: '操作',
         key: 'action',
         fixed: 'right',
-        render: (_, record) => (
-          <a
-            onClick={() =>
-              removeCaseLinkPlan({ testPlan: [record.testRelationId], testDetail: testEntity })
-            }
-          >
-            删除
-          </a>
-        ),
+        render: (_, record) => <a onClick={() => removeTestRelation([record.objectId])}>删除</a>,
       },
     ] as any[];
-  }, [testEntity]);
+  }, [removeTestRelation]);
 
   return (
     <div className={cx('test')}>
@@ -180,7 +181,7 @@ const Plan = () => {
             },
           },
         ]}
-        rowKey="testRelationId"
+        rowKey="objectId"
         columns={tableColumns}
         getDataSource={tableDataSourceGetter}
       />

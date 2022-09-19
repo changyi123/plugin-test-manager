@@ -1,5 +1,5 @@
 import React from 'react';
-import { get, keyBy, noop } from 'lodash';
+import { keyBy, noop } from 'lodash';
 import { TitleCellOption } from './type';
 import { ColumnType } from 'antd/lib/table';
 import { Drawer, Select, Tooltip } from 'antd';
@@ -20,7 +20,6 @@ type ColumnDuckTyping = ColumnType<any> & Record<string, any>;
 
 type ColumnSettingProps = TitleCellOption & {
   name?: string;
-  itemKey: string;
   className?: string;
   defaultColumnKey?: string[];
   additionalColumns?: ColumnDuckTyping[];
@@ -30,7 +29,6 @@ type ColumnSettingProps = TitleCellOption & {
 const ColumnSetting: React.FC<ColumnSettingProps> = props => {
   const {
     name,
-    itemKey,
     className,
     titleCellOption,
     defaultColumnKey,
@@ -58,7 +56,7 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
       resizable: true,
       title: field.name,
       render(_, record) {
-        const itemData = get(record, itemKey);
+        const itemData = record;
         const { text, ...restTableCellProps } = fieldCellsPropDict[field.key] ?? {};
         if (!text || !itemData) return '-';
 

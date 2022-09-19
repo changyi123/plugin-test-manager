@@ -58,6 +58,7 @@ const RepoDropDown = ({
         setPageLoading?.(true);
         if (type === 'repository' && key === 'exportGroup' && !folderKey) {
           message.warning('未选择用例库，请先选择需要导出的用例库');
+          setPageLoading?.(false);
         }
 
         await importTestInfo(

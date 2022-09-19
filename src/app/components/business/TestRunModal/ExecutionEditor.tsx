@@ -27,12 +27,12 @@ const ExecutionEditor: React.FC<ExecutionEditorProps> = props => {
   }, [testRunData]);
 
   const submitExecuteResultDesc = async val => {
-    await updateTestRun(testRunEntity, {
-      runDetail: {
-        ...testRunData.runDetail,
-        executeResultDesc: val,
-      },
-    });
+    // await updateTestRun(testRunEntity, {
+    //   runDetail: {
+    //     ...testRunData.runDetail,
+    //     executeResultDesc: val,
+    //   },
+    // });
 
     await onDataChange();
   };

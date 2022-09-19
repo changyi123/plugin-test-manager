@@ -1,8 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from 'react';
 import { useRequest } from 'ahooks';
-import { deleteTestEntities, getTestEntitiesByRelationWithOrder } from '@/lib/api/common';
-import { TestRelationType } from '@/lib/constants';
+import { deleteTestEntities } from '@/lib/api/common';
 import { Dropdown, Menu, Tooltip } from 'antd';
 import { EllipsisOutlined } from '@ant-design/icons';
 import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
@@ -12,6 +11,8 @@ import { useListener } from '@projectproxima/proxima-sdk-js';
 import { usePageContext } from '../../hook';
 
 import cx from './index.less';
+import { getlinkedTestEntityByQuery } from '@/lib/api/item';
+import { TestLinkType, TestType } from 'common/constant';
 
 interface ExcetionListProps {
   planId: string;
@@ -55,20 +56,32 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
   const { data, refresh, loading } = useRequest(
     async () => {
       if (activedType !== 'TestExecution') return [];
-      const { list } = await getTestEntitiesByRelationWithOrder(
-        TestRelationType.PlanRelExecution,
-        {
-          from: planId ? [planId] : [],
+      // TODO 查询测试执行任务数据
+      // const { list } = await getTestEntitiesByRelationWithOrder(
+      //   TestRelationType.PlanRelExecution,
+      //   {
+      //     from: planId ? [planId] : [],
+      //   },
+      //   {
+      //     workspaceKey,
+      //     select: ['reference', 'workspaceKey'],
+      //     include: ['reference'],
+      //     descendingBy: ['createdAt'],
+      //     ascendingBy: undefined,
+      //     queryParams: { limit: 999, offset: 0 },
+      //   },
+      // );
+
+      const { list } = await getlinkedTestEntityByQuery({
+        query: {
+          workspaceKey: workspaceKey,
         },
-        {
-          workspaceKey,
-          select: ['reference', 'workspaceKey'],
-          include: ['reference'],
-          descendingBy: ['createdAt'],
-          ascendingBy: undefined,
-          queryParams: { limit: 999, offset: 0 },
-        },
-      );
+        linkType: TestLinkType.ExecutionLinkPlan,
+        sourceIds: [planId],
+        destinationType: TestType.Execution,
+        descending: [],
+        onlySelectId: false,
+      });
 
       return list;
     },
@@ -102,14 +115,11 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
 
   const menuClick = (type: string, data) => {
     if (type === 'check') {
-      openItemViewScreen(data.reference.objectId);
+      openItemViewScreen(data.objectId);
     }
     if (type === 'delete') {
       actionConfirm('该操作会将该测试执行任务删除，是否继续操作？', async () => {
-        await Promise.all([
-          deleteTestEntities([data?.objectId]),
-          deleteItems([data.reference.objectId]),
-        ]);
+        // await Promise.all([deleteTestEntities([data?.objectId]), deleteItems([data.objectId])]);
         setSelectedExecution(undefined);
         setRefreshExecution(true);
       });
@@ -139,7 +149,7 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
               setSelectedExecution(d);
             }}
           >
-            <div className={cx('name')}>{d.reference.name}</div>
+            <div className={cx('name')}>{d.name}</div>
             <div className={cx('icon')}>
               <Dropdown overlay={menu(d)} trigger={['hover']}>
                 <EllipsisOutlined className={cx('action', 'right')} style={{ display: 'flex' }} />
@@ -170,8 +180,8 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
                     }}
                   >
                     <div className={cx('name')} onClick={e => e.preventDefault()}>
-                      <Tooltip placement="topLeft" title={d?.reference?.name ?? ''}>
-                        {d?.reference?.name}
+                      <Tooltip placement="topLeft" title={d?.name ?? ''}>
+                        {d?.name}
                       </Tooltip>
                     </div>
                     <div className={cx('icon')}>

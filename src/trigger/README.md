@@ -35,12 +35,12 @@ PGSQL_CLIENT_PASSWORD=proxima
 3. 使用 postman 调试接口，导入下列的 curl，修改参数
 
 ```json
-curl --location --request POST 'localhost:8500/v1/apps/test_manager/production/0.0.1/functions/api-query-test-entity' \
+curl --location --request POST 'localhost:8500/v1/apps/test_manager/production/0.0.1/functions/api-delete-test-entity' \
 --header 'Content-Type: application/json' \
 --data-raw '{
     "applicationId": "osc",
     "appKey": "test_manager",
-    "sessionToken": "r:cd9ea3e7cc9dd3928233de400b95d63c",
+    "sessionToken": "r:4c2ae53fec22b4f67e2772ae6419b2c0",
     "payload": {}
 }'
 
