@@ -18,6 +18,8 @@ type UserPointerInfo = {
 export type BaseTestEntity = {
   /** 事项 ObjectId */
   objectId: string;
+  /** 事项编号 */
+  key: string;
   /** 测试实体类型 */
   type: TestType;
   /** 测试关联项 */

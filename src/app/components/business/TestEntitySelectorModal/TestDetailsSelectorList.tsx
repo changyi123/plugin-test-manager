@@ -1,13 +1,11 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useMemo, useState } from 'react';
 import { Checkbox, Empty, Select, Spin, Tooltip } from 'antd';
-import { getTestEntitiesByQuery } from '@/lib/api/common';
 import { useRequest } from 'ahooks';
 import emptyImg from '@/icons/svg/empty-data.png';
-
 import cx from './TestDetailsSelectorList.less';
 import { CaretDownOutlined, CaretUpOutlined } from '@ant-design/icons';
-
+import { getTestEntityByQuery } from '@/lib/api/item';
 interface TestDetailsSelectorListProps {
   workspaceKey?: string;
   selectedNode?: any;
@@ -102,28 +100,22 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
   const { data: curTestList = [], loading: curTestListLoading } = useRequest(
     async () => {
       const baseQueryOptions = {
-        ascendingBy: orderByCratedAt === 'asc' ? ['sortIndex', 'createdAt'] : null,
-        descendingBy: orderByCratedAt === 'desc' ? ['sortIndex', 'createdAt'] : null,
-      };
+        ascending: orderByCratedAt === 'asc' ? ['sortIndex', 'createdAt'] : [],
+        descending: orderByCratedAt === 'desc' ? ['sortIndex', 'createdAt'] : [],
+      } as any;
+
+      // 获取用例id
+      const detailIds = getTestDetailIdsByReport(getReportData(selectedNode), 'ids');
 
       // 获取当前空间内所有的测试实体
-      const { results: data } = await getTestEntitiesByQuery(
-        {
-          nameLike: detailSearchValue,
-          in: getTestDetailIdsByReport(getReportData(selectedNode), 'ids'),
-          workspaceKey,
-        },
-        {
-          limit: 99999,
-          include: ['objectId', 'repository', 'reference'],
-          select: ['objectId', 'repository', 'reference'],
-          ...baseQueryOptions,
-        },
-      );
+      const { list } = await getTestEntityByQuery({
+        query: { id: detailIds, name: detailSearchValue, workspaceKey },
+        ...baseQueryOptions,
+      });
 
-      return data.map(d => ({
+      return list.map(d => ({
         ...d,
-        label: d.reference.name,
+        label: d.name,
         value: d.objectId,
       }));
     },

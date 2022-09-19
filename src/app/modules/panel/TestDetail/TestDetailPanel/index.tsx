@@ -1,23 +1,17 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Button, Input, Spin } from 'antd';
 import { BlockOutlined } from '@/icons';
 import { useTestConfig } from '@/lib/hooks/useContext';
-import { TestType } from '@/lib/constants';
-import { cloneDeep, keyBy, uniq } from 'lodash';
-import { useDebounceFn, useRequest } from 'ahooks';
+import { cloneDeep } from 'lodash';
+import { useDebounceFn } from 'ahooks';
 
 import { Item } from '@/lib/types/App';
-import { hasArrayItem } from '@/lib/utils/helper';
-import { fetchItems, updateItem } from '@/lib/api/common';
-import { Step, TestEntity } from '@/lib/types/Test';
+import { updateItem } from '@/lib/api/common';
+import { Step } from '@/lib/types/Test';
 import TestStep from '@/components/business/TestStep';
 
 import css from './index.less';
-import { getStepInitialData } from '@/components/business/TestStep/helper';
-
-// 测试详情实体类型
-type TestDetailEntity = TestEntity<TestType.Case>;
 
 export interface fields {
   id: string;
@@ -31,79 +25,30 @@ let firstLoad = true;
 
 const Detail: React.FC = () => {
   const { testEntity } = useTestConfig();
-  const [search, setSearch] = useState(false);
-  const stepsStateRef = React.useRef<TestStep[]>([]);
   const [steps, setStepsState] = useState<TestStep[]>([]);
-  const testEntityDictRef = React.useRef<Record<string, TestDetailEntity>>({});
 
-  const setSteps = useCallback(
-    (steps, notStoreToStateRef?: boolean) => {
-      setStepsState(steps);
-      if (!notStoreToStateRef) {
-        stepsStateRef.current = steps;
-      }
-    },
-    [setStepsState],
-  );
+  const { objectId: testDetailId } = testEntity || {};
 
-  const testDetailData = testEntity;
-  const { objectId: testDetailId } = testDetailData;
-
-  const { loading, runAsync: fetchData } = useRequest(
-    async () => {
-      let { steps } = Object.assign(
-        {
-          steps: [],
-        },
-        testDetailData.detail,
-      );
-
-      // 判断 callTestIds 是否在 testEntityDict 缓存中
-      const callTestIds = uniq(steps.map(step => step.callTestId).filter(Boolean));
-      const testEntityDictIds = Object.keys(testEntityDictRef.current);
-      const hasNotExistedIdInDict = callTestIds.some(id => !testEntityDictIds.includes(id));
-
-      if (hasArrayItem(callTestIds)) {
-        // 没有缓存请求
-        if (hasNotExistedIdInDict) {
-          const testEntities = await fetchItems(callTestIds);
-          const testEntityDict = keyBy(testEntities, 'objectId');
-          testEntityDictRef.current = Object.assign({}, testEntityDictRef.current, testEntityDict);
-        }
-
-        steps = steps.map(step => {
-          if (!step.callTestId) return step;
-          return Object.assign({ itemData: testEntityDictRef.current[step.callTestId] }, step);
-        });
-      }
-
-      return {
-        steps,
-      };
-    },
-    {
-      onSuccess({ steps }) {
-        setSteps(steps.length ? steps : [getStepInitialData()]);
-      },
-      ready: Boolean(testDetailData),
-    },
-  );
+  // 同步步骤
+  useEffect(() => {
+    setStepsState(testEntity.detail?.steps || []);
+  }, [testEntity]);
 
   /** 保存步骤 */
   const saveStep = useCallback(
     async newSteps => {
       if (!newSteps) return;
-      setSteps(newSteps);
+      setStepsState(newSteps);
 
-      const cpDetail = cloneDeep(testEntity.detail);
+      const cpDetail = cloneDeep(testEntity.detail) || { steps: [] };
       cpDetail.steps = newSteps;
       await updateItem(testEntity.objectId, { detail: cpDetail });
     },
-    [setSteps, testEntity],
+    [testEntity],
   );
 
   const { run: handlePreconditionChange } = useDebounceFn(precondition => {
-    const cpDetail = cloneDeep(testEntity.detail);
+    const cpDetail = cloneDeep(testEntity.detail) || { precondition: '' };
     cpDetail.precondition = precondition;
     updateItem(testEntity.objectId, { detail: cpDetail });
   });
@@ -112,32 +57,7 @@ const Detail: React.FC = () => {
     return steps.filter(item => item.callTestId).length;
   }, [steps]);
 
-  const { run: filterSteps } = useDebounceFn(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      if (!stepsStateRef.current?.length) {
-        return;
-      }
-      const inputVal = e.target.value;
-      if (!inputVal) {
-        fetchData();
-        return;
-      }
-      const coverSteps = [];
-      stepsStateRef.current?.forEach(item => {
-        const str = `${item?.action} ${item?.data} ${item?.result} ${item?.itemData?.name} ${item?.itemData?.key}`;
-        if (str.indexOf(inputVal) >= 0) {
-          coverSteps.push(item);
-        }
-      });
-      setSteps(coverSteps, true);
-      setSearch(true);
-    },
-    {
-      wait: 500,
-    },
-  );
-
-  if (loading && firstLoad) {
+  if (firstLoad) {
     firstLoad = false;
     return <Spin />;
   }
@@ -156,50 +76,34 @@ const Detail: React.FC = () => {
   }
 
   return (
-    <Spin spinning={loading}>
-      <div className={css('detail')}>
-        <h6>前置条件</h6>
-        <div className={css('precondition-input')}>
-          <Input.TextArea
-            maxLength={1000}
-            autoSize={{ minRows: 3, maxRows: 6 }}
-            placeholder="请输入测试用例前置条件"
-            defaultValue={testDetailData.detail?.precondition}
-            onBlur={e => handlePreconditionChange(e.target.value)}
-            onChange={e => handlePreconditionChange(e.target.value)}
-          />
-        </div>
-        <h6 className={css('step-header')}>用例步骤</h6>
-        <div className={css('detail__content')}>
-          <div className={css('detail__content__header')}>
-            <div className={css('left detail__content__tips')}>
-              {!search ? <BlockOutlined /> : null}
-              <span>
-                {search
-                  ? `显示${steps.length}个步骤中的${steps.length}个`
-                  : `当前用例继承 ${callTestLen()} 个用例`}
-              </span>
-            </div>
-            <div className={css('right')}>
-              <div className={css('input')}>
-                {/* <Input
-                  allowClear={true}
-                  placeholder="搜索步骤"
-                  suffix={<SearchOutlined />}
-                  onChange={e => filterSteps(e)}
-                /> */}
-              </div>
-            </div>
-          </div>
-          <TestStep
-            canCallTest
-            steps={steps}
-            testDetailId={testDetailId}
-            onChange={steps => saveStep(steps)}
-          />
-        </div>
+    <div className={css('detail')}>
+      <h6>前置条件</h6>
+      <div className={css('precondition-input')}>
+        <Input.TextArea
+          maxLength={1000}
+          autoSize={{ minRows: 3, maxRows: 6 }}
+          placeholder="请输入测试用例前置条件"
+          defaultValue={testEntity.detail?.precondition}
+          onBlur={e => handlePreconditionChange(e.target.value)}
+          onChange={e => handlePreconditionChange(e.target.value)}
+        />
       </div>
-    </Spin>
+      <h6 className={css('step-header')}>用例步骤</h6>
+      <div className={css('detail__content')}>
+        <div className={css('detail__content__header')}>
+          <div className={css('left detail__content__tips')}>
+            <BlockOutlined />
+            <span>{`当前用例继承 ${callTestLen()} 个用例`}</span>
+          </div>
+        </div>
+        <TestStep
+          canCallTest
+          steps={steps}
+          testDetailId={testDetailId}
+          onChange={steps => saveStep(steps)}
+        />
+      </div>
+    </div>
   );
 };
 

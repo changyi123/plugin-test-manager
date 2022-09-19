@@ -6,7 +6,7 @@ import { alert } from '@/lib/utils/helper';
 import { Workspace } from '@/lib/types/App';
 import { DownOutlined } from '@ant-design/icons';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
-import { TestRelationType, INITIAL_STATUS_KEY } from '@/lib/constants';
+import { INITIAL_STATUS_KEY, TestLinkType, TestType } from '@/lib/constants';
 import PanelTable, {
   ActionType,
   BuiltinColumns,
@@ -23,15 +23,9 @@ import TestRunModal, {
 } from '@/components/business/TestRunModal';
 import { QuestionCircleOutlined } from '@/icons';
 import { createTestExecutionAndRelations } from '@/lib/api/runs';
-import {
-  getTestEntitiesByRelation,
-  removeTestRelationsWithCondition,
-  getTestEntitiesByRelationWithOrder,
-  fetchLinkList,
-} from '@/lib/api/common';
+import { removeCaseLinkPlan, fetchLinkList } from '@/lib/api/common';
 import { createTestDetailToPlanRelations } from '@/lib/api/relations';
 import StatusProcessBar from '@/components/business/StatusProcessBar';
-import { TestLinkType, TestType } from 'common/constant';
 import cx from './index.less';
 
 const Test = () => {
@@ -45,15 +39,43 @@ const Test = () => {
 
   // 获取计划下的测试用例
   const getAllRelTestEntities = useCallback(async () => {
-    const linkItems = testEntity.objectId;
-    if (!linkItems) return;
-    const { list } = await fetchLinkList({
+    const sourceIds = testEntity.objectId;
+    if (!sourceIds) return;
+    // TODO: 得获取测试用例，以及关联的测试执行
+    // 获取计划下的所有测试用例
+    const { list: caseList, total } = await fetchLinkList({
       linkType: TestLinkType.CaseLinkPlan,
-      type: TestType.Plan,
-      linkItems,
+      sourceIds: testEntity?.objectId,
+      destinationType: TestType.Plan,
+      workspace: workspace?.objectId,
     });
+
+    // 测试用例关联测试执行
+    const { list: testRuns } = await fetchLinkList({
+      linkType: TestLinkType.CaseLinkPlan,
+      sourceIds: testEntity?.objectId,
+      destinationType: TestType.Plan,
+      workspace: workspace?.objectId,
+    });
+
+    // 组装测试执行
+
+    const list = caseList.map(detail => {
+      return {
+        ...detail,
+        planId: testEntity.objectId,
+        // 关联的测试执行
+        relRuns: testRuns.filter(run => run.runReferenceDetail?.objectId === detail.objectId),
+      };
+    });
+
     setAllTestEntities(list);
-  }, [testEntity.objectId]);
+
+    return {
+      list,
+      total,
+    };
+  }, [testEntity.objectId, workspace?.objectId]);
 
   const { testEntityIds, testEntityStatuses } = useMemo(() => {
     return {
@@ -65,75 +87,12 @@ const Test = () => {
   }, [allTestEntities, testEntity]);
 
   // 刷新依赖数据
-  const refreshDepData = useCallback(() => {
-    getAllRelTestEntities();
-    tableActionRef.current.refresh();
+  const refreshDepData = useCallback(() => getAllRelTestEntities(), [getAllRelTestEntities]);
+
+  const tableDataSourceGetter = useCallback(async () => {
+    const { list, total } = await getAllRelTestEntities();
+    return { list, total };
   }, [getAllRelTestEntities]);
-
-  const tableDataSourceGetter = useCallback(
-    async queryParams => {
-      const [{ list: testDetails, total }, { list: testRuns }] = await Promise.all([
-        getTestEntitiesByRelationWithOrder(
-          TestRelationType.PlanRelDetail,
-          { from: testEntity },
-          {
-            fillItemData: true,
-            queryParams: queryParams,
-            workspaceKey: workspace?.key,
-            select: ['detailStatus'],
-          },
-        ),
-        getTestEntitiesByRelation(
-          TestRelationType.PlanRelExecution,
-          { from: testEntity },
-          {
-            include: ['reference'],
-            queryParams: { limit: 9999 },
-            async resultTransfer(data) {
-              const testExecutionIds = data.list.map(item => item.objectId);
-              const { list: testRuns } = await getTestEntitiesByRelation(
-                TestRelationType.ExecutionRelRun,
-                {
-                  from: testExecutionIds,
-                },
-                {
-                  include: ['objectId', 'runReferenceDetail'],
-                  queryParams: { limit: 9999 },
-                },
-              );
-              return {
-                ...data,
-                list: testRuns.map(run => ({
-                  ...run,
-                  // 关联的 relations
-                  relExecutions: data.list.filter(
-                    item => item.objectId === run.relation.from.objectId,
-                  ),
-                })),
-              };
-            },
-          },
-        ),
-      ]);
-
-      // TODO: 得获取测试用例，以及关联的测试执行
-
-      const list = testDetails.map(detail => {
-        return {
-          ...detail,
-          planId: testEntity.objectId,
-          // 关联的测试执行
-          relRuns: testRuns.filter(run => run.runReferenceDetail?.objectId === detail.objectId),
-        };
-      });
-
-      return {
-        list,
-        total,
-      };
-    },
-    [testEntity, workspace?.key],
-  );
 
   // 创建测试执行
   const createTestExecution = useCallback(async () => {
@@ -216,10 +175,15 @@ const Test = () => {
   const removeTestRelation = useCallback(
     async testDetailIds => {
       if (!Array.isArray(testDetailIds)) return;
-      await removeTestRelationsWithCondition(TestRelationType.PlanRelDetail, {
-        from: testEntity,
-        to: testDetailIds,
-      });
+      // 移除测试用例和计划的关联
+      await Promise.all(
+        testDetailIds.map(id =>
+          removeCaseLinkPlan({
+            testPlan: [testEntity?.objectId],
+            testDetail: allTestEntities.find(item => item.objectId === id),
+          }),
+        ),
+      );
 
       refreshDepData();
 
@@ -228,7 +192,7 @@ const Test = () => {
         message: `${testDetailIds.length} 个测试用例从测试计划中删除`,
       });
     },
-    [refreshDepData, testEntity],
+    [allTestEntities, refreshDepData, testEntity?.objectId],
   );
 
   // table column 数据
@@ -351,7 +315,7 @@ const Test = () => {
       <TestEntitySelectorModal
         actionRef={selectorModalRef}
         title="添加测试用例到当前测试计划"
-        testType={TestType.Plan}
+        testType={TestType.Case}
         ignoreTestEntityIds={testEntityIds}
       />
       {/* 状态条的变化 */}

@@ -1,7 +1,5 @@
 import React from 'react';
-import { omit } from 'lodash';
 import { useAllTestWorkspace } from '@/lib/hooks/useTest';
-import { getTestEntitiesByQuery } from '@/lib/api/common';
 import SearchInput from '@/components/business/SearchInput';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import { hasArrayItem } from '@/lib/utils/helper';
@@ -12,6 +10,8 @@ import {
   default as RepositoryFolderTree,
 } from '@/components/business/RepositoryFolderTree';
 import { CaretDownOutlined, CaretUpOutlined, SearchOutlined, CheckOutlined } from '@/icons';
+import { TestType } from '@/lib/constants';
+import { getTestEntityByQuery } from '@/lib/api/item';
 
 import cx from './InheritTestDetail.less';
 
@@ -81,38 +81,31 @@ const InheritTestDetail: React.FC<InheritTestDetailProps> = props => {
   const { data: testDetailData, loading: testDetailDataLoading } = useInfiniteScroll(
     async params => {
       const { offset = 0 } = params ?? ({} as any);
-
-      const baseQueryParams = omit(baseSearchState, ['orderByCratedAt']);
+      // 组装排序
       const baseQueryOptions = {
-        ascendingBy: baseSearchState.orderByCratedAt === 'asc' ? ['sortIndex', 'createdAt'] : null,
-        descendingBy:
-          baseSearchState.orderByCratedAt === 'desc' ? ['sortIndex', 'createdAt'] : null,
-      };
-      const { results, count } = await getTestEntitiesByQuery(
-        {
-          ...baseQueryParams,
-          in: requestScopedTestDetailIds,
+        ascending: baseSearchState.orderByCratedAt === 'asc' ? ['sortIndex', 'createdAt'] : null,
+        descending: baseSearchState.orderByCratedAt === 'desc' ? ['sortIndex', 'createdAt'] : null,
+      } as any;
+      // 获取测试用例的列表
+      const { list, total: count } = await getTestEntityByQuery({
+        query: {
           workspaceKey: selectedWorkspaceKey,
+          type: TestType.Case,
         },
-        {
-          offset,
-          limit: REQUEST_LIMIT,
-          ignoreDeletedItemData: false,
-          ...baseQueryOptions,
-        },
-      );
+        ...baseQueryOptions,
+      });
 
       const nextOffset = offset + REQUEST_LIMIT;
 
       return {
         count,
-        list: results,
+        list,
         offset: nextOffset < count ? nextOffset : undefined,
       };
     },
     {
       target: detailSelectorRef,
-      reloadDeps: [JSON.stringify(baseSearchState), requestScopedTestDetailIds.toString()],
+      reloadDeps: [JSON.stringify(baseSearchState), requestScopedTestDetailIds],
       isNoMore: data => data?.offset === undefined,
     },
   );
@@ -240,8 +233,8 @@ const InheritTestDetail: React.FC<InheritTestDetailProps> = props => {
                           )}
                         />
                       ) : null}
-                      <OverflowTooltip title={testDetail.reference?.name}>
-                        {testDetail.reference?.name ?? '事项被删除'}
+                      <OverflowTooltip title={testDetail?.name}>
+                        {testDetail.name ?? '事项被删除'}
                       </OverflowTooltip>
                       {isSingleMode && selectedTestDetailIds.includes(testDetail.objectId) ? (
                         <div className={cx('action')}>

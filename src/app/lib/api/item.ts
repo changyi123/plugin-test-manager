@@ -3,9 +3,7 @@ import { QueryLinkedTestEntityPayload, QueryTestEntityPayload } from 'common/typ
 
 // 查询测试用例事项
 export const getTestEntityByQuery = async (props: QueryTestEntityPayload) => {
-  const _props = Object.assign({}, props, {
-    descending: ['createdAt'],
-  });
+  const _props = Object.assign({ descending: ['createdAt'] }, props);
 
   const {
     data: { data },

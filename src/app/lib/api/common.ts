@@ -19,8 +19,8 @@ import {
 } from '@/lib/utils/iql';
 import { itemToTestEntity, testEntityToItemValues } from 'common/utils/dataTransfer';
 import { BaseTestEntity } from 'common/types/test';
-import { TestLinkType, TestType, TestFiledKeyMapping } from 'common/constant';
-import { Query } from 'common/types/api';
+import { TestType, TestFiledKeyMapping } from 'common/constant';
+import { Query, LinkQueryPayload } from 'common/types/api';
 
 const BATCH_SIZE = 200;
 
@@ -936,27 +936,9 @@ export function transferObject(data) {
   return data;
 }
 
-// 查单个事项
-export async function fetchItem(id: string) {
-  const data = await new Parse.Query(Item).equalTo('objectId', id).findAll({ json: true });
-  if (!data) return;
-  // 转变成测试管理的数据格式
-  return transferObject(itemToTestEntity(data));
-}
-
-// 批量查事项详情
-export async function fetchItems(ids: string[]) {
-  const data = await new Parse.Query(Item).containedIn('objectId', ids).findAll({ json: true });
-  if (!data?.length) return [];
-  // 转变成测试管理的数据格式
-  return data.map(item => transferObject(itemToTestEntity(item)));
-}
-
-interface FetchLinkParams {
-  linkType: TestLinkType;
-  linkItems: string[] | string;
-  type: TestType;
+interface FetchLinkParams extends LinkQueryPayload {
   query?: Query;
+  workspace?: string;
 }
 
 /**
@@ -964,7 +946,7 @@ interface FetchLinkParams {
  */
 export async function fetchLinkList(data: FetchLinkParams) {
   const { status, data: res } = await fetch.$post(
-    `/test_manager/webhooks/api-query-linked-test-entity`,
+    `/api/app/osc/test_manager/webhooks/api-query-linked-test-entity`,
     { data },
   );
   if (status !== 'ok') {
