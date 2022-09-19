@@ -2,7 +2,7 @@ import fetch from '@/lib/utils/fetch';
 import {
   QueryLinkedTestEntityPayload,
   QueryTestEntityPayload,
-  TestExecutionStats,
+  TestExecutionStatsPayload,
   TestPlanStatsPayload,
 } from 'common/types/api';
 
@@ -42,7 +42,7 @@ export const getStatsTestPlan = async (props: TestPlanStatsPayload) => {
 };
 
 // 测试执行任务统计查询
-export const getStatsTestExecution = async (props: TestExecutionStats) => {
+export const getStatsTestExecution = async (props: TestExecutionStatsPayload) => {
   const {
     data: { data },
   } = await fetch.post('/api/app/osc/test_manager/webhooks/api-stats-test-execution', props);

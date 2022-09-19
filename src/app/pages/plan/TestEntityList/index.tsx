@@ -133,7 +133,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       });
 
       const stats = await getStatsTestPlan({
-        planIds: [selectedTestPlan.objectId] as any,
+        planIds: [selectedTestPlan.objectId],
         select: ['executionCount'],
       });
 
