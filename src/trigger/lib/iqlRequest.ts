@@ -38,9 +38,14 @@ const DefaultPagination = {
 const DefaultDescending = ['sortIndex', 'createdAt'] as any;
 
 // 处理 order params
-const transformOrderParams = ({ ascending, descending = DefaultDescending }) => {
+const transformOrderParams = ({ ascending, descending }) => {
   ascending = (Array.isArray(ascending) ? ascending : [ascending]).filter(Boolean);
   descending = (Array.isArray(descending) ? descending : [descending]).filter(Boolean);
+
+  // 如果用户没有设置排序规则，则使用默认规则
+  if (ascending.length === 0 || descending.length === 0) {
+    descending = DefaultDescending;
+  }
 
   const customFieldKeys = ascending
     .filter(key => !IQLSearchFieldKeys.includes(key))
