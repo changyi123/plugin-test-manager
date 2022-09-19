@@ -68,6 +68,8 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
           workspaceKey: workspaceKey,
           type: TestType.Case,
         },
+        descending: [],
+        onlySelectId: false,
       });
 
       return list;

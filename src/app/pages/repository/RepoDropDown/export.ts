@@ -1,9 +1,8 @@
 import { utils as xlsxUtils, write as xlsxWrite } from 'sheetjs-style';
 import FileSave from 'file-saver';
 import Parse from '@/lib/parse';
-import { getTestEntitiesByQuery } from '@/lib/api/common';
 import { TestLinkType, TestType } from '@/lib/constants';
-import { CustomField, TestConfig, TestRelation } from '@/lib/models';
+import { CustomField, TestConfig } from '@/lib/models';
 import { Item } from '@/lib/types/App';
 import { Step } from '@/lib/types/Test';
 import { getRepositoryData } from '@/lib/api/repository';
@@ -101,6 +100,8 @@ const getExcelData = async (data: any) => {
         workspaceKey,
         id: planId,
       },
+      descending: [],
+      onlySelectId: false,
     });
 
     testPlanObj = getTestPlan(testPlan[0]);
@@ -177,17 +178,17 @@ const getItemInfo = (item: Item, priInfo: any) => ({
   优先级: getPriority(item?.values, priInfo),
 });
 
-const getTestIdsByFrom = async (id: string) => {
-  const query = new Parse.Query(TestRelation).equalTo('from', id).limit(9999);
-  const data = await query.find();
+// const getTestIdsByFrom = async (id: string) => {
+//   const query = new Parse.Query(TestRelation).equalTo('from', id).limit(9999);
+//   const data = await query.find();
 
-  return data
-    .reduce((prev, cur) => {
-      prev = prev.concat(cur.toJSON().to?.objectId);
-      return prev;
-    }, [])
-    .filter(Boolean);
-};
+//   return data
+//     .reduce((prev, cur) => {
+//       prev = prev.concat(cur.toJSON().to?.objectId);
+//       return prev;
+//     }, [])
+//     .filter(Boolean);
+// };
 
 export const getTestRepoGroupIds = (datas: any[], checkRepoKey: string) => {
   const treeData = arrayToTree(
@@ -237,6 +238,8 @@ const importTestInfo = async (args: ImportArgs, excelData = []) => {
       linkType: TestLinkType.CaseLinkPlan,
       sourceIds: [checkedId],
       destinationType: TestType.Case,
+      descending: [],
+      onlySelectId: false,
     });
 
     excelData = await getExcelData({
@@ -254,6 +257,8 @@ const importTestInfo = async (args: ImportArgs, excelData = []) => {
         type: TestType.Case,
         workspaceKey: workspace.key,
       },
+      descending: [],
+      onlySelectId: false,
     });
 
     const groupIds = getTestRepoGroupIds(repoData, checkRepoKey);

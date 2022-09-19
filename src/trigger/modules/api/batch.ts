@@ -115,7 +115,7 @@ export const batchCreateTestRun = async () => {
       return {
         ...linkData,
         type: TestType.Run,
-        runDetail: data.detail,
+        runDetail: (data as any).detail,
         // 空间和测试用例的空间保持一致
         workspace: data.workspace.objectId,
         // 事项类型使用内置的事项类型（不可变）

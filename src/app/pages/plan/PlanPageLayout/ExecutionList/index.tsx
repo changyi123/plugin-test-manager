@@ -79,8 +79,9 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
         linkType: TestLinkType.ExecutionLinkPlan,
         sourceIds: [planId],
         destinationType: TestType.Execution,
+        descending: [],
+        onlySelectId: false,
       });
-      console.log('list----->', list);
 
       return list;
     },

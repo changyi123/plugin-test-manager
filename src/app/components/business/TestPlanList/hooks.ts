@@ -13,6 +13,8 @@ const useGetTestPlanById = (id?: string, workspaceKey?: string) => {
           type: 'TestPlan',
           id,
         },
+        descending: [],
+        onlySelectId: false,
       });
 
       const { list: linkTestDetails } = await getlinkedTestEntityByQuery({
@@ -22,6 +24,8 @@ const useGetTestPlanById = (id?: string, workspaceKey?: string) => {
         linkType: TestLinkType.CaseLinkPlan,
         sourceIds: [id],
         destinationType: TestType.Case,
+        descending: [],
+        onlySelectId: false,
       });
 
       const testPlans = _.chain(testPlan)
