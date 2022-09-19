@@ -1,18 +1,20 @@
 import dayjs from 'dayjs';
 import cloneDeep from 'lodash/cloneDeep';
+import { iqlSearch } from '../lib/coreApi';
 import { buildPaginationResponse } from './apiUtil';
 import { TestEntity } from '../../common/types/test';
-import { requestCoreApi } from '@giteeteam/apps-team-api';
 
 import { throwArgumentError } from '../lib/validator';
 import { itemToTestEntity } from '../../common/utils/dataTransfer';
 import {
+  InfinityLimit,
+  IQLUsefulFieldKeys,
   IQLSearchFieldKeys,
   IQLFieldNameMapping,
-  IQLMinimumFieldKeys,
   TestFiledKeyMapping,
+  IQLRequiredFieldKeys,
 } from '../../common/constant';
-import iqlSearchParamsBuilder, { Operator } from '../../common/utils/iqlSearchParamsBuilder';
+import { iqlSearchParamsBuilder, Operator } from '../../common/utils/iqlSearchParamsBuilder';
 import { PaginationParams, PaginationResponse, LinkQueryPayload } from '../../common/types/api';
 
 type IQLFiledKeys = keyof typeof IQLFieldNameMapping;
@@ -23,14 +25,35 @@ type RequestParams = {
   pagination?: PaginationParams;
   query?: Partial<Record<IQLFiledKeys, any>>;
   dataTransfer?: (data: TestEntity[]) => Promise<any>;
+  descending?: string[] | string;
+  ascending?: string[] | string;
 };
-
-// 全部数据
-const InfinityLimit = 99999;
 
 const DefaultPagination = {
   offset: 0,
   limit: 10,
+};
+
+// 默认按照 sortIndex 和 createdAt 倒序排
+const DefaultDescending = ['sortIndex', 'createdAt'] as any;
+
+// 处理 order params
+const transformOrderParams = ({ ascending, descending = DefaultDescending }) => {
+  ascending = (Array.isArray(ascending) ? ascending : [ascending]).filter(Boolean);
+  descending = (Array.isArray(descending) ? descending : [descending]).filter(Boolean);
+
+  const customFieldKeys = ascending
+    .filter(key => !IQLSearchFieldKeys.includes(key))
+    .concat(descending.filter(key => !IQLSearchFieldKeys.includes(key)));
+  // TODO: 处理自定义字段的逻辑
+  console.info('customFieldKeys', customFieldKeys);
+
+  const toIqlFieldNames = (keys, isDescending = false) => {
+    const prefix = isDescending ? '-' : '';
+    return keys.map(key => `${prefix}${IQLFieldNameMapping[key]}`);
+  };
+
+  return [].concat(toIqlFieldNames(ascending), toIqlFieldNames(descending, true));
 };
 
 /** 获取关联方，被关联方的类型 */
@@ -41,15 +64,20 @@ const getLinkTypes = linkType => {
     .map(type => `Test${type}`);
 };
 
+type IqlRequestType = <TResp extends TestEntity = TestEntity>(
+  params: RequestParams,
+) => Promise<PaginationResponse<TResp>>;
 /** iql 请求查询 */
-export const iqlRequest = async (params: RequestParams) => {
+export const iqlRequest: IqlRequestType = async params => {
   try {
     const {
-      pagination: originalPagination,
-      fields,
-      query: originalQuery,
-      dataTransfer,
       linkQuery,
+      ascending,
+      descending,
+      dataTransfer,
+      query: originalQuery,
+      fields = IQLUsefulFieldKeys,
+      pagination: originalPagination,
     } = params;
 
     // 参数处理
@@ -97,7 +125,7 @@ export const iqlRequest = async (params: RequestParams) => {
             limit: InfinityLimit,
             offset: 0,
           },
-          fields: [...IQLMinimumFieldKeys, TestFiledKeyMapping.linkItems],
+          fields: [...IQLRequiredFieldKeys, TestFiledKeyMapping.linkItems],
         });
 
         // 合并所有的 linkItems 字段数据
@@ -169,15 +197,14 @@ export const iqlRequest = async (params: RequestParams) => {
     // TODO: 类型问题
     const {
       payload: { count, items },
-    } = (await requestCoreApi(
-      'POST',
-      '/parse/api/search',
+    } = await iqlSearch(
       iqlSearchParamsBuilder({
+        order: transformOrderParams({ ascending, descending }),
         payload,
         fields,
         ...pagination,
       }),
-    )) as any;
+    )
 
     // 关联查询添加 source 字段
     const appendLinkSourceField = testEntityList => {
@@ -213,7 +240,7 @@ export const iqlRequest = async (params: RequestParams) => {
     return buildPaginationResponse(result, {
       total: count,
       ...pagination,
-    }) as PaginationResponse<TestEntity>;
+    });
   } catch (err) {
     return buildPaginationResponse(err);
   }
