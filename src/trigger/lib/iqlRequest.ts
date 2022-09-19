@@ -25,11 +25,35 @@ type RequestParams = {
   pagination?: PaginationParams;
   query?: Partial<Record<IQLFiledKeys, any>>;
   dataTransfer?: (data: TestEntity[]) => Promise<any>;
+  descending?: string[] | string;
+  ascending?: string[] | string;
 };
 
 const DefaultPagination = {
   offset: 0,
   limit: 10,
+};
+
+// 默认按照 sortIndex 和 createdAt 倒序排
+const DefaultDescending = ['sortIndex', 'createdAt'] as any;
+
+// 处理 order params
+const transformOrderParams = ({ ascending, descending = DefaultDescending }) => {
+  ascending = (Array.isArray(ascending) ? ascending : [ascending]).filter(Boolean);
+  descending = (Array.isArray(descending) ? descending : [descending]).filter(Boolean);
+
+  const customFieldKeys = ascending
+    .filter(key => !IQLSearchFieldKeys.includes(key))
+    .concat(descending.filter(key => !IQLSearchFieldKeys.includes(key)));
+  // TODO: 处理自定义字段的逻辑
+  console.info('customFieldKeys', customFieldKeys);
+
+  const toIqlFieldNames = (keys, isDescending = false) => {
+    const prefix = isDescending ? '-' : '';
+    return keys.map(key => `${prefix}${IQLFieldNameMapping[key]}`);
+  };
+
+  return [].concat(toIqlFieldNames(ascending), toIqlFieldNames(descending, true));
 };
 
 /** 获取关联方，被关联方的类型 */
@@ -48,6 +72,8 @@ export const iqlRequest: IqlRequestType = async params => {
   try {
     const {
       linkQuery,
+      ascending,
+      descending,
       dataTransfer,
       query: originalQuery,
       fields = IQLUsefulFieldKeys,
@@ -173,6 +199,7 @@ export const iqlRequest: IqlRequestType = async params => {
       payload: { count, items },
     } = await iqlSearch(
       iqlSearchParamsBuilder({
+        order: transformOrderParams({ ascending, descending }),
         payload,
         fields,
         ...pagination,
