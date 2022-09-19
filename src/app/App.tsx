@@ -59,7 +59,7 @@ const App: React.FC = props => {
 
   return (
     <PluginSDKContext.Provider value={qiankunContextValue.sdk}>
-      <I18n>
+      <I18n setLang={() => {}}>
         <ConfigProvider
           locale={zhCN}
           getPopupContainer={() => document.getElementById(rootElement)}

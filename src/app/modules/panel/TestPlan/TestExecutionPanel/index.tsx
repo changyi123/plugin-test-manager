@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useCallback, useState } from 'react';
 
 import { Button } from 'antd';
 import { useTestConfig } from '@/lib/hooks/useContext';
-import { TestRelationType, TestType } from '@/lib/constants';
+import { TestLinkType, TestType } from '@/lib/constants';
 import PanelTable, {
   ActionType,
   columnBuilder,
@@ -12,61 +12,47 @@ import { alert } from '@/lib/utils/helper';
 import TestEntitySelectorModal, {
   ActionType as SelectorActionType,
 } from '@/components/business/TestEntitySelectorModal';
-import { useAllRelTestEntities } from '@/lib/hooks/useTest';
 import { StatusProgress } from '@/components/business/Status';
-import { createTestExecutionToPlanRelations } from '@/lib/api/relations';
-import { getTestEntitiesByRelation, removeTestRelations } from '@/lib/api/common';
-
+import { fetchLinkList, removeCaseLinkPlan } from '@/lib/api/common';
+import { createTestDetailToPlanRelations } from '@/lib/api/relations';
 import cx from './index.less';
 
 const Test = () => {
-  const { testEntity } = useTestConfig();
+  const { testEntity, workspace } = useTestConfig();
   const tableActionRef = React.useRef<ActionType>();
   const selectorModalRef = React.useRef<SelectorActionType>();
-  const { testEntities: allTestEntities, refresh: getAllRelTestEntities } = useAllRelTestEntities(
-    TestRelationType.PlanRelExecution,
-    {
-      from: testEntity,
-    },
-  );
+
+  const [allTestEntities, setAllTestEntities] = useState([]);
+
+  // 获取计划下的测试用例
+  const getAllRelTestEntities = useCallback(async () => {
+    const sourceIds = testEntity.objectId;
+    if (!sourceIds) return;
+    // 获取计划下的所有执行
+    const { list, total } = await fetchLinkList({
+      linkType: TestLinkType.ExecutionLinkPlan,
+      sourceIds: testEntity?.objectId,
+      destinationType: TestType.Plan,
+      workspace: workspace?.objectId,
+    });
+
+    // 还得查出执行对应的用例
+
+    setAllTestEntities(list);
+
+    return {
+      list,
+      total,
+    };
+  }, [testEntity.objectId, workspace?.objectId]);
 
   const refresh = React.useCallback(() => {
     tableActionRef.current.refresh();
-    getAllRelTestEntities();
-  }, [getAllRelTestEntities]);
+  }, []);
 
   const tableDataSourceGetter = React.useCallback(
-    queryParams => {
-      return getTestEntitiesByRelation(
-        TestRelationType.PlanRelExecution,
-        { from: testEntity },
-        {
-          fillItemData: true,
-          queryParams: queryParams,
-          async resultTransfer({ list, total }) {
-            const testExecutionIds = list.map(item => item.objectId);
-            const { list: testRuns } = await getTestEntitiesByRelation(
-              TestRelationType.ExecutionRelRun,
-              {
-                from: testExecutionIds,
-              },
-              {
-                queryParams: { limit: 9999 },
-              },
-            );
-
-            return {
-              total,
-              list: list.map(execution => ({
-                ...execution,
-                relRuns: testRuns.filter(run => run.relation.from.objectId === execution.objectId),
-              })),
-            };
-          },
-        },
-      );
-    },
-    [testEntity],
+    () => getAllRelTestEntities(),
+    [getAllRelTestEntities],
   );
 
   // 创建测试执行
@@ -78,20 +64,34 @@ const Test = () => {
 
   const addTestExecutionToPlan = React.useCallback(
     async testExecution => {
-      await createTestExecutionToPlanRelations();
+      await Promise.all(
+        testExecution.map(data =>
+          createTestDetailToPlanRelations({ testPlan: [testEntity?.objectId], testDetail: data }),
+        ),
+      );
+
       refresh();
       alert({
         type: 'success',
         message: `${testExecution.length} 个测试执行添加到测试计划中`,
       });
     },
-    [refresh],
+    [refresh, testEntity?.objectId],
   );
 
   const removeTestRelation = React.useCallback(
     async relationTypeIds => {
       if (!Array.isArray(relationTypeIds)) return;
-      await removeTestRelations(relationTypeIds);
+
+      // 移除测试计划下的任务
+      await Promise.all(
+        relationTypeIds.map(id =>
+          removeCaseLinkPlan({
+            testPlan: [testEntity?.objectId],
+            testDetail: allTestEntities.find(data => data.objectId === id),
+          }),
+        ),
+      );
 
       refresh();
 
@@ -100,7 +100,7 @@ const Test = () => {
         message: `${relationTypeIds.length} 个测试执行从测试计划中删除`,
       });
     },
-    [refresh],
+    [allTestEntities, refresh, testEntity?.objectId],
   );
 
   // table column 数据

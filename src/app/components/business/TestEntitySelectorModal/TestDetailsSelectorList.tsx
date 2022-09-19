@@ -3,7 +3,6 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Checkbox, Empty, Select, Spin, Tooltip } from 'antd';
 import { useRequest } from 'ahooks';
 import emptyImg from '@/icons/svg/empty-data.png';
-
 import cx from './TestDetailsSelectorList.less';
 import { CaretDownOutlined, CaretUpOutlined } from '@ant-design/icons';
 import { getTestEntityByQuery } from '@/lib/api/item';

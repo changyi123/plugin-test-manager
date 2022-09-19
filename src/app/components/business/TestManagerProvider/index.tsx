@@ -338,6 +338,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
       // item,
       workspace,
       testEntity,
+      setTestEntity,
     };
   }, [
     testConfig.itemTypeMap,

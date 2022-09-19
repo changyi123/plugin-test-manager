@@ -83,10 +83,8 @@ const PanelTable: React.FC<PanelTableProps> = props => {
         fixed: true,
         // hideSelectAll: true,
         preserveSelectedRowKeys: true,
-        selectedRowKeys: selectedRowKeys,
-        onChange: selectedRowKeys => {
-          setSelectedRowKeys(selectedRowKeys);
-        },
+        selectedRowKeys,
+        onChange: setSelectedRowKeys,
       },
     [batchSelect, selectedRowKeys, setSelectedRowKeys],
   );

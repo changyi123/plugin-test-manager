@@ -5,7 +5,6 @@ import _ from 'lodash';
 import { useHover } from 'ahooks';
 import { Step } from '@/lib/types/Test';
 import { StepRow, StepField } from './type';
-import { getTestEntities } from '@/lib/api/common';
 import { Form, Tooltip, Popconfirm } from 'antd';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import { CopyOutlined, DeleteOutlined, DragHandler } from '@/icons';
@@ -13,6 +12,8 @@ import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd';
 import { getFieldByImpl, StepFieldImpl, BuiltinFieldKeys, getRootContainer } from './helper';
 import { useNextStepFieldContext, default as NextStepFieldProvider } from './NextStepFieldProvider';
 import { components } from 'proxima-sdk';
+import { BaseTestEntity } from 'common/types/test';
+import { getItemByIQL } from '@/lib/api/proxima';
 
 const { ItemIcon } = components.Components.Common;
 
@@ -87,8 +88,8 @@ const StepRow: React.FC<StepRowProps> = props => {
 
   const CallTestStepNode = React.useMemo(() => {
     const stepLength = _.get(data, 'callTestEntity.detail.steps.length') ?? 0;
-    const item = _.get(data, 'callTestEntity.reference') ?? {};
-    const itemType = _.get(data, 'callTestEntity.reference.itemType') ?? {};
+    const item = (_.get(data, 'callTestEntity') ?? {}) as BaseTestEntity;
+    const itemType = _.get(data, 'callTestEntity.itemType') ?? {};
 
     return (
       <div className={cx('call-test')}>
@@ -200,8 +201,8 @@ const StepList: React.FC<StepListProps> = ({ steps, actions }) => {
     const allCallTestIds = getAllCallTestIds(steps);
     if (allCallTestIds.length) {
       (async () => {
-        const testDetailEntities = await getTestEntities({ id: allCallTestIds });
-        setTestDetailEntities(testDetailEntities.map(item => item.toJSON()));
+        const { items: testDetailEntities } = await getItemByIQL({ itemId: allCallTestIds });
+        setTestDetailEntities(testDetailEntities);
       })();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

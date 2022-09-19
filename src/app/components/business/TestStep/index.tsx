@@ -113,6 +113,7 @@ const TestStep: React.FC<TestStepProps> = ({
     filter() {},
   }));
 
+  // TODO: 继承的弹窗还有问题
   const openCallTestModal = async () => {
     const [callTestId] = await testEntitySelectorRef.current?.open();
     try {
