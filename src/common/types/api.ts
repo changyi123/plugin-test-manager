@@ -2,7 +2,7 @@
  * @file 后端 webTrigger 接口数据请求
  */
 
-import { TestEntity } from '../types/test';
+import { TestEntity, Status } from '../types/test';
 import { TestLinkType, TestType, IQLFieldNameMapping } from '../constant';
 
 /** 已知字段 */
@@ -85,6 +85,8 @@ type CommonTestEntityQueryPayload = PaginationParams & {
   ascending?: FieldKey[];
   /** 降序字段 */
   descending: FieldKey[];
+  /** 只返回 id */
+  onlySelectId: boolean;
 };
 
 /**
@@ -137,4 +139,37 @@ export type BatchCreateTestRunPayload = {
   executionId?: string;
   /** 测试执行任务 id */
   caseIds: string[];
+};
+
+/** 状态类型 */
+type StatusStatsType = Record<Status['key'], number>;
+
+/** 测试计划统计 filed Keys */
+type TestPlanStatsKey = 'caseCount' | 'caseStatus' | 'executionCount';
+/**
+ * 测试计划数据统计接口
+ * @example POST /api/project/app/osc/test_manager/webhooks/api-stats-test-plan
+ */
+export type TestPlanStatsPayload = {
+  /** 测试计划 id */
+  planIds: string;
+  /** 数据数据字段 */
+  select?: TestPlanStatsKey[];
+};
+
+export type TestPlanStatsResponse = ResponseType<{
+  caseCount: number;
+  executionCount: number;
+  caseStatus: StatusStatsType;
+}>;
+
+/**
+ * 测试计划数据统计接口
+ * @example POST /api/project/app/osc/test_manager/webhooks/api-stats-test-execution
+ */
+export type TestExecutionStats = {
+  /** 测试计划 id */
+  executionIds: string;
+  /** 数据数据字段 */
+  select?: 'runStatus'[];
 };

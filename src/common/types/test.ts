@@ -61,13 +61,16 @@ export type BaseTestEntity = {
   values: Record<string, any>;
   /** 事项名称 */
   name: string;
+
+  /** 关联查询查询添加字段 */
+  source?: string[];
 };
 
 type CaseFieldKeys = 'detail' | 'caseStatus';
 type RunFieldKeys = 'comments' | 'executor' | 'designee' | 'runDetail' | 'linkedCase' | 'status';
 
 /** 测试实体类型 */
-export type TestEntity<TTestType extends TestType = TestType.Case> = TTestType extends TestType.Case
+export type TestEntity<TTestType extends TestType = any> = TTestType extends TestType.Case
   ? Omit<BaseTestEntity, RunFieldKeys>
   : TTestType extends TestType.Run
   ? Omit<BaseTestEntity, CaseFieldKeys>
