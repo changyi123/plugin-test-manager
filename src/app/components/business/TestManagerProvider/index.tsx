@@ -430,11 +430,6 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
 
         // TODO: 通知统一处理！
         if (!itemType?.objectId) {
-          // notification.open({
-          //   message: '提示',
-          //   description: '所属空间无法创建实体，请选择其他空间事项创建',
-          // });
-          // FIXME: 修改
           message.warning('所属空间无法创建实体，请选择其他空间事项创建');
         }
 

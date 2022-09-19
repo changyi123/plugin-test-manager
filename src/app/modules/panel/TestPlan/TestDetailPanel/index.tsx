@@ -24,7 +24,7 @@ import TestRunModal, {
 import { QuestionCircleOutlined } from '@/icons';
 import { createTestExecutionAndRelations } from '@/lib/api/runs';
 import { removeCaseLinkPlan, fetchLinkList } from '@/lib/api/common';
-import { createTestDetailToPlanRelations } from '@/lib/api/relations';
+import { createRelations } from '@/lib/api/relations';
 import StatusProcessBar from '@/components/business/StatusProcessBar';
 import cx from './index.less';
 
@@ -129,9 +129,10 @@ const Test = () => {
           const testDetailIds = await selectorModalRef.current.open();
           const _testDetailIds = testDetailIds.filter(d => !(testEntityIds ?? []).includes(d));
 
-          await createTestDetailToPlanRelations({
-            testPlan: [testEntity?.objectId],
-            testDetail: _testDetailIds,
+          await createRelations({
+            linkType: TestLinkType.CaseLinkPlan,
+            link: [testEntity?.objectId],
+            targetItem: _testDetailIds,
           });
 
           refreshDepData();
@@ -156,9 +157,10 @@ const Test = () => {
             },
           });
 
-          await createTestDetailToPlanRelations({
-            testPlan: [testEntity?.objectId],
-            testDetail: newTestDetail,
+          await createRelations({
+            linkType: TestLinkType.CaseLinkPlan,
+            link: [testEntity?.objectId],
+            targetItem: newTestDetail,
           });
 
           refreshDepData();

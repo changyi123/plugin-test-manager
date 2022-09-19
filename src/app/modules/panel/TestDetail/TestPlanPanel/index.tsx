@@ -3,7 +3,7 @@ import React, { useRef, useCallback, useMemo, useState } from 'react';
 import { DownOutlined } from '@ant-design/icons';
 import { StatusProgress } from '@/components/business/Status';
 import DropDownButton from '@/components/business/DropDownButton';
-import { createTestDetailToPlanRelations } from '@/lib/api/relations';
+import { createRelations } from '@/lib/api/relations';
 import { useTestConfig, useBaseAction } from '@/lib/hooks/useContext';
 import PanelTable, { ActionType } from '@/components/business/PanelTable';
 import { BuiltinColumns, columnBuilder } from '@/components/business/PanelTable';
@@ -15,6 +15,7 @@ import { alert } from '@/lib/utils/helper';
 import { TestType } from 'common/constant';
 import cx from './index.less';
 import { getItemByIQL } from '@/lib/api/proxima';
+import { TestLinkType } from '@/lib/constants';
 
 const Plan = () => {
   const { testEntity, setTestEntity } = useTestConfig();
@@ -66,9 +67,10 @@ const Plan = () => {
         title: '已存在的测试计划',
         async onClick() {
           const testPlanIds = await selectorModalRef.current.open();
-          await createTestDetailToPlanRelations({
-            testDetail: testEntity,
-            testPlan: testPlanIds,
+          await createRelations({
+            linkType: TestLinkType.CaseLinkPlan,
+            targetItem: testEntity,
+            link: testPlanIds,
           });
 
           alert({
@@ -87,9 +89,10 @@ const Plan = () => {
           });
 
           try {
-            await createTestDetailToPlanRelations({
-              testDetail: testEntity,
-              testPlan: [testPlanEntity.objectId],
+            await createRelations({
+              linkType: TestLinkType.CaseLinkPlan,
+              targetItem: testEntity,
+              link: [testPlanEntity.objectId],
             });
           } catch (err) {
             console.error(err);

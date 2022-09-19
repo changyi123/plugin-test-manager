@@ -14,7 +14,8 @@ import TestEntitySelectorModal, {
 } from '@/components/business/TestEntitySelectorModal';
 import { StatusProgress } from '@/components/business/Status';
 import { fetchLinkList, removeCaseLinkPlan } from '@/lib/api/common';
-import { createTestDetailToPlanRelations } from '@/lib/api/relations';
+import { createRelations } from '@/lib/api/relations';
+import { getItemByIQL } from '@/lib/api/proxima';
 import cx from './index.less';
 
 const Test = () => {
@@ -63,10 +64,15 @@ const Test = () => {
   }, []);
 
   const addTestExecutionToPlan = React.useCallback(
-    async testExecution => {
+    async itemId => {
+      const { items: testExecution } = await getItemByIQL({ itemId });
       await Promise.all(
-        testExecution.map(data =>
-          createTestDetailToPlanRelations({ testPlan: [testEntity?.objectId], testDetail: data }),
+        testExecution.map(targetItem =>
+          createRelations({
+            link: [testEntity?.objectId],
+            targetItem,
+            linkType: TestLinkType.ExecutionLinkPlan,
+          }),
         ),
       );
 

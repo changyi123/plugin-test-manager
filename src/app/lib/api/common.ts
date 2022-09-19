@@ -951,7 +951,7 @@ export async function fetchLinkList(data: FetchLinkParams) {
   );
   if (status !== 'ok') {
     // 报错
-    throw new Error('fetch link list error');
+    throw new Error(res.data);
   }
   return { ...res, list: res.list.map(item => transferObject(itemToTestEntity(item))) };
 }
