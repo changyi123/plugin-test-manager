@@ -123,7 +123,7 @@ export const IQLUsefulFieldKeys = [
 ];
 
 /** 无限分页 */
-export const InfinityLimit = 99999;
+export const InfinityLimit = 100000;
 
 /** 内置类型映射 */
 export const BuiltInItemTypeMapping = {
@@ -132,3 +132,6 @@ export const BuiltInItemTypeMapping = {
   [TestType.Case]: 'test_manager_detail',
   [TestType.Execution]: 'test_manager_execution',
 };
+
+/** 开始节点 key */
+export const StartStatusKey = 'TODO';

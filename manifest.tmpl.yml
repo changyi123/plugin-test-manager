@@ -33,6 +33,8 @@ modules:
       function: api-stats-test-plan
     - key: api-stats-test-execution
       function: api-stats-test-execution
+    - key: api-stats-test-case
+      function: api-stats-test-case
 
   trigger:
     - key: test-manager-initial-script-update
@@ -85,6 +87,8 @@ modules:
       handler: api.testPlanStats
     - key: api-stats-test-execution
       handler: api.testExecutionStats
+    - key: api-stats-test-case
+      handler: api.testCaseStats
 
   itemPanel:
     - key: test-manager-test-detail
