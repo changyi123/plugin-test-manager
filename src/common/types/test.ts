@@ -33,7 +33,7 @@ export type BaseTestEntity = {
   /** 隔离测试计划下测试用例最新状态 */
   caseStatus: Status['caseStatus'];
   /** 测试执行关联测试用例实体 */
-  referenceCase: TestEntity<TestType.Case>;
+  referenceCase: string;
   /** 额外数据 */
   extra: Record<string, unknown>;
   /** 测试用例数据 */

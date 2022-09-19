@@ -4,11 +4,17 @@
 import { iqlRequest } from '../../lib/iqlRequest';
 import { TestEntity } from '../../../common/types/test';
 import { getReqInfoFromVMRuntime, buildResponse } from '../../lib/apiUtil';
-import { TestExecutionStats, TestPlanStatsPayload } from '../../../common/types/api';
+import {
+  TestCaseStatsPayload,
+  TestPlanStatsPayload,
+  TestExecutionStatsPayload,
+} from '../../../common/types/api';
 import {
   TestType,
+  SystemField,
   TestLinkType,
   InfinityLimit,
+  StartStatusKey,
   TestFiledKeyMapping,
 } from '../../../common/constant';
 
@@ -37,32 +43,30 @@ export const testPlanStats = async () => {
   } = getReqInfoFromVMRuntime<TestPlanStatsPayload>();
 
   try {
-    // 创建
     const result = buildStatsResult(planIds, select, {
       caseCount: 0,
       caseStatus: {},
       executionCount: 0,
     });
+
+    const {
+      data: { list: testCases },
+    } = await iqlRequest<TestCaseEntityType>({
+      linkQuery: {
+        sourceIds: planIds,
+        linkType: TestLinkType.CaseLinkPlan,
+        destinationType: TestType.Case,
+      },
+      fields: [SystemField.Id, TestFiledKeyMapping.caseStatus, TestFiledKeyMapping.linkItems],
+      pagination: { limit: InfinityLimit, offset: 0 },
+    });
+
     // 测试执行用例统计数据
     if (select.includes('caseStatus') || select.includes('caseCount')) {
-      const {
-        data: { list: testCase },
-      } = await iqlRequest<TestCaseEntityType>({
-        linkQuery: {
-          sourceIds: planIds,
-          linkType: TestLinkType.CaseLinkPlan,
-          destinationType: TestType.Case,
-        },
-        fields: [TestFiledKeyMapping.caseStatus, TestFiledKeyMapping.linkItems],
-        pagination: { limit: InfinityLimit, offset: 0 },
-      });
-
-      console.info('testCase --->', testCase);
-
-      testCase.forEach(item => {
-        const { caseStatus, source } = item;
+      testCases.forEach(testCase => {
+        const { caseStatus, source } = testCase;
         // 统计状态数据
-        if (caseStatus && select.includes('caseStatus')) {
+        if (caseStatus) {
           Object.entries(caseStatus).forEach(([planId, statusKey]) => {
             // 不在 result plan 中的数据不需要被统计
             if (!Object.hasOwnProperty.call(result, planId)) return;
@@ -75,14 +79,35 @@ export const testPlanStats = async () => {
         }
 
         // 统计用力数量
-        if (source && select.includes('caseCount')) {
-          source.forEach(planId => {
-            // 不在 result plan 中的数据不需要被统计
-            if (!Object.hasOwnProperty.call(result, planId)) return;
-            const planStats = result[planId];
-            planStats.caseCount = (planStats.caseCount ?? 0) + 1;
-          });
-        }
+        source.forEach(planId => {
+          // 不在 result plan 中的数据不需要被统计
+          if (!Object.hasOwnProperty.call(result, planId)) return;
+          const planStats = result[planId];
+          planStats.caseCount = (planStats.caseCount ?? 0) + 1;
+        });
+
+        // 统计状态值为 undefined 的节点，变为起始节点
+
+        Object.keys(result).forEach(planId => {
+          const stats = result[planId];
+          const processedStatusCount = (Object.values(stats.caseStatus) as any).reduce(
+            (acc, num) => acc + num,
+            0,
+          );
+
+          const StartStatusCount = stats.caseStatus[StartStatusKey] ?? 0;
+
+          const resComputedStartStatusCount =
+            stats.caseCount - processedStatusCount + StartStatusCount;
+
+          result[planId] = {
+            ...stats,
+            caseStatus: {
+              ...stats.caseStatus,
+              [StartStatusKey]: resComputedStartStatusCount,
+            },
+          };
+        });
       });
     }
 
@@ -99,8 +124,6 @@ export const testPlanStats = async () => {
         fields: [TestFiledKeyMapping.linkItems],
         pagination: { limit: InfinityLimit, offset: 0 },
       });
-
-      console.info('testExecution --->', testExecution);
 
       testExecution.forEach(item => {
         const { linkItems } = item;
@@ -129,10 +152,9 @@ export const testPlanStats = async () => {
 export const testExecutionStats = async () => {
   const {
     body: { select = [], executionIds },
-  } = getReqInfoFromVMRuntime<TestExecutionStats>();
+  } = getReqInfoFromVMRuntime<TestExecutionStatsPayload>();
 
   try {
-    // 创建
     const result = buildStatsResult(executionIds, select, {
       runStatus: {},
     });
@@ -150,8 +172,6 @@ export const testExecutionStats = async () => {
         pagination: { limit: InfinityLimit, offset: 0 },
       });
 
-      console.info('testRuns --->', testRuns);
-
       testRuns.forEach(item => {
         const { status, source } = item;
         // 统计状态数据
@@ -164,6 +184,89 @@ export const testExecutionStats = async () => {
               [status]: (executionStats.runStatus ?? 0) + 1,
             };
           });
+        }
+      });
+    }
+
+    return buildResponse(result);
+  } catch (err) {
+    return buildResponse(err);
+  }
+};
+
+/**
+ * 测试用例统计
+ * （测试用例最新执行状态，执行任务数）
+ */
+
+export const testCaseStats = async () => {
+  try {
+    const {
+      body: { caseIds, planId, select },
+    } = getReqInfoFromVMRuntime<TestCaseStatsPayload>();
+
+    const result = buildStatsResult(caseIds, select, {
+      runCount: 0,
+      caseLatestStatus: StartStatusKey,
+    });
+
+    if (select.includes('caseLatestStatus')) {
+      // 获取所有的测试用例
+      const {
+        data: { list: testCases },
+      } = await iqlRequest<TestCaseEntityType>({
+        query: {
+          id: caseIds,
+        },
+        fields: [SystemField.Id, TestFiledKeyMapping.caseStatus],
+        pagination: { limit: InfinityLimit, offset: 0 },
+      });
+
+      testCases.forEach(testCase => {
+        const { objectId, caseStatus } = testCase;
+        const status = caseStatus[planId] ?? StartStatusKey;
+        const stats = result[objectId];
+        if (stats) {
+          stats.caseLatestStatus = status;
+        }
+      });
+    }
+
+    if (select.includes('runCount')) {
+      const {
+        data: { list: testExecutionIds },
+      } = await iqlRequest<string>({
+        linkQuery: {
+          linkType: TestLinkType.ExecutionLinkPlan,
+          sourceIds: planId,
+          destinationType: TestType.Execution,
+        },
+        fields: [SystemField.Id],
+        pagination: { limit: InfinityLimit, offset: 0 },
+        dataTransfer: data => data.map(item => item.objectId),
+      });
+
+      // 获取所有的测试执行
+      const {
+        data: { list: testCases },
+      } = await iqlRequest<TestRunEntityType>({
+        query: {
+          referenceCase: caseIds,
+        },
+        linkQuery: {
+          sourceIds: testExecutionIds,
+          destinationType: TestType.Run,
+          linkType: TestLinkType.RunLinkExecution,
+        },
+        fields: [SystemField.Id, TestFiledKeyMapping.referenceCase],
+        pagination: { limit: InfinityLimit, offset: 0 },
+      });
+
+      testCases.forEach(testCase => {
+        const { referenceCase } = testCase;
+        const stats = testCase[referenceCase];
+        if (stats) {
+          stats.runCount = (stats.runCount ?? 0) + 1;
         }
       });
     }
