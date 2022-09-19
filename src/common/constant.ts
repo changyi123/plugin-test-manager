@@ -50,8 +50,6 @@ export const TestFiledKeyKeys = Object.keys(
 export const BuiltinFieldNameMapping = {
   linkType: '测试关联类型',
   linkItems: '测试关联项',
-  sourceIds: '测试关联项',
-  destinationType: '测试类型',
   status: '测试执行状态',
   referenceCase: '测试用例引用',
   type: '测试类型',

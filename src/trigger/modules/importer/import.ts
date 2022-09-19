@@ -1,9 +1,9 @@
 import {
   getParseModel,
-  getParseObject,
   saveAllObject,
   getAllData,
   getData,
+  requestCoreApi,
 } from '@giteeteam/apps-team-api';
 
 // uuid
@@ -19,10 +19,6 @@ function uuidv4() {
   );
 }
 
-// const APP_KEY = 'test_manager';
-
-const TEST_MANAGER_TEST = `Test`;
-
 const TEST_MANAGER_REPO = `Repository`;
 
 const clone = d => JSON.parse(JSON.stringify(d));
@@ -31,15 +27,6 @@ const replaceRn = datas => datas?.replace(/^[\r\n]+/g, '');
 
 const splitSteps = datas => replaceRn(datas)?.split(/(?=【\d+】)/g) ?? [];
 
-// 步骤每项的开始标志
-// const stepStartToken = '【\\d+】|\\d+\\.+';
-// const stepStartToken = '【\\d+】';
-// 步骤换行符标志
-// const stepEOLToken = '[\\r\\n]';
-// 提取步骤 index
-// const pickStepIndex = data => {
-//   return +data.replace(/【?(\d+)】?\.*.*?$/, '$1');
-// };
 const pickStepIndex = data => {
   return +data.replace(/【(\d+)】(.|[\r\n])*?$/, '$1');
 };
@@ -97,6 +84,28 @@ export const runImport = async () => {
   // eslint-disable-next-line no-console
   console.log('import-22222', appFieldsData);
 
+  // 组装更新的数据
+  const handleItemValues = () => {
+    const isNotHaveMap = appFieldsData.length;
+    const itemsData = isNotHaveMap ? appFieldsData : data;
+    const mathData = Math.floor(Date.now() / 1000) * 10e5;
+
+    const needUpdateValues = itemsData.map((item, index) => ({
+      objectId: item.objectId,
+      name: item.name,
+      values: {
+        r_test_manager_type: 'TestCase',
+        r_test_manager_detail: {
+          precondition: item.precondition,
+          steps: isNotHaveMap ? getStepsData(clone(item)) : [],
+        },
+        r_test_manager_sortIndex: mathData + index,
+      },
+    }));
+
+    return needUpdateValues;
+  };
+
   // 根据事项数据获取 workspaceKey
   const getWorkspaceKey = async () => {
     const objectId = clone(data).find(d => d.workspace)?.workspace;
@@ -132,38 +141,6 @@ export const runImport = async () => {
       .filter(d => d !== null);
 
     return handleRepoPath(newRepoData);
-  };
-
-  // 创建测试用例数据，返回测试用例
-  const createTestMangerTest = async () => {
-    const itemParseObj = getParseModel(false, 'Item');
-    const testInstance = getParseObject(true, TEST_MANAGER_TEST);
-    const mathData = Math.floor(Date.now() / 1000) * 10e5;
-
-    const isNotHaveMap = appFieldsData.length;
-    const _appFieldsData = isNotHaveMap ? appFieldsData : data;
-
-    const _data = _appFieldsData
-      .map((_data, index) => ({
-        workspaceKey,
-        type: 'TestDetail',
-        reference: itemParseObj.createWithoutData(isNotHaveMap ? _data.itemId : _data.id),
-        detail: {
-          precondition: _data.precondition,
-          steps: isNotHaveMap ? getStepsData(clone(_data)) : [],
-        },
-        sortIndex: mathData + index,
-      }))
-      .map(row => {
-        const newTestInstance = testInstance.clone();
-        newTestInstance.set(row);
-
-        return newTestInstance;
-      });
-
-    const newData = await saveAllObject(_data);
-
-    return newData;
   };
 
   const handleRepoPath = datas => {
@@ -235,35 +212,34 @@ export const runImport = async () => {
     );
   };
 
-  const handleFieldsData = async testManagerTestData => {
-    const TestParseObj = getParseModel(true, TEST_MANAGER_TEST);
-    const RepoParseObj = getParseModel(true, TEST_MANAGER_REPO);
+  const updateItemValue = async itemValues => {
     const repoDatas = await getRepoData();
     const testRepoMap = new Map();
 
-    appFieldsData.forEach(field => {
-      const repoData = repoDatas.find(gro => gro.path === getGroupPath(field.group).join('/'));
+    appFieldsData.forEach(item => {
+      const repoData = repoDatas.find(gro => gro.path === getGroupPath(item.group).join('/'));
 
-      repoData && testRepoMap.set(field.itemId, RepoParseObj.createWithoutData(repoData.objectId));
+      repoData && testRepoMap.set(item.itemId, repoData.objectId);
     });
 
-    const needToUpdateRepoTest = testManagerTestData
-      .map(item => {
-        const repoMap = testRepoMap.get(item.toJSON().reference?.objectId);
-        if (repoMap) {
-          const testParse = new TestParseObj({
-            objectId: item?.id,
-          });
+    const needToUpdateItemValues = itemValues.map(item => ({
+      ...item,
+      values: {
+        ...item.values,
+        r_test_manager_repository: testRepoMap.get(item.objectId),
+      },
+    }));
 
-          testParse.set('repository', repoMap);
-          return testParse;
-        }
+    // TODO 更新事项 values
+    const res = await requestCoreApi(
+      'POST',
+      `/api/app/osc/test_manager/webhooks/api-batch-update}`,
+      {
+        data: needToUpdateItemValues,
+      },
+    );
 
-        return null;
-      })
-      .filter(d => d !== null);
-
-    return await saveAllObject(needToUpdateRepoTest);
+    return res;
   };
 
   const createRepoGroup = async (datas, i) => {
@@ -297,8 +273,13 @@ export const runImport = async () => {
 
   // 导入成功后，创建事项数据后的回调函数
   const importCallBack = async () => {
+    // 获取创建的事项数据
+    const needUpdateValues = handleItemValues();
+    // 创建测试用例库数据
+    // 绑定用例库
+
     // 创建测试用例数据
-    const testManagerTestData = await createTestMangerTest();
+    // const testManagerTestData = await createTestMangerTest();
 
     // 得到需要创建的用例库数据
     const toCreateGroupData = await getToCreateGroupData();
@@ -313,12 +294,13 @@ export const runImport = async () => {
       await createRepoGroupList(newToCreateGroupData);
     }
 
-    // 绑定测试用例到用例库
-    await handleFieldsData(testManagerTestData);
+    // 绑定测试用例事项用例库，并更新事项数据
+    const itemData = await updateItemValue(needUpdateValues);
 
     return {
       code: 200,
       message: '成功',
+      data: itemData,
     };
   };
 
