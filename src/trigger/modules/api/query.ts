@@ -3,21 +3,36 @@
  */
 
 // app cli 不支持指定 tsconfig 需要使用相对路径
+import { toArray } from '../../lib/helper';
 import { iqlRequest } from '../../lib/iqlRequest';
-import { IQLUsefulFieldKeys } from '../../../common/constant';
 import { testEntityFieldTypeValidator } from '../../lib/validator';
 import { getReqInfoFromVMRuntime, buildPaginationResponse } from '../../lib/apiUtil';
 import { QueryTestEntityPayload, QueryLinkedTestEntityPayload } from '../../../common/types/api';
+import { IQLUsefulFieldKeys, IQLRequiredFieldKeys, InfinityLimit } from '../../../common/constant';
 
 // 接口查询添加自定义字段
 const concatCustomFields = fields => {
   return Array.from(new Set([].concat(IQLUsefulFieldKeys, fields)));
 };
 
+const overwriteIqlParamsWithOnlySelectId = onlySelectId => {
+  if (onlySelectId) {
+    return {
+      dataTransfer: data => {
+        return onlySelectId ? data.map(item => item.objectId) : data;
+      },
+      fields: IQLRequiredFieldKeys,
+      pagination: { limit: InfinityLimit },
+    };
+  }
+
+  return null;
+};
+
 /** 查询测试类型实体数据 */
 export const queryTestEntity = async () => {
   const { body } = getReqInfoFromVMRuntime<QueryTestEntityPayload>();
-  const { offset, limit, query = {}, fields, descending, ascending } = body;
+  const { offset, limit, query = {}, fields, descending, ascending, onlySelectId } = body;
 
   return iqlRequest({
     query,
@@ -25,6 +40,7 @@ export const queryTestEntity = async () => {
     descending,
     pagination: { limit, offset },
     fields: concatCustomFields(fields),
+    ...overwriteIqlParamsWithOnlySelectId(onlySelectId),
   });
 };
 
@@ -33,17 +49,19 @@ export const queryLinkedTestEntity = async () => {
   try {
     const { body } = getReqInfoFromVMRuntime<QueryLinkedTestEntityPayload>();
     const {
-      offset,
       limit,
       query,
       fields,
-      sourceIds,
+      offset,
       linkType,
-      destinationType,
-      descending,
       ascending,
+      descending,
+      onlySelectId,
+      destinationType,
+      sourceIds: originalSourceIds,
     } = body;
 
+    const sourceIds = toArray(originalSourceIds).filter(Boolean);
     // 请求参数校验
     testEntityFieldTypeValidator({ linkType, type: destinationType, linkItems: sourceIds });
 
@@ -58,6 +76,7 @@ export const queryLinkedTestEntity = async () => {
         sourceIds,
         destinationType,
       },
+      ...overwriteIqlParamsWithOnlySelectId(onlySelectId),
     });
   } catch (err) {
     return buildPaginationResponse(err);

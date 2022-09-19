@@ -72,7 +72,6 @@ export const batchCreateItems = async (
     workspace: buildParsePointerData('Workspace', data.workspace),
   }));
 
-  console.log('values ------->', itemData);
   const taskQueue = itemData.map(item => async () => {
     const values = compactNilValue(item);
     return createItems(values);

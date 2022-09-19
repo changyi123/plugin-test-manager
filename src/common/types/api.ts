@@ -144,17 +144,15 @@ export type BatchCreateTestRunPayload = {
 /** 状态类型 */
 type StatusStatsType = Record<Status['key'], number>;
 
-/** 测试计划统计 filed Keys */
-type TestPlanStatsKey = 'caseCount' | 'caseStatus' | 'executionCount';
 /**
  * 测试计划数据统计接口
  * @example POST /api/project/app/osc/test_manager/webhooks/api-stats-test-plan
  */
 export type TestPlanStatsPayload = {
   /** 测试计划 id */
-  planIds: string;
+  planIds: string[];
   /** 数据数据字段 */
-  select?: TestPlanStatsKey[];
+  select?: ('caseCount' | 'caseStatus' | 'executionCount')[];
 };
 
 export type TestPlanStatsResponse = ResponseType<{
@@ -167,9 +165,22 @@ export type TestPlanStatsResponse = ResponseType<{
  * 测试计划数据统计接口
  * @example POST /api/project/app/osc/test_manager/webhooks/api-stats-test-execution
  */
-export type TestExecutionStats = {
+export type TestExecutionStatsPayload = {
   /** 测试计划 id */
-  executionIds: string;
+  executionIds: string[];
   /** 数据数据字段 */
   select?: 'runStatus'[];
+};
+
+/**
+ * 测试用例统计（测试计划页面用例列表统计数据）
+ * @example POST /api/project/app/osc/test_manager/webhooks/api-stats-test-case
+ */
+export type TestCaseStatsPayload = {
+  /** 测试计划 id */
+  caseIds: string[];
+  /** 测试计划 id */
+  planId: string;
+  /** 数据数据字段 */
+  select?: ('runCount' | 'caseLatestStatus')[];
 };

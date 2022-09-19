@@ -1,4 +1,5 @@
 import dayjs from 'dayjs';
+import { toArray } from '../lib/helper';
 import cloneDeep from 'lodash/cloneDeep';
 import { iqlSearch } from '../lib/coreApi';
 import { buildPaginationResponse } from './apiUtil';
@@ -24,7 +25,7 @@ type RequestParams = {
   linkQuery?: LinkQueryPayload;
   pagination?: PaginationParams;
   query?: Partial<Record<IQLFiledKeys, any>>;
-  dataTransfer?: (data: TestEntity[]) => Promise<any>;
+  dataTransfer?: (data: TestEntity[]) => any;
   descending?: string[] | string;
   ascending?: string[] | string;
 };
@@ -39,8 +40,8 @@ const DefaultDescending = ['sortIndex', 'createdAt'] as any;
 
 // 处理 order params
 const transformOrderParams = ({ ascending, descending }) => {
-  ascending = (Array.isArray(ascending) ? ascending : [ascending]).filter(Boolean);
-  descending = (Array.isArray(descending) ? descending : [descending]).filter(Boolean);
+  ascending = toArray(ascending).filter(Boolean);
+  descending = toArray(descending).filter(Boolean);
 
   // 如果用户没有设置排序规则，则使用默认规则
   if (ascending.length === 0 || descending.length === 0) {
@@ -69,7 +70,7 @@ const getLinkTypes = linkType => {
     .map(type => `Test${type}`);
 };
 
-type IqlRequestType = <TResp extends TestEntity = TestEntity>(
+type IqlRequestType = <TResp = TestEntity>(
   params: RequestParams,
 ) => Promise<PaginationResponse<TResp>>;
 /** iql 请求查询 */
@@ -209,7 +210,6 @@ export const iqlRequest: IqlRequestType = async params => {
         ...pagination,
       }),
     );
-
     // 关联查询添加 source 字段
     const appendLinkSourceField = testEntityList => {
       if (linkQuery) {
