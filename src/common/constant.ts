@@ -54,7 +54,7 @@ export const BuiltinFieldNameMapping = {
   referenceCase: '测试用例引用',
   type: '测试类型',
   caseStatus: '用例最新执行状态',
-  repository: '测试用例库分组',
+  repository: '测试用例库模块',
   designee: '测试负责人',
   executor: '测试最新执行人',
   sortIndex: '测试用例排序索引',
