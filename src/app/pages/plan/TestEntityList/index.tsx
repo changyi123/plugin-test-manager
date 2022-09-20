@@ -257,7 +257,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
               });
             }}
           >
-            移除1
+            移除
           </a>
         );
       },
