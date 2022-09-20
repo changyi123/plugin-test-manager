@@ -100,8 +100,6 @@ const getExcelData = async (data: any) => {
         workspaceKey,
         id: planId,
       },
-      descending: [],
-      onlySelectId: false,
     });
 
     testPlanObj = getTestPlan(testPlan[0]);
@@ -257,8 +255,6 @@ const importTestInfo = async (args: ImportArgs, excelData = []) => {
         type: TestType.Case,
         workspaceKey: workspace.key,
       },
-      descending: [],
-      onlySelectId: false,
     });
 
     const groupIds = getTestRepoGroupIds(repoData, checkRepoKey);

@@ -93,8 +93,8 @@ export const useAllTestWorkspace = () => {
 };
 
 export const useGetTestRepoGroup = (rowData: any) => {
-  const workspaceKey = rowData?.repository?.workspaceKey ?? rowData?.workspaceKey;
-  const folderKey = rowData?.repository?.objectId ?? rowData?.folderKey;
+  const workspaceKey = rowData?.workspace?.key;
+  const folderKey = rowData?.repository;
 
   const { data: repositoryData, refreshAsync: refreshRepositoryData } = useRequest(
     () => getRepositoryData(workspaceKey ? [workspaceKey] : []),
@@ -127,7 +127,7 @@ export const useGetTestRepoGroup = (rowData: any) => {
     });
   }, [refreshRepositoryData]);
 
-  const data = repositoryDict?.[rowData?.repository?.objectId ?? ''] ?? '未分组';
+  const data = repositoryDict?.[rowData?.repository ?? ''] ?? '未分组';
 
   return { data, loading };
 };

@@ -1,5 +1,5 @@
 import React from 'react';
-import _, { groupBy } from 'lodash';
+import _ from 'lodash';
 import { Popover } from 'antd';
 import { sequence } from './utils';
 import { useStatusConfig } from './hooks';
@@ -13,6 +13,7 @@ const toStylePercent = number => {
 type StatusProgressProps = {
   className?: string;
   statuses?: string[];
+  status?: Record<string, number>;
   hasSummary?: boolean;
   onReady?: (statuses: any[]) => void;
 };
@@ -23,32 +24,29 @@ const StatusProgress: React.FC<StatusProgressProps> = props => {
   const statusConfig = useStatusConfig();
   const [visible, setVisible] = React.useState(false);
 
-  const total = props.statuses?.length ?? 0;
+  const total = Object.values(props.status).reduce((prev: number, cur: number) => {
+    prev = prev + cur;
+    return prev;
+  }, 0);
 
   const statuses = React.useMemo(() => {
-    // 兼容不规范的 status key
-    const statuses =
-      props.statuses?.map(statusKey => (statusConfig[statusKey] ? statusKey : 'TODO')) ?? [];
-
-    const groupedStatus = groupBy(statuses, String);
-
     if (!Object.keys(statusConfig).length || !total) {
       return [];
     }
 
     return sequence(
-      _.chain(statuses)
+      _.chain(Object.keys(props.status))
         .uniq()
         .map(statusKey => {
           const status = statusConfig[statusKey];
           return {
             ...status,
-            num: (groupedStatus[statusKey] ?? []).length,
+            num: props.status?.[statusKey],
           };
         })
         .value(),
     );
-  }, [props.statuses, statusConfig, total]);
+  }, [props.status, statusConfig, total]);
 
   React.useEffect(() => {
     props.onReady?.(statuses);
@@ -73,7 +71,7 @@ const StatusProgress: React.FC<StatusProgressProps> = props => {
         </h6>
       </div>
     );
-  }, [props.hasSummary, statuses]);
+  }, [props.hasSummary, statuses, total]);
 
   return (
     <Popover

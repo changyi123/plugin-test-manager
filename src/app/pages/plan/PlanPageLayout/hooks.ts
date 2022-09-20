@@ -35,6 +35,7 @@ export const useScopedTestDetailIds = (params: ScopedTestDetailIdsParams) => {
           query: {
             workspaceKey: workspaceKey,
           },
+          limit: 9999,
           linkType: TestLinkType.CaseLinkPlan,
           sourceIds: [testPlanId],
           destinationType: TestType.Case,
@@ -49,6 +50,7 @@ export const useScopedTestDetailIds = (params: ScopedTestDetailIdsParams) => {
           query: {
             workspaceKey: workspaceKey,
           },
+          limit: 9999,
           linkType: TestLinkType.RunLinkExecution,
           sourceIds: [testExecutionId],
           destinationType: TestType.Run,
