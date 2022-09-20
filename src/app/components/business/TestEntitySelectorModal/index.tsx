@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable no-unused-vars */
 import React from 'react';
 import { TestType } from '@/lib/constants';
@@ -16,6 +17,7 @@ import TestDetailSelector from './TestDetailSelector';
 import { TestFiledKeyMapping } from 'common/constant';
 
 import cx from './index.less';
+import { getTestEntityByQuery } from '@/lib/api/item';
 
 const AddExistedTestEventType = 'ADD_EXISTED_TEST';
 
@@ -229,7 +231,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
     },
   }));
 
-  const handleOkButtonClick = React.useCallback(() => {
+  const handleOkButtonClick = React.useCallback(async () => {
     if (PreviousButtonClicked) return;
     PreviousButtonClicked = true;
     let selectedData = selectedTestDetails;
@@ -242,6 +244,15 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
     }
 
     typeof props.onSelect === 'function' && props.onSelect(selectedData);
+
+    // const { list: itemData } = await getTestEntityByQuery({
+    //   query: {
+    //     workspaceKey: workspace.key,
+    //     type: TestType.Case,
+    //     id: selectedData,
+    //   },
+    // });
+
     eventBusRef.current.dispatch(AddExistedTestEventType, selectedData);
     setVisible(false);
   }, [needFillValue, props, selectValue, selectedTestDetails, setVisible, testType]);

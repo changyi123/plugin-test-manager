@@ -18,12 +18,7 @@ import {
   TestConfigContextType,
   BaseActionContextType,
 } from './context';
-import {
-  ENTITY_NOT_FOUND,
-  ExtensionValType,
-  CREATE_ITEM_STORE_FIELD_KEY,
-  TestType,
-} from '@/lib/constants';
+import { ExtensionValType, CREATE_ITEM_STORE_FIELD_KEY, TestType } from '@/lib/constants';
 import { updateTestEntity } from '@/lib/api/item';
 
 const ItemCreateSuccessEventType = 'itemCreateSuccess';
@@ -75,19 +70,11 @@ const getOrCreateTestEntity = async (
       if (storeValues?.[CREATE_ITEM_STORE_FIELD_KEY]) {
         const { repository: storedRepository, ...detail } =
           storeValues[CREATE_ITEM_STORE_FIELD_KEY];
-        // extraFields = {
-        //   ...extraFields,
-        //   detail,
-        // };
-        const fields = Object.entries(detail).reduce((prev, [filed, value]) => {
-          prev[`r_test_manager_${filed}`] = value;
 
-          return prev;
-        }, {});
         needCreatedItem = {
-          ...fields,
-          r_test_manager_repository: storedRepository,
-          r_test_manager_sortIndex: generateSortIndex(1),
+          ...detail,
+          repository: storedRepository,
+          sortIndex: generateSortIndex(1),
         };
       }
       console.info('extraFields', extraFields);
@@ -97,10 +84,8 @@ const getOrCreateTestEntity = async (
       {
         objectId: itemData.objectId,
         name: itemData.name,
-        values: {
-          ...needCreatedItem,
-          r_test_manager_type: type,
-        },
+        ...needCreatedItem,
+        type: type,
       },
     ]);
     testEntity = data?.[0];
@@ -141,20 +126,12 @@ const getOrBatchCreateTestEntities = async (
 
   const needCreatedTestEntities = itemList.map((item, index) => {
     const restFields = storeValueWithItemIdMap[item.objectId] ?? {};
-
-    const fields = Object.entries(restFields).reduce((prev, [filed, value]) => {
-      prev[`r_test_manager_${filed}`] = value;
-
-      return prev;
-    }, {});
     return {
       name: item.name,
       objectId: item.objectId,
-      values: {
-        ...fields,
-        r_test_manager_sortIndex: generateSortIndex(index + 1),
-        r_test_manager_type: type,
-      },
+      ...restFields,
+      sortIndex: generateSortIndex(index + 1),
+      type: type,
     };
   });
   const { data: details } = await updateTestEntity(needCreatedTestEntities);
@@ -172,11 +149,7 @@ const eventBus = new EventBus();
 // 消息 key，区分消息源。防止多个消息同时被接收
 const messageKey = ItemCreateSuccessEventType + uuid();
 
-const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
-  itemId,
-  children,
-  workspaceKey,
-}) => {
+const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({ children, workspaceKey }) => {
   const [workspace, setWorkspace] = React.useState<Workspace>();
   const [testEntity, setTestEntity] = React.useState<TestEntity>();
 

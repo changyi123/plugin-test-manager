@@ -1,5 +1,4 @@
-import { getlinkedTestEntityByQuery, getTestEntityByQuery } from '@/lib/api/item';
-import { TestLinkType, TestType } from '@/lib/constants';
+import { getStatsTestPlan, getTestEntityByQuery } from '@/lib/api/item';
 import { useRequest } from 'ahooks';
 import _ from 'lodash';
 
@@ -13,26 +12,18 @@ const useGetTestPlanById = (id?: string, workspaceKey?: string) => {
           type: 'TestPlan',
           id,
         },
-        descending: [],
-        onlySelectId: false,
       });
 
-      const { list: linkTestDetails } = await getlinkedTestEntityByQuery({
-        query: {
-          workspaceKey: workspaceKey,
-        },
-        linkType: TestLinkType.CaseLinkPlan,
-        sourceIds: [id],
-        destinationType: TestType.Case,
-        descending: [],
-        onlySelectId: false,
+      const stats = await getStatsTestPlan({
+        planIds: testPlan.map(d => d.objectId),
+        select: ['caseStatus', 'caseCount', 'executionCount'],
       });
 
       const testPlans = _.chain(testPlan)
         .map(testPlan => {
           return {
             ...testPlan,
-            refTestDetails: linkTestDetails.filter(d => d.linkItems.includes(testPlan.objectId)),
+            ...stats?.[testPlan.objectId],
           };
         })
         .value();

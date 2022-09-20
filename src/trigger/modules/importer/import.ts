@@ -1,3 +1,4 @@
+import parallelLimit from 'async/parallelLimit';
 import {
   getParseModel,
   saveAllObject,
@@ -25,7 +26,7 @@ const clone = d => JSON.parse(JSON.stringify(d));
 
 const replaceRn = datas => datas?.replace(/^[\r\n]+/g, '');
 
-const splitSteps = datas => replaceRn(datas)?.split(/(?=【\d+】)/g) ?? [];
+const splitSteps = datas => `${replaceRn(datas) ?? ''}`?.split(/(?=【\d+】)/g) ?? [];
 
 const pickStepIndex = data => {
   return +data.replace(/【(\d+)】(.|[\r\n])*?$/, '$1');
@@ -90,9 +91,8 @@ export const runImport = async () => {
     const itemsData = isNotHaveMap ? appFieldsData : data;
     const mathData = Math.floor(Date.now() / 1000) * 10e5;
 
-    const needUpdateValues = itemsData.map((item, index) => ({
-      objectId: item.objectId,
-      name: item.name,
+    const needUpdateValues = itemsData.reverse().map((item, index) => ({
+      objectId: item.itemId ?? item.objectId,
       values: {
         r_test_manager_type: 'TestCase',
         r_test_manager_detail: {
@@ -183,7 +183,7 @@ export const runImport = async () => {
       return prev;
     }, []);
 
-  const getGroupPath = group => group?.split('/').filter(d => `${d}`.trim()) ?? [];
+  const getGroupPath = group => `${group ?? ''}`?.split('/').filter(d => `${d}`.trim()) ?? [];
 
   const getImportGroupData = () =>
     appFieldsData
@@ -230,14 +230,18 @@ export const runImport = async () => {
       },
     }));
 
+    const taskQueue = needToUpdateItemValues.map(item => {
+      return async () =>
+        requestCoreApi('PUT', `/parse/api/items/${item.objectId}`, {
+          values: {
+            ...item.values,
+            r_test_manager_repository: testRepoMap.get(item.objectId),
+          },
+        });
+    });
+
     // TODO 更新事项 values
-    const res = await requestCoreApi(
-      'POST',
-      `/api/app/osc/test_manager/webhooks/api-batch-update}`,
-      {
-        data: needToUpdateItemValues,
-      },
-    );
+    const res = await parallelLimit(taskQueue, 10);
 
     return res;
   };

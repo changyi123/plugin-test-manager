@@ -68,8 +68,7 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
           workspaceKey: workspaceKey,
           type: TestType.Case,
         },
-        descending: [],
-        onlySelectId: false,
+        limit: 9999,
       });
 
       return list;
@@ -219,7 +218,7 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
         ids = selectedFolder.ids;
       }
 
-      onFolderSelect?.(scopedTestDetailIds, {
+      onFolderSelect?.(ids, {
         selectedFolder,
       });
     }

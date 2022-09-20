@@ -1,13 +1,36 @@
 import fetch from '@/lib/utils/fetch';
 import {
+  FieldKey,
+  PaginationParams,
+  Query,
   QueryLinkedTestEntityPayload,
-  QueryTestEntityPayload,
+  TestExecutionStatsPayload,
   TestPlanStatsPayload,
 } from 'common/types/api';
+import { lib } from 'proxima-sdk';
+const { selectorToIql } = lib.Iql;
+
+type TestEntityPayload = PaginationParams & {
+  /** 测试实体查询支持快捷查询 */
+  query?: Query;
+  /** 筛选器选择 */
+  selectors?: any;
+  /** 限制接口返回的字段 */
+  fields?: FieldKey[];
+  /** 升序字段 */
+  ascending?: FieldKey[];
+  /** 降序字段 */
+  descending?: FieldKey[];
+  /** 只返回 id */
+  onlySelectId?: boolean;
+};
 
 // 查询测试用例事项
-export const getTestEntityByQuery = async (props: QueryTestEntityPayload) => {
-  const _props = Object.assign({ descending: ['createdAt'] }, props);
+export const getTestEntityByQuery = async (props: TestEntityPayload) => {
+  const _props = Object.assign(
+    { descending: [], onlySelectId: false },
+    { ...props, selectors: selectorToIql(props.selectors) },
+  );
 
   const {
     data: { data },
@@ -19,7 +42,7 @@ export const getTestEntityByQuery = async (props: QueryTestEntityPayload) => {
   };
 };
 
-// 查找统计数据
+// 关联查询
 export const getlinkedTestEntityByQuery = async (props: QueryLinkedTestEntityPayload) => {
   const {
     data: { data },
@@ -29,6 +52,24 @@ export const getlinkedTestEntityByQuery = async (props: QueryLinkedTestEntityPay
     list: data.list ?? [],
     total: data.total ?? 0,
   };
+};
+
+// 测试计划统计查询
+export const getStatsTestPlan = async (props: TestPlanStatsPayload) => {
+  const {
+    data: { data },
+  } = await fetch.post('/api/app/osc/test_manager/webhooks/api-stats-test-plan', props);
+
+  return data;
+};
+
+// 测试执行任务统计查询
+export const getStatsTestExecution = async (props: TestExecutionStatsPayload) => {
+  const {
+    data: { data },
+  } = await fetch.post('/api/app/osc/test_manager/webhooks/api-stats-test-execution', props);
+
+  return data;
 };
 
 // 批量删除测试实体事项
