@@ -231,7 +231,6 @@ export const iqlRequest: IqlRequestType = async params => {
             source: getSourceFromLinkSourceMap(data.objectId),
           }));
         }
-        console.info('testEntityList', testEntityList);
       }
       return testEntityList;
     };

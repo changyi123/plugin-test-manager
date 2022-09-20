@@ -127,7 +127,19 @@ export type BatchDeletePayload = {
  * @example POST /api/project/app/osc/test_manager/webhooks/api-batch-update
  */
 export type BatchUpdatePayload = {
-  data: (Partial<TestEntity> & { objectId: string })[];
+  data: (
+    | Partial<TestEntity>
+    | {
+        objectId: string;
+        // linkItems 支持 { action: 'add' | 'delete', value: [] } 格式更新
+        linkItems:
+          | string[]
+          | {
+              action: 'add' | 'delete';
+              value: string[];
+            };
+      }
+  )[];
 };
 
 /**
