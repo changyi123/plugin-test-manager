@@ -1,6 +1,7 @@
 import fetch from '@/lib/utils/fetch';
 import {
   FieldKey,
+  LinkQueryPayload,
   PaginationParams,
   Query,
   QueryLinkedTestEntityPayload,
@@ -25,6 +26,8 @@ type TestEntityPayload = PaginationParams & {
   onlySelectId?: boolean;
 };
 
+type LinkedTestEntityPayload = TestEntityPayload & LinkQueryPayload;
+
 // 查询测试用例事项
 export const getTestEntityByQuery = async (props: TestEntityPayload) => {
   const _props = Object.assign(
@@ -43,10 +46,15 @@ export const getTestEntityByQuery = async (props: TestEntityPayload) => {
 };
 
 // 关联查询
-export const getlinkedTestEntityByQuery = async (props: QueryLinkedTestEntityPayload) => {
+export const getlinkedTestEntityByQuery = async (props: LinkedTestEntityPayload) => {
+  const _props = Object.assign(
+    { descending: [], onlySelectId: false },
+    { ...props, selectors: selectorToIql(props.selectors) },
+  );
+
   const {
     data: { data },
-  } = await fetch.post('/api/app/osc/test_manager/webhooks/api-query-linked-test-entity', props);
+  } = await fetch.post('/api/app/osc/test_manager/webhooks/api-query-linked-test-entity', _props);
 
   return {
     list: data.list ?? [],
@@ -84,6 +92,14 @@ export const deleteTestEntity = async ids => {
 // 批量更新测试实体事项
 export const updateTestEntity = async data => {
   const res = await fetch.post('/api/app/osc/test_manager/webhooks/api-batch-update', {
+    data,
+  });
+
+  return res;
+};
+
+export const batchCreateTestRun = async data => {
+  const res = await fetch.post('/api/app/osc/test_manager/webhooks/api-batch-create-test-run', {
     data,
   });
 

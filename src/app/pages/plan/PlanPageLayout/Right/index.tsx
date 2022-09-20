@@ -9,7 +9,7 @@ import { extendFields, RepositoryModel, TestLinkType, TestType } from '@/lib/con
 import { useUpdateEffect } from 'ahooks';
 import TestEntityList from '../../TestEntityList';
 import { usePageContext } from '../../hook';
-import { useGetTestIdByPlan, useSetTableHeight } from './hooks';
+import { useGetCaseIdByPlan, useSetTableHeight } from './hooks';
 import ExecutionStatus from '../ExecutionStatus';
 import { updateTestEntity } from '@/lib/api/item';
 
@@ -61,7 +61,7 @@ const Right: React.FC<RightProps> = props => {
 
   useSetTableHeight();
 
-  const { data: caseIds } = useGetTestIdByPlan({
+  const { data: caseIds } = useGetCaseIdByPlan({
     workspaceKey,
     planId: selectedTestPlan.objectId,
   });
