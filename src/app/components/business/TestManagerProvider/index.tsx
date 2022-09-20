@@ -10,7 +10,7 @@ import { alert, hasArrayItem } from '@/lib/utils/helper';
 import { useOnItemCreateSuccess } from '@/lib/hooks/useProximaSDK';
 import { openCreateItemModal, openItemDetailPanel } from '@/lib/api/sdk';
 import { getTestConfig } from '@/lib/api/common';
-import { getItemByIds, getWorkspaceByKey, getItemTypeByKey, getItemByIQL } from '@/lib/api/proxima';
+import { getItemByIds, getWorkspaceByKey, getItemTypeByKey } from '@/lib/api/proxima';
 import { getKeyByValue, generateSortIndex } from '@/lib/utils/helper';
 import {
   TestConfigContext,
@@ -162,21 +162,21 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({ children, 
     execute();
   }, [workspaceKey]);
 
-  React.useEffect(() => {
-    const execute = async () => {
-      // 先获取事项详情
-      const {
-        items: [testEntity],
-      } = await getItemByIQL({ itemId });
-      // TODO: 类型问题
-      setTestEntity((testEntity ?? ENTITY_NOT_FOUND) as unknown as TestEntity);
-      if (testEntity) {
-        const workspace = testEntity.workspace;
-        workspace && setWorkspace(workspace as Workspace);
-      }
-    };
-    execute();
-  }, [itemId]);
+  // React.useEffect(() => {
+  //   const execute = async () => {
+  //     // 先获取事项详情
+  //     const {
+  //       items: [testEntity],
+  //     } = await getItemByIQL({ itemId });
+  //     // TODO: 类型问题
+  //     setTestEntity((testEntity ?? ENTITY_NOT_FOUND) as unknown as TestEntity);
+  //     if (testEntity) {
+  //       const workspace = testEntity.workspace;
+  //       workspace && setWorkspace(workspace as Workspace);
+  //     }
+  //   };
+  //   execute();
+  // }, [itemId]);
 
   const { data: testConfigParseObj } = useRequest(
     () =>
