@@ -158,7 +158,7 @@ export const testExecutionStats = async () => {
       runStatus: {},
     });
     // 测试执行用例统计数据
-    if (select.includes('runStatus')) {
+    if (select.includes('runStatus') || select.includes('runCount')) {
       const {
         data: { list: testRuns },
       } = await iqlRequest<TestRunEntityType>({
@@ -174,16 +174,21 @@ export const testExecutionStats = async () => {
       testRuns.forEach(item => {
         const { status, source } = item;
         // 统计状态数据
-        if (status && select.includes('runStatus')) {
-          source.forEach(executionId => {
-            if (!Object.hasOwnProperty.call(result, executionId)) return;
-            const executionStats = result[executionId];
+
+        source.forEach(executionId => {
+          if (!Object.hasOwnProperty.call(result, executionId)) return;
+          const executionStats = result[executionId];
+          if (status && select.includes('runStatus')) {
             executionStats.runStatus = {
               ...executionStats.runStatus,
               [status]: (executionStats.runStatus ?? 0) + 1,
             };
-          });
-        }
+          }
+
+          if (source && select.includes('runCount')) {
+            executionStats.runCount = Array.from(new Set(source)).length;
+          }
+        });
       });
     }
 
