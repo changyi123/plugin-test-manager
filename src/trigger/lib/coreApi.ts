@@ -19,7 +19,7 @@ export const deleteItems = withCoreApiRequest(['POST', '/parse/functions/deleteI
 export const updateItems = withCoreApiRequest(['PUT', itemId => `/parse/api/items/${itemId}`]);
 
 /** 事项创建 */
-export const createItems = withCoreApiRequest(['POST', '/parse/api/items']);
+export const createItems = withCoreApiRequest(['POST', '/parse/api/v2/items']);
 
 /** IQL 查询 */
 export const iqlSearch = withCoreApiRequest(['POST', '/parse/api/search']);

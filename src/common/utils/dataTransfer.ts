@@ -75,6 +75,7 @@ export const itemToTestEntity = item => {
     'status',
     'objectId',
     'itemType',
+    'itemGroup',
     'workspace',
     'createdAt',
     'createdBy',
