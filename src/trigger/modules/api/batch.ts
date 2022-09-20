@@ -1,4 +1,6 @@
 import pick from 'lodash/pick';
+import keyBy from 'lodash/keyBy';
+import difference from 'lodash/difference';
 import { iqlRequest } from '../../lib/iqlRequest';
 import { buildResponse } from '../../lib/apiUtil';
 import { getReqInfoFromVMRuntime } from '../../lib/apiUtil';
@@ -65,9 +67,60 @@ export const batchUpdate = async () => {
       body: { data },
     } = getReqInfoFromVMRuntime<BatchUpdatePayload>();
     if (!Array.isArray(data)) throwArgumentError('data', 'testEntity[]');
+
+    const isActionSchema = data =>
+      ['add', 'delete'].includes(data?.action) && Array.isArray(data?.value);
+
+    // linkItems 支持 { action: 'add' | 'delete', value: [] } 格式更新
+    // 需要对该类型参数进行处理
+    const needProcessedEntityIds = data
+      .filter(item => isActionSchema(item.linkItems))
+      .map(item => item.objectId);
+
+    let needUpdateItemData = data as any;
+
+    if (needProcessedEntityIds?.[0]) {
+      const {
+        data: { list: originalTestEntityMapping },
+      } = await iqlRequest({
+        query: {
+          id: needProcessedEntityIds,
+        },
+        fields: [SystemField.Id, TestFiledKeyMapping.linkItems],
+        pagination: {
+          limit: InfinityLimit,
+        },
+        dataTransfer: data => keyBy(data, 'objectId'),
+      });
+
+      needUpdateItemData = data.map(item => {
+        const { linkItems, objectId } = item;
+        if (isActionSchema(linkItems)) {
+          const originalTestEntity = originalTestEntityMapping[objectId];
+          if (!originalTestEntity) return data;
+          const { linkItems: originalLinkItems = [] } = originalTestEntity;
+
+          const { action, value } = linkItems as any;
+          let processedLinkItems = value;
+          if (action === 'delete') {
+            processedLinkItems = difference(originalLinkItems, value);
+          } else {
+            processedLinkItems = Array.from(new Set([].concat(originalLinkItems, value)));
+          }
+
+          return {
+            ...item,
+            linkItems: processedLinkItems,
+          };
+        }
+
+        return data;
+      });
+    }
+
     // 校验需要保存的参数
-    data.forEach(testEntityFieldTypeValidator);
-    await batchUpdateItems(data);
+    needUpdateItemData.forEach(testEntityFieldTypeValidator);
+    await batchUpdateItems(needUpdateItemData);
     return buildResponse('update success');
   } catch (err) {
     return buildResponse(err);
