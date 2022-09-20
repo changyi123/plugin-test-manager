@@ -4,6 +4,7 @@ import difference from 'lodash/difference';
 import { iqlRequest } from '../../lib/iqlRequest';
 import { buildResponse } from '../../lib/apiUtil';
 import { getReqInfoFromVMRuntime } from '../../lib/apiUtil';
+import { itemToTestEntity } from '../../../common/utils/dataTransfer';
 import { batchDeleteItems, batchUpdateItems, batchCreateItems } from '../../lib/batchRequest';
 import {
   BatchDeletePayload,
@@ -120,8 +121,8 @@ export const batchUpdate = async () => {
 
     // 校验需要保存的参数
     needUpdateItemData.forEach(testEntityFieldTypeValidator);
-    await batchUpdateItems(needUpdateItemData);
-    return buildResponse('update success');
+    const res = await batchUpdateItems(needUpdateItemData);
+    return buildResponse(res.map(data => itemToTestEntity(data.item)));
   } catch (err) {
     return buildResponse(err);
   }
