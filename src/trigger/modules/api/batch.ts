@@ -186,8 +186,9 @@ export const batchCreateTestRun = async () => {
     });
 
     const res = await batchCreateItems(needCreatedItems as any);
-    console.info('create success res: ', res);
-    return buildResponse('create success');
+    const createdItemIds = res.map(item => item.objectId);
+    console.info('create success res: ', createdItemIds);
+    return buildResponse(createdItemIds);
     // 查询测试执行任务
   } catch (err) {
     return buildResponse(err);
