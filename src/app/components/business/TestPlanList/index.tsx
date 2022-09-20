@@ -9,12 +9,17 @@ import { StatusProgress } from '../Status';
 import FilterSearch from '@/components/common/FilterSearch';
 import { FullScreen } from '@/icons';
 import { components } from 'proxima-sdk';
+import {
+  deleteTestEntity,
+  getlinkedTestEntityByQuery,
+  getStatsTestPlan,
+  getTestEntityByQuery,
+} from '@/lib/api/item';
+import { TestLinkType, TestType } from '@/lib/constants';
 
 const { ItemIcon } = components.Components.Common;
 
 import cx from './index.less';
-import { deleteTestEntity, getlinkedTestEntityByQuery, getTestEntityByQuery } from '@/lib/api/item';
-import { TestLinkType, TestType } from 'common/constant';
 
 const TestPlanList: React.FC<any> = () => {
   const actionRef = React.useRef<BusinessTableActionType>();
@@ -42,25 +47,18 @@ const TestPlanList: React.FC<any> = () => {
         },
         selectors,
         ...queryParams,
-        descending: ['createdAt'],
       });
 
-      const { list: linkTestDetails } = await getlinkedTestEntityByQuery({
-        query: {
-          workspaceKey: workspaceKey,
-        },
-        linkType: TestLinkType.CaseLinkPlan,
-        sourceIds: list.map(d => d.objectId),
-        destinationType: TestType.Case,
-        descending: [],
-        onlySelectId: false,
+      const stats = await getStatsTestPlan({
+        planIds: list.map(d => d.objectId),
+        select: ['caseStatus', 'caseCount'],
       });
 
       const testPlans = _.chain(list)
         .map(testPlan => {
           return {
             ...testPlan,
-            refTestDetails: linkTestDetails.filter(d => d.linkItems?.includes(testPlan.objectId)),
+            ...stats?.[testPlan.objectId],
           };
         })
         .value();
@@ -133,25 +131,29 @@ const TestPlanList: React.FC<any> = () => {
       title: '执行通过率',
       width: 240,
       render(_, rowData) {
-        const status = rowData?.refTestDetails.map(d => d.caseStatus?.[rowData.objectId]) ?? [];
-        const passNum = status.filter(d => d === 'PASSED') ?? [];
-        const rate = status.length === 0 ? 0 : passNum.length / status.length;
+        const passCount = rowData.caseStatus?.PASSED ?? 0;
+        const total = Object.values(rowData.caseStatus).reduce((prev: number, cur: number) => {
+          prev = prev + cur;
+          return prev;
+        }, 0);
+
+        const rate = passCount ? passCount / (total as number) : 0;
 
         return (
           <div className={cx('table-rate')}>
-            <StatusProgress className={cx('status')} hasSummary statuses={status} />
+            <StatusProgress className={cx('status')} hasSummary status={rowData.caseStatus} />
             <span className={cx('rate')}>{`${Math.floor(rate * 100)}%`}</span>
           </div>
         );
       },
     },
     {
-      key: 'testNum',
+      key: 'caseCount',
       title: '规划用例数',
       align: 'right',
       width: 100,
       render(_, rowData) {
-        return <span>{rowData?.refTestDetails?.length ?? 0}</span>;
+        return <span>{rowData?.caseCount}</span>;
       },
     },
     {
