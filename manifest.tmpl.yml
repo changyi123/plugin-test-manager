@@ -2,7 +2,7 @@ app:
   key: test_manager
   uuid: bf73e61c-e15a-4461-a1f7-f940c2009332
   name: test_manager
-  version: "0.0.130037"
+  version: "0.0.130048"
 modules:
   webtrigger:
     # 动态配置 one 路由
