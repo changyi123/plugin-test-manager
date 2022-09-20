@@ -19,6 +19,7 @@ const ValidateFields = ['detail', 'runDetail', ...TestFiledKeyKeys] as (
 
 /** 校验测试字段 */
 export const testEntityFieldTypeValidator = data => {
+  console.log('data---->', data);
   // 校验
   Object.entries((data ?? {}) as Record<string, any>).forEach(([key, value]) => {
     const fieldKey = key as typeof ValidateFields[0];
