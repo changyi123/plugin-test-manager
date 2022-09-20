@@ -1,4 +1,4 @@
-import { updateTestEntity } from '@/lib/api/item';
+import parallelLimit from 'async/parallelLimit';
 import {
   getParseModel,
   saveAllObject,
@@ -90,8 +90,6 @@ export const runImport = async () => {
     const isNotHaveMap = appFieldsData.length;
     const itemsData = isNotHaveMap ? appFieldsData : data;
     const mathData = Math.floor(Date.now() / 1000) * 10e5;
-
-    console.log('itemsData ----------- >', itemsData, appFieldsData);
 
     const needUpdateValues = itemsData.reverse().map((item, index) => ({
       objectId: item.itemId ?? item.objectId,
@@ -232,14 +230,18 @@ export const runImport = async () => {
       },
     }));
 
-    // TODO 更新事项 values
-    const res = await requestCoreApi(
-      'POST',
-      `/api/app/osc/test_manager/webhooks/api-batch-update}`,
-      { data: needToUpdateItemValues },
-    );
+    const taskQueue = needToUpdateItemValues.map(item => {
+      return async () =>
+        requestCoreApi('PUT', `/parse/api/items/${item.objectId}`, {
+          values: {
+            ...item.values,
+            r_test_manager_repository: testRepoMap.get(item.objectId),
+          },
+        });
+    });
 
-    console.log('needToUpdateItemValues -----------> 1111', needToUpdateItemValues, res);
+    // TODO 更新事项 values
+    const res = await parallelLimit(taskQueue, 10);
 
     return res;
   };
