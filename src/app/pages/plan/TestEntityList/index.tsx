@@ -20,7 +20,6 @@ import { useListener } from '@projectproxima/proxima-sdk-js';
 
 import cx from './index.less';
 import {
-  deleteTestEntity,
   getlinkedTestEntityByQuery,
   getStatsTestPlan,
   getTestEntityByQuery,
@@ -129,7 +128,6 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         },
         ...queryParams,
         selectors,
-        descending: ['createdAt'],
       });
 
       const stats = await getStatsTestPlan({
@@ -176,9 +174,18 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   );
 
   const removeTestRelation = React.useCallback(
-    async (_, testDetailIds) => {
+    async (plan, testDetailIds) => {
       if (!Array.isArray(testDetailIds)) return;
-      await deleteTestEntity(testDetailIds);
+      await updateTestEntity(
+        testDetailIds.map(d => ({
+          objectId: d,
+          linkItems: {
+            action: 'delete',
+            value: [plan?.objectId],
+          },
+        })),
+      );
+
       await scopedTestDetailRefresh();
 
       notification.success({
@@ -280,7 +287,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     actionConfirm('该操作会将所选测试执行删除，是否继续操作？', async () => {
       // 删除关联关系，删除测试实体
       // TODO 删除测试实体
-      await deleteTestEntities(testRunIds);
+      // await deleteTestEntities(testRunIds);
       await scopedTestDetailRefresh();
       actionRef.current.refresh();
       actionRef.current.resetSelectedRowKeys();
@@ -398,7 +405,15 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     const handleDelete = () => {
       if (hasRowSelected) {
         actionConfirm('该操作会将所选测试用例从测试计划中移除，是否继续操作？', async () => {
-          await deleteTestEntity(actionRef.current.selectedRowKeys);
+          await updateTestEntity(
+            actionRef.current.selectedRowKeys.map(d => ({
+              objectId: d,
+              linkItems: {
+                action: 'delete',
+                value: [selectedTestPlan?.objectId],
+              },
+            })),
+          );
           actionRef.current.resetSelectedRowKeys();
           tableSelectionToggleEvent.emit(false);
         });

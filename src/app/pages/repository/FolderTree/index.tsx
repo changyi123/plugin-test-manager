@@ -419,9 +419,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
       const currentFolderNode = treeFn.getTreeNodeByKey(state.selectedKeys[0]);
       const updateValues = [testId].map(d => ({
         objectId: d,
-        values: {
-          r_test_manager_repository: toFolderKey,
-        },
+        repository: toFolderKey,
       }));
 
       await updateTestEntity(updateValues);

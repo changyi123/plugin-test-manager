@@ -9,7 +9,7 @@ import { extendFields, RepositoryModel, TestLinkType, TestType } from '@/lib/con
 import { useUpdateEffect } from 'ahooks';
 import TestEntityList from '../../TestEntityList';
 import { usePageContext } from '../../hook';
-import { useSetTableHeight } from './hooks';
+import { useGetTestIdByPlan, useSetTableHeight } from './hooks';
 import ExecutionStatus from '../ExecutionStatus';
 import { updateTestEntity } from '@/lib/api/item';
 
@@ -50,6 +50,7 @@ const Right: React.FC<RightProps> = props => {
   } = props;
 
   const {
+    workspaceKey,
     refresh,
     selectedTestPlan,
     setSearchParams,
@@ -59,6 +60,11 @@ const Right: React.FC<RightProps> = props => {
   } = usePageContext();
 
   useSetTableHeight();
+
+  const { data: caseIds } = useGetTestIdByPlan({
+    workspaceKey,
+    planId: selectedTestPlan.objectId,
+  });
 
   const testEntitySelectorRef = useRef<ModelActionType>();
   const detailSearchRef = useRef(null);
@@ -130,10 +136,8 @@ const Right: React.FC<RightProps> = props => {
 
   const addTestDetail = async () => {
     const itemData = await testEntitySelectorRef.current.open();
-    const ignoreTestDetailIds = selectedTestPlan?.refTestDetails?.map(item => item.objectId) ?? [];
-    const needUpdateTest = itemData.filter(d => !ignoreTestDetailIds.includes(d.objectId));
 
-    if (!needUpdateTest.length) {
+    if (!itemData.length) {
       return notification.warning({
         message: '未选择测试用例',
       });
@@ -141,10 +145,13 @@ const Right: React.FC<RightProps> = props => {
 
     try {
       await updateTestEntity(
-        needUpdateTest.map(item => ({
-          objectId: item.objectId,
+        itemData.map(item => ({
+          objectId: item,
           linkType: TestLinkType.CaseLinkPlan,
-          linkItems: (item.linkItems ?? []).concat(selectedTestPlan.objectId),
+          linkItems: {
+            action: 'add',
+            value: [selectedTestPlan.objectId],
+          },
         })),
       );
     } catch (error) {
@@ -237,7 +244,7 @@ const Right: React.FC<RightProps> = props => {
           }}
           ignoreTestEntityIds={
             activedType === 'TestPlan'
-              ? selectedTestPlan?.refTestDetails?.map(item => item.objectId) ?? []
+              ? caseIds
               : curTestRuns?.map(run => run.runReferenceDetail?.objectId) ?? []
           }
         />

@@ -245,17 +245,15 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
 
     typeof props.onSelect === 'function' && props.onSelect(selectedData);
 
-    const { list: itemData } = await getTestEntityByQuery({
-      query: {
-        workspaceKey: workspace.key,
-        type: TestType.Case,
-        id: selectedData,
-      },
-      descending: [],
-      onlySelectId: false,
-    });
+    // const { list: itemData } = await getTestEntityByQuery({
+    //   query: {
+    //     workspaceKey: workspace.key,
+    //     type: TestType.Case,
+    //     id: selectedData,
+    //   },
+    // });
 
-    eventBusRef.current.dispatch(AddExistedTestEventType, itemData);
+    eventBusRef.current.dispatch(AddExistedTestEventType, selectedData);
     setVisible(false);
   }, [needFillValue, props, selectValue, selectedTestDetails, setVisible, testType]);
 

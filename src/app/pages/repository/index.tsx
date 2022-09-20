@@ -81,8 +81,6 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
             type: TestType.Case,
           },
           limit: 9999,
-          descending: [],
-          onlySelectId: false,
         });
 
         // 刷新右侧表单的所属模块字段
@@ -132,8 +130,6 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
         selectors: state.selectors,
         offset: 0,
         limit: 99999,
-        descending: [],
-        onlySelectId: false,
       });
 
       return testDetails.map(test => test.objectId);

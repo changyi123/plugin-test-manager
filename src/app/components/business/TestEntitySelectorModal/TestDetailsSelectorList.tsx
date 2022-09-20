@@ -104,12 +104,11 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
     async () => {
       const baseQueryOptions: {
         ascending?: FieldKey[];
-        descending: FieldKey[];
+        descending?: FieldKey[];
       } =
         orderByCratedAt === 'asc'
           ? {
               ascending: ['createdAt'],
-              descending: [],
             }
           : {
               descending: ['createdAt'],
@@ -124,7 +123,6 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
         },
         ...baseQueryOptions,
         limit: 9999,
-        onlySelectId: false,
       });
 
       return data.map(d => ({

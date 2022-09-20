@@ -1,14 +1,36 @@
 import fetch from '@/lib/utils/fetch';
 import {
+  FieldKey,
+  PaginationParams,
+  Query,
   QueryLinkedTestEntityPayload,
-  QueryTestEntityPayload,
   TestExecutionStatsPayload,
   TestPlanStatsPayload,
 } from 'common/types/api';
+import { lib } from 'proxima-sdk';
+const { selectorToIql } = lib.Iql;
+
+type TestEntityPayload = PaginationParams & {
+  /** 测试实体查询支持快捷查询 */
+  query?: Query;
+  /** 筛选器选择 */
+  selectors?: any;
+  /** 限制接口返回的字段 */
+  fields?: FieldKey[];
+  /** 升序字段 */
+  ascending?: FieldKey[];
+  /** 降序字段 */
+  descending?: FieldKey[];
+  /** 只返回 id */
+  onlySelectId?: boolean;
+};
 
 // 查询测试用例事项
-export const getTestEntityByQuery = async (props: QueryTestEntityPayload) => {
-  const _props = Object.assign({ descending: ['createdAt'] }, props);
+export const getTestEntityByQuery = async (props: TestEntityPayload) => {
+  const _props = Object.assign(
+    { descending: [], onlySelectId: false },
+    { ...props, selectors: selectorToIql(props.selectors) },
+  );
 
   const {
     data: { data },

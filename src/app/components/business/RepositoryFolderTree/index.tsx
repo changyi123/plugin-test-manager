@@ -69,8 +69,6 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
           type: TestType.Case,
         },
         limit: 9999,
-        descending: [],
-        onlySelectId: false,
       });
 
       return list;

@@ -12,8 +12,6 @@ const useGetTestPlanById = (id?: string, workspaceKey?: string) => {
           type: 'TestPlan',
           id,
         },
-        descending: [],
-        onlySelectId: false,
       });
 
       const stats = await getStatsTestPlan({

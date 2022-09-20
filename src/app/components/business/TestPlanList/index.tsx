@@ -9,8 +9,13 @@ import { StatusProgress } from '../Status';
 import FilterSearch from '@/components/common/FilterSearch';
 import { FullScreen } from '@/icons';
 import { components } from 'proxima-sdk';
-import { deleteTestEntity, getStatsTestPlan, getTestEntityByQuery } from '@/lib/api/item';
-import { TestType } from '@/lib/constants';
+import {
+  deleteTestEntity,
+  getlinkedTestEntityByQuery,
+  getStatsTestPlan,
+  getTestEntityByQuery,
+} from '@/lib/api/item';
+import { TestLinkType, TestType } from '@/lib/constants';
 
 const { ItemIcon } = components.Components.Common;
 
@@ -42,7 +47,6 @@ const TestPlanList: React.FC<any> = () => {
         },
         selectors,
         ...queryParams,
-        descending: ['createdAt'],
       });
 
       const stats = await getStatsTestPlan({
