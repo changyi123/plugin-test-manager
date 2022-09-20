@@ -87,7 +87,6 @@ export const testPlanStats = async () => {
         });
 
         // 统计状态值为 undefined 的节点，变为起始节点
-
         Object.keys(result).forEach(planId => {
           const stats = result[planId];
           const processedStatusCount = (Object.values(stats.caseStatus) as any).reduce(
@@ -224,7 +223,7 @@ export const testCaseStats = async () => {
 
       testCases.forEach(testCase => {
         const { objectId, caseStatus } = testCase;
-        const status = caseStatus[planId] ?? StartStatusKey;
+        const status = caseStatus?.[planId] ?? StartStatusKey;
         const stats = result[objectId];
         if (stats) {
           stats.caseLatestStatus = status;
