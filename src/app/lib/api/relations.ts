@@ -10,7 +10,10 @@ export const createRelations = async (params: {
   targetItem: BaseTestEntity; // 测试用例数据
 }) => {
   // 获取当前测试用例已有的测试计划id
-  const { linkType, linkItems, objectId } = params.targetItem;
+  const {
+    targetItem: { linkItems, objectId },
+    linkType,
+  } = params;
   // 提交数据
   return updateItem(objectId, {
     linkType,

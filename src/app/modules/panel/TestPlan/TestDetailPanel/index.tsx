@@ -3,7 +3,6 @@ import React, { useCallback, useState, useMemo } from 'react';
 import { uniqueId } from 'lodash';
 import { Table, Tooltip } from 'antd';
 import { alert } from '@/lib/utils/helper';
-import { Workspace } from '@/lib/types/App';
 import { DownOutlined } from '@ant-design/icons';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import { INITIAL_STATUS_KEY, TestLinkType, TestType } from '@/lib/constants';
@@ -22,11 +21,11 @@ import TestRunModal, {
   ActionType as TestRunModalActionType,
 } from '@/components/business/TestRunModal';
 import { QuestionCircleOutlined } from '@/icons';
-import { createTestExecutionAndRelations } from '@/lib/api/runs';
 import { removeCaseLinkPlan, fetchLinkList } from '@/lib/api/common';
 import { createRelations } from '@/lib/api/relations';
 import StatusProcessBar from '@/components/business/StatusProcessBar';
 import cx from './index.less';
+import { getItemByIQL } from '@/lib/api/proxima';
 
 const Test = () => {
   const { testEntity, workspace } = useTestConfig();
@@ -46,26 +45,26 @@ const Test = () => {
     const { list: caseList, total } = await fetchLinkList({
       linkType: TestLinkType.CaseLinkPlan,
       sourceIds: testEntity?.objectId,
-      destinationType: TestType.Plan,
-      workspace: workspace?.objectId,
+      destinationType: TestType.Case,
+      workspaceKey: workspace?.key,
     });
+    console.log('没数据吗', caseList)
 
     // 测试用例关联测试执行
-    const { list: testRuns } = await fetchLinkList({
-      linkType: TestLinkType.CaseLinkPlan,
-      sourceIds: testEntity?.objectId,
-      destinationType: TestType.Plan,
-      workspace: workspace?.objectId,
-    });
+    // const { list: testRuns } = await fetchLinkList({
+    //   linkType: TestLinkType.
+    //   sourceIds: testEntity?.objectId,
+    //   destinationType: TestType.Plan,
+    //   workspaceKey: workspace?.key,
+    // });
 
     // 组装测试执行
-
     const list = caseList.map(detail => {
       return {
         ...detail,
         planId: testEntity.objectId,
         // 关联的测试执行
-        relRuns: testRuns.filter(run => run.runReferenceDetail?.objectId === detail.objectId),
+        // relRuns: testRuns.filter(run => run.runReferenceDetail?.objectId === detail.objectId),
       };
     });
 
@@ -75,7 +74,7 @@ const Test = () => {
       list,
       total,
     };
-  }, [testEntity.objectId, workspace?.objectId]);
+  }, [testEntity.objectId, workspace?.key]);
 
   const { testEntityIds, testEntityStatuses } = useMemo(() => {
     return {
@@ -87,7 +86,7 @@ const Test = () => {
   }, [allTestEntities, testEntity]);
 
   // 刷新依赖数据
-  const refreshDepData = useCallback(() => getAllRelTestEntities(), [getAllRelTestEntities]);
+  const refreshDepData = useCallback(() => tableActionRef.current.refresh(), []);
 
   const tableDataSourceGetter = useCallback(async () => {
     const { list, total } = await getAllRelTestEntities();
@@ -97,26 +96,23 @@ const Test = () => {
   // 创建测试执行
   const createTestExecution = useCallback(async () => {
     const token = uniqueId('TestPlan');
-    const res = await createItemUseModal({
+    const { item: testExecution } = await createItemUseModal({
       extraData: { token, planId: testEntity?.objectId },
       // TODO: 测试执行 name
       name: uniqueId('测试执行'),
       type: TestType.Run,
     });
 
-    const { testEntity: testExecutionEntity } = res;
-
-    const testExecutionData = testExecutionEntity;
-
-    await createTestExecutionAndRelations({
-      testPlan: testEntity,
-      testExecution: testExecutionEntity,
-      workspaceKey: (testExecutionData.workspace as Workspace).key,
-    });
+    // TODO: 关联测试执行
+    // await createTestExecutionAndRelations({
+    //   testPlan: testEntity,
+    //   testExecution,
+    //   workspaceKey: (testExecution.workspace as Workspace).key,
+    // });
 
     alert({
       type: 'success',
-      message: `测试执行任务【${testExecutionData?.name}】新建成功`,
+      message: `测试执行任务【${testExecution?.name}】新建成功`,
     });
   }, [createItemUseModal, testEntity]);
 
@@ -128,12 +124,16 @@ const Test = () => {
         async onClick() {
           const testDetailIds = await selectorModalRef.current.open();
           const _testDetailIds = testDetailIds.filter(d => !(testEntityIds ?? []).includes(d));
-
-          await createRelations({
-            linkType: TestLinkType.CaseLinkPlan,
-            link: [testEntity?.objectId],
-            targetItem: _testDetailIds,
-          });
+          const { items } = await getItemByIQL({ itemId: _testDetailIds });
+          await Promise.all(
+            items?.map(data =>
+              createRelations({
+                linkType: TestLinkType.CaseLinkPlan,
+                link: [testEntity?.objectId],
+                targetItem: data,
+              }),
+            ),
+          );
 
           refreshDepData();
 
@@ -200,8 +200,8 @@ const Test = () => {
   // table column 数据
   const tableColumns = useMemo(() => {
     return [
-      columnBuilder(BuiltinColumns.ItemKey, record => ({ item: record.reference })),
-      columnBuilder(BuiltinColumns.ItemTitle, record => ({ item: record.reference })),
+      columnBuilder(BuiltinColumns.ItemKey, item => ({ item })),
+      columnBuilder(BuiltinColumns.ItemTitle, item => ({ item })),
       {
         title: '执行任务数',
         key: 'execution',
@@ -263,7 +263,7 @@ const Test = () => {
           width: 160,
           tooltip: true,
           render(_, record) {
-            const name = record.relExecutions?.[0]?.reference?.name;
+            const name = record.relExecutions?.[0]?.name;
             return <OverflowTooltip title={name}>{name}</OverflowTooltip>;
           },
         },

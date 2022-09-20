@@ -33,8 +33,8 @@ const Test = () => {
     const { list, total } = await fetchLinkList({
       linkType: TestLinkType.ExecutionLinkPlan,
       sourceIds: testEntity?.objectId,
-      destinationType: TestType.Plan,
-      workspace: workspace?.objectId,
+      destinationType: TestType.Execution,
+      workspaceKey: workspace?.key,
     });
 
     // 还得查出执行对应的用例
@@ -45,7 +45,7 @@ const Test = () => {
       list,
       total,
     };
-  }, [testEntity.objectId, workspace?.objectId]);
+  }, [testEntity.objectId, workspace?.key]);
 
   const refresh = React.useCallback(() => {
     tableActionRef.current.refresh();
@@ -118,7 +118,7 @@ const Test = () => {
         title: '测试用例数',
         key: 'count',
         render(_, record) {
-          return record.relRuns.length;
+          return record.relRuns?.length;
         },
       },
       {
@@ -127,7 +127,7 @@ const Test = () => {
         dataIndex: 'status',
         width: 180,
         render: (_, record) => {
-          const statuses = record.relRuns.map(item => item.status);
+          const statuses = record.relRuns?.map(item => item.status);
           return <StatusProgress hasSummary statuses={statuses} />;
         },
       },

@@ -10,7 +10,7 @@ import { alert, hasArrayItem } from '@/lib/utils/helper';
 import { useOnItemCreateSuccess } from '@/lib/hooks/useProximaSDK';
 import { openCreateItemModal, openItemDetailPanel } from '@/lib/api/sdk';
 import { getTestConfig } from '@/lib/api/common';
-import { getItemByIds, getWorkspaceByKey, getItemTypeByKey } from '@/lib/api/proxima';
+import { getItemByIds, getWorkspaceByKey, getItemTypeByKey, getItemByIQL } from '@/lib/api/proxima';
 import { getKeyByValue, generateSortIndex } from '@/lib/utils/helper';
 import {
   TestConfigContext,
@@ -191,7 +191,10 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
 
   React.useEffect(() => {
     const execute = async () => {
-      const testEntity = await getOrCreateTestEntity(itemId);
+      // 先获取事项详情
+      const {
+        items: [testEntity],
+      } = await getItemByIQL({ itemId });
       // TODO: 类型问题
       setTestEntity((testEntity ?? ENTITY_NOT_FOUND) as unknown as TestEntity);
       if (testEntity) {

@@ -1,5 +1,9 @@
 import fetch from '@/lib/utils/fetch';
-import { QueryLinkedTestEntityPayload, QueryTestEntityPayload } from 'common/types/api';
+import {
+  QueryLinkedTestEntityPayload,
+  QueryTestEntityPayload,
+  TestPlanStatsPayload,
+} from 'common/types/api';
 
 // 查询测试用例事项
 export const getTestEntityByQuery = async (props: QueryTestEntityPayload) => {
@@ -41,6 +45,13 @@ export const updateTestEntity = async data => {
   const res = await fetch.post('/api/app/osc/test_manager/webhooks/api-batch-update', {
     data,
   });
+
+  return res;
+};
+
+// 测试计划数据统计接口
+export const getStatsFormPlan = async (data: TestPlanStatsPayload) => {
+  const res = await fetch.post('/api/app/osc/test_manager/webhooks/api-stats-test-plan', data);
 
   return res;
 };

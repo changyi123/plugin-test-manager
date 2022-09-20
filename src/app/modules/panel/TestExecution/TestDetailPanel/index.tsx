@@ -36,11 +36,11 @@ const Test = () => {
       linkType: TestLinkType.RunLinkExecution,
       sourceIds: testEntity?.objectId,
       destinationType: TestType.Execution,
-      workspace: workspace?.objectId,
+      workspaceKey: workspace?.key,
     });
     setAllTestEntities(list);
     return { list, total };
-  }, [testEntity?.objectId, workspace?.objectId]);
+  }, [testEntity?.objectId, workspace?.key]);
 
   // 所有的测试执行
   const allTestRunIds = React.useMemo(

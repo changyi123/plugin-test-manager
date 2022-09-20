@@ -16,6 +16,7 @@ import { TestType } from 'common/constant';
 import cx from './index.less';
 import { getItemByIQL } from '@/lib/api/proxima';
 import { TestLinkType } from '@/lib/constants';
+import { getStatsFormPlan } from '@/lib/api/item';
 
 const Plan = () => {
   const { testEntity, setTestEntity } = useTestConfig();
@@ -43,9 +44,23 @@ const Plan = () => {
     const planList = testEntity?.linkItems;
     if (!planList.length) return { list: [], total: 0 };
     // 获取测试计划
-    const { items: data } = await getItemByIQL({ itemId: planList });
+    const { items: list, count: total } = await getItemByIQL({ itemId: planList });
     // 获取统计数
-    return { list: data, total: data?.length };
+    if (list?.length > 0) {
+      const {
+        data: { data: stats },
+      } = await getStatsFormPlan({
+        planIds: list.map(item => item.objectId),
+        select: ['caseStatus', 'caseCount'],
+      });
+      // 组装统计数
+      Object.keys(stats).forEach(id => {
+        const target = list.find(item => item.objectId === id);
+        if (!target) return;
+        target.stats = stats[id];
+      });
+    }
+    return { list, total };
     // 获取统计数量
   }, [testEntity?.linkItems]);
 
@@ -138,17 +153,15 @@ const Plan = () => {
         key: 'status',
         width: 190,
         render(_, record) {
-          const detailStatuses = record?.relTestDetails?.map(
-            item => item.detailStatus?.[record.objectId],
-          );
-          return <StatusProgress statuses={detailStatuses} hasSummary />;
+          // TODO：坐等StatusProgress完善
+          // return <StatusProgress statuses={record.stats} hasSummary />;
         },
       },
       {
         title: '测试用例数',
         key: 'count',
         render(_, record) {
-          return record.relTestDetails?.length ?? 0;
+          return record.stats?.caseCount ?? 0;
         },
       },
       {
