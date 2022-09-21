@@ -156,6 +156,7 @@ export const testExecutionStats = async () => {
   try {
     const result = buildStatsResult(executionIds, select, {
       runStatus: {},
+      runCount: 0,
     });
     // 测试执行用例统计数据
     if (select.includes('runStatus') || select.includes('runCount')) {
@@ -177,16 +178,18 @@ export const testExecutionStats = async () => {
 
         source.forEach(executionId => {
           if (!Object.hasOwnProperty.call(result, executionId)) return;
+
           const executionStats = result[executionId];
+
           if (status && select.includes('runStatus')) {
             executionStats.runStatus = {
               ...executionStats.runStatus,
-              [status]: (executionStats.runStatus ?? 0) + 1,
+              [status]: (executionStats?.runStatus[status] ?? 0) + 1,
             };
           }
 
           if (source && select.includes('runCount')) {
-            executionStats.runCount = Array.from(new Set(source)).length;
+            executionStats.runCount = executionStats.runCount ?? 0 + 1;
           }
         });
       });
