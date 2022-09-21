@@ -17,7 +17,6 @@ import TestDetailSelector from './TestDetailSelector';
 import { TestFiledKeyMapping } from 'common/constant';
 
 import cx from './index.less';
-import { getTestEntityByQuery } from '@/lib/api/item';
 
 const AddExistedTestEventType = 'ADD_EXISTED_TEST';
 
@@ -161,11 +160,11 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
       });
 
       const itemDict = keyBy(items, 'objectId');
-      const testEntityDict = itemDict as Record<string, any>;
-      // if (isTestDefectType) {
-      //   // 测试缺陷没有测试实体, 直接用 iql 查询出来的结果
-      //   testEntityDict = itemDict;
-      // }
+      let testEntityDict = itemDict as Record<string, any>;
+      if (isTestDefectType) {
+        // 测试缺陷没有测试实体, 直接用 iql 查询出来的结果
+        testEntityDict = itemDict;
+      }
 
       // 缓存 testEntity
       dataCacheDictRef.current = {
@@ -244,14 +243,6 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
     }
 
     typeof props.onSelect === 'function' && props.onSelect(selectedData);
-
-    // const { list: itemData } = await getTestEntityByQuery({
-    //   query: {
-    //     workspaceKey: workspace.key,
-    //     type: TestType.Case,
-    //     id: selectedData,
-    //   },
-    // });
 
     eventBusRef.current.dispatch(AddExistedTestEventType, selectedData);
     setVisible(false);

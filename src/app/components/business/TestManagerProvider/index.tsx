@@ -134,7 +134,7 @@ const getOrBatchCreateTestEntities = async (
       type: type,
     };
   });
-  const { data: details } = await updateTestEntity(needCreatedTestEntities);
+  const details = await updateTestEntity(needCreatedTestEntities);
 
   return details;
 };
@@ -285,7 +285,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({ children, 
           },
         );
 
-        // if (!hasArrayItem(testEntityList)) return;
+        if (!hasArrayItem(testEntityList)) return;
 
         eventBus.dispatch(messageKey, {
           itemList,
@@ -366,7 +366,6 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({ children, 
           eventBus.disposer = eventBus.register(messageKey, data => {
             const { testEntity, testEntityList, item, itemList, useItemBatchCreate } = data;
             const willValidateItem = useItemBatchCreate ? itemList[0] : item;
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const willValidateTestEntity = useItemBatchCreate ? testEntityList?.[0] : testEntity;
 
             // 创建的测试类型是否符合预期

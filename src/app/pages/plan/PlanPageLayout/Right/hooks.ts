@@ -37,8 +37,6 @@ export const useGetCaseIdByPlan = ({
         linkType: TestLinkType.CaseLinkPlan,
         sourceIds: [planId],
         destinationType: TestType.Case,
-        descending: [],
-        onlySelectId: true,
       });
 
       return ids as string[];

@@ -141,6 +141,7 @@ const PlanPageLayout: React.FC<any> = () => {
                 scopedTestDetailRefresh={scopedTestDetailRefresh}
                 refreshPlanData={refreshPlanData}
                 requestScopedTestDetailIds={requestScopedTestDetailIds}
+                scopedTestDetailIds={scopedTestDetailIds}
               />
             </PageLayout.Right>
           )}

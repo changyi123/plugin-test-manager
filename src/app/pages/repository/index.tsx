@@ -215,11 +215,10 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
       },
     });
 
-    // const successMessage =
-    //   testEntityList.length > 1
-    //     ? `${testEntityList.length}个测试用例新建成功`
-    //     : `测试用例【${testEntityList[0]?.name}】新建成功`;
-    const successMessage = `测试用例【${testEntityList?.[0]?.name}】新建成功`;
+    const successMessage =
+      testEntityList.length > 1
+        ? `${testEntityList.length}个测试用例新建成功`
+        : `测试用例【${testEntityList[0]?.name}】新建成功`;
     notification.success({
       message: successMessage,
     });

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { updateTestRun } from '@/lib/api/runs';
+import { updateTestRunDetail } from '@/lib/api/item';
 import Editor from '@/components/common/Editor';
 import { TabsComponentBaseProps } from './type';
 
@@ -27,12 +27,12 @@ const ExecutionEditor: React.FC<ExecutionEditorProps> = props => {
   }, [testRunData]);
 
   const submitExecuteResultDesc = async val => {
-    // await updateTestRun(testRunEntity, {
-    //   runDetail: {
-    //     ...testRunData.runDetail,
-    //     executeResultDesc: val,
-    //   },
-    // });
+    await updateTestRunDetail(testRunEntity, {
+      runDetail: {
+        ...testRunData.runDetail,
+        executeResultDesc: val,
+      },
+    });
 
     await onDataChange();
   };

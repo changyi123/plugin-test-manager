@@ -352,14 +352,14 @@ export const RepositoryModel = `${appKey}_Repository`;
 export const extendFields = [
   {
     key: RepositoryModel,
-    name: '所属模块',
+    name: '测试用例库模块',
     objectId: RepositoryModel,
     fieldType: {
       isExtend: true,
       dataType: 'object',
       objectId: RepositoryModel,
       key: RepositoryModel,
-      name: '所属模块',
+      name: '测试用例库模块',
     },
   },
   {

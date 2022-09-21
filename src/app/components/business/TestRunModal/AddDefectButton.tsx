@@ -1,16 +1,18 @@
 import React from 'react';
 import { TestType } from '@/lib/constants';
-import { addDefect } from '@/lib/api/runs';
 import { useItemLinkTypeConfig } from './hooks';
 import { PlusOutlined } from '@ant-design/icons';
 import { useBaseAction } from '@/lib/hooks/useContext';
 import { Menu, Dropdown, Button, message } from 'antd';
 import TestEntitySelectorModal, { ActionType } from '@/components/business/TestEntitySelectorModal';
+import { TestEntity } from '@/lib/types/Test';
+import { addTestDefect } from '@/lib/api/item';
 
 type AddDefectButtonProps = {
   testId: string;
   plainStyle?: boolean;
   className?: string;
+  testRunEntity?: TestEntity<TestType.Run>;
   currentDefectIds: string[];
   allRelationDefectIds: string[];
   onSave: (ids: string[]) => void;
@@ -19,7 +21,7 @@ type AddDefectButtonProps = {
 
 const AddDefectButton: React.FC<AddDefectButtonProps> = props => {
   const {
-    testId,
+    testRunEntity,
     onSave,
     onLoading,
     currentDefectIds,
@@ -32,24 +34,24 @@ const AddDefectButton: React.FC<AddDefectButtonProps> = props => {
   const currentRef = React.useRef(null);
   const testEntitySelectorRef = React.useRef<ActionType>();
   const createDefect = React.useCallback(async () => {
-    // const { item: defectItem } = await createItemUseModal({
-    //   type: TestType.TestDefect,
-    // });
+    const { item: defectItem } = await createItemUseModal({
+      type: TestType.TestDefect,
+    });
 
-    // onLoading?.();
-    // // 创建事项关联
-    // await addDefect(TestToDefect, testId, [defectItem.objectId]);
-    // const needAddedItemIds = [].concat(currentDefectIds, defectItem.objectId).filter(Boolean);
-    // onSave?.(needAddedItemIds);
-    // message.success('缺陷新建成功');
-  }, [createItemUseModal, testId, TestToDefect, onSave, currentDefectIds, onLoading]);
+    onLoading?.();
+    // 创建事项关联
+    await addTestDefect(TestToDefect, testRunEntity, [defectItem.objectId]);
+    const needAddedItemIds = [].concat(currentDefectIds, defectItem.objectId).filter(Boolean);
+    onSave?.(needAddedItemIds);
+    message.success('缺陷新建成功');
+  }, [createItemUseModal, onLoading, TestToDefect, testRunEntity, currentDefectIds, onSave]);
 
   const addExistedDefect = async () => {
     const itemIds = await testEntitySelectorRef.current.open();
 
     onLoading?.();
     // 创建事项关联
-    await addDefect(TestToDefect, testId, itemIds);
+    await addTestDefect(TestToDefect, testRunEntity, itemIds);
     const needAddedItemIds = [].concat(currentDefectIds, itemIds).filter(Boolean);
     onSave?.(needAddedItemIds);
     message.success('缺陷添加成功');

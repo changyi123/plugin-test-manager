@@ -2,7 +2,6 @@ import React from 'react';
 import { useHover, useUpdateEffect } from 'ahooks';
 import { DeleteOutlined } from '@/icons';
 import { Popconfirm, Empty } from 'antd';
-import { updateTestRun } from '@/lib/api/runs';
 import AddDefectButton from './AddDefectButton';
 import { TabsComponentBaseProps } from './type';
 import { useItemLinkTypeConfig } from './hooks';
@@ -16,6 +15,7 @@ import { components } from 'proxima-sdk';
 const { ItemIcon } = components.Components.Common;
 
 import cx from './TestStep.less';
+import { updateTestRunDetail } from '@/lib/api/item';
 
 type TestStepProps = TabsComponentBaseProps;
 
@@ -46,7 +46,7 @@ const TestStep: React.FC<TestStepProps> = props => {
     );
     await Promise.all([
       addDefect(TestToDefect, testRunData.objectId, defectItemIds),
-      // updateTestRun(testRunEntity, { steps: needUpdateSteps, planId: selectedTestPlanId }),
+      updateTestRunDetail(testRunEntity, { steps: needUpdateSteps, planId: selectedTestPlanId }),
     ]);
     onDataChange();
   };
@@ -62,7 +62,7 @@ const TestStep: React.FC<TestStepProps> = props => {
 
     await Promise.all([
       deleteDefect(TestToDefect, testRunData.objectId, [defectItemId]),
-      // updateTestRun(testRunEntity, { steps: needUpdateSteps, planId: selectedTestPlanId }),
+      updateTestRunDetail(testRunEntity, { steps: needUpdateSteps, planId: selectedTestPlanId }),
     ]);
     onDataChange();
   };
@@ -71,7 +71,10 @@ const TestStep: React.FC<TestStepProps> = props => {
   const handleStatusChange = async (stepId, status) => {
     onLoading();
     const needUpdateSteps = steps.map(step => (step.id === stepId ? { ...step, status } : step));
-    // await updateTestRun(testRunEntity, { steps: needUpdateSteps, planId: selectedTestPlanId });
+    await updateTestRunDetail(testRunEntity, {
+      steps: needUpdateSteps,
+      planId: selectedTestPlanId,
+    });
     await onDataChange();
     setStatusChangeBySteps(true);
   };
@@ -91,7 +94,7 @@ const TestStep: React.FC<TestStepProps> = props => {
       step.id === stepId ? { ...step, actualResult } : step,
     );
 
-    // await updateTestRun(testRunEntity, { steps: needUpdateSteps });
+    await updateTestRunDetail(testRunEntity, { steps: needUpdateSteps });
   };
 
   // 执行步骤评论变更
@@ -100,7 +103,7 @@ const TestStep: React.FC<TestStepProps> = props => {
       step.id === stepId ? { ...step, comment: val } : step,
     );
 
-    // await updateTestRun(testRunEntity, { steps: needUpdateSteps });
+    await updateTestRunDetail(testRunEntity, { steps: needUpdateSteps });
     await onDataChange();
   };
 

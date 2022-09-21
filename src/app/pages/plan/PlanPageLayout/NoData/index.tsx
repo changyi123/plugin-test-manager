@@ -6,9 +6,8 @@ import emptyImg from '@/icons/svg/empty-data.png';
 import { usePageContext } from '../../hook';
 
 import cx from './index.less';
-import { batchCreateTestRun, updateTestEntity } from '@/lib/api/item';
+import { batchCreateTestRun, getlinkedTestEntityByQuery, updateTestEntity } from '@/lib/api/item';
 import { generateSortIndex } from '@/lib/utils/helper';
-import { useGetCaseIdByPlan } from '../Right/hooks';
 
 interface NoDataProps {
   setRefreshExecution?: (val: boolean) => void;
@@ -17,12 +16,6 @@ interface NoDataProps {
 const NoData: React.FC<NoDataProps> = ({ setRefreshExecution }) => {
   const { workspaceKey, selectedTestPlan } = usePageContext();
   const { createItemUseModal } = useBaseAction();
-
-  // 查询测试计划下全部用例 id
-  const { data: caseIds } = useGetCaseIdByPlan({
-    workspaceKey,
-    planId: selectedTestPlan.objectId,
-  });
 
   // 创建测试执行任务
   const createTestExecution = async () => {
@@ -41,10 +34,22 @@ const NoData: React.FC<NoDataProps> = ({ setRefreshExecution }) => {
         duration: null,
       });
 
+      const { list: caseIds } = await getlinkedTestEntityByQuery({
+        query: {
+          workspaceKey: workspaceKey,
+        },
+        limit: 9999,
+        linkType: TestLinkType.CaseLinkPlan,
+        sourceIds: [selectedTestPlan.objectId],
+        destinationType: TestType.Case,
+        descending: [],
+        onlySelectId: true,
+      });
+
       // 创建完测试执行任务事项，更新测试执行任务关联测试计划
       await updateTestEntity([
         {
-          objetId: item.objectId,
+          objectId: item.objectId,
           type: TestType.Execution,
           linkType: TestLinkType.ExecutionLinkPlan,
           linkItems: {

@@ -67,8 +67,6 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
         destinationType: TestType.Execution,
       });
 
-      console.log(2222, list);
-
       return list;
     },
     {
