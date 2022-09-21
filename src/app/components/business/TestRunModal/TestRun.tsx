@@ -10,6 +10,7 @@ import { PASS_STATUS_TYPE, TestType } from '@/lib/constants';
 import { getRootContainer, generateStorageKey } from '@/lib/utils/helper';
 import { Button, Checkbox, Collapse, Tabs, message, Spin, Tooltip } from 'antd';
 import { getTestEntityByQuery, updateTestRunDetail } from '@/lib/api/item';
+import { getItemLinkRelation } from '@/lib/api/runs';
 
 import TestStep from './TestStep';
 import DefectList from './DefectList';
@@ -155,9 +156,6 @@ const TestRun: React.FC<TestRunType> = props => {
   const refTestDetailData = React.useMemo(() => {
     return (testCaseEntity ?? {}) as TestDetailEntity;
   }, [testCaseEntity]);
-  const itemLinks = React.useMemo(() => {
-    return [refTestDetailData];
-  }, [refTestDetailData]);
 
   // TODO: 类型问题
   // 关联的缺陷 id
@@ -179,21 +177,20 @@ const TestRun: React.FC<TestRunType> = props => {
     },
   );
 
-  // // 测试用例事项 id
-  // const refTestDetailItemId = refTestDetailData.objectId;
-  // // 事项关联 feiqi
-  // const { data: itemLinks, loading: itemLinksRequestLoading } = useRequest(
-  //   async () => {
-  //     // const res = await getItemLinkRelation(refTestDetailItemId);
-  //     // // 过滤掉 destination 为空（被关联方事项已经被删除）
-  //     // return res.filter(item => item.destination);
-  //     return [];
-  //   },
-  //   {
-  //     ready: Boolean(refTestDetailItemId),
-  //     refreshDeps: [refTestDetailItemId, allRelationDefectIds.toString()],
-  //   },
-  // );
+  // 测试用例事项 id
+  const refTestDetailItemId = refTestDetailData.objectId;
+  // 事项关联
+  const { data: itemLinks, loading: itemLinksRequestLoading } = useRequest(
+    async () => {
+      const res = await getItemLinkRelation(refTestDetailItemId);
+      // // 过滤掉 destination 为空（被关联方事项已经被删除）
+      return res.filter(item => item.destination);
+    },
+    {
+      ready: Boolean(refTestDetailItemId),
+      refreshDeps: [refTestDetailItemId, allRelationDefectIds.toString()],
+    },
+  );
 
   // 所有已关联的缺陷
   const allRelationDefects = React.useMemo(() => {
@@ -322,7 +319,11 @@ const TestRun: React.FC<TestRunType> = props => {
   //   [testRunEntity, testRunData, onDataChange, modelScrollRef],
   // );
 
-  const loading = tabPaneLoading || testRunRequestLoading || relationDefectsRequestLoading;
+  const loading =
+    tabPaneLoading ||
+    testRunRequestLoading ||
+    relationDefectsRequestLoading ||
+    itemLinksRequestLoading;
 
   return (
     <div ref={modelScrollRef}>
