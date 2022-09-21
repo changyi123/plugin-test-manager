@@ -173,7 +173,7 @@ export const testExecutionStats = async () => {
       });
 
       testRuns.forEach(item => {
-        const { status, source } = item;
+        const { status = StartStatusKey, source } = item;
         // 统计状态数据
 
         source.forEach(executionId => {
@@ -181,15 +181,15 @@ export const testExecutionStats = async () => {
 
           const executionStats = result[executionId];
 
-          if (status && select.includes('runStatus')) {
+          if (select.includes('runStatus')) {
             executionStats.runStatus = {
               ...executionStats.runStatus,
               [status]: (executionStats?.runStatus[status] ?? 0) + 1,
             };
           }
 
-          if (source && select.includes('runCount')) {
-            executionStats.runCount = executionStats.runCount ?? 0 + 1;
+          if (select.includes('runCount')) {
+            executionStats.runCount = executionStats.runCount + 1;
           }
         });
       });
