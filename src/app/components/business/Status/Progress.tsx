@@ -24,10 +24,12 @@ const StatusProgress: React.FC<StatusProgressProps> = props => {
   const statusConfig = useStatusConfig();
   const [visible, setVisible] = React.useState(false);
 
-  const total = Object.values(props.status).reduce((prev: number, cur: number) => {
-    prev = prev + cur;
-    return prev;
-  }, 0);
+  const total =
+    props.status &&
+    Object.values(props.status).reduce((prev: number, cur: number) => {
+      prev = prev + cur;
+      return prev;
+    }, 0);
 
   const statuses = React.useMemo(() => {
     if (!Object.keys(statusConfig).length || !total) {

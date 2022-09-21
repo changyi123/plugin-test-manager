@@ -3,6 +3,16 @@ import { Item, Workspace } from '@/lib/types/App';
 import { TestType } from '@/lib/constants';
 import { BaseTestEntity } from 'common/types/test';
 
+export interface StatusType {
+  key: string;
+  name: string;
+  type: string;
+  color: string;
+  final: boolean;
+  native: boolean;
+  readOnly: boolean;
+}
+
 export type TestConfigContextType = {
   config: {
     // 测试类型 和 itemType 类型关联
@@ -11,6 +21,8 @@ export type TestConfigContextType = {
     defectsMapping: string[];
     // 空间隔离配置
     isolateTestType: TestType[];
+    // 状态
+    statuses: StatusType[];
   };
   workspace?: Workspace;
   testEntity?: BaseTestEntity;

@@ -6,6 +6,7 @@ import {
   QueryLinkedTestEntityPayload,
   TestExecutionStatsPayload,
   TestPlanStatsPayload,
+  TestCaseStatsPayload,
 } from 'common/types/api';
 import { lib } from 'proxima-sdk';
 const { selectorToIql } = lib.Iql;
@@ -92,7 +93,17 @@ export const updateTestEntity = async data => {
 
 // 测试计划数据统计接口
 export const getStatsFormPlan = async (data: TestPlanStatsPayload) => {
-  const res = await fetch.post('/api/app/osc/test_manager/webhooks/api-stats-test-plan', data);
+  const {
+    data: { data: res },
+  } = await fetch.post('/api/app/osc/test_manager/webhooks/api-stats-test-plan', data);
 
+  return res;
+};
+
+// 通过测试用例去查任务数
+export const getRunsFromCase = async (data: TestCaseStatsPayload) => {
+  const {
+    data: { data: res },
+  } = await fetch.post('/api/app/osc/test_manager/webhooks/api-stats-test-case', data);
   return res;
 };

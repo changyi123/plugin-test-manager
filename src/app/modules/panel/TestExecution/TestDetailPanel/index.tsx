@@ -31,16 +31,20 @@ const Test = () => {
   const [allTestEntities, setAllTestEntities] = useState([]);
 
   // 获取测试任务下的测试执行
-  const getAllRelTestEntities = useCallback(async () => {
-    const { list, total } = await fetchLinkList({
-      linkType: TestLinkType.RunLinkExecution,
-      sourceIds: testEntity?.objectId,
-      destinationType: TestType.Execution,
-      workspaceKey: workspace?.key,
-    });
-    setAllTestEntities(list);
-    return { list, total };
-  }, [testEntity?.objectId, workspace?.key]);
+  const getAllRelTestEntities = useCallback(
+    async params => {
+      const { list, total } = await fetchLinkList({
+        linkType: TestLinkType.RunLinkExecution,
+        sourceIds: testEntity?.objectId,
+        destinationType: TestType.Execution,
+        workspaceKey: workspace?.key,
+        ...params,
+      });
+      setAllTestEntities(list);
+      return { list, total };
+    },
+    [testEntity?.objectId, workspace?.key],
+  );
 
   // 所有的测试执行
   const allTestRunIds = React.useMemo(
@@ -48,7 +52,7 @@ const Test = () => {
     [allTestEntities],
   );
 
-  const { relTestDetailIds, relRunStatuses } = React.useMemo(() => {
+  const { relTestDetailIds } = React.useMemo(() => {
     return {
       relTestDetailIds: allTestEntities.map(item => item.runReferenceDetail?.objectId),
       relRunStatuses: allTestEntities.map(item => item.status ?? INITIAL_STATUS_KEY),
@@ -61,15 +65,7 @@ const Test = () => {
 
   const { data: testPlanData } = useRequest(
     async () => {
-      const { list: planData } = await getTestEntitiesByRelation(
-        TestRelationType.PlanRelExecution,
-        { to: testEntity },
-        {
-          fillItemData: true,
-        },
-      );
-
-      return planData[0];
+      return {objectId: 'xxx'};
     },
     {
       refreshDeps: [testEntity.objectId],
@@ -77,7 +73,7 @@ const Test = () => {
   );
 
   const tableDataSourceGetter = React.useCallback(
-    () => getAllRelTestEntities(),
+    params => getAllRelTestEntities(params),
     [getAllRelTestEntities],
   );
 
@@ -203,13 +199,14 @@ const Test = () => {
             d => !(relTestDetailIds ?? []).includes(d),
           );
 
-          await createTestRunAndRelation(testEntity, _selectedTestDetailIds);
+          // 添加关联
+          
 
           refreshDepData();
         },
       },
     ];
-  }, [refreshDepData, testEntity, relTestDetailIds]);
+  }, [refreshDepData, relTestDetailIds]);
 
   return (
     <div className={cx('test')}>
@@ -219,7 +216,7 @@ const Test = () => {
         ignoreTestEntityIds={relTestDetailIds}
       />
 
-      <StatusProcessBar statuses={relRunStatuses} />
+      {/* <StatusProcessBar status={relRunStatuses} /> */}
 
       <PanelTable
         renderActions={() => (

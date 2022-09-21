@@ -19,7 +19,10 @@ import { pointerTransfer, toArray, generateSortIndex } from '@/lib/utils/helper'
 type TestRunEntity = TestEntity<TestType.Run>;
 type TestEntityParseType = any;
 
-/** 创建测试执行实体，并将测试执行与测试执行任务，测试用例与测试执行任务关联 */
+/**
+ * @deprecated
+ * 创建测试执行实体，并将测试执行与测试执行任务，测试用例与测试执行任务关联
+ */
 export const createTestRunAndRelation = async (_testExecutionEntity, _testDetailEntity) => {
   // 转换测试实体
   const testExecutionEntity = pointerTransfer(Test, _testExecutionEntity);

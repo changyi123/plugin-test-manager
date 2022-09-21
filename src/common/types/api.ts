@@ -181,7 +181,7 @@ export type TestExecutionStatsPayload = {
   /** 测试计划 id */
   executionIds: string[];
   /** 数据数据字段 */
-  select?: 'runStatus'[];
+  select?: ('runCount' | 'runStatus')[];
 };
 
 /**

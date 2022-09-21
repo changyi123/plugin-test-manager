@@ -321,6 +321,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
         itemTypeMap: testConfig.itemTypeMap,
         defectsMapping: testConfig.defectsMapping,
         isolateTestType: testConfig.isolateTestType,
+        statuses: testConfig.statuses,
       },
       // item,
       workspace,
@@ -331,6 +332,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
     testConfig.itemTypeMap,
     testConfig.defectsMapping,
     testConfig.isolateTestType,
+    testConfig.statuses,
     workspace,
     testEntity,
   ]);

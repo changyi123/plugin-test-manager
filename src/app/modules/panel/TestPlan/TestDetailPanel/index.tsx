@@ -21,11 +21,10 @@ import TestRunModal, {
   ActionType as TestRunModalActionType,
 } from '@/components/business/TestRunModal';
 import { QuestionCircleOutlined } from '@/icons';
-import { removeCaseLinkPlan, fetchLinkList } from '@/lib/api/common';
-import { createRelations } from '@/lib/api/relations';
+import { fetchLinkList } from '@/lib/api/common';
 import StatusProcessBar from '@/components/business/StatusProcessBar';
 import cx from './index.less';
-import { getItemByIQL } from '@/lib/api/proxima';
+import { getRunsFromCase, updateTestEntity } from '@/lib/api/item';
 
 const Test = () => {
   const { testEntity, workspace } = useTestConfig();
@@ -35,48 +34,66 @@ const Test = () => {
   const testRunModalActionRef = React.useRef<TestRunModalActionType>();
 
   const [allTestEntities, setAllTestEntities] = useState([]);
+  // 统计状态
+  const [stats, setStats] = useState({});
 
   // 获取计划下的测试用例
-  const getAllRelTestEntities = useCallback(async () => {
-    const sourceIds = testEntity.objectId;
-    if (!sourceIds) return;
-    // TODO: 得获取测试用例，以及关联的测试执行
-    // 获取计划下的所有测试用例
-    const { list: caseList, total } = await fetchLinkList({
-      linkType: TestLinkType.CaseLinkPlan,
-      sourceIds: testEntity?.objectId,
-      destinationType: TestType.Case,
-      workspaceKey: workspace?.key,
-    });
-    console.log('没数据吗', caseList)
+  const getAllRelTestEntities = useCallback(
+    async pages => {
+      const sourceIds = testEntity.objectId;
+      let stats = {};
+      if (!sourceIds) return;
+      // 获取计划下的所有测试用例
+      const { list: caseList, total } = await fetchLinkList({
+        linkType: TestLinkType.CaseLinkPlan,
+        sourceIds: testEntity?.objectId,
+        destinationType: TestType.Case,
+        workspaceKey: workspace?.key,
+        ...pages,
+      });
 
-    // 测试用例关联测试执行
-    // const { list: testRuns } = await fetchLinkList({
-    //   linkType: TestLinkType.
-    //   sourceIds: testEntity?.objectId,
-    //   destinationType: TestType.Plan,
-    //   workspaceKey: workspace?.key,
-    // });
+      if (caseList?.length) {
+        // 测试用例关联测试执行
+        stats = await getRunsFromCase({
+          caseIds: caseList.map(item => item.objectId),
+          planId: sourceIds,
+          select: ['runCount', 'caseLatestStatus'],
+        });
+      }
 
-    // 组装测试执行
-    const list = caseList.map(detail => {
+      setStats(stats);
+
+      // 组装测试执行
+      const list = caseList.map(detail => {
+        return {
+          ...detail,
+          planId: testEntity.objectId,
+          // 关联的测试执行
+          relRuns: stats[detail.objectId] || {},
+        };
+      });
+
+      setAllTestEntities(list);
+
       return {
-        ...detail,
-        planId: testEntity.objectId,
-        // 关联的测试执行
-        // relRuns: testRuns.filter(run => run.runReferenceDetail?.objectId === detail.objectId),
+        list,
+        total,
       };
+    },
+    [testEntity.objectId, workspace?.key],
+  );
+
+  // 组装status
+  const status = useMemo(() => {
+    const res = {};
+    Object.keys(stats).forEach(id => {
+      const { runCount: num, caseLatestStatus: statueName } = stats[id];
+      res[statueName] = res[statueName] || 0 + num;
     });
+    return res;
+  }, [stats]);
 
-    setAllTestEntities(list);
-
-    return {
-      list,
-      total,
-    };
-  }, [testEntity.objectId, workspace?.key]);
-
-  const { testEntityIds, testEntityStatuses } = useMemo(() => {
+  const { testEntityIds } = useMemo(() => {
     return {
       testEntityIds: allTestEntities.map(item => item.objectId),
       testEntityStatuses: allTestEntities.map(
@@ -88,10 +105,13 @@ const Test = () => {
   // 刷新依赖数据
   const refreshDepData = useCallback(() => tableActionRef.current.refresh(), []);
 
-  const tableDataSourceGetter = useCallback(async () => {
-    const { list, total } = await getAllRelTestEntities();
-    return { list, total };
-  }, [getAllRelTestEntities]);
+  const tableDataSourceGetter = useCallback(
+    async params => {
+      const { list, total } = await getAllRelTestEntities(params);
+      return { list, total };
+    },
+    [getAllRelTestEntities],
+  );
 
   // 创建测试执行
   const createTestExecution = useCallback(async () => {
@@ -100,7 +120,7 @@ const Test = () => {
       extraData: { token, planId: testEntity?.objectId },
       // TODO: 测试执行 name
       name: uniqueId('测试执行'),
-      type: TestType.Run,
+      type: TestType.Execution,
     });
 
     // TODO: 关联测试执行
@@ -124,22 +144,20 @@ const Test = () => {
         async onClick() {
           const testDetailIds = await selectorModalRef.current.open();
           const _testDetailIds = testDetailIds.filter(d => !(testEntityIds ?? []).includes(d));
-          const { items } = await getItemByIQL({ itemId: _testDetailIds });
-          await Promise.all(
-            items?.map(data =>
-              createRelations({
-                linkType: TestLinkType.CaseLinkPlan,
-                link: [testEntity?.objectId],
-                targetItem: data,
-              }),
-            ),
+
+          await updateTestEntity(
+            _testDetailIds.map(objectId => ({
+              linkType: TestLinkType.CaseLinkPlan,
+              objectId,
+              linkItems: { action: 'add', value: [testEntity.objectId] },
+            })),
           );
 
           refreshDepData();
 
           alert({
             type: 'success',
-            message: `${testDetailIds.length} 个测试用例添加到测试计划中`,
+            message: `${_testDetailIds.length} 个测试用例添加到测试计划中`,
           });
         },
       },
@@ -147,8 +165,7 @@ const Test = () => {
         title: '新建测试用例',
         async onClick() {
           const {
-            testEntity: newTestDetail,
-            item: { name },
+            item: { name, objectId },
           } = await createItemUseModal({
             hideMessage: true,
             type: TestType.Case,
@@ -157,11 +174,13 @@ const Test = () => {
             },
           });
 
-          await createRelations({
-            linkType: TestLinkType.CaseLinkPlan,
-            link: [testEntity?.objectId],
-            targetItem: newTestDetail,
-          });
+          await updateTestEntity([
+            {
+              linkType: TestLinkType.CaseLinkPlan,
+              objectId,
+              linkItems: { action: 'add', value: [testEntity.objectId] },
+            },
+          ]);
 
           refreshDepData();
 
@@ -178,13 +197,11 @@ const Test = () => {
     async testDetailIds => {
       if (!Array.isArray(testDetailIds)) return;
       // 移除测试用例和计划的关联
-      await Promise.all(
-        testDetailIds.map(id =>
-          removeCaseLinkPlan({
-            testPlan: [testEntity?.objectId],
-            testDetail: allTestEntities.find(item => item.objectId === id),
-          }),
-        ),
+      await updateTestEntity(
+        testDetailIds.map(objectId => ({
+          objectId,
+          linkItems: { action: 'delete', value: [testEntity.objectId] },
+        })),
       );
 
       refreshDepData();
@@ -194,7 +211,7 @@ const Test = () => {
         message: `${testDetailIds.length} 个测试用例从测试计划中删除`,
       });
     },
-    [allTestEntities, refreshDepData, testEntity?.objectId],
+    [refreshDepData, testEntity?.objectId],
   );
 
   // table column 数据
@@ -207,12 +224,12 @@ const Test = () => {
         key: 'execution',
         width: 90,
         render: (_, record) => {
-          return record.relRuns?.length ?? 0;
+          return record.relRuns?.runCount ?? 0;
         },
       },
       columnBuilder(BuiltinColumns.LatestStatus, record => {
         return {
-          status: record.detailStatus?.[testEntity.objectId],
+          status: record.relRuns?.caseLatestStatus,
           readonly: true,
         };
       }),
@@ -229,7 +246,7 @@ const Test = () => {
         ),
       },
     ];
-  }, [removeTestRelation, testEntity]);
+  }, [removeTestRelation]);
 
   // 添加测试执行菜单
   const testExecutionMenuList = useMemo(() => {
@@ -321,7 +338,7 @@ const Test = () => {
         ignoreTestEntityIds={testEntityIds}
       />
       {/* 状态条的变化 */}
-      <StatusProcessBar statuses={testEntityStatuses} />
+      <StatusProcessBar status={status} />
 
       <PanelTable
         expandable={{
