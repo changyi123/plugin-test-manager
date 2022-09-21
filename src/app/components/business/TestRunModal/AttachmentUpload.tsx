@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Checkbox, message, Image, Upload } from 'antd';
-import { Button } from 'antd';
-import { TabsComponentBaseProps } from './type';
+import { Checkbox, message, Image, Upload, Button } from 'antd';
 import { DeleteOutlined, DownloadOutlined, UploadOutlined, LoadingOutlined } from '@/icons';
+import { updateTestRunDetail } from '@/lib/api/item';
 import { actionConfirm } from '@/lib/utils/helper';
-import { updateTestRun } from '@/lib/api/runs';
+import { TabsComponentBaseProps } from './type';
 import Parse from '@/lib/parse';
 import dayjs from 'dayjs';
 
@@ -28,7 +27,7 @@ const AttachmentList: React.FC<any> = props => {
 
   const deleteFileLise = async file => {
     if (!file.url) {
-      await updateTestRun(testRunEntity, {
+      await updateTestRunDetail(testRunEntity, {
         runDetail: {
           ...(testRunData.runDetail ?? {}),
           attachments: fileList.filter(v => v.uid !== file.uid),
@@ -44,7 +43,7 @@ const AttachmentList: React.FC<any> = props => {
         .then(async () => {
           const fileArr = fileList.filter(v => v.uid !== file.uid);
 
-          await updateTestRun(testRunEntity, {
+          await updateTestRunDetail(testRunEntity, {
             runDetail: {
               ...(testRunData.runDetail ?? {}),
               attachments: fileArr,
@@ -151,7 +150,7 @@ const AttachmentList: React.FC<any> = props => {
                                 }),
                             );
 
-                            await updateTestRun(testRunEntity, {
+                            await updateTestRunDetail(testRunEntity, {
                               runDetail: {
                                 ...(testRunData.runDetail ?? {}),
                                 attachments: list,
@@ -305,12 +304,12 @@ const AttachmentUpload: React.FC<AttachmentUploadProps> = props => {
         });
 
         // 存储关系到测试用例
-        // await updateTestRun(testRunEntity, {
-        //   runDetail: {
-        //     ...(testRunData.runDetail ?? {}),
-        //     attachments: getFileList(),
-        //   },
-        // });
+        await updateTestRunDetail(testRunEntity, {
+          runDetail: {
+            ...(testRunData.runDetail ?? {}),
+            attachments: getFileList(),
+          },
+        });
 
         setFileList(getFileList());
         setUploadTimes(i => i + 1);

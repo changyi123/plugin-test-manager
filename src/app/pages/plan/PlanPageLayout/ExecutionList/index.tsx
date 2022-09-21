@@ -56,31 +56,15 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
   const { data, refresh, loading } = useRequest(
     async () => {
       if (activedType !== 'TestExecution') return [];
-      // TODO 查询测试执行任务数据
-      // const { list } = await getTestEntitiesByRelationWithOrder(
-      //   TestRelationType.PlanRelExecution,
-      //   {
-      //     from: planId ? [planId] : [],
-      //   },
-      //   {
-      //     workspaceKey,
-      //     select: ['reference', 'workspaceKey'],
-      //     include: ['reference'],
-      //     descendingBy: ['createdAt'],
-      //     ascendingBy: undefined,
-      //     queryParams: { limit: 999, offset: 0 },
-      //   },
-      // );
 
       const { list } = await getlinkedTestEntityByQuery({
         query: {
           workspaceKey: workspaceKey,
         },
+        limit: 9999,
         linkType: TestLinkType.ExecutionLinkPlan,
         sourceIds: [planId],
         destinationType: TestType.Execution,
-        descending: [],
-        onlySelectId: false,
       });
 
       return list;

@@ -39,8 +39,6 @@ export const useScopedTestDetailIds = (params: ScopedTestDetailIdsParams) => {
           linkType: TestLinkType.CaseLinkPlan,
           sourceIds: [testPlanId],
           destinationType: TestType.Case,
-          descending: [],
-          onlySelectId: false,
         });
 
         return details?.map(detail => get(detail, 'objectId')) ?? [];
@@ -54,11 +52,9 @@ export const useScopedTestDetailIds = (params: ScopedTestDetailIdsParams) => {
           linkType: TestLinkType.RunLinkExecution,
           sourceIds: [testExecutionId],
           destinationType: TestType.Run,
-          descending: [],
-          onlySelectId: false,
         });
 
-        return runs?.map(run => get(run, 'referenceCase.objectId')) ?? [];
+        return runs?.map(run => get(run, 'referenceCase')) ?? [];
       }
     },
     {

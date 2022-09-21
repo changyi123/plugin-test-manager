@@ -9,9 +9,9 @@ import { extendFields, RepositoryModel, TestLinkType, TestType } from '@/lib/con
 import { useUpdateEffect } from 'ahooks';
 import TestEntityList from '../../TestEntityList';
 import { usePageContext } from '../../hook';
-import { useGetTestIdByPlan, useSetTableHeight } from './hooks';
+import { useSetTableHeight } from './hooks';
 import ExecutionStatus from '../ExecutionStatus';
-import { updateTestEntity } from '@/lib/api/item';
+import { batchCreateTestRun, updateTestEntity } from '@/lib/api/item';
 
 import cx from './index.less';
 
@@ -35,6 +35,7 @@ interface RightProps {
   refreshPlanData?: () => void;
   requestScopedTestDetailIds?: string[];
   pageLeftRef?: any;
+  scopedTestDetailIds?: string[];
 }
 
 const Right: React.FC<RightProps> = props => {
@@ -47,10 +48,10 @@ const Right: React.FC<RightProps> = props => {
     refreshPlanData,
     requestScopedTestDetailIds,
     pageLeftRef,
+    scopedTestDetailIds,
   } = props;
 
   const {
-    workspaceKey,
     refresh,
     selectedTestPlan,
     setSearchParams,
@@ -60,11 +61,6 @@ const Right: React.FC<RightProps> = props => {
   } = usePageContext();
 
   useSetTableHeight();
-
-  const { data: caseIds } = useGetTestIdByPlan({
-    workspaceKey,
-    planId: selectedTestPlan.objectId,
-  });
 
   const testEntitySelectorRef = useRef<ModelActionType>();
   const detailSearchRef = useRef(null);
@@ -96,23 +92,20 @@ const Right: React.FC<RightProps> = props => {
   }, [selectedTestPlan?.objectId]);
 
   const addTestExecutionDetail = useCallback(async () => {
-    // const ignoreTestDetailIds = curTestRuns
-    //   .map(run => run.runReferenceDetail?.objectId)
-    //   .filter(Boolean);
+    const caseIds = await testEntitySelectorRef.current.open();
+    if (caseIds?.length === 0) {
+      return notification.warning({
+        message: '未选择测试用例',
+      });
+    }
+    setLoading(true);
 
-    // const testDetailIds = await testEntitySelectorRef.current.open();
-    // setLoading(true);
-
-    // 去重
-    // const newTestDetailIds = testDetailIds.filter(d => !ignoreTestDetailIds.includes(d));
-
-    // TODO 新增测试用例到测试执行任务
-    // await addTestDetailToExecution({
-    //   testDetail: newTestDetailIds,
-    //   testPlan: selectedTestPlan?.objectId,
-    //   testExecution: selectedExecution.objectId,
-    //   workspaceKey: selectedExecution.workspaceKey,
-    // });
+    // 新增测试用例到测试执行任务
+    // 创建执行任务
+    await batchCreateTestRun({
+      executionId: selectedExecution.objectId,
+      caseIds,
+    });
 
     scopedTestDetailRefresh();
     mutateStatusEvent.emit('refreshExecutionStatus');
@@ -242,11 +235,7 @@ const Right: React.FC<RightProps> = props => {
           afterClose={() => {
             pageLeftRef.current?.refresh();
           }}
-          ignoreTestEntityIds={
-            activedType === 'TestPlan'
-              ? caseIds
-              : curTestRuns?.map(run => run.runReferenceDetail?.objectId) ?? []
-          }
+          ignoreTestEntityIds={scopedTestDetailIds}
         />
       </div>
     </div>

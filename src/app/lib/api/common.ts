@@ -17,7 +17,7 @@ import {
   withItemType,
   SearchSelectors,
 } from '@/lib/utils/iql';
-import { itemToTestEntity, testEntityToItemValues } from 'common/utils/dataTransfer';
+import { testEntityToItemValues } from 'common/utils/dataTransfer';
 import { BaseTestEntity } from 'common/types/test';
 import { TestType, TestFiledKeyMapping } from 'common/constant';
 import { Query, LinkQueryPayload } from 'common/types/api';
@@ -953,5 +953,5 @@ export async function fetchLinkList(data: FetchLinkParams) {
     // 报错
     throw new Error(res);
   }
-  return { ...res, list: res.list.map(item => transferObject(itemToTestEntity(item))) };
+  return res;
 }

@@ -19,7 +19,13 @@ export const useSetTableHeight = () => {
   }, [headerSize]);
 };
 
-export const useGetTestIdByPlan = ({ workspaceKey, planId }) => {
+export const useGetCaseIdByPlan = ({
+  workspaceKey,
+  planId,
+}: {
+  workspaceKey: string;
+  planId: string;
+}) => {
   const data = useRequest(
     async () => {
       if (!planId) return [];
@@ -31,8 +37,6 @@ export const useGetTestIdByPlan = ({ workspaceKey, planId }) => {
         linkType: TestLinkType.CaseLinkPlan,
         sourceIds: [planId],
         destinationType: TestType.Case,
-        descending: [],
-        onlySelectId: true,
       });
 
       return ids as string[];

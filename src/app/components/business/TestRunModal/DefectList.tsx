@@ -1,16 +1,14 @@
 import React from 'react';
-
 import { useHover } from 'ahooks';
 import cx from './DefectList.less';
 import { DeleteOutlined } from '@/icons';
-import { updateTestRun } from '@/lib/api/runs';
 import { Item, Status } from '@/lib/types/App';
 import AddDefectButton from './AddDefectButton';
 import { useItemLinkTypeConfig } from './hooks';
 import { TabsComponentBaseProps } from './type';
 import { Popconfirm, Tooltip, Empty } from 'antd';
-import { addDefect, deleteDefect } from '@/lib/api/runs';
 import { components } from 'proxima-sdk';
+import { addTestDefect, deleteTestDefect, updateTestRunDetail } from '@/lib/api/item';
 
 const { ItemIcon } = components.Components.Common;
 
@@ -40,12 +38,12 @@ const DefectList: React.FC<DefectListProps> = ({
   const handleDefectAdd = async defectItemIds => {
     // onLoading();
     await Promise.all([
-      addDefect(TestToDefect, testRunData.objectId, defectItemIds),
-      // updateTestRun(testRunEntity, {
-      //   runDetail: {
-      //     defectItemIds,
-      //   },
-      // }),
+      addTestDefect(TestToDefect, testRunData, defectItemIds),
+      updateTestRunDetail(testRunEntity, {
+        runDetail: {
+          defectItemIds,
+        },
+      }),
     ]);
     onDataChange();
   };
@@ -57,64 +55,62 @@ const DefectList: React.FC<DefectListProps> = ({
     const newDefectItemIds = currentDefectItemIds.filter(id => defectItemId !== id);
 
     await Promise.all([
-      deleteDefect(TestToDefect, testRunData.objectId, [defectItemId]),
-      // updateTestRun(testRunEntity, {
-      //   runDetail: {
-      //     defectItemIds: newDefectItemIds,
-      //   },
-      // }),
+      deleteTestDefect(TestToDefect, testRunData, [defectItemId]),
+      updateTestRunDetail(testRunEntity, {
+        runDetail: {
+          defectItemIds: newDefectItemIds,
+        },
+      }),
     ]);
     onDataChange();
   };
   const DefectItem: React.FC<{ defect: TabsComponentBaseProps['allRelationDefects'][0] }> = ({
-    defect = {},
+    defect,
   }) => {
     const ref = React.useRef();
-    // const position =
-    //   defect.type === 'step' && steps.findIndex(step => step.id === defect.stepId) + 1;
+    const position =
+      defect.type === 'step' && steps.findIndex(step => step.id === defect.stepId) + 1;
 
-    // const isGlobalDefect = defect.type === 'global';
-    // const item = (defect.item ?? {}) as Item;
-    // const status = (item.status ?? {}) as Status;
+    const isGlobalDefect = defect.type === 'global';
+    const item = (defect.item ?? {}) as Item;
+    const status = (item.status ?? {}) as Status;
 
-    // const isHover = useHover(ref);
+    const isHover = useHover(ref);
 
-    return <></>;
+    return (
+      <div ref={ref} className={cx('defect', isHover && 'hover')}>
+        <span className={cx('tag')}>{isGlobalDefect ? '全局' : `步骤${position}`}</span>
+        <ItemIcon className={cx('icon')} icon={(item.itemType as any)?.icon}></ItemIcon>
+        <span className={cx('key')}>{item.key}</span>
+        <span>{item.name}</span>
 
-    // return (
-    //   <div ref={ref} className={cx('defect', isHover && 'hover')}>
-    //     <span className={cx('tag')}>{isGlobalDefect ? '全局' : `步骤${position}`}</span>
-    //     <ItemIcon className={cx('icon')} icon={(item.itemType as any)?.icon}></ItemIcon>
-    //     <span className={cx('key')}>{item.key}</span>
-    //     <span>{item.name}</span>
-
-    //     <span style={ItemStatusStyles[status.type]} className={cx('status')}>
-    //       {status?.name}
-    //     </span>
-    //     <Popconfirm
-    //       okText="确定"
-    //       cancelText="取消"
-    //       placement="left"
-    //       disabled={!isGlobalDefect}
-    //       getPopupContainer={getPopupContainer}
-    //       title="当前操作会删除与该缺陷的关联关系，是否继续执行？"
-    //       onConfirm={() => isGlobalDefect && handleDeleteDefect(defect.itemId)}
-    //     >
-    //       <Tooltip
-    //         placement="left"
-    //         getPopupContainer={getPopupContainer}
-    //         title={!isGlobalDefect ? `请在步骤${position}中移除该缺陷` : undefined}
-    //       >
-    //         <a
-    //           style={{ display: isHover ? 'block' : 'none' }}
-    //           className={cx('delete-btn', !isGlobalDefect && 'disabled')}
-    //         >
-    //           <DeleteOutlined />
-    //         </a>
-    //       </Tooltip>
-    //     </Popconfirm>
-    //   </div>
-    // );
+        <span style={ItemStatusStyles[status.type]} className={cx('status')}>
+          {status?.name}
+        </span>
+        <Popconfirm
+          okText="确定"
+          cancelText="取消"
+          placement="left"
+          disabled={!isGlobalDefect}
+          getPopupContainer={getPopupContainer}
+          title="当前操作会删除与该缺陷的关联关系，是否继续执行？"
+          onConfirm={() => isGlobalDefect && handleDeleteDefect(defect.itemId)}
+        >
+          <Tooltip
+            placement="left"
+            getPopupContainer={getPopupContainer}
+            title={!isGlobalDefect ? `请在步骤${position}中移除该缺陷` : undefined}
+          >
+            <a
+              style={{ display: isHover ? 'block' : 'none' }}
+              className={cx('delete-btn', !isGlobalDefect && 'disabled')}
+            >
+              <DeleteOutlined />
+            </a>
+          </Tooltip>
+        </Popconfirm>
+      </div>
+    );
   };
 
   // 所有已关联的缺陷，测试执行内的缺陷只允许关联一次
@@ -132,6 +128,7 @@ const DefectList: React.FC<DefectListProps> = ({
         plainStyle
         className={cx('add-btn')}
         testId={testRunData.objectId}
+        testRunEntity={testRunEntity}
         allRelationDefectIds={allRelationDefectItemIds}
         currentDefectIds={testRunData.runDetail?.defectItemIds}
         onSave={defectItemIds => handleDefectAdd(defectItemIds)}

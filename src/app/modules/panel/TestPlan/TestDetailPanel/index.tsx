@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useMemo } from 'react';
+import React, { useCallback, useState, useMemo, useEffect } from 'react';
 
 import { uniqueId } from 'lodash';
 import { Table, Tooltip } from 'antd';
@@ -38,7 +38,7 @@ const Test = () => {
   const [stats, setStats] = useState({});
 
   // 获取计划下的测试用例
-  const getAllRelTestEntities = useCallback(
+  const getRelTestEntities = useCallback(
     async pages => {
       const sourceIds = testEntity.objectId;
       let stats = {};
@@ -61,8 +61,6 @@ const Test = () => {
         });
       }
 
-      setStats(stats);
-
       // 组装测试执行
       const list = caseList.map(detail => {
         return {
@@ -73,25 +71,35 @@ const Test = () => {
         };
       });
 
-      setAllTestEntities(list);
-
       return {
         list,
         total,
+        stats,
       };
     },
     [testEntity.objectId, workspace?.key],
   );
 
-  // 组装status
+  const getAllData = useCallback(async () => {
+    const { list, stats } = await getRelTestEntities({ offset: 0, limit: 9999 });
+    setAllTestEntities(list);
+    setStats(stats);
+  }, [getRelTestEntities]);
+
+  // 组装所有状态
   const status = useMemo(() => {
-    const res = {};
-    Object.keys(stats).forEach(id => {
-      const { runCount: num, caseLatestStatus: statueName } = stats[id];
-      res[statueName] = res[statueName] || 0 + num;
+    const status = {};
+    allTestEntities.forEach(item => {
+      const itemStatus = stats[item.objectId]?.caseLatestStatus || 'TODO';
+      status[itemStatus] = (status[itemStatus] || 0) + 1;
     });
-    return res;
-  }, [stats]);
+    return status;
+  }, [allTestEntities, stats]);
+
+  useEffect(() => {
+    getAllData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const { testEntityIds } = useMemo(() => {
     return {
@@ -103,14 +111,17 @@ const Test = () => {
   }, [allTestEntities, testEntity]);
 
   // 刷新依赖数据
-  const refreshDepData = useCallback(() => tableActionRef.current.refresh(), []);
+  const refreshDepData = useCallback(() => {
+    getAllData();
+    tableActionRef.current.refresh();
+  }, [getAllData]);
 
   const tableDataSourceGetter = useCallback(
     async params => {
-      const { list, total } = await getAllRelTestEntities(params);
+      const { list, total } = await getRelTestEntities(params);
       return { list, total };
     },
-    [getAllRelTestEntities],
+    [getRelTestEntities],
   );
 
   // 创建测试执行
