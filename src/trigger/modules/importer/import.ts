@@ -299,12 +299,11 @@ export const runImport = async () => {
     }
 
     // 绑定测试用例事项用例库，并更新事项数据
-    const itemData = await updateItemValue(needUpdateValues);
+    await updateItemValue(needUpdateValues);
 
     return {
       code: 200,
       message: '成功',
-      data: itemData,
     };
   };
 

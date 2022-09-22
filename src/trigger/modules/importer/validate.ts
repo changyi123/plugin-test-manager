@@ -171,7 +171,7 @@ export const runValidate = async () => {
       errors = ['事项类型关联未配置，所有数据不予导入，请先配置关联的事项类型', ...errors];
     }
 
-    return errors.concat(getTestDetailsErrors(datas) ?? []);
+    return errors.concat(getTestDetailsErrors(datas) ?? []).filter(Boolean);
   };
 
   const getDataByFieldKey = (datas, maps) =>
