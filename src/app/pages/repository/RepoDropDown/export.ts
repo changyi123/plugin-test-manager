@@ -115,18 +115,14 @@ const getExcelData = async (data: any) => {
 };
 
 /** 获取测试用例数据 */
-const getTestInfo = data => {
-  return {
-    ...getTestInfoByDetail(data),
-  };
-};
+const getTestInfo = data => ({
+  ...getTestInfoByDetail(data.detail),
+});
 
-const getTestInfoByDetail = (detail: { steps?: Step[]; precondition?: string }) => {
-  return {
-    前置条件: detail?.precondition ?? '',
-    ...getSteps(detail?.steps),
-  };
-};
+const getTestInfoByDetail = (detail: { steps?: Step[]; precondition?: string }) => ({
+  前置条件: detail?.precondition ?? '',
+  ...getSteps(detail?.steps),
+});
 
 const getSteps = (steps?: Step[]) => {
   const data = steps

@@ -232,17 +232,30 @@ export const updateTestRunDetail = async (
       const hasFail = steps.some(item => item.status === 'FAILED');
       // 有一个正在执行
       const hasExecuting = steps.some(item => item.status === 'EXECUTING');
+      // 有一个阻塞
+      const hasBlock = steps.some(item => item.status === 'BLOCK');
+      // 有一个取消
+      const hasCannel = steps.some(item => item.status === 'CANCEL');
       // 全部 pass
       const hasAllPass = steps.every(item => item.status === 'PASSED');
       // 全部 todo
       const hasAllTodo = steps.every(item => item.status === 'TODO');
 
-      if (hasFail) {
+      if (hasFail && !hasBlock && !hasCannel) {
+        // 失败且没有阻塞、没有取消 - 失败
         needUpdateAttrs.status = 'FAILED';
-      } else if (hasExecuting) {
+      } else if (hasExecuting && !hasBlock && !hasCannel && !hasFail) {
+        // 正在执行且没有取消、阻塞、失败 - 正在执行
         needUpdateAttrs.status = 'EXECUTING';
+      } else if (hasBlock && !hasCannel) {
+        // 阻塞且没有取消 - 阻塞
+        needUpdateAttrs.status = 'BLOCK';
       } else if (hasAllPass) {
+        // 全部通过 - 通过
         needUpdateAttrs.status = 'PASSED';
+      } else if (hasCannel) {
+        // 一个取消 - 取消
+        needUpdateAttrs.status = 'CANCEL';
       } else if (hasAllTodo) {
         needUpdateAttrs.status = 'TODO';
       }
