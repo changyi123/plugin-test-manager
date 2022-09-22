@@ -21,10 +21,14 @@ import TestRunModal, {
   ActionType as TestRunModalActionType,
 } from '@/components/business/TestRunModal';
 import { QuestionCircleOutlined } from '@/icons';
-import { fetchLinkList } from '@/lib/api/common';
 import StatusProcessBar from '@/components/business/StatusProcessBar';
 import cx from './index.less';
-import { batchCreateTestRun, getRunsFromCase, updateTestEntity } from '@/lib/api/item';
+import {
+  batchCreateTestRun,
+  getRunsFromCase,
+  updateTestEntity,
+  getlinkedTestEntityByQuery,
+} from '@/lib/api/item';
 
 const Test = () => {
   const { testEntity, workspace } = useTestConfig();
@@ -44,7 +48,7 @@ const Test = () => {
       let stats = {};
       if (!sourceIds) return;
       // 获取计划下的所有测试用例
-      const { list: caseList, total } = await fetchLinkList({
+      const { list: caseList, total } = await getlinkedTestEntityByQuery({
         linkType: TestLinkType.CaseLinkPlan,
         sourceIds: testEntity?.objectId,
         destinationType: TestType.Case,

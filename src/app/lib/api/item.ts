@@ -381,7 +381,7 @@ export const deleteTestDefect = async (
 export const getStatsFormPlan = async (data: TestPlanStatsPayload) => {
   const {
     data: { data: res },
-  } = await fetch.post('/api/app/osc/test_manager/webhooks/api-stats-test-plan', data);
+  } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-stats-test-plan`, data);
 
   return res;
 };
@@ -390,6 +390,6 @@ export const getStatsFormPlan = async (data: TestPlanStatsPayload) => {
 export const getRunsFromCase = async (data: TestCaseStatsPayload) => {
   const {
     data: { data: res },
-  } = await fetch.post('/api/app/osc/test_manager/webhooks/api-stats-test-case', data);
+  } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-stats-test-case`, data);
   return res;
 };
