@@ -24,7 +24,7 @@ import { QuestionCircleOutlined } from '@/icons';
 import { fetchLinkList } from '@/lib/api/common';
 import StatusProcessBar from '@/components/business/StatusProcessBar';
 import cx from './index.less';
-import { getRunsFromCase, updateTestEntity } from '@/lib/api/item';
+import { batchCreateTestRun, getRunsFromCase, updateTestEntity } from '@/lib/api/item';
 
 const Test = () => {
   const { testEntity, workspace } = useTestConfig();
@@ -129,23 +129,32 @@ const Test = () => {
     const token = uniqueId('TestPlan');
     const { item: testExecution } = await createItemUseModal({
       extraData: { token, planId: testEntity?.objectId },
-      // TODO: 测试执行 name
       name: uniqueId('测试执行'),
       type: TestType.Execution,
     });
 
-    // TODO: 关联测试执行
-    // await createTestExecutionAndRelations({
-    //   testPlan: testEntity,
-    //   testExecution,
-    //   workspaceKey: (testExecution.workspace as Workspace).key,
-    // });
+    // 任务关联测试计划
+    await updateTestEntity([
+      {
+        linkType: TestLinkType.ExecutionLinkPlan,
+        objectId: testExecution?.objectId,
+        linkItems: { action: 'add', value: [testEntity.objectId] },
+      },
+    ]);
+
+    // 规划用例创建测试执行
+    if (allTestEntities?.length) {
+      await batchCreateTestRun({
+        executionId: testExecution.objectId,
+        caseIds: allTestEntities.map(item => item.objectId),
+      });
+    }
 
     alert({
       type: 'success',
       message: `测试执行任务【${testExecution?.name}】新建成功`,
     });
-  }, [createItemUseModal, testEntity]);
+  }, [allTestEntities, createItemUseModal, testEntity.objectId]);
 
   // 添加测试用例菜单
   const testDetailMenuList = useMemo(() => {
