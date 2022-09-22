@@ -40,7 +40,7 @@ const TestPlanList: React.FC<any> = () => {
           workspaceKey: workspaceKey,
           type: TestType.Plan,
         },
-        selectors,
+        selector: selectors,
         ...queryParams,
       });
 

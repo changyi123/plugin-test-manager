@@ -73,7 +73,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
     async paginationParams => {
       if (!workspaceKey) return null;
       setTableLoading(true);
-      const { list: data } = await getTestEntityByQuery({
+      const { list: data, total } = await getTestEntityByQuery({
         query: {
           workspaceKey: workspaceKey,
           type: TestType.Case,
@@ -87,7 +87,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
       return {
         // 加拖拽依赖的 folderKey 数据
         list: data.map(item => ({ ...item, folderKey })),
-        total: data.count,
+        total,
       };
     },
     [workspaceKey, testDetailIds, folderKey],

@@ -23,7 +23,7 @@ type TestEntityPayload = PaginationParams & {
   /** 测试实体查询支持快捷查询 */
   query?: Query;
   /** 筛选器选择 */
-  selectors?: any;
+  selector?: any;
   /** 限制接口返回的字段 */
   fields?: FieldKey[];
   /** 升序字段 */
@@ -64,7 +64,7 @@ const handleSelector = selector => {
 export const getTestEntityByQuery = async (props: TestEntityPayload) => {
   const _props = Object.assign(
     { descending: [], onlySelectId: false },
-    { ...props, selector: selectorToIql(handleSelector(props.selectors)) },
+    { ...props, selector: selectorToIql(handleSelector(props.selector)) },
   );
 
   const {
@@ -81,7 +81,7 @@ export const getTestEntityByQuery = async (props: TestEntityPayload) => {
 export const getlinkedTestEntityByQuery = async (props: LinkedTestEntityPayload) => {
   const _props = Object.assign(
     { descending: [], onlySelectId: false },
-    { ...props, selector: selectorToIql(handleSelector(props.selectors)) },
+    { ...props, selector: selectorToIql(handleSelector(props.selector)) },
   );
 
   const {
