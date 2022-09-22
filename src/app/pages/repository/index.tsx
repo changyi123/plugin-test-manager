@@ -127,7 +127,7 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
           type: TestType.Case,
           id: scopedTestDetailIds,
         },
-        selectors: state.selectors,
+        selector: state.selectors,
         offset: 0,
         limit: 99999,
       });
