@@ -2,7 +2,7 @@ app:
   key: test_manager
   uuid: bf73e61c-e15a-4461-a1f7-f940c2009332
   name: test_manager
-  version: "0.0.130048"
+  version: "0.0.130066"
 modules:
   webtrigger:
     # 动态配置 one 路由
@@ -160,6 +160,11 @@ modules:
       name: 测试管理基础字段类型（字符串数组）
       description: 测试管理基础字段类型（勿删改）
       dataType: array
+    - key: es_text_keyword
+      # 字符串数组，keyword 可以使用 es keyword 类型查询
+      name: 测试管理基础字段类型（字符串）
+      description: 测试管理基础字段类型（勿删改）
+      dataType: text
   customField:
       # 描述关联关系的配置（使用事项关联不需要处理）
     - key: linkType
@@ -182,7 +187,7 @@ modules:
     - key: referenceCase
       name: 测试用例引用
       description: 测试管理内置自定义字段（勿删改）
-      type: Text
+      type: _self:es_text_keyword
     - key: type
       description: 测试管理内置自定义字段（勿删改）
       name: 测试类型
@@ -194,7 +199,7 @@ modules:
     - key: repository
       name: 测试用例库模块
       description: 测试管理内置自定义字段（勿删改）
-      type: Text
+      type: _self:es_text_keyword
     - key: designee
       name: 测试负责人
       description: 测试管理内置自定义字段（勿删改）
