@@ -154,15 +154,11 @@ export default class IQLBuilder {
         sub = whereProcessor(column, value, operator);
       }
 
-      if (!iql) return sub;
-
       if (isComplexSubIql) {
-        sub = `(${iql}) ${composition} ${sub}`;
-      } else {
-        sub = `${iql} ${composition} ${sub}`;
+        sub = `(${sub})`;
       }
 
-      return sub;
+      return iql ? `${iql} ${composition} ${sub}` : sub;
     }, '');
 
     const iqlOrderString = this._context.order.reduce((iql, order, index) => {

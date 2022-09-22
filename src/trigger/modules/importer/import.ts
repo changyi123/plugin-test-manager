@@ -103,8 +103,6 @@ export const runImport = async () => {
       },
     }));
 
-    console.log('needUpdateValues ---->', isNotHaveMap, needUpdateValues);
-
     return needUpdateValues;
   };
 
