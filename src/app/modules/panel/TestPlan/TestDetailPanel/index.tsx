@@ -1,9 +1,8 @@
-import React, { useCallback, useState, useMemo } from 'react';
+import React, { useCallback, useState, useMemo, useEffect } from 'react';
 
 import { uniqueId } from 'lodash';
 import { Table, Tooltip } from 'antd';
 import { alert } from '@/lib/utils/helper';
-import { Workspace } from '@/lib/types/App';
 import { DownOutlined } from '@ant-design/icons';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import { INITIAL_STATUS_KEY, TestLinkType, TestType } from '@/lib/constants';
@@ -22,11 +21,10 @@ import TestRunModal, {
   ActionType as TestRunModalActionType,
 } from '@/components/business/TestRunModal';
 import { QuestionCircleOutlined } from '@/icons';
-import { createTestExecutionAndRelations } from '@/lib/api/runs';
-import { removeCaseLinkPlan, fetchLinkList } from '@/lib/api/common';
-import { createTestDetailToPlanRelations } from '@/lib/api/relations';
+import { fetchLinkList } from '@/lib/api/common';
 import StatusProcessBar from '@/components/business/StatusProcessBar';
 import cx from './index.less';
+import { getRunsFromCase, updateTestEntity } from '@/lib/api/item';
 
 const Test = () => {
   const { testEntity, workspace } = useTestConfig();
@@ -36,48 +34,74 @@ const Test = () => {
   const testRunModalActionRef = React.useRef<TestRunModalActionType>();
 
   const [allTestEntities, setAllTestEntities] = useState([]);
+  // 统计状态
+  const [stats, setStats] = useState({});
 
   // 获取计划下的测试用例
-  const getAllRelTestEntities = useCallback(async () => {
-    const sourceIds = testEntity.objectId;
-    if (!sourceIds) return;
-    // TODO: 得获取测试用例，以及关联的测试执行
-    // 获取计划下的所有测试用例
-    const { list: caseList, total } = await fetchLinkList({
-      linkType: TestLinkType.CaseLinkPlan,
-      sourceIds: testEntity?.objectId,
-      destinationType: TestType.Plan,
-      workspace: workspace?.objectId,
-    });
+  const getRelTestEntities = useCallback(
+    async pages => {
+      const sourceIds = testEntity.objectId;
+      let stats = {};
+      if (!sourceIds) return;
+      // 获取计划下的所有测试用例
+      const { list: caseList, total } = await fetchLinkList({
+        linkType: TestLinkType.CaseLinkPlan,
+        sourceIds: testEntity?.objectId,
+        destinationType: TestType.Case,
+        workspaceKey: workspace?.key,
+        ...pages,
+      });
 
-    // 测试用例关联测试执行
-    const { list: testRuns } = await fetchLinkList({
-      linkType: TestLinkType.CaseLinkPlan,
-      sourceIds: testEntity?.objectId,
-      destinationType: TestType.Plan,
-      workspace: workspace?.objectId,
-    });
+      if (caseList?.length) {
+        // 测试用例关联测试执行
+        stats = await getRunsFromCase({
+          caseIds: caseList.map(item => item.objectId),
+          planId: sourceIds,
+          select: ['runCount', 'caseLatestStatus'],
+        });
+      }
 
-    // 组装测试执行
+      // 组装测试执行
+      const list = caseList.map(detail => {
+        return {
+          ...detail,
+          planId: testEntity.objectId,
+          // 关联的测试执行
+          relRuns: stats[detail.objectId] || {},
+        };
+      });
 
-    const list = caseList.map(detail => {
       return {
-        ...detail,
-        planId: testEntity.objectId,
-        // 关联的测试执行
-        relRuns: testRuns.filter(run => run.runReferenceDetail?.objectId === detail.objectId),
+        list,
+        total,
+        stats,
       };
-    });
+    },
+    [testEntity.objectId, workspace?.key],
+  );
 
+  const getAllData = useCallback(async () => {
+    const { list, stats } = await getRelTestEntities({ offset: 0, limit: 9999 });
     setAllTestEntities(list);
+    setStats(stats);
+  }, [getRelTestEntities]);
 
-    return {
-      list,
-      total,
-    };
-  }, [testEntity.objectId, workspace?.objectId]);
+  // 组装所有状态
+  const status = useMemo(() => {
+    const status = {};
+    allTestEntities.forEach(item => {
+      const itemStatus = stats[item.objectId]?.caseLatestStatus || 'TODO';
+      status[itemStatus] = (status[itemStatus] || 0) + 1;
+    });
+    return status;
+  }, [allTestEntities, stats]);
 
-  const { testEntityIds, testEntityStatuses } = useMemo(() => {
+  useEffect(() => {
+    getAllData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const { testEntityIds } = useMemo(() => {
     return {
       testEntityIds: allTestEntities.map(item => item.objectId),
       testEntityStatuses: allTestEntities.map(
@@ -87,36 +111,39 @@ const Test = () => {
   }, [allTestEntities, testEntity]);
 
   // 刷新依赖数据
-  const refreshDepData = useCallback(() => getAllRelTestEntities(), [getAllRelTestEntities]);
+  const refreshDepData = useCallback(() => {
+    getAllData();
+    tableActionRef.current.refresh();
+  }, [getAllData]);
 
-  const tableDataSourceGetter = useCallback(async () => {
-    const { list, total } = await getAllRelTestEntities();
-    return { list, total };
-  }, [getAllRelTestEntities]);
+  const tableDataSourceGetter = useCallback(
+    async params => {
+      const { list, total } = await getRelTestEntities(params);
+      return { list, total };
+    },
+    [getRelTestEntities],
+  );
 
   // 创建测试执行
   const createTestExecution = useCallback(async () => {
     const token = uniqueId('TestPlan');
-    const res = await createItemUseModal({
+    const { item: testExecution } = await createItemUseModal({
       extraData: { token, planId: testEntity?.objectId },
       // TODO: 测试执行 name
       name: uniqueId('测试执行'),
-      type: TestType.Run,
+      type: TestType.Execution,
     });
 
-    const { testEntity: testExecutionEntity } = res;
-
-    const testExecutionData = testExecutionEntity;
-
-    await createTestExecutionAndRelations({
-      testPlan: testEntity,
-      testExecution: testExecutionEntity,
-      workspaceKey: (testExecutionData.workspace as Workspace).key,
-    });
+    // TODO: 关联测试执行
+    // await createTestExecutionAndRelations({
+    //   testPlan: testEntity,
+    //   testExecution,
+    //   workspaceKey: (testExecution.workspace as Workspace).key,
+    // });
 
     alert({
       type: 'success',
-      message: `测试执行任务【${testExecutionData?.name}】新建成功`,
+      message: `测试执行任务【${testExecution?.name}】新建成功`,
     });
   }, [createItemUseModal, testEntity]);
 
@@ -129,16 +156,19 @@ const Test = () => {
           const testDetailIds = await selectorModalRef.current.open();
           const _testDetailIds = testDetailIds.filter(d => !(testEntityIds ?? []).includes(d));
 
-          await createTestDetailToPlanRelations({
-            testPlan: [testEntity?.objectId],
-            testDetail: _testDetailIds,
-          });
+          await updateTestEntity(
+            _testDetailIds.map(objectId => ({
+              linkType: TestLinkType.CaseLinkPlan,
+              objectId,
+              linkItems: { action: 'add', value: [testEntity.objectId] },
+            })),
+          );
 
           refreshDepData();
 
           alert({
             type: 'success',
-            message: `${testDetailIds.length} 个测试用例添加到测试计划中`,
+            message: `${_testDetailIds.length} 个测试用例添加到测试计划中`,
           });
         },
       },
@@ -146,8 +176,7 @@ const Test = () => {
         title: '新建测试用例',
         async onClick() {
           const {
-            testEntity: newTestDetail,
-            item: { name },
+            item: { name, objectId },
           } = await createItemUseModal({
             hideMessage: true,
             type: TestType.Case,
@@ -156,10 +185,13 @@ const Test = () => {
             },
           });
 
-          await createTestDetailToPlanRelations({
-            testPlan: [testEntity?.objectId],
-            testDetail: newTestDetail,
-          });
+          await updateTestEntity([
+            {
+              linkType: TestLinkType.CaseLinkPlan,
+              objectId,
+              linkItems: { action: 'add', value: [testEntity.objectId] },
+            },
+          ]);
 
           refreshDepData();
 
@@ -176,13 +208,11 @@ const Test = () => {
     async testDetailIds => {
       if (!Array.isArray(testDetailIds)) return;
       // 移除测试用例和计划的关联
-      await Promise.all(
-        testDetailIds.map(id =>
-          removeCaseLinkPlan({
-            testPlan: [testEntity?.objectId],
-            testDetail: allTestEntities.find(item => item.objectId === id),
-          }),
-        ),
+      await updateTestEntity(
+        testDetailIds.map(objectId => ({
+          objectId,
+          linkItems: { action: 'delete', value: [testEntity.objectId] },
+        })),
       );
 
       refreshDepData();
@@ -192,25 +222,25 @@ const Test = () => {
         message: `${testDetailIds.length} 个测试用例从测试计划中删除`,
       });
     },
-    [allTestEntities, refreshDepData, testEntity?.objectId],
+    [refreshDepData, testEntity?.objectId],
   );
 
   // table column 数据
   const tableColumns = useMemo(() => {
     return [
-      columnBuilder(BuiltinColumns.ItemKey, record => ({ item: record.reference })),
-      columnBuilder(BuiltinColumns.ItemTitle, record => ({ item: record.reference })),
+      columnBuilder(BuiltinColumns.ItemKey, item => ({ item })),
+      columnBuilder(BuiltinColumns.ItemTitle, item => ({ item })),
       {
         title: '执行任务数',
         key: 'execution',
         width: 90,
         render: (_, record) => {
-          return record.relRuns?.length ?? 0;
+          return record.relRuns?.runCount ?? 0;
         },
       },
       columnBuilder(BuiltinColumns.LatestStatus, record => {
         return {
-          status: record.detailStatus?.[testEntity.objectId],
+          status: record.relRuns?.caseLatestStatus,
           readonly: true,
         };
       }),
@@ -227,7 +257,7 @@ const Test = () => {
         ),
       },
     ];
-  }, [removeTestRelation, testEntity]);
+  }, [removeTestRelation]);
 
   // 添加测试执行菜单
   const testExecutionMenuList = useMemo(() => {
@@ -261,7 +291,7 @@ const Test = () => {
           width: 160,
           tooltip: true,
           render(_, record) {
-            const name = record.relExecutions?.[0]?.reference?.name;
+            const name = record.relExecutions?.[0]?.name;
             return <OverflowTooltip title={name}>{name}</OverflowTooltip>;
           },
         },
@@ -319,7 +349,7 @@ const Test = () => {
         ignoreTestEntityIds={testEntityIds}
       />
       {/* 状态条的变化 */}
-      <StatusProcessBar statuses={testEntityStatuses} />
+      <StatusProcessBar status={status} />
 
       <PanelTable
         expandable={{

@@ -17,7 +17,7 @@ import {
   withItemType,
   SearchSelectors,
 } from '@/lib/utils/iql';
-import { itemToTestEntity, testEntityToItemValues } from 'common/utils/dataTransfer';
+import { testEntityToItemValues } from 'common/utils/dataTransfer';
 import { BaseTestEntity } from 'common/types/test';
 import { TestType, TestFiledKeyMapping } from 'common/constant';
 import { Query, LinkQueryPayload } from 'common/types/api';
@@ -938,7 +938,7 @@ export function transferObject(data) {
 
 interface FetchLinkParams extends LinkQueryPayload {
   query?: Query;
-  workspace?: string;
+  workspaceKey?: string;
 }
 
 /**
@@ -947,11 +947,11 @@ interface FetchLinkParams extends LinkQueryPayload {
 export async function fetchLinkList(data: FetchLinkParams) {
   const { status, data: res } = await fetch.$post(
     `/api/app/osc/test_manager/webhooks/api-query-linked-test-entity`,
-    { data },
+    data,
   );
   if (status !== 'ok') {
     // 报错
-    throw new Error('fetch link list error');
+    throw new Error(res);
   }
-  return { ...res, list: res.list.map(item => transferObject(itemToTestEntity(item))) };
+  return res;
 }

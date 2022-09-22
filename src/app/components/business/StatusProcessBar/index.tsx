@@ -5,10 +5,10 @@ import cx from './index.less';
 
 type StatusProcessBarProps = {
   className?: string;
-  statuses: string[];
+  status?: Record<string, number>;
 };
 
-const StatusProcessBar: React.FC<StatusProcessBarProps> = ({ statuses, className }) => {
+const StatusProcessBar: React.FC<StatusProcessBarProps> = ({ status, className }) => {
   const [groupedStatues, setGroupedStatuses] = React.useState([]);
   const total = groupedStatues.reduce((total, item) => (total += item.num), 0);
 
@@ -28,7 +28,7 @@ const StatusProcessBar: React.FC<StatusProcessBarProps> = ({ statuses, className
           <span className={cx('num')}>{total}</span>
         </span>
       </div>
-      <StatusProgress onReady={setGroupedStatuses} statuses={statuses} />
+      <StatusProgress onReady={setGroupedStatuses} status={status} />
     </div>
   );
 };

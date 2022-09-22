@@ -13,8 +13,8 @@ import TestEntitySelectorModal, {
   ActionType as SelectorActionType,
 } from '@/components/business/TestEntitySelectorModal';
 import { StatusProgress } from '@/components/business/Status';
-import { fetchLinkList, removeCaseLinkPlan } from '@/lib/api/common';
-import { createTestDetailToPlanRelations } from '@/lib/api/relations';
+import { fetchLinkList } from '@/lib/api/common';
+import { getStatsTestExecution, updateTestEntity } from '@/lib/api/item';
 import cx from './index.less';
 
 const Test = () => {
@@ -25,33 +25,47 @@ const Test = () => {
   const [allTestEntities, setAllTestEntities] = useState([]);
 
   // 获取计划下的测试用例
-  const getAllRelTestEntities = useCallback(async () => {
-    const sourceIds = testEntity.objectId;
-    if (!sourceIds) return;
-    // 获取计划下的所有执行
-    const { list, total } = await fetchLinkList({
-      linkType: TestLinkType.ExecutionLinkPlan,
-      sourceIds: testEntity?.objectId,
-      destinationType: TestType.Plan,
-      workspace: workspace?.objectId,
-    });
+  const getAllRelTestEntities = useCallback(
+    async params => {
+      const sourceIds = testEntity.objectId;
+      if (!sourceIds) return;
+      // 获取计划下的所有执行
+      const { list, total } = await fetchLinkList({
+        linkType: TestLinkType.ExecutionLinkPlan,
+        sourceIds: testEntity?.objectId,
+        destinationType: TestType.Execution,
+        workspaceKey: workspace?.key,
+        ...params,
+      });
 
-    // 还得查出执行对应的用例
+      if (list?.length) {
+        // 查出执行对应的用例
+        const stats = await getStatsTestExecution({
+          executionIds: list.map(item => item.objectId),
+          select: ['runCount', 'runStatus'],
+        });
+        // 组合数据
+        list.forEach(item => {
+          item.stats = stats[item.objectId] || {};
+        });
+      }
 
-    setAllTestEntities(list);
+      setAllTestEntities(list);
 
-    return {
-      list,
-      total,
-    };
-  }, [testEntity.objectId, workspace?.objectId]);
+      return {
+        list,
+        total,
+      };
+    },
+    [testEntity.objectId, workspace?.key],
+  );
 
   const refresh = React.useCallback(() => {
     tableActionRef.current.refresh();
   }, []);
 
   const tableDataSourceGetter = React.useCallback(
-    () => getAllRelTestEntities(),
+    params => getAllRelTestEntities(params),
     [getAllRelTestEntities],
   );
 
@@ -63,17 +77,18 @@ const Test = () => {
   }, []);
 
   const addTestExecutionToPlan = React.useCallback(
-    async testExecution => {
-      await Promise.all(
-        testExecution.map(data =>
-          createTestDetailToPlanRelations({ testPlan: [testEntity?.objectId], testDetail: data }),
-        ),
+    async relationTypeIds => {
+      await updateTestEntity(
+        relationTypeIds.map(objectId => ({
+          linkType: TestLinkType.ExecutionLinkPlan,
+          objectId,
+          linkItems: { action: 'add', value: [testEntity.objectId] },
+        })),
       );
-
       refresh();
       alert({
         type: 'success',
-        message: `${testExecution.length} 个测试执行添加到测试计划中`,
+        message: `${relationTypeIds.length} 个测试执行添加到测试计划中`,
       });
     },
     [refresh, testEntity?.objectId],
@@ -84,13 +99,11 @@ const Test = () => {
       if (!Array.isArray(relationTypeIds)) return;
 
       // 移除测试计划下的任务
-      await Promise.all(
-        relationTypeIds.map(id =>
-          removeCaseLinkPlan({
-            testPlan: [testEntity?.objectId],
-            testDetail: allTestEntities.find(data => data.objectId === id),
-          }),
-        ),
+      await updateTestEntity(
+        relationTypeIds.map(objectId => ({
+          objectId,
+          linkItems: { action: 'delete', value: [testEntity.objectId] },
+        })),
       );
 
       refresh();
@@ -100,19 +113,19 @@ const Test = () => {
         message: `${relationTypeIds.length} 个测试执行从测试计划中删除`,
       });
     },
-    [allTestEntities, refresh, testEntity?.objectId],
+    [refresh, testEntity.objectId],
   );
 
   // table column 数据
   const tableColumns = React.useMemo(() => {
     return [
-      columnBuilder(BuiltinColumns.ItemKey, record => ({ item: record.reference })),
-      columnBuilder(BuiltinColumns.ItemTitle, record => ({ item: record.reference })),
+      columnBuilder(BuiltinColumns.ItemKey, record => ({ item: record })),
+      columnBuilder(BuiltinColumns.ItemTitle, record => ({ item: record })),
       {
         title: '测试用例数',
         key: 'count',
         render(_, record) {
-          return record.relRuns.length;
+          return record.stats?.runCount;
         },
       },
       {
@@ -121,17 +134,14 @@ const Test = () => {
         dataIndex: 'status',
         width: 180,
         render: (_, record) => {
-          const statuses = record.relRuns.map(item => item.status);
-          return <StatusProgress hasSummary statuses={statuses} />;
+          return <StatusProgress hasSummary status={record.stats.runStatus} />;
         },
       },
       {
         title: '操作',
         width: 120,
         key: 'action',
-        render: (_, record) => (
-          <a onClick={() => removeTestRelation([record.testRelationId])}>删除</a>
-        ),
+        render: (_, record) => <a onClick={() => removeTestRelation([record.objectId])}>删除</a>,
       },
     ];
   }, [removeTestRelation]);
@@ -142,7 +152,7 @@ const Test = () => {
         actionRef={selectorModalRef}
         title="添加测试执行至当前测试计划"
         onSelect={addTestExecutionToPlan}
-        ignoreTestEntityIds={allTestEntities}
+        ignoreTestEntityIds={allTestEntities?.map(item => item.objectId)}
       />
 
       <PanelTable
@@ -160,7 +170,7 @@ const Test = () => {
             },
           },
         ]}
-        rowKey="testRelationId"
+        rowKey="objectId"
         columns={tableColumns}
         getDataSource={tableDataSourceGetter}
       />
