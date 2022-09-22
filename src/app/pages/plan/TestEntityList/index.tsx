@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useCallback, useState } from 'react';
 import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
 import Field from '@/components/common/Field';
@@ -81,7 +80,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       const { list: runIds } = await getlinkedTestEntityByQuery({
         query: {
           workspaceKey: workspaceKey,
-          // referenceCase: requestScopedTestDetailIds,
+          referenceCase: requestScopedTestDetailIds,
         },
         limit: 9999,
         linkType: TestLinkType.RunLinkExecution,
@@ -93,7 +92,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       return runIds;
     },
     {
-      refreshDeps: [workspaceKey, requestScopedTestDetailIds, selectedExecution, selectors],
+      refreshDeps: [workspaceKey, requestScopedTestDetailIds, selectedExecution],
     },
   );
 
@@ -116,7 +115,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           id: requestScopedTestDetailIds,
         },
         ...queryParams,
-        selectors,
+        selector: selectors,
       });
 
       // 查询统计数据
@@ -149,12 +148,13 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       const { list: runs, total } = await getlinkedTestEntityByQuery({
         query: {
           workspaceKey: workspaceKey,
-          // referenceCase: requestScopedTestDetailIds,
+          referenceCase: requestScopedTestDetailIds,
         },
         ...queryParams,
         linkType: TestLinkType.RunLinkExecution,
         sourceIds: [selectedExecution.objectId],
         destinationType: TestType.Run,
+        selector: selectors,
       });
 
       return {
