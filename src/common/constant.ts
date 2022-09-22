@@ -98,6 +98,7 @@ export const SystemField = {
   Assignee: 'assignee', // 负责人
   Priority: 'priority', // 优先级
   Id: 'id',
+  ItemGroup: 'itemGroup', // 事项组
 } as const;
 
 /** iql 必须的返回字段 */

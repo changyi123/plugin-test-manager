@@ -95,15 +95,15 @@ export const runImport = async () => {
       objectId: item.itemId ?? item.objectId,
       values: {
         r_test_manager_type: 'TestCase',
-        r_test_manager_detail: {
+        r_test_manager_detail: JSON.stringify({
           precondition: item.precondition,
           steps: isNotHaveMap ? getStepsData(clone(item)) : [],
-        },
+        }),
         r_test_manager_sortIndex: mathData + index,
       },
     }));
 
-    console.log(33333, isNotHaveMap, needUpdateValues);
+    console.log('needUpdateValues ---->', isNotHaveMap, needUpdateValues);
 
     return needUpdateValues;
   };

@@ -32,10 +32,11 @@ const overwriteIqlParamsWithOnlySelectId = onlySelectId => {
 /** 查询测试类型实体数据 */
 export const queryTestEntity = async () => {
   const { body } = getReqInfoFromVMRuntime<QueryTestEntityPayload>();
-  const { offset, limit, query = {}, fields, descending, ascending, onlySelectId } = body;
+  const { offset, limit, fields, ascending, query = {}, selector, descending, onlySelectId } = body;
 
   return iqlRequest({
     query,
+    selector,
     ascending,
     descending,
     pagination: { limit, offset },
@@ -54,6 +55,7 @@ export const queryLinkedTestEntity = async () => {
       fields,
       offset,
       linkType,
+      selector,
       ascending,
       descending,
       onlySelectId,
@@ -67,6 +69,7 @@ export const queryLinkedTestEntity = async () => {
 
     return iqlRequest({
       query,
+      selector,
       ascending,
       descending,
       fields: concatCustomFields(fields),

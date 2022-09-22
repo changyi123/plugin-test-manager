@@ -87,7 +87,6 @@ export const testPlanStats = async () => {
         });
 
         // 统计状态值为 undefined 的节点，变为起始节点
-
         Object.keys(result).forEach(planId => {
           const stats = result[planId];
           const processedStatusCount = (Object.values(stats.caseStatus) as any).reduce(
@@ -157,9 +156,10 @@ export const testExecutionStats = async () => {
   try {
     const result = buildStatsResult(executionIds, select, {
       runStatus: {},
+      runCount: 0,
     });
     // 测试执行用例统计数据
-    if (select.includes('runStatus')) {
+    if (select.includes('runStatus') || select.includes('runCount')) {
       const {
         data: { list: testRuns },
       } = await iqlRequest<TestRunEntityType>({
@@ -173,18 +173,25 @@ export const testExecutionStats = async () => {
       });
 
       testRuns.forEach(item => {
-        const { status, source } = item;
+        const { status = StartStatusKey, source } = item;
         // 统计状态数据
-        if (status && select.includes('runStatus')) {
-          source.forEach(executionId => {
-            if (!Object.hasOwnProperty.call(result, executionId)) return;
-            const executionStats = result[executionId];
+
+        source.forEach(executionId => {
+          if (!Object.hasOwnProperty.call(result, executionId)) return;
+
+          const executionStats = result[executionId];
+
+          if (select.includes('runStatus')) {
             executionStats.runStatus = {
               ...executionStats.runStatus,
-              [status]: (executionStats.runStatus ?? 0) + 1,
+              [status]: (executionStats?.runStatus[status] ?? 0) + 1,
             };
-          });
-        }
+          }
+
+          if (select.includes('runCount')) {
+            executionStats.runCount = executionStats.runCount + 1;
+          }
+        });
       });
     }
 
@@ -224,7 +231,7 @@ export const testCaseStats = async () => {
 
       testCases.forEach(testCase => {
         const { objectId, caseStatus } = testCase;
-        const status = caseStatus[planId] ?? StartStatusKey;
+        const status = caseStatus?.[planId] ?? StartStatusKey;
         const stats = result[objectId];
         if (stats) {
           stats.caseLatestStatus = status;

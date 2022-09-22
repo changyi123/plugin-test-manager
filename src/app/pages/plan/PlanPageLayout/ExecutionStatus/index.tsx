@@ -18,7 +18,7 @@ const ExecutionStatus: React.FC<ExecutionStatusProps> = ({ selectedExecution, se
   const { data, refresh, loading } = useRequest(
     async () => {
       if (!selectedExecution?.objectId) return [];
-      // TODO 查询测试执行任务状态 统计数据
+      // 查询测试执行任务状态 统计数据
       const states = await getStatsTestExecution({
         select: ['runStatus'],
         executionIds: [selectedExecution?.objectId],

@@ -22,12 +22,13 @@ type IQLFiledKeys = keyof typeof IQLFieldNameMapping;
 
 type RequestParams = {
   fields?: string[];
+  selector?: string;
   linkQuery?: LinkQueryPayload;
   pagination?: PaginationParams;
+  ascending?: string[] | string;
+  descending?: string[] | string;
   query?: Partial<Record<IQLFiledKeys, any>>;
   dataTransfer?: (data: TestEntity[]) => any;
-  descending?: string[] | string;
-  ascending?: string[] | string;
 };
 
 const DefaultPagination = {
@@ -77,6 +78,7 @@ type IqlRequestType = <TResp = TestEntity>(
 export const iqlRequest: IqlRequestType = async params => {
   try {
     const {
+      selector,
       linkQuery,
       ascending,
       descending,
@@ -204,9 +206,10 @@ export const iqlRequest: IqlRequestType = async params => {
       payload: { count, items },
     } = await iqlSearch(
       iqlSearchParamsBuilder({
-        order: transformOrderParams({ ascending, descending }),
-        payload,
         fields,
+        payload,
+        andCompositionIqlStr: selector,
+        order: transformOrderParams({ ascending, descending }),
         ...pagination,
       }),
     );
