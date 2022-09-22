@@ -148,13 +148,18 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
     }, []);
   });
 
+  // 类型查询条件
+  const itemTypeCondition = React.useMemo(() => {
+    return (isTestDefectType ? testDefectsMapping : testTypeMapping?.[testType]) ?? [];
+  }, [testType, testTypeMapping, isTestDefectType, testDefectsMapping]);
+
   // 获取测试用例
   const { runAsync: getTestEntityByKeyword, loading: searchLoading } = useRequest(
     async keyword => {
       const { items } = await getItemByIQL({
         limit: 50,
         nameOrKeyLike: keyword,
-        [TestFiledKeyMapping.type]: testType,
+        itemType: itemTypeCondition,
         orderBy: ['修改时间', 'desc'],
         workspace: workspaceKeyCondition,
       });

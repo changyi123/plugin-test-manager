@@ -41,10 +41,10 @@ function resolveClientEnv(raw, cliEnv) {
 
 const getExternalDependencies = () => {
   // docx template 构建排除此依赖
-  const DocxTemplateDepDependencyKeys = ['vm', 'stream'];
+  const DocxTemplateDependencyKeys = ['vm', 'stream'];
   // 暂时先加 proxima-key 测试，后续增加更多的模块
   const UseExternalDependencyKeys = ['react', 'react-dom', 'proxima-sdk'].concat(
-    DocxTemplateDepDependencyKeys,
+    DocxTemplateDependencyKeys,
   );
   const SharedComponentKey = 'proxima_shared_components';
 

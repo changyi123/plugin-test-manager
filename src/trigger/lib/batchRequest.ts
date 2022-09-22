@@ -8,6 +8,15 @@ import { testEntityToItemValues, compactNilValue } from '../../common/utils/data
 /** 并发数量 */
 const ParallelLimit = 10;
 
+const CreateApiParseContext = {
+  // 跳过事项创建校验
+  skipFormValidation: true,
+  // 跳过隐藏事项类型过滤
+  skipItemTypeQueryFilter: true,
+  // 跳过层级校验
+  skipItemValidationLevel: true,
+};
+
 /** 删除测试实体 */
 export const batchDeleteItems = async (itemIds: string[]) => {
   await deleteItems({
@@ -46,30 +55,24 @@ export const batchUpdateItems = async (data: Partial<TestEntity>[]) => {
   return res;
 };
 
+type TokenSchema = Partial<Record<'objectId' | 'key', string>>;
 /** 创建测试实体 */
 export const batchCreateItems = async (
   data: ({
     name: string;
-    workspace: string;
-    itemType: string;
+    workspace: TokenSchema;
+    itemType: TokenSchema;
+    itemGroup: TokenSchema;
   } & Partial<BaseTestEntity>)[],
 ) => {
-  /** 构建 pointer 类型数据 */
-  const buildParsePointerData = (className, objectId) => {
-    return {
-      className,
-      objectId,
-      __type: 'Pointer',
-    };
-  };
-
   // 需要创建的事项数据
   const itemData = data.map(data => ({
     name: data.name,
     values: testEntityToItemValues(data),
-    itemGroup: buildParsePointerData('ItemType', ''),
-    itemType: buildParsePointerData('ItemType', data.itemType),
-    workspace: buildParsePointerData('Workspace', data.workspace),
+    itemGroup: data.itemGroup,
+    itemType: data.itemType,
+    workspace: data.workspace,
+    parseContext: CreateApiParseContext,
   }));
 
   const taskQueue = itemData.map(item => async () => {

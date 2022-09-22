@@ -96,6 +96,7 @@ export const batchUpdate = async () => {
 
       needUpdateItemData = data.map(item => {
         const { linkItems, objectId } = item;
+
         if (isActionSchema(linkItems)) {
           const originalTestEntity = originalTestEntityMapping[objectId];
           if (!originalTestEntity) return data;
@@ -140,7 +141,6 @@ export const batchCreateTestRun = async () => {
     // 步骤
     // 1. 查所有测试用例
     // 2. 创建测试执行
-
     const {
       data: { list: caseList },
     } = await iqlRequest({
@@ -151,13 +151,14 @@ export const batchCreateTestRun = async () => {
       fields: [
         SystemField.Id,
         SystemField.Name,
+        SystemField.ItemGroup,
         SystemField.Workspace,
         TestFiledKeyMapping.detail,
         TestFiledKeyMapping.sortIndex,
       ],
     });
 
-    const testRunList = caseList.map(data => {
+    const needCreatedItems = caseList.map(data => {
       // 关联数据，测试执行关联测试执行任务
       const linkData = executionId
         ? {
@@ -171,9 +172,11 @@ export const batchCreateTestRun = async () => {
         type: TestType.Run,
         runDetail: (data as any).detail,
         // 空间和测试用例的空间保持一致
-        workspace: data.workspace.objectId,
+        workspace: data.workspace,
         // 事项类型使用内置的事项类型（不可变）
-        itemType: BuiltInItemTypeMapping.TestRun,
+        itemType: { key: BuiltInItemTypeMapping.TestRun },
+        // // 事项组
+        itemGroup: (data as any).itemGroup,
         // 初始化状态为 TODO
         status: 'TODO',
         name: data.name,
@@ -182,8 +185,10 @@ export const batchCreateTestRun = async () => {
       };
     });
 
-    await batchCreateItems(testRunList as any);
-    return buildResponse('create success');
+    const res = await batchCreateItems(needCreatedItems as any);
+    const createdItemIds = res.map(item => item.objectId);
+    console.info('create success res: ', createdItemIds);
+    return buildResponse(createdItemIds);
     // 查询测试执行任务
   } catch (err) {
     return buildResponse(err);
