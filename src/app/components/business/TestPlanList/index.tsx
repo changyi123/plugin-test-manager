@@ -9,13 +9,8 @@ import { StatusProgress } from '../Status';
 import FilterSearch from '@/components/common/FilterSearch';
 import { FullScreen } from '@/icons';
 import { components } from 'proxima-sdk';
-import {
-  deleteTestEntity,
-  getlinkedTestEntityByQuery,
-  getStatsTestPlan,
-  getTestEntityByQuery,
-} from '@/lib/api/item';
-import { TestLinkType, TestType } from '@/lib/constants';
+import { deleteTestEntity, getStatsTestPlan, getTestEntityByQuery } from '@/lib/api/item';
+import { TestType } from '@/lib/constants';
 
 const { ItemIcon } = components.Components.Common;
 
@@ -59,6 +54,7 @@ const TestPlanList: React.FC<any> = () => {
           return {
             ...testPlan,
             ...stats?.[testPlan.objectId],
+            status: testPlan.workflowStatus,
           };
         })
         .value();
@@ -127,16 +123,16 @@ const TestPlanList: React.FC<any> = () => {
       },
     },
     {
-      key: 'completionRate',
+      key: 'caseStatus',
       title: '执行通过率',
       width: 240,
       render(_, rowData) {
         const passCount = rowData.caseStatus?.PASSED ?? 0;
-        const total = Object.values(rowData.caseStatus).reduce((prev: number, cur: number) => {
-          prev = prev + cur;
-          return prev;
-        }, 0);
-
+        const total =
+          Object.values(rowData.caseStatus).reduce((prev: number, cur: number) => {
+            prev = prev + cur;
+            return prev;
+          }, 0) || 1;
         const rate = passCount ? passCount / (total as number) : 0;
 
         return (
@@ -207,11 +203,11 @@ const TestPlanList: React.FC<any> = () => {
         useColumnSetting
         defaultColumnKey={[
           'status',
-          'testNum',
+          'caseCount',
           'assignee',
           'createdAt',
           'createdBy',
-          'completionRate',
+          'caseStatus',
         ]}
         rowKey="objectId"
         columns={columns}

@@ -6,6 +6,7 @@ import { useRequest } from 'ahooks';
 import { usePageContext } from '../../hook';
 
 import cx from './index.less';
+import { getStatsTestExecution } from '@/lib/api/item';
 
 interface ExecutionStatusProps {
   selectedExecution?: Record<string, any>;
@@ -13,52 +14,17 @@ interface ExecutionStatusProps {
 }
 
 const ExecutionStatus: React.FC<ExecutionStatusProps> = ({ selectedExecution, setCurTestRuns }) => {
-  const { workspaceKey, mutateStatusEvent } = usePageContext();
+  const { mutateStatusEvent } = usePageContext();
   const { data, refresh, loading } = useRequest(
     async () => {
       if (!selectedExecution?.objectId) return [];
-      // TODO 查询测试执行任务状态 统计数据
+      // 查询测试执行任务状态 统计数据
+      const states = await getStatsTestExecution({
+        select: ['runStatus'],
+        executionIds: [selectedExecution?.objectId],
+      });
 
-      // const { list: testRuns } = await getTestEntitiesByRelationWithOrder(
-      //   TestRelationType.ExecutionRelRun,
-      //   {
-      //     from: [selectedExecution?.objectId],
-      //   },
-      //   {
-      //     // FIXME: 优化查询速度
-      //     workspaceKey,
-      //     queryParams: { limit: 9999 },
-      //     descendingBy: 'createdAt',
-      //     select: [
-      //       'status',
-      //       'sortIndex',
-      //       'runReferenceDetail.reference',
-      //       'runReferenceDetail.repository',
-      //       'executor',
-      //       'designee',
-      //     ],
-      //     include: [
-      //       'status',
-      //       'sortIndex',
-      //       'runReferenceDetail.reference',
-      //       'runReferenceDetail.repository',
-      //       'executor',
-      //       'designee',
-      //     ],
-      //   },
-      // );
-
-      const testRunList = []
-        // 过滤测试用例事项已被删除的执行
-        .filter(run => run.runReferenceDetail?.reference)
-        // 对测试用例进行排序
-        .sort(
-          (a, b) =>
-            a.sortIndex - b.sortIndex ||
-            Number(new Date(a.createdAt)) - Number(new Date(b.createdAt)),
-        );
-
-      return testRunList;
+      return states?.[selectedExecution?.objectId] ?? {};
     },
     {
       refreshDeps: [selectedExecution],
@@ -77,21 +43,24 @@ const ExecutionStatus: React.FC<ExecutionStatusProps> = ({ selectedExecution, se
     }
   }, [loading, data]);
 
-  const getRate = (statusData = []) => {
-    if (!statusData?.length) return 0;
-    const filterStatusByType = type => statusData.filter(d => d === type);
-    return Math.floor((filterStatusByType('PASSED').length / statusData.length) * 100);
-  };
+  const getRate = (statusData: Record<string, number>) => {
+    const passCount = statusData?.PASSED ?? 0;
+    const total = Object.values(statusData ?? {}).reduce((prev: number, cur: number) => {
+      prev = prev + cur;
+      return prev;
+    }, 0);
 
-  const status = data?.map(d => d.status ?? 'TODO') ?? [];
+    const rate = passCount ? passCount / (total as number) : 0;
+    return Math.floor(rate * 100);
+  };
 
   return (
     <Spin spinning={loading}>
       {data && (
         <div className={cx('complete-rate-box')}>
-          <span className={cx('rate')}>通过率 {getRate(status)}%</span>
+          <span className={cx('rate')}>通过率 {getRate(data.runStatus)}%</span>
           <div className={cx('progress')}>
-            <StatusProgress hasSummary statuses={status} />
+            <StatusProgress hasSummary status={data.runStatus} />
           </div>
         </div>
       )}

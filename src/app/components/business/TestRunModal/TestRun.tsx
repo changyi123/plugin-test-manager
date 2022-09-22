@@ -4,13 +4,13 @@ import { TestEntity } from '@/lib/types/Test';
 import { QuestionCircleFilled } from '@/icons';
 import { TabsComponentBaseProps } from './type';
 import { getItemByIds } from '@/lib/api/proxima';
-import { getTestEntities } from '@/lib/api/common';
 import { StatusBadge } from '@/components/business/Status';
 import { useRequest, useSessionStorageState } from 'ahooks';
 import { PASS_STATUS_TYPE, TestType } from '@/lib/constants';
 import { getRootContainer, generateStorageKey } from '@/lib/utils/helper';
 import { Button, Checkbox, Collapse, Tabs, message, Spin, Tooltip } from 'antd';
-import { updateTestRun, getTestStepsByTestDetailId, getItemLinkRelation } from '@/lib/api/runs';
+import { getTestEntityByQuery, updateTestRunDetail } from '@/lib/api/item';
+import { getItemLinkRelation } from '@/lib/api/runs';
 
 import TestStep from './TestStep';
 import DefectList from './DefectList';
@@ -82,16 +82,37 @@ const TestRun: React.FC<TestRunType> = props => {
     loading: testRunRequestLoading,
   } = useRequest(
     async () => {
-      const data = await getTestEntities(
-        { id: testId },
-        { include: ['runReferenceDetail.reference'] },
-      );
-      return data?.[0] as Parse.Object<TestRunEntity>;
+      const { list: runData } = await getTestEntityByQuery({
+        query: {
+          id: [testId],
+          type: TestType.Run,
+        },
+      });
+
+      return runData[0];
     },
     {
       ready: Boolean(testId),
       refreshDeps: [testId],
       loadingDelay: 400,
+    },
+  );
+
+  const { data: testCaseEntity } = useRequest(
+    async () => {
+      if (!testRunEntity?.referenceCase) return null;
+      const { list: runData } = await getTestEntityByQuery({
+        query: {
+          id: [testRunEntity.referenceCase],
+          type: TestType.Case,
+        },
+      });
+
+      return runData[0];
+    },
+    {
+      ready: Boolean(testRunEntity?.referenceCase),
+      refreshDeps: [testRunEntity?.referenceCase],
     },
   );
 
@@ -112,10 +133,10 @@ const TestRun: React.FC<TestRunType> = props => {
 
   const handleStatusChange = React.useCallback(
     async status => {
-      // await updateTestRun(testRunEntity, {
-      //   status: status.key,
-      //   planId: selectedTestPlanId,
-      // });
+      await updateTestRunDetail(testRunEntity, {
+        status: status.key,
+        planId: selectedTestPlanId,
+      });
       // 通过类型状态可自动执行到下一条
       if (status.type === PASS_STATUS_TYPE && autoNext && canExecNext) {
         nextTestRun();
@@ -123,18 +144,18 @@ const TestRun: React.FC<TestRunType> = props => {
       }
       refreshTestRun();
     },
-    [autoNext, canExecNext, nextTestRun, refreshTestRun, testRunEntity, selectedTestPlanId],
+    [autoNext, canExecNext, nextTestRun, refreshTestRun, selectedTestPlanId, testRunEntity],
   );
 
   // 测试执行数据
   const testRunData = React.useMemo(() => {
-    return testRunEntity?.toJSON() ?? ({} as TestRunEntity);
+    return (testRunEntity ?? {}) as TestRunEntity;
   }, [testRunEntity]);
 
-  // 测试执行关联的测试用例
+  // 测试执行关联的测试用例事项
   const refTestDetailData = React.useMemo(() => {
-    return testRunData ?? ({} as TestDetailEntity);
-  }, [testRunData]);
+    return (testCaseEntity ?? {}) as TestDetailEntity;
+  }, [testCaseEntity]);
 
   // TODO: 类型问题
   // 关联的缺陷 id
@@ -157,12 +178,12 @@ const TestRun: React.FC<TestRunType> = props => {
   );
 
   // 测试用例事项 id
-  const refTestDetailItemId = refTestDetailData.reference?.objectId;
+  const refTestDetailItemId = refTestDetailData.objectId;
   // 事项关联
   const { data: itemLinks, loading: itemLinksRequestLoading } = useRequest(
     async () => {
       const res = await getItemLinkRelation(refTestDetailItemId);
-      // 过滤掉 destination 为空（被关联方事项已经被删除）
+      // // 过滤掉 destination 为空（被关联方事项已经被删除）
       return res.filter(item => item.destination);
     },
     {
@@ -206,27 +227,26 @@ const TestRun: React.FC<TestRunType> = props => {
     ) {
       (async () => {
         try {
-          const steps = await getTestStepsByTestDetailId(testRunData.runReferenceDetail?.objectId);
-          // await updateTestRun(
-          //   testRunEntity,
-          //   {
-          //     steps,
-          //     runDetail: {
-          //       precondition: refTestDetailData.detail?.precondition,
-          //     },
-          //   },
-          //   {
-          //     // 初始化更新
-          //     initialization: true,
-          //   },
-          // );
+          await updateTestRunDetail(
+            testRunEntity,
+            {
+              steps: refTestDetailData.detail.steps,
+              runDetail: {
+                precondition: refTestDetailData.detail?.precondition,
+              },
+            },
+            {
+              // 初始化更新
+              initialization: true,
+            },
+          );
           refreshTestRun();
         } catch (err) {
           message.error(err.message);
         }
       })();
     }
-  }, [testId, testRunData, refreshTestRun, testRunEntity, refTestDetailData.detail?.precondition]);
+  }, [testId, testRunData, refreshTestRun, testRunEntity, refTestDetailData]);
 
   const onDataChange = React.useCallback(() => {
     refreshTestRun();
@@ -248,7 +268,7 @@ const TestRun: React.FC<TestRunType> = props => {
       allRelationDefects,
       selectedTestPlanId,
       handleStatusChangeBySteps: handleStatusChange, // 监听步骤 steps 执行 handleStatusChange
-    } as TabsComponentBaseProps;
+    } as unknown as TabsComponentBaseProps;
   }, [
     itemLinks,
     onLoading,
@@ -310,7 +330,7 @@ const TestRun: React.FC<TestRunType> = props => {
       <Spin spinning={loading}>
         <div className={cx('test-run')} data-element-id="test-run-container">
           <div className={cx('header')}>
-            <h6 className={cx('title')}>{refTestDetailData.reference?.name}</h6>
+            <h6 className={cx('title')}>{testRunData?.name ?? ''}</h6>
             <div>
               <div className={cx('left')}>
                 <StatusBadge
@@ -350,9 +370,7 @@ const TestRun: React.FC<TestRunType> = props => {
             <Collapse className={cx('collapse')} defaultActiveKey={['1']}>
               <Collapse.Panel key="1" header="前置条件">
                 <div className={cx('precondition')}>
-                  {testRunData.runDetail?.precondition ??
-                    refTestDetailData.detail?.precondition ??
-                    '无'}
+                  {testRunData.runDetail?.precondition ?? '无'}
                 </div>
               </Collapse.Panel>
             </Collapse>

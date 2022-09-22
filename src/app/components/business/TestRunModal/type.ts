@@ -4,7 +4,7 @@ import { Item, ItemLink } from '@/lib/types/App';
 
 export type TabsComponentBaseProps = {
   testRunData: TestEntity<TestType.Run>;
-  testRunEntity: Parse.Object<TabsComponentBaseProps['testRunData']>;
+  testRunEntity: TestEntity<TestType.Run>;
   refTestDetailData: TestEntity<TestType.Case>;
   allRelationDefects: { type: 'global' | 'step'; itemId: string; stepId?: string; item: Item }[];
   itemLinks: ItemLink[];

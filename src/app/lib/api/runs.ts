@@ -129,14 +129,14 @@ export const toggleTestRunStatus = (
   });
 };
 
-interface IItemLink {
+export interface IItemLink {
   destination: string;
   source: string;
   linkType: string;
 }
 
 // 获取所有已存在的 itemLink
-const getExistedItemLinks = async (links: IItemLink | Array<IItemLink>) => {
+export const getExistedItemLinks = async (links: IItemLink | Array<IItemLink>) => {
   links = Array.isArray(links) ? links : [links];
   const itemLinkAttrs = links.map(link => ({
     destination: pointerTransfer(Item, link.destination),
