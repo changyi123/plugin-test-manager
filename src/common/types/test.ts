@@ -66,6 +66,9 @@ export type BaseTestEntity = {
 
   /** 关联查询查询添加字段 */
   source?: string[];
+
+  /** 事项工作流状态 */
+  workflowStatus?: { objectId: string; name: string; key: string };
 };
 
 type CaseFieldKeys = 'detail' | 'caseStatus';

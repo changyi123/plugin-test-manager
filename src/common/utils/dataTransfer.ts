@@ -75,12 +75,18 @@ export const itemToTestEntity = item => {
     'status',
     'objectId',
     'itemType',
+    'itemGroup',
     'workspace',
     'createdAt',
     'createdBy',
     // 'updatedAt',
     // 'updatedBy',
   ] as const;
+
+  // 重写混入的 key
+  const RewriteFieldKey = {
+    status: 'workflowStatus',
+  };
 
   /** 事项字段转换策略， */
   const itemFiledTransferStrategy = {
@@ -109,7 +115,11 @@ export const itemToTestEntity = item => {
     const data = item[key];
     const processedValue = itemFiledTransferStrategy[key]?.(data) ?? data;
     if (processedValue) {
-      testEntity[key] = processedValue;
+      if (Object.keys(RewriteFieldKey).includes(key)) {
+        testEntity[RewriteFieldKey[key]] = processedValue;
+      } else {
+        testEntity[key] = processedValue;
+      }
     }
   });
 

@@ -78,7 +78,7 @@ type CommonTestEntityQueryPayload = PaginationParams & {
   /** 测试实体查询支持快捷查询 */
   query?: Query;
   /** 筛选器选择 */
-  selectors?: any;
+  selector?: string;
   /** 限制接口返回的字段 */
   fields?: FieldKey[];
   /** 升序字段 */
@@ -181,7 +181,7 @@ export type TestExecutionStatsPayload = {
   /** 测试计划 id */
   executionIds: string[];
   /** 数据数据字段 */
-  select?: 'runStatus'[];
+  select?: ('runStatus' | 'runCount')[];
 };
 
 /**

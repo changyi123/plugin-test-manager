@@ -10,12 +10,24 @@ type BuildParams = {
   payload: Record<string, any | { value: any; composition?: Composition; operator?: Operator }>;
   /** 限制返回字段 */
   fields?: string[];
+  /** iql and 子句 */
+  andCompositionIqlStr?: string;
 } & PaginationParams;
 
 export const iqlSearchParamsBuilder = (params: BuildParams) => {
-  const { payload, fields, offset = 0, limit = 10, order } = params;
+  const { payload, fields, offset = 0, limit = 10, order, andCompositionIqlStr } = params;
 
   const iqlBuilder = new IQLBuilder();
+
+  // selector 条件可能带有 order by，需要移除 order by 和 左右括号 空白
+  const andIqlStr = andCompositionIqlStr
+    ?.replace(/order by.*$/i, '')
+    ?.replace(/^\s*\(?/, '')
+    ?.replace(/\)?\s*$/, '');
+
+  if (andIqlStr) {
+    iqlBuilder.where(andIqlStr, null, null, Composition.And);
+  }
 
   Object.entries(payload).forEach(([key, value]) => {
     if (value) {
