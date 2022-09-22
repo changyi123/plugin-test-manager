@@ -14,8 +14,12 @@ import TestRunModal, {
 import { getRootContainer, goToItemDetailPage } from '@/lib/utils/helper';
 import { StatusBadge } from '@/components/business/Status';
 import StatusProcessBar from '@/components/business/StatusProcessBar';
-import { fetchLinkList } from '@/lib/api/common';
-import { batchCreateTestRun, deleteTestEntity, updateTestStatus } from '@/lib/api/item';
+import {
+  batchCreateTestRun,
+  deleteTestEntity,
+  updateTestStatus,
+  getlinkedTestEntityByQuery,
+} from '@/lib/api/item';
 import cx from './index.less';
 
 const Test = () => {
@@ -29,7 +33,7 @@ const Test = () => {
 
   const getReTestEntities = useCallback(
     page => {
-      return fetchLinkList({
+      return getlinkedTestEntityByQuery({
         linkType: TestLinkType.RunLinkExecution,
         sourceIds: testEntity?.objectId,
         destinationType: TestType.Run,

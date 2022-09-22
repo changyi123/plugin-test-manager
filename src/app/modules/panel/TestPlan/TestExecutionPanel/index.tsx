@@ -13,8 +13,11 @@ import TestEntitySelectorModal, {
   ActionType as SelectorActionType,
 } from '@/components/business/TestEntitySelectorModal';
 import { StatusProgress } from '@/components/business/Status';
-import { fetchLinkList } from '@/lib/api/common';
-import { getStatsTestExecution, updateTestEntity } from '@/lib/api/item';
+import {
+  getStatsTestExecution,
+  updateTestEntity,
+  getlinkedTestEntityByQuery,
+} from '@/lib/api/item';
 import cx from './index.less';
 
 const Test = () => {
@@ -30,7 +33,7 @@ const Test = () => {
       const sourceIds = testEntity.objectId;
       if (!sourceIds) return;
       // 获取计划下的所有执行
-      const { list, total } = await fetchLinkList({
+      const { list, total } = await getlinkedTestEntityByQuery({
         linkType: TestLinkType.ExecutionLinkPlan,
         sourceIds: testEntity?.objectId,
         destinationType: TestType.Execution,
