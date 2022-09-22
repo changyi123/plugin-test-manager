@@ -20,7 +20,6 @@ import {
 import { testEntityToItemValues } from 'common/utils/dataTransfer';
 import { BaseTestEntity } from 'common/types/test';
 import { TestType, TestFiledKeyMapping } from 'common/constant';
-import { Query, LinkQueryPayload } from 'common/types/api';
 
 const BATCH_SIZE = 200;
 
@@ -934,24 +933,4 @@ export function transferObject(data) {
   // 再检查values内部数据
   transfer(data.values);
   return data;
-}
-
-interface FetchLinkParams extends LinkQueryPayload {
-  query?: Query;
-  workspaceKey?: string;
-}
-
-/**
- * 获取测试实体关联的列表
- */
-export async function fetchLinkList(data: FetchLinkParams) {
-  const { status, data: res } = await fetch.$post(
-    `/api/app/osc/test_manager/webhooks/api-query-linked-test-entity`,
-    data,
-  );
-  if (status !== 'ok') {
-    // 报错
-    throw new Error(res);
-  }
-  return res;
 }

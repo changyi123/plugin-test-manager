@@ -9,13 +9,16 @@ import { BuiltinColumns, columnBuilder } from '@/components/business/PanelTable'
 import TestEntitySelectorModal, {
   ActionType as SelectorActionType,
 } from '@/components/business/TestEntitySelectorModal';
-import { fetchLinkList } from '@/lib/api/common';
 import { alert } from '@/lib/utils/helper';
 import { TestType } from 'common/constant';
 import cx from './index.less';
 import { getItemByIQL } from '@/lib/api/proxima';
 import { TestLinkType } from '@/lib/constants';
-import { getStatsFormPlan, updateTestEntity as updateRelated } from '@/lib/api/item';
+import {
+  getStatsFormPlan,
+  updateTestEntity as updateRelated,
+  getlinkedTestEntityByQuery,
+} from '@/lib/api/item';
 
 const Plan = () => {
   const { testEntity, workspace, setTestEntity } = useTestConfig();
@@ -42,9 +45,9 @@ const Plan = () => {
   const fetchPlanList = useCallback(
     async params => {
       const planList = testEntity?.linkItems;
-      if (!planList.length) return { list: [], total: 0 };
+      if (!planList?.length) return { list: [], total: 0 };
       // 获取测试计划
-      const { list, total } = await fetchLinkList({
+      const { list, total } = await getlinkedTestEntityByQuery({
         linkType: TestLinkType.CaseLinkPlan,
         sourceIds: testEntity?.objectId,
         destinationType: TestType.Plan,
