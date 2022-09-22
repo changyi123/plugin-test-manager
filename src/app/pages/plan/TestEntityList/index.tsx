@@ -86,7 +86,6 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         linkType: TestLinkType.RunLinkExecution,
         sourceIds: [selectedExecution.objectId],
         destinationType: TestType.Run,
-        // onlySelectId: true,
       });
 
       return runIds;
@@ -153,12 +152,25 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         ...queryParams,
         linkType: TestLinkType.RunLinkExecution,
         sourceIds: [selectedExecution.objectId],
+        fields: ['repository'],
         destinationType: TestType.Run,
         selector: selectors,
       });
 
+      const { list: testItem } = await getTestEntityByQuery({
+        query: {
+          workspaceKey: workspaceKey,
+          type: TestType.Case,
+          id: runs.map(d => d.referenceCase),
+        },
+        limit: 9999,
+      });
+
       return {
-        list: runs,
+        list: runs.map(d => ({
+          ...d,
+          repository: testItem.find(item => item.objectId === d.referenceCase)?.repository,
+        })),
         total,
       };
     },
@@ -188,7 +200,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       actionRef.current.resetSelectedRowKeys();
       refreshPlanData();
     },
-    [actionRef],
+    [refreshPlanData, scopedTestDetailRefresh],
   );
 
   const allTestColumns = [
@@ -271,7 +283,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       actionRef.current.refresh();
       mutateStatusEvent.emit('refreshExecutionStatus');
     },
-    [selectedTestPlan?.objectId],
+    [mutateStatusEvent, selectedTestPlan.objectId],
   );
 
   /** 根据列表记录删除测试执行 */
@@ -411,7 +423,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     };
 
     // 更新负责人
-    const handleAssigneeChange = async assignees => {
+    const handleAssigneeChange = async assignee => {
       setTableLoading(true);
       const testIds = actionRef.current.selectedRowKeys;
 
@@ -419,7 +431,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         testIds.map(d => ({
           objectId: d,
           values: {
-            assignees,
+            assignee,
           },
         })),
       );
@@ -454,7 +466,13 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         <DeleteOutlined /> 移除
       </span>,
     ];
-  }, [userData, hasRowSelected, removeTestRelation, selectedTestPlan, mutateTestPlanEvent]);
+  }, [
+    userData,
+    hasRowSelected,
+    tableSelectionToggleEvent,
+    selectedTestPlan?.objectId,
+    mutateTestPlanEvent,
+  ]);
 
   const InnerTableSelectionActionNodes = React.useMemo(() => {
     const getTestRunIds = () => actionRef.current.selectedRowKeys;
@@ -466,7 +484,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       await updateTestStatus({
         runIds: testRunIds,
         status: status.key,
-        planId: selectedTestPlan.objectId,
+        planId: selectedTestPlan?.objectId,
       });
 
       notification.success({
@@ -487,13 +505,6 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     // 更新测试执行人
     const handleDesigneeChange = async users => {
       const testRunIds = getTestRunIds();
-
-      users = users.map(user => ({
-        objectId: user.value,
-        __type: 'Pointer',
-        className: '_User',
-      }));
-
       // 更新测试执行执行人
       await updateTestEntity(
         testRunIds.map(run => ({
@@ -536,7 +547,14 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         <DeleteOutlined /> 删除
       </span>,
     ];
-  }, [userData, hasRowSelected, deleteTestRunByIds]);
+  }, [
+    userData,
+    hasRowSelected,
+    selectedTestPlan?.objectId,
+    mutateTestPlanEvent,
+    mutateStatusEvent,
+    deleteTestRunByIds,
+  ]);
 
   tableSelectionToggleEvent.useSubscription(visible => {
     actionRef.current.toggleSelection(visible);

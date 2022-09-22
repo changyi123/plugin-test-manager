@@ -11,7 +11,7 @@ import {
 import { merge } from 'lodash';
 import { lib } from 'proxima-sdk';
 import { RepositoryModel, TestType } from '../constants';
-import { BaseTestEntity, Status, TestEntity, UserPointerInfo } from '../types/Test';
+import { BaseTestEntity, Status, TestEntity } from '../types/Test';
 import { getPluginWebTriggerBaseUrl } from '../utils/helper';
 import { compactStepModel } from '../utils/modelTransfer';
 import { createItemLink, deleteItemLink, IItemLink, getExistedItemLinks } from './runs';
@@ -202,10 +202,12 @@ export const updateTestRunDetail = async (
     const getCurrentUserInfo = () => {
       const user = userInfo.toJSON();
       return {
-        objectId: user.objectId,
-        __type: 'Pointer',
-        className: '_User',
-      } as UserPointerInfo;
+        deleted: user.deleted,
+        value: user.objectId,
+        nickname: user.nickname,
+        username: user.username,
+        label: user.username,
+      };
     };
     // 最新操作执行人存最近三条数据，多存无意
     needUpdateAttrs.executor = [getCurrentUserInfo(), ...(needUpdateAttrs.executor ?? [])].slice(
