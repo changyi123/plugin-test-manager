@@ -152,7 +152,6 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         ...queryParams,
         linkType: TestLinkType.RunLinkExecution,
         sourceIds: [selectedExecution.objectId],
-        fields: ['repository'],
         destinationType: TestType.Run,
         selector: selectors,
       });
@@ -164,6 +163,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           id: runs.map(d => d.referenceCase),
         },
         limit: 9999,
+        select: ['id', 'repository'],
       });
 
       return {

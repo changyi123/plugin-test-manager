@@ -81,6 +81,7 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
             type: TestType.Case,
           },
           limit: 9999,
+          select: ['id', 'repository'],
         });
 
         // 刷新右侧表单的所属模块字段
@@ -121,7 +122,8 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
 
   const { runAsync: getTestDetailIds } = useRequest(
     async (scopedTestDetailIds: string[]) => {
-      const { list: testDetails } = await getTestEntityByQuery({
+      if (!scopedTestDetailIds?.length) return [];
+      const { list: caseIds } = await getTestEntityByQuery({
         query: {
           workspaceKey: workspaceKey,
           type: TestType.Case,
@@ -130,9 +132,10 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
         selector: state.selectors,
         offset: 0,
         limit: 99999,
+        onlySelectId: true,
       });
 
-      return testDetails.map(test => test.objectId);
+      return caseIds;
     },
     {
       manual: true,
