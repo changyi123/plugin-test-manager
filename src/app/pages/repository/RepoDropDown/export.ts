@@ -232,8 +232,6 @@ const importTestInfo = async (args: ImportArgs, excelData = []) => {
       linkType: TestLinkType.CaseLinkPlan,
       sourceIds: [checkedId],
       destinationType: TestType.Case,
-      descending: [],
-      onlySelectId: false,
     });
 
     excelData = await getExcelData({

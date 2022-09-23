@@ -137,6 +137,7 @@ export const updateTestStatus = async data => {
       type: TestType.Run,
     },
     limit: 9999,
+    select: ['id', 'referenceCase'],
   });
 
   const { list: test } = await getTestEntityByQuery({
@@ -145,6 +146,7 @@ export const updateTestStatus = async data => {
       type: TestType.Case,
     },
     limit: 9999,
+    select: ['id', 'caseStatus'],
   });
 
   const runs = runIds.map(d => ({
@@ -280,6 +282,7 @@ export const updateTestRunDetail = async (
         type: TestType.Case,
       },
       limit: 9999,
+      select: ['id', 'caseStatus'],
     });
 
     needUpdateCase = test.map(d => ({

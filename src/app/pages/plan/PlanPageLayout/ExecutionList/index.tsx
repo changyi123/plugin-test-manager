@@ -1,11 +1,9 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from 'react';
 import { useRequest } from 'ahooks';
-import { deleteTestEntities } from '@/lib/api/common';
 import { Dropdown, Menu, Tooltip } from 'antd';
 import { EllipsisOutlined } from '@ant-design/icons';
 import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
-import { deleteItems } from '@/lib/api/proxima';
 import { useLocation } from 'react-router-dom';
 import { useListener } from '@projectproxima/proxima-sdk-js';
 import { usePageContext } from '../../hook';
@@ -53,7 +51,11 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
     }
   }, [selectedExecution]);
 
-  const { data, refresh, loading } = useRequest(
+  const {
+    data: executionList,
+    refresh,
+    loading,
+  } = useRequest(
     async () => {
       if (activedType !== 'TestExecution') return [];
 
@@ -80,7 +82,7 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
 
   useEffect(() => {
     if (!selectedExecution?.objectId && query?.executionId) {
-      setSelectedExecution(data.find(d => d.objectId === query?.executionId));
+      setSelectedExecution(executionList.find(d => d.objectId === query?.executionId));
     }
   }, [query?.executionId, selectedExecution]);
 
@@ -92,10 +94,10 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
   }, [refreshExecution]);
 
   useEffect(() => {
-    if (data?.length && !activedId) {
-      setSelectedExecution(data[0]);
+    if (executionList?.length && !activedId) {
+      setSelectedExecution(executionList[0]);
     }
-  }, [data, planId]);
+  }, [executionList, planId]);
 
   const menuClick = (type: string, data) => {
     if (type === 'check') {
@@ -117,8 +119,8 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
     </Menu>
   );
 
-  const showList = (data ?? [])?.slice(0, 5);
-  const hideList = (data ?? [])?.slice(5, data?.length ?? 0);
+  const showList = (executionList ?? [])?.slice(0, 5);
+  const hideList = (executionList ?? [])?.slice(5, executionList?.length ?? 0);
 
   const hideMenu = () => (
     <Menu>
@@ -149,7 +151,7 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
     <div className={cx('tab-list')}>
       {activedType === 'TestExecution' && (
         <>
-          {!!data?.length && (
+          {!!executionList?.length && (
             <>
               <div className={cx('show-list')}>
                 {showList.map((d, index) => (

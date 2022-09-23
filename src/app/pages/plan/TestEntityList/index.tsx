@@ -77,7 +77,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   const { data: allRunData } = useRequest(
     async () => {
       if (activedType === 'TestPlan') return [];
-      const { list: runIds } = await getlinkedTestEntityByQuery({
+      const { list: runData } = await getlinkedTestEntityByQuery({
         query: {
           workspaceKey: workspaceKey,
           referenceCase: requestScopedTestDetailIds,
@@ -86,9 +86,10 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         linkType: TestLinkType.RunLinkExecution,
         sourceIds: [selectedExecution.objectId],
         destinationType: TestType.Run,
+        select: ['id', 'referenceCase'],
       });
 
-      return runIds;
+      return runData;
     },
     {
       refreshDeps: [workspaceKey, requestScopedTestDetailIds, selectedExecution],
