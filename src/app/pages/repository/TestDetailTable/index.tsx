@@ -71,7 +71,11 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
 
   const dataSourceGetter = React.useCallback(
     async paginationParams => {
-      if (!workspaceKey) return null;
+      if (!testDetailIds?.length || !workspaceKey)
+        return {
+          list: [],
+          total: 0,
+        };
       setTableLoading(true);
       const { list: data, total } = await getTestEntityByQuery({
         query: {

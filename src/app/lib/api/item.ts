@@ -9,7 +9,7 @@ import {
 import { merge } from 'lodash';
 import { lib } from 'proxima-sdk';
 import { RepositoryModel, TestType } from '../constants';
-import { BaseTestEntity, Status, TestEntity, UserPointerInfo } from '../types/Test';
+import { BaseTestEntity, Status, TestEntity } from '../types/Test';
 import { getPluginWebTriggerBaseUrl } from '../utils/helper';
 import { compactStepModel } from '../utils/modelTransfer';
 import { createItemLink, deleteItemLink, IItemLink, getExistedItemLinks } from './runs';
@@ -137,6 +137,7 @@ export const updateTestStatus = async data => {
       type: TestType.Run,
     },
     limit: 9999,
+    select: ['id', 'referenceCase'],
   });
 
   const { list: test } = await getTestEntityByQuery({
@@ -145,6 +146,7 @@ export const updateTestStatus = async data => {
       type: TestType.Case,
     },
     limit: 9999,
+    select: ['id', 'caseStatus'],
   });
 
   const runs = runIds.map(d => ({
@@ -183,10 +185,12 @@ export const updateTestRunDetail = async (
     const getCurrentUserInfo = () => {
       const user = userInfo.toJSON();
       return {
-        objectId: user.objectId,
-        __type: 'Pointer',
-        className: '_User',
-      } as UserPointerInfo;
+        deleted: user.deleted,
+        value: user.objectId,
+        nickname: user.nickname,
+        username: user.username,
+        label: user.username,
+      };
     };
     // 最新操作执行人存最近三条数据，多存无意
     needUpdateAttrs.executor = [getCurrentUserInfo(), ...(needUpdateAttrs.executor ?? [])].slice(
@@ -213,17 +217,30 @@ export const updateTestRunDetail = async (
       const hasFail = steps.some(item => item.status === 'FAILED');
       // 有一个正在执行
       const hasExecuting = steps.some(item => item.status === 'EXECUTING');
+      // 有一个阻塞
+      const hasBlock = steps.some(item => item.status === 'BLOCK');
+      // 有一个取消
+      const hasCannel = steps.some(item => item.status === 'CANCEL');
       // 全部 pass
       const hasAllPass = steps.every(item => item.status === 'PASSED');
       // 全部 todo
       const hasAllTodo = steps.every(item => item.status === 'TODO');
 
-      if (hasFail) {
+      if (hasFail && !hasBlock && !hasCannel) {
+        // 失败且没有阻塞、没有取消 - 失败
         needUpdateAttrs.status = 'FAILED';
-      } else if (hasExecuting) {
+      } else if (hasExecuting && !hasBlock && !hasCannel && !hasFail) {
+        // 正在执行且没有取消、阻塞、失败 - 正在执行
         needUpdateAttrs.status = 'EXECUTING';
+      } else if (hasBlock && !hasCannel) {
+        // 阻塞且没有取消 - 阻塞
+        needUpdateAttrs.status = 'BLOCK';
       } else if (hasAllPass) {
+        // 全部通过 - 通过
         needUpdateAttrs.status = 'PASSED';
+      } else if (hasCannel) {
+        // 一个取消 - 取消
+        needUpdateAttrs.status = 'CANCEL';
       } else if (hasAllTodo) {
         needUpdateAttrs.status = 'TODO';
       }
@@ -265,6 +282,7 @@ export const updateTestRunDetail = async (
         type: TestType.Case,
       },
       limit: 9999,
+      select: ['id', 'caseStatus'],
     });
 
     needUpdateCase = test.map(d => ({
