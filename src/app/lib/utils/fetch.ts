@@ -27,7 +27,8 @@ const { sessionToken } = JSON.parse(localStorage.getItem(currentUserStorageKey))
 // const sessionToken = result?.[1];
 
 const config: AxiosRequestConfig = {
-  timeout: 15 * 1000,
+  // 1min 超时
+  timeout: 60 * 1000,
   headers: {
     'X-Parse-Application-Id': tenantKey,
     'X-Parse-Session-Token': sessionToken,
