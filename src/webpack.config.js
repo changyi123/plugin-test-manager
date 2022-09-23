@@ -11,6 +11,7 @@ const WebpackBar = require('webpackbar');
 const webpack = require('webpack');
 require('dotenv').config();
 
+const BundleAnalyzer = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 const smp = new SpeedMeasurePlugin();
 
 const distOutputPath = 'dist';
@@ -94,7 +95,7 @@ const getLocalIdent = ({ resourcePath }, localIdentName, localName) => {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 module.exports = (cliEnv = {}, argv) => {
   const mode = argv.mode;
-  const { PROXIMA_USE_EXTERNAL_DEPENDENCIES } = process.env;
+  const { PROXIMA_USE_EXTERNAL_DEPENDENCIES, PROXIMA_ANALYZER_PACKAGE } = process.env;
 
   if (!['production', 'development'].includes(mode)) {
     throw new Error('The mode is required for NODE_ENV, BABEL_ENV but was not specified.');
@@ -224,6 +225,7 @@ module.exports = (cliEnv = {}, argv) => {
     },
     plugins: [
       new WebpackBar(),
+      PROXIMA_ANALYZER_PACKAGE && new BundleAnalyzer(),
       new webpack.DefinePlugin({ ...resolveClientEnv(false, cliEnv) }),
       new HtmlWebpackPlugin({
         template: path.resolve(__dirname, 'app/public/index.html'),
@@ -311,6 +313,14 @@ module.exports = (cliEnv = {}, argv) => {
           use: ['@svgr/webpack'],
         },
       ],
+    },
+    optimization: {
+      splitChunks: {
+        chunks: 'all',
+        // 100 kb 以下不拆包
+        minSize: 1000000,
+        minChunks: 3,
+      },
     },
   };
 

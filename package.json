@@ -24,7 +24,7 @@
     "@babel/preset-react": "^7.14.5",
     "@ecomfe/class-names-loader": "^2.0.0",
     "@ecomfe/eslint-config": "^7.4.0",
-    "@giteeteam/apps-cli": "0.1.14",
+    "@giteeteam/apps-cli": "^0.2.3",
     "@svgr/webpack": "^5.5.0",
     "@types/eslint": "^7.28.0",
     "@types/lodash": "^4.14.177",
@@ -73,7 +73,7 @@
   },
   "dependencies": {
     "@ant-design/icons": "^4.7.0",
-    "@giteeteam/apps-team-api": "^0.1.8",
+    "@giteeteam/apps-team-api": "^0.1.15",
     "@nebulare/data": "^0.1.5",
     "@osui/theme": "^1.2.10",
     "@projectproxima/components": "0.3.4-remove-editor-0.1",
@@ -101,6 +101,7 @@
     "sheetjs-style": "^0.15.8",
     "tslib": "^2.3.1",
     "url": "^0.11.0",
-    "uuid": "^8.3.2"
+    "uuid": "^8.3.2",
+    "webpack-bundle-analyzer": "^4.6.1"
   }
 }

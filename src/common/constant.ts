@@ -136,3 +136,6 @@ export const BuiltInItemTypeMapping = {
 
 /** 开始节点 key */
 export const StartStatusKey = 'TODO';
+
+/** 测试用例库 className */
+export const RepositoryClassName = 'test_manager_Repository';
