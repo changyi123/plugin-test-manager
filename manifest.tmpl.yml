@@ -2,7 +2,7 @@ app:
   key: test_manager
   uuid: bf73e61c-e15a-4461-a1f7-f940c2009332
   name: test_manager
-  version: "0.0.130066"
+  version: "0.0.13008792"
 modules:
   webtrigger:
     # 动态配置 one 路由
@@ -35,6 +35,9 @@ modules:
       function: api-stats-test-execution
     - key: api-stats-test-case
       function: api-stats-test-case
+    # 模块代码
+    - key: api-module-repository-tree
+      function: api-module-repository-tree
 
   trigger:
     - key: test-manager-initial-script-update
@@ -77,10 +80,15 @@ modules:
      # api batch
     - key: api-batch-delete
       handler: api.batchDelete
+      timeout: 90000
     - key: api-batch-update
       handler: api.batchUpdate
+      # 5 分钟超时时长
+      timeout: 300000
     - key: api-batch-create-test-run
       handler: api.batchCreateTestRun
+      # 5 分钟超时时长
+      timeout: 300000
 
     # api stats
     - key: api-stats-test-plan
@@ -89,6 +97,10 @@ modules:
       handler: api.testExecutionStats
     - key: api-stats-test-case
       handler: api.testCaseStats
+
+    # api module
+    - key: api-module-repository-tree
+      handler: api.repositoryTree
 
   itemPanel:
     - key: test-manager-test-detail
