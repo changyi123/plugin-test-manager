@@ -10,8 +10,11 @@ import { getReqInfoFromVMRuntime, buildPaginationResponse } from '../../lib/apiU
 import { QueryTestEntityPayload, QueryLinkedTestEntityPayload } from '../../../common/types/api';
 import { IQLUsefulFieldKeys, IQLRequiredFieldKeys, InfinityLimit } from '../../../common/constant';
 
-// 接口查询添加自定义字段
-const concatCustomFields = fields => {
+// 处理 iql 请求的自定义字段
+const processIqlRequestFields = (fields, select) => {
+  // 如果有 select 则直接返回
+  if (Array.isArray(select) && select[0]) return select;
+  // fields 字段需要拼接测试实体字段和事项的必填字段
   return Array.from(new Set([].concat(IQLUsefulFieldKeys, fields)));
 };
 
@@ -32,7 +35,17 @@ const overwriteIqlParamsWithOnlySelectId = onlySelectId => {
 /** 查询测试类型实体数据 */
 export const queryTestEntity = async () => {
   const { body } = getReqInfoFromVMRuntime<QueryTestEntityPayload>();
-  const { offset, limit, fields, ascending, query = {}, selector, descending, onlySelectId } = body;
+  const {
+    offset,
+    limit,
+    select,
+    fields,
+    ascending,
+    query = {},
+    selector,
+    descending,
+    onlySelectId,
+  } = body;
 
   return iqlRequest({
     query,
@@ -40,7 +53,7 @@ export const queryTestEntity = async () => {
     ascending,
     descending,
     pagination: { limit, offset },
-    fields: concatCustomFields(fields),
+    fields: processIqlRequestFields(fields, select),
     ...overwriteIqlParamsWithOnlySelectId(onlySelectId),
   });
 };
@@ -54,6 +67,7 @@ export const queryLinkedTestEntity = async () => {
       query,
       fields,
       offset,
+      select,
       linkType,
       selector,
       ascending,
@@ -72,7 +86,7 @@ export const queryLinkedTestEntity = async () => {
       selector,
       ascending,
       descending,
-      fields: concatCustomFields(fields),
+      fields: processIqlRequestFields(fields, select),
       pagination: { limit, offset },
       linkQuery: {
         linkType,

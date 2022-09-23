@@ -74,19 +74,21 @@ export type Query = Partial<{
 }>;
 
 /** 测试实体查询的通用  */
-type CommonTestEntityQueryPayload = PaginationParams & {
+export type CommonTestEntityQueryPayload = PaginationParams & {
   /** 测试实体查询支持快捷查询 */
   query?: Query;
   /** 筛选器选择 */
   selector?: string;
-  /** 限制接口返回的字段 */
-  fields?: FieldKey[];
+  /** 接口需要获取的自定义字段，会自动拼接测试实体的字段 */
+  fields?: string[];
+  /** 限制返回接口字段，优先级比 fields 的高，如果有 select 参数 fields 就不会生效 */
+  select?: FieldKey[];
   /** 升序字段 */
   ascending?: FieldKey[];
   /** 降序字段 */
-  descending: FieldKey[];
+  descending?: FieldKey[];
   /** 只返回 id */
-  onlySelectId: boolean;
+  onlySelectId?: boolean;
 };
 
 /**
@@ -195,4 +197,12 @@ export type TestCaseStatsPayload = {
   planId: string;
   /** 数据数据字段 */
   select?: ('runCount' | 'caseLatestStatus')[];
+};
+
+/**
+ * 获取测试用例树
+ * @example POST /api/project/app/osc/test_manager/webhooks/api-module-repository-tree
+ */
+export type RepositoryTreePayload = {
+  workspaceKey: string;
 };

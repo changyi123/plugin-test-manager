@@ -5,11 +5,13 @@ import { ResponseType, PaginationParams, PaginationResponse } from '../../common
 export const getReqInfoFromVMRuntime = <TBody, THeader = any>(): {
   body: TBody;
   headers: THeader;
+  sessionToken: string;
 } => {
   const { headers = {}, body = {} } = global as any;
   return {
     body: cloneDeep(body) as TBody,
     headers: cloneDeep(headers) as THeader,
+    sessionToken: global.sessionToken,
   };
 };
 
