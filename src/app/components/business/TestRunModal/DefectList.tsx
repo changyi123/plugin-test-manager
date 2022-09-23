@@ -127,7 +127,6 @@ const DefectList: React.FC<DefectListProps> = ({
       <AddDefectButton
         plainStyle
         className={cx('add-btn')}
-        testId={testRunData.objectId}
         testRunEntity={testRunEntity}
         allRelationDefectIds={allRelationDefectItemIds}
         currentDefectIds={testRunData.runDetail?.defectItemIds}

@@ -82,6 +82,7 @@ const TestRun: React.FC<TestRunType> = props => {
     loading: testRunRequestLoading,
   } = useRequest(
     async () => {
+      if (!testId) return null;
       const { list: runData } = await getTestEntityByQuery({
         query: {
           id: [testId],

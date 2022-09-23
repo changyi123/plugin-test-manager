@@ -6,16 +6,15 @@ import AddDefectButton from './AddDefectButton';
 import { TabsComponentBaseProps } from './type';
 import { useItemLinkTypeConfig } from './hooks';
 import { escapeHtmlString } from '@/lib/utils/helper';
-import { addDefect, deleteDefect } from '@/lib/api/runs';
 import { StatusBadge } from '@/components/business/Status';
 import Input from '@/components/business/TestStep/fields/Input';
+import { addTestDefect, deleteTestDefect, updateTestRunDetail } from '@/lib/api/item';
 import ExecutionEditor from './ExecutionEditor';
 import { components } from 'proxima-sdk';
 
 const { ItemIcon } = components.Components.Common;
 
 import cx from './TestStep.less';
-import { updateTestRunDetail } from '@/lib/api/item';
 
 type TestStepProps = TabsComponentBaseProps;
 
@@ -45,7 +44,7 @@ const TestStep: React.FC<TestStepProps> = props => {
       step.id === stepId ? { ...step, defectItemIds } : step,
     );
     await Promise.all([
-      addDefect(TestToDefect, testRunData.objectId, defectItemIds),
+      addTestDefect(TestToDefect, testRunData, defectItemIds),
       updateTestRunDetail(testRunEntity, { steps: needUpdateSteps, planId: selectedTestPlanId }),
     ]);
     onDataChange();
@@ -61,7 +60,7 @@ const TestStep: React.FC<TestStepProps> = props => {
     );
 
     await Promise.all([
-      deleteDefect(TestToDefect, testRunData.objectId, [defectItemId]),
+      deleteTestDefect(TestToDefect, testRunData, [defectItemId]),
       updateTestRunDetail(testRunEntity, { steps: needUpdateSteps, planId: selectedTestPlanId }),
     ]);
     onDataChange();
@@ -211,7 +210,7 @@ const TestStep: React.FC<TestStepProps> = props => {
             <AddDefectButton
               // plainStyle
               className={cx('add-btn')}
-              testId={testRunData.objectId}
+              testRunEntity={testRunEntity}
               currentDefectIds={step.defectItemIds}
               allRelationDefectIds={allRelationDefectItemIds}
               onSave={defectItemIds => handleDefectAdd(step.id, defectItemIds)}

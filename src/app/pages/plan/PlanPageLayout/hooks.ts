@@ -31,7 +31,7 @@ export const useScopedTestDetailIds = (params: ScopedTestDetailIdsParams) => {
     async () => {
       if (type === 'Plan') {
         // 测试全部用例的范围
-        const { list: details } = await getlinkedTestEntityByQuery({
+        const { list: caseIds } = await getlinkedTestEntityByQuery({
           query: {
             workspaceKey: workspaceKey,
           },
@@ -39,9 +39,10 @@ export const useScopedTestDetailIds = (params: ScopedTestDetailIdsParams) => {
           linkType: TestLinkType.CaseLinkPlan,
           sourceIds: [testPlanId],
           destinationType: TestType.Case,
+          onlySelectId: true,
         });
 
-        return details?.map(detail => get(detail, 'objectId')) ?? [];
+        return caseIds;
       } else if (type === 'Execution') {
         // 测试执行的用例范围
         const { list: runs } = await getlinkedTestEntityByQuery({
@@ -52,6 +53,7 @@ export const useScopedTestDetailIds = (params: ScopedTestDetailIdsParams) => {
           linkType: TestLinkType.RunLinkExecution,
           sourceIds: [testExecutionId],
           destinationType: TestType.Run,
+          select: ['id', 'referenceCase'],
         });
 
         return runs?.map(run => get(run, 'referenceCase')) ?? [];

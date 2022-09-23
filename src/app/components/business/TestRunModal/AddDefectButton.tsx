@@ -9,7 +9,7 @@ import { TestEntity } from '@/lib/types/Test';
 import { addTestDefect } from '@/lib/api/item';
 
 type AddDefectButtonProps = {
-  testId: string;
+  testId?: string;
   plainStyle?: boolean;
   className?: string;
   testRunEntity?: TestEntity<TestType.Run>;

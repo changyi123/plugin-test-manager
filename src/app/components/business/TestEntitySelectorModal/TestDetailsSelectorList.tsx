@@ -123,6 +123,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
         },
         ...baseQueryOptions,
         limit: 9999,
+        select: ['id', 'name', 'repository'],
       });
 
       return data.map(d => ({
