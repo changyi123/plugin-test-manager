@@ -1,12 +1,10 @@
 import fetch from '@/lib/utils/fetch';
 import {
-  FieldKey,
-  LinkQueryPayload,
-  PaginationParams,
-  Query,
   TestCaseStatsPayload,
-  TestExecutionStatsPayload,
   TestPlanStatsPayload,
+  QueryTestEntityPayload,
+  TestExecutionStatsPayload,
+  QueryLinkedTestEntityPayload,
 } from 'common/types/api';
 import { merge } from 'lodash';
 import { lib } from 'proxima-sdk';
@@ -18,23 +16,6 @@ import { createItemLink, deleteItemLink, IItemLink, getExistedItemLinks } from '
 const { selectorToIql } = lib.Iql;
 
 const pluginWebTriggerBaseUrl = getPluginWebTriggerBaseUrl();
-
-type TestEntityPayload = PaginationParams & {
-  /** 测试实体查询支持快捷查询 */
-  query?: Query;
-  /** 筛选器选择 */
-  selector?: any;
-  /** 限制接口返回的字段 */
-  fields?: FieldKey[];
-  /** 升序字段 */
-  ascending?: FieldKey[];
-  /** 降序字段 */
-  descending?: FieldKey[];
-  /** 只返回 id */
-  onlySelectId?: boolean;
-};
-
-type LinkedTestEntityPayload = TestEntityPayload & LinkQueryPayload;
 
 const handleSelector = selector => {
   if (!selector) return null;
@@ -61,7 +42,7 @@ const handleSelector = selector => {
 };
 
 // 查询测试用例事项
-export const getTestEntityByQuery = async (props: TestEntityPayload) => {
+export const getTestEntityByQuery = async (props: QueryTestEntityPayload) => {
   const _props = Object.assign(
     { descending: [], onlySelectId: false },
     { ...props, selector: selectorToIql(handleSelector(props.selector)) },
@@ -78,7 +59,7 @@ export const getTestEntityByQuery = async (props: TestEntityPayload) => {
 };
 
 // 关联查询
-export const getlinkedTestEntityByQuery = async (props: LinkedTestEntityPayload) => {
+export const getlinkedTestEntityByQuery = async (props: QueryLinkedTestEntityPayload) => {
   const _props = Object.assign(
     { descending: [], onlySelectId: false },
     { ...props, selector: selectorToIql(handleSelector(props.selector)) },

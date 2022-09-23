@@ -20,7 +20,7 @@ function uuidv4() {
   );
 }
 
-const TEST_MANAGER_REPO = `Repository`;
+const TEST_MANAGER_REPO = `test_manager_Repository`;
 
 const clone = d => JSON.parse(JSON.stringify(d));
 
@@ -121,7 +121,7 @@ export const runImport = async () => {
 
   // 根据空间 key 查询用例库数据
   const getRepoData = async () => {
-    const repoData = await getAllData(true, TEST_MANAGER_REPO, {
+    const repoData = await getAllData(false, TEST_MANAGER_REPO, {
       workspaceKey,
     });
 
@@ -247,7 +247,7 @@ export const runImport = async () => {
   };
 
   const createRepoGroup = async (datas, i) => {
-    const RepoParseObj = getParseModel(true, TEST_MANAGER_REPO);
+    const RepoParseObj = getParseModel(false, TEST_MANAGER_REPO);
     const newRepoData = await getRepoData();
     const mathData = Math.floor(Date.now() / 1000) * 10e5 + i * 1000;
 
