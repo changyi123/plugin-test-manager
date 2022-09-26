@@ -87,7 +87,7 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
           if (Array.isArray(folders)) {
             return folders
               .filter(folder => {
-                const [, childTestDetailNum] = folder.amount;
+                const [, childTestDetailNum] = folder.counts;
                 return childTestDetailNum > 0;
               })
               .map(folder => {
