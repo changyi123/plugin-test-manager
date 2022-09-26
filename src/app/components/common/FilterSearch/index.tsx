@@ -174,9 +174,10 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
         isExtend: systemTarget?.fieldType?.isExtend,
         fieldId,
         field: systemTarget || {
-          fieldType: { component: data.key },
+          fieldType: { component: data.key, label: data.fieldName },
         },
         value: data?.value,
+        label: '',
         workspace: workspace?.objectId,
         onChange: updateSelectorValue,
         onClose: () => {

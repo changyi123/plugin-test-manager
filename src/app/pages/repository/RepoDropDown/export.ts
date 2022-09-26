@@ -1,7 +1,7 @@
 import { utils as xlsxUtils, write as xlsxWrite } from 'sheetjs-style';
 import FileSave from 'file-saver';
 import Parse from '@/lib/parse';
-import { TestLinkType, TestType } from '@/lib/constants';
+import { TestLinkType, TestType, TestTypeNameMapping } from '@/lib/constants';
 import { CustomField, TestConfig } from '@/lib/models';
 import { Item } from '@/lib/types/App';
 import { Step } from '@/lib/types/Test';
@@ -108,7 +108,7 @@ const getExcelData = async (data: any) => {
   return results.map(item => ({
     ...testPlanObj,
     ...getTestGroupPath(repoDataMap.get(item.repository)),
-    ...getItemInfo(item, priorityInfo),
+    ...getItemInfo(item, priorityInfo, item.type),
     ...getTestInfo(item),
     ...getStatus(itemStatus, item.status, planId),
   }));
@@ -166,8 +166,9 @@ const getPriority = (values?: Record<string, unknown>, priInfo?: any) =>
   priInfo?.data.customData.find(list => list.key === values?.priority)?.name ?? '';
 
 /** 获取事项数据 */
-const getItemInfo = (item: Item, priInfo: any) => ({
+const getItemInfo = (item: Item, priInfo: any, type: string) => ({
   标题: item.name,
+  类型: TestTypeNameMapping?.[type],
   负责人: getAssignee(item?.values),
   优先级: getPriority(item?.values, priInfo),
 });
@@ -291,6 +292,7 @@ export const downloadExampleFile = async fieldKeys => {
       {
         所属分组: '分组1/分组2',
         标题: '测试用例标题（样例数据，执行用例导入时请删除该数据）',
+        类型: '测试用例',
         优先级: '优先级可填值范围：最高，较高，普通，较低，最低',
         前置条件: '测试用例前置条件',
         负责人: '用户名',

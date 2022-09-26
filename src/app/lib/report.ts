@@ -1,14 +1,26 @@
+import { notification } from 'antd';
 import * as echarts from 'echarts';
 import fetch from '@/lib/utils/fetch';
 import { createReport } from 'docx-templates';
 import { WordTemplate } from '@/lib/types/Test';
 import { UserOptions } from 'docx-templates/lib/types';
 import { mergeWith, isPlainObject, keyBy } from 'lodash';
-import { getPluginWebTriggerBaseUrl } from '@/lib/utils/helper';
+import { getPluginWebTriggerBaseUrl, escapeMatchesQueryArg } from '@/lib/utils/helper';
 import { NullishCommandResultError, ObjectCommandResultError } from 'docx-templates/lib/errors';
 
 // Buffer polifile
 window.Buffer = window.Buffer || require('buffer').Buffer;
+
+// FIXME: 通过域名 后面做成配置化
+const getDataSourcePath = () => {
+  const InspurEnvOriginReg = ['devops.ptest.com', 'devops.inspur.com', '192.168.48.34'].map(str =>
+    escapeMatchesQueryArg(str),
+  );
+  if (InspurEnvOriginReg.some(reg => reg.test(window.location.origin)))
+    return ['base', 'extensions-inspur'];
+
+  return ['base', 'extensions-huishang'];
+};
 
 /** 插件请求前缀 */
 const DefaultImageOptions = {
@@ -172,6 +184,11 @@ export default class TemplateGenerator {
       data: async () => {
         const templateData = await this.getTemplateVariables(testPlanIds);
         console.info('templateData', templateData);
+        if (templateData?.error?.length) {
+          return notification.error({
+            message: templateData?.error?.join(',') ?? '导出测试报告失败',
+          });
+        }
         return templateData;
       },
       ...docTemplateOptions,
@@ -200,7 +217,8 @@ export default class TemplateGenerator {
     });
     // TODO: 从 data-set 中获取项目配置，目前写死
     // 'extensions-huishang'
-    const DataSetSourcePath = ['base', 'extensions-huishang'] as const;
+    // const DataSetSourcePath = ['base', 'extensions-huishang'] as const;
+    const DataSetSourcePath = getDataSourcePath();
     const dataSetFetchQueue = DataSetSourcePath.map(source =>
       fetch.$post(`${PluginWebTriggerBaseUrl}/report-data-${source}`, statsData),
     );

@@ -2,6 +2,11 @@
  * @file 测试报告模板基础数据
  * */
 
+// 已完成的状态类型
+const FinishedStatusType = 'Finished';
+// 未开始状态
+const TodoStatus = 'TODO';
+
 const { planStats, globalConfig } = global?.body ?? {};
 
 const testStatusType = globalConfig?.statuses ?? [];
@@ -15,7 +20,7 @@ const getBaseCase = data => {
   const allTestMap = new Map();
 
   allTestCases.forEach(test => {
-    const statusKey = test.detailStatus?.[key] ?? 'TODO';
+    const statusKey = test.detailStatus?.[key] ?? TodoStatus;
     allTestMap.set(statusKey, (allTestMap.get(statusKey) ?? []).concat(test));
   });
 
@@ -85,7 +90,7 @@ const getDataByFiled = (datas, filed) =>
 
 const getFixCount = (datas, ids) => {
   const defects = getDataByFiled(datas, 'allDefects')?.filter(
-    d => ids?.includes(d.objectId) && d.status?.type === 'Finished',
+    d => ids?.includes(d.objectId) && d.status?.type === FinishedStatusType,
   );
 
   return defects.length ?? 0;
@@ -101,7 +106,7 @@ const getTestExecution = datas =>
       name: d?.reference?.name ?? '',
       key: d.objectId,
       defectCount: defects.length,
-      testRunCount: d.testRun.filter(d => d.status && d.status !== 'TODO')?.length ?? 0,
+      testRunCount: d.testRun.filter(d => d.status && d.status !== TodoStatus)?.length ?? 0,
       fixedDefectCount: fixed,
       legacyDefectCount: defects.length - fixed,
     };
@@ -109,7 +114,7 @@ const getTestExecution = datas =>
 
 const getDefect = datas => {
   const defects = getDataByFiled(datas, 'allDefects');
-  const legacyList = defects.filter(d => d.status?.type !== 'Finished');
+  const legacyList = defects.filter(d => d.status?.type !== FinishedStatusType);
   const getLength = list => list.length ?? 0;
 
   return {
@@ -142,17 +147,6 @@ const getLineData = datas => {
     xData: array,
     yData: array.map(d => defectListMap.get(d)?.length ?? 0),
   };
-
-  // return array
-  //   .reduce((prev, _, index) => {
-  //     const n = index ? 1 : 0;
-  //     date.setDate(date.getDate() - n);
-
-  //     prev = prev.concat(`${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`);
-
-  //     return prev;
-  //   }, [])
-  //   .reverse();
 };
 
 // TODO 获取折线图配置
@@ -340,5 +334,8 @@ export async function main() {
     };
   } catch (error) {
     console.error('report base error', error);
+    return {
+      error: ['导出测试报告失败'],
+    };
   }
 }

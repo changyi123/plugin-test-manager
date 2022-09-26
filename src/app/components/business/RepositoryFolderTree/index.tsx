@@ -1,15 +1,13 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React from 'react';
 import { Tree } from 'antd';
-import { useNoExpiredRequest } from '@/lib/hooks/useRequest';
 import { FileOpen, FileClose, CaretDownOutlined } from '@/icons';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import { UNGROUPED_FOLDER_KEY } from '@/pages/repository/constant';
 import { hasArrayItem, escapeMatchesQueryArg } from '@/lib/utils/helper';
 import { useRequest, useMemoizedFn, useDeepCompareEffect } from 'ahooks';
 import { traverseTreeNodes, getTreeNodeByKey, reverseTreeNodes } from '@/pages/repository/util';
-import { getRepositoryTree, getTestEntityByQuery } from '@/lib/api/item';
-import { TestType } from '@/lib/constants';
+import { getRepositoryTree } from '@/lib/api/item';
 
 import cx from './style.less';
 
@@ -38,6 +36,8 @@ type RepositoryTreeProps = {
       selectedFolder: any;
     },
   ) => void;
+  /** 隐藏空节点 */
+  hideEmptyFolder?: boolean;
   actionRef?: React.ForwardedRef<ActionType>;
 };
 
@@ -46,6 +46,7 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
     actionRef,
     workspaceKey,
     onFolderSelect,
+    hideEmptyFolder,
     scopedTestDetailIds,
     shouldIncludeSubFolder = true,
   } = props;
@@ -56,37 +57,55 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
   // 匹配的目录名
   const [matchedFolderText, setMatchedFolderText] = React.useState({});
 
-  const { data: allTestDetails } = useNoExpiredRequest(
-    async () => {
-      // 请求所有的用例数据
-      const { list } = await getTestEntityByQuery({
-        query: {
-          workspaceKey: workspaceKey,
-          type: TestType.Case,
-        },
-        limit: 9999,
-        select: ['id', 'repository'],
-      });
-
-      return list;
-    },
-    {
-      cacheKey: `folder_tree_data_workspaceKey${workspaceKey}`,
-      refreshDeps: [workspaceKey],
-    },
-  );
-
   const { data: treeData, refresh: refreshTreeData } = useRequest(
     async () => {
       if (!workspaceKey) return [];
-      const { data: folderTreeNodesWithRoot } = await getRepositoryTree({
+      const { data } = await getRepositoryTree({
         workspaceKey,
       });
 
-      return [folderTreeNodesWithRoot];
+      const nodeData = [data];
+
+      const getCaseIds = caseIds => caseIds?.filter(d => (scopedTestDetailIds ?? []).includes(d));
+
+      traverseTreeNodes(nodeData, node => {
+        const testDetailIds = getCaseIds(node.caseIds);
+        let childTestDetailNum = 0;
+        // 递归子目录获取数量（包含当前节点）
+        traverseTreeNodes([node], child => {
+          const num = getCaseIds(child.caseIds).length;
+          childTestDetailNum += num;
+        });
+        const amount = [testDetailIds.length, childTestDetailNum];
+        node.counts = amount;
+        node.caseIds = getCaseIds(node.caseIds);
+      });
+
+      if (hideEmptyFolder) {
+        // 过滤为空的目录
+        const filterEmptyFolder = folders => {
+          if (Array.isArray(folders)) {
+            return folders
+              .filter(folder => {
+                const [, childTestDetailNum] = folder.amount;
+                return childTestDetailNum > 0;
+              })
+              .map(folder => {
+                folder.children = filterEmptyFolder(folder.children);
+                return folder;
+              });
+          } else {
+            return folders;
+          }
+        };
+
+        return filterEmptyFolder(nodeData);
+      }
+
+      return nodeData;
     },
     {
-      refreshDeps: [allTestDetails, scopedTestDetailIds],
+      refreshDeps: [workspaceKey, scopedTestDetailIds, hideEmptyFolder],
     },
   );
 
@@ -150,8 +169,8 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
   // 触发 onFolderChange 时间
   useDeepCompareEffect(() => {
     const selectedFolder = getTreeNodeByKey(treeData, treeSelectedKeys[0]);
+    let caseIds = [];
     if (selectedFolder) {
-      let caseIds = [];
       // 包含所有子集节点的用例
       if (shouldIncludeSubFolder) {
         traverseTreeNodes([selectedFolder], node => {
@@ -160,11 +179,11 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
       } else {
         caseIds = selectedFolder.caseIds;
       }
-
-      onFolderSelect?.(caseIds, {
-        selectedFolder,
-      });
     }
+
+    onFolderSelect?.(caseIds, {
+      selectedFolder,
+    });
   }, [treeSelectedKeys, treeData, shouldIncludeSubFolder]);
 
   // 树节点渲染

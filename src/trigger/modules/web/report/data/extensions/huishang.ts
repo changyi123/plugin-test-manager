@@ -185,52 +185,60 @@ export async function main() {
       return formatDate(timeStamp, 'YYYY.MM.DD');
     });
 
-  const result = {
-    info: {
-      planDuration,
-    },
-    testExecution: executionInit(cumulatedExecutions),
-    defect: {
-      fixed:
-        cumulatedDefects?.filter(d => d.status?.type === 'Finished' && d.status?.name !== '已取消')
-          ?.length ?? 0,
-      valid: cumulatedDefects?.filter(d => d.status?.name !== '已取消')?.length ?? 0,
-      charts: {
-        levelPie: {
-          noData: !cumulatedDefects?.length,
-          title: {
-            text: '缺陷严重程度统计表',
-            left: 'center',
-            textStyle: {
-              fontSize: 24,
-            },
-          },
-          legend: {
-            orient: 'center',
-            left: 'right',
-            top: '35%',
-            textStyle: {
-              fontSize: 18,
-            },
-          },
-          series: [
-            {
-              name: 'Access From',
-              type: 'pie',
-              radius: '50%',
-              label: {
-                fontSize: 16,
-                formatter: '{c}',
-              },
-              data: generateLevelPieOption(cumulatedDefects),
-            },
-          ],
-        },
+  try {
+    const result = {
+      info: {
+        planDuration,
       },
-      // 遗留缺陷 mixin 数据
-      legacyDefectList,
-    },
-  };
+      testExecution: executionInit(cumulatedExecutions),
+      defect: {
+        fixed:
+          cumulatedDefects?.filter(
+            d => d.status?.type === 'Finished' && d.status?.name !== '已取消',
+          )?.length ?? 0,
+        valid: cumulatedDefects?.filter(d => d.status?.name !== '已取消')?.length ?? 0,
+        charts: {
+          levelPie: {
+            noData: !cumulatedDefects?.length,
+            title: {
+              text: '缺陷严重程度统计表',
+              left: 'center',
+              textStyle: {
+                fontSize: 24,
+              },
+            },
+            legend: {
+              orient: 'center',
+              left: 'right',
+              top: '35%',
+              textStyle: {
+                fontSize: 18,
+              },
+            },
+            series: [
+              {
+                name: 'Access From',
+                type: 'pie',
+                radius: '50%',
+                label: {
+                  fontSize: 16,
+                  formatter: '{c}',
+                },
+                data: generateLevelPieOption(cumulatedDefects),
+              },
+            ],
+          },
+        },
+        // 遗留缺陷 mixin 数据
+        legacyDefectList,
+      },
+    };
 
-  return result;
+    return result;
+  } catch (error) {
+    console.error('report base error', error);
+    return {
+      error: ['导出测试报告失败'],
+    };
+  }
 }

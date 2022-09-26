@@ -1,6 +1,7 @@
 import React, { useCallback, useRef, useState } from 'react';
 import { usePageContext } from '@/pages/plan/hook';
 import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
+import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/hook';
 import { Button, Dropdown, Menu, notification } from 'antd';
 import _ from 'lodash';
 import { actionConfirm, goToItemDetailPage } from '@/lib/utils/helper';
@@ -10,7 +11,7 @@ import FilterSearch from '@/components/common/FilterSearch';
 import { FullScreen } from '@/icons';
 import { components } from 'proxima-sdk';
 import { deleteTestEntity, getStatsTestPlan, getTestEntityByQuery } from '@/lib/api/item';
-import { TestType } from '@/lib/constants';
+import { SystemIncludeFieldKeys, SYSTEM_FIELD, TestType } from '@/lib/constants';
 
 const { ItemIcon } = components.Components.Common;
 
@@ -24,6 +25,15 @@ const TestPlanList: React.FC<any> = () => {
   const { createItemUseModal } = useBaseAction();
 
   const detailSearchRef = useRef(null);
+
+  const testDetailFieldKeys = useTestTypeScreenFieldKeys({
+    testType: TestType.Plan,
+    workspaceKey,
+  });
+
+  const systemFields = Object.values(SYSTEM_FIELD).filter(
+    field => !SystemIncludeFieldKeys.includes(field),
+  );
 
   React.useEffect(() => {
     // 还原筛选器数据
@@ -189,7 +199,7 @@ const TestPlanList: React.FC<any> = () => {
           <FilterSearch
             className={cx('test-manager-filter')}
             ref={detailSearchRef}
-            fields={['createdBy', 'priority', 'assignee', 'createdAt']}
+            fields={testDetailFieldKeys?.filter(field => !systemFields.includes(field))}
             extendFields={[]}
             onSearch={setSearchParams}
           />

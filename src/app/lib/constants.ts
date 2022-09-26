@@ -94,6 +94,7 @@ export const FIELD_TYPE_KEY_MAPPINGS = {
   TimeRange: 'TimeRange', // 时间范围 -> time
   BindWorkspace: 'BindWorkspace', // 绑定空间 -> string workspaceId
   Script: 'Script', // 脚本 -> string
+  CustomVersion: 'CustomVersion', // 版本（自定义） -> version
 
   // FieldType的system field
   SecurityLevel: 'SecurityLevel', // 安全级别 -> list
@@ -107,12 +108,14 @@ export const FIELD_TYPE_KEY_MAPPINGS = {
   FieldCollection: 'FieldCollection', // 字段集合
   ItemLevel: 'ItemLevel', // 事项层级
   Link: 'Link', // 事项关联
-  Version: 'Version', // 版本 -> version
+  Version: 'Version', // 版本（系统） -> version
   Sprint: 'Sprint', // 迭代 -> sprint
   Assignee: 'Assignee', // 负责人
   Priority: 'Priority', // 优先级
   Board: 'Board', // 面板字段
   ItemGroup: 'ItemGroup', // 事项组类型字段
+  StoryPoint: 'StoryPoint', // 故事点
+  StatusType: 'StatusType', // 状态类型
 
   // 未存储在FieldType表中，在筛选搜索中用
   CreatedAt: 'createdAt', // 创建时间
@@ -325,15 +328,28 @@ export const isUseOptionLabel = (component: string): boolean => {
     FIELD_TYPE_KEY_MAPPINGS.ItemGroup,
     FIELD_TYPE_KEY_MAPPINGS.Priority,
     FIELD_TYPE_KEY_MAPPINGS.BindWorkspace,
+    FIELD_TYPE_KEY_MAPPINGS.StatusType,
     FIELD_TYPE_KEY_MAPPINGS.Version,
+    FIELD_TYPE_KEY_MAPPINGS.CustomVersion,
     FIELD_TYPE_KEY_MAPPINGS.Sprint,
     FIELD_TYPE_KEY_MAPPINGS.Tag,
   ].includes(component);
 };
 
+export const EXINCLUDE_FIELDS = [FIELD_TYPE_KEY_MAPPINGS.DataQuote];
+
 export const isUseOptionValue = (component: string): boolean => {
   return [FIELD_TYPE_KEY_MAPPINGS.Dropdown].includes(component);
 };
+
+export const SystemIncludeFieldKeys = [
+  'createdBy',
+  'priority',
+  'assignee',
+  'createdAt',
+  'version',
+  'sprint',
+];
 
 // 全局配置缓存 key
 export const GlobalConfigStorageKey = 'test_manager_global_config';

@@ -10,7 +10,13 @@ import { useListener } from '@projectproxima/proxima-sdk-js';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
 import { useReactive, useRequest, useMemoizedFn } from 'ahooks';
 import TestDetailTable, { ActionType } from './TestDetailTable';
-import { extendFields, RepositoryModel, TestType } from '@/lib/constants';
+import {
+  extendFields,
+  RepositoryModel,
+  SystemIncludeFieldKeys,
+  SYSTEM_FIELD,
+  TestType,
+} from '@/lib/constants';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import TestManagerProvider from '@/components/business/TestManagerProvider';
 import { reverseTreeNodes, getTreeNodeByKey, traverseTreeNodes } from './util';
@@ -21,6 +27,7 @@ import FilterSearch from '@/components/common/FilterSearch';
 import { getRepositoryTree, getTestEntityByQuery } from '@/lib/api/item';
 
 import cx from './index.less';
+import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/hook';
 
 type GroupedMode = 'all' | 'current';
 
@@ -40,6 +47,15 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
   const tableActionRef = React.useRef<ActionType>();
   const { createItemUseModal } = useBaseAction();
   const [groupedMode, setGroupedMode] = React.useState<GroupedMode>('all');
+
+  const testDetailFieldKeys = useTestTypeScreenFieldKeys({
+    testType: TestType.Plan,
+    workspaceKey,
+  });
+
+  const systemFields = Object.values(SYSTEM_FIELD).filter(
+    field => !SystemIncludeFieldKeys.includes(field),
+  );
 
   // 事项数据更新后刷新列表
   useListener('updateItemList', () => {
@@ -239,7 +255,7 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
           <FilterSearch
             className={cx('filter-search-box')}
             onSearch={handleSelectorSearch}
-            fields={['createdBy', 'priority', 'assignee', 'createdAt']}
+            fields={testDetailFieldKeys?.filter(field => !systemFields.includes(field))}
             extendFields={extendFields.filter(field => field.key === RepositoryModel)}
           />
           <TestDetailTable

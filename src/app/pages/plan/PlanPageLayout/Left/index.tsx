@@ -50,6 +50,7 @@ const Left: React.FC<LeftProps> = ({
       />
       <div className={cx('tree-box')}>
         <RepositoryFolderTree
+          hideEmptyFolder
           actionRef={folderTreeRef}
           shouldIncludeSubFolder={showType === 'showChild'}
           workspaceKey={workspaceKey}

@@ -320,6 +320,8 @@ export async function main() {
     };
   } catch (err) {
     console.error('report stats error', err);
-    return [];
+    return {
+      error: ['导出测试报告失败'],
+    };
   }
 }

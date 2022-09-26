@@ -12,6 +12,14 @@
     margin: 0;
   }
 
+  // 解决面板抽屉组件样式抖动问题
+  :global {
+    .field-layout .ant-col.field-value {
+      line-height: 22px !important;
+      min-height: 22px !important;
+    }
+  }
+
   .ant-btn.ant-btn-primary:hover,
   .ant-btn.ant-btn-primary:focus {
     color: #fff !important;
