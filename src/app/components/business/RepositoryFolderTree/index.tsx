@@ -66,22 +66,21 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
 
       const nodeData = [data];
 
-      const getCaseIds = caseIds => caseIds?.filter(d => (scopedTestDetailIds ?? []).includes(d));
-
-      traverseTreeNodes(nodeData, node => {
-        const testDetailIds = getCaseIds(node.caseIds);
-        let childTestDetailNum = 0;
-        // 递归子目录获取数量（包含当前节点）
-        traverseTreeNodes([node], child => {
-          const num = getCaseIds(child.caseIds).length;
-          childTestDetailNum += num;
-        });
-        const amount = [testDetailIds.length, childTestDetailNum];
-        node.counts = amount;
-        node.caseIds = getCaseIds(node.caseIds);
-      });
-
       if (hideEmptyFolder) {
+        const getCaseIds = caseIds => caseIds?.filter(d => (scopedTestDetailIds ?? []).includes(d));
+
+        traverseTreeNodes(nodeData, node => {
+          const testDetailIds = getCaseIds(node.caseIds);
+          let childTestDetailNum = 0;
+          // 递归子目录获取数量（包含当前节点）
+          traverseTreeNodes([node], child => {
+            const num = getCaseIds(child.caseIds).length;
+            childTestDetailNum += num;
+          });
+          const amount = [testDetailIds.length, childTestDetailNum];
+          node.counts = amount;
+          node.caseIds = getCaseIds(node.caseIds);
+        });
         // 过滤为空的目录
         const filterEmptyFolder = folders => {
           if (Array.isArray(folders)) {
