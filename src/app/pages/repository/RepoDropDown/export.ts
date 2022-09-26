@@ -20,7 +20,7 @@ export type TreeNode = {
   name: string;
   title: React.ReactNode;
   parentKey: string | null;
-  testDetailIds: string[];
+  caseIds: string[];
   children: TreeNode[];
 };
 

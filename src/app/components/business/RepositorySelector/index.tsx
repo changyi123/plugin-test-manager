@@ -90,7 +90,7 @@ const RepositorySelector: React.FC<RepositorySelectorProps> = props => {
             resolve({
               repositoryKey: node.key,
               workspaceKey: node.workspaceKey,
-              testDetailIds: node.testDetailIds,
+              testDetailIds: node.caseIds,
             });
           });
         });

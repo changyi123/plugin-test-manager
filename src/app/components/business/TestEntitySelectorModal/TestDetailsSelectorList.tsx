@@ -24,7 +24,7 @@ const reportTreeToArray = (datas: any[], parent?: any, ignoreIds = []) => {
       ...cur,
       value: cur.key,
       label: cur.name,
-      testIds: filterIgnoreIds(cur.ids ?? [], ignoreIds),
+      testIds: filterIgnoreIds(cur.caseIds ?? [], ignoreIds),
       path: `${parent?.path ? parent?.path + '/' : ''}${cur.name}`,
     };
     prev = prev.concat(_cur);
@@ -119,7 +119,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
           workspaceKey: workspaceKey,
           type: TestType.Case,
           name: detailSearchValue,
-          id: getTestDetailIdsByReport(getReportData(selectedNode), 'ids'),
+          id: getTestDetailIdsByReport(getReportData(selectedNode), 'caseIds'),
         },
         ...baseQueryOptions,
         limit: 9999,
@@ -134,7 +134,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
     },
     {
       refreshDeps: [detailSearchValue, orderByCratedAt, selectedNode, workspaceKey],
-      cacheKey: `Repository_${selectedNode?.key ?? ''}${selectedNode?.ids.join('_') ?? ''}${
+      cacheKey: `Repository_${selectedNode?.key ?? ''}${selectedNode?.caseIds.join('_') ?? ''}${
         detailSearchValue ?? ''
       }${orderByCratedAt}${workspaceKey}`,
       staleTime: 999999999,
@@ -157,7 +157,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
 
       const _checkData = reportData.map(report => ({
         ...report,
-        testDetailList: curTestList.filter(d => report.ids.includes(d.objectId)) ?? [],
+        testDetailList: curTestList.filter(d => report.caseIds.includes(d.objectId)) ?? [],
       }));
 
       setCheckData(_checkData);
@@ -189,7 +189,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
 
   const isNotData = data => {
     if (data.length === 1) {
-      return data[0].ids.length;
+      return data[0].caseIds.length;
     }
 
     return data.length;
