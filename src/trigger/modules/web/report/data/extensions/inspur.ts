@@ -89,7 +89,7 @@ export async function main() {
       const defects = getDefectId(ele.testRun).filter(d => defectItemIds.includes(d));
       const fixedCount = getFixCount(cumulatedDefects, defects);
 
-      const itemValues = ele?.reference?.values ?? {};
+      const itemValues = ele?.values ?? {};
 
       // 测试执行任务计划开始日期
       const executionStartDate = itemValues[ExecutionStartDateFieldKey];
@@ -164,7 +164,7 @@ export async function main() {
   const planDuration = cumulatedExecutions
     .reduce(
       (duration, execution) => {
-        const itemValues = execution?.reference?.values ?? {};
+        const itemValues = execution?.values ?? {};
 
         // 测试执行任务计划开始日期
         const executionStartDate =

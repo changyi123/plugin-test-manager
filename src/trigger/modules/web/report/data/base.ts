@@ -20,7 +20,7 @@ const getBaseCase = data => {
   const allTestMap = new Map();
 
   allTestCases.forEach(test => {
-    const statusKey = test.detailStatus?.[key] ?? TodoStatus;
+    const statusKey = test.caseStatus?.[key] ?? TodoStatus;
     allTestMap.set(statusKey, (allTestMap.get(statusKey) ?? []).concat(test));
   });
 
@@ -103,7 +103,7 @@ const getTestExecution = datas =>
     const fixed = getFixCount(datas, defects);
 
     return {
-      name: d?.reference?.name ?? '',
+      name: d?.name ?? '',
       key: d.objectId,
       defectCount: defects.length,
       testRunCount: d.testRun.filter(d => d.status && d.status !== TodoStatus)?.length ?? 0,
