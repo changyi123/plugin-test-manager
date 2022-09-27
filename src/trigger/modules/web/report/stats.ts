@@ -3,11 +3,11 @@
  * @prams {Array} testPlanIds 测试计划 Ids
  * */
 import { getParseQuery, requestCoreApi } from '@giteeteam/apps-team-api';
+import { TestLinkType, TestType } from '../../../../common/constant';
+import { iqlRequest } from '../../../lib/iqlRequest';
+import { testEntityFieldTypeValidator } from '../../../lib/validator';
 
 const APP_KEY = global.appKey ?? 'test_manager';
-const DEFAULT_STATUS = 'TODO';
-
-const testPlanIds = global?.body?.testPlanIds ?? [];
 
 // 压缩响应数据大小，移除无用数据字段
 const compactData = (data, extraKeys = [] as string[]) => {
@@ -58,66 +58,7 @@ const ParseBaseQueryOptions = {
   sessionToken: global.sessionToken,
 };
 
-const ExecutionRelRun = 'ExecutionRelRun';
-const PlanRelExecution = 'PlanRelExecution';
-const PlanRelDetail = 'PlanRelDetail';
-
-const defaultConfig = {
-  // 响应数据处理
-  include: [],
-  select: [],
-  nameLike: '',
-  workspaceKey: '',
-  // 需要关联方 id
-  needOriginSideId: true,
-  // 需要关联关系数据
-  needRelationData: true,
-  ascendingBy: ['createdAt'],
-  descendingBy: [],
-  resultTransfer: data => data,
-  queryParams: {
-    limit: 10,
-    offset: 0,
-  },
-};
-
 const hasArrayItem = arr => Boolean(Array.isArray(arr) && arr.length);
-
-const getRelationKey = side => Object.keys(side).filter(Boolean)[0];
-
-const getTestEntityByRelation = async (relType, side, _config = {}) => {
-  const testRelationQuery = await getParseQuery(false, `${APP_KEY}_TestRelation`);
-  const relKey = getRelationKey(side);
-  const originalIds = side[relKey].filter(Boolean).map(item => item?.objectId ?? item);
-  const config = Object.assign({}, defaultConfig, _config) as any;
-  const { include, select } = config;
-
-  testRelationQuery.equalTo('relationType', relType).containedIn(relKey, originalIds);
-
-  if (hasArrayItem(include)) {
-    testRelationQuery.include(include);
-  }
-
-  if (hasArrayItem(select)) {
-    testRelationQuery.include(select);
-  }
-
-  if (hasArrayItem(config.ascendingBy)) {
-    testRelationQuery.addAscending(config.ascendingBy);
-  } else if (config.descendingBy) {
-    testRelationQuery.addDescending(config.descendingBy);
-  }
-
-  if (config.queryParams && typeof config.queryParams === 'object') {
-    const { queryParams } = config;
-    testRelationQuery.limit(queryParams.limit ?? 10);
-    (testRelationQuery as any).skip(queryParams.offset ?? 0);
-  }
-
-  const data = await testRelationQuery.find(ParseBaseQueryOptions);
-
-  return data?.map(test => test.toJSON()) ?? [];
-};
 
 const getItemData = async (ids, config = {} as Record<string, any>) => {
   const itemQuery = await getParseQuery(false, 'Item');
@@ -148,41 +89,13 @@ const getItemData = async (ids, config = {} as Record<string, any>) => {
     (itemQuery as any).skip(queryParams.offset ?? 0);
   }
 
-  const data = await itemQuery.find({ ...ParseBaseQueryOptions, json: true } as any);
+  const data = await itemQuery.find({ ...ParseBaseQueryOptions } as any);
 
-  return data ?? [];
+  return data.map(d => d.toJSON());
 };
 
-const getToByFrom = (datas, filed, isHanleRef = false) =>
-  (datas ?? []).reduce((prev, cur) => {
-    if (!prev[cur.from?.objectId]?.reference && isHanleRef) {
-      prev = {
-        ...prev,
-        [cur.from?.objectId]: {
-          ...(prev[cur.from?.objectId] ?? {}),
-          reference: cur.from?.reference ?? {},
-        },
-      };
-    }
-
-    if (cur.from?.objectId) {
-      prev = {
-        ...prev,
-        [cur.from.objectId]: {
-          ...(prev[cur.from.objectId] ?? {}),
-          [filed]: (prev[cur.from.objectId]?.[filed] ?? []).concat(cur.to).map(d => ({
-            ...d,
-            reference: compactData(d?.reference ?? {}),
-          })),
-        },
-      };
-    }
-
-    return prev;
-  }, {});
-
 const getDefectId = datas => {
-  const runDetails = datas?.map(d => d.to?.runDetail).filter(Boolean) ?? [];
+  const runDetails = datas?.map(d => d?.runDetail).filter(Boolean) ?? [];
 
   const stepDefectIds = runDetails
     .filter(d => d?.steps)
@@ -199,8 +112,11 @@ const getGlobalConfig = async () => {
   const testConfigQuery = await getParseQuery(false, `${APP_KEY}_TestConfig`);
   const globalConfig = await testConfigQuery
     .equalTo('global', true)
-    .first({ ...ParseBaseQueryOptions, json: true } as any);
-  return (globalConfig as any)?.extra ?? {};
+    .first({ ...ParseBaseQueryOptions } as any);
+
+  const { extra } = globalConfig.toJSON();
+
+  return extra ?? {};
 };
 
 const getDefectStatusList = async defectId => {
@@ -210,67 +126,106 @@ const getDefectStatusList = async defectId => {
   return (res as any)?.nodes ?? [];
 };
 
-const addDefaultStatus = data => {
-  return data?.map(item => ({
-    ...item,
-    to: {
-      ...item.to,
-      status: item.to.status ?? DEFAULT_STATUS,
-    },
-  }));
+const queryTestEntity = async props => {
+  const { offset, limit, ascending, query = {}, selector, descending } = props;
+  return iqlRequest({
+    query,
+    selector,
+    ascending,
+    descending,
+    pagination: { limit, offset },
+  });
+};
+
+const queryLinkedTestEntity = async props => {
+  const { limit, query, offset, linkQuery, selector, ascending, descending } = props;
+
+  // 请求参数校验
+  testEntityFieldTypeValidator({
+    linkType: linkQuery.linkType,
+    type: linkQuery.destinationType,
+    linkItems: linkQuery.sourceIds,
+  });
+
+  return iqlRequest({
+    query,
+    selector,
+    ascending,
+    descending,
+    pagination: { limit, offset },
+    linkQuery,
+  });
+};
+
+const getLinkMap = datas => {
+  // 一个测试执行任务只能在一个测试计划关系，一个测试执行执行在一个测试执行任务关系
+  const linkMap = new Map();
+
+  datas.forEach(item => {
+    const mapItemKey = item.linkItems[0];
+    const mapitemValue = linkMap.get(mapItemKey) ?? [];
+
+    linkMap.set(mapItemKey, [...mapitemValue, item]);
+  });
+
+  return linkMap;
 };
 
 export async function main() {
   try {
-    const [planDetailsRel, planExecutionRel, globalConfig] = await Promise.all([
-      getTestEntityByRelation(
-        PlanRelDetail,
-        {
-          from: testPlanIds,
+    const { testPlanIds } = global.body ?? {};
+
+    // 查询测试执行计划
+    const [
+      {
+        data: { list: testPlanData },
+      },
+      {
+        data: { list: caseData },
+      },
+      {
+        data: { list: testExecutionData },
+      },
+      globalConfig,
+    ] = await Promise.all([
+      queryTestEntity({
+        query: {
+          id: testPlanIds,
+          type: TestType.Plan,
         },
-        {
-          queryParams: {
-            limit: 9999,
-          },
-          include: ['to.reference'],
-          select: ['to.reference'],
+        limit: 9999,
+      }),
+      queryLinkedTestEntity({
+        linkQuery: {
+          linkType: TestLinkType.CaseLinkPlan,
+          sourceIds: testPlanIds,
+          destinationType: TestType.Case,
         },
-      ) // 添加默认状态类型
-        .then(addDefaultStatus),
-      getTestEntityByRelation(
-        PlanRelExecution,
-        {
-          from: testPlanIds,
+        limit: 9999,
+      }),
+      queryLinkedTestEntity({
+        linkQuery: {
+          linkType: TestLinkType.ExecutionLinkPlan,
+          sourceIds: testPlanIds,
+          destinationType: TestType.Execution,
         },
-        {
-          queryParams: {
-            limit: 9999,
-          },
-          include: ['to.reference', 'from.reference'],
-          select: ['to.reference', 'from.reference'],
-          ascendingBy: ['createdAt'],
-        },
-      ),
+        limit: 9999,
+      }),
       getGlobalConfig(),
     ]);
 
-    const executionRunRel = await getTestEntityByRelation(
-      ExecutionRelRun,
-      {
-        from: planExecutionRel.map(d => d.to?.objectId).filter(Boolean),
+    const {
+      data: { list: testRunData },
+    } = await queryLinkedTestEntity({
+      linkQuery: {
+        linkType: TestLinkType.RunLinkExecution,
+        sourceIds: (testExecutionData as any[])?.map(d => d.id),
+        destinationType: TestType.Run,
       },
-      {
-        queryParams: {
-          limit: 9999,
-        },
-        include: ['to.runDetail', 'to.status'],
-        select: ['to.runDetail', 'to.status'],
-      },
-    )
-      // 添加默认状态类型
-      .then(addDefaultStatus);
+      limit: 9999,
+    });
 
-    const defectItem = await getItemData(getDefectId(executionRunRel), {
+    const defectItem = await getItemData(getDefectId(testRunData), {
       queryParams: {
         limit: 9999,
       },
@@ -283,19 +238,16 @@ export async function main() {
 
     const defectStatusList = await getDefectStatusList(defectId);
 
-    const testRuns = getToByFrom(executionRunRel, 'testRuns');
-
-    const testExecution = getToByFrom(planExecutionRel, 'testExecutions', true);
+    const testRuns = getLinkMap(testRunData);
+    const testExecution = getLinkMap(testExecutionData);
 
     const planStats = testPlanIds.map(planId => ({
       key: planId,
-      allTestCases: compactData(
-        getToByFrom(planDetailsRel, 'allTestCases')?.[planId]?.allTestCases ?? [],
-      ),
-      reference: compactData(testExecution[planId]?.reference, ['name']),
-      allTestExecutions: testExecution[planId]?.testExecutions.map(d => ({
+      allTestCases: compactData(caseData ?? []),
+      reference: (testPlanData ?? []).find(d => d.objectId === planId),
+      allTestExecutions: testExecution.get(planId).map(d => ({
         ...compactData(d),
-        testRun: compactData(testRuns[d.objectId]?.testRuns ?? []),
+        testRun: compactData(testRuns.get(d.objectId) ?? []),
       })),
       allDefects: defectItem.map(d => ({
         ...compactData(d),

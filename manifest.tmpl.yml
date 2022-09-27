@@ -69,10 +69,10 @@ modules:
       handler: web.requestReportDataBase
       # 徽商测试报告拓展数据
     - key: report-data-extensions-huishang
-      handler: web.requestReportDataExtensionsBase
+      handler: web.requestReportHuiShangDataExtensions
       # 浪潮测试报告拓展数据
     - key: report-data-extensions-inspur
-      handler: web.requestReportInspurDataExtensionsBase
+      handler: web.requestReportInspurDataExtensions
 
       # api backend Query
     - key: api-query-test-entity
