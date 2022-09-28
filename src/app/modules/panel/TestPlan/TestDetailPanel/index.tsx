@@ -85,7 +85,11 @@ const Test = () => {
   );
 
   const getAllData = useCallback(async () => {
-    const { list, stats } = await getRelTestEntities({ offset: 0, limit: 9999 });
+    const { list, stats } = await getRelTestEntities({
+      offset: 0,
+      limit: 9999,
+      select: ['caseStatus', 'id'],
+    });
     setAllTestEntities(list);
     setStats(stats);
   }, [getRelTestEntities]);
@@ -109,7 +113,7 @@ const Test = () => {
     return {
       testEntityIds: allTestEntities.map(item => item.objectId),
       testEntityStatuses: allTestEntities.map(
-        item => item.detailStatus?.[testEntity.objectId] ?? INITIAL_STATUS_KEY,
+        item => item.caseStatus?.[testEntity.objectId] ?? INITIAL_STATUS_KEY,
       ),
     };
   }, [allTestEntities, testEntity]);
@@ -117,7 +121,7 @@ const Test = () => {
   // 刷新依赖数据
   const refreshDepData = useCallback(() => {
     getAllData();
-    tableActionRef.current.refresh();
+    tableActionRef.current?.refresh();
   }, [getAllData]);
 
   const tableDataSourceGetter = useCallback(

@@ -46,7 +46,11 @@ const Test = () => {
 
   // 获取测试任务下的测试执行
   const getAllRelTestEntities = useCallback(async () => {
-    const { list, total } = await getReTestEntities({ offset: 0, limit: 9999 });
+    const { list, total } = await getReTestEntities({
+      offset: 0,
+      limit: 9999,
+      select: ['referenceCase', 'status', 'id'],
+    });
     setAllTestEntities(list);
     return { list, total };
   }, [getReTestEntities]);
