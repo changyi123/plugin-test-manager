@@ -134,11 +134,16 @@ export async function main() {
       };
     });
   };
+
   // 查询缺陷字段详情，获取option
-  const appQuery = await getParseQuery(false, 'CustomField');
-  const severityLevelField = await appQuery
-    .equalTo('key', SeverityLevelFieldKey)
-    .first({ json: true, ...ParseBaseQueryOptions } as any);
+  const getSeverityLevelField = async () => {
+    const appQuery = await getParseQuery(false, 'CustomField')
+      .equalTo('key', SeverityLevelFieldKey)
+      .first({ ...ParseBaseQueryOptions });
+
+    return appQuery.toJSON() ?? {};
+  };
+  const severityLevelField = await getSeverityLevelField();
 
   // 严重等级的 Mapping
   const SeverityLevelLabelMapping = (severityLevelField as any)?.data?.customData?.reduce(
