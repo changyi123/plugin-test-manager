@@ -5,7 +5,14 @@ import RepoDropDown from '@/pages/repository/RepoDropDown';
 import TestEntitySelectorModal, {
   ActionType as ModelActionType,
 } from '@/components/business/TestEntitySelectorModal';
-import { extendFields, RepositoryModel, TestLinkType, TestType } from '@/lib/constants';
+import {
+  extendFields,
+  RepositoryModel,
+  SYSTEM_FIELD,
+  TestLinkType,
+  TestType,
+  SystemIncludeFieldKeys,
+} from '@/lib/constants';
 import { useUpdateEffect } from 'ahooks';
 import TestEntityList from '../../TestEntityList';
 import { usePageContext } from '../../hook';
@@ -14,6 +21,7 @@ import ExecutionStatus from '../ExecutionStatus';
 import { batchCreateTestRun, updateTestEntity } from '@/lib/api/item';
 
 import cx from './index.less';
+import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/hook';
 
 const options = [
   {
@@ -53,6 +61,7 @@ const Right: React.FC<RightProps> = props => {
 
   const {
     refresh,
+    workspaceKey,
     selectedTestPlan,
     setSearchParams,
     mutateTestPlanEvent,
@@ -78,6 +87,15 @@ const Right: React.FC<RightProps> = props => {
   tableSelectionToggleEvent.useSubscription(visible => {
     setTableSelectionVisible(visible);
   });
+
+  const testDetailFieldKeys = useTestTypeScreenFieldKeys({
+    testType: TestType.Plan,
+    workspaceKey,
+  });
+
+  const systemFields = Object.values(SYSTEM_FIELD).filter(
+    field => !SystemIncludeFieldKeys.includes(field),
+  );
 
   useUpdateEffect(() => {
     if (activedType && selectedExecution?.objectId) {
@@ -215,7 +233,7 @@ const Right: React.FC<RightProps> = props => {
           onSearch={setSearchParams}
           className={cx('plan-page-layout-search')}
           extendFields={filterSearchExtendFieldsProps}
-          fields={['createdBy', 'priority', 'assignee', 'createdAt']}
+          fields={testDetailFieldKeys?.filter(field => !systemFields.includes(field))}
         />
       </div>
       <div data-element-id="test-manager-execution-table-body" className={cx('box-body')}>

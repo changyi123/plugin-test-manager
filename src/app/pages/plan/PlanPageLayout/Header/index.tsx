@@ -7,11 +7,12 @@ import { TestLinkType, TestType } from '@/lib/constants';
 import ExecutionList from '../ExecutionList';
 import { usePageContext } from '../../hook';
 import WordReport from '@/lib/report';
+import { useRequest } from 'ahooks';
 import { getFirstWordTemplate } from '@/lib/api/report';
-
-import cx from './index.less';
 import { batchCreateTestRun, getlinkedTestEntityByQuery, updateTestEntity } from '@/lib/api/item';
 import { generateSortIndex } from '@/lib/utils/helper';
+
+import cx from './index.less';
 
 interface HeaderProps {
   activedType?: string;
@@ -98,11 +99,20 @@ const Header: React.FC<HeaderProps> = ({
     }
   };
 
+  const { data: wordTemplate } = useRequest(
+    async () => {
+      return getFirstWordTemplate();
+    },
+    {
+      // 不需要重新获取 wordTemplate
+      refreshDeps: [],
+    },
+  );
+
   const generateReport = async () => {
     // TODO: 选取测试报告，当前只取系统第一个
     try {
       setIsReportGenerating(true);
-      const wordTemplate = await getFirstWordTemplate();
       const wordTemplateGenerator = new WordReport(wordTemplate);
       await wordTemplateGenerator.generateReport({
         fileName: `${selectedTestPlan.name}-测试报告`,
@@ -145,15 +155,17 @@ const Header: React.FC<HeaderProps> = ({
             >
               测试执行任务
             </div>
-            <div className={cx('tab-extra-action')}>
-              <Button
-                onClick={generateReport}
-                icon={<ExportOutlined />}
-                loading={isReportGenerating}
-              >
-                生成测试报告
-              </Button>
-            </div>
+            {wordTemplate ? (
+              <div className={cx('tab-extra-action')}>
+                <Button
+                  onClick={generateReport}
+                  icon={<ExportOutlined />}
+                  loading={isReportGenerating}
+                >
+                  生成测试报告
+                </Button>
+              </div>
+            ) : null}
           </div>
         </div>
       </div>

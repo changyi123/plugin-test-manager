@@ -1,17 +1,13 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React from 'react';
 import { Tree } from 'antd';
-import _, { CollectionChain } from 'lodash';
-import { useNoExpiredRequest } from '@/lib/hooks/useRequest';
 import { FileOpen, FileClose, CaretDownOutlined } from '@/icons';
-import { useTestRepositoryFolderTree } from '@/lib/hooks/useTest';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import { UNGROUPED_FOLDER_KEY } from '@/pages/repository/constant';
 import { hasArrayItem, escapeMatchesQueryArg } from '@/lib/utils/helper';
 import { useRequest, useMemoizedFn, useDeepCompareEffect } from 'ahooks';
 import { traverseTreeNodes, getTreeNodeByKey, reverseTreeNodes } from '@/pages/repository/util';
-import { getTestEntityByQuery } from '@/lib/api/item';
-import { TestType } from '@/lib/constants';
+import { getRepositoryTree } from '@/lib/api/item';
 
 import cx from './style.less';
 
@@ -40,6 +36,8 @@ type RepositoryTreeProps = {
       selectedFolder: any;
     },
   ) => void;
+  /** 隐藏空节点 */
+  hideEmptyFolder?: boolean;
   actionRef?: React.ForwardedRef<ActionType>;
 };
 
@@ -48,6 +46,7 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
     actionRef,
     workspaceKey,
     onFolderSelect,
+    hideEmptyFolder,
     scopedTestDetailIds,
     shouldIncludeSubFolder = true,
   } = props;
@@ -58,93 +57,54 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
   // 匹配的目录名
   const [matchedFolderText, setMatchedFolderText] = React.useState({});
 
-  const { data: folderTreeNodes } = useTestRepositoryFolderTree(workspaceKey);
-
-  const { data: allTestDetails } = useNoExpiredRequest(
-    async () => {
-      // 请求所有的用例数据
-      const { list } = await getTestEntityByQuery({
-        query: {
-          workspaceKey: workspaceKey,
-          type: TestType.Case,
-        },
-        limit: 9999,
-        select: ['id', 'repository'],
-      });
-
-      return list;
-    },
-    {
-      cacheKey: `folder_tree_data_workspaceKey${workspaceKey}`,
-      refreshDeps: [folderTreeNodes, workspaceKey],
-    },
-  );
-
   const { data: treeData, refresh: refreshTreeData } = useRequest(
     async () => {
-      let processChain: CollectionChain<any> = _.chain(allTestDetails);
+      if (!workspaceKey) return [];
+      const { data } = await getRepositoryTree({
+        workspaceKey,
+      });
 
-      // 如果有用例 id 范围，则过滤用例
-      if (scopedTestDetailIds) {
-        const scopedTestDetailIdSet = new Set(scopedTestDetailIds);
-        processChain = processChain.filter(test => scopedTestDetailIdSet.has(test.objectId));
+      const nodeData = [data];
+
+      if (hideEmptyFolder) {
+        const getCaseIds = caseIds => caseIds?.filter(d => (scopedTestDetailIds ?? []).includes(d));
+
+        traverseTreeNodes(nodeData, node => {
+          const testDetailIds = getCaseIds(node.caseIds);
+          let childTestDetailNum = 0;
+          // 递归子目录获取数量（包含当前节点）
+          traverseTreeNodes([node], child => {
+            const num = getCaseIds(child.caseIds).length;
+            childTestDetailNum += num;
+          });
+          const amount = [testDetailIds.length, childTestDetailNum];
+          node.counts = amount;
+          node.caseIds = getCaseIds(node.caseIds);
+        });
+        // 过滤为空的目录
+        const filterEmptyFolder = folders => {
+          if (Array.isArray(folders)) {
+            return folders
+              .filter(folder => {
+                const [, childTestDetailNum] = folder.counts;
+                return childTestDetailNum > 0;
+              })
+              .map(folder => {
+                folder.children = filterEmptyFolder(folder.children);
+                return folder;
+              });
+          } else {
+            return folders;
+          }
+        };
+
+        return filterEmptyFolder(nodeData);
       }
 
-      const repositoryTestDetailIdMap = processChain
-        .reduce((map, test) => {
-          const repositoryId = test.repository ?? UNGROUPED_FOLDER_KEY;
-          const existedTestDetailIds = map.get(repositoryId) ?? [];
-          map.set(repositoryId, [...existedTestDetailIds, test.objectId].filter(Boolean));
-          return map;
-        }, new Map())
-        .value();
-
-      const notExistedFolderKeySet = new Set([...repositoryTestDetailIdMap.keys()]);
-      // 处理 repository 被删除的数据
-      traverseTreeNodes(folderTreeNodes, node => {
-        notExistedFolderKeySet.delete(node.key);
-      });
-
-      let unGroupedFolderIds = repositoryTestDetailIdMap.get(UNGROUPED_FOLDER_KEY) ?? [];
-      notExistedFolderKeySet.forEach(key => {
-        unGroupedFolderIds = unGroupedFolderIds.concat(repositoryTestDetailIdMap.get(key));
-      });
-
-      repositoryTestDetailIdMap.set(
-        UNGROUPED_FOLDER_KEY,
-        Array.from(new Set(unGroupedFolderIds)).filter(Boolean),
-      );
-
-      const folderTreeNodesWithRoot = [
-        {
-          parentKey: null,
-          name: '全部用例',
-          title: '全部用例',
-          icon: <FileClose />,
-          children: folderTreeNodes,
-          key: UNGROUPED_FOLDER_KEY,
-          ids: repositoryTestDetailIdMap.get(UNGROUPED_FOLDER_KEY) ?? [],
-        },
-      ];
-
-      // 转换为树渲染结构
-      traverseTreeNodes(folderTreeNodesWithRoot, node => {
-        const testDetailIds = repositoryTestDetailIdMap.get(node.key) ?? [];
-        let childTestDetailNum = 0;
-        // 递归子目录获取数量（包含当前节点）
-        traverseTreeNodes([node], child => {
-          const num = repositoryTestDetailIdMap.get(child.key)?.length ?? 0;
-          childTestDetailNum += num;
-        });
-        const amount = [testDetailIds.length, childTestDetailNum];
-        node.amount = amount;
-        node.ids = testDetailIds;
-      });
-
-      return folderTreeNodesWithRoot;
+      return nodeData;
     },
     {
-      refreshDeps: [folderTreeNodes, allTestDetails, scopedTestDetailIds],
+      refreshDeps: [workspaceKey, scopedTestDetailIds, hideEmptyFolder],
     },
   );
 
@@ -208,26 +168,26 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
   // 触发 onFolderChange 时间
   useDeepCompareEffect(() => {
     const selectedFolder = getTreeNodeByKey(treeData, treeSelectedKeys[0]);
+    let caseIds = [];
     if (selectedFolder) {
-      let ids = [];
       // 包含所有子集节点的用例
       if (shouldIncludeSubFolder) {
         traverseTreeNodes([selectedFolder], node => {
-          ids = ids.concat(node.ids);
+          caseIds = caseIds.concat(node.caseIds);
         });
       } else {
-        ids = selectedFolder.ids;
+        caseIds = selectedFolder.caseIds;
       }
-
-      onFolderSelect?.(ids, {
-        selectedFolder,
-      });
     }
+
+    onFolderSelect?.(caseIds, {
+      selectedFolder,
+    });
   }, [treeSelectedKeys, treeData, shouldIncludeSubFolder]);
 
   // 树节点渲染
   const titleRender = useMemoizedFn(node => {
-    const [currentNum, childNodeNum] = node.amount;
+    const [currentNum, childNodeNum] = node.counts;
     const matchedText = matchedFolderText[node.key];
     const matchedClassName = cx('matched');
     const highlightMatchedNodeName = matchedText

@@ -109,7 +109,7 @@ type TreeNode = {
   name: string;
   title: React.ReactNode;
   parentKey: string | null;
-  testDetailIds: string[];
+  caseIds: string[];
   children: TreeNode[];
 };
 
@@ -207,7 +207,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         handleSelect([createdFolderKey], {
           node: {
             parentKey,
-            testDetailIds: [],
+            caseIds: [],
             name: folderName,
             key: createdFolderKey,
           },
@@ -292,7 +292,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         // 只有测试用例需要被添加至测试用例仓库
         if (testEntityData.type !== TestType.Case) return;
         // 修改 node，将创建成功的 itemKey 追加到 node 上
-        node.testDetailIds = (node.testDetailIds || []).concat(testEntityData.objectId);
+        node.caseIds = (node.caseIds || []).concat(testEntityData.objectId);
         await updateFolders([node]);
         notification.success({
           message: `测试用例【${testEntityData.name}】新建成功`,
@@ -337,9 +337,9 @@ const FolderTree: React.FC<FolderTreeProps> = ({
     return treeFn.traverseTreeNodes(node => {
       let totalLen = 0;
       traverseTreeNodes([node], node => {
-        totalLen += node.testDetailIds?.length ?? 0;
+        totalLen += node.caseIds?.length ?? 0;
       });
-      node.length = [node.testDetailIds?.length ?? 0, totalLen];
+      node.length = [node.caseIds?.length ?? 0, totalLen];
     });
   }, [treeFn]);
 

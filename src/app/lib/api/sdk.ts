@@ -1,7 +1,10 @@
 import createProximaSdk from '@projectproxima/proxima-sdk-js';
-import { TEST_MANAGER_PLUGIN_KEY } from '@/lib/constants';
+import { EXINCLUDE_FIELDS, TEST_MANAGER_PLUGIN_KEY } from '@/lib/constants';
 import { CustomField } from '@/lib/models';
 import Parse from '@/lib/parse';
+import { lib } from 'proxima-sdk';
+
+const { INCLUDE_FILTER_FIELD_TYPES } = lib.Global;
 
 const proximaSDK = createProximaSdk();
 
@@ -46,10 +49,19 @@ export const openFilterPopover = async ({ fields, selectors, onChange, extendFie
     .include('fieldType')
     .containedIn('key', fields)
     .find();
+
+  const includeFileds = INCLUDE_FILTER_FIELD_TYPES?.filter(
+    field => !EXINCLUDE_FIELDS?.includes(field) ?? [],
+  );
+
+  const _customFields = customFields
+    .map(item => item.toJSON())
+    .filter(d => includeFileds?.includes(d.fieldType.key));
+
   // proximaSDK.execute不能传递函数，限制太多
   window.QiankunProps.openFilterPopover({
     selectors,
-    list: [...customFields.map(item => item.toJSON()), ...extendFields],
+    list: [..._customFields, ...extendFields],
     onChange,
     dom,
   });
@@ -69,6 +81,7 @@ export const openFieldValuePopover = async ({
   fetchMethod,
   dom,
   expression,
+  label,
 }) => {
   // proximaSDK.execute不能传递函数，限制太多
   window.QiankunProps.openFieldValuePopover({
@@ -82,5 +95,6 @@ export const openFieldValuePopover = async ({
     fetchMethod,
     dom,
     expression,
+    label,
   });
 };

@@ -85,6 +85,7 @@
     "axios": "^0.21.4",
     "buffer": "^6.0.3",
     "classnames": "^2.3.1",
+    "compression-webpack-plugin": "^10.0.0",
     "docx-templates": "^4.9.2",
     "echarts": "^5.3.3",
     "file-saver": "^2.0.5",

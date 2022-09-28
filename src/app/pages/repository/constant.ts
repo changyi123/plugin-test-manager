@@ -1,1 +1,1 @@
-export const UNGROUPED_FOLDER_KEY = 'ROOT_FOLDER';
+export const UNGROUPED_FOLDER_KEY = 'root';

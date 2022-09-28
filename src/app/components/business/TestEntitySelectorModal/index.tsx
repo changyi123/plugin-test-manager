@@ -14,7 +14,6 @@ import { getRootContainer, hasArrayItem } from '@/lib/utils/helper';
 import { getAllTestConfigs } from '@/lib/api/common';
 import InheritTestDetail from './InheritTestDetail';
 import TestDetailSelector from './TestDetailSelector';
-import { TestFiledKeyMapping } from 'common/constant';
 
 import cx from './index.less';
 

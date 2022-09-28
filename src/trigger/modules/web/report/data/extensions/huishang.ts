@@ -87,7 +87,7 @@ export async function main() {
       const defects = getDefectId(ele.testRun).filter(d => defectItemIds.includes(d));
       const fixedCount = getFixCount(cumulatedDefects, defects);
 
-      const itemValues = ele?.reference?.values ?? {};
+      const itemValues = ele?.values ?? {};
 
       // 测试执行任务计划开始日期
       const executionStartDate = itemValues[ExecutionStartDateFieldKey];
@@ -132,11 +132,16 @@ export async function main() {
       };
     });
   };
+
   // 查询缺陷字段详情，获取option
-  const appQuery = await getParseQuery(false, 'CustomField');
-  const severityLevelField = await appQuery
-    .equalTo('key', SeverityLevelFieldKey)
-    .first({ json: true, ...ParseBaseQueryOptions } as any);
+  const getSeverityLevelField = async () => {
+    const appQuery = await getParseQuery(false, 'CustomField')
+      .equalTo('key', SeverityLevelFieldKey)
+      .first({ ...ParseBaseQueryOptions });
+
+    return appQuery.toJSON() ?? {};
+  };
+  const severityLevelField = await getSeverityLevelField();
 
   // 严重等级的 Mapping
   const SeverityLevelLabelMapping = (severityLevelField as any)?.data?.customData?.reduce(
@@ -162,7 +167,7 @@ export async function main() {
   const planDuration = cumulatedExecutions
     .reduce(
       (duration, execution) => {
-        const itemValues = execution?.reference?.values ?? {};
+        const itemValues = execution?.values ?? {};
 
         // 测试执行任务计划开始日期
         const executionStartDate =
@@ -185,52 +190,60 @@ export async function main() {
       return formatDate(timeStamp, 'YYYY.MM.DD');
     });
 
-  const result = {
-    info: {
-      planDuration,
-    },
-    testExecution: executionInit(cumulatedExecutions),
-    defect: {
-      fixed:
-        cumulatedDefects?.filter(d => d.status?.type === 'Finished' && d.status?.name !== '已取消')
-          ?.length ?? 0,
-      valid: cumulatedDefects?.filter(d => d.status?.name !== '已取消')?.length ?? 0,
-      charts: {
-        levelPie: {
-          noData: !cumulatedDefects?.length,
-          title: {
-            text: '缺陷严重程度统计表',
-            left: 'center',
-            textStyle: {
-              fontSize: 24,
-            },
-          },
-          legend: {
-            orient: 'center',
-            left: 'right',
-            top: '35%',
-            textStyle: {
-              fontSize: 18,
-            },
-          },
-          series: [
-            {
-              name: 'Access From',
-              type: 'pie',
-              radius: '50%',
-              label: {
-                fontSize: 16,
-                formatter: '{c}',
-              },
-              data: generateLevelPieOption(cumulatedDefects),
-            },
-          ],
-        },
+  try {
+    const result = {
+      info: {
+        planDuration,
       },
-      // 遗留缺陷 mixin 数据
-      legacyDefectList,
-    },
-  };
+      testExecution: executionInit(cumulatedExecutions),
+      defect: {
+        fixed:
+          cumulatedDefects?.filter(
+            d => d.status?.type === 'Finished' && d.status?.name !== '已取消',
+          )?.length ?? 0,
+        valid: cumulatedDefects?.filter(d => d.status?.name !== '已取消')?.length ?? 0,
+        charts: {
+          levelPie: {
+            noData: !cumulatedDefects?.length,
+            title: {
+              text: '缺陷严重程度统计表',
+              left: 'center',
+              textStyle: {
+                fontSize: 24,
+              },
+            },
+            legend: {
+              orient: 'center',
+              left: 'right',
+              top: '35%',
+              textStyle: {
+                fontSize: 18,
+              },
+            },
+            series: [
+              {
+                name: 'Access From',
+                type: 'pie',
+                radius: '50%',
+                label: {
+                  fontSize: 16,
+                  formatter: '{c}',
+                },
+                data: generateLevelPieOption(cumulatedDefects),
+              },
+            ],
+          },
+        },
+        // 遗留缺陷 mixin 数据
+        legacyDefectList,
+      },
+    };
 
-  return result;
+    return result;
+  } catch (error) {
+    console.error('report base error', error);
+    return {
+      error: ['导出测试报告失败'],
+    };
+  }
 }

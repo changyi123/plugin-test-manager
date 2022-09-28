@@ -5,6 +5,7 @@ import { message, notification, ConfigProvider } from 'antd';
 import { MemoryRouter, Switch, Route, useHistory, HashRouter } from 'react-router-dom';
 import { lib } from 'proxima-sdk';
 const { default: I18n } = lib.I18n;
+import { noop } from 'lodash';
 
 import zhCN from 'antd/lib/locale/zh_CN';
 
@@ -59,7 +60,7 @@ const App: React.FC = props => {
 
   return (
     <PluginSDKContext.Provider value={qiankunContextValue.sdk}>
-      <I18n setLang={() => {}}>
+      <I18n setLang={noop}>
         <ConfigProvider
           locale={zhCN}
           getPopupContainer={() => document.getElementById(rootElement)}
