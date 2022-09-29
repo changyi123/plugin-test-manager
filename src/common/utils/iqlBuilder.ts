@@ -145,11 +145,11 @@ export default class IQLBuilder {
       let isComplexSubIql = false;
       let sub = '';
       if (builder) {
+        sub = builder.build();
         isComplexSubIql = true;
-        sub = `(${builder.toString()})`;
       } else if (iqlStr) {
-        isComplexSubIql = true;
         sub = iqlStr;
+        isComplexSubIql = true;
       } else {
         sub = whereProcessor(column, value, operator);
       }
