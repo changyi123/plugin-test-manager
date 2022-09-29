@@ -19,11 +19,11 @@ export const iqlSearchParamsBuilder = (params: BuildParams) => {
 
   const iqlBuilder = new IQLBuilder();
 
-  // selector 条件可能带有 order by，需要移除 order by 和 左右括号 空白
+  // selector 条件可能带有 order by，需要移除 order by 和 空白
   const andIqlStr = andCompositionIqlStr
     ?.replace(/order by.*$/i, '')
-    ?.replace(/^\s*\(?/, '')
-    ?.replace(/\)?\s*$/, '');
+    ?.replace(/^\s+/, '')
+    ?.replace(/\s+$/, '');
 
   if (andIqlStr) {
     iqlBuilder.where(andIqlStr, null, null, Composition.And);
