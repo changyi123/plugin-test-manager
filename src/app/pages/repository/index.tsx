@@ -58,7 +58,8 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
   );
 
   // 事项数据更新后刷新列表
-  useListener('updateItemList', () => {
+  useListener('updateItemList', props => {
+    if (props?.type === 'create') return;
     setTimeout(() => {
       tableActionRef.current.refresh();
     }, 400);
@@ -99,13 +100,13 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
   );
 
   const { runAsync: getTestDetailIds } = useRequest(
-    async (scopedTestDetailIds: string[]) => {
-      if (!scopedTestDetailIds?.length) return [];
+    async (ids: string[]) => {
+      if (!ids?.length && !workspaceKey) return [];
       const { list: caseIds } = await getTestEntityByQuery({
         query: {
           workspaceKey: workspaceKey,
           type: TestType.Case,
-          id: scopedTestDetailIds,
+          id: ids,
         },
         selector: state.selectors,
         offset: 0,

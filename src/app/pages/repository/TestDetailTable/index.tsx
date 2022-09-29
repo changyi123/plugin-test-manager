@@ -108,8 +108,6 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
       const testDetailIds = tableActionRef.current.selectedRowKeys;
 
       actionConfirm('该操作会将所选的测试用例删除，是否继续操作？', async () => {
-        // 获取所选的测试用例事项 id
-        setTableLoading(true);
         await deleteTestEntity(testDetailIds);
         refreshAndMutateData();
 

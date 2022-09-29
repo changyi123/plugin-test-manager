@@ -235,6 +235,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
             <Select
               value={showType}
               options={selectOptions}
+              getPopupContainer={e => e.parentNode}
               onChange={val => setShowType(val)}
             ></Select>
             <Tooltip title="创建时间排序">

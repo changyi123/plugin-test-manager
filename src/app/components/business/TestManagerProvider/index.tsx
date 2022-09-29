@@ -85,7 +85,7 @@ const getOrCreateTestEntity = async (
       console.info('extraFields', extraFields);
     }
 
-    const { data } = await updateTestEntity([
+    const data = await updateTestEntity([
       {
         objectId: itemData.objectId,
         name: itemData.name,
@@ -115,6 +115,29 @@ const getOrBatchCreateTestEntities = async (
   const { itemList, type } = options;
   if (!Array.isArray(itemIdList)) return null;
 
+  const getListRepository = (list, index) => {
+    if (index === 0) return {};
+
+    const curStore = list[index]?.[CREATE_ITEM_STORE_FIELD_KEY];
+
+    if (curStore?.repository) {
+      return {
+        repository: curStore?.repository,
+      };
+    }
+
+    const newList = list.slice(0, index).reverse();
+
+    return newList.reduce((prev, cur) => {
+      if (cur?.[CREATE_ITEM_STORE_FIELD_KEY]?.repository) {
+        prev = {
+          repository: cur?.[CREATE_ITEM_STORE_FIELD_KEY]?.repository,
+        };
+      }
+      return prev;
+    }, {});
+  };
+
   // 测试用例创建
   // 添加事项创建 panel 的数据
   const storeValueWithItemIdMap = (
@@ -122,9 +145,12 @@ const getOrBatchCreateTestEntities = async (
   )
     .filter(Boolean)
     .reduce(
-      (map, { itemId, ...restFields }) => ({
+      (map, { itemId, ...restFields }, index) => ({
         ...map,
-        [itemId]: restFields[CREATE_ITEM_STORE_FIELD_KEY],
+        [itemId]: {
+          ...restFields[CREATE_ITEM_STORE_FIELD_KEY],
+          ...getListRepository(options.storeValueList ?? [], index),
+        },
       }),
       {},
     );
@@ -380,9 +406,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
             const willValidateTestEntity = useItemBatchCreate ? testEntityList?.[0] : testEntity;
 
             // 创建的测试类型是否符合预期
-            // let expectedTestType = willValidateTestEntity?.type === type;
-            // TODO 待修改,更新接口返回数据
-            let expectedTestType = true;
+            let expectedTestType = willValidateTestEntity?.type === type;
 
             // 判断类型 key 是否在 defectsMapping 中
             if (type === TestType.TestDefect) {

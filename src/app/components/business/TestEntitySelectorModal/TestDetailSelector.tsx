@@ -160,7 +160,7 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
             />
             <div className={cx('tree-box')}>
               <RepositoryFolderTree
-                workspaceKey={workspaceKey}
+                workspaceKey={selectedWorkspaceKey}
                 shouldIncludeSubFolder={false}
                 actionRef={repositoryFolderTreeRef}
                 onFolderSelect={(_, nodeInfo) => setSelectedNode(nodeInfo.selectedFolder)}
