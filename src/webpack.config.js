@@ -11,6 +11,8 @@ const WebpackBar = require('webpackbar');
 const webpack = require('webpack');
 require('dotenv').config();
 
+const CompressionPlugin = require('compression-webpack-plugin');
+
 const BundleAnalyzer = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 const smp = new SpeedMeasurePlugin();
 
@@ -224,6 +226,10 @@ module.exports = (cliEnv = {}, argv) => {
       // },
     },
     plugins: [
+      new CompressionPlugin({
+        filename: '[path][base].gz',
+        test: /\.(js|css|html)$/,
+      }),
       new WebpackBar(),
       PROXIMA_ANALYZER_PACKAGE && new BundleAnalyzer(),
       new webpack.DefinePlugin({ ...resolveClientEnv(false, cliEnv) }),

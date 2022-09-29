@@ -1,36 +1,33 @@
 import React from 'react';
-import { pick } from 'lodash';
-import { MenuKey } from './Menu';
-import { FileClose } from '@/icons';
 import { getDevConfig } from '@/devEnv';
 import { Button, notification, Select } from 'antd';
 import { useSDK } from '@projectproxima/plugin-sdk';
-import { getFolderTree } from '@/lib/api/repository';
 import { logPluginVersion } from '@/lib/utils/helper';
 import { useBaseAction } from '@/lib/hooks/useContext';
 import FolderTree from '@/pages/repository/FolderTree';
 import PageLayout from '@/components/common/PageLayout';
-import { repositoryFolderTreeEvent } from '@/lib/events';
 import { useListener } from '@projectproxima/proxima-sdk-js';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
 import { useReactive, useRequest, useMemoizedFn } from 'ahooks';
 import TestDetailTable, { ActionType } from './TestDetailTable';
-import { extendFields, RepositoryModel, TestType } from '@/lib/constants';
+import {
+  extendFields,
+  RepositoryModel,
+  SystemIncludeFieldKeys,
+  SYSTEM_FIELD,
+  TestType,
+} from '@/lib/constants';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import TestManagerProvider from '@/components/business/TestManagerProvider';
-import {
-  reverseTreeNodes,
-  getTreeNodeByKey,
-  traverseTreeNodes,
-  appendGroupedDetailIdsToTreeNode,
-} from './util';
+import { reverseTreeNodes, getTreeNodeByKey, traverseTreeNodes } from './util';
 
 import { UNGROUPED_FOLDER_KEY } from './constant';
 import RepoDropDown from './RepoDropDown';
 import FilterSearch from '@/components/common/FilterSearch';
-import { getTestEntityByQuery } from '@/lib/api/item';
+import { getRepositoryTree, getTestEntityByQuery } from '@/lib/api/item';
 
 import cx from './index.less';
+import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/hook';
 
 type GroupedMode = 'all' | 'current';
 
@@ -51,6 +48,15 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
   const { createItemUseModal } = useBaseAction();
   const [groupedMode, setGroupedMode] = React.useState<GroupedMode>('all');
 
+  const testDetailFieldKeys = useTestTypeScreenFieldKeys({
+    testType: TestType.Plan,
+    workspaceKey,
+  });
+
+  const systemFields = Object.values(SYSTEM_FIELD).filter(
+    field => !SystemIncludeFieldKeys.includes(field),
+  );
+
   // 事项数据更新后刷新列表
   useListener('updateItemList', () => {
     setTimeout(() => {
@@ -61,7 +67,7 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
   const state = useReactive({
     breadcrumbs: [],
     selectors: [] as any,
-    testDetailIds: [],
+    caseIds: [],
     selectedNode: null,
     selectedFolderKey: '',
     tableSelectionVisible: false,
@@ -73,47 +79,19 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
     refreshAsync: refreshFolderTree,
   } = useRequest(
     async () => {
-      // 获取当前空间内所有的测试实体
-      const getAllTestDetailEntityIds = async workspaceKey => {
-        const { list: data } = await getTestEntityByQuery({
-          query: {
-            workspaceKey: workspaceKey,
-            type: TestType.Case,
-          },
-          limit: 9999,
-          select: ['id', 'repository'],
-        });
-
-        // 刷新右侧表单的所属模块字段
-        repositoryFolderTreeEvent.dispatch();
-
-        return data.map(item => pick(item, ['objectId', 'repository']));
-      };
-
-      const [treeNodes, allTestDetailIds] = await Promise.all([
-        getFolderTree(workspaceKey),
-        getAllTestDetailEntityIds(workspaceKey),
-      ]);
-
-      const ungroupedDetailIds = appendGroupedDetailIdsToTreeNode(treeNodes, allTestDetailIds);
-
-      const folders = [
-        {
-          parentKey: null,
-          name: '全部用例',
-          title: '全部用例',
-          icon: <FileClose />,
-          children: treeNodes,
-          key: UNGROUPED_FOLDER_KEY,
-          disabledMenuKeys: [MenuKey.deleteFolder, MenuKey.renameFolder],
-          testDetailIds: ungroupedDetailIds,
-        },
-      ];
+      if (!workspaceKey) return [];
+      const { data: folders } = await getRepositoryTree({
+        workspaceKey,
+      });
 
       // 更新 selectedNode
       state.selectedNode = getTreeNodeByKey(folders, state.selectedFolderKey);
 
-      return folders;
+      return [
+        {
+          ...folders,
+        },
+      ];
     },
     {
       ready: Boolean(workspaceKey),
@@ -142,7 +120,7 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
     },
   );
 
-  // 更新表单 testDetailIds
+  // 更新表单 caseIds
   const refreshTestDetailIds = useMemoizedFn(async (selectedNode?: any) => {
     selectedNode = selectedNode ?? state.selectedNode;
     state.selectedNode = selectedNode;
@@ -150,12 +128,12 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
     // 包含子分组的所有用例
     if (groupedMode === 'all') {
       traverseTreeNodes([selectedNode], node => {
-        scopedTestDetailIds = scopedTestDetailIds.concat(node.testDetailIds);
+        scopedTestDetailIds = scopedTestDetailIds.concat(node.caseIds);
       });
     } else {
-      scopedTestDetailIds = selectedNode.testDetailIds;
+      scopedTestDetailIds = selectedNode.caseIds;
     }
-    state.testDetailIds = await getTestDetailIds(scopedTestDetailIds);
+    state.caseIds = await getTestDetailIds(scopedTestDetailIds);
   });
 
   const handleTreeSelect = React.useCallback(
@@ -277,13 +255,13 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
           <FilterSearch
             className={cx('filter-search-box')}
             onSearch={handleSelectorSearch}
-            fields={['createdBy', 'priority', 'assignee', 'createdAt']}
+            fields={testDetailFieldKeys?.filter(field => !systemFields.includes(field))}
             extendFields={extendFields.filter(field => field.key === RepositoryModel)}
           />
           <TestDetailTable
             actionRef={tableActionRef}
             onDataChange={handleDataChange}
-            testDetailIds={state.testDetailIds}
+            testDetailIds={state.caseIds}
             folderKey={state.selectedFolderKey}
             onSelectionCancel={() => toggleSelection(false)}
           />

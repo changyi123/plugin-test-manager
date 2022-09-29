@@ -1,11 +1,6 @@
 import parallelLimit from 'async/parallelLimit';
-import {
-  getParseModel,
-  saveAllObject,
-  getAllData,
-  getData,
-  requestCoreApi,
-} from '@giteeteam/apps-team-api';
+import { getParseModel, saveAllObject, getAllData, getData } from '@giteeteam/apps-team-api';
+import { updateItems } from '../../lib/coreApi';
 
 // uuid
 function getRandomIntInclusive(min, max) {
@@ -232,12 +227,19 @@ export const runImport = async () => {
 
     const taskQueue = needToUpdateItemValues.map(item => {
       return async () =>
-        requestCoreApi('PUT', `/parse/api/items/${item.objectId}`, {
+        updateItems(item.objectId, {
           values: {
             ...item.values,
             r_test_manager_repository: testRepoMap.get(item.objectId),
           },
         });
+      // return async () =>
+      //   requestCoreApi('PUT', `/parse/api/items/${item.objectId}`, {
+      //     values: {
+      //       ...item.values,
+      //       r_test_manager_repository: testRepoMap.get(item.objectId),
+      //     },
+      //   });
     });
 
     // TODO 更新事项 values

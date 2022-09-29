@@ -5,6 +5,7 @@ import {
   QueryTestEntityPayload,
   TestExecutionStatsPayload,
   QueryLinkedTestEntityPayload,
+  RepositoryTreePayload,
 } from 'common/types/api';
 import { merge } from 'lodash';
 import { lib } from 'proxima-sdk';
@@ -391,4 +392,13 @@ export const getRunsFromCase = async (data: TestCaseStatsPayload) => {
     data: { data: res },
   } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-stats-test-case`, data);
   return res;
+};
+
+// 获取测试用例库树
+export const getRepositoryTree = async (params: RepositoryTreePayload) => {
+  const { data } = await fetch.post(
+    `${pluginWebTriggerBaseUrl}/api-module-repository-tree`,
+    params,
+  );
+  return data;
 };
