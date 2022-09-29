@@ -232,6 +232,7 @@ const importTestInfo = async (args: ImportArgs, excelData = []) => {
       },
       linkType: TestLinkType.CaseLinkPlan,
       sourceIds: [checkedId],
+      limit: 9999,
       destinationType: TestType.Case,
     });
 
@@ -250,6 +251,7 @@ const importTestInfo = async (args: ImportArgs, excelData = []) => {
         type: TestType.Case,
         workspaceKey: workspace.key,
       },
+      limit: 9999,
     });
 
     const groupIds = getTestRepoGroupIds(repoData, checkRepoKey);

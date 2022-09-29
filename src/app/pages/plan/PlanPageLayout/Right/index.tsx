@@ -116,14 +116,19 @@ const Right: React.FC<RightProps> = props => {
         message: '未选择测试用例',
       });
     }
-    setLoading(true);
 
-    // 新增测试用例到测试执行任务
-    // 创建执行任务
-    await batchCreateTestRun({
-      executionId: selectedExecution.objectId,
-      caseIds,
-    });
+    try {
+      setLoading(true);
+      // 创建执行任务
+      await batchCreateTestRun({
+        executionId: selectedExecution.objectId,
+        caseIds,
+      });
+    } catch (error) {
+      setLoading(false);
+      // eslint-disable-next-line no-console
+      console.log('error', error);
+    }
 
     scopedTestDetailRefresh();
     mutateStatusEvent.emit('refreshExecutionStatus');
@@ -155,6 +160,7 @@ const Right: React.FC<RightProps> = props => {
     }
 
     try {
+      setLoading(true);
       await updateTestEntity(
         itemData.map(item => ({
           objectId: item,
@@ -166,6 +172,7 @@ const Right: React.FC<RightProps> = props => {
         })),
       );
     } catch (error) {
+      setLoading(false);
       // eslint-disable-next-line no-console
       console.log('error', error);
     }
@@ -174,6 +181,7 @@ const Right: React.FC<RightProps> = props => {
     mutateTestPlanEvent.emit(selectedTestPlan?.objectId);
     refresh('detailTable');
     refreshPlanData();
+    setLoading(false);
     // planDataMutate(selectedTestPlan?.objectId);
     notification.success({
       message: '测试用例已成功添加至测试计划中',

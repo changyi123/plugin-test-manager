@@ -8,12 +8,13 @@ import {
   RepositoryTreePayload,
 } from 'common/types/api';
 import { merge } from 'lodash';
-import { lib } from 'proxima-sdk';
 import { RepositoryModel, TestType } from '../constants';
 import { BaseTestEntity, Status, TestEntity } from '../types/Test';
 import { getPluginWebTriggerBaseUrl } from '../utils/helper';
 import { compactStepModel } from '../utils/modelTransfer';
 import { createItemLink, deleteItemLink, IItemLink, getExistedItemLinks } from './runs';
+import { lib } from 'proxima-sdk';
+
 const { selectorToIql } = lib.Iql;
 
 const pluginWebTriggerBaseUrl = getPluginWebTriggerBaseUrl();
