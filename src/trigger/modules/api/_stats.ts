@@ -78,7 +78,7 @@ export const testPlanStats = async () => {
           });
         }
 
-        // 统计用力数量
+        // 统计用例数量
         source.forEach(planId => {
           // 不在 result plan 中的数据不需要被统计
           if (!Object.hasOwnProperty.call(result, planId)) return;
