@@ -66,7 +66,7 @@ const getStatus = (statusMap: any, status?: Record<string, string>, planId?: str
 
 const getTestPlan = planData => {
   return {
-    测试计划: planData?.reference.name ?? '',
+    测试计划: planData?.name ?? '',
   };
 };
 
@@ -80,11 +80,14 @@ const getExcelData = async (data: any) => {
   const _repoData =
     repoData ??
     (await getRepositoryData(
-      results.reduce((prev, cur) => {
-        !prev.includes(cur.workspaceKey) && (prev = prev.concat(cur.workspaceKey));
+      results.reduce(
+        (prev, cur) => {
+          !prev.includes(cur.workspace.key) && (prev = prev.concat(cur.workspace.key));
 
-        return prev;
-      }, []),
+          return prev.filter(Boolean);
+        },
+        [workspaceKey],
+      ),
     ));
 
   handleRepoPath(getRepoData(_repoData)).forEach(d => {
@@ -110,7 +113,7 @@ const getExcelData = async (data: any) => {
     ...getTestGroupPath(repoDataMap.get(item.repository)),
     ...getItemInfo(item, priorityInfo, item.type),
     ...getTestInfo(item),
-    ...getStatus(itemStatus, item.status, planId),
+    ...getStatus(itemStatus, item.caseStatus, planId),
   }));
 };
 
