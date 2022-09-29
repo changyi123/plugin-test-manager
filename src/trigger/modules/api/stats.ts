@@ -22,6 +22,9 @@ type TestRunEntityType = TestEntity<TestType.Run>;
 type TestCaseEntityType = TestEntity<TestType.Case>;
 type TestExecutionEntityType = TestEntity<TestType.Execution>;
 
+/**
+ * 生成 stats 的数据结构
+ */
 const buildStatsResult = (ids, selectKeys, defaultValues = {}) => {
   // {[id]: Record<selectKeys>: undefined}
   return ids.reduce(
@@ -33,6 +36,44 @@ const buildStatsResult = (ids, selectKeys, defaultValues = {}) => {
   );
 };
 
+/** 任务池 */
+const buildStatsTaskPool = () => {
+  const tasks = [];
+  let sharedVar = null;
+
+  const res = {
+    before: async dataFetch => {
+      sharedVar = await dataFetch?.();
+    },
+    register: (name, task) => {
+      tasks.push({ name, task });
+      return res;
+    },
+    run: async (planIds, select, defaultValues) => {
+      try {
+        const result = buildStatsResult(planIds, select, defaultValues);
+
+        const promisifyTasks = tasks
+          .filter(task => {
+            // 可能存在两个 select 共用同一个 task 的情况, 只要有一个 name 相等则返回
+            if (Array.isArray(task.name)) {
+              return select.some(name => task.name.includes(name));
+            }
+            return select.includes(task.name);
+          })
+          .map(func => typeof func === 'function' && func(result, sharedVar));
+
+        await Promise.all(promisifyTasks);
+
+        return buildResponse(result);
+      } catch (err) {
+        return buildResponse(err);
+      }
+    },
+  };
+  return res;
+};
+
 /**
  * 测试计划统计数据
  * （规划用例数，最新用例通过率，执行任务）
@@ -42,27 +83,23 @@ export const testPlanStats = async () => {
     body: { select = [], planIds },
   } = getReqInfoFromVMRuntime<TestPlanStatsPayload>();
 
-  try {
-    const result = buildStatsResult(planIds, select, {
-      caseCount: 0,
-      caseStatus: {},
-      executionCount: 0,
-    });
+  const taskPool = buildStatsTaskPool();
 
-    const {
-      data: { list: testCases },
-    } = await iqlRequest<TestCaseEntityType>({
-      linkQuery: {
-        sourceIds: planIds,
-        linkType: TestLinkType.CaseLinkPlan,
-        destinationType: TestType.Case,
-      },
-      fields: [SystemField.Id, TestFiledKeyMapping.caseStatus, TestFiledKeyMapping.linkItems],
-      pagination: { limit: InfinityLimit, offset: 0 },
-    });
+  // 测试执行用例统计数据
+  taskPool
+    .register(['caseStatus', 'caseCount'], async function (result) {
+      const {
+        data: { list: testCases },
+      } = await iqlRequest<TestCaseEntityType>({
+        linkQuery: {
+          sourceIds: planIds,
+          linkType: TestLinkType.CaseLinkPlan,
+          destinationType: TestType.Case,
+        },
+        fields: [SystemField.Id, TestFiledKeyMapping.caseStatus, TestFiledKeyMapping.linkItems],
+        pagination: { limit: InfinityLimit, offset: 0 },
+      });
 
-    // 测试执行用例统计数据
-    if (select.includes('caseStatus') || select.includes('caseCount')) {
       testCases.forEach(testCase => {
         const { caseStatus, source } = testCase;
         // 统计状态数据
@@ -78,7 +115,7 @@ export const testPlanStats = async () => {
           });
         }
 
-        // 统计用力数量
+        // 统计用例数量
         source.forEach(planId => {
           // 不在 result plan 中的数据不需要被统计
           if (!Object.hasOwnProperty.call(result, planId)) return;
@@ -108,10 +145,8 @@ export const testPlanStats = async () => {
           };
         });
       });
-    }
-
-    // 测试执行任务统计数据
-    if (select.includes('executionCount')) {
+    })
+    .register('executionCount', async function (result) {
       const {
         data: { list: testExecution },
       } = await iqlRequest<TestExecutionEntityType>({
@@ -137,11 +172,13 @@ export const testPlanStats = async () => {
           });
         }
       });
-    }
-    return buildResponse(result);
-  } catch (err) {
-    return buildResponse(err);
-  }
+    });
+
+  return taskPool.run(planIds, select, {
+    caseCount: 0,
+    caseStatus: {},
+    executionCount: 0,
+  });
 };
 
 /**
@@ -153,52 +190,49 @@ export const testExecutionStats = async () => {
     body: { select = [], executionIds },
   } = getReqInfoFromVMRuntime<TestExecutionStatsPayload>();
 
-  try {
-    const result = buildStatsResult(executionIds, select, {
-      runStatus: {},
-      runCount: 0,
+  const taskPool = buildStatsTaskPool();
+
+  // 测试执行用例统计数据
+  taskPool.register(['runStatus', 'runCount'], async function (result) {
+    const {
+      data: { list: testRuns },
+    } = await iqlRequest<TestRunEntityType>({
+      linkQuery: {
+        sourceIds: executionIds,
+        linkType: TestLinkType.RunLinkExecution,
+        destinationType: TestType.Run,
+      },
+      fields: [TestFiledKeyMapping.status, TestFiledKeyMapping.linkItems],
+      pagination: { limit: InfinityLimit, offset: 0 },
     });
-    // 测试执行用例统计数据
-    if (select.includes('runStatus') || select.includes('runCount')) {
-      const {
-        data: { list: testRuns },
-      } = await iqlRequest<TestRunEntityType>({
-        linkQuery: {
-          sourceIds: executionIds,
-          linkType: TestLinkType.RunLinkExecution,
-          destinationType: TestType.Run,
-        },
-        fields: [TestFiledKeyMapping.status, TestFiledKeyMapping.linkItems],
-        pagination: { limit: InfinityLimit, offset: 0 },
+
+    testRuns.forEach(item => {
+      const { status = StartStatusKey, source } = item;
+      // 统计状态数据
+
+      source.forEach(executionId => {
+        if (!Object.hasOwnProperty.call(result, executionId)) return;
+
+        const executionStats = result[executionId];
+
+        if (select.includes('runStatus')) {
+          executionStats.runStatus = {
+            ...executionStats.runStatus,
+            [status]: (executionStats?.runStatus[status] ?? 0) + 1,
+          };
+        }
+
+        if (select.includes('runCount')) {
+          executionStats.runCount = executionStats.runCount + 1;
+        }
       });
+    });
+  });
 
-      testRuns.forEach(item => {
-        const { status = StartStatusKey, source } = item;
-        // 统计状态数据
-
-        source.forEach(executionId => {
-          if (!Object.hasOwnProperty.call(result, executionId)) return;
-
-          const executionStats = result[executionId];
-
-          if (select.includes('runStatus')) {
-            executionStats.runStatus = {
-              ...executionStats.runStatus,
-              [status]: (executionStats?.runStatus[status] ?? 0) + 1,
-            };
-          }
-
-          if (select.includes('runCount')) {
-            executionStats.runCount = executionStats.runCount + 1;
-          }
-        });
-      });
-    }
-
-    return buildResponse(result);
-  } catch (err) {
-    return buildResponse(err);
-  }
+  return taskPool.run(executionIds, select, {
+    runStatus: {},
+    runCount: 0,
+  });
 };
 
 /**
@@ -207,79 +241,75 @@ export const testExecutionStats = async () => {
  */
 
 export const testCaseStats = async () => {
-  try {
-    const {
-      body: { caseIds, planId, select },
-    } = getReqInfoFromVMRuntime<TestCaseStatsPayload>();
+  const {
+    body: { caseIds, planId, select },
+  } = getReqInfoFromVMRuntime<TestCaseStatsPayload>();
 
-    const result = buildStatsResult(caseIds, select, {
-      runCount: 0,
-      caseLatestStatus: StartStatusKey,
+  const taskPool = buildStatsTaskPool();
+
+  taskPool.register('caseLatestStatus', async function (result) {
+    // 获取所有的测试用例
+    const {
+      data: { list: testCases },
+    } = await iqlRequest<TestCaseEntityType>({
+      query: {
+        id: caseIds,
+      },
+      fields: [SystemField.Id, TestFiledKeyMapping.caseStatus],
+      pagination: { limit: InfinityLimit, offset: 0 },
     });
 
-    if (select.includes('caseLatestStatus')) {
-      // 获取所有的测试用例
-      const {
-        data: { list: testCases },
-      } = await iqlRequest<TestCaseEntityType>({
-        query: {
-          id: caseIds,
-        },
-        fields: [SystemField.Id, TestFiledKeyMapping.caseStatus],
-        pagination: { limit: InfinityLimit, offset: 0 },
-      });
+    testCases.forEach(testCase => {
+      const { objectId, caseStatus } = testCase;
+      const status = caseStatus?.[planId] ?? StartStatusKey;
+      const stats = result[objectId];
+      if (stats) {
+        stats.caseLatestStatus = status;
+      }
+    });
+  });
 
-      testCases.forEach(testCase => {
-        const { objectId, caseStatus } = testCase;
-        const status = caseStatus?.[planId] ?? StartStatusKey;
-        const stats = result[objectId];
-        if (stats) {
-          stats.caseLatestStatus = status;
-        }
-      });
-    }
+  taskPool.register('runCount', async function (result) {
+    const {
+      data: { list: testExecutionIds },
+    } = await iqlRequest<string>({
+      linkQuery: {
+        linkType: TestLinkType.ExecutionLinkPlan,
+        sourceIds: planId,
+        destinationType: TestType.Execution,
+      },
+      fields: [SystemField.Id],
+      pagination: { limit: InfinityLimit, offset: 0 },
+      dataTransfer: data => data.map(item => item.objectId),
+    });
 
-    if (select.includes('runCount')) {
-      const {
-        data: { list: testExecutionIds },
-      } = await iqlRequest<string>({
-        linkQuery: {
-          linkType: TestLinkType.ExecutionLinkPlan,
-          sourceIds: planId,
-          destinationType: TestType.Execution,
-        },
-        fields: [SystemField.Id],
-        pagination: { limit: InfinityLimit, offset: 0 },
-        dataTransfer: data => data.map(item => item.objectId),
-      });
+    // 获取所有的测试执行
+    const {
+      data: { list: testCases },
+    } = await iqlRequest<TestRunEntityType>({
+      query: {
+        referenceCase: caseIds,
+      },
+      linkQuery: {
+        sourceIds: testExecutionIds,
+        destinationType: TestType.Run,
+        linkType: TestLinkType.RunLinkExecution,
+      },
+      fields: [SystemField.Id, TestFiledKeyMapping.referenceCase],
+      pagination: { limit: InfinityLimit, offset: 0 },
+    });
 
-      // 获取所有的测试执行
-      const {
-        data: { list: testCases },
-      } = await iqlRequest<TestRunEntityType>({
-        query: {
-          referenceCase: caseIds,
-        },
-        linkQuery: {
-          sourceIds: testExecutionIds,
-          destinationType: TestType.Run,
-          linkType: TestLinkType.RunLinkExecution,
-        },
-        fields: [SystemField.Id, TestFiledKeyMapping.referenceCase],
-        pagination: { limit: InfinityLimit, offset: 0 },
-      });
+    testCases.forEach(testCase => {
+      const { referenceCase } = testCase;
+      const stats = result[referenceCase];
+      if (stats) {
+        stats.runCount = (stats.runCount ?? 0) + 1;
+      }
+    });
+  });
 
-      testCases.forEach(testCase => {
-        const { referenceCase } = testCase;
-        const stats = testCase[referenceCase];
-        if (stats) {
-          stats.runCount = (stats.runCount ?? 0) + 1;
-        }
-      });
-    }
-
-    return buildResponse(result);
-  } catch (err) {
-    return buildResponse(err);
-  }
+  return taskPool.run(caseIds, select, {
+    runCount: 0,
+    caseLatestStatus: StartStatusKey,
+  });
 };

@@ -219,7 +219,7 @@ modules:
       description: 测试管理内置自定义字段（勿删改）
       type: _self:es_text_keyword
     - key: designee
-      name: 测试负责人
+      name: 测试执行人
       description: 测试管理内置自定义字段（勿删改）
       type: User
     - key: executor
