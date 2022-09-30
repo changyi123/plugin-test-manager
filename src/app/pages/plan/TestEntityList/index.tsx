@@ -41,7 +41,6 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   activedType,
   requestScopedTestDetailIds,
   selectedExecution,
-  refreshPlanData,
   scopedTestDetailRefresh,
   tableSelectionVisible,
 }) => {
@@ -191,17 +190,17 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         })),
       );
 
+      actionRef.current.resetSelectedRowKeys();
+
       await scopedTestDetailRefresh();
+      actionRef.current.refresh();
 
       notification.success({
         message: `${testDetailIds.length} 个测试用例从测试计划中移除`,
       });
-      actionRef.current.refresh();
-
-      actionRef.current.resetSelectedRowKeys();
-      refreshPlanData();
+      // refreshPlanData();
     },
-    [refreshPlanData, scopedTestDetailRefresh],
+    [scopedTestDetailRefresh],
   );
 
   const allTestColumns = [
@@ -296,7 +295,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       actionRef.current.refresh();
       actionRef.current.resetSelectedRowKeys();
       mutateStatusEvent.emit('refreshExecutionStatus');
-      tableSelectionToggleEvent.emit(false);
+      // tableSelectionToggleEvent.emit(false);
       notification.success({
         message: `${testRunIds.length} 个用例执行被删除`,
       });
@@ -419,6 +418,9 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           );
           actionRef.current.resetSelectedRowKeys();
           tableSelectionToggleEvent.emit(false);
+          await scopedTestDetailRefresh();
+          actionRef.current.refresh();
+          // refreshPlanData();
         });
       }
     };
@@ -470,6 +472,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   }, [
     userData,
     hasRowSelected,
+    scopedTestDetailRefresh,
     tableSelectionToggleEvent,
     selectedTestPlan?.objectId,
     mutateTestPlanEvent,

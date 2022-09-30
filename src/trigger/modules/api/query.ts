@@ -3,6 +3,7 @@
  */
 
 // app cli 不支持指定 tsconfig 需要使用相对路径
+import pick from 'lodash/pick';
 import { toArray } from '../../lib/helper';
 import { iqlRequest } from '../../lib/iqlRequest';
 import { testEntityFieldTypeValidator } from '../../lib/validator';
@@ -16,10 +17,7 @@ import {
 } from '../../../common/constant';
 
 // 处理 iql 请求的自定义字段
-const processIqlRequestFields = (fields, select) => {
-  // 如果有 select 则直接返回
-  if (Array.isArray(select) && select[0])
-    return select.map(key => TestFiledKeyMapping[key] ?? key).filter(Boolean);
+const concatIqlRequestFields = fields => {
   // fields 字段需要拼接测试实体字段和事项的必填字段
   return Array.from(new Set([].concat(IQLUsefulFieldKeys, fields)));
 };
@@ -34,8 +32,22 @@ const overwriteIqlParamsWithOnlySelectId = onlySelectId => {
       pagination: { limit: InfinityLimit },
     };
   }
+};
 
-  return null;
+const overwriteIqlParamsWithSelect = select => {
+  if (Array.isArray(select)) {
+    const fields = Array.from(
+      new Set(select.map(key => TestFiledKeyMapping[key] ?? key).filter(Boolean)),
+    );
+
+    return {
+      // select 只能筛选测试用例实体的 key
+      dataTransfer: data => {
+        return data.map(item => pick(item, select));
+      },
+      fields,
+    };
+  }
 };
 
 /** 查询测试类型实体数据 */
@@ -59,8 +71,9 @@ export const queryTestEntity = async () => {
     ascending,
     descending,
     pagination: { limit, offset },
-    fields: processIqlRequestFields(fields, select),
+    fields: concatIqlRequestFields(fields),
     ...overwriteIqlParamsWithOnlySelectId(onlySelectId),
+    ...overwriteIqlParamsWithSelect(select),
   });
 };
 
@@ -92,14 +105,15 @@ export const queryLinkedTestEntity = async () => {
       selector,
       ascending,
       descending,
-      fields: processIqlRequestFields(fields, select),
       pagination: { limit, offset },
       linkQuery: {
         linkType,
         sourceIds,
         destinationType,
       },
+      fields: concatIqlRequestFields(fields),
       ...overwriteIqlParamsWithOnlySelectId(onlySelectId),
+      ...overwriteIqlParamsWithSelect(select),
     });
   } catch (err) {
     return buildPaginationResponse(err);

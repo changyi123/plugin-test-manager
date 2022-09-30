@@ -11,6 +11,8 @@ const getDataByLength = d => (isMoreThanThousands(d) ? d.slice(0, 1000) : d);
 
 const isFilterGroup = group => `${group ?? ''}`?.split('/').filter(d => trimData(d)).length > 8;
 
+const filterGroupNum = group => group?.length > 30;
+
 // 过滤不符合条件数据
 const filterData = d => d.filter(item => item.name && !isFilterGroup(item.group));
 
@@ -55,6 +57,11 @@ const getTestDetailsErrors = datas =>
       prev = prev.concat([
         `第 ${index + 1} 条所属分组层数超过限制，所属分组 只能导入 8 层，不予以导入`,
       ]);
+    }
+
+    // 校验所属分组字数
+    if (filterGroupNum(cur.group)) {
+      prev = prev.concat([`第 ${index + 1} 条所属分组字数超过 30 个字符，不予以导入`]);
     }
 
     // 校验前置条件字数

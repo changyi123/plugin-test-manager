@@ -2,7 +2,7 @@ app:
   key: test_manager
   uuid: bf73e61c-e15a-4461-a1f7-f940c2009332
   name: test_manager
-  version: "0.0.13008795"
+  version: "0.0.13008797"
 modules:
   webtrigger:
     # 动态配置 one 路由
@@ -219,7 +219,7 @@ modules:
       description: 测试管理内置自定义字段（勿删改）
       type: _self:es_text_keyword
     - key: designee
-      name: 测试负责人
+      name: 测试执行人
       description: 测试管理内置自定义字段（勿删改）
       type: User
     - key: executor

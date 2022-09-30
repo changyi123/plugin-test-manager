@@ -168,7 +168,12 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
       <Tooltip title="表格显示设置">
         <SettingOutlined className={cx(className)} onClick={() => setVisible(true)} />
       </Tooltip>
-      <Drawer visible={visible} onClose={() => setVisible(false)} width={320} title="表格显示设置">
+      <Drawer
+        visible={visible}
+        onClose={() => setVisible(false)}
+        width={visible ? 320 : 0}
+        title="表格显示设置"
+      >
         <h6 className={cx('title')}>表头设置</h6>
         <Select
           showSearch
