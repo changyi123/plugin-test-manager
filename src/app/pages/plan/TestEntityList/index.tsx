@@ -516,6 +516,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
 
     const toggleSTestRunStatus = async status => {
       const testRunIds = getTestRunIds();
+      setTableLoading(true);
 
       // 更新测试执行状态
       await updateTestStatus({
@@ -527,6 +528,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       notification.success({
         message: '所选测试执行状态更新成功',
       });
+      setTableLoading(false);
       actionRef.current.refresh();
       mutateTestPlanEvent.emit(selectedTestPlan?.objectId);
       mutateStatusEvent.emit('refreshExecutionStatus');
@@ -542,6 +544,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     // 更新测试执行人
     const handleDesigneeChange = async users => {
       const testRunIds = getTestRunIds();
+      setTableLoading(true);
       // 更新测试执行执行人
       await updateTestEntity(
         testRunIds.map(run => ({
@@ -549,6 +552,11 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           designee: users,
         })),
       );
+
+      notification.success({
+        message: '所选测试执行人更新成功',
+      });
+      setTableLoading(false);
       actionRef.current.refresh();
       mutateTestPlanEvent.emit(selectedTestPlan?.objectId);
       // refreshAndMutateData();
