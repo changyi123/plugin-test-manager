@@ -183,7 +183,7 @@ const InheritTestDetail: React.FC<InheritTestDetailProps> = props => {
                 onChange={e => setFolderSearchValue(e.target.value)}
               />
               <RepositoryFolderTree
-                workspaceKey={workspaceKey}
+                workspaceKey={selectedWorkspaceKey}
                 shouldIncludeSubFolder={false}
                 actionRef={repositoryFolderTreeRef}
                 onFolderSelect={ids => setRequestScopedTestDetailIds(ids)}
