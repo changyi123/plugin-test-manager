@@ -61,7 +61,7 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
   // 匹配的目录名
   const [matchedFolderText, setMatchedFolderText] = React.useState({});
   const selectorRepository = useMemo(() => {
-    const [, customSelector] = selectors;
+    const [, customSelector] = selectors ?? [];
     if (customSelector?.[RepositoryModel]) {
       return customSelector?.[RepositoryModel]?.value.map(d => d.objectId) ?? [];
     }
