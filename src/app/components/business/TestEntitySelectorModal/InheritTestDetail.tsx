@@ -91,6 +91,7 @@ const InheritTestDetail: React.FC<InheritTestDetailProps> = props => {
         query: {
           workspaceKey: selectedWorkspaceKey,
           type: TestType.Case,
+          name: detailSearchValue,
         },
         ...baseQueryOptions,
       });

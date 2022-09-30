@@ -113,7 +113,6 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
           : {
               descending: ['createdAt'],
             };
-
       const { list: data } = await getTestEntityByQuery({
         query: {
           workspaceKey: workspaceKey,
