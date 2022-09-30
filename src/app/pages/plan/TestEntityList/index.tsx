@@ -14,8 +14,6 @@ import { UserCell } from '@projectproxima/components';
 import { useUserCellUserDataProp } from '@/lib/hooks/useProxima';
 import { usePageContext } from '../hook';
 import { useListener } from '@projectproxima/proxima-sdk-js';
-
-import cx from './index.less';
 import {
   deleteTestEntity,
   getlinkedTestEntityByQuery,
@@ -25,6 +23,9 @@ import {
   updateTestStatus,
 } from '@/lib/api/item';
 import { TestLinkType, TestType } from 'common/constant';
+import { RepositoryModel } from '@/lib/constants';
+
+import cx from './index.less';
 
 interface TestEntityListProps {
   loading?: boolean;
@@ -144,17 +145,49 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   const executionTableDataGetter = useCallback(
     async queryParams => {
       // 查询测试执行
-      const { list: runs, total } = await getlinkedTestEntityByQuery({
-        query: {
-          workspaceKey: workspaceKey,
-          referenceCase: requestScopedTestDetailIds,
+      const { list: runs, total } = await getlinkedTestEntityByQuery(
+        {
+          query: {
+            workspaceKey: workspaceKey,
+            referenceCase: requestScopedTestDetailIds,
+          },
+          ...queryParams,
+          linkType: TestLinkType.RunLinkExecution,
+          sourceIds: [selectedExecution.objectId],
+          destinationType: TestType.Run,
+          selector: selectors,
         },
-        ...queryParams,
-        linkType: TestLinkType.RunLinkExecution,
-        sourceIds: [selectedExecution.objectId],
-        destinationType: TestType.Run,
-        selector: selectors,
-      });
+        props => {
+          const [systemSelector, customSelector] = props?.selector;
+
+          const extraQuery = Object.entries(customSelector ?? {}).reduce(
+            (prev, [key, value]: any) => {
+              if (key !== RepositoryModel) {
+                const filed = key.replace('test_', '');
+                prev[filed] = value.value.map(d => {
+                  if ('currentUser' === d.username) {
+                    return 'currentUser()';
+                  }
+                  if ('osc-admin' === d.username) {
+                    return 'osc-admin';
+                  }
+                  return d.label;
+                });
+              }
+              return prev;
+            },
+            {},
+          );
+          return {
+            ...props,
+            query: {
+              ...props.query,
+              ...extraQuery,
+            },
+            selector: [systemSelector],
+          };
+        },
+      );
 
       const { list: testItem } = await getTestEntityByQuery({
         query: {

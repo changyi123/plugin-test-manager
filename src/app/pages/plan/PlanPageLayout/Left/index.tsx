@@ -20,7 +20,7 @@ const Left: React.FC<LeftProps> = ({
   scopedTestDetailIds,
   actionRef,
 }) => {
-  const { workspaceKey } = usePageContext();
+  const { workspaceKey, selectors } = usePageContext();
   const folderTreeRef = React.useRef<FolderTreeActionType>();
 
   const [foldSearchValue, setFoldSearchValue] = useState('');
@@ -54,6 +54,7 @@ const Left: React.FC<LeftProps> = ({
           actionRef={folderTreeRef}
           shouldIncludeSubFolder={showType === 'showChild'}
           workspaceKey={workspaceKey}
+          selectors={selectors}
           onFolderSelect={handleFolderSelect}
           scopedTestDetailIds={scopedTestDetailIds}
         />

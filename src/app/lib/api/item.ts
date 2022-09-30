@@ -61,7 +61,11 @@ export const getTestEntityByQuery = async (props: QueryTestEntityPayload) => {
 };
 
 // 关联查询
-export const getlinkedTestEntityByQuery = async (props: QueryLinkedTestEntityPayload) => {
+export const getlinkedTestEntityByQuery = async (
+  props: QueryLinkedTestEntityPayload,
+  handleQuery?: (val: any) => any,
+) => {
+  props = handleQuery ? handleQuery(props) : props;
   const _props = Object.assign(
     { descending: [], onlySelectId: false },
     { ...props, selector: selectorToIql(handleSelector(props.selector)) },
