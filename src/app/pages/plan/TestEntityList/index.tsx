@@ -196,14 +196,17 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           id: runs.map(d => d.referenceCase),
         },
         limit: 9999,
-        select: ['id', 'repository'],
       });
 
       return {
-        list: runs.map(d => ({
-          ...d,
-          repository: testItem.find(item => item.objectId === d.referenceCase)?.repository,
-        })),
+        list: runs.map(d => {
+          const item = testItem.find(item => item.objectId === d.referenceCase);
+          return {
+            ...d,
+            repository: item?.repository,
+            item,
+          };
+        }),
         total,
       };
     },
@@ -323,15 +326,23 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   const deleteTestRunByIds = useMemoizedFn(testRunIds => {
     actionConfirm('该操作会将所选测试执行删除，是否继续操作？', async () => {
       // 删除测试执行
-      await deleteTestEntity(testRunIds);
-      await scopedTestDetailRefresh();
-      actionRef.current.refresh();
-      actionRef.current.resetSelectedRowKeys();
-      mutateStatusEvent.emit('refreshExecutionStatus');
-      // tableSelectionToggleEvent.emit(false);
-      notification.success({
-        message: `${testRunIds.length} 个用例执行被删除`,
-      });
+      const {
+        data: { status },
+      } = await deleteTestEntity(testRunIds);
+      if (status === 'ok') {
+        await scopedTestDetailRefresh();
+        actionRef.current.refresh();
+        actionRef.current.resetSelectedRowKeys();
+        mutateStatusEvent.emit('refreshExecutionStatus');
+        // tableSelectionToggleEvent.emit(false);
+        notification.success({
+          message: `${testRunIds.length} 个用例执行被删除`,
+        });
+      } else {
+        notification.error({
+          message: `用例执行删除失败`,
+        });
+      }
     });
   });
 
@@ -349,15 +360,13 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       width: 160,
       tooltip: true,
       render(_, record) {
-        const detailItemData = record ?? {};
-
         return (
           <span
             data-drawer-handle-target
             style={{ cursor: 'pointer' }}
-            onClick={() => openItemViewScreen(detailItemData.objectId)}
+            onClick={() => openItemViewScreen(record?.referenceCase)}
           >
-            {detailItemData.name}
+            {record?.name}
           </span>
         );
       },

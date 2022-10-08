@@ -256,7 +256,8 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
 
   const SelectionActionHeader = ({ referenceList = [] }) => {
     // eslint-disable-next-line react-hooks/rules-of-hooks
-    useDataQuoteStore(referenceList);
+    const list = referenceList.map(d => (d?.item ? d.item : d));
+    useDataQuoteStore(list);
     if (!selectionMode) return null;
     const handleCheck = checked => {
       if (checked) {

@@ -151,9 +151,9 @@ const getSteps = (steps?: Step[]) => {
   const BreakLineCode = '\n';
 
   return {
-    步骤描述: data?.action.join(BreakLineCode) ?? '',
-    预期结果: data?.result.join(BreakLineCode) ?? '',
-    数据: data?.data.join(BreakLineCode) ?? '',
+    步骤描述: data?.action?.map(d => d.replace(/\n*/g, '')).join(BreakLineCode) ?? '',
+    预期结果: data?.result?.map(d => d.replace(/\n*/g, '')).join(BreakLineCode) ?? '',
+    数据: data?.data?.map(d => d.replace(/\n*/g, '')).join(BreakLineCode) ?? '',
   };
 };
 

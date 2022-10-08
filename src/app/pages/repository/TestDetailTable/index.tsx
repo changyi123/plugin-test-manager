@@ -120,20 +120,15 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
 
     // 更新负责人
     const toggleAssignee = async assignee => {
-      setTableLoading(true);
       const updateValues = tableActionRef.current.selectedRowKeys.map(d => ({
         objectId: d,
         values: {
           assignee,
         },
       }));
-
+      setTableLoading(true);
       await updateTestEntity(updateValues);
-
-      setTimeout(() => {
-        refreshAndMutateData();
-      }, 500);
-
+      await refreshAndMutateData();
       notification.success({
         message: `${tableActionRef.current.selectedRowKeys.length} 个测试负责人已更新`,
       });
