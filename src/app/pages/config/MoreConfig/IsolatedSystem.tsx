@@ -68,6 +68,7 @@ const IsolatedSystem = () => {
       <Form>
         <Form.Item label="开启测试管理系统隔离">
           <Switch
+            className="test-manger-switch"
             onChange={handleSwitchChange}
             checked={Boolean(globalConfig?.extra?.isolatedSystem)}
           />

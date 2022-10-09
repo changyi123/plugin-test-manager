@@ -70,7 +70,6 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   // 事项数据更新后刷新列表
   useListener('updateItemList', () => {
     setTimeout(() => {
-      scopedTestDetailRefresh();
       actionRef.current.refresh();
     }, 400);
   });

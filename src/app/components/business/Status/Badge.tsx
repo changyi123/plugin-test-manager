@@ -72,7 +72,10 @@ const Badge: React.FC<BadgeProps> = props => {
     if (props.readonly) return null;
     const statuses = sequence(
       Object.values(
-        omitBy(statusConfig as Record<string, any>, status => status.key === props.status),
+        omitBy(
+          statusConfig as Record<string, any>,
+          status => status.key === props.status || status.key === 'TODO',
+        ),
       ),
     );
 

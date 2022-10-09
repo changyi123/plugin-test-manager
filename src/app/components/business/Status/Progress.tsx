@@ -7,7 +7,7 @@ import { useStatusConfig } from './hooks';
 import cx from './Progress.less';
 
 const toStylePercent = number => {
-  return `${Math.ceil(number * 100)}%`;
+  return `${Math.round(number * 10000) / 100}%`;
 };
 
 type StatusProgressProps = {
