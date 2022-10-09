@@ -17,7 +17,7 @@ import {
   withItemType,
   SearchSelectors,
 } from '@/lib/utils/iql';
-import { testEntityToItemValues } from 'common/utils/dataTransfer';
+import { testEntityToItemValues, itemToTestEntity } from 'common/utils/dataTransfer';
 import { BaseTestEntity } from 'common/types/test';
 import { TestType, TestFiledKeyMapping } from 'common/constant';
 
@@ -880,9 +880,10 @@ export async function updateItem(id: string, data: Record<string, any>) {
   if (cpData.detail && typeof cpData.detail === 'object') {
     cpData.detail = JSON.stringify(cpData.detail);
   }
-  return fetch
+  const res = await fetch
     .$put(`/parse/api/items/${id}`, { values: testEntityToItemValues(data) })
     .then(data => data.item);
+  return itemToTestEntity(res);
 }
 
 // 转化批量编辑的values
