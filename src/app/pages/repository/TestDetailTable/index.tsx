@@ -76,7 +76,6 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
           list: [],
           total: 0,
         };
-      setTableLoading(true);
       const { list: data, total } = await getTestEntityByQuery({
         query: {
           workspaceKey: workspaceKey,
@@ -85,8 +84,6 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         },
         ...paginationParams,
       });
-
-      setTableLoading(false);
 
       return {
         // 加拖拽依赖的 folderKey 数据

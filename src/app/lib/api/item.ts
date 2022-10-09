@@ -44,7 +44,11 @@ const handleSelector = selector => {
 };
 
 // 查询测试用例事项
-export const getTestEntityByQuery = async (props: QueryTestEntityPayload) => {
+export const getTestEntityByQuery = async (
+  props: QueryTestEntityPayload,
+  handleQuery?: (val: any) => any,
+) => {
+  props = handleQuery ? handleQuery(props) : props;
   const _props = Object.assign(
     { descending: [], onlySelectId: false },
     { ...props, selector: selectorToIql(handleSelector(props.selector)) },
