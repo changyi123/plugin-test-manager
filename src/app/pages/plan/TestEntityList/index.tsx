@@ -70,6 +70,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   // 事项数据更新后刷新列表
   useListener('updateItemList', () => {
     setTimeout(() => {
+      scopedTestDetailRefresh();
       actionRef.current.refresh();
     }, 400);
   });
@@ -229,7 +230,6 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       actionRef.current.resetSelectedRowKeys();
 
       await scopedTestDetailRefresh();
-      actionRef.current.refresh();
 
       notification.success({
         message: `${testDetailIds.length} 个测试用例从测试计划中移除`,
@@ -331,10 +331,8 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       } = await deleteTestEntity(testRunIds);
       if (status === 'ok') {
         await scopedTestDetailRefresh();
-        actionRef.current.refresh();
         actionRef.current.resetSelectedRowKeys();
         mutateStatusEvent.emit('refreshExecutionStatus');
-        // tableSelectionToggleEvent.emit(false);
         notification.success({
           message: `${testRunIds.length} 个用例执行被删除`,
         });
