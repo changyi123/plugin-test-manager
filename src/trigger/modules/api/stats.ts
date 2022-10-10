@@ -49,7 +49,7 @@ const buildStatsTaskPool = () => {
       tasks.push({ name, task });
       return res;
     },
-    run: async (planIds, select, defaultValues) => {
+    run: async (planIds, select = [], defaultValues) => {
       try {
         const result = buildStatsResult(planIds, select, defaultValues);
 
@@ -61,7 +61,7 @@ const buildStatsTaskPool = () => {
             }
             return select.includes(task.name);
           })
-          .map(func => typeof func === 'function' && func(result, sharedVar));
+          .map(({ task }) => typeof task === 'function' && task(result, sharedVar));
 
         await Promise.all(promisifyTasks);
 
