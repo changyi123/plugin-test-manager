@@ -113,6 +113,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
           : {
               descending: ['createdAt'],
             };
+
       const { list: data } = await getTestEntityByQuery({
         query: {
           workspaceKey: workspaceKey,
@@ -128,7 +129,8 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
       return data.map(d => ({
         ...d,
         label: d.name,
-        value: d.objectId,
+        value: d.id,
+        objectId: d.id,
       }));
     },
     {
@@ -156,7 +158,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
 
       const _checkData = reportData.map(report => ({
         ...report,
-        testDetailList: curTestList.filter(d => report.caseIds.includes(d.objectId)) ?? [],
+        testDetailList: curTestList.filter(d => report.caseIds.includes(d.id)) ?? [],
       }));
 
       setCheckData(_checkData);

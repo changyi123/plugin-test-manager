@@ -114,8 +114,10 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
       const testDetailIds = tableActionRef.current.selectedRowKeys;
 
       actionConfirm('该操作会将所选的测试用例删除，是否继续操作？', async () => {
+        setTableLoading(true);
         await deleteTestEntity(testDetailIds);
         refreshAndMutateData();
+        setTableLoading(false);
 
         notification.success({
           message: `${tableActionRef.current.selectedRowKeys.length} 个测试用例已被删除`,
