@@ -52,10 +52,18 @@ type TestDetailTableProps = {
   onDataChange?: () => void;
   onSelectionCancel?: () => void;
   actionRef?: React.ForwardedRef<ActionType>;
+  testDetailFieldKeys?: string[];
 };
 
 const TestDetailTable: React.FC<TestDetailTableProps> = props => {
-  const { onDataChange, actionRef, onSelectionCancel, testDetailIds, folderKey } = props;
+  const {
+    onDataChange,
+    actionRef,
+    onSelectionCancel,
+    testDetailIds,
+    folderKey,
+    testDetailFieldKeys,
+  } = props;
   const tableActionRef = React.useRef<BusinessTableActionType>();
   const repositorySelectorRef = React.useRef<RepositorySelectorActionType>();
   const [tableLoading, setTableLoading] = React.useState(false);
@@ -82,6 +90,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
           type: TestType.Case,
           id: testDetailIds,
         },
+        fields: testDetailFieldKeys ?? [],
         ...paginationParams,
       });
 
@@ -91,7 +100,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         total,
       };
     },
-    [workspaceKey, testDetailIds, folderKey],
+    [workspaceKey, testDetailIds, folderKey, testDetailFieldKeys],
   );
 
   const refreshAndMutateData = React.useCallback(async () => {
