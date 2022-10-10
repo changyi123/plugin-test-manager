@@ -37,6 +37,7 @@ const DropdownButton: React.FC<DropdownButtonProps> = ({
     <Dropdown
       overlay={menu}
       className={classnames('dropdown-button', className)}
+      getPopupContainer={() => document.querySelector('body')}
       {...Object.assign({ trigger: ['click'] }, dropdownProps)}
     >
       <Button {...Object.assign({ type: 'primary' }, buttonProps)}>{children}</Button>

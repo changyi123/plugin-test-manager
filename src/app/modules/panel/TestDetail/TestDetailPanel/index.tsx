@@ -24,7 +24,7 @@ export interface TestStep extends Step {
 let firstLoad = true;
 
 const Detail: React.FC = () => {
-  const { testEntity } = useTestConfig();
+  const { testEntity, setTestEntity } = useTestConfig();
   const [steps, setStepsState] = useState<TestStep[]>([]);
 
   const { objectId: testDetailId } = testEntity || {};
@@ -42,15 +42,17 @@ const Detail: React.FC = () => {
 
       const cpDetail = cloneDeep(testEntity.detail) || { steps: [] };
       cpDetail.steps = newSteps;
-      await updateItem(testEntity.objectId, { detail: cpDetail });
+      const data = await updateItem(testEntity.objectId, { detail: cpDetail });
+      setTestEntity(data);
     },
-    [testEntity],
+    [testEntity, setTestEntity],
   );
 
-  const { run: handlePreconditionChange } = useDebounceFn(precondition => {
+  const { run: handlePreconditionChange } = useDebounceFn(async precondition => {
     const cpDetail = cloneDeep(testEntity.detail) || { precondition: '' };
     cpDetail.precondition = precondition;
-    updateItem(testEntity.objectId, { detail: cpDetail });
+    const data = await updateItem(testEntity.objectId, { detail: cpDetail });
+    setTestEntity(data);
   });
 
   const callTestLen = useCallback(() => {
