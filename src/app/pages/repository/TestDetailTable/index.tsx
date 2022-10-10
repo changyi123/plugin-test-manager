@@ -76,7 +76,6 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
           list: [],
           total: 0,
         };
-      setTableLoading(true);
       const { list: data, total } = await getTestEntityByQuery({
         query: {
           workspaceKey: workspaceKey,
@@ -85,8 +84,6 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         },
         ...paginationParams,
       });
-
-      setTableLoading(false);
 
       return {
         // 加拖拽依赖的 folderKey 数据
@@ -120,20 +117,15 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
 
     // 更新负责人
     const toggleAssignee = async assignee => {
-      setTableLoading(true);
       const updateValues = tableActionRef.current.selectedRowKeys.map(d => ({
         objectId: d,
         values: {
           assignee,
         },
       }));
-
+      setTableLoading(true);
       await updateTestEntity(updateValues);
-
-      setTimeout(() => {
-        refreshAndMutateData();
-      }, 500);
-
+      await refreshAndMutateData();
       notification.success({
         message: `${tableActionRef.current.selectedRowKeys.length} 个测试负责人已更新`,
       });

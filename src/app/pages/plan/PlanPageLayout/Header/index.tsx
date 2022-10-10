@@ -42,7 +42,7 @@ const Header: React.FC<HeaderProps> = ({
   const createTestExecution = async () => {
     const { item, extraData } = await createItemUseModal({
       type: TestType.Execution,
-      extraData: { planId: selectedTestPlan?.objectId },
+      extraData: { planId: selectedTestPlan?.objectId, noBatch: true },
     });
 
     // 测试执行任务更新后，拿全部测试计划创建测试执行

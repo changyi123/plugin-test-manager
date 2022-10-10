@@ -142,7 +142,7 @@ export const runImport = async () => {
     const getPath = (gro, _datas, path: any[] = []) => {
       path.push(gro.name);
 
-      if (gro.parentKey) {
+      if (gro.parentKey && gro.parentKey !== 'root') {
         path = getPath(
           _datas.find(d => d.objectId === gro.parentKey),
           _datas,

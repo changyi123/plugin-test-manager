@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Tree } from 'antd';
 import { FileOpen, FileClose, CaretDownOutlined } from '@/icons';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
@@ -8,6 +8,7 @@ import { hasArrayItem, escapeMatchesQueryArg } from '@/lib/utils/helper';
 import { useRequest, useMemoizedFn, useDeepCompareEffect } from 'ahooks';
 import { traverseTreeNodes, getTreeNodeByKey, reverseTreeNodes } from '@/pages/repository/util';
 import { getRepositoryTree } from '@/lib/api/item';
+import { RepositoryModel } from '@/lib/constants';
 
 import cx from './style.less';
 
@@ -27,6 +28,8 @@ type RepositoryTreeProps = {
   workspaceKey: string;
   /** 是否包含子目录 */
   shouldIncludeSubFolder?: boolean;
+  /** 筛选器字段 */
+  selectors?: any[];
   /** 用例 id 范围 */
   scopedTestDetailIds?: string[];
   /** 目录被选中 */
@@ -45,6 +48,7 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
   const {
     actionRef,
     workspaceKey,
+    selectors,
     onFolderSelect,
     hideEmptyFolder,
     scopedTestDetailIds,
@@ -56,6 +60,13 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
   const [autoExpandParent, setAutoExpandParent] = React.useState(true);
   // 匹配的目录名
   const [matchedFolderText, setMatchedFolderText] = React.useState({});
+  const selectorRepository = useMemo(() => {
+    const [, customSelector] = selectors ?? [];
+    if (customSelector?.[RepositoryModel]) {
+      return customSelector?.[RepositoryModel]?.value.map(d => d.objectId) ?? [];
+    }
+    return null;
+  }, [selectors]);
 
   const { data: treeData, refresh: refreshTreeData } = useRequest(
     async () => {
@@ -173,17 +184,26 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
       // 包含所有子集节点的用例
       if (shouldIncludeSubFolder) {
         traverseTreeNodes([selectedFolder], node => {
-          caseIds = caseIds.concat(node.caseIds);
+          if (selectorRepository?.length) {
+            const _node = selectorRepository.includes(node.key) ? node : null;
+            caseIds = caseIds.concat(_node?.caseIds ?? []);
+          } else {
+            caseIds = caseIds.concat(node.caseIds);
+          }
         });
       } else {
-        caseIds = selectedFolder.caseIds;
+        if (selectorRepository?.length) {
+          caseIds = selectedFolder.caseIds;
+        } else {
+          caseIds = selectedFolder.caseIds;
+        }
       }
     }
 
     onFolderSelect?.(caseIds, {
       selectedFolder,
     });
-  }, [treeSelectedKeys, treeData, shouldIncludeSubFolder]);
+  }, [treeSelectedKeys, treeData, shouldIncludeSubFolder, selectorRepository]);
 
   // 树节点渲染
   const titleRender = useMemoizedFn(node => {

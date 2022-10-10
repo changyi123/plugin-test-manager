@@ -1,6 +1,6 @@
 import { sortBy } from 'lodash';
 // 状态类型序列
-const STATUS_TYPE_SEQ = ['PASSED', 'FAILED', 'EXECUTING', 'TODO'];
+const STATUS_TYPE_SEQ = ['TODO', 'PASSED', 'BLOCK', 'FAILED', 'EXECUTING', 'CANCEL'];
 
 // 顺序返回状态列表
 export const sequence = statuses => {

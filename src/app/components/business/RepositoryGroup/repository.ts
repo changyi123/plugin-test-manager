@@ -3,7 +3,7 @@ export const handleRepoPath = datas => {
   const getPath = (gro, _datas, path = []) => {
     path.push(gro.name);
 
-    if (gro.parentKey) {
+    if (gro.parentKey && gro.parentKey !== 'root') {
       path = getPath(
         _datas.find(d => d.objectId === gro.parentKey),
         _datas,
@@ -14,9 +14,9 @@ export const handleRepoPath = datas => {
     return path;
   };
 
-  return datas?.map(d => ({
-    ...d,
-    path: getPath(d, datas).reverse().join('/'),
+  return datas?.map(repo => ({
+    ...repo,
+    path: getPath(repo, datas).reverse().join('/'),
   }));
 };
 

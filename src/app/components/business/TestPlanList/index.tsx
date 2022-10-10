@@ -177,6 +177,9 @@ const TestPlanList: React.FC<any> = () => {
   const handleCreate = async () => {
     await createItemUseModal({
       type: TestType.Plan,
+      extraData: {
+        noBatch: true,
+      },
     });
     actionRef.current.refresh();
     notification.success({

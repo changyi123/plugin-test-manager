@@ -151,9 +151,9 @@ const getSteps = (steps?: Step[]) => {
   const BreakLineCode = '\n';
 
   return {
-    步骤描述: data?.action.join(BreakLineCode) ?? '',
-    预期结果: data?.result.join(BreakLineCode) ?? '',
-    数据: data?.data.join(BreakLineCode) ?? '',
+    步骤描述: data?.action?.map(d => d.replace(/\n*/g, '')).join(BreakLineCode) ?? '',
+    预期结果: data?.result?.map(d => d.replace(/\n*/g, '')).join(BreakLineCode) ?? '',
+    数据: data?.data?.map(d => d.replace(/\n*/g, '')).join(BreakLineCode) ?? '',
   };
 };
 
@@ -253,22 +253,18 @@ const importTestInfo = async (args: ImportArgs, excelData = []) => {
       query: {
         type: TestType.Case,
         workspaceKey: workspace.key,
+        repository:
+          type === 'exportAll' || checkRepoKey === UNGROUPED_FOLDER_KEY ? null : [checkRepoKey],
       },
       limit: 9999,
     });
 
-    const groupIds = getTestRepoGroupIds(repoData, checkRepoKey);
+    let _results = null;
+    if (checkRepoKey === UNGROUPED_FOLDER_KEY && type !== 'exportAll') {
+      _results = results.filter(d => !d?.repository?.length);
+    }
 
-    const _results =
-      type === 'exportAll'
-        ? results
-        : results.filter(d =>
-            checkRepoKey === UNGROUPED_FOLDER_KEY
-              ? !d.repository?.name
-              : groupIds.includes(d.repository),
-          );
-
-    excelData = await getExcelData({ results: _results, repoData });
+    excelData = await getExcelData({ results: _results ?? results, repoData });
   }
 
   exportExcelFile(

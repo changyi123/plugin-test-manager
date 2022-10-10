@@ -156,11 +156,13 @@ const getOrBatchCreateTestEntities = async (
     );
 
   const needCreatedTestEntities = itemList.map((item, index) => {
-    const restFields = storeValueWithItemIdMap[item.objectId] ?? {};
+    const { repository, ...restFields } = storeValueWithItemIdMap[item.objectId] ?? {};
+
     return {
       name: item.name,
       objectId: item.objectId,
-      ...restFields,
+      repository,
+      detail: restFields,
       sortIndex: generateSortIndex(index + 1),
       type: type,
     };

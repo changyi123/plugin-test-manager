@@ -11,7 +11,8 @@ const getDataByLength = d => (isMoreThanThousands(d) ? d.slice(0, 1000) : d);
 
 const isFilterGroup = group => `${group ?? ''}`?.split('/').filter(d => trimData(d)).length > 8;
 
-const filterGroupNum = group => group?.length > 30;
+const filterGroupNum = group =>
+  `${group ?? ''}`?.split('/').filter(d => trimData(d)?.length > 30).length > 0;
 
 // 过滤不符合条件数据
 const filterData = d => d.filter(item => item.name && !isFilterGroup(item.group));

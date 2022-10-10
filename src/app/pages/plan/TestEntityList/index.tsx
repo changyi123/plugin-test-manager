@@ -14,8 +14,6 @@ import { UserCell } from '@projectproxima/components';
 import { useUserCellUserDataProp } from '@/lib/hooks/useProxima';
 import { usePageContext } from '../hook';
 import { useListener } from '@projectproxima/proxima-sdk-js';
-
-import cx from './index.less';
 import {
   deleteTestEntity,
   getlinkedTestEntityByQuery,
@@ -25,6 +23,9 @@ import {
   updateTestStatus,
 } from '@/lib/api/item';
 import { TestLinkType, TestType } from 'common/constant';
+import { RepositoryModel } from '@/lib/constants';
+
+import cx from './index.less';
 
 interface TestEntityListProps {
   loading?: boolean;
@@ -144,17 +145,49 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   const executionTableDataGetter = useCallback(
     async queryParams => {
       // 查询测试执行
-      const { list: runs, total } = await getlinkedTestEntityByQuery({
-        query: {
-          workspaceKey: workspaceKey,
-          referenceCase: requestScopedTestDetailIds,
+      const { list: runs, total } = await getlinkedTestEntityByQuery(
+        {
+          query: {
+            workspaceKey: workspaceKey,
+            referenceCase: requestScopedTestDetailIds,
+          },
+          ...queryParams,
+          linkType: TestLinkType.RunLinkExecution,
+          sourceIds: [selectedExecution.objectId],
+          destinationType: TestType.Run,
+          selector: selectors,
         },
-        ...queryParams,
-        linkType: TestLinkType.RunLinkExecution,
-        sourceIds: [selectedExecution.objectId],
-        destinationType: TestType.Run,
-        selector: selectors,
-      });
+        props => {
+          const [systemSelector, customSelector] = props?.selector;
+
+          const extraQuery = Object.entries(customSelector ?? {}).reduce(
+            (prev, [key, value]: any) => {
+              if (key !== RepositoryModel) {
+                const filed = key.replace('test_', '');
+                prev[filed] = value.value.map(d => {
+                  if ('currentUser' === d.username) {
+                    return 'currentUser()';
+                  }
+                  if ('osc-admin' === d.username) {
+                    return 'osc-admin';
+                  }
+                  return d.label;
+                });
+              }
+              return prev;
+            },
+            {},
+          );
+          return {
+            ...props,
+            query: {
+              ...props.query,
+              ...extraQuery,
+            },
+            selector: [systemSelector],
+          };
+        },
+      );
 
       const { list: testItem } = await getTestEntityByQuery({
         query: {
@@ -163,14 +196,17 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           id: runs.map(d => d.referenceCase),
         },
         limit: 9999,
-        select: ['id', 'repository'],
       });
 
       return {
-        list: runs.map(d => ({
-          ...d,
-          repository: testItem.find(item => item.objectId === d.referenceCase)?.repository,
-        })),
+        list: runs.map(d => {
+          const item = testItem.find(item => item.objectId === d.referenceCase);
+          return {
+            ...d,
+            repository: item?.repository,
+            item,
+          };
+        }),
         total,
       };
     },
@@ -193,7 +229,6 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       actionRef.current.resetSelectedRowKeys();
 
       await scopedTestDetailRefresh();
-      actionRef.current.refresh();
 
       notification.success({
         message: `${testDetailIds.length} 个测试用例从测试计划中移除`,
@@ -290,15 +325,21 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   const deleteTestRunByIds = useMemoizedFn(testRunIds => {
     actionConfirm('该操作会将所选测试执行删除，是否继续操作？', async () => {
       // 删除测试执行
-      await deleteTestEntity(testRunIds);
-      await scopedTestDetailRefresh();
-      actionRef.current.refresh();
-      actionRef.current.resetSelectedRowKeys();
-      mutateStatusEvent.emit('refreshExecutionStatus');
-      // tableSelectionToggleEvent.emit(false);
-      notification.success({
-        message: `${testRunIds.length} 个用例执行被删除`,
-      });
+      const {
+        data: { status },
+      } = await deleteTestEntity(testRunIds);
+      if (status === 'ok') {
+        await scopedTestDetailRefresh();
+        actionRef.current.resetSelectedRowKeys();
+        mutateStatusEvent.emit('refreshExecutionStatus');
+        notification.success({
+          message: `${testRunIds.length} 个用例执行被删除`,
+        });
+      } else {
+        notification.error({
+          message: `用例执行删除失败`,
+        });
+      }
     });
   });
 
@@ -316,15 +357,13 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       width: 160,
       tooltip: true,
       render(_, record) {
-        const detailItemData = record ?? {};
-
         return (
           <span
             data-drawer-handle-target
             style={{ cursor: 'pointer' }}
-            onClick={() => openItemViewScreen(detailItemData.objectId)}
+            onClick={() => openItemViewScreen(record?.referenceCase)}
           >
-            {detailItemData.name}
+            {record?.name}
           </span>
         );
       },
@@ -483,6 +522,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
 
     const toggleSTestRunStatus = async status => {
       const testRunIds = getTestRunIds();
+      setTableLoading(true);
 
       // 更新测试执行状态
       await updateTestStatus({
@@ -494,6 +534,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       notification.success({
         message: '所选测试执行状态更新成功',
       });
+      setTableLoading(false);
       actionRef.current.refresh();
       mutateTestPlanEvent.emit(selectedTestPlan?.objectId);
       mutateStatusEvent.emit('refreshExecutionStatus');
@@ -509,6 +550,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     // 更新测试执行人
     const handleDesigneeChange = async users => {
       const testRunIds = getTestRunIds();
+      setTableLoading(true);
       // 更新测试执行执行人
       await updateTestEntity(
         testRunIds.map(run => ({
@@ -516,6 +558,11 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           designee: users,
         })),
       );
+
+      notification.success({
+        message: '所选测试执行人更新成功',
+      });
+      setTableLoading(false);
       actionRef.current.refresh();
       mutateTestPlanEvent.emit(selectedTestPlan?.objectId);
       // refreshAndMutateData();
