@@ -3,6 +3,7 @@ import keyBy from 'lodash/keyBy';
 import difference from 'lodash/difference';
 import { iqlRequest } from '../../lib/iqlRequest';
 import { buildResponse } from '../../lib/apiUtil';
+import { TestEntity } from '../../../common/types/test';
 import { getReqInfoFromVMRuntime } from '../../lib/apiUtil';
 import { itemToTestEntity } from '../../../common/utils/dataTransfer';
 import { batchDeleteItems, batchUpdateItems, batchCreateItems } from '../../lib/batchRequest';
@@ -21,6 +22,8 @@ import {
   IQLRequiredFieldKeys,
   BuiltInItemTypeMapping,
 } from '../../../common/constant';
+
+type TestCaseType = TestEntity<TestType.Case>;
 
 /** 批量删除 */
 export const batchDelete = async () => {
@@ -143,7 +146,7 @@ export const batchCreateTestRun = async () => {
     // 2. 创建测试执行
     const {
       data: { list: caseList },
-    } = await iqlRequest({
+    } = await iqlRequest<TestCaseType>({
       query: {
         id: caseIds,
       },
@@ -170,9 +173,11 @@ export const batchCreateTestRun = async () => {
       return {
         ...linkData,
         type: TestType.Run,
-        runDetail: (data as any).detail,
+        runDetail: data.detail,
         // 空间和测试用例的空间保持一致
         workspace: data.workspace,
+        // 测试执行的 sortIndex 和 测试用例的保持一致
+        sortIndex: data.sortIndex,
         // 事项类型使用内置的事项类型（不可变）
         itemType: { key: BuiltInItemTypeMapping.TestRun },
         // // 事项组

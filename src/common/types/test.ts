@@ -36,6 +36,8 @@ export type BaseTestEntity = {
   referenceCase: string;
   /** 额外数据 */
   extra: Record<string, unknown>;
+  /** 测试用例，执行排序索引 */
+  sortIndex?: number;
   /** 测试用例数据 */
   detail?: {
     steps: Step[];
