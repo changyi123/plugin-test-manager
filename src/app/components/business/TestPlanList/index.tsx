@@ -50,6 +50,7 @@ const TestPlanList: React.FC<any> = () => {
           workspaceKey: workspaceKey,
           type: TestType.Plan,
         },
+        fields: testDetailFieldKeys ?? [],
         selector: selectors,
         ...queryParams,
       });
@@ -76,7 +77,7 @@ const TestPlanList: React.FC<any> = () => {
         total: total ?? 0,
       };
     },
-    [workspaceKey, selectors],
+    [workspaceKey, selectors, testDetailFieldKeys],
   );
 
   const handleDelete = async data => {

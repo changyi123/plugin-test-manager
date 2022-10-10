@@ -253,6 +253,7 @@ const Right: React.FC<RightProps> = props => {
           scopedTestDetailRefresh={scopedTestDetailRefresh}
           refreshPlanData={refreshPlanData}
           tableSelectionVisible={tableSelectionVisible}
+          testDetailFieldKeys={testDetailFieldKeys}
         />
         <TestEntitySelectorModal
           title="选择规划的测试用例"

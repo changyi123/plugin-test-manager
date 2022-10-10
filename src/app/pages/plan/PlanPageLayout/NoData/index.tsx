@@ -42,7 +42,6 @@ const NoData: React.FC<NoDataProps> = ({ setRefreshExecution }) => {
         linkType: TestLinkType.CaseLinkPlan,
         sourceIds: [selectedTestPlan.objectId],
         destinationType: TestType.Case,
-        descending: [],
         onlySelectId: true,
       });
 

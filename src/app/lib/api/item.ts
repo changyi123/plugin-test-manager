@@ -14,6 +14,7 @@ import { getPluginWebTriggerBaseUrl } from '../utils/helper';
 import { compactStepModel } from '../utils/modelTransfer';
 import { createItemLink, deleteItemLink, IItemLink, getExistedItemLinks } from './runs';
 import { lib } from 'proxima-sdk';
+import { SearchSelectors } from '../utils/iql';
 
 const { selectorToIql } = lib.Iql;
 
@@ -45,7 +46,11 @@ const handleSelector = selector => {
 
 // 查询测试用例事项
 export const getTestEntityByQuery = async (
-  props: QueryTestEntityPayload,
+  props:
+    | QueryTestEntityPayload
+    | {
+        selector?: SearchSelectors;
+      },
   handleQuery?: (val: any) => any,
 ) => {
   props = handleQuery ? handleQuery(props) : props;
@@ -66,7 +71,11 @@ export const getTestEntityByQuery = async (
 
 // 关联查询
 export const getlinkedTestEntityByQuery = async (
-  props: QueryLinkedTestEntityPayload,
+  props:
+    | QueryLinkedTestEntityPayload
+    | {
+        selector?: SearchSelectors;
+      },
   handleQuery?: (val: any) => any,
 ) => {
   props = handleQuery ? handleQuery(props) : props;

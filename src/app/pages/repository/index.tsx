@@ -265,6 +265,7 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
             testDetailIds={state.caseIds}
             folderKey={state.selectedFolderKey}
             onSelectionCancel={() => toggleSelection(false)}
+            testDetailFieldKeys={testDetailFieldKeys}
           />
         </div>
       </PageLayout.Right>

@@ -14,7 +14,8 @@ import NoData from './NoData';
 import cx from './index.less';
 
 const PlanPageLayout: React.FC<any> = () => {
-  const { workspaceKey, selectedTestPlan, setSearchParams, setSelectedTestPlan } = usePageContext();
+  const { workspaceKey, selectedTestPlan, selectors, setSearchParams, setSelectedTestPlan } =
+    usePageContext();
   const [requestScopedTestDetailIds, setRequestScopedTestDetailIds] = React.useState<
     string[] | undefined
   >(undefined);
@@ -75,6 +76,7 @@ const PlanPageLayout: React.FC<any> = () => {
     type: activedType === 'TestPlan' ? 'Plan' : 'Execution',
     testPlanId: selectedTestPlan?.objectId,
     testExecutionId: selectedExecution?.objectId,
+    selectors,
   });
 
   useEffect(() => {

@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
 import Field from '@/components/common/Field';
 import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
@@ -24,6 +24,7 @@ import {
 } from '@/lib/api/item';
 import { TestLinkType, TestType } from 'common/constant';
 import { RepositoryModel } from '@/lib/constants';
+import { isEmpty } from 'lodash';
 
 import cx from './index.less';
 
@@ -35,6 +36,7 @@ interface TestEntityListProps {
   refreshPlanData?: () => void;
   scopedTestDetailRefresh?: () => void;
   tableSelectionVisible?: boolean;
+  testDetailFieldKeys?: string[];
 }
 
 const TestEntityList: React.FC<TestEntityListProps> = ({
@@ -44,6 +46,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   selectedExecution,
   scopedTestDetailRefresh,
   tableSelectionVisible,
+  testDetailFieldKeys,
 }) => {
   const {
     workspaceKey,
@@ -115,6 +118,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           id: requestScopedTestDetailIds,
         },
         ...queryParams,
+        fields: testDetailFieldKeys ?? [],
         selector: selectors,
       });
 
@@ -138,7 +142,13 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         total: total,
       };
     },
-    [workspaceKey, requestScopedTestDetailIds, selectedTestPlan.objectId, selectors],
+    [
+      workspaceKey,
+      requestScopedTestDetailIds,
+      selectedTestPlan.objectId,
+      selectors,
+      testDetailFieldKeys,
+    ],
   );
 
   // 获取执行任务 getter
@@ -155,10 +165,10 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           linkType: TestLinkType.RunLinkExecution,
           sourceIds: [selectedExecution.objectId],
           destinationType: TestType.Run,
-          selector: selectors,
+          selector: [{}, selectors?.[1] ?? {}],
         },
         props => {
-          const [systemSelector, customSelector] = props?.selector;
+          const [, customSelector] = props?.selector;
 
           const extraQuery = Object.entries(customSelector ?? {}).reduce(
             (prev, [key, value]: any) => {
@@ -184,7 +194,6 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
               ...props.query,
               ...extraQuery,
             },
-            selector: [systemSelector],
           };
         },
       );
@@ -195,6 +204,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           type: TestType.Case,
           id: runs.map(d => d.referenceCase),
         },
+        fields: testDetailFieldKeys ?? [],
         limit: 9999,
       });
 
@@ -210,8 +220,15 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         total,
       };
     },
-    [workspaceKey, requestScopedTestDetailIds, selectedExecution, selectors],
+    [workspaceKey, requestScopedTestDetailIds, selectedExecution, selectors, testDetailFieldKeys],
   );
+
+  useEffect(() => {
+    const [systemSelectors] = selectors;
+    if (!isEmpty(systemSelectors)) {
+      scopedTestDetailRefresh();
+    }
+  }, [selectors, scopedTestDetailRefresh]);
 
   const removeTestRelation = React.useCallback(
     async (planId, testDetailIds) => {

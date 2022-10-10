@@ -1,7 +1,8 @@
 import React from 'react';
 import { useRequest } from 'ahooks';
-import { get } from 'lodash';
-import { getlinkedTestEntityByQuery } from '@/lib/api/item';
+import { get, isEmpty } from 'lodash';
+import { getlinkedTestEntityByQuery, getTestEntityByQuery } from '@/lib/api/item';
+import { SearchSelectors } from '@/lib/utils/iql';
 import { TestLinkType, TestType } from 'common/constant';
 
 export const useResizeContainerDOM = (objectId?: string) => {
@@ -23,10 +24,11 @@ type ScopedTestDetailIdsParams = {
   testExecutionId?: string;
   /** 获取类型 */
   type: 'Execution' | 'Plan';
+  selectors?: SearchSelectors;
 };
 /** 获取测试用例范围 */
 export const useScopedTestDetailIds = (params: ScopedTestDetailIdsParams) => {
-  const { workspaceKey, testPlanId, testExecutionId, type } = params;
+  const { workspaceKey, testPlanId, testExecutionId, type, selectors } = params;
   return useRequest(
     async () => {
       if (type === 'Plan') {
@@ -44,6 +46,7 @@ export const useScopedTestDetailIds = (params: ScopedTestDetailIdsParams) => {
 
         return caseIds;
       } else if (type === 'Execution') {
+        const [systemSelectors] = selectors;
         // 测试执行的用例范围
         const { list: runs } = await getlinkedTestEntityByQuery({
           query: {
@@ -56,7 +59,22 @@ export const useScopedTestDetailIds = (params: ScopedTestDetailIdsParams) => {
           select: ['id', 'referenceCase'],
         });
 
-        return runs?.map(run => get(run, 'referenceCase')) ?? [];
+        const ids = runs?.map(run => get(run, 'referenceCase')) ?? [];
+
+        const { list: caseIds } = !isEmpty(systemSelectors)
+          ? await getTestEntityByQuery({
+              query: {
+                workspaceKey: workspaceKey,
+                id: ids,
+                type: TestType.Case,
+              },
+              limit: 9999,
+              onlySelectId: true,
+              selector: [systemSelectors, {}],
+            })
+          : { list: ids };
+
+        return caseIds;
       }
     },
     {
