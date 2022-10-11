@@ -10,7 +10,7 @@ import Header from './Header';
 import Right from './Right';
 import Left from './Left';
 import NoData from './NoData';
-
+import { useListener } from '@projectproxima/proxima-sdk-js';
 import cx from './index.less';
 
 const PlanPageLayout: React.FC<any> = () => {
@@ -77,6 +77,10 @@ const PlanPageLayout: React.FC<any> = () => {
     testPlanId: selectedTestPlan?.objectId,
     testExecutionId: selectedExecution?.objectId,
     selectors,
+  });
+
+  useListener('updateRepoTree', () => {
+    scopedTestDetailRefresh();
   });
 
   useEffect(() => {
