@@ -48,16 +48,16 @@ export const TestFiledKeyKeys = Object.keys(
 
 /** 测试管理内置自定义字段 name 映射，用户拼接 IQL 查询条件 */
 export const BuiltinFieldNameMapping = {
-  linkType: '测试关联类型',
-  linkItems: '测试关联项',
-  status: '测试执行状态',
-  referenceCase: '测试用例引用',
-  type: '测试类型',
-  caseStatus: '用例最新执行状态',
-  repository: '测试用例库模块',
-  designee: '测试负责人',
-  executor: '测试最新执行人',
-  sortIndex: '测试用例排序索引',
+  linkType: 'test_manager_linkType',
+  linkItems: 'test_manager_linkItems',
+  status: 'test_manager_status',
+  referenceCase: 'test_manager_referenceCase',
+  type: 'test_manager_type',
+  caseStatus: 'test_manager_caseStatus',
+  repository: 'test_manager_repository',
+  designee: 'test_manager_designee',
+  executor: 'test_manager_executor',
+  sortIndex: 'test_manager_sortIndex',
 } as const;
 
 export const SystemFieldNameMapping = {
