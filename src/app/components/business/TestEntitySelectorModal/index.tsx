@@ -124,7 +124,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
               [key]: getMergedItemTypes(),
             };
           }, result);
-        }, keyBy(Object.keys(TestType)));
+        }, keyBy(Object.values(TestType)));
 
       return itemTypeMapping;
     },

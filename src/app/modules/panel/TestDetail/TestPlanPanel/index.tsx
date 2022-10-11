@@ -19,6 +19,7 @@ import {
   updateTestEntity as updateRelated,
   getlinkedTestEntityByQuery,
 } from '@/lib/api/item';
+import createProximaSdk from '@projectproxima/proxima-sdk-js';
 
 const Plan = () => {
   const { testEntity, workspace, setTestEntity } = useTestConfig();
@@ -41,6 +42,14 @@ const Plan = () => {
     await updateTestEntity();
     tableActionRef.current.refresh();
   }, [updateTestEntity]);
+
+  // 更新测试用例-计划关联关系，并触发外部列表更新
+  const updateRelatedAndRefresh = useCallback(async data => {
+    const res = await updateRelated(data);
+    const proxima = createProximaSdk();
+    proxima.execute('updateRepoTree');
+    return res;
+  }, []);
 
   const fetchPlanList = useCallback(
     async params => {
@@ -96,7 +105,7 @@ const Plan = () => {
         async onClick() {
           const testPlanIds = await selectorModalRef.current.open();
 
-          await updateRelated([
+          await updateRelatedAndRefresh([
             {
               linkType: TestLinkType.CaseLinkPlan,
               objectId: testEntity.objectId,
@@ -120,7 +129,7 @@ const Plan = () => {
           });
 
           try {
-            await updateRelated([
+            await updateRelatedAndRefresh([
               {
                 linkType: TestLinkType.CaseLinkPlan,
                 objectId: testEntity.objectId,
@@ -140,12 +149,12 @@ const Plan = () => {
         },
       },
     ];
-  }, [createItemUseModal, refreshDepData, testEntity]);
+  }, [createItemUseModal, refreshDepData, testEntity.objectId, updateRelatedAndRefresh]);
 
   const removeTestRelation = useCallback(
     async relationTypeIds => {
       if (!Array.isArray(relationTypeIds)) return;
-      await updateRelated([
+      await updateRelatedAndRefresh([
         {
           linkType: TestLinkType.CaseLinkPlan,
           objectId: testEntity.objectId,
@@ -159,7 +168,7 @@ const Plan = () => {
         message: '当前测试用例从测试计划中删除',
       });
     },
-    [refreshDepData, testEntity],
+    [refreshDepData, testEntity.objectId, updateRelatedAndRefresh],
   );
 
   // table column 数据
