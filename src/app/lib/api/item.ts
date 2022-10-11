@@ -174,7 +174,7 @@ export const updateTestStatus = async data => {
   }));
 
   const tests = test.map(d => ({
-    objectId: d.objectId,
+    objectId: d.id,
     caseStatus: {
       ...(d?.caseStatus ?? {}),
       [planId]: status,
@@ -305,7 +305,7 @@ export const updateTestRunDetail = async (
     });
 
     needUpdateCase = test.map(d => ({
-      objectId: d.objectId,
+      objectId: d.id,
       caseStatus: {
         ...(d?.caseStatus ?? {}),
         [params.planId]: needUpdateAttrs.status,

@@ -463,6 +463,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     const handleDelete = () => {
       if (hasRowSelected) {
         actionConfirm('该操作会将所选测试用例从测试计划中移除，是否继续操作？', async () => {
+          setTableLoading(true);
           await updateTestEntity(
             actionRef.current.selectedRowKeys.map(d => ({
               objectId: d,
@@ -476,6 +477,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           tableSelectionToggleEvent.emit(false);
           await scopedTestDetailRefresh();
           actionRef.current.refresh();
+          setTableLoading(false);
           // refreshPlanData();
         });
       }
