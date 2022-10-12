@@ -110,7 +110,7 @@ export const testPlanStats = async () => {
             const planStats = result[planId];
             planStats.caseStatus = {
               ...planStats.caseStatus,
-              [statusKey]: planStats.caseStatus?.[statusKey] ?? 0 + 1,
+              [statusKey]: (planStats.caseStatus?.[statusKey] ?? 0) + 1,
             };
           });
         }
