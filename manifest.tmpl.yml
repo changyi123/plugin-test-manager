@@ -2,7 +2,7 @@ app:
   key: test_manager
   uuid: bf73e61c-e15a-4461-a1f7-f940c2009332
   name: test_manager
-  version: "0.0.13009912"
+  version: "0.3"
 modules:
   webtrigger:
     # 动态配置 one 路由
@@ -186,62 +186,61 @@ modules:
   customField:
       # 描述关联关系的配置（使用事项关联不需要处理）
     - key: linkType
-      name: 测试关联类型
-      linkedCase: 
-      description: 测试管理内置自定义字段（勿删改）
+      name: test_manager_linkType
+      description: 测试管理内置字段-测试关联类型（勿删改）
       # Enum 关联关系维护在被关联方
       # 1. 测试用例关联计划（N:1）           CaseLinkPlan
       # 2. 测试执行关联测试执行任务（N:1）    RunLinkExecution
       # 3. 测试执行任务关联测试计划（N:1）    ExecutionLinkPlan
-      type: Text
+      type: _self:es_text_keyword
     - key: linkItems
-      name: 测试关联项
-      description: 测试管理内置自定义字段（勿删改）
+      name: test_manager_linkItems
+      description: 测试管理内置字段-测试关联项（勿删改）
       type: _self:es_array_keyword
     - key: status
-      name: 测试执行状态
-      description: 测试管理内置自定义字段（勿删改）
-      type: Text
+      name: test_manager_status
+      description: 测试管理内置字段-测试执行状态（勿删改）
+      type: _self:es_text_keyword
     - key: referenceCase
-      name: 测试用例引用
-      description: 测试管理内置自定义字段（勿删改）
+      name: test_manager_referenceCase
+      description: 测试管理内置字段-测试用例引用（勿删改）
       type: _self:es_text_keyword
     - key: type
-      description: 测试管理内置自定义字段（勿删改）
-      name: 测试类型
-      type: Text
+      description: 测试管理内置字段-测试管理类型（勿删改）
+      name: test_manager_type
+      type: _self:es_text_keyword
     - key: caseStatus
-      name: 用例最新执行状态
-      description: 测试管理内置自定义字段（勿删改）
+      name: test_manager_caseStatus
+      description: 测试管理内置字段-用例最新执行状态（勿删改）
       type: _self:es_object
     - key: repository
-      name: 测试用例库模块
-      description: 测试管理内置自定义字段（勿删改）
+      name: test_manager_repository
+      description: 测试管理内置字段-测试用例库模块（勿删改）
       type: _self:es_text_keyword
     - key: designee
-      name: 测试执行人
-      description: 测试管理内置自定义字段（勿删改）
+      name: test_manager_designee
+      description: 测试管理内置字段-测试执行人（勿删改）
       type: User
     - key: executor
-      name: 测试最新执行人
-      description: 测试管理内置自定义字段（勿删改）
+      name: test_manager_executor
+      description: 测试管理内置字段-测试最新执行人（勿删改）
       type: User
     - key: sortIndex
-      name: 测试用例排序索引
-      description: 测试管理内置自定义字段（勿删改）
+      name: test_manager_sortIndex
+      description: 测试管理内置字段-测试用例排序索引（勿删改）
       type: Number
     # 下面字段也保存入 es，方便 iql 直接查询。以字符串类型存储。防止 es 创建索引时定义默认类型，防止后续更新是出现类型错误
     - key: detail
-      name: 测试用例详情
-      description: 测试管理内置自定义字段（勿删改）
+      name: test_manager_detail
+      description: 测试管理内置字段-测试用例详情（勿删改）
       type: Text
     - key: runDetail
-      name: 测试执行详情
-      description: 测试管理内置自定义字段（勿删改）
+      name: test_manager_runDetail
+      description: 测试管理内置字段-测试执行详情（勿删改）
       type: Text
     - key: comment
-      name: 测试执行评论
-      description: 测试管理内置自定义字段（勿删改）
+      name: test_manager_comment
+      description: 测试管理内置字段-测试执行评论（勿删改）
       type: Text
   customItemType:
     - key: test_manager_detail
