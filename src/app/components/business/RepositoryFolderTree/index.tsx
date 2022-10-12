@@ -9,6 +9,7 @@ import { useRequest, useMemoizedFn, useDeepCompareEffect } from 'ahooks';
 import { traverseTreeNodes, getTreeNodeByKey, reverseTreeNodes } from '@/pages/repository/util';
 import { getRepositoryTree } from '@/lib/api/item';
 import { RepositoryModel } from '@/lib/constants';
+import { cloneDeep } from 'lodash';
 
 import cx from './style.less';
 
@@ -68,18 +69,31 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
     return null;
   }, [selectors]);
 
+  const { data: nodeTreeData } = useRequest(
+    async () => {
+      if (!workspaceKey) return {};
+      const { data } = await getRepositoryTree({
+        workspaceKey,
+      });
+
+      return data;
+    },
+    {
+      refreshDeps: [workspaceKey],
+      cacheKey: `${workspaceKey}-node-tree-data`,
+      cacheTime: 999999999,
+      staleTime: 999999999,
+    },
+  );
+
   const {
     data: treeData,
     refresh: refreshTreeData,
     loading,
   } = useRequest(
     async () => {
-      if (!workspaceKey) return [];
-      const { data } = await getRepositoryTree({
-        workspaceKey,
-      });
-
-      const nodeData = [data];
+      if (!nodeTreeData || !scopedTestDetailIds?.length) return [];
+      const nodeData = [cloneDeep(nodeTreeData)];
 
       if (hideEmptyFolder) {
         const getCaseIds = caseIds => caseIds?.filter(d => (scopedTestDetailIds ?? []).includes(d));
@@ -94,7 +108,7 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
           });
           const amount = [testDetailIds.length, childTestDetailNum];
           node.counts = amount;
-          node.caseIds = getCaseIds(node.caseIds);
+          node.caseIds = testDetailIds;
         });
         // 过滤为空的目录
         const filterEmptyFolder = folders => {
@@ -119,10 +133,7 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
       return nodeData;
     },
     {
-      refreshDeps: [workspaceKey, scopedTestDetailIds, hideEmptyFolder],
-      cacheKey: `${workspaceKey}-treeData-${scopedTestDetailIds?.join('-') ?? ''}`,
-      cacheTime: 99999999999,
-      staleTime: 99999999999,
+      refreshDeps: [workspaceKey, scopedTestDetailIds, hideEmptyFolder, nodeTreeData],
     },
   );
 
@@ -250,24 +261,22 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
   });
 
   return (
-    <div>
-      <Spin spinning={loading}>
-        <DirectoryTree
-          treeData={treeData}
-          expandAction={false}
-          className={cx('tree')}
-          titleRender={titleRender}
-          onExpand={handleTreeExpand}
-          onSelect={handleTreeSelect}
-          selectedKeys={treeSelectedKeys}
-          expandedKeys={treeExpandedKeys}
-          autoExpandParent={autoExpandParent}
-          onRightClick={handleTreeRightClick}
-          icon={({ expanded }) => (expanded ? <FileOpen /> : <FileClose />)}
-          switcherIcon={<CaretDownOutlined style={{ color: '#878C96' }} />}
-        />
-      </Spin>
-    </div>
+    <Spin spinning={loading}>
+      <DirectoryTree
+        treeData={treeData}
+        expandAction={false}
+        className={cx('tree')}
+        titleRender={titleRender}
+        onExpand={handleTreeExpand}
+        onSelect={handleTreeSelect}
+        selectedKeys={treeSelectedKeys}
+        expandedKeys={treeExpandedKeys}
+        autoExpandParent={autoExpandParent}
+        onRightClick={handleTreeRightClick}
+        icon={({ expanded }) => (expanded ? <FileOpen /> : <FileClose />)}
+        switcherIcon={<CaretDownOutlined style={{ color: '#878C96' }} />}
+      />
+    </Spin>
   );
 };
 

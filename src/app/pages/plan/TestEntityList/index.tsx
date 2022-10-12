@@ -80,6 +80,9 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   const { data: allRunData } = useRequest(
     async () => {
       if (activedType === 'TestPlan') return [];
+      if (!requestScopedTestDetailIds?.length || !selectedExecution?.objectId) {
+        return [];
+      }
       const { list: runData } = await getlinkedTestEntityByQuery({
         query: {
           workspaceKey: workspaceKey,
@@ -154,12 +157,11 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   // 获取执行任务 getter
   const executionTableDataGetter = useCallback(
     async queryParams => {
-      if (!selectedExecution?.objectId && !requestScopedTestDetailIds?.length)
+      if (!selectedExecution?.objectId || !requestScopedTestDetailIds?.length)
         return {
           list: [],
           total: 0,
         };
-
       // 查询测试执行
       const { list: runs, total } = await getlinkedTestEntityByQuery(
         {
@@ -169,7 +171,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           },
           ...queryParams,
           linkType: TestLinkType.RunLinkExecution,
-          sourceIds: [selectedExecution.objectId ?? ''],
+          sourceIds: [selectedExecution.objectId],
           destinationType: TestType.Run,
           selector: [{}, selectors?.[1] ?? {}],
         },
