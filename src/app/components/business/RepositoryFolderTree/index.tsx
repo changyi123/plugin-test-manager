@@ -92,10 +92,11 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
     loading,
   } = useRequest(
     async () => {
-      if (!nodeTreeData || !scopedTestDetailIds?.length) return [];
+      if (!nodeTreeData) return [];
       const nodeData = [cloneDeep(nodeTreeData)];
 
       if (hideEmptyFolder) {
+        if (!scopedTestDetailIds?.length) return [];
         const getCaseIds = caseIds => caseIds?.filter(d => (scopedTestDetailIds ?? []).includes(d));
 
         traverseTreeNodes(nodeData, node => {
@@ -211,9 +212,10 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
         });
       } else {
         if (selectorRepository?.length) {
-          caseIds = selectedFolder.caseIds;
+          const _node = selectorRepository.includes(selectedFolder.key) ? selectedFolder : null;
+          caseIds = caseIds.concat(_node?.caseIds ?? []);
         } else {
-          caseIds = selectedFolder.caseIds;
+          caseIds = caseIds.concat(selectedFolder.caseIds);
         }
       }
     }
