@@ -176,7 +176,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           selector: [{}, selectors?.[1] ?? {}],
         },
         props => {
-          const [, customSelector] = props?.selector;
+          const [systemSelectors, customSelector] = props?.selector;
 
           const extraQuery = Object.entries(customSelector ?? {}).reduce(
             (prev, [key, value]: any) => {
@@ -189,7 +189,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
                   if ('osc-admin' === d.username) {
                     return 'osc-admin';
                   }
-                  return d.label;
+                  return d.username;
                 });
               }
               return prev;
@@ -198,6 +198,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           );
           return {
             ...props,
+            selector: [systemSelectors ?? {}, {}],
             query: {
               ...props.query,
               ...extraQuery,
@@ -206,15 +207,19 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         },
       );
 
-      const { list: testItem } = await getTestEntityByQuery({
-        query: {
-          workspaceKey: workspaceKey,
-          type: TestType.Case,
-          id: runs.map(d => d.referenceCase),
-        },
-        fields: testDetailFieldKeys ?? [],
-        limit: 9999,
-      });
+      const { list: testItem } = runs?.length
+        ? await getTestEntityByQuery({
+            query: {
+              workspaceKey: workspaceKey,
+              type: TestType.Case,
+              id: runs.map(d => d.referenceCase),
+            },
+            fields: testDetailFieldKeys ?? [],
+            limit: 9999,
+          })
+        : {
+            list: [],
+          };
 
       return {
         list: runs.map(d => {

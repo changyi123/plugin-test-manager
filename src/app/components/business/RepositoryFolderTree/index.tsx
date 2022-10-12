@@ -64,12 +64,12 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
   const selectorRepository = useMemo(() => {
     const [, customSelector] = selectors ?? [];
     if (customSelector?.[RepositoryModel]) {
-      return customSelector?.[RepositoryModel]?.value.map(d => d.objectId) ?? [];
+      return customSelector?.[RepositoryModel]?.value?.map(d => d.objectId) ?? [];
     }
     return null;
   }, [selectors]);
 
-  const { data: nodeTreeData } = useRequest(
+  const { data: nodeTreeData, loading: getTreeLoading } = useRequest(
     async () => {
       if (!workspaceKey) return {};
       const { data } = await getRepositoryTree({
@@ -261,7 +261,7 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
   });
 
   return (
-    <Spin spinning={loading}>
+    <Spin spinning={getTreeLoading || loading}>
       <DirectoryTree
         treeData={treeData}
         expandAction={false}
