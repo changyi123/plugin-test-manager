@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useMemo } from 'react';
-import { Tree } from 'antd';
+import { Spin, Tree } from 'antd';
 import { FileOpen, FileClose, CaretDownOutlined } from '@/icons';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import { UNGROUPED_FOLDER_KEY } from '@/pages/repository/constant';
@@ -68,7 +68,11 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
     return null;
   }, [selectors]);
 
-  const { data: treeData, refresh: refreshTreeData } = useRequest(
+  const {
+    data: treeData,
+    refresh: refreshTreeData,
+    loading,
+  } = useRequest(
     async () => {
       if (!workspaceKey) return [];
       const { data } = await getRepositoryTree({
@@ -116,6 +120,9 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
     },
     {
       refreshDeps: [workspaceKey, scopedTestDetailIds, hideEmptyFolder],
+      cacheKey: `${workspaceKey}-treeData-${scopedTestDetailIds?.join('-') ?? ''}`,
+      cacheTime: 99999999999,
+      staleTime: 99999999999,
     },
   );
 
@@ -244,20 +251,22 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
 
   return (
     <div>
-      <DirectoryTree
-        treeData={treeData}
-        expandAction={false}
-        className={cx('tree')}
-        titleRender={titleRender}
-        onExpand={handleTreeExpand}
-        onSelect={handleTreeSelect}
-        selectedKeys={treeSelectedKeys}
-        expandedKeys={treeExpandedKeys}
-        autoExpandParent={autoExpandParent}
-        onRightClick={handleTreeRightClick}
-        icon={({ expanded }) => (expanded ? <FileOpen /> : <FileClose />)}
-        switcherIcon={<CaretDownOutlined style={{ color: '#878C96' }} />}
-      />
+      <Spin spinning={loading}>
+        <DirectoryTree
+          treeData={treeData}
+          expandAction={false}
+          className={cx('tree')}
+          titleRender={titleRender}
+          onExpand={handleTreeExpand}
+          onSelect={handleTreeSelect}
+          selectedKeys={treeSelectedKeys}
+          expandedKeys={treeExpandedKeys}
+          autoExpandParent={autoExpandParent}
+          onRightClick={handleTreeRightClick}
+          icon={({ expanded }) => (expanded ? <FileOpen /> : <FileClose />)}
+          switcherIcon={<CaretDownOutlined style={{ color: '#878C96' }} />}
+        />
+      </Spin>
     </div>
   );
 };
