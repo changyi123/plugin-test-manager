@@ -1,6 +1,6 @@
 import { Modal } from 'antd';
 // import { Modal } from 'antd';
-import { isEqual, findKey, noop } from 'lodash';
+import { isEqual, findKey, noop, startsWith } from 'lodash';
 import { STORAGE_PREFIX_KEY } from '../constants';
 import createProximaSdk from '@projectproxima/proxima-sdk-js';
 
@@ -118,7 +118,8 @@ export const inIframe = (): boolean => {
 
   if (inServer) return false;
   try {
-    return window.self !== window.top;
+    const gateway = (window as any).env.PROXIMA_GATEWAY;
+    return startsWith(new URL(gateway).pathname, '/api');
   } catch (e) {
     console.info('inIframe', e);
     return true;
