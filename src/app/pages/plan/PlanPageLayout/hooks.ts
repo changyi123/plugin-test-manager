@@ -46,6 +46,7 @@ export const useScopedTestDetailIds = (params: ScopedTestDetailIdsParams) => {
 
         return caseIds;
       } else if (type === 'Execution') {
+        if (!testExecutionId) return [];
         const [systemSelectors] = selectors;
         // 测试执行的用例范围
         const { list: runs } = await getlinkedTestEntityByQuery({

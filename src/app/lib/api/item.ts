@@ -20,6 +20,10 @@ const { selectorToIql } = lib.Iql;
 
 const pluginWebTriggerBaseUrl = getPluginWebTriggerBaseUrl();
 
+const customFieldIqlMap = {
+  测试用例库模块: 'test_manager_repository',
+};
+
 const handleSelector = selector => {
   if (!selector) return null;
   const testSelector = Object.entries(selector?.[1] ?? {}).reduce(
@@ -28,9 +32,12 @@ const handleSelector = selector => {
         prev[filed] = {
           ...value,
           component: 'Dropdown',
+          fieldName: customFieldIqlMap[value.fieldName],
         };
       } else {
-        prev[filed] = value;
+        prev[filed] = {
+          ...value,
+        };
       }
 
       return prev;

@@ -80,6 +80,13 @@ const InheritTestDetail: React.FC<InheritTestDetailProps> = props => {
 
   const { data: testDetailData, loading: testDetailDataLoading } = useInfiniteScroll(
     async params => {
+      if (!requestScopedTestDetailIds?.length)
+        return {
+          count: [],
+          list: [],
+          offset: 0,
+        };
+
       const { offset = 0 } = params ?? ({} as any);
       // 组装排序
       const baseQueryOptions = {
@@ -92,8 +99,10 @@ const InheritTestDetail: React.FC<InheritTestDetailProps> = props => {
           workspaceKey: selectedWorkspaceKey,
           type: TestType.Case,
           name: detailSearchValue,
+          id: requestScopedTestDetailIds,
         },
         ...baseQueryOptions,
+        limit: 99999,
       });
 
       const nextOffset = offset + REQUEST_LIMIT;
@@ -184,7 +193,7 @@ const InheritTestDetail: React.FC<InheritTestDetailProps> = props => {
               />
               <RepositoryFolderTree
                 workspaceKey={selectedWorkspaceKey}
-                shouldIncludeSubFolder={false}
+                shouldIncludeSubFolder={true}
                 actionRef={repositoryFolderTreeRef}
                 onFolderSelect={ids => setRequestScopedTestDetailIds(ids)}
               />

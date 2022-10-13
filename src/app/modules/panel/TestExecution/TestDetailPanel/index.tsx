@@ -21,6 +21,7 @@ import {
   getlinkedTestEntityByQuery,
 } from '@/lib/api/item';
 import cx from './index.less';
+import createProximaSdk from '@projectproxima/proxima-sdk-js';
 
 const Test = () => {
   const { testEntity, workspace } = useTestConfig();
@@ -82,6 +83,9 @@ const Test = () => {
     // 全量数据
     getAllRelTestEntities();
     tableActionRef.current.refresh();
+    // 修改执行状态，移除或者添加用例，需要更新外部列表
+    const proxima = createProximaSdk();
+    proxima.execute('updateRepoTree');
   }, [getAllRelTestEntities]);
 
   const tableDataSourceGetter = React.useCallback(
