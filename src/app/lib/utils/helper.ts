@@ -1,6 +1,6 @@
 import { Modal } from 'antd';
 // import { Modal } from 'antd';
-import { isEqual, findKey, noop } from 'lodash';
+import { isEqual, findKey, noop, startsWith } from 'lodash';
 import { STORAGE_PREFIX_KEY } from '../constants';
 import createProximaSdk from '@projectproxima/proxima-sdk-js';
 
@@ -17,7 +17,7 @@ export const getProximaBasePath = () => {
 // 获取 webTrigger 前缀
 export const getPluginWebTriggerBaseUrl = () => {
   // 集成环境需要先判断前缀
-  const ApiPrefix = inIframe() ? getProximaBasePath() : '';
+  const ApiPrefix = isInOne() ? getProximaBasePath() : '';
   return `/api${ApiPrefix}/app/${getTenantKey()}/test_manager/webhooks`;
 };
 
@@ -121,6 +121,20 @@ export const inIframe = (): boolean => {
     return window.self !== window.top;
   } catch (e) {
     console.info('inIframe', e);
+    return true;
+  }
+};
+
+export const isInOne = () => {
+  const isServer = (): boolean => typeof window === 'undefined';
+  const inServer = isServer();
+
+  if (inServer) return false;
+  try {
+    const gateway = (window as any).env.PROXIMA_GATEWAY;
+    return startsWith(new URL(gateway).pathname, '/api');
+  } catch (e) {
+    console.info('isInOne', e);
     return true;
   }
 };
