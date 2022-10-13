@@ -45,6 +45,7 @@ export const batchUpdateItems = async (data: Partial<TestEntity>[]) => {
         ...item.originalValues,
         ...item.values,
       },
+      eventExtraData: { skipItemChange: true },
     });
     return updateItems(item.objectId, values);
   });
