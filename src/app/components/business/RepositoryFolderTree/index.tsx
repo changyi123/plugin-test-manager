@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useMemo } from 'react';
-import { Tree } from 'antd';
+import { Spin, Tree } from 'antd';
 import { FileOpen, FileClose, CaretDownOutlined } from '@/icons';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import { UNGROUPED_FOLDER_KEY } from '@/pages/repository/constant';
@@ -9,6 +9,7 @@ import { useRequest, useMemoizedFn, useDeepCompareEffect } from 'ahooks';
 import { traverseTreeNodes, getTreeNodeByKey, reverseTreeNodes } from '@/pages/repository/util';
 import { getRepositoryTree } from '@/lib/api/item';
 import { RepositoryModel } from '@/lib/constants';
+import { cloneDeep } from 'lodash';
 
 import cx from './style.less';
 
@@ -63,21 +64,39 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
   const selectorRepository = useMemo(() => {
     const [, customSelector] = selectors ?? [];
     if (customSelector?.[RepositoryModel]) {
-      return customSelector?.[RepositoryModel]?.value.map(d => d.objectId) ?? [];
+      return customSelector?.[RepositoryModel]?.value?.map(d => d.objectId) ?? [];
     }
     return null;
   }, [selectors]);
 
-  const { data: treeData, refresh: refreshTreeData } = useRequest(
+  const { data: nodeTreeData, loading: getTreeLoading } = useRequest(
     async () => {
-      if (!workspaceKey) return [];
+      if (!workspaceKey) return {};
       const { data } = await getRepositoryTree({
         workspaceKey,
       });
 
-      const nodeData = [data];
+      return data;
+    },
+    {
+      refreshDeps: [workspaceKey],
+      cacheKey: `${workspaceKey}-node-tree-data`,
+      cacheTime: 999999999,
+      staleTime: 999999999,
+    },
+  );
+
+  const {
+    data: treeData,
+    refresh: refreshTreeData,
+    loading,
+  } = useRequest(
+    async () => {
+      if (!nodeTreeData) return [];
+      const nodeData = [cloneDeep(nodeTreeData)];
 
       if (hideEmptyFolder) {
+        if (!scopedTestDetailIds?.length) return [];
         const getCaseIds = caseIds => caseIds?.filter(d => (scopedTestDetailIds ?? []).includes(d));
 
         traverseTreeNodes(nodeData, node => {
@@ -90,7 +109,7 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
           });
           const amount = [testDetailIds.length, childTestDetailNum];
           node.counts = amount;
-          node.caseIds = getCaseIds(node.caseIds);
+          node.caseIds = testDetailIds;
         });
         // 过滤为空的目录
         const filterEmptyFolder = folders => {
@@ -115,7 +134,7 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
       return nodeData;
     },
     {
-      refreshDeps: [workspaceKey, scopedTestDetailIds, hideEmptyFolder],
+      refreshDeps: [workspaceKey, scopedTestDetailIds, hideEmptyFolder, nodeTreeData],
     },
   );
 
@@ -193,9 +212,10 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
         });
       } else {
         if (selectorRepository?.length) {
-          caseIds = selectedFolder.caseIds;
+          const _node = selectorRepository.includes(selectedFolder.key) ? selectedFolder : null;
+          caseIds = caseIds.concat(_node?.caseIds ?? []);
         } else {
-          caseIds = selectedFolder.caseIds;
+          caseIds = caseIds.concat(selectedFolder.caseIds);
         }
       }
     }
@@ -243,7 +263,7 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
   });
 
   return (
-    <div>
+    <Spin spinning={getTreeLoading || loading}>
       <DirectoryTree
         treeData={treeData}
         expandAction={false}
@@ -258,7 +278,7 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
         icon={({ expanded }) => (expanded ? <FileOpen /> : <FileClose />)}
         switcherIcon={<CaretDownOutlined style={{ color: '#878C96' }} />}
       />
-    </div>
+    </Spin>
   );
 };
 
