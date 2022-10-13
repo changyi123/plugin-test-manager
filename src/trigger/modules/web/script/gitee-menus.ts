@@ -1,4 +1,4 @@
-import { getParseQuery } from '@giteeteam/apps-team-api';
+import { getParseQuery, getAppsData } from '@giteeteam/apps-team-api';
 
 const log = (msg, ...restArgs) => {
   console.info(`[testManager] ${msg}`, ...restArgs);
@@ -64,22 +64,16 @@ export const runGiteeMenus = async () => {
       .include('workspaces')
       .first(ParseBaseQueryOptions);
 
-    const d1 = Date.now();
-
-    const isGlobalPlugin = appWorkspace ? appWorkspace.get('global') : true;
-
-    console.info('isGlobalPlugin', Date.now() - d1);
-
-    if (!isGlobalPlugin) {
+    const globalWorkspace = appWorkspace ? appWorkspace.get('global') : true;
+    if (!globalWorkspace) {
       const hasTestManagerPlugin = appWorkspace
         ?.get('workspaces')
         ?.some(workspace => workspace.key === workspaceKey);
       if (!hasTestManagerPlugin) throw new Error('CURRENT_WORKSPACE_NOT_TEST_INSTALLED');
     }
 
-    // TODO 修改逻辑
-    // const appId = app?.objectId;
-    const appId = '';
+    const appData = await getAppsData('Apps', { key: APP_KEY });
+    const appId = appData.objectId;
     return getGiteeMenusConfig(appId, workspaceKey);
   };
 

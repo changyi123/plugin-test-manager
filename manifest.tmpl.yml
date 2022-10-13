@@ -2,7 +2,7 @@ app:
   key: test_manager
   uuid: bf73e61c-e15a-4461-a1f7-f940c2009332
   name: test_manager
-  version: "0.3"
+  version: "2.7.0"
 modules:
   webtrigger:
     # 动态配置 one 路由
@@ -296,7 +296,7 @@ modules:
         displayContext: test_manager
     # 测试执行事项类型，所有测试执行都是用该事项类型
     - key: test_manager_run
-      name: 测试执行
+      name: 测试执行（内置）
       description: 测试管理类型-测试执行
       displayConditions:
         displayModules:
