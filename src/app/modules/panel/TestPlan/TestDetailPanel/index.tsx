@@ -55,11 +55,10 @@ const Test = () => {
         workspaceKey: workspace?.key,
         ...pages,
       });
-
       if (caseList?.length) {
         // 测试用例关联测试执行
         stats = await getRunsFromCase({
-          caseIds: caseList.map(item => item.objectId),
+          caseIds: caseList.map(item => item.id),
           planId: sourceIds,
           select: ['runCount', 'caseLatestStatus'],
         });
@@ -98,7 +97,7 @@ const Test = () => {
   const status = useMemo(() => {
     const status = {};
     allTestEntities.forEach(item => {
-      const itemStatus = stats[item.objectId]?.caseLatestStatus || 'TODO';
+      const itemStatus = stats[item.id]?.caseLatestStatus || 'TODO';
       status[itemStatus] = (status[itemStatus] || 0) + 1;
     });
     return status;
