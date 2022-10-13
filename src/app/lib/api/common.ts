@@ -881,7 +881,10 @@ export async function updateItem(id: string, data: Record<string, any>) {
     cpData.detail = JSON.stringify(cpData.detail);
   }
   const res = await fetch
-    .$put(`/parse/api/items/${id}`, { values: testEntityToItemValues(data) })
+    .$put(`/parse/api/items/${id}`, {
+      values: testEntityToItemValues(data),
+      eventExtraData: { skipItemChange: true },
+    })
     .then(data => data.item);
   return itemToTestEntity(res);
 }
