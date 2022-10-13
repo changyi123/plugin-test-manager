@@ -564,8 +564,9 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   }, [
     userData,
     hasRowSelected,
-    scopedTestDetailRefresh,
+    workspaceKey,
     tableSelectionToggleEvent,
+    scopedTestDetailRefresh,
     selectedTestPlan?.objectId,
     mutateTestPlanEvent,
   ]);
