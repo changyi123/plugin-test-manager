@@ -148,7 +148,11 @@ const Test = () => {
         key: 'status',
         render: (_, record) => {
           const handleStatusChange = async status => {
-            await updateTestStatus({ runIds: [record.objectId], status: status.key });
+            await updateTestStatus({
+              runIds: [record.objectId],
+              status: status.key,
+              planId: testEntity?.linkItems?.[0] ?? '',
+            });
             refreshDepData();
           };
           return (
