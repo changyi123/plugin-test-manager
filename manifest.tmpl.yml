@@ -61,6 +61,8 @@ modules:
       handler: importer.runValidate
     - key: test-manager-import-script
       handler: importer.runImport
+      # 5 分钟超时时长
+      timeout: 300000
     - key: huishang-script
       handler: web.runHuishangScript
       # 测试报告统计数据
