@@ -79,14 +79,17 @@ const Test = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const refreshDepData = React.useCallback(() => {
-    // 全量数据
-    getAllRelTestEntities();
-    tableActionRef.current.refresh();
-    // 修改执行状态，移除或者添加用例，需要更新外部列表
-    const proxima = createProximaSdk();
-    proxima.execute('updateRepoTree');
-  }, [getAllRelTestEntities]);
+  const refreshDepData = React.useCallback(
+    (eventKey?: string) => {
+      // 全量数据
+      getAllRelTestEntities();
+      tableActionRef.current.refresh();
+      // 修改执行状态，移除或者添加用例，需要更新外部列表
+      const proxima = createProximaSdk();
+      proxima.execute(eventKey ?? 'updateRepoTree');
+    },
+    [getAllRelTestEntities],
+  );
 
   const tableDataSourceGetter = React.useCallback(
     params => {
@@ -153,7 +156,7 @@ const Test = () => {
               status: status.key,
               planId: testEntity?.linkItems?.[0] ?? '',
             });
-            refreshDepData();
+            refreshDepData('updateTestRunStatus');
           };
           return (
             <StatusBadge
@@ -198,7 +201,7 @@ const Test = () => {
         ),
       },
     ];
-  }, [allTestRunIds, refreshDepData, removeTestRelation]);
+  }, [allTestRunIds, refreshDepData, removeTestRelation, testEntity]);
 
   // 添加测试用例菜单
   const testDetailMenuList = React.useMemo(() => {
