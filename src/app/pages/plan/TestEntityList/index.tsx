@@ -225,6 +225,8 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
             list: [],
           };
 
+      setTableLoading(false);
+
       return {
         list: runs.map(d => {
           const item = testItem.find(item => item.objectId === d.referenceCase);
@@ -242,10 +244,18 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
 
   useEffect(() => {
     const [systemSelectors] = selectors;
-    if (!isEmpty(systemSelectors)) {
+    if (!isEmpty(systemSelectors) && activedType !== 'TestPlan') {
+      setTableLoading(true);
       scopedTestDetailRefresh();
+      const isEmptyValue = Object.values(systemSelectors)
+        .map(d => d?.value)
+        .filter(Boolean);
+      // 筛选器有 tag 值为空时取消 loading
+      if (isEmptyValue.length) {
+        setTableLoading(false);
+      }
     }
-  }, [selectors, scopedTestDetailRefresh]);
+  }, [selectors, scopedTestDetailRefresh, activedType]);
 
   const removeTestRelation = React.useCallback(
     async (planId, testDetails) => {

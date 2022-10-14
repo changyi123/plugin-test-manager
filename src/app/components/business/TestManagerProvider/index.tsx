@@ -10,7 +10,7 @@ import { alert, hasArrayItem } from '@/lib/utils/helper';
 import { useOnItemCreateSuccess } from '@/lib/hooks/useProximaSDK';
 import { openCreateItemModal, openItemDetailPanel } from '@/lib/api/sdk';
 import { getTestConfig } from '@/lib/api/common';
-import { getItemByIds, getWorkspaceByKey, getItemTypeByKey, getItemByIQL } from '@/lib/api/proxima';
+import { getItemByIds, getWorkspaceByKey, getItemTypeByKey } from '@/lib/api/proxima';
 import { getKeyByValue, generateSortIndex } from '@/lib/utils/helper';
 import {
   TestConfigContext,
@@ -24,7 +24,7 @@ import {
   CREATE_ITEM_STORE_FIELD_KEY,
   TestType,
 } from '@/lib/constants';
-import { updateTestEntity } from '@/lib/api/item';
+import { getTestEntityByQuery, updateTestEntity } from '@/lib/api/item';
 
 const ItemCreateSuccessEventType = 'itemCreateSuccess';
 
@@ -203,10 +203,16 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
     const execute = async () => {
       // 先获取事项详情
       const {
-        items: [testEntity],
-      } = await getItemByIQL({ itemId });
+        list: [testEntity],
+      } = await getTestEntityByQuery({
+        query: {
+          id: itemId,
+        },
+      });
+
+      const isTestEntity = Object.values(TestType).includes(testEntity?.type);
       // TODO: 类型问题
-      setTestEntity((testEntity ?? ENTITY_NOT_FOUND) as unknown as TestEntity);
+      setTestEntity((isTestEntity ? testEntity : ENTITY_NOT_FOUND) as unknown as TestEntity);
       if (testEntity) {
         const workspace = testEntity.workspace;
         workspace && setWorkspace(workspace as Workspace);
