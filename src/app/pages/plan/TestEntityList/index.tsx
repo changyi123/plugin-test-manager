@@ -244,15 +244,21 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   }, [selectors, scopedTestDetailRefresh]);
 
   const removeTestRelation = React.useCallback(
-    async (planId, testDetailIds) => {
-      if (!Array.isArray(testDetailIds)) return;
+    async (planId, testDetails) => {
+      if (!Array.isArray(testDetails)) return;
       await updateTestEntity(
-        testDetailIds.map(d => ({
-          objectId: d,
+        testDetails.map(d => ({
+          objectId: d.id,
           linkItems: {
             action: 'delete',
             value: [planId],
           },
+          caseStatus: Object.entries(d.caseStatus ?? {}).reduce((prev, [key, value]) => {
+            if (planId !== key) {
+              prev[key] = value;
+            }
+            return prev;
+          }, {}),
         })),
       );
 
@@ -261,7 +267,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       await scopedTestDetailRefresh();
 
       notification.success({
-        message: `${testDetailIds.length} 个测试用例从测试计划中移除`,
+        message: `${testDetails.length} 个测试用例从测试计划中移除`,
       });
       // refreshPlanData();
     },
@@ -325,7 +331,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           <a
             onClick={() => {
               actionConfirm('该操作会将该测试用例从测试计划中移除，是否继续操作？', () => {
-                removeTestRelation(rowData.selectedTestPlanId, [rowData.objectId]);
+                removeTestRelation(rowData.selectedTestPlanId, [rowData]);
               });
             }}
           >
@@ -477,13 +483,28 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       if (hasRowSelected) {
         actionConfirm('该操作会将所选测试用例从测试计划中移除，是否继续操作？', async () => {
           setTableLoading(true);
+          const { list: items } = await getTestEntityByQuery({
+            query: {
+              workspaceKey: workspaceKey,
+              type: TestType.Case,
+              id: actionRef.current.selectedRowKeys ?? [],
+            },
+            limit: 99999,
+            select: ['id', 'caseStatus'],
+          });
           await updateTestEntity(
-            actionRef.current.selectedRowKeys.map(d => ({
-              objectId: d,
+            items.map(item => ({
+              objectId: item.id,
               linkItems: {
                 action: 'delete',
                 value: [selectedTestPlan?.objectId],
               },
+              caseStatus: Object.entries(item.caseStatus ?? {}).reduce((prev, [key, value]) => {
+                if (selectedTestPlan?.objectId !== key) {
+                  prev[key] = value;
+                }
+                return prev;
+              }, {}),
             })),
           );
           actionRef.current.resetSelectedRowKeys();
@@ -543,8 +564,9 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   }, [
     userData,
     hasRowSelected,
-    scopedTestDetailRefresh,
+    workspaceKey,
     tableSelectionToggleEvent,
+    scopedTestDetailRefresh,
     selectedTestPlan?.objectId,
     mutateTestPlanEvent,
   ]);
