@@ -75,6 +75,7 @@ const TestRun: React.FC<TestRunType> = props => {
   const [tabPaneLoading, setTabPaneLoading] = React.useState(false);
   const [testId, setTestId] = React.useState(props.id);
   const modelScrollRef = React.useRef();
+  const [tabActiveKey, setTabActiveKey] = React.useState(TestRunDetailTabs[0].key);
 
   const {
     data: testRunEntity,
@@ -258,8 +259,34 @@ const TestRun: React.FC<TestRunType> = props => {
     setTabPaneLoading(loading);
   }, []);
 
-  const TabPaneChildrenProps = React.useMemo(() => {
-    return {
+  const TabItemsProps = React.useMemo(() => {
+    const renderTabLabel = tab => {
+      const numGetters = {
+        step() {
+          return testRunData.runDetail?.steps?.length ?? 0;
+        },
+        itemLink() {
+          return itemLinks?.length ?? 0;
+        },
+        defect() {
+          return allRelationDefects?.length ?? 0;
+        },
+        attachment() {
+          return testRunData.runDetail?.attachments?.length ?? 0;
+        },
+      };
+
+      return (
+        <div className={cx('tab-title')}>
+          {tab.title}
+          {tab.key !== 'resultDesc' && (
+            <span className={cx('num')}>{numGetters[tab.key]?.() ?? ''}</span>
+          )}
+        </div>
+      );
+    };
+
+    const props = {
       itemLinks,
       onLoading,
       testRunData,
@@ -269,44 +296,24 @@ const TestRun: React.FC<TestRunType> = props => {
       allRelationDefects,
       selectedTestPlanId,
       handleStatusChangeBySteps: handleStatusChange, // 监听步骤 steps 执行 handleStatusChange
-    } as unknown as TabsComponentBaseProps;
-  }, [
-    itemLinks,
-    onLoading,
-    testRunData,
-    onDataChange,
-    testRunEntity,
-    refTestDetailData,
-    allRelationDefects,
-    handleStatusChange,
-    selectedTestPlanId,
-  ]);
-
-  const renderTabTitle = tab => {
-    const numGetters = {
-      step() {
-        return testRunData.runDetail?.steps?.length ?? 0;
-      },
-      itemLink() {
-        return itemLinks?.length ?? 0;
-      },
-      defect() {
-        return allRelationDefects?.length ?? 0;
-      },
-      attachment() {
-        return testRunData.runDetail?.attachments?.length ?? 0;
-      },
     };
 
-    return (
-      <div className={cx('tab-title')}>
-        {tab.title}
-        {tab.key !== 'resultDesc' && (
-          <span className={cx('num')}>{numGetters[tab.key]?.() ?? ''}</span>
-        )}
-      </div>
-    );
-  };
+    return TestRunDetailTabs.map(tab => ({
+      key: tab.key,
+      label: renderTabLabel(tab),
+      children: React.createElement(tab.component, { ...props, name: tab.key } as any),
+    }));
+  }, [
+    allRelationDefects,
+    handleStatusChange,
+    itemLinks,
+    onDataChange,
+    onLoading,
+    refTestDetailData,
+    selectedTestPlanId,
+    testRunData,
+    testRunEntity,
+  ]);
 
   // const TestCommentsList = React.useMemo(
   //   () => (
@@ -377,21 +384,12 @@ const TestRun: React.FC<TestRunType> = props => {
             </Collapse>
             <Collapse className={cx('collapse', 'tab')} defaultActiveKey={['1']}>
               <Collapse.Panel key="1" header="测试执行详情">
-                <Tabs className={cx('tabs')}>
-                  {TestRunDetailTabs.map(tab => (
-                    <Tabs.TabPane key={tab.key} tab={(() => renderTabTitle(tab))()}>
-                      {tab.component &&
-                        React.createElement(
-                          tab.component,
-                          Object.assign(
-                            {},
-                            TabPaneChildrenProps,
-                            tab.key === 'resultDesc' ? { name: tab.key } : {},
-                          ),
-                        )}
-                    </Tabs.TabPane>
-                  ))}
-                </Tabs>
+                <Tabs
+                  activeKey={tabActiveKey}
+                  onChange={setTabActiveKey}
+                  className={cx('tabs')}
+                  items={TabItemsProps}
+                />
               </Collapse.Panel>
             </Collapse>
             {/* <Collapse className={cx('collapse')} defaultActiveKey={['1']}>

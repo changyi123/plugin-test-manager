@@ -12,8 +12,7 @@ import zhCN from 'antd/lib/locale/zh_CN';
 const rootElement = 'test-manager';
 
 message.config({
-  getContainer: () =>
-    document.getElementById('osc-proxima') || document.getElementById(rootElement),
+  getContainer: getRootContainer,
 });
 
 import routes from './routes';
