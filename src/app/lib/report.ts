@@ -257,7 +257,8 @@ export default class TemplateGenerator {
     const downloadUrl = data => {
       const a = document.createElement('a');
       a.href = data;
-      a.download = fileName;
+      // 兼容计划名称中含有字符“.”导致 word 格式错误
+      a.download = fileName.replace(/\.+/g, '-');
       (a as any).style = 'display: none';
       document.body.appendChild(a);
       a.click();

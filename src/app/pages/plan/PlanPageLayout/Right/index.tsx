@@ -119,6 +119,16 @@ const Right: React.FC<RightProps> = props => {
 
     try {
       setLoading(true);
+      await updateTestEntity(
+        caseIds.map(item => ({
+          objectId: item,
+          linkType: TestLinkType.CaseLinkPlan,
+          linkItems: {
+            action: 'add',
+            value: [selectedTestPlan.objectId],
+          },
+        })),
+      );
       // 创建执行任务
       await batchCreateTestRun({
         executionId: selectedExecution.objectId,
@@ -137,7 +147,7 @@ const Right: React.FC<RightProps> = props => {
       message: '用例执行创建成功',
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedExecution, curTestRuns]);
+  }, [selectedExecution, selectedTestPlan, curTestRuns]);
 
   const filterSearchExtendFieldsProps = useMemo(() => {
     const fieldsMapping = {
