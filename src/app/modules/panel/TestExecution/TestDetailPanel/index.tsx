@@ -80,13 +80,14 @@ const Test = () => {
   }, []);
 
   const refreshDepData = React.useCallback(
-    (eventKey?: string) => {
+    async (eventKey?: string) => {
       // 全量数据
-      getAllRelTestEntities();
+      const data = await getAllRelTestEntities();
       tableActionRef.current.refresh();
       // 修改执行状态，移除或者添加用例，需要更新外部列表
       const proxima = createProximaSdk();
       proxima.execute(eventKey ?? 'updateRepoTree');
+      return data;
     },
     [getAllRelTestEntities],
   );
@@ -174,11 +175,18 @@ const Test = () => {
           <Space split={<Divider type="vertical" />} size={0} style={{ marginLeft: -4 }}>
             <Button
               onClick={async () => {
+                const { objectId, status } = item || {};
                 await testRunModalActionRef.current.open({
-                  testId: item.objectId,
+                  testId: objectId,
                   testIdSequence: allTestRunIds,
                 });
-                refreshDepData();
+                const res = await refreshDepData();
+                const currentStatus = res.list?.find(data => data.id === objectId)?.status;
+                if (currentStatus !== status) {
+                  // 刷新列表的状态
+                  const proxima = createProximaSdk();
+                  proxima.execute('updateTestRunStatus');
+                }
               }}
               size="small"
               type="link"
@@ -201,7 +209,7 @@ const Test = () => {
         ),
       },
     ];
-  }, [allTestRunIds, refreshDepData, removeTestRelation, testEntity]);
+  }, [testEntity?.linkItems, refreshDepData, allTestRunIds, allTestEntities, removeTestRelation]);
 
   // 添加测试用例菜单
   const testDetailMenuList = React.useMemo(() => {
