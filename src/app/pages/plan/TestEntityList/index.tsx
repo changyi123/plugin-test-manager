@@ -77,6 +77,10 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     }, 400);
   });
 
+  useListener('updateTestRunStatus', () => {
+    actionRef.current.refresh();
+  });
+
   const { data: allRunData } = useRequest(
     async () => {
       if (activedType === 'TestPlan') return [];
