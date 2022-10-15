@@ -153,7 +153,7 @@ const Test = () => {
     if (allTestEntities?.length) {
       await batchCreateTestRun({
         executionId: testExecution.objectId,
-        caseIds: allTestEntities.map(item => item.objectId),
+        caseIds: allTestEntities.map(item => item.id),
       });
     }
 
