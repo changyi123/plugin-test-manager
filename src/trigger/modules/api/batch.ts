@@ -24,6 +24,7 @@ import {
 } from '../../../common/constant';
 
 type TestCaseType = TestEntity<TestType.Case>;
+type TestRunType = TestEntity<TestType.Run>;
 
 /** 批量删除 */
 export const batchDelete = async () => {
@@ -144,22 +145,59 @@ export const batchCreateTestRun = async () => {
     // 步骤
     // 1. 查所有测试用例
     // 2. 创建测试执行
-    const {
-      data: { list: caseList },
-    } = await iqlRequest<TestCaseType>({
-      query: {
-        id: caseIds,
-      },
-      pagination: { limit: InfinityLimit },
-      fields: [
-        SystemField.Id,
-        SystemField.Name,
-        SystemField.ItemGroup,
-        SystemField.Workspace,
-        TestFiledKeyMapping.detail,
-        TestFiledKeyMapping.sortIndex,
-      ],
-    });
+    // 3. 过滤已规划的测试用例
+    const getTestCaseList = async () => {
+      // 获取所有测试用例数据
+      const getTestCaseByCaseIds = async () => {
+        const {
+          data: { list: caseList },
+        } = await iqlRequest<TestCaseType>({
+          query: {
+            id: caseIds,
+          },
+          pagination: { limit: InfinityLimit },
+          fields: [
+            SystemField.Id,
+            SystemField.Name,
+            SystemField.ItemGroup,
+            SystemField.Workspace,
+            TestFiledKeyMapping.detail,
+            TestFiledKeyMapping.sortIndex,
+          ],
+        });
+        return caseList;
+      };
+
+      // 获取测试管理已关联的测试执行 CaseIds
+      const getExistedTestRunReferenceCaseIdSet = async () => {
+        const {
+          data: { list: existedReferenceCaseIds },
+        } = await iqlRequest<TestRunType>({
+          query: {
+            referenceCase: caseIds,
+          },
+          pagination: { limit: InfinityLimit },
+          linkQuery: {
+            sourceIds: executionId,
+            destinationType: TestType.Run,
+            linkType: TestLinkType.RunLinkExecution,
+          },
+          fields: [TestFiledKeyMapping.referenceCase],
+        });
+
+        return new Set(existedReferenceCaseIds.map(item => item.referenceCase));
+      };
+
+      const [caseList, existedReferenceCaseIdSet] = await Promise.all([
+        getTestCaseByCaseIds(),
+        getExistedTestRunReferenceCaseIdSet(),
+      ]);
+
+      // 过滤已规划的测试用例
+      return caseList.filter(testCase => !existedReferenceCaseIdSet.has(testCase.objectId));
+    };
+
+    const caseList = await getTestCaseList();
 
     const needCreatedItems = caseList.map(data => {
       // 关联数据，测试执行关联测试执行任务
