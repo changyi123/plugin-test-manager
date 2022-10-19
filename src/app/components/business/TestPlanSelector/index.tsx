@@ -58,9 +58,6 @@ const TestPlanSelector: React.FC = () => {
     },
     {
       refreshDeps: [searchValue, workspaceKey],
-      cacheKey: `${workspaceKey}_testPlan_${searchValue ?? ''}`,
-      cacheTime: 9999999,
-      staleTime: 999999,
     },
   );
 
