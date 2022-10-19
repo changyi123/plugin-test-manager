@@ -71,7 +71,11 @@ const PlanPageLayout: React.FC<any> = () => {
   }, [query?.actionType]);
 
   // 获取测试计划范围
-  const { data: scopedTestDetailIds, refresh: scopedTestDetailRefresh } = useScopedTestDetailIds({
+  const {
+    data: scopedTestDetailIds,
+    // refresh: scopedTestDetailRefresh,
+    refreshAsync: scopedTestDetailRefresh,
+  } = useScopedTestDetailIds({
     workspaceKey,
     type: activedType === 'TestPlan' ? 'Plan' : 'Execution',
     testPlanId: selectedTestPlan?.objectId,
