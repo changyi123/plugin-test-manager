@@ -18,7 +18,7 @@ import TestEntityList from '../../TestEntityList';
 import { usePageContext } from '../../hook';
 import { useSetTableHeight } from './hooks';
 import ExecutionStatus from '../ExecutionStatus';
-import { batchCreateTestRun, updateTestEntity } from '@/lib/api/item';
+import { batchCreateTestRun, getTestEntityByQuery, updateTestEntity } from '@/lib/api/item';
 
 import cx from './index.less';
 import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/hook';
@@ -110,25 +110,39 @@ const Right: React.FC<RightProps> = props => {
   }, [selectedTestPlan?.objectId]);
 
   const addTestExecutionDetail = useCallback(async () => {
-    const caseIds = await testEntitySelectorRef.current.open();
+    const caseIds: string[] = await testEntitySelectorRef.current.open();
     if (caseIds?.length === 0) {
       return notification.warning({
         message: '未选择测试用例',
       });
     }
 
+    const { list: existCaseIds } = await getTestEntityByQuery({
+      query: {
+        workspaceKey: workspaceKey,
+        type: TestType.Case,
+        id: caseIds,
+      },
+      limit: 99999,
+      onlySelectId: true,
+    });
+
+    const needUpdateCaseIds = caseIds.filter(id => !existCaseIds?.includes(id)) ?? [];
+
     try {
       setLoading(true);
-      await updateTestEntity(
-        caseIds.map(item => ({
-          objectId: item,
-          linkType: TestLinkType.CaseLinkPlan,
-          linkItems: {
-            action: 'add',
-            value: [selectedTestPlan.objectId],
-          },
-        })),
-      );
+      if (needUpdateCaseIds.length) {
+        await updateTestEntity(
+          needUpdateCaseIds.map(item => ({
+            objectId: item,
+            linkType: TestLinkType.CaseLinkPlan,
+            linkItems: {
+              action: 'add',
+              value: [selectedTestPlan.objectId],
+            },
+          })),
+        );
+      }
       // 创建执行任务
       await batchCreateTestRun({
         executionId: selectedExecution.objectId,
