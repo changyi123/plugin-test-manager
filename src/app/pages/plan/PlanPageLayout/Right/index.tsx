@@ -18,7 +18,7 @@ import TestEntityList from '../../TestEntityList';
 import { usePageContext } from '../../hook';
 import { useSetTableHeight } from './hooks';
 import ExecutionStatus from '../ExecutionStatus';
-import { batchCreateTestRun, getTestEntityByQuery, updateTestEntity } from '@/lib/api/item';
+import { batchCreateTestRun, getlinkedTestEntityByQuery, updateTestEntity } from '@/lib/api/item';
 
 import cx from './index.less';
 import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/hook';
@@ -117,13 +117,14 @@ const Right: React.FC<RightProps> = props => {
       });
     }
 
-    const { list: existCaseIds } = await getTestEntityByQuery({
+    const { list: existCaseIds } = await getlinkedTestEntityByQuery({
       query: {
         workspaceKey: workspaceKey,
-        type: TestType.Case,
-        id: caseIds,
       },
-      limit: 99999,
+      limit: 9999,
+      linkType: TestLinkType.CaseLinkPlan,
+      sourceIds: [selectedTestPlan.objectId],
+      destinationType: TestType.Case,
       onlySelectId: true,
     });
 
