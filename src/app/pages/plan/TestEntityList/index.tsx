@@ -395,7 +395,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
 
   const testIdSequence = allRunData
     ?.filter(run => requestScopedTestDetailIds?.includes(run.referenceCase))
-    ?.map(run => run.objectId)
+    ?.map(run => run.id)
     .filter(Boolean);
 
   const excetionColumns = [
@@ -741,7 +741,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       {activedType !== 'TestPlan' && (
         <TestRunModal
           actionRef={testRunModalActionRef}
-          idSequence={allRunData?.map(run => run.objectId)}
+          idSequence={allRunData?.map(run => run.id)}
           selectedTestPlanId={selectedTestPlan.objectId}
         />
       )}
