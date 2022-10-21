@@ -69,8 +69,8 @@ const getOrCreateTestEntity = async (
       // 测试用例创建时需要生成默认 sortIndex
       extraFields = {
         ...extraFields,
-        sortIndex: generateSortIndex(),
       };
+
       // 添加事项创建 panel 的数据
       if (storeValues?.[CREATE_ITEM_STORE_FIELD_KEY]) {
         const { repository: storedRepository, ...detail } =
@@ -79,7 +79,6 @@ const getOrCreateTestEntity = async (
         needCreatedItem = {
           ...detail,
           repository: storedRepository,
-          sortIndex: generateSortIndex(1),
         };
       }
       console.info('extraFields', extraFields);
@@ -91,6 +90,7 @@ const getOrCreateTestEntity = async (
         name: itemData.name,
         ...needCreatedItem,
         type: type,
+        sortIndex: generateSortIndex(1),
       },
     ]);
     testEntity = data?.[0];
