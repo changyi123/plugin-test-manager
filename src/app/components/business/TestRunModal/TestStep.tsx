@@ -185,7 +185,7 @@ const TestStep: React.FC<TestStepProps> = props => {
                 showBg
                 status={step.status}
                 onReady={setStatusConfig}
-                onStatusChange={status => handleStatusChange(step.id, status.key)}
+                readonly
               />
             </span>
           </div>
