@@ -19,7 +19,7 @@ const CreateApiParseContext = {
 
 /** 删除测试实体 */
 export const batchDeleteItems = async (itemIds: string[]) => {
-  await deleteItems({
+  return deleteItems({
     itemIds,
   });
 };
@@ -47,7 +47,7 @@ export const batchUpdateItems = async (data: Partial<TestEntity>[]) => {
       },
       eventExtraData: { skipItemChange: true },
     });
-    return updateItems(item.objectId, values);
+    return await updateItems(item.objectId, values);
   });
 
   const dump = logTimeCost(`update ${taskQueue.length} items`);
