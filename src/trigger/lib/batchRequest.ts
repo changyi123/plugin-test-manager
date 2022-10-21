@@ -19,7 +19,7 @@ const CreateApiParseContext = {
 
 /** 删除测试实体 */
 export const batchDeleteItems = async (itemIds: string[]) => {
-  await deleteItems({
+  return deleteItems({
     itemIds,
   });
 };
