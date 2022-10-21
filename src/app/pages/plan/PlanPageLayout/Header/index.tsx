@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Button, notification, Spin } from 'antd';
 import { ArrowLeftOutlined, ExportOutlined } from '@/icons';
 import TestPlanSelector from '@/components/business/TestPlanSelector';
@@ -9,8 +9,11 @@ import { usePageContext } from '../../hook';
 import WordReport from '@/lib/report';
 import { useRequest } from 'ahooks';
 import { getFirstWordTemplate } from '@/lib/api/report';
-import { batchCreateTestRun, getlinkedTestEntityByQuery, updateTestEntity } from '@/lib/api/item';
+import { batchCreateTestRun, updateTestEntity } from '@/lib/api/item';
 import { generateSortIndex } from '@/lib/utils/helper';
+import TestEntitySelectorModal, {
+  ActionType as ModelActionType,
+} from '@/components/business/TestEntitySelectorModal';
 
 import cx from './index.less';
 
@@ -35,27 +38,16 @@ const Header: React.FC<HeaderProps> = ({
 }) => {
   const { workspaceKey, selectedTestPlan, setSelectedTestPlan, tableSelectionToggleEvent } =
     usePageContext();
+  const testEntitySelectorRef = useRef<ModelActionType>();
   const { createItemUseModal } = useBaseAction();
   const [isReportGenerating, setIsReportGenerating] = React.useState(false);
 
   // 创建测试执行任务
   const createTestExecution = async () => {
+    const caseIds = await testEntitySelectorRef.current.open();
     const { item, extraData } = await createItemUseModal({
       type: TestType.Execution,
       extraData: { planId: selectedTestPlan?.objectId, noBatch: true },
-    });
-
-    // 测试执行任务更新后，拿全部测试计划创建测试执行
-    const { list: caseIds } = await getlinkedTestEntityByQuery({
-      query: {
-        workspaceKey: workspaceKey,
-      },
-      limit: 9999,
-      linkType: TestLinkType.CaseLinkPlan,
-      sourceIds: [selectedTestPlan.objectId],
-      destinationType: TestType.Case,
-      descending: [],
-      onlySelectId: true,
     });
 
     // 创建测试执行，创建测试执行任务和执行关系，创建执行和用例关系
@@ -186,6 +178,11 @@ const Header: React.FC<HeaderProps> = ({
               <Button type="primary" onClick={createTestExecution}>
                 新建测试执行任务
               </Button>
+              <TestEntitySelectorModal
+                title="选择规划的测试用例"
+                testType={TestType.Case}
+                actionRef={testEntitySelectorRef}
+              />
             </div>
           )}
         </div>

@@ -133,6 +133,7 @@ const Test = () => {
 
   // 创建测试执行
   const createTestExecution = useCallback(async () => {
+    const caseIds = tableActionRef.current.selectedRowKeys;
     const token = uniqueId('TestPlan');
     const { item: testExecution } = await createItemUseModal({
       extraData: { token, planId: testEntity?.objectId },
@@ -150,10 +151,10 @@ const Test = () => {
     ]);
 
     // 规划用例创建测试执行
-    if (allTestEntities?.length) {
+    if (caseIds?.length) {
       await batchCreateTestRun({
         executionId: testExecution.objectId,
-        caseIds: allTestEntities.map(item => item.id),
+        caseIds: caseIds,
       });
     }
 
@@ -161,7 +162,7 @@ const Test = () => {
       type: 'success',
       message: `测试执行任务【${testExecution?.name}】新建成功`,
     });
-  }, [allTestEntities, createItemUseModal, testEntity.objectId]);
+  }, [createItemUseModal, testEntity.objectId, tableActionRef]);
 
   // 添加测试用例菜单
   const testDetailMenuList = useMemo(() => {
@@ -197,6 +198,7 @@ const Test = () => {
             hideMessage: true,
             type: TestType.Case,
             extraData: {
+              useItemBatchCreate: true,
               folderKey: null,
             },
           });

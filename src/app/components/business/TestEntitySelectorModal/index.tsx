@@ -23,7 +23,27 @@ let PreviousMessageData = null;
 let PreviousButtonClicked = false;
 
 export type ActionType = {
-  open: (params?: { testType?: TestType; ignoreTestEntityIds?: string[] }) => any;
+  open: (params?: {
+    testType?: TestType;
+    ignoreTestEntityIds?: string[];
+    modelProps?: ModelProps;
+    selectValue?: string[];
+  }) => any;
+};
+
+type ModelProps = {
+  title?: string;
+  footer: ModelPropsFooter;
+};
+
+type ModelPropsFooter = {
+  ok?: ModelBtn;
+  cancel?: ModelBtn;
+};
+
+type ModelBtn = {
+  name?: string;
+  cb?: (val?: any) => void;
 };
 
 export type TestEntitySelectorProps = {
@@ -55,6 +75,8 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
   const isTestDefectType = testType === TestType.TestDefect;
   // 测试类型名
   const testTypeName = TestTypeNameMapping[testType] ?? '事项';
+
+  const [modelProps, setModelProps] = useSafeState<ModelProps | undefined>(undefined);
 
   const {
     workspace,
@@ -197,9 +219,15 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
 
   React.useImperativeHandle(actionRef, () => ({
     async open(params) {
-      setSelectValue([]);
+      if (params?.selectValue) {
+        setSelectValue(params?.selectValue ?? []);
+      }
       if (params?.testType) {
         setTestType(params.testType);
+      }
+
+      if (params?.modelProps) {
+        setModelProps(params.modelProps);
       }
 
       // 手动获取像配置数据
@@ -306,14 +334,16 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
       <TestComponets
         isSingleMode={isSingleMode}
         workspaceKey={workspace?.key}
+        selectValue={selectValue}
         ignoreTestDetailIds={ignoreTestEntityIds}
         isWorkspaceIsolate={isolateTestType.includes(TestType.Case)}
         onTestDetailSelect={testDetails => setSelectedTestDetails(testDetails)}
       />
     );
-  }, [isolateTestType, workspace?.key, isSingleMode, ignoreTestEntityIds]);
+  }, [isolateTestType, workspace?.key, isSingleMode, ignoreTestEntityIds, selectValue]);
 
   const ModalFooterNode = React.useMemo(() => {
+    const { ok, cancel } = modelProps?.footer ?? {};
     return (
       <div className={cx('footer')}>
         {testType === TestType.Case ? (
@@ -326,14 +356,29 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
           </div>
         ) : null}
         <div className={cx('actions')}>
-          <Button onClick={() => setVisible(false)}>取消</Button>
+          <Button
+            onClick={() => {
+              cancel?.cb?.();
+              setSelectValue(undefined);
+              setVisible(false);
+            }}
+          >
+            {cancel?.name ?? '取消'}
+          </Button>
           <Button type="primary" onClick={handleOkButtonClick}>
-            确定
+            {ok?.name ?? '确定'}
           </Button>
         </div>
       </div>
     );
-  }, [handleOkButtonClick, selectedTestDetails, setVisible, testType, ignoreTestEntityIds]);
+  }, [
+    handleOkButtonClick,
+    selectedTestDetails,
+    setVisible,
+    testType,
+    ignoreTestEntityIds,
+    modelProps?.footer,
+  ]);
 
   return (
     <Modal
@@ -349,9 +394,12 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
       className={cx('modal')}
       getContainer={getRootContainer}
       footer={ModalFooterNode}
-      onCancel={() => setVisible(false)}
-      title={props.title ?? `请选择${testTypeName}`}
-      width={testType === TestType.Case ? 1000 : 500}
+      onCancel={() => {
+        setSelectValue(undefined);
+        setVisible(false);
+      }}
+      title={modelProps?.title ?? props.title ?? `请选择${testTypeName}`}
+      width={testType === TestType.Case ? 800 : 500}
       bodyStyle={{
         padding: '16px 24px',
       }}

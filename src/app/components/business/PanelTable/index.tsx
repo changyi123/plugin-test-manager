@@ -7,7 +7,7 @@ import { hasArrayItem, getRootContainer } from '@/lib/utils/helper';
 
 import cx from './index.less';
 
-export type ActionType = { refresh: () => void };
+export type ActionType = { refresh: () => void; selectedRowKeys?: string[] };
 
 type PanelTableProps = TableProps<any> & {
   actionRef?: React.RefObject<ActionType>;
@@ -62,8 +62,9 @@ const PanelTable: React.FC<PanelTableProps> = props => {
         // 刷新后重置选中的 row
         setSelectedRowKeys([]);
       },
+      selectedRowKeys,
     }),
-    [refresh, setSelectedRowKeys],
+    [refresh, setSelectedRowKeys, selectedRowKeys],
   );
 
   React.useEffect(() => {

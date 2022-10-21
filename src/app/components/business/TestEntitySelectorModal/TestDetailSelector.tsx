@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { cloneDeep } from 'lodash';
 import { useAllTestWorkspace } from '@/lib/hooks/useTest';
 import { includeAll, exclude, includeItem } from './helper';
@@ -21,6 +21,7 @@ type TestDetailSelectorProps = {
   isWorkspaceIsolate: boolean;
   ignoreTestDetailIds?: string[];
   onTestDetailSelect?: (testDetails) => void;
+  selectValue?: string[];
 };
 
 const { Search } = Input;
@@ -32,6 +33,7 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
     ignoreTestDetailIds,
     onTestDetailSelect,
     isWorkspaceIsolate,
+    selectValue,
   } = props;
 
   const repositoryFolderTreeRef = React.useRef<ActionType>();
@@ -45,11 +47,17 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
   // 选中目录树
   const [selectedNode, setSelectedNode] = React.useState(null);
   // 选中测试用例 id
-  const [selectedTestDetailIds, setSelectedTestDetailIds] = React.useState([]);
+  const [selectedTestDetailIds, setSelectedTestDetailIds] = React.useState<string[] | undefined>(
+    [],
+  );
   // 选中空间
   const [selectedWorkspaceKey, setSelectedWorkspaceKey] = React.useState(workspaceKey);
 
   const folderCheckedCacheRef = React.useRef({} as Record<string, any>);
+
+  useEffect(() => {
+    setSelectedTestDetailIds(selectValue ?? []);
+  }, [selectValue]);
 
   // 测试案例库选中
   const allTestWorkspaces = useAllTestWorkspace();
