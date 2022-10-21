@@ -1,0 +1,50 @@
+:root {
+  .status-list {
+    display: flex;
+    align-items: center;
+
+    .status {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      line-height: 32px;
+      height: 32px;
+      width: 70px;
+      margin-right: 8px;
+      color: #848c9f;
+      border: 1px solid #dadde3;
+      border-radius: 4px;
+      cursor: pointer;
+
+      &.PASSED:hover {
+        border: none;
+        background-color: #e2ffee;
+        color: #29c477;
+      }
+
+      &.BLOCK:hover {
+        border: none;
+        background-color: #f0ecff;
+        color: #846bff;
+      }
+
+      &.FAILED:hover {
+        border: none;
+        background-color: #ffebe5;
+        color: #ff7236;
+      }
+
+      &.EXECUTING:hover {
+        border: none;
+        background-color: #fffae6;
+        color: #ffbf36;
+      }
+
+      &.CANCEL:hover {
+        border: none;
+        background-color: #e2ecff;
+        color: #b5bac5;
+      }
+    }
+  }
+}

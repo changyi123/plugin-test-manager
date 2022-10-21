@@ -49,7 +49,7 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
   const [groupedMode, setGroupedMode] = React.useState<GroupedMode>('all');
 
   const testDetailFieldKeys = useTestTypeScreenFieldKeys({
-    testType: TestType.Plan,
+    testType: TestType.Case,
     workspaceKey,
   });
 
