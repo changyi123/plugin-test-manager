@@ -117,33 +117,8 @@ const Right: React.FC<RightProps> = props => {
       });
     }
 
-    const { list: existCaseIds } = await getlinkedTestEntityByQuery({
-      query: {
-        workspaceKey: workspaceKey,
-      },
-      limit: 9999,
-      linkType: TestLinkType.CaseLinkPlan,
-      sourceIds: [selectedTestPlan.objectId],
-      destinationType: TestType.Case,
-      onlySelectId: true,
-    });
-
-    const needUpdateCaseIds = caseIds.filter(id => !existCaseIds?.includes(id)) ?? [];
-
     try {
       setLoading(true);
-      if (needUpdateCaseIds.length) {
-        await updateTestEntity(
-          needUpdateCaseIds.map(item => ({
-            objectId: item,
-            linkType: TestLinkType.CaseLinkPlan,
-            linkItems: {
-              action: 'add',
-              value: [selectedTestPlan.objectId],
-            },
-          })),
-        );
-      }
       // 创建执行任务
       await batchCreateTestRun({
         executionId: selectedExecution.objectId,
