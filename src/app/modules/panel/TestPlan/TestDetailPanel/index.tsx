@@ -213,8 +213,8 @@ const Test = () => {
 
           const successMessage =
             testEntityList.length > 1
-              ? `${testEntityList.length}个测试用例新建成功`
-              : `测试用例【${testEntityList[0]?.name}】新建成功`;
+              ? `${testEntityList.length}个测试用例已被添加到测试计划中`
+              : `测试用例【${testEntityList[0]?.name}】已被添加到测试计划中`;
 
           alert({
             type: 'success',
