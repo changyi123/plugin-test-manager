@@ -191,29 +191,34 @@ const Test = () => {
       {
         title: '新建测试用例',
         async onClick() {
-          const {
-            item: { name, objectId },
-          } = await createItemUseModal({
+          const { testEntityList } = await createItemUseModal({
             hideMessage: true,
             type: TestType.Case,
             extraData: {
+              useItemBatchCreate: true,
               folderKey: null,
             },
           });
 
-          await updateTestEntity([
-            {
+          if (!testEntityList.length) return;
+          await updateTestEntity(
+            testEntityList.map(d => ({
               linkType: TestLinkType.CaseLinkPlan,
-              objectId,
+              objectId: d.objectId,
               linkItems: { action: 'add', value: [testEntity.objectId] },
-            },
-          ]);
+            })),
+          );
 
           refreshDepData();
 
+          const successMessage =
+            testEntityList.length > 1
+              ? `${testEntityList.length}个测试用例新建成功`
+              : `测试用例【${testEntityList[0]?.name}】新建成功`;
+
           alert({
             type: 'success',
-            message: `测试用例 ${name} 已被添加到测试计划中`,
+            message: successMessage,
           });
         },
       },
