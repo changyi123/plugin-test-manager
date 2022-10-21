@@ -1,7 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useCallback, useState } from 'react';
 import { Dropdown, Empty, Tooltip } from 'antd';
-import { getTestEntitiesByQuery } from '@/lib/api/common';
 import { usePageContext } from '@/pages/plan/hook';
 import { useDebounce, useRequest } from 'ahooks';
 import { TestType } from '@/lib/constants';
@@ -10,34 +9,52 @@ import SearchInput from '../SearchInput';
 import { DropDown } from '@/icons';
 
 import cx from './index.less';
+import { getStatsTestPlan, getTestEntityByQuery } from '@/lib/api/item';
+import _ from 'lodash';
+import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/hook';
 
 const TestPlanSelector: React.FC = () => {
   const listRef = React.useRef();
   const { workspaceKey, selectedTestPlan, setSelectedTestPlan } = usePageContext();
   const [search, setSearch] = useState('');
 
+  const testDetailFieldKeys = useTestTypeScreenFieldKeys({
+    testType: TestType.Plan,
+    workspaceKey,
+  });
+
   const searchValue = useDebounce(search, { wait: 500 });
 
   const { data } = useRequest(
-    async params => {
-      const { offset = 0 } = params ?? ({} as any);
-      // const { results } = await getTestEntitiesByQuery(
-      //   {
-      //     workspaceKey,
-      //     nameLike: searchValue,
-      //     type: TestType.TestPlan,
-      //   },
-      //   {
-      //     offset,
-      //     limit: 9999,
-      //     descendingBy: ['createdAt'],
-      //     ignoreDeletedItemData: true,
-      //   },
-      // );
+    async () => {
+      if (!workspaceKey) return [];
 
-      // return results;
+      const { list } = await getTestEntityByQuery({
+        query: {
+          workspaceKey: workspaceKey,
+          type: TestType.Plan,
+          name: searchValue,
+        },
+        fields: testDetailFieldKeys ?? [],
+        limit: 99999,
+      });
 
-      return [];
+      const stats = await getStatsTestPlan({
+        planIds: list.map(d => d.objectId),
+        select: ['caseStatus', 'caseCount'],
+      });
+
+      const testPlans = _.chain(list)
+        .map(testPlan => {
+          return {
+            ...testPlan,
+            ...stats?.[testPlan.objectId],
+            status: testPlan.workflowStatus,
+          };
+        })
+        .value();
+
+      return testPlans;
     },
     {
       refreshDeps: [searchValue, workspaceKey],
@@ -79,8 +96,8 @@ const TestPlanSelector: React.FC = () => {
                 key={d.objectId}
                 onClick={() => handleClick(d)}
               >
-                <Tooltip placement="topLeft" title={d?.reference?.name ?? ''}>
-                  {d?.reference?.name}
+                <Tooltip placement="topLeft" title={d?.name ?? ''}>
+                  {d?.name}
                 </Tooltip>
               </div>
             ))

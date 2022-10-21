@@ -375,27 +375,22 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   const deleteTestRunByIds = useMemoizedFn(testRunIds => {
     actionConfirm('该操作会将所选测试执行删除，是否继续操作？', async () => {
       // 删除测试执行
-      const {
-        data: { status },
-      } = await deleteTestEntity(testRunIds);
-      if (status === 'ok') {
-        await scopedTestDetailRefresh();
+      await deleteTestEntity(testRunIds);
+
+      setTimeout(() => {
+        scopedTestDetailRefresh();
         actionRef.current.resetSelectedRowKeys();
         mutateStatusEvent.emit('refreshExecutionStatus');
         notification.success({
           message: `${testRunIds.length} 个用例执行被删除`,
         });
-      } else {
-        notification.error({
-          message: `用例执行删除失败`,
-        });
-      }
+      }, 500);
     });
   });
 
   const testIdSequence = allRunData
     ?.filter(run => requestScopedTestDetailIds?.includes(run.referenceCase))
-    ?.map(run => run.objectId)
+    ?.map(run => run.id)
     .filter(Boolean);
 
   const excetionColumns = [
@@ -521,12 +516,13 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
               }, {}),
             })),
           );
-          actionRef.current.resetSelectedRowKeys();
-          tableSelectionToggleEvent.emit(false);
-          await scopedTestDetailRefresh();
-          actionRef.current.refresh();
-          setTableLoading(false);
-          // refreshPlanData();
+
+          setTimeout(() => {
+            scopedTestDetailRefresh();
+            actionRef.current.resetSelectedRowKeys();
+            tableSelectionToggleEvent.emit(false);
+            setTableLoading(false);
+          }, 500);
         });
       }
     };
@@ -741,7 +737,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       {activedType !== 'TestPlan' && (
         <TestRunModal
           actionRef={testRunModalActionRef}
-          idSequence={allRunData?.map(run => run.objectId)}
+          idSequence={allRunData?.map(run => run.id)}
           selectedTestPlanId={selectedTestPlan.objectId}
         />
       )}

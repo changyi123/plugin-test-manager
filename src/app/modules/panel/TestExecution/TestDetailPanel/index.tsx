@@ -22,6 +22,7 @@ import {
 } from '@/lib/api/item';
 import cx from './index.less';
 import createProximaSdk from '@projectproxima/proxima-sdk-js';
+import { useRequest } from 'ahooks';
 
 const Test = () => {
   const { testEntity, workspace } = useTestConfig();
@@ -31,6 +32,29 @@ const Test = () => {
   const testRunModalActionRef = React.useRef<TestRunModalActionType>();
 
   const [allTestEntities, setAllTestEntities] = useState([]);
+
+  const { data: allRunIds } = useRequest(
+    async () => {
+      if (!testEntity?.objectId) {
+        return [];
+      }
+      const { list: runData } = await getlinkedTestEntityByQuery({
+        query: {
+          workspaceKey: workspace.key,
+        },
+        limit: 9999,
+        linkType: TestLinkType.RunLinkExecution,
+        sourceIds: [testEntity.objectId],
+        destinationType: TestType.Run,
+        onlySelectId: true,
+      });
+
+      return runData;
+    },
+    {
+      refreshDeps: [workspace, testEntity],
+    },
+  );
 
   const getReTestEntities = useCallback(
     page => {
@@ -209,6 +233,7 @@ const Test = () => {
         ),
       },
     ];
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [testEntity?.linkItems, refreshDepData, allTestRunIds, allTestEntities, removeTestRelation]);
 
   // 添加测试用例菜单
@@ -267,7 +292,11 @@ const Test = () => {
         getDataSource={tableDataSourceGetter}
       />
 
-      <TestRunModal className={cx('run-modal')} actionRef={testRunModalActionRef} />
+      <TestRunModal
+        className={cx('run-modal')}
+        actionRef={testRunModalActionRef}
+        idSequence={allRunIds ?? []}
+      />
     </div>
   );
 };

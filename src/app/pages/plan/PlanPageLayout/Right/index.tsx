@@ -18,7 +18,7 @@ import TestEntityList from '../../TestEntityList';
 import { usePageContext } from '../../hook';
 import { useSetTableHeight } from './hooks';
 import ExecutionStatus from '../ExecutionStatus';
-import { batchCreateTestRun, updateTestEntity } from '@/lib/api/item';
+import { batchCreateTestRun, getlinkedTestEntityByQuery, updateTestEntity } from '@/lib/api/item';
 
 import cx from './index.less';
 import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/hook';
@@ -110,7 +110,7 @@ const Right: React.FC<RightProps> = props => {
   }, [selectedTestPlan?.objectId]);
 
   const addTestExecutionDetail = useCallback(async () => {
-    const caseIds = await testEntitySelectorRef.current.open();
+    const caseIds: string[] = await testEntitySelectorRef.current.open();
     if (caseIds?.length === 0) {
       return notification.warning({
         message: '未选择测试用例',
@@ -119,16 +119,6 @@ const Right: React.FC<RightProps> = props => {
 
     try {
       setLoading(true);
-      await updateTestEntity(
-        caseIds.map(item => ({
-          objectId: item,
-          linkType: TestLinkType.CaseLinkPlan,
-          linkItems: {
-            action: 'add',
-            value: [selectedTestPlan.objectId],
-          },
-        })),
-      );
       // 创建执行任务
       await batchCreateTestRun({
         executionId: selectedExecution.objectId,
