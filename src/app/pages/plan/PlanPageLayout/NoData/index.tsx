@@ -32,10 +32,6 @@ const NoData: React.FC<NoDataProps> = ({ setRefreshExecution }) => {
         footer: {
           ok: {
             name: '下一步',
-            cb: () => {
-              setSelectValue(undefined);
-              console.log('cbcbcbcbcbcbcbcbcb ------->');
-            },
           },
           cancel: {
             name: '取消',
@@ -69,14 +65,10 @@ const NoData: React.FC<NoDataProps> = ({ setRefreshExecution }) => {
     [createItemUseModal, selectedTestPlan?.objectId],
   );
 
-  console.log('noData ------->', selectValue);
-
   // 创建测试执行任务
   const createTestExecution = useCallback(async () => {
     const caseIds = await getSelectCaseIds();
-    if (caseIds.length) {
-      setSelectValue(caseIds);
-    }
+    setSelectValue(caseIds);
     const { item, extraData } = await createExcution(caseIds);
 
     // TODO 创建测试执行，创建测试执行任务和执行关系，创建执行和用例关系
@@ -105,7 +97,7 @@ const NoData: React.FC<NoDataProps> = ({ setRefreshExecution }) => {
       if (caseIds.length > 0) {
         await batchCreateTestRun({
           executionId: item.objectId,
-          caseIds: selectValue,
+          caseIds,
         });
       }
 
@@ -120,12 +112,11 @@ const NoData: React.FC<NoDataProps> = ({ setRefreshExecution }) => {
       });
       notification.destroy();
     }
-  }, [createExcution, getSelectCaseIds, selectValue, setRefreshExecution]);
+  }, [createExcution, getSelectCaseIds, setRefreshExecution]);
 
   const cancelCallback = useCallback(
     async params => {
-      if (!params?.extraData.useItemBatchCreate) {
-        // eslint-disable-next-line no-console
+      if (!params?.itemIdList?.length && params?.extraData?.type === TestType.Execution) {
         createTestExecution();
       }
     },
@@ -144,6 +135,9 @@ const NoData: React.FC<NoDataProps> = ({ setRefreshExecution }) => {
           title="选择规划的测试用例"
           testType={TestType.Case}
           actionRef={testEntitySelectorRef}
+          onCancel={() => {
+            setSelectValue(undefined);
+          }}
         />
       </Empty>
     </div>

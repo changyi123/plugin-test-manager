@@ -70,7 +70,7 @@ const Test = () => {
 
   // 所有的测试执行
   const allTestRunIds = React.useMemo(
-    () => allTestEntities.map(entity => entity.objectId),
+    () => allTestEntities.map(entity => entity.id),
     [allTestEntities],
   );
 

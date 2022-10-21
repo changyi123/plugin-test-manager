@@ -131,15 +131,35 @@ const Test = () => {
     [getRelTestEntities],
   );
 
+  const createExcution = useCallback(
+    async (caseIds, token) => {
+      const res = await createItemUseModal({
+        type: TestType.Execution,
+        extraData: {
+          token,
+          planId: testEntity?.objectId,
+          noBatch: true,
+          modalProps: {
+            title: `第 2 步：新建测试执行任务（已选 ${caseIds.length} 条用例）`,
+            footer: {
+              cancel: {
+                name: '上一步',
+              },
+            },
+          },
+        },
+      });
+
+      return res;
+    },
+    [createItemUseModal, testEntity?.objectId],
+  );
+
   // 创建测试执行
   const createTestExecution = useCallback(async () => {
     const caseIds = tableActionRef.current.selectedRowKeys;
     const token = uniqueId('TestPlan');
-    const { item: testExecution } = await createItemUseModal({
-      extraData: { token, planId: testEntity?.objectId },
-      name: uniqueId('测试执行'),
-      type: TestType.Execution,
-    });
+    const { item: testExecution } = await createExcution(caseIds, token);
 
     // 任务关联测试计划
     await updateTestEntity([
@@ -154,7 +174,7 @@ const Test = () => {
     if (caseIds?.length) {
       await batchCreateTestRun({
         executionId: testExecution.objectId,
-        caseIds: caseIds,
+        caseIds,
       });
     }
 
@@ -162,7 +182,7 @@ const Test = () => {
       type: 'success',
       message: `测试执行任务【${testExecution?.name}】新建成功`,
     });
-  }, [createItemUseModal, testEntity.objectId, tableActionRef]);
+  }, [createExcution, testEntity.objectId, tableActionRef]);
 
   // 添加测试用例菜单
   const testDetailMenuList = useMemo(() => {

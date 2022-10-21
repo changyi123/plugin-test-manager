@@ -56,6 +56,7 @@ export type TestEntitySelectorProps = {
   onSelect?: (testIds: string[]) => void;
   actionRef?: React.ForwardedRef<ActionType>;
   afterClose?: () => void;
+  onCancel?: () => void;
 };
 
 const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
@@ -65,6 +66,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
     isSingleMode = false,
     needFillValue,
     afterClose,
+    onCancel,
   } = props;
   const [visible, setVisible] = useSafeState(false);
   const debounceSelectContainerRef = React.useRef();
@@ -358,7 +360,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
         <div className={cx('actions')}>
           <Button
             onClick={() => {
-              cancel?.cb?.();
+              onCancel?.();
               setSelectValue(undefined);
               setVisible(false);
             }}
