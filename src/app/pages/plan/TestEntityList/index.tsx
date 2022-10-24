@@ -4,7 +4,7 @@ import Field from '@/components/common/Field';
 import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
 import RepositoryGroup from '@/components/business/RepositoryGroup';
 import { StatusBadge } from '@/components/business/Status';
-import { notification } from 'antd';
+import { notification, Button, Tooltip } from 'antd';
 import TestRunModal, {
   ActionType as TestRunModalActionType,
 } from '@/components/business/TestRunModal';
@@ -24,7 +24,8 @@ import {
 } from '@/lib/api/item';
 import { TestLinkType, TestType } from 'common/constant';
 import { RepositoryModel } from '@/lib/constants';
-import { isEmpty } from 'lodash';
+import { isEmpty, isEqual } from 'lodash';
+import { useTestRunActionAuth } from '@/lib/hooks/useTest';
 
 import cx from './index.less';
 
@@ -60,6 +61,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   const actionRef = React.useRef<BusinessTableActionType>();
   const testRunModalActionRef = React.useRef<TestRunModalActionType>();
   const userData = useUserCellUserDataProp(workspaceKey);
+  const { canExecuteTestRun, canAssignTestRun } = useTestRunActionAuth({ workspaceKey });
 
   const [tableLoading, setTableLoading] = useState(false);
   const [hasRowSelected, setHasRowSelected] = useState(false);
@@ -393,7 +395,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     ?.map(run => run.id)
     .filter(Boolean);
 
-  const excetionColumns = [
+  const executionColumns = [
     {
       key: 'detailName',
       title: '用例标题',
@@ -424,11 +426,14 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     {
       key: 'runStatus',
       title: '测试执行状态',
+      shouldCellUpdate: (record, prevRecord) => isEqual(record.designee, prevRecord.designee),
       width: 150,
       render(_, record) {
+        const { result: enabled } = canExecuteTestRun(record.designee);
         return (
           <StatusBadge
             useRootContainer
+            readonly={!enabled}
             status={record.status}
             onStatusChange={status => handleTestRunStatusChange(record, status)}
           />
@@ -457,31 +462,38 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       isSystem: true,
       fixed: 'right' as any,
       shouldCellUpdate: (record, prevRecord) =>
-        record.repository?.objectId !== prevRecord.repository?.objectId,
+        record.repository?.objectId !== prevRecord.repository?.objectId ||
+        isEqual(record.designee, prevRecord.designee),
       render(_, record) {
+        const { result: enabled, message } = canExecuteTestRun(record.designee);
         return (
-          <>
-            <a
-              onClick={async () => {
-                await testRunModalActionRef.current.open({
-                  testId: record.objectId,
-                });
-                // 刷新依赖数据
-                actionRef.current.refresh();
-                mutateStatusEvent.emit('refreshExecutionStatus');
-              }}
-            >
-              执行
-            </a>
-            <a
+          <div>
+            <Tooltip title={message}>
+              <Button
+                type="link"
+                disabled={!enabled}
+                onClick={async () => {
+                  await testRunModalActionRef.current.open({
+                    testId: record.objectId,
+                  });
+                  // 刷新依赖数据
+                  actionRef.current.refresh();
+                  mutateStatusEvent.emit('refreshExecutionStatus');
+                }}
+              >
+                执行
+              </Button>
+            </Tooltip>
+            <Button
+              type="link"
               style={{ marginLeft: 10 }}
               onClick={async () => {
                 deleteTestRunByIds([record.objectId]);
               }}
             >
               删除
-            </a>
-          </>
+            </Button>
+          </div>
         );
       },
     },
@@ -632,20 +644,25 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       // refreshAndMutateData();
     };
 
+    const canDesigneeSelect = canAssignTestRun();
+
     return [
-      <UserCell
-        value={[]}
-        key="assignee"
-        mode="multiple"
-        userData={userData}
-        readonly={!hasRowSelected}
-        onChange={handleDesigneeChange}
-        emptyChild={
-          <span className="user-field">
-            <UserOutlined /> 更改执行人
-          </span>
-        }
-      />,
+      <Tooltip key="assignee" title={canDesigneeSelect ? null : '不可对用例更改执行人'}>
+        <span className={cx(!canDesigneeSelect && 'disabled')}>
+          <UserCell
+            value={[]}
+            mode="multiple"
+            userData={userData}
+            readonly={!canDesigneeSelect || !hasRowSelected}
+            onChange={handleDesigneeChange}
+            emptyChild={
+              <span className="user-field">
+                <UserOutlined /> 更改执行人
+              </span>
+            }
+          />
+        </span>
+      </Tooltip>,
       <StatusBadge
         useRootContainer
         readonly={!hasRowSelected}
@@ -663,6 +680,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       </span>,
     ];
   }, [
+    canAssignTestRun,
     userData,
     hasRowSelected,
     selectedTestPlan?.objectId,
@@ -723,7 +741,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
             'executor',
           ]}
           rowKey="objectId"
-          columns={excetionColumns}
+          columns={executionColumns}
           name={'TestExecutionList'}
           actionRef={actionRef}
           loading={tableLoading || loading}

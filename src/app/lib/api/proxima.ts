@@ -357,10 +357,10 @@ export const updateUsedHierarchySchema = async () => {
 
 /** 获取空间下成员 */
 export const getWorkspaceRoleMembers = async (params: {
-  workspaceKey: string;
+  workspaceId: string;
   keyword?: string;
 }) => {
-  const result = await fetch.$get(`/parse/api/workspaceRoles/${params.workspaceKey}/members`, {
+  const result = await fetch.$get(`/parse/api/workspaceRoles/${params.workspaceId}/members`, {
     params: { keyword: params.keyword ?? '' },
   });
 
