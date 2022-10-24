@@ -117,7 +117,6 @@ const TestStep: React.FC<TestStepProps> = props => {
       return (
         <div ref={ref} className={cx('defect', isHover && 'hover')}>
           <ItemIcon className={cx('defect-icon')} icon={(item?.itemType as any)?.icon}></ItemIcon>
-          <span className={cx('defect-key')}>{item.key}</span>
           <a
             className={cx('link')}
             onClick={() => {
@@ -127,6 +126,7 @@ const TestStep: React.FC<TestStepProps> = props => {
               });
             }}
           >
+            <span className={cx('defect-key')}>{item.key}</span>
             {item.name}
           </a>
           <Popconfirm

@@ -82,7 +82,6 @@ const DefectList: React.FC<DefectListProps> = ({
       <div ref={ref} className={cx('defect', isHover && 'hover')}>
         <span className={cx('tag')}>{isGlobalDefect ? '全局' : `步骤${position}`}</span>
         <ItemIcon className={cx('icon')} icon={(item.itemType as any)?.icon}></ItemIcon>
-        <span className={cx('key')}>{item.key}</span>
         <a
           className={cx('link')}
           onClick={() => {
@@ -92,6 +91,7 @@ const DefectList: React.FC<DefectListProps> = ({
             });
           }}
         >
+          <span className={cx('key')}>{item.key}</span>
           {item.name}
         </a>
 
