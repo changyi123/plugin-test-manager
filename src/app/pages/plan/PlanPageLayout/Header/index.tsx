@@ -70,6 +70,7 @@ const Header: React.FC<HeaderProps> = ({
         extraData: {
           planId: selectedTestPlan?.objectId,
           noBatch: true,
+          isCreateExecution: true,
           modalProps: {
             title: `第 2 步：新建测试执行任务（已选 ${caseIds.length} 条用例）`,
             footer: {
@@ -137,14 +138,15 @@ const Header: React.FC<HeaderProps> = ({
 
   const cancelCallback = useCallback(
     async params => {
-      if (!params?.itemIdList?.length && params?.extraData?.type === TestType.Execution) {
+      if (params?.type === 'previous') {
         createTestExecution();
       }
     },
     [createTestExecution],
   );
 
-  useListener(PROXIMA_EVENT_KEY.itemBatchCreateSuccess, cancelCallback);
+  useListener('ExecutionPrevious', cancelCallback);
+  useListener(PROXIMA_EVENT_KEY.itemBatchCreateSuccess, () => setSelectValue(undefined));
 
   const { data: wordTemplate } = useRequest(
     async () => {

@@ -48,6 +48,7 @@ const NoData: React.FC<NoDataProps> = ({ setRefreshExecution }) => {
         type: TestType.Execution,
         extraData: {
           planId: selectedTestPlan?.objectId,
+          isCreateExecution: true,
           noBatch: true,
           modalProps: {
             title: `第 2 步：新建测试执行任务（已选 ${caseIds.length} 条用例）`,
@@ -116,14 +117,15 @@ const NoData: React.FC<NoDataProps> = ({ setRefreshExecution }) => {
 
   const cancelCallback = useCallback(
     async params => {
-      if (!params?.itemIdList?.length && params?.extraData?.type === TestType.Execution) {
+      if (params?.type === 'previous') {
         createTestExecution();
       }
     },
     [createTestExecution],
   );
 
-  useListener(PROXIMA_EVENT_KEY.itemBatchCreateSuccess, cancelCallback);
+  useListener('ExecutionPrevious', cancelCallback);
+  useListener(PROXIMA_EVENT_KEY.itemBatchCreateSuccess, () => setSelectValue(undefined));
 
   return (
     <div className={cx('no-data-box')}>
