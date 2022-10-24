@@ -5,7 +5,7 @@ import { Popconfirm, Empty } from 'antd';
 import AddDefectButton from './AddDefectButton';
 import { TabsComponentBaseProps } from './type';
 import { useItemLinkTypeConfig } from './hooks';
-import { escapeHtmlString } from '@/lib/utils/helper';
+import { escapeHtmlString, goToItemDetailPage } from '@/lib/utils/helper';
 import { StatusBadge } from '@/components/business/Status';
 import Input from '@/components/business/TestStep/fields/Input';
 import { addTestDefect, deleteTestDefect, updateTestRunDetail } from '@/lib/api/item';
@@ -118,7 +118,17 @@ const TestStep: React.FC<TestStepProps> = props => {
         <div ref={ref} className={cx('defect', isHover && 'hover')}>
           <ItemIcon className={cx('defect-icon')} icon={(item?.itemType as any)?.icon}></ItemIcon>
           <span className={cx('defect-key')}>{item.key}</span>
-          <span>{item.name}</span>
+          <a
+            className={cx('link')}
+            onClick={() => {
+              goToItemDetailPage({
+                workspaceKey: (item.workspace as any)?.key,
+                itemKey: item.key,
+              });
+            }}
+          >
+            {item.name}
+          </a>
           <Popconfirm
             okText="确定"
             cancelText="取消"

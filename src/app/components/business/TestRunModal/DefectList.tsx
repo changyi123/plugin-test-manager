@@ -9,6 +9,7 @@ import { TabsComponentBaseProps } from './type';
 import { Popconfirm, Tooltip, Empty } from 'antd';
 import { components } from 'proxima-sdk';
 import { addTestDefect, deleteTestDefect, updateTestRunDetail } from '@/lib/api/item';
+import { goToItemDetailPage } from '@/lib/utils/helper';
 
 const { ItemIcon } = components.Components.Common;
 
@@ -82,7 +83,17 @@ const DefectList: React.FC<DefectListProps> = ({
         <span className={cx('tag')}>{isGlobalDefect ? '全局' : `步骤${position}`}</span>
         <ItemIcon className={cx('icon')} icon={(item.itemType as any)?.icon}></ItemIcon>
         <span className={cx('key')}>{item.key}</span>
-        <span>{item.name}</span>
+        <a
+          className={cx('link')}
+          onClick={() => {
+            goToItemDetailPage({
+              workspaceKey: (item.workspace as any)?.key,
+              itemKey: item.key,
+            });
+          }}
+        >
+          {item.name}
+        </a>
 
         <span style={ItemStatusStyles[status.type]} className={cx('status')}>
           {status?.name}

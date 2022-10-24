@@ -225,7 +225,6 @@ export const useTestTypeUsedItemTypes = () => {
 export const useTestRunActionAuth = ({ workspaceKey }) => {
   const testConfig = useWorkspaceTestConfig(workspaceKey);
   const currentUser = useCurrentUser();
-  console.log('currentUser---------->', currentUser);
 
   const testRunAction = testConfig?.testRunAction ?? {};
 
