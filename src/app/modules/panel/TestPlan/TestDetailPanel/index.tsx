@@ -27,7 +27,7 @@ import {
   batchCreateTestRun,
   getRunsFromCase,
   updateTestEntity,
-  getlinkedTestEntityByQuery,
+  getLinkedTestEntityByQuery,
 } from '@/lib/api/item';
 
 const Test = () => {
@@ -48,7 +48,7 @@ const Test = () => {
       let stats = {};
       if (!sourceIds) return;
       // 获取计划下的所有测试用例
-      const { list: caseList, total } = await getlinkedTestEntityByQuery({
+      const { list: caseList, total } = await getLinkedTestEntityByQuery({
         linkType: TestLinkType.CaseLinkPlan,
         sourceIds: testEntity?.objectId,
         destinationType: TestType.Case,

@@ -78,7 +78,7 @@ export const getTestEntityByQuery = async (
 };
 
 // 关联查询
-export const getlinkedTestEntityByQuery = async (
+export const getLinkedTestEntityByQuery = async (
   props:
     | QueryLinkedTestEntityPayload
     | {

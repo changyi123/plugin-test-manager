@@ -1,6 +1,6 @@
 import React from 'react';
 import { useRequest, useSize } from 'ahooks';
-import { getlinkedTestEntityByQuery } from '@/lib/api/item';
+import { getLinkedTestEntityByQuery } from '@/lib/api/item';
 import { TestLinkType, TestType } from '@/lib/constants';
 
 export const useSetTableHeight = () => {
@@ -29,7 +29,7 @@ export const useGetCaseIdByPlan = ({
   const data = useRequest(
     async () => {
       if (!planId) return [];
-      const { list: ids } = await getlinkedTestEntityByQuery({
+      const { list: ids } = await getLinkedTestEntityByQuery({
         query: {
           workspaceKey: workspaceKey,
         },
