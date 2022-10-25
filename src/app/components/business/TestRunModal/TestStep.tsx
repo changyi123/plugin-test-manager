@@ -6,7 +6,7 @@ import AddDefectButton from './AddDefectButton';
 import { TabsComponentBaseProps } from './type';
 import { useItemLinkTypeConfig } from './hooks';
 import { escapeHtmlString } from '@/lib/utils/helper';
-import { StatusBadge } from '@/components/business/Status';
+import { StatusBadge, StatusList } from '@/components/business/Status';
 import Input from '@/components/business/TestStep/fields/Input';
 import { addTestDefect, deleteTestDefect, updateTestRunDetail } from '@/lib/api/item';
 import ExecutionEditor from './ExecutionEditor';
@@ -174,11 +174,18 @@ const TestStep: React.FC<TestStepProps> = props => {
             </span>
             <span className={cx('action')}>{renderFieldValue(step.action)}</span>
             <span className={cx('status')}>
+              <div className={cx('status-selector')}>
+                <StatusList
+                  onStatusChange={status => handleStatusChange(step.id, status.key)}
+                  status={step.status}
+                />
+              </div>
               <StatusBadge
+                className={cx('status-box')}
                 showBg
                 status={step.status}
                 onReady={setStatusConfig}
-                onStatusChange={status => handleStatusChange(step.id, status.key)}
+                readonly
               />
             </span>
           </div>

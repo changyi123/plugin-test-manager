@@ -18,7 +18,7 @@ import TestEntityList from '../../TestEntityList';
 import { usePageContext } from '../../hook';
 import { useSetTableHeight } from './hooks';
 import ExecutionStatus from '../ExecutionStatus';
-import { batchCreateTestRun, getlinkedTestEntityByQuery, updateTestEntity } from '@/lib/api/item';
+import { batchCreateTestRun, updateTestEntity } from '@/lib/api/item';
 
 import cx from './index.less';
 import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/hook';
@@ -89,7 +89,7 @@ const Right: React.FC<RightProps> = props => {
   });
 
   const testDetailFieldKeys = useTestTypeScreenFieldKeys({
-    testType: TestType.Plan,
+    testType: TestType.Case,
     workspaceKey,
   });
 

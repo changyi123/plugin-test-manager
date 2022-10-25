@@ -16,7 +16,7 @@ import { StatusProgress } from '@/components/business/Status';
 import {
   getStatsTestExecution,
   updateTestEntity,
-  getlinkedTestEntityByQuery,
+  getLinkedTestEntityByQuery,
 } from '@/lib/api/item';
 import cx from './index.less';
 
@@ -33,7 +33,7 @@ const Test = () => {
       const sourceIds = testEntity.objectId;
       if (!sourceIds) return;
       // 获取计划下的所有执行
-      const { list, total } = await getlinkedTestEntityByQuery({
+      const { list, total } = await getLinkedTestEntityByQuery({
         linkType: TestLinkType.ExecutionLinkPlan,
         sourceIds: testEntity?.objectId,
         destinationType: TestType.Execution,
