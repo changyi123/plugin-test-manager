@@ -48,6 +48,15 @@
     flex: none;
     cursor: pointer;
     color: @action-color;
+    // 后代选择器内有 disable 样式也将变成不可点击样式
+    :global {
+      .disabled {
+        .disabled-action();
+        .user-field {
+          .disabled-action();
+        }
+      }
+    }
     &.disabled {
       .disabled-action();
       :global {

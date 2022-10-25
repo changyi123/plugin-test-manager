@@ -1,5 +1,5 @@
 import React, { useCallback, useState, useMemo, useEffect } from 'react';
-import { Typography, message, Space, Button, Divider, Popconfirm } from 'antd';
+import { Typography, message, Space, Button, Divider, Popconfirm, Tooltip } from 'antd';
 import { DownOutlined } from '@ant-design/icons';
 import { TestType, TestLinkType } from '@/lib/constants';
 import PanelTable, { ActionType } from '@/components/business/PanelTable';
@@ -23,10 +23,12 @@ import {
 import cx from './index.less';
 import createProximaSdk from '@projectproxima/proxima-sdk-js';
 import { useRequest } from 'ahooks';
+import { useTestRunActionAuth } from '@/lib/hooks/useTest';
 
 const Test = () => {
   const { testEntity, workspace } = useTestConfig();
   const tableActionRef = React.useRef<ActionType>();
+  const { canExecuteTestRun } = useTestRunActionAuth({ workspaceKey: workspace?.key });
 
   const selectorModalRef = React.useRef<SelectorActionType>();
   const testRunModalActionRef = React.useRef<TestRunModalActionType>();
@@ -183,10 +185,12 @@ const Test = () => {
             });
             refreshDepData('updateTestRunStatus');
           };
+          const { result: enable } = canExecuteTestRun(record.designee);
           return (
             <StatusBadge
-              status={record?.status}
               useRootContainer
+              readonly={!enable}
+              status={record?.status}
               onStatusChange={handleStatusChange}
             />
           );
@@ -195,42 +199,48 @@ const Test = () => {
       {
         title: '操作',
         key: 'testRunId',
-        render: (_, item) => (
-          <Space split={<Divider type="vertical" />} size={0} style={{ marginLeft: -4 }}>
-            <Button
-              onClick={async () => {
-                const { objectId, status } = item || {};
-                await testRunModalActionRef.current.open({
-                  testId: objectId,
-                  testIdSequence: allTestRunIds,
-                });
-                const res = await refreshDepData();
-                const currentStatus = res.list?.find(data => data.id === objectId)?.status;
-                if (currentStatus !== status) {
-                  // 刷新列表的状态
-                  const proxima = createProximaSdk();
-                  proxima.execute('updateTestRunStatus');
-                }
-              }}
-              size="small"
-              type="link"
-            >
-              执行
-            </Button>
-            <Popconfirm
-              okText="确定"
-              placement="left"
-              cancelText="取消"
-              title="当前操作会移除该测试执行，是否继续执行？"
-              getPopupContainer={() => getRootContainer()}
-              onConfirm={() => removeTestRelation([item.objectId])}
-            >
-              <Button size="small" type="link">
-                移除
-              </Button>
-            </Popconfirm>
-          </Space>
-        ),
+        render: (_, record) => {
+          const { result: enable, message } = canExecuteTestRun(record.designee);
+          return (
+            <Space split={<Divider type="vertical" />} size={0} style={{ marginLeft: -4 }}>
+              <Tooltip title={message}>
+                <Button
+                  disabled={!enable}
+                  onClick={async () => {
+                    const { objectId, status } = record || {};
+                    await testRunModalActionRef.current.open({
+                      testId: objectId,
+                      testIdSequence: allTestRunIds,
+                    });
+                    const res = await refreshDepData();
+                    const currentStatus = res.list?.find(data => data.id === objectId)?.status;
+                    if (currentStatus !== status) {
+                      // 刷新列表的状态
+                      const proxima = createProximaSdk();
+                      proxima.execute('updateTestRunStatus');
+                    }
+                  }}
+                  size="small"
+                  type="link"
+                >
+                  执行
+                </Button>
+              </Tooltip>
+              <Popconfirm
+                okText="确定"
+                placement="left"
+                cancelText="取消"
+                title="当前操作会移除该测试执行，是否继续执行？"
+                getPopupContainer={() => getRootContainer()}
+                onConfirm={() => removeTestRelation([record.objectId])}
+              >
+                <Button size="small" type="link">
+                  移除
+                </Button>
+              </Popconfirm>
+            </Space>
+          );
+        },
       },
     ];
     // eslint-disable-next-line react-hooks/exhaustive-deps

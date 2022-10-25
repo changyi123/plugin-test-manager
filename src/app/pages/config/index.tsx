@@ -5,6 +5,8 @@ import DataProvider from './DataProvider';
 import DefectMapping from './DefectMapping';
 import ItemTypeMapping from './ItemTypeMapping';
 import IsolatedTestType from './IsolatedTestType';
+import ExecuteTestRunAction from './ExecuteTestRunAction';
+
 import { DownOutlined } from '@ant-design/icons';
 import { useLocalStorageState, useSafeState } from 'ahooks';
 import { Menu, Layout, Dropdown, Button, Result } from 'antd';
@@ -54,6 +56,12 @@ const ConfigPages = [
     title: '空间数据隔离配置',
     component: IsolatedTestType,
     description: '配置当前空间内对测试用例，测试计划，测试执行，测试缺陷的空间可见范围',
+  },
+  {
+    key: 'ExecuteTestRunAction',
+    title: '用例执行配置',
+    component: ExecuteTestRunAction,
+    description: '配置当前空间在用例执行时的约束',
   },
 ];
 
