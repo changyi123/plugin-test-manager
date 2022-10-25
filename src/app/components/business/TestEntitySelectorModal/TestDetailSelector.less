@@ -74,9 +74,20 @@
         max-height: ~'calc(100% - 40px)';
         overflow-y: auto;
 
+        :global {
+          .ant-tree {
+            padding: 0;
+          }
+        }
         &.tab-layout {
           margin-top: 54px;
           max-height: ~'calc(100% - 96px)';
+
+          :global {
+            .ant-tree {
+              padding: 10px 16px;
+            }
+          }
         }
       }
 
