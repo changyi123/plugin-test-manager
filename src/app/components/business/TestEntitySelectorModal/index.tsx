@@ -48,6 +48,7 @@ type ModelBtn = {
 
 export type TestEntitySelectorProps = {
   title?: string;
+  planId?: string;
   testType?: TestType;
   placeholder?: string;
   isSingleMode?: boolean;
@@ -61,6 +62,7 @@ export type TestEntitySelectorProps = {
 
 const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
   const {
+    planId,
     actionRef,
     ignoreTestEntityIds = [],
     isSingleMode = false,
@@ -340,9 +342,10 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
         ignoreTestDetailIds={ignoreTestEntityIds}
         isWorkspaceIsolate={isolateTestType.includes(TestType.Case)}
         onTestDetailSelect={testDetails => setSelectedTestDetails(testDetails)}
+        planId={planId}
       />
     );
-  }, [isolateTestType, workspace?.key, isSingleMode, ignoreTestEntityIds, selectValue]);
+  }, [isolateTestType, workspace?.key, isSingleMode, ignoreTestEntityIds, selectValue, planId]);
 
   const ModalFooterNode = React.useMemo(() => {
     const { ok, cancel } = modelProps?.footer ?? {};

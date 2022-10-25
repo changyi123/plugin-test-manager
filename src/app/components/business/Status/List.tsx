@@ -14,8 +14,9 @@ const List: React.FC<StatusListProps> = ({ className, onStatusChange, status }) 
   const statusConfig = useStatusConfig();
 
   const statusList = useMemo(() => {
-    return sequence(Object.values(statusConfig ?? [])).filter(d => d.key !== 'TODO');
-  }, [statusConfig]);
+    const filterStatus = [status ?? '', 'TODO'].filter(Boolean);
+    return sequence(Object.values(statusConfig ?? [])).filter(d => !filterStatus.includes(d.key));
+  }, [statusConfig, status]);
 
   const statusChange = val => {
     if (status === val.key) return;

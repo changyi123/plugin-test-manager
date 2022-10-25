@@ -29,6 +29,7 @@ type InheritTestDetailProps = {
   ignoreTestDetailIds?: string[];
   onTestDetailSelect?: (testDetails) => void;
   selectValue?: string[];
+  planId?: string;
 };
 
 const InheritTestDetail: React.FC<InheritTestDetailProps> = props => {

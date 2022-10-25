@@ -6,7 +6,7 @@ import { updateFolders } from '@/lib/api/repository';
 import { UserCell } from '@projectproxima/components';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import { DeleteOutlined, UserOutlined, DragHandler } from '@/icons';
-import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
+import { actionConfirm, generateSortIndex, openItemViewScreen } from '@/lib/utils/helper';
 import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
 import { cloneTestEntities } from '@/lib/api/common';
 import { useUserCellUserDataProp } from '@/lib/hooks/useProxima';
@@ -202,12 +202,15 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
 
     const copyTestDetail = async data => {
       setTableLoading(true);
-      await copyTesTase({
+      const res = await copyTesTase({
         includeStatus: true,
         name: `${data.name}_${Math.floor(Date.now())}`,
         objectId: data.objectId,
         workspace: data.workspace.objectId,
       });
+
+      await updateTestEntity([{ objectId: res.objectId, sortIndex: generateSortIndex(1) }]);
+
       refreshAndMutateData();
       setTableLoading(false);
 

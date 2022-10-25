@@ -140,6 +140,7 @@ const NoData: React.FC<NoDataProps> = ({ setRefreshExecution }) => {
           onCancel={() => {
             setSelectValue(undefined);
           }}
+          planId={selectedTestPlan?.objectId}
         />
       </Empty>
     </div>

@@ -242,6 +242,7 @@ const Header: React.FC<HeaderProps> = ({
                 onCancel={() => {
                   setSelectValue(undefined);
                 }}
+                planId={selectedTestPlan?.objectId}
               />
             </div>
           )}

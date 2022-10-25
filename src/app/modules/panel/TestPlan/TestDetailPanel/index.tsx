@@ -1,9 +1,9 @@
 import React, { useCallback, useState, useMemo, useEffect } from 'react';
 
 import { uniqueId } from 'lodash';
-import { Table, Tooltip } from 'antd';
+import { Button, Table, Tooltip } from 'antd';
 import { alert } from '@/lib/utils/helper';
-import { DownOutlined } from '@ant-design/icons';
+import { DownOutlined, PlusOutlined } from '@ant-design/icons';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import { INITIAL_STATUS_KEY, TestLinkType, TestType } from '@/lib/constants';
 import PanelTable, {
@@ -140,12 +140,7 @@ const Test = () => {
           planId: testEntity?.objectId,
           noBatch: true,
           modalProps: {
-            title: `第 2 步：新建测试执行任务（已选 ${caseIds.length} 条用例）`,
-            footer: {
-              cancel: {
-                name: '上一步',
-              },
-            },
+            title: `新建测试执行任务（已选 ${caseIds.length} 条用例）`,
           },
         },
       });
@@ -301,17 +296,9 @@ const Test = () => {
     ];
   }, [removeTestRelation]);
 
-  // 添加测试执行菜单
-  const testExecutionMenuList = useMemo(() => {
-    return [
-      {
-        title: '包含所有测试用例',
-        onClick: async () => {
-          await createTestExecution();
-          refreshDepData();
-        },
-      },
-    ];
+  const createTestExcution = useCallback(async () => {
+    await createTestExecution();
+    refreshDepData();
   }, [createTestExecution, refreshDepData]);
 
   const expandedRowRender = useCallback(
@@ -402,10 +389,9 @@ const Test = () => {
         }}
         renderActions={() => (
           <>
-            <DropDownButton buttonProps={{ type: 'default' }} menuList={testExecutionMenuList}>
-              创建测试执行
-              <DownOutlined />
-            </DropDownButton>
+            <Button icon={<PlusOutlined />} onClick={createTestExcution}>
+              测试执行任务
+            </Button>
             <DropDownButton menuList={testDetailMenuList}>
               添加测试用例 <DownOutlined />
             </DropDownButton>
