@@ -14,10 +14,10 @@ import {
   SystemIncludeFieldKeys,
 } from '@/lib/constants';
 import { useUpdateEffect } from 'ahooks';
-import TestEntityList from '../../TestEntityList';
 import { usePageContext } from '../../hook';
 import { useSetTableHeight } from './hooks';
 import ExecutionStatus from '../ExecutionStatus';
+import TestEntityList from '../../TestEntityList';
 import { batchCreateTestRun, updateTestEntity } from '@/lib/api/item';
 
 import cx from './index.less';
