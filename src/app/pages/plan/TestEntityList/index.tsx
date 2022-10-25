@@ -16,7 +16,7 @@ import { usePageContext } from '../hook';
 import { useListener } from '@projectproxima/proxima-sdk-js';
 import {
   deleteTestEntity,
-  getlinkedTestEntityByQuery,
+  getLinkedTestEntityByQuery,
   getTestCaseStats,
   getTestEntityByQuery,
   updateTestEntity,
@@ -89,7 +89,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       if (!requestScopedTestDetailIds?.length || !selectedExecution?.objectId) {
         return [];
       }
-      const { list: runData } = await getlinkedTestEntityByQuery({
+      const { list: runData } = await getLinkedTestEntityByQuery({
         query: {
           workspaceKey: workspaceKey,
           referenceCase: requestScopedTestDetailIds,
@@ -169,7 +169,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           total: 0,
         };
       // 查询测试执行
-      const { list: runs, total } = await getlinkedTestEntityByQuery(
+      const { list: runs, total } = await getLinkedTestEntityByQuery(
         {
           query: {
             workspaceKey: workspaceKey,

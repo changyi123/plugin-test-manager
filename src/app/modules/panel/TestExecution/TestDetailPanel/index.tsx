@@ -18,7 +18,7 @@ import {
   batchCreateTestRun,
   deleteTestEntity,
   updateTestStatus,
-  getlinkedTestEntityByQuery,
+  getLinkedTestEntityByQuery,
 } from '@/lib/api/item';
 import cx from './index.less';
 import createProximaSdk from '@projectproxima/proxima-sdk-js';
@@ -40,7 +40,7 @@ const Test = () => {
       if (!testEntity?.objectId) {
         return [];
       }
-      const { list: runData } = await getlinkedTestEntityByQuery({
+      const { list: runData } = await getLinkedTestEntityByQuery({
         query: {
           workspaceKey: workspace.key,
         },
@@ -60,7 +60,7 @@ const Test = () => {
 
   const getReTestEntities = useCallback(
     page => {
-      return getlinkedTestEntityByQuery({
+      return getLinkedTestEntityByQuery({
         linkType: TestLinkType.RunLinkExecution,
         sourceIds: testEntity?.objectId,
         destinationType: TestType.Run,
@@ -96,7 +96,7 @@ const Test = () => {
 
   // 所有的测试执行
   const allTestRunIds = React.useMemo(
-    () => allTestEntities.map(entity => entity.objectId),
+    () => allTestEntities.map(entity => entity.id),
     [allTestEntities],
   );
 

@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useMemo, useState } from 'react';
 import { Checkbox, Empty, Select, Spin, Tooltip } from 'antd';
-import { useRequest } from 'ahooks';
+import { useRequest, useUpdateEffect } from 'ahooks';
 import emptyImg from '@/icons/svg/empty-data.png';
 import cx from './TestDetailsSelectorList.less';
 import { CaretDownOutlined, CaretUpOutlined } from '@ant-design/icons';
@@ -16,6 +16,7 @@ interface TestDetailsSelectorListProps {
   ignoreTestDetailIds?: string[];
   selectedTestDetailIds?: string[];
   setSelectedTestDetailIds?: (val: any) => void;
+  checkTreeType?: string;
 }
 
 const reportTreeToArray = (datas: any[], parent?: any, ignoreIds = []) => {
@@ -85,6 +86,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
   ignoreTestDetailIds,
   selectedTestDetailIds,
   setSelectedTestDetailIds,
+  checkTreeType,
 }) => {
   const CheckboxGroup = Checkbox.Group;
   const [checkData, setCheckData] = useState([]);
@@ -100,7 +102,11 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
   );
 
   // 查询当前用例库下所有测试用例
-  const { data: curTestList = [], loading: curTestListLoading } = useRequest(
+  const {
+    data: curTestList = [],
+    loading: curTestListLoading,
+    refresh,
+  } = useRequest(
     async () => {
       const baseQueryOptions: {
         ascending?: FieldKey[];
@@ -142,6 +148,13 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
       cacheTime: 999999999,
     },
   );
+
+  useUpdateEffect(() => {
+    if (checkTreeType) {
+      refresh();
+      setSelectedTestDetailIds([]);
+    }
+  }, [checkTreeType]);
 
   useEffect(() => {
     if (!curTestListLoading) {

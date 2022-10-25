@@ -89,7 +89,7 @@ const Right: React.FC<RightProps> = props => {
   });
 
   const testDetailFieldKeys = useTestTypeScreenFieldKeys({
-    testType: TestType.Plan,
+    testType: TestType.Case,
     workspaceKey,
   });
 

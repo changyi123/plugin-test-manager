@@ -1,7 +1,7 @@
 import React from 'react';
 import { useRequest } from 'ahooks';
 import { get, isEmpty } from 'lodash';
-import { getlinkedTestEntityByQuery, getTestEntityByQuery } from '@/lib/api/item';
+import { getLinkedTestEntityByQuery, getTestEntityByQuery } from '@/lib/api/item';
 import { SearchSelectors } from '@/lib/utils/iql';
 import { TestLinkType, TestType } from 'common/constant';
 
@@ -33,7 +33,7 @@ export const useScopedTestDetailIds = (params: ScopedTestDetailIdsParams) => {
     async () => {
       if (type === 'Plan') {
         // 测试全部用例的范围
-        const { list: caseIds } = await getlinkedTestEntityByQuery({
+        const { list: caseIds } = await getLinkedTestEntityByQuery({
           query: {
             workspaceKey: workspaceKey,
           },
@@ -49,7 +49,7 @@ export const useScopedTestDetailIds = (params: ScopedTestDetailIdsParams) => {
         if (!testExecutionId) return [];
         const [systemSelectors] = selectors;
         // 测试执行的用例范围
-        const { list: runs } = await getlinkedTestEntityByQuery({
+        const { list: runs } = await getLinkedTestEntityByQuery({
           query: {
             workspaceKey: workspaceKey,
           },
