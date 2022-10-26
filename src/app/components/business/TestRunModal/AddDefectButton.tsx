@@ -47,14 +47,16 @@ const AddDefectButton: React.FC<AddDefectButtonProps> = props => {
   }, [createItemUseModal, onLoading, TestToDefect, testRunEntity, currentDefectIds, onSave]);
 
   const addExistedDefect = async () => {
-    const itemIds = await testEntitySelectorRef.current.open();
+    const itemIds = await testEntitySelectorRef.current.open({ selectValue: [] });
 
-    onLoading?.();
-    // 创建事项关联
-    await addTestDefect(TestToDefect, testRunEntity, itemIds);
-    const needAddedItemIds = [].concat(currentDefectIds, itemIds).filter(Boolean);
-    onSave?.(needAddedItemIds);
-    message.success('缺陷添加成功');
+    if (itemIds?.length > 0) {
+      onLoading?.();
+      // 创建事项关联
+      await addTestDefect(TestToDefect, testRunEntity, itemIds);
+      const needAddedItemIds = [].concat(currentDefectIds, itemIds).filter(Boolean);
+      onSave?.(needAddedItemIds);
+      message.success('缺陷添加成功');
+    }
   };
 
   const menu = (
