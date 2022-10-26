@@ -47,7 +47,8 @@ const Header: React.FC<HeaderProps> = ({
   const [treeType, setTreeType] = React.useState<string | undefined>('');
 
   const getSelectCaseIds = useCallback(async () => {
-    const data = await testEntitySelectorRef.current.open({
+    if (!testEntitySelectorRef.current?.open) return;
+    const data = await testEntitySelectorRef.current?.open({
       selectValue,
       treeType,
       modelProps: {
@@ -91,7 +92,9 @@ const Header: React.FC<HeaderProps> = ({
 
   // 创建测试执行任务
   const createTestExecution = useCallback(async () => {
-    const { selectedData: caseIds, treeType } = await getSelectCaseIds();
+    const data = await getSelectCaseIds();
+    if (!data) return;
+    const { selectedData: caseIds, treeType } = data;
     setSelectValue(caseIds);
     setTreeType(treeType);
     const { item, extraData } = await createExcution(caseIds);
@@ -142,14 +145,17 @@ const Header: React.FC<HeaderProps> = ({
   const cancelCallback = useCallback(
     async params => {
       if (params?.type === 'previous') {
-        createTestExecution();
+        await createTestExecution();
       }
     },
     [createTestExecution],
   );
 
   useListener('ExecutionPrevious', cancelCallback);
-  useListener(PROXIMA_EVENT_KEY.itemBatchCreateSuccess, () => setSelectValue(undefined));
+  useListener(PROXIMA_EVENT_KEY.itemBatchCreateSuccess, () => {
+    setSelectValue([]);
+    setTreeType('plan');
+  });
 
   const { data: wordTemplate } = useRequest(
     async () => {
@@ -243,8 +249,8 @@ const Header: React.FC<HeaderProps> = ({
                 testType={TestType.Case}
                 actionRef={testEntitySelectorRef}
                 onCancel={() => {
-                  setSelectValue(undefined);
-                  setTreeType(undefined);
+                  setSelectValue([]);
+                  setTreeType('plan');
                 }}
                 planId={selectedTestPlan?.objectId}
               />

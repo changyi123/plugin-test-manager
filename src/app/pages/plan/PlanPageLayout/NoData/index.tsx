@@ -23,10 +23,11 @@ const NoData: React.FC<NoDataProps> = ({ setRefreshExecution }) => {
   const { createItemUseModal } = useBaseAction();
   const testEntitySelectorRef = useRef<ModelActionType>();
   const [selectValue, setSelectValue] = useState<string[] | undefined>(undefined);
-  const [treeType, setTreeType] = React.useState<string | undefined>('');
+  const [treeType, setTreeType] = React.useState<string | undefined>('plan');
 
   const getSelectCaseIds = useCallback(async () => {
-    const data = await testEntitySelectorRef.current.open({
+    if (!testEntitySelectorRef.current?.open) return;
+    const data = await testEntitySelectorRef.current?.open({
       selectValue,
       treeType,
       modelProps: {
@@ -71,7 +72,9 @@ const NoData: React.FC<NoDataProps> = ({ setRefreshExecution }) => {
 
   // 创建测试执行任务
   const createTestExecution = useCallback(async () => {
-    const { selectedData: caseIds, treeType } = await getSelectCaseIds();
+    const data = await getSelectCaseIds();
+    if (!data) return;
+    const { selectedData: caseIds, treeType } = data;
     setSelectValue(caseIds);
     setTreeType(treeType);
     const { item, extraData } = await createExcution(caseIds);
@@ -122,14 +125,17 @@ const NoData: React.FC<NoDataProps> = ({ setRefreshExecution }) => {
   const cancelCallback = useCallback(
     async params => {
       if (params?.type === 'previous') {
-        createTestExecution();
+        await createTestExecution();
       }
     },
     [createTestExecution],
   );
 
   useListener('ExecutionPrevious', cancelCallback);
-  useListener(PROXIMA_EVENT_KEY.itemBatchCreateSuccess, () => setSelectValue(undefined));
+  useListener(PROXIMA_EVENT_KEY.itemBatchCreateSuccess, () => {
+    setSelectValue([]);
+    setTreeType('plan');
+  });
 
   return (
     <div className={cx('no-data-box')}>
@@ -142,8 +148,8 @@ const NoData: React.FC<NoDataProps> = ({ setRefreshExecution }) => {
           testType={TestType.Case}
           actionRef={testEntitySelectorRef}
           onCancel={() => {
-            setSelectValue(undefined);
-            setTreeType(undefined);
+            setSelectValue([]);
+            setTreeType('plan');
           }}
           planId={selectedTestPlan?.objectId}
         />

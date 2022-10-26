@@ -101,6 +101,8 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
     [selectedTestDetailIds, checkData],
   );
 
+  const caseIds = getTestDetailIdsByReport(getReportData(selectedNode), 'caseIds') ?? [];
+
   // 查询当前用例库下所有测试用例
   const {
     data: curTestList = [],
@@ -125,7 +127,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
           workspaceKey: workspaceKey,
           type: TestType.Case,
           name: detailSearchValue,
-          id: getTestDetailIdsByReport(getReportData(selectedNode), 'caseIds'),
+          id: caseIds,
         },
         ...baseQueryOptions,
         limit: 9999,
@@ -141,7 +143,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
     },
     {
       refreshDeps: [detailSearchValue, orderByCratedAt, selectedNode, workspaceKey],
-      cacheKey: `Repository_${selectedNode?.key ?? ''}${selectedNode?.caseIds.join('_') ?? ''}${
+      cacheKey: `Repository_${selectedNode?.key ?? ''}${caseIds.join('_')}${
         detailSearchValue ?? ''
       }${orderByCratedAt}${workspaceKey}`,
       staleTime: 999999999,
