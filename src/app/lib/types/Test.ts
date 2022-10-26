@@ -23,3 +23,10 @@ export type WordTemplate = {
   // TODO: 前置执行脚本
   preExecuteScript: string;
 };
+
+export type CopyTestCasePlayload = {
+  includeStatus: boolean;
+  name: string;
+  objectId: string;
+  workspace: string;
+};

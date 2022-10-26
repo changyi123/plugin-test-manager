@@ -1,14 +1,16 @@
-import React from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { cloneDeep } from 'lodash';
 import { useAllTestWorkspace } from '@/lib/hooks/useTest';
 import { includeAll, exclude, includeItem } from './helper';
-import { useDebounce } from 'ahooks';
+import { useDebounce, useRequest } from 'ahooks';
 import { Select, Input } from 'antd';
 import { SearchOutlined } from '@/icons';
 import TestDetailsSelectorList from './TestDetailsSelectorList';
 
 import cx from './TestDetailSelector.less';
 import RepositoryFolderTree, { ActionType } from '../RepositoryFolderTree';
+import { TestLinkType, TestType } from '@/lib/constants';
+import { getLinkedTestEntityByQuery } from '@/lib/api/item';
 
 const DEFAULT_CHECKED_KEY = {
   checked: [],
@@ -21,9 +23,22 @@ type TestDetailSelectorProps = {
   isWorkspaceIsolate: boolean;
   ignoreTestDetailIds?: string[];
   onTestDetailSelect?: (testDetails) => void;
+  selectValue?: string[];
+  planId?: string;
 };
 
 const { Search } = Input;
+
+const tabsList = [
+  {
+    label: '测试计划',
+    key: 'plan',
+  },
+  {
+    label: '测试用例库',
+    key: 'repository',
+  },
+];
 
 const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
   const {
@@ -32,6 +47,8 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
     ignoreTestDetailIds,
     onTestDetailSelect,
     isWorkspaceIsolate,
+    selectValue,
+    planId,
   } = props;
 
   const repositoryFolderTreeRef = React.useRef<ActionType>();
@@ -39,17 +56,53 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
   // 目录搜索
   const [folderSearchValue, setFolderSearchValue] = React.useState('');
   const [detailSearchValue, setDetailSearchValue] = React.useState('');
+  const [checkTreeType, setCheckTreeType] = React.useState('repository');
 
   // tree checked key
   const [folderCheckedKey, setFolderCheckedKey] = React.useState(DEFAULT_CHECKED_KEY);
   // 选中目录树
   const [selectedNode, setSelectedNode] = React.useState(null);
   // 选中测试用例 id
-  const [selectedTestDetailIds, setSelectedTestDetailIds] = React.useState([]);
+  const [selectedTestDetailIds, setSelectedTestDetailIds] = React.useState<string[] | undefined>(
+    [],
+  );
   // 选中空间
   const [selectedWorkspaceKey, setSelectedWorkspaceKey] = React.useState(workspaceKey);
 
   const folderCheckedCacheRef = React.useRef({} as Record<string, any>);
+
+  useEffect(() => {
+    setSelectedTestDetailIds(selectValue ?? []);
+  }, [selectValue]);
+
+  // 查询当前用例库下所有测试用例
+  const { data: planLinkCaseIds } = useRequest(
+    async () => {
+      if (!planId && !workspaceKey) return [];
+      const { list: caseIds } = await getLinkedTestEntityByQuery({
+        query: {
+          workspaceKey: workspaceKey,
+        },
+        limit: 9999,
+        linkType: TestLinkType.CaseLinkPlan,
+        sourceIds: [planId],
+        destinationType: TestType.Case,
+        onlySelectId: true,
+      });
+      return caseIds;
+    },
+    {
+      refreshDeps: [workspaceKey, planId],
+      staleTime: 999999999,
+      cacheTime: 999999999,
+    },
+  );
+
+  const treeProps = useMemo(() => {
+    return checkTreeType === 'plan'
+      ? { scopedTestDetailIds: planLinkCaseIds, hideEmptyFolder: true }
+      : {};
+  }, [planLinkCaseIds, checkTreeType]);
 
   // 测试案例库选中
   const allTestWorkspaces = useAllTestWorkspace();
@@ -151,19 +204,34 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
       <div className={cx('main')}>
         <div className={cx('selector-container')}>
           <div className={cx('folder-selector')}>
+            {planId && (
+              <div className={cx('tabs-box')}>
+                {tabsList.map(d => (
+                  <div
+                    className={cx('tab-title', d.key === checkTreeType ? 'actived' : '')}
+                    key={d.key}
+                    onClick={() => setCheckTreeType(d.key)}
+                  >
+                    {d.label}
+                  </div>
+                ))}
+              </div>
+            )}
             <Input
               placeholder="搜索用例库分组"
               value={folderSearchValue}
-              className={cx('search-input')}
-              addonBefore={<SearchOutlined />}
+              className={cx('search-input', planId ? 'tab-layout' : '')}
+              addonAfter={<SearchOutlined />}
+              size={planId ? 'middle' : 'large'}
               onChange={e => setFolderSearchValue(e.target.value)}
             />
-            <div className={cx('tree-box')}>
+            <div className={cx('tree-box', planId ? 'tab-layout' : '')}>
               <RepositoryFolderTree
                 workspaceKey={selectedWorkspaceKey}
                 shouldIncludeSubFolder={false}
                 actionRef={repositoryFolderTreeRef}
                 onFolderSelect={(_, nodeInfo) => setSelectedNode(nodeInfo.selectedFolder)}
+                {...treeProps}
               />
             </div>
           </div>
@@ -175,10 +243,10 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
               ignoreTestDetailIds={ignoreTestDetailIds ?? []}
               selectedTestDetailIds={selectedTestDetailIds}
               setSelectedTestDetailIds={setSelectedTestDetailIds}
+              checkTreeType={checkTreeType}
             />
           </div>
         </div>
-        {/* <Empty style={{ paddingTop: 100 }} description="当前用例库未创建用例模块" /> */}
       </div>
     </div>
   );

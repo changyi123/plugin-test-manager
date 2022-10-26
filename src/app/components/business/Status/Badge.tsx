@@ -38,11 +38,7 @@ const Status = ({
     >
       <span style={{ background: status?.color }} className={cx('dot', 'status__dot')} />
       <span className={cx('name')}>{status?.name}</span>
-      {showBg && (
-        <span className={cx('icon')}>
-          <CaretDownOutlined />
-        </span>
-      )}
+      {showBg && <span className={cx('icon')}>{hasEffect && <CaretDownOutlined />}</span>}
     </div>
   );
 };

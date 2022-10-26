@@ -9,7 +9,7 @@ import { useListener } from '@projectproxima/proxima-sdk-js';
 import { usePageContext } from '../../hook';
 
 import cx from './index.less';
-import { getlinkedTestEntityByQuery } from '@/lib/api/item';
+import { getLinkedTestEntityByQuery } from '@/lib/api/item';
 import { TestLinkType, TestType } from 'common/constant';
 
 interface ExcetionListProps {
@@ -59,7 +59,7 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
     async () => {
       if (activedType !== 'TestExecution') return [];
 
-      const { list } = await getlinkedTestEntityByQuery({
+      const { list } = await getLinkedTestEntityByQuery({
         query: {
           workspaceKey: workspaceKey,
         },

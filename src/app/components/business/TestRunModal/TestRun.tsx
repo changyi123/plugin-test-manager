@@ -3,7 +3,7 @@ import _ from 'lodash';
 import { TestEntity } from '@/lib/types/Test';
 import { QuestionCircleFilled } from '@/icons';
 import { getItemByIds } from '@/lib/api/proxima';
-import { StatusBadge } from '@/components/business/Status';
+import { StatusBadge, StatusList } from '@/components/business/Status';
 import { useRequest, useSessionStorageState } from 'ahooks';
 import { PASS_STATUS_TYPE, TestType } from '@/lib/constants';
 import { getRootContainer, generateStorageKey } from '@/lib/utils/helper';
@@ -344,9 +344,12 @@ const TestRun: React.FC<TestRunType> = props => {
                   showBg
                   className={cx('status-btn')}
                   status={testRunData.status}
-                  onStatusChange={handleStatusChange}
+                  readonly
                 />
-                <div className={cx('assigner')}></div>
+                <div className={cx('status-divider')}>
+                  <StatusList onStatusChange={handleStatusChange} status={testRunData.status} />
+                </div>
+                {/* <div className={cx('assigner')}></div> */}
               </div>
               {canExecNext ? (
                 <div className={cx('next')}>

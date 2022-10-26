@@ -17,7 +17,7 @@ import { TestLinkType } from '@/lib/constants';
 import {
   getStatsFormPlan,
   updateTestEntity as updateRelated,
-  getlinkedTestEntityByQuery,
+  getLinkedTestEntityByQuery,
 } from '@/lib/api/item';
 import createProximaSdk from '@projectproxima/proxima-sdk-js';
 
@@ -56,7 +56,7 @@ const Plan = () => {
       const planList = testEntity?.linkItems;
       if (!planList?.length) return { list: [], total: 0 };
       // 获取测试计划
-      const { list, total } = await getlinkedTestEntityByQuery({
+      const { list, total } = await getLinkedTestEntityByQuery({
         linkType: TestLinkType.CaseLinkPlan,
         sourceIds: testEntity?.objectId,
         destinationType: TestType.Plan,

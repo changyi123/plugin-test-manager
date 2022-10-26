@@ -6,7 +6,7 @@ import { updateFolders } from '@/lib/api/repository';
 import { UserCell } from '@projectproxima/components';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import { DeleteOutlined, UserOutlined, DragHandler } from '@/icons';
-import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
+import { actionConfirm, generateSortIndex, openItemViewScreen } from '@/lib/utils/helper';
 import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
 import { cloneTestEntities } from '@/lib/api/common';
 import { useUserCellUserDataProp } from '@/lib/hooks/useProxima';
@@ -14,7 +14,12 @@ import RepositorySelector, {
   ActionType as RepositorySelectorActionType,
 } from '@/components/business/RepositorySelector';
 import RepositoryGroup from '@/components/business/RepositoryGroup';
-import { deleteTestEntity, getTestEntityByQuery, updateTestEntity } from '@/lib/api/item';
+import {
+  copyTesTase,
+  deleteTestEntity,
+  getTestEntityByQuery,
+  updateTestEntity,
+} from '@/lib/api/item';
 import { TestType } from '@/lib/constants';
 
 import cx from './index.less';
@@ -104,9 +109,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
   );
 
   const refreshAndMutateData = React.useCallback(async () => {
-    setTableLoading(true);
     await onDataChange?.();
-    setTableLoading(false);
   }, [onDataChange]);
 
   const selectionActionNodes = React.useMemo(() => {
@@ -187,11 +190,32 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
   const columns = React.useMemo(() => {
     const deleteTestDetail = data => {
       actionConfirm('该操作会将当前测试用例删除，是否继续操作？', async () => {
+        setTableLoading(true);
         await deleteTestEntity([data.objectId]);
         refreshAndMutateData();
+        setTableLoading(false);
         notification.success({
           message: '测试用例删除成功',
         });
+      });
+    };
+
+    const copyTestDetail = async data => {
+      setTableLoading(true);
+      const res = await copyTesTase({
+        includeStatus: true,
+        name: `${data.name}_${Math.floor(Date.now())}`,
+        objectId: data.objectId,
+        workspace: data.workspace.objectId,
+      });
+
+      await updateTestEntity([{ objectId: res.objectId, sortIndex: generateSortIndex(1) }]);
+
+      refreshAndMutateData();
+      setTableLoading(false);
+
+      notification.success({
+        message: `测试用例复制成功`,
       });
     };
 
@@ -243,6 +267,9 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         render(_, rowData) {
           return (
             <>
+              <a style={{ marginRight: 10 }} onClick={() => copyTestDetail(rowData)}>
+                复制
+              </a>
               <a style={{ marginRight: 10 }} onClick={() => deleteTestDetail(rowData)}>
                 删除
               </a>

@@ -23,7 +23,23 @@
     }
 
     .status {
-      min-width: 120px;
+      display: flex;
+      line-height: 32px;
+      align-items: center;
+
+      .status-box {
+        min-width: 120px;
+      }
+
+      .status-selector {
+        display: none;
+      }
+
+      &:hover {
+        .status-selector {
+          display: block;
+        }
+      }
     }
   }
 
