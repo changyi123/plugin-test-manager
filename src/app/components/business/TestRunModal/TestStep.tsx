@@ -37,10 +37,8 @@ const TestStep: React.FC<TestStepProps> = props => {
   const allRelationDefectItemIds = allRelationDefects.map(defect => defect.itemId);
 
   const state = useReactive({
-    steps: testRunData.runDetail?.steps ?? [],
+    steps: testRunData?.runDetail?.steps ?? [],
   });
-
-  // let steps = testRunData.runDetail?.steps ?? [];
 
   // 添加缺陷
   const handleDefectAdd = async (stepId, defectItemIds) => {
@@ -87,9 +85,9 @@ const TestStep: React.FC<TestStepProps> = props => {
   };
 
   React.useEffect(() => {
-    state.steps = testRunData.runDetail?.steps;
+    state.steps = testRunData?.runDetail?.steps;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [testRunData.runDetail?.steps]);
+  }, [testRunData?.runDetail?.steps]);
 
   useUpdateEffect(() => {
     if (statusChangeBySteps && handleStatusChangeBySteps) {

@@ -91,7 +91,7 @@ const getItemData = async (ids, config = {} as Record<string, any>) => {
 
   const data = await itemQuery.find({ ...ParseBaseQueryOptions } as any);
 
-  return data.map(d => d.toJSON());
+  return data?.map(d => d.toJSON()) ?? [];
 };
 
 const getDefectId = datas => {
@@ -245,11 +245,11 @@ export async function main() {
       key: planId,
       allTestCases: compactData(caseData ?? []),
       reference: (testPlanData ?? []).find(d => d.objectId === planId),
-      allTestExecutions: testExecution.get(planId).map(d => ({
+      allTestExecutions: testExecution.get(planId)?.map(d => ({
         ...compactData(d),
         testRun: compactData(testRuns.get(d.objectId) ?? []),
       })),
-      allDefects: defectItem.map(d => ({
+      allDefects: defectItem?.map(d => ({
         ...compactData(d),
         status: compactData((d as any).status),
       })),
