@@ -2,7 +2,6 @@ import React from 'react';
 import _ from 'lodash';
 import { TestEntity } from '@/lib/types/Test';
 import { QuestionCircleFilled } from '@/icons';
-import { TabsComponentBaseProps } from './type';
 import { getItemByIds } from '@/lib/api/proxima';
 import { StatusBadge } from '@/components/business/Status';
 import { useRequest, useSessionStorageState } from 'ahooks';

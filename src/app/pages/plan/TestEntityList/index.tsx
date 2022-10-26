@@ -468,7 +468,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         const { result: enabled, message } = canExecuteTestRun(record.designee);
         return (
           <div>
-            <Tooltip title={message}>
+            <Tooltip title={message} placement="topLeft">
               <Button
                 type="link"
                 disabled={!enabled}
