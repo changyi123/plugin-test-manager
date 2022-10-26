@@ -126,6 +126,9 @@ const Plan = () => {
         async onClick() {
           const { item } = await createItemUseModal({
             type: TestType.Plan,
+            extraData: {
+              noBatch: true,
+            },
           });
 
           try {

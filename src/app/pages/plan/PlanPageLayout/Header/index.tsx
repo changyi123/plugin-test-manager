@@ -44,10 +44,12 @@ const Header: React.FC<HeaderProps> = ({
   const { createItemUseModal } = useBaseAction();
   const [isReportGenerating, setIsReportGenerating] = React.useState(false);
   const [selectValue, setSelectValue] = useState<string[] | undefined>(undefined);
+  const [treeType, setTreeType] = React.useState<string | undefined>('');
 
   const getSelectCaseIds = useCallback(async () => {
-    const caseIds = await testEntitySelectorRef.current.open({
+    const data = await testEntitySelectorRef.current.open({
       selectValue,
+      treeType,
       modelProps: {
         title: '第 1 步：选择关联用例',
         footer: {
@@ -60,11 +62,11 @@ const Header: React.FC<HeaderProps> = ({
         },
       },
     });
-    return caseIds;
-  }, [selectValue]);
+    return data;
+  }, [selectValue, treeType]);
 
   const createExcution = useCallback(
-    async caseIds => {
+    async (caseIds = []) => {
       const res = await createItemUseModal({
         type: TestType.Execution,
         extraData: {
@@ -89,8 +91,9 @@ const Header: React.FC<HeaderProps> = ({
 
   // 创建测试执行任务
   const createTestExecution = useCallback(async () => {
-    const caseIds = await getSelectCaseIds();
+    const { selectedData: caseIds, treeType } = await getSelectCaseIds();
     setSelectValue(caseIds);
+    setTreeType(treeType);
     const { item, extraData } = await createExcution(caseIds);
 
     // 创建测试执行，创建测试执行任务和执行关系，创建执行和用例关系
@@ -241,6 +244,7 @@ const Header: React.FC<HeaderProps> = ({
                 actionRef={testEntitySelectorRef}
                 onCancel={() => {
                   setSelectValue(undefined);
+                  setTreeType(undefined);
                 }}
                 planId={selectedTestPlan?.objectId}
               />

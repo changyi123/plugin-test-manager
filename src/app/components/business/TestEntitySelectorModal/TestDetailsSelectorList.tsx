@@ -16,7 +16,7 @@ interface TestDetailsSelectorListProps {
   ignoreTestDetailIds?: string[];
   selectedTestDetailIds?: string[];
   setSelectedTestDetailIds?: (val: any) => void;
-  checkTreeType?: string;
+  treeType?: string;
 }
 
 const reportTreeToArray = (datas: any[], parent?: any, ignoreIds = []) => {
@@ -86,7 +86,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
   ignoreTestDetailIds,
   selectedTestDetailIds,
   setSelectedTestDetailIds,
-  checkTreeType,
+  treeType,
 }) => {
   const CheckboxGroup = Checkbox.Group;
   const [checkData, setCheckData] = useState([]);
@@ -150,11 +150,11 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
   );
 
   useUpdateEffect(() => {
-    if (checkTreeType) {
+    if (treeType) {
       refresh();
       setSelectedTestDetailIds([]);
     }
-  }, [checkTreeType]);
+  }, [treeType]);
 
   useEffect(() => {
     if (!curTestListLoading) {
