@@ -83,6 +83,7 @@ const TestRun: React.FC<TestRunType> = props => {
   } = useRequest(
     async () => {
       if (!testId) return null;
+      setTabPaneLoading(true);
       const { list: runData } = await getTestEntityByQuery({
         query: {
           id: [testId],
@@ -95,21 +96,21 @@ const TestRun: React.FC<TestRunType> = props => {
     {
       ready: Boolean(testId),
       refreshDeps: [testId],
-      loadingDelay: 400,
+      // loadingDelay: 400,
     },
   );
 
   const { data: testCaseEntity } = useRequest(
     async () => {
       if (!testRunEntity?.referenceCase) return null;
-      const { list: runData } = await getTestEntityByQuery({
+      const { list: caseData } = await getTestEntityByQuery({
         query: {
           id: [testRunEntity.referenceCase],
           type: TestType.Case,
         },
       });
 
-      return runData[0];
+      return caseData[0];
     },
     {
       ready: Boolean(testRunEntity?.referenceCase),
@@ -183,13 +184,15 @@ const TestRun: React.FC<TestRunType> = props => {
   // 事项关联
   const { data: itemLinks, loading: itemLinksRequestLoading } = useRequest(
     async () => {
+      setTabPaneLoading(false);
+      if (!refTestDetailItemId) return [];
       const res = await getItemLinkRelation(refTestDetailItemId);
       // // 过滤掉 destination 为空（被关联方事项已经被删除）
       return res.filter(item => item.destination);
     },
     {
       ready: Boolean(refTestDetailItemId),
-      refreshDeps: [refTestDetailItemId, allRelationDefectIds.toString()],
+      refreshDeps: [refTestDetailItemId],
     },
   );
 

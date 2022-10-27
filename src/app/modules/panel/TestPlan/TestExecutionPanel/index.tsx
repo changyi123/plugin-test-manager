@@ -84,13 +84,51 @@ const Test = () => {
           sortIndex: generateSortIndex(),
         })),
       );
+
+      const { list: caseLinkPlanIds } = await getLinkedTestEntityByQuery({
+        query: {
+          workspaceKey: workspace?.key,
+        },
+        limit: 9999,
+        linkType: TestLinkType.CaseLinkPlan,
+        sourceIds: [testEntity?.objectId],
+        destinationType: TestType.Case,
+        onlySelectId: true,
+      });
+
+      const { list: runs } = await getLinkedTestEntityByQuery({
+        query: {
+          workspaceKey: workspace?.key,
+        },
+        limit: 9999,
+        linkType: TestLinkType.RunLinkExecution,
+        sourceIds: executionIds,
+        destinationType: TestType.Run,
+        select: ['id', 'referenceCase'],
+      });
+
+      const runCaseIds = runs?.map(run => run.referenceCase) ?? [];
+      const caseIds = runCaseIds.filter(id => !caseLinkPlanIds.includes(id));
+
+      if (caseIds.length) {
+        await updateTestEntity(
+          caseIds.map(item => ({
+            objectId: item,
+            linkType: TestLinkType.CaseLinkPlan,
+            linkItems: {
+              action: 'add',
+              value: [testEntity.objectId],
+            },
+          })),
+        );
+      }
       refresh();
       alert({
         type: 'success',
         message: `${executionIds.length} 个测试执行添加到测试计划中`,
       });
     },
-    [refresh, testEntity?.objectId],
+    [refresh, testEntity?.objectId, workspace],
   );
 
   // 创建测试执行
