@@ -16,7 +16,7 @@ interface TestDetailsSelectorListProps {
   ignoreTestDetailIds?: string[];
   selectedTestDetailIds?: string[];
   setSelectedTestDetailIds?: (val: any) => void;
-  checkTreeType?: string;
+  treeType?: string;
 }
 
 const reportTreeToArray = (datas: any[], parent?: any, ignoreIds = []) => {
@@ -86,7 +86,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
   ignoreTestDetailIds,
   selectedTestDetailIds,
   setSelectedTestDetailIds,
-  checkTreeType,
+  treeType,
 }) => {
   const CheckboxGroup = Checkbox.Group;
   const [checkData, setCheckData] = useState([]);
@@ -100,6 +100,8 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
         .filter(d => selectedTestDetailIds.includes(d.objectId)).length,
     [selectedTestDetailIds, checkData],
   );
+
+  const caseIds = getTestDetailIdsByReport(getReportData(selectedNode), 'caseIds') ?? [];
 
   // 查询当前用例库下所有测试用例
   const {
@@ -125,7 +127,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
           workspaceKey: workspaceKey,
           type: TestType.Case,
           name: detailSearchValue,
-          id: getTestDetailIdsByReport(getReportData(selectedNode), 'caseIds'),
+          id: caseIds,
         },
         ...baseQueryOptions,
         limit: 9999,
@@ -141,7 +143,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
     },
     {
       refreshDeps: [detailSearchValue, orderByCratedAt, selectedNode, workspaceKey],
-      cacheKey: `Repository_${selectedNode?.key ?? ''}${selectedNode?.caseIds.join('_') ?? ''}${
+      cacheKey: `Repository_${selectedNode?.key ?? ''}${caseIds.join('_')}${
         detailSearchValue ?? ''
       }${orderByCratedAt}${workspaceKey}`,
       staleTime: 999999999,
@@ -150,11 +152,11 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
   );
 
   useUpdateEffect(() => {
-    if (checkTreeType) {
+    if (treeType) {
       refresh();
       setSelectedTestDetailIds([]);
     }
-  }, [checkTreeType]);
+  }, [treeType]);
 
   useEffect(() => {
     if (!curTestListLoading) {

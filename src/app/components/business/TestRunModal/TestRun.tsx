@@ -75,7 +75,7 @@ const TestRun: React.FC<TestRunType> = props => {
   const [tabPaneLoading, setTabPaneLoading] = React.useState(false);
   const [testId, setTestId] = React.useState(props.id);
   const modelScrollRef = React.useRef();
-  const [tabActiveKey, setTabActiveKey] = React.useState(TestRunDetailTabs[0].key);
+  const [tabActiveKey, setTabActiveKey] = React.useState(TestRunDetailTabs[0]?.key);
 
   const {
     data: testRunEntity,
@@ -205,7 +205,7 @@ const TestRun: React.FC<TestRunType> = props => {
 
   // 所有已关联的缺陷
   const allRelationDefects = React.useMemo(() => {
-    const { runDetail } = testRunData;
+    const { runDetail } = testRunData ?? {};
     const { defectItemIds = [], steps = [] } = runDetail ?? {};
     const defectItemDict = _.keyBy(allRelationDefectItems, 'objectId');
 
@@ -233,15 +233,15 @@ const TestRun: React.FC<TestRunType> = props => {
     if (
       testId &&
       testRunData &&
-      testRunData.runReferenceDetail &&
-      !Array.isArray(testRunData.runDetail?.steps)
+      testRunData?.runDetail &&
+      !Array.isArray(testRunData?.runDetail?.steps)
     ) {
       (async () => {
         try {
           await updateTestRunDetail(
             testRunEntity,
             {
-              steps: refTestDetailData.detail.steps,
+              steps: refTestDetailData.detail?.steps,
               runDetail: {
                 precondition: refTestDetailData.detail?.precondition,
               },
@@ -272,7 +272,7 @@ const TestRun: React.FC<TestRunType> = props => {
     const renderTabLabel = tab => {
       const numGetters = {
         step() {
-          return testRunData.runDetail?.steps?.length ?? 0;
+          return testRunData?.runDetail?.steps?.length ?? 0;
         },
         itemLink() {
           return itemLinks?.length ?? 0;
@@ -281,7 +281,7 @@ const TestRun: React.FC<TestRunType> = props => {
           return allRelationDefects?.length ?? 0;
         },
         attachment() {
-          return testRunData.runDetail?.attachments?.length ?? 0;
+          return testRunData?.runDetail?.attachments?.length ?? 0;
         },
       };
 
@@ -390,7 +390,7 @@ const TestRun: React.FC<TestRunType> = props => {
             <Collapse className={cx('collapse')} defaultActiveKey={['1']}>
               <Collapse.Panel key="1" header="前置条件">
                 <div className={cx('precondition')}>
-                  {testRunData.runDetail?.precondition ?? '无'}
+                  {testRunData?.runDetail?.precondition ?? '无'}
                 </div>
               </Collapse.Panel>
             </Collapse>

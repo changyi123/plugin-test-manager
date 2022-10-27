@@ -25,6 +25,7 @@ let PreviousButtonClicked = false;
 export type ActionType = {
   open: (params?: {
     testType?: TestType;
+    treeType?: string;
     ignoreTestEntityIds?: string[];
     modelProps?: ModelProps;
     selectValue?: string[];
@@ -75,6 +76,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
   const [selectValue, setSelectValue] = useSafeState([]);
   const [selectedTestDetails, setSelectedTestDetails] = React.useState([]);
   const [testType, setTestType] = useSafeState<TestType>(props.testType);
+  const [treeType, setTreeType] = React.useState('plan');
   // 是否是测试缺陷类型
   const isTestDefectType = testType === TestType.TestDefect;
   // 测试类型名
@@ -230,6 +232,10 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
         setTestType(params.testType);
       }
 
+      if (params?.treeType) {
+        setTreeType(params.treeType);
+      }
+
       if (params?.modelProps) {
         setModelProps(params.modelProps);
       }
@@ -251,10 +257,18 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
         eventBusRef.current.disposer = eventBusRef.current.register(
           AddExistedTestEventType,
           data => {
-            const messageData = JSON.stringify(data);
+            const { selectedData, treeType, planId } = data;
+            const messageData = JSON.stringify(selectedData);
             if (PreviousMessageData === messageData) return;
             PreviousMessageData = messageData;
-            resolve(data);
+            resolve(
+              planId
+                ? {
+                    selectedData,
+                    treeType,
+                  }
+                : selectedData,
+            );
             // 下一轮事件循环取消锁
             setTimeout(() => {
               PreviousButtonClicked = false;
@@ -280,9 +294,18 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
 
     typeof props.onSelect === 'function' && props.onSelect(selectedData);
 
-    eventBusRef.current.dispatch(AddExistedTestEventType, selectedData);
+    eventBusRef.current.dispatch(AddExistedTestEventType, { selectedData, treeType, planId });
     setVisible(false);
-  }, [needFillValue, props, selectValue, selectedTestDetails, setVisible, testType]);
+  }, [
+    needFillValue,
+    props,
+    selectValue,
+    selectedTestDetails,
+    setVisible,
+    testType,
+    treeType,
+    planId,
+  ]);
 
   const filterOptions = React.useCallback(
     options => {
@@ -343,6 +366,8 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
         isWorkspaceIsolate={isolateTestType.includes(TestType.Case)}
         onTestDetailSelect={testDetails => setSelectedTestDetails(testDetails)}
         planId={planId}
+        treeType={treeType}
+        setTreeType={setTreeType}
       />
     );
   }, [isolateTestType, workspace?.key, isSingleMode, ignoreTestEntityIds, selectValue, planId]);

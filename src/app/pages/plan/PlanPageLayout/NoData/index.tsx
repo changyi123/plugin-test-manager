@@ -23,10 +23,13 @@ const NoData: React.FC<NoDataProps> = ({ setRefreshExecution }) => {
   const { createItemUseModal } = useBaseAction();
   const testEntitySelectorRef = useRef<ModelActionType>();
   const [selectValue, setSelectValue] = useState<string[] | undefined>(undefined);
+  const [treeType, setTreeType] = React.useState<string | undefined>('plan');
 
   const getSelectCaseIds = useCallback(async () => {
-    const caseIds = await testEntitySelectorRef.current.open({
+    if (!testEntitySelectorRef.current?.open) return;
+    const data = await testEntitySelectorRef.current?.open({
       selectValue,
+      treeType,
       modelProps: {
         title: '第 1 步：选择关联用例',
         footer: {
@@ -39,11 +42,12 @@ const NoData: React.FC<NoDataProps> = ({ setRefreshExecution }) => {
         },
       },
     });
-    return caseIds;
-  }, [selectValue]);
+
+    return data;
+  }, [selectValue, treeType]);
 
   const createExcution = useCallback(
-    async caseIds => {
+    async (caseIds = []) => {
       const res = await createItemUseModal({
         type: TestType.Execution,
         extraData: {
@@ -68,8 +72,11 @@ const NoData: React.FC<NoDataProps> = ({ setRefreshExecution }) => {
 
   // 创建测试执行任务
   const createTestExecution = useCallback(async () => {
-    const caseIds = await getSelectCaseIds();
+    const data = await getSelectCaseIds();
+    if (!data) return;
+    const { selectedData: caseIds, treeType } = data;
     setSelectValue(caseIds);
+    setTreeType(treeType);
     const { item, extraData } = await createExcution(caseIds);
 
     // TODO 创建测试执行，创建测试执行任务和执行关系，创建执行和用例关系
@@ -118,14 +125,17 @@ const NoData: React.FC<NoDataProps> = ({ setRefreshExecution }) => {
   const cancelCallback = useCallback(
     async params => {
       if (params?.type === 'previous') {
-        createTestExecution();
+        await createTestExecution();
       }
     },
     [createTestExecution],
   );
 
   useListener('ExecutionPrevious', cancelCallback);
-  useListener(PROXIMA_EVENT_KEY.itemBatchCreateSuccess, () => setSelectValue(undefined));
+  useListener(PROXIMA_EVENT_KEY.itemBatchCreateSuccess, () => {
+    setSelectValue([]);
+    setTreeType('plan');
+  });
 
   return (
     <div className={cx('no-data-box')}>
@@ -138,7 +148,8 @@ const NoData: React.FC<NoDataProps> = ({ setRefreshExecution }) => {
           testType={TestType.Case}
           actionRef={testEntitySelectorRef}
           onCancel={() => {
-            setSelectValue(undefined);
+            setSelectValue([]);
+            setTreeType('plan');
           }}
           planId={selectedTestPlan?.objectId}
         />
