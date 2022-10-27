@@ -25,6 +25,8 @@ type TestDetailSelectorProps = {
   onTestDetailSelect?: (testDetails) => void;
   selectValue?: string[];
   planId?: string;
+  treeType?: string;
+  setTreeType?: (val: string) => void;
 };
 
 const { Search } = Input;
@@ -35,7 +37,7 @@ const tabsList = [
     key: 'plan',
   },
   {
-    label: '测试用例库',
+    label: '全部用例库',
     key: 'repository',
   },
 ];
@@ -49,6 +51,8 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
     isWorkspaceIsolate,
     selectValue,
     planId,
+    treeType,
+    setTreeType,
   } = props;
 
   const repositoryFolderTreeRef = React.useRef<ActionType>();
@@ -56,7 +60,6 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
   // 目录搜索
   const [folderSearchValue, setFolderSearchValue] = React.useState('');
   const [detailSearchValue, setDetailSearchValue] = React.useState('');
-  const [checkTreeType, setCheckTreeType] = React.useState('repository');
 
   // tree checked key
   const [folderCheckedKey, setFolderCheckedKey] = React.useState(DEFAULT_CHECKED_KEY);
@@ -99,10 +102,10 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
   );
 
   const treeProps = useMemo(() => {
-    return checkTreeType === 'plan'
+    return planId && treeType === 'plan'
       ? { scopedTestDetailIds: planLinkCaseIds, hideEmptyFolder: true }
       : {};
-  }, [planLinkCaseIds, checkTreeType]);
+  }, [planLinkCaseIds, treeType, planId]);
 
   // 测试案例库选中
   const allTestWorkspaces = useAllTestWorkspace();
@@ -208,9 +211,9 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
               <div className={cx('tabs-box')}>
                 {tabsList.map(d => (
                   <div
-                    className={cx('tab-title', d.key === checkTreeType ? 'actived' : '')}
+                    className={cx('tab-title', d.key === treeType ? 'actived' : '')}
                     key={d.key}
-                    onClick={() => setCheckTreeType(d.key)}
+                    onClick={() => setTreeType(d.key)}
                   >
                     {d.label}
                   </div>
@@ -243,7 +246,7 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
               ignoreTestDetailIds={ignoreTestDetailIds ?? []}
               selectedTestDetailIds={selectedTestDetailIds}
               setSelectedTestDetailIds={setSelectedTestDetailIds}
-              checkTreeType={checkTreeType}
+              treeType={treeType}
             />
           </div>
         </div>

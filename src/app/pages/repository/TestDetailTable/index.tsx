@@ -203,7 +203,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
     const copyTestDetail = async data => {
       setTableLoading(true);
       const res = await copyTesTase({
-        includeStatus: true,
+        includeStatus: false,
         name: `${data.name}_${Math.floor(Date.now())}`,
         objectId: data.objectId,
         workspace: data.workspace.objectId,

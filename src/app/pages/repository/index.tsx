@@ -61,7 +61,7 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
   useListener('updateItemList', props => {
     if (props?.type === 'create') return;
     setTimeout(() => {
-      tableActionRef.current.refresh();
+      handleDataChange();
     }, 400);
   });
 

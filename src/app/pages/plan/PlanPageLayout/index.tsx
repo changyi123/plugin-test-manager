@@ -71,17 +71,14 @@ const PlanPageLayout: React.FC<any> = () => {
   }, [query?.actionType]);
 
   // 获取测试计划范围
-  const {
-    data: scopedTestDetailIds,
-    // refresh: scopedTestDetailRefresh,
-    refreshAsync: scopedTestDetailRefresh,
-  } = useScopedTestDetailIds({
-    workspaceKey,
-    type: activedType === 'TestPlan' ? 'Plan' : 'Execution',
-    testPlanId: selectedTestPlan?.objectId,
-    testExecutionId: selectedExecution?.objectId,
-    selectors,
-  });
+  const { data: scopedTestDetailIds, refreshAsync: scopedTestDetailRefresh } =
+    useScopedTestDetailIds({
+      workspaceKey,
+      type: activedType === 'TestPlan' ? 'Plan' : 'Execution',
+      testPlanId: selectedTestPlan?.objectId,
+      testExecutionId: selectedExecution?.objectId,
+      selectors,
+    });
 
   useListener('updateRepoTree', () => {
     scopedTestDetailRefresh();

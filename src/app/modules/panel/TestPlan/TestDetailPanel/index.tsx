@@ -29,6 +29,7 @@ import {
   updateTestEntity,
   getLinkedTestEntityByQuery,
 } from '@/lib/api/item';
+import createProximaSdk from '@projectproxima/proxima-sdk-js';
 
 const Test = () => {
   const { testEntity, workspace } = useTestConfig();
@@ -226,6 +227,8 @@ const Test = () => {
           );
 
           refreshDepData();
+          const proxima = createProximaSdk();
+          proxima.execute('updateRepoTree');
 
           const successMessage =
             testEntityList.length > 1

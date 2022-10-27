@@ -46,19 +46,21 @@ const getTestCaseData = data => {
     });
 
     prev = {
-      total: (prev.total ?? 0) + caseInfo.total,
+      total: (prev?.total ?? 0) + (caseInfo?.total ?? 0),
       allTestMap: newTestMap,
     };
 
     return prev;
   }, {});
 
+  const total = caseData?.total;
+
   return {
-    total: caseData.total,
+    total,
     passedPercent:
-      Math.round((getTestCount(caseData.allTestMap, 'PASSED') / (caseData.total ?? 1)) * 100) || 0,
+      Math.round((getTestCount(caseData.allTestMap, 'PASSED') / (total ?? 1)) * 100) || 0,
     failedPercent:
-      Math.round((getTestCount(caseData.allTestMap, 'FAILED') / (caseData.total ?? 1)) * 100) || 0,
+      Math.round((getTestCount(caseData.allTestMap, 'FAILED') / (total ?? 1)) * 100) || 0,
     statusList: testStatusType.map(d => ({
       ...d,
       count: getTestCount(caseData.allTestMap, d.key),

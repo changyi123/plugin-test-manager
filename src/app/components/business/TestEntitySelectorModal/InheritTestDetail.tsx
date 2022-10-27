@@ -30,6 +30,8 @@ type InheritTestDetailProps = {
   onTestDetailSelect?: (testDetails) => void;
   selectValue?: string[];
   planId?: string;
+  treeType?: string;
+  setTreeType?: (val: string) => void;
 };
 
 const InheritTestDetail: React.FC<InheritTestDetailProps> = props => {
