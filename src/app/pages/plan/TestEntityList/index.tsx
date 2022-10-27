@@ -25,7 +25,7 @@ import {
 import { TestLinkType, TestType } from 'common/constant';
 import { RepositoryModel } from '@/lib/constants';
 import { isEmpty, isEqual } from 'lodash';
-import { useTestRunActionAuth } from '@/lib/hooks/useTest';
+import { useTestRunActionAuth, useCanExecuteTestRunIdSequence } from '@/lib/hooks/useTest';
 
 import cx from './index.less';
 
@@ -65,6 +65,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
 
   const [tableLoading, setTableLoading] = useState(false);
   const [hasRowSelected, setHasRowSelected] = useState(false);
+  const { getCanExecuteTestRunIdSequence } = useCanExecuteTestRunIdSequence({ workspaceKey });
 
   React.useEffect(() => {
     registerRefreshMethod({
@@ -598,12 +599,16 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
 
     const toggleSTestRunStatus = async status => {
       const testRunIds = getTestRunIds();
+
+      // 可执行的测试执行 id
+      const canExecuteTestRunIds = await getCanExecuteTestRunIdSequence(testRunIds);
+
       setTableLoading(true);
 
       // 更新测试执行状态
       await updateTestStatus({
-        runIds: testRunIds,
         status: status.key,
+        runIds: canExecuteTestRunIds,
         planId: selectedTestPlan?.objectId,
       });
 

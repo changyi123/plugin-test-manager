@@ -264,42 +264,42 @@ export const useTestRunActionAuth = ({ workspaceKey }) => {
 };
 
 /** 获取可执行的测试执行 id  */
-export const useCanExecuteTestRunIdSequence = ({ workspaceKey, idSequence }) => {
+export const useCanExecuteTestRunIdSequence = params => {
+  const { workspaceKey, idSequence } = params;
   const testConfig = useWorkspaceTestConfig(workspaceKey);
   const currentUser = useCurrentUser();
 
-  const { data } = useRequest(
-    async () => {
-      const testRunAction = testConfig?.testRunAction ?? {};
-      let selector = null;
-      if (testRunAction.canOnlyExecuteMineCase && testRunAction.canOnlyExecuteAssignedCase) {
-        selector = `${BuiltinFieldNameMapping.designee} = '${currentUser.username}'`;
-      } else if (testRunAction.canOnlyExecuteMineCase) {
-        selector = `${BuiltinFieldNameMapping.designee} = '${currentUser.username}' or ${BuiltinFieldNameMapping.designee} is null`;
-      } else {
-        return idSequence;
-      }
+  const getCanExecuteTestRunIdSequence = useMemoizedFn(async sequence => {
+    const testRunAction = testConfig?.testRunAction ?? {};
+    let selector = null;
+    if (testRunAction.canOnlyExecuteMineCase && testRunAction.canOnlyExecuteAssignedCase) {
+      selector = `${BuiltinFieldNameMapping.designee} = '${currentUser.username}'`;
+    } else if (testRunAction.canOnlyExecuteMineCase) {
+      selector = `${BuiltinFieldNameMapping.designee} = '${currentUser.username}' or ${BuiltinFieldNameMapping.designee} is null`;
+    } else {
+      return sequence;
+    }
 
-      const { list } = await getTestEntityByQuery({
-        query: {
-          id: idSequence,
-          type: TestType.Run,
-        },
-        selector,
-        onlySelectId: true,
-      });
+    const { list } = await getTestEntityByQuery({
+      query: {
+        id: sequence,
+        type: TestType.Run,
+      },
+      selector,
+      onlySelectId: true,
+    });
 
-      return list;
-    },
-    {
-      ready:
-        Boolean(testConfig) &&
-        Boolean(currentUser) &&
-        Array.isArray(idSequence) &&
-        idSequence.length > 0,
-      refreshDeps: [idSequence],
-    },
-  );
+    return list;
+  });
 
-  return data;
+  const { data } = useRequest(() => getCanExecuteTestRunIdSequence(idSequence), {
+    ready:
+      Boolean(testConfig) &&
+      Boolean(currentUser) &&
+      Array.isArray(idSequence) &&
+      idSequence.length > 0,
+    refreshDeps: [idSequence],
+  });
+
+  return { canExecuteTestRunIdSequence: data, getCanExecuteTestRunIdSequence };
 };

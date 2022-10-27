@@ -24,6 +24,7 @@ const Status = ({
   showBg,
   onClick,
   hasEffect,
+  hoverStyle,
   className,
 }: Partial<Record<string, any>>) => {
   if (!status) return null;
@@ -31,14 +32,18 @@ const Status = ({
     <div
       onClick={() => onClick?.(status)}
       className={[
-        cx('status', hasEffect && 'hover', className),
+        cx('status', hoverStyle && 'hover', className),
         showBg && cx('run-status', status?.key),
         'status',
       ].join(' ')}
     >
       <span style={{ background: status?.color }} className={cx('dot', 'status__dot')} />
       <span className={cx('name')}>{status?.name}</span>
-      {showBg && <span className={cx('icon')}>{hasEffect && <CaretDownOutlined />}</span>}
+      {hasEffect && (
+        <span className={cx('icon')}>
+          <CaretDownOutlined />
+        </span>
+      )}
     </div>
   );
 };
@@ -77,7 +82,7 @@ const Badge: React.FC<BadgeProps> = props => {
 
     return statuses.map(status => (
       <Status
-        hasEffect
+        hoverStyle
         onClick={status => {
           setVisible(false);
           props?.onStatusChange(status);

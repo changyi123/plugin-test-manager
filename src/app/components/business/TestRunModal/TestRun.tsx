@@ -101,7 +101,7 @@ const TestRun: React.FC<TestRunType> = props => {
   );
 
   // 获得可执行的测试执行 id 序列
-  const canExecuteTestRunIdSequence = useCanExecuteTestRunIdSequence({
+  const { canExecuteTestRunIdSequence } = useCanExecuteTestRunIdSequence({
     workspaceKey: testRunEntity?.workspace.key,
     idSequence,
   });
