@@ -10,6 +10,7 @@ import { getRootContainer, generateStorageKey } from '@/lib/utils/helper';
 import { Button, Checkbox, Collapse, Tabs, message, Spin, Tooltip } from 'antd';
 import { getTestEntityByQuery, updateTestRunDetail } from '@/lib/api/item';
 import { getItemLinkRelation } from '@/lib/api/runs';
+import { useCanExecuteTestRunIdSequence } from '@/lib/hooks/useTest';
 
 import TestStep from './TestStep';
 import DefectList from './DefectList';
@@ -99,6 +100,12 @@ const TestRun: React.FC<TestRunType> = props => {
     },
   );
 
+  // 获得可执行的测试执行 id 序列
+  const canExecuteTestRunIdSequence = useCanExecuteTestRunIdSequence({
+    workspaceKey: testRunEntity?.workspace.key,
+    idSequence,
+  });
+
   const { data: testCaseEntity } = useRequest(
     async () => {
       if (!testRunEntity?.referenceCase) return null;
@@ -117,20 +124,23 @@ const TestRun: React.FC<TestRunType> = props => {
     },
   );
 
-  // 能否可执行下一个执行, id 不存在 idSequence 或 已到最后一条不可执行
+  // 能否可执行下一个执行, id 不存在 canExecuteTestRunIdSequence 或 已到最后一条不可执行
   const canExecNext =
-    Array.isArray(idSequence) && ![-1, idSequence.length - 1].includes(idSequence.indexOf(testId));
+    Array.isArray(canExecuteTestRunIdSequence) &&
+    ![-1, canExecuteTestRunIdSequence.length - 1].includes(
+      canExecuteTestRunIdSequence.indexOf(testId),
+    );
 
   // 执行下一个测试用例
   const nextTestRun = React.useCallback(() => {
-    const nextIndex = idSequence.indexOf(testId) + 1;
-    if (!canExecNext || nextIndex === idSequence.length) {
+    const nextIndex = canExecuteTestRunIdSequence.indexOf(testId) + 1;
+    if (!canExecNext || nextIndex === canExecuteTestRunIdSequence.length) {
       return message.warning('当前测试执行为最后一条，所有测试执行已经执行完成');
     }
 
-    console.info('idSequence', idSequence, nextIndex);
-    setTestId(idSequence[nextIndex]);
-  }, [idSequence, testId, setTestId, canExecNext]);
+    console.info('canExecuteTestRunIdSequence', canExecuteTestRunIdSequence, nextIndex);
+    setTestId(canExecuteTestRunIdSequence[nextIndex]);
+  }, [canExecuteTestRunIdSequence, testId, setTestId, canExecNext]);
 
   const handleStatusChange = React.useCallback(
     async status => {

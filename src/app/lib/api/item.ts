@@ -57,14 +57,20 @@ export const getTestEntityByQuery = async (
   props:
     | QueryTestEntityPayload
     | {
-        selector?: SearchSelectors;
+        selector?: SearchSelectors | string;
       },
   handleQuery?: (val: any) => any,
 ) => {
   props = handleQuery ? handleQuery(props) : props;
   const _props = Object.assign(
     { descending: [], onlySelectId: false },
-    { ...props, selector: selectorToIql(handleSelector(props.selector)) },
+    {
+      ...props,
+      selector:
+        typeof props.selector === 'string'
+          ? props.selector
+          : selectorToIql(handleSelector(props.selector)),
+    },
   );
 
   const {
