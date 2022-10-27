@@ -85,6 +85,12 @@ const PlanPageLayout: React.FC<any> = () => {
   });
 
   useEffect(() => {
+    if (selectedTestPlan?.objectId) {
+      scopedTestDetailRefresh();
+    }
+  }, [selectedTestPlan?.objectId, scopedTestDetailRefresh]);
+
+  useEffect(() => {
     detailSearchRef.current?.reset();
     setSearchParams([{}, {}]);
     pageLeftRef.current?.reset();
