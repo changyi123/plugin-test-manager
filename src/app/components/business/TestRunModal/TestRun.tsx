@@ -180,7 +180,7 @@ const TestRun: React.FC<TestRunType> = props => {
     .value();
 
   // 所有关联的缺陷事项
-  const { data: allRelationDefectItems, loading: relationDefectsRequestLoading } = useRequest(
+  const { data: allRelationDefectItems } = useRequest(
     async () => (allRelationDefectIds.length ? getItemByIds(allRelationDefectIds) : []),
     {
       ready: Boolean(allRelationDefectIds.length),
@@ -189,7 +189,7 @@ const TestRun: React.FC<TestRunType> = props => {
   );
 
   // 事项关联
-  const { data: itemLinks, loading: itemLinksRequestLoading } = useRequest(
+  const { data: itemLinks } = useRequest(
     async () => {
       if (!refTestDetailData?.objectId) return [];
       const res = await getItemLinkRelation(refTestDetailData.objectId);
@@ -335,19 +335,7 @@ const TestRun: React.FC<TestRunType> = props => {
   //   [testRunEntity, testRunData, onDataChange, modelScrollRef],
   // );
 
-  const loading =
-    tabPaneLoading ||
-    testRunRequestLoading ||
-    relationDefectsRequestLoading ||
-    itemLinksRequestLoading;
-
-  console.log(
-    'loading ------->',
-    tabPaneLoading,
-    testRunRequestLoading,
-    relationDefectsRequestLoading,
-    itemLinksRequestLoading,
-  );
+  const loading = tabPaneLoading || testRunRequestLoading;
 
   return (
     <div ref={modelScrollRef}>
