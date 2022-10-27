@@ -1,9 +1,9 @@
 import { pick } from 'lodash';
 import Parse from '@/lib/parse';
-import { TestType } from '@/lib/constants';
 import { useRequest, useMemoizedFn } from 'ahooks';
 import { useNoExpiredRequest } from '@/lib/hooks/useRequest';
 import { getPluginBoundWorkspaces } from '@/lib/api/proxima';
+import { TestType, BuiltinFieldNameMapping } from '@/lib/constants';
 import { getFolderTree, getRepositoryData } from '../api/repository';
 import {
   getTestConfig,
@@ -14,6 +14,7 @@ import React from 'react';
 import { getRepoData, handleRepoPath } from '@/components/business/RepositoryGroup/repository';
 import { repositoryFolderTreeEvent } from '@/lib/events';
 import { hasArrayItem } from '../utils/helper';
+import { getTestEntityByQuery } from '@/lib/api/item';
 
 type GetTestEntityParams = Parameters<typeof getTestEntitiesByRelationWithOrder>;
 /** 获取所有事项实体 id */
@@ -260,4 +261,45 @@ export const useTestRunActionAuth = ({ workspaceKey }) => {
       };
     }),
   };
+};
+
+/** 获取可执行的测试执行 id  */
+export const useCanExecuteTestRunIdSequence = params => {
+  const { workspaceKey, idSequence } = params;
+  const testConfig = useWorkspaceTestConfig(workspaceKey);
+  const currentUser = useCurrentUser();
+
+  const getCanExecuteTestRunIdSequence = useMemoizedFn(async sequence => {
+    const testRunAction = testConfig?.testRunAction ?? {};
+    let selector = null;
+    if (testRunAction.canOnlyExecuteMineCase && testRunAction.canOnlyExecuteAssignedCase) {
+      selector = `${BuiltinFieldNameMapping.designee} = '${currentUser.username}'`;
+    } else if (testRunAction.canOnlyExecuteMineCase) {
+      selector = `${BuiltinFieldNameMapping.designee} = '${currentUser.username}' or ${BuiltinFieldNameMapping.designee} is null`;
+    } else {
+      return sequence;
+    }
+
+    const { list } = await getTestEntityByQuery({
+      query: {
+        id: sequence,
+        type: TestType.Run,
+      },
+      selector,
+      onlySelectId: true,
+    });
+
+    return list;
+  });
+
+  const { data } = useRequest(() => getCanExecuteTestRunIdSequence(idSequence), {
+    ready:
+      Boolean(testConfig) &&
+      Boolean(currentUser) &&
+      Array.isArray(idSequence) &&
+      idSequence.length > 0,
+    refreshDeps: [idSequence],
+  });
+
+  return { canExecuteTestRunIdSequence: data, getCanExecuteTestRunIdSequence };
 };

@@ -299,6 +299,7 @@ modules:
     # 测试执行事项类型，所有测试执行都是用该事项类型
     - key: test_manager_run
       name: 测试执行（内置）
+      icon: /icons/Issue_Task.svg
       description: 测试管理类型-测试执行
       displayConditions:
         displayModules:

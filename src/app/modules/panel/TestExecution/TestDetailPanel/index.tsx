@@ -203,7 +203,7 @@ const Test = () => {
           const { result: enable, message } = canExecuteTestRun(record.designee);
           return (
             <Space split={<Divider type="vertical" />} size={0} style={{ marginLeft: -4 }}>
-              <Tooltip title={message}>
+              <Tooltip title={message} placement="topLeft" zIndex={1024}>
                 <Button
                   disabled={!enable}
                   onClick={async () => {

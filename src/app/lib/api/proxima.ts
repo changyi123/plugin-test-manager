@@ -244,8 +244,8 @@ export const getBuiltinItemTypes = async () => {
 export const getItemByIds = async (itemIds: string[]) => {
   const res = await new Parse.Query(Item)
     .containedIn('objectId', itemIds)
-    .select('itemType', 'workspace', 'name', 'key')
-    .include(['itemType', 'workspace'])
+    .select('itemType', 'workspace', 'name', 'key', 'status')
+    .include(['itemType', 'workspace', 'status'])
     .findAll();
 
   return res.map(item => item.toJSON());
