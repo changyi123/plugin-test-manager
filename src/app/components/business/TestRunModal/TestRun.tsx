@@ -96,7 +96,7 @@ const TestRun: React.FC<TestRunType> = props => {
     {
       ready: Boolean(testId),
       refreshDeps: [testId],
-      // loadingDelay: 400,
+      loadingDelay: 400,
     },
   );
 
@@ -188,19 +188,17 @@ const TestRun: React.FC<TestRunType> = props => {
     },
   );
 
-  // 测试用例事项 id
-  const refTestDetailItemId = refTestDetailData.objectId;
   // 事项关联
   const { data: itemLinks, loading: itemLinksRequestLoading } = useRequest(
     async () => {
-      if (!refTestDetailItemId) return [];
-      const res = await getItemLinkRelation(refTestDetailItemId);
+      if (!refTestDetailData?.objectId) return [];
+      const res = await getItemLinkRelation(refTestDetailData.objectId);
       // // 过滤掉 destination 为空（被关联方事项已经被删除）
       return res.filter(item => item.destination);
     },
     {
-      ready: Boolean(refTestDetailItemId),
-      refreshDeps: [refTestDetailItemId],
+      ready: Boolean(refTestDetailData?.objectId),
+      refreshDeps: [refTestDetailData?.objectId],
     },
   );
 
@@ -342,6 +340,14 @@ const TestRun: React.FC<TestRunType> = props => {
     testRunRequestLoading ||
     relationDefectsRequestLoading ||
     itemLinksRequestLoading;
+
+  console.log(
+    'loading ------->',
+    tabPaneLoading,
+    testRunRequestLoading,
+    relationDefectsRequestLoading,
+    itemLinksRequestLoading,
+  );
 
   return (
     <div ref={modelScrollRef}>
