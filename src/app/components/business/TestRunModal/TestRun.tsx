@@ -84,7 +84,6 @@ const TestRun: React.FC<TestRunType> = props => {
   } = useRequest(
     async () => {
       if (!testId) return null;
-      setTabPaneLoading(true);
       const { list: runData } = await getTestEntityByQuery({
         query: {
           id: [testId],
@@ -97,7 +96,7 @@ const TestRun: React.FC<TestRunType> = props => {
     {
       ready: Boolean(testId),
       refreshDeps: [testId],
-      // loadingDelay: 400,
+      loadingDelay: 400,
     },
   );
 
@@ -181,7 +180,7 @@ const TestRun: React.FC<TestRunType> = props => {
     .value();
 
   // 所有关联的缺陷事项
-  const { data: allRelationDefectItems, loading: relationDefectsRequestLoading } = useRequest(
+  const { data: allRelationDefectItems } = useRequest(
     async () => (allRelationDefectIds.length ? getItemByIds(allRelationDefectIds) : []),
     {
       ready: Boolean(allRelationDefectIds.length),
@@ -189,20 +188,17 @@ const TestRun: React.FC<TestRunType> = props => {
     },
   );
 
-  // 测试用例事项 id
-  const refTestDetailItemId = refTestDetailData.objectId;
   // 事项关联
-  const { data: itemLinks, loading: itemLinksRequestLoading } = useRequest(
+  const { data: itemLinks } = useRequest(
     async () => {
-      setTabPaneLoading(false);
-      if (!refTestDetailItemId) return [];
-      const res = await getItemLinkRelation(refTestDetailItemId);
+      if (!refTestDetailData?.objectId) return [];
+      const res = await getItemLinkRelation(refTestDetailData.objectId);
       // // 过滤掉 destination 为空（被关联方事项已经被删除）
       return res.filter(item => item.destination);
     },
     {
-      ready: Boolean(refTestDetailItemId),
-      refreshDeps: [refTestDetailItemId],
+      ready: Boolean(refTestDetailData?.objectId),
+      refreshDeps: [refTestDetailData?.objectId],
     },
   );
 
@@ -339,11 +335,7 @@ const TestRun: React.FC<TestRunType> = props => {
   //   [testRunEntity, testRunData, onDataChange, modelScrollRef],
   // );
 
-  const loading =
-    tabPaneLoading ||
-    testRunRequestLoading ||
-    relationDefectsRequestLoading ||
-    itemLinksRequestLoading;
+  const loading = tabPaneLoading || testRunRequestLoading;
 
   return (
     <div ref={modelScrollRef}>
@@ -358,6 +350,7 @@ const TestRun: React.FC<TestRunType> = props => {
                   className={cx('status-btn')}
                   status={testRunData.status}
                   readonly
+                  hideIcon
                 />
                 <div className={cx('status-divider')}>
                   <StatusList onStatusChange={handleStatusChange} status={testRunData.status} />

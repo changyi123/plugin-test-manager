@@ -9,7 +9,7 @@ import { useListener } from '@projectproxima/proxima-sdk-js';
 import { usePageContext } from '../../hook';
 
 import cx from './index.less';
-import { getLinkedTestEntityByQuery } from '@/lib/api/item';
+import { deleteTestEntity, getLinkedTestEntityByQuery } from '@/lib/api/item';
 import { TestLinkType, TestType } from 'common/constant';
 
 interface ExcetionListProps {
@@ -105,8 +105,8 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
     }
     if (type === 'delete') {
       actionConfirm('该操作会将该测试执行任务删除，是否继续操作？', async () => {
-        // await Promise.all([deleteTestEntities([data?.objectId]), deleteItems([data.objectId])]);
-        setSelectedExecution(undefined);
+        await deleteTestEntity([data?.objectId]);
+        setActivedId('');
         setRefreshExecution(true);
       });
     }

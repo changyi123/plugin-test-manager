@@ -22,7 +22,7 @@ export default [
   {
     color: '#FFBF36',
     description: '测试执行正在执行中',
-    name: '正在执行',
+    name: '执行中',
     key: 'EXECUTING',
     final: false,
     native: true,

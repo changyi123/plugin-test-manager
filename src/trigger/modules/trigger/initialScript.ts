@@ -37,7 +37,7 @@ const initializedStatuses = [
   },
   {
     key: 'EXECUTING',
-    name: '正在执行',
+    name: '执行中',
     type: 'EXECUTING',
     color: '#FFBF36',
     final: false,
