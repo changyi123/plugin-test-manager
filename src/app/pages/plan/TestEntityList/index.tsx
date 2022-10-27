@@ -641,6 +641,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       setTableLoading(false);
       actionRef.current.refresh();
       mutateTestPlanEvent.emit(selectedTestPlan?.objectId);
+      mutateStatusEvent.emit('refreshExecutionStatus');
       // refreshAndMutateData();
     };
 
