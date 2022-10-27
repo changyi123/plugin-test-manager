@@ -83,7 +83,6 @@ const TestRun: React.FC<TestRunType> = props => {
   } = useRequest(
     async () => {
       if (!testId) return null;
-      setTabPaneLoading(true);
       const { list: runData } = await getTestEntityByQuery({
         query: {
           id: [testId],
@@ -184,7 +183,6 @@ const TestRun: React.FC<TestRunType> = props => {
   // 事项关联
   const { data: itemLinks, loading: itemLinksRequestLoading } = useRequest(
     async () => {
-      setTabPaneLoading(false);
       if (!refTestDetailItemId) return [];
       const res = await getItemLinkRelation(refTestDetailItemId);
       // // 过滤掉 destination 为空（被关联方事项已经被删除）
@@ -348,6 +346,7 @@ const TestRun: React.FC<TestRunType> = props => {
                   className={cx('status-btn')}
                   status={testRunData.status}
                   readonly
+                  hideIcon
                 />
                 <div className={cx('status-divider')}>
                   <StatusList onStatusChange={handleStatusChange} status={testRunData.status} />

@@ -11,6 +11,7 @@ import cx from './Badge.less';
 type BadgeProps = {
   status?: string;
   showBg?: boolean;
+  hideIcon?: boolean;
   readonly?: boolean;
   className?: string;
   useRootContainer?: boolean;
@@ -22,6 +23,7 @@ type BadgeProps = {
 const Status = ({
   status,
   showBg,
+  hideIcon,
   onClick,
   hasEffect,
   className,
@@ -33,12 +35,17 @@ const Status = ({
       className={[
         cx('status', hasEffect && 'hover', className),
         showBg && cx('run-status', status?.key),
+        hideIcon && cx('hide-icon'),
         'status',
       ].join(' ')}
     >
-      <span style={{ background: status?.color }} className={cx('dot', 'status__dot')} />
+      {!hideIcon && (
+        <span style={{ background: status?.color }} className={cx('dot', 'status__dot')} />
+      )}
       <span className={cx('name')}>{status?.name}</span>
-      {showBg && <span className={cx('icon')}>{hasEffect && <CaretDownOutlined />}</span>}
+      {showBg && !hideIcon && (
+        <span className={cx('icon')}>{hasEffect && <CaretDownOutlined />}</span>
+      )}
     </div>
   );
 };
@@ -85,6 +92,7 @@ const Badge: React.FC<BadgeProps> = props => {
         className={cx('block', 'status__block')}
         key={status.key}
         status={status}
+        hideIcon={props.hideIcon}
       />
     ));
   }, [statusConfig, props]);
@@ -109,6 +117,7 @@ const Badge: React.FC<BadgeProps> = props => {
             hasEffect={!props.readonly}
             className={cx('effect-status')}
             onClick={() => !props.readonly && setVisible(true)}
+            hideIcon={props.hideIcon}
           />
         )}
       </Popover>

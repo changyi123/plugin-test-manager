@@ -195,12 +195,7 @@ const TestStep: React.FC<TestStepProps> = props => {
         <div className={cx('step')} key={step.id}>
           <div className={cx('row')}>
             <span className={cx('position')}>
-              <span
-                className={cx('position-tip')}
-                style={{ backgroundColor: statusConfig[step.status ?? 'TODO']?.color }}
-              >
-                {index + 1}
-              </span>
+              <span className={cx('position-tip')}>{index + 1}</span>
             </span>
             <span className={cx('action')}>{renderFieldValue(step.action)}</span>
             <span className={cx('status')}>
@@ -213,6 +208,7 @@ const TestStep: React.FC<TestStepProps> = props => {
               <StatusBadge
                 className={cx('status-box')}
                 showBg
+                hideIcon
                 status={step.status}
                 onReady={setStatusConfig}
                 readonly
