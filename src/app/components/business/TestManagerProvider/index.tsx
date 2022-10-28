@@ -121,13 +121,7 @@ const getOrBatchCreateTestEntities = async (
     const curStore = list[index]?.[CREATE_ITEM_STORE_FIELD_KEY];
 
     if (curStore) {
-      if (curStore.repository) {
-        return {
-          repository: curStore?.repository,
-        };
-      }
-
-      if (curStore.repository === null) {
+      if (curStore.repository || curStore.repository === null) {
         return {
           repository: curStore?.repository,
         };
