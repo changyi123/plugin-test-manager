@@ -115,10 +115,10 @@ const NoData: React.FC<NoDataProps> = ({ setRefreshExecution }) => {
       });
       setRefreshExecution(true);
     } catch (err) {
+      notification.destroy();
       notification.error({
         message: '测试执行任务新建失败',
       });
-      notification.destroy();
     }
   }, [createExcution, getSelectCaseIds, setRefreshExecution]);
 

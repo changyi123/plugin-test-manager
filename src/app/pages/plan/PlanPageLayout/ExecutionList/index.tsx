@@ -51,11 +51,7 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
     }
   }, [selectedExecution]);
 
-  const {
-    data: executionList,
-    refresh,
-    loading,
-  } = useRequest(
+  const { data: executionList, refresh } = useRequest(
     async () => {
       if (activedType !== 'TestExecution') return [];
 
@@ -75,10 +71,6 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
       refreshDeps: [planId, activedType],
     },
   );
-
-  useEffect(() => {
-    setLoading?.(loading);
-  }, [loading]);
 
   useEffect(() => {
     if (!selectedExecution?.objectId && query?.executionId) {
@@ -109,7 +101,7 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
         await deleteTestEntity([data?.objectId]);
         setActivedId('');
         setRefreshExecution(true);
-        setLoading?.(true);
+        setLoading?.(false);
         notification.success({
           message: '测试执行任务删除成功',
         });
