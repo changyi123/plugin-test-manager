@@ -65,6 +65,12 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
     }, 400);
   });
 
+  useListener('closeItemViewScreen', () => {
+    setTimeout(() => {
+      handleDataChange();
+    }, 400);
+  });
+
   const state = useReactive({
     breadcrumbs: [],
     selectors: [] as any,

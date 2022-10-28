@@ -145,17 +145,19 @@ const PlanPageLayout: React.FC<any> = () => {
           )}
           {(activedType === 'TestPlan' || selectedExecution?.objectId) && (
             <PageLayout.Right>
-              <Right
-                pageLeftRef={pageLeftRef}
-                activedType={activedType}
-                selectedExecution={selectedExecution}
-                showType={showType}
-                setShowType={setShowType}
-                scopedTestDetailRefresh={scopedTestDetailRefresh}
-                refreshPlanData={refreshPlanData}
-                requestScopedTestDetailIds={requestScopedTestDetailIds}
-                scopedTestDetailIds={scopedTestDetailIds}
-              />
+              <Spin spinning={loading}>
+                <Right
+                  pageLeftRef={pageLeftRef}
+                  activedType={activedType}
+                  selectedExecution={selectedExecution}
+                  showType={showType}
+                  setShowType={setShowType}
+                  scopedTestDetailRefresh={scopedTestDetailRefresh}
+                  refreshPlanData={refreshPlanData}
+                  requestScopedTestDetailIds={requestScopedTestDetailIds}
+                  scopedTestDetailIds={scopedTestDetailIds}
+                />
+              </Spin>
             </PageLayout.Right>
           )}
         </PageLayout>

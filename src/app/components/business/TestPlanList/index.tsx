@@ -81,11 +81,13 @@ const TestPlanList: React.FC<any> = () => {
   );
 
   const handleDelete = async data => {
-    await actionConfirm('该操作会当前删除测试计划以及测试计划关联的测试用例和任务，是否继续？');
+    await actionConfirm('该操作会当前删除测试计划以及测试计划关联的测试用例，是否继续？');
+    setTableLoading(true);
     await deleteTestEntity([data.objectId]);
     actionRef.current.refresh();
     // 重新选中
     setSelectedTestPlan(null);
+    setTableLoading(false);
     notification.success({
       message: '测试计划删除成功',
     });
