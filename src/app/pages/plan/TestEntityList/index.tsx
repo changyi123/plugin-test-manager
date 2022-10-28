@@ -433,7 +433,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     {
       key: 'runStatus',
       title: '测试执行状态',
-      shouldCellUpdate: (record, prevRecord) => isEqual(record.designee, prevRecord.designee),
+      shouldCellUpdate: (record, prevRecord) => !isEqual(record.designee, prevRecord.designee),
       width: 150,
       render(_, record) {
         const { result: enabled } = canExecuteTestRun(record.designee);
@@ -470,11 +470,11 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       fixed: 'right' as any,
       shouldCellUpdate: (record, prevRecord) =>
         record.repository?.objectId !== prevRecord.repository?.objectId ||
-        isEqual(record.designee, prevRecord.designee),
+        !isEqual(record.designee, prevRecord.designee),
       render(_, record) {
         const { result: enabled, message } = canExecuteTestRun(record.designee);
         return (
-          <div>
+          <div className={cx('run-link')}>
             <Tooltip title={message} placement="topLeft">
               <Button
                 type="link"

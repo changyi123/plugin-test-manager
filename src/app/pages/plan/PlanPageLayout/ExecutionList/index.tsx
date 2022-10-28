@@ -47,7 +47,8 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
 
   useListener('closeItemViewScreen', () => {
     setTimeout(() => {
-      refresh();
+      setActivedId('');
+      setRefreshExecution(true);
     }, 400);
   });
 
