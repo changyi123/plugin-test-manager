@@ -84,6 +84,12 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     actionRef.current.refresh();
   });
 
+  useListener('closeItemViewScreen', () => {
+    setTimeout(() => {
+      scopedTestDetailRefresh();
+    }, 400);
+  });
+
   const { data: allRunData } = useRequest(
     async () => {
       if (activedType === 'TestPlan') return [];

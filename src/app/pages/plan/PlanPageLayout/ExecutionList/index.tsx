@@ -45,6 +45,12 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
     }, 400);
   });
 
+  useListener('closeItemViewScreen', () => {
+    setTimeout(() => {
+      refresh();
+    }, 400);
+  });
+
   useEffect(() => {
     if (selectedExecution?.objectId) {
       setActivedId(selectedExecution?.objectId);
