@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from 'react';
 import { useRequest } from 'ahooks';
-import { Dropdown, Menu, Tooltip } from 'antd';
+import { Dropdown, Menu, notification, Tooltip } from 'antd';
 import { EllipsisOutlined } from '@ant-design/icons';
 import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
 import { useLocation } from 'react-router-dom';
@@ -94,8 +94,8 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
   }, [refreshExecution]);
 
   useEffect(() => {
-    if (executionList?.length && !activedId) {
-      setSelectedExecution(executionList[0]);
+    if (executionList && !activedId) {
+      setSelectedExecution(executionList?.[0]);
     }
   }, [executionList, planId]);
 
@@ -105,9 +105,14 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
     }
     if (type === 'delete') {
       actionConfirm('该操作会将该测试执行任务删除，是否继续操作？', async () => {
+        setLoading?.(true);
         await deleteTestEntity([data?.objectId]);
         setActivedId('');
         setRefreshExecution(true);
+        setLoading?.(true);
+        notification.success({
+          message: '测试执行任务删除成功',
+        });
       });
     }
   };
