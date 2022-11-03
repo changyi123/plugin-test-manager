@@ -65,6 +65,7 @@ export type ActionType = {
   toggleSelection: (visible?: boolean) => void;
   selectedRowKeys: any[];
   resetSelectedRowKeys: () => void;
+  tableColumns: any[];
 };
 
 type BusinessTableProps = TableProps<any> &
@@ -76,6 +77,8 @@ type BusinessTableProps = TableProps<any> &
     useColumnSetting?: boolean;
     defaultColumnKey?: string[];
     PaginationFooterRender?: any;
+    isConfig?: boolean;
+    handleFilterField?: (val: { key: string; action: string; testType: string }) => void;
     // 所有可选的 row 标识
     allSelectableRowKeys?: string[];
     onSelectionCancel?: () => void;
@@ -157,7 +160,9 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     if (selectionMode || !useColumnSetting) return null;
     return (
       <ColumnSetting
-        name={props.name}
+        name={props?.name}
+        isConfig={props?.isConfig}
+        handleFilterField={props?.handleFilterField}
         defaultColumnKey={defaultColumnKey}
         titleCellOption={titleCellOption}
         additionalColumns={columns}
@@ -168,7 +173,9 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
   }, [
     selectionMode,
     useColumnSetting,
-    props.name,
+    props?.name,
+    props?.isConfig,
+    props?.handleFilterField,
     titleCellOption,
     columns,
     defaultColumnKey,
@@ -353,8 +360,9 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
       resetSelectedRowKeys: () => {
         setSelectedRowKeys(undefined);
       },
+      tableColumns,
     }),
-    [expandChangePage, selectedRowKeys, refresh],
+    [expandChangePage, selectedRowKeys, refresh, tableColumns],
   );
 
   React.useEffect(() => {

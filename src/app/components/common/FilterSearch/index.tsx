@@ -177,7 +177,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
           fieldType: { component: data.key, label: data.fieldName },
         },
         value: data?.value,
-        label: '',
+        label: data?.fieldName,
         workspace: workspace?.objectId,
         onChange: updateSelectorValue,
         onClose: () => {
@@ -243,7 +243,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
 
   return (
     <div className={cx('filter-search-wrap', `${className ?? ''}`)}>
-      <SearchInput onChange={onChangeInput} placeholder="请输入标题关键字/Key" value={search} />
+      <SearchInput onChange={onChangeInput} placeholder="请输入检索项关键字" value={search} />
       {currentSelector
         ?.filter(item => item?.fieldId !== 'name')
         .map(item => (

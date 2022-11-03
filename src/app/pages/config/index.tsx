@@ -13,6 +13,7 @@ import { Menu, Layout, Dropdown, Button, Result } from 'antd';
 
 import IsolatedSystem from './MoreConfig/IsolatedSystem';
 import WordTemplate from './MoreConfig/WordTemplate';
+import TableFields from './TableFields';
 
 import cx from './index.less';
 
@@ -62,6 +63,12 @@ const ConfigPages = [
     title: '用例执行配置',
     component: ExecuteTestRunAction,
     description: '配置当前空间在用例执行时的约束',
+  },
+  {
+    key: 'TableFields',
+    title: '表头及检索项设置',
+    component: TableFields,
+    description: '设置测试计划、测试用例等类型的默认列表表头及筛选项',
   },
 ];
 

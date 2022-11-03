@@ -4,13 +4,19 @@ import { TitleCellOption } from './type';
 import { ColumnType } from 'antd/lib/table';
 import { Drawer, Select, Tooltip } from 'antd';
 import { getCustomFields } from '@/lib/api/proxima';
-import { useTestTypeScreenFieldKeys } from './hook';
+import { useGetTableFilterFields, useTestTypeScreenFieldKeys } from './hook';
 import { TableCell } from '@projectproxima/components';
 import { generateStorageKey } from '@/lib/utils/helper';
 import { useNoExpiredRequest } from '@/lib/hooks/useRequest';
 import { useDeepCompareEffect, useLocalStorageState } from 'ahooks';
 import { useFieldsWithFieldCellProps } from '@/lib/hooks/useProxima';
-import { DeleteOutlined, DragHandler, SettingOutlined } from '@/icons';
+import {
+  DeleteOutlined,
+  PlusCircleOutlined,
+  DragHandler,
+  SettingOutlined,
+  MinusCircleOutlined,
+} from '@/icons';
 import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd';
 
 import '@projectproxima/components/dist/main.css';
@@ -20,18 +26,22 @@ type ColumnDuckTyping = ColumnType<any> & Record<string, any>;
 
 type ColumnSettingProps = TitleCellOption & {
   name?: string;
+  isConfig?: boolean;
   className?: string;
   defaultColumnKey?: string[];
   additionalColumns?: ColumnDuckTyping[];
   onTableColumnChange?: (column: ColumnDuckTyping) => void;
+  handleFilterField?: (val: { key: string; action: string; testType: string }) => void;
 };
 
 const ColumnSetting: React.FC<ColumnSettingProps> = props => {
   const {
     name,
+    isConfig,
     className,
     titleCellOption,
     defaultColumnKey,
+    handleFilterField,
     additionalColumns = [],
     onTableColumnChange = noop,
   } = props;
@@ -41,6 +51,8 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
     cacheKey: `CustomFields_${keys.toString()}`,
     refreshDeps: [keys],
   });
+
+  const { filterFields, tableFields } = useGetTableFilterFields({ ...titleCellOption, isConfig });
 
   const fieldCellsProp = useFieldsWithFieldCellProps(customFields);
   const fieldCellsPropDict = React.useMemo(() => {
@@ -54,6 +66,7 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
       width: 140,
       key: field.key,
       resizable: true,
+      fieldType: field.fieldType,
       title: field.name,
       render(_, record) {
         const itemData = record;
@@ -88,8 +101,9 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
   }, [memoizedAdditionalColumnKey, customFields]);
 
   const selectColumns = React.useMemo(() => {
-    return storageColumnKeys.map(key => allColumns.find(col => col.key === key)).filter(Boolean);
-  }, [allColumns, storageColumnKeys]);
+    const columns = storageColumnKeys?.length ? storageColumnKeys : tableFields;
+    return columns.map(key => allColumns.find(col => col.key === key)).filter(Boolean);
+  }, [allColumns, storageColumnKeys, tableFields]);
 
   const selectOptions = allColumns
     .filter(col => {
@@ -204,6 +218,28 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
                       >
                         <DragHandler />
                         <span className={cx('title')}>{col.title}</span>
+                        {['key', 'Text'].includes(col.fieldType.key) && (
+                          <span
+                            className={cx('filter-icon')}
+                            onClick={() =>
+                              handleFilterField?.({
+                                key: col.key,
+                                action: filterFields.includes(col.key) ? 'delete' : 'add',
+                                testType: titleCellOption.testType,
+                              })
+                            }
+                          >
+                            <Tooltip
+                              title={filterFields.includes(col.key) ? '移除检索项' : '添加检索项'}
+                            >
+                              {filterFields.includes(col.key) ? (
+                                <MinusCircleOutlined className={cx('icon')} />
+                              ) : (
+                                <PlusCircleOutlined className={cx('icon')} />
+                              )}
+                            </Tooltip>
+                          </span>
+                        )}
                         <DeleteOutlined
                           className={cx('icon')}
                           onClick={() => deleteStorageColumnKey(col.key)}

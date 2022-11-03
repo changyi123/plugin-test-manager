@@ -338,6 +338,8 @@ tables:
         type: Boolean
       extra:
         type: Object
+      tableFilelds:
+        type: Object
   - className: TestRelation
     fields:
       from:
@@ -366,6 +368,14 @@ tables:
       #   type: Boolean
       # command:
       #   type: Array
+  - className: UserSetting
+    fields:
+      filterFields:
+        type: Object
+      workspace:
+        type: Pointer
+      user:
+        type: Pointer
 resources:
   - key: main
     path: ./src/dist

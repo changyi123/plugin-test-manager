@@ -3,6 +3,10 @@ import { useNoExpiredRequest } from '@/lib/hooks/useRequest';
 import { getTestConfig } from '@/lib/api/common';
 import { TestType } from '@/lib/constants';
 import { TitleCellOption } from './type';
+import { useCurrentUser } from '@/lib/api/user';
+import { useWorkspaceTestConfig } from '@/lib/hooks/useTest';
+import { useRequest } from 'ahooks';
+import { getCurrentUserSetting } from '@/lib/api/userSetting';
 
 const TestIncludeFiledKeys = ['status'];
 
@@ -25,4 +29,34 @@ export const useTestTypeScreenFieldKeys = ({
   // 除测试计划外其他测试类型需要隐藏状态字段
   const shouldHiddenFieldKeys = testType !== TestType.Plan ? TestIncludeFiledKeys : [];
   return useUsedScreenFieldKeys(workspaceKey, itemTypeKey, shouldHiddenFieldKeys);
+};
+
+export const useGetTableFilterFields = ({
+  workspaceKey,
+  testType,
+  isConfig,
+}: {
+  workspaceKey?: string;
+  testType?: string;
+  isConfig?: boolean;
+}) => {
+  const testConfig = useWorkspaceTestConfig(workspaceKey);
+
+  testConfig?.tableFilelds?.[testType];
+  const { data: user } = useCurrentUser() ?? {};
+
+  const { data: filterFields } = useRequest(async () => {
+    const res = await getCurrentUserSetting({
+      workspaceKey,
+      user,
+    });
+
+    return res?.filterFields?.[testType];
+  });
+
+  return {
+    filterFields:
+      (isConfig ? testConfig?.tableFilelds?.[testType]?.filterFields : filterFields) ?? [],
+    tableFields: testConfig?.tableFilelds?.[testType]?.tableFields ?? [],
+  };
 };
