@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { TestType } from '@/lib/constants';
 import { Button, Checkbox, message, Spin } from 'antd';
 import { useCurrentTestConfig, useDataContext } from '../hooks';
@@ -6,10 +6,11 @@ import TableConfig from './TableConfig';
 
 import cx from './style.less';
 import { updateAllTestConfigs } from '@/lib/api/common';
+import { BusinessTableActionType } from '@/components/common/BusinessTable';
 
 export interface TableFields {
-  testCase?: FieldKeys;
-  testPlan?: FieldKeys;
+  TestCase?: FieldKeys;
+  TestPlan?: FieldKeys;
 }
 
 export interface FieldKeys {
@@ -19,6 +20,8 @@ export interface FieldKeys {
 
 const TableFields: React.FC = () => {
   const { workspace } = useDataContext();
+  const testPlanRef = useRef<BusinessTableActionType>();
+  const testCaseRef = useRef<BusinessTableActionType>();
   const testConfig = useCurrentTestConfig(workspace?.key);
   const [checkBox, setCheckBox] = useState(false);
   const [tableFieldsData, setTableFieldsData] = useState<TableFields | undefined>(undefined);
@@ -26,19 +29,27 @@ const TableFields: React.FC = () => {
 
   const saveConfig = useCallback(async () => {
     setLoading(true);
+    const fields = {
+      TestPlan: {
+        ...(tableFieldsData?.TestPlan ?? {}),
+        tableColumns: (testPlanRef?.current?.tableColumns ?? []).map(d => d.key),
+      },
+      TestCase: {
+        ...(tableFieldsData?.TestCase ?? {}),
+        tableColumns: (testCaseRef?.current?.tableColumns ?? []).map(d => d.key),
+      },
+    };
     if (!checkBox) {
       await testConfig.save({
-        tableFields: tableFieldsData,
+        tableFields: fields,
       });
     } else {
       await updateAllTestConfigs({
-        tableFields: tableFieldsData,
+        tableFields: fields,
       });
     }
     message.success('表头及检索项配置保存成功');
     setLoading(false);
-
-    // const;
   }, [tableFieldsData, testConfig, checkBox]);
 
   return (
@@ -55,12 +66,21 @@ const TableFields: React.FC = () => {
               name="testPlanTableConfig"
               tableFieldsData={tableFieldsData}
               setTableFieldsData={setTableFieldsData}
+              tableActionRef={testPlanRef}
             />
           </div>
         </div>
-        <div className={cx('setting-box')}>
+        <div className={cx('setting-box', 'mg-top-m')}>
           <div className={cx('title')}>测试用例</div>
-          <div className={cx('table', 'case')}></div>
+          <div className={cx('table', 'case')}>
+            <TableConfig
+              testType={TestType.Case}
+              name="testCaseTableConfig"
+              tableFieldsData={tableFieldsData}
+              setTableFieldsData={setTableFieldsData}
+              tableActionRef={testCaseRef}
+            />
+          </div>
         </div>
         <Button type="primary" className={cx('action-btn')} onClick={saveConfig}>
           保存

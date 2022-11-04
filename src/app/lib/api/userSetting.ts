@@ -24,7 +24,10 @@ export const saveUserSetting = async ({
   user,
 }: {
   objectId?: string;
-  filterFields?: any;
+  filterFields?: {
+    testPlan?: string[];
+    testCase?: string[];
+  };
   workspaceKey: string;
   user: PointerType;
 }) => {

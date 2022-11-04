@@ -34,15 +34,15 @@ export const useTestTypeScreenFieldKeys = ({
 export const useGetTableFilterFields = ({
   workspaceKey,
   testType,
-  isConfig,
+  isSettingPage,
 }: {
   workspaceKey?: string;
   testType?: string;
-  isConfig?: boolean;
+  isSettingPage?: boolean;
 }) => {
   const testConfig = useWorkspaceTestConfig(workspaceKey);
 
-  testConfig?.tableFilelds?.[testType];
+  testConfig?.tableFields?.[testType];
   const { data: user } = useCurrentUser() ?? {};
 
   const { data: filterFields } = useRequest(async () => {
@@ -56,7 +56,7 @@ export const useGetTableFilterFields = ({
 
   return {
     filterFields:
-      (isConfig ? testConfig?.tableFilelds?.[testType]?.filterFields : filterFields) ?? [],
-    tableFields: testConfig?.tableFilelds?.[testType]?.tableFields ?? [],
+      (isSettingPage ? testConfig?.tableFields?.[testType]?.serachFields : filterFields) ?? [],
+    tableFields: testConfig?.tableFields?.[testType]?.tableColumns ?? [],
   };
 };

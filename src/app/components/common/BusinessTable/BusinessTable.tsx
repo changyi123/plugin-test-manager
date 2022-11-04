@@ -77,7 +77,7 @@ type BusinessTableProps = TableProps<any> &
     useColumnSetting?: boolean;
     defaultColumnKey?: string[];
     PaginationFooterRender?: any;
-    isConfig?: boolean;
+    isSettingPage?: boolean;
     handleFilterField?: (val: { key: string; action: string; testType: string }) => void;
     // 所有可选的 row 标识
     allSelectableRowKeys?: string[];
@@ -161,7 +161,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     return (
       <ColumnSetting
         name={props?.name}
-        isConfig={props?.isConfig}
+        isSettingPage={props?.isSettingPage}
         handleFilterField={props?.handleFilterField}
         defaultColumnKey={defaultColumnKey}
         titleCellOption={titleCellOption}
@@ -174,7 +174,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     selectionMode,
     useColumnSetting,
     props?.name,
-    props?.isConfig,
+    props?.isSettingPage,
     props?.handleFilterField,
     titleCellOption,
     columns,

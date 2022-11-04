@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { keyBy, noop } from 'lodash';
 import { TitleCellOption } from './type';
 import { ColumnType } from 'antd/lib/table';
@@ -26,7 +26,7 @@ type ColumnDuckTyping = ColumnType<any> & Record<string, any>;
 
 type ColumnSettingProps = TitleCellOption & {
   name?: string;
-  isConfig?: boolean;
+  isSettingPage?: boolean;
   className?: string;
   defaultColumnKey?: string[];
   additionalColumns?: ColumnDuckTyping[];
@@ -37,7 +37,7 @@ type ColumnSettingProps = TitleCellOption & {
 const ColumnSetting: React.FC<ColumnSettingProps> = props => {
   const {
     name,
-    isConfig,
+    isSettingPage,
     className,
     titleCellOption,
     defaultColumnKey,
@@ -51,8 +51,18 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
     cacheKey: `CustomFields_${keys.toString()}`,
     refreshDeps: [keys],
   });
+  const [fields, setFields] = useState<string[]>([]);
 
-  const { filterFields, tableFields } = useGetTableFilterFields({ ...titleCellOption, isConfig });
+  const { filterFields, tableFields } = useGetTableFilterFields({
+    ...titleCellOption,
+    isSettingPage,
+  });
+
+  useEffect(() => {
+    if (filterFields?.length) {
+      setFields(filterFields);
+    }
+  }, [filterFields]);
 
   const fieldCellsProp = useFieldsWithFieldCellProps(customFields);
   const fieldCellsPropDict = React.useMemo(() => {
@@ -218,21 +228,25 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
                       >
                         <DragHandler />
                         <span className={cx('title')}>{col.title}</span>
-                        {['key', 'Text'].includes(col.fieldType.key) && (
+                        {['key', 'Text'].includes(col?.fieldType?.key) && (
                           <span
                             className={cx('filter-icon')}
-                            onClick={() =>
+                            onClick={() => {
+                              const action = fields.includes(col.key) ? 'delete' : 'add';
+                              if (fields.includes(col.key)) {
+                                setFields(fields.filter(d => d !== col.key));
+                              } else {
+                                setFields(fields.concat(col.key));
+                              }
                               handleFilterField?.({
                                 key: col.key,
-                                action: filterFields.includes(col.key) ? 'delete' : 'add',
+                                action,
                                 testType: titleCellOption.testType,
-                              })
-                            }
+                              });
+                            }}
                           >
-                            <Tooltip
-                              title={filterFields.includes(col.key) ? '移除检索项' : '添加检索项'}
-                            >
-                              {filterFields.includes(col.key) ? (
+                            <Tooltip title={fields.includes(col.key) ? '移除检索项' : '添加检索项'}>
+                              {fields.includes(col.key) ? (
                                 <MinusCircleOutlined className={cx('icon')} />
                               ) : (
                                 <PlusCircleOutlined className={cx('icon')} />

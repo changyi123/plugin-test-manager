@@ -12,17 +12,20 @@ import { FullScreen } from '@/icons';
 import { components } from 'proxima-sdk';
 import { deleteTestEntity, getStatsTestPlan, getTestEntityByQuery } from '@/lib/api/item';
 import { SystemIncludeFieldKeys, SYSTEM_FIELD, TestType } from '@/lib/constants';
+import { useCurrentUser } from '@/lib/api/user';
+import { getCurrentUserSetting, saveUserSetting } from '@/lib/api/userSetting';
+import { useRequest } from 'ahooks';
 
 const { ItemIcon } = components.Components.Common;
 
 import cx from './index.less';
-
 const TestPlanList: React.FC<any> = () => {
   const actionRef = React.useRef<BusinessTableActionType>();
   const { workspaceKey, selectedTestPlan, setSelectedTestPlan, selectors, setSearchParams } =
     usePageContext();
   const [tableLoading, setTableLoading] = useState(false);
   const { createItemUseModal } = useBaseAction();
+  const { data: currentUser } = useCurrentUser();
 
   const detailSearchRef = useRef(null);
 
@@ -78,6 +81,15 @@ const TestPlanList: React.FC<any> = () => {
       };
     },
     [workspaceKey, selectors, testDetailFieldKeys],
+  );
+
+  const { data: currentFields } = useRequest(
+    async () => {
+      return await getCurrentUserSetting({ workspaceKey, user: currentUser });
+    },
+    {
+      refreshDeps: [workspaceKey, currentUser],
+    },
   );
 
   const handleDelete = async data => {
@@ -190,6 +202,28 @@ const TestPlanList: React.FC<any> = () => {
     });
   };
 
+  const handleFilterField = useCallback(
+    async ({ key, action, testType }) => {
+      const getFields = (fields, { key, action }) => {
+        if (action === 'add') {
+          return (fields ?? []).concat(key);
+        }
+        if (action === 'delete') {
+          return (fields ?? []).filter(d => d !== key);
+        }
+      };
+      await saveUserSetting({
+        workspaceKey,
+        user: currentUser,
+        filterFields: {
+          ...(currentFields?.filterFields ?? {}),
+          [testType]: getFields(currentFields?.filterFields?.[testType], { key, action }),
+        },
+      });
+    },
+    [currentUser, workspaceKey, currentFields],
+  );
+
   return (
     <div className={cx('test-plan-container')}>
       <div className={cx('plan-header')}>
@@ -231,6 +265,7 @@ const TestPlanList: React.FC<any> = () => {
         actionRef={actionRef}
         loading={tableLoading}
         getDataSource={tableDataGetter}
+        handleFilterField={handleFilterField}
       />
     </div>
   );

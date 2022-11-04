@@ -1,5 +1,5 @@
-import React, { useCallback, useRef } from 'react';
-import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
+import React, { useCallback } from 'react';
+import { BusinessTable } from '@/components/common/BusinessTable';
 import { TestType } from '@/lib/constants';
 import { useCurrentTestConfig, useDataContext } from '../hooks';
 import { TableFields } from './index';
@@ -8,6 +8,7 @@ interface TableConfigProps {
   testType: TestType;
   name;
   tableFieldsData?: TableFields;
+  tableActionRef?: any;
   setTableFieldsData?: (val: TableFields) => void;
 }
 
@@ -15,41 +16,45 @@ const TableConfig: React.FC<TableConfigProps> = ({
   testType,
   name,
   tableFieldsData,
+  tableActionRef,
   setTableFieldsData,
 }) => {
-  const { workspace } = useDataContext();
+  const { workspace }: any = useDataContext();
   const testConfig = useCurrentTestConfig(workspace.key);
-  const tableActionRef = useRef<BusinessTableActionType>();
 
   const handleFilterField = useCallback(
     ({ key, action }) => {
-      const tableColumns = (tableActionRef.current.tableColumns ?? []).map(d => d.key);
-
       let serachFields;
       if (action === 'add') {
-        serachFields = (tableFieldsData ?? testConfig.tableFilelds?.[testType]).concat(key);
+        serachFields = (
+          tableFieldsData?.[testType]?.serachFields ??
+          testConfig?.get('tableFields')?.[testType]?.serachFields ??
+          []
+        ).concat(key);
       }
       if (action === 'delete') {
-        serachFields = (tableFieldsData ?? testConfig.tableFilelds?.[testType]).filter(
-          d => d !== key,
-        );
+        serachFields = (
+          tableFieldsData?.[testType]?.serachFields ??
+          testConfig?.get('tableFields')?.[testType]?.serachFields ??
+          []
+        ).filter(d => d !== key);
       }
 
       setTableFieldsData({
-        ...tableFieldsData,
+        ...(tableFieldsData ?? {}),
         [testType]: {
+          ...(tableFieldsData?.[testType] ?? {}),
           serachFields,
-          tableColumns,
         },
       });
     },
-    [setTableFieldsData, tableFieldsData, testConfig.tableFilelds, testType],
+    [setTableFieldsData, tableFieldsData, testConfig, testType],
   );
 
   return (
     <BusinessTable
       titleCellOption={{
-        workspaceKey: workspace?.key,
+        workspaceKey: workspace.key,
         testType: testType,
       }}
       useColumnSetting
@@ -58,6 +63,8 @@ const TableConfig: React.FC<TableConfigProps> = ({
       dataSource={[]}
       name={name}
       handleFilterField={handleFilterField}
+      showPagination={false}
+      isSettingPage={true}
     />
   );
 };
