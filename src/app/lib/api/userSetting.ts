@@ -7,7 +7,7 @@ export const getCurrentUserSetting = async ({
   workspaceKey?: string;
   user?: PointerType;
 }) => {
-  const workspace = new Parse.Query(Workspace).equalTo('key', workspaceKey).first();
+  const workspace = await new Parse.Query(Workspace).equalTo('key', workspaceKey).first();
 
   const userSettingData = await new Parse.Query(UserSetting)
     .equalTo('workspace', workspace)
@@ -31,7 +31,7 @@ export const saveUserSetting = async ({
   workspaceKey: string;
   user: PointerType;
 }) => {
-  const workspace = new Parse.Query(Workspace).equalTo('key', workspaceKey).first();
+  const workspace = await new Parse.Query(Workspace).equalTo('key', workspaceKey).first();
 
   const userSetting = new UserSetting({
     objectId,

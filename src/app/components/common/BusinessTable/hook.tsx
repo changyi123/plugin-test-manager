@@ -42,7 +42,6 @@ export const useGetTableFilterFields = ({
 }) => {
   const testConfig = useWorkspaceTestConfig(workspaceKey);
 
-  testConfig?.tableFields?.[testType];
   const { data: user } = useCurrentUser() ?? {};
 
   const { data: filterFields } = useRequest(async () => {
