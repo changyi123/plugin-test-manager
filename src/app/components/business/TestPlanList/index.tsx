@@ -1,7 +1,10 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { usePageContext } from '@/pages/plan/hook';
 import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
-import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/hook';
+import {
+  useGetFilterField,
+  useTestTypeScreenFieldKeys,
+} from '@/components/common/BusinessTable/hook';
 import { Button, Dropdown, Menu, notification } from 'antd';
 import _ from 'lodash';
 import { actionConfirm, goToItemDetailPage } from '@/lib/utils/helper';
@@ -26,6 +29,11 @@ const TestPlanList: React.FC<any> = () => {
   const [tableLoading, setTableLoading] = useState(false);
   const { createItemUseModal } = useBaseAction();
   const { data: currentUser } = useCurrentUser();
+  const customFilterField = useGetFilterField({ workspaceKey, testType: TestType.Plan });
+  const fieldNames = useMemo(
+    () => customFilterField?.map(d => d.name).join(','),
+    [customFilterField],
+  );
 
   const detailSearchRef = useRef(null);
 
@@ -48,15 +56,36 @@ const TestPlanList: React.FC<any> = () => {
   const tableDataGetter = useCallback(
     async queryParams => {
       setTableLoading(true);
-      const { list, total } = await getTestEntityByQuery({
-        query: {
-          workspaceKey: workspaceKey,
-          type: TestType.Plan,
+      const { list, total } = await getTestEntityByQuery(
+        {
+          query: {
+            workspaceKey: workspaceKey,
+            type: TestType.Plan,
+          },
+          fields: testDetailFieldKeys ?? [],
+          selector: selectors,
+          ...queryParams,
         },
-        fields: testDetailFieldKeys ?? [],
-        selector: selectors,
-        ...queryParams,
-      });
+        props => {
+          const {
+            selector: [nameSelector, fieldSelector],
+          } = props;
+          return {
+            ...props,
+            selector: [
+              nameSelector?.name
+                ? {
+                    name: {
+                      ...nameSelector.name,
+                      fieldLabel: fieldNames.split(','),
+                    },
+                  }
+                : {},
+              fieldSelector ?? {},
+            ],
+          };
+        },
+      );
 
       const stats = await getStatsTestPlan({
         planIds: list.map(d => d.objectId),
@@ -80,7 +109,7 @@ const TestPlanList: React.FC<any> = () => {
         total: total ?? 0,
       };
     },
-    [workspaceKey, selectors, testDetailFieldKeys],
+    [workspaceKey, selectors, testDetailFieldKeys, fieldNames],
   );
 
   const { data: currentFields } = useRequest(
@@ -212,9 +241,11 @@ const TestPlanList: React.FC<any> = () => {
           return (fields ?? []).filter(d => d !== key);
         }
       };
+
       await saveUserSetting({
         workspaceKey,
         user: currentUser,
+        testType,
         filterFields: {
           ...(currentFields?.filterFields ?? {}),
           [testType]: getFields(currentFields?.filterFields?.[testType], { key, action }),

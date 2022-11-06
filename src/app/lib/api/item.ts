@@ -13,10 +13,7 @@ import { BaseTestEntity, CopyTestCasePlayload, Status, TestEntity } from '../typ
 import { getPluginWebTriggerBaseUrl } from '../utils/helper';
 import { compactStepModel } from '../utils/modelTransfer';
 import { createItemLink, deleteItemLink, IItemLink, getExistedItemLinks } from './runs';
-import { lib } from 'proxima-sdk';
-import { SearchSelectors } from '../utils/iql';
-
-const { selectorToIql } = lib.Iql;
+import { SearchSelectors, selectorToIql } from '../utils/iql';
 
 const pluginWebTriggerBaseUrl = getPluginWebTriggerBaseUrl();
 

@@ -228,7 +228,7 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
                       >
                         <DragHandler />
                         <span className={cx('title')}>{col.title}</span>
-                        {['key', 'Text'].includes(col?.fieldType?.key) && (
+                        {['Key', 'Text'].includes(col?.fieldType?.key) && (
                           <span
                             className={cx('filter-icon')}
                             onClick={() => {

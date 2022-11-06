@@ -7,7 +7,12 @@ export const getCurrentUserSetting = async ({
   workspaceKey?: string;
   user?: PointerType;
 }) => {
+  if (!workspaceKey) return null;
   const workspace = await new Parse.Query(Workspace).equalTo('key', workspaceKey).first();
+
+  if (!user) {
+    user = await Parse.User.current();
+  }
 
   const userSettingData = await new Parse.Query(UserSetting)
     .equalTo('workspace', workspace)
@@ -18,23 +23,45 @@ export const getCurrentUserSetting = async ({
 };
 
 export const saveUserSetting = async ({
-  objectId,
   workspaceKey,
   filterFields,
+  testType,
   user,
 }: {
-  objectId?: string;
   filterFields?: {
     testPlan?: string[];
     testCase?: string[];
   };
+  testType?: string;
   workspaceKey: string;
   user: PointerType;
 }) => {
   const workspace = await new Parse.Query(Workspace).equalTo('key', workspaceKey).first();
 
+  if (!user) {
+    user = await Parse.User.current();
+  }
+
+  const userSettingData = await new Parse.Query(UserSetting)
+    .equalTo('workspace', workspace)
+    .equalTo('user', user)
+    .first();
+
+  if (userSettingData) {
+    const data = userSettingData.toJSON();
+    filterFields = {
+      ...(filterFields ?? {}),
+      [testType]: [
+        ...new Set((data?.filterFields?.[testType] ?? []).concat(filterFields?.[testType])),
+      ],
+    };
+
+    return await userSettingData.save({
+      filterFields,
+    });
+  }
+
   const userSetting = new UserSetting({
-    objectId,
     filterFields,
     user,
     workspace,

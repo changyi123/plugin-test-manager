@@ -3,10 +3,10 @@ import { useNoExpiredRequest } from '@/lib/hooks/useRequest';
 import { getTestConfig } from '@/lib/api/common';
 import { TestType } from '@/lib/constants';
 import { TitleCellOption } from './type';
-import { useCurrentUser } from '@/lib/api/user';
 import { useWorkspaceTestConfig } from '@/lib/hooks/useTest';
-import { useRequest } from 'ahooks';
 import { getCurrentUserSetting } from '@/lib/api/userSetting';
+import { useRequest } from 'ahooks';
+import { getCustomFields } from '@/lib/api/proxima';
 
 const TestIncludeFiledKeys = ['status'];
 
@@ -41,21 +41,46 @@ export const useGetTableFilterFields = ({
   isSettingPage?: boolean;
 }) => {
   const testConfig = useWorkspaceTestConfig(workspaceKey);
-
-  const { data: user } = useCurrentUser() ?? {};
+  const { serachFields, tableColumns } = testConfig?.tableFields?.[testType] ?? {};
 
   const { data: filterFields } = useRequest(async () => {
     const res = await getCurrentUserSetting({
       workspaceKey,
-      user,
+    });
+
+    return res?.filterFields?.[testType] ?? [];
+  });
+
+  return {
+    filterFields:
+      (isSettingPage ? serachFields : filterFields?.length ? filterFields : serachFields) ?? [],
+    tableFields: tableColumns ?? [],
+  };
+};
+
+export const useGetFilterField = ({
+  workspaceKey,
+  testType,
+}: {
+  workspaceKey?: string;
+  testType?: TestType;
+}) => {
+  const keys = useTestTypeScreenFieldKeys({
+    workspaceKey,
+    testType,
+  });
+
+  const { data: customFields } = useNoExpiredRequest(() => getCustomFields(keys), {
+    cacheKey: `CustomFields_${keys.toString()}`,
+    refreshDeps: [keys],
+  });
+  const { data: filterFields } = useRequest(async () => {
+    const res = await getCurrentUserSetting({
+      workspaceKey,
     });
 
     return res?.filterFields?.[testType];
   });
 
-  return {
-    filterFields:
-      (isSettingPage ? testConfig?.tableFields?.[testType]?.serachFields : filterFields) ?? [],
-    tableFields: testConfig?.tableFields?.[testType]?.tableColumns ?? [],
-  };
+  return customFields?.filter(filed => filterFields?.includes(filed.key));
 };

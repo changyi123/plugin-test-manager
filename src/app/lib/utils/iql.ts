@@ -143,6 +143,7 @@ export interface SelectCase {
   fieldName: string;
   key: string;
   value: string | number | any[];
+  fieldLabel?: string[];
 }
 
 export type Selectors = Record<string, SelectCase>;
@@ -319,8 +320,23 @@ const getCurIqlValue = (fieldName: string, selector): IQL => {
 
 // 标题搜索 xx => (xx or yy)
 const toIqlName = (selector: SelectCase) => {
-  const { value } = selector;
-  return value ? `('标题' ~ '${value}' or 'key' = '${value}')` : '';
+  const { value, fieldLabel } = selector;
+  const getIql = (label, val) => {
+    if (!label?.length) return '';
+    return label.reduce((prev, cur) => {
+      const iql = `'${cur}' ~ '${val}'`;
+      if (prev) {
+        prev = `${prev} or ${iql}`;
+      } else {
+        prev = ` or ${iql}`;
+      }
+      return prev;
+    }, '');
+  };
+
+  const customeIql = fieldLabel?.filter(Boolean)?.length ? `${getIql(fieldLabel, value)}` : '';
+  // or 'key' = '${value}'
+  return value ? `('标题' ~ '${value}'${customeIql})` : '';
 };
 
 // iql语句转换

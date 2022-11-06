@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
 import Field from '@/components/common/Field';
 import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
@@ -28,6 +28,9 @@ import { isEmpty, isEqual } from 'lodash';
 import { useTestRunActionAuth, useCanExecuteTestRunIdSequence } from '@/lib/hooks/useTest';
 
 import cx from './index.less';
+import { useGetFilterField } from '@/components/common/BusinessTable/hook';
+import { getCurrentUserSetting, saveUserSetting } from '@/lib/api/userSetting';
+import { useCurrentUser } from '@/lib/api/user';
 
 interface TestEntityListProps {
   loading?: boolean;
@@ -62,6 +65,12 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   const testRunModalActionRef = React.useRef<TestRunModalActionType>();
   const userData = useUserCellUserDataProp(workspaceKey);
   const { canExecuteTestRun, canAssignTestRun } = useTestRunActionAuth({ workspaceKey });
+  const { data: currentUser } = useCurrentUser();
+  const customFilterField = useGetFilterField({ workspaceKey, testType: TestType.Case });
+  const fieldNames = useMemo(
+    () => customFilterField?.map(d => d.name).join(','),
+    [customFilterField],
+  );
 
   const [tableLoading, setTableLoading] = useState(false);
   const [hasRowSelected, setHasRowSelected] = useState(false);
@@ -115,6 +124,15 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     },
   );
 
+  const { data: currentFields } = useRequest(
+    async () => {
+      return await getCurrentUserSetting({ workspaceKey, user: currentUser });
+    },
+    {
+      refreshDeps: [workspaceKey, currentUser],
+    },
+  );
+
   // 获取全部用例 getter
   const testPlanTableDataGetter = useCallback(
     async queryParams => {
@@ -127,16 +145,37 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       setTableLoading(true);
 
       // 查询测试用例
-      const { list: testDeatils, total } = await getTestEntityByQuery({
-        query: {
-          workspaceKey: workspaceKey,
-          type: TestType.Case,
-          id: requestScopedTestDetailIds,
+      const { list: testDeatils, total } = await getTestEntityByQuery(
+        {
+          query: {
+            workspaceKey: workspaceKey,
+            type: TestType.Case,
+            id: requestScopedTestDetailIds,
+          },
+          ...queryParams,
+          fields: testDetailFieldKeys ?? [],
+          selector: selectors,
         },
-        ...queryParams,
-        fields: testDetailFieldKeys ?? [],
-        selector: selectors,
-      });
+        props => {
+          const {
+            selector: [nameSelector, fieldSelector],
+          } = props;
+          return {
+            ...props,
+            selector: [
+              nameSelector?.name
+                ? {
+                    name: {
+                      ...nameSelector.name,
+                      fieldLabel: fieldNames?.split(','),
+                    },
+                  }
+                : {},
+              fieldSelector ?? {},
+            ],
+          };
+        },
+      );
 
       // 查询统计数据
       const stats = await getTestCaseStats({
@@ -164,6 +203,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       selectedTestPlan.objectId,
       selectors,
       testDetailFieldKeys,
+      fieldNames,
     ],
   );
 
@@ -189,7 +229,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           selector: [{}, selectors?.[1] ?? {}],
         },
         props => {
-          const [systemSelectors, customSelector] = props?.selector;
+          const [nameSelector, customSelector] = props?.selector;
 
           const extraQuery = Object.entries(customSelector ?? {}).reduce(
             (prev, [key, value]: any) => {
@@ -211,7 +251,17 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           );
           return {
             ...props,
-            selector: [systemSelectors ?? {}, {}],
+            selector: [
+              nameSelector?.name
+                ? {
+                    name: {
+                      ...nameSelector.name,
+                      fieldLabel: fieldNames.split(','),
+                    },
+                  }
+                : {},
+              {},
+            ],
             query: {
               ...props.query,
               ...extraQuery,
@@ -248,7 +298,14 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         total,
       };
     },
-    [workspaceKey, requestScopedTestDetailIds, selectedExecution, selectors, testDetailFieldKeys],
+    [
+      workspaceKey,
+      requestScopedTestDetailIds,
+      selectedExecution,
+      selectors,
+      testDetailFieldKeys,
+      fieldNames,
+    ],
   );
 
   useEffect(() => {
@@ -695,6 +752,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     canAssignTestRun,
     userData,
     hasRowSelected,
+    getCanExecuteTestRunIdSequence,
     selectedTestPlan?.objectId,
     mutateTestPlanEvent,
     mutateStatusEvent,
@@ -705,6 +763,30 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     actionRef.current.toggleSelection(visible);
     actionRef.current.resetSelectedRowKeys();
   });
+
+  const handleFilterField = useCallback(
+    async ({ key, action, testType }) => {
+      const getFields = (fields, { key, action }) => {
+        if (action === 'add') {
+          return (fields ?? []).concat(key);
+        }
+        if (action === 'delete') {
+          return (fields ?? []).filter(d => d !== key);
+        }
+      };
+
+      await saveUserSetting({
+        workspaceKey,
+        user: currentUser,
+        testType,
+        filterFields: {
+          ...(currentFields?.filterFields ?? {}),
+          [testType]: getFields(currentFields?.filterFields?.[testType], { key, action }),
+        },
+      });
+    },
+    [currentUser, workspaceKey, currentFields],
+  );
 
   return (
     <div className={cx('test-entity-list-box')}>
@@ -734,6 +816,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           allSelectableRowKeys={requestScopedTestDetailIds}
           selectionActionNodes={selectionActionNodes}
           onSelectionCancel={() => tableSelectionToggleEvent.emit(false)}
+          handleFilterField={handleFilterField}
         />
       ) : (
         <BusinessTable
@@ -762,6 +845,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           allSelectableRowKeys={testIdSequence}
           selectionActionNodes={InnerTableSelectionActionNodes}
           onSelectionCancel={() => tableSelectionToggleEvent.emit(false)}
+          handleFilterField={handleFilterField}
         />
       )}
       {activedType !== 'TestPlan' && (
