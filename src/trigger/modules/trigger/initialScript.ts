@@ -213,11 +213,10 @@ const initialScriptRunner = async () => {
 
 export const runInitialScript = async () => {
   try {
-    await initialScriptRunner()
-      .then(() => executeSQL())
-      .then(() => {
-        log('测试管理插件初始化成功');
-      });
+    // .then(() => executeSQL())
+    await initialScriptRunner().then(() => {
+      log('测试管理插件初始化成功');
+    });
   } catch (error) {
     log('error:', error);
   }
