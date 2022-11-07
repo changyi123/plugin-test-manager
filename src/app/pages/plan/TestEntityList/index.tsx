@@ -22,7 +22,7 @@ import {
   updateTestEntity,
   updateTestStatus,
 } from '@/lib/api/item';
-import { TestLinkType, TestType } from 'common/constant';
+import { BuiltinFieldNameMapping, TestLinkType, TestType } from 'common/constant';
 import { RepositoryModel } from '@/lib/constants';
 import { isEmpty, isEqual } from 'lodash';
 import { useTestRunActionAuth, useCanExecuteTestRunIdSequence } from '@/lib/hooks/useTest';
@@ -201,33 +201,26 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           selector: [{}, selectors?.[1] ?? {}],
         },
         props => {
-          const [nameSelector, customSelector] = props?.selector;
+          const [, customSelector] = props?.selector;
 
-          const extraQuery = Object.entries(customSelector ?? {}).reduce(
+          const runSelector = Object.entries(customSelector ?? {}).reduce(
             (prev, [key, value]: any) => {
-              if (key !== RepositoryModel) {
-                const filed = key.replace('test_', '');
-                prev[filed] = value.value.map(d => {
-                  if ('currentUser' === d.username) {
-                    return 'currentUser()';
-                  }
-                  if ('osc-admin' === d.username) {
-                    return 'osc-admin';
-                  }
-                  return d.username;
-                });
+              if (key !== RepositoryModel && key.includes('test_')) {
+                const fieldName =
+                  BuiltinFieldNameMapping?.[key.replace('test_', '')] ?? value.fieldName;
+                prev[key] = {
+                  ...value,
+                  fieldName,
+                };
               }
               return prev;
             },
             {},
           );
+
           return {
             ...props,
-            selector: [nameSelector, {}],
-            query: {
-              ...props.query,
-              ...extraQuery,
-            },
+            selector: [{}, runSelector],
           };
         },
       );
@@ -255,6 +248,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
             ...d,
             repository: item?.repository,
             item,
+            key: item.key,
           };
         }),
         total,

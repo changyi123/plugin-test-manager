@@ -280,6 +280,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         const { testEntity, item } = await createItemUseModal({
           type: TestType.Case,
           extraData: {
+            useItemBatchCreate: true,
             repository: node.key === UNGROUPED_FOLDER_KEY ? null : node.key,
             type: TestType.Case,
           },

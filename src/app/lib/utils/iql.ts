@@ -336,7 +336,7 @@ const toIqlName = (selector: SelectCase) => {
 
   const customeIql = fieldLabel?.filter(Boolean)?.length ? `${getIql(fieldLabel, value)}` : '';
   // or 'key' = '${value}'
-  return value ? `('标题' ~ '${value}'${customeIql})` : '';
+  return value ? `('标题' ~ '${value}' or 'key' = '${value}'${customeIql})` : '';
 };
 
 // iql语句转换

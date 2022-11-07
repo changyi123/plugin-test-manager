@@ -4,6 +4,7 @@ import { get, isEmpty } from 'lodash';
 import { getLinkedTestEntityByQuery, getTestEntityByQuery } from '@/lib/api/item';
 import { SearchSelectors } from '@/lib/utils/iql';
 import { TestLinkType, TestType } from 'common/constant';
+import { RepositoryModel } from '@/lib/constants';
 
 export const useResizeContainerDOM = (objectId?: string) => {
   React.useEffect(() => {
@@ -47,7 +48,17 @@ export const useScopedTestDetailIds = (params: ScopedTestDetailIdsParams) => {
         return caseIds;
       } else if (type === 'Execution') {
         if (!testExecutionId) return [];
-        const [systemSelectors] = selectors;
+        const [systemSelectors, customSelector] = selectors;
+
+        const runSelector = Object.entries(customSelector ?? {}).reduce(
+          (prev, [key, value]: any) => {
+            if (!key.includes('test_') || key === RepositoryModel) {
+              prev[key] = value;
+            }
+            return prev;
+          },
+          {},
+        );
         // 测试执行的用例范围
         const { list: runs } = await getLinkedTestEntityByQuery({
           query: {
@@ -71,7 +82,7 @@ export const useScopedTestDetailIds = (params: ScopedTestDetailIdsParams) => {
               },
               limit: 9999,
               onlySelectId: true,
-              selector: [systemSelectors, {}],
+              selector: [systemSelectors, runSelector],
             })
           : { list: ids };
 

@@ -17,10 +17,6 @@ import { SearchSelectors, selectorToIql } from '../utils/iql';
 
 const pluginWebTriggerBaseUrl = getPluginWebTriggerBaseUrl();
 
-const customFieldIqlMap = {
-  测试用例库模块: 'test_manager_repository',
-};
-
 // 处理筛选器数据
 const handleSelector = selector => {
   if (!selector) return null;
@@ -30,7 +26,7 @@ const handleSelector = selector => {
         prev[filed] = {
           ...value,
           component: 'Dropdown',
-          fieldName: customFieldIqlMap[value.fieldName],
+          fieldName: 'test_manager_repository',
         };
       } else {
         prev[filed] = {
