@@ -15,7 +15,7 @@ modules:
     - key: report-data-base
       function: report-data-base
     - key: report-data-extensions-huishang
-      function: 
+      function: report-data-extensions-huishang
     - key: report-data-extensions-inspur
       function: report-data-extensions-inspur
       # 查询实体数据
