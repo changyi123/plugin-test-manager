@@ -242,6 +242,7 @@ const Right: React.FC<RightProps> = props => {
           className={cx('plan-page-layout-search')}
           extendFields={filterSearchExtendFieldsProps}
           fields={testDetailFieldKeys?.filter(field => !systemFields.includes(field))}
+          testType={TestType.Case}
         />
       </div>
       <div data-element-id="test-manager-execution-table-body" className={cx('box-body')}>

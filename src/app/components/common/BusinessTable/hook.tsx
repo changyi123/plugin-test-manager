@@ -74,13 +74,36 @@ export const useGetFilterField = ({
     cacheKey: `CustomFields_${keys.toString()}`,
     refreshDeps: [keys],
   });
-  const { data: filterFields } = useRequest(async () => {
-    const res = await getCurrentUserSetting({
-      workspaceKey,
-    });
+  const { data: filterFields } = useRequest(
+    async () => {
+      const res = await getCurrentUserSetting({
+        workspaceKey,
+      });
 
-    return res?.filterFields?.[testType];
-  });
+      return res?.filterFields?.[testType];
+    },
+    {
+      refreshDeps: [workspaceKey, testType],
+      cacheKey: `${workspaceKey}_${testType}`,
+      cacheTime: 999999,
+      staleTime: 999999,
+    },
+  );
 
   return customFields?.filter(filed => filterFields?.includes(filed.key));
+};
+
+export const useGetFieldsName = ({
+  workspaceKey,
+  testType,
+}: {
+  workspaceKey?: string;
+  testType?: TestType;
+}) => {
+  const customFilterField = useGetFilterField({
+    workspaceKey,
+    testType,
+  });
+
+  return customFilterField?.map(d => d.name)?.join(',');
 };

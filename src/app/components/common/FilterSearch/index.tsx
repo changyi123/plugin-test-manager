@@ -13,7 +13,6 @@ import AddFilterIcon from '@/icons/svg/add-filter.svg';
 import { openFilterPopover, openFieldValuePopover } from '@/lib/api/sdk';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import { values, cloneDeep, omit, pick } from 'lodash';
-import cx from './index.less';
 import SelectorTag from './SelectorTag';
 import { Selectors, isDate, SearchSelectors } from '@/lib/utils/iql';
 import dayjs from 'dayjs';
@@ -22,15 +21,21 @@ import {
   SelectorCurrentUserValue,
   UserTypeSelectorFieldKeys,
   extendFields as systemExtendFields,
+  TestType,
 } from '@/lib/constants';
 import { Repository } from '@/lib/models';
 import { useDebounceFn } from 'ahooks';
+import { useGetFieldsName } from '../BusinessTable/hook';
+
+import cx from './index.less';
 
 interface FilterSearchProps {
   fields: string[];
   onSearch: (data: SearchSelectors) => void;
   extendFields: any[];
   className?: string;
+  testType?: TestType;
+  hideSelectorTag?: boolean;
 }
 
 interface FilterRefMethod {
@@ -38,7 +43,7 @@ interface FilterRefMethod {
 }
 
 const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearchProps> = (
-  { fields, onSearch, extendFields, className },
+  { fields, onSearch, extendFields, className, testType, hideSelectorTag },
   ref,
 ) => {
   const { workspace } = useTestConfig();
@@ -46,6 +51,11 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
   const [selectors, setSelectors] = useState<Selectors>({});
   const currentSelectors = useRef<Selectors>({});
   const [activeSelector, setActiveSelector] = useState('');
+
+  const fieldsName = useGetFieldsName({
+    workspaceKey: workspace?.key,
+    testType,
+  });
 
   useImperativeHandle(ref, () => ({
     reset: () => {
@@ -65,11 +75,12 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
         fieldName: '标题',
         key: 'name',
         value: searchValue === undefined ? search : searchValue,
+        fieldLabel: fieldsName?.split(',').filter(Boolean),
       };
       setSelectors(data);
       currentSelectors.current = data;
     },
-    [search],
+    [search, fieldsName],
   );
 
   const { data: currentUser } = useNoExpiredRequest(
@@ -263,22 +274,24 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
             onDelete={onDeleteSelector}
           />
         ))}
-      <Button
-        id="filter-btn"
-        icon={<AddFilterIcon className={cx('filter-tag-icon')} />}
-        className={cx('filter-tag-btn')}
-        onClick={() => {
-          openFilterPopover({
-            selectors,
-            fields,
-            onChange: onFilterChange,
-            extendFields,
-            dom: document.querySelector('#filter-btn'),
-          });
-        }}
-      >
-        <span className={cx('filter-tag-btn-text')}>筛选</span>
-      </Button>
+      {!hideSelectorTag && (
+        <Button
+          id="filter-btn"
+          icon={<AddFilterIcon className={cx('filter-tag-icon')} />}
+          className={cx('filter-tag-btn')}
+          onClick={() => {
+            openFilterPopover({
+              selectors,
+              fields,
+              onChange: onFilterChange,
+              extendFields,
+              dom: document.querySelector('#filter-btn'),
+            });
+          }}
+        >
+          <span className={cx('filter-tag-btn-text')}>筛选</span>
+        </Button>
+      )}
     </div>
   );
 };

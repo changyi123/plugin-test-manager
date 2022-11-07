@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { getDevConfig } from '@/devEnv';
 import { Button, notification, Select } from 'antd';
 import { useSDK } from '@projectproxima/plugin-sdk';
@@ -27,10 +27,7 @@ import FilterSearch from '@/components/common/FilterSearch';
 import { getRepositoryTree, getTestEntityByQuery } from '@/lib/api/item';
 
 import cx from './index.less';
-import {
-  useGetFilterField,
-  useTestTypeScreenFieldKeys,
-} from '@/components/common/BusinessTable/hook';
+import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/hook';
 
 type GroupedMode = 'all' | 'current';
 
@@ -50,11 +47,6 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
   const tableActionRef = React.useRef<ActionType>();
   const { createItemUseModal } = useBaseAction();
   const [groupedMode, setGroupedMode] = React.useState<GroupedMode>('all');
-  const customFilterField = useGetFilterField({ workspaceKey, testType: TestType.Case });
-  const fieldNames = useMemo(
-    () => customFilterField?.map(d => d.name).join(','),
-    [customFilterField],
-  );
 
   const testDetailFieldKeys = useTestTypeScreenFieldKeys({
     testType: TestType.Case,
@@ -116,38 +108,17 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
   const { runAsync: getTestDetailIds } = useRequest(
     async (ids: string[]) => {
       if (!ids?.length && !workspaceKey) return [];
-      const { list: caseIds } = await getTestEntityByQuery(
-        {
-          query: {
-            workspaceKey: workspaceKey,
-            type: TestType.Case,
-            id: ids,
-          },
-          selector: state.selectors,
-          offset: 0,
-          limit: 99999,
-          onlySelectId: true,
+      const { list: caseIds } = await getTestEntityByQuery({
+        query: {
+          workspaceKey: workspaceKey,
+          type: TestType.Case,
+          id: ids,
         },
-        props => {
-          const {
-            selector: [nameSelector, fieldSelector],
-          } = props;
-          return {
-            ...props,
-            selector: [
-              nameSelector?.name
-                ? {
-                    name: {
-                      ...nameSelector.name,
-                      fieldLabel: fieldNames?.split(','),
-                    },
-                  }
-                : {},
-              fieldSelector ?? {},
-            ],
-          };
-        },
-      );
+        selector: state.selectors,
+        offset: 0,
+        limit: 99999,
+        onlySelectId: true,
+      });
 
       return caseIds;
     },
@@ -293,6 +264,7 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
             onSearch={handleSelectorSearch}
             fields={testDetailFieldKeys?.filter(field => !systemFields.includes(field))}
             extendFields={extendFields.filter(field => field.key === RepositoryModel)}
+            testType={TestType.Case}
           />
           <TestDetailTable
             actionRef={tableActionRef}

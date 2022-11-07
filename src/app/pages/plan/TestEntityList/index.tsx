@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
 import Field from '@/components/common/Field';
 import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
@@ -26,11 +26,10 @@ import { TestLinkType, TestType } from 'common/constant';
 import { RepositoryModel } from '@/lib/constants';
 import { isEmpty, isEqual } from 'lodash';
 import { useTestRunActionAuth, useCanExecuteTestRunIdSequence } from '@/lib/hooks/useTest';
-
-import cx from './index.less';
-import { useGetFilterField } from '@/components/common/BusinessTable/hook';
 import { getCurrentUserSetting, saveUserSetting } from '@/lib/api/userSetting';
 import { useCurrentUser } from '@/lib/api/user';
+
+import cx from './index.less';
 
 interface TestEntityListProps {
   loading?: boolean;
@@ -66,11 +65,6 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   const userData = useUserCellUserDataProp(workspaceKey);
   const { canExecuteTestRun, canAssignTestRun } = useTestRunActionAuth({ workspaceKey });
   const { data: currentUser } = useCurrentUser();
-  const customFilterField = useGetFilterField({ workspaceKey, testType: TestType.Case });
-  const fieldNames = useMemo(
-    () => customFilterField?.map(d => d.name).join(','),
-    [customFilterField],
-  );
 
   const [tableLoading, setTableLoading] = useState(false);
   const [hasRowSelected, setHasRowSelected] = useState(false);
@@ -145,37 +139,16 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       setTableLoading(true);
 
       // 查询测试用例
-      const { list: testDeatils, total } = await getTestEntityByQuery(
-        {
-          query: {
-            workspaceKey: workspaceKey,
-            type: TestType.Case,
-            id: requestScopedTestDetailIds,
-          },
-          ...queryParams,
-          fields: testDetailFieldKeys ?? [],
-          selector: selectors,
+      const { list: testDeatils, total } = await getTestEntityByQuery({
+        query: {
+          workspaceKey: workspaceKey,
+          type: TestType.Case,
+          id: requestScopedTestDetailIds,
         },
-        props => {
-          const {
-            selector: [nameSelector, fieldSelector],
-          } = props;
-          return {
-            ...props,
-            selector: [
-              nameSelector?.name
-                ? {
-                    name: {
-                      ...nameSelector.name,
-                      fieldLabel: fieldNames?.split(','),
-                    },
-                  }
-                : {},
-              fieldSelector ?? {},
-            ],
-          };
-        },
-      );
+        ...queryParams,
+        fields: testDetailFieldKeys ?? [],
+        selector: selectors,
+      });
 
       // 查询统计数据
       const stats = await getTestCaseStats({
@@ -203,7 +176,6 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       selectedTestPlan.objectId,
       selectors,
       testDetailFieldKeys,
-      fieldNames,
     ],
   );
 
@@ -251,17 +223,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           );
           return {
             ...props,
-            selector: [
-              nameSelector?.name
-                ? {
-                    name: {
-                      ...nameSelector.name,
-                      fieldLabel: fieldNames.split(','),
-                    },
-                  }
-                : {},
-              {},
-            ],
+            selector: [nameSelector, {}],
             query: {
               ...props.query,
               ...extraQuery,
@@ -298,14 +260,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         total,
       };
     },
-    [
-      workspaceKey,
-      requestScopedTestDetailIds,
-      selectedExecution,
-      selectors,
-      testDetailFieldKeys,
-      fieldNames,
-    ],
+    [workspaceKey, requestScopedTestDetailIds, selectedExecution, selectors, testDetailFieldKeys],
   );
 
   useEffect(() => {
