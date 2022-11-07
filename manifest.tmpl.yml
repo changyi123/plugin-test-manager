@@ -2,7 +2,7 @@ app:
   key: test_manager
   uuid: bf73e61c-e15a-4461-a1f7-f940c2009332
   name: test_manager
-  version: "2.8.0"
+  version: "2.8.1"
 modules:
   webtrigger:
     # 动态配置 one 路由
@@ -15,7 +15,7 @@ modules:
     - key: report-data-base
       function: report-data-base
     - key: report-data-extensions-huishang
-      function: 
+      function: report-data-extensions-huishang
     - key: report-data-extensions-inspur
       function: report-data-extensions-inspur
       # 查询实体数据
