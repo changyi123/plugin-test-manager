@@ -50,10 +50,10 @@ export const saveUserSetting = async ({
   if (userSettingData) {
     const data = userSettingData.toJSON();
     filterFields = {
+      ...(data?.filterFields ?? {}),
       [testType]: [
         ...new Set((data?.filterFields?.[testType] ?? []).concat(filterFields?.[testType])),
       ],
-      ...(filterFields ?? {}),
     };
 
     return await userSettingData.save({
