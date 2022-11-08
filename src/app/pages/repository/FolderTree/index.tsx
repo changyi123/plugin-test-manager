@@ -452,7 +452,11 @@ const FolderTree: React.FC<FolderTreeProps> = ({
           <Dropdown
             overlay={
               <FolderMenu
-                disabledKeys={node.disabledMenuKeys}
+                disabledKeys={
+                  node.key === 'root'
+                    ? [MenuKey.deleteFolder, MenuKey.renameFolder]
+                    : node.disabledMenuKeys
+                }
                 onClick={({ key }) => handleMenuClick(key, node)}
               />
             }
