@@ -125,7 +125,7 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
   }, [memoizedAdditionalColumnKey, customFields]);
 
   const selectColumns = React.useMemo(() => {
-    const columns = storageColumnKeys?.length ? storageColumnKeys : tableFields;
+    const columns = storageColumnKeys ? storageColumnKeys : tableFields;
     return columns.map(key => allColumns.find(col => col.key === key)).filter(Boolean);
   }, [allColumns, storageColumnKeys, tableFields]);
 
