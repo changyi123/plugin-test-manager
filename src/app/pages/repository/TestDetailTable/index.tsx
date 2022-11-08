@@ -5,7 +5,8 @@ import { UNGROUPED_FOLDER_KEY } from '../constant';
 import { updateFolders } from '@/lib/api/repository';
 import { UserCell } from '@projectproxima/components';
 import { useTestConfig } from '@/lib/hooks/useContext';
-import { DeleteOutlined, UserOutlined, DragHandler } from '@/icons';
+import createProximaSdk from '@projectproxima/proxima-sdk-js';
+import { DeleteOutlined, UserOutlined, DragHandler, LinkItem } from '@/icons';
 import { actionConfirm, generateSortIndex, openItemViewScreen } from '@/lib/utils/helper';
 import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
 import { cloneTestEntities } from '@/lib/api/common';
@@ -23,6 +24,8 @@ import {
 import { TestType } from '@/lib/constants';
 
 import cx from './index.less';
+
+const proxima = createProximaSdk();
 
 const RowDragHandler = data => {
   const ref = React.useRef();
@@ -113,7 +116,8 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
   }, [onDataChange]);
 
   const selectionActionNodes = React.useMemo(() => {
-    const deleteTestDetail = () => {
+    // 批量删除用例
+    const deleteTestCase = () => {
       const testDetailIds = tableActionRef.current.selectedRowKeys;
 
       actionConfirm('该操作会将所选的测试用例删除，是否继续操作？', async () => {
@@ -144,6 +148,12 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         message: `${tableActionRef.current.selectedRowKeys.length} 个测试负责人已更新`,
       });
       setTableLoading(false);
+    };
+
+    // 批量创建事项关联
+    const createItemLink = async () => {
+      const testCaseIds = tableActionRef.current.selectedRowKeys;
+      proxima.execute('openAddLinkScreen', testCaseIds.toString());
     };
 
     // 复制测试用例 本期不上
@@ -181,7 +191,10 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
       // <span key="copy" onClick={isCheck && copyTestDetail}>
       //   <SwitcherOutlined /> 复制
       // </span>,
-      <span key="delete" onClick={hasRowSelected ? deleteTestDetail : undefined}>
+      <span key="link" onClick={hasRowSelected ? createItemLink : undefined}>
+        <LinkItem /> 批量事项关联
+      </span>,
+      <span key="delete" onClick={hasRowSelected ? deleteTestCase : undefined}>
         <DeleteOutlined /> 删除
       </span>,
     ];
