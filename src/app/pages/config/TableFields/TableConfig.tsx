@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import { BusinessTable } from '@/components/common/BusinessTable';
 import { TestType } from '@/lib/constants';
-import { useCurrentTestConfig, useDataContext } from '../hooks';
+import { useDataContext } from '../hooks';
 import { TableFields } from './index';
 
 interface TableConfigProps {
@@ -20,35 +20,17 @@ const TableConfig: React.FC<TableConfigProps> = ({
   setTableFieldsData,
 }) => {
   const { workspace }: any = useDataContext();
-  const testConfig = useCurrentTestConfig(workspace.key);
-
   const handleFilterField = useCallback(
-    ({ key, action }) => {
-      let serachFields;
-      if (action === 'add') {
-        serachFields = (
-          tableFieldsData?.[testType]?.serachFields ??
-          testConfig?.get('tableFields')?.[testType]?.serachFields ??
-          []
-        ).concat(key);
-      }
-      if (action === 'delete') {
-        serachFields = (
-          tableFieldsData?.[testType]?.serachFields ??
-          testConfig?.get('tableFields')?.[testType]?.serachFields ??
-          []
-        ).filter(d => d !== key);
-      }
-
+    ({ fieldKeys }) => {
       setTableFieldsData({
         ...(tableFieldsData ?? {}),
         [testType]: {
           ...(tableFieldsData?.[testType] ?? {}),
-          serachFields,
+          serachFields: fieldKeys,
         },
       });
     },
-    [setTableFieldsData, tableFieldsData, testConfig, testType],
+    [setTableFieldsData, tableFieldsData, testType],
   );
 
   return (

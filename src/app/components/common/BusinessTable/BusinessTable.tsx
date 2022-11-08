@@ -78,7 +78,7 @@ type BusinessTableProps = TableProps<any> &
     defaultColumnKey?: string[];
     PaginationFooterRender?: any;
     isSettingPage?: boolean;
-    handleFilterField?: (val: { key: string; action: string; testType: string }) => void;
+    handleFilterField?: (val: { testType: string; fieldKeys: string[] }) => void;
     // 所有可选的 row 标识
     allSelectableRowKeys?: string[];
     onSelectionCancel?: () => void;

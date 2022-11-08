@@ -324,7 +324,7 @@ const toIqlName = (selector: SelectCase) => {
   const getIql = (label, val) => {
     if (!label?.length) return '';
     return label.reduce((prev, cur) => {
-      const iql = `'${cur}' ~ '${val}'`;
+      const iql = `'${cur}' ${cur === 'key' ? '=' : '~'} '${val}'`;
       if (prev) {
         prev = `${prev} or ${iql}`;
       } else {
@@ -336,7 +336,7 @@ const toIqlName = (selector: SelectCase) => {
 
   const customeIql = fieldLabel?.filter(Boolean)?.length ? `${getIql(fieldLabel, value)}` : '';
   // or 'key' = '${value}'
-  return value ? `('标题' ~ '${value}' or 'key' = '${value}'${customeIql})` : '';
+  return value ? `('标题' ~ '${value}'${customeIql})` : '';
 };
 
 // iql语句转换

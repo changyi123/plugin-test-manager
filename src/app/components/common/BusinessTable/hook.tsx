@@ -3,7 +3,6 @@ import { useNoExpiredRequest } from '@/lib/hooks/useRequest';
 import { getTestConfig } from '@/lib/api/common';
 import { TestType } from '@/lib/constants';
 import { TitleCellOption } from './type';
-import { useWorkspaceTestConfig } from '@/lib/hooks/useTest';
 import { getCurrentUserSetting } from '@/lib/api/userSetting';
 import { useRequest } from 'ahooks';
 import { getCustomFields } from '@/lib/api/proxima';
@@ -40,16 +39,31 @@ export const useGetTableFilterFields = ({
   testType?: string;
   isSettingPage?: boolean;
 }) => {
-  const testConfig = useWorkspaceTestConfig(workspaceKey);
+  const { data: testConfig } = useRequest(
+    async () => {
+      const testConfig = await getTestConfig({ workspaceKey });
+      return testConfig.toJSON();
+    },
+    {
+      ready: Boolean(workspaceKey),
+      refreshDeps: [workspaceKey],
+    },
+  );
   const { serachFields, tableColumns } = testConfig?.tableFields?.[testType] ?? {};
 
-  const { data: filterFields } = useRequest(async () => {
-    const res = await getCurrentUserSetting({
-      workspaceKey,
-    });
+  const { data: filterFields } = useRequest(
+    async () => {
+      const res = await getCurrentUserSetting({
+        workspaceKey,
+      });
 
-    return res?.filterFields?.[testType] ?? [];
-  });
+      return res?.filterFields?.[testType] ?? [];
+    },
+    {
+      ready: Boolean(workspaceKey),
+      refreshDeps: [workspaceKey],
+    },
+  );
 
   return {
     filterFields:
@@ -74,21 +88,11 @@ export const useGetFilterField = ({
     cacheKey: `CustomFields_${keys.toString()}`,
     refreshDeps: [keys],
   });
-  const { data: filterFields } = useRequest(
-    async () => {
-      const res = await getCurrentUserSetting({
-        workspaceKey,
-      });
 
-      return res?.filterFields?.[testType];
-    },
-    {
-      refreshDeps: [workspaceKey, testType],
-      cacheKey: `${workspaceKey}_${testType}`,
-      cacheTime: 999999,
-      staleTime: 999999,
-    },
-  );
+  const { filterFields } = useGetTableFilterFields({
+    workspaceKey,
+    testType,
+  });
 
   return customFields?.filter(filed => filterFields?.includes(filed.key));
 };
@@ -100,10 +104,10 @@ export const useGetFieldsName = ({
   workspaceKey?: string;
   testType?: TestType;
 }) => {
-  const customFilterField = useGetFilterField({
+  const customFields = useGetFilterField({
     workspaceKey,
     testType,
   });
 
-  return customFilterField?.map(d => d.name)?.join(',');
+  return customFields?.map(d => d.name)?.join(',');
 };

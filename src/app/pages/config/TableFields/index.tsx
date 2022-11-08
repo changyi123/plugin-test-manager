@@ -31,10 +31,12 @@ const TableFields: React.FC = () => {
     setLoading(true);
     const fields = {
       TestPlan: {
+        ...(testConfig.get('tableFields')?.TestPlan ?? {}),
         ...(tableFieldsData?.TestPlan ?? {}),
         tableColumns: (testPlanRef?.current?.tableColumns ?? []).map(d => d.key),
       },
       TestCase: {
+        ...(testConfig.get('tableFields')?.TestCase ?? {}),
         ...(tableFieldsData?.TestCase ?? {}),
         tableColumns: (testCaseRef?.current?.tableColumns ?? []).map(d => d.key),
       },

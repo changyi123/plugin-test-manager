@@ -292,23 +292,14 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
   }, [refreshAndMutateData]);
 
   const handleFilterField = useCallback(
-    async ({ key, action, testType }) => {
-      const getFields = (fields, { key, action }) => {
-        if (action === 'add') {
-          return (fields ?? []).concat(key);
-        }
-        if (action === 'delete') {
-          return (fields ?? []).filter(d => d !== key);
-        }
-      };
-
+    async ({ testType, fieldKeys }) => {
       await saveUserSetting({
         workspaceKey,
         user: currentUser,
         testType,
         filterFields: {
           ...(currentFields?.filterFields ?? {}),
-          [testType]: getFields(currentFields?.filterFields?.[testType], { key, action }),
+          [testType]: fieldKeys,
         },
       });
     },

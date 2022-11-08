@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { keyBy, noop } from 'lodash';
 import { TitleCellOption } from './type';
 import { ColumnType } from 'antd/lib/table';
-import { Drawer, Select, Tooltip } from 'antd';
+import { Drawer, message, Select, Tooltip } from 'antd';
 import { getCustomFields } from '@/lib/api/proxima';
 import { useGetTableFilterFields, useTestTypeScreenFieldKeys } from './hook';
 import { TableCell } from '@projectproxima/components';
@@ -31,7 +31,12 @@ type ColumnSettingProps = TitleCellOption & {
   defaultColumnKey?: string[];
   additionalColumns?: ColumnDuckTyping[];
   onTableColumnChange?: (column: ColumnDuckTyping) => void;
-  handleFilterField?: (val: { key: string; action: string; testType: string }) => void;
+  handleFilterField?: (val: {
+    key?: string | string[];
+    action?: string;
+    testType: string;
+    fieldKeys: string[];
+  }) => void;
 };
 
 const ColumnSetting: React.FC<ColumnSettingProps> = props => {
@@ -233,15 +238,22 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
                             className={cx('filter-icon')}
                             onClick={() => {
                               const action = fields.includes(col.key) ? 'delete' : 'add';
+                              let fieldKeys;
                               if (fields.includes(col.key)) {
-                                setFields(fields.filter(d => d !== col.key));
+                                fieldKeys = fields.filter(d => d !== col.key);
+                                setFields(fieldKeys);
                               } else {
-                                setFields(fields.concat(col.key));
+                                if (fields?.length >= 4) {
+                                  return message.warning('表检索项配置不能超过5个');
+                                }
+                                fieldKeys = fields.concat(col.key);
+                                setFields(fieldKeys);
                               }
                               handleFilterField?.({
                                 key: col.key,
                                 action,
                                 testType: titleCellOption.testType,
+                                fieldKeys,
                               });
                             }}
                           >
