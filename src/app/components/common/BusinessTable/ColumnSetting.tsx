@@ -1,8 +1,8 @@
-import React, { useCallback, useState } from 'react';
+import React, { useState } from 'react';
 import { keyBy, noop } from 'lodash';
 import { TitleCellOption } from './type';
 import { ColumnType } from 'antd/lib/table';
-import { Drawer, message, Select, Tooltip } from 'antd';
+import { Drawer, message, Select, Spin, Tooltip } from 'antd';
 import { getCustomFields } from '@/lib/api/proxima';
 import { useGetTableFilterFields, useTestTypeScreenFieldKeys } from './hook';
 import { TableCell } from '@projectproxima/components';
@@ -19,6 +19,7 @@ import {
   DeleteSearch,
 } from '@/icons';
 import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd';
+import createProximaSdk from '@projectproxima/proxima-sdk-js';
 
 import '@projectproxima/components/dist/main.css';
 import cx from './ColumnSetting.less';
@@ -40,6 +41,8 @@ type ColumnSettingProps = TitleCellOption & {
   }) => void;
 };
 
+const proxima = createProximaSdk();
+
 const ColumnSetting: React.FC<ColumnSettingProps> = props => {
   const {
     name,
@@ -58,6 +61,7 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
     refreshDeps: [keys],
   });
   const [fields, setFields] = useState<string[] | undefined>([]);
+  const [loading, setLoading] = useState(false);
 
   const { filterFields, tableFields } = useGetTableFilterFields({
     ...titleCellOption,
@@ -68,15 +72,7 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
     if (filterFields?.length) {
       setFields(filterFields);
     }
-  }, [filterFields, titleCellOption?.workspaceKey]);
-
-  const initFields = useCallback(() => {
-    setFields(filterFields);
-  }, [filterFields]);
-
-  useUpdateEffect(() => {
-    initFields();
-  }, [initFields, titleCellOption.workspaceKey]);
+  }, [titleCellOption.workspaceKey, (filterFields ?? []).join(',')]);
 
   const fieldCellsProp = useFieldsWithFieldCellProps(customFields);
   const fieldCellsPropDict = React.useMemo(() => {
@@ -213,7 +209,6 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
         width={visible ? 320 : 0}
         title="表格显示设置"
       >
-        {/* <h6 className={cx('title')}>表头设置</h6> */}
         <Tooltip
           className={cx('field-tips')}
           placement="bottom"
@@ -234,77 +229,95 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
           className={cx('field-select')}
           onChange={keys => setStorageColumnKeys(keys)}
         />
-
-        <DragDropContext onDragEnd={handleColumnSort}>
-          <Droppable droppableId="column">
-            {provider => (
-              <div {...provider.droppableProps} ref={provider.innerRef} className={cx('sort-area')}>
-                {selectColumns.map((col, index) => (
-                  <Draggable key={col.key} index={index} draggableId={col.key as string}>
-                    {(provider, snapshot) => (
-                      <div
-                        {...provider.draggableProps}
-                        {...provider.dragHandleProps}
-                        ref={provider.innerRef}
-                        className={cx('sort-item', snapshot.isDragging && 'dragging')}
-                      >
-                        <DragHandler />
-                        <span className={cx('title')}>{col.title}</span>
-                        {['Key', 'Text'].includes(col?.fieldType?.key) && (
-                          <span
-                            className={cx('filter-icon')}
-                            onClick={() => {
-                              const action = fields.includes(col.key) ? 'delete' : 'add';
-                              let fieldKeys;
-                              if (fields.includes(col.key)) {
-                                fieldKeys = fields.filter(d => d !== col.key);
-                                setFields(fieldKeys);
-                              } else {
-                                if (fields?.length >= 4) {
-                                  return message.warning('表检索项配置不能超过4个');
+        <Spin spinning={loading}>
+          <DragDropContext onDragEnd={handleColumnSort}>
+            <Droppable droppableId="column">
+              {provider => (
+                <div
+                  {...provider.droppableProps}
+                  ref={provider.innerRef}
+                  className={cx('sort-area')}
+                >
+                  {selectColumns.map((col, index) => (
+                    <Draggable key={col.key} index={index} draggableId={col.key as string}>
+                      {(provider, snapshot) => (
+                        <div
+                          {...provider.draggableProps}
+                          {...provider.dragHandleProps}
+                          ref={provider.innerRef}
+                          className={cx('sort-item', snapshot.isDragging && 'dragging')}
+                        >
+                          <DragHandler />
+                          <span className={cx('title')}>{col.title}</span>
+                          {['Key', 'Text'].includes(col?.fieldType?.key) && (
+                            <span
+                              className={cx('filter-icon')}
+                              onClick={async () => {
+                                const action = fields.includes(col.key) ? 'delete' : 'add';
+                                let fieldKeys;
+                                if (fields.includes(col.key)) {
+                                  fieldKeys = fields.filter(d => d !== col.key);
+                                  setFields(fieldKeys);
+                                } else {
+                                  if (fields?.length >= 4) {
+                                    return message.warning('表检索项配置不能超过4个');
+                                  }
+                                  fieldKeys = fields.concat(col.key);
+                                  setFields(fieldKeys);
                                 }
-                                fieldKeys = fields.concat(col.key);
+                                setLoading(true);
+                                await handleFilterField?.({
+                                  key: col.key,
+                                  action,
+                                  testType: titleCellOption.testType,
+                                  fieldKeys,
+                                });
+                                proxima.execute('updateFilterSearchFields');
+                                setLoading(false);
+                              }}
+                            >
+                              <Tooltip
+                                title={fields.includes(col.key) ? '移除检索项' : '添加检索项'}
+                              >
+                                {fields.includes(col.key) ? (
+                                  <DeleteSearch className={cx('icon', 'delete')} />
+                                ) : (
+                                  <AddSearch className={cx('icon', 'add')} />
+                                )}
+                              </Tooltip>
+                            </span>
+                          )}
+                          <DeleteOutlined
+                            className={cx('icon')}
+                            onClick={async () => {
+                              deleteStorageColumnKey(col.key);
+                              if (
+                                ['Key', 'Text'].includes(col?.fieldType?.key) &&
+                                fields.includes(col.key)
+                              ) {
+                                setLoading(true);
+                                const fieldKeys = fields.filter(d => d !== col.key);
                                 setFields(fieldKeys);
+                                await handleFilterField?.({
+                                  key: col.key,
+                                  testType: titleCellOption.testType,
+                                  fieldKeys,
+                                });
+                                proxima.execute('updateFilterSearchFields');
+                                setLoading(false);
                               }
-                              handleFilterField?.({
-                                key: col.key,
-                                action,
-                                testType: titleCellOption.testType,
-                                fieldKeys,
-                              });
                             }}
-                          >
-                            <Tooltip title={fields.includes(col.key) ? '移除检索项' : '添加检索项'}>
-                              {fields.includes(col.key) ? (
-                                <DeleteSearch className={cx('icon', 'delete')} />
-                              ) : (
-                                <AddSearch className={cx('icon', 'add')} />
-                              )}
-                            </Tooltip>
-                          </span>
-                        )}
-                        <DeleteOutlined
-                          className={cx('icon')}
-                          onClick={() => {
-                            deleteStorageColumnKey(col.key);
-                            const fieldKeys = fields.filter(d => d !== col.key);
-                            setFields(fieldKeys);
-                            handleFilterField?.({
-                              key: col.key,
-                              testType: titleCellOption.testType,
-                              fieldKeys,
-                            });
-                          }}
-                        />
-                      </div>
-                    )}
-                  </Draggable>
-                ))}
-                {provider.placeholder}
-              </div>
-            )}
-          </Droppable>
-        </DragDropContext>
+                          />
+                        </div>
+                      )}
+                    </Draggable>
+                  ))}
+                  {provider.placeholder}
+                </div>
+              )}
+            </Droppable>
+          </DragDropContext>
+        </Spin>
       </Drawer>
     </>
   );

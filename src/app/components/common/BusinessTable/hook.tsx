@@ -39,6 +39,7 @@ export const useGetTableFilterFields = ({
   testType?: string;
   isSettingPage?: boolean;
 }) => {
+  const defaultFields = testType === TestType.Plan ? [] : ['key'];
   const { data: testConfig } = useRequest(
     async () => {
       const testConfig = await getTestConfig({ workspaceKey });
@@ -49,8 +50,6 @@ export const useGetTableFilterFields = ({
       refreshDeps: [workspaceKey],
     },
   );
-  const { serachFields, tableColumns } = testConfig?.tableFields?.[testType] ?? {};
-
   const { data: filterFields } = useRequest(
     async () => {
       const res = await getCurrentUserSetting({
@@ -65,14 +64,17 @@ export const useGetTableFilterFields = ({
     },
   );
 
+  const { serachFields, tableColumns } = testConfig?.tableFields?.[testType] ?? {};
+  const _serachFields = serachFields ?? defaultFields;
+  const _filterFields = filterFields?.length ? filterFields : _serachFields;
+
   return {
-    filterFields:
-      (isSettingPage ? serachFields : filterFields?.length ? filterFields : serachFields) ?? [],
+    filterFields: isSettingPage ? _serachFields : _filterFields,
     tableFields: tableColumns ?? [],
   };
 };
 
-export const useGetFilterField = ({
+export const useGetcustomFields = ({
   workspaceKey,
   testType,
 }: {
@@ -89,25 +91,5 @@ export const useGetFilterField = ({
     refreshDeps: [keys],
   });
 
-  const { filterFields } = useGetTableFilterFields({
-    workspaceKey,
-    testType,
-  });
-
-  return customFields?.filter(filed => filterFields?.includes(filed.key));
-};
-
-export const useGetFieldsName = ({
-  workspaceKey,
-  testType,
-}: {
-  workspaceKey?: string;
-  testType?: TestType;
-}) => {
-  const customFields = useGetFilterField({
-    workspaceKey,
-    testType,
-  });
-
-  return customFields?.map(d => d.name)?.join(',');
+  return customFields;
 };

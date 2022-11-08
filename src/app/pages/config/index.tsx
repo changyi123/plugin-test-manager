@@ -75,8 +75,13 @@ const ConfigPages = [
 const ALLConfigPages = [].concat(ConfigPages, MoreConfigPages);
 
 const WorkspaceSelector = () => {
-  const { workspace, toggleWorkspace, showAllWorkspaceCheck, setCheckAllWorkspace } =
-    useDataContext();
+  const {
+    workspace,
+    toggleWorkspace,
+    showAllWorkspaceCheck,
+    checkAllWorkspace,
+    setCheckAllWorkspace,
+  } = useDataContext();
 
   return (
     <Dropdown
@@ -90,7 +95,11 @@ const WorkspaceSelector = () => {
         >
           <Menu.Item key="toggleWorkspace">切换所选空间</Menu.Item>
           {showAllWorkspaceCheck && (
-            <Checkbox className={cx('check-box')} onChange={() => setCheckAllWorkspace(x => !x)}>
+            <Checkbox
+              className={cx('check-box')}
+              checked={checkAllWorkspace}
+              onChange={() => setCheckAllWorkspace(x => !x)}
+            >
               全部空间
             </Checkbox>
           )}

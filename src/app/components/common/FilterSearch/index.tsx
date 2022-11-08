@@ -24,10 +24,13 @@ import {
   TestType,
 } from '@/lib/constants';
 import { Repository } from '@/lib/models';
-import { useDebounceFn } from 'ahooks';
-import { useGetFieldsName } from '../BusinessTable/hook';
+import { useDebounceFn, useRequest } from 'ahooks';
+import { useGetcustomFields } from '../BusinessTable/hook';
+import { useListener } from '@projectproxima/proxima-sdk-js';
 
 import cx from './index.less';
+import { getTestConfig } from '@/lib/api/common';
+import { getCurrentUserSetting } from '@/lib/api/userSetting';
 
 interface FilterSearchProps {
   fields: string[];
@@ -52,9 +55,42 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
   const currentSelectors = useRef<Selectors>({});
   const [activeSelector, setActiveSelector] = useState('');
 
-  const fieldsName = useGetFieldsName({
+  const customFields = useGetcustomFields({
     workspaceKey: workspace?.key,
     testType,
+  });
+
+  const { data: fieldsName, refresh } = useRequest(
+    async () => {
+      if (!workspace?.key) return null;
+      const defaultFields = testType === TestType.Plan ? [] : ['key'];
+      const testConfig = await getTestConfig({ workspaceKey: workspace?.key });
+
+      const { serachFields } = testConfig?.toJSON()?.tableFields?.[testType] ?? {};
+
+      const res = await getCurrentUserSetting({
+        workspaceKey: workspace?.key,
+      });
+
+      const filterFields = res?.filterFields?.[testType] ?? [];
+      const fields = filterFields?.length ? filterFields : serachFields ?? defaultFields;
+
+      const fieldsName = customFields
+        ?.filter(field => [...new Set([...fields])].includes(field.key))
+        .map(field => field.name)
+        .filter(Boolean)
+        .join(',');
+
+      return fieldsName;
+    },
+    {
+      ready: Boolean(workspace?.key),
+      refreshDeps: [workspace?.key, testType, customFields],
+    },
+  );
+
+  useListener('updateFilterSearchFields', () => {
+    refresh();
   });
 
   useImperativeHandle(ref, () => ({
