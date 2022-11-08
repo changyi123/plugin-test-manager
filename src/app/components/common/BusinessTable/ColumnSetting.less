@@ -1,39 +1,68 @@
 :root {
-  .title {
-    font-size: 16px;
+  .setting-icon {
+    svg {
+      width: 16px;
+      height: 16px;
+    }
   }
-
-  .field-select {
-    margin: 0 2px;
-    width: 100%;
-  }
-
-  .sort-area {
-    padding-top: 20px;
-  }
-
-  .sort-item {
-    display: flex;
-    height: 32px;
-    align-items: center;
-    padding: 0 2px;
-    border-radius: 4px;
+  .drawer-box {
     .title {
-      font-size: 14px;
-      margin-left: 6px;
-      margin-right: auto;
+      font-size: 16px;
     }
-    .filter-icon {
-      margin-right: 8px;
+
+    .field-select {
+      margin: 0 2px;
+      width: 100%;
     }
-    .icon {
+
+    .field-tips {
+      position: absolute;
+      top: 22px;
+      left: 124px;
+      font-size: 13px;
       cursor: pointer;
-      &:hover {
-        color: RGB(24, 144, 255);
-      }
     }
-    &.dragging {
-      background: RGBA(24, 144, 255, 0.1);
+
+    .sort-area {
+      padding-top: 20px;
+    }
+
+    .sort-item {
+      display: flex;
+      height: 32px;
+      align-items: center;
+      padding: 0 2px;
+      border-radius: 4px;
+      .title {
+        font-size: 14px;
+        margin-left: 6px;
+        margin-right: auto;
+      }
+      .filter-icon {
+        margin-right: 8px;
+
+        .icon {
+          svg {
+            width: 16px;
+            height: 16px;
+          }
+
+          &.add:hover {
+            svg path {
+              fill: #0C62FF;
+            }
+          }
+        }
+      }
+      .icon {
+        cursor: pointer;
+        &:hover {
+          color: RGB(24, 144, 255);
+        }
+      }
+      &.dragging {
+        background: RGBA(24, 144, 255, 0.1);
+      }
     }
   }
 }

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { keyBy, noop } from 'lodash';
 import { TitleCellOption } from './type';
 import { ColumnType } from 'antd/lib/table';
@@ -8,14 +8,15 @@ import { useGetTableFilterFields, useTestTypeScreenFieldKeys } from './hook';
 import { TableCell } from '@projectproxima/components';
 import { generateStorageKey } from '@/lib/utils/helper';
 import { useNoExpiredRequest } from '@/lib/hooks/useRequest';
-import { useDeepCompareEffect, useLocalStorageState } from 'ahooks';
+import { useDeepCompareEffect, useLocalStorageState, useUpdateEffect } from 'ahooks';
 import { useFieldsWithFieldCellProps } from '@/lib/hooks/useProxima';
 import {
   DeleteOutlined,
-  PlusCircleOutlined,
   DragHandler,
-  SettingOutlined,
-  MinusCircleOutlined,
+  QuestionCircleOutlined,
+  Setting,
+  AddSearch,
+  DeleteSearch,
 } from '@/icons';
 import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd';
 
@@ -56,18 +57,26 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
     cacheKey: `CustomFields_${keys.toString()}`,
     refreshDeps: [keys],
   });
-  const [fields, setFields] = useState<string[]>([]);
+  const [fields, setFields] = useState<string[] | undefined>([]);
 
   const { filterFields, tableFields } = useGetTableFilterFields({
     ...titleCellOption,
     isSettingPage,
   });
 
-  useEffect(() => {
+  useUpdateEffect(() => {
     if (filterFields?.length) {
       setFields(filterFields);
     }
+  }, [filterFields, titleCellOption?.workspaceKey]);
+
+  const initFields = useCallback(() => {
+    setFields(filterFields);
   }, [filterFields]);
+
+  useUpdateEffect(() => {
+    initFields();
+  }, [initFields, titleCellOption.workspaceKey]);
 
   const fieldCellsProp = useFieldsWithFieldCellProps(customFields);
   const fieldCellsPropDict = React.useMemo(() => {
@@ -195,15 +204,23 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
   return (
     <>
       <Tooltip title="表格显示设置">
-        <SettingOutlined className={cx(className)} onClick={() => setVisible(true)} />
+        <Setting className={cx(className, 'setting-icon')} onClick={() => setVisible(true)} />
       </Tooltip>
       <Drawer
+        className={cx('drawer-box')}
         visible={visible}
         onClose={() => setVisible(false)}
         width={visible ? 320 : 0}
         title="表格显示设置"
       >
-        <h6 className={cx('title')}>表头设置</h6>
+        {/* <h6 className={cx('title')}>表头设置</h6> */}
+        <Tooltip
+          className={cx('field-tips')}
+          placement="bottom"
+          title={'可配置表头列内容及排序、列表搜索框默认检索项，最多可选四个检索项'}
+        >
+          <QuestionCircleOutlined />
+        </Tooltip>
         <Select
           showSearch
           mode="multiple"
@@ -244,7 +261,7 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
                                 setFields(fieldKeys);
                               } else {
                                 if (fields?.length >= 4) {
-                                  return message.warning('表检索项配置不能超过5个');
+                                  return message.warning('表检索项配置不能超过4个');
                                 }
                                 fieldKeys = fields.concat(col.key);
                                 setFields(fieldKeys);
@@ -259,16 +276,25 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
                           >
                             <Tooltip title={fields.includes(col.key) ? '移除检索项' : '添加检索项'}>
                               {fields.includes(col.key) ? (
-                                <MinusCircleOutlined className={cx('icon')} />
+                                <DeleteSearch className={cx('icon', 'delete')} />
                               ) : (
-                                <PlusCircleOutlined className={cx('icon')} />
+                                <AddSearch className={cx('icon', 'add')} />
                               )}
                             </Tooltip>
                           </span>
                         )}
                         <DeleteOutlined
                           className={cx('icon')}
-                          onClick={() => deleteStorageColumnKey(col.key)}
+                          onClick={() => {
+                            deleteStorageColumnKey(col.key);
+                            const fieldKeys = fields.filter(d => d !== col.key);
+                            setFields(fieldKeys);
+                            handleFilterField?.({
+                              key: col.key,
+                              testType: titleCellOption.testType,
+                              fieldKeys,
+                            });
+                          }}
                         />
                       </div>
                     )}

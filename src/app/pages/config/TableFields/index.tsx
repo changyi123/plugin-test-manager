@@ -1,6 +1,6 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { TestType } from '@/lib/constants';
-import { Button, Checkbox, message, Spin } from 'antd';
+import { Button, message, Spin } from 'antd';
 import { useCurrentTestConfig, useDataContext } from '../hooks';
 import TableConfig from './TableConfig';
 
@@ -19,13 +19,19 @@ export interface FieldKeys {
 }
 
 const TableFields: React.FC = () => {
-  const { workspace } = useDataContext();
+  const { workspace, checkAllWorkspace, setShowAllWorkspaceCheck } = useDataContext();
   const testPlanRef = useRef<BusinessTableActionType>();
   const testCaseRef = useRef<BusinessTableActionType>();
   const testConfig = useCurrentTestConfig(workspace?.key);
-  const [checkBox, setCheckBox] = useState(false);
   const [tableFieldsData, setTableFieldsData] = useState<TableFields | undefined>(undefined);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    setShowAllWorkspaceCheck(true);
+    return () => {
+      setShowAllWorkspaceCheck(false);
+    };
+  }, [setShowAllWorkspaceCheck]);
 
   const saveConfig = useCallback(async () => {
     setLoading(true);
@@ -41,7 +47,7 @@ const TableFields: React.FC = () => {
         tableColumns: (testCaseRef?.current?.tableColumns ?? []).map(d => d.key),
       },
     };
-    if (!checkBox) {
+    if (!checkAllWorkspace) {
       await testConfig.save({
         tableFields: fields,
       });
@@ -52,16 +58,16 @@ const TableFields: React.FC = () => {
     }
     message.success('表头及检索项配置保存成功');
     setLoading(false);
-  }, [tableFieldsData, testConfig, checkBox]);
+  }, [tableFieldsData, testConfig, checkAllWorkspace]);
 
   return (
     <Spin spinning={loading}>
       <div className={cx('table-fields')}>
-        <div className={cx('check-box')}>
+        {/* <div className={cx('check-box')}>
           <Checkbox onChange={() => setCheckBox(x => !x)}>应用到全部空间</Checkbox>
-        </div>
+        </div> */}
         <div className={cx('setting-box')}>
-          <div className={cx('title')}>测试计划</div>
+          <div className={cx('title')}>测试计划-表头</div>
           <div className={cx('table', 'plan')}>
             <TableConfig
               testType={TestType.Plan}
@@ -73,7 +79,7 @@ const TableFields: React.FC = () => {
           </div>
         </div>
         <div className={cx('setting-box', 'mg-top-m')}>
-          <div className={cx('title')}>测试用例</div>
+          <div className={cx('title')}>测试用例-表头</div>
           <div className={cx('table', 'case')}>
             <TableConfig
               testType={TestType.Case}
