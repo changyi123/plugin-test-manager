@@ -277,26 +277,27 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         expandSubFolder(node.key);
       } else if (actionKey === MenuKey.createTest) {
         // 创建测试用例
-        const { testEntity, item } = await createItemUseModal({
+        const { testEntityList } = await createItemUseModal({
           type: TestType.Case,
           extraData: {
             useItemBatchCreate: true,
             repository: node.key === UNGROUPED_FOLDER_KEY ? null : node.key,
-            type: TestType.Case,
           },
         });
-
-        console.info('itemCreated', item.objectId, node.key);
-        const testEntityData = testEntity;
+        // const testEntityData = testEntity;
         // 创建的测试用例不在同一个空间
-        if (workspace?.key !== (item?.workspace as any)?.key) return;
+        // if (workspace?.key !== (item?.workspace as any)?.key) return;
         // 只有测试用例需要被添加至测试用例仓库
-        if (testEntityData.type !== TestType.Case) return;
+        // if (testEntityData.type !== TestType.Case) return;
         // 修改 node，将创建成功的 itemKey 追加到 node 上
-        node.caseIds = (node.caseIds || []).concat(testEntityData.objectId);
+        node.caseIds = (node.caseIds || []).concat(testEntityList.map(d => d.objectId));
         await updateFolders([node]);
+        const successMessage =
+          testEntityList.length > 1
+            ? `${testEntityList.length}个测试用例新建成功`
+            : `测试用例【${testEntityList[0]?.name}】新建成功`;
         notification.success({
-          message: `测试用例【${testEntityData.name}】新建成功`,
+          message: successMessage,
         });
         onFolderTreeChange();
         handleSelect([node.key], {
