@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { keyBy, noop } from 'lodash';
 import { TitleCellOption } from './type';
 import { ColumnType } from 'antd/lib/table';
-import { Drawer, message, Select, Spin, Tooltip } from 'antd';
+import { Button, Drawer, message, Select, Spin, Tooltip } from 'antd';
 import { getCustomFields } from '@/lib/api/proxima';
 import { useGetTableFilterFields, useTestTypeScreenFieldKeys } from './hook';
 import { TableCell } from '@projectproxima/components';
@@ -28,7 +28,6 @@ type ColumnDuckTyping = ColumnType<any> & Record<string, any>;
 
 type ColumnSettingProps = TitleCellOption & {
   name?: string;
-  isSettingPage?: boolean;
   className?: string;
   defaultColumnKey?: string[];
   additionalColumns?: ColumnDuckTyping[];
@@ -46,7 +45,6 @@ const proxima = createProximaSdk();
 const ColumnSetting: React.FC<ColumnSettingProps> = props => {
   const {
     name,
-    isSettingPage,
     className,
     titleCellOption,
     defaultColumnKey,
@@ -65,7 +63,6 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
 
   const { filterFields, tableFields } = useGetTableFilterFields({
     ...titleCellOption,
-    isSettingPage,
   });
 
   useUpdateEffect(() => {
@@ -121,7 +118,7 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
   }, [memoizedAdditionalColumnKey, customFields]);
 
   const selectColumns = React.useMemo(() => {
-    const columns = storageColumnKeys ? storageColumnKeys : tableFields;
+    const columns = storageColumnKeys ?? tableFields;
     return columns.map(key => allColumns.find(col => col.key === key)).filter(Boolean);
   }, [allColumns, storageColumnKeys, tableFields]);
 
@@ -199,6 +196,11 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
 
   return (
     <>
+      {titleCellOption?.isSettingPage && (
+        <Button className={cx('setting-page-btn')} onClick={() => setVisible(true)}>
+          配置表头
+        </Button>
+      )}
       <Tooltip title="表格显示设置">
         <Setting className={cx(className, 'setting-icon')} onClick={() => setVisible(true)} />
       </Tooltip>

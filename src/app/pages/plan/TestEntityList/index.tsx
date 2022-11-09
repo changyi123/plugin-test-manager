@@ -750,7 +750,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           ]}
           rowKey="objectId"
           columns={allTestColumns}
-          name={'TestDetailTable'}
+          name={`${workspaceKey}_TestDetailTable`}
           actionRef={actionRef}
           loading={tableLoading || loading}
           getDataSource={testPlanTableDataGetter}
@@ -779,7 +779,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           ]}
           rowKey="objectId"
           columns={executionColumns}
-          name={'TestDetailTable'}
+          name={`${workspaceKey}_TestDetailTable`}
           actionRef={actionRef}
           loading={tableLoading || loading}
           getDataSource={executionTableDataGetter}

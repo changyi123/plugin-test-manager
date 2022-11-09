@@ -255,7 +255,7 @@ const TestPlanList: React.FC<any> = () => {
         ]}
         rowKey="objectId"
         columns={columns}
-        name="TestPlanTable"
+        name={`${workspaceKey}_TestPlanTable`}
         actionRef={actionRef}
         loading={tableLoading}
         getDataSource={tableDataGetter}

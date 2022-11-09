@@ -12,6 +12,7 @@ interface TableConfigProps {
   setTableFieldsData?: (val: TableFields) => void;
   colums?: any[];
   defaultColumnKey?: string[];
+  isCheckedGlobalConfig?: boolean;
 }
 
 const TableConfig: React.FC<TableConfigProps> = ({
@@ -22,8 +23,9 @@ const TableConfig: React.FC<TableConfigProps> = ({
   tableFieldsData,
   tableActionRef,
   setTableFieldsData,
+  isCheckedGlobalConfig,
 }) => {
-  const { workspace }: any = useDataContext();
+  const { workspace } = useDataContext();
   const handleFilterField = useCallback(
     ({ fieldKeys }) => {
       setTableFieldsData({
@@ -42,6 +44,8 @@ const TableConfig: React.FC<TableConfigProps> = ({
       titleCellOption={{
         workspaceKey: workspace.key,
         testType: testType,
+        isSettingPage: true,
+        isCheckedGlobalConfig,
       }}
       useColumnSetting
       actionRef={tableActionRef}
@@ -50,8 +54,7 @@ const TableConfig: React.FC<TableConfigProps> = ({
       dataSource={[]}
       name={name}
       handleFilterField={handleFilterField}
-      showPagination={false}
-      isSettingPage={true}
+      showPagination={true}
     />
   );
 };

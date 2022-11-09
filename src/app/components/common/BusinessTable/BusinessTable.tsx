@@ -77,7 +77,6 @@ type BusinessTableProps = TableProps<any> &
     useColumnSetting?: boolean;
     defaultColumnKey?: string[];
     PaginationFooterRender?: any;
-    isSettingPage?: boolean;
     handleFilterField?: (val: { testType: string; fieldKeys: string[] }) => void;
     // 所有可选的 row 标识
     allSelectableRowKeys?: string[];
@@ -161,7 +160,6 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     return (
       <ColumnSetting
         name={props?.name}
-        isSettingPage={props?.isSettingPage}
         handleFilterField={props?.handleFilterField}
         defaultColumnKey={defaultColumnKey}
         titleCellOption={titleCellOption}
@@ -174,7 +172,6 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     selectionMode,
     useColumnSetting,
     props?.name,
-    props?.isSettingPage,
     props?.handleFilterField,
     titleCellOption,
     columns,
@@ -305,7 +302,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
   };
 
   const PaginationFooter = () => {
-    if (!showPagination) return null;
+    if (!showPagination) return <div className={cx('footer')}></div>;
     const pagination = antdTableProps.pagination;
     const handlePaginationChange = (current, pageSize) => {
       setPageSize(pageSize);
@@ -373,7 +370,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
   }, [dataSource, props.rowKey, setExpandedKeys]);
 
   return (
-    <div className={cx('table-container')} ref={ref}>
+    <div className={cx('table-container', 'table-box')} ref={ref}>
       <LibraryProvider
         workspaceKey={workspace?.key}
         gatewayURL={proximaGatewayURL}

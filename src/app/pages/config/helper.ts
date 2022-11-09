@@ -9,5 +9,10 @@ export const generateDefaultTestConfig = (workspaceKey: string, isolatedSystem =
     defectsMapping: [],
     // 默认所有事项都加上空间隔离
     isolateTestType: [TestType.Plan, TestType.TestDefect, TestType.Case, TestType.Execution],
+    tableFields: {
+      [TestType.Case]: {
+        serachFields: ['key'],
+      },
+    },
   };
 };

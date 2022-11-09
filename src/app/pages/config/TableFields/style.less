@@ -1,19 +1,28 @@
 .table-fields {
   .setting-box {
     &.mg-top-m {
-      margin-top: 60px;
+      margin-top: 40px;
     }
 
     .title {
       font-weight: 700;
       font-size: 14px;
       line-height: 20px;
+      margin-bottom: 12px;
+    }
+
+    .setting-table {
+      :global {
+        .table-box {
+          overflow: inherit !important;
+        }
+      }
     }
   }
 
   .check-box {
     position: absolute;
-    right: 14px;
+    right: 54px;
     top: -45px;
   }
 

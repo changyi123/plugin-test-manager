@@ -1,4 +1,11 @@
 :root {
+  .setting-page-btn {
+    position: absolute !important;
+    top: -38px;
+    right: 0;
+    z-index: 11;
+  }
+
   .setting-icon {
     svg {
       width: 16px;
@@ -39,7 +46,7 @@
         margin-right: auto;
       }
       .filter-icon {
-        margin-right: 8px;
+        margin-right: 12px;
 
         .icon {
           svg {
@@ -62,9 +69,16 @@
         }
       }
       .icon {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 18px;
+        height: 18px;
+        color: #848c9f;
         cursor: pointer;
+
         &:hover {
-          color: RGB(24, 144, 255);
+          color: #3683ff;
         }
       }
       &.dragging {

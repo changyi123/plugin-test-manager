@@ -34,14 +34,27 @@ export const useGetTableFilterFields = ({
   workspaceKey,
   testType,
   isSettingPage,
+  isCheckedGlobalConfig,
 }: {
   workspaceKey?: string;
   testType?: string;
   isSettingPage?: boolean;
+  isCheckedGlobalConfig?: boolean;
 }) => {
-  const defaultFields = testType === TestType.Plan ? [] : ['key'];
+  const { data: globalConfig } = useRequest(
+    async () => {
+      if (!isSettingPage && !isCheckedGlobalConfig) return null;
+      const globalConfig = await await getTestConfig({ global: true });
+      return globalConfig.toJSON();
+    },
+    {
+      refreshDeps: [isSettingPage, isCheckedGlobalConfig],
+    },
+  );
+
   const { data: testConfig } = useRequest(
     async () => {
+      if (!workspaceKey) return null;
       const testConfig = await getTestConfig({ workspaceKey });
       return testConfig.toJSON();
     },
@@ -50,27 +63,34 @@ export const useGetTableFilterFields = ({
       refreshDeps: [workspaceKey],
     },
   );
+
   const { data: filterFields } = useRequest(
     async () => {
+      if (isSettingPage) return null;
       const res = await getCurrentUserSetting({
         workspaceKey,
       });
 
-      return res?.filterFields?.[testType] ?? [];
+      return res?.filterFields?.[testType];
     },
     {
       ready: Boolean(workspaceKey),
-      refreshDeps: [workspaceKey],
+      refreshDeps: [workspaceKey, isSettingPage],
     },
   );
+  const { serachFields: fields, tableColumns: columns } = testConfig?.tableFields?.[testType] ?? {};
 
-  const { serachFields, tableColumns } = testConfig?.tableFields?.[testType] ?? {};
-  const _serachFields = serachFields ?? defaultFields;
-  const _filterFields = filterFields?.length ? filterFields : _serachFields;
+  if (isSettingPage) {
+    const { serachFields, tableColumns } = globalConfig?.tableFields?.[testType] ?? {};
+
+    return isCheckedGlobalConfig
+      ? { filterFields: serachFields, tableFields: tableColumns }
+      : { filterFields: fields, tableFields: columns };
+  }
 
   return {
-    filterFields: isSettingPage ? _serachFields : _filterFields,
-    tableFields: tableColumns ?? [],
+    filterFields: filterFields ?? fields,
+    tableFields: columns,
   };
 };
 

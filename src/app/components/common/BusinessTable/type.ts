@@ -7,5 +7,9 @@ export type TitleCellOption = {
     testType: TestType;
     /** table 空间 */
     workspaceKey: string;
+    /** 是否是配置页面 */
+    isSettingPage?: boolean;
+    /** 是否选中全部空间配置 */
+    isCheckedGlobalConfig?: boolean;
   };
 };
