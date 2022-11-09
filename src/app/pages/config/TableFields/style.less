@@ -14,7 +14,10 @@
     .setting-table {
       :global {
         .table-box {
-          overflow: inherit !important;
+          .ant-table-body {
+            overflow: auto hidden !important;
+            height: 15px !important;
+          }
         }
       }
     }

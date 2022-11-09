@@ -302,7 +302,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
   };
 
   const PaginationFooter = () => {
-    if (!showPagination) return <div className={cx('footer')}></div>;
+    if (!showPagination) return null;
     const pagination = antdTableProps.pagination;
     const handlePaginationChange = (current, pageSize) => {
       setPageSize(pageSize);
@@ -310,7 +310,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     };
 
     return (
-      <div className={cx('footer')}>
+      <div className={`${cx('footer')} footer-box`}>
         <div className={cx('num')}>
           共 <span>{pagination.total}</span> 条
         </div>
@@ -370,7 +370,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
   }, [dataSource, props.rowKey, setExpandedKeys]);
 
   return (
-    <div className={cx('table-container', 'table-box')} ref={ref}>
+    <div className={`${cx('table-container')} table-box`} ref={ref}>
       <LibraryProvider
         workspaceKey={workspace?.key}
         gatewayURL={proximaGatewayURL}

@@ -1,6 +1,6 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { TestType } from '@/lib/constants';
-import { Button, Checkbox, message, Spin } from 'antd';
+import { Button, message, Spin } from 'antd';
 import { useCurrentTestConfig, useDataContext } from '../hooks';
 import TableConfig from './TableConfig';
 import { updateAllTestConfigs, updateGlobalConfig } from '@/lib/api/common';
@@ -19,13 +19,27 @@ export interface FieldKeys {
 }
 
 const TableFields: React.FC = () => {
-  const { workspace, globalConfig, refreshGlobalConfig } = useDataContext();
+  const {
+    workspace,
+    globalConfig,
+    refreshGlobalConfig,
+    checkAllWorkspace,
+    setShowAllWorkspaceCheck,
+  } = useDataContext();
   const testPlanRef = useRef<BusinessTableActionType>();
   const testCaseRef = useRef<BusinessTableActionType>();
   const testConfig = useCurrentTestConfig(workspace?.key);
   const [tableFieldsData, setTableFieldsData] = useState<TableFields | undefined>(undefined);
   const [loading, setLoading] = useState(false);
-  const [checked, setChecked] = useState(globalConfig?.tableFields?.checked);
+  // const [checked, setChecked] = useState(globalConfig?.tableFields?.checked);
+
+  useEffect(() => {
+    setShowAllWorkspaceCheck(true);
+
+    return () => {
+      setShowAllWorkspaceCheck(false);
+    };
+  }, [setShowAllWorkspaceCheck]);
 
   const defaultPlanColumnKey = [
     'status',
@@ -41,7 +55,7 @@ const TableFields: React.FC = () => {
   const saveConfig = useCallback(async () => {
     setLoading(true);
     const getFields = type =>
-      checked
+      checkAllWorkspace
         ? globalConfig?.tableFields?.[type]?.serachFields
         : testConfig.get('tableFields')?.[type]?.serachFields;
 
@@ -57,23 +71,13 @@ const TableFields: React.FC = () => {
         tableColumns: (testCaseRef?.current?.tableColumns ?? []).map(d => d.key),
       },
     };
-    if (!checked) {
-      if (globalConfig?.tableFields?.checked) {
-        await updateGlobalConfig({
-          tableFields: {
-            ...(globalConfig?.tableFields ?? {}),
-            checked,
-          },
-        });
-        refreshGlobalConfig();
-      }
+    if (!checkAllWorkspace) {
       await testConfig.save({
         tableFields: fields,
       });
     } else {
       await updateGlobalConfig({
         tableFields: {
-          checked,
           ...fields,
         },
       });
@@ -84,7 +88,7 @@ const TableFields: React.FC = () => {
     }
     message.success('表头及检索项配置保存成功');
     setLoading(false);
-  }, [tableFieldsData, checked, globalConfig?.tableFields, testConfig, refreshGlobalConfig]);
+  }, [tableFieldsData, checkAllWorkspace, globalConfig, testConfig, refreshGlobalConfig]);
 
   const testPlanColumns: any[] = [
     {
@@ -137,13 +141,6 @@ const TableFields: React.FC = () => {
   return (
     <Spin spinning={loading}>
       <div className={cx('table-fields')}>
-        <Checkbox
-          className={cx('check-box')}
-          checked={checked}
-          onChange={e => setChecked(e.target.checked)}
-        >
-          全部空间
-        </Checkbox>
         <div className={cx('setting-box')}>
           <div className={cx('title')}>测试计划-表头</div>
           <div className={cx('setting-table', 'plan')}>
@@ -155,11 +152,11 @@ const TableFields: React.FC = () => {
               tableActionRef={testPlanRef}
               colums={testPlanColumns}
               defaultColumnKey={
-                checked
+                checkAllWorkspace
                   ? globalConfig?.tableFields?.[TestType.Plan]?.tableColumns
                   : defaultPlanColumnKey
               }
-              isCheckedGlobalConfig={checked}
+              isCheckedGlobalConfig={checkAllWorkspace}
             />
           </div>
         </div>
@@ -174,11 +171,11 @@ const TableFields: React.FC = () => {
               tableActionRef={testCaseRef}
               colums={caseColumns}
               defaultColumnKey={
-                checked
+                checkAllWorkspace
                   ? globalConfig?.tableFields?.[TestType.Case]?.tableColumns
                   : defaultCaseColumnKey
               }
-              isCheckedGlobalConfig={checked}
+              isCheckedGlobalConfig={checkAllWorkspace}
             />
           </div>
         </div>

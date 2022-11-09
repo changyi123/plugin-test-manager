@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { keyBy, noop } from 'lodash';
 import { TitleCellOption } from './type';
 import { ColumnType } from 'antd/lib/table';
@@ -47,7 +47,6 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
     name,
     className,
     titleCellOption,
-    defaultColumnKey,
     handleFilterField,
     additionalColumns = [],
     onTableColumnChange = noop,
@@ -61,14 +60,12 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
   const [fields, setFields] = useState<string[] | undefined>([]);
   const [loading, setLoading] = useState(false);
 
-  const { filterFields, tableFields } = useGetTableFilterFields({
+  const { filterFields, tableFields, defaultFields } = useGetTableFilterFields({
     ...titleCellOption,
   });
 
   useUpdateEffect(() => {
-    if (filterFields?.length) {
-      setFields(filterFields);
-    }
+    setFields(filterFields);
   }, [titleCellOption.workspaceKey, (filterFields ?? []).join(',')]);
 
   const fieldCellsProp = useFieldsWithFieldCellProps(customFields);
@@ -98,8 +95,15 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
   const LOCAL_STORAGE_KEY = generateStorageKey(name, 'column-key');
 
   const [storageColumnKeys, setStorageColumnKeys] = useLocalStorageState(LOCAL_STORAGE_KEY, {
-    defaultValue: defaultColumnKey ?? [],
+    defaultValue: tableFields ?? [],
   });
+
+  useEffect(() => {
+    if (!storageColumnKeys.length && tableFields?.length) {
+      setStorageColumnKeys(tableFields);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [(tableFields ?? []).join('')]);
 
   const memoizedAdditionalColumnKey = additionalColumns.map(col => col.key);
   const allColumns = React.useMemo(() => {
@@ -118,9 +122,8 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
   }, [memoizedAdditionalColumnKey, customFields]);
 
   const selectColumns = React.useMemo(() => {
-    const columns = storageColumnKeys ?? tableFields;
-    return columns.map(key => allColumns.find(col => col.key === key)).filter(Boolean);
-  }, [allColumns, storageColumnKeys, tableFields]);
+    return storageColumnKeys?.map(key => allColumns.find(col => col.key === key)).filter(Boolean);
+  }, [allColumns, storageColumnKeys]);
 
   const selectOptions = allColumns
     .filter(col => {
@@ -211,6 +214,28 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
         width={visible ? 320 : 0}
         title="表格显示设置"
       >
+        <div className={cx('box-header')}>
+          <div className={cx('title')}>表头设置</div>
+          {!titleCellOption?.isSettingPage && (
+            <Button
+              className={cx('link')}
+              type="link"
+              size="small"
+              onClick={async () => {
+                setLoading(true);
+                setFields(defaultFields ?? []);
+                await handleFilterField?.({
+                  testType: titleCellOption.testType,
+                  fieldKeys: defaultFields,
+                });
+                proxima.execute('updateFilterSearchFields');
+                setLoading(false);
+              }}
+            >
+              恢复默认
+            </Button>
+          )}
+        </div>
         <Tooltip
           className={cx('field-tips')}
           placement="bottom"

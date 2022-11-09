@@ -91,6 +91,7 @@ export const useGetTableFilterFields = ({
   return {
     filterFields: filterFields ?? fields,
     tableFields: columns,
+    defaultFields: fields,
   };
 };
 

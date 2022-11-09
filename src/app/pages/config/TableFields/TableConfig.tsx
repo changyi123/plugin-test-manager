@@ -54,7 +54,7 @@ const TableConfig: React.FC<TableConfigProps> = ({
       dataSource={[]}
       name={name}
       handleFilterField={handleFilterField}
-      showPagination={true}
+      showPagination={false}
     />
   );
 };
