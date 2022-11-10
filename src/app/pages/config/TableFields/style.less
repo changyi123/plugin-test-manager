@@ -14,9 +14,23 @@
     .setting-table {
       :global {
         .table-box {
+          overflow: inherit !important;
+
           .ant-table-body {
             overflow: auto hidden !important;
             height: 15px !important;
+          }
+        }
+
+        .ant-table-thead {
+          .ant-table-cell-fix-right {
+            &.react-resizable {
+              &:hover {
+                .resizable-handle-global {
+                  display: none !important;
+                }
+              }
+            }
           }
         }
       }

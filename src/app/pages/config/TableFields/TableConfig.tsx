@@ -51,7 +51,6 @@ const TableConfig: React.FC<TableConfigProps> = ({
       actionRef={tableActionRef}
       defaultColumnKey={defaultColumnKey}
       columns={colums}
-      dataSource={[]}
       name={name}
       handleFilterField={handleFilterField}
       showPagination={false}

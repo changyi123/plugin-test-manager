@@ -11,12 +11,12 @@ import { useNoExpiredRequest } from '@/lib/hooks/useRequest';
 import { useDeepCompareEffect, useLocalStorageState, useUpdateEffect } from 'ahooks';
 import { useFieldsWithFieldCellProps } from '@/lib/hooks/useProxima';
 import {
-  DeleteOutlined,
   DragHandler,
   QuestionCircleOutlined,
   Setting,
   AddSearch,
   DeleteSearch,
+  DeleteIcon,
 } from '@/icons';
 import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd';
 import createProximaSdk from '@projectproxima/proxima-sdk-js';
@@ -314,7 +314,7 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
                               </Tooltip>
                             </span>
                           )}
-                          <DeleteOutlined
+                          <DeleteIcon
                             className={cx('icon')}
                             onClick={async () => {
                               deleteStorageColumnKey(col.key);
