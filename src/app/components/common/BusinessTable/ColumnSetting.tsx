@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { keyBy, noop } from 'lodash';
 import { TitleCellOption } from './type';
 import { ColumnType } from 'antd/lib/table';
@@ -64,9 +64,15 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
     ...titleCellOption,
   });
 
+  const initFilterFields = useCallback(() => {
+    const customKeys = customFields?.map(d => d.key) ?? [];
+    return filterFields?.filter(field => customKeys.includes(field));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [customFields, (filterFields ?? []).join(',')]);
+
   useUpdateEffect(() => {
-    setFields(filterFields);
-  }, [titleCellOption.workspaceKey, (filterFields ?? []).join(',')]);
+    setFields(initFilterFields());
+  }, [titleCellOption.workspaceKey, customFields, (filterFields ?? []).join(',')]);
 
   const fieldCellsProp = useFieldsWithFieldCellProps(customFields);
   const fieldCellsPropDict = React.useMemo(() => {
