@@ -106,8 +106,8 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
   });
 
   useEffect(() => {
-    const colmusField = tableFields?.filter(d => d !== 'action')?.length ?? defaultColumnKey;
-    if (colmusField?.length) {
+    const colmusField = tableFields?.filter(d => d !== 'action') ?? defaultColumnKey;
+    if (!storageColumnKeys?.length && colmusField?.length) {
       setStorageColumnKeys([...new Set(colmusField)]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
