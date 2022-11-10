@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useCallback, useEffect, useState } from 'react';
 import { keyBy, noop } from 'lodash';
 import { TitleCellOption } from './type';
@@ -106,12 +107,23 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
   });
 
   useEffect(() => {
-    const colmusField = tableFields?.filter(d => d !== 'action') ?? defaultColumnKey;
-    if (!storageColumnKeys?.length && colmusField?.length) {
-      setStorageColumnKeys([...new Set(colmusField)]);
+    if (titleCellOption?.workspaceKey) {
+      const colmusField = tableFields?.filter(d => d !== 'action') ?? defaultColumnKey;
+      if (titleCellOption?.isCheckedGlobalConfig || titleCellOption?.isSettingPage) {
+        setStorageColumnKeys([...new Set(colmusField)]);
+      } else {
+        if (!storageColumnKeys?.length && colmusField?.length) {
+          setStorageColumnKeys([...new Set(colmusField)]);
+        }
+      }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [(tableFields ?? []).join('')]);
+  }, [
+    titleCellOption?.workspaceKey,
+    titleCellOption?.isSettingPage,
+    titleCellOption?.isCheckedGlobalConfig,
+    JSON.stringify(defaultColumnKey),
+    JSON.stringify(tableFields),
+  ]);
 
   const memoizedAdditionalColumnKey = additionalColumns.map(col => col.key);
   const allColumns = React.useMemo(() => {
@@ -232,6 +244,7 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
               onClick={async () => {
                 setLoading(true);
                 setFields(defaultFields ?? []);
+                setStorageColumnKeys(tableFields ?? defaultColumnKey);
                 await handleFilterField?.({
                   testType: titleCellOption.testType,
                   fieldKeys: defaultFields,
