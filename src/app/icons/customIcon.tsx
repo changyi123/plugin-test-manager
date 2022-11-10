@@ -13,7 +13,7 @@ import FullScreenSVG from './svg/full-screen.svg';
 import DropDownSVG from './svg/drop-down.svg';
 import { components } from 'proxima-sdk';
 
-const { LinkIcon } = components.Components.Icons;
+const { LinkIcon, ResetIcon, User } = components.Components.Icons;
 
 const CustomIconHOC = (
   component: IconComponentProps['component'],
@@ -34,4 +34,6 @@ export const FileOpen = CustomIconHOC(FileOpenSVG);
 export const FileClose = CustomIconHOC(FileCloseSVG);
 export const FullScreen = CustomIconHOC(FullScreenSVG);
 export const DropDown = CustomIconHOC(DropDownSVG);
-export const LinkItem = CustomIconHOC(LinkIcon);
+export const LinkItemIcon = CustomIconHOC(LinkIcon);
+export const DeleteIcon = CustomIconHOC(ResetIcon);
+export const UserIcon = CustomIconHOC(User);

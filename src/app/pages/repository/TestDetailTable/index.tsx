@@ -6,7 +6,7 @@ import { updateFolders } from '@/lib/api/repository';
 import { UserCell } from '@projectproxima/components';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import createProximaSdk from '@projectproxima/proxima-sdk-js';
-import { DeleteOutlined, UserOutlined, DragHandler, LinkItem } from '@/icons';
+import { DeleteIcon, UserIcon, DragHandler, LinkItemIcon } from '@/icons';
 import { actionConfirm, generateSortIndex, openItemViewScreen } from '@/lib/utils/helper';
 import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
 import { cloneTestEntities } from '@/lib/api/common';
@@ -184,7 +184,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         onChange={toggleAssignee}
         emptyChild={
           <span className="user-field">
-            <UserOutlined /> 设置负责人
+            <UserIcon className={cx('icon')} /> 设置负责人
           </span>
         }
       />,
@@ -192,10 +192,10 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
       //   <SwitcherOutlined /> 复制
       // </span>,
       <span key="link" onClick={hasRowSelected ? createItemLink : undefined}>
-        <LinkItem /> 批量事项关联
+        <LinkItemIcon className={cx('icon')} /> 批量事项关联
       </span>,
       <span key="delete" onClick={hasRowSelected ? deleteTestCase : undefined}>
-        <DeleteOutlined /> 删除
+        <DeleteIcon className={cx('icon')} /> 删除
       </span>,
     ];
   }, [hasRowSelected, tableActionRef, userData, refreshAndMutateData, workspaceKey]);
