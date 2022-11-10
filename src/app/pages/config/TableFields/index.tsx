@@ -63,7 +63,7 @@ const TableFields: React.FC = () => {
       ...new Set(
         (ref?.current?.tableColumns ?? [])
           .map(d => d.key)
-          .filter(d => ['action', 'title'].includes(d)),
+          .filter(d => !['action', 'title'].includes(d)),
       ),
     ];
 

@@ -81,7 +81,7 @@ export const useGetTableFilterFields = ({
   );
   const { serachFields: fields, tableColumns: columns } = testConfig?.tableFields?.[testType] ?? {};
 
-  const getColumns = data => data?.filter(d => ['action', 'title'].includes(d));
+  const getColumns = data => data?.filter(d => !['action', 'title'].includes(d));
 
   if (isSettingPage) {
     const { serachFields, tableColumns } = globalConfig?.tableFields?.[testType] ?? {};
