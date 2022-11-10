@@ -59,8 +59,9 @@ const TableFields: React.FC = () => {
         ? globalConfig?.tableFields?.[type]?.serachFields
         : testConfig.get('tableFields')?.[type]?.serachFields;
 
-    const getColumns = ref =>
-      (ref?.current?.tableColumns ?? []).map(d => d.key).filter(d => d !== 'action');
+    const getColumns = ref => [
+      ...new Set((ref?.current?.tableColumns ?? []).map(d => d.key).filter(d => d !== 'action')),
+    ];
 
     const fields = {
       [TestType.Plan]: {
