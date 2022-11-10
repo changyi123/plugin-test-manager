@@ -60,7 +60,11 @@ const TableFields: React.FC = () => {
         : testConfig.get('tableFields')?.[type]?.serachFields;
 
     const getColumns = ref => [
-      ...new Set((ref?.current?.tableColumns ?? []).map(d => d.key).filter(d => d !== 'action')),
+      ...new Set(
+        (ref?.current?.tableColumns ?? [])
+          .map(d => d.key)
+          .filter(d => ['action', 'title'].includes(d)),
+      ),
     ];
 
     const fields = {
@@ -125,6 +129,7 @@ const TableFields: React.FC = () => {
     {
       width: 60,
       key: 'title',
+      fixed: true,
       title: '标题',
       isSystem: true,
     },

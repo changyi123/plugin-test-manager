@@ -81,17 +81,25 @@ export const useGetTableFilterFields = ({
   );
   const { serachFields: fields, tableColumns: columns } = testConfig?.tableFields?.[testType] ?? {};
 
+  const getColumns = data => data?.filter(d => ['action', 'title'].includes(d));
+
   if (isSettingPage) {
     const { serachFields, tableColumns } = globalConfig?.tableFields?.[testType] ?? {};
 
     return isCheckedGlobalConfig
-      ? { filterFields: serachFields ?? defaultKeys, tableFields: tableColumns }
-      : { filterFields: fields ?? defaultKeys, tableFields: columns };
+      ? {
+          filterFields: serachFields ?? defaultKeys,
+          tableFields: getColumns(tableColumns),
+        }
+      : {
+          filterFields: fields ?? defaultKeys,
+          tableFields: getColumns(tableColumns),
+        };
   }
 
   return {
     filterFields: filterFields ?? fields ?? defaultKeys,
-    tableFields: columns,
+    tableFields: getColumns(columns),
     defaultFields: fields,
   };
 };
