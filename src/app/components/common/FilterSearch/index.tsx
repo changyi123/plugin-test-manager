@@ -63,6 +63,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
   const { data: fieldsName, refresh } = useRequest(
     async () => {
       if (!workspace?.key) return null;
+      const defaultKeys = testType === TestType.Case ? ['key'] : [];
       const testConfig = await getTestConfig({ workspaceKey: workspace?.key });
 
       const { serachFields } = testConfig?.toJSON()?.tableFields?.[testType] ?? {};
@@ -71,8 +72,8 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
         workspaceKey: workspace?.key,
       });
 
-      const filterFields = res?.filterFields?.[testType] ?? [];
-      const fields = filterFields ?? serachFields;
+      const filterFields = res?.filterFields?.[testType];
+      const fields = filterFields ?? serachFields ?? defaultKeys;
 
       const fieldsName = customFields
         ?.filter(field => [...new Set([...fields])].includes(field.key))

@@ -41,6 +41,7 @@ export const useGetTableFilterFields = ({
   isSettingPage?: boolean;
   isCheckedGlobalConfig?: boolean;
 }) => {
+  const defaultKeys = testType === TestType.Case ? ['key'] : [];
   const { data: globalConfig } = useRequest(
     async () => {
       if (!isSettingPage && !isCheckedGlobalConfig) return null;
@@ -84,12 +85,12 @@ export const useGetTableFilterFields = ({
     const { serachFields, tableColumns } = globalConfig?.tableFields?.[testType] ?? {};
 
     return isCheckedGlobalConfig
-      ? { filterFields: serachFields, tableFields: tableColumns }
-      : { filterFields: fields, tableFields: columns };
+      ? { filterFields: serachFields ?? defaultKeys, tableFields: tableColumns }
+      : { filterFields: fields ?? defaultKeys, tableFields: columns };
   }
 
   return {
-    filterFields: filterFields ?? fields,
+    filterFields: filterFields ?? fields ?? defaultKeys,
     tableFields: columns,
     defaultFields: fields,
   };

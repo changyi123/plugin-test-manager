@@ -47,6 +47,7 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
     name,
     className,
     titleCellOption,
+    defaultColumnKey,
     handleFilterField,
     additionalColumns = [],
     onTableColumnChange = noop,
@@ -105,8 +106,9 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
   });
 
   useEffect(() => {
-    if (!storageColumnKeys.length && tableFields?.length) {
-      setStorageColumnKeys([...new Set(tableFields.filter(d => d !== 'action'))]);
+    const colmusField = tableFields?.filter(d => d !== 'action')?.length ?? defaultColumnKey;
+    if (colmusField?.length) {
+      setStorageColumnKeys([...new Set(colmusField)]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [(tableFields ?? []).join('')]);
@@ -286,9 +288,9 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
                             <span
                               className={cx('filter-icon')}
                               onClick={async () => {
-                                const action = fields.includes(col.key) ? 'delete' : 'add';
+                                const action = fields?.includes(col.key) ? 'delete' : 'add';
                                 let fieldKeys;
-                                if (fields.includes(col.key)) {
+                                if (fields?.includes(col.key)) {
                                   fieldKeys = fields.filter(d => d !== col.key);
                                   setFields(fieldKeys);
                                 } else {
@@ -310,9 +312,9 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
                               }}
                             >
                               <Tooltip
-                                title={fields.includes(col.key) ? '移除检索项' : '添加检索项'}
+                                title={fields?.includes(col.key) ? '移除检索项' : '添加检索项'}
                               >
-                                {fields.includes(col.key) ? (
+                                {fields?.includes(col.key) ? (
                                   <DeleteSearch className={cx('icon', 'delete')} />
                                 ) : (
                                   <AddSearch className={cx('icon', 'add')} />
@@ -326,10 +328,10 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
                               deleteStorageColumnKey(col.key);
                               if (
                                 ['Key', 'Text'].includes(col?.fieldType?.key) &&
-                                fields.includes(col.key)
+                                fields?.includes(col.key)
                               ) {
                                 setLoading(true);
-                                const fieldKeys = fields.filter(d => d !== col.key);
+                                const fieldKeys = fields?.filter(d => d !== col.key) ?? [];
                                 setFields(fieldKeys);
                                 await handleFilterField?.({
                                   key: col.key,
