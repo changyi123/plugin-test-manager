@@ -1,3 +1,4 @@
+import uniq from 'lodash/uniq';
 import pick from 'lodash/pick';
 import keyBy from 'lodash/keyBy';
 import difference from 'lodash/difference';
@@ -40,25 +41,47 @@ export const batchDelete = async () => {
 
     // 删除关联关系中数据
     if (!skipDeletedLinkItems) {
-      // 1. 查询关联的 items
-      const {
-        data: { list: linkedItems },
-      } = await iqlRequest({
-        query: {
-          linkItems: ids,
-        },
-        pagination: { limit: 99999 },
-        fields: [...IQLRequiredFieldKeys, TestFiledKeyMapping.linkItems],
-      });
+      // 删除实体间的关联关系
+      const appendDeleteLinkItemsTask = async testIds => {
+        // 1. 查询关联的 items
+        const {
+          data: { list: linkedItems },
+        } = await iqlRequest({
+          query: {
+            linkItems: testIds,
+          },
+          pagination: { limit: InfinityLimit },
+          fields: [...IQLRequiredFieldKeys, TestFiledKeyMapping.linkItems],
+        });
 
-      // 2. 更新数据
-      const needUpdateItemValues = linkedItems.map(item => {
-        const data = pick(item, ['objectId', 'linkItems']);
-        data.linkItems = data.linkItems.filter(id => !ids.includes(id));
-        return data;
-      });
+        // 2. 更新数据
+        const needUpdateItemValues = linkedItems.map(item => {
+          const data = pick(item, ['objectId', 'linkItems']);
+          data.linkItems = data.linkItems.filter(id => !ids.includes(id));
+          return data;
+        });
+        tasks.push(batchUpdateItems(needUpdateItemValues));
+      };
 
-      tasks.push(batchUpdateItems(needUpdateItemValues));
+      // 测试用例删除时需要删除引用的测试执行，所以先获得用例引用的执行
+      const getReferencedTestRunIds = async () => {
+        // 1. 查询关联的 items
+        const {
+          data: { list: testRuns },
+        } = await iqlRequest({
+          query: {
+            referenceCase: ids,
+          },
+          pagination: { limit: InfinityLimit },
+          fields: IQLRequiredFieldKeys,
+        });
+
+        return testRuns.map(item => item.objectId);
+      };
+
+      const testRunIds = await getReferencedTestRunIds();
+
+      await appendDeleteLinkItemsTask(uniq([].concat(ids, testRunIds)));
     }
 
     await Promise.all(tasks);
