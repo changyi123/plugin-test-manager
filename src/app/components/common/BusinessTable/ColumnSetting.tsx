@@ -100,7 +100,7 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
 
   useEffect(() => {
     if (!storageColumnKeys.length && tableFields?.length) {
-      setStorageColumnKeys(tableFields);
+      setStorageColumnKeys(tableFields.filter(d => d !== 'action'));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [(tableFields ?? []).join('')]);
