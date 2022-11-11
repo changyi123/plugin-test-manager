@@ -34,10 +34,11 @@ export const batchDelete = async () => {
       body: { ids, skipDeletedLinkItems = false },
     } = getReqInfoFromVMRuntime<BatchDeletePayload>();
     if (!Array.isArray(ids)) throwArgumentError('ids', 'objectId[]');
-    const tasks = [
-      // FIXME: delete 接口会有问题，响应完成但是 es 内事项数据可能不会更新，需要加一个 500ms 延迟
-      batchDeleteItems(ids).then(() => new Promise(resolve => setTimeout(resolve, 500))),
-    ];
+    // FIXME: delete 接口会有问题，响应完成但是 es 内事项数据可能不会更新，需要加一个 500ms 延迟
+    const deleteItemsThenWait = ids => {
+      return batchDeleteItems(ids).then(() => new Promise(resolve => setTimeout(resolve, 500)));
+    };
+    const tasks = [deleteItemsThenWait(ids)];
 
     // 删除关联关系中数据
     if (!skipDeletedLinkItems) {
@@ -80,6 +81,8 @@ export const batchDelete = async () => {
       };
 
       const testRunIds = await getReferencedTestRunIds();
+
+      tasks.push(deleteItemsThenWait(testRunIds));
 
       await appendDeleteLinkItemsTask(uniq([].concat(ids, testRunIds)));
     }
