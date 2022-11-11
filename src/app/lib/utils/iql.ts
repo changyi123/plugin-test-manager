@@ -205,7 +205,10 @@ const getNullValue = (value: any): any => {
 // iql值转换
 const getComponentValue: (selector: SelectCase) => componentValueProps = selector => {
   const { fieldName, component, expression, value: selectedValue } = selector;
-  const useArray = expression?.includes('_Contain') && !expression?.includes('Text_Contain');
+  const useArray =
+    expression?.includes('_Contain') &&
+    !expression?.includes('Text_Contain') &&
+    !expression?.includes('Text_Not_Contain');
   // 将包含条件 的值 都转成 数组
   const _value = useArray && !Array.isArray(selectedValue) ? [selectedValue] : selectedValue;
 
@@ -269,6 +272,7 @@ const getCaseCondition: IQLCaseFormater = selector => {
   if (isDate(component)) return IQL_CONDITION.CONTAIN;
   if (!expression) return empty;
   if (expression.includes('Text_Contain')) return IQL_CONDITION.TEXT_CONTAIN;
+  if (expression.includes('Text_Not_Contain')) return IQL_CONDITION.TEXT_NOT_CONTAIN;
   if (expression.includes('_Not_Equal')) return IQL_CONDITION.NOT_EQUAL;
   if (expression.includes('_Equal')) return IQL_CONDITION.EQUAL;
   if (expression.includes('_Not_Contain')) return IQL_CONDITION.NOT_CONTAIN;

@@ -76,10 +76,9 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
       const fields = filterFields ?? serachFields ?? defaultKeys;
 
       const fieldsName = customFields
-        ?.filter(field => [...new Set([...fields])].includes(field.key))
+        ?.filter(field => [...new Set(fields)].includes(field.key))
         .map(field => field.name)
-        .filter(Boolean)
-        .join(',');
+        .filter(Boolean);
 
       return fieldsName;
     },
@@ -113,12 +112,13 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
         fieldName: '标题',
         key: 'name',
         value: searchValue === undefined ? search : searchValue,
-        fieldLabel: fieldsName?.split(',').filter(Boolean),
+        fieldLabel: fieldsName,
       };
       setSelectors(data);
       currentSelectors.current = data;
     },
-    [search, fieldsName],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [search, JSON.stringify(fieldsName)],
   );
 
   const { data: currentUser } = useNoExpiredRequest(

@@ -45,7 +45,7 @@ export const useGetTableFilterFields = ({
   const { data: globalConfig } = useRequest(
     async () => {
       if (!isSettingPage && !isCheckedGlobalConfig) return null;
-      const globalConfig = await await getTestConfig({ global: true });
+      const globalConfig = await getTestConfig({ global: true });
       return globalConfig.toJSON();
     },
     {
