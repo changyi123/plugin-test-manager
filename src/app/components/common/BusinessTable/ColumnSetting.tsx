@@ -108,15 +108,15 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
 
   useEffect(() => {
     if (titleCellOption?.workspaceKey) {
-      const colmusField = tableFields?.filter(d => d !== 'action') ?? defaultColumnKey;
       if (titleCellOption?.isCheckedGlobalConfig || titleCellOption?.isSettingPage) {
-        setStorageColumnKeys([...new Set(colmusField)]);
+        setStorageColumnKeys([...new Set(tableFields ?? defaultColumnKey)]);
       } else {
-        if (!storageColumnKeys?.length && colmusField?.length) {
-          setStorageColumnKeys([...new Set(colmusField)]);
+        if (!storageColumnKeys?.length && tableFields?.length) {
+          setStorageColumnKeys([...new Set(tableFields)]);
         }
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     titleCellOption?.workspaceKey,
     titleCellOption?.isSettingPage,
@@ -142,8 +142,9 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
   }, [memoizedAdditionalColumnKey, customFields]);
 
   const selectColumns = React.useMemo(() => {
-    return storageColumnKeys?.map(key => allColumns.find(col => col.key === key)).filter(Boolean);
-  }, [allColumns, storageColumnKeys]);
+    const columnsKey = storageColumnKeys?.length ? storageColumnKeys : defaultColumnKey;
+    return columnsKey?.map(key => allColumns.find(col => col.key === key)).filter(Boolean);
+  }, [allColumns, storageColumnKeys, JSON.stringify(defaultColumnKey)]);
 
   const selectOptions = allColumns
     .filter(col => {
