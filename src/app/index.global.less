@@ -12,62 +12,11 @@
     margin: 0;
   }
 
-  // 解决面板抽屉组件样式抖动问题
-  :global {
-    .field-layout .ant-col.field-value {
-      line-height: 22px !important;
-      min-height: 22px !important;
-    }
-  }
-
-  .ant-btn.ant-btn-primary:hover,
-  .ant-btn.ant-btn-primary:focus {
-    color: #fff !important;
-    border-color: #4b8bff !important;
-    background: #4b8bff !important;
-  }
-
-  .ant-btn.ant-btn-primary:active {
-    color: #fff !important;
-    border-color: #0a50d1 !important;
-    background: #0a50d1 !important;
-    box-shadow: 0 0 0 1px #77a7ff !important;
-  }
-
-  .ant-btn.ant-btn-default:hover,
-  .ant-btn.ant-btn-default:focus {
-    color: #1e2a3d !important;
-    border-color: #f4f4f5 !important;
-    background: #f4f4f5 !important;
-    box-shadow: 0 0 0 1px #77a7ff !important;
-  }
-
-  .ant-btn.ant-btn-default:active {
-    color: #1e2a3d !important;
-    background: #e9eaec !important;
-    border-color: #77a7ff !important;
-  }
-
-  .ant-btn.ant-btn-default.ant-btn-dangerous {
-    color: #ff5630 !important;
-    border-color: #ff5630 !important;
-    background: #fff !important;
-    box-shadow: none !important;
-  }
-
   .ant-tooltip-arrow {
     .ant-tooltip-arrow-content {
-      --antd-arrow-background-color: #576473 !important;
+      --antd-arrow-background-color: #576473;
     }
   }
-
-  // .ant-tooltip-arrow .ant-tooltip-arrow-content::before {
-  //   background: linear-gradient(to left, rgb(77, 84, 94) 50%, rgb(77, 84, 94) 50%) no-repeat -10px -10px !important;
-  // }
-
-  // .ant-tooltip-content .ant-tooltip-inner {
-  //   background-color: rgb(77, 84, 94) !important;
-  // }
 
   #test-manager {
     position: relative;
@@ -76,6 +25,13 @@
     // .ant-table-ping-left .ant-table-cell-fix-left {
     //   border-right: 1px solid #eee;
     // }
+    .ant-btn.ant-btn-primary:hover,
+    .ant-btn.ant-btn-primary:focus {
+      color: #fff !important;
+      border-color: #4b8bff !important;
+      background: #4b8bff !important;
+    }
+
     .ant-table-ping-left .ant-table-cell-fix-left,
     .ant-table-ping-right .ant-table-cell-fix-right {
       box-shadow: 0px 2px 4px 0 #eee;
