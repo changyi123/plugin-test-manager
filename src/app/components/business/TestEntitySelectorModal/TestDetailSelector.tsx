@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo } from 'react';
-import { cloneDeep } from 'lodash';
+import React, { useEffect, useMemo, useRef } from 'react';
+import { cloneDeep, isEqual } from 'lodash';
 import { useAllTestWorkspace } from '@/lib/hooks/useTest';
 import { includeAll, exclude, includeItem } from './helper';
 import { useDebounce, useRequest } from 'ahooks';
@@ -11,6 +11,8 @@ import cx from './TestDetailSelector.less';
 import RepositoryFolderTree, { ActionType } from '../RepositoryFolderTree';
 import { TestLinkType, TestType } from '@/lib/constants';
 import { getLinkedTestEntityByQuery } from '@/lib/api/item';
+import FilterSearch from '@/components/common/FilterSearch';
+import { SearchSelectors } from '@/lib/utils/iql';
 
 const DEFAULT_CHECKED_KEY = {
   checked: [],
@@ -28,8 +30,6 @@ type TestDetailSelectorProps = {
   treeType?: string;
   setTreeType?: (val: string) => void;
 };
-
-const { Search } = Input;
 
 const tabsList = [
   {
@@ -56,10 +56,11 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
   } = props;
 
   const repositoryFolderTreeRef = React.useRef<ActionType>();
+  const detailSearchRef = useRef(null);
+  const [selectors, setSelectors] = React.useState<string | SearchSelectors>();
 
   // 目录搜索
   const [folderSearchValue, setFolderSearchValue] = React.useState('');
-  const [detailSearchValue, setDetailSearchValue] = React.useState('');
 
   // tree checked key
   const [folderCheckedKey, setFolderCheckedKey] = React.useState(DEFAULT_CHECKED_KEY);
@@ -73,6 +74,14 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
   const [selectedWorkspaceKey, setSelectedWorkspaceKey] = React.useState(workspaceKey);
 
   const folderCheckedCacheRef = React.useRef({} as Record<string, any>);
+
+  const setSearchParams = React.useCallback(
+    data => {
+      if (isEqual(data, selectors)) return;
+      setSelectors(data);
+    },
+    [selectors],
+  );
 
   useEffect(() => {
     setSelectedTestDetailIds(selectValue ?? []);
@@ -142,7 +151,7 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
 
   React.useEffect(() => {
     setFolderSearchValue('');
-    setDetailSearchValue('');
+    setSelectors(undefined);
     // 单选模式切换时重置选中项
     isSingleMode && setSelectedTestDetailIds([]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -197,11 +206,14 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
           onChange={handleWorkspaceChange}
           className={cx('workspace-selector')}
         />
-        <Search
-          className={cx('search')}
-          placeholder="请输入用例标题"
-          allowClear
-          onSearch={val => setDetailSearchValue(val)}
+        <FilterSearch
+          ref={detailSearchRef}
+          onSearch={setSearchParams}
+          className={cx('plan-page-layout-search')}
+          extendFields={[]}
+          fields={[]}
+          testType={TestType.Case}
+          hideSelectorTag={true}
         />
       </div>
       <div className={cx('main')}>
@@ -242,7 +254,7 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
             <TestDetailsSelectorList
               workspaceKey={selectedWorkspaceKey}
               selectedNode={selectedNode}
-              detailSearchValue={detailSearchValue}
+              selectors={selectors}
               ignoreTestDetailIds={ignoreTestDetailIds ?? []}
               selectedTestDetailIds={selectedTestDetailIds}
               setSelectedTestDetailIds={setSelectedTestDetailIds}

@@ -264,6 +264,7 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
             onSearch={handleSelectorSearch}
             fields={testDetailFieldKeys?.filter(field => !systemFields.includes(field))}
             extendFields={extendFields.filter(field => field.key === RepositoryModel)}
+            testType={TestType.Case}
           />
           <TestDetailTable
             actionRef={tableActionRef}

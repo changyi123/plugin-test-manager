@@ -22,10 +22,12 @@ import {
   updateTestEntity,
   updateTestStatus,
 } from '@/lib/api/item';
-import { TestLinkType, TestType } from 'common/constant';
+import { BuiltinFieldNameMapping, TestLinkType, TestType } from 'common/constant';
 import { RepositoryModel } from '@/lib/constants';
 import { isEmpty, isEqual } from 'lodash';
 import { useTestRunActionAuth, useCanExecuteTestRunIdSequence } from '@/lib/hooks/useTest';
+import { getCurrentUserSetting, saveUserSetting } from '@/lib/api/userSetting';
+import { useCurrentUser } from '@/lib/api/user';
 
 import cx from './index.less';
 
@@ -62,6 +64,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   const testRunModalActionRef = React.useRef<TestRunModalActionType>();
   const userData = useUserCellUserDataProp(workspaceKey);
   const { canExecuteTestRun, canAssignTestRun } = useTestRunActionAuth({ workspaceKey });
+  const { data: currentUser } = useCurrentUser();
 
   const [tableLoading, setTableLoading] = useState(false);
   const [hasRowSelected, setHasRowSelected] = useState(false);
@@ -112,6 +115,15 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     },
     {
       refreshDeps: [workspaceKey, requestScopedTestDetailIds, selectedExecution],
+    },
+  );
+
+  const { data: currentFields } = useRequest(
+    async () => {
+      return await getCurrentUserSetting({ workspaceKey, user: currentUser });
+    },
+    {
+      refreshDeps: [workspaceKey, currentUser],
     },
   );
 
@@ -189,33 +201,26 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           selector: [{}, selectors?.[1] ?? {}],
         },
         props => {
-          const [systemSelectors, customSelector] = props?.selector;
+          const [, customSelector] = props?.selector;
 
-          const extraQuery = Object.entries(customSelector ?? {}).reduce(
+          const runSelector = Object.entries(customSelector ?? {}).reduce(
             (prev, [key, value]: any) => {
-              if (key !== RepositoryModel) {
-                const filed = key.replace('test_', '');
-                prev[filed] = value.value.map(d => {
-                  if ('currentUser' === d.username) {
-                    return 'currentUser()';
-                  }
-                  if ('osc-admin' === d.username) {
-                    return 'osc-admin';
-                  }
-                  return d.username;
-                });
+              if (key !== RepositoryModel && key.includes('test_')) {
+                const fieldName =
+                  BuiltinFieldNameMapping?.[key.replace('test_', '')] ?? value.fieldName;
+                prev[key] = {
+                  ...value,
+                  fieldName,
+                };
               }
               return prev;
             },
             {},
           );
+
           return {
             ...props,
-            selector: [systemSelectors ?? {}, {}],
-            query: {
-              ...props.query,
-              ...extraQuery,
-            },
+            selector: [{}, runSelector],
           };
         },
       );
@@ -243,6 +248,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
             ...d,
             repository: item?.repository,
             item,
+            key: item.key,
           };
         }),
         total,
@@ -709,6 +715,21 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     actionRef.current.resetSelectedRowKeys();
   });
 
+  const handleFilterField = useCallback(
+    async ({ testType, fieldKeys }) => {
+      await saveUserSetting({
+        workspaceKey,
+        user: currentUser,
+        testType,
+        filterFields: {
+          ...(currentFields?.filterFields ?? {}),
+          [testType]: fieldKeys,
+        },
+      });
+    },
+    [currentUser, workspaceKey, currentFields],
+  );
+
   return (
     <div className={cx('test-entity-list-box')}>
       {activedType === 'TestPlan' ? (
@@ -729,7 +750,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           ]}
           rowKey="objectId"
           columns={allTestColumns}
-          name={'AllTestEntity'}
+          name={`${workspaceKey}_TestDetailTable`}
           actionRef={actionRef}
           loading={tableLoading || loading}
           getDataSource={testPlanTableDataGetter}
@@ -737,6 +758,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           allSelectableRowKeys={requestScopedTestDetailIds}
           selectionActionNodes={selectionActionNodes}
           onSelectionCancel={() => tableSelectionToggleEvent.emit(false)}
+          handleFilterField={handleFilterField}
         />
       ) : (
         <BusinessTable
@@ -757,7 +779,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           ]}
           rowKey="objectId"
           columns={executionColumns}
-          name={'TestExecutionList'}
+          name={`${workspaceKey}_TestDetailTable`}
           actionRef={actionRef}
           loading={tableLoading || loading}
           getDataSource={executionTableDataGetter}
@@ -765,6 +787,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           allSelectableRowKeys={testIdSequence}
           selectionActionNodes={InnerTableSelectionActionNodes}
           onSelectionCancel={() => tableSelectionToggleEvent.emit(false)}
+          handleFilterField={handleFilterField}
         />
       )}
       {activedType !== 'TestPlan' && (

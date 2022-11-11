@@ -1,5 +1,5 @@
-import React from 'react';
-import { useDrag } from 'ahooks';
+import React, { useCallback } from 'react';
+import { useDrag, useRequest } from 'ahooks';
 import { notification, Tooltip } from 'antd';
 import { UNGROUPED_FOLDER_KEY } from '../constant';
 import { updateFolders } from '@/lib/api/repository';
@@ -22,6 +22,8 @@ import {
   updateTestEntity,
 } from '@/lib/api/item';
 import { TestType } from '@/lib/constants';
+import { getCurrentUserSetting, saveUserSetting } from '@/lib/api/userSetting';
+import { useCurrentUser } from '@/lib/api/user';
 
 import cx from './index.less';
 
@@ -75,11 +77,11 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
   const tableActionRef = React.useRef<BusinessTableActionType>();
   const repositorySelectorRef = React.useRef<RepositorySelectorActionType>();
   const [tableLoading, setTableLoading] = React.useState(false);
-
-  const [hasRowSelected, setHasRowSelected] = React.useState(false);
-
   const { workspace } = useTestConfig();
   const workspaceKey = workspace?.key;
+  const { data: currentUser } = useCurrentUser();
+
+  const [hasRowSelected, setHasRowSelected] = React.useState(false);
 
   const userData = useUserCellUserDataProp(workspaceKey);
 
@@ -109,6 +111,15 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
       };
     },
     [workspaceKey, testDetailIds, folderKey, testDetailFieldKeys],
+  );
+
+  const { data: currentFields } = useRequest(
+    async () => {
+      return await getCurrentUserSetting({ workspaceKey, user: currentUser });
+    },
+    {
+      refreshDeps: [workspaceKey, currentUser],
+    },
   );
 
   const refreshAndMutateData = React.useCallback(async () => {
@@ -293,6 +304,21 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
     ];
   }, [refreshAndMutateData]);
 
+  const handleFilterField = useCallback(
+    async ({ testType, fieldKeys }) => {
+      await saveUserSetting({
+        workspaceKey,
+        user: currentUser,
+        testType,
+        filterFields: {
+          ...(currentFields?.filterFields ?? {}),
+          [testType]: fieldKeys,
+        },
+      });
+    },
+    [currentUser, workspaceKey, currentFields],
+  );
+
   return (
     <>
       <BusinessTable
@@ -304,7 +330,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         useColumnSetting
         columns={columns}
         defaultColumnKey={['key', 'repositoryGroup', 'createdBy', 'createdAt']}
-        name="TestDetailTable"
+        name={`${workspaceKey}_TestDetailTable`}
         loading={tableLoading}
         actionRef={tableActionRef}
         getDataSource={dataSourceGetter}
@@ -312,6 +338,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         onHasRowSelected={setHasRowSelected}
         onSelectionCancel={onSelectionCancel}
         selectionActionNodes={selectionActionNodes}
+        handleFilterField={handleFilterField}
       />
       <RepositorySelector actionRef={repositorySelectorRef} />
     </>

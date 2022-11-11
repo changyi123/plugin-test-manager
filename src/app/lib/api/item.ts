@@ -13,16 +13,9 @@ import { BaseTestEntity, CopyTestCasePlayload, Status, TestEntity } from '../typ
 import { getPluginWebTriggerBaseUrl } from '../utils/helper';
 import { compactStepModel } from '../utils/modelTransfer';
 import { createItemLink, deleteItemLink, IItemLink, getExistedItemLinks } from './runs';
-import { lib } from 'proxima-sdk';
-import { SearchSelectors } from '../utils/iql';
-
-const { selectorToIql } = lib.Iql;
+import { SearchSelectors, selectorToIql } from '../utils/iql';
 
 const pluginWebTriggerBaseUrl = getPluginWebTriggerBaseUrl();
-
-const customFieldIqlMap = {
-  测试用例库模块: 'test_manager_repository',
-};
 
 // 处理筛选器数据
 const handleSelector = selector => {
@@ -33,7 +26,7 @@ const handleSelector = selector => {
         prev[filed] = {
           ...value,
           component: 'Dropdown',
-          fieldName: customFieldIqlMap[value.fieldName],
+          fieldName: 'test_manager_repository',
         };
       } else {
         prev[filed] = {

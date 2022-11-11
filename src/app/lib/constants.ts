@@ -297,6 +297,11 @@ export const FILTER_EXPRESSIONS = {
     { label: '属于', value: FILTER_EXPR_NAME.Tag_Contain },
     { label: '不属于', value: FILTER_EXPR_NAME.Tag_Not_Contain },
   ],
+  test_manager_Repository: [
+    // 测试用例库模块
+    { label: '属于', value: FILTER_EXPR_NAME.Test_Repository_Contain },
+    { label: '不属于', value: FILTER_EXPR_NAME.Test_Repository_Not_Contain },
+  ],
 };
 
 export const IQL_CONDITION = {

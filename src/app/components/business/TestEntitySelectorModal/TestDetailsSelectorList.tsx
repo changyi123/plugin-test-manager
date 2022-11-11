@@ -8,11 +8,12 @@ import { CaretDownOutlined, CaretUpOutlined } from '@ant-design/icons';
 import { getTestEntityByQuery } from '@/lib/api/item';
 import { TestType } from '@/lib/constants';
 import { FieldKey } from 'common/types/api';
+import { SearchSelectors } from '@/lib/utils/iql';
 
 interface TestDetailsSelectorListProps {
   workspaceKey?: string;
   selectedNode?: any;
-  detailSearchValue?: string;
+  selectors?: string | SearchSelectors;
   ignoreTestDetailIds?: string[];
   selectedTestDetailIds?: string[];
   setSelectedTestDetailIds?: (val: any) => void;
@@ -82,7 +83,7 @@ const selectOptions = [
 const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
   workspaceKey,
   selectedNode,
-  detailSearchValue,
+  selectors,
   ignoreTestDetailIds,
   selectedTestDetailIds,
   setSelectedTestDetailIds,
@@ -92,6 +93,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
   const [checkData, setCheckData] = useState([]);
   const [showType, setShowType] = useState('showChild');
   const [orderByCratedAt, setOrderByCratedAt] = useState<'asc' | 'desc'>('asc');
+  const searchName = useMemo(() => (selectors?.[0] as any)?.name?.value, [selectors]);
 
   const curSelectIdsLength = useMemo(
     () =>
@@ -126,12 +128,12 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
         query: {
           workspaceKey: workspaceKey,
           type: TestType.Case,
-          name: detailSearchValue,
           id: caseIds,
         },
         ...baseQueryOptions,
         limit: 9999,
         select: ['id', 'name', 'repository'],
+        selector: selectors,
       });
 
       return data.map(d => ({
@@ -142,10 +144,10 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
       }));
     },
     {
-      refreshDeps: [detailSearchValue, orderByCratedAt, selectedNode, workspaceKey],
-      cacheKey: `Repository_${selectedNode?.key ?? ''}${caseIds.join('_')}${
-        detailSearchValue ?? ''
-      }${orderByCratedAt}${workspaceKey}`,
+      refreshDeps: [orderByCratedAt, selectedNode, workspaceKey, searchName],
+      cacheKey: `Repository_${selectedNode?.key ?? ''}_${searchName}${caseIds.join(
+        '_',
+      )}${orderByCratedAt}${workspaceKey}`,
       staleTime: 999999999,
       cacheTime: 999999999,
     },

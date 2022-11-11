@@ -236,7 +236,7 @@ export const useTestRunActionAuth = ({ workspaceKey }) => {
       const noAuthUser = !Array.isArray(authUserList) || authUserList.length === 0;
       if (noAuthUser) return true;
       // 当前登录用户再授权用户列表中可以分配用户
-      return authUserList.some(user => user.username === currentUser.username);
+      return authUserList.some(user => user.username === currentUser?.username);
     }),
     canExecuteTestRun: useMemoizedFn(designee => {
       const getCannotExecuteMessage = () => {

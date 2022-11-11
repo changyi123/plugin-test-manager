@@ -1,36 +1,100 @@
 :root {
-  .title {
-    font-size: 16px;
+  .setting-page-btn {
+    position: absolute !important;
+    top: -38px;
+    right: 0;
+    z-index: 11;
   }
 
-  .field-select {
-    margin: 0 2px;
-    width: 100%;
-  }
-
-  .sort-area {
-    padding-top: 20px;
-  }
-
-  .sort-item {
-    display: flex;
-    height: 32px;
-    align-items: center;
-    padding: 0 2px;
-    border-radius: 4px;
-    .title {
-      font-size: 14px;
-      margin-left: 6px;
-      margin-right: auto;
+  .setting-icon {
+    svg {
+      width: 16px;
+      height: 16px;
     }
-    .icon {
-      cursor: pointer;
-      &:hover {
-        color: RGB(24, 144, 255);
+  }
+  .drawer-box {
+    .box-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+
+      .link {
+        font-size: 12px;
       }
     }
-    &.dragging {
-      background: RGBA(24, 144, 255, 0.1);
+    .title {
+      font-size: 16px;
+    }
+
+    .field-select {
+      margin: 0 2px;
+      width: 100%;
+    }
+
+    .field-tips {
+      position: absolute;
+      top: 22px;
+      left: 124px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .sort-area {
+      padding-top: 20px;
+    }
+
+    .sort-item {
+      display: flex;
+      height: 32px;
+      align-items: center;
+      padding: 0 2px;
+      border-radius: 4px;
+      .title {
+        font-size: 14px;
+        margin-left: 6px;
+        margin-right: auto;
+      }
+      .filter-icon {
+        margin-right: 12px;
+
+        .icon {
+          &.delete {
+            svg path {
+              fill: #0c62ff;
+            }
+          }
+
+          &.add {
+            &:hover {
+              svg path {
+                fill: #0c62ff;
+              }
+            }
+          }
+        }
+      }
+      .icon {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 18px;
+        height: 18px;
+        color: #848c9f;
+        cursor: pointer;
+
+        svg {
+          width: 18px;
+          height: 18px;
+        }
+
+        &:hover {
+          color: #3683ff;
+        }
+      }
+      &.dragging {
+        background: RGBA(24, 144, 255, 0.1);
+      }
     }
   }
 }
