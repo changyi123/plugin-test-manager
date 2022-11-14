@@ -19,7 +19,7 @@ import cx from './BusinessTable.less';
 
 const DEFAULT_PAGE_SIZE = 10;
 const MIN_COLUMN_WIDTH = 120;
-const OFFSET_HEIGHT = 40;
+const OFFSET_HEIGHT = 120;
 const SELECTION_HEADER_HEIGHT = 40;
 
 const ResizableHeaderCell = ({ onResize, resizable, width, ...restProps }) => {
