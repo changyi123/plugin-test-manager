@@ -1,7 +1,8 @@
 import React from 'react';
 import { Table } from 'antd';
-import { TabsComponentBaseProps } from './type';
 import { components } from 'proxima-sdk';
+import { TabsComponentBaseProps } from './type';
+import { goToItemDetailPage } from '@/lib/utils/helper';
 
 const { ItemIcon } = components.Components.Common;
 
@@ -9,10 +10,40 @@ const tableColumns = [
   {
     title: 'Key',
     dataIndex: 'key',
+    render(key, record) {
+      return (
+        <a
+          style={{ color: '#333' }}
+          onClick={() =>
+            goToItemDetailPage({
+              workspaceKey: record.workspace?.key,
+              itemKey: record.key,
+            })
+          }
+        >
+          {key}
+        </a>
+      );
+    },
   },
   {
     title: '标题',
     dataIndex: 'name',
+    render(name, record) {
+      return (
+        <a
+          style={{ color: '#333' }}
+          onClick={() =>
+            goToItemDetailPage({
+              workspaceKey: record.workspace?.key,
+              itemKey: record.key,
+            })
+          }
+        >
+          {name}
+        </a>
+      );
+    },
   },
   {
     title: '类型',
@@ -21,7 +52,7 @@ const tableColumns = [
       return (
         <>
           <ItemIcon icon={itemType?.icon}></ItemIcon>
-          <span>{itemType?.name}</span>
+          <span style={{ color: '#333' }}>{itemType?.name}</span>
         </>
       );
     },

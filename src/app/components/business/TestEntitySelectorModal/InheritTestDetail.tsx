@@ -28,6 +28,10 @@ type InheritTestDetailProps = {
   isWorkspaceIsolate: boolean;
   ignoreTestDetailIds?: string[];
   onTestDetailSelect?: (testDetails) => void;
+  selectValue?: string[];
+  planId?: string;
+  treeType?: string;
+  setTreeType?: (val: string) => void;
 };
 
 const InheritTestDetail: React.FC<InheritTestDetailProps> = props => {
@@ -37,6 +41,7 @@ const InheritTestDetail: React.FC<InheritTestDetailProps> = props => {
     ignoreTestDetailIds,
     onTestDetailSelect,
     isWorkspaceIsolate,
+    selectValue,
   } = props;
 
   const baseSearchState = useReactive({
@@ -54,7 +59,7 @@ const InheritTestDetail: React.FC<InheritTestDetailProps> = props => {
   // tree checked key
   const [folderCheckedKey, setFolderCheckedKey] = React.useState(DEFAULT_CHECKED_KEY);
   // 选中测试用例 id
-  const [selectedTestDetailIds, setSelectedTestDetailIds] = React.useState([]);
+  const [selectedTestDetailIds, setSelectedTestDetailIds] = React.useState(selectValue);
   // 选中空间
   const [selectedWorkspaceKey, setSelectedWorkspaceKey] = React.useState(workspaceKey);
 

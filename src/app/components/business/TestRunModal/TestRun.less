@@ -21,6 +21,28 @@
       font-weight: 600;
     }
 
+    .left {
+      display: flex;
+      align-items: center;
+
+      .status-divider {
+        position: relative;
+        margin-left: 32px;
+        height: 32px;
+
+        &::before {
+          position: absolute;
+          content: '';
+          height: 24px;
+          top: 50%;
+          width: 0;
+          left: -16px;
+          border-left: 1px solid #F1F2F4;
+          transform: translateY(-50%);
+        }
+      }
+    }
+
     .next {
       margin-left: auto;
       display: flex;

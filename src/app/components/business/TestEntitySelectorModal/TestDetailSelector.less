@@ -32,20 +32,83 @@
 
     .folder-selector {
       position: relative;
-      flex: 35%;
       border-right: 1px solid @border-color;
+      flex: 35%;
+      width: 240px;
       .custom-scrollbar-mixin();
+
+      .tabs-box {
+        position: relative;
+        display: flex;
+        align-items: center;
+        padding: 0 16px;
+        width: 100%;
+
+        .tab-title {
+          position: relative;
+          font-weight: 500;
+          color: #213053;
+          line-height: 34px;
+          margin-right: 24px;
+          cursor: pointer;
+
+          &.actived {
+            color: #0c62ff;
+
+            &::after {
+              position: absolute;
+              content: '';
+              bottom: -6px;
+              left: 0;
+              height: 0;
+              width: 100%;
+              border-bottom: 2px solid #0c62ff;
+            }
+          }
+        }
+      }
 
       .tree-box {
         margin-top: 40px;
         max-height: ~'calc(100% - 40px)';
         overflow-y: auto;
+
+        :global {
+          .ant-tree {
+            padding: 0;
+          }
+        }
+        &.tab-layout {
+          margin-top: 54px;
+          max-height: ~'calc(100% - 96px)';
+
+          :global {
+            .ant-tree {
+              padding: 10px 16px;
+            }
+          }
+        }
       }
 
       .search-input {
         position: absolute;
         box-shadow: 0 0 0 1px #dadee3;
         height: 40px;
+
+        &.tab-layout {
+          margin: 15px 16px 0 16px;
+          width: ~'calc(100% - 32px)';
+          border-radius: 2px;
+          height: auto;
+
+          :global {
+            .ant-input,
+            .ant-input-group-addon {
+              height: auto;
+            }
+          }
+        }
+
         :global {
           .ant-input,
           .ant-input-group-addon {
@@ -175,6 +238,12 @@
         align-items: center;
         overflow: hidden;
         padding: 0;
+        margin-left: -4px;
+      }
+
+      .ant-tree-treenode {
+        padding-left: 1px !important;
+        padding-right: 1px !important;
       }
 
       .ant-tree-treenode::before {

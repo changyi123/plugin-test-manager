@@ -4,7 +4,7 @@ import Field from '@/components/common/Field';
 import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
 import RepositoryGroup from '@/components/business/RepositoryGroup';
 import { StatusBadge } from '@/components/business/Status';
-import { notification } from 'antd';
+import { notification, Button, Tooltip } from 'antd';
 import TestRunModal, {
   ActionType as TestRunModalActionType,
 } from '@/components/business/TestRunModal';
@@ -16,7 +16,7 @@ import { usePageContext } from '../hook';
 import { useListener } from '@projectproxima/proxima-sdk-js';
 import {
   deleteTestEntity,
-  getlinkedTestEntityByQuery,
+  getLinkedTestEntityByQuery,
   getTestCaseStats,
   getTestEntityByQuery,
   updateTestEntity,
@@ -24,7 +24,8 @@ import {
 } from '@/lib/api/item';
 import { TestLinkType, TestType } from 'common/constant';
 import { RepositoryModel } from '@/lib/constants';
-import { isEmpty } from 'lodash';
+import { isEmpty, isEqual } from 'lodash';
+import { useTestRunActionAuth, useCanExecuteTestRunIdSequence } from '@/lib/hooks/useTest';
 
 import cx from './index.less';
 
@@ -60,9 +61,11 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   const actionRef = React.useRef<BusinessTableActionType>();
   const testRunModalActionRef = React.useRef<TestRunModalActionType>();
   const userData = useUserCellUserDataProp(workspaceKey);
+  const { canExecuteTestRun, canAssignTestRun } = useTestRunActionAuth({ workspaceKey });
 
   const [tableLoading, setTableLoading] = useState(false);
   const [hasRowSelected, setHasRowSelected] = useState(false);
+  const { getCanExecuteTestRunIdSequence } = useCanExecuteTestRunIdSequence({ workspaceKey });
 
   React.useEffect(() => {
     registerRefreshMethod({
@@ -81,13 +84,19 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     actionRef.current.refresh();
   });
 
+  useListener('closeItemViewScreen', () => {
+    setTimeout(() => {
+      scopedTestDetailRefresh();
+    }, 400);
+  });
+
   const { data: allRunData } = useRequest(
     async () => {
       if (activedType === 'TestPlan') return [];
       if (!requestScopedTestDetailIds?.length || !selectedExecution?.objectId) {
         return [];
       }
-      const { list: runData } = await getlinkedTestEntityByQuery({
+      const { list: runData } = await getLinkedTestEntityByQuery({
         query: {
           workspaceKey: workspaceKey,
           referenceCase: requestScopedTestDetailIds,
@@ -167,7 +176,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           total: 0,
         };
       // 查询测试执行
-      const { list: runs, total } = await getlinkedTestEntityByQuery(
+      const { list: runs, total } = await getLinkedTestEntityByQuery(
         {
           query: {
             workspaceKey: workspaceKey,
@@ -393,7 +402,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     ?.map(run => run.id)
     .filter(Boolean);
 
-  const excetionColumns = [
+  const executionColumns = [
     {
       key: 'detailName',
       title: '用例标题',
@@ -424,11 +433,16 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     {
       key: 'runStatus',
       title: '测试执行状态',
+      shouldCellUpdate: (record, prevRecord) =>
+        !isEqual(record.designee, prevRecord.designee) ||
+        !isEqual(record.status, prevRecord.status),
       width: 150,
       render(_, record) {
+        const { result: enabled } = canExecuteTestRun(record.designee);
         return (
           <StatusBadge
             useRootContainer
+            readonly={!enabled}
             status={record.status}
             onStatusChange={status => handleTestRunStatusChange(record, status)}
           />
@@ -457,31 +471,38 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       isSystem: true,
       fixed: 'right' as any,
       shouldCellUpdate: (record, prevRecord) =>
-        record.repository?.objectId !== prevRecord.repository?.objectId,
+        record.repository?.objectId !== prevRecord.repository?.objectId ||
+        !isEqual(record.designee, prevRecord.designee),
       render(_, record) {
+        const { result: enabled, message } = canExecuteTestRun(record.designee);
         return (
-          <>
-            <a
-              onClick={async () => {
-                await testRunModalActionRef.current.open({
-                  testId: record.objectId,
-                });
-                // 刷新依赖数据
-                actionRef.current.refresh();
-                mutateStatusEvent.emit('refreshExecutionStatus');
-              }}
-            >
-              执行
-            </a>
-            <a
+          <div className={cx('run-link')}>
+            <Tooltip title={message} placement="topLeft">
+              <Button
+                type="link"
+                disabled={!enabled}
+                onClick={async () => {
+                  await testRunModalActionRef.current.open({
+                    testId: record.objectId,
+                  });
+                  // 刷新依赖数据
+                  actionRef.current.refresh();
+                  mutateStatusEvent.emit('refreshExecutionStatus');
+                }}
+              >
+                执行
+              </Button>
+            </Tooltip>
+            <Button
+              type="link"
               style={{ marginLeft: 10 }}
               onClick={async () => {
                 deleteTestRunByIds([record.objectId]);
               }}
             >
               删除
-            </a>
-          </>
+            </Button>
+          </div>
         );
       },
     },
@@ -586,12 +607,16 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
 
     const toggleSTestRunStatus = async status => {
       const testRunIds = getTestRunIds();
+
+      // 可执行的测试执行 id
+      const canExecuteTestRunIds = await getCanExecuteTestRunIdSequence(testRunIds);
+
       setTableLoading(true);
 
       // 更新测试执行状态
       await updateTestStatus({
-        runIds: testRunIds,
         status: status.key,
+        runIds: canExecuteTestRunIds,
         planId: selectedTestPlan?.objectId,
       });
 
@@ -629,23 +654,29 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       setTableLoading(false);
       actionRef.current.refresh();
       mutateTestPlanEvent.emit(selectedTestPlan?.objectId);
+      mutateStatusEvent.emit('refreshExecutionStatus');
       // refreshAndMutateData();
     };
 
+    const canDesigneeSelect = canAssignTestRun();
+
     return [
-      <UserCell
-        value={[]}
-        key="assignee"
-        mode="multiple"
-        userData={userData}
-        readonly={!hasRowSelected}
-        onChange={handleDesigneeChange}
-        emptyChild={
-          <span className="user-field">
-            <UserOutlined /> 更改执行人
-          </span>
-        }
-      />,
+      <Tooltip key="assignee" title={canDesigneeSelect ? null : '不可对用例更改执行人'}>
+        <span className={cx(!canDesigneeSelect && 'disabled')}>
+          <UserCell
+            value={[]}
+            mode="multiple"
+            userData={userData}
+            readonly={!canDesigneeSelect || !hasRowSelected}
+            onChange={handleDesigneeChange}
+            emptyChild={
+              <span className="user-field">
+                <UserOutlined /> 更改执行人
+              </span>
+            }
+          />
+        </span>
+      </Tooltip>,
       <StatusBadge
         useRootContainer
         readonly={!hasRowSelected}
@@ -663,8 +694,10 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       </span>,
     ];
   }, [
+    canAssignTestRun,
     userData,
     hasRowSelected,
+    getCanExecuteTestRunIdSequence,
     selectedTestPlan?.objectId,
     mutateTestPlanEvent,
     mutateStatusEvent,
@@ -723,7 +756,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
             'executor',
           ]}
           rowKey="objectId"
-          columns={excetionColumns}
+          columns={executionColumns}
           name={'TestExecutionList'}
           actionRef={actionRef}
           loading={tableLoading || loading}

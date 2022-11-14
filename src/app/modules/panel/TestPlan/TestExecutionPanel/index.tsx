@@ -8,7 +8,7 @@ import PanelTable, {
   columnBuilder,
   BuiltinColumns,
 } from '@/components/business/PanelTable';
-import { alert } from '@/lib/utils/helper';
+import { alert, generateSortIndex } from '@/lib/utils/helper';
 import TestEntitySelectorModal, {
   ActionType as SelectorActionType,
 } from '@/components/business/TestEntitySelectorModal';
@@ -16,7 +16,7 @@ import { StatusProgress } from '@/components/business/Status';
 import {
   getStatsTestExecution,
   updateTestEntity,
-  getlinkedTestEntityByQuery,
+  getLinkedTestEntityByQuery,
 } from '@/lib/api/item';
 import cx from './index.less';
 
@@ -33,7 +33,7 @@ const Test = () => {
       const sourceIds = testEntity.objectId;
       if (!sourceIds) return;
       // 获取计划下的所有执行
-      const { list, total } = await getlinkedTestEntityByQuery({
+      const { list, total } = await getLinkedTestEntityByQuery({
         linkType: TestLinkType.ExecutionLinkPlan,
         sourceIds: testEntity?.objectId,
         destinationType: TestType.Execution,
@@ -72,38 +72,81 @@ const Test = () => {
     [getAllRelTestEntities],
   );
 
-  // 创建测试执行
-  const addExistedTestExecution = React.useCallback(async () => {
-    selectorModalRef.current.open({
-      testType: TestType.Execution,
-    });
-  }, []);
-
   const addTestExecutionToPlan = React.useCallback(
-    async relationTypeIds => {
+    async executionIds => {
+      // 测试计划关联测试执行后需将测试执行任务中的测试执行对应的测试用例关联到测试计划中
       await updateTestEntity(
-        relationTypeIds.map(objectId => ({
-          linkType: TestLinkType.ExecutionLinkPlan,
+        executionIds.map(objectId => ({
           objectId,
-          linkItems: { action: 'add', value: [testEntity.objectId] },
+          linkType: TestLinkType.ExecutionLinkPlan,
+          type: TestType.Execution,
+          linkItems: { action: 'add', value: [testEntity?.objectId] },
+          sortIndex: generateSortIndex(),
         })),
       );
+
+      const { list: caseLinkPlanIds } = await getLinkedTestEntityByQuery({
+        query: {
+          workspaceKey: workspace?.key,
+        },
+        limit: 9999,
+        linkType: TestLinkType.CaseLinkPlan,
+        sourceIds: [testEntity?.objectId],
+        destinationType: TestType.Case,
+        onlySelectId: true,
+      });
+
+      const { list: runs } = await getLinkedTestEntityByQuery({
+        query: {
+          workspaceKey: workspace?.key,
+        },
+        limit: 9999,
+        linkType: TestLinkType.RunLinkExecution,
+        sourceIds: executionIds,
+        destinationType: TestType.Run,
+        select: ['id', 'referenceCase'],
+      });
+
+      const runCaseIds = runs?.map(run => run.referenceCase) ?? [];
+      const caseIds = runCaseIds.filter(id => !caseLinkPlanIds.includes(id));
+
+      if (caseIds.length) {
+        await updateTestEntity(
+          caseIds.map(item => ({
+            objectId: item,
+            linkType: TestLinkType.CaseLinkPlan,
+            linkItems: {
+              action: 'add',
+              value: [testEntity.objectId],
+            },
+          })),
+        );
+      }
       refresh();
       alert({
         type: 'success',
-        message: `${relationTypeIds.length} 个测试执行添加到测试计划中`,
+        message: `${executionIds.length} 个测试执行添加到测试计划中`,
       });
     },
-    [refresh, testEntity?.objectId],
+    [refresh, testEntity?.objectId, workspace],
   );
 
+  // 创建测试执行
+  const addExistedTestExecution = React.useCallback(async () => {
+    const ids = await selectorModalRef.current.open({
+      testType: TestType.Execution,
+    });
+
+    await addTestExecutionToPlan(ids);
+  }, [addTestExecutionToPlan]);
+
   const removeTestRelation = React.useCallback(
-    async relationTypeIds => {
-      if (!Array.isArray(relationTypeIds)) return;
+    async ids => {
+      if (!Array.isArray(ids)) return;
 
       // 移除测试计划下的任务
       await updateTestEntity(
-        relationTypeIds.map(objectId => ({
+        ids.map(objectId => ({
           objectId,
           linkItems: { action: 'delete', value: [testEntity.objectId] },
         })),
@@ -113,7 +156,7 @@ const Test = () => {
 
       alert({
         type: 'success',
-        message: `${relationTypeIds.length} 个测试执行从测试计划中删除`,
+        message: `${ids.length} 个测试执行从测试计划中删除`,
       });
     },
     [refresh, testEntity.objectId],
@@ -154,7 +197,7 @@ const Test = () => {
       <TestEntitySelectorModal
         actionRef={selectorModalRef}
         title="添加测试执行至当前测试计划"
-        onSelect={addTestExecutionToPlan}
+        // onSelect={addTestExecutionToPlan}
         ignoreTestEntityIds={allTestEntities?.map(item => item.objectId)}
       />
 

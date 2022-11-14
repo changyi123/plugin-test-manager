@@ -2,15 +2,15 @@ import React from 'react';
 import _ from 'lodash';
 import { TestEntity } from '@/lib/types/Test';
 import { QuestionCircleFilled } from '@/icons';
-import { TabsComponentBaseProps } from './type';
 import { getItemByIds } from '@/lib/api/proxima';
-import { StatusBadge } from '@/components/business/Status';
+import { StatusBadge, StatusList } from '@/components/business/Status';
 import { useRequest, useSessionStorageState } from 'ahooks';
 import { PASS_STATUS_TYPE, TestType } from '@/lib/constants';
 import { getRootContainer, generateStorageKey } from '@/lib/utils/helper';
 import { Button, Checkbox, Collapse, Tabs, message, Spin, Tooltip } from 'antd';
 import { getTestEntityByQuery, updateTestRunDetail } from '@/lib/api/item';
 import { getItemLinkRelation } from '@/lib/api/runs';
+import { useCanExecuteTestRunIdSequence } from '@/lib/hooks/useTest';
 
 import TestStep from './TestStep';
 import DefectList from './DefectList';
@@ -75,7 +75,7 @@ const TestRun: React.FC<TestRunType> = props => {
   const [tabPaneLoading, setTabPaneLoading] = React.useState(false);
   const [testId, setTestId] = React.useState(props.id);
   const modelScrollRef = React.useRef();
-  const [tabActiveKey, setTabActiveKey] = React.useState(TestRunDetailTabs[0].key);
+  const [tabActiveKey, setTabActiveKey] = React.useState(TestRunDetailTabs[0]?.key);
 
   const {
     data: testRunEntity,
@@ -100,17 +100,23 @@ const TestRun: React.FC<TestRunType> = props => {
     },
   );
 
+  // 获得可执行的测试执行 id 序列
+  const { canExecuteTestRunIdSequence } = useCanExecuteTestRunIdSequence({
+    workspaceKey: testRunEntity?.workspace.key,
+    idSequence,
+  });
+
   const { data: testCaseEntity } = useRequest(
     async () => {
       if (!testRunEntity?.referenceCase) return null;
-      const { list: runData } = await getTestEntityByQuery({
+      const { list: caseData } = await getTestEntityByQuery({
         query: {
           id: [testRunEntity.referenceCase],
           type: TestType.Case,
         },
       });
 
-      return runData[0];
+      return caseData[0];
     },
     {
       ready: Boolean(testRunEntity?.referenceCase),
@@ -118,20 +124,23 @@ const TestRun: React.FC<TestRunType> = props => {
     },
   );
 
-  // 能否可执行下一个执行, id 不存在 idSequence 或 已到最后一条不可执行
+  // 能否可执行下一个执行, id 不存在 canExecuteTestRunIdSequence 或 已到最后一条不可执行
   const canExecNext =
-    Array.isArray(idSequence) && ![-1, idSequence.length - 1].includes(idSequence.indexOf(testId));
+    Array.isArray(canExecuteTestRunIdSequence) &&
+    ![-1, canExecuteTestRunIdSequence.length - 1].includes(
+      canExecuteTestRunIdSequence.indexOf(testId),
+    );
 
   // 执行下一个测试用例
   const nextTestRun = React.useCallback(() => {
-    const nextIndex = idSequence.indexOf(testId) + 1;
-    if (!canExecNext || nextIndex === idSequence.length) {
+    const nextIndex = canExecuteTestRunIdSequence.indexOf(testId) + 1;
+    if (!canExecNext || nextIndex === canExecuteTestRunIdSequence.length) {
       return message.warning('当前测试执行为最后一条，所有测试执行已经执行完成');
     }
 
-    console.info('idSequence', idSequence, nextIndex);
-    setTestId(idSequence[nextIndex]);
-  }, [idSequence, testId, setTestId, canExecNext]);
+    console.info('canExecuteTestRunIdSequence', canExecuteTestRunIdSequence, nextIndex);
+    setTestId(canExecuteTestRunIdSequence[nextIndex]);
+  }, [canExecuteTestRunIdSequence, testId, setTestId, canExecNext]);
 
   const handleStatusChange = React.useCallback(
     async status => {
@@ -171,7 +180,7 @@ const TestRun: React.FC<TestRunType> = props => {
     .value();
 
   // 所有关联的缺陷事项
-  const { data: allRelationDefectItems, loading: relationDefectsRequestLoading } = useRequest(
+  const { data: allRelationDefectItems } = useRequest(
     async () => (allRelationDefectIds.length ? getItemByIds(allRelationDefectIds) : []),
     {
       ready: Boolean(allRelationDefectIds.length),
@@ -179,24 +188,23 @@ const TestRun: React.FC<TestRunType> = props => {
     },
   );
 
-  // 测试用例事项 id
-  const refTestDetailItemId = refTestDetailData.objectId;
   // 事项关联
-  const { data: itemLinks, loading: itemLinksRequestLoading } = useRequest(
+  const { data: itemLinks } = useRequest(
     async () => {
-      const res = await getItemLinkRelation(refTestDetailItemId);
+      if (!refTestDetailData?.objectId) return [];
+      const res = await getItemLinkRelation(refTestDetailData.objectId);
       // // 过滤掉 destination 为空（被关联方事项已经被删除）
       return res.filter(item => item.destination);
     },
     {
-      ready: Boolean(refTestDetailItemId),
-      refreshDeps: [refTestDetailItemId, allRelationDefectIds.toString()],
+      ready: Boolean(refTestDetailData?.objectId),
+      refreshDeps: [refTestDetailData?.objectId],
     },
   );
 
   // 所有已关联的缺陷
   const allRelationDefects = React.useMemo(() => {
-    const { runDetail } = testRunData;
+    const { runDetail } = testRunData ?? {};
     const { defectItemIds = [], steps = [] } = runDetail ?? {};
     const defectItemDict = _.keyBy(allRelationDefectItems, 'objectId');
 
@@ -224,7 +232,8 @@ const TestRun: React.FC<TestRunType> = props => {
     if (
       testId &&
       testRunData &&
-      testRunData.runReferenceDetail &&
+      testRunData.runDetail &&
+      testRunData.runDetail?.precondition == null &&
       !Array.isArray(testRunData.runDetail?.steps)
     ) {
       (async () => {
@@ -232,9 +241,9 @@ const TestRun: React.FC<TestRunType> = props => {
           await updateTestRunDetail(
             testRunEntity,
             {
-              steps: refTestDetailData.detail.steps,
+              steps: refTestDetailData.detail?.steps,
               runDetail: {
-                precondition: refTestDetailData.detail?.precondition,
+                precondition: refTestDetailData.detail?.precondition ?? '',
               },
             },
             {
@@ -263,7 +272,7 @@ const TestRun: React.FC<TestRunType> = props => {
     const renderTabLabel = tab => {
       const numGetters = {
         step() {
-          return testRunData.runDetail?.steps?.length ?? 0;
+          return testRunData?.runDetail?.steps?.length ?? 0;
         },
         itemLink() {
           return itemLinks?.length ?? 0;
@@ -272,7 +281,7 @@ const TestRun: React.FC<TestRunType> = props => {
           return allRelationDefects?.length ?? 0;
         },
         attachment() {
-          return testRunData.runDetail?.attachments?.length ?? 0;
+          return testRunData?.runDetail?.attachments?.length ?? 0;
         },
       };
 
@@ -327,11 +336,7 @@ const TestRun: React.FC<TestRunType> = props => {
   //   [testRunEntity, testRunData, onDataChange, modelScrollRef],
   // );
 
-  const loading =
-    tabPaneLoading ||
-    testRunRequestLoading ||
-    relationDefectsRequestLoading ||
-    itemLinksRequestLoading;
+  const loading = tabPaneLoading || testRunRequestLoading;
 
   return (
     <div ref={modelScrollRef}>
@@ -345,9 +350,13 @@ const TestRun: React.FC<TestRunType> = props => {
                   showBg
                   className={cx('status-btn')}
                   status={testRunData.status}
-                  onStatusChange={handleStatusChange}
+                  readonly
+                  hideIcon
                 />
-                <div className={cx('assigner')}></div>
+                <div className={cx('status-divider')}>
+                  <StatusList onStatusChange={handleStatusChange} status={testRunData.status} />
+                </div>
+                {/* <div className={cx('assigner')}></div> */}
               </div>
               {canExecNext ? (
                 <div className={cx('next')}>
@@ -378,7 +387,7 @@ const TestRun: React.FC<TestRunType> = props => {
             <Collapse className={cx('collapse')} defaultActiveKey={['1']}>
               <Collapse.Panel key="1" header="前置条件">
                 <div className={cx('precondition')}>
-                  {testRunData.runDetail?.precondition ?? '无'}
+                  {testRunData?.runDetail?.precondition ?? '无'}
                 </div>
               </Collapse.Panel>
             </Collapse>

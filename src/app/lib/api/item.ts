@@ -9,7 +9,7 @@ import {
 } from 'common/types/api';
 import { merge } from 'lodash';
 import { RepositoryModel, TestType } from '../constants';
-import { BaseTestEntity, Status, TestEntity } from '../types/Test';
+import { BaseTestEntity, CopyTestCasePlayload, Status, TestEntity } from '../types/Test';
 import { getPluginWebTriggerBaseUrl } from '../utils/helper';
 import { compactStepModel } from '../utils/modelTransfer';
 import { createItemLink, deleteItemLink, IItemLink, getExistedItemLinks } from './runs';
@@ -24,6 +24,7 @@ const customFieldIqlMap = {
   测试用例库模块: 'test_manager_repository',
 };
 
+// 处理筛选器数据
 const handleSelector = selector => {
   if (!selector) return null;
   const testSelector = Object.entries(selector?.[1] ?? {}).reduce(
@@ -56,14 +57,20 @@ export const getTestEntityByQuery = async (
   props:
     | QueryTestEntityPayload
     | {
-        selector?: SearchSelectors;
+        selector?: SearchSelectors | string;
       },
   handleQuery?: (val: any) => any,
 ) => {
   props = handleQuery ? handleQuery(props) : props;
   const _props = Object.assign(
     { descending: [], onlySelectId: false },
-    { ...props, selector: selectorToIql(handleSelector(props.selector)) },
+    {
+      ...props,
+      selector:
+        typeof props.selector === 'string'
+          ? props.selector
+          : selectorToIql(handleSelector(props.selector)),
+    },
   );
 
   const {
@@ -77,7 +84,7 @@ export const getTestEntityByQuery = async (
 };
 
 // 关联查询
-export const getlinkedTestEntityByQuery = async (
+export const getLinkedTestEntityByQuery = async (
   props:
     | QueryLinkedTestEntityPayload
     | {
@@ -146,6 +153,16 @@ export const updateTestEntity = async data => {
   return itemData?.data;
 };
 
+// 复制测试用例
+export const copyTesTase = async (data: CopyTestCasePlayload) => {
+  const { data: copyItemData } = await fetch.post('/parse/api/items/clone', {
+    ...data,
+  });
+
+  return copyItemData;
+};
+
+// 批量创建测试执行
 export const batchCreateTestRun = async data => {
   const res = await fetch.post(`${pluginWebTriggerBaseUrl}/api-batch-create-test-run`, data);
 

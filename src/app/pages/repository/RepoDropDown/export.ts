@@ -13,7 +13,7 @@ import { arrayToTree } from '@/lib/utils/arrayToTree';
 import { getCustomFields } from '@/lib/api/proxima';
 import { SYSTEM_FIELD } from '@/lib/constants';
 import { difference } from 'lodash';
-import { getlinkedTestEntityByQuery, getTestEntityByQuery } from '@/lib/api/item';
+import { getLinkedTestEntityByQuery, getTestEntityByQuery } from '@/lib/api/item';
 
 export type TreeNode = {
   key: string;
@@ -229,7 +229,7 @@ const importTestInfo = async (args: ImportArgs, excelData = []) => {
 
   if (type === 'exportPlan') {
     // 获取当前测试计划下的测试用例
-    const { list: results } = await getlinkedTestEntityByQuery({
+    const { list: results } = await getLinkedTestEntityByQuery({
       query: {
         workspaceKey: workspace.key,
       },

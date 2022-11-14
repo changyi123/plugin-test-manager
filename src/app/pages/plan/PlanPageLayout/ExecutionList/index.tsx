@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from 'react';
 import { useRequest } from 'ahooks';
-import { Dropdown, Menu, Tooltip } from 'antd';
+import { Dropdown, Menu, notification, Tooltip } from 'antd';
 import { EllipsisOutlined } from '@ant-design/icons';
 import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
 import { useLocation } from 'react-router-dom';
@@ -9,7 +9,7 @@ import { useListener } from '@projectproxima/proxima-sdk-js';
 import { usePageContext } from '../../hook';
 
 import cx from './index.less';
-import { getlinkedTestEntityByQuery } from '@/lib/api/item';
+import { deleteTestEntity, getLinkedTestEntityByQuery } from '@/lib/api/item';
 import { TestLinkType, TestType } from 'common/constant';
 
 interface ExcetionListProps {
@@ -45,21 +45,24 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
     }, 400);
   });
 
+  useListener('closeItemViewScreen', () => {
+    setTimeout(() => {
+      setActivedId('');
+      setRefreshExecution(true);
+    }, 400);
+  });
+
   useEffect(() => {
     if (selectedExecution?.objectId) {
       setActivedId(selectedExecution?.objectId);
     }
   }, [selectedExecution]);
 
-  const {
-    data: executionList,
-    refresh,
-    loading,
-  } = useRequest(
+  const { data: executionList, refresh } = useRequest(
     async () => {
       if (activedType !== 'TestExecution') return [];
 
-      const { list } = await getlinkedTestEntityByQuery({
+      const { list } = await getLinkedTestEntityByQuery({
         query: {
           workspaceKey: workspaceKey,
         },
@@ -77,10 +80,6 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
   );
 
   useEffect(() => {
-    setLoading?.(loading);
-  }, [loading]);
-
-  useEffect(() => {
     if (!selectedExecution?.objectId && query?.executionId) {
       setSelectedExecution(executionList.find(d => d.objectId === query?.executionId));
     }
@@ -94,8 +93,8 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
   }, [refreshExecution]);
 
   useEffect(() => {
-    if (executionList?.length && !activedId) {
-      setSelectedExecution(executionList[0]);
+    if (executionList && !activedId) {
+      setSelectedExecution(executionList?.[0]);
     }
   }, [executionList, planId]);
 
@@ -105,9 +104,14 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
     }
     if (type === 'delete') {
       actionConfirm('该操作会将该测试执行任务删除，是否继续操作？', async () => {
-        // await Promise.all([deleteTestEntities([data?.objectId]), deleteItems([data.objectId])]);
-        setSelectedExecution(undefined);
+        setLoading?.(true);
+        await deleteTestEntity([data?.objectId]);
+        setActivedId('');
         setRefreshExecution(true);
+        setLoading?.(false);
+        notification.success({
+          message: '测试执行任务删除成功',
+        });
       });
     }
   };

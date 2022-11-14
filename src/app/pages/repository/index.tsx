@@ -49,7 +49,7 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
   const [groupedMode, setGroupedMode] = React.useState<GroupedMode>('all');
 
   const testDetailFieldKeys = useTestTypeScreenFieldKeys({
-    testType: TestType.Plan,
+    testType: TestType.Case,
     workspaceKey,
   });
 
@@ -61,7 +61,13 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
   useListener('updateItemList', props => {
     if (props?.type === 'create') return;
     setTimeout(() => {
-      tableActionRef.current.refresh();
+      handleDataChange();
+    }, 400);
+  });
+
+  useListener('closeItemViewScreen', () => {
+    setTimeout(() => {
+      handleDataChange();
     }, 400);
   });
 

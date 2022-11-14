@@ -132,10 +132,12 @@ const getOrBatchCreateTestEntities = async (
 
     const curStore = list[index]?.[CREATE_ITEM_STORE_FIELD_KEY];
 
-    if (curStore?.repository) {
-      return {
-        repository: curStore?.repository,
-      };
+    if (curStore) {
+      if (curStore.repository || curStore.repository === null) {
+        return {
+          repository: curStore?.repository,
+        };
+      }
     }
 
     const newList = list.slice(0, index).reverse();

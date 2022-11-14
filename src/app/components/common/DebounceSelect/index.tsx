@@ -71,7 +71,7 @@ function DebounceSelect<
         initialOptionsRef.current.every(item => item.value !== (isObj(val) ? val.value : val)),
       );
       if (isNotExistedKeys.length) {
-        fetchValues(isNotExistedKeys).then(notExistedOpts => {
+        fetchValues?.(isNotExistedKeys).then(notExistedOpts => {
           const options = saveInitialOptions(notExistedOpts);
           setOptions(options);
         });

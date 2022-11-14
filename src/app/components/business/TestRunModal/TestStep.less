@@ -23,7 +23,23 @@
     }
 
     .status {
-      min-width: 120px;
+      display: flex;
+      line-height: 32px;
+      align-items: center;
+
+      .status-box {
+        min-width: 70px;
+      }
+
+      .status-selector {
+        display: none;
+      }
+
+      &:hover {
+        .status-selector {
+          display: block;
+        }
+      }
     }
   }
 
@@ -46,6 +62,7 @@
       line-height: 18px;
       font-size: 12px;
       border-radius: 50%;
+      background-color: #B5BAC5;
     }
 
     .fields {
@@ -144,7 +161,16 @@
     }
   }
 
+  .defect-key {
+    display: inline-block;
+    margin-right: 6px;
+  }
+
   .comment {
     padding: 0px 12px;
+  }
+
+  .link {
+    color: #333;
   }
 }

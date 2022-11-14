@@ -26,6 +26,53 @@
     }
   }
 
+  .hide-icon {
+    display: flex;
+    width: 70px;
+    padding: 0 !important;
+    justify-content: center;
+
+    .name {
+      font-weight: bold;
+    }
+
+    &.EXECUTING {
+      .name {
+        color: #ffaa0c;
+      }
+    }
+
+    &.PASSED {
+      .name {
+        color: #09b866;
+      }
+    }
+
+    &.FAILED {
+      .name {
+        color: #ff4d0d;
+      }
+    }
+
+    &.BLOCK {
+      .name {
+        color: #5b42ff;
+      }
+    }
+
+    &.CANCEL {
+      .name {
+        color: #848c9f;
+      }
+    }
+
+    &.TODO {
+      .name {
+        color: #0c62ff;
+      }
+    }
+  }
+
   .run-status {
     background: #e2ecff;
     border-radius: 4px;
@@ -34,6 +81,16 @@
       margin-left: 8px;
       line-height: 5px;
       color: #878c96;
+    }
+  }
+
+  .icon {
+    margin-left: 4px;
+    color: #848C9F;
+    :global {
+      svg {
+        font-size: 12px;
+      }
     }
   }
 
@@ -54,7 +111,7 @@
   }
 
   .CANCEL {
-    background: #e2ecff;
+    background: #F5F6F8;
   }
 
   .status-badge-overlay {

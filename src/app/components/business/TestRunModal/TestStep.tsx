@@ -1,12 +1,12 @@
-import React from 'react';
-import { useHover, useUpdateEffect } from 'ahooks';
+import React, { useCallback } from 'react';
+import { useDebounceFn, useHover, useReactive, useUpdateEffect } from 'ahooks';
 import { DeleteOutlined } from '@/icons';
 import { Popconfirm, Empty } from 'antd';
 import AddDefectButton from './AddDefectButton';
 import { TabsComponentBaseProps } from './type';
 import { useItemLinkTypeConfig } from './hooks';
-import { escapeHtmlString } from '@/lib/utils/helper';
-import { StatusBadge } from '@/components/business/Status';
+import { escapeHtmlString, goToItemDetailPage } from '@/lib/utils/helper';
+import { StatusBadge, StatusList } from '@/components/business/Status';
 import Input from '@/components/business/TestStep/fields/Input';
 import { addTestDefect, deleteTestDefect, updateTestRunDetail } from '@/lib/api/item';
 import ExecutionEditor from './ExecutionEditor';
@@ -29,7 +29,6 @@ const TestStep: React.FC<TestStepProps> = props => {
     selectedTestPlanId,
   } = props;
   const { TestToDefect = '' } = useItemLinkTypeConfig();
-  const steps = testRunData.runDetail?.steps ?? [];
   const [statusConfig, setStatusConfig] = React.useState({});
   const renderFieldValue = value => (value ? escapeHtmlString(value) : '-');
   // 步骤状态更新标识，每次执行 set true，每次更新数据会 set false
@@ -37,10 +36,14 @@ const TestStep: React.FC<TestStepProps> = props => {
   // 所有已关联的缺陷，测试执行内的缺陷只允许关联一次
   const allRelationDefectItemIds = allRelationDefects.map(defect => defect.itemId);
 
+  const state = useReactive({
+    steps: testRunData?.runDetail?.steps ?? [],
+  });
+
   // 添加缺陷
   const handleDefectAdd = async (stepId, defectItemIds) => {
     // onLoading();
-    const needUpdateSteps = steps.map(step =>
+    const needUpdateSteps = state.steps.map(step =>
       step.id === stepId ? { ...step, defectItemIds } : step,
     );
     await Promise.all([
@@ -53,7 +56,7 @@ const TestStep: React.FC<TestStepProps> = props => {
   // 删除缺陷
   const handleDeleteDefect = async (stepId, defectItemId) => {
     onLoading();
-    const needUpdateSteps = steps.map(step =>
+    const needUpdateSteps = state.steps.map(step =>
       step.id === stepId
         ? { ...step, defectItemIds: step.defectItemIds.filter(itemId => itemId !== defectItemId) }
         : step,
@@ -69,7 +72,10 @@ const TestStep: React.FC<TestStepProps> = props => {
   // 状态变更
   const handleStatusChange = async (stepId, status) => {
     onLoading();
-    const needUpdateSteps = steps.map(step => (step.id === stepId ? { ...step, status } : step));
+    const needUpdateSteps = state.steps.map(step =>
+      step.id === stepId ? { ...step, status } : step,
+    );
+    state.steps = needUpdateSteps;
     await updateTestRunDetail(testRunEntity, {
       steps: needUpdateSteps,
       planId: selectedTestPlanId,
@@ -77,6 +83,11 @@ const TestStep: React.FC<TestStepProps> = props => {
     await onDataChange();
     setStatusChangeBySteps(true);
   };
+
+  React.useEffect(() => {
+    state.steps = testRunData?.runDetail?.steps;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [testRunData?.runDetail?.steps]);
 
   useUpdateEffect(() => {
     if (statusChangeBySteps && handleStatusChangeBySteps) {
@@ -88,17 +99,26 @@ const TestStep: React.FC<TestStepProps> = props => {
   }, [handleStatusChangeBySteps]);
 
   // 实际结果变更
-  const handleActualResultChange = async (stepId, actualResult) => {
-    const needUpdateSteps = steps.map(step =>
-      step.id === stepId ? { ...step, actualResult } : step,
-    );
+  const handleActualResultChange = useCallback(
+    async (stepId, actualResult) => {
+      const needUpdateSteps = state.steps.map(step =>
+        step.id === stepId ? { ...step, actualResult } : step,
+      );
 
-    await updateTestRunDetail(testRunEntity, { steps: needUpdateSteps });
-  };
+      state.steps = needUpdateSteps;
+
+      await updateTestRunDetail(testRunEntity, { steps: needUpdateSteps });
+    },
+    [state, testRunEntity],
+  );
+
+  const { run: changeSteps } = useDebounceFn(handleActualResultChange, {
+    wait: 500,
+  });
 
   // 执行步骤评论变更
   const onCommentChange = async (val, stepId) => {
-    const needUpdateSteps = steps.map(step =>
+    const needUpdateSteps = state.steps.map(step =>
       step.id === stepId ? { ...step, comment: val } : step,
     );
 
@@ -117,8 +137,18 @@ const TestStep: React.FC<TestStepProps> = props => {
       return (
         <div ref={ref} className={cx('defect', isHover && 'hover')}>
           <ItemIcon className={cx('defect-icon')} icon={(item?.itemType as any)?.icon}></ItemIcon>
-          <span className={cx('defect-key')}>{item.key}</span>
-          <span>{item.name}</span>
+          <a
+            className={cx('link')}
+            onClick={() => {
+              goToItemDetailPage({
+                workspaceKey: (item.workspace as any)?.key,
+                itemKey: item.key,
+              });
+            }}
+          >
+            <span className={cx('defect-key')}>{item.key}</span>
+            {item.name}
+          </a>
           <Popconfirm
             okText="确定"
             cancelText="取消"
@@ -151,7 +181,7 @@ const TestStep: React.FC<TestStepProps> = props => {
     );
   };
 
-  if (!steps.length)
+  if (!state.steps?.length)
     return <Empty style={{ marginTop: 60 }} description="当前测试执行无用例步骤" />;
 
   return (
@@ -161,24 +191,27 @@ const TestStep: React.FC<TestStepProps> = props => {
         <span className={cx('action')}>步骤</span>
         <span className={cx('status')}>步骤结果</span>
       </div>
-      {steps.map((step, index) => (
+      {state.steps.map((step, index) => (
         <div className={cx('step')} key={step.id}>
           <div className={cx('row')}>
             <span className={cx('position')}>
-              <span
-                className={cx('position-tip')}
-                style={{ backgroundColor: statusConfig[step.status ?? 'TODO']?.color }}
-              >
-                {index + 1}
-              </span>
+              <span className={cx('position-tip')}>{index + 1}</span>
             </span>
             <span className={cx('action')}>{renderFieldValue(step.action)}</span>
             <span className={cx('status')}>
+              <div className={cx('status-selector')}>
+                <StatusList
+                  onStatusChange={status => handleStatusChange(step.id, status.key)}
+                  status={step.status}
+                />
+              </div>
               <StatusBadge
+                className={cx('status-box')}
                 showBg
+                hideIcon
                 status={step.status}
                 onReady={setStatusConfig}
-                onStatusChange={status => handleStatusChange(step.id, status.key)}
+                readonly
               />
             </span>
           </div>
@@ -194,8 +227,8 @@ const TestStep: React.FC<TestStepProps> = props => {
                   placeholder="请输入实际结果"
                   value={step.actualResult}
                   maxLength={500}
-                  onKeyDownEnter={value => handleActualResultChange(step.id, value)}
-                  onChange={value => handleActualResultChange(step.id, value)}
+                  onKeyDownEnter={value => changeSteps(step.id, value)}
+                  onChange={value => changeSteps(step.id, value)}
                 />
               </span>
             </div>

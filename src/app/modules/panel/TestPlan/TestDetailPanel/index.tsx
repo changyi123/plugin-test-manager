@@ -1,9 +1,9 @@
 import React, { useCallback, useState, useMemo, useEffect } from 'react';
 
 import { uniqueId } from 'lodash';
-import { Table, Tooltip } from 'antd';
+import { Button, Table, Tooltip } from 'antd';
 import { alert } from '@/lib/utils/helper';
-import { DownOutlined } from '@ant-design/icons';
+import { DownOutlined, PlusOutlined } from '@ant-design/icons';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import { INITIAL_STATUS_KEY, TestLinkType, TestType } from '@/lib/constants';
 import PanelTable, {
@@ -27,8 +27,9 @@ import {
   batchCreateTestRun,
   getRunsFromCase,
   updateTestEntity,
-  getlinkedTestEntityByQuery,
+  getLinkedTestEntityByQuery,
 } from '@/lib/api/item';
+import createProximaSdk from '@projectproxima/proxima-sdk-js';
 
 const Test = () => {
   const { testEntity, workspace } = useTestConfig();
@@ -48,7 +49,7 @@ const Test = () => {
       let stats = {};
       if (!sourceIds) return;
       // 获取计划下的所有测试用例
-      const { list: caseList, total } = await getlinkedTestEntityByQuery({
+      const { list: caseList, total } = await getLinkedTestEntityByQuery({
         linkType: TestLinkType.CaseLinkPlan,
         sourceIds: testEntity?.objectId,
         destinationType: TestType.Case,
@@ -131,14 +132,30 @@ const Test = () => {
     [getRelTestEntities],
   );
 
+  const createExcution = useCallback(
+    async (caseIds, token) => {
+      const res = await createItemUseModal({
+        type: TestType.Execution,
+        extraData: {
+          token,
+          planId: testEntity?.objectId,
+          noBatch: true,
+          modalProps: {
+            title: `新建测试执行任务（已选 ${caseIds.length} 条用例）`,
+          },
+        },
+      });
+
+      return res;
+    },
+    [createItemUseModal, testEntity?.objectId],
+  );
+
   // 创建测试执行
   const createTestExecution = useCallback(async () => {
+    const caseIds = tableActionRef.current.selectedRowKeys;
     const token = uniqueId('TestPlan');
-    const { item: testExecution } = await createItemUseModal({
-      extraData: { token, planId: testEntity?.objectId },
-      name: uniqueId('测试执行'),
-      type: TestType.Execution,
-    });
+    const { item: testExecution } = await createExcution(caseIds, token);
 
     // 任务关联测试计划
     await updateTestEntity([
@@ -150,10 +167,10 @@ const Test = () => {
     ]);
 
     // 规划用例创建测试执行
-    if (allTestEntities?.length) {
+    if (caseIds?.length) {
       await batchCreateTestRun({
         executionId: testExecution.objectId,
-        caseIds: allTestEntities.map(item => item.id),
+        caseIds,
       });
     }
 
@@ -161,7 +178,7 @@ const Test = () => {
       type: 'success',
       message: `测试执行任务【${testExecution?.name}】新建成功`,
     });
-  }, [allTestEntities, createItemUseModal, testEntity.objectId]);
+  }, [createExcution, testEntity.objectId, tableActionRef]);
 
   // 添加测试用例菜单
   const testDetailMenuList = useMemo(() => {
@@ -210,6 +227,8 @@ const Test = () => {
           );
 
           refreshDepData();
+          const proxima = createProximaSdk();
+          proxima.execute('updateRepoTree');
 
           const successMessage =
             testEntityList.length > 1
@@ -280,17 +299,9 @@ const Test = () => {
     ];
   }, [removeTestRelation]);
 
-  // 添加测试执行菜单
-  const testExecutionMenuList = useMemo(() => {
-    return [
-      {
-        title: '包含所有测试用例',
-        onClick: async () => {
-          await createTestExecution();
-          refreshDepData();
-        },
-      },
-    ];
+  const createTestExcution = useCallback(async () => {
+    await createTestExecution();
+    refreshDepData();
   }, [createTestExecution, refreshDepData]);
 
   const expandedRowRender = useCallback(
@@ -381,10 +392,9 @@ const Test = () => {
         }}
         renderActions={() => (
           <>
-            <DropDownButton buttonProps={{ type: 'default' }} menuList={testExecutionMenuList}>
-              创建测试执行
-              <DownOutlined />
-            </DropDownButton>
+            <Button icon={<PlusOutlined />} onClick={createTestExcution}>
+              测试执行任务
+            </Button>
             <DropDownButton menuList={testDetailMenuList}>
               添加测试用例 <DownOutlined />
             </DropDownButton>

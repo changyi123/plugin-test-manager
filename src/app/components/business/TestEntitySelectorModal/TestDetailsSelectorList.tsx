@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useMemo, useState } from 'react';
 import { Checkbox, Empty, Select, Spin, Tooltip } from 'antd';
-import { useRequest } from 'ahooks';
+import { useRequest, useUpdateEffect } from 'ahooks';
 import emptyImg from '@/icons/svg/empty-data.png';
 import cx from './TestDetailsSelectorList.less';
 import { CaretDownOutlined, CaretUpOutlined } from '@ant-design/icons';
@@ -16,6 +16,7 @@ interface TestDetailsSelectorListProps {
   ignoreTestDetailIds?: string[];
   selectedTestDetailIds?: string[];
   setSelectedTestDetailIds?: (val: any) => void;
+  treeType?: string;
 }
 
 const reportTreeToArray = (datas: any[], parent?: any, ignoreIds = []) => {
@@ -85,6 +86,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
   ignoreTestDetailIds,
   selectedTestDetailIds,
   setSelectedTestDetailIds,
+  treeType,
 }) => {
   const CheckboxGroup = Checkbox.Group;
   const [checkData, setCheckData] = useState([]);
@@ -99,8 +101,14 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
     [selectedTestDetailIds, checkData],
   );
 
+  const caseIds = getTestDetailIdsByReport(getReportData(selectedNode), 'caseIds') ?? [];
+
   // 查询当前用例库下所有测试用例
-  const { data: curTestList = [], loading: curTestListLoading } = useRequest(
+  const {
+    data: curTestList = [],
+    loading: curTestListLoading,
+    refresh,
+  } = useRequest(
     async () => {
       const baseQueryOptions: {
         ascending?: FieldKey[];
@@ -119,7 +127,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
           workspaceKey: workspaceKey,
           type: TestType.Case,
           name: detailSearchValue,
-          id: getTestDetailIdsByReport(getReportData(selectedNode), 'caseIds'),
+          id: caseIds,
         },
         ...baseQueryOptions,
         limit: 9999,
@@ -135,13 +143,20 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
     },
     {
       refreshDeps: [detailSearchValue, orderByCratedAt, selectedNode, workspaceKey],
-      cacheKey: `Repository_${selectedNode?.key ?? ''}${selectedNode?.caseIds.join('_') ?? ''}${
+      cacheKey: `Repository_${selectedNode?.key ?? ''}${caseIds.join('_')}${
         detailSearchValue ?? ''
       }${orderByCratedAt}${workspaceKey}`,
       staleTime: 999999999,
       cacheTime: 999999999,
     },
   );
+
+  useUpdateEffect(() => {
+    if (treeType) {
+      refresh();
+      setSelectedTestDetailIds([]);
+    }
+  }, [treeType]);
 
   useEffect(() => {
     if (!curTestListLoading) {

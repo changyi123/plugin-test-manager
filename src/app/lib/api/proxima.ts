@@ -244,8 +244,8 @@ export const getBuiltinItemTypes = async () => {
 export const getItemByIds = async (itemIds: string[]) => {
   const res = await new Parse.Query(Item)
     .containedIn('objectId', itemIds)
-    .select('itemType', 'workspace', 'name')
-    .include(['itemType', 'workspace'])
+    .select('itemType', 'workspace', 'name', 'key', 'status')
+    .include(['itemType', 'workspace', 'status'])
     .findAll();
 
   return res.map(item => item.toJSON());
@@ -357,10 +357,10 @@ export const updateUsedHierarchySchema = async () => {
 
 /** 获取空间下成员 */
 export const getWorkspaceRoleMembers = async (params: {
-  workspaceKey: string;
+  workspaceId: string;
   keyword?: string;
 }) => {
-  const result = await fetch.$get(`/parse/api/workspaceRoles/${params.workspaceKey}/members`, {
+  const result = await fetch.$get(`/parse/api/workspaceRoles/${params.workspaceId}/members`, {
     params: { keyword: params.keyword ?? '' },
   });
 
