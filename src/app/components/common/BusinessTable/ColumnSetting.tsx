@@ -103,7 +103,7 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
   const LOCAL_STORAGE_KEY = generateStorageKey(name, 'column-key');
 
   const [storageColumnKeys, setStorageColumnKeys] = useLocalStorageState(LOCAL_STORAGE_KEY, {
-    defaultValue: tableFields ?? [],
+    defaultValue: null,
   });
 
   useEffect(() => {
@@ -142,7 +142,7 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
   }, [memoizedAdditionalColumnKey, customFields]);
 
   const selectColumns = React.useMemo(() => {
-    const columnsKey = storageColumnKeys?.length ? storageColumnKeys : defaultColumnKey;
+    const columnsKey = storageColumnKeys ?? defaultColumnKey;
     return columnsKey?.map(key => allColumns.find(col => col.key === key)).filter(Boolean);
   }, [allColumns, storageColumnKeys, JSON.stringify(defaultColumnKey)]);
 
@@ -180,7 +180,7 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
     const systemColumns = allColumns.filter(col => col.isSystem);
 
     const selectedColumns = systemColumns
-      .concat(storageColumnKeys.map(key => allColumns.find(col => col.key === key)))
+      .concat((storageColumnKeys ?? []).map(key => allColumns.find(col => col.key === key)))
       .filter(Boolean);
 
     const filteredFixedColumns = selectedColumns.filter(col => !col.fixed);
@@ -287,7 +287,7 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
                   ref={provider.innerRef}
                   className={cx('sort-area')}
                 >
-                  {selectColumns.map((col, index) => (
+                  {(selectColumns ?? []).map((col, index) => (
                     <Draggable key={col.key} index={index} draggableId={col.key as string}>
                       {(provider, snapshot) => (
                         <div
