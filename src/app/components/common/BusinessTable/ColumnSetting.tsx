@@ -298,8 +298,12 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
                           className={cx('sort-item', snapshot.isDragging && 'dragging')}
                         >
                           <DragHandler />
-                          <OverflowTooltip title={col.title}>
-                            <span className={cx('title')}>{col.title}</span>
+                          <OverflowTooltip
+                            mountOnCurrentNode
+                            className={cx('title')}
+                            title={col.title}
+                          >
+                            {col.title}
                           </OverflowTooltip>
                           {['Key', 'Text'].includes(col?.fieldType?.key) && (
                             <span

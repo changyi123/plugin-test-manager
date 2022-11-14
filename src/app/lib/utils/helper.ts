@@ -152,7 +152,6 @@ export const isInOne = () => {
   if (inServer) return false;
   try {
     const gateway = getProximaGateWay();
-    console.log('gateway--------->', gateway, startsWith(new URL(gateway).pathname, '/api'));
     return startsWith(new URL(gateway).pathname, '/api');
   } catch (e) {
     console.info('isInOne', e);
