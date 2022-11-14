@@ -13,7 +13,6 @@ import AddFilterIcon from '@/icons/svg/add-filter.svg';
 import { openFilterPopover, openFieldValuePopover } from '@/lib/api/sdk';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import { values, cloneDeep, omit, pick } from 'lodash';
-import cx from './index.less';
 import SelectorTag from './SelectorTag';
 import { Selectors, isDate, SearchSelectors } from '@/lib/utils/iql';
 import dayjs from 'dayjs';
@@ -22,15 +21,24 @@ import {
   SelectorCurrentUserValue,
   UserTypeSelectorFieldKeys,
   extendFields as systemExtendFields,
+  TestType,
 } from '@/lib/constants';
 import { Repository } from '@/lib/models';
-import { useDebounceFn } from 'ahooks';
+import { useDebounceFn, useRequest } from 'ahooks';
+import { useGetcustomFields } from '../BusinessTable/hook';
+import { useListener } from '@projectproxima/proxima-sdk-js';
+
+import cx from './index.less';
+import { getTestConfig } from '@/lib/api/common';
+import { getCurrentUserSetting } from '@/lib/api/userSetting';
 
 interface FilterSearchProps {
   fields: string[];
   onSearch: (data: SearchSelectors) => void;
   extendFields: any[];
   className?: string;
+  testType?: TestType;
+  hideSelectorTag?: boolean;
 }
 
 interface FilterRefMethod {
@@ -38,7 +46,7 @@ interface FilterRefMethod {
 }
 
 const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearchProps> = (
-  { fields, onSearch, extendFields, className },
+  { fields, onSearch, extendFields, className, testType, hideSelectorTag },
   ref,
 ) => {
   const { workspace } = useTestConfig();
@@ -46,6 +54,45 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
   const [selectors, setSelectors] = useState<Selectors>({});
   const currentSelectors = useRef<Selectors>({});
   const [activeSelector, setActiveSelector] = useState('');
+
+  const customFields = useGetcustomFields({
+    workspaceKey: workspace?.key,
+    testType,
+  });
+
+  const { data: fieldsName, refresh } = useRequest(
+    async () => {
+      if (!workspace?.key) return null;
+      const defaultKeys = testType === TestType.Case ? ['key'] : [];
+      const testConfig = await getTestConfig({ workspaceKey: workspace?.key });
+
+      const { serachFields } = testConfig?.toJSON()?.tableFields?.[testType] ?? {};
+
+      const res = await getCurrentUserSetting({
+        workspaceKey: workspace?.key,
+      });
+
+      const filterFields = res?.filterFields?.[testType];
+      const fields = filterFields ?? serachFields ?? defaultKeys;
+
+      const fieldsName = customFields
+        ?.filter(field => [...new Set(fields)].includes(field.key))
+        .map(field => field.name)
+        .filter(Boolean);
+
+      return fieldsName;
+    },
+    {
+      ready: Boolean(workspace?.key),
+      refreshDeps: [workspace?.key, testType, customFields],
+    },
+  );
+
+  useListener('updateFilterSearchFields', () => {
+    setTimeout(() => {
+      refresh();
+    }, 400);
+  });
 
   useImperativeHandle(ref, () => ({
     reset: () => {
@@ -65,11 +112,13 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
         fieldName: '标题',
         key: 'name',
         value: searchValue === undefined ? search : searchValue,
+        fieldLabel: fieldsName,
       };
       setSelectors(data);
       currentSelectors.current = data;
     },
-    [search],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [search, JSON.stringify(fieldsName)],
   );
 
   const { data: currentUser } = useNoExpiredRequest(
@@ -177,7 +226,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
           fieldType: { component: data.key, label: data.fieldName },
         },
         value: data?.value,
-        label: '',
+        label: data?.fieldName,
         workspace: workspace?.objectId,
         onChange: updateSelectorValue,
         onClose: () => {
@@ -243,7 +292,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
 
   return (
     <div className={cx('filter-search-wrap', `${className ?? ''}`)}>
-      <SearchInput onChange={onChangeInput} placeholder="请输入标题关键字/Key" value={search} />
+      <SearchInput onChange={onChangeInput} placeholder="请输入检索项关键字" value={search} />
       {currentSelector
         ?.filter(item => item?.fieldId !== 'name')
         .map(item => (
@@ -263,22 +312,24 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
             onDelete={onDeleteSelector}
           />
         ))}
-      <Button
-        id="filter-btn"
-        icon={<AddFilterIcon className={cx('filter-tag-icon')} />}
-        className={cx('filter-tag-btn')}
-        onClick={() => {
-          openFilterPopover({
-            selectors,
-            fields,
-            onChange: onFilterChange,
-            extendFields,
-            dom: document.querySelector('#filter-btn'),
-          });
-        }}
-      >
-        <span className={cx('filter-tag-btn-text')}>筛选</span>
-      </Button>
+      {!hideSelectorTag && (
+        <Button
+          id="filter-btn"
+          icon={<AddFilterIcon className={cx('filter-tag-icon')} />}
+          className={cx('filter-tag-btn')}
+          onClick={() => {
+            openFilterPopover({
+              selectors,
+              fields,
+              onChange: onFilterChange,
+              extendFields,
+              dom: document.querySelector('#filter-btn'),
+            });
+          }}
+        >
+          <span className={cx('filter-tag-btn-text')}>筛选</span>
+        </Button>
+      )}
     </div>
   );
 };

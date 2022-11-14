@@ -65,6 +65,7 @@ export type ActionType = {
   toggleSelection: (visible?: boolean) => void;
   selectedRowKeys: any[];
   resetSelectedRowKeys: () => void;
+  tableColumns: any[];
 };
 
 type BusinessTableProps = TableProps<any> &
@@ -76,6 +77,7 @@ type BusinessTableProps = TableProps<any> &
     useColumnSetting?: boolean;
     defaultColumnKey?: string[];
     PaginationFooterRender?: any;
+    handleFilterField?: (val: { testType: string; fieldKeys: string[] }) => void;
     // 所有可选的 row 标识
     allSelectableRowKeys?: string[];
     onSelectionCancel?: () => void;
@@ -157,7 +159,8 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     if (selectionMode || !useColumnSetting) return null;
     return (
       <ColumnSetting
-        name={props.name}
+        name={props?.name}
+        handleFilterField={props?.handleFilterField}
         defaultColumnKey={defaultColumnKey}
         titleCellOption={titleCellOption}
         additionalColumns={columns}
@@ -168,7 +171,8 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
   }, [
     selectionMode,
     useColumnSetting,
-    props.name,
+    props?.name,
+    props?.handleFilterField,
     titleCellOption,
     columns,
     defaultColumnKey,
@@ -306,7 +310,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     };
 
     return (
-      <div className={cx('footer')}>
+      <div className={`${cx('footer')} footer-box`}>
         <div className={cx('num')}>
           共 <span>{pagination.total}</span> 条
         </div>
@@ -353,8 +357,9 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
       resetSelectedRowKeys: () => {
         setSelectedRowKeys(undefined);
       },
+      tableColumns,
     }),
-    [expandChangePage, selectedRowKeys, refresh],
+    [expandChangePage, selectedRowKeys, refresh, tableColumns],
   );
 
   React.useEffect(() => {
@@ -365,7 +370,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
   }, [dataSource, props.rowKey, setExpandedKeys]);
 
   return (
-    <div className={cx('table-container')} ref={ref}>
+    <div className={`${cx('table-container')} table-box`} ref={ref}>
       <LibraryProvider
         workspaceKey={workspace?.key}
         gatewayURL={proximaGatewayURL}

@@ -1,0 +1,49 @@
+.table-fields {
+  .setting-box {
+    &.mg-top-m {
+      margin-top: 40px;
+    }
+
+    .title {
+      font-weight: 700;
+      font-size: 14px;
+      line-height: 20px;
+      margin-bottom: 12px;
+    }
+
+    .setting-table {
+      :global {
+        .table-box {
+          overflow: inherit !important;
+
+          .ant-table-body {
+            overflow: auto hidden !important;
+            height: 15px !important;
+          }
+        }
+
+        .ant-table-thead {
+          .ant-table-cell-fix-right {
+            &.react-resizable {
+              &:hover {
+                .resizable-handle-global {
+                  display: none !important;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .check-box {
+    position: absolute;
+    right: 54px;
+    top: -45px;
+  }
+
+  .action-btn {
+    margin-top: 30px;
+  }
+}

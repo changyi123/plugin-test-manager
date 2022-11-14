@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Parse from '@/lib/parse';
 import { DataContext } from '../context';
 import { TestConfig } from '@/lib/models';
@@ -82,11 +82,17 @@ const DataProvider = ({ children }) => {
     const globalConfig = await getTestConfig({ global: true });
     return globalConfig.toJSON();
   });
+  const [checkAllWorkspace, setCheckAllWorkspace] = useState(false);
+  const [showAllWorkspaceCheck, setShowAllWorkspaceCheck] = useState(false);
 
   useConfigBootstrap(globalConfig);
 
   const value = React.useMemo(() => {
     return {
+      checkAllWorkspace,
+      setCheckAllWorkspace,
+      showAllWorkspaceCheck,
+      setShowAllWorkspaceCheck,
       globalConfig,
       refreshGlobalConfig,
       workspace: currentWorkspace,
@@ -96,7 +102,14 @@ const DataProvider = ({ children }) => {
         setCurrentWorkspace(workspace);
       },
     };
-  }, [currentWorkspace, globalConfig, refreshGlobalConfig, setCurrentWorkspace]);
+  }, [
+    checkAllWorkspace,
+    currentWorkspace,
+    globalConfig,
+    refreshGlobalConfig,
+    setCurrentWorkspace,
+    showAllWorkspaceCheck,
+  ]);
 
   return (
     <DataContext.Provider value={value}>

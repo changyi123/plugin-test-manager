@@ -143,6 +143,7 @@ export interface SelectCase {
   fieldName: string;
   key: string;
   value: string | number | any[];
+  fieldLabel?: string[];
 }
 
 export type Selectors = Record<string, SelectCase>;
@@ -204,7 +205,10 @@ const getNullValue = (value: any): any => {
 // iql值转换
 const getComponentValue: (selector: SelectCase) => componentValueProps = selector => {
   const { fieldName, component, expression, value: selectedValue } = selector;
-  const useArray = expression?.includes('_Contain') && !expression?.includes('Text_Contain');
+  const useArray =
+    expression?.includes('_Contain') &&
+    !expression?.includes('Text_Contain') &&
+    !expression?.includes('Text_Not_Contain');
   // 将包含条件 的值 都转成 数组
   const _value = useArray && !Array.isArray(selectedValue) ? [selectedValue] : selectedValue;
 
@@ -268,6 +272,7 @@ const getCaseCondition: IQLCaseFormater = selector => {
   if (isDate(component)) return IQL_CONDITION.CONTAIN;
   if (!expression) return empty;
   if (expression.includes('Text_Contain')) return IQL_CONDITION.TEXT_CONTAIN;
+  if (expression.includes('Text_Not_Contain')) return IQL_CONDITION.TEXT_NOT_CONTAIN;
   if (expression.includes('_Not_Equal')) return IQL_CONDITION.NOT_EQUAL;
   if (expression.includes('_Equal')) return IQL_CONDITION.EQUAL;
   if (expression.includes('_Not_Contain')) return IQL_CONDITION.NOT_CONTAIN;
@@ -319,8 +324,23 @@ const getCurIqlValue = (fieldName: string, selector): IQL => {
 
 // 标题搜索 xx => (xx or yy)
 const toIqlName = (selector: SelectCase) => {
-  const { value } = selector;
-  return value ? `('标题' ~ '${value}' or 'key' = '${value}')` : '';
+  const { value, fieldLabel } = selector;
+  const getIql = (label, val) => {
+    if (!label?.length) return '';
+    return label.reduce((prev, cur) => {
+      const iql = `'${cur}' ${cur === 'key' ? '=' : '~'} '${val}'`;
+      if (prev) {
+        prev = `${prev} or ${iql}`;
+      } else {
+        prev = ` or ${iql}`;
+      }
+      return prev;
+    }, '');
+  };
+
+  const customeIql = fieldLabel?.filter(Boolean)?.length ? `${getIql(fieldLabel, value)}` : '';
+  // or 'key' = '${value}'
+  return value ? `('标题' ~ '${value}'${customeIql})` : '';
 };
 
 // iql语句转换

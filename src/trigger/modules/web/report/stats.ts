@@ -157,12 +157,12 @@ const queryLinkedTestEntity = async props => {
   });
 };
 
-const getLinkMap = datas => {
+const getLinkMap = (datas, planId?: string) => {
   // 一个测试执行任务只能在一个测试计划关系，一个测试执行执行在一个测试执行任务关系
   const linkMap = new Map();
 
   datas.forEach(item => {
-    const mapItemKey = item.linkItems[0];
+    const mapItemKey = planId ?? item.linkItems[0];
     const mapitemValue = linkMap.get(mapItemKey) ?? [];
 
     linkMap.set(mapItemKey, [...mapitemValue, item]);
@@ -239,7 +239,8 @@ export async function main() {
     const defectStatusList = await getDefectStatusList(defectId);
 
     const testRuns = getLinkMap(testRunData);
-    const testExecution = getLinkMap(testExecutionData);
+    // TODO 多个计划同时生成报告情况如何处理？
+    const testExecution = getLinkMap(testExecutionData, testPlanIds?.[0]);
 
     const planStats = testPlanIds.map(planId => ({
       key: planId,
