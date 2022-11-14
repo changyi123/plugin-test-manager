@@ -29,8 +29,3 @@ filename=$(echo test-manager-plugin-${branch}.zip | sed 's!/!-!g')
 rm -rf $filename
 cd dist && zip -r $filename * && mv $filename ..
 echo '插件包构建成功'
-
-# 新版应用中心没有初始化逻辑，暂时先保留
-# filename=`echo test-manager-plugin-${branch}.zip | sed 's!/!-!g'`
-# rm -rf $filename
-# zip -r $filename version.yml dist trigger manifest.yml
