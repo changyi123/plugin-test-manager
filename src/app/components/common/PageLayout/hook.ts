@@ -23,7 +23,7 @@ export const useLayoutHeight = () => {
     if (layoutElement) {
       //  FIXME: 临时方案：如果有 one 顶部导航需要减去该导航的高度
       if (hasOneHeader()) {
-        (layoutElement as any).style.height = 'calc(100vh - 48px)';
+        (layoutElement as any).style.height = 'calc(100vh - 56px)';
       }
 
       // 删除 child 节点的 padding
