@@ -27,16 +27,20 @@ import {
 import { getTestEntityByQuery, updateTestEntity } from '@/lib/api/item';
 
 const ItemCreateSuccessEventType = 'itemCreateSuccess';
+const DefaultTestConfig = {} as TestConfigContextType['config'];
 
 /** 获取测试实体，如果不存在创建 */
 const getOrCreateTestEntity = async (
   itemId: string,
   options?: {
     repository?: string | null;
-    fields: Record<string, any>;
+    fields?: Record<string, any>;
     itemData?: Record<string, any>;
     type?: string;
-    notice: boolean;
+    notice?: boolean;
+  },
+  preparedData?: {
+    itemTypeMap?: Record<string, any>;
   },
 ) => {
   if (!itemId) return null;
@@ -44,10 +48,13 @@ const getOrCreateTestEntity = async (
   const { itemData, type } = options;
   const storeValues = store.get(ExtensionValType.CREATE_OR_UPDATE_ITEM);
 
-  const testConfig = await getTestConfig({
-    workspaceKey: itemData?.workspace?.key,
-  });
-  const itemTypeMap = testConfig?.get('itemTypeMap');
+  let itemTypeMap = preparedData?.itemTypeMap;
+  if (!itemTypeMap) {
+    const testConfig = await getTestConfig({
+      workspaceKey: itemData?.workspace?.key,
+    });
+    itemTypeMap = testConfig?.get('itemTypeMap');
+  }
 
   if (itemTypeMap) {
     let needCreatedItem = {};
@@ -61,6 +68,11 @@ const getOrCreateTestEntity = async (
           message: '提示',
           description: '事项所属空间未配置测试管理关联类型',
         });
+      return null;
+    }
+
+    // 传入的类型和类型关联映射不一致不允许创建
+    if (type && type !== testType) {
       return null;
     }
 
@@ -89,7 +101,7 @@ const getOrCreateTestEntity = async (
         objectId: itemData.objectId,
         name: itemData.name,
         ...needCreatedItem,
-        type: type,
+        type: type ?? testType,
         sortIndex: generateSortIndex(1),
       },
     ]);
@@ -201,35 +213,13 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
     execute();
   }, [workspaceKey]);
 
-  React.useEffect(() => {
-    const execute = async () => {
-      // 先获取事项详情
-      const {
-        list: [testEntity],
-      } = await getTestEntityByQuery({
-        query: {
-          id: itemId,
-        },
-      });
-
-      const isTestEntity = Object.values(TestType).includes(testEntity?.type);
-      // TODO: 类型问题
-      setTestEntity((isTestEntity ? testEntity : ENTITY_NOT_FOUND) as unknown as TestEntity);
-      if (testEntity) {
-        const workspace = testEntity.workspace;
-        workspace && setWorkspace(workspace as Workspace);
-      }
-    };
-    if (itemId) {
-      execute();
-    }
-  }, [itemId]);
-
-  const { data: testConfigParseObj } = useRequest(
-    () =>
-      getTestConfig({
+  const { data: testConfig = DefaultTestConfig } = useRequest(
+    async () => {
+      const data = await getTestConfig({
         workspaceKey: workspaceKey ?? workspace?.key,
-      }),
+      });
+      return data.toJSON() as unknown as TestConfigContextType['config'];
+    },
     {
       staleTime: 50000,
       ready: !!workspace,
@@ -237,6 +227,50 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
       refreshDeps: [workspaceKey, workspace?.key],
     },
   );
+
+  // 获取测试实体，如果不存在测试实体（类型映射如果和事项匹配）需要新建
+  React.useEffect(() => {
+    const execute = async () => {
+      // 先获取事项详情
+      let {
+        list: [testEntity],
+      } = await getTestEntityByQuery({
+        query: {
+          id: itemId,
+        },
+      });
+
+      // 判断是否是测试实体
+      const isTestEntity = testType => Object.values(TestType).includes(testType);
+
+      if (!isTestEntity(testEntity?.type)) {
+        // 不存在测试实体需要判断是否需要新建
+        testEntity = await getOrCreateTestEntity(
+          testEntity.objectId,
+          {
+            itemData: testEntity,
+          },
+          {
+            itemTypeMap: testConfig.itemTypeMap,
+          },
+        );
+      }
+
+      const entity = (isTestEntity(testEntity?.type)
+        ? testEntity
+        : ENTITY_NOT_FOUND) as unknown as TestEntity;
+
+      setTestEntity(entity);
+
+      if (testEntity) {
+        const workspace = testEntity.workspace;
+        workspace && setWorkspace(workspace as Workspace);
+      }
+    };
+    if (itemId && testConfig) {
+      execute();
+    }
+  }, [itemId, testConfig]);
 
   // 获取全局配置时使用缓存
   const { runAsync: getGlobalConfig } = useRequest(
@@ -255,11 +289,6 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
       staleTime: 99999999999,
     },
   );
-
-  /** 测试关联类型 */
-  const testConfig = React.useMemo(() => {
-    return (testConfigParseObj?.toJSON() ?? {}) as TestConfigContextType['config'];
-  }, [testConfigParseObj]);
 
   // 事项创建成功回调
   const itemCreateSuccessCb = React.useCallback(
