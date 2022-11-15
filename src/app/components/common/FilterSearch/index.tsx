@@ -73,10 +73,10 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
       });
 
       const filterFields = res?.filterFields?.[testType];
-      const fields = filterFields ?? serachFields ?? defaultKeys;
+      const fieldsKey = filterFields ?? serachFields ?? defaultKeys;
 
       const fieldsName = customFields
-        ?.filter(field => [...new Set(fields)].includes(field.key))
+        ?.filter(field => [...new Set(fieldsKey)].includes(field.key))
         .map(field => field.name)
         .filter(Boolean);
 

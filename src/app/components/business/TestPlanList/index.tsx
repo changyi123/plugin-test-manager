@@ -11,10 +11,11 @@ import FilterSearch from '@/components/common/FilterSearch';
 import { FullScreen } from '@/icons';
 import { components } from 'proxima-sdk';
 import { deleteTestEntity, getStatsTestPlan, getTestEntityByQuery } from '@/lib/api/item';
-import { SystemIncludeFieldKeys, SYSTEM_FIELD, TestType } from '@/lib/constants';
+import { TestType } from '@/lib/constants';
 import { useCurrentUser } from '@/lib/api/user';
 import { getCurrentUserSetting, saveUserSetting } from '@/lib/api/userSetting';
 import { useRequest } from 'ahooks';
+import { getFilterFields } from '@/components/common/FilterSearch/utils';
 
 const { ItemIcon } = components.Components.Common;
 
@@ -33,10 +34,6 @@ const TestPlanList: React.FC<any> = () => {
     testType: TestType.Plan,
     workspaceKey,
   });
-
-  const systemFields = Object.values(SYSTEM_FIELD).filter(
-    field => !SystemIncludeFieldKeys.includes(field),
-  );
 
   React.useEffect(() => {
     // 还原筛选器数据
@@ -232,7 +229,7 @@ const TestPlanList: React.FC<any> = () => {
           <FilterSearch
             className={cx('test-manager-filter')}
             ref={detailSearchRef}
-            fields={testDetailFieldKeys?.filter(field => !systemFields.includes(field))}
+            fields={getFilterFields(testDetailFieldKeys)}
             extendFields={[]}
             onSearch={setSearchParams}
             testType={TestType.Plan}

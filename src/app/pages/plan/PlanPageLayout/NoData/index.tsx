@@ -53,7 +53,6 @@ const NoData: React.FC<NoDataProps> = ({ setRefreshExecution }) => {
         extraData: {
           planId: selectedTestPlan?.objectId,
           isCreateExecution: true,
-          noBatch: true,
           modalProps: {
             title: `第 2 步：新建测试执行任务（已选 ${caseIds.length} 条用例）`,
             footer: {
@@ -113,7 +112,11 @@ const NoData: React.FC<NoDataProps> = ({ setRefreshExecution }) => {
       notification.success({
         message: `测试执行任务【${item.name}】新建成功`,
       });
-      setRefreshExecution(true);
+      if ((extraData as any)?.isCreateNext) {
+        await createTestExecution();
+      } else {
+        setRefreshExecution(true);
+      }
     } catch (err) {
       notification.destroy();
       notification.error({
