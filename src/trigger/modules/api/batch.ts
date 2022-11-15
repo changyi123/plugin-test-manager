@@ -264,19 +264,22 @@ export const batchCreateTestRun = async () => {
         fields: [SystemField.Id],
       });
 
-      const linkItemParams = caseIds.map(caseId => ({
-        objectId: caseId,
-        linkType: TestLinkType.CaseLinkPlan,
-        linkItems: {
-          action: 'add',
-          value: [testPlan.objectId],
-        },
-      }));
+      // 可能存在测试执行任务没有关联计划的情况，需要做容错处理
+      if (testPlan) {
+        const linkItemParams = caseIds.map(caseId => ({
+          objectId: caseId,
+          linkType: TestLinkType.CaseLinkPlan,
+          linkItems: {
+            action: 'add',
+            value: [testPlan.objectId],
+          },
+        }));
 
-      // 更新测试计划和测试用例的关联关系，使用 processLinkItemData 方法构建更新关联数据
-      const needUpdateItemData = await processLinkItemData(linkItemParams);
+        // 更新测试计划和测试用例的关联关系，使用 processLinkItemData 方法构建更新关联数据
+        const needUpdateItemData = await processLinkItemData(linkItemParams);
 
-      return await batchUpdateItems(needUpdateItemData);
+        return await batchUpdateItems(needUpdateItemData);
+      }
     };
 
     const [createdTestRuns] = await Promise.all([
