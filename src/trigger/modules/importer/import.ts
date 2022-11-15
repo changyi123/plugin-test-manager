@@ -234,7 +234,7 @@ export const runImport = async () => {
           },
         });
       // return async () =>
-      //   requestCoreApi('PUT', `/parse/api/items/${item.objectId}`, {
+      //   requestCoreApi('PUT', `/parse/api/items/${item.objectId}/quickEdit`, {
       //     values: {
       //       ...item.values,
       //       r_test_manager_repository: testRepoMap.get(item.objectId),
