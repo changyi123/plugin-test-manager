@@ -112,7 +112,7 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
       if (titleCellOption?.isCheckedGlobalConfig || titleCellOption?.isSettingPage) {
         setStorageColumnKeys([...new Set(tableFields ?? defaultColumnKey)]);
       } else {
-        if (!storageColumnKeys && tableFields?.length) {
+        if (!storageColumnKeys?.length && tableFields?.length) {
           setStorageColumnKeys([...new Set(tableFields)]);
         }
       }
