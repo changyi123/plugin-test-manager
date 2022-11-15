@@ -21,7 +21,6 @@ import {
 } from '@/icons';
 import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd';
 import createProximaSdk from '@projectproxima/proxima-sdk-js';
-import OverflowTooltip from '@/components/common/OverflowTooltip';
 
 import '@projectproxima/components/dist/main.css';
 import cx from './ColumnSetting.less';
@@ -104,7 +103,7 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
   const LOCAL_STORAGE_KEY = generateStorageKey(name, 'column-key');
 
   const [storageColumnKeys, setStorageColumnKeys] = useLocalStorageState(LOCAL_STORAGE_KEY, {
-    defaultValue: null,
+    defaultValue: tableFields ?? [],
   });
 
   useEffect(() => {
@@ -143,7 +142,7 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
   }, [memoizedAdditionalColumnKey, customFields]);
 
   const selectColumns = React.useMemo(() => {
-    const columnsKey = storageColumnKeys ?? defaultColumnKey;
+    const columnsKey = storageColumnKeys?.length ? storageColumnKeys : defaultColumnKey;
     return columnsKey?.map(key => allColumns.find(col => col.key === key)).filter(Boolean);
   }, [allColumns, storageColumnKeys, JSON.stringify(defaultColumnKey)]);
 
@@ -181,7 +180,7 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
     const systemColumns = allColumns.filter(col => col.isSystem);
 
     const selectedColumns = systemColumns
-      .concat((storageColumnKeys ?? []).map(key => allColumns.find(col => col.key === key)))
+      .concat(storageColumnKeys.map(key => allColumns.find(col => col.key === key)))
       .filter(Boolean);
 
     const filteredFixedColumns = selectedColumns.filter(col => !col.fixed);
@@ -288,7 +287,7 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
                   ref={provider.innerRef}
                   className={cx('sort-area')}
                 >
-                  {(selectColumns ?? []).map((col, index) => (
+                  {selectColumns.map((col, index) => (
                     <Draggable key={col.key} index={index} draggableId={col.key as string}>
                       {(provider, snapshot) => (
                         <div
@@ -298,13 +297,7 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
                           className={cx('sort-item', snapshot.isDragging && 'dragging')}
                         >
                           <DragHandler />
-                          <OverflowTooltip
-                            mountOnCurrentNode
-                            className={cx('title')}
-                            title={col.title}
-                          >
-                            {col.title}
-                          </OverflowTooltip>
+                          <span className={cx('title')}>{col.title}</span>
                           {['Key', 'Text'].includes(col?.fieldType?.key) && (
                             <span
                               className={cx('filter-icon')}
