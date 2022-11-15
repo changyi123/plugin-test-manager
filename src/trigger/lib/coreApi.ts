@@ -16,7 +16,10 @@ const withCoreApiRequest = (
 export const deleteItems = withCoreApiRequest(['POST', '/parse/functions/deleteItems']);
 
 /** 事项更新 */
-export const updateItems = withCoreApiRequest(['PUT', itemId => `/parse/api/items/${itemId}`]);
+export const updateItems = withCoreApiRequest([
+  'PUT',
+  itemId => `/parse/api/items/${itemId}/quickEdit`,
+]);
 
 /** 事项创建 */
 export const createItems = withCoreApiRequest(['POST', '/parse/api/v2/items']);
