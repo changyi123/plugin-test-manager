@@ -21,6 +21,7 @@ import {
 } from '@/icons';
 import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd';
 import createProximaSdk from '@projectproxima/proxima-sdk-js';
+import OverflowTooltip from '@/components/common/OverflowTooltip';
 
 import '@projectproxima/components/dist/main.css';
 import cx from './ColumnSetting.less';
@@ -111,7 +112,7 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
       if (titleCellOption?.isCheckedGlobalConfig || titleCellOption?.isSettingPage) {
         setStorageColumnKeys([...new Set(tableFields ?? defaultColumnKey)]);
       } else {
-        if (!storageColumnKeys?.length && tableFields?.length) {
+        if (!storageColumnKeys && tableFields?.length) {
           setStorageColumnKeys([...new Set(tableFields)]);
         }
       }
@@ -297,7 +298,13 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
                           className={cx('sort-item', snapshot.isDragging && 'dragging')}
                         >
                           <DragHandler />
-                          <span className={cx('title')}>{col.title}</span>
+                          <OverflowTooltip
+                            mountOnCurrentNode
+                            className={cx('title')}
+                            title={col.title}
+                          >
+                            {col.title}
+                          </OverflowTooltip>
                           {['Key', 'Text'].includes(col?.fieldType?.key) && (
                             <span
                               className={cx('filter-icon')}
