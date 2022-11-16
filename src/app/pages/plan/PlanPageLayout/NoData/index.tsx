@@ -47,12 +47,13 @@ const NoData: React.FC<NoDataProps> = ({ setRefreshExecution }) => {
   }, [selectValue, treeType]);
 
   const createExecution = useCallback(
-    async (caseIds = []) => {
+    async (caseIds = [], createNext = false) => {
       const res = await createItemUseModal({
         type: TestType.Execution,
         extraData: {
           planId: selectedTestPlan?.objectId,
           isCreateExecution: true,
+          isCreateNext: createNext,
           modalProps: {
             title: `第 2 步：新建测试执行任务（已选 ${caseIds.length} 条用例）`,
             footer: {
@@ -70,60 +71,63 @@ const NoData: React.FC<NoDataProps> = ({ setRefreshExecution }) => {
   );
 
   // 创建测试执行任务
-  const createTestExecution = useCallback(async () => {
-    const data = await getSelectCaseIds();
-    if (!data) return;
-    const { selectedData: caseIds, treeType } = data;
-    setSelectValue(caseIds);
-    setTreeType(treeType);
-    const { item, extraData } = await createExecution(caseIds);
+  const createTestExecution = useCallback(
+    async (createNext?: boolean) => {
+      const data = await getSelectCaseIds();
+      if (!data) return;
+      const { selectedData: caseIds, treeType } = data;
+      setSelectValue(caseIds);
+      setTreeType(treeType);
+      const { item, extraData } = await createExecution(caseIds, createNext);
+      const extraCreateNext: boolean = (extraData as any)?.isCreateNext;
 
-    // TODO 创建测试执行，创建测试执行任务和执行关系，创建执行和用例关系
-    try {
-      notification.open({
-        message: '测试执行任务正在创建中',
-        icon: <Spin spinning={true} />,
-        duration: null,
-      });
+      // TODO 创建测试执行，创建测试执行任务和执行关系，创建执行和用例关系
+      try {
+        notification.open({
+          message: '测试执行任务正在创建中',
+          icon: <Spin spinning={true} />,
+          duration: null,
+        });
 
-      // 创建完测试执行任务事项，更新测试执行任务关联测试计划
-      await updateTestEntity([
-        {
-          objectId: item.objectId,
-          type: TestType.Execution,
-          linkType: TestLinkType.ExecutionLinkPlan,
-          linkItems: {
-            action: 'add',
-            value: [extraData?.planId],
+        // 创建完测试执行任务事项，更新测试执行任务关联测试计划
+        await updateTestEntity([
+          {
+            objectId: item.objectId,
+            type: TestType.Execution,
+            linkType: TestLinkType.ExecutionLinkPlan,
+            linkItems: {
+              action: 'add',
+              value: [extraData?.planId],
+            },
+            sortIndex: generateSortIndex(),
           },
-          sortIndex: generateSortIndex(),
-        },
-      ]);
+        ]);
 
-      // 创建测试执行
-      if (caseIds.length > 0) {
-        await batchCreateTestRun({
-          executionId: item.objectId,
-          caseIds,
+        // 创建测试执行
+        if (caseIds.length > 0) {
+          await batchCreateTestRun({
+            executionId: item.objectId,
+            caseIds,
+          });
+        }
+
+        notification.destroy();
+        notification.success({
+          message: `测试执行任务【${item.name}】新建成功`,
+        });
+        if (extraCreateNext) {
+          await createTestExecution(extraCreateNext);
+        }
+        setRefreshExecution(true);
+      } catch (err) {
+        notification.destroy();
+        notification.error({
+          message: '测试执行任务新建失败',
         });
       }
-
-      notification.destroy();
-      notification.success({
-        message: `测试执行任务【${item.name}】新建成功`,
-      });
-      if ((extraData as any)?.isCreateNext) {
-        await createTestExecution();
-      } else {
-        setRefreshExecution(true);
-      }
-    } catch (err) {
-      notification.destroy();
-      notification.error({
-        message: '测试执行任务新建失败',
-      });
-    }
-  }, [createExecution, getSelectCaseIds, setRefreshExecution]);
+    },
+    [createExecution, getSelectCaseIds, setRefreshExecution],
+  );
 
   const cancelCallback = useCallback(
     async params => {
@@ -134,16 +138,21 @@ const NoData: React.FC<NoDataProps> = ({ setRefreshExecution }) => {
     [createTestExecution],
   );
 
-  useListener('ExecutionPrevious', cancelCallback);
-  useListener(PROXIMA_EVENT_KEY.itemBatchCreateSuccess, () => {
+  const refresh = useCallback(() => {
     setSelectValue([]);
     setTreeType('plan');
+    setRefreshExecution(true);
+  }, [setRefreshExecution]);
+
+  useListener('ExecutionPrevious', cancelCallback);
+  useListener(PROXIMA_EVENT_KEY.itemBatchCreateSuccess, () => {
+    refresh();
   });
 
   return (
     <div className={cx('no-data-box')}>
       <Empty description="暂无测试执行任务" image={emptyImg}>
-        <Button type="primary" onClick={createTestExecution}>
+        <Button type="primary" onClick={() => createTestExecution()}>
           新建测试执行任务
         </Button>
         <TestEntitySelectorModal
@@ -151,8 +160,7 @@ const NoData: React.FC<NoDataProps> = ({ setRefreshExecution }) => {
           testType={TestType.Case}
           actionRef={testEntitySelectorRef}
           onCancel={() => {
-            setSelectValue([]);
-            setTreeType('plan');
+            refresh();
           }}
           planId={selectedTestPlan?.objectId}
         />

@@ -10,8 +10,8 @@ modules:
       function: gitee-menus
     - key: huishang-script
       function: huishang-script
-    - key: senwan-script
-      function: senwan-script
+    - key: shenwan-script
+      function: shenwan-script
     - key: report-stats
       function: report-stats
     - key: report-data-base
@@ -67,8 +67,8 @@ modules:
       timeout: 300000
     - key: huishang-script
       handler: web.runHuishangScript
-    - key: senwan-script
-      handler: web.runSenWanScript
+    - key: shenwan-script
+      handler: web.runShenWanScript
       # 测试报告统计数据
     - key: report-stats
       handler: web.requestReportStats
