@@ -66,7 +66,7 @@ const Header: React.FC<HeaderProps> = ({
     return data;
   }, [selectValue, treeType]);
 
-  const createExcution = useCallback(
+  const createExecution = useCallback(
     async (caseIds = []) => {
       const res = await createItemUseModal({
         type: TestType.Execution,
@@ -96,7 +96,7 @@ const Header: React.FC<HeaderProps> = ({
     const { selectedData: caseIds, treeType } = data;
     setSelectValue(caseIds);
     setTreeType(treeType);
-    const { item, extraData } = await createExcution(caseIds);
+    const { item, extraData } = await createExecution(caseIds);
 
     // 创建测试执行，创建测试执行任务和执行关系，创建执行和用例关系
     try {
@@ -143,7 +143,7 @@ const Header: React.FC<HeaderProps> = ({
         message: '测试执行任务新建失败',
       });
     }
-  }, [createExcution, getSelectCaseIds, setRefreshExecution]);
+  }, [createExecution, getSelectCaseIds, setRefreshExecution]);
 
   const cancelCallback = useCallback(
     async params => {

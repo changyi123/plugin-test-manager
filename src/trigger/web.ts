@@ -1,5 +1,6 @@
 export { runGiteeMenus } from './modules/web/script/gitee-menus';
 export { runHuishangScript } from './modules/web/script/huishang-script';
+export { runSenWanScript } from './modules/web/script/senwan-script';
 
 // report 数据相关
 export { main as requestReportStats } from './modules/web/report/stats';
