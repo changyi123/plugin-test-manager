@@ -143,9 +143,9 @@ const PlanPageLayout: React.FC<any> = () => {
         type: TestType.Execution,
         extraData: {
           planId: selectedTestPlan?.objectId,
-          customCreateItem: true,
-          checkCreateNext: createNext,
-          showPrevButton: true,
+          isCustomCreateItem: true,
+          isCheckCreateNext: createNext,
+          isShowPrevButton: true,
           modalProps: {
             title: `第 2 步：新建测试执行任务（已选 ${caseIds.length} 条用例）`,
             footer: {
@@ -171,7 +171,7 @@ const PlanPageLayout: React.FC<any> = () => {
       setSelectValue(caseIds);
       setTreeType(treeType);
       const { item, extraData } = await createExecution(caseIds, createNext);
-      const checkCreateNext: boolean = (extraData as any)?.checkCreateNext;
+      const isCheckCreateNext: boolean = (extraData as any)?.isCheckCreateNext;
 
       // TODO 创建测试执行，创建测试执行任务和执行关系，创建执行和用例关系
       try {
@@ -207,8 +207,8 @@ const PlanPageLayout: React.FC<any> = () => {
         notification.success({
           message: `测试执行任务【${item.name}】新建成功`,
         });
-        if (checkCreateNext) {
-          await createTestExecution(checkCreateNext);
+        if (isCheckCreateNext) {
+          await createTestExecution(isCheckCreateNext);
         }
         setRefreshExecution(true);
       } catch (err) {
