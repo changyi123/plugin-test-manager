@@ -190,7 +190,7 @@ const TestPlanList: React.FC<any> = () => {
     await createItemUseModal({
       type: TestType.Plan,
       extraData: {
-        noBatch: true,
+        disabledCreateNext: true,
       },
     });
     actionRef.current.refresh();

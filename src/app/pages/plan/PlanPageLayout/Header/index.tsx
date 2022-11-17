@@ -72,8 +72,9 @@ const Header: React.FC<HeaderProps> = ({
         type: TestType.Execution,
         extraData: {
           planId: selectedTestPlan?.objectId,
-          isCreateExecution: true,
-          isCreateNext: createNext,
+          customCreateItem: true,
+          checkCreateNext: createNext,
+          showPrevButton: true,
           modalProps: {
             title: `第 2 步：新建测试执行任务（已选 ${caseIds.length} 条用例）`,
             footer: {
@@ -99,7 +100,7 @@ const Header: React.FC<HeaderProps> = ({
       setSelectValue(caseIds);
       setTreeType(treeType);
       const { item, extraData } = await createExecution(caseIds, createNext);
-      const extraCreateNext: boolean = (extraData as any)?.isCreateNext;
+      const checkCreateNext: boolean = (extraData as any)?.checkCreateNext;
 
       // 创建测试执行，创建测试执行任务和执行关系，创建执行和用例关系
       try {
@@ -135,8 +136,8 @@ const Header: React.FC<HeaderProps> = ({
         notification.success({
           message: `测试执行任务【${item.name}】新建成功`,
         });
-        if (extraCreateNext) {
-          await createTestExecution(extraCreateNext);
+        if (checkCreateNext) {
+          await createTestExecution(checkCreateNext);
         }
         setRefreshExecution(true);
       } catch (err) {
@@ -151,7 +152,7 @@ const Header: React.FC<HeaderProps> = ({
 
   const cancelCallback = useCallback(
     async params => {
-      if (params?.type === 'previous') {
+      if (params?.type === 'prev') {
         await createTestExecution();
       }
     },
@@ -164,7 +165,7 @@ const Header: React.FC<HeaderProps> = ({
     setRefreshExecution(true);
   }, [setRefreshExecution]);
 
-  useListener('ExecutionPrevious', cancelCallback);
+  useListener('CreateItemModalPrev', cancelCallback);
   useListener(PROXIMA_EVENT_KEY.itemBatchCreateSuccess, () => {
     refresh();
   });
