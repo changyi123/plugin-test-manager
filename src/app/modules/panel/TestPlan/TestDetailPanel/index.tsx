@@ -139,7 +139,7 @@ const Test = () => {
         extraData: {
           token,
           planId: testEntity?.objectId,
-          isDisabledCreateNext: true,
+          isDisableCreateNext: true,
           modalProps: {
             title: `新建测试执行任务（已选 ${caseIds.length} 条用例）`,
           },
