@@ -11,6 +11,8 @@ import TestEntitySelectorModal, {
 } from '@/components/business/TestEntitySelectorModal';
 import { useListener } from '@projectproxima/proxima-sdk-js';
 import { PROXIMA_EVENT_KEY } from '@/lib/constants';
+import createProximaSdk from '@projectproxima/proxima-sdk-js';
+const proxima = createProximaSdk();
 
 import cx from './index.less';
 
@@ -117,7 +119,7 @@ const NoData: React.FC<NoDataProps> = ({ setRefreshExecution }) => {
           message: `测试执行任务【${item.name}】新建成功`,
         });
         if (checkCreateNext) {
-          await createTestExecution(checkCreateNext);
+          proxima.execute('CreateExecutionNext', checkCreateNext);
         }
         setRefreshExecution(true);
       } catch (err) {
@@ -139,21 +141,21 @@ const NoData: React.FC<NoDataProps> = ({ setRefreshExecution }) => {
     [createTestExecution],
   );
 
-  const refresh = useCallback(() => {
-    setSelectValue([]);
-    setTreeType('plan');
-    setRefreshExecution(true);
-  }, [setRefreshExecution]);
-
   useListener('CreateItemModalPrev', cancelCallback);
   useListener(PROXIMA_EVENT_KEY.itemBatchCreateSuccess, () => {
-    refresh();
+    setSelectValue([]);
+    setTreeType('plan');
   });
 
   return (
     <div className={cx('no-data-box')}>
       <Empty description="暂无测试执行任务" image={emptyImg}>
-        <Button type="primary" onClick={() => createTestExecution()}>
+        <Button
+          type="primary"
+          onClick={async () => {
+            await createTestExecution();
+          }}
+        >
           新建测试执行任务
         </Button>
         <TestEntitySelectorModal
@@ -161,7 +163,8 @@ const NoData: React.FC<NoDataProps> = ({ setRefreshExecution }) => {
           testType={TestType.Case}
           actionRef={testEntitySelectorRef}
           onCancel={() => {
-            refresh();
+            setSelectValue([]);
+            setTreeType('plan');
           }}
           planId={selectedTestPlan?.objectId}
         />

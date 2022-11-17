@@ -166,6 +166,11 @@ const Header: React.FC<HeaderProps> = ({
   }, [setRefreshExecution]);
 
   useListener('CreateItemModalPrev', cancelCallback);
+  useListener('CreateExecutionNext', async checkCreateNext => {
+    setTimeout(() => {
+      createTestExecution(checkCreateNext);
+    }, 1000);
+  });
   useListener(PROXIMA_EVENT_KEY.itemBatchCreateSuccess, () => {
     refresh();
   });
