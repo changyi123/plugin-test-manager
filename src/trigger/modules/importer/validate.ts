@@ -46,7 +46,7 @@ const getCharNumErrorIndex = datas =>
     .map((d, index) => (getCharNum(d) > 500 ? index : null))
     .filter(d => d !== null);
 
-const getTestDetailsErrors = datas =>
+const getTestDetailsErrors = (datas, resProps?: Record<string, unknown>) =>
   datas?.reduce((prev, cur, index) => {
     // 校验用例标题
     if (!trimData(cur.name)) {
@@ -54,7 +54,7 @@ const getTestDetailsErrors = datas =>
     }
 
     // 校验所属分组
-    if (isFilterGroup(cur.group)) {
+    if (isFilterGroup(cur.group) && !resProps?.group) {
       prev = prev.concat([
         `第 ${index + 1} 条所属分组层数超过限制，所属分组 只能导入 8 层，不予以导入`,
       ]);
@@ -142,7 +142,7 @@ const getDataByFieldMaping = (datas, maps) =>
   }, []);
 
 export const runValidate = async () => {
-  const { data, fieldMapping, workspaceId } = global.triggerParams;
+  const { data, fieldMapping, workspaceId, group } = global.triggerParams;
 
   // 根据 workspaceKId 获取事项类型
   const getItemTypeName = async () => {
@@ -179,7 +179,7 @@ export const runValidate = async () => {
       errors = ['事项类型关联未配置，所有数据不予导入，请先配置关联的事项类型', ...errors];
     }
 
-    return errors.concat(getTestDetailsErrors(datas) ?? []).filter(Boolean);
+    return errors.concat(getTestDetailsErrors(datas, { group }) ?? []).filter(Boolean);
   };
 
   const getDataByFieldKey = (datas, maps) =>

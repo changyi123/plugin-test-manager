@@ -76,7 +76,7 @@ const getStepsData = datas => {
 };
 
 export const runImport = async () => {
-  const { data, appFieldsData } = global.triggerParams;
+  const { data, appFieldsData, group } = global.triggerParams;
   // eslint-disable-next-line no-console
   console.log('import-22222', appFieldsData);
 
@@ -233,13 +233,6 @@ export const runImport = async () => {
             r_test_manager_repository: testRepoMap.get(item.objectId),
           },
         });
-      // return async () =>
-      //   requestCoreApi('PUT', `/parse/api/items/${item.objectId}/quickEdit`, {
-      //     values: {
-      //       ...item.values,
-      //       r_test_manager_repository: testRepoMap.get(item.objectId),
-      //     },
-      //   });
     });
 
     // TODO 更新事项 values
@@ -287,21 +280,36 @@ export const runImport = async () => {
     // 创建测试用例数据
     // const testManagerTestData = await createTestMangerTest();
 
-    // 得到需要创建的用例库数据
-    const toCreateGroupData = await getToCreateGroupData();
+    if (!group) {
+      // 得到需要创建的用例库数据
+      const toCreateGroupData = await getToCreateGroupData();
 
-    if (toCreateGroupData.length) {
-      const newToCreateGroupData = toCreateGroupData.reduce((prev, cur) => {
-        prev.set(cur.index, (prev.get(cur.index) || []).concat([cur]));
-        return prev;
-      }, new Map());
+      if (toCreateGroupData.length) {
+        const newToCreateGroupData = toCreateGroupData.reduce((prev, cur) => {
+          prev.set(cur.index, (prev.get(cur.index) || []).concat([cur]));
+          return prev;
+        }, new Map());
 
-      // 创建用例库
-      await createRepoGroupList(newToCreateGroupData);
+        // 创建用例库
+        await createRepoGroupList(newToCreateGroupData);
+      }
+
+      // 绑定测试用例事项用例库，并更新事项数据
+      await updateItemValue(needUpdateValues);
+    } else {
+      // 更新测试用例用例库数据
+      const taskQueue = needUpdateValues.map(item => {
+        return async () =>
+          updateItems(item.objectId, {
+            values: {
+              ...item.values,
+              r_test_manager_repository: group === 'root' ? '' : group,
+            },
+          });
+      });
+
+      await parallelLimit(taskQueue, 10);
     }
-
-    // 绑定测试用例事项用例库，并更新事项数据
-    await updateItemValue(needUpdateValues);
 
     return {
       code: 200,

@@ -44,7 +44,7 @@ const RepoDropDown = ({
         // 跳转到导入页面
         const href = `${baseUrl}/${getTenantKey()}/workspaces/${workspace.key}/import/${
           workspace.objectId
-        }?app=test_manager&&disableToggleWorkspace${appendedQueryString}`;
+        }?app=test_manager&disableToggleWorkspace${appendedQueryString}`;
         window.open(href);
       } else if (key === 'example') {
         downloadExampleFile(testDetailFieldKeys);

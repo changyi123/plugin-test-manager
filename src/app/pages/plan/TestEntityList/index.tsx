@@ -249,6 +249,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
             repository: item?.repository,
             item,
             key: item.key,
+            values: item.values,
           };
         }),
         total,
