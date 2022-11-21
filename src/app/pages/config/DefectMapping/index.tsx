@@ -6,7 +6,6 @@ import { useDataContext, useCurrentTestConfig } from '../hooks';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import { useRequest, useSafeState, useDrop, useDrag } from 'ahooks';
 import { components } from 'proxima-sdk';
-import { Board } from '@/lib/models';
 
 const { ItemIcon } = components.Components.Common;
 
@@ -53,10 +52,14 @@ const DefectMapping = () => {
   const { workspace, globalConfig } = useDataContext();
   const workspaceKey = workspace?.key;
   const [defectsItemTypeKeys, setDefectsItemTypeKeys] = useSafeState([]);
-
   const testConfig = useCurrentTestConfig(workspaceKey);
-  const { defectBoard, displayDefectBoard } = testConfig?.toJSON() ?? {};
-  const [checked, setChecked] = useSafeState(!!displayDefectBoard);
+  const [checked, setChecked] = useSafeState(!!testConfig?.get('displayDefectBoard'));
+
+  React.useEffect(() => {
+    if (testConfig?.get('displayDefectBoard')) {
+      setChecked(testConfig?.get('displayDefectBoard'));
+    }
+  }, [setChecked, testConfig]);
 
   React.useEffect(() => {
     setDefectsItemTypeKeys(testConfig?.get('defectsMapping') ?? []);
@@ -96,18 +99,22 @@ const DefectMapping = () => {
   };
 
   const handleSave = useCallback(async () => {
+    const defectBoard = testConfig?.get('defectBoard');
     const itemTypes = Object.values(data).filter(item => defectsItemTypeKeys.includes(item.key));
     const notSameItemTypes = itemTypes?.filter(
-      d => !defectBoard?.itemTypes?.map(i => i.objectId)?.includes(d.objectId),
+      d =>
+        !defectBoard
+          ?.get('itemTypes')
+          ?.map(i => i.objectId)
+          ?.includes(d.objectId),
     )?.length;
-    const newDefectBoard = Board.createWithoutData(defectBoard.objectId);
 
     // 关联的缺陷类型同步至面板配置
     if (notSameItemTypes) {
       const itemTypePointers = itemTypes.map(d => toPointer('ItemType', d.objectId));
-      newDefectBoard.set('iql', `'类型' in ${JSON.stringify(itemTypes.map(d => d.name))}`);
-      newDefectBoard.set('itemTypes', itemTypePointers);
-      await newDefectBoard.save();
+      defectBoard.set('iql', `'类型' in ${JSON.stringify(itemTypes.map(d => d.name))}`);
+      defectBoard.set('itemTypes', itemTypePointers);
+      await defectBoard.save();
     }
 
     // 空间配置 defectsMapping
@@ -117,7 +124,7 @@ const DefectMapping = () => {
     });
 
     message.success('缺陷类型保存成功');
-  }, [checked, data, defectBoard, defectsItemTypeKeys, testConfig]);
+  }, [checked, data, defectsItemTypeKeys, testConfig]);
 
   return (
     <>
