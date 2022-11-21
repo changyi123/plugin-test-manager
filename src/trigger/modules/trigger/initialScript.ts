@@ -1,17 +1,21 @@
+import keyBy from 'lodash/keyBy';
 import {
   getData,
-  getParseObject,
-  saveAllObject,
   getAppsData,
-  pgClient,
+  saveAllObject,
+  getParseQuery,
+  getParseObject,
 } from '@giteeteam/apps-team-api';
+
+import { TestConfigClassName } from '../../../common/constant';
+
+const ParseBaseQueryOptions = {
+  sessionToken: global.sessionToken,
+};
 
 const log = (msg, ...restArgs) => {
   console.info(`[testManager] ${msg}`, ...restArgs);
 };
-
-// const pluginClassPrefix = 'plugin_';
-const pluginClassPrefix = '';
 
 // 内置状态配置
 const initializedStatuses = [
@@ -89,64 +93,123 @@ const getOrCreateParseObject = async (isAppClass, parseClass, attributes) => {
   return parseData;
 };
 
-let MaxExecuteTimes = 5;
-const executeSQL = async () => {
-  const createTestRelationTableUniqueSQL = async () => {
-    const createUniqueSQL = `
-      CREATE UNIQUE INDEX IF NOT EXISTS ${pluginClassPrefix}test_manager_test_relation_table_from_to_unique ON "${pluginClassPrefix}test_manager_TestRelation" ("from",
-      "to",
-      "relationType");
-  `;
+// 生成面板的 name，可以通过 objectId 标识与对应的测试计划配置关联
+const generateBoardName = testConfigObjectId => `test_manager_defect_board_${testConfigObjectId}`;
 
-    const deleteDuplicateRelationRowIfExists = async () => {
-      // 查走重复列数据
-      const queryDuplicateRelationRowSQL = `
-        SELECT max("objectId")
-        FROM "${pluginClassPrefix}test_manager_TestRelation"
-        GROUP BY "from",
-                "to",
-                "relationType"
-        HAVING count(*) > 1
-      `;
+// 生成 pointer 数据
+const toPointer = (className, objectId) => ({
+  className,
+  objectId,
+  __type: 'Pointer',
+});
 
-      const deleteDuplicateRelationRowSQL = `
-        DELETE
-        FROM "${pluginClassPrefix}test_manager_TestRelation"
-        WHERE "objectId" in (${queryDuplicateRelationRowSQL});
-      `;
+// 新建测试缺陷面板并关联面板至测试配置
+const createNotExistedTestDefectBoard = async () => {
+  const [testConfigQuery, workspaceQuery, itemTypeQuery] = await Promise.all([
+    getParseQuery(false, TestConfigClassName),
+    getParseQuery(false, 'Workspace'),
+    getParseQuery(false, 'ItemType'),
+  ]);
 
-      const result = await pgClient.query(queryDuplicateRelationRowSQL);
+  const notExistedDefectBoardConfigs = await testConfigQuery
+    .doesNotExist('defectBoard')
+    .findAll(ParseBaseQueryOptions);
 
-      if (MaxExecuteTimes > 0 && result?.rowCount) {
-        MaxExecuteTimes -= 1;
-        // 删除重复列数据
-        await pgClient.query(deleteDuplicateRelationRowSQL);
-        await deleteDuplicateRelationRowIfExists();
-      }
-      return;
-    };
+  const workspaceKeys = notExistedDefectBoardConfigs
+    .map(config => config.get('workspaceKey'))
+    .filter(Boolean);
 
-    try {
-      await deleteDuplicateRelationRowIfExists();
-      await pgClient.query(createUniqueSQL);
-      log('关联关系表唯一索引创建成功');
-    } catch (err) {
-      log('createUniqueSQL run error', err);
-    }
-  };
+  const [workspaces, statuses] = await Promise.all([
+    workspaceQuery
+      .containedIn('key', workspaceKeys)
+      .select(['objectId', 'key'])
+      .findAll(ParseBaseQueryOptions)
+      .then(items => items.map(item => item.toJSON())),
+    itemTypeQuery
+      .select(['objectId', 'key', 'name'])
+      .findAll(ParseBaseQueryOptions)
+      .then(items => items.map(item => item.toJSON())),
+  ]);
 
-  try {
-    log('开始执行插件 SQL 脚本');
-    await createTestRelationTableUniqueSQL();
-  } catch (err) {
-    log('createUniqueSQL run error', err);
-  }
+  const itemTypeKeyMapping = keyBy(statuses, 'key');
+  const workspaceKeyMapping = keyBy(workspaces, 'key');
+
+  const boards = Array.from(Array(notExistedDefectBoardConfigs.length), (_, index) => {
+    const boardObject = getParseObject(false, 'Board');
+    const testConfig = notExistedDefectBoardConfigs[index].toJSON();
+    const workspace = workspaceKeyMapping[testConfig.workspaceKey];
+
+    // 如果空间已经被删除则不处理该数据
+    if (!workspace) return;
+
+    const defectsMapping = testConfig.defectsMapping ?? [];
+
+    // 缺陷是否空间隔离
+    const isIsolateDefect = testConfig.isolateTestType?.includes('TestDefect');
+
+    // TODO: 后期处理 iql 国际化
+    const itemTypeSubIql = `类型 in [${defectsMapping
+      .filter(key => itemTypeKeyMapping[key]?.name)
+      .map(key => `'${itemTypeKeyMapping[key].name}'`)
+      .join(',')}]`;
+
+    // 空间查询
+    const workspaceSubIql = isIsolateDefect
+      ? `'workspaceKey' = '${testConfig.workspaceKey}'`
+      : null;
+
+    const iql = workspaceSubIql ? `(${itemTypeSubIql}) and (${workspaceSubIql})` : itemTypeSubIql;
+    const itemTypes = defectsMapping
+      .map(key => toPointer('ItemType', itemTypeKeyMapping[key]?.objectId))
+      .filter(item => item.objectId);
+
+    boardObject.set({
+      iql,
+      // 限制创建的类型
+      itemTypes,
+      hidden: true,
+      icon: 'Panel1',
+      filterSource: 'inWorkspace',
+      // 使用 testConfig objectId 作为 name 避免重复
+      name: generateBoardName(testConfig.objectId),
+      workspace: toPointer('Workspace', workspace.objectId),
+    });
+
+    return boardObject;
+  }).filter(Boolean);
+
+  const createdBoardData = await saveAllObject(boards).then(items =>
+    items.map(item => item.toJSON()),
+  );
+
+  // 将新建的 board 数据和 testConfig 配置数据及逆行关联
+  const testConfigObjects = notExistedDefectBoardConfigs
+    .map(testConfigObj => {
+      const testConfigObjectId = testConfigObj.get('objectId');
+      const defectBoardData = createdBoardData.find(
+        board => generateBoardName(testConfigObjectId) === board.name,
+      );
+
+      // workspaceKey 不存在的话就不会创建 board 数据，需要判断 board 是否创建
+      if (!defectBoardData) return;
+
+      // console.log('defectBoard', testConfigObjectId, defectBoardData);
+      testConfigObj.set({
+        defectBoard: toPointer('Board', defectBoardData.objectId),
+        displayDefectBoard: true,
+      });
+
+      return testConfigObj;
+    })
+    .filter(Boolean);
+
+  const updatedTestConfigs = await saveAllObject(testConfigObjects);
+
+  console.info('updatedTestConfigs', updatedTestConfigs);
 };
 
 const initialScriptRunner = async () => {
   const APP_KEY = global.appKey ?? 'test_manager';
-
-  const TestConfigClass = `TestConfig`;
 
   log('开始执行测试管理初始化脚本');
 
@@ -154,7 +217,7 @@ const initialScriptRunner = async () => {
   if (!appInstance) return;
 
   // 测试管理全局配置
-  const globalTestConfig = await getOrCreateParseObject(true, TestConfigClass, {
+  const globalTestConfig = await getOrCreateParseObject(false, TestConfigClassName, {
     global: true,
   });
 
@@ -209,6 +272,9 @@ const initialScriptRunner = async () => {
   console.info('测试管理插件全局配置', globalTestConfigData);
 
   await saveAllObject([globalTestConfig]);
+
+  // 创建空间级配置不存在的关联缺陷管理面板
+  await createNotExistedTestDefectBoard();
 };
 
 export const runInitialScript = async () => {
