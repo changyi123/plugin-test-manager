@@ -127,15 +127,15 @@ const getOrBatchCreateTestEntities = async (
   const { itemList, type } = options;
   if (!Array.isArray(itemIdList)) return null;
 
-  const getListRepository = (list, index) => {
+  const getItemStore = (list, index) => {
     if (index === 0) return {};
-
     const curStore = list[index]?.[CREATE_ITEM_STORE_FIELD_KEY];
-
     if (curStore) {
       if (curStore.repository || curStore.repository === null) {
         return {
           repository: curStore?.repository,
+          precondition: curStore?.precondition,
+          steps: curStore?.steps,
         };
       }
     }
@@ -146,6 +146,8 @@ const getOrBatchCreateTestEntities = async (
       if (cur?.[CREATE_ITEM_STORE_FIELD_KEY]?.repository) {
         prev = {
           repository: cur?.[CREATE_ITEM_STORE_FIELD_KEY]?.repository,
+          precondition: cur?.[CREATE_ITEM_STORE_FIELD_KEY]?.precondition,
+          steps: cur?.[CREATE_ITEM_STORE_FIELD_KEY]?.steps,
         };
       }
       return prev;
@@ -163,7 +165,7 @@ const getOrBatchCreateTestEntities = async (
         ...map,
         [itemId]: {
           ...restFields[CREATE_ITEM_STORE_FIELD_KEY],
-          ...getListRepository(options.storeValueList ?? [], index),
+          ...getItemStore(options.storeValueList ?? [], index),
         },
       }),
       {},
