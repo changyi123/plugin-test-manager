@@ -141,3 +141,9 @@ export const isInOne = () => {
 
 /** panel 消息通知 */
 export { alert } from '@/components/business/PanelLayout';
+
+export const toPointer = (className, objectId) => ({
+  className,
+  objectId,
+  __type: 'Pointer',
+});

@@ -6,11 +6,12 @@ import { useDataContext, useCurrentTestConfig } from '../hooks';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import { useRequest, useSafeState, useDrop, useDrag } from 'ahooks';
 import { components } from 'proxima-sdk';
+import { Board } from '@/lib/models';
 
 const { ItemIcon } = components.Components.Common;
 
 import cx from './index.less';
-import { updateGlobalConfig } from '@/lib/api/common';
+import { toPointer } from '@/lib/utils/helper';
 
 const ItemTypeDropBox = (props: {
   itemTypes: any[];
@@ -51,11 +52,11 @@ const ItemTypeDropBox = (props: {
 const DefectMapping = () => {
   const { workspace, globalConfig } = useDataContext();
   const workspaceKey = workspace?.key;
-  const { defectBoard, displayDefectBoard } = globalConfig ?? {};
   const [defectsItemTypeKeys, setDefectsItemTypeKeys] = useSafeState([]);
-  const [checked, setChecked] = useSafeState(!!displayDefectBoard);
 
   const testConfig = useCurrentTestConfig(workspaceKey);
+  const { defectBoard, displayDefectBoard } = testConfig?.toJSON() ?? {};
+  const [checked, setChecked] = useSafeState(!!displayDefectBoard);
 
   React.useEffect(() => {
     setDefectsItemTypeKeys(testConfig?.get('defectsMapping') ?? []);
@@ -96,31 +97,27 @@ const DefectMapping = () => {
 
   const handleSave = useCallback(async () => {
     const itemTypes = Object.values(data).filter(item => defectsItemTypeKeys.includes(item.key));
-    const notSameItemTypes = defectBoard
-      ?.get('itemTypes')
-      ?.filter(d => !itemTypes.map(i => i.objectId).includes(d.objectId))?.length;
+    const notSameItemTypes = itemTypes?.filter(
+      d => !defectBoard?.itemTypes?.map(i => i.objectId)?.includes(d.objectId),
+    )?.length;
+    const newDefectBoard = Board.createWithoutData(defectBoard.objectId);
 
     // 关联的缺陷类型同步至面板配置
     if (notSameItemTypes) {
-      defectBoard.set('iql', `'类型' in ${JSON.stringify(itemTypes.map(d => d.name))}`);
-      defectBoard.set('itemTypes', itemTypes);
-      await defectBoard.save();
-    }
-
-    // 更新 displayDefectBoard
-    if (checked !== displayDefectBoard) {
-      await updateGlobalConfig({
-        displayDefectBoard: checked,
-      });
+      const itemTypePointers = itemTypes.map(d => toPointer('ItemType', d.objectId));
+      newDefectBoard.set('iql', `'类型' in ${JSON.stringify(itemTypes.map(d => d.name))}`);
+      newDefectBoard.set('itemTypes', itemTypePointers);
+      await newDefectBoard.save();
     }
 
     // 空间配置 defectsMapping
     await testConfig.save({
       defectsMapping: defectsItemTypeKeys,
+      displayDefectBoard: checked,
     });
 
     message.success('缺陷类型保存成功');
-  }, [checked, data, defectBoard, defectsItemTypeKeys, displayDefectBoard, testConfig]);
+  }, [checked, data, defectBoard, defectsItemTypeKeys, testConfig]);
 
   return (
     <>
