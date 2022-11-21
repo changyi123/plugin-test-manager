@@ -5,6 +5,11 @@ app:
   version: "2.9.0"
 modules:
   webtrigger:
+    # TODO: Debug 使用，生产环境禁止调用西面的 trigger
+    # ---------------------------------------------
+    - key: test-manager-initial-script
+      function: test-manager-initial-script
+    # ---------------------------------------------
     # 动态配置 one 路由
     - key: gitee-menus
       function: gitee-menus
@@ -51,6 +56,7 @@ modules:
     - key: test-manager-initial-script-install
       events:
         - proxima:app:install
+        - proxima:app:upgrade
       function: test-manager-initial-script
   function:
     - key: gitee-menus
@@ -340,6 +346,13 @@ tables:
         type: Object
       tableFields:
         type: Object
+      # 关联的缺陷面板 pointer
+      defectBoard:
+        type: Pointer
+        targetClass: Board
+      # 控制缺陷面板是否显示，默认为 true
+      displayDefectBoard:
+        type: Boolean
   - className: TestRelation
     fields:
       from:

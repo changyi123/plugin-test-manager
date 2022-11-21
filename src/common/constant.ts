@@ -139,3 +139,5 @@ export const StartStatusKey = 'TODO';
 
 /** 测试用例库 className */
 export const RepositoryClassName = 'test_manager_Repository';
+
+export const TestConfigClassName = 'test_manager_TestConfig';
