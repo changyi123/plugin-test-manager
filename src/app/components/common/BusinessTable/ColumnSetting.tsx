@@ -102,9 +102,7 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
 
   const LOCAL_STORAGE_KEY = generateStorageKey(name, 'column-key');
 
-  const [storageColumnKeys, setStorageColumnKeys] = useLocalStorageState(LOCAL_STORAGE_KEY, {
-    defaultValue: null,
-  });
+  const [storageColumnKeys, setStorageColumnKeys] = useLocalStorageState(LOCAL_STORAGE_KEY);
 
   useEffect(() => {
     if (titleCellOption?.workspaceKey) {
@@ -180,7 +178,11 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
     const systemColumns = allColumns.filter(col => col.isSystem);
 
     const selectedColumns = systemColumns
-      .concat(storageColumnKeys?.map(key => allColumns.find(col => col.key === key)))
+      .concat(
+        (storageColumnKeys ?? defaultColumnKey)?.map(key =>
+          allColumns.find(col => col.key === key),
+        ),
+      )
       .filter(Boolean);
 
     const filteredFixedColumns = selectedColumns.filter(col => !col.fixed);
@@ -196,10 +198,10 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
     if (tableColumns.length) {
       onTableColumnChange(tableColumns);
     }
-  }, [allColumns, storageColumnKeys]);
+  }, [allColumns, storageColumnKeys, defaultColumnKey]);
 
   const deleteStorageColumnKey = key => {
-    setStorageColumnKeys(prevKeys => {
+    setStorageColumnKeys((prevKeys = defaultColumnKey) => {
       return prevKeys.filter(k => k !== key);
     });
   };
@@ -207,7 +209,7 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
   const handleColumnSort = data => {
     const { source, destination } = data;
     if (!destination || source.index === destination.index) return;
-    setStorageColumnKeys(prevState => {
+    setStorageColumnKeys((prevState = defaultColumnKey) => {
       // 获取最新显示在面板的列字段
       const _prevState = prevState.filter(p => (selectColumns?.map(d => d.key) ?? []).includes(p));
 
@@ -273,7 +275,7 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
           tagRender={() => null}
           options={selectOptions}
           optionFilterProp="label"
-          value={storageColumnKeys}
+          value={storageColumnKeys ?? defaultColumnKey}
           placeholder="请选择需要展示的列"
           className={cx('field-select')}
           onChange={keys => setStorageColumnKeys(keys)}
