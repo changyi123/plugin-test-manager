@@ -93,7 +93,7 @@ export const useGetTableFilterFields = ({
         }
       : {
           filterFields: fields ?? defaultKeys,
-          tableFields: getColumns(tableColumns),
+          tableFields: getColumns(columns),
         };
   }
 
