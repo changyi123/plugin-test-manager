@@ -330,6 +330,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         useColumnSetting
         columns={columns}
         defaultColumnKey={['key', 'repositoryGroup', 'createdBy', 'createdAt']}
+        privateColumnKey={['repositoryGroup']}
         name={`${workspaceKey}_TestDetailTable`}
         loading={tableLoading}
         actionRef={tableActionRef}

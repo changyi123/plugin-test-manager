@@ -41,16 +41,9 @@ const TableFields: React.FC = () => {
     };
   }, [setShowAllWorkspaceCheck]);
 
-  const defaultPlanColumnKey = [
-    'status',
-    'caseCount',
-    'assignee',
-    'createdAt',
-    'createdBy',
-    'caseStatus',
-  ];
+  const defaultPlanColumnKey = ['status', 'assignee', 'createdAt', 'createdBy'];
 
-  const defaultCaseColumnKey = ['key', 'repositoryGroup', 'createdBy', 'createdAt'];
+  const defaultCaseColumnKey = ['key', 'createdBy', 'createdAt'];
 
   const saveConfig = useCallback(async () => {
     setLoading(true);
@@ -107,16 +100,6 @@ const TableFields: React.FC = () => {
       title: '计划名称',
     },
     {
-      key: 'caseStatus',
-      title: '执行通过率',
-      width: 80,
-    },
-    {
-      key: 'caseCount',
-      title: '规划用例数',
-      width: 80,
-    },
-    {
       title: null,
       key: 'action',
       isSystem: true,
@@ -132,11 +115,6 @@ const TableFields: React.FC = () => {
       fixed: true,
       title: '标题',
       isSystem: true,
-    },
-    {
-      key: 'repositoryGroup',
-      title: '所属模块',
-      width: 60,
     },
     {
       title: null,

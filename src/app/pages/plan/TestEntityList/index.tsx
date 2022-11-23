@@ -752,6 +752,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
             'createdBy',
             'createdAt',
           ]}
+          privateColumnKey={['repositoryGroup', 'caseLatestStatus', 'runCount']}
           rowKey="objectId"
           columns={allTestColumns}
           name={`${workspaceKey}_AllTestEntity`}
@@ -781,6 +782,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
             'createdAt',
             'executor',
           ]}
+          privateColumnKey={['repositoryGroup', 'runStatus', 'executor', 'designee']}
           rowKey="objectId"
           columns={executionColumns}
           name={`${workspaceKey}_TestExecutionList`}

@@ -250,6 +250,7 @@ const TestPlanList: React.FC<any> = () => {
           'createdBy',
           'caseStatus',
         ]}
+        privateColumnKey={['caseCount', 'caseStatus']}
         rowKey="objectId"
         columns={columns}
         name={`${workspaceKey}_TestPlanTable`}
