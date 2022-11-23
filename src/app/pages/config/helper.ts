@@ -16,6 +16,7 @@ export const generateDefaultTestConfig = async (
     itemTypes: [],
     // 面板所属空间
     workspace: Workspace.createWithoutData(workspace.objectId),
+    hidden: true,
   }).save();
 
   return {

@@ -15,7 +15,7 @@ const filterGroupNum = group =>
   `${group ?? ''}`?.split('/').filter(d => trimData(d)?.length > 30).length > 0;
 
 // 过滤不符合条件数据
-const filterData = d => d.filter(item => item.name && !isFilterGroup(item.group));
+const filterData = d => d.filter(item => item.name && !isFilterGroup(item?.group ?? ''));
 
 const clone = d => JSON.parse(JSON.stringify(d));
 
@@ -54,14 +54,14 @@ const getTestDetailsErrors = (datas, resProps?: Record<string, unknown>) =>
     }
 
     // 校验所属分组
-    if (isFilterGroup(cur.group) && !resProps?.group) {
+    if (isFilterGroup(cur?.group) && !resProps?.group) {
       prev = prev.concat([
         `第 ${index + 1} 条所属分组层数超过限制，所属分组 只能导入 8 层，不予以导入`,
       ]);
     }
 
     // 校验所属分组字数
-    if (filterGroupNum(cur.group)) {
+    if (filterGroupNum(cur?.group) && !resProps?.group) {
       prev = prev.concat([`第 ${index + 1} 条所属分组字数超过 30 个字符，不予以导入`]);
     }
 
@@ -201,8 +201,8 @@ export const runValidate = async () => {
 
   // 校验数据
   const validateAppData = d => ({
-    errors: getValidateErrors(d) || [],
-    errorCount: getValidateErrors(d)?.length || 0,
+    errors: getValidateErrors(d)?.filter(Boolean) || [],
+    errorCount: getValidateErrors(d)?.filter(Boolean)?.length || 0,
     data: getValidateErrors(d)?.length
       ? []
       : getDataByFieldKey(filterData(getDataByLength(clone(d))), fieldMapping) || [],

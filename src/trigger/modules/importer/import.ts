@@ -78,7 +78,7 @@ const getStepsData = datas => {
 export const runImport = async () => {
   const { data, appFieldsData, group } = global.triggerParams;
   // eslint-disable-next-line no-console
-  console.log('import-22222', appFieldsData);
+  console.log('import-22222', global.triggerParams);
 
   // 组装更新的数据
   const handleItemValues = () => {
@@ -86,17 +86,20 @@ export const runImport = async () => {
     const itemsData = isNotHaveMap ? appFieldsData : data;
     const mathData = Math.floor(Date.now() / 1000) * 10e5;
 
-    const needUpdateValues = itemsData.reverse().map((item, index) => ({
-      objectId: item.itemId ?? item.objectId,
-      values: {
-        r_test_manager_type: 'TestCase',
-        r_test_manager_detail: JSON.stringify({
-          precondition: item.precondition,
-          steps: isNotHaveMap ? getStepsData(clone(item)) : [],
-        }),
-        r_test_manager_sortIndex: mathData + index,
-      },
-    }));
+    const needUpdateValues = itemsData
+      .reverse()
+      .map((item, index) => ({
+        objectId: item.itemId ?? item.objectId,
+        values: {
+          r_test_manager_type: 'TestCase',
+          r_test_manager_detail: JSON.stringify({
+            precondition: item.precondition,
+            steps: isNotHaveMap ? getStepsData(clone(item)) : [],
+          }),
+          r_test_manager_sortIndex: mathData + index,
+        },
+      }))
+      .filter(item => item.objectId);
 
     return needUpdateValues;
   };
@@ -166,8 +169,8 @@ export const runImport = async () => {
     return _data?.objectId && RepoParseObj.createWithoutData(_data.objectId);
   };
 
-  const isSameGroup = (datas, group) =>
-    datas?.some(d => d?.index === group?.index && d?.path === group?.path);
+  const isSameGroup = (datas, repository) =>
+    datas?.some(d => d?.index === repository?.index && d?.path === repository?.path);
 
   const filterImportGroupData = datas =>
     datas?.reduce((prev, cur) => {
@@ -178,7 +181,8 @@ export const runImport = async () => {
       return prev;
     }, []);
 
-  const getGroupPath = group => `${group ?? ''}`?.split('/').filter(d => `${d}`.trim()) ?? [];
+  const getGroupPath = repository =>
+    `${repository ?? ''}`?.split('/').filter(d => `${d}`.trim()) ?? [];
 
   const getImportGroupData = () =>
     appFieldsData
@@ -274,11 +278,6 @@ export const runImport = async () => {
   const importCallBack = async () => {
     // 获取创建的事项数据
     const needUpdateValues = handleItemValues();
-    // 创建测试用例库数据
-    // 绑定用例库
-
-    // 创建测试用例数据
-    // const testManagerTestData = await createTestMangerTest();
 
     if (!group) {
       // 得到需要创建的用例库数据
@@ -298,15 +297,17 @@ export const runImport = async () => {
       await updateItemValue(needUpdateValues);
     } else {
       // 更新测试用例用例库数据
-      const taskQueue = needUpdateValues.map(item => {
-        return async () =>
-          updateItems(item.objectId, {
-            values: {
-              ...item.values,
-              r_test_manager_repository: group === 'root' ? '' : group,
-            },
-          });
-      });
+      const taskQueue = needUpdateValues
+        .filter(d => d.objectId)
+        .map(item => {
+          return async () =>
+            updateItems(item.objectId, {
+              values: {
+                ...item.values,
+                r_test_manager_repository: group === 'root' ? '' : group,
+              },
+            });
+        });
 
       await parallelLimit(taskQueue, 10);
     }
