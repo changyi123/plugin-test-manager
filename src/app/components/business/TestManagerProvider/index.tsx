@@ -143,7 +143,7 @@ const getOrBatchCreateTestEntities = async (
     const newList = list.slice(0, index).reverse();
 
     return newList.reduce((prev, cur) => {
-      if (cur?.[CREATE_ITEM_STORE_FIELD_KEY]?.repository) {
+      if (cur?.[CREATE_ITEM_STORE_FIELD_KEY]?.repository && !prev.repository) {
         prev = {
           repository: cur?.[CREATE_ITEM_STORE_FIELD_KEY]?.repository,
         };
