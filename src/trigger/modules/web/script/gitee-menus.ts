@@ -1,4 +1,4 @@
-import { TestConfigClassName } from '../../../../common/constant';
+// import { TestConfigClassName } from '../../../../common/constant';
 import { getParseQuery, getAppsData } from '@giteeteam/apps-team-api';
 
 const log = (msg, ...restArgs) => {
@@ -26,7 +26,7 @@ export const runGiteeMenus = async () => {
     sessionToken: global.sessionToken,
   };
 
-  const getGiteeMenusConfig = async (appId, workspaceKey) => {
+  const getGiteeMenusConfig = (appId, workspaceKey) => {
     const tenantKey = getTenantKey();
     const productPrefix = getProductPrefix();
 
@@ -47,36 +47,36 @@ export const runGiteeMenus = async () => {
     };
 
     // 获取测试管理空间配置
-    const testConfigQuery = getParseQuery(false, TestConfigClassName);
-    const testConfig = await testConfigQuery
-      .equalTo('workspaceKey', workspaceKey)
-      .select(['defectBoard', 'displayDefectBoard'])
-      .include('defectBoard')
-      .first(ParseBaseQueryOptions)
-      .then(item => item.toJSON());
+    // const testConfigQuery = getParseQuery(false, TestConfigClassName);
+    // const testConfig = await testConfigQuery
+    //   .equalTo('workspaceKey', workspaceKey)
+    //   .select(['defectBoard', 'displayDefectBoard'])
+    //   .include('defectBoard')
+    //   .first(ParseBaseQueryOptions)
+    //   .then(item => item.toJSON());
 
-    const boardMenus = [];
+    // const boardMenus = [];
 
-    if (testConfig?.defectBoard) {
-      const defectBoardData = testConfig?.defectBoard;
+    // if (testConfig?.defectBoard) {
+    //   const defectBoardData = testConfig?.defectBoard;
 
-      boardMenus.push({
-        title: '缺陷管理',
-        key: `${defectBoardData.key}-${workspaceKey}`,
-        icon: 'iconNavi-icafeplan',
-        url: `${giteeRoutePrefix}/boards/${defectBoardData.key}`,
-        type: 'IFRAME',
-        openWindow: '0',
-        iframeUrl: `${proximaRoutePrefix}/boards/${defectBoardData.key}?hiddenSider=true&hiddenHeader=true`,
-      });
-    }
+    //   boardMenus.push({
+    //     title: '缺陷管理',
+    //     key: `${defectBoardData.key}-${workspaceKey}`,
+    //     icon: 'iconNavi-icafeplan',
+    //     url: `${giteeRoutePrefix}/boards/${defectBoardData.key}`,
+    //     type: 'IFRAME',
+    //     openWindow: '0',
+    //     iframeUrl: `${proximaRoutePrefix}/boards/${defectBoardData.key}?hiddenSider=true&hiddenHeader=true`,
+    //   });
+    // }
 
     const menus = [
       { name: '测试计划', pageKey: 'test-plan' },
       { name: '测试用例库', pageKey: 'test-repository' },
     ].map(generateGiteeMenu);
 
-    return menus.concat(boardMenus);
+    return menus;
   };
 
   // const appQuery = getParseQuery(false, 'App');
