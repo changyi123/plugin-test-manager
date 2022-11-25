@@ -445,7 +445,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       title: '测试执行状态',
       shouldCellUpdate: (record, prevRecord) =>
         !isEqual(record.designee, prevRecord.designee) ||
-        !isEqual(record.status, prevRecord.status),
+        !isEqual(record.runStatus, prevRecord.runStatus),
       width: 150,
       render(_, record) {
         const { result: enabled } = canExecuteTestRun(record.designee);
