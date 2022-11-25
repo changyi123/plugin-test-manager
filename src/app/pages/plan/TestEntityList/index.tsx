@@ -139,7 +139,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       setTableLoading(true);
 
       // 查询测试用例
-      const { list: testDeatils, total } = await getTestEntityByQuery({
+      const { list: testDetails, total } = await getTestEntityByQuery({
         query: {
           workspaceKey: workspaceKey,
           type: TestType.Case,
@@ -154,13 +154,14 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       const stats = await getTestCaseStats({
         planId: selectedTestPlan.objectId,
         select: ['runCount', 'caseLatestStatus'],
-        caseIds: testDeatils.map(d => d.objectId),
+        caseIds: testDetails.map(d => d.objectId),
       });
 
-      const list = testDeatils.map(detail => ({
+      const list = testDetails.map(detail => ({
         ...detail,
         selectedTestPlanId: selectedTestPlan.objectId,
         ...(stats?.[detail.objectId] ?? {}),
+        status: detail.workflowStatus,
       }));
 
       setTableLoading(false);
@@ -249,6 +250,9 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
             repository: item?.repository,
             item,
             key: item.key,
+            values: item.values,
+            status: item.workflowStatus,
+            runStatus: d.status,
           };
         }),
         total,
@@ -449,7 +453,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           <StatusBadge
             useRootContainer
             readonly={!enabled}
-            status={record.status}
+            status={record.runStatus}
             onStatusChange={status => handleTestRunStatusChange(record, status)}
           />
         );
@@ -748,6 +752,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
             'createdBy',
             'createdAt',
           ]}
+          privateColumnKey={['repositoryGroup', 'caseLatestStatus', 'runCount']}
           rowKey="objectId"
           columns={allTestColumns}
           name={`${workspaceKey}_AllTestEntity`}
@@ -777,6 +782,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
             'createdAt',
             'executor',
           ]}
+          privateColumnKey={['repositoryGroup', 'runStatus', 'executor', 'designee']}
           rowKey="objectId"
           columns={executionColumns}
           name={`${workspaceKey}_TestExecutionList`}

@@ -3,7 +3,13 @@ import React from 'react';
 import { uniq } from 'lodash';
 import { useReactive, useDrop } from 'ahooks';
 import { TestType } from '@/lib/constants';
-import { hasArrayItem, getRootContainer } from '@/lib/utils/helper';
+import {
+  hasArrayItem,
+  getRootContainer,
+  getProximaBasePath,
+  getTenantKey,
+  inIframe,
+} from '@/lib/utils/helper';
 import { createFolder, updateFolders, deleteFolder } from '@/lib/api/repository';
 import { useTestConfig, useBaseAction } from '@/lib/hooks/useContext';
 import { traverseTreeNodes } from '../util';
@@ -303,6 +309,17 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         handleSelect([node.key], {
           node: node,
         });
+      } else if (actionKey === MenuKey.importTest) {
+        // iframe 中跳转链接增加隐藏 header 和 sider 属性
+        const appendedQueryString = inIframe() ? '&hiddenSider=true&hiddenHeader=true' : '';
+        const baseUrl = getProximaBasePath() ? `${getProximaBasePath()}` : '/';
+        // 跳转到导入页面
+        const href = `${baseUrl}/${getTenantKey()}/workspaces/${workspace.key}/import/${
+          workspace.objectId
+        }?app=test_manager&disableToggleWorkspace${appendedQueryString}&group=${
+          node.key
+        }&excludeFieldsKey=group`;
+        window.open(href);
       }
 
       const NeedRefreshActionKeys = [MenuKey.renameFolder];
@@ -312,12 +329,13 @@ const FolderTree: React.FC<FolderTreeProps> = ({
     },
     [
       treeFn,
-      handleSelect,
       workspace?.key,
+      workspace?.objectId,
+      state?.expandedKeys,
+      onFolderTreeChange,
+      handleSelect,
       expandSubFolder,
       createItemUseModal,
-      onFolderTreeChange,
-      state.expandedKeys,
     ],
   );
 

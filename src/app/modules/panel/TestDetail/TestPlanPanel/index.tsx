@@ -127,7 +127,7 @@ const Plan = () => {
           const { item } = await createItemUseModal({
             type: TestType.Plan,
             extraData: {
-              noBatch: true,
+              isDisableCreateNext: true,
             },
           });
 

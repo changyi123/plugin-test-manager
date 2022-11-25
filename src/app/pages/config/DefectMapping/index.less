@@ -1,9 +1,17 @@
 @import '@/index.global.less';
 
 .drop-container {
+  position: relative;
   display: flex;
   background-color: rgb(240, 240, 240);
   height: ~'calc(100% - 82px)';
+
+  .check {
+    position: absolute;
+    content: '';
+    right: -2px;
+    top: -32px;
+  }
 }
 
 .drop-box {

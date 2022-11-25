@@ -5,7 +5,7 @@ import {
   isUseOptionLabel,
   isUseOptionValue,
 } from '@/lib/constants';
-import { getEndOfDayUnix, getStartOfDayUnix, DateTimestampRang } from './date';
+import { DateTimestampRang } from './date';
 import matchBracket from 'find-matching-bracket';
 import { User, Test, Repository } from '@/lib/models';
 import { RepositoryModel, SelectorNullValue } from '@/lib/constants';
@@ -136,7 +136,8 @@ export class IQLBuilder {
 }
 
 export interface SelectCase {
-  isExtend: boolean; // 标记是否为外部字段
+  type?: string;
+  fieldType?: string;
   component: string;
   expression: string;
   fieldId: string;
@@ -154,13 +155,17 @@ export type TestManageSelectors = Selectors;
 
 export type SearchSelectors = [ItemSelectors, TestManageSelectors];
 
+export type IQLCase = IQL;
+
+export type IQLCaseFormatter = (selector: SelectCase, prefix?: string) => IQLCase;
+
 export const replaceSingleQuote = (val: string): string => {
   // 将' 转义成 \’
   const reuslt = val.replace(/'/g, "\\'");
   return reuslt;
 };
 
-type IQLCaseFormater = (selector: SelectCase) => IQL;
+// type IQLCaseFormater = (selector: SelectCase) => IQL;
 
 type OrderType = 'desc' | 'asc';
 
@@ -168,6 +173,11 @@ type OrderBy = {
   fieldName: string;
   orderType: OrderType;
 };
+
+const isCollection = type => FIELD_TYPE_KEY_MAPPINGS.FieldCollection === type;
+
+export const getFieldCollectionRealValue = v =>
+  isDate(v?.type) ? !!v?.value : !!v?.expression && !!v?.value;
 
 // 判断是否是日期组件
 export const isDate = (key: string): boolean => {
@@ -178,16 +188,42 @@ export const isDate = (key: string): boolean => {
   ].includes(key);
 };
 
+const getCollectionValue = value => {
+  if (Array.isArray(value)) {
+    return JSON.stringify(value.map(v => v?.username || v));
+  }
+  return `'${value}'`;
+};
+
+// 字段集合 to iql: [xxx] => x and x and x
+const toIqlCollection = (selector: SelectCase) => {
+  const { value, fieldName } = selector;
+  return (value as SelectCase[])
+    ?.filter(getFieldCollectionRealValue)
+    ?.map(item => {
+      const condition = getCaseCondition(item);
+      const isDateType = isDate(item.type);
+      if (isDateType) return toIqlDateCase(item, fieldName);
+      const _value = getCollectionValue(item.value);
+      const iql = `'${fieldName}'.${item.fieldName} ${condition} ${_value}`;
+      return iql;
+    })
+    ?.filter(Boolean)
+    ?.join(IQL_CONDITION._AND_);
+};
+
 // 针对 Date 类型单独处理
-const toIqlDateCase: IQLCaseFormater = selector => {
+const toIqlDateCase: IQLCaseFormatter = (selector, prefix) => {
   const { fieldName, value } = selector;
   const [startTime, endTime] = (value || []) as DateTimestampRang;
-  const startDayTime = getStartOfDayUnix(startTime);
-  const endDayTime = getEndOfDayUnix(endTime);
+  // TODO iql不支持week查询
+  const startDate = typeof startTime === 'number' ? startTime : `'${startTime}'`;
+  const endDate = typeof endTime === 'number' ? endTime : `'${endTime}'`;
   return [
-    startDayTime && `${fieldName} ${IQL_CONDITION.GREATER_THAN_EQUAL} ${startDayTime}`,
-    endDayTime && `${fieldName} ${IQL_CONDITION.LESS_THAN_EQUAL} ${endDayTime}`,
+    startDate && `${fieldName} ${IQL_CONDITION.GREATER_THAN_EQUAL} ${startDate}`,
+    endDate && `${fieldName} ${IQL_CONDITION.LESS_THAN_EQUAL} ${endDate}`,
   ]
+    .map(item => (prefix ? `'${prefix}'.${item}` : item))
     .filter(Boolean)
     .join(IQL_CONDITION._AND_);
 };
@@ -225,7 +261,7 @@ const getComponentValue: (selector: SelectCase) => componentValueProps = selecto
   }
 
   // 用户类型的 需要使用 用户名而非id
-  if (['User', 'createdBy', 'updatedBy', 'Assignee'].includes(component)) {
+  if (['User', 'createdBy', 'updatedBy', 'Assignee', 'Reporter'].includes(component)) {
     const usernames = (value as { username: string }[]).map(user => {
       const name = user.username;
       // TODO，对函数的字符串处理
@@ -258,6 +294,14 @@ const getComponentValue: (selector: SelectCase) => componentValueProps = selecto
     }
     return { curIqlValue: `'${value?.[0]?.value}'`, nullIql };
   }
+  if ([FIELD_TYPE_KEY_MAPPINGS.DataQuote].includes(component)) {
+    return {
+      curIqlValue: JSON.stringify(
+        (value as any[]).reduce((pre, item) => pre.concat([item.key, item.name]), []),
+      ),
+      nullIql,
+    };
+  }
 
   return {
     curIqlValue: Array.isArray(value) ? `${JSON.stringify(value)}` : `'${value.toString()}'`,
@@ -266,7 +310,7 @@ const getComponentValue: (selector: SelectCase) => componentValueProps = selecto
 };
 
 // iql 判断条件转换
-const getCaseCondition: IQLCaseFormater = selector => {
+const getCaseCondition: IQLCaseFormatter = selector => {
   const empty = '';
   const { expression, component } = selector;
   if (isDate(component)) return IQL_CONDITION.CONTAIN;
@@ -283,8 +327,9 @@ const getCaseCondition: IQLCaseFormater = selector => {
   if (expression.includes('_Empty')) return IQL_CONDITION.IS;
   return empty;
 };
+
 // iql 判断条件转换
-const getNullCaseCondition: IQLCaseFormater = selector => {
+const getNullCaseCondition: IQLCaseFormatter = selector => {
   const empty = '';
   const { expression } = selector;
   if (!expression) return empty;
@@ -344,14 +389,20 @@ const toIqlName = (selector: SelectCase) => {
 };
 
 // iql语句转换
-const toIqlCase: IQLCaseFormater = selector => {
+const toIqlCase: IQLCaseFormatter = selector => {
   const { fieldName, fieldId, value, expression, component } = selector;
   const isDateType = isDate(component);
   const isNameType = fieldId === 'name';
-  if (isNil(value) || (isNil(expression) && !isDateType) || (isArray(value) && !value?.length))
+  const isCollectionType = isCollection(component);
+  if (
+    isNil(value) ||
+    (isNil(expression) && !isDateType && !isCollectionType) ||
+    (isArray(value) && !value?.length)
+  )
     return null;
   if (isDateType) return toIqlDateCase(selector);
   if (isNameType) return toIqlName(selector);
+  if (isCollectionType) return toIqlCollection(selector);
   return getCurIqlValue(fieldName, selector);
 };
 
@@ -368,6 +419,7 @@ export const selectorToIql = (selectors: Selectors): IQL => {
   const orderSelector = selectors[IQL_CONDITION.ORDER_BY];
   const _selectors = omit(selectors, IQL_CONDITION.ORDER_BY);
   let str = Object.keys(_selectors)
+    .sort()
     .map(selectorKey => {
       const selector = selectors[selectorKey];
       if (!selector) return;

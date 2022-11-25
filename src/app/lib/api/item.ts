@@ -8,7 +8,7 @@ import {
   RepositoryTreePayload,
 } from 'common/types/api';
 import { merge } from 'lodash';
-import { RepositoryModel, TestType } from '../constants';
+import { RepositoryModel, SYSTEM_FIELD, TestType } from '../constants';
 import { BaseTestEntity, CopyTestCasePlayload, Status, TestEntity } from '../types/Test';
 import { getPluginWebTriggerBaseUrl } from '../utils/helper';
 import { compactStepModel } from '../utils/modelTransfer';
@@ -20,7 +20,8 @@ const pluginWebTriggerBaseUrl = getPluginWebTriggerBaseUrl();
 // 处理筛选器数据
 const handleSelector = selector => {
   if (!selector) return null;
-  const testSelector = Object.entries(selector?.[1] ?? {}).reduce(
+  const [systemSelector, customSelector] = selector;
+  const testSelector = Object.entries(customSelector ?? {}).reduce(
     (prev: Record<string, any>, [filed, value]: any[]) => {
       if (RepositoryModel === filed) {
         prev[filed] = {
@@ -39,8 +40,26 @@ const handleSelector = selector => {
     {},
   );
 
+  const _systemSelector = Object.entries(systemSelector ?? {}).reduce(
+    (prev: Record<string, any>, [filed, value]: any[]) => {
+      if (value.key === SYSTEM_FIELD.Status) {
+        prev[filed] = {
+          ...value,
+          value: value?.value?.map(d => d.value),
+        };
+      } else {
+        prev[filed] = {
+          ...value,
+        };
+      }
+
+      return prev;
+    },
+    {},
+  );
+
   return {
-    ...(selector?.[0] ?? {}),
+    ..._systemSelector,
     ...testSelector,
   };
 };

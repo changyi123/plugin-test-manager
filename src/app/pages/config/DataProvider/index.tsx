@@ -35,11 +35,18 @@ const useConfigBootstrap = globalConfig => {
     async () => {
       const isolatedSystem = Boolean(globalConfig?.extra?.isolatedSystem);
       // 需要创建的测试执行配置
-      const needCreatedTestConfigs = allWorkspaceKeys
-        .filter(key => testConfigs.every(config => config.workspaceKey !== key))
-        .map(
-          workspaceKey => new TestConfig(generateDefaultTestConfig(workspaceKey, isolatedSystem)),
-        );
+      // const needCreatedTestConfigs = allWorkspaces
+      //   .filter(workspace => testConfigs.every(config => config.workspaceKey !== workspace.key))
+      //   .map(workspace => new TestConfig(generateDefaultTestConfig(workspace, isolatedSystem)));
+
+      const needCreatedTestConfigs = await Promise.all(
+        allWorkspaces
+          .filter(workspace => testConfigs.every(config => config.workspaceKey !== workspace.key))
+          .map(async workspace => {
+            const testConfigInfo = await generateDefaultTestConfig(workspace, isolatedSystem);
+            return new TestConfig(testConfigInfo);
+          }),
+      );
 
       if (needCreatedTestConfigs.length) {
         await Parse.Object.saveAll(needCreatedTestConfigs);

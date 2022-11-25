@@ -1,3 +1,4 @@
+// import { TestConfigClassName } from '../../../../common/constant';
 import { getParseQuery, getAppsData } from '@giteeteam/apps-team-api';
 
 const log = (msg, ...restArgs) => {
@@ -29,11 +30,11 @@ export const runGiteeMenus = async () => {
     const tenantKey = getTenantKey();
     const productPrefix = getProductPrefix();
 
-    // 生成菜单
-    const generateGiteeMenu = ({ name, pageKey }) => {
-      const proximaRoutePrefix = `/${productPrefix}/${tenantKey}/workspaces/${workspaceKey}`;
-      const giteeRoutePrefix = `/${tenantKey}/${workspaceKey}/proxima`;
+    const proximaRoutePrefix = `/${productPrefix}/${tenantKey}/workspaces/${workspaceKey}`;
+    const giteeRoutePrefix = `/${tenantKey}/${workspaceKey}/proxima`;
 
+    // 生成测试管理插件菜单
+    const generateGiteeMenu = ({ name, pageKey }) => {
       return {
         title: name,
         key: `${pageKey}-${workspaceKey}`,
@@ -44,6 +45,31 @@ export const runGiteeMenus = async () => {
         iframeUrl: `${proximaRoutePrefix}/plugin/${APP_KEY}_${appId}_${pageKey}?hiddenSider=true&hiddenHeader=true`,
       };
     };
+
+    // 获取测试管理空间配置
+    // const testConfigQuery = getParseQuery(false, TestConfigClassName);
+    // const testConfig = await testConfigQuery
+    //   .equalTo('workspaceKey', workspaceKey)
+    //   .select(['defectBoard', 'displayDefectBoard'])
+    //   .include('defectBoard')
+    //   .first(ParseBaseQueryOptions)
+    //   .then(item => item.toJSON());
+
+    // const boardMenus = [];
+
+    // if (testConfig?.defectBoard) {
+    //   const defectBoardData = testConfig?.defectBoard;
+
+    //   boardMenus.push({
+    //     title: '缺陷管理',
+    //     key: `${defectBoardData.key}-${workspaceKey}`,
+    //     icon: 'iconNavi-icafeplan',
+    //     url: `${giteeRoutePrefix}/boards/${defectBoardData.key}`,
+    //     type: 'IFRAME',
+    //     openWindow: '0',
+    //     iframeUrl: `${proximaRoutePrefix}/boards/${defectBoardData.key}?hiddenSider=true&hiddenHeader=true`,
+    //   });
+    // }
 
     const menus = [
       { name: '测试计划', pageKey: 'test-plan' },
