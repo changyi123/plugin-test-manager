@@ -39,10 +39,12 @@ export const runGiteeMenus = async () => {
         title: name,
         key: `${pageKey}-${workspaceKey}`,
         icon: 'iconNavi-icafeplan',
-        url: `${giteeRoutePrefix}/plugin/${APP_KEY}_${appId}_${pageKey}`,
+        // url: `${giteeRoutePrefix}/plugin/${APP_KEY}_${appId}_${pageKey}`,
+        url: `${giteeRoutePrefix}/plugin/${APP_KEY}_${pageKey}`,
         type: 'IFRAME',
         openWindow: '0',
-        iframeUrl: `${proximaRoutePrefix}/plugin/${APP_KEY}_${appId}_${pageKey}?hiddenSider=true&hiddenHeader=true`,
+        // iframeUrl: `${proximaRoutePrefix}/plugin/${APP_KEY}_${appId}_${pageKey}?hiddenSider=true&hiddenHeader=true`,
+        iframeUrl: `${proximaRoutePrefix}/plugin/${APP_KEY}_${pageKey}?hiddenSider=true&hiddenHeader=true`,
       };
     };
 
