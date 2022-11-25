@@ -54,8 +54,9 @@ export const runShenWanScript = async () => {
     fields: ['id', 'workspace'],
   });
 
+  // 事项非测试计划不进行工作流脚本校验
   if (!data) {
-    return { code: -1, message: `测试计划不存在` };
+    return { code: 0 };
   }
 
   // 申万限制部分空间工作流校验

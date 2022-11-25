@@ -266,7 +266,7 @@ const getComponentValue: (selector: SelectCase) => componentValueProps = selecto
       const name = user.username;
       // TODO，对函数的字符串处理
       if (name === 'currentUser') {
-        return `currentUser()`;
+        return window.currentUser?.username;
       } else {
         return name;
       }
