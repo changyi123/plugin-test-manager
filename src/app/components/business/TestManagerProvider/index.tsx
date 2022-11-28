@@ -141,7 +141,7 @@ const getOrBatchCreateTestEntities = async (
     const newList = list.slice(0, index).reverse();
 
     return newList.reduce((prev, cur) => {
-      if (cur?.[CREATE_ITEM_STORE_FIELD_KEY]?.[field]) {
+      if (cur?.[CREATE_ITEM_STORE_FIELD_KEY]?.[field] && !prev?.[field]) {
         prev = {
           [field]: cur?.[CREATE_ITEM_STORE_FIELD_KEY]?.[field],
         };
