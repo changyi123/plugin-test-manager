@@ -12,6 +12,7 @@ export enum MenuKey {
   createTest = 'createTest',
   deleteTest = 'deleteTest',
   viewTest = 'viewTest',
+  importTest = 'importTest',
 
   addTestCaseToTestSet = 'addTestCaseToTestSet',
   addTestCaseToTestPlan = 'addTestCaseToTestPlan',
@@ -42,6 +43,10 @@ const FolderTreeMenus = [
   {
     title: '新建测试用例',
     key: MenuKey.createTest,
+  },
+  {
+    title: '导入用例',
+    key: MenuKey.importTest,
   },
 ];
 

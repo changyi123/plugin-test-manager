@@ -106,7 +106,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
 
       return {
         // 加拖拽依赖的 folderKey 数据
-        list: data.map(item => ({ ...item, folderKey })),
+        list: data.map(item => ({ ...item, folderKey, status: item.workflowStatus })),
         total,
       };
     },

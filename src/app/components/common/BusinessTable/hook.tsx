@@ -7,7 +7,7 @@ import { getCurrentUserSetting } from '@/lib/api/userSetting';
 import { useRequest } from 'ahooks';
 import { getCustomFields } from '@/lib/api/proxima';
 
-const TestIncludeFiledKeys = ['status'];
+// const TestIncludeFiledKeys = ['status'];
 
 export const useTestTypeScreenFieldKeys = ({
   workspaceKey,
@@ -26,8 +26,8 @@ export const useTestTypeScreenFieldKeys = ({
   );
   const itemTypeKey = itemTypeMap?.[testType];
   // 除测试计划外其他测试类型需要隐藏状态字段
-  const shouldHiddenFieldKeys = testType !== TestType.Plan ? TestIncludeFiledKeys : [];
-  return useUsedScreenFieldKeys(workspaceKey, itemTypeKey, shouldHiddenFieldKeys);
+  // const shouldHiddenFieldKeys = testType !== TestType.Plan ? TestIncludeFiledKeys : [];
+  return useUsedScreenFieldKeys(workspaceKey, itemTypeKey, []);
 };
 
 export const useGetTableFilterFields = ({

@@ -100,16 +100,6 @@ const TableFields: React.FC = () => {
       title: '计划名称',
     },
     {
-      key: 'caseStatus',
-      title: '执行通过率',
-      width: 80,
-    },
-    {
-      key: 'caseCount',
-      title: '规划用例数',
-      width: 80,
-    },
-    {
       title: null,
       key: 'action',
       isSystem: true,
@@ -125,11 +115,6 @@ const TableFields: React.FC = () => {
       fixed: true,
       title: '标题',
       isSystem: true,
-    },
-    {
-      key: 'repositoryGroup',
-      title: '所属模块',
-      width: 60,
     },
     {
       title: null,

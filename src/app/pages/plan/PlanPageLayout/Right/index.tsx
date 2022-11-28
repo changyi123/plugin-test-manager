@@ -5,23 +5,17 @@ import RepoDropDown from '@/pages/repository/RepoDropDown';
 import TestEntitySelectorModal, {
   ActionType as ModelActionType,
 } from '@/components/business/TestEntitySelectorModal';
-import {
-  extendFields,
-  RepositoryModel,
-  SYSTEM_FIELD,
-  TestLinkType,
-  TestType,
-  SystemIncludeFieldKeys,
-} from '@/lib/constants';
+import { extendFields, RepositoryModel, TestLinkType, TestType } from '@/lib/constants';
 import { useUpdateEffect } from 'ahooks';
 import { usePageContext } from '../../hook';
 import { useSetTableHeight } from './hooks';
 import ExecutionStatus from '../ExecutionStatus';
 import TestEntityList from '../../TestEntityList';
 import { batchCreateTestRun, updateTestEntity } from '@/lib/api/item';
+import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/hook';
+import { getFilterFields } from '@/components/common/FilterSearch/utils';
 
 import cx from './index.less';
-import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/hook';
 
 const options = [
   {
@@ -92,10 +86,6 @@ const Right: React.FC<RightProps> = props => {
     testType: TestType.Case,
     workspaceKey,
   });
-
-  const systemFields = Object.values(SYSTEM_FIELD).filter(
-    field => !SystemIncludeFieldKeys.includes(field),
-  );
 
   useUpdateEffect(() => {
     if (activedType && selectedExecution?.objectId) {
@@ -241,7 +231,7 @@ const Right: React.FC<RightProps> = props => {
           onSearch={setSearchParams}
           className={cx('plan-page-layout-search')}
           extendFields={filterSearchExtendFieldsProps}
-          fields={testDetailFieldKeys?.filter(field => !systemFields.includes(field))}
+          fields={getFilterFields(testDetailFieldKeys)}
           testType={TestType.Case}
         />
       </div>

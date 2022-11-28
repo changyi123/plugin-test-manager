@@ -80,6 +80,8 @@ export const SYSTEM_FIELD = {
   Priority: 'priority', // 优先级
 };
 
+export const ICLUDE_SYSTEM_FIELD = [SYSTEM_FIELD.Status];
+
 // FieldType字段映射, 对应FieldType表的key字段
 export const FIELD_TYPE_KEY_MAPPINGS = {
   // FieldType的custom field
