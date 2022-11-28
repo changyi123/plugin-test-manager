@@ -274,7 +274,7 @@ const initialScriptRunner = async () => {
   await saveAllObject([globalTestConfig]);
 
   // 创建空间级配置不存在的关联缺陷管理面板
-  // await createNotExistedTestDefectBoard();
+  await createNotExistedTestDefectBoard();
 };
 
 export const runInitialScript = async () => {
