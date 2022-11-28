@@ -31,6 +31,7 @@ type ColumnSettingProps = TitleCellOption & {
   name?: string;
   className?: string;
   defaultColumnKey?: string[];
+  privateColumnKey?: string[];
   additionalColumns?: ColumnDuckTyping[];
   onTableColumnChange?: (column: ColumnDuckTyping) => void;
   handleFilterField?: (val: {
@@ -49,6 +50,7 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
     className,
     titleCellOption,
     defaultColumnKey,
+    privateColumnKey,
     handleFilterField,
     additionalColumns = [],
     onTableColumnChange = noop,
@@ -110,7 +112,7 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
         setStorageColumnKeys([...new Set(tableFields ?? defaultColumnKey)]);
       } else {
         if (!storageColumnKeys?.length && tableFields?.length) {
-          setStorageColumnKeys([...new Set(tableFields)]);
+          setStorageColumnKeys([...new Set(tableFields?.concat(privateColumnKey ?? []))]);
         }
       }
     }
@@ -120,6 +122,7 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
     titleCellOption?.isSettingPage,
     titleCellOption?.isCheckedGlobalConfig,
     JSON.stringify(defaultColumnKey),
+    JSON.stringify(privateColumnKey),
     JSON.stringify(tableFields),
   ]);
 

@@ -41,16 +41,9 @@ const TableFields: React.FC = () => {
     };
   }, [setShowAllWorkspaceCheck]);
 
-  const defaultPlanColumnKey = [
-    'status',
-    'caseCount',
-    'assignee',
-    'createdAt',
-    'createdBy',
-    'caseStatus',
-  ];
+  const defaultPlanColumnKey = ['status', 'assignee', 'createdAt', 'createdBy'];
 
-  const defaultCaseColumnKey = ['key', 'repositoryGroup', 'createdBy', 'createdAt'];
+  const defaultCaseColumnKey = ['key', 'createdBy', 'createdAt'];
 
   const saveConfig = useCallback(async () => {
     setLoading(true);
