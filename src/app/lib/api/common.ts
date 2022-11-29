@@ -745,7 +745,7 @@ export const getTestConfig = async (params: {
   const configData = config?.toJSON();
 
   const storageConfigData = JSON.stringify(configData);
-  if (configData.global) {
+  if (configData?.global) {
     localStorage.setItem(GlobalConfigStorageKey, storageConfigData);
   } else {
     localStorage.setItem(CurrentWorkspaceConfigStorageKey, storageConfigData);
