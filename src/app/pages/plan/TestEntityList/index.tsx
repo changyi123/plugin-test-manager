@@ -28,6 +28,7 @@ import { isEmpty, isEqual } from 'lodash';
 import { useTestRunActionAuth, useCanExecuteTestRunIdSequence } from '@/lib/hooks/useTest';
 import { getCurrentUserSetting, saveUserSetting } from '@/lib/api/userSetting';
 import { useCurrentUser } from '@/lib/api/user';
+import createProximaSdk from '@projectproxima/proxima-sdk-js';
 
 import cx from './index.less';
 
@@ -60,6 +61,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     mutateStatusEvent,
     tableSelectionToggleEvent,
   } = usePageContext();
+  const proxima = createProximaSdk();
   const actionRef = React.useRef<BusinessTableActionType>();
   const testRunModalActionRef = React.useRef<TestRunModalActionType>();
   const userData = useUserCellUserDataProp(workspaceKey);
@@ -396,14 +398,13 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       // 删除测试执行
       await deleteTestEntity(testRunIds);
 
-      setTimeout(() => {
-        scopedTestDetailRefresh();
-        actionRef.current.resetSelectedRowKeys();
-        mutateStatusEvent.emit('refreshExecutionStatus');
-        notification.success({
-          message: `${testRunIds.length} 个用例执行被删除`,
-        });
-      }, 500);
+      scopedTestDetailRefresh();
+      actionRef.current.resetSelectedRowKeys();
+      mutateStatusEvent.emit('refreshExecutionStatus');
+      notification.success({
+        message: `${testRunIds.length} 个用例执行被删除`,
+      });
+      proxima.execute('refreshTestRunPanel');
     });
   });
 
@@ -642,7 +643,6 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
 
     const deleteTestRun = () => {
       const testRunIds = getTestRunIds();
-
       deleteTestRunByIds(testRunIds);
     };
 
