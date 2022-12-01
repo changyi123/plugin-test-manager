@@ -8,6 +8,7 @@ import {
 } from '@giteeteam/apps-team-api';
 
 import { TestConfigClassName } from '../../../common/constant';
+import { createChartGroups } from '../web/script/create-chart-groups';
 
 const ParseBaseQueryOptions = {
   sessionToken: global.sessionToken,
@@ -208,6 +209,40 @@ const createNotExistedTestDefectBoard = async () => {
   console.info('updatedTestConfigs', updatedTestConfigs);
 };
 
+// 新建测试统计报表
+const createNotExistedChartGroups = async () => {
+  const testConfigQuery = getParseQuery(false, TestConfigClassName);
+
+  const notExistedDefectBoardConfigs = await testConfigQuery
+    .doesNotExist('chartGroups')
+    .findAll(ParseBaseQueryOptions);
+
+  const workspaceKeys = notExistedDefectBoardConfigs
+    .map(config => config.get('workspaceKey'))
+    .filter(Boolean);
+
+  if (workspaceKeys?.length) {
+    const chartGroupMapValues = await createChartGroups(workspaceKeys);
+
+    const testConfigObjects = notExistedDefectBoardConfigs.map(testConfig => {
+      const workspaceKey = testConfig.get('workspaceKey');
+
+      const chartGroupMapValue = chartGroupMapValues.find(
+        group => (group.workspaceKey = workspaceKey),
+      );
+
+      testConfig.set({
+        chartGroups: chartGroupMapValue.chartGroups,
+      });
+
+      return testConfig;
+    });
+
+    const updatedTestConfigs = await saveAllObject(testConfigObjects);
+    console.info('updatedTestConfigs', updatedTestConfigs);
+  }
+};
+
 const initialScriptRunner = async () => {
   const APP_KEY = global.appKey ?? 'test_manager';
 
@@ -274,7 +309,10 @@ const initialScriptRunner = async () => {
   await saveAllObject([globalTestConfig]);
 
   // 创建空间级配置不存在的关联缺陷管理面板
-  await createNotExistedTestDefectBoard();
+  // await createNotExistedTestDefectBoard();
+
+  // 创建空间级配置不存在的测试统计报表
+  await createNotExistedChartGroups();
 };
 
 export const runInitialScript = async () => {

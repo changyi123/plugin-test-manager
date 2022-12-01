@@ -57,57 +57,82 @@ const needToCreateChartGroupInfo = {
   //   },
 };
 
-const createCharGroup = async (workspace, data, order?: number) => {
+const createCharGroup = data => {
   const chartGroupObject = getParseObject(false, 'ChartGroup');
-
-  chartGroupObject.set({
-    ...data,
-    workspace,
-    order,
-  });
-  const [parseObject] = await saveAllObject([chartGroupObject]);
-
-  return parseObject;
+  chartGroupObject.set(data);
+  return chartGroupObject;
 };
 
 // name，option，chartGroupId，view
-const createChart = async props => {
+const createChart = props => {
   const chartObject = getParseObject(false, 'Chart');
   chartObject.set({
     ...props,
     option: JSON.parse(props.option),
   });
-  const [parseObject] = await saveAllObject([chartObject]);
-
-  return parseObject;
+  return chartObject;
 };
 
 // 创建 ChartGroup 和 Chart 脚本
-export const createCharGroups = async workspaceKey => {
-  const needToCreateChartGroups = Promise.all(
-    Object.entries(needToCreateChartGroupInfo).map(async ([field, data], index) => {
+export const createChartGroups = async workspaceKeys => {
+  const chartGroupInfo = await Promise.all(
+    workspaceKeys.map(async workspaceKey => {
+      // 获取当前空间信息
       const workspace = await getData(false, 'Workspace', {
         workspaceKey,
       });
-      const chartGroup = await createCharGroup(workspace, data, index);
+      const chartGroupsData = Object.values(needToCreateChartGroupInfo);
 
-      const charts = Promise.all(
-        data.chart.map(async chart => {
-          return await createChart({
-            ...chart,
-            workspace,
-            chartGroup,
-          });
+      // 创建 chartGroup
+      const needToCreateChartGroups = chartGroupsData.map((data, index) =>
+        createCharGroup({
+          ...data.group,
+          workspace,
+          moduleKey: 'test-manager',
+          order: index + 1,
         }),
+      );
+      const chartGroups = await saveAllObject(needToCreateChartGroups);
+
+      // 创建 chart
+      const needToCreateChars = chartGroups
+        .map(group => {
+          const groupJson = group.toJSON();
+
+          return chartGroupsData
+            .find(data => data.group.name === groupJson.name)
+            ?.chart.map(chart =>
+              createChart({
+                ...chart,
+                workspace,
+                chartGroup: group,
+              }),
+            );
+        })
+        .flat();
+      const charts = await saveAllObject(needToCreateChars).then(items =>
+        items.map(item => item.toJSON()),
       );
 
       return {
-        key: field,
-        chartGroup,
-        charts,
+        workspaceKey,
+        chartGroups: chartGroups.reduce((prev, group) => {
+          const groupJson = group.toJSON();
+          const [fieldMapKey] = Object.entries(needToCreateChartGroupInfo).find(
+            ([_, data]) => data.group.name === groupJson.name,
+          );
+          prev[fieldMapKey] = {
+            chartGroup: groupJson.objectId,
+            charts: charts
+              .filter(chart => chart.chartGroup.objectId === groupJson.objectId)
+              .map(d => d.objectId),
+          };
+
+          return prev;
+        }, {}),
       };
     }),
   );
 
-  return needToCreateChartGroups;
+  return chartGroupInfo;
 };
