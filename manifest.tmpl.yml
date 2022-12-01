@@ -2,7 +2,7 @@ app:
   key: test_manager
   uuid: bf73e61c-e15a-4461-a1f7-f940c2009332
   name: test_manager
-  version: "3.1.0"
+  version: "2.10.0"
 modules:
   webtrigger:
     # TODO: Debug 使用，生产环境禁止调用西面的 trigger
@@ -53,7 +53,7 @@ modules:
       events:
         # 使用 update trigger 暂时替代
         # - proxima:app:install
-        - proxima:app:update
+        - proxima:app:upgrade
       function: test-manager-initial-script
     - key: test-manager-initial-script-install
       events:
