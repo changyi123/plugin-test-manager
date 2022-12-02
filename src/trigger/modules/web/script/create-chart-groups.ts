@@ -3,7 +3,6 @@ import { getData, saveAllObject, getParseObject } from '@giteeteam/apps-team-api
 const TestDefectChartGroup = {
   group: {
     name: '缺陷统计',
-    global: true,
   },
   chart: [
     // 1、缺陷状态分布
@@ -73,66 +72,64 @@ const createChart = props => {
   return chartObject;
 };
 
+const { workspaceKey } = global?.body ?? {};
+
 // 创建 ChartGroup 和 Chart 脚本
-export const createChartGroups = async workspaceKeys => {
-  const chartGroupInfo = await Promise.all(
-    workspaceKeys.map(async workspaceKey => {
-      // 获取当前空间信息
-      const workspace = await getData(false, 'Workspace', {
-        workspaceKey,
-      });
-      const chartGroupsData = Object.values(needToCreateChartGroupInfo);
+export const createChartGroups = async (key?: string) => {
+  const workspace = await getData(false, 'Workspace', {
+    key: key ?? workspaceKey,
+  });
+  const chartGroupsData = Object.values(needToCreateChartGroupInfo);
 
-      // 创建 chartGroup
-      const needToCreateChartGroups = chartGroupsData.map((data, index) =>
-        createCharGroup({
-          ...data.group,
-          workspace,
-          moduleKey: 'test-manager',
-          order: index + 1,
-        }),
-      );
-      const chartGroups = await saveAllObject(needToCreateChartGroups);
-
-      // 创建 chart
-      const needToCreateChars = chartGroups
-        .map(group => {
-          const groupJson = group.toJSON();
-
-          return chartGroupsData
-            .find(data => data.group.name === groupJson.name)
-            ?.chart.map(chart =>
-              createChart({
-                ...chart,
-                workspace,
-                chartGroup: group,
-              }),
-            );
-        })
-        .flat();
-      const charts = await saveAllObject(needToCreateChars).then(items =>
-        items.map(item => item.toJSON()),
-      );
-
-      return {
-        workspaceKey,
-        chartGroups: chartGroups.reduce((prev, group) => {
-          const groupJson = group.toJSON();
-          const [fieldMapKey] = Object.entries(needToCreateChartGroupInfo).find(
-            ([_, data]) => data.group.name === groupJson.name,
-          );
-          prev[fieldMapKey] = {
-            chartGroup: groupJson.objectId,
-            charts: charts
-              .filter(chart => chart.chartGroup.objectId === groupJson.objectId)
-              .map(d => d.objectId),
-          };
-
-          return prev;
-        }, {}),
-      };
+  // 创建 chartGroup
+  const needToCreateChartGroups = chartGroupsData.map((data, index) =>
+    createCharGroup({
+      ...data.group,
+      workspace,
+      moduleKey: 'test_manager',
+      order: index + 1,
+      disabledActions: ['add', 'delete', 'copy', 'favorite'],
     }),
   );
+  const chartGroups = await saveAllObject(needToCreateChartGroups);
 
-  return chartGroupInfo;
+  // 创建 chart
+  const needToCreateChars = chartGroups
+    .map(group => {
+      const groupJson = group.toJSON();
+
+      return chartGroupsData
+        .find(data => data.group.name === groupJson.name)
+        ?.chart.map(chart =>
+          createChart({
+            ...chart,
+            workspace,
+            chartGroup: group,
+          }),
+        );
+    })
+    .flat();
+  const charts = await saveAllObject(needToCreateChars).then(items =>
+    items.map(item => item.toJSON()),
+  );
+
+  return {
+    workspaceKey,
+    chartGroups: chartGroups.reduce((prev, group) => {
+      const groupJson = group.toJSON();
+      const [fieldMapKey] = Object.entries(needToCreateChartGroupInfo).find(
+        ([_, data]) => data.group.name === groupJson.name,
+      );
+      prev[fieldMapKey] = {
+        chartGroup: groupJson.objectId,
+        charts: charts
+          .filter(chart => chart.chartGroup.objectId === groupJson.objectId)
+          .map(d => d.objectId),
+      };
+
+      return prev;
+    }, {}),
+  };
+
+  // return chartGroupInfo;
 };

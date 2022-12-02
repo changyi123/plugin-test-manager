@@ -1,6 +1,6 @@
 import { TestType, BuiltinItemTypeMapping } from '@/lib/constants';
-import { createChartGroups } from '../../../trigger/web';
-// import { Board, Workspace } from '@/lib/models';
+import { getPluginWebTriggerBaseUrl } from '@/lib/utils/helper';
+import fetch from '@/lib/utils/fetch';
 
 /** 获取默认测试配置数据 */
 export const generateDefaultTestConfig = async (
@@ -20,7 +20,12 @@ export const generateDefaultTestConfig = async (
   //   hidden: true,
   // }).save();
 
-  const [chartGroupMapValue] = await createChartGroups([workspace.key]);
+  const chartGroupMapValue = await fetch.$post(
+    `${getPluginWebTriggerBaseUrl()}/create-chart-groups`,
+    {
+      workspaceKey: workspace.key,
+    },
+  );
 
   return {
     // displayDefectBoard: true,

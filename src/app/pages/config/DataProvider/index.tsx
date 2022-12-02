@@ -47,7 +47,6 @@ const useConfigBootstrap = globalConfig => {
             return new TestConfig(testConfigInfo);
           }),
       );
-
       if (needCreatedTestConfigs.length) {
         await Parse.Object.saveAll(needCreatedTestConfigs);
       }
