@@ -2,7 +2,7 @@ app:
   key: test_manager
   uuid: bf73e61c-e15a-4461-a1f7-f940c2009332
   name: test_manager
-  version: "2.9.0"
+  version: "3.1.0"
 modules:
   webtrigger:
     # TODO: Debug 使用，生产环境禁止调用西面的 trigger
@@ -15,6 +15,8 @@ modules:
       function: gitee-menus
     - key: huishang-script
       function: huishang-script
+    - key: shenwan-script
+      function: shenwan-script
     - key: report-stats
       function: report-stats
     - key: report-data-base
@@ -71,6 +73,8 @@ modules:
       timeout: 300000
     - key: huishang-script
       handler: web.runHuishangScript
+    - key: shenwan-script
+      handler: web.runShenWanScript
       # 测试报告统计数据
     - key: report-stats
       handler: web.requestReportStats

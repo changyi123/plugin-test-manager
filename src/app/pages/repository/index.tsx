@@ -10,13 +10,7 @@ import { useListener } from '@projectproxima/proxima-sdk-js';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
 import { useReactive, useRequest, useMemoizedFn } from 'ahooks';
 import TestDetailTable, { ActionType } from './TestDetailTable';
-import {
-  extendFields,
-  RepositoryModel,
-  SystemIncludeFieldKeys,
-  SYSTEM_FIELD,
-  TestType,
-} from '@/lib/constants';
+import { extendFields, RepositoryModel, TestType } from '@/lib/constants';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import TestManagerProvider from '@/components/business/TestManagerProvider';
 import { reverseTreeNodes, getTreeNodeByKey, traverseTreeNodes } from './util';
@@ -25,9 +19,10 @@ import { UNGROUPED_FOLDER_KEY } from './constant';
 import RepoDropDown from './RepoDropDown';
 import FilterSearch from '@/components/common/FilterSearch';
 import { getRepositoryTree, getTestEntityByQuery } from '@/lib/api/item';
+import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/hook';
+import { getFilterFields } from '@/components/common/FilterSearch/utils';
 
 import cx from './index.less';
-import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/hook';
 
 type GroupedMode = 'all' | 'current';
 
@@ -52,11 +47,6 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
     testType: TestType.Case,
     workspaceKey,
   });
-
-  const systemFields = Object.values(SYSTEM_FIELD).filter(
-    field => !SystemIncludeFieldKeys.includes(field),
-  );
-
   // 事项数据更新后刷新列表
   useListener('updateItemList', props => {
     if (props?.type === 'create') return;
@@ -262,7 +252,7 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
           <FilterSearch
             className={cx('filter-search-box')}
             onSearch={handleSelectorSearch}
-            fields={testDetailFieldKeys?.filter(field => !systemFields.includes(field))}
+            fields={getFilterFields(testDetailFieldKeys)}
             extendFields={extendFields.filter(field => field.key === RepositoryModel)}
             testType={TestType.Case}
           />

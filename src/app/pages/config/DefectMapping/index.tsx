@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { keyBy } from 'lodash';
-import { Button, message } from 'antd';
+import { Button, Checkbox, message } from 'antd';
 import { getAllItemTypes } from '@/lib/api/proxima';
 import { useDataContext, useCurrentTestConfig } from '../hooks';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
@@ -10,6 +10,7 @@ import { components } from 'proxima-sdk';
 const { ItemIcon } = components.Components.Common;
 
 import cx from './index.less';
+import { toPointer } from '@/lib/utils/helper';
 
 const ItemTypeDropBox = (props: {
   itemTypes: any[];
@@ -51,8 +52,14 @@ const DefectMapping = () => {
   const { workspace, globalConfig } = useDataContext();
   const workspaceKey = workspace?.key;
   const [defectsItemTypeKeys, setDefectsItemTypeKeys] = useSafeState([]);
-
   const testConfig = useCurrentTestConfig(workspaceKey);
+  const [checked, setChecked] = useSafeState(!!testConfig?.get('displayDefectBoard'));
+
+  React.useEffect(() => {
+    if (testConfig?.get('displayDefectBoard')) {
+      setChecked(testConfig?.get('displayDefectBoard'));
+    }
+  }, [setChecked, testConfig]);
 
   React.useEffect(() => {
     setDefectsItemTypeKeys(testConfig?.get('defectsMapping') ?? []);
@@ -91,16 +98,40 @@ const DefectMapping = () => {
     }
   };
 
-  const handleSave = () => {
-    testConfig.save({
+  const handleSave = useCallback(async () => {
+    const defectBoard = testConfig?.get('defectBoard');
+    const itemTypes = Object.values(data).filter(item => defectsItemTypeKeys.includes(item.key));
+    const notSameItemTypes = itemTypes?.filter(
+      d =>
+        !defectBoard
+          ?.get('itemTypes')
+          ?.map(i => i.objectId)
+          ?.includes(d.objectId),
+    )?.length;
+
+    // 关联的缺陷类型同步至面板配置
+    if (notSameItemTypes) {
+      const itemTypePointers = itemTypes.map(d => toPointer('ItemType', d.objectId));
+      defectBoard.set('iql', `'类型' in ${JSON.stringify(itemTypes.map(d => d.name))}`);
+      defectBoard.set('itemTypes', itemTypePointers);
+      await defectBoard.save();
+    }
+
+    // 空间配置 defectsMapping
+    await testConfig.save({
       defectsMapping: defectsItemTypeKeys,
+      displayDefectBoard: checked,
     });
+
     message.success('缺陷类型保存成功');
-  };
+  }, [checked, data, defectsItemTypeKeys, testConfig]);
 
   return (
     <>
       <div className={cx('drop-container')}>
+        <Checkbox className={cx('check')} checked={checked} onChange={() => setChecked(x => !x)}>
+          显示缺陷管理面板
+        </Checkbox>
         <div className={cx('drop-area')}>
           <h6>可用类型</h6>
           <ItemTypeDropBox

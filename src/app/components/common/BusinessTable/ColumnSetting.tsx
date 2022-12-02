@@ -32,6 +32,7 @@ type ColumnSettingProps = TitleCellOption & {
   name?: string;
   className?: string;
   defaultColumnKey?: string[];
+  privateColumnKey?: string[];
   additionalColumns?: ColumnDuckTyping[];
   onTableColumnChange?: (column: ColumnDuckTyping) => void;
   handleFilterField?: (val: {
@@ -50,6 +51,7 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
     className,
     titleCellOption,
     defaultColumnKey,
+    privateColumnKey,
     handleFilterField,
     additionalColumns = [],
     onTableColumnChange = noop,
@@ -103,9 +105,7 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
 
   const LOCAL_STORAGE_KEY = generateStorageKey(name, 'column-key');
 
-  const [storageColumnKeys, setStorageColumnKeys] = useLocalStorageState(LOCAL_STORAGE_KEY, {
-    defaultValue: null,
-  });
+  const [storageColumnKeys, setStorageColumnKeys] = useLocalStorageState(LOCAL_STORAGE_KEY);
 
   useEffect(() => {
     if (titleCellOption?.workspaceKey) {
@@ -113,7 +113,7 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
         setStorageColumnKeys([...new Set(tableFields ?? defaultColumnKey)]);
       } else {
         if (!storageColumnKeys?.length && tableFields?.length) {
-          setStorageColumnKeys([...new Set(tableFields)]);
+          setStorageColumnKeys([...new Set(tableFields?.concat(privateColumnKey ?? []))]);
         }
       }
     }
@@ -123,6 +123,7 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
     titleCellOption?.isSettingPage,
     titleCellOption?.isCheckedGlobalConfig,
     JSON.stringify(defaultColumnKey),
+    JSON.stringify(privateColumnKey),
     JSON.stringify(tableFields),
   ]);
 
@@ -181,7 +182,11 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
     const systemColumns = allColumns.filter(col => col.isSystem);
 
     const selectedColumns = systemColumns
-      .concat((storageColumnKeys ?? []).map(key => allColumns.find(col => col.key === key)))
+      .concat(
+        (storageColumnKeys ?? defaultColumnKey)?.map(key =>
+          allColumns.find(col => col.key === key),
+        ),
+      )
       .filter(Boolean);
 
     const filteredFixedColumns = selectedColumns.filter(col => !col.fixed);
@@ -197,10 +202,10 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
     if (tableColumns.length) {
       onTableColumnChange(tableColumns);
     }
-  }, [allColumns, storageColumnKeys]);
+  }, [allColumns, storageColumnKeys, defaultColumnKey]);
 
   const deleteStorageColumnKey = key => {
-    setStorageColumnKeys(prevKeys => {
+    setStorageColumnKeys((prevKeys = defaultColumnKey) => {
       return prevKeys.filter(k => k !== key);
     });
   };
@@ -208,7 +213,7 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
   const handleColumnSort = data => {
     const { source, destination } = data;
     if (!destination || source.index === destination.index) return;
-    setStorageColumnKeys(prevState => {
+    setStorageColumnKeys((prevState = defaultColumnKey) => {
       // 获取最新显示在面板的列字段
       const _prevState = prevState.filter(p => (selectColumns?.map(d => d.key) ?? []).includes(p));
 
@@ -274,7 +279,7 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
           tagRender={() => null}
           options={selectOptions}
           optionFilterProp="label"
-          value={storageColumnKeys}
+          value={storageColumnKeys ?? defaultColumnKey}
           placeholder="请选择需要展示的列"
           className={cx('field-select')}
           onChange={keys => setStorageColumnKeys(keys)}
@@ -288,7 +293,7 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
                   ref={provider.innerRef}
                   className={cx('sort-area')}
                 >
-                  {(selectColumns ?? []).map((col, index) => (
+                  {selectColumns?.map((col, index) => (
                     <Draggable key={col.key} index={index} draggableId={col.key as string}>
                       {(provider, snapshot) => (
                         <div
