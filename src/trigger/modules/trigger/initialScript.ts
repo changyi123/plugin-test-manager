@@ -9,7 +9,6 @@ import {
 
 import { TestConfigClassName } from '../../../common/constant';
 import { createChartGroups } from '../web/script/create-chart-groups';
-import parallelLimit from 'async/parallelLimit';
 
 const ParseBaseQueryOptions = {
   sessionToken: global.sessionToken,
@@ -212,7 +211,10 @@ const createNotExistedTestDefectBoard = async () => {
 
 // 新建测试统计报表
 const createNotExistedChartGroups = async () => {
-  const testConfigQuery = getParseQuery(false, TestConfigClassName);
+  const [testConfigQuery, workspaceQuery] = await Promise.all([
+    getParseQuery(false, TestConfigClassName),
+    getParseQuery(false, 'Workspace'),
+  ]);
 
   const notExistedDefectBoardConfigs = await testConfigQuery
     .doesNotExist('chartGroups')
@@ -222,18 +224,23 @@ const createNotExistedChartGroups = async () => {
     .map(config => config.get('workspaceKey'))
     .filter(Boolean);
 
-  if (workspaceKeys?.length) {
-    const taskQueue = workspaceKeys.map(
-      workspaceKey => async () => createChartGroups(workspaceKey),
-    );
+  const workspaceMap = await workspaceQuery
+    .containedIn('key', workspaceKeys)
+    .findAll(ParseBaseQueryOptions)
+    .then(items => keyBy(items, item => item.get('key')));
 
-    const chartGroupMapValues = await parallelLimit(taskQueue, 10);
+  if (workspaceKeys?.length) {
+    const workspaces = workspaceKeys.map(key => workspaceMap[key]).filter(Boolean);
+    const chartGroupMapValues = await Promise.all(
+      workspaces.map(workspace => createChartGroups(workspace)),
+    );
+    log('chartGroupMapValues --------------->', chartGroupMapValues);
 
     const testConfigObjects = notExistedDefectBoardConfigs.map(testConfig => {
       const workspaceKey = testConfig.get('workspaceKey');
 
       const chartGroupMapValue = chartGroupMapValues.find(
-        group => (group.workspaceKey = workspaceKey),
+        group => group.workspace.key === workspaceKey,
       );
 
       testConfig.set({

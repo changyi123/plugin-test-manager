@@ -1,8 +1,9 @@
-import { getData, saveAllObject, getParseObject } from '@giteeteam/apps-team-api';
+import { getData, saveAllObject, getParseObject, getParseModel } from '@giteeteam/apps-team-api';
 
 const TestDefectChartGroup = {
   group: {
     name: '缺陷统计',
+    global: true,
   },
   chart: [
     // 1、缺陷状态分布
@@ -75,18 +76,23 @@ const createChart = props => {
 const { workspaceKey } = global?.body ?? {};
 
 // 创建 ChartGroup 和 Chart 脚本
-export const createChartGroups = async (key?: string) => {
-  const workspace = await getData(false, 'Workspace', {
-    key: key ?? workspaceKey,
-  });
+export const createChartGroups = async workspace => {
+  const WorkspaceParseObj = getParseModel(false, 'Workspace');
+  const ChartGroupParseObj = getParseModel(false, 'ChartGroup');
+  if (!workspace) {
+    workspace = await getData(false, 'Workspace', {
+      key: workspaceKey,
+    });
+  }
+  if (!workspace) return;
   const chartGroupsData = Object.values(needToCreateChartGroupInfo);
 
   // 创建 chartGroup
   const needToCreateChartGroups = chartGroupsData.map((data, index) =>
     createCharGroup({
       ...data.group,
-      workspace,
-      moduleKey: 'test_manager',
+      workspace: WorkspaceParseObj.createWithoutData(workspace.id),
+      key: 'test_manager',
       order: index + 1,
       disabledActions: ['add', 'delete', 'copy', 'favorite'],
     }),
@@ -103,8 +109,8 @@ export const createChartGroups = async (key?: string) => {
         ?.chart.map(chart =>
           createChart({
             ...chart,
-            workspace,
-            chartGroup: group,
+            workspace: WorkspaceParseObj.createWithoutData(workspace.id),
+            chartGroup: ChartGroupParseObj.createWithoutData(group.id),
           }),
         );
     })
@@ -114,7 +120,7 @@ export const createChartGroups = async (key?: string) => {
   );
 
   return {
-    workspaceKey,
+    workspace: workspace?.toJSON()?.key,
     chartGroups: chartGroups.reduce((prev, group) => {
       const groupJson = group.toJSON();
       const [fieldMapKey] = Object.entries(needToCreateChartGroupInfo).find(
@@ -130,6 +136,4 @@ export const createChartGroups = async (key?: string) => {
       return prev;
     }, {}),
   };
-
-  // return chartGroupInfo;
 };
