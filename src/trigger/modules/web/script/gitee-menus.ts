@@ -26,7 +26,7 @@ export const runGiteeMenus = async () => {
     sessionToken: global.sessionToken,
   };
 
-  const getGiteeMenusConfig = (appId, workspaceKey) => {
+  const getGiteeMenusConfig = async (appId, workspaceKey) => {
     const tenantKey = getTenantKey();
     const productPrefix = getProductPrefix();
 
@@ -78,7 +78,7 @@ export const runGiteeMenus = async () => {
       { name: '测试用例库', pageKey: 'test-repository' },
     ].map(generateGiteeMenu);
 
-    return menus;
+    return menus.concat(boardMenus);
   };
 
   // const appQuery = getParseQuery(false, 'App');
