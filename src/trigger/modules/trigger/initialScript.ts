@@ -9,6 +9,7 @@ import {
 
 import { TestConfigClassName } from '../../../common/constant';
 import { createChartGroups } from '../web/script/create-chart-groups';
+import parallelLimit from 'async/parallelLimit';
 
 const ParseBaseQueryOptions = {
   sessionToken: global.sessionToken,
@@ -222,7 +223,11 @@ const createNotExistedChartGroups = async () => {
     .filter(Boolean);
 
   if (workspaceKeys?.length) {
-    const chartGroupMapValues = await createChartGroups(workspaceKeys);
+    const taskQueue = workspaceKeys.map(
+      workspaceKey => async () => createChartGroups(workspaceKey),
+    );
+
+    const chartGroupMapValues = await parallelLimit(taskQueue, 10);
 
     const testConfigObjects = notExistedDefectBoardConfigs.map(testConfig => {
       const workspaceKey = testConfig.get('workspaceKey');
