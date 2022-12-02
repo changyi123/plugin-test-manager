@@ -120,7 +120,7 @@ export const createChartGroups = async workspace => {
   );
 
   return {
-    workspace: workspace?.toJSON()?.key,
+    workspaceKey: workspace?.toJSON()?.key,
     chartGroups: chartGroups.reduce((prev, group) => {
       const groupJson = group.toJSON();
       const [fieldMapKey] = Object.entries(needToCreateChartGroupInfo).find(

@@ -234,13 +234,14 @@ const createNotExistedChartGroups = async () => {
     const chartGroupMapValues = await Promise.all(
       workspaces.map(workspace => createChartGroups(workspace)),
     );
-    log('chartGroupMapValues --------------->', chartGroupMapValues);
 
-    const testConfigObjects = notExistedDefectBoardConfigs.map(testConfig => {
-      const workspaceKey = testConfig.get('workspaceKey');
+    const testConfigObjects = workspaceKeys.map(workspaceKey => {
+      const testConfig = notExistedDefectBoardConfigs.find(
+        config => config.get('workspaceKey') === workspaceKey,
+      );
 
       const chartGroupMapValue = chartGroupMapValues.find(
-        group => group.workspace.key === workspaceKey,
+        group => group.workspaceKey === workspaceKey,
       );
 
       testConfig.set({
