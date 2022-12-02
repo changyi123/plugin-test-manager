@@ -6,5 +6,6 @@ dist
 manifest.yml
 version.yml
 test-manager*.zip
+test_manager*.zip
 .env
 manifest.yml
