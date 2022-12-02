@@ -149,18 +149,11 @@ modules:
       loadType: Micro
       route: /repository
       {workspacePageHidden}
-    # - key: main-test-plan
-    #   resource: main
-    #   title: 测试计划
-    #   loadType: Micro
-    #   route: /testPlan
-    #   hidden: true
-    # - key: main-test-repository
-    #   resource: main
-    #   title: 测试用例库
-    #   loadType: Micro
-    #   route: /repository
-    #   hidden: true
+    - key: test-stats-report
+      title: 测试统计
+      loadType: Redirect
+      route: /[tenant]/workspaces/[workspace]/report?moduleKey=test_manager&disabledCreate=true
+      {workspacePageHidden}
   beforeCreateOrUpdateModal:
     - key: before-create-or-update-modal
       resource: main
