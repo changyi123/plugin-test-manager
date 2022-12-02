@@ -2,7 +2,7 @@ app:
   key: test_manager
   uuid: bf73e61c-e15a-4461-a1f7-f940c2009332
   name: test_manager
-  version: "3.1.0"
+  version: "3.0.0"
 modules:
   webtrigger:
     # TODO: Debug 使用，生产环境禁止调用西面的 trigger

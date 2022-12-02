@@ -19,7 +19,7 @@ const getProximaGateWay = () => {
 /** 获取租户信息 */
 export const getTenantKey = () => {
   // dev 环境默认取 env 中的 PROXIMA_APP_ID
-  return (window as any)?.env?.PROXIMA_APP_ID ?? process.env.PROXIMA_APP_ID ?? 'osc';
+  return window?.env?.PROXIMA_APP_ID ?? process.env.PROXIMA_APP_ID ?? 'osc';
 };
 /** 获取 proxima baseUrl */
 export const getProximaBasePath = () => {

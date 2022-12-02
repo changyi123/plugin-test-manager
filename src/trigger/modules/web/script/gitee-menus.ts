@@ -78,7 +78,7 @@ export const runGiteeMenus = async () => {
       { name: '测试用例库', pageKey: 'test-repository' },
     ].map(generateGiteeMenu);
 
-    return menus.concat(boardMenus);
+    return menus;
   };
 
   // const appQuery = getParseQuery(false, 'App');
