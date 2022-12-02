@@ -235,21 +235,23 @@ const createNotExistedChartGroups = async () => {
       workspaces.map(workspace => createChartGroups(workspace)),
     );
 
-    const testConfigObjects = workspaceKeys.map(workspaceKey => {
-      const testConfig = notExistedDefectBoardConfigs.find(
-        config => config.get('workspaceKey') === workspaceKey,
-      );
+    const testConfigObjects = workspaceKeys
+      .filter(key => workspaceMap[key])
+      .map(workspaceKey => {
+        const testConfig = notExistedDefectBoardConfigs.find(
+          config => config.get('workspaceKey') === workspaceKey,
+        );
 
-      const chartGroupMapValue = chartGroupMapValues.find(
-        group => group.workspaceKey === workspaceKey,
-      );
+        const chartGroupMapValue = chartGroupMapValues.find(
+          group => group.workspaceKey === workspaceKey,
+        );
 
-      testConfig.set({
-        chartGroups: chartGroupMapValue.chartGroups,
+        testConfig.set({
+          chartGroups: chartGroupMapValue.chartGroups,
+        });
+
+        return testConfig;
       });
-
-      return testConfig;
-    });
 
     const updatedTestConfigs = await saveAllObject(testConfigObjects);
     console.info('updatedTestConfigs', updatedTestConfigs);
