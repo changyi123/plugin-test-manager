@@ -51,7 +51,6 @@ modules:
       function: api-module-repository-tree
 
   trigger:
-      function: test-manager-initial-script
     - key: test-manager-initial-script-install
       events:
         - proxima:app:install

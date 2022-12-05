@@ -101,7 +101,7 @@ const DefectMapping = () => {
 
   const handleSave = useCallback(async () => {
     // const defectBoard = testConfig?.get('defectBoard');
-    // const itemTypes = Object.values(data).filter(item => defectsItemTypeKeys.includes(item.key));
+    const itemTypes = Object.values(data).filter(item => defectsItemTypeKeys.includes(item.key));
     // const notSameItemTypes = itemTypes?.filter(
     //   d =>
     //     !defectBoard
@@ -127,7 +127,7 @@ const DefectMapping = () => {
     // 保存测试缺陷统计 iql
     const { charts } = testConfig.get('chartGroups')?.TestDefectChartGroup ?? {};
     const chartsObj = await new Parse.Query(Chart).containedIn('objectId', charts).findAll();
-    const iql = `'类型' in ${JSON.stringify(defectsItemTypeKeys)}`;
+    const iql = `'类型' in ${JSON.stringify(itemTypes.map(d => d.name))}`;
     const needToUpdateCharts = chartsObj.map(chart => {
       chart.set({
         option: {
@@ -142,7 +142,7 @@ const DefectMapping = () => {
     await Parse.Object.saveAll(needToUpdateCharts);
 
     message.success('缺陷类型保存成功');
-  }, [defectsItemTypeKeys, testConfig]);
+  }, [data, defectsItemTypeKeys, testConfig]);
 
   return (
     <>
