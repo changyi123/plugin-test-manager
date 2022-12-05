@@ -228,9 +228,9 @@ const createNotExistedChartGroups = async () => {
     .containedIn('key', workspaceKeys)
     .findAll(ParseBaseQueryOptions)
     .then(items => keyBy(items, item => item.get('key')));
+  const workspaces = workspaceKeys.map(key => workspaceMap[key]).filter(Boolean);
 
-  if (workspaceKeys?.length) {
-    const workspaces = workspaceKeys.map(key => workspaceMap[key]).filter(Boolean);
+  if (workspaces?.length) {
     const chartGroupMapValues = await Promise.all(
       workspaces.map(workspace => createChartGroups(workspace)),
     );

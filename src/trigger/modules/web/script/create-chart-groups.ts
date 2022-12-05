@@ -100,7 +100,7 @@ export const createChartGroups = async workspace => {
   const chartGroups = await saveAllObject(needToCreateChartGroups);
   // defectsMapping
   const testConfig = await getData(false, 'test_manager_TestConfig', {
-    workspaceKey,
+    workspaceKey: workspace?.get('key') ?? workspaceKey,
   });
 
   const defectsMapping = testConfig.get('defectsMapping');
