@@ -10,6 +10,7 @@ import { components } from 'proxima-sdk';
 const { ItemIcon } = components.Components.Common;
 
 import cx from './index.less';
+import { Chart } from '@/lib/models';
 // import { toPointer } from '@/lib/utils/helper';
 
 const ItemTypeDropBox = (props: {
@@ -122,6 +123,23 @@ const DefectMapping = () => {
       defectsMapping: defectsItemTypeKeys,
       // displayDefectBoard: checked,
     });
+
+    // 保存测试缺陷统计 iql
+    const { charts } = testConfig.get('chartGroups')?.TestDefectChartGroup ?? {};
+    const chartsObj = await new Parse.Query(Chart).containedIn('objectId', charts).findAll();
+    const iql = `'类型' in ${JSON.stringify(defectsItemTypeKeys)}`;
+    const needToUpdateCharts = chartsObj.map(chart => {
+      chart.set({
+        option: {
+          ...(chart.get('option') ?? {}),
+          iql,
+        },
+      });
+
+      return chart;
+    });
+
+    await Parse.Object.saveAll(needToUpdateCharts);
 
     message.success('缺陷类型保存成功');
   }, [defectsItemTypeKeys, testConfig]);
