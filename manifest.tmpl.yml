@@ -51,11 +51,6 @@ modules:
       function: api-module-repository-tree
 
   trigger:
-    - key: test-manager-initial-script-update
-      events:
-        # 使用 update trigger 暂时替代
-        # - proxima:app:install
-        - proxima:app:upgrade
       function: test-manager-initial-script
     - key: test-manager-initial-script-install
       events:
