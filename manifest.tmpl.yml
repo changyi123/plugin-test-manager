@@ -153,7 +153,7 @@ modules:
       resource: main
       title: 测试统计
       loadType: Redirect
-      route: /[tenant]/workspaces/[workspace]/report/test_manager&disabledCreate=true
+      route: /[tenant]/workspaces/[workspace]/report/test_manager?disabledCreate=true
       {workspacePageHidden}
   beforeCreateOrUpdateModal:
     - key: before-create-or-update-modal
