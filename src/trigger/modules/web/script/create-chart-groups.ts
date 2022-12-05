@@ -76,13 +76,19 @@ const createChart = (props, iql) => {
 const { workspaceKey } = global?.body ?? {};
 
 // 创建 ChartGroup 和 Chart 脚本
-export const createChartGroups = async workspace => {
+export const createChartGroups = async (workspace?: any, defectsMapping?: string[]) => {
   const WorkspaceParseObj = getParseModel(false, 'Workspace');
   const ChartGroupParseObj = getParseModel(false, 'ChartGroup');
   if (!workspace) {
     workspace = await getData(false, 'Workspace', {
       key: workspaceKey,
     });
+    // defectsMapping
+    const testConfig = await getData(false, 'test_manager_TestConfig', {
+      workspaceKey: workspaceKey,
+    });
+
+    defectsMapping = testConfig?.get('defectsMapping');
   }
   if (!workspace) return;
   const chartGroupsData = Object.values(needToCreateChartGroupInfo);
@@ -98,12 +104,6 @@ export const createChartGroups = async workspace => {
     }),
   );
   const chartGroups = await saveAllObject(needToCreateChartGroups);
-  // defectsMapping
-  const testConfig = await getData(false, 'test_manager_TestConfig', {
-    workspaceKey: workspace?.get('key') ?? workspaceKey,
-  });
-
-  const defectsMapping = testConfig.get('defectsMapping');
 
   // 创建 chart
   const needToCreateChars = chartGroups

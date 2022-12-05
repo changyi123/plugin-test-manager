@@ -216,11 +216,12 @@ const createNotExistedChartGroups = async () => {
     getParseQuery(false, 'Workspace'),
   ]);
 
-  const notExistedDefectBoardConfigs = await testConfigQuery
+  const notExistedChartGroupConfigs = await testConfigQuery
     .doesNotExist('chartGroups')
     .findAll(ParseBaseQueryOptions);
+  const testConfigMap = keyBy(notExistedChartGroupConfigs, item => item.get('workspaceKey'));
 
-  const workspaceKeys = notExistedDefectBoardConfigs
+  const workspaceKeys = notExistedChartGroupConfigs
     .map(config => config.get('workspaceKey'))
     .filter(Boolean);
 
@@ -228,30 +229,36 @@ const createNotExistedChartGroups = async () => {
     .containedIn('key', workspaceKeys)
     .findAll(ParseBaseQueryOptions)
     .then(items => keyBy(items, item => item.get('key')));
-  const workspaces = workspaceKeys.map(key => workspaceMap[key]).filter(Boolean);
 
-  if (workspaces?.length) {
+  const needToCreateWOrkspaceKey = workspaceKeys.filter(key => workspaceMap[key]).filter(Boolean);
+
+  if (needToCreateWOrkspaceKey?.length) {
+    log('needToCreateWOrkspaceKey -------->', needToCreateWOrkspaceKey.length);
     const chartGroupMapValues = await Promise.all(
-      workspaces.map(workspace => createChartGroups(workspace)),
+      needToCreateWOrkspaceKey.map(workspaceKey =>
+        createChartGroups(
+          workspaceMap[workspaceKey],
+          (testConfigMap[workspaceKey] as any)?.get('defectsMapping'),
+        ),
+      ),
     );
+    log('chartGroupMapValues -------->', chartGroupMapValues.length);
 
-    const testConfigObjects = workspaceKeys
-      .filter(key => workspaceMap[key])
-      .map(workspaceKey => {
-        const testConfig = notExistedDefectBoardConfigs.find(
-          config => config.get('workspaceKey') === workspaceKey,
-        );
+    const testConfigObjects = needToCreateWOrkspaceKey.map(workspaceKey => {
+      const testConfig = notExistedChartGroupConfigs.find(
+        config => config.get('workspaceKey') === workspaceKey,
+      );
 
-        const chartGroupMapValue = chartGroupMapValues.find(
-          group => group.workspaceKey === workspaceKey,
-        );
+      const chartGroupMapValue = chartGroupMapValues.find(
+        group => group.workspaceKey === workspaceKey,
+      );
 
-        testConfig.set({
-          chartGroups: chartGroupMapValue.chartGroups,
-        });
-
-        return testConfig;
+      testConfig.set({
+        chartGroups: chartGroupMapValue.chartGroups,
       });
+
+      return testConfig;
+    });
 
     const updatedTestConfigs = await saveAllObject(testConfigObjects);
     console.info('updatedTestConfigs', updatedTestConfigs);
