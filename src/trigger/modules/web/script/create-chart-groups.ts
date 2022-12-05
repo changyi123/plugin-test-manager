@@ -1,10 +1,14 @@
 import {
   getData,
-  getAllData,
+  getParseQuery,
   saveAllObject,
   getParseObject,
   getParseModel,
 } from '@giteeteam/apps-team-api';
+
+const ParseBaseQueryOptions = {
+  sessionToken: global.sessionToken,
+};
 
 const TestDefectChartGroup = {
   group: {
@@ -102,17 +106,19 @@ export const createChartGroups = async (workspace?: any, defectsMapping?: string
     key: 'itemType',
   }).then(item => item.toJSON());
 
-  const itemTypesObj = await getAllData(false, 'ItemType', {
-    key: defectsMapping,
-  }).then(items =>
-    items.map(item => {
-      const _item = item.toJSON();
-      return {
-        value: _item.objectId,
-        label: _item.name,
-      };
-    }),
-  );
+  const itemTypeQuery = await getParseQuery(false, 'ItemType');
+  const itemTypesObj = await itemTypeQuery
+    .containedIn('key', defectsMapping)
+    .find(ParseBaseQueryOptions)
+    .then(items =>
+      items.map(item => {
+        const _item = item.toJSON();
+        return {
+          value: _item.objectId,
+          label: _item.name,
+        };
+      }),
+    );
 
   const selectors = itemTypeField
     ? {
