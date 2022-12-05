@@ -1,4 +1,10 @@
-import { getData, saveAllObject, getParseObject, getParseModel } from '@giteeteam/apps-team-api';
+import {
+  getData,
+  getAllData,
+  saveAllObject,
+  getParseObject,
+  getParseModel,
+} from '@giteeteam/apps-team-api';
 
 const TestDefectChartGroup = {
   group: {
@@ -24,9 +30,9 @@ const TestDefectChartGroup = {
       view: 'basic-table-chart',
       option: `{"grid":{"h":2,"w":12,"x":0,"y":2},"type":"basic-table-chart","color":"#FFF","group":[{"key":"itemType","name":"类型","fieldType":"ItemType"}],"total":{"rowTotal":true},"value":[{"key":"count","name":"事项数","compute":"count","fieldType":"count"}],"cluster":[{"key":"priority","name":"优先级","fieldType":"Priority"}]}`,
     },
-    // 4、存量缺陷趋势
+    // 4、新增缺陷趋势
     {
-      name: '存量缺陷趋势',
+      name: '新增缺陷趋势',
       view: 'basic-line-chart',
       option: `{"grid":{"h":2,"w":6,"x":0,"y":4},"type":"basic-line-chart","color":"#FFF","group":[{"key":"createdAt","name":"创建时间","dates":[],"compute":"lastThirtyDays","fieldType":"createdAt"}],"value":[{"key":"count","name":"事项数","compute":"count","fieldType":"count"}],"options":{"endAt":"","sprint":"","startAt":""},"orderBy":{}}`,
     },
@@ -64,11 +70,11 @@ const createCharGroup = data => {
 };
 
 // name，option，chartGroupId，view
-const createChart = (props, iql) => {
+const createChart = (props, options) => {
   const chartObject = getParseObject(false, 'Chart');
   chartObject.set({
     ...props,
-    option: { ...JSON.parse(props.option), iql },
+    option: { ...JSON.parse(props.option), ...options },
   });
   return chartObject;
 };
@@ -87,10 +93,40 @@ export const createChartGroups = async (workspace?: any, defectsMapping?: string
     const testConfig = await getData(false, 'test_manager_TestConfig', {
       workspaceKey: workspaceKey,
     });
-
-    defectsMapping = testConfig?.get('defectsMapping');
+    defectsMapping = testConfig?.get('defectsMapping') ?? [];
   }
   if (!workspace) return;
+
+  // 查询事项类型字段
+  const itemTypeField = await getData(false, 'CustomField', {
+    key: 'itemType',
+  }).then(item => item.toJSON());
+
+  const itemTypesObj = await getAllData(false, 'ItemType', {
+    key: defectsMapping,
+  }).then(items =>
+    items.map(item => {
+      const _item = item.toJSON();
+      return {
+        value: _item.objectId,
+        label: _item.name,
+      };
+    }),
+  );
+
+  const selectors = itemTypeField
+    ? {
+        [itemTypeField.objectId]: {
+          component: 'ItemType',
+          expression: 'ItemType_Contain',
+          fieldId: itemTypeField.objectId,
+          fieldName: itemTypeField.name,
+          key: 'itemType',
+          value: itemTypesObj,
+        },
+      }
+    : {};
+
   const chartGroupsData = Object.values(needToCreateChartGroupInfo);
 
   // 创建 chartGroup
@@ -119,7 +155,14 @@ export const createChartGroups = async (workspace?: any, defectsMapping?: string
               workspace: WorkspaceParseObj.createWithoutData(workspace.id),
               chartGroup: ChartGroupParseObj.createWithoutData(group.id),
             },
-            defectsMapping ? `'类型' in ${JSON.stringify(defectsMapping)}` : '',
+            {
+              selectors,
+              iql: defectsMapping
+                ? `'${itemTypeField.name}' in ${JSON.stringify(
+                    itemTypesObj.map(item => item.label),
+                  )}`
+                : '',
+            },
           ),
         );
     })

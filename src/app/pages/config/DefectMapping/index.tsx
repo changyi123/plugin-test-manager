@@ -5,12 +5,12 @@ import { getAllItemTypes } from '@/lib/api/proxima';
 import { useDataContext, useCurrentTestConfig } from '../hooks';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import { useRequest, useSafeState, useDrop, useDrag } from 'ahooks';
+import { Chart, CustomField } from '@/lib/models';
 import { components } from 'proxima-sdk';
 
 const { ItemIcon } = components.Components.Common;
 
 import cx from './index.less';
-import { Chart } from '@/lib/models';
 // import { toPointer } from '@/lib/utils/helper';
 
 const ItemTypeDropBox = (props: {
@@ -124,15 +124,35 @@ const DefectMapping = () => {
       // displayDefectBoard: checked,
     });
 
+    const itemTypeField = await new Parse.Query(CustomField)
+      .equalTo('key', 'itemType')
+      .first()
+      .then(item => item.toJSON());
+
     // 保存测试缺陷统计 iql
     const { charts } = testConfig.get('chartGroups')?.TestDefectChartGroup ?? {};
     const chartsObj = await new Parse.Query(Chart).containedIn('objectId', charts).findAll();
-    const iql = `'类型' in ${JSON.stringify(itemTypes.map(d => d.name))}`;
+    const iql = `'${itemTypeField?.name}' in ${JSON.stringify(itemTypes.map(d => d.name))}`;
     const needToUpdateCharts = chartsObj.map(chart => {
       chart.set({
         option: {
           ...(chart.get('option') ?? {}),
           iql,
+          selectors: itemTypeField
+            ? {
+                [itemTypeField.objectId]: {
+                  component: 'ItemType',
+                  expression: 'ItemType_Contain',
+                  fieldId: itemTypeField.objectId,
+                  fieldName: itemTypeField?.name,
+                  key: 'itemType',
+                  value: itemTypes.map(item => ({
+                    value: item.objectId,
+                    label: item.name,
+                  })),
+                },
+              }
+            : {},
         },
       });
 
