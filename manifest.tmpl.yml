@@ -55,7 +55,7 @@ modules:
       events:
         # 使用 update trigger 暂时替代
         # - proxima:app:install
-        - proxima:app:update
+        - proxima:app:upgrade
       function: test-manager-initial-script
     - key: test-manager-initial-script-install
       events:
@@ -150,9 +150,10 @@ modules:
       route: /repository
       {workspacePageHidden}
     - key: test-stats-report
+      resource: main
       title: 测试统计
       loadType: Redirect
-      route: /[tenant]/workspaces/[workspace]/report?moduleKey=test_manager&disabledCreate=true
+      route: /[tenant]/workspaces/[workspace]/report/test_manager&disabledCreate=true
       {workspacePageHidden}
   beforeCreateOrUpdateModal:
     - key: before-create-or-update-modal
