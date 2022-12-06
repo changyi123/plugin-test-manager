@@ -40,9 +40,9 @@ const TestDefectChartGroup = {
       view: 'basic-line-chart',
       option: `{"grid":{"h":2,"w":6,"x":0,"y":4},"type":"basic-line-chart","color":"#FFF","group":[{"key":"createdAt","name":"创建时间","dates":[],"compute":"lastThirtyDays","fieldType":"createdAt"}],"value":[{"key":"count","name":"事项数","compute":"count","fieldType":"count"}],"options":{"endAt":"","sprint":"","startAt":""},"orderBy":{}}`,
     },
-    // 5、bug 负责人分布
+    // 5、缺陷负责人分布
     {
-      name: 'bug 负责人分布',
+      name: '缺陷负责人分布',
       view: 'basic-pie-chart',
       option: `{"grid":{"h":2,"w":6,"x":0,"y":6},"type":"basic-pie-chart","color":"#FFF","group":[{"key":"assignee","name":"负责人","fieldType":"Assignee"}],"value":[{"key":"count","name":"事项数","compute":"count","fieldType":"count"}],"options":{"endAt":"","sprint":"","startAt":""},"orderBy":{}}`,
     },
