@@ -21,7 +21,7 @@ import {
   getLinkedTestEntityByQuery,
 } from '@/lib/api/item';
 import cx from './index.less';
-import createProximaSdk from '@projectproxima/proxima-sdk-js';
+import createProximaSdk, { useListener } from '@projectproxima/proxima-sdk-js';
 import { useRequest } from 'ahooks';
 import { useTestRunActionAuth } from '@/lib/hooks/useTest';
 
@@ -117,6 +117,10 @@ const Test = () => {
     },
     [getAllRelTestEntities],
   );
+
+  useListener('refreshTestRunPanel', () => {
+    refreshDepData();
+  });
 
   const tableDataSourceGetter = React.useCallback(
     params => {

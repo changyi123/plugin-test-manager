@@ -14,6 +14,7 @@ import TestEntityList from '../../TestEntityList';
 import { batchCreateTestRun, updateTestEntity } from '@/lib/api/item';
 import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/hook';
 import { getFilterFields } from '@/components/common/FilterSearch/utils';
+import createProximaSdk from '@projectproxima/proxima-sdk-js';
 
 import cx from './index.less';
 
@@ -62,6 +63,7 @@ const Right: React.FC<RightProps> = props => {
     mutateStatusEvent,
     tableSelectionToggleEvent,
   } = usePageContext();
+  const proxima = createProximaSdk();
 
   useSetTableHeight();
 
@@ -126,6 +128,7 @@ const Right: React.FC<RightProps> = props => {
     notification.success({
       message: '用例执行创建成功',
     });
+    proxima.execute('refreshTestRunPanel');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedExecution, selectedTestPlan, curTestRuns]);
 

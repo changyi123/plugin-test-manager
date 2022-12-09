@@ -53,7 +53,7 @@ modules:
       events:
         # 使用 update trigger 暂时替代
         # - proxima:app:install
-        - proxima:app:update
+        - proxima:app:upgrade
       function: test-manager-initial-script
     - key: test-manager-initial-script-install
       events:
