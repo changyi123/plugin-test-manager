@@ -26,7 +26,7 @@ export const runGiteeMenus = async () => {
     sessionToken: global.sessionToken,
   };
 
-  const getGiteeMenusConfig = (appId, workspaceKey) => {
+  const getGiteeMenusConfig = async (appId, workspaceKey) => {
     const tenantKey = getTenantKey();
     const productPrefix = getProductPrefix();
 
