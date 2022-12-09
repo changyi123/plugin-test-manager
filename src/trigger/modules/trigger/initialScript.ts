@@ -8,6 +8,7 @@ import {
 } from '@giteeteam/apps-team-api';
 
 import { TestConfigClassName } from '../../../common/constant';
+import { createChartGroups } from '../web/script/create-chart-groups';
 
 const ParseBaseQueryOptions = {
   sessionToken: global.sessionToken,
@@ -208,6 +209,62 @@ const createNotExistedTestDefectBoard = async () => {
   console.info('updatedTestConfigs', updatedTestConfigs);
 };
 
+// 新建测试统计报表
+const createNotExistedChartGroups = async () => {
+  const [testConfigQuery, workspaceQuery] = await Promise.all([
+    getParseQuery(false, TestConfigClassName),
+    getParseQuery(false, 'Workspace'),
+  ]);
+
+  const notExistedChartGroupConfigs = await testConfigQuery
+    .doesNotExist('chartGroups')
+    .findAll(ParseBaseQueryOptions);
+  const testConfigMap = keyBy(notExistedChartGroupConfigs, item => item.get('workspaceKey'));
+
+  const workspaceKeys = notExistedChartGroupConfigs
+    .map(config => config.get('workspaceKey'))
+    .filter(Boolean);
+
+  const workspaceMap = await workspaceQuery
+    .containedIn('key', workspaceKeys)
+    .findAll(ParseBaseQueryOptions)
+    .then(items => keyBy(items, item => item.get('key')));
+
+  const needToCreateWOrkspaceKey = workspaceKeys.filter(key => workspaceMap[key]).filter(Boolean);
+
+  if (needToCreateWOrkspaceKey?.length) {
+    log('needToCreateWOrkspaceKey -------->', needToCreateWOrkspaceKey.length);
+    const chartGroupMapValues = await Promise.all(
+      needToCreateWOrkspaceKey.map(workspaceKey =>
+        createChartGroups(
+          workspaceMap[workspaceKey],
+          (testConfigMap[workspaceKey] as any)?.get('defectsMapping'),
+        ),
+      ),
+    );
+    log('chartGroupMapValues -------->', chartGroupMapValues.length);
+
+    const testConfigObjects = needToCreateWOrkspaceKey.map(workspaceKey => {
+      const testConfig = notExistedChartGroupConfigs.find(
+        config => config.get('workspaceKey') === workspaceKey,
+      );
+
+      const chartGroupMapValue = chartGroupMapValues.find(
+        group => group.workspaceKey === workspaceKey,
+      );
+
+      testConfig.set({
+        chartGroups: chartGroupMapValue.chartGroups,
+      });
+
+      return testConfig;
+    });
+
+    const updatedTestConfigs = await saveAllObject(testConfigObjects);
+    console.info('updatedTestConfigs', updatedTestConfigs);
+  }
+};
+
 const initialScriptRunner = async () => {
   const APP_KEY = global.appKey ?? 'test_manager';
 
@@ -275,6 +332,9 @@ const initialScriptRunner = async () => {
 
   // 创建空间级配置不存在的关联缺陷管理面板
   // await createNotExistedTestDefectBoard();
+
+  // 创建空间级配置不存在的测试统计报表
+  await createNotExistedChartGroups();
 };
 
 export const runInitialScript = async () => {
