@@ -3,6 +3,8 @@ import { getParseReqHeader, getDevConfig } from '@/devEnv';
 let Parse;
 
 if (process.env.NODE_ENV === 'production' || window.__POWERED_BY_QIANKUN__) {
+  // TODO: 添加 log
+  console.info('QiankunProps', window.QiankunProps, window);
   Parse = window.QiankunProps?.Parse;
 } else {
   const { baseURL, env } = getDevConfig();

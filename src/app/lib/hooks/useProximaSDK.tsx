@@ -23,7 +23,7 @@ export const useOnItemCreateSuccess = (key, saveCallback, batchCreateCallback) =
     const extraData = params?.extraData ?? {};
     const getMessageToken = params => extraData.messageKey + params?.itemId;
     const messageToken = getMessageToken(params);
-    const [callback] = callbackMap.get(extraData.messageKey);
+    const [callback] = callbackMap.get(extraData.messageKey) ?? [];
 
     // 监听 key 为 TEST_MANAGER_PLUGIN_KEY 的事件
     if (
@@ -43,7 +43,7 @@ export const useOnItemCreateSuccess = (key, saveCallback, batchCreateCallback) =
     const getMessageToken = params => extraData.messageKey + params?.itemIdList?.toString();
 
     const messageToken = getMessageToken(params);
-    const [, callback] = callbackMap.get(extraData.messageKey);
+    const [, callback] = callbackMap.get(extraData.messageKey) ?? [];
 
     if (
       callback &&

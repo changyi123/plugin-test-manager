@@ -1,18 +1,38 @@
 import { Modal } from 'antd';
 // import { Modal } from 'antd';
-import { isEqual, findKey, noop, startsWith } from 'lodash';
 import { STORAGE_PREFIX_KEY } from '../constants';
+import { isEqual, findKey, noop, startsWith } from 'lodash';
 import createProximaSdk from '@projectproxima/proxima-sdk-js';
+
+/**
+ * 获取 team api 地址
+ * 兼容处理：spa 改造后 env 变量上无 PROXIMA_GATEWAY 配置，优先从 QiankunProps 中取
+ */
+const getProximaGateWay = () => {
+  return (
+    window?.QiankunProps?.context?.env?.PROXIMA_GATEWAY ??
+    window?.env?.PROXIMA_GATEWAY ??
+    process?.env?.PROXIMA_GATEWAY
+  );
+};
 
 /** 获取租户信息 */
 export const getTenantKey = () => {
   // dev 环境默认取 env 中的 PROXIMA_APP_ID
-  return (window as any)?.env?.PROXIMA_APP_ID ?? process.env.PROXIMA_APP_ID ?? 'osc';
+  return window?.env?.PROXIMA_APP_ID ?? process.env.PROXIMA_APP_ID ?? 'osc';
 };
 /** 获取 proxima baseUrl */
 export const getProximaBasePath = () => {
-  return /^(\/(?:project|proxima))\//.exec(window.location.pathname)?.[1] ?? '';
+  // FIXME: 确认 spa 环境改造后 接口前缀 和 页面前缀有没有不一致的情况？
+  // 目前暂时先保留该方法，后续需要单独的判断
+  return '/project';
 };
+
+// /** 获取接口前缀 */
+// export const getApiPrefix = () => {};
+
+// /** 获取前端跳转前缀 */
+// export const getPagePrefix = () => {};
 
 // 获取 webTrigger 前缀
 export const getPluginWebTriggerBaseUrl = () => {
@@ -131,7 +151,7 @@ export const isInOne = () => {
 
   if (inServer) return false;
   try {
-    const gateway = (window as any).env.PROXIMA_GATEWAY;
+    const gateway = getProximaGateWay();
     return startsWith(new URL(gateway).pathname, '/api');
   } catch (e) {
     console.info('isInOne', e);
