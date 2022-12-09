@@ -26,7 +26,7 @@ export const runGiteeMenus = async () => {
     sessionToken: global.sessionToken,
   };
 
-  const getGiteeMenusConfig = (appId, workspaceKey) => {
+  const getGiteeMenusConfig = async (appId, workspaceKey) => {
     const tenantKey = getTenantKey();
     const productPrefix = getProductPrefix();
 
@@ -73,10 +73,22 @@ export const runGiteeMenus = async () => {
     //   });
     // }
 
+    const reportStatsMenu = {
+      title: '测试统计',
+      key: `test-stats-report-${workspaceKey}`,
+      icon: 'iconNavi-icafeplan',
+      url: `${giteeRoutePrefix}/report/test_manager?disabledCreate=true`,
+      type: 'IFRAME',
+      openWindow: '0',
+      iframeUrl: `/${proximaRoutePrefix}/report/test_manager?disabledCreate=true`,
+    };
+
     const menus = [
       { name: '测试计划', pageKey: 'test-plan' },
       { name: '测试用例库', pageKey: 'test-repository' },
-    ].map(generateGiteeMenu);
+    ]
+      .map(generateGiteeMenu)
+      .concat(reportStatsMenu);
 
     return menus;
   };

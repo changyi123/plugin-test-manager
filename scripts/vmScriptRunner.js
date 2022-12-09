@@ -6,8 +6,8 @@ const axios = require('axios');
 const path = require('path');
 const fs = require('fs');
 
-const fileName = '../trigger/report/stats.js';
-const sessionToken = 'r:04b625b85cf368d985751025df820e53';
+const fileName = '../trigger/web/script/create-chart-groups.ts';
+const sessionToken = 'r:59e7d42c8fa4dcc850439d5182d04d2e';
 const params = {
   appKey: 'test_manager',
 };

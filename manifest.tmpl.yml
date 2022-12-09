@@ -2,7 +2,7 @@ app:
   key: test_manager
   uuid: bf73e61c-e15a-4461-a1f7-f940c2009332
   name: test_manager
-  version: "2.10.0"
+  version: "3.1.0"
 modules:
   webtrigger:
     # TODO: Debug 使用，生产环境禁止调用西面的 trigger
@@ -13,6 +13,8 @@ modules:
     # 动态配置 one 路由
     - key: gitee-menus
       function: gitee-menus
+    - key: create-chart-groups
+      function: create-chart-groups
     - key: huishang-script
       function: huishang-script
     - key: shenwan-script
@@ -49,12 +51,6 @@ modules:
       function: api-module-repository-tree
 
   trigger:
-    - key: test-manager-initial-script-update
-      events:
-        # 使用 update trigger 暂时替代
-        # - proxima:app:install
-        - proxima:app:upgrade
-      function: test-manager-initial-script
     - key: test-manager-initial-script-install
       events:
         - proxima:app:install
@@ -63,6 +59,8 @@ modules:
   function:
     - key: gitee-menus
       handler: web.runGiteeMenus
+    - key: create-chart-groups
+      handler: web.createChartGroups
     - key: test-manager-initial-script
       handler: trigger.runInitialScript
     - key: test-manager-validate-script
@@ -145,18 +143,12 @@ modules:
       loadType: Micro
       route: /repository
       {workspacePageHidden}
-    # - key: main-test-plan
-    #   resource: main
-    #   title: 测试计划
-    #   loadType: Micro
-    #   route: /testPlan
-    #   hidden: true
-    # - key: main-test-repository
-    #   resource: main
-    #   title: 测试用例库
-    #   loadType: Micro
-    #   route: /repository
-    #   hidden: true
+    - key: test-stats-report
+      resource: main
+      title: 测试统计
+      loadType: Redirect
+      route: /[tenant]/workspaces/[workspace]/report/test_manager?disabledCreate=true
+      {workspacePageHidden}
   beforeCreateOrUpdateModal:
     - key: before-create-or-update-modal
       resource: main
@@ -351,12 +343,15 @@ tables:
       tableFields:
         type: Object
       # 关联的缺陷面板 pointer
-      defectBoard:
-        type: Pointer
-        targetClass: Board
+      # defectBoard:
+      #   type: Pointer
+      #   targetClass: Board
       # 控制缺陷面板是否显示，默认为 true
-      displayDefectBoard:
-        type: Boolean
+      # displayDefectBoard:
+      #   type: Boolean
+      # 关联统计报表
+      chartGroups:
+        type: Object
   - className: TestRelation
     fields:
       from:

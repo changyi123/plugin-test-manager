@@ -111,7 +111,7 @@ const Test = () => {
 
   const { testEntityIds } = useMemo(() => {
     return {
-      testEntityIds: allTestEntities.map(item => item.objectId),
+      testEntityIds: allTestEntities.map(item => item.id),
       testEntityStatuses: allTestEntities.map(
         item => item.caseStatus?.[testEntity.objectId] ?? INITIAL_STATUS_KEY,
       ),
