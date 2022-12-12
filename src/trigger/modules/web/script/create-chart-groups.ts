@@ -5,6 +5,7 @@ import {
   getParseObject,
   getParseModel,
 } from '@giteeteam/apps-team-api';
+import parallelLimit from 'async/parallelLimit';
 
 const ParseBaseQueryOptions = {
   sessionToken: global.sessionToken,
@@ -83,56 +84,12 @@ const createChart = (props, options) => {
   return chartObject;
 };
 
-const { workspaceKey } = global?.body ?? {};
+const { workspaceKeys = [] } = global?.body ?? {};
 
 // 创建 ChartGroup 和 Chart 脚本
-export const createChartGroups = async (workspace?: any, defectsMapping?: string[]) => {
+const createChartGroups = async ({ workspace, iql, selectors }) => {
   const WorkspaceParseObj = getParseModel(false, 'Workspace');
   const ChartGroupParseObj = getParseModel(false, 'ChartGroup');
-  if (!workspace) {
-    workspace = await getData(false, 'Workspace', {
-      key: workspaceKey,
-    });
-    // defectsMapping
-    const testConfig = await getData(false, 'test_manager_TestConfig', {
-      workspaceKey: workspaceKey,
-    });
-    defectsMapping = testConfig?.get('defectsMapping') ?? [];
-  }
-  if (!workspace) return;
-
-  // 查询事项类型字段
-  const itemTypeField = await getData(false, 'CustomField', {
-    key: 'itemType',
-  }).then(item => item.toJSON());
-
-  const itemTypeQuery = await getParseQuery(false, 'ItemType');
-  const itemTypesObj = await itemTypeQuery
-    .containedIn('key', defectsMapping)
-    .find(ParseBaseQueryOptions)
-    .then(items =>
-      items.map(item => {
-        const _item = item.toJSON();
-        return {
-          value: _item.objectId,
-          label: _item.name,
-        };
-      }),
-    );
-
-  const selectors = itemTypeField
-    ? {
-        [itemTypeField.objectId]: {
-          component: 'ItemType',
-          expression: 'ItemType_Contain',
-          fieldId: itemTypeField.objectId,
-          fieldName: itemTypeField.name,
-          key: 'itemType',
-          value: itemTypesObj,
-        },
-      }
-    : {};
-
   const chartGroupsData = Object.values(needToCreateChartGroupInfo);
 
   // 创建 chartGroup
@@ -163,11 +120,7 @@ export const createChartGroups = async (workspace?: any, defectsMapping?: string
             },
             {
               selectors,
-              iql: defectsMapping
-                ? `'${itemTypeField.name}' in ${JSON.stringify(
-                    itemTypesObj.map(item => item.label),
-                  )}`
-                : '',
+              iql,
             },
           ),
         );
@@ -194,4 +147,85 @@ export const createChartGroups = async (workspace?: any, defectsMapping?: string
       return prev;
     }, {}),
   };
+};
+
+export const batchCreateChartGroups = async workspaceConfigs => {
+  const WorkspaceParseQuery = getParseQuery(false, 'Workspace');
+  const TestConfigParseQuery = getParseQuery(false, 'test_manager_TestConfig');
+  const itemTypeQuery = await getParseQuery(false, 'ItemType');
+
+  if (!workspaceConfigs) {
+    const workspaces = await WorkspaceParseQuery.containedIn('key', workspaceKeys)
+      .select(['objectId', 'key'])
+      .findAll(ParseBaseQueryOptions);
+    // 获取空间配置 defectsMapping
+    const testConfig = await TestConfigParseQuery.containedIn('workspaceKey', workspaceKeys)
+      .select(['defectsMapping', 'workspaceKey', 'objectId'])
+      .findAll(ParseBaseQueryOptions)
+      .then(items => items?.map(item => item?.toJSON()).filter(Boolean));
+
+    workspaceConfigs = workspaces?.filter(Boolean).map(workspace => ({
+      workspace: workspace,
+      defectsMapping:
+        testConfig?.find(config => config?.workspaceKey === workspace?.get('key'))
+          ?.defectsMapping ?? [],
+    }));
+  }
+
+  // 查询事项类型字段
+  const itemTypeField = await getData(false, 'CustomField', {
+    key: 'itemType',
+  }).then(item => item.toJSON());
+
+  const itemTypesObj = await itemTypeQuery
+    .containedIn('key', [...new Set(workspaceConfigs?.map(d => d.defectsMapping).flat())])
+    .select(['objectId', 'name', 'key'])
+    .find(ParseBaseQueryOptions)
+    .then(items =>
+      items
+        .map(item => {
+          const _item = item?.toJSON();
+          if (!_item) return;
+          return {
+            value: _item.objectId,
+            label: _item.name,
+            key: _item.key,
+          };
+        })
+        .filter(Boolean),
+    );
+
+  const getIql = (config, field, types) =>
+    config?.defectsMapping
+      ? `'${field.name}' in ${JSON.stringify(types.map(item => item.label))}`
+      : '';
+
+  const getSelectors = (field, itemTypes) =>
+    field
+      ? {
+          [field.objectId]: {
+            component: 'ItemType',
+            expression: 'ItemType_Contain',
+            fieldId: field.objectId,
+            fieldName: field.name,
+            key: 'itemType',
+            value: itemTypes,
+          },
+        }
+      : {};
+
+  workspaceConfigs = workspaceConfigs.map(config => {
+    const itemTypes = itemTypesObj?.filter(d => config?.defectsMapping.includes(d.key)) ?? [];
+    return {
+      ...config,
+      iql: getIql(config, itemTypeField, itemTypes),
+      selectors: getSelectors(itemTypeField, itemTypes),
+    };
+  });
+
+  const taskQueue = workspaceConfigs.map(config => async () => createChartGroups(config));
+
+  const res = await parallelLimit(taskQueue, 10);
+
+  return res;
 };

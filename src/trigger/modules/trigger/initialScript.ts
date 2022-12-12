@@ -8,7 +8,7 @@ import {
 } from '@giteeteam/apps-team-api';
 
 import { TestConfigClassName } from '../../../common/constant';
-import { createChartGroups } from '../web/script/create-chart-groups';
+import { batchCreateChartGroups } from '../web/script/create-chart-groups';
 
 const ParseBaseQueryOptions = {
   sessionToken: global.sessionToken,
@@ -233,16 +233,13 @@ const createNotExistedChartGroups = async () => {
   const needToCreateWOrkspaceKey = workspaceKeys.filter(key => workspaceMap[key]).filter(Boolean);
 
   if (needToCreateWOrkspaceKey?.length) {
-    log('needToCreateWOrkspaceKey -------->', needToCreateWOrkspaceKey.length);
-    const chartGroupMapValues = await Promise.all(
-      needToCreateWOrkspaceKey.map(workspaceKey =>
-        createChartGroups(
-          workspaceMap[workspaceKey],
-          (testConfigMap[workspaceKey] as any)?.get('defectsMapping'),
-        ),
-      ),
+    // 获取创建的 chartGroups
+    const chartGroupMapValues = await batchCreateChartGroups(
+      needToCreateWOrkspaceKey.map(workspaceKey => ({
+        workspace: workspaceMap[workspaceKey],
+        defectsMapping: (testConfigMap[workspaceKey] as any)?.get('defectsMapping'),
+      })),
     );
-    log('chartGroupMapValues -------->', chartGroupMapValues.length);
 
     const testConfigObjects = needToCreateWOrkspaceKey.map(workspaceKey => {
       const testConfig = notExistedChartGroupConfigs.find(
