@@ -1255,10 +1255,10 @@
   resolved "https://registry.npmmirror.com/@popperjs/core/-/core-2.11.6.tgz#cee20bd55e68a1720bdab363ecf0c821ded4cd45"
   integrity sha512-50/17A98tWUfQ176raKiOGXuYpLyyVMkxxG6oylzL3BPOlA6ADGdK7EYunSa4I064xerltq9TGXs8HmOk5E+vw==
 
-"@projectproxima/components@0.3.4-remove-editor-0.1":
-  version "0.3.4-remove-editor-0.1"
-  resolved "https://registry.npmmirror.com/@projectproxima/components/-/components-0.3.4-remove-editor-0.1.tgz#5a88125f90d0350b4b1deafb5c94ab86f6b87f0b"
-  integrity sha512-XFYVjV41M+Ej++PdgIkpOJGQW+dwGdXOJP3guAWkkgxFOBIF3779Yupa8cexJTgGDY9532sORtedFOI3UTXS1Q==
+"@projectproxima/components@0.3.4-remove-editor-0.2":
+  version "0.3.4-remove-editor-0.2"
+  resolved "https://registry.yarnpkg.com/@projectproxima/components/-/components-0.3.4-remove-editor-0.2.tgz#2a278e44f000963aba14046769dcf595481c7968"
+  integrity sha512-Xp6UGzI3qpLRiGpAvJUmEQvZCNXvDYuey7XOJcHp2Z33ZA+RJNbMrmAPYt8DhX71HAhaBe6lpCGMMTFlR+yCDA==
   dependencies:
     "@ant-design/icons" "4.7.0"
     "@projectproxima/plugin-loader" "^0.1.9"
