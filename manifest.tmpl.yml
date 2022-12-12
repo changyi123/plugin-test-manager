@@ -13,8 +13,8 @@ modules:
     # 动态配置 one 路由
     - key: gitee-menus
       function: gitee-menus
-    - key: create-chart-groups
-      function: create-chart-groups
+    - key: batch-create-chart-groups
+      function: batch-create-chart-groups
     - key: huishang-script
       function: huishang-script
     - key: shenwan-script
@@ -59,8 +59,8 @@ modules:
   function:
     - key: gitee-menus
       handler: web.runGiteeMenus
-    - key: create-chart-groups
-      handler: web.createChartGroups
+    - key: batch-create-chart-groups
+      handler: web.batchCreateChartGroups
     - key: test-manager-initial-script
       handler: trigger.runInitialScript
     - key: test-manager-validate-script
