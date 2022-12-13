@@ -218,7 +218,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
       const data = await getTestConfig({
         workspaceKey: workspaceKey ?? workspace?.key,
       });
-      return data.toJSON() as unknown as TestConfigContextType['config'];
+      return data?.toJSON() as unknown as TestConfigContextType['config'];
     },
     {
       staleTime: 50000,
