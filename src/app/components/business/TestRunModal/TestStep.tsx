@@ -252,11 +252,11 @@ const TestStep: React.FC<TestStepProps> = props => {
           </div>
           <div className={cx('comment')}>
             <ExecutionEditor
+              {...props}
               value={step.comment}
               onCommentChange={val => onCommentChange(val, step.id)}
               name={step.id}
               isStep={true}
-              {...props}
             />
           </div>
         </div>
