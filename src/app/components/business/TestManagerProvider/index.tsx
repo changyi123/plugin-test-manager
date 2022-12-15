@@ -6,12 +6,11 @@ import { Workspace } from '@/lib/types/App';
 import { TestEntity } from '@/lib/types/Test';
 import { EventBus } from '@/lib/utils/eventBus';
 import { message, notification } from 'antd';
-import { alert, hasArrayItem } from '@/lib/utils/helper';
 import { useOnItemCreateSuccess } from '@/lib/hooks/useProximaSDK';
 import { openCreateItemModal, openItemDetailPanel } from '@/lib/api/sdk';
 import { getTestConfig } from '@/lib/api/common';
 import { getItemByIds, getWorkspaceByKey, getItemTypeByKey } from '@/lib/api/proxima';
-import { getKeyByValue, generateSortIndex } from '@/lib/utils/helper';
+import { getKeyByValue, generateSortIndex, alert, hasArrayItem } from '@/lib/utils/helper';
 import {
   TestConfigContext,
   BaseActionContext,

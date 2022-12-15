@@ -24,7 +24,7 @@ export const repositoryTree = async () => {
     const getRepositoryData = async () => {
       const query = await (repositoryQuery as any)
         .equalTo('workspaceKey', body.workspaceKey)
-        .select(['name', 'objectId', 'parent'])
+        .select(['name', 'objectId', 'parent', 'sortIndex'])
         .addAscending(['sortIndex', 'createdAt'])
         .limit(InfinityLimit);
 
@@ -45,6 +45,7 @@ export const repositoryTree = async () => {
           name: parseObj.get('name'),
           parentKey: parseObj.get('parent')?.objectId ?? UngroupedRepositoryKey,
           caseIds: [],
+          sortIndex: parseObj.get('sortIndex'),
         }))
         .concat(ungroupedRepository);
     };

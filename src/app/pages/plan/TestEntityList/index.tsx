@@ -311,19 +311,20 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
 
   const allTestColumns = [
     {
-      width: 320,
+      width: 400,
       key: 'title',
       fixed: true,
       isSystem: true,
       title: '标题',
+      extraProps: {
+        onClick: record => {
+          openItemViewScreen(record?.objectId);
+        },
+      },
       render(_, rowData) {
         const itemData = rowData ?? {};
         return (
-          <span
-            data-drawer-handle-target
-            style={{ cursor: 'pointer' }}
-            onClick={() => openItemViewScreen(itemData.objectId)}
-          >
+          <span data-drawer-handle-target style={{ cursor: 'pointer' }}>
             {itemData.name}
           </span>
         );
@@ -332,7 +333,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     {
       key: 'repositoryGroup',
       title: '所属模块',
-      width: 240,
+      width: 200,
       render(_, rowData) {
         return <RepositoryGroup rowData={rowData}></RepositoryGroup>;
       },
@@ -419,15 +420,16 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       title: '用例标题',
       isSystem: true,
       fixed: true,
-      width: 160,
+      width: 400,
       tooltip: true,
+      extraProps: {
+        onClick: record => {
+          openItemViewScreen(record?.referenceCase);
+        },
+      },
       render(_, record) {
         return (
-          <span
-            data-drawer-handle-target
-            style={{ cursor: 'pointer' }}
-            onClick={() => openItemViewScreen(record?.referenceCase)}
-          >
+          <span data-drawer-handle-target style={{ cursor: 'pointer' }}>
             {record?.name}
           </span>
         );
@@ -436,7 +438,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     {
       key: 'repositoryGroup',
       title: '所属模块',
-      width: 240,
+      width: 200,
       render(_, rowData) {
         return <RepositoryGroup rowData={rowData}></RepositoryGroup>;
       },

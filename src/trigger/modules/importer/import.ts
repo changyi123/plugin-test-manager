@@ -30,6 +30,8 @@ const getStepData = datas => datas.replace(/^【\d+】/g, '');
 
 const getIsStrict = step => (replaceRn(step) ? /(^|([\r\n]))【\d+】/g.test(replaceRn(step)) : true);
 
+const getSortIndex = (index = 0) => Math.floor(Date.now() / 1000) * 10e5 + index * 1000;
+
 const isStrictEOLMode = datas =>
   getIsStrict(datas.action) && getIsStrict(datas.result) && getIsStrict(datas.data);
 
@@ -84,7 +86,6 @@ export const runImport = async () => {
   const handleItemValues = () => {
     const isNotHaveMap = appFieldsData.length;
     const itemsData = isNotHaveMap ? appFieldsData : data;
-    const mathData = Math.floor(Date.now() / 1000) * 10e5;
 
     const needUpdateValues = itemsData
       .reverse()
@@ -96,7 +97,7 @@ export const runImport = async () => {
             precondition: item.precondition,
             steps: isNotHaveMap ? getStepsData(clone(item)) : [],
           }),
-          r_test_manager_sortIndex: mathData + index,
+          r_test_manager_sortIndex: getSortIndex(index),
         },
       }))
       .filter(item => item.objectId);
@@ -248,7 +249,6 @@ export const runImport = async () => {
   const createRepoGroup = async (datas, i) => {
     const RepoParseObj = getParseModel(false, TEST_MANAGER_REPO);
     const newRepoData = await getRepoData();
-    const mathData = Math.floor(Date.now() / 1000) * 10e5 + i * 1000;
 
     const repos = datas.map((gro, index) => {
       const parent = i === 0 ? undefined : getParent(RepoParseObj, newRepoData, gro);
@@ -257,7 +257,7 @@ export const runImport = async () => {
         parent: parent,
         workspaceKey,
         name: gro.name,
-        sortIndex: mathData + index,
+        sortIndex: getSortIndex(index),
       });
 
       return repo;

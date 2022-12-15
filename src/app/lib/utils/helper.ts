@@ -111,7 +111,7 @@ export const escapeHtmlString = str => {
 
 /** 申城排序索引 */
 export const generateSortIndex = (index = 0) => {
-  return Math.floor(Date.now() / 1000) * 10e5 + index;
+  return Math.floor(Date.now() / 1000) * 10e5 + index * 1000;
 };
 
 /** 生成静态资源文件地址 */

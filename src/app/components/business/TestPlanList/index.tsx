@@ -116,13 +116,16 @@ const TestPlanList: React.FC<any> = () => {
       fixed: true,
       isSystem: true,
       title: '计划名称',
+      extraProps: {
+        onClick: record => {
+          setSelectedTestPlan(record);
+        },
+      },
       render(_, rowData) {
         return (
           <div className={'test-plan-title-box'}>
             {ItemIcon && <ItemIcon className={'icon'} icon={rowData.itemType?.icon}></ItemIcon>}
-            <div className={'test-plan-title'} onClick={() => setSelectedTestPlan(rowData)}>
-              {rowData.name}
-            </div>
+            <div className={'test-plan-title'}>{rowData.name}</div>
             <div className={'plan-table-title-menu'}>
               <Dropdown
                 overlay={

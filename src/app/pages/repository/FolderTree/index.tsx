@@ -1,6 +1,5 @@
-import React from 'react';
-// import { constant, uniq } from 'lodash';
-import { uniq } from 'lodash';
+import React, { useCallback } from 'react';
+import { sum, uniq } from 'lodash';
 import { useReactive, useDrop } from 'ahooks';
 import { TestType } from '@/lib/constants';
 import {
@@ -110,6 +109,27 @@ const DropTreeTitle = ({ children, nodeKey, onItemDrop }) => {
   );
 };
 
+const getTargetNodesSortIndex = (nodes, parentKey, dropKey) =>
+  getTreeNodeByKey(nodes, parentKey)?.children?.reduce((prev, cur) => {
+    if (prev.length === 1) {
+      prev = prev.concat(cur.sortIndex);
+    }
+    if (cur.key === dropKey) {
+      prev = prev.concat(cur.sortIndex);
+    }
+    return prev;
+  }, []);
+
+const getSortIndex = nodes => {
+  if (!nodes?.length) return {};
+  if (nodes.length === 1) {
+    return { sortIndex: nodes[0] + 10e5 };
+  }
+  if (nodes.length === 2) {
+    return { sortIndex: Math.floor(sum(nodes) / 2) };
+  }
+};
+
 type TreeNode = {
   key: string;
   name: string;
@@ -138,7 +158,6 @@ const FolderTree: React.FC<FolderTreeProps> = ({
     expandedKeys: [],
     selectedKeys: [],
   });
-
   const treeFn = useTreeFn(treeNodeData);
 
   const isInitialRef = React.useRef(false);
@@ -193,7 +212,8 @@ const FolderTree: React.FC<FolderTreeProps> = ({
           hierarchy++;
         });
         // 模块创建限制 8 个层级
-        if (hierarchy >= 8) {
+        // 全部用例不算一个层级
+        if (hierarchy >= 9) {
           notification.warn({
             message: '限制8个层级，8个层级以上不能新建子模块',
           });
@@ -488,6 +508,92 @@ const FolderTree: React.FC<FolderTreeProps> = ({
     [handleMenuClick, handleItemDrop],
   );
 
+  const updateRepository = useCallback(
+    async data => {
+      await updateFolders(data);
+      await onFolderTreeChange();
+    },
+    [onFolderTreeChange],
+  );
+
+  const onDrop = useCallback(
+    info => {
+      const { node, dragNode } = info;
+      const dropKey = node.key;
+      const nodeChild = node?.children ?? [];
+      const dragKey = dragNode.key;
+      const dropPos = node.pos.split('-');
+      const dropPosition = info.dropPosition - Number(dropPos[dropPos.length - 1]);
+
+      let hierarchy = 0;
+      // treeFn.reverseTreeNodes(dragNode, () => {
+      //   hierarchy++;
+      // });
+
+      const getHierarchy = nodes => {
+        nodes.forEach(n => {
+          if (n.children?.length) {
+            getHierarchy(n.children);
+          }
+        });
+
+        hierarchy++;
+      };
+
+      getHierarchy([dragNode]);
+
+      const validateHierarchy = (index = 0) => {
+        const newHierarchy = (dropPos.length - 2 - index || 0) + hierarchy;
+        if (newHierarchy >= 9) {
+          notification.warn({
+            message: '限制8个层级，拖拽后超过8个层级，不允许层级',
+          });
+          return;
+        }
+      };
+
+      // dragNode 拖拽节点
+      // node 接受节点
+      if (dropPosition < 0) return;
+      if (!info.dropToGap) {
+        // 拖拽到子级, 排序到子节点的首位
+        validateHierarchy(0);
+        const needUpdateDragNode = {
+          key: dragKey,
+          parentKey: node.key,
+          sortIndex: nodeChild?.length ? nodeChild[0]?.sortIndex - 10e5 : dragNode.sortIndex,
+        };
+
+        updateRepository([needUpdateDragNode]);
+      } else if (
+        ((node as any).children || []).length > 0 && // Has children
+        (node as any).expanded && // Is expanded
+        dropPosition === 1 // On the bottom gap
+      ) {
+        // 拖拽目标用例库底部，排序到首位
+        validateHierarchy(0);
+        const needUpdateDragNode = {
+          key: dragKey,
+          parentKey: node.key,
+          sortIndex: nodeChild?.[0]?.sortIndex - 10e5,
+        };
+
+        updateRepository([needUpdateDragNode]);
+      } else {
+        // 平级拖拽，排序到目标节点后位，dropKey 为 root 不操作,
+        if (dropKey === 'root') return;
+        validateHierarchy(1);
+        const needUpdateDragNode = {
+          key: dragKey,
+          parentKey: node.parentKey,
+          ...getSortIndex(getTargetNodesSortIndex(treeData, node.parentKey, dropKey)),
+        };
+        updateRepository([needUpdateDragNode]);
+      }
+    },
+    [treeData, updateRepository],
+  );
+
   return (
     <div className={cx('folder-tree', className)}>
       <div className={cx('toolkit-bar')}>{ToolKitButtons.map(Button => Button)}</div>
@@ -504,6 +610,9 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         expandedKeys={state.expandedKeys}
         icon={({ expanded }) => (expanded ? <FileOpen /> : <FileClose />)}
         switcherIcon={<CaretDownOutlined style={{ color: '#878C96' }} />}
+        draggable
+        // allowDrop={({ dropNode }) => dropNode.key !== 'root'}
+        onDrop={onDrop}
       />
       {EmptyNode}
     </div>

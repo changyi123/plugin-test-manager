@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { useDrag, useRequest } from 'ahooks';
+import { useRequest, useDrag, useDrop } from 'ahooks';
 import { notification, Tooltip } from 'antd';
 import { UNGROUPED_FOLDER_KEY } from '../constant';
 import { updateFolders } from '@/lib/api/repository';
@@ -44,7 +44,7 @@ const RowDragHandler = data => {
       e.dataTransfer.setData('data', JSON.stringify(data));
       e.dataTransfer.setDragImage(dragElem, 0, 0);
     },
-  });
+  } as any);
   return (
     <Tooltip overlayClassName={cx('tooltip')} title="拖动至用例分组">
       <span ref={ref}>
@@ -251,16 +251,28 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         isSystem: true,
         shouldCellUpdate: (record, prevRecord) =>
           record.repository?.objectId !== prevRecord.repository?.objectId,
-        render(_, rowData) {
+        render(_, rowData, index) {
           const folderKey = rowData?.repository?.objectId ?? UNGROUPED_FOLDER_KEY;
-          return <RowDragHandler folderKey={folderKey} testId={rowData.objectId} />;
+          return (
+            <RowDragHandler
+              folderKey={folderKey}
+              testId={rowData.objectId}
+              index={index}
+              rowData={rowData}
+            />
+          );
         },
       },
       {
-        width: 160,
+        width: 300,
         key: 'title',
         title: '标题',
         isSystem: true,
+        extraProps: {
+          onClick: record => {
+            openItemViewScreen(record?.objectId);
+          },
+        },
         render(_, rowData) {
           const itemData = rowData ?? {};
           return (
@@ -268,7 +280,6 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
               data-drawer-handle-target
               data-element-id="row-title"
               style={{ cursor: 'pointer' }}
-              onClick={() => openItemViewScreen(itemData.objectId)}
             >
               {itemData.name}
             </span>
@@ -319,6 +330,38 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
     [currentUser, workspaceKey, currentFields],
   );
 
+  const moveRow = useCallback(({ from, to }) => {
+    console.log('from --------------->', from);
+    console.log('to  ---------------->', to);
+  }, []);
+
+  const DropRowSort = ({ index, moveRow, rowData, ...restProps }) => {
+    const ref = React.useRef(null);
+    const dragoverClassName = cx('ant-table-row-dragover');
+    useDrop(ref, {
+      onDom(_, e) {
+        const data = JSON.parse(e.dataTransfer.getData('data'));
+        if (index - data.index === 1) return;
+        if (data.index === index) return;
+        moveRow?.({
+          from: data.rowData,
+          to: rowData,
+        });
+        const rowNode = (e.target as any).closest('.ant-table-row');
+        rowNode.classList.remove(dragoverClassName);
+      },
+      onDragEnter(e) {
+        const rowNode = (e.target as any).closest('.ant-table-row');
+        rowNode.classList.add(dragoverClassName);
+      },
+      onDragLeave(e) {
+        const rowNode = (e.target as any).closest('.ant-table-row');
+        rowNode.classList.remove(dragoverClassName);
+      },
+    });
+    return <tr ref={ref} {...restProps} />;
+  };
+
   return (
     <>
       <BusinessTable
@@ -329,6 +372,8 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         rowKey="objectId"
         useColumnSetting
         columns={columns}
+        bodyRowComponent={DropRowSort}
+        moveRow={moveRow}
         defaultColumnKey={['key', 'repositoryGroup', 'createdBy', 'createdAt']}
         privateColumnKey={['repositoryGroup']}
         name={`${workspaceKey}_TestDetailTable`}
