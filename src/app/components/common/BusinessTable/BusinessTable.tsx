@@ -79,7 +79,7 @@ type BusinessTableProps = TableProps<any> &
     privateColumnKey?: string[];
     PaginationFooterRender?: any;
     bodyRowComponent?: any;
-    moveRow?: (val: Record<string, unknown>) => void;
+    // moveRow?: (val: Record<string, unknown>) => void;
     handleFilterField?: (val: { testType: string; fieldKeys: string[] }) => void;
     // 所有可选的 row 标识
     allSelectableRowKeys?: string[];
@@ -103,7 +103,6 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     actionRef,
     expandable,
     getDataSource,
-    moveRow,
     bodyRowComponent,
     titleCellOption,
     onSelectionCancel,
@@ -417,7 +416,6 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
             const attr = {
               index,
               rowData,
-              moveRow,
             };
             return attr as React.HTMLAttributes<any>;
           }}

@@ -131,7 +131,7 @@
           color: #172b4d !important;
         }
         &-selected {
-          background-color: rgba(226, 236, 255, 0.5);
+          background-color: #e6f3ff;
           border-radius: 4px;
         }
         .ant-tree-node-content-wrapper.ant-tree-node-selected {
@@ -140,13 +140,24 @@
         &-draggable {
           .ant-tree-draggable-icon {
             line-height: 32px !important;
+            visibility: hidden;
           }
+        }
+
+        &-dragover {
+          border: 0.5px dashed #0c62ff;
         }
 
         &-dragover,
         &:hover {
-          background-color: rgba(244, 244, 245, 0.7);
+          background-color: #e6f3ff;
           border-radius: 4px;
+
+          &.ant-tree-treenode-draggable {
+            .ant-tree-draggable-icon {
+              visibility: visible;
+            }
+          }
         }
         &:before {
           display: none;

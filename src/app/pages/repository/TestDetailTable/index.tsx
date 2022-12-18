@@ -7,7 +7,12 @@ import { UserCell } from '@projectproxima/components';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import createProximaSdk from '@projectproxima/proxima-sdk-js';
 import { DeleteIcon, UserIcon, DragHandler, LinkItemIcon } from '@/icons';
-import { actionConfirm, generateSortIndex, openItemViewScreen } from '@/lib/utils/helper';
+import {
+  actionConfirm,
+  generateSortIndex,
+  getPluginWebTriggerBaseUrl,
+  openItemViewScreen,
+} from '@/lib/utils/helper';
 import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
 import { cloneTestEntities } from '@/lib/api/common';
 import { useUserCellUserDataProp } from '@/lib/hooks/useProxima';
@@ -24,6 +29,7 @@ import {
 import { TestType } from '@/lib/constants';
 import { getCurrentUserSetting, saveUserSetting } from '@/lib/api/userSetting';
 import { useCurrentUser } from '@/lib/api/user';
+import fetch from '@/lib/utils/fetch';
 
 import cx from './index.less';
 
@@ -40,6 +46,8 @@ const RowDragHandler = data => {
           ?.querySelectorAll('.ant-table-cell') ?? [],
       ).find(dom => dom.querySelector(`[data-element-id="row-title"]`));
 
+      // onDropEnter 无法接收到 data
+      global.dragNode = data;
       // 使用 dataTransfer 传入数据
       e.dataTransfer.setData('data', JSON.stringify(data));
       e.dataTransfer.setDragImage(dragElem, 0, 0);
@@ -252,7 +260,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         shouldCellUpdate: (record, prevRecord) =>
           record.repository?.objectId !== prevRecord.repository?.objectId,
         render(_, rowData, index) {
-          const folderKey = rowData?.repository?.objectId ?? UNGROUPED_FOLDER_KEY;
+          const folderKey = rowData?.repository ?? UNGROUPED_FOLDER_KEY;
           return (
             <RowDragHandler
               folderKey={folderKey}
@@ -330,33 +338,93 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
     [currentUser, workspaceKey, currentFields],
   );
 
-  const moveRow = useCallback(({ from, to }) => {
-    console.log('from --------------->', from);
-    console.log('to  ---------------->', to);
+  const handleDragoverClassName = useCallback((e, node, index, type) => {
+    const getDropClassName = () => {
+      return cx(`${index > node?.index ? 'drop-over-downward' : 'drop-over-upward'}`);
+    };
+
+    const dragoverClassName = getDropClassName();
+    const rowNode = (e.target as any).closest('.ant-table-row');
+    if (type === 'add') {
+      rowNode.classList.add(dragoverClassName);
+    } else {
+      rowNode.classList.remove(dragoverClassName);
+    }
   }, []);
 
-  const DropRowSort = ({ index, moveRow, rowData, ...restProps }) => {
+  const DropRow = ({ index, rowData, ...restProps }) => {
     const ref = React.useRef(null);
-    const dragoverClassName = cx('ant-table-row-dragover');
+    // useDrag(null, ref, {
+    //   onDragStart(e) {
+    //     const data = {
+    //       folderKey: rowData?.repository ?? UNGROUPED_FOLDER_KEY,
+    //       testId: rowData.objectId,
+    //       index: index,
+    //       rowData: rowData,
+    //     };
+    //     const dragElem = Array.from(
+    //       document
+    //         .querySelector(`[data-row-key="${data.testId}"]`)
+    //         ?.querySelectorAll('.ant-table-cell') ?? [],
+    //     ).find(dom => dom.querySelector(`[data-element-id="row-title"]`));
+
+    //     // 使用 dataTransfer 传入数据
+    //     e.dataTransfer.setData('data', JSON.stringify(data));
+    //     e.dataTransfer.setDragImage(dragElem, 0, 0);
+    //   },
+    // } as any);
+
     useDrop(ref, {
-      onDom(_, e) {
+      onDom: async (_, e) => {
+        // rowData 接受节点
         const data = JSON.parse(e.dataTransfer.getData('data'));
-        if (index - data.index === 1) return;
         if (data.index === index) return;
-        moveRow?.({
-          from: data.rowData,
-          to: rowData,
-        });
-        const rowNode = (e.target as any).closest('.ant-table-row');
-        rowNode.classList.remove(dragoverClassName);
+        const params = [
+          {
+            source: {
+              id: data.rowData.id,
+              name: data.rowData.name,
+              index: data.index,
+              sortIndex: data.rowData.sortIndex,
+            },
+            target: {
+              id: rowData.id,
+              name: rowData.name,
+              sortIndex: rowData.sortIndex,
+              index,
+            },
+          },
+        ];
+
+        // 请求脚本 generate-sortIndex 获取 sortIndex
+        const { sortIndex } = await fetch.$post(
+          `${getPluginWebTriggerBaseUrl()}/generate-sortIndex`,
+          {
+            list: params,
+            workspaceKey,
+          },
+        );
+
+        if (sortIndex) {
+          await updateTestEntity([
+            {
+              objectId: data.rowData.id,
+              sortIndex,
+            },
+          ]);
+
+          await onDataChange();
+        }
+
+        handleDragoverClassName(e, data, index, 'remove');
       },
       onDragEnter(e) {
-        const rowNode = (e.target as any).closest('.ant-table-row');
-        rowNode.classList.add(dragoverClassName);
+        if (global.dragNode.index === index) return;
+        handleDragoverClassName(e, global.dragNode, index, 'add');
       },
       onDragLeave(e) {
-        const rowNode = (e.target as any).closest('.ant-table-row');
-        rowNode.classList.remove(dragoverClassName);
+        if (global.dragNode.index === index) return;
+        handleDragoverClassName(e, global.dragNode, index, 'remove');
       },
     });
     return <tr ref={ref} {...restProps} />;
@@ -372,8 +440,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         rowKey="objectId"
         useColumnSetting
         columns={columns}
-        bodyRowComponent={DropRowSort}
-        moveRow={moveRow}
+        bodyRowComponent={DropRow}
         defaultColumnKey={['key', 'repositoryGroup', 'createdBy', 'createdAt']}
         privateColumnKey={['repositoryGroup']}
         name={`${workspaceKey}_TestDetailTable`}

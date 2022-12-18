@@ -14,5 +14,33 @@
 }
 
 .ant-table-row-dragover {
-  background-color: #fafbfb ;
+  background-color: #fafbfb;
+}
+
+.drop-over-downward {
+  position: relative;
+
+  &::after {
+    position: absolute;
+    content: '';
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 0;
+    border-bottom: 1px solid #0c62ff;
+  }
+}
+
+.drop-over-upward {
+  position: relative;
+
+  &::after {
+    position: absolute;
+    content: '';
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 0;
+    border-top: 1px solid #0c62ff;
+  }
 }

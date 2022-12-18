@@ -526,9 +526,6 @@ const FolderTree: React.FC<FolderTreeProps> = ({
       const dropPosition = info.dropPosition - Number(dropPos[dropPos.length - 1]);
 
       let hierarchy = 0;
-      // treeFn.reverseTreeNodes(dragNode, () => {
-      //   hierarchy++;
-      // });
 
       const getHierarchy = nodes => {
         nodes.forEach(n => {
@@ -544,20 +541,18 @@ const FolderTree: React.FC<FolderTreeProps> = ({
 
       const validateHierarchy = (index = 0) => {
         const newHierarchy = (dropPos.length - 2 - index || 0) + hierarchy;
-        if (newHierarchy >= 9) {
+        return newHierarchy >= 9;
+      };
+
+      if (dropPosition < 0) return;
+      if (!info.dropToGap) {
+        // 拖拽到子级, 排序到子节点的首位
+        if (validateHierarchy(0)) {
           notification.warn({
             message: '限制8个层级，拖拽后超过8个层级，不允许层级',
           });
           return;
         }
-      };
-
-      // dragNode 拖拽节点
-      // node 接受节点
-      if (dropPosition < 0) return;
-      if (!info.dropToGap) {
-        // 拖拽到子级, 排序到子节点的首位
-        validateHierarchy(0);
         const needUpdateDragNode = {
           key: dragKey,
           parentKey: node.key,
@@ -571,7 +566,12 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         dropPosition === 1 // On the bottom gap
       ) {
         // 拖拽目标用例库底部，排序到首位
-        validateHierarchy(0);
+        if (validateHierarchy(0)) {
+          notification.warn({
+            message: '限制8个层级，拖拽后超过8个层级，不允许层级',
+          });
+          return;
+        }
         const needUpdateDragNode = {
           key: dragKey,
           parentKey: node.key,
@@ -582,7 +582,12 @@ const FolderTree: React.FC<FolderTreeProps> = ({
       } else {
         // 平级拖拽，排序到目标节点后位，dropKey 为 root 不操作,
         if (dropKey === 'root') return;
-        validateHierarchy(1);
+        if (validateHierarchy(1)) {
+          notification.warn({
+            message: '限制8个层级，拖拽后超过8个层级，不允许层级',
+          });
+          return;
+        }
         const needUpdateDragNode = {
           key: dragKey,
           parentKey: node.parentKey,
@@ -611,7 +616,6 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         icon={({ expanded }) => (expanded ? <FileOpen /> : <FileClose />)}
         switcherIcon={<CaretDownOutlined style={{ color: '#878C96' }} />}
         draggable
-        // allowDrop={({ dropNode }) => dropNode.key !== 'root'}
         onDrop={onDrop}
       />
       {EmptyNode}

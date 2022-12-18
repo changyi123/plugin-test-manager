@@ -130,10 +130,22 @@ const TestPlanList: React.FC<any> = () => {
               <Dropdown
                 overlay={
                   <Menu>
-                    <Menu.Item key="delete" onClick={() => handleDelete(rowData)}>
+                    <Menu.Item
+                      key="delete"
+                      onClick={item => {
+                        item.domEvent.stopPropagation();
+                        handleDelete(rowData);
+                      }}
+                    >
                       删除测试计划
                     </Menu.Item>
-                    <Menu.Item key="view" onClick={() => handleView(rowData)}>
+                    <Menu.Item
+                      key="view"
+                      onClick={item => {
+                        item.domEvent.stopPropagation();
+                        handleView(rowData);
+                      }}
+                    >
                       查看测试计划
                     </Menu.Item>
                   </Menu>
