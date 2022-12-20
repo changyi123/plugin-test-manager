@@ -35,11 +35,13 @@ import cx from './index.less';
 
 const proxima = createProximaSdk();
 
-const RowDragHandler = data => {
+const RowDragBox = ({ children, ...data }) => {
   const ref = React.useRef();
+  // const [dragging, setDragging] = React.useState(false);
 
   useDrag(null, ref, {
     onDragStart(e) {
+      // setDragging(true);
       const dragElem = Array.from(
         document
           .querySelector(`[data-row-key="${data.testId}"]`)
@@ -50,16 +52,14 @@ const RowDragHandler = data => {
       global.dragNode = data;
       // 使用 dataTransfer 传入数据
       e.dataTransfer.setData('data', JSON.stringify(data));
-      e.dataTransfer.setDragImage(dragElem, 0, 0);
+      e.dataTransfer?.setDragImage(dragElem, 0, 0);
+    },
+    onDragEnd() {
+      // setDragging(false);
     },
   } as any);
-  return (
-    <Tooltip overlayClassName={cx('tooltip')} title="拖动至用例分组">
-      <span ref={ref}>
-        <DragHandler />
-      </span>
-    </Tooltip>
-  );
+  // className={cx(dragging ? 'dragging' : '', 'test-case-drag')}
+  return <span ref={ref}>{children}</span>;
 };
 
 export type ActionType = BusinessTableActionType;
@@ -257,17 +257,27 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         key: 'move',
         fixed: true,
         isSystem: true,
-        shouldCellUpdate: (record, prevRecord) =>
-          record.repository?.objectId !== prevRecord.repository?.objectId,
-        render(_, rowData, index) {
+        shouldCellUpdate: (record, prevRecord) => {
+          return (
+            record.repository?.objectId !== prevRecord.repository?.objectId ||
+            record.sortIndex !== prevRecord.sortIndex
+          );
+        },
+        render(_, rowData) {
           const folderKey = rowData?.repository ?? UNGROUPED_FOLDER_KEY;
           return (
-            <RowDragHandler
+            <RowDragBox
               folderKey={folderKey}
               testId={rowData.objectId}
-              index={index}
+              sortIndex={rowData.sortIndex}
               rowData={rowData}
-            />
+            >
+              <Tooltip overlayClassName={cx('tooltip')} title="拖动至用例分组">
+                <span>
+                  <DragHandler />
+                </span>
+              </Tooltip>
+            </RowDragBox>
           );
         },
       },
@@ -276,21 +286,35 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         key: 'title',
         title: '标题',
         isSystem: true,
+        className: 'test-case-title',
         extraProps: {
           onClick: record => {
             openItemViewScreen(record?.objectId);
           },
         },
-        render(_, rowData) {
-          const itemData = rowData ?? {};
+        shouldCellUpdate: (record, prevRecord) => {
           return (
-            <span
-              data-drawer-handle-target
-              data-element-id="row-title"
-              style={{ cursor: 'pointer' }}
+            record.repository?.objectId !== prevRecord.repository?.objectId ||
+            record.sortIndex !== prevRecord.sortIndex
+          );
+        },
+        render(_, rowData) {
+          const folderKey = rowData?.repository ?? UNGROUPED_FOLDER_KEY;
+          return (
+            <RowDragBox
+              folderKey={folderKey}
+              testId={rowData.objectId}
+              sortIndex={rowData.sortIndex}
+              rowData={rowData}
             >
-              {itemData.name}
-            </span>
+              <span
+                data-drawer-handle-target
+                data-element-id="row-title"
+                style={{ cursor: 'pointer' }}
+              >
+                {rowData?.name}
+              </span>
+            </RowDragBox>
           );
         },
       },
@@ -338,9 +362,15 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
     [currentUser, workspaceKey, currentFields],
   );
 
-  const handleDragoverClassName = useCallback((e, node, index, type) => {
+  const handleDragoverClassName = useCallback((e, node, sortIndex, type) => {
     const getDropClassName = () => {
-      return cx(`${index > node?.index ? 'drop-over-downward' : 'drop-over-upward'}`);
+      return cx(
+        `${
+          sortIndex < node?.sortIndex
+            ? 'test-manager-drop-over-downward'
+            : 'test-manager-drop-over-upward'
+        }`,
+      );
     };
 
     const dragoverClassName = getDropClassName();
@@ -352,46 +382,24 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
     }
   }, []);
 
-  const DropRow = ({ index, rowData, ...restProps }) => {
+  const DropRow = ({ rowData, ...restProps }) => {
     const ref = React.useRef(null);
-    // useDrag(null, ref, {
-    //   onDragStart(e) {
-    //     const data = {
-    //       folderKey: rowData?.repository ?? UNGROUPED_FOLDER_KEY,
-    //       testId: rowData.objectId,
-    //       index: index,
-    //       rowData: rowData,
-    //     };
-    //     const dragElem = Array.from(
-    //       document
-    //         .querySelector(`[data-row-key="${data.testId}"]`)
-    //         ?.querySelectorAll('.ant-table-cell') ?? [],
-    //     ).find(dom => dom.querySelector(`[data-element-id="row-title"]`));
-
-    //     // 使用 dataTransfer 传入数据
-    //     e.dataTransfer.setData('data', JSON.stringify(data));
-    //     e.dataTransfer.setDragImage(dragElem, 0, 0);
-    //   },
-    // } as any);
-
     useDrop(ref, {
       onDom: async (_, e) => {
         // rowData 接受节点
         const data = JSON.parse(e.dataTransfer.getData('data'));
-        if (data.index === index) return;
+        if (data.rowData.sortIndex === rowData.sortIndex) return;
         const params = [
           {
             source: {
               id: data.rowData.id,
               name: data.rowData.name,
-              index: data.index,
               sortIndex: data.rowData.sortIndex,
             },
             target: {
               id: rowData.id,
               name: rowData.name,
               sortIndex: rowData.sortIndex,
-              index,
             },
           },
         ];
@@ -416,15 +424,15 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
           await onDataChange();
         }
 
-        handleDragoverClassName(e, data, index, 'remove');
+        handleDragoverClassName(e, data, rowData.sortIndex, 'remove');
       },
       onDragEnter(e) {
-        if (global.dragNode.index === index) return;
-        handleDragoverClassName(e, global.dragNode, index, 'add');
+        if (global.dragNode?.sortIndex === rowData?.sortIndex) return;
+        handleDragoverClassName(e, global.dragNode, rowData.sortIndex, 'add');
       },
       onDragLeave(e) {
-        if (global.dragNode.index === index) return;
-        handleDragoverClassName(e, global.dragNode, index, 'remove');
+        if (global.dragNode?.sortIndex === rowData?.sortIndex) return;
+        handleDragoverClassName(e, global.dragNode, rowData.sortIndex, 'remove');
       },
     });
     return <tr ref={ref} {...restProps} />;

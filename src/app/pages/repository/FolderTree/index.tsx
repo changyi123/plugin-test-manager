@@ -562,7 +562,6 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         updateRepository([needUpdateDragNode]);
       } else if (
         ((node as any).children || []).length > 0 && // Has children
-        (node as any).expanded && // Is expanded
         dropPosition === 1 // On the bottom gap
       ) {
         // 拖拽目标用例库底部，排序到首位
@@ -607,7 +606,10 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         treeData={treeData}
         expandAction={false}
         className={cx('tree')}
-        onExpand={handleExpand}
+        onExpand={(keys, { nativeEvent }) => {
+          if (['dragenter'].includes(nativeEvent.type)) return;
+          handleExpand(keys);
+        }}
         onSelect={handleSelect}
         titleRender={titleRender}
         onRightClick={handleRightClick}

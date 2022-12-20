@@ -19,9 +19,7 @@ export const generateSortIndex = async () => {
   const { type, targetSortIndex, isUpDrag } = getSortType(list?.[0] ?? {});
   const selector = `'test_manager_sortIndex' ${type} '${targetSortIndex}'`;
   const {
-    data: {
-      list: [data],
-    },
+    data: { list: nodes },
   } = await queryTestEntity({
     query: {
       type: TestType.Case,
@@ -35,33 +33,34 @@ export const generateSortIndex = async () => {
       : { descending: ['sortIndex', 'createdAt'] }),
   });
 
-  const sortIndex = data?.sortIndex
-    ? Math.floor((data?.sortIndex - targetSortIndex) / 2) + targetSortIndex
-    : isUpDrag
-    ? targetSortIndex - 10e5
-    : targetSortIndex + 10e5;
+  const [node] = nodes ?? [];
+  // 边界顶部后底部情况 sortIndex
+  const boundarySortIndex = isUpDrag ? targetSortIndex + 10e5 : targetSortIndex - 10e5;
+  const sortIndex = node?.sortIndex
+    ? Math.floor((node?.sortIndex - targetSortIndex) / 2) + targetSortIndex
+    : boundarySortIndex;
 
   return {
-    case: data,
+    case: node,
     sortIndex,
   };
 };
 
 const getSortType = ({ source, target }) => {
-  const sourceIndex = source?.index;
-  const targetIndex = target?.index;
+  const sourceIndex = source?.sortIndex;
+  const targetIndex = target?.sortIndex;
 
   if (sourceIndex > targetIndex) {
     return {
-      isUpDrag: sourceIndex > targetIndex,
-      type: '>',
+      isUpDrag: false,
+      type: '<',
       targetSortIndex: target.sortIndex,
     };
   }
 
   return {
-    isUpDrag: sourceIndex > targetIndex,
-    type: '<',
+    isUpDrag: true,
+    type: '>',
     targetSortIndex: target.sortIndex,
   };
 };

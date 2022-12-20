@@ -316,6 +316,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       fixed: true,
       isSystem: true,
       title: '标题',
+      className: 'test-case-title',
       extraProps: {
         onClick: record => {
           openItemViewScreen(record?.objectId);
@@ -420,6 +421,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       title: '用例标题',
       isSystem: true,
       fixed: true,
+      className: 'test-case-title',
       width: 400,
       tooltip: true,
       extraProps: {

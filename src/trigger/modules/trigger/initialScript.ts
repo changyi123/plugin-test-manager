@@ -274,13 +274,20 @@ const handleSortIndexOldData = async () => {
   const handleSortIndex = item => {
     const oldSortIndex = item.get('r_test_manager_sortIndex') / 10e5;
     const [num1, num2] = String(oldSortIndex ?? 0)?.split('.');
+    if (Number(num2 ?? '') > 1000) {
+      return null;
+    }
     return Number(num1) * 10e5 + Number(num2 ?? '') * 1000;
   };
 
-  const needUpdateItems = itemList.map(item => {
-    item.set('r_test_manager_sortIndex', handleSortIndex(item));
-    return item;
-  });
+  const needUpdateItems = itemList
+    .map(item => {
+      const sortIndex = handleSortIndex(item);
+      if (!sortIndex) return null;
+      item.set('r_test_manager_sortIndex', sortIndex);
+      return item;
+    })
+    .filter(Boolean);
 
   const updatedItems = await saveAllObject(needUpdateItems);
   console.info('updatedItems', updatedItems);
@@ -358,7 +365,7 @@ const initialScriptRunner = async () => {
   await createNotExistedChartGroups();
 
   // 拖拽旧数据处理
-  await handleSortIndexOldData();
+  // await handleSortIndexOldData();
 };
 
 export const runInitialScript = async () => {

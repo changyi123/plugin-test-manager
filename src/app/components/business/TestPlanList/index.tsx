@@ -116,6 +116,7 @@ const TestPlanList: React.FC<any> = () => {
       fixed: true,
       isSystem: true,
       title: '计划名称',
+      className: 'test-case-title',
       extraProps: {
         onClick: record => {
           setSelectedTestPlan(record);
