@@ -388,6 +388,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
       onDom: async (_, e) => {
         // rowData 接受节点
         const data = JSON.parse(e.dataTransfer.getData('data'));
+        if (!data?.rowData?.sortIndex) return;
         if (data.rowData.sortIndex === rowData.sortIndex) return;
         const params = [
           {
@@ -427,10 +428,12 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         handleDragoverClassName(e, data, rowData.sortIndex, 'remove');
       },
       onDragEnter(e) {
+        if (!global.dragNode?.sortIndex) return;
         if (global.dragNode?.sortIndex === rowData?.sortIndex) return;
         handleDragoverClassName(e, global.dragNode, rowData.sortIndex, 'add');
       },
       onDragLeave(e) {
+        if (!global.dragNode?.sortIndex) return;
         if (global.dragNode?.sortIndex === rowData?.sortIndex) return;
         handleDragoverClassName(e, global.dragNode, rowData.sortIndex, 'remove');
       },

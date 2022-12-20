@@ -549,7 +549,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         // 拖拽到子级, 排序到子节点的首位
         if (validateHierarchy(0)) {
           notification.warn({
-            message: '限制8个层级，拖拽后超过8个层级，不允许层级',
+            message: '限制8个层级，拖拽后超过8个层级，不允许拖拽',
           });
           return;
         }
