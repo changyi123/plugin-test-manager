@@ -46,7 +46,7 @@ export const useGetTableFilterFields = ({
     async () => {
       if (!isSettingPage && !isCheckedGlobalConfig) return null;
       const globalConfig = await getTestConfig({ global: true });
-      return globalConfig.toJSON();
+      return globalConfig?.toJSON();
     },
     {
       refreshDeps: [isSettingPage, isCheckedGlobalConfig],
@@ -57,7 +57,7 @@ export const useGetTableFilterFields = ({
     async () => {
       if (!workspaceKey) return null;
       const testConfig = await getTestConfig({ workspaceKey });
-      return testConfig.toJSON();
+      return testConfig?.toJSON();
     },
     {
       ready: Boolean(workspaceKey),

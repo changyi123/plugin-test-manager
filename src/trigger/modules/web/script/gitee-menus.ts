@@ -80,7 +80,7 @@ export const runGiteeMenus = async () => {
       url: `${giteeRoutePrefix}/report/test_manager?disabledCreate=true`,
       type: 'IFRAME',
       openWindow: '0',
-      iframeUrl: `/${proximaRoutePrefix}/report/test_manager?disabledCreate=true`,
+      iframeUrl: `${proximaRoutePrefix}/report/test_manager?disabledCreate=true`,
     };
 
     const menus = [

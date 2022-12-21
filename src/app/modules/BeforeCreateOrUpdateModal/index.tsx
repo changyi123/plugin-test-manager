@@ -11,7 +11,7 @@ import { ExtensionValType, TestType, CREATE_ITEM_STORE_FIELD_KEY } from '@/lib/c
 
 const getUpdateParamsByStoreValues = storeValues => ({
   workspaceId: get(storeValues, 'workspace[0]'),
-  itemTypeId: get(storeValues, 'itemType[0]') ?? get(storeValues, 'itemTypeValue'),
+  itemTypeId: get(storeValues, 'itemTypeValue') ?? get(storeValues, 'itemType[0]'),
 });
 
 const BeforeCreateOrUpdateModal = () => {

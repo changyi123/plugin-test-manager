@@ -113,7 +113,8 @@ module.exports = (cliEnv = {}, argv) => {
     },
   };
   // 生产环境使用 MiniCssExtractPlugin
-  const extractOrStyleLoaderConfig = isProd ? MiniCssExtractPlugin.loader : 'style-loader';
+  // const extractOrStyleLoaderConfig = isProd ? MiniCssExtractPlugin.loader : 'style-loader';
+  const extractOrStyleLoaderConfig = 'style-loader';
 
   // 根据 patterns 使用 style-resources-loader
   const makeStyleResourcesLoader = patterns => ({
@@ -239,11 +240,11 @@ module.exports = (cliEnv = {}, argv) => {
         inject: true,
         templateParameters: () => resolveClientEnv(true, cliEnv),
       }),
-      isProd &&
-        new MiniCssExtractPlugin({
-          filename: '[name].[contenthash].css',
-          chunkFilename: '[name].[contenthash].chunk.css',
-        }),
+      // isProd &&
+      //   new MiniCssExtractPlugin({
+      //     filename: '[name].[contenthash].css',
+      //     chunkFilename: '[name].[contenthash].chunk.css',
+      //   }),
       new CleanWebpackPlugin(),
     ].filter(Boolean),
     module: {
