@@ -13,12 +13,19 @@ modules:
     # 动态配置 one 路由
     - key: gitee-menus
       function: gitee-menus
+    # 批量创建统计报表
     - key: batch-create-chart-groups
       function: batch-create-chart-groups
+    # 徽商工作流脚本
     - key: huishang-script
       function: huishang-script
+    # 申万工作流脚本
     - key: shenwan-script
       function: shenwan-script
+    # 拖拽排序生成测试用例 sortIndex
+    - key: generate-sortIndex
+      function: generate-sortIndex
+    # 测试报告脚本
     - key: report-stats
       function: report-stats
     - key: report-data-base
@@ -73,6 +80,8 @@ modules:
       handler: web.runHuishangScript
     - key: shenwan-script
       handler: web.runShenWanScript
+    - key: generate-sortIndex
+      handler: web.generateSortIndex
       # 测试报告统计数据
     - key: report-stats
       handler: web.requestReportStats

@@ -7,7 +7,7 @@ import {
   getParseObject,
 } from '@giteeteam/apps-team-api';
 
-import { TestConfigClassName, TestType } from '../../../common/constant';
+import { TestConfigClassName } from '../../../common/constant';
 import { batchCreateChartGroups } from '../web/script/create-chart-groups';
 
 const ParseBaseQueryOptions = {
@@ -262,37 +262,6 @@ const createNotExistedChartGroups = async () => {
   }
 };
 
-// 拖拽排序旧数据处理
-const handleSortIndexOldData = async () => {
-  const itemQuery = await getParseQuery(false, 'Item');
-  const sortIndex = Math.floor(Date.now() / 1000) * 10e5;
-  const itemList = await itemQuery
-    .equalTo('r_test_manager_type', TestType.Case)
-    .lessThanOrEqualTo('r_test_manager_sortIndex', sortIndex)
-    .findAll(ParseBaseQueryOptions);
-
-  const handleSortIndex = item => {
-    const oldSortIndex = item.get('r_test_manager_sortIndex') / 10e5;
-    const [num1, num2] = String(oldSortIndex ?? 0)?.split('.');
-    if (Number(num2 ?? '') > 1000) {
-      return null;
-    }
-    return Number(num1) * 10e5 + Number(num2 ?? '') * 1000;
-  };
-
-  const needUpdateItems = itemList
-    .map(item => {
-      const sortIndex = handleSortIndex(item);
-      if (!sortIndex) return null;
-      item.set('r_test_manager_sortIndex', sortIndex);
-      return item;
-    })
-    .filter(Boolean);
-
-  const updatedItems = await saveAllObject(needUpdateItems);
-  console.info('updatedItems', updatedItems);
-};
-
 const initialScriptRunner = async () => {
   const APP_KEY = global.appKey ?? 'test_manager';
 
@@ -363,9 +332,6 @@ const initialScriptRunner = async () => {
 
   // 创建空间级配置不存在的测试统计报表
   await createNotExistedChartGroups();
-
-  // 拖拽旧数据处理
-  // await handleSortIndexOldData();
 };
 
 export const runInitialScript = async () => {
