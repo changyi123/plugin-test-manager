@@ -30,7 +30,8 @@ const getStepData = datas => datas.replace(/^【\d+】/g, '');
 
 const getIsStrict = step => (replaceRn(step) ? /(^|([\r\n]))【\d+】/g.test(replaceRn(step)) : true);
 
-const getSortIndex = (index = 0) => Math.floor(Date.now() / 1000) * 10e5 + index * 1000;
+const getSortIndex = (index = 0, time = 0) =>
+  Math.floor(Date.now() / 1000 + time) * 10e5 + index * 1000;
 
 const isStrictEOLMode = datas =>
   getIsStrict(datas.action) && getIsStrict(datas.result) && getIsStrict(datas.data);
@@ -257,7 +258,7 @@ export const runImport = async () => {
         parent: parent,
         workspaceKey,
         name: gro.name,
-        sortIndex: getSortIndex(index),
+        sortIndex: getSortIndex(index, i),
       });
 
       return repo;
