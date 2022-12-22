@@ -282,7 +282,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   const removeTestRelation = React.useCallback(
     async (planId, testDetails) => {
       if (!Array.isArray(testDetails)) return;
-      const dat = await updateTestEntity(
+      await updateTestEntity(
         testDetails.map(d => ({
           objectId: d.id,
           linkItems: {
@@ -297,8 +297,6 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           }, {}),
         })),
       );
-
-      console.log(11111111111, dat);
 
       actionRef.current.resetSelectedRowKeys();
 
