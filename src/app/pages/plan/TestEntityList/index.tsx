@@ -251,6 +251,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
             ...d,
             repository: item?.repository,
             item,
+            name: item.name,
             key: item.key,
             values: item.values,
             status: item.workflowStatus,
@@ -281,7 +282,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   const removeTestRelation = React.useCallback(
     async (planId, testDetails) => {
       if (!Array.isArray(testDetails)) return;
-      await updateTestEntity(
+      const dat = await updateTestEntity(
         testDetails.map(d => ({
           objectId: d.id,
           linkItems: {
@@ -296,6 +297,8 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           }, {}),
         })),
       );
+
+      console.log(11111111111, dat);
 
       actionRef.current.resetSelectedRowKeys();
 
@@ -398,7 +401,14 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   const deleteTestRunByIds = useMemoizedFn(testRunIds => {
     actionConfirm('该操作会将所选测试执行删除，是否继续操作？', async () => {
       // 删除测试执行
-      await deleteTestEntity(testRunIds);
+      const { data } = await deleteTestEntity(testRunIds);
+
+      if (data.status === 'error') {
+        notification.error({
+          message: `用例执行被删除失败`,
+        });
+        return;
+      }
 
       scopedTestDetailRefresh();
       actionRef.current.resetSelectedRowKeys();
