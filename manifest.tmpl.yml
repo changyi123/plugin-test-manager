@@ -18,10 +18,10 @@ modules:
       function: batch-create-chart-groups-function
     # 徽商工作流脚本
     - key: huishang-script
-      function: huishang-script
+      function: huishang-script-function
     # 申万工作流脚本
     - key: shenwan-script
-      function: shenwan-script
+      function: shenwan-script-function
     # 拖拽排序生成测试用例 sortIndex
     - key: generate-sortIndex
       function: generate-sortIndex-function
