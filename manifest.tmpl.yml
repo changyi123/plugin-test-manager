@@ -8,14 +8,14 @@ modules:
     # TODO: Debug 使用，生产环境禁止调用西面的 trigger
     # ---------------------------------------------
     - key: test-manager-initial-script
-      function: test-manager-initial-script
+      function: test-manager-initial-script-function
     # ---------------------------------------------
     # 动态配置 one 路由
     - key: gitee-menus
-      function: gitee-menus
+      function: gitee-menus-function
     # 批量创建统计报表
     - key: batch-create-chart-groups
-      function: batch-create-chart-groups
+      function: batch-create-chart-groups-function
     # 徽商工作流脚本
     - key: huishang-script
       function: huishang-script
@@ -24,106 +24,106 @@ modules:
       function: shenwan-script
     # 拖拽排序生成测试用例 sortIndex
     - key: generate-sortIndex
-      function: generate-sortIndex
+      function: generate-sortIndex-function
     # 测试报告脚本
     - key: report-stats
-      function: report-stats
+      function: report-stats-function
     - key: report-data-base
-      function: report-data-base
+      function: report-data-base-function
     - key: report-data-extensions-huishang
-      function: report-data-extensions-huishang
+      function: report-data-extensions-huishang-function
     - key: report-data-extensions-inspur
-      function: report-data-extensions-inspur
+      function: report-data-extensions-inspur-function
       # 查询实体数据
     - key: api-query-test-entity
-      function: api-query-test-entity
+      function: api-query-test-entity-function
     - key: api-query-linked-test-entity
-      function: api-query-linked-test-entity
+      function: api-query-linked-test-entity-function
     # 批量操作（删除，更新，创建测试执行）
     - key: api-batch-delete
-      function: api-batch-delete
+      function: api-batch-delete-function
     - key: api-batch-update
-      function: api-batch-update
+      function: api-batch-update-function
     - key: api-batch-create-test-run
-      function: api-batch-create-test-run
+      function: api-batch-create-test-run-function
     # 数据统计
     - key: api-stats-test-plan
-      function: api-stats-test-plan
+      function: api-stats-test-plan-function
     - key: api-stats-test-execution
-      function: api-stats-test-execution
+      function: api-stats-test-execution-function
     - key: api-stats-test-case
-      function: api-stats-test-case
+      function: api-stats-test-case-function
     # 模块代码
     - key: api-module-repository-tree
-      function: api-module-repository-tree
+      function: api-module-repository-tree-function
 
   trigger:
     - key: test-manager-initial-script-install
       events:
         - proxima:app:install
         - proxima:app:upgrade
-      function: test-manager-initial-script
+      function: test-manager-initial-script-function
   function:
-    - key: gitee-menus
+    - key: gitee-menus-function
       handler: web.runGiteeMenus
-    - key: batch-create-chart-groups
+    - key: batch-create-chart-groups-function
       handler: web.batchCreateChartGroups
-    - key: test-manager-initial-script
+    - key: test-manager-initial-script-function
       handler: trigger.runInitialScript
-    - key: test-manager-validate-script
+    - key: test-manager-validate-script-function
       handler: importer.runValidate
-    - key: test-manager-import-script
+    - key: test-manager-import-script-function
       handler: importer.runImport
       # 5 分钟超时时长
       timeout: 300000
-    - key: huishang-script
+    - key: huishang-script-function
       handler: web.runHuishangScript
-    - key: shenwan-script
+    - key: shenwan-script-function
       handler: web.runShenWanScript
-    - key: generate-sortIndex
+    - key: generate-sortIndex-function
       handler: web.generateSortIndex
       # 测试报告统计数据
-    - key: report-stats
+    - key: report-stats-function
       handler: web.requestReportStats
       # 测试报告模板基础数据
-    - key: report-data-base
+    - key: report-data-base-function
       handler: web.requestReportDataBase
       # 徽商测试报告拓展数据
-    - key: report-data-extensions-huishang
+    - key: report-data-extensions-huishang-function
       handler: web.requestReportHuiShangDataExtensions
       # 浪潮测试报告拓展数据
-    - key: report-data-extensions-inspur
+    - key: report-data-extensions-inspur-function
       handler: web.requestReportInspurDataExtensions
 
       # api backend Query
-    - key: api-query-test-entity
+    - key: api-query-test-entity-function
       handler: api.queryTestEntity
-    - key: api-query-linked-test-entity
+    - key: api-query-linked-test-entity-function
       handler: api.queryLinkedTestEntity
 
      # api batch
-    - key: api-batch-delete
+    - key: api-batch-delete-function
       handler: api.batchDelete
       timeout: 90000
-    - key: api-batch-update
+    - key: api-batch-update-function
       handler: api.batchUpdate
       # 5 分钟超时时长
       timeout: 300000
-    - key: api-batch-create-test-run
+    - key: api-batch-create-test-run-function
       handler: api.batchCreateTestRun
       # 5 分钟超时时长
       timeout: 300000
 
     # api stats
-    - key: api-stats-test-plan
+    - key: api-stats-test-plan-function
       handler: api.testPlanStats
-    - key: api-stats-test-execution
+    - key: api-stats-test-execution-function
       handler: api.testExecutionStats
-    - key: api-stats-test-case
+    - key: api-stats-test-case-function
       handler: api.testCaseStats
 
     # api module
-    - key: api-module-repository-tree
+    - key: api-module-repository-tree-function
       handler: api.repositoryTree
 
   itemPanel:
@@ -165,8 +165,8 @@ modules:
       loadType: Micro
       route: /beforeItemCreateModule
   importer:
-    function: test-manager-import-script
-    validate: test-manager-validate-script
+    function: test-manager-import-script-function
+    validate: test-manager-validate-script-function
     itemFields:
       - key: group
         title: 所属分组
