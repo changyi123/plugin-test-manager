@@ -77,10 +77,10 @@ export const runGiteeMenus = async () => {
       title: '测试统计',
       key: `test-stats-report-${workspaceKey}`,
       icon: 'iconNavi-icafeplan',
-      url: `${giteeRoutePrefix}/report/test_manager?disabledCreate=true`,
+      url: `${giteeRoutePrefix}/report/test_manager?disabledCreate=true&displayContext=test_manager`,
       type: 'IFRAME',
       openWindow: '0',
-      iframeUrl: `${proximaRoutePrefix}/report/test_manager?disabledCreate=true`,
+      iframeUrl: `${proximaRoutePrefix}/report/test_manager?disabledCreate=true&displayContext=test_manager`,
     };
 
     const menus = [

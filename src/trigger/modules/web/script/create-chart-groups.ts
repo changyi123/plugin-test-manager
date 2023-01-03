@@ -50,15 +50,41 @@ const TestDefectChartGroup = {
   ],
 };
 
+const TestRunCountChartGroup = {
+  group: {
+    name: '用例执行统计',
+    global: true,
+  },
+  chart: [
+    // 执行通过率
+    {
+      name: '执行通过率',
+      view: 'basic-count-chart',
+      option: `{"color":"#FFF","formula":"【已通过测试执行数】/【测试执行总数】","grid":{"h":2,"w":5,"x":0,"y":0},"percentages":true,"precision":2,"showDetail":true,"type":"basic-count-chart","unit":"right","target":[{"id":"0.by1378tznou","iql":"'test_manager_type' in ['TestRun']","selectors":{},"targetName":"测试执行总数","value":[{"compute":"count","fieldType":"count","iql":"'test_manager_type' in ['TestRun']","key":"count","name":"事项数","variable":"测试执行总数"}]},{"id":"0.cf7j4gz1id","iql":"('test_manager_type' in ['TestRun']) and ('test_manager_status' in ['PASSED'])","selectors":{},"targetName":"已通过测试执行数","value":[{"compute":"count","fieldType":"count","iql":"('test_manager_type' in ['TestRun']) and ('test_manager_status' in ['PASSED'])","key":"count","name":"事项数","variable":"已通过测试执行数"}]}]}`,
+    },
+    // 用例优先级分布
+    {
+      name: '用例优先级分布',
+      view: 'basic-table-chart',
+      option: `{"iql":"'test_manager_type' in ['TestCase']","total":{"rowTotal": true},"grid":{"h":2,"w":7,"x":5,"y":0},"type":"basic-table-chart","group":[{"key":"itemType","name":"类型","fieldType":"ItemType"}],"value":[{"key":"count","name":"事项数","compute":"count","fieldType":"count"}],"cluster":[{"key":"priority","name":"优先级","fieldType":"Priority"}],"selectors":{}}`,
+    },
+    // 用例执行状态分布
+    // {
+    //   name: '用例执行状态分布',
+    //   view: 'basic-table-chart',
+    //   option: '',
+    // },
+  ],
+};
+
+const chartGroupNameMap = {
+  缺陷统计: 'TestDefectChartGroup',
+  用例执行统计: 'TestRunCountChartGroup',
+};
+
 const needToCreateChartGroupInfo = {
   TestDefectChartGroup: TestDefectChartGroup,
-  //   TestRunExecutionChartGroup: {
-  //     group: {
-  //       name: '用例执行统计',
-  //       global: true,
-  //     },
-  //     charts: [],
-  //   },
+  TestRunCountChartGroup: TestRunCountChartGroup,
   //   TestMemberChartGroup: {
   //     group: {
   //       name: '人员统计',
@@ -75,8 +101,12 @@ const createCharGroup = data => {
 };
 
 // name，option，chartGroupId，view
-const createChart = (props, options) => {
+const createChart = (props, options = {}) => {
   const chartObject = getParseObject(false, 'Chart');
+  console.info('option --------------------->', {
+    ...props,
+    option: { ...JSON.parse(props.option), ...options },
+  });
   chartObject.set({
     ...props,
     option: { ...JSON.parse(props.option), ...options },
@@ -87,10 +117,12 @@ const createChart = (props, options) => {
 const { workspaceKeys = [] } = global?.body ?? {};
 
 // 创建 ChartGroup 和 Chart 脚本
-const createChartGroups = async ({ workspace, iql, selectors }) => {
+const createChartGroups = async ({ workspace, needToCreateGroupKeys, ...resProps }) => {
   const WorkspaceParseObj = getParseModel(false, 'Workspace');
   const ChartGroupParseObj = getParseModel(false, 'ChartGroup');
-  const chartGroupsData = Object.values(needToCreateChartGroupInfo);
+  const chartGroupsData = needToCreateGroupKeys?.length
+    ? needToCreateGroupKeys.map(d => needToCreateChartGroupInfo?.[d])
+    : Object.values(needToCreateChartGroupInfo);
 
   // 创建 chartGroup
   const needToCreateChartGroups = chartGroupsData.map((data, index) =>
@@ -104,28 +136,30 @@ const createChartGroups = async ({ workspace, iql, selectors }) => {
   );
   const chartGroups = await saveAllObject(needToCreateChartGroups);
 
+  console.info(
+    'chartGroups ------------------------------------------------>',
+    chartGroups.map(d => d.id),
+  );
+
   // 创建 chart
   const needToCreateChars = chartGroups
     .map(group => {
-      const groupJson = group.toJSON();
+      const chartGroup = chartGroupsData.find(data => data.group.name === group.get('name'));
 
-      return chartGroupsData
-        .find(data => data.group.name === groupJson.name)
-        ?.chart.map(chart =>
-          createChart(
-            {
-              ...chart,
-              workspace: WorkspaceParseObj.createWithoutData(workspace.id),
-              chartGroup: ChartGroupParseObj.createWithoutData(group.id),
-            },
-            {
-              selectors,
-              iql,
-            },
-          ),
-        );
+      return chartGroup?.chart.map(chart =>
+        createChart(
+          {
+            ...chart,
+            workspace: WorkspaceParseObj.createWithoutData(workspace.id),
+            chartGroup: ChartGroupParseObj.createWithoutData(group.id),
+          },
+          resProps?.[chartGroupNameMap?.[chartGroup.group.name ?? '']] ?? {},
+        ),
+      );
     })
     .flat();
+
+  console.info('needToCreateChars ----->', needToCreateChars);
   const charts = await saveAllObject(needToCreateChars).then(items =>
     items.map(item => item.toJSON()),
   );
@@ -150,8 +184,8 @@ const createChartGroups = async ({ workspace, iql, selectors }) => {
 };
 
 export const batchCreateChartGroups = async workspaceConfigs => {
-  const WorkspaceParseQuery = getParseQuery(false, 'Workspace');
-  const TestConfigParseQuery = getParseQuery(false, 'test_manager_TestConfig');
+  const WorkspaceParseQuery = await getParseQuery(false, 'Workspace');
+  const TestConfigParseQuery = await getParseQuery(false, 'test_manager_TestConfig');
   const itemTypeQuery = await getParseQuery(false, 'ItemType');
 
   if (!workspaceConfigs) {
@@ -178,7 +212,14 @@ export const batchCreateChartGroups = async workspaceConfigs => {
   }).then(item => item.toJSON());
 
   const itemTypesObj = await itemTypeQuery
-    .containedIn('key', [...new Set(workspaceConfigs?.map(d => d.defectsMapping).flat())])
+    .containedIn('key', [
+      ...new Set(
+        workspaceConfigs
+          ?.map(d => d?.defectsMapping)
+          .filter(Boolean)
+          .flat(),
+      ),
+    ])
     .select(['objectId', 'name', 'key'])
     .find(ParseBaseQueryOptions)
     .then(items =>
@@ -215,13 +256,22 @@ export const batchCreateChartGroups = async workspaceConfigs => {
       : {};
 
   workspaceConfigs = workspaceConfigs.map(config => {
-    const itemTypes = itemTypesObj?.filter(d => config?.defectsMapping.includes(d.key)) ?? [];
+    const itemTypes = itemTypesObj?.filter(d => config?.defectsMapping?.includes(d.key)) ?? [];
+    const groupKeys = config.needToCreateGroupKeys ?? ['TestDefectChartGroup'];
+    const TestDefectChartGroupConfig = groupKeys.includes('TestDefectChartGroup')
+      ? {
+          iql: getIql(config, itemTypeField, itemTypes),
+          selectors: getSelectors(itemTypeField, itemTypes),
+        }
+      : {};
     return {
       ...config,
-      iql: getIql(config, itemTypeField, itemTypes),
-      selectors: getSelectors(itemTypeField, itemTypes),
+      TestDefectChartGroup: TestDefectChartGroupConfig,
+      TestRunCountChartGroup: {},
     };
   });
+
+  console.info('needToCreateGroupKeys', workspaceConfigs);
 
   const taskQueue = workspaceConfigs.map(config => async () => createChartGroups(config));
 
