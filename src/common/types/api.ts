@@ -206,3 +206,12 @@ export type TestCaseStatsPayload = {
 export type RepositoryTreePayload = {
   workspaceKey: string;
 };
+
+/**
+ * 获取测试管理脑图数据
+ * @example POST /api/project/app/osc/test_manager/webhooks/api-query-minder-data
+ */
+export type MinderDataPayload = {
+  workspaceKey: string;
+  repositoryKey: string;
+};

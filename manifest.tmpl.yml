@@ -25,9 +25,11 @@ modules:
     # 拖拽排序生成测试用例 sortIndex
     - key: generate-sortIndex
       function: generate-sortIndex-function
-    # 测试报告脚本
+    # 测试管理脑图接口
     - key: report-stats
       function: report-stats-function
+    - key: api-query-minder-data
+      function: api-query-minder-data-function
     - key: report-data-base
       function: report-data-base-function
     - key: report-data-extensions-huishang
@@ -125,6 +127,8 @@ modules:
     # api module
     - key: api-module-repository-tree-function
       handler: api.repositoryTree
+    - key: api-query-minder-data-function
+      handler: api.minderData
 
   itemPanel:
     - key: test-manager-test-detail
