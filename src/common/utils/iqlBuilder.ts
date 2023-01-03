@@ -6,7 +6,7 @@ export const enum Operator {
   Like = '~',
   GreaterThan = '>',
   GreaterThanEqual = '>=',
-  LessThan = '>',
+  LessThan = '<',
   LessThanEqual = '<=',
   DateRange = 'DateRange',
 }

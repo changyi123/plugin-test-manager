@@ -1,13 +1,13 @@
 import { getData } from '@giteeteam/apps-team-api';
 
 // 判断数据是否超过 1000 条
-const isMoreThanThousands = d => d?.length > 1000;
+const isMoreThanThousands = d => d?.length > 999;
 
 // 去除首位空格
 const trimData = datas => `${datas}`?.trim() ?? '';
 
 // 根据数据是否超过 1000 条来截取数据
-const getDataByLength = d => (isMoreThanThousands(d) ? d.slice(0, 1000) : d);
+const getDataByLength = d => (isMoreThanThousands(d) ? d.slice(0, 999) : d);
 
 const isFilterGroup = group => `${group ?? ''}`?.split('/').filter(d => trimData(d)).length > 8;
 

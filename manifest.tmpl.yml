@@ -2,7 +2,7 @@ app:
   key: test_manager
   uuid: bf73e61c-e15a-4461-a1f7-f940c2009332
   name: test_manager
-  version: "3.1.0"
+  version: "3.2.0"
 modules:
   webtrigger:
     # TODO: Debug 使用，生产环境禁止调用西面的 trigger
@@ -13,12 +13,19 @@ modules:
     # 动态配置 one 路由
     - key: gitee-menus
       function: gitee-menus-function
+    # 批量创建统计报表
     - key: batch-create-chart-groups
       function: batch-create-chart-groups-function
+    # 徽商工作流脚本
     - key: huishang-script
       function: huishang-script-function
+    # 申万工作流脚本
     - key: shenwan-script
       function: shenwan-script-function
+    # 拖拽排序生成测试用例 sortIndex
+    - key: generate-sortIndex
+      function: generate-sortIndex-function
+    # 测试报告脚本
     - key: report-stats
       function: report-stats-function
     - key: report-data-base
@@ -73,6 +80,8 @@ modules:
       handler: web.runHuishangScript
     - key: shenwan-script-function
       handler: web.runShenWanScript
+    - key: generate-sortIndex-function
+      handler: web.generateSortIndex
       # 测试报告统计数据
     - key: report-stats-function
       handler: web.requestReportStats

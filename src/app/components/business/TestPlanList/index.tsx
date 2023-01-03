@@ -116,21 +116,37 @@ const TestPlanList: React.FC<any> = () => {
       fixed: true,
       isSystem: true,
       title: '计划名称',
+      className: 'test-case-title',
+      extraProps: {
+        onClick: record => {
+          setSelectedTestPlan(record);
+        },
+      },
       render(_, rowData) {
         return (
           <div className={'test-plan-title-box'}>
             {ItemIcon && <ItemIcon className={'icon'} icon={rowData.itemType?.icon}></ItemIcon>}
-            <div className={'test-plan-title'} onClick={() => setSelectedTestPlan(rowData)}>
-              {rowData.name}
-            </div>
+            <div className={'test-plan-title'}>{rowData.name}</div>
             <div className={'plan-table-title-menu'}>
               <Dropdown
                 overlay={
                   <Menu>
-                    <Menu.Item key="delete" onClick={() => handleDelete(rowData)}>
+                    <Menu.Item
+                      key="delete"
+                      onClick={item => {
+                        item.domEvent.stopPropagation();
+                        handleDelete(rowData);
+                      }}
+                    >
                       删除测试计划
                     </Menu.Item>
-                    <Menu.Item key="view" onClick={() => handleView(rowData)}>
+                    <Menu.Item
+                      key="view"
+                      onClick={item => {
+                        item.domEvent.stopPropagation();
+                        handleView(rowData);
+                      }}
+                    >
                       查看测试计划
                     </Menu.Item>
                   </Menu>

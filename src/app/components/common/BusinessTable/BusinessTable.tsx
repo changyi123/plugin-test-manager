@@ -6,7 +6,7 @@ import { Resizable } from 'react-resizable';
 import { TableProps } from 'antd/lib/table';
 import ColumnSetting from './ColumnSetting';
 import TableSelection from './TableSelection';
-import { pick, isEqual, difference } from 'lodash';
+import { pick, omit, isEqual, difference } from 'lodash';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import { generateStorageKey } from '@/lib/utils/helper';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
@@ -49,7 +49,7 @@ const ResizableHeaderCell = ({ onResize, resizable, width, ...restProps }) => {
 };
 
 const OverflowTooltipBodyCell = props => {
-  const tdProps = pick(props, ['rowSpan', 'colSpan', 'style', 'className']);
+  const tdProps = pick(props, ['rowSpan', 'colSpan', 'style', 'className', 'onClick']);
   if (!props.overflowEllipsis) return <td {...tdProps}>{props.children}</td>;
 
   return (
@@ -78,6 +78,8 @@ type BusinessTableProps = TableProps<any> &
     defaultColumnKey?: string[];
     privateColumnKey?: string[];
     PaginationFooterRender?: any;
+    bodyRowComponent?: any;
+    // moveRow?: (val: Record<string, unknown>) => void;
     handleFilterField?: (val: { testType: string; fieldKeys: string[] }) => void;
     // 所有可选的 row 标识
     allSelectableRowKeys?: string[];
@@ -101,6 +103,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     actionRef,
     expandable,
     getDataSource,
+    bodyRowComponent,
     titleCellOption,
     onSelectionCancel,
     selectionActionNodes,
@@ -243,13 +246,24 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
 
   const columnsWithResizableAndSettingAction = tableColumns.map((col: any) => {
     const resizable = col.resizable ?? typeof col.width === 'number';
+    const _col = omit(col, ['extraProps']);
+
+    const cellOnClick = (record, row) =>
+      row?.extraProps?.onClick
+        ? {
+            onClick: () => {
+              row?.extraProps.onClick(record);
+            },
+          }
+        : {};
 
     return {
-      ...col,
+      ..._col,
       resizable,
       width: resizable ? columnsWidth[col.key] ?? col.width : undefined,
-      onCell: () =>
+      onCell: record =>
         ({
+          ...cellOnClick(record, col),
           resizable,
           overflowEllipsis:
             typeof col.overflowEllipsis === 'boolean' ? col.overflowEllipsis : Boolean(resizable),
@@ -395,7 +409,15 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
             },
             body: {
               cell: OverflowTooltipBodyCell,
+              row: bodyRowComponent,
             },
+          }}
+          onRow={(rowData, index) => {
+            const attr = {
+              index,
+              rowData,
+            };
+            return attr as React.HTMLAttributes<any>;
           }}
           dataSource={dataSource}
           rowSelection={rowSelectionProp}

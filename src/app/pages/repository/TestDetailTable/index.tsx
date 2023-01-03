@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { useDrag, useRequest } from 'ahooks';
+import { useRequest, useDrag, useDrop } from 'ahooks';
 import { notification, Tooltip } from 'antd';
 import { UNGROUPED_FOLDER_KEY } from '../constant';
 import { updateFolders } from '@/lib/api/repository';
@@ -7,7 +7,12 @@ import { UserCell } from '@projectproxima/components';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import createProximaSdk from '@projectproxima/proxima-sdk-js';
 import { DeleteIcon, UserIcon, DragHandler, LinkItemIcon } from '@/icons';
-import { actionConfirm, generateSortIndex, openItemViewScreen } from '@/lib/utils/helper';
+import {
+  actionConfirm,
+  generateSortIndex,
+  getPluginWebTriggerBaseUrl,
+  openItemViewScreen,
+} from '@/lib/utils/helper';
 import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
 import { cloneTestEntities } from '@/lib/api/common';
 import { useUserCellUserDataProp } from '@/lib/hooks/useProxima';
@@ -24,34 +29,37 @@ import {
 import { TestType } from '@/lib/constants';
 import { getCurrentUserSetting, saveUserSetting } from '@/lib/api/userSetting';
 import { useCurrentUser } from '@/lib/api/user';
+import fetch from '@/lib/utils/fetch';
 
 import cx from './index.less';
 
 const proxima = createProximaSdk();
 
-const RowDragHandler = data => {
+const RowDragBox = ({ children, ...data }) => {
   const ref = React.useRef();
+  // const [dragging, setDragging] = React.useState(false);
 
   useDrag(null, ref, {
     onDragStart(e) {
+      // setDragging(true);
       const dragElem = Array.from(
         document
           .querySelector(`[data-row-key="${data.testId}"]`)
           ?.querySelectorAll('.ant-table-cell') ?? [],
       ).find(dom => dom.querySelector(`[data-element-id="row-title"]`));
 
+      // onDropEnter 无法接收到 data
+      global.dragNode = data;
       // 使用 dataTransfer 传入数据
       e.dataTransfer.setData('data', JSON.stringify(data));
-      e.dataTransfer.setDragImage(dragElem, 0, 0);
+      e.dataTransfer?.setDragImage(dragElem, 0, 0);
     },
-  });
-  return (
-    <Tooltip overlayClassName={cx('tooltip')} title="拖动至用例分组">
-      <span ref={ref}>
-        <DragHandler />
-      </span>
-    </Tooltip>
-  );
+    onDragEnd() {
+      // setDragging(false);
+    },
+  } as any);
+  // className={cx(dragging ? 'dragging' : '', 'test-case-drag')}
+  return <span ref={ref}>{children}</span>;
 };
 
 export type ActionType = BusinessTableActionType;
@@ -249,29 +257,64 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         key: 'move',
         fixed: true,
         isSystem: true,
-        shouldCellUpdate: (record, prevRecord) =>
-          record.repository?.objectId !== prevRecord.repository?.objectId,
+        shouldCellUpdate: (record, prevRecord) => {
+          return (
+            record.repository?.objectId !== prevRecord.repository?.objectId ||
+            record.sortIndex !== prevRecord.sortIndex
+          );
+        },
         render(_, rowData) {
-          const folderKey = rowData?.repository?.objectId ?? UNGROUPED_FOLDER_KEY;
-          return <RowDragHandler folderKey={folderKey} testId={rowData.objectId} />;
+          const folderKey = rowData?.repository ?? UNGROUPED_FOLDER_KEY;
+          return (
+            <RowDragBox
+              folderKey={folderKey}
+              testId={rowData.objectId}
+              sortIndex={rowData.sortIndex}
+              rowData={rowData}
+            >
+              <Tooltip overlayClassName={cx('tooltip')} title="拖动至用例分组">
+                <span>
+                  <DragHandler />
+                </span>
+              </Tooltip>
+            </RowDragBox>
+          );
         },
       },
       {
-        width: 160,
+        width: 300,
         key: 'title',
         title: '标题',
         isSystem: true,
-        render(_, rowData) {
-          const itemData = rowData ?? {};
+        className: 'test-case-title',
+        extraProps: {
+          onClick: record => {
+            openItemViewScreen(record?.objectId);
+          },
+        },
+        shouldCellUpdate: (record, prevRecord) => {
           return (
-            <span
-              data-drawer-handle-target
-              data-element-id="row-title"
-              style={{ cursor: 'pointer' }}
-              onClick={() => openItemViewScreen(itemData.objectId)}
+            record.repository?.objectId !== prevRecord.repository?.objectId ||
+            record.sortIndex !== prevRecord.sortIndex
+          );
+        },
+        render(_, rowData) {
+          const folderKey = rowData?.repository ?? UNGROUPED_FOLDER_KEY;
+          return (
+            <RowDragBox
+              folderKey={folderKey}
+              testId={rowData.objectId}
+              sortIndex={rowData.sortIndex}
+              rowData={rowData}
             >
-              {itemData.name}
-            </span>
+              <span
+                data-drawer-handle-target
+                data-element-id="row-title"
+                style={{ cursor: 'pointer' }}
+              >
+                {rowData?.name}
+              </span>
+            </RowDragBox>
           );
         },
       },
@@ -319,6 +362,85 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
     [currentUser, workspaceKey, currentFields],
   );
 
+  const handleDragoverClassName = useCallback((e, node, sortIndex, type) => {
+    const getDropClassName = () => {
+      return cx(
+        `${
+          sortIndex < node?.sortIndex
+            ? 'test-manager-drop-over-downward'
+            : 'test-manager-drop-over-upward'
+        }`,
+      );
+    };
+
+    const dragoverClassName = getDropClassName();
+    const rowNode = (e.target as any).closest('.ant-table-row');
+    if (type === 'add') {
+      rowNode.classList.add(dragoverClassName);
+    } else {
+      rowNode.classList.remove(dragoverClassName);
+    }
+  }, []);
+
+  const DropRow = ({ rowData, ...restProps }) => {
+    const ref = React.useRef(null);
+    useDrop(ref, {
+      onDom: async (_, e) => {
+        // rowData 接受节点
+        const data = JSON.parse(e.dataTransfer.getData('data'));
+        if (!data?.rowData?.sortIndex) return;
+        if (data.rowData.sortIndex === rowData.sortIndex) return;
+        const params = [
+          {
+            source: {
+              id: data.rowData.id,
+              name: data.rowData.name,
+              sortIndex: data.rowData.sortIndex,
+            },
+            target: {
+              id: rowData.id,
+              name: rowData.name,
+              sortIndex: rowData.sortIndex,
+            },
+          },
+        ];
+
+        // 请求脚本 generate-sortIndex 获取 sortIndex
+        const { sortIndex } = await fetch.$post(
+          `${getPluginWebTriggerBaseUrl()}/generate-sortIndex`,
+          {
+            list: params,
+            workspaceKey,
+          },
+        );
+
+        if (sortIndex) {
+          await updateTestEntity([
+            {
+              objectId: data.rowData.id,
+              sortIndex,
+            },
+          ]);
+
+          await onDataChange();
+        }
+
+        handleDragoverClassName(e, data, rowData.sortIndex, 'remove');
+      },
+      onDragEnter(e) {
+        if (!global.dragNode?.sortIndex) return;
+        if (global.dragNode?.sortIndex === rowData?.sortIndex) return;
+        handleDragoverClassName(e, global.dragNode, rowData.sortIndex, 'add');
+      },
+      onDragLeave(e) {
+        if (!global.dragNode?.sortIndex) return;
+        if (global.dragNode?.sortIndex === rowData?.sortIndex) return;
+        handleDragoverClassName(e, global.dragNode, rowData.sortIndex, 'remove');
+      },
+    });
+    return <tr ref={ref} {...restProps} />;
+  };
+
   return (
     <>
       <BusinessTable
@@ -329,6 +451,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         rowKey="objectId"
         useColumnSetting
         columns={columns}
+        bodyRowComponent={DropRow}
         defaultColumnKey={['key', 'repositoryGroup', 'createdBy', 'createdAt']}
         privateColumnKey={['repositoryGroup']}
         name={`${workspaceKey}_TestDetailTable`}

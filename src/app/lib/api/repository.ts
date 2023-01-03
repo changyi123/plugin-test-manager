@@ -56,7 +56,7 @@ export const createFolder = async (params: {
     parent: params.parentKey ? Repository.createWithoutData(params.parentKey) : undefined,
     workspaceKey: params.workspaceKey,
     name: params.name,
-    sortIndex: params.sortIndex ?? batchSortIndex + 1,
+    sortIndex: params.sortIndex ?? batchSortIndex,
   });
 
   return await repository.save();
@@ -68,6 +68,7 @@ export const updateFolders = async (
     name?: string;
     testDetailIds?: string[];
     parentKey?: string;
+    sortIndex?: number;
   }[],
 ) => {
   folders = folders.filter(item => item.key !== UNGROUPED_FOLDER_KEY);
@@ -82,6 +83,10 @@ export const updateFolders = async (
 
     if ('name' in folder) {
       repository.set('name', folder.name);
+    }
+
+    if ('sortIndex' in folder) {
+      repository.set('sortIndex', folder.sortIndex);
     }
 
     if ('testDetailIds' in folder) {
