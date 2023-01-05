@@ -154,7 +154,7 @@ export const minderData = async () => {
     // 构建脑图数据
     const buildMinderData = moduleOrCaseId => {
       const buildMinderNode = (data, children = []) =>
-        data?.name && Array.isArray(children)
+        data?.text && Array.isArray(children)
           ? {
               data,
               children: children.filter(Boolean),
@@ -170,7 +170,7 @@ export const minderData = async () => {
 
         // 前置条件节点
         const preconditionNode = buildMinderNode({
-          name: detail.precondition,
+          text: detail.precondition,
           type: MinderNodeType.Precondition,
         });
 
@@ -180,13 +180,13 @@ export const minderData = async () => {
               const { action, result, data } = step;
 
               const dataNode = buildMinderNode({
-                name: data,
+                text: data,
                 type: MinderNodeType.Data,
               });
 
               const resultNode = buildMinderNode(
                 {
-                  name: result,
+                  text: result,
                   type: MinderNodeType.Data,
                 },
                 [dataNode],
@@ -194,7 +194,7 @@ export const minderData = async () => {
 
               const stepNode = buildMinderNode(
                 {
-                  name: action,
+                  text: action,
                   type: MinderNodeType.Step,
                 },
                 [resultNode],
@@ -206,7 +206,7 @@ export const minderData = async () => {
 
         node = buildMinderNode(
           {
-            name: testCase.name,
+            text: testCase.name,
             objectId: testCase.objectId,
             type: MinderNodeType.TestCase,
             priority: testCase.values?.priority,
@@ -216,7 +216,7 @@ export const minderData = async () => {
       } else if (module) {
         node = buildMinderNode(
           {
-            name: module.name,
+            text: module.name,
             objectId: module.key,
             type: MinderNodeType.Module,
           },
