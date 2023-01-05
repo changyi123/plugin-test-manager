@@ -1,5 +1,6 @@
 // import { TestConfigClassName } from '../../../../common/constant';
 import { getParseQuery, getAppsData } from '@giteeteam/apps-team-api';
+import { t } from '../../../lib/lang';
 
 const log = (msg, ...restArgs) => {
   console.info(`[testManager] ${msg}`, ...restArgs);
@@ -20,6 +21,7 @@ const getProductPrefix = () => {
 
 export const runGiteeMenus = async () => {
   log('gitee-menus webTrigger start');
+  log(global);
 
   const APP_KEY = global.appKey ?? 'test_manager';
   const ParseBaseQueryOptions = {
@@ -34,9 +36,9 @@ export const runGiteeMenus = async () => {
     const giteeRoutePrefix = `/${tenantKey}/${workspaceKey}/proxima`;
 
     // 生成测试管理插件菜单
-    const generateGiteeMenu = ({ name, pageKey }) => {
+    const generateGiteeMenu = ({ langKey, pageKey }) => {
       return {
-        title: name,
+        title: t(`navigation.${langKey}`),
         key: `${pageKey}-${workspaceKey}`,
         icon: 'iconNavi-icafeplan',
         // url: `${giteeRoutePrefix}/plugin/${APP_KEY}_${appId}_${pageKey}`,
@@ -74,7 +76,7 @@ export const runGiteeMenus = async () => {
     // }
 
     const reportStatsMenu = {
-      title: '测试统计',
+      title: t('navigation.overview'),
       key: `test-stats-report-${workspaceKey}`,
       icon: 'iconNavi-icafeplan',
       url: `${giteeRoutePrefix}/report/test_manager?disabledCreate=true`,
@@ -84,8 +86,8 @@ export const runGiteeMenus = async () => {
     };
 
     const menus = [
-      { name: '测试计划', pageKey: 'test-plan' },
-      { name: '测试用例库', pageKey: 'test-repository' },
+      { pageKey: 'test-plan', langKey: 'plan' },
+      { pageKey: 'test-repository', langKey: 'repository' },
     ]
       .map(generateGiteeMenu)
       .concat(reportStatsMenu);
