@@ -103,10 +103,6 @@ const createCharGroup = data => {
 // name，option，chartGroupId，view
 const createChart = (props, options = {}) => {
   const chartObject = getParseObject(false, 'Chart');
-  console.info('option --------------------->', {
-    ...props,
-    option: { ...JSON.parse(props.option), ...options },
-  });
   chartObject.set({
     ...props,
     option: { ...JSON.parse(props.option), ...options },
@@ -136,11 +132,6 @@ const createChartGroups = async ({ workspace, needToCreateGroupKeys, ...resProps
   );
   const chartGroups = await saveAllObject(needToCreateChartGroups);
 
-  console.info(
-    'chartGroups ------------------------------------------------>',
-    chartGroups.map(d => d.id),
-  );
-
   // 创建 chart
   const needToCreateChars = chartGroups
     .map(group => {
@@ -159,7 +150,6 @@ const createChartGroups = async ({ workspace, needToCreateGroupKeys, ...resProps
     })
     .flat();
 
-  console.info('needToCreateChars ----->', needToCreateChars);
   const charts = await saveAllObject(needToCreateChars).then(items =>
     items.map(item => item.toJSON()),
   );
@@ -270,8 +260,6 @@ export const batchCreateChartGroups = async workspaceConfigs => {
       TestRunCountChartGroup: {},
     };
   });
-
-  console.info('needToCreateGroupKeys', workspaceConfigs);
 
   const taskQueue = workspaceConfigs.map(config => async () => createChartGroups(config));
 
