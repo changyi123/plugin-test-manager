@@ -38,7 +38,7 @@ export type BaseActionContextType = {
   createItemUseModal: <Extra extends Record<string, any>>(params: {
     name?: string;
     hideMessage?: boolean;
-    type: TestType | string;
+    type: TestType;
     extraData?: Extra;
   }) => Promise<{
     extraData: Extra;
