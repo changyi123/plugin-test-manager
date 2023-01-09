@@ -64,7 +64,7 @@ const getOrCreateTestEntity = async (
     if (!testType) {
       // 创建失败，通知用户无法创建测试实体
       options?.notice === true &&
-        notification.open({
+        notification.warning({
           message: '提示',
           description: '事项所属空间未配置测试管理关联类型',
         });
@@ -73,6 +73,10 @@ const getOrCreateTestEntity = async (
 
     // 传入的类型和类型关联映射不一致不允许创建
     if (type && type !== testType) {
+      notification.warning({
+        message: '提示',
+        description: '事项所属空间未配置测试管理关联类型',
+      });
       return null;
     }
 
@@ -180,7 +184,7 @@ const getOrBatchCreateTestEntities = async (
   if (!firstItemMatchTestType) {
     // 创建失败，通知用户无法创建测试实体
     options?.notice === true &&
-      notification.open({
+      notification.warning({
         message: '提示',
         description: '事项所属空间未配置测试管理关联类型',
       });
