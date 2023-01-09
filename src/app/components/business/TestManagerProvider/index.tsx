@@ -8,7 +8,7 @@ import { EventBus } from '@/lib/utils/eventBus';
 import { message, notification } from 'antd';
 import { useOnItemCreateSuccess } from '@/lib/hooks/useProximaSDK';
 import { openCreateItemModal, openItemDetailPanel } from '@/lib/api/sdk';
-import { getTestConfig } from '@/lib/api/common';
+import { getTestConfig, getTestConfigByWorkspaceKeys } from '@/lib/api/common';
 import { getItemByIds, getWorkspaceByKey, getItemTypeByKey } from '@/lib/api/proxima';
 import { getKeyByValue, generateSortIndex, alert, hasArrayItem } from '@/lib/utils/helper';
 import {
@@ -24,6 +24,7 @@ import {
   TestType,
 } from '@/lib/constants';
 import { getTestEntityByQuery, updateTestEntity } from '@/lib/api/item';
+import { union } from 'lodash';
 
 const ItemCreateSuccessEventType = 'itemCreateSuccess';
 const DefaultTestConfig = {} as TestConfigContextType['config'];
@@ -100,7 +101,7 @@ const getOrCreateTestEntity = async (
         objectId: itemData.objectId,
         name: itemData.name,
         ...needCreatedItem,
-        type: type ?? testType,
+        type: testType,
         sortIndex: generateSortIndex(1),
       },
     ]);
@@ -123,8 +124,68 @@ const getOrBatchCreateTestEntities = async (
     notice: boolean;
   },
 ) => {
-  const { itemList, type } = options;
+  const { itemList } = options;
   if (!Array.isArray(itemIdList)) return null;
+
+  // 批量获取无法保证顺序，所以需要重新排序
+  const itemDataList = itemIdList.map(id => itemList.find(itemData => itemData.objectId === id));
+  const firstItemData = itemDataList[0];
+  // 第一项不存在则执行返回
+  if (!firstItemData) return null;
+
+  // 多空间 key
+  const multipleWorkspaceKeys: string[] = union(
+    itemDataList.map(itemData => itemData?.workspace?.key).filter(Boolean),
+  );
+  // 获取空间配置数据
+  const testConfigs = await getTestConfigByWorkspaceKeys(multipleWorkspaceKeys);
+
+  // 多空间类型映射配置
+  const itemTypeMappingWorkspaceMap = testConfigs.reduce(
+    (acc, cur) => ({
+      ...acc,
+      [cur.workspaceKey]: cur.itemTypeMap,
+    }),
+    {},
+  );
+
+  const getItemType = (workspaceKey, itemTypeKey) => {
+    const itemTypeMap = itemTypeMappingWorkspaceMap?.[workspaceKey] ?? {};
+
+    const newItemTypeMap = Object.entries(itemTypeMap).reduce((prev, [key, value]) => {
+      prev[value as string] = key;
+      return prev;
+    }, {});
+
+    return newItemTypeMap?.[itemTypeKey];
+  };
+
+  // 根据 itemData 匹配测试实体类型
+  const getMatchedTestType = itemData =>
+    getKeyByValue(
+      itemTypeMappingWorkspaceMap[itemData.workspace?.key],
+      itemData.itemType?.key,
+    ) as TestType;
+
+  // 过滤事项关联和第一个不一致的用例数据
+  const firstItemMatchTestType = getMatchedTestType(firstItemData);
+
+  // 需要被创建测试实体的事项数据
+  // 1. 和第一个事项对应的测试实体需要保持一致，不一致忽略创建
+  // 2. 创建支持跨空间创建，不同空间对应不同的类型，需要对该逻辑进行处理
+  const needCreatedItemDataList = itemDataList.filter(
+    itemData => getMatchedTestType(itemData) === firstItemMatchTestType,
+  );
+
+  if (!firstItemMatchTestType) {
+    // 创建失败，通知用户无法创建测试实体
+    options?.notice === true &&
+      notification.open({
+        message: '提示',
+        description: '事项所属空间未配置测试管理关联类型',
+      });
+    return null;
+  }
 
   const getItemStore = (list, index, field) => {
     if (index === 0) return {};
@@ -168,16 +229,23 @@ const getOrBatchCreateTestEntities = async (
       {},
     );
 
-  const needCreatedTestEntities = itemList.map((item, index) => {
+  const needCreatedTestEntities = needCreatedItemDataList.map((item, index) => {
     const { repository, ...restFields } = storeValueWithItemIdMap[item.objectId] ?? {};
+    const testType = getItemType(item.workspace.key, item.itemType.key);
+    const extraFields =
+      testType === TestType.Case
+        ? {
+            repository,
+            detail: restFields,
+          }
+        : {};
 
     return {
       name: item.name,
       objectId: item.objectId,
-      repository,
-      detail: restFields,
       sortIndex: generateSortIndex(index + 1),
-      type: type,
+      type: getItemType(item.workspace.key, item.itemType.key),
+      ...extraFields,
     };
   });
   const details = await updateTestEntity(needCreatedTestEntities);
