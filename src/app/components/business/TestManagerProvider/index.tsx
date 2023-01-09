@@ -128,14 +128,11 @@ const getOrBatchCreateTestEntities = async (
     notice: boolean;
   },
 ) => {
-  const { itemList } = options;
+  const { itemList, type } = options;
   if (!Array.isArray(itemIdList)) return null;
 
   // 批量获取无法保证顺序，所以需要重新排序
   const itemDataList = itemIdList.map(id => itemList.find(itemData => itemData.objectId === id));
-  const firstItemData = itemDataList[0];
-  // 第一项不存在则执行返回
-  if (!firstItemData) return null;
 
   // 多空间 key
   const multipleWorkspaceKeys: string[] = union(
@@ -151,6 +148,10 @@ const getOrBatchCreateTestEntities = async (
       [cur.workspaceKey]: cur.itemTypeMap,
     }),
     {},
+  );
+
+  const curItemData = itemDataList.find(
+    item => item.itemType.key === itemTypeMappingWorkspaceMap?.[item.workspace.key]?.[type],
   );
 
   const getItemType = (workspaceKey, itemTypeKey) => {
@@ -172,7 +173,7 @@ const getOrBatchCreateTestEntities = async (
     ) as TestType;
 
   // 过滤事项关联和第一个不一致的用例数据
-  const firstItemMatchTestType = getMatchedTestType(firstItemData);
+  const firstItemMatchTestType = getMatchedTestType(curItemData);
 
   // 需要被创建测试实体的事项数据
   // 1. 和第一个事项对应的测试实体需要保持一致，不一致忽略创建
