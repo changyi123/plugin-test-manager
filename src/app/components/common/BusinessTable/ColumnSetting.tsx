@@ -98,7 +98,18 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
         const { text, ...restTableCellProps } = fieldCellsPropDict[field.key] ?? {};
         if (!text || !itemData) return '-';
 
-        return <TableCell {...restTableCellProps} text={text(itemData)} />;
+        const textValue = Array.isArray(text(itemData))
+          ? text(itemData).map(d => d.objectId)
+          : text(itemData);
+
+        return (
+          <TableCell
+            {...restTableCellProps}
+            id={itemData.objectId ?? itemData.id}
+            values={text(itemData)}
+            text={textValue}
+          />
+        );
       },
     };
   };
