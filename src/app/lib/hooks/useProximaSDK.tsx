@@ -20,7 +20,7 @@ const previousMessageToken = {
 export const useOnItemCreateSuccess = (key, saveCallback, batchCreateCallback) => {
   callbackMap.set(key, [saveCallback, batchCreateCallback]);
   const memoizedItemSaveCallback = React.useCallback(params => {
-    const extraData = params?.extraData ?? {};
+    const extraData = params?.extraData ? params?.extraData : {};
     const getMessageToken = params => extraData?.messageKey + params?.itemId;
     const messageToken = getMessageToken(params);
     const [callback] = callbackMap.get(extraData?.messageKey) ?? [];
@@ -38,7 +38,7 @@ export const useOnItemCreateSuccess = (key, saveCallback, batchCreateCallback) =
   }, []);
 
   const memoizedItemBatchCreateCallback = React.useCallback(params => {
-    const extraData = params?.extraData ?? {};
+    const extraData = params?.extraData ? params?.extraData : {};
 
     const getMessageToken = params => extraData?.messageKey + params?.itemIdList?.toString();
 
