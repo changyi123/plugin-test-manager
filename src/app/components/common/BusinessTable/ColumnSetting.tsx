@@ -99,7 +99,7 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
         if (!text || !itemData) return '-';
 
         const textValue = Array.isArray(text(itemData))
-          ? text(itemData).map(d => d.objectId)
+          ? text(itemData).map(d => d?.objectId ?? d)
           : text(itemData);
 
         return (
