@@ -134,9 +134,9 @@ export const repositoryTree = async () => {
 export const minderData = async () => {
   try {
     const { body, sessionToken } = getReqInfoFromVMRuntime<MinderDataPayload>();
-    const { workspaceKey, repositoryKey } = body;
+    const { workspaceKey, repositoryKey = 'root' } = body;
 
-    if (!workspaceKey) return;
+    if (!workspaceKey) throw new Error('workspaceKey is request');
 
     const {
       repositoryTree,
@@ -218,7 +218,8 @@ export const minderData = async () => {
           {
             text: module.name,
             objectId: module.key,
-            type: MinderNodeType.Module,
+            // 跟节点设置未 Root 类型
+            type: module.key === 'root' ? MinderNodeType.Root : MinderNodeType.Module,
           },
           []
             .concat(module.children?.map(buildMinderData))
@@ -232,7 +233,10 @@ export const minderData = async () => {
 
     const getMinderRootNode = tree => {
       if (!tree) return;
-      if (repositoryKey === tree.objectId && tree.data.type === MinderNodeType.Module) {
+      if (
+        repositoryKey === tree.data.objectId &&
+        [MinderNodeType.Module, MinderNodeType.Root].includes(tree.data.type)
+      ) {
         return tree;
       }
 
