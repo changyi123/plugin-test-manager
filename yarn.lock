@@ -1255,10 +1255,10 @@
   resolved "https://registry.npmmirror.com/@popperjs/core/-/core-2.11.6.tgz#cee20bd55e68a1720bdab363ecf0c821ded4cd45"
   integrity sha512-50/17A98tWUfQ176raKiOGXuYpLyyVMkxxG6oylzL3BPOlA6ADGdK7EYunSa4I064xerltq9TGXs8HmOk5E+vw==
 
-"@projectproxima/components@0.3.4-remove-editor-0.2":
-  version "0.3.4-remove-editor-0.2"
-  resolved "https://registry.yarnpkg.com/@projectproxima/components/-/components-0.3.4-remove-editor-0.2.tgz#2a278e44f000963aba14046769dcf595481c7968"
-  integrity sha512-Xp6UGzI3qpLRiGpAvJUmEQvZCNXvDYuey7XOJcHp2Z33ZA+RJNbMrmAPYt8DhX71HAhaBe6lpCGMMTFlR+yCDA==
+"@projectproxima/components@0.3.4-remove-editor-0.3":
+  version "0.3.4-remove-editor-0.3"
+  resolved "https://registry.yarnpkg.com/@projectproxima/components/-/components-0.3.4-remove-editor-0.3.tgz#bce6b070d3e24e39c70555c944f7d084636168b6"
+  integrity sha512-zWZwWUYORFKCRlcu7iHCzgjjidUTnaWYOLBnxo9PRP/et6EXXbsA9JjJ/aV6Dl76IfQNQ63tjzGjQI9XL9MefQ==
   dependencies:
     "@ant-design/icons" "4.7.0"
     "@projectproxima/plugin-loader" "^0.1.9"
@@ -1267,7 +1267,6 @@
     antd "^4.16.13"
     axios "^0.21.4"
     classnames "^2.3.1"
-    cnchar "^3.0.5"
     dayjs "^1.10.8"
     debug "^4.3.3"
     find-matching-bracket "^1.0.3"
@@ -2731,18 +2730,6 @@ clsx@^1.1.1:
   version "1.2.1"
   resolved "https://registry.npmmirror.com/clsx/-/clsx-1.2.1.tgz#0ddc4a20a549b59c93a4116bb26f5294ca17dc12"
   integrity sha512-EcR6r5a8bj6pu3ycsa/E/cKVGuTgZJZdsyUYHOksG/UHIiKfjxzRxYJpyVBwYaQeOvghal9fcc4PidlgzugAQg==
-
-cnchar-types@^3.2.2:
-  version "3.2.2"
-  resolved "https://registry.npmmirror.com/cnchar-types/-/cnchar-types-3.2.2.tgz#ff4cc0161a05e0e62b1feff2e3e6bb142277dddc"
-  integrity sha512-25h6rT/c7r3CUC5VRp/roSGgAb2XRwUqHlJVZ1fRIXcOY+g+qoCnUsUIuLvsyV5hX7ReD+/9fraScL41Vowljg==
-
-cnchar@^3.0.5:
-  version "3.2.2"
-  resolved "https://registry.npmmirror.com/cnchar/-/cnchar-3.2.2.tgz#76168414056f798e17436ea8e56860a44684b440"
-  integrity sha512-Ywqw40EP9jkIvSgwdDKqnwWj32ArRR3o2nKZ0NfaMCe4f8BIF1eD1NwtoCLm82SxqJuCnlHPoDHfPtmERd0V6A==
-  dependencies:
-    cnchar-types "^3.2.2"
 
 coa@^2.0.2:
   version "2.0.2"

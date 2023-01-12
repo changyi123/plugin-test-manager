@@ -2,7 +2,7 @@ app:
   key: test_manager
   uuid: bf73e61c-e15a-4461-a1f7-f940c2009332
   name: test_manager
-  version: "3.2.0"
+  version: "3.3.24"
 modules:
   webtrigger:
     # TODO: Debug 使用，生产环境禁止调用西面的 trigger
@@ -48,6 +48,8 @@ modules:
       function: api-batch-update-function
     - key: api-batch-create-test-run
       function: api-batch-create-test-run-function
+    - key: api-batch-create-test-case
+      function: api-batch-create-test-case-function
     # 数据统计
     - key: api-stats-test-plan
       function: api-stats-test-plan-function
@@ -113,6 +115,8 @@ modules:
       timeout: 300000
     - key: api-batch-create-test-run-function
       handler: api.batchCreateTestRun
+    - key: api-batch-create-test-case-function
+      handler: api.batchCreateTestCase
       # 5 分钟超时时长
       timeout: 300000
 

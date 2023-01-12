@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import { useRequest, useDrag, useDrop } from 'ahooks';
 import { notification, Tooltip } from 'antd';
-import { UNGROUPED_FOLDER_KEY } from '../constant';
+import { UNGROUPED_FOLDER_KEY } from '../../constant';
 import { updateFolders } from '@/lib/api/repository';
 import { UserCell } from '@projectproxima/components';
 import { useTestConfig } from '@/lib/hooks/useContext';
@@ -31,7 +31,7 @@ import { getCurrentUserSetting, saveUserSetting } from '@/lib/api/userSetting';
 import { useCurrentUser } from '@/lib/api/user';
 import fetch from '@/lib/utils/fetch';
 
-import cx from './index.less';
+import cx from './Table.less';
 
 const proxima = createProximaSdk();
 
