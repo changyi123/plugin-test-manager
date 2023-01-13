@@ -25,6 +25,7 @@ import {
 } from '@/lib/constants';
 import { getTestEntityByQuery, updateTestEntity } from '@/lib/api/item';
 import { union } from 'lodash';
+import { useGetPermissions } from './hooks';
 
 const ItemCreateSuccessEventType = 'itemCreateSuccess';
 const DefaultTestConfig = {} as TestConfigContextType['config'];
@@ -275,6 +276,8 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
 }) => {
   const [workspace, setWorkspace] = React.useState<Workspace>();
   const [testEntity, setTestEntity] = React.useState<TestEntity>();
+
+  const { getCreatePermission } = useGetPermissions(workspace);
 
   React.useEffect(() => {
     const execute = async () => {
@@ -542,10 +545,17 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
       },
       getGlobalConfig,
       openItemViewPanel: openItemDetailPanel,
+      getCreatePermission,
     };
 
     return actions;
-  }, [getGlobalConfig, testConfig.defectsMapping, testConfig?.itemTypeMap, workspace?.objectId]);
+  }, [
+    getGlobalConfig,
+    getCreatePermission,
+    testConfig.defectsMapping,
+    testConfig?.itemTypeMap,
+    workspace?.objectId,
+  ]);
 
   return (
     <TestConfigContext.Provider value={testConfigContextValues as any}>

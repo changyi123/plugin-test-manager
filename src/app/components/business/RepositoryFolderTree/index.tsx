@@ -1,11 +1,11 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Spin, Tree } from 'antd';
 import { FileOpen, FileClose, CaretDownOutlined } from '@/icons';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import { UNGROUPED_FOLDER_KEY } from '@/pages/repository/constant';
 import { hasArrayItem, escapeMatchesQueryArg } from '@/lib/utils/helper';
-import { useRequest, useMemoizedFn, useDeepCompareEffect } from 'ahooks';
+import { useRequest, useMemoizedFn, useDeepCompareEffect, clearCache } from 'ahooks';
 import { traverseTreeNodes, getTreeNodeByKey, reverseTreeNodes } from '@/pages/repository/util';
 import { getRepositoryTree } from '@/lib/api/item';
 import { cloneDeep } from 'lodash';
@@ -76,6 +76,12 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
       staleTime: 999999999,
     },
   );
+
+  useEffect(() => {
+    return () => {
+      clearCache(`${workspaceKey}-node-tree-data`);
+    };
+  }, [workspaceKey]);
 
   const {
     data: treeData,

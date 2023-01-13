@@ -23,7 +23,7 @@ import createProximaSdk from '@projectproxima/proxima-sdk-js';
 
 const Plan = () => {
   const { testEntity, workspace, setTestEntity } = useTestConfig();
-  const { createItemUseModal } = useBaseAction();
+  const { createItemUseModal, getCreatePermission } = useBaseAction();
   const tableActionRef = useRef<ActionType>();
   const selectorModalRef = useRef<SelectorActionType>();
 
@@ -123,6 +123,7 @@ const Plan = () => {
       },
       {
         title: '新建测试计划',
+        disabled: getCreatePermission(TestType.Plan),
         async onClick() {
           const { item } = await createItemUseModal({
             type: TestType.Plan,
@@ -152,7 +153,13 @@ const Plan = () => {
         },
       },
     ];
-  }, [createItemUseModal, refreshDepData, testEntity.objectId, updateRelatedAndRefresh]);
+  }, [
+    createItemUseModal,
+    refreshDepData,
+    getCreatePermission,
+    testEntity.objectId,
+    updateRelatedAndRefresh,
+  ]);
 
   const removeTestRelation = useCallback(
     async relationTypeIds => {

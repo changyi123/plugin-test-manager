@@ -33,7 +33,7 @@ import createProximaSdk from '@projectproxima/proxima-sdk-js';
 
 const Test = () => {
   const { testEntity, workspace } = useTestConfig();
-  const { createItemUseModal } = useBaseAction();
+  const { createItemUseModal, getCreatePermission } = useBaseAction();
   const tableActionRef = React.useRef<ActionType>();
   const selectorModalRef = React.useRef<SelectorActionType>();
   const testRunModalActionRef = React.useRef<TestRunModalActionType>();
@@ -207,6 +207,7 @@ const Test = () => {
       },
       {
         title: '新建测试用例',
+        disabled: getCreatePermission(TestType.Case),
         async onClick() {
           const { testEntityList } = await createItemUseModal({
             hideMessage: true,
@@ -242,7 +243,7 @@ const Test = () => {
         },
       },
     ];
-  }, [createItemUseModal, refreshDepData, testEntity, testEntityIds]);
+  }, [createItemUseModal, refreshDepData, getCreatePermission, testEntity, testEntityIds]);
 
   const removeTestRelation = useCallback(
     async testDetailIds => {
@@ -392,7 +393,11 @@ const Test = () => {
         }}
         renderActions={() => (
           <>
-            <Button icon={<PlusOutlined />} onClick={createTestExcution}>
+            <Button
+              icon={<PlusOutlined />}
+              disabled={getCreatePermission(TestType.Execution)}
+              onClick={createTestExcution}
+            >
               测试执行任务
             </Button>
             <DropDownButton menuList={testDetailMenuList}>

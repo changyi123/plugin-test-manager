@@ -52,9 +52,10 @@ const TestPanel = () => {
 const TestPanelWrapper = () => {
   const { context } = useSDK();
   const itemId = context?.itemId ?? getDevConfig().itemId;
+  const workspaceKey = context?.env?.WORKSPACE_KEY ?? getDevConfig().workspaceKey;
 
   return (
-    <TestManagerProvider itemId={itemId}>
+    <TestManagerProvider workspaceKey={workspaceKey} itemId={itemId}>
       <TestPanel />
     </TestManagerProvider>
   );

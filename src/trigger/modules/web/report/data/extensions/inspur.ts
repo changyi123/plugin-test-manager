@@ -141,7 +141,7 @@ export async function main() {
       .equalTo('key', SeverityLevelFieldKey)
       .first({ ...ParseBaseQueryOptions });
 
-    return appQuery.toJSON() ?? {};
+    return appQuery?.toJSON() ?? {};
   };
   const severityLevelField = await getSeverityLevelField();
 

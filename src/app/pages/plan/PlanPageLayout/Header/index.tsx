@@ -9,6 +9,8 @@ import { useRequest } from 'ahooks';
 import { getFirstWordTemplate } from '@/lib/api/report';
 
 import cx from './index.less';
+import { useBaseAction } from '@/lib/hooks/useContext';
+import { TestType } from '@/lib/constants';
 
 interface HeaderProps {
   activedType?: string;
@@ -33,6 +35,7 @@ const Header: React.FC<HeaderProps> = ({
 }) => {
   const { workspaceKey, selectedTestPlan, setSelectedTestPlan, tableSelectionToggleEvent } =
     usePageContext();
+  const { getCreatePermission } = useBaseAction();
   const [isReportGenerating, setIsReportGenerating] = React.useState(false);
 
   const { data: wordTemplate } = useRequest(
@@ -119,7 +122,11 @@ const Header: React.FC<HeaderProps> = ({
           />
           {selectedExecution?.objectId && (
             <div className={cx('box-right')}>
-              <Button type="primary" onClick={() => createTestExecution()}>
+              <Button
+                type="primary"
+                disabled={getCreatePermission(TestType.Execution)}
+                onClick={() => createTestExecution()}
+              >
                 新建测试执行任务
               </Button>
             </div>

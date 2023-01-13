@@ -25,7 +25,7 @@ const TestPlanList: React.FC<any> = () => {
   const { workspaceKey, selectedTestPlan, setSelectedTestPlan, selectors, setSearchParams } =
     usePageContext();
   const [tableLoading, setTableLoading] = useState(false);
-  const { createItemUseModal } = useBaseAction();
+  const { createItemUseModal, getCreatePermission } = useBaseAction();
   const { data: currentUser } = useCurrentUser();
 
   const detailSearchRef = useRef(null);
@@ -236,7 +236,11 @@ const TestPlanList: React.FC<any> = () => {
         <div className={cx('plan-header-body')}>
           <div className={cx('header-left')}>测试计划</div>
           <div className={cx('header-right')}>
-            <Button type="primary" onClick={() => handleCreate()}>
+            <Button
+              type="primary"
+              disabled={getCreatePermission(TestType.Plan)}
+              onClick={() => handleCreate()}
+            >
               新建测试计划
             </Button>
           </div>
