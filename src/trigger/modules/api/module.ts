@@ -187,7 +187,7 @@ export const minderData = async () => {
               const resultNode = buildMinderNode(
                 {
                   text: result,
-                  type: MinderNodeType.Data,
+                  type: MinderNodeType.Result,
                 },
                 [dataNode],
               );

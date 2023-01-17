@@ -66,6 +66,7 @@ export type ActionType = BusinessTableActionType;
 
 type TestDetailTableProps = {
   folderKey?: string;
+  externalDataLoading?: boolean;
   testDetailIds?: string[];
   onDataChange?: () => void;
   onSelectionCancel?: () => void;
@@ -80,8 +81,13 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
     onSelectionCancel,
     testDetailIds,
     folderKey,
+    externalDataLoading: externalDataLoadingProp,
     testDetailFieldKeys,
   } = props;
+
+  const externalDataLoading =
+    typeof externalDataLoadingProp === 'boolean' ? externalDataLoadingProp : false;
+
   const tableActionRef = React.useRef<BusinessTableActionType>();
   const repositorySelectorRef = React.useRef<RepositorySelectorActionType>();
   const [tableLoading, setTableLoading] = React.useState(false);
@@ -455,12 +461,12 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         defaultColumnKey={['key', 'repositoryGroup', 'createdBy', 'createdAt']}
         privateColumnKey={['repositoryGroup']}
         name={`${workspaceKey}_TestDetailTable`}
-        loading={tableLoading}
         actionRef={tableActionRef}
         getDataSource={dataSourceGetter}
         allSelectableRowKeys={testDetailIds}
         onHasRowSelected={setHasRowSelected}
         onSelectionCancel={onSelectionCancel}
+        loading={externalDataLoading || tableLoading}
         selectionActionNodes={selectionActionNodes}
         handleFilterField={handleFilterField}
       />

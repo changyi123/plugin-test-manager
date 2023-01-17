@@ -24,6 +24,7 @@ export const useHeaderExtraActionButton = button => {
 
     return () => {
       if (container) {
+        ReactDOM.unmountComponentAtNode(container);
       }
     };
   }, [button]);

@@ -1,6 +1,6 @@
 import React from 'react';
 import { v4 } from 'uuid';
-import { Button, message, Modal } from 'antd';
+import { Button, message } from 'antd';
 import MinderEditor from 'test-manager-minder';
 import { useRequest, useMemoizedFn } from 'ahooks';
 import { useTestConfig } from '@/lib/hooks/useContext';
@@ -21,7 +21,11 @@ import { deleteTestEntity, updateTestEntity } from '@/lib/api/item';
 // TODO: 同层级重名模块报错
 const MaxModuleLevel = 8;
 
-const TestManagerMinder: React.FC<ViewComponentProps> = ({ selectedNode, onFolderTreeChange }) => {
+const TestManagerMinder: React.FC<ViewComponentProps> = ({
+  selectedNode,
+  folderTreeData,
+  onFolderTreeChange,
+}) => {
   const { workspace } = useTestConfig();
   const actionRef = React.useRef(null);
   const [saveLoading, setSaveLoading] = React.useState(false);
@@ -37,7 +41,8 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({ selectedNode, onFolde
     },
     {
       ready: Boolean(workspace),
-      refreshDeps: [workspace?.key, selectedNode?.key],
+      // folderTreeData 变更也需要更新脑图数据
+      refreshDeps: [workspace?.key, selectedNode?.key, folderTreeData],
     },
   );
 
@@ -57,20 +62,20 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({ selectedNode, onFolde
 
     // 有 patches 数据需要处理
     if (Object.values(Object.assign({}, patches.create, patches.change, patches.remove)).length) {
-      await new Promise((resolve, reject) =>
-        Modal.confirm({
-          title: '提示',
-          content: '你当前对脑图数据的修改将会保存至用例库中，是否继续？',
-          okText: '继续',
-          cancelText: '取消',
-          onOk: () => {
-            resolve(null);
-          },
-          onCancel() {
-            reject(null);
-          },
-        }),
-      );
+      // await new Promise((resolve, reject) =>
+      //   Modal.confirm({
+      //     title: '提示',
+      //     content: '你当前对脑图数据的修改将会保存至用例库中，是否继续？',
+      //     okText: '继续',
+      //     cancelText: '取消',
+      //     onOk: () => {
+      //       resolve(null);
+      //     },
+      //     onCancel() {
+      //       reject(null);
+      //     },
+      //   }),
+      // );
     } else {
       // 不需要持久化
       return;

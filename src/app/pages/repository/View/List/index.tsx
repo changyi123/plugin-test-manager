@@ -44,8 +44,8 @@ const ListView: React.FC<ViewComponentProps> = ({
   const { workspace } = useTestConfig();
   const { createItemUseModal } = useBaseAction();
   const [selector, setSelector] = React.useState(null);
-  const [tableSelectionVisible, setTableSelectionVisible] = React.useState(false);
   const [breadcrumbs, setBreadcrumbs] = React.useState([]);
+  const [tableSelectionVisible, setTableSelectionVisible] = React.useState(false);
   const [groupedMode, setGroupedMode] = React.useState<GroupedMode>('all');
 
   const workspaceKey = workspace?.key;
@@ -69,7 +69,11 @@ const ListView: React.FC<ViewComponentProps> = ({
     }, 400);
   });
 
-  const { runAsync: getTestCaseIds, data: filteredCaseIds } = useRequest(
+  const {
+    loading: caseIdRequestLoading,
+    data: filteredCaseIds,
+    runAsync: getTestCaseIds,
+  } = useRequest(
     async () => {
       if (!workspaceKey || !selectedNode) return [];
 
@@ -198,6 +202,7 @@ const ListView: React.FC<ViewComponentProps> = ({
           actionRef={tableActionRef}
           onDataChange={handleDataChange}
           testDetailIds={filteredCaseIds}
+          externalDataLoading={caseIdRequestLoading}
           testDetailFieldKeys={testDetailFieldKeys}
           onSelectionCancel={() => toggleSelection(false)}
         />

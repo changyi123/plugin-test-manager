@@ -3,7 +3,6 @@ import { getRootContainer } from '@/lib/utils/helper';
 import { PluginSDKContext } from '@projectproxima/plugin-sdk';
 import { message, notification, ConfigProvider } from 'antd';
 import { MemoryRouter, Switch, Route, useHistory, HashRouter } from 'react-router-dom';
-import { lib } from 'proxima-sdk';
 
 import zhCN from 'antd/lib/locale/zh_CN';
 
