@@ -9,11 +9,12 @@ import {
 } from 'common/types/api';
 import { merge } from 'lodash';
 import { RepositoryModel, SYSTEM_FIELD, TestType } from '../constants';
-import { BaseTestEntity, CopyTestCasePlayload, Status, TestEntity } from '../types/Test';
+import { BaseTestEntity, CopyTestCasePayload, Status, TestEntity } from '../types/Test';
 import { getPluginWebTriggerBaseUrl } from '../utils/helper';
 import { compactStepModel } from '../utils/modelTransfer';
 import { createItemLink, deleteItemLink, IItemLink, getExistedItemLinks } from './runs';
 import { SearchSelectors, selectorToIql } from '../utils/iql';
+import { message } from 'antd';
 
 const pluginWebTriggerBaseUrl = getPluginWebTriggerBaseUrl();
 
@@ -122,51 +123,54 @@ export const getLinkedTestEntityByQuery = async (
 
 // 测试计划统计查询
 export const getStatsTestPlan = async (props: TestPlanStatsPayload) => {
-  const {
-    data: { data },
-  } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-stats-test-plan`, props);
+  const { data: res } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-stats-test-plan`, props);
 
-  return data;
+  return res.data;
 };
 
 // 测试执行任务统计查询
 export const getStatsTestExecution = async (props: TestExecutionStatsPayload) => {
-  const {
-    data: { data },
-  } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-stats-test-execution`, props);
+  const { data: res } = await fetch.post(
+    `${pluginWebTriggerBaseUrl}/api-stats-test-execution`,
+    props,
+  );
 
-  return data;
+  return res.data;
 };
 
 // 测试用例统计查询
 export const getTestCaseStats = async (props: TestCaseStatsPayload) => {
-  const {
-    data: { data },
-  } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-stats-test-case`, props);
+  const { data: res } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-stats-test-case`, props);
 
-  return data;
+  return res.data;
 };
 
 // 批量删除测试实体事项
 export const deleteTestEntity = async ids => {
-  const res = await fetch.post(`${pluginWebTriggerBaseUrl}/api-batch-delete`, {
+  const { data: res } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-batch-delete`, {
     ids,
   });
 
+  if (res.status === 'error') {
+    return res;
+  }
   return res;
 };
 
 // 批量更新测试实体事项
 export const updateTestEntity = async data => {
-  const { data: itemData } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-batch-update`, {
+  const { data: res } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-batch-update`, {
     data,
   });
 
-  return itemData?.data;
+  if (res.status === 'error') {
+    return res;
+  }
+  return res?.data;
 };
 
 // 复制测试用例
-export const copyTesTase = async (data: CopyTestCasePlayload) => {
+export const copyTesCase = async (data: CopyTestCasePayload) => {
   const { data: copyItemData } = await fetch.post('/parse/api/items/clone', {
     ...data,
   });
@@ -218,6 +222,11 @@ export const updateTestStatus = async data => {
   }));
 
   const res = await updateTestEntity(runs.concat(tests));
+
+  if (res?.status === 'error') {
+    message.error(res.data);
+    return;
+  }
 
   return res;
 };
@@ -349,13 +358,16 @@ export const updateTestRunDetail = async (
     }));
   }
 
-  await updateTestEntity([
+  const res = await updateTestEntity([
     {
       objectId: testEntity.objectId,
       ...needUpdateAttrs,
     },
     ...needUpdateCase,
   ]);
+  if (res?.status === 'error') {
+    message.error(res.data);
+  }
 };
 
 // 新增缺陷关联

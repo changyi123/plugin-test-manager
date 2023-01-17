@@ -13,8 +13,8 @@ import { useBaseAction } from '@/lib/hooks/useContext';
 import { TestType } from '@/lib/constants';
 
 interface HeaderProps {
-  activedType?: string;
-  setActivedType?: (val: string) => void;
+  activeType?: string;
+  setActiveType?: (val: string) => void;
   selectedExecution?: Record<string, any>;
   setSelectedExecution?: (val: Record<string, any> | undefined) => void;
   refreshExecution?: boolean;
@@ -24,8 +24,8 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({
-  activedType,
-  setActivedType,
+  activeType,
+  setActiveType,
   selectedExecution,
   setSelectedExecution,
   refreshExecution,
@@ -77,19 +77,19 @@ const Header: React.FC<HeaderProps> = ({
           <TestPlanSelector />
           <div className={cx('test-tabs')}>
             <div
-              className={cx('tab-title', activedType === 'TestPlan' ? 'actived' : '')}
+              className={cx('tab-title', activeType === 'TestPlan' ? 'actived' : '')}
               onClick={() => {
                 tableSelectionToggleEvent.emit(false);
-                setActivedType('TestPlan');
+                setActiveType('TestPlan');
               }}
             >
               全部用例
             </div>
             <div
-              className={cx('tab-title', activedType === 'TestExecution' ? 'actived' : '')}
+              className={cx('tab-title', activeType === 'TestExecution' ? 'actived' : '')}
               onClick={() => {
                 tableSelectionToggleEvent.emit(false);
-                setActivedType('TestExecution');
+                setActiveType('TestExecution');
               }}
             >
               测试执行任务
@@ -108,11 +108,11 @@ const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
       </div>
-      {activedType === 'TestExecution' && (
+      {activeType === 'TestExecution' && (
         <div className={cx('action-box')}>
           <ExecutionList
             planId={selectedTestPlan?.objectId}
-            activedType={activedType}
+            activeType={activeType}
             workspaceKey={workspaceKey}
             selectedExecution={selectedExecution}
             setSelectedExecution={setSelectedExecution}

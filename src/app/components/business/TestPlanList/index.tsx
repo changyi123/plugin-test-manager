@@ -2,7 +2,7 @@ import React, { useCallback, useRef, useState } from 'react';
 import { usePageContext } from '@/pages/plan/hook';
 import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
 import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/hook';
-import { Button, Dropdown, Menu, notification } from 'antd';
+import { Button, Dropdown, Menu, message, notification } from 'antd';
 import _ from 'lodash';
 import { actionConfirm, goToItemDetailPage } from '@/lib/utils/helper';
 import { useBaseAction } from '@/lib/hooks/useContext';
@@ -92,7 +92,12 @@ const TestPlanList: React.FC<any> = () => {
   const handleDelete = async data => {
     await actionConfirm('该操作会当前删除测试计划以及测试计划关联的测试用例，是否继续？');
     setTableLoading(true);
-    await deleteTestEntity([data.objectId]);
+    const res = await deleteTestEntity([data.objectId]);
+    if (res?.status === 'error') {
+      setTableLoading(false);
+      message.error(res.data);
+      return;
+    }
     actionRef.current.refresh();
     // 重新选中
     setSelectedTestPlan(null);

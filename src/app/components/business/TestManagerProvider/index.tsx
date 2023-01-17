@@ -100,7 +100,6 @@ const getOrCreateTestEntity = async (
       }
       console.info('extraFields', extraFields);
     }
-
     const data = await updateTestEntity([
       {
         objectId: itemData.objectId,
@@ -110,11 +109,14 @@ const getOrCreateTestEntity = async (
         sortIndex: generateSortIndex(1),
       },
     ]);
+    if (data?.status === 'error') {
+      message.error(data.data);
+      return;
+    }
     testEntity = data?.[0];
+    console.info('new testEntity', testEntity);
+    return testEntity;
   }
-  console.info('new testEntity', testEntity);
-
-  return testEntity;
 };
 
 /** 获取并创建多个测试实体 */
@@ -254,9 +256,12 @@ const getOrBatchCreateTestEntities = async (
       ...extraFields,
     };
   });
-  const details = await updateTestEntity(needCreatedTestEntities);
-
-  return details;
+  const res = await updateTestEntity(needCreatedTestEntities);
+  if (res?.status === 'error') {
+    message.error(res.data);
+    return;
+  }
+  return res;
 };
 
 type RepositoryDataProviderProps = {

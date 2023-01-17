@@ -15,7 +15,7 @@ import { traverseTreeNodes } from '../util';
 import { useTreeFn } from '../hook';
 import { MenuKey, FolderMenu } from '../Menu';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
-import { Tree, Button, Input, notification, Dropdown, Modal } from 'antd';
+import { Tree, Button, Input, notification, Dropdown, Modal, message } from 'antd';
 import { updateTestEntity } from '@/lib/api/item';
 import {
   CustomMore,
@@ -462,7 +462,11 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         repository: toFolderKey,
       }));
 
-      await updateTestEntity(updateValues);
+      const res = await updateTestEntity(updateValues);
+      if (res?.status === 'error') {
+        message.error(res.data);
+        return;
+      }
 
       notification.success({
         message: '测试用例移动成功',

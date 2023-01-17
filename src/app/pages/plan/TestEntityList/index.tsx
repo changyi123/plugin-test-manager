@@ -4,7 +4,7 @@ import Field from '@/components/common/Field';
 import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
 import RepositoryGroup from '@/components/business/RepositoryGroup';
 import { StatusBadge } from '@/components/business/Status';
-import { notification, Button, Tooltip } from 'antd';
+import { notification, Button, Tooltip, message } from 'antd';
 import TestRunModal, {
   ActionType as TestRunModalActionType,
 } from '@/components/business/TestRunModal';
@@ -35,7 +35,7 @@ import cx from './index.less';
 interface TestEntityListProps {
   loading?: boolean;
   requestScopedTestDetailIds?: string[];
-  activedType: string;
+  activeType: string;
   selectedExecution?: Record<string, any>;
   refreshPlanData?: () => void;
   scopedTestDetailRefresh?: () => void;
@@ -45,7 +45,7 @@ interface TestEntityListProps {
 
 const TestEntityList: React.FC<TestEntityListProps> = ({
   loading,
-  activedType,
+  activeType,
   requestScopedTestDetailIds,
   selectedExecution,
   scopedTestDetailRefresh,
@@ -97,7 +97,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
 
   const { data: allRunData } = useRequest(
     async () => {
-      if (activedType === 'TestPlan') return [];
+      if (activeType === 'TestPlan') return [];
       if (!requestScopedTestDetailIds?.length || !selectedExecution?.objectId) {
         return [];
       }
@@ -266,7 +266,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
 
   useEffect(() => {
     const [systemSelectors] = selectors;
-    if (!isEmpty(systemSelectors) && activedType !== 'TestPlan') {
+    if (!isEmpty(systemSelectors) && activeType !== 'TestPlan') {
       setTableLoading(true);
       scopedTestDetailRefresh();
       const isEmptyValue = Object.values(systemSelectors)
@@ -277,12 +277,12 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         setTableLoading(false);
       }
     }
-  }, [selectors, scopedTestDetailRefresh, activedType]);
+  }, [selectors, scopedTestDetailRefresh, activeType]);
 
   const removeTestRelation = React.useCallback(
     async (planId, testDetails) => {
       if (!Array.isArray(testDetails)) return;
-      await updateTestEntity(
+      const res = await updateTestEntity(
         testDetails.map(d => ({
           objectId: d.id,
           linkItems: {
@@ -297,6 +297,10 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           }, {}),
         })),
       );
+      if (res?.status === 'error') {
+        message.error(res.data);
+        return;
+      }
 
       actionRef.current.resetSelectedRowKeys();
 
@@ -399,12 +403,9 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   const deleteTestRunByIds = useMemoizedFn(testRunIds => {
     actionConfirm('该操作会将所选测试执行删除，是否继续操作？', async () => {
       // 删除测试执行
-      const { data } = await deleteTestEntity(testRunIds);
-
-      if (data.status === 'error') {
-        notification.error({
-          message: `用例执行被删除失败`,
-        });
+      const res = await deleteTestEntity(testRunIds);
+      if (res?.status === 'error') {
+        message.error(res.data);
         return;
       }
 
@@ -545,7 +546,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
             limit: 99999,
             select: ['id', 'caseStatus'],
           });
-          await updateTestEntity(
+          const res = await updateTestEntity(
             items.map(item => ({
               objectId: item.id,
               linkItems: {
@@ -560,6 +561,11 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
               }, {}),
             })),
           );
+          if (res?.status === 'error') {
+            setTableLoading(false);
+            message.error(res.data);
+            return;
+          }
 
           setTimeout(() => {
             scopedTestDetailRefresh();
@@ -576,7 +582,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       setTableLoading(true);
       const testIds = actionRef.current.selectedRowKeys;
 
-      await updateTestEntity(
+      const res = await updateTestEntity(
         testIds.map(d => ({
           objectId: d,
           values: {
@@ -584,6 +590,11 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           },
         })),
       );
+      if (res?.status === 'error') {
+        setTableLoading(false);
+        message.error(res.data);
+        return;
+      }
 
       setTimeout(() => {
         actionRef.current.refresh();
@@ -663,12 +674,17 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       const testRunIds = getTestRunIds();
       setTableLoading(true);
       // 更新测试执行执行人
-      await updateTestEntity(
+      const res = await updateTestEntity(
         testRunIds.map(run => ({
           objectId: run,
           designee: users,
         })),
       );
+      if (res?.status === 'error') {
+        setTableLoading(false);
+        message.error(res.data);
+        return;
+      }
 
       notification.success({
         message: '所选测试执行人更新成功',
@@ -748,7 +764,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
 
   return (
     <div className={cx('test-entity-list-box')}>
-      {activedType === 'TestPlan' ? (
+      {activeType === 'TestPlan' ? (
         <BusinessTable
           className={cx(`${tableSelectionVisible ? 'batch-action' : ''}`)}
           titleCellOption={{
@@ -808,7 +824,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           handleFilterField={handleFilterField}
         />
       )}
-      {activedType !== 'TestPlan' && (
+      {activeType !== 'TestPlan' && (
         <TestRunModal
           actionRef={testRunModalActionRef}
           idSequence={allRunData?.map(run => run.id)}

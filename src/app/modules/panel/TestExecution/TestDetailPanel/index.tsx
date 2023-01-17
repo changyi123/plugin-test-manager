@@ -134,7 +134,11 @@ const Test = () => {
     async testRunIds => {
       if (!Array.isArray(testRunIds)) return;
       // 删除测试和测试执行的关联
-      await deleteTestEntity(testRunIds);
+      const res = await deleteTestEntity(testRunIds);
+      if (res?.status === 'error') {
+        message.error(res.data);
+        return;
+      }
 
       refreshDepData();
 

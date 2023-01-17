@@ -20,6 +20,7 @@ import {
   getLinkedTestEntityByQuery,
 } from '@/lib/api/item';
 import createProximaSdk from '@projectproxima/proxima-sdk-js';
+import { message } from 'antd';
 
 const Plan = () => {
   const { testEntity, workspace, setTestEntity } = useTestConfig();
@@ -46,6 +47,10 @@ const Plan = () => {
   // 更新测试用例-计划关联关系，并触发外部列表更新
   const updateRelatedAndRefresh = useCallback(async data => {
     const res = await updateRelated(data);
+    if (res?.status === 'error') {
+      message.error(res.data);
+      return;
+    }
     const proxima = createProximaSdk();
     proxima.execute('updateRepoTree');
     return res;
