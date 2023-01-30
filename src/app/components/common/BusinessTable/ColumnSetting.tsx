@@ -46,6 +46,8 @@ type ColumnSettingProps = TitleCellOption & {
 
 const proxima = createProximaSdk();
 
+const filedKeyText = ['User', 'Assignee'];
+
 const ColumnSetting: React.FC<ColumnSettingProps> = props => {
   const {
     name,
@@ -100,9 +102,10 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
         const { text, ...restTableCellProps } = fieldCellsPropDict[field.key] ?? {};
         if (!text || !itemData) return '-';
 
-        const textValue = Array.isArray(text(itemData))
-          ? text(itemData).map(d => d?.objectId ?? d)
-          : text(itemData);
+        const textValue =
+          !filedKeyText.includes(field.fieldType.key) && Array.isArray(text(itemData))
+            ? text(itemData).map(d => d?.objectId ?? d)
+            : text(itemData);
 
         return (
           <TableCell
