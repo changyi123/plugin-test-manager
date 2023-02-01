@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState, useCallback, useEffect } from 'react';
-import { Button, Input, Spin } from 'antd';
+import { Button, Input, message, Spin } from 'antd';
 import { BlockOutlined } from '@/icons';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import { cloneDeep } from 'lodash';
 import { useDebounceFn } from 'ahooks';
+import { updateTestEntity } from '@/lib/api/item';
 
 import { Item } from '@/lib/types/App';
-import { updateItem } from '@/lib/api/common';
 import { Step } from '@/lib/types/Test';
 import TestStep from '@/components/business/TestStep';
 
@@ -42,7 +42,16 @@ const Detail: React.FC = () => {
 
       const cpDetail = cloneDeep(testEntity.detail) || { steps: [] };
       cpDetail.steps = newSteps;
-      const data = await updateItem(testEntity.objectId, { detail: cpDetail });
+      const data = await updateTestEntity([
+        {
+          objectId: testEntity.objectId,
+          detail: cpDetail,
+        },
+      ]);
+      if (data?.status === 'error') {
+        message.error(data.data);
+        return;
+      }
       setTestEntity(data);
     },
     [testEntity, setTestEntity],
@@ -51,7 +60,16 @@ const Detail: React.FC = () => {
   const { run: handlePreconditionChange } = useDebounceFn(async precondition => {
     const cpDetail = cloneDeep(testEntity.detail) || { precondition: '' };
     cpDetail.precondition = precondition;
-    const data = await updateItem(testEntity.objectId, { detail: cpDetail });
+    const data = await updateTestEntity([
+      {
+        objectId: testEntity.objectId,
+        detail: cpDetail,
+      },
+    ]);
+    if (data?.status === 'error') {
+      message.error(data.data);
+      return;
+    }
     setTestEntity(data);
   });
 

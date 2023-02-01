@@ -113,7 +113,10 @@ export const getLinkedTestEntityByQuery = async (
 
   const {
     data: { data },
-  } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-query-linked-test-entity`, _props);
+  } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-query-linked-test-entity`, {
+    ..._props,
+    sessionToken: global.currentUser.sessionToken,
+  });
 
   return {
     list: data.list ?? [],
@@ -123,24 +126,30 @@ export const getLinkedTestEntityByQuery = async (
 
 // 测试计划统计查询
 export const getStatsTestPlan = async (props: TestPlanStatsPayload) => {
-  const { data: res } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-stats-test-plan`, props);
+  const { data: res } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-stats-test-plan`, {
+    ...props,
+    sessionToken: global.currentUser.sessionToken,
+  });
 
   return res.data;
 };
 
 // 测试执行任务统计查询
 export const getStatsTestExecution = async (props: TestExecutionStatsPayload) => {
-  const { data: res } = await fetch.post(
-    `${pluginWebTriggerBaseUrl}/api-stats-test-execution`,
-    props,
-  );
+  const { data: res } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-stats-test-execution`, {
+    ...props,
+    sessionToken: global.currentUser.sessionToken,
+  });
 
   return res.data;
 };
 
 // 测试用例统计查询
 export const getTestCaseStats = async (props: TestCaseStatsPayload) => {
-  const { data: res } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-stats-test-case`, props);
+  const { data: res } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-stats-test-case`, {
+    ...props,
+    sessionToken: global.currentUser.sessionToken,
+  });
 
   return res.data;
 };
@@ -149,6 +158,7 @@ export const getTestCaseStats = async (props: TestCaseStatsPayload) => {
 export const deleteTestEntity = async ids => {
   const { data: res } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-batch-delete`, {
     ids,
+    sessionToken: global.currentUser.sessionToken,
   });
 
   if (res.status === 'error') {
@@ -161,6 +171,7 @@ export const deleteTestEntity = async ids => {
 export const updateTestEntity = async data => {
   const { data: res } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-batch-update`, {
     data,
+    sessionToken: global.currentUser.sessionToken,
   });
 
   if (res.status === 'error') {
@@ -180,7 +191,10 @@ export const copyTesCase = async (data: CopyTestCasePayload) => {
 
 // 批量创建测试执行
 export const batchCreateTestRun = async data => {
-  const res = await fetch.post(`${pluginWebTriggerBaseUrl}/api-batch-create-test-run`, data);
+  const res = await fetch.post(`${pluginWebTriggerBaseUrl}/api-batch-create-test-run`, {
+    ...data,
+    sessionToken: global.currentUser.sessionToken,
+  });
 
   return res;
 };
