@@ -52,7 +52,7 @@ const Detail: React.FC = () => {
         message.error(data.data);
         return;
       }
-      setTestEntity(data);
+      setTestEntity(data?.[0]);
     },
     [testEntity, setTestEntity],
   );
@@ -70,7 +70,7 @@ const Detail: React.FC = () => {
       message.error(data.data);
       return;
     }
-    setTestEntity(data);
+    setTestEntity(data?.[0]);
   });
 
   const callTestLen = useCallback(() => {
