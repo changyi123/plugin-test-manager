@@ -15,6 +15,7 @@ import _, { isEqual, keyBy, merge } from 'lodash';
 import { compactStepModel } from '@/lib/utils/modelTransfer';
 import { Status, TestEntity, UserPointerInfo } from '@/lib/types/Test';
 import { pointerTransfer, toArray, generateSortIndex } from '@/lib/utils/helper';
+import { getTestEntityByQuery } from './item';
 
 type TestRunEntity = TestEntity<TestType.Run>;
 type TestEntityParseType = any;
@@ -506,13 +507,17 @@ export const updateTestRunStatus = async (params: {
 export const getTestStepsByTestDetailId = async (testDetailId: string, currentTestId?: string) => {
   // 获取测试步骤
   const fetchTestStepsAndName = async (id: string | string[]) => {
-    const testEntities = await getTestEntities({ id }, { include: ['reference'] });
-    const testData = testEntities?.map(item => item.toJSON()) ?? [];
+    // const testEntities = await getTestEntities({ id }, { include: ['reference'] });
+    const { list: testData } = await getTestEntityByQuery({
+      query: {
+        id: Array.isArray(id) ? id : [id],
+      },
+    });
 
     return testData.map((item, index) => ({
       index,
       id: item.objectId,
-      name: item.reference?.name,
+      name: item.name,
       steps: item.detail?.steps ?? [],
     }));
   };

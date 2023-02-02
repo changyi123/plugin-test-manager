@@ -251,7 +251,69 @@ const createNotExistedChartGroups = async () => {
       );
 
       testConfig.set({
-        chartGroups: chartGroupMapValue.chartGroups,
+        chartGroups: {
+          ...(testConfig.get('chartGroups') ?? {}),
+          ...chartGroupMapValue.chartGroups,
+        },
+      });
+
+      return testConfig;
+    });
+
+    const updatedTestConfigs = await saveAllObject(testConfigObjects);
+    console.info('updatedTestConfigs', updatedTestConfigs);
+  }
+};
+
+// 创建测试管理用例执行统计报表
+const createTestCountChartGroups = async () => {
+  const [testConfigQuery, workspaceQuery] = await Promise.all([
+    getParseQuery(false, TestConfigClassName),
+    getParseQuery(false, 'Workspace'),
+  ]);
+
+  const notExistedChartGroupConfigs = await testConfigQuery
+    .findAll(ParseBaseQueryOptions)
+    .then(items =>
+      items
+        .filter(item => item.get('chartGroups'))
+        .filter(item => !item.get('chartGroups')?.TestRunCountChartGroup),
+    );
+
+  const workspaceKeys = notExistedChartGroupConfigs
+    .map(config => config.get('workspaceKey'))
+    .filter(Boolean);
+
+  const workspaceMap = await workspaceQuery
+    .containedIn('key', workspaceKeys)
+    .findAll(ParseBaseQueryOptions)
+    .then(items => keyBy(items, item => item.get('key')));
+
+  const needToCreateWOrkspaceKey = workspaceKeys.filter(key => workspaceMap[key]).filter(Boolean);
+
+  if (needToCreateWOrkspaceKey?.length) {
+    // 获取创建的 chartGroups
+    const chartGroupMapValues = await batchCreateChartGroups(
+      needToCreateWOrkspaceKey.map(workspaceKey => ({
+        workspace: workspaceMap[workspaceKey],
+        needToCreateGroupKeys: ['TestRunCountChartGroup'],
+      })),
+    );
+
+    const testConfigObjects = needToCreateWOrkspaceKey.map(workspaceKey => {
+      const testConfig = notExistedChartGroupConfigs.find(
+        config => config.get('workspaceKey') === workspaceKey,
+      );
+
+      const chartGroupMapValue = chartGroupMapValues.find(
+        group => group.workspaceKey === workspaceKey,
+      );
+
+      testConfig.set({
+        chartGroups: {
+          ...(testConfig.get('chartGroups') ?? {}),
+          ...chartGroupMapValue.chartGroups,
+        },
       });
 
       return testConfig;
@@ -332,6 +394,8 @@ const initialScriptRunner = async () => {
 
   // 创建空间级配置不存在的测试统计报表
   await createNotExistedChartGroups();
+  // 创建空间级配置已存在的用例统计报表
+  await createTestCountChartGroups();
 };
 
 export const runInitialScript = async () => {
