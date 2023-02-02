@@ -78,7 +78,10 @@ export const SYSTEM_FIELD = {
   Version: 'version', // 版本
   Assignee: 'assignee', // 负责人
   Priority: 'priority', // 优先级
+  Team: 'team', // 团队
 };
+
+export const TABLE_EXCLUDE_FIELDS = [SYSTEM_FIELD.Team];
 
 export const ICLUDE_SYSTEM_FIELD = [SYSTEM_FIELD.Status];
 
@@ -118,6 +121,8 @@ export const FIELD_TYPE_KEY_MAPPINGS = {
   ItemGroup: 'ItemGroup', // 事项组类型字段
   StoryPoint: 'StoryPoint', // 故事点
   StatusType: 'StatusType', // 状态类型
+  Reporter: 'Reporter', // 报告人
+  Team: 'Team', // 团队 -> team
 
   // 未存储在FieldType表中，在筛选搜索中用
   CreatedAt: 'createdAt', // 创建时间

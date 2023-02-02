@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { keyBy, noop } from 'lodash';
 import { TitleCellOption } from './type';
 import { ColumnType } from 'antd/lib/table';
@@ -25,6 +25,7 @@ import OverflowTooltip from '@/components/common/OverflowTooltip';
 
 import '@projectproxima/components/dist/main.css';
 import cx from './ColumnSetting.less';
+import { TABLE_EXCLUDE_FIELDS } from '@/lib/constants';
 
 type ColumnDuckTyping = ColumnType<any> & Record<string, any>;
 
@@ -45,6 +46,8 @@ type ColumnSettingProps = TitleCellOption & {
 
 const proxima = createProximaSdk();
 
+const filedKeyText = ['User', 'Assignee'];
+
 const ColumnSetting: React.FC<ColumnSettingProps> = props => {
   const {
     name,
@@ -58,9 +61,10 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
   } = props;
   const [visible, setVisible] = React.useState(false);
   const keys = useTestTypeScreenFieldKeys(titleCellOption);
-  const { data: customFields } = useNoExpiredRequest(() => getCustomFields(keys), {
-    cacheKey: `CustomFields_${keys.toString()}`,
-    refreshDeps: [keys],
+  const fieldKeys = useMemo(() => keys?.filter(key => !TABLE_EXCLUDE_FIELDS.includes(key)), [keys]);
+  const { data: customFields } = useNoExpiredRequest(() => getCustomFields(fieldKeys), {
+    cacheKey: `CustomFields_${fieldKeys.toString()}`,
+    refreshDeps: [fieldKeys],
   });
   const [fields, setFields] = useState<string[] | undefined>([]);
   const [loading, setLoading] = useState(false);
@@ -98,7 +102,19 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
         const { text, ...restTableCellProps } = fieldCellsPropDict[field.key] ?? {};
         if (!text || !itemData) return '-';
 
-        return <TableCell {...restTableCellProps} text={text(itemData)} />;
+        const textValue =
+          !filedKeyText.includes(field.fieldType.key) && Array.isArray(text(itemData))
+            ? text(itemData).map(d => d?.objectId ?? d)
+            : text(itemData);
+
+        return (
+          <TableCell
+            {...restTableCellProps}
+            id={itemData.objectId ?? itemData.id}
+            values={text(itemData)}
+            text={textValue}
+          />
+        );
       },
     };
   };
