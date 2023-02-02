@@ -1,5 +1,5 @@
 import React, { useCallback, useRef, useMemo, useState } from 'react';
-import { Button, notification, Select, Tooltip } from 'antd';
+import { Button, message, notification, Select, Tooltip } from 'antd';
 import FilterSearch from '@/components/common/FilterSearch';
 import RepoDropDown from '@/pages/repository/RepoDropDown';
 import TestEntitySelectorModal, {
@@ -30,7 +30,7 @@ const options = [
 ];
 
 interface RightProps {
-  activedType?: string;
+  activeType?: string;
   selectedExecution?: Record<string, any>;
   showType?: string;
   setShowType?: (val: string) => void;
@@ -43,7 +43,7 @@ interface RightProps {
 
 const Right: React.FC<RightProps> = props => {
   const {
-    activedType,
+    activeType,
     selectedExecution,
     showType,
     setShowType,
@@ -90,10 +90,10 @@ const Right: React.FC<RightProps> = props => {
   });
 
   useUpdateEffect(() => {
-    if (activedType && selectedExecution?.objectId) {
+    if (activeType && selectedExecution?.objectId) {
       detailSearchRef.current.reset();
     }
-  }, [activedType, selectedExecution?.objectId]);
+  }, [activeType, selectedExecution?.objectId]);
 
   useUpdateEffect(() => {
     if (selectedTestPlan?.objectId) {
@@ -140,8 +140,8 @@ const Right: React.FC<RightProps> = props => {
       TestExecution: extendFields,
     };
 
-    return fieldsMapping[activedType];
-  }, [activedType]);
+    return fieldsMapping[activeType];
+  }, [activeType]);
 
   const addTestDetail = async () => {
     const itemData = await testEntitySelectorRef.current.open();
@@ -154,7 +154,7 @@ const Right: React.FC<RightProps> = props => {
 
     try {
       setLoading(true);
-      await updateTestEntity(
+      const res = await updateTestEntity(
         itemData.map(item => ({
           objectId: item,
           linkType: TestLinkType.CaseLinkPlan,
@@ -164,6 +164,11 @@ const Right: React.FC<RightProps> = props => {
           },
         })),
       );
+      if (res?.status === 'error') {
+        setLoading(false);
+        message.error(res.data);
+        return;
+      }
     } catch (error) {
       setLoading(false);
       // eslint-disable-next-line no-console
@@ -186,7 +191,7 @@ const Right: React.FC<RightProps> = props => {
       <div data-element-id="test-manager-execution-table-header" className={cx('box-header')}>
         <div className={cx('extra-content')}>
           <div className={cx('extra-content-left')}>
-            {activedType === 'TestExecution' ? (
+            {activeType === 'TestExecution' ? (
               <>
                 <Tooltip title={selectedExecution?.name ?? ''} placement="topLeft">
                   <div className={cx('title')}>{selectedExecution?.name}</div>
@@ -215,7 +220,7 @@ const Right: React.FC<RightProps> = props => {
             <>
               <Button
                 type="primary"
-                onClick={activedType === 'TestPlan' ? addTestDetail : addTestExecutionDetail}
+                onClick={activeType === 'TestPlan' ? addTestDetail : addTestExecutionDetail}
                 className={cx('action')}
                 disabled={!selectedTestPlan}
               >
@@ -241,7 +246,7 @@ const Right: React.FC<RightProps> = props => {
       <div data-element-id="test-manager-execution-table-body" className={cx('box-body')}>
         <TestEntityList
           loading={loading}
-          activedType={activedType}
+          activeType={activeType}
           requestScopedTestDetailIds={requestScopedTestDetailIds}
           selectedExecution={selectedExecution}
           scopedTestDetailRefresh={scopedTestDetailRefresh}

@@ -24,7 +24,7 @@ export type WordTemplate = {
   preExecuteScript: string;
 };
 
-export type CopyTestCasePlayload = {
+export type CopyTestCasePayload = {
   includeStatus: boolean;
   name: string;
   objectId: string;

@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 import { useRequest, useDrag, useDrop } from 'ahooks';
-import { notification, Tooltip } from 'antd';
+import { message, notification, Tooltip } from 'antd';
 import { UNGROUPED_FOLDER_KEY } from '../../constant';
 import { updateFolders } from '@/lib/api/repository';
 import { UserCell } from '@projectproxima/components';
@@ -21,7 +21,7 @@ import RepositorySelector, {
 } from '@/components/business/RepositorySelector';
 import RepositoryGroup from '@/components/business/RepositoryGroup';
 import {
-  copyTesTase,
+  copyTesCase,
   deleteTestEntity,
   getTestEntityByQuery,
   updateTestEntity,
@@ -147,7 +147,12 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
 
       actionConfirm('该操作会将所选的测试用例删除，是否继续操作？', async () => {
         setTableLoading(true);
-        await deleteTestEntity(testDetailIds);
+        const res = await deleteTestEntity(testDetailIds);
+        if (res?.status === 'error') {
+          setTableLoading(false);
+          message.error(res.data);
+          return;
+        }
         refreshAndMutateData();
         setTableLoading(false);
 
@@ -167,7 +172,12 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         },
       }));
       setTableLoading(true);
-      await updateTestEntity(updateValues);
+      const res = await updateTestEntity(updateValues);
+      if (res?.status === 'error') {
+        setTableLoading(false);
+        message.error(res.data);
+        return;
+      }
       await refreshAndMutateData();
       notification.success({
         message: `${tableActionRef.current.selectedRowKeys.length} 个测试负责人已更新`,
@@ -229,7 +239,12 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
     const deleteTestDetail = data => {
       actionConfirm('该操作会将当前测试用例删除，是否继续操作？', async () => {
         setTableLoading(true);
-        await deleteTestEntity([data.objectId]);
+        const res = await deleteTestEntity([data.objectId]);
+        if (res?.status === 'error') {
+          setTableLoading(false);
+          message.error(res.data);
+          return;
+        }
         refreshAndMutateData();
         setTableLoading(false);
         notification.success({
@@ -240,14 +255,25 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
 
     const copyTestDetail = async data => {
       setTableLoading(true);
-      const res = await copyTesTase({
+      const res = await copyTesCase({
         includeStatus: false,
         name: `${data.name}_${Math.floor(Date.now())}`,
         objectId: data.objectId,
         workspace: data.workspace.objectId,
       });
+      if (res?.status === 400) {
+        setTableLoading(false);
+        return;
+      }
 
-      await updateTestEntity([{ objectId: res.objectId, sortIndex: generateSortIndex(1) }]);
+      const updateRes = await updateTestEntity([
+        { objectId: res.objectId, sortIndex: generateSortIndex(1) },
+      ]);
+      if (updateRes?.status === 'error') {
+        setTableLoading(false);
+        message.error(updateRes.data);
+        return;
+      }
 
       refreshAndMutateData();
       setTableLoading(false);
@@ -421,12 +447,16 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         );
 
         if (sortIndex) {
-          await updateTestEntity([
+          const res = await updateTestEntity([
             {
               objectId: data.rowData.id,
               sortIndex,
             },
           ]);
+          if (res?.status === 'error') {
+            message.error(res.data);
+            return;
+          }
 
           await onDataChange();
         }

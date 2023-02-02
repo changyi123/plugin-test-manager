@@ -1227,10 +1227,10 @@
   dependencies:
     yaml "^2.1.1"
 
-"@giteeteam/apps-team-api@^0.1.15":
-  version "0.1.15"
-  resolved "https://registry.npmmirror.com/@giteeteam/apps-team-api/-/apps-team-api-0.1.15.tgz#0a5407b44d313af62518ebb3c4ba4488892d1d9f"
-  integrity sha512-OTkp+Gi1riD6mPkS7rtagBYxbvkP8qQ7rt7k2YSj9hB8W/lWEOkb/sQGdw2W8PpbqKkzdT0BWPv47c20NJAhHw==
+"@giteeteam/apps-team-api@^0.3.6":
+  version "0.3.6"
+  resolved "https://registry.yarnpkg.com/@giteeteam/apps-team-api/-/apps-team-api-0.3.6.tgz#d3de40092bcafb629425dc1227789f31d2e52349"
+  integrity sha512-x/WJMdbdeYTpGJcagsFKGBB+pbrVe0lOw+rvuOXhZJ9DOnICWPto1FOOhvXJTApX+7MSqBAcOsRKrvS9LkgW/A==
   dependencies:
     axios "^0.27.2"
 

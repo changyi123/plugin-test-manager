@@ -52,6 +52,7 @@ export type BaseActionContextType = {
   openItemViewPanel: (itemId: string) => void;
   /** 获取全局配置 */
   getGlobalConfig?: () => Record<string, any>;
+  getCreatePermission?: (val: string) => boolean;
 };
 /** proxima 操作 context */
 export const BaseActionContext = React.createContext<BaseActionContextType>(

@@ -20,10 +20,11 @@ import {
   getLinkedTestEntityByQuery,
 } from '@/lib/api/item';
 import createProximaSdk from '@projectproxima/proxima-sdk-js';
+import { message } from 'antd';
 
 const Plan = () => {
   const { testEntity, workspace, setTestEntity } = useTestConfig();
-  const { createItemUseModal } = useBaseAction();
+  const { createItemUseModal, getCreatePermission } = useBaseAction();
   const tableActionRef = useRef<ActionType>();
   const selectorModalRef = useRef<SelectorActionType>();
 
@@ -46,6 +47,10 @@ const Plan = () => {
   // 更新测试用例-计划关联关系，并触发外部列表更新
   const updateRelatedAndRefresh = useCallback(async data => {
     const res = await updateRelated(data);
+    if (res?.status === 'error') {
+      message.error(res.data);
+      return;
+    }
     const proxima = createProximaSdk();
     proxima.execute('updateRepoTree');
     return res;
@@ -123,6 +128,7 @@ const Plan = () => {
       },
       {
         title: '新建测试计划',
+        disabled: getCreatePermission(TestType.Plan),
         async onClick() {
           const { item } = await createItemUseModal({
             type: TestType.Plan,
@@ -152,7 +158,13 @@ const Plan = () => {
         },
       },
     ];
-  }, [createItemUseModal, refreshDepData, testEntity.objectId, updateRelatedAndRefresh]);
+  }, [
+    createItemUseModal,
+    refreshDepData,
+    getCreatePermission,
+    testEntity.objectId,
+    updateRelatedAndRefresh,
+  ]);
 
   const removeTestRelation = useCallback(
     async relationTypeIds => {

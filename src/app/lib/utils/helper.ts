@@ -167,3 +167,9 @@ export const toPointer = (className, objectId) => ({
   objectId,
   __type: 'Pointer',
 });
+
+/** 获取token */
+export const getSessionToken = () => {
+  const [sessionToken] = document.cookie?.split(';').filter(c => c.includes('sessionToken='));
+  return sessionToken.replace(/\s*/g, '').replace('sessionToken=', '') ?? '';
+};

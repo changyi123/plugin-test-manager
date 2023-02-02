@@ -42,7 +42,7 @@ const ListView: React.FC<ViewComponentProps> = ({
 }) => {
   const tableActionRef = React.useRef<ActionType>();
   const { workspace } = useTestConfig();
-  const { createItemUseModal } = useBaseAction();
+  const { createItemUseModal, getCreatePermission } = useBaseAction();
   const [selector, setSelector] = React.useState(null);
   const [breadcrumbs, setBreadcrumbs] = React.useState([]);
   const [tableSelectionVisible, setTableSelectionVisible] = React.useState(false);
@@ -183,7 +183,12 @@ const ListView: React.FC<ViewComponentProps> = ({
           <Button onClick={() => toggleSelection()}>
             {tableSelectionVisible ? '取消操作' : '批量操作'}
           </Button>
-          <Button type="primary" onClick={createTestDetail} className={cx('action')}>
+          <Button
+            type="primary"
+            disabled={getCreatePermission(TestType.Case)}
+            onClick={createTestDetail}
+            className={cx('action')}
+          >
             新建测试用例
           </Button>
           <RepoDropDown type="repository" treeNodeData={folderTreeData} folderKey={selectNodeKey} />

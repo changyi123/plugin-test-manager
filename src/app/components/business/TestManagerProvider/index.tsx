@@ -25,6 +25,7 @@ import {
 } from '@/lib/constants';
 import { getTestEntityByQuery, updateTestEntity } from '@/lib/api/item';
 import { union } from 'lodash';
+import { useGetPermissions } from './hooks';
 
 const ItemCreateSuccessEventType = 'itemCreateSuccess';
 const DefaultTestConfig = {} as TestConfigContextType['config'];
@@ -99,7 +100,6 @@ const getOrCreateTestEntity = async (
       }
       console.info('extraFields', extraFields);
     }
-
     const data = await updateTestEntity([
       {
         objectId: itemData.objectId,
@@ -109,11 +109,14 @@ const getOrCreateTestEntity = async (
         sortIndex: generateSortIndex(1),
       },
     ]);
+    if (data?.status === 'error') {
+      message.error(data.data);
+      return;
+    }
     testEntity = data?.[0];
+    console.info('new testEntity', testEntity);
+    return testEntity;
   }
-  console.info('new testEntity', testEntity);
-
-  return testEntity;
 };
 
 /** 获取并创建多个测试实体 */
@@ -172,17 +175,17 @@ const getOrBatchCreateTestEntities = async (
       itemData.itemType?.key,
     ) as TestType;
 
-  // 过滤事项关联和第一个不一致的用例数据
-  const firstItemMatchTestType = getMatchedTestType(curItemData);
+  // 过滤事项关联和传入类型事项不一致的用例数据
+  const itemMatchTestType = getMatchedTestType(curItemData);
 
   // 需要被创建测试实体的事项数据
   // 1. 和第一个事项对应的测试实体需要保持一致，不一致忽略创建
   // 2. 创建支持跨空间创建，不同空间对应不同的类型，需要对该逻辑进行处理
   const needCreatedItemDataList = itemDataList.filter(
-    itemData => getMatchedTestType(itemData) === firstItemMatchTestType,
+    itemData => getMatchedTestType(itemData) === itemMatchTestType,
   );
 
-  if (!firstItemMatchTestType) {
+  if (!itemMatchTestType) {
     // 创建失败，通知用户无法创建测试实体
     options?.notice === true &&
       notification.warning({
@@ -253,9 +256,12 @@ const getOrBatchCreateTestEntities = async (
       ...extraFields,
     };
   });
-  const details = await updateTestEntity(needCreatedTestEntities);
-
-  return details;
+  const res = await updateTestEntity(needCreatedTestEntities);
+  if (res?.status === 'error') {
+    message.error(res.data);
+    return;
+  }
+  return res;
 };
 
 type RepositoryDataProviderProps = {
@@ -275,6 +281,8 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
 }) => {
   const [workspace, setWorkspace] = React.useState<Workspace>();
   const [testEntity, setTestEntity] = React.useState<TestEntity>();
+
+  const { getCreatePermission } = useGetPermissions(workspace);
 
   React.useEffect(() => {
     const execute = async () => {
@@ -421,6 +429,18 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
           return true;
         });
 
+      if (isIsolated) {
+        const itemsData = itemIdList
+          .map(id => shuffledItemDataList.find(itemData => itemData.objectId === id))
+          .filter(itemData => workspace.key !== itemData.workspace?.key);
+        if (itemsData?.length) {
+          notification.warning({
+            message: '提示',
+            description: '此空间已配置不可操作跨空间「事项类型」数据，非此空间事项保存失败',
+          });
+        }
+      }
+
       if (!hasArrayItem(itemList)) return;
       // 缺陷类型不需要创建测试管理测试实体
       if (extraData.type !== TestType.TestDefect) {
@@ -542,10 +562,17 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
       },
       getGlobalConfig,
       openItemViewPanel: openItemDetailPanel,
+      getCreatePermission,
     };
 
     return actions;
-  }, [getGlobalConfig, testConfig.defectsMapping, testConfig?.itemTypeMap, workspace?.objectId]);
+  }, [
+    getGlobalConfig,
+    getCreatePermission,
+    testConfig.defectsMapping,
+    testConfig?.itemTypeMap,
+    workspace?.objectId,
+  ]);
 
   return (
     <TestConfigContext.Provider value={testConfigContextValues as any}>
