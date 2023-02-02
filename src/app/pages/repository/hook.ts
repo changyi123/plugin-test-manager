@@ -1,4 +1,5 @@
 import React from 'react';
+import ReactDOM from 'react-dom';
 import { TreeNode, traverseTreeNodes, getTreeNodeByKey, reverseTreeNodes } from './util';
 
 // 获取树操作方法
@@ -10,4 +11,23 @@ export const useTreeFn = (nodes: TreeNode[]) => {
       reverseTreeNodes: reverseTreeNodes.bind(null, nodes),
     };
   }, [nodes]);
+};
+
+/** 增加 header extra action */
+export const useHeaderExtraActionButton = button => {
+  const [node, setNode] = React.useState(null);
+  React.useEffect(() => {
+    const container = document.querySelector('#repository-header-extra-action');
+    if (container) {
+      setNode(ReactDOM.createPortal(button, container));
+    }
+
+    return () => {
+      if (container) {
+        ReactDOM.unmountComponentAtNode(container);
+      }
+    };
+  }, [button]);
+
+  return node;
 };

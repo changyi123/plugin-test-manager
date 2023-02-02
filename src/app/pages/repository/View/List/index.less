@@ -1,0 +1,73 @@
+@import '@/index.global.less';
+
+.list-view {
+  height: 100%;
+  .filter-search-box {
+    padding: 8px 24px;
+  }
+
+  .table-container {
+    width: 100%;
+  }
+
+  .breadcrumb-container {
+    flex: none;
+    display: flex;
+    align-items: center;
+    padding: 11px 24px;
+    height: 46px;
+    border-bottom: 1px solid @border-color;
+
+    .separator,
+    .secondary {
+      color: var(--color-gray-6);
+    }
+
+    .separator {
+      margin: 0 8px;
+    }
+
+    .breadcrumb {
+      margin-right: 20px;
+    }
+  }
+
+  .actions {
+    flex: none;
+    display: flex;
+    margin-left: auto;
+    align-items: center;
+    font-size: 16px;
+    > * {
+      margin-right: 8px;
+    }
+
+    .line {
+      height: 20px;
+      width: 1px;
+      background-color: @border-color;
+      margin-left: 8px;
+      margin-right: 14px;
+    }
+  }
+
+  .selection {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 32px;
+    height: 32px;
+    &.active {
+      background: #e9eaec;
+      border-radius: 4px;
+    }
+  }
+}
+
+:root {
+  :global {
+    .workspace-plugin-container {
+      padding: 0 !important;
+    }
+  }
+}
