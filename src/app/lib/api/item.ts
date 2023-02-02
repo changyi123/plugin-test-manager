@@ -10,7 +10,7 @@ import {
 import { merge } from 'lodash';
 import { RepositoryModel, SYSTEM_FIELD, TestType } from '../constants';
 import { BaseTestEntity, CopyTestCasePayload, Status, TestEntity } from '../types/Test';
-import { getPluginWebTriggerBaseUrl } from '../utils/helper';
+import { getPluginWebTriggerBaseUrl, getSessionToken } from '../utils/helper';
 import { compactStepModel } from '../utils/modelTransfer';
 import { createItemLink, deleteItemLink, IItemLink, getExistedItemLinks } from './runs';
 import { SearchSelectors, selectorToIql } from '../utils/iql';
@@ -115,7 +115,7 @@ export const getLinkedTestEntityByQuery = async (
     data: { data },
   } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-query-linked-test-entity`, {
     ..._props,
-    sessionToken: global.currentUser.sessionToken,
+    sessionToken: getSessionToken(),
   });
 
   return {
@@ -128,7 +128,7 @@ export const getLinkedTestEntityByQuery = async (
 export const getStatsTestPlan = async (props: TestPlanStatsPayload) => {
   const { data: res } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-stats-test-plan`, {
     ...props,
-    sessionToken: global.currentUser.sessionToken,
+    sessionToken: getSessionToken(),
   });
 
   return res.data;
@@ -138,7 +138,7 @@ export const getStatsTestPlan = async (props: TestPlanStatsPayload) => {
 export const getStatsTestExecution = async (props: TestExecutionStatsPayload) => {
   const { data: res } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-stats-test-execution`, {
     ...props,
-    sessionToken: global.currentUser.sessionToken,
+    sessionToken: getSessionToken(),
   });
 
   return res.data;
@@ -148,7 +148,7 @@ export const getStatsTestExecution = async (props: TestExecutionStatsPayload) =>
 export const getTestCaseStats = async (props: TestCaseStatsPayload) => {
   const { data: res } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-stats-test-case`, {
     ...props,
-    sessionToken: global.currentUser.sessionToken,
+    sessionToken: getSessionToken(),
   });
 
   return res.data;
@@ -158,7 +158,7 @@ export const getTestCaseStats = async (props: TestCaseStatsPayload) => {
 export const deleteTestEntity = async ids => {
   const { data: res } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-batch-delete`, {
     ids,
-    sessionToken: global.currentUser.sessionToken,
+    sessionToken: getSessionToken(),
   });
 
   if (res.status === 'error') {
@@ -171,7 +171,7 @@ export const deleteTestEntity = async ids => {
 export const updateTestEntity = async data => {
   const { data: res } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-batch-update`, {
     data,
-    sessionToken: global.currentUser.sessionToken,
+    sessionToken: getSessionToken(),
   });
 
   if (res.status === 'error') {
@@ -182,18 +182,22 @@ export const updateTestEntity = async data => {
 
 // 复制测试用例
 export const copyTesCase = async (data: CopyTestCasePayload) => {
-  const { data: copyItemData } = await fetch.post('/parse/api/items/clone', {
-    ...data,
-  });
+  try {
+    const { data: copyItemData } = await fetch.post('/parse/api/items/clone', {
+      ...data,
+    });
 
-  return copyItemData;
+    return copyItemData;
+  } catch (error) {
+    return error;
+  }
 };
 
 // 批量创建测试执行
 export const batchCreateTestRun = async data => {
   const res = await fetch.post(`${pluginWebTriggerBaseUrl}/api-batch-create-test-run`, {
     ...data,
-    sessionToken: global.currentUser.sessionToken,
+    sessionToken: getSessionToken(),
   });
 
   return res;

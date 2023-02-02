@@ -255,6 +255,10 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         objectId: data.objectId,
         workspace: data.workspace.objectId,
       });
+      if (res?.status === 400) {
+        setTableLoading(false);
+        return;
+      }
 
       const updateRes = await updateTestEntity([
         { objectId: res.objectId, sortIndex: generateSortIndex(1) },
