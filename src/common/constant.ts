@@ -141,3 +141,14 @@ export const StartStatusKey = 'TODO';
 export const RepositoryClassName = 'test_manager_Repository';
 
 export const TestConfigClassName = 'test_manager_TestConfig';
+
+/** 脑图节点类型 */
+export enum MinderNodeType {
+  Root = 'Root',
+  Module = 'Module',
+  TestCase = 'TestCase',
+  Precondition = 'Precondition',
+  Step = 'Step',
+  Result = 'Result',
+  Data = 'Data',
+}

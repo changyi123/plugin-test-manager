@@ -33,9 +33,13 @@ import cx from './index.less';
 
 const { DirectoryTree } = Tree;
 
-type OpenFolderNameModal = (args: { title: string; name?: string }) => Promise<string>;
+type OpenFolderNameModal = (args: {
+  name?: string;
+  title: string;
+  validator?: (name) => void;
+}) => Promise<string>;
 
-const openFolderNameModal: OpenFolderNameModal = ({ title, name }) => {
+const openFolderNameModal: OpenFolderNameModal = ({ title, name, validator }) => {
   let inputRef = null;
   const inputProps = {
     ref: ele => (inputRef = ele),
@@ -52,18 +56,7 @@ const openFolderNameModal: OpenFolderNameModal = ({ title, name }) => {
       getContainer: getRootContainer,
       async onOk() {
         const inputValue = inputRef.input.value?.trim() ?? '';
-        if (!inputValue) {
-          notification.error({
-            message: '模块名不能为空',
-          });
-          throw new Error('required name');
-        }
-        if (inputValue.length > 30) {
-          notification.error({
-            message: '模块名最多30字符',
-          });
-          throw new Error('max length');
-        }
+        validator?.(inputValue);
         resolve(inputValue);
       },
       onCancel() {
@@ -203,6 +196,28 @@ const FolderTree: React.FC<FolderTreeProps> = ({
     [onSelect, state],
   );
 
+  const inputNameValidator = React.useCallback((inputName, nodes) => {
+    const nodeNames = nodes.map(n => n.name);
+    if (nodeNames.includes(inputName)) {
+      notification.error({
+        message: '同一层级模块名不能重复',
+      });
+      throw new Error('can not set same name');
+    }
+    if (!inputName) {
+      notification.error({
+        message: '模块名不能为空',
+      });
+      throw new Error('required name');
+    }
+    if (inputName.length > 30) {
+      notification.error({
+        message: '模块名最多30字符',
+      });
+      throw new Error('max length');
+    }
+  }, []);
+
   /** 右键菜单处理函数 */
   const handleMenuClick = React.useCallback(
     async (actionKey: MenuKey, node?: TreeNode) => {
@@ -219,7 +234,10 @@ const FolderTree: React.FC<FolderTreeProps> = ({
           });
           return;
         }
-        const folderName = await openFolderNameModal({ title: '新建子模块' });
+        const folderName = await openFolderNameModal({
+          title: '新建子模块',
+          validator: inputName => inputNameValidator(inputName, node.children),
+        });
         const parentKey = node?.key === UNGROUPED_FOLDER_KEY ? null : node?.key;
         const createdFolder = await createFolder({
           name: folderName,
@@ -245,6 +263,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         const newFolderName = await openFolderNameModal({
           title: '重命名模块',
           name: node.name,
+          validator: inputName => inputNameValidator(inputName, [node]),
         });
 
         await updateFolders([
@@ -349,11 +368,11 @@ const FolderTree: React.FC<FolderTreeProps> = ({
     },
     [
       treeFn,
-      workspace?.key,
-      workspace?.objectId,
-      state?.expandedKeys,
+      workspace,
+      state.expandedKeys,
       onFolderTreeChange,
       handleSelect,
+      inputNameValidator,
       expandSubFolder,
       createItemUseModal,
     ],

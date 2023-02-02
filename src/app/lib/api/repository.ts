@@ -6,6 +6,7 @@ import { Item, Repository, Test } from '../models';
 import { arrayToTree } from '@/lib/utils/arrayToTree';
 import { UNGROUPED_FOLDER_KEY } from '@/pages/repository/constant';
 import { generateSortIndex } from '../utils/helper';
+import { pick } from 'lodash';
 export interface ICommonRes<T = any> {
   success: boolean;
   message?: string;
@@ -60,6 +61,41 @@ export const createFolder = async (params: {
   });
 
   return await repository.save();
+};
+
+/** 批量创建用例模块 */
+export const createRepositories = async repositories => {
+  const needSaveRepositoryObjects = repositories
+    .map(data =>
+      pick(Object.assign({}, data, { sortIndex: generateSortIndex() }), [
+        'name',
+        'parent',
+        'sortIndex',
+        'workspaceKey',
+      ]),
+    )
+    .map(data => {
+      const repositoryObj = new Repository();
+      Object.keys(data).forEach(key => {
+        if (key === 'parent') {
+          repositoryObj.set(
+            'parent',
+            data[key] ? Repository.createWithoutData(data[key]) : undefined,
+          );
+        } else if (data[key]) {
+          repositoryObj.set(key, data[key]);
+        }
+      });
+
+      return repositoryObj;
+    });
+
+  return Parse.Object.saveAll(needSaveRepositoryObjects).then(objects => {
+    return objects.map((obj, index) => ({
+      ...repositories,
+      ...obj.toJSON(),
+    }));
+  });
 };
 
 export const updateFolders = async (
