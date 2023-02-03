@@ -118,7 +118,7 @@ export const batchDelete = async () => {
         });
 
         // 2. 更新数据
-        const needUpdateItemValues = linkedItems.map(item => {
+        const needUpdateItemValues = linkedItems?.map(item => {
           const data = pick(item, ['objectId', 'linkItems']);
           data.linkItems = data.linkItems.filter(id => !ids.includes(id));
           return data;
@@ -139,7 +139,7 @@ export const batchDelete = async () => {
           fields: IQLRequiredFieldKeys,
         });
 
-        return testRuns.map(item => item.objectId);
+        return testRuns?.map(item => item.objectId);
       };
 
       const testRunIds = await getReferencedTestRunIds();

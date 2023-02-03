@@ -110,13 +110,14 @@ const Plan = () => {
         async onClick() {
           const testPlanIds = await selectorModalRef.current.open();
 
-          await updateRelatedAndRefresh([
+          const res = await updateRelatedAndRefresh([
             {
               linkType: TestLinkType.CaseLinkPlan,
               objectId: testEntity.objectId,
               linkItems: { action: 'add', value: testPlanIds },
             },
           ]);
+          if (!res) return;
 
           alert({
             type: 'success',
@@ -169,13 +170,15 @@ const Plan = () => {
   const removeTestRelation = useCallback(
     async relationTypeIds => {
       if (!Array.isArray(relationTypeIds)) return;
-      await updateRelatedAndRefresh([
+      const res = await updateRelatedAndRefresh([
         {
           linkType: TestLinkType.CaseLinkPlan,
           objectId: testEntity.objectId,
           linkItems: { action: 'delete', value: relationTypeIds },
         },
       ]);
+      if (!res) return;
+
       refreshDepData();
 
       alert({

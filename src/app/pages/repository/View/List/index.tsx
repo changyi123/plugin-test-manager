@@ -74,17 +74,17 @@ const ListView: React.FC<ViewComponentProps> = ({
     data: filteredCaseIds,
     runAsync: getTestCaseIds,
   } = useRequest(
-    async () => {
+    async (newNode?: Record<string, any>) => {
       if (!workspaceKey || !selectedNode) return [];
 
       let scopedTestCaseIds = [];
       // 包含子分组的所有用例
       if (groupedMode === 'all') {
-        traverseTreeNodes([selectedNode], node => {
+        traverseTreeNodes([newNode ?? selectedNode], node => {
           scopedTestCaseIds = scopedTestCaseIds.concat(node.caseIds);
         });
       } else {
-        scopedTestCaseIds = selectedNode.caseIds;
+        scopedTestCaseIds = (newNode ?? selectedNode).caseIds;
       }
 
       const { list: caseIds } = await getTestEntityByQuery({
@@ -127,7 +127,7 @@ const ListView: React.FC<ViewComponentProps> = ({
     const treeData = await onFolderTreeChange();
     const selectedFolder = getTreeNodeByKey(treeData, selectNodeKey);
     if (selectedFolder) {
-      getTestCaseIds();
+      getTestCaseIds(selectedFolder);
     }
   }, [onFolderTreeChange, getTestCaseIds, selectNodeKey]);
 
