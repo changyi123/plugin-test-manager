@@ -1,10 +1,20 @@
 {
   "common": {
+    "testManager": "测试管理",
     "save": "保存",
     "action": "操作",
     "warning": "警告",
     "editor": "编辑",
     "delete": "删除",
+    "remove": "移除",
+    "copy": "复制",
+    "title": "标题",
+    "confirm": "确认",
+    "cancel": "取消",
+    "nextStep": "下一步",
+    "prevStep": "上一步",
+    "workspace": "空间",
+    "allWorkspace": "全部空间",
     "saveSuccess": "保存成功",
     "deleteSuccess": "删除成功",
     "deleteFail": "删除失败",
@@ -13,33 +23,62 @@
     "testCase": "测试用例",
     "testPlan": "测试计划",
     "testExecution": "测试执行任务",
+    "testRepository": "测试用例库",
+    "testReport": "测试报告",
     "pleaseSelectType": "请选择类型",
-    "article": "共",
-    "articleData": "条数据"
+    "tableTotal": ["共", "条数据"],
+    "testManagerConfig": "测试管理配置",
+    "moreConfig": "更多配置",
+    "more": "更多",
+    "status": "状态",
+    "allTestCase": "全部用例",
+    "createTestExecution": "新建测试执行任务",
+    "createTestReport": "生成测试报告",
+    "cancelAction": "取消操作",
+    "batchAction": "批量操作",
+    "panCase": "规划用例",
+    "run": "执行",
+    "precondition": "前置条件",
+    "preconditionPlaceholder": "请输入测试用例前置条件",
+    "testStep": "用例步骤",
+    "addTestCase": "新建测试用例"
   },
   "page": {
     "config": {
+      "changeWorkspace": "切换所选空间",
+      "notSelected": "未选择",
+      "selectWorkspace": "选择空间",
+      "resultTitle": "请选择需要配置的空间",
+      "resultSubTitle": "该配置属于空间级别配置，请选择需要配置的空间",
       "defectMapping": {
+        "title": "缺陷类型关联配置",
+        "description": "配置当前空间测试管理的缺陷类型，缺陷表示测试中产生不正确或意外结果的错误、缺陷、故障或故障。",
         "usableType": "可用类型",
         "defectType": "缺陷类型",
         "messageSuccess": "缺陷类型保存成功"
       },
-      "ExecuteTestRunAction": {
+      "executeTestRunAction": {
+        "title": "用例执行配置",
+        "description": "配置当前空间在用例执行时的约束",
         "caseToPlan": "用例分配授权",
         "testersCannotExecuteOtherCases": "测试人员不可执行他人测试用例",
         "unassignedCaseCannotBeExecuted": "未分配的测试用例无法执行"
       },
-      "IsolatedTestType": {
+      "isolatedTestType": {
+        "title": "空间数据隔离配置",
+        "description": "配置当前空间内对测试用例，测试计划，测试执行，测试缺陷的空间可见范围",
         "operableCrossSpaceTestData": "可操作跨空间的测试数据",
         "notOperableCrossSpaceTestData": "不可操作跨空间测试数据",
         "workspaceDataIsolationConfigSaveSuccess": "空间数据隔离配置保存成功",
         "crossSpaceTestDataActionConfig": "跨空间测试数据操作配置",
         "canBeCreatedAndAssociatedCrossSpace": "可跨空间创建，关联"
       },
-      "ItemTypeMapping": {
+      "itemTypeMapping": {
+        "title": "类型关联配置",
+        "description": "配置当前空间测试管理类型关联的类型",
         "typeAssociationConfigurationSavedSuccessfully": "类型关联配置保存成功"
       },
-      "MoreConfig": {
+      "moreConfig": {
         "descriptions": [
           "测试管理插件会在初始化阶段内置测试用例，测试计划，测试执行任务三种类型，请勿删除。若内置三种类型被删除，测试管理系统隔离配置将不能被开启",
           "测试管理系统隔离配置开启后，类型关联配置将不能被修改。测试管理事项关联配置会默认关联测试管理插件内置的三种类型，全部测试空间类型关联配置会被更新为内置的三种类型",
@@ -52,11 +91,263 @@
         "enableTestManagerSystemIsolation": "开启测试管理系统隔离",
         "systemTips": "测试管理系统隔离说明",
         "wordTemplate": {
+          "title": "测试报告模板管理",
+          "description": "测试报告模板管理",
           "templateName": "模板名称",
           "uploadTestReportTemplate": "上传测试报告模板",
           "editorTestReportTemplate": "编辑测试报告模板",
           "deleteTemplate": "删除模板",
           "areYouSureToDeleteThisTemplate": "确定删除该模板吗？"
+        },
+        "isolatedSystem": {
+          "title": "测试管理系统隔离",
+          "description": "配置测试管理系统与业务系统进行隔离"
+        }
+      },
+      "tableFields": {
+        "title": "表头及检索项设置",
+        "description": "配置当前空间测试计划、测试用例等类型的默认列表表头及筛选项",
+        "messageSuccess": "表头及检索项配置保存成功",
+        "planName": "计划名称",
+        "testPlanHeader": "测试计划-表头",
+        "testCaseHeader": "测试用例-表头"
+      },
+      "workspaceSelectorModal": {
+        "modelTitle": "请选择测试管理配置空间",
+        "placeholder": "请选择空间"
+      },
+      "statuses": {
+        "pass": {
+          "name": "通过",
+          "description": "测试执行通过"
+        },
+        "todo": {
+          "name": "待执行",
+          "description": "测试执行待执行"
+        },
+        "executing": {
+          "name": "执行中",
+          "description": "测试执行正在执行中"
+        },
+        "failed": {
+          "name": "失败",
+          "description": "测试执行失败"
+        },
+        "block": {
+          "name": "阻塞",
+          "description": "测试执行阻塞"
+        },
+        "cancel": {
+          "name": "已取消",
+          "description": "测试执行已取消"
+        }
+      }
+    },
+    "plan": {
+      "planPageLayout": {
+        "selectCaseModelTitle": "第 1 步：选择关联用例",
+        "createExecutionModelTitle": ["第 2 步：新建测试执行任务（已选 ", "条用例）"],
+        "testExecutionCreateLoading": "测试执行任务正在创建中",
+        "executionList": {
+          "deleteTips": "该操作会将该测试执行任务删除，是否继续操作？",
+          "deleteSuccess": "测试执行任务删除成功",
+          "checkTask": "查看任务",
+          "deleteTask": "删除任务"
+        },
+        "executionStatus": {
+          "rate": "通过率"
+        },
+        "left": {
+          "placeholder": "请输入所属模块名称"
+        },
+        "noData": {
+          "description": "暂无测试执行任务"
+        },
+        "right": {
+          "showChild": "显示子分组用例",
+          "showCur": "显示当前分组用例",
+          "notSelectMessage": "未选择测试用例",
+          "createTestRunSuccessMessage": "用例执行创建成功",
+          "caseToPlanSuccessMessage": "测试用例已成功添加至测试计划中",
+          "caseSelectModelTitle": "选择规划的测试用例",
+          "createTestExecutionSuccessMessage": ["测试执行任务", "新建成功"],
+          "createTestExecutionFailMessage": "测试执行任务新建失败"
+        }
+      },
+      "testEntityList": {
+        "removeCaseMessage": "个测试用例从测试计划中移除",
+        "removeCaseTips": "该操作会将该测试用例从测试计划中移除，是否继续操作？",
+        "removeCaseTips1": "该操作会将所选测试用例从测试计划中移除，是否继续操作？",
+        "deleteRunTips": "该操作会将所选测试执行删除，是否继续操作？",
+        "deleteRunMessage": "个用例执行被删除",
+        "updateAssigneeTips": "个测试负责人已更新",
+        "repositoryGroup": "所属模块",
+        "caseLatestStatus": "最新执行状态",
+        "runCount": "执行任务次数",
+        "detailName": "用例标题",
+        "runStatus": "测试执行状态",
+        "executor": "最近操作执行人",
+        "designee": "执行人",
+        "assigneeSetting": "设置负责人",
+        "editorItemTips": "暂无事项编辑权限，请检查事项操作权限配置或联系管理员",
+        "deleteItemTips": "暂无事项删除权限，请检查事项操作权限配置或联系管理员",
+        "updateRunStateTips": "所选测试执行状态更新成功",
+        "updateDesigneeStateTips": "所选测试执行人更新成功",
+        "notUpdateDesignee": "不可对用例更改执行人",
+        "updateDesignee": "更改执行人",
+        "updateRunStatus": "更改执行状态"
+      }
+    },
+    "repository": {
+      "list": "列表",
+      "minder": "脑图",
+      "folderTree": {
+        "placeholder": "请输入模块名",
+        "inputNameValidatorMessage": [
+          "同一层级模块名不能重复",
+          "模块名不能为空",
+          "模块名最多30字符"
+        ],
+        "hierarchyTips": "限制8个层级，8个层级以上不能新建子模块",
+        "createChildFolder": "新建子模块",
+        "createChildFolderSuccess": "子模块新建成功",
+        "renameFolder": "重命名模块",
+        "renameFolderSuccess": "模块重命被为",
+        "deleteFolder": "重命名模块",
+        "deleteFolderTips": [
+          "确定删除",
+          "模块吗",
+          "模块下的子模块将会一同删除，模块内的用例仍保留且自动移至未分组用例下。"
+        ],
+        "deleteFolderSuccess": "模块删除成功",
+        "caseCreateSuccessTips": ["个测试用例新建成功", "测试用例", "新建成功"],
+        "buttonName": ["创建模块", "折叠全部", "更多"],
+        "dropCaseTips": ["测试用例移动成功", "限制8个层级，拖拽后超过8个层级，不允许拖拽"]
+      },
+      "menu": {
+        "menusName": [
+          "新建子模块",
+          "重命名",
+          "删除",
+          "展开",
+          "新建测试用例",
+          "导入用例",
+          "查看测试用例"
+        ]
+      },
+      "repoDropDown": {
+        "MenuItem": [
+          "用例导入",
+          "用例导入模板下载",
+          "用例导出（所有分组）",
+          "用例导出（当前分组）",
+          "用例导出（当前计划）"
+        ],
+        "importCaseSuccess": "测试管理用例导出完成",
+        "importCaseWarning": "未选择用例库，请先选择需要导出的用例库",
+        "importCaseLoading": "测试管理用例导出中",
+        "importPlanLinkCase": "测试计划关联用例导出",
+        "importRepoCase": "测试管理用例库导出",
+        "pleaseEnterContent": "请输入内容",
+        "excelName": "测试管理导入模板",
+        "excelContent": {
+          "所属分组": "分组1/分组2",
+          "标题": "测试用例标题（样例数据，执行用例导入时请删除该数据）",
+          "类型": "测试用例",
+          "优先级": "优先级可填值范围：最高，较高，普通，较低，最低",
+          "前置条件": "测试用例前置条件",
+          "负责人": "用户名",
+          "步骤描述": "【1】需要以【序号】开头\n【2】步骤描述中换行符会被保留",
+          "预期结果": "【1】需要以【序号】开头\n【2】预期结果中换行符会被保留",
+          "数据": "【1】需要以【序号】开头\n【2】数据中换行符会被保留"
+        },
+        "fontName": "宋体"
+      },
+      "view": {
+        "list": {
+          "actionConfirm": [
+            "该操作会将所选的测试用例删除，是否继续操作？",
+            "该操作会将当前测试用例删除，是否继续操作？"
+          ],
+          "deleteCaseSuccess": "个测试用例已被删除",
+          "batchItemLink": "批量事项关联",
+          "deleteCaseMessageSuccess": "测试用例删除成功",
+          "copyCaseMessageSuccess": "测试用例删除成功",
+          "dropCaseToGroup": "拖动至用例分组"
+        },
+        "minder": {
+          "overMaxLevelModulePath": "模块已超过最大层级限制，请修改后再进行保存",
+          "updateDataSuccess": "数据更新成功",
+          "saveFail": "保存失败"
+        }
+      }
+    }
+  },
+  "modules": {
+    "BeforeCreateOrUpdateModal": {},
+    "panel": {
+      "resultTitle": "当前类型不存在测试管理类型关联配置中",
+      "resultSubTitle": [
+        "请前往",
+        "系统设置",
+        "插件",
+        "测试管理配置",
+        "页面 ，选择类型关联配置进行配置"
+      ],
+      "testDetail": {
+        "detail": "详情",
+        "testDetailPanel": {
+          "detailTips": "获取不了",
+          "refreshButton": "重新加载",
+          "testStepTips": ["当前用例继承", "个用例"]
+        },
+        "testPlanPanel": {
+          "menuList": ["已存在的测试计划", "新建测试计划"],
+          "addCaseSuccessMessage": "当前测试用例添加到测试计划中",
+          "addPlanSuccessMessage": ["测试计划", "新建成功"],
+          "deleteCaseSuccessMessage": "当前测试用例从测试计划中删除",
+          "planStatus": "测试计划状态",
+          "planCount": "测试用例数",
+          "modelTitle": "添加当前用例至选中的测试计划中",
+          "dropButton": "添加至测试计划"
+        },
+        "testRunPanel": {
+          "runRoundTips": "该测试用例的运行包含以下执行轮次",
+          "runStatus": "执行状态",
+          "popConfirmTips": "当前操作会移除该测试执行，是否继续执行？",
+          "addTestExecution": "新增测试执行任务"
+        }
+      },
+      "testExecution": {
+        "testDetailPanel": {
+          "itemKey": "事项key",
+          "itemName": "事项名",
+          "runStatus": "执行状态",
+          "existingTestCase": "已存在的测试用例",
+          "assCaseToExecution": "添加测试用例到当前测试执行",
+          "addCase": "添加用例"
+        }
+      },
+      "testPlan": {
+        "testDetailPanel": {
+          "modelTitle": ["新建测试执行任务（已选", "条用例）"],
+          "addCaseToPlanSuccess": "个测试用例添加到测试计划中",
+          "addCaseToPlanSuccessTips": [
+            "个测试用例已被添加到测试计划中",
+            "测试用例",
+            "已被添加到测试计划中"
+          ],
+          "removeCaseFromPlanSuccess": "个测试用例从测试计划中删除",
+          "executionCount": "执行任务数",
+          "executionTips": "该测试用例在以下任务中进行执行",
+          "selectCaseModelTitle": "添加测试用例到当前测试计划",
+          "addTestCase": "添加测试用例"
+        },
+        "testExecutionPanel": {
+          "addRunToPlanSuccess": "个测试执行添加到测试计划中",
+          "deleteRunToPlanSuccess": "个测试执行从测试计划中删除",
+          "modelTitle": "添加测试执行至当前测试计划",
+          "addTestExecution": "添加测试执行任务"
         }
       }
     }

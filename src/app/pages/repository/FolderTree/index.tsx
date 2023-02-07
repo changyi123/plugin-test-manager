@@ -603,7 +603,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         // 拖拽目标用例库底部，排序到首位
         if (validateHierarchy(0)) {
           notification.warn({
-            message: '限制8个层级，拖拽后超过8个层级，不允许层级',
+            message: '限制8个层级，拖拽后超过8个层级，不允许拖拽',
           });
           return;
         }
@@ -619,7 +619,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         if (dropKey === 'root') return;
         if (validateHierarchy(1)) {
           notification.warn({
-            message: '限制8个层级，拖拽后超过8个层级，不允许层级',
+            message: '限制8个层级，拖拽后超过8个层级，不允许拖拽',
           });
           return;
         }
