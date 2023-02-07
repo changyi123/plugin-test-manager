@@ -44,7 +44,9 @@ const TestRunModal: React.FC<ITestRunModalProps> = ({
   );
 
   const handleCloseModal = React.useCallback(() => {
-    setIsVisible(false);
+    setTimeout(() => {
+      setIsVisible(false);
+    }, 500);
     eventBusRef.current.dispatch(CancelEventType);
   }, [setIsVisible]);
 

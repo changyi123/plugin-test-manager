@@ -111,7 +111,7 @@ export const batchDelete = async () => {
           data: { list: linkedItems },
         } = await iqlRequest({
           query: {
-            linkItems: testIds,
+            linkItems: testIds?.filter(Boolean),
           },
           pagination: { limit: InfinityLimit },
           fields: [...IQLRequiredFieldKeys, TestFiledKeyMapping.linkItems],

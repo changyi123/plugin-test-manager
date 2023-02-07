@@ -273,7 +273,7 @@ const Test = () => {
             d => !(relCase ?? []).includes(d),
           );
           if (getCreatePermission(TestType.Case)) {
-            message.error('暂无事项删除权限，请检查事项操作权限配置或联系管理员');
+            message.error('暂无事项编辑权限，请检查事项操作权限配置或联系管理员');
             return;
           }
 

@@ -189,6 +189,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
         itemType: itemTypeCondition,
         orderBy: ['修改时间', 'desc'],
         workspace: workspaceKeyCondition,
+        r_test_manager_type: testType,
       });
 
       const itemDict = keyBy(items, 'objectId');

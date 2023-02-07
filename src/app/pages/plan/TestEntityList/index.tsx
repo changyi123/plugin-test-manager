@@ -687,7 +687,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     // 更新测试执行人
     const handleDesigneeChange = async users => {
       if (getCreatePermission(TestType.Case)) {
-        message.error('暂无事项删除权限，请检查事项操作权限配置或联系管理员');
+        message.error('暂无事项编辑权限，请检查事项操作权限配置或联系管理员');
         return;
       }
       const testRunIds = getTestRunIds();
