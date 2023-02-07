@@ -1,0 +1,64 @@
+{
+  "common": {
+    "save": "保存",
+    "action": "操作",
+    "warning": "警告",
+    "editor": "编辑",
+    "delete": "删除",
+    "saveSuccess": "保存成功",
+    "deleteSuccess": "删除成功",
+    "deleteFail": "删除失败",
+    "actionSuccess": "操作成功",
+    "actionFail": "操作失败",
+    "testCase": "测试用例",
+    "testPlan": "测试计划",
+    "testExecution": "测试执行任务",
+    "pleaseSelectType": "请选择类型",
+    "article": "共",
+    "articleData": "条数据"
+  },
+  "page": {
+    "config": {
+      "defectMapping": {
+        "usableType": "可用类型",
+        "defectType": "缺陷类型",
+        "messageSuccess": "缺陷类型保存成功"
+      },
+      "ExecuteTestRunAction": {
+        "caseToPlan": "用例分配授权",
+        "testersCannotExecuteOtherCases": "测试人员不可执行他人测试用例",
+        "unassignedCaseCannotBeExecuted": "未分配的测试用例无法执行"
+      },
+      "IsolatedTestType": {
+        "operableCrossSpaceTestData": "可操作跨空间的测试数据",
+        "notOperableCrossSpaceTestData": "不可操作跨空间测试数据",
+        "workspaceDataIsolationConfigSaveSuccess": "空间数据隔离配置保存成功",
+        "crossSpaceTestDataActionConfig": "跨空间测试数据操作配置",
+        "canBeCreatedAndAssociatedCrossSpace": "可跨空间创建，关联"
+      },
+      "ItemTypeMapping": {
+        "typeAssociationConfigurationSavedSuccessfully": "类型关联配置保存成功"
+      },
+      "MoreConfig": {
+        "descriptions": [
+          "测试管理插件会在初始化阶段内置测试用例，测试计划，测试执行任务三种类型，请勿删除。若内置三种类型被删除，测试管理系统隔离配置将不能被开启",
+          "测试管理系统隔离配置开启后，类型关联配置将不能被修改。测试管理事项关联配置会默认关联测试管理插件内置的三种类型，全部测试空间类型关联配置会被更新为内置的三种类型",
+          "测试管理系统隔离配置开启后，测试管理关联的类型创建的事项会被隐藏，事项将不会出现在空间视图中，也无法通过 IQL 中搜索查询",
+          "事项管理的视图面板内所有类型下拉选择框无法选择测试管理插件内置的三种类型"
+        ],
+        "messageError": "测试管理内置的类型不存在，无法开启此配置",
+        "warningTips": "当前操作会使全部测试空间类型关联配置类型被覆盖！！！",
+        "messageSuccess": "测试管理系统隔离操作成功",
+        "enableTestManagerSystemIsolation": "开启测试管理系统隔离",
+        "systemTips": "测试管理系统隔离说明",
+        "wordTemplate": {
+          "templateName": "模板名称",
+          "uploadTestReportTemplate": "上传测试报告模板",
+          "editorTestReportTemplate": "编辑测试报告模板",
+          "deleteTemplate": "删除模板",
+          "areYouSureToDeleteThisTemplate": "确定删除该模板吗？"
+        }
+      }
+    }
+  }
+}
