@@ -183,13 +183,14 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
   // 获取测试用例
   const { runAsync: getTestEntityByKeyword, loading: searchLoading } = useRequest(
     async keyword => {
+      const params = testType === TestType.TestDefect ? {} : { r_test_manager_type: testType };
       const { items } = await getItemByIQL({
         limit: 50,
         nameOrKeyLike: keyword,
         itemType: itemTypeCondition,
         orderBy: ['修改时间', 'desc'],
         workspace: workspaceKeyCondition,
-        r_test_manager_type: testType,
+        ...params,
       });
 
       const itemDict = keyBy(items, 'objectId');
@@ -220,6 +221,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
       });
     },
     {
+      refreshDeps: [testType],
       manual: true,
     },
   );
