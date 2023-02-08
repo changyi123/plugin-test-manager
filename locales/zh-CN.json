@@ -10,6 +10,7 @@
     "copy": "复制",
     "title": "标题",
     "confirm": "确认",
+    "type": "类型",
     "cancel": "取消",
     "nextStep": "下一步",
     "prevStep": "上一步",
@@ -24,12 +25,16 @@
     "testPlan": "测试计划",
     "testExecution": "测试执行任务",
     "testRepository": "测试用例库",
+    "testCaseRepository": "测试用例库模块",
+    "allRepository": "全部用例库",
     "testReport": "测试报告",
+    "exportReportFail": "导出测试报告失败",
     "pleaseSelectType": "请选择类型",
     "tableTotal": ["共", "条数据"],
     "testManagerConfig": "测试管理配置",
     "moreConfig": "更多配置",
     "more": "更多",
+    "search": "搜索",
     "status": "状态",
     "allTestCase": "全部用例",
     "createTestExecution": "新建测试执行任务",
@@ -41,7 +46,11 @@
     "precondition": "前置条件",
     "preconditionPlaceholder": "请输入测试用例前置条件",
     "testStep": "用例步骤",
-    "addTestCase": "新建测试用例"
+    "addTestCase": "新建测试用例",
+    "user": "用户",
+    "testExecutor": "最新操作执行人",
+    "nothing": "无",
+    "checked": "已选中"
   },
   "page": {
     "config": {
@@ -349,6 +358,213 @@
           "modelTitle": "添加测试执行至当前测试计划",
           "addTestExecution": "添加测试执行任务"
         }
+      }
+    }
+  },
+  "trigger": {
+    "importer": {
+      "validate": {
+        "No": "第",
+        "case": "条用例的",
+        "numberValidate": "单次导入最多支持1000条，超过1000条，导入前1000条",
+        "validateErrors": [
+          "条用例标题为空，用例标题 为必填项，不予以导入",
+          "条所属分组层数超过限制，所属分组 只能导入 8 层，不予以导入",
+          "条所属分组字数超过 30 个字符，不予以导入",
+          "条前置条件字符数超过限制，前置条件 限制 1000 个字符，不予以导入",
+          "条步骤描述格式错误，不予以导入",
+          "条用例的",
+          "条步骤描述超过限制，步骤描述 限制 500 个字符，不予以导入",
+          "条预期结果格式错误，不予以导入",
+          "条预期结果超过限制，预期结果 限制 500 个字符，不予以导入",
+          "条数据格式错误，不予以导入",
+          "条数据超过限制，数据 限制 500 个字符，不予以导入",
+          "事项类型关联未配置，所有数据不予导入，请先配置关联的事项类型"
+        ]
+      }
+    },
+    "web": {
+      "report": {
+        "defectStatusAnalysis": "缺陷状态分析",
+        "defectSeverityTable": "缺陷严重程度统计表",
+        "severity": "严重程度",
+        "severityValue": ["严重", "一般", "微小", "建议"],
+        "defectCount": "缺陷数",
+        "defectChart": "缺陷收敛趋势图",
+        "none": "暂无"
+      },
+      "script": {
+        "defectStatist": "缺陷统计",
+        "defectChartName": [
+          "缺陷状态分布",
+          "缺陷明细表",
+          "缺陷优先级分布",
+          "新增缺陷趋势",
+          "缺陷负责人分布"
+        ],
+        "testRunStatist": "用例执行统计",
+        "testRunChartName": ["执行通过率", "用例优先级分布"],
+        "huishangWorkflowMessage": [
+          "没有关联的测试用例",
+          "没有测试执行任务",
+          "所有的测试执行任务必须",
+          "测试计划状态不属于",
+          "存在未执行的测试用例，请执行完成后在进行状态流转"
+        ],
+        "shenwanWorkflowMessage": ["测试计划下有", "条测试用例未通过，请执行通过在进行状态流转"]
+      }
+    }
+  },
+  "components": {
+    "business": {
+      "panelTable": {
+        "selectConfirmTips": ["当前操作会", "所选的数据，是否继续执行操作？"],
+        "itemDeleted": "事项已被删除",
+        "newRunStatus": "最新执行状态"
+      },
+      "repositorySelector": {
+        "copyCase": "复制用例",
+        "choiceRepository": "选择测试用例库",
+        "choiceGroup": "选择模块",
+        "emptyDesc": "当前用例库未创建用例模块"
+      },
+      "repositorySelectorField": {
+        "placeholder1": "请输入模块关键字搜索",
+        "placeholder2": "请选择用例所属模块，为空默认为未分组"
+      },
+      "status": {
+        "total": "总和"
+      },
+      "statusProcessBar": {
+        "caseCount": "用例总数"
+      },
+      "testEntitySelectorModal": {
+        "modelTip": "请输入并从列表中选择已存在的",
+        "notFound": "未查询到相关",
+        "selected": "已选择",
+        "case": "条用例",
+        "pleaseSelect": "请选择",
+        "selectRepository": "选择用例库",
+        "selectRepositoryTips": "（仅可选择当前拥有权限的用例库）",
+        "searchGroup": "搜索用例库分组",
+        "addTimeSort": "创建时间排序",
+        "earliest": "最早",
+        "latest": "最晚",
+        "itemDeleted": "事项被删除",
+        "noLinkItem": "当前目录未关联测试用例",
+        "notHaveCase": "当前用例库暂无用例"
+      },
+      "testManagerProvider": {
+        "tips": "提示",
+        "notHaveTestTypeTips": "事项所属空间未配置测试管理关联类型",
+        "saveFailTips": "此空间已配置不可操作跨空间「事项类型」数据，非此空间事项保存失败",
+        "notCreateCase": "所属空间无法创建实体，请选择其他空间事项创建",
+        "typeUnmatched": "新建类型与创建的测试类型未匹配"
+      },
+      "testPlanList": {
+        "deleteLinkTips": "该操作会当前删除测试计划以及测试计划关联的测试用例，是否继续？",
+        "deletePlanSuccess": "测试计划删除成功",
+        "addPlanSuccess": "测试计划新建成功",
+        "planName": "计划名称",
+        "deleteTestPlan": "删除测试计划",
+        "checkTestPlan": "查看测试计划",
+        "planCaseCount": "规划用例数",
+        "addTestPlan": "新建测试计划"
+      },
+      "testPlanSelector": {
+        "placeholder": "请输入搜索关键字",
+        "desc": "无数据",
+        "checkAllPlan": "查看全部计划"
+      },
+      "testRunModal": {
+        "addDefectButton": {
+          "createDefectSuccess": "缺陷新建成功",
+          "addDefectSuccess": "缺陷添加成功",
+          "addExistingDefect": "添加已存在缺陷",
+          "createDefect": "创建缺陷",
+          "addDefect": "添加缺陷",
+          "modelTitle": "请选择测试缺陷"
+        },
+        "attachmentUpload": {
+          "selectFile": "请选择附件",
+          "download": "下载",
+          "actionTips": "该操作会将该附件从测试用例中移除，是否继续操作？",
+          "noData": "当前测试执行无附件数据",
+          "uploadTips": "大小不能超过",
+          "uploadFile": "上传附件"
+        },
+        "defectList": {
+          "notLintDefect": "当前测试执行未关联缺陷",
+          "removeTips": ["请在步骤", "中移除该缺陷"],
+          "deleteButtonTips": "当前操作会删除与该缺陷的关联关系，是否继续执行？",
+          "global": "全局",
+          "step": "步骤"
+        },
+        "executionEditor": {
+          "stepDesc": "步骤概述"
+        },
+        "testComment": {
+          "noData": "当前测试用例无评论数据",
+          "editorComment": "编写评论"
+        },
+        "testRun": {
+          "tabsTitle": ["用例步骤", "执行结果描述", "缺陷", "关联事项", "附件"],
+          "runTips": "当前测试执行为最后一条，所有测试执行已经执行完成",
+          "runSuccessMessage": "自动切换下一条测试执行",
+          "runNext": "执行下一条",
+          "autoNext": "自动切换下一条",
+          "autoNextTips": "测试执行状态变更为通过时，自动切换下一条测试执行",
+          "panelTitle": ["前置条件", "测试执行详情"]
+        },
+        "testStep": {
+          "noSteps": "当前测试执行无用例步骤",
+          "step": "步骤",
+          "stepResult": "步骤结果",
+          "expect": "预期",
+          "result": "实际结果",
+          "resultPlaceholder": "请输入实际结果",
+          "data": "数据",
+          "defect": "缺陷"
+        }
+      },
+      "testStep": {
+        "stepField": ["步骤", "预期", "数据"],
+        "notInheritCase": "不能继承该测试用例",
+        "addStep": "添加步骤",
+        "inheritCase": "继承测试用例",
+        "pleaseInput": "请输入",
+        "switchNext": "Alt+Enter切换下一列",
+        "caseInherit": "用例继承",
+        "stepTotal": ["共", "个步骤"],
+        "copyStep": "复制步骤",
+        "copyStepTips": "当前操作会复制该测试用例步骤，是否继续执行？",
+        "deleteStep": "删除步骤",
+        "deleteStepTips": "当前操作会删除该测试用例步骤，是否继续执行？"
+      }
+    },
+    "common": {
+      "businessTable": {
+        "columnSetting": ["测试管理字段", "事项字段"],
+        "tableSetting": "表格显示设置",
+        "headerSetting": "表头设置",
+        "restoreDefault": "恢复默认",
+        "actionTips": "可配置表头列内容及排序、列表搜索框默认检索项，最多可选四个检索项",
+        "placeholder": "请选择需要展示的列",
+        "searchWarningMessage": "表检索项配置不能超过 4 个",
+        "removeSearch": "移除检索项",
+        "addSearch": "添加检索项",
+        "checkAllPages": "选中所有分页"
+      },
+      "filterSearch": {
+        "screenPlaceholder": "请输入检索项关键字",
+        "screen": "筛选",
+        "inputPlaceholder": "请输入标题关键字",
+        "to": "至",
+        "or": "或",
+        "none": "无"
+      },
+      "uploadFile": {
+        "uploadErrorMessage": "文件数量不能超过"
       }
     }
   }
