@@ -30,10 +30,7 @@
     "testReport": " testing report",
     "exportReportFail": "Failed to export test report",
     "pleaseSelectType": "Please choose the type",
-    "tableTotal": [
-      "common",
-      "Article data"
-    ],
+    "tableTotal": ["total", "data" ],
     "testManagerConfig": "Test Management Configuration",
     "moreConfig": "More configuration",
     "more": "More",
@@ -158,10 +155,7 @@
     "plan": {
       "planPageLayout": {
         "selectCaseModelTitle": "No.1Step: Select the associated Test Case",
-        "createExecutionModelTitle": [
-          "No.2Step: Create a new test execution task (selected ",
-          " article Test Case)"
-        ],
+        "createExecutionModelTitle": ["No.2Step: Create a new test execution task (selected", "article Test Case)"],
         "testExecutionCreateLoading": "Test execution task is being created",
         "executionList": {
           "deleteTips": "This operation will delete the test execution task. Do you want to continue? ",
@@ -185,10 +179,7 @@
           "createTestRunSuccessMessage": "Test Case execution created successfully",
           "caseToPlanSuccessMessage": "The test case has been successfully added to the test plan",
           "caseSelectModelTitle": "Select a planned test case",
-          "createTestExecutionSuccessMessage": [
-            "Test Execution Task",
-            "Created successfully"
-          ],
+          "createTestExecutionSuccessMessage": ["Test Execution Task","Created successfully"],
           "createTestExecutionFailMessage": "Test execution task creation failed"
         }
       },
@@ -238,20 +229,9 @@
           "The submodules under the module will be deleted together, and the Test Cases in the module will still be retained and automatically moved to ungrouped Test Cases"
         ],
         "deleteFolderSuccess": "Module deleted successfully",
-        "caseCreateSuccessTips": [
-          "A test case was created successfully",
-          "test case",
-          "newly built achievement"
-        ],
-        "buttonName": [
-          "Create Module",
-          "Collapse all",
-          "More"
-        ],
-        "dropCaseTips": [
-          "Test case moved successfully",
-          "limit8levels, after dragging over8levels, drag and drop is not allowed"
-        ]
+        "caseCreateSuccessTips": ["A test case was created successfully", "test case", "newly built achievement"],
+        "buttonName": ["Create Module", "Collapse all", "More"],
+        "dropCaseTips": ["Test case moved successfully", "limit8levels, after dragging over8levels, drag and drop is not allowed"]
       },
       "menu": {
         "menusName": [
@@ -328,21 +308,12 @@
         "testDetailPanel": {
           "detailTips": "Can't get",
           "refreshButton": "Reload",
-          "testStepTips": [
-            "Current Test Case Inheritance",
-            "Test Cases"
-          ]
+          "testStepTips": ["Current Test Case Inheritance", "Test Cases"]
         },
         "testPlanPanel": {
-          "menuList": [
-            "Existing Test Plan",
-            "New Test Plan"
-          ],
+          "menuList": ["Existing Test Plan", "New Test Plan"],
           "addCaseSuccessMessage": "The current test case is added to the test plan",
-          "addPlanSuccessMessage": [
-            "Test Plan",
-            "Created successfully"
-          ],
+          "addPlanSuccessMessage": ["Test Plan", "Created successfully"],
           "deleteCaseSuccessMessage": "The current test case is removed from the test plan",
           "planStatus": "Test Plan Status",
           "planCount": "Number of test cases",
@@ -368,10 +339,7 @@
       },
       "testPlan": {
         "testDetailPanel": {
-          "modelTitle": [
-            "New Test Execution Task (selected",
-            "article Test Case)"
-          ],
+          "modelTitle": ["New Test Execution Task (selected", "article Test Case)"],
           "addCaseToPlanSuccess": "test cases added to the test plan",
           "addCaseToPlanSuccessTips": [
             "Test cases have been added to the test plan",
@@ -420,12 +388,7 @@
         "defectStatusAnalysis": "Defect status analysis",
         "defectSeverityTable": "Defect severity statistics table",
         "severity": "severity",
-        "severityValue": [
-          "serious",
-          "generally",
-          "small",
-          "suggestion"
-        ],
+        "severityValue": ["serious", "generally", "small", "suggestion"],
         "defectCount": "Number of defects",
         "defectChart": "Defect convergence trend graph",
         "none": "No "
@@ -440,10 +403,7 @@
           "Defect Owner Distribution"
         ],
         "testRunStatist": "Test Case execution statistics",
-        "testRunChartName": [
-          "Execution pass rate",
-          "Test Case priority distribution"
-        ],
+        "testRunChartName": ["Execution pass rate", "Test Case priority distribution"],
         "huishangWorkflowMessage": [
           "No test case associated",
           "No test execution task",
@@ -451,20 +411,14 @@
           "Test plan status does not belong to",
           "There are unexecuted test cases, please perform state transition after execution"
         ],
-        "shenwanWorkflowMessage": [
-          "under the test plan",
-          "The test cases failed, please execute the pass and proceed with the state flow"
-        ]
+        "shenwanWorkflowMessage": ["under the test plan", "The test cases failed, please execute the pass and proceed with the state flow"]
       }
     }
   },
   "components": {
     "business": {
       "panelTable": {
-        "selectConfirmTips": [
-          "Current Operations Session",
-          "Selected data, continue operation?"
-        ],
+        "selectConfirmTips": ["Current Operations Session", "Selected data, continue operation?"],
         "itemDeleted": "Item has been deleted",
         "newRunStatus": "Latest Execution Status"
       },
@@ -501,7 +455,7 @@
         "notHaveCase": "There are currently no Test Cases in the current Test Case library"
       },
       "testManagerProvider": {
-        "tips": "hint",
+        "tips": "Tips",
         "notHaveTestTypeTips": "The space to which the item belongs is not configured with the test management association type",
         "saveFailTips": "This space has been configured to inoperable cross-space [item type] data, and items not in this space failed to save",
         "notCreateCase": "The space to which the entity belongs cannot be created, please select another space item to create",
@@ -541,10 +495,7 @@
         },
         "defectList": {
           "notLintDefect": "The current test execution has no associated defects",
-          "removeTips": [
-            "Please step in",
-            " Remove the defect in "
-          ],
+          "removeTips": ["Please step in", "Remove the defect"],
           "deleteButtonTips": "The current operation will delete the relationship with the defect, whether to continue OK?",
           "global": "Global",
           "step": "step"
@@ -557,22 +508,13 @@
           "editorComment": "Write a review"
         },
         "testRun": {
-          "tabsTitle": [
-            "Test Case steps",
-            "Execution result description",
-            "defect",
-            "Related matters",
-            "attached"
-          ],
+          "tabsTitle": ["Test Case steps", "Execution result description", "defect", "Related matters", "attached"],
           "runTips": "The current test execution is the last one, and all test executions have been executed",
           "runSuccessMessage": "Automatically switch to the next test execution",
           "runNext": "Execute the next item",
           "autoNext": "Automatically switch to the next article",
           "autoNextTips": "When the test execution status changes to pass, automatically switch to the next test execution",
-          "panelTitle": [
-            "Preconditions",
-            "Test Execution Details"
-          ]
+          "panelTitle": ["Preconditions", "Test Execution Details"]
         },
         "testStep": {
           "noSteps": "The current test executes no Test Case steps",
@@ -586,21 +528,14 @@
         }
       },
       "testStep": {
-        "stepField": [
-          "step",
-          "expected",
-          "data"
-        ],
+        "stepField": ["step", "expected", "data"],
         "notInheritCase": "Cannot inherit this test case",
         "addStep": "Add steps",
         "inheritCase": " Inheritance test case",
         "pleaseInput": "please enter",
         "switchNext": "Alt+EnterToggle next column",
         "caseInherit": "Test Case Inheritance",
-        "stepTotal": [
-          "common",
-          "steps"
-        ],
+        "stepTotal": ["total", "steps"],
         "copyStep": " Copy steps",
         "copyStepTips": "The current operation will copy the test case steps, do you want to continue? ",
         "deleteStep": "delete step",
@@ -609,10 +544,7 @@
     },
     "common": {
       "businessTable": {
-        "columnSetting": [
-          "Test Management Fields",
-          "item field"
-        ],
+        "columnSetting": ["Test Management Fields", "Item Field"],
         "tableSetting": "Table display settings",
         "headerSetting": "Header Settings",
         "restoreDefault": "reset",
