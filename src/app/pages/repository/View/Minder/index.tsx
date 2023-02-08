@@ -218,7 +218,11 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
           }
           if (steps || precondition) {
             updateParams.detail = {
-              steps,
+              steps: steps.map(step => ({
+                ...step,
+                // 容错处理：给未含有 id 的 step 增加 uid
+                id: step.id ?? v4(),
+              })),
               precondition,
             };
           }
@@ -313,18 +317,16 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
     );
   }, [saveLoading, handleSave]);
 
-  const headerExtraButton = useHeaderExtraActionButton(memoizedButtonNode);
-
   if (!priorityOptions || !minderData) return null;
 
   return (
     <>
-      {headerExtraButton}
       <MinderEditor
         data={minderData}
         key={workspace.key}
         actionRef={actionRef}
         priorityOptions={priorityOptions}
+        renderFixRightAction={() => memoizedButtonNode}
       />
     </>
   );
