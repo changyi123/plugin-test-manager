@@ -250,7 +250,7 @@ export const batchCreateTestRun = async () => {
           return {
             ...linkData,
             type: TestType.Run,
-            runDetail: data.detail,
+            // runDetail: data.detail,
             // 空间和测试用例的空间保持一致
             workspace: data.workspace,
             // 测试执行的 sortIndex 和 测试用例的保持一致
