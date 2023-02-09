@@ -1,10 +1,18 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import App from './App';
-import './index.global.less';
 import { ProximaSDK } from '@projectproxima/plugin-sdk';
+import i18n from 'i18next';
+// import en from './locales/en-US.json';
+// import zn from './locales/zh-CN.json';
+
+import './index.global.less';
 
 const rootElement = '#test-manager';
+
+i18n.init({
+  // {en,zn}
+});
 
 if (window.__POWERED_BY_QIANKUN__) {
   __webpack_public_path__ = window.__INJECTED_PUBLIC_PATH_BY_QIANKUN__;
@@ -34,7 +42,7 @@ export async function mount(props): Promise<void> {
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export async function unmount(props): Promise<void> {
   const { container } = props;
-  console.log('container-----------', container);
+  console.info('container-----------', container);
   ReactDOM.unmountComponentAtNode(
     container ? container.querySelector(rootElement) : document.querySelector(rootElement),
   );

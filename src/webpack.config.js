@@ -1,6 +1,6 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+// const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const LessPluginFunctions = require('less-plugin-functions');
 const SpeedMeasurePlugin = require('speed-measure-webpack-plugin');
 const hasha = require('hasha');
@@ -133,7 +133,11 @@ module.exports = (cliEnv = {}, argv) => {
         modifyVars: {
           'ant-prefix': 'ant',
         },
-        plugins: [new LessPluginFunctions({ alwaysOverride: true })],
+        plugins: [
+          new LessPluginFunctions({
+            alwaysOverride: true,
+          }),
+        ],
       },
     },
   };
@@ -141,7 +145,9 @@ module.exports = (cliEnv = {}, argv) => {
   const cssLoaderConfig = {
     loader: 'css-loader',
     options: {
-      modules: { getLocalIdent },
+      modules: {
+        getLocalIdent,
+      },
       importLoaders: 1,
     },
   };
@@ -233,7 +239,9 @@ module.exports = (cliEnv = {}, argv) => {
       }),
       new WebpackBar(),
       PROXIMA_ANALYZER_PACKAGE && new BundleAnalyzer(),
-      new webpack.DefinePlugin({ ...resolveClientEnv(false, cliEnv) }),
+      new webpack.DefinePlugin({
+        ...resolveClientEnv(false, cliEnv),
+      }),
       new HtmlWebpackPlugin({
         template: path.resolve(__dirname, 'app/public/index.html'),
         filename: 'index.html',
@@ -318,6 +326,13 @@ module.exports = (cliEnv = {}, argv) => {
         {
           test: /\.svg$/,
           use: ['@svgr/webpack'],
+        },
+        {
+          test: /locales/,
+          loader: '@alienfast/i18next-loader',
+          options: {
+            include: ['**/index.json'],
+          },
         },
       ],
     },
