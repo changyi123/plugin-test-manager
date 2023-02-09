@@ -46,7 +46,7 @@ const AddDefectButton: React.FC<AddDefectButtonProps> = props => {
       onSave?.(needAddedItemIds);
       message.success('缺陷新建成功');
     } catch (error) {
-      message.error(error);
+      message.error(error?.message);
       onLoading?.(false);
     }
   }, [createItemUseModal, onLoading, TestToDefect, testRunEntity, currentDefectIds, onSave]);
