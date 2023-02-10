@@ -4,6 +4,7 @@ import { useRequest } from 'ahooks';
 import { getDevConfig } from '@/devEnv';
 import MinderView from './View/Minder';
 import MinderList from './View/List';
+import { getTreeNodeByKey } from './util';
 import { useSDK } from '@projectproxima/plugin-sdk';
 import { logPluginVersion } from '@/lib/utils/helper';
 import FolderTree from '@/pages/repository/FolderTree';
@@ -47,7 +48,7 @@ logPluginVersion();
 
 const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) => {
   const [viewMode, setViewMode] = React.useState('list');
-  const [selectedNode, setSelectedNode] = React.useState(null);
+  const [selectedNodeKey, setSelectedNodeKey] = React.useState(null);
 
   const {
     data: folderTreeData = [],
@@ -67,13 +68,17 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
     },
   );
 
+  // 获取最新的 node 数据
+  const selectedNode = React.useMemo(() => {
+    return getTreeNodeByKey(folderTreeData, selectedNodeKey);
+  }, [folderTreeData, selectedNodeKey]);
+
   return (
     <PageLayout className={cx('test-repository')}>
       <PageLayout.Header>
         <header className={cx('header')}>
           <h6>测试用例库</h6>
           <ViewModeSelector viewMode={viewMode} onViewModeChange={setViewMode} />
-          <div className={cx('extra-action')} id="repository-header-extra-action"></div>
         </header>
       </PageLayout.Header>
       <PageLayout.Left>
@@ -81,7 +86,7 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
           loading={folderTreeLoading}
           treeNodeData={folderTreeData}
           onFolderTreeChange={refreshFolderTree}
-          onSelect={node => setSelectedNode(node)}
+          onSelect={node => setSelectedNodeKey(node.key)}
         />
       </PageLayout.Left>
       <PageLayout.Right>
