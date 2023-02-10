@@ -170,6 +170,5 @@ export const toPointer = (className, objectId) => ({
 
 /** 获取token */
 export const getSessionToken = () => {
-  const [sessionToken] = document.cookie?.split(';').filter(c => c.includes('sessionToken='));
-  return sessionToken.replace(/\s*/g, '').replace('sessionToken=', '') ?? '';
+  return global?.QiankunProps.context?.env?.sessionToken ?? '';
 };

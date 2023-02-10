@@ -1,4 +1,4 @@
-import zh from './zh';
+import zh from './zh/index';
 
 export default {
   navigation: {
