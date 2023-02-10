@@ -20,5 +20,6 @@ export const getLangPkg = (defaultLang?: string) => {
 
 export const t = key => {
   const langPkg = getLangPkg();
+  console.info('langPkg --------------->', langPkg, key);
   return get(langPkg, key);
 };
