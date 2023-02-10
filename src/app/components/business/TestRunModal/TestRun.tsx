@@ -9,7 +9,7 @@ import { PASS_STATUS_TYPE, TestType } from '@/lib/constants';
 import { getRootContainer, generateStorageKey } from '@/lib/utils/helper';
 import { Button, Checkbox, Collapse, Tabs, message, Spin, Tooltip } from 'antd';
 import { getTestEntityByQuery, updateTestRunDetail } from '@/lib/api/item';
-import { getItemLinkRelation } from '@/lib/api/runs';
+import { getItemLinkRelation, getTestStepsByTestDetailId } from '@/lib/api/runs';
 import { useCanExecuteTestRunIdSequence } from '@/lib/hooks/useTest';
 
 import TestStep from './TestStep';
@@ -237,11 +237,12 @@ const TestRun: React.FC<TestRunType> = props => {
       !Array.isArray(testRunData.runDetail?.steps)
     ) {
       (async () => {
+        const steps = await getTestStepsByTestDetailId(refTestDetailData?.objectId);
         try {
           await updateTestRunDetail(
             testRunEntity,
             {
-              steps: refTestDetailData.detail?.steps,
+              steps: steps,
               runDetail: {
                 precondition: refTestDetailData.detail?.precondition ?? '',
               },
