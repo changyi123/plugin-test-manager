@@ -344,7 +344,8 @@ const initialScriptRunner = async () => {
     globalTestConfigData = Object.assign({}, globalTestConfigData, data);
   };
 
-  if (!globalTestConfigData.statuses) {
+  // 校验执行状态长度是否一致，不一致则更新
+  if (globalTestConfigData?.statuses?.length !== initializedStatuses.length) {
     saveGlobalTestConfigData({
       statuses: initializedStatuses,
     });

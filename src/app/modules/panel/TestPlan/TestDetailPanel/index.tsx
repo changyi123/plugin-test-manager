@@ -191,6 +191,10 @@ const Test = () => {
         title: '已存在的测试用例',
         async onClick() {
           const testDetailIds = await selectorModalRef.current.open();
+          if (getCreatePermission(TestType.Case)) {
+            message.error('暂无事项新增权限，请检查事项操作权限配置或联系管理员');
+            return;
+          }
           const _testDetailIds = testDetailIds.filter(d => !(testEntityIds ?? []).includes(d));
 
           const res = await updateTestEntity(

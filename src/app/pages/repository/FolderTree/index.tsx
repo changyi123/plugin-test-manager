@@ -159,7 +159,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
     config: { itemTypeMap },
   } = useTestConfig();
 
-  const { createItemUseModal } = useBaseAction();
+  const { createItemUseModal, getCreatePermission } = useBaseAction();
 
   const selectedTreeNode = React.useMemo(() => {
     return treeFn.getTreeNodeByKey(state.selectedKeys[0]);
@@ -170,8 +170,11 @@ const FolderTree: React.FC<FolderTreeProps> = ({
     if (!itemTypeMap?.TestCase) {
       keys.push(MenuKey.createTest);
     }
+    if (getCreatePermission(TestType.Case)) {
+      keys.push(MenuKey.createTest);
+    }
     return keys;
-  }, [itemTypeMap]);
+  }, [getCreatePermission, itemTypeMap?.TestCase]);
 
   // 展开子菜单
   const expandSubFolder = React.useCallback(
@@ -503,32 +506,42 @@ const FolderTree: React.FC<FolderTreeProps> = ({
   );
 
   const titleRender = React.useCallback(
-    node => (
-      <DropTreeTitle key={node.key} nodeKey={node.key} onItemDrop={handleItemDrop}>
-        <>
-          <OverflowTooltip title={node.name}>
-            <span className={cx('tree-node-name')}>{node.name}</span>
-          </OverflowTooltip>
+    node => {
+      const getDisabledKeys = (keys = []) => {
+        keys =
+          node.key === 'root'
+            ? [MenuKey.deleteFolder, MenuKey.renameFolder]
+            : node.disabledMenuKeys ?? [];
+        if (getCreatePermission(TestType.Case)) {
+          keys = keys.concat(MenuKey.createTest);
+        }
 
-          <span className={cx('tree-node-length')}>{`${node.length[0]}(${node.length[1]})`}</span>
-          <Dropdown
-            overlay={
-              <FolderMenu
-                disabledKeys={
-                  node.key === 'root'
-                    ? [MenuKey.deleteFolder, MenuKey.renameFolder]
-                    : node.disabledMenuKeys
-                }
-                onClick={({ key }) => handleMenuClick(key, node)}
-              />
-            }
-          >
-            <CustomMore onClick={e => e.stopPropagation()} className={cx('tree-node-action')} />
-          </Dropdown>
-        </>
-      </DropTreeTitle>
-    ),
-    [handleMenuClick, handleItemDrop],
+        return keys;
+      };
+
+      return (
+        <DropTreeTitle key={node.key} nodeKey={node.key} onItemDrop={handleItemDrop}>
+          <>
+            <OverflowTooltip title={node.name}>
+              <span className={cx('tree-node-name')}>{node.name}</span>
+            </OverflowTooltip>
+
+            <span className={cx('tree-node-length')}>{`${node.length[0]}(${node.length[1]})`}</span>
+            <Dropdown
+              overlay={
+                <FolderMenu
+                  disabledKeys={getDisabledKeys()}
+                  onClick={({ key }) => handleMenuClick(key, node)}
+                />
+              }
+            >
+              <CustomMore onClick={e => e.stopPropagation()} className={cx('tree-node-action')} />
+            </Dropdown>
+          </>
+        </DropTreeTitle>
+      );
+    },
+    [handleMenuClick, handleItemDrop, getCreatePermission],
   );
 
   const updateRepository = useCallback(

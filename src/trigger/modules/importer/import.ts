@@ -15,6 +15,8 @@ function uuidv4() {
   );
 }
 
+let errors = [];
+
 const TEST_MANAGER_REPO = `test_manager_Repository`;
 
 const clone = d => JSON.parse(JSON.stringify(d));
@@ -242,9 +244,12 @@ export const runImport = async () => {
     });
 
     // TODO 更新事项 values
-    const res = await parallelLimit(taskQueue, 10);
-
-    return res;
+    try {
+      const res = await parallelLimit(taskQueue, 10);
+      return res;
+    } catch (err) {
+      errors = errors.concat(err?.map(err.data));
+    }
   };
 
   const createRepoGroup = async (datas, i) => {
@@ -310,7 +315,19 @@ export const runImport = async () => {
             });
         });
 
-      await parallelLimit(taskQueue, 10);
+      try {
+        await parallelLimit(taskQueue, 10);
+      } catch (err) {
+        errors = errors.concat(err?.map(err.data));
+      }
+    }
+
+    if (errors.length) {
+      return {
+        errorCount: errors.length,
+        errors: errors,
+        stop: false,
+      };
     }
 
     return {

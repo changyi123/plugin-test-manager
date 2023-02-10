@@ -163,9 +163,7 @@ const Test = () => {
         message.error(res.data);
         return;
       }
-
       refresh();
-
       alert({
         type: 'success',
         message: `${ids.length} 个测试执行从测试计划中删除`,

@@ -15,6 +15,7 @@ import { batchCreateTestRun, updateTestEntity } from '@/lib/api/item';
 import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/hook';
 import { getFilterFields } from '@/components/common/FilterSearch/utils';
 import createProximaSdk from '@projectproxima/proxima-sdk-js';
+import { useBaseAction } from '@/lib/hooks/useContext';
 
 import cx from './index.less';
 
@@ -64,6 +65,7 @@ const Right: React.FC<RightProps> = props => {
     tableSelectionToggleEvent,
   } = usePageContext();
   const proxima = createProximaSdk();
+  const { getCreatePermission } = useBaseAction();
 
   useSetTableHeight();
 
@@ -222,7 +224,7 @@ const Right: React.FC<RightProps> = props => {
                 type="primary"
                 onClick={activeType === 'TestPlan' ? addTestDetail : addTestExecutionDetail}
                 className={cx('action')}
-                disabled={!selectedTestPlan}
+                disabled={!selectedTestPlan || getCreatePermission(TestType.Case)}
               >
                 规划用例
               </Button>

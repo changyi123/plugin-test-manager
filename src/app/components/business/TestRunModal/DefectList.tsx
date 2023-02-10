@@ -6,7 +6,7 @@ import { Item, Status } from '@/lib/types/App';
 import AddDefectButton from './AddDefectButton';
 import { useItemLinkTypeConfig } from './hooks';
 import { TabsComponentBaseProps } from './type';
-import { Popconfirm, Tooltip, Empty } from 'antd';
+import { Popconfirm, Tooltip, Empty, message } from 'antd';
 import { components } from 'proxima-sdk';
 import { addTestDefect, deleteTestDefect, updateTestRunDetail } from '@/lib/api/item';
 import { goToItemDetailPage } from '@/lib/utils/helper';
@@ -38,32 +38,31 @@ const DefectList: React.FC<DefectListProps> = ({
   // 添加缺陷
   const handleDefectAdd = async defectItemIds => {
     // onLoading();
-    await Promise.all([
-      addTestDefect(TestToDefect, testRunData, defectItemIds),
-      updateTestRunDetail(testRunEntity, {
-        runDetail: {
-          defectItemIds,
-        },
-      }),
-    ]);
+    await addTestDefect(TestToDefect, testRunData, defectItemIds);
+    await updateTestRunDetail(testRunEntity, {
+      runDetail: {
+        defectItemIds,
+      },
+    });
     onDataChange();
   };
 
   // 删除缺陷
   const handleDeleteDefect = async defectItemId => {
     onLoading();
-
-    const newDefectItemIds = currentDefectItemIds.filter(id => defectItemId !== id);
-
-    await Promise.all([
-      deleteTestDefect(TestToDefect, testRunData, [defectItemId]),
-      updateTestRunDetail(testRunEntity, {
+    try {
+      const newDefectItemIds = currentDefectItemIds.filter(id => defectItemId !== id);
+      await deleteTestDefect(TestToDefect, testRunData, [defectItemId]);
+      await updateTestRunDetail(testRunEntity, {
         runDetail: {
           defectItemIds: newDefectItemIds,
         },
-      }),
-    ]);
-    onDataChange();
+      });
+      onDataChange();
+    } catch (error) {
+      message.error(error?.message ?? '当前用户无权限');
+      onLoading?.(false);
+    }
   };
   const DefectItem: React.FC<{ defect: TabsComponentBaseProps['allRelationDefects'][0] }> = ({
     defect,

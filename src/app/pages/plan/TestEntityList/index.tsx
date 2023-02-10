@@ -28,6 +28,7 @@ import { isEmpty, isEqual } from 'lodash';
 import { useTestRunActionAuth, useCanExecuteTestRunIdSequence } from '@/lib/hooks/useTest';
 import { getCurrentUserSetting, saveUserSetting } from '@/lib/api/userSetting';
 import { useCurrentUser } from '@/lib/api/user';
+import { useBaseAction } from '@/lib/hooks/useContext';
 import createProximaSdk from '@projectproxima/proxima-sdk-js';
 
 import cx from './index.less';
@@ -62,6 +63,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     tableSelectionToggleEvent,
   } = usePageContext();
   const proxima = createProximaSdk();
+  const { getCreatePermission } = useBaseAction();
   const actionRef = React.useRef<BusinessTableActionType>();
   const testRunModalActionRef = React.useRef<TestRunModalActionType>();
   const userData = useUserCellUserDataProp(workspaceKey);
@@ -388,11 +390,15 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     async (testRun, status) => {
       // 更新测试执行状态
       // 更新测试执行对应的测试用例状态
-      await updateTestStatus({
+      const res = await updateTestStatus({
         runIds: [testRun.objectId],
         status: status.key,
         planId: selectedTestPlan.objectId,
       });
+      if (res?.status === 'error') {
+        message.error(res.data);
+        return;
+      }
       actionRef.current.refresh();
       mutateStatusEvent.emit('refreshExecutionStatus');
     },
@@ -520,6 +526,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
             <Button
               type="link"
               style={{ marginLeft: 10 }}
+              disabled={getCreatePermission(TestType.Case)}
               onClick={async () => {
                 deleteTestRunByIds([record.objectId]);
               }}
@@ -640,6 +647,10 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     const getTestRunIds = () => actionRef.current.selectedRowKeys;
 
     const toggleSTestRunStatus = async status => {
+      if (getCreatePermission(TestType.Case)) {
+        message.error('暂无事项编辑权限，请检查事项操作权限配置或联系管理员');
+        return;
+      }
       const testRunIds = getTestRunIds();
 
       // 可执行的测试执行 id
@@ -665,12 +676,20 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     };
 
     const deleteTestRun = () => {
+      if (getCreatePermission(TestType.Case)) {
+        message.error('暂无事项删除权限，请检查事项操作权限配置或联系管理员');
+        return;
+      }
       const testRunIds = getTestRunIds();
       deleteTestRunByIds(testRunIds);
     };
 
     // 更新测试执行人
     const handleDesigneeChange = async users => {
+      if (getCreatePermission(TestType.Case)) {
+        message.error('暂无事项编辑权限，请检查事项操作权限配置或联系管理员');
+        return;
+      }
       const testRunIds = getTestRunIds();
       setTableLoading(true);
       // 更新测试执行执行人
@@ -717,7 +736,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       </Tooltip>,
       <StatusBadge
         useRootContainer
-        readonly={!hasRowSelected}
+        readonly={!hasRowSelected && getCreatePermission(TestType.Case)}
         onStatusChange={toggleSTestRunStatus}
         key="toggleRunStatus"
         emptyNode={
@@ -735,6 +754,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     canAssignTestRun,
     userData,
     hasRowSelected,
+    getCreatePermission,
     getCanExecuteTestRunIdSequence,
     selectedTestPlan?.objectId,
     mutateTestPlanEvent,
