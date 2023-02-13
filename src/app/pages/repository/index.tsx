@@ -10,9 +10,8 @@ import FolderTree from '@/pages/repository/FolderTree';
 import PageLayout from '@/components/common/PageLayout';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
 import TestManagerProvider from '@/components/business/TestManagerProvider';
-// import { t } from 'i18next';
-
 import { getRepositoryTree } from '@/lib/api/item';
+import useI18n from '@/lib/hooks/useI18n';
 
 import cx from './index.less';
 
@@ -49,6 +48,9 @@ logPluginVersion();
 const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) => {
   const [viewMode, setViewMode] = React.useState('list');
   const [selectedNode, setSelectedNode] = React.useState(null);
+  const { t } = useI18n();
+
+  console.info('common.testManager', t('common.testManager'));
 
   const {
     data: folderTreeData = [],

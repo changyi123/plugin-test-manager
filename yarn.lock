@@ -7600,7 +7600,7 @@ rollup@^2.75.6:
 
 rosetta@^1.1.0:
   version "1.1.0"
-  resolved "https://registry.npmmirror.com/rosetta/-/rosetta-1.1.0.tgz#41ecc0f3cb38ce34b981b0dcfca2f4c94721738c"
+  resolved "https://registry.yarnpkg.com/rosetta/-/rosetta-1.1.0.tgz#41ecc0f3cb38ce34b981b0dcfca2f4c94721738c"
   integrity sha512-3jQaCo2ySoDqLIPjy7+AvN3rluLfkG8A27hg0virL0gRAB5BJ3V35IBdkL/t6k1dGK0TVTyUEwXVUJsygyx4pA==
   dependencies:
     dlv "^1.1.3"

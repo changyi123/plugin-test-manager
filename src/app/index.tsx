@@ -2,21 +2,16 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import App from './App';
 import { ProximaSDK } from '@projectproxima/plugin-sdk';
-import i18n from 'i18next';
-// import en from '../../locales/en-US.json';
-// import zn from '../../locales/zh-CN.json';
-
-// console.info(1111111111111, en);
+// import i18n from 'i18next';
+// import resources from '../../locales';
 
 import './index.global.less';
+import { getMessages } from './lib/utils/locale';
 
 const rootElement = '#test-manager';
 
 // i18n.init({
-//   resources: {
-//     en,
-//     zn,
-//   },
+//   resources: resources,
 // });
 
 if (window.__POWERED_BY_QIANKUN__) {
@@ -24,13 +19,12 @@ if (window.__POWERED_BY_QIANKUN__) {
 }
 
 async function render(props) {
-  console.info(22222222222, props?.sdk?.context);
-  // const [locale, lngDict, antdLangPackage] = getMessages(props?.sdk?.context?.env?.LOCALES || 'zh');
-  // const antdLang = await Promise.resolve(antdLangPackage);
-  // const appProps = { ...props, locale, lngDict, antdLang };
+  const [locale, lngDict, antdLangPackage] = getMessages(props?.sdk?.context?.env?.LOCALES || 'zh');
+  const antdLang = await Promise.resolve(antdLangPackage);
+  const appProps = { ...props, locale, lngDict, antdLang };
   const { container } = props;
   ReactDOM.render(
-    <App {...props} />,
+    <App {...appProps} />,
     container ? container.querySelector(rootElement) : document.querySelector(rootElement),
   );
 }

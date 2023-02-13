@@ -330,9 +330,6 @@ module.exports = (cliEnv = {}, argv) => {
         {
           test: /locales/,
           loader: '@alienfast/i18next-loader',
-          options: {
-            include: ['**/index.json'],
-          },
         },
       ],
     },

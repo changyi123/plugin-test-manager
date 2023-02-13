@@ -1,18 +1,17 @@
 import React, { useEffect, Suspense, useMemo } from 'react';
 import { getRootContainer } from '@/lib/utils/helper';
+import I18n from '@/lib/utils/i18n';
 import { PluginSDKContext } from '@projectproxima/plugin-sdk';
 import { message, notification, ConfigProvider } from 'antd';
 import { MemoryRouter, Switch, Route, useHistory, HashRouter } from 'react-router-dom';
 
-import zhCN from 'antd/lib/locale/zh_CN';
+import routes from './routes';
 
 const rootElement = 'test-manager';
 
 message.config({
   getContainer: getRootContainer,
 });
-
-import routes from './routes';
 
 interface QiankunContextProps {
   setGlobalState?: (data: { data: any }) => void;
@@ -40,8 +39,8 @@ const GoPropsRoute = props => {
   return null;
 };
 
-const App: React.FC = props => {
-  // const { locale, lngDict, antdLang } = props;
+const App: React.FC<{ locale: any; lngDict: any; antdLang: any }> = props => {
+  const { locale, lngDict, antdLang } = props;
   const qiankunContextValue: any = useMemo(
     () => ({
       ...props,
@@ -56,34 +55,37 @@ const App: React.FC = props => {
   }, []);
 
   return (
-    // <I18n lngDict={lngDict} locale={locale}>
-    <PluginSDKContext.Provider value={qiankunContextValue.sdk}>
-      <ConfigProvider locale={zhCN} getPopupContainer={() => document.getElementById(rootElement)}>
-        {process.env.NODE_ENV === 'production' || window.__POWERED_BY_QIANKUN__ ? (
-          <MemoryRouter>
-            <GoPropsRoute {...props} />
-            <Switch>
-              <Suspense fallback={null}>
-                {routes.map(({ path, component, exact }) => (
-                  <Route path={path} component={component} exact={exact} key={path} />
-                ))}
-              </Suspense>
-            </Switch>
-          </MemoryRouter>
-        ) : (
-          <HashRouter>
-            <Switch>
-              <Suspense fallback={null}>
-                {routes.map(({ path, component, exact }) => (
-                  <Route path={path} component={component} exact={exact} key={path} />
-                ))}
-              </Suspense>
-            </Switch>
-          </HashRouter>
-        )}
-      </ConfigProvider>
-    </PluginSDKContext.Provider>
-    // </I18n>
+    <I18n lngDict={lngDict} locale={locale}>
+      <PluginSDKContext.Provider value={qiankunContextValue.sdk}>
+        <ConfigProvider
+          getPopupContainer={() => document.getElementById(rootElement)}
+          locale={antdLang?.default}
+        >
+          {process.env.NODE_ENV === 'production' || window.__POWERED_BY_QIANKUN__ ? (
+            <MemoryRouter>
+              <GoPropsRoute {...props} />
+              <Switch>
+                <Suspense fallback={null}>
+                  {routes.map(({ path, component, exact }) => (
+                    <Route path={path} component={component} exact={exact} key={path} />
+                  ))}
+                </Suspense>
+              </Switch>
+            </MemoryRouter>
+          ) : (
+            <HashRouter>
+              <Switch>
+                <Suspense fallback={null}>
+                  {routes.map(({ path, component, exact }) => (
+                    <Route path={path} component={component} exact={exact} key={path} />
+                  ))}
+                </Suspense>
+              </Switch>
+            </HashRouter>
+          )}
+        </ConfigProvider>
+      </PluginSDKContext.Provider>
+    </I18n>
   );
 };
 
