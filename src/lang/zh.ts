@@ -1,5 +1,3 @@
-import zh from './zh';
-
 export default {
   navigation: {
     repository: '测试用例',
@@ -11,5 +9,4 @@ export default {
     fail: '失败',
     type: '类型',
   },
-  ...zh,
 };
