@@ -3,22 +3,31 @@ import ReactDOM from 'react-dom';
 import App from './App';
 import { ProximaSDK } from '@projectproxima/plugin-sdk';
 import i18n from 'i18next';
-// import en from './locales/en-US.json';
-// import zn from './locales/zh-CN.json';
+// import en from '../../locales/en-US.json';
+// import zn from '../../locales/zh-CN.json';
+
+// console.info(1111111111111, en);
 
 import './index.global.less';
 
 const rootElement = '#test-manager';
 
-i18n.init({
-  // {en,zn}
-});
+// i18n.init({
+//   resources: {
+//     en,
+//     zn,
+//   },
+// });
 
 if (window.__POWERED_BY_QIANKUN__) {
   __webpack_public_path__ = window.__INJECTED_PUBLIC_PATH_BY_QIANKUN__;
 }
 
-function render(props) {
+async function render(props) {
+  console.info(22222222222, props?.sdk?.context);
+  // const [locale, lngDict, antdLangPackage] = getMessages(props?.sdk?.context?.env?.LOCALES || 'zh');
+  // const antdLang = await Promise.resolve(antdLangPackage);
+  // const appProps = { ...props, locale, lngDict, antdLang };
   const { container } = props;
   ReactDOM.render(
     <App {...props} />,

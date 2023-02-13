@@ -41,6 +41,7 @@ const GoPropsRoute = props => {
 };
 
 const App: React.FC = props => {
+  // const { locale, lngDict, antdLang } = props;
   const qiankunContextValue: any = useMemo(
     () => ({
       ...props,
@@ -55,6 +56,7 @@ const App: React.FC = props => {
   }, []);
 
   return (
+    // <I18n lngDict={lngDict} locale={locale}>
     <PluginSDKContext.Provider value={qiankunContextValue.sdk}>
       <ConfigProvider locale={zhCN} getPopupContainer={() => document.getElementById(rootElement)}>
         {process.env.NODE_ENV === 'production' || window.__POWERED_BY_QIANKUN__ ? (
@@ -81,6 +83,7 @@ const App: React.FC = props => {
         )}
       </ConfigProvider>
     </PluginSDKContext.Provider>
+    // </I18n>
   );
 };
 

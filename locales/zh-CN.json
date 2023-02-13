@@ -281,7 +281,7 @@
           "deleteCaseSuccess": "个测试用例已被删除",
           "batchItemLink": "批量事项关联",
           "deleteCaseMessageSuccess": "测试用例删除成功",
-          "copyCaseMessageSuccess": "测试用例删除成功",
+          "copyCaseMessageSuccess": "测试用例复制成功",
           "dropCaseToGroup": "拖动至用例分组"
         },
         "minder": {
