@@ -277,13 +277,21 @@ const Test = () => {
             return;
           }
 
-          // 添加关联
-          await batchCreateTestRun({
-            executionId: testEntity.objectId,
-            caseIds: _selectedTestDetailIds,
-          });
+          try {
+            // 添加关联
+            const { data } = await batchCreateTestRun({
+              executionId: testEntity.objectId,
+              caseIds: _selectedTestDetailIds,
+            });
+            if (data?.status === 'error') {
+              message.error(data.data);
+              return;
+            }
 
-          refreshDepData();
+            refreshDepData();
+          } catch (error) {
+            console.info(error);
+          }
         },
       },
     ];
