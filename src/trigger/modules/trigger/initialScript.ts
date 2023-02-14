@@ -299,6 +299,7 @@ const createTestCountChartGroups = async () => {
         needToCreateGroupKeys: ['TestRunCountChartGroup'],
       })),
     );
+    console.info('将 chartGroups 绑定空间 testConfig 开始 ------------------->');
 
     const testConfigObjects = needToCreateWOrkspaceKey.map(workspaceKey => {
       const testConfig = notExistedChartGroupConfigs.find(
@@ -318,8 +319,10 @@ const createTestCountChartGroups = async () => {
 
       return testConfig;
     });
+    console.info('将 chartGroups 绑定空间 testConfig 过程中 ------------------->');
 
     const updatedTestConfigs = await saveAllObject(testConfigObjects);
+    console.info('将 chartGroups 绑定空间 testConfig 结束 ------------------->');
     console.info('updatedTestConfigs', updatedTestConfigs);
   }
 };
@@ -399,12 +402,43 @@ const initialScriptRunner = async () => {
   await createTestCountChartGroups();
 };
 
+const executeSQL = async () => {
+  const { rows: ids } = await pgClient.query(`select cg."objectId"
+  from "ChartGroup" cg
+  where cg.key = 'test_manager'
+    and cg."objectId" not in (
+      select cfg."chartGroups" -> 'TestDefectChartGroup' ->> 'chartGroup'
+      from "test_manager_TestConfig" cfg
+      where cfg."chartGroups" -> 'TestDefectChartGroup' is not null
+      union
+      select cfg."chartGroups" -> 'TestRunCountChartGroup' ->> 'chartGroup'
+      from "test_manager_TestConfig" cfg
+      where cfg."chartGroups" -> 'TestRunCountChartGroup' is not null)`);
+  console.info('ids ---------------->', ids);
+  if (!ids?.length) return;
+
+  const deleteChartSQL = `delete from "Chart" where "chartGroup" in (${ids
+    .map(d => `'${d.objectId}'`)
+    .join(',')}`;
+
+  const deleteChartGroupSQL = `delete from "ChartGroup" where key = 'test_manager' and "objectId" in (${ids
+    .map(d => `'${d.objectId}'`)
+    .join(',')})`;
+  console.info('deleteChartSQL ---------------->', deleteChartSQL);
+  console.info('deleteChartGroupSQL -------------------->', deleteChartGroupSQL);
+
+  await pgClient.query(deleteChartSQL);
+  await pgClient.query(deleteChartGroupSQL);
+  return;
+};
+
 export const runInitialScript = async () => {
   try {
-    // .then(() => executeSQL())
-    await initialScriptRunner().then(() => {
-      log('测试管理插件初始化成功');
-    });
+    await initialScriptRunner()
+      .then(() => executeSQL())
+      .then(() => {
+        log('测试管理插件初始化成功');
+      });
   } catch (error) {
     log('error:', error);
   }
