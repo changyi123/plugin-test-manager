@@ -67,10 +67,14 @@ export const batchCreateItems = async (
     itemGroup: TokenSchema;
   } & Partial<BaseTestEntity>)[],
 ) => {
+  const customValues = pick(data.values, ['assignee', 'priority']);
   // 需要创建的事项数据
   const itemData = data.map(data => ({
     name: data.name,
-    values: testEntityToItemValues(data),
+    values: {
+      ...customValues,
+      ...testEntityToItemValues(data),
+    },
     itemGroup: data.itemGroup,
     itemType: data.itemType,
     workspace: data.workspace,
