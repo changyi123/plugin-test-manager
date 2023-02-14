@@ -114,14 +114,18 @@ const Right: React.FC<RightProps> = props => {
     try {
       setLoading(true);
       // 创建执行任务
-      await batchCreateTestRun({
+      const { data } = await batchCreateTestRun({
         executionId: selectedExecution.objectId,
         caseIds,
       });
+      if (data?.status === 'error') {
+        setLoading(false);
+        message.error(data.data);
+        return;
+      }
     } catch (error) {
       setLoading(false);
-      // eslint-disable-next-line no-console
-      console.log('error', error);
+      console.info('error', error);
     }
 
     scopedTestDetailRefresh();

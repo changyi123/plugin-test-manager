@@ -41,16 +41,16 @@ const useGetPermissions = (workspace: Record<string, any>) => {
   const getCreatePermission = useCallback(
     key => {
       const itemScreenTypeKeys = itemScreenType?.map(d => d.key) ?? [];
-      const testTypeMapping = Object.entries(testConfig?.itemTypeMap ?? {}).reduce(
-        (prev, [testKey, typeKey]) => {
+      const testTypeMapping = Object.entries(testConfig?.itemTypeMap ?? {})
+        .concat([['TestDefect', testConfig?.defectsMapping?.[0]]])
+        .reduce((prev, [testKey, typeKey]) => {
           prev[testKey] = !itemScreenTypeKeys.includes(typeKey);
           return prev;
-        },
-        {},
-      );
+        }, {});
+
       return testTypeMapping?.[key];
     },
-    [itemScreenType, testConfig?.itemTypeMap],
+    [itemScreenType, testConfig?.itemTypeMap, testConfig?.defectsMapping],
   );
 
   return {
