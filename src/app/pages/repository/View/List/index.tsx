@@ -108,7 +108,7 @@ const ListView: React.FC<ViewComponentProps> = ({
 
   React.useEffect(() => {
     getTestCaseIds();
-  }, [getTestCaseIds, workspaceKey, groupedMode, selectNodeKey]);
+  }, [getTestCaseIds, workspaceKey, groupedMode, selectedNode]);
 
   React.useEffect(() => {
     const breadcrumbs = [];

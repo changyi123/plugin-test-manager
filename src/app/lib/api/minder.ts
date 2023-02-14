@@ -7,6 +7,13 @@ import { getPluginWebTriggerBaseUrl } from '../utils/helper';
 
 const pluginWebTriggerBaseUrl = getPluginWebTriggerBaseUrl();
 
+const parseResponseInterceptor = response => {
+  if (response?.status === 'error') {
+    throw new Error(response.data);
+  }
+  return response;
+};
+
 /** 获取脑图数据 */
 export const getMinderData = async (params: { workspaceKey: string; repositoryKey?: string }) => {
   const {
@@ -58,11 +65,11 @@ export const batchUpdateRepository = async (
     return repositoryObj;
   });
 
-  return Parse.Object.saveAll(needUpdateRepositories);
+  return parseResponseInterceptor(await Parse.Object.saveAll(needUpdateRepositories));
 };
 
 /** 批量创建测试用例 */
 export const batchDeleteRepository = async (ids: string[]) => {
   const needDeleteRepositories = ids.map(id => new Repository({ objectId: id }));
-  return Parse.Object.destroyAll(needDeleteRepositories);
+  return parseResponseInterceptor(await Parse.Object.destroyAll(needDeleteRepositories));
 };

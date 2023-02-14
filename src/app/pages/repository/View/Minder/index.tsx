@@ -65,7 +65,6 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
         node.children.forEach(n => nodeTraversal(n, cb, paths));
       }
     };
-
     nodeTraversal(minderData.root, (node, paths) => {
       if (node.children?.length) {
         const sameModuleNameTimes = {};
@@ -228,7 +227,7 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
             values: {
               priority: patch.priority,
             },
-            repository: repository?.objectId,
+            repository: repository?.objectId ?? 'UNGROUPED',
           };
         });
 
@@ -268,7 +267,8 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
           if (name) {
             updateParams.name = name;
           }
-          if (priority) {
+          // 如果为空对象则不存储
+          if (priority && Object.keys(priority).length) {
             updateParams.values = { priority };
           }
 
@@ -300,7 +300,14 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
       }
 
       if (updateTestEntityParams.length) {
-        tasks.push(updateTestEntity(updateTestEntityParams));
+        tasks.push(
+          updateTestEntity(updateTestEntityParams).then(resp => {
+            if (resp?.status === 'error') {
+              throw new Error(resp.data);
+            }
+            return resp;
+          }),
+        );
       }
 
       await Promise.all(tasks);
@@ -332,14 +339,18 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
       setSaveLoading(true);
       // 创建测试用例
       const levelModulePaths = await createRepositoriesAndReturnLevelModulePaths();
-      await Promise.all([
-        createTestCase(levelModulePaths),
-        changeTestData(levelModulePaths),
-        removeTestData(),
-      ]);
-      message.success('数据更新成功');
-      // 刷新左侧树
-      onFolderTreeChange();
+      try {
+        await Promise.all([
+          createTestCase(levelModulePaths),
+          changeTestData(levelModulePaths),
+          removeTestData(),
+        ]);
+        message.success('数据更新成功');
+        // 刷新左侧树
+        onFolderTreeChange();
+      } catch (e) {
+        message.error(`数据更新失败， ${e.message}`);
+      }
     } catch (err) {
       console.error('error', err);
       message.error('保存失败');
