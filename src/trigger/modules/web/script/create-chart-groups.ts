@@ -174,6 +174,8 @@ const createChartGroups = async ({ workspace, needToCreateGroupKeys, ...resProps
 };
 
 export const batchCreateChartGroups = async workspaceConfigs => {
+  console.time();
+  console.info('批量创建 chartGroup 和 charts 准备 ------------------->');
   const WorkspaceParseQuery = await getParseQuery(false, 'Workspace');
   const TestConfigParseQuery = await getParseQuery(false, 'test_manager_TestConfig');
   const itemTypeQuery = await getParseQuery(false, 'ItemType');
@@ -260,10 +262,13 @@ export const batchCreateChartGroups = async workspaceConfigs => {
       TestRunCountChartGroup: {},
     };
   });
+  console.info('批量创建 chartGroup 和 charts 开始 ------------------->');
 
   const taskQueue = workspaceConfigs.map(config => async () => createChartGroups(config));
 
   const res = await parallelLimit(taskQueue, 10);
+  console.info('批量创建 chartGroup 和 charts 结束 ------------------->');
+  console.timeEnd();
 
   return res;
 };

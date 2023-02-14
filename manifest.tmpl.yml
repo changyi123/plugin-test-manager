@@ -63,6 +63,8 @@ modules:
         - proxima:app:install
         - proxima:app:upgrade
       function: test-manager-initial-script-function
+      # 5 分钟超时时长
+      timeout: 300000
   function:
     - key: gitee-menus-function
       handler: web.runGiteeMenus
