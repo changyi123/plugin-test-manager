@@ -75,7 +75,7 @@
   "dependencies": {
     "@alienfast/i18next-loader": "^2.0.1",
     "@ant-design/icons": "^4.7.0",
-    "@giteeteam/apps-team-api": "^0.3.6",
+    "@giteeteam/apps-team-api": "^0.4.0",
     "@nebulare/data": "^0.1.5",
     "@osui/theme": "^1.2.10",
     "@projectproxima/components": "0.3.4-remove-editor-0.3",

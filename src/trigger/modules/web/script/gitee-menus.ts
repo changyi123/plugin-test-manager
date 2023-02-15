@@ -1,6 +1,5 @@
 // import { TestConfigClassName } from '../../../../common/constant';
-import { getParseQuery, getAppsData } from '@giteeteam/apps-team-api';
-import { t } from '../../../lib/lang';
+import { getParseQuery, getAppsData, i18n } from '@giteeteam/apps-team-api';
 
 const log = (msg, ...restArgs) => {
   console.info(`[testManager] ${msg}`, ...restArgs);
@@ -38,7 +37,7 @@ export const runGiteeMenus = async () => {
     // 生成测试管理插件菜单
     const generateGiteeMenu = ({ langKey, pageKey }) => {
       return {
-        title: t(`navigation.${langKey}`),
+        title: i18n.t(`common.${langKey}`),
         key: `${pageKey}-${workspaceKey}`,
         icon: 'iconNavi-icafeplan',
         // url: `${giteeRoutePrefix}/plugin/${APP_KEY}_${appId}_${pageKey}`,
@@ -76,7 +75,7 @@ export const runGiteeMenus = async () => {
     // }
 
     const reportStatsMenu = {
-      title: t('navigation.overview'),
+      title: i18n.t('common.overview'),
       key: `test-stats-report-${workspaceKey}`,
       icon: 'iconNavi-icafeplan',
       url: `${giteeRoutePrefix}/report/test_manager?disabledCreate=true&displayContext=test_manager`,
