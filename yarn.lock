@@ -8217,9 +8217,9 @@ terser@^5.10.0, terser@^5.14.1:
     commander "^2.20.0"
     source-map-support "~0.5.20"
 
-"test-manager-minder@git+http://proxima:proxima123@osc.gitee.work/enterprise__proxima/test-manager-minder.git#5eccca277867508cfd15a49b65a2a8a9b04d77a4":
+"test-manager-minder@git+http://proxima:proxima123@osc.gitee.work/enterprise__proxima/test-manager-minder.git#0bd351f11b98bf4789c535ae29881e419d83059e":
   version "0.1.0"
-  resolved "git+http://proxima:proxima123@osc.gitee.work/enterprise__proxima/test-manager-minder.git#5eccca277867508cfd15a49b65a2a8a9b04d77a4"
+  resolved "git+http://proxima:proxima123@osc.gitee.work/enterprise__proxima/test-manager-minder.git#0bd351f11b98bf4789c535ae29881e419d83059e"
   dependencies:
     uid "^2.0.1"
     "@types/styled-components" "^5.1.26"

@@ -35,11 +35,12 @@ export const getPriorityOptions = async () => {
 
 /** 批量创建测试用例 */
 export const batchCreateTestCase = async (params: { workspaceId: string; data: any[] }) => {
-  const {
-    data: { data },
-  } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-batch-create-test-case`, params);
+  const { data } = await fetch.post(
+    `${pluginWebTriggerBaseUrl}/api-batch-create-test-case`,
+    params,
+  );
 
-  return data;
+  return parseResponseInterceptor(data)?.data;
 };
 
 /** 批量更新测试模块*/
