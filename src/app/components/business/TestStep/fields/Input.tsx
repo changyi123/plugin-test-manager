@@ -49,12 +49,12 @@ const Input: React.ForwardRefRenderFunction<
   ];
 
   const handleKeyDown = e => {
-    if (ref.current.innerHTML.length >= maxLength && !escapedKeyCodes.includes(e.key)) {
+    if (ref.current.textContent.length >= maxLength && !escapedKeyCodes.includes(e.key)) {
       e.preventDefault();
     }
 
     if (e.key === 'Enter' && e.altKey) {
-      onKeyDownEnter?.(ref.current.innerHTML);
+      onKeyDownEnter?.(ref.current.textContent);
       e.preventDefault();
     }
   };
