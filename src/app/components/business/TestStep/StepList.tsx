@@ -271,13 +271,7 @@ const StepList: React.FC<StepListProps> = ({ steps, actions }) => {
   const handleValuesChange = React.useCallback(
     value => {
       const needUpdateValues = Object.entries(value).reduce((acc, [stepId, value]) => {
-        const builtinFields = Object.entries(_.pick(value, BuiltinFieldKeys)).reduce(
-          (prev, [fieldKey, fieldValue]) => {
-            prev[fieldKey] = (fieldValue as string).replace(/<br>/g, '');
-            return prev;
-          },
-          {},
-        );
+        const builtinFields = _.pick(value, BuiltinFieldKeys);
         // 处理自定义字段 {} -> StepField[]
         const customFields = _.chain(value as Record<string, any>)
           .omit(BuiltinFieldKeys)

@@ -60,7 +60,7 @@ const Input: React.ForwardRefRenderFunction<
   };
 
   const handleBlur = () => {
-    onChange?.(ref.current.innerHTML);
+    onChange?.(ref.current.textContent);
   };
 
   return (
