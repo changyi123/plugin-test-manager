@@ -273,17 +273,25 @@ const Test = () => {
             d => !(relCase ?? []).includes(d),
           );
           if (getCreatePermission(TestType.Case)) {
-            message.error('暂无事项编辑权限，请检查事项操作权限配置或联系管理员');
+            message.error('暂无事项新增权限，请检查事项操作权限配置或联系管理员');
             return;
           }
 
-          // 添加关联
-          await batchCreateTestRun({
-            executionId: testEntity.objectId,
-            caseIds: _selectedTestDetailIds,
-          });
+          try {
+            // 添加关联
+            const { data } = await batchCreateTestRun({
+              executionId: testEntity.objectId,
+              caseIds: _selectedTestDetailIds,
+            });
+            if (data?.status === 'error') {
+              message.error(data.data);
+              return;
+            }
 
-          refreshDepData();
+            refreshDepData();
+          } catch (error) {
+            console.info(error);
+          }
         },
       },
     ];

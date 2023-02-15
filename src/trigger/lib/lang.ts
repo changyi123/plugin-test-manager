@@ -3,7 +3,7 @@
 import get from 'lodash/get';
 
 export const getLang = (defaultLang?: string) => {
-  return global.headers.lang ?? defaultLang ?? 'en-US';
+  return global.headers.lang ?? defaultLang ?? 'zh-CN';
 };
 
 export const getLangPkg = (defaultLang?: string) => {
@@ -20,5 +20,6 @@ export const getLangPkg = (defaultLang?: string) => {
 
 export const t = key => {
   const langPkg = getLangPkg();
+  console.info('langPkg --------------->', langPkg, key);
   return get(langPkg, key);
 };

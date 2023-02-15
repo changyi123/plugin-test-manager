@@ -4,7 +4,6 @@ import { Button, message } from 'antd';
 import MinderEditor from 'test-manager-minder';
 import { useRequest, useMemoizedFn } from 'ahooks';
 import { useTestConfig } from '@/lib/hooks/useContext';
-import { useHeaderExtraActionButton } from '../../hook';
 import { useNoExpiredRequest } from '@/lib/hooks/useRequest';
 import {
   getMinderData,
@@ -50,6 +49,45 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
     cacheKey: 'priority',
   });
 
+  /**
+   * 校验保存数据是否合法
+   * s1. 校验同层级下用例和模块名称都不一样
+   */
+  const validateMinderData = useMemoizedFn(() => {
+    const minderData = actionRef.current.exportJson();
+    if (!minderData?.root) throw new Error('数据错误');
+    // 节点遍历
+    const nodeTraversal = (node, cb, paths = []) => {
+      paths = paths.concat(node);
+      cb(node, paths);
+
+      if (Array.isArray(node.children)) {
+        node.children.forEach(n => nodeTraversal(n, cb, paths));
+      }
+    };
+
+    nodeTraversal(minderData.root, (node, paths) => {
+      if (node.children?.length) {
+        const sameModuleNameTimes = {};
+
+        node.children.forEach(child => {
+          if (child.data.type === MinderNodeType.Module) {
+            const key = child.data.text;
+            sameModuleNameTimes[key] = (sameModuleNameTimes[key] ?? 0) + 1;
+          }
+        });
+
+        // 判断 name 是否出现多次
+        Object.entries(sameModuleNameTimes).forEach(([name, times]) => {
+          if (times > 1) {
+            const moduleNamePath = paths.map(path => path.data.text).join('/');
+            throw message.error(`保存失败，模块 “${moduleNamePath}” 下存在在同名的模块: ${name}`);
+          }
+        });
+      }
+    });
+  });
+
   /** 保存脑图数据
    * s1. 根据 modulePaths 层序创建 repository，生成 repository module paths
    * s2. 创建用例数据
@@ -59,6 +97,7 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
   const handleSave = useMemoizedFn(async () => {
     if (saveLoading) return;
     const patches = actionRef.current.getMinderDataPatches();
+    validateMinderData();
 
     // 有 patches 数据需要处理
     if (Object.values(Object.assign({}, patches.create, patches.change, patches.remove)).length) {
@@ -218,7 +257,11 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
           }
           if (steps || precondition) {
             updateParams.detail = {
-              steps,
+              steps: steps.map(step => ({
+                ...step,
+                // 容错处理：给未含有 id 的 step 增加 uid
+                id: step.id ?? v4(),
+              })),
               precondition,
             };
           }
@@ -313,18 +356,16 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
     );
   }, [saveLoading, handleSave]);
 
-  const headerExtraButton = useHeaderExtraActionButton(memoizedButtonNode);
-
   if (!priorityOptions || !minderData) return null;
 
   return (
     <>
-      {headerExtraButton}
       <MinderEditor
         data={minderData}
         key={workspace.key}
         actionRef={actionRef}
         priorityOptions={priorityOptions}
+        renderFixRightAction={() => memoizedButtonNode}
       />
     </>
   );
