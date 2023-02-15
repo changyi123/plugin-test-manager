@@ -47,6 +47,7 @@ export const batchUpdateItems = async (data: Partial<TestEntity>[]) => {
       },
       eventExtraData: { skipItemChange: true },
     });
+
     return await updateItems(item.objectId, values);
   });
 
@@ -69,7 +70,11 @@ export const batchCreateItems = async (
   // 需要创建的事项数据
   const itemData = data.map(data => ({
     name: data.name,
-    values: testEntityToItemValues(data),
+    values: {
+      ...testEntityToItemValues(data),
+      // priority assignee 支持創建時更新
+      ...pick(data.values, ['assignee', 'priority']),
+    },
     itemGroup: data.itemGroup,
     itemType: data.itemType,
     workspace: data.workspace,
