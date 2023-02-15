@@ -269,7 +269,16 @@ module.exports = (cliEnv = {}, argv) => {
             loader: 'babel-loader',
             options: {
               presets: ['@babel/preset-env', '@babel/preset-react'],
-              plugins: [['import', { libraryName: 'antd', libraryDirectory: 'es', style: true }]],
+              plugins: [
+                [
+                  'import',
+                  {
+                    libraryName: 'antd',
+                    libraryDirectory: 'es',
+                    style: true,
+                  },
+                ],
+              ],
             },
           },
         },
@@ -330,6 +339,9 @@ module.exports = (cliEnv = {}, argv) => {
         {
           test: /locales/,
           loader: '@alienfast/i18next-loader',
+          options: {
+            include: ['**/index.json'],
+          },
         },
       ],
     },

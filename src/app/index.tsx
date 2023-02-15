@@ -2,17 +2,11 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import App from './App';
 import { ProximaSDK } from '@projectproxima/plugin-sdk';
-// import i18n from 'i18next';
-// import resources from '../../locales';
 
 import './index.global.less';
 import { getMessages } from './lib/utils/locale';
 
 const rootElement = '#test-manager';
-
-// i18n.init({
-//   resources: resources,
-// });
 
 if (window.__POWERED_BY_QIANKUN__) {
   __webpack_public_path__ = window.__INJECTED_PUBLIC_PATH_BY_QIANKUN__;

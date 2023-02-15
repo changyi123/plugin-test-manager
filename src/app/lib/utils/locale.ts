@@ -9,7 +9,6 @@ export function getMessages(
   let langBundle;
   let antdLang;
   let locale;
-  console.info(1111111111111111, resource[locales[0]]);
   for (let i = 0; i < locales.length && !locale; i++) {
     locale = locales[i];
     const [code = ''] = locale ? locale.split('-') : [];

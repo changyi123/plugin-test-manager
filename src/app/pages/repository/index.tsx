@@ -50,7 +50,7 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
   const [selectedNode, setSelectedNode] = React.useState(null);
   const { t } = useI18n();
 
-  console.info('common.testManager', t('common.testManager'));
+  console.info('common.testManager ---------------->', t('common.testManager'));
 
   const {
     data: folderTreeData = [],

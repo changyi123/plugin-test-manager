@@ -3,16 +3,16 @@ import rosetta from 'rosetta';
 
 export const i18n = rosetta();
 
-export const defaultLanguage = 'en';
+export const defaultLanguage = 'zh';
 export const I18nContext = createContext<i18nContext>(null);
 
 type LocalLng = string;
 type LngDict = any;
 
 type i18nContext = {
-  activeLocale: LocalLng;
+  locale: LocalLng;
   t: typeof i18n.t;
-  locale: (l: LocalLng, dict?: LngDict) => void;
+  setLocale: (l: LocalLng, dict?: LngDict) => void;
 };
 
 type I18nProvider = (params: {
@@ -21,7 +21,6 @@ type I18nProvider = (params: {
   lngDict: LngDict;
 }) => JSX.Element;
 
-// default language
 i18n.locale(defaultLanguage);
 const I18n: I18nProvider = ({ children, locale, lngDict }) => {
   const activeLocaleRef = useRef(locale || defaultLanguage);
@@ -29,9 +28,9 @@ const I18n: I18nProvider = ({ children, locale, lngDict }) => {
   const firstRender = useRef(true);
 
   const i18nWrapper: i18nContext = {
-    activeLocale: activeLocaleRef.current,
+    locale: activeLocaleRef.current,
     t: (...args) => i18n.t(...args),
-    locale: (l, dict) => {
+    setLocale: (l, dict) => {
       // lo;
       i18n.locale(l);
       activeLocaleRef.current = l;
@@ -46,12 +45,12 @@ const I18n: I18nProvider = ({ children, locale, lngDict }) => {
   // for initial SSR render
   if (locale && firstRender.current === true) {
     firstRender.current = false;
-    i18nWrapper.locale(locale, lngDict);
+    i18nWrapper.setLocale(locale, lngDict);
   }
 
   useEffect(() => {
     if (locale) {
-      i18nWrapper.locale(locale, lngDict);
+      i18nWrapper.setLocale(locale, lngDict);
     }
     // only when locale/lngDict is updated
     // eslint-disable-next-line
