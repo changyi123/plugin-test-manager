@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useCallback } from 'react';
 import { sum, uniq } from 'lodash';
 import { useReactive, useDrop } from 'ahooks';
@@ -28,6 +29,7 @@ import {
 import { getTreeNodeByKey } from '../util';
 
 import { UNGROUPED_FOLDER_KEY } from '../constant';
+import useI18n from '@/lib/hooks/useI18n';
 
 import cx from './index.less';
 
@@ -147,6 +149,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
   className,
   onFolderTreeChange,
 }) => {
+  const { t } = useI18n();
   const state = useReactive({
     expandedKeys: [],
     selectedKeys: [],
@@ -203,19 +206,19 @@ const FolderTree: React.FC<FolderTreeProps> = ({
     const nodeNames = nodes.map(n => n.name);
     if (nodeNames.includes(inputName)) {
       notification.error({
-        message: '同一层级模块名不能重复',
+        message: t('page.repository.folderTree.inputNameValidatorMessage')?.[0],
       });
       throw new Error('can not set same name');
     }
     if (!inputName) {
       notification.error({
-        message: '模块名不能为空',
+        message: t('page.repository.folderTree.inputNameValidatorMessage')?.[1],
       });
       throw new Error('required name');
     }
     if (inputName.length > 30) {
       notification.error({
-        message: '模块名最多30字符',
+        message: t('page.repository.folderTree.inputNameValidatorMessage')?.[2],
       });
       throw new Error('max length');
     }
@@ -233,12 +236,12 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         // 全部用例不算一个层级
         if (hierarchy >= 9) {
           notification.warn({
-            message: '限制8个层级，8个层级以上不能新建子模块',
+            message: t('page.repository.folderTree.hierarchyTips'),
           });
           return;
         }
         const folderName = await openFolderNameModal({
-          title: '新建子模块',
+          title: t('page.repository.folderTree.createChildFolder'),
           validator: inputName => inputNameValidator(inputName, node.children),
         });
         const parentKey = node?.key === UNGROUPED_FOLDER_KEY ? null : node?.key;
@@ -260,11 +263,11 @@ const FolderTree: React.FC<FolderTreeProps> = ({
           },
         });
         notification.success({
-          message: '子模块新建成功',
+          message: t('page.repository.folderTree.createChildFolderSuccess'),
         });
       } else if (actionKey === MenuKey.renameFolder) {
         const newFolderName = await openFolderNameModal({
-          title: '重命名模块',
+          title: t('page.repository.folderTree.renameFolder'),
           name: node.name,
           validator: inputName => inputNameValidator(inputName, [node]),
         });
@@ -276,23 +279,26 @@ const FolderTree: React.FC<FolderTreeProps> = ({
           },
         ]);
         notification.success({
-          message: `模块重命被为【${newFolderName}】`,
+          message: `${t('page.repository.folderTree.renameFolderSuccess')}【${newFolderName}】`,
         });
       } else if (actionKey === MenuKey.deleteFolder) {
         Modal.confirm({
           className: cx('confirm'),
           getContainer: getRootContainer,
-          title: '删除模块',
+          title: t('page.repository.folderTree.deleteFolder'),
           width: 500,
           content: (
             <>
-              <div>确定删除【{node.name}】模块吗？</div>
+              <div>
+                {t('page.repository.folderTree.deleteFolderTips')?.[0]}【{node.name}】
+                {t('page.repository.folderTree.deleteFolderTips')?.[1]}？
+              </div>
               <div style={{ marginLeft: 14 }}>
-                模块下的子模块将会一同删除，模块内的用例仍保留且自动移至未分组用例下。
+                {t('page.repository.folderTree.deleteFolderTips')?.[2]}
               </div>
             </>
           ),
-          okText: '删除',
+          okText: t('common.delete'),
           okButtonProps: {
             type: 'default',
             danger: true,
@@ -304,7 +310,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
             });
             await deleteFolder(keys);
             notification.success({
-              message: '模块删除成功',
+              message: t('page.repository.folderTree.deleteFolderSuccess'),
             });
             const refreshedTreeData = await onFolderTreeChange();
             const parentNode = getTreeNodeByKey(refreshedTreeData, node.parentKey);
@@ -342,8 +348,12 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         await updateFolders([node]);
         const successMessage =
           testEntityList.length > 1
-            ? `${testEntityList.length}个测试用例新建成功`
-            : `测试用例【${testEntityList[0]?.name}】新建成功`;
+            ? `${testEntityList.length}${
+                t('page.repository.folderTree.caseCreateSuccessTips')?.[0]
+              }`
+            : `${t('page.repository.folderTree.caseCreateSuccessTips')?.[1]}【${
+                testEntityList[0]?.name
+              }】${t('page.repository.folderTree.caseCreateSuccessTips')?.[2]}`;
         notification.success({
           message: successMessage,
         });
@@ -448,21 +458,21 @@ const FolderTree: React.FC<FolderTreeProps> = ({
 
   const ToolKitButtons = [
     <Button
-      key="创建模块"
+      key={t('page.repository.folderTree.buttonName')?.[0]}
       onClick={() => handleMenuClick(MenuKey.createFolder, selectedTreeNode)}
       style={{ height: 24, width: 24 }}
       icon={<CustomPlus />}
       type="text"
     />,
     <Button
-      key="折叠全部"
+      key={t('page.repository.folderTree.buttonName')?.[1]}
       style={{ height: 24, width: 24 }}
       onClick={() => (state.expandedKeys = [])}
       icon={<CustomScreenOff />}
       type="text"
     />,
     <Dropdown
-      key="更多"
+      key={t('page.repository.folderTree.buttonName')?.[2]}
       disabled={selectedTreeNode?.key === UNGROUPED_FOLDER_KEY}
       overlay={
         <FolderMenu
@@ -491,7 +501,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
       }
 
       notification.success({
-        message: '测试用例移动成功',
+        message: t('page.repository.folderTree.dropCaseTips')?.[0],
       });
 
       const refreshedTreeNodes = await onFolderTreeChange();
@@ -585,7 +595,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         // 拖拽到子级, 排序到子节点的首位
         if (validateHierarchy(0)) {
           notification.warn({
-            message: '限制8个层级，拖拽后超过8个层级，不允许拖拽',
+            message: t('page.repository.folderTree.dropCaseTips')?.[1],
           });
           return;
         }
@@ -603,7 +613,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         // 拖拽目标用例库底部，排序到首位
         if (validateHierarchy(0)) {
           notification.warn({
-            message: '限制8个层级，拖拽后超过8个层级，不允许拖拽',
+            message: t('page.repository.folderTree.dropCaseTips')?.[1],
           });
           return;
         }
@@ -619,7 +629,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         if (dropKey === 'root') return;
         if (validateHierarchy(1)) {
           notification.warn({
-            message: '限制8个层级，拖拽后超过8个层级，不允许拖拽',
+            message: t('page.repository.folderTree.dropCaseTips')?.[1],
           });
           return;
         }

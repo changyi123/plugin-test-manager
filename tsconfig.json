@@ -22,6 +22,6 @@
     "lib": ["dom", "dom.iterable", "esnext", "ESNext.Intl", "ES2018.Intl"],
     "allowSyntheticDefaultImports": true
   },
-  "include": ["src/**/*", "typings.d.ts", "webpack.config.js"],
+  "include": ["src/**/*", "typings.d.ts", "webpack.config.js", "locales"],
   "exclude": ["node_modules", "dist"]
 }

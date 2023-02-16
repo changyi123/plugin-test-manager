@@ -225,7 +225,7 @@
         "createChildFolderSuccess": " Submodule created successfully",
         "renameFolder": "Rename module",
         "renameFolderSuccess": "Module renaming as",
-        "deleteFolder": "Rename module",
+        "deleteFolder": "Delete module",
         "deleteFolderTips": [
           "Confirm delete",
           "Module?",
@@ -288,6 +288,7 @@
           "dropCaseToGroup": "Drag to test case group"
         },
         "minder": {
+          "dataError": "数据错误",
           "overMaxLevelModulePath": "The module has exceeded the maximum level limit, please modify it before saving",
           "updateDataSuccess": "Data updated successfully",
           "saveFail": "Save failed"

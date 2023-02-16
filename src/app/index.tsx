@@ -5,6 +5,14 @@ import { ProximaSDK } from '@projectproxima/plugin-sdk';
 
 import './index.global.less';
 import { getMessages } from './lib/utils/locale';
+// import i18n from 'i18next';
+// import resources from '../../locales';
+
+// i18n.init({
+//   resources,
+//   lng: 'zh',
+//   preload: ['zh', 'en'],
+// });
 
 const rootElement = '#test-manager';
 

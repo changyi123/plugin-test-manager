@@ -31,7 +31,6 @@ const I18n: I18nProvider = ({ children, locale, lngDict }) => {
     locale: activeLocaleRef.current,
     t: (...args) => i18n.t(...args),
     setLocale: (l, dict) => {
-      // lo;
       i18n.locale(l);
       activeLocaleRef.current = l;
       if (dict) {

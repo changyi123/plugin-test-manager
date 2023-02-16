@@ -18,14 +18,15 @@ import cx from './index.less';
 
 /** 用例库视图切换 */
 const ViewModeSelector = ({ viewMode, onViewModeChange }) => {
+  const { t } = useI18n();
   const tabs = [
     {
       key: 'list',
-      text: '列表',
+      text: t('page.repository.list'),
     },
     {
       key: 'minder',
-      text: '脑图',
+      text: t('page.repository.minder'),
     },
   ];
 
@@ -50,8 +51,6 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
   const [viewMode, setViewMode] = React.useState('list');
   const [selectedNodeKey, setSelectedNodeKey] = React.useState(null);
   const { t } = useI18n();
-
-  console.info('common.testManager ---------------->', t('common.testManager'));
 
   const {
     data: folderTreeData = [],
@@ -80,7 +79,7 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
     <PageLayout className={cx('test-repository')}>
       <PageLayout.Header>
         <header className={cx('header')}>
-          <h6>测试用例库</h6>
+          <h6>{t('common.testRepository')}</h6>
           <ViewModeSelector viewMode={viewMode} onViewModeChange={setViewMode} />
         </header>
       </PageLayout.Header>

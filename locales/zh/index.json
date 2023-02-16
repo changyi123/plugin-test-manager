@@ -225,7 +225,7 @@
         "createChildFolderSuccess": "子模块新建成功",
         "renameFolder": "重命名模块",
         "renameFolderSuccess": "模块重命被为",
-        "deleteFolder": "重命名模块",
+        "deleteFolder": "删除模块",
         "deleteFolderTips": [
           "确定删除",
           "模块吗",
@@ -288,6 +288,7 @@
           "dropCaseToGroup": "拖动至用例分组"
         },
         "minder": {
+          "dataError": "数据错误",
           "overMaxLevelModulePath": "模块已超过最大层级限制，请修改后再进行保存",
           "updateDataSuccess": "数据更新成功",
           "saveFail": "保存失败"

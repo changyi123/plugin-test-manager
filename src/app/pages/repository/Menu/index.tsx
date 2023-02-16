@@ -3,6 +3,7 @@ import ContextMenu, {
   openContextMenuProps,
   openContextMenu,
 } from '@/components/common/ContextMenu';
+import useI18n from '@/lib/hooks/useI18n';
 
 export enum MenuKey {
   createFolder = 'createFolder',
@@ -21,38 +22,38 @@ export enum MenuKey {
   createTestWithTestPlan = 'createTestWithTestPlan',
   createTestWithTestExecution = 'createTestWithTestExecution',
 }
-const FolderTreeMenus = [
+const FolderTreeMenus = t => [
   {
-    title: '新建子模块',
+    title: t('page.repository.menu.menusName')?.[0],
     key: MenuKey.createFolder,
   },
   {
-    title: '重命名',
+    title: t('page.repository.menu.menusName')?.[1],
     key: MenuKey.renameFolder,
   },
   {
-    title: '删除',
+    title: t('page.repository.menu.menusName')?.[2],
     key: MenuKey.deleteFolder,
   },
   { key: 'Divider' },
   {
-    title: '展开',
+    title: t('page.repository.menu.menusName')?.[3],
     key: MenuKey.expandFolder,
   },
   { key: 'Divider' },
   {
-    title: '新建测试用例',
+    title: t('page.repository.menu.menusName')?.[4],
     key: MenuKey.createTest,
   },
   {
-    title: '导入用例',
+    title: t('page.repository.menu.menusName')?.[5],
     key: MenuKey.importTest,
   },
 ];
 
-const TestCaseMenus = [
+const TestCaseMenus = t => [
   {
-    title: '查看测试用例',
+    title: t('page.repository.menu.menusName')?.[6],
     key: MenuKey.viewTest,
   },
   // { key: 'Divider' },
@@ -72,16 +73,17 @@ const TestCaseMenus = [
 ];
 
 export const FolderMenu = props => {
-  return <ContextMenu menuList={FolderTreeMenus} {...props} />;
+  const { t } = useI18n();
+  return <ContextMenu menuList={FolderTreeMenus(t)} {...props} />;
 };
 
 export const openFolderMenu = (
   el: HTMLElement,
-  args: { onClick: (key: MenuKey) => void } & Omit<openContextMenuProps, 'menuList' | 'onClick'>,
+  args: { t; onClick: (key: MenuKey) => void } & Omit<openContextMenuProps, 'menuList' | 'onClick'>,
 ) => {
-  const { onClick, ...restArgs } = args;
+  const { onClick, t, ...restArgs } = args;
   openContextMenu(el, {
-    menuList: FolderTreeMenus,
+    menuList: FolderTreeMenus(t),
     onClick: ({ key }) => {
       onClick(key as MenuKey);
     },
@@ -90,16 +92,17 @@ export const openFolderMenu = (
 };
 
 export const TestMenu = props => {
-  return <ContextMenu menuList={TestCaseMenus} {...props} />;
+  const { t } = useI18n();
+  return <ContextMenu menuList={TestCaseMenus(t)} {...props} />;
 };
 
 export const openTestMenu = (
   el: HTMLElement,
-  args: { onClick: (key: MenuKey) => void } & Omit<openContextMenuProps, 'menuList' | 'onClick'>,
+  args: { t; onClick: (key: MenuKey) => void } & Omit<openContextMenuProps, 'menuList' | 'onClick'>,
 ) => {
-  const { onClick, ...restArgs } = args;
+  const { onClick, t, ...restArgs } = args;
   openContextMenu(el, {
-    menuList: TestCaseMenus,
+    menuList: TestCaseMenus(t),
     onClick: ({ key }) => {
       onClick(key as MenuKey);
     },
