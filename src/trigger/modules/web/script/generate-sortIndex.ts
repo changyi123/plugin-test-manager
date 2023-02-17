@@ -1,13 +1,5 @@
 import { iqlRequest } from '../../../lib/iqlRequest';
 import { TestType } from '../../../../common/constant';
-import { i18n } from '@giteeteam/apps-team-api';
-
-// export const run = async () => {
-//   console.log(i18n.t('key'));
-//   return i18n.t('profile.name');
-// };
-
-console.info('i18n ----------------->', i18n.t('common.overview'));
 
 const { list = [], workspaceKey } = global?.body ?? {};
 

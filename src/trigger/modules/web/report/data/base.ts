@@ -1,6 +1,7 @@
 /**
  * @file 测试报告模板基础数据
  * */
+import { i18n } from '@giteeteam/apps-team-api';
 
 // 已完成的状态类型
 const FinishedStatusType = 'Finished';
@@ -158,7 +159,7 @@ const getTrendLine = datas => {
   return {
     noData: !datas?.length,
     title: {
-      text: '缺陷收敛趋势图',
+      text: i18n.t('trigger.web.report.defectChart'),
       left: 'center',
       textStyle: {
         fontSize: 28,
@@ -192,7 +193,7 @@ const getTrendLine = datas => {
     },
     series: [
       {
-        name: '缺陷数',
+        name: i18n.t('trigger.web.report.defectCount'),
         data: yData,
         type: 'line',
         label: {
@@ -208,7 +209,7 @@ const getLevelPie = datas => {
   return {
     noData: !datas?.length,
     title: {
-      text: '缺陷严重程度统计表',
+      text: i18n.t('trigger.web.report.defectSeverityTable'),
       left: 'center',
       textStyle: {
         fontSize: 28,
@@ -238,7 +239,7 @@ const getLevelPie = datas => {
     },
     series: [
       {
-        name: '严重程度',
+        name: i18n.t('trigger.web.report.severity'),
         type: 'pie',
         radius: '50%',
         label: {
@@ -246,10 +247,10 @@ const getLevelPie = datas => {
           formatter: '{c}',
         },
         data: [
-          { value: 0, name: '严重' },
-          { value: 0, name: '一般' },
-          { value: 0, name: '微小' },
-          { value: 0, name: '建议' },
+          { value: 0, name: i18n.t('trigger.web.report.severityValue.0') },
+          { value: 0, name: i18n.t('trigger.web.report.severityValue.1') },
+          { value: 0, name: i18n.t('trigger.web.report.severityValue.2') },
+          { value: 0, name: i18n.t('trigger.web.report.severityValue.3') },
         ],
         emphasis: {
           itemStyle: {
@@ -288,7 +289,7 @@ const getStatusBar = datas => {
   return {
     noData: !datas?.length,
     title: {
-      text: '缺陷状态分析',
+      text: i18n.t('trigger.web.report.defectStatusAnalysis'),
       left: 'center',
       textStyle: {
         fontSize: 28,
@@ -337,7 +338,7 @@ export async function main() {
   } catch (error) {
     console.error('report base error', error);
     return {
-      error: ['导出测试报告失败'],
+      error: [i18n.t('common.exportReportFail')],
     };
   }
 }

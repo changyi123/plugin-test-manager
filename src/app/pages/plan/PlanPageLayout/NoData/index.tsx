@@ -3,6 +3,7 @@ import { Button, Empty } from 'antd';
 import emptyImg from '@/icons/svg/empty-data.png';
 import { useBaseAction } from '@/lib/hooks/useContext';
 import { TestType } from '@/lib/constants';
+import useI18n from '@/lib/hooks/useI18n';
 
 import cx from './index.less';
 
@@ -11,10 +12,11 @@ interface NoDataProps {
 }
 
 const NoData: React.FC<NoDataProps> = ({ createTestExecution }) => {
+  const { t } = useI18n();
   const { getCreatePermission } = useBaseAction();
   return (
     <div className={cx('no-data-box')}>
-      <Empty description="暂无测试执行任务" image={emptyImg}>
+      <Empty description={t('page.plan.planPageLayout.noData.description')} image={emptyImg}>
         <Button
           type="primary"
           disabled={getCreatePermission(TestType.Execution)}
@@ -22,7 +24,7 @@ const NoData: React.FC<NoDataProps> = ({ createTestExecution }) => {
             createTestExecution();
           }}
         >
-          新建测试执行任务
+          {t('common.createTestExecution')}
         </Button>
       </Empty>
     </div>

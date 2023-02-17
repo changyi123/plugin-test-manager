@@ -30,6 +30,7 @@ import { getCurrentUserSetting, saveUserSetting } from '@/lib/api/userSetting';
 import { useCurrentUser } from '@/lib/api/user';
 import { useBaseAction } from '@/lib/hooks/useContext';
 import createProximaSdk from '@projectproxima/proxima-sdk-js';
+import useI18n from '@/lib/hooks/useI18n';
 
 import cx from './index.less';
 
@@ -62,6 +63,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     mutateStatusEvent,
     tableSelectionToggleEvent,
   } = usePageContext();
+  const { t } = useI18n();
   const proxima = createProximaSdk();
   const { getCreatePermission } = useBaseAction();
   const actionRef = React.useRef<BusinessTableActionType>();
@@ -309,11 +311,11 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       await scopedTestDetailRefresh();
 
       notification.success({
-        message: `${testDetails.length} 个测试用例从测试计划中移除`,
+        message: `${testDetails.length} ${t('page.plan.testEntityList.removeCaseMessage')}`,
       });
       // refreshPlanData();
     },
-    [scopedTestDetailRefresh],
+    [scopedTestDetailRefresh, t],
   );
 
   const allTestColumns = [
@@ -322,7 +324,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       key: 'title',
       fixed: true,
       isSystem: true,
-      title: '标题',
+      title: t('common.title'),
       className: 'test-case-title',
       extraProps: {
         onClick: record => {
@@ -340,7 +342,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     },
     {
       key: 'repositoryGroup',
-      title: '所属模块',
+      title: t('page.plan.testEntityList.repositoryGroup'),
       width: 200,
       render(_, rowData) {
         return <RepositoryGroup rowData={rowData}></RepositoryGroup>;
@@ -348,7 +350,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     },
     {
       key: 'caseLatestStatus',
-      title: '最新执行状态',
+      title: t('page.plan.testEntityList.caseLatestStatus'),
       width: 200,
       render(_, rowData) {
         return (
@@ -358,7 +360,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     },
     {
       key: 'runCount',
-      title: <span>执行任务次数</span>,
+      title: <span>{t('page.plan.testEntityList.runCount')}</span>,
       width: 140,
       render(_, rowData) {
         return rowData.runCount ?? 0;
@@ -367,19 +369,19 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     {
       key: 'action',
       isSystem: true,
-      title: '操作',
+      title: t('common.action'),
       width: 90,
       fixed: 'right' as any,
       render(_, rowData) {
         return (
           <a
             onClick={() => {
-              actionConfirm('该操作会将该测试用例从测试计划中移除，是否继续操作？', () => {
+              actionConfirm(t('page.plan.testEntityList.removeCaseTips'), () => {
                 removeTestRelation(rowData.selectedTestPlanId, [rowData]);
               });
             }}
           >
-            移除
+            {t('common.remove')}
           </a>
         );
       },
@@ -407,7 +409,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
 
   /** 根据列表记录删除测试执行 */
   const deleteTestRunByIds = useMemoizedFn(testRunIds => {
-    actionConfirm('该操作会将所选测试执行删除，是否继续操作？', async () => {
+    actionConfirm(t('page.plan.testEntityList.deleteRunTips'), async () => {
       // 删除测试执行
       const res = await deleteTestEntity(testRunIds);
       if (res?.status === 'error') {
@@ -419,7 +421,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       actionRef.current.resetSelectedRowKeys();
       mutateStatusEvent.emit('refreshExecutionStatus');
       notification.success({
-        message: `${testRunIds.length} 个用例执行被删除`,
+        message: `${testRunIds.length} ${t('page.plan.testEntityList.deleteRunMessage')}`,
       });
       proxima.execute('refreshTestRunPanel');
     });
@@ -433,7 +435,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   const executionColumns = [
     {
       key: 'detailName',
-      title: '用例标题',
+      title: t('page.plan.testEntityList.detailName'),
       isSystem: true,
       fixed: true,
       className: 'test-case-title',
@@ -454,7 +456,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     },
     {
       key: 'repositoryGroup',
-      title: '所属模块',
+      title: t('page.plan.testEntityList.repositoryGroup'),
       width: 200,
       render(_, rowData) {
         return <RepositoryGroup rowData={rowData}></RepositoryGroup>;
@@ -462,7 +464,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     },
     {
       key: 'runStatus',
-      title: '测试执行状态',
+      title: t('page.plan.testEntityList.runStatus'),
       shouldCellUpdate: (record, prevRecord) =>
         !isEqual(record.designee, prevRecord.designee) ||
         !isEqual(record.runStatus, prevRecord.runStatus),
@@ -481,7 +483,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     },
     {
       key: 'executor',
-      title: '最近操作执行人',
+      title: t('page.plan.testEntityList.executor'),
       width: 150,
       render(_, record) {
         return <Field.User readonly userInfo={record?.executor?.[0]} />;
@@ -489,7 +491,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     },
     {
       key: 'designee',
-      title: '执行人',
+      title: t('page.plan.testEntityList.designee'),
       width: 150,
       render(_, record) {
         return <Field.User userInfo={record?.designee} />;
@@ -497,7 +499,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     },
     {
       key: 'action',
-      title: '操作',
+      title: t('common.action'),
       isSystem: true,
       fixed: 'right' as any,
       shouldCellUpdate: (record, prevRecord) =>
@@ -520,7 +522,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
                   mutateStatusEvent.emit('refreshExecutionStatus');
                 }}
               >
-                执行
+                {t('common.run')}
               </Button>
             </Tooltip>
             <Button
@@ -531,7 +533,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
                 deleteTestRunByIds([record.objectId]);
               }}
             >
-              删除
+              {t('common.delete')}
             </Button>
           </div>
         );
@@ -542,7 +544,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   const selectionActionNodes = React.useMemo(() => {
     const handleDelete = () => {
       if (hasRowSelected) {
-        actionConfirm('该操作会将所选测试用例从测试计划中移除，是否继续操作？', async () => {
+        actionConfirm(t('page.plan.testEntityList.removeCaseTips1'), async () => {
           setTableLoading(true);
           const { list: items } = await getTestEntityByQuery({
             query: {
@@ -610,7 +612,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
 
       setTableLoading(false);
       notification.success({
-        message: `${testIds.length} 个测试负责人已更新`,
+        message: `${testIds.length} ${t('page.plan.testEntityList.updateAssigneeTips')}`,
       });
     };
 
@@ -624,13 +626,13 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         onChange={handleAssigneeChange}
         emptyChild={
           <span className="user-field">
-            <UserOutlined /> 设置负责人
+            <UserOutlined /> {t('page.plan.testEntityList.assigneeSetting')}
           </span>
         }
       />,
 
       <span key="delete" onClick={() => hasRowSelected && handleDelete()}>
-        <DeleteOutlined /> 移除
+        <DeleteOutlined /> {t('common.remove')}
       </span>,
     ];
   }, [
@@ -641,6 +643,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     scopedTestDetailRefresh,
     selectedTestPlan?.objectId,
     mutateTestPlanEvent,
+    t,
   ]);
 
   const InnerTableSelectionActionNodes = React.useMemo(() => {
@@ -648,7 +651,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
 
     const toggleSTestRunStatus = async status => {
       if (getCreatePermission(TestType.Case)) {
-        message.error('暂无事项编辑权限，请检查事项操作权限配置或联系管理员');
+        message.error(t('page.plan.testEntityList.editorItemTips'));
         return;
       }
       const testRunIds = getTestRunIds();
@@ -666,7 +669,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       });
 
       notification.success({
-        message: '所选测试执行状态更新成功',
+        message: t('page.plan.testEntityList.updateRunStateTips'),
       });
       setTableLoading(false);
       actionRef.current.refresh();
@@ -677,7 +680,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
 
     const deleteTestRun = () => {
       if (getCreatePermission(TestType.Case)) {
-        message.error('暂无事项删除权限，请检查事项操作权限配置或联系管理员');
+        message.error(t('page.plan.testEntityList.deleteItemTips'));
         return;
       }
       const testRunIds = getTestRunIds();
@@ -687,7 +690,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     // 更新测试执行人
     const handleDesigneeChange = async users => {
       if (getCreatePermission(TestType.Case)) {
-        message.error('暂无事项编辑权限，请检查事项操作权限配置或联系管理员');
+        message.error(t('page.plan.testEntityList.deleteItemTips'));
         return;
       }
       const testRunIds = getTestRunIds();
@@ -706,7 +709,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       }
 
       notification.success({
-        message: '所选测试执行人更新成功',
+        message: t('page.plan.testEntityList.updateDesigneeStateTips'),
       });
       setTableLoading(false);
       actionRef.current.refresh();
@@ -718,7 +721,10 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     const canDesigneeSelect = canAssignTestRun();
 
     return [
-      <Tooltip key="assignee" title={canDesigneeSelect ? null : '不可对用例更改执行人'}>
+      <Tooltip
+        key="assignee"
+        title={canDesigneeSelect ? null : t('page.plan.testEntityList.notUpdateDesignee')}
+      >
         <span className={cx(!canDesigneeSelect && 'disabled')}>
           <UserCell
             value={[]}
@@ -728,7 +734,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
             onChange={handleDesigneeChange}
             emptyChild={
               <span className="user-field">
-                <UserOutlined /> 更改执行人
+                <UserOutlined /> {t('page.plan.testEntityList.updateDesignee')}
               </span>
             }
           />
@@ -741,13 +747,13 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         key="toggleRunStatus"
         emptyNode={
           <span>
-            <FlagOutlined /> 更改执行状态
+            <FlagOutlined /> {t('page.plan.testEntityList.updateRunStatus')}
           </span>
         }
       />,
 
       <span key="delete" onClick={() => hasRowSelected && deleteTestRun()}>
-        <DeleteOutlined /> 删除
+        <DeleteOutlined /> {t('common.delete')}
       </span>,
     ];
   }, [
@@ -760,6 +766,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     mutateTestPlanEvent,
     mutateStatusEvent,
     deleteTestRunByIds,
+    t,
   ]);
 
   tableSelectionToggleEvent.useSubscription(visible => {

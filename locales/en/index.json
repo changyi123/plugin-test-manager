@@ -44,7 +44,7 @@
     "createTestReport": "Generate test report",
     "cancelAction": "cancel operation",
     "batchAction": " Batch operation",
-    "panCase": "Planning test cases",
+    "planCase": "Planning test cases",
     "run": "Executive",
     "precondition": "Preconditions",
     "preconditionPlaceholder": "Please enter test case preconditions",
@@ -288,7 +288,8 @@
           "dropCaseToGroup": "Drag to test case group"
         },
         "minder": {
-          "dataError": "数据错误",
+          "dataError": "Data error",
+          "nameRepeat": ["Save fail, modules", "with the same module name"],
           "overMaxLevelModulePath": "The module has exceeded the maximum level limit, please modify it before saving",
           "updateDataSuccess": "Data updated successfully",
           "saveFail": "Save failed"
@@ -389,7 +390,6 @@
           "The number of characters in the group to which the article belongs exceeds 30 characters, it will not be imported",
           "The number of characters in the precondition of the entry exceeds the limit, the precondition is limited to 1000 characters and will not be imported",
           "Incorrectly formatted step description for article, not imported",
-          "Article of test cases",
           "Article step description exceeds limit,the step description limit 500 characters are not imported",
           "The expected result is in the wrong format and will not be imported",
           "Article expected result exceeds limit,the expected result limit 500 characters are not imported",
@@ -412,7 +412,8 @@
         ],
         "defectCount": "Number of defects",
         "defectChart": "Defect convergence trend graph",
-        "none": "No "
+        "none": "No",
+        "canceled": "Canceled"
       },
       "script": {
         "defectStatist": "Defect statistics",
