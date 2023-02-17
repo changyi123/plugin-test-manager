@@ -383,9 +383,7 @@ export const updateTestRunDetail = async (
     },
     ...needUpdateCase,
   ]);
-  if (res?.status === 'error') {
-    message.error(res.data);
-  }
+  return res;
 };
 
 // 新增缺陷关联

@@ -116,7 +116,7 @@ const TestRun: React.FC<TestRunType> = props => {
         },
       });
 
-      return caseData[0];
+      return caseData?.[0];
     },
     {
       ready: Boolean(testRunEntity?.referenceCase),
@@ -238,8 +238,9 @@ const TestRun: React.FC<TestRunType> = props => {
     ) {
       (async () => {
         const steps = await getTestStepsByTestDetailId(refTestDetailData?.objectId);
+        if (!refTestDetailData.detail?.precondition && !steps?.length) return;
         try {
-          await updateTestRunDetail(
+          const res = await updateTestRunDetail(
             testRunEntity,
             {
               steps: steps,
@@ -252,6 +253,10 @@ const TestRun: React.FC<TestRunType> = props => {
               initialization: true,
             },
           );
+          if (res.status === 'error') {
+            message.error(res.data);
+            return;
+          }
           refreshTestRun();
         } catch (err) {
           message.error(err.message);
