@@ -146,7 +146,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
     const deleteTestCase = () => {
       const testDetailIds = tableActionRef.current.selectedRowKeys;
 
-      actionConfirm(t('page.repository.view.list.actionConfirm')?.[0], async () => {
+      actionConfirm(t('page.repository.view.list.actionConfirm.0'), async () => {
         setTableLoading(true);
         const res = await deleteTestEntity(testDetailIds);
         if (res?.status === 'error') {
@@ -242,7 +242,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
 
   const columns = React.useMemo(() => {
     const deleteTestDetail = data => {
-      actionConfirm(t('page.repository.view.list.actionConfirm')?.[1], async () => {
+      actionConfirm(t('page.repository.view.list.actionConfirm.1'), async () => {
         setTableLoading(true);
         const res = await deleteTestEntity([data.objectId]);
         if (res?.status === 'error') {

@@ -206,19 +206,19 @@ const FolderTree: React.FC<FolderTreeProps> = ({
     const nodeNames = nodes.map(n => n.name);
     if (nodeNames.includes(inputName)) {
       notification.error({
-        message: t('page.repository.folderTree.inputNameValidatorMessage')?.[0],
+        message: t('page.repository.folderTree.inputNameValidatorMessage.0'),
       });
       throw new Error('can not set same name');
     }
     if (!inputName) {
       notification.error({
-        message: t('page.repository.folderTree.inputNameValidatorMessage')?.[1],
+        message: t('page.repository.folderTree.inputNameValidatorMessage.1'),
       });
       throw new Error('required name');
     }
     if (inputName.length > 30) {
       notification.error({
-        message: t('page.repository.folderTree.inputNameValidatorMessage')?.[2],
+        message: t('page.repository.folderTree.inputNameValidatorMessage.2'),
       });
       throw new Error('max length');
     }
@@ -290,11 +290,11 @@ const FolderTree: React.FC<FolderTreeProps> = ({
           content: (
             <>
               <div>
-                {t('page.repository.folderTree.deleteFolderTips')?.[0]}【{node.name}】
-                {t('page.repository.folderTree.deleteFolderTips')?.[1]}？
+                {t('page.repository.folderTree.deleteFolderTips.0')}【{node.name}】
+                {t('page.repository.folderTree.deleteFolderTips.1')}？
               </div>
               <div style={{ marginLeft: 14 }}>
-                {t('page.repository.folderTree.deleteFolderTips')?.[2]}
+                {t('page.repository.folderTree.deleteFolderTips.2')}
               </div>
             </>
           ),
@@ -348,12 +348,10 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         await updateFolders([node]);
         const successMessage =
           testEntityList.length > 1
-            ? `${testEntityList.length}${
-                t('page.repository.folderTree.caseCreateSuccessTips')?.[0]
-              }`
-            : `${t('page.repository.folderTree.caseCreateSuccessTips')?.[1]}【${
+            ? `${testEntityList.length}${t('page.repository.folderTree.caseCreateSuccessTips.0')}`
+            : `${t('page.repository.folderTree.caseCreateSuccessTips.1')}【${
                 testEntityList[0]?.name
-              }】${t('page.repository.folderTree.caseCreateSuccessTips')?.[2]}`;
+              }】${t('page.repository.folderTree.caseCreateSuccessTips.2')}`;
         notification.success({
           message: successMessage,
         });
@@ -458,21 +456,21 @@ const FolderTree: React.FC<FolderTreeProps> = ({
 
   const ToolKitButtons = [
     <Button
-      key={t('page.repository.folderTree.buttonName')?.[0]}
+      key={t('page.repository.folderTree.buttonName.0')}
       onClick={() => handleMenuClick(MenuKey.createFolder, selectedTreeNode)}
       style={{ height: 24, width: 24 }}
       icon={<CustomPlus />}
       type="text"
     />,
     <Button
-      key={t('page.repository.folderTree.buttonName')?.[1]}
+      key={t('page.repository.folderTree.buttonName.1')}
       style={{ height: 24, width: 24 }}
       onClick={() => (state.expandedKeys = [])}
       icon={<CustomScreenOff />}
       type="text"
     />,
     <Dropdown
-      key={t('page.repository.folderTree.buttonName')?.[2]}
+      key={t('page.repository.folderTree.buttonName.2')}
       disabled={selectedTreeNode?.key === UNGROUPED_FOLDER_KEY}
       overlay={
         <FolderMenu
@@ -501,7 +499,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
       }
 
       notification.success({
-        message: t('page.repository.folderTree.dropCaseTips')?.[0],
+        message: t('page.repository.folderTree.dropCaseTips.0'),
       });
 
       const refreshedTreeNodes = await onFolderTreeChange();
@@ -595,7 +593,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         // 拖拽到子级, 排序到子节点的首位
         if (validateHierarchy(0)) {
           notification.warn({
-            message: t('page.repository.folderTree.dropCaseTips')?.[1],
+            message: t('page.repository.folderTree.dropCaseTips.1'),
           });
           return;
         }
@@ -613,7 +611,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         // 拖拽目标用例库底部，排序到首位
         if (validateHierarchy(0)) {
           notification.warn({
-            message: t('page.repository.folderTree.dropCaseTips')?.[1],
+            message: t('page.repository.folderTree.dropCaseTips.1'),
           });
           return;
         }
@@ -629,7 +627,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         if (dropKey === 'root') return;
         if (validateHierarchy(1)) {
           notification.warn({
-            message: t('page.repository.folderTree.dropCaseTips')?.[1],
+            message: t('page.repository.folderTree.dropCaseTips.1'),
           });
           return;
         }

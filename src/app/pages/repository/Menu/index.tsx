@@ -24,36 +24,36 @@ export enum MenuKey {
 }
 const FolderTreeMenus = t => [
   {
-    title: t('page.repository.menu.menusName')?.[0],
+    title: t('page.repository.menu.menusName.0'),
     key: MenuKey.createFolder,
   },
   {
-    title: t('page.repository.menu.menusName')?.[1],
+    title: t('page.repository.menu.menusName.1'),
     key: MenuKey.renameFolder,
   },
   {
-    title: t('page.repository.menu.menusName')?.[2],
+    title: t('page.repository.menu.menusName.2'),
     key: MenuKey.deleteFolder,
   },
   { key: 'Divider' },
   {
-    title: t('page.repository.menu.menusName')?.[3],
+    title: t('page.repository.menu.menusName.3'),
     key: MenuKey.expandFolder,
   },
   { key: 'Divider' },
   {
-    title: t('page.repository.menu.menusName')?.[4],
+    title: t('page.repository.menu.menusName.4'),
     key: MenuKey.createTest,
   },
   {
-    title: t('page.repository.menu.menusName')?.[5],
+    title: t('page.repository.menu.menusName.5'),
     key: MenuKey.importTest,
   },
 ];
 
 const TestCaseMenus = t => [
   {
-    title: t('page.repository.menu.menusName')?.[6],
+    title: t('page.repository.menu.menusName.6'),
     key: MenuKey.viewTest,
   },
   // { key: 'Divider' },

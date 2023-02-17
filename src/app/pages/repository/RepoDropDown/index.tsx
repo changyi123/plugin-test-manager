@@ -104,16 +104,16 @@ const RepoDropDown = ({
     <Menu onClick={e => menuClick(e)}>
       {type === 'repository' && (
         <>
-          <Menu.Item key="import">{t('page.repository.repoDropDown.MenuItem')?.[0]}</Menu.Item>
-          <Menu.Item key="example">{t('page.repository.repoDropDown.MenuItem')?.[1]}</Menu.Item>
-          <Menu.Item key="exportAll">{t('page.repository.repoDropDown.MenuItem')?.[2]}</Menu.Item>
-          <Menu.Item key="exportGroup">{t('page.repository.repoDropDown.MenuItem')?.[3]}</Menu.Item>
+          <Menu.Item key="import">{t('page.repository.repoDropDown.MenuItem.0')}</Menu.Item>
+          <Menu.Item key="example">{t('page.repository.repoDropDown.MenuItem.1')}</Menu.Item>
+          <Menu.Item key="exportAll">{t('page.repository.repoDropDown.MenuItem.2')}</Menu.Item>
+          <Menu.Item key="exportGroup">{t('page.repository.repoDropDown.MenuItem.3')}</Menu.Item>
         </>
       )}
       {type === 'plan' && (
         <>
           <Menu.Item key="exportPlan" disabled={!selectedTestPlanId}>
-            {t('page.repository.repoDropDown.MenuItem')?.[4]}
+            {t('page.repository.repoDropDown.MenuItem.4')}
           </Menu.Item>
         </>
       )}

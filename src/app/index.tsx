@@ -2,17 +2,9 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import App from './App';
 import { ProximaSDK } from '@projectproxima/plugin-sdk';
+import { getMessages } from './lib/utils/locale';
 
 import './index.global.less';
-import { getMessages } from './lib/utils/locale';
-// import i18n from 'i18next';
-// import resources from '../../locales';
-
-// i18n.init({
-//   resources,
-//   lng: 'zh',
-//   preload: ['zh', 'en'],
-// });
 
 const rootElement = '#test-manager';
 

@@ -160,10 +160,10 @@ const ListView: React.FC<ViewComponentProps> = ({
 
     const successMessage =
       testEntityList.length > 1
-        ? `${testEntityList.length}${t('page.repository.folderTree.caseCreateSuccessTips')?.[0]}`
-        : `${t('page.repository.folderTree.caseCreateSuccessTips')?.[1]}【${
+        ? `${testEntityList.length}${t('page.repository.folderTree.caseCreateSuccessTips.0')}`
+        : `${t('page.repository.folderTree.caseCreateSuccessTips.1')}【${
             testEntityList[0]?.name
-          }】${t('page.repository.folderTree.caseCreateSuccessTips')?.[2]}`;
+          }】${t('page.repository.folderTree.caseCreateSuccessTips.2')}`;
     notification.success({
       message: successMessage,
     });
