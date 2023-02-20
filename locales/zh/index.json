@@ -73,6 +73,7 @@
         "title": "用例执行配置",
         "description": "配置当前空间在用例执行时的约束",
         "caseToPlan": "用例分配授权",
+        "placeholder": "请选择用户",
         "testersCannotExecuteOtherCases": "测试人员不可执行他人测试用例",
         "unassignedCaseCannotBeExecuted": "未分配的测试用例无法执行"
       },
@@ -98,23 +99,27 @@
           "事项管理的视图面板内所有类型下拉选择框无法选择测试管理插件内置的三种类型"
         ],
         "messageError": "测试管理内置的类型不存在，无法开启此配置",
-        "warningTips": "当前操作会使全部测试空间类型关联配置类型被覆盖！！！",
+        "warningTips": "当前操作会使全部测试空间类型关联配置类型被覆盖",
         "messageSuccess": "测试管理系统隔离操作成功",
         "enableTestManagerSystemIsolation": "开启测试管理系统隔离",
-        "systemTips": "测试管理系统隔离说明",
-        "wordTemplate": {
-          "title": "测试报告模板管理",
-          "description": "测试报告模板管理",
-          "templateName": "模板名称",
-          "uploadTestReportTemplate": "上传测试报告模板",
-          "editorTestReportTemplate": "编辑测试报告模板",
-          "deleteTemplate": "删除模板",
-          "areYouSureToDeleteThisTemplate": "确定删除该模板吗？"
-        },
-        "isolatedSystem": {
-          "title": "测试管理系统隔离",
-          "description": "配置测试管理系统与业务系统进行隔离"
-        }
+        "systemTips": "测试管理系统隔离说明"
+      },
+      "wordTemplate": {
+        "title": "测试报告模板管理",
+        "description": "测试报告模板管理",
+        "templateName": "模板名称",
+        "uploadTestReportTemplate": "上传测试报告模板",
+        "uploadTemplate": "上传报告模板",
+        "editorTestReportTemplate": "编辑测试报告模板",
+        "deleteTemplate": "删除模板",
+        "areYouSureToDeleteThisTemplate": "确定删除该模板吗？",
+        "ruleTips": "请输入模板名称",
+        "uploadFile": "模板上传",
+        "uploadFileTips": "请上传模板"
+      },
+      "isolatedSystem": {
+        "title": "测试管理系统隔离",
+        "description": "配置测试管理系统与业务系统进行隔离"
       },
       "tableFields": {
         "title": "表头及检索项设置",

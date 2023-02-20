@@ -5,6 +5,7 @@ import { useCurrentTestConfig, useDataContext } from '../hooks';
 import TableConfig from './TableConfig';
 import { updateAllTestConfigs, updateGlobalConfig } from '@/lib/api/common';
 import { BusinessTableActionType } from '@/components/common/BusinessTable';
+import useI18n from '@/lib/hooks/useI18n';
 
 import cx from './style.less';
 
@@ -26,6 +27,7 @@ const TableFields: React.FC = () => {
     checkAllWorkspace,
     setShowAllWorkspaceCheck,
   } = useDataContext();
+  const { t } = useI18n();
   const testPlanRef = useRef<BusinessTableActionType>();
   const testCaseRef = useRef<BusinessTableActionType>();
   const testConfig = useCurrentTestConfig(workspace?.key);
@@ -87,9 +89,9 @@ const TableFields: React.FC = () => {
       });
       refreshGlobalConfig();
     }
-    message.success('表头及检索项配置保存成功');
+    message.success(t('page.config.tableFields.messageSuccess'));
     setLoading(false);
-  }, [tableFieldsData, checkAllWorkspace, globalConfig, testConfig, refreshGlobalConfig]);
+  }, [tableFieldsData, checkAllWorkspace, globalConfig, testConfig, refreshGlobalConfig, t]);
 
   const testPlanColumns: any[] = [
     {
@@ -97,7 +99,7 @@ const TableFields: React.FC = () => {
       key: 'title',
       fixed: true,
       isSystem: true,
-      title: '计划名称',
+      title: t('page.config.tableFields.planName'),
     },
     {
       title: null,
@@ -113,7 +115,7 @@ const TableFields: React.FC = () => {
       width: 60,
       key: 'title',
       fixed: true,
-      title: '标题',
+      title: t('common.title'),
       isSystem: true,
     },
     {
@@ -129,7 +131,7 @@ const TableFields: React.FC = () => {
     <Spin spinning={loading}>
       <div className={cx('table-fields')}>
         <div className={cx('setting-box')}>
-          <div className={cx('title')}>测试计划-表头</div>
+          <div className={cx('title')}>{t('page.config.tableFields.testPlanHeader')}</div>
           <div className={cx('setting-table', 'plan')}>
             <TableConfig
               testType={TestType.Plan}
@@ -148,7 +150,7 @@ const TableFields: React.FC = () => {
           </div>
         </div>
         <div className={cx('setting-box', 'mg-top-m')}>
-          <div className={cx('title')}>测试用例-表头</div>
+          <div className={cx('title')}>{t('page.config.tableFields.testCaseHeader')}</div>
           <div className={cx('setting-table', 'case')}>
             <TableConfig
               testType={TestType.Case}
@@ -167,7 +169,7 @@ const TableFields: React.FC = () => {
           </div>
         </div>
         <Button type="primary" className={cx('action-btn')} onClick={saveConfig}>
-          保存
+          {t('common.save')}
         </Button>
       </div>
     </Spin>

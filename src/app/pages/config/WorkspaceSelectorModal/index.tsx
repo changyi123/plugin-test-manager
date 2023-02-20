@@ -4,6 +4,7 @@ import { Modal, Select } from 'antd';
 import EventBus from '@/lib/utils/eventBus';
 import { getRootContainer } from '@/lib/utils/helper';
 import { useAllTestWorkspace } from '@/lib/hooks/useTest';
+import useI18n from '@/lib/hooks/useI18n';
 
 const CLICK_OK_EVENT_TYPE = 'CLICK_OK_EVENT_TYPE';
 
@@ -18,6 +19,7 @@ const WorkspaceSelectorModal: React.FC<WorkspaceSelectorModalProps> = ({ actionR
     visible: false,
     selectValue: null,
   });
+  const { t } = useI18n();
 
   const eventBusRef = React.useRef(new EventBus());
 
@@ -63,8 +65,8 @@ const WorkspaceSelectorModal: React.FC<WorkspaceSelectorModalProps> = ({ actionR
   const selectContainerRef = React.useRef();
   return (
     <Modal
-      visible={state.visible}
-      title="请选择测试管理配置空间"
+      open={state.visible}
+      title={t('page.config.workspaceSelectorModal.modelTitle')}
       okButtonProps={{
         disabled: !state.selectValue,
       }}
@@ -81,7 +83,7 @@ const WorkspaceSelectorModal: React.FC<WorkspaceSelectorModalProps> = ({ actionR
         <Select
           showSearch
           optionFilterProp="data"
-          placeholder="请选择空间"
+          placeholder={t('page.config.workspaceSelectorModal.placeholder')}
           style={{ width: '100%' }}
           value={state.selectValue}
           options={workspaceOptions}

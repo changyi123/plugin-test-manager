@@ -73,6 +73,7 @@
         "title": "Test case execution configuration",
         "description": "Configure the constraints of the current workspace during test case execution",
         "caseToPlan": "Test case assignment authorization",
+        "placeholder": "Please select a user",
         "testersCannotExecuteOtherCases": "Testers may not execute others test cases",
         "unassignedCaseCannotBeExecuted": "Unassigned test cases cannot be executed"
       },
@@ -101,20 +102,24 @@
         "warningTips": "The current action will cause all test space type associated configuration types to be overwritten",
         "messageSuccess": "Test management system isolation operation successful",
         "enableTestManagerSystemIsolation": "Enable test management System isolation",
-        "systemTips": "Test management system isolation description",
-        "wordTemplate": {
-          "title": "Test report template management",
-          "description": "Test report template management",
-          "templateName": "Template name",
-          "uploadTestReportTemplate": "Upload test report template",
-          "editorTestReportTemplate": "Edit test report Template",
-          "deleteTemplate": "Delete template",
-          "areYouSureToDeleteThisTemplate": "Sure to delete this template"
-        },
-        "isolatedSystem": {
-          "title": "Test management system isolation",
-          "description": "Configure the test management system to be isolated from the business system"
-        }
+        "systemTips": "Test management system isolation description"
+      },
+      "wordTemplate": {
+        "title": "Test report template management",
+        "description": "Test report template management",
+        "templateName": "Template name",
+        "uploadTestReportTemplate": "Upload test report template",
+        "uploadTemplate": "Upload report template",
+        "editorTestReportTemplate": "Edit test report Template",
+        "deleteTemplate": "Delete template",
+        "areYouSureToDeleteThisTemplate": "Sure to delete this template",
+        "ruleTips": "Please enter a template name",
+        "uploadFile": "Upload report template",
+        "uploadFileTips": "Please upload test report template"
+      },
+      "isolatedSystem": {
+        "title": "Test management system isolation",
+        "description": "Configure the test management system to be isolated from the business system"
       },
       "tableFields": {
         "title": "Table header and search item settings",
