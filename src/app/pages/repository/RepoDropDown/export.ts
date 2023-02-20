@@ -246,7 +246,11 @@ const importTestInfo = async (args: ImportArgs, excelData = []) => {
       planId: checkedId,
     });
   } else {
-    let checkRepoKeys = typeof checkedId === 'string' ? [checkedId] : [];
+    let repositoryKeys =
+      ['exportAll', 'exportChildGroup'].includes(type) && checkedId === UNGROUPED_FOLDER_KEY
+        ? null
+        : [checkedId];
+
     const repoData = await getRepositoryData([workspace.key]);
 
     // 导出当前分组及其字分组，需要特殊处理 repository 数据
@@ -266,7 +270,7 @@ const importTestInfo = async (args: ImportArgs, excelData = []) => {
         childRepoKeys = childRepoKeys.concat(node.key);
       });
 
-      checkRepoKeys = childRepoKeys;
+      repositoryKeys = childRepoKeys;
     }
 
     // 用例库导出不允许跨空间
@@ -274,14 +278,13 @@ const importTestInfo = async (args: ImportArgs, excelData = []) => {
       query: {
         type: TestType.Case,
         workspaceKey: workspace.key,
-        repository:
-          type === 'exportAll' || checkedId === UNGROUPED_FOLDER_KEY ? null : checkRepoKeys,
+        repository: repositoryKeys,
       },
-      limit: 9999,
+      limit: 99999,
     });
 
     let _results = null;
-    if (checkedId === UNGROUPED_FOLDER_KEY && type !== 'exportAll') {
+    if (checkedId === UNGROUPED_FOLDER_KEY && !['exportAll', 'exportChildGroup'].includes(type)) {
       _results = results.filter(d => !d?.repository?.length);
     }
 
