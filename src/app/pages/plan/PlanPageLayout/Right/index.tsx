@@ -151,7 +151,6 @@ const Right: React.FC<RightProps> = props => {
 
   const addTestDetail = async () => {
     const itemData = await testEntitySelectorRef.current.open();
-    debugger;
 
     if (!itemData.length) {
       return notification.warning({
