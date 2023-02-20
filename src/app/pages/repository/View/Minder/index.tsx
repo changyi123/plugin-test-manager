@@ -325,7 +325,14 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
         .map(i => i.objectId);
 
       if (needRemoveTestCaseIds.length) {
-        tasks.push(deleteTestEntity(needRemoveTestCaseIds));
+        tasks.push(
+          deleteTestEntity(needRemoveTestCaseIds).then(resp => {
+            if (resp?.status === 'error') {
+              throw new Error(resp.data);
+            }
+            return resp;
+          }),
+        );
       }
 
       if (needRemoveRepositoryIds.length) {

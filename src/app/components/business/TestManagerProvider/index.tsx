@@ -10,7 +10,7 @@ import { useOnItemCreateSuccess } from '@/lib/hooks/useProximaSDK';
 import { openCreateItemModal, openItemDetailPanel } from '@/lib/api/sdk';
 import { getTestConfig, getTestConfigByWorkspaceKeys } from '@/lib/api/common';
 import { getItemByIds, getWorkspaceByKey, getItemTypeByKey } from '@/lib/api/proxima';
-import { getKeyByValue, generateSortIndex, alert, hasArrayItem } from '@/lib/utils/helper';
+import { getKeyByValue, generateSortIndex, hasArrayItem } from '@/lib/utils/helper';
 import {
   TestConfigContext,
   BaseActionContext,
@@ -548,10 +548,11 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
 
             // TODO: 消息通知
             if (!expectedTestType) {
-              alert({
-                type: 'warning',
-                message: '新建类型与创建的测试类型未匹配',
-              });
+              // alert({
+              //   type: 'warning',
+              //   message: '新建类型与创建的测试类型未匹配',
+              // });
+              message.error('新建类型与创建的测试类型未匹配');
               reject('新建类型与创建的测试类型未匹配');
               return;
             }
