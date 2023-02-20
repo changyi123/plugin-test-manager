@@ -48,7 +48,7 @@ const RepoDropDown = ({
         window.open(href);
       } else if (key === 'example') {
         downloadExampleFile(testDetailFieldKeys);
-      } else if (['exportAll', 'exportGroup', 'exportPlan'].includes(key)) {
+      } else if (['exportAll', 'exportChildGroup', 'exportGroup', 'exportPlan'].includes(key)) {
         // 导出逻辑
         notification.open({
           message: '测试管理用例导出中',
@@ -56,7 +56,11 @@ const RepoDropDown = ({
           duration: null,
         });
         setPageLoading?.(true);
-        if (type === 'repository' && key === 'exportGroup' && !folderKey) {
+        if (
+          !folderKey &&
+          type === 'repository' &&
+          ['exportGroup', 'exportChildGroup'].includes(key)
+        ) {
           message.warning('未选择用例库，请先选择需要导出的用例库');
           setPageLoading?.(false);
         }
@@ -104,6 +108,7 @@ const RepoDropDown = ({
           <Menu.Item key="example">用例导入模板下载</Menu.Item>
           <Menu.Item key="exportAll">用例导出（所有分组）</Menu.Item>
           <Menu.Item key="exportGroup">用例导出（当前分组）</Menu.Item>
+          <Menu.Item key="exportChildGroup">用例导出（当前分组及子分组）</Menu.Item>
         </>
       )}
       {type === 'plan' && (
