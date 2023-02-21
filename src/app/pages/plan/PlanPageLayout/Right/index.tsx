@@ -106,7 +106,7 @@ const Right: React.FC<RightProps> = props => {
   }, [selectedTestPlan?.objectId]);
 
   const addTestExecutionDetail = useCallback(async () => {
-    const caseIds: string[] = await testEntitySelectorRef.current.open();
+    const { selectedData: caseIds } = await testEntitySelectorRef.current.open();
     if (caseIds?.length === 0) {
       return notification.warning({
         message: t('page.plan.planPageLayout.right.notSelectMessage'),
@@ -270,6 +270,7 @@ const Right: React.FC<RightProps> = props => {
             pageLeftRef.current?.refresh();
           }}
           ignoreTestEntityIds={scopedTestDetailIds}
+          planId={activeType === 'TestPlan' ? '' : selectedTestPlan?.objectId}
         />
       </div>
     </div>

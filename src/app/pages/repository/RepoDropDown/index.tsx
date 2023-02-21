@@ -50,7 +50,7 @@ const RepoDropDown = ({
         window.open(href);
       } else if (key === 'example') {
         downloadExampleFile(testDetailFieldKeys, t);
-      } else if (['exportAll', 'exportGroup', 'exportPlan'].includes(key)) {
+      } else if (['exportAll', 'exportChildGroup', 'exportGroup', 'exportPlan'].includes(key)) {
         // 导出逻辑
         notification.open({
           message: t('page.repository.repoDropDown.importCaseLoading'),
@@ -58,7 +58,11 @@ const RepoDropDown = ({
           duration: null,
         });
         setPageLoading?.(true);
-        if (type === 'repository' && key === 'exportGroup' && !folderKey) {
+        if (
+          !folderKey &&
+          type === 'repository' &&
+          ['exportGroup', 'exportChildGroup'].includes(key)
+        ) {
           message.warning(t('page.repository.repoDropDown.importCaseWarning'));
           setPageLoading?.(false);
         }
@@ -108,12 +112,15 @@ const RepoDropDown = ({
           <Menu.Item key="example">{t('page.repository.repoDropDown.MenuItem.1')}</Menu.Item>
           <Menu.Item key="exportAll">{t('page.repository.repoDropDown.MenuItem.2')}</Menu.Item>
           <Menu.Item key="exportGroup">{t('page.repository.repoDropDown.MenuItem.3')}</Menu.Item>
+          <Menu.Item key="exportChildGroup">
+            {t('page.repository.repoDropDown.MenuItem.4')}
+          </Menu.Item>
         </>
       )}
       {type === 'plan' && (
         <>
           <Menu.Item key="exportPlan" disabled={!selectedTestPlanId}>
-            {t('page.repository.repoDropDown.MenuItem.4')}
+            {t('page.repository.repoDropDown.MenuItem.5')}
           </Menu.Item>
         </>
       )}

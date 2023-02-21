@@ -10,7 +10,7 @@ import { useOnItemCreateSuccess } from '@/lib/hooks/useProximaSDK';
 import { openCreateItemModal, openItemDetailPanel } from '@/lib/api/sdk';
 import { getTestConfig, getTestConfigByWorkspaceKeys } from '@/lib/api/common';
 import { getItemByIds, getWorkspaceByKey, getItemTypeByKey } from '@/lib/api/proxima';
-import { getKeyByValue, generateSortIndex, alert, hasArrayItem } from '@/lib/utils/helper';
+import { getKeyByValue, generateSortIndex, hasArrayItem } from '@/lib/utils/helper';
 import {
   TestConfigContext,
   BaseActionContext,
@@ -355,7 +355,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
     if (itemId && testConfig) {
       execute();
     }
-  }, [itemId, testConfig]);
+  }, [itemId, testConfig, t]);
 
   // 获取全局配置时使用缓存
   const { runAsync: getGlobalConfig } = useRequest(
@@ -555,10 +555,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
 
             // TODO: 消息通知
             if (!expectedTestType) {
-              alert({
-                type: 'warning',
-                message: t('components.business.testManagerProvider.typeUnmatched'),
-              });
+              message.error(t('components.business.testManagerProvider.typeUnmatched'));
               reject(t('components.business.testManagerProvider.typeUnmatched'));
               return;
             }

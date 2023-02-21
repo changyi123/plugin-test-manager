@@ -143,10 +143,10 @@ type FolderTreeProps = {
 };
 
 const FolderTree: React.FC<FolderTreeProps> = ({
-  treeNodeData,
   onSelect,
   loading,
   className,
+  treeNodeData,
   onFolderTreeChange,
 }) => {
   const { t } = useI18n();
@@ -269,7 +269,9 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         const newFolderName = await openFolderNameModal({
           title: t('page.repository.folderTree.renameFolder'),
           name: node.name,
-          validator: inputName => inputNameValidator(inputName, [node]),
+          // 获取当前节点的所有 sibling 节点
+          validator: inputName =>
+            inputNameValidator(inputName, treeFn.getTreeNodeByKey(node.parentKey)?.children ?? []),
         });
 
         await updateFolders([
@@ -486,7 +488,6 @@ const FolderTree: React.FC<FolderTreeProps> = ({
   const handleItemDrop = React.useCallback(
     async ({ testId, toFolderKey, fromFolderKey }) => {
       if (fromFolderKey === toFolderKey) return;
-      const currentFolderNode = treeFn.getTreeNodeByKey(state.selectedKeys[0]);
       const updateValues = [testId].map(d => ({
         objectId: d,
         repository: toFolderKey,
@@ -502,15 +503,9 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         message: t('page.repository.folderTree.dropCaseTips.0'),
       });
 
-      const refreshedTreeNodes = await onFolderTreeChange();
-
-      const newCurrentFolderNode = getTreeNodeByKey(refreshedTreeNodes, state.selectedKeys[0]);
-
-      handleSelect([currentFolderNode.key], {
-        node: newCurrentFolderNode,
-      });
+      await onFolderTreeChange();
     },
-    [treeFn, state.selectedKeys, onFolderTreeChange, handleSelect],
+    [onFolderTreeChange],
   );
 
   const titleRender = React.useCallback(

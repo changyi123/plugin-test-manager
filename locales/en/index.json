@@ -267,6 +267,7 @@
           "Test case import template download",
           "Test case export (all groups)",
           "Test case export (current group)",
+          "Test case export (current groups)",
           "Test case export (current plan)"
         ],
         "importCaseSuccess": "Test management test case export complete",

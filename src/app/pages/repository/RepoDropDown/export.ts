@@ -13,6 +13,7 @@ import { arrayToTree } from '@/lib/utils/arrayToTree';
 import { getCustomFields } from '@/lib/api/proxima';
 import { SYSTEM_FIELD } from '@/lib/constants';
 import { difference } from 'lodash';
+import { traverseTreeNodes, getTreeNodeByKey } from '../util';
 import { getLinkedTestEntityByQuery, getTestEntityByQuery } from '@/lib/api/item';
 
 export type TreeNode = {
@@ -249,8 +250,28 @@ const importTestInfo = async (
       planId: checkedId,
     });
   } else {
-    const checkRepoKey = checkedId;
+    let checkRepoKeys = typeof checkedId === 'string' ? [checkedId] : [];
     const repoData = await getRepositoryData([workspace.key]);
+
+    // 导出当前分组及其字分组，需要特殊处理 repository 数据
+    if (type === 'exportChildGroup' && checkedId !== UNGROUPED_FOLDER_KEY) {
+      // 查询当前分组下的所有子分组 id
+      const folderTree = arrayToTree(
+        repoData.map(repo => ({
+          name: repo.name,
+          key: repo.objectId,
+          parentKey: repo.parent?.objectId ?? null,
+          workspaceKey: repo.workspaceKey,
+        })),
+      );
+      let childRepoKeys = [];
+      // 获取当前分组下的所有子分组
+      traverseTreeNodes([getTreeNodeByKey(folderTree, checkedId)], node => {
+        childRepoKeys = childRepoKeys.concat(node.key);
+      });
+
+      checkRepoKeys = childRepoKeys;
+    }
 
     // 用例库导出不允许跨空间
     const { list: results } = await getTestEntityByQuery({
@@ -258,13 +279,13 @@ const importTestInfo = async (
         type: TestType.Case,
         workspaceKey: workspace.key,
         repository:
-          type === 'exportAll' || checkRepoKey === UNGROUPED_FOLDER_KEY ? null : [checkRepoKey],
+          type === 'exportAll' || checkedId === UNGROUPED_FOLDER_KEY ? null : checkRepoKeys,
       },
       limit: 9999,
     });
 
     let _results = null;
-    if (checkRepoKey === UNGROUPED_FOLDER_KEY && type !== 'exportAll') {
+    if (checkedId === UNGROUPED_FOLDER_KEY && type !== 'exportAll') {
       _results = results.filter(d => !d?.repository?.length);
     }
 

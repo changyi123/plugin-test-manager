@@ -390,7 +390,15 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
         setTreeType={setTreeType}
       />
     );
-  }, [isolateTestType, workspace?.key, isSingleMode, ignoreTestEntityIds, selectValue, planId]);
+  }, [
+    isolateTestType,
+    workspace?.key,
+    isSingleMode,
+    ignoreTestEntityIds,
+    selectValue,
+    planId,
+    treeType,
+  ]);
 
   const ModalFooterNode = React.useMemo(() => {
     const { ok, cancel } = modelProps?.footer ?? {};
