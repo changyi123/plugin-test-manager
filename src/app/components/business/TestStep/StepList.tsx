@@ -14,6 +14,7 @@ import { useNextStepFieldContext, default as NextStepFieldProvider } from './Nex
 import { components } from 'proxima-sdk';
 import { BaseTestEntity } from 'common/types/test';
 import { getItemByIQL } from '@/lib/api/proxima';
+import useI18n from '@/lib/hooks/useI18n';
 
 const { ItemIcon } = components.Components.Common;
 
@@ -26,7 +27,8 @@ const StepFields: React.FC<{
   stepId: string;
   fields: StepField[];
 }> = ({ fields, stepId }) => {
-  const fieldsWithImpl = fields?.map(getFieldByImpl).filter(Boolean);
+  const { t } = useI18n();
+  const fieldsWithImpl = fields?.map(getFieldByImpl, t).filter(Boolean);
   const { saveFieldRef, nextField } = useNextStepFieldContext();
 
   return (
@@ -40,7 +42,9 @@ const StepFields: React.FC<{
                 {
                   key: field.key,
                   maxLength: 500,
-                  placeholder: `请输入${field.title}（Alt+Enter切换下一列）`,
+                  placeholder: `${t('components.business.testStep.pleaseInput')}${field.title}（${t(
+                    'components.business.testStep.switchNext',
+                  )}）`,
                   onKeyDownEnter: () => nextField(stepId, field.key),
                   ref: ref => {
                     // 只有 input 类型组件需要缓存 ref
@@ -65,6 +69,7 @@ type StepRowProps = {
 };
 
 const StepRow: React.FC<StepRowProps> = props => {
+  const { t } = useI18n();
   const { data, index, actions, enableDelete } = props;
   const rowRef = React.useRef<HTMLDivElement>();
 
@@ -94,7 +99,7 @@ const StepRow: React.FC<StepRowProps> = props => {
     return (
       <div className={cx('call-test')}>
         <div>
-          <span className={cx('brand')}>用例继承</span>
+          <span className={cx('brand')}>{t('components.business.testStep.caseInherit')}</span>
           <ItemIcon className={cx('icon')} icon={itemType.icon}></ItemIcon>
           <span>{item.key}</span>
         </div>
@@ -103,12 +108,14 @@ const StepRow: React.FC<StepRowProps> = props => {
             <span>{item.name}</span>
           </OverflowTooltip>
           <span className={cx('length')}>
-            <span className={cx('line')}>|</span>共 {stepLength} 个步骤
+            <span className={cx('line')}>|</span>
+            {t('components.business.testStep.stepTotal.0')} {stepLength}{' '}
+            {t('components.business.testStep.stepTotal.1')}
           </span>
         </div>
       </div>
     );
-  }, [data]);
+  }, [data, t]);
 
   const renderDraggableChild = (provider, snapshot) => {
     const isHover = isMouseHover && !snapshot.isDragging;
@@ -136,27 +143,27 @@ const StepRow: React.FC<StepRowProps> = props => {
         {isCallTestStep ? CallTestStepNode : StepFieldsMemoNode}
         <span className={cx('actions')} style={{ display: isHover ? 'flex' : 'none' }}>
           <Popconfirm
-            okText="确定"
+            okText={t('common.confirm')}
             placement="left"
-            cancelText="取消"
+            cancelText={t('common.cancel')}
             getPopupContainer={getRootContainer}
-            title="当前操作会复制该测试用例步骤，是否继续执行？"
+            title={t('components.business.testStep.copyStepTips')}
             onConfirm={() => actions.copy({ id: data.id, index })}
           >
-            <Tooltip title="复制步骤">
+            <Tooltip title={t('components.business.testStep.copyStep')}>
               <CopyOutlined className={cx('icon')} />
             </Tooltip>
           </Popconfirm>
           {enableDelete ? (
             <Popconfirm
-              okText="确定"
+              okText={t('common.confirm')}
               placement="left"
-              cancelText="取消"
+              cancelText={t('common.cancel')}
               getPopupContainer={getRootContainer}
               onConfirm={() => actions.delete(data.id)}
-              title="当前操作会删除该测试用例步骤，是否继续执行？"
+              title={t('components.business.testStep.deleteStepTips')}
             >
-              <Tooltip title="删除步骤">
+              <Tooltip title={t('components.business.testStep.deleteStep')}>
                 <DeleteOutlined className={cx('icon')} key="DeleteOutlined" />
               </Tooltip>
             </Popconfirm>
@@ -192,6 +199,7 @@ type StepListProps = {
 
 /** 测试步骤 list */
 const StepList: React.FC<StepListProps> = ({ steps, actions }) => {
+  const { t } = useI18n();
   const [form] = Form.useForm();
   const [testDetailEntities, setTestDetailEntities] = React.useState([]);
 
@@ -232,7 +240,7 @@ const StepList: React.FC<StepListProps> = ({ steps, actions }) => {
         // 后续可能会增加对自定义字段支持
         const fields = builtinFields
           .concat(step.customFields ?? [])
-          .map(field => getFieldByImpl(field));
+          .map(field => getFieldByImpl(field, t));
 
         return _.chain(step)
           .pick(['id', 'callTestId'])
@@ -240,7 +248,7 @@ const StepList: React.FC<StepListProps> = ({ steps, actions }) => {
           .value() as StepRow;
       }) ?? []
     );
-  }, [steps, testDetailEntities]);
+  }, [steps, testDetailEntities, t]);
 
   React.useEffect(() => {
     const fieldValues = _.chain(stepRowData)
@@ -299,7 +307,7 @@ const StepList: React.FC<StepListProps> = ({ steps, actions }) => {
         <div className={cx('list')}>
           <div className={cx('header')}>
             <span className={cx('column', 'drag-area')}>#</span>
-            {StepFieldImpl.map(field => (
+            {StepFieldImpl(t).map(field => (
               <span className={cx('column', 'field')} key={field.key}>
                 {field.title}
               </span>

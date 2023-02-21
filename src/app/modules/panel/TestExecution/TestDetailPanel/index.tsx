@@ -24,8 +24,10 @@ import cx from './index.less';
 import createProximaSdk, { useListener } from '@projectproxima/proxima-sdk-js';
 import { useRequest } from 'ahooks';
 import { useTestRunActionAuth } from '@/lib/hooks/useTest';
+import useI18n from '@/lib/hooks/useI18n';
 
 const Test = () => {
+  const { t } = useI18n();
   const { testEntity, workspace } = useTestConfig();
   const { getCreatePermission } = useBaseAction();
   const tableActionRef = React.useRef<ActionType>();
@@ -135,7 +137,7 @@ const Test = () => {
     async testRunIds => {
       if (!Array.isArray(testRunIds)) return;
       if (getCreatePermission(TestType.Case)) {
-        message.error('暂无事项删除权限，请检查事项操作权限配置或联系管理员');
+        message.error(t('page.plan.testEntityList.deleteItemTips'));
         return;
       }
       // 删除测试和测试执行的关联
@@ -147,16 +149,16 @@ const Test = () => {
 
       refreshDepData();
 
-      message.success('删除成功');
+      message.success(t('common.deleteSuccess'));
     },
-    [getCreatePermission, refreshDepData],
+    [getCreatePermission, refreshDepData, t],
   );
 
   // table column 数据
   const tableColumns = React.useMemo(() => {
     return [
       {
-        title: '事项key',
+        title: t('modules.panel.testExecution.testDetailPanel.itemKey'),
         key: 'key',
         width: 100,
         render(_, item) {
@@ -177,7 +179,7 @@ const Test = () => {
         },
       },
       {
-        title: '事项名',
+        title: t('modules.panel.testExecution.testDetailPanel.itemName'),
         key: 'name',
         render(_, record) {
           const name = record?.name;
@@ -186,7 +188,7 @@ const Test = () => {
         },
       },
       {
-        title: '执行状态',
+        title: t('modules.panel.testExecution.testDetailPanel.runStatus'),
         dataIndex: 'status',
         key: 'status',
         render: (_, record) => {
@@ -210,7 +212,7 @@ const Test = () => {
         },
       },
       {
-        title: '操作',
+        title: t('common.action'),
         key: 'testRunId',
         render: (_, record) => {
           const { result: enable, message } = canExecuteTestRun(record.designee);
@@ -236,19 +238,19 @@ const Test = () => {
                   size="small"
                   type="link"
                 >
-                  执行
+                  {t('common.run')}
                 </Button>
               </Tooltip>
               <Popconfirm
-                okText="确定"
+                okText={t('common.confirm')}
                 placement="left"
-                cancelText="取消"
-                title="当前操作会移除该测试执行，是否继续执行？"
+                cancelText={t('common.cancel')}
+                title={t('modules.panel.testDetail.testRunPanel.popConfirmTips')}
                 getPopupContainer={() => getRootContainer()}
                 onConfirm={() => removeTestRelation([record.objectId])}
               >
                 <Button size="small" type="link">
-                  移除
+                  {t('common.remove')}
                 </Button>
               </Popconfirm>
             </Space>
@@ -263,7 +265,7 @@ const Test = () => {
   const testDetailMenuList = React.useMemo(() => {
     return [
       {
-        title: '已存在的测试用例',
+        title: t('modules.panel.testExecution.testDetailPanel.existingTestCase'),
         async onClick() {
           const selectedTestDetailIds = await selectorModalRef.current.open({
             testType: TestType.Case,
@@ -273,7 +275,7 @@ const Test = () => {
             d => !(relCase ?? []).includes(d),
           );
           if (getCreatePermission(TestType.Case)) {
-            message.error('暂无事项新增权限，请检查事项操作权限配置或联系管理员');
+            message.error(t('page.plan.testEntityList.addItemTips'));
             return;
           }
 
@@ -295,13 +297,13 @@ const Test = () => {
         },
       },
     ];
-  }, [getCreatePermission, refreshDepData, relCase, testEntity.objectId]);
+  }, [getCreatePermission, refreshDepData, relCase, testEntity.objectId, t]);
 
   return (
     <div className={cx('test')}>
       <TestEntitySelectorModal
         actionRef={selectorModalRef}
-        title="添加测试用例到当前测试执行"
+        title={t('modules.panel.testExecution.testDetailPanel.assCaseToExecution')}
         ignoreTestEntityIds={relCase}
       />
 
@@ -310,13 +312,13 @@ const Test = () => {
       <PanelTable
         renderActions={() => (
           <DropDownButton menuList={testDetailMenuList}>
-            添加用例 <DownOutlined />
+            {t('modules.panel.testExecution.testDetailPanel.addCase')} <DownOutlined />
           </DropDownButton>
         )}
         actionRef={tableActionRef}
         actionMenuList={[
           {
-            title: '删除',
+            title: t('common.delete'),
             onClick(selectedRowKeys) {
               removeTestRelation(selectedRowKeys);
             },

@@ -14,6 +14,7 @@ import { getRootContainer, hasArrayItem } from '@/lib/utils/helper';
 import { getAllTestConfigs } from '@/lib/api/common';
 import InheritTestDetail from './InheritTestDetail';
 import TestDetailSelector from './TestDetailSelector';
+import useI18n from '@/lib/hooks/useI18n';
 
 import cx from './index.less';
 
@@ -62,6 +63,7 @@ export type TestEntitySelectorProps = {
 };
 
 const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
+  const { t } = useI18n();
   const {
     planId,
     actionRef,
@@ -80,7 +82,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
   // 是否是测试缺陷类型
   const isTestDefectType = testType === TestType.TestDefect;
   // 测试类型名
-  const testTypeName = TestTypeNameMapping[testType] ?? '事项';
+  const testTypeName = TestTypeNameMapping[testType] ?? t('common.appItem');
 
   const [modelProps, setModelProps] = useSafeState<ModelProps | undefined>(undefined);
 
@@ -329,7 +331,10 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
         };
     return (
       <>
-        <p className={cx('hint')}>请输入并从列表中选择已存在的{testTypeName}</p>
+        <p className={cx('hint')}>
+          {t('components.business.testEntitySelectorModal.modelTip')}
+          {testTypeName}
+        </p>
         <div ref={debounceSelectContainerRef}>
           <DebounceSelect
             {...debounceSelectProps}
@@ -340,8 +345,20 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
             fetchOptions={getTestEntityByKeyword}
             onChange={value => setSelectValue(value)}
             getPopupContainer={() => debounceSelectContainerRef.current}
-            placeholder={props.placeholder ?? `请输入并从列表中选择已存在的${testTypeName}`}
-            notFoundContent={searchLoading ? <Spin /> : <div>未查询到相关{testTypeName}</div>}
+            placeholder={
+              props.placeholder ??
+              `${t('components.business.testEntitySelectorModal.modelTip')}${testTypeName}`
+            }
+            notFoundContent={
+              searchLoading ? (
+                <Spin />
+              ) : (
+                <div>
+                  {t('components.business.testEntitySelectorModal.notFound')}
+                  {testTypeName}
+                </div>
+              )
+            }
           />
         </div>
       </>
@@ -381,11 +398,11 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
       <div className={cx('footer')}>
         {testType === TestType.Case ? (
           <div className={cx('info')}>
-            已选择
+            {t('components.business.testEntitySelectorModal.selected')}
             <strong className={cx('num')}>
               {selectedTestDetails.filter(d => !ignoreTestEntityIds.includes(d)).length}
             </strong>
-            条用例
+            {t('components.business.testEntitySelectorModal.case')}
           </div>
         ) : null}
         <div className={cx('actions')}>
@@ -396,10 +413,10 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
               setVisible(false);
             }}
           >
-            {cancel?.name ?? '取消'}
+            {cancel?.name ?? t('common.cancel')}
           </Button>
           <Button type="primary" onClick={handleOkButtonClick}>
-            {ok?.name ?? '确定'}
+            {ok?.name ?? t('common.confirm')}
           </Button>
         </div>
       </div>
@@ -422,7 +439,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
         afterClose?.();
       }}
       keyboard={false}
-      visible={visible}
+      open={visible}
       maskClosable={false}
       className={cx('modal')}
       getContainer={getRootContainer}
@@ -431,7 +448,11 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
         setSelectValue(undefined);
         setVisible(false);
       }}
-      title={modelProps?.title ?? props.title ?? `请选择${testTypeName}`}
+      title={
+        modelProps?.title ??
+        props.title ??
+        `${t('components.business.testEntitySelectorModal.pleaseSelect')}${testTypeName}`
+      }
       width={testType === TestType.Case ? 800 : 500}
       bodyStyle={{
         padding: '16px 24px',

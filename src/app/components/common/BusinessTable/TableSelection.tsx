@@ -2,6 +2,7 @@ import React from 'react';
 import { noop } from 'lodash';
 import { Checkbox, Tooltip } from 'antd';
 import { CheckboxProps } from 'antd/lib/checkbox';
+import useI18n from '@/lib/hooks/useI18n';
 
 import cx from './TableSelection.less';
 
@@ -22,19 +23,22 @@ const TableSelection: React.FC<TableSelectionProps> = ({
   disableSelectAll = false,
   tableExpandable = false,
 }) => {
+  const { t } = useI18n();
   return (
     <div className={cx('table-selection', tableExpandable && 'table-expandable')}>
       {disableSelectAll ? null : (
         <>
-          <Tooltip title="选中所有分页">
+          <Tooltip title={t('components.common.businessTable.checkAllPages')}>
             <Checkbox className={cx('checkbox')} {...checkboxProps} />
           </Tooltip>
-          <span className={cx('checkbox-label')}>选中所有分页</span>
+          <span className={cx('checkbox-label')}>
+            {t('components.common.businessTable.checkAllPages')}
+          </span>
         </>
       )}
 
       <span className={cx('select')}>
-        已选中 <span className={cx('num')}>{selectNum ?? 0}</span> 项
+        {t('common.checked')} <span className={cx('num')}>{selectNum ?? 0}</span> {t('common.item')}
       </span>
       <span className={cx('line')} />
 
@@ -45,7 +49,7 @@ const TableSelection: React.FC<TableSelectionProps> = ({
       ))}
 
       <span onClick={onClose} className={cx('cancel')}>
-        取消操作
+        {t('common.cancelAction')}
       </span>
     </div>
   );

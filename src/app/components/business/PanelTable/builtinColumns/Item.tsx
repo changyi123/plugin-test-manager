@@ -6,11 +6,14 @@ import OverflowTooltip from '@/components/common/OverflowTooltip';
 import cx from './style.less';
 
 /** 事项 id */
-export const ItemKey = {
+export const getItemKey = t => ({
   title: 'Key',
   width: 170,
   cellRenderer({ item }) {
-    if (!item) return <span style={{ color: '#ccc' }}>事项已被删除</span>;
+    if (!item)
+      return (
+        <span style={{ color: '#ccc' }}>{t('components.business.panelTable.itemDeleted')}</span>
+      );
     return (
       <OverflowTooltip title={item?.key}>
         <Typography.Link
@@ -28,14 +31,17 @@ export const ItemKey = {
       </OverflowTooltip>
     );
   },
-};
+});
 
 /** 事项标题 */
-export const ItemTitle = {
+export const getItemTitle = t => ({
   title: '标题',
   width: 160,
   cellRenderer({ item }) {
-    if (!item) return <span style={{ color: '#ccc' }}>事项已被删除</span>;
+    if (!item)
+      return (
+        <span style={{ color: '#ccc' }}>{t('components.business.panelTable.itemDeleted')}</span>
+      );
     return <Typography.Text ellipsis={{ tooltip: item?.name }}>{item?.name}</Typography.Text>;
   },
-};
+});

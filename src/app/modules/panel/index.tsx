@@ -9,6 +9,7 @@ import { useSDK } from '@projectproxima/plugin-sdk';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import { TestType, ENTITY_NOT_FOUND } from '@/lib/constants';
 import TestManagerProvider from '@/components/business/TestManagerProvider';
+import useI18n from '@/lib/hooks/useI18n';
 
 import cx from './index.less';
 
@@ -20,6 +21,7 @@ const TestPanelComponents = {
 };
 
 const TestPanel = () => {
+  const { t } = useI18n();
   const { testEntity } = useTestConfig();
 
   const panelRenderNode = React.useMemo(() => {
@@ -28,11 +30,15 @@ const TestPanel = () => {
         <Result
           className={cx('empty')}
           status="404"
-          title="当前类型不存在测试管理类型关联配置中"
+          title={t('modules.panel.resultTitle')}
           subTitle={
             <span>
-              请前往 <span className={cx('breadcrumb')}>系统设置 &gt; 插件 &gt; 测试管理配置 </span>
-              页面 ，选择类型关联配置进行配置
+              {t('modules.panel.resultSubTitle.0')}{' '}
+              <span className={cx('breadcrumb')}>
+                {t('modules.panel.resultSubTitle.1')} &gt; {t('modules.panel.resultSubTitle.2')}{' '}
+                &gt; {t('modules.panel.resultSubTitle.3')}{' '}
+              </span>
+              {t('modules.panel.resultSubTitle.4')}
             </span>
           }
         ></Result>
@@ -44,7 +50,7 @@ const TestPanel = () => {
     const TestPanelComponent = TestPanelComponents[testType];
 
     return TestPanelComponent ? <TestPanelComponent /> : null;
-  }, [testEntity]);
+  }, [testEntity, t]);
 
   return <div className={cx('test-panel')}>{panelRenderNode}</div>;
 };

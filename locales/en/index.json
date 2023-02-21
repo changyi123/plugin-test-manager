@@ -12,6 +12,7 @@
     "confirm": "Confirm",
     "type": "Type",
     "cancel": "Cancel",
+    "close": "Close",
     "nextStep": "Next step",
     "prevStep": "Prev step",
     "workspace": "Workspace",
@@ -27,6 +28,7 @@
     "testCase": "Test case",
     "testPlan": "Test plan",
     "testExecution": "Test execution task",
+    "testRun": "Test run",
     "testRepository": "Test case repository",
     "testCaseRepository": "Test case repository module",
     "allRepository": "All test case repository",
@@ -39,11 +41,14 @@
     "more": "More",
     "search": "Search",
     "status": "State",
+    "download": "Download",
     "allTestCase": "All test cases",
     "createTestExecution": "Create a new test execution task",
     "createTestReport": "Generate test report",
-    "cancelAction": "cancel operation",
+    "cancelAction": "Cancel operation",
     "batchAction": " Batch operation",
+    "cancelSelect": "Cancel select",
+    "batchSelect": "Batch select",
     "planCase": "Planning test cases",
     "run": "Executive",
     "precondition": "Preconditions",
@@ -53,7 +58,10 @@
     "user": "User",
     "testExecutor": "The latest action executor",
     "nothing": "None",
-    "checked": "selected"
+    "checked": "Selected",
+    "item": "Item",
+    "strip": "Strip",
+    "appItem": "Item"
   },
   "page": {
     "config": {
@@ -208,6 +216,7 @@
         "assigneeSetting": "Set the person in charge",
         "editorItemTips": "No item editing permission at the moment, please check the item operation permission configuration or contact the administrator",
         "deleteItemTips": "No item deletion permission at the moment, please check the item operation permission configuration or contact the administrator",
+        "addItemTips": "No item add permission at the moment, please check the item operation permission configuration or contact the administrator",
         "updateRunStateTips": "Selected test execution status updated successfully",
         "updateDesigneeStateTips": "The selected test executor has been successfully updated",
         "notUpdateDesignee": "No executors can be changed for test case",
@@ -481,7 +490,7 @@
         "case": "Test case",
         "pleaseSelect": "please select",
         "selectRepository": "Select test case repository",
-        "selectRepositoryTips": "(Only the test case repository that currently has permission can be selected)",
+        "selectRepositoryTips": "Only the test case repository that currently has permission can be selected",
         "searchGroup": "Search test case repository grouping",
         "addTimeSort": "Creation time sort",
         "earliest": "Earliest",
@@ -504,6 +513,7 @@
         "planName": "Program name",
         "deleteTestPlan": "Delete test plan",
         "checkTestPlan": " View test plan",
+        "caseStatus": "Execution pass rate",
         "planCaseCount": "Number of planned test cases",
         "addTestPlan": "New test plan"
       },
@@ -531,6 +541,7 @@
         },
         "defectList": {
           "notLintDefect": "The current test execution has no associated defects",
+          "noPermission" : "The current user have not permission",
           "removeTips": [
             "Please step in",
             "Remove the defect"
@@ -582,6 +593,7 @@
           "Data"
         ],
         "notInheritCase": "Cannot inherit this test case",
+        "modelTitle": "Please select inheritance test case",
         "addStep": "Add steps",
         "inheritCase": " Inheritance test case",
         "pleaseInput": "Please enter",

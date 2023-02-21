@@ -9,6 +9,7 @@ import { getTestEntityByQuery } from '@/lib/api/item';
 import { TestType } from '@/lib/constants';
 import { FieldKey } from 'common/types/api';
 import { SearchSelectors } from '@/lib/utils/iql';
+import useI18n from '@/lib/hooks/useI18n';
 
 interface TestDetailsSelectorListProps {
   workspaceKey?: string;
@@ -89,6 +90,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
   setSelectedTestDetailIds,
   treeType,
 }) => {
+  const { t } = useI18n();
   const CheckboxGroup = Checkbox.Group;
   const [checkData, setCheckData] = useState([]);
   const [showType, setShowType] = useState('showChild');
@@ -237,7 +239,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
             onChange={checkAllTest}
           >
             <span className={cx('check-all-title')}>
-              已选中
+              {t('common.checked')}
               <span className={cx('num')}> {curSelectIdsLength}</span>
               <span>
                 {' / '}
@@ -256,14 +258,18 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
               getPopupContainer={e => e.parentNode}
               onChange={val => setShowType(val)}
             ></Select>
-            <Tooltip title="创建时间排序">
+            <Tooltip title={t('components.business.testEntitySelectorModal.addTimeSort')}>
               <span
                 className={cx('action')}
                 onClick={() => {
                   setOrderByCratedAt(val => (val === 'asc' ? 'desc' : 'asc'));
                 }}
               >
-                <span>{orderByCratedAt === 'asc' ? '最早' : '最晚'}</span>
+                <span>
+                  {orderByCratedAt === 'asc'
+                    ? t('components.business.testEntitySelectorModal.earliest')
+                    : t('components.business.testEntitySelectorModal.latest')}
+                </span>
                 <span className={cx('icon')}>
                   <CaretUpOutlined className={cx(orderByCratedAt === 'asc' && 'activity')} />
                   <CaretDownOutlined className={cx(orderByCratedAt === 'desc' && 'activity')} />
@@ -347,7 +353,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
             <Empty
               className={cx('empty-test')}
               image={emptyImg}
-              description={'当前用例库暂无用例'}
+              description={t('components.business.testEntitySelectorModal.notHaveCase')}
             />
           )}
         </div>

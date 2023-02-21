@@ -2,11 +2,13 @@ import React from 'react';
 import { TestType } from '@/lib/constants';
 import PanelLayout from '@/components/business/PanelLayout';
 import TestDetailPanel from './TestDetailPanel';
+import useI18n from '@/lib/hooks/useI18n';
 
 const TestExecution = () => {
+  const { t } = useI18n();
   const tabs = [
     {
-      tab: '测试执行任务',
+      tab: t('common.testExecution'),
       key: TestType.Case,
       Component: TestDetailPanel,
     },
@@ -14,7 +16,7 @@ const TestExecution = () => {
   return (
     <PanelLayout
       tabsProps={{ destroyInactiveTabPane: true, defaultActiveKey: TestType.Case }}
-      title="测试执行任务"
+      title={t('common.testExecution')}
       tabs={tabs}
     />
   );

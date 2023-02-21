@@ -2,6 +2,7 @@ import React from 'react';
 import { useHover } from 'ahooks';
 import classnames from 'classnames';
 import { StepFieldProps } from '../type';
+import useI18n from '@/lib/hooks/useI18n';
 
 const Input: React.ForwardRefRenderFunction<
   HTMLDivElement,
@@ -21,6 +22,7 @@ const Input: React.ForwardRefRenderFunction<
   inheritedProps,
 ) => {
   const ref = React.useRef<HTMLDivElement>();
+  const { t } = useI18n();
 
   React.useImperativeHandle(inheritedProps, () => ref.current);
 
@@ -71,7 +73,7 @@ const Input: React.ForwardRefRenderFunction<
       onBlur={handleBlur}
       contentEditable={true}
       onKeyDown={handleKeyDown}
-      placeholder={placeholder ?? `请输入`}
+      placeholder={placeholder ?? t('components.business.testStep.pleaseInput')}
       suppressContentEditableWarning={true}
       className={classnames('test-step-field', 'input', isHover && 'hover', className)}
     >

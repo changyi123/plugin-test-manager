@@ -6,6 +6,7 @@ import { UploadProps } from 'antd/lib/upload';
 
 import { message, Upload } from 'antd';
 import Parse from '@/lib/parse';
+import useI18n from '@/lib/hooks/useI18n';
 
 import cx from './index.less';
 const { Dragger } = Upload;
@@ -31,6 +32,7 @@ export interface AnnexProps {
 }
 
 const UploadFile: React.FC<AnnexProps> = props => {
+  const { t } = useI18n();
   const { readonly, onChange, value, desc, maxCount, uploadProps } = props;
   const [fileList, setFileList] = useState(EMPTY_FILE_LIST);
   const [flag, setFlag] = useState(false);
@@ -89,7 +91,7 @@ const UploadFile: React.FC<AnnexProps> = props => {
       });
       // 超过最大数量进行限制
       if (fileArr.length > maxCount) {
-        message.error(`文件数量不能超过${maxCount}`);
+        message.error(`${t('components.common.uploadFile.uploadErrorMessage')}${maxCount}`);
         return;
       }
       setFileList(fileArr);

@@ -12,11 +12,14 @@
     "confirm": "确认",
     "type": "类型",
     "cancel": "取消",
+    "close": "关闭",
     "nextStep": "下一步",
     "prevStep": "上一步",
     "workspace": "空间",
     "allWorkspace": "全部空间",
     "saveSuccess": "保存成功",
+    "addSuccess": "新建成功",
+    "addFail": "新建失败",
     "deleteSuccess": "删除成功",
     "deleteFail": "删除失败",
     "actionSuccess": "操作成功",
@@ -27,23 +30,27 @@
     "testCase": "测试用例",
     "testPlan": "测试计划",
     "testExecution": "测试执行任务",
+    "testRun": "测试执行",
     "testRepository": "测试用例库",
     "testCaseRepository": "测试用例库模块",
     "allRepository": "全部用例库",
     "testReport": "测试报告",
     "exportReportFail": "导出测试报告失败",
     "pleaseSelectType": "请选择类型",
-    "tableTotal": ["共", "条数据"],
+    "tableTotal": ["共", "条"],
     "testManagerConfig": "测试管理配置",
     "moreConfig": "更多配置",
     "more": "更多",
     "search": "搜索",
     "status": "状态",
+    "download": "下载",
     "allTestCase": "全部用例",
     "createTestExecution": "新建测试执行任务",
     "createTestReport": "生成测试报告",
     "cancelAction": "取消操作",
     "batchAction": "批量操作",
+    "cancelSelect": "取消选择",
+    "batchSelect": "批量选择",
     "planCase": "规划用例",
     "run": "执行",
     "precondition": "前置条件",
@@ -53,7 +60,10 @@
     "user": "用户",
     "testExecutor": "最新操作执行人",
     "nothing": "无",
-    "checked": "已选中"
+    "checked": "已选中",
+    "item": "项",
+    "strip": "条",
+    "appItem": "事项"
   },
   "page": {
     "config": {
@@ -208,6 +218,7 @@
         "assigneeSetting": "设置负责人",
         "editorItemTips": "暂无事项编辑权限，请检查事项操作权限配置或联系管理员",
         "deleteItemTips": "暂无事项删除权限，请检查事项操作权限配置或联系管理员",
+        "addItemTips": "暂无事项新增权限，请检查事项操作权限配置或联系管理员",
         "updateRunStateTips": "所选测试执行状态更新成功",
         "updateDesigneeStateTips": "所选测试执行人更新成功",
         "notUpdateDesignee": "不可对用例更改执行人",
@@ -430,7 +441,8 @@
       "panelTable": {
         "selectConfirmTips": ["当前操作会", "所选的数据，是否继续执行操作？"],
         "itemDeleted": "事项已被删除",
-        "newRunStatus": "最新执行状态"
+        "newRunStatus": "最新执行状态",
+        "select": "已选"
       },
       "repositorySelector": {
         "copyCase": "复制用例",
@@ -455,7 +467,7 @@
         "case": "条用例",
         "pleaseSelect": "请选择",
         "selectRepository": "选择用例库",
-        "selectRepositoryTips": "（仅可选择当前拥有权限的用例库）",
+        "selectRepositoryTips": "仅可选择当前拥有权限的用例库",
         "searchGroup": "搜索用例库分组",
         "addTimeSort": "创建时间排序",
         "earliest": "最早",
@@ -478,6 +490,7 @@
         "planName": "计划名称",
         "deleteTestPlan": "删除测试计划",
         "checkTestPlan": "查看测试计划",
+        "caseStatus": "执行通过率",
         "planCaseCount": "规划用例数",
         "addTestPlan": "新建测试计划"
       },
@@ -505,6 +518,7 @@
         },
         "defectList": {
           "notLintDefect": "当前测试执行未关联缺陷",
+          "noPermission" : "当前用户无权限",
           "removeTips": ["请在步骤", "中移除该缺陷"],
           "deleteButtonTips": "当前操作会删除与该缺陷的关联关系，是否继续执行？",
           "global": "全局",
@@ -540,6 +554,7 @@
       "testStep": {
         "stepField": ["步骤", "预期", "数据"],
         "notInheritCase": "不能继承该测试用例",
+        "modelTitle": "请选择继承测试用例",
         "addStep": "添加步骤",
         "inheritCase": "继承测试用例",
         "pleaseInput": "请输入",
@@ -555,6 +570,7 @@
     "common": {
       "businessTable": {
         "columnSetting": ["测试管理字段", "事项字段"],
+        "setHeader": "配置表头",
         "tableSetting": "表格显示设置",
         "headerSetting": "表头设置",
         "restoreDefault": "恢复默认",

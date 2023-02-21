@@ -7,13 +7,15 @@ import { TestType } from '@/lib/constants';
 import emptyImg from '@/icons/svg/empty-data.png';
 import SearchInput from '../SearchInput';
 import { DropDown } from '@/icons';
-
-import cx from './index.less';
 import { getStatsTestPlan, getTestEntityByQuery } from '@/lib/api/item';
 import _ from 'lodash';
 import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/hook';
+import useI18n from '@/lib/hooks/useI18n';
+
+import cx from './index.less';
 
 const TestPlanSelector: React.FC = () => {
+  const { t } = useI18n();
   const listRef = React.useRef();
   const { workspaceKey, selectedTestPlan, setSelectedTestPlan } = usePageContext();
   const [search, setSearch] = useState('');
@@ -81,7 +83,7 @@ const TestPlanSelector: React.FC = () => {
             showInput
             value={search}
             allowClear
-            placeholder="请输入搜索关键字"
+            placeholder={t('components.business.testPlanSelector.placeholder')}
             onChange={value => setSearch(value)}
           />
         </div>
@@ -103,7 +105,7 @@ const TestPlanSelector: React.FC = () => {
             ))
           ) : (
             <Empty
-              description="无数据"
+              description={t('components.business.testPlanSelector.desc')}
               image={emptyImg}
               imageStyle={{
                 height: 70,
@@ -119,7 +121,7 @@ const TestPlanSelector: React.FC = () => {
             setSelectedTestPlan(undefined);
           }}
         >
-          查看全部计划
+          {t('components.business.testPlanSelector.checkAllPlan')}
         </div>
       </div>
     );

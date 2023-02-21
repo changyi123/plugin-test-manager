@@ -21,8 +21,10 @@ import {
 } from '@/lib/api/item';
 import createProximaSdk from '@projectproxima/proxima-sdk-js';
 import { message } from 'antd';
+import useI18n from '@/lib/hooks/useI18n';
 
 const Plan = () => {
+  const { t } = useI18n();
   const { testEntity, workspace, setTestEntity } = useTestConfig();
   const { createItemUseModal, getCreatePermission } = useBaseAction();
   const tableActionRef = useRef<ActionType>();
@@ -106,7 +108,7 @@ const Plan = () => {
   const testPlanMenuList = useMemo(() => {
     return [
       {
-        title: '已存在的测试计划',
+        title: t('modules.panel.testDetail.testPlanPanel.menuList.0'),
         async onClick() {
           const testPlanIds = await selectorModalRef.current.open();
 
@@ -121,14 +123,14 @@ const Plan = () => {
 
           alert({
             type: 'success',
-            message: `当前测试用例添加到测试计划中`,
+            message: t('modules.panel.testDetail.testPlanPanel.addCaseSuccessMessage'),
           });
 
           refreshDepData();
         },
       },
       {
-        title: '新建测试计划',
+        title: t('modules.panel.testDetail.testPlanPanel.menuList.1'),
         disabled: getCreatePermission(TestType.Plan),
         async onClick() {
           const { item } = await createItemUseModal({
@@ -154,7 +156,9 @@ const Plan = () => {
 
           alert({
             type: 'success',
-            message: `测试计划【${item.name}】新建成功`,
+            message: `${t('modules.panel.testDetail.testPlanPanel.addPlanSuccessMessage.0')}【${
+              item.name
+            }】${t('modules.panel.testDetail.testPlanPanel.addPlanSuccessMessage.1')}`,
           });
         },
       },
@@ -165,6 +169,7 @@ const Plan = () => {
     getCreatePermission,
     testEntity.objectId,
     updateRelatedAndRefresh,
+    t,
   ]);
 
   const removeTestRelation = useCallback(
@@ -183,23 +188,23 @@ const Plan = () => {
 
       alert({
         type: 'success',
-        message: '当前测试用例从测试计划中删除',
+        message: t('modules.panel.testDetail.testPlanPanel.deleteCaseSuccessMessage'),
       });
     },
-    [refreshDepData, testEntity.objectId, updateRelatedAndRefresh],
+    [refreshDepData, testEntity.objectId, updateRelatedAndRefresh, t],
   );
 
   // table column 数据
   const tableColumns = useMemo(() => {
     return [
-      columnBuilder(BuiltinColumns.ItemKey, item => ({
+      columnBuilder(BuiltinColumns.getItemKey(t), item => ({
         item,
       })),
-      columnBuilder(BuiltinColumns.ItemTitle, item => ({
+      columnBuilder(BuiltinColumns.getItemTitle(t), item => ({
         item,
       })),
       {
-        title: '测试计划状态',
+        title: t('modules.panel.testDetail.testPlanPanel.planStatus'),
         key: 'status',
         width: 190,
         render(_, record) {
@@ -207,25 +212,25 @@ const Plan = () => {
         },
       },
       {
-        title: '测试用例数',
+        title: t('modules.panel.testDetail.testPlanPanel.planCount'),
         key: 'count',
         render(_, record) {
           return record.stats?.caseCount ?? 0;
         },
       },
       {
-        title: '操作',
+        title: t('common.action'),
         key: 'action',
         fixed: 'right',
         render: (_, record) => <a onClick={() => removeTestRelation([record.objectId])}>删除</a>,
       },
     ] as any[];
-  }, [removeTestRelation]);
+  }, [removeTestRelation, t]);
 
   return (
     <div className={cx('test')}>
       <TestEntitySelectorModal
-        title="添加当前用例至选中的测试计划中"
+        title={t('modules.panel.testDetail.testPlanPanel.modelTitle')}
         actionRef={selectorModalRef}
         testType={TestType.Plan}
         ignoreTestEntityIds={planIds}
@@ -233,14 +238,14 @@ const Plan = () => {
       <PanelTable
         renderActions={() => (
           <DropDownButton menuList={testPlanMenuList}>
-            添加至测试计划
+            {t('modules.panel.testDetail.testPlanPanel.dropButton')}
             <DownOutlined />
           </DropDownButton>
         )}
         actionRef={tableActionRef}
         actionMenuList={[
           {
-            title: '删除',
+            title: t('common.delete'),
             onClick(selectedRowKeys) {
               removeTestRelation(selectedRowKeys);
             },
