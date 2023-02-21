@@ -157,7 +157,7 @@ const Config = () => {
     return (
       <>
         {menuList.map(menu => (
-          <Menu.Item key={menu.key}>{menu.title}</Menu.Item>
+          <Menu.Item key={menu.key}>{t(`page.config.${menu.title}.title`)}</Menu.Item>
         ))}
       </>
     );

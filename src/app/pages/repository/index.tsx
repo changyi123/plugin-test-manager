@@ -22,11 +22,11 @@ const ViewModeSelector = ({ viewMode, onViewModeChange }) => {
   const tabs = [
     {
       key: 'list',
-      text: t('page.repository.list'),
+      text: 'list',
     },
     {
       key: 'minder',
-      text: t('page.repository.minder'),
+      text: 'minder',
     },
   ];
 
@@ -38,7 +38,7 @@ const ViewModeSelector = ({ viewMode, onViewModeChange }) => {
           onClick={() => onViewModeChange(tab.key)}
           className={cx('item', viewMode === tab.key && 'actived')}
         >
-          {tab.text}
+          {t(`page.repository.${tab.text}`)}
         </span>
       ))}
     </div>

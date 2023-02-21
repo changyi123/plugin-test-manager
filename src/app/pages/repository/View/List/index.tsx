@@ -29,8 +29,8 @@ const GroupModeSelector = (props: { mode: GroupedMode; onChange: (mode: GroupedM
   const { t } = useI18n();
   return (
     <Select style={{ minWidth: 130 }} value={props.mode} onChange={props.onChange}>
-      <Select.Option value="all">{t('page.plan.right.showChild')}</Select.Option>
-      <Select.Option value="current">{t('page.plan.right.showCur')}</Select.Option>
+      <Select.Option value="all">{t('page.plan.planPageLayout.right.showChild')}</Select.Option>
+      <Select.Option value="current">{t('page.plan.planPageLayout.right.showCur')}</Select.Option>
     </Select>
   );
 };

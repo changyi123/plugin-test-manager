@@ -28,7 +28,7 @@ const StepFields: React.FC<{
   fields: StepField[];
 }> = ({ fields, stepId }) => {
   const { t } = useI18n();
-  const fieldsWithImpl = fields?.map(getFieldByImpl, t).filter(Boolean);
+  const fieldsWithImpl = fields?.map(getFieldByImpl).filter(Boolean);
   const { saveFieldRef, nextField } = useNextStepFieldContext();
 
   return (
@@ -42,9 +42,9 @@ const StepFields: React.FC<{
                 {
                   key: field.key,
                   maxLength: 500,
-                  placeholder: `${t('components.business.testStep.pleaseInput')}${field.title}（${t(
-                    'components.business.testStep.switchNext',
-                  )}）`,
+                  placeholder: `${t('components.business.testStep.pleaseInput')}${t(
+                    `components.business.testStep.${field.title}`,
+                  )}（${t('components.business.testStep.switchNext')}）`,
                   onKeyDownEnter: () => nextField(stepId, field.key),
                   ref: ref => {
                     // 只有 input 类型组件需要缓存 ref
@@ -240,7 +240,7 @@ const StepList: React.FC<StepListProps> = ({ steps, actions }) => {
         // 后续可能会增加对自定义字段支持
         const fields = builtinFields
           .concat(step.customFields ?? [])
-          .map(field => getFieldByImpl(field, t));
+          .map(field => getFieldByImpl(field));
 
         return _.chain(step)
           .pick(['id', 'callTestId'])
@@ -248,7 +248,7 @@ const StepList: React.FC<StepListProps> = ({ steps, actions }) => {
           .value() as StepRow;
       }) ?? []
     );
-  }, [steps, testDetailEntities, t]);
+  }, [steps, testDetailEntities]);
 
   React.useEffect(() => {
     const fieldValues = _.chain(stepRowData)
@@ -307,9 +307,9 @@ const StepList: React.FC<StepListProps> = ({ steps, actions }) => {
         <div className={cx('list')}>
           <div className={cx('header')}>
             <span className={cx('column', 'drag-area')}>#</span>
-            {StepFieldImpl(t).map(field => (
+            {StepFieldImpl.map(field => (
               <span className={cx('column', 'field')} key={field.key}>
-                {field.title}
+                {t(`components.business.testStep.${field.title}`)}
               </span>
             ))}
           </div>

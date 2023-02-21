@@ -23,28 +23,29 @@ export const getStepInitialData = (callTestId?: string) => {
 };
 
 /** 步骤字段渲染数据 */
-export const StepFieldImpl = t => [
+// t('components.business.testStep.stepField.0')
+export const StepFieldImpl = [
   {
     key: 'action',
-    title: t('components.business.testStep.stepField.0'),
+    title: 'stepField.0',
     type: 'input',
   },
   {
     key: 'result',
-    title: t('components.business.testStep.stepField.1'),
+    title: 'stepField.1',
     type: 'input',
   },
   {
     key: 'data',
-    title: t('components.business.testStep.stepField.2'),
+    title: 'stepField.2',
     type: 'input',
   },
 ];
 
 /** 获取表单字段 column */
-export const getFieldByImpl = (field, t) => {
+export const getFieldByImpl = field => {
   // 目前只支持自定义字段
-  const fieldsMapping = keyBy(StepFieldImpl(t), 'key');
+  const fieldsMapping = keyBy(StepFieldImpl, 'key');
 
   const impl = fieldsMapping[field.key];
   if (!impl) return null;
