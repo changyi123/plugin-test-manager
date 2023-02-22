@@ -61,7 +61,8 @@
     "checked": "Selected",
     "item": "Item",
     "strip": "Strip",
-    "appItem": "Item"
+    "appItem": "Item",
+    "minderRootNodeName": "All Modules"
   },
   "page": {
     "config": {
@@ -72,7 +73,7 @@
       "resultSubTitle": "This configuration is a workspace level configuration, please select the workspace to be configured",
       "defectMapping": {
         "title": "Defect type association configuration",
-        "description": "Configures the type of defects managed by the current workspace test, a defect indicates an error, defect, fault or failure that produces incorrect or unexpected results in the test." ,
+        "description": "Configures the type of defects managed by the current workspace test, a defect indicates an error, defect, fault or failure that produces incorrect or unexpected results in the test.",
         "usableType": "Usable type",
         "defectType": "Defect type",
         "messageSuccess": "Defect type saved successfully"
@@ -171,7 +172,10 @@
     "plan": {
       "planPageLayout": {
         "selectCaseModelTitle": "Step 1: Select associated use cases",
-        "createExecutionModelTitle": ["Step 2: Create new test execution task (selected", "article Case)"],
+        "createExecutionModelTitle": [
+          "Step 2: Create new test execution task (selected",
+          "article Case)"
+        ],
         "testExecutionCreateLoading": "Test execution task is being created",
         "executionList": {
           "deleteTips": "This operation will delete the test execution task. should I continue?",
@@ -246,9 +250,16 @@
           "The submodules under the module will be deleted together, and the test cases in the module will still be retained and automatically moved to ungrouped test cases"
         ],
         "deleteFolderSuccess": "Module deleted successfully",
-        "caseCreateSuccessTips": ["test case was created successfully", "test case", "Created successfully"],
+        "caseCreateSuccessTips": [
+          "test case was created successfully",
+          "test case",
+          "Created successfully"
+        ],
         "buttonName": ["Create Module", "Collapse all", "More"],
-        "dropCaseTips": ["Test case moved successfully", "Limit 8 levels, dragging is not allowed after more than 8 levels"]
+        "dropCaseTips": [
+          "Test case moved successfully",
+          "Limit 8 levels, dragging is not allowed after more than 8 levels"
+        ]
       },
       "menu": {
         "menusName": [
@@ -328,21 +339,12 @@
         "testDetailPanel": {
           "detailTips": "Can't get",
           "refreshButton": "Reload",
-          "testStepTips": [
-            "Current test case Inheritance",
-            "Test Cases"
-          ]
+          "testStepTips": ["Current test case Inheritance", "Test Cases"]
         },
         "testPlanPanel": {
-          "menuList": [
-            "Existing test plan",
-            "New test plan"
-          ],
+          "menuList": ["Existing test plan", "New test plan"],
           "addCaseSuccessMessage": "The current test case is added to the test plan",
-          "addPlanSuccessMessage": [
-            "Test plan",
-            "Created successfully"
-          ],
+          "addPlanSuccessMessage": ["Test plan", "Created successfully"],
           "deleteCaseSuccessMessage": "The current test case is removed from the test plan",
           "planStatus": "Test plan status",
           "planCount": "Number of test cases",
@@ -368,10 +370,7 @@
       },
       "testPlan": {
         "testDetailPanel": {
-          "modelTitle": [
-            "New test execution task (selected",
-            "article test case)"
-          ],
+          "modelTitle": ["New test execution task (selected", "article test case)"],
           "addCaseToPlanSuccess": "test cases added to the test plan",
           "addCaseToPlanSuccessTips": [
             "Test cases have been added to the test plan",
@@ -419,12 +418,7 @@
         "defectStatusAnalysis": "Defect status analysis",
         "defectSeverityTable": "Defect severity statistics table",
         "severity": "Severity",
-        "severityValue": [
-          "Serious",
-          "Generally",
-          "Small",
-          "Suggestion"
-        ],
+        "severityValue": ["Serious", "Generally", "Small", "Suggestion"],
         "defectCount": "Number of defects",
         "defectChart": "Defect convergence trend graph",
         "none": "No",
@@ -440,10 +434,7 @@
           "Defect owner distribution"
         ],
         "testRunStatist": "Test case execution statistics",
-        "testRunChartName": [
-          "Execution pass rate",
-          "Test case priority distribution"
-        ],
+        "testRunChartName": ["Execution pass rate", "Test case priority distribution"],
         "huishangWorkflowMessage": [
           "No test case associated",
           "No test execution task",
@@ -461,10 +452,7 @@
   "components": {
     "business": {
       "panelTable": {
-        "selectConfirmTips": [
-          "Current operations will be",
-          "Selected data, continue operation?"
-        ],
+        "selectConfirmTips": ["Current operations will be", "Selected data, continue operation?"],
         "itemDeleted": "Item has been deleted",
         "newRunStatus": "Latest Execution status"
       },
@@ -542,11 +530,8 @@
         },
         "defectList": {
           "notLintDefect": "The current test execution has no associated defects",
-          "noPermission" : "The current user have not permission",
-          "removeTips": [
-            "Please step in",
-            "Remove the defect"
-          ],
+          "noPermission": "The current user have not permission",
+          "removeTips": ["Please step in", "Remove the defect"],
           "deleteButtonTips": "The current operation will delete the relationship with the defect, whether to continue ok?",
           "global": "Global",
           "step": "Step"
@@ -571,10 +556,7 @@
           "runNext": "Execute the next",
           "autoNext": "Auto switch to the next article",
           "autoNextTips": "When the test execution status changes to pass, automatically switch to the next test execution",
-          "panelTitle": [
-            "Preconditions",
-            "Test execution details"
-          ]
+          "panelTitle": ["Preconditions", "Test execution details"]
         },
         "testStep": {
           "noSteps": "The current testRun not have test case steps",
@@ -588,11 +570,7 @@
         }
       },
       "testStep": {
-        "stepField": [
-          "Step",
-          "Expected",
-          "Data"
-        ],
+        "stepField": ["Step", "Expected", "Data"],
         "notInheritCase": "Cannot inherit this test case",
         "modelTitle": "Please select inheritance test case",
         "addStep": "Add steps",
@@ -600,10 +578,7 @@
         "pleaseInput": "Please enter",
         "switchNext": "Alt+EnterToggle next column",
         "caseInherit": "Test case Inheritance",
-        "stepTotal": [
-          "Total",
-          "Steps"
-        ],
+        "stepTotal": ["Total", "Steps"],
         "copyStep": " Copy steps",
         "copyStepTips": "The current action will copy the test case steps, do you want to continue? ",
         "deleteStep": "Delete step",
@@ -612,10 +587,7 @@
     },
     "common": {
       "businessTable": {
-        "columnSetting": [
-          "Test management Fields",
-          "Item Field"
-        ],
+        "columnSetting": ["Test management Fields", "Item Field"],
         "tableSetting": "Table display settings",
         "headerSetting": "Table header Settings",
         "restoreDefault": "Reset",
