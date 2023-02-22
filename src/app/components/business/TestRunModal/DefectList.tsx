@@ -10,6 +10,7 @@ import { Popconfirm, Tooltip, Empty, message } from 'antd';
 import { components } from 'proxima-sdk';
 import { addTestDefect, deleteTestDefect, updateTestRunDetail } from '@/lib/api/item';
 import { goToItemDetailPage } from '@/lib/utils/helper';
+import useI18n from '@/lib/hooks/useI18n';
 
 const { ItemIcon } = components.Components.Common;
 
@@ -31,6 +32,7 @@ const DefectList: React.FC<DefectListProps> = ({
   testRunEntity,
   allRelationDefects,
 }) => {
+  const { t } = useI18n();
   const steps = testRunData.runDetail?.steps ?? [];
   const { TestToDefect = '' } = useItemLinkTypeConfig();
   const currentDefectItemIds = testRunData.runDetail?.defectItemIds ?? [];
@@ -60,7 +62,9 @@ const DefectList: React.FC<DefectListProps> = ({
       });
       onDataChange();
     } catch (error) {
-      message.error(error?.message ?? '当前用户无权限');
+      message.error(
+        error?.message ?? t('components.business.testRunModal.defectList.noPermission'),
+      );
       onLoading?.(false);
     }
   };
@@ -79,7 +83,13 @@ const DefectList: React.FC<DefectListProps> = ({
 
     return (
       <div ref={ref} className={cx('defect', isHover && 'hover')}>
-        <span className={cx('tag')}>{isGlobalDefect ? '全局' : `步骤${position}`}</span>
+        <span className={cx('tag')}>
+          {t(
+            `components.business.testRunModal.defectList.${isGlobalDefect ? 'global' : 'step'}${
+              isGlobalDefect ? '' : position
+            }`,
+          )}
+        </span>
         <ItemIcon className={cx('icon')} icon={(item.itemType as any)?.icon}></ItemIcon>
         <a
           className={cx('link')}
@@ -98,18 +108,24 @@ const DefectList: React.FC<DefectListProps> = ({
           {status?.name}
         </span>
         <Popconfirm
-          okText="确定"
-          cancelText="取消"
+          okText={t('common.confirm')}
+          cancelText={t('common.cancel')}
           placement="left"
           disabled={!isGlobalDefect}
           getPopupContainer={getPopupContainer}
-          title="当前操作会删除与该缺陷的关联关系，是否继续执行？"
+          title={t('components.business.testRunModal.defectList.deleteButtonTips')}
           onConfirm={() => isGlobalDefect && handleDeleteDefect(defect.itemId)}
         >
           <Tooltip
             placement="left"
             getPopupContainer={getPopupContainer}
-            title={!isGlobalDefect ? `请在步骤${position}中移除该缺陷` : undefined}
+            title={
+              !isGlobalDefect
+                ? `${t('components.business.testRunModal.defectList.removeTips.0')}${position}${t(
+                    'components.business.testRunModal.defectList.removeTips.1',
+                  )}`
+                : undefined
+            }
           >
             <a
               style={{ display: isHover ? 'block' : 'none' }}
@@ -131,7 +147,10 @@ const DefectList: React.FC<DefectListProps> = ({
       {allRelationDefects.length ? (
         allRelationDefects.map(defect => <DefectItem defect={defect} key={defect.itemId} />)
       ) : (
-        <Empty style={{ marginTop: 60 }} description="当前测试执行未关联缺陷" />
+        <Empty
+          style={{ marginTop: 60 }}
+          description={t('components.business.testRunModal.defectList.notLintDefect')}
+        />
       )}
 
       <AddDefectButton

@@ -16,6 +16,7 @@ import { ViewComponentProps } from '../type';
 import { MinderNodeType } from 'common/constant';
 import { createRepositories } from '@/lib/api/repository';
 import { deleteTestEntity, updateTestEntity } from '@/lib/api/item';
+import useI18n from '@/lib/hooks/useI18n';
 
 // TODO: 同层级重名模块报错
 const MaxModuleLevel = 8;
@@ -25,6 +26,7 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
   folderTreeData,
   onFolderTreeChange,
 }) => {
+  const { t } = useI18n();
   const { workspace } = useTestConfig();
   const actionRef = React.useRef(null);
   const [saveLoading, setSaveLoading] = React.useState(false);
@@ -55,7 +57,7 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
    */
   const validateMinderData = useMemoizedFn(() => {
     const minderData = actionRef.current.exportJson();
-    if (!minderData?.root) throw new Error('数据错误');
+    if (!minderData?.root) throw new Error(t('page.repository.view.minder.dataError'));
     // 节点遍历
     const nodeTraversal = (node, cb, paths = []) => {
       paths = paths.concat(node);
@@ -80,7 +82,11 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
         Object.entries(sameModuleNameTimes).forEach(([name, times]) => {
           if (times > 1) {
             const moduleNamePath = paths.map(path => path.data.text).join('/');
-            throw message.error(`保存失败，模块 “${moduleNamePath}” 下存在在同名的模块: ${name}`);
+            throw message.error(
+              `${t('page.repository.view.minder.nameRepeat.0')} “${moduleNamePath}” ${t(
+                'page.repository.view.minder.nameRepeat.1',
+              )}: ${name}`,
+            );
           }
         });
       }
@@ -164,7 +170,7 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
 
       // 超过最大层级，报错，阻止后续流程
       if (overMaxLevelModulePath) {
-        throw message.error('模块已超过最大层级限制，请修改后再进行保存');
+        throw message.error(t('page.repository.view.minder.overMaxLevelModulePath'));
       }
 
       // 合并路径的，将所有的 module path 按照层级进行展示
@@ -352,7 +358,7 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
           changeTestData(levelModulePaths),
           removeTestData(),
         ]);
-        message.success('数据更新成功');
+        message.success(t('page.repository.view.minder.updateDataSuccess'));
         // 刷新左侧树
         onFolderTreeChange();
       } catch (e) {
@@ -360,7 +366,7 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
       }
     } catch (err) {
       console.error('error', err);
-      message.error('保存失败');
+      message.error(t('page.repository.view.minder.saveFail'));
     } finally {
       setSaveLoading(false);
     }
@@ -369,10 +375,10 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
   const memoizedButtonNode = React.useMemo(() => {
     return (
       <Button onClick={handleSave} loading={saveLoading} type="primary">
-        保存
+        {t('common.save')}
       </Button>
     );
-  }, [saveLoading, handleSave]);
+  }, [saveLoading, handleSave, t]);
 
   if (!priorityOptions || !minderData) return null;
 

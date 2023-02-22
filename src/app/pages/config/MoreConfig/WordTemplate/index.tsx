@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-
 import Parse from '@/lib/parse';
 import { WordTemplate as WordTemplateObject } from '@/lib/models';
-
 import { FileType } from '@/lib/types/Test';
 import { Button, Table, message, Space, Modal } from 'antd';
 import TemplateModal from './TemplateModal';
+import useI18n from '@/lib/hooks/useI18n';
 import cx from './index.less';
 
 export interface WordTemplateInterface {
@@ -50,19 +49,20 @@ export const wordTemplateApi = {
 };
 
 const WordTemplate: React.FC = () => {
+  const { t } = useI18n();
   const columns = [
     {
-      title: '模板名称',
+      title: t('page.config.wordTemplate.templateName'),
       dataIndex: 'name',
     },
     {
-      title: '操作',
+      title: t('common.action'),
       dataIndex: 'action',
       render: (text, record) => {
         return (
           <Space size="middle">
-            <a onClick={() => templateConfig(record)}>编辑</a>
-            <a onClick={() => templateDelete(record)}>删除</a>
+            <a onClick={() => templateConfig(record)}>{t('common.editor')}</a>
+            <a onClick={() => templateDelete(record)}>{t('common.delete')}</a>
           </Space>
         );
       },
@@ -89,8 +89,10 @@ const WordTemplate: React.FC = () => {
     }
   }, [currentIndex, pageSize]);
   const title = useMemo(() => {
-    return templateData ? '上传测试报告模板' : '编辑测试报告模板';
-  }, [templateData]);
+    return templateData
+      ? t('page.config.wordTemplate.uploadTestReportTemplate')
+      : t('page.config.wordTemplate.editorTestReportTemplate');
+  }, [templateData, t]);
   useEffect(() => {
     getList();
   }, [getList]);
@@ -103,13 +105,13 @@ const WordTemplate: React.FC = () => {
   const templateDelete = record => {
     Modal.confirm({
       centered: true,
-      title: '删除模板',
-      content: '确定删除该模板吗？',
+      title: t('page.config.wordTemplate.deleteTemplate'),
+      content: t('page.config.wordTemplate.areYouSureToDeleteThisTemplate'),
       onOk: async () => {
         try {
           await wordTemplateApi.delete({ objectId: record.objectId });
           getList();
-          message.success('删除成功！');
+          message.success(t('common.deleteSuccess'));
           // 删除模板数据后删除文件
           const arr = record.file?.href?.split('/') || [];
           const fileName = arr[arr.length - 1];
@@ -119,7 +121,7 @@ const WordTemplate: React.FC = () => {
             });
           }
         } catch (error) {
-          message.error(error?.message || '删除失败！');
+          message.error(error?.message || t('common.deleteFail'));
         }
       },
     });
@@ -138,9 +140,9 @@ const WordTemplate: React.FC = () => {
       }
       getList();
       setVisible(false);
-      message.success('操作成功');
+      message.success(t('common.actionSuccess'));
     } catch (error) {
-      message.error(error?.message || '操作失败');
+      message.error(error?.message || t('common.actionFail'));
     }
   };
   const addTemplate = () => {
@@ -157,7 +159,7 @@ const WordTemplate: React.FC = () => {
     <div className={cx('word-template')}>
       <div className={cx('word-template-btn')}>
         <Button onClick={addTemplate} type="primary">
-          上传报告模板
+          {t('page.config.wordTemplate.uploadTemplate')}
         </Button>
       </div>
       {visible && (
@@ -178,7 +180,7 @@ const WordTemplate: React.FC = () => {
         pagination={{
           size: 'small',
           showTotal(total) {
-            return `共 ${total} 条数据`;
+            return `${t('common.tableTotal.0')} ${total} ${t('common.tableTotal.1')}`;
           },
           pageSizeOptions: ['10', '30', '50'],
           showSizeChanger: true,

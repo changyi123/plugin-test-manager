@@ -5,22 +5,28 @@ import PanelLayout from '@/components/business/PanelLayout';
 
 import TestDetailPanel from './TestDetailPanel';
 import TestPlanPanel from './TestPlanPanel';
+import useI18n from '@/lib/hooks/useI18n';
 
 const TestDetail: React.FC = () => {
+  const { t } = useI18n();
   const tabs = [
     {
-      tab: '详情',
+      tab: t('modules.panel.testDetail.detail'),
       key: TestType.Case,
       Component: TestDetailPanel,
     },
     {
-      tab: '测试计划',
+      tab: t('common.testPlan'),
       key: TestType.Plan,
       Component: TestPlanPanel,
     },
   ];
   return (
-    <PanelLayout tabsProps={{ defaultActiveKey: TestType.Case }} title="测试管理" tabs={tabs} />
+    <PanelLayout
+      tabsProps={{ defaultActiveKey: TestType.Case }}
+      title={t('common.testManager')}
+      tabs={tabs}
+    />
   );
 };
 

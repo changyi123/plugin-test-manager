@@ -225,7 +225,11 @@ export const getTestRepoGroupIds = (datas: any[], checkRepoKey: string) => {
 };
 
 /** 导出用例 */
-const importTestInfo = async (args: ImportArgs, excelData = []) => {
+const importTestInfo = async (
+  args: ImportArgs,
+  t: (val: string) => string | string[],
+  excelData = [],
+) => {
   const { type, checkedId, workspace } = args;
 
   if (type === 'exportPlan') {
@@ -291,14 +295,17 @@ const importTestInfo = async (args: ImportArgs, excelData = []) => {
   exportExcelFile(
     excelData,
     'sheet1',
-    `${type === 'exportPlan' ? '测试计划关联用例导出' : '测试管理用例库导出'}-${
-      workspace.name
-    }.xlsx`,
+    `${
+      type === 'exportPlan'
+        ? t('page.repository.repoDropDown.importPlanLinkCase')
+        : t('page.repository.repoDropDown.importRepoCase')
+    }-${workspace.name}.xlsx`,
+    t,
   );
 };
 
 /** 下载 excel 用例导出文件 */
-export const downloadExampleFile = async fieldKeys => {
+export const downloadExampleFile = async (fieldKeys, t) => {
   // 获取需要导出的自定义字段
   const SystemFieldKeys = Object.values(SYSTEM_FIELD);
   const CustomFieldKeys = difference(fieldKeys, SystemFieldKeys);
@@ -306,26 +313,28 @@ export const downloadExampleFile = async fieldKeys => {
   const ExportCustomFields = CustomFields.reduce((res, field) => {
     return {
       ...res,
-      [field.name]: '请输入内容',
+      [field.name]: t('page.repository.repoDropDown.pleaseEnterContent'),
     };
   }, {});
   exportExcelFile(
     [
       {
-        所属分组: '分组1/分组2',
-        标题: '测试用例标题（样例数据，执行用例导入时请删除该数据）',
-        类型: '测试用例',
-        优先级: '优先级可填值范围：最高，较高，普通，较低，最低',
-        前置条件: '测试用例前置条件',
-        负责人: '用户名',
-        步骤描述: '【1】需要以【序号】开头\n【2】步骤描述中换行符会被保留',
-        预期结果: '【1】需要以【序号】开头\n【2】预期结果中换行符会被保留',
-        数据: '【1】需要以【序号】开头\n【2】数据中换行符会被保留',
+        ...(t('page.repository.repoDropDown.excelContent') ?? {}),
+        // 所属分组: '分组1/分组2',
+        // 标题: '测试用例标题（样例数据，执行用例导入时请删除该数据）',
+        // 类型: '测试用例',
+        // 优先级: '优先级可填值范围：最高，较高，普通，较低，最低',
+        // 前置条件: '测试用例前置条件',
+        // 负责人: '用户名',
+        // 步骤描述: '【1】需要以【序号】开头\n【2】步骤描述中换行符会被保留',
+        // 预期结果: '【1】需要以【序号】开头\n【2】预期结果中换行符会被保留',
+        // 数据: '【1】需要以【序号】开头\n【2】数据中换行符会被保留',
         ...ExportCustomFields,
       },
     ],
     'sheet1',
-    `测试管理导入模板.xlsx`,
+    `${t('page.repository.repoDropDown.excelName')}.xlsx`,
+    t,
   );
 };
 
@@ -347,10 +356,10 @@ function s2ab(s: any) {
 }
 
 /** 导出用例数据 */
-const exportExcelFile = (array: any[], sheetName = 'sheet1', fileName = 'example.xlsx') => {
+const exportExcelFile = (array: any[], sheetName = 'sheet1', fileName = 'example.xlsx', t) => {
   const defaultCellStyle = {
     font: {
-      name: '宋体',
+      name: t('page.repository.repoDropDown.fontName'),
       sz: 11,
       color: {
         auto: 1,

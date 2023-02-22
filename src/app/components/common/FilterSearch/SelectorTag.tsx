@@ -1,12 +1,13 @@
 import { CloseOutlined } from '@ant-design/icons';
 import { SelectCase } from '@/lib/utils/iql';
-import cx from './SelectorTag.less';
-
 import React, { useMemo } from 'react';
 import { isArray } from 'lodash';
 import { isDate } from '@/lib/utils/iql';
 import dayjs from 'dayjs';
 import { FILTER_EXPRESSIONS } from '@/lib/constants';
+import useI18n from '@/lib/hooks/useI18n';
+
+import cx from './SelectorTag.less';
 
 interface SelectorTagProps {
   data: SelectCase;
@@ -15,6 +16,7 @@ interface SelectorTagProps {
   active?: boolean;
 }
 const SelectorTag: React.FC<SelectorTagProps> = ({ data, onDelete, onClick, active }) => {
+  const { t } = useI18n();
   const { fieldName, value, component, fieldId, expression: _expression } = data;
 
   const [_value, count] = useMemo(() => {
@@ -25,19 +27,21 @@ const SelectorTag: React.FC<SelectorTagProps> = ({ data, onDelete, onClick, acti
         (value as string[])
           ?.map(item => item && dayjs(item).format('YYYY-MM-DD'))
           .filter(Boolean) || [];
-      return [dateValue.join(' 至 '), 0];
+      return [dateValue.join(` ${t('components.common.filterSearch.to')} `), 0];
     } else if (isArray(value)) {
       count = value.length > 1 ? value.length : 0;
       const [tagValue] = value;
       content =
         tagValue === 'NULL'
-          ? '“-” 或 “无”'
+          ? `“-” ${t('components.common.filterSearch.or')} “${t(
+              'components.common.filterSearch.none',
+            )}”`
           : tagValue?.nickname || tagValue?.fieldName || tagValue?.label || tagValue;
     } else {
       content = value;
     }
     return [content, count];
-  }, [component, value]);
+  }, [component, value, t]);
 
   const expressionText = useMemo(() => {
     const options = FILTER_EXPRESSIONS[component] || [];

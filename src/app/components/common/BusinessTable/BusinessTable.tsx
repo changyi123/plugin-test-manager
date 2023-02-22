@@ -14,6 +14,7 @@ import { getRootContainer, hasArrayItem } from '@/lib/utils/helper';
 import { useSDK, PluginSDKContext } from '@projectproxima/plugin-sdk';
 import { useAntdTable, useLocalStorageState, useSize } from 'ahooks';
 import { LibraryProvider, useDataQuoteStore } from '@projectproxima/components';
+import useI18n from '@/lib/hooks/useI18n';
 
 import cx from './BusinessTable.less';
 
@@ -320,6 +321,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
   };
 
   const PaginationFooter = () => {
+    const { t } = useI18n();
     if (!showPagination) return null;
     const pagination = antdTableProps.pagination;
     const handlePaginationChange = (current, pageSize) => {
@@ -330,7 +332,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     return (
       <div className={`${cx('footer')} footer-box`}>
         <div className={cx('num')}>
-          共 <span>{pagination.total}</span> 条
+          {t('common.tableTotal.0')} <span>{pagination.total}</span> {t('common.tableTotal.1')}
         </div>
         <Pagination
           size="small"

@@ -30,8 +30,10 @@ import {
   getLinkedTestEntityByQuery,
 } from '@/lib/api/item';
 import createProximaSdk from '@projectproxima/proxima-sdk-js';
+import useI18n from '@/lib/hooks/useI18n';
 
 const Test = () => {
+  const { t } = useI18n();
   const { testEntity, workspace } = useTestConfig();
   const { createItemUseModal, getCreatePermission } = useBaseAction();
   const tableActionRef = React.useRef<ActionType>();
@@ -141,14 +143,16 @@ const Test = () => {
           planId: testEntity?.objectId,
           isDisableCreateNext: true,
           modalProps: {
-            title: `新建测试执行任务（已选 ${caseIds.length} 条用例）`,
+            title: `${t('modules.panel.testPlan.testDetailPanel.modelTitle.0')} ${
+              caseIds.length
+            } ${t('modules.panel.testPlan.testDetailPanel.modelTitle.1')}`,
           },
         },
       });
 
       return res;
     },
-    [createItemUseModal, testEntity?.objectId],
+    [createItemUseModal, testEntity?.objectId, t],
   );
 
   // 创建测试执行
@@ -180,19 +184,19 @@ const Test = () => {
 
     alert({
       type: 'success',
-      message: `测试执行任务【${testExecution?.name}】新建成功`,
+      message: `${t('common.testExecution')}【${testExecution?.name}】${t('common.addSuccess')}`,
     });
-  }, [createExecution, testEntity.objectId, tableActionRef]);
+  }, [createExecution, testEntity.objectId, tableActionRef, t]);
 
   // 添加测试用例菜单
   const testDetailMenuList = useMemo(() => {
     return [
       {
-        title: '已存在的测试用例',
+        title: t('modules.panel.testExecution.testDetailPanel.existingTestCase'),
         async onClick() {
           const testDetailIds = await selectorModalRef.current.open();
           if (getCreatePermission(TestType.Case)) {
-            message.error('暂无事项新增权限，请检查事项操作权限配置或联系管理员');
+            message.error(t('page.plan.testEntityList.addItemTips'));
             return;
           }
           const _testDetailIds = testDetailIds.filter(d => !(testEntityIds ?? []).includes(d));
@@ -213,12 +217,14 @@ const Test = () => {
 
           alert({
             type: 'success',
-            message: `${_testDetailIds.length} 个测试用例添加到测试计划中`,
+            message: `${_testDetailIds.length} ${t(
+              'modules.panel.testPlan.testDetailPanel.addCaseToPlanSuccess',
+            )}`,
           });
         },
       },
       {
-        title: '新建测试用例',
+        title: t('common.addTestCase'),
         disabled: getCreatePermission(TestType.Case),
         async onClick() {
           const { testEntityList } = await createItemUseModal({
@@ -249,8 +255,12 @@ const Test = () => {
 
           const successMessage =
             testEntityList.length > 1
-              ? `${testEntityList.length}个测试用例已被添加到测试计划中`
-              : `测试用例【${testEntityList[0]?.name}】已被添加到测试计划中`;
+              ? `${testEntityList.length}${t(
+                  'modules.panel.testPlan.testDetailPanel.addCaseToPlanSuccessTips.0',
+                )}`
+              : `${t('modules.panel.testPlan.testDetailPanel.addCaseToPlanSuccessTips.1')}【${
+                  testEntityList[0]?.name
+                }】${t('modules.panel.testPlan.testDetailPanel.addCaseToPlanSuccessTips.0')}`;
 
           alert({
             type: 'success',
@@ -259,7 +269,7 @@ const Test = () => {
         },
       },
     ];
-  }, [createItemUseModal, refreshDepData, getCreatePermission, testEntity, testEntityIds]);
+  }, [createItemUseModal, refreshDepData, getCreatePermission, testEntity, testEntityIds, t]);
 
   const removeTestRelation = useCallback(
     async testDetailIds => {
@@ -280,47 +290,49 @@ const Test = () => {
 
       alert({
         type: 'success',
-        message: `${testDetailIds.length} 个测试用例从测试计划中删除`,
+        message: `${testDetailIds.length} ${t(
+          'modules.panel.testPlan.testDetailPanel.removeCaseFromPlanSuccess',
+        )}`,
       });
     },
-    [refreshDepData, testEntity?.objectId],
+    [refreshDepData, testEntity?.objectId, t],
   );
 
   // table column 数据
   const tableColumns = useMemo(() => {
     return [
-      columnBuilder(BuiltinColumns.ItemKey, item => ({ item })),
-      columnBuilder(BuiltinColumns.ItemTitle, item => ({ item })),
+      columnBuilder(BuiltinColumns.getItemKey(t), item => ({ item })),
+      columnBuilder(BuiltinColumns.getItemTitle(t), item => ({ item })),
       {
-        title: '执行任务数',
+        title: t('modules.panel.testPlan.testDetailPanel.executionCount'),
         key: 'execution',
         width: 90,
         render: (_, record) => {
           return record.relRuns?.runCount ?? 0;
         },
       },
-      columnBuilder(BuiltinColumns.LatestStatus, record => {
+      columnBuilder(BuiltinColumns.getLatestStatus(t), record => {
         return {
           status: record.relRuns?.caseLatestStatus,
           readonly: true,
         };
       }),
       {
-        title: '操作',
+        title: t('common.action'),
         key: 'action',
         align: 'center' as any,
         fixed: 'right' as any,
         width: 90,
         render: (_, record) => (
           <>
-            <a onClick={() => removeTestRelation([record.objectId])}>删除</a>
+            <a onClick={() => removeTestRelation([record.objectId])}>{t('common.delete')}</a>
           </>
         ),
       },
     ];
-  }, [removeTestRelation]);
+  }, [removeTestRelation, t]);
 
-  const createTestExcution = useCallback(async () => {
+  const onClick = useCallback(async () => {
     await createTestExecution();
     refreshDepData();
   }, [createTestExecution, refreshDepData]);
@@ -335,8 +347,8 @@ const Test = () => {
           key: 'execution',
           title: (
             <span>
-              <Tooltip title="该测试用例在以下任务中进行执行">
-                测试执行任务
+              <Tooltip title={t('modules.panel.testPlan.testDetailPanel.executionTips')}>
+                {t('common.testExecution')}
                 <QuestionCircleOutlined style={{ marginLeft: 8 }} />
               </Tooltip>
             </span>
@@ -350,7 +362,7 @@ const Test = () => {
         },
         {
           key: 'status',
-          title: '测试执行状态',
+          title: t('page.plan.testEntityList.runStatus'),
           width: 150,
           render(_, record) {
             return <StatusBadge status={record.status} readonly />;
@@ -358,7 +370,7 @@ const Test = () => {
         },
         {
           key: 'action',
-          title: '操作',
+          title: t('common.action'),
           width: 120,
           render(_, record) {
             return (
@@ -371,7 +383,7 @@ const Test = () => {
                   refreshDepData(); //刷新依赖数据
                 }}
               >
-                执行
+                {t('common.run')}
               </a>
             );
           },
@@ -390,14 +402,14 @@ const Test = () => {
         />
       );
     },
-    [refreshDepData],
+    [refreshDepData, t],
   );
 
   return (
     <div>
       <TestEntitySelectorModal
         actionRef={selectorModalRef}
-        title="添加测试用例到当前测试计划"
+        title={t('modules.panel.testPlan.testDetailPanel.selectCaseModelTitle')}
         testType={TestType.Case}
         ignoreTestEntityIds={testEntityIds}
       />
@@ -416,19 +428,19 @@ const Test = () => {
             <Button
               icon={<PlusOutlined />}
               disabled={getCreatePermission(TestType.Execution)}
-              onClick={createTestExcution}
+              onClick={onClick}
             >
-              测试执行任务
+              {t('common.testExecution')}
             </Button>
             <DropDownButton menuList={testDetailMenuList}>
-              添加测试用例 <DownOutlined />
+              {t('modules.panel.testPlan.testDetailPanel.addTestCase')} <DownOutlined />
             </DropDownButton>
           </>
         )}
         actionRef={tableActionRef}
         actionMenuList={[
           {
-            title: '删除',
+            title: t('common.delete'),
             onClick(selectedRowKeys) {
               removeTestRelation(selectedRowKeys);
             },

@@ -2,11 +2,10 @@
 import { iqlRequest } from '../../../lib/iqlRequest';
 import { testEntityFieldTypeValidator } from '../../../lib/validator';
 import { TestLinkType, TestType } from '../../../../common/constant';
+import { i18n } from '@giteeteam/apps-team-api';
 
 export const runHuishangScript = async () => {
-  // const ParseBaseQueryOptions = {
-  //   sessionToken: global.sessionToken,
-  // };
+  const { t } = i18n;
 
   const queryTestEntity = async props => {
     const { offset, limit, ascending, query = {}, fields, selector, descending } = props;
@@ -53,7 +52,7 @@ export const runHuishangScript = async () => {
       fields: ['id'],
     });
     if (!executions?.length) {
-      return { code: -1, message: '没有关联的测试用例' };
+      return { code: -1, message: t('trigger.web.script.huishangWorkflowMessage.0') };
     }
     return { code: 0, data: executions };
   }
@@ -81,12 +80,15 @@ export const runHuishangScript = async () => {
       fields: ['id', 'status'],
       limit: 9999,
     });
-    if (!runs?.length) return { code: -1, message: '没有测试执行任务' };
+    if (!runs?.length)
+      return { code: -1, message: t('trigger.web.script.huishangWorkflowMessage.1') };
     const hasUnPass = runs.find(item => !checkStatus.includes((item as any).status.name));
     if (hasUnPass) {
       return {
         code: -1,
-        message: `所有的测试执行任务必须${checkStatus.map(status => `【${status}】`)}`,
+        message: `${t('trigger.web.script.huishangWorkflowMessage.2')}${checkStatus.map(
+          status => `【${status}】`,
+        )}`,
       };
     }
     return { code: 0 };
@@ -106,7 +108,10 @@ export const runHuishangScript = async () => {
       fields: ['id', 'status'],
     });
     if (!checkStatus.includes((data as any)?.status.name)) {
-      return { code: -1, message: `测试计划状态不属于${checkStatus.join('、')}` };
+      return {
+        code: -1,
+        message: `${t('trigger.web.script.huishangWorkflowMessage.3')}${checkStatus.join('、')}`,
+      };
     }
     return { code: 0 };
   } else if (action === 'runs-done') {
@@ -123,7 +128,7 @@ export const runHuishangScript = async () => {
     });
     const todoTest = (testRuns as any[]).filter(test => !test.status || test.status === 'TODO');
     if (todoTest.length) {
-      return { code: -1, message: '存在未执行的测试用例，请执行完成后在进行状态流转' };
+      return { code: -1, message: t('trigger.web.script.huishangWorkflowMessage.4') };
     }
     return { code: 0 };
   }

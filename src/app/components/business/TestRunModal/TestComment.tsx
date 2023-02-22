@@ -8,6 +8,7 @@ import dayjs from 'dayjs';
 import { Space } from 'antd';
 
 import cx from './TestComment.less';
+import useI18n from '@/lib/hooks/useI18n';
 
 const defaultValue = [
   {
@@ -36,6 +37,7 @@ const getText = (values: any[]): string =>
   }, '');
 
 const TestComment: React.FC<any> = (props: any) => {
+  const { t } = useI18n();
   const { testRunEntity, testRunData, onDataChange, modelScrollRef } = props;
 
   // 当前编辑器中显示的文本
@@ -156,7 +158,7 @@ const TestComment: React.FC<any> = (props: any) => {
                     type="link"
                     onClick={() => deleteComment(comment)}
                   >
-                    删除
+                    {t('common.delete')}
                   </Button>
                 </div>
               </div>
@@ -172,24 +174,29 @@ const TestComment: React.FC<any> = (props: any) => {
             </div>
           ))
         ) : (
-          <p style={{ color: '#b0b5bc' }}>当前测试用例无评论数据</p>
+          <p style={{ color: '#b0b5bc' }}>
+            {t('components.business.testRunModal.testComment.noData')}
+          </p>
         )}
       </>
     );
-  }, [onDataChange, testCommentList, testRunData.comments, testRunEntity]);
+  }, [onDataChange, testCommentList, testRunData.comments, testRunEntity, t]);
 
   return (
     <>
       <div className={cx('commont-box')}>
         {readpnlyEditor}
         {!showEditor ? (
-          <Input placeholder="编写评论" onFocus={() => setShowEditor(true)} />
+          <Input
+            placeholder={t('components.business.testRunModal.testComment.editorComment')}
+            onFocus={() => setShowEditor(true)}
+          />
         ) : (
           <>
             {/* {Editor} */}
             <Space style={{ marginTop: '12px' }}>
               <Button disabled={disable} onClick={submitTestComment}>
-                保存
+                {t('common.save')}
               </Button>
               <Button
                 onClick={() => {
@@ -197,7 +204,7 @@ const TestComment: React.FC<any> = (props: any) => {
                   setShowEditor(false);
                 }}
               >
-                取消
+                {t('common.delete')}
               </Button>
             </Space>
           </>

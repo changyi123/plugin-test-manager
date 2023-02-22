@@ -1,9 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useEffect } from 'react';
-
 import { Modal, Form, Input, Select } from 'antd';
 import UploadFile from '@/components/common/UploadFile';
-
+import useI18n from '@/lib/hooks/useI18n';
 import { WordTemplateInterface } from './index';
 
 import cx from './index.less';
@@ -22,6 +21,7 @@ const TemplateModal: React.FC<ModalProps> = ({
   handleSubmit,
   templateData,
 }) => {
+  const { t } = useI18n();
   const [form] = Form.useForm();
   useEffect(() => {
     if (templateData) {
@@ -66,7 +66,7 @@ const TemplateModal: React.FC<ModalProps> = ({
 
   return (
     <Modal
-      title="上传测试模板"
+      title={t('page.config.wordTemplate.uploadTemplate')}
       visible={visible}
       onOk={handleOk}
       onCancel={handleCancel}
@@ -82,11 +82,11 @@ const TemplateModal: React.FC<ModalProps> = ({
         form={form}
       >
         <Form.Item
-          label="模板名称"
+          label={t('page.config.wordTemplate.templateName')}
           name="name"
-          rules={[{ required: true, message: '请输入模板名称!' }]}
+          rules={[{ required: true, message: t('page.config.wordTemplate.ruleTips') }]}
         >
-          <Input placeholder="请输入模板名称" />
+          <Input placeholder={t('page.config.wordTemplate.ruleTips')} />
         </Form.Item>
 
         {/* <Form.Item label="应用空间" name="dataSet">
@@ -99,9 +99,9 @@ const TemplateModal: React.FC<ModalProps> = ({
 
         <Form.Item
           name="file"
-          label="模板上传"
+          label={t('page.config.wordTemplate.uploadFile')}
           {...UploadFieldAdapterProps}
-          rules={[{ required: true, message: '请上传模板!' }]}
+          rules={[{ required: true, message: t('page.config.wordTemplate.uploadFileTips') }]}
         >
           <UploadFile
             uploadProps={{

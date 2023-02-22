@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "build": "cd src && webpack --mode=production",
-    "build-package": "giteeteam-apps build -i ./src/trigger -o ./dist --no-zip --prod -c version.yml",
+    "build-package": "giteeteam-apps build -i ./src/trigger -c ./locales -o ./dist --no-zip --prod -c version.yml",
     "dev": "yarn start",
     "start": "cd src && webpack server --mode=development",
     "build-app": "sh ./build-app.sh",
@@ -73,6 +73,7 @@
     "webpackbar": "^5.0.0-3"
   },
   "dependencies": {
+    "@alienfast/i18next-loader": "^2.0.1",
     "@ant-design/icons": "^4.7.0",
     "@giteeteam/apps-team-api": "^0.4.1",
     "@nebulare/data": "^0.1.5",
@@ -90,6 +91,7 @@
     "docx-templates": "^4.9.2",
     "echarts": "^5.3.3",
     "file-saver": "^2.0.5",
+    "i18next": "^22.4.9",
     "lodash": "^4.17.21",
     "parse": "3.4.1",
     "patch-package": "^6.4.7",
@@ -100,6 +102,7 @@
     "react-dom": "^17.0.2",
     "react-resizable": "^3.0.4",
     "react-router-dom": "^5.3.0",
+    "rosetta": "^1.1.0",
     "sheetjs-style": "^0.15.8",
     "tslib": "^2.3.1",
     "url": "^0.11.0",
