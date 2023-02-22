@@ -3,7 +3,6 @@ import resource from '../../../../locales';
 export function getMessages(
   locales: string | string[] = ['zh'],
 ): [locale: string, langBundle: any, antdLang: any] {
-  locales = ['en'];
   if (!Array.isArray(locales)) {
     locales = [locales];
   }
