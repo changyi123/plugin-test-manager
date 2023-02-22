@@ -20,17 +20,6 @@ import useI18n from '@/lib/hooks/useI18n';
 
 import cx from './index.less';
 
-const getOptions = t => [
-  {
-    value: 'showChild',
-    label: t('page.plan.planPageLayout.right.showChild'),
-  },
-  {
-    value: 'showCur',
-    label: t('page.plan.planPageLayout.right.showCur'),
-  },
-];
-
 interface RightProps {
   activeType?: string;
   selectedExecution?: Record<string, any>;
@@ -219,7 +208,16 @@ const Right: React.FC<RightProps> = props => {
             <Select
               className={cx('select-group')}
               value={showType}
-              options={getOptions(t)}
+              options={[
+                {
+                  value: 'showChild',
+                  label: t('page.plan.planPageLayout.right.showChild'),
+                },
+                {
+                  value: 'showCur',
+                  label: t('page.plan.planPageLayout.right.showCur'),
+                },
+              ]}
               onChange={val => setShowType(val)}
             ></Select>
             <Button className={cx('action')} onClick={() => toggleTableSelection()}>

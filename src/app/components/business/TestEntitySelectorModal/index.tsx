@@ -384,7 +384,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
         selectValue={selectValue}
         ignoreTestDetailIds={ignoreTestEntityIds}
         isWorkspaceIsolate={isolateTestType.includes(TestType.Case)}
-        onTestDetailSelect={testDetails => setSelectedTestDetails(testDetails)}
+        onTestDetailSelect={testDetails => setSelectedTestDetails(testDetails ?? [])}
         planId={planId}
         treeType={treeType}
         setTreeType={setTreeType}

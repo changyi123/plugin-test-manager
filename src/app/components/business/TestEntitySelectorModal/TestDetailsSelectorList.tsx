@@ -70,17 +70,6 @@ const getReportCheckedValue = (testIds: any[], checkTestValue: string[], type = 
   return !!_testIds.length && testIds.length !== _testIds.length;
 };
 
-const selectOptions = [
-  {
-    value: 'showChild',
-    label: '显示子分组用例',
-  },
-  {
-    value: 'showCur',
-    label: '显示当前分组用例',
-  },
-];
-
 const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
   workspaceKey,
   selectedNode,
@@ -254,7 +243,16 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
           <div className={cx('detail-header-right')}>
             <Select
               value={showType}
-              options={selectOptions}
+              options={[
+                {
+                  value: 'showChild',
+                  label: t('page.plan.planPageLayout.right.showChild'),
+                },
+                {
+                  value: 'showCur',
+                  label: t('page.plan.planPageLayout.right.showCur'),
+                },
+              ]}
               getPopupContainer={e => e.parentNode}
               onChange={val => setShowType(val)}
             ></Select>

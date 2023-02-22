@@ -139,7 +139,7 @@ const TableFields: React.FC = () => {
               tableFieldsData={tableFieldsData}
               setTableFieldsData={setTableFieldsData}
               tableActionRef={testPlanRef}
-              colums={testPlanColumns}
+              columns={testPlanColumns}
               defaultColumnKey={
                 checkAllWorkspace
                   ? globalConfig?.tableFields?.[TestType.Plan]?.tableColumns
@@ -158,7 +158,7 @@ const TableFields: React.FC = () => {
               tableFieldsData={tableFieldsData}
               setTableFieldsData={setTableFieldsData}
               tableActionRef={testCaseRef}
-              colums={caseColumns}
+              columns={caseColumns}
               defaultColumnKey={
                 checkAllWorkspace
                   ? globalConfig?.tableFields?.[TestType.Case]?.tableColumns

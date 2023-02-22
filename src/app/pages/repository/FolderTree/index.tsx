@@ -38,15 +38,16 @@ const { DirectoryTree } = Tree;
 type OpenFolderNameModal = (args: {
   name?: string;
   title: string;
+  t?: (val: string) => string;
   validator?: (name) => void;
 }) => Promise<string>;
 
-const openFolderNameModal: OpenFolderNameModal = ({ title, name, validator }) => {
+const openFolderNameModal: OpenFolderNameModal = ({ title, name, validator, t }) => {
   let inputRef = null;
   const inputProps = {
     ref: ele => (inputRef = ele),
     defaultValue: name,
-    placeholder: '请输入模块名',
+    placeholder: t('page.repository.folderTree.placeholder'),
     maxLength: 40,
   };
   const input = <Input {...inputProps} />;
@@ -64,6 +65,8 @@ const openFolderNameModal: OpenFolderNameModal = ({ title, name, validator }) =>
       onCancel() {
         reject();
       },
+      cancelText: t('common.delete'),
+      okText: t('common.confirm'),
     });
     setTimeout(() => {
       inputRef.focus({
@@ -242,6 +245,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         }
         const folderName = await openFolderNameModal({
           title: t('page.repository.folderTree.createChildFolder'),
+          t,
           validator: inputName => inputNameValidator(inputName, node.children),
         });
         const parentKey = node?.key === UNGROUPED_FOLDER_KEY ? null : node?.key;
@@ -269,6 +273,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         const newFolderName = await openFolderNameModal({
           title: t('page.repository.folderTree.renameFolder'),
           name: node.name,
+          t,
           // 获取当前节点的所有 sibling 节点
           validator: inputName =>
             inputNameValidator(inputName, treeFn.getTreeNodeByKey(node.parentKey)?.children ?? []),
@@ -300,7 +305,8 @@ const FolderTree: React.FC<FolderTreeProps> = ({
               </div>
             </>
           ),
-          okText: t('common.delete'),
+          cancelText: t('common.delete'),
+          okText: t('common.confirm'),
           okButtonProps: {
             type: 'default',
             danger: true,
