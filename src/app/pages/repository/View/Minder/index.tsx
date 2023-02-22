@@ -26,7 +26,7 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
   folderTreeData,
   onFolderTreeChange,
 }) => {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const { workspace } = useTestConfig();
   const actionRef = React.useRef(null);
   const [saveLoading, setSaveLoading] = React.useState(false);
@@ -385,6 +385,7 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
   return (
     <>
       <MinderEditor
+        lang={locale}
         data={minderData}
         key={workspace.key}
         actionRef={actionRef}
