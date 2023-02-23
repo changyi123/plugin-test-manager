@@ -77,7 +77,8 @@
     "notContain": "不属于",
     "lessThan": "小于",
     "greaterThan": "大于",
-    "noData": "暂无数据"
+    "noData": "暂无数据",
+    "minderRootNodeName": "全部用例"
   },
   "page": {
     "config": {
@@ -533,7 +534,7 @@
         },
         "defectList": {
           "notLintDefect": "当前测试执行未关联缺陷",
-          "noPermission" : "当前用户无权限",
+          "noPermission": "当前用户无权限",
           "removeTips": ["请在步骤", "中移除该缺陷"],
           "deleteButtonTips": "当前操作会删除与该缺陷的关联关系，是否继续执行？",
           "global": "全局",
