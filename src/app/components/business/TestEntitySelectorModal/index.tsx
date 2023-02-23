@@ -82,7 +82,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
   // 是否是测试缺陷类型
   const isTestDefectType = testType === TestType.TestDefect;
   // 测试类型名
-  const testTypeName = TestTypeNameMapping[testType] ?? t('common.appItem');
+  const testTypeName = t(`common.${TestTypeNameMapping[testType]}`);
 
   const [modelProps, setModelProps] = useSafeState<ModelProps | undefined>(undefined);
 
@@ -332,8 +332,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
     return (
       <>
         <p className={cx('hint')}>
-          {t('components.business.testEntitySelectorModal.modelTip')}
-          {testTypeName}
+          {`${t('components.business.testEntitySelectorModal.modelTip')} ${testTypeName}`}
         </p>
         <div ref={debounceSelectContainerRef}>
           <DebounceSelect
@@ -347,15 +346,16 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
             getPopupContainer={() => debounceSelectContainerRef.current}
             placeholder={
               props.placeholder ??
-              `${t('components.business.testEntitySelectorModal.modelTip')}${testTypeName}`
+              `${t('components.business.testEntitySelectorModal.modelTip')} ${t(
+                `common.${testTypeName}`,
+              )}`
             }
             notFoundContent={
               searchLoading ? (
                 <Spin />
               ) : (
                 <div>
-                  {t('components.business.testEntitySelectorModal.notFound')}
-                  {testTypeName}
+                  {`${t('components.business.testEntitySelectorModal.notFound')} ${testTypeName}`}
                 </div>
               )
             }

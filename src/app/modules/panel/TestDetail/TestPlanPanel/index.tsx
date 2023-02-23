@@ -222,7 +222,9 @@ const Plan = () => {
         title: t('common.action'),
         key: 'action',
         fixed: 'right',
-        render: (_, record) => <a onClick={() => removeTestRelation([record.objectId])}>删除</a>,
+        render: (_, record) => (
+          <a onClick={() => removeTestRelation([record.objectId])}>{t('common.delete')}</a>
+        ),
       },
     ] as any[];
   }, [removeTestRelation, t]);

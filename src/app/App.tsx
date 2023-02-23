@@ -2,8 +2,9 @@ import React, { useEffect, Suspense, useMemo } from 'react';
 import { getRootContainer } from '@/lib/utils/helper';
 import I18n from '@/lib/utils/i18n';
 import { PluginSDKContext } from '@projectproxima/plugin-sdk';
-import { message, notification, ConfigProvider } from 'antd';
+import { message, notification, ConfigProvider, Empty } from 'antd';
 import { MemoryRouter, Switch, Route, useHistory, HashRouter } from 'react-router-dom';
+import useI18n from './lib/hooks/useI18n';
 
 import routes from './routes';
 
@@ -39,6 +40,13 @@ const GoPropsRoute = props => {
   return null;
 };
 
+const EmptyRender = () => {
+  const { t } = useI18n();
+  return (
+    <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={<>{t('common.noData')}</>}></Empty>
+  );
+};
+
 const App: React.FC<{ locale: any; lngDict: any; antdLang: any }> = props => {
   const { locale, lngDict, antdLang } = props;
   const qiankunContextValue: any = useMemo(
@@ -60,6 +68,7 @@ const App: React.FC<{ locale: any; lngDict: any; antdLang: any }> = props => {
         <ConfigProvider
           getPopupContainer={() => document.getElementById(rootElement)}
           locale={antdLang?.default}
+          renderEmpty={EmptyRender}
         >
           {process.env.NODE_ENV === 'production' || window.__POWERED_BY_QIANKUN__ ? (
             <MemoryRouter>

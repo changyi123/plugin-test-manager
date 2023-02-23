@@ -1,4 +1,8 @@
 import resource from '../../../../locales';
+import zh from 'antd/lib/locale/zh_CN';
+import en from 'antd/lib/locale/en_US';
+
+console.info('en ------------>', en);
 
 export function getMessages(
   locales: string | string[] = ['zh'],
@@ -23,18 +27,19 @@ export function getMessages(
       case 'zh-CN':
       case 'zh-cn':
       case 'zh':
-        antdLang = import('antd/lib/locale/zh_CN');
+        antdLang = zh;
         break;
       case 'en-GB':
+      case 'en-US':
       case 'en':
-        antdLang = import('antd/lib/locale/en_US');
+        antdLang = en;
         break;
       default:
         break;
     }
   }
   if (!langBundle) {
-    return ['en', resource.en || {}, import('antd/lib/locale/en_US')];
+    return ['en', resource.en || {}, en];
   }
   return [locale, langBundle, antdLang];
 }

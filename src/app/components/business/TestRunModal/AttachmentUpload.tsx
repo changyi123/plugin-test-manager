@@ -137,7 +137,14 @@ const AttachmentList: React.FC<any> = props => {
                     onClick={() => {
                       if (checkList.length) {
                         actionConfirm(
-                          t('components.business.testRunModal.attachmentUpload.actionTips'),
+                          {
+                            title: t('common.tip'),
+                            okText: t('common.okText'),
+                            cancelText: t('common.cancel'),
+                            content: t(
+                              'components.business.testRunModal.attachmentUpload.actionTips',
+                            ),
+                          },
                           async () => {
                             const list = fileList.filter(file => !checkList.includes(file.uid));
 
@@ -229,7 +236,14 @@ const AttachmentList: React.FC<any> = props => {
                       className={cx('action-icon')}
                       onClick={() =>
                         actionConfirm(
-                          t('components.business.testRunModal.attachmentUpload.actionTips'),
+                          {
+                            title: t('common.tip'),
+                            okText: t('common.okText'),
+                            cancelText: t('common.cancel'),
+                            content: t(
+                              'components.business.testRunModal.attachmentUpload.actionTips',
+                            ),
+                          },
                           () => {
                             deleteFileList(file);
                             onDataChange();

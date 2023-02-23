@@ -8,8 +8,10 @@
     "delete": "Delete",
     "remove": "Remove",
     "copy": "Copy",
+    "tip": "Tips",
+    "okText": "OK",
     "title": "Title",
-    "confirm": "Confirm",
+    "confirm": "OK",
     "type": "Type",
     "cancel": "Cancel",
     "close": "Close",
@@ -29,6 +31,7 @@
     "testPlan": "Test plan",
     "testExecution": "Test execution task",
     "testRun": "Test run",
+    "testDefect": "Test defect",
     "testRepository": "Test case repository",
     "testCaseRepository": "Test case repository module",
     "allRepository": "All cases",
@@ -61,7 +64,18 @@
     "checked": "Selected",
     "item": "Item",
     "strip": "Strip",
-    "appItem": "Item"
+    "appItem": "Item",
+    "include": "Include",
+    "exclude": "Exclude",
+    "empty": "Empty",
+    "notEmpty": "Not empty",
+    "equal": "Equal",
+    "notEqual": "Not equal",
+    "contain": "Contain",
+    "notContain": "Not contain",
+    "lessThan": "Less than",
+    "greaterThan": "Greater than",
+    "noData": "No data"
   },
   "page": {
     "config": {
@@ -213,7 +227,7 @@
         "runStatus": "Test execution status",
         "executor": "Last action executor",
         "designee": "Executor",
-        "assigneeSetting": "Set the person in charge",
+        "assigneeSetting": "Set assignee",
         "editorItemTips": "No item editing permission at the moment, please check the item operation permission configuration or contact the administrator",
         "deleteItemTips": "No item deletion permission at the moment, please check the item operation permission configuration or contact the administrator",
         "addItemTips": "No item add permission at the moment, please check the item operation permission configuration or contact the administrator",
@@ -242,11 +256,11 @@
         "deleteFolder": "Delete module",
         "deleteFolderTips": [
           "Confirm delete",
-          "Module?",
+          "Module",
           "The submodules under the module will be deleted together, and the test cases in the module will still be retained and automatically moved to ungrouped test cases"
         ],
         "deleteFolderSuccess": "Module deleted successfully",
-        "caseCreateSuccessTips": ["test case was created successfully", "test case", "Created successfully"],
+        "caseCreateSuccessTips": ["test cases was created successfully", "test case", "Created successfully"],
         "buttonName": ["Create Module", "Collapse all", "More"],
         "dropCaseTips": ["Test case moved successfully", "Limit 8 levels, dragging is not allowed after more than 8 levels"]
       },
@@ -275,7 +289,7 @@
         "importCaseLoading": "Exporting test management test cases",
         "importPlanLinkCase": "Exporting test plan linked cases",
         "importRepoCase": "Test management case library export",
-        "please Enter Content": "Please enter content",
+        "pleaseEnterContent": "Please enter content",
         "excelName": "Test management import template",
         "excelContent": {
           "Group belonging to": "group1/group2",
@@ -598,7 +612,7 @@
         "addStep": "Add steps",
         "inheritCase": " Inheritance test case",
         "pleaseInput": "Please enter",
-        "switchNext": "Alt+EnterToggle next column",
+        "switchNext": "Alt + Enter toggle next column",
         "caseInherit": "Test case Inheritance",
         "stepTotal": [
           "Total",

@@ -1,7 +1,7 @@
 import keyBy from 'lodash/keyBy';
 import { logTimeCost } from '../../lib/logger';
 import { iqlRequest } from '../../lib/iqlRequest';
-import { getParseQuery } from '@giteeteam/apps-team-api';
+import { getParseQuery, i18n } from '@giteeteam/apps-team-api';
 import { getReqInfoFromVMRuntime, buildResponse } from '../../lib/apiUtil';
 import { RepositoryTreePayload, MinderDataPayload } from '../../../common/types/api';
 import {
@@ -30,9 +30,11 @@ const getRepositoryTree = async ({ workspaceKey, sessionToken, select = [] }) =>
       sessionToken,
     });
 
+    console.info('i18n -------------------->', `${i18n}`);
+
     const ungroupedRepository = {
       key: UngroupedRepositoryKey,
-      name: '全部用例',
+      name: i18n?.t('common.minderRootNodeName'),
       parentKey: null,
       caseIds: [],
     };

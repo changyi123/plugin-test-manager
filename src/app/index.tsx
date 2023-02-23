@@ -16,6 +16,7 @@ async function render(props) {
   const [locale, lngDict, antdLangPackage] = getMessages(props?.sdk?.context?.env?.LOCALES || 'zh');
   const antdLang = await Promise.resolve(antdLangPackage);
   const appProps = { ...props, locale, lngDict, antdLang };
+  console.info('antdLang --------------->', antdLang);
   const { container } = props;
   ReactDOM.render(
     <App {...appProps} />,

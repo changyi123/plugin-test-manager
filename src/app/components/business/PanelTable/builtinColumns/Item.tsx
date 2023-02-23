@@ -35,7 +35,7 @@ export const getItemKey = t => ({
 
 /** 事项标题 */
 export const getItemTitle = t => ({
-  title: '标题',
+  title: t('common.title'),
   width: 160,
   cellRenderer({ item }) {
     if (!item)

@@ -42,7 +42,7 @@ const StepFields: React.FC<{
                 {
                   key: field.key,
                   maxLength: 500,
-                  placeholder: `${t('components.business.testStep.pleaseInput')}${t(
+                  placeholder: `${t('components.business.testStep.pleaseInput')} ${t(
                     `components.business.testStep.${field.title}`,
                   )}（${t('components.business.testStep.switchNext')}）`,
                   onKeyDownEnter: () => nextField(stepId, field.key),

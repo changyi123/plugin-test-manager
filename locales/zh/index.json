@@ -8,6 +8,8 @@
     "delete": "删除",
     "remove": "移除",
     "copy": "复制",
+    "tip": "提示",
+    "okText": "继续",
     "title": "标题",
     "confirm": "确认",
     "type": "类型",
@@ -31,6 +33,7 @@
     "testPlan": "测试计划",
     "testExecution": "测试执行任务",
     "testRun": "测试执行",
+    "testDefect": "缺陷",
     "testRepository": "测试用例库",
     "testCaseRepository": "测试用例库模块",
     "allRepository": "全部用例库",
@@ -63,7 +66,18 @@
     "checked": "已选中",
     "item": "项",
     "strip": "条",
-    "appItem": "事项"
+    "appItem": "事项",
+    "include": "包含",
+    "exclude": "不包含",
+    "empty": "为空",
+    "notEmpty": "不为空",
+    "equal": "等于",
+    "notEqual": "不等于",
+    "contain": "属于",
+    "notContain": "不属于",
+    "lessThan": "小于",
+    "greaterThan": "大于",
+    "noData": "暂无数据"
   },
   "page": {
     "config": {
