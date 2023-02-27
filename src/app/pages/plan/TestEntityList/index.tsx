@@ -10,7 +10,7 @@ import TestRunModal, {
 } from '@/components/business/TestRunModal';
 import { useMemoizedFn, useRequest } from 'ahooks';
 import { DeleteOutlined, FlagOutlined, UserOutlined } from '@ant-design/icons';
-import { UserCell } from '@projectproxima/components';
+import { UserCell } from '@giteeteam/apps-team-components';
 import { useUserCellUserDataProp } from '@/lib/hooks/useProxima';
 import { usePageContext } from '../hook';
 import { useListener } from '@projectproxima/proxima-sdk-js';

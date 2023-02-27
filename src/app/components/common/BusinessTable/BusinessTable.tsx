@@ -13,7 +13,7 @@ import OverflowTooltip from '@/components/common/OverflowTooltip';
 import { getRootContainer, hasArrayItem } from '@/lib/utils/helper';
 import { useSDK, PluginSDKContext } from '@projectproxima/plugin-sdk';
 import { useAntdTable, useLocalStorageState, useSize } from 'ahooks';
-import { LibraryProvider, useDataQuoteStore } from '@projectproxima/components';
+import { LibraryProvider, useDataQuoteStore } from '@giteeteam/apps-team-components';
 import useI18n from '@/lib/hooks/useI18n';
 
 import cx from './BusinessTable.less';
