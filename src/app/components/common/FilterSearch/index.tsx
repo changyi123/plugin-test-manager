@@ -20,7 +20,7 @@ import {
   RepositoryModel,
   SelectorCurrentUserValue,
   UserTypeSelectorFieldKeys,
-  extendFields as systemExtendFields,
+  getExtendFields,
   TestType,
 } from '@/lib/constants';
 import { Repository } from '@/lib/models';
@@ -219,7 +219,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
   const getFieldValueProps = useCallback(
     (data, dom) => {
       const fieldId = data.fieldId;
-      const systemTarget = systemExtendFields.find(item => item.objectId === fieldId);
+      const systemTarget = getExtendFields(t).find(item => item.objectId === fieldId);
       setActiveSelector(fieldId);
       const props = {
         isExtend: systemTarget?.fieldType?.isExtend,
@@ -243,7 +243,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
       }
       return props;
     },
-    [extendFetch, handleSearch, updateSelectorValue, workspace?.objectId],
+    [extendFetch, handleSearch, updateSelectorValue, workspace?.objectId, t],
   );
 
   const onFilterChange = useCallback(

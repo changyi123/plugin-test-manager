@@ -33,7 +33,9 @@
     "testRun": "Test run",
     "testDefect": "Test defect",
     "testRepository": "Test case repository",
-    "testCaseRepository": "Test case repository module",
+    "testCaseRepository": "Cases repository",
+    "designee": "Designee",
+    "testExecutor": "The latest executor",
     "allRepository": "All cases",
     "testReport": "Test report",
     "exportReportFail": "Failed to export test report",
@@ -59,7 +61,6 @@
     "testStep": "Test case steps",
     "addTestCase": "Create a new test case",
     "user": "User",
-    "testExecutor": "The latest action executor",
     "nothing": "None",
     "checked": "Selected",
     "item": "Item",
@@ -598,7 +599,7 @@
     "common": {
       "businessTable": {
         "columnSetting": ["Test management Fields", "Item Field"],
-        "tableSetting": "Table display settings",
+        "tableSetting": "Set columns",
         "headerSetting": "Table header Settings",
         "restoreDefault": "Reset",
         "actionTips": "Configurable table header column content and sorting, list search box default search items, up to four search item",

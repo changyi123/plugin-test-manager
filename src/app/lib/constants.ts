@@ -100,6 +100,7 @@ export const FIELD_TYPE_KEY_MAPPINGS = {
   BindWorkspace: 'BindWorkspace', // 绑定空间 -> string workspaceId
   Script: 'Script', // 脚本 -> string
   CustomVersion: 'CustomVersion', // 版本（自定义） -> version
+  RemoteFieldRemoteDataQuote: 'r_remote_field_remote_data_quote_field_type', // 定制数据引用
 
   // FieldType的system field
   SecurityLevel: 'SecurityLevel', // 安全级别 -> list
@@ -139,6 +140,7 @@ export const FIELD_TYPE_KEY_MAPPINGS = {
   Tag: 'Tag', //Tag类型组件
   DataQuote: 'DataQuote', // 数据引用
   Actors: 'Actors', // 当前负责人(执行人)
+  UserGroup: 'UserGroup', // 用户组
 };
 
 export const enum ExtensionValType {
@@ -209,6 +211,12 @@ export const FILTER_EXPR_NAME = {
   Tag_Not_Contain: 'Tag_Not_Contain',
   Test_Repository_Not_Contain: 'test_manager_Repository_Not_Contain',
   Test_Repository_Contain: 'test_manager_Repository_Contain',
+  UserGroup_Contain: 'UserGroup_Contain',
+  UserGroup_Not_Contain: 'UserGroup_Not_Contain',
+  Reporter_Contain: 'Reporter_Contain',
+  Reporter_Not_Contain: 'Reporter_Not_Contain',
+  FieldCollection_Contain: 'FieldCollection_Contain',
+  FieldCollection_Not_Contain: 'FieldCollection_Not_Contain',
 };
 
 export const FILTER_EXPRESSIONS = t => ({
@@ -309,6 +317,25 @@ export const FILTER_EXPRESSIONS = t => ({
     { label: t('common.contain'), value: FILTER_EXPR_NAME.Test_Repository_Contain },
     { label: t('common.notContain'), value: FILTER_EXPR_NAME.Test_Repository_Not_Contain },
   ],
+  UserGroup: [
+    { label: t('common.contain'), value: FILTER_EXPR_NAME.UserGroup_Contain },
+    { label: t('common.notContain'), value: FILTER_EXPR_NAME.UserGroup_Not_Contain },
+  ],
+  Reporter: [
+    { label: t('common.contain'), value: FILTER_EXPR_NAME.Reporter_Contain },
+    { label: t('common.notContain'), value: FILTER_EXPR_NAME.Reporter_Not_Contain },
+  ],
+  FieldCollection: [
+    { label: t('common.contain'), value: FILTER_EXPR_NAME.FieldCollection_Contain },
+    {
+      label: t('common.notContain'),
+      value: FILTER_EXPR_NAME.FieldCollection_Not_Contain,
+    },
+  ],
+  Team: [
+    { label: t('common.contain'), value: FILTER_EXPR_NAME.Dropdown_Contain },
+    { label: t('common.notContain'), value: FILTER_EXPR_NAME.Dropdown_Not_Contain },
+  ],
 });
 
 export const IQL_CONDITION = {
@@ -377,41 +404,43 @@ export const SelectorCurrentUserValue = 'currentUser';
 
 export const RepositoryModel = `${appKey}_Repository`;
 
-export const extendFields = [
+export const getExtendFields = t => [
   {
     key: RepositoryModel,
-    name: '测试用例库模块',
+    name: t('common.testRepository'),
     objectId: RepositoryModel,
     fieldType: {
       isExtend: true,
       dataType: 'object',
       objectId: RepositoryModel,
       key: RepositoryModel,
-      name: '测试用例库模块',
+      name: t('common.testRepository'),
     },
   },
   {
     key: 'test_designee',
-    name: '执行人',
+    // name: '执行人',
+    name: t('common.designee'),
     objectId: 'test_designee',
     fieldType: {
       component: 'User',
       dataType: 'object',
       objectId: 'test_designee',
       key: 'User',
-      name: '用户',
+      name: 'User',
     },
   },
   {
     key: 'test_executor',
-    name: '最新操作执行人',
+    // name: '最新操作执行人',
+    name: t('common.testExecutor'),
     objectId: 'test_executor',
     fieldType: {
       component: 'User',
       dataType: 'object',
       objectId: 'test_executor',
       key: 'User',
-      name: '用户',
+      name: 'User',
     },
   },
 ];
