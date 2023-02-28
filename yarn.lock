@@ -1243,12 +1243,43 @@
   dependencies:
     yaml "^2.1.1"
 
-"@giteeteam/apps-team-api@^0.4.1":
-  version "0.4.1"
-  resolved "https://registry.yarnpkg.com/@giteeteam/apps-team-api/-/apps-team-api-0.4.1.tgz#c95dfdc08dbaee2646b12e4fb4a642aa411cffb2"
-  integrity sha512-Iy1ul8uGBEwF5CkEk6etiGCaNxPyzoLJszYAd2PYRFKXm3ukoPBe69n4L5CpYC9Ld3xwqxySPkvGfwkPkPsdyQ==
+"@giteeteam/apps-team-api@^0.4.4":
+  version "0.4.4"
+  resolved "https://registry.yarnpkg.com/@giteeteam/apps-team-api/-/apps-team-api-0.4.4.tgz#ec76a72eedfe73d07d4586956c8f0a7e43965edf"
+  integrity sha512-XUQwhQwQ1JbWu7gmlr7V54F0xZK1oiFLNqahMpJMQCwzTQGio15A7ot9GOzguOEnp10ut+FWdaOPWk30lNe52w==
   dependencies:
     axios "^0.27.2"
+
+"@giteeteam/apps-team-components@0.3.4-remove-editor-0.4":
+  version "0.3.4-remove-editor-0.4"
+  resolved "https://registry.yarnpkg.com/@giteeteam/apps-team-components/-/apps-team-components-0.3.4-remove-editor-0.4.tgz#2bc9fd9238fa31195080e7958fb0417374933d98"
+  integrity sha512-2JyyBfl3YoQHnDfvGKT7q0A+NDuamnFfyH5rvmUbWlB3bVO7xdYOPwlCGh5c7Z86qprQjkYAj1cs0yofu/LOYg==
+  dependencies:
+    "@ant-design/icons" "4.7.0"
+    "@projectproxima/plugin-loader" "^0.1.9"
+    "@projectproxima/plugin-sdk" "0.2.9"
+    "@projectproxima/proxima-sdk-js" "^0.4.4"
+    antd "^4.16.13"
+    axios "^0.21.4"
+    classnames "^2.3.1"
+    dayjs "^1.10.8"
+    debug "^4.3.3"
+    find-matching-bracket "^1.0.3"
+    formik "^2.2.9"
+    jsplumb "^2.15.6"
+    lodash "^4.17.21"
+    qiankun "^2.7.0"
+    react-base-table "^1.12.0"
+    react-beautiful-dnd "^13.1.0"
+    react-color "^2.19.3"
+    react-dnd "^15.1.1"
+    react-dnd-html5-backend "^15.1.2"
+    react-hovertable "^0.3.0"
+    react-overlays "^5.1.1"
+    recoil ">=0.6.1"
+    rosetta "^1.1.0"
+    swr "^1.2.2"
+    uuid "^9.0.0"
 
 "@humanwhocodes/config-array@^0.5.0":
   version "0.5.0"
@@ -1395,36 +1426,6 @@
   version "2.11.6"
   resolved "https://registry.npmmirror.com/@popperjs/core/-/core-2.11.6.tgz#cee20bd55e68a1720bdab363ecf0c821ded4cd45"
   integrity sha512-50/17A98tWUfQ176raKiOGXuYpLyyVMkxxG6oylzL3BPOlA6ADGdK7EYunSa4I064xerltq9TGXs8HmOk5E+vw==
-
-"@projectproxima/components@0.3.4-remove-editor-0.3":
-  version "0.3.4-remove-editor-0.3"
-  resolved "https://registry.yarnpkg.com/@projectproxima/components/-/components-0.3.4-remove-editor-0.3.tgz#bce6b070d3e24e39c70555c944f7d084636168b6"
-  integrity sha512-zWZwWUYORFKCRlcu7iHCzgjjidUTnaWYOLBnxo9PRP/et6EXXbsA9JjJ/aV6Dl76IfQNQ63tjzGjQI9XL9MefQ==
-  dependencies:
-    "@ant-design/icons" "4.7.0"
-    "@projectproxima/plugin-loader" "^0.1.9"
-    "@projectproxima/plugin-sdk" "0.2.9"
-    "@projectproxima/proxima-sdk-js" "^0.4.4"
-    antd "^4.16.13"
-    axios "^0.21.4"
-    classnames "^2.3.1"
-    dayjs "^1.10.8"
-    debug "^4.3.3"
-    find-matching-bracket "^1.0.3"
-    formik "^2.2.9"
-    jsplumb "^2.15.6"
-    lodash "^4.17.21"
-    qiankun "^2.7.0"
-    react-base-table "^1.12.0"
-    react-beautiful-dnd "^13.1.0"
-    react-color "^2.19.3"
-    react-dnd "^15.1.1"
-    react-dnd-html5-backend "^15.1.2"
-    react-hovertable "^0.3.0"
-    react-overlays "^5.1.1"
-    recoil ">=0.6.1"
-    rosetta "^1.1.0"
-    swr "^1.2.2"
 
 "@projectproxima/plugin-loader@^0.1.9":
   version "0.1.9"
@@ -2163,6 +2164,11 @@
   version "1.1.0"
   resolved "https://registry.npmmirror.com/@yarnpkg/lockfile/-/lockfile-1.1.0.tgz#e77a97fbd345b76d83245edcd17d393b1b41fb31"
   integrity sha512-GpSwvyXOcOOlV70vbnzjj4fW5xW/FdUF6nQEt1ENy7m4ZCczi1+/buVUPAqmGfqznsORNFzUMjctTIp8a9tuCQ==
+
+accept-language-parser@^1.5.0:
+  version "1.5.0"
+  resolved "https://registry.yarnpkg.com/accept-language-parser/-/accept-language-parser-1.5.0.tgz#8877c54040a8dcb59e0a07d9c1fde42298334791"
+  integrity sha512-QhyTbMLYo0BBGg1aWbeMG4ekWtds/31BrEU+DONOg/7ax23vxpL03Pb7/zBmha2v7vdD3AyzZVWBVGEZxKOXWw==
 
 accepts@~1.3.4, accepts@~1.3.5, accepts@~1.3.8:
   version "1.3.8"
@@ -8314,9 +8320,9 @@ terser@^5.10.0, terser@^5.14.1:
     commander "^2.20.0"
     source-map-support "~0.5.20"
 
-"test-manager-minder@git+http://proxima:proxima123@osc.gitee.work/enterprise__proxima/test-manager-minder.git#9103bcaefdb925a3da91939470e9b1e0cd86e9ac":
+"test-manager-minder@git+http://proxima:proxima123@osc.gitee.work/enterprise__proxima/test-manager-minder.git#46db979c9eef28ef662677670ae1afaf8d30f4fd":
   version "0.1.0"
-  resolved "git+http://proxima:proxima123@osc.gitee.work/enterprise__proxima/test-manager-minder.git#9103bcaefdb925a3da91939470e9b1e0cd86e9ac"
+  resolved "git+http://proxima:proxima123@osc.gitee.work/enterprise__proxima/test-manager-minder.git#46db979c9eef28ef662677670ae1afaf8d30f4fd"
   dependencies:
     uid "^2.0.1"
     "@types/styled-components" "^5.1.26"
@@ -8637,6 +8643,11 @@ uuid@^8.3.2:
   version "8.3.2"
   resolved "https://registry.npmmirror.com/uuid/-/uuid-8.3.2.tgz#80d5b5ced271bb9af6c445f21a1a04c606cefbe2"
   integrity sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==
+
+uuid@^9.0.0:
+  version "9.0.0"
+  resolved "https://registry.yarnpkg.com/uuid/-/uuid-9.0.0.tgz#592f550650024a38ceb0c562f2f6aa435761efb5"
+  integrity sha512-MXcSTerfPa4uqyzStbRoTgt5XIe3x5+42+q1sDuy3R5MDk66URdLMOZe5aPX/SQd+kuYAh0FdP/pO28IkQyTeg==
 
 v8-compile-cache@^2.0.3:
   version "2.3.0"

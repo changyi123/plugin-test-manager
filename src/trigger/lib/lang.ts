@@ -1,10 +1,37 @@
 // import en from '../../lang/en';
 // import zh from '../../lang/zh';
 import get from 'lodash/get';
+import languageParser from 'accept-language-parser';
+
+// 默认支持三种语言
+const AcceptLanguageList = ['zh', 'en', 'ru'];
 
 export const getLang = (defaultLang?: string) => {
-  return global.headers.lang ?? defaultLang ?? 'zh-CN';
+  return (
+    global.headers.lang ??
+    languageParser.pick(AcceptLanguageList, global.headers['accept-language']) ??
+    defaultLang ??
+    'zh'
+  );
 };
+
+export function genAcceptLanguage(lang) {
+  switch (lang) {
+    case 'zh-CN':
+      return 'zh-CN;q=0.9,zh;q=0.8,en;q=0.7';
+    case 'zh':
+      return 'zh;q=0.8,en;q=0.7';
+    case 'ru-RU':
+      return 'ru-RU;q=0.9,ru;q=0.8,en;q=0.7';
+    case 'ru':
+      return 'ru;q=0.8,en;q=0.7';
+    case 'en-US':
+      return 'en-US,en;q=0.9';
+    case 'en':
+    default:
+      return 'en;q=0.9';
+  }
+}
 
 export const getLangPkg = (defaultLang?: string) => {
   const lang = getLang(defaultLang);

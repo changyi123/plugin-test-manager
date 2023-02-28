@@ -289,16 +289,29 @@
         "please Enter Content": "Please enter content",
         "excelName": "Test management import template",
         "excelContent": {
-          "Group belonging to": "group1/group2",
-          "title": "Test case title (sample data, please delete this data when executing the test case import)",
-          "type": "test case",
+          "group": "group1/group2",
+          "name": "Test case name (sample data, please delete this data when executing the test case import)",
+          "itemType": "test case",
           "priority": "Priority can fill in the value range: highest, higher, normal, lower, lowest",
-          "Preconditions": "Test case preconditions",
+          "precondition": "Test case preconditions",
           "principal": "username",
-          "Step description": "【1】need to start with 【serial number】\n【2】Line breaks in the step description will be preserved",
-          "expected outcome": "【1】need to start with 【serial number】\n【2】The newline characters in the expected result will be preserved",
-          "data": "【1】need to start with 【serial number】\n【2】Newline characters in the data will be preserved"
+          "step": "[1]need to start with [serial number]\n[2]Line breaks in the step description will be preserved",
+          "result": "[1]need to start with [serial number]\n[2]The newline characters in the expected result will be preserved",
+          "data": "[1]need to start with [serial number]\n[2]Newline characters in the data will be preserved"
         },
+        "excelExportTitle": {
+          "group": "group",
+          "name": "name",
+          "itemType": "itemType",
+          "priority": "priority",
+          "precondition": "precondition",
+          "step": "step",
+          "result": "result",
+          "data": "data",
+          "status": "status",
+          "testPlan": "test plan"
+        },
+        "todo": "Todo",
         "fontName": "Times new roman "
       },
       "view": {

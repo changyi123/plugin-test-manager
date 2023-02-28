@@ -1,4 +1,5 @@
 import { requestCoreApi } from '@giteeteam/apps-team-api';
+import { getLang, genAcceptLanguage } from './lang';
 
 type SupportRequestMethods = Parameters<typeof requestCoreApi>[0];
 
@@ -8,7 +9,10 @@ const withCoreApiRequest = (
   return async function request(...args) {
     const params = typeof info[1] === 'function' ? args[1] : args[0];
     const path = typeof info[1] === 'function' ? info[1](args[0]) : info[1];
-    return requestCoreApi(info[0], path, params) as any;
+
+    return requestCoreApi(info[0], path, params, {
+      'accept-language': genAcceptLanguage(getLang()),
+    }) as any;
   };
 };
 
