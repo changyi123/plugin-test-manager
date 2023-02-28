@@ -362,7 +362,7 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
         // 刷新左侧树
         onFolderTreeChange();
       } catch (e) {
-        message.error(`数据更新失败， ${e.message}`);
+        message.error(`${t('common.updateFail')}， ${e.message}`);
       }
     } catch (err) {
       console.error('error', err);

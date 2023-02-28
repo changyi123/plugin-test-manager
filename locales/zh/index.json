@@ -79,7 +79,8 @@
     "lessThan": "小于",
     "greaterThan": "大于",
     "noData": "暂无数据",
-    "minderRootNodeName": "全部用例"
+    "minderRootNodeName": "全部用例",
+    "updateFail": "数据更新失败"
   },
   "page": {
     "config": {
@@ -134,6 +135,7 @@
         "title": "测试报告模板管理",
         "description": "测试报告模板管理",
         "templateName": "模板名称",
+        "file": "模板上传",
         "uploadTestReportTemplate": "上传测试报告模板",
         "uploadTemplate": "上传报告模板",
         "editorTestReportTemplate": "编辑测试报告模板",

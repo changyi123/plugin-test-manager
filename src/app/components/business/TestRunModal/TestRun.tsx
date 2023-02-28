@@ -403,7 +403,7 @@ const TestRun: React.FC<TestRunType> = props => {
                 header={t('components.business.testRunModal.testRun.panelTitle.0')}
               >
                 <div className={cx('precondition')}>
-                  {testRunData?.runDetail?.precondition ?? '无'}
+                  {testRunData?.runDetail?.precondition ?? t('common.nothing')}
                 </div>
               </Collapse.Panel>
             </Collapse>

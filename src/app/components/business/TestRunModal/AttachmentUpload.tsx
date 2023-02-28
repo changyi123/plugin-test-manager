@@ -109,7 +109,8 @@ const AttachmentList: React.FC<any> = props => {
                     checked={checkedAll}
                   >
                     {t('components.business.testEntitySelectorModal.selected')}
-                    <span style={{ padding: '0 4px', color: '#0045d9' }}>{checkList.length}</span>项
+                    <span style={{ padding: '0 4px', color: '#0045d9' }}>{checkList.length}</span>
+                    {t('common.item')}
                   </Checkbox>
                 </div>
                 <div className={cx('file-batch-action')}>

@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Button, Space } from 'antd';
 import { components } from 'proxima-sdk';
+import useI18n from '@/lib/hooks/useI18n';
 
 const { Field } = components.Components.Common.Editor;
 
@@ -27,6 +28,7 @@ const defaultEditorValue = [
 ];
 
 const Editor: React.FC<EditorProps> = ({ value, name, onSubmit, isReset, setIsReset }) => {
+  const { t } = useI18n();
   const [editorValue, setEditorValue] = useState<Record<string, any>[] | undefined>(
     value ?? defaultEditorValue,
   );
@@ -66,7 +68,7 @@ const Editor: React.FC<EditorProps> = ({ value, name, onSubmit, isReset, setIsRe
       {showEditor && (
         <Space style={{ marginTop: '12px' }}>
           <Button type="primary" onClick={submitEditor}>
-            保存
+            {t('common.save')}
           </Button>
           <Button
             onClick={() => {
@@ -74,7 +76,7 @@ const Editor: React.FC<EditorProps> = ({ value, name, onSubmit, isReset, setIsRe
               setShowEditor(false);
             }}
           >
-            取消
+            {t('common.cancel')}
           </Button>
         </Space>
       )}

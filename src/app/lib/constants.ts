@@ -46,7 +46,7 @@ export const TestTypeNameMapping = {
   [TestType.Plan]: 'testPlan',
   [TestType.Execution]: 'testExecution',
   [TestType.Run]: 'testRun',
-  [TestType.TestDefect]: '缺陷',
+  [TestType.TestDefect]: 'testDefect',
 };
 
 // 内置三种类型标识

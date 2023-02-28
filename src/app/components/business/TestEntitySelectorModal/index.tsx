@@ -346,9 +346,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
             getPopupContainer={() => debounceSelectContainerRef.current}
             placeholder={
               props.placeholder ??
-              `${t('components.business.testEntitySelectorModal.modelTip')} ${t(
-                `common.${testTypeName}`,
-              )}`
+              `${t('components.business.testEntitySelectorModal.modelTip')} ${testTypeName}`
             }
             notFoundContent={
               searchLoading ? (
