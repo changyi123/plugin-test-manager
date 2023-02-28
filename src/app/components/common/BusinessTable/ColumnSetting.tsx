@@ -249,7 +249,7 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
           {t('components.common.businessTable.setHeader')}
         </Button>
       )}
-      <Tooltip title={t('components.common.businessTable.tableSetting')}>
+      <Tooltip placement="topRight" title={t('components.common.businessTable.tableSetting')}>
         <Setting className={cx(className, 'setting-icon')} onClick={() => setVisible(true)} />
       </Tooltip>
       <Drawer
@@ -358,6 +358,7 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
                               }}
                             >
                               <Tooltip
+                                placement="topRight"
                                 title={
                                   fields?.includes(col.key)
                                     ? t('components.common.businessTable.removeSearch')
