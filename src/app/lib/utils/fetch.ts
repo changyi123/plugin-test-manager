@@ -1,5 +1,5 @@
 import { message } from 'antd';
-import { getLocales } from './locale';
+import { genAcceptLanguage, getLang } from './locale';
 import { getTenantKey } from '@/lib/utils/helper';
 import { getDevConfig, getParseReqHeader } from '@/devEnv';
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
@@ -46,8 +46,7 @@ const fetch = <FetchInstance>axios.create(config);
 
 fetch.interceptors.request.use(config => {
   // 获取 lang
-  const parseHeaderLang = getLocales();
-  console.info('Accept-Language------>', parseHeaderLang);
+  const parseHeaderLang = genAcceptLanguage(getLang());
   if (parseHeaderLang && !config.headers['Accept-Language']) {
     config.headers['Accept-Language'] = parseHeaderLang;
   }

@@ -1,5 +1,9 @@
 import resource from '../../../../locales';
 import { get } from 'lodash';
+import languageParser from 'accept-language-parser';
+
+// 默认支持三种语言
+const AcceptLanguageList = ['zh', 'en', 'ru'];
 
 export function getMessages(
   locales: string | string[] = ['zh'],
@@ -40,28 +44,32 @@ export function getMessages(
   return [locale, langBundle, antdLang];
 }
 
-export function getLocales(defaultLang = 'en'): string | string[] {
+export function getLang(defaultLang = 'en'): string {
   let lang = defaultLang;
   const storageLangValue = localStorage.getItem('lang');
 
   try {
     if (process.env.NODE_ENV === 'production' && window.__POWERED_BY_QIANKUN__) {
-      lang = get(
-        window.QiankunProps?.Parse?.CoreManager?.get('REQUEST_HEADERS'),
-        'Accept-Language',
+      lang = languageParser.pick(
+        AcceptLanguageList,
+        get(window.QiankunProps?.Parse?.CoreManager?.get('REQUEST_HEADERS'), 'Accept-Language'),
       );
+      console.info('lang1', lang);
     } else if (storageLangValue) {
-      lang = genAcceptLanguage(
+      lang =
         typeof storageLangValue === 'string' && storageLangValue.startsWith('"')
           ? JSON.parse(storageLangValue)
-          : storageLangValue,
-      );
+          : storageLangValue;
+      console.info('lang2', lang);
     } else if (window.QiankunProps?.context?.env?.LOCALES) {
-      lang = genAcceptLanguage(window.QiankunProps.context.env.LOCALES);
+      lang = window.QiankunProps.context.env.LOCALES;
+      console.info('lang3', lang);
     }
   } catch (err) {
     lang = defaultLang;
   }
+
+  console.info('<------------lang------------>', lang);
 
   return lang;
 }

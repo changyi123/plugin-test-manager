@@ -2,7 +2,7 @@ app:
   key: test_manager
   uuid: bf73e61c-e15a-4461-a1f7-f940c2009332
   name: test_manager
-  version: "3.5.9"
+  version: "3.5.13"
 modules:
   webtrigger:
     # TODO: Debug 使用，生产环境禁止调用西面的 trigger
@@ -419,9 +419,9 @@ locales:
       title: 测试计划
     test-repository:
       title: 测试用例库
-    key: test-stats-report
+    test-stats-report:
       title: 测试统计
-    key: before-create-or-update-modal
+    before-create-or-update-modal:
       title: 新建事项
   en-US:
     test-manager-test-detail:
@@ -432,9 +432,9 @@ locales:
       title: Test plan
     test-repository:
       title: Test repository
-    key: test-stats-report
+    test-stats-report:
       title: Test stats
-    key: before-create-or-update-modal
+    before-create-or-update-modal:
       title: Create item
 resources:
   - key: main

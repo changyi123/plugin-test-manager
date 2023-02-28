@@ -1243,10 +1243,10 @@
   dependencies:
     yaml "^2.1.1"
 
-"@giteeteam/apps-team-api@^0.4.1":
-  version "0.4.1"
-  resolved "https://registry.yarnpkg.com/@giteeteam/apps-team-api/-/apps-team-api-0.4.1.tgz#c95dfdc08dbaee2646b12e4fb4a642aa411cffb2"
-  integrity sha512-Iy1ul8uGBEwF5CkEk6etiGCaNxPyzoLJszYAd2PYRFKXm3ukoPBe69n4L5CpYC9Ld3xwqxySPkvGfwkPkPsdyQ==
+"@giteeteam/apps-team-api@^0.4.4":
+  version "0.4.4"
+  resolved "https://registry.yarnpkg.com/@giteeteam/apps-team-api/-/apps-team-api-0.4.4.tgz#ec76a72eedfe73d07d4586956c8f0a7e43965edf"
+  integrity sha512-XUQwhQwQ1JbWu7gmlr7V54F0xZK1oiFLNqahMpJMQCwzTQGio15A7ot9GOzguOEnp10ut+FWdaOPWk30lNe52w==
   dependencies:
     axios "^0.27.2"
 
@@ -2164,6 +2164,11 @@
   version "1.1.0"
   resolved "https://registry.npmmirror.com/@yarnpkg/lockfile/-/lockfile-1.1.0.tgz#e77a97fbd345b76d83245edcd17d393b1b41fb31"
   integrity sha512-GpSwvyXOcOOlV70vbnzjj4fW5xW/FdUF6nQEt1ENy7m4ZCczi1+/buVUPAqmGfqznsORNFzUMjctTIp8a9tuCQ==
+
+accept-language-parser@^1.5.0:
+  version "1.5.0"
+  resolved "https://registry.yarnpkg.com/accept-language-parser/-/accept-language-parser-1.5.0.tgz#8877c54040a8dcb59e0a07d9c1fde42298334791"
+  integrity sha512-QhyTbMLYo0BBGg1aWbeMG4ekWtds/31BrEU+DONOg/7ax23vxpL03Pb7/zBmha2v7vdD3AyzZVWBVGEZxKOXWw==
 
 accepts@~1.3.4, accepts@~1.3.5, accepts@~1.3.8:
   version "1.3.8"
@@ -8315,9 +8320,9 @@ terser@^5.10.0, terser@^5.14.1:
     commander "^2.20.0"
     source-map-support "~0.5.20"
 
-"test-manager-minder@git+http://proxima:proxima123@osc.gitee.work/enterprise__proxima/test-manager-minder.git#9103bcaefdb925a3da91939470e9b1e0cd86e9ac":
+"test-manager-minder@git+http://proxima:proxima123@osc.gitee.work/enterprise__proxima/test-manager-minder.git#46db979c9eef28ef662677670ae1afaf8d30f4fd":
   version "0.1.0"
-  resolved "git+http://proxima:proxima123@osc.gitee.work/enterprise__proxima/test-manager-minder.git#9103bcaefdb925a3da91939470e9b1e0cd86e9ac"
+  resolved "git+http://proxima:proxima123@osc.gitee.work/enterprise__proxima/test-manager-minder.git#46db979c9eef28ef662677670ae1afaf8d30f4fd"
   dependencies:
     uid "^2.0.1"
     "@types/styled-components" "^5.1.26"
