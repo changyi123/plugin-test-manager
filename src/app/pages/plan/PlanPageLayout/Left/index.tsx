@@ -4,6 +4,7 @@ import RepositoryFolderTree, {
   ActionType as FolderTreeActionType,
 } from '@/components/business/RepositoryFolderTree';
 import { usePageContext } from '../../hook';
+import useI18n from '@/lib/hooks/useI18n';
 
 import cx from './index.less';
 
@@ -20,6 +21,7 @@ const Left: React.FC<LeftProps> = ({
   scopedTestDetailIds,
   actionRef,
 }) => {
+  const { t } = useI18n();
   const { workspaceKey, selectors } = usePageContext();
   const folderTreeRef = React.useRef<FolderTreeActionType>();
 
@@ -42,7 +44,7 @@ const Left: React.FC<LeftProps> = ({
         allowClear
         className={cx('fold-search')}
         value={foldSearchValue}
-        placeholder={'请输入所属模块名称'}
+        placeholder={t('page.plan.planPageLayout.left.placeholder')}
         onChange={val => setFoldSearchValue(val)}
         onSearch={val => {
           folderTreeRef.current.filterFolder(val);

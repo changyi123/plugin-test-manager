@@ -4,6 +4,7 @@ import { Step } from '@/lib/types/Test';
 import TestStep from '@/components/business/TestStep';
 import { getStepInitialData } from '@/components/business/TestStep/helper';
 import RepositorySelectorField from '@/components/business/RepositorySelectorField';
+import useI18n from '@/lib/hooks/useI18n';
 
 import cx from './TestDetailForm.less';
 
@@ -20,6 +21,7 @@ type TestDetailFormProps = {
 };
 
 const TestDetailForm: React.FC<TestDetailFormProps> = ({ onChange, values, extraData }) => {
+  const { t } = useI18n();
   const valuesRef = React.useRef({} as ValueType);
   const saveValues = (values: Partial<ValueType>) => {
     valuesRef.current = {
@@ -48,7 +50,7 @@ const TestDetailForm: React.FC<TestDetailFormProps> = ({ onChange, values, extra
 
   return (
     <div className={cx('form')}>
-      <h6 className={cx('field-label')}>所属模块</h6>
+      <h6 className={cx('field-label')}>{t('page.plan.testEntityList.repositoryGroup')}</h6>
       <RepositorySelectorField
         value={repositorySelectedKeys}
         onChange={handleRepositoryKeysSelect}
@@ -56,18 +58,18 @@ const TestDetailForm: React.FC<TestDetailFormProps> = ({ onChange, values, extra
         workspaceId={extraData?.workspaceId}
       />
 
-      <h6 className={cx('step-title', 'field-label')}>前置条件</h6>
+      <h6 className={cx('step-title', 'field-label')}>{t('common.precondition')}</h6>
       <div className={cx('precondition')}>
         <Input.TextArea
           maxLength={1000}
           autoSize={{ minRows: 3, maxRows: 6 }}
-          placeholder="请输入测试用例前置条件"
+          placeholder={t('common.preconditionPlaceholder')}
           defaultValue={values?.precondition}
           onBlur={e => saveValues({ precondition: e.target.value })}
           onChange={e => saveValues({ precondition: e.target.value })}
         />
       </div>
-      <h6 className={cx('step-title', 'field-label')}>用例步骤</h6>
+      <h6 className={cx('step-title', 'field-label')}>{t('common.testStep')}</h6>
       <TestStep
         steps={values?.steps ?? [getStepInitialData()]}
         onChange={steps => saveValues({ steps })}

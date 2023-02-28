@@ -27,10 +27,11 @@ import { Repository } from '@/lib/models';
 import { useDebounceFn, useRequest } from 'ahooks';
 import { useGetcustomFields } from '../BusinessTable/hook';
 import { useListener } from '@projectproxima/proxima-sdk-js';
-
-import cx from './index.less';
 import { getTestConfig } from '@/lib/api/common';
 import { getCurrentUserSetting } from '@/lib/api/userSetting';
+import useI18n from '@/lib/hooks/useI18n';
+
+import cx from './index.less';
 
 interface FilterSearchProps {
   fields: string[];
@@ -49,6 +50,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
   { fields, onSearch, extendFields, className, testType, hideSelectorTag },
   ref,
 ) => {
+  const { t } = useI18n();
   const { workspace } = useTestConfig();
   const [search, setSearch] = useState('');
   const [selectors, setSelectors] = useState<Selectors>({});
@@ -292,7 +294,11 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
 
   return (
     <div className={cx('filter-search-wrap', `${className ?? ''}`)}>
-      <SearchInput onChange={onChangeInput} placeholder="请输入检索项关键字" value={search} />
+      <SearchInput
+        onChange={onChangeInput}
+        placeholder={t('components.common.filterSearch.screenPlaceholder')}
+        value={search}
+      />
       {currentSelector
         ?.filter(item => item?.fieldId !== 'name')
         .map(item => (
@@ -327,7 +333,9 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
             });
           }}
         >
-          <span className={cx('filter-tag-btn-text')}>筛选</span>
+          <span className={cx('filter-tag-btn-text')}>
+            {t('components.common.filterSearch.screen')}
+          </span>
         </Button>
       )}
     </div>

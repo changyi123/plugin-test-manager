@@ -7,10 +7,11 @@ import { usePageContext } from '../../hook';
 import WordReport from '@/lib/report';
 import { useRequest } from 'ahooks';
 import { getFirstWordTemplate } from '@/lib/api/report';
-
-import cx from './index.less';
 import { useBaseAction } from '@/lib/hooks/useContext';
 import { TestType } from '@/lib/constants';
+import useI18n from '@/lib/hooks/useI18n';
+
+import cx from './index.less';
 
 interface HeaderProps {
   activeType?: string;
@@ -33,6 +34,7 @@ const Header: React.FC<HeaderProps> = ({
   createTestExecution,
   setLoading,
 }) => {
+  const { t } = useI18n();
   const { workspaceKey, selectedTestPlan, setSelectedTestPlan, tableSelectionToggleEvent } =
     usePageContext();
   const { getCreatePermission } = useBaseAction();
@@ -54,7 +56,7 @@ const Header: React.FC<HeaderProps> = ({
       setIsReportGenerating(true);
       const wordTemplateGenerator = new WordReport(wordTemplate);
       await wordTemplateGenerator.generateReport({
-        fileName: `${selectedTestPlan.name}-测试报告`,
+        fileName: `${selectedTestPlan.name}-${t('common.testReport')}`,
         testPlanIds: [selectedTestPlan?.objectId],
       });
     } catch (err) {
@@ -83,7 +85,7 @@ const Header: React.FC<HeaderProps> = ({
                 setActiveType('TestPlan');
               }}
             >
-              全部用例
+              {t('common.allTestCase')}
             </div>
             <div
               className={cx('tab-title', activeType === 'TestExecution' ? 'actived' : '')}
@@ -92,7 +94,7 @@ const Header: React.FC<HeaderProps> = ({
                 setActiveType('TestExecution');
               }}
             >
-              测试执行任务
+              {t('common.testExecution')}
             </div>
             {wordTemplate ? (
               <div className={cx('tab-extra-action')}>
@@ -101,7 +103,7 @@ const Header: React.FC<HeaderProps> = ({
                   icon={<ExportOutlined />}
                   loading={isReportGenerating}
                 >
-                  生成测试报告
+                  {t('common.createTestReport')}
                 </Button>
               </div>
             ) : null}
@@ -127,7 +129,7 @@ const Header: React.FC<HeaderProps> = ({
                 disabled={getCreatePermission(TestType.Execution)}
                 onClick={() => createTestExecution()}
               >
-                新建测试执行任务
+                {t('common.createTestExecution')}
               </Button>
             </div>
           )}

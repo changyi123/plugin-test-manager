@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
 import { SearchOutlined } from '@ant-design/icons';
 import { Input, InputProps } from 'antd';
+import useI18n from '@/lib/hooks/useI18n';
 
 import cx from './SearchInput.less';
 
@@ -9,6 +10,7 @@ interface FilterSearch extends Omit<InputProps, 'onChange'> {
 }
 
 const FilterSearch: React.VFC<FilterSearch> = ({ value, onChange, className, ...props }) => {
+  const { t } = useI18n();
   const handleChange = useCallback(
     e => {
       onChange(e.target.value);
@@ -18,13 +20,18 @@ const FilterSearch: React.VFC<FilterSearch> = ({ value, onChange, className, ...
 
   return (
     <div className={cx('filter-search', className)}>
-      <Input {...props} onChange={handleChange} value={value} maxLength={50} />
+      <Input
+        {...props}
+        placeholder={t('components.common.filterSearch.inputPlaceholder')}
+        onChange={handleChange}
+        value={value}
+        maxLength={50}
+      />
     </div>
   );
 };
 
 FilterSearch.defaultProps = {
-  placeholder: '请输入标题关键字',
   allowClear: true,
   name: 'name',
   suffix: <SearchOutlined />,

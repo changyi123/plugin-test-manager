@@ -4,9 +4,10 @@ import { StatusProgress } from '@/components/business/Status';
 import { Spin } from 'antd';
 import { useRequest } from 'ahooks';
 import { usePageContext } from '../../hook';
+import { getStatsTestExecution } from '@/lib/api/item';
+import useI18n from '@/lib/hooks/useI18n';
 
 import cx from './index.less';
-import { getStatsTestExecution } from '@/lib/api/item';
 
 interface ExecutionStatusProps {
   selectedExecution?: Record<string, any>;
@@ -14,6 +15,7 @@ interface ExecutionStatusProps {
 }
 
 const ExecutionStatus: React.FC<ExecutionStatusProps> = ({ selectedExecution, setCurTestRuns }) => {
+  const { t } = useI18n();
   const { mutateStatusEvent } = usePageContext();
   const { data, refresh, loading } = useRequest(
     async () => {
@@ -58,7 +60,9 @@ const ExecutionStatus: React.FC<ExecutionStatusProps> = ({ selectedExecution, se
     <Spin spinning={loading}>
       {data && (
         <div className={cx('complete-rate-box')}>
-          <span className={cx('rate')}>通过率 {getRate(data.runStatus)}%</span>
+          <span className={cx('rate')}>
+            {t('page.plan.planPageLayout.executionStatus.rate')} {getRate(data.runStatus)}%
+          </span>
           <div className={cx('progress')}>
             <StatusProgress hasSummary status={data.runStatus} />
           </div>

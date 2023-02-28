@@ -7,10 +7,11 @@ import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
 import { useLocation } from 'react-router-dom';
 import { useListener } from '@projectproxima/proxima-sdk-js';
 import { usePageContext } from '../../hook';
-
-import cx from './index.less';
 import { deleteTestEntity, getLinkedTestEntityByQuery } from '@/lib/api/item';
 import { TestLinkType, TestType } from 'common/constant';
+import useI18n from '@/lib/hooks/useI18n';
+
+import cx from './index.less';
 
 interface ExecutionListProps {
   planId: string;
@@ -34,6 +35,7 @@ const ExecutionList: React.FC<ExecutionListProps> = ({
   setRefreshExecution,
   setLoading,
 }) => {
+  const { t } = useI18n();
   const { tableSelectionToggleEvent } = usePageContext();
   const { query } = useLocation();
   const [activeId, setActiveId] = useState('');
@@ -103,7 +105,7 @@ const ExecutionList: React.FC<ExecutionListProps> = ({
       openItemViewScreen(data.objectId);
     }
     if (type === 'delete') {
-      actionConfirm('该操作会将该测试执行任务删除，是否继续操作？', async () => {
+      actionConfirm(t('page.plan.planPageLayout.executionList.deleteTips'), async () => {
         setLoading?.(true);
         const res = await deleteTestEntity([data?.objectId]);
         if (res?.status === 'error') {
@@ -115,7 +117,7 @@ const ExecutionList: React.FC<ExecutionListProps> = ({
         setRefreshExecution(true);
         setLoading?.(false);
         notification.success({
-          message: '测试执行任务删除成功',
+          message: t('page.plan.planPageLayout.executionList.deleteSuccess'),
         });
       });
     }
@@ -123,8 +125,8 @@ const ExecutionList: React.FC<ExecutionListProps> = ({
 
   const menu = data => (
     <Menu onClick={e => menuClick(e.key, data)}>
-      <Menu.Item key="check">查看任务</Menu.Item>
-      <Menu.Item key="delete">删除任务</Menu.Item>
+      <Menu.Item key="check">{t('page.plan.planPageLayout.executionList.checkTask')}</Menu.Item>
+      <Menu.Item key="delete">{t('page.plan.planPageLayout.executionList.deleteTask')}</Menu.Item>
     </Menu>
   );
 
@@ -194,7 +196,7 @@ const ExecutionList: React.FC<ExecutionListProps> = ({
                     <Dropdown overlay={hideMenu} trigger={['hover']}>
                       <div className={cx('more-box')}>
                         <EllipsisOutlined className={cx('icon')} />
-                        <span className={cx('more')}>更多</span>
+                        <span className={cx('more')}>{t('common.more')}</span>
                       </div>
                     </Dropdown>
                   </div>

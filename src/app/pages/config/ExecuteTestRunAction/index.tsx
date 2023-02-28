@@ -4,10 +4,10 @@ import { Button, Switch, message } from 'antd';
 import { useMemoizedFn, useMount } from 'ahooks';
 import { getWorkspaceRoleMembers } from '@/lib/api/proxima';
 import { useDataContext, useCurrentTestConfig } from '../hooks';
+import { components } from 'proxima-sdk';
+import useI18n from '@/lib/hooks/useI18n';
 
 import cx from './index.less';
-
-import { components } from 'proxima-sdk';
 
 const SearchPopoverSelect = components.Components.Common.SearchPopoverSelect;
 
@@ -62,6 +62,7 @@ const getUsefulUserInfo = user => {
 };
 
 const ExecuteTestRunAction = () => {
+  const { t } = useI18n();
   const { workspace } = useDataContext();
 
   const testConfig = useCurrentTestConfig(workspace?.key);
@@ -76,7 +77,7 @@ const ExecuteTestRunAction = () => {
       await testConfig.save({
         testRunAction,
       });
-      message.success('保存成功');
+      message.success(t('common.saveSuccess'));
     }
   };
 
@@ -123,28 +124,32 @@ const ExecuteTestRunAction = () => {
   return (
     <div className={cx('container')}>
       <div className={cx('section')}>
-        <h3>用例分配授权</h3>
+        <h3>{t('page.config.executeTestRunAction.caseToPlan')}</h3>
         <SearchPopoverSelect
           allowClear
           mode="multiple"
           valueKey="objectId"
           labelKey="displayName"
           list={selectListProp}
-          placeholder="请选择用户"
+          placeholder={t('page.config.executeTestRunAction.placeholder')}
           value={testRunAction.authUserList}
           onSearchChange={onUserKeywordSearch}
           onChange={buildConfigChange('authUserList')}
         />
       </div>
       <div className={cx('section')}>
-        <span className={cx('label')}>测试人员不可执行他人测试用例：</span>
+        <span className={cx('label')}>
+          {t('page.config.executeTestRunAction.testersCannotExecuteOtherCases')}：
+        </span>
         <Switch
           checked={testRunAction.canOnlyExecuteMineCase}
           onChange={buildConfigChange('canOnlyExecuteMineCase')}
         />
       </div>
       <div className={cx('section')}>
-        <span className={cx('label')}>未分配的测试用例无法执行：</span>
+        <span className={cx('label')}>
+          {t('page.config.executeTestRunAction.unassignedCaseCannotBeExecuted')}：
+        </span>
         <Switch
           checked={testRunAction.canOnlyExecuteAssignedCase}
           onChange={buildConfigChange('canOnlyExecuteAssignedCase')}
@@ -152,7 +157,7 @@ const ExecuteTestRunAction = () => {
         />
       </div>
       <Button type="primary" className={cx('action')} onClick={handleSave}>
-        保存
+        {t('common.save')}
       </Button>
     </div>
   );

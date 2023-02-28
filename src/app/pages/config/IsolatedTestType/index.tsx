@@ -1,11 +1,10 @@
 import React from 'react';
-
 import { useSafeState } from 'ahooks';
 import { pick, difference } from 'lodash';
 import { Select, Button, Checkbox, message } from 'antd';
-
 import { useDataContext, useCurrentTestConfig } from '../hooks';
 import { TestTypeNameMapping, TestType } from '@/lib/constants';
+import useI18n from '@/lib/hooks/useI18n';
 
 import cx from './index.less';
 
@@ -20,18 +19,19 @@ const isIsolateAllTestType = (isolation: string[]) => {
 // 默认隔离方案配置
 const DefaultIsolateMode = 'disabled';
 
-const isolateModeSelectOptions = [
+const isolateModeSelectOptions = t => [
   {
-    label: '可操作跨空间的测试数据',
+    label: t('page.config.isolatedTestType.operableCrossSpaceTestData'),
     value: 'enabled',
   },
   {
-    label: '不可操作跨空间测试数据',
+    label: t('page.config.isolatedTestType.notOperableCrossSpaceTestData'),
     value: 'disabled',
   },
 ];
 
 const IsolatedTestType = () => {
+  const { t } = useI18n();
   const { workspace } = useDataContext();
   const workspaceKey = workspace?.key;
   const [isolateMode, setIsolateMode] = useSafeState<'enabled' | 'disabled'>(DefaultIsolateMode);
@@ -45,7 +45,7 @@ const IsolatedTestType = () => {
     await testConfig.save({
       isolateTestType: willUpdateIsolateTestType,
     });
-    message.success('空间数据隔离配置保存成功');
+    message.success(t('page.config.isolatedTestType.workspaceDataIsolationConfigSaveSuccess'));
   };
 
   React.useEffect(() => {
@@ -61,12 +61,12 @@ const IsolatedTestType = () => {
       <Select
         value={isolateMode}
         className={cx('select')}
-        options={isolateModeSelectOptions}
+        options={isolateModeSelectOptions(t)}
         onChange={value => setIsolateMode(value as any)}
       />
       {isolateMode === 'enabled' ? (
         <div className={cx('specific')}>
-          <p>跨空间测试数据操作配置</p>
+          <p>{t('page.config.isolatedTestType.crossSpaceTestDataActionConfig')}</p>
           {Object.entries(
             pick(TestTypeNameMapping, [
               TestType.Case,
@@ -87,13 +87,16 @@ const IsolatedTestType = () => {
                 }}
                 checked={!isolateTestType.includes(type)}
               />
-              <span className={cx('action-name')}>可跨空间创建，关联{name}</span>
+              <span className={cx('action-name')}>
+                {t('page.config.isolatedTestType.canBeCreatedAndAssociatedCrossSpace')}
+                {name}
+              </span>
             </div>
           ))}
         </div>
       ) : null}
       <Button type="primary" className={cx('action-btn')} onClick={handleSave}>
-        保存
+        {t('common.save')}
       </Button>
     </div>
   );

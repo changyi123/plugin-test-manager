@@ -6,13 +6,14 @@ import { useDebounce, useRequest } from 'ahooks';
 import { Select, Input } from 'antd';
 import { SearchOutlined } from '@/icons';
 import TestDetailsSelectorList from './TestDetailsSelectorList';
-
-import cx from './TestDetailSelector.less';
 import RepositoryFolderTree, { ActionType } from '../RepositoryFolderTree';
 import { TestLinkType, TestType } from '@/lib/constants';
 import { getLinkedTestEntityByQuery } from '@/lib/api/item';
 import FilterSearch from '@/components/common/FilterSearch';
 import { SearchSelectors } from '@/lib/utils/iql';
+import useI18n from '@/lib/hooks/useI18n';
+
+import cx from './TestDetailSelector.less';
 
 const DEFAULT_CHECKED_KEY = {
   checked: [],
@@ -33,11 +34,11 @@ type TestDetailSelectorProps = {
 
 const tabsList = [
   {
-    label: '测试计划',
+    label: 'testPlan',
     key: 'plan',
   },
   {
-    label: '全部用例库',
+    label: 'allRepository',
     key: 'repository',
   },
 ];
@@ -54,7 +55,7 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
     treeType,
     setTreeType,
   } = props;
-
+  const { t } = useI18n();
   const repositoryFolderTreeRef = React.useRef<ActionType>();
   const detailSearchRef = useRef(null);
   const [selectors, setSelectors] = React.useState<string | SearchSelectors>();
@@ -192,8 +193,10 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
   return (
     <div className={cx('container')}>
       <div className={cx('title')}>
-        选择用例库
-        <span className={cx('description')}>（仅可选择当前拥有权限的用例库）</span>
+        {t('components.business.testEntitySelectorModal.selectRepository')}
+        <span className={cx('description')}>
+          （{t('components.business.testEntitySelectorModal.selectRepositoryTips')}）
+        </span>
       </div>
       <div className={cx('search-box')}>
         <Select
@@ -227,13 +230,13 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
                     key={d.key}
                     onClick={() => setTreeType(d.key)}
                   >
-                    {d.label}
+                    {t(`common.${d.label}`)}
                   </div>
                 ))}
               </div>
             )}
             <Input
-              placeholder="搜索用例库分组"
+              placeholder={t('components.business.testEntitySelectorModal.searchGroup')}
               value={folderSearchValue}
               className={cx('search-input', planId ? 'tab-layout' : '')}
               addonAfter={<SearchOutlined />}

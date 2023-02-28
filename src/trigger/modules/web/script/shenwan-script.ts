@@ -1,11 +1,11 @@
 import { iqlRequest } from '../../../lib/iqlRequest';
 import { testEntityFieldTypeValidator } from '../../../lib/validator';
 import { TestLinkType, TestType } from '../../../../common/constant';
+import { i18n } from '@giteeteam/apps-team-api';
 
 export const runShenWanScript = async () => {
-  // const ParseBaseQueryOptions = {
-  //   sessionToken: global.sessionToken,
-  // };
+  const { t } = i18n;
+
   const queryTestEntity = async props => {
     const { offset, limit, ascending, query = {}, fields, selector, descending } = props;
     return iqlRequest({
@@ -85,7 +85,9 @@ export const runShenWanScript = async () => {
   if (caseStatus?.length) {
     return {
       code: -1,
-      message: `测试计划下有${caseStatus?.length}条测试用例未通过，请执行通过在进行状态流转`,
+      message: `${t('trigger.web.script.shenwanWorkflowMessage.0')}${caseStatus?.length}${t(
+        'trigger.web.script.shenwanWorkflowMessage.1',
+      )}`,
     };
   }
 

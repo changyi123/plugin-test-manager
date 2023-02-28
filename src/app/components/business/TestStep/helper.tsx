@@ -23,20 +23,21 @@ export const getStepInitialData = (callTestId?: string) => {
 };
 
 /** 步骤字段渲染数据 */
+// t('components.business.testStep.stepField.0')
 export const StepFieldImpl = [
   {
     key: 'action',
-    title: '步骤',
+    title: 'stepField.0',
     type: 'input',
   },
   {
     key: 'result',
-    title: '预期',
+    title: 'stepField.1',
     type: 'input',
   },
   {
     key: 'data',
-    title: '数据',
+    title: 'stepField.2',
     type: 'input',
   },
 ];

@@ -3,6 +3,7 @@ import _ from 'lodash';
 import { Popover } from 'antd';
 import { sequence } from './utils';
 import { useStatusConfig } from './hooks';
+import useI18n from '@/lib/hooks/useI18n';
 
 import cx from './Progress.less';
 
@@ -21,6 +22,7 @@ type StatusProgressProps = {
 const POPOVER_COLOR = '#4D545E';
 
 const StatusProgress: React.FC<StatusProgressProps> = props => {
+  const { t } = useI18n();
   const statusConfig = useStatusConfig();
   const [visible, setVisible] = React.useState(false);
 
@@ -68,17 +70,17 @@ const StatusProgress: React.FC<StatusProgressProps> = props => {
           ))}
         </ul>
         <h6 className={cx(`${total === 0 ? 'total-null' : ''}`)}>
-          <span className={cx('font')}>总和</span>
+          <span className={cx('font')}>{t('components.business.status.total')}</span>
           <span className={cx('font', 'num')}>{total}</span>
         </h6>
       </div>
     );
-  }, [props.hasSummary, statuses, total]);
+  }, [props.hasSummary, statuses, total, t]);
 
   return (
     <Popover
-      visible={visible}
-      onVisibleChange={visible => props?.hasSummary && setVisible(visible)}
+      open={visible}
+      onOpenChange={visible => props?.hasSummary && setVisible(visible)}
       content={PopoverContent}
       color={POPOVER_COLOR}
       overlayClassName={cx('test-entity-status')}

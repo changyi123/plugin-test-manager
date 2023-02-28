@@ -26,6 +26,7 @@ import {
 import { getTestEntityByQuery, updateTestEntity } from '@/lib/api/item';
 import { union } from 'lodash';
 import { useGetPermissions } from './hooks';
+import useI18n from '@/lib/hooks/useI18n';
 
 const ItemCreateSuccessEventType = 'itemCreateSuccess';
 const DefaultTestConfig = {} as TestConfigContextType['config'];
@@ -39,6 +40,7 @@ const getOrCreateTestEntity = async (
     itemData?: Record<string, any>;
     type?: string;
     notice?: boolean;
+    t?: (val?: string) => string;
   },
   preparedData?: {
     itemTypeMap?: Record<string, any>;
@@ -46,7 +48,7 @@ const getOrCreateTestEntity = async (
 ) => {
   if (!itemId) return null;
   let testEntity;
-  const { itemData, type } = options;
+  const { itemData, type, t } = options;
   const storeValues = store.get(ExtensionValType.CREATE_OR_UPDATE_ITEM);
 
   let itemTypeMap = preparedData?.itemTypeMap;
@@ -66,8 +68,8 @@ const getOrCreateTestEntity = async (
       // 创建失败，通知用户无法创建测试实体
       options?.notice === true &&
         notification.warning({
-          message: '提示',
-          description: '事项所属空间未配置测试管理关联类型',
+          message: t('components.business.testManagerProvider.tips'),
+          description: t('components.business.testManagerProvider.notHaveTestTypeTips'),
         });
       return null;
     }
@@ -75,8 +77,8 @@ const getOrCreateTestEntity = async (
     // 传入的类型和类型关联映射不一致不允许创建
     if (type && type !== testType) {
       notification.warning({
-        message: '提示',
-        description: '事项所属空间未配置测试管理关联类型',
+        message: t('components.business.testManagerProvider.tips'),
+        description: t('components.business.testManagerProvider.notHaveTestTypeTips'),
       });
       return null;
     }
@@ -129,9 +131,10 @@ const getOrBatchCreateTestEntities = async (
     storeValueList: Record<string, any>[];
     type: string;
     notice: boolean;
+    t?: (val?: string) => string;
   },
 ) => {
-  const { itemList, type } = options;
+  const { itemList, type, t } = options;
   if (!Array.isArray(itemIdList)) return null;
 
   // 批量获取无法保证顺序，所以需要重新排序
@@ -189,8 +192,8 @@ const getOrBatchCreateTestEntities = async (
     // 创建失败，通知用户无法创建测试实体
     options?.notice === true &&
       notification.warning({
-        message: '提示',
-        description: '事项所属空间未配置测试管理关联类型',
+        message: t('components.business.testManagerProvider.tips'),
+        description: t('components.business.testManagerProvider.notHaveTestTypeTips'),
       });
     return null;
   }
@@ -279,6 +282,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
   children,
   workspaceKey,
 }) => {
+  const { t } = useI18n();
   const [workspace, setWorkspace] = React.useState<Workspace>();
   const [testEntity, setTestEntity] = React.useState<TestEntity>();
 
@@ -329,6 +333,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
           testEntity.objectId,
           {
             itemData: testEntity,
+            t,
           },
           {
             itemTypeMap: testConfig.itemTypeMap,
@@ -350,7 +355,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
     if (itemId && testConfig) {
       execute();
     }
-  }, [itemId, testConfig]);
+  }, [itemId, testConfig, t]);
 
   // 获取全局配置时使用缓存
   const { runAsync: getGlobalConfig } = useRequest(
@@ -396,6 +401,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
           itemData,
           type: extraData.type,
           notice: true,
+          t,
         });
       }
       eventBus.dispatch(messageKey, {
@@ -405,7 +411,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
         useItemBatchCreate: false,
       });
     },
-    [testConfig.isolateTestType, workspace?.key],
+    [testConfig.isolateTestType, workspace?.key, t],
   );
 
   // 事项批量创建成功回调
@@ -435,8 +441,8 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
           .filter(itemData => workspace.key !== itemData.workspace?.key);
         if (itemsData?.length) {
           notification.warning({
-            message: '提示',
-            description: '此空间已配置不可操作跨空间「事项类型」数据，非此空间事项保存失败',
+            message: t('components.business.testManagerProvider.tips'),
+            description: t('components.business.testManagerProvider.saveFailTips'),
           });
         }
       }
@@ -453,6 +459,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
             fields: extraData.fields,
             type: extraData.type,
             repository: extraData?.repository,
+            t,
           },
         );
 
@@ -466,7 +473,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
         });
       }
     },
-    [testConfig.isolateTestType, workspace?.key],
+    [testConfig.isolateTestType, workspace?.key, t],
   );
 
   useOnItemCreateSuccess(messageKey, itemCreateSuccessCb, itemBatchCreateSuccessCb);
@@ -508,7 +515,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
 
         // TODO: 通知统一处理！
         if (!itemType?.objectId) {
-          message.warning('所属空间无法创建实体，请选择其他空间事项创建');
+          message.warning(t('components.business.testManagerProvider.notCreateCase'));
         }
 
         // 打开创建弹窗
@@ -548,12 +555,8 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
 
             // TODO: 消息通知
             if (!expectedTestType) {
-              // alert({
-              //   type: 'warning',
-              //   message: '新建类型与创建的测试类型未匹配',
-              // });
-              message.error('新建类型与创建的测试类型未匹配');
-              reject('新建类型与创建的测试类型未匹配');
+              message.error(t('components.business.testManagerProvider.typeUnmatched'));
+              reject(t('components.business.testManagerProvider.typeUnmatched'));
               return;
             }
 
@@ -573,6 +576,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
     testConfig.defectsMapping,
     testConfig?.itemTypeMap,
     workspace?.objectId,
+    t,
   ]);
 
   return (

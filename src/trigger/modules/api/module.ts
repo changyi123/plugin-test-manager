@@ -1,7 +1,7 @@
 import keyBy from 'lodash/keyBy';
 import { logTimeCost } from '../../lib/logger';
 import { iqlRequest } from '../../lib/iqlRequest';
-import { getParseQuery } from '@giteeteam/apps-team-api';
+import { getParseQuery, i18n } from '@giteeteam/apps-team-api';
 import { getReqInfoFromVMRuntime, buildResponse } from '../../lib/apiUtil';
 import { RepositoryTreePayload, MinderDataPayload } from '../../../common/types/api';
 import {
@@ -32,7 +32,7 @@ const getRepositoryTree = async ({ workspaceKey, sessionToken, select = [] }) =>
 
     const ungroupedRepository = {
       key: UngroupedRepositoryKey,
-      name: '全部用例',
+      name: i18n.t('common.minderRootNodeName'),
       parentKey: null,
       caseIds: [],
     };
@@ -71,14 +71,14 @@ const getRepositoryTree = async ({ workspaceKey, sessionToken, select = [] }) =>
 
   // 组装 caseIds 数据
   const repositoryKeyMapping = keyBy(repositoryData, 'key');
-  allTestCases.forEach(testCase => {
+  allTestCases?.forEach(testCase => {
     const repository =
       repositoryKeyMapping[testCase.repository] ?? repositoryKeyMapping[UngroupedRepositoryKey];
     repository.caseIds = Array.from(new Set(repository.caseIds.concat(testCase.objectId)));
   });
 
   // 构建目录树
-  repositoryData.forEach(repo => {
+  repositoryData?.forEach(repo => {
     repo.children = repositoryData.filter(item => item.parentKey === repo.key);
   });
 

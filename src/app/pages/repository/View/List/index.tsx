@@ -16,6 +16,7 @@ import { getTestEntityByQuery } from '@/lib/api/item';
 import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/hook';
 import { getFilterFields } from '@/components/common/FilterSearch/utils';
 import { useTestConfig } from '@/lib/hooks/useContext';
+import useI18n from '@/lib/hooks/useI18n';
 
 import { ViewComponentProps } from '../type';
 
@@ -25,10 +26,11 @@ type GroupedMode = 'all' | 'current';
 
 /** 分组模式筛选器 */
 const GroupModeSelector = (props: { mode: GroupedMode; onChange: (mode: GroupedMode) => void }) => {
+  const { t } = useI18n();
   return (
     <Select style={{ minWidth: 130 }} value={props.mode} onChange={props.onChange}>
-      <Select.Option value="all">显示子分组用例</Select.Option>
-      <Select.Option value="current">显示当前分组用例</Select.Option>
+      <Select.Option value="all">{t('page.plan.planPageLayout.right.showChild')}</Select.Option>
+      <Select.Option value="current">{t('page.plan.planPageLayout.right.showCur')}</Select.Option>
     </Select>
   );
 };
@@ -40,6 +42,7 @@ const ListView: React.FC<ViewComponentProps> = ({
   folderTreeData,
   onFolderTreeChange,
 }) => {
+  const { t } = useI18n();
   const tableActionRef = React.useRef<ActionType>();
   const { workspace } = useTestConfig();
   const { createItemUseModal, getCreatePermission } = useBaseAction();
@@ -157,8 +160,10 @@ const ListView: React.FC<ViewComponentProps> = ({
 
     const successMessage =
       testEntityList.length > 1
-        ? `${testEntityList.length}个测试用例新建成功`
-        : `测试用例【${testEntityList[0]?.name}】新建成功`;
+        ? `${testEntityList.length}${t('page.repository.folderTree.caseCreateSuccessTips.0')}`
+        : `${t('page.repository.folderTree.caseCreateSuccessTips.1')}【${
+            testEntityList[0]?.name
+          }】${t('page.repository.folderTree.caseCreateSuccessTips.2')}`;
     notification.success({
       message: successMessage,
     });
@@ -181,7 +186,7 @@ const ListView: React.FC<ViewComponentProps> = ({
         <div className={cx('actions')}>
           <GroupModeSelector mode={groupedMode} onChange={mode => setGroupedMode(mode)} />
           <Button onClick={() => toggleSelection()}>
-            {tableSelectionVisible ? '取消操作' : '批量操作'}
+            {tableSelectionVisible ? t('common.cancelAction') : t('common.batchAction')}
           </Button>
           <Button
             type="primary"
@@ -189,7 +194,7 @@ const ListView: React.FC<ViewComponentProps> = ({
             onClick={createTestDetail}
             className={cx('action')}
           >
-            新建测试用例
+            {t('common.addTestCase')}
           </Button>
           <RepoDropDown type="repository" treeNodeData={folderTreeData} folderKey={selectNodeKey} />
         </div>

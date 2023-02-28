@@ -11,21 +11,22 @@ import FolderTree from '@/pages/repository/FolderTree';
 import PageLayout from '@/components/common/PageLayout';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
 import TestManagerProvider from '@/components/business/TestManagerProvider';
-
 import { getRepositoryTree } from '@/lib/api/item';
+import useI18n from '@/lib/hooks/useI18n';
 
 import cx from './index.less';
 
 /** 用例库视图切换 */
 const ViewModeSelector = ({ viewMode, onViewModeChange }) => {
+  const { t } = useI18n();
   const tabs = [
     {
       key: 'list',
-      text: '列表',
+      text: 'list',
     },
     {
       key: 'minder',
-      text: '脑图',
+      text: 'minder',
     },
   ];
 
@@ -37,7 +38,7 @@ const ViewModeSelector = ({ viewMode, onViewModeChange }) => {
           onClick={() => onViewModeChange(tab.key)}
           className={cx('item', viewMode === tab.key && 'actived')}
         >
-          {tab.text}
+          {t(`page.repository.${tab.text}`)}
         </span>
       ))}
     </div>
@@ -49,6 +50,7 @@ logPluginVersion();
 const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) => {
   const [viewMode, setViewMode] = React.useState('list');
   const [selectedNodeKey, setSelectedNodeKey] = React.useState(null);
+  const { t } = useI18n();
 
   const {
     data: folderTreeData = [],
@@ -77,7 +79,7 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
     <PageLayout className={cx('test-repository')}>
       <PageLayout.Header>
         <header className={cx('header')}>
-          <h6>测试用例库</h6>
+          <h6>{t('common.testRepository')}</h6>
           <ViewModeSelector viewMode={viewMode} onViewModeChange={setViewMode} />
         </header>
       </PageLayout.Header>

@@ -9,6 +9,7 @@ import { traverseTreeNodes } from '@/pages/repository/util';
 import { Modal, Select, Tree, Empty, Spin } from 'antd';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import { useIsolateTestType, useAllTestWorkspace } from '@/lib/hooks/useTest';
+import useI18n from '@/lib/hooks/useI18n';
 
 import cx from './index.less';
 
@@ -28,7 +29,8 @@ type RepositorySelectorProps = {
 };
 
 const RepositorySelector: React.FC<RepositorySelectorProps> = props => {
-  const { actionRef, title = '复制用例' } = props;
+  const { t } = useI18n();
+  const { actionRef, title = t('components.business.repositorySelector.copyCase') } = props;
 
   const eventBusRef = React.useRef(new EventBus());
   const [treeSelectedNode, setTreeSelectedNode] = React.useState<any>();
@@ -119,12 +121,12 @@ const RepositorySelector: React.FC<RepositorySelectorProps> = props => {
       onOk={handleSubmit}
       closable={false}
       title={title}
-      visible={visible}
+      open={visible}
       okButtonProps={{ disabled: isEmpty(treeSelectedNode) }}
       className={cx('modal')}
     >
       <div className={cx('repository-selector')}>
-        <p>选择测试用例库</p>
+        <p>{t('components.business.repositorySelector.choiceRepository')}</p>
         <Select
           showSearch
           options={options}
@@ -134,7 +136,7 @@ const RepositorySelector: React.FC<RepositorySelectorProps> = props => {
           className={cx('workspace-selector')}
           onChange={key => setSelectedWorkspaceKey(key)}
         />
-        <p>选择模块</p>
+        <p>{t('components.business.repositorySelector.choiceGroup')}</p>
         <Spin spinning={loading}>
           <div className={cx('folder-selector')}>
             {hasArrayItem(treeData) ? (
@@ -145,7 +147,10 @@ const RepositorySelector: React.FC<RepositorySelectorProps> = props => {
                 onSelect={handleTreeSelect}
               />
             ) : (
-              <Empty style={{ marginTop: 20 }} description="当前用例库未创建用例模块" />
+              <Empty
+                style={{ marginTop: 20 }}
+                description={t('components.business.repositorySelector.emptyDesc')}
+              />
             )}
           </div>
         </Spin>

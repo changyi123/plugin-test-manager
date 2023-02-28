@@ -10,7 +10,7 @@ interface TableConfigProps {
   tableFieldsData?: TableFields;
   tableActionRef?: any;
   setTableFieldsData?: (val: TableFields) => void;
-  colums?: any[];
+  columns?: any[];
   defaultColumnKey?: string[];
   isCheckedGlobalConfig?: boolean;
 }
@@ -18,7 +18,7 @@ interface TableConfigProps {
 const TableConfig: React.FC<TableConfigProps> = ({
   testType,
   name,
-  colums,
+  columns,
   defaultColumnKey,
   tableFieldsData,
   tableActionRef,
@@ -50,7 +50,7 @@ const TableConfig: React.FC<TableConfigProps> = ({
       useColumnSetting
       actionRef={tableActionRef}
       defaultColumnKey={defaultColumnKey}
-      columns={colums}
+      columns={columns}
       name={name}
       handleFilterField={handleFilterField}
       showPagination={false}

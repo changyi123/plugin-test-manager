@@ -15,6 +15,7 @@ import TestEntitySelectorModal, {
 
 import { Step } from '@/lib/types/Test';
 import { hasArrayItem } from '@/lib/utils/helper';
+import useI18n from '@/lib/hooks/useI18n';
 
 export type ActionType = {
   filter: (stepIds: string[]) => void;
@@ -35,6 +36,7 @@ const TestStep: React.FC<TestStepProps> = ({
   testDetailId,
   steps: stepsProps = [],
 }) => {
+  const { t } = useI18n();
   const isInitialStepRef = React.useRef(false);
   const testEntitySelectorRef = React.createRef<TestEntitySelectorActionType>();
   const [steps, _setSteps] = React.useState([]);
@@ -121,7 +123,7 @@ const TestStep: React.FC<TestStepProps> = ({
       // 验证继承的测试用例是否又循环依赖
       await getTestStepsByTestDetailId(callTestId, testDetailId);
     } catch (err) {
-      message.error(`不能继承该测试用例：${err.message}`);
+      message.error(`${t('components.business.testStep.notInheritCase')}：${err.message}`);
       return;
     }
 
@@ -137,7 +139,7 @@ const TestStep: React.FC<TestStepProps> = ({
       {canCallTest && (
         <TestEntitySelectorModal
           isSingleMode
-          title="请选择继承测试用例"
+          title={t('components.business.testStep.modelTitle')}
           testType={TestType.Case}
           actionRef={testEntitySelectorRef}
           // 继承测试用例不能继承自己
@@ -147,9 +149,11 @@ const TestStep: React.FC<TestStepProps> = ({
       <StepList actions={stepActions} steps={steps} />
       <div className={cx('actions')}>
         <a onClick={() => stepActions.add()}>
-          <PlusOutlined /> 添加步骤
+          <PlusOutlined /> {t('components.business.testStep.addStep')}
         </a>
-        {canCallTest ? <a onClick={openCallTestModal}>继承测试用例</a> : null}
+        {canCallTest ? (
+          <a onClick={openCallTestModal}>{t('components.business.testStep.inheritCase')}</a>
+        ) : null}
       </div>
     </div>
   );

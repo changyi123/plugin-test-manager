@@ -1,4 +1,5 @@
 import { message } from 'antd';
+import { genAcceptLanguage, getLang } from './locale';
 import { getTenantKey } from '@/lib/utils/helper';
 import { getDevConfig, getParseReqHeader } from '@/devEnv';
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
@@ -42,6 +43,16 @@ if (process.env.NODE_ENV === 'development') {
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
 const fetch = <FetchInstance>axios.create(config);
+
+fetch.interceptors.request.use(config => {
+  // 获取 lang
+  const parseHeaderLang = genAcceptLanguage(getLang());
+  if (parseHeaderLang && !config.headers['Accept-Language']) {
+    config.headers['Accept-Language'] = parseHeaderLang;
+  }
+
+  return config;
+});
 
 fetch.interceptors.response.use(
   (response: AxiosResponse) => {

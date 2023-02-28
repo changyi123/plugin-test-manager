@@ -7,6 +7,7 @@ import OverflowTooltip from '@/components/common/OverflowTooltip';
 import { useRequest, useSafeState, useDrop, useDrag } from 'ahooks';
 import { Chart, CustomField } from '@/lib/models';
 import { components } from 'proxima-sdk';
+import useI18n from '@/lib/hooks/useI18n';
 
 const { ItemIcon } = components.Components.Common;
 
@@ -50,6 +51,7 @@ const ItemTypeDropBox = (props: {
 };
 
 const DefectMapping = () => {
+  const { t } = useI18n();
   const { workspace, globalConfig } = useDataContext();
   const workspaceKey = workspace?.key;
   const [defectsItemTypeKeys, setDefectsItemTypeKeys] = useSafeState([]);
@@ -161,8 +163,8 @@ const DefectMapping = () => {
 
     await Parse.Object.saveAll(needToUpdateCharts);
 
-    message.success('缺陷类型保存成功');
-  }, [data, defectsItemTypeKeys, testConfig]);
+    message.success(t('page.config.defectMapping.messageSuccess'));
+  }, [data, defectsItemTypeKeys, testConfig, t]);
 
   return (
     <>
@@ -171,7 +173,7 @@ const DefectMapping = () => {
           显示缺陷管理面板
         </Checkbox> */}
         <div className={cx('drop-area')}>
-          <h6>可用类型</h6>
+          <h6>{t('page.config.defectMapping.usableType')}</h6>
           <ItemTypeDropBox
             type="moveOut"
             onDropSuccess={handleDropSuccess}
@@ -181,7 +183,7 @@ const DefectMapping = () => {
           />
         </div>
         <div className={cx('drop-area')}>
-          <h6>缺陷类型</h6>
+          <h6>{t('page.config.defectMapping.defectType')}</h6>
           <ItemTypeDropBox
             type="moveIn"
             onDropSuccess={handleDropSuccess}
@@ -190,7 +192,7 @@ const DefectMapping = () => {
         </div>
       </div>
       <Button type="primary" className={cx('action-btn')} onClick={handleSave}>
-        保存
+        {t('common.save')}
       </Button>
     </>
   );

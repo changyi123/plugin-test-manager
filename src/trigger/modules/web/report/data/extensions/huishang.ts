@@ -1,7 +1,7 @@
 /**
  * @file huishang 测试报告模板数据
  * */
-import { getParseQuery } from '@giteeteam/apps-team-api';
+import { getParseQuery, i18n } from '@giteeteam/apps-team-api';
 
 const { planStats } = global?.body ?? {};
 
@@ -18,6 +18,7 @@ const SeverityLevelFieldKey = 'severity';
 const FinishedStatusType = 'Finished';
 
 export async function main() {
+  const { t } = i18n;
   // 日期格式化
   function formatDate(timeStamp, formatStr) {
     function $addZero(v, size) {
@@ -27,7 +28,7 @@ export async function main() {
       return v + '';
     }
     if (!timeStamp) {
-      return '暂无';
+      return t('trigger.web.report.none');
     }
     const date = new Date(timeStamp);
     const week = ['日', '一', '二', '三', '四', '五', '六'];
@@ -199,14 +200,17 @@ export async function main() {
       defect: {
         fixed:
           cumulatedDefects?.filter(
-            d => d.status?.type === 'Finished' && d.status?.name !== '已取消',
+            d =>
+              d.status?.type === 'Finished' && d.status?.name !== t('trigger.web.report.canceled'),
           )?.length ?? 0,
-        valid: cumulatedDefects?.filter(d => d.status?.name !== '已取消')?.length ?? 0,
+        valid:
+          cumulatedDefects?.filter(d => d.status?.name !== t('trigger.web.report.canceled'))
+            ?.length ?? 0,
         charts: {
           levelPie: {
             noData: !cumulatedDefects?.length,
             title: {
-              text: '缺陷严重程度统计表',
+              text: t('trigger.web.report.defectSeverityTable'),
               left: 'center',
               textStyle: {
                 fontSize: 24,
@@ -243,7 +247,7 @@ export async function main() {
   } catch (error) {
     console.error('report base error', error);
     return {
-      error: ['导出测试报告失败'],
+      error: [t('common.exportReportFail')],
     };
   }
 }
