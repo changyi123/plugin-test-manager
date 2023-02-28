@@ -3,7 +3,7 @@ import { useRequest, useDrag, useDrop } from 'ahooks';
 import { message, notification, Tooltip } from 'antd';
 import { UNGROUPED_FOLDER_KEY } from '../../constant';
 import { updateFolders } from '@/lib/api/repository';
-import { UserCell } from '@projectproxima/components';
+import { UserCell } from '@giteeteam/apps-team-components';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import createProximaSdk from '@projectproxima/proxima-sdk-js';
 import { DeleteIcon, UserIcon, DragHandler, LinkItemIcon } from '@/icons';

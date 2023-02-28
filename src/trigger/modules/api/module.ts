@@ -73,14 +73,14 @@ const getRepositoryTree = async ({ workspaceKey, sessionToken, select = [] }) =>
 
   // 组装 caseIds 数据
   const repositoryKeyMapping = keyBy(repositoryData, 'key');
-  allTestCases.forEach(testCase => {
+  allTestCases?.forEach(testCase => {
     const repository =
       repositoryKeyMapping[testCase.repository] ?? repositoryKeyMapping[UngroupedRepositoryKey];
     repository.caseIds = Array.from(new Set(repository.caseIds.concat(testCase.objectId)));
   });
 
   // 构建目录树
-  repositoryData.forEach(repo => {
+  repositoryData?.forEach(repo => {
     repo.children = repositoryData.filter(item => item.parentKey === repo.key);
   });
 

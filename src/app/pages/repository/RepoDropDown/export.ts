@@ -54,26 +54,93 @@ const getItemStatus = async () => {
     }, new Map());
 };
 
-const getTestGroupPath = (path?: string) => ({
-  所属分组: path ?? '',
-});
-
-const getStatus = (statusMap: any, status?: Record<string, string>, planId?: string) =>
-  planId
-    ? {
-        最新执行状态: statusMap.get(status?.[planId] || 'TODO') ?? '未开始',
-      }
-    : {};
-
-const getTestPlan = planData => {
-  return {
-    测试计划: planData?.name ?? '',
-  };
-};
-
 /** 获取导出 excel 表数据 */
 const getExcelData = async (data: any) => {
-  const { results, repoData, workspaceKey, planId } = data;
+  const { results, repoData, workspaceKey, planId, t } = data;
+
+  const getTestGroupPath = (path?: string) => ({
+    [t('page.repository.repoDropDown.excelExportTitle.group')]: path ?? '',
+  });
+
+  const getStatus = (statusMap: any, status?: Record<string, string>, planId?: string) =>
+    planId
+      ? {
+          [t('page.repository.repoDropDown.excelExportTitle.status')]:
+            statusMap.get(status?.[planId] || 'TODO') ?? '未开始',
+        }
+      : {};
+
+  const getTestPlan = planData => {
+    return {
+      [t('page.repository.repoDropDown.excelExportTitle.testPlan')]: planData?.name ?? '',
+    };
+  };
+
+  /** 获取测试用例数据 */
+  const getTestInfo = data => ({
+    ...getTestInfoByDetail(data.detail),
+  });
+
+  const getTestInfoByDetail = (detail: { steps?: Step[]; precondition?: string }) => ({
+    [t('page.repository.repoDropDown.excelExportTitle.precondition')]: detail?.precondition ?? '',
+    ...getSteps(detail?.steps),
+  });
+
+  const getSteps = (steps?: Step[]) => {
+    const data = steps
+      ?.filter(d => !d.callTestId)
+      ?.reduce(
+        (prev, cur, index) => {
+          prev = {
+            action: prev.action.concat(`【${index + 1}】${escapeHtmlString(cur.action)}`),
+            result: prev.result.concat(`【${index + 1}】${escapeHtmlString(cur.result)}`),
+            data: prev.data.concat(`【${index + 1}】${escapeHtmlString(cur.data)}`),
+          };
+
+          return prev;
+        },
+        {
+          action: [],
+          result: [],
+          data: [],
+        },
+      );
+
+    // const code = OSnow() === 'mac' ? '\n' : '\r\n';
+    const BreakLineCode = '\n';
+
+    return {
+      [t('page.repository.repoDropDown.excelExportTitle.step')]:
+        data?.action?.map(d => d.replace(/\n*/g, '')).join(BreakLineCode) ?? '',
+      [t('page.repository.repoDropDown.excelExportTitle.result')]:
+        data?.result?.map(d => d.replace(/\n*/g, '')).join(BreakLineCode) ?? '',
+      [t('page.repository.repoDropDown.excelExportTitle.data')]:
+        data?.data?.map(d => d.replace(/\n*/g, '')).join(BreakLineCode) ?? '',
+    };
+  };
+
+  /** 获取负责人 */
+  const getAssignee = (values?: Record<string, unknown>): string =>
+    (Array.isArray(values?.assignee) ? values?.assignee : [])
+      ?.map(val => (val.value ? val.username : ''))
+      .filter(Boolean)
+      .join(',') ?? '';
+
+  /** 获取优先级 */
+  const getPriority = (values?: Record<string, unknown>, priInfo?: any) =>
+    priInfo?.data.customData.find(list => list.key === values?.priority)?.name ?? '';
+
+  /** 获取事项数据 */
+  const getItemInfo = (item: Item, priInfo: any, type: string) => ({
+    [t('page.repository.repoDropDown.excelExportTitle.name')]: item.name,
+    [t('page.repository.repoDropDown.excelExportTitle.itemType')]: TestTypeNameMapping?.[type],
+    [t('page.repository.repoDropDown.excelExportTitle.assignee')]: getAssignee(item?.values),
+    [t('page.repository.repoDropDown.excelExportTitle.priority')]: getPriority(
+      item?.values,
+      priInfo,
+    ),
+  });
+
   const priorityInfo = await getTestPriorityInfo('priority');
   const itemStatus = await getItemStatus();
   const repoDataMap = new Map();
@@ -109,7 +176,10 @@ const getExcelData = async (data: any) => {
     testPlanObj = getTestPlan(testPlan[0]);
   }
 
-  return results.map(item => ({
+  // 当不存在 results 时使用空模板
+  const testCases = results.length === 0 ? [{}] : results;
+
+  return testCases.map(item => ({
     ...testPlanObj,
     ...getTestGroupPath(repoDataMap.get(item.repository)),
     ...getItemInfo(item, priorityInfo, item.type),
@@ -117,65 +187,6 @@ const getExcelData = async (data: any) => {
     ...getStatus(itemStatus, item.caseStatus, planId),
   }));
 };
-
-/** 获取测试用例数据 */
-const getTestInfo = data => ({
-  ...getTestInfoByDetail(data.detail),
-});
-
-const getTestInfoByDetail = (detail: { steps?: Step[]; precondition?: string }) => ({
-  前置条件: detail?.precondition ?? '',
-  ...getSteps(detail?.steps),
-});
-
-const getSteps = (steps?: Step[]) => {
-  const data = steps
-    ?.filter(d => !d.callTestId)
-    ?.reduce(
-      (prev, cur, index) => {
-        prev = {
-          action: prev.action.concat(`【${index + 1}】${escapeHtmlString(cur.action)}`),
-          result: prev.result.concat(`【${index + 1}】${escapeHtmlString(cur.result)}`),
-          data: prev.data.concat(`【${index + 1}】${escapeHtmlString(cur.data)}`),
-        };
-
-        return prev;
-      },
-      {
-        action: [],
-        result: [],
-        data: [],
-      },
-    );
-
-  // const code = OSnow() === 'mac' ? '\n' : '\r\n';
-  const BreakLineCode = '\n';
-
-  return {
-    步骤描述: data?.action?.map(d => d.replace(/\n*/g, '')).join(BreakLineCode) ?? '',
-    预期结果: data?.result?.map(d => d.replace(/\n*/g, '')).join(BreakLineCode) ?? '',
-    数据: data?.data?.map(d => d.replace(/\n*/g, '')).join(BreakLineCode) ?? '',
-  };
-};
-
-/** 获取负责人 */
-const getAssignee = (values?: Record<string, unknown>): string =>
-  (Array.isArray(values?.assignee) ? values?.assignee : [])
-    ?.map(val => (val.value ? val.username : ''))
-    .filter(Boolean)
-    .join(',') ?? '';
-
-/** 获取优先级 */
-const getPriority = (values?: Record<string, unknown>, priInfo?: any) =>
-  priInfo?.data.customData.find(list => list.key === values?.priority)?.name ?? '';
-
-/** 获取事项数据 */
-const getItemInfo = (item: Item, priInfo: any, type: string) => ({
-  标题: item.name,
-  类型: TestTypeNameMapping?.[type],
-  负责人: getAssignee(item?.values),
-  优先级: getPriority(item?.values, priInfo),
-});
 
 // const getTestIdsByFrom = async (id: string) => {
 //   const query = new Parse.Query(TestRelation).equalTo('from', id).limit(9999);
@@ -248,9 +259,14 @@ const importTestInfo = async (
       results,
       workspaceKey: workspace.key,
       planId: checkedId,
+      t,
     });
   } else {
-    let checkRepoKeys = typeof checkedId === 'string' ? [checkedId] : [];
+    let repositoryKeys =
+      ['exportAll', 'exportChildGroup'].includes(type) && checkedId === UNGROUPED_FOLDER_KEY
+        ? null
+        : [checkedId];
+
     const repoData = await getRepositoryData([workspace.key]);
 
     // 导出当前分组及其字分组，需要特殊处理 repository 数据
@@ -270,7 +286,7 @@ const importTestInfo = async (
         childRepoKeys = childRepoKeys.concat(node.key);
       });
 
-      checkRepoKeys = childRepoKeys;
+      repositoryKeys = childRepoKeys;
     }
 
     // 用例库导出不允许跨空间
@@ -278,18 +294,17 @@ const importTestInfo = async (
       query: {
         type: TestType.Case,
         workspaceKey: workspace.key,
-        repository:
-          type === 'exportAll' || checkedId === UNGROUPED_FOLDER_KEY ? null : checkRepoKeys,
+        repository: repositoryKeys,
       },
-      limit: 9999,
+      limit: 99999,
     });
 
     let _results = null;
-    if (checkedId === UNGROUPED_FOLDER_KEY && type !== 'exportAll') {
+    if (checkedId === UNGROUPED_FOLDER_KEY && !['exportAll', 'exportChildGroup'].includes(type)) {
       _results = results.filter(d => !d?.repository?.length);
     }
 
-    excelData = await getExcelData({ results: _results ?? results, repoData });
+    excelData = await getExcelData({ results: _results ?? results, repoData, t });
   }
 
   exportExcelFile(

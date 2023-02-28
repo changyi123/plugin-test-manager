@@ -1,8 +1,8 @@
 import React from 'react';
 import { toArray } from '@/lib/utils/helper';
 import { UserPointerInfo } from '@/lib/types/Test';
-import { UserCell } from '@projectproxima/components';
-import { UserProps } from '@projectproxima/components/dist/cells/user';
+import { UserCell } from '@giteeteam/apps-team-components';
+import { UserProps } from '@giteeteam/apps-team-components/dist/cells/user';
 
 type PickedUserCellProps = Partial<Pick<UserProps, 'onChange' | 'readonly'>>;
 

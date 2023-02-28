@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-// import { EditorField } from '@projectproxima/components';
+// import { EditorField } from '@giteeteam/apps-team-components';
 import { useCurrentUser, useGetUserById } from '@/lib/api/user';
 import { Button, Input } from 'antd';
 import { updateTestRun } from '@/lib/api/runs';

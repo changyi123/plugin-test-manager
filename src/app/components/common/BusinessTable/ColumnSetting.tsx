@@ -6,7 +6,7 @@ import { ColumnType } from 'antd/lib/table';
 import { Button, Drawer, message, Select, Spin, Tooltip } from 'antd';
 import { getCustomFields } from '@/lib/api/proxima';
 import { useGetTableFilterFields, useTestTypeScreenFieldKeys } from './hook';
-import { TableCell } from '@projectproxima/components';
+import { TableCell } from '@giteeteam/apps-team-components';
 import { generateStorageKey } from '@/lib/utils/helper';
 import { useNoExpiredRequest } from '@/lib/hooks/useRequest';
 import { useDeepCompareEffect, useLocalStorageState, useUpdateEffect } from 'ahooks';
@@ -25,7 +25,7 @@ import OverflowTooltip from '@/components/common/OverflowTooltip';
 import { TABLE_EXCLUDE_FIELDS } from '@/lib/constants';
 import useI18n from '@/lib/hooks/useI18n';
 
-import '@projectproxima/components/dist/main.css';
+import '@giteeteam/apps-team-components/dist/main.css';
 import cx from './ColumnSetting.less';
 
 type ColumnDuckTyping = ColumnType<any> & Record<string, any>;

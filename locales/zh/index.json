@@ -306,6 +306,19 @@
           "预期结果": "【1】需要以【序号】开头\n【2】预期结果中换行符会被保留",
           "数据": "【1】需要以【序号】开头\n【2】数据中换行符会被保留"
         },
+        "excelExportTitle": {
+          "group": "所属分组",
+          "name": "标题",
+          "itemType": "类型",
+          "priority": "优先级",
+          "precondition": "前置条件",
+          "step": "步骤",
+          "result": "预期结果",
+          "data": "数据",
+          "status": "状态",
+          "testPlan": "测试计划"
+        },
+        "todo": "未开始",
         "fontName": "宋体"
       },
       "view": {
