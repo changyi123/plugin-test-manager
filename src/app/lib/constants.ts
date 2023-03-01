@@ -143,6 +143,8 @@ export const FIELD_TYPE_KEY_MAPPINGS = {
   UserGroup: 'UserGroup', // 用户组
 };
 
+export const IS_EXTEND_FIELDS = [FIELD_TYPE_KEY_MAPPINGS.FieldCollection];
+
 export const enum ExtensionValType {
   CREATE_OR_UPDATE_ITEM = 'CreateOrUpdateItemVal', // 新建or编辑弹窗
 }

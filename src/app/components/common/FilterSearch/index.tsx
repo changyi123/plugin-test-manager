@@ -22,8 +22,7 @@ import {
   UserTypeSelectorFieldKeys,
   getExtendFields,
   TestType,
-  FIELD_TYPE_KEY_MAPPINGS,
-  SYSTEM_FIELD,
+  IS_EXTEND_FIELDS,
 } from '@/lib/constants';
 import { Repository } from '@/lib/models';
 import { useDebounceFn, useRequest } from 'ahooks';
@@ -220,21 +219,19 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
   // 组装打开字段值选择器的函数
   const getFieldValueProps = useCallback(
     (data, dom) => {
-      const component = FIELD_TYPE_KEY_MAPPINGS[data.component] ?? data.key;
       const fieldId = data.fieldId;
       const systemTarget = getExtendFields(t).find(item => item.objectId === fieldId);
-      const isExtend = !!SYSTEM_FIELD?.[data.component];
+      const isExtend = IS_EXTEND_FIELDS.includes(data.component);
+      const component = IS_EXTEND_FIELDS.includes(data.component) ? data.component : data.key;
       setActiveSelector(fieldId);
       const props = {
-        isExtend: systemTarget?.fieldType?.isExtend ?? !isExtend,
+        isExtend: systemTarget?.fieldType?.isExtend ?? isExtend,
         fieldId,
         field: systemTarget || {
           fieldType: {
-            ...data,
             component: component,
             label: data.fieldName,
             key: data.key,
-            objectId: data.objectId,
           },
         },
         value: data?.value,
