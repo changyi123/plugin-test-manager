@@ -61,6 +61,7 @@ const Plan = () => {
   const fetchPlanList = useCallback(
     async params => {
       const planList = testEntity?.linkItems;
+
       if (!planList?.length) return { list: [], total: 0 };
       // 获取测试计划
       const { list, total } = await getLinkedTestEntityByQuery({
@@ -222,7 +223,9 @@ const Plan = () => {
         title: t('common.action'),
         key: 'action',
         fixed: 'right',
-        render: (_, record) => <a onClick={() => removeTestRelation([record.objectId])}>删除</a>,
+        render: (_, record) => (
+          <a onClick={() => removeTestRelation([record.objectId])}>{t('common.delete')}</a>
+        ),
       },
     ] as any[];
   }, [removeTestRelation, t]);

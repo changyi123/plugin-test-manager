@@ -8,8 +8,10 @@
     "delete": "Delete",
     "remove": "Remove",
     "copy": "Copy",
+    "tip": "Tips",
+    "okText": "OK",
     "title": "Title",
-    "confirm": "Confirm",
+    "confirm": "OK",
     "type": "Type",
     "cancel": "Cancel",
     "close": "Close",
@@ -29,8 +31,11 @@
     "testPlan": "Test plan",
     "testExecution": "Test execution task",
     "testRun": "Test run",
+    "testDefect": "Test defect",
     "testRepository": "Test case repository",
-    "testCaseRepository": "Test case repository module",
+    "testCaseRepository": "Cases repository",
+    "designee": "Designee",
+    "testExecutor": "The latest executor",
     "allRepository": "All cases",
     "testReport": "Test report",
     "exportReportFail": "Failed to export test report",
@@ -56,13 +61,24 @@
     "testStep": "Test case steps",
     "addTestCase": "Create a new test case",
     "user": "User",
-    "testExecutor": "The latest action executor",
     "nothing": "None",
     "checked": "Selected",
     "item": "Item",
     "strip": "Strip",
     "appItem": "Item",
-    "minderRootNodeName": "All Modules"
+    "include": "Include",
+    "exclude": "Exclude",
+    "empty": "Empty",
+    "notEmpty": "Not empty",
+    "equal": "Equal",
+    "notEqual": "Not equal",
+    "contain": "Include",
+    "notContain": "Not include",
+    "lessThan": "Less than",
+    "greaterThan": "Greater than",
+    "noData": "No data",
+    "minderRootNodeName": "All Modules",
+    "updateFail": "Update data failed"
   },
   "page": {
     "config": {
@@ -116,7 +132,8 @@
       "wordTemplate": {
         "title": "Test report template management",
         "description": "Test report template management",
-        "templateName": "Template name",
+        "templateName": "Name",
+        "file": "File",
         "uploadTestReportTemplate": "Upload test report template",
         "uploadTemplate": "Upload report template",
         "editorTestReportTemplate": "Edit test report Template",
@@ -178,7 +195,7 @@
         ],
         "testExecutionCreateLoading": "Test execution task is being created",
         "executionList": {
-          "deleteTips": "This operation will delete the test execution task. should I continue?",
+          "deleteTips": "This operation will delete the test execution task. do you want to continue?",
           "deleteSuccess": "Test execution task deleted successfully",
           "checkTask": " Check tasks",
           "deleteTask": "Delete task"
@@ -193,8 +210,8 @@
           "description": "No test execution tasks at this time"
         },
         "right": {
-          "showChild": "Show subgroup test cases",
-          "showCur": "Show current group test cases",
+          "showChild": "Show subgroup cases",
+          "showCur": "Show current cases",
           "notSelectMessage": "No test case selected",
           "createTestRunSuccessMessage": "Test case execution created successfully",
           "caseToPlanSuccessMessage": "The test case has been successfully added to the test plan",
@@ -205,9 +222,9 @@
       },
       "testEntityList": {
         "removeCaseMessage": "test cases were removed from the test plan",
-        "removeCaseTips": "This action will remove this test case from the test plan, should I continue",
+        "removeCaseTips": "This action will remove this test case from the test plan, do you want to continue",
         "removeCaseTips1": "This action removes the selected test case from the test plan, do you want to continue",
-        "deleteRunTips": "This action will delete the selected test execution. should I continue?",
+        "deleteRunTips": "This action will delete the selected test execution. do you want to continue?",
         "deleteRunMessage": "Test case executions were deleted",
         "updateAssigneeTips": "Test owners have been updated",
         "repositoryGroup": "Belonging module",
@@ -217,7 +234,7 @@
         "runStatus": "Test execution status",
         "executor": "Last action executor",
         "designee": "Executor",
-        "assigneeSetting": "Set the person in charge",
+        "assigneeSetting": "Set assignee",
         "editorItemTips": "No item editing permission at the moment, please check the item operation permission configuration or contact the administrator",
         "deleteItemTips": "No item deletion permission at the moment, please check the item operation permission configuration or contact the administrator",
         "addItemTips": "No item add permission at the moment, please check the item operation permission configuration or contact the administrator",
@@ -246,15 +263,11 @@
         "deleteFolder": "Delete module",
         "deleteFolderTips": [
           "Confirm delete",
-          "Module?",
+          "Module",
           "The submodules under the module will be deleted together, and the test cases in the module will still be retained and automatically moved to ungrouped test cases"
         ],
         "deleteFolderSuccess": "Module deleted successfully",
-        "caseCreateSuccessTips": [
-          "test case was created successfully",
-          "test case",
-          "Created successfully"
-        ],
+        "caseCreateSuccessTips": ["test cases was created successfully", "test case", "Created successfully"],
         "buttonName": ["Create Module", "Collapse all", "More"],
         "dropCaseTips": [
           "Test case moved successfully",
@@ -286,7 +299,7 @@
         "importCaseLoading": "Exporting test management test cases",
         "importPlanLinkCase": "Exporting test plan linked cases",
         "importRepoCase": "Test management case library export",
-        "please Enter Content": "Please enter content",
+        "pleaseEnterContent": "Please enter content",
         "excelName": "Test management import template",
         "excelContent": {
           "group": "group1/group2",
@@ -465,7 +478,7 @@
   "components": {
     "business": {
       "panelTable": {
-        "selectConfirmTips": ["Current operations will be", "Selected data, continue operation?"],
+        "selectConfirmTips": ["Current operations will", "Selected data, continue operation?"],
         "itemDeleted": "Item has been deleted",
         "newRunStatus": "Latest Execution status"
       },
@@ -509,14 +522,14 @@
         "typeUnmatched": "New type does not match created test type"
       },
       "testPlanList": {
-        "deleteLinkTips": "This operation will delete the test plan and the test cases associated with the test plan. should i continue? ",
+        "deleteLinkTips": "This operation will delete the test plan and the test cases associated with the test plan. do you want to continue? ",
         "deletePlanSuccess": "Test plan deleted successfully",
         "addPlanSuccess": "The test plan was created successfully",
         "planName": "Program name",
         "deleteTestPlan": "Delete test plan",
         "checkTestPlan": " View test plan",
-        "caseStatus": "Execution pass rate",
-        "planCaseCount": "Number of planned test cases",
+        "caseStatus": "Case status",
+        "planCaseCount": "Count case",
         "addTestPlan": "New test plan"
       },
       "testPlanSelector": {
@@ -529,7 +542,7 @@
           "createDefectSuccess": "Defect created successfully",
           "addDefectSuccess": "Defect added successfully",
           "addExistingDefect": "Add existing defects",
-          "createDefect": "create defect",
+          "createDefect": "Create defect",
           "addDefect": "Add defect",
           "modelTitle": "Please select a test defect"
         },
@@ -589,7 +602,7 @@
         "addStep": "Add steps",
         "inheritCase": " Inheritance test case",
         "pleaseInput": "Please enter",
-        "switchNext": "Alt+EnterToggle next column",
+        "switchNext": "Alt + Enter toggle next column",
         "caseInherit": "Test case Inheritance",
         "stepTotal": ["Total", "Steps"],
         "copyStep": " Copy steps",
@@ -601,7 +614,7 @@
     "common": {
       "businessTable": {
         "columnSetting": ["Test management Fields", "Item Field"],
-        "tableSetting": "Table display settings",
+        "tableSetting": "Set columns",
         "headerSetting": "Table header Settings",
         "restoreDefault": "Reset",
         "actionTips": "Configurable table header column content and sorting, list search box default search items, up to four search item",

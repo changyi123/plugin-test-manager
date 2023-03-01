@@ -5,7 +5,7 @@ import RepoDropDown from '@/pages/repository/RepoDropDown';
 import TestEntitySelectorModal, {
   ActionType as ModelActionType,
 } from '@/components/business/TestEntitySelectorModal';
-import { extendFields, RepositoryModel, TestLinkType, TestType } from '@/lib/constants';
+import { getExtendFields, RepositoryModel, TestLinkType, TestType } from '@/lib/constants';
 import { useUpdateEffect } from 'ahooks';
 import { usePageContext } from '../../hook';
 import { useSetTableHeight } from './hooks';
@@ -132,13 +132,13 @@ const Right: React.FC<RightProps> = props => {
   const filterSearchExtendFieldsProps = useMemo(() => {
     const fieldsMapping = {
       // 测试用例类型筛选，只有测试用例库模块
-      TestPlan: extendFields.filter(field => field.key === RepositoryModel),
+      TestPlan: getExtendFields(t).filter(field => field.key === RepositoryModel),
       // 测试执行搜索
-      TestExecution: extendFields,
+      TestExecution: getExtendFields(t),
     };
 
     return fieldsMapping[activeType];
-  }, [activeType]);
+  }, [activeType, t]);
 
   const addTestDetail = async () => {
     const itemData = await testEntitySelectorRef.current.open();

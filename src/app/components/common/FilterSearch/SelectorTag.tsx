@@ -44,9 +44,9 @@ const SelectorTag: React.FC<SelectorTagProps> = ({ data, onDelete, onClick, acti
   }, [component, value, t]);
 
   const expressionText = useMemo(() => {
-    const options = FILTER_EXPRESSIONS[component] || [];
+    const options = FILTER_EXPRESSIONS(t)[component] || [];
     return options.find(item => item.value === _expression)?.label || null;
-  }, [_expression, component]);
+  }, [_expression, component, t]);
 
   return (
     <div className={cx('search-criteria', { active })}>

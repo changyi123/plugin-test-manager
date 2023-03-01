@@ -4,6 +4,7 @@ import { useMount } from 'ahooks';
 import { Tabs, Alert } from 'antd';
 import { AlertProps } from 'antd/lib/alert';
 import { TabPaneProps, TabsProps } from 'antd/lib/tabs';
+import useI18n from '@/lib/hooks/useI18n';
 
 import cx from './index.less';
 
@@ -17,7 +18,8 @@ type PanelLayoutProps = {
 };
 
 const PanelLayout: React.FC<PanelLayoutProps> = props => {
-  const { tabs, tabsProps = {}, title = '测试管理', children } = props;
+  const { t } = useI18n();
+  const { tabs, tabsProps = {}, title = t('common.testManager'), children } = props;
 
   useMount(() => {
     // TODO: 修改插件 pane title

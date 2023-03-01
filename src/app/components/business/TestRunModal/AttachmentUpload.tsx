@@ -109,7 +109,8 @@ const AttachmentList: React.FC<any> = props => {
                     checked={checkedAll}
                   >
                     {t('components.business.testEntitySelectorModal.selected')}
-                    <span style={{ padding: '0 4px', color: '#0045d9' }}>{checkList.length}</span>项
+                    <span style={{ padding: '0 4px', color: '#0045d9' }}>{checkList.length}</span>
+                    {t('common.item')}
                   </Checkbox>
                 </div>
                 <div className={cx('file-batch-action')}>
@@ -137,7 +138,14 @@ const AttachmentList: React.FC<any> = props => {
                     onClick={() => {
                       if (checkList.length) {
                         actionConfirm(
-                          t('components.business.testRunModal.attachmentUpload.actionTips'),
+                          {
+                            title: t('common.tip'),
+                            okText: t('common.okText'),
+                            cancelText: t('common.cancel'),
+                            content: t(
+                              'components.business.testRunModal.attachmentUpload.actionTips',
+                            ),
+                          },
                           async () => {
                             const list = fileList.filter(file => !checkList.includes(file.uid));
 
@@ -229,7 +237,14 @@ const AttachmentList: React.FC<any> = props => {
                       className={cx('action-icon')}
                       onClick={() =>
                         actionConfirm(
-                          t('components.business.testRunModal.attachmentUpload.actionTips'),
+                          {
+                            title: t('common.tip'),
+                            okText: t('common.okText'),
+                            cancelText: t('common.cancel'),
+                            content: t(
+                              'components.business.testRunModal.attachmentUpload.actionTips',
+                            ),
+                          },
                           () => {
                             deleteFileList(file);
                             onDataChange();

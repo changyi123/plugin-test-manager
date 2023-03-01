@@ -376,9 +376,17 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         return (
           <a
             onClick={() => {
-              actionConfirm(t('page.plan.testEntityList.removeCaseTips'), () => {
-                removeTestRelation(rowData.selectedTestPlanId, [rowData]);
-              });
+              actionConfirm(
+                {
+                  title: t('common.tip'),
+                  okText: t('common.okText'),
+                  cancelText: t('common.cancel'),
+                  content: t('page.plan.testEntityList.removeCaseTips'),
+                },
+                () => {
+                  removeTestRelation(rowData.selectedTestPlanId, [rowData]);
+                },
+              );
             }}
           >
             {t('common.remove')}
@@ -409,22 +417,30 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
 
   /** 根据列表记录删除测试执行 */
   const deleteTestRunByIds = useMemoizedFn(testRunIds => {
-    actionConfirm(t('page.plan.testEntityList.deleteRunTips'), async () => {
-      // 删除测试执行
-      const res = await deleteTestEntity(testRunIds);
-      if (res?.status === 'error') {
-        message.error(res.data);
-        return;
-      }
+    actionConfirm(
+      {
+        title: t('common.tip'),
+        okText: t('common.okText'),
+        cancelText: t('common.cancel'),
+        content: t('page.plan.testEntityList.deleteRunTips'),
+      },
+      async () => {
+        // 删除测试执行
+        const res = await deleteTestEntity(testRunIds);
+        if (res?.status === 'error') {
+          message.error(res.data);
+          return;
+        }
 
-      scopedTestDetailRefresh();
-      actionRef.current.resetSelectedRowKeys();
-      mutateStatusEvent.emit('refreshExecutionStatus');
-      notification.success({
-        message: `${testRunIds.length} ${t('page.plan.testEntityList.deleteRunMessage')}`,
-      });
-      proxima.execute('refreshTestRunPanel');
-    });
+        scopedTestDetailRefresh();
+        actionRef.current.resetSelectedRowKeys();
+        mutateStatusEvent.emit('refreshExecutionStatus');
+        notification.success({
+          message: `${testRunIds.length} ${t('page.plan.testEntityList.deleteRunMessage')}`,
+        });
+        proxima.execute('refreshTestRunPanel');
+      },
+    );
   });
 
   const testIdSequence = allRunData
@@ -544,45 +560,53 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   const selectionActionNodes = React.useMemo(() => {
     const handleDelete = () => {
       if (hasRowSelected) {
-        actionConfirm(t('page.plan.testEntityList.removeCaseTips1'), async () => {
-          setTableLoading(true);
-          const { list: items } = await getTestEntityByQuery({
-            query: {
-              workspaceKey: workspaceKey,
-              type: TestType.Case,
-              id: actionRef.current.selectedRowKeys ?? [],
-            },
-            limit: 99999,
-            select: ['id', 'caseStatus'],
-          });
-          const res = await updateTestEntity(
-            items.map(item => ({
-              objectId: item.id,
-              linkItems: {
-                action: 'delete',
-                value: [selectedTestPlan?.objectId],
+        actionConfirm(
+          {
+            title: t('common.tip'),
+            okText: t('common.okText'),
+            cancelText: t('common.cancel'),
+            content: t('page.plan.testEntityList.removeCaseTips1'),
+          },
+          async () => {
+            setTableLoading(true);
+            const { list: items } = await getTestEntityByQuery({
+              query: {
+                workspaceKey: workspaceKey,
+                type: TestType.Case,
+                id: actionRef.current.selectedRowKeys ?? [],
               },
-              caseStatus: Object.entries(item.caseStatus ?? {}).reduce((prev, [key, value]) => {
-                if (selectedTestPlan?.objectId !== key) {
-                  prev[key] = value;
-                }
-                return prev;
-              }, {}),
-            })),
-          );
-          if (res?.status === 'error') {
-            setTableLoading(false);
-            message.error(res.data);
-            return;
-          }
+              limit: 99999,
+              select: ['id', 'caseStatus'],
+            });
+            const res = await updateTestEntity(
+              items.map(item => ({
+                objectId: item.id,
+                linkItems: {
+                  action: 'delete',
+                  value: [selectedTestPlan?.objectId],
+                },
+                caseStatus: Object.entries(item.caseStatus ?? {}).reduce((prev, [key, value]) => {
+                  if (selectedTestPlan?.objectId !== key) {
+                    prev[key] = value;
+                  }
+                  return prev;
+                }, {}),
+              })),
+            );
+            if (res?.status === 'error') {
+              setTableLoading(false);
+              message.error(res.data);
+              return;
+            }
 
-          setTimeout(() => {
-            scopedTestDetailRefresh();
-            actionRef.current.resetSelectedRowKeys();
-            tableSelectionToggleEvent.emit(false);
-            setTableLoading(false);
-          }, 500);
-        });
+            setTimeout(() => {
+              scopedTestDetailRefresh();
+              actionRef.current.resetSelectedRowKeys();
+              tableSelectionToggleEvent.emit(false);
+              setTableLoading(false);
+            }, 500);
+          },
+        );
       }
     };
 
@@ -625,7 +649,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         readonly={!hasRowSelected}
         onChange={handleAssigneeChange}
         emptyChild={
-          <span className="user-field">
+          <span className={cx('user-field')}>
             <UserOutlined /> {t('page.plan.testEntityList.assigneeSetting')}
           </span>
         }

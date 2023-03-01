@@ -203,7 +203,9 @@ const Test = () => {
         title: t('common.action'),
         width: 120,
         key: 'action',
-        render: (_, record) => <a onClick={() => removeTestRelation([record.objectId])}>删除</a>,
+        render: (_, record) => (
+          <a onClick={() => removeTestRelation([record.objectId])}>{t('common.delete')}</a>
+        ),
       },
     ];
   }, [removeTestRelation, t]);
@@ -226,7 +228,7 @@ const Test = () => {
         actionRef={tableActionRef}
         actionMenuList={[
           {
-            title: '删除',
+            title: t('common.delete'),
             onClick(selectedRowKeys) {
               removeTestRelation(selectedRowKeys);
             },

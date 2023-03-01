@@ -30,6 +30,8 @@ const getRepositoryTree = async ({ workspaceKey, sessionToken, select = [] }) =>
       sessionToken,
     });
 
+    console.info('i18n -------------------->', `${i18n}`);
+
     const ungroupedRepository = {
       key: UngroupedRepositoryKey,
       name: i18n.t('common.minderRootNodeName'),

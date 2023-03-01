@@ -93,7 +93,12 @@ const TestPlanList: React.FC<any> = () => {
   );
 
   const handleDelete = async data => {
-    await actionConfirm(t('components.business.testPlanList.deleteLinkTips'));
+    await actionConfirm({
+      title: t('common.tip'),
+      okText: t('common.okText'),
+      cancelText: t('common.cancel'),
+      content: t('components.business.testPlanList.deleteLinkTips'),
+    });
     setTableLoading(true);
     const res = await deleteTestEntity([data.objectId]);
     if (res?.status === 'error') {

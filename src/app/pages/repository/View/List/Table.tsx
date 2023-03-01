@@ -146,24 +146,32 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
     const deleteTestCase = () => {
       const testDetailIds = tableActionRef.current.selectedRowKeys;
 
-      actionConfirm(t('page.repository.view.list.actionConfirm.0'), async () => {
-        setTableLoading(true);
-        const res = await deleteTestEntity(testDetailIds);
-        if (res?.status === 'error') {
+      actionConfirm(
+        {
+          title: t('common.tip'),
+          okText: t('common.okText'),
+          cancelText: t('common.cancel'),
+          content: t('page.repository.view.list.actionConfirm.0'),
+        },
+        async () => {
+          setTableLoading(true);
+          const res = await deleteTestEntity(testDetailIds);
+          if (res?.status === 'error') {
+            setTableLoading(false);
+            message.error(res.data);
+            return;
+          }
+          refreshAndMutateData();
           setTableLoading(false);
-          message.error(res.data);
-          return;
-        }
-        refreshAndMutateData();
-        setTableLoading(false);
 
-        notification.success({
-          message: `${tableActionRef.current.selectedRowKeys.length} ${t(
-            'page.repository.view.list.deleteCaseSuccess',
-          )}`,
-        });
-        tableActionRef.current.resetSelectedRowKeys();
-      });
+          notification.success({
+            message: `${tableActionRef.current.selectedRowKeys.length} ${t(
+              'page.repository.view.list.deleteCaseSuccess',
+            )}`,
+          });
+          tableActionRef.current.resetSelectedRowKeys();
+        },
+      );
     };
 
     // 更新负责人
@@ -223,7 +231,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         userData={userData}
         onChange={toggleAssignee}
         emptyChild={
-          <span className="user-field">
+          <span className={cx('user-field')}>
             <UserIcon className={cx('icon')} /> {t('page.plan.testEntityList.assigneeSetting')}
           </span>
         }
@@ -242,20 +250,28 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
 
   const columns = React.useMemo(() => {
     const deleteTestDetail = data => {
-      actionConfirm(t('page.repository.view.list.actionConfirm.1'), async () => {
-        setTableLoading(true);
-        const res = await deleteTestEntity([data.objectId]);
-        if (res?.status === 'error') {
+      actionConfirm(
+        {
+          title: t('common.tip'),
+          okText: t('common.okText'),
+          cancelText: t('common.cancel'),
+          content: t('page.repository.view.list.actionConfirm.1'),
+        },
+        async () => {
+          setTableLoading(true);
+          const res = await deleteTestEntity([data.objectId]);
+          if (res?.status === 'error') {
+            setTableLoading(false);
+            message.error(res.data);
+            return;
+          }
+          refreshAndMutateData();
           setTableLoading(false);
-          message.error(res.data);
-          return;
-        }
-        refreshAndMutateData();
-        setTableLoading(false);
-        notification.success({
-          message: t('page.repository.view.list.deleteCaseMessageSuccess'),
-        });
-      });
+          notification.success({
+            message: t('page.repository.view.list.deleteCaseMessageSuccess'),
+          });
+        },
+      );
     };
 
     const copyTestDetail = async data => {

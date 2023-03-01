@@ -89,7 +89,7 @@ const IsolatedTestType = () => {
               />
               <span className={cx('action-name')}>
                 {t('page.config.isolatedTestType.canBeCreatedAndAssociatedCrossSpace')}
-                {name}
+                {t(`common.${name}`)}
               </span>
             </div>
           ))}

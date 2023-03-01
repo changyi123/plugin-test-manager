@@ -5,7 +5,7 @@ import { useBaseAction } from '@/lib/hooks/useContext';
 import { useListener } from '@projectproxima/proxima-sdk-js';
 import { useRequest } from 'ahooks';
 import Table, { ActionType } from './Table';
-import { extendFields, RepositoryModel, TestType } from '@/lib/constants';
+import { getExtendFields, RepositoryModel, TestType } from '@/lib/constants';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import { reverseTreeNodes, getTreeNodeByKey, traverseTreeNodes } from '../../util';
 
@@ -160,7 +160,7 @@ const ListView: React.FC<ViewComponentProps> = ({
 
     const successMessage =
       testEntityList.length > 1
-        ? `${testEntityList.length}${t('page.repository.folderTree.caseCreateSuccessTips.0')}`
+        ? `${testEntityList.length} ${t('page.repository.folderTree.caseCreateSuccessTips.0')}`
         : `${t('page.repository.folderTree.caseCreateSuccessTips.1')}【${
             testEntityList[0]?.name
           }】${t('page.repository.folderTree.caseCreateSuccessTips.2')}`;
@@ -204,7 +204,7 @@ const ListView: React.FC<ViewComponentProps> = ({
           className={cx('filter-search-box')}
           onSearch={handleSelectorSearch}
           fields={getFilterFields(testDetailFieldKeys)}
-          extendFields={extendFields.filter(field => field.key === RepositoryModel)}
+          extendFields={getExtendFields(t)?.filter(field => field.key === RepositoryModel)}
           testType={TestType.Case}
         />
         <Table

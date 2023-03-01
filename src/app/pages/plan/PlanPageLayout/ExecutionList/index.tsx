@@ -105,21 +105,29 @@ const ExecutionList: React.FC<ExecutionListProps> = ({
       openItemViewScreen(data.objectId);
     }
     if (type === 'delete') {
-      actionConfirm(t('page.plan.planPageLayout.executionList.deleteTips'), async () => {
-        setLoading?.(true);
-        const res = await deleteTestEntity([data?.objectId]);
-        if (res?.status === 'error') {
+      actionConfirm(
+        {
+          title: t('common.tip'),
+          okText: t('common.okText'),
+          cancelText: t('common.cancel'),
+          content: t('page.plan.planPageLayout.executionList.deleteTips'),
+        },
+        async () => {
+          setLoading?.(true);
+          const res = await deleteTestEntity([data?.objectId]);
+          if (res?.status === 'error') {
+            setLoading?.(false);
+            message.error(res.data);
+            return;
+          }
+          setActiveId('');
+          setRefreshExecution(true);
           setLoading?.(false);
-          message.error(res.data);
-          return;
-        }
-        setActiveId('');
-        setRefreshExecution(true);
-        setLoading?.(false);
-        notification.success({
-          message: t('page.plan.planPageLayout.executionList.deleteSuccess'),
-        });
-      });
+          notification.success({
+            message: t('page.plan.planPageLayout.executionList.deleteSuccess'),
+          });
+        },
+      );
     }
   };
 

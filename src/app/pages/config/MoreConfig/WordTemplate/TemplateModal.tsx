@@ -99,7 +99,7 @@ const TemplateModal: React.FC<ModalProps> = ({
 
         <Form.Item
           name="file"
-          label={t('page.config.wordTemplate.uploadFile')}
+          label={t('page.config.wordTemplate.file')}
           {...UploadFieldAdapterProps}
           rules={[{ required: true, message: t('page.config.wordTemplate.uploadFileTips') }]}
         >

@@ -65,7 +65,7 @@ const openFolderNameModal: OpenFolderNameModal = ({ title, name, validator, t })
       onCancel() {
         reject();
       },
-      cancelText: t('common.delete'),
+      cancelText: t('common.cancel'),
       okText: t('common.confirm'),
     });
     setTimeout(() => {
@@ -305,7 +305,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
               </div>
             </>
           ),
-          cancelText: t('common.delete'),
+          cancelText: t('common.cancel'),
           okText: t('common.confirm'),
           okButtonProps: {
             type: 'default',
