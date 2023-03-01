@@ -14,7 +14,11 @@ import { getCustomFields } from '@/lib/api/proxima';
 import { SYSTEM_FIELD } from '@/lib/constants';
 import { difference } from 'lodash';
 import { traverseTreeNodes, getTreeNodeByKey } from '../util';
-import { getLinkedTestEntityByQuery, getTestEntityByQuery } from '@/lib/api/item';
+import {
+  getRepositoryTree,
+  getTestEntityByQuery,
+  getLinkedTestEntityByQuery,
+} from '@/lib/api/item';
 
 export type TreeNode = {
   key: string;
@@ -262,49 +266,43 @@ const importTestInfo = async (
       t,
     });
   } else {
-    let repositoryKeys =
-      ['exportAll', 'exportChildGroup'].includes(type) && checkedId === UNGROUPED_FOLDER_KEY
-        ? null
-        : [checkedId];
+    // 模块中包含的测试用例
+    let testCaseIds = [];
+    // 获取用例树
+    const workspaceKey = workspace.key;
+    const [{ data: repositoryTree }, repositoryData] = await Promise.all([
+      getRepositoryTree({ workspaceKey }),
+      getRepositoryData([workspaceKey]),
+    ]);
 
-    const repoData = await getRepositoryData([workspace.key]);
+    const selectTreeNode = getTreeNodeByKey([repositoryTree], checkedId);
 
     // 导出当前分组及其字分组，需要特殊处理 repository 数据
-    if (type === 'exportChildGroup' && checkedId !== UNGROUPED_FOLDER_KEY) {
-      // 查询当前分组下的所有子分组 id
-      const folderTree = arrayToTree(
-        repoData.map(repo => ({
-          name: repo.name,
-          key: repo.objectId,
-          parentKey: repo.parent?.objectId ?? null,
-          workspaceKey: repo.workspaceKey,
-        })),
-      );
-      let childRepoKeys = [];
-      // 获取当前分组下的所有子分组
-      traverseTreeNodes([getTreeNodeByKey(folderTree, checkedId)], node => {
-        childRepoKeys = childRepoKeys.concat(node.key);
+    if (type === 'exportChildGroup') {
+      // 获取当前分组及其所有子分组用例
+      traverseTreeNodes([selectTreeNode], node => {
+        testCaseIds = testCaseIds.concat(node.caseIds);
       });
-
-      repositoryKeys = childRepoKeys;
+    } else if (type === 'exportGroup') {
+      // 导出当前分组用例
+      testCaseIds = selectTreeNode.caseIds;
+    } else if (type === 'exportAll') {
+      // 导出全部分组用例
+      traverseTreeNodes([repositoryTree], node => {
+        testCaseIds = testCaseIds.concat(node.caseIds);
+      });
     }
 
-    // 用例库导出不允许跨空间
     const { list: results } = await getTestEntityByQuery({
       query: {
         type: TestType.Case,
         workspaceKey: workspace.key,
-        repository: repositoryKeys,
+        id: testCaseIds,
       },
       limit: 99999,
     });
 
-    let _results = null;
-    if (checkedId === UNGROUPED_FOLDER_KEY && !['exportAll', 'exportChildGroup'].includes(type)) {
-      _results = results.filter(d => !d?.repository?.length);
-    }
-
-    excelData = await getExcelData({ results: _results ?? results, repoData, t });
+    excelData = await getExcelData({ results, repoData: repositoryData, t });
   }
 
   exportExcelFile(
