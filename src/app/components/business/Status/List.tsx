@@ -1,7 +1,6 @@
 import React, { useMemo } from 'react';
 import { useStatusConfig } from './hooks';
 import { sequence } from './utils';
-import { getStatusByLang } from '@/lib/constants';
 import useI18n from '@/lib/hooks/useI18n';
 
 import cx from './List.less';
@@ -13,7 +12,7 @@ interface StatusListProps {
 }
 
 const List: React.FC<StatusListProps> = ({ className, onStatusChange, status }) => {
-  const { locale } = useI18n();
+  const { t } = useI18n();
   const statusConfig = useStatusConfig();
 
   const statusList = useMemo(() => {
@@ -34,7 +33,7 @@ const List: React.FC<StatusListProps> = ({ className, onStatusChange, status }) 
           key={status.key}
           onClick={() => statusChange(status)}
         >
-          {getStatusByLang(status.name, locale)}
+          {t(`status.${status.key}`)}
         </div>
       ))}
     </div>

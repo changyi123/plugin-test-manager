@@ -4,7 +4,6 @@ import { Popover } from 'antd';
 import { sequence } from './utils';
 import { useStatusConfig } from './hooks';
 import useI18n from '@/lib/hooks/useI18n';
-import { getStatusByLang } from '@/lib/constants';
 
 import cx from './Progress.less';
 
@@ -23,7 +22,7 @@ type StatusProgressProps = {
 const POPOVER_COLOR = '#4D545E';
 
 const StatusProgress: React.FC<StatusProgressProps> = props => {
-  const { t, locale } = useI18n();
+  const { t } = useI18n();
   const statusConfig = useStatusConfig();
   const [visible, setVisible] = React.useState(false);
 
@@ -65,7 +64,7 @@ const StatusProgress: React.FC<StatusProgressProps> = props => {
           {statuses.map(status => (
             <li key={status.key} className={cx('item')}>
               <span className={cx('dot')} style={{ background: status.color }} />
-              <span className={cx('font')}>{getStatusByLang(status.name, locale)}</span>
+              <span className={cx('font')}>{t(`status.${status.key}`)}</span>
               <span className={cx('font', 'num')}>{status.num}</span>
             </li>
           ))}
@@ -76,7 +75,7 @@ const StatusProgress: React.FC<StatusProgressProps> = props => {
         </h6>
       </div>
     );
-  }, [props.hasSummary, statuses, total, t, locale]);
+  }, [props.hasSummary, statuses, total, t]);
 
   return (
     <Popover

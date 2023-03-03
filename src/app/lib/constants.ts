@@ -448,31 +448,3 @@ export const getExtendFields = t => [
 ];
 
 export const UserTypeSelectorFieldKeys = ['test_designee', 'test_executor'];
-
-const statusMap = {
-  通过: 'PASSED',
-  未开始: 'TODO',
-  执行中: 'EXECUTING',
-  失败: 'FAILED',
-  阻塞: 'BLOCK',
-  已取消: 'CANCEL',
-};
-
-export const getStatusByLang = (name, lang) => {
-  switch (lang) {
-    case 'zh-Hant-HK':
-    case 'zh-HK':
-    case 'zh-TW':
-    case 'zh-Hans-CN':
-    case 'zh-CN':
-    case 'zh-cn':
-    case 'zh':
-      return name;
-    case 'en-GB':
-    case 'en-US':
-    case 'en':
-      return statusMap[name] ?? name;
-    default:
-      return name;
-  }
-};
