@@ -69,8 +69,9 @@ const getExcelData = async (data: any) => {
   const getStatus = (statusMap: any, status?: Record<string, string>, planId?: string) =>
     planId
       ? {
-          [t('page.repository.repoDropDown.excelExportTitle.status')]:
-            statusMap.get(status?.[planId] || 'TODO') ?? '未开始',
+          [t('page.repository.repoDropDown.excelExportTitle.status')]: statusMap.get(
+            status?.[planId] || 'TODO',
+          ),
         }
       : {};
 
@@ -124,9 +125,9 @@ const getExcelData = async (data: any) => {
   };
 
   /** 获取负责人 */
-  const getAssignee = (values?: Record<string, unknown>): string =>
+  const getAssignee = (values?: Record<string, unknown>) =>
     (Array.isArray(values?.assignee) ? values?.assignee : [])
-      ?.map(val => (val.value ? val.username : ''))
+      ?.map(user => user.nickname ?? user.username ?? user.name)
       .filter(Boolean)
       .join(',') ?? '';
 
@@ -135,9 +136,9 @@ const getExcelData = async (data: any) => {
     priInfo?.data.customData.find(list => list.key === values?.priority)?.name ?? '';
 
   /** 获取事项数据 */
-  const getItemInfo = (item: Item, priInfo: any, type: string) => ({
+  const getItemInfo = (item: Item, priInfo: any) => ({
     [t('page.repository.repoDropDown.excelExportTitle.name')]: item.name,
-    [t('page.repository.repoDropDown.excelExportTitle.itemType')]: TestTypeNameMapping?.[type],
+    [t('page.repository.repoDropDown.excelExportTitle.itemType')]: (item?.itemType as any)?.name,
     [t('page.repository.repoDropDown.excelExportTitle.assignee')]: getAssignee(item?.values),
     [t('page.repository.repoDropDown.excelExportTitle.priority')]: getPriority(
       item?.values,
@@ -186,7 +187,7 @@ const getExcelData = async (data: any) => {
   return testCases.map(item => ({
     ...testPlanObj,
     ...getTestGroupPath(repoDataMap.get(item.repository)),
-    ...getItemInfo(item, priorityInfo, item.type),
+    ...getItemInfo(item, priorityInfo),
     ...getTestInfo(item),
     ...getStatus(itemStatus, item.caseStatus, planId),
   }));

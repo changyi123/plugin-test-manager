@@ -1,4 +1,12 @@
 {
+  "lang": "en",
+  "testTypeName": {
+    "TestCase": "Test Case",
+    "TestPlan": "Test Plan",
+    "testExecution": "Test Execution",
+    "testRun": "Test Run",
+    "testDefect": "Test Defect"
+  },
   "common": {
     "testManager": "Test management",
     "save": "Save",
@@ -267,7 +275,11 @@
           "The submodules under the module will be deleted together, and the test cases in the module will still be retained and automatically moved to ungrouped test cases"
         ],
         "deleteFolderSuccess": "Module deleted successfully",
-        "caseCreateSuccessTips": ["test cases was created successfully", "test case", "Created successfully"],
+        "caseCreateSuccessTips": [
+          "test cases was created successfully",
+          "test case",
+          "Created successfully"
+        ],
         "buttonName": ["Create Module", "Collapse all", "More"],
         "dropCaseTips": [
           "Test case moved successfully",
@@ -304,10 +316,10 @@
         "excelContent": {
           "group": "group1/group2",
           "name": "Test case name (sample data, please delete this data when executing the test case import)",
-          "itemType": "test case",
+          "itemType": "Test Case",
           "priority": "Priority can fill in the value range: highest, higher, normal, lower, lowest",
           "precondition": "Test case preconditions",
-          "principal": "username",
+          "assignee": "assignee",
           "step": "[1]need to start with [serial number]\n[2]Line breaks in the step description will be preserved",
           "result": "[1]need to start with [serial number]\n[2]The newline characters in the expected result will be preserved",
           "data": "[1]need to start with [serial number]\n[2]Newline characters in the data will be preserved"
@@ -315,14 +327,15 @@
         "excelExportTitle": {
           "group": "group",
           "name": "name",
-          "itemType": "itemType",
+          "itemType": "item Type",
           "priority": "priority",
           "precondition": "precondition",
           "step": "step",
           "result": "result",
           "data": "data",
           "status": "status",
-          "testPlan": "test plan"
+          "testPlan": "test Plan",
+          "assignee": "assignee"
         },
         "todo": "Todo",
         "fontName": "Times new roman "
