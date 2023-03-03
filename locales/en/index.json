@@ -80,6 +80,32 @@
     "minderRootNodeName": "All Modules",
     "updateFail": "Update data failed"
   },
+  "status": {
+    "PASS": {
+      "name": "PASS",
+      "description": "Test run Passed"
+    },
+    "TODO": {
+      "name": "TODO",
+      "description": " Test run pending"
+    },
+    "EXECUTING": {
+      "name": "EXECUTING",
+      "description": "Test run is running"
+    },
+    "FAILED": {
+      "name": "FAILED",
+      "description": "Test run failed"
+    },
+    "BLOCK": {
+      "name": "BLOCK",
+      "description": "Test run Blocked"
+    },
+    "CANCEL": {
+      "name": "CANCEL",
+      "description": "Test run canceled"
+    }
+  },
   "page": {
     "config": {
       "changeWorkspace": "Switch the selected workspace",
@@ -158,32 +184,6 @@
       "workspaceSelectorModal": {
         "modelTitle": "Please select test management configuration workspace",
         "placeholder": "Please select a workspace"
-      },
-      "status": {
-        "pass": {
-          "name": "PASS",
-          "description": "Test run Passed"
-        },
-        "todo": {
-          "name": "TODO",
-          "description": " Test run pending"
-        },
-        "executing": {
-          "name": "EXECUTING",
-          "description": "Test run is running"
-        },
-        "failed": {
-          "name": "FAILED",
-          "description": "Test run failed"
-        },
-        "block": {
-          "name": "BLOCK",
-          "description": "Test run Blocked"
-        },
-        "cancel": {
-          "name": "CANCEL",
-          "description": "Test run canceled"
-        }
       }
     },
     "plan": {

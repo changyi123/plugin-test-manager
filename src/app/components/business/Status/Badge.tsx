@@ -5,6 +5,7 @@ import { sequence } from './utils';
 import { useStatusConfig } from './hooks';
 import { CaretDownOutlined } from '@ant-design/icons';
 import { getRootContainer } from '@/lib/utils/helper';
+import useI18n from '@/lib/hooks/useI18n';
 
 import cx from './Badge.less';
 
@@ -29,6 +30,7 @@ const Status = ({
   hoverStyle,
   className,
 }: Partial<Record<string, any>>) => {
+  const { t } = useI18n();
   if (!status) return null;
   return (
     <div
@@ -43,7 +45,7 @@ const Status = ({
       {!hideIcon && (
         <span style={{ background: status?.color }} className={cx('dot', 'status__dot')} />
       )}
-      <span className={cx('name')}>{status?.name}</span>
+      <span className={cx('name')}>{t(`status.${status.key}`)}</span>
       {hasEffect && (
         <span className={cx('icon')}>
           <CaretDownOutlined />

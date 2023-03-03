@@ -82,6 +82,32 @@
     "minderRootNodeName": "全部用例",
     "updateFail": "数据更新失败"
   },
+  "status": {
+    "PASS": {
+      "name": "通过",
+      "description": "测试执行通过"
+    },
+    "TODO": {
+      "name": "待执行",
+      "description": "测试执行待执行"
+    },
+    "EXECUTING": {
+      "name": "执行中",
+      "description": "测试执行正在执行中"
+    },
+    "FAILED": {
+      "name": "失败",
+      "description": "测试执行失败"
+    },
+    "BLOCK": {
+      "name": "阻塞",
+      "description": "测试执行阻塞"
+    },
+    "CANCEL": {
+      "name": "已取消",
+      "description": "测试执行已取消"
+    }
+  },
   "page": {
     "config": {
       "changeWorkspace": "切换所选空间",
@@ -160,32 +186,6 @@
       "workspaceSelectorModal": {
         "modelTitle": "请选择测试管理配置空间",
         "placeholder": "请选择空间"
-      },
-      "statuses": {
-        "pass": {
-          "name": "通过",
-          "description": "测试执行通过"
-        },
-        "todo": {
-          "name": "待执行",
-          "description": "测试执行待执行"
-        },
-        "executing": {
-          "name": "执行中",
-          "description": "测试执行正在执行中"
-        },
-        "failed": {
-          "name": "失败",
-          "description": "测试执行失败"
-        },
-        "block": {
-          "name": "阻塞",
-          "description": "测试执行阻塞"
-        },
-        "cancel": {
-          "name": "已取消",
-          "description": "测试执行已取消"
-        }
       }
     },
     "plan": {
