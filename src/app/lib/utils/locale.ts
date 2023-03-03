@@ -59,22 +59,17 @@ export function getLang(defaultLang = 'en'): string {
         AcceptLanguageList,
         get(window.QiankunProps?.Parse?.CoreManager?.get('REQUEST_HEADERS'), 'Accept-Language'),
       );
-      console.info('lang1', lang);
     } else if (storageLangValue) {
       lang =
         typeof storageLangValue === 'string' && storageLangValue.startsWith('"')
           ? JSON.parse(storageLangValue)
           : storageLangValue;
-      console.info('lang2', lang);
     } else if (window.QiankunProps?.context?.env?.LOCALES) {
       lang = window.QiankunProps.context.env.LOCALES;
-      console.info('lang3', lang);
     }
   } catch (err) {
     lang = defaultLang;
   }
-
-  console.info('<------------lang------------>', lang);
 
   return lang;
 }

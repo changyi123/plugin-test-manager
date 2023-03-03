@@ -43,9 +43,9 @@ const TestPanel = () => {
           }
         ></Result>
       );
+
     if (!testEntity) return null;
-    console.info('testEntity', testEntity);
-    const testType = testEntity.type;
+    const testType = testEntity.type ?? TestType.Case;
 
     const TestPanelComponent = TestPanelComponents[testType];
 

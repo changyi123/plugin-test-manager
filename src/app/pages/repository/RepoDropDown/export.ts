@@ -14,7 +14,11 @@ import { getCustomFields } from '@/lib/api/proxima';
 import { SYSTEM_FIELD } from '@/lib/constants';
 import { difference } from 'lodash';
 import { traverseTreeNodes, getTreeNodeByKey } from '../util';
-import { getLinkedTestEntityByQuery, getTestEntityByQuery } from '@/lib/api/item';
+import {
+  getRepositoryTree,
+  getTestEntityByQuery,
+  getLinkedTestEntityByQuery,
+} from '@/lib/api/item';
 
 export type TreeNode = {
   key: string;
@@ -65,8 +69,9 @@ const getExcelData = async (data: any) => {
   const getStatus = (statusMap: any, status?: Record<string, string>, planId?: string) =>
     planId
       ? {
-          [t('page.repository.repoDropDown.excelExportTitle.status')]:
-            statusMap.get(status?.[planId] || 'TODO') ?? '未开始',
+          [t('page.repository.repoDropDown.excelExportTitle.status')]: statusMap.get(
+            status?.[planId] || 'TODO',
+          ),
         }
       : {};
 
@@ -120,9 +125,9 @@ const getExcelData = async (data: any) => {
   };
 
   /** 获取负责人 */
-  const getAssignee = (values?: Record<string, unknown>): string =>
+  const getAssignee = (values?: Record<string, unknown>) =>
     (Array.isArray(values?.assignee) ? values?.assignee : [])
-      ?.map(val => (val.value ? val.username : ''))
+      ?.map(user => user.nickname ?? user.username ?? user.name)
       .filter(Boolean)
       .join(',') ?? '';
 
@@ -131,9 +136,9 @@ const getExcelData = async (data: any) => {
     priInfo?.data.customData.find(list => list.key === values?.priority)?.name ?? '';
 
   /** 获取事项数据 */
-  const getItemInfo = (item: Item, priInfo: any, type: string) => ({
+  const getItemInfo = (item: Item, priInfo: any) => ({
     [t('page.repository.repoDropDown.excelExportTitle.name')]: item.name,
-    [t('page.repository.repoDropDown.excelExportTitle.itemType')]: TestTypeNameMapping?.[type],
+    [t('page.repository.repoDropDown.excelExportTitle.itemType')]: (item?.itemType as any)?.name,
     [t('page.repository.repoDropDown.excelExportTitle.assignee')]: getAssignee(item?.values),
     [t('page.repository.repoDropDown.excelExportTitle.priority')]: getPriority(
       item?.values,
@@ -182,7 +187,7 @@ const getExcelData = async (data: any) => {
   return testCases.map(item => ({
     ...testPlanObj,
     ...getTestGroupPath(repoDataMap.get(item.repository)),
-    ...getItemInfo(item, priorityInfo, item.type),
+    ...getItemInfo(item, priorityInfo),
     ...getTestInfo(item),
     ...getStatus(itemStatus, item.caseStatus, planId),
   }));
@@ -262,49 +267,43 @@ const importTestInfo = async (
       t,
     });
   } else {
-    let repositoryKeys =
-      ['exportAll', 'exportChildGroup'].includes(type) && checkedId === UNGROUPED_FOLDER_KEY
-        ? null
-        : [checkedId];
+    // 模块中包含的测试用例
+    let testCaseIds = [];
+    // 获取用例树
+    const workspaceKey = workspace.key;
+    const [{ data: repositoryTree }, repositoryData] = await Promise.all([
+      getRepositoryTree({ workspaceKey }),
+      getRepositoryData([workspaceKey]),
+    ]);
 
-    const repoData = await getRepositoryData([workspace.key]);
+    const selectTreeNode = getTreeNodeByKey([repositoryTree], checkedId);
 
     // 导出当前分组及其字分组，需要特殊处理 repository 数据
-    if (type === 'exportChildGroup' && checkedId !== UNGROUPED_FOLDER_KEY) {
-      // 查询当前分组下的所有子分组 id
-      const folderTree = arrayToTree(
-        repoData.map(repo => ({
-          name: repo.name,
-          key: repo.objectId,
-          parentKey: repo.parent?.objectId ?? null,
-          workspaceKey: repo.workspaceKey,
-        })),
-      );
-      let childRepoKeys = [];
-      // 获取当前分组下的所有子分组
-      traverseTreeNodes([getTreeNodeByKey(folderTree, checkedId)], node => {
-        childRepoKeys = childRepoKeys.concat(node.key);
+    if (type === 'exportChildGroup') {
+      // 获取当前分组及其所有子分组用例
+      traverseTreeNodes([selectTreeNode], node => {
+        testCaseIds = testCaseIds.concat(node.caseIds);
       });
-
-      repositoryKeys = childRepoKeys;
+    } else if (type === 'exportGroup') {
+      // 导出当前分组用例
+      testCaseIds = selectTreeNode.caseIds;
+    } else if (type === 'exportAll') {
+      // 导出全部分组用例
+      traverseTreeNodes([repositoryTree], node => {
+        testCaseIds = testCaseIds.concat(node.caseIds);
+      });
     }
 
-    // 用例库导出不允许跨空间
     const { list: results } = await getTestEntityByQuery({
       query: {
         type: TestType.Case,
         workspaceKey: workspace.key,
-        repository: repositoryKeys,
+        id: testCaseIds,
       },
       limit: 99999,
     });
 
-    let _results = null;
-    if (checkedId === UNGROUPED_FOLDER_KEY && !['exportAll', 'exportChildGroup'].includes(type)) {
-      _results = results.filter(d => !d?.repository?.length);
-    }
-
-    excelData = await getExcelData({ results: _results ?? results, repoData, t });
+    excelData = await getExcelData({ results, repoData: repositoryData, t });
   }
 
   exportExcelFile(
