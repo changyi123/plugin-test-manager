@@ -2,7 +2,6 @@ import resource from '../../../../locales';
 import zh from 'antd/lib/locale/zh_CN';
 import en from 'antd/lib/locale/en_US';
 
-console.info('en ------------>', en);
 import { get } from 'lodash';
 import languageParser from 'accept-language-parser';
 
@@ -51,10 +50,13 @@ export function getMessages(
 
 export function getLang(defaultLang = 'en'): string {
   let lang = defaultLang;
+  const QiankunPropsLocal = window.QiankunProps?.context?.env?.LOCALES;
   const storageLangValue = localStorage.getItem('lang');
 
   try {
-    if (process.env.NODE_ENV === 'production' && window.__POWERED_BY_QIANKUN__) {
+    if (QiankunPropsLocal) {
+      lang = QiankunPropsLocal;
+    } else if (process.env.NODE_ENV === 'production' && window.__POWERED_BY_QIANKUN__) {
       lang = languageParser.pick(
         AcceptLanguageList,
         get(window.QiankunProps?.Parse?.CoreManager?.get('REQUEST_HEADERS'), 'Accept-Language'),
@@ -64,8 +66,6 @@ export function getLang(defaultLang = 'en'): string {
         typeof storageLangValue === 'string' && storageLangValue.startsWith('"')
           ? JSON.parse(storageLangValue)
           : storageLangValue;
-    } else if (window.QiankunProps?.context?.env?.LOCALES) {
-      lang = window.QiankunProps.context.env.LOCALES;
     }
   } catch (err) {
     lang = defaultLang;

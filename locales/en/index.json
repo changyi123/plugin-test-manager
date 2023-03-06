@@ -572,7 +572,7 @@
           "notLintDefect": "The current test execution has no associated defects",
           "noPermission": "The current user have not permission",
           "removeTips": ["Please step in", "Remove the defect"],
-          "deleteButtonTips": "The current operation will delete the relationship with the defect, whether to continue ok?",
+          "deleteButtonTips": "The current operation deletes the association with the defect, do you want to continue?",
           "global": "Global",
           "step": "Step"
         },

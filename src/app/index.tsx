@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import App from './App';
 import { ProximaSDK } from '@projectproxima/plugin-sdk';
 import { getMessages } from './lib/utils/locale';
+import { getLang } from '@/lib/utils/locale';
 
 import './index.global.less';
 
@@ -13,10 +14,9 @@ if (window.__POWERED_BY_QIANKUN__) {
 }
 
 async function render(props) {
-  const [locale, lngDict, antdLangPackage] = getMessages(props?.sdk?.context?.env?.LOCALES || 'zh');
+  const [locale, lngDict, antdLangPackage] = getMessages(getLang());
   const antdLang = await Promise.resolve(antdLangPackage);
   const appProps = { ...props, locale, lngDict, antdLang };
-  console.info('antdLang --------------->', antdLang);
   const { container } = props;
   ReactDOM.render(
     <App {...appProps} />,
