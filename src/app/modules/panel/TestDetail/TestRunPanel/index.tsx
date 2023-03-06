@@ -16,6 +16,7 @@ import TestRunModal, {
 } from '@/components/business/TestRunModal';
 import { StatusBadge } from '@/components/business/Status';
 import { useTestConfig } from '@/lib/hooks/useContext';
+import { t } from '@/lib/hooks/useI18n';
 
 import css from './index.less';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
@@ -39,7 +40,7 @@ const Runs: React.FC = () => {
 
     tableActionRef.current.refresh();
 
-    message.success('删除成功');
+    message.success(t('common.deleteSuccess'));
   }, []);
 
   const tableRefresh = React.useCallback(() => {
@@ -56,7 +57,7 @@ const Runs: React.FC = () => {
     {
       title: (
         <Space>
-          <div>测试执行任务</div>
+          <div>{t('common.testExecution')}</div>
           <div>
             <Tooltip placement="right" title="该测试用例的运行包含以下执行轮次">
               <InfoCircleOutlined />
@@ -88,7 +89,7 @@ const Runs: React.FC = () => {
       },
     },
     {
-      title: '执行状态',
+      title: t('modules.panel.testRunPanel.runStatus'),
       dataIndex: 'status',
       render: (_, record) => {
         const testRun = record.relTestRun ?? {};

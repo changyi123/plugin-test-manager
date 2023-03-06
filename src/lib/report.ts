@@ -170,7 +170,7 @@ export default class TemplateGenerator {
     options: { fileName?: string; testPlanIds: string[] },
     mixTemplateOptions?: Partial<UserOptions>,
   ) => {
-    const { fileName = '测试报告', testPlanIds } = options;
+    const { fileName = 'Report', testPlanIds } = options;
     const docTemplateOptions = { ...this.docTemplateBasicOptions, ...mixTemplateOptions };
     const fileUrl = this.wordTemplate.file.url;
     if (!fileUrl) return;
@@ -186,7 +186,7 @@ export default class TemplateGenerator {
         console.info('templateData', templateData);
         if (templateData?.error?.length) {
           return notification.error({
-            message: templateData?.error?.join(',') ?? '导出测试报告失败',
+            message: templateData?.error?.join(','),
           });
         }
         return templateData;

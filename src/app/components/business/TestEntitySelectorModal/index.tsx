@@ -190,7 +190,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
         limit: 50,
         nameOrKeyLike: keyword,
         itemType: itemTypeCondition,
-        orderBy: ['修改时间', 'desc'],
+        orderBy: [t('common.updateAt'), 'desc'],
         workspace: workspaceKeyCondition,
         ...params,
       });
@@ -331,9 +331,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
         };
     return (
       <>
-        <p className={cx('hint')}>
-          {`${t('components.business.testEntitySelectorModal.modelTip')} ${testTypeName}`}
-        </p>
+        <p className={cx('hint')}>{t('components.business.testEntitySelectorModal.modelTip')}</p>
         <div ref={debounceSelectContainerRef}>
           <DebounceSelect
             {...debounceSelectProps}
@@ -345,8 +343,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
             onChange={value => setSelectValue(value)}
             getPopupContainer={() => debounceSelectContainerRef.current}
             placeholder={
-              props.placeholder ??
-              `${t('components.business.testEntitySelectorModal.modelTip')} ${testTypeName}`
+              props.placeholder ?? t('components.business.testEntitySelectorModal.modelTip')
             }
             notFoundContent={
               searchLoading ? (

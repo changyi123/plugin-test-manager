@@ -229,6 +229,7 @@ export const useTestTypeUsedItemTypes = () => {
 export const useTestRunActionAuth = ({ workspaceKey }) => {
   const testConfig = useWorkspaceTestConfig(workspaceKey);
   const currentUser = useCurrentUser();
+  const { t } = useI18n();
   const { getCreatePermission } = useBaseAction();
 
   // 测试执行事项行为临时权限，后期需优化
@@ -253,14 +254,14 @@ export const useTestRunActionAuth = ({ workspaceKey }) => {
         if (testRunAction.canOnlyExecuteMineCase && !testRunAction.canOnlyExecuteAssignedCase) {
           if (!Array.isArray(designee) || designee.length === 0) return;
           const notInDesignee = !designee.some(u => u.objectId === currentUser.objectId);
-          if (notInDesignee) return '无法执行指派给他人的测试用例';
+          if (notInDesignee) return t('testRunAuth.cannotAssignedTestCase');
         }
 
         if (testRunAction.canOnlyExecuteMineCase && testRunAction.canOnlyExecuteAssignedCase) {
           if (!Array.isArray(designee) || designee.length === 0)
-            return '当前测试用例未分配执行人，无法执行';
+            return t('testRunAuth.cannotExecuteTestCase');
           const notInDesignee = !designee.some(u => u.objectId === currentUser.objectId);
-          if (notInDesignee) return '无法执行指派给他人的测试用例';
+          if (notInDesignee) return t('testRunAuth.cannotAssignedTestCase');
         }
       };
       const message = getCannotExecuteMessage();

@@ -7,7 +7,14 @@
     "testRun": "测试执行",
     "testDefect": "缺陷"
   },
+  "testRunAuth": {
+    "cannotAssignedTestCase": "无法执行指派给他人的测试用例",
+    "cannotExecuteTestCase": "当前测试用例未分配执行人，无法执行"
+  },
   "common": {
+    "pleaseInputContent": "请输入内容",
+    "updateAt": "修改时间",
+    "success": "成功",
     "testManager": "测试管理",
     "save": "保存",
     "action": "操作",
@@ -387,7 +394,8 @@
           "runRoundTips": "该测试用例的运行包含以下执行轮次",
           "runStatus": "执行状态",
           "popConfirmTips": "当前操作会移除该测试执行，是否继续执行？",
-          "addTestExecution": "新增测试执行任务"
+          "addTestExecution": "新增测试执行任务",
+          "tooltip": "该测试用例的运行包含以下执行轮次"
         }
       },
       "testExecution": {
@@ -595,6 +603,7 @@
       },
       "testStep": {
         "stepField": ["步骤", "预期", "数据"],
+        "hasCircularInheritance": "与测试用例【${testCaseName}】存在循环继承",
         "notInheritCase": "不能继承该测试用例",
         "modelTitle": "请选择继承测试用例",
         "addStep": "添加步骤",
