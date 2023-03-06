@@ -12,7 +12,7 @@
     "cannotExecuteTestCase": "The current test case is not assigned to an executor and cannot be executed"
   },
   "common": {
-    "pleaseInputContent": "Please input content",
+    "pleaseInputContent": "Please enter content",
     "updateAt": "updateAt",
     "success": "Success",
     "testManager": "Test management",
@@ -220,7 +220,7 @@
           "rate": "Pass rate"
         },
         "left": {
-          "placeholder": "Please input module name"
+          "placeholder": "Please enter module name"
         },
         "noData": {
           "description": "No test execution tasks at this time"
@@ -256,7 +256,7 @@
         "addItemTips": "No item add permission at the moment, please check the item operation permission configuration or contact the administrator",
         "updateRunStateTips": "Selected test execution status updated successfully",
         "updateDesigneeStateTips": "The selected test executor has been successfully updated",
-        "notUpdateDesignee": "No executors can be changed for test case",
+        "notUpdateDesignee": "Cannot change executor of test case",
         "updateDesignee": "Change executor",
         "updateRunStatus": "Change execution status"
       }
@@ -333,17 +333,17 @@
           "data": "[1]need to start with [serial number]\n[2]Newline characters in the data will be preserved"
         },
         "excelExportTitle": {
-          "group": "group",
-          "name": "name",
-          "itemType": "item Type",
-          "priority": "priority",
-          "precondition": "precondition",
-          "step": "step",
-          "result": "result",
-          "data": "data",
-          "status": "status",
-          "testPlan": "test Plan",
-          "assignee": "assignee"
+          "group": "Group",
+          "name": "Name",
+          "itemType": "Item Type",
+          "priority": "Priority",
+          "precondition": "Precondition",
+          "step": "Step",
+          "result": "Result",
+          "data": "Data",
+          "status": "Status",
+          "testPlan": "Test Plan",
+          "assignee": "Assignee"
         },
         "todo": "Todo",
         "fontName": "Times new roman "
@@ -611,10 +611,10 @@
         "testStep": {
           "noSteps": "The current testRun not have test case steps",
           "step": "Step",
-          "stepResult": "Step result",
+          "stepResult": "Step Result",
           "expect": "Expected",
-          "result": "Actual results",
-          "resultPlaceholder": "Please enter the actual result",
+          "result": "Result",
+          "resultPlaceholder": "Please enter result",
           "data": "Data",
           "defect": "Defect"
         }
@@ -653,7 +653,7 @@
       "filterSearch": {
         "screenPlaceholder": "Please enter the search term keyword",
         "screen": "Filter",
-        "inputPlaceholder": "Please input title keyword",
+        "inputPlaceholder": "Please enter title",
         "to": "To",
         "or": "Or",
         "none": "None"

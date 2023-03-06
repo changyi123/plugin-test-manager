@@ -1250,10 +1250,10 @@
   dependencies:
     axios "^0.27.2"
 
-"@giteeteam/apps-team-components@0.3.4-remove-editor-0.5":
-  version "0.3.4-remove-editor-0.5"
-  resolved "https://registry.yarnpkg.com/@giteeteam/apps-team-components/-/apps-team-components-0.3.4-remove-editor-0.5.tgz#33865804fc96cca00d3d2bbd50efa61f096fe1e6"
-  integrity sha512-M9yaS9TCUhZBVOhO1p4vrOOdkX490tgOmF/i7qqxT/epgEFYHNeyw8OfeD7els1CobI2z1QdIiKMku0DjnGYPA==
+"@giteeteam/apps-team-components@0.3.4-remove-editor-0.6":
+  version "0.3.4-remove-editor-0.6"
+  resolved "https://registry.yarnpkg.com/@giteeteam/apps-team-components/-/apps-team-components-0.3.4-remove-editor-0.6.tgz#cc88b1944f92155f1aa60bcf5be97f38967c83ba"
+  integrity sha512-e66nfmCH8iwgUPnXtyx9FT7LTm6TXCl2unmfNyq2Qt0QqPDMh8YOT1fgA8LvKQCCgb2FFpIQwSn8afQ5HMGvYA==
   dependencies:
     "@ant-design/icons" "4.7.0"
     "@projectproxima/plugin-loader" "^0.1.9"
@@ -8328,9 +8328,9 @@ terser@^5.10.0, terser@^5.14.1:
     commander "^2.20.0"
     source-map-support "~0.5.20"
 
-"test-manager-minder@git+http://proxima:proxima123@osc.gitee.work/enterprise__proxima/test-manager-minder.git#46db979c9eef28ef662677670ae1afaf8d30f4fd":
+"test-manager-minder@git+http://proxima:proxima123@osc.gitee.work/enterprise__proxima/test-manager-minder.git#6d7d0e806d1ec43833a0348f3c5c6109f630e463":
   version "0.1.0"
-  resolved "git+http://proxima:proxima123@osc.gitee.work/enterprise__proxima/test-manager-minder.git#46db979c9eef28ef662677670ae1afaf8d30f4fd"
+  resolved "git+http://proxima:proxima123@osc.gitee.work/enterprise__proxima/test-manager-minder.git#6d7d0e806d1ec43833a0348f3c5c6109f630e463"
   dependencies:
     uid "^2.0.1"
     "@types/styled-components" "^5.1.26"
