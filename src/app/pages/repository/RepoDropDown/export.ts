@@ -50,7 +50,7 @@ const getItemStatus = async () => {
     .map(d => d.toJSON())
     .reduce((prev, cur) => {
       cur?.extra?.statuses?.forEach(c => {
-        prev.set(c.key, c.name);
+        prev.set(c.key, c.key);
       });
 
       return prev;
