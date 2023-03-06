@@ -427,7 +427,7 @@ locales:
     test-manager-test-detail:
       title: Test manager
     test-config:
-      title: Test manager configuration
+      title: Test Configuration
     test-plan:
       title: Test plan
     test-repository:
