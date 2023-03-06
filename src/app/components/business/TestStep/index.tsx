@@ -123,7 +123,12 @@ const TestStep: React.FC<TestStepProps> = ({
       // 验证继承的测试用例是否又循环依赖
       await getTestStepsByTestDetailId(callTestId, testDetailId);
     } catch (err) {
-      message.error(`${t('components.business.testStep.notInheritCase')}：${err.message}`);
+      message.error(
+        `${t('components.business.testStep.notInheritCase')}：${t(
+          'components.business.testStep.hasCircularInheritance',
+          { testCaseName: err.message },
+        )}`,
+      );
       return;
     }
 

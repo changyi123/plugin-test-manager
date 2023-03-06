@@ -7,7 +7,14 @@
     "testRun": "Test Run",
     "testDefect": "Test Defect"
   },
+  "testRunAuth": {
+    "cannotAssignedTestCase": "Cannot execute assigned to others test cases",
+    "cannotExecuteTestCase": "The current test case is not assigned to an executor and cannot be executed"
+  },
   "common": {
+    "pleaseInputContent": "Please input content",
+    "updateAt": "updateAt",
+    "success": "Success",
     "testManager": "Test management",
     "save": "Save",
     "action": "Action",
@@ -396,7 +403,8 @@
           "runRoundTips": "The run of this test case consists of the following execution rounds",
           "runStatus": "TestRun status",
           "popConfirmTips": "The current operation will remove the test execution, continue to execute? ",
-          "addTestExecution": "New test execution task"
+          "addTestExecution": "New test execution task",
+          "tooltip": "The test case runs are comprised of the following execution cycles"
         }
       },
       "testExecution": {
@@ -613,6 +621,7 @@
       },
       "testStep": {
         "stepField": ["Step", "Expected", "Data"],
+        "hasCircularInheritance": "The test case: [${testCaseName}] has a circular inheritance",
         "notInheritCase": "Cannot inherit this test case",
         "modelTitle": "Please select inheritance test case",
         "addStep": "Add steps",

@@ -71,13 +71,15 @@ fetch.interceptors.response.use(
   error => {
     // eslint-disable-next-line no-console
     if (error.code === 'ECONNABORTED') {
-      message.error('请求超时');
+      message.error('request timeout');
       return Promise.reject('timeout');
     } else if (error.response.status) {
       if (typeof error.response.data === 'object') {
-        message.error(error.response.data?.message || error.response.data?.error || '请求失败');
+        message.error(
+          error.response.data?.message || error.response.data?.error || 'request failed',
+        );
       } else {
-        message.error(error.response.data || '请求失败');
+        message.error(error.response.data || 'request failed');
       }
       return Promise.reject(error.response);
     }

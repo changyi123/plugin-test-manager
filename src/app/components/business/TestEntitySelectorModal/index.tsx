@@ -190,7 +190,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
         limit: 50,
         nameOrKeyLike: keyword,
         itemType: itemTypeCondition,
-        orderBy: ['修改时间', 'desc'],
+        orderBy: [t('common.updateAt'), 'desc'],
         workspace: workspaceKeyCondition,
         ...params,
       });

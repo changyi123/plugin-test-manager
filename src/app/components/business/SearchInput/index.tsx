@@ -4,6 +4,7 @@ import { Input, Tooltip } from 'antd';
 import { useDebounceFn } from 'ahooks';
 import { SearchOutlined } from '@/icons';
 import { InputProps } from 'antd/lib/input/Input';
+import useI18n from '@/lib/hooks/useI18n';
 
 import cx from './index.less';
 
@@ -17,6 +18,7 @@ const SearchInput: React.FC<
 > = props => {
   const inputValueRef = React.useRef('');
   const inputRef = React.useRef<any>(null);
+  const { t } = useI18n();
   const { onSearch = noop, text, showInput, ...restInputProps } = props;
   const [inputVisible, setInputVisible] = React.useState(false);
 
@@ -58,7 +60,7 @@ const SearchInput: React.FC<
           defaultValue={inputValueRef.current}
         />
       ) : (
-        <Tooltip title="搜索">
+        <Tooltip title={t('common.search')}>
           <div
             onClick={() => {
               setInputVisible(true);
