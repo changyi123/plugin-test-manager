@@ -1,5 +1,5 @@
 import parallelLimit from 'async/parallelLimit';
-import { getParseModel, saveAllObject, getAllData, getData } from '@giteeteam/apps-team-api';
+import { getParseModel, saveAllObject, getAllData, getData, i18n } from '@giteeteam/apps-team-api';
 import { updateItems } from '../../lib/coreApi';
 
 // uuid
@@ -332,7 +332,7 @@ export const runImport = async () => {
 
     return {
       code: 200,
-      message: '成功',
+      message: i18n.t('common.success'),
     };
   };
 

@@ -543,7 +543,7 @@ export const getTestStepsByTestDetailId = async (testDetailId: string, currentTe
         data.steps.some(step => step.callTestId === circularTestId),
       )?.name;
 
-      throw new Error(`与测试用例【${circularName}】存在循环继承`);
+      throw new Error(circularName);
     }
 
     callTestDeps = Object.assign({}, callTestDeps, keyBy(testData, 'id'));
