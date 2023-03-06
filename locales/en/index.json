@@ -495,7 +495,8 @@
       "panelTable": {
         "selectConfirmTips": ["Current operations will", "Selected data, continue operation?"],
         "itemDeleted": "Item has been deleted",
-        "newRunStatus": "Latest Execution status"
+        "newRunStatus": "Latest Execution status",
+        "select": "Selected"
       },
       "repositorySelector": {
         "copyCase": "Copy test case",
@@ -629,6 +630,7 @@
     "common": {
       "businessTable": {
         "columnSetting": ["Test management Fields", "Item Field"],
+        "setHeader": "Table head configuration",
         "tableSetting": "Set columns",
         "headerSetting": "Table header Settings",
         "restoreDefault": "Reset",

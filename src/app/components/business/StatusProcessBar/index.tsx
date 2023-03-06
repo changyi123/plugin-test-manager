@@ -22,7 +22,7 @@ const StatusProcessBar: React.FC<StatusProcessBarProps> = ({ status, className }
             <span className={cx('num')} style={{ color: status.color }}>
               {status.num}
             </span>
-            <span className={cx('name')}>{status.name}</span>
+            <span className={cx('name')}>{t(`status.${status.key}.name`)}</span>
           </span>
         ))}
         <span className={cx('total')}>

@@ -105,9 +105,9 @@ const PanelTable: React.FC<PanelTableProps> = props => {
           </Button>
           {batchSelect ? (
             <div className={cx('select-tip')}>
-              {`${t('components.business.panelTable.select')} ${selectedRowKeys.length} ${t(
-                'common.strip',
-              )}`}
+              {`${t('components.business.panelTable.select')}
+               ${selectedRowKeys.length} 
+              ${t('common.item', { count: selectedRowKeys.length })}`}
             </div>
           ) : null}
           {batchSelect && hasArrayItem(actionMenuList) && hasArrayItem(selectedRowKeys) ? (

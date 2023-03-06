@@ -17,6 +17,7 @@ import { MinderNodeType } from 'common/constant';
 import { createRepositories } from '@/lib/api/repository';
 import { deleteTestEntity, updateTestEntity } from '@/lib/api/item';
 import useI18n from '@/lib/hooks/useI18n';
+import { getLang } from '@/lib/utils/locale';
 
 // TODO: 同层级重名模块报错
 const MaxModuleLevel = 8;
@@ -26,7 +27,7 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
   folderTreeData,
   onFolderTreeChange,
 }) => {
-  const { t, locale } = useI18n();
+  const { t } = useI18n();
   const { workspace } = useTestConfig();
   const actionRef = React.useRef(null);
   const [saveLoading, setSaveLoading] = React.useState(false);
@@ -385,7 +386,7 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
   return (
     <>
       <MinderEditor
-        lang={locale}
+        lang={getLang()}
         data={minderData}
         key={workspace.key}
         actionRef={actionRef}
