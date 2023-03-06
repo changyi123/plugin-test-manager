@@ -33,7 +33,7 @@ const List: React.FC<StatusListProps> = ({ className, onStatusChange, status }) 
           key={status.key}
           onClick={() => statusChange(status)}
         >
-          {t(`status.${status.key}`)}
+          {t(`status.${status.key}.name`)}
         </div>
       ))}
     </div>

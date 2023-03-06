@@ -88,10 +88,11 @@
     "greaterThan": "Greater than",
     "noData": "No data",
     "minderRootNodeName": "All Modules",
-    "updateFail": "Update data failed"
+    "updateFail": "Update data failed",
+    "unGrouped": "Ungrouped"
   },
   "status": {
-    "PASS": {
+    "PASSED": {
       "name": "PASS",
       "description": "Test run Passed"
     },

@@ -88,10 +88,11 @@
     "greaterThan": "大于",
     "noData": "暂无数据",
     "minderRootNodeName": "全部用例",
-    "updateFail": "数据更新失败"
+    "updateFail": "数据更新失败",
+    "unGrouped": "未分组"
   },
   "status": {
-    "PASS": {
+    "PASSED": {
       "name": "通过",
       "description": "测试执行通过"
     },
