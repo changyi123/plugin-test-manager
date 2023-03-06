@@ -117,9 +117,10 @@ const PanelTable: React.FC<PanelTableProps> = props => {
                   key={index}
                   placement="right"
                   getPopupContainer={() => getRootContainer()}
-                  title={`${t('components.business.panelTable.selectConfirmTips.0')} ${
-                    action.title
-                  } ${t('components.business.panelTable.selectConfirmTips.1')}`}
+                  title={`
+                   ${t('components.business.panelTable.selectConfirmTips.0')}
+                    ${action.title} 
+                   ${t('components.business.panelTable.selectConfirmTips.1')}`}
                   onConfirm={() => action?.onClick(selectedRowKeys)}
                   okText={t('common.confirm')}
                   cancelText={t('common.cancel')}

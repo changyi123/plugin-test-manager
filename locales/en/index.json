@@ -12,7 +12,7 @@
     "cannotExecuteTestCase": "The current test case is not assigned to an executor and cannot be executed"
   },
   "common": {
-    "pleaseInputContent": "Please input content",
+    "pleaseInputContent": "Please enter content",
     "updateAt": "updateAt",
     "success": "Success",
     "testManager": "Test management",
@@ -153,7 +153,7 @@
         "notOperableCrossSpaceTestData": "Inoperable cross-workspace test data",
         "workspaceDataIsolationConfigSaveSuccess": "The spatial data isolation configuration is saved as achievement",
         "crossSpaceTestDataActionConfig": "Cross-workspace test data operation configuration",
-        "canBeCreatedAndAssociatedCrossSpace": "Can be created across spaces, associated"
+        "canBeCreatedAndAssociatedCrossSpace": "Can be created across spaces, associated "
       },
       "itemTypeMapping": {
         "title": "Type association configuration",
@@ -220,7 +220,7 @@
           "rate": "Pass rate"
         },
         "left": {
-          "placeholder": "Please input module name"
+          "placeholder": "Please enter module name"
         },
         "noData": {
           "description": "No test execution tasks at this time"
@@ -232,7 +232,7 @@
           "createTestRunSuccessMessage": "Test case execution created successfully",
           "caseToPlanSuccessMessage": "The test case has been successfully added to the test plan",
           "caseSelectModelTitle": "Select a planned test case",
-          "createTestExecutionSuccessMessage": ["Test execution task", "Created successfully"],
+          "createTestExecutionSuccessMessage": ["Test execution task", "created successfully"],
           "createTestExecutionFailMessage": "Test execution of task new failure"
         }
       },
@@ -256,7 +256,7 @@
         "addItemTips": "No item add permission at the moment, please check the item operation permission configuration or contact the administrator",
         "updateRunStateTips": "Selected test execution status updated successfully",
         "updateDesigneeStateTips": "The selected test executor has been successfully updated",
-        "notUpdateDesignee": "No executors can be changed for test case",
+        "notUpdateDesignee": "Cannot change executor of test case",
         "updateDesignee": "Change executor",
         "updateRunStatus": "Change execution status"
       }
@@ -333,17 +333,17 @@
           "data": "[1]need to start with [serial number]\n[2]Newline characters in the data will be preserved"
         },
         "excelExportTitle": {
-          "group": "group",
-          "name": "name",
-          "itemType": "item Type",
-          "priority": "priority",
-          "precondition": "precondition",
-          "step": "step",
-          "result": "result",
-          "data": "data",
-          "status": "status",
-          "testPlan": "test Plan",
-          "assignee": "assignee"
+          "group": "Group",
+          "name": "Name",
+          "itemType": "Item Type",
+          "priority": "Priority",
+          "precondition": "Precondition",
+          "step": "Step",
+          "result": "Result",
+          "data": "Data",
+          "status": "Status",
+          "testPlan": "Test Plan",
+          "assignee": "Assignee"
         },
         "todo": "Todo",
         "fontName": "Times new roman "
@@ -501,7 +501,7 @@
   "components": {
     "business": {
       "panelTable": {
-        "selectConfirmTips": ["Current operations will", "Selected data, continue operation?"],
+        "selectConfirmTips": ["Current operation will", " selected data, continue operation?"],
         "itemDeleted": "Item has been deleted",
         "newRunStatus": "Latest Execution status",
         "select": "Selected"
@@ -530,7 +530,7 @@
         "pleaseSelect": "please select",
         "selectRepository": "Select test case repository",
         "selectRepositoryTips": "Only the test case repository that currently has permission can be selected",
-        "searchGroup": "Search test case repository grouping",
+        "searchGroup": "Search repository",
         "addTimeSort": "Creation time sort",
         "earliest": "Earliest",
         "latest": "Latest",
@@ -573,7 +573,7 @@
         "attachmentUpload": {
           "selectFile": "Please select an attachment",
           "download": "Download",
-          "actionTips": "This operation will remove the attachment from the test case, continue? ",
+          "actionTips": "This operation will remove the attachment from the test case, do you want to continue? ",
           "noData": " The current test execution has no attached data",
           "uploadTips": "Size cannot exceed ",
           "uploadFile": "Upload Attachment"
@@ -611,10 +611,10 @@
         "testStep": {
           "noSteps": "The current testRun not have test case steps",
           "step": "Step",
-          "stepResult": "Step result",
+          "stepResult": "Step Result",
           "expect": "Expected",
-          "result": "Actual results",
-          "resultPlaceholder": "Please enter the actual result",
+          "result": "Result",
+          "resultPlaceholder": "Please enter result",
           "data": "Data",
           "defect": "Defect"
         }
@@ -653,7 +653,7 @@
       "filterSearch": {
         "screenPlaceholder": "Please enter the search term keyword",
         "screen": "Filter",
-        "inputPlaceholder": "Please input title keyword",
+        "inputPlaceholder": "Please enter title",
         "to": "To",
         "or": "Or",
         "none": "None"

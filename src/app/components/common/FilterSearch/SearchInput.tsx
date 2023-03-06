@@ -22,6 +22,7 @@ const FilterSearch: React.VFC<FilterSearch> = ({ value, onChange, className, ...
     <div className={cx('filter-search', className)}>
       <Input
         {...props}
+        width={230}
         placeholder={t('components.common.filterSearch.inputPlaceholder')}
         onChange={handleChange}
         value={value}

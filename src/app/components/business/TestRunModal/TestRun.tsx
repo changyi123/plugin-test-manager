@@ -410,7 +410,7 @@ const TestRun: React.FC<TestRunType> = props => {
             <Collapse className={cx('collapse', 'tab')} defaultActiveKey={['1']}>
               <Collapse.Panel
                 key="1"
-                header={t('components.business.testRunModal.testRun.panelTitle.0')}
+                header={t('components.business.testRunModal.testRun.panelTitle.1')}
               >
                 <Tabs
                   activeKey={tabActiveKey}
