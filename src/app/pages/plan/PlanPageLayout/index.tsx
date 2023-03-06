@@ -149,9 +149,9 @@ const PlanPageLayout: React.FC<any> = () => {
           isCheckCreateNext: createNext,
           isShowPrevButton: true,
           modalProps: {
-            title: `${t('page.plan.planPageLayout.createExecutionModelTitle.0')} ${
-              caseIds.length
-            } ${t('page.plan.planPageLayout.createExecutionModelTitle.2')}`,
+            title: t('page.plan.planPageLayout.createExecutionModelTitle', {
+              count: caseIds.length,
+            }),
             footer: {
               cancel: {
                 name: t('common.prevStep'),

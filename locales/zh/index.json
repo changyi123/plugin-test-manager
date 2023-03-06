@@ -199,7 +199,7 @@
     "plan": {
       "planPageLayout": {
         "selectCaseModelTitle": "第 1 步：选择关联用例",
-        "createExecutionModelTitle": ["第 2 步：新建测试执行任务（已选", "条用例）"],
+        "createExecutionModelTitle": "第 2 步：新建测试执行任务（已选 {{count}} 条用例）",
         "testExecutionCreateLoading": "测试执行任务正在创建中",
         "executionList": {
           "deleteTips": "该操作会将该测试执行任务删除，是否继续操作？",

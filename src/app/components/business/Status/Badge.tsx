@@ -45,7 +45,7 @@ const Status = ({
       {!hideIcon && (
         <span style={{ background: status?.color }} className={cx('dot', 'status__dot')} />
       )}
-      <span className={cx('name')}>{t(`status.${status.key}`)}</span>
+      <span className={cx('name')}>{t(`status.${status.key}.name`)}</span>
       {hasEffect && (
         <span className={cx('icon')}>
           <CaretDownOutlined />

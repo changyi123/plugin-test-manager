@@ -71,7 +71,9 @@
     "user": "User",
     "nothing": "None",
     "checked": "Selected",
-    "item": "Item",
+    "item": "item",
+    "item_zero": "item",
+    "item_other": "items",
     "strip": "Strip",
     "appItem": "Item",
     "include": "Include",
@@ -196,11 +198,9 @@
     },
     "plan": {
       "planPageLayout": {
-        "selectCaseModelTitle": "Step 1: Select associated use cases",
-        "createExecutionModelTitle": [
-          "Step 2: Create new test execution task (selected",
-          "article Case)"
-        ],
+        "selectCaseModelTitle": "Step 1: Select associated test case",
+        "createExecutionModelTitle_one": "Step 2: Create new test execution task (selected {{count}} case)",
+        "createExecutionModelTitle_other": "Step 2: Create new test execution task (selected {{count}} cases)",
         "testExecutionCreateLoading": "Test execution task is being created",
         "executionList": {
           "deleteTips": "This operation will delete the test execution task. do you want to continue?",
@@ -636,7 +636,7 @@
         "searchWarningMessage": "No more than 4 table search items can be configured",
         "removeSearch": "Remove search item",
         "addSearch": " Add search item",
-        "checkAllPages": "Select all tabs"
+        "checkAllPages": "Select all"
       },
       "filterSearch": {
         "screenPlaceholder": "Please enter the search term keyword",
