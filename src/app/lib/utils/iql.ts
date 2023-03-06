@@ -241,8 +241,10 @@ const getNullValue = (value: any): any => {
 // iql值转换
 const getComponentValue: (selector: SelectCase) => componentValueProps = selector => {
   const { fieldName, component, expression, value: selectedValue } = selector;
+  const isContainType = expression?.includes('_Contain');
+
   const useArray =
-    expression?.includes('_Contain') &&
+    isContainType &&
     !expression?.includes('Text_Contain') &&
     !expression?.includes('Text_Not_Contain');
   // 将包含条件 的值 都转成 数组
@@ -280,7 +282,7 @@ const getComponentValue: (selector: SelectCase) => componentValueProps = selecto
   // 空间类型、类型、事项组、优先级、绑定空间、状态类型 使用事项名称
   if (isUseOptionLabel(component)) {
     // 当条件是 属于_Contain 或 不属于_Not_Contain 时，需要支持多选
-    if (expression.includes('_Not_Contain') || expression.includes('_Contain')) {
+    if (isContainType) {
       return { curIqlValue: JSON.stringify((value as any[]).map(i => i.label || i)), nullIql };
     }
     return { curIqlValue: `'${value?.[0]?.label}'`, nullIql };
@@ -289,7 +291,7 @@ const getComponentValue: (selector: SelectCase) => componentValueProps = selecto
   // 版本、迭代、下拉组件 使用事项值
   if (isUseOptionValue(component)) {
     // 当条件是 属于_Contain 或 不属于_Not_Contain 时，需要支持多选
-    if (expression.includes('_Not_Contain') || expression.includes('_Contain')) {
+    if (isContainType) {
       return { curIqlValue: JSON.stringify((value as any[]).map(i => i.value || i)), nullIql };
     }
     return { curIqlValue: `'${value?.[0]?.value}'`, nullIql };
@@ -301,6 +303,20 @@ const getComponentValue: (selector: SelectCase) => componentValueProps = selecto
       ),
       nullIql,
     };
+  }
+
+  // 如果值类型为 object 时，则进行兜底处理
+  if (useArray && Array.isArray(value) && value.length > 0 && typeof value[0] === 'object') {
+    const getValFromSelector = data =>
+      data ? data.value ?? data.objectId ?? data.label ?? data : null;
+
+    if (isContainType) {
+      return {
+        curIqlValue: JSON.stringify((value as any[]).map(getValFromSelector)),
+        nullIql,
+      };
+    }
+    return { curIqlValue: `'${getValFromSelector(value?.[0])}'`, nullIql };
   }
 
   return {
@@ -364,6 +380,7 @@ const getCurIqlValue = (fieldName: string, selector): IQL => {
   } else if (!hasCurlIql && nullIql) {
     return nullIql;
   }
+
   return `${iqlBefore} ${curIqlValue}`;
 };
 

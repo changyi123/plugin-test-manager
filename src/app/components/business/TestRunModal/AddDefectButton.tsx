@@ -55,7 +55,7 @@ const AddDefectButton: React.FC<AddDefectButtonProps> = props => {
 
   const addExistedDefect = async () => {
     if (getCreatePermission(TestType.TestDefect)) {
-      message.error(t('page.plan.testRunModal.testEntityList.addItemTips'));
+      message.error(t('page.plan.testEntityList.addItemTips'));
       return;
     }
     const itemIds = await testEntitySelectorRef.current.open({ selectValue: [] });

@@ -16,6 +16,7 @@ import { repositoryFolderTreeEvent } from '@/lib/events';
 import { hasArrayItem } from '../utils/helper';
 import { getTestEntityByQuery } from '@/lib/api/item';
 import { useBaseAction } from './useContext';
+import useI18n from '@/lib/hooks/useI18n';
 
 type GetTestEntityParams = Parameters<typeof getTestEntitiesByRelationWithOrder>;
 /** 获取所有事项实体 id */
@@ -122,6 +123,7 @@ export const useAllTestWorkspace = () => {
 export const useGetTestRepoGroup = (rowData: any) => {
   const workspaceKey = rowData?.workspace?.key;
   const folderKey = rowData?.repository;
+  const { t } = useI18n();
 
   const { data: repositoryData, refreshAsync: refreshRepositoryData } = useRequest(
     () => getRepositoryData(workspaceKey ? [workspaceKey] : []),
@@ -154,7 +156,7 @@ export const useGetTestRepoGroup = (rowData: any) => {
     });
   }, [refreshRepositoryData]);
 
-  const data = repositoryDict?.[rowData?.repository ?? ''] ?? '未分组';
+  const data = repositoryDict?.[rowData?.repository ?? ''] ?? t('common.unGrouped');
 
   return { data, loading };
 };

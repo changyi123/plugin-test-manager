@@ -65,6 +65,14 @@ const IsolatedSystem = () => {
     await refreshGlobalConfig();
     message.success(t('page.config.moreConfig.messageSuccess'));
   };
+
+  const listDataSource = [
+    t('page.config.moreConfig.descriptions.0'),
+    t('page.config.moreConfig.descriptions.1'),
+    t('page.config.moreConfig.descriptions.2'),
+    t('page.config.moreConfig.descriptions.3'),
+  ];
+
   return (
     <div>
       <Form>
@@ -79,10 +87,9 @@ const IsolatedSystem = () => {
       <List
         size="small"
         header={`${t('page.config.moreConfig.systemTips')}：`}
-        dataSource={t('page.config.moreConfig.descriptions') as string[]}
+        dataSource={listDataSource}
         renderItem={description => {
-          const num =
-            (t('page.config.moreConfig.descriptions') as string[]).indexOf(description) + 1;
+          const num = listDataSource.indexOf(description) + 1;
           return (
             <List.Item key={description}>
               <List.Item.Meta description={description} avatar={`${num}.`} />

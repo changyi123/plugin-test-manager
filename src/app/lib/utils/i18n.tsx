@@ -1,7 +1,21 @@
 import React, { createContext, useEffect, useRef, useState } from 'react';
-import rosetta from 'rosetta';
+import i18n from 'i18next';
+import { initReactI18next } from 'react-i18next';
 
-export const i18n = rosetta();
+import locales from '../../../../locales';
+
+const resources = Object.entries(locales).reduce((resource, [lng, translation]) => {
+  resource[lng] = {
+    translation,
+  };
+  return resource;
+}, {});
+
+i18n.use(initReactI18next).init({
+  fallbackLng: 'zh',
+  debug: false,
+  resources,
+});
 
 export const defaultLanguage = 'zh';
 export const I18nContext = createContext<i18nContext>(null);
@@ -21,7 +35,6 @@ type I18nProvider = (params: {
   lngDict: LngDict;
 }) => JSX.Element;
 
-i18n.locale(defaultLanguage);
 const I18n: I18nProvider = ({ children, locale, lngDict }) => {
   const activeLocaleRef = useRef(locale || defaultLanguage);
   const [, setTick] = useState(0);
@@ -29,13 +42,10 @@ const I18n: I18nProvider = ({ children, locale, lngDict }) => {
 
   const i18nWrapper: i18nContext = {
     locale: activeLocaleRef.current,
-    t: (...args) => i18n.t(...args),
-    setLocale: (l, dict) => {
-      i18n.locale(l);
+    t: i18n.t,
+    setLocale: l => {
+      i18n.changeLanguage(l);
       activeLocaleRef.current = l;
-      if (dict) {
-        i18n.set(l, dict);
-      }
       // force rerender to update view
       setTick(tick => tick + 1);
     },

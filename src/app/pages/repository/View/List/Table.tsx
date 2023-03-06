@@ -165,9 +165,9 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
           setTableLoading(false);
 
           notification.success({
-            message: `${tableActionRef.current.selectedRowKeys.length} ${t(
-              'page.repository.view.list.deleteCaseSuccess',
-            )}`,
+            message: t('page.repository.view.list.deleteCaseSuccess', {
+              count: tableActionRef.current.selectedRowKeys.length,
+            }),
           });
           tableActionRef.current.resetSelectedRowKeys();
         },

@@ -165,7 +165,7 @@ const Config = () => {
 
   return (
     <Layout className={cx('page')}>
-      <Sider className={cx('sider')} width={250}>
+      <Sider className={cx('sider')} width={260}>
         <h1 className={cx('title')}>{t('common.testManagerConfig')}</h1>
         <Menu
           mode="inline"

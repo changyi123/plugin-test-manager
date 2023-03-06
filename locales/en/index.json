@@ -71,7 +71,9 @@
     "user": "User",
     "nothing": "None",
     "checked": "Selected",
-    "item": "Item",
+    "item": "item",
+    "item_zero": "item",
+    "item_other": "items",
     "strip": "Strip",
     "appItem": "Item",
     "include": "Include",
@@ -86,10 +88,11 @@
     "greaterThan": "Greater than",
     "noData": "No data",
     "minderRootNodeName": "All Modules",
-    "updateFail": "Update data failed"
+    "updateFail": "Update data failed",
+    "unGrouped": "Ungrouped"
   },
   "status": {
-    "PASS": {
+    "PASSED": {
       "name": "PASS",
       "description": "Test run Passed"
     },
@@ -122,10 +125,10 @@
       "resultTitle": "Please select the workspace to be configured",
       "resultSubTitle": "This configuration is a workspace level configuration, please select the workspace to be configured",
       "defectMapping": {
-        "title": "Defect type association configuration",
+        "title": "Defect association configuration",
         "description": "Configures the type of defects managed by the current workspace test, a defect indicates an error, defect, fault or failure that produces incorrect or unexpected results in the test.",
         "usableType": "Usable type",
-        "defectType": "Defect type",
+        "defectType": "Defect association",
         "messageSuccess": "Defect type saved successfully"
       },
       "executeTestRunAction": {
@@ -137,7 +140,7 @@
         "unassignedCaseCannotBeExecuted": "Unassigned test cases cannot be executed"
       },
       "isolatedTestType": {
-        "title": "Spatial data isolation configuration",
+        "title": "Isolation configuration",
         "description": "Configures the spatial visibility of test cases, test plans, test executions, and test defects in the current workspace",
         "operableCrossSpaceTestData": "Test data that can be manipulated across workspace",
         "notOperableCrossSpaceTestData": "Inoperable cross-workspace test data",
@@ -164,8 +167,8 @@
         "systemTips": "Test management system isolation description"
       },
       "wordTemplate": {
-        "title": "Test report template management",
-        "description": "Test report template management",
+        "title": "Report template",
+        "description": "Report template management",
         "templateName": "Name",
         "file": "File",
         "uploadTestReportTemplate": "Upload test report template",
@@ -178,11 +181,11 @@
         "uploadFileTips": "Please upload test report template"
       },
       "isolatedSystem": {
-        "title": "Test management system isolation",
+        "title": "Test system isolation",
         "description": "Configure the test management system to be isolated from the business system"
       },
       "tableFields": {
-        "title": "Table header and search item settings",
+        "title": "Table column and search settings",
         "description": "Configure default list table headers and filter items for the current space test plan, test cases, and other types",
         "messageSuccess": "Table header and retrieval item configuration saved successfully",
         "planName": "Plan name",
@@ -196,11 +199,9 @@
     },
     "plan": {
       "planPageLayout": {
-        "selectCaseModelTitle": "Step 1: Select associated use cases",
-        "createExecutionModelTitle": [
-          "Step 2: Create new test execution task (selected",
-          "article Case)"
-        ],
+        "selectCaseModelTitle": "Step 1: Select associated test case",
+        "createExecutionModelTitle_one": "Step 2: Create new test execution task (selected {{count}} case)",
+        "createExecutionModelTitle_other": "Step 2: Create new test execution task (selected {{count}} cases)",
         "testExecutionCreateLoading": "Test execution task is being created",
         "executionList": {
           "deleteTips": "This operation will delete the test execution task. do you want to continue?",
@@ -212,14 +213,14 @@
           "rate": "Pass rate"
         },
         "left": {
-          "placeholder": "Please enter the name of the module to which you belong"
+          "placeholder": "Please input module name"
         },
         "noData": {
           "description": "No test execution tasks at this time"
         },
         "right": {
-          "showChild": "Show subgroup cases",
-          "showCur": "Show current cases",
+          "showChild": "Show sub group",
+          "showCur": "Show current group",
           "notSelectMessage": "No test case selected",
           "createTestRunSuccessMessage": "Test case execution created successfully",
           "caseToPlanSuccessMessage": "The test case has been successfully added to the test plan",
@@ -346,7 +347,8 @@
             "This action will delete the selected test case, do you want to continue?",
             "This action will delete the current test case, do you want to continue?"
           ],
-          "deleteCaseSuccess": "test cases have been deleted",
+          "deleteCaseSuccess": "{{count}} test case have been deleted",
+          "deleteCaseSuccess_other": "{{count}} test cases have been deleted",
           "batchItemLink": "Batch item link",
           "deleteCaseMessageSuccess": "Test case deleted successfully",
           "copyCaseMessageSuccess": "Test case copy successfully",
@@ -571,7 +573,7 @@
           "notLintDefect": "The current test execution has no associated defects",
           "noPermission": "The current user have not permission",
           "removeTips": ["Please step in", "Remove the defect"],
-          "deleteButtonTips": "The current operation will delete the relationship with the defect, whether to continue ok?",
+          "deleteButtonTips": "The current operation deletes the association with the defect, do you want to continue?",
           "global": "Global",
           "step": "Step"
         },
@@ -635,12 +637,12 @@
         "searchWarningMessage": "No more than 4 table search items can be configured",
         "removeSearch": "Remove search item",
         "addSearch": " Add search item",
-        "checkAllPages": "Select all tabs"
+        "checkAllPages": "Select all"
       },
       "filterSearch": {
         "screenPlaceholder": "Please enter the search term keyword",
         "screen": "Filter",
-        "inputPlaceholder": "Please enter the title keyword",
+        "inputPlaceholder": "Please input title keyword",
         "to": "To",
         "or": "Or",
         "none": "None"

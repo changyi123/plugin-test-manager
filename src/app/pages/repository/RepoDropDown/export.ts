@@ -1,14 +1,13 @@
 import { utils as xlsxUtils, write as xlsxWrite } from 'sheetjs-style';
 import FileSave from 'file-saver';
 import Parse from '@/lib/parse';
-import { TestLinkType, TestType, TestTypeNameMapping } from '@/lib/constants';
+import { TestLinkType, TestType } from '@/lib/constants';
 import { CustomField, TestConfig } from '@/lib/models';
 import { Item } from '@/lib/types/App';
 import { Step } from '@/lib/types/Test';
 import { getRepositoryData } from '@/lib/api/repository';
 import { escapeHtmlString } from '@/lib/utils/helper';
 import { getRepoData, handleRepoPath } from '@/components/business/RepositoryGroup/repository';
-import { UNGROUPED_FOLDER_KEY } from '../constant';
 import { arrayToTree } from '@/lib/utils/arrayToTree';
 import { getCustomFields } from '@/lib/api/proxima';
 import { SYSTEM_FIELD } from '@/lib/constants';

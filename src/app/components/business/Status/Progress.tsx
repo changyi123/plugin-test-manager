@@ -64,7 +64,7 @@ const StatusProgress: React.FC<StatusProgressProps> = props => {
           {statuses.map(status => (
             <li key={status.key} className={cx('item')}>
               <span className={cx('dot')} style={{ background: status.color }} />
-              <span className={cx('font')}>{t(`status.${status.key}`)}</span>
+              <span className={cx('font')}>{t(`status.${status.key}.name`)}</span>
               <span className={cx('font', 'num')}>{status.num}</span>
             </li>
           ))}

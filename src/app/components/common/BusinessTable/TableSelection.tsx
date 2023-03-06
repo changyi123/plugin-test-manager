@@ -38,7 +38,9 @@ const TableSelection: React.FC<TableSelectionProps> = ({
       )}
 
       <span className={cx('select')}>
-        {t('common.checked')} <span className={cx('num')}>{selectNum ?? 0}</span> {t('common.item')}
+        {t('common.checked')}
+        <span className={cx('num')}>{selectNum ?? 0}</span>
+        {t('common.item', { count: selectNum ?? 0 })}
       </span>
       <span className={cx('line')} />
 

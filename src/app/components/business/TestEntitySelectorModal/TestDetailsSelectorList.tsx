@@ -242,6 +242,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
           </Checkbox>
           <div className={cx('detail-header-right')}>
             <Select
+              style={{ width: 165 }}
               value={showType}
               options={[
                 {
