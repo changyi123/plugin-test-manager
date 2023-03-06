@@ -98,7 +98,11 @@ export const batchDelete = async () => {
     if (!Array.isArray(ids)) throwArgumentError('ids', 'objectId[]');
     // FIXME: delete 接口会有问题，响应完成但是 es 内事项数据可能不会更新，需要加一个 500ms 延迟
     const deleteItemsThenWait = ids => {
-      return batchDeleteItems(ids).then(() => new Promise(resolve => setTimeout(resolve, 500)));
+      console.info('delete items---------->', ids);
+      return batchDeleteItems(ids).then(resp => {
+        console.info('resp---------->', resp);
+        return new Promise(resolve => setTimeout(resolve, 500));
+      });
     };
     const tasks = [deleteItemsThenWait(ids)];
 

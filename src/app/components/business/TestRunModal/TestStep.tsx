@@ -187,7 +187,7 @@ const TestStep: React.FC<TestStepProps> = props => {
     return (
       <Empty
         style={{ marginTop: 60 }}
-        description={t('components.business.testRunModal.defectList.noSteps')}
+        description={t('components.business.testRunModal.testStep.noSteps')}
       />
     );
 
@@ -195,11 +195,9 @@ const TestStep: React.FC<TestStepProps> = props => {
     <div className={cx('step-list')}>
       <div className={cx('header', 'row')}>
         <span className={cx('position')}>#</span>
-        <span className={cx('action')}>
-          {t('components.business.testRunModal.defectList.step')}
-        </span>
+        <span className={cx('action')}>{t('components.business.testRunModal.testStep.step')}</span>
         <span className={cx('status')}>
-          {t('components.business.testRunModal.defectList.stepResult')}
+          {t('components.business.testRunModal.testStep.stepResult')}
         </span>
       </div>
       {state.steps.map((step, index) => (
@@ -229,17 +227,17 @@ const TestStep: React.FC<TestStepProps> = props => {
           <div className={cx('fields')}>
             <div className={cx('field')}>
               <span className={cx('label')}>
-                {t('components.business.testRunModal.defectList.expect')}：
+                {t('components.business.testRunModal.testStep.expect')}：
               </span>
               <span className={cx('data')}>{renderFieldValue(step.result)}</span>
             </div>
             <div className={cx('field')}>
               <span className={cx('label')}>
-                {t('components.business.testRunModal.defectList.result')}：
+                {t('components.business.testRunModal.testStep.result')}：
               </span>
               <span className={cx('input')}>
                 <Input
-                  placeholder={t('components.business.testRunModal.defectList.resultPlaceholder')}
+                  placeholder={t('components.business.testRunModal.testStep.resultPlaceholder')}
                   value={step.actualResult}
                   maxLength={500}
                   onKeyDownEnter={value => changeSteps(step.id, value)}
@@ -249,14 +247,14 @@ const TestStep: React.FC<TestStepProps> = props => {
             </div>
             <div className={cx('field')}>
               <span className={cx('label')}>
-                {t('components.business.testRunModal.defectList.data')}：
+                {t('components.business.testRunModal.testStep.data')}：
               </span>
               <span className={cx('data')}>{renderFieldValue(step.data)}</span>
             </div>
           </div>
           <div className={cx('step-defects')}>
             <div className={cx('label')}>
-              {t('components.business.testRunModal.defectList.defect')}（
+              {t('components.business.testRunModal.testStep.defect')}（
               {renderStepLength(step.defectItemIds)}）
             </div>
             {renderStepDefectList(step.id)}

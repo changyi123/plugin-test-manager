@@ -55,7 +55,7 @@ const Editor: React.FC<EditorProps> = ({ value, name, onSubmit, isReset, setIsRe
         <Field
           name={name ?? 'comment-editor'}
           value={editorValue}
-          placeholder={t('common.pleaseEnterContent')}
+          placeholder={t('page.repository.repoDropDown.pleaseEnterContent')}
           hiddenLabel
           onChange={setEditorValue}
           watchChange
