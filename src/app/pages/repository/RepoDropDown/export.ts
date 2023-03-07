@@ -167,18 +167,6 @@ const getExcelData = async (data: any) => {
   // 当不存在 results 时使用空模板
   const testCases = results.length === 0 ? [{}] : results;
 
-  console.info(
-    '--------------',
-    results,
-    testCases.map(item => ({
-      ...testPlanObj,
-      ...getTestGroupPath(repoDataMap.get(item.repository)),
-      ...getItemInfo(item, priorityInfo),
-      ...getTestInfo(item),
-      ...getStatus(item.caseStatus, planId),
-    })),
-  );
-
   return testCases.map(item => ({
     ...testPlanObj,
     ...getTestGroupPath(repoDataMap.get(item.repository)),
