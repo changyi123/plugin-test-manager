@@ -62,12 +62,14 @@ const App: React.FC<{ locale: any; lngDict: any; antdLang: any }> = props => {
     });
   }, []);
 
+  console.info('locale---->', locale, antdLang);
+
   return (
     <I18n lngDict={lngDict} locale={locale}>
       <PluginSDKContext.Provider value={qiankunContextValue.sdk}>
         <ConfigProvider
+          locale={antdLang}
           getPopupContainer={() => document.getElementById(rootElement)}
-          locale={antdLang?.default}
           renderEmpty={EmptyRender}
         >
           {process.env.NODE_ENV === 'production' || window.__POWERED_BY_QIANKUN__ ? (
