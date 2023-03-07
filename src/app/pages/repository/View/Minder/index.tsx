@@ -383,10 +383,13 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
 
   if (!priorityOptions || !minderData) return null;
 
+  // 只保留语言，不保留地区
+  const lang = getLang()?.replace(/-\w+/g, '');
+
   return (
     <>
       <MinderEditor
-        lang={getLang()}
+        lang={lang}
         data={minderData}
         key={workspace.key}
         actionRef={actionRef}
