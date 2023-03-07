@@ -641,7 +641,7 @@
         "columnSetting": ["Test management Fields", "Item Field"],
         "setHeader": "Table head configuration",
         "tableSetting": "Set columns",
-        "headerSetting": "Table header Settings",
+        "headerSetting": "Table header settings",
         "restoreDefault": "Reset",
         "actionTips": "Configurable table header column content and sorting, list search box default search items, up to four search item",
         "placeholder": "Please select the columns to display",
