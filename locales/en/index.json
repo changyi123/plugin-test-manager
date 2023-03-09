@@ -312,7 +312,8 @@
           "Test case export (all groups)",
           "Test case export (current group)",
           "Test case export (current groups)",
-          "Test case export (current plan)"
+          "Test case export (current plan)",
+          "Test case export (filter result)"
         ],
         "importCaseSuccess": "Test management test case export complete",
         "importCaseWarning": "No test case repository is selected, please select the test case repository to be exported first",

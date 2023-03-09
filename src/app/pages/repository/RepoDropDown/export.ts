@@ -33,6 +33,7 @@ interface ImportArgs {
   checkedId: string;
   workspace: Record<string, any>;
   treeData?: TreeNode[];
+  ids?: string[];
 }
 
 const getTestPriorityInfo = async (filedKey: string) => {
@@ -245,7 +246,7 @@ const importTestInfo = async (
   t: (val: string) => string | string[],
   excelData = [],
 ) => {
-  const { type, checkedId, workspace } = args;
+  const { type, checkedId, workspace, ids } = args;
 
   if (type === 'exportPlan') {
     // 获取当前测试计划下的测试用例
@@ -291,6 +292,8 @@ const importTestInfo = async (
       traverseTreeNodes([repositoryTree], node => {
         testCaseIds = testCaseIds.concat(node.caseIds);
       });
+    } else if (type === 'exportFilter') {
+      testCaseIds = ids;
     }
 
     const { list: results } = await getTestEntityByQuery({

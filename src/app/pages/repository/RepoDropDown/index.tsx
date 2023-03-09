@@ -18,12 +18,14 @@ const RepoDropDown = ({
   setPageLoading,
   extraMenuOptions,
   selectedTestPlanId,
+  filteredCaseIds,
 }: {
   type: string;
   className?: string;
   folderKey?: string;
   treeNodeData?: TreeNode[];
   selectedTestPlanId?: string;
+  filteredCaseIds?: string[];
   extraMenuOptions?: MenuItemProps[];
   setPageLoading?: (val: boolean) => void;
 }) => {
@@ -50,7 +52,9 @@ const RepoDropDown = ({
         window.open(href);
       } else if (key === 'example') {
         downloadExampleFile(testDetailFieldKeys, t);
-      } else if (['exportAll', 'exportChildGroup', 'exportGroup', 'exportPlan'].includes(key)) {
+      } else if (
+        ['exportAll', 'exportChildGroup', 'exportGroup', 'exportFilter', 'exportPlan'].includes(key)
+      ) {
         // 导出逻辑
         notification.open({
           message: t('page.repository.repoDropDown.importCaseLoading'),
@@ -67,6 +71,8 @@ const RepoDropDown = ({
           setPageLoading?.(false);
         }
 
+        const params = 'exportFilter' === key ? { ids: filteredCaseIds } : {};
+
         await importTestInfo(
           Object.assign(
             {},
@@ -81,6 +87,7 @@ const RepoDropDown = ({
                   checkedId: folderKey,
                   treeData: treeNodeData,
                   workspace,
+                  ...params,
                 },
           ),
           t,
@@ -101,6 +108,7 @@ const RepoDropDown = ({
       folderKey,
       selectedTestPlanId,
       treeNodeData,
+      filteredCaseIds,
     ],
   );
 
@@ -115,6 +123,7 @@ const RepoDropDown = ({
           <Menu.Item key="exportChildGroup">
             {t('page.repository.repoDropDown.MenuItem.4')}
           </Menu.Item>
+          <Menu.Item key="exportFilter">{t('page.repository.repoDropDown.MenuItem.6')}</Menu.Item>
         </>
       )}
       {type === 'plan' && (
