@@ -236,6 +236,10 @@ modules:
       name: test_manager_caseStatus
       description: 测试管理内置字段-用例最新执行状态（勿删改）
       type: _self:es_object
+    - key: caseExecutor
+      name: test_manager_caseExecutor
+      description: 测试管理内置字段-用例最新执行人（勿删改）
+      type: _self:es_object
     - key: repository
       name: test_manager_repository
       description: 测试管理内置字段-测试用例库模块（勿删改）

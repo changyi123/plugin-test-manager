@@ -168,6 +168,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         selectedTestPlanId: selectedTestPlan.objectId,
         ...(stats?.[detail.objectId] ?? {}),
         status: detail.workflowStatus,
+        caseLatestExecutor: detail.caseExecutor?.[selectedTestPlan.objectId],
       }));
 
       setTableLoading(false);
@@ -359,6 +360,14 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       },
     },
     {
+      key: 'caseLatestExecutor',
+      title: t('page.plan.testEntityList.caseLatestExecutor'),
+      width: 200,
+      render(_, rowData) {
+        return <Field.User userInfo={rowData?.caseLatestExecutor} />;
+      },
+    },
+    {
       key: 'runCount',
       title: <span>{t('page.plan.testEntityList.runCount')}</span>,
       width: 140,
@@ -500,6 +509,8 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     {
       key: 'executor',
       title: t('page.plan.testEntityList.executor'),
+      shouldCellUpdate: (record, prevRecord) =>
+        !isEqual(record.executor?.[0], prevRecord.executor?.[0]),
       width: 150,
       render(_, record) {
         return <Field.User readonly userInfo={record?.executor?.[0]} />;

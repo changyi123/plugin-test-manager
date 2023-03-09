@@ -37,6 +37,7 @@ import cx from './index.less';
 interface FilterSearchProps {
   fields: string[];
   onSearch: (data: SearchSelectors) => void;
+  beforeSearch?: (v: Record<string, any>) => void;
   extendFields: any[];
   className?: string;
   testType?: TestType;

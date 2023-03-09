@@ -181,6 +181,15 @@ const getExcelData = async (data: any) => {
     testPlanObj = getTestPlan(testPlan[0]);
   }
 
+  const getCaseExecutor = (caseExecutor, planId) => {
+    return planId
+      ? {
+          [t('page.repository.repoDropDown.excelExportTitle.executor')]:
+            caseExecutor?.[planId]?.nickname ?? caseExecutor?.[planId]?.username,
+        }
+      : {};
+  };
+
   // 当不存在 results 时使用空模板
   const testCases = results.length === 0 ? [{}] : results;
 
@@ -190,6 +199,7 @@ const getExcelData = async (data: any) => {
     ...getItemInfo(item, priorityInfo),
     ...getTestInfo(item),
     ...getStatus(itemStatus, item.caseStatus, planId),
+    ...getCaseExecutor(item.caseExecutor, planId),
   }));
 };
 
@@ -410,13 +420,15 @@ const exportExcelFile = (array: any[], sheetName = 'sheet1', fileName = 'example
           { wch: 30 }, // 第一列
           { wch: 20 }, // 第二列
           { wch: 20 }, // 第三列
-          { wch: 10 }, // 第四列
-          { wch: 30 }, // 第五列
-          { wch: 50 }, // 第六列
+          { wch: 15 }, // 第四列
+          { wch: 10 }, // 第五列
+          { wch: 20 }, // 第六列
           { wch: 50 }, // 第七列
           { wch: 50 }, // 第八列
           { wch: 20 }, // 第九列
           { wch: 20 }, // 第十列
+          { wch: 10 }, // 第十一列
+          { wch: 20 }, // 第十二列
         ],
       }),
     },
