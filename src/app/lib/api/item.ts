@@ -88,7 +88,10 @@ export const getTestEntityByQuery = async (
 
   const {
     data: { data },
-  } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-query-test-entity`, _props);
+  } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-query-test-entity`, {
+    ..._props,
+    sessionToken: getSessionToken(),
+  });
 
   return {
     list: data.list ?? [],
@@ -483,7 +486,10 @@ export const deleteTestDefect = async (
 export const getStatsFormPlan = async (data: TestPlanStatsPayload) => {
   const {
     data: { data: res },
-  } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-stats-test-plan`, data);
+  } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-stats-test-plan`, {
+    ...data,
+    sessionToken: getSessionToken(),
+  });
 
   return res;
 };
@@ -492,15 +498,18 @@ export const getStatsFormPlan = async (data: TestPlanStatsPayload) => {
 export const getRunsFromCase = async (data: TestCaseStatsPayload) => {
   const {
     data: { data: res },
-  } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-stats-test-case`, data);
+  } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-stats-test-case`, {
+    ...data,
+    sessionToken: getSessionToken(),
+  });
   return res;
 };
 
 // 获取测试用例库树
 export const getRepositoryTree = async (params: RepositoryTreePayload) => {
-  const { data } = await fetch.post(
-    `${pluginWebTriggerBaseUrl}/api-module-repository-tree`,
-    params,
-  );
+  const { data } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-module-repository-tree`, {
+    ...params,
+    sessionToken: getSessionToken(),
+  });
   return data;
 };

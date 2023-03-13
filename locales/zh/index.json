@@ -52,7 +52,7 @@
     "testRepository": "测试用例库",
     "testCaseRepository": "测试用例库模块",
     "designee": "执行人",
-    "testExecutor": "最新操作执行人",
+    "testExecutor": "最新执行人",
     "testRunStatus": "测试执行状态",
     "testCaseStatus": "最新执行状态",
     "allRepository": "全部用例库",

@@ -69,8 +69,8 @@ const getExcelData = async (data: any) => {
   const getStatus = (statusMap: any, status?: Record<string, string>, planId?: string) =>
     planId
       ? {
-          [t('page.repository.repoDropDown.excelExportTitle.status')]: statusMap.get(
-            status?.[planId] || 'TODO',
+          [t('page.repository.repoDropDown.excelExportTitle.status')]: t(
+            `status.${statusMap.get(status?.[planId] || 'TODO')}.name`,
           ),
         }
       : {};
@@ -184,7 +184,7 @@ const getExcelData = async (data: any) => {
   const getCaseExecutor = (caseExecutor, planId) => {
     return planId
       ? {
-          [t('page.repository.repoDropDown.excelExportTitle.executor')]:
+          [t('common.testExecutor')]:
             caseExecutor?.[planId]?.nickname ?? caseExecutor?.[planId]?.username,
         }
       : {};
