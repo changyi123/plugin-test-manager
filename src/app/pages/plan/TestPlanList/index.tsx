@@ -6,7 +6,7 @@ import { Button, Dropdown, Menu, message, notification } from 'antd';
 import _ from 'lodash';
 import { actionConfirm, goToItemDetailPage } from '@/lib/utils/helper';
 import { useBaseAction } from '@/lib/hooks/useContext';
-import { StatusProgress } from '../Status';
+import { StatusProgress } from '../../../components/business/Status';
 import FilterSearch from '@/components/common/FilterSearch';
 import { FullScreen } from '@/icons';
 import { components } from 'proxima-sdk';
@@ -25,8 +25,9 @@ import cx from './index.less';
 const TestPlanList: React.FC<any> = () => {
   const { t } = useI18n();
   const actionRef = React.useRef<BusinessTableActionType>();
-  const { workspaceKey, selectedTestPlan, setSelectedTestPlan, selectors, setSearchParams } =
-    usePageContext();
+  const { workspaceKey, selectedTestPlan, setSelectedTestPlan, setSearchParams } = usePageContext();
+  const [selectors, setSelectors] = useState([{}, {}]);
+
   const [tableLoading, setTableLoading] = useState(false);
   const { createItemUseModal, getCreatePermission } = useBaseAction();
   const { data: currentUser } = useCurrentUser();
@@ -39,9 +40,11 @@ const TestPlanList: React.FC<any> = () => {
   });
 
   React.useEffect(() => {
-    // 还原筛选器数据
-    detailSearchRef.current?.reset();
-    setSearchParams([{}, {}]);
+    if (selectedTestPlan) {
+      // 还原筛选器数据
+      detailSearchRef.current?.reset();
+      setSearchParams([{}, {}]);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedTestPlan]);
 
@@ -265,11 +268,12 @@ const TestPlanList: React.FC<any> = () => {
         </div>
         <div className={cx('plan-header-slot')}>
           <FilterSearch
+            enableLocalStorage
             className={cx('test-manager-filter')}
             ref={detailSearchRef}
             fields={getFilterFields(testDetailFieldKeys)}
             extendFields={[]}
-            onSearch={setSearchParams}
+            onSearch={setSelectors}
             testType={TestType.Plan}
           />
         </div>

@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { message, notification, Spin } from 'antd';
-import TestPlanList from '@/components/business/TestPlanList';
+import TestPlanList from '@/pages/plan/TestPlanList';
 import PageLayout from '@/components/common/PageLayout';
 import { useLocation } from 'react-router-dom';
-import useGetTestPlanById from '@/components/business/TestPlanList/hooks';
+import useGetTestPlanById from '@/pages/plan/TestPlanList/hooks';
 import { useScopedTestDetailIds, useResizeContainerDOM } from './hooks';
 import { usePageContext } from '../hook';
 import Header from './Header';
