@@ -320,6 +320,9 @@ const PlanPageLayout: React.FC<any> = () => {
             onCancel={() => {
               refresh();
             }}
+            afterClose={() => {
+              refresh();
+            }}
             planId={selectedTestPlan?.objectId}
           />
         </>

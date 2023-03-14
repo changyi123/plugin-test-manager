@@ -232,7 +232,7 @@ export const useTestRunActionAuth = ({ workspaceKey }) => {
   const { t } = useI18n();
   const { getCreatePermission } = useBaseAction();
 
-  // 测试执行事项行为临时权限，后期需优化
+  // 测试执行事项行为临时权限，后期需优化 FIXME: 优化
   const isHasEditorRunPermission = getCreatePermission(TestType.Case);
 
   const testRunAction = testConfig?.testRunAction ?? {};
@@ -244,10 +244,8 @@ export const useTestRunActionAuth = ({ workspaceKey }) => {
       const noAuthUser = !Array.isArray(authUserList) || authUserList.length === 0;
       if (noAuthUser) return true;
       // 当前登录用户再授权用户列表中可以分配用户
-      return (
-        authUserList.some(user => user.username === currentUser?.username) &&
-        isHasEditorRunPermission
-      );
+      return authUserList.some(user => user.username === currentUser?.username);
+      // && isHasEditorRunPermission
     }),
     canExecuteTestRun: useMemoizedFn(designee => {
       const getCannotExecuteMessage = () => {

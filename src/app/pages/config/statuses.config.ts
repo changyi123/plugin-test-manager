@@ -11,8 +11,8 @@ export default [
   },
   {
     color: '#3683FF',
-    description: '测试执行待执行',
-    name: '待执行',
+    description: '测试执行未开始',
+    name: '未开始',
     key: 'TODO',
     final: false,
     native: true,

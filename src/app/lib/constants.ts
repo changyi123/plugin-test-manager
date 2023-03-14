@@ -429,7 +429,7 @@ export const getExtendFields = t => [
       dataType: 'object',
       objectId: 'test_designee',
       key: 'User',
-      name: 'User',
+      name: t('common.user'),
     },
   },
   {
@@ -442,7 +442,7 @@ export const getExtendFields = t => [
       dataType: 'object',
       objectId: 'test_executor',
       key: 'User',
-      name: 'User',
+      name: t('common.user'),
     },
   },
 ];

@@ -15,8 +15,7 @@ if (window.__POWERED_BY_QIANKUN__) {
 
 async function render(props) {
   const [locale, lngDict, antdLangPackage] = getMessages(getLang());
-  const antdLang = await Promise.resolve(antdLangPackage);
-  const appProps = { ...props, locale, lngDict, antdLang };
+  const appProps = { ...props, locale, lngDict, antdLang: antdLangPackage };
   const { container } = props;
   ReactDOM.render(
     <App {...appProps} />,
@@ -40,7 +39,6 @@ export async function mount(props): Promise<void> {
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export async function unmount(props): Promise<void> {
   const { container } = props;
-  console.info('container-----------', container);
   ReactDOM.unmountComponentAtNode(
     container ? container.querySelector(rootElement) : document.querySelector(rootElement),
   );
