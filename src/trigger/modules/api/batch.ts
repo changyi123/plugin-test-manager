@@ -36,7 +36,14 @@ export const batchDelete = async () => {
     if (!Array.isArray(ids)) throwArgumentError('ids', 'objectId[]');
     // FIXME: delete 接口会有问题，响应完成但是 es 内事项数据可能不会更新，需要加一个 500ms 延迟
     const deleteItemsThenWait = ids => {
-      return batchDeleteItems(ids).then(() => new Promise(resolve => setTimeout(resolve, 500)));
+      return Promise.race([
+        new Promise(resolve => {
+          // TODO: 留给有缘人优化
+          console.info('deleteItemsThenWait--------------1500');
+          setTimeout(resolve, 1500);
+        }),
+        batchDeleteItems(ids),
+      ]);
     };
     const tasks = [deleteItemsThenWait(ids)];
 
@@ -49,14 +56,14 @@ export const batchDelete = async () => {
           data: { list: linkedItems },
         } = await iqlRequest({
           query: {
-            linkItems: testIds,
+            linkItems: testIds?.filter(Boolean),
           },
           pagination: { limit: InfinityLimit },
           fields: [...IQLRequiredFieldKeys, TestFiledKeyMapping.linkItems],
         });
 
         // 2. 更新数据
-        const needUpdateItemValues = linkedItems.map(item => {
+        const needUpdateItemValues = linkedItems?.map(item => {
           const data = pick(item, ['objectId', 'linkItems']);
           data.linkItems = data.linkItems.filter(id => !ids.includes(id));
           return data;
@@ -77,14 +84,17 @@ export const batchDelete = async () => {
           fields: IQLRequiredFieldKeys,
         });
 
-        return testRuns.map(item => item.objectId);
+        return testRuns?.map(item => item.objectId);
       };
 
       const testRunIds = await getReferencedTestRunIds();
 
-      tasks.push(deleteItemsThenWait(testRunIds));
+      if (testRunIds?.length) {
+        tasks.push(deleteItemsThenWait(testRunIds));
+      }
 
-      await appendDeleteLinkItemsTask(uniq([].concat(ids, testRunIds)));
+      const willDeleteTestRunIds = uniq([].concat(ids, testRunIds));
+      await appendDeleteLinkItemsTask(willDeleteTestRunIds);
     }
 
     await Promise.all(tasks);
