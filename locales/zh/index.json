@@ -250,7 +250,7 @@
         "runCount": "执行任务次数",
         "detailName": "用例标题",
         "runStatus": "测试执行状态",
-        "executor": "最近操作执行人",
+        "executor": "最近执行人",
         "designee": "执行人",
         "assigneeSetting": "设置负责人",
         "editorItemTips": "暂无事项编辑权限，请检查事项操作权限配置或联系管理员",
