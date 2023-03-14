@@ -254,58 +254,83 @@ export const batchCreateTestRun = async () => {
 
     if (!Array.isArray(caseIds)) throwArgumentError('caseIds', 'objectId[]');
 
+    // 获取所有测试用例数据
+    const getTestCaseByCaseIds = async () => {
+      const {
+        data: { list: caseList },
+      } = await iqlRequest<TestCaseType>({
+        query: {
+          id: caseIds,
+        },
+        pagination: { limit: InfinityLimit },
+        fields: [
+          SystemField.Id,
+          SystemField.Name,
+          SystemField.ItemGroup,
+          SystemField.Workspace,
+          TestFiledKeyMapping.detail,
+          TestFiledKeyMapping.sortIndex,
+        ],
+      });
+      return caseList;
+    };
+
+    // 获取测试管理已关联的测试执行 CaseIds
+    const getExistedTestRunReferenceCaseIdSet = async () => {
+      const {
+        data: { list: existedReferenceCaseIds },
+      } = await iqlRequest<TestRunType>({
+        query: {
+          referenceCase: caseIds,
+        },
+        pagination: { limit: InfinityLimit },
+        linkQuery: {
+          sourceIds: executionId,
+          destinationType: TestType.Run,
+          linkType: TestLinkType.RunLinkExecution,
+        },
+        fields: [TestFiledKeyMapping.referenceCase],
+      });
+
+      return new Set(existedReferenceCaseIds.map(item => item.referenceCase));
+    };
+
+    // 获取测试执行任务关联的 testPlan
+    const getExecutionLinkedTestPlan = async () => {
+      const {
+        data: {
+          list: [testPlan],
+        },
+      } = await iqlRequest({
+        query: {
+          id: [executionId],
+        },
+        linkQuery: {
+          linkType: TestLinkType.ExecutionLinkPlan,
+          destinationType: TestType.Plan,
+          sourceIds: [executionId],
+        },
+        fields: [SystemField.Id],
+      });
+
+      return testPlan;
+    };
+
+    // 初始的任务 key
+    const StartStatusKey = 'TODO';
+
+    const [caseList, testPlan, existedReferenceCaseIdSet] = await Promise.all([
+      getTestCaseByCaseIds(),
+      getExecutionLinkedTestPlan(),
+      getExistedTestRunReferenceCaseIdSet(),
+    ]);
+
     // 创建测试执行
     // 1. 查所有测试用例
     // 2. 创建测试执行
     // 3. 过滤已规划的测试用例
     // 4. 创建测试执行并关联
     const batchCreateTestRuns = async () => {
-      // 获取所有测试用例数据
-      const getTestCaseByCaseIds = async () => {
-        const {
-          data: { list: caseList },
-        } = await iqlRequest<TestCaseType>({
-          query: {
-            id: caseIds,
-          },
-          pagination: { limit: InfinityLimit },
-          fields: [
-            SystemField.Id,
-            SystemField.Name,
-            SystemField.ItemGroup,
-            SystemField.Workspace,
-            TestFiledKeyMapping.detail,
-            TestFiledKeyMapping.sortIndex,
-          ],
-        });
-        return caseList;
-      };
-
-      // 获取测试管理已关联的测试执行 CaseIds
-      const getExistedTestRunReferenceCaseIdSet = async () => {
-        const {
-          data: { list: existedReferenceCaseIds },
-        } = await iqlRequest<TestRunType>({
-          query: {
-            referenceCase: caseIds,
-          },
-          pagination: { limit: InfinityLimit },
-          linkQuery: {
-            sourceIds: executionId,
-            destinationType: TestType.Run,
-            linkType: TestLinkType.RunLinkExecution,
-          },
-          fields: [TestFiledKeyMapping.referenceCase],
-        });
-
-        return new Set(existedReferenceCaseIds.map(item => item.referenceCase));
-      };
-
-      const [caseList, existedReferenceCaseIdSet] = await Promise.all([
-        getTestCaseByCaseIds(),
-        getExistedTestRunReferenceCaseIdSet(),
-      ]);
-
       const needCreatedItems = caseList
         // 过滤已规划的测试用例
         .filter(testCase => !existedReferenceCaseIdSet.has(testCase.objectId))
@@ -333,7 +358,7 @@ export const batchCreateTestRun = async () => {
             // // 事项组
             itemGroup: (data as any).itemGroup,
             // 初始化状态为 TODO
-            status: 'TODO',
+            status: StartStatusKey,
             name: data.name,
             referenceCase: data.objectId,
             createdBy: data.createdBy,
@@ -346,23 +371,8 @@ export const batchCreateTestRun = async () => {
     // 创建测试计划和测试用例的关联关系
     // 1. 获取测试执行任务关联的测试计划
     // 2. 更新测试计划和测试用例的关联
+    // 3. 将 caseStatus 中的 caseStatus 置为 TODO
     const batchUpdateTestPlanLinkCase = async () => {
-      const {
-        data: {
-          list: [testPlan],
-        },
-      } = await iqlRequest({
-        query: {
-          id: [executionId],
-        },
-        linkQuery: {
-          linkType: TestLinkType.ExecutionLinkPlan,
-          destinationType: TestType.Plan,
-          sourceIds: [executionId],
-        },
-        fields: [SystemField.Id],
-      });
-
       // 可能存在测试执行任务没有关联计划的情况，需要做容错处理
       if (testPlan) {
         const linkItemParams = caseIds.map(caseId => ({
@@ -374,10 +384,36 @@ export const batchCreateTestRun = async () => {
           },
         }));
 
-        // 更新测试计划和测试用例的关联关系，使用 processLinkItemData 方法构建更新关联数据
-        const needUpdateItemData = await processLinkItemData(linkItemParams);
+        // 原始测试用例的状态数据映射
+        const originalCaseStatusDataMapping = caseList.reduce(
+          (res, testCase) => ({
+            ...res,
+            [testCase.objectId]: testCase.caseStatus,
+          }),
+          {},
+        );
 
-        return await batchUpdateItems(needUpdateItemData);
+        // 更新测试计划和测试用例的关联关系，使用 processLinkItemData 方法构建更新关联数据
+        const needUpdateItemsData = await processLinkItemData(linkItemParams).then(data => {
+          return data.map(item => {
+            // 原始的测试执行状态
+            const originalCaseStatus = originalCaseStatusDataMapping?.[item.objectId];
+            // 当前计划已有最新测试执行状态，则不做处理
+            const caseLatestStatus = originalCaseStatus?.[testPlan.objectId];
+
+            // 不存在最新的测试执行状态，则需要更新一个默认值
+            if (!caseLatestStatus) {
+              item.caseStatus = {
+                ...originalCaseStatus,
+                // 将测试用例的设置为起始的 key
+                [testPlan.objectId]: StartStatusKey,
+              };
+            }
+            return item;
+          });
+        });
+
+        return await batchUpdateItems(needUpdateItemsData);
       }
     };
 

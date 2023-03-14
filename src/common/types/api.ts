@@ -92,6 +92,17 @@ export type CommonTestEntityQueryPayload = PaginationParams & {
 };
 
 /**
+ * 查询测试计划下最新状态的用例
+ * @example POST /api/project/app/osc/test_manager/webhooks/api-query-case-by-status
+ */
+export type QueryCaseIdByStatusPayload = {
+  planId: string;
+  status: Status['key'] | null;
+  isExclude?: boolean;
+};
+export type QueryCaseIdByStatusResponse = string[];
+
+/**
  * 查询测试实体
  * @example POST /api/project/app/osc/test_manager/webhooks/api-query-test-entity
  */
