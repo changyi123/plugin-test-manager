@@ -104,8 +104,8 @@
       "description": "测试执行通过"
     },
     "TODO": {
-      "name": "待执行",
-      "description": "测试执行待执行"
+      "name": "未开始",
+      "description": "测试执行未开始"
     },
     "EXECUTING": {
       "name": "执行中",
