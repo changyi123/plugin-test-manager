@@ -163,7 +163,8 @@ export const queryCaseIdByStatus = async () => {
       if (status === null) {
         return isExclude;
       }
-      return isExclude ? item.status === status : item.status === status;
+      // 处理包含和不包含的情况
+      return isExclude ? item.status !== status : item.status === status;
     })
     .map(item => item.id);
 
