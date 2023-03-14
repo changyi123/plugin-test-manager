@@ -5,7 +5,13 @@ import RepoDropDown from '@/pages/repository/RepoDropDown';
 import TestEntitySelectorModal, {
   ActionType as ModelActionType,
 } from '@/components/business/TestEntitySelectorModal';
-import { getExtendFields, RepositoryModel, TestLinkType, TestType } from '@/lib/constants';
+import {
+  getExtendFields,
+  RepositoryModel,
+  TestCaseStatusModel,
+  TestLinkType,
+  TestType,
+} from '@/lib/constants';
 import { useUpdateEffect } from 'ahooks';
 import { usePageContext } from '../../hook';
 import { useSetTableHeight } from './hooks';
@@ -132,7 +138,9 @@ const Right: React.FC<RightProps> = props => {
   const filterSearchExtendFieldsProps = useMemo(() => {
     const fieldsMapping = {
       // 测试用例类型筛选，只有测试用例库模块
-      TestPlan: getExtendFields(t).filter(field => field.key === RepositoryModel),
+      TestPlan: getExtendFields(t).filter(field =>
+        [TestCaseStatusModel, RepositoryModel].includes(field.key),
+      ),
       // 测试执行搜索
       TestExecution: getExtendFields(t),
     };

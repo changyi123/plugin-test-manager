@@ -7,6 +7,7 @@ import {
   QueryLinkedTestEntityPayload,
   RepositoryTreePayload,
 } from 'common/types/api';
+import { pick, omit } from 'lodash';
 import { merge } from 'lodash';
 import { RepositoryModel, SYSTEM_FIELD, TestType } from '../constants';
 import { BaseTestEntity, CopyTestCasePayload, Status, TestEntity } from '../types/Test';
@@ -18,50 +19,47 @@ import { message } from 'antd';
 
 const pluginWebTriggerBaseUrl = getPluginWebTriggerBaseUrl();
 
+interface QueryCaseIdByStatusPayload {
+  planId: string;
+  status: Status['key'] | string[] | null;
+  isExclude?: boolean;
+}
+
 // 处理筛选器数据
 const handleSelector = selector => {
   if (!selector) return null;
   const [systemSelector, customSelector] = selector;
-  const testSelector = Object.entries(customSelector ?? {}).reduce(
-    (prev: Record<string, any>, [filed, value]: any[]) => {
-      if (RepositoryModel === filed) {
-        prev[filed] = {
-          ...value,
+  const _customSelector = omit(customSelector, RepositoryModel);
+  const _systemSelector = omit(systemSelector, SYSTEM_FIELD.Status);
+
+  // 处理测试用例库筛选字段
+  const repositorySelectorValue = pick(customSelector, RepositoryModel)?.[RepositoryModel];
+  const repositorySelector = repositorySelectorValue
+    ? {
+        [RepositoryModel]: {
+          ...repositorySelectorValue,
           component: 'Dropdown',
           fieldName: 'test_manager_repository',
-        };
-      } else {
-        prev[filed] = {
-          ...value,
-        };
+        },
       }
+    : {};
 
-      return prev;
-    },
-    {},
-  );
-
-  const _systemSelector = Object.entries(systemSelector ?? {}).reduce(
-    (prev: Record<string, any>, [filed, value]: any[]) => {
-      if (value.key === SYSTEM_FIELD.Status) {
-        prev[filed] = {
-          ...value,
-          value: value?.value?.map(d => d.value),
-        };
-      } else {
-        prev[filed] = {
-          ...value,
-        };
+  // 处理事项状态筛选字段
+  const statusSelectorValue = pick(systemSelector, SYSTEM_FIELD.Status)?.[SYSTEM_FIELD.Status];
+  const statusSelector = statusSelectorValue
+    ? {
+        [SYSTEM_FIELD.Status]: {
+          ...statusSelectorValue,
+          value: statusSelectorValue?.value?.map(d => d.value),
+        },
       }
-
-      return prev;
-    },
-    {},
-  );
+    : {};
 
   return {
     ..._systemSelector,
-    ...testSelector,
+    ...statusSelector,
+    ..._customSelector,
+    ...repositorySelector,
   };
 };
 
@@ -135,6 +133,16 @@ export const getStatsTestPlan = async (props: TestPlanStatsPayload) => {
   });
 
   return res.data;
+};
+
+// 测试计划下用例状态查询接口
+export const getCasesByStatus = async (props: QueryCaseIdByStatusPayload) => {
+  const { data: res } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-query-case-by-status`, {
+    ...props,
+    sessionToken: getSessionToken(),
+  });
+
+  return res;
 };
 
 // 测试执行任务统计查询

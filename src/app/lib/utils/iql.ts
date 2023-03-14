@@ -1,9 +1,11 @@
-import { isEmpty, omit, isArray, isNil, cloneDeep } from 'lodash';
+import { isEmpty, omit, isArray, isNil, cloneDeep, pick } from 'lodash';
 import {
   FIELD_TYPE_KEY_MAPPINGS,
+  FILTER_EXPR_NAME,
   IQL_CONDITION,
   isUseOptionLabel,
   isUseOptionValue,
+  TestCaseStatusModel,
 } from '@/lib/constants';
 import { DateTimestampRang } from './date';
 import matchBracket from 'find-matching-bracket';
@@ -663,4 +665,26 @@ export const selectorToParse = (query, selectors) => {
     }
   }
   return query;
+};
+
+/** 处理筛选器最新执行人字段 */
+export const handleCustomerSelector = selectors => {
+  const [systemSelector, customSelector] = selectors;
+  const _customSelector = omit(customSelector, TestCaseStatusModel);
+  const runStatusSelector = pick(customSelector, TestCaseStatusModel);
+
+  return {
+    selector: [systemSelector, _customSelector],
+    runStatusSelector,
+  };
+};
+
+export const getTestCaseStatusModelValue = (runStatusSelector, status = []) => {
+  const { value, expression } = runStatusSelector[TestCaseStatusModel];
+  status = value.map(v => v.value).filter(v => v !== 'NULL');
+
+  return {
+    isExclude: FILTER_EXPR_NAME.Test_Status_Contain !== expression,
+    status: status?.length ? status : null,
+  };
 };

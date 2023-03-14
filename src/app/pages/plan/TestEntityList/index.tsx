@@ -16,6 +16,7 @@ import { usePageContext } from '../hook';
 import { useListener } from '@projectproxima/proxima-sdk-js';
 import {
   deleteTestEntity,
+  getCasesByStatus,
   getLinkedTestEntityByQuery,
   getTestCaseStats,
   getTestEntityByQuery,
@@ -23,14 +24,15 @@ import {
   updateTestStatus,
 } from '@/lib/api/item';
 import { BuiltinFieldNameMapping, TestLinkType, TestType } from 'common/constant';
-import { RepositoryModel } from '@/lib/constants';
-import { isEmpty, isEqual } from 'lodash';
+import { RepositoryModel, TestCaseStatusModel } from '@/lib/constants';
+import { intersection, isEmpty, isEqual } from 'lodash';
 import { useTestRunActionAuth, useCanExecuteTestRunIdSequence } from '@/lib/hooks/useTest';
 import { getCurrentUserSetting, saveUserSetting } from '@/lib/api/userSetting';
 import { useCurrentUser } from '@/lib/api/user';
 import { useBaseAction } from '@/lib/hooks/useContext';
 import createProximaSdk from '@projectproxima/proxima-sdk-js';
 import useI18n from '@/lib/hooks/useI18n';
+import { getTestCaseStatusModelValue, handleCustomerSelector } from '@/lib/utils/iql';
 
 import cx from './index.less';
 
@@ -144,16 +146,28 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       }
       setTableLoading(true);
 
+      // 处理测试用例最新状态筛选
+      let caseIds = requestScopedTestDetailIds;
+      const { selector, runStatusSelector } = handleCustomerSelector(selectors);
+      if (runStatusSelector[TestCaseStatusModel]?.value?.length) {
+        const params = getTestCaseStatusModelValue(runStatusSelector);
+        const { data: ids } = await getCasesByStatus({
+          planId: selectedTestPlan.objectId,
+          ...params,
+        });
+        caseIds = intersection(requestScopedTestDetailIds, ids);
+      }
+
       // 查询测试用例
       const { list: testDetails, total } = await getTestEntityByQuery({
         query: {
           workspaceKey: workspaceKey,
           type: TestType.Case,
-          id: requestScopedTestDetailIds,
+          id: caseIds,
         },
         ...queryParams,
         fields: testDetailFieldKeys ?? [],
-        selector: selectors,
+        selector,
       });
 
       // 查询统计数据
@@ -195,6 +209,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           list: [],
           total: 0,
         };
+
       // 查询测试执行
       const { list: runs, total } = await getLinkedTestEntityByQuery(
         {
@@ -213,9 +228,9 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
 
           const runSelector = Object.entries(customSelector ?? {}).reduce(
             (prev, [key, value]: any) => {
-              if (key !== RepositoryModel && key.includes('test_')) {
+              if (key !== RepositoryModel && key.includes('test_manager_')) {
                 const fieldName =
-                  BuiltinFieldNameMapping?.[key.replace('test_', '')] ?? value.fieldName;
+                  BuiltinFieldNameMapping?.[key.replace('test_manager_', '')] ?? value.fieldName;
                 prev[key] = {
                   ...value,
                   fieldName,

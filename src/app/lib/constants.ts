@@ -213,6 +213,8 @@ export const FILTER_EXPR_NAME = {
   Tag_Not_Contain: 'Tag_Not_Contain',
   Test_Repository_Not_Contain: 'test_manager_Repository_Not_Contain',
   Test_Repository_Contain: 'test_manager_Repository_Contain',
+  Test_Status_Not_Contain: 'test_manager_status_Not_Contain',
+  Test_Status_Contain: 'test_manager_status_Contain',
   UserGroup_Contain: 'UserGroup_Contain',
   UserGroup_Not_Contain: 'UserGroup_Not_Contain',
   Reporter_Contain: 'Reporter_Contain',
@@ -319,6 +321,11 @@ export const FILTER_EXPRESSIONS = t => ({
     { label: t('common.contain'), value: FILTER_EXPR_NAME.Test_Repository_Contain },
     { label: t('common.notContain'), value: FILTER_EXPR_NAME.Test_Repository_Not_Contain },
   ],
+  test_manager_status: [
+    // 测试用例最新执行状态
+    { label: t('common.contain'), value: FILTER_EXPR_NAME.Test_Status_Contain },
+    { label: t('common.notContain'), value: FILTER_EXPR_NAME.Test_Status_Not_Contain },
+  ],
   UserGroup: [
     { label: t('common.contain'), value: FILTER_EXPR_NAME.UserGroup_Contain },
     { label: t('common.notContain'), value: FILTER_EXPR_NAME.UserGroup_Not_Contain },
@@ -405,8 +412,7 @@ export const SelectorNullValue = 'NULL';
 export const SelectorCurrentUserValue = 'currentUser';
 
 export const RepositoryModel = `${appKey}_Repository`;
-export const TestRunStatusModel = 'test_run_status';
-export const TestCaseStatusModel = 'test_case_status';
+export const TestCaseStatusModel = `${appKey}_status`;
 
 export const getExtendFields = t => [
   {
@@ -422,57 +428,44 @@ export const getExtendFields = t => [
     },
   },
   {
-    key: 'test_designee',
+    key: 'test_manager_designee',
     // name: '执行人',
     name: t('common.designee'),
-    objectId: 'test_designee',
+    objectId: 'test_manager_designee',
     fieldType: {
       component: 'User',
       dataType: 'object',
-      objectId: 'test_designee',
+      objectId: 'test_manager_designee',
       key: 'User',
       name: t('common.user'),
     },
   },
   {
-    key: 'test_executor',
+    key: 'test_manager_executor',
     // name: '最新操作执行人',
     name: t('common.testExecutor'),
-    objectId: 'test_executor',
+    objectId: 'test_manager_executor',
     fieldType: {
       component: 'User',
       dataType: 'object',
-      objectId: 'test_executor',
+      objectId: 'test_manager_executor',
       key: 'User',
       name: t('common.user'),
     },
   },
-  // {
-  //   key: TestRunStatusModel,
-  //   // name: '测试执行状态',
-  //   name: t('common.testRunStatus'),
-  //   objectId: TestRunStatusModel,
-  //   fieldType: {
-  //     isExtend: true,
-  //     dataType: 'object',
-  //     objectId: TestRunStatusModel,
-  //     key: TestRunStatusModel,
-  //     name: t('common.testRunStatus'),
-  //   },
-  // },
-  // {
-  //   key: TestCaseStatusModel,
-  //   // name: '最新执行状态',
-  //   name: t('common.testCaseStatus'),
-  //   objectId: TestCaseStatusModel,
-  //   fieldType: {
-  //     isExtend: true,
-  //     dataType: 'object',
-  //     objectId: TestCaseStatusModel,
-  //     key: TestCaseStatusModel,
-  //     name: t('common.testCaseStatus'),
-  //   },
-  // },
+  {
+    key: TestCaseStatusModel,
+    // name: '最新执行状态',
+    name: t('common.testCaseStatus'),
+    objectId: TestCaseStatusModel,
+    fieldType: {
+      isExtend: true,
+      dataType: 'object',
+      objectId: TestCaseStatusModel,
+      key: TestCaseStatusModel,
+      name: t('common.testCaseStatus'),
+    },
+  },
 ];
 
 export const UserTypeSelectorFieldKeys = ['test_designee', 'test_executor'];
