@@ -47,6 +47,11 @@ const TestPlanList: React.FC<any> = () => {
 
   const tableDataGetter = useCallback(
     async queryParams => {
+      if (!workspaceKey)
+        return {
+          list: [],
+          total: 0,
+        };
       setTableLoading(true);
       const { list, total } = await getTestEntityByQuery({
         query: {

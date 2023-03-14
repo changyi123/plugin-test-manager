@@ -88,7 +88,10 @@ export const getTestEntityByQuery = async (
 
   const {
     data: { data },
-  } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-query-test-entity`, _props);
+  } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-query-test-entity`, {
+    ..._props,
+    sessionToken: getSessionToken(),
+  });
 
   return {
     list: data.list ?? [],
@@ -206,6 +209,17 @@ export const batchCreateTestRun = async data => {
 // 批量更新测试执行状态
 export const updateTestStatus = async data => {
   const { runIds, status, planId } = data;
+  const userInfo = await Parse.User.current();
+  const getCurrentUserInfo = () => {
+    const user = userInfo.toJSON();
+    return {
+      deleted: user.deleted,
+      value: user.objectId,
+      nickname: user.nickname,
+      username: user.username,
+      label: user.username,
+    };
+  };
 
   // 查询测试执行数据
   const { list } = await getTestEntityByQuery({
@@ -214,7 +228,7 @@ export const updateTestStatus = async data => {
       type: TestType.Run,
     },
     limit: 9999,
-    select: ['id', 'referenceCase'],
+    select: ['id', 'referenceCase', 'executor'],
   });
 
   const { list: test } = await getTestEntityByQuery({
@@ -223,12 +237,13 @@ export const updateTestStatus = async data => {
       type: TestType.Case,
     },
     limit: 9999,
-    select: ['id', 'caseStatus'],
+    select: ['id', 'caseStatus', 'caseExecutor'],
   });
 
-  const runs = runIds.map(d => ({
-    objectId: d,
+  const runs = list.map(d => ({
+    objectId: d.id,
     status,
+    executor: [getCurrentUserInfo(), ...(d.executor ?? [])].slice(0, 3),
   }));
 
   const tests = test.map(d => ({
@@ -236,6 +251,10 @@ export const updateTestStatus = async data => {
     caseStatus: {
       ...(d?.caseStatus ?? {}),
       [planId]: status,
+    },
+    caseExecutor: {
+      ...(d?.caseExecutor ?? {}),
+      [planId]: getCurrentUserInfo(),
     },
   }));
 
@@ -364,7 +383,7 @@ export const updateTestRunDetail = async (
         type: TestType.Case,
       },
       limit: 9999,
-      select: ['id', 'caseStatus'],
+      select: ['id', 'caseStatus', 'caseExecutor'],
     });
 
     needUpdateCase = test.map(d => ({
@@ -372,6 +391,10 @@ export const updateTestRunDetail = async (
       caseStatus: {
         ...(d?.caseStatus ?? {}),
         [params.planId]: needUpdateAttrs.status,
+      },
+      caseExecutor: {
+        ...(d?.caseExecutor ?? {}),
+        [params.planId]: needUpdateAttrs.executor?.[0],
       },
     }));
   }
@@ -463,7 +486,10 @@ export const deleteTestDefect = async (
 export const getStatsFormPlan = async (data: TestPlanStatsPayload) => {
   const {
     data: { data: res },
-  } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-stats-test-plan`, data);
+  } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-stats-test-plan`, {
+    ...data,
+    sessionToken: getSessionToken(),
+  });
 
   return res;
 };
@@ -472,15 +498,18 @@ export const getStatsFormPlan = async (data: TestPlanStatsPayload) => {
 export const getRunsFromCase = async (data: TestCaseStatsPayload) => {
   const {
     data: { data: res },
-  } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-stats-test-case`, data);
+  } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-stats-test-case`, {
+    ...data,
+    sessionToken: getSessionToken(),
+  });
   return res;
 };
 
 // 获取测试用例库树
 export const getRepositoryTree = async (params: RepositoryTreePayload) => {
-  const { data } = await fetch.post(
-    `${pluginWebTriggerBaseUrl}/api-module-repository-tree`,
-    params,
-  );
+  const { data } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-module-repository-tree`, {
+    ...params,
+    sessionToken: getSessionToken(),
+  });
   return data;
 };

@@ -196,7 +196,12 @@ const ListView: React.FC<ViewComponentProps> = ({
           >
             {t('common.addTestCase')}
           </Button>
-          <RepoDropDown type="repository" treeNodeData={folderTreeData} folderKey={selectNodeKey} />
+          <RepoDropDown
+            type="repository"
+            treeNodeData={folderTreeData}
+            folderKey={selectNodeKey}
+            filteredCaseIds={filteredCaseIds}
+          />
         </div>
       </div>
       <div className={cx('table-container')} style={{ height: 'calc(100% - 105px)' }}>

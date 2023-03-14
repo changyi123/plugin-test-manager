@@ -2,7 +2,7 @@ app:
   key: test_manager
   uuid: bf73e61c-e15a-4461-a1f7-f940c2009332
   name: test_manager
-  version: "3.5.0"
+  version: "3.6.0"
 modules:
   webtrigger:
     # TODO: Debug 使用，生产环境禁止调用西面的 trigger
@@ -235,6 +235,10 @@ modules:
     - key: caseStatus
       name: test_manager_caseStatus
       description: 测试管理内置字段-用例最新执行状态（勿删改）
+      type: _self:es_object
+    - key: caseExecutor
+      name: test_manager_caseExecutor
+      description: 测试管理内置字段-用例最新执行人（勿删改）
       type: _self:es_object
     - key: repository
       name: test_manager_repository

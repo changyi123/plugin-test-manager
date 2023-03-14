@@ -104,7 +104,7 @@ export const useGetTableFilterFields = ({
   };
 };
 
-export const useGetcustomFields = ({
+export const useGetCustomFields = ({
   workspaceKey,
   testType,
 }: {

@@ -20,6 +20,7 @@ export const openCreateItemModal = ({ itemTypeId, workspaceId, name, extraData }
       // 通过此参数可修改事项创建弹窗 displayModule，控制测试管理内置类型是否出现在类型选择器
       displayModule: 'plugin.testManager',
       planId: extraData?.planId,
+      filterItemTypeList: true,
     },
     initItemData: {
       name: name,

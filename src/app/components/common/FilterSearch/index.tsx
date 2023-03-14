@@ -26,7 +26,7 @@ import {
 } from '@/lib/constants';
 import { Repository } from '@/lib/models';
 import { useDebounceFn, useRequest } from 'ahooks';
-import { useGetcustomFields } from '../BusinessTable/hook';
+import { useGetCustomFields } from '../BusinessTable/hook';
 import { useListener } from '@projectproxima/proxima-sdk-js';
 import { getTestConfig } from '@/lib/api/common';
 import { getCurrentUserSetting } from '@/lib/api/userSetting';
@@ -37,6 +37,7 @@ import cx from './index.less';
 interface FilterSearchProps {
   fields: string[];
   onSearch: (data: SearchSelectors) => void;
+  beforeSearch?: (v: Record<string, any>) => void;
   extendFields: any[];
   className?: string;
   testType?: TestType;
@@ -58,7 +59,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
   const currentSelectors = useRef<Selectors>({});
   const [activeSelector, setActiveSelector] = useState('');
 
-  const customFields = useGetcustomFields({
+  const customFields = useGetCustomFields({
     workspaceKey: workspace?.key,
     testType,
   });

@@ -2,7 +2,7 @@ import { utils as xlsxUtils, write as xlsxWrite } from 'sheetjs-style';
 import FileSave from 'file-saver';
 import Parse from '@/lib/parse';
 import { TestLinkType, TestType } from '@/lib/constants';
-import { CustomField, TestConfig } from '@/lib/models';
+import { CustomField } from '@/lib/models';
 import { Item } from '@/lib/types/App';
 import { Step } from '@/lib/types/Test';
 import { getRepositoryData } from '@/lib/api/repository';
@@ -33,6 +33,7 @@ interface ImportArgs {
   checkedId: string;
   workspace: Record<string, any>;
   treeData?: TreeNode[];
+  ids?: string[];
 }
 
 const getTestPriorityInfo = async (filedKey: string) => {
@@ -164,6 +165,15 @@ const getExcelData = async (data: any) => {
     testPlanObj = getTestPlan(testPlan[0]);
   }
 
+  const getCaseExecutor = (caseExecutor, planId) => {
+    return planId
+      ? {
+          [t('common.testExecutor')]:
+            caseExecutor?.[planId]?.nickname ?? caseExecutor?.[planId]?.username,
+        }
+      : {};
+  };
+
   // 当不存在 results 时使用空模板
   const testCases = results.length === 0 ? [{}] : results;
 
@@ -172,6 +182,7 @@ const getExcelData = async (data: any) => {
     ...getTestGroupPath(repoDataMap.get(item.repository)),
     ...getItemInfo(item, priorityInfo),
     ...getTestInfo(item),
+    ...getCaseExecutor(item.caseExecutor, planId),
     ...getStatus(item.caseStatus, planId),
   }));
 };
@@ -229,7 +240,7 @@ const importTestInfo = async (
   t: (val: string) => string | string[],
   excelData = [],
 ) => {
-  const { type, checkedId, workspace } = args;
+  const { type, checkedId, workspace, ids } = args;
 
   if (type === 'exportPlan') {
     // 获取当前测试计划下的测试用例
@@ -275,6 +286,8 @@ const importTestInfo = async (
       traverseTreeNodes([repositoryTree], node => {
         testCaseIds = testCaseIds.concat(node.caseIds);
       });
+    } else if (type === 'exportFilter') {
+      testCaseIds = ids;
     }
 
     const { list: results } = await getTestEntityByQuery({
@@ -393,13 +406,15 @@ const exportExcelFile = (array: any[], sheetName = 'sheet1', fileName = 'example
           { wch: 30 }, // 第一列
           { wch: 20 }, // 第二列
           { wch: 20 }, // 第三列
-          { wch: 10 }, // 第四列
-          { wch: 30 }, // 第五列
-          { wch: 50 }, // 第六列
+          { wch: 15 }, // 第四列
+          { wch: 10 }, // 第五列
+          { wch: 20 }, // 第六列
           { wch: 50 }, // 第七列
           { wch: 50 }, // 第八列
           { wch: 20 }, // 第九列
           { wch: 20 }, // 第十列
+          { wch: 10 }, // 第十一列
+          { wch: 20 }, // 第十二列
         ],
       }),
     },

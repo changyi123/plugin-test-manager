@@ -52,7 +52,9 @@
     "testRepository": "测试用例库",
     "testCaseRepository": "测试用例库模块",
     "designee": "执行人",
-    "testExecutor": "最新操作执行人",
+    "testExecutor": "最新执行人",
+    "testRunStatus": "测试执行状态",
+    "testCaseStatus": "最新执行状态",
     "allRepository": "全部用例库",
     "testReport": "测试报告",
     "exportReportFail": "导出测试报告失败",
@@ -244,10 +246,11 @@
         "updateAssigneeTips": "个测试负责人已更新",
         "repositoryGroup": "所属模块",
         "caseLatestStatus": "最新执行状态",
+        "caseLatestExecutor": "最新执行人",
         "runCount": "执行任务次数",
         "detailName": "用例标题",
         "runStatus": "测试执行状态",
-        "executor": "最近操作执行人",
+        "executor": "最近执行人",
         "designee": "执行人",
         "assigneeSetting": "设置负责人",
         "editorItemTips": "暂无事项编辑权限，请检查事项操作权限配置或联系管理员",
@@ -304,7 +307,8 @@
           "用例导出（所有分组）",
           "用例导出（当前分组）",
           "用例导出（当前分组及子分组）",
-          "用例导出（当前计划）"
+          "用例导出（当前计划）",
+          "用例导出（筛选结果）"
         ],
         "importCaseSuccess": "测试管理用例导出完成",
         "importCaseWarning": "未选择用例库，请先选择需要导出的用例库",
@@ -335,7 +339,8 @@
           "data": "数据",
           "status": "状态",
           "testPlan": "测试计划",
-          "assignee": "负责人"
+          "assignee": "负责人",
+          "executor": "最新操作执行人"
         },
         "todo": "未开始",
         "fontName": "宋体"

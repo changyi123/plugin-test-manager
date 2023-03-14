@@ -405,6 +405,8 @@ export const SelectorNullValue = 'NULL';
 export const SelectorCurrentUserValue = 'currentUser';
 
 export const RepositoryModel = `${appKey}_Repository`;
+export const TestRunStatusModel = 'test_run_status';
+export const TestCaseStatusModel = 'test_case_status';
 
 export const getExtendFields = t => [
   {
@@ -445,6 +447,32 @@ export const getExtendFields = t => [
       name: t('common.user'),
     },
   },
+  // {
+  //   key: TestRunStatusModel,
+  //   // name: '测试执行状态',
+  //   name: t('common.testRunStatus'),
+  //   objectId: TestRunStatusModel,
+  //   fieldType: {
+  //     isExtend: true,
+  //     dataType: 'object',
+  //     objectId: TestRunStatusModel,
+  //     key: TestRunStatusModel,
+  //     name: t('common.testRunStatus'),
+  //   },
+  // },
+  // {
+  //   key: TestCaseStatusModel,
+  //   // name: '最新执行状态',
+  //   name: t('common.testCaseStatus'),
+  //   objectId: TestCaseStatusModel,
+  //   fieldType: {
+  //     isExtend: true,
+  //     dataType: 'object',
+  //     objectId: TestCaseStatusModel,
+  //     key: TestCaseStatusModel,
+  //     name: t('common.testCaseStatus'),
+  //   },
+  // },
 ];
 
 export const UserTypeSelectorFieldKeys = ['test_designee', 'test_executor'];
