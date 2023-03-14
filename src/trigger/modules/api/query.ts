@@ -7,14 +7,23 @@ import pick from 'lodash/pick';
 import { toArray } from '../../lib/helper';
 import { iqlRequest } from '../../lib/iqlRequest';
 import { testEntityFieldTypeValidator } from '../../lib/validator';
-import { getReqInfoFromVMRuntime, buildPaginationResponse } from '../../lib/apiUtil';
-import { QueryTestEntityPayload, QueryLinkedTestEntityPayload } from '../../../common/types/api';
+import { getReqInfoFromVMRuntime, buildPaginationResponse, buildResponse } from '../../lib/apiUtil';
 import {
+  QueryTestEntityPayload,
+  QueryCaseIdByStatusPayload,
+  QueryLinkedTestEntityPayload,
+} from '../../../common/types/api';
+import {
+  TestType,
+  TestLinkType,
+  InfinityLimit,
+  StartStatusKey,
   IQLUsefulFieldKeys,
   TestFiledKeyMapping,
   IQLRequiredFieldKeys,
-  InfinityLimit,
+  SystemFieldNameMapping,
 } from '../../../common/constant';
+import { TestEntity } from 'common/types/test';
 
 // 处理 iql 请求的自定义字段
 const concatIqlRequestFields = fields => {
@@ -118,4 +127,55 @@ export const queryLinkedTestEntity = async () => {
   } catch (err) {
     return buildPaginationResponse(err);
   }
+};
+
+/** 查询测试计划下用例的最新执行状态 */
+export const queryCaseIdByStatus = async () => {
+  const { body } = getReqInfoFromVMRuntime<QueryCaseIdByStatusPayload>();
+  const { planId, status: statusData, isExclude } = body;
+
+  // 格式化 status 字段, 保证 status 是数组
+  const status = Array.isArray(statusData)
+    ? statusData
+    : statusData === null
+    ? statusData
+    : [statusData];
+
+  // 查询计划关联的所有的用例
+  const linkedTestCases = await iqlRequest<TestEntity<TestType.Case>>({
+    query: {
+      type: TestType.Case,
+    },
+    linkQuery: {
+      sourceIds: [planId],
+      linkType: TestLinkType.CaseLinkPlan,
+      destinationType: TestType.Case,
+    },
+    pagination: { limit: InfinityLimit },
+    fields: [SystemFieldNameMapping.id, TestFiledKeyMapping.caseStatus],
+  });
+
+  // 过滤指定状态下的所有用例
+  const ret = linkedTestCases.data.list
+    .map(testCase => {
+      // 如果没有 caseStatus 字段, 默认为 TODO 状态
+      const status = testCase.caseStatus?.[planId] ?? StartStatusKey;
+      return {
+        status,
+        id: testCase.objectId,
+      };
+    })
+    .filter(item => {
+      // 当状态为 null 时, 表示查询所有状态
+      if (status === null) {
+        return isExclude;
+      }
+      // 处理包含和不包含的情况
+      const isIncludeStatus = status.includes(item.status);
+
+      return isExclude ? !isIncludeStatus : isIncludeStatus;
+    })
+    .map(item => item.id);
+
+  return buildResponse(ret);
 };

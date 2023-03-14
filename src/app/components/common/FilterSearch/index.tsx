@@ -1,10 +1,11 @@
 import React, {
-  useCallback,
-  useState,
   useRef,
   useMemo,
-  useImperativeHandle,
+  useState,
+  useEffect,
   forwardRef,
+  useCallback,
+  useImperativeHandle,
 } from 'react';
 import { useNoExpiredRequest } from '@/lib/hooks/useRequest';
 import SearchInput from './SearchInput';
@@ -26,12 +27,14 @@ import {
   TestCaseStatusModel,
 } from '@/lib/constants';
 import { Repository } from '@/lib/models';
-import { useDebounceFn, useRequest } from 'ahooks';
+import { useDebounceFn, useMemoizedFn, useRequest } from 'ahooks';
 import { useGetCustomFields } from '../BusinessTable/hook';
 import { useListener } from '@projectproxima/proxima-sdk-js';
 import { getTestConfig } from '@/lib/api/common';
 import { getCurrentUserSetting } from '@/lib/api/userSetting';
 import useI18n from '@/lib/hooks/useI18n';
+import { useLocation } from 'react-router-dom';
+import { generateStorageKey } from '@/lib/utils/helper';
 
 import cx from './index.less';
 
@@ -43,23 +46,72 @@ interface FilterSearchProps {
   className?: string;
   testType?: TestType;
   hideSelectorTag?: boolean;
+  /** 持久化数据 */
+  enableLocalStorage?: boolean;
 }
 
 interface FilterRefMethod {
   reset: () => void;
 }
 
+// 生成存储器
+const useSelectorStorage = (enableLocalStorage, { selectors, setSelectors }) => {
+  const location = useLocation();
+  const key = generateStorageKey('selector-' + location.pathname);
+
+  const invokeRef = React.useRef(false);
+
+  const storage = useMemo(
+    () => ({
+      get: () => JSON.parse(localStorage.getItem(key)),
+      set: value => localStorage.setItem(key, JSON.stringify(value)),
+    }),
+    [key],
+  );
+
+  const isEmptySelectors = !selectors || !Object.keys(selectors).length;
+
+  useEffect(() => {
+    const storageSelectors = enableLocalStorage ? storage.get() : null;
+
+    if (!invokeRef.current && isEmptySelectors && storageSelectors) {
+      invokeRef.current = true;
+      setSelectors(storageSelectors);
+    }
+  }, [selectors, setSelectors, enableLocalStorage, storage, isEmptySelectors]);
+
+  // 存储 selectors state
+  useEffect(() => {
+    if (enableLocalStorage && !isEmptySelectors) {
+      storage.set(selectors);
+    }
+  }, [selectors, enableLocalStorage, storage, isEmptySelectors]);
+};
+
 const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearchProps> = (
-  { fields, onSearch, extendFields, className, testType, hideSelectorTag },
+  { fields, onSearch, extendFields, className, testType, hideSelectorTag, enableLocalStorage },
   ref,
 ) => {
   const { t } = useI18n();
   const { workspace } = useTestConfig();
   const [search, setSearch] = useState('');
   const { getGlobalConfig } = useBaseAction();
-  const [selectors, setSelectors] = useState<Selectors>({});
+  const [selectors, setSelectorsState] = useState<Selectors>({});
   const currentSelectors = useRef<Selectors>({});
   const [activeSelector, setActiveSelector] = useState('');
+
+  const setSelectors = useMemoizedFn(selectors => {
+    setSelectorsState(selectors);
+    currentSelectors.current = selectors;
+  });
+
+  const setSelectorsFromStorageValue = useMemoizedFn(selectors => {
+    setSelectors(selectors);
+    searchFn(true);
+  });
+
+  // 将 selector 存储到 localStorage
+  useSelectorStorage(enableLocalStorage, { selectors, setSelectors: setSelectorsFromStorageValue });
 
   const customFields = useGetCustomFields({
     workspaceKey: workspace?.key,
@@ -121,7 +173,6 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
         fieldLabel: fieldsName,
       };
       setSelectors(data);
-      currentSelectors.current = data;
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [search, JSON.stringify(fieldsName)],
@@ -137,32 +188,37 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
     },
   );
 
-  const searchFn = useCallback(() => {
-    const ids = extendFields.map(item => item.key);
-    // 事项的字段
-    const itemSelector = omit(currentSelectors.current, ids);
-    // 测试管理的字段
-    const testManageSelector = pick(currentSelectors.current, ids);
+  const searchFn = useCallback(
+    (initial?: boolean) => {
+      const ids = extendFields.map(item => item.key);
+      const currentSelectorsValue = currentSelectors.current;
+      // 事项的字段，首次加载不需要过滤
+      const itemSelector = initial ? currentSelectorsValue : omit(currentSelectorsValue, ids);
+      // 测试管理的字段
+      const testManageSelector = initial ? currentSelectorsValue : pick(currentSelectorsValue, ids);
 
-    Object.entries(testManageSelector).forEach(selector => {
-      const [selectorKey, data] = selector;
-      if (UserTypeSelectorFieldKeys.includes(selectorKey)) {
-        if (Array.isArray(data.value)) {
-          data.value = data.value.map(user => {
-            // currentUser 需要替换成当前用户的id
-            if (user.value === SelectorCurrentUserValue) {
-              return {
-                ...user,
-                value: currentUser.objectId,
-              };
-            }
-            return user;
-          });
+      Object.entries(testManageSelector).forEach(selector => {
+        const [selectorKey, data] = selector;
+        if (UserTypeSelectorFieldKeys.includes(selectorKey)) {
+          if (Array.isArray(data.value)) {
+            data.value = data.value.map(user => {
+              // currentUser 需要替换成当前用户的id
+              if (user.value === SelectorCurrentUserValue) {
+                return {
+                  ...user,
+                  value: currentUser.objectId,
+                };
+              }
+              return user;
+            });
+          }
         }
-      }
-    });
-    onSearch([itemSelector, testManageSelector]);
-  }, [extendFields, onSearch, currentUser]);
+      });
+
+      onSearch([itemSelector, testManageSelector]);
+    },
+    [extendFields, onSearch, currentUser],
+  );
 
   const { run: handleSearch } = useDebounceFn(searchFn, { wait: 300 });
 

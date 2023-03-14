@@ -41,6 +41,8 @@ modules:
       function: api-query-test-entity-function
     - key: api-query-linked-test-entity
       function: api-query-linked-test-entity-function
+    - key: api-query-case-by-status
+      function: api-query-case-by-status-function
     # 批量操作（删除，更新，创建测试执行）
     - key: api-batch-delete
       function: api-batch-delete-function
@@ -106,6 +108,8 @@ modules:
       handler: api.queryTestEntity
     - key: api-query-linked-test-entity-function
       handler: api.queryLinkedTestEntity
+    - key: api-query-case-by-status-function
+      handler: api.queryCaseIdByStatus
 
      # api batch
     - key: api-batch-delete-function

@@ -1,4 +1,4 @@
-export { queryTestEntity, queryLinkedTestEntity } from './modules/api/query';
+export { queryTestEntity, queryLinkedTestEntity, queryCaseIdByStatus } from './modules/api/query';
 
 export {
   batchDelete,
@@ -9,6 +9,4 @@ export {
 
 export { testPlanStats, testExecutionStats, testCaseStats } from './modules/api/stats';
 
-export { repositoryTree } from './modules/api/module';
-
-export { minderData } from './modules/api/module';
+export { minderData, repositoryTree } from './modules/api/module';
