@@ -2,7 +2,7 @@ import { utils as xlsxUtils, write as xlsxWrite } from 'sheetjs-style';
 import FileSave from 'file-saver';
 import Parse from '@/lib/parse';
 import { TestLinkType, TestType } from '@/lib/constants';
-import { CustomField, TestConfig } from '@/lib/models';
+import { CustomField } from '@/lib/models';
 import { Item } from '@/lib/types/App';
 import { Step } from '@/lib/types/Test';
 import { getRepositoryData } from '@/lib/api/repository';
@@ -43,21 +43,6 @@ const getTestPriorityInfo = async (filedKey: string) => {
   return data.map(d => d.toJSON()).find(d => d.key === filedKey);
 };
 
-const getItemStatus = async () => {
-  const query = new Parse.Query(TestConfig).equalTo('global', true);
-  const data = await query.find();
-
-  return data
-    .map(d => d.toJSON())
-    .reduce((prev, cur) => {
-      cur?.extra?.statuses?.forEach(c => {
-        prev.set(c.key, c.key);
-      });
-
-      return prev;
-    }, new Map());
-};
-
 /** 获取导出 excel 表数据 */
 const getExcelData = async (data: any) => {
   const { results, repoData, workspaceKey, planId, t } = data;
@@ -66,11 +51,11 @@ const getExcelData = async (data: any) => {
     [t('page.repository.repoDropDown.excelExportTitle.group')]: path ?? '',
   });
 
-  const getStatus = (statusMap: any, status?: Record<string, string>, planId?: string) =>
+  const getStatus = (status?: Record<string, string>, planId?: string) =>
     planId
       ? {
           [t('page.repository.repoDropDown.excelExportTitle.status')]: t(
-            `status.${statusMap.get(status?.[planId] || 'TODO')}.name`,
+            `status.${status?.[planId] ?? 'TODO'}.name`,
           ),
         }
       : {};
@@ -147,7 +132,6 @@ const getExcelData = async (data: any) => {
   });
 
   const priorityInfo = await getTestPriorityInfo('priority');
-  const itemStatus = await getItemStatus();
   const repoDataMap = new Map();
 
   const _repoData =
@@ -198,8 +182,8 @@ const getExcelData = async (data: any) => {
     ...getTestGroupPath(repoDataMap.get(item.repository)),
     ...getItemInfo(item, priorityInfo),
     ...getTestInfo(item),
-    ...getStatus(itemStatus, item.caseStatus, planId),
     ...getCaseExecutor(item.caseExecutor, planId),
+    ...getStatus(item.caseStatus, planId),
   }));
 };
 
@@ -345,7 +329,9 @@ export const downloadExampleFile = async (fieldKeys, t) => {
   exportExcelFile(
     [
       {
-        ...(t('page.repository.repoDropDown.excelContent') ?? {}),
+        ...(t('page.repository.repoDropDown.excelContent', {
+          returnObjects: true,
+        }) ?? {}),
         // 所属分组: '分组1/分组2',
         // 标题: '测试用例标题（样例数据，执行用例导入时请删除该数据）',
         // 类型: '测试用例',

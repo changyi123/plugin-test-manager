@@ -589,7 +589,7 @@
           "removeTips": ["Please step in", "Remove the defect"],
           "deleteButtonTips": "The current operation deletes the association with the defect, do you want to continue?",
           "global": "Global",
-          "step": "Step"
+          "step": "Step "
         },
         "executionEditor": {
           "stepDesc": "Step overview"

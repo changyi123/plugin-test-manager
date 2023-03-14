@@ -84,11 +84,8 @@ const DefectList: React.FC<DefectListProps> = ({
     return (
       <div ref={ref} className={cx('defect', isHover && 'hover')}>
         <span className={cx('tag')}>
-          {t(
-            `components.business.testRunModal.defectList.${isGlobalDefect ? 'global' : 'step'}${
-              isGlobalDefect ? '' : position
-            }`,
-          )}
+          {t(`components.business.testRunModal.defectList.${isGlobalDefect ? 'global' : 'step'}`)}
+          {isGlobalDefect ? '' : position}
         </span>
         <ItemIcon className={cx('icon')} icon={(item.itemType as any)?.icon}></ItemIcon>
         <a
