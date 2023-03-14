@@ -340,7 +340,7 @@
           "status": "状态",
           "testPlan": "测试计划",
           "assignee": "负责人",
-          "executor": "最新操作执行人"
+          "executor": "最新执行人"
         },
         "todo": "未开始",
         "fontName": "宋体"
