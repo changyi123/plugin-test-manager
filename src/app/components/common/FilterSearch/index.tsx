@@ -12,7 +12,7 @@ import SearchInput from './SearchInput';
 import { Button } from 'antd';
 import AddFilterIcon from '@/icons/svg/add-filter.svg';
 import { openFilterPopover, openFieldValuePopover } from '@/lib/api/sdk';
-import { useTestConfig } from '@/lib/hooks/useContext';
+import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
 import { values, cloneDeep, omit, pick } from 'lodash';
 import SelectorTag from './SelectorTag';
 import { Selectors, isDate, SearchSelectors } from '@/lib/utils/iql';
@@ -24,6 +24,7 @@ import {
   getExtendFields,
   TestType,
   IS_EXTEND_FIELDS,
+  TestCaseStatusModel,
 } from '@/lib/constants';
 import { Repository } from '@/lib/models';
 import { useDebounceFn, useMemoizedFn, useRequest } from 'ahooks';
@@ -94,6 +95,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
   const { t } = useI18n();
   const { workspace } = useTestConfig();
   const [search, setSearch] = useState('');
+  const { getGlobalConfig } = useBaseAction();
   const [selectors, setSelectorsState] = useState<Selectors>({});
   const currentSelectors = useRef<Selectors>({});
   const [activeSelector, setActiveSelector] = useState('');
@@ -273,6 +275,14 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
     return getStructure(data?.map(item => item.toJSON()) || []);
   }, [getStructure, workspace?.key]);
 
+  const getStatusOptions = useCallback(async () => {
+    const globalConfig = await getGlobalConfig();
+    return globalConfig?.statuses.map(item => ({
+      value: item.key,
+      label: t(`status.${item.key}.name`),
+    }));
+  }, [getGlobalConfig, t]);
+
   // 组装打开字段值选择器的函数
   const getFieldValueProps = useCallback(
     (data, dom) => {
@@ -305,9 +315,12 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
       if (fieldId === RepositoryModel) {
         (props as any).fetchMethod = () => extendFetch();
       }
+      if (fieldId === TestCaseStatusModel) {
+        (props as any).fetchMethod = () => getStatusOptions();
+      }
       return props;
     },
-    [extendFetch, handleSearch, updateSelectorValue, workspace?.objectId, t],
+    [extendFetch, handleSearch, updateSelectorValue, workspace?.objectId, getStatusOptions, t],
   );
 
   const onFilterChange = useCallback(

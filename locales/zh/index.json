@@ -53,8 +53,7 @@
     "testCaseRepository": "测试用例库模块",
     "designee": "执行人",
     "testExecutor": "最新执行人",
-    "testRunStatus": "测试执行状态",
-    "testCaseStatus": "最新执行状态",
+    "testCaseStatus": "测试执行状态",
     "allRepository": "全部用例库",
     "testReport": "测试报告",
     "exportReportFail": "导出测试报告失败",
@@ -245,12 +244,10 @@
         "deleteRunMessage": "个用例执行被删除",
         "updateAssigneeTips": "个测试负责人已更新",
         "repositoryGroup": "所属模块",
-        "caseLatestStatus": "最新执行状态",
-        "caseLatestExecutor": "最新执行人",
         "runCount": "执行任务次数",
         "detailName": "用例标题",
         "runStatus": "测试执行状态",
-        "executor": "最近执行人",
+        "executor": "最新执行人",
         "designee": "执行人",
         "assigneeSetting": "设置负责人",
         "editorItemTips": "暂无事项编辑权限，请检查事项操作权限配置或联系管理员",
@@ -340,7 +337,7 @@
           "status": "状态",
           "testPlan": "测试计划",
           "assignee": "负责人",
-          "executor": "最新操作执行人"
+          "executor": "最新执行人"
         },
         "todo": "未开始",
         "fontName": "宋体"

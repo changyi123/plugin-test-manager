@@ -96,7 +96,7 @@ export type Status = {
   final: boolean;
   native: boolean;
   readOnly: boolean;
-  type: 'TODO' | 'PASSED' | 'EXECUTING' | 'FAILED';
+  type: 'TODO' | 'PASSED' | 'EXECUTING' | 'FAILED' | 'BLOCK' | 'CANCEL';
   caseStatus: Record<string, string>;
 };
 
