@@ -250,6 +250,10 @@ export const FILTER_EXPRESSIONS = t => ({
     { label: t('common.contain'), value: FILTER_EXPR_NAME.Dropdown_Contain },
     { label: t('common.notContain'), value: FILTER_EXPR_NAME.Dropdown_Not_Contain },
   ],
+  CustomVersion: [
+    { label: t('common.contain'), value: FILTER_EXPR_NAME.Dropdown_Contain },
+    { label: t('common.notContain'), value: FILTER_EXPR_NAME.Dropdown_Not_Contain },
+  ],
   Sprint: [
     { label: t('common.contain'), value: FILTER_EXPR_NAME.Dropdown_Contain },
     { label: t('common.notContain'), value: FILTER_EXPR_NAME.Dropdown_Not_Contain },
@@ -316,16 +320,6 @@ export const FILTER_EXPRESSIONS = t => ({
     { label: t('common.contain'), value: FILTER_EXPR_NAME.Tag_Contain },
     { label: t('common.notContain'), value: FILTER_EXPR_NAME.Tag_Not_Contain },
   ],
-  test_manager_Repository: [
-    // 测试用例库模块
-    { label: t('common.contain'), value: FILTER_EXPR_NAME.Test_Repository_Contain },
-    { label: t('common.notContain'), value: FILTER_EXPR_NAME.Test_Repository_Not_Contain },
-  ],
-  test_manager_status: [
-    // 测试用例最新执行状态
-    { label: t('common.contain'), value: FILTER_EXPR_NAME.Test_Status_Contain },
-    { label: t('common.notContain'), value: FILTER_EXPR_NAME.Test_Status_Not_Contain },
-  ],
   UserGroup: [
     { label: t('common.contain'), value: FILTER_EXPR_NAME.UserGroup_Contain },
     { label: t('common.notContain'), value: FILTER_EXPR_NAME.UserGroup_Not_Contain },
@@ -344,6 +338,16 @@ export const FILTER_EXPRESSIONS = t => ({
   Team: [
     { label: t('common.contain'), value: FILTER_EXPR_NAME.Dropdown_Contain },
     { label: t('common.notContain'), value: FILTER_EXPR_NAME.Dropdown_Not_Contain },
+  ],
+  test_manager_Repository: [
+    // 测试用例库模块
+    { label: t('common.contain'), value: FILTER_EXPR_NAME.Test_Repository_Contain },
+    { label: t('common.notContain'), value: FILTER_EXPR_NAME.Test_Repository_Not_Contain },
+  ],
+  test_manager_status: [
+    // 测试用例最新执行状态
+    { label: t('common.contain'), value: FILTER_EXPR_NAME.Test_Status_Contain },
+    { label: t('common.notContain'), value: FILTER_EXPR_NAME.Test_Status_Not_Contain },
   ],
 });
 
