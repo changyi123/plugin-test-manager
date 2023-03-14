@@ -132,7 +132,14 @@ export const queryLinkedTestEntity = async () => {
 /** 查询测试计划下用例的最新执行状态 */
 export const queryCaseIdByStatus = async () => {
   const { body } = getReqInfoFromVMRuntime<QueryCaseIdByStatusPayload>();
-  const { planId, status, isExclude } = body;
+  const { planId, status: statusData, isExclude } = body;
+
+  // 格式化 status 字段, 保证 status 是数组
+  const status = Array.isArray(statusData)
+    ? statusData
+    : statusData === null
+    ? statusData
+    : [statusData];
 
   // 查询计划关联的所有的用例
   const linkedTestCases = await iqlRequest<TestEntity<TestType.Case>>({
@@ -164,7 +171,9 @@ export const queryCaseIdByStatus = async () => {
         return isExclude;
       }
       // 处理包含和不包含的情况
-      return isExclude ? item.status !== status : item.status === status;
+      const isIncludeStatus = status.includes(item.status);
+
+      return isExclude ? !isIncludeStatus : isIncludeStatus;
     })
     .map(item => item.id);
 

@@ -97,7 +97,7 @@ export type CommonTestEntityQueryPayload = PaginationParams & {
  */
 export type QueryCaseIdByStatusPayload = {
   planId: string;
-  status: Status['key'] | null;
+  status: Status['key'][] | null;
   isExclude?: boolean;
 };
 export type QueryCaseIdByStatusResponse = string[];
