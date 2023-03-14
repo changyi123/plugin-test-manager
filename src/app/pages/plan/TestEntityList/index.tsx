@@ -366,7 +366,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     },
     {
       key: 'caseLatestStatus',
-      title: t('page.plan.testEntityList.caseLatestStatus'),
+      title: t('page.plan.testEntityList.runStatus'),
       width: 200,
       render(_, rowData) {
         return (
@@ -376,7 +376,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     },
     {
       key: 'caseLatestExecutor',
-      title: t('page.plan.testEntityList.caseLatestExecutor'),
+      title: t('page.plan.testEntityList.executor'),
       width: 200,
       render(_, rowData) {
         return <Field.User userInfo={rowData?.caseLatestExecutor} />;

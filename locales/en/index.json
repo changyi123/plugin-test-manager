@@ -246,8 +246,6 @@
         "deleteRunMessage": "Test case executions were deleted",
         "updateAssigneeTips": "Test owners have been updated",
         "repositoryGroup": "Belonging module",
-        "caseLatestStatus": "Case status",
-        "caseLatestExecutor": "Case executor",
         "runCount": "Number of tasks executed",
         "detailName": "Test case Title",
         "runStatus": "Test execution status",
