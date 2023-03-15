@@ -712,20 +712,20 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       setTableLoading(true);
 
       // 更新测试执行状态
-      await updateTestStatus({
+      const res = await updateTestStatus({
         status: status.key,
         runIds: canExecuteTestRunIds,
         planId: selectedTestPlan?.objectId,
       });
-
-      notification.success({
-        message: t('page.plan.testEntityList.updateRunStateTips'),
-      });
+      if (res) {
+        notification.success({
+          message: t('page.plan.testEntityList.updateRunStateTips'),
+        });
+        actionRef.current.refresh();
+        mutateTestPlanEvent.emit(selectedTestPlan?.objectId);
+        mutateStatusEvent.emit('refreshExecutionStatus');
+      }
       setTableLoading(false);
-      actionRef.current.refresh();
-      mutateTestPlanEvent.emit(selectedTestPlan?.objectId);
-      mutateStatusEvent.emit('refreshExecutionStatus');
-      // refreshAndMutateData();
     };
 
     const deleteTestRun = () => {

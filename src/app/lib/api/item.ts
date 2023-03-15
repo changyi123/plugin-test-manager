@@ -270,7 +270,7 @@ export const updateTestStatus = async data => {
 
   if (res?.status === 'error') {
     message.error(res.data);
-    return;
+    return null;
   }
 
   return res;
