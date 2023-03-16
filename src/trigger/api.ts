@@ -4,4 +4,4 @@ export { batchDelete, batchUpdate, batchCreateTestRun } from './modules/api/batc
 
 export { testPlanStats, testExecutionStats, testCaseStats } from './modules/api/stats';
 
-export { repositoryTree } from './modules/api/module';
+export { repositoryTree, repositoryTreeV2 } from './modules/api/module';
