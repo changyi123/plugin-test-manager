@@ -232,11 +232,13 @@ const TestRun: React.FC<TestRunType> = props => {
     if (
       testId &&
       testRunData &&
-      testRunData.runDetail &&
-      testRunData.runDetail?.precondition == null &&
-      !Array.isArray(testRunData.runDetail?.steps)
+      !testRunData?.runDetail?.precondition &&
+      !Array.isArray(testRunData?.runDetail?.steps)
     ) {
       (async () => {
+        if (!refTestDetailData?.objectId && !testRunEntity?.objectId) return;
+        const detail = refTestDetailData?.detail;
+        if (!detail?.steps?.length && !detail?.precondition) return;
         const steps = await getTestStepsByTestDetailId(refTestDetailData?.objectId);
         try {
           await updateTestRunDetail(
@@ -244,7 +246,7 @@ const TestRun: React.FC<TestRunType> = props => {
             {
               steps: steps,
               runDetail: {
-                precondition: refTestDetailData.detail?.precondition ?? '',
+                precondition: detail?.precondition ?? '',
               },
             },
             {
