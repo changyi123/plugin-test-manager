@@ -43,7 +43,7 @@ const testSteps = datas => (isSteps(datas) ? splitSteps(datas).some(d => !testSt
 
 const getCharNumErrorIndex = datas =>
   splitSteps(datas)
-    .map((d, index) => (getCharNum(d) > 500 ? index : null))
+    .map((d, index) => (getCharNum(d) > 2000 ? index : null))
     .filter(d => d !== null);
 
 const getTestDetailsErrors = (datas, resProps?: Record<string, unknown>) =>
