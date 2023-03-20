@@ -41,7 +41,7 @@ const StepFields: React.FC<{
               Object.assign(
                 {
                   key: field.key,
-                  maxLength: 500,
+                  maxLength: 2000,
                   placeholder: `${t('components.business.testStep.pleaseInput')} ${t(
                     `components.business.testStep.${field.title}`,
                   )}（${t('components.business.testStep.switchNext')}）`,
