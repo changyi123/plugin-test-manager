@@ -59,7 +59,7 @@ const TestDetailForm: React.FC<TestDetailFormProps> = ({ onChange, values, extra
       <h6 className={cx('step-title', 'field-label')}>前置条件</h6>
       <div className={cx('precondition')}>
         <Input.TextArea
-          maxLength={1000}
+          maxLength={2000}
           autoSize={{ minRows: 3, maxRows: 6 }}
           placeholder="请输入测试用例前置条件"
           defaultValue={values?.precondition}

@@ -39,7 +39,7 @@ const StepFields: React.FC<{
               Object.assign(
                 {
                   key: field.key,
-                  maxLength: 500,
+                  maxLength: 2000,
                   placeholder: `请输入${field.title}（Alt+Enter切换下一列）`,
                   onKeyDownEnter: () => nextField(stepId, field.key),
                   ref: ref => {

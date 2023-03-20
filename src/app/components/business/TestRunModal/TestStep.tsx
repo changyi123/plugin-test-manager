@@ -226,7 +226,7 @@ const TestStep: React.FC<TestStepProps> = props => {
                 <Input
                   placeholder="请输入实际结果"
                   value={step.actualResult}
-                  maxLength={500}
+                  maxLength={2000}
                   onKeyDownEnter={value => changeSteps(step.id, value)}
                   onChange={value => changeSteps(step.id, value)}
                 />
