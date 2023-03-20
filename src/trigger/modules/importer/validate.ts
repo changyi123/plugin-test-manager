@@ -23,15 +23,17 @@ const errorLog1 = '单次导入最多支持1000条，超过1000条，导入前10
 
 // 判断是否为中文字符
 // eslint-disable-next-line no-control-regex
-const isTwoChar = d => /[^\x00-\xff]/g.test(d);
+// const isTwoChar = d => /[^\x00-\xff]/g.test(d);
 
 // 获取字符串字符数
-const getCharNum = d =>
-  `${d ?? ''}`?.split('').reduce((prev, cur) => {
-    prev = prev + (isTwoChar(cur) ? 2 : 1);
+// const getCharNum = d =>
+//   `${d ?? ''}`?.split('').reduce((prev, cur) => {
+//     prev = prev + (isTwoChar(cur) ? 2 : 1);
 
-    return prev;
-  }, 0);
+//     return prev;
+//   }, 0);
+
+const getStringLength = d => `${d ?? ''}`?.length;
 
 const splitSteps = datas => datas?.replace(/^[\r\n]+/g, '')?.split(/(?=【\d+】)/g) ?? [];
 
@@ -43,7 +45,7 @@ const testSteps = datas => (isSteps(datas) ? splitSteps(datas).some(d => !testSt
 
 const getCharNumErrorIndex = datas =>
   splitSteps(datas)
-    .map((d, index) => (getCharNum(d) > 2000 ? index : null))
+    .map((d, index) => (getStringLength(d) > 2000 ? index : null))
     .filter(d => d !== null);
 
 const getTestDetailsErrors = (datas, resProps?: Record<string, unknown>) =>
@@ -66,9 +68,9 @@ const getTestDetailsErrors = (datas, resProps?: Record<string, unknown>) =>
     }
 
     // 校验前置条件字数
-    if (getCharNum(cur.precondition) > 1000) {
+    if (getStringLength(cur.precondition) > 2000) {
       prev = prev.concat([
-        `第 ${index + 1} 条前置条件字符数超过限制，前置条件 限制 1000 个字符，不予以导入`,
+        `第 ${index + 1} 条前置条件字符数超过限制，前置条件 限制 2000 个字符，不予以导入`,
       ]);
     }
 
@@ -82,7 +84,7 @@ const getTestDetailsErrors = (datas, resProps?: Record<string, unknown>) =>
       prev = prev.concat(
         `第 ${index + 1} 条用例的 ${getCharNumErrorIndex(cur.action)
           .map(d => d + 1)
-          .join('、')} 条步骤描述超过限制，步骤描述 限制 500 个字符，不予以导入`,
+          .join('、')} 条步骤描述超过限制，步骤描述 限制 2000 个字符，不予以导入`,
       );
     }
 
@@ -96,7 +98,7 @@ const getTestDetailsErrors = (datas, resProps?: Record<string, unknown>) =>
       prev = prev.concat(
         `第 ${index + 1} 条用例的 ${getCharNumErrorIndex(cur.result)
           .map(d => d + 1)
-          .join('、')} 条预期结果超过限制，预期结果 限制 500 个字符，不予以导入`,
+          .join('、')} 条预期结果超过限制，预期结果 限制 2000 个字符，不予以导入`,
       );
     }
 
@@ -110,7 +112,7 @@ const getTestDetailsErrors = (datas, resProps?: Record<string, unknown>) =>
       prev = prev.concat(
         `第 ${index + 1} 条用例的 ${getCharNumErrorIndex(cur.data)
           .map(d => d + 1)
-          .join('、')} 条数据超过限制，数据 限制 500 个字符，不予以导入`,
+          .join('、')} 条数据超过限制，数据 限制 2000 个字符，不予以导入`,
       );
     }
 
