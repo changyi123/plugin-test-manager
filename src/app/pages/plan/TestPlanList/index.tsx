@@ -188,7 +188,7 @@ const TestPlanList: React.FC<any> = () => {
       render(_, rowData) {
         const passCount = rowData.caseStatus?.PASSED ?? 0;
         const total =
-          Object.values(rowData.caseStatus).reduce((prev: number, cur: number) => {
+          Object.values(rowData.caseStatus ?? {}).reduce((prev: number, cur: number) => {
             prev = prev + cur;
             return prev;
           }, 0) || 1;
