@@ -10,6 +10,7 @@ import { StatusBadge, StatusList } from '@/components/business/Status';
 import Input from '@/components/business/TestStep/fields/Input';
 import { addTestDefect, deleteTestDefect, updateTestRunDetail } from '@/lib/api/item';
 import ExecutionEditor from './ExecutionEditor';
+import useI18n from '@/lib/hooks/useI18n';
 import { components } from 'proxima-sdk';
 
 const { ItemIcon } = components.Components.Common;
@@ -28,6 +29,7 @@ const TestStep: React.FC<TestStepProps> = props => {
     handleStatusChangeBySteps,
     selectedTestPlanId,
   } = props;
+  const { t } = useI18n();
   const { TestToDefect = '' } = useItemLinkTypeConfig();
   const [statusConfig, setStatusConfig] = React.useState({});
   const renderFieldValue = value => (value ? escapeHtmlString(value) : '-');
@@ -150,12 +152,12 @@ const TestStep: React.FC<TestStepProps> = props => {
             {item.name}
           </a>
           <Popconfirm
-            okText="确定"
-            cancelText="取消"
+            okText={t('common.confirm')}
+            cancelText={t('common.cancel')}
             getPopupContainer={() =>
               document.querySelector('[data-element-id="test-run-container"]')
             }
-            title="当前操作会删除与该缺陷的关联关系，是否继续执行？"
+            title={t('components.business.testRunModal.defectList.deleteButtonTips')}
             onConfirm={() => handleDeleteDefect(stepId, item.objectId ?? itemId)}
           >
             <a style={{ display: isHover ? 'block' : 'none' }}>
@@ -182,14 +184,21 @@ const TestStep: React.FC<TestStepProps> = props => {
   };
 
   if (!state.steps?.length)
-    return <Empty style={{ marginTop: 60 }} description="当前测试执行无用例步骤" />;
+    return (
+      <Empty
+        style={{ marginTop: 60 }}
+        description={t('components.business.testRunModal.testStep.noSteps')}
+      />
+    );
 
   return (
     <div className={cx('step-list')}>
       <div className={cx('header', 'row')}>
         <span className={cx('position')}>#</span>
-        <span className={cx('action')}>步骤</span>
-        <span className={cx('status')}>步骤结果</span>
+        <span className={cx('action')}>{t('components.business.testRunModal.testStep.step')}</span>
+        <span className={cx('status')}>
+          {t('components.business.testRunModal.testStep.stepResult')}
+        </span>
       </div>
       {state.steps.map((step, index) => (
         <div className={cx('step')} key={step.id}>
@@ -217,14 +226,18 @@ const TestStep: React.FC<TestStepProps> = props => {
           </div>
           <div className={cx('fields')}>
             <div className={cx('field')}>
-              <span className={cx('label')}>预期：</span>
+              <span className={cx('label')}>
+                {t('components.business.testRunModal.testStep.expect')}：
+              </span>
               <span className={cx('data')}>{renderFieldValue(step.result)}</span>
             </div>
             <div className={cx('field')}>
-              <span className={cx('label')}>实际结果：</span>
+              <span className={cx('label')}>
+                {t('components.business.testRunModal.testStep.result')}：
+              </span>
               <span className={cx('input')}>
                 <Input
-                  placeholder="请输入实际结果"
+                  placeholder={t('components.business.testRunModal.testStep.resultPlaceholder')}
                   value={step.actualResult}
                   maxLength={2000}
                   onKeyDownEnter={value => changeSteps(step.id, value)}
@@ -233,12 +246,17 @@ const TestStep: React.FC<TestStepProps> = props => {
               </span>
             </div>
             <div className={cx('field')}>
-              <span className={cx('label')}>数据：</span>
+              <span className={cx('label')}>
+                {t('components.business.testRunModal.testStep.data')}：
+              </span>
               <span className={cx('data')}>{renderFieldValue(step.data)}</span>
             </div>
           </div>
           <div className={cx('step-defects')}>
-            <div className={cx('label')}>缺陷（{renderStepLength(step.defectItemIds)}）</div>
+            <div className={cx('label')}>
+              {t('components.business.testRunModal.testStep.defect')}（
+              {renderStepLength(step.defectItemIds)}）
+            </div>
             {renderStepDefectList(step.id)}
             <AddDefectButton
               // plainStyle

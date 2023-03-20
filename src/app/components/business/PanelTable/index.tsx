@@ -4,6 +4,7 @@ import { TableProps } from 'antd/lib/table';
 import { useAntdTable, useSafeState } from 'ahooks';
 import { Table, Button, Popconfirm } from 'antd';
 import { hasArrayItem, getRootContainer } from '@/lib/utils/helper';
+import useI18n from '@/lib/hooks/useI18n';
 
 import cx from './index.less';
 
@@ -28,6 +29,7 @@ const PanelTable: React.FC<PanelTableProps> = props => {
   } = props;
   // 全量的 row 数据
   const allRowDataRef = React.useRef([]);
+  const { t } = useI18n();
 
   const [selectedRowKeys, setSelectedRowKeys] = useSafeState([]);
   const [batchSelect, setBatchSelect] = useSafeState(false);
@@ -99,10 +101,14 @@ const PanelTable: React.FC<PanelTableProps> = props => {
       <div className={cx('actions-header')}>
         <div className={cx('left')}>
           <Button type="default" onClick={handleBatchSelect}>
-            {batchSelect ? '取消选择' : '批量选择'}
+            {batchSelect ? t('common.cancelSelect') : t('common.batchSelect')}
           </Button>
           {batchSelect ? (
-            <div className={cx('select-tip')}>已选 {selectedRowKeys.length} 条</div>
+            <div className={cx('select-tip')}>
+              {`${t('components.business.panelTable.select')}
+               ${selectedRowKeys.length} 
+              ${t('common.item', { count: selectedRowKeys.length })}`}
+            </div>
           ) : null}
           {batchSelect && hasArrayItem(actionMenuList) && hasArrayItem(selectedRowKeys) ? (
             <div className={cx('actions')}>
@@ -111,10 +117,13 @@ const PanelTable: React.FC<PanelTableProps> = props => {
                   key={index}
                   placement="right"
                   getPopupContainer={() => getRootContainer()}
-                  title={`当前操作会${action.title}所选的数据，是否继续执行操作？`}
+                  title={`
+                   ${t('components.business.panelTable.selectConfirmTips.0')}
+                    ${action.title} 
+                   ${t('components.business.panelTable.selectConfirmTips.1')}`}
                   onConfirm={() => action?.onClick(selectedRowKeys)}
-                  okText="确定"
-                  cancelText="取消"
+                  okText={t('common.confirm')}
+                  cancelText={t('common.cancel')}
                 >
                   <a>{action.title}</a>
                 </Popconfirm>
@@ -134,7 +143,7 @@ const PanelTable: React.FC<PanelTableProps> = props => {
           ...tableProps.pagination,
           size: 'small',
           showTotal(total) {
-            return `共 ${total} 条数据`;
+            return `${t('common.tableTotal.0')} ${total} ${t('common.tableTotal.1')}`;
           },
           pageSizeOptions: ['10', '30', '50'],
           showSizeChanger: true,

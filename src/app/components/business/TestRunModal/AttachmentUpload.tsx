@@ -6,6 +6,7 @@ import { actionConfirm } from '@/lib/utils/helper';
 import { TabsComponentBaseProps } from './type';
 import Parse from '@/lib/parse';
 import dayjs from 'dayjs';
+import useI18n from '@/lib/hooks/useI18n';
 
 import cx from './AttachmentUpload.less';
 
@@ -14,6 +15,7 @@ type AttachmentUploadProps = TabsComponentBaseProps;
 const AttachmentList: React.FC<any> = props => {
   const { fileRef, fileList, setFileList, testRunData, testRunEntity, onDataChange, onLoading } =
     props;
+  const { t } = useI18n();
 
   const [checkList, stCheckList] = useState<any[]>([]);
   const [isBatch, setIsBatch] = useState(false);
@@ -25,7 +27,7 @@ const AttachmentList: React.FC<any> = props => {
     setIndeterminate(!!checkList.length && checkList.length < fileList.length);
   }, [checkList, fileList]);
 
-  const deleteFileLise = async file => {
+  const deleteFileList = async file => {
     if (!file.url) {
       await updateTestRunDetail(testRunEntity, {
         runDetail: {
@@ -95,7 +97,9 @@ const AttachmentList: React.FC<any> = props => {
       {fileList.length ? (
         <div className={cx('file-cont')}>
           <div className={cx('file-list-header')}>
-            <Button onClick={() => setIsBatch(x => !x)}>{isBatch ? '取消操作' : '批量操作'}</Button>
+            <Button onClick={() => setIsBatch(x => !x)}>
+              {t(`common.${isBatch ? 'cancelAction' : 'batchAction'}`)}
+            </Button>
             {isBatch && (
               <>
                 <div className={cx('file-check')}>
@@ -104,8 +108,9 @@ const AttachmentList: React.FC<any> = props => {
                     onChange={checkoutAll}
                     checked={checkedAll}
                   >
-                    已选择
-                    <span style={{ padding: '0 4px', color: '#0045d9' }}>{checkList.length}</span>项
+                    {t('components.business.testEntitySelectorModal.selected')}
+                    <span style={{ padding: '0 4px', color: '#0045d9' }}>{checkList.length}</span>
+                    {t('common.item')}
                   </Checkbox>
                 </div>
                 <div className={cx('file-batch-action')}>
@@ -119,19 +124,28 @@ const AttachmentList: React.FC<any> = props => {
                             downLoadFile(flie);
                           });
                       } else {
-                        message.warning('请选择附件');
+                        message.warning(
+                          t('components.business.testRunModal.attachmentUpload.selectFile'),
+                        );
                       }
                     }}
                   >
                     <DownloadOutlined className={cx('icon')} />
-                    下载
+                    {t('common.download')}
                   </div>
                   <div
                     className={cx('action-icon')}
                     onClick={() => {
                       if (checkList.length) {
                         actionConfirm(
-                          '该操作会将该附件从测试用例中移除，是否继续操作？',
+                          {
+                            title: t('common.tip'),
+                            okText: t('common.okText'),
+                            cancelText: t('common.cancel'),
+                            content: t(
+                              'components.business.testRunModal.attachmentUpload.actionTips',
+                            ),
+                          },
                           async () => {
                             const list = fileList.filter(file => !checkList.includes(file.uid));
 
@@ -171,12 +185,14 @@ const AttachmentList: React.FC<any> = props => {
                           },
                         );
                       } else {
-                        message.warning('请选择附件');
+                        message.warning(
+                          t('components.business.testRunModal.attachmentUpload.selectFile'),
+                        );
                       }
                     }}
                   >
                     <DeleteOutlined className={cx('icon')} />
-                    删除
+                    {t('common.delete')}
                   </div>
                 </div>
               </>
@@ -215,19 +231,29 @@ const AttachmentList: React.FC<any> = props => {
                   <div className={cx('action')}>
                     <div className={cx('action-icon')} onClick={() => downLoadFile(file)}>
                       <DownloadOutlined className={cx('icon')} />
-                      下载
+                      {t('common.download')}
                     </div>
                     <div
                       className={cx('action-icon')}
                       onClick={() =>
-                        actionConfirm('该操作会将该附件从测试用例中移除，是否继续操作？', () => {
-                          deleteFileLise(file);
-                          onDataChange();
-                        })
+                        actionConfirm(
+                          {
+                            title: t('common.tip'),
+                            okText: t('common.okText'),
+                            cancelText: t('common.cancel'),
+                            content: t(
+                              'components.business.testRunModal.attachmentUpload.actionTips',
+                            ),
+                          },
+                          () => {
+                            deleteFileList(file);
+                            onDataChange();
+                          },
+                        )
                       }
                     >
                       <DeleteOutlined className={cx('icon')} />
-                      删除
+                      {t('common.delete')}
                     </div>
                   </div>
                 </div>
@@ -236,13 +262,16 @@ const AttachmentList: React.FC<any> = props => {
           </Checkbox.Group>
         </div>
       ) : (
-        <p style={{ color: '#b0b5bc' }}>当前测试执行无附件数据</p>
+        <p style={{ color: '#b0b5bc' }}>
+          {t('components.business.testRunModal.attachmentUpload.noData')}
+        </p>
       )}
     </>
   );
 };
 
 const AttachmentUpload: React.FC<AttachmentUploadProps> = props => {
+  const { t } = useI18n();
   const { testRunData, testRunEntity, onDataChange, onLoading } = props;
 
   const fileRef = React.useRef(new Map());
@@ -330,7 +359,12 @@ const AttachmentUpload: React.FC<AttachmentUploadProps> = props => {
       return new Promise<boolean>(resolve => {
         // 限制大小
         if (file.size / 1024 / 1024 > 50) {
-          message.error(`${file.name}大小不能超过${50}MB`, 2);
+          message.error(
+            `${file.name}${t(
+              'components.business.testRunModal.attachmentUpload.uploadTips',
+            )}${50}MB`,
+            2,
+          );
           return Upload.LIST_IGNORE;
         } else {
           return resolve(true);
@@ -374,7 +408,7 @@ const AttachmentUpload: React.FC<AttachmentUploadProps> = props => {
           icon={<UploadOutlined />}
           style={{ padding: 0, marginBottom: '12px' }}
         >
-          上传附件
+          {t('components.business.testRunModal.attachmentUpload.uploadFile')}
         </Button>
       </Upload>
     </>

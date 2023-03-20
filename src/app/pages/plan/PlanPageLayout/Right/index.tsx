@@ -5,7 +5,7 @@ import RepoDropDown from '@/pages/repository/RepoDropDown';
 import TestEntitySelectorModal, {
   ActionType as ModelActionType,
 } from '@/components/business/TestEntitySelectorModal';
-import { extendFields, RepositoryModel, TestLinkType, TestType } from '@/lib/constants';
+import { getExtendFields, RepositoryModel, TestLinkType, TestType } from '@/lib/constants';
 import { useUpdateEffect } from 'ahooks';
 import { usePageContext } from '../../hook';
 import { useSetTableHeight } from './hooks';
@@ -16,19 +16,9 @@ import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/ho
 import { getFilterFields } from '@/components/common/FilterSearch/utils';
 import createProximaSdk from '@projectproxima/proxima-sdk-js';
 import { useBaseAction } from '@/lib/hooks/useContext';
+import useI18n from '@/lib/hooks/useI18n';
 
 import cx from './index.less';
-
-const options = [
-  {
-    value: 'showChild',
-    label: '显示子分组用例',
-  },
-  {
-    value: 'showCur',
-    label: '显示当前分组用例',
-  },
-];
 
 interface RightProps {
   activeType?: string;
@@ -66,6 +56,7 @@ const Right: React.FC<RightProps> = props => {
   } = usePageContext();
   const proxima = createProximaSdk();
   const { getCreatePermission } = useBaseAction();
+  const { t } = useI18n();
 
   useSetTableHeight();
 
@@ -104,10 +95,10 @@ const Right: React.FC<RightProps> = props => {
   }, [selectedTestPlan?.objectId]);
 
   const addTestExecutionDetail = useCallback(async () => {
-    const caseIds: string[] = await testEntitySelectorRef.current.open();
+    const { selectedData: caseIds } = await testEntitySelectorRef.current.open();
     if (caseIds?.length === 0) {
       return notification.warning({
-        message: '未选择测试用例',
+        message: t('page.plan.planPageLayout.right.notSelectMessage'),
       });
     }
 
@@ -132,7 +123,7 @@ const Right: React.FC<RightProps> = props => {
     mutateStatusEvent.emit('refreshExecutionStatus');
     setLoading(false);
     notification.success({
-      message: '用例执行创建成功',
+      message: t('page.plan.planPageLayout.right.createTestRunSuccessMessage'),
     });
     proxima.execute('refreshTestRunPanel');
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -141,20 +132,20 @@ const Right: React.FC<RightProps> = props => {
   const filterSearchExtendFieldsProps = useMemo(() => {
     const fieldsMapping = {
       // 测试用例类型筛选，只有测试用例库模块
-      TestPlan: extendFields.filter(field => field.key === RepositoryModel),
+      TestPlan: getExtendFields(t).filter(field => field.key === RepositoryModel),
       // 测试执行搜索
-      TestExecution: extendFields,
+      TestExecution: getExtendFields(t),
     };
 
     return fieldsMapping[activeType];
-  }, [activeType]);
+  }, [activeType, t]);
 
   const addTestDetail = async () => {
     const itemData = await testEntitySelectorRef.current.open();
 
     if (!itemData.length) {
       return notification.warning({
-        message: '未选择测试用例',
+        message: t('page.plan.planPageLayout.right.notSelectMessage'),
       });
     }
 
@@ -188,7 +179,7 @@ const Right: React.FC<RightProps> = props => {
     setLoading(false);
     // planDataMutate(selectedTestPlan?.objectId);
     notification.success({
-      message: '测试用例已成功添加至测试计划中',
+      message: t('page.plan.planPageLayout.right.caseToPlanSuccessMessage'),
     });
   };
 
@@ -210,18 +201,27 @@ const Right: React.FC<RightProps> = props => {
                 </div>
               </>
             ) : (
-              '全部用例'
+              t('common.allTestCase')
             )}
           </div>
           <div className={cx('extra-content-right')}>
             <Select
               className={cx('select-group')}
               value={showType}
-              options={options}
+              options={[
+                {
+                  value: 'showChild',
+                  label: t('page.plan.planPageLayout.right.showChild'),
+                },
+                {
+                  value: 'showCur',
+                  label: t('page.plan.planPageLayout.right.showCur'),
+                },
+              ]}
               onChange={val => setShowType(val)}
             ></Select>
             <Button className={cx('action')} onClick={() => toggleTableSelection()}>
-              {tableSelectionVisible ? '取消操作' : '批量操作'}
+              {tableSelectionVisible ? t('common.cancelAction') : t('common.batchAction')}
             </Button>
             <>
               <Button
@@ -230,7 +230,7 @@ const Right: React.FC<RightProps> = props => {
                 className={cx('action')}
                 disabled={!selectedTestPlan || getCreatePermission(TestType.Case)}
               >
-                规划用例
+                {t('common.planCase')}
               </Button>
               <RepoDropDown
                 type="plan"
@@ -261,13 +261,14 @@ const Right: React.FC<RightProps> = props => {
           testDetailFieldKeys={testDetailFieldKeys}
         />
         <TestEntitySelectorModal
-          title="选择规划的测试用例"
+          title={t('page.plan.planPageLayout.right.caseSelectModelTitle')}
           testType={TestType.Case}
           actionRef={testEntitySelectorRef}
           afterClose={() => {
             pageLeftRef.current?.refresh();
           }}
           ignoreTestEntityIds={scopedTestDetailIds}
+          planId={activeType === 'TestPlan' ? '' : selectedTestPlan?.objectId}
         />
       </div>
     </div>

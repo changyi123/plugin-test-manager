@@ -18,9 +18,11 @@ import {
   updateTestEntity,
   getLinkedTestEntityByQuery,
 } from '@/lib/api/item';
+import useI18n from '@/lib/hooks/useI18n';
 import cx from './index.less';
 
 const Test = () => {
+  const { t } = useI18n();
   const { testEntity, workspace } = useTestConfig();
   const tableActionRef = React.useRef<ActionType>();
   const selectorModalRef = React.useRef<SelectorActionType>();
@@ -133,10 +135,12 @@ const Test = () => {
       refresh();
       alert({
         type: 'success',
-        message: `${executionIds.length} 个测试执行添加到测试计划中`,
+        message: `${executionIds.length} ${t(
+          'modules.panel.testPlan.testExecutionPanel.addRunToPlanSuccess',
+        )}`,
       });
     },
-    [refresh, testEntity?.objectId, workspace],
+    [refresh, testEntity?.objectId, workspace, t],
   );
 
   // 创建测试执行
@@ -166,26 +170,28 @@ const Test = () => {
       refresh();
       alert({
         type: 'success',
-        message: `${ids.length} 个测试执行从测试计划中删除`,
+        message: `${ids.length} ${t(
+          'modules.panel.testPlan.testExecutionPanel.deleteRunToPlanSuccess',
+        )}`,
       });
     },
-    [refresh, testEntity.objectId],
+    [refresh, testEntity.objectId, t],
   );
 
   // table column 数据
   const tableColumns = React.useMemo(() => {
     return [
-      columnBuilder(BuiltinColumns.ItemKey, record => ({ item: record })),
-      columnBuilder(BuiltinColumns.ItemTitle, record => ({ item: record })),
+      columnBuilder(BuiltinColumns.getItemKey(t), record => ({ item: record })),
+      columnBuilder(BuiltinColumns.getItemTitle(t), record => ({ item: record })),
       {
-        title: '测试用例数',
+        title: t('modules.panel.testDetail.testPlanPanel.planCount'),
         key: 'count',
         render(_, record) {
           return record.stats?.runCount;
         },
       },
       {
-        title: '状态',
+        title: t('common.status'),
         key: 'status',
         dataIndex: 'status',
         width: 180,
@@ -194,19 +200,21 @@ const Test = () => {
         },
       },
       {
-        title: '操作',
+        title: t('common.action'),
         width: 120,
         key: 'action',
-        render: (_, record) => <a onClick={() => removeTestRelation([record.objectId])}>删除</a>,
+        render: (_, record) => (
+          <a onClick={() => removeTestRelation([record.objectId])}>{t('common.delete')}</a>
+        ),
       },
     ];
-  }, [removeTestRelation]);
+  }, [removeTestRelation, t]);
 
   return (
     <div className={cx('test')}>
       <TestEntitySelectorModal
         actionRef={selectorModalRef}
-        title="添加测试执行至当前测试计划"
+        title={t('modules.panel.testPlan.testExecutionPanel.modelTitle')}
         // onSelect={addTestExecutionToPlan}
         ignoreTestEntityIds={allTestEntities?.map(item => item.objectId)}
       />
@@ -214,13 +222,13 @@ const Test = () => {
       <PanelTable
         renderActions={() => (
           <Button type="primary" onClick={addExistedTestExecution}>
-            添加测试执行任务
+            {t('modules.panel.testPlan.testExecutionPanel.addTestExecution')}
           </Button>
         )}
         actionRef={tableActionRef}
         actionMenuList={[
           {
-            title: '删除',
+            title: t('common.delete'),
             onClick(selectedRowKeys) {
               removeTestRelation(selectedRowKeys);
             },

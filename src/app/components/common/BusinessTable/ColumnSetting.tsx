@@ -6,7 +6,7 @@ import { ColumnType } from 'antd/lib/table';
 import { Button, Drawer, message, Select, Spin, Tooltip } from 'antd';
 import { getCustomFields } from '@/lib/api/proxima';
 import { useGetTableFilterFields, useTestTypeScreenFieldKeys } from './hook';
-import { TableCell } from '@projectproxima/components';
+import { TableCell } from '@giteeteam/apps-team-components';
 import { generateStorageKey } from '@/lib/utils/helper';
 import { useNoExpiredRequest } from '@/lib/hooks/useRequest';
 import { useDeepCompareEffect, useLocalStorageState, useUpdateEffect } from 'ahooks';
@@ -22,10 +22,11 @@ import {
 import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd';
 import createProximaSdk from '@projectproxima/proxima-sdk-js';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
-
-import '@projectproxima/components/dist/main.css';
-import cx from './ColumnSetting.less';
 import { TABLE_EXCLUDE_FIELDS } from '@/lib/constants';
+import useI18n from '@/lib/hooks/useI18n';
+
+import '@giteeteam/apps-team-components/dist/main.css';
+import cx from './ColumnSetting.less';
 
 type ColumnDuckTyping = ColumnType<any> & Record<string, any>;
 
@@ -59,6 +60,7 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
     additionalColumns = [],
     onTableColumnChange = noop,
   } = props;
+  const { t } = useI18n();
   const [visible, setVisible] = React.useState(false);
   const keys = useTestTypeScreenFieldKeys(titleCellOption);
   const fieldKeys = useMemo(() => keys?.filter(key => !TABLE_EXCLUDE_FIELDS.includes(key)), [keys]);
@@ -187,8 +189,8 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
         return acc;
       },
       [
-        { label: '测试管理字段', options: [] },
-        { label: '事项字段', options: [] },
+        { label: t('components.common.businessTable.columnSetting.0'), options: [] },
+        { label: t('components.common.businessTable.columnSetting.1'), options: [] },
       ],
     )
     .filter(item => item.options.length);
@@ -244,21 +246,21 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
     <>
       {titleCellOption?.isSettingPage && (
         <Button className={cx('setting-page-btn')} onClick={() => setVisible(true)}>
-          配置表头
+          {t('components.common.businessTable.setHeader')}
         </Button>
       )}
-      <Tooltip title="表格显示设置">
+      <Tooltip placement="topRight" title={t('components.common.businessTable.tableSetting')}>
         <Setting className={cx(className, 'setting-icon')} onClick={() => setVisible(true)} />
       </Tooltip>
       <Drawer
         className={cx('drawer-box')}
-        visible={visible}
+        open={visible}
         onClose={() => setVisible(false)}
         width={visible ? 320 : 0}
-        title="表格显示设置"
+        title={t('components.common.businessTable.tableSetting')}
       >
         <div className={cx('box-header')}>
-          <div className={cx('title')}>表头设置</div>
+          <div className={cx('title')}>{t('components.common.businessTable.headerSetting')}</div>
           {!titleCellOption?.isSettingPage && (
             <Button
               className={cx('link')}
@@ -276,14 +278,14 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
                 setLoading(false);
               }}
             >
-              恢复默认
+              {t('components.common.businessTable.restoreDefault')}
             </Button>
           )}
         </div>
         <Tooltip
           className={cx('field-tips')}
           placement="bottom"
-          title={'可配置表头列内容及排序、列表搜索框默认检索项，最多可选四个检索项'}
+          title={t('components.common.businessTable.actionTips')}
         >
           <QuestionCircleOutlined />
         </Tooltip>
@@ -296,7 +298,7 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
           options={selectOptions}
           optionFilterProp="label"
           value={storageColumnKeys ?? defaultColumnKey}
-          placeholder="请选择需要展示的列"
+          placeholder={t('components.common.businessTable.placeholder')}
           className={cx('field-select')}
           onChange={keys => setStorageColumnKeys(keys)}
         />
@@ -337,7 +339,9 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
                                   setFields(fieldKeys);
                                 } else {
                                   if (fields?.length >= 4) {
-                                    return message.warning('表检索项配置不能超过4个');
+                                    return message.warning(
+                                      t('components.common.businessTable.searchWarningMessage'),
+                                    );
                                   }
                                   fieldKeys = fields.concat(col.key);
                                   setFields(fieldKeys);
@@ -354,7 +358,12 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
                               }}
                             >
                               <Tooltip
-                                title={fields?.includes(col.key) ? '移除检索项' : '添加检索项'}
+                                placement="topRight"
+                                title={
+                                  fields?.includes(col.key)
+                                    ? t('components.common.businessTable.removeSearch')
+                                    : t('components.common.businessTable.addSearch')
+                                }
                               >
                                 {fields?.includes(col.key) ? (
                                   <DeleteSearch className={cx('icon', 'delete')} />

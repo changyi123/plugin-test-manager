@@ -8,6 +8,7 @@ import { Button, Dropdown, Menu, message, notification, Spin } from 'antd';
 import { getProximaBasePath, getTenantKey, inIframe } from '@/lib/utils/helper';
 import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/hook';
 import { TestType } from '@/lib/constants';
+import useI18n from '@/lib/hooks/useI18n';
 
 const RepoDropDown = ({
   type,
@@ -26,6 +27,7 @@ const RepoDropDown = ({
   extraMenuOptions?: MenuItemProps[];
   setPageLoading?: (val: boolean) => void;
 }) => {
+  const { t } = useI18n();
   const { workspace } = useTestConfig();
   // 条件判断是否需要获取 screenKey
   const testDetailFieldKeys = useTestTypeScreenFieldKeys({
@@ -47,17 +49,21 @@ const RepoDropDown = ({
         }?app=test_manager&disableToggleWorkspace${appendedQueryString}`;
         window.open(href);
       } else if (key === 'example') {
-        downloadExampleFile(testDetailFieldKeys);
-      } else if (['exportAll', 'exportGroup', 'exportPlan'].includes(key)) {
+        downloadExampleFile(testDetailFieldKeys, t);
+      } else if (['exportAll', 'exportChildGroup', 'exportGroup', 'exportPlan'].includes(key)) {
         // 导出逻辑
         notification.open({
-          message: '测试管理用例导出中',
+          message: t('page.repository.repoDropDown.importCaseLoading'),
           icon: <Spin spinning={true} />,
           duration: null,
         });
         setPageLoading?.(true);
-        if (type === 'repository' && key === 'exportGroup' && !folderKey) {
-          message.warning('未选择用例库，请先选择需要导出的用例库');
+        if (
+          !folderKey &&
+          type === 'repository' &&
+          ['exportGroup', 'exportChildGroup'].includes(key)
+        ) {
+          message.warning(t('page.repository.repoDropDown.importCaseWarning'));
           setPageLoading?.(false);
         }
 
@@ -77,15 +83,17 @@ const RepoDropDown = ({
                   workspace,
                 },
           ),
+          t,
         );
         setPageLoading?.(false);
         notification.destroy();
         notification.success({
-          message: '测试管理用例导出完成',
+          message: t('page.repository.repoDropDown.importCaseSuccess'),
         });
       }
     },
     [
+      t,
       workspace,
       testDetailFieldKeys,
       setPageLoading,
@@ -100,16 +108,19 @@ const RepoDropDown = ({
     <Menu onClick={e => menuClick(e)}>
       {type === 'repository' && (
         <>
-          <Menu.Item key="import">用例导入</Menu.Item>
-          <Menu.Item key="example">用例导入模板下载</Menu.Item>
-          <Menu.Item key="exportAll">用例导出（所有分组）</Menu.Item>
-          <Menu.Item key="exportGroup">用例导出（当前分组）</Menu.Item>
+          <Menu.Item key="import">{t('page.repository.repoDropDown.MenuItem.0')}</Menu.Item>
+          <Menu.Item key="example">{t('page.repository.repoDropDown.MenuItem.1')}</Menu.Item>
+          <Menu.Item key="exportAll">{t('page.repository.repoDropDown.MenuItem.2')}</Menu.Item>
+          <Menu.Item key="exportGroup">{t('page.repository.repoDropDown.MenuItem.3')}</Menu.Item>
+          <Menu.Item key="exportChildGroup">
+            {t('page.repository.repoDropDown.MenuItem.4')}
+          </Menu.Item>
         </>
       )}
       {type === 'plan' && (
         <>
           <Menu.Item key="exportPlan" disabled={!selectedTestPlanId}>
-            用例导出（当前计划）
+            {t('page.repository.repoDropDown.MenuItem.5')}
           </Menu.Item>
         </>
       )}

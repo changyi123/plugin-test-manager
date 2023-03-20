@@ -1,4 +1,5 @@
 import { message } from 'antd';
+import { genAcceptLanguage, getLang } from './locale';
 import { getTenantKey } from '@/lib/utils/helper';
 import { getDevConfig, getParseReqHeader } from '@/devEnv';
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
@@ -43,6 +44,16 @@ if (process.env.NODE_ENV === 'development') {
 // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
 const fetch = <FetchInstance>axios.create(config);
 
+fetch.interceptors.request.use(config => {
+  // 获取 lang
+  const parseHeaderLang = genAcceptLanguage(getLang());
+  if (parseHeaderLang && !config.headers['Accept-Language']) {
+    config.headers['Accept-Language'] = parseHeaderLang;
+  }
+
+  return config;
+});
+
 fetch.interceptors.response.use(
   (response: AxiosResponse) => {
     // 如果返回的状态码为200，说明接口请求成功，可以正常拿到数据
@@ -60,13 +71,15 @@ fetch.interceptors.response.use(
   error => {
     // eslint-disable-next-line no-console
     if (error.code === 'ECONNABORTED') {
-      message.error('请求超时');
+      message.error('request timeout');
       return Promise.reject('timeout');
     } else if (error.response.status) {
       if (typeof error.response.data === 'object') {
-        message.error(error.response.data?.message || error.response.data?.error || '请求失败');
+        message.error(
+          error.response.data?.message || error.response.data?.error || 'request failed',
+        );
       } else {
-        message.error(error.response.data || '请求失败');
+        message.error(error.response.data || 'request failed');
       }
       return Promise.reject(error.response);
     }

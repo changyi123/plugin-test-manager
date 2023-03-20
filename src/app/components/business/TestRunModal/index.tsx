@@ -4,6 +4,7 @@ import classnames from 'classnames';
 import { Modal, Button } from 'antd';
 import EventBus from '@/lib/utils/eventBus';
 import { getRootContainer } from '@/lib/utils/helper';
+import useI18n from '@/lib/hooks/useI18n';
 
 export type ActionType = {
   open: (data: { testId: string; testIdSequence?: string[] }) => Promise<void>;
@@ -23,6 +24,7 @@ const TestRunModal: React.FC<ITestRunModalProps> = ({
   idSequence,
   selectedTestPlanId,
 }) => {
+  const { t } = useI18n();
   const [isVisible, setIsVisible] = React.useState(false);
   const [testRunDepData, setTestRunDepData] = React.useState(
     {} as Parameters<ActionType['open']>[0],
@@ -53,18 +55,18 @@ const TestRunModal: React.FC<ITestRunModalProps> = ({
   const ModalFooterActionButtonsNode = React.useMemo(() => {
     return (
       <>
-        <Button onClick={handleCloseModal}>关闭</Button>
+        <Button onClick={handleCloseModal}>{t('common.close')}</Button>
       </>
     );
-  }, [handleCloseModal]);
+  }, [handleCloseModal, t]);
 
   return (
     <>
       <Modal
         width={1000}
-        title="测试执行"
+        title={t('common.testRun')}
         destroyOnClose
-        visible={isVisible}
+        open={isVisible}
         maskClosable={false}
         onCancel={handleCloseModal}
         getContainer={getRootContainer}

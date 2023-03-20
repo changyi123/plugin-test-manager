@@ -9,6 +9,7 @@ import { useMemoizedFn, useRequest, useControllableValue } from 'ahooks';
 import { hasArrayItem, escapeMatchesQueryArg } from '@/lib/utils/helper';
 import { FileOpen, FileClose, CaretDownOutlined, SearchOutlined } from '@/icons';
 import { traverseTreeNodes, getTreeNodeByKey, reverseTreeNodes } from '@/pages/repository/util';
+import useI18n from '@/lib/hooks/useI18n';
 
 import cx from './style.less';
 
@@ -18,6 +19,7 @@ type RepositorySelectorInputProps = {
 } & SelectProps;
 
 const RepositorySelectorInput: React.FC<RepositorySelectorInputProps> = props => {
+  const { t } = useI18n();
   const {
     workspaceId,
     workspaceKey: workspaceKeyProp,
@@ -197,7 +199,7 @@ const RepositorySelectorInput: React.FC<RepositorySelectorInputProps> = props =>
             value={searchText}
             prefix={<SearchOutlined />}
             className={cx('search-input')}
-            placeholder="请输入模块关键字搜索"
+            placeholder={t('components.business.repositorySelectorField.placeholder1')}
             onChange={e => setSearchText(e.target.value)}
           />
         </div>
@@ -249,7 +251,7 @@ const RepositorySelectorInput: React.FC<RepositorySelectorInputProps> = props =>
       onClear={handleClear}
       options={selectOptions}
       dropdownRender={dropdownRender}
-      placeholder="请选择用例所属模块，为空默认为未分组"
+      placeholder={t('components.business.repositorySelectorField.placeholder2')}
       onDropdownVisibleChange={handleDropdownVisibleChange}
       getPopupContainer={triggerNode => triggerNode.parentElement}
       {...restSelectProps}

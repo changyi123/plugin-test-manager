@@ -6,6 +6,7 @@ import { useTestConfig } from '@/lib/hooks/useContext';
 import { cloneDeep } from 'lodash';
 import { useDebounceFn } from 'ahooks';
 import { updateTestEntity } from '@/lib/api/item';
+import useI18n from '@/lib/hooks/useI18n';
 
 import { Item } from '@/lib/types/App';
 import { Step } from '@/lib/types/Test';
@@ -24,6 +25,7 @@ export interface TestStep extends Step {
 let firstLoad = true;
 
 const Detail: React.FC = () => {
+  const { t } = useI18n();
   const { testEntity, setTestEntity } = useTestConfig();
   const [steps, setStepsState] = useState<TestStep[]>([]);
 
@@ -85,10 +87,10 @@ const Detail: React.FC = () => {
   if (!testDetailId) {
     return (
       <div className={css('detail')}>
-        <div>获取不了 Key</div>
+        <div>{t('modules.panel.testDetail.testDetailPanel.detailTips')} Key</div>
         <div>
           <Button type="primary" onClick={() => window?.QiankunProps?.onRefreshContext()}>
-            重新加载
+            {t('modules.panel.testDetail.testDetailPanel.refreshButton')}
           </Button>
         </div>
       </div>
@@ -97,23 +99,27 @@ const Detail: React.FC = () => {
 
   return (
     <div className={css('detail')}>
-      <h6>前置条件</h6>
+      <h6>{t('common.precondition')}</h6>
       <div className={css('precondition-input')}>
         <Input.TextArea
           maxLength={2000}
           autoSize={{ minRows: 3, maxRows: 6 }}
-          placeholder="请输入测试用例前置条件"
+          placeholder={t('common.preconditionPlaceholder')}
           defaultValue={testEntity.detail?.precondition}
           onBlur={e => handlePreconditionChange(e.target.value)}
           onChange={e => handlePreconditionChange(e.target.value)}
         />
       </div>
-      <h6 className={css('step-header')}>用例步骤</h6>
+      <h6 className={css('step-header')}>{t('common.testStep')}</h6>
       <div className={css('detail__content')}>
         <div className={css('detail__content__header')}>
           <div className={css('left detail__content__tips')}>
             <BlockOutlined />
-            <span>{`当前用例继承 ${callTestLen()} 个用例`}</span>
+            <span>{`${t(
+              'modules.panel.testDetail.testDetailPanel.testStepTips.0',
+            )} ${callTestLen()} ${t(
+              'modules.panel.testDetail.testDetailPanel.testStepTips.1',
+            )}`}</span>
           </div>
         </div>
         <TestStep

@@ -19,10 +19,12 @@ import { PROXIMA_EVENT_KEY, TestLinkType, TestType } from '@/lib/constants';
 import { useBaseAction } from '@/lib/hooks/useContext';
 import { generateSortIndex } from '@/lib/utils/helper';
 import { batchCreateTestRun, updateTestEntity } from '@/lib/api/item';
+import useI18n from '@/lib/hooks/useI18n';
 
 const PlanPageLayout: React.FC<any> = () => {
   const { workspaceKey, selectedTestPlan, selectors, setSearchParams, setSelectedTestPlan } =
     usePageContext();
+  const { t } = useI18n();
   const [requestScopedTestDetailIds, setRequestScopedTestDetailIds] = React.useState<
     string[] | undefined
   >(undefined);
@@ -122,20 +124,20 @@ const PlanPageLayout: React.FC<any> = () => {
       selectValue,
       treeType,
       modelProps: {
-        title: '第 1 步：选择关联用例',
+        title: t('page.plan.planPageLayout.selectCaseModelTitle'),
         footer: {
           ok: {
-            name: '下一步',
+            name: t('common.nextStep'),
           },
           cancel: {
-            name: '取消',
+            name: t('common.cancel'),
           },
         },
       },
     });
 
     return data;
-  }, [selectValue, treeType]);
+  }, [selectValue, treeType, t]);
 
   const createExecution = useCallback(
     async (caseIds = [], createNext = false) => {
@@ -147,10 +149,12 @@ const PlanPageLayout: React.FC<any> = () => {
           isCheckCreateNext: createNext,
           isShowPrevButton: true,
           modalProps: {
-            title: `第 2 步：新建测试执行任务（已选 ${caseIds.length} 条用例）`,
+            title: t('page.plan.planPageLayout.createExecutionModelTitle', {
+              count: caseIds.length,
+            }),
             footer: {
               cancel: {
-                name: '上一步',
+                name: t('common.prevStep'),
               },
             },
           },
@@ -159,7 +163,7 @@ const PlanPageLayout: React.FC<any> = () => {
 
       return res;
     },
-    [createItemUseModal, selectedTestPlan?.objectId],
+    [createItemUseModal, selectedTestPlan?.objectId, t],
   );
 
   // 创建测试执行任务
@@ -176,7 +180,7 @@ const PlanPageLayout: React.FC<any> = () => {
       // TODO 创建测试执行，创建测试执行任务和执行关系，创建执行和用例关系
       try {
         notification.open({
-          message: '测试执行任务正在创建中',
+          message: t('page.plan.planPageLayout.testExecutionCreateLoading'),
           icon: <Spin spinning={true} />,
           duration: null,
         });
@@ -209,7 +213,9 @@ const PlanPageLayout: React.FC<any> = () => {
 
         notification.destroy();
         notification.success({
-          message: `测试执行任务【${item.name}】新建成功`,
+          message: `${t('page.plan.planPageLayout.right.createTestExecutionSuccessMessage.0')}【${
+            item.name
+          }】${t('page.plan.planPageLayout.right.createTestExecutionSuccessMessage.1')}`,
         });
         if (isCheckCreateNext) {
           await createTestExecution(isCheckCreateNext);
@@ -218,11 +224,11 @@ const PlanPageLayout: React.FC<any> = () => {
       } catch (err) {
         notification.destroy();
         notification.error({
-          message: '测试执行任务新建失败',
+          message: t('page.plan.planPageLayout.right.createTestExecutionFailMessage'),
         });
       }
     },
-    [createExecution, getSelectCaseIds, setRefreshExecution],
+    [createExecution, getSelectCaseIds, setRefreshExecution, t],
   );
 
   const cancelCallback = useCallback(

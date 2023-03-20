@@ -12,6 +12,7 @@ import {
 import { CaretDownOutlined, CaretUpOutlined, SearchOutlined, CheckOutlined } from '@/icons';
 import { TestType } from '@/lib/constants';
 import { getTestEntityByQuery } from '@/lib/api/item';
+import useI18n from '@/lib/hooks/useI18n';
 
 import cx from './InheritTestDetail.less';
 
@@ -43,6 +44,7 @@ const InheritTestDetail: React.FC<InheritTestDetailProps> = props => {
     isWorkspaceIsolate,
     selectValue,
   } = props;
+  const { t } = useI18n();
 
   const baseSearchState = useReactive({
     nameLike: '',
@@ -165,10 +167,12 @@ const InheritTestDetail: React.FC<InheritTestDetailProps> = props => {
   return (
     <div className={cx('container')}>
       <div className={cx('title')}>
-        选择用例库
-        <span className={cx('description')}>（仅可选择当前拥有权限的用例库）</span>
+        {t('components.business.testEntitySelectorModal.selectRepository')}
+        <span className={cx('description')}>
+          （{t('components.business.testEntitySelectorModal.selectRepositoryTips')}）
+        </span>
         <SearchInput
-          text="搜索"
+          text={t('common.search')}
           className={cx('search')}
           value={detailSearchValue}
           onChange={value => setDetailSearchValue(value)}
@@ -190,7 +194,7 @@ const InheritTestDetail: React.FC<InheritTestDetailProps> = props => {
           <div className={cx('selector-container')}>
             <div className={cx('folder-selector')}>
               <Input
-                placeholder="搜索用例库分组"
+                placeholder={t('components.business.testEntitySelectorModal.searchGroup')}
                 value={folderSearchValue}
                 className={cx('search-input')}
                 addonBefore={<SearchOutlined />}
@@ -205,8 +209,12 @@ const InheritTestDetail: React.FC<InheritTestDetailProps> = props => {
             </div>
             <div className={cx('detail-selector-container')}>
               <div className={cx('detail', 'header')}>
-                <span>共 {testDetailData?.count ?? 0} 条用例</span>
-                <Tooltip title="创建时间排序">
+                <span>
+                  {`${t('common.tableTotal.0')} ${testDetailData?.count ?? 0} ${t(
+                    'components.business.testEntitySelectorModal.case',
+                  )}`}
+                </span>
+                <Tooltip title={t('components.business.testEntitySelectorModal.addTimeSort')}>
                   <span
                     className={cx('action')}
                     onClick={() => {
@@ -214,7 +222,11 @@ const InheritTestDetail: React.FC<InheritTestDetailProps> = props => {
                         baseSearchState.orderByCratedAt === 'asc' ? 'desc' : 'asc';
                     }}
                   >
-                    <span>{baseSearchState.orderByCratedAt === 'asc' ? '最早' : '最晚'}</span>
+                    <span>
+                      {baseSearchState.orderByCratedAt === 'asc'
+                        ? t('components.business.testEntitySelectorModal.earliest')
+                        : t('components.business.testEntitySelectorModal.latest')}
+                    </span>
                     <span className={cx('icon')}>
                       <CaretUpOutlined
                         className={cx(baseSearchState.orderByCratedAt === 'asc' && 'activity')}
@@ -249,7 +261,8 @@ const InheritTestDetail: React.FC<InheritTestDetailProps> = props => {
                         />
                       ) : null}
                       <OverflowTooltip title={testDetail?.name}>
-                        {testDetail.name ?? '事项被删除'}
+                        {testDetail.name ??
+                          t('components.business.testEntitySelectorModal.itemDeleted')}
                       </OverflowTooltip>
                       {isSingleMode && selectedTestDetailIds.includes(testDetail.objectId) ? (
                         <div className={cx('action')}>
@@ -260,7 +273,10 @@ const InheritTestDetail: React.FC<InheritTestDetailProps> = props => {
                   ))}
                 </ul>
               ) : testDetailDataLoading ? null : (
-                <Empty style={{ paddingTop: 100 }} description="当前目录未关联测试用例" />
+                <Empty
+                  style={{ paddingTop: 100 }}
+                  description={t('components.business.testEntitySelectorModal.noLinkItem')}
+                />
               )}
             </div>
           </div>

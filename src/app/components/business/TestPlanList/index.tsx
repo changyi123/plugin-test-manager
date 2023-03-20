@@ -16,11 +16,14 @@ import { useCurrentUser } from '@/lib/api/user';
 import { getCurrentUserSetting, saveUserSetting } from '@/lib/api/userSetting';
 import { useRequest } from 'ahooks';
 import { getFilterFields } from '@/components/common/FilterSearch/utils';
+import useI18n from '@/lib/hooks/useI18n';
 
 const { ItemIcon } = components.Components.Common;
 
 import cx from './index.less';
+
 const TestPlanList: React.FC<any> = () => {
+  const { t } = useI18n();
   const actionRef = React.useRef<BusinessTableActionType>();
   const { workspaceKey, selectedTestPlan, setSelectedTestPlan, selectors, setSearchParams } =
     usePageContext();
@@ -90,7 +93,12 @@ const TestPlanList: React.FC<any> = () => {
   );
 
   const handleDelete = async data => {
-    await actionConfirm('该操作会当前删除测试计划以及测试计划关联的测试用例，是否继续？');
+    await actionConfirm({
+      title: t('common.tip'),
+      okText: t('common.okText'),
+      cancelText: t('common.cancel'),
+      content: t('components.business.testPlanList.deleteLinkTips'),
+    });
     setTableLoading(true);
     const res = await deleteTestEntity([data.objectId]);
     if (res?.status === 'error') {
@@ -103,7 +111,7 @@ const TestPlanList: React.FC<any> = () => {
     setSelectedTestPlan(null);
     setTableLoading(false);
     notification.success({
-      message: '测试计划删除成功',
+      message: t('components.business.testPlanList.deletePlanSuccess'),
     });
   };
 
@@ -120,7 +128,7 @@ const TestPlanList: React.FC<any> = () => {
       key: 'title',
       fixed: true,
       isSystem: true,
-      title: '计划名称',
+      title: t('components.business.testPlanList.planName'),
       className: 'test-case-title',
       extraProps: {
         onClick: record => {
@@ -143,7 +151,7 @@ const TestPlanList: React.FC<any> = () => {
                         handleDelete(rowData);
                       }}
                     >
-                      删除测试计划
+                      {t('components.business.testPlanList.deleteTestPlan')}
                     </Menu.Item>
                     <Menu.Item
                       key="view"
@@ -152,7 +160,7 @@ const TestPlanList: React.FC<any> = () => {
                         handleView(rowData);
                       }}
                     >
-                      查看测试计划
+                      {t('components.business.testPlanList.checkTestPlan')}
                     </Menu.Item>
                   </Menu>
                 }
@@ -167,7 +175,7 @@ const TestPlanList: React.FC<any> = () => {
     },
     {
       key: 'caseStatus',
-      title: '执行通过率',
+      title: t('components.business.testPlanList.caseStatus'),
       width: 240,
       render(_, rowData) {
         const passCount = rowData.caseStatus?.PASSED ?? 0;
@@ -188,7 +196,7 @@ const TestPlanList: React.FC<any> = () => {
     },
     {
       key: 'caseCount',
-      title: '规划用例数',
+      title: t('components.business.testPlanList.planCaseCount'),
       align: 'right',
       width: 100,
       render(_, rowData) {
@@ -216,7 +224,7 @@ const TestPlanList: React.FC<any> = () => {
     });
     actionRef.current.refresh();
     notification.success({
-      message: '测试计划新建成功',
+      message: t('components.business.testPlanList.addPlanSuccess'),
     });
   };
 
@@ -239,14 +247,14 @@ const TestPlanList: React.FC<any> = () => {
     <div className={cx('test-plan-container')}>
       <div className={cx('plan-header')}>
         <div className={cx('plan-header-body')}>
-          <div className={cx('header-left')}>测试计划</div>
+          <div className={cx('header-left')}>{t('common.testPlan')}</div>
           <div className={cx('header-right')}>
             <Button
               type="primary"
               disabled={getCreatePermission(TestType.Plan)}
               onClick={() => handleCreate()}
             >
-              新建测试计划
+              {t('components.business.testPlanList.addTestPlan')}
             </Button>
           </div>
         </div>

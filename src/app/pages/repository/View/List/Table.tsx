@@ -3,7 +3,7 @@ import { useRequest, useDrag, useDrop } from 'ahooks';
 import { message, notification, Tooltip } from 'antd';
 import { UNGROUPED_FOLDER_KEY } from '../../constant';
 import { updateFolders } from '@/lib/api/repository';
-import { UserCell } from '@projectproxima/components';
+import { UserCell } from '@giteeteam/apps-team-components';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import createProximaSdk from '@projectproxima/proxima-sdk-js';
 import { DeleteIcon, UserIcon, DragHandler, LinkItemIcon } from '@/icons';
@@ -30,6 +30,7 @@ import { TestType } from '@/lib/constants';
 import { getCurrentUserSetting, saveUserSetting } from '@/lib/api/userSetting';
 import { useCurrentUser } from '@/lib/api/user';
 import fetch from '@/lib/utils/fetch';
+import useI18n from '@/lib/hooks/useI18n';
 
 import cx from './Table.less';
 
@@ -84,7 +85,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
     externalDataLoading: externalDataLoadingProp,
     testDetailFieldKeys,
   } = props;
-
+  const { t } = useI18n();
   const externalDataLoading =
     typeof externalDataLoadingProp === 'boolean' ? externalDataLoadingProp : false;
 
@@ -145,22 +146,32 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
     const deleteTestCase = () => {
       const testDetailIds = tableActionRef.current.selectedRowKeys;
 
-      actionConfirm('该操作会将所选的测试用例删除，是否继续操作？', async () => {
-        setTableLoading(true);
-        const res = await deleteTestEntity(testDetailIds);
-        if (res?.status === 'error') {
+      actionConfirm(
+        {
+          title: t('common.tip'),
+          okText: t('common.okText'),
+          cancelText: t('common.cancel'),
+          content: t('page.repository.view.list.actionConfirm.0'),
+        },
+        async () => {
+          setTableLoading(true);
+          const res = await deleteTestEntity(testDetailIds);
+          if (res?.status === 'error') {
+            setTableLoading(false);
+            message.error(res.data);
+            return;
+          }
+          refreshAndMutateData();
           setTableLoading(false);
-          message.error(res.data);
-          return;
-        }
-        refreshAndMutateData();
-        setTableLoading(false);
 
-        notification.success({
-          message: `${tableActionRef.current.selectedRowKeys.length} 个测试用例已被删除`,
-        });
-        tableActionRef.current.resetSelectedRowKeys();
-      });
+          notification.success({
+            message: t('page.repository.view.list.deleteCaseSuccess', {
+              count: tableActionRef.current.selectedRowKeys.length,
+            }),
+          });
+          tableActionRef.current.resetSelectedRowKeys();
+        },
+      );
     };
 
     // 更新负责人
@@ -180,7 +191,9 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
       }
       await refreshAndMutateData();
       notification.success({
-        message: `${tableActionRef.current.selectedRowKeys.length} 个测试负责人已更新`,
+        message: `${tableActionRef.current.selectedRowKeys.length} ${t(
+          'page.plan.testEntityList.updateAssigneeTips',
+        )}`,
       });
       setTableLoading(false);
     };
@@ -218,8 +231,8 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         userData={userData}
         onChange={toggleAssignee}
         emptyChild={
-          <span className="user-field">
-            <UserIcon className={cx('icon')} /> 设置负责人
+          <span className={cx('user-field')}>
+            <UserIcon className={cx('icon')} /> {t('page.plan.testEntityList.assigneeSetting')}
           </span>
         }
       />,
@@ -227,30 +240,38 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
       //   <SwitcherOutlined /> 复制
       // </span>,
       <span key="link" onClick={hasRowSelected ? createItemLink : undefined}>
-        <LinkItemIcon className={cx('icon')} /> 批量事项关联
+        <LinkItemIcon className={cx('icon')} /> {t('page.repository.view.list.batchItemLink')}
       </span>,
       <span key="delete" onClick={hasRowSelected ? deleteTestCase : undefined}>
-        <DeleteIcon className={cx('icon')} /> 删除
+        <DeleteIcon className={cx('icon')} /> {t('common.delete')}
       </span>,
     ];
-  }, [hasRowSelected, tableActionRef, userData, refreshAndMutateData, workspaceKey]);
+  }, [t, hasRowSelected, tableActionRef, userData, refreshAndMutateData, workspaceKey]);
 
   const columns = React.useMemo(() => {
     const deleteTestDetail = data => {
-      actionConfirm('该操作会将当前测试用例删除，是否继续操作？', async () => {
-        setTableLoading(true);
-        const res = await deleteTestEntity([data.objectId]);
-        if (res?.status === 'error') {
+      actionConfirm(
+        {
+          title: t('common.tip'),
+          okText: t('common.okText'),
+          cancelText: t('common.cancel'),
+          content: t('page.repository.view.list.actionConfirm.1'),
+        },
+        async () => {
+          setTableLoading(true);
+          const res = await deleteTestEntity([data.objectId]);
+          if (res?.status === 'error') {
+            setTableLoading(false);
+            message.error(res.data);
+            return;
+          }
+          refreshAndMutateData();
           setTableLoading(false);
-          message.error(res.data);
-          return;
-        }
-        refreshAndMutateData();
-        setTableLoading(false);
-        notification.success({
-          message: '测试用例删除成功',
-        });
-      });
+          notification.success({
+            message: t('page.repository.view.list.deleteCaseMessageSuccess'),
+          });
+        },
+      );
     };
 
     const copyTestDetail = async data => {
@@ -279,7 +300,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
       setTableLoading(false);
 
       notification.success({
-        message: `测试用例复制成功`,
+        message: t('page.repository.view.list.copyCaseMessageSuccess'),
       });
     };
 
@@ -304,7 +325,10 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
               sortIndex={rowData.sortIndex}
               rowData={rowData}
             >
-              <Tooltip overlayClassName={cx('tooltip')} title="拖动至用例分组">
+              <Tooltip
+                overlayClassName={cx('tooltip')}
+                title={t('page.repository.view.list.dropCaseToGroup')}
+              >
                 <span>
                   <DragHandler />
                 </span>
@@ -316,7 +340,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
       {
         width: 300,
         key: 'title',
-        title: '标题',
+        title: t('common.title'),
         isSystem: true,
         className: 'test-case-title',
         extraProps: {
@@ -352,7 +376,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
       },
       {
         key: 'repositoryGroup',
-        title: '所属模块',
+        title: t('page.plan.testEntityList.repositoryGroup'),
         width: 200,
         render(_, rowData) {
           return <RepositoryGroup rowData={rowData}></RepositoryGroup>;
@@ -367,17 +391,17 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
           return (
             <>
               <a style={{ marginRight: 10 }} onClick={() => copyTestDetail(rowData)}>
-                复制
+                {t('common.copy')}
               </a>
               <a style={{ marginRight: 10 }} onClick={() => deleteTestDetail(rowData)}>
-                删除
+                {t('common.delete')}
               </a>
             </>
           );
         },
       },
     ];
-  }, [refreshAndMutateData]);
+  }, [refreshAndMutateData, t]);
 
   const handleFilterField = useCallback(
     async ({ testType, fieldKeys }) => {

@@ -1,5 +1,6 @@
 import React from 'react';
 import { StatusProgress } from '@/components/business/Status';
+import useI18n from '@/lib/hooks/useI18n';
 
 import cx from './index.less';
 
@@ -9,6 +10,7 @@ type StatusProcessBarProps = {
 };
 
 const StatusProcessBar: React.FC<StatusProcessBarProps> = ({ status, className }) => {
+  const { t } = useI18n();
   const [groupedStatues, setGroupedStatuses] = React.useState([]);
   const total = groupedStatues.reduce((total, item) => (total += item.num), 0);
 
@@ -20,11 +22,11 @@ const StatusProcessBar: React.FC<StatusProcessBarProps> = ({ status, className }
             <span className={cx('num')} style={{ color: status.color }}>
               {status.num}
             </span>
-            <span className={cx('name')}>{status.name}</span>
+            <span className={cx('name')}>{t(`status.${status.key}.name`)}</span>
           </span>
         ))}
         <span className={cx('total')}>
-          <span className={cx('name')}>用例总数</span>
+          <span className={cx('name')}>{t('components.business.statusProcessBar.caseCount')}</span>
           <span className={cx('num')}>{total}</span>
         </span>
       </div>

@@ -2,7 +2,7 @@ app:
   key: test_manager
   uuid: bf73e61c-e15a-4461-a1f7-f940c2009332
   name: test_manager
-  version: "3.4.0"
+  version: "3.5.0"
 modules:
   webtrigger:
     # TODO: Debug 使用，生产环境禁止调用西面的 trigger
@@ -413,6 +413,33 @@ tables:
       user:
         type: Pointer
         targetClass: _User
+locales:
+  zh-CN:
+    test-manager-test-detail:
+      title: 测试管理
+    test-config:
+      title: 测试管理配置
+    test-plan:
+      title: 测试计划
+    test-repository:
+      title: 测试用例库
+    test-stats-report:
+      title: 测试统计
+    before-create-or-update-modal:
+      title: 新建事项
+  en-US:
+    test-manager-test-detail:
+      title: Test manager
+    test-config:
+      title: Test Configuration
+    test-plan:
+      title: Test plan
+    test-repository:
+      title: Test repository
+    test-stats-report:
+      title: Test stats
+    before-create-or-update-modal:
+      title: Create item
 resources:
   - key: main
     path: ./src/dist

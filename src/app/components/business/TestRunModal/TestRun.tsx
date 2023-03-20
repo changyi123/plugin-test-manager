@@ -17,38 +17,10 @@ import DefectList from './DefectList';
 import ItemLinkTable from './ItemLinkTable';
 import AttachmentUpload from './AttachmentUpload';
 import ExecutionEditor from './ExecutionEditor';
+import useI18n from '@/lib/hooks/useI18n';
 // import TestComment from './TestComment';
 
 import cx from './TestRun.less';
-
-// 测试执行详情 tabs
-const TestRunDetailTabs = [
-  {
-    title: '用例步骤',
-    key: 'step',
-    component: TestStep,
-  },
-  {
-    title: '执行结果描述',
-    key: 'resultDesc',
-    component: ExecutionEditor,
-  },
-  {
-    title: '缺陷',
-    key: 'defect',
-    component: DefectList,
-  },
-  {
-    title: '关联事项',
-    key: 'itemLink',
-    component: ItemLinkTable,
-  },
-  {
-    title: '附件',
-    key: 'attachment',
-    component: AttachmentUpload,
-  },
-];
 
 // TODO: 类型问题
 type TestRunEntity = TestEntity<TestType.Run> | any;
@@ -64,6 +36,36 @@ type TestRunType = {
 const TEST_RUN_AUTO_NEXT_KEY = 'test-run-auto-next';
 
 const TestRun: React.FC<TestRunType> = props => {
+  const { t } = useI18n();
+
+  // 测试执行详情 tabs
+  const TestRunDetailTabs = [
+    {
+      title: t('components.business.testRunModal.testRun.tabsTitle.0'),
+      key: 'step',
+      component: TestStep,
+    },
+    {
+      title: t('components.business.testRunModal.testRun.tabsTitle.1'),
+      key: 'resultDesc',
+      component: ExecutionEditor,
+    },
+    {
+      title: t('components.business.testRunModal.testRun.tabsTitle.2'),
+      key: 'defect',
+      component: DefectList,
+    },
+    {
+      title: t('components.business.testRunModal.testRun.tabsTitle.3'),
+      key: 'itemLink',
+      component: ItemLinkTable,
+    },
+    {
+      title: t('components.business.testRunModal.testRun.tabsTitle.4'),
+      key: 'attachment',
+      component: AttachmentUpload,
+    },
+  ];
   const { idSequence = [], selectedTestPlanId } = props;
   const [autoNext, setAutoNext] = useSessionStorageState(
     generateStorageKey(TEST_RUN_AUTO_NEXT_KEY),
@@ -135,12 +137,12 @@ const TestRun: React.FC<TestRunType> = props => {
   const nextTestRun = React.useCallback(() => {
     const nextIndex = canExecuteTestRunIdSequence.indexOf(testId) + 1;
     if (!canExecNext || nextIndex === canExecuteTestRunIdSequence.length) {
-      return message.warning('当前测试执行为最后一条，所有测试执行已经执行完成');
+      return message.warning(t('components.business.testRunModal.testRun.runTips'));
     }
 
     console.info('canExecuteTestRunIdSequence', canExecuteTestRunIdSequence, nextIndex);
     setTestId(canExecuteTestRunIdSequence[nextIndex]);
-  }, [canExecuteTestRunIdSequence, testId, setTestId, canExecNext]);
+  }, [canExecuteTestRunIdSequence, testId, setTestId, canExecNext, t]);
 
   const handleStatusChange = React.useCallback(
     async status => {
@@ -155,11 +157,11 @@ const TestRun: React.FC<TestRunType> = props => {
       // 通过类型状态可自动执行到下一条
       if (status.type === PASS_STATUS_TYPE && autoNext && canExecNext) {
         nextTestRun();
-        return message.success('自动切换下一条测试执行');
+        return message.success(t('components.business.testRunModal.testRun.runSuccessMessage'));
       }
       refreshTestRun();
     },
-    [autoNext, canExecNext, nextTestRun, refreshTestRun, selectedTestPlanId, testRunEntity],
+    [autoNext, canExecNext, nextTestRun, refreshTestRun, selectedTestPlanId, testRunEntity, t],
   );
 
   // 测试执行数据
@@ -324,6 +326,7 @@ const TestRun: React.FC<TestRunType> = props => {
       label: renderTabLabel(tab),
       children: React.createElement(tab.component, { ...props, name: tab.key } as any),
     }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     allRelationDefects,
     handleStatusChange,
@@ -377,15 +380,15 @@ const TestRun: React.FC<TestRunType> = props => {
                     className={cx('next-btn')}
                     loading={testRunRequestLoading}
                   >
-                    执行下一条
+                    {t('components.business.testRunModal.testRun.runNext')}
                   </Button>
                   <div className={cx('auto')} onClick={() => setAutoNext(!autoNext)}>
                     <Checkbox checked={autoNext} />
                     <span className={cx('label')}>
-                      自动切换下一条
+                      {t('components.business.testRunModal.testRun.autoNext')}
                       <Tooltip
                         getPopupContainer={getRootContainer}
-                        title="测试执行状态变更为通过时，自动切换下一条测试执行"
+                        title={t('components.business.testRunModal.testRun.autoNextTips')}
                       >
                         <QuestionCircleFilled style={{ marginLeft: 6 }} />
                       </Tooltip>
@@ -397,14 +400,20 @@ const TestRun: React.FC<TestRunType> = props => {
           </div>
           <div className={cx('main')}>
             <Collapse className={cx('collapse')} defaultActiveKey={['1']}>
-              <Collapse.Panel key="1" header="前置条件">
+              <Collapse.Panel
+                key="1"
+                header={t('components.business.testRunModal.testRun.panelTitle.0')}
+              >
                 <div className={cx('precondition')}>
-                  {testRunData?.runDetail?.precondition ?? '无'}
+                  {testRunData?.runDetail?.precondition ?? t('common.nothing')}
                 </div>
               </Collapse.Panel>
             </Collapse>
             <Collapse className={cx('collapse', 'tab')} defaultActiveKey={['1']}>
-              <Collapse.Panel key="1" header="测试执行详情">
+              <Collapse.Panel
+                key="1"
+                header={t('components.business.testRunModal.testRun.panelTitle.1')}
+              >
                 <Tabs
                   activeKey={tabActiveKey}
                   onChange={setTabActiveKey}

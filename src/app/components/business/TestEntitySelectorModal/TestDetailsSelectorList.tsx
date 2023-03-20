@@ -9,6 +9,7 @@ import { getTestEntityByQuery } from '@/lib/api/item';
 import { TestType } from '@/lib/constants';
 import { FieldKey } from 'common/types/api';
 import { SearchSelectors } from '@/lib/utils/iql';
+import useI18n from '@/lib/hooks/useI18n';
 
 interface TestDetailsSelectorListProps {
   workspaceKey?: string;
@@ -69,17 +70,6 @@ const getReportCheckedValue = (testIds: any[], checkTestValue: string[], type = 
   return !!_testIds.length && testIds.length !== _testIds.length;
 };
 
-const selectOptions = [
-  {
-    value: 'showChild',
-    label: '显示子分组用例',
-  },
-  {
-    value: 'showCur',
-    label: '显示当前分组用例',
-  },
-];
-
 const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
   workspaceKey,
   selectedNode,
@@ -89,6 +79,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
   setSelectedTestDetailIds,
   treeType,
 }) => {
+  const { t } = useI18n();
   const CheckboxGroup = Checkbox.Group;
   const [checkData, setCheckData] = useState([]);
   const [showType, setShowType] = useState('showChild');
@@ -237,7 +228,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
             onChange={checkAllTest}
           >
             <span className={cx('check-all-title')}>
-              已选中
+              {t('common.checked')}
               <span className={cx('num')}> {curSelectIdsLength}</span>
               <span>
                 {' / '}
@@ -251,19 +242,33 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
           </Checkbox>
           <div className={cx('detail-header-right')}>
             <Select
+              style={{ width: 165 }}
               value={showType}
-              options={selectOptions}
+              options={[
+                {
+                  value: 'showChild',
+                  label: t('page.plan.planPageLayout.right.showChild'),
+                },
+                {
+                  value: 'showCur',
+                  label: t('page.plan.planPageLayout.right.showCur'),
+                },
+              ]}
               getPopupContainer={e => e.parentNode}
               onChange={val => setShowType(val)}
             ></Select>
-            <Tooltip title="创建时间排序">
+            <Tooltip title={t('components.business.testEntitySelectorModal.addTimeSort')}>
               <span
                 className={cx('action')}
                 onClick={() => {
                   setOrderByCratedAt(val => (val === 'asc' ? 'desc' : 'asc'));
                 }}
               >
-                <span>{orderByCratedAt === 'asc' ? '最早' : '最晚'}</span>
+                <span>
+                  {orderByCratedAt === 'asc'
+                    ? t('components.business.testEntitySelectorModal.earliest')
+                    : t('components.business.testEntitySelectorModal.latest')}
+                </span>
                 <span className={cx('icon')}>
                   <CaretUpOutlined className={cx(orderByCratedAt === 'asc' && 'activity')} />
                   <CaretDownOutlined className={cx(orderByCratedAt === 'desc' && 'activity')} />
@@ -347,7 +352,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
             <Empty
               className={cx('empty-test')}
               image={emptyImg}
-              description={'当前用例库暂无用例'}
+              description={t('components.business.testEntitySelectorModal.notHaveCase')}
             />
           )}
         </div>

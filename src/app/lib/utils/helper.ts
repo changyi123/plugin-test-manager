@@ -66,18 +66,16 @@ export const escapeMatchesQueryArg = (_str: unknown, flags?: RegExp['flags'][]):
 export const toArray = data => (Array.isArray(data) ? data : [data]);
 
 /** 确认下一步 */
-export const actionConfirm = (content: string, cb = noop) => {
+export const actionConfirm = (modalProps?: Record<string, any>, cb = noop) => {
   return new Promise(resolve => {
     Modal.confirm({
-      content,
       onOk: () => {
         cb();
         resolve(true);
       },
       width: 500,
-      title: '提示',
-      okText: '继续',
       getContainer: getRootContainer,
+      ...(modalProps ?? {}),
     });
   });
 };

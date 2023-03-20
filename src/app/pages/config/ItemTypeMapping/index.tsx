@@ -4,6 +4,7 @@ import { Select, Button, message } from 'antd';
 import { useRequest, useSafeState } from 'ahooks';
 import { useDataContext, useCurrentTestConfig } from '../hooks';
 import { getTopItemTypeFromHierarchy } from '@/lib/api/proxima';
+import useI18n from '@/lib/hooks/useI18n';
 import { components } from 'proxima-sdk';
 
 const { ItemIcon } = components.Components.Common;
@@ -13,19 +14,20 @@ import cx from './index.less';
 const TestTypes = [
   {
     type: TestType.Case,
-    title: '测试用例',
+    title: 'testCase',
   },
   {
     type: TestType.Plan,
-    title: '测试计划',
+    title: 'testPlan',
   },
   {
     type: TestType.Execution,
-    title: '测试执行任务',
+    title: 'testExecution',
   },
 ];
 
 const ItemTypeMapping = () => {
+  const { t } = useI18n();
   const { workspace, globalConfig } = useDataContext();
   const isolatedSystem = Boolean(globalConfig?.extra?.isolatedSystem);
   const workspaceKey = workspace?.key;
@@ -72,12 +74,12 @@ const ItemTypeMapping = () => {
             }));
           }}
           value={selectedItemType}
-          placeholder="请选择类型"
+          placeholder={t('common.pleaseSelectType')}
           className={cx('item-type-selector')}
         ></Select>
       );
     },
-    [topItemTypes, itemTypeMapping, isolatedSystem, setItemTypeMapping],
+    [topItemTypes, itemTypeMapping, isolatedSystem, setItemTypeMapping, t],
   );
 
   // 保存
@@ -86,14 +88,14 @@ const ItemTypeMapping = () => {
       itemTypeMap: itemTypeMapping,
     });
 
-    message.success('类型关联配置保存成功');
+    message.success(t('page.config.itemTypeMapping.typeAssociationConfigurationSavedSuccessfully'));
   };
 
   return (
     <div className={cx('test-type-mapping')}>
       {TestTypes.map(({ title, type }) => (
         <div className={cx('test-type-mapping-item')} key={type}>
-          <h3>{title}</h3>
+          <h3>{t(`common.${title}`)}</h3>
           {renderItemTypeSelector(type)}
         </div>
       ))}
@@ -103,7 +105,7 @@ const ItemTypeMapping = () => {
         className={cx('action-btn')}
         onClick={handleSave}
       >
-        保存
+        {t('common.save')}
       </Button>
     </div>
   );

@@ -1,2 +1,2 @@
-export { ItemKey, ItemTitle } from './Item';
-export { LatestStatus } from './Status';
+export { getItemKey, getItemTitle } from './Item';
+export { getLatestStatus } from './Status';

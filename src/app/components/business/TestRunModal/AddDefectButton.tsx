@@ -7,6 +7,7 @@ import { Menu, Dropdown, Button, message } from 'antd';
 import TestEntitySelectorModal, { ActionType } from '@/components/business/TestEntitySelectorModal';
 import { TestEntity } from '@/lib/types/Test';
 import { addTestDefect } from '@/lib/api/item';
+import useI18n from '@/lib/hooks/useI18n';
 
 type AddDefectButtonProps = {
   testId?: string;
@@ -29,6 +30,7 @@ const AddDefectButton: React.FC<AddDefectButtonProps> = props => {
     className,
     plainStyle,
   } = props;
+  const { t } = useI18n();
   const { createItemUseModal, getCreatePermission } = useBaseAction();
   const { TestToDefect = '' } = useItemLinkTypeConfig();
   const currentRef = React.useRef(null);
@@ -44,16 +46,16 @@ const AddDefectButton: React.FC<AddDefectButtonProps> = props => {
       await addTestDefect(TestToDefect, testRunEntity, [defectItem.objectId]);
       const needAddedItemIds = [].concat(currentDefectIds, defectItem.objectId).filter(Boolean);
       onSave?.(needAddedItemIds);
-      message.success('缺陷新建成功');
+      message.success(t('components.business.testRunModal.addDefectButton.createDefectSuccess'));
     } catch (error) {
       message.error(error?.message);
       onLoading?.(false);
     }
-  }, [createItemUseModal, onLoading, TestToDefect, testRunEntity, currentDefectIds, onSave]);
+  }, [createItemUseModal, onLoading, TestToDefect, testRunEntity, currentDefectIds, onSave, t]);
 
   const addExistedDefect = async () => {
     if (getCreatePermission(TestType.TestDefect)) {
-      message.error('暂无事项新增权限，请检查事项操作权限配置或联系管理员');
+      message.error(t('page.plan.testEntityList.addItemTips'));
       return;
     }
     const itemIds = await testEntitySelectorRef.current.open({ selectValue: [] });
@@ -65,7 +67,7 @@ const AddDefectButton: React.FC<AddDefectButtonProps> = props => {
         await addTestDefect(TestToDefect, testRunEntity, itemIds);
         const needAddedItemIds = [].concat(currentDefectIds, itemIds).filter(Boolean);
         onSave?.(needAddedItemIds);
-        message.success('缺陷添加成功');
+        message.success(t('components.business.testRunModal.addDefectButton.addDefectSuccess'));
       } catch (error) {
         message.error(error?.message);
         onLoading?.(false);
@@ -76,10 +78,14 @@ const AddDefectButton: React.FC<AddDefectButtonProps> = props => {
   const menu = (
     <Menu>
       <Menu.Item key="0">
-        <a onClick={addExistedDefect}>添加已存在缺陷</a>
+        <a onClick={addExistedDefect}>
+          {t('components.business.testRunModal.addDefectButton.addExistingDefect')}
+        </a>
       </Menu.Item>
       <Menu.Item key="1">
-        <a onClick={createDefect}>创建缺陷</a>
+        <a onClick={createDefect}>
+          {t('components.business.testRunModal.addDefectButton.createDefect')}
+        </a>
       </Menu.Item>
     </Menu>
   );
@@ -87,7 +93,7 @@ const AddDefectButton: React.FC<AddDefectButtonProps> = props => {
   return (
     <div ref={currentRef}>
       <TestEntitySelectorModal
-        title="请选择测试缺陷"
+        title={t('components.business.testRunModal.addDefectButton.modelTitle')}
         testType={TestType.TestDefect}
         actionRef={testEntitySelectorRef}
         ignoreTestEntityIds={allRelationDefectIds ?? []}
@@ -95,10 +101,10 @@ const AddDefectButton: React.FC<AddDefectButtonProps> = props => {
       {plainStyle ? (
         <div className={className}>
           <Button onClick={addExistedDefect} type="link">
-            添加缺陷
+            {t('components.business.testRunModal.addDefectButton.addDefect')}
           </Button>
           <Button onClick={createDefect} type="link">
-            创建缺陷
+            {t('components.business.testRunModal.addDefectButton.createDefect')}
           </Button>
         </div>
       ) : (
@@ -110,7 +116,7 @@ const AddDefectButton: React.FC<AddDefectButtonProps> = props => {
         >
           <Button type="link" className={className}>
             <PlusOutlined />
-            添加缺陷
+            {t('components.business.testRunModal.addDefectButton.addDefect')}
           </Button>
         </Dropdown>
       )}

@@ -16,6 +16,7 @@ import TestRunModal, {
 } from '@/components/business/TestRunModal';
 import { StatusBadge } from '@/components/business/Status';
 import { useTestConfig } from '@/lib/hooks/useContext';
+import useI18n from '@/lib/hooks/useI18n';
 
 import css from './index.less';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
@@ -27,20 +28,24 @@ export interface RunsTableProps {
 export const RunsContext = React.createContext<{ refresh?: () => void }>({});
 
 const Runs: React.FC = () => {
+  const { t } = useI18n();
   const { testEntity: testDetailEntity } = useTestConfig();
   const tableActionRef = React.useRef<ActionType>();
   const testRunModalActionRef = React.useRef<TestRunModalActionType>();
   const { createItemUseModal, getCreatePermission } = useBaseAction();
   const [currentPageTestRunIdSequence, setCurrentPageTestRunIdSequence] = React.useState([]);
 
-  const removeTestRelation = React.useCallback(async relationTypeIds => {
-    if (!Array.isArray(relationTypeIds)) return;
-    await removeTestRelations(relationTypeIds);
+  const removeTestRelation = React.useCallback(
+    async relationTypeIds => {
+      if (!Array.isArray(relationTypeIds)) return;
+      await removeTestRelations(relationTypeIds);
 
-    tableActionRef.current.refresh();
+      tableActionRef.current.refresh();
 
-    message.success('删除成功');
-  }, []);
+      message.success(t('common.deleteSuccess'));
+    },
+    [t],
+  );
 
   const tableRefresh = React.useCallback(() => {
     tableActionRef.current.refresh();
@@ -56,7 +61,7 @@ const Runs: React.FC = () => {
     {
       title: (
         <Space>
-          <div>测试执行任务</div>
+          <div>{t('common.testExecution')}</div>
           <div>
             <Tooltip placement="right" title="该测试用例的运行包含以下执行轮次">
               <InfoCircleOutlined />
@@ -88,7 +93,7 @@ const Runs: React.FC = () => {
       },
     },
     {
-      title: '执行状态',
+      title: t('modules.panel.testRunPanel.runStatus'),
       dataIndex: 'status',
       render: (_, record) => {
         const testRun = record.relTestRun ?? {};

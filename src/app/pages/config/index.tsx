@@ -14,6 +14,7 @@ import { Menu, Layout, Dropdown, Button, Result, Checkbox } from 'antd';
 import IsolatedSystem from './MoreConfig/IsolatedSystem';
 import WordTemplate from './MoreConfig/WordTemplate';
 import TableFields from './TableFields';
+import useI18n from '@/lib/hooks/useI18n';
 
 import cx from './index.less';
 
@@ -24,16 +25,16 @@ const MORE_CONFIG_STORAGE_KEY = 'more-config';
 const MoreConfigPages = [
   {
     key: 'IsolatedSystem',
-    title: '测试管理系统隔离',
+    title: 'isolatedSystem',
     component: IsolatedSystem,
-    description: '配置测试管理系统与业务系统进行隔离',
+    description: 'isolatedSystem',
     isGlobalConfig: true,
   },
   {
     key: 'WordTemplate',
-    title: '测试报告模板管理',
+    title: 'wordTemplate',
     component: WordTemplate,
-    description: '测试报告模板管理',
+    description: 'wordTemplate',
     isGlobalConfig: true,
   },
 ];
@@ -41,34 +42,33 @@ const MoreConfigPages = [
 const ConfigPages = [
   {
     key: 'ItemTypeMapping',
-    title: '类型关联配置',
+    title: 'itemTypeMapping',
     component: ItemTypeMapping,
-    description: '配置当前空间测试管理类型关联的类型',
+    description: 'itemTypeMapping',
   },
   {
     key: 'defectsMapping',
-    title: '缺陷类型关联配置',
+    title: 'defectMapping',
     component: DefectMapping,
-    description:
-      '配置当前空间测试管理的缺陷类型，缺陷表示测试中产生不正确或意外结果的错误、缺陷、故障或故障。',
+    description: 'defectMapping',
   },
   {
     key: 'IsolatedTestType',
-    title: '空间数据隔离配置',
+    title: 'isolatedTestType',
     component: IsolatedTestType,
-    description: '配置当前空间内对测试用例，测试计划，测试执行，测试缺陷的空间可见范围',
+    description: 'isolatedTestType',
   },
   {
     key: 'ExecuteTestRunAction',
-    title: '用例执行配置',
+    title: 'executeTestRunAction',
     component: ExecuteTestRunAction,
-    description: '配置当前空间在用例执行时的约束',
+    description: 'executeTestRunAction',
   },
   {
     key: 'TableFields',
-    title: '表头及检索项设置',
+    title: 'tableFields',
     component: TableFields,
-    description: '配置当前空间测试计划、测试用例等类型的默认列表表头及筛选项',
+    description: 'tableFields',
   },
 ];
 
@@ -82,6 +82,7 @@ const WorkspaceSelector = () => {
     checkAllWorkspace,
     setCheckAllWorkspace,
   } = useDataContext();
+  const { t } = useI18n();
 
   return (
     <Dropdown
@@ -93,27 +94,27 @@ const WorkspaceSelector = () => {
             }
           }}
         >
-          <Menu.Item key="toggleWorkspace">切换所选空间</Menu.Item>
+          <Menu.Item key="toggleWorkspace">{t('page.config.changeWorkspace')}</Menu.Item>
           {showAllWorkspaceCheck && (
             <Checkbox
               className={cx('check-box')}
               checked={checkAllWorkspace}
               onChange={() => setCheckAllWorkspace(x => !x)}
             >
-              全部空间
+              {t('common.allWorkspace')}
             </Checkbox>
           )}
         </Menu>
       }
     >
       <Button>
-        空间：
+        {t('common.workspace')}：
         {checkAllWorkspace ? (
-          '全部空间'
+          t('common.allWorkspace')
         ) : workspace ? (
           workspace.name
         ) : (
-          <span style={{ color: '#999' }}>未选择</span>
+          <span style={{ color: '#999' }}>{t('page.config.notSelected')}</span>
         )}
         <DownOutlined />
       </Button>
@@ -122,17 +123,16 @@ const WorkspaceSelector = () => {
 };
 
 const PageContent = ({ currentConfigPage }) => {
+  const { t } = useI18n();
   const { workspace, toggleWorkspace } = useDataContext();
   if (!workspace && !currentConfigPage.isGlobalConfig)
     return (
       <Result
-        title="请选择需要配置的空间"
-        subTitle={
-          <span style={{ color: '#999' }}>该配置属于空间级别配置，请选择需要配置的空间</span>
-        }
+        title={t('page.config.resultTitle')}
+        subTitle={<span style={{ color: '#999' }}>{t('page.config.resultSubTitle')}</span>}
         extra={
           <Button type="primary" onClick={toggleWorkspace}>
-            选择空间
+            {t('page.config.selectWorkspace')}
           </Button>
         }
       ></Result>
@@ -142,6 +142,7 @@ const PageContent = ({ currentConfigPage }) => {
 };
 
 const Config = () => {
+  const { t } = useI18n();
   const [showMoreConfigPages] = useLocalStorageState(MORE_CONFIG_STORAGE_KEY, {
     defaultValue: true,
     deserializer(val) {
@@ -156,7 +157,7 @@ const Config = () => {
     return (
       <>
         {menuList.map(menu => (
-          <Menu.Item key={menu.key}>{menu.title}</Menu.Item>
+          <Menu.Item key={menu.key}>{t(`page.config.${menu.title}.title`)}</Menu.Item>
         ))}
       </>
     );
@@ -164,8 +165,8 @@ const Config = () => {
 
   return (
     <Layout className={cx('page')}>
-      <Sider className={cx('sider')} width={250}>
-        <h1 className={cx('title')}>测试管理配置</h1>
+      <Sider className={cx('sider')} width={260}>
+        <h1 className={cx('title')}>{t('common.testManagerConfig')}</h1>
         <Menu
           mode="inline"
           openKeys={['MORE_CONFIG']}
@@ -176,7 +177,7 @@ const Config = () => {
           {showMoreConfigPages ? (
             <>
               <Menu.Divider />
-              <Menu.SubMenu key="MORE_CONFIG" title="更多配置">
+              <Menu.SubMenu key="MORE_CONFIG" title={t('common.moreConfig')}>
                 {renderMenuItems(MoreConfigPages)}
               </Menu.SubMenu>
             </>
@@ -187,8 +188,10 @@ const Config = () => {
         <Layout className={cx('main')}>
           <Header className={cx('header')}>
             <div className={cx('left')}>
-              <h3 className={cx('title')}>{currentConfigPage.title}</h3>
-              <p className={cx('description')}>{currentConfigPage.description}</p>
+              <h3 className={cx('title')}>{t(`page.config.${currentConfigPage.title}.title`)}</h3>
+              <p className={cx('description')}>
+                {t(`page.config.${currentConfigPage.description}.description`)}
+              </p>
             </div>
             <div className={cx('right')}>
               {currentConfigPage.isGlobalConfig ? null : <WorkspaceSelector />}

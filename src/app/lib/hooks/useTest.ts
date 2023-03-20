@@ -16,6 +16,7 @@ import { repositoryFolderTreeEvent } from '@/lib/events';
 import { hasArrayItem } from '../utils/helper';
 import { getTestEntityByQuery } from '@/lib/api/item';
 import { useBaseAction } from './useContext';
+import useI18n from '@/lib/hooks/useI18n';
 
 type GetTestEntityParams = Parameters<typeof getTestEntitiesByRelationWithOrder>;
 /** 获取所有事项实体 id */
@@ -122,6 +123,7 @@ export const useAllTestWorkspace = () => {
 export const useGetTestRepoGroup = (rowData: any) => {
   const workspaceKey = rowData?.workspace?.key;
   const folderKey = rowData?.repository;
+  const { t } = useI18n();
 
   const { data: repositoryData, refreshAsync: refreshRepositoryData } = useRequest(
     () => getRepositoryData(workspaceKey ? [workspaceKey] : []),
@@ -154,7 +156,7 @@ export const useGetTestRepoGroup = (rowData: any) => {
     });
   }, [refreshRepositoryData]);
 
-  const data = repositoryDict?.[rowData?.repository ?? ''] ?? '未分组';
+  const data = repositoryDict?.[rowData?.repository ?? ''] ?? t('common.unGrouped');
 
   return { data, loading };
 };
@@ -227,9 +229,10 @@ export const useTestTypeUsedItemTypes = () => {
 export const useTestRunActionAuth = ({ workspaceKey }) => {
   const testConfig = useWorkspaceTestConfig(workspaceKey);
   const currentUser = useCurrentUser();
+  const { t } = useI18n();
   const { getCreatePermission } = useBaseAction();
 
-  // 测试执行事项行为临时权限，后期需优化
+  // 测试执行事项行为临时权限，后期需优化 FIXME: 优化
   const isHasEditorRunPermission = getCreatePermission(TestType.Case);
 
   const testRunAction = testConfig?.testRunAction ?? {};
@@ -241,24 +244,22 @@ export const useTestRunActionAuth = ({ workspaceKey }) => {
       const noAuthUser = !Array.isArray(authUserList) || authUserList.length === 0;
       if (noAuthUser) return true;
       // 当前登录用户再授权用户列表中可以分配用户
-      return (
-        authUserList.some(user => user.username === currentUser?.username) &&
-        isHasEditorRunPermission
-      );
+      return authUserList.some(user => user.username === currentUser?.username);
+      // && isHasEditorRunPermission
     }),
     canExecuteTestRun: useMemoizedFn(designee => {
       const getCannotExecuteMessage = () => {
         if (testRunAction.canOnlyExecuteMineCase && !testRunAction.canOnlyExecuteAssignedCase) {
           if (!Array.isArray(designee) || designee.length === 0) return;
           const notInDesignee = !designee.some(u => u.objectId === currentUser.objectId);
-          if (notInDesignee) return '无法执行指派给他人的测试用例';
+          if (notInDesignee) return t('testRunAuth.cannotAssignedTestCase');
         }
 
         if (testRunAction.canOnlyExecuteMineCase && testRunAction.canOnlyExecuteAssignedCase) {
           if (!Array.isArray(designee) || designee.length === 0)
-            return '当前测试用例未分配执行人，无法执行';
+            return t('testRunAuth.cannotExecuteTestCase');
           const notInDesignee = !designee.some(u => u.objectId === currentUser.objectId);
-          if (notInDesignee) return '无法执行指派给他人的测试用例';
+          if (notInDesignee) return t('testRunAuth.cannotAssignedTestCase');
         }
       };
       const message = getCannotExecuteMessage();
