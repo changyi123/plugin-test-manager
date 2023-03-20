@@ -26,3 +26,9 @@ export const createItems = withCoreApiRequest(['POST', '/parse/api/v2/items']);
 
 /** IQL 查询 */
 export const iqlSearch = withCoreApiRequest(['POST', '/parse/api/search']);
+
+/** iql 聚合查询  */
+export const aggsSearch = withCoreApiRequest([
+  'POST',
+  '/parse/api/report/normal-aggs-chart/search',
+]);
