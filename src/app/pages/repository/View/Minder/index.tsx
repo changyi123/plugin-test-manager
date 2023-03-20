@@ -19,6 +19,8 @@ import { deleteTestEntity, updateTestEntity } from '@/lib/api/item';
 import useI18n from '@/lib/hooks/useI18n';
 import { getLang } from '@/lib/utils/locale';
 
+import cx from './index.less';
+
 // TODO: 同层级重名模块报错
 const MaxModuleLevel = 8;
 
@@ -387,7 +389,7 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
   const lang = getLang()?.replace(/-\w+/g, '');
 
   return (
-    <>
+    <div className={cx('minder-view-container')}>
       <MinderEditor
         lang={lang}
         data={minderData}
@@ -396,7 +398,7 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
         priorityOptions={priorityOptions}
         renderFixRightAction={() => memoizedButtonNode}
       />
-    </>
+    </div>
   );
 };
 

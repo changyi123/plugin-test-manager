@@ -261,7 +261,7 @@ export const testCaseStats = async () => {
       pagination: { limit: InfinityLimit, offset: 0 },
     });
 
-    testCases.forEach(testCase => {
+    testCases?.forEach(testCase => {
       const { objectId, caseStatus } = testCase;
       const status = caseStatus?.[planId] ?? StartStatusKey;
       const stats = result[objectId];
@@ -301,7 +301,7 @@ export const testCaseStats = async () => {
       pagination: { limit: InfinityLimit, offset: 0 },
     });
 
-    testCases.forEach(testCase => {
+    testCases?.forEach(testCase => {
       const { referenceCase } = testCase;
       const stats = result[referenceCase];
       if (stats) {
