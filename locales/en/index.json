@@ -451,13 +451,13 @@
           "The title of the test case is empty, and the title of the test case is required and will not be imported",
           "The number of levels of the group to which the article belongs exceeds the limit, the group to which the article belongs can only import 8 levels and will not be imported",
           "The number of characters in the group to which the article belongs exceeds 30 characters, it will not be imported",
-          "The number of characters in the precondition of the entry exceeds the limit, the precondition is limited to 1000 characters and will not be imported",
+          "The number of characters in the precondition of the entry exceeds the limit, the precondition is limited to 2000 characters and will not be imported",
           "Incorrectly formatted step description for article, not imported",
-          "Article step description exceeds limit,the step description limit 500 characters are not imported",
+          "Article step description exceeds limit,the step description limit 2000 characters are not imported",
           "The expected result is in the wrong format and will not be imported",
-          "Article expected result exceeds limit,the expected result limit 500 characters are not imported",
+          "Article expected result exceeds limit,the expected result limit 2000 characters are not imported",
           "The data format of the article is wrong, it will not be imported",
-          "Article data exceeds limit, data limit 500 characters are not imported",
+          "Article data exceeds limit, data limit 2000 characters are not imported",
           "Item type association is not configured, all data will not be imported, please configure the associated item type first"
         ]
       }
