@@ -116,7 +116,7 @@ const TestRun: React.FC<TestRunType> = props => {
         },
       });
 
-      return caseData[0];
+      return caseData?.[0];
     },
     {
       ready: Boolean(testRunEntity?.referenceCase),
@@ -144,10 +144,14 @@ const TestRun: React.FC<TestRunType> = props => {
 
   const handleStatusChange = React.useCallback(
     async status => {
-      await updateTestRunDetail(testRunEntity, {
+      const res = await updateTestRunDetail(testRunEntity, {
         status: status.key,
         planId: selectedTestPlanId,
       });
+      if (res.status === 'error') {
+        message.error(res.data);
+        return;
+      }
       // 通过类型状态可自动执行到下一条
       if (status.type === PASS_STATUS_TYPE && autoNext && canExecNext) {
         nextTestRun();
@@ -240,8 +244,9 @@ const TestRun: React.FC<TestRunType> = props => {
         const detail = refTestDetailData?.detail;
         if (!detail?.steps?.length && !detail?.precondition) return;
         const steps = await getTestStepsByTestDetailId(refTestDetailData?.objectId);
+        if (!refTestDetailData.detail?.precondition && !steps?.length) return;
         try {
-          await updateTestRunDetail(
+          const res = await updateTestRunDetail(
             testRunEntity,
             {
               steps: steps,
@@ -254,6 +259,10 @@ const TestRun: React.FC<TestRunType> = props => {
               initialization: true,
             },
           );
+          if (res.status === 'error') {
+            message.error(res.data);
+            return;
+          }
           refreshTestRun();
         } catch (err) {
           message.error(err.message);

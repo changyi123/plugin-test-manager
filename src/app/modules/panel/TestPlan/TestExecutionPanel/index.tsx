@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react';
 
-import { Button } from 'antd';
+import { Button, message } from 'antd';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import { TestLinkType, TestType } from '@/lib/constants';
 import PanelTable, {
@@ -75,7 +75,7 @@ const Test = () => {
   const addTestExecutionToPlan = React.useCallback(
     async executionIds => {
       // 测试计划关联测试执行后需将测试执行任务中的测试执行对应的测试用例关联到测试计划中
-      await updateTestEntity(
+      const res = await updateTestEntity(
         executionIds.map(objectId => ({
           objectId,
           linkType: TestLinkType.ExecutionLinkPlan,
@@ -84,6 +84,10 @@ const Test = () => {
           sortIndex: generateSortIndex(),
         })),
       );
+      if (res?.status === 'error') {
+        message.error(res.data);
+        return;
+      }
 
       const { list: caseLinkPlanIds } = await getLinkedTestEntityByQuery({
         query: {
@@ -111,7 +115,7 @@ const Test = () => {
       const caseIds = runCaseIds.filter(id => !caseLinkPlanIds.includes(id));
 
       if (caseIds.length) {
-        await updateTestEntity(
+        const res = await updateTestEntity(
           caseIds.map(item => ({
             objectId: item,
             linkType: TestLinkType.CaseLinkPlan,
@@ -121,6 +125,10 @@ const Test = () => {
             },
           })),
         );
+        if (res?.status === 'error') {
+          message.error(res.data);
+          return;
+        }
       }
       refresh();
       alert({
@@ -145,15 +153,17 @@ const Test = () => {
       if (!Array.isArray(ids)) return;
 
       // 移除测试计划下的任务
-      await updateTestEntity(
+      const res = await updateTestEntity(
         ids.map(objectId => ({
           objectId,
           linkItems: { action: 'delete', value: [testEntity.objectId] },
         })),
       );
-
+      if (res?.status === 'error') {
+        message.error(res.data);
+        return;
+      }
       refresh();
-
       alert({
         type: 'success',
         message: `${ids.length} 个测试执行从测试计划中删除`,

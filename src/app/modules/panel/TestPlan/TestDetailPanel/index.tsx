@@ -1,7 +1,7 @@
 import React, { useCallback, useState, useMemo, useEffect } from 'react';
 
 import { uniqueId } from 'lodash';
-import { Button, Table, Tooltip } from 'antd';
+import { Button, message, Table, Tooltip } from 'antd';
 import { alert } from '@/lib/utils/helper';
 import { DownOutlined, PlusOutlined } from '@ant-design/icons';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
@@ -33,7 +33,7 @@ import createProximaSdk from '@projectproxima/proxima-sdk-js';
 
 const Test = () => {
   const { testEntity, workspace } = useTestConfig();
-  const { createItemUseModal } = useBaseAction();
+  const { createItemUseModal, getCreatePermission } = useBaseAction();
   const tableActionRef = React.useRef<ActionType>();
   const selectorModalRef = React.useRef<SelectorActionType>();
   const testRunModalActionRef = React.useRef<TestRunModalActionType>();
@@ -132,7 +132,7 @@ const Test = () => {
     [getRelTestEntities],
   );
 
-  const createExcution = useCallback(
+  const createExecution = useCallback(
     async (caseIds, token) => {
       const res = await createItemUseModal({
         type: TestType.Execution,
@@ -155,16 +155,20 @@ const Test = () => {
   const createTestExecution = useCallback(async () => {
     const caseIds = tableActionRef.current.selectedRowKeys;
     const token = uniqueId('TestPlan');
-    const { item: testExecution } = await createExcution(caseIds, token);
+    const { item: testExecution } = await createExecution(caseIds, token);
 
     // 任务关联测试计划
-    await updateTestEntity([
+    const res = await updateTestEntity([
       {
         linkType: TestLinkType.ExecutionLinkPlan,
         objectId: testExecution?.objectId,
         linkItems: { action: 'add', value: [testEntity.objectId] },
       },
     ]);
+    if (res?.status === 'error') {
+      message.error(res.data);
+      return;
+    }
 
     // 规划用例创建测试执行
     if (caseIds?.length) {
@@ -178,7 +182,7 @@ const Test = () => {
       type: 'success',
       message: `测试执行任务【${testExecution?.name}】新建成功`,
     });
-  }, [createExcution, testEntity.objectId, tableActionRef]);
+  }, [createExecution, testEntity.objectId, tableActionRef]);
 
   // 添加测试用例菜单
   const testDetailMenuList = useMemo(() => {
@@ -187,15 +191,23 @@ const Test = () => {
         title: '已存在的测试用例',
         async onClick() {
           const testDetailIds = await selectorModalRef.current.open();
+          if (getCreatePermission(TestType.Case)) {
+            message.error('暂无事项新增权限，请检查事项操作权限配置或联系管理员');
+            return;
+          }
           const _testDetailIds = testDetailIds.filter(d => !(testEntityIds ?? []).includes(d));
 
-          await updateTestEntity(
+          const res = await updateTestEntity(
             _testDetailIds.map(objectId => ({
               linkType: TestLinkType.CaseLinkPlan,
               objectId,
               linkItems: { action: 'add', value: [testEntity.objectId] },
             })),
           );
+          if (res?.status === 'error') {
+            message.error(res.data);
+            return;
+          }
 
           refreshDepData();
 
@@ -207,6 +219,7 @@ const Test = () => {
       },
       {
         title: '新建测试用例',
+        disabled: getCreatePermission(TestType.Case),
         async onClick() {
           const { testEntityList } = await createItemUseModal({
             hideMessage: true,
@@ -218,13 +231,17 @@ const Test = () => {
           });
 
           if (!testEntityList.length) return;
-          await updateTestEntity(
+          const res = await updateTestEntity(
             testEntityList.map(d => ({
               linkType: TestLinkType.CaseLinkPlan,
               objectId: d.objectId,
               linkItems: { action: 'add', value: [testEntity.objectId] },
             })),
           );
+          if (res?.status === 'error') {
+            message.error(res.data);
+            return;
+          }
 
           refreshDepData();
           const proxima = createProximaSdk();
@@ -242,18 +259,22 @@ const Test = () => {
         },
       },
     ];
-  }, [createItemUseModal, refreshDepData, testEntity, testEntityIds]);
+  }, [createItemUseModal, refreshDepData, getCreatePermission, testEntity, testEntityIds]);
 
   const removeTestRelation = useCallback(
     async testDetailIds => {
       if (!Array.isArray(testDetailIds)) return;
       // 移除测试用例和计划的关联
-      await updateTestEntity(
+      const res = await updateTestEntity(
         testDetailIds.map(objectId => ({
           objectId,
           linkItems: { action: 'delete', value: [testEntity.objectId] },
         })),
       );
+      if (res?.status === 'error') {
+        message.error(res.data);
+        return;
+      }
 
       refreshDepData();
 
@@ -392,7 +413,11 @@ const Test = () => {
         }}
         renderActions={() => (
           <>
-            <Button icon={<PlusOutlined />} onClick={createTestExcution}>
+            <Button
+              icon={<PlusOutlined />}
+              disabled={getCreatePermission(TestType.Execution)}
+              onClick={createTestExcution}
+            >
               测试执行任务
             </Button>
             <DropDownButton menuList={testDetailMenuList}>

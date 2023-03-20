@@ -22,7 +22,8 @@
 
   .ant-tooltip-arrow {
     .ant-tooltip-arrow-content {
-      --antd-arrow-background-color: #576473;
+      display: none !important;
+      // --antd-arrow-background-color: #576473;
     }
   }
 
@@ -38,6 +39,15 @@
       color: #fff !important;
       border-color: #4b8bff !important;
       background: #4b8bff !important;
+    }
+
+    .ant-btn.ant-btn-primary[disabled]:hover,
+    .ant-btn.ant-btn-primary[disabled]:focus {
+      color: #b5bac5 !important;
+      border-color: #dadde3 !important;
+      background: #f5f6f8 !important;
+      text-shadow: none;
+      box-shadow: none;
     }
 
     .ant-table-ping-left .ant-table-cell-fix-left,

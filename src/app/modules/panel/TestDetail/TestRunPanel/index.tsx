@@ -30,7 +30,7 @@ const Runs: React.FC = () => {
   const { testEntity: testDetailEntity } = useTestConfig();
   const tableActionRef = React.useRef<ActionType>();
   const testRunModalActionRef = React.useRef<TestRunModalActionType>();
-  const { createItemUseModal } = useBaseAction();
+  const { createItemUseModal, getCreatePermission } = useBaseAction();
   const [currentPageTestRunIdSequence, setCurrentPageTestRunIdSequence] = React.useState([]);
 
   const removeTestRelation = React.useCallback(async relationTypeIds => {
@@ -172,7 +172,11 @@ const Runs: React.FC = () => {
             scroll={null}
             renderActions={() => (
               <div className={css('runs__new')}>
-                <Button type="primary" onClick={() => createTestExecution()}>
+                <Button
+                  type="primary"
+                  disabled={getCreatePermission(TestType.Execution)}
+                  onClick={() => createTestExecution()}
+                >
                   新增测试执行任务
                 </Button>
               </div>

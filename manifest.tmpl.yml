@@ -2,7 +2,7 @@ app:
   key: test_manager
   uuid: bf73e61c-e15a-4461-a1f7-f940c2009332
   name: test_manager
-  version: "3.3.0"
+  version: "3.4.0"
 modules:
   webtrigger:
     # TODO: Debug 使用，生产环境禁止调用西面的 trigger
@@ -25,9 +25,11 @@ modules:
     # 拖拽排序生成测试用例 sortIndex
     - key: generate-sortIndex
       function: generate-sortIndex-function
-    # 测试报告脚本
+    # 测试管理脑图接口
     - key: report-stats
       function: report-stats-function
+    - key: api-query-minder-data
+      function: api-query-minder-data-function
     - key: report-data-base
       function: report-data-base-function
     - key: report-data-extensions-huishang
@@ -46,6 +48,8 @@ modules:
       function: api-batch-update-function
     - key: api-batch-create-test-run
       function: api-batch-create-test-run-function
+    - key: api-batch-create-test-case
+      function: api-batch-create-test-case-function
     # 数据统计
     - key: api-stats-test-plan
       function: api-stats-test-plan-function
@@ -115,6 +119,8 @@ modules:
       timeout: 300000
     - key: api-batch-create-test-run-function
       handler: api.batchCreateTestRun
+    - key: api-batch-create-test-case-function
+      handler: api.batchCreateTestCase
       # 5 分钟超时时长
       timeout: 300000
 
@@ -131,6 +137,8 @@ modules:
       handler: api.repositoryTree
     - key: api-module-repository-tree-v2-function
       handler: api.repositoryTreeV2
+    - key: api-query-minder-data-function
+      handler: api.minderData
 
   itemPanel:
     - key: test-manager-test-detail

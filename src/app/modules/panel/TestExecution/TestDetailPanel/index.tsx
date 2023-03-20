@@ -4,7 +4,7 @@ import { DownOutlined } from '@ant-design/icons';
 import { TestType, TestLinkType } from '@/lib/constants';
 import PanelTable, { ActionType } from '@/components/business/PanelTable';
 import DropDownButton from '@/components/business/DropDownButton';
-import { useTestConfig } from '@/lib/hooks/useContext';
+import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
 import TestEntitySelectorModal, {
   ActionType as SelectorActionType,
 } from '@/components/business/TestEntitySelectorModal';
@@ -27,6 +27,7 @@ import { useTestRunActionAuth } from '@/lib/hooks/useTest';
 
 const Test = () => {
   const { testEntity, workspace } = useTestConfig();
+  const { getCreatePermission } = useBaseAction();
   const tableActionRef = React.useRef<ActionType>();
   const { canExecuteTestRun } = useTestRunActionAuth({ workspaceKey: workspace?.key });
 
@@ -133,14 +134,22 @@ const Test = () => {
   const removeTestRelation = React.useCallback(
     async testRunIds => {
       if (!Array.isArray(testRunIds)) return;
+      if (getCreatePermission(TestType.Case)) {
+        message.error('暂无事项删除权限，请检查事项操作权限配置或联系管理员');
+        return;
+      }
       // 删除测试和测试执行的关联
-      await deleteTestEntity(testRunIds);
+      const res = await deleteTestEntity(testRunIds);
+      if (res?.status === 'error') {
+        message.error(res.data);
+        return;
+      }
 
       refreshDepData();
 
       message.success('删除成功');
     },
-    [refreshDepData],
+    [getCreatePermission, refreshDepData],
   );
 
   // table column 数据
@@ -263,18 +272,30 @@ const Test = () => {
           const _selectedTestDetailIds = selectedTestDetailIds.filter(
             d => !(relCase ?? []).includes(d),
           );
+          if (getCreatePermission(TestType.Case)) {
+            message.error('暂无事项新增权限，请检查事项操作权限配置或联系管理员');
+            return;
+          }
 
-          // 添加关联
-          await batchCreateTestRun({
-            executionId: testEntity.objectId,
-            caseIds: _selectedTestDetailIds,
-          });
+          try {
+            // 添加关联
+            const { data } = await batchCreateTestRun({
+              executionId: testEntity.objectId,
+              caseIds: _selectedTestDetailIds,
+            });
+            if (data?.status === 'error') {
+              message.error(data.data);
+              return;
+            }
 
-          refreshDepData();
+            refreshDepData();
+          } catch (error) {
+            console.info(error);
+          }
         },
       },
     ];
-  }, [refreshDepData, relCase, testEntity.objectId]);
+  }, [getCreatePermission, refreshDepData, relCase, testEntity.objectId]);
 
   return (
     <div className={cx('test')}>

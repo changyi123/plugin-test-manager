@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from 'react';
 import { useRequest } from 'ahooks';
-import { Dropdown, Menu, notification, Tooltip } from 'antd';
+import { Dropdown, Menu, message, notification, Tooltip } from 'antd';
 import { EllipsisOutlined } from '@ant-design/icons';
 import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
 import { useLocation } from 'react-router-dom';
@@ -12,10 +12,10 @@ import cx from './index.less';
 import { deleteTestEntity, getLinkedTestEntityByQuery } from '@/lib/api/item';
 import { TestLinkType, TestType } from 'common/constant';
 
-interface ExcetionListProps {
+interface ExecutionListProps {
   planId: string;
   workspaceKey: string;
-  activedType: string;
+  activeType: string;
   executionId?: string;
   selectedExecution?: Record<string, any>;
   setSelectedExecution?: (val: Record<string, any>) => void;
@@ -24,9 +24,9 @@ interface ExcetionListProps {
   setLoading?: (val: boolean) => void;
 }
 
-const ExecutionList: React.FC<ExcetionListProps> = ({
+const ExecutionList: React.FC<ExecutionListProps> = ({
   planId,
-  activedType,
+  activeType,
   workspaceKey,
   selectedExecution,
   setSelectedExecution,
@@ -36,7 +36,7 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
 }) => {
   const { tableSelectionToggleEvent } = usePageContext();
   const { query } = useLocation();
-  const [activedId, setActivedId] = useState('');
+  const [activeId, setActiveId] = useState('');
 
   // 事项数据更新后刷新列表
   useListener('updateItemList', () => {
@@ -54,13 +54,13 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
 
   useEffect(() => {
     if (selectedExecution?.objectId) {
-      setActivedId(selectedExecution?.objectId);
+      setActiveId(selectedExecution?.objectId);
     }
   }, [selectedExecution]);
 
   const { data: executionList, refresh } = useRequest(
     async () => {
-      if (activedType !== 'TestExecution') return [];
+      if (activeType !== 'TestExecution') return [];
 
       const { list } = await getLinkedTestEntityByQuery({
         query: {
@@ -75,7 +75,7 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
       return list;
     },
     {
-      refreshDeps: [planId, activedType],
+      refreshDeps: [planId, activeType],
     },
   );
 
@@ -93,7 +93,7 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
   }, [refreshExecution]);
 
   useEffect(() => {
-    if (executionList && !activedId) {
+    if (executionList && !activeId) {
       setSelectedExecution(executionList?.[0]);
     }
   }, [executionList, planId]);
@@ -105,8 +105,13 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
     if (type === 'delete') {
       actionConfirm('该操作会将该测试执行任务删除，是否继续操作？', async () => {
         setLoading?.(true);
-        await deleteTestEntity([data?.objectId]);
-        setActivedId('');
+        const res = await deleteTestEntity([data?.objectId]);
+        if (res?.status === 'error') {
+          setLoading?.(false);
+          message.error(res.data);
+          return;
+        }
+        setActiveId('');
         setRefreshExecution(true);
         setLoading?.(false);
         notification.success({
@@ -134,7 +139,7 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
             className={cx('hide-list-menu')}
             onClick={e => {
               e.preventDefault();
-              setActivedId(d.objectId);
+              setActiveId(d.objectId);
               tableSelectionToggleEvent.emit(false);
               setSelectedExecution(d);
             }}
@@ -153,18 +158,18 @@ const ExecutionList: React.FC<ExcetionListProps> = ({
 
   return (
     <div className={cx('tab-list')}>
-      {activedType === 'TestExecution' && (
+      {activeType === 'TestExecution' && (
         <>
           {!!executionList?.length && (
             <>
               <div className={cx('show-list')}>
                 {showList.map((d, index) => (
                   <div
-                    className={cx('execution-menu', `${activedId === d.objectId ? 'actived' : ''}`)}
+                    className={cx('execution-menu', `${activeId === d.objectId ? 'actived' : ''}`)}
                     key={index}
                     onClick={e => {
                       e.preventDefault();
-                      setActivedId(d.objectId);
+                      setActiveId(d.objectId);
                       tableSelectionToggleEvent.emit(false);
                       setSelectedExecution(d);
                     }}

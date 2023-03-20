@@ -34,6 +34,7 @@ export async function mount(props): Promise<void> {
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export async function unmount(props): Promise<void> {
   const { container } = props;
+  console.info('container-----------', container);
   ReactDOM.unmountComponentAtNode(
     container ? container.querySelector(rootElement) : document.querySelector(rootElement),
   );

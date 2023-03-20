@@ -167,3 +167,8 @@ export const toPointer = (className, objectId) => ({
   objectId,
   __type: 'Pointer',
 });
+
+/** 获取token */
+export const getSessionToken = () => {
+  return global?.QiankunProps.context?.env?.sessionToken ?? '';
+};

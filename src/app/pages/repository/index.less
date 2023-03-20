@@ -1,80 +1,40 @@
 @import '@/index.global.less';
 
-.test-repository {
-  .header {
+.header {
+  display: flex;
+  align-items: center;
+  color: #091940;
+  line-height: 26px;
+  font-size: 14px;
+  padding-right: 24px;
+  height: 48px;
+
+  > h6 {
+    font-weight: 600;
     font-size: 18px;
-    font-weight: 500;
-    color: #091940;
-    line-height: 26px;
-    padding: 12px 0;
-  }
-
-  .filter-search-box {
-    padding: 8px 24px;
-  }
-
-  .table-container {
-    width: 100%;
-  }
-
-  .breadcrumb-container {
-    flex: none;
-    display: flex;
-    align-items: center;
-    padding: 11px 24px;
-    height: 46px;
-    border-bottom: 1px solid @border-color;
-
-    .separator,
-    .secondary {
-      color: var(--color-gray-6);
-    }
-
-    .separator {
-      margin: 0 8px;
-    }
-
-    .breadcrumb {
-      margin-right: 20px;
-    }
-  }
-
-  .actions {
-    flex: none;
-    display: flex;
-    margin-left: auto;
-    align-items: center;
-    font-size: 16px;
-    > * {
-      margin-right: 8px;
-    }
-
-    .line {
-      height: 20px;
+    margin-bottom: 0;
+    position: relative;
+    margin-right: 33px;
+    &:after {
+      content: '';
+      position: absolute;
+      height: 12px;
+      right: -16px;
       width: 1px;
-      background-color: @border-color;
-      margin-left: 8px;
-      margin-right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      background-color: #ccc;
     }
   }
 
-  .selection {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 32px;
-    height: 32px;
-    &.active {
-      background: #e9eaec;
-      border-radius: 4px;
+  .view-selector-container {
+    .item {
+      cursor: pointer;
+      margin-right: 16px;
+      font-size: 18px;
     }
-  }
-}
-
-:root {
-  :global {
-    .workspace-plugin-container {
-      padding: 0 !important;
+    .actived {
+      color: #0c62ff;
     }
   }
 }

@@ -64,7 +64,7 @@ fetch.interceptors.response.use(
       return Promise.reject('timeout');
     } else if (error.response.status) {
       if (typeof error.response.data === 'object') {
-        message.error(error.response.data.message || '请求失败');
+        message.error(error.response.data?.message || error.response.data?.error || '请求失败');
       } else {
         message.error(error.response.data || '请求失败');
       }

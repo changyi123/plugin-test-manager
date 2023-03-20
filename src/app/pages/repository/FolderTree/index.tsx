@@ -15,7 +15,7 @@ import { traverseTreeNodes } from '../util';
 import { useTreeFn } from '../hook';
 import { MenuKey, FolderMenu } from '../Menu';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
-import { Tree, Button, Input, notification, Dropdown, Modal } from 'antd';
+import { Tree, Button, Input, notification, Dropdown, Modal, message } from 'antd';
 import { updateTestEntity } from '@/lib/api/item';
 import {
   CustomMore,
@@ -33,9 +33,13 @@ import cx from './index.less';
 
 const { DirectoryTree } = Tree;
 
-type OpenFolderNameModal = (args: { title: string; name?: string }) => Promise<string>;
+type OpenFolderNameModal = (args: {
+  name?: string;
+  title: string;
+  validator?: (name) => void;
+}) => Promise<string>;
 
-const openFolderNameModal: OpenFolderNameModal = ({ title, name }) => {
+const openFolderNameModal: OpenFolderNameModal = ({ title, name, validator }) => {
   let inputRef = null;
   const inputProps = {
     ref: ele => (inputRef = ele),
@@ -52,18 +56,7 @@ const openFolderNameModal: OpenFolderNameModal = ({ title, name }) => {
       getContainer: getRootContainer,
       async onOk() {
         const inputValue = inputRef.input.value?.trim() ?? '';
-        if (!inputValue) {
-          notification.error({
-            message: '模块名不能为空',
-          });
-          throw new Error('required name');
-        }
-        if (inputValue.length > 30) {
-          notification.error({
-            message: '模块名最多30字符',
-          });
-          throw new Error('max length');
-        }
+        validator?.(inputValue);
         resolve(inputValue);
       },
       onCancel() {
@@ -148,10 +141,10 @@ type FolderTreeProps = {
 };
 
 const FolderTree: React.FC<FolderTreeProps> = ({
-  treeNodeData,
   onSelect,
   loading,
   className,
+  treeNodeData,
   onFolderTreeChange,
 }) => {
   const state = useReactive({
@@ -166,7 +159,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
     config: { itemTypeMap },
   } = useTestConfig();
 
-  const { createItemUseModal } = useBaseAction();
+  const { createItemUseModal, getCreatePermission } = useBaseAction();
 
   const selectedTreeNode = React.useMemo(() => {
     return treeFn.getTreeNodeByKey(state.selectedKeys[0]);
@@ -177,8 +170,11 @@ const FolderTree: React.FC<FolderTreeProps> = ({
     if (!itemTypeMap?.TestCase) {
       keys.push(MenuKey.createTest);
     }
+    if (getCreatePermission(TestType.Case)) {
+      keys.push(MenuKey.createTest);
+    }
     return keys;
-  }, [itemTypeMap]);
+  }, [getCreatePermission, itemTypeMap?.TestCase]);
 
   // 展开子菜单
   const expandSubFolder = React.useCallback(
@@ -203,6 +199,28 @@ const FolderTree: React.FC<FolderTreeProps> = ({
     [onSelect, state],
   );
 
+  const inputNameValidator = React.useCallback((inputName, nodes) => {
+    const nodeNames = nodes.map(n => n.name);
+    if (nodeNames.includes(inputName)) {
+      notification.error({
+        message: '同一层级模块名不能重复',
+      });
+      throw new Error('can not set same name');
+    }
+    if (!inputName) {
+      notification.error({
+        message: '模块名不能为空',
+      });
+      throw new Error('required name');
+    }
+    if (inputName.length > 30) {
+      notification.error({
+        message: '模块名最多30字符',
+      });
+      throw new Error('max length');
+    }
+  }, []);
+
   /** 右键菜单处理函数 */
   const handleMenuClick = React.useCallback(
     async (actionKey: MenuKey, node?: TreeNode) => {
@@ -219,7 +237,10 @@ const FolderTree: React.FC<FolderTreeProps> = ({
           });
           return;
         }
-        const folderName = await openFolderNameModal({ title: '新建子模块' });
+        const folderName = await openFolderNameModal({
+          title: '新建子模块',
+          validator: inputName => inputNameValidator(inputName, node.children),
+        });
         const parentKey = node?.key === UNGROUPED_FOLDER_KEY ? null : node?.key;
         const createdFolder = await createFolder({
           name: folderName,
@@ -245,6 +266,9 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         const newFolderName = await openFolderNameModal({
           title: '重命名模块',
           name: node.name,
+          // 获取当前节点的所有 sibling 节点
+          validator: inputName =>
+            inputNameValidator(inputName, treeFn.getTreeNodeByKey(node.parentKey)?.children ?? []),
         });
 
         await updateFolders([
@@ -349,11 +373,11 @@ const FolderTree: React.FC<FolderTreeProps> = ({
     },
     [
       treeFn,
-      workspace?.key,
-      workspace?.objectId,
-      state?.expandedKeys,
+      workspace,
+      state.expandedKeys,
       onFolderTreeChange,
       handleSelect,
+      inputNameValidator,
       expandSubFolder,
       createItemUseModal,
     ],
@@ -456,56 +480,63 @@ const FolderTree: React.FC<FolderTreeProps> = ({
   const handleItemDrop = React.useCallback(
     async ({ testId, toFolderKey, fromFolderKey }) => {
       if (fromFolderKey === toFolderKey) return;
-      const currentFolderNode = treeFn.getTreeNodeByKey(state.selectedKeys[0]);
       const updateValues = [testId].map(d => ({
         objectId: d,
         repository: toFolderKey,
       }));
 
-      await updateTestEntity(updateValues);
+      const res = await updateTestEntity(updateValues);
+      if (res?.status === 'error') {
+        message.error(res.data);
+        return;
+      }
 
       notification.success({
         message: '测试用例移动成功',
       });
 
-      const refreshedTreeNodes = await onFolderTreeChange();
-
-      const newCurrentFolderNode = getTreeNodeByKey(refreshedTreeNodes, state.selectedKeys[0]);
-
-      handleSelect([currentFolderNode.key], {
-        node: newCurrentFolderNode,
-      });
+      await onFolderTreeChange();
     },
-    [treeFn, state.selectedKeys, onFolderTreeChange, handleSelect],
+    [onFolderTreeChange],
   );
 
   const titleRender = React.useCallback(
-    node => (
-      <DropTreeTitle key={node.key} nodeKey={node.key} onItemDrop={handleItemDrop}>
-        <>
-          <OverflowTooltip title={node.name}>
-            <span className={cx('tree-node-name')}>{node.name}</span>
-          </OverflowTooltip>
+    node => {
+      const getDisabledKeys = (keys = []) => {
+        keys =
+          node.key === 'root'
+            ? [MenuKey.deleteFolder, MenuKey.renameFolder]
+            : node.disabledMenuKeys ?? [];
+        if (getCreatePermission(TestType.Case)) {
+          keys = keys.concat(MenuKey.createTest);
+        }
 
-          <span className={cx('tree-node-length')}>{`${node.length[0]}(${node.length[1]})`}</span>
-          <Dropdown
-            overlay={
-              <FolderMenu
-                disabledKeys={
-                  node.key === 'root'
-                    ? [MenuKey.deleteFolder, MenuKey.renameFolder]
-                    : node.disabledMenuKeys
-                }
-                onClick={({ key }) => handleMenuClick(key, node)}
-              />
-            }
-          >
-            <CustomMore onClick={e => e.stopPropagation()} className={cx('tree-node-action')} />
-          </Dropdown>
-        </>
-      </DropTreeTitle>
-    ),
-    [handleMenuClick, handleItemDrop],
+        return keys;
+      };
+
+      return (
+        <DropTreeTitle key={node.key} nodeKey={node.key} onItemDrop={handleItemDrop}>
+          <>
+            <OverflowTooltip title={node.name}>
+              <span className={cx('tree-node-name')}>{node.name}</span>
+            </OverflowTooltip>
+
+            <span className={cx('tree-node-length')}>{`${node.length[0]}(${node.length[1]})`}</span>
+            <Dropdown
+              overlay={
+                <FolderMenu
+                  disabledKeys={getDisabledKeys()}
+                  onClick={({ key }) => handleMenuClick(key, node)}
+                />
+              }
+            >
+              <CustomMore onClick={e => e.stopPropagation()} className={cx('tree-node-action')} />
+            </Dropdown>
+          </>
+        </DropTreeTitle>
+      );
+    },
+    [handleMenuClick, handleItemDrop, getCreatePermission],
   );
 
   const updateRepository = useCallback(

@@ -4,7 +4,7 @@ import Field from '@/components/common/Field';
 import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
 import RepositoryGroup from '@/components/business/RepositoryGroup';
 import { StatusBadge } from '@/components/business/Status';
-import { notification, Button, Tooltip } from 'antd';
+import { notification, Button, Tooltip, message } from 'antd';
 import TestRunModal, {
   ActionType as TestRunModalActionType,
 } from '@/components/business/TestRunModal';
@@ -28,6 +28,7 @@ import { isEmpty, isEqual } from 'lodash';
 import { useTestRunActionAuth, useCanExecuteTestRunIdSequence } from '@/lib/hooks/useTest';
 import { getCurrentUserSetting, saveUserSetting } from '@/lib/api/userSetting';
 import { useCurrentUser } from '@/lib/api/user';
+import { useBaseAction } from '@/lib/hooks/useContext';
 import createProximaSdk from '@projectproxima/proxima-sdk-js';
 
 import cx from './index.less';
@@ -35,7 +36,7 @@ import cx from './index.less';
 interface TestEntityListProps {
   loading?: boolean;
   requestScopedTestDetailIds?: string[];
-  activedType: string;
+  activeType: string;
   selectedExecution?: Record<string, any>;
   refreshPlanData?: () => void;
   scopedTestDetailRefresh?: () => void;
@@ -45,7 +46,7 @@ interface TestEntityListProps {
 
 const TestEntityList: React.FC<TestEntityListProps> = ({
   loading,
-  activedType,
+  activeType,
   requestScopedTestDetailIds,
   selectedExecution,
   scopedTestDetailRefresh,
@@ -62,6 +63,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     tableSelectionToggleEvent,
   } = usePageContext();
   const proxima = createProximaSdk();
+  const { getCreatePermission } = useBaseAction();
   const actionRef = React.useRef<BusinessTableActionType>();
   const testRunModalActionRef = React.useRef<TestRunModalActionType>();
   const userData = useUserCellUserDataProp(workspaceKey);
@@ -97,7 +99,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
 
   const { data: allRunData } = useRequest(
     async () => {
-      if (activedType === 'TestPlan') return [];
+      if (activeType === 'TestPlan') return [];
       if (!requestScopedTestDetailIds?.length || !selectedExecution?.objectId) {
         return [];
       }
@@ -266,7 +268,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
 
   useEffect(() => {
     const [systemSelectors] = selectors;
-    if (!isEmpty(systemSelectors) && activedType !== 'TestPlan') {
+    if (!isEmpty(systemSelectors) && activeType !== 'TestPlan') {
       setTableLoading(true);
       scopedTestDetailRefresh();
       const isEmptyValue = Object.values(systemSelectors)
@@ -277,12 +279,12 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         setTableLoading(false);
       }
     }
-  }, [selectors, scopedTestDetailRefresh, activedType]);
+  }, [selectors, scopedTestDetailRefresh, activeType]);
 
   const removeTestRelation = React.useCallback(
     async (planId, testDetails) => {
       if (!Array.isArray(testDetails)) return;
-      await updateTestEntity(
+      const res = await updateTestEntity(
         testDetails.map(d => ({
           objectId: d.id,
           linkItems: {
@@ -297,6 +299,10 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           }, {}),
         })),
       );
+      if (res?.status === 'error') {
+        message.error(res.data);
+        return;
+      }
 
       actionRef.current.resetSelectedRowKeys();
 
@@ -384,11 +390,15 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     async (testRun, status) => {
       // 更新测试执行状态
       // 更新测试执行对应的测试用例状态
-      await updateTestStatus({
+      const res = await updateTestStatus({
         runIds: [testRun.objectId],
         status: status.key,
         planId: selectedTestPlan.objectId,
       });
+      if (res?.status === 'error') {
+        message.error(res.data);
+        return;
+      }
       actionRef.current.refresh();
       mutateStatusEvent.emit('refreshExecutionStatus');
     },
@@ -399,12 +409,9 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   const deleteTestRunByIds = useMemoizedFn(testRunIds => {
     actionConfirm('该操作会将所选测试执行删除，是否继续操作？', async () => {
       // 删除测试执行
-      const { data } = await deleteTestEntity(testRunIds);
-
-      if (data.status === 'error') {
-        notification.error({
-          message: `用例执行被删除失败`,
-        });
+      const res = await deleteTestEntity(testRunIds);
+      if (res?.status === 'error') {
+        message.error(res.data);
         return;
       }
 
@@ -519,6 +526,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
             <Button
               type="link"
               style={{ marginLeft: 10 }}
+              disabled={getCreatePermission(TestType.Case)}
               onClick={async () => {
                 deleteTestRunByIds([record.objectId]);
               }}
@@ -545,7 +553,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
             limit: 99999,
             select: ['id', 'caseStatus'],
           });
-          await updateTestEntity(
+          const res = await updateTestEntity(
             items.map(item => ({
               objectId: item.id,
               linkItems: {
@@ -560,6 +568,11 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
               }, {}),
             })),
           );
+          if (res?.status === 'error') {
+            setTableLoading(false);
+            message.error(res.data);
+            return;
+          }
 
           setTimeout(() => {
             scopedTestDetailRefresh();
@@ -576,7 +589,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       setTableLoading(true);
       const testIds = actionRef.current.selectedRowKeys;
 
-      await updateTestEntity(
+      const res = await updateTestEntity(
         testIds.map(d => ({
           objectId: d,
           values: {
@@ -584,6 +597,11 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           },
         })),
       );
+      if (res?.status === 'error') {
+        setTableLoading(false);
+        message.error(res.data);
+        return;
+      }
 
       setTimeout(() => {
         actionRef.current.refresh();
@@ -629,6 +647,10 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     const getTestRunIds = () => actionRef.current.selectedRowKeys;
 
     const toggleSTestRunStatus = async status => {
+      if (getCreatePermission(TestType.Case)) {
+        message.error('暂无事项编辑权限，请检查事项操作权限配置或联系管理员');
+        return;
+      }
       const testRunIds = getTestRunIds();
 
       // 可执行的测试执行 id
@@ -654,21 +676,34 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     };
 
     const deleteTestRun = () => {
+      if (getCreatePermission(TestType.Case)) {
+        message.error('暂无事项删除权限，请检查事项操作权限配置或联系管理员');
+        return;
+      }
       const testRunIds = getTestRunIds();
       deleteTestRunByIds(testRunIds);
     };
 
     // 更新测试执行人
     const handleDesigneeChange = async users => {
+      if (getCreatePermission(TestType.Case)) {
+        message.error('暂无事项编辑权限，请检查事项操作权限配置或联系管理员');
+        return;
+      }
       const testRunIds = getTestRunIds();
       setTableLoading(true);
       // 更新测试执行执行人
-      await updateTestEntity(
+      const res = await updateTestEntity(
         testRunIds.map(run => ({
           objectId: run,
           designee: users,
         })),
       );
+      if (res?.status === 'error') {
+        setTableLoading(false);
+        message.error(res.data);
+        return;
+      }
 
       notification.success({
         message: '所选测试执行人更新成功',
@@ -701,7 +736,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       </Tooltip>,
       <StatusBadge
         useRootContainer
-        readonly={!hasRowSelected}
+        readonly={!hasRowSelected && getCreatePermission(TestType.Case)}
         onStatusChange={toggleSTestRunStatus}
         key="toggleRunStatus"
         emptyNode={
@@ -719,6 +754,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     canAssignTestRun,
     userData,
     hasRowSelected,
+    getCreatePermission,
     getCanExecuteTestRunIdSequence,
     selectedTestPlan?.objectId,
     mutateTestPlanEvent,
@@ -748,7 +784,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
 
   return (
     <div className={cx('test-entity-list-box')}>
-      {activedType === 'TestPlan' ? (
+      {activeType === 'TestPlan' ? (
         <BusinessTable
           className={cx(`${tableSelectionVisible ? 'batch-action' : ''}`)}
           titleCellOption={{
@@ -808,7 +844,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           handleFilterField={handleFilterField}
         />
       )}
-      {activedType !== 'TestPlan' && (
+      {activeType !== 'TestPlan' && (
         <TestRunModal
           actionRef={testRunModalActionRef}
           idSequence={allRunData?.map(run => run.id)}

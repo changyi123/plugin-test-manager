@@ -29,7 +29,7 @@ const AddDefectButton: React.FC<AddDefectButtonProps> = props => {
     className,
     plainStyle,
   } = props;
-  const { createItemUseModal } = useBaseAction();
+  const { createItemUseModal, getCreatePermission } = useBaseAction();
   const { TestToDefect = '' } = useItemLinkTypeConfig();
   const currentRef = React.useRef(null);
   const testEntitySelectorRef = React.useRef<ActionType>();
@@ -40,22 +40,36 @@ const AddDefectButton: React.FC<AddDefectButtonProps> = props => {
 
     onLoading?.();
     // 创建事项关联
-    await addTestDefect(TestToDefect, testRunEntity, [defectItem.objectId]);
-    const needAddedItemIds = [].concat(currentDefectIds, defectItem.objectId).filter(Boolean);
-    onSave?.(needAddedItemIds);
-    message.success('缺陷新建成功');
+    try {
+      await addTestDefect(TestToDefect, testRunEntity, [defectItem.objectId]);
+      const needAddedItemIds = [].concat(currentDefectIds, defectItem.objectId).filter(Boolean);
+      onSave?.(needAddedItemIds);
+      message.success('缺陷新建成功');
+    } catch (error) {
+      message.error(error?.message);
+      onLoading?.(false);
+    }
   }, [createItemUseModal, onLoading, TestToDefect, testRunEntity, currentDefectIds, onSave]);
 
   const addExistedDefect = async () => {
+    if (getCreatePermission(TestType.TestDefect)) {
+      message.error('暂无事项新增权限，请检查事项操作权限配置或联系管理员');
+      return;
+    }
     const itemIds = await testEntitySelectorRef.current.open({ selectValue: [] });
 
     if (itemIds?.length > 0) {
       onLoading?.();
       // 创建事项关联
-      await addTestDefect(TestToDefect, testRunEntity, itemIds);
-      const needAddedItemIds = [].concat(currentDefectIds, itemIds).filter(Boolean);
-      onSave?.(needAddedItemIds);
-      message.success('缺陷添加成功');
+      try {
+        await addTestDefect(TestToDefect, testRunEntity, itemIds);
+        const needAddedItemIds = [].concat(currentDefectIds, itemIds).filter(Boolean);
+        onSave?.(needAddedItemIds);
+        message.success('缺陷添加成功');
+      } catch (error) {
+        message.error(error?.message);
+        onLoading?.(false);
+      }
     }
   };
 

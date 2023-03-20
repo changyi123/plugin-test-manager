@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { notification, Spin } from 'antd';
+import { message, notification, Spin } from 'antd';
 import TestPlanList from '@/components/business/TestPlanList';
 import PageLayout from '@/components/common/PageLayout';
 import { useLocation } from 'react-router-dom';
@@ -34,7 +34,7 @@ const PlanPageLayout: React.FC<any> = () => {
   const [selectValue, setSelectValue] = useState<string[] | undefined>(undefined);
   const [treeType, setTreeType] = React.useState<string | undefined>('plan');
 
-  const [activedType, setActivedType] = useState('TestPlan');
+  const [activeType, setActiveType] = useState('TestPlan');
   const [selectedExecution, setSelectedExecution] = useState<Record<string, any> | undefined>(
     undefined,
   );
@@ -67,7 +67,7 @@ const PlanPageLayout: React.FC<any> = () => {
 
   useEffect(() => {
     if (selectedTestPlan?.objectId) {
-      activedType !== 'TestPlan' && setActivedType('TestPlan');
+      activeType !== 'TestPlan' && setActiveType('TestPlan');
       showType !== 'showChild' && setShowType('showChild');
       setSelectedExecution(undefined);
     }
@@ -75,8 +75,8 @@ const PlanPageLayout: React.FC<any> = () => {
   }, [selectedTestPlan]);
 
   useEffect(() => {
-    if (query?.actionType && !activedType) {
-      setActivedType(query?.actionType);
+    if (query?.actionType && !activeType) {
+      setActiveType(query?.actionType);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query?.actionType]);
@@ -85,7 +85,7 @@ const PlanPageLayout: React.FC<any> = () => {
   const { data: scopedTestDetailIds, refreshAsync: scopedTestDetailRefresh } =
     useScopedTestDetailIds({
       workspaceKey,
-      type: activedType === 'TestPlan' ? 'Plan' : 'Execution',
+      type: activeType === 'TestPlan' ? 'Plan' : 'Execution',
       testPlanId: selectedTestPlan?.objectId,
       testExecutionId: selectedExecution?.objectId,
       selectors,
@@ -102,7 +102,7 @@ const PlanPageLayout: React.FC<any> = () => {
     setSearchParams([{}, {}]);
     pageLeftRef.current?.reset();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activedType, selectedExecution, selectedTestPlan]);
+  }, [activeType, selectedExecution, selectedTestPlan]);
 
   // 处理 folder tree change
   const handleFolderSelect = ids => {
@@ -110,11 +110,11 @@ const PlanPageLayout: React.FC<any> = () => {
   };
 
   useEffect(() => {
-    if (activedType === 'TestPlan') {
+    if (activeType === 'TestPlan') {
       selectedExecution && setSelectedExecution(undefined);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activedType]);
+  }, [activeType]);
 
   const getSelectCaseIds = useCallback(async () => {
     if (!testEntitySelectorRef.current?.open) return;
@@ -182,7 +182,7 @@ const PlanPageLayout: React.FC<any> = () => {
         });
 
         // 创建完测试执行任务事项，更新测试执行任务关联测试计划
-        await updateTestEntity([
+        const res = await updateTestEntity([
           {
             objectId: item.objectId,
             type: TestType.Execution,
@@ -194,6 +194,10 @@ const PlanPageLayout: React.FC<any> = () => {
             sortIndex: generateSortIndex(),
           },
         ]);
+        if (res?.status === 'error') {
+          message.error(res.data);
+          return;
+        }
 
         // 创建测试执行
         if (caseIds.length > 0) {
@@ -258,8 +262,8 @@ const PlanPageLayout: React.FC<any> = () => {
           <PageLayout>
             <PageLayout.Header>
               <Header
-                activedType={activedType}
-                setActivedType={setActivedType}
+                activeType={activeType}
+                setActiveType={setActiveType}
                 selectedExecution={selectedExecution}
                 setSelectedExecution={setSelectedExecution}
                 refreshExecution={refreshExecution}
@@ -268,14 +272,14 @@ const PlanPageLayout: React.FC<any> = () => {
                 setLoading={setLoading}
               />
             </PageLayout.Header>
-            {activedType === 'TestExecution' && !selectedExecution?.objectId && (
+            {activeType === 'TestExecution' && !selectedExecution?.objectId && (
               <PageLayout.NoData>
                 <Spin spinning={loading}>
                   <NoData createTestExecution={createTestExecution} />
                 </Spin>
               </PageLayout.NoData>
             )}
-            {(activedType === 'TestPlan' || selectedExecution?.objectId) && (
+            {(activeType === 'TestPlan' || selectedExecution?.objectId) && (
               <PageLayout.Left>
                 <Left
                   actionRef={pageLeftRef}
@@ -285,12 +289,12 @@ const PlanPageLayout: React.FC<any> = () => {
                 />
               </PageLayout.Left>
             )}
-            {(activedType === 'TestPlan' || selectedExecution?.objectId) && (
+            {(activeType === 'TestPlan' || selectedExecution?.objectId) && (
               <PageLayout.Right>
                 <Spin spinning={loading}>
                   <Right
                     pageLeftRef={pageLeftRef}
-                    activedType={activedType}
+                    activeType={activeType}
                     selectedExecution={selectedExecution}
                     showType={showType}
                     setShowType={setShowType}
