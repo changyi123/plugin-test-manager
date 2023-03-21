@@ -23,15 +23,17 @@ const errorLog1 = i18n.t('trigger.importer.validate.numberValidate');
 
 // 判断是否为中文字符
 // eslint-disable-next-line no-control-regex
-const isTwoChar = d => /[^\x00-\xff]/g.test(d);
+// const isTwoChar = d => /[^\x00-\xff]/g.test(d);
 
 // 获取字符串字符数
-const getCharNum = d =>
-  `${d ?? ''}`?.split('').reduce((prev, cur) => {
-    prev = prev + (isTwoChar(cur) ? 2 : 1);
+// const getCharNum = d =>
+//   `${d ?? ''}`?.split('').reduce((prev, cur) => {
+//     prev = prev + (isTwoChar(cur) ? 2 : 1);
 
-    return prev;
-  }, 0);
+//     return prev;
+//   }, 0);
+
+const getStringLength = d => `${d ?? ''}`?.length;
 
 const splitSteps = datas => datas?.replace(/^[\r\n]+/g, '')?.split(/(?=【\d+】)/g) ?? [];
 
@@ -43,7 +45,7 @@ const testSteps = datas => (isSteps(datas) ? splitSteps(datas).some(d => !testSt
 
 const getCharNumErrorIndex = datas =>
   splitSteps(datas)
-    .map((d, index) => (getCharNum(d) > 500 ? index : null))
+    .map((d, index) => (getStringLength(d) > 2000 ? index : null))
     .filter(d => d !== null);
 
 const getTestDetailsErrors = (datas, resProps?: Record<string, unknown>) =>
@@ -76,7 +78,7 @@ const getTestDetailsErrors = (datas, resProps?: Record<string, unknown>) =>
     }
 
     // 校验前置条件字数
-    if (getCharNum(cur.precondition) > 1000) {
+    if (getStringLength(cur.precondition) > 2000) {
       prev = prev.concat([
         `${i18n.t('trigger.importer.validate.No')} ${index + 1} ${i18n.t(
           'trigger.importer.validate.validateErrors.3',

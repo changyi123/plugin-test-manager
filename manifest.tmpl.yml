@@ -62,6 +62,8 @@ modules:
     # 模块代码
     - key: api-module-repository-tree
       function: api-module-repository-tree-function
+    - key: api-module-repository-tree-v2
+      function: api-module-repository-tree-v2-function
 
   trigger:
     - key: test-manager-initial-script-install
@@ -137,6 +139,8 @@ modules:
     # api module
     - key: api-module-repository-tree-function
       handler: api.repositoryTree
+    - key: api-module-repository-tree-v2-function
+      handler: api.repositoryTreeV2
     - key: api-query-minder-data-function
       handler: api.minderData
 

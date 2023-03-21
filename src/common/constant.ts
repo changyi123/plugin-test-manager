@@ -126,7 +126,7 @@ export const IQLUsefulFieldKeys = [
 ];
 
 /** 无限分页 */
-export const InfinityLimit = 100000;
+export const InfinityLimit = 99999;
 
 /** 内置类型映射 */
 export const BuiltInItemTypeMapping = {
