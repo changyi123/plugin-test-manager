@@ -52,7 +52,7 @@
     "designee": "Designee",
     "testExecutor": "The latest executor",
     "testRunStatus": "Test status",
-    "testCaseStatus": "The latest status",
+    "testCaseStatus": "The execution status",
     "allRepository": "All cases",
     "testReport": "Test report",
     "exportReportFail": "Failed to export test report",
