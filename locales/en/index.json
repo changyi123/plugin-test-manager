@@ -58,7 +58,7 @@
     "exportReportFail": "Failed to export test report",
     "pleaseSelectType": "Please choose the type",
     "tableTotal": ["Total", "Data"],
-    "testManagerConfig": "Test management configuration",
+    "testManagerConfig": "Test management config",
     "moreConfig": "More configuration",
     "more": "More",
     "search": "Search",
