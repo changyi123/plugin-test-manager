@@ -266,7 +266,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
 
       return {
         list: runs.map(d => {
-          const item = testItem.find(item => item.objectId === d.referenceCase);
+          const item = testItem?.find(item => item.objectId === d.referenceCase) ?? {};
           return {
             ...d,
             repository: item?.repository,
