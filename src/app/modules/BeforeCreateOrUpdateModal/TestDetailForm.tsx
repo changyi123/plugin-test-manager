@@ -61,7 +61,7 @@ const TestDetailForm: React.FC<TestDetailFormProps> = ({ onChange, values, extra
       <h6 className={cx('step-title', 'field-label')}>{t('common.precondition')}</h6>
       <div className={cx('precondition')}>
         <Input.TextArea
-          maxLength={1000}
+          maxLength={2000}
           autoSize={{ minRows: 3, maxRows: 6 }}
           placeholder={t('common.preconditionPlaceholder')}
           defaultValue={values?.precondition}

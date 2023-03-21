@@ -102,7 +102,7 @@ const Detail: React.FC = () => {
       <h6>{t('common.precondition')}</h6>
       <div className={css('precondition-input')}>
         <Input.TextArea
-          maxLength={1000}
+          maxLength={2000}
           autoSize={{ minRows: 3, maxRows: 6 }}
           placeholder={t('common.preconditionPlaceholder')}
           defaultValue={testEntity.detail?.precondition}

@@ -239,7 +239,7 @@ const TestStep: React.FC<TestStepProps> = props => {
                 <Input
                   placeholder={t('components.business.testRunModal.testStep.resultPlaceholder')}
                   value={step.actualResult}
-                  maxLength={500}
+                  maxLength={2000}
                   onKeyDownEnter={value => changeSteps(step.id, value)}
                   onChange={value => changeSteps(step.id, value)}
                 />
