@@ -10,6 +10,8 @@ import { TestType } from '@/lib/constants';
 import { FieldKey } from 'common/types/api';
 import { SearchSelectors } from '@/lib/utils/iql';
 import useI18n from '@/lib/hooks/useI18n';
+import { getRepositoryQuery } from '@/lib/utils/tree';
+import VirtualScrollList from './virtualScrollList';
 
 interface TestDetailsSelectorListProps {
   workspaceKey?: string;
@@ -82,7 +84,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
   const { t } = useI18n();
   const CheckboxGroup = Checkbox.Group;
   const [checkData, setCheckData] = useState([]);
-  const [showType, setShowType] = useState('showChild');
+  const [showType, setShowType] = useState('all');
   const [orderByCratedAt, setOrderByCratedAt] = useState<'asc' | 'desc'>('asc');
   const searchName = useMemo(() => (selectors?.[0] as any)?.name?.value, [selectors]);
 
@@ -94,32 +96,31 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
     [selectedTestDetailIds, checkData],
   );
 
-  const caseIds = getTestDetailIdsByReport(getReportData(selectedNode), 'caseIds') ?? [];
-
   // 查询当前用例库下所有测试用例
   const {
-    data: curTestList = [],
-    loading: curTestListLoading,
+    data: testCaseList = [],
+    loading: testCaseListLoading,
     refresh,
   } = useRequest(
     async () => {
+      if (!workspaceKey) return;
       const baseQueryOptions: {
         ascending?: FieldKey[];
         descending?: FieldKey[];
       } =
         orderByCratedAt === 'asc'
           ? {
-              ascending: ['createdAt'],
+              ascending: ['sortIndex', 'createdAt'],
             }
           : {
-              descending: ['createdAt'],
+              descending: ['sortIndex', 'createdAt'],
             };
-
+      const repository = getRepositoryQuery(selectedNode, showType);
       const { list: data } = await getTestEntityByQuery({
         query: {
           workspaceKey: workspaceKey,
           type: TestType.Case,
-          id: caseIds,
+          ...repository,
         },
         ...baseQueryOptions,
         limit: 9999,
@@ -127,35 +128,32 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
         selector: selectors,
       });
 
-      return data.map(d => ({
-        ...d,
-        label: d.name,
-        value: d.id,
-        objectId: d.id,
-      }));
+      return data;
     },
     {
-      refreshDeps: [orderByCratedAt, selectedNode, workspaceKey, searchName],
-      cacheKey: `Repository_${selectedNode?.key ?? ''}_${searchName}${caseIds.join(
-        '_',
-      )}${orderByCratedAt}${workspaceKey}`,
+      refreshDeps: [workspaceKey, searchName, selectedNode, showType, orderByCratedAt],
+      cacheKey: `Repository_${
+        selectedNode?.key ?? ''
+      }_${searchName}_${orderByCratedAt}${workspaceKey}`,
       staleTime: 999999999,
       cacheTime: 999999999,
     },
   );
 
+  // const caseIds = testCaseList?.map(d => d.id);
+
   useUpdateEffect(() => {
-    if (treeType) {
-      refresh();
-      setSelectedTestDetailIds([]);
-    }
+    // if (treeType) {
+    //   refresh();
+    //   setSelectedTestDetailIds([]);
+    // }
   }, [treeType]);
 
   useEffect(() => {
-    if (!curTestListLoading) {
-      if (!curTestList.length) return setCheckData([]);
+    if (!testCaseListLoading) {
+      if (!testCaseList.length) return setCheckData([]);
       const reportData = getReportData(
-        showType === 'showCur'
+        showType === 'current'
           ? {
               ...selectedNode,
               children: [],
@@ -164,14 +162,14 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
         ignoreTestDetailIds,
       );
 
-      const _checkData = reportData.map(report => ({
-        ...report,
-        testDetailList: curTestList.filter(d => report.caseIds.includes(d.id)) ?? [],
-      }));
+      // const _checkData = reportData.map(report => ({
+      //   ...report,
+      //   // testDetailList: testCaseList.filter(d => report.caseIds.includes(d.id)) ?? [],
+      // }));
 
-      setCheckData(_checkData);
+      // setCheckData(reportData);
     }
-  }, [curTestListLoading, curTestList, showType, ignoreTestDetailIds]);
+  }, [testCaseListLoading, showType, ignoreTestDetailIds]);
 
   const checkAllTest = e => {
     const allTestIds = getTestDetailIdsByReport(checkData, 'testDetailList').map(d => d.objectId);
@@ -197,168 +195,170 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
   };
 
   const isNotData = data => {
-    if (data.length === 1) {
-      return data[0].caseIds.length;
-    }
+    // if (data.length === 1) {
+    //   return data[0].caseIds.length;
+    // }
 
-    return data.length;
+    return !data?.length;
   };
 
-  return (
-    <Spin spinning={curTestListLoading}>
-      <>
-        <div className={cx('detail-selector-header')}>
-          <Checkbox
-            disabled={
-              getCheckedValue(checkData, ignoreTestDetailIds, 'checked') ||
-              !getTestDetailIdsByReport(checkData, 'testDetailList').filter(
-                d => !ignoreTestDetailIds.includes(d.objectId),
-              ).length
-            }
-            indeterminate={getCheckedValue(
-              checkData,
-              [...ignoreTestDetailIds, ...selectedTestDetailIds],
-              'indeterminate',
-            )}
-            checked={getCheckedValue(
-              checkData,
-              [...ignoreTestDetailIds, ...selectedTestDetailIds],
-              'checked',
-            )}
-            onChange={checkAllTest}
-          >
-            <span className={cx('check-all-title')}>
-              {t('common.checked')}
-              <span className={cx('num')}> {curSelectIdsLength}</span>
-              <span>
-                {' / '}
-                {
-                  getTestDetailIdsByReport(checkData, 'testDetailList').filter(
-                    d => !ignoreTestDetailIds.includes(d.objectId),
-                  ).length
-                }
-              </span>
-            </span>
-          </Checkbox>
-          <div className={cx('detail-header-right')}>
-            <Select
-              style={{ width: 165 }}
-              value={showType}
-              options={[
-                {
-                  value: 'showChild',
-                  label: t('page.plan.planPageLayout.right.showChild'),
-                },
-                {
-                  value: 'showCur',
-                  label: t('page.plan.planPageLayout.right.showCur'),
-                },
-              ]}
-              getPopupContainer={e => e.parentNode}
-              onChange={val => setShowType(val)}
-            ></Select>
-            <Tooltip title={t('components.business.testEntitySelectorModal.addTimeSort')}>
-              <span
-                className={cx('action')}
-                onClick={() => {
-                  setOrderByCratedAt(val => (val === 'asc' ? 'desc' : 'asc'));
-                }}
-              >
-                <span>
-                  {orderByCratedAt === 'asc'
-                    ? t('components.business.testEntitySelectorModal.earliest')
-                    : t('components.business.testEntitySelectorModal.latest')}
-                </span>
-                <span className={cx('icon')}>
-                  <CaretUpOutlined className={cx(orderByCratedAt === 'asc' && 'activity')} />
-                  <CaretDownOutlined className={cx(orderByCratedAt === 'desc' && 'activity')} />
-                </span>
-              </span>
-            </Tooltip>
-          </div>
-        </div>
-        <div className={cx('detail-selector-body')}>
-          {isNotData(checkData) ? (
-            checkData.map(box => (
-              <>
-                {box.testDetailList.length ? (
-                  <div className={cx('detail-list')} key={box.value}>
-                    <div className={cx('detail-list-box')}>
-                      <Checkbox
-                        indeterminate={getReportCheckedValue(
-                          box.testDetailList.map(d => d.objectId),
-                          [...ignoreTestDetailIds, ...selectedTestDetailIds],
-                          'indeterminate',
-                        )}
-                        checked={getReportCheckedValue(
-                          box.testDetailList.map(d => d.objectId),
-                          [...ignoreTestDetailIds, ...selectedTestDetailIds],
-                          'checked',
-                        )}
-                        disabled={getReportCheckedValue(
-                          box.testDetailList.map(d => d.objectId),
-                          ignoreTestDetailIds,
-                          'checked',
-                        )}
-                        onChange={e => checkReport(e, box)}
-                      >
-                        <Tooltip title={box.path}>
-                          <span className={cx('flex-box')}>
-                            {box.path !== box.name && (
-                              <span className={cx('path')}>
-                                {box.path
-                                  .split('/')
-                                  .slice(0, box.path.split('/').length - 1)
-                                  .map((name, index) => (
-                                    <span key={index}>
-                                      {`${name} `}
-                                      {' / '}
-                                    </span>
-                                  ))}
-                              </span>
-                            )}
-                            <span className={cx('cur-path')}>{box.name}</span>
-                          </span>
-                        </Tooltip>
-                      </Checkbox>
-                    </div>
-                    <div className={cx('detail-list-group')}>
-                      <CheckboxGroup value={[...ignoreTestDetailIds, ...selectedTestDetailIds]}>
-                        {box.testDetailList
-                          .map(d => ({
-                            ...d,
-                            disabled: ignoreTestDetailIds?.includes(d.objectId) ?? false,
-                          }))
-                          .map(box => (
-                            <div key={box.value}>
-                              <Checkbox
-                                disabled={box.disabled}
-                                value={box.value}
-                                onChange={e => checkTest(e.target.checked, e.target.value)}
-                              >
-                                <Tooltip title={box.label}>
-                                  <span className={cx('group-title')}>{box.label}</span>
-                                </Tooltip>
-                              </Checkbox>
-                            </div>
-                          ))}
-                      </CheckboxGroup>
-                    </div>
-                  </div>
-                ) : null}
-              </>
-            ))
-          ) : (
-            <Empty
-              className={cx('empty-test')}
-              image={emptyImg}
-              description={t('components.business.testEntitySelectorModal.notHaveCase')}
-            />
-          )}
-        </div>
-      </>
-    </Spin>
-  );
+  return <VirtualScrollList group={[selectedNode].filter(Boolean)} item={testCaseList} />;
+
+  // return (
+  //   <Spin spinning={testCaseListLoading}>
+  //     <>
+  //       <div className={cx('detail-selector-header')}>
+  //         <Checkbox
+  //           disabled={
+  //             getCheckedValue(checkData, ignoreTestDetailIds, 'checked') ||
+  //             !getTestDetailIdsByReport(checkData, 'testDetailList').filter(
+  //               d => !ignoreTestDetailIds.includes(d.objectId),
+  //             ).length
+  //           }
+  //           indeterminate={getCheckedValue(
+  //             checkData,
+  //             [...ignoreTestDetailIds, ...selectedTestDetailIds],
+  //             'indeterminate',
+  //           )}
+  //           checked={getCheckedValue(
+  //             checkData,
+  //             [...ignoreTestDetailIds, ...selectedTestDetailIds],
+  //             'checked',
+  //           )}
+  //           onChange={checkAllTest}
+  //         >
+  //           <span className={cx('check-all-title')}>
+  //             {t('common.checked')}
+  //             <span className={cx('num')}> {curSelectIdsLength}</span>
+  //             <span>
+  //               {' / '}
+  //               {
+  //                 getTestDetailIdsByReport(checkData, 'testDetailList').filter(
+  //                   d => !ignoreTestDetailIds.includes(d.objectId),
+  //                 ).length
+  //               }
+  //             </span>
+  //           </span>
+  //         </Checkbox>
+  //         <div className={cx('detail-header-right')}>
+  //           <Select
+  //             style={{ width: 165 }}
+  //             value={showType}
+  //             options={[
+  //               {
+  //                 value: 'all',
+  //                 label: t('page.plan.planPageLayout.right.showChild'),
+  //               },
+  //               {
+  //                 value: 'current',
+  //                 label: t('page.plan.planPageLayout.right.showCur'),
+  //               },
+  //             ]}
+  //             getPopupContainer={e => e.parentNode}
+  //             onChange={val => setShowType(val)}
+  //           ></Select>
+  //           <Tooltip title={t('components.business.testEntitySelectorModal.addTimeSort')}>
+  //             <span
+  //               className={cx('action')}
+  //               onClick={() => {
+  //                 setOrderByCratedAt(val => (val === 'asc' ? 'desc' : 'asc'));
+  //               }}
+  //             >
+  //               <span>
+  //                 {orderByCratedAt === 'asc'
+  //                   ? t('components.business.testEntitySelectorModal.earliest')
+  //                   : t('components.business.testEntitySelectorModal.latest')}
+  //               </span>
+  //               <span className={cx('icon')}>
+  //                 <CaretUpOutlined className={cx(orderByCratedAt === 'asc' && 'activity')} />
+  //                 <CaretDownOutlined className={cx(orderByCratedAt === 'desc' && 'activity')} />
+  //               </span>
+  //             </span>
+  //           </Tooltip>
+  //         </div>
+  //       </div>
+  //       <div className={cx('detail-selector-body')}>
+  //         {isNotData(checkData) ? (
+  //           checkData.map(box => (
+  //             <>
+  //               {box.testDetailList.length ? (
+  //                 <div className={cx('detail-list')} key={box.value}>
+  //                   <div className={cx('detail-list-box')}>
+  //                     <Checkbox
+  //                       indeterminate={getReportCheckedValue(
+  //                         box.testDetailList.map(d => d.objectId),
+  //                         [...ignoreTestDetailIds, ...selectedTestDetailIds],
+  //                         'indeterminate',
+  //                       )}
+  //                       checked={getReportCheckedValue(
+  //                         box.testDetailList.map(d => d.objectId),
+  //                         [...ignoreTestDetailIds, ...selectedTestDetailIds],
+  //                         'checked',
+  //                       )}
+  //                       disabled={getReportCheckedValue(
+  //                         box.testDetailList.map(d => d.objectId),
+  //                         ignoreTestDetailIds,
+  //                         'checked',
+  //                       )}
+  //                       onChange={e => checkReport(e, box)}
+  //                     >
+  //                       <Tooltip title={box.path}>
+  //                         <span className={cx('flex-box')}>
+  //                           {box.path !== box.name && (
+  //                             <span className={cx('path')}>
+  //                               {box.path
+  //                                 .split('/')
+  //                                 .slice(0, box.path.split('/').length - 1)
+  //                                 .map((name, index) => (
+  //                                   <span key={index}>
+  //                                     {`${name} `}
+  //                                     {' / '}
+  //                                   </span>
+  //                                 ))}
+  //                             </span>
+  //                           )}
+  //                           <span className={cx('cur-path')}>{box.name}</span>
+  //                         </span>
+  //                       </Tooltip>
+  //                     </Checkbox>
+  //                   </div>
+  //                   <div className={cx('detail-list-group')}>
+  //                     <CheckboxGroup value={[...ignoreTestDetailIds, ...selectedTestDetailIds]}>
+  //                       {box.testDetailList
+  //                         .map(d => ({
+  //                           ...d,
+  //                           disabled: ignoreTestDetailIds?.includes(d.objectId) ?? false,
+  //                         }))
+  //                         .map(box => (
+  //                           <div key={box.value}>
+  //                             <Checkbox
+  //                               disabled={box.disabled}
+  //                               value={box.value}
+  //                               onChange={e => checkTest(e.target.checked, e.target.value)}
+  //                             >
+  //                               <Tooltip title={box.label}>
+  //                                 <span className={cx('group-title')}>{box.label}</span>
+  //                               </Tooltip>
+  //                             </Checkbox>
+  //                           </div>
+  //                         ))}
+  //                     </CheckboxGroup>
+  //                   </div>
+  //                 </div>
+  //               ) : null}
+  //             </>
+  //           ))
+  //         ) : (
+  //           <Empty
+  //             className={cx('empty-test')}
+  //             image={emptyImg}
+  //             description={t('components.business.testEntitySelectorModal.notHaveCase')}
+  //           />
+  //         )}
+  //       </div>
+  //     </>
+  //   </Spin>
+  // );
 };
 
 export default React.memo(TestDetailsSelectorList);

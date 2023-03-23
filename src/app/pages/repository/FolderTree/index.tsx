@@ -535,7 +535,9 @@ const FolderTree: React.FC<FolderTreeProps> = ({
               <span className={cx('tree-node-name')}>{node.name}</span>
             </OverflowTooltip>
 
-            <span className={cx('tree-node-length')}>{`${node.length[0]}(${node.length[1]})`}</span>
+            <span
+              className={cx('tree-node-length')}
+            >{`${node?.counts[0]}(${node?.counts[1]})`}</span>
             <Dropdown
               overlay={
                 <FolderMenu

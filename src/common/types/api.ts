@@ -225,6 +225,7 @@ export type TestCaseStatsPayload = {
  */
 export type RepositoryTreePayload = {
   workspaceKey: string;
+  params?: QueryLinkedTestEntityPayload;
 };
 
 /**

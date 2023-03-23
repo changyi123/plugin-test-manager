@@ -7,7 +7,7 @@ import { UNGROUPED_FOLDER_KEY } from '@/pages/repository/constant';
 import { hasArrayItem, escapeMatchesQueryArg } from '@/lib/utils/helper';
 import { useRequest, useMemoizedFn, useDeepCompareEffect, clearCache } from 'ahooks';
 import { traverseTreeNodes, getTreeNodeByKey, reverseTreeNodes } from '@/pages/repository/util';
-import { getRepositoryTree } from '@/lib/api/item';
+import { getRepositoryTreeV2 } from '@/lib/api/item';
 import { cloneDeep } from 'lodash';
 
 import cx from './style.less';
@@ -63,7 +63,7 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
   const { data: nodeTreeData, loading: getTreeLoading } = useRequest(
     async () => {
       if (!workspaceKey) return {};
-      const { data } = await getRepositoryTree({
+      const { data } = await getRepositoryTreeV2({
         workspaceKey,
       });
 
@@ -195,19 +195,19 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
   // 触发 onFolderChange 时间
   useDeepCompareEffect(() => {
     const selectedFolder = getTreeNodeByKey(treeData, treeSelectedKeys[0]);
-    let caseIds = [];
-    if (selectedFolder) {
-      // 包含所有子集节点的用例
-      if (shouldIncludeSubFolder) {
-        traverseTreeNodes([selectedFolder], node => {
-          caseIds = caseIds.concat(node.caseIds);
-        });
-      } else {
-        caseIds = caseIds.concat(selectedFolder.caseIds);
-      }
-    }
+    // let caseIds = [];
+    // if (selectedFolder) {
+    //   // 包含所有子集节点的用例
+    //   if (shouldIncludeSubFolder) {
+    //     traverseTreeNodes([selectedFolder], node => {
+    //       caseIds = caseIds.concat(node.caseIds);
+    //     });
+    //   } else {
+    //     caseIds = caseIds.concat(selectedFolder.caseIds);
+    //   }
+    // }
 
-    onFolderSelect?.(caseIds, {
+    onFolderSelect?.([], {
       selectedFolder,
     });
   }, [treeSelectedKeys, treeData, shouldIncludeSubFolder]);

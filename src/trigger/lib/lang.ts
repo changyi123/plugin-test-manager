@@ -8,8 +8,8 @@ const AcceptLanguageList = ['zh', 'en', 'ru'];
 
 export const getLang = (defaultLang?: string) => {
   return (
-    global.headers.lang ??
-    languageParser.pick(AcceptLanguageList, global.headers['accept-language']) ??
+    global.headers?.lang ??
+    languageParser.pick(AcceptLanguageList, global.headers?.['accept-language']) ??
     defaultLang ??
     'zh'
   );

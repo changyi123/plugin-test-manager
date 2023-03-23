@@ -1,3 +1,4 @@
+import React from 'react';
 import { pick } from 'lodash';
 import Parse from '@/lib/parse';
 import { useRequest, useMemoizedFn } from 'ahooks';
@@ -10,7 +11,6 @@ import {
   getAllTestConfigs,
   getTestEntitiesByRelationWithOrder,
 } from '@/lib/api/common';
-import React from 'react';
 import { getRepoData, handleRepoPath } from '@/components/business/RepositoryGroup/repository';
 import { repositoryFolderTreeEvent } from '@/lib/events';
 import { hasArrayItem } from '../utils/helper';
@@ -120,6 +120,46 @@ export const useAllTestWorkspace = () => {
   return allTestWorkspaces;
 };
 
+export const useGetWorkspaceRepository = workspaceKey => {
+  const { t } = useI18n();
+  const { data: repositoryData, refreshAsync: refreshRepositoryData } = useRequest(
+    () => getRepositoryData(workspaceKey ? [workspaceKey] : []),
+    {
+      cacheKey: `repository_data_${workspaceKey ?? ''}`,
+      refreshDeps: [workspaceKey],
+      debounceWait: 300,
+    },
+  );
+
+  const { data: testCaseRepositoryPath } = useRequest(
+    async () => {
+      if (!hasArrayItem(repositoryData)) return;
+      const pathMap = new Map();
+      handleRepoPath(getRepoData(repositoryData)).forEach(d => {
+        pathMap.set(d.objectId, d.path);
+      });
+
+      return pathMap;
+    },
+    {
+      cacheKey: `repository_map_${workspaceKey}`,
+      refreshDeps: [repositoryData?.length],
+    },
+  );
+
+  React.useEffect(() => {
+    return repositoryFolderTreeEvent.register(() => {
+      refreshRepositoryData();
+    });
+  }, [refreshRepositoryData]);
+
+  return {
+    getTestCaseRepositoryPath: key =>
+      testCaseRepositoryPath?.get(key ?? '') ?? t('common.unGrouped'),
+  };
+};
+
+// 弃用，使用 useGetWorkspaceRepository
 export const useGetTestRepoGroup = (rowData: any) => {
   const workspaceKey = rowData?.workspace?.key;
   const folderKey = rowData?.repository;

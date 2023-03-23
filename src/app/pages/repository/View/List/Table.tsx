@@ -19,13 +19,7 @@ import { useUserCellUserDataProp } from '@/lib/hooks/useProxima';
 import RepositorySelector, {
   ActionType as RepositorySelectorActionType,
 } from '@/components/business/RepositorySelector';
-import RepositoryGroup from '@/components/business/RepositoryGroup';
-import {
-  copyTesCase,
-  deleteTestEntity,
-  getTestEntityByQuery,
-  updateTestEntity,
-} from '@/lib/api/item';
+import { copyTesCase, deleteTestEntity, updateTestEntity } from '@/lib/api/item';
 import { TestType } from '@/lib/constants';
 import { getCurrentUserSetting, saveUserSetting } from '@/lib/api/userSetting';
 import { useCurrentUser } from '@/lib/api/user';
@@ -33,6 +27,7 @@ import fetch from '@/lib/utils/fetch';
 import useI18n from '@/lib/hooks/useI18n';
 
 import cx from './Table.less';
+import { useGetWorkspaceRepository } from '@/lib/hooks/useTest';
 
 const proxima = createProximaSdk();
 
@@ -66,13 +61,13 @@ const RowDragBox = ({ children, ...data }) => {
 export type ActionType = BusinessTableActionType;
 
 type TestDetailTableProps = {
-  folderKey?: string;
   externalDataLoading?: boolean;
   testDetailIds?: string[];
   onDataChange?: () => void;
   onSelectionCancel?: () => void;
   actionRef?: React.ForwardedRef<ActionType>;
   testDetailFieldKeys?: string[];
+  dataSourceGetter?: any;
 };
 
 const TestDetailTable: React.FC<TestDetailTableProps> = props => {
@@ -80,10 +75,9 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
     onDataChange,
     actionRef,
     onSelectionCancel,
-    testDetailIds,
-    folderKey,
     externalDataLoading: externalDataLoadingProp,
-    testDetailFieldKeys,
+    testDetailIds,
+    dataSourceGetter,
   } = props;
   const { t } = useI18n();
   const externalDataLoading =
@@ -95,6 +89,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
   const { workspace } = useTestConfig();
   const workspaceKey = workspace?.key;
   const { data: currentUser } = useCurrentUser();
+  const { getTestCaseRepositoryPath } = useGetWorkspaceRepository(workspaceKey);
 
   const [hasRowSelected, setHasRowSelected] = React.useState(false);
 
@@ -114,32 +109,6 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
       await refreshAndMutateData();
     }
   });
-
-  const dataSourceGetter = React.useCallback(
-    async paginationParams => {
-      if (!testDetailIds?.length || !workspaceKey)
-        return {
-          list: [],
-          total: 0,
-        };
-      const { list: data, total } = await getTestEntityByQuery({
-        query: {
-          workspaceKey: workspaceKey,
-          type: TestType.Case,
-          id: testDetailIds,
-        },
-        fields: testDetailFieldKeys ?? [],
-        ...paginationParams,
-      });
-
-      return {
-        // 加拖拽依赖的 folderKey 数据
-        list: data.map(item => ({ ...item, folderKey, status: item.workflowStatus })),
-        total,
-      };
-    },
-    [workspaceKey, testDetailIds, folderKey, testDetailFieldKeys],
-  );
 
   const { data: currentFields } = useRequest(
     async () => {
@@ -392,7 +361,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         title: t('page.plan.testEntityList.repositoryGroup'),
         width: 200,
         render(_, rowData) {
-          return <RepositoryGroup rowData={rowData}></RepositoryGroup>;
+          return <span>{getTestCaseRepositoryPath(rowData.repository)}</span>;
         },
       },
       {
@@ -414,7 +383,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         },
       },
     ];
-  }, [refreshAndMutateData, t]);
+  }, [getTestCaseRepositoryPath, refreshAndMutateData, t]);
 
   const handleFilterField = useCallback(
     async ({ testType, fieldKeys }) => {

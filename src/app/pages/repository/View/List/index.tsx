@@ -3,11 +3,11 @@ import { Button, notification, Select } from 'antd';
 import { logPluginVersion } from '@/lib/utils/helper';
 import { useBaseAction } from '@/lib/hooks/useContext';
 import { useListener } from '@projectproxima/proxima-sdk-js';
-import { useRequest } from 'ahooks';
+import { useRequest, useUpdateEffect } from 'ahooks';
 import Table, { ActionType } from './Table';
 import { getExtendFields, RepositoryModel, TestType } from '@/lib/constants';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
-import { reverseTreeNodes, getTreeNodeByKey, traverseTreeNodes } from '../../util';
+import { reverseTreeNodes, getTreeNodeByKey } from '../../util';
 
 import { UNGROUPED_FOLDER_KEY } from '../../constant';
 import RepoDropDown from '../../RepoDropDown';
@@ -17,8 +17,8 @@ import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/ho
 import { getFilterFields } from '@/components/common/FilterSearch/utils';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
-
 import { ViewComponentProps } from '../type';
+import { getRepositoryQuery } from '@/lib/utils/tree';
 
 import cx from './index.less';
 
@@ -57,6 +57,7 @@ const ListView: React.FC<ViewComponentProps> = ({
   const testDetailFieldKeys = useTestTypeScreenFieldKeys({
     testType: TestType.Case,
     workspaceKey,
+    includeSystemField: false,
   });
   // 事项数据更新后刷新列表
   useListener('updateItemList', props => {
@@ -72,33 +73,19 @@ const ListView: React.FC<ViewComponentProps> = ({
     }, 400);
   });
 
-  const {
-    loading: caseIdRequestLoading,
-    data: filteredCaseIds,
-    runAsync: getTestCaseIds,
-  } = useRequest(
-    async (newNode?: Record<string, any>) => {
-      if (!workspaceKey || !selectedNode) return [];
-
-      let scopedTestCaseIds = [];
-      // 包含子分组的所有用例
-      if (groupedMode === 'all') {
-        traverseTreeNodes([newNode ?? selectedNode], node => {
-          scopedTestCaseIds = scopedTestCaseIds.concat(node.caseIds);
-        });
-      } else {
-        scopedTestCaseIds = (newNode ?? selectedNode).caseIds;
-      }
-
+  // 获取当前筛选条件下全部用例 ID
+  const { data: allTestCaseIds, refresh } = useRequest(
+    async () => {
+      if (!workspaceKey) return [];
+      const repository = getRepositoryQuery(selectedNode, groupedMode);
       const { list: caseIds } = await getTestEntityByQuery({
         query: {
           workspaceKey: workspaceKey,
           type: TestType.Case,
-          id: scopedTestCaseIds,
+          ...repository,
         },
-        selector,
-        offset: 0,
         limit: 99999,
+        selector,
         onlySelectId: true,
       });
 
@@ -109,11 +96,48 @@ const ListView: React.FC<ViewComponentProps> = ({
     },
   );
 
-  React.useEffect(() => {
-    getTestCaseIds();
-  }, [getTestCaseIds, workspaceKey, groupedMode, selectedNode]);
+  const dataSourceGetter = React.useCallback(
+    async params => {
+      if (!selectedNode?.key || !workspaceKey || !testDetailFieldKeys?.length)
+        return {
+          list: [],
+          total: 0,
+        };
 
-  React.useEffect(() => {
+      const repository = getRepositoryQuery(selectedNode, groupedMode);
+      const { list: data, total } = await getTestEntityByQuery({
+        query: {
+          workspaceKey: workspaceKey,
+          type: TestType.Case,
+          ...repository,
+        },
+        selector,
+        fields: testDetailFieldKeys,
+        ...params,
+      });
+
+      return {
+        // 加拖拽依赖的 folderKey 数据
+        list: data.map(item => ({
+          ...item,
+          folderKey: selectedNode?.key,
+          status: item.workflowStatus,
+        })),
+        total,
+      };
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [selectedNode?.key, workspaceKey, groupedMode, selector, JSON.stringify(testDetailFieldKeys)],
+  );
+
+  useUpdateEffect(() => {
+    // 重置全部事项 ID
+    if (workspaceKey && selectNodeKey) {
+      refresh();
+    }
+  }, [workspaceKey, refresh, selectNodeKey, groupedMode]);
+
+  useUpdateEffect(() => {
     const breadcrumbs = [];
     reverseTreeNodes(folderTreeData, selectedNode, node => {
       breadcrumbs.unshift(node.name ?? node.title);
@@ -121,25 +145,26 @@ const ListView: React.FC<ViewComponentProps> = ({
     setBreadcrumbs(breadcrumbs);
   }, [setBreadcrumbs, selectedNode, folderTreeData]);
 
-  React.useEffect(() => {
-    tableActionRef.current.resetSelectedRowKeys();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  useUpdateEffect(() => {
+    if (groupedMode) {
+      tableActionRef.current.resetSelectedRowKeys();
+    }
   }, [groupedMode]);
 
   const handleDataChange = React.useCallback(async () => {
     const treeData = await onFolderTreeChange();
     const selectedFolder = getTreeNodeByKey(treeData, selectNodeKey);
     if (selectedFolder) {
-      getTestCaseIds(selectedFolder);
+      refresh();
     }
-  }, [onFolderTreeChange, getTestCaseIds, selectNodeKey]);
+  }, [onFolderTreeChange, refresh, selectNodeKey]);
 
   // 处理筛选器搜索
   const handleSelectorSearch = async selector => {
     setSelector(selector);
     // 添加筛选项目需要重置批量选中的 row
     tableActionRef.current.resetSelectedRowKeys();
-    await getTestCaseIds();
+    refresh();
   };
 
   const toggleSelection = (visible?: boolean) => {
@@ -200,7 +225,7 @@ const ListView: React.FC<ViewComponentProps> = ({
             type="repository"
             treeNodeData={folderTreeData}
             folderKey={selectNodeKey}
-            filteredCaseIds={filteredCaseIds}
+            filteredCaseIds={allTestCaseIds}
           />
         </div>
       </div>
@@ -213,13 +238,12 @@ const ListView: React.FC<ViewComponentProps> = ({
           testType={TestType.Case}
         />
         <Table
-          folderKey={selectNodeKey}
           actionRef={tableActionRef}
+          testDetailIds={allTestCaseIds}
           onDataChange={handleDataChange}
-          testDetailIds={filteredCaseIds}
-          externalDataLoading={caseIdRequestLoading}
           testDetailFieldKeys={testDetailFieldKeys}
           onSelectionCancel={() => toggleSelection(false)}
+          dataSourceGetter={dataSourceGetter}
         />
       </div>
     </div>

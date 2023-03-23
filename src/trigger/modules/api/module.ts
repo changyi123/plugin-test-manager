@@ -2,7 +2,7 @@ import keyBy from 'lodash/keyBy';
 import cloneDeep from 'lodash/cloneDeep';
 import { aggsSearch } from '../../lib/coreApi';
 import { logTimeCost } from '../../lib/logger';
-import { iqlRequest } from '../../lib/iqlRequest';
+import { getPayload, iqlRequest } from '../../lib/iqlRequest';
 import { getParseQuery, i18n } from '@giteeteam/apps-team-api';
 import { getReqInfoFromVMRuntime, buildResponse } from '../../lib/apiUtil';
 import { RepositoryTreePayload, MinderDataPayload } from '../../../common/types/api';
@@ -14,6 +14,7 @@ import {
   TestFiledKeyMapping,
   RepositoryClassName,
 } from '../../../common/constant';
+import iqlSearchParamsBuilder from '../../../common/utils/iqlSearchParamsBuilder';
 
 // 未分组模块 key
 const UngroupedRepositoryKey = 'root';
@@ -256,7 +257,6 @@ export const minderData = async () => {
     return buildResponse(err);
   }
 };
-
 /** 性能优化后的接口，使用 ES 聚合查询，repository 中不包含 caseIds */
 export const repositoryTreeV2 = async () => {
   const { body, sessionToken } = getReqInfoFromVMRuntime<RepositoryTreePayload>();
@@ -293,6 +293,17 @@ export const repositoryTreeV2 = async () => {
     );
   };
 
+  let linkIql: string;
+  if (body.params) {
+    const payload = await getPayload(body.params);
+    const { iql } = iqlSearchParamsBuilder({
+      payload,
+      limit: InfinityLimit,
+      order: [],
+    });
+    linkIql = iql;
+  }
+
   const getGroupedCaseCount = async () => {
     const {
       payload: { value: result },
@@ -314,7 +325,7 @@ export const repositoryTreeV2 = async () => {
           compute: 'count',
         },
       ],
-      iql: `workspaceKey='${body.workspaceKey}' and 'test_manager_type' = "TestCase"`,
+      iql: linkIql || `workspaceKey='${body.workspaceKey}' and 'test_manager_type' = "TestCase"`,
       iqlContext: {
         displayContext: 'test_manager',
       },
