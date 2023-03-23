@@ -22,11 +22,10 @@ const handleItem = (data, groupMap) => {
 
 export const useGetVirtualScrollList = (group, item) => {
   const [groupMap, setGroupMap] = useState<Map<string, Record<string, any>>>(new Map());
-  const [groupCounts, setGroupCounts] = useState<string[]>([]);
+  const [groupCounts, setGroupCounts] = useState<number[]>([]);
 
   useEffect(() => {
     if (group?.length) {
-      console.log('左侧树刷新一次----------------->', group);
       const map = new Map();
       let counts = [];
       traverseTreeNodes(group, node => {
@@ -47,11 +46,13 @@ export const useGetVirtualScrollList = (group, item) => {
       setGroupMap(handleItem(item, groupMap));
     }
   }, [groupMap, item]);
-  console.log('hooks刷新一次----------------->', group);
 
   return {
     groups: [...groupMap.values()],
     groupCounts: groupCounts,
-    items: [...groupMap.values()].map(d => d.items).flat(),
+    items: [...groupMap.values()]
+      .map(d => d.items)
+      .filter(Boolean)
+      .flat(),
   };
 };

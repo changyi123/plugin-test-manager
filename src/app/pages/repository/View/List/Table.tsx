@@ -2,7 +2,6 @@ import React, { useCallback } from 'react';
 import { useRequest, useDrag, useDrop } from 'ahooks';
 import { message, notification, Tooltip } from 'antd';
 import { UNGROUPED_FOLDER_KEY } from '../../constant';
-import { updateFolders } from '@/lib/api/repository';
 import { UserCell } from '@giteeteam/apps-team-components';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import createProximaSdk, { useListener } from '@projectproxima/proxima-sdk-js';
@@ -14,7 +13,6 @@ import {
   openItemViewScreen,
 } from '@/lib/utils/helper';
 import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
-import { cloneTestEntities } from '@/lib/api/common';
 import { useUserCellUserDataProp } from '@/lib/hooks/useProxima';
 import RepositorySelector, {
   ActionType as RepositorySelectorActionType,
@@ -98,6 +96,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
   React.useImperativeHandle(actionRef, () => tableActionRef.current);
 
   useListener('updateItemExtraCustomerFields', async itemId => {
+    // 复制用例事项更新自定义字段
     if (itemId) {
       const updateRes = await updateTestEntity([
         { objectId: itemId, sortIndex: generateSortIndex(1) },
@@ -106,7 +105,8 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         message.error(updateRes.data);
         return;
       }
-      await refreshAndMutateData();
+      // 刷新全部
+      onDataChange?.();
     }
   });
 
@@ -118,10 +118,6 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
       refreshDeps: [workspaceKey, currentUser],
     },
   );
-
-  const refreshAndMutateData = React.useCallback(async () => {
-    await onDataChange?.();
-  }, [onDataChange]);
 
   const selectionActionNodes = React.useMemo(() => {
     // 批量删除用例
@@ -143,7 +139,8 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
             message.error(res.data);
             return;
           }
-          refreshAndMutateData();
+          // 删除刷新
+          onDataChange?.();
           setTableLoading(false);
 
           notification.success({
@@ -171,7 +168,8 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         message.error(res.data);
         return;
       }
-      await refreshAndMutateData();
+      // 刷新表格
+      tableActionRef.current.refresh();
       notification.success({
         message: `${tableActionRef.current.selectedRowKeys.length} ${t(
           'page.plan.testEntityList.updateAssigneeTips',
@@ -188,21 +186,21 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
 
     // 复制测试用例 本期不上
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const copyTestDetail = async () => {
-      const testEntityIds = tableActionRef.current.selectedRowKeys;
-      const targetRepository = await repositorySelectorRef.current.open({ workspaceKey });
-      const clonedTestEntities = await cloneTestEntities(testEntityIds);
-      const cloneTestEntityIds = clonedTestEntities.map(item => item.toJSON().objectId);
-      await updateFolders([
-        {
-          key: targetRepository.repositoryKey,
-          testDetailIds: targetRepository.testDetailIds.concat(cloneTestEntityIds),
-        },
-      ]);
-      if (targetRepository.workspaceKey === workspaceKey) {
-        refreshAndMutateData();
-      }
-    };
+    // const copyTestDetail = async () => {
+    //   const testEntityIds = tableActionRef.current.selectedRowKeys;
+    //   const targetRepository = await repositorySelectorRef.current.open({ workspaceKey });
+    //   const clonedTestEntities = await cloneTestEntities(testEntityIds);
+    //   const cloneTestEntityIds = clonedTestEntities.map(item => item.toJSON().objectId);
+    //   await updateFolders([
+    //     {
+    //       key: targetRepository.repositoryKey,
+    //       testDetailIds: targetRepository.testDetailIds.concat(cloneTestEntityIds),
+    //     },
+    //   ]);
+    //   if (targetRepository.workspaceKey === workspaceKey) {
+    //     refreshAndMutateData();
+    //   }
+    // };
 
     return [
       <UserCell
@@ -228,7 +226,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         <DeleteIcon className={cx('icon')} /> {t('common.delete')}
       </span>,
     ];
-  }, [t, hasRowSelected, tableActionRef, userData, refreshAndMutateData, workspaceKey]);
+  }, [t, hasRowSelected, tableActionRef, userData, onDataChange]);
 
   const columns = React.useMemo(() => {
     const deleteTestDetail = data => {
@@ -247,7 +245,8 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
             message.error(res.data);
             return;
           }
-          refreshAndMutateData();
+          // 删除刷新
+          onDataChange?.();
           setTableLoading(false);
           notification.success({
             message: t('page.repository.view.list.deleteCaseMessageSuccess'),
@@ -278,7 +277,8 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         return;
       }
 
-      refreshAndMutateData();
+      // 复制刷新
+      onDataChange?.();
       setTableLoading(false);
 
       notification.success({
@@ -383,7 +383,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         },
       },
     ];
-  }, [getTestCaseRepositoryPath, refreshAndMutateData, t]);
+  }, [getTestCaseRepositoryPath, onDataChange, t]);
 
   const handleFilterField = useCallback(
     async ({ testType, fieldKeys }) => {
@@ -464,7 +464,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
             return;
           }
 
-          await onDataChange();
+          tableActionRef.current.refresh();
         }
 
         handleDragoverClassName(e, data, rowData.sortIndex, 'remove');
