@@ -248,7 +248,7 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
                 workspaceKey={selectedWorkspaceKey}
                 shouldIncludeSubFolder={false}
                 actionRef={repositoryFolderTreeRef}
-                onFolderSelect={(_, nodeInfo) => setSelectedNode(nodeInfo.selectedFolder)}
+                onFolderSelect={node => setSelectedNode(node)}
                 {...treeProps}
               />
             </div>

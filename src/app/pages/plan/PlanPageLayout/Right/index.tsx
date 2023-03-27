@@ -31,11 +31,14 @@ interface RightProps {
   selectedExecution?: Record<string, any>;
   showType?: string;
   setShowType?: (val: string) => void;
-  scopedTestDetailRefresh?: () => void;
+  refreshTreeAndScopeTestCase?: () => void;
   refreshPlanData?: () => void;
+  selectNode?: Record<string, unknown>;
   requestScopedTestDetailIds?: string[];
-  pageLeftRef?: any;
-  scopedTestDetailIds?: string[];
+  scopedTestCaseIds?: string[];
+  scopedTestRunIds?: string[];
+  executionLinkRunIds?: string[];
+  runLinkCaseIds?: string[];
 }
 
 const Right: React.FC<RightProps> = props => {
@@ -44,11 +47,13 @@ const Right: React.FC<RightProps> = props => {
     selectedExecution,
     showType,
     setShowType,
-    scopedTestDetailRefresh,
     refreshPlanData,
-    requestScopedTestDetailIds,
-    pageLeftRef,
-    scopedTestDetailIds,
+    scopedTestRunIds,
+    refreshTreeAndScopeTestCase,
+    scopedTestCaseIds,
+    selectNode,
+    executionLinkRunIds,
+    runLinkCaseIds,
   } = props;
 
   const {
@@ -125,7 +130,7 @@ const Right: React.FC<RightProps> = props => {
       console.info('error', error);
     }
 
-    scopedTestDetailRefresh();
+    // scopedTestDetailRefresh();
     mutateStatusEvent.emit('refreshExecutionStatus');
     setLoading(false);
     notification.success({
@@ -179,7 +184,7 @@ const Right: React.FC<RightProps> = props => {
       // eslint-disable-next-line no-console
       console.log('error', error);
     }
-    scopedTestDetailRefresh();
+    // scopedTestDetailRefresh();
 
     mutateTestPlanEvent.emit(selectedTestPlan?.objectId);
     refresh('detailTable');
@@ -261,21 +266,24 @@ const Right: React.FC<RightProps> = props => {
         <TestEntityList
           loading={loading}
           activeType={activeType}
-          requestScopedTestDetailIds={requestScopedTestDetailIds}
+          scopedTestCaseIds={scopedTestCaseIds}
           selectedExecution={selectedExecution}
-          scopedTestDetailRefresh={scopedTestDetailRefresh}
+          // scopedTestDetailRefresh={scopedTestDetailRefresh}
           refreshPlanData={refreshPlanData}
           tableSelectionVisible={tableSelectionVisible}
           testDetailFieldKeys={testDetailFieldKeys}
+          selectNode={selectNode}
+          refreshTreeAndScopeTestCase={refreshTreeAndScopeTestCase}
+          scopedTestRunIds={scopedTestRunIds}
+          executionLinkRunIds={executionLinkRunIds}
+          runLinkCaseIds={runLinkCaseIds}
         />
         <TestEntitySelectorModal
           title={t('page.plan.planPageLayout.right.caseSelectModelTitle')}
           testType={TestType.Case}
           actionRef={testEntitySelectorRef}
-          afterClose={() => {
-            pageLeftRef.current?.refresh();
-          }}
-          ignoreTestEntityIds={scopedTestDetailIds}
+          afterClose={() => refreshTreeAndScopeTestCase?.()}
+          ignoreTestEntityIds={scopedTestCaseIds}
           planId={activeType === 'TestPlan' ? '' : selectedTestPlan?.objectId}
         />
       </div>

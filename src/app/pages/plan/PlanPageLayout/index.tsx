@@ -4,7 +4,12 @@ import TestPlanList from '@/pages/plan/TestPlanList';
 import PageLayout from '@/components/common/PageLayout';
 import { useLocation } from 'react-router-dom';
 import useGetTestPlanById from '@/pages/plan/TestPlanList/hooks';
-import { useScopedTestDetailIds, useResizeContainerDOM } from './hooks';
+import {
+  // useScopedTestDetailIds,
+  useResizeContainerDOM,
+  useGetPlanLinkCaseIds,
+  useGetExecutionLinkCaseRunIds,
+} from './hooks';
 import { usePageContext } from '../hook';
 import Header from './Header';
 import Right from './Right';
@@ -20,14 +25,16 @@ import { useBaseAction } from '@/lib/hooks/useContext';
 import { generateSortIndex } from '@/lib/utils/helper';
 import { batchCreateTestRun, updateTestEntity } from '@/lib/api/item';
 import useI18n from '@/lib/hooks/useI18n';
+import { QueryLinkedTestEntityPayload } from 'common/types/api';
+
+// type TestCaseInfo = {
+//   caseIds?: string[];
+//   runIds?: string[];
+// };
 
 const PlanPageLayout: React.FC<any> = () => {
-  const { workspaceKey, selectedTestPlan, selectors, setSearchParams, setSelectedTestPlan } =
-    usePageContext();
+  const { workspaceKey, selectedTestPlan, setSearchParams, setSelectedTestPlan } = usePageContext();
   const { t } = useI18n();
-  const [requestScopedTestDetailIds, setRequestScopedTestDetailIds] = React.useState<
-    string[] | undefined
-  >(undefined);
   useResizeContainerDOM(selectedTestPlan?.objectId);
   const detailSearchRef = useRef(null);
   const pageLeftRef = useRef(null);
@@ -35,6 +42,7 @@ const PlanPageLayout: React.FC<any> = () => {
   const testEntitySelectorRef = useRef<ModelActionType>();
   const [selectValue, setSelectValue] = useState<string[] | undefined>(undefined);
   const [treeType, setTreeType] = React.useState<string | undefined>('plan');
+  const [selectNode, setSelectNode] = React.useState<Record<string, any>>(null);
 
   const [activeType, setActiveType] = useState('TestPlan');
   const [selectedExecution, setSelectedExecution] = useState<Record<string, any> | undefined>(
@@ -44,6 +52,7 @@ const PlanPageLayout: React.FC<any> = () => {
   const [refreshExecution, setRefreshExecution] = useState(false);
   const [showType, setShowType] = useState('showChild');
   const [loading, setLoading] = useState(false);
+  const [treeParams, setTreeParams] = useState<QueryLinkedTestEntityPayload>(null);
 
   const { query } = useLocation();
   const { data: planData, refresh: refreshPlanData } = useGetTestPlanById(
@@ -68,6 +77,19 @@ const PlanPageLayout: React.FC<any> = () => {
   }, [planData, query?.planId]);
 
   useEffect(() => {
+    if (!workspaceKey || !selectedTestPlan?.objectId) return;
+    setTreeParams({
+      query: {
+        workspaceKey: workspaceKey,
+        type: TestType.Case,
+      },
+      linkType: TestLinkType.CaseLinkPlan,
+      sourceIds: [selectedTestPlan?.objectId as string],
+      destinationType: TestType.Case,
+    });
+  }, [selectedTestPlan?.objectId, workspaceKey]);
+
+  useEffect(() => {
     if (selectedTestPlan?.objectId) {
       activeType !== 'TestPlan' && setActiveType('TestPlan');
       showType !== 'showChild' && setShowType('showChild');
@@ -83,21 +105,40 @@ const PlanPageLayout: React.FC<any> = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query?.actionType]);
 
-  // 获取测试计划范围
-  const { data: scopedTestDetailIds, refreshAsync: scopedTestDetailRefresh } =
-    useScopedTestDetailIds({
+  // 获取测试计划关联的全部测试用例 id
+  const { data: planLinkCaseIds, refreshAsync: planLinkCaseIdRefresh } = useGetPlanLinkCaseIds({
+    workspaceKey,
+    type: 'TestPlan',
+    testPlanId: selectedTestPlan?.objectId,
+  });
+
+  // 获取测试任务下测试执行和测试用例 id
+  const { data: scopeTestRunIds, refreshAsync: scopeTestRunIdsRefresh } =
+    useGetExecutionLinkCaseRunIds({
       workspaceKey,
-      type: activeType === 'TestPlan' ? 'Plan' : 'Execution',
-      testPlanId: selectedTestPlan?.objectId,
+      type: 'TestExecution',
       testExecutionId: selectedExecution?.objectId,
-      selectors,
     });
+  const { executionLinkRunIds, runLinkCaseIds } = (scopeTestRunIds ?? {}) as {
+    executionLinkRunIds?: string[];
+    runLinkCaseIds?: string[];
+  };
 
   useEffect(() => {
-    if (selectedTestPlan?.objectId) {
-      scopedTestDetailRefresh();
+    if (activeType === 'TestExecution') {
+      if (!workspaceKey) return;
+      setTreeParams({
+        query: {
+          workspaceKey: workspaceKey,
+          type: TestType.Case,
+          id: runLinkCaseIds,
+        },
+        linkType: TestLinkType.CaseLinkPlan,
+        sourceIds: [selectedTestPlan?.objectId as string],
+        destinationType: TestType.Case,
+      });
     }
-  }, [selectedTestPlan?.objectId, scopedTestDetailRefresh]);
+  }, [activeType, runLinkCaseIds, selectedTestPlan?.objectId, workspaceKey]);
 
   useEffect(() => {
     detailSearchRef.current?.reset();
@@ -105,11 +146,6 @@ const PlanPageLayout: React.FC<any> = () => {
     pageLeftRef.current?.reset();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeType, selectedExecution, selectedTestPlan]);
-
-  // 处理 folder tree change
-  const handleFolderSelect = ids => {
-    setRequestScopedTestDetailIds(ids);
-  };
 
   useEffect(() => {
     if (activeType === 'TestPlan') {
@@ -255,9 +291,17 @@ const PlanPageLayout: React.FC<any> = () => {
   useListener(PROXIMA_EVENT_KEY.itemBatchCreateSuccess, props => {
     refresh(props);
   });
-  useListener('updateRepoTree', () => {
-    scopedTestDetailRefresh();
-  });
+  // useListener('updateRepoTree', () => {
+  //   scopedTestCaseRefresh();
+  // });
+
+  const refreshTreeAndScopeTestCase = useCallback(async () => {
+    await Promise.all([
+      pageLeftRef.current.refresh?.(),
+      planLinkCaseIdRefresh(),
+      scopeTestRunIdsRefresh(),
+    ]);
+  }, [planLinkCaseIdRefresh, scopeTestRunIdsRefresh]);
 
   return (
     <div className={cx('test-plan-page')}>
@@ -290,8 +334,9 @@ const PlanPageLayout: React.FC<any> = () => {
                 <Left
                   actionRef={pageLeftRef}
                   showType={showType}
-                  handleFolderSelect={handleFolderSelect}
-                  scopedTestDetailIds={scopedTestDetailIds}
+                  treeParams={treeParams}
+                  activeType={activeType}
+                  onFolderSelect={node => setSelectNode(node)}
                 />
               </PageLayout.Left>
             )}
@@ -299,15 +344,16 @@ const PlanPageLayout: React.FC<any> = () => {
               <PageLayout.Right>
                 <Spin spinning={loading}>
                   <Right
-                    pageLeftRef={pageLeftRef}
                     activeType={activeType}
                     selectedExecution={selectedExecution}
                     showType={showType}
                     setShowType={setShowType}
-                    scopedTestDetailRefresh={scopedTestDetailRefresh}
+                    refreshTreeAndScopeTestCase={refreshTreeAndScopeTestCase}
                     refreshPlanData={refreshPlanData}
-                    requestScopedTestDetailIds={requestScopedTestDetailIds}
-                    scopedTestDetailIds={scopedTestDetailIds}
+                    selectNode={selectNode}
+                    scopedTestCaseIds={planLinkCaseIds}
+                    executionLinkRunIds={executionLinkRunIds}
+                    runLinkCaseIds={runLinkCaseIds}
                   />
                 </Spin>
               </PageLayout.Right>
