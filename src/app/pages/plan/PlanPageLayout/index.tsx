@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { message, notification, Spin } from 'antd';
 import TestPlanList from '@/pages/plan/TestPlanList';
 import PageLayout from '@/components/common/PageLayout';
@@ -26,6 +26,7 @@ import { generateSortIndex } from '@/lib/utils/helper';
 import { batchCreateTestRun, updateTestEntity } from '@/lib/api/item';
 import useI18n from '@/lib/hooks/useI18n';
 import { QueryLinkedTestEntityPayload } from 'common/types/api';
+import { useUpdateEffect } from 'ahooks';
 
 // type TestCaseInfo = {
 //   caseIds?: string[];
@@ -60,7 +61,7 @@ const PlanPageLayout: React.FC<any> = () => {
     workspaceKey,
   );
 
-  useEffect(() => {
+  useUpdateEffect(() => {
     if ((planData as any)?.objectId) {
       const oldPlanTestIds = selectedTestPlan?.refTestDetails?.map(item => item.objectId) ?? [];
       const newPlanTestIds = (planData as any)?.refTestDetails?.map(item => item.objectId) ?? [];
@@ -76,20 +77,7 @@ const PlanPageLayout: React.FC<any> = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [planData, query?.planId]);
 
-  useEffect(() => {
-    if (!workspaceKey || !selectedTestPlan?.objectId) return;
-    setTreeParams({
-      query: {
-        workspaceKey: workspaceKey,
-        type: TestType.Case,
-      },
-      linkType: TestLinkType.CaseLinkPlan,
-      sourceIds: [selectedTestPlan?.objectId as string],
-      destinationType: TestType.Case,
-    });
-  }, [selectedTestPlan?.objectId, workspaceKey]);
-
-  useEffect(() => {
+  useUpdateEffect(() => {
     if (selectedTestPlan?.objectId) {
       activeType !== 'TestPlan' && setActiveType('TestPlan');
       showType !== 'showChild' && setShowType('showChild');
@@ -98,7 +86,7 @@ const PlanPageLayout: React.FC<any> = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedTestPlan]);
 
-  useEffect(() => {
+  useUpdateEffect(() => {
     if (query?.actionType && !activeType) {
       setActiveType(query?.actionType);
     }
@@ -106,27 +94,27 @@ const PlanPageLayout: React.FC<any> = () => {
   }, [query?.actionType]);
 
   // 获取测试计划关联的全部测试用例 id
-  const { data: planLinkCaseIds, refreshAsync: planLinkCaseIdRefresh } = useGetPlanLinkCaseIds({
+  const { data: planLinkCaseIds, refresh: planLinkCaseIdRefresh } = useGetPlanLinkCaseIds({
     workspaceKey,
     type: 'TestPlan',
     testPlanId: selectedTestPlan?.objectId,
   });
 
   // 获取测试任务下测试执行和测试用例 id
-  const { data: scopeTestRunIds, refreshAsync: scopeTestRunIdsRefresh } =
-    useGetExecutionLinkCaseRunIds({
-      workspaceKey,
-      type: 'TestExecution',
-      testExecutionId: selectedExecution?.objectId,
-    });
+  const { data: scopeTestRunIds, refresh: scopeTestRunIdsRefresh } = useGetExecutionLinkCaseRunIds({
+    workspaceKey,
+    type: 'TestExecution',
+    testExecutionId: selectedExecution?.objectId,
+    planLinkCaseIds,
+  });
   const { executionLinkRunIds, runLinkCaseIds } = (scopeTestRunIds ?? {}) as {
     executionLinkRunIds?: string[];
     runLinkCaseIds?: string[];
   };
 
-  useEffect(() => {
+  useUpdateEffect(() => {
+    if (!workspaceKey || !selectedTestPlan?.objectId) return;
     if (activeType === 'TestExecution') {
-      if (!workspaceKey) return;
       setTreeParams({
         query: {
           workspaceKey: workspaceKey,
@@ -137,22 +125,32 @@ const PlanPageLayout: React.FC<any> = () => {
         sourceIds: [selectedTestPlan?.objectId as string],
         destinationType: TestType.Case,
       });
+    } else {
+      setTreeParams({
+        query: {
+          workspaceKey: workspaceKey,
+          type: TestType.Case,
+        },
+        linkType: TestLinkType.CaseLinkPlan,
+        sourceIds: [selectedTestPlan?.objectId as string],
+        destinationType: TestType.Case,
+      });
     }
   }, [activeType, runLinkCaseIds, selectedTestPlan?.objectId, workspaceKey]);
 
-  useEffect(() => {
+  useUpdateEffect(() => {
     detailSearchRef.current?.reset();
     setSearchParams([{}, {}]);
     pageLeftRef.current?.reset();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeType, selectedExecution, selectedTestPlan]);
 
-  useEffect(() => {
+  useUpdateEffect(() => {
     if (activeType === 'TestPlan') {
       selectedExecution && setSelectedExecution(undefined);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeType]);
+  }, [activeType, pageLeftRef]);
 
   const getSelectCaseIds = useCallback(async () => {
     if (!testEntitySelectorRef.current?.open) return;
@@ -296,12 +294,10 @@ const PlanPageLayout: React.FC<any> = () => {
   // });
 
   const refreshTreeAndScopeTestCase = useCallback(async () => {
-    await Promise.all([
-      pageLeftRef.current.refresh?.(),
-      planLinkCaseIdRefresh(),
-      scopeTestRunIdsRefresh(),
-    ]);
-  }, [planLinkCaseIdRefresh, scopeTestRunIdsRefresh]);
+    pageLeftRef.current.refresh?.();
+    planLinkCaseIdRefresh();
+    scopeTestRunIdsRefresh();
+  }, [planLinkCaseIdRefresh, scopeTestRunIdsRefresh, pageLeftRef]);
 
   return (
     <div className={cx('test-plan-page')}>

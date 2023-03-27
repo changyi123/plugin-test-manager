@@ -56,7 +56,6 @@ export const useGetPlanLinkCaseIds = (params: ScopedTestDetailIdsParams) => {
     {
       ready: Boolean(workspaceKey && testPlanId),
       refreshDeps: [testPlanId, workspaceKey, type],
-      cacheKey: `${workspaceKey}_${testPlanId}_caseIds`,
       cacheTime: 99999,
       staleTime: 99999,
     },
@@ -64,15 +63,17 @@ export const useGetPlanLinkCaseIds = (params: ScopedTestDetailIdsParams) => {
 };
 
 export const useGetExecutionLinkCaseRunIds = (params: ScopedTestDetailIdsParams) => {
-  const { workspaceKey, testExecutionId, type } = params;
+  const { workspaceKey, testExecutionId, type, planLinkCaseIds } = params;
   return useRequest(
     async () => {
-      if (!testExecutionId || type !== 'TestExecution') return {} as ScopedTestRunIds;
+      if (!testExecutionId || type !== 'TestExecution' || !planLinkCaseIds?.length)
+        return {} as ScopedTestRunIds;
 
       // 测试执行的用例范围
       const { list: runs } = await getLinkedTestEntityByQuery({
         query: {
           workspaceKey: workspaceKey,
+          referenceCase: planLinkCaseIds,
         },
         limit: 9999,
         linkType: TestLinkType.RunLinkExecution,
@@ -84,6 +85,7 @@ export const useGetExecutionLinkCaseRunIds = (params: ScopedTestDetailIdsParams)
       runs.forEach(run => {
         runMap.set(run.id, run.referenceCase);
       });
+
       return {
         executionLinkRunIds: [...runMap.keys()],
         runLinkCaseIds: [...runMap.values()],

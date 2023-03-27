@@ -49,7 +49,6 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
     shouldIncludeSubFolder = true,
     params,
     hideEmptyFolder,
-    type = 'test_manager',
   } = props;
   const [treeSelectedKeys, setTreeSelectedKeys] = React.useState([]);
   const [treeExpandedKeys, setTreeExpandedKeys] = React.useState([]);
@@ -91,10 +90,7 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
       return hideEmptyFolder ? filterEmptyFolder([data]) : [data];
     },
     {
-      refreshDeps: [workspaceKey, params, type, hideEmptyFolder],
-      cacheKey: `${workspaceKey}-${type}-node-tree-data`,
-      cacheTime: 999999999,
-      staleTime: 999999999,
+      refreshDeps: [workspaceKey, params, hideEmptyFolder],
     },
   );
 
@@ -149,7 +145,7 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
         setAutoExpandParent(false);
         setTreeExpandedKeys([UNGROUPED_FOLDER_KEY]);
       },
-      refresh() {
+      refresh: () => {
         refreshTreeData();
       },
     }),
