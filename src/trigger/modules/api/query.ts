@@ -72,6 +72,7 @@ export const queryTestEntity = async () => {
     selector,
     descending,
     onlySelectId,
+    sortByRepositoryIds,
   } = body;
 
   return iqlRequest({
@@ -79,6 +80,7 @@ export const queryTestEntity = async () => {
     selector,
     ascending,
     descending,
+    sortByRepositoryIds,
     pagination: { limit, offset },
     fields: concatIqlRequestFields(fields),
     ...overwriteIqlParamsWithOnlySelectId(onlySelectId),
@@ -102,6 +104,7 @@ export const queryLinkedTestEntity = async () => {
       descending,
       onlySelectId,
       destinationType,
+      sortByRepositoryIds,
       sourceIds: originalSourceIds,
     } = body;
 
@@ -114,6 +117,7 @@ export const queryLinkedTestEntity = async () => {
       selector,
       ascending,
       descending,
+      sortByRepositoryIds,
       pagination: { limit, offset },
       linkQuery: {
         linkType,

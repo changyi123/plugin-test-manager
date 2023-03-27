@@ -23,6 +23,11 @@ export enum TestLinkType {
   ExecutionLinkPlan = 'ExecutionLinkPlan',
 }
 
+/** es source key */
+export const EsSourceFieldKey = {
+  repository: 'r_test_manager_repository#r_test_manager_es_text_keyword',
+};
+
 /** 测试管理自定义字段 key 映射 */
 export const TestFiledKeyMapping = {
   linkType: 'r_test_manager_linkType',
