@@ -348,7 +348,7 @@
             "该操作会将所选的测试用例删除，是否继续操作？",
             "该操作会将当前测试用例删除，是否继续操作？"
           ],
-          "deleteCaseSuccess": "个测试用例已被删除",
+          "deleteCaseSuccess": "{{count}} 个测试用例已被删除",
           "batchItemLink": "批量事项关联",
           "deleteCaseMessageSuccess": "测试用例删除成功",
           "copyCaseMessageSuccess": "测试用例复制成功",

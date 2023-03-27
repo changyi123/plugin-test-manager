@@ -274,7 +274,7 @@ export const repositoryTreeV2 = async () => {
     });
 
     const ungroupedRepository = {
-      name: '全部用例',
+      name: i18n.t('common.minderRootNodeName'),
       key: UngroupedRepositoryKey,
       parentKey: null,
       counts: [0, 0],

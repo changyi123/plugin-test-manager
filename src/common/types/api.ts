@@ -89,6 +89,8 @@ export type CommonTestEntityQueryPayload = PaginationParams & {
   descending?: FieldKey[];
   /** 只返回 id */
   onlySelectId?: boolean;
+  /** 按照 repository 参数对响应结果排序 */
+  sortByRepositoryIds?: string[];
 };
 
 /**

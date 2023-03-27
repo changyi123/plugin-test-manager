@@ -185,7 +185,7 @@ const WordTemplate: React.FC = () => {
           pageSizeOptions: ['10', '30', '50'],
           showSizeChanger: true,
           current: currentIndex,
-          pageSize: pageSize,
+          // pageSize: pageSize,
           onChange: pageChange,
           onShowSizeChange: showSizeChange,
           total: total,

@@ -9,6 +9,7 @@ import { testEntityFieldTypeValidator, throwArgumentError } from '../lib/validat
 import { itemToTestEntity } from '../../common/utils/dataTransfer';
 import {
   InfinityLimit,
+  EsSourceFieldKey,
   IQLUsefulFieldKeys,
   IQLSearchFieldKeys,
   IQLFieldNameMapping,
@@ -32,6 +33,8 @@ type RequestParams = {
   pagination?: PaginationParams;
   ascending?: string[] | string;
   descending?: string[] | string;
+  /** 需要按照指定的模块 id 排序 */
+  sortByRepositoryIds?: string[];
   query?: Partial<Record<IQLFiledKeys, any>>;
   dataTransfer?: (data: TestEntity[]) => any;
 };
@@ -100,6 +103,30 @@ export const getPayload = async (params: QueryLinkedTestEntityPayload) => {
       {},
     );
   return registeredFieldParams;
+};
+
+const buildSearchExtendParam = (params: { sortByRepositoryIds?: string[] }) => {
+  const param = {} as Record<string, any>;
+  if (Array.isArray(params.sortByRepositoryIds)) {
+    param.sort = [
+      {
+        _script: {
+          type: 'number',
+          order: 'asc',
+          script: {
+            // 指定脚本排序
+            source: `return doc['${
+              EsSourceFieldKey.repository
+            }'].length > 0 ? ['${params.sortByRepositoryIds.join("', '")}'].indexOf(doc['${
+              EsSourceFieldKey.repository
+            }'].value) : -1;`,
+          },
+        },
+      },
+    ];
+  }
+
+  return param;
 };
 
 /** 处理关联查询参数 */
@@ -179,6 +206,7 @@ export const iqlRequest: IqlRequestType = async params => {
       ascending,
       descending,
       dataTransfer,
+      sortByRepositoryIds,
       query: originalQuery,
       fields = IQLUsefulFieldKeys,
       pagination: originalPagination,
@@ -252,17 +280,24 @@ export const iqlRequest: IqlRequestType = async params => {
       ...registeredFieldParams,
     };
 
+    // 构建 search body 参数
+    const extendSearchBody = buildSearchExtendParam({
+      sortByRepositoryIds,
+    });
+
     const {
       payload: { count, items },
-    } = await iqlSearch(
-      iqlSearchParamsBuilder({
+    } = await iqlSearch({
+      ...iqlSearchParamsBuilder({
         fields,
         payload,
         andCompositionIqlStr: selector,
         order: transformOrderParams({ ascending, descending }),
         ...pagination,
       }),
-    );
+      extend: extendSearchBody,
+    });
+
     // 关联查询添加 source 字段
     const appendLinkSourceField = testEntityList => {
       if (linkQuery) {
