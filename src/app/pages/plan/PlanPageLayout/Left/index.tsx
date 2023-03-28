@@ -18,13 +18,7 @@ interface LeftProps {
   onFolderSelect?: (node?: any) => void;
 }
 
-const Left: React.FC<LeftProps> = ({
-  showType,
-  actionRef,
-  treeParams,
-  onFolderSelect,
-  activeType,
-}) => {
+const Left: React.FC<LeftProps> = ({ showType, actionRef, treeParams, onFolderSelect }) => {
   const { t } = useI18n();
   const { workspaceKey } = usePageContext();
   const folderTreeRef = React.useRef<FolderTreeActionType>();
@@ -62,7 +56,6 @@ const Left: React.FC<LeftProps> = ({
           workspaceKey={workspaceKey}
           params={treeParams}
           onFolderSelect={onFolderSelect}
-          type={activeType}
         />
       </div>
     </>

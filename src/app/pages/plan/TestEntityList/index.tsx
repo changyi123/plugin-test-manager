@@ -42,7 +42,6 @@ import { getRepositoryQuery } from '@/lib/utils/tree';
 
 interface TestEntityListProps {
   loading?: boolean;
-  scopedTestCaseIds?: string[];
   activeType: string;
   selectedExecution?: Record<string, any>;
   refreshPlanData?: () => void;
@@ -50,9 +49,6 @@ interface TestEntityListProps {
   tableSelectionVisible?: boolean;
   testDetailFieldKeys?: string[];
   selectNode?: Record<string, any>;
-  scopedTestRunIds?: string[];
-  executionLinkRunIds?: string[];
-  runLinkCaseIds?: string[];
 }
 
 const getTestRunSelector = customSelector => {
@@ -69,14 +65,11 @@ const getTestRunSelector = customSelector => {
 const TestEntityList: React.FC<TestEntityListProps> = ({
   loading,
   activeType,
-  scopedTestCaseIds,
   selectedExecution,
   refreshTreeAndScopeTestCase,
   tableSelectionVisible,
   testDetailFieldKeys,
   selectNode,
-  executionLinkRunIds,
-  runLinkCaseIds,
 }) => {
   const {
     workspaceKey,
@@ -84,6 +77,9 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     selectedTestPlan,
     registerRefreshMethod,
     mutateStatusEvent,
+    planLinkCaseIds: scopedTestCaseIds,
+    executionLinkRunIds,
+    runLinkCaseIds,
     tableSelectionToggleEvent,
   } = usePageContext();
   const { t } = useI18n();

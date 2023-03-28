@@ -1,3 +1,5 @@
+import { clone, pullAll } from 'lodash';
+
 /** 排除 subSet 值 */
 export const exclude = (targetSet: string[], subSet: string[]) => {
   const subMap = subSet.reduce((map, k) => {
@@ -27,4 +29,20 @@ export const includeItem = (targetSet: string[], subSet: string[]) => {
   }, new Map());
 
   return targetSet.some(k => subMap.has(k));
+};
+
+export const getCheckedByType = (
+  allCaseIds: string[],
+  selectIdSet: Set<string>,
+  type = 'checked',
+) => {
+  if (!selectIdSet?.size || !allCaseIds?.length) return false;
+
+  const caseIds = [...selectIdSet];
+  const ids = pullAll(clone(allCaseIds), caseIds);
+  if (type === 'indeterminate') {
+    return allCaseIds?.length !== ids.length;
+  }
+
+  return !ids?.length;
 };

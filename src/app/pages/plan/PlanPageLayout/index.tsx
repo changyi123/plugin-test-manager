@@ -3,9 +3,8 @@ import { message, notification, Spin } from 'antd';
 import TestPlanList from '@/pages/plan/TestPlanList';
 import PageLayout from '@/components/common/PageLayout';
 import { useLocation } from 'react-router-dom';
-import useGetTestPlanById from '@/pages/plan/TestPlanList/hooks';
+// import useGetTestPlanById from '@/pages/plan/TestPlanList/hooks';
 import {
-  // useScopedTestDetailIds,
   useResizeContainerDOM,
   useGetPlanLinkCaseIds,
   useGetExecutionLinkCaseRunIds,
@@ -28,13 +27,17 @@ import useI18n from '@/lib/hooks/useI18n';
 import { QueryLinkedTestEntityPayload } from 'common/types/api';
 import { useUpdateEffect } from 'ahooks';
 
-// type TestCaseInfo = {
-//   caseIds?: string[];
-//   runIds?: string[];
-// };
-
 const PlanPageLayout: React.FC<any> = () => {
-  const { workspaceKey, selectedTestPlan, setSearchParams, setSelectedTestPlan } = usePageContext();
+  const {
+    workspaceKey,
+    selectedTestPlan,
+    runLinkCaseIds,
+    setSearchParams,
+    // setSelectedTestPlan,
+    setPlanLinkCaseIds,
+    setExecutionLinkRunIds,
+    setRunLinkCaseIds,
+  } = usePageContext();
   const { t } = useI18n();
   useResizeContainerDOM(selectedTestPlan?.objectId);
   const detailSearchRef = useRef(null);
@@ -56,26 +59,26 @@ const PlanPageLayout: React.FC<any> = () => {
   const [treeParams, setTreeParams] = useState<QueryLinkedTestEntityPayload>(null);
 
   const { query } = useLocation();
-  const { data: planData, refresh: refreshPlanData } = useGetTestPlanById(
-    selectedTestPlan?.objectId,
-    workspaceKey,
-  );
+  // const { data: planData, refresh: refreshPlanData } = useGetTestPlanById(
+  //   selectedTestPlan?.objectId,
+  //   workspaceKey,
+  // );
 
-  useUpdateEffect(() => {
-    if ((planData as any)?.objectId) {
-      const oldPlanTestIds = selectedTestPlan?.refTestDetails?.map(item => item.objectId) ?? [];
-      const newPlanTestIds = (planData as any)?.refTestDetails?.map(item => item.objectId) ?? [];
+  // useUpdateEffect(() => {
+  //   if ((planData as any)?.objectId) {
+  //     const oldPlanTestIds = selectedTestPlan?.refTestDetails?.map(item => item.objectId) ?? [];
+  //     const newPlanTestIds = (planData as any)?.refTestDetails?.map(item => item.objectId) ?? [];
 
-      if (oldPlanTestIds?.length !== newPlanTestIds.length) {
-        setSelectedTestPlan(planData as any);
-      }
-    }
+  //     if (oldPlanTestIds?.length !== newPlanTestIds.length) {
+  //       setSelectedTestPlan(planData as any);
+  //     }
+  //   }
 
-    if (query?.planId && planData && !selectedTestPlan) {
-      planData && setSelectedTestPlan(planData);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [planData, query?.planId]);
+  //   if (query?.planId && planData && !selectedTestPlan) {
+  //     planData && setSelectedTestPlan(planData);
+  //   }
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [planData, query?.planId]);
 
   useUpdateEffect(() => {
     if (selectedTestPlan?.objectId) {
@@ -107,10 +110,15 @@ const PlanPageLayout: React.FC<any> = () => {
     testExecutionId: selectedExecution?.objectId,
     planLinkCaseIds,
   });
-  const { executionLinkRunIds, runLinkCaseIds } = (scopeTestRunIds ?? {}) as {
-    executionLinkRunIds?: string[];
-    runLinkCaseIds?: string[];
-  };
+
+  useUpdateEffect(() => {
+    setPlanLinkCaseIds(planLinkCaseIds);
+  }, [planLinkCaseIds]);
+
+  useUpdateEffect(() => {
+    setRunLinkCaseIds(scopeTestRunIds?.runLinkCaseIds);
+    setExecutionLinkRunIds(scopeTestRunIds?.executionLinkRunIds);
+  }, [scopeTestRunIds]);
 
   useUpdateEffect(() => {
     if (!workspaceKey || !selectedTestPlan?.objectId) return;
@@ -345,11 +353,8 @@ const PlanPageLayout: React.FC<any> = () => {
                     showType={showType}
                     setShowType={setShowType}
                     refreshTreeAndScopeTestCase={refreshTreeAndScopeTestCase}
-                    refreshPlanData={refreshPlanData}
+                    // refreshPlanData={refreshPlanData}
                     selectNode={selectNode}
-                    scopedTestCaseIds={planLinkCaseIds}
-                    executionLinkRunIds={executionLinkRunIds}
-                    runLinkCaseIds={runLinkCaseIds}
                   />
                 </Spin>
               </PageLayout.Right>

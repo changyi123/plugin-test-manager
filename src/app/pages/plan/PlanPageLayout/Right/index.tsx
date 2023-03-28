@@ -32,13 +32,8 @@ interface RightProps {
   showType?: string;
   setShowType?: (val: string) => void;
   refreshTreeAndScopeTestCase?: () => void;
-  refreshPlanData?: () => void;
+  // refreshPlanData?: () => void;
   selectNode?: Record<string, unknown>;
-  requestScopedTestDetailIds?: string[];
-  scopedTestCaseIds?: string[];
-  scopedTestRunIds?: string[];
-  executionLinkRunIds?: string[];
-  runLinkCaseIds?: string[];
 }
 
 const Right: React.FC<RightProps> = props => {
@@ -47,13 +42,9 @@ const Right: React.FC<RightProps> = props => {
     selectedExecution,
     showType,
     setShowType,
-    refreshPlanData,
-    scopedTestRunIds,
+    // refreshPlanData,
     refreshTreeAndScopeTestCase,
-    scopedTestCaseIds,
     selectNode,
-    executionLinkRunIds,
-    runLinkCaseIds,
   } = props;
 
   const {
@@ -61,6 +52,8 @@ const Right: React.FC<RightProps> = props => {
     workspaceKey,
     selectedTestPlan,
     setSearchParams,
+    planLinkCaseIds,
+    runLinkCaseIds,
     mutateTestPlanEvent,
     mutateStatusEvent,
     tableSelectionToggleEvent,
@@ -188,7 +181,7 @@ const Right: React.FC<RightProps> = props => {
 
     mutateTestPlanEvent.emit(selectedTestPlan?.objectId);
     refresh('detailTable');
-    refreshPlanData();
+    // refreshPlanData();
     setLoading(false);
     // planDataMutate(selectedTestPlan?.objectId);
     notification.success({
@@ -266,25 +259,21 @@ const Right: React.FC<RightProps> = props => {
         <TestEntityList
           loading={loading}
           activeType={activeType}
-          scopedTestCaseIds={scopedTestCaseIds}
           selectedExecution={selectedExecution}
-          // scopedTestDetailRefresh={scopedTestDetailRefresh}
-          refreshPlanData={refreshPlanData}
+          // refreshPlanData={refreshPlanData}
           tableSelectionVisible={tableSelectionVisible}
           testDetailFieldKeys={testDetailFieldKeys}
           selectNode={selectNode}
           refreshTreeAndScopeTestCase={refreshTreeAndScopeTestCase}
-          scopedTestRunIds={scopedTestRunIds}
-          executionLinkRunIds={executionLinkRunIds}
-          runLinkCaseIds={runLinkCaseIds}
         />
         <TestEntitySelectorModal
           title={t('page.plan.planPageLayout.right.caseSelectModelTitle')}
           testType={TestType.Case}
           actionRef={testEntitySelectorRef}
           afterClose={() => refreshTreeAndScopeTestCase?.()}
-          ignoreTestEntityIds={scopedTestCaseIds}
+          ignoreTestEntityIds={activeType === 'TestPlan' ? planLinkCaseIds : runLinkCaseIds}
           planId={activeType === 'TestPlan' ? '' : selectedTestPlan?.objectId}
+          planLinkCaseIds={planLinkCaseIds}
         />
       </div>
     </div>

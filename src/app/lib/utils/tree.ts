@@ -1,18 +1,19 @@
-export const getReportKey = data =>
-  data
-    ?.reduce(
-      (prev, cur) => {
+export const getReportKey = data => {
+  return data
+    ?.reduce((prev, cur) => {
+      if (cur?.key !== 'root') {
         prev = prev.concat(cur?.key);
-        if (cur?.children?.length) {
-          prev = prev.concat(getReportKey(cur?.children));
-        }
-        return prev;
-      },
-      [data?.key === 'root' ? null : data?.key],
-    )
+      }
+      if (cur?.children?.length) {
+        prev = prev.concat(getReportKey(cur.children));
+      }
+      return prev;
+    }, [])
     .filter(Boolean);
+};
 
 export const getRepositoryQuery = (node, type = 'all') => {
+  if (!node) return {};
   if (node?.key === 'root') {
     return type === 'current'
       ? {
@@ -24,6 +25,6 @@ export const getRepositoryQuery = (node, type = 'all') => {
       : {};
   }
   return {
-    repository: node === 'current' ? [node?.objectId] : getReportKey([node]),
+    repository: node === 'current' ? [node?.key] : getReportKey([node]),
   };
 };

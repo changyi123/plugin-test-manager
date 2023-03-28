@@ -1,58 +1,42 @@
-import { traverseTreeNodes } from '@/pages/repository/util';
 import { useEffect, useState } from 'react';
+import { traverseTreeNodes } from '@/pages/repository/util';
+import { clone } from 'lodash';
 
-const handleItem = (data, groupMap) => {
-  data.forEach(item => {
-    const node = groupMap.get(groupMap.has(item.repository) ? item.repository : 'root');
-    if (groupMap.has(item.repository)) {
-      groupMap.set(item.repository, {
-        ...node,
-        items: (node.items ?? []).concat(item),
-      });
-    } else {
-      groupMap.set('root', {
-        ...node,
-        items: (node.items ?? []).concat(item),
-      });
-    }
-  });
+interface VirtualScrollList {
+  groups: Record<string, any>;
+  items: Record<string, any>;
+  groupCounts: number[];
+  totalCount: number;
+}
 
-  return groupMap;
-};
-
-export const useGetVirtualScrollList = (group, item) => {
+export const useGetVirtualScrollList = (group, item, allCaseIds?: string[]): VirtualScrollList => {
   const [groupMap, setGroupMap] = useState<Map<string, Record<string, any>>>(new Map());
   const [groupCounts, setGroupCounts] = useState<number[]>([]);
 
   useEffect(() => {
     if (group?.length) {
       const map = new Map();
+      const itemIds = clone(allCaseIds);
       let counts = [];
       traverseTreeNodes(group, node => {
-        map.set(node.key, {
-          ...node,
-          isGroup: true,
-        });
-        counts = counts.concat(node.counts[0]);
+        if (node?.counts[0]) {
+          map.set(node.key, {
+            ...node,
+            isGroup: true,
+            nodeCaseIdsSet: new Set(itemIds?.splice(0, node?.counts[0]) ?? []),
+          });
+          counts = counts.concat(node.counts[0]);
+        }
       });
-
       setGroupMap(map);
       setGroupCounts(counts);
     }
-  }, [group]);
-
-  useEffect(() => {
-    if (item?.length) {
-      setGroupMap(handleItem(item, groupMap));
-    }
-  }, [groupMap, item]);
+  }, [group, allCaseIds]);
 
   return {
     groups: [...groupMap.values()],
     groupCounts: groupCounts,
-    items: [...groupMap.values()]
-      .map(d => d.items)
-      .filter(Boolean)
-      .flat(),
+    items: item,
+    totalCount: group?.[0]?.counts?.[1] ?? 0,
   };
 };

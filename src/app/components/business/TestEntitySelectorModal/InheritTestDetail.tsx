@@ -28,6 +28,7 @@ type InheritTestDetailProps = {
   isSingleMode?: boolean;
   isWorkspaceIsolate: boolean;
   ignoreTestDetailIds?: string[];
+  planLinkCaseIds?: string[];
   onTestDetailSelect?: (testDetails) => void;
   selectValue?: string[];
   planId?: string;

@@ -60,6 +60,7 @@ export type TestEntitySelectorProps = {
   actionRef?: React.ForwardedRef<ActionType>;
   afterClose?: () => void;
   onCancel?: () => void;
+  planLinkCaseIds?: string[];
 };
 
 const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
@@ -68,6 +69,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
     planId,
     actionRef,
     ignoreTestEntityIds = [],
+    planLinkCaseIds,
     isSingleMode = false,
     needFillValue,
     afterClose,
@@ -78,7 +80,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
   const [selectValue, setSelectValue] = useSafeState([]);
   const [selectedTestDetails, setSelectedTestDetails] = React.useState([]);
   const [testType, setTestType] = useSafeState<TestType>(props.testType);
-  const [treeType, setTreeType] = React.useState('plan');
+  const [treeType, setTreeType] = React.useState('repository');
   // 是否是测试缺陷类型
   const isTestDefectType = testType === TestType.TestDefect;
   // 测试类型名
@@ -383,6 +385,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
         planId={planId}
         treeType={treeType}
         setTreeType={setTreeType}
+        planLinkCaseIds={planLinkCaseIds}
       />
     );
   }, [
@@ -393,6 +396,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
     selectValue,
     planId,
     treeType,
+    planLinkCaseIds,
   ]);
 
   const ModalFooterNode = React.useMemo(() => {

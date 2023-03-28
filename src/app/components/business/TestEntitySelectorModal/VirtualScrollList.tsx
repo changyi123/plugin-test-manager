@@ -1,89 +1,89 @@
-import React, { useEffect, useState } from 'react';
-import { traverseTreeNodes } from '@/pages/repository/util';
+import { Checkbox } from 'antd';
+import { clone, pullAll } from 'lodash';
+import React, { useCallback } from 'react';
 import { GroupedVirtuoso } from 'react-virtuoso';
+import { getCheckedByType } from './helper';
 import { useGetVirtualScrollList } from './hooks';
 
 interface VirtualScrollListProps {
   group?: any[];
+  allCaseIds?: string[];
   item?: Record<string, any>[];
+  selectCaseIdsSet?: Set<string>;
+  ignoreTestDetailIdsSet?: Set<string>;
+  setSelectCaseIdsSet?: (val?: Set<string>) => void;
 }
 
-// const handleItem = (data, groupMap) => {
-//   data.forEach(item => {
-//     const node = groupMap.get(groupMap.has(item.repository) ? item.repository : 'root');
-//     if (groupMap.has(item.repository)) {
-//       groupMap.set(item.repository, {
-//         ...node,
-//         items: (node.items ?? []).concat(item),
-//       });
-//     } else {
-//       groupMap.set('root', {
-//         ...node,
-//         items: (node.items ?? []).concat(item),
-//       });
-//     }
-//   });
-
-//   return groupMap;
-// };
-
-// const getVirList = groupMap =>
-//   [...groupMap?.values()].reduce((prev, cur) => {
-//     if (cur.items.length) {
-//       prev = prev.concat(cur, cur.items);
-//     }
-//     return prev;
-//   }, []);
-
 const VirtualScrollList: React.FC<VirtualScrollListProps> = props => {
-  const { group, item } = props;
-  // const [groupMap, setGroupMap] = useState<Map<string, Record<string, any>>>(new Map());
-  // const [virtualList, setVirtualList] = useState<Record<string, any>[]>(null);
+  const { group, allCaseIds, item, ignoreTestDetailIdsSet, selectCaseIdsSet, setSelectCaseIdsSet } =
+    props;
+  const { groupCounts, groups, items } = useGetVirtualScrollList(group, item, allCaseIds);
 
-  const { groupCounts, groups, items } = useGetVirtualScrollList(group, item);
-
-  console.log('useGetVirtualScrollList ------------------------->', groups, items);
-
-  // useEffect(() => {
-  //   if (group?.length) {
-  //     const map = new Map();
-
-  //     traverseTreeNodes(group, node => {
-  //       map.set(node.key, {
-  //         ...node,
-  //         isGroup: true,
-  //       });
-  //     });
-
-  //     setGroupMap(map);
-  //   }
-  // }, [group]);
-
-  // useEffect(() => {
-  //   if (item?.length) {
-  //     // setVirtualList(getVirList(handleItem(item, groupMap)));
-  //     setGroupMap(handleItem(item, groupMap));
-  //   }
-  // }, [groupMap, item]);
+  const groupContent = useCallback(
+    index => {
+      const nodeCaseIds = [...(groups?.[index]?.nodeCaseIdsSet ?? [])];
+      return (
+        <Checkbox
+          disabled={getCheckedByType(
+            [...(groups?.[index]?.nodeCaseIdsSet ?? [])],
+            ignoreTestDetailIdsSet,
+          )}
+          indeterminate={getCheckedByType(
+            [...(groups?.[index]?.nodeCaseIdsSet ?? [])],
+            selectCaseIdsSet,
+            'indeterminate',
+          )}
+          checked={getCheckedByType([...(groups?.[index]?.nodeCaseIdsSet ?? [])], selectCaseIdsSet)}
+          onChange={e => {
+            const ids = pullAll(clone(nodeCaseIds), [...(ignoreTestDetailIdsSet ?? [])]);
+            const set = new Set([...(selectCaseIdsSet ?? [])]);
+            if (e.target.checked) {
+              setSelectCaseIdsSet(new Set(ids.concat([...set])));
+            } else {
+              ids.forEach(d => {
+                set.has(d) && set.delete(d);
+              });
+              setSelectCaseIdsSet(set);
+            }
+          }}
+        >
+          {groups?.[index]?.name}
+        </Checkbox>
+      );
+    },
+    [groups, selectCaseIdsSet, ignoreTestDetailIdsSet, setSelectCaseIdsSet],
+  );
+  const itemContent = useCallback(
+    index => (
+      <Checkbox
+        onChange={e => {
+          const id = items?.[index]?.id;
+          const set = new Set([...(selectCaseIdsSet ?? [])]);
+          if (e.target.checked) {
+            set.add(id);
+          } else {
+            set.delete(id);
+          }
+          setSelectCaseIdsSet(set);
+        }}
+        disabled={ignoreTestDetailIdsSet?.has(items?.[index]?.id)}
+        checked={selectCaseIdsSet?.has(items?.[index]?.id)}
+      >
+        {items?.[index]?.name}
+      </Checkbox>
+    ),
+    [ignoreTestDetailIdsSet, items, selectCaseIdsSet, setSelectCaseIdsSet],
+  );
 
   return (
     <GroupedVirtuoso
+      onScroll={e => console.log((e.target as any).scrollTop)}
       style={{ height: '400px' }}
       groupCounts={groupCounts}
-      groupContent={index => (
-        <div>
-          用例库-{index}-{groups[index].name}
-        </div>
-      )}
-      itemContent={index => {
-        return (
-          <div>
-            事项-{index}-{items?.[index]?.name ?? ''}
-          </div>
-        );
-      }}
+      groupContent={groupContent}
+      itemContent={itemContent}
     />
   );
 };
 
-export default VirtualScrollList;
+export default React.memo(VirtualScrollList);

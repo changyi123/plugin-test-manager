@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { noop } from 'lodash';
 import { getDevConfig } from '@/devEnv';
 import { useEventEmitter } from 'ahooks';
@@ -24,6 +24,9 @@ type PageContextType = {
   setSearchParams: (data: SearchSelectors) => void;
   searchValue: string;
   workspaceKey: string;
+  planLinkCaseIds?: string[];
+  executionLinkRunIds?: string[];
+  runLinkCaseIds?: string[];
   refresh: (key?: string) => void;
   selectedTestPlan: TestPlanEntity | null;
   setSearchValue: (searchValue: string) => void;
@@ -32,6 +35,9 @@ type PageContextType = {
   mutateStatusEvent: EventEmitter<string | undefined>;
   setSelectedTestPlan: (testPlan: TestPlanEntity | null) => void;
   registerRefreshMethod: (method: Record<string, () => void>) => void;
+  setPlanLinkCaseIds: (val?: string[]) => void;
+  setExecutionLinkRunIds: (val?: string[]) => void;
+  setRunLinkCaseIds: (val?: string[]) => void;
 };
 
 export const PageContext = React.createContext<PageContextType>({
@@ -47,20 +53,29 @@ export const PageContext = React.createContext<PageContextType>({
   registerRefreshMethod: noop,
   tableSelectionToggleEvent: null,
   selectedTestPlan: {} as TestPlanEntity,
+  planLinkCaseIds: null,
+  executionLinkRunIds: null,
+  runLinkCaseIds: null,
+  setPlanLinkCaseIds: noop,
+  setExecutionLinkRunIds: noop,
+  setRunLinkCaseIds: noop,
 });
 
 const PageProvider: React.FC = ({ children }) => {
   const { context } = useSDK();
-  const [searchValue, setSearchValue] = React.useState('');
-  const [selectors, setSelectors] = React.useState();
+  const refreshCacheRef = useRef<Record<string, () => void>>();
+  const [searchValue, setSearchValue] = useState('');
+  const [selectors, setSelectors] = useState();
   const tableSelectionToggleEvent = useEventEmitter<boolean>();
   const mutateTestPlanEvent = useEventEmitter<string | undefined>();
   const mutateStatusEvent = useEventEmitter<string | undefined>();
-  const refreshCacheRef = React.useRef<Record<string, () => void>>();
   const workspaceKey = context?.env?.WORKSPACE_KEY ?? getDevConfig().workspaceKey;
-  const [selectedTestPlan, setSelectedTestPlan] = React.useState(null);
+  const [selectedTestPlan, setSelectedTestPlan] = useState(null);
+  const [planLinkCaseIds, setPlanLinkCaseIds] = useState<string[]>(null);
+  const [executionLinkRunIds, setExecutionLinkRunIds] = useState<string[]>(null);
+  const [runLinkCaseIds, setRunLinkCaseIds] = useState<string[]>(null);
 
-  const refresh = React.useCallback(key => {
+  const refresh = useCallback(key => {
     if (key) {
       refreshCacheRef.current[key]?.();
     }
@@ -99,6 +114,12 @@ const PageProvider: React.FC = ({ children }) => {
             mutateStatusEvent,
             registerRefreshMethod,
             tableSelectionToggleEvent,
+            planLinkCaseIds,
+            executionLinkRunIds,
+            runLinkCaseIds,
+            setPlanLinkCaseIds,
+            setExecutionLinkRunIds,
+            setRunLinkCaseIds,
           }}
         >
           {children}
