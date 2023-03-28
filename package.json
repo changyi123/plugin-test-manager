@@ -63,7 +63,7 @@
     "speed-measure-webpack-plugin": "^1.5.0",
     "style-loader": "^3.2.1",
     "style-resources-loader": "^1.4.1",
-    "test-manager-minder": "git+http://proxima:proxima123@osc.gitee.work/enterprise__proxima/test-manager-minder.git#809b5ae5d11da7a414ccb482d7f98cd57393f52f",
+    "test-manager-minder": "git+http://proxima:proxima123@osc.gitee.work/enterprise__proxima/test-manager-minder.git#4b3578cd692fff6d9d30e01180837443ac2ec663",
     "ts-loader": "^9.2.5",
     "typescript": "^4.4.3",
     "webpack": "^5.52.1",
