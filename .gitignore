@@ -9,3 +9,4 @@ test-manager*.zip
 test_manager*.zip
 .env
 manifest.yml
+release/*
