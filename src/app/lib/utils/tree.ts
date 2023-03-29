@@ -25,6 +25,6 @@ export const getRepositoryQuery = (node, type = 'all') => {
       : {};
   }
   return {
-    repository: node === 'current' ? [node?.key] : getReportKey([node]),
+    repository: type === 'current' ? [node?.key] : getReportKey([node]),
   };
 };

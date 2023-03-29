@@ -1,88 +1,137 @@
+import React, { useCallback } from 'react';
 import { Checkbox } from 'antd';
 import { clone, pullAll } from 'lodash';
-import React, { useCallback } from 'react';
 import { GroupedVirtuoso } from 'react-virtuoso';
-import { getCheckedByType } from './helper';
+import { getCheckedByType, handleGroupPath } from './helper';
 import { useGetVirtualScrollList } from './hooks';
+
+import cx from './VirtualScrollList.less';
 
 interface VirtualScrollListProps {
   group?: any[];
   allCaseIds?: string[];
-  item?: Record<string, any>[];
+  caseListMap?: Map<number, Record<string, any>[]>;
+  current?: number;
   selectCaseIdsSet?: Set<string>;
   ignoreTestDetailIdsSet?: Set<string>;
   setSelectCaseIdsSet?: (val?: Set<string>) => void;
+  setCurrent?: (val: number) => void;
 }
 
 const VirtualScrollList: React.FC<VirtualScrollListProps> = props => {
-  const { group, allCaseIds, item, ignoreTestDetailIdsSet, selectCaseIdsSet, setSelectCaseIdsSet } =
-    props;
-  const { groupCounts, groups, items } = useGetVirtualScrollList(group, item, allCaseIds);
+  const {
+    group,
+    allCaseIds,
+    caseListMap,
+    current,
+    ignoreTestDetailIdsSet,
+    selectCaseIdsSet,
+    setSelectCaseIdsSet,
+    setCurrent,
+  } = props;
+
+  const { groupArray, groupCounts, groups, items, totalCount } = useGetVirtualScrollList(
+    group,
+    caseListMap,
+    allCaseIds,
+    current,
+  );
 
   const groupContent = useCallback(
     index => {
       const nodeCaseIds = [...(groups?.[index]?.nodeCaseIdsSet ?? [])];
+      const pathName = handleGroupPath(groupArray, groups?.[index]?.key);
+      const PathDom = ({ name }) => {
+        return typeof name === 'string' ? (
+          <span className={cx('name')}>{name}</span>
+        ) : (
+          <span className={cx('path-box')}>
+            <span className={cx('path')}>{name?.[0]}</span>
+            <span className={cx('cur-name')}>/{name?.[1]}</span>
+          </span>
+        );
+      };
       return (
-        <Checkbox
-          disabled={getCheckedByType(
-            [...(groups?.[index]?.nodeCaseIdsSet ?? [])],
-            ignoreTestDetailIdsSet,
-          )}
-          indeterminate={getCheckedByType(
-            [...(groups?.[index]?.nodeCaseIdsSet ?? [])],
-            selectCaseIdsSet,
-            'indeterminate',
-          )}
-          checked={getCheckedByType([...(groups?.[index]?.nodeCaseIdsSet ?? [])], selectCaseIdsSet)}
-          onChange={e => {
-            const ids = pullAll(clone(nodeCaseIds), [...(ignoreTestDetailIdsSet ?? [])]);
-            const set = new Set([...(selectCaseIdsSet ?? [])]);
-            if (e.target.checked) {
-              setSelectCaseIdsSet(new Set(ids.concat([...set])));
-            } else {
-              ids.forEach(d => {
-                set.has(d) && set.delete(d);
-              });
-              setSelectCaseIdsSet(set);
-            }
-          }}
-        >
-          {groups?.[index]?.name}
-        </Checkbox>
+        <div className={cx('detail-list-box')}>
+          <Checkbox
+            disabled={getCheckedByType(
+              [...(groups?.[index]?.nodeCaseIdsSet ?? [])],
+              ignoreTestDetailIdsSet,
+            )}
+            indeterminate={getCheckedByType(
+              [...(groups?.[index]?.nodeCaseIdsSet ?? [])],
+              new Set([...(selectCaseIdsSet ?? []), ...(ignoreTestDetailIdsSet ?? [])]),
+              'indeterminate',
+            )}
+            checked={getCheckedByType(
+              [...(groups?.[index]?.nodeCaseIdsSet ?? [])],
+              new Set([...(selectCaseIdsSet ?? []), ...(ignoreTestDetailIdsSet ?? [])]),
+            )}
+            onChange={e => {
+              const ids = pullAll(clone(nodeCaseIds), [...(ignoreTestDetailIdsSet ?? [])]);
+              const set = new Set([...(selectCaseIdsSet ?? [])]);
+              if (e.target.checked) {
+                setSelectCaseIdsSet(new Set(ids.concat([...set])));
+              } else {
+                ids.forEach(d => {
+                  set.has(d) && set.delete(d);
+                });
+                setSelectCaseIdsSet(set);
+              }
+            }}
+          >
+            <PathDom name={pathName} />
+          </Checkbox>
+        </div>
       );
     },
-    [groups, selectCaseIdsSet, ignoreTestDetailIdsSet, setSelectCaseIdsSet],
+    [groups, groupArray, selectCaseIdsSet, ignoreTestDetailIdsSet, setSelectCaseIdsSet],
   );
+
   const itemContent = useCallback(
     index => (
-      <Checkbox
-        onChange={e => {
-          const id = items?.[index]?.id;
-          const set = new Set([...(selectCaseIdsSet ?? [])]);
-          if (e.target.checked) {
-            set.add(id);
-          } else {
-            set.delete(id);
+      <div className={cx('detail-list')}>
+        <Checkbox
+          onChange={e => {
+            const id = items?.[index]?.id;
+            const set = new Set([...(selectCaseIdsSet ?? [])]);
+            if (e.target.checked) {
+              set.add(id);
+            } else {
+              set.delete(id);
+            }
+            setSelectCaseIdsSet(set);
+          }}
+          disabled={ignoreTestDetailIdsSet?.has(items?.[index]?.id)}
+          checked={
+            selectCaseIdsSet?.has(items?.[index]?.id) ||
+            ignoreTestDetailIdsSet?.has(items?.[index]?.id)
           }
-          setSelectCaseIdsSet(set);
-        }}
-        disabled={ignoreTestDetailIdsSet?.has(items?.[index]?.id)}
-        checked={selectCaseIdsSet?.has(items?.[index]?.id)}
-      >
-        {items?.[index]?.name}
-      </Checkbox>
+        >
+          <span className={cx('title')}>{items?.[index]?.name}</span>
+        </Checkbox>
+      </div>
     ),
     [ignoreTestDetailIdsSet, items, selectCaseIdsSet, setSelectCaseIdsSet],
   );
 
   return (
-    <GroupedVirtuoso
-      onScroll={e => console.log((e.target as any).scrollTop)}
-      style={{ height: '400px' }}
-      groupCounts={groupCounts}
-      groupContent={groupContent}
-      itemContent={itemContent}
-    />
+    <>
+      <GroupedVirtuoso
+        className={cx('group-virtuoso')}
+        style={{ height: '400px' }}
+        groupCounts={groupCounts}
+        groupContent={groupContent}
+        itemContent={itemContent}
+        atBottomStateChange={atBottom => {
+          if (atBottom) {
+            if (!totalCount) return;
+            if (current * 100 >= totalCount) return;
+            setCurrent(current + 1);
+          }
+        }}
+      />
+    </>
   );
 };
 

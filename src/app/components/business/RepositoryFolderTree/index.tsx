@@ -161,7 +161,7 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
   useDeepCompareEffect(() => {
     const selectedFolder = getTreeNodeByKey(treeData, treeSelectedKeys[0]);
     onFolderSelect?.(selectedFolder);
-  }, [treeSelectedKeys, treeData, shouldIncludeSubFolder]);
+  }, [treeSelectedKeys, treeData, shouldIncludeSubFolder, hideEmptyFolder]);
 
   // 树节点渲染
   const titleRender = useMemoizedFn(node => {

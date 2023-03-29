@@ -3,10 +3,9 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { Checkbox, Empty, Select, Spin, Tooltip } from 'antd';
 import { useRequest, useUpdateEffect } from 'ahooks';
 import emptyImg from '@/icons/svg/empty-data.png';
-import cx from './TestDetailsSelectorList.less';
 import { CaretDownOutlined, CaretUpOutlined } from '@ant-design/icons';
-import { getTestEntityByQuery } from '@/lib/api/item';
-import { TestType } from '@/lib/constants';
+import { getLinkedTestEntityByQuery, getTestEntityByQuery } from '@/lib/api/item';
+import { TestLinkType, TestType } from '@/lib/constants';
 import { FieldKey } from 'common/types/api';
 import { SearchSelectors } from '@/lib/utils/iql';
 import useI18n from '@/lib/hooks/useI18n';
@@ -14,6 +13,8 @@ import { getReportKey, getRepositoryQuery } from '@/lib/utils/tree';
 import VirtualScrollList from './virtualScrollList';
 import { clone, pullAll } from 'lodash';
 import { getCheckedByType } from './helper';
+
+import cx from './TestDetailsSelectorList.less';
 
 interface TestDetailsSelectorListProps {
   workspaceKey?: string;
@@ -24,6 +25,7 @@ interface TestDetailsSelectorListProps {
   setSelectedTestDetailIds?: (val: any) => void;
   treeType?: string;
   planLinkCaseIds?: string[];
+  planId?: string;
 }
 
 const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
@@ -34,6 +36,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
   planLinkCaseIds,
   setSelectedTestDetailIds,
   treeType,
+  planId,
 }) => {
   const { t } = useI18n();
   const [showType, setShowType] = useState('all');
@@ -41,12 +44,18 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
   const searchName = useMemo(() => (selectors?.[0] as any)?.name?.value, [selectors]);
   const [selectCaseIdsSet, setSelectCaseIdsSet] = useState<Set<string> | null>(null);
   const ignoreTestDetailIdsSet = useMemo(() => new Set(ignoreTestDetailIds), [ignoreTestDetailIds]);
+  const [caseListMap, setCaseListMap] = useState<Map<number, Record<string, any>[]>>(new Map());
+  const [planCaseListMap, setPlanCaseListMap] = useState<Map<number, Record<string, any>[]>>(
+    new Map(),
+  );
+  const [current, setCurrent] = useState(1);
 
   const { data: allCaseIds, loading: allCaseIdsLoading } = useRequest(
     async () => {
       if (!workspaceKey || !selectedNode?.key || treeType === 'plan') return;
       const repository = getRepositoryQuery(selectedNode, showType);
       const allNodeKeys = getReportKey([selectedNode]);
+
       const { list: data } = await getTestEntityByQuery({
         query: {
           workspaceKey: workspaceKey,
@@ -74,13 +83,58 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
     return pullAll(clone(ids), ignoreTestDetailIds);
   }, [allCaseIds, treeType, planLinkCaseIds, ignoreTestDetailIds]);
 
+  const getTestCaseByRepository = useCallback(
+    async (baseQueryOptions, repository, allNodeKeys) => {
+      const { list: data } = await getTestEntityByQuery({
+        query: {
+          workspaceKey: workspaceKey,
+          type: TestType.Case,
+          ...repository,
+        },
+        ...baseQueryOptions,
+        offset: (current - 1) * 100,
+        limit: 100,
+        select: ['id', 'name'],
+        selector: selectors,
+        sortByRepositoryIds: allNodeKeys,
+      });
+
+      return data;
+    },
+    [workspaceKey, current, selectors],
+  );
+
+  const getTestCaseByPlan = useCallback(
+    async (baseQueryOptions, repository, allNodeKeys) => {
+      const { list: data } = await getLinkedTestEntityByQuery({
+        query: {
+          workspaceKey: workspaceKey,
+          type: TestType.Case,
+          ...repository,
+        },
+        ...baseQueryOptions,
+        linkType: TestLinkType.CaseLinkPlan,
+        sourceIds: [planId],
+        destinationType: TestType.Case,
+        offset: (current - 1) * 100,
+        limit: 100,
+        select: ['id', 'name'],
+        selector: selectors,
+        sortByRepositoryIds: allNodeKeys,
+      });
+
+      return data;
+    },
+    [workspaceKey, current, selectors],
+  );
+
   // 查询当前用例库下所有测试用例
   const {
     data: testCaseList = [],
     loading: testCaseListLoading,
-    refresh: refreshTestCase,
+    // refresh: refreshTestCase,
   } = useRequest(
-    async params => {
+    async () => {
       if (!workspaceKey || !selectedNode?.key || !showType) return;
       const baseQueryOptions: {
         ascending?: FieldKey[];
@@ -95,36 +149,56 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
             };
       const repository = getRepositoryQuery(selectedNode, showType);
       const allNodeKeys = getReportKey([selectedNode]);
-      const { list: data } = await getTestEntityByQuery({
-        query: {
-          workspaceKey: workspaceKey,
-          type: TestType.Case,
-          ...repository,
-        },
-        ...baseQueryOptions,
-        limit: 100,
-        select: ['id', 'name', 'repository'],
-        selector: selectors,
-        sortByRepositoryIds: allNodeKeys,
-        ...params,
-      });
 
-      return data;
+      if (treeType !== 'plan') {
+        return await getTestCaseByRepository(baseQueryOptions, repository, allNodeKeys);
+      }
+
+      return await getTestCaseByPlan(baseQueryOptions, repository, allNodeKeys);
     },
     {
-      refreshDeps: [workspaceKey, searchName, treeType, selectedNode, showType, orderByCratedAt],
+      refreshDeps: [
+        workspaceKey,
+        searchName,
+        treeType,
+        current,
+        selectedNode,
+        showType,
+        orderByCratedAt,
+      ],
       cacheKey: `Repository_${
         selectedNode?.key ?? ''
-      }_${searchName}_${showType}_${treeType}_${orderByCratedAt}${workspaceKey}`,
+      }_${searchName}_${showType}_${current}_${treeType}_${orderByCratedAt}${workspaceKey}`,
       staleTime: 999999999,
       cacheTime: 999999999,
     },
   );
 
   useUpdateEffect(() => {
+    if (treeType === 'plan') {
+      planCaseListMap.set(current, testCaseList);
+      setPlanCaseListMap(planCaseListMap);
+    } else {
+      caseListMap.set(current, testCaseList);
+      setCaseListMap(caseListMap);
+    }
+  }, [testCaseList, treeType]);
+
+  useUpdateEffect(() => {
+    if (selectedNode?.key) return;
+    if (treeType === 'plan') {
+      setPlanCaseListMap(new Map());
+      setCurrent(1);
+    } else {
+      setCaseListMap(new Map());
+      setCurrent(1);
+    }
+  }, [showType, searchName, selectedNode, orderByCratedAt]);
+
+  useUpdateEffect(() => {
     if (treeType) {
-      refreshTestCase();
-      setSelectCaseIdsSet(null);
+      // refreshTestCase();
+      setSelectCaseIdsSet(new Set());
     }
   }, [treeType]);
 
@@ -134,7 +208,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
 
   const checkAllTest = useCallback(
     e => {
-      setSelectCaseIdsSet(e.target.checked ? new Set(clone(caseIds)) : null);
+      setSelectCaseIdsSet(e.target.checked ? new Set(clone(caseIds)) : new Set([]));
     },
     [caseIds],
   );
@@ -198,14 +272,16 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
       </div>
       <div className={cx('detail-selector-body')}>
         <Spin spinning={testCaseListLoading}>
-          {testCaseList?.length ? (
+          {(treeType === 'plan' ? planCaseListMap : caseListMap)?.size ? (
             <VirtualScrollList
               group={[selectedNode].filter(Boolean)}
-              item={testCaseList}
+              caseListMap={treeType === 'plan' ? planCaseListMap : caseListMap}
               selectCaseIdsSet={selectCaseIdsSet}
               setSelectCaseIdsSet={setSelectCaseIdsSet}
               ignoreTestDetailIdsSet={ignoreTestDetailIdsSet}
-              allCaseIds={allCaseIds}
+              allCaseIds={treeType === 'plan' ? planLinkCaseIds : allCaseIds}
+              setCurrent={setCurrent}
+              current={current}
             />
           ) : (
             <Empty

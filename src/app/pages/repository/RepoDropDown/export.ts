@@ -264,10 +264,10 @@ const importTestInfo = async (
     // 导出当前分组及其字分组，需要特殊处理 repository 数据
     if (type === 'exportChildGroup') {
       // 获取当前分组及其所有子分组用例
-      query.repository = getRepositoryQuery(selectTreeNode, 'all');
+      query.repository = getRepositoryQuery(selectTreeNode, 'all')?.repository;
     } else if (type === 'exportGroup') {
       // 导出当前分组用例
-      query.repository = getRepositoryQuery(selectTreeNode, 'current');
+      query.repository = getRepositoryQuery(selectTreeNode, 'current')?.repository;
     } else if (type === 'exportFilter') {
       query.id = ids;
     }

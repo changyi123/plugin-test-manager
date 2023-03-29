@@ -54,7 +54,7 @@ const Right: React.FC<RightProps> = props => {
     setSearchParams,
     planLinkCaseIds,
     runLinkCaseIds,
-    mutateTestPlanEvent,
+    // mutateTestPlanEvent,
     mutateStatusEvent,
     tableSelectionToggleEvent,
   } = usePageContext();
@@ -125,6 +125,7 @@ const Right: React.FC<RightProps> = props => {
 
     // scopedTestDetailRefresh();
     mutateStatusEvent.emit('refreshExecutionStatus');
+    refreshTreeAndScopeTestCase();
     setLoading(false);
     notification.success({
       message: t('page.plan.planPageLayout.right.createTestRunSuccessMessage'),
@@ -179,8 +180,9 @@ const Right: React.FC<RightProps> = props => {
     }
     // scopedTestDetailRefresh();
 
-    mutateTestPlanEvent.emit(selectedTestPlan?.objectId);
+    // mutateTestPlanEvent.emit(selectedTestPlan?.objectId);
     refresh('detailTable');
+    await refreshTreeAndScopeTestCase();
     // refreshPlanData();
     setLoading(false);
     // planDataMutate(selectedTestPlan?.objectId);

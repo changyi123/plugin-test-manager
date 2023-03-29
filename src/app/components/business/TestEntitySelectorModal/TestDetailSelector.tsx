@@ -252,6 +252,7 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
               setSelectedTestDetailIds={setSelectedTestDetailIds}
               treeType={treeType}
               planLinkCaseIds={planLinkCaseIds}
+              planId={planId}
             />
           </div>
         </div>
