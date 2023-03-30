@@ -121,7 +121,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
       const itemTypeMapping: Record<TestType, string[]> = configs
         .map(_config => {
           const config = _config?.toJSON();
-          if (!config) return;
+          if (!config || !workspace?.key) return;
           const workspaceKey = config.workspaceKey;
           const itemTypeMapping = config.itemTypeMap;
           const currentWorkspaceKey = workspace.key;

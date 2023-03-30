@@ -3,18 +3,18 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { Checkbox, Empty, Select, Spin, Tooltip } from 'antd';
 import { useRequest, useUpdateEffect } from 'ahooks';
 import emptyImg from '@/icons/svg/empty-data.png';
-import { CaretDownOutlined, CaretUpOutlined } from '@ant-design/icons';
+import { CaretDownOutlined, CaretUpOutlined, LoadingOutlined } from '@ant-design/icons';
 import { getLinkedTestEntityByQuery, getTestEntityByQuery } from '@/lib/api/item';
 import { TestLinkType, TestType } from '@/lib/constants';
 import { FieldKey } from 'common/types/api';
-// import { SearchSelectors } from '@/lib/utils/iql';
 import useI18n from '@/lib/hooks/useI18n';
 import { getReportKey, getRepositoryQuery } from '@/lib/utils/tree';
 import VirtualScrollList from './virtualScrollList';
-import { clone, isEmpty, pullAll } from 'lodash';
+import { clone, pullAll } from 'lodash';
 import { getCheckedByType } from './helper';
 
 import cx from './TestDetailsSelectorList.less';
+import { useGetGroupCounts } from './hooks';
 
 interface TestDetailsSelectorListProps {
   workspaceKey?: string;
@@ -26,6 +26,7 @@ interface TestDetailsSelectorListProps {
   treeType?: string;
   planLinkCaseIds?: string[];
   planId?: string;
+  treeProps?: Record<string, any>;
 }
 
 const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
@@ -37,6 +38,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
   setSelectedTestDetailIds,
   treeType,
   planId,
+  treeProps,
 }) => {
   const { t } = useI18n();
   const [showType, setShowType] = useState('all');
@@ -92,7 +94,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
       if (repository) {
         query.repository = repository.repository;
       }
-      const { list: data } = await getTestEntityByQuery({
+      const { list, total } = await getTestEntityByQuery({
         query: {
           workspaceKey: workspaceKey,
           type: TestType.Case,
@@ -104,11 +106,8 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
         select: ['id', 'name'],
         sortByRepositoryIds: allNodeKeys,
       });
-      // const curDataMap = new Map();
-      // curDataMap.set(current, data);
-      // setPlanCaseListMap(curDataMap);
 
-      return data;
+      return { list, total };
     },
     [workspaceKey, current],
   );
@@ -122,7 +121,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
       if (repository) {
         query.repository = repository.repository;
       }
-      const { list: data } = await getLinkedTestEntityByQuery({
+      const { list, total } = await getLinkedTestEntityByQuery({
         query: {
           workspaceKey: workspaceKey,
           type: TestType.Case,
@@ -137,20 +136,17 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
         select: ['id', 'name'],
         sortByRepositoryIds: allNodeKeys,
       });
-      // const curDataPlanMap = new Map();
-      // curDataPlanMap.set(current, data);
-      // setCaseListMap(curDataPlanMap);
 
-      return data;
+      return { list, total };
     },
     [workspaceKey, current],
   );
 
   // 查询当前用例库下所有测试用例
   const {
-    data: testCaseList = [],
+    data: testCaseData,
     loading: testCaseListLoading,
-    refresh: refreshTestCase,
+    // refresh: refreshTestCase,
   } = useRequest(
     async () => {
       if (!workspaceKey || !selectedNode?.key || !showType) return;
@@ -167,9 +163,6 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
             };
       const repository = getRepositoryQuery(selectedNode, showType);
       const allNodeKeys = getReportKey([selectedNode]);
-
-      console.log('刷新showType ------------》', showType);
-      console.log('刷新repository ------------》', repository);
 
       if (treeType !== 'plan') {
         return await getTestCaseByRepository({
@@ -205,34 +198,58 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
     },
   );
 
-  // useUpdateEffect(() => {
-  //   console.log('testCaseList -------------->', testCaseList);
-  // }, [testCaseList]);
+  const { list: testCaseList, total = 0 } = testCaseData ?? {};
 
-  useUpdateEffect(() => {
-    if (!workspaceKey) return;
-    // setTreeParmas(
-    //   searchName
-    //     ? {
-    //         query: {
-    //           workspaceKey,
-    //           type: TestType.Case,
-    //           name: searchName,
-    //         },
-    //       }
-    //     : null,
-    // );
-  }, [searchName, workspaceKey]);
+  const params = useMemo(
+    () =>
+      treeType === 'plan'
+        ? {
+            query: {
+              workspaceKey,
+              type: TestType.Case,
+              name: searchName,
+              ...getRepositoryQuery(selectedNode, showType),
+            },
+            linkType: TestLinkType.CaseLinkPlan,
+            sourceIds: [planId],
+            destinationType: TestType.Case,
+          }
+        : {
+            query: {
+              workspaceKey,
+              type: TestType.Case,
+              name: searchName,
+              ...getRepositoryQuery(selectedNode, showType),
+            },
+          },
+    [treeProps, showType, selectedNode],
+  );
 
-  useUpdateEffect(() => {
+  const { groupCounts } = useGetGroupCounts({ workspaceKey, current, params });
+
+  const showList = useMemo(() => {
     if (treeType === 'plan') {
-      planCaseListMap.set(current, testCaseList);
-      setPlanCaseListMap(planCaseListMap);
-    } else {
-      caseListMap.set(current, testCaseList);
-      setCaseListMap(caseListMap);
+      return !![...planCaseListMap.values()].flat()?.length;
     }
-  }, [testCaseList, treeType]);
+    return !![...caseListMap.values()].flat()?.length;
+  }, [treeType, planCaseListMap, caseListMap]);
+
+  useUpdateEffect(() => {
+    if (!testCaseList) return;
+    if (treeType === 'plan') {
+      if (!testCaseListLoading) {
+        const map = new Map(planCaseListMap.entries());
+        map.set(current, testCaseList);
+        setPlanCaseListMap(map);
+      }
+    } else {
+      if (!testCaseListLoading) {
+        const map = new Map(caseListMap.entries());
+        map.set(current, testCaseList);
+        setCaseListMap(map);
+      }
+    }
+  }, [testCaseList]);
 
   useUpdateEffect(() => {
     if (selectedNode?.key) return;
@@ -243,11 +260,11 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
       setCaseListMap(new Map());
       setCurrent(1);
     }
-  }, [showType, searchName, selectedNode, orderByCratedAt]);
+  }, [showType, searchName, selectedNode]);
 
   useUpdateEffect(() => {
     if (treeType) {
-      refreshTestCase();
+      // refreshTestCase();
       setSelectCaseIdsSet(new Set());
     }
   }, [treeType]);
@@ -266,23 +283,21 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
   return (
     <div className={'case-selector'}>
       <div className={cx('detail-selector-header')}>
-        <Spin spinning={allCaseIdsLoading}>
-          <Checkbox
-            disabled={getCheckedByType(caseIds, ignoreTestDetailIdsSet)}
-            indeterminate={getCheckedByType(caseIds, selectCaseIdsSet, 'indeterminate')}
-            checked={getCheckedByType(caseIds, selectCaseIdsSet)}
-            onChange={checkAllTest}
-          >
-            <span className={cx('check-all-title')}>
-              {t('common.checked')}
-              <span className={cx('num')}> {selectCaseIdsSet?.size ?? 0}</span>
-              <span>
-                {' / '}
-                {caseIds?.length ?? 0}
-              </span>
+        <Checkbox
+          disabled={allCaseIdsLoading || getCheckedByType(caseIds, ignoreTestDetailIdsSet)}
+          indeterminate={getCheckedByType(caseIds, selectCaseIdsSet, 'indeterminate')}
+          checked={getCheckedByType(caseIds, selectCaseIdsSet)}
+          onChange={checkAllTest}
+        >
+          <span className={cx('check-all-title')}>
+            {t('common.checked')}
+            <span className={cx('num')}> {selectCaseIdsSet?.size ?? 0}</span>
+            <span>
+              {' / '}
+              {allCaseIdsLoading ? <LoadingOutlined /> : total}
             </span>
-          </Checkbox>
-        </Spin>
+          </span>
+        </Checkbox>
         <div className={cx('detail-header-right')}>
           <Select
             style={{ width: 165 }}
@@ -322,7 +337,8 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
       </div>
       <div className={cx('detail-selector-body')}>
         <Spin spinning={testCaseListLoading}>
-          {(treeType === 'plan' ? planCaseListMap : caseListMap)?.size ? (
+          {showList}
+          {showList ? (
             <VirtualScrollList
               group={[selectedNode].filter(Boolean)}
               caseListMap={treeType === 'plan' ? planCaseListMap : caseListMap}
@@ -332,6 +348,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
               allCaseIds={treeType === 'plan' ? planLinkCaseIds : allCaseIds}
               setCurrent={setCurrent}
               current={current}
+              groupCounts={groupCounts}
             />
           ) : (
             <Empty

@@ -79,16 +79,37 @@ const getLinkTypes = linkType => {
     .map(type => `Test${type}`);
 };
 
+// iql 查询条件参数转换
+const SearchParamsTransformStrategies = {
+  // name 转换成 like
+  name: value => ({
+    value: value,
+    operator: Operator.Like,
+  }),
+  createdAt: value => {
+    const getStandardDateValue = date => dayjs(date).format('YYYY-MM-DD');
+    return Array.isArray(value)
+      ? {
+          value: value.map(getStandardDateValue),
+          operator: Operator.DateRange,
+        }
+      : null;
+  },
+};
+
 /** 获取构建 iql 参数 payload 查询范围 */
 export const getPayload = async (params: QueryLinkedTestEntityPayload) => {
   const { query = {}, linkType, sourceIds, destinationType } = params;
   // 请求参数校验
-  testEntityFieldTypeValidator({ linkType, type: destinationType, linkItems: sourceIds });
-  const { query: _query } = await getQueryByLinkQuery({
-    linkType,
-    sourceIds,
-    destinationType,
-  });
+  const getLinkTypeFiled = () => {
+    testEntityFieldTypeValidator({ linkType, type: destinationType, linkItems: sourceIds });
+    return {
+      linkType,
+      sourceIds,
+      destinationType,
+    };
+  };
+  const { query: _query } = await getQueryByLinkQuery(linkType ? getLinkTypeFiled() : null);
   const data = {
     ...query,
     ..._query,
@@ -98,7 +119,9 @@ export const getPayload = async (params: QueryLinkedTestEntityPayload) => {
     .reduce(
       (prev, key) => ({
         ...prev,
-        [IQLFieldNameMapping[key]]: data[key],
+        [IQLFieldNameMapping[key]]: SearchParamsTransformStrategies[key]
+          ? SearchParamsTransformStrategies[key](data[key])
+          : data[key],
       }),
       {},
     );
@@ -244,24 +267,6 @@ export const iqlRequest: IqlRequestType = async params => {
 
     // TODO: 处理自定义字段查询条件
     console.info('customFieldParams', customFieldParams);
-
-    // iql 查询条件参数转换
-    const SearchParamsTransformStrategies = {
-      // name 转换成 like
-      name: value => ({
-        value: value,
-        operator: Operator.Like,
-      }),
-      createdAt: value => {
-        const getStandardDateValue = date => dayjs(date).format('YYYY-MM-DD');
-        return Array.isArray(value)
-          ? {
-              value: value.map(getStandardDateValue),
-              operator: Operator.DateRange,
-            }
-          : null;
-      },
-    };
 
     // IQLFieldNameMapping 中包含的自定义参数可以做默认的参数
     const registeredFieldParams = Object.keys(query)

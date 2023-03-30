@@ -61,7 +61,6 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
   const detailSearchRef = useRef(null);
   const [selectors, setSelectors] = React.useState<string | SearchSelectors>();
   const searchName = useMemo(() => (selectors?.[0] as any)?.name?.value, [selectors]);
-  // const
 
   // 目录搜索
   const [folderSearchValue, setFolderSearchValue] = React.useState('');
@@ -91,7 +90,7 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
     setSelectedTestDetailIds(selectValue ?? []);
   }, [selectValue]);
 
-  const treeProps = useMemo(() => {
+  const treeProps: any = useMemo(() => {
     return planId && treeType === 'plan'
       ? {
           hideEmptyFolder: true,
@@ -99,14 +98,25 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
             query: {
               workspaceKey: selectedWorkspaceKey,
               type: TestType.Case,
+              name: searchName,
             },
             linkType: TestLinkType.CaseLinkPlan,
             sourceIds: [planId],
             destinationType: TestType.Case,
           },
         }
-      : {};
-  }, [planId, treeType, selectedWorkspaceKey]);
+      : {
+          params: searchName
+            ? {
+                query: {
+                  workspaceKey: selectedWorkspaceKey,
+                  type: TestType.Case,
+                  name: searchName,
+                },
+              }
+            : null,
+        };
+  }, [planId, treeType, selectedWorkspaceKey, searchName]);
 
   // 测试案例库选中
   const allTestWorkspaces = useAllTestWorkspace();
@@ -255,6 +265,7 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
               treeType={treeType}
               planLinkCaseIds={planLinkCaseIds}
               planId={planId}
+              treeProps={treeProps}
             />
           </div>
         </div>
