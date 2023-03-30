@@ -2,7 +2,7 @@ import classnames from 'classnames';
 import React, { useCallback } from 'react';
 import { CustomMore } from '@/icons';
 import { useTestConfig } from '@/lib/hooks/useContext';
-import { MenuItemProps } from 'antd/lib/menu/MenuItem';
+import { MenuItemProps } from 'antd/lib/menu';
 import importTestInfo, { TreeNode, downloadExampleFile } from './export';
 import { Button, Dropdown, Menu, message, notification, Spin } from 'antd';
 import { getProximaBasePath, getTenantKey, inIframe } from '@/lib/utils/helper';
