@@ -2,7 +2,7 @@ import React, { useCallback } from 'react';
 import { Checkbox } from 'antd';
 import { clone, pullAll } from 'lodash';
 import { GroupedVirtuoso } from 'react-virtuoso';
-import { getCheckedByType, handleGroupPath } from './helper';
+import { filterIgnoreTestCaseId, getCheckedByType, handleGroupPath } from './helper';
 import { useGetVirtualScrollList } from './hooks';
 
 import cx from './VirtualScrollList.less';
@@ -59,8 +59,8 @@ const VirtualScrollList: React.FC<VirtualScrollListProps> = props => {
               ignoreTestDetailIdsSet,
             )}
             indeterminate={getCheckedByType(
-              [...(groups?.[index]?.nodeCaseIdsSet ?? [])],
-              new Set([...(selectCaseIdsSet ?? []), ...(ignoreTestDetailIdsSet ?? [])]),
+              filterIgnoreTestCaseId(groups?.[index]?.nodeCaseIdsSet, ignoreTestDetailIdsSet),
+              selectCaseIdsSet,
               'indeterminate',
             )}
             checked={getCheckedByType(
@@ -117,20 +117,24 @@ const VirtualScrollList: React.FC<VirtualScrollListProps> = props => {
 
   return (
     <>
-      <GroupedVirtuoso
-        className={cx('group-virtuoso')}
-        style={{ height: '400px' }}
-        groupCounts={groupCounts}
-        groupContent={groupContent}
-        itemContent={itemContent}
-        atBottomStateChange={atBottom => {
-          if (atBottom) {
-            if (!totalCount) return;
-            if (current * 100 >= totalCount) return;
-            setCurrent(current + 1);
-          }
-        }}
-      />
+      {items?.length ? (
+        <GroupedVirtuoso
+          className={cx('group-virtuoso')}
+          style={{ height: '400px' }}
+          groupCounts={groupCounts}
+          groupContent={groupContent}
+          itemContent={itemContent}
+          atBottomStateChange={atBottom => {
+            if (atBottom) {
+              if (!totalCount) return;
+              if (current * 100 >= totalCount) return;
+              setCurrent(current + 1);
+            }
+          }}
+        />
+      ) : (
+        ''
+      )}
     </>
   );
 };

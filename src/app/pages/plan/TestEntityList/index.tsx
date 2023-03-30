@@ -555,7 +555,10 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         }
 
         // 删除刷新
-        await addAndDeleteRefresh();
+        setTimeout(() => {
+          addAndDeleteRefresh();
+          actionRef.current?.refresh();
+        }, 500);
         mutateStatusEvent.emit('refreshExecutionStatus');
         notification.success({
           message: `${testRunIds.length} ${t('page.plan.testEntityList.deleteRunMessage')}`,

@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { traverseTreeNodes } from '@/pages/repository/util';
 import { clone, sum } from 'lodash';
+import { useDeepCompareEffect } from 'ahooks';
 
 interface VirtualScrollList {
   groups: Record<string, any>;
@@ -20,7 +21,7 @@ export const useGetVirtualScrollList = (
   const [groupArray, setGroupArray] = useState<Map<string, Record<string, any>>>(new Map());
   const [groupCounts, setGroupCounts] = useState<number[]>([]);
 
-  useEffect(() => {
+  useDeepCompareEffect(() => {
     if (group?.length) {
       const map = new Map();
       const mapArray = new Map();

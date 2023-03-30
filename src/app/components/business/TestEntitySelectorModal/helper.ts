@@ -106,3 +106,13 @@ export const handleCounts = (counts?: number[]) => {
 
   return data;
 };
+
+export const filterIgnoreTestCaseId = (caseIdSet, IgnoreIdSet) => {
+  const newCaseIdSet = new Set([...(caseIdSet ?? [])]);
+
+  newCaseIdSet.forEach(d => {
+    IgnoreIdSet?.has(d) && newCaseIdSet.delete(d);
+  });
+
+  return [...newCaseIdSet];
+};

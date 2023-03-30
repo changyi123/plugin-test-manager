@@ -208,6 +208,12 @@ const PlanPageLayout: React.FC<any> = () => {
     [createItemUseModal, selectedTestPlan?.objectId, t],
   );
 
+  const refreshTreeAndScopeTestCase = useCallback(async () => {
+    await pageLeftRef.current.refresh?.();
+    planLinkCaseIdRefresh();
+    scopeTestRunIdsRefresh();
+  }, [planLinkCaseIdRefresh, scopeTestRunIdsRefresh, pageLeftRef]);
+
   // 创建测试执行任务
   const createTestExecution = useCallback(
     async (createNext?: boolean) => {
@@ -254,15 +260,15 @@ const PlanPageLayout: React.FC<any> = () => {
         }
 
         notification.destroy();
+        if (isCheckCreateNext) {
+          await createTestExecution(isCheckCreateNext);
+        }
+        setRefreshExecution(true);
         notification.success({
           message: `${t('page.plan.planPageLayout.right.createTestExecutionSuccessMessage.0')}【${
             item.name
           }】${t('page.plan.planPageLayout.right.createTestExecutionSuccessMessage.1')}`,
         });
-        if (isCheckCreateNext) {
-          await createTestExecution(isCheckCreateNext);
-        }
-        setRefreshExecution(true);
       } catch (err) {
         notification.destroy();
         notification.error({
@@ -300,12 +306,6 @@ const PlanPageLayout: React.FC<any> = () => {
   // useListener('updateRepoTree', () => {
   //   scopedTestCaseRefresh();
   // });
-
-  const refreshTreeAndScopeTestCase = useCallback(async () => {
-    pageLeftRef.current.refresh?.();
-    planLinkCaseIdRefresh();
-    scopeTestRunIdsRefresh();
-  }, [planLinkCaseIdRefresh, scopeTestRunIdsRefresh, pageLeftRef]);
 
   return (
     <div className={cx('test-plan-page')}>

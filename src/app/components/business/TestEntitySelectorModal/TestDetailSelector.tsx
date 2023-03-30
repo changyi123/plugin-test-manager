@@ -60,6 +60,8 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
   const repositoryFolderTreeRef = React.useRef<ActionType>();
   const detailSearchRef = useRef(null);
   const [selectors, setSelectors] = React.useState<string | SearchSelectors>();
+  const searchName = useMemo(() => (selectors?.[0] as any)?.name?.value, [selectors]);
+  // const
 
   // 目录搜索
   const [folderSearchValue, setFolderSearchValue] = React.useState('');
@@ -246,7 +248,7 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
             <TestDetailsSelectorList
               workspaceKey={selectedWorkspaceKey}
               selectedNode={selectedNode}
-              selectors={selectors}
+              searchName={searchName}
               ignoreTestDetailIds={ignoreTestDetailIds ?? []}
               selectedTestDetailIds={selectedTestDetailIds}
               setSelectedTestDetailIds={setSelectedTestDetailIds}
