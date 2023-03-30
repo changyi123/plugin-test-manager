@@ -2,7 +2,7 @@ import React from 'react';
 import classnames from 'classnames';
 import { ButtonProps } from 'antd/lib/button';
 import { MenuItemProps } from 'antd/lib/menu';
-import { DropDownProps } from 'antd/lib/Dropdown';
+import { DropDownProps } from 'antd/lib/dropdown';
 import { Button, Dropdown, Menu } from 'antd';
 
 import './index.less';
