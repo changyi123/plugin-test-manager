@@ -27,6 +27,7 @@ const MaxModuleLevel = 8;
 const TestManagerMinder: React.FC<ViewComponentProps> = ({
   selectedNode,
   folderTreeData,
+  toggleViewModel,
   onFolderTreeChange,
 }) => {
   const { t } = useI18n();
@@ -52,6 +53,11 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
 
   const { data: priorityOptions } = useNoExpiredRequest(getPriorityOptions, {
     cacheKey: 'priority',
+  });
+
+  // 取消渲染
+  const handleCancelRender = useMemoizedFn(() => {
+    toggleViewModel('list');
   });
 
   /**
@@ -106,27 +112,6 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
     if (saveLoading) return;
     const patches = actionRef.current.getMinderDataPatches();
     validateMinderData();
-
-    // 有 patches 数据需要处理
-    if (Object.values(Object.assign({}, patches.create, patches.change, patches.remove)).length) {
-      // await new Promise((resolve, reject) =>
-      //   Modal.confirm({
-      //     title: '提示',
-      //     content: '你当前对脑图数据的修改将会保存至用例库中，是否继续？',
-      //     okText: '继续',
-      //     cancelText: '取消',
-      //     onOk: () => {
-      //       resolve(null);
-      //     },
-      //     onCancel() {
-      //       reject(null);
-      //     },
-      //   }),
-      // );
-    } else {
-      // 不需要持久化
-      return;
-    }
 
     const getRepositoryDataFromLevelModulePaths = (levelModulePaths, modulePath) => {
       const moduleLevel = modulePath.length - 1;
@@ -381,7 +366,7 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
         {t('common.save')}
       </Button>
     );
-  }, [saveLoading, handleSave, t]);
+  }, [handleSave, saveLoading, t]);
 
   if (!priorityOptions || !minderData) return null;
 
@@ -396,6 +381,7 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
         key={workspace.key}
         actionRef={actionRef}
         priorityOptions={priorityOptions}
+        onRenderCancel={handleCancelRender}
         renderFixRightAction={() => memoizedButtonNode}
       />
     </div>

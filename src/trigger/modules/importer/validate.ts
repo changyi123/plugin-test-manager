@@ -86,7 +86,7 @@ const getTestDetailsErrors = (datas, resProps?: Record<string, unknown>) =>
       ]);
     }
 
-    // 校验步骤描述格式
+    // 校验步骤格式
     if (testSteps(cur.action)) {
       prev = prev.concat([
         `${i18n.t('trigger.importer.validate.No')} ${index + 1} ${i18n.t(
@@ -95,7 +95,7 @@ const getTestDetailsErrors = (datas, resProps?: Record<string, unknown>) =>
       ]);
     }
 
-    // 校验步骤描述字数
+    // 校验步骤字数
     if (getCharNumErrorIndex(cur.action).length) {
       prev = prev.concat(
         `${i18n.t('trigger.importer.validate.No')} ${index + 1} ${i18n.t(

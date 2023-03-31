@@ -49,6 +49,7 @@ logPluginVersion();
 
 const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) => {
   const [viewMode, setViewMode] = React.useState('list');
+  console.log('viewMode', viewMode);
   const [selectedNodeKey, setSelectedNodeKey] = React.useState(null);
   const { t } = useI18n();
 
@@ -95,6 +96,7 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
         {React.createElement(viewMode === 'minder' ? MinderView : MinderList, {
           selectedNode,
           folderTreeData,
+          toggleViewModel: setViewMode,
           onFolderTreeChange: refreshFolderTree,
         })}
       </PageLayout.Right>

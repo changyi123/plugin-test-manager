@@ -143,14 +143,170 @@ export const minderData = async () => {
 
     if (!workspaceKey) throw new Error('workspaceKey is request');
 
+    /** 根据节点获取子树 */
+    const getRepositoryTreeWithRepositoryKey = async ({
+      select = [],
+      workspaceKey,
+      sessionToken,
+      repositoryKey,
+    }) => {
+      // 获取 repo tree
+      const getRepoTree = async () => {
+        // 获取空间目录
+        const getRepoData = async () => {
+          const repoQuery = await getParseQuery(false, RepositoryClassName);
+          const query = await (repoQuery as any)
+            .equalTo('workspaceKey', workspaceKey)
+            .select(['name', 'objectId', 'parent', 'sortIndex'])
+            .addAscending(['sortIndex', 'createdAt'])
+            .limit(InfinityLimit);
+
+          const repositoryParseObjects = await query.find({
+            sessionToken,
+          });
+
+          return repositoryParseObjects.map(parseObj => ({
+            name: parseObj.get('name'),
+            key: parseObj.get('objectId'),
+            sortIndex: parseObj.get('sortIndex'),
+            parentKey: parseObj.get('parent')?.objectId ?? UngroupedRepositoryKey,
+          }));
+        };
+
+        const repos = await getRepoData();
+
+        const RootRepo = {
+          key: UngroupedRepositoryKey,
+          name: i18n.t('common.minderRootNodeName'),
+          parentKey: null,
+        };
+
+        // 构建用例树
+        const pKeyRepoMapping = repos.reduce((mapping, repo) => {
+          const pKey = repo.parentKey ?? RootRepo.key;
+          const children = mapping[pKey] ?? [];
+          return {
+            ...mapping,
+            [pKey]: children.concat(repo),
+          };
+        }, {});
+
+        // 生成用例树
+        const buildRepoTree = node => {
+          const children = pKeyRepoMapping[node.key];
+          if (Array.isArray(children)) {
+            node.children = children.map(buildRepoTree);
+          }
+          return node;
+        };
+
+        return buildRepoTree(RootRepo);
+      };
+
+      // 根据 repo 获取测试用例
+      const getTestCasesByRepoKeys = async repoKeys => {
+        const requestQuery = {
+          workspaceKey,
+          type: TestType.Case,
+        } as any;
+
+        if (Array.isArray(repoKeys)) {
+          requestQuery.repository = repoKeys;
+        }
+
+        const {
+          data: { list: allTestCases },
+        } = await iqlRequest({
+          query: requestQuery,
+          fields: [SystemField.Id, TestFiledKeyMapping.repository, ...select],
+          pagination: {
+            limit: InfinityLimit,
+          },
+        });
+
+        return allTestCases;
+      };
+
+      // 获取子模块的 key
+      const getSubRepoIncludeKeys = repoTree => {
+        // 根据 repositoryId 获取根节点
+        const getNodeByKey = (tree, key) => {
+          if (!tree) return;
+          if (key === tree.key) {
+            return tree;
+          }
+
+          if (Array.isArray(tree.children)) {
+            for (const node of tree.children) {
+              const res = getNodeByKey(node, key);
+              if (res) return res;
+            }
+          }
+        };
+
+        const node = getNodeByKey(repoTree, repositoryKey);
+        const getSubRepoKeys = (node, repoKeys = []) => {
+          if (node) {
+            repoKeys.push(node.key);
+          }
+          if (Array.isArray(node.children)) {
+            node.children.forEach(child => getSubRepoKeys(child, repoKeys));
+          }
+          return repoKeys;
+        };
+        return getSubRepoKeys(node);
+      };
+
+      // 添加 caseIds
+      const appendCaseIds = (repo, testCases) => {
+        const repoKeyCaseIdsMapping = testCases.reduce((mapping, testCase) => {
+          const repoKey = testCase.repository ?? UngroupedRepositoryKey;
+          const arr = mapping[repoKey] ?? [];
+          return {
+            ...mapping,
+            [repoKey]: arr.concat(testCase.objectId),
+          };
+        }, {});
+
+        const traverse = repo => {
+          const caseIds = repoKeyCaseIdsMapping[repo.key];
+          if (caseIds) {
+            repo.caseIds = caseIds;
+          }
+          if (Array.isArray(repo.children)) {
+            repo.children.forEach(child => traverse(child));
+          }
+        };
+
+        traverse(repo);
+
+        return repo;
+      };
+
+      // 获取用例树
+      const repoTree = await getRepoTree();
+
+      // 获取用例树下所有的 cases
+      const testCases = await getTestCasesByRepoKeys(getSubRepoIncludeKeys(repoTree));
+
+      return {
+        repositoryTree: appendCaseIds(repoTree, testCases),
+
+        originalData: {
+          testCases,
+        },
+      };
+    };
+
     const {
       repositoryTree,
       originalData: { testCases },
-    } = await getRepositoryTree({
+    } = await getRepositoryTreeWithRepositoryKey({
       select: Array.from(
         new Set([SystemField.Name, SystemField.Priority, TestFiledKeyMapping.detail]),
       ),
       sessionToken,
+      repositoryKey,
       workspaceKey: body.workspaceKey,
     });
 
@@ -171,7 +327,7 @@ export const minderData = async () => {
       let node = null;
 
       if (testCase) {
-        const detail = testCase.detail ?? {};
+        const detail = (testCase as any).detail ?? {};
 
         // 前置条件节点
         const preconditionNode = buildMinderNode({
