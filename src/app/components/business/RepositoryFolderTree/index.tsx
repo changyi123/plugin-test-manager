@@ -65,7 +65,6 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
     async () => {
       if (!workspaceKey) return [];
       // if (hideEmptyFolder && !params) return [];
-      console.log(111111111111111, hideEmptyFolder);
       const { data } = await getRepositoryTreeV2({
         workspaceKey,
         params,

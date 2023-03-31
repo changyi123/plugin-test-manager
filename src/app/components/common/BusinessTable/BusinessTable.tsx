@@ -192,8 +192,9 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     queryParams => {
       if (!queryParams) return null;
       const { current, pageSize } = queryParams;
+      const _current = current < 1 ? 1 : current;
       return getDataSource?.({
-        offset: (current - 1) * pageSize,
+        offset: (_current - 1) * pageSize,
         limit: pageSize,
       });
     },

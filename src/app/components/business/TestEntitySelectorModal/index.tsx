@@ -60,7 +60,6 @@ export type TestEntitySelectorProps = {
   actionRef?: React.ForwardedRef<ActionType>;
   afterClose?: () => void;
   onCancel?: () => void;
-  planLinkCaseIds?: string[];
 };
 
 const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
@@ -69,7 +68,6 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
     planId,
     actionRef,
     ignoreTestEntityIds = [],
-    planLinkCaseIds,
     isSingleMode = false,
     needFillValue,
     afterClose,
@@ -385,7 +383,6 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
         planId={planId}
         treeType={treeType}
         setTreeType={setTreeType}
-        planLinkCaseIds={planLinkCaseIds}
       />
     );
   }, [
@@ -396,7 +393,6 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
     selectValue,
     planId,
     treeType,
-    planLinkCaseIds,
   ]);
 
   const ModalFooterNode = React.useMemo(() => {
@@ -415,6 +411,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
         <div className={cx('actions')}>
           <Button
             onClick={() => {
+              setTreeType('repository');
               onCancel?.();
               setSelectValue(undefined);
               setVisible(false);
@@ -452,6 +449,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
       getContainer={getRootContainer}
       footer={ModalFooterNode}
       onCancel={() => {
+        setTreeType('repository');
         setSelectValue(undefined);
         setVisible(false);
       }}

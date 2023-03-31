@@ -68,9 +68,11 @@ export const getGroupNameByKey = (
 
 export const handleGroupPath = (group: Map<string, Record<string, any>>, key: string) => {
   const pathName = getGroupNameByKey(group, key);
+  if (!pathName) return '';
   const pathGroup = pathName?.split('/');
   if (pathGroup?.length <= 1) return pathName;
-  const name = pathGroup.splice(-1);
+  const name = pathGroup?.splice(-1);
+  if (!name) return [];
   return [pathGroup.join('/'), name];
 };
 

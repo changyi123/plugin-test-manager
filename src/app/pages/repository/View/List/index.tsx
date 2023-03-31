@@ -56,7 +56,6 @@ const ListView: React.FC<ViewComponentProps> = ({
   const testDetailFieldKeys = useTestTypeScreenFieldKeys({
     testType: TestType.Case,
     workspaceKey,
-    includeSystemField: false,
   });
   // 事项数据更新后刷新列表
   useListener('updateItemList', props => {
@@ -99,7 +98,6 @@ const ListView: React.FC<ViewComponentProps> = ({
           list: [],
           total: 0,
         };
-
       const repository = getRepositoryQuery(selectedNode, groupedMode);
       const { list: data, total } = await getTestEntityByQuery({
         query: {

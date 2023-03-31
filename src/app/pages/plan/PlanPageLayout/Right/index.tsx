@@ -277,7 +277,6 @@ const Right: React.FC<RightProps> = props => {
           afterClose={() => refreshTreeAndScopeTestCase?.()}
           ignoreTestEntityIds={activeType === 'TestPlan' ? planLinkCaseIds : runLinkCaseIds}
           planId={activeType === 'TestPlan' ? '' : selectedTestPlan?.objectId}
-          planLinkCaseIds={planLinkCaseIds}
         />
       </div>
     </div>

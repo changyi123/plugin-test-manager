@@ -24,7 +24,6 @@ type TestDetailSelectorProps = {
   isSingleMode?: boolean;
   isWorkspaceIsolate: boolean;
   ignoreTestDetailIds?: string[];
-  planLinkCaseIds?: string[];
   onTestDetailSelect?: (testDetails) => void;
   selectValue?: string[];
   planId?: string;
@@ -48,7 +47,6 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
     workspaceKey,
     isSingleMode,
     ignoreTestDetailIds,
-    planLinkCaseIds,
     onTestDetailSelect,
     isWorkspaceIsolate,
     selectValue,
@@ -263,7 +261,6 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
               selectedTestDetailIds={selectedTestDetailIds}
               setSelectedTestDetailIds={setSelectedTestDetailIds}
               treeType={treeType}
-              planLinkCaseIds={planLinkCaseIds}
               planId={planId}
               treeProps={treeProps}
             />

@@ -24,7 +24,6 @@ interface TestDetailsSelectorListProps {
   selectedTestDetailIds?: string[];
   setSelectedTestDetailIds?: (val: any) => void;
   treeType?: string;
-  planLinkCaseIds?: string[];
   planId?: string;
   treeProps?: Record<string, any>;
 }
@@ -34,7 +33,6 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
   selectedNode,
   searchName,
   ignoreTestDetailIds,
-  planLinkCaseIds,
   setSelectedTestDetailIds,
   treeType,
   planId,
@@ -52,6 +50,41 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
   );
   const [current, setCurrent] = useState(1);
 
+  const { data: planLinkCaseIds } = useRequest(
+    async () => {
+      if (!workspaceKey || !planId) return [];
+      if (treeType !== 'plan') return [];
+      const allNodeKeys = getReportKey([selectedNode]);
+      const repository = getRepositoryQuery(selectedNode, showType);
+      // 测试全部用例 ID
+      const { list: caseIds } = await getLinkedTestEntityByQuery({
+        query: {
+          workspaceKey: workspaceKey,
+          type: TestType.Case,
+          name: searchName,
+          ...repository,
+        },
+        limit: 9999,
+        linkType: TestLinkType.CaseLinkPlan,
+        sourceIds: [planId],
+        destinationType: TestType.Case,
+        sortByRepositoryIds: allNodeKeys,
+        onlySelectId: true,
+      });
+
+      return caseIds;
+    },
+    {
+      ready: Boolean(workspaceKey && planId && selectedNode?.key),
+      refreshDeps: [planId, workspaceKey, treeType, selectedNode, showType, searchName],
+      cacheKey: `planLinkCaseIds_${
+        selectedNode?.key ?? ''
+      }_${treeType}_${workspaceKey}_${planId}_${showType}_${searchName}`,
+      cacheTime: 99999,
+      staleTime: 99999,
+    },
+  );
+
   const { data: allCaseIds, loading: allCaseIdsLoading } = useRequest(
     async () => {
       if (!workspaceKey || !selectedNode?.key || treeType === 'plan') return;
@@ -62,6 +95,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
         query: {
           workspaceKey: workspaceKey,
           type: TestType.Case,
+          name: searchName,
           ...repository,
         },
         ascending: ['sortIndex', 'createdAt'],
@@ -73,8 +107,8 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
       return data as string[];
     },
     {
-      refreshDeps: [workspaceKey, selectedNode, treeType],
-      cacheKey: `Repository_${selectedNode?.key ?? ''}_${treeType}_${workspaceKey}`,
+      refreshDeps: [workspaceKey, selectedNode, treeType, searchName, showType],
+      cacheKey: `Repository_${selectedNode?.key ?? ''}_${treeType}_${workspaceKey}_${searchName}`,
       staleTime: 999999999,
       cacheTime: 999999999,
     },

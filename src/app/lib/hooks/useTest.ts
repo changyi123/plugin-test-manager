@@ -123,7 +123,12 @@ export const useAllTestWorkspace = () => {
 export const useGetWorkspaceRepository = workspaceKey => {
   const { t } = useI18n();
   const { data: repositoryData, refreshAsync: refreshRepositoryData } = useRequest(
-    () => getRepositoryData(workspaceKey ? [workspaceKey] : []),
+    async () => {
+      if (!workspaceKey) return;
+      const data = await getRepositoryData([workspaceKey]);
+
+      return data;
+    },
     {
       cacheKey: `repository_data_${workspaceKey ?? ''}`,
       refreshDeps: [workspaceKey],
@@ -142,8 +147,7 @@ export const useGetWorkspaceRepository = workspaceKey => {
       return pathMap;
     },
     {
-      cacheKey: `repository_map_${workspaceKey}`,
-      refreshDeps: [repositoryData?.length],
+      refreshDeps: [repositoryData],
     },
   );
 
