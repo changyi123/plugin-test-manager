@@ -7,6 +7,7 @@ import { UNGROUPED_FOLDER_KEY } from '@/pages/repository/constant';
 import { hasArrayItem, escapeMatchesQueryArg } from '@/lib/utils/helper';
 import { useRequest, useMemoizedFn, useDeepCompareEffect, clearCache } from 'ahooks';
 import { traverseTreeNodes, getTreeNodeByKey, reverseTreeNodes } from '@/pages/repository/util';
+import { useListener } from '@projectproxima/proxima-sdk-js';
 import { getRepositoryTreeV2 } from '@/lib/api/item';
 import { QueryLinkedTestEntityPayload } from 'common/types/api';
 
@@ -198,6 +199,10 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
     event.preventDefault();
     // 所有案例无右侧菜单
     // if (node.key === UNGROUPED_FOLDER_KEY) return;
+  });
+
+  useListener('refreshSelectedNode', () => {
+    handleTreeSelect(['root']);
   });
 
   return (

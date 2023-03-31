@@ -426,7 +426,9 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       notification.success({
         message: `${testDetails.length} ${t('page.plan.testEntityList.removeCaseMessage')}`,
       });
+      proxima.execute('refreshSelectedNode');
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [addAndDeleteRefresh, t],
   );
 
@@ -566,6 +568,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           message: `${testRunIds.length} ${t('page.plan.testEntityList.deleteRunMessage')}`,
         });
         proxima.execute('refreshTestRunPanel');
+        proxima.execute('refreshSelectedNode');
       },
     );
   });
