@@ -740,6 +740,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
 
             await addAndDeleteRefresh();
             setTableLoading(false);
+            proxima.execute('refreshSelectedNode');
           },
         );
       }
