@@ -10,6 +10,7 @@ import ErrorBoundary from '@/components/common/ErrorBoundary';
 import TestManagerProvider from '@/components/business/TestManagerProvider';
 import { SearchSelectors } from '@/lib/utils/iql';
 import { isEqual } from 'lodash';
+import { useGetWorkspaceRepository } from '@/lib/hooks/useTest';
 
 export type TableActionEventType = {
   tableSelectionVisible?: boolean;
@@ -38,6 +39,7 @@ type PageContextType = {
   setPlanLinkCaseIds: (val?: string[]) => void;
   setExecutionLinkRunIds: (val?: string[]) => void;
   setRunLinkCaseIds: (val?: string[]) => void;
+  getTestCaseRepositoryPath: (val?: string) => string;
 };
 
 export const PageContext = React.createContext<PageContextType>({
@@ -59,6 +61,7 @@ export const PageContext = React.createContext<PageContextType>({
   setPlanLinkCaseIds: noop,
   setExecutionLinkRunIds: noop,
   setRunLinkCaseIds: noop,
+  getTestCaseRepositoryPath: null,
 });
 
 const PageProvider: React.FC = ({ children }) => {
@@ -74,6 +77,7 @@ const PageProvider: React.FC = ({ children }) => {
   const [planLinkCaseIds, setPlanLinkCaseIds] = useState<string[]>(null);
   const [executionLinkRunIds, setExecutionLinkRunIds] = useState<string[]>(null);
   const [runLinkCaseIds, setRunLinkCaseIds] = useState<string[]>(null);
+  const getTestCaseRepositoryPath = useGetWorkspaceRepository(workspaceKey);
 
   const refresh = useCallback(key => {
     if (key) {
@@ -120,6 +124,7 @@ const PageProvider: React.FC = ({ children }) => {
             setPlanLinkCaseIds,
             setExecutionLinkRunIds,
             setRunLinkCaseIds,
+            getTestCaseRepositoryPath,
           }}
         >
           {children}

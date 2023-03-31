@@ -96,7 +96,6 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
             query: {
               workspaceKey: selectedWorkspaceKey,
               type: TestType.Case,
-              name: searchName,
             },
             linkType: TestLinkType.CaseLinkPlan,
             sourceIds: [planId],

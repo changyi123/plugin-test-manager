@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { pick } from 'lodash';
 import Parse from '@/lib/parse';
 import { useRequest, useMemoizedFn } from 'ahooks';
@@ -132,7 +132,8 @@ export const useGetWorkspaceRepository = workspaceKey => {
     {
       cacheKey: `repository_data_${workspaceKey ?? ''}`,
       refreshDeps: [workspaceKey],
-      debounceWait: 300,
+      cacheTime: 999999,
+      staleTime: 999999,
     },
   );
 
@@ -150,6 +151,11 @@ export const useGetWorkspaceRepository = workspaceKey => {
       refreshDeps: [repositoryData],
     },
   );
+  const getTestCaseRepositoryPath = useCallback(
+    key => testCaseRepositoryPath?.get(key) ?? t('common.unGrouped'),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [testCaseRepositoryPath, t],
+  );
 
   React.useEffect(() => {
     return repositoryFolderTreeEvent.register(() => {
@@ -157,10 +163,7 @@ export const useGetWorkspaceRepository = workspaceKey => {
     });
   }, [refreshRepositoryData]);
 
-  return {
-    getTestCaseRepositoryPath: key =>
-      testCaseRepositoryPath?.get(key ?? '') ?? t('common.unGrouped'),
-  };
+  return getTestCaseRepositoryPath;
 };
 
 // 弃用，使用 useGetWorkspaceRepository

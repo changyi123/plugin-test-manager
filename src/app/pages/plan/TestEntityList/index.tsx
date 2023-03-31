@@ -25,11 +25,7 @@ import {
 import { TestLinkType, TestType } from 'common/constant';
 import { TestCaseStatusModel, TestRunDesigneeModel, TestRunExecutorModel } from '@/lib/constants';
 import { has, isEmpty, isEqual, omit, pick } from 'lodash';
-import {
-  useTestRunActionAuth,
-  useCanExecuteTestRunIdSequence,
-  useGetWorkspaceRepository,
-} from '@/lib/hooks/useTest';
+import { useTestRunActionAuth, useCanExecuteTestRunIdSequence } from '@/lib/hooks/useTest';
 import { getCurrentUserSetting, saveUserSetting } from '@/lib/api/userSetting';
 import { useCurrentUser } from '@/lib/api/user';
 import { useBaseAction } from '@/lib/hooks/useContext';
@@ -81,6 +77,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     executionLinkRunIds,
     runLinkCaseIds,
     tableSelectionToggleEvent,
+    getTestCaseRepositoryPath,
   } = usePageContext();
   const { t } = useI18n();
   const proxima = createProximaSdk();
@@ -91,7 +88,6 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   const { canExecuteTestRun, canAssignTestRun } = useTestRunActionAuth({ workspaceKey });
   const { data: currentUser } = useCurrentUser();
   const { getCanExecuteTestRunIdSequence } = useCanExecuteTestRunIdSequence({ workspaceKey });
-  const { getTestCaseRepositoryPath } = useGetWorkspaceRepository(workspaceKey);
 
   const [tableLoading, setTableLoading] = useState(false);
   const [hasRowSelected, setHasRowSelected] = useState(false);
@@ -258,6 +254,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           runId: runData.id,
           caseId: c.id,
           objectId: runData.id,
+          repository: c.repository,
         };
       }),
       total,
@@ -321,6 +318,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           runStatus: runData.status,
           caseId: c.id,
           objectId: runData.id,
+          repository: c.repository,
         };
       }),
       total,
@@ -432,91 +430,95 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     [addAndDeleteRefresh, t],
   );
 
-  const allTestColumns = [
-    {
-      width: 400,
-      key: 'title',
-      fixed: true,
-      isSystem: true,
-      title: t('common.title'),
-      className: 'test-case-title',
-      extraProps: {
-        onClick: record => {
-          openItemViewScreen(record?.objectId);
+  const allTestColumns = React.useMemo(() => {
+    return [
+      {
+        width: 400,
+        key: 'title',
+        fixed: true,
+        isSystem: true,
+        title: t('common.title'),
+        className: 'test-case-title',
+        extraProps: {
+          onClick: record => {
+            openItemViewScreen(record?.objectId);
+          },
+        },
+        render(_, rowData) {
+          const itemData = rowData ?? {};
+          return (
+            <span data-drawer-handle-target style={{ cursor: 'pointer' }}>
+              {itemData.name}
+            </span>
+          );
         },
       },
-      render(_, rowData) {
-        const itemData = rowData ?? {};
-        return (
-          <span data-drawer-handle-target style={{ cursor: 'pointer' }}>
-            {itemData.name}
-          </span>
-        );
+      {
+        key: 'repositoryGroup',
+        title: t('page.plan.testEntityList.repositoryGroup'),
+        width: 200,
+        render(_, rowData) {
+          return (
+            <span>{getTestCaseRepositoryPath?.(rowData?.repository) ?? t('common.unGrouped')}</span>
+          );
+        },
       },
-    },
-    {
-      key: 'repositoryGroup',
-      title: t('page.plan.testEntityList.repositoryGroup'),
-      width: 200,
-      render(_, rowData) {
-        return <span>{getTestCaseRepositoryPath(rowData.repository)}</span>;
+      {
+        key: 'caseLatestStatus',
+        title: t('page.plan.testEntityList.runStatus'),
+        width: 200,
+        render(_, rowData) {
+          return (
+            <StatusBadge readonly status={rowData.caseLatestStatus} className={cx('cell-min')} />
+          );
+        },
       },
-    },
-    {
-      key: 'caseLatestStatus',
-      title: t('page.plan.testEntityList.runStatus'),
-      width: 200,
-      render(_, rowData) {
-        return (
-          <StatusBadge readonly status={rowData.caseLatestStatus} className={cx('cell-min')} />
-        );
+      {
+        key: 'caseLatestExecutor',
+        title: t('page.plan.testEntityList.executor'),
+        width: 200,
+        render(_, rowData) {
+          return <Field.User userInfo={rowData?.caseLatestExecutor} />;
+        },
       },
-    },
-    {
-      key: 'caseLatestExecutor',
-      title: t('page.plan.testEntityList.executor'),
-      width: 200,
-      render(_, rowData) {
-        return <Field.User userInfo={rowData?.caseLatestExecutor} />;
+      {
+        key: 'runCount',
+        title: <span>{t('page.plan.testEntityList.runCount')}</span>,
+        width: 140,
+        render(_, rowData) {
+          return rowData.runCount ?? 0;
+        },
       },
-    },
-    {
-      key: 'runCount',
-      title: <span>{t('page.plan.testEntityList.runCount')}</span>,
-      width: 140,
-      render(_, rowData) {
-        return rowData.runCount ?? 0;
+      {
+        key: 'action',
+        isSystem: true,
+        title: t('common.action'),
+        width: 90,
+        fixed: 'right' as any,
+        render(_, rowData) {
+          return (
+            <a
+              onClick={() => {
+                actionConfirm(
+                  {
+                    title: t('common.tip'),
+                    okText: t('common.okText'),
+                    cancelText: t('common.cancel'),
+                    content: t('page.plan.testEntityList.removeCaseTips'),
+                  },
+                  () => {
+                    removeTestRelation(rowData.selectedTestPlanId, [rowData]);
+                  },
+                );
+              }}
+            >
+              {t('common.remove')}
+            </a>
+          );
+        },
       },
-    },
-    {
-      key: 'action',
-      isSystem: true,
-      title: t('common.action'),
-      width: 90,
-      fixed: 'right' as any,
-      render(_, rowData) {
-        return (
-          <a
-            onClick={() => {
-              actionConfirm(
-                {
-                  title: t('common.tip'),
-                  okText: t('common.okText'),
-                  cancelText: t('common.cancel'),
-                  content: t('page.plan.testEntityList.removeCaseTips'),
-                },
-                () => {
-                  removeTestRelation(rowData.selectedTestPlanId, [rowData]);
-                },
-              );
-            }}
-          >
-            {t('common.remove')}
-          </a>
-        );
-      },
-    },
-  ];
+    ];
+  }, [getTestCaseRepositoryPath, removeTestRelation, t]);
 
   const handleTestRunStatusChange = useCallback(
     async (testRun, status) => {
@@ -573,116 +575,127 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   //   ?.map(run => run.id)
   //   .filter(Boolean);
 
-  const executionColumns = [
-    {
-      key: 'detailName',
-      title: t('page.plan.testEntityList.detailName'),
-      isSystem: true,
-      fixed: true,
-      className: 'test-case-title',
-      width: 400,
-      tooltip: true,
-      extraProps: {
-        onClick: record => {
-          openItemViewScreen(record?.caseId);
+  const executionColumns = React.useMemo(
+    () => [
+      {
+        key: 'detailName',
+        title: t('page.plan.testEntityList.detailName'),
+        isSystem: true,
+        fixed: true,
+        className: 'test-case-title',
+        width: 400,
+        tooltip: true,
+        extraProps: {
+          onClick: record => {
+            openItemViewScreen(record?.caseId);
+          },
+        },
+        render(_, record) {
+          return (
+            <span data-drawer-handle-target style={{ cursor: 'pointer' }}>
+              {record?.name}
+            </span>
+          );
         },
       },
-      render(_, record) {
-        return (
-          <span data-drawer-handle-target style={{ cursor: 'pointer' }}>
-            {record?.name}
-          </span>
-        );
+      {
+        key: 'repositoryGroup',
+        title: t('page.plan.testEntityList.repositoryGroup'),
+        width: 200,
+        render(_, rowData) {
+          return <span>{getTestCaseRepositoryPath(rowData.repository)}</span>;
+        },
       },
-    },
-    {
-      key: 'repositoryGroup',
-      title: t('page.plan.testEntityList.repositoryGroup'),
-      width: 200,
-      render(_, rowData) {
-        return <span>{getTestCaseRepositoryPath(rowData.repository)}</span>;
+      {
+        key: 'runStatus',
+        title: t('page.plan.testEntityList.runStatus'),
+        shouldCellUpdate: (record, prevRecord) =>
+          !isEqual(record.designee, prevRecord.designee) ||
+          !isEqual(record.runStatus, prevRecord.runStatus),
+        width: 200,
+        render(_, record) {
+          const { result: enabled } = canExecuteTestRun(record.designee);
+          return (
+            <StatusBadge
+              useRootContainer
+              readonly={!enabled}
+              status={record.runStatus}
+              onStatusChange={status => handleTestRunStatusChange(record, status)}
+            />
+          );
+        },
       },
-    },
-    {
-      key: 'runStatus',
-      title: t('page.plan.testEntityList.runStatus'),
-      shouldCellUpdate: (record, prevRecord) =>
-        !isEqual(record.designee, prevRecord.designee) ||
-        !isEqual(record.runStatus, prevRecord.runStatus),
-      width: 200,
-      render(_, record) {
-        const { result: enabled } = canExecuteTestRun(record.designee);
-        return (
-          <StatusBadge
-            useRootContainer
-            readonly={!enabled}
-            status={record.runStatus}
-            onStatusChange={status => handleTestRunStatusChange(record, status)}
-          />
-        );
+      {
+        key: 'executor',
+        title: t('page.plan.testEntityList.executor'),
+        shouldCellUpdate: (record, prevRecord) =>
+          !isEqual(record.executor?.[0], prevRecord.executor?.[0]),
+        width: 150,
+        render(_, record) {
+          return <Field.User readonly userInfo={record?.executor?.[0]} />;
+        },
       },
-    },
-    {
-      key: 'executor',
-      title: t('page.plan.testEntityList.executor'),
-      shouldCellUpdate: (record, prevRecord) =>
-        !isEqual(record.executor?.[0], prevRecord.executor?.[0]),
-      width: 150,
-      render(_, record) {
-        return <Field.User readonly userInfo={record?.executor?.[0]} />;
+      {
+        key: 'designee',
+        title: t('page.plan.testEntityList.designee'),
+        width: 150,
+        render(_, record) {
+          return <Field.User userInfo={record?.designee} />;
+        },
       },
-    },
-    {
-      key: 'designee',
-      title: t('page.plan.testEntityList.designee'),
-      width: 150,
-      render(_, record) {
-        return <Field.User userInfo={record?.designee} />;
-      },
-    },
-    {
-      key: 'action',
-      title: t('common.action'),
-      isSystem: true,
-      fixed: 'right' as any,
-      shouldCellUpdate: (record, prevRecord) =>
-        record.repository?.objectId !== prevRecord.repository?.objectId ||
-        !isEqual(record.designee, prevRecord.designee),
-      render(_, record) {
-        const { result: enabled, message } = canExecuteTestRun(record.designee);
-        return (
-          <div className={cx('run-link')}>
-            <Tooltip title={message} placement="topLeft">
+      {
+        key: 'action',
+        title: t('common.action'),
+        isSystem: true,
+        fixed: 'right' as any,
+        shouldCellUpdate: (record, prevRecord) =>
+          record.repository?.objectId !== prevRecord.repository?.objectId ||
+          !isEqual(record.designee, prevRecord.designee),
+        render(_, record) {
+          const { result: enabled, message } = canExecuteTestRun(record.designee);
+          return (
+            <div className={cx('run-link')}>
+              <Tooltip title={message} placement="topLeft">
+                <Button
+                  type="link"
+                  disabled={!enabled}
+                  onClick={async () => {
+                    await testRunModalActionRef.current.open({
+                      testId: record.id,
+                    });
+                    // 刷新依赖数据
+                    actionRef.current.refresh();
+                    mutateStatusEvent.emit('refreshExecutionStatus');
+                  }}
+                >
+                  {t('common.run')}
+                </Button>
+              </Tooltip>
               <Button
                 type="link"
-                disabled={!enabled}
+                style={{ marginLeft: 10 }}
+                disabled={getCreatePermission(TestType.Case)}
                 onClick={async () => {
-                  await testRunModalActionRef.current.open({
-                    testId: record.id,
-                  });
-                  // 刷新依赖数据
-                  actionRef.current.refresh();
-                  mutateStatusEvent.emit('refreshExecutionStatus');
+                  deleteTestRunByIds([record.id]);
                 }}
               >
-                {t('common.run')}
+                {t('common.delete')}
               </Button>
-            </Tooltip>
-            <Button
-              type="link"
-              style={{ marginLeft: 10 }}
-              disabled={getCreatePermission(TestType.Case)}
-              onClick={async () => {
-                deleteTestRunByIds([record.id]);
-              }}
-            >
-              {t('common.delete')}
-            </Button>
-          </div>
-        );
+            </div>
+          );
+        },
       },
-    },
-  ];
+    ],
+    [
+      canExecuteTestRun,
+      deleteTestRunByIds,
+      getCreatePermission,
+      getTestCaseRepositoryPath,
+      handleTestRunStatusChange,
+      mutateStatusEvent,
+      t,
+    ],
+  );
 
   // 全部用例批量操作
   const selectionActionNodes = React.useMemo(() => {

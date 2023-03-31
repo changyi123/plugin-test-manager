@@ -101,7 +101,7 @@ const SearchParamsTransformStrategies = {
 export const getPayload = async (params: QueryLinkedTestEntityPayload) => {
   const { query = {}, linkType, sourceIds, destinationType } = params;
   // 请求参数校验
-  const getLinkTypeFiled = () => {
+  const getLinkTypeFiled = ({ linkType, sourceIds, destinationType }) => {
     testEntityFieldTypeValidator({ linkType, type: destinationType, linkItems: sourceIds });
     return {
       linkType,
@@ -109,7 +109,9 @@ export const getPayload = async (params: QueryLinkedTestEntityPayload) => {
       destinationType,
     };
   };
-  const { query: _query } = await getQueryByLinkQuery(linkType ? getLinkTypeFiled() : null);
+  const { query: _query } = await getQueryByLinkQuery(
+    linkType && destinationType ? getLinkTypeFiled({ linkType, sourceIds, destinationType }) : null,
+  );
   const data = {
     ...query,
     ..._query,

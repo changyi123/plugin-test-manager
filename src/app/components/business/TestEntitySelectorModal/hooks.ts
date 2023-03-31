@@ -3,7 +3,7 @@ import { traverseTreeNodes } from '@/pages/repository/util';
 import { clone, sum } from 'lodash';
 import { useDeepCompareEffect, useRequest } from 'ahooks';
 import { getRepositoryTreeV2 } from '@/lib/api/item';
-import { TestType } from 'common/constant';
+// import { TestType } from 'common/constant';
 
 interface VirtualScrollList {
   groups: Record<string, any>;
@@ -26,34 +26,19 @@ export const useGetVirtualScrollList = (
     if (group?.length) {
       const map = new Map();
       const mapArray = new Map();
-      // const itemIds = clone(allCaseIds);
-      // let counts = [];
       traverseTreeNodes(group, node => {
         mapArray.set(node.key, node);
         if (node?.counts[0]) {
-          map.set(node.key, {
-            ...node,
-            // isGroup: true,
-            // nodeCaseIdsSet: new Set(itemIds?.splice(0, node?.counts[0]) ?? []),
-          });
-          // const sumCounts = sum(counts);
-          // const currentNum = current * 100;
-          // if (sumCounts < currentNum) {
-          //   counts = counts.concat(
-          //     sumCounts + node.counts[0] <= currentNum ? node.counts[0] : currentNum - sumCounts,
-          //   );
-          // }
+          map.set(node.key, node);
         }
       });
       setGroupMap(map);
       setGroupArray(mapArray);
-      // setGroupCounts(counts);
     }
   }, [group, current]);
 
   return {
     groupArray,
-    // items: [...caseListMap.values()].flat(),
     groups: [...groupMap.values()],
     groupCounts: [],
     totalCount: group?.[0]?.counts?.[1] ?? 0,
@@ -90,9 +75,6 @@ export const useGetGroupCounts = ({ workspaceKey, current, params }) => {
     },
     {
       refreshDeps: [workspaceKey, params],
-      cacheKey: `${workspaceKey}_${JSON.stringify(params)}_counts`,
-      cacheTime: 999999,
-      staleTime: 999999,
     },
   );
 
@@ -100,7 +82,7 @@ export const useGetGroupCounts = ({ workspaceKey, current, params }) => {
     let counts = [];
     if (treeData?.length) {
       traverseTreeNodes(treeData, node => {
-        if (node?.counts[0]) {
+        if (node?.counts?.[0]) {
           const sumCounts = sum(counts);
           const currentNum = current * 100;
           if (sumCounts < currentNum) {

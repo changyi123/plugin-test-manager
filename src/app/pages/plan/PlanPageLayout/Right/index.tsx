@@ -264,7 +264,6 @@ const Right: React.FC<RightProps> = props => {
           loading={loading}
           activeType={activeType}
           selectedExecution={selectedExecution}
-          // refreshPlanData={refreshPlanData}
           tableSelectionVisible={tableSelectionVisible}
           testDetailFieldKeys={testDetailFieldKeys}
           selectNode={selectNode}

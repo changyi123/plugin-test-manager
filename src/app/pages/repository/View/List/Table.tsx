@@ -87,7 +87,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
   const { workspace } = useTestConfig();
   const workspaceKey = workspace?.key;
   const { data: currentUser } = useCurrentUser();
-  const { getTestCaseRepositoryPath } = useGetWorkspaceRepository(workspaceKey);
+  const getTestCaseRepositoryPath = useGetWorkspaceRepository(workspaceKey);
 
   const [hasRowSelected, setHasRowSelected] = React.useState(false);
 
