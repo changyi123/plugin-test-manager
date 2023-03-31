@@ -3,7 +3,7 @@ import { Button, notification, Select } from 'antd';
 import { logPluginVersion } from '@/lib/utils/helper';
 import { useBaseAction } from '@/lib/hooks/useContext';
 import { useListener } from '@projectproxima/proxima-sdk-js';
-import { useRequest } from 'ahooks';
+import { useRequest, useWhyDidYouUpdate } from 'ahooks';
 import Table, { ActionType } from './Table';
 import { getExtendFields, RepositoryModel, TestType } from '@/lib/constants';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
@@ -112,6 +112,8 @@ const ListView: React.FC<ViewComponentProps> = ({
   React.useEffect(() => {
     getTestCaseIds();
   }, [getTestCaseIds, workspaceKey, groupedMode, selectedNode]);
+
+  useWhyDidYouUpdate('selectedNode', [selectedNode]);
 
   React.useEffect(() => {
     const breadcrumbs = [];
