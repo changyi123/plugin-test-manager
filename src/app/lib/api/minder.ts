@@ -3,7 +3,7 @@
 import Parse from '@/lib/parse';
 import fetch from '@/lib/utils/fetch';
 import { CustomField, Repository } from '@/lib/models';
-import { getPluginWebTriggerBaseUrl } from '../utils/helper';
+import { getPluginWebTriggerBaseUrl, getSessionToken } from '../utils/helper';
 
 const pluginWebTriggerBaseUrl = getPluginWebTriggerBaseUrl();
 
@@ -35,10 +35,10 @@ export const getPriorityOptions = async () => {
 
 /** 批量创建测试用例 */
 export const batchCreateTestCase = async (params: { workspaceId: string; data: any[] }) => {
-  const { data } = await fetch.post(
-    `${pluginWebTriggerBaseUrl}/api-batch-create-test-case`,
-    params,
-  );
+  const { data } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-batch-create-test-case`, {
+    ...params,
+    sessionToken: getSessionToken(),
+  });
 
   return parseResponseInterceptor(data)?.data;
 };

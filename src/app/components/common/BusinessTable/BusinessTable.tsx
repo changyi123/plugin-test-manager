@@ -192,8 +192,9 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     queryParams => {
       if (!queryParams) return null;
       const { current, pageSize } = queryParams;
+      const _current = current < 1 ? 1 : current;
       return getDataSource?.({
-        offset: (current - 1) * pageSize,
+        offset: (_current - 1) * pageSize,
         limit: pageSize,
       });
     },
@@ -279,9 +280,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
   });
 
   const SelectionActionHeader = ({ referenceList = [] }) => {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    const list = referenceList.map(d => (d?.item ? d.item : d));
-    useDataQuoteStore(list);
+    useDataQuoteStore(referenceList);
     if (!selectionMode) return null;
     const handleCheck = checked => {
       if (checked) {

@@ -11,7 +11,7 @@ import FolderTree from '@/pages/repository/FolderTree';
 import PageLayout from '@/components/common/PageLayout';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
 import TestManagerProvider from '@/components/business/TestManagerProvider';
-import { getRepositoryTree } from '@/lib/api/item';
+import { getRepositoryTreeV2 } from '@/lib/api/item';
 import useI18n from '@/lib/hooks/useI18n';
 
 import cx from './index.less';
@@ -60,7 +60,7 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
   } = useRequest(
     async () => {
       if (!workspaceKey) return [];
-      const { data: folders } = await getRepositoryTree({
+      const { data: folders } = await getRepositoryTreeV2({
         workspaceKey,
       });
 

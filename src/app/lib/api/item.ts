@@ -7,9 +7,16 @@ import {
   QueryLinkedTestEntityPayload,
   RepositoryTreePayload,
 } from 'common/types/api';
-import { pick, omit } from 'lodash';
+import { pick, omit, has } from 'lodash';
 import { merge } from 'lodash';
-import { RepositoryModel, SYSTEM_FIELD, TestType } from '../constants';
+import {
+  RepositoryModel,
+  SYSTEM_FIELD,
+  TestCaseStatusModel,
+  TestRunDesigneeModel,
+  TestRunExecutorModel,
+  TestType,
+} from '../constants';
 import { BaseTestEntity, CopyTestCasePayload, Status, TestEntity } from '../types/Test';
 import { getPluginWebTriggerBaseUrl, getSessionToken } from '../utils/helper';
 import { compactStepModel } from '../utils/modelTransfer';
@@ -31,35 +38,68 @@ const handleSelector = selector => {
   const [systemSelector, customSelector] = selector;
   const _customSelector = omit(customSelector, RepositoryModel);
   const _systemSelector = omit(systemSelector, SYSTEM_FIELD.Status);
+  const selectors = {} as Record<string, any>;
 
-  // 处理测试用例库筛选字段
-  const repositorySelectorValue = pick(customSelector, RepositoryModel)?.[RepositoryModel];
-  const repositorySelector = repositorySelectorValue
-    ? {
-        [RepositoryModel]: {
-          ...repositorySelectorValue,
+  if (has(systemSelector, SYSTEM_FIELD.Status)) {
+    // 处理事项状态筛选字段
+    const data = pick(systemSelector, SYSTEM_FIELD.Status)?.[SYSTEM_FIELD.Status];
+    selectors[SYSTEM_FIELD.Status] = data
+      ? {
+          ...data,
+          value: data?.value?.map(d => d.value),
+        }
+      : {};
+  }
+
+  if (has(customSelector, RepositoryModel)) {
+    // 处理测试用例库筛选字段
+    const data = pick(customSelector, RepositoryModel)?.[RepositoryModel];
+    selectors[RepositoryModel] = data
+      ? {
+          ...data,
           component: 'Dropdown',
           fieldName: 'test_manager_repository',
-        },
-      }
-    : {};
+        }
+      : {};
+  }
 
-  // 处理事项状态筛选字段
-  const statusSelectorValue = pick(systemSelector, SYSTEM_FIELD.Status)?.[SYSTEM_FIELD.Status];
-  const statusSelector = statusSelectorValue
-    ? {
-        [SYSTEM_FIELD.Status]: {
-          ...statusSelectorValue,
-          value: statusSelectorValue?.value?.map(d => d.value),
-        },
-      }
-    : {};
+  if (has(customSelector, TestRunDesigneeModel)) {
+    // 处理测试用例库筛选字段
+    const data = pick(customSelector, TestRunDesigneeModel)?.[TestRunDesigneeModel];
+    selectors[TestRunDesigneeModel] = data
+      ? {
+          ...data,
+          fieldName: TestRunDesigneeModel,
+        }
+      : {};
+  }
+
+  if (has(customSelector, TestRunExecutorModel)) {
+    // 处理测试用例库筛选字段
+    const data = pick(customSelector, TestRunExecutorModel)?.[TestRunExecutorModel];
+    selectors[TestRunExecutorModel] = data
+      ? {
+          ...data,
+          fieldName: TestRunExecutorModel,
+        }
+      : {};
+  }
+
+  if (has(customSelector, TestCaseStatusModel)) {
+    // 处理测试用例库筛选字段
+    const data = pick(customSelector, TestCaseStatusModel)?.[TestCaseStatusModel];
+    selectors[TestCaseStatusModel] = data
+      ? {
+          ...data,
+          fieldName: TestCaseStatusModel,
+        }
+      : {};
+  }
 
   return {
     ..._systemSelector,
-    ...statusSelector,
     ..._customSelector,
-    ...repositorySelector,
+    ...selectors,
   };
 };
 
@@ -516,6 +556,15 @@ export const getRunsFromCase = async (data: TestCaseStatsPayload) => {
 // 获取测试用例库树
 export const getRepositoryTree = async (params: RepositoryTreePayload) => {
   const { data } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-module-repository-tree`, {
+    ...params,
+    sessionToken: getSessionToken(),
+  });
+  return data;
+};
+
+// 获取测试用例库树V2
+export const getRepositoryTreeV2 = async (params: RepositoryTreePayload) => {
+  const { data } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-module-repository-tree-v2`, {
     ...params,
     sessionToken: getSessionToken(),
   });

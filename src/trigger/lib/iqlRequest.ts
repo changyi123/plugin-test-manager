@@ -5,7 +5,7 @@ import { iqlSearch } from '../lib/coreApi';
 import { buildPaginationResponse } from './apiUtil';
 import { TestEntity } from '../../common/types/test';
 
-import { throwArgumentError } from '../lib/validator';
+import { testEntityFieldTypeValidator, throwArgumentError } from '../lib/validator';
 import { itemToTestEntity } from '../../common/utils/dataTransfer';
 import {
   InfinityLimit,
@@ -17,7 +17,12 @@ import {
   IQLRequiredFieldKeys,
 } from '../../common/constant';
 import { iqlSearchParamsBuilder, Operator } from '../../common/utils/iqlSearchParamsBuilder';
-import { PaginationParams, PaginationResponse, LinkQueryPayload } from '../../common/types/api';
+import {
+  PaginationParams,
+  PaginationResponse,
+  LinkQueryPayload,
+  QueryLinkedTestEntityPayload,
+} from '../../common/types/api';
 
 type IQLFiledKeys = keyof typeof IQLFieldNameMapping;
 
@@ -74,7 +79,57 @@ const getLinkTypes = linkType => {
     .map(type => `Test${type}`);
 };
 
-/** 构建 es extend 参数 */
+// iql 查询条件参数转换
+const SearchParamsTransformStrategies = {
+  // name 转换成 like
+  name: value => ({
+    value: value,
+    operator: Operator.Like,
+  }),
+  createdAt: value => {
+    const getStandardDateValue = date => dayjs(date).format('YYYY-MM-DD');
+    return Array.isArray(value)
+      ? {
+          value: value.map(getStandardDateValue),
+          operator: Operator.DateRange,
+        }
+      : null;
+  },
+};
+
+/** 获取构建 iql 参数 payload 查询范围 */
+export const getPayload = async (params: QueryLinkedTestEntityPayload) => {
+  const { query = {}, linkType, sourceIds, destinationType } = params;
+  // 请求参数校验
+  const getLinkTypeFiled = ({ linkType, sourceIds, destinationType }) => {
+    testEntityFieldTypeValidator({ linkType, type: destinationType, linkItems: sourceIds });
+    return {
+      linkType,
+      sourceIds,
+      destinationType,
+    };
+  };
+  const { query: _query } = await getQueryByLinkQuery(
+    linkType && destinationType ? getLinkTypeFiled({ linkType, sourceIds, destinationType }) : null,
+  );
+  const data = {
+    ...query,
+    ..._query,
+  };
+  const registeredFieldParams = Object.keys(data)
+    .filter(key => IQLSearchFieldKeys.includes(key as any))
+    .reduce(
+      (prev, key) => ({
+        ...prev,
+        [IQLFieldNameMapping[key]]: SearchParamsTransformStrategies[key]
+          ? SearchParamsTransformStrategies[key](data[key])
+          : data[key],
+      }),
+      {},
+    );
+  return registeredFieldParams;
+};
+
 const buildSearchExtendParam = (params: { sortByRepositoryIds?: string[] }) => {
   const param = {} as Record<string, any>;
   if (Array.isArray(params.sortByRepositoryIds)) {
@@ -99,6 +154,71 @@ const buildSearchExtendParam = (params: { sortByRepositoryIds?: string[] }) => {
   return param;
 };
 
+/** 处理关联查询参数 */
+export const getQueryByLinkQuery = async linkQuery => {
+  if (!linkQuery) return {};
+  // 反向关联方的字段 map
+  const backwardLinkSourceMap = {} as Record<string, string[]>;
+  const query = {} as Partial<Record<IQLFiledKeys, any>>;
+  const { linkType, destinationType, sourceIds } = linkQuery;
+  const linkTestTypes = getLinkTypes(linkType);
+
+  // linkType 和 destinationType 未对应抛错
+  if (!linkTestTypes.includes(destinationType))
+    throwArgumentError('destinationTestType', linkTestTypes.join(' or '));
+
+  // 正向关联查询
+  // 正向关联查询参数 eg：linkType = CaseLinkPlan destinationType = TestCase
+  const isForwardLinkQuery = linkTestTypes[0] === destinationType;
+
+  if (isForwardLinkQuery) {
+    // 因为关联查询的 linkItems 字段存在多的一方
+    // 使用 linkItems 可以直接查询出正向关联的数据
+    query.linkType = linkType;
+    query.type = destinationType;
+    query.linkItems = sourceIds;
+  } else {
+    // 反向关联查询
+    // eg： linkType = CaseLinkPlan destinationType = TestPlan
+    // 查出用例关联的测试计划的数据 步骤：
+    // 1. iql 查出所有的测试用例
+    // 2. 合并所有的 linkItems 字段数据（plan objectId）
+    // 3. 根据合并后的 plan objectId 查出所有的用例
+
+    // iql 查出所有的测试用例
+    const {
+      data: { list: sourceData },
+    } = await iqlRequest({
+      query: {
+        id: sourceIds,
+      },
+      pagination: {
+        limit: InfinityLimit,
+        offset: 0,
+      },
+      fields: [...IQLRequiredFieldKeys, TestFiledKeyMapping.linkItems],
+    });
+
+    // 合并所有的 linkItems 字段数据
+    const destinationIds = Array.from(
+      new Set(
+        sourceData.reduce((res, data) => {
+          const linkItems = data.linkItems ?? [];
+          // 添加反向关联的映射
+          backwardLinkSourceMap[data.objectId] = linkItems;
+          return res.concat(linkItems);
+        }, []),
+      ),
+    );
+
+    // 根据合并后的 plan objectId 查出所有的用例（拼接 Query）
+    query.id = destinationIds;
+    query.type = destinationType;
+  }
+
+  return { query, backwardLinkSourceMap };
+};
+
 type IqlRequestType = <TResp = TestEntity>(
   params: RequestParams,
 ) => Promise<PaginationResponse<TResp>>;
@@ -120,67 +240,21 @@ export const iqlRequest: IqlRequestType = async params => {
     // 参数处理
     const query = cloneDeep(originalQuery) ?? {};
     const pagination = Object.assign({}, DefaultPagination, originalPagination);
-
     // 反向关联方的字段 map
     const backwardLinkSourceMap = {} as Record<string, string[]>;
 
     // 处理关联关系查询
     if (linkQuery) {
-      const { linkType, destinationType, sourceIds } = linkQuery;
-      const linkTestTypes = getLinkTypes(linkType);
-
-      // linkType 和 destinationType 未对应抛错
-      if (!linkTestTypes.includes(destinationType))
-        throwArgumentError('destinationTestType', linkTestTypes.join(' or '));
-
-      // 正向关联查询
-      // 正向关联查询参数 eg：linkType = CaseLinkPlan destinationType = TestCase
-      const isForwardLinkQuery = linkTestTypes[0] === destinationType;
-
-      if (isForwardLinkQuery) {
-        // 因为关联查询的 linkItems 字段存在多的一方
-        // 使用 linkItems 可以直接查询出正向关联的数据
-        query.linkType = linkType;
-        query.type = destinationType;
-        query.linkItems = sourceIds;
-      } else {
-        // 反向关联查询
-        // eg： linkType = CaseLinkPlan destinationType = TestPlan
-        // 查出用例关联的测试计划的数据 步骤：
-        // 1. iql 查出所有的测试用例
-        // 2. 合并所有的 linkItems 字段数据（plan objectId）
-        // 3. 根据合并后的 plan objectId 查出所有的用例
-
-        // iql 查出所有的测试用例
-        const {
-          data: { list: sourceData },
-        } = await iqlRequest({
-          query: {
-            id: sourceIds,
-          },
-          pagination: {
-            limit: InfinityLimit,
-            offset: 0,
-          },
-          fields: [...IQLRequiredFieldKeys, TestFiledKeyMapping.linkItems],
-        });
-
-        // 合并所有的 linkItems 字段数据
-        const destinationIds = Array.from(
-          new Set(
-            sourceData.reduce((res, data) => {
-              const linkItems = data.linkItems ?? [];
-              // 添加反向关联的映射
-              backwardLinkSourceMap[data.objectId] = linkItems;
-              return res.concat(linkItems);
-            }, []),
-          ),
-        );
-
-        // 根据合并后的 plan objectId 查出所有的用例（拼接 Query）
-        query.id = destinationIds;
-        query.type = destinationType;
-      }
+      const { query: linkQueryInfo = {}, backwardLinkSourceMap: backwardLinkSourceMapInfo = {} } =
+        await getQueryByLinkQuery(linkQuery);
+      console.info('linkQueryInfo ---------------->', linkQueryInfo);
+      console.info('backwardLinkSourceMapInfo -------------->', backwardLinkSourceMapInfo);
+      Object.entries(linkQueryInfo).forEach(([key, value]) => {
+        query[key] = value;
+      });
+      Object.entries(backwardLinkSourceMapInfo).forEach(([key, value]) => {
+        backwardLinkSourceMap[key] = value;
+      });
     }
 
     const customFieldParams = Object.keys(query)
@@ -195,24 +269,6 @@ export const iqlRequest: IqlRequestType = async params => {
 
     // TODO: 处理自定义字段查询条件
     console.info('customFieldParams', customFieldParams);
-
-    // iql 查询条件参数转换
-    const SearchParamsTransformStrategies = {
-      // name 转换成 like
-      name: value => ({
-        value: value,
-        operator: Operator.Like,
-      }),
-      createdAt: value => {
-        const getStandardDateValue = date => dayjs(date).format('YYYY-MM-DD');
-        return Array.isArray(value)
-          ? {
-              value: value.map(getStandardDateValue),
-              operator: Operator.DateRange,
-            }
-          : null;
-      },
-    };
 
     // IQLFieldNameMapping 中包含的自定义参数可以做默认的参数
     const registeredFieldParams = Object.keys(query)
