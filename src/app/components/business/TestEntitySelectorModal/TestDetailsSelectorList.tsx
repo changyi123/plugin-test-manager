@@ -286,13 +286,12 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
   }, [testCaseList]);
 
   useUpdateEffect(() => {
+    setCurrent(1);
     if (selectedNode?.key) return;
     if (treeType === 'plan') {
       setPlanCaseListMap(new Map());
-      setCurrent(1);
     } else {
       setCaseListMap(new Map());
-      setCurrent(1);
     }
   }, [showType, searchName, selectedNode]);
 
