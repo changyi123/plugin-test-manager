@@ -288,8 +288,6 @@ export const minderData = async () => {
       // 获取用例树下所有的 cases
       const testCases = await getTestCasesByRepoKeys(getSubRepoIncludeKeys(repoTree));
 
-      console.log(appendCaseIds(repoTree, testCases));
-
       return {
         repositoryTree: appendCaseIds(repoTree, testCases),
 
@@ -328,7 +326,7 @@ export const minderData = async () => {
       let node = null;
 
       if (testCase) {
-        const detail = testCase.detail ?? {};
+        const detail = (testCase as any).detail ?? {};
 
         // 前置条件节点
         const preconditionNode = buildMinderNode({
