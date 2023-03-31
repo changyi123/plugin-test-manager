@@ -78,7 +78,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
   const [selectValue, setSelectValue] = useSafeState([]);
   const [selectedTestDetails, setSelectedTestDetails] = React.useState([]);
   const [testType, setTestType] = useSafeState<TestType>(props.testType);
-  const [treeType, setTreeType] = React.useState('plan');
+  const [treeType, setTreeType] = React.useState('repository');
   // 是否是测试缺陷类型
   const isTestDefectType = testType === TestType.TestDefect;
   // 测试类型名
@@ -119,7 +119,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
       const itemTypeMapping: Record<TestType, string[]> = configs
         .map(_config => {
           const config = _config?.toJSON();
-          if (!config) return;
+          if (!config || !workspace?.key) return;
           const workspaceKey = config.workspaceKey;
           const itemTypeMapping = config.itemTypeMap;
           const currentWorkspaceKey = workspace.key;
@@ -411,6 +411,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
         <div className={cx('actions')}>
           <Button
             onClick={() => {
+              setTreeType('repository');
               onCancel?.();
               setSelectValue(undefined);
               setVisible(false);
@@ -448,6 +449,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
       getContainer={getRootContainer}
       footer={ModalFooterNode}
       onCancel={() => {
+        setTreeType('repository');
         setSelectValue(undefined);
         setVisible(false);
       }}

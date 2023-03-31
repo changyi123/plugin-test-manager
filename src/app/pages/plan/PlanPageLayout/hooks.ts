@@ -1,10 +1,8 @@
 import React from 'react';
 import { useRequest } from 'ahooks';
-import { get, isEmpty } from 'lodash';
-import { getLinkedTestEntityByQuery, getTestEntityByQuery } from '@/lib/api/item';
+import { getLinkedTestEntityByQuery } from '@/lib/api/item';
 import { SearchSelectors } from '@/lib/utils/iql';
 import { TestLinkType, TestType } from 'common/constant';
-import { RepositoryModel } from '@/lib/constants';
 
 export const useResizeContainerDOM = (objectId?: string) => {
   React.useEffect(() => {
@@ -16,6 +14,11 @@ export const useResizeContainerDOM = (objectId?: string) => {
   }, [objectId]);
 };
 
+type ScopedTestRunIds = {
+  executionLinkRunIds: string[];
+  runLinkCaseIds: string[];
+};
+
 type ScopedTestDetailIdsParams = {
   /** 所属空间 */
   workspaceKey: string;
@@ -24,74 +27,73 @@ type ScopedTestDetailIdsParams = {
   /** 测试执行 id */
   testExecutionId?: string;
   /** 获取类型 */
-  type: 'Execution' | 'Plan';
+  type: 'TestExecution' | 'TestPlan';
   selectors?: SearchSelectors;
+  selectedNode?: any;
+  planLinkCaseIds?: string[];
 };
-/** 获取测试用例范围 */
-export const useScopedTestDetailIds = (params: ScopedTestDetailIdsParams) => {
-  const { workspaceKey, testPlanId, testExecutionId, type, selectors } = params;
+
+export const useGetPlanLinkCaseIds = (params: ScopedTestDetailIdsParams) => {
+  const { workspaceKey, testPlanId, type } = params;
   return useRequest(
     async () => {
-      if (type === 'Plan') {
-        // 测试全部用例的范围
-        const { list: caseIds } = await getLinkedTestEntityByQuery({
-          query: {
-            workspaceKey: workspaceKey,
-          },
-          limit: 9999,
-          linkType: TestLinkType.CaseLinkPlan,
-          sourceIds: [testPlanId],
-          destinationType: TestType.Case,
-          onlySelectId: true,
-        });
+      if (!workspaceKey || !testPlanId) return {};
+      // 测试全部用例 ID
+      const { list: caseIds } = await getLinkedTestEntityByQuery({
+        query: {
+          workspaceKey: workspaceKey,
+          type: TestType.Case,
+        },
+        limit: 9999,
+        linkType: TestLinkType.CaseLinkPlan,
+        sourceIds: [testPlanId],
+        destinationType: TestType.Case,
+        onlySelectId: true,
+      });
 
-        return caseIds;
-      } else if (type === 'Execution') {
-        if (!testExecutionId) return [];
-        const [systemSelectors, customSelector] = selectors;
-
-        const runSelector = Object.entries(customSelector ?? {}).reduce(
-          (prev, [key, value]: any) => {
-            if (!key.includes('test_') || key === RepositoryModel) {
-              prev[key] = value;
-            }
-            return prev;
-          },
-          {},
-        );
-        // 测试执行的用例范围
-        const { list: runs } = await getLinkedTestEntityByQuery({
-          query: {
-            workspaceKey: workspaceKey,
-          },
-          limit: 9999,
-          linkType: TestLinkType.RunLinkExecution,
-          sourceIds: [testExecutionId],
-          destinationType: TestType.Run,
-          select: ['id', 'referenceCase'],
-        });
-
-        const ids = runs?.map(run => get(run, 'referenceCase')) ?? [];
-
-        const { list: caseIds } = !isEmpty(systemSelectors)
-          ? await getTestEntityByQuery({
-              query: {
-                workspaceKey: workspaceKey,
-                id: ids,
-                type: TestType.Case,
-              },
-              limit: 9999,
-              onlySelectId: true,
-              selector: [systemSelectors, runSelector],
-            })
-          : { list: ids };
-
-        return caseIds;
-      }
+      return caseIds;
     },
     {
-      ready: Boolean(workspaceKey && (testPlanId ?? testExecutionId)),
-      refreshDeps: [workspaceKey, testPlanId, testExecutionId, type],
+      ready: Boolean(workspaceKey && testPlanId),
+      refreshDeps: [testPlanId, workspaceKey, type],
+      cacheTime: 99999,
+      staleTime: 99999,
+    },
+  );
+};
+
+export const useGetExecutionLinkCaseRunIds = (params: ScopedTestDetailIdsParams) => {
+  const { workspaceKey, testExecutionId, type, planLinkCaseIds } = params;
+  return useRequest(
+    async () => {
+      if (!testExecutionId || type !== 'TestExecution' || !planLinkCaseIds?.length)
+        return {} as ScopedTestRunIds;
+
+      // 测试执行的用例范围
+      const { list: runs } = await getLinkedTestEntityByQuery({
+        query: {
+          workspaceKey: workspaceKey,
+          referenceCase: planLinkCaseIds,
+        },
+        limit: 9999,
+        linkType: TestLinkType.RunLinkExecution,
+        sourceIds: [testExecutionId],
+        destinationType: TestType.Run,
+        select: ['id', 'referenceCase'],
+      });
+      const runMap = new Map();
+      runs.forEach(run => {
+        runMap.set(run.id, run.referenceCase);
+      });
+
+      return {
+        executionLinkRunIds: [...runMap.keys()],
+        runLinkCaseIds: [...runMap.values()],
+      };
+    },
+    {
+      ready: Boolean(workspaceKey && testExecutionId),
+      refreshDeps: [testExecutionId, type],
     },
   );
 };

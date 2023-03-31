@@ -5,24 +5,22 @@ import RepositoryFolderTree, {
 } from '@/components/business/RepositoryFolderTree';
 import { usePageContext } from '../../hook';
 import useI18n from '@/lib/hooks/useI18n';
+import { QueryLinkedTestEntityPayload } from 'common/types/api';
 
 import cx from './index.less';
 
 interface LeftProps {
   showType?: string;
-  handleFolderSelect?: (val: string[]) => void;
-  scopedTestDetailIds?: string[];
   actionRef?: any;
+  activeType?: string;
+  treeParams?: QueryLinkedTestEntityPayload;
+  /** 目录被选中 */
+  onFolderSelect?: (node?: any) => void;
 }
 
-const Left: React.FC<LeftProps> = ({
-  showType,
-  handleFolderSelect,
-  scopedTestDetailIds,
-  actionRef,
-}) => {
+const Left: React.FC<LeftProps> = ({ showType, actionRef, treeParams, onFolderSelect }) => {
   const { t } = useI18n();
-  const { workspaceKey, selectors } = usePageContext();
+  const { workspaceKey } = usePageContext();
   const folderTreeRef = React.useRef<FolderTreeActionType>();
 
   const [foldSearchValue, setFoldSearchValue] = useState('');
@@ -56,9 +54,8 @@ const Left: React.FC<LeftProps> = ({
           actionRef={folderTreeRef}
           shouldIncludeSubFolder={showType === 'showChild'}
           workspaceKey={workspaceKey}
-          selectors={selectors}
-          onFolderSelect={handleFolderSelect}
-          scopedTestDetailIds={scopedTestDetailIds}
+          params={treeParams}
+          onFolderSelect={onFolderSelect}
         />
       </div>
     </>

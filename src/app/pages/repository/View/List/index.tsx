@@ -1,24 +1,23 @@
 import React from 'react';
-import { Button, notification, Select } from 'antd';
-import { logPluginVersion } from '@/lib/utils/helper';
-import { useBaseAction } from '@/lib/hooks/useContext';
-import { useListener } from '@projectproxima/proxima-sdk-js';
-import { useRequest, useWhyDidYouUpdate } from 'ahooks';
-import Table, { ActionType } from './Table';
-import { getExtendFields, RepositoryModel, TestType } from '@/lib/constants';
-import OverflowTooltip from '@/components/common/OverflowTooltip';
-import { reverseTreeNodes, getTreeNodeByKey, traverseTreeNodes } from '../../util';
-
-import { UNGROUPED_FOLDER_KEY } from '../../constant';
-import RepoDropDown from '../../RepoDropDown';
-import FilterSearch from '@/components/common/FilterSearch';
-import { getTestEntityByQuery } from '@/lib/api/item';
-import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/hook';
-import { getFilterFields } from '@/components/common/FilterSearch/utils';
-import { useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
-
+import Table, { ActionType } from './Table';
+import { reverseTreeNodes } from '../../util';
+import RepoDropDown from '../../RepoDropDown';
 import { ViewComponentProps } from '../type';
+import { Button, notification, Select } from 'antd';
+import { useRequest, useUpdateEffect } from 'ahooks';
+import { logPluginVersion } from '@/lib/utils/helper';
+import { UNGROUPED_FOLDER_KEY } from '../../constant';
+import { getTestEntityByQuery } from '@/lib/api/item';
+import { getRepositoryQuery } from '@/lib/utils/tree';
+import { useTestConfig } from '@/lib/hooks/useContext';
+import { useBaseAction } from '@/lib/hooks/useContext';
+import FilterSearch from '@/components/common/FilterSearch';
+import { useListener } from '@projectproxima/proxima-sdk-js';
+import OverflowTooltip from '@/components/common/OverflowTooltip';
+import { getFilterFields } from '@/components/common/FilterSearch/utils';
+import { getExtendFields, RepositoryModel, TestType } from '@/lib/constants';
+import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/hook';
 
 import cx from './index.less';
 
@@ -61,44 +60,27 @@ const ListView: React.FC<ViewComponentProps> = ({
   // 事项数据更新后刷新列表
   useListener('updateItemList', props => {
     if (props?.type === 'create') return;
+    if (props?.type === 'delete') {
+      refreshAll();
+    }
     setTimeout(() => {
-      handleDataChange();
+      tableActionRef.current.refresh();
     }, 400);
   });
 
-  useListener('closeItemViewScreen', () => {
-    setTimeout(() => {
-      handleDataChange();
-    }, 400);
-  });
-
-  const {
-    loading: caseIdRequestLoading,
-    data: filteredCaseIds,
-    runAsync: getTestCaseIds,
-  } = useRequest(
-    async (newNode?: Record<string, any>) => {
-      if (!workspaceKey || !selectedNode) return [];
-
-      let scopedTestCaseIds = [];
-      // 包含子分组的所有用例
-      if (groupedMode === 'all') {
-        traverseTreeNodes([newNode ?? selectedNode], node => {
-          scopedTestCaseIds = scopedTestCaseIds.concat(node.caseIds);
-        });
-      } else {
-        scopedTestCaseIds = (newNode ?? selectedNode).caseIds;
-      }
-
+  // 获取当前筛选条件下全部用例 ID
+  const { data: allTestCaseIds, refreshAsync: refreshTable } = useRequest(
+    async () => {
+      if (!workspaceKey) return [];
+      const repository = getRepositoryQuery(selectedNode, groupedMode);
       const { list: caseIds } = await getTestEntityByQuery({
         query: {
           workspaceKey: workspaceKey,
           type: TestType.Case,
-          id: scopedTestCaseIds,
+          ...repository,
         },
-        selector,
-        offset: 0,
         limit: 99999,
+        selector,
         onlySelectId: true,
       });
 
@@ -109,13 +91,47 @@ const ListView: React.FC<ViewComponentProps> = ({
     },
   );
 
-  React.useEffect(() => {
-    getTestCaseIds();
-  }, [getTestCaseIds, workspaceKey, groupedMode, selectedNode]);
+  const dataSourceGetter = React.useCallback(
+    async params => {
+      if (!selectedNode?.key || !workspaceKey || !testDetailFieldKeys?.length)
+        return {
+          list: [],
+          total: 0,
+        };
+      const repository = getRepositoryQuery(selectedNode, groupedMode);
+      const { list: data, total } = await getTestEntityByQuery({
+        query: {
+          workspaceKey: workspaceKey,
+          type: TestType.Case,
+          ...repository,
+        },
+        selector,
+        fields: testDetailFieldKeys,
+        ...params,
+      });
 
-  useWhyDidYouUpdate('selectedNode', [selectedNode]);
+      return {
+        // 加拖拽依赖的 folderKey 数据
+        list: data.map(item => ({
+          ...item,
+          folderKey: selectedNode?.key,
+          status: item.workflowStatus,
+        })),
+        total,
+      };
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [selectedNode?.key, workspaceKey, groupedMode, selector, JSON.stringify(testDetailFieldKeys)],
+  );
 
-  React.useEffect(() => {
+  useUpdateEffect(() => {
+    // 重置全部事项 ID
+    if (workspaceKey && selectNodeKey) {
+      refreshTable();
+    }
+  }, [workspaceKey, refreshTable, selectNodeKey, groupedMode]);
+
+  useUpdateEffect(() => {
     const breadcrumbs = [];
     reverseTreeNodes(folderTreeData, selectedNode, node => {
       breadcrumbs.unshift(node.name ?? node.title);
@@ -123,25 +139,30 @@ const ListView: React.FC<ViewComponentProps> = ({
     setBreadcrumbs(breadcrumbs);
   }, [setBreadcrumbs, selectedNode, folderTreeData]);
 
-  React.useEffect(() => {
-    tableActionRef.current.resetSelectedRowKeys();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  useUpdateEffect(() => {
+    if (groupedMode) {
+      tableActionRef.current.resetSelectedRowKeys();
+    }
   }, [groupedMode]);
 
-  const handleDataChange = React.useCallback(async () => {
-    const treeData = await onFolderTreeChange();
-    const selectedFolder = getTreeNodeByKey(treeData, selectNodeKey);
-    if (selectedFolder) {
-      getTestCaseIds(selectedFolder);
-    }
-  }, [onFolderTreeChange, getTestCaseIds, selectNodeKey]);
+  // const handleDataChange = React.useCallback(async () => {
+  //   const treeData = await onFolderTreeChange();
+  //   const selectedFolder = getTreeNodeByKey(treeData, selectNodeKey);
+  //   if (selectedFolder) {
+  //     tableActionRef.current.refresh();
+  //   }
+  // }, [onFolderTreeChange, selectNodeKey]);
+
+  const refreshAll = React.useCallback(async () => {
+    await Promise.all([onFolderTreeChange(), tableActionRef.current.refresh(), refreshTable()]);
+  }, [onFolderTreeChange, refreshTable]);
 
   // 处理筛选器搜索
   const handleSelectorSearch = async selector => {
     setSelector(selector);
     // 添加筛选项目需要重置批量选中的 row
     tableActionRef.current.resetSelectedRowKeys();
-    await getTestCaseIds();
+    await refreshTable();
   };
 
   const toggleSelection = (visible?: boolean) => {
@@ -169,7 +190,7 @@ const ListView: React.FC<ViewComponentProps> = ({
     notification.success({
       message: successMessage,
     });
-    await handleDataChange();
+    await refreshAll();
   };
 
   return (
@@ -202,7 +223,7 @@ const ListView: React.FC<ViewComponentProps> = ({
             type="repository"
             treeNodeData={folderTreeData}
             folderKey={selectNodeKey}
-            filteredCaseIds={filteredCaseIds}
+            filteredCaseIds={allTestCaseIds}
           />
         </div>
       </div>
@@ -215,13 +236,12 @@ const ListView: React.FC<ViewComponentProps> = ({
           testType={TestType.Case}
         />
         <Table
-          folderKey={selectNodeKey}
           actionRef={tableActionRef}
-          onDataChange={handleDataChange}
-          testDetailIds={filteredCaseIds}
-          externalDataLoading={caseIdRequestLoading}
+          testDetailIds={allTestCaseIds}
+          onDataChange={refreshAll}
           testDetailFieldKeys={testDetailFieldKeys}
           onSelectionCancel={() => toggleSelection(false)}
+          dataSourceGetter={dataSourceGetter}
         />
       </div>
     </div>

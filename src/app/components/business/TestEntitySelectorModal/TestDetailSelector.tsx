@@ -2,13 +2,12 @@ import React, { useEffect, useMemo, useRef } from 'react';
 import { cloneDeep, isEqual } from 'lodash';
 import { useAllTestWorkspace } from '@/lib/hooks/useTest';
 import { includeAll, exclude, includeItem } from './helper';
-import { useDebounce, useRequest } from 'ahooks';
+import { useDebounce } from 'ahooks';
 import { Select, Input } from 'antd';
 import { SearchOutlined } from '@/icons';
 import TestDetailsSelectorList from './TestDetailsSelectorList';
 import RepositoryFolderTree, { ActionType } from '../RepositoryFolderTree';
 import { TestLinkType, TestType } from '@/lib/constants';
-import { getLinkedTestEntityByQuery } from '@/lib/api/item';
 import FilterSearch from '@/components/common/FilterSearch';
 import { SearchSelectors } from '@/lib/utils/iql';
 import useI18n from '@/lib/hooks/useI18n';
@@ -59,6 +58,7 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
   const repositoryFolderTreeRef = React.useRef<ActionType>();
   const detailSearchRef = useRef(null);
   const [selectors, setSelectors] = React.useState<string | SearchSelectors>();
+  const searchName = useMemo(() => (selectors?.[0] as any)?.name?.value, [selectors]);
 
   // 目录搜索
   const [folderSearchValue, setFolderSearchValue] = React.useState('');
@@ -88,34 +88,32 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
     setSelectedTestDetailIds(selectValue ?? []);
   }, [selectValue]);
 
-  // 查询当前用例库下所有测试用例
-  const { data: planLinkCaseIds } = useRequest(
-    async () => {
-      if (!planId && !workspaceKey) return [];
-      const { list: caseIds } = await getLinkedTestEntityByQuery({
-        query: {
-          workspaceKey: workspaceKey,
-        },
-        limit: 9999,
-        linkType: TestLinkType.CaseLinkPlan,
-        sourceIds: [planId],
-        destinationType: TestType.Case,
-        onlySelectId: true,
-      });
-      return caseIds;
-    },
-    {
-      refreshDeps: [workspaceKey, planId],
-      staleTime: 999999999,
-      cacheTime: 999999999,
-    },
-  );
-
-  const treeProps = useMemo(() => {
+  const treeProps: any = useMemo(() => {
     return planId && treeType === 'plan'
-      ? { scopedTestDetailIds: planLinkCaseIds, hideEmptyFolder: true }
-      : {};
-  }, [planLinkCaseIds, treeType, planId]);
+      ? {
+          hideEmptyFolder: true,
+          params: {
+            query: {
+              workspaceKey: selectedWorkspaceKey,
+              type: TestType.Case,
+            },
+            linkType: TestLinkType.CaseLinkPlan,
+            sourceIds: [planId],
+            destinationType: TestType.Case,
+          },
+        }
+      : {
+          params: searchName
+            ? {
+                query: {
+                  workspaceKey: selectedWorkspaceKey,
+                  type: TestType.Case,
+                  name: searchName,
+                },
+              }
+            : null,
+        };
+  }, [planId, treeType, selectedWorkspaceKey, searchName]);
 
   // 测试案例库选中
   const allTestWorkspaces = useAllTestWorkspace();
@@ -248,7 +246,7 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
                 workspaceKey={selectedWorkspaceKey}
                 shouldIncludeSubFolder={false}
                 actionRef={repositoryFolderTreeRef}
-                onFolderSelect={(_, nodeInfo) => setSelectedNode(nodeInfo.selectedFolder)}
+                onFolderSelect={node => setSelectedNode(node)}
                 {...treeProps}
               />
             </div>
@@ -257,11 +255,13 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
             <TestDetailsSelectorList
               workspaceKey={selectedWorkspaceKey}
               selectedNode={selectedNode}
-              selectors={selectors}
+              searchName={searchName}
               ignoreTestDetailIds={ignoreTestDetailIds ?? []}
               selectedTestDetailIds={selectedTestDetailIds}
               setSelectedTestDetailIds={setSelectedTestDetailIds}
               treeType={treeType}
+              planId={planId}
+              treeProps={treeProps}
             />
           </div>
         </div>

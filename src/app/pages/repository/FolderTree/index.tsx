@@ -133,7 +133,7 @@ type TreeNode = {
   name: string;
   title: React.ReactNode;
   parentKey: string | null;
-  caseIds: string[];
+  caseIds?: string[];
   children: TreeNode[];
 };
 
@@ -170,6 +170,11 @@ const FolderTree: React.FC<FolderTreeProps> = ({
   const selectedTreeNode = React.useMemo(() => {
     return treeFn.getTreeNodeByKey(state.selectedKeys[0]);
   }, [treeFn, state.selectedKeys]);
+
+  // 获取节点数据
+  const treeData = React.useMemo(() => {
+    return treeFn.traverseTreeNodes();
+  }, [treeFn]);
 
   const folderMenuDisabledKeys = React.useMemo(() => {
     const keys = [];
@@ -352,7 +357,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         // 只有测试用例需要被添加至测试用例仓库
         // if (testEntityData.type !== TestType.Case) return;
         // 修改 node，将创建成功的 itemKey 追加到 node 上
-        node.caseIds = (node.caseIds || []).concat(testEntityList.map(d => d.objectId));
+        // node.caseIds = (node.caseIds || []).concat(testEntityList.map(d => d.objectId));
         await updateFolders([node]);
         const successMessage =
           testEntityList.length > 1
@@ -410,17 +415,6 @@ const FolderTree: React.FC<FolderTreeProps> = ({
     [state],
   );
 
-  // antd tree data
-  const treeData = React.useMemo(() => {
-    return treeFn.traverseTreeNodes(node => {
-      let totalLen = 0;
-      traverseTreeNodes([node], node => {
-        totalLen += node.caseIds?.length ?? 0;
-      });
-      node.length = [node.caseIds?.length ?? 0, totalLen];
-    });
-  }, [treeFn]);
-
   const isEmptyFolderTree = React.useMemo(() => {
     return hasArrayItem(treeData) && treeData[0].children?.length === 0;
   }, [treeData]);
@@ -441,25 +435,8 @@ const FolderTree: React.FC<FolderTreeProps> = ({
   const EmptyNode = React.useMemo(() => {
     if (loading) return null;
     // 存在其他模块
-
     if (!isEmptyFolderTree) return null;
-
     return null;
-    // return (
-    //   <Empty
-    //     className={cx('empty')}
-    //     description={
-    //       <>
-    //         <p>模块为空</p>
-    //         <p className={cx('hint')}>请先新建模块</p>
-    //       </>
-    //     }
-    //   >
-    //     <Button type="primary" size="small" onClick={() => handleMenuClick(MenuKey.createFolder)}>
-    //       新建模块
-    //     </Button>
-    //   </Empty>
-    // );
   }, [isEmptyFolderTree, loading]);
 
   const ToolKitButtons = [
@@ -535,7 +512,9 @@ const FolderTree: React.FC<FolderTreeProps> = ({
               <span className={cx('tree-node-name')}>{node.name}</span>
             </OverflowTooltip>
 
-            <span className={cx('tree-node-length')}>{`${node.length[0]}(${node.length[1]})`}</span>
+            <span
+              className={cx('tree-node-length')}
+            >{`${node?.counts[0]}(${node?.counts[1]})`}</span>
             <Dropdown
               overlay={
                 <FolderMenu
