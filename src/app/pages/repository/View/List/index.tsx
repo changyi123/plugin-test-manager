@@ -121,15 +121,15 @@ const ListView: React.FC<ViewComponentProps> = ({
       };
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [selectedNode?.key, workspaceKey, groupedMode, selector, JSON.stringify(testDetailFieldKeys)],
+    [selectedNode, workspaceKey, groupedMode, selector, JSON.stringify(testDetailFieldKeys)],
   );
 
   useUpdateEffect(() => {
     // 重置全部事项 ID
-    if (workspaceKey && selectNodeKey) {
+    if (workspaceKey && selectedNode) {
       refreshTable();
     }
-  }, [workspaceKey, refreshTable, selectNodeKey, groupedMode]);
+  }, [workspaceKey, refreshTable, selectedNode, groupedMode]);
 
   useUpdateEffect(() => {
     const breadcrumbs = [];
