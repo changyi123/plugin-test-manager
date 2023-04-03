@@ -113,7 +113,7 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
           <TableCell
             {...restTableCellProps}
             id={itemData.objectId ?? itemData.id}
-            values={text(itemData)}
+            values={itemData?.values ?? {}}
             text={textValue}
           />
         );

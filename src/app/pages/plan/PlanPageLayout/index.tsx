@@ -90,6 +90,7 @@ const PlanPageLayout: React.FC<any> = () => {
   }, [selectedTestPlan]);
 
   useUpdateEffect(() => {
+    if (!selectedTestPlan?.objectId) return;
     if (query?.actionType && !activeType) {
       setActiveType(query?.actionType);
     }
@@ -147,6 +148,7 @@ const PlanPageLayout: React.FC<any> = () => {
   }, [activeType, runLinkCaseIds, selectedTestPlan?.objectId, workspaceKey]);
 
   useUpdateEffect(() => {
+    if (!selectedTestPlan?.objectId) return;
     detailSearchRef.current?.reset();
     setSearchParams([{}, {}]);
     pageLeftRef.current?.reset();
