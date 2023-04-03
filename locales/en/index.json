@@ -665,5 +665,13 @@
         "uploadErrorMessage": "The number of files cannot exceed"
       }
     }
+  },
+  "minderNodeTypeName": {
+    "Module": "Module",
+    "TestCase": "TestCase",
+    "Precondition": "Precondition",
+    "Step": "Step",
+    "Result": "Result",
+    "Data": "Data"
   }
 }

@@ -1,8 +1,8 @@
 import React from 'react';
 import { v4 } from 'uuid';
-import { Button, message } from 'antd';
 import MinderEditor from 'test-manager-minder';
 import { useRequest, useMemoizedFn } from 'ahooks';
+import { Button, message, Dropdown, Menu } from 'antd';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import { useNoExpiredRequest } from '@/lib/hooks/useRequest';
 import {
@@ -18,6 +18,7 @@ import { createRepositories } from '@/lib/api/repository';
 import { deleteTestEntity, updateTestEntity } from '@/lib/api/item';
 import useI18n from '@/lib/hooks/useI18n';
 import { getLang } from '@/lib/utils/locale';
+import { exportAndDownloadXMind } from './lib';
 
 import cx from './index.less';
 
@@ -360,13 +361,34 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
     }
   });
 
+  // 导出 XMind 数据
+  const handleXMindExport = useMemoizedFn(async () => {
+    exportAndDownloadXMind(minderData, {
+      t,
+      priorityOptions,
+    });
+  });
+
   const memoizedButtonNode = React.useMemo(() => {
     return (
-      <Button onClick={handleSave} loading={saveLoading} type="primary">
-        {t('common.save')}
-      </Button>
+      <div>
+        <Button onClick={handleSave} loading={saveLoading} type="primary">
+          {t('common.save')}
+        </Button>
+        <Dropdown
+          overlay={
+            <Menu>
+              <Menu.Item key="XMindExport" onClick={handleXMindExport}>
+                {t('page.repository.view.minder.export')}
+              </Menu.Item>
+            </Menu>
+          }
+        >
+          <a>---</a>
+        </Dropdown>
+      </div>
     );
-  }, [handleSave, saveLoading, t]);
+  }, [handleSave, saveLoading, t, handleXMindExport]);
 
   if (!priorityOptions || !minderData) return null;
 

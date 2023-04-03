@@ -359,7 +359,8 @@
           "nameRepeat": ["保存失败，模块", "下存在在同名的模块"],
           "overMaxLevelModulePath": "模块已超过最大层级限制，请修改后再进行保存",
           "updateDataSuccess": "数据更新成功",
-          "saveFail": "保存失败"
+          "saveFail": "保存失败",
+          "export": "导入 Xmind"
         }
       }
     }
@@ -646,5 +647,13 @@
         "uploadErrorMessage": "文件数量不能超过"
       }
     }
+  },
+  "minderNodeTypeName": {
+    "Module": "模块",
+    "TestCase": "测试用例",
+    "Precondition": "前置条件",
+    "Step": "步骤",
+    "Result": "预期结果",
+    "Data": "数据"
   }
 }

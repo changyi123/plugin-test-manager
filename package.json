@@ -108,6 +108,7 @@
     "tslib": "^2.3.1",
     "url": "^0.11.0",
     "uuid": "^8.3.2",
-    "webpack-bundle-analyzer": "^4.6.1"
+    "webpack-bundle-analyzer": "^4.6.1",
+    "xmind": "^2.2.28"
   }
 }
