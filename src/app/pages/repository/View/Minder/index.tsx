@@ -12,13 +12,14 @@ import {
   batchDeleteRepository,
   batchUpdateRepository,
 } from '@/lib/api/minder';
+import { CustomMore } from '@/icons';
 import { ViewComponentProps } from '../type';
 import { MinderNodeType } from 'common/constant';
 import { createRepositories } from '@/lib/api/repository';
 import { deleteTestEntity, updateTestEntity } from '@/lib/api/item';
 import useI18n from '@/lib/hooks/useI18n';
 import { getLang } from '@/lib/utils/locale';
-import { exportAndDownloadXMind } from './lib';
+import { exportAndDownloadXMind } from '@/lib/minder';
 
 import cx from './index.less';
 
@@ -384,7 +385,7 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
             </Menu>
           }
         >
-          <a>---</a>
+          <Button className={cx('menu-action')} icon={<CustomMore />} />
         </Dropdown>
       </div>
     );
