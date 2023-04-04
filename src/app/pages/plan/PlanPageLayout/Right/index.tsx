@@ -18,7 +18,10 @@ import { useSetTableHeight } from './hooks';
 import ExecutionStatus from '../ExecutionStatus';
 import TestEntityList from '../../TestEntityList';
 import { batchCreateTestRun, updateTestEntity } from '@/lib/api/item';
-import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/hook';
+import {
+  SystemFieldKeys,
+  // useTestTypeScreenFieldKeys,
+} from '@/components/common/BusinessTable/hook';
 import { getFilterFields } from '@/components/common/FilterSearch/utils';
 import createProximaSdk from '@projectproxima/proxima-sdk-js';
 import { useBaseAction } from '@/lib/hooks/useContext';
@@ -49,17 +52,15 @@ const Right: React.FC<RightProps> = props => {
 
   const {
     refresh,
-    workspaceKey,
     selectedTestPlan,
     setSearchParams,
     planLinkCaseIds,
     runLinkCaseIds,
-    // mutateTestPlanEvent,
     mutateStatusEvent,
     tableSelectionToggleEvent,
   } = usePageContext();
   const proxima = createProximaSdk();
-  const { getCreatePermission } = useBaseAction();
+  const { getCreatePermission, testCaseFieldKeys } = useBaseAction();
   const { t } = useI18n();
 
   useSetTableHeight();
@@ -79,11 +80,6 @@ const Right: React.FC<RightProps> = props => {
 
   tableSelectionToggleEvent.useSubscription(visible => {
     setTableSelectionVisible(visible);
-  });
-
-  const testDetailFieldKeys = useTestTypeScreenFieldKeys({
-    testType: TestType.Case,
-    workspaceKey,
   });
 
   useUpdateEffect(() => {
@@ -255,7 +251,7 @@ const Right: React.FC<RightProps> = props => {
           onSearch={setSearchParams}
           className={cx('plan-page-layout-search')}
           extendFields={filterSearchExtendFieldsProps}
-          fields={getFilterFields(testDetailFieldKeys)}
+          fields={getFilterFields([].concat(SystemFieldKeys, testCaseFieldKeys))}
           testType={TestType.Case}
         />
       </div>
@@ -265,7 +261,7 @@ const Right: React.FC<RightProps> = props => {
           activeType={activeType}
           selectedExecution={selectedExecution}
           tableSelectionVisible={tableSelectionVisible}
-          testDetailFieldKeys={testDetailFieldKeys}
+          testDetailFieldKeys={[].concat(SystemFieldKeys, testCaseFieldKeys)}
           selectNode={selectNode}
           refreshTreeAndScopeTestCase={refreshTreeAndScopeTestCase}
         />

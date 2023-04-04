@@ -7,10 +7,9 @@ import { TestType } from '@/lib/constants';
 import emptyImg from '@/icons/svg/empty-data.png';
 import SearchInput from '../SearchInput';
 import { DropDown } from '@/icons';
-import { getStatsTestPlan, getTestEntityByQuery } from '@/lib/api/item';
-import _ from 'lodash';
-import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/hook';
+import { getTestEntityByQuery } from '@/lib/api/item';
 import useI18n from '@/lib/hooks/useI18n';
+import _ from 'lodash';
 
 import cx from './index.less';
 
@@ -19,11 +18,6 @@ const TestPlanSelector: React.FC = () => {
   const listRef = React.useRef();
   const { workspaceKey, selectedTestPlan, setSelectedTestPlan } = usePageContext();
   const [search, setSearch] = useState('');
-
-  const testDetailFieldKeys = useTestTypeScreenFieldKeys({
-    testType: TestType.Plan,
-    workspaceKey,
-  });
 
   const searchValue = useDebounce(search, { wait: 500 });
 
@@ -37,20 +31,14 @@ const TestPlanSelector: React.FC = () => {
           type: TestType.Plan,
           name: searchValue,
         },
-        fields: testDetailFieldKeys ?? [],
+        select: ['id', 'name'],
         limit: 99999,
-      });
-
-      const stats = await getStatsTestPlan({
-        planIds: list.map(d => d.objectId),
-        select: ['caseStatus', 'caseCount'],
       });
 
       const testPlans = _.chain(list)
         .map(testPlan => {
           return {
             ...testPlan,
-            ...stats?.[testPlan.objectId],
             status: testPlan.workflowStatus,
           };
         })

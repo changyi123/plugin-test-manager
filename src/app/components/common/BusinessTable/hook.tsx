@@ -40,6 +40,7 @@ export const useTestTypeScreenFieldKeys = ({
       cacheKey: `ItemTypeMapping_${workspaceKey}`,
     },
   );
+
   const itemTypeKey = itemTypeMap?.[testType];
   // 除测试计划外其他测试类型需要隐藏状态字段
   // const shouldHiddenFieldKeys = testType !== TestType.Plan ? TestIncludeFiledKeys : [];
@@ -49,8 +50,8 @@ export const useTestTypeScreenFieldKeys = ({
     // async () => [].concat(SystemFieldKeys, customerFields),
     async () => customerFields,
     {
-      cacheKey: `${workspaceKey}_${testType}`,
-      refreshDeps: [customerFields, workspaceKey, testType],
+      cacheKey: `${workspaceKey}_${testType}_${customerFields?.toString()}`,
+      refreshDeps: [customerFields?.toString(), workspaceKey, testType],
       cacheTime: 99999,
       staleTime: 99999,
     },

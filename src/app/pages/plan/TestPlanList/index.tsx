@@ -20,23 +20,19 @@ import _ from 'lodash';
 const { ItemIcon } = components.Components.Common;
 
 import cx from './index.less';
+import { SystemFieldKeys } from '@/components/common/BusinessTable/hook';
 
 const TestPlanList: React.FC<any> = () => {
   const { t } = useI18n();
   const actionRef = React.useRef<BusinessTableActionType>();
+  const { createItemUseModal, getCreatePermission, testPlanFieldKeys } = useBaseAction();
   const { workspaceKey, selectedTestPlan, setSelectedTestPlan, setSearchParams } = usePageContext();
   const [selectors, setSelectors] = useState([{}, {}]);
 
   const [tableLoading, setTableLoading] = useState(false);
-  const { createItemUseModal, getCreatePermission } = useBaseAction();
   const { data: currentUser } = useCurrentUser();
 
   const detailSearchRef = useRef(null);
-
-  // const testDetailFieldKeys = useTestTypeScreenFieldKeys({
-  //   testType: TestType.Plan,
-  //   workspaceKey,
-  // });
 
   React.useEffect(() => {
     if (selectedTestPlan) {
@@ -49,17 +45,19 @@ const TestPlanList: React.FC<any> = () => {
 
   const tableDataGetter = useCallback(
     async queryParams => {
-      if (!workspaceKey)
+      if (!workspaceKey || !testPlanFieldKeys.length)
         return {
           list: [],
           total: 0,
         };
       setTableLoading(true);
+
       const { list, total } = await getTestEntityByQuery({
         query: {
           workspaceKey: workspaceKey,
           type: TestType.Plan,
         },
+        fields: [].concat(SystemFieldKeys, testPlanFieldKeys),
         selector: selectors,
         ...queryParams,
       });
@@ -86,7 +84,8 @@ const TestPlanList: React.FC<any> = () => {
         total: total ?? 0,
       };
     },
-    [workspaceKey, selectors],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [workspaceKey, testPlanFieldKeys.toString(), selectors.toString()],
   );
 
   const { data: currentFields } = useRequest(
@@ -114,9 +113,7 @@ const TestPlanList: React.FC<any> = () => {
       title: t('components.business.testPlanList.planName'),
       className: 'test-case-title',
       extraProps: {
-        onClick: record => {
-          setSelectedTestPlan(record);
-        },
+        onClick: record => setSelectedTestPlan(record),
       },
       render(_, rowData) {
         return (
@@ -231,7 +228,7 @@ const TestPlanList: React.FC<any> = () => {
             enableLocalStorage
             className={cx('test-manager-filter')}
             ref={detailSearchRef}
-            fields={getFilterFields([])}
+            fields={getFilterFields([].concat(SystemFieldKeys, testPlanFieldKeys))}
             extendFields={[]}
             onSearch={setSelectors}
             testType={TestType.Plan}

@@ -27,6 +27,7 @@ import { getTestEntityByQuery, updateTestEntity } from '@/lib/api/item';
 import { union } from 'lodash';
 import { useGetPermissions } from './hooks';
 import useI18n from '@/lib/hooks/useI18n';
+import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/hook';
 
 const ItemCreateSuccessEventType = 'itemCreateSuccess';
 const DefaultTestConfig = {} as TestConfigContextType['config'];
@@ -357,6 +358,16 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
     }
   }, [itemId, testConfig, t]);
 
+  const testPlanFieldKeys = useTestTypeScreenFieldKeys({
+    testType: TestType.Plan,
+    workspaceKey,
+  });
+
+  const testCaseFieldKeys = useTestTypeScreenFieldKeys({
+    testType: TestType.Case,
+    workspaceKey,
+  });
+
   // 获取全局配置时使用缓存
   const { runAsync: getGlobalConfig } = useRequest(
     async () => {
@@ -568,6 +579,8 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
       getGlobalConfig,
       openItemViewPanel: openItemDetailPanel,
       getCreatePermission,
+      testPlanFieldKeys,
+      testCaseFieldKeys,
     };
 
     return actions;
@@ -577,6 +590,8 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
     testConfig.defectsMapping,
     testConfig?.itemTypeMap,
     workspace?.objectId,
+    testPlanFieldKeys,
+    testCaseFieldKeys,
     t,
   ]);
 

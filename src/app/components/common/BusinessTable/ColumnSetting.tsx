@@ -5,7 +5,7 @@ import { TitleCellOption } from './type';
 import { ColumnType } from 'antd/lib/table';
 import { Button, Drawer, message, Select, Spin, Tooltip } from 'antd';
 import { getCustomFields } from '@/lib/api/proxima';
-import { useGetTableFilterFields, useTestTypeScreenFieldKeys } from './hook';
+import { SystemFieldKeys, useGetTableFilterFields } from './hook';
 import { TableCell } from '@giteeteam/apps-team-components';
 import { generateStorageKey } from '@/lib/utils/helper';
 import { useNoExpiredRequest } from '@/lib/hooks/useRequest';
@@ -24,6 +24,7 @@ import createProximaSdk from '@projectproxima/proxima-sdk-js';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import { TABLE_EXCLUDE_FIELDS } from '@/lib/constants';
 import useI18n from '@/lib/hooks/useI18n';
+import { useBaseAction } from '@/lib/hooks/useContext';
 
 import '@giteeteam/apps-team-components/dist/main.css';
 import cx from './ColumnSetting.less';
@@ -62,7 +63,11 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
   } = props;
   const { t } = useI18n();
   const [visible, setVisible] = React.useState(false);
-  const keys = useTestTypeScreenFieldKeys(titleCellOption);
+  const { testPlanFieldKeys } = useBaseAction();
+  const keys = useMemo(
+    () => [].concat(SystemFieldKeys, testPlanFieldKeys),
+    [testPlanFieldKeys.toString()],
+  );
   const fieldKeys = useMemo(() => keys?.filter(key => !TABLE_EXCLUDE_FIELDS.includes(key)), [keys]);
   const { data: customFields } = useNoExpiredRequest(() => getCustomFields(fieldKeys), {
     cacheKey: `CustomFields_${fieldKeys.toString()}`,
