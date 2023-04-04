@@ -14,6 +14,7 @@ import DropDownSVG from './svg/drop-down.svg';
 import AddSearchSvg from './svg/add-search.svg';
 import DeleteSearchSvg from './svg/delete-search.svg';
 import SettingSvg from './svg/setting.svg';
+import EditSvg from './svg/edit.svg';
 import { components } from 'proxima-sdk';
 
 const { Link, delete: ResetIcon, User } = components.Components.Icons.Icons;
@@ -40,6 +41,7 @@ export const DropDown = CustomIconHOC(DropDownSVG);
 export const Setting = CustomIconHOC(SettingSvg);
 export const DeleteSearch = CustomIconHOC(DeleteSearchSvg);
 export const AddSearch = CustomIconHOC(AddSearchSvg);
+export const EditIcon = CustomIconHOC(EditSvg);
 export const LinkItem = CustomIconHOC(Link);
 export const LinkItemIcon = CustomIconHOC(Link);
 export const DeleteIcon = CustomIconHOC(ResetIcon);

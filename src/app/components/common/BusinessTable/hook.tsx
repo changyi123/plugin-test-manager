@@ -28,7 +28,6 @@ export const SystemFieldKeys = [
 export const useTestTypeScreenFieldKeys = ({
   workspaceKey,
   testType,
-  includeSystemField = true,
 }: TitleCellOption['titleCellOption']) => {
   const { data: itemTypeMap } = useNoExpiredRequest(
     async () => {
@@ -47,12 +46,11 @@ export const useTestTypeScreenFieldKeys = ({
   const customerFields = useUsedScreenFieldKeys(workspaceKey, itemTypeKey, []);
 
   const { data: typeScreenFiledKeys } = useRequest(
-    async () => (includeSystemField ? [].concat(SystemFieldKeys, customerFields) : customerFields),
+    // async () => [].concat(SystemFieldKeys, customerFields),
+    async () => customerFields,
     {
-      cacheKey: `${workspaceKey}_${testType}_${includeSystemField}_${JSON.stringify(
-        customerFields,
-      )}`,
-      refreshDeps: [JSON.stringify(customerFields), workspaceKey, testType, includeSystemField],
+      cacheKey: `${workspaceKey}_${testType}`,
+      refreshDeps: [customerFields, workspaceKey, testType],
       cacheTime: 99999,
       staleTime: 99999,
     },
@@ -147,6 +145,7 @@ export const useGetCustomFields = ({
   });
 
   const { data: customFields } = useNoExpiredRequest(() => getCustomFields(keys), {
+    ready: Boolean(keys),
     cacheKey: `CustomFields_${keys.toString()}`,
     refreshDeps: [keys],
   });

@@ -1,14 +1,12 @@
 import React, { useCallback, useRef, useState } from 'react';
 import { usePageContext } from '@/pages/plan/hook';
 import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
-import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/hook';
-import { Button, Dropdown, Menu, notification } from 'antd';
-import _ from 'lodash';
+import { Button, notification } from 'antd';
 import { goToItemDetailPage } from '@/lib/utils/helper';
 import { useBaseAction } from '@/lib/hooks/useContext';
 import { StatusProgress } from '../../../components/business/Status';
 import FilterSearch from '@/components/common/FilterSearch';
-import { FullScreen } from '@/icons';
+import { EditIcon } from '@/icons';
 import { components } from 'proxima-sdk';
 import { getStatsTestPlan, getTestEntityByQuery } from '@/lib/api/item';
 import { TestType } from '@/lib/constants';
@@ -17,6 +15,7 @@ import { getCurrentUserSetting, saveUserSetting } from '@/lib/api/userSetting';
 import { useRequest } from 'ahooks';
 import { getFilterFields } from '@/components/common/FilterSearch/utils';
 import useI18n from '@/lib/hooks/useI18n';
+import _ from 'lodash';
 
 const { ItemIcon } = components.Components.Common;
 
@@ -34,10 +33,10 @@ const TestPlanList: React.FC<any> = () => {
 
   const detailSearchRef = useRef(null);
 
-  const testDetailFieldKeys = useTestTypeScreenFieldKeys({
-    testType: TestType.Plan,
-    workspaceKey,
-  });
+  // const testDetailFieldKeys = useTestTypeScreenFieldKeys({
+  //   testType: TestType.Plan,
+  //   workspaceKey,
+  // });
 
   React.useEffect(() => {
     if (selectedTestPlan) {
@@ -50,7 +49,7 @@ const TestPlanList: React.FC<any> = () => {
 
   const tableDataGetter = useCallback(
     async queryParams => {
-      if (!workspaceKey || !testDetailFieldKeys?.length)
+      if (!workspaceKey)
         return {
           list: [],
           total: 0,
@@ -61,7 +60,6 @@ const TestPlanList: React.FC<any> = () => {
           workspaceKey: workspaceKey,
           type: TestType.Plan,
         },
-        fields: testDetailFieldKeys,
         selector: selectors,
         ...queryParams,
       });
@@ -88,7 +86,7 @@ const TestPlanList: React.FC<any> = () => {
         total: total ?? 0,
       };
     },
-    [workspaceKey, selectors, testDetailFieldKeys],
+    [workspaceKey, selectors],
   );
 
   const { data: currentFields } = useRequest(
@@ -126,30 +124,18 @@ const TestPlanList: React.FC<any> = () => {
             {ItemIcon && <ItemIcon className={'icon'} icon={rowData.itemType?.icon}></ItemIcon>}
             <div className={'test-plan-title'}>{rowData.name}</div>
             <div
-              className={'plan-table-title-menu'}
+              className={cx('plan-table-title-menu')}
               onClick={e => {
                 e.preventDefault();
                 e.stopPropagation();
               }}
             >
-              <Dropdown
-                overlay={
-                  <Menu>
-                    <Menu.Item
-                      key="view"
-                      onClick={item => {
-                        item.domEvent.stopPropagation();
-                        handleView(rowData);
-                      }}
-                    >
-                      {t('components.business.testPlanList.checkTestPlan')}
-                    </Menu.Item>
-                  </Menu>
-                }
-                trigger={['hover']}
-              >
-                <FullScreen className={cx('action', 'right')} style={{ display: 'flex' }} />
-              </Dropdown>
+              <EditIcon
+                className={'icon'}
+                onClick={() => {
+                  handleView(rowData);
+                }}
+              />
             </div>
           </div>
         );
@@ -245,7 +231,7 @@ const TestPlanList: React.FC<any> = () => {
             enableLocalStorage
             className={cx('test-manager-filter')}
             ref={detailSearchRef}
-            fields={getFilterFields(testDetailFieldKeys)}
+            fields={getFilterFields([])}
             extendFields={[]}
             onSearch={setSelectors}
             testType={TestType.Plan}

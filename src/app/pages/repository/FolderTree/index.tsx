@@ -554,16 +554,13 @@ const FolderTree: React.FC<FolderTreeProps> = ({
       const dropPos = node.pos.split('-');
       const dropPosition = info.dropPosition - Number(dropPos[dropPos.length - 1]);
 
-      let hierarchy = 0;
+      let hierarchy = 1;
 
       const getHierarchy = nodes => {
-        nodes.forEach(n => {
-          if (n.children?.length) {
-            getHierarchy(n.children);
-          }
-        });
-
+        const children = nodes.map(d => d.children ?? []).flat();
+        if (!children?.length) return;
         hierarchy++;
+        getHierarchy(children);
       };
 
       getHierarchy([dragNode]);

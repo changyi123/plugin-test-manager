@@ -11,6 +11,7 @@ import TestManagerProvider from '@/components/business/TestManagerProvider';
 import { SearchSelectors } from '@/lib/utils/iql';
 import { isEqual } from 'lodash';
 import { useGetWorkspaceRepository } from '@/lib/hooks/useTest';
+import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/hook';
 
 export type TableActionEventType = {
   tableSelectionVisible?: boolean;
@@ -40,6 +41,8 @@ type PageContextType = {
   setExecutionLinkRunIds: (val?: string[]) => void;
   setRunLinkCaseIds: (val?: string[]) => void;
   getTestCaseRepositoryPath: (val?: string) => string;
+  testType: string;
+  setTestType: (val?: string) => void;
 };
 
 export const PageContext = React.createContext<PageContextType>({
@@ -62,6 +65,8 @@ export const PageContext = React.createContext<PageContextType>({
   setExecutionLinkRunIds: noop,
   setRunLinkCaseIds: noop,
   getTestCaseRepositoryPath: null,
+  testType: null,
+  setTestType: noop,
 });
 
 const PageProvider: React.FC = ({ children }) => {
@@ -77,6 +82,7 @@ const PageProvider: React.FC = ({ children }) => {
   const [planLinkCaseIds, setPlanLinkCaseIds] = useState<string[]>(null);
   const [executionLinkRunIds, setExecutionLinkRunIds] = useState<string[]>(null);
   const [runLinkCaseIds, setRunLinkCaseIds] = useState<string[]>(null);
+  const [testType, setTestType] = useState<string>(null);
   const getTestCaseRepositoryPath = useGetWorkspaceRepository(workspaceKey);
 
   const refresh = useCallback(key => {
@@ -85,6 +91,13 @@ const PageProvider: React.FC = ({ children }) => {
     }
     Object.values(refreshCacheRef.current).forEach(method => method?.());
   }, []);
+
+  const testDetailFieldKeys = useTestTypeScreenFieldKeys({
+    testType: TestType.Plan,
+    workspaceKey,
+  });
+
+  console.log(1111111111111, testDetailFieldKeys);
 
   const registerRefreshMethod = React.useCallback(methods => {
     refreshCacheRef.current = {
@@ -109,6 +122,8 @@ const PageProvider: React.FC = ({ children }) => {
             selectors,
             setSearchParams,
             refresh,
+            testType,
+            setTestType,
             searchValue,
             workspaceKey,
             setSearchValue,

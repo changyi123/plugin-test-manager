@@ -31,7 +31,6 @@ const proxima = createProximaSdk();
 
 const RowDragBox = ({ children, ...data }) => {
   const ref = React.useRef();
-  // const [dragging, setDragging] = React.useState(false);
 
   useDrag(null, ref, {
     onDragStart(e) {
@@ -52,7 +51,6 @@ const RowDragBox = ({ children, ...data }) => {
       // setDragging(false);
     },
   } as any);
-  // className={cx(dragging ? 'dragging' : '', 'test-case-drag')}
   return <span ref={ref}>{children}</span>;
 };
 

@@ -145,16 +145,6 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         query.id = ids;
       }
 
-      console.log(
-        333333333333333,
-        selectNode,
-        selectors,
-        workspaceKey,
-        selectedTestPlan.objectId,
-        testDetailFieldKeys,
-        activeType,
-      );
-
       // 查询测试用例
       query.repository = getRepositoryQuery(selectNode, 'all')?.repository;
       const { list: testDetails, total } = await getLinkedTestEntityByQuery({
