@@ -85,7 +85,7 @@ const TestPlanList: React.FC<any> = () => {
       };
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [workspaceKey, testPlanFieldKeys.toString(), selectors.toString()],
+    [workspaceKey, testPlanFieldKeys, selectors.toString()],
   );
 
   const { data: currentFields } = useRequest(

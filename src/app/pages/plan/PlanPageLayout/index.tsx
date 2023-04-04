@@ -210,8 +210,8 @@ const PlanPageLayout: React.FC<any> = () => {
     [createItemUseModal, selectedTestPlan?.objectId, t],
   );
 
-  const refreshTreeAndScopeTestCase = useCallback(async () => {
-    await pageLeftRef.current.refresh?.();
+  const refreshTreeAndScopeTestCase = useCallback(() => {
+    pageLeftRef.current.refresh?.();
     planLinkCaseIdRefresh();
     scopeTestRunIdsRefresh();
   }, [planLinkCaseIdRefresh, scopeTestRunIdsRefresh, pageLeftRef]);

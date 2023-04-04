@@ -39,7 +39,7 @@ type RepositoryTreeProps = {
   hideEmptyFolder?: boolean;
   actionRef?: React.ForwardedRef<ActionType>;
   params?: QueryLinkedTestEntityPayload;
-  type?: string;
+  isShowAll?: boolean;
 };
 
 const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
@@ -50,6 +50,7 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
     shouldIncludeSubFolder = true,
     params,
     hideEmptyFolder,
+    isShowAll,
   } = props;
   const [treeSelectedKeys, setTreeSelectedKeys] = React.useState([]);
   const [treeExpandedKeys, setTreeExpandedKeys] = React.useState([]);
@@ -65,7 +66,7 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
   } = useRequest(
     async () => {
       if (!workspaceKey) return [];
-      // if (hideEmptyFolder && !params) return [];
+      if (!isShowAll && !params) return [];
       const { data } = await getRepositoryTreeV2({
         workspaceKey,
         params,
@@ -91,10 +92,9 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
       return hideEmptyFolder ? filterEmptyFolder([data]) : [data];
     },
     {
-      refreshDeps: [workspaceKey, params, hideEmptyFolder],
-      cacheKey: `treeData_${workspaceKey}_${hideEmptyFolder}_${JSON.stringify(params)}`,
-      cacheTime: 99999,
-      staleTime: 99999,
+      ready: Boolean(workspaceKey),
+      refreshDeps: [workspaceKey, params, hideEmptyFolder, isShowAll],
+      // cacheKey: `treeData_${workspaceKey}_${hideEmptyFolder}_${JSON.stringify(params)}`,
     },
   );
 

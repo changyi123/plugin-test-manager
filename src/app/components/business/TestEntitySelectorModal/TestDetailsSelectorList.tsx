@@ -234,30 +234,32 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
 
   const { list: testCaseList, total = 0 } = testCaseData ?? {};
 
-  const params = useMemo(
-    () =>
-      treeType === 'plan'
-        ? {
-            query: {
-              workspaceKey,
-              type: TestType.Case,
-              name: searchName,
-              ...getRepositoryQuery(selectedNode, showType),
-            },
-            linkType: TestLinkType.CaseLinkPlan,
-            sourceIds: [planId],
-            destinationType: TestType.Case,
-          }
-        : {
-            query: {
-              workspaceKey,
-              type: TestType.Case,
-              name: searchName,
-              ...getRepositoryQuery(selectedNode, showType),
-            },
+  const params = useMemo(() => {
+    const query = {} as any;
+    searchName && (query.name = searchName);
+    if (selectedNode) {
+      const repository = getRepositoryQuery(selectedNode, showType)?.repository;
+      repository && (query.repository = repository);
+    }
+    return treeType === 'plan'
+      ? {
+          query: {
+            workspaceKey,
+            type: TestType.Case,
+            ...query,
           },
-    [treeProps, showType, selectedNode],
-  );
+          linkType: TestLinkType.CaseLinkPlan,
+          sourceIds: [planId],
+          destinationType: TestType.Case,
+        }
+      : {
+          query: {
+            workspaceKey,
+            type: TestType.Case,
+            ...query,
+          },
+        };
+  }, [treeProps, showType, selectedNode]);
 
   const { groupCounts } = useGetGroupCounts({ workspaceKey, current, params });
 

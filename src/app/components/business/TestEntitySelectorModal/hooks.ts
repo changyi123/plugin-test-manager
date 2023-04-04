@@ -74,7 +74,11 @@ export const useGetGroupCounts = ({ workspaceKey, current, params }) => {
       return [data];
     },
     {
+      ready: Boolean(workspaceKey),
       refreshDeps: [workspaceKey, params],
+      cacheKey: `Tree_Counts_${workspaceKey}_${JSON.stringify(params)}`,
+      cacheTime: 999999,
+      staleTime: 999999,
     },
   );
 

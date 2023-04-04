@@ -261,7 +261,6 @@ const Right: React.FC<RightProps> = props => {
           activeType={activeType}
           selectedExecution={selectedExecution}
           tableSelectionVisible={tableSelectionVisible}
-          testDetailFieldKeys={[].concat(SystemFieldKeys, testCaseFieldKeys)}
           selectNode={selectNode}
           refreshTreeAndScopeTestCase={refreshTreeAndScopeTestCase}
         />

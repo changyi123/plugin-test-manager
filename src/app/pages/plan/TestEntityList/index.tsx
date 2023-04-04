@@ -35,6 +35,7 @@ import { getTestCaseStatusModelValue, handleCustomerSelector } from '@/lib/utils
 
 import cx from './index.less';
 import { getRepositoryQuery } from '@/lib/utils/tree';
+import { SystemFieldKeys } from '@/components/common/BusinessTable/hook';
 
 interface TestEntityListProps {
   loading?: boolean;
@@ -43,7 +44,6 @@ interface TestEntityListProps {
   refreshPlanData?: () => void;
   refreshTreeAndScopeTestCase?: () => void;
   tableSelectionVisible?: boolean;
-  testDetailFieldKeys?: string[];
   selectNode?: Record<string, any>;
 }
 
@@ -64,7 +64,6 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   selectedExecution,
   refreshTreeAndScopeTestCase,
   tableSelectionVisible,
-  testDetailFieldKeys,
   selectNode,
 }) => {
   const {
@@ -81,7 +80,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   } = usePageContext();
   const { t } = useI18n();
   const proxima = createProximaSdk();
-  const { getCreatePermission } = useBaseAction();
+  const { getCreatePermission, testCaseFieldKeys } = useBaseAction();
   const actionRef = React.useRef<BusinessTableActionType>();
   const testRunModalActionRef = React.useRef<TestRunModalActionType>();
   const userData = useUserCellUserDataProp(workspaceKey);
@@ -125,7 +124,12 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   // 获取全部用例 getter
   const testPlanTableDataGetter = useCallback(
     async queryParams => {
-      if (!selectNode?.key || !workspaceKey || activeType === 'TestExecution') {
+      if (
+        !selectNode?.key ||
+        !workspaceKey ||
+        activeType === 'TestExecution' ||
+        !testCaseFieldKeys.length
+      ) {
         return {
           list: [],
           total: 0,
@@ -157,7 +161,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         linkType: TestLinkType.CaseLinkPlan,
         sourceIds: [selectedTestPlan.objectId],
         destinationType: TestType.Case,
-        fields: testDetailFieldKeys ?? [],
+        fields: [].concat(SystemFieldKeys, testCaseFieldKeys),
         selector,
       });
 
@@ -185,11 +189,11 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     },
     [
       selectNode,
-      selectors,
       workspaceKey,
-      selectedTestPlan.objectId,
-      testDetailFieldKeys,
       activeType,
+      testCaseFieldKeys,
+      selectors?.toString(),
+      selectedTestPlan?.objectId,
     ],
   );
 
@@ -332,7 +336,8 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         !selectedExecution?.objectId ||
         !executionLinkRunIds?.length ||
         !selectNode?.key ||
-        activeType === 'TestPlan'
+        activeType === 'TestPlan' ||
+        !testCaseFieldKeys.length
       )
         return {
           list: [],
@@ -355,7 +360,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           filterRunSelector: filterRunSelector,
           selector: [systemSelectors, filterCaseSelector],
           queryParams,
-          caseFieldKeys: testDetailFieldKeys ?? [],
+          caseFieldKeys: [].concat(SystemFieldKeys, testCaseFieldKeys),
           selectNode,
         });
       }
@@ -366,20 +371,19 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         executionId: selectedExecution.objectId,
         selector: [systemSelectors, filterCaseSelector],
         queryParams,
-        caseFieldKeys: testDetailFieldKeys ?? [],
+        caseFieldKeys: [].concat(SystemFieldKeys, testCaseFieldKeys),
         selectNode,
       });
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [
-      workspaceKey,
-      selectedExecution,
-      selectors,
-      testDetailFieldKeys,
+      selectedExecution?.objectId,
       executionLinkRunIds,
-      runLinkCaseIds,
       selectNode,
       activeType,
+      selectors?.toString(),
+      workspaceKey,
+      runLinkCaseIds,
+      testCaseFieldKeys,
     ],
   );
 
