@@ -364,10 +364,12 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
 
   // 导出 XMind 数据
   const handleXMindExport = useMemoizedFn(async () => {
-    exportAndDownloadXMind(minderData, {
+    const hide = message.loading(t('page.repository.view.minder.exportLoadingMessage'));
+    await exportAndDownloadXMind(minderData, {
       t,
       priorityOptions,
     });
+    setTimeout(hide, 500);
   });
 
   const memoizedButtonNode = React.useMemo(() => {

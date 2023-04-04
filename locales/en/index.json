@@ -369,8 +369,36 @@
           "nameRepeat": ["Save fail, modules", "with the same module name"],
           "overMaxLevelModulePath": "The module has exceeded the maximum level limit, please modify it before saving",
           "updateDataSuccess": "Data updated successfully",
-          "saveFail": "Save failed"
+          "saveFail": "Save failed",
+          "export": "Export XMind",
+          "exportLoadingMessage": "XMind exporting"
         }
+      }
+    },
+    "xMindImport": {
+      "title": "Import XMind",
+      "step": {
+        "upload": "Upload",
+        "validate": "Validate"
+      },
+      "button": {
+        "nextStep": "Next step",
+        "save": "Save"
+      },
+      "uploadStep": {
+        "importLocation": "Import Location",
+        "uploader": {
+          "text": "Click or drag file to this area to upload",
+          "hint": "Please upload an XMind file with no more than 1000 cases to avoid upload failure"
+        },
+        "importTips": "Import Tips",
+        "includeRootTip": "The file will be imported into the current mind, and you can set whether to import the root node",
+        "importIncludeRoot": "Import Root Node",
+        "typeTip": "Nodes using the system-defined module/test case/precondition/step tags will be recognized",
+        "typeExample": "Node type examples",
+        "levelTip": "The level of the module in the XMind file plus the grouping level of the current mind cannot exceed 8 levels",
+        "countLimitTip": "Up to 1000 cases can be imported at a time",
+        "downloadTemplate": "Download Template"
       }
     }
   },
