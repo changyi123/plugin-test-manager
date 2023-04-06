@@ -6,8 +6,8 @@ export type StepComponentProp = {
 
 /** 跨组件的状态 */
 export type SharedState = {
-  /** 导入节点的层级  */
-  currentRepositoryNodePaths: string[];
+  /** repository id */
+  repositoryId: string;
   /** redirect 链接  */
   redirectLink: string;
   /** 脑图数据 */
@@ -16,4 +16,6 @@ export type SharedState = {
   canGoNext: boolean;
   /** repository tree */
   repositoryTree: any;
+  /** 优先级配置项 */
+  priorityOptions: any[];
 };

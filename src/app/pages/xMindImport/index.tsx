@@ -1,9 +1,11 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Button, Steps } from 'antd';
 import useI18n from '@/lib/hooks/useI18n';
 import XMindUpload from './steps/XMindUpload';
 import MinderEditor from './steps/MinderDraftEditor';
-import { useMemoizedFn, useLocalStorageState } from 'ahooks';
+import { getPriorityOptions } from '@/lib/api/minder';
+import { getRepositoryTreeWithParentNode } from './lib';
+import { useRequest, useMemoizedFn, useLocalStorageState } from 'ahooks';
 
 import { SharedState } from './type';
 
@@ -24,12 +26,23 @@ const ImportSteps = [
 
 // 各组件间共享的状态
 const useSharedState = () => {
+  const { data: priorityOptions } = useRequest(
+    async () => {
+      const options = await getPriorityOptions();
+      return options;
+    },
+    {
+      staleTime: -1,
+    },
+  );
+
   const [sharedState, setSharedState] = React.useState<SharedState>({
+    priorityOptions,
     redirectLink: '',
     canGoNext: false,
     minderData: null,
     repositoryTree: null,
-    currentRepositoryNodePaths: [],
+    repositoryId: 'root',
   });
 
   const setPartialSharedState = useMemoizedFn((state: Partial<SharedState>) => {
@@ -40,14 +53,18 @@ const useSharedState = () => {
   });
 
   const [importState] = useLocalStorageState('xmind-import-state');
-  console.log('importState', importState);
+  // TODO: 获取用例树
+  React.useEffect(() => {
+    if (importState?.workspaceKey) {
+      getRepositoryTreeWithParentNode(importState?.workspaceKey).then(repositoryTree => {
+        setPartialSharedState({ repositoryTree });
+      });
+    }
+  }, [importState?.workspaceKey, setPartialSharedState]);
 
-  // useEffect(() => {
-  //   setState({
-  //     workspaceKey: 'MINDE01',
-  //     repositoryId: 'vDjq6flsAu',
-  //   });
-  // }, []);
+  React.useEffect(() => {
+    setPartialSharedState({ repositoryId: importState.repositoryId });
+  }, [importState?.repositoryId, setPartialSharedState]);
 
   return [sharedState, setPartialSharedState] as const;
 };

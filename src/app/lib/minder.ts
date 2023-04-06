@@ -46,8 +46,10 @@ export const exportAndDownloadXMind = async (minderData, { t, priorityOptions = 
   };
 
   const workbook = new Workbook();
+  const sheet = workbook.createSheet('XMind export', rootMinderNode.data.text);
+  workbook.theme('XMind export', 'business');
   const topic = new Topic({
-    sheet: workbook.createSheet('XMind export', rootMinderNode.data.text),
+    sheet,
   });
 
   // 设置根节点的 label
