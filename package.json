@@ -76,7 +76,7 @@
     "@alienfast/i18next-loader": "^2.0.1",
     "@ant-design/icons": "^4.7.0",
     "@giteeteam/apps-team-api": "^0.4.4",
-    "@giteeteam/apps-team-components": "0.3.4-remove-editor-0.7",
+    "@giteeteam/apps-team-components": "0.3.4-remove-editor-0.8",
     "@nebulare/data": "^0.1.5",
     "@osui/theme": "^1.2.10",
     "@projectproxima/plugin-sdk": "^0.1.8",

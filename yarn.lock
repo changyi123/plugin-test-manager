@@ -1250,10 +1250,10 @@
   dependencies:
     axios "^0.27.2"
 
-"@giteeteam/apps-team-components@0.3.4-remove-editor-0.7":
-  version "0.3.4-remove-editor-0.7"
-  resolved "https://registry.yarnpkg.com/@giteeteam/apps-team-components/-/apps-team-components-0.3.4-remove-editor-0.7.tgz#fed263f27cb214bd3c1827e04da4db4fd51576ec"
-  integrity sha512-g+j/1KQbqDmONrI2r8ZGriovj2+/qSXD2B1F+6lXN8ViFK5bexDi7x2/G2GL8TZMCdQFHdRDnqjdkqlc7DrUBA==
+"@giteeteam/apps-team-components@0.3.4-remove-editor-0.8":
+  version "0.3.4-remove-editor-0.8"
+  resolved "https://registry.yarnpkg.com/@giteeteam/apps-team-components/-/apps-team-components-0.3.4-remove-editor-0.8.tgz#8720fba9dde48e0b552bacb41b8655b399e703d3"
+  integrity sha512-HUJoXTCtAdK0Rw99AHYY9Xspr6w8ySdY3E9Yl+54lyI4ZhQOQkFZcmfaH5fQsoxQnsSM0mIUBMcUZXs0DrttUQ==
   dependencies:
     "@ant-design/icons" "4.7.0"
     "@projectproxima/plugin-loader" "^0.1.9"
