@@ -75,7 +75,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
   } = props;
   const [visible, setVisible] = useSafeState(false);
   const debounceSelectContainerRef = React.useRef();
-  const [selectValue, setSelectValue] = useSafeState([]);
+  const [selectValue, setSelectValue] = useSafeState<any>(isSingleMode ? '' : []);
   const [selectedTestDetails, setSelectedTestDetails] = React.useState([]);
   const [testType, setTestType] = useSafeState<TestType>(props.testType);
   const [treeType, setTreeType] = React.useState('repository');
@@ -218,7 +218,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
               <span style={{ fontSize: 12, color: '#aaa' }}>({item.key})</span>
             </div>
           ),
-          value: item.objectId,
+          value: item.id,
         };
       });
     },
@@ -413,7 +413,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
             onClick={() => {
               setTreeType('repository');
               onCancel?.();
-              setSelectValue(undefined);
+              setSelectValue(isSingleMode ? undefined : []);
               setVisible(false);
             }}
           >
@@ -450,7 +450,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
       footer={ModalFooterNode}
       onCancel={() => {
         setTreeType('repository');
-        setSelectValue(undefined);
+        setSelectValue(isSingleMode ? undefined : []);
         setVisible(false);
       }}
       title={

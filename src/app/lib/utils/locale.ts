@@ -8,6 +8,32 @@ import languageParser from 'accept-language-parser';
 // 默认支持三种语言
 const AcceptLanguageList = ['zh', 'en', 'ru'];
 
+export const isZhLang = lang => {
+  switch (lang) {
+    case 'zh-Hant-HK':
+    case 'zh-HK':
+    case 'zh-TW':
+    case 'zh-Hans-CN':
+    case 'zh-CN':
+    case 'zh-cn':
+    case 'zh':
+      return true;
+    default:
+      return false;
+  }
+};
+
+export const isEnLang = lang => {
+  switch (lang) {
+    case 'en-GB':
+    case 'en-US':
+    case 'en':
+      return true;
+    default:
+      return false;
+  }
+};
+
 export function getMessages(
   locales: string | string[] = ['zh'],
 ): [locale: string, langBundle: any, antdLang: any] {

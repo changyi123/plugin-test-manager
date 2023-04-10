@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useCallback, useEffect, useState } from 'react';
 import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
 import Field from '@/components/common/Field';
@@ -380,10 +381,10 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       executionLinkRunIds,
       selectNode,
       activeType,
+      testCaseFieldKeys,
       selectors?.toString(),
       workspaceKey,
       runLinkCaseIds,
-      testCaseFieldKeys,
     ],
   );
 
