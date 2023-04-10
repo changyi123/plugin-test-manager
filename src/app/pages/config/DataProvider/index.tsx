@@ -78,6 +78,7 @@ const DataProvider = ({ children }) => {
   const [currentWorkspace, setCurrentWorkspace] = useLocalStorageState(CurrentWorkspaceStorageKey, {
     defaultValue: null,
   });
+  // const [workspace, setWorkspace] = useState<any>(null);
   const workspaceSelectorRef = React.useRef<any>();
 
   const { data: globalConfig, refreshAsync: refreshGlobalConfig } = useRequest(async () => {
@@ -88,6 +89,25 @@ const DataProvider = ({ children }) => {
   const [showAllWorkspaceCheck, setShowAllWorkspaceCheck] = useState(false);
 
   useConfigBootstrap(globalConfig);
+
+  // 校验空间是否存在
+  // const validateWorkspace = useCallback(
+  //   async data => {
+  //     if (data) {
+  //       const workspace = await getWorkspaceById(data?.objectId);
+  //       if (!workspace) {
+  //         setWorkspace(null);
+  //       } else {
+  //         setWorkspace(data);
+  //       }
+  //     }
+  //   },
+  //   [setWorkspace],
+  // );
+
+  // useEffect(() => {
+  //   validateWorkspace(currentWorkspace);
+  // }, [validateWorkspace, currentWorkspace]);
 
   const value = React.useMemo(() => {
     return {

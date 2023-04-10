@@ -40,7 +40,7 @@ const ItemTypeMapping = () => {
     ready: !!workspaceId,
     refreshDeps: [workspaceId],
     onSuccess(itemTypes) {
-      setTopItemTypes(itemTypes);
+      setTopItemTypes(itemTypes ?? []);
     },
   });
 

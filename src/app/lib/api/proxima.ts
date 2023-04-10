@@ -210,6 +210,7 @@ export const getTopItemTypeFromHierarchy = async workspaceId => {
     .include('itemTypeScheme')
     .equalTo('objectId', workspaceId)
     .first();
+  if (!itemTypeScheme) return;
 
   const hierarchy = JSON.parse(itemTypeScheme.toJSON().itemTypeScheme.hierarchy);
   return hierarchy;

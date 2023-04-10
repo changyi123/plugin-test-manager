@@ -22,7 +22,7 @@ import {
 import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd';
 import createProximaSdk from '@projectproxima/proxima-sdk-js';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
-import { TABLE_EXCLUDE_FIELDS } from '@/lib/constants';
+import { TABLE_EXCLUDE_FIELDS, TestType } from '@/lib/constants';
 import useI18n from '@/lib/hooks/useI18n';
 import { useBaseAction } from '@/lib/hooks/useContext';
 
@@ -34,6 +34,7 @@ type ColumnDuckTyping = ColumnType<any> & Record<string, any>;
 type ColumnSettingProps = TitleCellOption & {
   name?: string;
   className?: string;
+  testFieldKeys?: string[];
   defaultColumnKey?: string[];
   privateColumnKey?: string[];
   additionalColumns?: ColumnDuckTyping[];
@@ -54,6 +55,7 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
   const {
     name,
     className,
+    testFieldKeys,
     titleCellOption,
     defaultColumnKey,
     privateColumnKey,
@@ -63,11 +65,17 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
   } = props;
   const { t } = useI18n();
   const [visible, setVisible] = React.useState(false);
-  const { testPlanFieldKeys } = useBaseAction();
-  const keys = useMemo(
-    () => [].concat(SystemFieldKeys, testPlanFieldKeys),
-    [testPlanFieldKeys.toString()],
-  );
+  const { testPlanFieldKeys = [], testCaseFieldKeys = [] } = useBaseAction?.();
+  const _keys = useMemo(() => {
+    if (testFieldKeys) return testFieldKeys;
+    if (titleCellOption.testType === TestType.Case) {
+      return testCaseFieldKeys;
+    }
+    if (titleCellOption.testType === TestType.Plan) {
+      return testPlanFieldKeys;
+    }
+  }, [testPlanFieldKeys?.toString(), testCaseFieldKeys?.toString(), testFieldKeys?.toString()]);
+  const keys = useMemo(() => [].concat(SystemFieldKeys, _keys), [_keys?.toString()]);
   const fieldKeys = useMemo(() => keys?.filter(key => !TABLE_EXCLUDE_FIELDS.includes(key)), [keys]);
   const { data: customFields } = useNoExpiredRequest(() => getCustomFields(fieldKeys), {
     cacheKey: `CustomFields_${fieldKeys.toString()}`,
