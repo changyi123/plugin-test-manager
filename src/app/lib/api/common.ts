@@ -718,6 +718,13 @@ export const getTestConfigFromCache = async (params: {
   return testConfig;
 };
 
+export const deleteTestConfigById = async id => {
+  const config = new TestConfig({
+    objectId: id,
+  });
+  Parse.Object.destroyAll(config);
+};
+
 /** 根据 workspace key 获取配置 */
 export const getTestConfigByWorkspaceKeys = async (workspaceKeys: string[]) => {
   return await new Parse.Query(TestConfig)

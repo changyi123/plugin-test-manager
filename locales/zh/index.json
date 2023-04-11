@@ -646,5 +646,14 @@
         "uploadErrorMessage": "文件数量不能超过"
       }
     }
+  },
+  "importer": {
+    "itemFields": {
+      "group": "所属分组",
+      "precondition": "前置条件",
+      "action": "步骤",
+      "result": "预期结果",
+      "data": "数据"
+    }
   }
 }

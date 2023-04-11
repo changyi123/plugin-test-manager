@@ -187,17 +187,17 @@ modules:
     validate: test-manager-validate-script-function
     itemFields:
       - key: group
-        title: 所属分组
+        title: importer.itemFields.group
       # - key: priority
       #   title: 优先级
       - key: precondition
-        title: 前置条件
+        title: importer.itemFields.precondition
       - key: action
-        title: 步骤
+        title: importer.itemFields.action
       - key: result
-        title: 预期结果
+        title: importer.itemFields.result
       - key: data
-        title: 数据
+        title: importer.itemFields.data
   # 初始化 dataType 为 object， array 的数据类型
   customFieldType:
     - key: es_object

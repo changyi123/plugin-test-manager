@@ -665,5 +665,14 @@
         "uploadErrorMessage": "The number of files cannot exceed"
       }
     }
+  },
+  "importer": {
+    "itemFields": {
+      "group": "group",
+      "precondition": "precondition",
+      "action": "step",
+      "result": "result",
+      "data": "data"
+    }
   }
 }
