@@ -69,7 +69,6 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
     params,
     hideEmptyFolder,
     isShowAll,
-    cacheKey = 'page',
   } = props;
   const [treeSelectedKeys, setTreeSelectedKeys] = React.useState([]);
   const [treeExpandedKeys, setTreeExpandedKeys] = React.useState([]);
