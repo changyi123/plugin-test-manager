@@ -330,9 +330,9 @@
           "priority": "Priority can fill in the value range: highest, higher, normal, lower, lowest",
           "precondition": "Test case preconditions",
           "assignee": "assignee",
-          "step": "[1]need to start with [serial number]\n[2]Line breaks in the step description will be preserved",
-          "result": "[1]need to start with [serial number]\n[2]The newline characters in the expected result will be preserved",
-          "data": "[1]need to start with [serial number]\n[2]Newline characters in the data will be preserved"
+          "step": "【1】need to start with [serial number]\n【2】Line breaks in the step description will be preserved",
+          "result": "【1】need to start with [serial number]\n【2】The newline characters in the expected result will be preserved",
+          "data": "【1】need to start with [serial number]\n【2】Newline characters in the data will be preserved"
         },
         "excelExportTitle": {
           "group": "Group",
@@ -449,6 +449,7 @@
       "validate": {
         "No": "No. ",
         "case": "Test case",
+        "itemType": "itemType",
         "numberValidate": "Single import supports up to 1000 entries, over 1000, import the first 1000 entries",
         "validateErrors": [
           "The title of the test case is empty, and the title of the test case is required and will not be imported",

@@ -25,6 +25,8 @@ modules:
     # 拖拽排序生成测试用例 sortIndex
     - key: generate-sortIndex
       function: generate-sortIndex-function
+    - key: api-module-minder-data-import
+      function: api-module-minder-data-import-function
     # 测试管理脑图接口
     - key: report-stats
       function: report-stats-function
@@ -143,6 +145,8 @@ modules:
       handler: api.repositoryTreeV2
     - key: api-query-minder-data-function
       handler: api.minderData
+    - key: api-module-minder-data-import-function
+      handler: api.minderDataImport
 
   itemPanel:
     - key: test-manager-test-detail

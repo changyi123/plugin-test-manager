@@ -222,7 +222,9 @@ export const runValidate = async () => {
             curPrev = {
               ...curPrev,
               [getFiledByValue(key, maps)]: value,
+              // [i18n.t('trigger.importer.validate.itemType')]: itemTypeName,
               类型: itemTypeName,
+              itemType: itemTypeName,
             };
             return curPrev;
           }, {}),
@@ -240,7 +242,9 @@ export const runValidate = async () => {
       : getDataByFieldKey(filterData(getDataByLength(clone(d))), fieldMapping) || [],
     fieldMapping: {
       ...fieldMapping,
+      // [i18n.t('trigger.importer.validate.itemType')]: 'itemType',
       类型: 'itemType',
+      itemType: 'itemType',
     },
     stop: false,
   });
