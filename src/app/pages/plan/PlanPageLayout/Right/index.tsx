@@ -127,7 +127,7 @@ const Right: React.FC<RightProps> = props => {
     mutateStatusEvent.emit('refreshExecutionStatus');
     setTimeout(() => {
       refreshTreeAndScopeTestCase();
-    }, 500);
+    }, 1000);
     setLoading(false);
     notification.success({
       message: t('page.plan.planPageLayout.right.createTestRunSuccessMessage'),

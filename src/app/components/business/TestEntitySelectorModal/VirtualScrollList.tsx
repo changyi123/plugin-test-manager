@@ -1,9 +1,11 @@
 import React, { useCallback, useMemo } from 'react';
-import { Checkbox } from 'antd';
+import { Checkbox, Empty } from 'antd';
 import { clone, pullAll } from 'lodash';
 import { GroupedVirtuoso } from 'react-virtuoso';
 import { filterIgnoreTestCaseId, getCheckedByType, handleGroupPath } from './helper';
 import { useGetVirtualScrollList, useGetGroupNodeId } from './hooks';
+import useI18n from '@/lib/hooks/useI18n';
+import emptyImg from '@/icons/svg/empty-data.png';
 
 import cx from './VirtualScrollList.less';
 
@@ -32,6 +34,7 @@ const VirtualScrollList: React.FC<VirtualScrollListProps> = props => {
     setSelectCaseIdsSet,
     setCurrent,
   } = props;
+  const { t } = useI18n();
 
   const { groupArray, groups, totalCount } = useGetVirtualScrollList(group, current);
 
@@ -125,22 +128,30 @@ const VirtualScrollList: React.FC<VirtualScrollListProps> = props => {
 
   return (
     <>
-      <GroupedVirtuoso
-        className={cx('group-virtuoso')}
-        style={{ height: '400px' }}
-        groupCounts={groupCounts}
-        groupContent={groupContent}
-        itemContent={itemContent}
-        atBottomStateChange={atBottom => {
-          if (atBottom) {
-            if (!items?.length) return;
-            if (!groupCounts?.length) return;
-            if (!totalCount) return;
-            if (current * 100 >= totalCount) return;
-            setCurrent(current + 1);
-          }
-        }}
-      />
+      {items?.length ? (
+        <GroupedVirtuoso
+          className={cx('group-virtuoso')}
+          style={{ height: '400px' }}
+          groupCounts={groupCounts}
+          groupContent={groupContent}
+          itemContent={itemContent}
+          atBottomStateChange={atBottom => {
+            if (atBottom) {
+              if (!items?.length) return;
+              if (!groupCounts?.length) return;
+              if (!totalCount) return;
+              if (current * 100 >= totalCount) return;
+              setCurrent(current + 1);
+            }
+          }}
+        />
+      ) : (
+        <Empty
+          className={cx('empty-test')}
+          image={emptyImg}
+          description={t('components.business.testEntitySelectorModal.notHaveCase')}
+        />
+      )}
     </>
   );
 };

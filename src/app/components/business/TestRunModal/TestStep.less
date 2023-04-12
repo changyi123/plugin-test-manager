@@ -19,7 +19,7 @@
     }
     .action {
       margin-right: auto;
-      // margin-bottom: 10px;
+      max-width: 450px;
     }
 
     .status {
@@ -62,12 +62,12 @@
       line-height: 18px;
       font-size: 12px;
       border-radius: 50%;
-      background-color: #B5BAC5;
+      background-color: #b5bac5;
     }
 
     .fields {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       margin-bottom: 8px;
       > div {
         flex: none;
@@ -76,13 +76,15 @@
 
       .field {
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         .label {
           flex: none;
+          line-height: 40px;
         }
         .data {
           white-space: pre-line;
           word-break: break-all;
+          padding: 10px 2px 0 0;
         }
         :global {
           .input {
