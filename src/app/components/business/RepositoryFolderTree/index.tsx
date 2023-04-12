@@ -24,6 +24,23 @@ export type ActionType = {
   refresh: () => void;
 };
 
+// 过滤为空的目录
+const filterEmptyFolder = folders => {
+  if (Array.isArray(folders)) {
+    return folders
+      .filter(folder => {
+        const [, childTestDetailNum] = folder.counts;
+        return childTestDetailNum > 0;
+      })
+      .map(folder => {
+        folder.children = filterEmptyFolder(folder.children);
+        return folder;
+      });
+  } else {
+    return folders;
+  }
+};
+
 type RepositoryTreeProps = {
   /** 空间标识 */
   workspaceKey: string;
@@ -40,6 +57,7 @@ type RepositoryTreeProps = {
   actionRef?: React.ForwardedRef<ActionType>;
   params?: QueryLinkedTestEntityPayload;
   isShowAll?: boolean;
+  cacheKey?: string;
 };
 
 const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
@@ -51,6 +69,7 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
     params,
     hideEmptyFolder,
     isShowAll,
+    cacheKey = 'page',
   } = props;
   const [treeSelectedKeys, setTreeSelectedKeys] = React.useState([]);
   const [treeExpandedKeys, setTreeExpandedKeys] = React.useState([]);
@@ -72,29 +91,14 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
         params,
       });
 
-      // 过滤为空的目录
-      const filterEmptyFolder = folders => {
-        if (Array.isArray(folders)) {
-          return folders
-            .filter(folder => {
-              const [, childTestDetailNum] = folder.counts;
-              return childTestDetailNum > 0;
-            })
-            .map(folder => {
-              folder.children = filterEmptyFolder(folder.children);
-              return folder;
-            });
-        } else {
-          return folders;
-        }
-      };
-
       return hideEmptyFolder ? filterEmptyFolder([data]) : [data];
     },
     {
       ready: Boolean(workspaceKey),
       refreshDeps: [workspaceKey, params, hideEmptyFolder, isShowAll],
-      // cacheKey: `treeData_${workspaceKey}_${hideEmptyFolder}_${JSON.stringify(params)}`,
+      // cacheKey: `treeData_${workspaceKey}_${hideEmptyFolder}_${JSON.stringify(params)}_${cacheKey}`,
+      // cacheTime: 99999,
+      // staleTime: 99999,
     },
   );
 

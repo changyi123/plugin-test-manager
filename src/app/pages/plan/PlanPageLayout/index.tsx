@@ -124,6 +124,7 @@ const PlanPageLayout: React.FC<any> = () => {
   useUpdateEffect(() => {
     if (!workspaceKey || !selectedTestPlan?.objectId) return;
     if (activeType === 'TestExecution') {
+      if (!runLinkCaseIds?.length) return;
       setTreeParams({
         query: {
           workspaceKey: workspaceKey,
