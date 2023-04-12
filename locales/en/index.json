@@ -371,6 +371,7 @@
           "updateDataSuccess": "Data updated successfully",
           "saveFail": "Save failed",
           "export": "Export XMind",
+          "import": "Import XMind",
           "exportLoadingMessage": "XMind exporting"
         }
       }
@@ -379,11 +380,13 @@
       "title": "Import XMind",
       "step": {
         "upload": "Upload",
-        "validate": "Validate"
+        "validate": "Validate",
+        "result": "Result"
       },
       "button": {
         "nextStep": "Next step",
-        "save": "Save"
+        "save": "Save",
+        "close": "close"
       },
       "uploadStep": {
         "importLocation": "Import Location",
@@ -399,6 +402,13 @@
         "levelTip": "The level of the module in the XMind file plus the grouping level of the current mind cannot exceed 8 levels",
         "countLimitTip": "Up to 1000 cases can be imported at a time",
         "downloadTemplate": "Download Template"
+      },
+      "resultStep": {
+        "hint": "Saving data, please wait",
+        "stats": {
+          "label": "Data Statistics:",
+          "count": ["Total", "cases"]
+        }
       }
     }
   },

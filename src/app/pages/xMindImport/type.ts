@@ -1,11 +1,15 @@
+import { EventEmitter } from 'ahooks/lib/useEventEmitter';
+
 /** step 组件 prop */
 export type StepComponentProp = {
   sharedState: SharedState;
+  saveButtonEmitter: EventEmitter<any>;
   onSharedStateChange: (sharedState: Partial<SharedState>) => void;
 };
 
 /** 跨组件的状态 */
 export type SharedState = {
+  workspaceKey: string;
   /** repository id */
   repositoryId: string;
   /** redirect 链接  */
@@ -18,4 +22,6 @@ export type SharedState = {
   repositoryTree: any;
   /** 优先级配置项 */
   priorityOptions: any[];
+  /** 脑图节点提交数据 */
+  submitMinderData: any;
 };

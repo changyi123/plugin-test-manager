@@ -20,6 +20,7 @@ import { deleteTestEntity, updateTestEntity } from '@/lib/api/item';
 import useI18n from '@/lib/hooks/useI18n';
 import { getLang } from '@/lib/utils/locale';
 import { exportAndDownloadXMind } from '@/lib/minder';
+import { getProximaBasePath, getTenantKey } from '@/lib/utils/helper';
 
 import cx from './index.less';
 
@@ -91,7 +92,7 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
 
         // 判断 name 是否出现多次
         Object.entries(sameModuleNameTimes).forEach(([name, times]) => {
-          if (times > 1) {
+          if ((times as number) > 1) {
             const moduleNamePath = paths.map(path => path.data.text).join('/');
             throw message.error(
               `${t('page.repository.view.minder.nameRepeat.0')} “${moduleNamePath}” ${t(
@@ -372,6 +373,20 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
     setTimeout(hide, 500);
   });
 
+  // 导入 XMind 数据，打开新页面
+  const handleXMindImport = useMemoizedFn(() => {
+    const currentPageUrl = location.href.split('?')[0];
+    const baseUrl = getProximaBasePath() ? `${getProximaBasePath()}` : '/';
+    // 跳转到导入页面
+    const href = `${baseUrl}/${getTenantKey()}/workspaces/${
+      workspace.key
+    }/plugin/test_manager_test-xmindimport/?workspaceKey=${workspace.key}&repositoryId=${
+      selectedNode?.key
+    }&redirectLink=${encodeURIComponent(currentPageUrl)}`;
+
+    window.open(href, '_blank');
+  });
+
   const memoizedButtonNode = React.useMemo(() => {
     return (
       <div>
@@ -381,6 +396,9 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
         <Dropdown
           overlay={
             <Menu>
+              <Menu.Item key="XMindImport" onClick={handleXMindImport}>
+                {t('page.repository.view.minder.import')}
+              </Menu.Item>
               <Menu.Item key="XMindExport" onClick={handleXMindExport}>
                 {t('page.repository.view.minder.export')}
               </Menu.Item>
@@ -391,7 +409,7 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
         </Dropdown>
       </div>
     );
-  }, [handleSave, saveLoading, t, handleXMindExport]);
+  }, [handleSave, saveLoading, t, handleXMindExport, handleXMindImport]);
 
   if (!priorityOptions || !minderData) return null;
 

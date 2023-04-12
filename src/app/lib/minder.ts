@@ -130,11 +130,11 @@ export const parseXMindFile2MinderData = async (file, { priorityOptions }) => {
         if (!data.type) {
           data.type = getMappingKey(TypeMapping, label);
         }
-        if (!data.priority && data.type === MinderNodeType.TestCase) {
+        // 给标签增加优先级
+        if (data.type === MinderNodeType.TestCase && !data.priority) {
           data.priority = getMappingKey(PriorityMapping, label);
         }
       });
-
       return data;
     };
 

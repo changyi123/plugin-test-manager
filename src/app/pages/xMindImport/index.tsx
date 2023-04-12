@@ -1,11 +1,12 @@
 import React from 'react';
+import Result from './steps/Result';
 import { Button, Steps } from 'antd';
 import useI18n from '@/lib/hooks/useI18n';
 import XMindUpload from './steps/XMindUpload';
 import MinderEditor from './steps/MinderDraftEditor';
 import { getPriorityOptions } from '@/lib/api/minder';
 import { getRepositoryTreeWithParentNode } from './lib';
-import { useRequest, useMemoizedFn, useLocalStorageState } from 'ahooks';
+import { useRequest, useMemoizedFn, useEventEmitter } from 'ahooks';
 
 import { SharedState } from './type';
 
@@ -16,16 +17,25 @@ const ImportSteps = [
     key: 'upload',
     component: XMindUpload,
     buttonText: 'nextStep',
+    useCanGoNextControlButtonDisabled: true,
   },
   {
     key: 'validate',
     component: MinderEditor,
     buttonText: 'save',
   },
+  {
+    key: 'result',
+    component: Result,
+    useCanGoNextControlButtonDisabled: true,
+  },
 ];
+
+const RootRepositoryId = 'root';
 
 // 各组件间共享的状态
 const useSharedState = () => {
+  const { t } = useI18n();
   const { data: priorityOptions } = useRequest(
     async () => {
       const options = await getPriorityOptions();
@@ -37,12 +47,14 @@ const useSharedState = () => {
   );
 
   const [sharedState, setSharedState] = React.useState<SharedState>({
+    workspaceKey: '',
     priorityOptions,
     redirectLink: '',
     canGoNext: false,
     minderData: null,
     repositoryTree: null,
-    repositoryId: 'root',
+    submitMinderData: null,
+    repositoryId: RootRepositoryId,
   });
 
   const setPartialSharedState = useMemoizedFn((state: Partial<SharedState>) => {
@@ -52,19 +64,32 @@ const useSharedState = () => {
     }));
   });
 
-  const [importState] = useLocalStorageState('xmind-import-state');
+  React.useEffect(() => {
+    if (priorityOptions) {
+      setPartialSharedState({ priorityOptions });
+    }
+  }, [priorityOptions, setPartialSharedState]);
+
+  React.useEffect(() => {
+    const searchState = {} as Record<string, string>;
+    for (const [key, value] of new URLSearchParams(window.location.search).entries()) {
+      searchState[key] = value;
+    }
+    setPartialSharedState({
+      repositoryId: searchState.repositoryId ?? RootRepositoryId,
+      workspaceKey: searchState?.workspaceKey,
+      redirectLink: searchState?.redirectLink,
+    });
+  }, [setPartialSharedState]);
+
   // TODO: 获取用例树
   React.useEffect(() => {
-    if (importState?.workspaceKey) {
-      getRepositoryTreeWithParentNode(importState?.workspaceKey).then(repositoryTree => {
+    if (sharedState?.workspaceKey) {
+      getRepositoryTreeWithParentNode(sharedState?.workspaceKey, t).then(repositoryTree => {
         setPartialSharedState({ repositoryTree });
       });
     }
-  }, [importState?.workspaceKey, setPartialSharedState]);
-
-  React.useEffect(() => {
-    setPartialSharedState({ repositoryId: importState.repositoryId });
-  }, [importState?.repositoryId, setPartialSharedState]);
+  }, [sharedState?.workspaceKey, setPartialSharedState, t]);
 
   return [sharedState, setPartialSharedState] as const;
 };
@@ -76,9 +101,17 @@ const XMindImport = () => {
   const currentStep = ImportSteps[stepIndex];
 
   const [sharedState, setPartialSharedState] = useSharedState();
+  const saveButtonEmitter = useEventEmitter<'userClick' | 'stepComponentTrigger'>();
 
   // 下一步
-  const nextStep = useMemoizedFn(() => {
+  const handlerSaveButtonClick = useMemoizedFn(() => {
+    saveButtonEmitter.emit('userClick');
+    sharedState.canGoNext && setStepIndex(step => step + 1);
+    setPartialSharedState({ canGoNext: false });
+  });
+
+  saveButtonEmitter.useSubscription(type => {
+    if (type === 'userClick') return;
     sharedState.canGoNext && setStepIndex(step => step + 1);
     setPartialSharedState({ canGoNext: false });
   });
@@ -92,13 +125,22 @@ const XMindImport = () => {
             <Steps.Step key={step.key} title={t(`page.xMindImport.step.${step.key}`)} />
           ))}
         </Steps>
-        <Button disabled={!sharedState.canGoNext} type="primary" onClick={nextStep}>
-          {t(`page.xMindImport.button.${currentStep.buttonText}`)}
-        </Button>
+        {ImportSteps[stepIndex].buttonText && (
+          <Button
+            disabled={
+              ImportSteps[stepIndex].useCanGoNextControlButtonDisabled && !sharedState.canGoNext
+            }
+            type="primary"
+            onClick={handlerSaveButtonClick}
+          >
+            {t(`page.xMindImport.button.${currentStep.buttonText}`)}
+          </Button>
+        )}
       </div>
       <div className={cx('step-content')}>
         {React.createElement(currentStep.component, {
           sharedState,
+          saveButtonEmitter,
           onSharedStateChange: setPartialSharedState,
         })}
       </div>

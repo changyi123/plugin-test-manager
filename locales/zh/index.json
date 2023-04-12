@@ -360,7 +360,8 @@
           "overMaxLevelModulePath": "模块已超过最大层级限制，请修改后再进行保存",
           "updateDataSuccess": "数据更新成功",
           "saveFail": "保存失败",
-          "export": "导出 XMind",
+          "export": "导出为 XMind",
+          "import": "XMind 文件导入",
           "exportLoadingMessage": "正在导出 XMind"
         }
       }
@@ -369,11 +370,13 @@
       "title": "XMind 导入",
       "step": {
         "upload": "上传",
-        "validate": "数据校验"
+        "validate": "数据校验",
+        "result": "结果"
       },
       "button": {
         "nextStep": "下一步",
-        "save": "保存"
+        "save": "保存",
+        "close": "关闭"
       },
       "uploadStep": {
         "importLocation": "导入位置",
@@ -389,6 +392,13 @@
         "levelTip": "XMind 文件中模块的层级加上当前脑图分组层级不可以超过8层",
         "countLimitTip": "单次上传最大支持导入 1000 条用例",
         "downloadTemplate": "下载模板 "
+      },
+      "resultStep": {
+        "hint": "数据保存中，请稍后",
+        "stats": {
+          "label": "数据统计：",
+          "count": ["共", "条用例数据"]
+        }
       }
     }
   },

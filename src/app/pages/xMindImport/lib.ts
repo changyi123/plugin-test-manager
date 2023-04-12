@@ -1,6 +1,8 @@
 import { getRepositoryData } from '@/lib/api/repository';
+import { MinderNodeType } from 'common/constant';
+const RootRepositoryId = 'root';
 
-export const getRepositoryTreeWithParentNode = async workspaceKey => {
+export const getRepositoryTreeWithParentNode = async (workspaceKey, t?: any) => {
   const repositoryData = await getRepositoryData([workspaceKey]).then(data =>
     data.map(({ objectId, name, parent }) => ({
       name,
@@ -8,9 +10,8 @@ export const getRepositoryTreeWithParentNode = async workspaceKey => {
       parentId: parent?.objectId,
     })),
   );
-  const RootId = 'root';
   const parentIdMapping = repositoryData.reduce((mapping, repo) => {
-    const parentId = repo?.parentId ?? RootId;
+    const parentId = repo?.parentId ?? RootRepositoryId;
     const children = mapping[parentId] ?? [];
     return {
       ...mapping,
@@ -32,5 +33,12 @@ export const getRepositoryTreeWithParentNode = async workspaceKey => {
     return node;
   };
 
-  return buildTreeWithParent({ id: RootId }, null);
+  return buildTreeWithParent(
+    {
+      id: RootRepositoryId,
+      type: MinderNodeType.Root,
+      name: typeof t === 'function' ? t('common.allTestCase') : '全部用例',
+    },
+    null,
+  );
 };

@@ -28,11 +28,11 @@ export const getProximaBasePath = () => {
   return '/project';
 };
 
-// /** 获取接口前缀 */
-// export const getApiPrefix = () => {};
-
-// /** 获取前端跳转前缀 */
-// export const getPagePrefix = () => {};
+/** 获取独立的 url */
+export const getSingletonUrl = workspaceKey => {
+  const baseUrl = getProximaBasePath() ? `${getProximaBasePath()}` : '/';
+  return `${baseUrl}/${getTenantKey()}/workspaces/${workspaceKey}`;
+};
 
 // 获取 webTrigger 前缀
 export const getPluginWebTriggerBaseUrl = () => {
@@ -122,7 +122,10 @@ export const generateStaticFileUrl = (url: string) => {
 /** 插件版本输出 */
 export const logPluginVersion = () => {
   // eslint-disable-next-line no-console
-  console.log('%cPLUGIN-VERSION:', 'font-size: 16px; font-weight: 700; color: skyblue');
+  console.log(
+    `%cPLUGIN-VERSION: ${(process.env as any)?.PROXIMA_VERSION_TAG}`,
+    'font-size: 16px; font-weight: 700; color: skyblue',
+  );
   // eslint-disable-next-line no-console
   console.table({
     Branch: (process.env as any)?.PROXIMA_VERSION_BRANCH,

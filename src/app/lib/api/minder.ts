@@ -74,3 +74,12 @@ export const batchDeleteRepository = async (ids: string[]) => {
   const needDeleteRepositories = ids.map(id => new Repository({ objectId: id }));
   return parseResponseInterceptor(await Parse.Object.destroyAll(needDeleteRepositories));
 };
+
+/** 导入脑图数据 */
+export const importMinderData = async (params: { workspaceKey: string; minderData: any }) => {
+  const {
+    data: { data },
+  } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-module-minder-data-import`, params);
+
+  return data;
+};

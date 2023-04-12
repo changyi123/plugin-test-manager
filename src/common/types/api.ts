@@ -237,3 +237,12 @@ export type MinderDataPayload = {
   workspaceKey: string;
   repositoryKey: string;
 };
+
+/**
+ * 脑图数据导入
+ * @example POST /api/project/app/osc/test_manager/webhooks/api-query-minder-data
+ */
+export type MinderDataImportPayload = {
+  workspaceKey: string;
+  minderData: any;
+};

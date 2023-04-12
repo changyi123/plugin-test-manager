@@ -63,7 +63,7 @@
     "speed-measure-webpack-plugin": "^1.5.0",
     "style-loader": "^3.2.1",
     "style-resources-loader": "^1.4.1",
-    "test-manager-minder": "git+http://proxima:proxima123@osc.gitee.work/enterprise__proxima/test-manager-minder.git#4b3578cd692fff6d9d30e01180837443ac2ec663",
+    "test-manager-minder": "git+http://proxima:proxima123@osc.gitee.work/enterprise__proxima/test-manager-minder.git#842aaaa7c3ca435eb033bc56cfe788c5a024ed44",
     "ts-loader": "^9.2.5",
     "typescript": "^4.4.3",
     "webpack": "^5.52.1",
@@ -75,7 +75,7 @@
   "dependencies": {
     "@alienfast/i18next-loader": "^2.0.1",
     "@ant-design/icons": "^4.7.0",
-    "@giteeteam/apps-team-api": "^0.4.4",
+    "@giteeteam/apps-team-api": "^0.4.9",
     "@giteeteam/apps-team-components": "0.3.4-remove-editor-0.7",
     "@nebulare/data": "^0.1.5",
     "@osui/theme": "^1.2.10",

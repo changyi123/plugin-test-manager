@@ -2,8 +2,22 @@
   height: 100%;
   overflow: hidden;
   :global {
-    .hotbox,
-    .receiver {
+    .hotbox {
+      display: none;
+    }
+  }
+  p {
+    margin-bottom: 0;
+  }
+
+  :global {
+    .ant-drawer-header {
+      padding: 0 24px;
+    }
+    .ant-drawer-body {
+      padding: 0;
+    }
+    .ant-tooltip-arrow {
       display: none;
     }
   }

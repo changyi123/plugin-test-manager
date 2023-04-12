@@ -1,8 +1,8 @@
 import React from 'react';
 import useI18n from '@/lib/hooks/useI18n';
 import { StepComponentProp } from '../type';
+import { useBoolean, useMemoizedFn } from 'ahooks';
 import { Upload, Checkbox, Button, message } from 'antd';
-import { useRequest, useBoolean, useMemoizedFn } from 'ahooks';
 import { parseXMindFile2MinderData, countMinderNodes, exportAndDownloadXMind } from '@/lib/minder';
 
 import cx from './XMindUpload.less';
@@ -205,9 +205,14 @@ const optimizeMinderData = ({
       node.data.type = parentNodeTypeMapping[parent.data.type];
     }
 
-    // 优先级推导
-    if (!node.data?.priority && defaultPriority) {
-      node.data.priority = defaultPriority;
+    if (node.data?.type === MinderNodeType.TestCase) {
+      // 用例模块优先级推导
+      if (!node.data?.priority && defaultPriority) {
+        node.data.priority = defaultPriority;
+      }
+    } else if (node.data?.priority) {
+      // 非用例模块优先级清空
+      node.data.priority = '';
     }
     if (Array.isArray(node.children)) {
       node.children.forEach(child => deriveNodeData(child, node));
@@ -233,6 +238,7 @@ const XMindUpload: React.FC<StepComponentProp> = ({ sharedState, onSharedStateCh
   const [isIncludeRootNode, { toggle: toggleIsIncludeRootNode }] = useBoolean(false);
   const [importData, setImportData] = React.useState(null);
   const { paths: repositoryPaths, currentRepositorySubtree } = React.useMemo(() => {
+    let res = { paths: [], currentRepositorySubtree: null };
     const traverse = node => {
       if (node?.id === sharedState.repositoryId) {
         let parent = node;
@@ -241,20 +247,24 @@ const XMindUpload: React.FC<StepComponentProp> = ({ sharedState, onSharedStateCh
           paths.unshift(parent.name ?? t('common.minderRootNodeName'));
           parent = parent.parent;
         }
-        return {
+        res = {
           paths,
           currentRepositorySubtree: node,
         };
       } else if (node && Array.isArray(node.children)) {
         for (const child of node.children) {
-          return traverse(child);
+          traverse(child);
         }
       }
     };
-    return traverse(sharedState.repositoryTree) ?? { paths: [], currentRepositorySubtree: null };
+
+    traverse(sharedState.repositoryTree);
+
+    return res;
   }, [sharedState.repositoryId, sharedState.repositoryTree, t]);
 
   const updateMinderDataSharedState = useMemoizedFn((minderData, isIncludeRootNode) => {
+    // 优化导入的数据节点
     const optimizedMinderData = optimizeMinderData({
       minderData,
       isIncludeRootNode,
@@ -274,12 +284,11 @@ const XMindUpload: React.FC<StepComponentProp> = ({ sharedState, onSharedStateCh
   const handleParseXMindFile = useMemoizedFn(async options => {
     const { file, onProgress, onSuccess } = options;
     onProgress({ percent: 30 });
-    console.log('sharedState.priorityOptions', sharedState.priorityOptions);
     const minderData = await parseXMindFile2MinderData(file, {
       priorityOptions: sharedState.priorityOptions,
     });
-    setImportData(minderData);
     setTimeout(onSuccess, 500);
+    setImportData(minderData);
   });
 
   React.useEffect(() => {
@@ -291,7 +300,7 @@ const XMindUpload: React.FC<StepComponentProp> = ({ sharedState, onSharedStateCh
         minderData: null,
       });
     }
-  }, [onSharedStateChange, isIncludeRootNode, importData]);
+  }, [onSharedStateChange, isIncludeRootNode, importData, updateMinderDataSharedState]);
 
   return (
     <div className={cx('container')}>
