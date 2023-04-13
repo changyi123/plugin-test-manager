@@ -300,8 +300,10 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
     typeof props.onSelect === 'function' && props.onSelect(selectedData);
 
     eventBusRef.current.dispatch(AddExistedTestEventType, { selectedData, treeType, planId });
+    setSelectValue(isSingleMode ? undefined : []);
     setVisible(false);
   }, [
+    isSingleMode,
     needFillValue,
     props,
     selectValue,
@@ -411,7 +413,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
         <div className={cx('actions')}>
           <Button
             onClick={() => {
-              setTreeType('repository');
+              testType === TestType.Case && setTreeType('repository');
               onCancel?.();
               setSelectValue(isSingleMode ? undefined : []);
               setVisible(false);
@@ -449,7 +451,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
       getContainer={getRootContainer}
       footer={ModalFooterNode}
       onCancel={() => {
-        setTreeType('repository');
+        testType === TestType.Case && setTreeType('repository');
         setSelectValue(isSingleMode ? undefined : []);
         setVisible(false);
       }}
