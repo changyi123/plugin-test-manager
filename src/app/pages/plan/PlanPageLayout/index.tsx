@@ -3,7 +3,6 @@ import { message, notification, Spin } from 'antd';
 import TestPlanList from '@/pages/plan/TestPlanList';
 import PageLayout from '@/components/common/PageLayout';
 import { useLocation } from 'react-router-dom';
-// import useGetTestPlanById from '@/pages/plan/TestPlanList/hooks';
 import {
   useResizeContainerDOM,
   useGetPlanLinkCaseIds,
@@ -104,7 +103,7 @@ const PlanPageLayout: React.FC<any> = () => {
     testPlanId: selectedTestPlan?.objectId,
   });
 
-  // 获取测试任务下测试执行和测试用例 id
+  // 获取测试任务下测试执行 id
   const { data: scopeTestRunIds, refresh: scopeTestRunIdsRefresh } = useGetExecutionLinkCaseRunIds({
     workspaceKey,
     type: 'TestExecution',

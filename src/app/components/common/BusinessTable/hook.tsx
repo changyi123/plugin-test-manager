@@ -50,8 +50,8 @@ export const useTestTypeScreenFieldKeys = ({
     // async () => [].concat(SystemFieldKeys, customerFields),
     async () => customerFields,
     {
-      cacheKey: `${workspaceKey}_${testType}_${customerFields?.toString()}`,
-      refreshDeps: [customerFields?.toString(), workspaceKey, testType],
+      cacheKey: `${workspaceKey}_${testType}_${JSON.stringify(customerFields)}`,
+      refreshDeps: [JSON.stringify(customerFields), workspaceKey, testType],
       cacheTime: 99999,
       staleTime: 99999,
     },

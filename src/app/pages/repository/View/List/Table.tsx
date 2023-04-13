@@ -359,7 +359,9 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         title: t('page.plan.testEntityList.repositoryGroup'),
         width: 200,
         render(_, rowData) {
-          return <span>{getTestCaseRepositoryPath(rowData.repository)}</span>;
+          return (
+            <span>{getTestCaseRepositoryPath?.(rowData?.repository) ?? t('common.unGrouped')}</span>
+          );
         },
       },
       {

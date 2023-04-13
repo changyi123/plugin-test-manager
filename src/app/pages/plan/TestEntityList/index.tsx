@@ -25,7 +25,7 @@ import {
 } from '@/lib/api/item';
 import { TestLinkType, TestType } from 'common/constant';
 import { TestCaseStatusModel, TestRunDesigneeModel, TestRunExecutorModel } from '@/lib/constants';
-import { has, isEmpty, isEqual, omit, pick } from 'lodash';
+import { isEmpty, isEqual, omit, pick } from 'lodash';
 import { useTestRunActionAuth, useCanExecuteTestRunIdSequence } from '@/lib/hooks/useTest';
 import { getCurrentUserSetting, saveUserSetting } from '@/lib/api/userSetting';
 import { useCurrentUser } from '@/lib/api/user';
@@ -37,6 +37,11 @@ import { getTestCaseStatusModelValue, handleCustomerSelector } from '@/lib/utils
 import cx from './index.less';
 import { getRepositoryQuery } from '@/lib/utils/tree';
 import { SystemFieldKeys } from '@/components/common/BusinessTable/hook';
+import {
+  useGetFilterExecutionLinkCaseRunIds,
+  useGetFilterPlanLinkCaseIds,
+} from '../PlanPageLayout/hooks';
+import { getTestRunSelector } from '../PlanPageLayout/helps';
 
 interface TestEntityListProps {
   loading?: boolean;
@@ -47,17 +52,6 @@ interface TestEntityListProps {
   tableSelectionVisible?: boolean;
   selectNode?: Record<string, any>;
 }
-
-const getTestRunSelector = customSelector => {
-  if (
-    has(customSelector, [TestRunDesigneeModel]) ||
-    has(customSelector, [TestRunExecutorModel]) ||
-    has(customSelector, [TestCaseStatusModel])
-  ) {
-    return pick(customSelector, [TestRunDesigneeModel, TestRunExecutorModel, TestCaseStatusModel]);
-  }
-  return;
-};
 
 const TestEntityList: React.FC<TestEntityListProps> = ({
   loading,
@@ -122,6 +116,15 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     },
   );
 
+  // 获取筛选后的测试计划关联的测试用例 ID
+  const { data: allPlanRowKeys } = useGetFilterPlanLinkCaseIds({
+    workspaceKey,
+    type: 'TestPlan',
+    id: scopedTestCaseIds,
+    selectNode,
+    selectors,
+  });
+
   // 获取全部用例 getter
   const testPlanTableDataGetter = useCallback(
     async queryParams => {
@@ -137,10 +140,10 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         };
       }
       setTableLoading(true);
-
       // 处理测试用例最新状态筛选
       const query: Record<string, any> = {};
       const { selector, runStatusSelector } = handleCustomerSelector(selectors);
+
       if (runStatusSelector[TestCaseStatusModel]?.value?.length) {
         const params = getTestCaseStatusModelValue(runStatusSelector);
         const { data: ids } = await getCasesByStatus({
@@ -193,7 +196,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       workspaceKey,
       activeType,
       testCaseFieldKeys,
-      selectors?.toString(),
+      JSON.stringify(selectors),
       selectedTestPlan?.objectId,
     ],
   );
@@ -382,11 +385,23 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       selectNode,
       activeType,
       testCaseFieldKeys,
-      selectors?.toString(),
+      JSON.stringify(selectors),
       workspaceKey,
       runLinkCaseIds,
     ],
   );
+
+  // 获取筛选后的测试执行关联的测试执行 ID
+  const { data: runRowKeys } = useGetFilterExecutionLinkCaseRunIds({
+    workspaceKey,
+    type: 'TestExecution',
+    id: scopedTestCaseIds,
+    runId: executionLinkRunIds,
+    runLinkCaseId: runLinkCaseIds,
+    selectNode,
+    selectors,
+    executionId: selectedExecution?.objectId,
+  });
 
   useEffect(() => {
     const [systemSelectors] = selectors ?? [];
@@ -578,11 +593,6 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     );
   });
 
-  // const testIdSequence = allRunData
-  //   ?.filter(run => requestScopedTestDetailIds?.includes(run.referenceCase))
-  //   ?.map(run => run.id)
-  //   .filter(Boolean);
-
   const executionColumns = React.useMemo(
     () => [
       {
@@ -666,6 +676,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
               <Tooltip title={message} placement="topLeft">
                 <Button
                   type="link"
+                  size="small"
                   disabled={!enabled}
                   onClick={async () => {
                     await testRunModalActionRef.current.open({
@@ -681,6 +692,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
               </Tooltip>
               <Button
                 type="link"
+                size="small"
                 style={{ marginLeft: 10 }}
                 disabled={getCreatePermission(TestType.Case)}
                 onClick={async () => {
@@ -967,7 +979,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           loading={tableLoading || loading}
           getDataSource={testPlanTableDataGetter}
           onHasRowSelected={setHasRowSelected}
-          allSelectableRowKeys={scopedTestCaseIds}
+          allSelectableRowKeys={allPlanRowKeys}
           selectionActionNodes={selectionActionNodes}
           onSelectionCancel={() => tableSelectionToggleEvent.emit(false)}
           handleFilterField={handleFilterField}
@@ -997,7 +1009,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           loading={tableLoading || loading}
           getDataSource={executionTableDataGetter}
           onHasRowSelected={setHasRowSelected}
-          allSelectableRowKeys={executionLinkRunIds}
+          allSelectableRowKeys={runRowKeys}
           selectionActionNodes={InnerTableSelectionActionNodes}
           onSelectionCancel={() => tableSelectionToggleEvent.emit(false)}
           handleFilterField={handleFilterField}
@@ -1006,7 +1018,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       {activeType !== 'TestPlan' && (
         <TestRunModal
           actionRef={testRunModalActionRef}
-          idSequence={executionLinkRunIds}
+          idSequence={runRowKeys}
           selectedTestPlanId={selectedTestPlan.objectId}
         />
       )}

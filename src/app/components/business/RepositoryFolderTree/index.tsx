@@ -95,9 +95,6 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
     {
       ready: Boolean(workspaceKey),
       refreshDeps: [workspaceKey, params, hideEmptyFolder, isShowAll],
-      // cacheKey: `treeData_${workspaceKey}_${hideEmptyFolder}_${JSON.stringify(params)}_${cacheKey}`,
-      // cacheTime: 99999,
-      // staleTime: 99999,
     },
   );
 
