@@ -23,7 +23,6 @@ import { useBaseAction } from '@/lib/hooks/useContext';
 import { generateSortIndex } from '@/lib/utils/helper';
 import { batchCreateTestRun, updateTestEntity } from '@/lib/api/item';
 import useI18n from '@/lib/hooks/useI18n';
-import { QueryLinkedTestEntityPayload } from 'common/types/api';
 import { useUpdateEffect } from 'ahooks';
 
 const PlanPageLayout: React.FC<any> = () => {
@@ -55,7 +54,7 @@ const PlanPageLayout: React.FC<any> = () => {
   const [refreshExecution, setRefreshExecution] = useState(false);
   const [showType, setShowType] = useState('all');
   const [loading, setLoading] = useState(false);
-  const [treeParams, setTreeParams] = useState<QueryLinkedTestEntityPayload>(null);
+  const [treeParams, setTreeParams] = useState<any>(null);
 
   const { query } = useLocation();
   // const { data: planData, refresh: refreshPlanData } = useGetTestPlanById(
@@ -129,9 +128,6 @@ const PlanPageLayout: React.FC<any> = () => {
           type: TestType.Case,
           id: runLinkCaseIds,
         },
-        linkType: TestLinkType.CaseLinkPlan,
-        sourceIds: [selectedTestPlan?.objectId as string],
-        destinationType: TestType.Case,
       });
     } else {
       setTreeParams({
@@ -262,7 +258,10 @@ const PlanPageLayout: React.FC<any> = () => {
 
         notification.destroy();
         if (isCheckCreateNext) {
-          await createTestExecution(isCheckCreateNext);
+          // await createTestExecution(isCheckCreateNext);
+          setTimeout(() => {
+            createTestExecution(isCheckCreateNext);
+          }, 500);
         }
         setRefreshExecution(true);
         notification.success({

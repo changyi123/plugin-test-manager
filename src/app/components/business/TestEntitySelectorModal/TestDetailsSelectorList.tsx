@@ -79,7 +79,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
       refreshDeps: [planId, workspaceKey, treeType, selectedNode, showType, searchName],
       cacheKey: `planLinkCaseIds_${
         selectedNode?.key ?? ''
-      }_${treeType}_${workspaceKey}_${planId}_${showType}_${searchName}`,
+      }_${selectedNode?.counts?.toString()}_${treeType}_${workspaceKey}_${planId}_${showType}_${searchName}`,
       cacheTime: 99999,
       staleTime: 99999,
     },
@@ -98,7 +98,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
           name: searchName,
           ...repository,
         },
-        // ascending: ['sortIndex', 'createdAt'],
+        ascending: ['sortIndex', 'createdAt'],
         limit: 99999,
         sortByRepositoryIds: allNodeKeys,
         onlySelectId: true,
@@ -110,7 +110,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
       refreshDeps: [workspaceKey, selectedNode, treeType, searchName, showType],
       cacheKey: `Repository_${
         selectedNode?.key ?? ''
-      }_${treeType}_${showType}_${workspaceKey}_${searchName}`,
+      }_${selectedNode?.counts?.toString()}_${treeType}_${showType}_${workspaceKey}_${searchName}`,
       staleTime: 999999999,
       cacheTime: 999999999,
     },
@@ -145,7 +145,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
 
       return { list, total };
     },
-    [workspaceKey, current],
+    [workspaceKey, current, selectedNode],
   );
 
   const getTestCaseByPlan = useCallback(
@@ -155,8 +155,9 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
         query.name = name;
       }
       if (repository) {
-        query.repository = repository.repository;
+        repository.repository && (query.repository = repository.repository);
       }
+
       const { list, total } = await getLinkedTestEntityByQuery({
         query: {
           workspaceKey: workspaceKey,
@@ -175,7 +176,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
 
       return { list, total };
     },
-    [workspaceKey, current],
+    [workspaceKey, current, selectedNode],
   );
 
   // 查询当前用例库下所有测试用例
@@ -226,9 +227,9 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
         showType,
         orderByCratedAt,
       ],
-      cacheKey: `Repository_${
-        selectedNode?.key ?? ''
-      }_${searchName}_${showType}_${current}_${treeType}_${orderByCratedAt}${workspaceKey}`,
+      cacheKey: `Repository_${selectedNode?.key ?? ''}_${selectedNode?.counts?.toString()}_${
+        searchName ?? ''
+      }_${showType}_${current}_${treeType}_${orderByCratedAt}${workspaceKey}`,
       staleTime: 999999999,
       cacheTime: 999999999,
     },
@@ -263,7 +264,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
         };
   }, [treeProps, showType, selectedNode]);
 
-  const { groupCounts } = useGetGroupCounts({ workspaceKey, current, params });
+  const { groupCounts } = useGetGroupCounts({ workspaceKey, current, params, selectedNode });
 
   const showList = useMemo(() => {
     if (treeType === 'plan') {
