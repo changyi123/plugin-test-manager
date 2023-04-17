@@ -35,7 +35,6 @@ interface RightProps {
   showType?: string;
   setShowType?: (val: string) => void;
   refreshTreeAndScopeTestCase?: () => void;
-  // refreshPlanData?: () => void;
   selectNode?: Record<string, unknown>;
 }
 
@@ -45,7 +44,6 @@ const Right: React.FC<RightProps> = props => {
     selectedExecution,
     showType,
     setShowType,
-    // refreshPlanData,
     refreshTreeAndScopeTestCase,
     selectNode,
   } = props;
@@ -57,6 +55,7 @@ const Right: React.FC<RightProps> = props => {
     planLinkCaseIds,
     runLinkCaseIds,
     mutateStatusEvent,
+    mutateTestTableList,
     tableSelectionToggleEvent,
   } = usePageContext();
   const proxima = createProximaSdk();
@@ -119,10 +118,10 @@ const Right: React.FC<RightProps> = props => {
       console.info('error', error);
     }
 
-    // scopedTestDetailRefresh();
     mutateStatusEvent.emit('refreshExecutionStatus');
     setTimeout(() => {
       refreshTreeAndScopeTestCase();
+      mutateTestTableList.emit('refreshTable');
     }, 1000);
     setLoading(false);
     notification.success({
@@ -176,14 +175,13 @@ const Right: React.FC<RightProps> = props => {
       // eslint-disable-next-line no-console
       console.log('error', error);
     }
-    // scopedTestDetailRefresh();
 
-    // mutateTestPlanEvent.emit(selectedTestPlan?.objectId);
     refresh('detailTable');
-    await refreshTreeAndScopeTestCase();
-    // refreshPlanData();
+    setTimeout(() => {
+      refreshTreeAndScopeTestCase();
+      mutateTestTableList.emit('refreshTable');
+    }, 500);
     setLoading(false);
-    // planDataMutate(selectedTestPlan?.objectId);
     notification.success({
       message: t('page.plan.planPageLayout.right.caseToPlanSuccessMessage'),
     });

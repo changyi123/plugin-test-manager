@@ -108,7 +108,6 @@ const PlanPageLayout: React.FC<any> = () => {
     workspaceKey,
     type: 'TestExecution',
     testExecutionId: selectedExecution?.objectId,
-    planLinkCaseIds,
   });
 
   useUpdateEffect(() => {

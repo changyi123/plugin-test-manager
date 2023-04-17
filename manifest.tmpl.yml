@@ -125,6 +125,8 @@ modules:
       timeout: 300000
     - key: api-batch-create-test-run-function
       handler: api.batchCreateTestRun
+      # 5 分钟超时时长
+      timeout: 300000
     - key: api-batch-create-test-case-function
       handler: api.batchCreateTestCase
       # 5 分钟超时时长

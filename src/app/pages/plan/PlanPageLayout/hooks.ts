@@ -116,17 +116,15 @@ export const useGetFilterPlanLinkCaseIds = props => {
 };
 
 export const useGetExecutionLinkCaseRunIds = (params: ScopedTestDetailIdsParams) => {
-  const { workspaceKey, testExecutionId, type, planLinkCaseIds } = params;
+  const { workspaceKey, testExecutionId, type } = params;
   return useRequest(
     async () => {
-      if (!testExecutionId || type !== 'TestExecution' || !planLinkCaseIds?.length)
-        return {} as ScopedTestRunIds;
+      if (!testExecutionId || type !== 'TestExecution') return {} as ScopedTestRunIds;
 
       // 测试执行的用例范围
       const { list: runs } = await getLinkedTestEntityByQuery({
         query: {
           workspaceKey: workspaceKey,
-          referenceCase: planLinkCaseIds,
         },
         limit: 9999,
         linkType: TestLinkType.RunLinkExecution,

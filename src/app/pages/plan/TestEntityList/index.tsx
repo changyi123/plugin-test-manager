@@ -73,6 +73,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     executionLinkRunIds,
     runLinkCaseIds,
     tableSelectionToggleEvent,
+    mutateTestTableList,
     getTestCaseRepositoryPath,
   } = usePageContext();
   const { t } = useI18n();
@@ -430,7 +431,9 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     // 重置 RowKeys
     actionRef.current.resetSelectedRowKeys();
     // 刷新左侧树，表格依赖刷新，刷新获取全部id
-    await refreshTreeAndScopeTestCase();
+    setTimeout(() => {
+      refreshTreeAndScopeTestCase();
+    }, 500);
   }, [refreshTreeAndScopeTestCase]);
 
   const removeTestRelation = React.useCallback(
@@ -763,7 +766,11 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
               return;
             }
 
-            await addAndDeleteRefresh();
+            // 删除刷新
+            setTimeout(() => {
+              addAndDeleteRefresh();
+              actionRef.current?.refresh();
+            }, 500);
             setTableLoading(false);
             proxima.execute('refreshSelectedNode');
           },
@@ -960,6 +967,10 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     },
     [currentUser, workspaceKey, currentFields],
   );
+
+  mutateTestTableList.useSubscription(key => {
+    key === 'refreshTable' && actionRef.current.refresh();
+  });
 
   return (
     <div className={cx('test-entity-list-box')}>
