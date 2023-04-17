@@ -98,7 +98,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
           name: searchName,
           ...repository,
         },
-        ascending: ['sortIndex', 'createdAt'],
+        // ascending: ['sortIndex', 'createdAt'],
         limit: 99999,
         sortByRepositoryIds: allNodeKeys,
         onlySelectId: true,
@@ -108,7 +108,9 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
     },
     {
       refreshDeps: [workspaceKey, selectedNode, treeType, searchName, showType],
-      cacheKey: `Repository_${selectedNode?.key ?? ''}_${treeType}_${workspaceKey}_${searchName}`,
+      cacheKey: `Repository_${
+        selectedNode?.key ?? ''
+      }_${treeType}_${showType}_${workspaceKey}_${searchName}`,
       staleTime: 999999999,
       cacheTime: 999999999,
     },

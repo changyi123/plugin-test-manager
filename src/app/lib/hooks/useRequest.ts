@@ -13,9 +13,9 @@ export const useNoExpiredRequest: useNoExpiredRequests = (service, options, plug
   return useRequest(
     service,
     {
+      refreshDeps: [],
       cacheKey: options.cacheKey,
-      staleTime: 9999999999999,
-      cacheTime: 9999999999999,
+      staleTime: -1,
       ...options,
     },
     plugins,

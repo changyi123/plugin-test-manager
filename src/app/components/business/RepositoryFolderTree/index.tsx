@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { Spin, Tree } from 'antd';
 import { FileOpen, FileClose, CaretDownOutlined } from '@/icons';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
@@ -58,6 +58,7 @@ type RepositoryTreeProps = {
   params?: QueryLinkedTestEntityPayload;
   isShowAll?: boolean;
   cacheKey?: string;
+  isModelTree?: boolean;
 };
 
 const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
@@ -65,10 +66,10 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
     actionRef,
     workspaceKey,
     onFolderSelect,
-    shouldIncludeSubFolder = true,
     params,
     hideEmptyFolder,
-    isShowAll,
+    isShowAll = true,
+    isModelTree = false,
   } = props;
   const [treeSelectedKeys, setTreeSelectedKeys] = React.useState([]);
   const [treeExpandedKeys, setTreeExpandedKeys] = React.useState([]);
@@ -77,10 +78,36 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
   // 匹配的目录名
   const [matchedFolderText, setMatchedFolderText] = React.useState({});
 
+  // 区分弹窗 treeData 和页面 treeData
   const {
-    data: treeData,
-    loading: getTreeLoading,
-    refresh: refreshTreeData,
+    data: modelTreeData,
+    loading: modelTreeLoading,
+    refresh: refreshModelTreeData,
+  } = useRequest(
+    async () => {
+      if (!workspaceKey) return [];
+      if (!isModelTree) return [];
+      if (!isShowAll && !params) return [];
+      const { data } = await getRepositoryTreeV2({
+        workspaceKey,
+        params,
+      });
+
+      return hideEmptyFolder ? filterEmptyFolder([data]) : [data];
+    },
+    {
+      ready: Boolean(workspaceKey && isModelTree),
+      refreshDeps: [workspaceKey, params, hideEmptyFolder, isModelTree, isShowAll],
+      cacheKey: `treeData_model_${workspaceKey}_${JSON.stringify(params)}`,
+      cacheTime: 99999,
+      staleTime: 99999,
+    },
+  );
+
+  const {
+    data: pageTreeData,
+    loading: pageTreeLoading,
+    refresh: refreshPageTreeData,
   } = useRequest(
     async () => {
       if (!workspaceKey) return [];
@@ -95,6 +122,11 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
     {
       ready: Boolean(workspaceKey),
       refreshDeps: [workspaceKey, params, hideEmptyFolder, isShowAll],
+      // ready: Boolean(workspaceKey && params),
+      // refreshDeps: [workspaceKey, params],
+      // cacheKey: `treeData_${workspaceKey}_${JSON.stringify(params)}`,
+      // cacheTime: 99999,
+      // staleTime: 99999,
     },
   );
 
@@ -103,6 +135,21 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
       clearCache(`${workspaceKey}-node-tree-data`);
     };
   }, [workspaceKey]);
+
+  const treeData = useMemo(
+    () => (isModelTree ? modelTreeData : pageTreeData),
+    [modelTreeData, pageTreeData, isModelTree],
+  );
+
+  const treeLoading = useMemo(
+    () => (isModelTree ? modelTreeLoading : pageTreeLoading),
+    [modelTreeLoading, pageTreeLoading, isModelTree],
+  );
+
+  const refreshTreeData = useMemo(
+    () => (isModelTree ? refreshModelTreeData : refreshPageTreeData),
+    [refreshModelTreeData, refreshPageTreeData, isModelTree],
+  );
 
   // 选中第一个节点
   React.useEffect(() => {
@@ -164,8 +211,8 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
   // 触发 onFolderChange 时间
   useDeepCompareEffect(() => {
     const selectedFolder = getTreeNodeByKey(treeData, treeSelectedKeys[0]);
-    onFolderSelect?.(selectedFolder);
-  }, [treeSelectedKeys, treeData, shouldIncludeSubFolder, hideEmptyFolder]);
+    selectedFolder && onFolderSelect?.(selectedFolder);
+  }, [treeSelectedKeys, treeData, hideEmptyFolder]);
 
   // 树节点渲染
   const titleRender = useMemoizedFn(node => {
@@ -209,7 +256,7 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
   });
 
   return (
-    <Spin spinning={getTreeLoading}>
+    <Spin spinning={treeLoading}>
       <DirectoryTree
         treeData={treeData}
         expandAction={false}

@@ -51,6 +51,7 @@ interface TestEntityListProps {
   refreshTreeAndScopeTestCase?: () => void;
   tableSelectionVisible?: boolean;
   selectNode?: Record<string, any>;
+  showType?: string;
 }
 
 const TestEntityList: React.FC<TestEntityListProps> = ({
@@ -60,6 +61,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   refreshTreeAndScopeTestCase,
   tableSelectionVisible,
   selectNode,
+  showType,
 }) => {
   const {
     workspaceKey,
@@ -154,7 +156,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       }
 
       // 查询测试用例
-      query.repository = getRepositoryQuery(selectNode, 'all')?.repository;
+      query.repository = getRepositoryQuery(selectNode, showType)?.repository;
       const { list: testDetails, total } = await getLinkedTestEntityByQuery({
         query: {
           workspaceKey: workspaceKey,
@@ -198,6 +200,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       testCaseFieldKeys,
       JSON.stringify(selectors),
       selectedTestPlan?.objectId,
+      showType,
     ],
   );
 
@@ -211,6 +214,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       queryParams,
       caseFieldKeys,
       selectNode,
+      showType,
     } = params;
 
     // 先筛选测试执行后查询测试用例
@@ -230,7 +234,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     runs.forEach(d => {
       runCaseMap.set(d.referenceCase, d);
     });
-    const repository = getRepositoryQuery(selectNode, 'all');
+    const repository = getRepositoryQuery(selectNode, showType);
     const { list: cases, total } = await getTestEntityByQuery({
       query: {
         workspaceKey: workspaceKey,
@@ -277,9 +281,10 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       queryParams,
       caseFieldKeys,
       selectNode,
+      showType,
     } = params;
 
-    const repository = getRepositoryQuery(selectNode, 'all');
+    const repository = getRepositoryQuery(selectNode, showType);
     const { list: cases, total } = await getTestEntityByQuery({
       query: {
         workspaceKey: workspaceKey,
@@ -366,6 +371,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           queryParams,
           caseFieldKeys: [].concat(SystemFieldKeys, testCaseFieldKeys),
           selectNode,
+          showType,
         });
       }
 
@@ -377,6 +383,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         queryParams,
         caseFieldKeys: [].concat(SystemFieldKeys, testCaseFieldKeys),
         selectNode,
+        showType,
       });
     },
     [
@@ -388,6 +395,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       JSON.stringify(selectors),
       workspaceKey,
       runLinkCaseIds,
+      showType,
     ],
   );
 

@@ -317,7 +317,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
   const filterOptions = React.useCallback(
     options => {
       // 在 ignoreTestEntityIds 列表的数据给过滤掉
-      return options.filter(opt => !ignoreTestEntityIds.includes(opt.value));
+      return options.filter(opt => !ignoreTestEntityIds?.includes(opt.value));
     },
     [ignoreTestEntityIds],
   );
@@ -405,7 +405,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
           <div className={cx('info')}>
             {t('components.business.testEntitySelectorModal.selected')}
             <strong className={cx('num')}>
-              {selectedTestDetails.filter(d => !ignoreTestEntityIds.includes(d)).length}
+              {selectedTestDetails.filter(d => !ignoreTestEntityIds?.includes(d)).length}
             </strong>
             {t('components.business.testEntitySelectorModal.case')}
           </div>

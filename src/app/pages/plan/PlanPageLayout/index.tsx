@@ -53,7 +53,7 @@ const PlanPageLayout: React.FC<any> = () => {
   );
 
   const [refreshExecution, setRefreshExecution] = useState(false);
-  const [showType, setShowType] = useState('showChild');
+  const [showType, setShowType] = useState('all');
   const [loading, setLoading] = useState(false);
   const [treeParams, setTreeParams] = useState<QueryLinkedTestEntityPayload>(null);
 
@@ -82,7 +82,7 @@ const PlanPageLayout: React.FC<any> = () => {
   useUpdateEffect(() => {
     if (selectedTestPlan?.objectId) {
       activeType !== 'TestPlan' && setActiveType('TestPlan');
-      showType !== 'showChild' && setShowType('showChild');
+      showType !== 'all' && setShowType('all');
       setSelectedExecution(undefined);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -339,7 +339,6 @@ const PlanPageLayout: React.FC<any> = () => {
               <PageLayout.Left>
                 <Left
                   actionRef={pageLeftRef}
-                  showType={showType}
                   treeParams={treeParams}
                   activeType={activeType}
                   onFolderSelect={node => setSelectNode(node)}
@@ -355,7 +354,6 @@ const PlanPageLayout: React.FC<any> = () => {
                     showType={showType}
                     setShowType={setShowType}
                     refreshTreeAndScopeTestCase={refreshTreeAndScopeTestCase}
-                    // refreshPlanData={refreshPlanData}
                     selectNode={selectNode}
                   />
                 </Spin>

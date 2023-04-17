@@ -216,11 +216,11 @@ const Right: React.FC<RightProps> = props => {
               value={showType}
               options={[
                 {
-                  value: 'showChild',
+                  value: 'all',
                   label: t('page.plan.planPageLayout.right.showChild'),
                 },
                 {
-                  value: 'showCur',
+                  value: 'current',
                   label: t('page.plan.planPageLayout.right.showCur'),
                 },
               ]}
@@ -259,6 +259,7 @@ const Right: React.FC<RightProps> = props => {
         <TestEntityList
           loading={loading}
           activeType={activeType}
+          showType={showType}
           selectedExecution={selectedExecution}
           tableSelectionVisible={tableSelectionVisible}
           selectNode={selectNode}

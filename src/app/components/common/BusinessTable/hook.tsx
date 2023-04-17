@@ -133,22 +133,13 @@ export const useGetTableFilterFields = ({
   };
 };
 
-export const useGetCustomFields = ({
-  workspaceKey,
-  testType,
-}: {
-  workspaceKey?: string;
-  testType?: TestType;
-}) => {
-  const keys = useTestTypeScreenFieldKeys({
-    workspaceKey,
-    testType,
-  });
-
-  const { data: customFields } = useNoExpiredRequest(() => getCustomFields(keys), {
-    ready: Boolean(keys),
-    cacheKey: `CustomFields_${keys.toString()}`,
-    refreshDeps: [keys],
+export const useGetCustomFields = ({ filedKeys }: { filedKeys?: string[] }) => {
+  const { data: customFields } = useNoExpiredRequest(() => getCustomFields(filedKeys), {
+    ready: Boolean(filedKeys),
+    cacheKey: `CustomFields_${filedKeys.toString()}`,
+    refreshDeps: [filedKeys],
+    cacheTime: 999999,
+    staleTime: 999999,
   });
 
   return customFields;

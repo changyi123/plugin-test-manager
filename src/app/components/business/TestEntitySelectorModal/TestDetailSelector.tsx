@@ -247,6 +247,7 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
                 shouldIncludeSubFolder={false}
                 actionRef={repositoryFolderTreeRef}
                 onFolderSelect={node => setSelectedNode(node)}
+                // isModelTree={true}
                 {...treeProps}
               />
             </div>
