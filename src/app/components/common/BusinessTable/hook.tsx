@@ -134,13 +134,16 @@ export const useGetTableFilterFields = ({
 };
 
 export const useGetCustomFields = ({ filedKeys }: { filedKeys?: string[] }) => {
-  const { data: customFields } = useNoExpiredRequest(() => getCustomFields(filedKeys), {
-    ready: Boolean(filedKeys),
-    cacheKey: `CustomFields_${filedKeys.toString()}`,
-    refreshDeps: [filedKeys],
-    cacheTime: 999999,
-    staleTime: 999999,
-  });
+  const { data: customFields } = useNoExpiredRequest(
+    () => getCustomFields(filedKeys.concat(SystemFieldKeys)),
+    {
+      ready: Boolean(filedKeys),
+      cacheKey: `CustomFields_${filedKeys.toString()}_${SystemFieldKeys?.toString()}}`,
+      refreshDeps: [filedKeys],
+      cacheTime: 999999,
+      staleTime: 999999,
+    },
+  );
 
   return customFields;
 };

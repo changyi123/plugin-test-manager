@@ -142,6 +142,11 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
     {
       ready: Boolean(workspace?.key),
       refreshDeps: [workspace?.key, testType, customFields],
+      cacheKey: `fieldsName_${workspace?.key ?? ''}_${testType}_${customFields
+        ?.map(d => d.key)
+        .toString()}`,
+      cacheTime: 99999,
+      staleTime: 99999,
     },
   );
 

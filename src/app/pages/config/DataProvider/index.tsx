@@ -7,7 +7,7 @@ import { generateDefaultTestConfig } from '../helper';
 import { generateStorageKey } from '@/lib/utils/helper';
 import { useAllTestWorkspace } from '@/lib/hooks/useTest';
 import { useLocalStorageState, useRequest } from 'ahooks';
-import { updateUsedHierarchySchema } from '@/lib/api/proxima';
+import { getWorkspaceByKey, updateUsedHierarchySchema } from '@/lib/api/proxima';
 import WorkspaceSelectorModal from '../WorkspaceSelectorModal';
 
 const CurrentWorkspaceStorageKey = generateStorageKey('current-workspace');
@@ -91,23 +91,18 @@ const DataProvider = ({ children }) => {
   useConfigBootstrap(globalConfig);
 
   // 校验空间是否存在
-  // const validateWorkspace = useCallback(
-  //   async data => {
-  //     if (data) {
-  //       const workspace = await getWorkspaceById(data?.objectId);
-  //       if (!workspace) {
-  //         setWorkspace(null);
-  //       } else {
-  //         setWorkspace(data);
-  //       }
-  //     }
-  //   },
-  //   [setWorkspace],
-  // );
-
-  // useEffect(() => {
-  //   validateWorkspace(currentWorkspace);
-  // }, [validateWorkspace, currentWorkspace]);
+  React.useEffect(() => {
+    if (currentWorkspace) {
+      const workspaceKey = currentWorkspace.key;
+      const execute = async () => {
+        const _workspace = await getWorkspaceByKey(workspaceKey);
+        if (!_workspace) {
+          setCurrentWorkspace(null);
+        }
+      };
+      execute();
+    }
+  }, [currentWorkspace, setCurrentWorkspace]);
 
   const value = React.useMemo(() => {
     return {
