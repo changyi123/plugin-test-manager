@@ -100,7 +100,7 @@ const StepRow: React.FC<StepRowProps> = props => {
       <div className={cx('call-test')}>
         <div>
           <span className={cx('brand')}>{t('components.business.testStep.caseInherit')}</span>
-          <ItemIcon className={cx('icon')} icon={itemType.icon}></ItemIcon>
+          <ItemIcon className={cx('icon')} icon={(itemType as any)?.icon}></ItemIcon>
           <span>{item.key}</span>
         </div>
         <div className={cx('content')}>
