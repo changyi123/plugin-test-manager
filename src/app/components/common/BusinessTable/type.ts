@@ -11,5 +11,7 @@ export type TitleCellOption = {
     isSettingPage?: boolean;
     /** 是否选中全部空间配置 */
     isCheckedGlobalConfig?: boolean;
+    /** 返回数据是否包含系统字段 */
+    includeSystemField?: boolean;
   };
 };

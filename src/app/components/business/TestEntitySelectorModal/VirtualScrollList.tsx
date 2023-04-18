@@ -1,0 +1,159 @@
+import React, { useCallback, useMemo } from 'react';
+import { Checkbox, Empty } from 'antd';
+import { clone, pullAll } from 'lodash';
+import { GroupedVirtuoso } from 'react-virtuoso';
+import { filterIgnoreTestCaseId, getCheckedByType, handleGroupPath } from './helper';
+import { useGetVirtualScrollList, useGetGroupNodeId } from './hooks';
+import useI18n from '@/lib/hooks/useI18n';
+import emptyImg from '@/icons/svg/empty-data.png';
+
+import cx from './VirtualScrollList.less';
+
+interface VirtualScrollListProps {
+  groupCounts?: number[];
+  group?: any[];
+  allCaseIds?: string[];
+  workspaceKey?: string;
+  caseListMap?: Map<number, Record<string, any>[]>;
+  current?: number;
+  selectCaseIdsSet?: Set<string>;
+  ignoreTestDetailIdsSet?: Set<string>;
+  setSelectCaseIdsSet?: (val?: Set<string>) => void;
+  setCurrent?: (val: number) => void;
+}
+
+const VirtualScrollList: React.FC<VirtualScrollListProps> = props => {
+  const {
+    group,
+    groupCounts,
+    allCaseIds,
+    caseListMap,
+    current,
+    ignoreTestDetailIdsSet,
+    selectCaseIdsSet,
+    setSelectCaseIdsSet,
+    setCurrent,
+  } = props;
+  const { t } = useI18n();
+
+  const { groupArray, groups, totalCount } = useGetVirtualScrollList(group, current);
+
+  const items = useMemo(() => [...caseListMap.values()].flat(), [caseListMap]);
+
+  const { groupNodeMap } = useGetGroupNodeId(group, allCaseIds);
+
+  const groupContent = useCallback(
+    index => {
+      const nodeCaseIds = groupNodeMap?.get(groups?.[index]?.key) ?? [];
+      const pathName = handleGroupPath(groupArray, groups?.[index]?.key);
+      const PathDom = ({ name }) => {
+        return typeof name === 'string' ? (
+          <span className={cx('name')}>{name}</span>
+        ) : (
+          <span className={cx('path-box')}>
+            <span className={cx('path')}>{name?.[0]}</span>
+            <span className={cx('cur-name')}>/{name?.[1]}</span>
+          </span>
+        );
+      };
+      return (
+        <div className={cx('detail-list-box')}>
+          <Checkbox
+            disabled={getCheckedByType(nodeCaseIds, ignoreTestDetailIdsSet)}
+            indeterminate={getCheckedByType(
+              filterIgnoreTestCaseId(new Set(nodeCaseIds), ignoreTestDetailIdsSet),
+              selectCaseIdsSet,
+              'indeterminate',
+            )}
+            checked={getCheckedByType(
+              nodeCaseIds,
+              new Set([...(selectCaseIdsSet ?? []), ...(ignoreTestDetailIdsSet ?? [])]),
+            )}
+            onChange={e => {
+              const ids = pullAll(clone(nodeCaseIds), [...(ignoreTestDetailIdsSet ?? [])]);
+              const set = new Set([...(selectCaseIdsSet ?? [])]);
+              if (e.target.checked) {
+                setSelectCaseIdsSet(new Set(ids.concat([...set])));
+              } else {
+                ids.forEach(d => {
+                  set.has(d) && set.delete(d);
+                });
+                setSelectCaseIdsSet(set);
+              }
+            }}
+          >
+            <PathDom name={pathName} />
+          </Checkbox>
+        </div>
+      );
+    },
+    [
+      groups,
+      groupNodeMap,
+      groupArray,
+      selectCaseIdsSet,
+      ignoreTestDetailIdsSet,
+      setSelectCaseIdsSet,
+    ],
+  );
+
+  const itemContent = useCallback(
+    index => {
+      return (
+        <div className={cx('detail-list')}>
+          <Checkbox
+            onChange={e => {
+              const id = items?.[index]?.id;
+              const set = new Set([...(selectCaseIdsSet ?? [])]);
+              if (e.target.checked) {
+                set.add(id);
+              } else {
+                set.delete(id);
+              }
+              setSelectCaseIdsSet(set);
+            }}
+            disabled={ignoreTestDetailIdsSet?.has(items?.[index]?.id)}
+            checked={
+              selectCaseIdsSet?.has(items?.[index]?.id) ||
+              ignoreTestDetailIdsSet?.has(items?.[index]?.id)
+            }
+          >
+            <span className={cx('title')}>{items?.[index]?.name}</span>
+          </Checkbox>
+        </div>
+      );
+    },
+    [ignoreTestDetailIdsSet, items, selectCaseIdsSet, setSelectCaseIdsSet],
+  );
+
+  return (
+    <>
+      {items?.length ? (
+        <GroupedVirtuoso
+          className={cx('group-virtuoso')}
+          style={{ height: '400px' }}
+          groupCounts={groupCounts}
+          groupContent={groupContent}
+          itemContent={itemContent}
+          atBottomStateChange={atBottom => {
+            if (atBottom) {
+              if (!items?.length) return;
+              if (!groupCounts?.length) return;
+              if (!totalCount) return;
+              if (current * 100 >= totalCount) return;
+              setCurrent(current + 1);
+            }
+          }}
+        />
+      ) : (
+        <Empty
+          className={cx('empty-test')}
+          image={emptyImg}
+          description={t('components.business.testEntitySelectorModal.notHaveCase')}
+        />
+      )}
+    </>
+  );
+};
+
+export default React.memo(VirtualScrollList);

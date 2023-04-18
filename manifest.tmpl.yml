@@ -203,7 +203,7 @@ modules:
       - key: precondition
         title: 前置条件
       - key: action
-        title: 步骤描述
+        title: 步骤
       - key: result
         title: 预期结果
       - key: data

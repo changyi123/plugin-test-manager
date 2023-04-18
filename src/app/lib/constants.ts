@@ -417,6 +417,8 @@ export const SelectorCurrentUserValue = 'currentUser';
 
 export const RepositoryModel = `${appKey}_Repository`;
 export const TestCaseStatusModel = `${appKey}_status`;
+export const TestRunDesigneeModel = `${appKey}_designee`;
+export const TestRunExecutorModel = `${appKey}_executor`;
 
 export const getExtendFields = t => [
   {
@@ -432,10 +434,10 @@ export const getExtendFields = t => [
     },
   },
   {
-    key: 'test_manager_designee',
+    key: TestRunDesigneeModel,
     // name: '执行人',
     name: t('common.designee'),
-    objectId: 'test_manager_designee',
+    objectId: TestRunDesigneeModel,
     fieldType: {
       component: 'createdBy',
       dataType: 'object',
@@ -445,10 +447,10 @@ export const getExtendFields = t => [
     },
   },
   {
-    key: 'test_manager_executor',
+    key: TestRunExecutorModel,
     // name: '最新操作执行人',
     name: t('common.testExecutor'),
-    objectId: 'test_manager_executor',
+    objectId: TestRunExecutorModel,
     fieldType: {
       component: 'createdBy',
       dataType: 'object',
@@ -459,7 +461,7 @@ export const getExtendFields = t => [
   },
   {
     key: TestCaseStatusModel,
-    // name: '最新执行状态',
+    // name: '测试执行状态',
     name: t('common.testCaseStatus'),
     objectId: TestCaseStatusModel,
     fieldType: {

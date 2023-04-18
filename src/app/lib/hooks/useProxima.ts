@@ -75,22 +75,6 @@ export const useUserCellUserDataProp = workspaceKey => {
   return userData;
 };
 
-const SystemFieldKeys = [
-  // SYSTEM_FIELD.UpdatedBy
-  // SYSTEM_FIELD.Sprint,
-  // SYSTEM_FIELD.ItemType,
-  // SYSTEM_FIELD.UpdatedAt,
-  SYSTEM_FIELD.CreatedBy,
-  SYSTEM_FIELD.CreatedAt,
-  SYSTEM_FIELD.Key,
-  SYSTEM_FIELD.Name,
-  SYSTEM_FIELD.Status,
-  SYSTEM_FIELD.Version,
-  SYSTEM_FIELD.Priority,
-  SYSTEM_FIELD.Assignee,
-  SYSTEM_FIELD.Workspace,
-] as const;
-
 /** 获取空间界面方案自定义字段 keys */
 export const useUsedScreenFieldKeys = (
   workspaceKey: string,
@@ -166,6 +150,7 @@ export const useUsedScreenFieldKeys = (
       return itemUsedFieldKeyMapping as Record<'default' | string, string[]>;
     },
     {
+      ready: Boolean(workspaceKey),
       refreshDeps: [workspaceKey],
       cacheKey: `ItemTypeUsedFieldKey_${workspaceKey}`,
     },
@@ -173,10 +158,7 @@ export const useUsedScreenFieldKeys = (
 
   useDeepCompareEffect(() => {
     const fieldKeys = _.difference(
-      [].concat(
-        SystemFieldKeys,
-        itemUsedFieldKeyMapping?.[itemTypeKey] ?? itemUsedFieldKeyMapping?.default ?? [],
-      ),
+      [].concat(itemUsedFieldKeyMapping?.[itemTypeKey] ?? itemUsedFieldKeyMapping?.default ?? []),
       shouldHiddenFieldKeys,
     );
 

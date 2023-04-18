@@ -12,12 +12,13 @@ import { arrayToTree } from '@/lib/utils/arrayToTree';
 import { getCustomFields } from '@/lib/api/proxima';
 import { SYSTEM_FIELD } from '@/lib/constants';
 import { difference } from 'lodash';
-import { traverseTreeNodes, getTreeNodeByKey } from '../util';
+import { getTreeNodeByKey } from '../util';
 import {
-  getRepositoryTree,
+  getRepositoryTreeV2,
   getTestEntityByQuery,
   getLinkedTestEntityByQuery,
 } from '@/lib/api/item';
+import { getRepositoryQuery } from '@/lib/utils/tree';
 
 export type TreeNode = {
   key: string;
@@ -134,18 +135,7 @@ const getExcelData = async (data: any) => {
   const priorityInfo = await getTestPriorityInfo('priority');
   const repoDataMap = new Map();
 
-  const _repoData =
-    repoData ??
-    (await getRepositoryData(
-      results.reduce(
-        (prev, cur) => {
-          !prev.includes(cur.workspace.key) && (prev = prev.concat(cur.workspace.key));
-
-          return prev.filter(Boolean);
-        },
-        [workspaceKey],
-      ),
-    ));
+  const _repoData = repoData ?? (await getRepositoryData([workspaceKey]));
 
   handleRepoPath(getRepoData(_repoData)).forEach(d => {
     repoDataMap.set(d.objectId, d.path);
@@ -261,12 +251,11 @@ const importTestInfo = async (
       t,
     });
   } else {
-    // 模块中包含的测试用例
-    let testCaseIds = [];
+    const query: Record<string, unknown> = {};
     // 获取用例树
     const workspaceKey = workspace.key;
     const [{ data: repositoryTree }, repositoryData] = await Promise.all([
-      getRepositoryTree({ workspaceKey }),
+      getRepositoryTreeV2({ workspaceKey }),
       getRepositoryData([workspaceKey]),
     ]);
 
@@ -275,26 +264,19 @@ const importTestInfo = async (
     // 导出当前分组及其字分组，需要特殊处理 repository 数据
     if (type === 'exportChildGroup') {
       // 获取当前分组及其所有子分组用例
-      traverseTreeNodes([selectTreeNode], node => {
-        testCaseIds = testCaseIds.concat(node.caseIds);
-      });
+      query.repository = getRepositoryQuery(selectTreeNode, 'all')?.repository;
     } else if (type === 'exportGroup') {
       // 导出当前分组用例
-      testCaseIds = selectTreeNode.caseIds;
-    } else if (type === 'exportAll') {
-      // 导出全部分组用例
-      traverseTreeNodes([repositoryTree], node => {
-        testCaseIds = testCaseIds.concat(node.caseIds);
-      });
+      query.repository = getRepositoryQuery(selectTreeNode, 'current')?.repository;
     } else if (type === 'exportFilter') {
-      testCaseIds = ids;
+      query.id = ids;
     }
 
     const { list: results } = await getTestEntityByQuery({
       query: {
         type: TestType.Case,
         workspaceKey: workspace.key,
-        id: testCaseIds,
+        ...query,
       },
       limit: 99999,
     });
@@ -338,7 +320,7 @@ export const downloadExampleFile = async (fieldKeys, t) => {
         // 优先级: '优先级可填值范围：最高，较高，普通，较低，最低',
         // 前置条件: '测试用例前置条件',
         // 负责人: '用户名',
-        // 步骤描述: '【1】需要以【序号】开头\n【2】步骤描述中换行符会被保留',
+        // 步骤: '【1】需要以【序号】开头\n【2】步骤中换行符会被保留',
         // 预期结果: '【1】需要以【序号】开头\n【2】预期结果中换行符会被保留',
         // 数据: '【1】需要以【序号】开头\n【2】数据中换行符会被保留',
         ...ExportCustomFields,

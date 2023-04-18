@@ -14,12 +14,13 @@ export interface ICommonRes<T = any> {
 }
 
 export const getRepositoryData = async (workspaceKeys: string[]) => {
+  if (!workspaceKeys?.length) return;
   const repositoryData = await new Parse.Query(Repository)
     .containedIn('workspaceKey', workspaceKeys)
     .limit(99999)
     .find({ json: true });
 
-  return repositoryData;
+  return repositoryData ?? [];
 };
 
 export const getFolderTree = async (workspaceKey: string) => {

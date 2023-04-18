@@ -2,11 +2,13 @@ import keyBy from 'lodash/keyBy';
 import cloneDeep from 'lodash/cloneDeep';
 import { aggsSearch } from '../../lib/coreApi';
 import { logTimeCost } from '../../lib/logger';
+import { getPayload } from '../../lib/iqlRequest';
 import { getParseQuery, i18n } from '@giteeteam/apps-team-api';
 import { getReqInfoFromVMRuntime, buildResponse } from '../../lib/apiUtil';
 import { getRepositoryTree } from '../../lib/repository';
 import { RepositoryTreePayload } from '../../../common/types/api';
 import { InfinityLimit, RepositoryClassName } from '../../../common/constant';
+import iqlSearchParamsBuilder from '../../../common/utils/iqlSearchParamsBuilder';
 
 // 未分组模块 key
 const UngroupedRepositoryKey = 'root';
@@ -83,6 +85,17 @@ export const repositoryTreeV2 = async () => {
     );
   };
 
+  let linkIql: string;
+  if (body.params) {
+    const payload = await getPayload(body.params);
+    const { iql } = iqlSearchParamsBuilder({
+      payload,
+      limit: InfinityLimit,
+      order: [],
+    });
+    linkIql = iql;
+  }
+
   const getGroupedCaseCount = async () => {
     const {
       payload: { value: result },
@@ -104,7 +117,7 @@ export const repositoryTreeV2 = async () => {
           compute: 'count',
         },
       ],
-      iql: `workspaceKey='${body.workspaceKey}' and 'test_manager_type' = "TestCase"`,
+      iql: linkIql || `workspaceKey='${body.workspaceKey}' and 'test_manager_type' = "TestCase"`,
       iqlContext: {
         displayContext: 'test_manager',
       },

@@ -16,6 +16,7 @@ const ItemLinkTable: React.FC<ItemLinkTableProps> = ({ itemLinks }) => {
   const tableColumns = [
     {
       title: 'Key',
+      width: 120,
       dataIndex: 'key',
       render(key, record) {
         return (
@@ -54,6 +55,7 @@ const ItemLinkTable: React.FC<ItemLinkTableProps> = ({ itemLinks }) => {
     },
     {
       title: t('common.type'),
+      width: 120,
       dataIndex: 'itemType',
       render(itemType) {
         return (

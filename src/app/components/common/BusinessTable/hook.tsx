@@ -1,7 +1,7 @@
 import { useUsedScreenFieldKeys } from '@/lib/hooks/useProxima';
 import { useNoExpiredRequest } from '@/lib/hooks/useRequest';
 import { getTestConfig } from '@/lib/api/common';
-import { TestType } from '@/lib/constants';
+import { SYSTEM_FIELD, TestType } from '@/lib/constants';
 import { TitleCellOption } from './type';
 import { getCurrentUserSetting } from '@/lib/api/userSetting';
 import { useRequest } from 'ahooks';
@@ -9,9 +9,26 @@ import { getCustomFields } from '@/lib/api/proxima';
 
 // const TestIncludeFiledKeys = ['status'];
 
+export const SystemFieldKeys = [
+  // SYSTEM_FIELD.UpdatedBy
+  // SYSTEM_FIELD.Sprint,
+  // SYSTEM_FIELD.ItemType,
+  // SYSTEM_FIELD.UpdatedAt,
+  SYSTEM_FIELD.CreatedBy,
+  SYSTEM_FIELD.CreatedAt,
+  SYSTEM_FIELD.Key,
+  SYSTEM_FIELD.Name,
+  SYSTEM_FIELD.Status,
+  SYSTEM_FIELD.Version,
+  SYSTEM_FIELD.Priority,
+  SYSTEM_FIELD.Assignee,
+  SYSTEM_FIELD.Workspace,
+] as const;
+
 export const useTestTypeScreenFieldKeys = ({
   workspaceKey,
   testType,
+  includeSystemField = true,
 }: TitleCellOption['titleCellOption']) => {
   const { data: itemTypeMap } = useNoExpiredRequest(
     async () => {
@@ -27,7 +44,20 @@ export const useTestTypeScreenFieldKeys = ({
   const itemTypeKey = itemTypeMap?.[testType];
   // 除测试计划外其他测试类型需要隐藏状态字段
   // const shouldHiddenFieldKeys = testType !== TestType.Plan ? TestIncludeFiledKeys : [];
-  return useUsedScreenFieldKeys(workspaceKey, itemTypeKey, []);
+  const customerFields = useUsedScreenFieldKeys(workspaceKey, itemTypeKey, []);
+
+  const { data: typeScreenFiledKeys } = useRequest(
+    async () => (includeSystemField ? [].concat(SystemFieldKeys, customerFields) : customerFields),
+    {
+      cacheKey: `${workspaceKey}_${testType}_${includeSystemField}_${JSON.stringify(
+        customerFields,
+      )}`,
+      refreshDeps: [JSON.stringify(customerFields), workspaceKey, testType, includeSystemField],
+      cacheTime: 99999,
+      staleTime: 99999,
+    },
+  );
+  return typeScreenFiledKeys ?? [];
 };
 
 export const useGetTableFilterFields = ({

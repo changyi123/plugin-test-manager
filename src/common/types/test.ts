@@ -119,7 +119,7 @@ export type Step = {
 
   data?: string; // 数据
 
-  action?: string; // 步骤描述
+  action?: string; // 步骤
   result?: string; // 预期结果
 
   // 改字段区分是否是测试继承类型
