@@ -284,7 +284,9 @@ module.exports = (cliEnv = {}, argv) => {
         },
         {
           test: /\.css/,
-          include: [path.resolve(__dirname, '../node_modules/@giteeteam/apps-team-components/dist')],
+          include: [
+            path.resolve(__dirname, '../node_modules/@giteeteam/apps-team-components/dist'),
+          ],
           use: [
             classNamesConfig,
             extractOrStyleLoaderConfig,
