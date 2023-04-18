@@ -122,33 +122,22 @@ export const useAllTestWorkspace = () => {
 
 export const useGetWorkspaceRepository = workspaceKey => {
   const { t } = useI18n();
-  const { data: repositoryData, refreshAsync: refreshRepositoryData } = useRequest(
+  const { data: testCaseRepositoryPath, refreshAsync: refreshRepositoryData } = useRequest(
     async () => {
       if (!workspaceKey) return;
       const data = await getRepositoryData([workspaceKey]);
-
-      return data;
-    },
-    {
-      cacheKey: `repository_data_${workspaceKey ?? ''}`,
-      refreshDeps: [workspaceKey],
-      cacheTime: 999999,
-      staleTime: 999999,
-    },
-  );
-
-  const { data: testCaseRepositoryPath } = useRequest(
-    async () => {
-      if (!hasArrayItem(repositoryData)) return;
+      if (!hasArrayItem(data)) return;
       const pathMap = new Map();
-      handleRepoPath(getRepoData(repositoryData)).forEach(d => {
+      handleRepoPath(getRepoData(data)).forEach(d => {
         pathMap.set(d.objectId, d.path);
       });
 
       return pathMap;
     },
     {
-      refreshDeps: [repositoryData],
+      cacheKey: `repository_data_${workspaceKey ?? ''}`,
+      refreshDeps: [workspaceKey],
+      staleTime: -1,
     },
   );
   const getTestCaseRepositoryPath = useCallback(
@@ -173,7 +162,9 @@ export const useGetTestRepoGroup = (rowData: any) => {
   const { t } = useI18n();
 
   const { data: repositoryData, refreshAsync: refreshRepositoryData } = useRequest(
-    () => getRepositoryData(workspaceKey ? [workspaceKey] : []),
+    async () => {
+      return await getRepositoryData(workspaceKey ? [workspaceKey] : []);
+    },
     {
       cacheKey: `repository_data_${workspaceKey ?? ''}`,
       refreshDeps: [workspaceKey],
