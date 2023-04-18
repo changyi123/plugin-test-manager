@@ -18,7 +18,10 @@ import { useSetTableHeight } from './hooks';
 import ExecutionStatus from '../ExecutionStatus';
 import TestEntityList from '../../TestEntityList';
 import { batchCreateTestRun, updateTestEntity } from '@/lib/api/item';
-import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/hook';
+import {
+  SystemFieldKeys,
+  // useTestTypeScreenFieldKeys,
+} from '@/components/common/BusinessTable/hook';
 import { getFilterFields } from '@/components/common/FilterSearch/utils';
 import createProximaSdk from '@projectproxima/proxima-sdk-js';
 import { useBaseAction } from '@/lib/hooks/useContext';
@@ -32,7 +35,6 @@ interface RightProps {
   showType?: string;
   setShowType?: (val: string) => void;
   refreshTreeAndScopeTestCase?: () => void;
-  // refreshPlanData?: () => void;
   selectNode?: Record<string, unknown>;
 }
 
@@ -42,24 +44,22 @@ const Right: React.FC<RightProps> = props => {
     selectedExecution,
     showType,
     setShowType,
-    // refreshPlanData,
     refreshTreeAndScopeTestCase,
     selectNode,
   } = props;
 
   const {
     refresh,
-    workspaceKey,
     selectedTestPlan,
     setSearchParams,
     planLinkCaseIds,
     runLinkCaseIds,
-    // mutateTestPlanEvent,
     mutateStatusEvent,
+    mutateTestTableList,
     tableSelectionToggleEvent,
   } = usePageContext();
   const proxima = createProximaSdk();
-  const { getCreatePermission } = useBaseAction();
+  const { getCreatePermission, testCaseFieldKeys } = useBaseAction();
   const { t } = useI18n();
 
   useSetTableHeight();
@@ -79,11 +79,6 @@ const Right: React.FC<RightProps> = props => {
 
   tableSelectionToggleEvent.useSubscription(visible => {
     setTableSelectionVisible(visible);
-  });
-
-  const testDetailFieldKeys = useTestTypeScreenFieldKeys({
-    testType: TestType.Case,
-    workspaceKey,
   });
 
   useUpdateEffect(() => {
@@ -123,10 +118,10 @@ const Right: React.FC<RightProps> = props => {
       console.info('error', error);
     }
 
-    // scopedTestDetailRefresh();
     mutateStatusEvent.emit('refreshExecutionStatus');
     setTimeout(() => {
       refreshTreeAndScopeTestCase();
+      mutateTestTableList.emit('refreshTable');
     }, 1000);
     setLoading(false);
     notification.success({
@@ -180,14 +175,13 @@ const Right: React.FC<RightProps> = props => {
       // eslint-disable-next-line no-console
       console.log('error', error);
     }
-    // scopedTestDetailRefresh();
 
-    // mutateTestPlanEvent.emit(selectedTestPlan?.objectId);
     refresh('detailTable');
-    await refreshTreeAndScopeTestCase();
-    // refreshPlanData();
+    setTimeout(() => {
+      refreshTreeAndScopeTestCase();
+      mutateTestTableList.emit('refreshTable');
+    }, 500);
     setLoading(false);
-    // planDataMutate(selectedTestPlan?.objectId);
     notification.success({
       message: t('page.plan.planPageLayout.right.caseToPlanSuccessMessage'),
     });
@@ -220,11 +214,11 @@ const Right: React.FC<RightProps> = props => {
               value={showType}
               options={[
                 {
-                  value: 'showChild',
+                  value: 'all',
                   label: t('page.plan.planPageLayout.right.showChild'),
                 },
                 {
-                  value: 'showCur',
+                  value: 'current',
                   label: t('page.plan.planPageLayout.right.showCur'),
                 },
               ]}
@@ -255,7 +249,7 @@ const Right: React.FC<RightProps> = props => {
           onSearch={setSearchParams}
           className={cx('plan-page-layout-search')}
           extendFields={filterSearchExtendFieldsProps}
-          fields={getFilterFields(testDetailFieldKeys)}
+          fields={getFilterFields([].concat(SystemFieldKeys, testCaseFieldKeys))}
           testType={TestType.Case}
         />
       </div>
@@ -263,9 +257,9 @@ const Right: React.FC<RightProps> = props => {
         <TestEntityList
           loading={loading}
           activeType={activeType}
+          showType={showType}
           selectedExecution={selectedExecution}
           tableSelectionVisible={tableSelectionVisible}
-          testDetailFieldKeys={testDetailFieldKeys}
           selectNode={selectNode}
           refreshTreeAndScopeTestCase={refreshTreeAndScopeTestCase}
         />

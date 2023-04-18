@@ -95,11 +95,13 @@ type BusinessTableProps = TableProps<any> &
       list: any[];
       total: number;
     } | null>;
+    testFieldKeys?: string[];
   };
 
 const BusinessTable: React.FC<BusinessTableProps> = props => {
   const {
     columns,
+    testFieldKeys,
     defaultColumnKey,
     privateColumnKey,
     actionRef,
@@ -167,6 +169,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     return (
       <ColumnSetting
         name={props?.name}
+        testFieldKeys={testFieldKeys}
         handleFilterField={props?.handleFilterField}
         defaultColumnKey={defaultColumnKey}
         privateColumnKey={privateColumnKey}
@@ -177,6 +180,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
       />
     );
   }, [
+    testFieldKeys,
     selectionMode,
     useColumnSetting,
     props?.name,

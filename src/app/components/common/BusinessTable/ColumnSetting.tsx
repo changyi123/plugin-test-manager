@@ -5,7 +5,7 @@ import { TitleCellOption } from './type';
 import { ColumnType } from 'antd/lib/table';
 import { Button, Drawer, message, Select, Spin, Tooltip } from 'antd';
 import { getCustomFields } from '@/lib/api/proxima';
-import { useGetTableFilterFields, useTestTypeScreenFieldKeys } from './hook';
+import { SystemFieldKeys, useGetTableFilterFields } from './hook';
 import { TableCell } from '@giteeteam/apps-team-components';
 import { generateStorageKey } from '@/lib/utils/helper';
 import { useNoExpiredRequest } from '@/lib/hooks/useRequest';
@@ -22,8 +22,9 @@ import {
 import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd';
 import createProximaSdk from '@projectproxima/proxima-sdk-js';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
-import { TABLE_EXCLUDE_FIELDS } from '@/lib/constants';
+import { TABLE_EXCLUDE_FIELDS, TestType } from '@/lib/constants';
 import useI18n from '@/lib/hooks/useI18n';
+import { useBaseAction } from '@/lib/hooks/useContext';
 
 import '@giteeteam/apps-team-components/dist/main.css';
 import cx from './ColumnSetting.less';
@@ -33,6 +34,7 @@ type ColumnDuckTyping = ColumnType<any> & Record<string, any>;
 type ColumnSettingProps = TitleCellOption & {
   name?: string;
   className?: string;
+  testFieldKeys?: string[];
   defaultColumnKey?: string[];
   privateColumnKey?: string[];
   additionalColumns?: ColumnDuckTyping[];
@@ -53,6 +55,7 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
   const {
     name,
     className,
+    testFieldKeys,
     titleCellOption,
     defaultColumnKey,
     privateColumnKey,
@@ -62,7 +65,17 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
   } = props;
   const { t } = useI18n();
   const [visible, setVisible] = React.useState(false);
-  const keys = useTestTypeScreenFieldKeys(titleCellOption);
+  const { testPlanFieldKeys = [], testCaseFieldKeys = [] } = useBaseAction?.();
+  const _keys = useMemo(() => {
+    if (testFieldKeys) return testFieldKeys;
+    if (titleCellOption.testType === TestType.Case) {
+      return testCaseFieldKeys;
+    }
+    if (titleCellOption.testType === TestType.Plan) {
+      return testPlanFieldKeys;
+    }
+  }, [testPlanFieldKeys?.toString(), testCaseFieldKeys?.toString(), testFieldKeys?.toString()]);
+  const keys = useMemo(() => [].concat(SystemFieldKeys, _keys), [_keys?.toString()]);
   const fieldKeys = useMemo(() => keys?.filter(key => !TABLE_EXCLUDE_FIELDS.includes(key)), [keys]);
   const { data: customFields } = useNoExpiredRequest(() => getCustomFields(fieldKeys), {
     cacheKey: `CustomFields_${fieldKeys.toString()}`,
@@ -113,7 +126,7 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
           <TableCell
             {...restTableCellProps}
             id={itemData.objectId ?? itemData.id}
-            values={text(itemData)}
+            values={itemData?.values ?? {}}
             text={textValue}
           />
         );

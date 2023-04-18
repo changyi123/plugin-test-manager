@@ -8,6 +8,7 @@ import { BusinessTableActionType } from '@/components/common/BusinessTable';
 import useI18n from '@/lib/hooks/useI18n';
 
 import cx from './style.less';
+import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/hook';
 
 export interface TableFields {
   TestCase?: FieldKeys;
@@ -34,6 +35,16 @@ const TableFields: React.FC = () => {
   const [tableFieldsData, setTableFieldsData] = useState<TableFields | undefined>(undefined);
   const [loading, setLoading] = useState(false);
   // const [checked, setChecked] = useState(globalConfig?.tableFields?.checked);
+
+  const testPlanFieldKeys = useTestTypeScreenFieldKeys({
+    testType: TestType.Plan,
+    workspaceKey: workspace?.key,
+  });
+
+  const testCaseFieldKeys = useTestTypeScreenFieldKeys({
+    testType: TestType.Case,
+    workspaceKey: workspace?.key,
+  });
 
   useEffect(() => {
     setShowAllWorkspaceCheck(true);
@@ -146,6 +157,7 @@ const TableFields: React.FC = () => {
                   : defaultPlanColumnKey
               }
               isCheckedGlobalConfig={checkAllWorkspace}
+              testFieldKeys={testPlanFieldKeys}
             />
           </div>
         </div>
@@ -165,6 +177,7 @@ const TableFields: React.FC = () => {
                   : defaultCaseColumnKey
               }
               isCheckedGlobalConfig={checkAllWorkspace}
+              testFieldKeys={testCaseFieldKeys}
             />
           </div>
         </div>

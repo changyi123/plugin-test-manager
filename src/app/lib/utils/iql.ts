@@ -674,7 +674,7 @@ export const handleCustomerSelector = selectors => {
   const runStatusSelector = pick(customSelector, TestCaseStatusModel);
 
   return {
-    selector: [systemSelector, _customSelector],
+    selector: [systemSelector, _customSelector] as SearchSelectors,
     runStatusSelector,
   };
 };

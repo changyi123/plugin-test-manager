@@ -1,13 +1,12 @@
 import classnames from 'classnames';
 import React, { useCallback } from 'react';
 import { CustomMore } from '@/icons';
-import { useTestConfig } from '@/lib/hooks/useContext';
+import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
 import { MenuItemProps } from 'antd/lib/menu';
 import importTestInfo, { TreeNode, downloadExampleFile } from './export';
 import { Button, Dropdown, Menu, message, notification, Spin } from 'antd';
 import { getProximaBasePath, getTenantKey, inIframe } from '@/lib/utils/helper';
-import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/hook';
-import { TestType } from '@/lib/constants';
+import { SystemFieldKeys } from '@/components/common/BusinessTable/hook';
 import useI18n from '@/lib/hooks/useI18n';
 
 const RepoDropDown = ({
@@ -29,13 +28,9 @@ const RepoDropDown = ({
   extraMenuOptions?: MenuItemProps[];
   setPageLoading?: (val: boolean) => void;
 }) => {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const { workspace } = useTestConfig();
-  // 条件判断是否需要获取 screenKey
-  const testDetailFieldKeys = useTestTypeScreenFieldKeys({
-    testType: TestType.Case,
-    workspaceKey: workspace?.key,
-  });
+  const { testCaseFieldKeys } = useBaseAction();
 
   const menuClick = useCallback(
     async e => {
@@ -51,7 +46,7 @@ const RepoDropDown = ({
         }?app=test_manager&disableToggleWorkspace${appendedQueryString}`;
         window.open(href);
       } else if (key === 'example') {
-        downloadExampleFile(testDetailFieldKeys, t);
+        downloadExampleFile([].concat(SystemFieldKeys, testCaseFieldKeys), t, locale);
       } else if (
         ['exportAll', 'exportChildGroup', 'exportGroup', 'exportFilter', 'exportPlan'].includes(key)
       ) {
@@ -101,8 +96,9 @@ const RepoDropDown = ({
     },
     [
       t,
+      locale,
       workspace,
-      testDetailFieldKeys,
+      testCaseFieldKeys,
       setPageLoading,
       type,
       folderKey,

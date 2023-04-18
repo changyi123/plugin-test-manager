@@ -28,6 +28,7 @@ const useWorkspaceMemberUserList = ({ workspaceId: workspaceId, selectedUserList
 
   const fetchAndSetMemberUserList = useMemoizedFn(async keyword => {
     let userList = defaultMemberUserListCacheRef.current;
+    if (!workspaceId) return;
     if (keyword?.trim() || !Array.isArray(userList)) {
       userList = await getWorkspaceRoleMembers({
         workspaceId,

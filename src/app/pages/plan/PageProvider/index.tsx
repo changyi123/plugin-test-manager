@@ -33,6 +33,7 @@ type PageContextType = {
   setSearchValue: (searchValue: string) => void;
   tableSelectionToggleEvent: EventEmitter<boolean>;
   mutateTestPlanEvent: EventEmitter<string | undefined>;
+  mutateTestTableList: EventEmitter<string | undefined>;
   mutateStatusEvent: EventEmitter<string | undefined>;
   setSelectedTestPlan: (testPlan: TestPlanEntity | null) => void;
   registerRefreshMethod: (method: Record<string, () => void>) => void;
@@ -50,6 +51,7 @@ export const PageContext = React.createContext<PageContextType>({
   workspaceKey: '',
   setSearchValue: noop,
   mutateTestPlanEvent: null,
+  mutateTestTableList: null,
   mutateStatusEvent: null,
   setSelectedTestPlan: noop,
   registerRefreshMethod: noop,
@@ -72,6 +74,7 @@ const PageProvider: React.FC = ({ children }) => {
   const tableSelectionToggleEvent = useEventEmitter<boolean>();
   const mutateTestPlanEvent = useEventEmitter<string | undefined>();
   const mutateStatusEvent = useEventEmitter<string | undefined>();
+  const mutateTestTableList = useEventEmitter<string | undefined>();
   const workspaceKey = context?.env?.WORKSPACE_KEY ?? getDevConfig().workspaceKey;
   const [selectedTestPlan, setSelectedTestPlan] = useState(null);
   const [planLinkCaseIds, setPlanLinkCaseIds] = useState<string[]>(null);
@@ -115,6 +118,7 @@ const PageProvider: React.FC = ({ children }) => {
             selectedTestPlan,
             setSelectedTestPlan,
             mutateTestPlanEvent,
+            mutateTestTableList,
             mutateStatusEvent,
             registerRefreshMethod,
             tableSelectionToggleEvent,

@@ -29,8 +29,11 @@ const Input: React.ForwardRefRenderFunction<
   React.useEffect(() => {
     const handlePaste = e => {
       let data = e.clipboardData.getData('text/plain') || e.clipboardData.getData('text/plain');
-      const regex = /<(?!(\/\s*)?(a|b|i|em|s|strong|u)[>,\s])([^>])*>/g;
-      data = data.replace(regex, '');
+      // const regex = /<(?!(\/\s*)?(a|b|i|em|s|strong|u)[>,\s])([^>])*>/g;
+      // data = data.replace(regex, '');
+      const div = document.createElement('div');
+      div.innerHTML = data;
+      data = div.innerText;
       document.execCommand('insertHTML', false, data);
       e.preventDefault();
     };

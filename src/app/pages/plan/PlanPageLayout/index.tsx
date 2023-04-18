@@ -3,7 +3,6 @@ import { message, notification, Spin } from 'antd';
 import TestPlanList from '@/pages/plan/TestPlanList';
 import PageLayout from '@/components/common/PageLayout';
 import { useLocation } from 'react-router-dom';
-// import useGetTestPlanById from '@/pages/plan/TestPlanList/hooks';
 import {
   useResizeContainerDOM,
   useGetPlanLinkCaseIds,
@@ -24,7 +23,6 @@ import { useBaseAction } from '@/lib/hooks/useContext';
 import { generateSortIndex } from '@/lib/utils/helper';
 import { batchCreateTestRun, updateTestEntity } from '@/lib/api/item';
 import useI18n from '@/lib/hooks/useI18n';
-import { QueryLinkedTestEntityPayload } from 'common/types/api';
 import { useUpdateEffect } from 'ahooks';
 
 const PlanPageLayout: React.FC<any> = () => {
@@ -54,9 +52,9 @@ const PlanPageLayout: React.FC<any> = () => {
   );
 
   const [refreshExecution, setRefreshExecution] = useState(false);
-  const [showType, setShowType] = useState('showChild');
+  const [showType, setShowType] = useState('all');
   const [loading, setLoading] = useState(false);
-  const [treeParams, setTreeParams] = useState<QueryLinkedTestEntityPayload>(null);
+  const [treeParams, setTreeParams] = useState<any>(null);
 
   const { query } = useLocation();
   // const { data: planData, refresh: refreshPlanData } = useGetTestPlanById(
@@ -83,13 +81,14 @@ const PlanPageLayout: React.FC<any> = () => {
   useUpdateEffect(() => {
     if (selectedTestPlan?.objectId) {
       activeType !== 'TestPlan' && setActiveType('TestPlan');
-      showType !== 'showChild' && setShowType('showChild');
+      showType !== 'all' && setShowType('all');
       setSelectedExecution(undefined);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedTestPlan]);
 
   useUpdateEffect(() => {
+    if (!selectedTestPlan?.objectId) return;
     if (query?.actionType && !activeType) {
       setActiveType(query?.actionType);
     }
@@ -103,12 +102,11 @@ const PlanPageLayout: React.FC<any> = () => {
     testPlanId: selectedTestPlan?.objectId,
   });
 
-  // 获取测试任务下测试执行和测试用例 id
+  // 获取测试任务下测试执行 id
   const { data: scopeTestRunIds, refresh: scopeTestRunIdsRefresh } = useGetExecutionLinkCaseRunIds({
     workspaceKey,
     type: 'TestExecution',
     testExecutionId: selectedExecution?.objectId,
-    planLinkCaseIds,
   });
 
   useUpdateEffect(() => {
@@ -129,9 +127,6 @@ const PlanPageLayout: React.FC<any> = () => {
           type: TestType.Case,
           id: runLinkCaseIds,
         },
-        linkType: TestLinkType.CaseLinkPlan,
-        sourceIds: [selectedTestPlan?.objectId as string],
-        destinationType: TestType.Case,
       });
     } else {
       setTreeParams({
@@ -147,6 +142,7 @@ const PlanPageLayout: React.FC<any> = () => {
   }, [activeType, runLinkCaseIds, selectedTestPlan?.objectId, workspaceKey]);
 
   useUpdateEffect(() => {
+    if (!selectedTestPlan?.objectId) return;
     detailSearchRef.current?.reset();
     setSearchParams([{}, {}]);
     pageLeftRef.current?.reset();
@@ -208,8 +204,8 @@ const PlanPageLayout: React.FC<any> = () => {
     [createItemUseModal, selectedTestPlan?.objectId, t],
   );
 
-  const refreshTreeAndScopeTestCase = useCallback(async () => {
-    await pageLeftRef.current.refresh?.();
+  const refreshTreeAndScopeTestCase = useCallback(() => {
+    pageLeftRef.current.refresh?.();
     planLinkCaseIdRefresh();
     scopeTestRunIdsRefresh();
   }, [planLinkCaseIdRefresh, scopeTestRunIdsRefresh, pageLeftRef]);
@@ -261,7 +257,10 @@ const PlanPageLayout: React.FC<any> = () => {
 
         notification.destroy();
         if (isCheckCreateNext) {
-          await createTestExecution(isCheckCreateNext);
+          // await createTestExecution(isCheckCreateNext);
+          setTimeout(() => {
+            createTestExecution(isCheckCreateNext);
+          }, 500);
         }
         setRefreshExecution(true);
         notification.success({
@@ -337,7 +336,6 @@ const PlanPageLayout: React.FC<any> = () => {
               <PageLayout.Left>
                 <Left
                   actionRef={pageLeftRef}
-                  showType={showType}
                   treeParams={treeParams}
                   activeType={activeType}
                   onFolderSelect={node => setSelectNode(node)}
@@ -353,7 +351,6 @@ const PlanPageLayout: React.FC<any> = () => {
                     showType={showType}
                     setShowType={setShowType}
                     refreshTreeAndScopeTestCase={refreshTreeAndScopeTestCase}
-                    // refreshPlanData={refreshPlanData}
                     selectNode={selectNode}
                   />
                 </Spin>

@@ -28,7 +28,6 @@ export const SystemFieldKeys = [
 export const useTestTypeScreenFieldKeys = ({
   workspaceKey,
   testType,
-  includeSystemField = true,
 }: TitleCellOption['titleCellOption']) => {
   const { data: itemTypeMap } = useNoExpiredRequest(
     async () => {
@@ -41,18 +40,18 @@ export const useTestTypeScreenFieldKeys = ({
       cacheKey: `ItemTypeMapping_${workspaceKey}`,
     },
   );
+
   const itemTypeKey = itemTypeMap?.[testType];
   // 除测试计划外其他测试类型需要隐藏状态字段
   // const shouldHiddenFieldKeys = testType !== TestType.Plan ? TestIncludeFiledKeys : [];
   const customerFields = useUsedScreenFieldKeys(workspaceKey, itemTypeKey, []);
 
   const { data: typeScreenFiledKeys } = useRequest(
-    async () => (includeSystemField ? [].concat(SystemFieldKeys, customerFields) : customerFields),
+    // async () => [].concat(SystemFieldKeys, customerFields),
+    async () => customerFields,
     {
-      cacheKey: `${workspaceKey}_${testType}_${includeSystemField}_${JSON.stringify(
-        customerFields,
-      )}`,
-      refreshDeps: [JSON.stringify(customerFields), workspaceKey, testType, includeSystemField],
+      cacheKey: `${workspaceKey}_${testType}_${JSON.stringify(customerFields)}`,
+      refreshDeps: [JSON.stringify(customerFields), workspaceKey, testType],
       cacheTime: 99999,
       staleTime: 99999,
     },
@@ -134,22 +133,17 @@ export const useGetTableFilterFields = ({
   };
 };
 
-export const useGetCustomFields = ({
-  workspaceKey,
-  testType,
-}: {
-  workspaceKey?: string;
-  testType?: TestType;
-}) => {
-  const keys = useTestTypeScreenFieldKeys({
-    workspaceKey,
-    testType,
-  });
-
-  const { data: customFields } = useNoExpiredRequest(() => getCustomFields(keys), {
-    cacheKey: `CustomFields_${keys.toString()}`,
-    refreshDeps: [keys],
-  });
+export const useGetCustomFields = ({ filedKeys }: { filedKeys?: string[] }) => {
+  const { data: customFields } = useNoExpiredRequest(
+    () => getCustomFields(filedKeys.concat(SystemFieldKeys)),
+    {
+      ready: Boolean(filedKeys),
+      cacheKey: `CustomFields_${filedKeys.toString()}_${SystemFieldKeys?.toString()}}`,
+      refreshDeps: [filedKeys],
+      cacheTime: 999999,
+      staleTime: 999999,
+    },
+  );
 
   return customFields;
 };

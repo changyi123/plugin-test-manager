@@ -35,11 +35,8 @@ const VirtualScrollList: React.FC<VirtualScrollListProps> = props => {
     setCurrent,
   } = props;
   const { t } = useI18n();
-
   const { groupArray, groups, totalCount } = useGetVirtualScrollList(group, current);
-
   const items = useMemo(() => [...caseListMap.values()].flat(), [caseListMap]);
-
   const { groupNodeMap } = useGetGroupNodeId(group, allCaseIds);
 
   const groupContent = useCallback(

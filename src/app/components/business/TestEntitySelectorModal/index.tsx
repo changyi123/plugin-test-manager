@@ -75,7 +75,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
   } = props;
   const [visible, setVisible] = useSafeState(false);
   const debounceSelectContainerRef = React.useRef();
-  const [selectValue, setSelectValue] = useSafeState([]);
+  const [selectValue, setSelectValue] = useSafeState<any>(isSingleMode ? '' : []);
   const [selectedTestDetails, setSelectedTestDetails] = React.useState([]);
   const [testType, setTestType] = useSafeState<TestType>(props.testType);
   const [treeType, setTreeType] = React.useState('repository');
@@ -218,7 +218,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
               <span style={{ fontSize: 12, color: '#aaa' }}>({item.key})</span>
             </div>
           ),
-          value: item.objectId,
+          value: item.id,
         };
       });
     },
@@ -300,8 +300,10 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
     typeof props.onSelect === 'function' && props.onSelect(selectedData);
 
     eventBusRef.current.dispatch(AddExistedTestEventType, { selectedData, treeType, planId });
+    setSelectValue(isSingleMode ? undefined : []);
     setVisible(false);
   }, [
+    isSingleMode,
     needFillValue,
     props,
     selectValue,
@@ -315,7 +317,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
   const filterOptions = React.useCallback(
     options => {
       // 在 ignoreTestEntityIds 列表的数据给过滤掉
-      return options.filter(opt => !ignoreTestEntityIds.includes(opt.value));
+      return options.filter(opt => !ignoreTestEntityIds?.includes(opt.value));
     },
     [ignoreTestEntityIds],
   );
@@ -403,7 +405,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
           <div className={cx('info')}>
             {t('components.business.testEntitySelectorModal.selected')}
             <strong className={cx('num')}>
-              {selectedTestDetails.filter(d => !ignoreTestEntityIds.includes(d)).length}
+              {selectedTestDetails.filter(d => !ignoreTestEntityIds?.includes(d)).length}
             </strong>
             {t('components.business.testEntitySelectorModal.case')}
           </div>
@@ -411,9 +413,9 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
         <div className={cx('actions')}>
           <Button
             onClick={() => {
-              setTreeType('repository');
+              testType === TestType.Case && setTreeType('repository');
               onCancel?.();
-              setSelectValue(undefined);
+              setSelectValue(isSingleMode ? undefined : []);
               setVisible(false);
             }}
           >
@@ -449,8 +451,8 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
       getContainer={getRootContainer}
       footer={ModalFooterNode}
       onCancel={() => {
-        setTreeType('repository');
-        setSelectValue(undefined);
+        testType === TestType.Case && setTreeType('repository');
+        setSelectValue(isSingleMode ? undefined : []);
         setVisible(false);
       }}
       title={

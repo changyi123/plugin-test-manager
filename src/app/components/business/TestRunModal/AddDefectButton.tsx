@@ -38,6 +38,9 @@ const AddDefectButton: React.FC<AddDefectButtonProps> = props => {
   const createDefect = React.useCallback(async () => {
     const { item: defectItem } = await createItemUseModal({
       type: TestType.TestDefect,
+      extraData: {
+        isDisableCreateNext: true,
+      },
     });
 
     onLoading?.();

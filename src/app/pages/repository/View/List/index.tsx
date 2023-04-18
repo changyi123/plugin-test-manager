@@ -17,7 +17,10 @@ import { useListener } from '@projectproxima/proxima-sdk-js';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import { getFilterFields } from '@/components/common/FilterSearch/utils';
 import { getExtendFields, RepositoryModel, TestType } from '@/lib/constants';
-import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/hook';
+import {
+  SystemFieldKeys,
+  // useTestTypeScreenFieldKeys,
+} from '@/components/common/BusinessTable/hook';
 
 import cx from './index.less';
 
@@ -44,7 +47,7 @@ const ListView: React.FC<ViewComponentProps> = ({
   const { t } = useI18n();
   const tableActionRef = React.useRef<ActionType>();
   const { workspace } = useTestConfig();
-  const { createItemUseModal, getCreatePermission } = useBaseAction();
+  const { createItemUseModal, getCreatePermission, testCaseFieldKeys } = useBaseAction();
   const [selector, setSelector] = React.useState(null);
   const [breadcrumbs, setBreadcrumbs] = React.useState([]);
   const [tableSelectionVisible, setTableSelectionVisible] = React.useState(false);
@@ -53,10 +56,6 @@ const ListView: React.FC<ViewComponentProps> = ({
   const workspaceKey = workspace?.key;
   const selectNodeKey = selectedNode?.key;
 
-  const testDetailFieldKeys = useTestTypeScreenFieldKeys({
-    testType: TestType.Case,
-    workspaceKey,
-  });
   // 事项数据更新后刷新列表
   useListener('updateItemList', props => {
     if (props?.type === 'create') return;
@@ -93,7 +92,7 @@ const ListView: React.FC<ViewComponentProps> = ({
 
   const dataSourceGetter = React.useCallback(
     async params => {
-      if (!selectedNode?.key || !workspaceKey || !testDetailFieldKeys?.length)
+      if (!selectedNode?.key || !workspaceKey || !testCaseFieldKeys?.length)
         return {
           list: [],
           total: 0,
@@ -106,7 +105,7 @@ const ListView: React.FC<ViewComponentProps> = ({
           ...repository,
         },
         selector,
-        fields: testDetailFieldKeys,
+        fields: [].concat(SystemFieldKeys, testCaseFieldKeys),
         ...params,
       });
 
@@ -121,7 +120,7 @@ const ListView: React.FC<ViewComponentProps> = ({
       };
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [selectedNode, workspaceKey, groupedMode, selector, JSON.stringify(testDetailFieldKeys)],
+    [selectedNode, workspaceKey, groupedMode, selector, testCaseFieldKeys.toString()],
   );
 
   useUpdateEffect(() => {
@@ -231,7 +230,7 @@ const ListView: React.FC<ViewComponentProps> = ({
         <FilterSearch
           className={cx('filter-search-box')}
           onSearch={handleSelectorSearch}
-          fields={getFilterFields(testDetailFieldKeys)}
+          fields={getFilterFields([].concat(SystemFieldKeys, testCaseFieldKeys))}
           extendFields={getExtendFields(t)?.filter(field => field.key === RepositoryModel)}
           testType={TestType.Case}
         />
@@ -239,7 +238,7 @@ const ListView: React.FC<ViewComponentProps> = ({
           actionRef={tableActionRef}
           testDetailIds={allTestCaseIds}
           onDataChange={refreshAll}
-          testDetailFieldKeys={testDetailFieldKeys}
+          testDetailFieldKeys={[].concat(SystemFieldKeys, testCaseFieldKeys)}
           onSelectionCancel={() => toggleSelection(false)}
           dataSourceGetter={dataSourceGetter}
         />

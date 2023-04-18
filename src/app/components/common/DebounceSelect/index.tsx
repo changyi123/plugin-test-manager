@@ -132,6 +132,7 @@ function DebounceSelect<
     },
     [onChange],
   );
+
   return (
     <Select<ValueType>
       filterOption={false}

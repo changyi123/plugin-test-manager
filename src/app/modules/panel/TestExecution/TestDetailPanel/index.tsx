@@ -19,6 +19,7 @@ import {
   deleteTestEntity,
   updateTestStatus,
   getLinkedTestEntityByQuery,
+  getTestEntityByQuery,
 } from '@/lib/api/item';
 import cx from './index.less';
 import createProximaSdk, { useListener } from '@projectproxima/proxima-sdk-js';
@@ -62,14 +63,37 @@ const Test = () => {
   );
 
   const getReTestEntities = useCallback(
-    page => {
-      return getLinkedTestEntityByQuery({
+    async page => {
+      const { list: runs, total } = await getLinkedTestEntityByQuery({
         linkType: TestLinkType.RunLinkExecution,
         sourceIds: testEntity?.objectId,
         destinationType: TestType.Run,
         workspaceKey: workspace?.key,
         ...page,
       });
+
+      const { list: cases } = await getTestEntityByQuery({
+        query: {
+          workspaceKey: workspace?.key,
+          type: TestType.Case,
+          id: runs?.map(d => d.referenceCase),
+        },
+        limit: 10,
+      });
+
+      const caseMap = new Map();
+
+      cases?.forEach(d => {
+        caseMap.set(d.id, d.key);
+      });
+
+      return {
+        total,
+        list: runs.map(r => ({
+          ...r,
+          key: caseMap.get(r.referenceCase),
+        })),
+      };
     },
     [testEntity?.objectId, workspace?.key],
   );
@@ -81,6 +105,7 @@ const Test = () => {
       limit: 9999,
       select: ['referenceCase', 'status', 'id'],
     });
+
     setAllTestEntities(list);
     return { list, total };
   }, [getReTestEntities]);

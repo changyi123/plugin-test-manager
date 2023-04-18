@@ -25,6 +25,8 @@ modules:
     # 拖拽排序生成测试用例 sortIndex
     - key: generate-sortIndex
       function: generate-sortIndex-function
+    - key: api-module-minder-data-import
+      function: api-module-minder-data-import-function
     # 测试管理脑图接口
     - key: api-module-minder-data-import
       function: api-module-minder-data-import-function
@@ -125,6 +127,8 @@ modules:
       timeout: 300000
     - key: api-batch-create-test-run-function
       handler: api.batchCreateTestRun
+      # 5 分钟超时时长
+      timeout: 300000
     - key: api-batch-create-test-case-function
       handler: api.batchCreateTestCase
       # 5 分钟超时时长
@@ -197,17 +201,17 @@ modules:
     validate: test-manager-validate-script-function
     itemFields:
       - key: group
-        title: 所属分组
+        title: importer.itemFields.group
       # - key: priority
       #   title: 优先级
       - key: precondition
-        title: 前置条件
+        title: importer.itemFields.precondition
       - key: action
-        title: 步骤
+        title: importer.itemFields.action
       - key: result
-        title: 预期结果
+        title: importer.itemFields.result
       - key: data
-        title: 数据
+        title: importer.itemFields.data
   # 初始化 dataType 为 object， array 的数据类型
   customFieldType:
     - key: es_object

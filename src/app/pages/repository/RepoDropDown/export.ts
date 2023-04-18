@@ -19,6 +19,7 @@ import {
   getLinkedTestEntityByQuery,
 } from '@/lib/api/item';
 import { getRepositoryQuery } from '@/lib/utils/tree';
+import { isZhLang } from '@/lib/utils/locale';
 
 export type TreeNode = {
   key: string;
@@ -297,7 +298,7 @@ const importTestInfo = async (
 };
 
 /** 下载 excel 用例导出文件 */
-export const downloadExampleFile = async (fieldKeys, t) => {
+export const downloadExampleFile = async (fieldKeys, t, lang) => {
   // 获取需要导出的自定义字段
   const SystemFieldKeys = Object.values(SYSTEM_FIELD);
   const CustomFieldKeys = difference(fieldKeys, SystemFieldKeys);
@@ -305,7 +306,9 @@ export const downloadExampleFile = async (fieldKeys, t) => {
   const ExportCustomFields = CustomFields.reduce((res, field) => {
     return {
       ...res,
-      [field.name]: t('page.repository.repoDropDown.pleaseEnterContent'),
+      [isZhLang(lang) ? field.name : field.key]: t(
+        'page.repository.repoDropDown.pleaseEnterContent',
+      ),
     };
   }, {});
   exportExcelFile(

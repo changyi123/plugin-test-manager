@@ -62,7 +62,7 @@ export const useGetGroupNodeId = (group, allCaseIds) => {
   return { groupNodeMap: groupNodeMap };
 };
 
-export const useGetGroupCounts = ({ workspaceKey, current, params }) => {
+export const useGetGroupCounts = ({ workspaceKey, current, params, selectedNode }) => {
   const { data: treeData } = useRequest(
     async () => {
       if (!workspaceKey) return [];
@@ -74,7 +74,13 @@ export const useGetGroupCounts = ({ workspaceKey, current, params }) => {
       return [data];
     },
     {
-      refreshDeps: [workspaceKey, params],
+      ready: Boolean(workspaceKey),
+      refreshDeps: [workspaceKey, params, selectedNode],
+      cacheKey: `Tree_Counts_${workspaceKey}_${JSON.stringify(
+        params,
+      )}_${selectedNode?.counts?.toString()}`,
+      cacheTime: 999999,
+      staleTime: 999999,
     },
   );
 

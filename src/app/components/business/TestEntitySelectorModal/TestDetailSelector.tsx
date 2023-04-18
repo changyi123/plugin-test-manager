@@ -102,17 +102,17 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
             destinationType: TestType.Case,
           },
         }
-      : {
-          params: searchName
-            ? {
-                query: {
-                  workspaceKey: selectedWorkspaceKey,
-                  type: TestType.Case,
-                  name: searchName,
-                },
-              }
-            : null,
-        };
+      : searchName
+      ? {
+          params: {
+            query: {
+              workspaceKey: selectedWorkspaceKey,
+              type: TestType.Case,
+              name: searchName,
+            },
+          },
+        }
+      : { isShowAll: true };
   }, [planId, treeType, selectedWorkspaceKey, searchName]);
 
   // 测试案例库选中
@@ -247,6 +247,7 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
                 shouldIncludeSubFolder={false}
                 actionRef={repositoryFolderTreeRef}
                 onFolderSelect={node => setSelectedNode(node)}
+                // isModelTree={true}
                 {...treeProps}
               />
             </div>

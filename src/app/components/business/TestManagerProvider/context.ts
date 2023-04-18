@@ -53,6 +53,8 @@ export type BaseActionContextType = {
   /** 获取全局配置 */
   getGlobalConfig?: () => Record<string, any>;
   getCreatePermission?: (val: string) => boolean;
+  testPlanFieldKeys?: string[];
+  testCaseFieldKeys?: string[];
 };
 /** proxima 操作 context */
 export const BaseActionContext = React.createContext<BaseActionContextType>(

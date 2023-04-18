@@ -1,43 +1,38 @@
 import React, { useCallback, useRef, useState } from 'react';
 import { usePageContext } from '@/pages/plan/hook';
 import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
-import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/hook';
-import { Button, Dropdown, Menu, message, notification } from 'antd';
-import _ from 'lodash';
-import { actionConfirm, goToItemDetailPage } from '@/lib/utils/helper';
+import { Button, notification } from 'antd';
+import { goToItemDetailPage } from '@/lib/utils/helper';
 import { useBaseAction } from '@/lib/hooks/useContext';
 import { StatusProgress } from '../../../components/business/Status';
 import FilterSearch from '@/components/common/FilterSearch';
-import { FullScreen } from '@/icons';
+import { EditIcon } from '@/icons';
 import { components } from 'proxima-sdk';
-import { deleteTestEntity, getStatsTestPlan, getTestEntityByQuery } from '@/lib/api/item';
+import { getStatsTestPlan, getTestEntityByQuery } from '@/lib/api/item';
 import { TestType } from '@/lib/constants';
 import { useCurrentUser } from '@/lib/api/user';
 import { getCurrentUserSetting, saveUserSetting } from '@/lib/api/userSetting';
 import { useRequest } from 'ahooks';
 import { getFilterFields } from '@/components/common/FilterSearch/utils';
 import useI18n from '@/lib/hooks/useI18n';
+import _ from 'lodash';
 
 const { ItemIcon } = components.Components.Common;
 
 import cx from './index.less';
+import { SystemFieldKeys } from '@/components/common/BusinessTable/hook';
 
 const TestPlanList: React.FC<any> = () => {
   const { t } = useI18n();
   const actionRef = React.useRef<BusinessTableActionType>();
+  const { createItemUseModal, getCreatePermission, testPlanFieldKeys } = useBaseAction();
   const { workspaceKey, selectedTestPlan, setSelectedTestPlan, setSearchParams } = usePageContext();
   const [selectors, setSelectors] = useState([{}, {}]);
 
   const [tableLoading, setTableLoading] = useState(false);
-  const { createItemUseModal, getCreatePermission } = useBaseAction();
   const { data: currentUser } = useCurrentUser();
 
   const detailSearchRef = useRef(null);
-
-  const testDetailFieldKeys = useTestTypeScreenFieldKeys({
-    testType: TestType.Plan,
-    workspaceKey,
-  });
 
   React.useEffect(() => {
     if (selectedTestPlan) {
@@ -50,18 +45,19 @@ const TestPlanList: React.FC<any> = () => {
 
   const tableDataGetter = useCallback(
     async queryParams => {
-      if (!workspaceKey)
+      if (!workspaceKey || !testPlanFieldKeys.length)
         return {
           list: [],
           total: 0,
         };
       setTableLoading(true);
+
       const { list, total } = await getTestEntityByQuery({
         query: {
           workspaceKey: workspaceKey,
           type: TestType.Plan,
         },
-        fields: testDetailFieldKeys ?? [],
+        fields: [].concat(SystemFieldKeys, testPlanFieldKeys),
         selector: selectors,
         ...queryParams,
       });
@@ -88,7 +84,8 @@ const TestPlanList: React.FC<any> = () => {
         total: total ?? 0,
       };
     },
-    [workspaceKey, selectors, testDetailFieldKeys],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [workspaceKey, testPlanFieldKeys, JSON.stringify(selectors)],
   );
 
   const { data: currentFields } = useRequest(
@@ -99,29 +96,6 @@ const TestPlanList: React.FC<any> = () => {
       refreshDeps: [workspaceKey, currentUser],
     },
   );
-
-  const handleDelete = async data => {
-    await actionConfirm({
-      title: t('common.tip'),
-      okText: t('common.okText'),
-      cancelText: t('common.cancel'),
-      content: t('components.business.testPlanList.deleteLinkTips'),
-    });
-    setTableLoading(true);
-    const res = await deleteTestEntity([data.objectId]);
-    if (res?.status === 'error') {
-      setTableLoading(false);
-      message.error(res.data);
-      return;
-    }
-    actionRef.current.refresh();
-    // 重新选中
-    setSelectedTestPlan(null);
-    setTableLoading(false);
-    notification.success({
-      message: t('components.business.testPlanList.deletePlanSuccess'),
-    });
-  };
 
   const handleView = data => {
     goToItemDetailPage({
@@ -139,43 +113,26 @@ const TestPlanList: React.FC<any> = () => {
       title: t('components.business.testPlanList.planName'),
       className: 'test-case-title',
       extraProps: {
-        onClick: record => {
-          setSelectedTestPlan(record);
-        },
+        onClick: record => setSelectedTestPlan(record),
       },
       render(_, rowData) {
         return (
           <div className={'test-plan-title-box'}>
             {ItemIcon && <ItemIcon className={'icon'} icon={rowData.itemType?.icon}></ItemIcon>}
             <div className={'test-plan-title'}>{rowData.name}</div>
-            <div className={'plan-table-title-menu'}>
-              <Dropdown
-                overlay={
-                  <Menu>
-                    <Menu.Item
-                      key="delete"
-                      onClick={item => {
-                        item.domEvent.stopPropagation();
-                        handleDelete(rowData);
-                      }}
-                    >
-                      {t('components.business.testPlanList.deleteTestPlan')}
-                    </Menu.Item>
-                    <Menu.Item
-                      key="view"
-                      onClick={item => {
-                        item.domEvent.stopPropagation();
-                        handleView(rowData);
-                      }}
-                    >
-                      {t('components.business.testPlanList.checkTestPlan')}
-                    </Menu.Item>
-                  </Menu>
-                }
-                trigger={['hover']}
-              >
-                <FullScreen className={cx('action', 'right')} style={{ display: 'flex' }} />
-              </Dropdown>
+            <div
+              className={cx('plan-table-title-menu')}
+              onClick={e => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+            >
+              <EditIcon
+                className={'icon'}
+                onClick={() => {
+                  handleView(rowData);
+                }}
+              />
             </div>
           </div>
         );
@@ -271,7 +228,7 @@ const TestPlanList: React.FC<any> = () => {
             enableLocalStorage
             className={cx('test-manager-filter')}
             ref={detailSearchRef}
-            fields={getFilterFields(testDetailFieldKeys)}
+            fields={getFilterFields([].concat(SystemFieldKeys, testPlanFieldKeys))}
             extendFields={[]}
             onSearch={setSelectors}
             testType={TestType.Plan}

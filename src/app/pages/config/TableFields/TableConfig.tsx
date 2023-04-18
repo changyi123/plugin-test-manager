@@ -13,6 +13,7 @@ interface TableConfigProps {
   columns?: any[];
   defaultColumnKey?: string[];
   isCheckedGlobalConfig?: boolean;
+  testFieldKeys?: string[];
 }
 
 const TableConfig: React.FC<TableConfigProps> = ({
@@ -24,6 +25,7 @@ const TableConfig: React.FC<TableConfigProps> = ({
   tableActionRef,
   setTableFieldsData,
   isCheckedGlobalConfig,
+  testFieldKeys,
 }) => {
   const { workspace } = useDataContext();
   const handleFilterField = useCallback(
@@ -54,6 +56,7 @@ const TableConfig: React.FC<TableConfigProps> = ({
       name={name}
       handleFilterField={handleFilterField}
       showPagination={false}
+      testFieldKeys={testFieldKeys}
     />
   );
 };

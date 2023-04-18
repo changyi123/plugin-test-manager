@@ -554,16 +554,13 @@ const FolderTree: React.FC<FolderTreeProps> = ({
       const dropPos = node.pos.split('-');
       const dropPosition = info.dropPosition - Number(dropPos[dropPos.length - 1]);
 
-      let hierarchy = 0;
+      let hierarchy = 1;
 
       const getHierarchy = nodes => {
-        nodes.forEach(n => {
-          if (n.children?.length) {
-            getHierarchy(n.children);
-          }
-        });
-
+        const children = nodes.map(d => d.children ?? []).flat();
+        if (!children?.length) return;
         hierarchy++;
+        getHierarchy(children);
       };
 
       getHierarchy([dragNode]);
@@ -593,17 +590,18 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         ((node as any).children || []).length > 0 && // Has children
         dropPosition === 1 // On the bottom gap
       ) {
-        // 拖拽目标用例库底部，排序到首位
+        // 拖拽目标用例库底部，排序到底部
         if (validateHierarchy(0)) {
           notification.warn({
             message: t('page.repository.folderTree.dropCaseTips.1'),
           });
           return;
         }
+        const num = nodeChild?.length;
         const needUpdateDragNode = {
           key: dragKey,
           parentKey: node.key,
-          sortIndex: nodeChild?.[0]?.sortIndex - 10e5,
+          sortIndex: nodeChild?.[num]?.sortIndex + 10e5,
         };
 
         updateRepository([needUpdateDragNode]);
