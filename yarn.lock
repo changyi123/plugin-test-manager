@@ -8441,9 +8441,9 @@ terser@^5.10.0, terser@^5.16.5:
     commander "^2.20.0"
     source-map-support "~0.5.20"
 
-"test-manager-minder@git+http://proxima:proxima123@osc.gitee.work/enterprise__proxima/test-manager-minder.git#9b0df88b714a923708ba92007696518e5a8e585c":
+"test-manager-minder@git+http://proxima:proxima123@osc.gitee.work/enterprise__proxima/test-manager-minder.git#4c840e1effc3aac61fd6b9384019aab29387ae99":
   version "0.1.1"
-  resolved "git+http://proxima:proxima123@osc.gitee.work/enterprise__proxima/test-manager-minder.git#9b0df88b714a923708ba92007696518e5a8e585c"
+  resolved "git+http://proxima:proxima123@osc.gitee.work/enterprise__proxima/test-manager-minder.git#4c840e1effc3aac61fd6b9384019aab29387ae99"
   dependencies:
     uid "^2.0.1"
     "@types/styled-components" "^5.1.26"
@@ -9109,6 +9109,13 @@ xmind@^2.2.28:
     tree-model "^1.0.7"
     uuid "^3.3.2"
     xmind-model "^1.1.12"
+
+xml-js@^1.6.11:
+  version "1.6.11"
+  resolved "https://registry.npmmirror.com/xml-js/-/xml-js-1.6.11.tgz#927d2f6947f7f1c19a316dd8eea3614e8b18f8e9"
+  integrity sha512-7rVi2KMfwfWFl+GpPg6m80IVMWXLRjO+PxTq7V2CDhoGak0wzYzFgUY2m4XJ47OGdXd8eLE8EmwfAmdjw7lC1g==
+  dependencies:
+    sax "^1.2.4"
 
 xmlhttprequest@1.8.0:
   version "1.8.0"
