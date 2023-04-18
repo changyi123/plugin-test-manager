@@ -94,7 +94,7 @@ const StepRow: React.FC<StepRowProps> = props => {
   const CallTestStepNode = React.useMemo(() => {
     const stepLength = _.get(data, 'callTestEntity.detail.steps.length') ?? 0;
     const item = (_.get(data, 'callTestEntity') ?? {}) as BaseTestEntity;
-    const itemType = _.get(data, 'callTestEntity.itemType') ?? {};
+    const itemType = _.get(data, 'callTestEntity.itemType') ?? ({} as any);
 
     return (
       <div className={cx('call-test')}>
