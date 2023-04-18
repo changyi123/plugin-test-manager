@@ -17,10 +17,10 @@ export const getRepositoryData = async (workspaceKeys: string[]) => {
   if (!workspaceKeys?.length) return;
   const repositoryData = await new Parse.Query(Repository)
     .containedIn('workspaceKey', workspaceKeys)
-    .limit(9999)
-    .find();
+    .limit(99999)
+    .find({ json: true });
 
-  return repositoryData?.map(d => d?.toJSON()) ?? [];
+  return repositoryData ?? [];
 };
 
 export const getFolderTree = async (workspaceKey: string) => {

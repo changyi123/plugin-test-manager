@@ -1,8 +1,8 @@
 import React from 'react';
 import { v4 } from 'uuid';
-import { Button, message } from 'antd';
 import MinderEditor from 'test-manager-minder';
 import { useRequest, useMemoizedFn } from 'ahooks';
+import { Button, message, Dropdown, Menu } from 'antd';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import { useNoExpiredRequest } from '@/lib/hooks/useRequest';
 import {
@@ -12,12 +12,16 @@ import {
   batchDeleteRepository,
   batchUpdateRepository,
 } from '@/lib/api/minder';
+import { CustomMore } from '@/icons';
 import { ViewComponentProps } from '../type';
-import { MinderNodeType } from 'common/constant';
+import { MinderNodeType, TestType } from 'common/constant';
 import { createRepositories } from '@/lib/api/repository';
 import { deleteTestEntity, updateTestEntity } from '@/lib/api/item';
 import useI18n from '@/lib/hooks/useI18n';
 import { getLang } from '@/lib/utils/locale';
+import { exportAndDownloadXMind } from '@/lib/minder';
+import { useBaseAction } from '@/lib/hooks/useContext';
+import { getProximaBasePath, getTenantKey } from '@/lib/utils/helper';
 
 import cx from './index.less';
 
@@ -34,6 +38,7 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
   const { workspace } = useTestConfig();
   const actionRef = React.useRef(null);
   const [saveLoading, setSaveLoading] = React.useState(false);
+  const { getCreatePermission } = useBaseAction();
 
   const { data: minderData } = useRequest(
     async () => {
@@ -89,7 +94,7 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
 
         // 判断 name 是否出现多次
         Object.entries(sameModuleNameTimes).forEach(([name, times]) => {
-          if (times > 1) {
+          if ((times as number) > 1) {
             const moduleNamePath = paths.map(path => path.data.text).join('/');
             throw message.error(
               `${t('page.repository.view.minder.nameRepeat.0')} “${moduleNamePath}” ${t(
@@ -360,13 +365,58 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
     }
   });
 
+  // 导出 XMind 数据
+  const handleXMindExport = useMemoizedFn(async () => {
+    const hide = message.loading(t('page.repository.view.minder.exportLoadingMessage'));
+    await exportAndDownloadXMind(minderData, {
+      t,
+      priorityOptions,
+    });
+    setTimeout(hide, 500);
+  });
+
+  // 导入 XMind 数据，打开新页面
+  const handleXMindImport = useMemoizedFn(() => {
+    const currentPageUrl = location.href.split('?')[0];
+    const baseUrl = getProximaBasePath() ? `${getProximaBasePath()}` : '/';
+    // 跳转到导入页面
+    const href = `${baseUrl}/${getTenantKey()}/workspaces/${
+      workspace.key
+    }/plugin/test_manager_test-xmindimport/?repositoryId=${
+      selectedNode?.key
+    }&redirectLink=${encodeURIComponent(currentPageUrl)}`;
+
+    window.open(href, '_blank');
+  });
+
   const memoizedButtonNode = React.useMemo(() => {
     return (
-      <Button onClick={handleSave} loading={saveLoading} type="primary">
-        {t('common.save')}
-      </Button>
+      <div>
+        <Button onClick={handleSave} loading={saveLoading} type="primary">
+          {t('common.save')}
+        </Button>
+        <Dropdown
+          getPopupContainer={() =>
+            document.querySelector('[data-element-id="minder-editor-container"]')
+          }
+          overlay={
+            <Menu>
+              {!getCreatePermission(TestType.Case) && (
+                <Menu.Item key="XMindImport" onClick={handleXMindImport}>
+                  {t('page.repository.view.minder.import')}
+                </Menu.Item>
+              )}
+              <Menu.Item key="XMindExport" onClick={handleXMindExport}>
+                {t('page.repository.view.minder.export')}
+              </Menu.Item>
+            </Menu>
+          }
+        >
+          <Button className={cx('menu-action')} icon={<CustomMore />} />
+        </Dropdown>
+      </div>
     );
-  }, [handleSave, saveLoading, t]);
+  }, [handleSave, saveLoading, t, handleXMindExport, handleXMindImport]);
 
   if (!priorityOptions || !minderData) return null;
 

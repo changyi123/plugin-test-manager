@@ -6,6 +6,7 @@ import { iqlRequest } from '../../lib/iqlRequest';
 import { buildResponse } from '../../lib/apiUtil';
 import { TestEntity } from '../../../common/types/test';
 import { getReqInfoFromVMRuntime } from '../../lib/apiUtil';
+import { generateSortIndex } from '../../lib/helper';
 import { itemToTestEntity } from '../../../common/utils/dataTransfer';
 import { batchDeleteItems, batchUpdateItems, batchCreateItems } from '../../lib/batchRequest';
 import {
@@ -24,7 +25,7 @@ import {
   IQLRequiredFieldKeys,
   BuiltInItemTypeMapping,
 } from '../../../common/constant';
-import { getParseQuery } from '@giteeteam/apps-team-api';
+import { getItemCreateRequiredAttrs } from '../../lib/item';
 
 type TestCaseType = TestEntity<TestType.Case>;
 type TestRunType = TestEntity<TestType.Run>;
@@ -36,44 +37,7 @@ export const batchCreateTestCase = async () => {
       body: { workspaceId, data },
     } = getReqInfoFromVMRuntime<BatchCreateTestCasePayload>();
 
-    const generateSortIndex = (index = 0) => {
-      return Math.floor(Date.now() / 1000) * 10e5 + index * 1000;
-    };
-
-    // 获取事项创建的必填字段
-    const getItemRequiredAttrs = async () => {
-      const ParseBaseQueryOptions = {
-        sessionToken: global.sessionToken,
-      };
-
-      const [itemGroupQuery, testConfigQuery] = await Promise.all([
-        getParseQuery(false, 'ItemGroup'),
-        getParseQuery(false, 'test_manager_TestConfig'),
-      ]);
-
-      const itemGroupData = await itemGroupQuery
-        .equalTo('workspace', workspaceId)
-        .include(['workspace.key'])
-        .select(['objectId', 'workspace.key'])
-        .first(ParseBaseQueryOptions)
-        .then(o => o.toJSON());
-
-      const testConfigData = await testConfigQuery
-        .equalTo('workspaceKey', itemGroupData?.workspace.key)
-        .select(['itemTypeMap'])
-        .first(ParseBaseQueryOptions)
-        .then(o => o.toJSON());
-
-      if (!testConfigData) throw new Error();
-
-      return {
-        itemType: { key: testConfigData.itemTypeMap.TestCase },
-        itemGroup: { objectId: itemGroupData.objectId },
-        workspace: { objectId: workspaceId },
-      };
-    };
-
-    const requiredAttrs = await getItemRequiredAttrs();
+    const requiredAttrs = await getItemCreateRequiredAttrs({ objectId: workspaceId });
 
     const params = data.map(item => ({
       ...item,

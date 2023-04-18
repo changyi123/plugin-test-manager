@@ -73,7 +73,7 @@ fetch.interceptors.response.use(
     if (error.code === 'ECONNABORTED') {
       message.error('request timeout');
       return Promise.reject('timeout');
-    } else if (error.response.status) {
+    } else if (error.response?.status) {
       if (typeof error.response.data === 'object') {
         message.error(
           error.response.data?.message || error.response.data?.error || 'request failed',

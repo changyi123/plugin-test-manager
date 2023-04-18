@@ -28,10 +28,12 @@ modules:
     - key: api-module-minder-data-import
       function: api-module-minder-data-import-function
     # 测试管理脑图接口
-    - key: report-stats
-      function: report-stats-function
+    - key: api-module-minder-data-import
+      function: api-module-minder-data-import-function
     - key: api-query-minder-data
       function: api-query-minder-data-function
+    - key: report-stats
+      function: report-stats-function
     - key: report-data-base
       function: report-data-base-function
     - key: report-data-extensions-huishang
@@ -182,6 +184,12 @@ modules:
       loadType: Redirect
       route: /[tenant]/workspaces/[workspace]/report/test_manager?disabledCreate=true&displayContext=test_manager
       {workspacePageHidden}
+    - key: test-xmindimport
+      resource: main
+      title: 测试管理脑图数据导入
+      loadType: Micro
+      route: /xmindimport
+      hidden: true
   beforeCreateOrUpdateModal:
     - key: before-create-or-update-modal
       resource: main

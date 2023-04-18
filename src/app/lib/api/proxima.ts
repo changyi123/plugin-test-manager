@@ -165,8 +165,7 @@ export const getCustomFields = async (keys = [] as string[]) => {
  */
 export const getWorkspaceByKey = async key => {
   if (!key) return;
-  const workspace = await new Parse.Query(Workspace).equalTo('key', key).first();
-  return workspace?.toJSON();
+  return new Parse.Query(Workspace).equalTo('key', key).first({ json: true });
 };
 
 /**

@@ -1,0 +1,35 @@
+.container {
+  height: 100%;
+  overflow: hidden;
+}
+
+.step-content {
+  height: ~'calc(100% - 59px)';
+}
+
+.top {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  height: 58px;
+  border-bottom: 1px solid #dadde3;
+  padding: 0 24px;
+
+  > h3 {
+    font-weight: 500;
+    font-size: 18px;
+  }
+
+  > .step {
+    margin: auto;
+    width: 580px;
+  }
+}
+
+:root {
+  :global {
+    .workspace-plugin-container {
+      padding: 0 !important;
+    }
+  }
+}
