@@ -165,12 +165,12 @@
       "moreConfig": {
         "descriptions": [
           "The test management plugin has three types of test cases, test plans and test execution tasks built into the initialization phase, so please do not remove them. If the three built-in types are deleted, the Test Management System isolation configuration will not be enabled",
-          "When the test management system isolation configuration is turned on, the type association configuration will not be able to be modified. The test management matter association configuration will be associated with the three types built into the test management plugin by default and the full test space type association configuration will be updated to the three built-in types",
-          "When the test management system isolation configuration is turned on, the matters created by the test management association types will be hidden and the matters will not appear in the space view and cannot be searched for in IQL",
+          "When the test management system isolation configuration is turned on, the type association configuration will not be able to be modified. The test management matter association configuration will be associated with the three types built into the test management plugin by default and the full test workspace type association configuration will be updated to the three built-in types",
+          "When the test management system isolation configuration is turned on, the matters created by the test management association types will be hidden and the matters will not appear in the workspace view and cannot be searched for in IQL",
           "The three types built into the Test Management plugin cannot be selected in the dropdown selection box for all types in the view panel of the matter management"
         ],
         "messageError": "The type built into Test Management does not exist and cannot be enabled for this configuration",
-        "warningTips": "The current action will cause all test space type associated configuration types to be overwritten",
+        "warningTips": "The current action will cause all test workspace type associated configuration types to be overwritten",
         "messageSuccess": "Test management system isolation operation successful",
         "enableTestManagerSystemIsolation": "Enable test management System isolation",
         "systemTips": "Test management system isolation description"
@@ -195,7 +195,7 @@
       },
       "tableFields": {
         "title": "Table column and search settings",
-        "description": "Configure default list table headers and filter items for the current space test plan, test cases, and other types",
+        "description": "Configure default list table headers and filter items for the current workspace test plan, test cases, and other types",
         "messageSuccess": "Table header and retrieval item configuration saved successfully",
         "planName": "Plan name",
         "testPlanHeader": "Test plan header",
@@ -369,8 +369,57 @@
           "nameRepeat": ["Save fail, modules", "with the same module name"],
           "overMaxLevelModulePath": "The module has exceeded the maximum level limit, please modify it before saving",
           "updateDataSuccess": "Data updated successfully",
-          "saveFail": "Save failed"
+          "saveFail": "Save failed",
+          "export": "Export XMind",
+          "import": "Import XMind",
+          "exportLoadingMessage": "XMind exporting"
         }
+      }
+    },
+    "xMindImport": {
+      "title": "Import XMind",
+      "step": {
+        "upload": "Upload",
+        "validate": "Validate",
+        "result": "Result"
+      },
+      "button": {
+        "nextStep": "Next step",
+        "save": "Save",
+        "close": "close"
+      },
+      "draftEditorStep": {
+        "lawyerErrorMessage": "The node type is not compliant. The parent node type of the current node should be {{nodeTypeName}}",
+        "maxLevelErrorMessage": "The module node level exceeds the maximum limit. The maximum level limit is 8",
+        "nodeTextMaxLengthErrorMessage": "Node content exceeds the maximum limit. The maximum limit is {{length}}",
+        "duplicateErrorMessage": "Module name is duplicated in the same level",
+        "nodeUnsetErrorMessage": "The node type is not set",
+        "hasExistedError": "The current data node import error, please try again after correction"
+      },
+      "uploadStep": {
+        "importLocation": "Import Location",
+        "uploader": {
+          "text": "Click or drag file to this area to upload",
+          "hint": "Please upload an XMind file with no more than 1000 cases to avoid upload failure"
+        },
+        "importTips": "Import Tips",
+        "noPermissionTip": "No permission to import test cases in current workspace",
+        "includeRootTip": "The file will be imported into the current mind, and you can set whether to import the root node",
+        "importIncludeRoot": "Import Root Node",
+        "typeTip": "Nodes using the system-defined module/test case/precondition/step tags will be recognized",
+        "typeExample": "Node type examples",
+        "levelTip": "The level of the module in the XMind file plus the grouping level of the current mind cannot exceed 8 levels",
+        "countLimitTip": "Up to 1000 cases can be imported at a time",
+        "downloadTemplate": "Download Template"
+      },
+      "resultStep": {
+        "hint": "Saving data, please wait",
+        "stats": {
+          "label": "Data Statistics:",
+          "count": ["Total", "cases"]
+        },
+        "success": "Imported successfully",
+        "redirectRepositoryPage": "Redirect to repository page"
       }
     }
   },
@@ -665,5 +714,13 @@
         "uploadErrorMessage": "The number of files cannot exceed"
       }
     }
+  },
+  "minderNodeTypeName": {
+    "Module": "Module",
+    "TestCase": "TestCase",
+    "Precondition": "Precondition",
+    "Step": "Step",
+    "Result": "Result",
+    "Data": "Data"
   }
 }

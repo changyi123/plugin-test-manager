@@ -1,0 +1,65 @@
+.container {
+  width: 780px;
+  margin: 0 auto;
+
+  .ant-upload-text {
+    color: #213053;
+  }
+  .ant-upload-hint {
+    color: #848c9f;
+  }
+}
+
+.location {
+  font-size: 14px;
+  margin-top: 24px;
+  margin-bottom: 16px;
+  > strong {
+    font-weight: 600;
+  }
+  > span {
+    color: #848c9f;
+  }
+}
+
+.tips-container {
+  margin-top: 24px;
+  > p {
+    margin-bottom: 0;
+  }
+  ul,
+  li {
+    list-style: none;
+  }
+
+  ul {
+    padding-left: 0;
+    > div {
+      padding-bottom: 6px;
+    }
+  }
+
+  li {
+    position: relative;
+    padding-left: 0.8em;
+    line-height: 28px;
+    &::before {
+      content: '';
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: #b5bac5;
+      position: absolute;
+      top: 0.9em;
+      left: 0;
+    }
+  }
+}
+
+.checkbox {
+  margin-right: 8px;
+}
+.example-link {
+  margin-left: 8px;
+  color: #0c62ff;
+}

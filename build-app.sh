@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # 获取 git 版本信息
+tag=$(cat manifest.tmpl.yml | grep version | awk -F': ' '{print $2}' | sed 's/"//g')
 commit=$(git log --oneline | cut -d$'\n' -f1)
 branch=$(git rev-parse --abbrev-ref HEAD)
 date=$(date +"%Y-%m-%d %T")
@@ -11,7 +12,7 @@ rootDir=$(
 )
 
 # 构建插件静态资源文件
-yarn && yarn build -- --env PROXIMA_VERSION_COMMIT="$commit" PROXIMA_VERSION_BRANCH="$branch" PROXIMA_VERSION_DATE="$date"
+yarn && yarn build -- --env PROXIMA_VERSION_COMMIT="$commit" PROXIMA_VERSION_BRANCH="$branch" PROXIMA_VERSION_DATE="$date" PROXIMA_VERSION_tag="$tag"
 
 buildZip() {
     cd "${rootDir}"

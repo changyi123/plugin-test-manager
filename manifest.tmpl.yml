@@ -2,7 +2,7 @@ app:
   key: test_manager
   uuid: bf73e61c-e15a-4461-a1f7-f940c2009332
   name: test_manager
-  version: "3.7.0-alpha.1"
+  version: "3.8.0-alpha.1"
 modules:
   webtrigger:
     # TODO: Debug 使用，生产环境禁止调用下面的 trigger
@@ -26,10 +26,12 @@ modules:
     - key: generate-sortIndex
       function: generate-sortIndex-function
     # 测试管理脑图接口
-    - key: report-stats
-      function: report-stats-function
+    - key: api-module-minder-data-import
+      function: api-module-minder-data-import-function
     - key: api-query-minder-data
       function: api-query-minder-data-function
+    - key: report-stats
+      function: report-stats-function
     - key: report-data-base
       function: report-data-base-function
     - key: report-data-extensions-huishang
@@ -143,6 +145,8 @@ modules:
       handler: api.repositoryTreeV2
     - key: api-query-minder-data-function
       handler: api.minderData
+    - key: api-module-minder-data-import-function
+      handler: api.minderDataImport
 
   itemPanel:
     - key: test-manager-test-detail
@@ -176,6 +180,12 @@ modules:
       loadType: Redirect
       route: /[tenant]/workspaces/[workspace]/report/test_manager?disabledCreate=true&displayContext=test_manager
       {workspacePageHidden}
+    - key: test-xmindimport
+      resource: main
+      title: 测试管理脑图数据导入
+      loadType: Micro
+      route: /xmindimport
+      hidden: true
   beforeCreateOrUpdateModal:
     - key: before-create-or-update-modal
       resource: main

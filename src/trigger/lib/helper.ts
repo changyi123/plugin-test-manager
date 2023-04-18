@@ -1,1 +1,17 @@
 export const toArray = data => (Array.isArray(data) ? data : [data]);
+
+export const uuidv4 = () => {
+  function getRandomIntInclusive(min, max) {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min + 1)) + min; //含最大值，含最小值
+  }
+
+  return ([1e7].toString() + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, c =>
+    (+c ^ (getRandomIntInclusive(0, 100) & (15 >> (+c / 4)))).toString(16),
+  );
+};
+
+export const generateSortIndex = (index = 0) => {
+  return Math.floor(Date.now() / 1000) * 10e5 + index * 1000;
+};

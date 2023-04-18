@@ -359,8 +359,57 @@
           "nameRepeat": ["保存失败，模块", "下存在在同名的模块"],
           "overMaxLevelModulePath": "模块已超过最大层级限制，请修改后再进行保存",
           "updateDataSuccess": "数据更新成功",
-          "saveFail": "保存失败"
+          "saveFail": "保存失败",
+          "export": "导出 XMind",
+          "import": "导入 XMind",
+          "exportLoadingMessage": "正在导出 XMind"
         }
+      }
+    },
+    "xMindImport": {
+      "title": "XMind 导入",
+      "step": {
+        "upload": "上传",
+        "validate": "数据校验",
+        "result": "结果"
+      },
+      "button": {
+        "nextStep": "下一步",
+        "save": "保存",
+        "close": "关闭"
+      },
+      "draftEditorStep": {
+        "lawyerErrorMessage": "节点类型不合规，当前节点的父节点类型应为【{{nodeTypeName}}】",
+        "maxLevelErrorMessage": "模块节点层级超出最大限制，最大层级限制为 8",
+        "nodeTextMaxLengthErrorMessage": "节点内容超出最大限制，最大限制为 {{length}}",
+        "duplicateErrorMessage": "同层级下模块名称重复",
+        "nodeUnsetErrorMessage": "节点类型未设置",
+        "hasExistedError": "当前导入数据节点存在错误，请修正后重试"
+      },
+      "uploadStep": {
+        "importLocation": "导入位置",
+        "uploader": {
+          "text": "点击或拖拽文件到该区域内上传",
+          "hint": "请上传用例条数不超过 1000 的 XMind 文件，以免造成上传失败"
+        },
+        "importTips": "导入提示",
+        "noPermissionTip": "当前空间无权限导入测试用例",
+        "includeRootTip": "文件将导入至当前脑图，可设置是否导入根节",
+        "importIncludeRoot": "导入根节点",
+        "typeTip": "使用系统定义的模块/测试用例/前置条件/步骤标签的节点将会被识别",
+        "typeExample": "节点标签示例",
+        "levelTip": "XMind 文件中模块的层级加上当前脑图分组层级不可以超过8层",
+        "countLimitTip": "单次上传最大支持导入 1000 条用例",
+        "downloadTemplate": "下载模板 "
+      },
+      "resultStep": {
+        "hint": "数据保存中，请稍后",
+        "stats": {
+          "label": "数据统计：",
+          "count": ["共", "条用例数据"]
+        },
+        "success": "导入成功",
+        "redirectRepositoryPage": "跳转用例库页面"
       }
     }
   },
@@ -646,5 +695,13 @@
         "uploadErrorMessage": "文件数量不能超过"
       }
     }
+  },
+  "minderNodeTypeName": {
+    "Module": "模块",
+    "TestCase": "用例",
+    "Precondition": "前置条件",
+    "Step": "步骤",
+    "Result": "预期结果",
+    "Data": "数据"
   }
 }

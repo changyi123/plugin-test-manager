@@ -9,4 +9,6 @@ export {
 
 export { testPlanStats, testExecutionStats, testCaseStats } from './modules/api/stats';
 
-export { repositoryTree, repositoryTreeV2, minderData } from './modules/api/module';
+export { repositoryTree, repositoryTreeV2 } from './modules/api/module';
+
+export { minderData, minderDataImport } from './modules/api/minder';
