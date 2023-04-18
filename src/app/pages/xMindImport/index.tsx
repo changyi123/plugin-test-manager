@@ -2,11 +2,15 @@ import React from 'react';
 import Result from './steps/Result';
 import { Button, Steps } from 'antd';
 import useI18n from '@/lib/hooks/useI18n';
+import { TestType } from 'common/constant';
 import XMindUpload from './steps/XMindUpload';
+import { useRequest, useMemoizedFn } from 'ahooks';
+import { useSDK } from '@projectproxima/plugin-sdk';
 import MinderEditor from './steps/MinderDraftEditor';
 import { getPriorityOptions } from '@/lib/api/minder';
 import { getRepositoryTreeWithParentNode } from './lib';
-import { useRequest, useMemoizedFn, useEventEmitter } from 'ahooks';
+import { getWorkspaceByKey } from '@/lib/api/proxima';
+import { useGetPermissions } from '@/components/business/TestManagerProvider/hooks';
 
 import { SharedState } from './type';
 
@@ -23,11 +27,11 @@ const ImportSteps = [
     key: 'validate',
     component: MinderEditor,
     buttonText: 'save',
+    useCanGoNextControlButtonDisabled: true,
   },
   {
     key: 'result',
     component: Result,
-    useCanGoNextControlButtonDisabled: true,
   },
 ];
 
@@ -35,7 +39,10 @@ const RootRepositoryId = 'root';
 
 // 各组件间共享的状态
 const useSharedState = () => {
+  const [workspace, setWorkspace] = React.useState(null);
   const { t } = useI18n();
+  const { context } = useSDK();
+  const workspaceKey = context?.env?.WORKSPACE_KEY;
   const { data: priorityOptions } = useRequest(
     async () => {
       const options = await getPriorityOptions();
@@ -54,6 +61,7 @@ const useSharedState = () => {
     minderData: null,
     repositoryTree: null,
     submitMinderData: null,
+    canCreateTestCaseItem: false,
     repositoryId: RootRepositoryId,
   });
 
@@ -77,44 +85,53 @@ const useSharedState = () => {
     }
     setPartialSharedState({
       repositoryId: searchState.repositoryId ?? RootRepositoryId,
-      workspaceKey: searchState?.workspaceKey,
       redirectLink: searchState?.redirectLink,
     });
   }, [setPartialSharedState]);
 
   // TODO: 获取用例树
   React.useEffect(() => {
-    if (sharedState?.workspaceKey) {
-      getRepositoryTreeWithParentNode(sharedState?.workspaceKey, t).then(repositoryTree => {
-        setPartialSharedState({ repositoryTree });
+    if (workspaceKey) {
+      Promise.all([
+        getWorkspaceByKey(workspaceKey),
+        getRepositoryTreeWithParentNode(workspaceKey, t),
+      ]).then(([workspace, repositoryTree]) => {
+        setWorkspace(workspace);
+        setPartialSharedState({ workspaceKey, repositoryTree });
       });
     }
-  }, [sharedState?.workspaceKey, setPartialSharedState, t]);
+  }, [workspaceKey, setPartialSharedState, t]);
+
+  // 获取创建权限
+  const { getCreatePermission: getDisabledCreatePermission } = useGetPermissions(workspace);
+  React.useEffect(() => {
+    setPartialSharedState({ canCreateTestCaseItem: !getDisabledCreatePermission(TestType.Case) });
+  }, [getDisabledCreatePermission, setPartialSharedState]);
 
   return [sharedState, setPartialSharedState] as const;
 };
 
 const XMindImport = () => {
   const { t } = useI18n();
+  const nextStepButtonClickRef = React.useRef<any>();
 
   const [stepIndex, setStepIndex] = React.useState(0);
   const currentStep = ImportSteps[stepIndex];
 
   const [sharedState, setPartialSharedState] = useSharedState();
-  const saveButtonEmitter = useEventEmitter<'userClick' | 'stepComponentTrigger'>();
 
   // 下一步
-  const handlerSaveButtonClick = useMemoizedFn(() => {
-    saveButtonEmitter.emit('userClick');
+  const handlerSaveButtonClick = useMemoizedFn(async () => {
+    await nextStepButtonClickRef.current?.();
     sharedState.canGoNext && setStepIndex(step => step + 1);
     setPartialSharedState({ canGoNext: false });
   });
 
-  saveButtonEmitter.useSubscription(type => {
-    if (type === 'userClick') return;
-    sharedState.canGoNext && setStepIndex(step => step + 1);
-    setPartialSharedState({ canGoNext: false });
-  });
+  React.useLayoutEffect(() => {
+    const layoutElement = document.querySelector('[data-element-id="workspace.layout.content"]');
+    const workspacePluginContainerDOM = layoutElement.children?.[0] ?? ({} as any);
+    workspacePluginContainerDOM.style = 'padding: 0';
+  }, []);
 
   return (
     <div className={cx('container')}>
@@ -140,7 +157,7 @@ const XMindImport = () => {
       <div className={cx('step-content')}>
         {React.createElement(currentStep.component, {
           sharedState,
-          saveButtonEmitter,
+          nextStepButtonClickRef,
           onSharedStateChange: setPartialSharedState,
         })}
       </div>

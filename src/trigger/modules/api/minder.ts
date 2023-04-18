@@ -6,7 +6,7 @@ import { getRepositoryTree } from '../../lib/repository';
 import { batchCreateItems } from '../../lib/batchRequest';
 import { getItemCreateRequiredAttrs } from '../../lib/item';
 import { itemToTestEntity } from '../../../common/utils/dataTransfer';
-import { getParseModel, saveAllObject } from '@giteeteam/apps-team-api';
+import { getParseModel, getParseQuery, saveAllObject } from '@giteeteam/apps-team-api';
 import { getReqInfoFromVMRuntime, buildResponse } from '../../lib/apiUtil';
 import { MinderDataPayload, MinderDataImportPayload } from '../../../common/types/api';
 import {
@@ -145,6 +145,27 @@ export const minderDataImport = async () => {
   const { body, sessionToken } = getReqInfoFromVMRuntime<MinderDataImportPayload>();
   const { workspaceKey, minderData } = body;
 
+  const [RepoModel, RepoQuery] = await Promise.all([
+    getParseModel(false, RepositoryClassName),
+    getParseQuery(false, RepositoryClassName),
+  ]);
+
+  const repoObjectIdMap = await RepoQuery.equalTo('workspaceKey', workspaceKey)
+    .select(['name', 'parent', 'objectId'])
+    .findAll({ sessionToken })
+    .then(repos => {
+      return repos.reduce((acc, repo) => {
+        const repoData = repo.toJSON();
+        const { objectId, parent, name } = repoData;
+        acc[objectId] = {
+          name,
+          objectId,
+          parent: parent?.objectId ?? null,
+        };
+        return acc;
+      }, {});
+    });
+
   const traverseAddParentMinderData = (node, parent = null) => {
     if (!node) return;
     node.parent = parent;
@@ -174,12 +195,26 @@ export const minderDataImport = async () => {
     };
 
     const levelOrderArr = buildLevelOrderArr(minderData);
-    const RepoModel = await getParseModel(false, RepositoryClassName);
     for (const levelOrder of levelOrderArr) {
       const repoData = levelOrder.filter(node => node.data.type === MinderNodeType.Module);
+      // 当草稿数据中的用例库名称和已存在的用例库名称不一样时需要更新
+      const needUpdateRepoParseObjects = repoData
+        .filter(
+          node =>
+            node.data.objectId &&
+            repoObjectIdMap[node.data.objectId] &&
+            repoObjectIdMap[node.data.objectId].name !== node.data.text,
+        )
+        .map(repoData => {
+          return new RepoModel({
+            objectId: repoData.data.objectId,
+            name: repoData.data.text,
+          });
+        });
+
       // 需要被创建的 repository
       const needCreateRepoData = repoData.filter(node => !node.data.objectId);
-      const repoParseObjects = needCreateRepoData.map((repo, index) => {
+      const needCreateRepoParseObjects = needCreateRepoData.map((repo, index) => {
         const parentRepoId = repo.parent?.data.objectId;
         return new RepoModel({
           workspaceKey,
@@ -188,9 +223,15 @@ export const minderDataImport = async () => {
           sortIndex: generateSortIndex(index),
         });
       });
-      if (repoParseObjects.length) {
-        const createdRepos = await saveAllObject(repoParseObjects, { sessionToken }).then(items =>
-          items.map(item => item.toJSON()),
+
+      const willSaveRepoParseObjects = [].concat(
+        needUpdateRepoParseObjects,
+        needCreateRepoParseObjects,
+      );
+
+      if (willSaveRepoParseObjects.length) {
+        const createdRepos = await saveAllObject(willSaveRepoParseObjects, { sessionToken }).then(
+          items => items.map(item => item.toJSON()),
         );
         const createdNameRepoMap = keyBy(createdRepos, 'name');
         repoData.forEach(repo => {
@@ -235,7 +276,7 @@ export const minderDataImport = async () => {
               }
               return steps;
             }, []) ?? [],
-          preCondition: node.children?.find(
+          precondition: node.children?.find(
             child => child.data.type === MinderNodeType.Precondition,
           )?.data.text,
         };
@@ -275,8 +316,10 @@ export const minderDataImport = async () => {
 
     // 批量创建测试用例
     const createdTestCases = await batchCreateTestCase(minderData);
-    return buildResponse(createdTestCases.map(itemToTestEntity));
+    console.log('import success ------>', createdTestCases);
+    return buildResponse(`${createdTestCases.length} test case created`);
   } catch (err) {
-    return buildResponse(err);
+    console.log('import failed ------>', err);
+    return buildResponse(err.message);
   }
 };

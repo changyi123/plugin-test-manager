@@ -14,12 +14,13 @@ import {
 } from '@/lib/api/minder';
 import { CustomMore } from '@/icons';
 import { ViewComponentProps } from '../type';
-import { MinderNodeType } from 'common/constant';
+import { MinderNodeType, TestType } from 'common/constant';
 import { createRepositories } from '@/lib/api/repository';
 import { deleteTestEntity, updateTestEntity } from '@/lib/api/item';
 import useI18n from '@/lib/hooks/useI18n';
 import { getLang } from '@/lib/utils/locale';
 import { exportAndDownloadXMind } from '@/lib/minder';
+import { useBaseAction } from '@/lib/hooks/useContext';
 import { getProximaBasePath, getTenantKey } from '@/lib/utils/helper';
 
 import cx from './index.less';
@@ -37,6 +38,7 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
   const { workspace } = useTestConfig();
   const actionRef = React.useRef(null);
   const [saveLoading, setSaveLoading] = React.useState(false);
+  const { getCreatePermission } = useBaseAction();
 
   const { data: minderData } = useRequest(
     async () => {
@@ -380,7 +382,7 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
     // 跳转到导入页面
     const href = `${baseUrl}/${getTenantKey()}/workspaces/${
       workspace.key
-    }/plugin/test_manager_test-xmindimport/?workspaceKey=${workspace.key}&repositoryId=${
+    }/plugin/test_manager_test-xmindimport/?repositoryId=${
       selectedNode?.key
     }&redirectLink=${encodeURIComponent(currentPageUrl)}`;
 
@@ -394,11 +396,16 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
           {t('common.save')}
         </Button>
         <Dropdown
+          getPopupContainer={() =>
+            document.querySelector('[data-element-id="minder-editor-container"]')
+          }
           overlay={
             <Menu>
-              <Menu.Item key="XMindImport" onClick={handleXMindImport}>
-                {t('page.repository.view.minder.import')}
-              </Menu.Item>
+              {!getCreatePermission(TestType.Case) && (
+                <Menu.Item key="XMindImport" onClick={handleXMindImport}>
+                  {t('page.repository.view.minder.import')}
+                </Menu.Item>
+              )}
               <Menu.Item key="XMindExport" onClick={handleXMindExport}>
                 {t('page.repository.view.minder.export')}
               </Menu.Item>

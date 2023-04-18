@@ -566,8 +566,8 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
         });
       },
       getGlobalConfig,
-      openItemViewPanel: openItemDetailPanel,
       getCreatePermission,
+      openItemViewPanel: openItemDetailPanel,
     };
 
     return actions;

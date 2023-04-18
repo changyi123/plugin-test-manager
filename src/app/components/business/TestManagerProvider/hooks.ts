@@ -1,7 +1,8 @@
 import { useCallback } from 'react';
-import fetch from '@/lib/utils/fetch';
-import { getTestConfig } from '@/lib/api/common';
 import { useRequest } from 'ahooks';
+import fetch from '@/lib/utils/fetch';
+import { TestType } from 'common/constant';
+import { getTestConfig } from '@/lib/api/common';
 
 const useGetPermissions = (workspace: Record<string, any>) => {
   const { data: testConfig } = useRequest(
@@ -12,9 +13,9 @@ const useGetPermissions = (workspace: Record<string, any>) => {
     },
     {
       cacheKey: `test-config-${workspace?.key}`,
+      ready: !!workspace?.key,
       refreshDeps: [workspace?.key],
-      cacheTime: 999999,
-      staleTime: 999999,
+      staleTime: -1,
     },
   );
 
@@ -33,16 +34,23 @@ const useGetPermissions = (workspace: Record<string, any>) => {
     {
       cacheKey: `item-screenType-${workspace?.objectId}`,
       refreshDeps: [workspace?.objectId],
-      cacheTime: 999999,
-      staleTime: 999999,
+      ready: !!workspace?.objectId,
+      staleTime: -1,
     },
   );
 
+  // 获取不可用的创建权限
   const getCreatePermission = useCallback(
-    key => {
+    (key: TestType) => {
       const itemScreenTypeKeys = itemScreenType?.map(d => d.key) ?? [];
-      const testTypeMapping = Object.entries(testConfig?.itemTypeMap ?? {})
-        .concat([['TestDefect', testConfig?.defectsMapping?.[0]]])
+      const testTypeMapping = Object.entries(
+        testConfig?.itemTypeMap ?? {
+          [TestType.Case]: null,
+          [TestType.Plan]: null,
+          [TestType.Execution]: null,
+        },
+      )
+        .concat([[TestType.TestDefect, testConfig?.defectsMapping?.[0]]])
         .reduce((prev, [testKey, typeKey]) => {
           prev[testKey] = !itemScreenTypeKeys.includes(typeKey);
           return prev;

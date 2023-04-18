@@ -2,7 +2,9 @@ import React from 'react';
 import useI18n from '@/lib/hooks/useI18n';
 import { StepComponentProp } from '../type';
 import { useBoolean, useMemoizedFn } from 'ahooks';
-import { Upload, Checkbox, Button, message } from 'antd';
+import { UploadOutlined } from '@/icons';
+import xmindTemplate from '@/assets/images/xmindTemplate.png';
+import { Upload, Checkbox, Button, message, Tooltip } from 'antd';
 import { parseXMindFile2MinderData, countMinderNodes, exportAndDownloadXMind } from '@/lib/minder';
 
 import cx from './XMindUpload.less';
@@ -15,6 +17,7 @@ const getXMindTemplateNodes = t => {
   return {
     root: {
       data: {
+        type: MinderNodeType.Module,
         text: '用例导入',
       },
       children: [
@@ -282,6 +285,8 @@ const XMindUpload: React.FC<StepComponentProp> = ({ sharedState, onSharedStateCh
   });
 
   const handleParseXMindFile = useMemoizedFn(async options => {
+    if (!sharedState.canCreateTestCaseItem)
+      throw message.error(t('page.xMindImport.uploadStep.noPermissionTip'));
     const { file, onProgress, onSuccess } = options;
     onProgress({ percent: 30 });
     const minderData = await parseXMindFile2MinderData(file, {
@@ -311,7 +316,9 @@ const XMindUpload: React.FC<StepComponentProp> = ({ sharedState, onSharedStateCh
         <span>{repositoryPaths?.join(' > ')}</span>
       </div>
       <Dragger maxCount={1} accept=".xmind, x-xmind" customRequest={handleParseXMindFile}>
-        <p className="ant-upload-drag-icon"></p>
+        <p className="ant-upload-drag-icon">
+          <UploadOutlined />
+        </p>
         <p className="ant-upload-text">{t('page.xMindImport.uploadStep.uploader.text')}</p>
         <p className="ant-upload-hint">{t('page.xMindImport.uploadStep.uploader.hint')}</p>
       </Dragger>
@@ -320,7 +327,7 @@ const XMindUpload: React.FC<StepComponentProp> = ({ sharedState, onSharedStateCh
           <strong>{t('page.xMindImport.uploadStep.importTips')}</strong>
         </p>
         <ul>
-          <li>
+          <div>
             {t('page.xMindImport.uploadStep.includeRootTip')}
             <div>
               <Checkbox
@@ -335,10 +342,15 @@ const XMindUpload: React.FC<StepComponentProp> = ({ sharedState, onSharedStateCh
                 {t('page.xMindImport.uploadStep.importIncludeRoot')}
               </span>
             </div>
-          </li>
+          </div>
           <li>
             {t('page.xMindImport.uploadStep.typeTip')}
-            <a className={cx('example-link')}>{t('page.xMindImport.uploadStep.typeExample')}</a>
+            <Tooltip
+              overlayStyle={{ maxWidth: 'unset' }}
+              title={<img src={xmindTemplate} width={500} />}
+            >
+              <a className={cx('example-link')}>{t('page.xMindImport.uploadStep.typeExample')}</a>
+            </Tooltip>
           </li>
           <li>{t('page.xMindImport.uploadStep.levelTip')}</li>
           <li>{t('page.xMindImport.uploadStep.countLimitTip')}</li>

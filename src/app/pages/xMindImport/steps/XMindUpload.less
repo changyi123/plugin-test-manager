@@ -1,6 +1,13 @@
 .container {
   width: 780px;
   margin: 0 auto;
+
+  .ant-upload-text {
+    color: #213053;
+  }
+  .ant-upload-hint {
+    color: #848c9f;
+  }
 }
 
 .location {
@@ -27,11 +34,14 @@
 
   ul {
     padding-left: 0;
+    > div {
+      padding-bottom: 6px;
+    }
   }
 
   li {
     position: relative;
-    padding-left: 2em;
+    padding-left: 0.8em;
     line-height: 28px;
     &::before {
       content: '';
@@ -41,7 +51,7 @@
       background: #b5bac5;
       position: absolute;
       top: 0.9em;
-      left: 1.3em;
+      left: 0;
     }
   }
 }
@@ -51,4 +61,5 @@
 }
 .example-link {
   margin-left: 8px;
+  color: #0c62ff;
 }

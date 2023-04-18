@@ -63,7 +63,9 @@ export const exportAndDownloadXMind = async (minderData, { t, priorityOptions = 
   );
 
   // 设置字节点的 label
-  const topicCIdMapping = {};
+  const topicCIdMapping = {
+    [rootMinderNode.data.id]: topic.cid(),
+  };
   for (const data of flattedMinderNodeDataList) {
     if (!data) continue;
     const { id, parentId, text, type, priority } = data;

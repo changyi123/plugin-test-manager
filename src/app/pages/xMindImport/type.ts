@@ -1,14 +1,14 @@
-import { EventEmitter } from 'ahooks/lib/useEventEmitter';
-
 /** step 组件 prop */
 export type StepComponentProp = {
   sharedState: SharedState;
-  saveButtonEmitter: EventEmitter<any>;
+  nextStepButtonClickRef: React.ForwardedRef<() => void>;
   onSharedStateChange: (sharedState: Partial<SharedState>) => void;
 };
 
 /** 跨组件的状态 */
 export type SharedState = {
+  /** 是否有权限创建测试计划用例 */
+  canCreateTestCaseItem: boolean;
   workspaceKey: string;
   /** repository id */
   repositoryId: string;

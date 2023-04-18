@@ -50,7 +50,6 @@ const Result: React.FC<StepComponentProp> = ({ sharedState }) => {
   const { runAsync } = useRequest(
     async () => {
       start();
-      console.error('sharedState.submitMinderData', sharedState.submitMinderData);
       await importMinderData({
         workspaceKey: sharedState.workspaceKey,
         minderData: sharedState.submitMinderData,

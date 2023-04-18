@@ -3,6 +3,7 @@ import { testEntityFieldTypeValidator } from '../../../lib/validator';
 import { TestLinkType, TestType } from '../../../../common/constant';
 import { i18n } from '@giteeteam/apps-team-api';
 
+// https://proximahq.feishu.cn/wiki/wikcnNZ2ttPvdW1dyCa3hhxD7Ud 脚本需求
 export const runShenWanScript = async () => {
   const { t } = i18n;
 

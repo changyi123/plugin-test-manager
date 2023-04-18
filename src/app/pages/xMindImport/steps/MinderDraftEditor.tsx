@@ -1,41 +1,46 @@
 import React from 'react';
+import { useMemoizedFn } from 'ahooks';
 import { StepComponentProp } from '../type';
 import { getLang } from '@/lib/utils/locale';
 import MinderEditor from 'test-manager-minder';
+import { useTranslation } from 'react-i18next';
 import { MinderNodeType } from 'common/constant';
-import { useMemoizedFn } from 'ahooks';
 
 import cx from './MinderDraftEditor.less';
 import { message } from 'antd';
 
 const MinderDraftEditor: React.FC<StepComponentProp> = ({
   sharedState,
-  saveButtonEmitter,
   onSharedStateChange,
+  nextStepButtonClickRef,
 }) => {
+  const { t: globalT } = useTranslation();
+  const { t: scopedT } = useTranslation('', {
+    keyPrefix: 'page.xMindImport.draftEditorStep',
+  });
   const actionRef = React.useRef(null);
   const lang = getLang()?.replace(/-\w+/g, '');
 
-  saveButtonEmitter.useSubscription(async type => {
-    if (type === 'stepComponentTrigger') return;
-    const passed = await actionRef.current.validateMinderData();
-    if (!passed) {
-      return message.error('当前导入数据节点存在错误，请修正后重试');
-    }
-    onSharedStateChange({
-      canGoNext: true,
-      submitMinderData: actionRef.current?.exportJson()?.root,
-    });
-    saveButtonEmitter.emit('stepComponentTrigger');
-  });
-
   const validator = useMemoizedFn(rootNode => {
+    let currentRepositoryLevel = 0;
+    const traverseRepoNode = repoNode => {
+      if (repoNode.id === rootNode.data.objectId ?? 'root') {
+        let parent = repoNode;
+        while (parent && parent.id !== 'root') {
+          currentRepositoryLevel++;
+          parent = parent.parent;
+        }
+      }
+      repoNode.children?.forEach(traverseRepoNode);
+    };
+    traverseRepoNode(sharedState.repositoryTree);
+
     const buildValidatorStrategies = (node, parent) => {
       const validatorStrategies = {
         // 节点类型必须存在
         nodeTypeExisted: node => {
           if (!node.data.type) {
-            return '节点类型未设置';
+            return scopedT('nodeUnsetErrorMessage');
           }
         },
         // 节点类型必须合规
@@ -59,38 +64,51 @@ const MinderDraftEditor: React.FC<StepComponentProp> = ({
           const nodeTypeLevel = nodeParentTypeLevel[node.data.type] ?? [];
           let level = 0;
 
+          // 标记节点已经校验过
+          node._nodeTypeLawyerValidated = true;
           let nodeParent = parent;
           while (nodeParent) {
+            // 跳过已经校验过的节点
+            if (nodeParent._nodeTypeLawyerValidated) break;
             // 单独处理 TestCase 和 Module 类型节点
             if ([MinderNodeType.Module, MinderNodeType.TestCase].includes(node.data.type)) {
               while (nodeParent) {
                 if (![MinderNodeType.Root, MinderNodeType.Module].includes(nodeParent.data.type)) {
-                  return `节点类型不合规，父节点类型应为 ${MinderNodeType.Module}`;
+                  return scopedT('lawyerErrorMessage', {
+                    nodeTypeName: globalT(`minderNodeTypeName.${MinderNodeType.Module}`),
+                  });
                 }
                 nodeParent = nodeParent.parent;
               }
               break;
             }
-            if (nodeTypeLevel.indexOf(nodeParent.data.type) !== level) {
-              return `节点类型不合规，当前节点的父节点类型应为 ${nodeTypeLevel[level]}`;
+
+            const levelIndex = nodeTypeLevel.indexOf(nodeParent.data.type);
+            if (levelIndex && levelIndex !== level) {
+              return scopedT('lawyerErrorMessage', {
+                nodeTypeName: globalT(
+                  nodeTypeLevel[level]
+                    ? `minderNodeTypeName.${nodeTypeLevel[level]}`
+                    : 'minderNodeTypeName.Module',
+                ),
+              });
             }
-            // 跳过已经校验过的节点
-            if (nodeParent._nodeTypeLawyerValidated) break;
             level++;
             nodeParent = nodeParent.parent;
           }
-          // 标记节点已经校验过
-          node._nodeTypeLawyerValidated = true;
         },
         // module 节点层级不能超过 8 级
-        moduleNodeLevelMaxCount: (_node, parent) => {
-          let level = 1;
-          while (parent) {
+        moduleNodeLevelMaxCount: node => {
+          if (node.data.type !== MinderNodeType.Module) return;
+          let level = currentRepositoryLevel;
+          let nodeParent = node;
+          while (nodeParent) {
             level++;
-            parent = parent.parent;
+            nodeParent = nodeParent.parent;
           }
-          if (level > 8) {
-            return `模块节点层级超出最大限制，最大层级限制为 8`;
+
+          if (level >= 8) {
+            return scopedT('maxLevelErrorMessage');
           }
         },
         // module 节点名称同层级不能重复
@@ -104,7 +122,7 @@ const MinderDraftEditor: React.FC<StepComponentProp> = ({
           if (
             moduleNameList.indexOf(node.data.text) !== moduleNameList.lastIndexOf(node.data.text)
           ) {
-            return `同层级下模块名称重复`;
+            return scopedT('duplicateErrorMessage');
           }
         },
         // 节点内容长度限制
@@ -118,8 +136,10 @@ const MinderDraftEditor: React.FC<StepComponentProp> = ({
             [MinderNodeType.Module]: 40,
           };
 
-          if (node.data.text.length > textMaxCountMap[node.data.type]) {
-            return `节点内容超出最大限制，最大限制为 ${textMaxCountMap[node.data.type]}`;
+          if (node.data.text?.length > textMaxCountMap[node.data.type]) {
+            return scopedT('nodeTextMaxLengthErrorMessage', {
+              length: textMaxCountMap[node.data.type],
+            });
           }
         },
       };
@@ -132,7 +152,7 @@ const MinderDraftEditor: React.FC<StepComponentProp> = ({
           message = validatorStrategies[type]?.(node, parent);
           if (message) {
             errorList.push({
-              id: node.data.id,
+              id: node?.data.id,
               message,
             });
             break;
@@ -147,6 +167,9 @@ const MinderDraftEditor: React.FC<StepComponentProp> = ({
     // 校验脑图节点数据
     const validateNode = (node, parent = null) => {
       const validator = buildValidatorStrategies(node, parent);
+      if (!node.parent) {
+        node.parent = parent;
+      }
       // 一个节点最多只存在一种错误，所有错误类型按优先级排序
       validator([
         'nodeTypeExisted',
@@ -165,8 +188,40 @@ const MinderDraftEditor: React.FC<StepComponentProp> = ({
 
     validateNode(rootNode);
 
+    // 存在错误则禁用下一步按钮
+    if (errorList.length) {
+      onSharedStateChange({
+        canGoNext: false,
+      });
+    } else {
+      // parent 存在循环引用，在提交的时候需要去掉
+      const pureMinderData = JSON.parse(
+        JSON.stringify(rootNode, (key, value) => {
+          if (key === 'parent') return;
+          return value;
+        }),
+      );
+      onSharedStateChange({
+        canGoNext: true,
+        submitMinderData: pureMinderData,
+      });
+    }
+
     return errorList;
   });
+
+  React.useImperativeHandle(nextStepButtonClickRef, () => async () => {
+    const passed = await actionRef.current.validateMinderData();
+    if (!passed) {
+      throw message.error(scopedT('hasExistedError'));
+    }
+  });
+
+  React.useEffect(() => {
+    if (!sharedState.minderData) return;
+    // return message.warn('当前导入数据节点存在错误，请修正后重试');
+    setTimeout(() => actionRef.current.validateMinderData());
+  }, [sharedState.minderData]);
 
   return (
     <div className={cx('container')}>

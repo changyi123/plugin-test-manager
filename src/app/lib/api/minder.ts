@@ -3,7 +3,7 @@
 import Parse from '@/lib/parse';
 import fetch from '@/lib/utils/fetch';
 import { CustomField, Repository } from '@/lib/models';
-import { getPluginWebTriggerBaseUrl } from '../utils/helper';
+import { getSessionToken, getPluginWebTriggerBaseUrl } from '../utils/helper';
 
 const pluginWebTriggerBaseUrl = getPluginWebTriggerBaseUrl();
 
@@ -77,9 +77,10 @@ export const batchDeleteRepository = async (ids: string[]) => {
 
 /** 导入脑图数据 */
 export const importMinderData = async (params: { workspaceKey: string; minderData: any }) => {
-  const {
-    data: { data },
-  } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-module-minder-data-import`, params);
+  const res = await fetch.post(`${pluginWebTriggerBaseUrl}/api-module-minder-data-import`, {
+    ...params,
+    sessionToken: getSessionToken(),
+  });
 
-  return data;
+  return res?.data?.data;
 };
