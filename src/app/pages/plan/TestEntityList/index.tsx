@@ -250,9 +250,6 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     });
     setTableLoading(false);
 
-    console.log('1111cases -------------->', cases);
-    console.log('1111runs ----------------->', runs);
-
     return {
       list: cases?.map(c => {
         const runData = pick(runCaseMap.get(c.id), [
