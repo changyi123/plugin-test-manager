@@ -227,6 +227,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       linkType: TestLinkType.RunLinkExecution,
       sourceIds: [executionId],
       destinationType: TestType.Run,
+      limit: 9999,
       select: ['id', 'referenceCase', 'designee', 'executor', 'sortIndex', 'status'],
       selector: [{}, filterRunSelector],
     });
@@ -267,6 +268,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           runId: runData.id,
           caseId: c.id,
           objectId: runData.id,
+          id: runData.id,
           repository: c.repository,
         };
       }),
@@ -305,6 +307,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       },
       linkType: TestLinkType.RunLinkExecution,
       sourceIds: [executionId],
+      limit: 9999,
       destinationType: TestType.Run,
       select: ['id', 'referenceCase', 'designee', 'executor', 'sortIndex', 'status'],
     });
@@ -332,6 +335,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           runStatus: runData.status,
           caseId: c.id,
           objectId: runData.id,
+          id: runData.id,
           repository: c.repository,
         };
       }),
@@ -404,7 +408,6 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   const { data: runRowKeys } = useGetFilterExecutionLinkCaseRunIds({
     workspaceKey,
     type: 'TestExecution',
-    id: scopedTestCaseIds,
     runId: executionLinkRunIds,
     runLinkCaseId: runLinkCaseIds,
     selectNode,

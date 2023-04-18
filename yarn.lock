@@ -3590,9 +3590,9 @@ dns-equal@^1.0.0:
   integrity sha512-z+paD6YUQsk+AbGCEM4PrOXSss5gd66QfcVBFTKR/HpFL9jCqikS94HYwKww6fQyO7IxrIIyUu+g0Ka9tUS2Cg==
 
 dns-packet@^5.2.2:
-  version "5.5.0"
-  resolved "https://registry.npmmirror.com/dns-packet/-/dns-packet-5.5.0.tgz#f59cbf3396c130957c56a6ad5fd3959ccdc30065"
-  integrity sha512-USawdAUzRkV6xrqTjiAEp6M9YagZEzWcSUaZTcIFAiyQWW1SoI6KyId8y2+/71wbgHKQAKd+iupLv4YvEwYWvA==
+  version "5.6.0"
+  resolved "https://registry.npmmirror.com/dns-packet/-/dns-packet-5.6.0.tgz#2202c947845c7a63c23ece58f2f70ff6ab4c2f7d"
+  integrity sha512-rza3UH1LwdHh9qyPXp8lkwpjSNk/AMD3dPytUoRoqnypDUhY0xvbdmVhWOfxO68frEfV9BU8V12Ez7ZsHGZpCQ==
   dependencies:
     "@leichtgewicht/ip-codec" "^2.0.1"
 
@@ -6928,9 +6928,9 @@ rc-menu@~9.8.0, rc-menu@~9.8.3:
     rc-util "^5.27.0"
 
 rc-motion@^2.0.0, rc-motion@^2.0.1, rc-motion@^2.2.0, rc-motion@^2.3.0, rc-motion@^2.3.4, rc-motion@^2.4.3, rc-motion@^2.4.4, rc-motion@^2.6.0, rc-motion@^2.6.1, rc-motion@^2.6.2:
-  version "2.7.0"
-  resolved "https://registry.npmmirror.com/rc-motion/-/rc-motion-2.7.0.tgz#1603a54f84df8163bc89b60594f5484b5f406356"
-  integrity sha512-gszH/FPVtQ3eb+02Mcqr1PLY36w+Hqkb5jN5t89gKJYK854Lz4TrIgnOxx4+KXeWgvQ/lrLp3yzCYCIzuihWRA==
+  version "2.7.1"
+  resolved "https://registry.npmmirror.com/rc-motion/-/rc-motion-2.7.1.tgz#a4538d142e11c9c2e000ea4626ed0fac920269c4"
+  integrity sha512-TpLEr3EriW2Jo6Zqub/KIEaX80g2Wbsp/On7Q2hdr4ClDfpraEv5n+aDORMdFWMtINoQgRuNTDmvUaKKc2sVpQ==
   dependencies:
     "@babel/runtime" "^7.11.1"
     classnames "^2.2.1"
@@ -7470,9 +7470,9 @@ react-virtualized-auto-sizer@^1.0.2:
   integrity sha512-01yhkssgHShMiu5W8k+86kgl8lutpl+Uef9KP4wrozXnzZjxWIgj+cH8Qi064oQpKD8myn/JNMzp4tcZNQ3Avg==
 
 react-virtuoso@^4.2.1:
-  version "4.2.1"
-  resolved "https://registry.npmmirror.com/react-virtuoso/-/react-virtuoso-4.2.1.tgz#7d37ea16cd771239009aa0a58d4af85e28144cae"
-  integrity sha512-IdbKabxa2Mq6f9m6BflvyzAbUHt0btCSq9rw2omcGAQt7ze80s2y6a2TvmSne1wLd0+75FgMGki2ru/dcAVmSQ==
+  version "4.2.2"
+  resolved "https://registry.npmmirror.com/react-virtuoso/-/react-virtuoso-4.2.2.tgz#13f2e4d1d0e7a0dcbc94da4c1948887e535b26ce"
+  integrity sha512-qF0yULGH7pzIZOpCAike9KssDiWkG3o/ldQGwZpUKMDH8TPyFHUObvT8+wvksz64gdQZqspRWHeCdiAM6sLYyQ==
 
 react-window@^1.8.2:
   version "1.8.9"

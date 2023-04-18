@@ -52,6 +52,7 @@ const ListView: React.FC<ViewComponentProps> = ({
   const [breadcrumbs, setBreadcrumbs] = React.useState([]);
   const [tableSelectionVisible, setTableSelectionVisible] = React.useState(false);
   const [groupedMode, setGroupedMode] = React.useState<GroupedMode>('all');
+  const [tableLoading, setTableLoading] = React.useState(false);
 
   const workspaceKey = workspace?.key;
   const selectNodeKey = selectedNode?.key;
@@ -97,6 +98,7 @@ const ListView: React.FC<ViewComponentProps> = ({
           list: [],
           total: 0,
         };
+      setTableLoading(true);
       const repository = getRepositoryQuery(selectedNode, groupedMode);
       const { list: data, total } = await getTestEntityByQuery({
         query: {
@@ -108,6 +110,7 @@ const ListView: React.FC<ViewComponentProps> = ({
         fields: [].concat(SystemFieldKeys, testCaseFieldKeys),
         ...params,
       });
+      setTableLoading(false);
 
       return {
         // 加拖拽依赖的 folderKey 数据
@@ -241,6 +244,8 @@ const ListView: React.FC<ViewComponentProps> = ({
           testDetailFieldKeys={[].concat(SystemFieldKeys, testCaseFieldKeys)}
           onSelectionCancel={() => toggleSelection(false)}
           dataSourceGetter={dataSourceGetter}
+          tableLoading={tableLoading}
+          setTableLoading={setTableLoading}
         />
       </div>
     </div>

@@ -64,6 +64,13 @@ type TestDetailTableProps = {
   actionRef?: React.ForwardedRef<ActionType>;
   testDetailFieldKeys?: string[];
   dataSourceGetter?: any;
+  tableLoading?: boolean;
+  setTableLoading?: (val?: boolean) => void;
+};
+
+const RenderRow = ({ repository, workspaceKey }) => {
+  const getTestCaseRepositoryPath = useGetWorkspaceRepository(workspaceKey);
+  return <span>{getTestCaseRepositoryPath(repository)}</span>;
 };
 
 const TestDetailTable: React.FC<TestDetailTableProps> = props => {
@@ -74,6 +81,8 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
     externalDataLoading: externalDataLoadingProp,
     testDetailIds,
     dataSourceGetter,
+    setTableLoading,
+    tableLoading,
   } = props;
   const { t } = useI18n();
   const externalDataLoading =
@@ -81,14 +90,10 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
 
   const tableActionRef = React.useRef<BusinessTableActionType>();
   const repositorySelectorRef = React.useRef<RepositorySelectorActionType>();
-  const [tableLoading, setTableLoading] = React.useState(false);
   const { workspace } = useTestConfig();
   const workspaceKey = workspace?.key;
   const { data: currentUser } = useCurrentUser();
-  const getTestCaseRepositoryPath = useGetWorkspaceRepository(workspaceKey);
-
   const [hasRowSelected, setHasRowSelected] = React.useState(false);
-
   const userData = useUserCellUserDataProp(workspaceKey);
 
   React.useImperativeHandle(actionRef, () => tableActionRef.current);
@@ -358,9 +363,15 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         key: 'repositoryGroup',
         title: t('page.plan.testEntityList.repositoryGroup'),
         width: 200,
+        // shouldCellUpdate: (row, prevRow) =>
+        //   getTestCaseRepositoryPath(row?.repository) !==
+        //   getTestCaseRepositoryPath(prevRow?.repository),
         render(_, rowData) {
           return (
-            <span>{getTestCaseRepositoryPath?.(rowData?.repository) ?? t('common.unGrouped')}</span>
+            <RenderRow
+              repository={rowData?.repository}
+              workspaceKey={rowData?.workspace?.key}
+            ></RenderRow>
           );
         },
       },
@@ -383,7 +394,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         },
       },
     ];
-  }, [getTestCaseRepositoryPath, onDataChange, t]);
+  }, [onDataChange, t]);
 
   const handleFilterField = useCallback(
     async ({ testType, fieldKeys }) => {
