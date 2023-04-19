@@ -33,7 +33,7 @@ export const exportAndDownloadXMind = async (minderData, { t, priorityOptions = 
     if (type && type !== MinderNodeType.Root) {
       topic.addLabel(t(`minderNodeTypeName.${type}`));
     }
-    const priorityLabel = priorityKeyMapping[priority] ?? priority;
+    const priorityLabel = priorityKeyMapping[priority];
     if (priorityLabel) {
       topic.addLabel(priorityLabel);
     }
@@ -168,10 +168,16 @@ export const parseXMindFile2MinderData = async (file, { priorityOptions }) => {
           spaces: 4,
         }),
         (key, value) => {
-          const getElementText = value =>
-            value && typeof value === 'object' && Object.hasOwnProperty.call(value, '_text')
-              ? value._text
+          const getElementText = value => {
+            if (!value || typeof value !== 'object') return value;
+
+            // 有 _text 属性的对象，或者 key 为 text 的对象，直接返回 _text 属性
+            return key === 'title' || Object.hasOwnProperty.call(value, '_text')
+              ? value?._text ?? 'empty'
               : value;
+          };
+
+          if (['_attributes', 'xhtml:img'].includes(key)) return;
 
           if (key === 'children' && Object.hasOwnProperty.call(value, 'topics')) {
             return {
@@ -196,6 +202,7 @@ export const parseXMindFile2MinderData = async (file, { priorityOptions }) => {
       const contentJsonStr = await files[contentJSONFileName].async('string');
       content = JSON.parse(contentJsonStr).shift().rootTopic;
     }
+
     return covertTopic2Minder(content);
   } catch (err) {
     console.error(err);

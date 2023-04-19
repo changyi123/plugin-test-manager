@@ -173,14 +173,11 @@ const optimizeMinderData = ({
         };
       });
 
-      console.log('minderNode, repositoryNodes', mergedModuleWithSameText, repositoryNameMapping);
-
       const nodeChildren = mergedModuleWithSameText
         .map(node => {
           //  2. 对已存在 repository 设置 objectId
           const { text } = node.data;
           if (repositoryNameMapping[text]) {
-            console.log('repositoryNameMapping[text]', repositoryNameMapping[text]);
             node.data.objectId = repositoryNameMapping[text].id;
           } else {
             node.data.objectId = undefined;
@@ -231,8 +228,6 @@ const optimizeMinderData = ({
     return node;
   };
 
-  console.log('currentRepositorySubtree?.id', currentRepositorySubtree?.id);
-
   // 3. 根据 isIncludeRootNode 过滤根节点
   const minderRootNode = {
     data: {
@@ -244,8 +239,6 @@ const optimizeMinderData = ({
     },
     children: isIncludeRootNode ? [minderData] : minderData?.children ?? [],
   };
-
-  console.log('minderRootNodeminderRootNodeminderRootNode', minderRootNode);
 
   return deriveNodeData(traverse(minderRootNode, currentRepositorySubtree?.children ?? []));
 };
@@ -288,6 +281,8 @@ const XMindUpload: React.FC<StepComponentProp> = ({ sharedState, onSharedStateCh
       currentRepositorySubtree,
       defaultPriority: sharedState.priorityOptions[0]?.key,
     });
+
+    console.log('optimizedMinderData---------->', optimizedMinderData);
     const testCaseNodeCount = countMinderNodes(optimizedMinderData, MinderNodeType.TestCase);
     if (testCaseNodeCount > 1000) {
       throw message.error(t('page.xMindImport.uploadStep.countLimitTip'));
