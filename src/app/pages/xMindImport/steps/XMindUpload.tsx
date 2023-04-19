@@ -282,7 +282,6 @@ const XMindUpload: React.FC<StepComponentProp> = ({ sharedState, onSharedStateCh
       defaultPriority: sharedState.priorityOptions[0]?.key,
     });
 
-    console.log('optimizedMinderData---------->', optimizedMinderData);
     const testCaseNodeCount = countMinderNodes(optimizedMinderData, MinderNodeType.TestCase);
     if (testCaseNodeCount > 1000) {
       throw message.error(t('page.xMindImport.uploadStep.countLimitTip'));

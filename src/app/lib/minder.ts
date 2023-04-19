@@ -108,7 +108,7 @@ export const parseXMindFile2MinderData = async (file, { priorityOptions }) => {
 
       const TypeMapping = {
         [MinderNodeType.Module]: ['模块', 'Module', 'module'],
-        [MinderNodeType.TestCase]: ['用例', '测试用例', 'TestCase', 'testCase', 'case'],
+        [MinderNodeType.TestCase]: ['用例', '测试用例', 'TestCase', 'testCase', 'Case', 'case'],
         [MinderNodeType.Precondition]: ['前置条件', 'Precondition', 'precondition'],
         [MinderNodeType.Step]: ['步骤', 'Step', 'step'],
         [MinderNodeType.Result]: ['预期结果', 'Result', 'result'],
