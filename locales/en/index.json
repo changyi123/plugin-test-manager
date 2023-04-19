@@ -718,7 +718,7 @@
   },
   "minderNodeTypeName": {
     "Module": "Module",
-    "TestCase": "TestCase",
+    "TestCase": "Case",
     "Precondition": "Precondition",
     "Step": "Step",
     "Result": "Result",
@@ -732,5 +732,15 @@
       "result": "result",
       "data": "data"
     }
+  },
+  "minderExport": {
+    "root": "import case",
+    "module": "module {{num}}",
+    "caseZero": "case",
+    "case": "case {{num}}",
+    "precondition": "precondition {{num}}",
+    "step": "step {{num}}",
+    "result": "result {{num}}",
+    "data": "data"
   }
 }

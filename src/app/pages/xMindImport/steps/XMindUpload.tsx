@@ -3,7 +3,8 @@ import useI18n from '@/lib/hooks/useI18n';
 import { StepComponentProp } from '../type';
 import { useBoolean, useMemoizedFn } from 'ahooks';
 import { UploadOutlined } from '@/icons';
-import xmindTemplate from '@/assets/images/xmindTemplate.png';
+import xmindTemplatePic from '@/assets/images/xmindTemplate.png';
+import xmindTemplateEnPic from '@/assets/images/xmindTemplateEn.png';
 import { Upload, Checkbox, Button, message, Tooltip } from 'antd';
 import { parseXMindFile2MinderData, countMinderNodes, exportAndDownloadXMind } from '@/lib/minder';
 
@@ -18,38 +19,38 @@ const getXMindTemplateNodes = t => {
     root: {
       data: {
         type: MinderNodeType.Module,
-        text: '用例导入',
+        text: t('minderExport.root'),
       },
       children: [
         {
           data: {
             type: MinderNodeType.Module,
-            text: '模块1',
+            text: t('minderExport.module', { num: 1 }),
           },
           children: [
             {
               data: {
                 type: MinderNodeType.TestCase,
-                text: '测试用例1',
+                text: t('minderExport.case', { num: 1 }),
                 priority: 'P1',
               },
               children: [
                 {
                   data: {
                     type: MinderNodeType.Precondition,
-                    text: '前置条件',
+                    text: t('minderExport.precondition', { num: 1 }),
                   },
                 },
                 {
                   data: {
                     type: MinderNodeType.Step,
-                    text: '步骤1',
+                    text: t('minderExport.step', { num: 1 }),
                   },
                   children: [
                     {
                       data: {
                         type: MinderNodeType.Result,
-                        text: '预期结果1',
+                        text: t('minderExport.result', { num: 1 }),
                       },
                     },
                   ],
@@ -57,19 +58,19 @@ const getXMindTemplateNodes = t => {
                 {
                   data: {
                     type: MinderNodeType.Step,
-                    text: '步骤2',
+                    text: t('minderExport.step', { num: 2 }),
                   },
                   children: [
                     {
                       data: {
                         type: MinderNodeType.Result,
-                        text: '预期结果2',
+                        text: t('minderExport.result', { num: 2 }),
                       },
                       children: [
                         {
                           data: {
                             type: MinderNodeType.Data,
-                            text: '数据',
+                            text: t('minderExport.data'),
                           },
                         },
                       ],
@@ -81,20 +82,20 @@ const getXMindTemplateNodes = t => {
             {
               data: {
                 type: MinderNodeType.TestCase,
-                text: '测试用例2',
+                text: t('minderExport.case', { num: 2 }),
                 priority: 'P0',
               },
               children: [
                 {
                   data: {
                     type: MinderNodeType.Step,
-                    text: '步骤1',
+                    text: t('minderExport.step', { num: 1 }),
                   },
                 },
                 {
                   data: {
                     type: MinderNodeType.Step,
-                    text: '步骤2',
+                    text: t('minderExport.step', { num: 2 }),
                   },
                 },
               ],
@@ -104,13 +105,13 @@ const getXMindTemplateNodes = t => {
         {
           data: {
             type: MinderNodeType.Module,
-            text: '模块2',
+            text: t('minderExport.module', { num: 2 }),
           },
           children: [
             {
               data: {
                 type: MinderNodeType.TestCase,
-                text: '测试用例',
+                text: t('minderExport.caseZero'),
                 priority: 'P1',
               },
             },
@@ -149,33 +150,37 @@ const optimizeMinderData = ({
       const otherTypeNodeChildren = minderNode.children.filter(
         node => node.data.type !== MinderNodeType.Module,
       );
+
       // 合并同级同名的模块数据
-      const mergedModuleWithSameText = moduleTypeNodeChildren.reduce((res, childNode) => {
-        const { text } = childNode.data;
-        res[text] = (res[text] || []).concat(childNode);
-        return res;
-      }, {});
+      const mergedModuleWithSameText = Object.values(
+        moduleTypeNodeChildren.reduce((res, childNode) => {
+          const { text } = childNode.data;
+          res[text] = (res[text] || []).concat(childNode);
+          return res;
+        }, {}) as Record<string, any[]>,
+      ).map(nodeArr => {
+        //   1. 合并同级同名的模块数据
+        if (nodeArr.length <= 1) return nodeArr[0];
 
-      const nodeChildren = Object.values(mergedModuleWithSameText as Record<string, any[]>)
-        .map(nodeArr => {
-          //   1. 合并同级同名的模块数据
-          if (nodeArr.length <= 1) return nodeArr[0];
+        const [first, ...rest] = nodeArr;
+        const mergedChildren = rest.reduce((res, node) => {
+          return res.concat(node.children);
+        }, first.children ?? []);
 
-          const [first, ...rest] = nodeArr;
-          const mergedChildren = rest.reduce((res, node) => {
-            return res.concat(node.children);
-          }, first.children ?? []);
+        return {
+          ...first,
+          children: mergedChildren,
+        };
+      });
 
-          return {
-            ...first,
-            children: mergedChildren,
-          };
-        })
+      const nodeChildren = mergedModuleWithSameText
         .map(node => {
           //  2. 对已存在 repository 设置 objectId
           const { text } = node.data;
           if (repositoryNameMapping[text]) {
             node.data.objectId = repositoryNameMapping[text].id;
+          } else {
+            node.data.objectId = undefined;
           }
           return node;
         })
@@ -228,7 +233,9 @@ const optimizeMinderData = ({
     data: {
       objectId: currentRepositorySubtree?.id,
       text: currentRepositorySubtree?.name,
-      type: MinderNodeType.Module,
+      type: [MinderNodeType.Root, 'root'].includes(currentRepositorySubtree?.id)
+        ? MinderNodeType.Root
+        : MinderNodeType.Module,
     },
     children: isIncludeRootNode ? [minderData] : minderData?.children ?? [],
   };
@@ -274,6 +281,8 @@ const XMindUpload: React.FC<StepComponentProp> = ({ sharedState, onSharedStateCh
       currentRepositorySubtree,
       defaultPriority: sharedState.priorityOptions[0]?.key,
     });
+
+    console.log('optimizedMinderData---------->', optimizedMinderData);
     const testCaseNodeCount = countMinderNodes(optimizedMinderData, MinderNodeType.TestCase);
     if (testCaseNodeCount > 1000) {
       throw message.error(t('page.xMindImport.uploadStep.countLimitTip'));
@@ -306,6 +315,8 @@ const XMindUpload: React.FC<StepComponentProp> = ({ sharedState, onSharedStateCh
       });
     }
   }, [onSharedStateChange, isIncludeRootNode, importData, updateMinderDataSharedState]);
+
+  const lang = t('lang');
 
   return (
     <div className={cx('container')}>
@@ -347,7 +358,9 @@ const XMindUpload: React.FC<StepComponentProp> = ({ sharedState, onSharedStateCh
             {t('page.xMindImport.uploadStep.typeTip')}
             <Tooltip
               overlayStyle={{ maxWidth: 'unset' }}
-              title={<img src={xmindTemplate} width={500} />}
+              title={
+                <img src={lang === 'en' ? xmindTemplateEnPic : xmindTemplatePic} width={500} />
+              }
             >
               <a className={cx('example-link')}>{t('page.xMindImport.uploadStep.typeExample')}</a>
             </Tooltip>

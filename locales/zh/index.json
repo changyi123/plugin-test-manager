@@ -713,5 +713,15 @@
       "result": "预期结果",
       "data": "数据"
     }
+  },
+  "minderExport": {
+    "root": "用例导入",
+    "module": "模块 {{num}}",
+    "precondition": "前置条件 {{num}}",
+    "caseZero": "用例",
+    "case": "用例 {{num}}",
+    "step": "步骤 {{num}}",
+    "result": "预期结果 {{num}}",
+    "data": "数据"
   }
 }
