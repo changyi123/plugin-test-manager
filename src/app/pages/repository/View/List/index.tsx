@@ -8,7 +8,7 @@ import { Button, notification, Select } from 'antd';
 import { useRequest, useUpdateEffect } from 'ahooks';
 import { logPluginVersion } from '@/lib/utils/helper';
 import { UNGROUPED_FOLDER_KEY } from '../../constant';
-import { getTestEntityByQuery } from '@/lib/api/item';
+import { getTestEntityByQuery, getTestStats } from '@/lib/api/item';
 import { getRepositoryQuery } from '@/lib/utils/tree';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import { useBaseAction } from '@/lib/hooks/useContext';
@@ -110,6 +110,22 @@ const ListView: React.FC<ViewComponentProps> = ({
         fields: [].concat(SystemFieldKeys, testCaseFieldKeys),
         ...params,
       });
+
+      const quoteCounts = await getTestStats({
+        groups: 'referenceCase',
+        params: {
+          query: {
+            workspaceKey: workspaceKey,
+            type: TestType.Run,
+          },
+          limit: 99999,
+        } as any,
+      });
+
+      const quoteCountMap = new Map();
+      quoteCounts.forEach(c => {
+        quoteCountMap.set(c.referenceCase, c.count);
+      });
       setTableLoading(false);
 
       return {
@@ -118,6 +134,7 @@ const ListView: React.FC<ViewComponentProps> = ({
           ...item,
           folderKey: selectedNode?.key,
           status: item.workflowStatus,
+          quoteCount: quoteCountMap.get(item.id) ?? 0,
         })),
         total,
       };

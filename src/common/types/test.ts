@@ -62,6 +62,7 @@ export type BaseTestEntity = {
   designee: UserPointerInfo[];
   createdBy: any;
   updatedBy: any;
+  executeCount: number;
 
   /** 事项自定义字段 */
   values: Record<string, any>;
@@ -76,7 +77,14 @@ export type BaseTestEntity = {
 };
 
 type CaseFieldKeys = 'detail' | 'caseStatus' | 'caseExecutor';
-type RunFieldKeys = 'comments' | 'executor' | 'designee' | 'runDetail' | 'linkedCase' | 'status';
+type RunFieldKeys =
+  | 'comments'
+  | 'executor'
+  | 'designee'
+  | 'runDetail'
+  | 'linkedCase'
+  | 'status'
+  | 'executeCount';
 
 /** 测试实体类型 */
 export type TestEntity<TTestType extends TestType = any> = TTestType extends TestType.Case

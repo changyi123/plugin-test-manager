@@ -6,6 +6,7 @@ import {
   TestExecutionStatsPayload,
   QueryLinkedTestEntityPayload,
   RepositoryTreePayload,
+  TestCountPayload,
 } from 'common/types/api';
 import { pick, omit, has } from 'lodash';
 import { merge } from 'lodash';
@@ -165,6 +166,16 @@ export const getLinkedTestEntityByQuery = async (
   };
 };
 
+// 测试管理通用字段统计查询
+export const getTestStats = async (props: TestCountPayload) => {
+  const { data: res } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-count-test`, {
+    ...props,
+    sessionToken: getSessionToken(),
+  });
+
+  return res.data;
+};
+
 // 测试计划统计查询
 export const getStatsTestPlan = async (props: TestPlanStatsPayload) => {
   const { data: res } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-stats-test-plan`, {
@@ -276,7 +287,7 @@ export const updateTestStatus = async data => {
       type: TestType.Run,
     },
     limit: 9999,
-    select: ['id', 'referenceCase', 'executor'],
+    select: ['id', 'referenceCase', 'executor', 'executeCount'],
   });
 
   const { list: test } = await getTestEntityByQuery({
@@ -292,6 +303,7 @@ export const updateTestStatus = async data => {
     objectId: d.id,
     status,
     executor: [getCurrentUserInfo(), ...(d.executor ?? [])].slice(0, 3),
+    executeCount: (d.executeCount ?? 0) + (['PASSED', 'FAILED']?.includes(status) ? 1 : 0),
   }));
 
   const tests = test.map(d => ({
@@ -348,8 +360,14 @@ export const updateTestRunDetail = async (
     );
   };
   opts = merge({ initialization: false }, opts);
+  const executeCount = testEntity?.executeCount ?? 0;
 
   const needUpdateAttrs = {} as TestEntity<TestType.Run>;
+
+  // 执行状态为通过或者失败 +1
+  if (['PASSED', 'FAILED']?.includes(params.status)) {
+    needUpdateAttrs.executeCount = executeCount + 1;
+  }
 
   if (Array.isArray(params.steps)) {
     const steps = params.steps.map(compactStepModel);
@@ -378,6 +396,7 @@ export const updateTestRunDetail = async (
       if (hasFail && !hasBlock && !hasCannel) {
         // 失败且没有阻塞、没有取消 - 失败
         needUpdateAttrs.status = 'FAILED';
+        needUpdateAttrs.executeCount = executeCount + 1;
       } else if (hasExecuting && !hasBlock && !hasCannel && !hasFail) {
         // 正在执行且没有取消、阻塞、失败 - 正在执行
         needUpdateAttrs.status = 'EXECUTING';
@@ -387,6 +406,7 @@ export const updateTestRunDetail = async (
       } else if (hasAllPass) {
         // 全部通过 - 通过
         needUpdateAttrs.status = 'PASSED';
+        needUpdateAttrs.executeCount = executeCount + 1;
       } else if (hasCannel) {
         // 一个取消 - 取消
         needUpdateAttrs.status = 'CANCEL';

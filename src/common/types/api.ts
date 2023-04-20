@@ -247,3 +247,18 @@ export type MinderDataImportPayload = {
   workspaceKey: string;
   minderData: any;
 };
+
+/**
+ * 测试管理统计自定义字段状态
+ * @example POST /api/project/app/osc/test_manager/webhooks/api-count-test
+ */
+export type TestCountPayload = {
+  groups?: string | string[];
+  params?: QueryLinkedTestEntityPayload;
+  linkParams?: {
+    planId?: string;
+    workspaceKey?: string;
+    caseIds?: string[];
+  };
+  sessionToken?: string;
+};

@@ -29,6 +29,7 @@ import { getItemCreateRequiredAttrs } from '../../lib/item';
 
 type TestCaseType = TestEntity<TestType.Case>;
 type TestRunType = TestEntity<TestType.Run>;
+type TestExecutionType = TestEntity<TestType.Execution>;
 
 /** 批量创建测试用例 */
 export const batchCreateTestCase = async () => {
@@ -61,14 +62,14 @@ export const batchDelete = async () => {
     } = getReqInfoFromVMRuntime<BatchDeletePayload>();
     if (!Array.isArray(ids)) throwArgumentError('ids', 'objectId[]');
     // FIXME: delete 接口会有问题，响应完成但是 es 内事项数据可能不会更新，需要加一个 500ms 延迟
-    const deleteItemsThenWait = ids => {
+    const deleteItemsThenWait = id => {
       return Promise.race([
         new Promise(resolve => {
           // TODO: 留给有缘人优化
           console.info('deleteItemsThenWait--------------1500');
           setTimeout(resolve, 1500);
         }),
-        batchDeleteItems(ids),
+        batchDeleteItems(id),
       ]);
     };
     const tasks = [deleteItemsThenWait(ids)];
@@ -76,25 +77,30 @@ export const batchDelete = async () => {
     // 删除关联关系中数据
     if (!skipDeletedLinkItems) {
       // 删除实体间的关联关系
-      const appendDeleteLinkItemsTask = async testIds => {
+      const appendDeleteLinkItemsTask = async (testIds, runIds) => {
         // 1. 查询关联的 items
-        const {
-          data: { list: linkedItems },
-        } = await iqlRequest({
+        const linkIds = testIds?.filter(Boolean);
+        const { data: linkedItemsList } = await iqlRequest({
           query: {
-            linkItems: testIds?.filter(Boolean),
+            linkItems: linkIds,
           },
           pagination: { limit: InfinityLimit },
           fields: [...IQLRequiredFieldKeys, TestFiledKeyMapping.linkItems],
         });
+        const { list: linkedItems } = linkedItemsList ?? {};
 
         // 2. 更新数据
-        const needUpdateItemValues = linkedItems?.map(item => {
-          const data = pick(item, ['objectId', 'linkItems']);
-          data.linkItems = data.linkItems.filter(id => !ids.includes(id));
-          return data;
-        });
-        tasks.push(batchUpdateItems(needUpdateItemValues));
+        const needUpdateItemValues = linkedItems
+          ?.filter(d => !runIds?.includes(d.objectId))
+          ?.map(item => {
+            const data = pick(item, ['objectId', 'linkItems']);
+            data.linkItems = data.linkItems.filter(id => !ids.includes(id));
+            return data;
+          });
+
+        if (needUpdateItemValues?.length) {
+          tasks.push(batchUpdateItems(needUpdateItemValues));
+        }
       };
 
       // 测试用例删除时需要删除引用的测试执行，所以先获得用例引用的执行
@@ -112,15 +118,35 @@ export const batchDelete = async () => {
 
         return testRuns?.map(item => item.objectId);
       };
-
       const testRunIds = await getReferencedTestRunIds();
-
       if (testRunIds?.length) {
         tasks.push(deleteItemsThenWait(testRunIds));
       }
 
+      // 测试执行任务删除时需要删除任务下的测试执行
+      const getRunIdByLInkItem = async () => {
+        const {
+          data: { list: runs },
+        } = await iqlRequest({
+          linkQuery: {
+            linkType: TestLinkType.RunLinkExecution,
+            sourceIds: ids,
+            destinationType: TestType.Run,
+          },
+          pagination: { limit: InfinityLimit },
+          fields: IQLRequiredFieldKeys,
+        });
+
+        return runs?.map(item => item.objectId);
+      };
+
+      const runIds = await getRunIdByLInkItem();
+      if (runIds?.length) {
+        tasks.push(deleteItemsThenWait(runIds));
+      }
+
       const willDeleteTestRunIds = uniq([].concat(ids, testRunIds));
-      await appendDeleteLinkItemsTask(willDeleteTestRunIds);
+      await appendDeleteLinkItemsTask(willDeleteTestRunIds, runIds);
     }
 
     await Promise.all(tasks);
@@ -128,6 +154,55 @@ export const batchDelete = async () => {
   } catch (err) {
     return buildResponse(err);
   }
+};
+
+/**
+ * 处理事项关联数据,删除测试执行操作
+ *
+ */
+const getRunDataByLinkItemDelete = async data => {
+  const isDeleteAction = data => 'delete' === data?.action && Array.isArray(data?.value);
+  const runDataInfo = {} as any;
+  data.forEach(d => {
+    if (isDeleteAction(d.linkItems)) {
+      runDataInfo.planIds = (runDataInfo.planIds ?? []).concat(d.linkItems.value);
+      runDataInfo.caseIds = (runDataInfo.caseIds ?? []).concat(d.objectId);
+    }
+  });
+
+  // 查询计划下的测试执行
+  // 获取测试计划下的测试执行任务 id
+  const {
+    data: { list: testExecution },
+  } = await iqlRequest<TestExecutionType>({
+    linkQuery: {
+      sourceIds: [...new Set(runDataInfo.planIds ?? [])] as string[],
+      destinationType: TestType.Execution,
+      linkType: TestLinkType.ExecutionLinkPlan,
+    },
+    fields: [SystemField.Id, TestFiledKeyMapping.referenceCase],
+    pagination: { limit: InfinityLimit, offset: 0 },
+  });
+  const executionIds = testExecution?.map(d => d.objectId);
+
+  // 查询测试执行任务下的符合条件的测试执行
+  const {
+    data: { list: runData },
+  } = await iqlRequest<TestRunType>({
+    query: {
+      referenceCase: runDataInfo.caseIds ?? [],
+      type: TestType.Run,
+    },
+    linkQuery: {
+      sourceIds: executionIds,
+      destinationType: TestType.Run,
+      linkType: TestLinkType.RunLinkExecution,
+    },
+    fields: [SystemField.Id],
+    pagination: { limit: InfinityLimit, offset: 0 },
+  });
+
+  return runData?.map(d => d.objectId);
 };
 
 /**
@@ -199,10 +274,16 @@ export const batchUpdate = async () => {
 
     // 需要更新的事项
     const needUpdateItemData = await processLinkItemData(data);
-
     // 校验需要保存的参数
     needUpdateItemData.forEach(testEntityFieldTypeValidator);
-    const res = await batchUpdateItems(needUpdateItemData);
+    const tasks = [batchUpdateItems(needUpdateItemData)];
+
+    // 移除测试计划下的测试用例关联的测试执行
+    const needDeleteTestRunIds = await getRunDataByLinkItemDelete(data);
+    if (needDeleteTestRunIds?.length) {
+      tasks.push(batchDeleteItems(needDeleteTestRunIds));
+    }
+    const [res] = await Promise.all(tasks);
     return buildResponse(res.map(data => itemToTestEntity(data.item)));
   } catch (err) {
     return buildResponse(err);

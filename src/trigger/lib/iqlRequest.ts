@@ -109,12 +109,12 @@ export const getPayload = async (params: QueryLinkedTestEntityPayload) => {
       destinationType,
     };
   };
-  const { query: _query } = await getQueryByLinkQuery(
+  const linkInfo = await getQueryByLinkQuery(
     linkType && destinationType ? getLinkTypeFiled({ linkType, sourceIds, destinationType }) : null,
   );
   const data = {
     ...query,
-    ..._query,
+    ...(linkInfo?.query ?? {}),
   };
   const registeredFieldParams = Object.keys(data)
     .filter(key => IQLSearchFieldKeys.includes(key as any))
@@ -330,7 +330,7 @@ export const iqlRequest: IqlRequestType = async params => {
       return testEntityList;
     };
 
-    const testEntityList = appendLinkSourceField(items.map(itemToTestEntity));
+    const testEntityList = appendLinkSourceField(items?.map(itemToTestEntity));
 
     const result =
       typeof dataTransfer === 'function' ? await dataTransfer(testEntityList) : testEntityList;
