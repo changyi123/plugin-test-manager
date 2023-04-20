@@ -260,7 +260,6 @@ const TestStep: React.FC<TestStepProps> = props => {
             </div>
             {renderStepDefectList(step.id)}
             <AddDefectButton
-              // plainStyle
               className={cx('add-btn')}
               testRunEntity={testRunEntity}
               currentDefectIds={step.defectItemIds}

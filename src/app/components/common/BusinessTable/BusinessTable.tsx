@@ -351,23 +351,24 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     );
   };
 
-  const rowSelectionProp = selectionMode
-    ? {
-        fixed: true,
-        minWidth: 32,
-        maxWidth: 32,
-        columnWidth: 32,
-        selectedRowKeys,
-        onChange(rowKeys: string[]) {
-          const _selectedRowKeys =
-            selectedRowKeys?.filter(d => !currentPageSelectableRowKeys.includes(d)) ?? [];
+  const rowSelectionProp =
+    selectionMode && antdTableProps?.pagination?.total
+      ? {
+          fixed: true,
+          minWidth: 32,
+          maxWidth: 32,
+          columnWidth: 32,
+          selectedRowKeys,
+          onChange(rowKeys: string[]) {
+            const _selectedRowKeys =
+              selectedRowKeys?.filter(d => !currentPageSelectableRowKeys.includes(d)) ?? [];
 
-          const _rowKeys = rowKeys.concat(_selectedRowKeys);
+            const _rowKeys = rowKeys.concat(_selectedRowKeys);
 
-          setSelectedRowKeys(_rowKeys);
-        },
-      }
-    : undefined;
+            setSelectedRowKeys(_rowKeys);
+          },
+        }
+      : undefined;
 
   React.useImperativeHandle(
     actionRef,

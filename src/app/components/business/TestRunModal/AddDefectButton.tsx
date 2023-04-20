@@ -36,18 +36,27 @@ const AddDefectButton: React.FC<AddDefectButtonProps> = props => {
   const currentRef = React.useRef(null);
   const testEntitySelectorRef = React.useRef<ActionType>();
   const createDefect = React.useCallback(async () => {
-    const { item: defectItem } = await createItemUseModal({
+    const { itemList: defectItemList } = await createItemUseModal({
       type: TestType.TestDefect,
       extraData: {
-        isDisableCreateNext: true,
+        useItemBatchCreate: true,
       },
     });
 
     onLoading?.();
     // 创建事项关联
     try {
-      await addTestDefect(TestToDefect, testRunEntity, [defectItem.objectId]);
-      const needAddedItemIds = [].concat(currentDefectIds, defectItem.objectId).filter(Boolean);
+      const tasks = defectItemList.map(d =>
+        addTestDefect(TestToDefect, testRunEntity, [d.objectId]),
+      );
+      await Promise.all(tasks);
+      // await addTestDefect(TestToDefect, testRunEntity, [defectItem.objectId]);
+      const needAddedItemIds = []
+        .concat(
+          currentDefectIds,
+          defectItemList?.map(d => d.objectId),
+        )
+        .filter(Boolean);
       onSave?.(needAddedItemIds);
       message.success(t('components.business.testRunModal.addDefectButton.createDefectSuccess'));
     } catch (error) {

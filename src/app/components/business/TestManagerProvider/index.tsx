@@ -459,9 +459,10 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
       }
 
       if (!hasArrayItem(itemList)) return;
+      const eventData = {} as any;
       // 缺陷类型不需要创建测试管理测试实体
       if (extraData.type !== TestType.TestDefect) {
-        const testEntityList = await getOrBatchCreateTestEntities(
+        eventData.testEntityList = await getOrBatchCreateTestEntities(
           itemList.map(d => d.objectId),
           {
             notice: true,
@@ -474,15 +475,14 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
           },
         );
 
-        if (!hasArrayItem(testEntityList)) return;
-
-        eventBus.dispatch(messageKey, {
-          itemList,
-          testEntityList,
-          extraData,
-          useItemBatchCreate: true,
-        });
+        if (!hasArrayItem(eventData.testEntityList)) return;
       }
+      eventBus.dispatch(messageKey, {
+        itemList,
+        ...eventData,
+        extraData,
+        useItemBatchCreate: true,
+      });
     },
     [testConfig.isolateTestType, workspace?.key, t],
   );
