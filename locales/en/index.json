@@ -490,7 +490,7 @@
         "testExecutionPanel": {
           "addRunToPlanSuccess": "Test executions added to the test plan",
           "deleteRunToPlanSuccess": "Test executions were removed from the test plan",
-          "modelTitle": "Add test execution to current test plan",
+          "modelTitle": "Associated test execution",
           "addTestExecution": "Add test execution task"
         }
       }

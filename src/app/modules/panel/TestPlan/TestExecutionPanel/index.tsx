@@ -13,11 +13,7 @@ import TestEntitySelectorModal, {
   ActionType as SelectorActionType,
 } from '@/components/business/TestEntitySelectorModal';
 import { StatusProgress } from '@/components/business/Status';
-import {
-  getStatsTestExecution,
-  updateTestEntity,
-  getLinkedTestEntityByQuery,
-} from '@/lib/api/item';
+import { updateTestEntity, getLinkedTestEntityByQuery, getTestStats } from '@/lib/api/item';
 import useI18n from '@/lib/hooks/useI18n';
 import cx from './index.less';
 
@@ -36,22 +32,38 @@ const Test = () => {
       if (!sourceIds) return;
       // 获取计划下的所有执行
       const { list, total } = await getLinkedTestEntityByQuery({
+        query: {
+          workspaceKey: workspace?.key,
+        },
         linkType: TestLinkType.ExecutionLinkPlan,
         sourceIds: testEntity?.objectId,
         destinationType: TestType.Execution,
-        workspaceKey: workspace?.key,
         ...params,
       });
 
       if (list?.length) {
-        // 查出执行对应的用例
-        const stats = await getStatsTestExecution({
-          executionIds: list.map(item => item.objectId),
-          select: ['runCount', 'runStatus'],
+        const stats = await getTestStats({
+          groups: 'status',
+          params: {
+            query: {
+              workspaceKey: workspace?.key,
+              type: TestType.Run,
+            },
+            linkType: TestLinkType.RunLinkExecution,
+            sourceIds: [testEntity?.objectId],
+            destinationType: TestType.Run,
+            limit: 99999,
+          } as any,
         });
         // 组合数据
         list.forEach(item => {
-          item.stats = stats[item.objectId] || {};
+          item.stats = stats.reduce(
+            (prev, cur) => ({
+              ...prev,
+              [cur.status]: cur.count,
+            }),
+            {},
+          );
         });
       }
 
@@ -196,7 +208,7 @@ const Test = () => {
         dataIndex: 'status',
         width: 180,
         render: (_, record) => {
-          return <StatusProgress hasSummary status={record.stats.runStatus} />;
+          return <StatusProgress hasSummary status={record.stats} />;
         },
       },
       {
@@ -204,7 +216,7 @@ const Test = () => {
         width: 120,
         key: 'action',
         render: (_, record) => (
-          <a onClick={() => removeTestRelation([record.objectId])}>{t('common.delete')}</a>
+          <a onClick={() => removeTestRelation([record.objectId])}>{t('common.remove')}</a>
         ),
       },
     ];

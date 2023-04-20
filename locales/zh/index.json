@@ -480,7 +480,7 @@
         "testExecutionPanel": {
           "addRunToPlanSuccess": "个测试执行添加到测试计划中",
           "deleteRunToPlanSuccess": "个测试执行从测试计划中删除",
-          "modelTitle": "添加测试执行至当前测试计划",
+          "modelTitle": "关联测试执行任务",
           "addTestExecution": "添加测试执行任务"
         }
       }

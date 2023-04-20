@@ -13,7 +13,12 @@ import useI18n from '@/lib/hooks/useI18n';
 
 import cx from './index.less';
 
+type ExecutionListRef = {
+  refresh?: () => void;
+};
+
 interface ExecutionListProps {
+  actionRef?: React.MutableRefObject<ExecutionListRef>;
   planId: string;
   workspaceKey: string;
   activeType: string;
@@ -23,17 +28,18 @@ interface ExecutionListProps {
   refreshExecution?: boolean;
   setRefreshExecution?: (val: boolean) => void;
   setLoading?: (val: boolean) => void;
+  setExecutionKeys?: (val?: string[]) => void;
 }
 
 const ExecutionList: React.FC<ExecutionListProps> = ({
+  actionRef,
   planId,
   activeType,
   workspaceKey,
   selectedExecution,
   setSelectedExecution,
-  refreshExecution,
-  setRefreshExecution,
   setLoading,
+  setExecutionKeys,
 }) => {
   const { t } = useI18n();
   const { tableSelectionToggleEvent } = usePageContext();
@@ -50,7 +56,7 @@ const ExecutionList: React.FC<ExecutionListProps> = ({
   useListener('closeItemViewScreen', itemId => {
     if (!itemId) return;
     setTimeout(() => {
-      setRefreshExecution(true);
+      refresh();
     }, 400);
   });
 
@@ -73,6 +79,7 @@ const ExecutionList: React.FC<ExecutionListProps> = ({
         sourceIds: [planId],
         destinationType: TestType.Execution,
       });
+      setExecutionKeys(list?.map(d => d.id));
 
       return list;
     },
@@ -81,18 +88,19 @@ const ExecutionList: React.FC<ExecutionListProps> = ({
     },
   );
 
+  React.useImperativeHandle(
+    actionRef,
+    () => ({
+      refresh,
+    }),
+    [refresh],
+  );
+
   useEffect(() => {
     if (!selectedExecution?.objectId && query?.executionId) {
       setSelectedExecution(executionList.find(d => d.objectId === query?.executionId));
     }
   }, [query?.executionId, selectedExecution]);
-
-  useEffect(() => {
-    if (refreshExecution) {
-      refresh();
-      setRefreshExecution(false);
-    }
-  }, [refreshExecution]);
 
   useEffect(() => {
     if (executionList && !activeId) {
@@ -121,7 +129,7 @@ const ExecutionList: React.FC<ExecutionListProps> = ({
             return;
           }
           setActiveId('');
-          setRefreshExecution(true);
+          actionRef.current?.refresh();
           setLoading?.(false);
           notification.success({
             message: t('page.plan.planPageLayout.executionList.deleteSuccess'),
