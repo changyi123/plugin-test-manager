@@ -244,7 +244,9 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
             return;
           }
           // 删除刷新
-          onDataChange?.();
+          setTimeout(() => {
+            onDataChange?.();
+          }, 500);
           setTableLoading(false);
           notification.success({
             message: t('page.repository.view.list.deleteCaseMessageSuccess'),

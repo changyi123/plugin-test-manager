@@ -211,7 +211,7 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
   // 触发 onFolderChange 时间
   useDeepCompareEffect(() => {
     const selectedFolder = getTreeNodeByKey(treeData, treeSelectedKeys[0]);
-    selectedFolder && onFolderSelect?.(selectedFolder);
+    onFolderSelect?.(selectedFolder);
   }, [treeSelectedKeys, treeData, hideEmptyFolder]);
 
   // 树节点渲染
