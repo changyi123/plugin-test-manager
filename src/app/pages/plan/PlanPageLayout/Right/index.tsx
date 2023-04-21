@@ -18,10 +18,7 @@ import { useSetTableHeight } from './hooks';
 import ExecutionStatus from '../ExecutionStatus';
 import TestEntityList from '../../TestEntityList';
 import { batchCreateTestRun, updateTestEntity } from '@/lib/api/item';
-import {
-  SystemFieldKeys,
-  // useTestTypeScreenFieldKeys,
-} from '@/components/common/BusinessTable/hook';
+import { SystemFieldKeys } from '@/components/common/BusinessTable/hook';
 import { getFilterFields } from '@/components/common/FilterSearch/utils';
 import createProximaSdk from '@projectproxima/proxima-sdk-js';
 import { useBaseAction } from '@/lib/hooks/useContext';

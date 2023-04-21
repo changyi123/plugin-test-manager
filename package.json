@@ -63,7 +63,7 @@
     "speed-measure-webpack-plugin": "^1.5.0",
     "style-loader": "^3.2.1",
     "style-resources-loader": "^1.4.1",
-    "test-manager-minder": "git+http://proxima:proxima123@osc.gitee.work/enterprise__proxima/test-manager-minder.git#9b0df88b714a923708ba92007696518e5a8e585c",
+    "test-manager-minder": "git+http://proxima:proxima123@osc.gitee.work/enterprise__proxima/test-manager-minder.git#7037c46d5223c886351c35a5f00b8063561675a3",
     "ts-loader": "^9.2.5",
     "typescript": "^4.4.3",
     "webpack": "^5.52.1",
@@ -110,6 +110,7 @@
     "url": "^0.11.0",
     "uuid": "^8.3.2",
     "webpack-bundle-analyzer": "^4.6.1",
-    "xmind": "^2.2.28"
+    "xmind": "^2.2.28",
+    "xml-js": "^1.6.11"
   }
 }

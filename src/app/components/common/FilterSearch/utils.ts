@@ -5,6 +5,6 @@ export const getFilterFields = fields => {
     field => !SystemIncludeFieldKeys.includes(field),
   );
   return fields?.filter(
-    field => !systemFields.includes(field) || ICLUDE_SYSTEM_FIELD.includes(field),
+    field => field && (!systemFields.includes(field) || ICLUDE_SYSTEM_FIELD.includes(field)),
   );
 };

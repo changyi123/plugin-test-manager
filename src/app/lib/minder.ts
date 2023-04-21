@@ -2,6 +2,7 @@ import { v4 } from 'uuid';
 import JSZip from 'jszip';
 import { MinderNodeType } from 'common/constant';
 import { Workbook, Topic, Dumper } from 'xmind/dist/browser';
+import XML from 'xml-js';
 
 /** 导出脑图数据 */
 export const exportAndDownloadXMind = async (minderData, { t, priorityOptions = [] }) => {
@@ -32,7 +33,7 @@ export const exportAndDownloadXMind = async (minderData, { t, priorityOptions = 
     if (type && type !== MinderNodeType.Root) {
       topic.addLabel(t(`minderNodeTypeName.${type}`));
     }
-    const priorityLabel = priorityKeyMapping[priority] ?? priority;
+    const priorityLabel = priorityKeyMapping[priority];
     if (priorityLabel) {
       topic.addLabel(priorityLabel);
     }
@@ -97,6 +98,8 @@ export const exportAndDownloadXMind = async (minderData, { t, priorityOptions = 
 /** 解析 XMind 转换为 Minder Data 数据 */
 export const parseXMindFile2MinderData = async (file, { priorityOptions }) => {
   const contentJSONFileName = 'content.json';
+  const contentXMLFileName = 'content.xml';
+
   const zip = new JSZip();
 
   const covertTopic2Minder = rootTopic => {
@@ -105,7 +108,7 @@ export const parseXMindFile2MinderData = async (file, { priorityOptions }) => {
 
       const TypeMapping = {
         [MinderNodeType.Module]: ['模块', 'Module', 'module'],
-        [MinderNodeType.TestCase]: ['用例', '测试用例', 'TestCase', 'testCase', 'case'],
+        [MinderNodeType.TestCase]: ['用例', '测试用例', 'TestCase', 'testCase', 'Case', 'case'],
         [MinderNodeType.Precondition]: ['前置条件', 'Precondition', 'precondition'],
         [MinderNodeType.Step]: ['步骤', 'Step', 'step'],
         [MinderNodeType.Result]: ['预期结果', 'Result', 'result'],
@@ -153,9 +156,54 @@ export const parseXMindFile2MinderData = async (file, { priorityOptions }) => {
 
   try {
     const { files } = await zip.loadAsync(file, { optimizedBinaryString: true });
-    const contentJsonStr = await files[contentJSONFileName].async('string');
-    const rootTopic = JSON.parse(contentJsonStr).shift().rootTopic;
-    return covertTopic2Minder(rootTopic);
+    const hasJSONFile = files[contentJSONFileName];
+    let content = null;
+    // 兼容 XMind 8.7.1 版本，content.json 文件不存在
+    if (!hasJSONFile) {
+      const xmlStr = await files[contentXMLFileName].async('string');
+      // 读取 content.xml 文件
+      const json = JSON.parse(
+        XML.xml2json(xmlStr, {
+          compact: true,
+          spaces: 4,
+        }),
+        (key, value) => {
+          const getElementText = value => {
+            if (!value || typeof value !== 'object') return value;
+
+            // 有 _text 属性的对象，或者 key 为 text 的对象，直接返回 _text 属性
+            return key === 'title' || Object.hasOwnProperty.call(value, '_text')
+              ? value?._text ?? 'empty'
+              : value;
+          };
+
+          if (['_attributes', 'xhtml:img'].includes(key)) return;
+
+          if (key === 'children' && Object.hasOwnProperty.call(value, 'topics')) {
+            return {
+              attached: Array.isArray(value.topics.topic)
+                ? value.topics.topic
+                : [value.topics.topic],
+            };
+          }
+
+          if (key === 'labels' && value?.label) {
+            return Array.isArray(value.label)
+              ? value.label.map(getElementText)
+              : [getElementText(value.label)];
+          }
+
+          return getElementText(value);
+        },
+      );
+      content = json['xmap-content'].sheet.topic;
+    } else {
+      // 读取 content.json 文件
+      const contentJsonStr = await files[contentJSONFileName].async('string');
+      content = JSON.parse(contentJsonStr).shift().rootTopic;
+    }
+
+    return covertTopic2Minder(content);
   } catch (err) {
     console.error(err);
   }
