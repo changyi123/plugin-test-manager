@@ -102,9 +102,12 @@ export const openItemViewScreen = itemId => {
 
 /** 编码 html 字符串 */
 export const escapeHtmlString = str => {
-  return str?.replace(/&\w+;/g, c => {
-    return { '&lt;': '<', '&gt;': '>', '&amp;': '&', '&quot;': '"' }[c] ?? c;
-  });
+  return (
+    str?.replace(
+      /&\w+;/g,
+      c => ({ '&lt;': '<', '&gt;': '>', '&amp;': '&', '&quot;': '"' }[c] ?? c),
+    ) ?? ''
+  );
 };
 
 /** 申城排序索引 */
