@@ -45,7 +45,7 @@ const TestPlanList: React.FC<any> = () => {
 
   const tableDataGetter = useCallback(
     async queryParams => {
-      if (!workspaceKey || !testPlanFieldKeys.length)
+      if (!workspaceKey || !testPlanFieldKeys)
         return {
           list: [],
           total: 0,

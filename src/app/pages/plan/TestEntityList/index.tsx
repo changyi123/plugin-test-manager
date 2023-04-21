@@ -135,7 +135,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         !selectNode?.key ||
         !workspaceKey ||
         activeType === 'TestExecution' ||
-        !testCaseFieldKeys.length
+        !testCaseFieldKeys
       ) {
         return {
           list: [],
@@ -168,7 +168,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         linkType: TestLinkType.CaseLinkPlan,
         sourceIds: [selectedTestPlan.objectId],
         destinationType: TestType.Case,
-        fields: [].concat(SystemFieldKeys, testCaseFieldKeys),
+        fields: [].concat(SystemFieldKeys, testCaseFieldKeys ?? []),
         selector,
       });
 
@@ -351,13 +351,14 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         !executionLinkRunIds?.length ||
         !selectNode?.key ||
         activeType === 'TestPlan' ||
-        !testCaseFieldKeys.length
+        !testCaseFieldKeys
       )
         return {
           list: [],
           total: 0,
         };
 
+      const caseFieldKeys = [].concat(SystemFieldKeys, testCaseFieldKeys ?? []);
       const [systemSelectors, customSelector] = selectors;
       const filterCaseSelector = omit(customSelector, [
         TestRunDesigneeModel,
@@ -374,7 +375,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           filterRunSelector: filterRunSelector,
           selector: [systemSelectors, filterCaseSelector],
           queryParams,
-          caseFieldKeys: [].concat(SystemFieldKeys, testCaseFieldKeys),
+          caseFieldKeys,
           selectNode,
           showType,
         });
@@ -386,7 +387,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         executionId: selectedExecution.objectId,
         selector: [systemSelectors, filterCaseSelector],
         queryParams,
-        caseFieldKeys: [].concat(SystemFieldKeys, testCaseFieldKeys),
+        caseFieldKeys,
         selectNode,
         showType,
       });
