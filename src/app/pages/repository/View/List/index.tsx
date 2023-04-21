@@ -17,10 +17,7 @@ import { useListener } from '@projectproxima/proxima-sdk-js';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import { getFilterFields } from '@/components/common/FilterSearch/utils';
 import { getExtendFields, RepositoryModel, TestType } from '@/lib/constants';
-import {
-  SystemFieldKeys,
-  // useTestTypeScreenFieldKeys,
-} from '@/components/common/BusinessTable/hook';
+import { SystemFieldKeys } from '@/components/common/BusinessTable/hook';
 
 import cx from './index.less';
 
@@ -93,7 +90,7 @@ const ListView: React.FC<ViewComponentProps> = ({
 
   const dataSourceGetter = React.useCallback(
     async params => {
-      if (!selectedNode?.key || !workspaceKey || !testCaseFieldKeys?.length)
+      if (!selectedNode?.key || !workspaceKey || !testCaseFieldKeys)
         return {
           list: [],
           total: 0,
@@ -123,7 +120,7 @@ const ListView: React.FC<ViewComponentProps> = ({
       };
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [selectedNode, workspaceKey, groupedMode, selector, testCaseFieldKeys.toString()],
+    [selectedNode, workspaceKey, groupedMode, selector, testCaseFieldKeys],
   );
 
   useUpdateEffect(() => {

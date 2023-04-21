@@ -38,25 +38,26 @@ export const useTestTypeScreenFieldKeys = ({
     {
       ready: Boolean(workspaceKey),
       cacheKey: `ItemTypeMapping_${workspaceKey}`,
+      staleTime: -1,
     },
   );
 
   const itemTypeKey = itemTypeMap?.[testType];
   // 除测试计划外其他测试类型需要隐藏状态字段
   // const shouldHiddenFieldKeys = testType !== TestType.Plan ? TestIncludeFiledKeys : [];
-  const customerFields = useUsedScreenFieldKeys(workspaceKey, itemTypeKey, []);
+  const customerFieldKeys = useUsedScreenFieldKeys(workspaceKey, itemTypeKey);
 
-  const { data: typeScreenFiledKeys } = useRequest(
-    // async () => [].concat(SystemFieldKeys, customerFields),
-    async () => customerFields,
-    {
-      cacheKey: `${workspaceKey}_${testType}_${JSON.stringify(customerFields)}`,
-      refreshDeps: [JSON.stringify(customerFields), workspaceKey, testType],
-      cacheTime: 99999,
-      staleTime: 99999,
-    },
-  );
-  return typeScreenFiledKeys ?? [];
+  // const { data: typeScreenFiledKeys } = useRequest(
+  //   // async () => [].concat(SystemFieldKeys, customerFields),
+  //   async () => customerFields,
+  //   {
+  //     cacheKey: `${workspaceKey}_${testType}_${JSON.stringify(customerFields)}`,
+  //     refreshDeps: [JSON.stringify(customerFields), workspaceKey, testType],
+  //     cacheTime: 99999,
+  //     staleTime: 99999,
+  //   },
+  // );
+  return customerFieldKeys;
 };
 
 export const useGetTableFilterFields = ({
@@ -138,7 +139,7 @@ export const useGetCustomFields = ({ filedKeys }: { filedKeys?: string[] }) => {
     () => getCustomFields(filedKeys.concat(SystemFieldKeys)),
     {
       ready: Boolean(filedKeys),
-      cacheKey: `CustomFields_${filedKeys.toString()}_${SystemFieldKeys?.toString()}}`,
+      cacheKey: `CustomFields_${filedKeys?.toString()}_${SystemFieldKeys?.toString()}}`,
       refreshDeps: [filedKeys],
       cacheTime: 999999,
       staleTime: 999999,

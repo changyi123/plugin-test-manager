@@ -81,7 +81,7 @@ export const useUsedScreenFieldKeys = (
   itemTypeKey: string,
   shouldHiddenFieldKeys = [],
 ) => {
-  const [result, setResult] = React.useState([]);
+  const [result, setResult] = React.useState<string[] | undefined>(undefined);
   /** 从界面类型方案中获取 screenId */
   const getScreenIdByScreenScheme = screenScheme => {
     const ScreenTypes = ['defaultScreen', 'viewScreen', 'createScreen', 'editScreen'];
@@ -157,12 +157,14 @@ export const useUsedScreenFieldKeys = (
   );
 
   useDeepCompareEffect(() => {
-    const fieldKeys = _.difference(
-      [].concat(itemUsedFieldKeyMapping?.[itemTypeKey] ?? itemUsedFieldKeyMapping?.default ?? []),
-      shouldHiddenFieldKeys,
-    );
+    if (itemUsedFieldKeyMapping && itemTypeKey) {
+      const fieldKeys = _.difference(
+        [].concat(itemUsedFieldKeyMapping?.[itemTypeKey] ?? itemUsedFieldKeyMapping?.default ?? []),
+        shouldHiddenFieldKeys,
+      );
 
-    setResult(fieldKeys);
+      setResult(fieldKeys);
+    }
   }, [itemUsedFieldKeyMapping, itemTypeKey]);
 
   return result;

@@ -229,7 +229,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         <DeleteIcon className={cx('icon')} /> {t('common.delete')}
       </span>,
     ];
-  }, [t, hasRowSelected, tableActionRef, userData, onDataChange]);
+  }, [hasRowSelected, userData, t, setTableLoading, onDataChange]);
 
   const columns = React.useMemo(() => {
     const deleteTestDetail = data => {
