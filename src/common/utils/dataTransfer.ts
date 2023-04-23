@@ -79,8 +79,9 @@ export const itemToTestEntity = item => {
     'workspace',
     'createdAt',
     'createdBy',
-    // 'updatedAt',
-    // 'updatedBy',
+    'ancestors',
+    'updatedAt',
+    'updatedBy',
   ] as const;
 
   // 重写混入的 key
