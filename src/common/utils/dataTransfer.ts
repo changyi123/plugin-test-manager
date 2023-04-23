@@ -79,6 +79,7 @@ export const itemToTestEntity = item => {
     'workspace',
     'createdAt',
     'createdBy',
+    'ancestors',
     // 'updatedAt',
     // 'updatedBy',
   ] as const;
