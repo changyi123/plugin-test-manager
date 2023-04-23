@@ -15,6 +15,7 @@ import { getTestEntityByQuery } from '@/lib/api/item';
 import useI18n from '@/lib/hooks/useI18n';
 
 import cx from './InheritTestDetail.less';
+import { getRepositoryQuery } from '@/lib/utils/tree';
 
 const REQUEST_LIMIT = 20;
 
@@ -57,7 +58,9 @@ const InheritTestDetail: React.FC<InheritTestDetailProps> = props => {
   // 目录搜索
   const [folderSearchValue, setFolderSearchValue] = React.useState('');
   const [detailSearchValue, setDetailSearchValue] = React.useState('');
-  const [requestScopedTestDetailIds, setRequestScopedTestDetailIds] = React.useState([]);
+  // const [requestScopedTestDetailIds, setRequestScopedTestDetailIds] = React.useState([]);
+  // 选中目录树
+  const [selectedNode, setSelectedNode] = React.useState(null);
 
   // tree checked key
   const [folderCheckedKey, setFolderCheckedKey] = React.useState(DEFAULT_CHECKED_KEY);
@@ -88,7 +91,7 @@ const InheritTestDetail: React.FC<InheritTestDetailProps> = props => {
 
   const { data: testDetailData, loading: testDetailDataLoading } = useInfiniteScroll(
     async params => {
-      if (!requestScopedTestDetailIds?.length)
+      if (!selectedNode?.key)
         return {
           count: [],
           list: [],
@@ -101,13 +104,14 @@ const InheritTestDetail: React.FC<InheritTestDetailProps> = props => {
         ascending: baseSearchState.orderByCratedAt === 'asc' ? ['sortIndex', 'createdAt'] : null,
         descending: baseSearchState.orderByCratedAt === 'desc' ? ['sortIndex', 'createdAt'] : null,
       } as any;
+      const repository = getRepositoryQuery(selectedNode, 'all');
       // 获取测试用例的列表
       const { list, total: count } = await getTestEntityByQuery({
         query: {
           workspaceKey: selectedWorkspaceKey,
           type: TestType.Case,
           name: detailSearchValue,
-          id: requestScopedTestDetailIds,
+          ...repository,
         },
         ...baseQueryOptions,
         limit: 99999,
@@ -123,7 +127,7 @@ const InheritTestDetail: React.FC<InheritTestDetailProps> = props => {
     },
     {
       target: detailSelectorRef,
-      reloadDeps: [JSON.stringify(baseSearchState), requestScopedTestDetailIds],
+      reloadDeps: [JSON.stringify(baseSearchState), selectedNode],
       isNoMore: data => data?.offset === undefined,
     },
   );
@@ -205,7 +209,7 @@ const InheritTestDetail: React.FC<InheritTestDetailProps> = props => {
                 workspaceKey={selectedWorkspaceKey}
                 shouldIncludeSubFolder={true}
                 actionRef={repositoryFolderTreeRef}
-                onFolderSelect={ids => setRequestScopedTestDetailIds(ids)}
+                onFolderSelect={node => setSelectedNode(node)}
               />
             </div>
             <div className={cx('detail-selector-container')}>

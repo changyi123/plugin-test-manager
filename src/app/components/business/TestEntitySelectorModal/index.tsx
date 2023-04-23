@@ -405,7 +405,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
           <div className={cx('info')}>
             {t('components.business.testEntitySelectorModal.selected')}
             <strong className={cx('num')}>
-              {selectedTestDetails.filter(d => !ignoreTestEntityIds?.includes(d)).length}
+              {(selectedTestDetails ?? []).filter?.(d => !ignoreTestEntityIds?.includes(d)).length}
             </strong>
             {t('components.business.testEntitySelectorModal.case')}
           </div>
