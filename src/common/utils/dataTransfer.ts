@@ -80,8 +80,8 @@ export const itemToTestEntity = item => {
     'createdAt',
     'createdBy',
     'ancestors',
-    // 'updatedAt',
-    // 'updatedBy',
+    'updatedAt',
+    'updatedBy',
   ] as const;
 
   // 重写混入的 key
