@@ -52,6 +52,7 @@
     "testRepository": "测试用例库",
     "testCaseRepository": "测试用例库模块",
     "designee": "执行人",
+    "assignee": "负责人",
     "testExecutor": "最新执行人",
     "testCaseStatus": "测试执行状态",
     "allRepository": "全部用例库",

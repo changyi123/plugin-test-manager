@@ -50,6 +50,7 @@
     "testRepository": "Test case repository",
     "testCaseRepository": "Cases repository",
     "designee": "Designee",
+    "assignee": "Assignee",
     "testExecutor": "The latest executor",
     "testRunStatus": "Test status",
     "testCaseStatus": "Test execution status",

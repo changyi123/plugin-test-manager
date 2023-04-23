@@ -1,5 +1,5 @@
-import React from 'react';
-import { Button, message, Space } from 'antd';
+import React, { useMemo } from 'react';
+import { Button, Dropdown, Menu, message } from 'antd';
 import { ArrowLeftOutlined, ExportOutlined } from '@/icons';
 import TestPlanSelector from '@/components/business/TestPlanSelector';
 import ExecutionList from '../ExecutionList';
@@ -147,6 +147,22 @@ const Header: React.FC<HeaderProps> = ({
     executionListRef?.current.refresh();
   }, [addTestExecutionToPlan, executionListRef]);
 
+  const itemsList = useMemo(
+    () => (
+      <Menu>
+        <Menu.Item key="create" disabled={getCreatePermission(TestType.Execution)}>
+          <a onClick={() => createTestExecution()}>{t('common.createTestExecution')}</a>
+        </Menu.Item>
+        <Menu.Item key="link" disabled={getCreatePermission(TestType.Execution)}>
+          <a onClick={addExistedTestExecution}>
+            {t('modules.panel.testPlan.testExecutionPanel.modelTitle')}
+          </a>
+        </Menu.Item>
+      </Menu>
+    ),
+    [addExistedTestExecution, createTestExecution, getCreatePermission, t],
+  );
+
   return (
     <>
       <div className={cx('page-header')}>
@@ -203,7 +219,10 @@ const Header: React.FC<HeaderProps> = ({
           />
           {selectedExecution?.objectId && (
             <>
-              <Space className={cx('box-right')}>
+              <Dropdown overlay={itemsList} placement="topRight" trigger={['click']} arrow>
+                <Button>添加执行任务</Button>
+              </Dropdown>
+              {/* <Space className={cx('box-right')}>
                 <Button type="primary" onClick={addExistedTestExecution}>
                   {t('modules.panel.testPlan.testExecutionPanel.modelTitle')}
                 </Button>
@@ -214,11 +233,12 @@ const Header: React.FC<HeaderProps> = ({
                 >
                   {t('common.createTestExecution')}
                 </Button>
-              </Space>
+              </Space> */}
               <TestEntitySelectorModal
                 actionRef={selectorModalRef}
                 title={t('modules.panel.testPlan.testExecutionPanel.modelTitle')}
                 ignoreTestEntityIds={executionKeys}
+                width={800}
               />
             </>
           )}

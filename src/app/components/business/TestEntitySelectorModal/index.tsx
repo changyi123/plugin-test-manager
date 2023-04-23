@@ -1,6 +1,5 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable no-unused-vars */
-import React from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { TestType } from '@/lib/constants';
 import { uniq, reduce, keyBy } from 'lodash';
 import EventBus from '@/lib/utils/eventBus';
@@ -17,6 +16,8 @@ import TestDetailSelector from './TestDetailSelector';
 import useI18n from '@/lib/hooks/useI18n';
 
 import cx from './index.less';
+import SelectorTable from './SelectorTable';
+import { getTestEntityByQuery } from '@/lib/api/item';
 
 const AddExistedTestEventType = 'ADD_EXISTED_TEST';
 
@@ -51,10 +52,12 @@ type ModelBtn = {
 export type TestEntitySelectorProps = {
   title?: string;
   planId?: string;
+  width?: number;
   testType?: TestType;
   placeholder?: string;
   isSingleMode?: boolean;
   needFillValue?: boolean;
+  modelType?: string;
   ignoreTestEntityIds?: string[];
   onSelect?: (testIds: string[]) => void;
   actionRef?: React.ForwardedRef<ActionType>;
@@ -70,6 +73,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
     ignoreTestEntityIds = [],
     isSingleMode = false,
     needFillValue,
+    width,
     afterClose,
     onCancel,
   } = props;
@@ -109,6 +113,29 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
       cacheTime: 99999999999,
       staleTime: 99999999999,
       cacheKey: 'allTestConfigs',
+    },
+  );
+
+  // 获取测试执行任务列表
+  const { runAsync: getTestExecutionList } = useRequest(
+    async (params = {}) => {
+      const { list } = await getTestEntityByQuery({
+        query: {
+          workspaceKey: workspaceKeyCondition,
+          type: testType,
+          id: {
+            operator: 'not in',
+            value: ignoreTestEntityIds,
+          } as any,
+        },
+        ascending: ['sortIndex', 'createdAt'],
+        ...params,
+      });
+
+      return list;
+    },
+    {
+      manual: true,
     },
   );
 
@@ -322,7 +349,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
     [ignoreTestEntityIds],
   );
 
-  // 测试执行，计划，缺陷选择器
+  // 测试执行任务，计划，缺陷选择器
   const testEntitySelectorNode = React.useMemo(() => {
     const debounceSelectProps: any = isSingleMode
       ? {
@@ -373,9 +400,9 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
 
   // 测试计划选择器
   const testDetailSelectorNode = React.useMemo(() => {
-    const TestComponets = isSingleMode ? InheritTestDetail : TestDetailSelector;
+    const TestComponents = isSingleMode ? InheritTestDetail : TestDetailSelector;
     return (
-      <TestComponets
+      <TestComponents
         isSingleMode={isSingleMode}
         workspaceKey={workspace?.key}
         selectValue={selectValue}
@@ -436,6 +463,31 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
     modelProps?.footer,
   ]);
 
+  const testSelectNode = useMemo(() => {
+    if (testType === TestType.Case) {
+      return testDetailSelectorNode;
+    }
+    if (testType === TestType.Execution) {
+      return (
+        <SelectorTable
+          // getDataSource={getTestExecutionList}
+          workspaceKey={workspace?.key}
+          testType={testType}
+          workspaceKeyCondition={workspaceKeyCondition}
+          ignoreTestEntityIds={ignoreTestEntityIds}
+        />
+      );
+    }
+    return testEntitySelectorNode;
+  }, [
+    testType,
+    testEntitySelectorNode,
+    testDetailSelectorNode,
+    workspace?.key,
+    workspaceKeyCondition,
+    ignoreTestEntityIds,
+  ]);
+
   return (
     <Modal
       destroyOnClose
@@ -460,12 +512,12 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
         props.title ??
         `${t('components.business.testEntitySelectorModal.pleaseSelect')}${testTypeName}`
       }
-      width={testType === TestType.Case ? 800 : 500}
+      width={testType === TestType.Case ? 800 : width ?? 500}
       bodyStyle={{
         padding: '16px 24px',
       }}
     >
-      {testType === TestType.Case ? testDetailSelectorNode : testEntitySelectorNode}
+      {testSelectNode}
     </Modal>
   );
 };

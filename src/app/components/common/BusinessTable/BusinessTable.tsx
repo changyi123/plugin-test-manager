@@ -306,7 +306,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     const allRowSelectionIndeterminate = !isSameWithAllRowKeys && !!selectedRowKeys?.length;
 
     return (
-      <div className={cx('selection-header')}>
+      <div className={`${cx('selection-header')} selection-header-box`}>
         <TableSelection
           onClose={handleClose}
           tableExpandable={Boolean(expandable)}
