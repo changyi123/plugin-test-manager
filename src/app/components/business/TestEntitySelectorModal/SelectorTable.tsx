@@ -1,9 +1,8 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import useI18n from '@/lib/hooks/useI18n';
 import { TestType } from '@/lib/constants';
 import { getTestEntityByQuery } from '@/lib/api/item';
 import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
-import { Button } from 'antd';
 import FilterSearch from '@/components/common/FilterSearch';
 import { SystemFieldKeys } from '@/components/common/BusinessTable/hook';
 import { getFilterFields } from '@/components/common/FilterSearch/utils';
@@ -15,7 +14,8 @@ type SelectorTable = {
   workspaceKey?: string;
   ignoreTestEntityIds?: string[];
   testType?: TestType;
-  getDataSource?: (val: any) => any;
+  selectValue?: string[];
+  setSelectValue?: (val?: string[]) => void;
 };
 
 const SelectorTable: React.FC<SelectorTable> = ({
@@ -23,6 +23,8 @@ const SelectorTable: React.FC<SelectorTable> = ({
   workspaceKeyCondition,
   testType,
   ignoreTestEntityIds,
+  selectValue,
+  setSelectValue,
 }) => {
   const { t } = useI18n();
   const tableActionRef = useRef<BusinessTableActionType>();
@@ -41,7 +43,8 @@ const SelectorTable: React.FC<SelectorTable> = ({
             value: ignoreTestEntityIds,
           } as any,
         },
-        ascending: ['sortIndex', 'createdAt'],
+        descending: ['sortIndex', 'createdAt'],
+        selector,
         ...params,
       });
       setLoading(false);
@@ -54,14 +57,14 @@ const SelectorTable: React.FC<SelectorTable> = ({
         total,
       };
     },
-    [workspaceKeyCondition, ignoreTestEntityIds, testType],
+    [workspaceKeyCondition, ignoreTestEntityIds, testType, selector],
   );
 
   const columns = [
     {
       key: 'title',
       title: t('common.title'),
-      width: 200,
+      width: 120,
       render(_, rowData) {
         return <span>{rowData.name}</span>;
       },
@@ -69,24 +72,27 @@ const SelectorTable: React.FC<SelectorTable> = ({
     {
       key: 'key',
       title: 'key',
-      width: 200,
+      width: 80,
       render(_, rowData) {
         return <span>{rowData.key}</span>;
       },
     },
   ];
 
+  useEffect(() => {
+    tableActionRef.current?.toggleSelection(true);
+  }, [tableActionRef]);
+
   const handleSelectorSearch = async selector => {
     setSelector(selector);
     // 添加筛选项目需要重置批量选中的 row
     tableActionRef.current.resetSelectedRowKeys();
     tableActionRef.current.refresh();
-    // await refreshTable();
   };
 
   return (
     <div className={cx('model-select')}>
-      <div>
+      <div className={cx('model-select-header')}>
         <FilterSearch
           className={cx('filter-search-box')}
           onSearch={handleSelectorSearch}
@@ -95,7 +101,6 @@ const SelectorTable: React.FC<SelectorTable> = ({
           testType={TestType.Case}
         />
       </div>
-      <Button onClick={() => tableActionRef?.current?.toggleSelection(true)}>1111</Button>
       <BusinessTable
         titleCellOption={{
           workspaceKey,
@@ -109,7 +114,13 @@ const SelectorTable: React.FC<SelectorTable> = ({
         name={`selectModel_TestDetailTable`}
         actionRef={tableActionRef}
         getDataSource={tableDataGetter}
+        setCheckedRowKeys={setSelectValue}
       />
+      <span className={cx('checked-num')}>
+        <span>{t('common.checked')} </span>
+        <span className={cx('num')}>{selectValue?.length ?? 0}</span>
+        <span>{t('common.runNum')}</span>
+      </span>
     </div>
   );
 };

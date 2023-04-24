@@ -96,6 +96,7 @@ type BusinessTableProps = TableProps<any> &
       total: number;
     } | null>;
     testFieldKeys?: string[];
+    setCheckedRowKeys?: (val?: string[]) => void;
   };
 
 const BusinessTable: React.FC<BusinessTableProps> = props => {
@@ -113,6 +114,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     selectionActionNodes,
     onHasRowSelected,
     expandChangePage,
+    setCheckedRowKeys,
     showPagination = true,
     useColumnSetting = false,
     PaginationFooterRender,
@@ -289,9 +291,11 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     const handleCheck = checked => {
       if (checked) {
         setSelectedRowKeys(allSelectableRowKeys);
+        setCheckedRowKeys?.(allSelectableRowKeys);
       } else {
         // 取差集
         setSelectedRowKeys([]);
+        setCheckedRowKeys?.([]);
       }
     };
     const handleClose = () => {
@@ -366,6 +370,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
             const _rowKeys = rowKeys.concat(_selectedRowKeys);
 
             setSelectedRowKeys(_rowKeys);
+            setCheckedRowKeys?.(_rowKeys);
           },
         }
       : undefined;
@@ -381,10 +386,11 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
       expandChangePage,
       resetSelectedRowKeys: () => {
         setSelectedRowKeys(undefined);
+        setCheckedRowKeys?.([]);
       },
       tableColumns,
     }),
-    [expandChangePage, selectedRowKeys, refresh, tableColumns],
+    [refresh, selectedRowKeys, expandChangePage, tableColumns, setCheckedRowKeys],
   );
 
   React.useEffect(() => {

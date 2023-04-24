@@ -1,113 +1,54 @@
 :root {
   .model-select {
-    .filter-tag-btn {
-      display: inline-block;
-      // margin-bottom: 12px;
-      padding: 4px 8px;
-      height: 28px;
-      font-size: 12px;
-      border-radius: 4px;
-      vertical-align: middle;
+    position: relative;
+    margin-top: -16px;
 
-      &:hover {
-        background-color: #ffffff !important;
-
-        .filter-tag-btn-text {
-          color: #0c62ff;
-        }
-
-        svg {
-          fill: #0c62ff;
-        }
-      }
-
-      &:active {
-        background-color: #ffffff !important;
-      }
-
-      :global {
-        .filter-tag-btn-text {
-          margin-left: 4px !important;
-        }
-      }
-    }
-
-    .filter-tag-icon {
-      margin-top: -2px;
-      font-size: 12px;
-      vertical-align: middle;
-    }
-
-    .filter-search-box {
+    .checked-num {
+      position: absolute;
+      left: 64px;
+      bottom: 16px;
+      line-height: 16px;
+      padding-left: 16px;
+      border-left: 1px solid #e9eaec;
       display: flex;
-      align-items: flex-start;
-      flex-wrap: wrap;
-      // min-height: 28px;
-      // padding: 12px 24px 0 24px;
-      border-bottom: 1px solid #e9eaec;
+      align-items: center;
 
+      .num {
+        padding: 0 4px;
+        min-width: 16px;
+        color: #0a50d1;
+        text-align: center;
+      }
+    }
+    .model-select-header {
       :global {
-        .field-value-overlay {
-          height: 0;
-        }
-        .ant-picker-input {
-          display: none;
-        }
-        .ant-picker-range-separator {
-          display: none;
-        }
-        .ant-picker-range {
-          position: absolute;
-          left: 30px;
-          padding: 0;
-        }
-        .field-cell-layout {
-          position: absolute;
-          left: 30px;
-          width: 0;
-        }
-        .field-layout {
-          position: absolute;
-          left: 30px;
-          width: 0;
-          margin-top: -10px;
-        }
-        .ant-popover-open {
-          position: absolute;
-          left: -10px;
-          margin-top: -20px;
-        }
-        .field-value {
-          left: -10px;
+        .filter-search-box {
+          padding-bottom: 16px;
         }
       }
     }
+
     :global {
       .table-box {
-        .extra-column-setting {
-          display: none !important;
+        .ant-table-body {
+          min-height: 420px !important;
         }
         .ant-table-wrapper {
-          min-height: 462px;
-        }
-
-        .ant-table-container table > tbody > .ant-table-measure-row td {
           padding: 0 !important;
-        }
-
-        .ant-table-thead > tr > th,
-        .ant-table-tbody > tr > td {
-          padding: 9.5px 16px 9.5px 4px !important;
         }
 
         .selection-header-box {
           display: none;
+          // margin: 0 -24px;
+
+          // .table-cancel-action {
+          //   display: none;
+          // }
         }
 
         .footer-box {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
+          margin: 0 !important;
+          border-top: none !important;
         }
       }
     }

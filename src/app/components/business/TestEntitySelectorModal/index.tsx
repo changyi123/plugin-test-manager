@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import React, { useCallback, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { TestType } from '@/lib/constants';
 import { uniq, reduce, keyBy } from 'lodash';
 import EventBus from '@/lib/utils/eventBus';
@@ -9,15 +9,14 @@ import { useSafeState, useRequest } from 'ahooks';
 import { TestTypeNameMapping } from '@/lib/constants';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import DebounceSelect from '@/components/common/DebounceSelect';
-import { getRootContainer, hasArrayItem } from '@/lib/utils/helper';
+import { getRootContainer, getTestManagerContainer, hasArrayItem } from '@/lib/utils/helper';
 import { getAllTestConfigs } from '@/lib/api/common';
 import InheritTestDetail from './InheritTestDetail';
 import TestDetailSelector from './TestDetailSelector';
 import useI18n from '@/lib/hooks/useI18n';
+import SelectorTable from './SelectorTable';
 
 import cx from './index.less';
-import SelectorTable from './SelectorTable';
-import { getTestEntityByQuery } from '@/lib/api/item';
 
 const AddExistedTestEventType = 'ADD_EXISTED_TEST';
 
@@ -117,27 +116,27 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
   );
 
   // 获取测试执行任务列表
-  const { runAsync: getTestExecutionList } = useRequest(
-    async (params = {}) => {
-      const { list } = await getTestEntityByQuery({
-        query: {
-          workspaceKey: workspaceKeyCondition,
-          type: testType,
-          id: {
-            operator: 'not in',
-            value: ignoreTestEntityIds,
-          } as any,
-        },
-        ascending: ['sortIndex', 'createdAt'],
-        ...params,
-      });
+  // const { runAsync: getTestExecutionList } = useRequest(
+  //   async (params = {}) => {
+  //     const { list } = await getTestEntityByQuery({
+  //       query: {
+  //         workspaceKey: workspaceKeyCondition,
+  //         type: testType,
+  //         id: {
+  //           operator: 'not in',
+  //           value: ignoreTestEntityIds,
+  //         } as any,
+  //       },
+  //       ascending: ['sortIndex', 'createdAt'],
+  //       ...params,
+  //     });
 
-      return list;
-    },
-    {
-      manual: true,
-    },
-  );
+  //     return list;
+  //   },
+  //   {
+  //     manual: true,
+  //   },
+  // );
 
   // 获取测试实体类型关联配置
   const { data: testTypeMapping, runAsync: getTestTypeMapping } = useRequest(
@@ -330,15 +329,16 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
     setSelectValue(isSingleMode ? undefined : []);
     setVisible(false);
   }, [
-    isSingleMode,
-    needFillValue,
-    props,
-    selectValue,
     selectedTestDetails,
-    setVisible,
     testType,
+    props,
     treeType,
     planId,
+    setSelectValue,
+    isSingleMode,
+    setVisible,
+    selectValue,
+    needFillValue,
   ]);
 
   const filterOptions = React.useCallback(
@@ -391,10 +391,11 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
     filterOptions,
     getTestEntityByKeyword,
     isSingleMode,
-    props.placeholder,
+    props?.placeholder,
     searchLoading,
     selectValue,
     setSelectValue,
+    t,
     testTypeName,
   ]);
 
@@ -455,12 +456,16 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
       </div>
     );
   }, [
-    handleOkButtonClick,
-    selectedTestDetails,
-    setVisible,
-    testType,
-    ignoreTestEntityIds,
     modelProps?.footer,
+    testType,
+    t,
+    selectedTestDetails,
+    handleOkButtonClick,
+    ignoreTestEntityIds,
+    onCancel,
+    setSelectValue,
+    isSingleMode,
+    setVisible,
   ]);
 
   const testSelectNode = useMemo(() => {
@@ -470,11 +475,12 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
     if (testType === TestType.Execution) {
       return (
         <SelectorTable
-          // getDataSource={getTestExecutionList}
           workspaceKey={workspace?.key}
           testType={testType}
           workspaceKeyCondition={workspaceKeyCondition}
           ignoreTestEntityIds={ignoreTestEntityIds}
+          selectValue={selectValue}
+          setSelectValue={setSelectValue}
         />
       );
     }
@@ -486,6 +492,8 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
     workspace?.key,
     workspaceKeyCondition,
     ignoreTestEntityIds,
+    selectValue,
+    setSelectValue,
   ]);
 
   return (
@@ -500,7 +508,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
       open={visible}
       maskClosable={false}
       className={cx('modal')}
-      getContainer={getRootContainer}
+      getContainer={testType === TestType.Execution ? getTestManagerContainer : getRootContainer}
       footer={ModalFooterNode}
       onCancel={() => {
         testType === TestType.Case && setTreeType('repository');

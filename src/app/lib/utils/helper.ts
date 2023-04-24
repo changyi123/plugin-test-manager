@@ -47,6 +47,8 @@ export const getRootContainer = () =>
   (document.querySelector('#osc-proxima') ??
     document.querySelector('#test-manager')) as HTMLElement;
 
+export const getTestManagerContainer = () => document.querySelector('#test-manager') as HTMLElement;
+
 export const getKeyByValue = (object: Record<string, unknown>, value: unknown) =>
   findKey(object, val => isEqual(val, value));
 
