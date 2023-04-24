@@ -80,7 +80,11 @@ const SelectorTable: React.FC<SelectorTable> = ({
   ];
 
   useEffect(() => {
-    tableActionRef.current?.toggleSelection(true);
+    if (tableActionRef.current?.toggleSelection) {
+      setTimeout(() => {
+        tableActionRef.current.toggleSelection(true);
+      }, 50);
+    }
   }, [tableActionRef]);
 
   const handleSelectorSearch = async selector => {

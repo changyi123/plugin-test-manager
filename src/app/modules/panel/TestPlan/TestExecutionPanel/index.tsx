@@ -227,8 +227,8 @@ const Test = () => {
       <TestEntitySelectorModal
         actionRef={selectorModalRef}
         title={t('modules.panel.testPlan.testExecutionPanel.modelTitle')}
-        // onSelect={addTestExecutionToPlan}
         ignoreTestEntityIds={allTestEntities?.map(item => item.objectId)}
+        width={800}
       />
 
       <PanelTable

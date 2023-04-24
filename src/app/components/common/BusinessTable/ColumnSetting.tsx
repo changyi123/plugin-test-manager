@@ -78,7 +78,7 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
   const keys = useMemo(() => [].concat(SystemFieldKeys, _keys ?? []), [_keys?.toString()]);
   const fieldKeys = useMemo(() => keys?.filter(key => !TABLE_EXCLUDE_FIELDS.includes(key)), [keys]);
   const { data: customFields } = useNoExpiredRequest(() => getCustomFields(fieldKeys), {
-    cacheKey: `CustomFields_${fieldKeys.toString()}`,
+    cacheKey: `CustomFields_${fieldKeys?.toString()}`,
     refreshDeps: [fieldKeys],
   });
   const [fields, setFields] = useState<string[] | undefined>([]);
