@@ -395,23 +395,35 @@ export const updateTestRunDetail = async (
 
       if (hasFail && !hasBlock && !hasCannel) {
         // 失败且没有阻塞、没有取消 - 失败
-        needUpdateAttrs.status = 'FAILED';
-        needUpdateAttrs.executeCount = executeCount + 1;
+        if (testEntity.status !== 'FAILED') {
+          needUpdateAttrs.status = 'FAILED';
+          needUpdateAttrs.executeCount = executeCount + 1;
+        }
       } else if (hasExecuting && !hasBlock && !hasCannel && !hasFail) {
         // 正在执行且没有取消、阻塞、失败 - 正在执行
-        needUpdateAttrs.status = 'EXECUTING';
+        if (testEntity.status !== 'EXECUTING') {
+          needUpdateAttrs.status = 'EXECUTING';
+        }
       } else if (hasBlock && !hasCannel) {
         // 阻塞且没有取消 - 阻塞
-        needUpdateAttrs.status = 'BLOCK';
+        if (testEntity.status !== 'BLOCK') {
+          needUpdateAttrs.status = 'BLOCK';
+        }
       } else if (hasAllPass) {
         // 全部通过 - 通过
-        needUpdateAttrs.status = 'PASSED';
-        needUpdateAttrs.executeCount = executeCount + 1;
+        if (testEntity.status !== 'PASSED') {
+          needUpdateAttrs.status = 'PASSED';
+          needUpdateAttrs.executeCount = executeCount + 1;
+        }
       } else if (hasCannel) {
         // 一个取消 - 取消
-        needUpdateAttrs.status = 'CANCEL';
+        if (testEntity.status !== 'CANCEL') {
+          needUpdateAttrs.status = 'CANCEL';
+        }
       } else if (hasAllTodo) {
-        needUpdateAttrs.status = 'TODO';
+        if (testEntity.status !== 'TODO') {
+          needUpdateAttrs.status = 'TODO';
+        }
       }
       setExecutor(needUpdateAttrs);
     }

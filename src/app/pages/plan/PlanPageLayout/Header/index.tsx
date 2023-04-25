@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { Button, Dropdown, Menu, message } from 'antd';
-import { ArrowLeftOutlined, ExportOutlined } from '@/icons';
+import { ArrowLeftOutlined, DownOutlined, ExportOutlined } from '@/icons';
 import TestPlanSelector from '@/components/business/TestPlanSelector';
 import ExecutionList from '../ExecutionList';
 import { usePageContext } from '../../hook';
@@ -218,10 +218,15 @@ const Header: React.FC<HeaderProps> = ({
             setExecutionKeys={setExecutionKeys}
           />
           {selectedExecution?.objectId && (
-            <>
-              <Dropdown overlay={itemsList} placement="topRight" trigger={['click']} arrow>
-                <Button>添加执行任务</Button>
-              </Dropdown>
+            <div>
+              <Dropdown.Button
+                onClick={() => createTestExecution()}
+                icon={<DownOutlined />}
+                overlay={itemsList}
+                trigger={['hover']}
+              >
+                {t('common.addTestExecution')}
+              </Dropdown.Button>
               {/* <Space className={cx('box-right')}>
                 <Button type="primary" onClick={addExistedTestExecution}>
                   {t('modules.panel.testPlan.testExecutionPanel.modelTitle')}
@@ -240,7 +245,7 @@ const Header: React.FC<HeaderProps> = ({
                 ignoreTestEntityIds={executionKeys}
                 width={800}
               />
-            </>
+            </div>
           )}
         </div>
       )}

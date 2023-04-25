@@ -99,7 +99,8 @@
     "minderRootNodeName": "全部用例",
     "updateFail": "数据更新失败",
     "unGrouped": "未分组",
-    "runNum": "条执行"
+    "runNum": "条执行",
+    "addTestExecution": "添加执行任务"
   },
   "status": {
     "PASSED": {

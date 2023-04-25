@@ -83,15 +83,15 @@ const SelectorTable: React.FC<SelectorTable> = ({
     if (tableActionRef.current?.toggleSelection) {
       setTimeout(() => {
         tableActionRef.current.toggleSelection(true);
-      }, 50);
+      }, 500);
     }
   }, [tableActionRef]);
 
   const handleSelectorSearch = async selector => {
     setSelector(selector);
     // 添加筛选项目需要重置批量选中的 row
-    tableActionRef.current.resetSelectedRowKeys();
-    tableActionRef.current.refresh();
+    tableActionRef.current?.resetSelectedRowKeys();
+    tableActionRef.current?.refresh();
   };
 
   return (
@@ -101,8 +101,9 @@ const SelectorTable: React.FC<SelectorTable> = ({
           className={cx('filter-search-box')}
           onSearch={handleSelectorSearch}
           fields={getFilterFields([].concat(SystemFieldKeys, []))}
-          extendFields={[]}
+          checkedFields={['assignee', 'status']}
           testType={TestType.Case}
+          filterId={'model-filter-btn'}
         />
       </div>
       <BusinessTable

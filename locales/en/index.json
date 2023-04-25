@@ -100,7 +100,8 @@
     "minderRootNodeName": "All Modules",
     "updateFail": "Update data failed",
     "unGrouped": "Ungrouped",
-    "runNum": "test execution"
+    "runNum": "test execution",
+    "addTestExecution": "Add test execution"
   },
   "status": {
     "PASSED": {
