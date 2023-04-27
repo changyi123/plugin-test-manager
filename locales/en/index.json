@@ -245,7 +245,7 @@
         "removeCaseMessage": "test cases were removed from the test plan",
         "removeCaseTips": "This action will remove this test case from the test plan, do you want to continue",
         "removeCaseTips1": "This action removes the selected test case from the test plan, do you want to continue",
-        "removeCaseTips2": "The current case has been associated with the test run task, is it removed",
+        "removeCaseTips2": "The current case has been associated with the test run task, and delete the test execution task association, do you want to continue",
         "deleteRunTips": "This action will delete the selected test execution. do you want to continue?",
         "deleteRunMessage": "Test case executions were deleted",
         "updateAssigneeTips": "Test owners have been updated",

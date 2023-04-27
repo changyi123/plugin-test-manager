@@ -565,14 +565,11 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
                     cancelText: t('common.cancel'),
                     content: (
                       <>
-                        <span>{t('page.plan.testEntityList.removeCaseTips')}</span>
-                        {rowData.runCount ? (
-                          <div style={{ marginLeft: 14 }}>
-                            {t('page.plan.testEntityList.removeCaseTips2')}
-                          </div>
-                        ) : (
-                          ''
-                        )}
+                        <span>
+                          {rowData.runCount
+                            ? t('page.plan.testEntityList.removeCaseTips2')
+                            : t('page.plan.testEntityList.removeCaseTips')}
+                        </span>
                       </>
                     ),
                   },
@@ -790,10 +787,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
             cancelText: t('common.cancel'),
             content: (
               <>
-                <span>{t('page.plan.testEntityList.removeCaseTips1')}</span>
-                <div style={{ marginLeft: 14 }}>
-                  {t('page.plan.testEntityList.removeCaseTips2')}
-                </div>
+                <span>{t('page.plan.testEntityList.removeCaseTips2')}</span>
               </>
             ),
           },

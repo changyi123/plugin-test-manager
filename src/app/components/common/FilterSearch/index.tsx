@@ -13,7 +13,7 @@ import { Button } from 'antd';
 import AddFilterIcon from '@/icons/svg/add-filter.svg';
 import { openFilterPopover, openFieldValuePopover } from '@/lib/api/sdk';
 import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
-import { values, cloneDeep, omit, pick, isEmpty } from 'lodash';
+import { values, cloneDeep, omit, pick } from 'lodash';
 import SelectorTag from './SelectorTag';
 import { Selectors, isDate, SearchSelectors } from '@/lib/utils/iql';
 import dayjs from 'dayjs';
@@ -50,6 +50,7 @@ interface FilterSearchProps {
   enableLocalStorage?: boolean;
   checkedFields?: string[];
   filterId?: string;
+  storageKey?: string;
 }
 
 interface FilterRefMethod {
@@ -57,9 +58,9 @@ interface FilterRefMethod {
 }
 
 // 生成存储器
-const useSelectorStorage = (enableLocalStorage, { selectors, setSelectors }) => {
+const useSelectorStorage = (enableLocalStorage, { selectors, setSelectors, storageKey = '' }) => {
   const location = useLocation();
-  const key = generateStorageKey('selector-' + location.pathname);
+  const key = generateStorageKey('selector-' + storageKey + location.pathname);
 
   const invokeRef = React.useRef(false);
 
@@ -101,6 +102,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
     hideSelectorTag,
     enableLocalStorage,
     filterId,
+    storageKey,
   },
   ref,
 ) => {
@@ -126,6 +128,8 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
     filedKeys: testType === TestType.Plan ? testPlanFieldKeys : testCaseFieldKeys,
   });
 
+  const customFieldsKey = useMemo(() => customFields?.map(d => d.key), [customFields]);
+
   const defaultSelectors = useMemo(() => {
     if (checkedFields?.length && customFields?.length) {
       return checkedFields.reduce((prev, cur) => {
@@ -142,14 +146,23 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
         return prev;
       }, {});
     }
-    return [];
-  }, [customFields, checkedFields]);
+  }, [customFieldsKey?.toString(), checkedFields?.toString()]);
 
   // 将 selector 存储到 localStorage
   useSelectorStorage(enableLocalStorage, {
     selectors,
     setSelectors: setSelectorsFromStorageValue,
+    storageKey,
   });
+
+  useEffect(() => {
+    if (defaultSelectors) {
+      setSelectors({
+        ...defaultSelectors,
+        ...selectors,
+      });
+    }
+  }, [defaultSelectors]);
 
   const { data: fieldsName, refresh } = useRequest(
     async () => {
@@ -385,13 +398,14 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
   );
 
   const currentSelector = useMemo(() => {
-    const item = values(isEmpty(selectors) ? defaultSelectors : selectors).map(item => ({
+    const item = values(selectors).map(item => ({
       ...item,
       name: item?.fieldName,
       objectId: item?.fieldId,
+      active: Array.isArray(item.value) ? !!item.value?.length : !!item.value,
     }));
     return item || [];
-  }, [selectors, defaultSelectors]);
+  }, [selectors]);
 
   const onDeleteSelector = useCallback(
     id => {
@@ -419,7 +433,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
         .map(item => (
           <SelectorTag
             key={item?.fieldId}
-            active={item?.fieldId === activeSelector}
+            active={item?.active}
             data={item}
             onClick={data => {
               const backup = cloneDeep(data);
@@ -440,7 +454,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
           className={cx('filter-tag-btn')}
           onClick={() => {
             openFilterPopover({
-              selectors: isEmpty(selectors) ? defaultSelectors : selectors,
+              selectors,
               fields,
               onChange: onFilterChange,
               extendFields,

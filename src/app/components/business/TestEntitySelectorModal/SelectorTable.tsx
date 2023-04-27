@@ -104,6 +104,7 @@ const SelectorTable: React.FC<SelectorTable> = ({
           checkedFields={['assignee', 'status']}
           testType={TestType.Case}
           filterId={'model-filter-btn'}
+          storageKey={'model-link-execution'}
         />
       </div>
       <BusinessTable

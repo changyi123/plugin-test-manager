@@ -260,7 +260,7 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
       <DirectoryTree
         treeData={treeData}
         expandAction={false}
-        className={cx('tree')}
+        className={cx('tree', treeLoading ? 'tree-hide' : '')}
         titleRender={titleRender}
         onExpand={handleTreeExpand}
         onSelect={handleTreeSelect}

@@ -248,6 +248,7 @@ const Right: React.FC<RightProps> = props => {
           extendFields={filterSearchExtendFieldsProps}
           fields={getFilterFields([].concat(SystemFieldKeys, testCaseFieldKeys))}
           testType={TestType.Case}
+          storageKey={activeType === 'TestPlan' ? 'testPlan' : 'testExecution'}
         />
       </div>
       <div data-element-id="test-manager-execution-table-body" className={cx('box-body')}>

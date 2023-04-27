@@ -220,6 +220,7 @@ const Header: React.FC<HeaderProps> = ({
           {selectedExecution?.objectId && (
             <div>
               <Dropdown.Button
+                type="primary"
                 onClick={() => createTestExecution()}
                 icon={<DownOutlined />}
                 overlay={itemsList}

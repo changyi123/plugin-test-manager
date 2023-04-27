@@ -243,7 +243,7 @@
         "removeCaseMessage": "个测试用例从测试计划中移除",
         "removeCaseTips": "该操作会将该测试用例从测试计划中移除，是否继续操作？",
         "removeCaseTips1": "该操作会将所选测试用例从测试计划中移除，是否继续操作？",
-        "removeCaseTips2": "当前用例已被测试执行任务关联，是否移出？",
+        "removeCaseTips2": "该操作会将所选测试用例从测试计划中移除，并删除测试执行任务关联，是否继续操作？",
         "deleteRunTips": "该操作会将所选测试执行删除，是否继续操作？",
         "deleteRunMessage": "个用例执行被删除",
         "updateAssigneeTips": "个测试负责人已更新",

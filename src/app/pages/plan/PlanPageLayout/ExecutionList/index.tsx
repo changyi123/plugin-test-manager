@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from 'react';
 import { useRequest } from 'ahooks';
 import { Dropdown, Menu, message, notification, Tooltip } from 'antd';
@@ -47,17 +46,22 @@ const ExecutionList: React.FC<ExecutionListProps> = ({
   const [activeId, setActiveId] = useState('');
 
   // 事项数据更新后刷新列表
-  useListener('updateItemList', () => {
-    setTimeout(() => {
-      refresh();
-    }, 400);
+  useListener('updateItemList', async props => {
+    if (props?.type === 'create') return;
+    if (props?.type === 'delete') {
+      // await deleteRunLinkExecution();
+    } else {
+      setTimeout(() => {
+        refresh();
+      }, 400);
+    }
   });
 
-  useListener('closeItemViewScreen', itemId => {
-    if (!itemId) return;
+  useListener('deleteExecutionRefresh', () => {
+    setActiveId('');
     setTimeout(() => {
-      refresh();
-    }, 400);
+      actionRef.current?.refresh();
+    }, 500);
   });
 
   useEffect(() => {
@@ -129,7 +133,9 @@ const ExecutionList: React.FC<ExecutionListProps> = ({
             return;
           }
           setActiveId('');
-          actionRef.current?.refresh();
+          setTimeout(() => {
+            actionRef.current?.refresh();
+          }, 500);
           setLoading?.(false);
           notification.success({
             message: t('page.plan.planPageLayout.executionList.deleteSuccess'),
