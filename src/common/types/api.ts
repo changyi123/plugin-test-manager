@@ -71,6 +71,10 @@ export type Query = Partial<{
    *  iql: 测试用例引用 in []
    */
   referenceCase: string | string[];
+  /** 关联事项类型
+   *  iql: 类型 is 'NULL'
+   */
+  linkType: string;
 }>;
 
 /** 测试实体查询的通用  */

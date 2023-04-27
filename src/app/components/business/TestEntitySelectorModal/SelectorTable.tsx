@@ -16,14 +16,15 @@ type SelectorTable = {
   testType?: TestType;
   selectValue?: string[];
   setSelectValue?: (val?: string[]) => void;
+  tableFieldsKeys?: string[];
 };
 
 const SelectorTable: React.FC<SelectorTable> = ({
   workspaceKey,
   workspaceKeyCondition,
   testType,
-  ignoreTestEntityIds,
   selectValue,
+  tableFieldsKeys,
   setSelectValue,
 }) => {
   const { t } = useI18n();
@@ -38,9 +39,9 @@ const SelectorTable: React.FC<SelectorTable> = ({
         query: {
           workspaceKey: workspaceKeyCondition,
           type: testType,
-          id: {
-            operator: 'not in',
-            value: ignoreTestEntityIds,
+          linkType: {
+            operator: 'is',
+            value: 'NULL',
           } as any,
         },
         descending: ['sortIndex', 'createdAt'],
@@ -57,7 +58,7 @@ const SelectorTable: React.FC<SelectorTable> = ({
         total,
       };
     },
-    [workspaceKeyCondition, ignoreTestEntityIds, testType, selector],
+    [workspaceKeyCondition, testType, selector],
   );
 
   const columns = [
@@ -100,7 +101,7 @@ const SelectorTable: React.FC<SelectorTable> = ({
         <FilterSearch
           className={cx('filter-search-box')}
           onSearch={handleSelectorSearch}
-          fields={getFilterFields([].concat(SystemFieldKeys, []))}
+          fields={getFilterFields([].concat(SystemFieldKeys, tableFieldsKeys ?? []))}
           checkedFields={['assignee', 'status']}
           testType={TestType.Case}
           filterId={'model-filter-btn'}
@@ -121,6 +122,7 @@ const SelectorTable: React.FC<SelectorTable> = ({
         actionRef={tableActionRef}
         getDataSource={tableDataGetter}
         setCheckedRowKeys={setSelectValue}
+        testFieldKeys={tableFieldsKeys}
       />
       <span className={cx('checked-num')}>
         <span>{t('common.checked')} </span>

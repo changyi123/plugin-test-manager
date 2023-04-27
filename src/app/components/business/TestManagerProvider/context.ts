@@ -55,6 +55,7 @@ export type BaseActionContextType = {
   getCreatePermission?: (val: string) => boolean;
   testPlanFieldKeys?: string[];
   testCaseFieldKeys?: string[];
+  testExecutionFieldKeys?: string[];
 };
 /** proxima 操作 context */
 export const BaseActionContext = React.createContext<BaseActionContextType>(

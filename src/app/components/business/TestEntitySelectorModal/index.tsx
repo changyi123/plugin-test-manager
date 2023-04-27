@@ -57,6 +57,7 @@ export type TestEntitySelectorProps = {
   isSingleMode?: boolean;
   needFillValue?: boolean;
   modelType?: string;
+  tableFieldsKeys?: string[];
   ignoreTestEntityIds?: string[];
   onSelect?: (testIds: string[]) => void;
   actionRef?: React.ForwardedRef<ActionType>;
@@ -72,6 +73,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
     ignoreTestEntityIds = [],
     isSingleMode = false,
     needFillValue,
+    tableFieldsKeys,
     width,
     afterClose,
     onCancel,
@@ -478,9 +480,9 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
           workspaceKey={workspace?.key}
           testType={testType}
           workspaceKeyCondition={workspaceKeyCondition}
-          ignoreTestEntityIds={ignoreTestEntityIds}
           selectValue={selectValue}
           setSelectValue={setSelectValue}
+          tableFieldsKeys={tableFieldsKeys}
         />
       );
     }
@@ -491,9 +493,9 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
     testDetailSelectorNode,
     workspace?.key,
     workspaceKeyCondition,
-    ignoreTestEntityIds,
     selectValue,
     setSelectValue,
+    tableFieldsKeys,
   ]);
 
   return (

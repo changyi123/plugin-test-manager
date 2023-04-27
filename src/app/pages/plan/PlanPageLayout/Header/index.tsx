@@ -51,7 +51,7 @@ const Header: React.FC<HeaderProps> = ({
   const selectorModalRef = React.useRef<SelectorActionType>();
   const { workspaceKey, selectedTestPlan, setSelectedTestPlan, tableSelectionToggleEvent } =
     usePageContext();
-  const { getCreatePermission } = useBaseAction();
+  const { getCreatePermission, testExecutionFieldKeys } = useBaseAction();
   const [isReportGenerating, setIsReportGenerating] = React.useState(false);
   const [executionKeys, setExecutionKeys] = React.useState<string[]>([]);
 
@@ -244,6 +244,7 @@ const Header: React.FC<HeaderProps> = ({
                 actionRef={selectorModalRef}
                 title={t('modules.panel.testPlan.testExecutionPanel.modelTitle')}
                 ignoreTestEntityIds={executionKeys}
+                tableFieldsKeys={testExecutionFieldKeys}
                 width={800}
               />
             </div>
