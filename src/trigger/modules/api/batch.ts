@@ -1,5 +1,3 @@
-import uniq from 'lodash/uniq';
-import pick from 'lodash/pick';
 import keyBy from 'lodash/keyBy';
 import difference from 'lodash/difference';
 import { iqlRequest } from '../../lib/iqlRequest';
@@ -22,7 +20,6 @@ import {
   TestLinkType,
   InfinityLimit,
   TestFiledKeyMapping,
-  IQLRequiredFieldKeys,
   BuiltInItemTypeMapping,
 } from '../../../common/constant';
 import { getItemCreateRequiredAttrs } from '../../lib/item';
@@ -58,7 +55,7 @@ export const batchCreateTestCase = async () => {
 export const batchDelete = async () => {
   try {
     const {
-      body: { ids, skipDeletedLinkItems = false },
+      body: { ids },
     } = getReqInfoFromVMRuntime<BatchDeletePayload>();
     if (!Array.isArray(ids)) throwArgumentError('ids', 'objectId[]');
     // FIXME: delete 接口会有问题，响应完成但是 es 内事项数据可能不会更新，需要加一个 500ms 延迟
@@ -73,82 +70,6 @@ export const batchDelete = async () => {
       ]);
     };
     const tasks = [deleteItemsThenWait(ids)];
-
-    // 删除关联关系中数据
-    if (!skipDeletedLinkItems) {
-      // 删除实体间的关联关系
-      const appendDeleteLinkItemsTask = async (testIds, runIds) => {
-        // 1. 查询关联的 items
-        const linkIds = testIds?.filter(Boolean);
-        const { data: linkedItemsList } = await iqlRequest({
-          query: {
-            linkItems: linkIds,
-          },
-          pagination: { limit: InfinityLimit },
-          fields: [...IQLRequiredFieldKeys, TestFiledKeyMapping.linkItems],
-        });
-        const { list: linkedItems } = linkedItemsList ?? {};
-
-        // 2. 更新数据
-        const needUpdateItemValues = linkedItems
-          ?.filter(d => !runIds?.includes(d.objectId))
-          ?.map(item => {
-            const data = pick(item, ['objectId', 'linkItems']);
-            data.linkItems = data.linkItems.filter(id => !ids.includes(id));
-            return data;
-          });
-
-        if (needUpdateItemValues?.length) {
-          tasks.push(batchUpdateItems(needUpdateItemValues));
-        }
-      };
-
-      // 测试用例删除时需要删除引用的测试执行，所以先获得用例引用的执行
-      const getReferencedTestRunIds = async () => {
-        // 1. 查询关联的 items
-        const {
-          data: { list: testRuns },
-        } = await iqlRequest({
-          query: {
-            referenceCase: ids,
-          },
-          pagination: { limit: InfinityLimit },
-          fields: IQLRequiredFieldKeys,
-        });
-
-        return testRuns?.map(item => item.objectId);
-      };
-      const testRunIds = await getReferencedTestRunIds();
-      if (testRunIds?.length) {
-        tasks.push(deleteItemsThenWait(testRunIds));
-      }
-
-      // 测试执行任务删除时需要删除任务下的测试执行
-      const getRunIdByLInkItem = async () => {
-        const {
-          data: { list: runs },
-        } = await iqlRequest({
-          linkQuery: {
-            linkType: TestLinkType.RunLinkExecution,
-            sourceIds: ids,
-            destinationType: TestType.Run,
-          },
-          pagination: { limit: InfinityLimit },
-          fields: IQLRequiredFieldKeys,
-        });
-
-        return runs?.map(item => item.objectId);
-      };
-
-      const runIds = await getRunIdByLInkItem();
-      if (runIds?.length) {
-        tasks.push(deleteItemsThenWait(runIds));
-      }
-
-      const willDeleteTestRunIds = uniq([].concat(ids, testRunIds));
-      await appendDeleteLinkItemsTask(willDeleteTestRunIds, runIds);
-    }
-
     await Promise.all(tasks);
     return buildResponse('delete success');
   } catch (err) {
