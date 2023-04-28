@@ -385,6 +385,7 @@ export const isUseOptionLabel = (component: string): boolean => {
     FIELD_TYPE_KEY_MAPPINGS.CustomVersion,
     FIELD_TYPE_KEY_MAPPINGS.Sprint,
     FIELD_TYPE_KEY_MAPPINGS.Tag,
+    FIELD_TYPE_KEY_MAPPINGS.UserGroup,
   ].includes(component);
 };
 
