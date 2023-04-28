@@ -39,12 +39,12 @@ const Test = () => {
   const selectorModalRef = React.useRef<SelectorActionType>();
   const testRunModalActionRef = React.useRef<TestRunModalActionType>();
 
-  useListener('updateItemList', async props => {
-    if (props?.type === 'create') return;
-    if (props?.type === 'delete') {
-      await deleteRunLinkExecution();
-    }
-  });
+  // useListener('updateItemList', async props => {
+  //   if (props?.type === 'create') return;
+  //   if (props?.type === 'delete') {
+  //     await deleteRunLinkExecution();
+  //   }
+  // });
 
   const [allTestEntities, setAllTestEntities] = useState([]);
 
@@ -124,27 +124,27 @@ const Test = () => {
     return { list, total };
   }, [getReTestEntities]);
 
-  const deleteRunLinkExecution = useCallback(async () => {
-    if (!testEntity?.objectId && !workspace?.key) return;
-    const { list: runIds } = await getLinkedTestEntityByQuery({
-      query: {
-        workspaceKey: workspace?.key,
-      },
-      limit: 9999,
-      linkType: TestLinkType.RunLinkExecution,
-      sourceIds: [testEntity?.objectId],
-      destinationType: TestType.Run,
-      onlySelectId: true,
-    });
-    if (runIds?.length) {
-      const res = await deleteTestEntity(runIds);
-      if (res?.status === 'error') {
-        message.error(res.data);
-        return;
-      }
-    }
-    proxima.execute('deleteExecutionRefresh');
-  }, [testEntity?.objectId, workspace?.key]);
+  // const deleteRunLinkExecution = useCallback(async () => {
+  //   if (!testEntity?.objectId && !workspace?.key) return;
+  //   const { list: runIds } = await getLinkedTestEntityByQuery({
+  //     query: {
+  //       workspaceKey: workspace?.key,
+  //     },
+  //     limit: 9999,
+  //     linkType: TestLinkType.RunLinkExecution,
+  //     sourceIds: [testEntity?.objectId],
+  //     destinationType: TestType.Run,
+  //     onlySelectId: true,
+  //   });
+  //   if (runIds?.length) {
+  //     const res = await deleteTestEntity(runIds);
+  //     if (res?.status === 'error') {
+  //       message.error(res.data);
+  //       return;
+  //     }
+  //   }
+  //   proxima.execute('deleteExecutionRefresh');
+  // }, [testEntity?.objectId, workspace?.key]);
 
   // 关联的测试用例
   const relCase = useMemo(() => allTestEntities.map(item => item.referenceCase), [allTestEntities]);

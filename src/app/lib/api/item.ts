@@ -287,12 +287,14 @@ export const updateTestStatus = async data => {
       type: TestType.Run,
     },
     limit: 9999,
-    select: ['id', 'referenceCase', 'executor', 'executeCount'],
+    select: ['id', 'referenceCase', 'executor', 'status', 'executeCount'],
   });
+
+  const runId = list.filter(d => d.status !== status).map(d => d.referenceCase) ?? [];
 
   const { list: test } = await getTestEntityByQuery({
     query: {
-      id: list.map(d => d.referenceCase) ?? [],
+      id: runId,
       type: TestType.Case,
     },
     limit: 9999,

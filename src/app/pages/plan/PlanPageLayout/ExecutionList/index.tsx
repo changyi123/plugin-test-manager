@@ -49,20 +49,19 @@ const ExecutionList: React.FC<ExecutionListProps> = ({
   useListener('updateItemList', async props => {
     if (props?.type === 'create') return;
     if (props?.type === 'delete') {
-      // await deleteRunLinkExecution();
-    } else {
-      setTimeout(() => {
-        refresh();
-      }, 400);
+      setActiveId('');
     }
-  });
-
-  useListener('deleteExecutionRefresh', () => {
-    setActiveId('');
     setTimeout(() => {
       actionRef.current?.refresh();
     }, 500);
   });
+
+  // useListener('deleteExecutionRefresh', () => {
+  //   setActiveId('');
+  //   setTimeout(() => {
+  //     actionRef.current?.refresh();
+  //   }, 500);
+  // });
 
   useEffect(() => {
     if (selectedExecution?.objectId) {
