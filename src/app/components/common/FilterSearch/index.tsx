@@ -109,8 +109,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
   const { t } = useI18n();
   const { workspace } = useTestConfig();
   const [search, setSearch] = useState('');
-  const { getGlobalConfig, testPlanFieldKeys, testCaseFieldKeys, testExecutionFieldKeys } =
-    useBaseAction();
+  const { getGlobalConfig, testPlanFieldKeys, testCaseFieldKeys } = useBaseAction();
   const [selectors, setSelectorsState] = useState<Selectors>({});
   const currentSelectors = useRef<Selectors>({});
   // const [activeSelector, setActiveSelector] = useState('');
@@ -126,12 +125,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
   });
 
   const customFields = useGetCustomFields({
-    filedKeys:
-      testType === TestType.Plan
-        ? testPlanFieldKeys
-        : testType === TestType.Execution
-        ? testExecutionFieldKeys
-        : testCaseFieldKeys,
+    filedKeys: testType === TestType.Plan ? testPlanFieldKeys : testCaseFieldKeys,
   });
 
   const customFieldsKey = useMemo(() => customFields?.map(d => d.key), [customFields]);

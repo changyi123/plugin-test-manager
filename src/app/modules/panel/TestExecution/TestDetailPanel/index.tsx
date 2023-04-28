@@ -26,7 +26,7 @@ import createProximaSdk, { useListener } from '@projectproxima/proxima-sdk-js';
 import { useRequest } from 'ahooks';
 import { useTestRunActionAuth } from '@/lib/hooks/useTest';
 import useI18n from '@/lib/hooks/useI18n';
-import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/hook';
+// import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/hook';
 
 const Test = () => {
   const proxima = createProximaSdk();
@@ -48,10 +48,10 @@ const Test = () => {
 
   const [allTestEntities, setAllTestEntities] = useState([]);
 
-  const testExecutionFieldKeys = useTestTypeScreenFieldKeys({
-    testType: TestType.Execution,
-    workspaceKey: workspace?.key,
-  });
+  // const testExecutionFieldKeys = useTestTypeScreenFieldKeys({
+  //   testType: TestType.Execution,
+  //   workspaceKey: workspace?.key,
+  // });
 
   const { data: allRunIds } = useRequest(
     async () => {
@@ -365,7 +365,7 @@ const Test = () => {
         actionRef={selectorModalRef}
         title={t('modules.panel.testExecution.testDetailPanel.assCaseToExecution')}
         ignoreTestEntityIds={relCase}
-        tableFieldsKeys={testExecutionFieldKeys}
+        // tableFieldsKeys={testExecutionFieldKeys}
       />
 
       <StatusProcessBar status={relRunStatuses} />
