@@ -14,7 +14,7 @@ import { getAllTestConfigs } from '@/lib/api/common';
 import InheritTestDetail from './InheritTestDetail';
 import TestDetailSelector from './TestDetailSelector';
 import useI18n from '@/lib/hooks/useI18n';
-// import SelectorTable from './SelectorTable';
+import SelectorTable from './SelectorTable';
 
 import cx from './index.less';
 
@@ -57,7 +57,7 @@ export type TestEntitySelectorProps = {
   isSingleMode?: boolean;
   needFillValue?: boolean;
   modelType?: string;
-  // tableFieldsKeys?: string[];
+  tableFieldsKeys?: string[];
   ignoreTestEntityIds?: string[];
   onSelect?: (testIds: string[]) => void;
   actionRef?: React.ForwardedRef<ActionType>;
@@ -73,7 +73,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
     ignoreTestEntityIds = [],
     isSingleMode = false,
     needFillValue,
-    // tableFieldsKeys,
+    tableFieldsKeys,
     width,
     afterClose,
     onCancel,
@@ -474,20 +474,28 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
     if (testType === TestType.Case) {
       return testDetailSelectorNode;
     }
-    // if (testType === TestType.Execution) {
-    //   return (
-    //     <SelectorTable
-    //       workspaceKey={workspace?.key}
-    //       testType={testType}
-    //       workspaceKeyCondition={workspaceKeyCondition}
-    //       selectValue={selectValue}
-    //       setSelectValue={setSelectValue}
-    //       tableFieldsKeys={tableFieldsKeys}
-    //     />
-    //   );
-    // }
+    if (testType === TestType.Execution) {
+      return (
+        <SelectorTable
+          workspaceKey={workspace?.key}
+          testType={testType}
+          workspaceKeyCondition={workspaceKeyCondition}
+          selectValue={selectValue}
+          setSelectValue={setSelectValue}
+          tableFieldsKeys={tableFieldsKeys}
+        />
+      );
+    }
     return testEntitySelectorNode;
-  }, [testType, testEntitySelectorNode, testDetailSelectorNode]);
+  }, [
+    testType,
+    testEntitySelectorNode,
+    testDetailSelectorNode,
+    workspace?.key,
+    workspaceKeyCondition,
+    selectValue,
+    setSelectValue,
+  ]);
 
   return (
     <Modal

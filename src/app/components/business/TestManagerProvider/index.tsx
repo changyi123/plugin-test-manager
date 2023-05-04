@@ -368,10 +368,10 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
     workspaceKey,
   });
 
-  // const testExecutionFieldKeys = useTestTypeScreenFieldKeys({
-  //   testType: TestType.Execution,
-  //   workspaceKey,
-  // });
+  const testExecutionFieldKeys = useTestTypeScreenFieldKeys({
+    testType: TestType.Execution,
+    workspaceKey,
+  });
 
   // 获取全局配置时使用缓存
   const { runAsync: getGlobalConfig } = useRequest(
@@ -585,7 +585,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
       getCreatePermission,
       testPlanFieldKeys,
       testCaseFieldKeys,
-      // testExecutionFieldKeys,
+      testExecutionFieldKeys,
       openItemViewPanel: openItemDetailPanel,
     };
 
@@ -598,7 +598,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
     workspace?.objectId,
     testPlanFieldKeys,
     testCaseFieldKeys,
-    // testExecutionFieldKeys,
+    testExecutionFieldKeys,
     t,
   ]);
 
