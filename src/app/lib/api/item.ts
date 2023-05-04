@@ -290,24 +290,23 @@ export const updateTestStatus = async data => {
     select: ['id', 'referenceCase', 'executor', 'status', 'executeCount'],
   });
 
-  const runId = list.filter(d => d.status !== status).map(d => d.referenceCase) ?? [];
+  const updateRunData = list.filter(d => d.status !== status);
+  const testIds = updateRunData.map(d => d.referenceCase) ?? [];
 
   const { list: test } = await getTestEntityByQuery({
     query: {
-      id: runId,
+      id: testIds,
       type: TestType.Case,
     },
     limit: 9999,
     select: ['id', 'caseStatus', 'caseExecutor'],
   });
-
-  const runs = list.map(d => ({
+  const runs = updateRunData.map(d => ({
     objectId: d.id,
     status,
     executor: [getCurrentUserInfo(), ...(d.executor ?? [])].slice(0, 3),
     executeCount: (d.executeCount ?? 0) + (['PASSED', 'FAILED']?.includes(status) ? 1 : 0),
   }));
-
   const tests = test.map(d => ({
     objectId: d.id,
     caseStatus: {
@@ -366,8 +365,8 @@ export const updateTestRunDetail = async (
 
   const needUpdateAttrs = {} as TestEntity<TestType.Run>;
 
-  // 执行状态为通过或者失败 +1
-  if (['PASSED', 'FAILED']?.includes(params.status)) {
+  // 执行状态为通过或者失败，且前后状态不一致 +1
+  if (['PASSED', 'FAILED']?.includes(params.status) && testEntity.status !== params.status) {
     needUpdateAttrs.executeCount = executeCount + 1;
   }
 
