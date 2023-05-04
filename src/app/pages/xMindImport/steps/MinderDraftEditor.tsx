@@ -53,6 +53,7 @@ const MinderDraftEditor: React.FC<StepComponentProp> = ({
             [MinderNodeType.TestCase]: MinderNodeType.Module,
             [MinderNodeType.Module]: MinderNodeType.Module,
           };
+          if (!parent) return;
           const getNodeParentType = n => nodeParentTypeMap[n.data.type];
           // 已校验节点跳过校验，节点为根节点跳过校验
           if (node._nodeTypeLawyerValidated || node.data.type === 'Root') return;
