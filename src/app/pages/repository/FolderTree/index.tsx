@@ -32,6 +32,7 @@ import { UNGROUPED_FOLDER_KEY } from '../constant';
 import useI18n from '@/lib/hooks/useI18n';
 
 import cx from './index.less';
+import { repositoryFolderTreeEvent } from '@/lib/events';
 
 const { DirectoryTree } = Tree;
 
@@ -271,6 +272,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
             key: createdFolderKey,
           },
         });
+        repositoryFolderTreeEvent.dispatch();
         notification.success({
           message: t('page.repository.folderTree.createChildFolderSuccess'),
         });
@@ -290,6 +292,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
             name: newFolderName,
           },
         ]);
+        repositoryFolderTreeEvent.dispatch();
         notification.success({
           message: `${t('page.repository.folderTree.renameFolderSuccess')}【${newFolderName}】`,
         });
@@ -326,6 +329,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
               message: t('page.repository.folderTree.deleteFolderSuccess'),
             });
             const refreshedTreeData = await onFolderTreeChange();
+            repositoryFolderTreeEvent.dispatch();
             const parentNode = getTreeNodeByKey(refreshedTreeData, node.parentKey);
             if (parentNode) {
               // 删除后选中模块置于被删除模块的父级
