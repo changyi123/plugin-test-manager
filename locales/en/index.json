@@ -494,7 +494,8 @@
           "addRunToPlanSuccess": "Test executions added to the test plan",
           "deleteRunToPlanSuccess": "Test executions were removed from the test plan",
           "modelTitle": "Associated test execution",
-          "addTestExecution": "Add test execution task"
+          "addTestExecution": "Add test execution task",
+          "notSelectMessage": "No test execution selected"
         }
       }
     }

@@ -157,7 +157,7 @@ const processLinkItemData = async data => {
     });
 
     needUpdateItemData = data.map(item => {
-      const { linkItems, objectId } = item;
+      const { linkItems, objectId, linkType } = item;
 
       if (isActionSchema(linkItems)) {
         const originalTestEntity = originalTestEntityMapping[objectId];
@@ -166,8 +166,11 @@ const processLinkItemData = async data => {
 
         const { action, value } = linkItems as any;
         let processedLinkItems = value;
+        let processedLinkType = linkType;
         if (action === 'delete') {
-          processedLinkItems = difference(originalLinkItems, value);
+          const linkItems = difference(originalLinkItems, value);
+          processedLinkItems = linkItems?.length ? linkItems : null;
+          processedLinkType = linkItems?.length ? linkType : null;
         } else {
           processedLinkItems = Array.from(new Set([].concat(originalLinkItems, value)));
         }
@@ -175,6 +178,7 @@ const processLinkItemData = async data => {
         return {
           ...item,
           linkItems: processedLinkItems,
+          linkType: processedLinkType,
         };
       }
 

@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Button, Dropdown, Menu, message } from 'antd';
+import { Button, Dropdown, Menu, message, notification } from 'antd';
 import { ArrowLeftOutlined, DownOutlined, ExportOutlined } from '@/icons';
 import TestPlanSelector from '@/components/business/TestPlanSelector';
 import ExecutionList from '../ExecutionList';
@@ -145,9 +145,14 @@ const Header: React.FC<HeaderProps> = ({
       testType: TestType.Execution,
     });
 
+    if (!ids?.length) {
+      return notification.warning({
+        message: t('modules.panel.testPlan.testExecutionPanel.notSelectMessage'),
+      });
+    }
     await addTestExecutionToPlan(ids);
     executionListRef?.current.refresh();
-  }, [addTestExecutionToPlan, executionListRef]);
+  }, [addTestExecutionToPlan, executionListRef, t]);
 
   const itemsList = useMemo(
     () => (

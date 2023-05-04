@@ -24,9 +24,12 @@ export const testEntityFieldTypeValidator = data => {
     // 测试自定义字段校验
     if (ValidateFields.includes(fieldKey)) {
       if (fieldKey === 'linkItems') {
-        Array.isArray(value) || throwArgumentError('linkItems', 'objectId[]');
+        // 校验 value 非 null，null 情况属于删除关系
+        Array.isArray(value) || value === null || throwArgumentError('linkItems', 'objectId[]');
       } else if (fieldKey === 'linkType') {
-        Object.values(TestLinkType).includes(value) || throwArgumentError(key, 'TestLinkType Enum');
+        Object.values(TestLinkType).includes(value) ||
+          value === null ||
+          throwArgumentError(key, 'TestLinkType Enum');
       } else if (fieldKey === 'type') {
         Object.values(TestType).includes(value) || throwArgumentError(key, 'TestType Enum');
       } else if (['detail', 'runDetail'].includes(fieldKey)) {

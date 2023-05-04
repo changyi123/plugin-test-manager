@@ -239,11 +239,9 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
       return Object.values(testEntityDict).map(item => {
         return {
           label: (
-            <div>
-              <span style={{ display: 'inline-block', marginRight: 4, fontSize: 13 }}>
-                {item.name}
-              </span>
-              <span style={{ fontSize: 12, color: '#aaa' }}>({item.key})</span>
+            <div className={cx('select-box')}>
+              <div className={cx('select-title')}>{item.name}</div>
+              <div className={cx('select-key')}>({item.key})</div>
             </div>
           ),
           value: item.id,

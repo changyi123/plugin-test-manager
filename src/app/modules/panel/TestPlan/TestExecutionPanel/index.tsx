@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react';
 
-import { Button, message } from 'antd';
+import { Button, message, notification } from 'antd';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import { TestLinkType, TestType } from '@/lib/constants';
 import PanelTable, {
@@ -161,8 +161,13 @@ const Test = () => {
       testType: TestType.Execution,
     });
 
+    if (!ids?.length) {
+      return notification.warning({
+        message: t('modules.panel.testPlan.testExecutionPanel.notSelectMessage'),
+      });
+    }
     await addTestExecutionToPlan(ids);
-  }, [addTestExecutionToPlan]);
+  }, [addTestExecutionToPlan, t]);
 
   const removeTestRelation = React.useCallback(
     async ids => {
