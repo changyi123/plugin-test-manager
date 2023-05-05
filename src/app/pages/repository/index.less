@@ -15,7 +15,10 @@
     margin-bottom: 0;
     position: relative;
     margin-right: 33px;
-    &:after {
+  }
+
+  .view-selector-container {
+    &::before {
       content: '';
       position: absolute;
       height: 12px;
@@ -25,9 +28,6 @@
       transform: translateY(-50%);
       background-color: #ccc;
     }
-  }
-
-  .view-selector-container {
     .item {
       cursor: pointer;
       margin-right: 16px;
