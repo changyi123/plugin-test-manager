@@ -325,7 +325,7 @@ const Test = () => {
         width: 90,
         render: (_, record) => (
           <>
-            <a onClick={() => removeTestRelation([record.objectId])}>{t('common.delete')}</a>
+            <a onClick={() => removeTestRelation([record.objectId])}>{t('common.remove')}</a>
           </>
         ),
       },

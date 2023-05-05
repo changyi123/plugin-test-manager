@@ -149,7 +149,7 @@ const processLinkItemData = async data => {
       query: {
         id: needProcessedEntityIds,
       },
-      fields: [SystemField.Id, TestFiledKeyMapping.linkItems],
+      fields: [SystemField.Id, TestFiledKeyMapping.linkItems, TestFiledKeyMapping.linkType],
       pagination: {
         limit: InfinityLimit,
       },
@@ -157,28 +157,29 @@ const processLinkItemData = async data => {
     });
 
     needUpdateItemData = data.map(item => {
-      const { linkItems, objectId, linkType } = item;
+      const { linkItems, objectId } = item;
 
       if (isActionSchema(linkItems)) {
         const originalTestEntity = originalTestEntityMapping[objectId];
         if (!originalTestEntity) return data;
-        const { linkItems: originalLinkItems = [] } = originalTestEntity;
+        const { linkItems: originalLinkItems = [], linkType: originalLinkType } =
+          originalTestEntity;
 
         const { action, value } = linkItems as any;
-        let processedLinkItems = value;
-        let processedLinkType = linkType;
+        const processedLinkData = { linkItems: value } as any;
         if (action === 'delete') {
           const linkItems = difference(originalLinkItems, value);
-          processedLinkItems = linkItems?.length ? linkItems : null;
-          processedLinkType = linkItems?.length ? linkType : null;
+          processedLinkData.linkItems = linkItems?.length ? linkItems : null;
+          if (originalLinkType && !linkItems?.length) {
+            processedLinkData.linkType = null;
+          }
         } else {
-          processedLinkItems = Array.from(new Set([].concat(originalLinkItems, value)));
+          processedLinkData.linkItems = Array.from(new Set([].concat(originalLinkItems, value)));
         }
 
         return {
           ...item,
-          linkItems: processedLinkItems,
-          linkType: processedLinkType,
+          ...processedLinkData,
         };
       }
 

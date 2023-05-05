@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import { pick } from 'lodash';
 import Parse from '@/lib/parse';
-import { useRequest, useMemoizedFn } from 'ahooks';
+import { useRequest, useMemoizedFn, clearCache } from 'ahooks';
 import { useNoExpiredRequest } from '@/lib/hooks/useRequest';
 import { getPluginBoundWorkspaces } from '@/lib/api/proxima';
 import { TestType, BuiltinFieldNameMapping } from '@/lib/constants';
@@ -122,7 +122,7 @@ export const useAllTestWorkspace = () => {
 
 export const useGetWorkspaceRepository = workspaceKey => {
   const { t } = useI18n();
-  const { data: testCaseRepositoryPath, refreshAsync: refreshRepositoryData } = useRequest(
+  const { data: testCaseRepositoryPath, refresh: refreshRepositoryData } = useRequest(
     async () => {
       if (!workspaceKey) return;
       const data = await getRepositoryData([workspaceKey]);
@@ -148,9 +148,10 @@ export const useGetWorkspaceRepository = workspaceKey => {
 
   React.useEffect(() => {
     return repositoryFolderTreeEvent.register(() => {
+      clearCache(`repository_data_${workspaceKey ?? ''}`);
       refreshRepositoryData();
     });
-  }, [refreshRepositoryData]);
+  }, [refreshRepositoryData, workspaceKey]);
 
   return getTestCaseRepositoryPath;
 };
