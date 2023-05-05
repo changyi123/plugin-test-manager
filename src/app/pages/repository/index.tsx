@@ -13,6 +13,7 @@ import ErrorBoundary from '@/components/common/ErrorBoundary';
 import TestManagerProvider from '@/components/business/TestManagerProvider';
 import { getRepositoryTreeV2 } from '@/lib/api/item';
 import useI18n from '@/lib/hooks/useI18n';
+import { featureFlags } from '@/lib/feature';
 
 import cx from './index.less';
 
@@ -51,6 +52,7 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
   const [viewMode, setViewMode] = React.useState('list');
   const [selectedNodeKey, setSelectedNodeKey] = React.useState(null);
   const { t } = useI18n();
+  const disableMinder = featureFlags('DISABLE_MINDER');
 
   const {
     data: folderTreeData = [],
@@ -80,7 +82,9 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
       <PageLayout.Header>
         <header className={cx('header')}>
           <h6>{t('common.testRepository')}</h6>
-          <ViewModeSelector viewMode={viewMode} onViewModeChange={setViewMode} />
+          {!disableMinder && (
+            <ViewModeSelector viewMode={viewMode} onViewModeChange={setViewMode} />
+          )}
         </header>
       </PageLayout.Header>
       <PageLayout.Left>
