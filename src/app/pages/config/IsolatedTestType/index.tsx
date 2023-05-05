@@ -52,7 +52,7 @@ const IsolatedTestType = () => {
     const isolateTestType = testConfig?.get('isolateTestType');
     // 默认隔离测试实体类型配置
     const defaultIsolateTestType = DefaultIsolateMode === 'disabled' ? AllIsolateTestType : [];
-    setIsolateTestType(isolateTestType ? isolateTestType : defaultIsolateTestType);
+    setIsolateTestType(Array.isArray(isolateTestType) ? isolateTestType : defaultIsolateTestType);
     setIsolateMode(isIsolateAllTestType(isolateTestType) ? 'disabled' : 'enabled');
   }, [setIsolateMode, setIsolateTestType, testConfig]);
 
