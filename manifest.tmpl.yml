@@ -83,6 +83,12 @@ modules:
       function: item-delete-trigger-function
       # 5 分钟超时时长
       timeout: 300000
+    - key: item-created-trigger
+      events:
+        - gei:proxima:item:created
+      function: item-created-trigger-function
+      # 5 分钟超时时长
+      timeout: 300000
   function:
     - key: gitee-menus-function
       handler: web.runGiteeMenus
@@ -92,6 +98,8 @@ modules:
       handler: trigger.runInitialScript
     - key: item-delete-trigger-function
       handler: trigger.deleteTestLink
+    - key: item-created-trigger-function
+      handler: trigger.createdItemLinkType
     - key: test-manager-validate-script-function
       handler: importer.runValidate
     - key: test-manager-import-script-function
