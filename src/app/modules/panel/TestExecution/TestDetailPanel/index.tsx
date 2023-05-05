@@ -394,6 +394,7 @@ const Test = () => {
         className={cx('run-modal')}
         actionRef={testRunModalActionRef}
         idSequence={allRunIds ?? []}
+        selectedTestPlanId={testEntity?.linkItems?.[0]}
       />
     </div>
   );
