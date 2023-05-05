@@ -28,6 +28,14 @@ export const EsSourceFieldKey = {
   repository: 'r_test_manager_repository#r_test_manager_es_text_keyword',
 };
 
+/** 测试管理统计字段类型 key 映射 */
+export const TestFieldTypeKeyMapping = {
+  executeCount: 'r_test_manager_es_number_keyword',
+  repository: 'r_test_manager_es_text_keyword',
+  referenceCase: 'r_test_manager_es_text_keyword',
+  status: 'r_test_manager_es_text_keyword',
+};
+
 /** 测试管理自定义字段 key 映射 */
 export const TestFiledKeyMapping = {
   linkType: 'r_test_manager_linkType',
@@ -41,6 +49,7 @@ export const TestFiledKeyMapping = {
   designee: 'r_test_manager_designee',
   executor: 'r_test_manager_executor',
   sortIndex: 'r_test_manager_sortIndex',
+  executeCount: 'r_test_manager_executeCount',
 
   // 以下字段以字符串形式存入，存入前需要 stringify，返回需要 parse
   detail: 'r_test_manager_detail',
@@ -65,6 +74,7 @@ export const BuiltinFieldNameMapping = {
   designee: 'test_manager_designee',
   executor: 'test_manager_executor',
   sortIndex: 'test_manager_sortIndex',
+  executeCount: 'test_manager_executeCount',
 } as const;
 
 export const SystemFieldNameMapping = {

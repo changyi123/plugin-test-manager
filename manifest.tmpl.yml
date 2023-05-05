@@ -2,7 +2,7 @@ app:
   key: test_manager
   uuid: bf73e61c-e15a-4461-a1f7-f940c2009332
   name: test_manager
-  version: "3.8.1-alpha.5"
+  version: "3.9.0-alpha.1"
 modules:
   webtrigger:
     # TODO: Debug 使用，生产环境禁止调用下面的 trigger
@@ -61,6 +61,8 @@ modules:
       function: api-stats-test-execution-function
     - key: api-stats-test-case
       function: api-stats-test-case-function
+    - key: api-count-test
+      function: api-count-test-function
     # 模块代码
     - key: api-module-repository-tree
       function: api-module-repository-tree-function
@@ -75,6 +77,12 @@ modules:
       function: test-manager-initial-script-function
       # 5 分钟超时时长
       timeout: 300000
+    - key: item-delete-trigger
+      events:
+        - gei:proxima:item:beforeDelete
+      function: item-delete-trigger-function
+      # 5 分钟超时时长
+      timeout: 300000
   function:
     - key: gitee-menus-function
       handler: web.runGiteeMenus
@@ -82,6 +90,8 @@ modules:
       handler: web.batchCreateChartGroups
     - key: test-manager-initial-script-function
       handler: trigger.runInitialScript
+    - key: item-delete-trigger-function
+      handler: trigger.deleteTestLink
     - key: test-manager-validate-script-function
       handler: importer.runValidate
     - key: test-manager-import-script-function
@@ -139,6 +149,8 @@ modules:
       handler: api.testExecutionStats
     - key: api-stats-test-case-function
       handler: api.testCaseStats
+    - key: api-count-test-function
+      handler: api.testCount
 
     # api module
     - key: api-module-repository-tree-function
@@ -275,6 +287,10 @@ modules:
     - key: sortIndex
       name: test_manager_sortIndex
       description: 测试管理内置字段-测试用例排序索引（勿删改）
+      type: Number
+    - key: executeCount
+      name: test_manager_executeCount
+      description: 测试管理内置字段-测试执行状态执行通过或者失败统计次数（勿删改）
       type: Number
     # 下面字段也保存入 es，方便 iql 直接查询。以字符串类型存储。防止 es 创建索引时定义默认类型，防止后续更新是出现类型错误
     - key: detail

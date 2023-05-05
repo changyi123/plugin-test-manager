@@ -2,6 +2,8 @@ export const enum Operator {
   Equal = '=',
   NotEqual = '!=',
   In = 'in',
+  Is = 'is',
+  IsNot = 'is not',
   NotIn = 'not in',
   Like = '~',
   GreaterThan = '>',
@@ -26,6 +28,7 @@ const whereProcessor = (column, value, operator: Operator) => {
     case Operator.NotIn:
       value = Array.isArray(value) ? value : [value];
       return `'${column}' ${operator} [${value.map(val => `"${val}"`).join(', ')}]`;
+    case Operator.Is:
     case Operator.Like:
     case Operator.Equal:
     case Operator.NotEqual:

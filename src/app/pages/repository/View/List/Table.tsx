@@ -23,9 +23,9 @@ import { getCurrentUserSetting, saveUserSetting } from '@/lib/api/userSetting';
 import { useCurrentUser } from '@/lib/api/user';
 import fetch from '@/lib/utils/fetch';
 import useI18n from '@/lib/hooks/useI18n';
+import { RepositoryGroupCell } from '@/pages/Cell';
 
 import cx from './Table.less';
-import { useGetWorkspaceRepository } from '@/lib/hooks/useTest';
 
 const proxima = createProximaSdk();
 
@@ -66,11 +66,6 @@ type TestDetailTableProps = {
   dataSourceGetter?: any;
   tableLoading?: boolean;
   setTableLoading?: (val?: boolean) => void;
-};
-
-const RenderRow = ({ repository, workspaceKey }) => {
-  const getTestCaseRepositoryPath = useGetWorkspaceRepository(workspaceKey);
-  return <span>{getTestCaseRepositoryPath(repository)}</span>;
 };
 
 const TestDetailTable: React.FC<TestDetailTableProps> = props => {
@@ -249,7 +244,9 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
             return;
           }
           // 删除刷新
-          onDataChange?.();
+          setTimeout(() => {
+            onDataChange?.();
+          }, 500);
           setTableLoading(false);
           notification.success({
             message: t('page.repository.view.list.deleteCaseMessageSuccess'),
@@ -360,18 +357,23 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         },
       },
       {
+        key: 'quoteCount',
+        title: t('page.plan.testEntityList.quoteCount'),
+        width: 200,
+        render(_, rowData) {
+          return <span>{rowData.quoteCount}</span>;
+        },
+      },
+      {
         key: 'repositoryGroup',
         title: t('page.plan.testEntityList.repositoryGroup'),
         width: 200,
-        // shouldCellUpdate: (row, prevRow) =>
-        //   getTestCaseRepositoryPath(row?.repository) !==
-        //   getTestCaseRepositoryPath(prevRow?.repository),
         render(_, rowData) {
           return (
-            <RenderRow
+            <RepositoryGroupCell
               repository={rowData?.repository}
               workspaceKey={rowData?.workspace?.key}
-            ></RenderRow>
+            />
           );
         },
       },
@@ -394,7 +396,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         },
       },
     ];
-  }, [onDataChange, t]);
+  }, [onDataChange, setTableLoading, t]);
 
   const handleFilterField = useCallback(
     async ({ testType, fieldKeys }) => {
@@ -505,8 +507,8 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         useColumnSetting
         columns={columns}
         bodyRowComponent={DropRow}
-        defaultColumnKey={['key', 'repositoryGroup', 'createdBy', 'createdAt']}
-        privateColumnKey={['repositoryGroup']}
+        defaultColumnKey={['key', 'repositoryGroup', 'quoteCount', 'createdBy', 'createdAt']}
+        privateColumnKey={['repositoryGroup', 'quoteCount']}
         name={`${workspaceKey}_TestDetailTable`}
         actionRef={tableActionRef}
         getDataSource={dataSourceGetter}

@@ -45,7 +45,7 @@ export const iqlSearchParamsBuilder = (params: BuildParams) => {
 
   const iql = iqlBuilder.build();
 
-  console.info('iql search -->', iql);
+  console.info('iql search ------------>', iql);
 
   return {
     iql,

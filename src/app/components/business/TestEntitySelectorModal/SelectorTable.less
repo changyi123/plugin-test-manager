@@ -1,0 +1,57 @@
+:root {
+  .model-select {
+    position: relative;
+    margin-top: -16px;
+
+    .checked-num {
+      position: absolute;
+      left: 0px;
+      bottom: 16px;
+      line-height: 16px;
+      display: flex;
+      align-items: center;
+
+      .num {
+        padding: 0 4px;
+        min-width: 16px;
+        color: #0a50d1;
+        text-align: center;
+      }
+    }
+    .model-select-header {
+      :global {
+        .filter-search-box {
+          padding-bottom: 16px;
+        }
+      }
+    }
+
+    :global {
+      .table-box {
+        .ant-table-body {
+          min-height: 420px !important;
+        }
+        .ant-table-wrapper {
+          padding: 0 !important;
+        }
+
+        .selection-header-box {
+          display: none;
+        }
+        .ant-table-placeholder {
+          &:hover {
+            .ant-table-cell {
+              background-color: #fff !important;
+            }
+          }
+        }
+
+        .footer-box {
+          margin: 0 !important;
+          border-top: none !important;
+          justify-content: flex-end !important;
+        }
+      }
+    }
+  }
+}

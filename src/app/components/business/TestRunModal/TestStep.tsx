@@ -93,8 +93,9 @@ const TestStep: React.FC<TestStepProps> = props => {
 
   useUpdateEffect(() => {
     if (statusChangeBySteps && handleStatusChangeBySteps) {
+      // 执行下一步
       if (statusConfig?.[testRunData?.status]?.type === 'PASSED') {
-        handleStatusChangeBySteps(statusConfig?.[testRunData?.status]);
+        handleStatusChangeBySteps(statusConfig?.[testRunData?.status], true);
       }
       setStatusChangeBySteps(false);
     }
@@ -259,7 +260,6 @@ const TestStep: React.FC<TestStepProps> = props => {
             </div>
             {renderStepDefectList(step.id)}
             <AddDefectButton
-              // plainStyle
               className={cx('add-btn')}
               testRunEntity={testRunEntity}
               currentDefectIds={step.defectItemIds}
