@@ -726,6 +726,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         title: t('common.action'),
         isSystem: true,
         fixed: 'right' as any,
+        width: 90,
         shouldCellUpdate: (record, prevRecord) =>
           record.repository?.objectId !== prevRecord.repository?.objectId ||
           !isEqual(record.designee, prevRecord.designee),

@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 import { useRequest, useDrag, useDrop } from 'ahooks';
-import { message, notification, Tooltip } from 'antd';
+import { message, notification, Space, Tooltip } from 'antd';
 import { UNGROUPED_FOLDER_KEY } from '../../constant';
 import { UserCell } from '@giteeteam/apps-team-components';
 import { useTestConfig } from '@/lib/hooks/useContext';
@@ -378,20 +378,17 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         },
       },
       {
-        title: null,
         key: 'action',
+        title: t('common.action'),
         isSystem: true,
         fixed: 'right' as any,
+        width: 100,
         render(_, rowData) {
           return (
-            <>
-              <a style={{ marginRight: 10 }} onClick={() => copyTestDetail(rowData)}>
-                {t('common.copy')}
-              </a>
-              <a style={{ marginRight: 10 }} onClick={() => deleteTestDetail(rowData)}>
-                {t('common.delete')}
-              </a>
-            </>
+            <Space>
+              <a onClick={() => copyTestDetail(rowData)}>{t('common.copy')}</a>
+              <a onClick={() => deleteTestDetail(rowData)}>{t('common.delete')}</a>
+            </Space>
           );
         },
       },
