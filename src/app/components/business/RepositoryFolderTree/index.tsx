@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect } from 'react';
 import { Spin, Tree } from 'antd';
 import { FileOpen, FileClose, CaretDownOutlined } from '@/icons';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
@@ -69,7 +69,6 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
     params,
     hideEmptyFolder,
     isShowAll = true,
-    isModelTree = false,
   } = props;
   const [treeSelectedKeys, setTreeSelectedKeys] = React.useState([]);
   const [treeExpandedKeys, setTreeExpandedKeys] = React.useState([]);
@@ -78,36 +77,10 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
   // 匹配的目录名
   const [matchedFolderText, setMatchedFolderText] = React.useState({});
 
-  // 区分弹窗 treeData 和页面 treeData
   const {
-    data: modelTreeData,
-    loading: modelTreeLoading,
-    refresh: refreshModelTreeData,
-  } = useRequest(
-    async () => {
-      if (!workspaceKey) return [];
-      if (!isModelTree) return [];
-      if (!isShowAll && !params) return [];
-      const { data } = await getRepositoryTreeV2({
-        workspaceKey,
-        params,
-      });
-
-      return hideEmptyFolder ? filterEmptyFolder([data]) : [data];
-    },
-    {
-      ready: Boolean(workspaceKey && isModelTree),
-      refreshDeps: [workspaceKey, params, hideEmptyFolder, isModelTree, isShowAll],
-      cacheKey: `treeData_model_${workspaceKey}_${JSON.stringify(params)}`,
-      cacheTime: 99999,
-      staleTime: 99999,
-    },
-  );
-
-  const {
-    data: pageTreeData,
-    loading: pageTreeLoading,
-    refresh: refreshPageTreeData,
+    data: treeData,
+    loading: treeLoading,
+    refresh: refreshTreeData,
   } = useRequest(
     async () => {
       if (!workspaceKey) return [];
@@ -121,12 +94,7 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
     },
     {
       ready: Boolean(workspaceKey),
-      refreshDeps: [workspaceKey, params, hideEmptyFolder, isShowAll],
-      // ready: Boolean(workspaceKey && params),
-      // refreshDeps: [workspaceKey, params],
-      // cacheKey: `treeData_${workspaceKey}_${JSON.stringify(params)}`,
-      // cacheTime: 99999,
-      // staleTime: 99999,
+      refreshDeps: [workspaceKey, JSON.stringify(params), hideEmptyFolder, isShowAll],
     },
   );
 
@@ -135,21 +103,6 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
       clearCache(`${workspaceKey}-node-tree-data`);
     };
   }, [workspaceKey]);
-
-  const treeData = useMemo(
-    () => (isModelTree ? modelTreeData : pageTreeData),
-    [modelTreeData, pageTreeData, isModelTree],
-  );
-
-  const treeLoading = useMemo(
-    () => (isModelTree ? modelTreeLoading : pageTreeLoading),
-    [modelTreeLoading, pageTreeLoading, isModelTree],
-  );
-
-  const refreshTreeData = useMemo(
-    () => (isModelTree ? refreshModelTreeData : refreshPageTreeData),
-    [refreshModelTreeData, refreshPageTreeData, isModelTree],
-  );
 
   // 选中第一个节点
   React.useEffect(() => {
