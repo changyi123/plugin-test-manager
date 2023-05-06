@@ -504,6 +504,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
           testType: TestType.Case,
         }}
         rowKey="objectId"
+        className={cx('test-table-box')}
         useColumnSetting
         columns={columns}
         bodyRowComponent={DropRow}
