@@ -225,7 +225,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
       });
       throw new Error('required name');
     }
-    if (inputName.length > 30) {
+    if (inputName.length > 100) {
       notification.error({
         message: t('page.repository.folderTree.inputNameValidatorMessage.2'),
       });
