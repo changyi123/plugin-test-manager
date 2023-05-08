@@ -18,7 +18,7 @@ import {
   BaseActionContextType,
 } from './context';
 import { ExtensionValType, CREATE_ITEM_STORE_FIELD_KEY, TestType } from '@/lib/constants';
-import { updateTestEntity } from '@/lib/api/item';
+import { getTestEntityByQuery, updateTestEntity } from '@/lib/api/item';
 import { union } from 'lodash';
 import { useGetPermissions } from './hooks';
 import useI18n from '@/lib/hooks/useI18n';
@@ -273,7 +273,11 @@ const eventBus = new EventBus();
 // 消息 key，区分消息源。防止多个消息同时被接收
 const messageKey = ItemCreateSuccessEventType + uuid();
 
-const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({ children, workspaceKey }) => {
+const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
+  itemId,
+  children,
+  workspaceKey,
+}) => {
   const { t } = useI18n();
   const [workspace, setWorkspace] = React.useState<Workspace>();
   const [testEntity, setTestEntity] = React.useState<TestEntity>();
@@ -304,51 +308,27 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({ children, 
     },
   );
 
-  // 获取测试实体，如果不存在测试实体（类型映射如果和事项匹配）需要新建
-  // 事项扩展点处理
-  // React.useEffect(() => {
-  //   const execute = async () => {
-  //     // 先获取事项详情
-  //     let {
-  //       list: [testEntity],
-  //     } = await getTestEntityByQuery({
-  //       query: {
-  //         id: itemId,
-  //       },
-  //     });
-
-  //     // 判断是否是测试实体
-  //     const isTestEntity = testType => Object.values(TestType).includes(testType);
-
-  //     if (!isTestEntity(testEntity?.type)) {
-  //       // 不存在测试实体需要判断是否需要新建
-  //       testEntity = await getOrCreateTestEntity(
-  //         testEntity.objectId,
-  //         {
-  //           itemData: testEntity,
-  //           t,
-  //         },
-  //         {
-  //           itemTypeMap: testConfig.itemTypeMap,
-  //         },
-  //       );
-  //     }
-
-  //     const entity = (isTestEntity(testEntity?.type)
-  //       ? testEntity
-  //       : ENTITY_NOT_FOUND) as unknown as TestEntity;
-
-  //     setTestEntity(entity);
-
-  //     if (testEntity) {
-  //       const workspace = testEntity.workspace;
-  //       workspace && setWorkspace(workspace as Workspace);
-  //     }
-  //   };
-  //   if (itemId && testConfig) {
-  //     execute();
-  //   }
-  // }, [itemId, testConfig, t]);
+  // 返回测试实体参数
+  React.useEffect(() => {
+    const execute = async () => {
+      // 先获取事项详情
+      const {
+        list: [testEntity],
+      } = await getTestEntityByQuery({
+        query: {
+          id: itemId,
+        },
+      });
+      setTestEntity(testEntity);
+      if (testEntity) {
+        const workspace = testEntity.workspace;
+        workspace && setWorkspace(workspace as Workspace);
+      }
+    };
+    if (itemId) {
+      execute();
+    }
+  }, [itemId]);
 
   const testPlanFieldKeys = useTestTypeScreenFieldKeys({
     testType: TestType.Plan,

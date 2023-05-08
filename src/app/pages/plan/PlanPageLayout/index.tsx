@@ -21,7 +21,7 @@ import TestEntitySelectorModal, {
 import { PROXIMA_EVENT_KEY, TestLinkType, TestType } from '@/lib/constants';
 import { useBaseAction } from '@/lib/hooks/useContext';
 import { generateSortIndex } from '@/lib/utils/helper';
-import { batchCreateTestRun, updateTestEntity } from '@/lib/api/item';
+import { batchCreateTestRun, getLinkedTestEntityByQuery, updateTestEntity } from '@/lib/api/item';
 import useI18n from '@/lib/hooks/useI18n';
 import { useUpdateEffect } from 'ahooks';
 
@@ -42,6 +42,7 @@ const PlanPageLayout: React.FC<any> = () => {
   } = usePageContext();
   const { t } = useI18n();
   const executionListRef = React.useRef<ExecutionListRef>();
+  const selectorModalRef = React.useRef<ModelActionType>();
   useResizeContainerDOM(selectedTestPlan?.objectId);
   const detailSearchRef = useRef(null);
   const pageLeftRef = useRef(null);
@@ -281,6 +282,75 @@ const PlanPageLayout: React.FC<any> = () => {
     [createExecution, getSelectCaseIds, executionListRef, t],
   );
 
+  const addTestExecutionToPlan = React.useCallback(
+    async ids => {
+      // 测试计划关联测试执行后需将测试执行任务中的测试执行对应的测试用例关联到测试计划中
+      const res = await updateTestEntity(
+        ids.map(objectId => ({
+          objectId,
+          linkType: TestLinkType.ExecutionLinkPlan,
+          type: TestType.Execution,
+          linkItems: { action: 'add', value: [selectedTestPlan?.objectId] },
+          sortIndex: generateSortIndex(),
+        })),
+      );
+      if (res?.status === 'error') {
+        message.error(res.data);
+        return;
+      }
+
+      const { list: runs } = await getLinkedTestEntityByQuery({
+        query: {
+          workspaceKey: workspaceKey,
+        },
+        limit: 9999,
+        linkType: TestLinkType.RunLinkExecution,
+        sourceIds: ids,
+        destinationType: TestType.Run,
+        select: ['id', 'referenceCase'],
+      });
+
+      const runCaseIds = runs?.map(run => run.referenceCase) ?? [];
+      const caseIds = runCaseIds.filter(id => !planLinkCaseIds?.includes(id));
+
+      if (caseIds.length) {
+        const res = await updateTestEntity(
+          caseIds.map(item => ({
+            objectId: item,
+            linkType: TestLinkType.CaseLinkPlan,
+            linkItems: {
+              action: 'add',
+              value: [selectedTestPlan.objectId],
+            },
+          })),
+        );
+        if (res?.status === 'error') {
+          message.error(res.data);
+          return;
+        }
+      }
+      message.success(
+        `${ids.length} ${t('modules.panel.testPlan.testExecutionPanel.addRunToPlanSuccess')}`,
+      );
+    },
+    [workspaceKey, selectedTestPlan?.objectId, planLinkCaseIds, t],
+  );
+
+  // 关联测试执行任务
+  const addExistedTestExecution = React.useCallback(async () => {
+    const ids = await selectorModalRef.current.open({
+      testType: TestType.Execution,
+    });
+
+    if (!ids?.length) {
+      return notification.warning({
+        message: t('modules.panel.testPlan.testExecutionPanel.notSelectMessage'),
+      });
+    }
+    await addTestExecutionToPlan(ids);
+    executionListRef?.current.refresh();
+  }, [addTestExecutionToPlan, executionListRef, t]);
+
   const cancelCallback = useCallback(
     async params => {
       if (params?.type === 'prev') {
@@ -323,12 +393,18 @@ const PlanPageLayout: React.FC<any> = () => {
                 createTestExecution={createTestExecution}
                 setLoading={setLoading}
                 planLinkCaseIds={planLinkCaseIds}
+                addExistedTestExecution={addExistedTestExecution}
+                selectorModalRef={selectorModalRef}
               />
             </PageLayout.Header>
             {activeType === 'TestExecution' && !selectedExecution?.objectId && (
               <PageLayout.NoData>
                 <Spin spinning={loading}>
-                  <NoData createTestExecution={createTestExecution} />
+                  <NoData
+                    createTestExecution={createTestExecution}
+                    addExistedTestExecution={addExistedTestExecution}
+                    selectorModalRef={selectorModalRef}
+                  />
                 </Spin>
               </PageLayout.NoData>
             )}
