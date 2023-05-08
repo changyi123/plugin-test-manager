@@ -226,6 +226,7 @@ const TestPlanList: React.FC<any> = () => {
         <div className={cx('plan-header-slot')}>
           <FilterSearch
             enableLocalStorage
+            workspaceKey={workspaceKey}
             className={cx('test-manager-filter')}
             ref={detailSearchRef}
             fields={getFilterFields([].concat(SystemFieldKeys, testPlanFieldKeys))}

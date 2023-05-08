@@ -40,6 +40,7 @@ import cx from './index.less';
 
 interface FilterSearchProps {
   fields: string[];
+  workspaceKey?: string;
   onSearch: (data: SearchSelectors) => void;
   beforeSearch?: (v: Record<string, any>) => void;
   extendFields?: any[];
@@ -58,9 +59,12 @@ interface FilterRefMethod {
 }
 
 // 生成存储器
-const useSelectorStorage = (enableLocalStorage, { selectors, setSelectors, storageKey = '' }) => {
+const useSelectorStorage = (
+  enableLocalStorage,
+  { selectors, setSelectors, storageKey = '', workspaceKey = '' },
+) => {
   const location = useLocation();
-  const key = generateStorageKey('selector-' + storageKey + location.pathname);
+  const key = generateStorageKey('selector-' + workspaceKey + storageKey + location.pathname);
 
   const invokeRef = React.useRef(false);
 
@@ -103,6 +107,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
     enableLocalStorage,
     filterId,
     storageKey,
+    workspaceKey,
   },
   ref,
 ) => {
@@ -159,6 +164,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
     selectors,
     setSelectors: setSelectorsFromStorageValue,
     storageKey,
+    workspaceKey,
   });
 
   useEffect(() => {

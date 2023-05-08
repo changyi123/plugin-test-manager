@@ -307,11 +307,17 @@ export const updateTestStatus = async data => {
     executor: [getCurrentUserInfo(), ...(d.executor ?? [])].slice(0, 3),
     executeCount: (d.executeCount ?? 0) + (['PASSED', 'FAILED']?.includes(status) ? 1 : 0),
   }));
+
+  const caseStatusValue = {};
+  if (planId && status) {
+    caseStatusValue[planId] = status;
+  }
+
   const tests = test.map(d => ({
     objectId: d.id,
     caseStatus: {
       ...(d?.caseStatus ?? {}),
-      [planId]: status,
+      ...caseStatusValue,
     },
     caseExecutor: {
       ...(d?.caseExecutor ?? {}),
@@ -467,11 +473,16 @@ export const updateTestRunDetail = async (
       select: ['id', 'caseStatus', 'caseExecutor'],
     });
 
+    const caseStatusValue = {};
+    if (params.planId) {
+      caseStatusValue[params.planId] = needUpdateAttrs.status;
+    }
+
     needUpdateCase = test.map(d => ({
       objectId: d.id,
       caseStatus: {
         ...(d?.caseStatus ?? {}),
-        [params.planId]: needUpdateAttrs.status,
+        ...caseStatusValue,
       },
       caseExecutor: {
         ...(d?.caseExecutor ?? {}),
