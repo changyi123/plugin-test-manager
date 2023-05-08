@@ -1,5 +1,6 @@
 import { requestCoreApi } from '@giteeteam/apps-team-api';
-import { getLang, genAcceptLanguage } from './lang';
+
+import { genAcceptLanguage, getLang } from './lang';
 
 type SupportRequestMethods = Parameters<typeof requestCoreApi>[0];
 

@@ -1,11 +1,12 @@
 import { CloseOutlined } from '@ant-design/icons';
-import { SelectCase } from '@/lib/utils/iql';
-import React, { useMemo } from 'react';
-import { isArray } from 'lodash';
-import { isDate } from '@/lib/utils/iql';
 import dayjs from 'dayjs';
+import { isArray } from 'lodash';
+import React, { useMemo } from 'react';
+
 import { FILTER_EXPRESSIONS } from '@/lib/constants';
 import useI18n from '@/lib/hooks/useI18n';
+import { SelectCase } from '@/lib/utils/iql';
+import { isDate } from '@/lib/utils/iql';
 
 import cx from './SelectorTag.less';
 

@@ -1,7 +1,8 @@
-import React from 'react';
-import { Button, message, Input, Select, Radio, Layout, Form, Collapse } from 'antd';
 import { useLocalStorageState, useSafeState } from 'ahooks';
+import { Button, Collapse, Form, Input, Layout, message, Radio, Select } from 'antd';
 import { merge } from 'lodash';
+import React from 'react';
+
 import Parse from '@/lib/parse';
 
 const DEV_STORAGE_KEY = 'test_manager_dev';

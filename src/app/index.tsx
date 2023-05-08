@@ -1,11 +1,13 @@
+import './index.global.less';
+
+import { ProximaSDK } from '@projectproxima/plugin-sdk';
 import React from 'react';
 import ReactDOM from 'react-dom';
-import App from './App';
-import { ProximaSDK } from '@projectproxima/plugin-sdk';
-import { getMessages } from './lib/utils/locale';
+
 import { getLang } from '@/lib/utils/locale';
 
-import './index.global.less';
+import App from './App';
+import { getMessages } from './lib/utils/locale';
 
 const rootElement = '#test-manager';
 

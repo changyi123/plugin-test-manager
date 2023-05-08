@@ -1,38 +1,38 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { useCallback } from 'react';
+import { useDrop, useReactive } from 'ahooks';
+import { Button, Dropdown, Input, message, Modal, notification, Tree } from 'antd';
 import { sum, uniq } from 'lodash';
-import { useReactive, useDrop } from 'ahooks';
-import { TestType } from '@/lib/constants';
-import {
-  hasArrayItem,
-  getRootContainer,
-  getProximaBasePath,
-  getTenantKey,
-  inIframe,
-} from '@/lib/utils/helper';
-import { createFolder, updateFolders, deleteFolder } from '@/lib/api/repository';
-import { useTestConfig, useBaseAction } from '@/lib/hooks/useContext';
-import { traverseTreeNodes } from '../util';
-import { useTreeFn } from '../hook';
-import { MenuKey, FolderMenu } from '../Menu';
+import React, { useCallback } from 'react';
+
 import OverflowTooltip from '@/components/common/OverflowTooltip';
-import { Tree, Button, Input, notification, Dropdown, Modal, message } from 'antd';
-import { updateTestEntity } from '@/lib/api/item';
 import {
-  CustomMore,
-  CustomScreenOff,
-  CustomPlus,
   CaretDownOutlined,
+  CustomMore,
+  CustomPlus,
+  CustomScreenOff,
   FileClose,
   FileOpen,
 } from '@/icons';
-import { getTreeNodeByKey } from '../util';
+import { updateTestEntity } from '@/lib/api/item';
+import { createFolder, deleteFolder, updateFolders } from '@/lib/api/repository';
+import { TestType } from '@/lib/constants';
+import { repositoryFolderTreeEvent } from '@/lib/events';
+import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
+import useI18n from '@/lib/hooks/useI18n';
+import {
+  getProximaBasePath,
+  getRootContainer,
+  getTenantKey,
+  hasArrayItem,
+  inIframe,
+} from '@/lib/utils/helper';
 
 import { UNGROUPED_FOLDER_KEY } from '../constant';
-import useI18n from '@/lib/hooks/useI18n';
-
+import { useTreeFn } from '../hook';
+import { FolderMenu, MenuKey } from '../Menu';
+import { traverseTreeNodes } from '../util';
+import { getTreeNodeByKey } from '../util';
 import cx from './index.less';
-import { repositoryFolderTreeEvent } from '@/lib/events';
 
 const { DirectoryTree } = Tree;
 

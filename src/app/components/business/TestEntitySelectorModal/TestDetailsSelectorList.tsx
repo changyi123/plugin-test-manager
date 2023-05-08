@@ -1,20 +1,21 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { useCallback, useMemo, useState } from 'react';
-import { Checkbox, Empty, Select, Spin, Tooltip } from 'antd';
-import { useRequest, useUpdateEffect } from 'ahooks';
-import emptyImg from '@/icons/svg/empty-data.png';
 import { CaretDownOutlined, CaretUpOutlined, LoadingOutlined } from '@ant-design/icons';
+import { useRequest, useUpdateEffect } from 'ahooks';
+import { Checkbox, Empty, Select, Spin, Tooltip } from 'antd';
+import { FieldKey } from 'common/types/api';
+import { clone, pullAll } from 'lodash';
+import React, { useCallback, useMemo, useState } from 'react';
+
+import emptyImg from '@/icons/svg/empty-data.png';
 import { getLinkedTestEntityByQuery, getTestEntityByQuery } from '@/lib/api/item';
 import { TestLinkType, TestType } from '@/lib/constants';
-import { FieldKey } from 'common/types/api';
 import useI18n from '@/lib/hooks/useI18n';
 import { getReportKey, getRepositoryQuery } from '@/lib/utils/tree';
-import VirtualScrollList from './virtualScrollList';
-import { clone, pullAll } from 'lodash';
-import { getCheckedByType } from './helper';
 
-import cx from './TestDetailsSelectorList.less';
+import { getCheckedByType } from './helper';
 import { useGetGroupCounts } from './hooks';
+import cx from './TestDetailsSelectorList.less';
+import VirtualScrollList from './virtualScrollList';
 
 interface TestDetailsSelectorListProps {
   workspaceKey?: string;

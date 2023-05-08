@@ -1,5 +1,6 @@
-import { TestCaseStatusModel, TestRunDesigneeModel, TestRunExecutorModel } from '@/lib/constants';
 import { has, pick } from 'lodash';
+
+import { TestCaseStatusModel, TestRunDesigneeModel, TestRunExecutorModel } from '@/lib/constants';
 
 export const getTestRunSelector = customSelector => {
   if (

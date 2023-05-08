@@ -1,5 +1,6 @@
-import { getRepositoryData } from '@/lib/api/repository';
 import { MinderNodeType } from 'common/constant';
+
+import { getRepositoryData } from '@/lib/api/repository';
 const RootRepositoryId = 'root';
 
 export const getRepositoryTreeWithParentNode = async (workspaceKey, t?: any) => {

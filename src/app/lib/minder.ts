@@ -1,7 +1,7 @@
-import { v4 } from 'uuid';
-import JSZip from 'jszip';
 import { MinderNodeType } from 'common/constant';
-import { Workbook, Topic, Dumper } from 'xmind/dist/browser';
+import JSZip from 'jszip';
+import { v4 } from 'uuid';
+import { Dumper, Topic, Workbook } from 'xmind/dist/browser';
 import XML from 'xml-js';
 
 /** 导出脑图数据 */

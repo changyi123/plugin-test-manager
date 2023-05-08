@@ -1,12 +1,12 @@
 import {
-  TestType,
-  TestLinkType,
   InfinityLimit,
   IQLRequiredFieldKeys,
+  TestLinkType,
+  TestType,
 } from '../../../common/constant';
-import { iqlRequest } from '../../lib/iqlRequest';
-import { batchDeleteItems } from '../../lib/batchRequest';
 import { buildResponse } from '../../lib/apiUtil';
+import { batchDeleteItems } from '../../lib/batchRequest';
+import { iqlRequest } from '../../lib/iqlRequest';
 
 export const deleteTestLink = async () => {
   const { item } = global as any;

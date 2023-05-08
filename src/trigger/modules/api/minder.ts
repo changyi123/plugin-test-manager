@@ -1,21 +1,21 @@
+import { getParseModel, getParseQuery, saveAllObject } from '@giteeteam/apps-team-api';
 import keyBy from 'lodash/keyBy';
 import uniqueId from 'lodash/uniqueId';
+
+import {
+  MinderNodeType,
+  RepositoryClassName,
+  SystemField,
+  TestFiledKeyMapping,
+  TestType,
+} from '../../../common/constant';
+import { MinderDataImportPayload, MinderDataPayload } from '../../../common/types/api';
+import { buildResponse, getReqInfoFromVMRuntime } from '../../lib/apiUtil';
+import { batchCreateItems } from '../../lib/batchRequest';
 import { uuidv4 } from '../../lib/helper';
 import { generateSortIndex } from '../../lib/helper';
-import { getRepositoryTree } from '../../lib/repository';
-import { batchCreateItems } from '../../lib/batchRequest';
 import { getItemCreateRequiredAttrs } from '../../lib/item';
-import { itemToTestEntity } from '../../../common/utils/dataTransfer';
-import { getParseModel, getParseQuery, saveAllObject } from '@giteeteam/apps-team-api';
-import { getReqInfoFromVMRuntime, buildResponse } from '../../lib/apiUtil';
-import { MinderDataPayload, MinderDataImportPayload } from '../../../common/types/api';
-import {
-  TestType,
-  SystemField,
-  MinderNodeType,
-  TestFiledKeyMapping,
-  RepositoryClassName,
-} from '../../../common/constant';
+import { getRepositoryTree } from '../../lib/repository';
 
 /** 获取 minderData */
 export const minderData = async () => {
@@ -316,10 +316,10 @@ export const minderDataImport = async () => {
 
     // 批量创建测试用例
     const createdTestCases = await batchCreateTestCase(minderData);
-    console.log('import success ------>', createdTestCases);
+    console.info('import success ------>', createdTestCases);
     return buildResponse(`${createdTestCases.length} test case created`);
   } catch (err) {
-    console.log('import failed ------>', err);
+    console.info('import failed ------>', err);
     return buildResponse(err.message);
   }
 };

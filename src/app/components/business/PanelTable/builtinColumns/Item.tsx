@@ -1,7 +1,8 @@
-import React from 'react';
 import { Typography } from 'antd';
-import { goToItemDetailPage } from '@/lib/utils/helper';
+import React from 'react';
+
 import OverflowTooltip from '@/components/common/OverflowTooltip';
+import { goToItemDetailPage } from '@/lib/utils/helper';
 
 import cx from './style.less';
 

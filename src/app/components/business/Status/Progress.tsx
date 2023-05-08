@@ -1,11 +1,12 @@
-import React from 'react';
-import _ from 'lodash';
 import { Popover } from 'antd';
-import { sequence } from './utils';
-import { useStatusConfig } from './hooks';
+import _ from 'lodash';
+import React from 'react';
+
 import useI18n from '@/lib/hooks/useI18n';
 
+import { useStatusConfig } from './hooks';
 import cx from './Progress.less';
+import { sequence } from './utils';
 
 const toStylePercent = number => {
   return `${Math.round(number * 10000) / 100}%`;

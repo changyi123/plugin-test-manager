@@ -1,9 +1,11 @@
-import React from 'react';
-import { Menu } from 'antd';
-import ReactDOM from 'react-dom';
-import { MenuItemProps, MenuProps } from 'antd/lib/menu';
-import { getRootContainer } from '@/lib/utils/helper';
 import './index.global.less';
+
+import { Menu } from 'antd';
+import { MenuItemProps, MenuProps } from 'antd/lib/menu';
+import React from 'react';
+import ReactDOM from 'react-dom';
+
+import { getRootContainer } from '@/lib/utils/helper';
 
 export type MenuListItemProps = MenuItemProps & {
   key: 'Divider' | string;

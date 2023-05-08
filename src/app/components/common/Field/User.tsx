@@ -1,8 +1,9 @@
-import React from 'react';
-import { toArray } from '@/lib/utils/helper';
-import { UserPointerInfo } from '@/lib/types/Test';
 import { UserCell } from '@giteeteam/apps-team-components';
 import { UserProps } from '@giteeteam/apps-team-components/dist/cells/user';
+import React from 'react';
+
+import { UserPointerInfo } from '@/lib/types/Test';
+import { toArray } from '@/lib/utils/helper';
 
 type PickedUserCellProps = Partial<Pick<UserProps, 'onChange' | 'readonly'>>;
 

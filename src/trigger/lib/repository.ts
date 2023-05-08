@@ -1,13 +1,14 @@
-import keyBy from 'lodash/keyBy';
-import { iqlRequest } from './iqlRequest';
 import { getParseQuery, i18n } from '@giteeteam/apps-team-api';
+import keyBy from 'lodash/keyBy';
+
 import {
-  TestType,
-  SystemField,
   InfinityLimit,
-  TestFiledKeyMapping,
   RepositoryClassName,
+  SystemField,
+  TestFiledKeyMapping,
+  TestType,
 } from '../../common/constant';
+import { iqlRequest } from './iqlRequest';
 
 // 未分组模块 key
 export const UngroupedRepositoryKey = 'root';

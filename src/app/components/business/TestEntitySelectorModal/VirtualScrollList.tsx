@@ -1,12 +1,13 @@
-import React, { useCallback, useMemo } from 'react';
 import { Checkbox, Empty } from 'antd';
 import { clone, pullAll } from 'lodash';
+import React, { useCallback, useMemo } from 'react';
 import { GroupedVirtuoso } from 'react-virtuoso';
-import { filterIgnoreTestCaseId, getCheckedByType, handleGroupPath } from './helper';
-import { useGetVirtualScrollList, useGetGroupNodeId } from './hooks';
-import useI18n from '@/lib/hooks/useI18n';
-import emptyImg from '@/icons/svg/empty-data.png';
 
+import emptyImg from '@/icons/svg/empty-data.png';
+import useI18n from '@/lib/hooks/useI18n';
+
+import { filterIgnoreTestCaseId, getCheckedByType, handleGroupPath } from './helper';
+import { useGetGroupNodeId, useGetVirtualScrollList } from './hooks';
 import cx from './VirtualScrollList.less';
 
 interface VirtualScrollListProps {

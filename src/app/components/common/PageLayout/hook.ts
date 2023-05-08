@@ -1,6 +1,7 @@
+import { useLocalStorageState, useSize } from 'ahooks';
 import React from 'react';
 import { useLocation } from 'react-router-dom';
-import { useLocalStorageState, useSize } from 'ahooks';
+
 import { generateStorageKey, isInOne } from '@/lib/utils/helper';
 
 /**

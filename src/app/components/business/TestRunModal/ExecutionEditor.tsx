@@ -1,10 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { updateTestRunDetail } from '@/lib/api/item';
+
 import Editor from '@/components/common/Editor';
-import { TabsComponentBaseProps } from './type';
+import { updateTestRunDetail } from '@/lib/api/item';
 import useI18n from '@/lib/hooks/useI18n';
 
 import cx from './ExecutionEditor.less';
+import { TabsComponentBaseProps } from './type';
 
 interface ExecutionEditorProps extends TabsComponentBaseProps {
   value?: Record<string, any>[];

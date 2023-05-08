@@ -1,31 +1,33 @@
-import React, { useCallback, useState, useMemo, useEffect } from 'react';
-import { Typography, message, Space, Button, Divider, Popconfirm, Tooltip } from 'antd';
 import { DownOutlined } from '@ant-design/icons';
-import { TestType, TestLinkType } from '@/lib/constants';
-import PanelTable, { ActionType } from '@/components/business/PanelTable';
+import createProximaSdk, { useListener } from '@projectproxima/proxima-sdk-js';
+import { useRequest } from 'ahooks';
+import { Button, Divider, message, Popconfirm, Space, Tooltip, Typography } from 'antd';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+
 import DropDownButton from '@/components/business/DropDownButton';
-import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
+import PanelTable, { ActionType } from '@/components/business/PanelTable';
+import { StatusBadge } from '@/components/business/Status';
+import StatusProcessBar from '@/components/business/StatusProcessBar';
 import TestEntitySelectorModal, {
   ActionType as SelectorActionType,
 } from '@/components/business/TestEntitySelectorModal';
 import TestRunModal, {
   ActionType as TestRunModalActionType,
 } from '@/components/business/TestRunModal';
-import { getRootContainer, goToItemDetailPage } from '@/lib/utils/helper';
-import { StatusBadge } from '@/components/business/Status';
-import StatusProcessBar from '@/components/business/StatusProcessBar';
 import {
   batchCreateTestRun,
   deleteTestEntity,
-  updateTestStatus,
   getLinkedTestEntityByQuery,
   getTestEntityByQuery,
+  updateTestStatus,
 } from '@/lib/api/item';
-import cx from './index.less';
-import createProximaSdk, { useListener } from '@projectproxima/proxima-sdk-js';
-import { useRequest } from 'ahooks';
-import { useTestRunActionAuth } from '@/lib/hooks/useTest';
+import { TestLinkType, TestType } from '@/lib/constants';
+import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
+import { useTestRunActionAuth } from '@/lib/hooks/useTest';
+import { getRootContainer, goToItemDetailPage } from '@/lib/utils/helper';
+
+import cx from './index.less';
 // import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/hook';
 
 const Test = () => {
@@ -178,7 +180,7 @@ const Test = () => {
       proxima.execute(eventKey ?? 'updateRepoTree');
       return data;
     },
-    [getAllRelTestEntities],
+    [getAllRelTestEntities, proxima],
   );
 
   useListener('refreshTestRunPanel', () => {

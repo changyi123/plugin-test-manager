@@ -1,8 +1,9 @@
+import createProximaSdk from '@projectproxima/proxima-sdk-js';
 import { Modal } from 'antd';
+import { findKey, isEqual, noop, startsWith } from 'lodash';
+
 // import { Modal } from 'antd';
 import { STORAGE_PREFIX_KEY } from '../constants';
-import { isEqual, findKey, noop, startsWith } from 'lodash';
-import createProximaSdk from '@projectproxima/proxima-sdk-js';
 
 /**
  * 获取 team api 地址

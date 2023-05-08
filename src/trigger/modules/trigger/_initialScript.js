@@ -649,7 +649,7 @@ const initialScriptRunner = async () => {
   };
 
   // 建立关联关系
-  const createRelationWithTestConfig = async ({ itemTypes, workspace }) => {
+  const createRelationWithTestConfig = async ({ workspace }) => {
     const testConfig = await apis.getData(true, 'TestConfig', { workspace });
     if (!testConfig) {
       const parseObj = await apis.getParseObject(true, 'TestConfig');

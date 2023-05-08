@@ -1,30 +1,31 @@
-import React, { useCallback } from 'react';
-import { useRequest, useDrag, useDrop } from 'ahooks';
-import { message, notification, Tooltip } from 'antd';
-import { UNGROUPED_FOLDER_KEY } from '../../constant';
 import { UserCell } from '@giteeteam/apps-team-components';
-import { useTestConfig } from '@/lib/hooks/useContext';
 import createProximaSdk, { useListener } from '@projectproxima/proxima-sdk-js';
-import { DeleteIcon, UserIcon, DragHandler, LinkItemIcon } from '@/icons';
+import { useDrag, useDrop, useRequest } from 'ahooks';
+import { message, notification, Tooltip } from 'antd';
+import React, { useCallback } from 'react';
+
+import RepositorySelector, {
+  ActionType as RepositorySelectorActionType,
+} from '@/components/business/RepositorySelector';
+import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
+import { DeleteIcon, DragHandler, LinkItemIcon, UserIcon } from '@/icons';
+import { copyTesCase, deleteTestEntity, updateTestEntity } from '@/lib/api/item';
+import { useCurrentUser } from '@/lib/api/user';
+import { getCurrentUserSetting, saveUserSetting } from '@/lib/api/userSetting';
+import { TestType } from '@/lib/constants';
+import { useTestConfig } from '@/lib/hooks/useContext';
+import useI18n from '@/lib/hooks/useI18n';
+import { useUserCellUserDataProp } from '@/lib/hooks/useProxima';
+import fetch from '@/lib/utils/fetch';
 import {
   actionConfirm,
   generateSortIndex,
   getPluginWebTriggerBaseUrl,
   openItemViewScreen,
 } from '@/lib/utils/helper';
-import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
-import { useUserCellUserDataProp } from '@/lib/hooks/useProxima';
-import RepositorySelector, {
-  ActionType as RepositorySelectorActionType,
-} from '@/components/business/RepositorySelector';
-import { copyTesCase, deleteTestEntity, updateTestEntity } from '@/lib/api/item';
-import { TestType } from '@/lib/constants';
-import { getCurrentUserSetting, saveUserSetting } from '@/lib/api/userSetting';
-import { useCurrentUser } from '@/lib/api/user';
-import fetch from '@/lib/utils/fetch';
-import useI18n from '@/lib/hooks/useI18n';
 import { RepositoryGroupCell } from '@/pages/Cell';
 
+import { UNGROUPED_FOLDER_KEY } from '../../constant';
 import cx from './Table.less';
 
 const proxima = createProximaSdk();

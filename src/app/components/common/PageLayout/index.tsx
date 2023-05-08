@@ -1,8 +1,8 @@
 import React from 'react';
-import cx from './index.less';
-import { useLayoutHeight, useResizableWidth } from './hook';
-
 import { ResizableBox } from 'react-resizable';
+
+import { useLayoutHeight, useResizableWidth } from './hook';
+import cx from './index.less';
 
 type RenderNodeType = React.ReactNode;
 

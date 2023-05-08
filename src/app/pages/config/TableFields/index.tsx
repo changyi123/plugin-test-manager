@@ -1,14 +1,15 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { TestType } from '@/lib/constants';
 import { Button, message, Spin } from 'antd';
-import { useCurrentTestConfig, useDataContext } from '../hooks';
-import TableConfig from './TableConfig';
-import { updateAllTestConfigs, updateGlobalConfig } from '@/lib/api/common';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+
 import { BusinessTableActionType } from '@/components/common/BusinessTable';
+import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/hook';
+import { updateAllTestConfigs, updateGlobalConfig } from '@/lib/api/common';
+import { TestType } from '@/lib/constants';
 import useI18n from '@/lib/hooks/useI18n';
 
+import { useCurrentTestConfig, useDataContext } from '../hooks';
 import cx from './style.less';
-import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/hook';
+import TableConfig from './TableConfig';
 
 export interface TableFields {
   TestCase?: FieldKeys;

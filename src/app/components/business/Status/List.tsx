@@ -1,9 +1,10 @@
 import React, { useMemo } from 'react';
-import { useStatusConfig } from './hooks';
-import { sequence } from './utils';
+
 import useI18n from '@/lib/hooks/useI18n';
 
+import { useStatusConfig } from './hooks';
 import cx from './List.less';
+import { sequence } from './utils';
 
 interface StatusListProps {
   onStatusChange?: (val: any, isStep?: boolean) => void;

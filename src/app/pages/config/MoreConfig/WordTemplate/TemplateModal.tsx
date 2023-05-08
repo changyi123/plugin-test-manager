@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
+import { Form, Input, Modal, Select } from 'antd';
 import React, { useEffect } from 'react';
-import { Modal, Form, Input, Select } from 'antd';
+
 import UploadFile from '@/components/common/UploadFile';
 import useI18n from '@/lib/hooks/useI18n';
-import { WordTemplateInterface } from './index';
 
+import { WordTemplateInterface } from './index';
 import cx from './index.less';
 
 interface ModalProps {

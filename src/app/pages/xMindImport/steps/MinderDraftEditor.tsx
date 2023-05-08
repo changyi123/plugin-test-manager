@@ -1,13 +1,14 @@
-import React from 'react';
 import { useMemoizedFn } from 'ahooks';
-import { StepComponentProp } from '../type';
-import { getLang } from '@/lib/utils/locale';
-import MinderEditor from 'test-manager-minder';
-import { useTranslation } from 'react-i18next';
-import { MinderNodeType } from 'common/constant';
-
-import cx from './MinderDraftEditor.less';
 import { message } from 'antd';
+import { MinderNodeType } from 'common/constant';
+import React from 'react';
+import { useTranslation } from 'react-i18next';
+import MinderEditor from 'test-manager-minder';
+
+import { getLang } from '@/lib/utils/locale';
+
+import { StepComponentProp } from '../type';
+import cx from './MinderDraftEditor.less';
 
 const MinderDraftEditor: React.FC<StepComponentProp> = ({
   sharedState,

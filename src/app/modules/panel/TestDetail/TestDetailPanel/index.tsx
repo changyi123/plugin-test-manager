@@ -1,16 +1,16 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import React, { useState, useCallback, useEffect } from 'react';
-import { Button, Input, message, Spin } from 'antd';
-import { BlockOutlined } from '@/icons';
-import { useTestConfig } from '@/lib/hooks/useContext';
-import { cloneDeep } from 'lodash';
 import { useDebounceFn } from 'ahooks';
-import { updateTestEntity } from '@/lib/api/item';
-import useI18n from '@/lib/hooks/useI18n';
+import { Button, Input, message, Spin } from 'antd';
+import { cloneDeep } from 'lodash';
+import React, { useCallback, useEffect, useState } from 'react';
 
+import TestStep from '@/components/business/TestStep';
+import { BlockOutlined } from '@/icons';
+import { updateTestEntity } from '@/lib/api/item';
+import { useTestConfig } from '@/lib/hooks/useContext';
+import useI18n from '@/lib/hooks/useI18n';
 import { Item } from '@/lib/types/App';
 import { Step } from '@/lib/types/Test';
-import TestStep from '@/components/business/TestStep';
 
 import css from './index.less';
 

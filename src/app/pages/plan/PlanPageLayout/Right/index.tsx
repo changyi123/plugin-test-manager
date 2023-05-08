@@ -1,10 +1,15 @@
-import React, { useCallback, useRef, useMemo, useState } from 'react';
+import createProximaSdk from '@projectproxima/proxima-sdk-js';
+import { useUpdateEffect } from 'ahooks';
 import { Button, message, notification, Select, Tooltip } from 'antd';
-import FilterSearch from '@/components/common/FilterSearch';
-import RepoDropDown from '@/pages/repository/RepoDropDown';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
+
 import TestEntitySelectorModal, {
   ActionType as ModelActionType,
 } from '@/components/business/TestEntitySelectorModal';
+import { SystemFieldKeys } from '@/components/common/BusinessTable/hook';
+import FilterSearch from '@/components/common/FilterSearch';
+import { getFilterFields } from '@/components/common/FilterSearch/utils';
+import { batchCreateTestRun, updateTestEntity } from '@/lib/api/item';
 import {
   getExtendFields,
   RepositoryModel,
@@ -12,18 +17,14 @@ import {
   TestLinkType,
   TestType,
 } from '@/lib/constants';
-import { useUpdateEffect } from 'ahooks';
-import { usePageContext } from '../../hook';
-import { useSetTableHeight } from './hooks';
-import ExecutionStatus from '../ExecutionStatus';
-import TestEntityList from '../../TestEntityList';
-import { batchCreateTestRun, updateTestEntity } from '@/lib/api/item';
-import { SystemFieldKeys } from '@/components/common/BusinessTable/hook';
-import { getFilterFields } from '@/components/common/FilterSearch/utils';
-import createProximaSdk from '@projectproxima/proxima-sdk-js';
 import { useBaseAction } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
+import RepoDropDown from '@/pages/repository/RepoDropDown';
 
+import { usePageContext } from '../../hook';
+import TestEntityList from '../../TestEntityList';
+import ExecutionStatus from '../ExecutionStatus';
+import { useSetTableHeight } from './hooks';
 import cx from './index.less';
 
 interface RightProps {

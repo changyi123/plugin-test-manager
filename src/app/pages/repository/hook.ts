@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { TreeNode, traverseTreeNodes, getTreeNodeByKey, reverseTreeNodes } from './util';
+
+import { getTreeNodeByKey, reverseTreeNodes, traverseTreeNodes, TreeNode } from './util';
 
 // 获取树操作方法
 export const useTreeFn = (nodes: TreeNode[]) => {

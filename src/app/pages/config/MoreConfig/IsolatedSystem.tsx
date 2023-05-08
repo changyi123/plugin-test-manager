@@ -1,12 +1,14 @@
+import { message, Modal } from 'antd';
+import { Form, List, Switch } from 'antd';
 import React from 'react';
-import { Modal, message } from 'antd';
-import { useDataContext } from '../hooks';
-import { Switch, Form, List } from 'antd';
-import { getRootContainer } from '@/lib/utils/helper';
-import { BuiltinItemTypeMapping } from '@/lib/constants';
-import { updateGlobalConfig, updateAllTestConfigs } from '@/lib/api/common';
+
+import { updateAllTestConfigs, updateGlobalConfig } from '@/lib/api/common';
 import { getBuiltinItemTypes, updateUsedHierarchySchema } from '@/lib/api/proxima';
+import { BuiltinItemTypeMapping } from '@/lib/constants';
 import useI18n from '@/lib/hooks/useI18n';
+import { getRootContainer } from '@/lib/utils/helper';
+
+import { useDataContext } from '../hooks';
 
 // const Descriptions = [
 //   '测试管理插件会在初始化阶段内置测试用例，测试计划，测试执行任务三种类型，请勿删除。若内置三种类型被删除，测试管理系统隔离配置将不能被开启',

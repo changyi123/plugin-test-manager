@@ -1,5 +1,6 @@
 import cloneDeep from 'lodash/cloneDeep';
-import { ResponseType, PaginationParams, PaginationResponse } from '../../common/types/api';
+
+import { PaginationParams, PaginationResponse, ResponseType } from '../../common/types/api';
 
 /** 从 VM 运行时获取请求数据 */
 export const getReqInfoFromVMRuntime = <TBody, THeader = any>(): {
@@ -16,7 +17,7 @@ export const getReqInfoFromVMRuntime = <TBody, THeader = any>(): {
 };
 
 /** 构建响应数据 */
-export const buildResponse = <T extends any>(data: T) => {
+export const buildResponse = <T = any>(data: T) => {
   let status = 'ok';
   if (data instanceof Error) {
     status = 'error';
@@ -30,7 +31,7 @@ export const buildResponse = <T extends any>(data: T) => {
 };
 
 /** 构建分页响应数据 */
-export const buildPaginationResponse = <T extends any>(
+export const buildPaginationResponse = <T = any>(
   list: T,
   paginationResponseOptions?: PaginationParams & { total: number },
 ) => {

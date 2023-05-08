@@ -1,21 +1,20 @@
-import React from 'react';
-import cx from './index.less';
 import { message } from 'antd';
 import { isEqual, pick } from 'lodash';
-import { PlusOutlined } from '@/icons';
-import { TestType } from '@/lib/constants';
-import { getStepInitialData } from './helper';
-import { getTestStepsByTestDetailId } from '@/lib/api/runs';
-
-import StepList from './StepList';
+import React from 'react';
 
 import TestEntitySelectorModal, {
   ActionType as TestEntitySelectorActionType,
 } from '@/components/business/TestEntitySelectorModal';
-
+import { PlusOutlined } from '@/icons';
+import { getTestStepsByTestDetailId } from '@/lib/api/runs';
+import { TestType } from '@/lib/constants';
+import useI18n from '@/lib/hooks/useI18n';
 import { Step } from '@/lib/types/Test';
 import { hasArrayItem } from '@/lib/utils/helper';
-import useI18n from '@/lib/hooks/useI18n';
+
+import { getStepInitialData } from './helper';
+import cx from './index.less';
+import StepList from './StepList';
 
 export type ActionType = {
   filter: (stepIds: string[]) => void;
@@ -117,7 +116,8 @@ const TestStep: React.FC<TestStepProps> = ({
 
   // TODO: 继承的弹窗还有问题
   const openCallTestModal = async () => {
-    const [callTestId] = await testEntitySelectorRef.current?.open();
+    if (!testEntitySelectorRef.current?.open) return;
+    const [callTestId] = await testEntitySelectorRef.current.open();
     try {
       if (!callTestId) return;
       // 验证继承的测试用例是否又循环依赖

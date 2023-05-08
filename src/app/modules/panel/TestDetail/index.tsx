@@ -1,11 +1,11 @@
 import React from 'react';
-import { TestType } from '@/lib/constants';
 
 import PanelLayout from '@/components/business/PanelLayout';
+import { TestType } from '@/lib/constants';
+import useI18n from '@/lib/hooks/useI18n';
 
 import TestDetailPanel from './TestDetailPanel';
 import TestPlanPanel from './TestPlanPanel';
-import useI18n from '@/lib/hooks/useI18n';
 
 const TestDetail: React.FC = () => {
   const { t } = useI18n();

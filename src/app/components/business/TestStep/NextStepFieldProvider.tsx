@@ -1,5 +1,6 @@
-import React from 'react';
 import _ from 'lodash';
+import React from 'react';
+
 import type { StepRow } from './type';
 
 export const NextStepFieldContext = React.createContext({

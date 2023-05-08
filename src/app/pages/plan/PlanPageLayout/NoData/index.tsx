@@ -1,8 +1,9 @@
-import React from 'react';
 import { Button, Empty } from 'antd';
+import React from 'react';
+
 import emptyImg from '@/icons/svg/empty-data.png';
-import { useBaseAction } from '@/lib/hooks/useContext';
 import { TestType } from '@/lib/constants';
+import { useBaseAction } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 
 import cx from './index.less';

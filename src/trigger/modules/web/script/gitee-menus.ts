@@ -1,5 +1,5 @@
 // import { TestConfigClassName } from '../../../../common/constant';
-import { getParseQuery, getAppsData, i18n } from '@giteeteam/apps-team-api';
+import { getAppsData, getParseQuery, i18n } from '@giteeteam/apps-team-api';
 
 const log = (msg, ...restArgs) => {
   console.info(`[testManager] ${msg}`, ...restArgs);

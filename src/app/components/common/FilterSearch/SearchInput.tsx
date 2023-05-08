@@ -1,6 +1,7 @@
-import React, { useCallback } from 'react';
 import { SearchOutlined } from '@ant-design/icons';
 import { Input, InputProps } from 'antd';
+import React, { useCallback } from 'react';
+
 import useI18n from '@/lib/hooks/useI18n';
 
 import cx from './SearchInput.less';

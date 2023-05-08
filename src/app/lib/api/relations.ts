@@ -1,7 +1,8 @@
-import { updateItem } from '@/lib/api/common';
-import { BaseTestEntity } from 'common/types/test';
 import { TestLinkType } from 'common/constant';
+import { BaseTestEntity } from 'common/types/test';
 import { uniq } from 'lodash';
+
+import { updateItem } from '@/lib/api/common';
 
 /** 测试用例添加至测试计划 1:N */
 export const createRelations = async (params: {

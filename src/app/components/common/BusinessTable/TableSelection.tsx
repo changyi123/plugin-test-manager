@@ -1,7 +1,8 @@
-import React from 'react';
-import { noop } from 'lodash';
 import { Checkbox, Tooltip } from 'antd';
 import { CheckboxProps } from 'antd/lib/checkbox';
+import { noop } from 'lodash';
+import React from 'react';
+
 import useI18n from '@/lib/hooks/useI18n';
 
 import cx from './TableSelection.less';

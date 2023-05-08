@@ -1,11 +1,13 @@
-import React from 'react';
-import { TestType } from '@/lib/constants';
-import { Select, Button, message } from 'antd';
 import { useRequest, useSafeState } from 'ahooks';
-import { useDataContext, useCurrentTestConfig } from '../hooks';
-import { getTopItemTypeFromHierarchy } from '@/lib/api/proxima';
-import useI18n from '@/lib/hooks/useI18n';
+import { Button, message, Select } from 'antd';
 import { components } from 'proxima-sdk';
+import React from 'react';
+
+import { getTopItemTypeFromHierarchy } from '@/lib/api/proxima';
+import { TestType } from '@/lib/constants';
+import useI18n from '@/lib/hooks/useI18n';
+
+import { useCurrentTestConfig, useDataContext } from '../hooks';
 
 const { ItemIcon } = components.Components.Common;
 

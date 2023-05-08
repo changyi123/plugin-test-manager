@@ -1,11 +1,13 @@
+import { useRequest } from 'ahooks';
+
+import { getTestConfig } from '@/lib/api/common';
+import { getCustomFields } from '@/lib/api/proxima';
+import { getCurrentUserSetting } from '@/lib/api/userSetting';
+import { SYSTEM_FIELD, TestType } from '@/lib/constants';
 import { useUsedScreenFieldKeys } from '@/lib/hooks/useProxima';
 import { useNoExpiredRequest } from '@/lib/hooks/useRequest';
-import { getTestConfig } from '@/lib/api/common';
-import { SYSTEM_FIELD, TestType } from '@/lib/constants';
+
 import { TitleCellOption } from './type';
-import { getCurrentUserSetting } from '@/lib/api/userSetting';
-import { useRequest } from 'ahooks';
-import { getCustomFields } from '@/lib/api/proxima';
 
 // const TestIncludeFiledKeys = ['status'];
 

@@ -1,11 +1,12 @@
 /**
  * @file 测试实体数据和事项数据之间相互转换
  */
-import omit from 'lodash/omit';
 import isNil from 'lodash/isNil';
+import omit from 'lodash/omit';
 import omitBy from 'lodash/omitBy';
+
 import { TestFiledKeyMapping } from '../constant';
-import { TestEntityKey, BaseTestEntity } from '../types/test';
+import { BaseTestEntity, TestEntityKey } from '../types/test';
 
 /** 转换为 JS 对象或数组 */
 const convertToPlainJSData = data => {

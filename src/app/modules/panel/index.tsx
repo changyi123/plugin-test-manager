@@ -1,17 +1,17 @@
+import { useSDK } from '@projectproxima/plugin-sdk';
+import { Result } from 'antd';
 import React from 'react';
 
-import { Result } from 'antd';
-import TestPlan from './TestPlan';
-import TestDetail from './TestDetail';
-import TestExecution from './TestExecution';
-import { getDevConfig } from '@/devEnv';
-import { useSDK } from '@projectproxima/plugin-sdk';
-import { useTestConfig } from '@/lib/hooks/useContext';
-import { TestType, ENTITY_NOT_FOUND } from '@/lib/constants';
 import TestManagerProvider from '@/components/business/TestManagerProvider';
+import { getDevConfig } from '@/devEnv';
+import { ENTITY_NOT_FOUND, TestType } from '@/lib/constants';
+import { useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 
 import cx from './index.less';
+import TestDetail from './TestDetail';
+import TestExecution from './TestExecution';
+import TestPlan from './TestPlan';
 
 // 根据测试类型打开不同的测试 panel
 const TestPanelComponents = {

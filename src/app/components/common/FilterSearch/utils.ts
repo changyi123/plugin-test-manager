@@ -1,4 +1,4 @@
-import { ICLUDE_SYSTEM_FIELD, SystemIncludeFieldKeys, SYSTEM_FIELD } from '@/lib/constants';
+import { ICLUDE_SYSTEM_FIELD, SYSTEM_FIELD, SystemIncludeFieldKeys } from '@/lib/constants';
 
 export const getFilterFields = fields => {
   const systemFields = Object.values(SYSTEM_FIELD).filter(

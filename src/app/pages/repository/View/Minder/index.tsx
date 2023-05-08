@@ -1,28 +1,29 @@
+import { useMemoizedFn, useRequest } from 'ahooks';
+import { Button, Dropdown, Menu, message } from 'antd';
+import { MinderNodeType, TestType } from 'common/constant';
 import React from 'react';
-import { v4 } from 'uuid';
 import MinderEditor from 'test-manager-minder';
-import { useRequest, useMemoizedFn } from 'ahooks';
-import { Button, message, Dropdown, Menu } from 'antd';
-import { useTestConfig } from '@/lib/hooks/useContext';
-import { useNoExpiredRequest } from '@/lib/hooks/useRequest';
+import { v4 } from 'uuid';
+
+import { CustomMore } from '@/icons';
+import { deleteTestEntity, updateTestEntity } from '@/lib/api/item';
 import {
-  getMinderData,
-  getPriorityOptions,
   batchCreateTestCase,
   batchDeleteRepository,
   batchUpdateRepository,
+  getMinderData,
+  getPriorityOptions,
 } from '@/lib/api/minder';
-import { CustomMore } from '@/icons';
-import { ViewComponentProps } from '../type';
-import { MinderNodeType, TestType } from 'common/constant';
 import { createRepositories } from '@/lib/api/repository';
-import { deleteTestEntity, updateTestEntity } from '@/lib/api/item';
-import useI18n from '@/lib/hooks/useI18n';
-import { getLang } from '@/lib/utils/locale';
-import { exportAndDownloadXMind } from '@/lib/minder';
+import { useTestConfig } from '@/lib/hooks/useContext';
 import { useBaseAction } from '@/lib/hooks/useContext';
+import useI18n from '@/lib/hooks/useI18n';
+import { useNoExpiredRequest } from '@/lib/hooks/useRequest';
+import { exportAndDownloadXMind } from '@/lib/minder';
 import { getProximaBasePath, getTenantKey } from '@/lib/utils/helper';
+import { getLang } from '@/lib/utils/locale';
 
+import { ViewComponentProps } from '../type';
 import cx from './index.less';
 
 // TODO: 同层级重名模块报错
@@ -416,7 +417,7 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
         </Dropdown>
       </div>
     );
-  }, [handleSave, saveLoading, t, handleXMindExport, handleXMindImport]);
+  }, [handleSave, saveLoading, t, getCreatePermission, handleXMindImport, handleXMindExport]);
 
   if (!priorityOptions || !minderData) return null;
 
