@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import { pick } from 'lodash';
 import Parse from '@/lib/parse';
-import { useRequest, useMemoizedFn } from 'ahooks';
+import { useRequest, useMemoizedFn, clearCache } from 'ahooks';
 import { useNoExpiredRequest } from '@/lib/hooks/useRequest';
 import { getPluginBoundWorkspaces } from '@/lib/api/proxima';
 import { TestType, BuiltinFieldNameMapping } from '@/lib/constants';
@@ -148,56 +148,58 @@ export const useGetWorkspaceRepository = workspaceKey => {
 
   React.useEffect(() => {
     return repositoryFolderTreeEvent.register(() => {
+      clearCache(`repository_data_${workspaceKey ?? ''}`);
       refreshRepositoryData();
     });
-  }, [refreshRepositoryData]);
+  }, [refreshRepositoryData, workspaceKey]);
 
   return getTestCaseRepositoryPath;
 };
 
 // 弃用，使用 useGetWorkspaceRepository
-export const useGetTestRepoGroup = (rowData: any) => {
-  const workspaceKey = rowData?.workspace?.key;
-  const folderKey = rowData?.repository;
-  const { t } = useI18n();
+// export const useGetTestRepoGroup = (rowData: any) => {
+//   const workspaceKey = rowData?.workspace?.key;
+//   const folderKey = rowData?.repository;
+//   const { t } = useI18n();
 
-  const { data: repositoryData, refreshAsync: refreshRepositoryData } = useRequest(
-    async () => {
-      return await getRepositoryData(workspaceKey ? [workspaceKey] : []);
-    },
-    {
-      cacheKey: `repository_data_${workspaceKey ?? ''}`,
-      refreshDeps: [workspaceKey],
-      debounceWait: 300,
-    },
-  );
+//   const { data: repositoryData, refreshAsync: refreshRepositoryData } = useRequest(
+//     async () => {
+//       return await getRepositoryData(workspaceKey ? [workspaceKey] : []);
+//     },
+//     {
+//       cacheKey: `repository_data_${workspaceKey ?? ''}`,
+//       refreshDeps: [workspaceKey],
+//       debounceWait: 300,
+//     },
+//   );
 
-  const { data: repositoryDict, loading } = useRequest(
-    async () => {
-      if (!hasArrayItem(repositoryData)) return null;
-      return handleRepoPath(getRepoData(repositoryData)).reduce((prev, cur) => {
-        if (cur.objectId) {
-          prev[cur.objectId] = cur.path;
-        }
-        return prev;
-      }, {});
-    },
-    {
-      cacheKey: `repository_data_${folderKey}`,
-      refreshDeps: [repositoryData, folderKey],
-    },
-  );
+//   const { data: repositoryDict, loading } = useRequest(
+//     async () => {
+//       if (!hasArrayItem(repositoryData)) return null;
+//       return handleRepoPath(getRepoData(repositoryData)).reduce((prev, cur) => {
+//         if (cur.objectId) {
+//           prev[cur.objectId] = cur.path;
+//         }
+//         return prev;
+//       }, {});
+//     },
+//     {
+//       cacheKey: `repository_data_${folderKey}`,
+//       refreshDeps: [repositoryData, folderKey],
+//     },
+//   );
 
-  React.useEffect(() => {
-    return repositoryFolderTreeEvent.register(() => {
-      refreshRepositoryData();
-    });
-  }, [refreshRepositoryData]);
+//   React.useEffect(() => {
+//     return repositoryFolderTreeEvent.register(() => {
+//       clearCache(`repository_data_${workspaceKey ?? ''}`);
+//       refreshRepositoryData();
+//     });
+//   }, [refreshRepositoryData, workspaceKey]);
 
-  const data = repositoryDict?.[rowData?.repository ?? ''] ?? t('common.unGrouped');
+//   const data = repositoryDict?.[rowData?.repository ?? ''] ?? t('common.unGrouped');
 
-  return { data, loading };
-};
+//   return { data, loading };
+// };
 
 export const useGetUserNameByName = (name: string) => {
   const { data } = useRequest(
