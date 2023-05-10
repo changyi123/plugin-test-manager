@@ -52,6 +52,7 @@ export type BaseActionContextType = {
   openItemViewPanel: (itemId: string) => void;
   /** 获取全局配置 */
   getGlobalConfig?: () => Record<string, any>;
+  getTestCaseRepositoryPath?: (val?: string) => string;
   getCreatePermission?: (val: string) => boolean;
   testPlanFieldKeys?: string[];
   testCaseFieldKeys?: string[];
