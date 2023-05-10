@@ -87,6 +87,8 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
   const repositorySelectorRef = React.useRef<RepositorySelectorActionType>();
   const { workspace } = useTestConfig();
   const workspaceKey = workspace?.key;
+  // 缓存用例库数据，用于监听用例库修改后刷新表格所属模块
+  useGetWorkspaceRepository(workspaceKey);
   const { data: currentUser } = useCurrentUser();
   const [hasRowSelected, setHasRowSelected] = React.useState(false);
   const userData = useUserCellUserDataProp(workspaceKey);
