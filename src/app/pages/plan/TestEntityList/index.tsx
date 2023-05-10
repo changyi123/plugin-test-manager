@@ -33,8 +33,6 @@ import { useBaseAction } from '@/lib/hooks/useContext';
 import createProximaSdk from '@projectproxima/proxima-sdk-js';
 import useI18n from '@/lib/hooks/useI18n';
 import { getTestCaseStatusModelValue, handleCustomerSelector } from '@/lib/utils/iql';
-
-import cx from './index.less';
 import { getRepositoryQuery } from '@/lib/utils/tree';
 import { SystemFieldKeys } from '@/components/common/BusinessTable/hook';
 import {
@@ -42,6 +40,9 @@ import {
   useGetFilterPlanLinkCaseIds,
 } from '../PlanPageLayout/hooks';
 import { getTestRunSelector } from '../PlanPageLayout/helps';
+import RenderRepository from '@/components/business/RenderRepository';
+
+import cx from './index.less';
 
 interface TestEntityListProps {
   loading?: boolean;
@@ -495,9 +496,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         title: t('page.plan.testEntityList.repositoryGroup'),
         width: 200,
         render(_, rowData) {
-          return (
-            <span>{getTestCaseRepositoryPath?.(rowData?.repository) ?? t('common.unGrouped')}</span>
-          );
+          return <RenderRepository repository={rowData?.repository} />;
         },
       },
       {
@@ -636,7 +635,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         title: t('page.plan.testEntityList.repositoryGroup'),
         width: 200,
         render(_, rowData) {
-          return <span>{getTestCaseRepositoryPath(rowData.repository)}</span>;
+          return <RenderRepository repository={rowData?.repository} />;
         },
       },
       {

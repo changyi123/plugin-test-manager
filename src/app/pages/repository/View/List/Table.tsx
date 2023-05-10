@@ -26,6 +26,7 @@ import useI18n from '@/lib/hooks/useI18n';
 
 import cx from './Table.less';
 import { useGetWorkspaceRepository } from '@/lib/hooks/useTest';
+import RenderRepository from '@/components/business/RenderRepository';
 
 const proxima = createProximaSdk();
 
@@ -66,11 +67,6 @@ type TestDetailTableProps = {
   dataSourceGetter?: any;
   tableLoading?: boolean;
   setTableLoading?: (val?: boolean) => void;
-};
-
-const RenderRow = ({ repository, workspaceKey }) => {
-  const getTestCaseRepositoryPath = useGetWorkspaceRepository(workspaceKey);
-  return <span>{getTestCaseRepositoryPath(repository)}</span>;
 };
 
 const TestDetailTable: React.FC<TestDetailTableProps> = props => {
@@ -365,16 +361,8 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         key: 'repositoryGroup',
         title: t('page.plan.testEntityList.repositoryGroup'),
         width: 200,
-        // shouldCellUpdate: (row, prevRow) =>
-        //   getTestCaseRepositoryPath(row?.repository) !==
-        //   getTestCaseRepositoryPath(prevRow?.repository),
         render(_, rowData) {
-          return (
-            <RenderRow
-              repository={rowData?.repository}
-              workspaceKey={rowData?.workspace?.key}
-            ></RenderRow>
-          );
+          return <RenderRepository repository={rowData?.repository} />;
         },
       },
       {
