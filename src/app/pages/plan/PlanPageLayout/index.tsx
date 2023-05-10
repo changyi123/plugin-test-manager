@@ -25,6 +25,10 @@ import { batchCreateTestRun, updateTestEntity } from '@/lib/api/item';
 import useI18n from '@/lib/hooks/useI18n';
 import { useUpdateEffect } from 'ahooks';
 
+type ExecutionListRef = {
+  refresh?: () => void;
+};
+
 const PlanPageLayout: React.FC<any> = () => {
   const {
     workspaceKey,
@@ -37,6 +41,7 @@ const PlanPageLayout: React.FC<any> = () => {
     setRunLinkCaseIds,
   } = usePageContext();
   const { t } = useI18n();
+  const executionListRef = React.useRef<ExecutionListRef>();
   useResizeContainerDOM(selectedTestPlan?.objectId);
   const detailSearchRef = useRef(null);
   const pageLeftRef = useRef(null);
@@ -51,7 +56,6 @@ const PlanPageLayout: React.FC<any> = () => {
     undefined,
   );
 
-  const [refreshExecution, setRefreshExecution] = useState(false);
   const [showType, setShowType] = useState('all');
   const [loading, setLoading] = useState(false);
   const [treeParams, setTreeParams] = useState<any>(null);
@@ -257,12 +261,11 @@ const PlanPageLayout: React.FC<any> = () => {
 
         notification.destroy();
         if (isCheckCreateNext) {
-          // await createTestExecution(isCheckCreateNext);
           setTimeout(() => {
             createTestExecution(isCheckCreateNext);
           }, 500);
         }
-        setRefreshExecution(true);
+        executionListRef?.current?.refresh();
         notification.success({
           message: `${t('page.plan.planPageLayout.right.createTestExecutionSuccessMessage.0')}【${
             item.name
@@ -275,7 +278,7 @@ const PlanPageLayout: React.FC<any> = () => {
         });
       }
     },
-    [createExecution, getSelectCaseIds, setRefreshExecution, t],
+    [createExecution, getSelectCaseIds, executionListRef, t],
   );
 
   const cancelCallback = useCallback(
@@ -292,19 +295,16 @@ const PlanPageLayout: React.FC<any> = () => {
       setSelectValue([]);
       setTreeType('plan');
       if (!props?.itemIdList?.length) {
-        setRefreshExecution(true);
+        executionListRef?.current?.refresh();
       }
     },
-    [setRefreshExecution],
+    [executionListRef],
   );
 
   useListener('CreateItemModalPrev', cancelCallback);
   useListener(PROXIMA_EVENT_KEY.itemBatchCreateSuccess, props => {
     refresh(props);
   });
-  // useListener('updateRepoTree', () => {
-  //   scopedTestCaseRefresh();
-  // });
 
   return (
     <div className={cx('test-plan-page')}>
@@ -319,10 +319,10 @@ const PlanPageLayout: React.FC<any> = () => {
                 setActiveType={setActiveType}
                 selectedExecution={selectedExecution}
                 setSelectedExecution={setSelectedExecution}
-                refreshExecution={refreshExecution}
-                setRefreshExecution={setRefreshExecution}
+                executionListRef={executionListRef}
                 createTestExecution={createTestExecution}
                 setLoading={setLoading}
+                planLinkCaseIds={planLinkCaseIds}
               />
             </PageLayout.Header>
             {activeType === 'TestExecution' && !selectedExecution?.objectId && (

@@ -18,7 +18,6 @@ import { MenuKey, FolderMenu } from '../Menu';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import { Tree, Button, Input, notification, Dropdown, Modal, message } from 'antd';
 import { updateTestEntity } from '@/lib/api/item';
-import createProximaSdk from '@projectproxima/proxima-sdk-js';
 import {
   CustomMore,
   CustomScreenOff,
@@ -34,7 +33,6 @@ import useI18n from '@/lib/hooks/useI18n';
 
 import cx from './index.less';
 import { repositoryFolderTreeEvent } from '@/lib/events';
-const proxima = createProximaSdk();
 
 const { DirectoryTree } = Tree;
 

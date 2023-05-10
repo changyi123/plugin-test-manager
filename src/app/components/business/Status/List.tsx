@@ -6,7 +6,7 @@ import useI18n from '@/lib/hooks/useI18n';
 import cx from './List.less';
 
 interface StatusListProps {
-  onStatusChange?: (val: any) => void;
+  onStatusChange?: (val: any, isStep?: boolean) => void;
   className?: string;
   status?: string;
 }

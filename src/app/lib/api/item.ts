@@ -6,6 +6,7 @@ import {
   TestExecutionStatsPayload,
   QueryLinkedTestEntityPayload,
   RepositoryTreePayload,
+  TestCountPayload,
 } from 'common/types/api';
 import { pick, omit, has } from 'lodash';
 import { merge } from 'lodash';
@@ -165,6 +166,16 @@ export const getLinkedTestEntityByQuery = async (
   };
 };
 
+// 测试管理通用字段统计查询
+export const getTestStats = async (props: TestCountPayload) => {
+  const { data: res } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-count-test`, {
+    ...props,
+    sessionToken: getSessionToken(),
+  });
+
+  return res.data;
+};
+
 // 测试计划统计查询
 export const getStatsTestPlan = async (props: TestPlanStatsPayload) => {
   const { data: res } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-stats-test-plan`, {
@@ -276,24 +287,26 @@ export const updateTestStatus = async data => {
       type: TestType.Run,
     },
     limit: 9999,
-    select: ['id', 'referenceCase', 'executor'],
+    select: ['id', 'referenceCase', 'executor', 'status', 'executeCount'],
   });
+
+  const updateRunData = list.filter(d => d.status !== status);
+  const testIds = updateRunData.map(d => d.referenceCase) ?? [];
 
   const { list: test } = await getTestEntityByQuery({
     query: {
-      id: list.map(d => d.referenceCase) ?? [],
+      id: testIds,
       type: TestType.Case,
     },
     limit: 9999,
     select: ['id', 'caseStatus', 'caseExecutor'],
   });
-
-  const runs = list.map(d => ({
+  const runs = updateRunData.map(d => ({
     objectId: d.id,
     status,
     executor: [getCurrentUserInfo(), ...(d.executor ?? [])].slice(0, 3),
+    executeCount: (d.executeCount ?? 0) + (['PASSED', 'FAILED']?.includes(status) ? 1 : 0),
   }));
-
   const tests = test.map(d => ({
     objectId: d.id,
     caseStatus: {
@@ -348,8 +361,14 @@ export const updateTestRunDetail = async (
     );
   };
   opts = merge({ initialization: false }, opts);
+  const executeCount = testEntity?.executeCount ?? 0;
 
   const needUpdateAttrs = {} as TestEntity<TestType.Run>;
+
+  // 执行状态为通过或者失败，且前后状态不一致 +1
+  if (['PASSED', 'FAILED']?.includes(params.status) && testEntity.status !== params.status) {
+    needUpdateAttrs.executeCount = executeCount + 1;
+  }
 
   if (Array.isArray(params.steps)) {
     const steps = params.steps.map(compactStepModel);
@@ -377,21 +396,35 @@ export const updateTestRunDetail = async (
 
       if (hasFail && !hasBlock && !hasCannel) {
         // 失败且没有阻塞、没有取消 - 失败
-        needUpdateAttrs.status = 'FAILED';
+        if (testEntity.status !== 'FAILED') {
+          needUpdateAttrs.status = 'FAILED';
+          needUpdateAttrs.executeCount = executeCount + 1;
+        }
       } else if (hasExecuting && !hasBlock && !hasCannel && !hasFail) {
         // 正在执行且没有取消、阻塞、失败 - 正在执行
-        needUpdateAttrs.status = 'EXECUTING';
+        if (testEntity.status !== 'EXECUTING') {
+          needUpdateAttrs.status = 'EXECUTING';
+        }
       } else if (hasBlock && !hasCannel) {
         // 阻塞且没有取消 - 阻塞
-        needUpdateAttrs.status = 'BLOCK';
+        if (testEntity.status !== 'BLOCK') {
+          needUpdateAttrs.status = 'BLOCK';
+        }
       } else if (hasAllPass) {
         // 全部通过 - 通过
-        needUpdateAttrs.status = 'PASSED';
+        if (testEntity.status !== 'PASSED') {
+          needUpdateAttrs.status = 'PASSED';
+          needUpdateAttrs.executeCount = executeCount + 1;
+        }
       } else if (hasCannel) {
         // 一个取消 - 取消
-        needUpdateAttrs.status = 'CANCEL';
+        if (testEntity.status !== 'CANCEL') {
+          needUpdateAttrs.status = 'CANCEL';
+        }
       } else if (hasAllTodo) {
-        needUpdateAttrs.status = 'TODO';
+        if (testEntity.status !== 'TODO') {
+          needUpdateAttrs.status = 'TODO';
+        }
       }
       setExecutor(needUpdateAttrs);
     }

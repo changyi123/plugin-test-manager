@@ -105,5 +105,6 @@ export const useGetGroupCounts = ({ workspaceKey, current, params, selectedNode 
 
   return {
     groupCounts: groupCounts,
+    treeData,
   };
 };

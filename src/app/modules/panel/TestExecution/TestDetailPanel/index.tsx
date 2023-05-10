@@ -26,8 +26,10 @@ import createProximaSdk, { useListener } from '@projectproxima/proxima-sdk-js';
 import { useRequest } from 'ahooks';
 import { useTestRunActionAuth } from '@/lib/hooks/useTest';
 import useI18n from '@/lib/hooks/useI18n';
+// import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/hook';
 
 const Test = () => {
+  const proxima = createProximaSdk();
   const { t } = useI18n();
   const { testEntity, workspace } = useTestConfig();
   const { getCreatePermission } = useBaseAction();
@@ -37,11 +39,23 @@ const Test = () => {
   const selectorModalRef = React.useRef<SelectorActionType>();
   const testRunModalActionRef = React.useRef<TestRunModalActionType>();
 
+  // useListener('updateItemList', async props => {
+  //   if (props?.type === 'create') return;
+  //   if (props?.type === 'delete') {
+  //     await deleteRunLinkExecution();
+  //   }
+  // });
+
   const [allTestEntities, setAllTestEntities] = useState([]);
+
+  // const testExecutionFieldKeys = useTestTypeScreenFieldKeys({
+  //   testType: TestType.Execution,
+  //   workspaceKey: workspace?.key,
+  // });
 
   const { data: allRunIds } = useRequest(
     async () => {
-      if (!testEntity?.objectId) {
+      if (!testEntity?.objectId && !workspace?.key) {
         return [];
       }
       const { list: runData } = await getLinkedTestEntityByQuery({
@@ -110,6 +124,28 @@ const Test = () => {
     return { list, total };
   }, [getReTestEntities]);
 
+  // const deleteRunLinkExecution = useCallback(async () => {
+  //   if (!testEntity?.objectId && !workspace?.key) return;
+  //   const { list: runIds } = await getLinkedTestEntityByQuery({
+  //     query: {
+  //       workspaceKey: workspace?.key,
+  //     },
+  //     limit: 9999,
+  //     linkType: TestLinkType.RunLinkExecution,
+  //     sourceIds: [testEntity?.objectId],
+  //     destinationType: TestType.Run,
+  //     onlySelectId: true,
+  //   });
+  //   if (runIds?.length) {
+  //     const res = await deleteTestEntity(runIds);
+  //     if (res?.status === 'error') {
+  //       message.error(res.data);
+  //       return;
+  //     }
+  //   }
+  //   proxima.execute('deleteExecutionRefresh');
+  // }, [testEntity?.objectId, workspace?.key]);
+
   // 关联的测试用例
   const relCase = useMemo(() => allTestEntities.map(item => item.referenceCase), [allTestEntities]);
 
@@ -139,7 +175,6 @@ const Test = () => {
       const data = await getAllRelTestEntities();
       tableActionRef.current.refresh();
       // 修改执行状态，移除或者添加用例，需要更新外部列表
-      const proxima = createProximaSdk();
       proxima.execute(eventKey ?? 'updateRepoTree');
       return data;
     },
@@ -330,6 +365,7 @@ const Test = () => {
         actionRef={selectorModalRef}
         title={t('modules.panel.testExecution.testDetailPanel.assCaseToExecution')}
         ignoreTestEntityIds={relCase}
+        // tableFieldsKeys={testExecutionFieldKeys}
       />
 
       <StatusProcessBar status={relRunStatuses} />

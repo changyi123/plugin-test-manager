@@ -45,57 +45,38 @@ const MinderDraftEditor: React.FC<StepComponentProp> = ({
         },
         // 节点类型必须合规
         nodeTypeLawyer: (node, parent) => {
-          const nodeParentTypeLevel = {
-            [MinderNodeType.Data]: [
-              MinderNodeType.Result,
-              MinderNodeType.Step,
-              MinderNodeType.TestCase,
-              MinderNodeType.Module,
-            ],
-            [MinderNodeType.Result]: [
-              MinderNodeType.Step,
-              MinderNodeType.TestCase,
-              MinderNodeType.Module,
-            ],
-            [MinderNodeType.Step]: [MinderNodeType.TestCase, MinderNodeType.Module],
-            [MinderNodeType.Precondition]: [MinderNodeType.TestCase, MinderNodeType.Module],
+          const nodeParentTypeMap = {
+            [MinderNodeType.Data]: MinderNodeType.Result,
+            [MinderNodeType.Result]: MinderNodeType.Step,
+            [MinderNodeType.Precondition]: MinderNodeType.TestCase,
+            [MinderNodeType.Step]: MinderNodeType.TestCase,
+            [MinderNodeType.TestCase]: MinderNodeType.Module,
+            [MinderNodeType.Module]: MinderNodeType.Module,
           };
-          // 校验合规后给节点打上标记，后续节点直接跳过
-          const nodeTypeLevel = nodeParentTypeLevel[node.data.type] ?? [];
-          let level = 0;
+          if (!parent) return;
+          const getNodeParentType = n => nodeParentTypeMap[n.data.type];
+          // 已校验节点跳过校验，节点为根节点跳过校验
+          if (node._nodeTypeLawyerValidated || node.data.type === 'Root') return;
+          // 父节点节点为根节点，当前节点为 TestCase Module 跳过校验
+          if (
+            parent.data.type === 'Root' &&
+            [MinderNodeType.TestCase, MinderNodeType.Module].includes(node.data.type)
+          )
+            return;
 
-          // 标记节点已经校验过
-          node._nodeTypeLawyerValidated = true;
-          let nodeParent = parent;
-          while (nodeParent) {
-            // 跳过已经校验过的节点
-            if (nodeParent._nodeTypeLawyerValidated) break;
-            // 单独处理 TestCase 和 Module 类型节点
-            if ([MinderNodeType.Module, MinderNodeType.TestCase].includes(node.data.type)) {
-              while (nodeParent) {
-                if (![MinderNodeType.Root, MinderNodeType.Module].includes(nodeParent.data.type)) {
-                  return scopedT('lawyerErrorMessage', {
-                    nodeTypeName: globalT(`minderNodeTypeName.${MinderNodeType.Module}`),
-                  });
-                }
-                nodeParent = nodeParent.parent;
-              }
-              break;
-            }
-
-            const levelIndex = nodeTypeLevel.indexOf(nodeParent.data.type);
-            if (levelIndex && levelIndex !== level) {
+          // 校验父级是否符合条件
+          const checkNodeLevel = (curNode, pNode) => {
+            const cType = getNodeParentType(curNode);
+            const pType = pNode.data.type;
+            if (cType !== pType) {
               return scopedT('lawyerErrorMessage', {
-                nodeTypeName: globalT(
-                  nodeTypeLevel[level]
-                    ? `minderNodeTypeName.${nodeTypeLevel[level]}`
-                    : 'minderNodeTypeName.Module',
-                ),
+                nodeTypeName: globalT(`minderNodeTypeName.${cType}`),
               });
             }
-            level++;
-            nodeParent = nodeParent.parent;
-          }
+            // 标记节点已经校验过
+            curNode._nodeTypeLawyerValidated = true;
+          };
+          return checkNodeLevel(node, parent);
         },
         // module 节点层级不能超过 8 级
         moduleNodeLevelMaxCount: node => {

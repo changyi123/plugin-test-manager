@@ -1,13 +1,14 @@
 /**
  * @file 测试用例相关统计
  */
-import { iqlRequest } from '../../lib/iqlRequest';
+import { getPayload, iqlRequest } from '../../lib/iqlRequest';
 import { TestEntity } from '../../../common/types/test';
 import { getReqInfoFromVMRuntime, buildResponse } from '../../lib/apiUtil';
 import {
   TestCaseStatsPayload,
   TestPlanStatsPayload,
   TestExecutionStatsPayload,
+  TestCountPayload,
 } from '../../../common/types/api';
 import {
   TestType,
@@ -16,7 +17,10 @@ import {
   InfinityLimit,
   StartStatusKey,
   TestFiledKeyMapping,
+  TestFieldTypeKeyMapping,
 } from '../../../common/constant';
+import iqlSearchParamsBuilder from '../../../common/utils/iqlSearchParamsBuilder';
+import { aggsSearch } from '../../lib/coreApi';
 
 type TestRunEntityType = TestEntity<TestType.Run>;
 type TestCaseEntityType = TestEntity<TestType.Case>;
@@ -314,4 +318,149 @@ export const testCaseStats = async () => {
     runCount: 0,
     caseLatestStatus: StartStatusKey,
   });
+};
+
+/**
+ * 统计通用接口
+ * （测试用例引用次数，测试用例执行次数，规划用例数，测试用例最新执行状态）
+ * 执行任务数，测试执行通过率(需计算)
+ */
+export const testCount = async () => {
+  const {
+    body: { groups, params, linkParams, sessionToken },
+  } = getReqInfoFromVMRuntime<TestCountPayload>();
+  const query = {} as any;
+
+  if (groups) {
+    // 处理 groups
+    const handleGroups = groupInfo => {
+      if (typeof groupInfo === 'string') {
+        return [
+          {
+            key: TestFiledKeyMapping[groupInfo] ?? groupInfo,
+            name: '',
+            fieldType: TestFieldTypeKeyMapping[groupInfo] ?? groupInfo,
+          },
+        ];
+      }
+      return groupInfo.map(g => ({
+        key: TestFiledKeyMapping[g] ?? g,
+        name: '',
+        fieldType: TestFieldTypeKeyMapping[g] ?? g,
+      }));
+    };
+    query.group = handleGroups(groups);
+  }
+
+  if (params) {
+    // 处理 params，获取统计范围 iql
+    const payload = await getPayload(params);
+    const { iql } = iqlSearchParamsBuilder({
+      payload,
+      limit: InfinityLimit,
+      order: [],
+    });
+    query.iql = iql;
+  }
+
+  const getGroupedCaseCount = async ({ group, iql }) => {
+    const {
+      payload: { value: result },
+    } = await aggsSearch({
+      size: 99999,
+      group,
+      value: [
+        {
+          key: 'count',
+          name: 'count',
+          fieldType: 'count',
+          compute: 'count',
+        },
+      ],
+      iql,
+      iqlContext: {
+        displayContext: 'test_manager',
+      },
+    });
+    return result;
+  };
+
+  const handleResult = (data, groupInfo) => {
+    if (typeof groupInfo === 'string') {
+      return data.map(d => ({
+        [groupInfo]: d[TestFiledKeyMapping[groupInfo]],
+        count: d.count,
+      }));
+    }
+
+    const getGroupValue = (group, d) =>
+      group.reduce(
+        (prev, cur) => ({
+          ...prev,
+          [cur]: d[TestFiledKeyMapping[cur]],
+        }),
+        {},
+      );
+
+    return data.map(d => ({
+      ...getGroupValue(groupInfo, d),
+      count: d.count,
+    }));
+  };
+
+  // 需要统计计划下的测试用例关联的测试执行
+  if (linkParams) {
+    const { planId, workspaceKey, caseIds } = linkParams;
+
+    // 获取测试计划下的测试执行任务 id
+    const {
+      data: { list: testExecution },
+    } = await iqlRequest<TestRunEntityType>({
+      query: {
+        workspaceKey,
+      },
+      linkQuery: {
+        sourceIds: [planId],
+        destinationType: TestType.Execution,
+        linkType: TestLinkType.ExecutionLinkPlan,
+      },
+      fields: [SystemField.Id, TestFiledKeyMapping.referenceCase],
+      pagination: { limit: InfinityLimit, offset: 0 },
+    });
+
+    const executionIds = testExecution?.map(d => d.objectId);
+    const linkParam = {
+      query: {
+        workspaceKey,
+        referenceCase: caseIds,
+      },
+      onlySelectId: false,
+      linkType: TestLinkType.RunLinkExecution,
+      destinationType: TestType.Run,
+      sourceIds: executionIds,
+      fields: [SystemField.Id, TestFiledKeyMapping.referenceCase],
+      limit: InfinityLimit,
+      sessionToken,
+    };
+    const payload = await getPayload(linkParam);
+    const { iql: linkIql } = iqlSearchParamsBuilder({
+      payload,
+      limit: InfinityLimit,
+      order: [],
+    });
+    query.iql = linkIql;
+  }
+
+  try {
+    const groupData = await getGroupedCaseCount(query);
+    return {
+      code: 200,
+      data: handleResult(groupData, groups),
+    };
+  } catch (error) {
+    return {
+      code: '202',
+      message: error?.message ?? error,
+    };
+  }
 };

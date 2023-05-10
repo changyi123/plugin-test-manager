@@ -63,7 +63,7 @@ const Right: React.FC<RightProps> = props => {
 
   const testEntitySelectorRef = useRef<ModelActionType>();
   const detailSearchRef = useRef(null);
-  const [curTestRuns, setCurTestRuns] = useState<Record<string, any>[] | undefined>(undefined);
+  // const [curTestRuns, setCurTestRuns] = useState<Record<string, any>[] | undefined>(undefined);
 
   const [tableSelectionVisible, setTableSelectionVisible] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -126,7 +126,7 @@ const Right: React.FC<RightProps> = props => {
     });
     proxima.execute('refreshTestRunPanel');
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedExecution, selectedTestPlan, curTestRuns]);
+  }, [selectedExecution, selectedTestPlan]);
 
   const filterSearchExtendFieldsProps = useMemo(() => {
     const fieldsMapping = {
@@ -197,7 +197,7 @@ const Right: React.FC<RightProps> = props => {
                 <div className={cx('rate')}>
                   <ExecutionStatus
                     selectedExecution={selectedExecution}
-                    setCurTestRuns={setCurTestRuns}
+                    // setCurTestRuns={setCurTestRuns}
                   />
                 </div>
               </>
@@ -248,6 +248,7 @@ const Right: React.FC<RightProps> = props => {
           extendFields={filterSearchExtendFieldsProps}
           fields={getFilterFields([].concat(SystemFieldKeys, testCaseFieldKeys))}
           testType={TestType.Case}
+          storageKey={activeType === 'TestPlan' ? 'testPlan' : 'testExecution'}
         />
       </div>
       <div data-element-id="test-manager-execution-table-body" className={cx('box-body')}>
