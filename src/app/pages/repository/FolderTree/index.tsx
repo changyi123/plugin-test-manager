@@ -493,8 +493,9 @@ const FolderTree: React.FC<FolderTreeProps> = ({
       });
 
       await onFolderTreeChange();
+      repositoryFolderTreeEvent.dispatch();
     },
-    [onFolderTreeChange],
+    [onFolderTreeChange, repositoryFolderTreeEvent],
   );
 
   const titleRender = React.useCallback(
