@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { v4 as uuid } from 'uuid';
 import { useRequest } from 'ahooks';
 import { store } from '@nebulare/data';
@@ -28,6 +28,9 @@ import { union } from 'lodash';
 import { useGetPermissions } from './hooks';
 import useI18n from '@/lib/hooks/useI18n';
 import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/hook';
+import { useGetWorkspaceRepository } from '@/lib/hooks/useTest';
+import { useLocation } from 'react-router-dom';
+import { repositoryFolderTreeEvent } from '@/lib/events';
 
 const ItemCreateSuccessEventType = 'itemCreateSuccess';
 const DefaultTestConfig = {} as TestConfigContextType['config'];
@@ -367,6 +370,13 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
     testType: TestType.Case,
     workspaceKey,
   });
+  const { pathname } = useLocation();
+
+  const getTestCaseRepositoryPath = useGetWorkspaceRepository(workspaceKey);
+
+  useEffect(() => {
+    pathname && repositoryFolderTreeEvent.dispatch();
+  }, [pathname]);
 
   // const testExecutionFieldKeys = useTestTypeScreenFieldKeys({
   //   testType: TestType.Execution,
@@ -583,6 +593,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
       },
       getGlobalConfig,
       getCreatePermission,
+      getTestCaseRepositoryPath,
       testPlanFieldKeys,
       testCaseFieldKeys,
       // testExecutionFieldKeys,
@@ -593,6 +604,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
   }, [
     getGlobalConfig,
     getCreatePermission,
+    getTestCaseRepositoryPath,
     testConfig.defectsMapping,
     testConfig?.itemTypeMap,
     workspace?.objectId,

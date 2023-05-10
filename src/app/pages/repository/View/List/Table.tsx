@@ -23,7 +23,8 @@ import { getCurrentUserSetting, saveUserSetting } from '@/lib/api/userSetting';
 import { useCurrentUser } from '@/lib/api/user';
 import fetch from '@/lib/utils/fetch';
 import useI18n from '@/lib/hooks/useI18n';
-import { RepositoryGroupCell } from '@/pages/Cell';
+import { useGetWorkspaceRepository } from '@/lib/hooks/useTest';
+import RenderRepository from '@/components/business/RenderRepository';
 
 import cx from './Table.less';
 
@@ -371,12 +372,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         title: t('page.plan.testEntityList.repositoryGroup'),
         width: 200,
         render(_, rowData) {
-          return (
-            <RepositoryGroupCell
-              repository={rowData?.repository}
-              workspaceKey={rowData?.workspace?.key}
-            />
-          );
+          return <RenderRepository repository={rowData?.repository} />;
         },
       },
       {
