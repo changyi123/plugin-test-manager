@@ -155,7 +155,7 @@ const ExecutionList: React.FC<ExecutionListProps> = ({
   const hideList = (executionList ?? [])?.slice(5, executionList?.length ?? 0);
 
   const hideMenu = () => (
-    <Menu>
+    <Menu className={cx('hide-menu-box')}>
       {hideList.map(d => (
         <Menu.Item key={d.objectId}>
           <div

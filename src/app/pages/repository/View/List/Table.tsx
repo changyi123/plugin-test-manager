@@ -97,7 +97,13 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
     // 复制用例事项更新自定义字段
     if (itemId) {
       const updateRes = await updateTestEntity([
-        { objectId: itemId, sortIndex: generateSortIndex(1) },
+        {
+          objectId: itemId,
+          sortIndex: generateSortIndex(1),
+          caseStatues: {},
+          linkType: null,
+          linkItems: null,
+        },
       ]);
       if (updateRes?.status === 'error') {
         message.error(updateRes.data);
@@ -269,7 +275,13 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
       }
 
       const updateRes = await updateTestEntity([
-        { objectId: res.objectId, sortIndex: generateSortIndex(1) },
+        {
+          objectId: res.objectId,
+          sortIndex: generateSortIndex(1),
+          caseStatues: {},
+          linkType: null,
+          linkItems: null,
+        },
       ]);
       if (updateRes?.status === 'error') {
         setTableLoading(false);

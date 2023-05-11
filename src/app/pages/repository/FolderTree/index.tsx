@@ -49,7 +49,7 @@ const openFolderNameModal: OpenFolderNameModal = ({ title, name, validator, t })
     ref: ele => (inputRef = ele),
     defaultValue: name,
     placeholder: t('page.repository.folderTree.placeholder'),
-    maxLength: 40,
+    maxLength: 100,
   };
   const input = <Input {...inputProps} />;
   return new Promise((resolve, reject) => {

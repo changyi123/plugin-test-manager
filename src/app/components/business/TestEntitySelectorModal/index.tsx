@@ -449,7 +449,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
           >
             {cancel?.name ?? t('common.cancel')}
           </Button>
-          <Button type="primary" onClick={handleOkButtonClick}>
+          <Button type="primary" disabled={!selectValue?.length} onClick={handleOkButtonClick}>
             {ok?.name ?? t('common.confirm')}
           </Button>
         </div>
@@ -466,6 +466,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
     setSelectValue,
     isSingleMode,
     setVisible,
+    selectValue,
   ]);
 
   const testSelectNode = useMemo(() => {

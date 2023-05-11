@@ -10,7 +10,7 @@ import { useOnItemCreateSuccess } from '@/lib/hooks/useProximaSDK';
 import { openCreateItemModal, openItemDetailPanel } from '@/lib/api/sdk';
 import { getTestConfig, getTestConfigByWorkspaceKeys } from '@/lib/api/common';
 import { getItemByIds, getWorkspaceByKey, getItemTypeByKey } from '@/lib/api/proxima';
-import { getKeyByValue, generateSortIndex, hasArrayItem } from '@/lib/utils/helper';
+import { generateSortIndex, getKeyByValue, hasArrayItem } from '@/lib/utils/helper';
 import {
   TestConfigContext,
   BaseActionContext,
@@ -19,7 +19,8 @@ import {
 } from './context';
 import { ExtensionValType, CREATE_ITEM_STORE_FIELD_KEY, TestType } from '@/lib/constants';
 import { getTestEntityByQuery, updateTestEntity } from '@/lib/api/item';
-import { union } from 'lodash';
+import union from 'lodash/union';
+import isEmpty from 'lodash/isEmpty';
 import { useGetPermissions } from './hooks';
 import useI18n from '@/lib/hooks/useI18n';
 import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/hook';
@@ -98,20 +99,21 @@ const getOrCreateTestEntity = async (
       }
       console.info('extraFields', extraFields);
     }
-    const data = await updateTestEntity([
-      {
-        objectId: itemData.objectId,
-        name: itemData.name,
-        ...needCreatedItem,
-        type: testType,
-        sortIndex: generateSortIndex(1),
-      },
-    ]);
-    if (data?.status === 'error') {
-      message.error(data.data);
-      return;
+
+    if (!isEmpty(needCreatedItem)) {
+      const data = await updateTestEntity([
+        {
+          objectId: itemData.objectId,
+          name: itemData.name,
+          ...needCreatedItem,
+        },
+      ]);
+      if (data?.status === 'error') {
+        message.error(data.data);
+        return;
+      }
+      testEntity = data?.[0];
     }
-    testEntity = data?.[0];
     console.info('new testEntity', testEntity);
     return testEntity;
   }
@@ -244,23 +246,26 @@ const getOrBatchCreateTestEntities = async (
         ? {
             repository,
             detail: restFields,
+            sortIndex: generateSortIndex(index + 1),
           }
         : {};
 
     return {
       name: item.name,
       objectId: item.objectId,
-      sortIndex: generateSortIndex(index + 1),
-      type: getItemType(item.workspace.key, item.itemType.key),
       ...extraFields,
     };
   });
-  const res = await updateTestEntity(needCreatedTestEntities);
-  if (res?.status === 'error') {
-    message.error(res.data);
-    return;
+  if (needCreatedTestEntities.length) {
+    const res = await updateTestEntity(needCreatedTestEntities);
+    if (res?.status === 'error') {
+      message.error(res.data);
+      return;
+    }
+    return res;
   }
-  return res;
+
+  return itemList;
 };
 
 type RepositoryDataProviderProps = {

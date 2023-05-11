@@ -37,6 +37,7 @@ import { useLocation } from 'react-router-dom';
 import { generateStorageKey } from '@/lib/utils/helper';
 
 import cx from './index.less';
+import { handleDataSelector } from './utils';
 
 interface FilterSearchProps {
   fields: string[];
@@ -83,7 +84,7 @@ const useSelectorStorage = (
 
     if (!invokeRef.current && isEmptySelectors && storageSelectors) {
       invokeRef.current = true;
-      setSelectors(storageSelectors);
+      setSelectors(handleDataSelector(storageSelectors));
     }
   }, [selectors, setSelectors, enableLocalStorage, storage, isEmptySelectors]);
 
@@ -126,7 +127,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
   });
 
   const setSelectorsFromStorageValue = useMemoizedFn(selectors => {
-    setSelectors(selectors);
+    setSelectors(handleDataSelector(selectors));
     searchFn(true);
   });
 
@@ -169,10 +170,12 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
 
   useEffect(() => {
     if (defaultSelectors) {
-      setSelectors({
-        ...defaultSelectors,
-        ...selectors,
-      });
+      setSelectors(
+        handleDataSelector({
+          ...defaultSelectors,
+          ...selectors,
+        }),
+      );
     }
   }, [defaultSelectors]);
 
@@ -235,7 +238,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
         value: searchValue === undefined ? search : searchValue,
         fieldLabel: fieldsName,
       };
-      setSelectors(data);
+      setSelectors(handleDataSelector(data));
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [search, JSON.stringify(fieldsName)],
