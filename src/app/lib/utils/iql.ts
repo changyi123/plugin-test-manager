@@ -321,8 +321,10 @@ const getComponentValue: (selector: SelectCase) => componentValueProps = selecto
     return { curIqlValue: `'${getValFromSelector(value?.[0])}'`, nullIql };
   }
 
+  const nullValue = value === NULL ? null : `${value.toString()}`;
+
   return {
-    curIqlValue: Array.isArray(value) ? `${JSON.stringify(value)}` : `'${value.toString()}'`,
+    curIqlValue: Array.isArray(value) ? `${JSON.stringify(value)}` : nullValue,
     nullIql,
   };
 };
@@ -373,7 +375,7 @@ const getCurIqlValue = (fieldName: string, selector): IQL => {
   const iqlBefore = `'${fieldName}' ${condition}`;
   // 确保 curIqlValue 不为空
   const hasCurlIql =
-    curIqlValue.length > 0 &&
+    curIqlValue?.length > 0 &&
     curIqlValue !== '[]' &&
     curIqlValue !== '{}' &&
     curIqlValue !== '[object Object]';

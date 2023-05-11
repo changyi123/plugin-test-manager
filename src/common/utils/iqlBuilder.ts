@@ -29,6 +29,10 @@ const whereProcessor = (column, value, operator: Operator) => {
       value = Array.isArray(value) ? value : [value];
       return `'${column}' ${operator} [${value.map(val => `"${val}"`).join(', ')}]`;
     case Operator.Is:
+      if (typeof value === 'number') return `'${column}' ${operator} ${value}`;
+      return typeof value === 'string'
+        ? `'${column}' ${operator} '${value}'`
+        : `'${column}' ${operator} ${value}`;
     case Operator.Like:
     case Operator.Equal:
     case Operator.NotEqual:
