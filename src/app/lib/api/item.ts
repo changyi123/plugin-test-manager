@@ -243,6 +243,23 @@ export const updateTestEntity = async data => {
 };
 
 // 复制测试用例
+export const copyTestCase = async (data: CopyTestCasePayload) => {
+  try {
+    const { data: copyItemData } = await fetch.post(
+      `${pluginWebTriggerBaseUrl}/api-batch-copy-test-case`,
+      {
+        ...data,
+        sessionToken: getSessionToken(),
+      },
+    );
+
+    return copyItemData;
+  } catch (error) {
+    return error;
+  }
+};
+
+// 复制测试用例
 export const copyTesCase = async (data: CopyTestCasePayload) => {
   try {
     const { data: copyItemData } = await fetch.post('/parse/api/items/clone', {

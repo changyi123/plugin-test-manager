@@ -4,12 +4,13 @@ import { iqlRequest } from '../../lib/iqlRequest';
 import { buildResponse } from '../../lib/apiUtil';
 import { TestEntity } from '../../../common/types/test';
 import { getReqInfoFromVMRuntime } from '../../lib/apiUtil';
-import { generateSortIndex } from '../../lib/helper';
+import { generateSortIndex, concatIqlRequestFields } from '../../lib/helper';
 import { itemToTestEntity } from '../../../common/utils/dataTransfer';
 import { batchDeleteItems, batchUpdateItems, batchCreateItems } from '../../lib/batchRequest';
 import {
   BatchDeletePayload,
   BatchUpdatePayload,
+  BatchCopyTestCasePayload,
   BatchCreateTestRunPayload,
   BatchCreateTestCasePayload,
 } from '../../../common/types/api';
@@ -23,6 +24,7 @@ import {
   BuiltInItemTypeMapping,
 } from '../../../common/constant';
 import { getItemCreateRequiredAttrs } from '../../lib/item';
+import { i18n } from '@giteeteam/apps-team-api';
 
 type TestCaseType = TestEntity<TestType.Case>;
 type TestRunType = TestEntity<TestType.Run>;
@@ -397,6 +399,40 @@ export const batchCreateTestRun = async () => {
     console.info('create success res: ', createdItemIds);
     return buildResponse(createdItemIds);
     // 查询测试执行任务
+  } catch (err) {
+    return buildResponse(err);
+  }
+};
+
+/** 批量复制测试用例 */
+export const batchCopyTestCase = async () => {
+  try {
+    const {
+      body: { caseIds, fields },
+    } = getReqInfoFromVMRuntime<BatchCopyTestCasePayload>();
+    const copyName = i18n.t('trigger.copyName');
+
+    const {
+      data: { list: caseList },
+    } = await iqlRequest<TestCaseType>({
+      query: {
+        id: caseIds,
+      },
+      pagination: { limit: InfinityLimit },
+      fields: concatIqlRequestFields(fields),
+    });
+
+    const needCreateItems = caseList.map((data, index) => ({
+      name: `${data.name}_${copyName}`,
+      type: data.type,
+      sortIndex: generateSortIndex(index),
+      workspace: data.workspace,
+      values: data.values,
+      itemType: data.itemType,
+    }));
+
+    const copyItems = await batchCreateItems(needCreateItems as any);
+    return buildResponse(copyItems);
   } catch (err) {
     return buildResponse(err);
   }

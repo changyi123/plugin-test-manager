@@ -20,6 +20,8 @@ export type BaseTestEntity = {
   objectId: string;
   /** 事项编号 */
   key: string;
+  /** 事项类型 */
+  itemType: { objectId: string; name: string; key: string; icon: string };
   /** 测试实体类型 */
   type: TestType;
   /** 测试关联项 */

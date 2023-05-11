@@ -1,3 +1,5 @@
+import { IQLUsefulFieldKeys } from '../../common/constant';
+
 export const toArray = data => (Array.isArray(data) ? data : [data]);
 
 export const uuidv4 = () => {
@@ -14,4 +16,10 @@ export const uuidv4 = () => {
 
 export const generateSortIndex = (index = 0) => {
   return Math.floor(Date.now() / 1000) * 10e5 + index * 1000;
+};
+
+// 处理 iql 请求的自定义字段
+export const concatIqlRequestFields = fields => {
+  // fields 字段需要拼接测试实体字段和事项的必填字段
+  return Array.from(new Set([].concat(IQLUsefulFieldKeys, fields)));
 };

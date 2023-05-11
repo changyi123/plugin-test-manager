@@ -556,7 +556,8 @@
           "Test cases failed, please execute the pass and proceed with the state flow"
         ]
       }
-    }
+    },
+    "copyName": "copy"
   },
   "components": {
     "business": {

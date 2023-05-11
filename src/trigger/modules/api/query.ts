@@ -4,7 +4,7 @@
 
 // app cli 不支持指定 tsconfig 需要使用相对路径
 import pick from 'lodash/pick';
-import { toArray } from '../../lib/helper';
+import { toArray, concatIqlRequestFields } from '../../lib/helper';
 import { iqlRequest } from '../../lib/iqlRequest';
 import { testEntityFieldTypeValidator } from '../../lib/validator';
 import { getReqInfoFromVMRuntime, buildPaginationResponse, buildResponse } from '../../lib/apiUtil';
@@ -18,18 +18,11 @@ import {
   TestLinkType,
   InfinityLimit,
   StartStatusKey,
-  IQLUsefulFieldKeys,
   TestFiledKeyMapping,
   IQLRequiredFieldKeys,
   SystemFieldNameMapping,
 } from '../../../common/constant';
 import { TestEntity } from 'common/types/test';
-
-// 处理 iql 请求的自定义字段
-const concatIqlRequestFields = fields => {
-  // fields 字段需要拼接测试实体字段和事项的必填字段
-  return Array.from(new Set([].concat(IQLUsefulFieldKeys, fields)));
-};
 
 const overwriteIqlParamsWithOnlySelectId = onlySelectId => {
   if (onlySelectId) {

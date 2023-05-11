@@ -543,7 +543,8 @@
         ],
         "shenwanWorkflowMessage": ["测试计划下有", "条测试用例未通过，请执行通过在进行状态流转"]
       }
-    }
+    },
+    "copyName": "副本"
   },
   "components": {
     "business": {

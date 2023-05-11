@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import useI18n from '@/lib/hooks/useI18n';
 import Table, { ActionType } from './Table';
 import { reverseTreeNodes } from '../../util';
@@ -8,7 +8,7 @@ import { Button, notification, Select } from 'antd';
 import { useRequest, useUpdateEffect } from 'ahooks';
 import { logPluginVersion } from '@/lib/utils/helper';
 import { UNGROUPED_FOLDER_KEY } from '../../constant';
-import { getTestEntityByQuery, getTestStats } from '@/lib/api/item';
+import { copyTestCase, getTestEntityByQuery, getTestStats } from '@/lib/api/item';
 import { getRepositoryQuery } from '@/lib/utils/tree';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import { useBaseAction } from '@/lib/hooks/useContext';
@@ -140,6 +140,16 @@ const ListView: React.FC<ViewComponentProps> = ({
     [selectedNode, workspaceKey, groupedMode, selector, testCaseFieldKeys],
   );
 
+  const copyTestCases = useCallback(
+    async ids => {
+      return await copyTestCase({
+        caseIds: ids,
+        fields: [].concat(SystemFieldKeys, testCaseFieldKeys),
+      });
+    },
+    [testCaseFieldKeys],
+  );
+
   useUpdateEffect(() => {
     // 重置全部事项 ID
     if (workspaceKey && selectedNode) {
@@ -260,6 +270,7 @@ const ListView: React.FC<ViewComponentProps> = ({
           dataSourceGetter={dataSourceGetter}
           tableLoading={tableLoading}
           setTableLoading={setTableLoading}
+          copyTestCases={copyTestCases}
         />
       </div>
     </div>

@@ -54,6 +54,8 @@ modules:
       function: api-batch-create-test-run-function
     - key: api-batch-create-test-case
       function: api-batch-create-test-case-function
+    - key: api-batch-copy-test-case
+      function: api-batch-copy-test-case-function
     # 数据统计
     - key: api-stats-test-plan
       function: api-stats-test-plan-function
@@ -147,6 +149,10 @@ modules:
       timeout: 300000
     - key: api-batch-create-test-case-function
       handler: api.batchCreateTestCase
+      # 5 分钟超时时长
+      timeout: 300000
+    - key: api-batch-copy-test-case-function
+      handler: api.batchCopyTestCase
       # 5 分钟超时时长
       timeout: 300000
 
