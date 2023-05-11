@@ -16,12 +16,18 @@ import { StatusProgress } from '@/components/business/Status';
 import { updateTestEntity, getLinkedTestEntityByQuery, getTestStats } from '@/lib/api/item';
 import useI18n from '@/lib/hooks/useI18n';
 import cx from './index.less';
+import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/hook';
 
 const Test = () => {
   const { t } = useI18n();
   const { testEntity, workspace } = useTestConfig();
   const tableActionRef = React.useRef<ActionType>();
   const selectorModalRef = React.useRef<SelectorActionType>();
+
+  const testExecutionFieldKeys = useTestTypeScreenFieldKeys({
+    testType: TestType.Execution,
+    workspaceKey: workspace.key,
+  });
 
   const [allTestEntities, setAllTestEntities] = useState([]);
 
@@ -233,6 +239,7 @@ const Test = () => {
         actionRef={selectorModalRef}
         title={t('modules.panel.testPlan.testExecutionPanel.modelTitle')}
         ignoreTestEntityIds={allTestEntities?.map(item => item.objectId)}
+        tableFieldsKeys={testExecutionFieldKeys}
         width={800}
       />
 
