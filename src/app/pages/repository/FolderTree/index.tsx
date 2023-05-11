@@ -512,8 +512,8 @@ const FolderTree: React.FC<FolderTreeProps> = ({
       return (
         <DropTreeTitle key={node.key} nodeKey={node.key} onItemDrop={handleItemDrop}>
           <>
-            <OverflowTooltip title={node.name}>
-              <span className={cx('tree-node-name')}>{node.name}</span>
+            <OverflowTooltip className={cx('tree-node-name')} title={node.name}>
+              <span>{node.name}</span>
             </OverflowTooltip>
 
             <span

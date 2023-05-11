@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useRequest } from 'ahooks';
-import { Dropdown, Menu, message, notification, Tooltip } from 'antd';
+import { Dropdown, Menu, message, notification } from 'antd';
 import { EllipsisOutlined } from '@ant-design/icons';
 import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
 import { useLocation } from 'react-router-dom';
@@ -9,6 +9,7 @@ import { usePageContext } from '../../hook';
 import { deleteTestEntity, getLinkedTestEntityByQuery } from '@/lib/api/item';
 import { TestLinkType, TestType } from 'common/constant';
 import useI18n from '@/lib/hooks/useI18n';
+import OverflowTooltip from '@/components/common/OverflowTooltip';
 
 import cx from './index.less';
 
@@ -167,7 +168,11 @@ const ExecutionList: React.FC<ExecutionListProps> = ({
               setSelectedExecution(d);
             }}
           >
-            <div className={cx('name')}>{d.name}</div>
+            <div className={cx('name')}>
+              <OverflowTooltip placement="topLeft" title={d?.name ?? ''}>
+                {d?.name}
+              </OverflowTooltip>
+            </div>
             <div className={cx('icon')}>
               <Dropdown overlay={menu(d)} trigger={['hover']}>
                 <EllipsisOutlined className={cx('action', 'right')} style={{ display: 'flex' }} />
@@ -198,9 +203,9 @@ const ExecutionList: React.FC<ExecutionListProps> = ({
                     }}
                   >
                     <div className={cx('name')} onClick={e => e.preventDefault()}>
-                      <Tooltip placement="topLeft" title={d?.name ?? ''}>
+                      <OverflowTooltip placement="topLeft" title={d?.name ?? ''}>
                         {d?.name}
-                      </Tooltip>
+                      </OverflowTooltip>
                     </div>
                     <div className={cx('icon')}>
                       <Dropdown overlay={menu(d)} trigger={['hover']}>
