@@ -45,8 +45,8 @@ export const getPluginWebTriggerBaseUrl = () => {
 export const hasArrayItem = (arr?: unknown[]) => Boolean(Array.isArray(arr) && arr.length);
 
 export const getRootContainer = () =>
-  (document.querySelector('#osc-proxima') ??
-    document.querySelector('#test-manager')) as HTMLElement;
+  (document.querySelector('#test-manager') ??
+    document.querySelector('#osc-proxima')) as HTMLElement;
 
 export const getTestManagerContainer = () => document.querySelector('#test-manager') as HTMLElement;
 

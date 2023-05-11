@@ -1,5 +1,5 @@
-import { useMemoizedFn, useRequest } from 'ahooks';
-import { Button, Dropdown, Menu, message } from 'antd';
+import { useBoolean, useMemoizedFn, useRequest } from 'ahooks';
+import { Button, Dropdown, message, Spin } from 'antd';
 import { MinderNodeType, TestType } from 'common/constant';
 import React from 'react';
 import MinderEditor from 'test-manager-minder';
@@ -15,19 +15,24 @@ import {
   getPriorityOptions,
 } from '@/lib/api/minder';
 import { createRepositories } from '@/lib/api/repository';
+import { getAppEnv } from '@/lib/appEnv';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import { useBaseAction } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import { useNoExpiredRequest } from '@/lib/hooks/useRequest';
-import { exportAndDownloadXMind } from '@/lib/minder';
+import { exportAndDownloadXMind, validateMinderData } from '@/lib/minder';
 import { getProximaBasePath, getTenantKey } from '@/lib/utils/helper';
 import { getLang } from '@/lib/utils/locale';
 
 import { ViewComponentProps } from '../type';
 import cx from './index.less';
+import { openMaxRenderNodeConfirm } from './MaxRenderNodeConfirm';
 
 // TODO: 同层级重名模块报错
 const MaxModuleLevel = 8;
+const MaxRenderNodeCount = getAppEnv('MAX_RENDER_NODE_COUNT', 350);
+
+const EmptyNodeId = 'EmptyNodeId';
 
 const TestManagerMinder: React.FC<ViewComponentProps> = ({
   selectedNode,
@@ -36,12 +41,22 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
   onFolderTreeChange,
 }) => {
   const { t } = useI18n();
-  const { workspace } = useTestConfig();
   const actionRef = React.useRef(null);
-  const [saveLoading, setSaveLoading] = React.useState(false);
+  const { workspace } = useTestConfig();
   const { getCreatePermission } = useBaseAction();
+  const [cancelRender, setCancelRender] = React.useState(false);
+  const [saveLoading, setSaveLoading] = React.useState(false);
+  const [canRequestMinderData, { setTrue: enableRequestMinderData }] = useBoolean(false);
+  const [
+    minderInitialLoading,
+    { setTrue: startMinderInitialLoading, setFalse: endMinderInitialLoading },
+  ] = useBoolean(true);
 
-  const { data: minderData } = useRequest(
+  const {
+    data: minderData,
+    mutate: mutateMinderData,
+    loading: requestMinderDataLoading,
+  } = useRequest(
     async () => {
       const root = await getMinderData({
         workspaceKey: workspace?.key,
@@ -51,7 +66,7 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
       return { root };
     },
     {
-      ready: Boolean(workspace),
+      ready: Boolean(canRequestMinderData && workspace),
       // folderTreeData 变更也需要更新脑图数据
       refreshDeps: [workspace?.key, selectedNode?.key, folderTreeData],
     },
@@ -61,51 +76,20 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
     cacheKey: 'priority',
   });
 
-  // 取消渲染
-  const handleCancelRender = useMemoizedFn(() => {
-    toggleViewModel('list');
+  /** 渲染完成的时间 */
+  const handleAllLayoutFinish = useMemoizedFn(minderData => {
+    if (minderData.root.data?.id !== EmptyNodeId) {
+      endMinderInitialLoading();
+    }
   });
 
   /**
    * 校验保存数据是否合法
    * s1. 校验同层级下用例和模块名称都不一样
    */
-  const validateMinderData = useMemoizedFn(() => {
-    const minderData = actionRef.current.exportJson();
-    if (!minderData?.root) throw new Error(t('page.repository.view.minder.dataError'));
-    // 节点遍历
-    const nodeTraversal = (node, cb, paths = []) => {
-      paths = paths.concat(node);
-      cb(node, paths);
-
-      if (Array.isArray(node.children)) {
-        node.children.forEach(n => nodeTraversal(n, cb, paths));
-      }
-    };
-    nodeTraversal(minderData.root, (node, paths) => {
-      if (node.children?.length) {
-        const sameModuleNameTimes = {};
-
-        node.children.forEach(child => {
-          if (child.data.type === MinderNodeType.Module) {
-            const key = child.data.text;
-            sameModuleNameTimes[key] = (sameModuleNameTimes[key] ?? 0) + 1;
-          }
-        });
-
-        // 判断 name 是否出现多次
-        Object.entries(sameModuleNameTimes).forEach(([name, times]) => {
-          if ((times as number) > 1) {
-            const moduleNamePath = paths.map(path => path.data.text).join('/');
-            throw message.error(
-              `${t('page.repository.view.minder.nameRepeat.0')} “${moduleNamePath}” ${t(
-                'page.repository.view.minder.nameRepeat.1',
-              )}: ${name}`,
-            );
-          }
-        });
-      }
-    });
+  const validator = useMemoizedFn(minderData => {
+    const errorList = validateMinderData({ rootNode: minderData }, t);
+    return errorList;
   });
 
   /** 保存脑图数据
@@ -116,8 +100,13 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
    */
   const handleSave = useMemoizedFn(async () => {
     if (saveLoading) return;
+    // 校验数据是否合法
+    const passed = await actionRef.current.validateMinderData();
+    if (!passed) {
+      return message.error(t('page.repository.view.minder.hasExistedError'));
+    }
+
     const patches = actionRef.current.getMinderDataPatches();
-    validateMinderData();
 
     const getRepositoryDataFromLevelModulePaths = (levelModulePaths, modulePath) => {
       const moduleLevel = modulePath.length - 1;
@@ -368,12 +357,17 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
 
   // 导出 XMind 数据
   const handleXMindExport = useMemoizedFn(async () => {
+    if (requestMinderDataLoading)
+      return message.warn(t('page.repository.view.minder.waitForMinderDataLoading'));
     const hide = message.loading(t('page.repository.view.minder.exportLoadingMessage'));
-    await exportAndDownloadXMind(minderData, {
-      t,
-      priorityOptions,
-    });
-    setTimeout(hide, 500);
+
+    setTimeout(async () => {
+      await exportAndDownloadXMind(minderData, {
+        t,
+        priorityOptions,
+      });
+      setTimeout(hide, 500);
+    }, 200);
   });
 
   // 导入 XMind 数据，打开新页面
@@ -391,27 +385,36 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
   });
 
   const memoizedButtonNode = React.useMemo(() => {
+    const canCreateTestCase = !getCreatePermission(TestType.Case);
     return (
       <div>
-        <Button onClick={handleSave} loading={saveLoading} type="primary">
+        <Button
+          type="primary"
+          onClick={handleSave}
+          loading={saveLoading}
+          disabled={cancelRender || !canCreateTestCase}
+        >
           {t('common.save')}
         </Button>
         <Dropdown
           getPopupContainer={() =>
             document.querySelector('[data-element-id="minder-editor-container"]')
           }
-          overlay={
-            <Menu>
-              {!getCreatePermission(TestType.Case) && (
-                <Menu.Item key="XMindImport" onClick={handleXMindImport}>
-                  {t('page.repository.view.minder.import')}
-                </Menu.Item>
-              )}
-              <Menu.Item key="XMindExport" onClick={handleXMindExport}>
-                {t('page.repository.view.minder.export')}
-              </Menu.Item>
-            </Menu>
-          }
+          onOpenChange={() => enableRequestMinderData()}
+          menu={{
+            items: [
+              canCreateTestCase && {
+                key: 'XMindImport',
+                label: t('page.repository.view.minder.import'),
+                onClick: handleXMindImport,
+              },
+              {
+                key: 'XMindExport',
+                label: t('page.repository.view.minder.export'),
+                onClick: handleXMindExport,
+              },
+            ].filter(Boolean),
+          }}
         >
           <Button className={cx('menu-action')} icon={<CustomMore />} />
         </Dropdown>
@@ -419,22 +422,65 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
     );
   }, [handleSave, saveLoading, t, getCreatePermission, handleXMindImport, handleXMindExport]);
 
-  if (!priorityOptions || !minderData) return null;
+  // 模块切换先判断是否需要渲染，避免大数据量节点渲染导致页面卡顿
+  React.useEffect(() => {
+    // 切换模块时，重置渲染状态
+    setCancelRender(false);
+    startMinderInitialLoading();
+    // 切换模块时，重置脑图数据
+    mutateMinderData(undefined);
+    // 判断节点数量是否超过 350 个，超过 350 个需要增加是否继续渲染的弹窗提示
+    if (selectedNode.counts[1] > MaxRenderNodeCount) {
+      openMaxRenderNodeConfirm({
+        onNext: () => {
+          enableRequestMinderData();
+        },
+        onGoBack: () => {
+          toggleViewModel('list');
+        },
+        onCancel: () => {
+          setCancelRender(true);
+          endMinderInitialLoading();
+          enableRequestMinderData();
+        },
+      });
+    } else {
+      enableRequestMinderData();
+    }
+  }, [selectedNode]);
+
+  // 渲染数据
+  const minderRenderData = React.useMemo(() => {
+    const EmptyRootNode = {
+      root: {
+        data: { id: EmptyNodeId, type: MinderNodeType.Module, text: selectedNode.name },
+      },
+    };
+    if (requestMinderDataLoading || cancelRender) return EmptyRootNode;
+    return minderData ?? EmptyRootNode;
+  }, [minderData, requestMinderDataLoading, cancelRender]);
 
   // 只保留语言，不保留地区
   const lang = getLang()?.replace(/-\w+/g, '');
 
+  if (!priorityOptions) return null;
+
+  const spinning = !cancelRender && minderInitialLoading;
+
   return (
     <div className={cx('minder-view-container')}>
-      <MinderEditor
-        lang={lang}
-        data={minderData}
-        key={workspace.key}
-        actionRef={actionRef}
-        priorityOptions={priorityOptions}
-        onRenderCancel={handleCancelRender}
-        renderFixRightAction={() => memoizedButtonNode}
-      />
+      <Spin spinning={spinning}>
+        <MinderEditor
+          lang={lang}
+          key={workspace.key}
+          actionRef={actionRef}
+          data={minderRenderData}
+          validator={validator}
+          priorityOptions={priorityOptions}
+          onAllLayoutFinish={handleAllLayoutFinish}
+          renderFixRightAction={() => memoizedButtonNode}
+        />
+      </Spin>
     </div>
   );
 };

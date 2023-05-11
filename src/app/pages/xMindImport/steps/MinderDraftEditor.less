@@ -1,8 +1,21 @@
 .container {
   height: 100%;
   overflow: hidden;
+  p {
+    margin-bottom: 0;
+  }
+
   :global {
     .hotbox {
+      display: none;
+    }
+    .ant-drawer-header {
+      padding: 0 24px;
+    }
+    .ant-drawer-body {
+      padding: 0;
+    }
+    .ant-tooltip-arrow {
       display: none;
     }
     .ant-drawer-title {
@@ -31,21 +44,6 @@
     }
     .ant-result-title {
       font-size: 16px;
-    }
-  }
-  p {
-    margin-bottom: 0;
-  }
-
-  :global {
-    .ant-drawer-header {
-      padding: 0 24px;
-    }
-    .ant-drawer-body {
-      padding: 0;
-    }
-    .ant-tooltip-arrow {
-      display: none;
     }
   }
 }

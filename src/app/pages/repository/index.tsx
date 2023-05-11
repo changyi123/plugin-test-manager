@@ -8,7 +8,7 @@ import ErrorBoundary from '@/components/common/ErrorBoundary';
 import PageLayout from '@/components/common/PageLayout';
 import { getDevConfig } from '@/devEnv';
 import { getRepositoryTreeV2 } from '@/lib/api/item';
-import { featureFlags } from '@/lib/feature';
+import { featureFlags } from '@/lib/appEnv';
 import useI18n from '@/lib/hooks/useI18n';
 import { logPluginVersion } from '@/lib/utils/helper';
 import FolderTree from '@/pages/repository/FolderTree';
@@ -77,6 +77,12 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
   const selectedNode = React.useMemo(() => {
     return getTreeNodeByKey(folderTreeData, selectedNodeKey);
   }, [folderTreeData, selectedNodeKey]);
+
+  React.useEffect(() => {
+    if (viewMode !== 'minder')
+      // 折叠右侧面板
+      (window as any).globalState?.setItem?.('collapsedStatus', true);
+  }, [viewMode]);
 
   return (
     <PageLayout className={cx('test-repository')}>

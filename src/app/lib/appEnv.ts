@@ -1,3 +1,5 @@
+import { get } from 'lodash';
+
 /**
  * feature flags 通过应用中心环境变量控制功能
  * 默认功能为开，需要关闭该功能。变量需要以 disabled 开头
@@ -36,4 +38,11 @@ export function featureFlags(flags: SupportFeatureFlagKey | SupportFeatureFlagKe
   } else {
     return featureFlags.includes(SupportFeatureFlags[flags]);
   }
+}
+
+/**
+ * 获取环境变量值
+ */
+export function getAppEnv(key: string, defaultValue?: any) {
+  return get(window.QiankunProps?.context?.env, key) ?? defaultValue;
 }
