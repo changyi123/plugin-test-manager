@@ -30,7 +30,7 @@ import { openMaxRenderNodeConfirm } from './MaxRenderNodeConfirm';
 
 // TODO: 同层级重名模块报错
 const MaxModuleLevel = 8;
-const MaxRenderNodeCount = getAppEnv('MAX_RENDER_NODE_COUNT', 350);
+const MaxRenderNodeCount = getAppEnv('MAX_RENDER_NODE_COUNT', 300);
 
 const EmptyNodeId = 'EmptyNodeId';
 
@@ -46,7 +46,10 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
   const { getCreatePermission } = useBaseAction();
   const [cancelRender, setCancelRender] = React.useState(false);
   const [saveLoading, setSaveLoading] = React.useState(false);
-  const [canRequestMinderData, { setTrue: enableRequestMinderData }] = useBoolean(false);
+  const [
+    canRequestMinderData,
+    { setTrue: enableRequestMinderData, setFalse: disableRequestMinderData },
+  ] = useBoolean(false);
   const [
     minderInitialLoading,
     { setTrue: startMinderInitialLoading, setFalse: endMinderInitialLoading },
@@ -420,13 +423,23 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
         </Dropdown>
       </div>
     );
-  }, [handleSave, saveLoading, t, getCreatePermission, handleXMindImport, handleXMindExport]);
+  }, [
+    getCreatePermission,
+    handleSave,
+    saveLoading,
+    cancelRender,
+    t,
+    handleXMindImport,
+    handleXMindExport,
+    enableRequestMinderData,
+  ]);
 
   // 模块切换先判断是否需要渲染，避免大数据量节点渲染导致页面卡顿
   React.useEffect(() => {
     // 切换模块时，重置渲染状态
     setCancelRender(false);
     startMinderInitialLoading();
+    disableRequestMinderData();
     // 切换模块时，重置脑图数据
     mutateMinderData(undefined);
     // 判断节点数量是否超过 350 个，超过 350 个需要增加是否继续渲染的弹窗提示
@@ -447,7 +460,15 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
     } else {
       enableRequestMinderData();
     }
-  }, [selectedNode]);
+  }, [
+    disableRequestMinderData,
+    enableRequestMinderData,
+    endMinderInitialLoading,
+    mutateMinderData,
+    selectedNode,
+    startMinderInitialLoading,
+    toggleViewModel,
+  ]);
 
   // 渲染数据
   const minderRenderData = React.useMemo(() => {
@@ -458,7 +479,7 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
     };
     if (requestMinderDataLoading || cancelRender) return EmptyRootNode;
     return minderData ?? EmptyRootNode;
-  }, [minderData, requestMinderDataLoading, cancelRender]);
+  }, [selectedNode.name, requestMinderDataLoading, cancelRender, minderData]);
 
   // 只保留语言，不保留地区
   const lang = getLang()?.replace(/-\w+/g, '');

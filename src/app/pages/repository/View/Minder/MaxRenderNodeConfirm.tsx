@@ -4,8 +4,6 @@ import React from 'react';
 import { render, unmountComponentAtNode } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 
-import { getRootContainer } from '@/lib/utils/helper';
-
 import cx from './MaxRenderNodeConfirm.less';
 
 const ActionHookMethodKeys = ['onNext', 'onGoBack', 'onCancel'] as const;
@@ -19,10 +17,10 @@ const MaxRenderNodeConfirm: React.FC<ActionHookMethods> = props => {
 
   const footer = (
     <div>
+      <Button onClick={props.onNext}>{t('next')}</Button>
       <Button onClick={props.onCancel}>{t('cancel')}</Button>
-      <Button onClick={props.onGoBack}>{t('goBack')}</Button>
-      <Button type="primary" onClick={props.onNext}>
-        {t('next')}
+      <Button type="primary" onClick={props.onGoBack}>
+        {t('goBack')}
       </Button>
     </div>
   );
@@ -35,7 +33,7 @@ const MaxRenderNodeConfirm: React.FC<ActionHookMethods> = props => {
       closable={false}
       className={cx('modal')}
       bodyStyle={{ padding: 0 }}
-      getContainer={getRootContainer}
+      getContainer={() => document.querySelector('#test-manager')}
     >
       <div className={cx('confirm')}>
         <p className={cx('title')}>{t('title')}</p>

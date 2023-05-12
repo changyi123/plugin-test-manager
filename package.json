@@ -9,7 +9,7 @@
     "dev": "yarn start",
     "start": "cd src && webpack server --mode=development",
     "build-app": "sh ./build-app.sh",
-    "lint": "eslint src --ext .js,.jsx,.ts,.tsx",
+    "lint": "eslint --fix . --ext .js,.jsx,.ts,.tsx",
     "postinstall": "patch-package",
     "dev-trigger": "node scripts/triggerDev.js",
     "prepare": "husky install"
