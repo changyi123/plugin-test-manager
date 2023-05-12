@@ -449,7 +449,11 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
           >
             {cancel?.name ?? t('common.cancel')}
           </Button>
-          <Button type="primary" disabled={!selectValue?.length} onClick={handleOkButtonClick}>
+          <Button
+            type="primary"
+            disabled={isSingleMode ? !selectedTestDetails?.length : !selectValue?.length}
+            onClick={handleOkButtonClick}
+          >
             {ok?.name ?? t('common.confirm')}
           </Button>
         </div>

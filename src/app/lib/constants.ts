@@ -311,7 +311,7 @@ export const FILTER_EXPRESSIONS = t => ({
   Priority: [
     // 优先级
     { label: t('common.contain'), value: FILTER_EXPR_NAME.Priority_Contain },
-    { label: t('common.notContain1'), value: FILTER_EXPR_NAME.Priority_Not_Contain },
+    { label: t('common.notContain'), value: FILTER_EXPR_NAME.Priority_Not_Contain },
     { label: t('common.lessThan'), value: FILTER_EXPR_NAME.Priority_Less_Than },
     { label: t('common.greaterThan'), value: FILTER_EXPR_NAME.Priority_Greater_Than },
   ],
