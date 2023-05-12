@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React from 'react';
 import { pick } from 'lodash';
 import Parse from '@/lib/parse';
 import { useRequest, useMemoizedFn, clearCache } from 'ahooks';
@@ -140,11 +140,9 @@ export const useGetWorkspaceRepository = workspaceKey => {
       staleTime: -1,
     },
   );
-  const getTestCaseRepositoryPath = useCallback(
-    key => testCaseRepositoryPath?.get(key) ?? t('common.unGrouped'),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [testCaseRepositoryPath, t],
-  );
+  const getTestCaseRepositoryPath = useMemoizedFn(key => {
+    return testCaseRepositoryPath?.get(key) ?? t('common.unGrouped');
+  });
 
   React.useEffect(() => {
     return repositoryFolderTreeEvent.register(() => {

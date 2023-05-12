@@ -40,7 +40,7 @@ import {
   useGetFilterPlanLinkCaseIds,
 } from '../PlanPageLayout/hooks';
 import { getTestRunSelector } from '../PlanPageLayout/helps';
-import { RepositoryGroupCell } from '@/pages/Cell';
+import RenderRepository from '@/components/business/RenderRepository';
 
 import cx from './index.less';
 
@@ -520,12 +520,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         title: t('page.plan.testEntityList.repositoryGroup'),
         width: 200,
         render(_, rowData) {
-          return (
-            <RepositoryGroupCell
-              repository={rowData?.repository}
-              workspaceKey={rowData?.workspace?.key}
-            />
-          );
+          return <RenderRepository repository={rowData?.repository} />;
         },
       },
       {
@@ -678,12 +673,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         title: t('page.plan.testEntityList.repositoryGroup'),
         width: 200,
         render(_, rowData) {
-          return (
-            <RepositoryGroupCell
-              repository={rowData?.repository}
-              workspaceKey={rowData?.workspace?.key}
-            />
-          );
+          return <RenderRepository repository={rowData?.repository} />;
         },
       },
       {

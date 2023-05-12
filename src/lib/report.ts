@@ -13,7 +13,7 @@ window.Buffer = window.Buffer || require('buffer').Buffer;
 
 // FIXME: 通过域名 后面做成配置化
 const getDataSourcePath = () => {
-  const InspurEnvOriginReg = ['devops.ptest.com', 'devops.inspur.com', '192.168.48.34'].map(str =>
+  const InspurEnvOriginReg = ['devops.ptest.com', 'devops.inspur.com'].map(str =>
     escapeMatchesQueryArg(str),
   );
   if (InspurEnvOriginReg.some(reg => reg.test(window.location.origin)))
@@ -224,7 +224,6 @@ export default class TemplateGenerator {
     );
 
     const dataSetList = await Promise.all(dataSetFetchQueue);
-
     const mergedDataSetVariables = mergeWith(
       dataSetList[0],
       ...dataSetList.slice(1),

@@ -27,12 +27,14 @@ import {
   FileOpen,
 } from '@/icons';
 import { getTreeNodeByKey } from '../util';
-
 import { UNGROUPED_FOLDER_KEY } from '../constant';
 import useI18n from '@/lib/hooks/useI18n';
+import createProximaSdk from '@projectproxima/proxima-sdk-js';
+import { repositoryFolderTreeEvent } from '@/lib/events';
 
 import cx from './index.less';
-import { repositoryFolderTreeEvent } from '@/lib/events';
+
+const proxima = createProximaSdk();
 
 const { DirectoryTree } = Tree;
 
@@ -491,8 +493,9 @@ const FolderTree: React.FC<FolderTreeProps> = ({
       });
 
       await onFolderTreeChange();
+      repositoryFolderTreeEvent.dispatch();
     },
-    [onFolderTreeChange],
+    [onFolderTreeChange, repositoryFolderTreeEvent],
   );
 
   const titleRender = React.useCallback(
@@ -550,7 +553,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
   );
 
   const onDrop = useCallback(
-    info => {
+    async info => {
       const { node, dragNode } = info;
       const dropKey = node.key;
       const nodeChild = node?.children ?? [];
@@ -589,7 +592,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
           sortIndex: nodeChild?.length ? nodeChild[0]?.sortIndex - 10e5 : dragNode.sortIndex,
         };
 
-        updateRepository([needUpdateDragNode]);
+        await updateRepository([needUpdateDragNode]);
       } else if (
         ((node as any).children || []).length > 0 && // Has children
         dropPosition === 1 // On the bottom gap
@@ -608,7 +611,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
           sortIndex: nodeChild?.[num]?.sortIndex + 10e5,
         };
 
-        updateRepository([needUpdateDragNode]);
+        await updateRepository([needUpdateDragNode]);
       } else {
         // 平级拖拽，排序到目标节点后位，dropKey 为 root 不操作,
         if (dropKey === 'root') return;
@@ -623,10 +626,12 @@ const FolderTree: React.FC<FolderTreeProps> = ({
           parentKey: node.parentKey,
           ...getSortIndex(getTargetNodesSortIndex(treeData, node.parentKey, dropKey)),
         };
-        updateRepository([needUpdateDragNode]);
+        await updateRepository([needUpdateDragNode]);
       }
+      await repositoryFolderTreeEvent.dispatch();
+      await proxima.execute('updateItemList');
     },
-    [treeData, updateRepository],
+    [treeData, updateRepository, onFolderTreeChange],
   );
 
   return (
