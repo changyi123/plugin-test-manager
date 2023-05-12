@@ -429,9 +429,11 @@ export const batchCopyTestCase = async () => {
       workspace: data.workspace,
       values: data.values,
       itemType: data.itemType,
+      detail: data.detail,
+      repository: data.repository,
     }));
 
-    const copyItems = await batchCreateItems(needCreateItems as any);
+    const copyItems = await batchCreateItems(needCreateItems as any, fields);
     return buildResponse(copyItems);
   } catch (err) {
     return buildResponse(err);

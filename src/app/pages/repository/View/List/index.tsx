@@ -1,11 +1,11 @@
-import React, { useCallback } from 'react';
+import React from 'react';
 import useI18n from '@/lib/hooks/useI18n';
 import Table, { ActionType } from './Table';
 import { reverseTreeNodes } from '../../util';
 import RepoDropDown from '../../RepoDropDown';
 import { ViewComponentProps } from '../type';
 import { Button, notification, Select } from 'antd';
-import { useRequest, useUpdateEffect } from 'ahooks';
+import { useMemoizedFn, useRequest, useUpdateEffect } from 'ahooks';
 import { logPluginVersion } from '@/lib/utils/helper';
 import { UNGROUPED_FOLDER_KEY } from '../../constant';
 import { copyTestCase, getTestEntityByQuery, getTestStats } from '@/lib/api/item';
@@ -140,15 +140,12 @@ const ListView: React.FC<ViewComponentProps> = ({
     [selectedNode, workspaceKey, groupedMode, selector, testCaseFieldKeys],
   );
 
-  const copyTestCases = useCallback(
-    async ids => {
-      return await copyTestCase({
-        caseIds: ids,
-        fields: [].concat(SystemFieldKeys, testCaseFieldKeys),
-      });
-    },
-    [testCaseFieldKeys],
-  );
+  const copyTestCases = useMemoizedFn(async ids => {
+    return await copyTestCase({
+      caseIds: ids,
+      fields: [].concat(SystemFieldKeys, testCaseFieldKeys),
+    });
+  });
 
   useUpdateEffect(() => {
     // 重置全部事项 ID

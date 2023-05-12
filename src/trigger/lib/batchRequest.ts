@@ -66,6 +66,8 @@ export const batchCreateItems = async (
     itemType: TokenSchema;
     itemGroup: TokenSchema;
   } & Partial<BaseTestEntity>)[],
+  // 创建测试实体时取 data.values 的自定义数据
+  fields?: string[],
 ) => {
   // 需要创建的事项数据
   const itemData = data.map(data => ({
@@ -73,7 +75,7 @@ export const batchCreateItems = async (
     values: {
       ...testEntityToItemValues(data),
       // priority assignee 支持創建時更新
-      ...pick(data.values, ['assignee', 'priority']),
+      ...pick(data.values, ['assignee', 'priority'].concat(fields ?? [])),
     },
     itemGroup: data.itemGroup,
     itemType: data.itemType,

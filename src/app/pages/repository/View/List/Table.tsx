@@ -323,7 +323,8 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         shouldCellUpdate: (record, prevRecord) => {
           return (
             record.repository?.objectId !== prevRecord.repository?.objectId ||
-            record.sortIndex !== prevRecord.sortIndex
+            record.sortIndex !== prevRecord.sortIndex ||
+            record.name !== prevRecord.name
           );
         },
         render(_, rowData) {
