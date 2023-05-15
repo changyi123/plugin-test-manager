@@ -40,9 +40,21 @@ export function featureFlags(flags: SupportFeatureFlagKey | SupportFeatureFlagKe
   }
 }
 
+const SupportAppEnv = {
+  /** 脑图节点最大渲染数量 */
+  MAX_RENDER_NODE_COUNT: {
+    defaultValue: 250,
+    transformer: (value: string) => Number(value),
+  },
+} as const;
+
 /**
  * 获取环境变量值
  */
-export function getAppEnv(key: string, defaultValue?: any) {
-  return get(window.QiankunProps?.context?.env, key) ?? defaultValue;
+export function getAppEnv(key: keyof typeof SupportAppEnv) {
+  if (!Object.keys(SupportAppEnv).includes(key)) return null;
+  const envConfig = SupportAppEnv[key];
+  const variable = get(window.QiankunProps?.context?.env, key);
+  if (variable == null) return envConfig.defaultValue;
+  return typeof envConfig?.transformer === 'function' ? envConfig.transformer(variable) : variable;
 }

@@ -30,7 +30,7 @@ import { openMaxRenderNodeConfirm } from './MaxRenderNodeConfirm';
 
 // TODO: 同层级重名模块报错
 const MaxModuleLevel = 8;
-const MaxRenderNodeCount = getAppEnv('MAX_RENDER_NODE_COUNT', 300);
+const MaxRenderNodeCount = getAppEnv('MAX_RENDER_NODE_COUNT');
 
 const EmptyNodeId = 'EmptyNodeId';
 
@@ -44,8 +44,8 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
   const actionRef = React.useRef(null);
   const { workspace } = useTestConfig();
   const { getCreatePermission } = useBaseAction();
-  const [cancelRender, setCancelRender] = React.useState(false);
   const [saveLoading, setSaveLoading] = React.useState(false);
+  const [cancelRender, setCancelRender] = React.useState(false);
   const [
     canRequestMinderData,
     { setTrue: enableRequestMinderData, setFalse: disableRequestMinderData },
@@ -437,9 +437,9 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
   // 模块切换先判断是否需要渲染，避免大数据量节点渲染导致页面卡顿
   React.useEffect(() => {
     // 切换模块时，重置渲染状态
+    disableRequestMinderData();
     setCancelRender(false);
     startMinderInitialLoading();
-    disableRequestMinderData();
     // 切换模块时，重置脑图数据
     mutateMinderData(undefined);
     // 判断节点数量是否超过 350 个，超过 350 个需要增加是否继续渲染的弹窗提示
@@ -477,9 +477,12 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
         data: { id: EmptyNodeId, type: MinderNodeType.Module, text: selectedNode.name },
       },
     };
-    if (requestMinderDataLoading || cancelRender) return EmptyRootNode;
+    // 正在数据请求时返回 root 节点占位符号
+    if (!canRequestMinderData || requestMinderDataLoading) return EmptyRootNode;
+    // 取消加载时返回 root 节点占位符
+    if (cancelRender) return EmptyRootNode;
     return minderData ?? EmptyRootNode;
-  }, [selectedNode.name, requestMinderDataLoading, cancelRender, minderData]);
+  }, [selectedNode.name, requestMinderDataLoading, cancelRender, canRequestMinderData, minderData]);
 
   // 只保留语言，不保留地区
   const lang = getLang()?.replace(/-\w+/g, '');
