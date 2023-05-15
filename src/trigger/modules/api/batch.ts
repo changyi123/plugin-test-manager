@@ -1,5 +1,6 @@
 import keyBy from 'lodash/keyBy';
 import difference from 'lodash/difference';
+import { v4 as uuid } from 'uuid';
 import { iqlRequest } from '../../lib/iqlRequest';
 import { buildResponse } from '../../lib/apiUtil';
 import { TestEntity } from '../../../common/types/test';
@@ -429,7 +430,15 @@ export const batchCopyTestCase = async () => {
       workspace: data.workspace,
       values: data.values,
       itemType: data.itemType,
-      detail: data.detail,
+      detail: data.detail
+        ? {
+            ...data.detail,
+            steps: data.detail?.steps.map(s => ({
+              ...s,
+              id: uuid(),
+            })),
+          }
+        : {},
       repository: data.repository,
     }));
 

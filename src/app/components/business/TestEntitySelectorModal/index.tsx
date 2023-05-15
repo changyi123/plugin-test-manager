@@ -427,6 +427,12 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
 
   const ModalFooterNode = React.useMemo(() => {
     const { ok, cancel } = modelProps?.footer ?? {};
+    const getDisabled = () => {
+      if (testType === TestType.Case) return !selectedTestDetails?.length;
+      if ([TestType.TestDefect, TestType.Execution].includes(testType)) return !selectValue?.length;
+      return false;
+    };
+    const btnDisabled = getDisabled();
     return (
       <div className={cx('footer')}>
         {testType === TestType.Case ? (
@@ -449,13 +455,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
           >
             {cancel?.name ?? t('common.cancel')}
           </Button>
-          <Button
-            type="primary"
-            disabled={
-              testType !== TestType.Execution ? !selectedTestDetails?.length : !selectValue?.length
-            }
-            onClick={handleOkButtonClick}
-          >
+          <Button type="primary" disabled={btnDisabled} onClick={handleOkButtonClick}>
             {ok?.name ?? t('common.confirm')}
           </Button>
         </div>
