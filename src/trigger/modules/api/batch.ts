@@ -1,11 +1,10 @@
 import keyBy from 'lodash/keyBy';
 import difference from 'lodash/difference';
-import { v4 as uuid } from 'uuid';
 import { iqlRequest } from '../../lib/iqlRequest';
 import { buildResponse } from '../../lib/apiUtil';
 import { TestEntity } from '../../../common/types/test';
 import { getReqInfoFromVMRuntime } from '../../lib/apiUtil';
-import { generateSortIndex, concatIqlRequestFields } from '../../lib/helper';
+import { generateSortIndex, concatIqlRequestFields, uuidv4 } from '../../lib/helper';
 import { itemToTestEntity } from '../../../common/utils/dataTransfer';
 import { batchDeleteItems, batchUpdateItems, batchCreateItems } from '../../lib/batchRequest';
 import {
@@ -435,7 +434,7 @@ export const batchCopyTestCase = async () => {
             ...data.detail,
             steps: data.detail?.steps.map(s => ({
               ...s,
-              id: uuid(),
+              id: uuidv4(),
             })),
           }
         : {},
