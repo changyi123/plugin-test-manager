@@ -15,8 +15,10 @@ import TestEntitySelectorModal, {
 import { StatusProgress } from '@/components/business/Status';
 import { updateTestEntity, getLinkedTestEntityByQuery, getTestStats } from '@/lib/api/item';
 import useI18n from '@/lib/hooks/useI18n';
-import cx from './index.less';
 import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/hook';
+import sum from 'lodash/sum';
+
+import cx from './index.less';
 
 const Test = () => {
   const { t } = useI18n();
@@ -48,28 +50,32 @@ const Test = () => {
       });
 
       if (list?.length) {
-        const stats = await getTestStats({
-          groups: 'status',
-          params: {
-            query: {
-              workspaceKey: workspace?.key,
-              type: TestType.Run,
-            },
-            linkType: TestLinkType.RunLinkExecution,
-            sourceIds: [testEntity?.objectId],
-            destinationType: TestType.Run,
-            limit: 99999,
-          } as any,
-        });
+        const tasks = list.map(d =>
+          getTestStats({
+            groups: 'status',
+            params: {
+              query: {
+                workspaceKey: workspace?.key,
+                type: TestType.Run,
+              },
+              linkType: TestLinkType.RunLinkExecution,
+              sourceIds: [d.id],
+              destinationType: TestType.Run,
+              limit: 99999,
+            } as any,
+          }),
+        );
+        const stats = await Promise.all(tasks);
         // 组合数据
-        list.forEach(item => {
-          item.stats = stats.reduce(
+        list.forEach((item, index) => {
+          item.stats = stats?.[index]?.reduce(
             (prev, cur) => ({
               ...prev,
               [cur.status]: cur.count,
             }),
             {},
           );
+          item.runCount = sum(stats?.[index]?.map(d => d.count)) ?? 0;
         });
       }
 
@@ -210,7 +216,7 @@ const Test = () => {
         title: t('modules.panel.testDetail.testPlanPanel.planCount'),
         key: 'count',
         render(_, record) {
-          return record.stats?.runCount;
+          return record?.runCount ?? 0;
         },
       },
       {

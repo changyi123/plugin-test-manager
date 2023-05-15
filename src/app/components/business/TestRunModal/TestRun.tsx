@@ -11,6 +11,7 @@ import { Button, Checkbox, Collapse, Tabs, message, Spin, Tooltip } from 'antd';
 import { getTestEntityByQuery, updateTestRunDetail } from '@/lib/api/item';
 import { getItemLinkRelation, getTestStepsByTestDetailId } from '@/lib/api/runs';
 import { useCanExecuteTestRunIdSequence } from '@/lib/hooks/useTest';
+import { v4 as uuid } from 'uuid';
 
 import TestStep from './TestStep';
 import DefectList from './DefectList';
@@ -253,7 +254,10 @@ const TestRun: React.FC<TestRunType> = props => {
           const res = await updateTestRunDetail(
             testRunEntity,
             {
-              steps: steps,
+              steps: steps?.map(d => ({
+                ...d,
+                id: uuid(),
+              })),
               runDetail: {
                 precondition: detail?.precondition ?? '',
               },
