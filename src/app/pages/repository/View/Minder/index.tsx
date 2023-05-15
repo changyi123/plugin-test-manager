@@ -442,7 +442,7 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
     startMinderInitialLoading();
     // 切换模块时，重置脑图数据
     mutateMinderData(undefined);
-    // 判断节点数量是否超过 350 个，超过 350 个需要增加是否继续渲染的弹窗提示
+    // 超过最大渲染数量需要增加是否继续渲染的弹窗提示
     if (selectedNode.counts[1] > MaxRenderNodeCount) {
       openMaxRenderNodeConfirm({
         onNext: () => {
@@ -460,15 +460,8 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
     } else {
       enableRequestMinderData();
     }
-  }, [
-    disableRequestMinderData,
-    enableRequestMinderData,
-    endMinderInitialLoading,
-    mutateMinderData,
-    selectedNode,
-    startMinderInitialLoading,
-    toggleViewModel,
-  ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedNode?.key]);
 
   // 渲染数据
   const minderRenderData = React.useMemo(() => {
