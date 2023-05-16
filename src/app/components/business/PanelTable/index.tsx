@@ -1,10 +1,11 @@
-import React from 'react';
-import { uniqBy } from 'lodash';
-import { TableProps } from 'antd/lib/table';
 import { useAntdTable, useSafeState } from 'ahooks';
-import { Table, Button, Popconfirm } from 'antd';
-import { hasArrayItem, getRootContainer } from '@/lib/utils/helper';
+import { Button, Popconfirm, Table } from 'antd';
+import { TableProps } from 'antd/lib/table';
+import { uniqBy } from 'lodash';
+import React from 'react';
+
 import useI18n from '@/lib/hooks/useI18n';
+import { getRootContainer, hasArrayItem } from '@/lib/utils/helper';
 
 import cx from './index.less';
 

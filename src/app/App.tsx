@@ -1,11 +1,12 @@
-import React, { useEffect, Suspense, useMemo } from 'react';
+import { PluginSDKContext } from '@projectproxima/plugin-sdk';
+import { ConfigProvider, Empty, message, notification } from 'antd';
+import React, { Suspense, useEffect, useMemo } from 'react';
+import { HashRouter, MemoryRouter, Route, Switch, useHistory } from 'react-router-dom';
+
 import { getRootContainer } from '@/lib/utils/helper';
 import I18n from '@/lib/utils/i18n';
-import { PluginSDKContext } from '@projectproxima/plugin-sdk';
-import { message, notification, ConfigProvider, Empty } from 'antd';
-import { MemoryRouter, Switch, Route, useHistory, HashRouter } from 'react-router-dom';
-import useI18n from './lib/hooks/useI18n';
 
+import useI18n from './lib/hooks/useI18n';
 import routes from './routes';
 
 const rootElement = 'test-manager';

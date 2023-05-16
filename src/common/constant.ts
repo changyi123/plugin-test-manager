@@ -169,3 +169,5 @@ export enum MinderNodeType {
   Result = 'Result',
   Data = 'Data',
 }
+
+export const UngroupedRepositoryKey = 'root';

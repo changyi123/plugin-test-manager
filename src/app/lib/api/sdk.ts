@@ -1,8 +1,9 @@
 import createProximaSdk from '@projectproxima/proxima-sdk-js';
+import { lib } from 'proxima-sdk';
+
 import { EXINCLUDE_FIELDS, TEST_MANAGER_PLUGIN_KEY } from '@/lib/constants';
 import { CustomField } from '@/lib/models';
 import Parse from '@/lib/parse';
-import { lib } from 'proxima-sdk';
 
 const { INCLUDE_FILTER_FIELD_TYPES } = lib.Global;
 

@@ -1,15 +1,18 @@
-import fetch from '@/lib/utils/fetch';
+import { message } from 'antd';
 import {
-  TestCaseStatsPayload,
-  TestPlanStatsPayload,
-  QueryTestEntityPayload,
-  TestExecutionStatsPayload,
   QueryLinkedTestEntityPayload,
+  QueryTestEntityPayload,
   RepositoryTreePayload,
+  TestCaseStatsPayload,
   TestCountPayload,
+  TestExecutionStatsPayload,
+  TestPlanStatsPayload,
 } from 'common/types/api';
-import { pick, omit, has } from 'lodash';
+import { has, omit, pick } from 'lodash';
 import { merge } from 'lodash';
+
+import fetch from '@/lib/utils/fetch';
+
 import {
   RepositoryModel,
   SYSTEM_FIELD,
@@ -20,10 +23,9 @@ import {
 } from '../constants';
 import { BaseTestEntity, CopyTestCasePayload, Status, TestEntity } from '../types/Test';
 import { getPluginWebTriggerBaseUrl, getSessionToken } from '../utils/helper';
-import { compactStepModel } from '../utils/modelTransfer';
-import { createItemLink, deleteItemLink, IItemLink, getExistedItemLinks } from './runs';
 import { SearchSelectors, selectorToIql } from '../utils/iql';
-import { message } from 'antd';
+import { compactStepModel } from '../utils/modelTransfer';
+import { createItemLink, deleteItemLink, getExistedItemLinks, IItemLink } from './runs';
 
 const pluginWebTriggerBaseUrl = getPluginWebTriggerBaseUrl();
 

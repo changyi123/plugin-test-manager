@@ -1,12 +1,14 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable no-unused-vars */
 // import fetch from '../utils/fetch';
+import { pick } from 'lodash';
+
 import Parse from '@/lib/parse';
-import { Item, Repository, Test } from '../models';
 import { arrayToTree } from '@/lib/utils/arrayToTree';
 import { UNGROUPED_FOLDER_KEY } from '@/pages/repository/constant';
+
+import { Item, Repository, Test } from '../models';
 import { generateSortIndex } from '../utils/helper';
-import { pick } from 'lodash';
 export interface ICommonRes<T = any> {
   success: boolean;
   message?: string;

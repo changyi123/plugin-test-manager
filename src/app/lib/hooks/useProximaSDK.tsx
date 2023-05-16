@@ -1,7 +1,8 @@
-import React from 'react';
-import { generateStorageKey } from '@/lib/utils/helper';
 import { useListener } from '@projectproxima/proxima-sdk-js';
+import React from 'react';
+
 import { PROXIMA_EVENT_KEY, TEST_MANAGER_PLUGIN_KEY } from '@/lib/constants';
+import { generateStorageKey } from '@/lib/utils/helper';
 
 const callbackMap = new Map();
 

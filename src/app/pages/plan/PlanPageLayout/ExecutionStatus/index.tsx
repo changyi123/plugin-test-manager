@@ -1,13 +1,14 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React from 'react';
-import { StatusProgress } from '@/components/business/Status';
-import { Spin } from 'antd';
 import { useRequest } from 'ahooks';
-import { usePageContext } from '../../hook';
-import useI18n from '@/lib/hooks/useI18n';
-import { TestLinkType, TestType } from '@/lib/constants';
-import { getTestStats } from '@/lib/api/item';
+import { Spin } from 'antd';
+import React from 'react';
 
+import { StatusProgress } from '@/components/business/Status';
+import { getTestStats } from '@/lib/api/item';
+import { TestLinkType, TestType } from '@/lib/constants';
+import useI18n from '@/lib/hooks/useI18n';
+
+import { usePageContext } from '../../hook';
 import cx from './index.less';
 
 interface ExecutionStatusProps {

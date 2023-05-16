@@ -1,20 +1,20 @@
-import React from 'react';
-import Result from './steps/Result';
-import { Button, Steps } from 'antd';
-import useI18n from '@/lib/hooks/useI18n';
-import { TestType } from 'common/constant';
-import XMindUpload from './steps/XMindUpload';
-import { useRequest, useMemoizedFn } from 'ahooks';
 import { useSDK } from '@projectproxima/plugin-sdk';
-import MinderEditor from './steps/MinderDraftEditor';
-import { getPriorityOptions } from '@/lib/api/minder';
-import { getRepositoryTreeWithParentNode } from './lib';
-import { getWorkspaceByKey } from '@/lib/api/proxima';
-import { useGetPermissions } from '@/components/business/TestManagerProvider/hooks';
+import { useMemoizedFn, useRequest } from 'ahooks';
+import { Button, Steps } from 'antd';
+import { TestType } from 'common/constant';
+import React from 'react';
 
-import { SharedState } from './type';
+import { useGetPermissions } from '@/components/business/TestManagerProvider/hooks';
+import { getPriorityOptions } from '@/lib/api/minder';
+import { getWorkspaceByKey } from '@/lib/api/proxima';
+import useI18n from '@/lib/hooks/useI18n';
 
 import cx from './index.less';
+import { getRepositoryTreeWithParentNode } from './lib';
+import MinderEditor from './steps/MinderDraftEditor';
+import Result from './steps/Result';
+import XMindUpload from './steps/XMindUpload';
+import { SharedState } from './type';
 
 const ImportSteps = [
   {

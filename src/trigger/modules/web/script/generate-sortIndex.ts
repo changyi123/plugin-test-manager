@@ -1,5 +1,5 @@
-import { iqlRequest } from '../../../lib/iqlRequest';
 import { TestType } from '../../../../common/constant';
+import { iqlRequest } from '../../../lib/iqlRequest';
 
 const { list = [], workspaceKey } = global?.body ?? {};
 

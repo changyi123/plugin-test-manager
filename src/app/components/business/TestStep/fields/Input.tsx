@@ -1,8 +1,10 @@
-import React from 'react';
 import { useHover } from 'ahooks';
 import classnames from 'classnames';
-import { StepFieldProps } from '../type';
+import React from 'react';
+
 import useI18n from '@/lib/hooks/useI18n';
+
+import { StepFieldProps } from '../type';
 
 const Input: React.ForwardRefRenderFunction<
   HTMLDivElement,

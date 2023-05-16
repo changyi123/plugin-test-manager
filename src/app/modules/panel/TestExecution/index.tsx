@@ -1,8 +1,10 @@
 import React from 'react';
-import { TestType } from '@/lib/constants';
+
 import PanelLayout from '@/components/business/PanelLayout';
-import TestDetailPanel from './TestDetailPanel';
+import { TestType } from '@/lib/constants';
 import useI18n from '@/lib/hooks/useI18n';
+
+import TestDetailPanel from './TestDetailPanel';
 
 const TestExecution = () => {
   const { t } = useI18n();

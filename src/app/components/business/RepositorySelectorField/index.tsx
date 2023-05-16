@@ -1,15 +1,16 @@
-import React from 'react';
-import { cloneDeep } from 'lodash';
-import { Select, Tree, Input } from 'antd';
+import { useControllableValue, useMemoizedFn, useRequest } from 'ahooks';
+import { Input, Select, Tree } from 'antd';
 import { SelectProps } from 'antd/lib/select';
+import { cloneDeep } from 'lodash';
+import React from 'react';
+
+import OverflowTooltip from '@/components/common/OverflowTooltip';
+import { CaretDownOutlined, FileClose, FileOpen, SearchOutlined } from '@/icons';
 import { getWorkspaceById } from '@/lib/api/proxima';
 import { getFolderTree } from '@/lib/api/repository';
-import OverflowTooltip from '@/components/common/OverflowTooltip';
-import { useMemoizedFn, useRequest, useControllableValue } from 'ahooks';
-import { hasArrayItem, escapeMatchesQueryArg } from '@/lib/utils/helper';
-import { FileOpen, FileClose, CaretDownOutlined, SearchOutlined } from '@/icons';
-import { traverseTreeNodes, getTreeNodeByKey, reverseTreeNodes } from '@/pages/repository/util';
 import useI18n from '@/lib/hooks/useI18n';
+import { escapeMatchesQueryArg, hasArrayItem } from '@/lib/utils/helper';
+import { getTreeNodeByKey, reverseTreeNodes, traverseTreeNodes } from '@/pages/repository/util';
 
 import cx from './style.less';
 

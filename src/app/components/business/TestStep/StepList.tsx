@@ -1,20 +1,21 @@
+import { useHover } from 'ahooks';
+import { Form, Popconfirm, Tooltip } from 'antd';
+import { BaseTestEntity } from 'common/types/test';
+import _ from 'lodash';
+import { components } from 'proxima-sdk';
 import React from 'react';
+import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd';
 import ReactDOM from 'react-dom';
 
-import _ from 'lodash';
-import { useHover } from 'ahooks';
-import { Step } from '@/lib/types/Test';
-import { StepRow, StepField } from './type';
-import { Form, Tooltip, Popconfirm } from 'antd';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import { CopyOutlined, DeleteOutlined, DragHandler } from '@/icons';
-import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd';
-import { getFieldByImpl, StepFieldImpl, BuiltinFieldKeys, getRootContainer } from './helper';
-import { useNextStepFieldContext, default as NextStepFieldProvider } from './NextStepFieldProvider';
-import { components } from 'proxima-sdk';
-import { BaseTestEntity } from 'common/types/test';
 import { getItemByIQL } from '@/lib/api/proxima';
 import useI18n from '@/lib/hooks/useI18n';
+import { Step } from '@/lib/types/Test';
+
+import { BuiltinFieldKeys, getFieldByImpl, getRootContainer, StepFieldImpl } from './helper';
+import { default as NextStepFieldProvider, useNextStepFieldContext } from './NextStepFieldProvider';
+import { StepField, StepRow } from './type';
 
 const { ItemIcon } = components.Components.Common;
 

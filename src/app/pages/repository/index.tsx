@@ -1,21 +1,22 @@
-import React from 'react';
-import { cloneDeep } from 'lodash';
-import { useRequest } from 'ahooks';
-import { getDevConfig } from '@/devEnv';
-import MinderView from './View/Minder';
-import MinderList from './View/List';
-import { getTreeNodeByKey } from './util';
 import { useSDK } from '@projectproxima/plugin-sdk';
+import { useRequest } from 'ahooks';
+import { cloneDeep } from 'lodash';
+import React from 'react';
+
+import TestManagerProvider from '@/components/business/TestManagerProvider';
+import ErrorBoundary from '@/components/common/ErrorBoundary';
+import PageLayout from '@/components/common/PageLayout';
+import { getDevConfig } from '@/devEnv';
+import { getRepositoryTreeV2 } from '@/lib/api/item';
+import { featureFlags } from '@/lib/appEnv';
+import useI18n from '@/lib/hooks/useI18n';
 import { logPluginVersion } from '@/lib/utils/helper';
 import FolderTree from '@/pages/repository/FolderTree';
-import PageLayout from '@/components/common/PageLayout';
-import ErrorBoundary from '@/components/common/ErrorBoundary';
-import TestManagerProvider from '@/components/business/TestManagerProvider';
-import { getRepositoryTreeV2 } from '@/lib/api/item';
-import useI18n from '@/lib/hooks/useI18n';
-import { featureFlags } from '@/lib/feature';
 
 import cx from './index.less';
+import { getTreeNodeByKey } from './util';
+import MinderList from './View/List';
+import MinderView from './View/Minder';
 
 /** 用例库视图切换 */
 const ViewModeSelector = ({ viewMode, onViewModeChange }) => {
@@ -76,6 +77,12 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
   const selectedNode = React.useMemo(() => {
     return getTreeNodeByKey(folderTreeData, selectedNodeKey);
   }, [folderTreeData, selectedNodeKey]);
+
+  React.useEffect(() => {
+    if (viewMode !== 'minder')
+      // 折叠右侧面板
+      (window as any).globalState?.setItem?.('collapsedStatus', true);
+  }, [viewMode]);
 
   return (
     <PageLayout className={cx('test-repository')}>

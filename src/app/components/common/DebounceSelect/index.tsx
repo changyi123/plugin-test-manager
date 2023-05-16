@@ -1,8 +1,7 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Select, Spin } from 'antd';
 import { SelectProps } from 'antd/es/select';
 import { debounce, isObject, uniqWith } from 'lodash';
-
-import { Select, Spin } from 'antd';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import OverflowTooltip from '../OverflowTooltip';
 

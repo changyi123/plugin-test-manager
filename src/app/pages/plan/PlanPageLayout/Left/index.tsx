@@ -1,12 +1,13 @@
+import { QueryLinkedTestEntityPayload } from 'common/types/api';
 import React, { useImperativeHandle, useState } from 'react';
-import SearchInput from '@/components/business/SearchInput';
+
 import RepositoryFolderTree, {
   ActionType as FolderTreeActionType,
 } from '@/components/business/RepositoryFolderTree';
-import { usePageContext } from '../../hook';
+import SearchInput from '@/components/business/SearchInput';
 import useI18n from '@/lib/hooks/useI18n';
-import { QueryLinkedTestEntityPayload } from 'common/types/api';
 
+import { usePageContext } from '../../hook';
 import cx from './index.less';
 
 interface LeftProps {

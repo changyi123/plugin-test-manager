@@ -1,6 +1,6 @@
 import EventBus from './utils/eventBus';
 
-const withKeyEventBus = <Data extends any = unknown>(key: string) => {
+const withKeyEventBus = <Data = any>(key: string) => {
   const event = {
     _instance: new EventBus(),
     dispatch: (data?: Data) => event._instance.dispatch(key, data),

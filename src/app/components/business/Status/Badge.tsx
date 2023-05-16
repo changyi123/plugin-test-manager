@@ -1,13 +1,14 @@
-import React from 'react';
-import { omitBy } from 'lodash';
-import { Popover } from 'antd';
-import { sequence } from './utils';
-import { useStatusConfig } from './hooks';
 import { CaretDownOutlined } from '@ant-design/icons';
-import { getRootContainer } from '@/lib/utils/helper';
+import { Popover } from 'antd';
+import { omitBy } from 'lodash';
+import React from 'react';
+
 import useI18n from '@/lib/hooks/useI18n';
+import { getRootContainer } from '@/lib/utils/helper';
 
 import cx from './Badge.less';
+import { useStatusConfig } from './hooks';
+import { sequence } from './utils';
 
 type BadgeProps = {
   status?: string;

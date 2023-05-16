@@ -1,12 +1,13 @@
-import React from 'react';
-import { pick } from 'lodash';
-import { Button, Switch, message } from 'antd';
 import { useMemoizedFn, useMount } from 'ahooks';
-import { getWorkspaceRoleMembers } from '@/lib/api/proxima';
-import { useDataContext, useCurrentTestConfig } from '../hooks';
+import { Button, message, Switch } from 'antd';
+import { pick } from 'lodash';
 import { components } from 'proxima-sdk';
+import React from 'react';
+
+import { getWorkspaceRoleMembers } from '@/lib/api/proxima';
 import useI18n from '@/lib/hooks/useI18n';
 
+import { useCurrentTestConfig, useDataContext } from '../hooks';
 import cx from './index.less';
 
 const SearchPopoverSelect = components.Components.Common.SearchPopoverSelect;

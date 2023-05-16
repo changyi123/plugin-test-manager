@@ -1,19 +1,22 @@
 /* eslint-disable react-hooks/exhaustive-deps */
+import { DeleteOutlined, FlagOutlined, UserOutlined } from '@ant-design/icons';
+import { UserCell } from '@giteeteam/apps-team-components';
+import { useListener } from '@projectproxima/proxima-sdk-js';
+import createProximaSdk from '@projectproxima/proxima-sdk-js';
+import { useMemoizedFn, useRequest } from 'ahooks';
+import { Button, message, notification, Tooltip } from 'antd';
+import { TestLinkType, TestType } from 'common/constant';
+import { isEmpty, isEqual, omit, pick } from 'lodash';
 import React, { useCallback, useEffect, useState } from 'react';
-import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
-import Field from '@/components/common/Field';
-import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
+
+import RenderRepository from '@/components/business/RenderRepository';
 import { StatusBadge } from '@/components/business/Status';
-import { notification, Button, Tooltip, message } from 'antd';
 import TestRunModal, {
   ActionType as TestRunModalActionType,
 } from '@/components/business/TestRunModal';
-import { useMemoizedFn, useRequest } from 'ahooks';
-import { DeleteOutlined, FlagOutlined, UserOutlined } from '@ant-design/icons';
-import { UserCell } from '@giteeteam/apps-team-components';
-import { useUserCellUserDataProp } from '@/lib/hooks/useProxima';
-import { usePageContext } from '../hook';
-import { useListener } from '@projectproxima/proxima-sdk-js';
+import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
+import { SystemFieldKeys } from '@/components/common/BusinessTable/hook';
+import Field from '@/components/common/Field';
 import {
   deleteTestEntity,
   getCasesByStatus,
@@ -23,25 +26,23 @@ import {
   updateTestEntity,
   updateTestStatus,
 } from '@/lib/api/item';
-import { TestLinkType, TestType } from 'common/constant';
-import { TestCaseStatusModel, TestRunDesigneeModel, TestRunExecutorModel } from '@/lib/constants';
-import { isEmpty, isEqual, omit, pick } from 'lodash';
-import { useTestRunActionAuth, useCanExecuteTestRunIdSequence } from '@/lib/hooks/useTest';
-import { getCurrentUserSetting, saveUserSetting } from '@/lib/api/userSetting';
 import { useCurrentUser } from '@/lib/api/user';
+import { getCurrentUserSetting, saveUserSetting } from '@/lib/api/userSetting';
+import { TestCaseStatusModel, TestRunDesigneeModel, TestRunExecutorModel } from '@/lib/constants';
 import { useBaseAction } from '@/lib/hooks/useContext';
-import createProximaSdk from '@projectproxima/proxima-sdk-js';
 import useI18n from '@/lib/hooks/useI18n';
+import { useUserCellUserDataProp } from '@/lib/hooks/useProxima';
+import { useCanExecuteTestRunIdSequence, useTestRunActionAuth } from '@/lib/hooks/useTest';
+import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
 import { getTestCaseStatusModelValue, handleCustomerSelector } from '@/lib/utils/iql';
 import { getRepositoryQuery } from '@/lib/utils/tree';
-import { SystemFieldKeys } from '@/components/common/BusinessTable/hook';
+
+import { usePageContext } from '../hook';
+import { getTestRunSelector } from '../PlanPageLayout/helps';
 import {
   useGetFilterExecutionLinkCaseRunIds,
   useGetFilterPlanLinkCaseIds,
 } from '../PlanPageLayout/hooks';
-import { getTestRunSelector } from '../PlanPageLayout/helps';
-import RenderRepository from '@/components/business/RenderRepository';
-
 import cx from './index.less';
 
 interface TestEntityListProps {

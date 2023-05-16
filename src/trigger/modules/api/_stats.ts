@@ -1,22 +1,22 @@
 /**
  * @file 文件备份。后面删除。 测试用例相关统计
  */
-import { iqlRequest } from '../../lib/iqlRequest';
-import { TestEntity } from '../../../common/types/test';
-import { getReqInfoFromVMRuntime, buildResponse } from '../../lib/apiUtil';
 import {
-  TestCaseStatsPayload,
-  TestPlanStatsPayload,
-  TestExecutionStatsPayload,
-} from '../../../common/types/api';
-import {
-  TestType,
-  SystemField,
-  TestLinkType,
   InfinityLimit,
   StartStatusKey,
+  SystemField,
   TestFiledKeyMapping,
+  TestLinkType,
+  TestType,
 } from '../../../common/constant';
+import {
+  TestCaseStatsPayload,
+  TestExecutionStatsPayload,
+  TestPlanStatsPayload,
+} from '../../../common/types/api';
+import { TestEntity } from '../../../common/types/test';
+import { buildResponse, getReqInfoFromVMRuntime } from '../../lib/apiUtil';
+import { iqlRequest } from '../../lib/iqlRequest';
 
 type TestRunEntityType = TestEntity<TestType.Run>;
 type TestCaseEntityType = TestEntity<TestType.Case>;

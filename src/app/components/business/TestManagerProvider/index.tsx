@@ -1,36 +1,38 @@
-import React, { useEffect } from 'react';
-import { v4 as uuid } from 'uuid';
-import { useRequest } from 'ahooks';
 import { store } from '@nebulare/data';
+import { useRequest } from 'ahooks';
+import { message, notification } from 'antd';
+import { union } from 'lodash';
+import React from 'react';
+import { useLocation } from 'react-router-dom';
+import { v4 as uuid } from 'uuid';
+
+import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/hook';
+import { getTestConfig, getTestConfigByWorkspaceKeys } from '@/lib/api/common';
+import { getTestEntityByQuery, updateTestEntity } from '@/lib/api/item';
+import { getItemByIds, getItemTypeByKey, getWorkspaceByKey } from '@/lib/api/proxima';
+import { openCreateItemModal, openItemDetailPanel } from '@/lib/api/sdk';
+import {
+  CREATE_ITEM_STORE_FIELD_KEY,
+  ENTITY_NOT_FOUND,
+  ExtensionValType,
+  TestType,
+} from '@/lib/constants';
+import { repositoryFolderTreeEvent } from '@/lib/events';
+import useI18n from '@/lib/hooks/useI18n';
+import { useOnItemCreateSuccess } from '@/lib/hooks/useProximaSDK';
+import { useGetWorkspaceRepository } from '@/lib/hooks/useTest';
 import { Workspace } from '@/lib/types/App';
 import { TestEntity } from '@/lib/types/Test';
 import { EventBus } from '@/lib/utils/eventBus';
-import { message, notification } from 'antd';
-import { useOnItemCreateSuccess } from '@/lib/hooks/useProximaSDK';
-import { openCreateItemModal, openItemDetailPanel } from '@/lib/api/sdk';
-import { getTestConfig, getTestConfigByWorkspaceKeys } from '@/lib/api/common';
-import { getItemByIds, getWorkspaceByKey, getItemTypeByKey } from '@/lib/api/proxima';
-import { getKeyByValue, generateSortIndex, hasArrayItem } from '@/lib/utils/helper';
+import { generateSortIndex, getKeyByValue, hasArrayItem } from '@/lib/utils/helper';
+
 import {
-  TestConfigContext,
   BaseActionContext,
-  TestConfigContextType,
   BaseActionContextType,
+  TestConfigContext,
+  TestConfigContextType,
 } from './context';
-import {
-  ENTITY_NOT_FOUND,
-  ExtensionValType,
-  CREATE_ITEM_STORE_FIELD_KEY,
-  TestType,
-} from '@/lib/constants';
-import { getTestEntityByQuery, updateTestEntity } from '@/lib/api/item';
-import { union } from 'lodash';
 import { useGetPermissions } from './hooks';
-import useI18n from '@/lib/hooks/useI18n';
-import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/hook';
-import { useGetWorkspaceRepository } from '@/lib/hooks/useTest';
-import { useLocation } from 'react-router-dom';
-import { repositoryFolderTreeEvent } from '@/lib/events';
 
 const ItemCreateSuccessEventType = 'itemCreateSuccess';
 const DefaultTestConfig = {} as TestConfigContextType['config'];
@@ -374,7 +376,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
 
   const getTestCaseRepositoryPath = useGetWorkspaceRepository(workspaceKey);
 
-  useEffect(() => {
+  React.useEffect(() => {
     pathname && repositoryFolderTreeEvent.dispatch();
   }, [pathname]);
 

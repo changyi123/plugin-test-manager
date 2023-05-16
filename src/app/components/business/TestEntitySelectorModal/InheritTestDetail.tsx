@@ -1,21 +1,22 @@
+import { useDebounce, useInfiniteScroll, useReactive } from 'ahooks';
+import { Checkbox, Empty, Input, Select, Spin, Tooltip } from 'antd';
 import React from 'react';
-import { useAllTestWorkspace } from '@/lib/hooks/useTest';
-import SearchInput from '@/components/business/SearchInput';
-import OverflowTooltip from '@/components/common/OverflowTooltip';
-import { hasArrayItem } from '@/lib/utils/helper';
-import { useReactive, useInfiniteScroll, useDebounce } from 'ahooks';
-import { Select, Empty, Checkbox, Spin, Tooltip, Input } from 'antd';
+
 import {
   ActionType,
   default as RepositoryFolderTree,
 } from '@/components/business/RepositoryFolderTree';
-import { CaretDownOutlined, CaretUpOutlined, SearchOutlined, CheckOutlined } from '@/icons';
-import { TestType } from '@/lib/constants';
+import SearchInput from '@/components/business/SearchInput';
+import OverflowTooltip from '@/components/common/OverflowTooltip';
+import { CaretDownOutlined, CaretUpOutlined, CheckOutlined, SearchOutlined } from '@/icons';
 import { getTestEntityByQuery } from '@/lib/api/item';
+import { TestType } from '@/lib/constants';
 import useI18n from '@/lib/hooks/useI18n';
+import { useAllTestWorkspace } from '@/lib/hooks/useTest';
+import { hasArrayItem } from '@/lib/utils/helper';
+import { getRepositoryQuery } from '@/lib/utils/tree';
 
 import cx from './InheritTestDetail.less';
-import { getRepositoryQuery } from '@/lib/utils/tree';
 
 const REQUEST_LIMIT = 20;
 

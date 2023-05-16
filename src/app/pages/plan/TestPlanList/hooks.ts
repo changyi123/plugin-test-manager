@@ -1,6 +1,7 @@
-import { getStatsTestPlan, getTestEntityByQuery } from '@/lib/api/item';
 import { useRequest } from 'ahooks';
 import _ from 'lodash';
+
+import { getStatsTestPlan, getTestEntityByQuery } from '@/lib/api/item';
 
 const useGetTestPlanById = (id?: string, workspaceKey?: string) => {
   const data = useRequest(

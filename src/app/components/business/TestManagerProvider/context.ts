@@ -1,7 +1,8 @@
-import React from 'react';
-import { Item, Workspace } from '@/lib/types/App';
-import { TestType } from '@/lib/constants';
 import { BaseTestEntity } from 'common/types/test';
+import React from 'react';
+
+import { TestType } from '@/lib/constants';
+import { Item, Workspace } from '@/lib/types/App';
 
 export interface StatusType {
   key: string;

@@ -1,10 +1,11 @@
-import React from 'react';
 import { useReactive } from 'ahooks';
 import { Modal, Select } from 'antd';
+import React from 'react';
+
+import useI18n from '@/lib/hooks/useI18n';
+import { useAllTestWorkspace } from '@/lib/hooks/useTest';
 import EventBus from '@/lib/utils/eventBus';
 import { getRootContainer } from '@/lib/utils/helper';
-import { useAllTestWorkspace } from '@/lib/hooks/useTest';
-import useI18n from '@/lib/hooks/useI18n';
 
 const CLICK_OK_EVENT_TYPE = 'CLICK_OK_EVENT_TYPE';
 

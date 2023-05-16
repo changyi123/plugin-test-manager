@@ -1,9 +1,9 @@
-import resource from '../../../../locales';
-import zh from 'antd/lib/locale/zh_CN';
-import en from 'antd/lib/locale/en_US';
-
-import { get } from 'lodash';
 import languageParser from 'accept-language-parser';
+import en from 'antd/lib/locale/en_US';
+import zh from 'antd/lib/locale/zh_CN';
+import { get } from 'lodash';
+
+import resource from '../../../../locales';
 
 // 默认支持三种语言
 const AcceptLanguageList = ['zh', 'en', 'ru'];

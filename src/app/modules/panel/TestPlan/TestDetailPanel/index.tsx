@@ -1,36 +1,37 @@
-import React, { useCallback, useState, useMemo, useEffect } from 'react';
-
-import { uniqueId } from 'lodash';
-import { Button, message, Table, Tooltip } from 'antd';
-import { alert } from '@/lib/utils/helper';
 import { DownOutlined, PlusOutlined } from '@ant-design/icons';
-import OverflowTooltip from '@/components/common/OverflowTooltip';
-import { INITIAL_STATUS_KEY, TestLinkType, TestType } from '@/lib/constants';
+import createProximaSdk from '@projectproxima/proxima-sdk-js';
+import { Button, message, Table, Tooltip } from 'antd';
+import { uniqueId } from 'lodash';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+
+import DropDownButton from '@/components/business/DropDownButton';
 import PanelTable, {
   ActionType,
   BuiltinColumns,
   columnBuilder,
 } from '@/components/business/PanelTable';
-import DropDownButton from '@/components/business/DropDownButton';
-import { useTestConfig, useBaseAction } from '@/lib/hooks/useContext';
+import { StatusBadge } from '@/components/business/Status';
+import StatusProcessBar from '@/components/business/StatusProcessBar';
 import TestEntitySelectorModal, {
   ActionType as SelectorActionType,
 } from '@/components/business/TestEntitySelectorModal';
-import { StatusBadge } from '@/components/business/Status';
 import TestRunModal, {
   ActionType as TestRunModalActionType,
 } from '@/components/business/TestRunModal';
+import OverflowTooltip from '@/components/common/OverflowTooltip';
 import { QuestionCircleOutlined } from '@/icons';
-import StatusProcessBar from '@/components/business/StatusProcessBar';
-import cx from './index.less';
 import {
   batchCreateTestRun,
+  getLinkedTestEntityByQuery,
   getRunsFromCase,
   updateTestEntity,
-  getLinkedTestEntityByQuery,
 } from '@/lib/api/item';
-import createProximaSdk from '@projectproxima/proxima-sdk-js';
+import { INITIAL_STATUS_KEY, TestLinkType, TestType } from '@/lib/constants';
+import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
+import { alert } from '@/lib/utils/helper';
+
+import cx from './index.less';
 
 const Test = () => {
   const { t } = useI18n();

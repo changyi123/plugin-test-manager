@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
-import { traverseTreeNodes } from '@/pages/repository/util';
-import { clone, sum } from 'lodash';
 import { useDeepCompareEffect, useRequest } from 'ahooks';
+import { clone, sum } from 'lodash';
+import { useEffect, useMemo, useState } from 'react';
+
 import { getRepositoryTreeV2 } from '@/lib/api/item';
+import { traverseTreeNodes } from '@/pages/repository/util';
 // import { TestType } from 'common/constant';
 
 interface VirtualScrollList {

@@ -1,20 +1,21 @@
+import { Button, message } from 'antd';
 import React, { useCallback, useState } from 'react';
 
-import { Button, message } from 'antd';
-import { useTestConfig } from '@/lib/hooks/useContext';
-import { TestLinkType, TestType } from '@/lib/constants';
 import PanelTable, {
   ActionType,
-  columnBuilder,
   BuiltinColumns,
+  columnBuilder,
 } from '@/components/business/PanelTable';
-import { alert, generateSortIndex } from '@/lib/utils/helper';
+import { StatusProgress } from '@/components/business/Status';
 import TestEntitySelectorModal, {
   ActionType as SelectorActionType,
 } from '@/components/business/TestEntitySelectorModal';
-import { StatusProgress } from '@/components/business/Status';
-import { updateTestEntity, getLinkedTestEntityByQuery, getTestStats } from '@/lib/api/item';
+import { getLinkedTestEntityByQuery, getTestStats, updateTestEntity } from '@/lib/api/item';
+import { TestLinkType, TestType } from '@/lib/constants';
+import { useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
+import { alert, generateSortIndex } from '@/lib/utils/helper';
+
 import cx from './index.less';
 
 const Test = () => {

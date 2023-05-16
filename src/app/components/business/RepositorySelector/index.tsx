@@ -1,15 +1,16 @@
-import { isEmpty } from 'lodash';
 import { useRequest } from 'ahooks';
+import { Empty, Modal, Select, Spin, Tree } from 'antd';
+import { isEmpty } from 'lodash';
 import React, { useCallback } from 'react';
+
+import OverflowTooltip from '@/components/common/OverflowTooltip';
+import { getFolderTree } from '@/lib/api/repository';
 import { TestType } from '@/lib/constants';
+import useI18n from '@/lib/hooks/useI18n';
+import { useAllTestWorkspace, useIsolateTestType } from '@/lib/hooks/useTest';
 import EventBus from '@/lib/utils/eventBus';
 import { hasArrayItem } from '@/lib/utils/helper';
-import { getFolderTree } from '@/lib/api/repository';
 import { traverseTreeNodes } from '@/pages/repository/util';
-import { Modal, Select, Tree, Empty, Spin } from 'antd';
-import OverflowTooltip from '@/components/common/OverflowTooltip';
-import { useIsolateTestType, useAllTestWorkspace } from '@/lib/hooks/useTest';
-import useI18n from '@/lib/hooks/useI18n';
 
 import cx from './index.less';
 

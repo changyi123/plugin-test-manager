@@ -1,26 +1,26 @@
 /**
  * @file 测试用例相关统计
  */
-import { getPayload, iqlRequest } from '../../lib/iqlRequest';
-import { TestEntity } from '../../../common/types/test';
-import { getReqInfoFromVMRuntime, buildResponse } from '../../lib/apiUtil';
 import {
-  TestCaseStatsPayload,
-  TestPlanStatsPayload,
-  TestExecutionStatsPayload,
-  TestCountPayload,
-} from '../../../common/types/api';
-import {
-  TestType,
-  SystemField,
-  TestLinkType,
   InfinityLimit,
   StartStatusKey,
-  TestFiledKeyMapping,
+  SystemField,
   TestFieldTypeKeyMapping,
+  TestFiledKeyMapping,
+  TestLinkType,
+  TestType,
 } from '../../../common/constant';
+import {
+  TestCaseStatsPayload,
+  TestCountPayload,
+  TestExecutionStatsPayload,
+  TestPlanStatsPayload,
+} from '../../../common/types/api';
+import { TestEntity } from '../../../common/types/test';
 import iqlSearchParamsBuilder from '../../../common/utils/iqlSearchParamsBuilder';
+import { buildResponse, getReqInfoFromVMRuntime } from '../../lib/apiUtil';
 import { aggsSearch } from '../../lib/coreApi';
+import { getPayload, iqlRequest } from '../../lib/iqlRequest';
 
 type TestRunEntityType = TestEntity<TestType.Run>;
 type TestCaseEntityType = TestEntity<TestType.Case>;

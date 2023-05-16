@@ -1,20 +1,22 @@
-import Parse from '@/lib/parse';
-import { ICommonRes } from './detail';
-import { Test, Item, ItemType, ItemLink, ItemLinkType } from '../models';
-import { TestRelationType, TestType } from '@/lib/constants';
+import _, { isEqual, keyBy, merge } from 'lodash';
+
 import {
-  getTestEntities,
   createTestEntities,
   createTestRelation,
+  getTestEntities,
   getTestEntitiesByQuery,
   getTestEntitiesByRelation,
 } from '@/lib/api/common';
 import { getItemByIQL } from '@/lib/api/proxima';
-import { hasArrayItem } from '@/lib/utils/helper';
-import _, { isEqual, keyBy, merge } from 'lodash';
-import { compactStepModel } from '@/lib/utils/modelTransfer';
+import { TestRelationType, TestType } from '@/lib/constants';
+import Parse from '@/lib/parse';
 import { Status, TestEntity, UserPointerInfo } from '@/lib/types/Test';
-import { pointerTransfer, toArray, generateSortIndex } from '@/lib/utils/helper';
+import { hasArrayItem } from '@/lib/utils/helper';
+import { generateSortIndex, pointerTransfer, toArray } from '@/lib/utils/helper';
+import { compactStepModel } from '@/lib/utils/modelTransfer';
+
+import { Item, ItemLink, ItemLinkType, ItemType, Test } from '../models';
+import { ICommonRes } from './detail';
 import { getTestEntityByQuery } from './item';
 
 type TestRunEntity = TestEntity<TestType.Run>;

@@ -1,7 +1,9 @@
-import React from 'react';
-import { DataContext } from './context';
 import { useRequest, useSafeState } from 'ahooks';
+import React from 'react';
+
 import { getTestConfig } from '@/lib/api/common';
+
+import { DataContext } from './context';
 
 export const useDataContext = () => React.useContext(DataContext);
 

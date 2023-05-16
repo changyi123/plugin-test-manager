@@ -1,5 +1,5 @@
 /* eslint-disable no-fallthrough */
-import { TestType, TestLinkType, TestFiledKeyKeys } from '../../common/constant';
+import { TestFiledKeyKeys, TestLinkType, TestType } from '../../common/constant';
 
 export const throwArgumentError = (key, expectedType?: string) => {
   throw new Error(

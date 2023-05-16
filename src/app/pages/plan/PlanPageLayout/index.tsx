@@ -1,29 +1,31 @@
-import React, { useCallback, useRef, useState } from 'react';
-import { message, notification, Spin } from 'antd';
-import TestPlanList from '@/pages/plan/TestPlanList';
-import PageLayout from '@/components/common/PageLayout';
-import { useLocation } from 'react-router-dom';
-import {
-  useResizeContainerDOM,
-  useGetPlanLinkCaseIds,
-  useGetExecutionLinkCaseRunIds,
-} from './hooks';
-import { usePageContext } from '../hook';
-import Header from './Header';
-import Right from './Right';
-import Left from './Left';
-import NoData from './NoData';
 import { useListener } from '@projectproxima/proxima-sdk-js';
-import cx from './index.less';
+import { useUpdateEffect } from 'ahooks';
+import { message, notification, Spin } from 'antd';
+import React, { useCallback, useRef, useState } from 'react';
+import { useLocation } from 'react-router-dom';
+
 import TestEntitySelectorModal, {
   ActionType as ModelActionType,
 } from '@/components/business/TestEntitySelectorModal';
+import PageLayout from '@/components/common/PageLayout';
+import { batchCreateTestRun, updateTestEntity } from '@/lib/api/item';
 import { PROXIMA_EVENT_KEY, TestLinkType, TestType } from '@/lib/constants';
 import { useBaseAction } from '@/lib/hooks/useContext';
-import { generateSortIndex } from '@/lib/utils/helper';
-import { batchCreateTestRun, updateTestEntity } from '@/lib/api/item';
 import useI18n from '@/lib/hooks/useI18n';
-import { useUpdateEffect } from 'ahooks';
+import { generateSortIndex } from '@/lib/utils/helper';
+import TestPlanList from '@/pages/plan/TestPlanList';
+
+import { usePageContext } from '../hook';
+import Header from './Header';
+import {
+  useGetExecutionLinkCaseRunIds,
+  useGetPlanLinkCaseIds,
+  useResizeContainerDOM,
+} from './hooks';
+import cx from './index.less';
+import Left from './Left';
+import NoData from './NoData';
+import Right from './Right';
 
 type ExecutionListRef = {
   refresh?: () => void;

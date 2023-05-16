@@ -1,14 +1,15 @@
-import keyBy from 'lodash/keyBy';
-import cloneDeep from 'lodash/cloneDeep';
-import { aggsSearch } from '../../lib/coreApi';
-import { logTimeCost } from '../../lib/logger';
-import { getPayload } from '../../lib/iqlRequest';
 import { getParseQuery, i18n } from '@giteeteam/apps-team-api';
-import { getReqInfoFromVMRuntime, buildResponse } from '../../lib/apiUtil';
-import { getRepositoryTree } from '../../lib/repository';
-import { RepositoryTreePayload } from '../../../common/types/api';
+import cloneDeep from 'lodash/cloneDeep';
+import keyBy from 'lodash/keyBy';
+
 import { InfinityLimit, RepositoryClassName } from '../../../common/constant';
+import { RepositoryTreePayload } from '../../../common/types/api';
 import iqlSearchParamsBuilder from '../../../common/utils/iqlSearchParamsBuilder';
+import { buildResponse, getReqInfoFromVMRuntime } from '../../lib/apiUtil';
+import { aggsSearch } from '../../lib/coreApi';
+import { getPayload } from '../../lib/iqlRequest';
+import { logTimeCost } from '../../lib/logger';
+import { getRepositoryTree } from '../../lib/repository';
 
 // 未分组模块 key
 const UngroupedRepositoryKey = 'root';

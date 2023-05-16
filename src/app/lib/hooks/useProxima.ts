@@ -1,10 +1,12 @@
+import { useDeepCompareEffect } from 'ahooks';
 import _ from 'lodash';
 import React from 'react';
-import Parse from '@/lib/parse';
-import { useDeepCompareEffect } from 'ahooks';
+
 import { SYSTEM_FIELD } from '@/lib/constants';
+import { ItemTypeScreenSchemeMapping, Screen, Workspace } from '@/lib/models';
+import Parse from '@/lib/parse';
+
 import { useNoExpiredRequest } from './useRequest';
-import { Workspace, Screen, ItemTypeScreenSchemeMapping } from '@/lib/models';
 
 /** 获取看板卡片渲染字段 props */
 export const useFieldsWithFieldCellProps = fields => {

@@ -3,27 +3,28 @@
  */
 
 // app cli 不支持指定 tsconfig 需要使用相对路径
+import { TestEntity } from 'common/types/test';
 import pick from 'lodash/pick';
+
+import {
+  InfinityLimit,
+  IQLRequiredFieldKeys,
+  IQLUsefulFieldKeys,
+  StartStatusKey,
+  SystemFieldNameMapping,
+  TestFiledKeyMapping,
+  TestLinkType,
+  TestType,
+} from '../../../common/constant';
+import {
+  QueryCaseIdByStatusPayload,
+  QueryLinkedTestEntityPayload,
+  QueryTestEntityPayload,
+} from '../../../common/types/api';
+import { buildPaginationResponse, buildResponse, getReqInfoFromVMRuntime } from '../../lib/apiUtil';
 import { toArray } from '../../lib/helper';
 import { iqlRequest } from '../../lib/iqlRequest';
 import { testEntityFieldTypeValidator } from '../../lib/validator';
-import { getReqInfoFromVMRuntime, buildPaginationResponse, buildResponse } from '../../lib/apiUtil';
-import {
-  QueryTestEntityPayload,
-  QueryCaseIdByStatusPayload,
-  QueryLinkedTestEntityPayload,
-} from '../../../common/types/api';
-import {
-  TestType,
-  TestLinkType,
-  InfinityLimit,
-  StartStatusKey,
-  IQLUsefulFieldKeys,
-  TestFiledKeyMapping,
-  IQLRequiredFieldKeys,
-  SystemFieldNameMapping,
-} from '../../../common/constant';
-import { TestEntity } from 'common/types/test';
 
 // 处理 iql 请求的自定义字段
 const concatIqlRequestFields = fields => {

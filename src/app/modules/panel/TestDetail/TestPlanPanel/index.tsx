@@ -1,27 +1,28 @@
-import React, { useRef, useCallback, useMemo, useState } from 'react';
-
 import { DownOutlined } from '@ant-design/icons';
-import { StatusProgress } from '@/components/business/Status';
+import createProximaSdk from '@projectproxima/proxima-sdk-js';
+import { message } from 'antd';
+import { TestType } from 'common/constant';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
+
 import DropDownButton from '@/components/business/DropDownButton';
-import { useTestConfig, useBaseAction } from '@/lib/hooks/useContext';
 import PanelTable, { ActionType } from '@/components/business/PanelTable';
 import { BuiltinColumns, columnBuilder } from '@/components/business/PanelTable';
+import { StatusProgress } from '@/components/business/Status';
 import TestEntitySelectorModal, {
   ActionType as SelectorActionType,
 } from '@/components/business/TestEntitySelectorModal';
-import { alert } from '@/lib/utils/helper';
-import { TestType } from 'common/constant';
-import cx from './index.less';
-import { getItemByIQL } from '@/lib/api/proxima';
-import { TestLinkType } from '@/lib/constants';
 import {
+  getLinkedTestEntityByQuery,
   getStatsFormPlan,
   updateTestEntity as updateRelated,
-  getLinkedTestEntityByQuery,
 } from '@/lib/api/item';
-import createProximaSdk from '@projectproxima/proxima-sdk-js';
-import { message } from 'antd';
+import { getItemByIQL } from '@/lib/api/proxima';
+import { TestLinkType } from '@/lib/constants';
+import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
+import { alert } from '@/lib/utils/helper';
+
+import cx from './index.less';
 
 const Plan = () => {
   const { t } = useI18n();

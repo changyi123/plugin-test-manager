@@ -1,15 +1,16 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { useEffect, useMemo } from 'react';
-import { Spin, Tree } from 'antd';
-import { FileOpen, FileClose, CaretDownOutlined } from '@/icons';
-import OverflowTooltip from '@/components/common/OverflowTooltip';
-import { UNGROUPED_FOLDER_KEY } from '@/pages/repository/constant';
-import { hasArrayItem, escapeMatchesQueryArg } from '@/lib/utils/helper';
-import { useRequest, useMemoizedFn, useDeepCompareEffect, clearCache } from 'ahooks';
-import { traverseTreeNodes, getTreeNodeByKey, reverseTreeNodes } from '@/pages/repository/util';
 import { useListener } from '@projectproxima/proxima-sdk-js';
-import { getRepositoryTreeV2 } from '@/lib/api/item';
+import { clearCache, useDeepCompareEffect, useMemoizedFn, useRequest } from 'ahooks';
+import { Spin, Tree } from 'antd';
 import { QueryLinkedTestEntityPayload } from 'common/types/api';
+import React, { useEffect, useMemo } from 'react';
+
+import OverflowTooltip from '@/components/common/OverflowTooltip';
+import { CaretDownOutlined, FileClose, FileOpen } from '@/icons';
+import { getRepositoryTreeV2 } from '@/lib/api/item';
+import { escapeMatchesQueryArg, hasArrayItem } from '@/lib/utils/helper';
+import { UNGROUPED_FOLDER_KEY } from '@/pages/repository/constant';
+import { getTreeNodeByKey, reverseTreeNodes, traverseTreeNodes } from '@/pages/repository/util';
 
 import cx from './style.less';
 

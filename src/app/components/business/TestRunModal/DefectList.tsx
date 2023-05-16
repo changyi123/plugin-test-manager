@@ -1,16 +1,18 @@
-import React from 'react';
 import { useHover } from 'ahooks';
-import cx from './DefectList.less';
+import { Empty, message, Popconfirm, Tooltip } from 'antd';
+import { components } from 'proxima-sdk';
+import React from 'react';
+
 import { DeleteOutlined } from '@/icons';
+import { addTestDefect, deleteTestDefect, updateTestRunDetail } from '@/lib/api/item';
+import useI18n from '@/lib/hooks/useI18n';
 import { Item, Status } from '@/lib/types/App';
+import { goToItemDetailPage } from '@/lib/utils/helper';
+
 import AddDefectButton from './AddDefectButton';
+import cx from './DefectList.less';
 import { useItemLinkTypeConfig } from './hooks';
 import { TabsComponentBaseProps } from './type';
-import { Popconfirm, Tooltip, Empty, message } from 'antd';
-import { components } from 'proxima-sdk';
-import { addTestDefect, deleteTestDefect, updateTestRunDetail } from '@/lib/api/item';
-import { goToItemDetailPage } from '@/lib/utils/helper';
-import useI18n from '@/lib/hooks/useI18n';
 
 const { ItemIcon } = components.Components.Common;
 

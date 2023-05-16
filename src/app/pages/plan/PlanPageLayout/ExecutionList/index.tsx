@@ -1,15 +1,16 @@
-import React, { useEffect, useState } from 'react';
+import { EllipsisOutlined } from '@ant-design/icons';
+import { useListener } from '@projectproxima/proxima-sdk-js';
 import { useRequest } from 'ahooks';
 import { Dropdown, Menu, message, notification, Tooltip } from 'antd';
-import { EllipsisOutlined } from '@ant-design/icons';
-import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
-import { useLocation } from 'react-router-dom';
-import { useListener } from '@projectproxima/proxima-sdk-js';
-import { usePageContext } from '../../hook';
-import { deleteTestEntity, getLinkedTestEntityByQuery } from '@/lib/api/item';
 import { TestLinkType, TestType } from 'common/constant';
-import useI18n from '@/lib/hooks/useI18n';
+import React, { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 
+import { deleteTestEntity, getLinkedTestEntityByQuery } from '@/lib/api/item';
+import useI18n from '@/lib/hooks/useI18n';
+import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
+
+import { usePageContext } from '../../hook';
 import cx from './index.less';
 
 type ExecutionListRef = {
@@ -103,12 +104,14 @@ const ExecutionList: React.FC<ExecutionListProps> = ({
     if (!selectedExecution?.objectId && query?.executionId) {
       setSelectedExecution(executionList.find(d => d.objectId === query?.executionId));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query?.executionId, selectedExecution]);
 
   useEffect(() => {
     if (executionList && !activeId) {
       setSelectedExecution(executionList?.[0]);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [executionList, planId]);
 
   const menuClick = (type: string, data) => {

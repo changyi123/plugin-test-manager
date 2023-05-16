@@ -1,8 +1,10 @@
 import { message } from 'antd';
-import { genAcceptLanguage, getLang } from './locale';
-import { getTenantKey } from '@/lib/utils/helper';
-import { getDevConfig, getParseReqHeader } from '@/devEnv';
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
+
+import { getDevConfig, getParseReqHeader } from '@/devEnv';
+import { getTenantKey } from '@/lib/utils/helper';
+
+import { genAcceptLanguage, getLang } from './locale';
 interface FetchInstance extends AxiosInstance {
   $get<T = any>(url: string, config?: AxiosRequestConfig): Promise<T>;
 

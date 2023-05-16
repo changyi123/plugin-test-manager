@@ -1,10 +1,12 @@
-import React from 'react';
-import TestRun from './TestRun';
+import { Button, Modal } from 'antd';
 import classnames from 'classnames';
-import { Modal, Button } from 'antd';
+import React from 'react';
+
+import useI18n from '@/lib/hooks/useI18n';
 import EventBus from '@/lib/utils/eventBus';
 import { getRootContainer } from '@/lib/utils/helper';
-import useI18n from '@/lib/hooks/useI18n';
+
+import TestRun from './TestRun';
 
 export type ActionType = {
   open: (data: { testId: string; testIdSequence?: string[] }) => Promise<void>;
