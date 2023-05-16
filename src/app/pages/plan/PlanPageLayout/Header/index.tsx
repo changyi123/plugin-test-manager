@@ -1,20 +1,20 @@
-import React, { useMemo } from 'react';
-import { Button, Dropdown, Menu } from 'antd';
-import { ArrowLeftOutlined, DownOutlined, ExportOutlined } from '@/icons';
-import TestPlanSelector from '@/components/business/TestPlanSelector';
-import ExecutionList from '../ExecutionList';
-import { usePageContext } from '../../hook';
-import WordReport from '@/lib/report';
 import { useRequest } from 'ahooks';
+import { Button, Dropdown, Menu } from 'antd';
+import React, { useMemo } from 'react';
 
 import TestEntitySelectorModal, {
   ActionType as SelectorActionType,
 } from '@/components/business/TestEntitySelectorModal';
+import TestPlanSelector from '@/components/business/TestPlanSelector';
+import { ArrowLeftOutlined, DownOutlined, ExportOutlined } from '@/icons';
 import { getFirstWordTemplate } from '@/lib/api/report';
 import { TestType } from '@/lib/constants';
 import { useBaseAction } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
+import WordReport from '@/lib/report';
 
+import { usePageContext } from '../../hook';
+import ExecutionList from '../ExecutionList';
 import cx from './index.less';
 
 type ExecutionListRef = {

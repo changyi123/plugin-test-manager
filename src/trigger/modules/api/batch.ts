@@ -1,5 +1,5 @@
+import { i18n } from '@giteeteam/apps-team-api';
 import difference from 'lodash/difference';
-import { generateSortIndex, concatIqlRequestFields, uuidv4 } from '../../lib/helper';
 import keyBy from 'lodash/keyBy';
 
 import {
@@ -11,20 +11,20 @@ import {
   TestType,
 } from '../../../common/constant';
 import {
+  BatchCopyTestCasePayload,
+  BatchCreateTestCasePayload,
+  BatchCreateTestRunPayload,
   BatchDeletePayload,
   BatchUpdatePayload,
-  BatchCopyTestCasePayload,
-  BatchCreateTestRunPayload,
-  BatchCreateTestCasePayload,
 } from '../../../common/types/api';
 import { TestEntity } from '../../../common/types/test';
 import { itemToTestEntity } from '../../../common/utils/dataTransfer';
 import { buildResponse } from '../../lib/apiUtil';
 import { getReqInfoFromVMRuntime } from '../../lib/apiUtil';
 import { batchCreateItems, batchDeleteItems, batchUpdateItems } from '../../lib/batchRequest';
+import { concatIqlRequestFields, generateSortIndex, uuidv4 } from '../../lib/helper';
 import { iqlRequest } from '../../lib/iqlRequest';
 import { getItemCreateRequiredAttrs } from '../../lib/item';
-import { i18n } from '@giteeteam/apps-team-api';
 import { testEntityFieldTypeValidator, throwArgumentError } from '../../lib/validator';
 
 type TestCaseType = TestEntity<TestType.Case>;

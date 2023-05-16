@@ -5,8 +5,9 @@ import isNil from 'lodash/isNil';
 import omit from 'lodash/omit';
 import omitBy from 'lodash/omitBy';
 import pick from 'lodash/pick';
-import { TestFiledKeyMapping, NotValidatorFiledKeyMapping } from '../constant';
-import { TestEntityKey, BaseTestEntity } from '../types/test';
+
+import { NotValidatorFiledKeyMapping, TestFiledKeyMapping } from '../constant';
+import { BaseTestEntity, TestEntityKey } from '../types/test';
 
 /** 转换为 JS 对象或数组 */
 const convertToPlainJSData = data => {

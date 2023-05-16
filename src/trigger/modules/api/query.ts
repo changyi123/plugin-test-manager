@@ -5,15 +5,6 @@
 // app cli 不支持指定 tsconfig 需要使用相对路径
 import { TestEntity } from 'common/types/test';
 import pick from 'lodash/pick';
-import { toArray, concatIqlRequestFields } from '../../lib/helper';
-import { iqlRequest } from '../../lib/iqlRequest';
-import { testEntityFieldTypeValidator } from '../../lib/validator';
-import { getReqInfoFromVMRuntime, buildPaginationResponse, buildResponse } from '../../lib/apiUtil';
-import {
-  QueryTestEntityPayload,
-  QueryCaseIdByStatusPayload,
-  QueryLinkedTestEntityPayload,
-} from '../../../common/types/api';
 
 import {
   InfinityLimit,
@@ -24,6 +15,15 @@ import {
   TestLinkType,
   TestType,
 } from '../../../common/constant';
+import {
+  QueryCaseIdByStatusPayload,
+  QueryLinkedTestEntityPayload,
+  QueryTestEntityPayload,
+} from '../../../common/types/api';
+import { buildPaginationResponse, buildResponse, getReqInfoFromVMRuntime } from '../../lib/apiUtil';
+import { concatIqlRequestFields, toArray } from '../../lib/helper';
+import { iqlRequest } from '../../lib/iqlRequest';
+import { testEntityFieldTypeValidator } from '../../lib/validator';
 
 const overwriteIqlParamsWithOnlySelectId = onlySelectId => {
   if (onlySelectId) {

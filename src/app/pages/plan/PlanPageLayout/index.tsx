@@ -8,11 +8,11 @@ import TestEntitySelectorModal, {
   ActionType as ModelActionType,
 } from '@/components/business/TestEntitySelectorModal';
 import PageLayout from '@/components/common/PageLayout';
+import { batchCreateTestRun, getLinkedTestEntityByQuery, updateTestEntity } from '@/lib/api/item';
 import { PROXIMA_EVENT_KEY, TestLinkType, TestType } from '@/lib/constants';
 import { useBaseAction } from '@/lib/hooks/useContext';
-import { generateSortIndex } from '@/lib/utils/helper';
-import { batchCreateTestRun, getLinkedTestEntityByQuery, updateTestEntity } from '@/lib/api/item';
 import useI18n from '@/lib/hooks/useI18n';
+import { generateSortIndex } from '@/lib/utils/helper';
 import TestPlanList from '@/pages/plan/TestPlanList';
 
 import { usePageContext } from '../hook';

@@ -14,12 +14,11 @@ import useI18n from '@/lib/hooks/useI18n';
 import EventBus from '@/lib/utils/eventBus';
 import { getRootContainer, getTestManagerContainer, hasArrayItem } from '@/lib/utils/helper';
 
+import cx from './index.less';
 // import SelectorTable from './SelectorTable';
 import InheritTestDetail from './InheritTestDetail';
-import TestDetailSelector from './TestDetailSelector';
 import SelectorTable from './SelectorTable';
-
-import cx from './index.less';
+import TestDetailSelector from './TestDetailSelector';
 
 const AddExistedTestEventType = 'ADD_EXISTED_TEST';
 
@@ -503,6 +502,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
     workspaceKeyCondition,
     selectValue,
     setSelectValue,
+    tableFieldsKeys,
   ]);
 
   return (

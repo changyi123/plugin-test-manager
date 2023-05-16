@@ -1,8 +1,8 @@
 import {
   DATA_FIELDS,
   ICLUDE_SYSTEM_FIELD,
-  SystemIncludeFieldKeys,
   SYSTEM_FIELD,
+  SystemIncludeFieldKeys,
 } from '@/lib/constants';
 
 export const getFilterFields = fields => {

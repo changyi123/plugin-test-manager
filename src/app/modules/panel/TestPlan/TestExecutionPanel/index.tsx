@@ -1,5 +1,7 @@
-import React, { useCallback, useState } from 'react';
 import { Button, message, notification } from 'antd';
+import sum from 'lodash/sum';
+import React, { useCallback, useState } from 'react';
+
 import PanelTable, {
   ActionType,
   BuiltinColumns,
@@ -9,12 +11,11 @@ import { StatusProgress } from '@/components/business/Status';
 import TestEntitySelectorModal, {
   ActionType as SelectorActionType,
 } from '@/components/business/TestEntitySelectorModal';
+import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/hook';
 import { getLinkedTestEntityByQuery, getTestStats, updateTestEntity } from '@/lib/api/item';
 import { TestLinkType, TestType } from '@/lib/constants';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
-import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/hook';
-import sum from 'lodash/sum';
 import { alert, generateSortIndex } from '@/lib/utils/helper';
 
 import cx from './index.less';

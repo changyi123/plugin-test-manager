@@ -1,13 +1,13 @@
-import React from 'react';
 import { Button, Empty, Space } from 'antd';
+import React from 'react';
 
+import TestEntitySelectorModal, {
+  ActionType as SelectorActionType,
+} from '@/components/business/TestEntitySelectorModal';
 import emptyImg from '@/icons/svg/empty-data.png';
 import { TestType } from '@/lib/constants';
 import { useBaseAction } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
-import TestEntitySelectorModal, {
-  ActionType as SelectorActionType,
-} from '@/components/business/TestEntitySelectorModal';
 
 import cx from './index.less';
 

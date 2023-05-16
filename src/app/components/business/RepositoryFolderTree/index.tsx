@@ -3,7 +3,7 @@ import { useListener } from '@projectproxima/proxima-sdk-js';
 import { clearCache, useDeepCompareEffect, useMemoizedFn, useRequest } from 'ahooks';
 import { Spin, Tree } from 'antd';
 import { QueryLinkedTestEntityPayload } from 'common/types/api';
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect } from 'react';
 
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import { CaretDownOutlined, FileClose, FileOpen } from '@/icons';

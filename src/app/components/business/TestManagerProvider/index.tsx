@@ -1,6 +1,8 @@
 import { store } from '@nebulare/data';
 import { useRequest } from 'ahooks';
 import { message, notification } from 'antd';
+import isEmpty from 'lodash/isEmpty';
+import union from 'lodash/union';
 import React from 'react';
 import { useLocation } from 'react-router-dom';
 import { v4 as uuid } from 'uuid';
@@ -10,6 +12,7 @@ import { getTestConfig, getTestConfigByWorkspaceKeys } from '@/lib/api/common';
 import { getTestEntityByQuery, updateTestEntity } from '@/lib/api/item';
 import { getItemByIds, getItemTypeByKey, getWorkspaceByKey } from '@/lib/api/proxima';
 import { openCreateItemModal, openItemDetailPanel } from '@/lib/api/sdk';
+import { CREATE_ITEM_STORE_FIELD_KEY, ExtensionValType, TestType } from '@/lib/constants';
 import { repositoryFolderTreeEvent } from '@/lib/events';
 import useI18n from '@/lib/hooks/useI18n';
 import { useOnItemCreateSuccess } from '@/lib/hooks/useProximaSDK';
@@ -25,9 +28,6 @@ import {
   TestConfigContext,
   TestConfigContextType,
 } from './context';
-import { ExtensionValType, CREATE_ITEM_STORE_FIELD_KEY, TestType } from '@/lib/constants';
-import union from 'lodash/union';
-import isEmpty from 'lodash/isEmpty';
 import { useGetPermissions } from './hooks';
 
 const ItemCreateSuccessEventType = 'itemCreateSuccess';

@@ -36,9 +36,9 @@ import { isDate, SearchSelectors, Selectors } from '@/lib/utils/iql';
 
 import { useGetCustomFields } from '../BusinessTable/hook';
 import cx from './index.less';
-import { handleDataSelector } from './utils';
 import SearchInput from './SearchInput';
 import SelectorTag from './SelectorTag';
+import { handleDataSelector } from './utils';
 
 interface FilterSearchProps {
   fields: string[];

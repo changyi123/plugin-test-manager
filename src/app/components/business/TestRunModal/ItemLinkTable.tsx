@@ -5,9 +5,8 @@ import React from 'react';
 import useI18n from '@/lib/hooks/useI18n';
 import { goToItemDetailPage } from '@/lib/utils/helper';
 
-import { TabsComponentBaseProps } from './type';
-
 import cx from './ItemLinkTable.less';
+import { TabsComponentBaseProps } from './type';
 
 const { ItemIcon } = components.Components.Common;
 

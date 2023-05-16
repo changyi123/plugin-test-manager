@@ -1,16 +1,17 @@
-import React, { useEffect, useState } from 'react';
+import { EllipsisOutlined } from '@ant-design/icons';
+import { useListener } from '@projectproxima/proxima-sdk-js';
 import { useRequest } from 'ahooks';
 import { Dropdown, Menu, message, notification } from 'antd';
-import { EllipsisOutlined } from '@ant-design/icons';
-import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
-import { useLocation } from 'react-router-dom';
-import { useListener } from '@projectproxima/proxima-sdk-js';
-import { usePageContext } from '../../hook';
-import { deleteTestEntity, getLinkedTestEntityByQuery } from '@/lib/api/item';
 import { TestLinkType, TestType } from 'common/constant';
-import useI18n from '@/lib/hooks/useI18n';
-import OverflowTooltip from '@/components/common/OverflowTooltip';
+import React, { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 
+import OverflowTooltip from '@/components/common/OverflowTooltip';
+import { deleteTestEntity, getLinkedTestEntityByQuery } from '@/lib/api/item';
+import useI18n from '@/lib/hooks/useI18n';
+import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
+
+import { usePageContext } from '../../hook';
 import cx from './index.less';
 
 type ExecutionListRef = {
