@@ -3,6 +3,7 @@ import { useRequest } from 'ahooks';
 import { message, notification } from 'antd';
 import { union } from 'lodash';
 import React from 'react';
+import { useLocation } from 'react-router-dom';
 import { v4 as uuid } from 'uuid';
 
 import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/hook';
@@ -16,8 +17,10 @@ import {
   ExtensionValType,
   TestType,
 } from '@/lib/constants';
+import { repositoryFolderTreeEvent } from '@/lib/events';
 import useI18n from '@/lib/hooks/useI18n';
 import { useOnItemCreateSuccess } from '@/lib/hooks/useProximaSDK';
+import { useGetWorkspaceRepository } from '@/lib/hooks/useTest';
 import { Workspace } from '@/lib/types/App';
 import { TestEntity } from '@/lib/types/Test';
 import { EventBus } from '@/lib/utils/eventBus';
@@ -369,6 +372,13 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
     testType: TestType.Case,
     workspaceKey,
   });
+  const { pathname } = useLocation();
+
+  const getTestCaseRepositoryPath = useGetWorkspaceRepository(workspaceKey);
+
+  React.useEffect(() => {
+    pathname && repositoryFolderTreeEvent.dispatch();
+  }, [pathname]);
 
   // const testExecutionFieldKeys = useTestTypeScreenFieldKeys({
   //   testType: TestType.Execution,
@@ -585,6 +595,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
       },
       getGlobalConfig,
       getCreatePermission,
+      getTestCaseRepositoryPath,
       testPlanFieldKeys,
       testCaseFieldKeys,
       // testExecutionFieldKeys,
@@ -595,6 +606,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
   }, [
     getGlobalConfig,
     getCreatePermission,
+    getTestCaseRepositoryPath,
     testConfig.defectsMapping,
     testConfig?.itemTypeMap,
     workspace?.objectId,

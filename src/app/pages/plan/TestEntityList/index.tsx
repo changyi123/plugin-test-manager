@@ -9,6 +9,7 @@ import { TestLinkType, TestType } from 'common/constant';
 import { isEmpty, isEqual, omit, pick } from 'lodash';
 import React, { useCallback, useEffect, useState } from 'react';
 
+import RenderRepository from '@/components/business/RenderRepository';
 import { StatusBadge } from '@/components/business/Status';
 import TestRunModal, {
   ActionType as TestRunModalActionType,
@@ -35,7 +36,6 @@ import { useCanExecuteTestRunIdSequence, useTestRunActionAuth } from '@/lib/hook
 import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
 import { getTestCaseStatusModelValue, handleCustomerSelector } from '@/lib/utils/iql';
 import { getRepositoryQuery } from '@/lib/utils/tree';
-import { RepositoryGroupCell } from '@/pages/Cell';
 
 import { usePageContext } from '../hook';
 import { getTestRunSelector } from '../PlanPageLayout/helps';
@@ -515,12 +515,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         title: t('page.plan.testEntityList.repositoryGroup'),
         width: 200,
         render(_, rowData) {
-          return (
-            <RepositoryGroupCell
-              repository={rowData?.repository}
-              workspaceKey={rowData?.workspace?.key}
-            />
-          );
+          return <RenderRepository repository={rowData?.repository} />;
         },
       },
       {
@@ -667,12 +662,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         title: t('page.plan.testEntityList.repositoryGroup'),
         width: 200,
         render(_, rowData) {
-          return (
-            <RepositoryGroupCell
-              repository={rowData?.repository}
-              workspaceKey={rowData?.workspace?.key}
-            />
-          );
+          return <RenderRepository repository={rowData?.repository} />;
         },
       },
       {

@@ -4,6 +4,7 @@ import { useDrag, useDrop, useRequest } from 'ahooks';
 import { message, notification, Tooltip } from 'antd';
 import React, { useCallback } from 'react';
 
+import RenderRepository from '@/components/business/RenderRepository';
 import RepositorySelector, {
   ActionType as RepositorySelectorActionType,
 } from '@/components/business/RepositorySelector';
@@ -16,6 +17,7 @@ import { TestType } from '@/lib/constants';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import { useUserCellUserDataProp } from '@/lib/hooks/useProxima';
+import { useGetWorkspaceRepository } from '@/lib/hooks/useTest';
 import fetch from '@/lib/utils/fetch';
 import {
   actionConfirm,
@@ -23,7 +25,6 @@ import {
   getPluginWebTriggerBaseUrl,
   openItemViewScreen,
 } from '@/lib/utils/helper';
-import { RepositoryGroupCell } from '@/pages/Cell';
 
 import { UNGROUPED_FOLDER_KEY } from '../../constant';
 import cx from './Table.less';
@@ -88,6 +89,8 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
   const repositorySelectorRef = React.useRef<RepositorySelectorActionType>();
   const { workspace } = useTestConfig();
   const workspaceKey = workspace?.key;
+  // 缓存用例库数据，用于监听用例库修改后刷新表格所属模块
+  useGetWorkspaceRepository(workspaceKey);
   const { data: currentUser } = useCurrentUser();
   const [hasRowSelected, setHasRowSelected] = React.useState(false);
   const userData = useUserCellUserDataProp(workspaceKey);
@@ -370,12 +373,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         title: t('page.plan.testEntityList.repositoryGroup'),
         width: 200,
         render(_, rowData) {
-          return (
-            <RepositoryGroupCell
-              repository={rowData?.repository}
-              workspaceKey={rowData?.workspace?.key}
-            />
-          );
+          return <RenderRepository repository={rowData?.repository} />;
         },
       },
       {

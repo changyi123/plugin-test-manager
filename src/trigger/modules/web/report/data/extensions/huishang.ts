@@ -72,7 +72,7 @@ export async function main() {
       .map(d => d.defectItemIds ?? [])
       .flat();
 
-    const runDefectItemIds = runDetails.map(d => d?.defectItemIds ?? []).flat();
+    const runDefectItemIds = runDetails?.map(d => d?.defectItemIds ?? []).flat();
     return [...new Set([...stepDefectIds, ...runDefectItemIds])].filter(Boolean);
   };
 
@@ -111,12 +111,13 @@ export async function main() {
 
   // 饼图数据初始化
   const generateLevelPieOption = defects => {
-    const fieldOption = (severityLevelField as any)?.data?.customData?.map(ele => {
-      return {
-        ...ele,
-        count: 0,
-      };
-    });
+    const fieldOption =
+      (severityLevelField as any)?.data?.customData?.map(ele => {
+        return {
+          ...ele,
+          count: 0,
+        };
+      }) ?? [];
 
     defects.forEach(defect => {
       fieldOption.forEach(option => {
@@ -145,13 +146,14 @@ export async function main() {
   const severityLevelField = await getSeverityLevelField();
 
   // 严重等级的 Mapping
-  const SeverityLevelLabelMapping = (severityLevelField as any)?.data?.customData?.reduce(
-    (res, data) => ({
-      ...res,
-      [data.value]: data.label,
-    }),
-    {},
-  );
+  const SeverityLevelLabelMapping =
+    (severityLevelField as any)?.data?.customData?.reduce(
+      (res, data) => ({
+        ...res,
+        [data.value]: data.label,
+      }),
+      {},
+    ) ?? {};
 
   // 遗留的数据类型
   const legacyDefectList = cumulatedDefects

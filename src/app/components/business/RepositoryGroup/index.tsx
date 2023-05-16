@@ -1,13 +1,12 @@
 import React from 'react';
+// import { useGetTestRepoGroup } from '@/lib/hooks/useTest';
 
-import { useGetTestRepoGroup } from '@/lib/hooks/useTest';
-
-const RepositoryGroup = ({ rowData }: { rowData: any }) => {
-  const { data: testRepoGroup, loading } = useGetTestRepoGroup(rowData);
+const RepositoryGroup = ({ rowData: _rowData }: { rowData: any }) => {
+  // const { data: testRepoGroup, loading } = useGetTestRepoGroup(rowData);
 
   return (
     <>
-      <span>{!loading ? testRepoGroup : '--'}</span>
+      <span>{'--'}</span>
     </>
   );
 };
