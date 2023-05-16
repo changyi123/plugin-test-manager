@@ -1,8 +1,8 @@
 import { TestType } from '@/lib/constants';
 import {
-  TestEntity,
   Step as StepDeclaration,
   StepField as StepFieldDeclaration,
+  TestEntity,
 } from '@/lib/types/Test';
 
 export type StepField = StepFieldDeclaration & Record<string, any>;

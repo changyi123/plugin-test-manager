@@ -1,8 +1,8 @@
 /**
  * @file 测试实体数据和事项数据之间相互转换
  */
-import omit from 'lodash/omit';
 import isNil from 'lodash/isNil';
+import omit from 'lodash/omit';
 import omitBy from 'lodash/omitBy';
 import pick from 'lodash/pick';
 import { TestFiledKeyMapping, NotValidatorFiledKeyMapping } from '../constant';

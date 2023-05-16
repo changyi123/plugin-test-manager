@@ -1,12 +1,15 @@
-import keyBy from 'lodash/keyBy';
 import difference from 'lodash/difference';
-import { iqlRequest } from '../../lib/iqlRequest';
-import { buildResponse } from '../../lib/apiUtil';
-import { TestEntity } from '../../../common/types/test';
-import { getReqInfoFromVMRuntime } from '../../lib/apiUtil';
 import { generateSortIndex, concatIqlRequestFields, uuidv4 } from '../../lib/helper';
-import { itemToTestEntity } from '../../../common/utils/dataTransfer';
-import { batchDeleteItems, batchUpdateItems, batchCreateItems } from '../../lib/batchRequest';
+import keyBy from 'lodash/keyBy';
+
+import {
+  BuiltInItemTypeMapping,
+  InfinityLimit,
+  SystemField,
+  TestFiledKeyMapping,
+  TestLinkType,
+  TestType,
+} from '../../../common/constant';
 import {
   BatchDeletePayload,
   BatchUpdatePayload,
@@ -14,17 +17,15 @@ import {
   BatchCreateTestRunPayload,
   BatchCreateTestCasePayload,
 } from '../../../common/types/api';
-import { throwArgumentError, testEntityFieldTypeValidator } from '../../lib/validator';
-import {
-  TestType,
-  SystemField,
-  TestLinkType,
-  InfinityLimit,
-  TestFiledKeyMapping,
-  BuiltInItemTypeMapping,
-} from '../../../common/constant';
+import { TestEntity } from '../../../common/types/test';
+import { itemToTestEntity } from '../../../common/utils/dataTransfer';
+import { buildResponse } from '../../lib/apiUtil';
+import { getReqInfoFromVMRuntime } from '../../lib/apiUtil';
+import { batchCreateItems, batchDeleteItems, batchUpdateItems } from '../../lib/batchRequest';
+import { iqlRequest } from '../../lib/iqlRequest';
 import { getItemCreateRequiredAttrs } from '../../lib/item';
 import { i18n } from '@giteeteam/apps-team-api';
+import { testEntityFieldTypeValidator, throwArgumentError } from '../../lib/validator';
 
 type TestCaseType = TestEntity<TestType.Case>;
 type TestRunType = TestEntity<TestType.Run>;

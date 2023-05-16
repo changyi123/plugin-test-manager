@@ -1,21 +1,21 @@
-import React from 'react';
 import Icon from '@ant-design/icons';
 import { IconComponentProps } from '@ant-design/icons/lib/components/Icon';
-
-import MoreSVG from './svg/more.svg';
-import CloseMoreSVG from './svg/close-more.svg';
-import ScreenOffSVG from './svg/screen-off.svg';
-import PlusSVG from './svg/plus.svg';
-import DragHandlerSVG from './svg/drag-handler.svg';
-import FileOpenSVG from './svg/file-open.svg';
-import FileCloseSVG from './svg/file-close.svg';
-import FullScreenSVG from './svg/full-screen.svg';
-import DropDownSVG from './svg/drop-down.svg';
-import AddSearchSvg from './svg/add-search.svg';
-import DeleteSearchSvg from './svg/delete-search.svg';
-import SettingSvg from './svg/setting.svg';
-import EditSvg from './svg/edit.svg';
 import { components } from 'proxima-sdk';
+import React from 'react';
+
+import AddSearchSvg from './svg/add-search.svg';
+import CloseMoreSVG from './svg/close-more.svg';
+import DeleteSearchSvg from './svg/delete-search.svg';
+import DragHandlerSVG from './svg/drag-handler.svg';
+import DropDownSVG from './svg/drop-down.svg';
+import EditSvg from './svg/edit.svg';
+import FileCloseSVG from './svg/file-close.svg';
+import FileOpenSVG from './svg/file-open.svg';
+import FullScreenSVG from './svg/full-screen.svg';
+import MoreSVG from './svg/more.svg';
+import PlusSVG from './svg/plus.svg';
+import ScreenOffSVG from './svg/screen-off.svg';
+import SettingSvg from './svg/setting.svg';
 
 const { Link, delete: ResetIcon, User } = components.Components.Icons.Icons;
 

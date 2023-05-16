@@ -1,5 +1,5 @@
-import Parse from './parse';
 import { appKey, RepositoryModel } from './constants';
+import Parse from './parse';
 
 export const Item = Parse.Object.extend('Item');
 export const User = Parse.Object.extend('User');

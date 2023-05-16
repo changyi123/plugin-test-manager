@@ -1,12 +1,11 @@
-import React, { useEffect, useState, useCallback } from 'react';
 import { CloudUploadOutlined, DownloadOutlined } from '@ant-design/icons';
-import { cloneDeep } from 'lodash';
-
-import { UploadProps } from 'antd/lib/upload';
-
 import { message, Upload } from 'antd';
-import Parse from '@/lib/parse';
+import { UploadProps } from 'antd/lib/upload';
+import { cloneDeep } from 'lodash';
+import React, { useCallback, useEffect, useState } from 'react';
+
 import useI18n from '@/lib/hooks/useI18n';
+import Parse from '@/lib/parse';
 
 import cx from './index.less';
 const { Dragger } = Upload;

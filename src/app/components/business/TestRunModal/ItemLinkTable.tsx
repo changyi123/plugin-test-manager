@@ -1,9 +1,11 @@
-import React from 'react';
 import { Table } from 'antd';
 import { components } from 'proxima-sdk';
-import { TabsComponentBaseProps } from './type';
-import { goToItemDetailPage } from '@/lib/utils/helper';
+import React from 'react';
+
 import useI18n from '@/lib/hooks/useI18n';
+import { goToItemDetailPage } from '@/lib/utils/helper';
+
+import { TabsComponentBaseProps } from './type';
 
 import cx from './ItemLinkTable.less';
 

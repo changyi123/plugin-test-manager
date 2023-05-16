@@ -1,13 +1,15 @@
-import React from 'react';
-import { get, keyBy } from 'lodash';
-import { useRequest } from 'ahooks';
 import { store } from '@nebulare/data';
-import { getDevConfig } from '@/devEnv';
-import TestDetailForm from './TestDetailForm';
 import { useSDK } from '@projectproxima/plugin-sdk';
+import { useRequest } from 'ahooks';
+import { get, keyBy } from 'lodash';
+import React from 'react';
+
+import { getDevConfig } from '@/devEnv';
 import { getAllTestConfigs } from '@/lib/api/common';
-import { getWorkspaceById, getItemTypeById } from '@/lib/api/proxima';
-import { ExtensionValType, TestType, CREATE_ITEM_STORE_FIELD_KEY } from '@/lib/constants';
+import { getItemTypeById, getWorkspaceById } from '@/lib/api/proxima';
+import { CREATE_ITEM_STORE_FIELD_KEY, ExtensionValType, TestType } from '@/lib/constants';
+
+import TestDetailForm from './TestDetailForm';
 
 const getUpdateParamsByStoreValues = storeValues => ({
   workspaceId: get(storeValues, 'workspace[0]'),

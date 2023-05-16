@@ -368,7 +368,16 @@
           "saveFail": "保存失败",
           "export": "导出 XMind",
           "import": "导入 XMind",
-          "exportLoadingMessage": "正在导出 XMind"
+          "exportLoadingMessage": "正在导出 XMind",
+          "waitForMinderDataLoading": "脑图数据正在获取中，请稍后进行导出操作",
+          "maxRenderNodeConfirm": {
+            "title": "提示",
+            "content": "当前用例库分组下节点数量过多。脑图页面加载时间过长，建议切换子分组查看或返回列表页面。请确认是否继续加载？",
+            "next": "继续加载",
+            "cancel": "取消加载",
+            "goBack": "返回列表页"
+          },
+          "hasExistedError": "当前脑图数据存在错误，请修正后重试"
         }
       }
     },

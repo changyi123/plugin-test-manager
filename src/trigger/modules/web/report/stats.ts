@@ -2,7 +2,8 @@
  * @file 测试管理报表统计数据
  * @prams {Array} testPlanIds 测试计划 Ids
  * */
-import { getParseQuery, requestCoreApi, i18n } from '@giteeteam/apps-team-api';
+import { getParseQuery, i18n, requestCoreApi } from '@giteeteam/apps-team-api';
+
 import { TestLinkType, TestType } from '../../../../common/constant';
 import { iqlRequest } from '../../../lib/iqlRequest';
 import { testEntityFieldTypeValidator } from '../../../lib/validator';

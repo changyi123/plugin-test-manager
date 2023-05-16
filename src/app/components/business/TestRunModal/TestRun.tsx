@@ -1,14 +1,12 @@
-import React from 'react';
-import _ from 'lodash';
-import { TestEntity } from '@/lib/types/Test';
-import { QuestionCircleFilled } from '@/icons';
-import { getItemByIds } from '@/lib/api/proxima';
-import { StatusBadge, StatusList } from '@/components/business/Status';
 import { useRequest, useSessionStorageState } from 'ahooks';
-import { PASS_STATUS_TYPE, TestType } from '@/lib/constants';
-import { getRootContainer, generateStorageKey } from '@/lib/utils/helper';
-import { Button, Checkbox, Collapse, Tabs, message, Spin, Tooltip } from 'antd';
+import { Button, Checkbox, Collapse, message, Spin, Tabs, Tooltip } from 'antd';
+import _ from 'lodash';
+import React from 'react';
+
+import { StatusBadge, StatusList } from '@/components/business/Status';
+import { QuestionCircleFilled } from '@/icons';
 import { getTestEntityByQuery, updateTestRunDetail } from '@/lib/api/item';
+import { getItemByIds } from '@/lib/api/proxima';
 import { getItemLinkRelation, getTestStepsByTestDetailId } from '@/lib/api/runs';
 import { useCanExecuteTestRunIdSequence } from '@/lib/hooks/useTest';
 import { v4 as uuid } from 'uuid';
@@ -18,9 +16,12 @@ import DefectList from './DefectList';
 import ItemLinkTable from './ItemLinkTable';
 import AttachmentUpload from './AttachmentUpload';
 import ExecutionEditor from './ExecutionEditor';
+import { PASS_STATUS_TYPE, TestType } from '@/lib/constants';
 import useI18n from '@/lib/hooks/useI18n';
-// import TestComment from './TestComment';
+import { TestEntity } from '@/lib/types/Test';
+import { generateStorageKey, getRootContainer } from '@/lib/utils/helper';
 
+// import TestComment from './TestComment';
 import cx from './TestRun.less';
 
 // TODO: 类型问题

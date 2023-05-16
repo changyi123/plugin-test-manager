@@ -1,15 +1,17 @@
-import React from 'react';
 import { useRequest } from 'ahooks';
+import { TestLinkType, TestType } from 'common/constant';
+import { isEmpty, omit } from 'lodash';
+import React from 'react';
+
 import { getCasesByStatus, getLinkedTestEntityByQuery, getTestEntityByQuery } from '@/lib/api/item';
+import { TestCaseStatusModel, TestRunDesigneeModel, TestRunExecutorModel } from '@/lib/constants';
 import {
   getTestCaseStatusModelValue,
   handleCustomerSelector,
   SearchSelectors,
 } from '@/lib/utils/iql';
-import { TestLinkType, TestType } from 'common/constant';
 import { getRepositoryQuery } from '@/lib/utils/tree';
-import { isEmpty, omit } from 'lodash';
-import { TestCaseStatusModel, TestRunDesigneeModel, TestRunExecutorModel } from '@/lib/constants';
+
 import { getTestRunSelector } from './helps';
 
 export const useResizeContainerDOM = (objectId?: string) => {

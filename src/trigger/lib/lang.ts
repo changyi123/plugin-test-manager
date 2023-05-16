@@ -1,7 +1,7 @@
 // import en from '../../lang/en';
 // import zh from '../../lang/zh';
-import get from 'lodash/get';
 import languageParser from 'accept-language-parser';
+import get from 'lodash/get';
 
 // 默认支持三种语言
 const AcceptLanguageList = ['zh', 'en', 'ru'];

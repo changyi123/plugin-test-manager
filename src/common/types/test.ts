@@ -1,4 +1,4 @@
-import { TestType, TestLinkType, TestFiledKeyMapping } from '../constant';
+import { TestFiledKeyMapping, TestLinkType, TestType } from '../constant';
 
 type ValueOf<T> = T[keyof T];
 

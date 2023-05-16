@@ -1,25 +1,26 @@
-import React from 'react';
-import { Button, Space, Typography, message, Tooltip, Divider, Popconfirm } from 'antd';
 import { InfoCircleOutlined } from '@ant-design/icons';
+import { Button, Divider, message, Popconfirm, Space, Tooltip, Typography } from 'antd';
+import React from 'react';
+
 import PanelTable, { ActionType } from '@/components/business/PanelTable';
-import { getRootContainer, goToItemDetailPage } from '@/lib/utils/helper';
-import {
-  toggleTestRunStatus,
-  createTestRunAndRelation,
-  getTestRunsAndExecutions,
-} from '@/lib/api/runs';
-import { useBaseAction } from '@/lib/hooks/useContext';
-import { TestType } from '@/lib/constants';
-import { removeTestRelations } from '@/lib/api/common';
+import { StatusBadge } from '@/components/business/Status';
 import TestRunModal, {
   ActionType as TestRunModalActionType,
 } from '@/components/business/TestRunModal';
-import { StatusBadge } from '@/components/business/Status';
+import OverflowTooltip from '@/components/common/OverflowTooltip';
+import { removeTestRelations } from '@/lib/api/common';
+import {
+  createTestRunAndRelation,
+  getTestRunsAndExecutions,
+  toggleTestRunStatus,
+} from '@/lib/api/runs';
+import { TestType } from '@/lib/constants';
+import { useBaseAction } from '@/lib/hooks/useContext';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
+import { getRootContainer, goToItemDetailPage } from '@/lib/utils/helper';
 
 import css from './index.less';
-import OverflowTooltip from '@/components/common/OverflowTooltip';
 
 export interface RunsTableProps {
   data?: any;

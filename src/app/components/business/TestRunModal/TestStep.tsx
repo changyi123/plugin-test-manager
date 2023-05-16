@@ -1,17 +1,19 @@
-import React, { useCallback } from 'react';
 import { useDebounceFn, useHover, useReactive, useUpdateEffect } from 'ahooks';
-import { DeleteOutlined } from '@/icons';
-import { Popconfirm, Empty } from 'antd';
-import AddDefectButton from './AddDefectButton';
-import { TabsComponentBaseProps } from './type';
-import { useItemLinkTypeConfig } from './hooks';
-import { escapeHtmlString, goToItemDetailPage } from '@/lib/utils/helper';
+import { Empty, Popconfirm } from 'antd';
+import { components } from 'proxima-sdk';
+import React, { useCallback } from 'react';
+
 import { StatusBadge, StatusList } from '@/components/business/Status';
 import Input from '@/components/business/TestStep/fields/Input';
+import { DeleteOutlined } from '@/icons';
 import { addTestDefect, deleteTestDefect, updateTestRunDetail } from '@/lib/api/item';
-import ExecutionEditor from './ExecutionEditor';
 import useI18n from '@/lib/hooks/useI18n';
-import { components } from 'proxima-sdk';
+import { escapeHtmlString, goToItemDetailPage } from '@/lib/utils/helper';
+
+import AddDefectButton from './AddDefectButton';
+import ExecutionEditor from './ExecutionEditor';
+import { useItemLinkTypeConfig } from './hooks';
+import { TabsComponentBaseProps } from './type';
 
 const { ItemIcon } = components.Components.Common;
 

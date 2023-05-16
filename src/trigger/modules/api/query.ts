@@ -3,6 +3,7 @@
  */
 
 // app cli 不支持指定 tsconfig 需要使用相对路径
+import { TestEntity } from 'common/types/test';
 import pick from 'lodash/pick';
 import { toArray, concatIqlRequestFields } from '../../lib/helper';
 import { iqlRequest } from '../../lib/iqlRequest';
@@ -13,16 +14,16 @@ import {
   QueryCaseIdByStatusPayload,
   QueryLinkedTestEntityPayload,
 } from '../../../common/types/api';
+
 import {
-  TestType,
-  TestLinkType,
   InfinityLimit,
-  StartStatusKey,
-  TestFiledKeyMapping,
   IQLRequiredFieldKeys,
+  StartStatusKey,
   SystemFieldNameMapping,
+  TestFiledKeyMapping,
+  TestLinkType,
+  TestType,
 } from '../../../common/constant';
-import { TestEntity } from 'common/types/test';
 
 const overwriteIqlParamsWithOnlySelectId = onlySelectId => {
   if (onlySelectId) {

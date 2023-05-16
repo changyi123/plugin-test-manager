@@ -6,13 +6,14 @@ import ExecutionList from '../ExecutionList';
 import { usePageContext } from '../../hook';
 import WordReport from '@/lib/report';
 import { useRequest } from 'ahooks';
-import { getFirstWordTemplate } from '@/lib/api/report';
-import { useBaseAction } from '@/lib/hooks/useContext';
-import { TestType } from '@/lib/constants';
-import useI18n from '@/lib/hooks/useI18n';
+
 import TestEntitySelectorModal, {
   ActionType as SelectorActionType,
 } from '@/components/business/TestEntitySelectorModal';
+import { getFirstWordTemplate } from '@/lib/api/report';
+import { TestType } from '@/lib/constants';
+import { useBaseAction } from '@/lib/hooks/useContext';
+import useI18n from '@/lib/hooks/useI18n';
 
 import cx from './index.less';
 

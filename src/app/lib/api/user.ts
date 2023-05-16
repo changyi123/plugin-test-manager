@@ -1,4 +1,5 @@
 import useSWR, { SWRResponse } from 'swr';
+
 import Parse from '@/lib/parse';
 
 export const useCurrentUser = (): SWRResponse<Parse.User<Parse.Attributes>, any> => {

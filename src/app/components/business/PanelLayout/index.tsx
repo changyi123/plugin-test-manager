@@ -1,9 +1,10 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
 import { useMount } from 'ahooks';
-import { Tabs, Alert } from 'antd';
+import { Alert, Tabs } from 'antd';
 import { AlertProps } from 'antd/lib/alert';
 import { TabPaneProps, TabsProps } from 'antd/lib/tabs';
+import React from 'react';
+import ReactDOM from 'react-dom';
+
 import useI18n from '@/lib/hooks/useI18n';
 
 import cx from './index.less';

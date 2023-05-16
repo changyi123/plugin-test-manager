@@ -1,11 +1,12 @@
-import React from 'react';
 import { useSafeState } from 'ahooks';
-import { pick, difference } from 'lodash';
-import { Select, Button, Checkbox, message } from 'antd';
-import { useDataContext, useCurrentTestConfig } from '../hooks';
-import { TestTypeNameMapping, TestType } from '@/lib/constants';
+import { Button, Checkbox, message, Select } from 'antd';
+import { difference, pick } from 'lodash';
+import React from 'react';
+
+import { TestType, TestTypeNameMapping } from '@/lib/constants';
 import useI18n from '@/lib/hooks/useI18n';
 
+import { useCurrentTestConfig, useDataContext } from '../hooks';
 import cx from './index.less';
 
 // 所有隔离类型配置

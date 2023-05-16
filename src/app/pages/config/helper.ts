@@ -1,6 +1,6 @@
-import { TestType, BuiltinItemTypeMapping } from '@/lib/constants';
-import { getPluginWebTriggerBaseUrl } from '@/lib/utils/helper';
+import { BuiltinItemTypeMapping, TestType } from '@/lib/constants';
 import fetch from '@/lib/utils/fetch';
+import { getPluginWebTriggerBaseUrl } from '@/lib/utils/helper';
 
 /** 获取默认测试配置数据 */
 export const generateDefaultTestConfig = async (

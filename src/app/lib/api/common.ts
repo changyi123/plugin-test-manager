@@ -1,25 +1,27 @@
-import Parse from '@/lib/parse';
-import { TestConfig } from '../models';
-import { assign, omit, transform, isEmpty, without, cloneDeep } from 'lodash';
-import {
-  TestRelationType,
-  GlobalConfigStorageKey,
-  CurrentWorkspaceConfigStorageKey,
-} from '@/lib/constants';
-import { Workspace, Item, Test, TestRelation, Repository } from '@/lib/models';
-import { hasArrayItem, pointerTransfer, toArray, escapeMatchesQueryArg } from '@/lib/utils/helper';
-import fetch from '@/lib/utils/fetch';
-import {
-  selectorToParse,
-  ItemSelectors,
-  withWorkspace,
-  selectorToIql,
-  withItemType,
-  SearchSelectors,
-} from '@/lib/utils/iql';
-import { testEntityToItemValues, itemToTestEntity } from 'common/utils/dataTransfer';
+import { TestFiledKeyMapping, TestType } from 'common/constant';
 import { BaseTestEntity } from 'common/types/test';
-import { TestType, TestFiledKeyMapping } from 'common/constant';
+import { itemToTestEntity, testEntityToItemValues } from 'common/utils/dataTransfer';
+import { assign, cloneDeep, isEmpty, omit, transform, without } from 'lodash';
+
+import {
+  CurrentWorkspaceConfigStorageKey,
+  GlobalConfigStorageKey,
+  TestRelationType,
+} from '@/lib/constants';
+import { Item, Repository, Test, TestRelation, Workspace } from '@/lib/models';
+import Parse from '@/lib/parse';
+import fetch from '@/lib/utils/fetch';
+import { escapeMatchesQueryArg, hasArrayItem, pointerTransfer, toArray } from '@/lib/utils/helper';
+import {
+  ItemSelectors,
+  SearchSelectors,
+  selectorToIql,
+  selectorToParse,
+  withItemType,
+  withWorkspace,
+} from '@/lib/utils/iql';
+
+import { TestConfig } from '../models';
 
 const BATCH_SIZE = 200;
 

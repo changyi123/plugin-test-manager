@@ -1,10 +1,11 @@
-import React from 'react';
 import { Input } from 'antd';
-import { Step } from '@/lib/types/Test';
+import React from 'react';
+
+import RepositorySelectorField from '@/components/business/RepositorySelectorField';
 import TestStep from '@/components/business/TestStep';
 import { getStepInitialData } from '@/components/business/TestStep/helper';
-import RepositorySelectorField from '@/components/business/RepositorySelectorField';
 import useI18n from '@/lib/hooks/useI18n';
+import { Step } from '@/lib/types/Test';
 
 import cx from './TestDetailForm.less';
 

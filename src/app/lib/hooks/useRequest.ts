@@ -1,5 +1,5 @@
-import { Service, Options, Result, Plugin } from 'ahooks/lib/useRequest/src/types';
 import useRequest from 'ahooks/lib/useRequest';
+import { Options, Plugin, Result, Service } from 'ahooks/lib/useRequest/src/types';
 
 type useNoExpiredRequests = <TData, TParams extends any[]>(
   service: Service<TData, TParams>,

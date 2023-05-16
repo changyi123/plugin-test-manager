@@ -1,5 +1,5 @@
+import { getDevConfig, getParseReqHeader } from '@/devEnv';
 import { getTenantKey } from '@/lib/utils/helper';
-import { getParseReqHeader, getDevConfig } from '@/devEnv';
 let Parse;
 
 if (process.env.NODE_ENV === 'production' || window.__POWERED_BY_QIANKUN__) {

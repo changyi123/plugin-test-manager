@@ -2,8 +2,8 @@
  * @file 后端 webTrigger 接口数据请求
  */
 
-import { TestEntity, Status } from '../types/test';
-import { TestLinkType, TestType, IQLFieldNameMapping } from '../constant';
+import { IQLFieldNameMapping, TestLinkType, TestType } from '../constant';
+import { Status, TestEntity } from '../types/test';
 
 /** 已知字段 */
 export type FieldKey = keyof typeof IQLFieldNameMapping;

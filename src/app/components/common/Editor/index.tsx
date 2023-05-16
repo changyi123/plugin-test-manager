@@ -1,6 +1,7 @@
-import React, { useCallback, useEffect, useState } from 'react';
 import { Button, Space } from 'antd';
 import { components } from 'proxima-sdk';
+import React, { useCallback, useEffect, useState } from 'react';
+
 import useI18n from '@/lib/hooks/useI18n';
 
 const { Field } = components.Components.Common.Editor;

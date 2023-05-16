@@ -1,15 +1,16 @@
-import React from 'react';
-import useI18n from '@/lib/hooks/useI18n';
-import { StepComponentProp } from '../type';
 import { useBoolean, useMemoizedFn } from 'ahooks';
-import { UploadOutlined } from '@/icons';
+import { Button, Checkbox, message, Tooltip, Upload } from 'antd';
+import { MinderNodeType } from 'common/constant';
+import React from 'react';
+
 import xmindTemplatePic from '@/assets/images/xmindTemplate.png';
 import xmindTemplateEnPic from '@/assets/images/xmindTemplateEn.png';
-import { Upload, Checkbox, Button, message, Tooltip } from 'antd';
-import { parseXMindFile2MinderData, countMinderNodes, exportAndDownloadXMind } from '@/lib/minder';
+import { UploadOutlined } from '@/icons';
+import useI18n from '@/lib/hooks/useI18n';
+import { countMinderNodes, exportAndDownloadXMind, parseXMindFile2MinderData } from '@/lib/minder';
 
+import { StepComponentProp } from '../type';
 import cx from './XMindUpload.less';
-import { MinderNodeType } from 'common/constant';
 
 const { Dragger } = Upload;
 

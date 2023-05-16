@@ -1,19 +1,22 @@
 /* eslint-disable no-unused-vars */
+import { useRequest, useSafeState } from 'ahooks';
+import { Button, Modal, Spin } from 'antd';
+import { keyBy, reduce, uniq } from 'lodash';
 import React, { useMemo } from 'react';
-import { TestType } from '@/lib/constants';
-import { uniq, reduce, keyBy } from 'lodash';
-import EventBus from '@/lib/utils/eventBus';
-import { Modal, Spin, Button } from 'antd';
+
+import DebounceSelect from '@/components/common/DebounceSelect';
+import { getAllTestConfigs } from '@/lib/api/common';
 import { getItemByIQL } from '@/lib/api/proxima';
-import { useSafeState, useRequest } from 'ahooks';
+import { TestType } from '@/lib/constants';
 import { TestTypeNameMapping } from '@/lib/constants';
 import { useTestConfig } from '@/lib/hooks/useContext';
-import DebounceSelect from '@/components/common/DebounceSelect';
+import useI18n from '@/lib/hooks/useI18n';
+import EventBus from '@/lib/utils/eventBus';
 import { getRootContainer, getTestManagerContainer, hasArrayItem } from '@/lib/utils/helper';
-import { getAllTestConfigs } from '@/lib/api/common';
+
+// import SelectorTable from './SelectorTable';
 import InheritTestDetail from './InheritTestDetail';
 import TestDetailSelector from './TestDetailSelector';
-import useI18n from '@/lib/hooks/useI18n';
 import SelectorTable from './SelectorTable';
 
 import cx from './index.less';

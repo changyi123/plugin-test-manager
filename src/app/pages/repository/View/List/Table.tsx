@@ -1,26 +1,32 @@
 import React, { useCallback } from 'react';
 import { useRequest, useDrag, useDrop } from 'ahooks';
 import { message, notification, Space, Tooltip } from 'antd';
-import { UNGROUPED_FOLDER_KEY } from '../../constant';
 import { UserCell } from '@giteeteam/apps-team-components';
-import { useTestConfig } from '@/lib/hooks/useContext';
 import createProximaSdk from '@projectproxima/proxima-sdk-js';
 import { DeleteIcon, UserIcon, DragHandler, LinkItemIcon, SwitcherOutlined } from '@/icons';
-import { actionConfirm, getPluginWebTriggerBaseUrl, openItemViewScreen } from '@/lib/utils/helper';
-import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
-import { useUserCellUserDataProp } from '@/lib/hooks/useProxima';
+
+import RenderRepository from '@/components/business/RenderRepository';
 import RepositorySelector, {
   ActionType as RepositorySelectorActionType,
 } from '@/components/business/RepositorySelector';
-import { deleteTestEntity, updateTestEntity } from '@/lib/api/item';
-import { TestType } from '@/lib/constants';
-import { getCurrentUserSetting, saveUserSetting } from '@/lib/api/userSetting';
+import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
+import { copyTesCase, deleteTestEntity, updateTestEntity } from '@/lib/api/item';
 import { useCurrentUser } from '@/lib/api/user';
-import fetch from '@/lib/utils/fetch';
+import { getCurrentUserSetting, saveUserSetting } from '@/lib/api/userSetting';
+import { TestType } from '@/lib/constants';
+import { useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
+import { useUserCellUserDataProp } from '@/lib/hooks/useProxima';
 import { useGetWorkspaceRepository } from '@/lib/hooks/useTest';
-import RenderRepository from '@/components/business/RenderRepository';
+import fetch from '@/lib/utils/fetch';
+import {
+  actionConfirm,
+  generateSortIndex,
+  getPluginWebTriggerBaseUrl,
+  openItemViewScreen,
+} from '@/lib/utils/helper';
 
+import { UNGROUPED_FOLDER_KEY } from '../../constant';
 import cx from './Table.less';
 
 const proxima = createProximaSdk();

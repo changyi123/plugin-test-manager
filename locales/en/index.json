@@ -378,7 +378,16 @@
           "saveFail": "Save failed",
           "export": "Export XMind",
           "import": "Import XMind",
-          "exportLoadingMessage": "XMind exporting"
+          "exportLoadingMessage": "XMind exporting",
+          "waitForMinderDataLoading": "Please wait for data loading before export",
+          "maxRenderNodeConfirm": {
+            "title": "Prompt",
+            "content": "There are too many nodes in the current use case library group. The mind map page load time is too long. It is recommended to switch to the sub-group to view or return to the list page. Please confirm whether to continue loading?",
+            "next": "Continue",
+            "cancel": "Cancel",
+            "goBack": "Return to list page"
+          },
+          "hasExistedError": "The current mind map data has errors. Please fix it and try again."
         }
       }
     },

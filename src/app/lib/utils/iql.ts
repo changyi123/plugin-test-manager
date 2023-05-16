@@ -1,4 +1,6 @@
-import { isEmpty, omit, isArray, isNil, cloneDeep, pick } from 'lodash';
+import matchBracket from 'find-matching-bracket';
+import { cloneDeep, isArray, isEmpty, isNil, omit, pick } from 'lodash';
+
 import {
   FIELD_TYPE_KEY_MAPPINGS,
   FILTER_EXPR_NAME,
@@ -7,10 +9,10 @@ import {
   isUseOptionValue,
   TestCaseStatusModel,
 } from '@/lib/constants';
-import { DateTimestampRang } from './date';
-import matchBracket from 'find-matching-bracket';
-import { User, Test, Repository } from '@/lib/models';
 import { RepositoryModel, SelectorNullValue } from '@/lib/constants';
+import { Repository, Test, User } from '@/lib/models';
+
+import { DateTimestampRang } from './date';
 
 type Hyphen = '' | 'and' | 'or';
 

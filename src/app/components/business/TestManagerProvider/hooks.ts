@@ -1,8 +1,9 @@
-import { useCallback } from 'react';
 import { useRequest } from 'ahooks';
-import fetch from '@/lib/utils/fetch';
 import { TestType } from 'common/constant';
+import { useCallback } from 'react';
+
 import { getTestConfig } from '@/lib/api/common';
+import fetch from '@/lib/utils/fetch';
 
 const useGetPermissions = (workspace: Record<string, any>) => {
   const { data: testConfig } = useRequest(

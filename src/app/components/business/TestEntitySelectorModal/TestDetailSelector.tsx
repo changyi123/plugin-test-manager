@@ -1,18 +1,19 @@
-import React, { useEffect, useMemo, useRef } from 'react';
-import { cloneDeep, isEqual } from 'lodash';
-import { useAllTestWorkspace } from '@/lib/hooks/useTest';
-import { includeAll, exclude, includeItem } from './helper';
 import { useDebounce } from 'ahooks';
-import { Select, Input } from 'antd';
-import { SearchOutlined } from '@/icons';
-import TestDetailsSelectorList from './TestDetailsSelectorList';
-import RepositoryFolderTree, { ActionType } from '../RepositoryFolderTree';
-import { TestLinkType, TestType } from '@/lib/constants';
-import FilterSearch from '@/components/common/FilterSearch';
-import { SearchSelectors } from '@/lib/utils/iql';
-import useI18n from '@/lib/hooks/useI18n';
+import { Input, Select } from 'antd';
+import { cloneDeep, isEqual } from 'lodash';
+import React, { useEffect, useMemo, useRef } from 'react';
 
+import FilterSearch from '@/components/common/FilterSearch';
+import { SearchOutlined } from '@/icons';
+import { TestLinkType, TestType } from '@/lib/constants';
+import useI18n from '@/lib/hooks/useI18n';
+import { useAllTestWorkspace } from '@/lib/hooks/useTest';
+import { SearchSelectors } from '@/lib/utils/iql';
+
+import RepositoryFolderTree, { ActionType } from '../RepositoryFolderTree';
+import { exclude, includeAll, includeItem } from './helper';
 import cx from './TestDetailSelector.less';
+import TestDetailsSelectorList from './TestDetailsSelectorList';
 
 const DEFAULT_CHECKED_KEY = {
   checked: [],

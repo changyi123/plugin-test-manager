@@ -1,13 +1,15 @@
-import React, { useCallback } from 'react';
-import { keyBy } from 'lodash';
+import { useDrag, useDrop, useRequest, useSafeState } from 'ahooks';
 import { Button, message } from 'antd';
-import { getAllItemTypes } from '@/lib/api/proxima';
-import { useDataContext, useCurrentTestConfig } from '../hooks';
-import OverflowTooltip from '@/components/common/OverflowTooltip';
-import { useRequest, useSafeState, useDrop, useDrag } from 'ahooks';
-import { Chart, CustomField } from '@/lib/models';
+import { keyBy } from 'lodash';
 import { components } from 'proxima-sdk';
+import React, { useCallback } from 'react';
+
+import OverflowTooltip from '@/components/common/OverflowTooltip';
+import { getAllItemTypes } from '@/lib/api/proxima';
 import useI18n from '@/lib/hooks/useI18n';
+import { Chart, CustomField } from '@/lib/models';
+
+import { useCurrentTestConfig, useDataContext } from '../hooks';
 
 const { ItemIcon } = components.Components.Common;
 

@@ -1,6 +1,6 @@
+import { Composition, default as IQLBuilder, Operator } from '../../common/utils/iqlBuilder';
 import { AppKey } from '../constant';
 import { PaginationParams } from '../types/api';
-import { default as IQLBuilder, Operator, Composition } from '../../common/utils/iqlBuilder';
 
 export { Operator } from '../../common/utils/iqlBuilder';
 

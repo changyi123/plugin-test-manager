@@ -1,10 +1,11 @@
-import React from 'react';
-import { Progress, Result as AntdResult, Button } from 'antd';
-import { StepComponentProp } from '../type';
-import { useTranslation } from 'react-i18next';
 import { useMemoizedFn, useRequest } from 'ahooks';
+import { Button, Progress, Result as AntdResult } from 'antd';
+import React from 'react';
+import { useTranslation } from 'react-i18next';
+
 import { importMinderData } from '@/lib/api/minder';
 
+import { StepComponentProp } from '../type';
 import cx from './Result.less';
 
 const useFakeProgress = () => {

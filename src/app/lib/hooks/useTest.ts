@@ -1,22 +1,24 @@
-import React from 'react';
+import { clearCache, useMemoizedFn, useRequest } from 'ahooks';
 import { pick } from 'lodash';
-import Parse from '@/lib/parse';
-import { useRequest, useMemoizedFn, clearCache } from 'ahooks';
-import { useNoExpiredRequest } from '@/lib/hooks/useRequest';
-import { getPluginBoundWorkspaces } from '@/lib/api/proxima';
-import { TestType, BuiltinFieldNameMapping } from '@/lib/constants';
-import { getFolderTree, getRepositoryData } from '../api/repository';
+import React from 'react';
+
+import { getRepoData, handleRepoPath } from '@/components/business/RepositoryGroup/repository';
 import {
-  getTestConfig,
   getAllTestConfigs,
+  getTestConfig,
   getTestEntitiesByRelationWithOrder,
 } from '@/lib/api/common';
-import { getRepoData, handleRepoPath } from '@/components/business/RepositoryGroup/repository';
-import { repositoryFolderTreeEvent } from '@/lib/events';
-import { hasArrayItem } from '../utils/helper';
 import { getTestEntityByQuery } from '@/lib/api/item';
-import { useBaseAction } from './useContext';
+import { getPluginBoundWorkspaces } from '@/lib/api/proxima';
+import { BuiltinFieldNameMapping, TestType } from '@/lib/constants';
+import { repositoryFolderTreeEvent } from '@/lib/events';
 import useI18n from '@/lib/hooks/useI18n';
+import { useNoExpiredRequest } from '@/lib/hooks/useRequest';
+import Parse from '@/lib/parse';
+
+import { getFolderTree, getRepositoryData } from '../api/repository';
+import { hasArrayItem } from '../utils/helper';
+import { useBaseAction } from './useContext';
 
 type GetTestEntityParams = Parameters<typeof getTestEntitiesByRelationWithOrder>;
 /** 获取所有事项实体 id */

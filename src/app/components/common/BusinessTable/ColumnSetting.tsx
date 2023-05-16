@@ -1,33 +1,35 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { keyBy, noop } from 'lodash';
-import { TitleCellOption } from './type';
-import { ColumnType } from 'antd/lib/table';
-import { Button, Drawer, message, Select, Spin, Tooltip } from 'antd';
-import { getCustomFields } from '@/lib/api/proxima';
-import { SystemFieldKeys, useGetTableFilterFields } from './hook';
+import '@giteeteam/apps-team-components/dist/main.css';
+
 import { TableCell } from '@giteeteam/apps-team-components';
-import { generateStorageKey } from '@/lib/utils/helper';
-import { useNoExpiredRequest } from '@/lib/hooks/useRequest';
+import createProximaSdk from '@projectproxima/proxima-sdk-js';
 import { useDeepCompareEffect, useLocalStorageState, useUpdateEffect } from 'ahooks';
-import { useFieldsWithFieldCellProps } from '@/lib/hooks/useProxima';
+import { Button, Drawer, message, Select, Spin, Tooltip } from 'antd';
+import { ColumnType } from 'antd/lib/table';
+import { keyBy, noop } from 'lodash';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd';
+
+import OverflowTooltip from '@/components/common/OverflowTooltip';
 import {
+  AddSearch,
+  DeleteIcon,
+  DeleteSearch,
   DragHandler,
   QuestionCircleOutlined,
   Setting,
-  AddSearch,
-  DeleteSearch,
-  DeleteIcon,
 } from '@/icons';
-import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd';
-import createProximaSdk from '@projectproxima/proxima-sdk-js';
-import OverflowTooltip from '@/components/common/OverflowTooltip';
+import { getCustomFields } from '@/lib/api/proxima';
 import { TABLE_EXCLUDE_FIELDS, TestType } from '@/lib/constants';
-import useI18n from '@/lib/hooks/useI18n';
 import { useBaseAction } from '@/lib/hooks/useContext';
+import useI18n from '@/lib/hooks/useI18n';
+import { useFieldsWithFieldCellProps } from '@/lib/hooks/useProxima';
+import { useNoExpiredRequest } from '@/lib/hooks/useRequest';
+import { generateStorageKey } from '@/lib/utils/helper';
 
-import '@giteeteam/apps-team-components/dist/main.css';
 import cx from './ColumnSetting.less';
+import { SystemFieldKeys, useGetTableFilterFields } from './hook';
+import { TitleCellOption } from './type';
 
 type ColumnDuckTyping = ColumnType<any> & Record<string, any>;
 

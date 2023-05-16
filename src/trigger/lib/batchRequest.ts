@@ -1,9 +1,10 @@
-import pick from 'lodash/pick';
-import { logTimeCost } from '../lib/logger';
 import parallelLimit from 'async/parallelLimit';
-import { deleteItems, updateItems, createItems } from './coreApi';
-import { TestEntity, BaseTestEntity } from '../../common/types/test';
-import { testEntityToItemValues, compactNilValue } from '../../common/utils/dataTransfer';
+import pick from 'lodash/pick';
+
+import { BaseTestEntity, TestEntity } from '../../common/types/test';
+import { compactNilValue, testEntityToItemValues } from '../../common/utils/dataTransfer';
+import { logTimeCost } from '../lib/logger';
+import { createItems, deleteItems, updateItems } from './coreApi';
 
 /** 并发数量 */
 const ParallelLimit = 10;

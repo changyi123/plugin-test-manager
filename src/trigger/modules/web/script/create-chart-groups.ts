@@ -1,9 +1,9 @@
 import {
   getData,
+  getParseModel,
+  getParseObject,
   getParseQuery,
   saveAllObject,
-  getParseObject,
-  getParseModel,
 } from '@giteeteam/apps-team-api';
 import parallelLimit from 'async/parallelLimit';
 

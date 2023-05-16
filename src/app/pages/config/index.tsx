@@ -1,22 +1,21 @@
-import React from 'react';
-import { isNil } from 'lodash';
-import { useDataContext } from './hooks';
-import DataProvider from './DataProvider';
-import DefectMapping from './DefectMapping';
-import ItemTypeMapping from './ItemTypeMapping';
-import IsolatedTestType from './IsolatedTestType';
-import ExecuteTestRunAction from './ExecuteTestRunAction';
-
 import { DownOutlined } from '@ant-design/icons';
 import { useLocalStorageState, useSafeState } from 'ahooks';
-import { Menu, Layout, Dropdown, Button, Result, Checkbox } from 'antd';
+import { Button, Checkbox, Dropdown, Layout, Menu, Result } from 'antd';
+import { isNil } from 'lodash';
+import React from 'react';
 
+import useI18n from '@/lib/hooks/useI18n';
+
+import DataProvider from './DataProvider';
+import DefectMapping from './DefectMapping';
+import ExecuteTestRunAction from './ExecuteTestRunAction';
+import { useDataContext } from './hooks';
+import cx from './index.less';
+import IsolatedTestType from './IsolatedTestType';
+import ItemTypeMapping from './ItemTypeMapping';
 import IsolatedSystem from './MoreConfig/IsolatedSystem';
 import WordTemplate from './MoreConfig/WordTemplate';
 import TableFields from './TableFields';
-import useI18n from '@/lib/hooks/useI18n';
-
-import cx from './index.less';
 
 const { Sider, Content, Header } = Layout;
 

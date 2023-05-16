@@ -104,12 +104,14 @@ const ExecutionList: React.FC<ExecutionListProps> = ({
     if (!selectedExecution?.objectId && query?.executionId) {
       setSelectedExecution(executionList.find(d => d.objectId === query?.executionId));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query?.executionId, selectedExecution]);
 
   useEffect(() => {
     if (executionList && !activeId) {
       setSelectedExecution(executionList?.[0]);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [executionList, planId]);
 
   const menuClick = (type: string, data) => {

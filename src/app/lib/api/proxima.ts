@@ -1,28 +1,30 @@
 /**
  * proxima api 只为获取数据，返回数据为 JSON。不要在插件内修改 proxima 内的数据模型 ！！
  */
-import { pick, findKey } from 'lodash';
-import Parse from '@/lib/parse';
-import fetch from '@/lib/utils/fetch';
-import { IQLBuilder } from '@/lib/utils/iql';
-import { hasArrayItem } from '@/lib/utils/helper';
+import { itemToTestEntity } from 'common/utils/dataTransfer';
+import { findKey, pick } from 'lodash';
+
 import {
-  SYSTEM_FIELD,
-  FIELD_TYPE_KEY_MAPPINGS,
-  TEST_MANAGER_PLUGIN_KEY,
   BuiltinItemTypeMapping,
+  FIELD_TYPE_KEY_MAPPINGS,
+  SYSTEM_FIELD,
+  TEST_MANAGER_PLUGIN_KEY,
 } from '@/lib/constants';
+import { BuiltinFieldNameMapping, TestFiledKeyMapping } from '@/lib/constants';
 import {
   AppsWorkspace,
+  CustomField,
   Item,
   ItemType,
-  Workspace,
-  CustomField,
   ItemTypeScheme,
+  Workspace,
 } from '@/lib/models';
+import Parse from '@/lib/parse';
+import fetch from '@/lib/utils/fetch';
+import { hasArrayItem } from '@/lib/utils/helper';
+import { IQLBuilder } from '@/lib/utils/iql';
+
 import { getRefItemIdsByTestIds, transferObject } from './common';
-import { TestFiledKeyMapping, BuiltinFieldNameMapping } from '@/lib/constants';
-import { itemToTestEntity } from 'common/utils/dataTransfer';
 
 type IQLPaginationParams = {
   offset?: number;

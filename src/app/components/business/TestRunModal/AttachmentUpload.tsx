@@ -1,14 +1,15 @@
-import React, { useEffect, useState } from 'react';
-import { Checkbox, message, Image, Upload, Button } from 'antd';
-import { DeleteOutlined, DownloadOutlined, UploadOutlined, LoadingOutlined } from '@/icons';
-import { updateTestRunDetail } from '@/lib/api/item';
-import { actionConfirm } from '@/lib/utils/helper';
-import { TabsComponentBaseProps } from './type';
-import Parse from '@/lib/parse';
+import { Button, Checkbox, Image, message, Upload } from 'antd';
 import dayjs from 'dayjs';
+import React, { useEffect, useState } from 'react';
+
+import { DeleteOutlined, DownloadOutlined, LoadingOutlined, UploadOutlined } from '@/icons';
+import { updateTestRunDetail } from '@/lib/api/item';
 import useI18n from '@/lib/hooks/useI18n';
+import Parse from '@/lib/parse';
+import { actionConfirm } from '@/lib/utils/helper';
 
 import cx from './AttachmentUpload.less';
+import { TabsComponentBaseProps } from './type';
 
 type AttachmentUploadProps = TabsComponentBaseProps;
 

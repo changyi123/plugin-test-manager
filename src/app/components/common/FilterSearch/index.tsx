@@ -1,43 +1,44 @@
+import { useListener } from '@projectproxima/proxima-sdk-js';
+import { useDebounceFn, useMemoizedFn, useRequest } from 'ahooks';
+import { Button } from 'antd';
+import dayjs from 'dayjs';
+import { cloneDeep, omit, pick, values } from 'lodash';
 import React, {
-  useRef,
-  useMemo,
-  useState,
-  useEffect,
   forwardRef,
   useCallback,
+  useEffect,
   useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
 } from 'react';
-import { useNoExpiredRequest } from '@/lib/hooks/useRequest';
-import SearchInput from './SearchInput';
-import { Button } from 'antd';
+import { useLocation } from 'react-router-dom';
+
 import AddFilterIcon from '@/icons/svg/add-filter.svg';
-import { openFilterPopover, openFieldValuePopover } from '@/lib/api/sdk';
-import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
-import { values, cloneDeep, omit, pick } from 'lodash';
-import SelectorTag from './SelectorTag';
-import { Selectors, isDate, SearchSelectors } from '@/lib/utils/iql';
-import dayjs from 'dayjs';
+import { getTestConfig } from '@/lib/api/common';
+import { openFieldValuePopover, openFilterPopover } from '@/lib/api/sdk';
+import { getCurrentUserSetting } from '@/lib/api/userSetting';
 import {
+  getExtendFields,
+  IS_EXTEND_FIELDS,
   RepositoryModel,
   SelectorCurrentUserValue,
-  UserTypeSelectorFieldKeys,
-  getExtendFields,
-  TestType,
-  IS_EXTEND_FIELDS,
   TestCaseStatusModel,
+  TestType,
+  UserTypeSelectorFieldKeys,
 } from '@/lib/constants';
-import { Repository } from '@/lib/models';
-import { useDebounceFn, useMemoizedFn, useRequest } from 'ahooks';
-import { useGetCustomFields } from '../BusinessTable/hook';
-import { useListener } from '@projectproxima/proxima-sdk-js';
-import { getTestConfig } from '@/lib/api/common';
-import { getCurrentUserSetting } from '@/lib/api/userSetting';
+import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
-import { useLocation } from 'react-router-dom';
+import { useNoExpiredRequest } from '@/lib/hooks/useRequest';
+import { Repository } from '@/lib/models';
 import { generateStorageKey } from '@/lib/utils/helper';
+import { isDate, SearchSelectors, Selectors } from '@/lib/utils/iql';
 
+import { useGetCustomFields } from '../BusinessTable/hook';
 import cx from './index.less';
 import { handleDataSelector } from './utils';
+import SearchInput from './SearchInput';
+import SelectorTag from './SelectorTag';
 
 interface FilterSearchProps {
   fields: string[];
@@ -158,6 +159,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
         return prev;
       }, {});
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [customFieldsKey?.toString(), checkedFields?.toString()]);
 
   // 将 selector 存储到 localStorage
@@ -177,6 +179,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
         }),
       );
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [defaultSelectors]);
 
   const { data: fieldsName, refresh } = useRequest(

@@ -7,7 +7,7 @@
     "plugin:react/recommended",
     "plugin:react-hooks/recommended"
   ],
-  "plugins": ["@typescript-eslint", "prettier"],
+  "plugins": ["@typescript-eslint", "prettier", "simple-import-sort"],
   "env": {
     "node": true,
     "es6": true,
@@ -24,7 +24,8 @@
     "triggerParams": "readonly"
   },
   "rules": {
-    "prettier/prettier": "error",
+    "simple-import-sort/imports": "error",
+    "prettier/prettier": "warn",
     "no-trailing-spaces": 2,
     "eol-last": 2,
     "dot-notation": "error",
@@ -62,5 +63,10 @@
       }
     }
   ],
-  "ignorePatterns": ["node_modules/", "dist/"]
+  "ignorePatterns": ["node_modules/", "dist/", "scripts/"],
+  "settings": {
+    "react": {
+      "version": "17.0.2"
+    }
+  }
 }
