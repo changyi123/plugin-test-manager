@@ -283,11 +283,17 @@ const FolderTree: React.FC<FolderTreeProps> = ({
           title: t('page.repository.folderTree.renameFolder'),
           name: node.name,
           t,
-          // 获取当前节点的所有 sibling 节点
+          // 获取当前节点的所有 sibling 节点，重命名校验过滤当前节点
           validator: inputName =>
-            inputNameValidator(inputName, treeFn.getTreeNodeByKey(node.parentKey)?.children ?? []),
+            inputNameValidator(
+              inputName,
+              (treeFn.getTreeNodeByKey(node.parentKey)?.children ?? []).filter(
+                d => d.key !== node.key,
+              ),
+            ),
         });
-
+        // 未修改用例库名称不处理
+        if (newFolderName === node.name) return;
         await updateFolders([
           {
             key: node.key,
