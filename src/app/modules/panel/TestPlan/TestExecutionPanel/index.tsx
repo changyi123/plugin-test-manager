@@ -16,7 +16,7 @@ import { getLinkedTestEntityByQuery, getTestStats, updateTestEntity } from '@/li
 import { TestLinkType, TestType } from '@/lib/constants';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
-import { alert, generateSortIndex } from '@/lib/utils/helper';
+import { alert, generateSortIndex, getTestManagerContainer } from '@/lib/utils/helper';
 
 import cx from './index.less';
 
@@ -247,6 +247,7 @@ const Test = () => {
         ignoreTestEntityIds={allTestEntities?.map(item => item.objectId)}
         tableFieldsKeys={testExecutionFieldKeys}
         width={800}
+        getContainer={getTestManagerContainer}
       />
 
       <PanelTable

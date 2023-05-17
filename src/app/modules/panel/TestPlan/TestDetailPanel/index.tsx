@@ -29,7 +29,7 @@ import {
 import { INITIAL_STATUS_KEY, TestLinkType, TestType } from '@/lib/constants';
 import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
-import { alert } from '@/lib/utils/helper';
+import { alert, getRootContainer } from '@/lib/utils/helper';
 
 import cx from './index.less';
 
@@ -413,6 +413,7 @@ const Test = () => {
         title={t('modules.panel.testPlan.testDetailPanel.selectCaseModelTitle')}
         testType={TestType.Case}
         ignoreTestEntityIds={testEntityIds}
+        getContainer={getRootContainer}
       />
       {/* 状态条的变化 */}
       <StatusProcessBar status={status} />

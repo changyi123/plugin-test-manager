@@ -237,7 +237,7 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
             <Input
               placeholder={t('components.business.testEntitySelectorModal.searchGroup')}
               value={folderSearchValue}
-              className={cx('search-input', planId ? 'tab-layout' : '')}
+              className={cx('search-input-selector', planId ? 'tab-layout' : '')}
               addonAfter={<SearchOutlined />}
               size={planId ? 'middle' : 'large'}
               onChange={e => setFolderSearchValue(e.target.value)}

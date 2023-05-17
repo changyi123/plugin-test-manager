@@ -12,10 +12,9 @@ import { TestTypeNameMapping } from '@/lib/constants';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import EventBus from '@/lib/utils/eventBus';
-import { getRootContainer, getTestManagerContainer, hasArrayItem } from '@/lib/utils/helper';
+import { getTestManagerContainer, hasArrayItem } from '@/lib/utils/helper';
 
 import cx from './index.less';
-// import SelectorTable from './SelectorTable';
 import InheritTestDetail from './InheritTestDetail';
 import SelectorTable from './SelectorTable';
 import TestDetailSelector from './TestDetailSelector';
@@ -65,6 +64,7 @@ export type TestEntitySelectorProps = {
   actionRef?: React.ForwardedRef<ActionType>;
   afterClose?: () => void;
   onCancel?: () => void;
+  getContainer?: () => HTMLElement;
 };
 
 const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
@@ -79,6 +79,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
     width,
     afterClose,
     onCancel,
+    getContainer,
   } = props;
   const [visible, setVisible] = useSafeState(false);
   const debounceSelectContainerRef = React.useRef();
@@ -517,7 +518,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
       open={visible}
       maskClosable={false}
       className={cx('modal')}
-      getContainer={testType === TestType.Execution ? getTestManagerContainer : getRootContainer}
+      getContainer={getContainer ?? getTestManagerContainer}
       footer={ModalFooterNode}
       onCancel={() => {
         testType === TestType.Case && setTreeType('repository');

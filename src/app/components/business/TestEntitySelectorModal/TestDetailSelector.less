@@ -91,20 +91,22 @@
         }
       }
 
-      .search-input {
+      .search-input-selector {
         position: absolute;
         box-shadow: 0 0 0 1px #dadee3;
-        height: 40px;
+        // height: 40px;
 
         &.tab-layout {
           margin: 15px 16px 0 16px;
-          width: ~'calc(100% - 32px)';
+          width: ~'calc(100% - 32px)' !important;
           border-radius: 2px;
           height: auto;
 
           :global {
             .ant-input,
             .ant-input-group-addon {
+              border-color: transparent !important;
+              box-shadow: none;
               height: auto;
             }
           }
@@ -113,7 +115,7 @@
         :global {
           .ant-input,
           .ant-input-group-addon {
-            border-color: transparent;
+            border-color: transparent !important;
             box-shadow: none;
             height: 40px;
           }
