@@ -18,6 +18,7 @@ import StepList from './StepList';
 
 export type ActionType = {
   filter: (stepIds: string[]) => void;
+  setSteps: (val: Step[]) => void;
 };
 
 type TestStepProps = {
@@ -25,7 +26,7 @@ type TestStepProps = {
   testDetailId?: string;
   canCallTest?: boolean;
   onChange?: (steps) => void;
-  actionRef?: (action: ActionType) => void;
+  actionRef?: React.MutableRefObject<ActionType>;
 };
 
 const TestStep: React.FC<TestStepProps> = ({
@@ -112,6 +113,7 @@ const TestStep: React.FC<TestStepProps> = ({
 
   React.useImperativeHandle(actionRef, () => ({
     filter() {},
+    setSteps,
   }));
 
   // TODO: 继承的弹窗还有问题

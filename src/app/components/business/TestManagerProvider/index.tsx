@@ -236,8 +236,6 @@ const getOrBatchCreateTestEntities = async (
         [itemId]: {
           ...restFields[CREATE_ITEM_STORE_FIELD_KEY],
           ...getItemStore(options.storeValueList ?? [], index, 'repository'),
-          // ...getItemStore(options.storeValueList ?? [], index, 'precondition'),
-          // ...getItemStore(options.storeValueList ?? [], index, 'steps'),
         },
       }),
       {},
