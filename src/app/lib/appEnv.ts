@@ -46,6 +46,11 @@ const SupportAppEnv = {
     defaultValue: 250,
     transformer: (value: string) => Number(value),
   },
+  /** 脑图大数据量节点模式数量限制，超过该数量隐藏节点 */
+  LARGE_NODE_MODE_LIMIT: {
+    defaultValue: 1000,
+    transformer: (value: string) => Number(value),
+  },
 } as const;
 
 /**
