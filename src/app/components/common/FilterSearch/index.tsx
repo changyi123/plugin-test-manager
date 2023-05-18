@@ -19,6 +19,7 @@ import { getTestConfig } from '@/lib/api/common';
 import { openFieldValuePopover, openFilterPopover } from '@/lib/api/sdk';
 import { getCurrentUserSetting } from '@/lib/api/userSetting';
 import {
+  FILTER_EXPRESSIONS,
   getExtendFields,
   IS_EXTEND_FIELDS,
   RepositoryModel,
@@ -352,6 +353,13 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
     }));
   }, [getGlobalConfig, t]);
 
+  const getExpression = useCallback(
+    componentKey => {
+      return FILTER_EXPRESSIONS(t)?.[componentKey]?.[0].value;
+    },
+    [t],
+  );
+
   // 组装打开字段值选择器的函数
   const getFieldValueProps = useCallback(
     (data, dom) => {
@@ -359,6 +367,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
       const systemTarget = getExtendFields(t).find(item => item.objectId === fieldId);
       const isExtend = IS_EXTEND_FIELDS.includes(data.component);
       const component = IS_EXTEND_FIELDS.includes(data.component) ? data.component : data.key;
+      const expression = data.expression ?? getExpression(component);
       // setActiveSelector(fieldId);
       const props = {
         isExtend: systemTarget?.fieldType?.isExtend ?? isExtend,
@@ -378,7 +387,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
           // setActiveSelector('');
           handleSearch();
         },
-        expression: data.expression,
+        expression,
         dom,
       };
       if (fieldId === RepositoryModel) {
@@ -389,7 +398,15 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
       }
       return props;
     },
-    [extendFetch, handleSearch, updateSelectorValue, workspace?.objectId, getStatusOptions, t],
+    [
+      t,
+      getExpression,
+      workspace?.objectId,
+      updateSelectorValue,
+      handleSearch,
+      extendFetch,
+      getStatusOptions,
+    ],
   );
 
   const onFilterChange = useCallback(
