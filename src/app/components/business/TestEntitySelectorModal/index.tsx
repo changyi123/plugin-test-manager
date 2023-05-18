@@ -12,11 +12,11 @@ import { TestTypeNameMapping } from '@/lib/constants';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import EventBus from '@/lib/utils/eventBus';
-import { getRootContainer, getTestManagerContainer, hasArrayItem } from '@/lib/utils/helper';
+import { getTestManagerContainer, hasArrayItem } from '@/lib/utils/helper';
 
-// import SelectorTable from './SelectorTable';
 import cx from './index.less';
 import InheritTestDetail from './InheritTestDetail';
+import SelectorTable from './SelectorTable';
 import TestDetailSelector from './TestDetailSelector';
 
 const AddExistedTestEventType = 'ADD_EXISTED_TEST';
@@ -58,12 +58,13 @@ export type TestEntitySelectorProps = {
   isSingleMode?: boolean;
   needFillValue?: boolean;
   modelType?: string;
-  // tableFieldsKeys?: string[];
+  tableFieldsKeys?: string[];
   ignoreTestEntityIds?: string[];
   onSelect?: (testIds: string[]) => void;
   actionRef?: React.ForwardedRef<ActionType>;
   afterClose?: () => void;
   onCancel?: () => void;
+  getContainer?: () => HTMLElement;
 };
 
 const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
@@ -74,10 +75,11 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
     ignoreTestEntityIds = [],
     isSingleMode = false,
     needFillValue,
-    // tableFieldsKeys,
+    tableFieldsKeys,
     width,
     afterClose,
     onCancel,
+    getContainer,
   } = props;
   const [visible, setVisible] = useSafeState(false);
   const debounceSelectContainerRef = React.useRef();
@@ -240,11 +242,9 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
       return Object.values(testEntityDict).map(item => {
         return {
           label: (
-            <div>
-              <span style={{ display: 'inline-block', marginRight: 4, fontSize: 13 }}>
-                {item.name}
-              </span>
-              <span style={{ fontSize: 12, color: '#aaa' }}>({item.key})</span>
+            <div className={cx('select-box')}>
+              <div className={cx('select-title')}>{item.name}</div>
+              <div className={cx('select-key')}>({item.key})</div>
             </div>
           ),
           value: item.id,
@@ -430,6 +430,12 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
 
   const ModalFooterNode = React.useMemo(() => {
     const { ok, cancel } = modelProps?.footer ?? {};
+    const getDisabled = () => {
+      if (testType === TestType.Case) return !selectedTestDetails?.length;
+      if ([TestType.TestDefect, TestType.Execution].includes(testType)) return !selectValue?.length;
+      return false;
+    };
+    const btnDisabled = getDisabled();
     return (
       <div className={cx('footer')}>
         {testType === TestType.Case ? (
@@ -452,7 +458,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
           >
             {cancel?.name ?? t('common.cancel')}
           </Button>
-          <Button type="primary" onClick={handleOkButtonClick}>
+          <Button type="primary" disabled={btnDisabled} onClick={handleOkButtonClick}>
             {ok?.name ?? t('common.confirm')}
           </Button>
         </div>
@@ -469,26 +475,36 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
     setSelectValue,
     isSingleMode,
     setVisible,
+    selectValue,
   ]);
 
   const testSelectNode = useMemo(() => {
     if (testType === TestType.Case) {
       return testDetailSelectorNode;
     }
-    // if (testType === TestType.Execution) {
-    //   return (
-    //     <SelectorTable
-    //       workspaceKey={workspace?.key}
-    //       testType={testType}
-    //       workspaceKeyCondition={workspaceKeyCondition}
-    //       selectValue={selectValue}
-    //       setSelectValue={setSelectValue}
-    //       tableFieldsKeys={tableFieldsKeys}
-    //     />
-    //   );
-    // }
+    if (testType === TestType.Execution) {
+      return (
+        <SelectorTable
+          workspaceKey={workspace?.key}
+          testType={testType}
+          workspaceKeyCondition={workspaceKeyCondition}
+          selectValue={selectValue}
+          setSelectValue={setSelectValue}
+          tableFieldsKeys={tableFieldsKeys}
+        />
+      );
+    }
     return testEntitySelectorNode;
-  }, [testType, testEntitySelectorNode, testDetailSelectorNode]);
+  }, [
+    testType,
+    testEntitySelectorNode,
+    testDetailSelectorNode,
+    workspace?.key,
+    workspaceKeyCondition,
+    selectValue,
+    setSelectValue,
+    tableFieldsKeys,
+  ]);
 
   return (
     <Modal
@@ -502,7 +518,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
       open={visible}
       maskClosable={false}
       className={cx('modal')}
-      getContainer={testType === TestType.Execution ? getTestManagerContainer : getRootContainer}
+      getContainer={getContainer ?? getTestManagerContainer}
       footer={ModalFooterNode}
       onCancel={() => {
         testType === TestType.Case && setTreeType('repository');

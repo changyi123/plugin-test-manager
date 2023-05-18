@@ -1,3 +1,4 @@
+import { i18n } from '@giteeteam/apps-team-api';
 import difference from 'lodash/difference';
 import keyBy from 'lodash/keyBy';
 
@@ -10,6 +11,7 @@ import {
   TestType,
 } from '../../../common/constant';
 import {
+  BatchCopyTestCasePayload,
   BatchCreateTestCasePayload,
   BatchCreateTestRunPayload,
   BatchDeletePayload,
@@ -20,7 +22,7 @@ import { itemToTestEntity } from '../../../common/utils/dataTransfer';
 import { buildResponse } from '../../lib/apiUtil';
 import { getReqInfoFromVMRuntime } from '../../lib/apiUtil';
 import { batchCreateItems, batchDeleteItems, batchUpdateItems } from '../../lib/batchRequest';
-import { generateSortIndex } from '../../lib/helper';
+import { concatIqlRequestFields, generateSortIndex, uuidv4 } from '../../lib/helper';
 import { iqlRequest } from '../../lib/iqlRequest';
 import { getItemCreateRequiredAttrs } from '../../lib/item';
 import { testEntityFieldTypeValidator, throwArgumentError } from '../../lib/validator';
@@ -150,7 +152,7 @@ const processLinkItemData = async data => {
       query: {
         id: needProcessedEntityIds,
       },
-      fields: [SystemField.Id, TestFiledKeyMapping.linkItems],
+      fields: [SystemField.Id, TestFiledKeyMapping.linkItems, TestFiledKeyMapping.linkType],
       pagination: {
         limit: InfinityLimit,
       },
@@ -163,19 +165,24 @@ const processLinkItemData = async data => {
       if (isActionSchema(linkItems)) {
         const originalTestEntity = originalTestEntityMapping[objectId];
         if (!originalTestEntity) return data;
-        const { linkItems: originalLinkItems = [] } = originalTestEntity;
+        const { linkItems: originalLinkItems = [], linkType: originalLinkType } =
+          originalTestEntity;
 
         const { action, value } = linkItems as any;
-        let processedLinkItems = value;
+        const processedLinkData = { linkItems: value } as any;
         if (action === 'delete') {
-          processedLinkItems = difference(originalLinkItems, value);
+          const linkItems = difference(originalLinkItems, value);
+          processedLinkData.linkItems = linkItems?.length ? linkItems : null;
+          if (originalLinkType && !linkItems?.length) {
+            processedLinkData.linkType = null;
+          }
         } else {
-          processedLinkItems = Array.from(new Set([].concat(originalLinkItems, value)));
+          processedLinkData.linkItems = Array.from(new Set([].concat(originalLinkItems, value)));
         }
 
         return {
           ...item,
-          linkItems: processedLinkItems,
+          ...processedLinkData,
         };
       }
 
@@ -393,6 +400,50 @@ export const batchCreateTestRun = async () => {
     console.info('create success res: ', createdItemIds);
     return buildResponse(createdItemIds);
     // 查询测试执行任务
+  } catch (err) {
+    return buildResponse(err);
+  }
+};
+
+/** 批量复制测试用例 */
+export const batchCopyTestCase = async () => {
+  try {
+    const {
+      body: { caseIds, fields },
+    } = getReqInfoFromVMRuntime<BatchCopyTestCasePayload>();
+    const copyName = i18n.t('trigger.copyName');
+
+    const {
+      data: { list: caseList },
+    } = await iqlRequest<TestCaseType>({
+      query: {
+        id: caseIds,
+      },
+      pagination: { limit: InfinityLimit },
+      fields: concatIqlRequestFields(fields),
+    });
+
+    const needCreateItems = caseList.map((data, index) => ({
+      name: `${data.name}_${copyName}`,
+      type: data.type,
+      sortIndex: generateSortIndex(index),
+      workspace: data.workspace,
+      values: data.values,
+      itemType: data.itemType,
+      detail: data.detail
+        ? {
+            ...data.detail,
+            steps: data.detail?.steps.map(s => ({
+              ...s,
+              id: uuidv4(),
+            })),
+          }
+        : {},
+      repository: data.repository,
+    }));
+
+    const copyItems = await batchCreateItems(needCreateItems as any, fields);
+    return buildResponse(copyItems);
   } catch (err) {
     return buildResponse(err);
   }

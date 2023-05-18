@@ -48,3 +48,20 @@
 .user-field {
   white-space: nowrap;
 }
+
+.test-table-box {
+  :global {
+    .ant-table-thead,
+    .ant-table-body {
+      .ant-table-cell {
+        &.test-case-title {
+          padding: 9.5px 16px 9.5px 6px !important;
+        }
+        &.ant-table-cell-fix-left-last {
+          left: 0 !important;
+          z-index: 10 !important;
+        }
+      }
+    }
+  }
+}

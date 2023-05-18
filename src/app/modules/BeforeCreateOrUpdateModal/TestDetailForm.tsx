@@ -1,9 +1,12 @@
+import { useListener } from '@projectproxima/proxima-sdk-js';
 import { Input } from 'antd';
+import { pick } from 'lodash';
 import React from 'react';
 
 import RepositorySelectorField from '@/components/business/RepositorySelectorField';
-import TestStep from '@/components/business/TestStep';
+import TestStep, { ActionType } from '@/components/business/TestStep';
 import { getStepInitialData } from '@/components/business/TestStep/helper';
+import { CREATE_ITEM_STORE_FIELD_KEY } from '@/lib/constants';
 import useI18n from '@/lib/hooks/useI18n';
 import { Step } from '@/lib/types/Test';
 
@@ -24,6 +27,7 @@ type TestDetailFormProps = {
 const TestDetailForm: React.FC<TestDetailFormProps> = ({ onChange, values, extraData }) => {
   const { t } = useI18n();
   const valuesRef = React.useRef({} as ValueType);
+  const actionRef = React.useRef({} as ActionType);
   const saveValues = (values: Partial<ValueType>) => {
     valuesRef.current = {
       ...valuesRef.current,
@@ -31,6 +35,17 @@ const TestDetailForm: React.FC<TestDetailFormProps> = ({ onChange, values, extra
     };
     onChange(valuesRef.current);
   };
+
+  useListener('createNextAndResetForm', ({ extraData }: any) => {
+    if (extraData) {
+      saveValues({
+        ...pick(extraData[CREATE_ITEM_STORE_FIELD_KEY], ['repository']),
+        steps: [getStepInitialData()],
+        precondition: '',
+      });
+      actionRef.current.setSteps([getStepInitialData()]);
+    }
+  });
 
   React.useEffect(() => {
     if (extraData?.repository && !valuesRef.current.repository) {
@@ -65,7 +80,7 @@ const TestDetailForm: React.FC<TestDetailFormProps> = ({ onChange, values, extra
           maxLength={2000}
           autoSize={{ minRows: 3, maxRows: 6 }}
           placeholder={t('common.preconditionPlaceholder')}
-          defaultValue={values?.precondition}
+          value={values?.precondition}
           onBlur={e => saveValues({ precondition: e.target.value })}
           onChange={e => saveValues({ precondition: e.target.value })}
         />
@@ -74,9 +89,10 @@ const TestDetailForm: React.FC<TestDetailFormProps> = ({ onChange, values, extra
       <TestStep
         steps={values?.steps ?? [getStepInitialData()]}
         onChange={steps => saveValues({ steps })}
+        actionRef={actionRef}
       />
     </div>
   );
 };
 
-export default TestDetailForm;
+export default React.memo(TestDetailForm);

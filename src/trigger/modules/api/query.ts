@@ -9,7 +9,6 @@ import pick from 'lodash/pick';
 import {
   InfinityLimit,
   IQLRequiredFieldKeys,
-  IQLUsefulFieldKeys,
   StartStatusKey,
   SystemFieldNameMapping,
   TestFiledKeyMapping,
@@ -22,15 +21,9 @@ import {
   QueryTestEntityPayload,
 } from '../../../common/types/api';
 import { buildPaginationResponse, buildResponse, getReqInfoFromVMRuntime } from '../../lib/apiUtil';
-import { toArray } from '../../lib/helper';
+import { concatIqlRequestFields, toArray } from '../../lib/helper';
 import { iqlRequest } from '../../lib/iqlRequest';
 import { testEntityFieldTypeValidator } from '../../lib/validator';
-
-// 处理 iql 请求的自定义字段
-const concatIqlRequestFields = fields => {
-  // fields 字段需要拼接测试实体字段和事项的必填字段
-  return Array.from(new Set([].concat(IQLUsefulFieldKeys, fields)));
-};
 
 const overwriteIqlParamsWithOnlySelectId = onlySelectId => {
   if (onlySelectId) {

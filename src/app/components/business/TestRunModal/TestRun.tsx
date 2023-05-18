@@ -2,6 +2,7 @@ import { useRequest, useSessionStorageState } from 'ahooks';
 import { Button, Checkbox, Collapse, message, Spin, Tabs, Tooltip } from 'antd';
 import _ from 'lodash';
 import React from 'react';
+import { v4 as uuid } from 'uuid';
 
 import { StatusBadge, StatusList } from '@/components/business/Status';
 import { QuestionCircleFilled } from '@/icons';
@@ -253,7 +254,10 @@ const TestRun: React.FC<TestRunType> = props => {
           const res = await updateTestRunDetail(
             testRunEntity,
             {
-              steps: steps,
+              steps: steps?.map(d => ({
+                ...d,
+                id: uuid(),
+              })),
               runDetail: {
                 precondition: detail?.precondition ?? '',
               },

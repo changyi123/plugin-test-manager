@@ -9,6 +9,7 @@ import { useBaseAction } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import { TestEntity } from '@/lib/types/Test';
 
+import { getRootContainer } from '../TestStep/helper';
 import { useItemLinkTypeConfig } from './hooks';
 
 type AddDefectButtonProps = {
@@ -111,6 +112,7 @@ const AddDefectButton: React.FC<AddDefectButtonProps> = props => {
         testType={TestType.TestDefect}
         actionRef={testEntitySelectorRef}
         ignoreTestEntityIds={allRelationDefectIds ?? []}
+        getContainer={getRootContainer}
       />
       {plainStyle ? (
         <div className={className}>

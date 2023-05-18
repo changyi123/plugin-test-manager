@@ -143,6 +143,13 @@ export const FIELD_TYPE_KEY_MAPPINGS = {
   UserGroup: 'UserGroup', // 用户组
 };
 
+export const DATA_FIELDS = [
+  FIELD_TYPE_KEY_MAPPINGS.CreatedAt,
+  FIELD_TYPE_KEY_MAPPINGS.UpdatedAt,
+  FIELD_TYPE_KEY_MAPPINGS.DateRange,
+  FIELD_TYPE_KEY_MAPPINGS.Date,
+];
+
 export const IS_EXTEND_FIELDS = [FIELD_TYPE_KEY_MAPPINGS.FieldCollection];
 
 export const enum ExtensionValType {

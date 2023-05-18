@@ -5,6 +5,7 @@ import React from 'react';
 import useI18n from '@/lib/hooks/useI18n';
 import { goToItemDetailPage } from '@/lib/utils/helper';
 
+import cx from './ItemLinkTable.less';
 import { TabsComponentBaseProps } from './type';
 
 const { ItemIcon } = components.Components.Common;
@@ -42,7 +43,7 @@ const ItemLinkTable: React.FC<ItemLinkTableProps> = ({ itemLinks }) => {
       render(name, record) {
         return (
           <a
-            style={{ color: '#333' }}
+            className={cx('link-title')}
             onClick={() =>
               goToItemDetailPage({
                 workspaceKey: record.workspace?.key,

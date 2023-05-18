@@ -57,6 +57,11 @@ export const TestFiledKeyMapping = {
   comment: 'r_test_manager_comment',
 } as const;
 
+export const NotValidatorFiledKeyMapping = {
+  linkType: 'r_test_manager_linkType',
+  linkItems: 'r_test_manager_linkItems',
+} as const;
+
 export const TestFiledKeyKeys = Object.keys(
   TestFiledKeyMapping,
 ) as (keyof typeof TestFiledKeyMapping)[];

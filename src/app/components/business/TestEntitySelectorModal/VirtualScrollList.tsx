@@ -1,8 +1,9 @@
-import { Checkbox, Empty } from 'antd';
+import { Checkbox, Empty, Tooltip } from 'antd';
 import { clone, pullAll } from 'lodash';
 import React, { useCallback, useMemo } from 'react';
 import { GroupedVirtuoso } from 'react-virtuoso';
 
+import OverflowTooltip from '@/components/common/OverflowTooltip';
 import emptyImg from '@/icons/svg/empty-data.png';
 import useI18n from '@/lib/hooks/useI18n';
 
@@ -46,12 +47,14 @@ const VirtualScrollList: React.FC<VirtualScrollListProps> = props => {
       const pathName = handleGroupPath(groupArray, groups?.[index]?.key);
       const PathDom = ({ name }) => {
         return typeof name === 'string' ? (
-          <span className={cx('name')}>{name}</span>
+          <OverflowTooltip className={cx('name')} title={name}>
+            {name}
+          </OverflowTooltip>
         ) : (
-          <span className={cx('path-box')}>
+          <Tooltip className={cx('path-box')} title={name.join('/')}>
             <span className={cx('path')}>{name?.[0]}</span>
             <span className={cx('cur-name')}>/{name?.[1]}</span>
-          </span>
+          </Tooltip>
         );
       };
       return (
@@ -116,7 +119,9 @@ const VirtualScrollList: React.FC<VirtualScrollListProps> = props => {
               ignoreTestDetailIdsSet?.has(items?.[index]?.id)
             }
           >
-            <span className={cx('title')}>{items?.[index]?.name}</span>
+            <OverflowTooltip className={cx('name')} title={items?.[index]?.name}>
+              {items?.[index]?.name}
+            </OverflowTooltip>
           </Checkbox>
         </div>
       );

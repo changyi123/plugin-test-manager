@@ -501,6 +501,12 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
             openItemViewScreen(record?.objectId);
           },
         },
+        shouldCellUpdate: (record, prevRecord) => {
+          return (
+            record.repository?.objectId !== prevRecord.repository?.objectId ||
+            record.name !== prevRecord.name
+          );
+        },
         render(_, rowData) {
           const itemData = rowData ?? {};
           return (
@@ -644,6 +650,12 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         className: 'test-case-title',
         width: 400,
         tooltip: true,
+        shouldCellUpdate: (record, prevRecord) => {
+          return (
+            record.repository?.objectId !== prevRecord.repository?.objectId ||
+            record.name !== prevRecord.name
+          );
+        },
         extraProps: {
           onClick: record => {
             openItemViewScreen(record?.caseId);
@@ -717,6 +729,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         title: t('common.action'),
         isSystem: true,
         fixed: 'right' as any,
+        width: 120,
         shouldCellUpdate: (record, prevRecord) =>
           record.repository?.objectId !== prevRecord.repository?.objectId ||
           !isEqual(record.designee, prevRecord.designee),

@@ -25,8 +25,6 @@ export type WordTemplate = {
 };
 
 export type CopyTestCasePayload = {
-  includeStatus: boolean;
-  name: string;
-  objectId: string;
-  workspace: string;
+  caseIds: string[];
+  fields: string[];
 };

@@ -171,6 +171,15 @@ export type BatchCreateTestCasePayload = {
 };
 
 /**
+ * 复制测试用例
+ * @example POST /api/project/app/osc/test_manager/webhooks/api-batch-copy-test-case
+ */
+export type BatchCopyTestCasePayload = {
+  caseIds: string[];
+  fields: string[];
+};
+
+/**
  * 创建测试实体
  * @example POST /api/project/app/osc/test_manager/webhooks/api-batch-create-test-run
  */
