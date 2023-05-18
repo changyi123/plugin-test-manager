@@ -144,13 +144,21 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
 
   const customFieldsKey = useMemo(() => customFields?.map(d => d.key), [customFields]);
 
+  const getExpression = useCallback(
+    componentKey => {
+      return FILTER_EXPRESSIONS(t)?.[componentKey]?.[0].value;
+    },
+    [t],
+  );
+
   const defaultSelectors = useMemo(() => {
     if (checkedFields?.length && customFields?.length) {
       return checkedFields.reduce((prev, cur) => {
         const data = customFields.find(d => cur === d.key) ?? {};
+        const expression = data.fieldType.expression ?? getExpression(data.fieldType.component);
         prev[data.objectId] = {
           component: data.fieldType.component,
-          expression: data.fieldType.expression,
+          expression,
           isExtend: data.fieldType.isExtend,
           key: data.key,
           fieldId: data.objectId,
@@ -161,7 +169,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
       }, {});
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [customFieldsKey?.toString(), checkedFields?.toString()]);
+  }, [customFieldsKey?.toString(), checkedFields?.toString(), getExpression]);
 
   // 将 selector 存储到 localStorage
   useSelectorStorage(enableLocalStorage, {
@@ -352,13 +360,6 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
       label: t(`status.${item.key}.name`),
     }));
   }, [getGlobalConfig, t]);
-
-  const getExpression = useCallback(
-    componentKey => {
-      return FILTER_EXPRESSIONS(t)?.[componentKey]?.[0].value;
-    },
-    [t],
-  );
 
   // 组装打开字段值选择器的函数
   const getFieldValueProps = useCallback(
