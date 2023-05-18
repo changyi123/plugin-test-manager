@@ -145,8 +145,8 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
   const customFieldsKey = useMemo(() => customFields?.map(d => d.key), [customFields]);
 
   const getExpression = useCallback(
-    componentKey => {
-      return FILTER_EXPRESSIONS(t)?.[componentKey]?.[0].value;
+    (component, key) => {
+      return (FILTER_EXPRESSIONS(t)?.[component] ?? FILTER_EXPRESSIONS(t)?.[key])?.[0].value;
     },
     [t],
   );
@@ -168,7 +168,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
       }, {});
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [customFieldsKey?.toString(), checkedFields?.toString(), getExpression]);
+  }, [customFieldsKey?.toString(), checkedFields?.toString()]);
 
   // 将 selector 存储到 localStorage
   useSelectorStorage(enableLocalStorage, {
@@ -367,7 +367,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
       const systemTarget = getExtendFields(t).find(item => item.objectId === fieldId);
       const isExtend = IS_EXTEND_FIELDS.includes(data.component);
       const component = IS_EXTEND_FIELDS.includes(data.component) ? data.component : data.key;
-      const expression = data.expression ?? getExpression(component);
+      const expression = data.expression ?? getExpression(data.component, data.key);
       // setActiveSelector(fieldId);
       const props = {
         isExtend: systemTarget?.fieldType?.isExtend ?? isExtend,
