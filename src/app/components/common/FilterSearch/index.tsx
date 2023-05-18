@@ -389,6 +389,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
         },
         expression,
         dom,
+        useChange: false,
       };
       if (fieldId === RepositoryModel) {
         (props as any).fetchMethod = () => extendFetch();
@@ -433,11 +434,18 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
   );
 
   const currentSelector = useMemo(() => {
+    const getExpression = (value, expression) => {
+      if (typeof value === 'number') {
+        return value ? expression : null;
+      }
+      return value?.length ? expression : null;
+    };
     const item = values(selectors).map(item => ({
       ...item,
       name: item?.fieldName,
       objectId: item?.fieldId,
       active: Array.isArray(item.value) ? !!item.value?.length : !!item.value,
+      expression: getExpression(item?.value, item.expression),
     }));
     return item || [];
   }, [selectors]);
