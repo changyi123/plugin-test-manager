@@ -310,7 +310,7 @@ export const validateMinderData = ({ rootNode, rootNodeLevel = 0 }, t) => {
           [MinderNodeType.Step]: 2000,
           [MinderNodeType.Precondition]: 2000,
           // TestCase 节点名称无限制
-          [MinderNodeType.Module]: 40,
+          [MinderNodeType.Module]: 100,
         };
 
         if (node.data.text?.length > textMaxCountMap[node.data.type]) {

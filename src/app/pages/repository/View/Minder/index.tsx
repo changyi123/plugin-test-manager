@@ -21,7 +21,7 @@ import { useBaseAction } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import { useNoExpiredRequest } from '@/lib/hooks/useRequest';
 import { exportAndDownloadXMind, validateMinderData } from '@/lib/minder';
-import { getProximaBasePath, getTenantKey } from '@/lib/utils/helper';
+import { getProximaBasePath, getRootContainer, getTenantKey } from '@/lib/utils/helper';
 import { getLang } from '@/lib/utils/locale';
 
 import { ViewComponentProps } from '../type';
@@ -31,6 +31,7 @@ import { openMaxRenderNodeConfirm } from './MaxRenderNodeConfirm';
 // TODO: 同层级重名模块报错
 const MaxModuleLevel = 8;
 const MaxRenderNodeCount = getAppEnv('MAX_RENDER_NODE_COUNT');
+const LargeNodeModeLimit = getAppEnv('LARGE_NODE_MODE_LIMIT');
 
 const EmptyNodeId = 'EmptyNodeId';
 
@@ -43,6 +44,7 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
   const { t } = useI18n();
   const actionRef = React.useRef(null);
   const { workspace } = useTestConfig();
+  const validatePassedRef = React.useRef(false);
   const { getCreatePermission } = useBaseAction();
   const [saveLoading, setSaveLoading] = React.useState(false);
   const [cancelRender, setCancelRender] = React.useState(false);
@@ -95,6 +97,22 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
     return errorList;
   });
 
+  React.useEffect(() => {
+    function fullscreenChange() {
+      if (document.fullscreenElement) {
+        message.config({
+          getContainer: () => document.querySelector('[data-element-id="minder-editor-content"]'),
+        });
+      } else {
+        message.config({
+          getContainer: getRootContainer,
+        });
+      }
+    }
+
+    document.addEventListener('fullscreenchange', fullscreenChange);
+  }, [minderData]);
+
   /** 保存脑图数据
    * s1. 根据 modulePaths 层序创建 repository，生成 repository module paths
    * s2. 创建用例数据
@@ -104,8 +122,8 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
   const handleSave = useMemoizedFn(async () => {
     if (saveLoading) return;
     // 校验数据是否合法
-    const passed = await actionRef.current.validateMinderData();
-    if (!passed) {
+    validatePassedRef.current = await actionRef.current.validateMinderData();
+    if (!validatePassedRef.current) {
       return message.error(t('page.repository.view.minder.hasExistedError'));
     }
 
@@ -434,6 +452,20 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
     enableRequestMinderData,
   ]);
 
+  // 渲染数据
+  const minderRenderData = React.useMemo(() => {
+    const EmptyRootNode = {
+      root: {
+        data: { id: EmptyNodeId, type: MinderNodeType.Module, text: selectedNode.name },
+      },
+    };
+    // 正在数据请求时返回 root 节点占位符号
+    if (!canRequestMinderData || requestMinderDataLoading) return EmptyRootNode;
+    // 取消加载时返回 root 节点占位符
+    if (cancelRender) return EmptyRootNode;
+    return minderData ?? EmptyRootNode;
+  }, [selectedNode.name, requestMinderDataLoading, cancelRender, canRequestMinderData, minderData]);
+
   // 模块切换先判断是否需要渲染，避免大数据量节点渲染导致页面卡顿
   React.useEffect(() => {
     // 切换模块时，重置渲染状态
@@ -463,19 +495,12 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedNode?.key]);
 
-  // 渲染数据
-  const minderRenderData = React.useMemo(() => {
-    const EmptyRootNode = {
-      root: {
-        data: { id: EmptyNodeId, type: MinderNodeType.Module, text: selectedNode.name },
-      },
-    };
-    // 正在数据请求时返回 root 节点占位符号
-    if (!canRequestMinderData || requestMinderDataLoading) return EmptyRootNode;
-    // 取消加载时返回 root 节点占位符
-    if (cancelRender) return EmptyRootNode;
-    return minderData ?? EmptyRootNode;
-  }, [selectedNode.name, requestMinderDataLoading, cancelRender, canRequestMinderData, minderData]);
+  React.useEffect(() => {
+    // 判断是否有错误节点数据，如果有则重新校验
+    if (validatePassedRef.current) {
+      validatePassedRef.current = actionRef.current.validateMinderData();
+    }
+  }, [minderRenderData]);
 
   // 只保留语言，不保留地区
   const lang = getLang()?.replace(/-\w+/g, '');
@@ -491,9 +516,10 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
           lang={lang}
           key={workspace.key}
           actionRef={actionRef}
-          data={minderRenderData}
           validator={validator}
+          data={minderRenderData}
           priorityOptions={priorityOptions}
+          largeNodeModeLimit={LargeNodeModeLimit}
           onAllLayoutFinish={handleAllLayoutFinish}
           renderFixRightAction={() => memoizedButtonNode}
         />
