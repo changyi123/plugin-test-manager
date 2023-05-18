@@ -92,7 +92,7 @@ const Test = () => {
           type: TestType.Case,
           id: runs?.map(d => d.referenceCase),
         },
-        limit: 10,
+        limit: runs?.length ?? 10,
       });
 
       const caseMap = new Map();
