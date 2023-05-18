@@ -155,10 +155,9 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
     if (checkedFields?.length && customFields?.length) {
       return checkedFields.reduce((prev, cur) => {
         const data = customFields.find(d => cur === d.key) ?? {};
-        const expression = data.fieldType.expression ?? getExpression(data.fieldType.component);
         prev[data.objectId] = {
           component: data.fieldType.component,
-          expression,
+          expression: null,
           isExtend: data.fieldType.isExtend,
           key: data.key,
           fieldId: data.objectId,
