@@ -1,6 +1,9 @@
-import { Button, Empty } from 'antd';
+import { Button, Empty, Space } from 'antd';
 import React from 'react';
 
+import TestEntitySelectorModal, {
+  ActionType as SelectorActionType,
+} from '@/components/business/TestEntitySelectorModal';
 import emptyImg from '@/icons/svg/empty-data.png';
 import { TestType } from '@/lib/constants';
 import { useBaseAction } from '@/lib/hooks/useContext';
@@ -10,24 +13,50 @@ import cx from './index.less';
 
 interface NoDataProps {
   createTestExecution?: (val?: boolean) => void;
+  addExistedTestExecution?: () => void;
+  selectorModalRef?: React.MutableRefObject<SelectorActionType>;
 }
 
-const NoData: React.FC<NoDataProps> = ({ createTestExecution }) => {
+const NoData: React.FC<NoDataProps> = ({
+  createTestExecution,
+  addExistedTestExecution,
+  selectorModalRef,
+}) => {
   const { t } = useI18n();
-  const { getCreatePermission } = useBaseAction();
+  const { getCreatePermission, testExecutionFieldKeys } = useBaseAction();
+
   return (
     <div className={cx('no-data-box')}>
       <Empty description={t('page.plan.planPageLayout.noData.description')} image={emptyImg}>
-        <Button
-          type="primary"
-          disabled={getCreatePermission(TestType.Execution)}
-          onClick={async () => {
-            createTestExecution();
-          }}
-        >
-          {t('common.createTestExecution')}
-        </Button>
+        <Space>
+          <Button
+            type="primary"
+            disabled={getCreatePermission(TestType.Execution)}
+            onClick={async () => {
+              createTestExecution();
+            }}
+          >
+            {t('common.createTestExecution')}
+          </Button>
+
+          <Button
+            type="primary"
+            disabled={getCreatePermission(TestType.Execution)}
+            onClick={async () => {
+              addExistedTestExecution();
+            }}
+          >
+            {t('modules.panel.testPlan.testExecutionPanel.modelTitle')}
+          </Button>
+        </Space>
       </Empty>
+      <TestEntitySelectorModal
+        actionRef={selectorModalRef}
+        title={t('modules.panel.testPlan.testExecutionPanel.modelTitle')}
+        ignoreTestEntityIds={[]}
+        tableFieldsKeys={testExecutionFieldKeys}
+        width={800}
+      />
     </div>
   );
 };

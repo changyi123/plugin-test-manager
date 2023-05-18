@@ -20,6 +20,8 @@ export type BaseTestEntity = {
   objectId: string;
   /** 事项编号 */
   key: string;
+  /** 事项类型 */
+  itemType: { objectId: string; name: string; key: string; icon: string };
   /** 测试实体类型 */
   type: TestType;
   /** 测试关联项 */
@@ -30,6 +32,8 @@ export type BaseTestEntity = {
   workspace: { objectId: string; name: string; key: string };
   /** 测试用例最新执行状态，改为测试执行状态 */
   status: Status['key'];
+  /** 测试用例分组 id */
+  repository: string;
   /** 隔离测试计划下测试用例最新状态 */
   caseStatus: Status['caseStatus'];
   /** 隔离测试计划下测试用例最新执行人 */
@@ -76,7 +80,7 @@ export type BaseTestEntity = {
   workflowStatus?: { objectId: string; name: string; key: string };
 };
 
-type CaseFieldKeys = 'detail' | 'caseStatus' | 'caseExecutor';
+type CaseFieldKeys = 'detail' | 'caseStatus' | 'caseExecutor' | 'repository';
 type RunFieldKeys =
   | 'comments'
   | 'executor'

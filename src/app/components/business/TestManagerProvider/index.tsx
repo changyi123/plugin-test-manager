@@ -1,7 +1,8 @@
 import { store } from '@nebulare/data';
 import { useRequest } from 'ahooks';
 import { message, notification } from 'antd';
-import { union } from 'lodash';
+import isEmpty from 'lodash/isEmpty';
+import union from 'lodash/union';
 import React from 'react';
 import { useLocation } from 'react-router-dom';
 import { v4 as uuid } from 'uuid';
@@ -11,12 +12,7 @@ import { getTestConfig, getTestConfigByWorkspaceKeys } from '@/lib/api/common';
 import { getTestEntityByQuery, updateTestEntity } from '@/lib/api/item';
 import { getItemByIds, getItemTypeByKey, getWorkspaceByKey } from '@/lib/api/proxima';
 import { openCreateItemModal, openItemDetailPanel } from '@/lib/api/sdk';
-import {
-  CREATE_ITEM_STORE_FIELD_KEY,
-  ENTITY_NOT_FOUND,
-  ExtensionValType,
-  TestType,
-} from '@/lib/constants';
+import { CREATE_ITEM_STORE_FIELD_KEY, ExtensionValType, TestType } from '@/lib/constants';
 import { repositoryFolderTreeEvent } from '@/lib/events';
 import useI18n from '@/lib/hooks/useI18n';
 import { useOnItemCreateSuccess } from '@/lib/hooks/useProximaSDK';
@@ -108,20 +104,21 @@ const getOrCreateTestEntity = async (
       }
       console.info('extraFields', extraFields);
     }
-    const data = await updateTestEntity([
-      {
-        objectId: itemData.objectId,
-        name: itemData.name,
-        ...needCreatedItem,
-        type: testType,
-        sortIndex: generateSortIndex(1),
-      },
-    ]);
-    if (data?.status === 'error') {
-      message.error(data.data);
-      return;
+
+    if (!isEmpty(needCreatedItem)) {
+      const data = await updateTestEntity([
+        {
+          objectId: itemData.objectId,
+          name: itemData.name,
+          ...needCreatedItem,
+        },
+      ]);
+      if (data?.status === 'error') {
+        message.error(data.data);
+        return;
+      }
+      testEntity = data?.[0];
     }
-    testEntity = data?.[0];
     console.info('new testEntity', testEntity);
     return testEntity;
   }
@@ -239,8 +236,6 @@ const getOrBatchCreateTestEntities = async (
         [itemId]: {
           ...restFields[CREATE_ITEM_STORE_FIELD_KEY],
           ...getItemStore(options.storeValueList ?? [], index, 'repository'),
-          ...getItemStore(options.storeValueList ?? [], index, 'precondition'),
-          ...getItemStore(options.storeValueList ?? [], index, 'steps'),
         },
       }),
       {},
@@ -254,23 +249,26 @@ const getOrBatchCreateTestEntities = async (
         ? {
             repository,
             detail: restFields,
+            sortIndex: generateSortIndex(index + 1),
           }
         : {};
 
     return {
       name: item.name,
       objectId: item.objectId,
-      sortIndex: generateSortIndex(index + 1),
-      type: getItemType(item.workspace.key, item.itemType.key),
       ...extraFields,
     };
   });
-  const res = await updateTestEntity(needCreatedTestEntities);
-  if (res?.status === 'error') {
-    message.error(res.data);
-    return;
+  if (needCreatedTestEntities.length) {
+    const res = await updateTestEntity(needCreatedTestEntities);
+    if (res?.status === 'error') {
+      message.error(res.data);
+      return;
+    }
+    return res;
   }
-  return res;
+
+  return itemList;
 };
 
 type RepositoryDataProviderProps = {
@@ -318,50 +316,27 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
     },
   );
 
-  // 获取测试实体，如果不存在测试实体（类型映射如果和事项匹配）需要新建
+  // 返回测试实体参数
   React.useEffect(() => {
     const execute = async () => {
       // 先获取事项详情
-      let {
+      const {
         list: [testEntity],
       } = await getTestEntityByQuery({
         query: {
           id: itemId,
         },
       });
-
-      // 判断是否是测试实体
-      const isTestEntity = testType => Object.values(TestType).includes(testType);
-
-      if (!isTestEntity(testEntity?.type)) {
-        // 不存在测试实体需要判断是否需要新建
-        testEntity = await getOrCreateTestEntity(
-          testEntity.objectId,
-          {
-            itemData: testEntity,
-            t,
-          },
-          {
-            itemTypeMap: testConfig.itemTypeMap,
-          },
-        );
-      }
-
-      const entity = (isTestEntity(testEntity?.type)
-        ? testEntity
-        : ENTITY_NOT_FOUND) as unknown as TestEntity;
-
-      setTestEntity(entity);
-
+      setTestEntity(testEntity);
       if (testEntity) {
         const workspace = testEntity.workspace;
         workspace && setWorkspace(workspace as Workspace);
       }
     };
-    if (itemId && testConfig) {
+    if (itemId) {
       execute();
     }
-  }, [itemId, testConfig, t]);
+  }, [itemId]);
 
   const testPlanFieldKeys = useTestTypeScreenFieldKeys({
     testType: TestType.Plan,
@@ -380,10 +355,10 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
     pathname && repositoryFolderTreeEvent.dispatch();
   }, [pathname]);
 
-  // const testExecutionFieldKeys = useTestTypeScreenFieldKeys({
-  //   testType: TestType.Execution,
-  //   workspaceKey,
-  // });
+  const testExecutionFieldKeys = useTestTypeScreenFieldKeys({
+    testType: TestType.Execution,
+    workspaceKey,
+  });
 
   // 获取全局配置时使用缓存
   const { runAsync: getGlobalConfig } = useRequest(
@@ -598,7 +573,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
       getTestCaseRepositoryPath,
       testPlanFieldKeys,
       testCaseFieldKeys,
-      // testExecutionFieldKeys,
+      testExecutionFieldKeys,
       openItemViewPanel: openItemDetailPanel,
     };
 
@@ -612,7 +587,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
     workspace?.objectId,
     testPlanFieldKeys,
     testCaseFieldKeys,
-    // testExecutionFieldKeys,
+    testExecutionFieldKeys,
     t,
   ]);
 

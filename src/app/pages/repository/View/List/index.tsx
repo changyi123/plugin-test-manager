@@ -1,5 +1,5 @@
 import { useListener } from '@projectproxima/proxima-sdk-js';
-import { useRequest, useUpdateEffect } from 'ahooks';
+import { useMemoizedFn, useRequest, useUpdateEffect } from 'ahooks';
 import { Button, notification, Select } from 'antd';
 import React from 'react';
 
@@ -7,7 +7,7 @@ import { SystemFieldKeys } from '@/components/common/BusinessTable/hook';
 import FilterSearch from '@/components/common/FilterSearch';
 import { getFilterFields } from '@/components/common/FilterSearch/utils';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
-import { getTestEntityByQuery, getTestStats } from '@/lib/api/item';
+import { copyTestCase, getTestEntityByQuery, getTestStats } from '@/lib/api/item';
 import { getExtendFields, RepositoryModel, TestType } from '@/lib/constants';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import { useBaseAction } from '@/lib/hooks/useContext';
@@ -141,6 +141,13 @@ const ListView: React.FC<ViewComponentProps> = ({
     [selectedNode, workspaceKey, groupedMode, selector, testCaseFieldKeys],
   );
 
+  const copyTestCases = useMemoizedFn(async ids => {
+    return await copyTestCase({
+      caseIds: ids,
+      fields: [].concat(SystemFieldKeys, testCaseFieldKeys),
+    });
+  });
+
   useUpdateEffect(() => {
     // 重置全部事项 ID
     if (workspaceKey && selectedNode) {
@@ -261,6 +268,7 @@ const ListView: React.FC<ViewComponentProps> = ({
           dataSourceGetter={dataSourceGetter}
           tableLoading={tableLoading}
           setTableLoading={setTableLoading}
+          copyTestCases={copyTestCases}
         />
       </div>
     </div>

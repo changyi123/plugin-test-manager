@@ -124,7 +124,7 @@ export const useAllTestWorkspace = () => {
 
 export const useGetWorkspaceRepository = workspaceKey => {
   const { t } = useI18n();
-  const { data: testCaseRepositoryPath, refreshAsync: refreshRepositoryData } = useRequest(
+  const { data: testCaseRepositoryPath, refresh: refreshRepositoryData } = useRequest(
     async () => {
       if (!workspaceKey) return;
       const data = await getRepositoryData([workspaceKey]);
@@ -155,51 +155,6 @@ export const useGetWorkspaceRepository = workspaceKey => {
 
   return getTestCaseRepositoryPath;
 };
-
-// 弃用，使用 useGetWorkspaceRepository
-// export const useGetTestRepoGroup = (rowData: any) => {
-//   const workspaceKey = rowData?.workspace?.key;
-//   const folderKey = rowData?.repository;
-//   const { t } = useI18n();
-
-//   const { data: repositoryData, refreshAsync: refreshRepositoryData } = useRequest(
-//     async () => {
-//       return await getRepositoryData(workspaceKey ? [workspaceKey] : []);
-//     },
-//     {
-//       cacheKey: `repository_data_${workspaceKey ?? ''}`,
-//       refreshDeps: [workspaceKey],
-//       debounceWait: 300,
-//     },
-//   );
-
-//   const { data: repositoryDict, loading } = useRequest(
-//     async () => {
-//       if (!hasArrayItem(repositoryData)) return null;
-//       return handleRepoPath(getRepoData(repositoryData)).reduce((prev, cur) => {
-//         if (cur.objectId) {
-//           prev[cur.objectId] = cur.path;
-//         }
-//         return prev;
-//       }, {});
-//     },
-//     {
-//       cacheKey: `repository_data_${folderKey}`,
-//       refreshDeps: [repositoryData, folderKey],
-//     },
-//   );
-
-//   React.useEffect(() => {
-//     return repositoryFolderTreeEvent.register(() => {
-//       clearCache(`repository_data_${workspaceKey ?? ''}`);
-//       refreshRepositoryData();
-//     });
-//   }, [refreshRepositoryData, workspaceKey]);
-
-//   const data = repositoryDict?.[rowData?.repository ?? ''] ?? t('common.unGrouped');
-
-//   return { data, loading };
-// };
 
 export const useGetUserNameByName = (name: string) => {
   const { data } = useRequest(

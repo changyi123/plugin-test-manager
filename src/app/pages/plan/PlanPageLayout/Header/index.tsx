@@ -1,12 +1,12 @@
 import { useRequest } from 'ahooks';
-import { Button } from 'antd';
-import React from 'react';
+import { Button, Dropdown, Menu } from 'antd';
+import React, { useMemo } from 'react';
 
 import TestEntitySelectorModal, {
   ActionType as SelectorActionType,
 } from '@/components/business/TestEntitySelectorModal';
 import TestPlanSelector from '@/components/business/TestPlanSelector';
-import { ArrowLeftOutlined, ExportOutlined } from '@/icons';
+import { ArrowLeftOutlined, DownOutlined, ExportOutlined } from '@/icons';
 import { getFirstWordTemplate } from '@/lib/api/report';
 import { TestType } from '@/lib/constants';
 import { useBaseAction } from '@/lib/hooks/useContext';
@@ -16,8 +16,6 @@ import WordReport from '@/lib/report';
 import { usePageContext } from '../../hook';
 import ExecutionList from '../ExecutionList';
 import cx from './index.less';
-// import { getLinkedTestEntityByQuery, updateTestEntity } from '@/lib/api/item';
-// import { generateSortIndex } from '@/lib/utils/helper';
 
 type ExecutionListRef = {
   refresh?: () => void;
@@ -34,6 +32,8 @@ interface HeaderProps {
   setLoading?: (val: boolean) => void;
   planLinkCaseIds?: string[];
   executionListRef?: React.MutableRefObject<ExecutionListRef>;
+  addExistedTestExecution?: () => void;
+  selectorModalRef?: React.MutableRefObject<SelectorActionType>;
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -41,18 +41,16 @@ const Header: React.FC<HeaderProps> = ({
   setActiveType,
   selectedExecution,
   setSelectedExecution,
-  // refreshExecution,
-  // setRefreshExecution,
   createTestExecution,
+  addExistedTestExecution,
   setLoading,
-  // planLinkCaseIds,
   executionListRef,
+  selectorModalRef,
 }) => {
   const { t } = useI18n();
-  const selectorModalRef = React.useRef<SelectorActionType>();
   const { workspaceKey, selectedTestPlan, setSelectedTestPlan, tableSelectionToggleEvent } =
     usePageContext();
-  const { getCreatePermission } = useBaseAction();
+  const { getCreatePermission, testExecutionFieldKeys } = useBaseAction();
   const [isReportGenerating, setIsReportGenerating] = React.useState(false);
   const [executionKeys, setExecutionKeys] = React.useState<string[]>([]);
 
@@ -84,85 +82,21 @@ const Header: React.FC<HeaderProps> = ({
     }
   };
 
-  // const addTestExecutionToPlan = React.useCallback(
-  //   async ids => {
-  //     // 测试计划关联测试执行后需将测试执行任务中的测试执行对应的测试用例关联到测试计划中
-  //     const res = await updateTestEntity(
-  //       ids.map(objectId => ({
-  //         objectId,
-  //         linkType: TestLinkType.ExecutionLinkPlan,
-  //         type: TestType.Execution,
-  //         linkItems: { action: 'add', value: [selectedTestPlan?.objectId] },
-  //         sortIndex: generateSortIndex(),
-  //       })),
-  //     );
-  //     if (res?.status === 'error') {
-  //       message.error(res.data);
-  //       return;
-  //     }
-
-  //     const { list: runs } = await getLinkedTestEntityByQuery({
-  //       query: {
-  //         workspaceKey: workspaceKey,
-  //       },
-  //       limit: 9999,
-  //       linkType: TestLinkType.RunLinkExecution,
-  //       sourceIds: ids,
-  //       destinationType: TestType.Run,
-  //       select: ['id', 'referenceCase'],
-  //     });
-
-  //     const runCaseIds = runs?.map(run => run.referenceCase) ?? [];
-  //     const caseIds = runCaseIds.filter(id => !planLinkCaseIds?.includes(id));
-
-  //     if (caseIds.length) {
-  //       const res = await updateTestEntity(
-  //         caseIds.map(item => ({
-  //           objectId: item,
-  //           linkType: TestLinkType.CaseLinkPlan,
-  //           linkItems: {
-  //             action: 'add',
-  //             value: [selectedTestPlan.objectId],
-  //           },
-  //         })),
-  //       );
-  //       if (res?.status === 'error') {
-  //         message.error(res.data);
-  //         return;
-  //       }
-  //     }
-  //     message.success(
-  //       `${ids.length} ${t('modules.panel.testPlan.testExecutionPanel.addRunToPlanSuccess')}`,
-  //     );
-  //   },
-  //   [workspaceKey, selectedTestPlan?.objectId, planLinkCaseIds, t],
-  // );
-
-  // 关联测试执行任务到测试计划
-  // const addExistedTestExecution = React.useCallback(async () => {
-  //   const ids = await selectorModalRef.current.open({
-  //     testType: TestType.Execution,
-  //   });
-
-  //   await addTestExecutionToPlan(ids);
-  //   executionListRef?.current.refresh();
-  // }, [addTestExecutionToPlan, executionListRef]);
-
-  // const itemsList = useMemo(
-  //   () => (
-  //     <Menu>
-  //       <Menu.Item key="create" disabled={getCreatePermission(TestType.Execution)}>
-  //         <a onClick={() => createTestExecution()}>{t('common.createTestExecution')}</a>
-  //       </Menu.Item>
-  //       <Menu.Item key="link" disabled={getCreatePermission(TestType.Execution)}>
-  //         <a onClick={addExistedTestExecution}>
-  //           {t('modules.panel.testPlan.testExecutionPanel.modelTitle')}
-  //         </a>
-  //       </Menu.Item>
-  //     </Menu>
-  //   ),
-  //   [addExistedTestExecution, createTestExecution, getCreatePermission, t],
-  // );
+  const itemsList = useMemo(
+    () => (
+      <Menu>
+        <Menu.Item key="create" disabled={getCreatePermission(TestType.Execution)}>
+          <a onClick={() => createTestExecution()}>{t('common.createTestExecution')}</a>
+        </Menu.Item>
+        <Menu.Item key="link" disabled={getCreatePermission(TestType.Execution)}>
+          <a onClick={addExistedTestExecution}>
+            {t('modules.panel.testPlan.testExecutionPanel.modelTitle')}
+          </a>
+        </Menu.Item>
+      </Menu>
+    ),
+    [addExistedTestExecution, createTestExecution, getCreatePermission, t],
+  );
 
   return (
     <>
@@ -220,7 +154,7 @@ const Header: React.FC<HeaderProps> = ({
           />
           {selectedExecution?.objectId && (
             <div>
-              {/* <Dropdown.Button
+              <Dropdown.Button
                 type="primary"
                 onClick={() => createTestExecution()}
                 icon={<DownOutlined />}
@@ -228,19 +162,12 @@ const Header: React.FC<HeaderProps> = ({
                 trigger={['hover']}
               >
                 {t('common.addTestExecution')}
-              </Dropdown.Button> */}
-              <Button
-                type="primary"
-                disabled={getCreatePermission(TestType.Execution)}
-                onClick={() => createTestExecution()}
-              >
-                {t('common.createTestExecution')}
-              </Button>
+              </Dropdown.Button>
               <TestEntitySelectorModal
                 actionRef={selectorModalRef}
                 title={t('modules.panel.testPlan.testExecutionPanel.modelTitle')}
                 ignoreTestEntityIds={executionKeys}
-                // tableFieldsKeys={testExecutionFieldKeys}
+                tableFieldsKeys={testExecutionFieldKeys}
                 width={800}
               />
             </div>

@@ -54,6 +54,8 @@ modules:
       function: api-batch-create-test-run-function
     - key: api-batch-create-test-case
       function: api-batch-create-test-case-function
+    - key: api-batch-copy-test-case
+      function: api-batch-copy-test-case-function
     # 数据统计
     - key: api-stats-test-plan
       function: api-stats-test-plan-function
@@ -83,6 +85,12 @@ modules:
       function: item-delete-trigger-function
       # 5 分钟超时时长
       timeout: 300000
+    - key: item-created-trigger
+      events:
+        - gei:proxima:item:created
+      function: item-created-trigger-function
+      # 5 分钟超时时长
+      timeout: 300000
   function:
     - key: gitee-menus-function
       handler: web.runGiteeMenus
@@ -92,6 +100,8 @@ modules:
       handler: trigger.runInitialScript
     - key: item-delete-trigger-function
       handler: trigger.deleteTestLink
+    - key: item-created-trigger-function
+      handler: trigger.createdItemLinkType
     - key: test-manager-validate-script-function
       handler: importer.runValidate
     - key: test-manager-import-script-function
@@ -139,6 +149,10 @@ modules:
       timeout: 300000
     - key: api-batch-create-test-case-function
       handler: api.batchCreateTestCase
+      # 5 分钟超时时长
+      timeout: 300000
+    - key: api-batch-copy-test-case-function
+      handler: api.batchCopyTestCase
       # 5 分钟超时时长
       timeout: 300000
 

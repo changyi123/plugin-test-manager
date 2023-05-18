@@ -1,4 +1,5 @@
-import { Button, message } from 'antd';
+import { Button, message, notification } from 'antd';
+import sum from 'lodash/sum';
 import React, { useCallback, useState } from 'react';
 
 import PanelTable, {
@@ -10,11 +11,12 @@ import { StatusProgress } from '@/components/business/Status';
 import TestEntitySelectorModal, {
   ActionType as SelectorActionType,
 } from '@/components/business/TestEntitySelectorModal';
+import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/hook';
 import { getLinkedTestEntityByQuery, getTestStats, updateTestEntity } from '@/lib/api/item';
 import { TestLinkType, TestType } from '@/lib/constants';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
-import { alert, generateSortIndex } from '@/lib/utils/helper';
+import { alert, generateSortIndex, getTestManagerContainer } from '@/lib/utils/helper';
 
 import cx from './index.less';
 
@@ -23,6 +25,11 @@ const Test = () => {
   const { testEntity, workspace } = useTestConfig();
   const tableActionRef = React.useRef<ActionType>();
   const selectorModalRef = React.useRef<SelectorActionType>();
+
+  const testExecutionFieldKeys = useTestTypeScreenFieldKeys({
+    testType: TestType.Execution,
+    workspaceKey: workspace.key,
+  });
 
   const [allTestEntities, setAllTestEntities] = useState([]);
 
@@ -43,28 +50,32 @@ const Test = () => {
       });
 
       if (list?.length) {
-        const stats = await getTestStats({
-          groups: 'status',
-          params: {
-            query: {
-              workspaceKey: workspace?.key,
-              type: TestType.Run,
-            },
-            linkType: TestLinkType.RunLinkExecution,
-            sourceIds: [testEntity?.objectId],
-            destinationType: TestType.Run,
-            limit: 99999,
-          } as any,
-        });
+        const tasks = list.map(d =>
+          getTestStats({
+            groups: 'status',
+            params: {
+              query: {
+                workspaceKey: workspace?.key,
+                type: TestType.Run,
+              },
+              linkType: TestLinkType.RunLinkExecution,
+              sourceIds: [d.id],
+              destinationType: TestType.Run,
+              limit: 99999,
+            } as any,
+          }),
+        );
+        const stats = await Promise.all(tasks);
         // 组合数据
-        list.forEach(item => {
-          item.stats = stats.reduce(
+        list.forEach((item, index) => {
+          item.stats = stats?.[index]?.reduce(
             (prev, cur) => ({
               ...prev,
               [cur.status]: cur.count,
             }),
             {},
           );
+          item.runCount = sum(stats?.[index]?.map(d => d.count)) ?? 0;
         });
       }
 
@@ -162,8 +173,13 @@ const Test = () => {
       testType: TestType.Execution,
     });
 
+    if (!ids?.length) {
+      return notification.warning({
+        message: t('modules.panel.testPlan.testExecutionPanel.notSelectMessage'),
+      });
+    }
     await addTestExecutionToPlan(ids);
-  }, [addTestExecutionToPlan]);
+  }, [addTestExecutionToPlan, t]);
 
   const removeTestRelation = React.useCallback(
     async ids => {
@@ -200,7 +216,7 @@ const Test = () => {
         title: t('modules.panel.testDetail.testPlanPanel.planCount'),
         key: 'count',
         render(_, record) {
-          return record.stats?.runCount;
+          return record?.runCount ?? 0;
         },
       },
       {
@@ -229,7 +245,9 @@ const Test = () => {
         actionRef={selectorModalRef}
         title={t('modules.panel.testPlan.testExecutionPanel.modelTitle')}
         ignoreTestEntityIds={allTestEntities?.map(item => item.objectId)}
+        tableFieldsKeys={testExecutionFieldKeys}
         width={800}
+        getContainer={getTestManagerContainer}
       />
 
       <PanelTable

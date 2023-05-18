@@ -42,7 +42,7 @@ const SelectorTable: React.FC<SelectorTable> = ({
           type: testType,
           linkType: {
             operator: 'is',
-            value: 'NULL',
+            value: null,
           } as any,
         },
         descending: ['sortIndex', 'createdAt'],

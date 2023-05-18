@@ -10,7 +10,7 @@ import { getTestStepsByTestDetailId } from '@/lib/api/runs';
 import { TestType } from '@/lib/constants';
 import useI18n from '@/lib/hooks/useI18n';
 import { Step } from '@/lib/types/Test';
-import { hasArrayItem } from '@/lib/utils/helper';
+import { getRootContainer, hasArrayItem } from '@/lib/utils/helper';
 
 import { getStepInitialData } from './helper';
 import cx from './index.less';
@@ -18,6 +18,7 @@ import StepList from './StepList';
 
 export type ActionType = {
   filter: (stepIds: string[]) => void;
+  setSteps: (val: Step[]) => void;
 };
 
 type TestStepProps = {
@@ -25,7 +26,7 @@ type TestStepProps = {
   testDetailId?: string;
   canCallTest?: boolean;
   onChange?: (steps) => void;
-  actionRef?: (action: ActionType) => void;
+  actionRef?: React.MutableRefObject<ActionType>;
 };
 
 const TestStep: React.FC<TestStepProps> = ({
@@ -112,6 +113,7 @@ const TestStep: React.FC<TestStepProps> = ({
 
   React.useImperativeHandle(actionRef, () => ({
     filter() {},
+    setSteps,
   }));
 
   // TODO: 继承的弹窗还有问题
@@ -149,6 +151,7 @@ const TestStep: React.FC<TestStepProps> = ({
           actionRef={testEntitySelectorRef}
           // 继承测试用例不能继承自己
           ignoreTestEntityIds={[testDetailId]}
+          getContainer={getRootContainer}
         />
       )}
       <StepList actions={stepActions} steps={steps} />

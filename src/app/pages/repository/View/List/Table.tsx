@@ -1,7 +1,7 @@
 import { UserCell } from '@giteeteam/apps-team-components';
-import createProximaSdk, { useListener } from '@projectproxima/proxima-sdk-js';
+import createProximaSdk from '@projectproxima/proxima-sdk-js';
 import { useDrag, useDrop, useRequest } from 'ahooks';
-import { message, notification, Tooltip } from 'antd';
+import { message, notification, Space, Tooltip } from 'antd';
 import React, { useCallback } from 'react';
 
 import RenderRepository from '@/components/business/RenderRepository';
@@ -9,8 +9,8 @@ import RepositorySelector, {
   ActionType as RepositorySelectorActionType,
 } from '@/components/business/RepositorySelector';
 import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
-import { DeleteIcon, DragHandler, LinkItemIcon, UserIcon } from '@/icons';
-import { copyTesCase, deleteTestEntity, updateTestEntity } from '@/lib/api/item';
+import { DeleteIcon, DragHandler, LinkItemIcon, SwitcherOutlined, UserIcon } from '@/icons';
+import { deleteTestEntity, updateTestEntity } from '@/lib/api/item';
 import { useCurrentUser } from '@/lib/api/user';
 import { getCurrentUserSetting, saveUserSetting } from '@/lib/api/userSetting';
 import { TestType } from '@/lib/constants';
@@ -19,12 +19,7 @@ import useI18n from '@/lib/hooks/useI18n';
 import { useUserCellUserDataProp } from '@/lib/hooks/useProxima';
 import { useGetWorkspaceRepository } from '@/lib/hooks/useTest';
 import fetch from '@/lib/utils/fetch';
-import {
-  actionConfirm,
-  generateSortIndex,
-  getPluginWebTriggerBaseUrl,
-  openItemViewScreen,
-} from '@/lib/utils/helper';
+import { actionConfirm, getPluginWebTriggerBaseUrl, openItemViewScreen } from '@/lib/utils/helper';
 
 import { UNGROUPED_FOLDER_KEY } from '../../constant';
 import cx from './Table.less';
@@ -68,6 +63,7 @@ type TestDetailTableProps = {
   dataSourceGetter?: any;
   tableLoading?: boolean;
   setTableLoading?: (val?: boolean) => void;
+  copyTestCases?: (val: string[]) => any;
 };
 
 const TestDetailTable: React.FC<TestDetailTableProps> = props => {
@@ -80,6 +76,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
     dataSourceGetter,
     setTableLoading,
     tableLoading,
+    copyTestCases,
   } = props;
   const { t } = useI18n();
   const externalDataLoading =
@@ -97,20 +94,26 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
 
   React.useImperativeHandle(actionRef, () => tableActionRef.current);
 
-  useListener('updateItemExtraCustomerFields', async itemId => {
-    // 复制用例事项更新自定义字段
-    if (itemId) {
-      const updateRes = await updateTestEntity([
-        { objectId: itemId, sortIndex: generateSortIndex(1) },
-      ]);
-      if (updateRes?.status === 'error') {
-        message.error(updateRes.data);
-        return;
-      }
-      // 刷新全部
-      onDataChange?.();
-    }
-  });
+  // useListener('updateItemExtraCustomerFields', async itemId => {
+  //   // 复制用例事项更新自定义字段
+  //   if (itemId) {
+  //     const updateRes = await updateTestEntity([
+  //       {
+  //         objectId: itemId,
+  //         sortIndex: generateSortIndex(1),
+  //         caseStatues: {},
+  //         linkType: null,
+  //         linkItems: null,
+  //       },
+  //     ]);
+  //     if (updateRes?.status === 'error') {
+  //       message.error(updateRes.data);
+  //       return;
+  //     }
+  //     // 刷新全部
+  //     onDataChange?.();
+  //   }
+  // });
 
   const { data: currentFields } = useRequest(
     async () => {
@@ -186,23 +189,24 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
       proxima.execute('openAddLinkScreen', testCaseIds.toString());
     };
 
-    // 复制测试用例 本期不上
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    // const copyTestDetail = async () => {
-    //   const testEntityIds = tableActionRef.current.selectedRowKeys;
-    //   const targetRepository = await repositorySelectorRef.current.open({ workspaceKey });
-    //   const clonedTestEntities = await cloneTestEntities(testEntityIds);
-    //   const cloneTestEntityIds = clonedTestEntities.map(item => item.toJSON().objectId);
-    //   await updateFolders([
-    //     {
-    //       key: targetRepository.repositoryKey,
-    //       testDetailIds: targetRepository.testDetailIds.concat(cloneTestEntityIds),
-    //     },
-    //   ]);
-    //   if (targetRepository.workspaceKey === workspaceKey) {
-    //     refreshAndMutateData();
-    //   }
-    // };
+    // 批量复制用例
+    const copyTestDetail = async () => {
+      const testCaseIds = tableActionRef.current.selectedRowKeys;
+      setTableLoading(true);
+      const res = await copyTestCases(testCaseIds);
+      if (res?.status === 400) {
+        setTableLoading(false);
+        return message.error(res.message);
+      }
+
+      // 复制刷新
+      onDataChange?.();
+      setTableLoading(false);
+
+      notification.success({
+        message: t('page.repository.view.list.copyCaseMessageSuccess'),
+      });
+    };
 
     return [
       <UserCell
@@ -218,9 +222,9 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
           </span>
         }
       />,
-      // <span key="copy" onClick={isCheck && copyTestDetail}>
-      //   <SwitcherOutlined /> 复制
-      // </span>,
+      <span key="copy" onClick={hasRowSelected && copyTestDetail}>
+        <SwitcherOutlined /> 复制
+      </span>,
       <span key="link" onClick={hasRowSelected ? createItemLink : undefined}>
         <LinkItemIcon className={cx('icon')} /> {t('page.repository.view.list.batchItemLink')}
       </span>,
@@ -228,7 +232,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         <DeleteIcon className={cx('icon')} /> {t('common.delete')}
       </span>,
     ];
-  }, [hasRowSelected, userData, t, setTableLoading, onDataChange]);
+  }, [hasRowSelected, userData, t, setTableLoading, onDataChange, copyTestCases]);
 
   const columns = React.useMemo(() => {
     const deleteTestDetail = data => {
@@ -261,24 +265,10 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
 
     const copyTestDetail = async data => {
       setTableLoading(true);
-      const res = await copyTesCase({
-        includeStatus: false,
-        name: `${data.name}_${Math.floor(Date.now())}`,
-        objectId: data.objectId,
-        workspace: data.workspace.objectId,
-      });
+      const res = await copyTestCases([data.objectId]);
       if (res?.status === 400) {
         setTableLoading(false);
-        return;
-      }
-
-      const updateRes = await updateTestEntity([
-        { objectId: res.objectId, sortIndex: generateSortIndex(1) },
-      ]);
-      if (updateRes?.status === 'error') {
-        setTableLoading(false);
-        message.error(updateRes.data);
-        return;
+        return message.error(res.message);
       }
 
       // 复制刷新
@@ -337,7 +327,8 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         shouldCellUpdate: (record, prevRecord) => {
           return (
             record.repository?.objectId !== prevRecord.repository?.objectId ||
-            record.sortIndex !== prevRecord.sortIndex
+            record.sortIndex !== prevRecord.sortIndex ||
+            record.name !== prevRecord.name
           );
         },
         render(_, rowData) {
@@ -377,25 +368,22 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         },
       },
       {
-        title: null,
         key: 'action',
+        title: t('common.action'),
         isSystem: true,
         fixed: 'right' as any,
+        width: 100,
         render(_, rowData) {
           return (
-            <>
-              <a style={{ marginRight: 10 }} onClick={() => copyTestDetail(rowData)}>
-                {t('common.copy')}
-              </a>
-              <a style={{ marginRight: 10 }} onClick={() => deleteTestDetail(rowData)}>
-                {t('common.delete')}
-              </a>
-            </>
+            <Space>
+              <a onClick={() => copyTestDetail(rowData)}>{t('common.copy')}</a>
+              <a onClick={() => deleteTestDetail(rowData)}>{t('common.delete')}</a>
+            </Space>
           );
         },
       },
     ];
-  }, [onDataChange, setTableLoading, t]);
+  }, [copyTestCases, onDataChange, setTableLoading, t]);
 
   const handleFilterField = useCallback(
     async ({ testType, fieldKeys }) => {
@@ -503,6 +491,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
           testType: TestType.Case,
         }}
         rowKey="objectId"
+        className={cx('test-table-box')}
         useColumnSetting
         columns={columns}
         bodyRowComponent={DropRow}

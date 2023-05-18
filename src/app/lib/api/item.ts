@@ -245,6 +245,23 @@ export const updateTestEntity = async data => {
 };
 
 // 复制测试用例
+export const copyTestCase = async (data: CopyTestCasePayload) => {
+  try {
+    const { data: copyItemData } = await fetch.post(
+      `${pluginWebTriggerBaseUrl}/api-batch-copy-test-case`,
+      {
+        ...data,
+        sessionToken: getSessionToken(),
+      },
+    );
+
+    return copyItemData;
+  } catch (error) {
+    return error;
+  }
+};
+
+// 复制测试用例
 export const copyTesCase = async (data: CopyTestCasePayload) => {
   try {
     const { data: copyItemData } = await fetch.post('/parse/api/items/clone', {
@@ -309,11 +326,17 @@ export const updateTestStatus = async data => {
     executor: [getCurrentUserInfo(), ...(d.executor ?? [])].slice(0, 3),
     executeCount: (d.executeCount ?? 0) + (['PASSED', 'FAILED']?.includes(status) ? 1 : 0),
   }));
+
+  const caseStatusValue = {};
+  if (planId && status) {
+    caseStatusValue[planId] = status;
+  }
+
   const tests = test.map(d => ({
     objectId: d.id,
     caseStatus: {
       ...(d?.caseStatus ?? {}),
-      [planId]: status,
+      ...caseStatusValue,
     },
     caseExecutor: {
       ...(d?.caseExecutor ?? {}),
@@ -469,11 +492,16 @@ export const updateTestRunDetail = async (
       select: ['id', 'caseStatus', 'caseExecutor'],
     });
 
+    const caseStatusValue = {};
+    if (params.planId) {
+      caseStatusValue[params.planId] = needUpdateAttrs.status;
+    }
+
     needUpdateCase = test.map(d => ({
       objectId: d.id,
       caseStatus: {
         ...(d?.caseStatus ?? {}),
-        [params.planId]: needUpdateAttrs.status,
+        ...caseStatusValue,
       },
       caseExecutor: {
         ...(d?.caseExecutor ?? {}),

@@ -3,6 +3,7 @@ export { queryTestEntity, queryLinkedTestEntity, queryCaseIdByStatus } from './m
 export {
   batchDelete,
   batchUpdate,
+  batchCopyTestCase,
   batchCreateTestRun,
   batchCreateTestCase,
 } from './modules/api/batch';

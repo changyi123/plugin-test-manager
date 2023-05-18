@@ -38,9 +38,11 @@ import { useGetCustomFields } from '../BusinessTable/hook';
 import cx from './index.less';
 import SearchInput from './SearchInput';
 import SelectorTag from './SelectorTag';
+import { handleDataSelector } from './utils';
 
 interface FilterSearchProps {
   fields: string[];
+  workspaceKey?: string;
   onSearch: (data: SearchSelectors) => void;
   beforeSearch?: (v: Record<string, any>) => void;
   extendFields?: any[];
@@ -59,9 +61,12 @@ interface FilterRefMethod {
 }
 
 // 生成存储器
-const useSelectorStorage = (enableLocalStorage, { selectors, setSelectors, storageKey = '' }) => {
+const useSelectorStorage = (
+  enableLocalStorage,
+  { selectors, setSelectors, storageKey = '', workspaceKey = '' },
+) => {
   const location = useLocation();
-  const key = generateStorageKey('selector-' + storageKey + location.pathname);
+  const key = generateStorageKey('selector-' + workspaceKey + storageKey + location.pathname);
 
   const invokeRef = React.useRef(false);
 
@@ -80,7 +85,7 @@ const useSelectorStorage = (enableLocalStorage, { selectors, setSelectors, stora
 
     if (!invokeRef.current && isEmptySelectors && storageSelectors) {
       invokeRef.current = true;
-      setSelectors(storageSelectors);
+      setSelectors(handleDataSelector(storageSelectors));
     }
   }, [selectors, setSelectors, enableLocalStorage, storage, isEmptySelectors]);
 
@@ -104,13 +109,15 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
     enableLocalStorage,
     filterId,
     storageKey,
+    workspaceKey,
   },
   ref,
 ) => {
   const { t } = useI18n();
   const { workspace } = useTestConfig();
   const [search, setSearch] = useState('');
-  const { getGlobalConfig, testPlanFieldKeys, testCaseFieldKeys } = useBaseAction();
+  const { getGlobalConfig, testPlanFieldKeys, testCaseFieldKeys, testExecutionFieldKeys } =
+    useBaseAction();
   const [selectors, setSelectorsState] = useState<Selectors>({});
   const currentSelectors = useRef<Selectors>({});
   // const [activeSelector, setActiveSelector] = useState('');
@@ -121,12 +128,17 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
   });
 
   const setSelectorsFromStorageValue = useMemoizedFn(selectors => {
-    setSelectors(selectors);
+    setSelectors(handleDataSelector(selectors));
     searchFn(true);
   });
 
   const customFields = useGetCustomFields({
-    filedKeys: testType === TestType.Plan ? testPlanFieldKeys : testCaseFieldKeys,
+    filedKeys:
+      testType === TestType.Plan
+        ? testPlanFieldKeys
+        : testType === TestType.Execution
+        ? testExecutionFieldKeys
+        : testCaseFieldKeys,
   });
 
   const customFieldsKey = useMemo(() => customFields?.map(d => d.key), [customFields]);
@@ -155,14 +167,17 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
     selectors,
     setSelectors: setSelectorsFromStorageValue,
     storageKey,
+    workspaceKey,
   });
 
   useEffect(() => {
     if (defaultSelectors) {
-      setSelectors({
-        ...defaultSelectors,
-        ...selectors,
-      });
+      setSelectors(
+        handleDataSelector({
+          ...defaultSelectors,
+          ...selectors,
+        }),
+      );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [defaultSelectors]);
@@ -226,7 +241,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
         value: searchValue === undefined ? search : searchValue,
         fieldLabel: fieldsName,
       };
-      setSelectors(data);
+      setSelectors(handleDataSelector(data));
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [search, JSON.stringify(fieldsName)],

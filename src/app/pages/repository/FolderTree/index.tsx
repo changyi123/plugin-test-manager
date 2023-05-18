@@ -52,7 +52,7 @@ const openFolderNameModal: OpenFolderNameModal = ({ title, name, validator, t })
     ref: ele => (inputRef = ele),
     defaultValue: name,
     placeholder: t('page.repository.folderTree.placeholder'),
-    maxLength: 40,
+    maxLength: 100,
   };
   const input = <Input {...inputProps} />;
   return new Promise((resolve, reject) => {
@@ -228,7 +228,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
       });
       throw new Error('required name');
     }
-    if (inputName.length > 30) {
+    if (inputName.length > 100) {
       notification.error({
         message: t('page.repository.folderTree.inputNameValidatorMessage.2'),
       });
@@ -284,11 +284,17 @@ const FolderTree: React.FC<FolderTreeProps> = ({
           title: t('page.repository.folderTree.renameFolder'),
           name: node.name,
           t,
-          // 获取当前节点的所有 sibling 节点
+          // 获取当前节点的所有 sibling 节点，重命名校验过滤当前节点
           validator: inputName =>
-            inputNameValidator(inputName, treeFn.getTreeNodeByKey(node.parentKey)?.children ?? []),
+            inputNameValidator(
+              inputName,
+              (treeFn.getTreeNodeByKey(node.parentKey)?.children ?? []).filter(
+                d => d.key !== node.key,
+              ),
+            ),
         });
-
+        // 未修改用例库名称不处理
+        if (newFolderName === node.name) return;
         await updateFolders([
           {
             key: node.key,
@@ -516,8 +522,8 @@ const FolderTree: React.FC<FolderTreeProps> = ({
       return (
         <DropTreeTitle key={node.key} nodeKey={node.key} onItemDrop={handleItemDrop}>
           <>
-            <OverflowTooltip title={node.name}>
-              <span className={cx('tree-node-name')}>{node.name}</span>
+            <OverflowTooltip className={cx('tree-node-name')} title={node.name}>
+              <span>{node.name}</span>
             </OverflowTooltip>
 
             <span

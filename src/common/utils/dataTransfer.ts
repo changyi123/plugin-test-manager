@@ -4,8 +4,9 @@
 import isNil from 'lodash/isNil';
 import omit from 'lodash/omit';
 import omitBy from 'lodash/omitBy';
+import pick from 'lodash/pick';
 
-import { TestFiledKeyMapping } from '../constant';
+import { NotValidatorFiledKeyMapping, TestFiledKeyMapping } from '../constant';
 import { BaseTestEntity, TestEntityKey } from '../types/test';
 
 /** 转换为 JS 对象或数组 */
@@ -27,7 +28,11 @@ const convertToJSONStr = data => {
 };
 
 export const compactNilValue = data => {
-  return omitBy(data, isNil);
+  const linkData = pick(data, Object.values(NotValidatorFiledKeyMapping));
+  return {
+    ...linkData,
+    ...omitBy(data, isNil),
+  };
 };
 
 /** 测试管理实体转换 item values只转换自定义字段。workspace，itemTypes 不进行处理 */
@@ -42,11 +47,12 @@ export const testEntityToItemValues = data => {
   const values = Object.entries(TestFiledKeyMapping).reduce((res, [key, storageKey]) => {
     const value = data[key];
 
-    const storageValues = value
-      ? {
-          [storageKey]: dataTransferStrategy[key]?.(value) ?? value,
-        }
-      : null;
+    const storageValues =
+      value || NotValidatorFiledKeyMapping[key]
+        ? {
+            [storageKey]: dataTransferStrategy[key]?.(value) ?? value,
+          }
+        : null;
 
     return {
       ...res,
