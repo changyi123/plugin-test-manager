@@ -294,17 +294,22 @@ export const updateTestStatus = async data => {
     executor: [getCurrentUserInfo(), ...(d.executor ?? [])].slice(0, 3),
   }));
 
-  const tests = test.map(d => ({
-    objectId: d.id,
-    caseStatus: {
-      ...(d?.caseStatus ?? {}),
-      [planId]: status,
-    },
-    caseExecutor: {
-      ...(d?.caseExecutor ?? {}),
-      [planId]: getCurrentUserInfo(),
-    },
-  }));
+  const tests = [];
+  if (planId) {
+    tests.push(
+      test.map(d => ({
+        objectId: d.id,
+        caseStatus: {
+          ...(d?.caseStatus ?? {}),
+          [planId]: status,
+        },
+        caseExecutor: {
+          ...(d?.caseExecutor ?? {}),
+          [planId]: getCurrentUserInfo(),
+        },
+      })),
+    );
+  }
 
   const res = await updateTestEntity(runs.concat(tests));
 
