@@ -72,31 +72,7 @@ export const openFilterPopover = async ({ fields, selectors, onChange, extendFie
 /**
  * 打开筛选器选值popver
  */
-export const openFieldValuePopover = async ({
-  isExtend,
-  value,
-  fieldId,
-  workspace,
-  onChange,
-  onClose,
-  field,
-  fetchMethod,
-  dom,
-  expression,
-  label,
-}) => {
+export const openFieldValuePopover = async props => {
   // proximaSDK.execute不能传递函数，限制太多
-  window.QiankunProps.openFieldValuePopover({
-    isExtend,
-    workspace,
-    fieldId,
-    onChange,
-    value,
-    onClose,
-    field,
-    fetchMethod,
-    dom,
-    expression,
-    label,
-  });
+  window.QiankunProps.openFieldValuePopover(props);
 };

@@ -19,6 +19,7 @@ import { getTestConfig } from '@/lib/api/common';
 import { openFieldValuePopover, openFilterPopover } from '@/lib/api/sdk';
 import { getCurrentUserSetting } from '@/lib/api/userSetting';
 import {
+  FILTER_EXPRESSIONS,
   getExtendFields,
   IS_EXTEND_FIELDS,
   RepositoryModel,
@@ -143,13 +144,20 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
 
   const customFieldsKey = useMemo(() => customFields?.map(d => d.key), [customFields]);
 
+  const getExpression = useCallback(
+    (component, key) => {
+      return (FILTER_EXPRESSIONS(t)?.[component] ?? FILTER_EXPRESSIONS(t)?.[key])?.[0].value;
+    },
+    [t],
+  );
+
   const defaultSelectors = useMemo(() => {
     if (checkedFields?.length && customFields?.length) {
       return checkedFields.reduce((prev, cur) => {
         const data = customFields.find(d => cur === d.key) ?? {};
         prev[data.objectId] = {
           component: data.fieldType.component,
-          expression: data.fieldType.expression,
+          expression: null,
           isExtend: data.fieldType.isExtend,
           key: data.key,
           fieldId: data.objectId,
@@ -359,6 +367,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
       const systemTarget = getExtendFields(t).find(item => item.objectId === fieldId);
       const isExtend = IS_EXTEND_FIELDS.includes(data.component);
       const component = IS_EXTEND_FIELDS.includes(data.component) ? data.component : data.key;
+      const expression = data.expression ?? getExpression(data.component, data.key);
       // setActiveSelector(fieldId);
       const props = {
         isExtend: systemTarget?.fieldType?.isExtend ?? isExtend,
@@ -378,8 +387,9 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
           // setActiveSelector('');
           handleSearch();
         },
-        expression: data.expression,
+        expression,
         dom,
+        useChange: false,
       };
       if (fieldId === RepositoryModel) {
         (props as any).fetchMethod = () => extendFetch();
@@ -389,7 +399,15 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
       }
       return props;
     },
-    [extendFetch, handleSearch, updateSelectorValue, workspace?.objectId, getStatusOptions, t],
+    [
+      t,
+      getExpression,
+      workspace?.objectId,
+      updateSelectorValue,
+      handleSearch,
+      extendFetch,
+      getStatusOptions,
+    ],
   );
 
   const onFilterChange = useCallback(
@@ -416,11 +434,18 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
   );
 
   const currentSelector = useMemo(() => {
+    const getExpression = (value, expression) => {
+      if (typeof value === 'number') {
+        return value ? expression : null;
+      }
+      return value?.length ? expression : null;
+    };
     const item = values(selectors).map(item => ({
       ...item,
       name: item?.fieldName,
       objectId: item?.fieldId,
       active: Array.isArray(item.value) ? !!item.value?.length : !!item.value,
+      expression: getExpression(item?.value, item.expression),
     }));
     return item || [];
   }, [selectors]);
