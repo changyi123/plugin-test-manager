@@ -27,6 +27,8 @@ import { useRequest } from 'ahooks';
 import { useTestRunActionAuth } from '@/lib/hooks/useTest';
 import useI18n from '@/lib/hooks/useI18n';
 
+const proxima = createProximaSdk();
+
 const Test = () => {
   const { t } = useI18n();
   const { testEntity, workspace } = useTestConfig();
@@ -139,7 +141,6 @@ const Test = () => {
       const data = await getAllRelTestEntities();
       tableActionRef.current.refresh();
       // 修改执行状态，移除或者添加用例，需要更新外部列表
-      const proxima = createProximaSdk();
       proxima.execute(eventKey ?? 'updateRepoTree');
       return data;
     },
@@ -256,7 +257,6 @@ const Test = () => {
                     const currentStatus = res.list?.find(data => data.id === objectId)?.status;
                     if (currentStatus !== status) {
                       // 刷新列表的状态
-                      const proxima = createProximaSdk();
                       proxima.execute('updateTestRunStatus');
                     }
                   }}
@@ -315,7 +315,7 @@ const Test = () => {
               return;
             }
 
-            refreshDepData();
+            refreshDepData('updateTestRunStatus');
           } catch (error) {
             console.info(error);
           }

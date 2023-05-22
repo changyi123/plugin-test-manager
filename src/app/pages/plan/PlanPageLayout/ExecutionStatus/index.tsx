@@ -6,6 +6,7 @@ import { useRequest } from 'ahooks';
 import { usePageContext } from '../../hook';
 import { getStatsTestExecution } from '@/lib/api/item';
 import useI18n from '@/lib/hooks/useI18n';
+import { useListener } from '@projectproxima/proxima-sdk-js';
 
 import cx from './index.less';
 
@@ -37,6 +38,10 @@ const ExecutionStatus: React.FC<ExecutionStatusProps> = ({ selectedExecution, se
     if (key === 'refreshExecutionStatus') {
       refresh();
     }
+  });
+
+  useListener('updateTestRunStatus', () => {
+    refresh();
   });
 
   useEffect(() => {

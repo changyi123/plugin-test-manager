@@ -108,7 +108,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   });
 
   useListener('updateTestRunStatus', () => {
-    actionRef.current.refresh();
+    refreshTreeAndScopeTestCase?.();
   });
 
   const { data: currentFields } = useRequest(
