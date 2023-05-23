@@ -423,6 +423,10 @@ export const batchCopyTestCase = async () => {
       fields: concatIqlRequestFields(fields),
     });
 
+    if (!caseList?.length) {
+      throw new Error('caseList is null');
+    }
+
     const needCreateItems = caseList.map((data, index) => ({
       name: `${data.name}_${copyName}`,
       type: data.type,
@@ -433,7 +437,7 @@ export const batchCopyTestCase = async () => {
       detail: data.detail
         ? {
             ...data.detail,
-            steps: data.detail?.steps.map(s => ({
+            steps: data.detail?.steps?.map(s => ({
               ...s,
               id: uuidv4(),
             })),

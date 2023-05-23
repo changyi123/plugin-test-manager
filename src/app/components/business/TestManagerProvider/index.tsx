@@ -1,8 +1,7 @@
 import { store } from '@nebulare/data';
 import { useRequest } from 'ahooks';
 import { message, notification } from 'antd';
-import isEmpty from 'lodash/isEmpty';
-import union from 'lodash/union';
+import { isEmpty, union } from 'lodash';
 import React from 'react';
 import { useLocation } from 'react-router-dom';
 import { v4 as uuid } from 'uuid';
@@ -12,7 +11,12 @@ import { getTestConfig, getTestConfigByWorkspaceKeys } from '@/lib/api/common';
 import { getTestEntityByQuery, updateTestEntity } from '@/lib/api/item';
 import { getItemByIds, getItemTypeByKey, getWorkspaceByKey } from '@/lib/api/proxima';
 import { openCreateItemModal, openItemDetailPanel } from '@/lib/api/sdk';
-import { CREATE_ITEM_STORE_FIELD_KEY, ExtensionValType, TestType } from '@/lib/constants';
+import {
+  CREATE_ITEM_STORE_FIELD_KEY,
+  ENTITY_NOT_FOUND,
+  ExtensionValType,
+  TestType,
+} from '@/lib/constants';
 import { repositoryFolderTreeEvent } from '@/lib/events';
 import useI18n from '@/lib/hooks/useI18n';
 import { useOnItemCreateSuccess } from '@/lib/hooks/useProximaSDK';
@@ -316,27 +320,50 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
     },
   );
 
-  // 返回测试实体参数
+  // 获取测试实体，如果不存在测试实体（类型映射如果和事项匹配）需要新建
   React.useEffect(() => {
     const execute = async () => {
       // 先获取事项详情
-      const {
+      let {
         list: [testEntity],
       } = await getTestEntityByQuery({
         query: {
           id: itemId,
         },
       });
-      setTestEntity(testEntity);
+
+      // 判断是否是测试实体
+      const isTestEntity = testType => Object.values(TestType).includes(testType);
+
+      if (!isTestEntity(testEntity?.type)) {
+        // 不存在测试实体需要判断是否需要新建
+        testEntity = await getOrCreateTestEntity(
+          testEntity.objectId,
+          {
+            itemData: testEntity,
+            t,
+          },
+          {
+            itemTypeMap: testConfig.itemTypeMap,
+          },
+        );
+      }
+
+      const entity = (isTestEntity(testEntity?.type)
+        ? testEntity
+        : ENTITY_NOT_FOUND) as unknown as TestEntity;
+
+      setTestEntity(entity);
+
       if (testEntity) {
         const workspace = testEntity.workspace;
         workspace && setWorkspace(workspace as Workspace);
       }
     };
-    if (itemId) {
+    if (itemId && testConfig) {
       execute();
     }
-  }, [itemId]);
+  }, [itemId, testConfig, t]);
 
   const testPlanFieldKeys = useTestTypeScreenFieldKeys({
     testType: TestType.Plan,
