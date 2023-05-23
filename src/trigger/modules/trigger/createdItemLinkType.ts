@@ -45,10 +45,8 @@ export const createdItemLinkType = async () => {
         }
 
         needUpdateItemValues.type = testEntityType;
-        if (testEntityType === TestType.Case) {
-          // 测试用例创建时需要生成默认 sortIndex
-          needUpdateItemValues.sortIndex = generateSortIndex(1);
-        }
+        // 默认创建时生成排序 sortIndex
+        needUpdateItemValues.sortIndex = generateSortIndex(1);
 
         await batchUpdateItems([needUpdateItemValues]);
       }
