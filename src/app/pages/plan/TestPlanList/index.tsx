@@ -190,7 +190,9 @@ const TestPlanList: React.FC<any> = () => {
         isDisableCreateNext: true,
       },
     });
-    actionRef.current.refresh();
+    setTimeout(() => {
+      actionRef.current.refresh();
+    }, 500);
     notification.success({
       message: t('components.business.testPlanList.addPlanSuccess'),
     });
