@@ -53,7 +53,10 @@ const TestPlanSelector: React.FC = () => {
   );
 
   const handleClick = planData => {
-    setSelectedTestPlan(planData);
+    setSelectedTestPlan({
+      objectId: planData.id,
+      ...planData,
+    });
     // setSearch('');
     // reload();
   };
