@@ -270,7 +270,7 @@ export const updateTestStatus = async data => {
   };
 
   // 查询测试执行数据
-  const { list } = await getTestEntityByQuery({
+  const { list: testRuns } = await getTestEntityByQuery({
     query: {
       id: runIds,
       type: TestType.Run,
@@ -279,39 +279,39 @@ export const updateTestStatus = async data => {
     select: ['id', 'referenceCase', 'executor'],
   });
 
-  const { list: test } = await getTestEntityByQuery({
+  const { list: testCases } = await getTestEntityByQuery({
     query: {
-      id: list.map(d => d.referenceCase) ?? [],
+      id: testRuns.map(d => d.referenceCase) ?? [],
       type: TestType.Case,
     },
     limit: 9999,
     select: ['id', 'caseStatus', 'caseExecutor'],
   });
 
-  const runs = list.map(d => ({
+  const updateTestRuns = testRuns.map(d => ({
     objectId: d.id,
     status,
     executor: [getCurrentUserInfo(), ...(d.executor ?? [])].slice(0, 3),
   }));
 
-  const tests = [];
+  const updateTestCases = [];
   if (planId) {
-    tests.push(
-      test.map(d => ({
+    updateTestCases.push(
+      testCases.map(d => ({
         objectId: d.id,
         caseStatus: {
-          ...(d?.caseStatus ?? {}),
+          ...d.caseStatus,
           [planId]: status,
         },
         caseExecutor: {
-          ...(d?.caseExecutor ?? {}),
+          ...d.caseExecutor,
           [planId]: getCurrentUserInfo(),
         },
       })),
     );
   }
 
-  const res = await updateTestEntity(runs.concat(tests));
+  const res = await updateTestEntity([].concat(updateTestRuns, updateTestCases));
 
   if (res?.status === 'error') {
     message.error(res.data);
