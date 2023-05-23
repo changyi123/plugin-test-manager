@@ -28,6 +28,8 @@ import { useTestRunActionAuth } from '@/lib/hooks/useTest';
 import useI18n from '@/lib/hooks/useI18n';
 // import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/hook';
 
+const proxima = createProximaSdk();
+
 const Test = () => {
   const proxima = createProximaSdk();
   const { t } = useI18n();
@@ -291,7 +293,6 @@ const Test = () => {
                     const currentStatus = res.list?.find(data => data.id === objectId)?.status;
                     if (currentStatus !== status) {
                       // 刷新列表的状态
-                      const proxima = createProximaSdk();
                       proxima.execute('updateTestRunStatus');
                     }
                   }}
@@ -350,7 +351,7 @@ const Test = () => {
               return;
             }
 
-            refreshDepData();
+            refreshDepData('updateTestRunStatus');
           } catch (error) {
             console.info(error);
           }
