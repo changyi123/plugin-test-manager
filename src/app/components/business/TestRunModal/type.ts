@@ -10,6 +10,6 @@ export type TabsComponentBaseProps = {
   itemLinks: ItemLink[];
   onDataChange: () => void;
   onLoading: (loading?: boolean) => void;
-  handleStatusChangeBySteps?: (status) => void;
+  handleStatusChangeBySteps?: (status, isChange: boolean) => void;
   selectedTestPlanId?: string;
 };
