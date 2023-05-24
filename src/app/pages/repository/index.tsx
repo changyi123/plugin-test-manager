@@ -53,7 +53,7 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
   const [viewMode, setViewMode] = React.useState('list');
   const [selectedNodeKey, setSelectedNodeKey] = React.useState(null);
   const { t } = useI18n();
-  const disableMinder = featureFlags('DISABLE_MINDER');
+  const enableMinder = featureFlags('ENABLE_MINDER');
 
   const {
     data: folderTreeData = [],
@@ -89,9 +89,7 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
       <PageLayout.Header>
         <header className={cx('header')}>
           <h6>{t('common.testRepository')}</h6>
-          {!disableMinder && (
-            <ViewModeSelector viewMode={viewMode} onViewModeChange={setViewMode} />
-          )}
+          {enableMinder && <ViewModeSelector viewMode={viewMode} onViewModeChange={setViewMode} />}
         </header>
       </PageLayout.Header>
       <PageLayout.Left>

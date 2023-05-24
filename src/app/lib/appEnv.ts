@@ -2,12 +2,12 @@ import { get } from 'lodash';
 
 /**
  * feature flags 通过应用中心环境变量控制功能
- * 默认功能为开，需要关闭该功能。变量需要以 disabled 开头
+ * 默认功能为开，需要关闭该功能。变量需要以 disable 开头
  * 默认功能为关，需要打开该功能。变量需要以 enable 开头
  **/
 const SupportFeatureFlags = {
-  /** 隐藏测试管理脑图 */
-  DISABLE_MINDER: 'DISABLE_MINDER',
+  /** 开启测试管理脑图 */
+  ENABLE_MINDER: 'ENABLE_MINDER',
 } as const;
 
 type SupportFeatureFlagKey = keyof typeof SupportFeatureFlags;
