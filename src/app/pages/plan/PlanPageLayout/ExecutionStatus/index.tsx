@@ -1,4 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
+import { useListener } from '@projectproxima/proxima-sdk-js';
 import { useRequest } from 'ahooks';
 import { Spin } from 'antd';
 import React from 'react';
@@ -13,7 +14,6 @@ import cx from './index.less';
 
 interface ExecutionStatusProps {
   selectedExecution?: Record<string, any>;
-  setCurTestRuns?: (val: Record<string, any>[]) => void;
 }
 
 const ExecutionStatus: React.FC<ExecutionStatusProps> = ({ selectedExecution }) => {
@@ -54,6 +54,10 @@ const ExecutionStatus: React.FC<ExecutionStatusProps> = ({ selectedExecution }) 
     if (key === 'refreshExecutionStatus') {
       refresh();
     }
+  });
+
+  useListener('updateTestRunStatus', () => {
+    refresh();
   });
 
   const getRate = (statusData: Record<string, number>) => {

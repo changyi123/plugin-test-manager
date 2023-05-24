@@ -66,8 +66,10 @@ const getOrCreateTestEntity = async (
   }
 
   if (itemTypeMap) {
-    let needCreatedItem = {};
     const testType = getKeyByValue(itemTypeMap, itemData?.itemType.key) as TestType;
+    let needCreatedItem = {
+      type: testType,
+    };
     // 额外需要创建的字段
     let extraFields = {};
     if (!testType) {
@@ -102,6 +104,7 @@ const getOrCreateTestEntity = async (
           storeValues[CREATE_ITEM_STORE_FIELD_KEY];
 
         needCreatedItem = {
+          ...needCreatedItem,
           ...detail,
           repository: storedRepository,
         };

@@ -293,7 +293,6 @@ const Test = () => {
                     const currentStatus = res.list?.find(data => data.id === objectId)?.status;
                     if (currentStatus !== status) {
                       // 刷新列表的状态
-                      const proxima = createProximaSdk();
                       proxima.execute('updateTestRunStatus');
                     }
                   }}
@@ -352,7 +351,7 @@ const Test = () => {
               return;
             }
 
-            refreshDepData();
+            refreshDepData('updateTestRunStatus');
           } catch (error) {
             console.info(error);
           }

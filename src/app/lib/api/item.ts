@@ -300,7 +300,7 @@ export const updateTestStatus = async data => {
   };
 
   // 查询测试执行数据
-  const { list } = await getTestEntityByQuery({
+  const { list: testRuns } = await getTestEntityByQuery({
     query: {
       id: runIds,
       type: TestType.Run,
@@ -309,42 +309,40 @@ export const updateTestStatus = async data => {
     select: ['id', 'referenceCase', 'executor', 'status', 'executeCount'],
   });
 
-  const updateRunData = list.filter(d => d.status !== status);
-  const testIds = updateRunData.map(d => d.referenceCase) ?? [];
-
-  const { list: test } = await getTestEntityByQuery({
+  const { list: testCases } = await getTestEntityByQuery({
     query: {
-      id: testIds,
+      id: testRuns.map(d => d.referenceCase) ?? [],
       type: TestType.Case,
     },
     limit: 9999,
     select: ['id', 'caseStatus', 'caseExecutor'],
   });
-  const runs = updateRunData.map(d => ({
+
+  const updateTestRuns = testRuns.map(d => ({
     objectId: d.id,
     status,
     executor: [getCurrentUserInfo(), ...(d.executor ?? [])].slice(0, 3),
     executeCount: (d.executeCount ?? 0) + (['PASSED', 'FAILED']?.includes(status) ? 1 : 0),
   }));
 
-  const caseStatusValue = {};
-  if (planId && status) {
-    caseStatusValue[planId] = status;
+  const updateTestCases = [];
+  if (planId) {
+    updateTestCases.push(
+      testCases.map(d => ({
+        objectId: d.id,
+        caseStatus: {
+          ...d.caseStatus,
+          [planId]: status,
+        },
+        caseExecutor: {
+          ...d.caseExecutor,
+          [planId]: getCurrentUserInfo(),
+        },
+      })),
+    );
   }
 
-  const tests = test.map(d => ({
-    objectId: d.id,
-    caseStatus: {
-      ...(d?.caseStatus ?? {}),
-      ...caseStatusValue,
-    },
-    caseExecutor: {
-      ...(d?.caseExecutor ?? {}),
-      [planId]: getCurrentUserInfo(),
-    },
-  }));
-
-  const res = await updateTestEntity(runs.concat(tests));
+  const res = await updateTestEntity([].concat(updateTestRuns, updateTestCases));
 
   if (res?.status === 'error') {
     message.error(res.data);
