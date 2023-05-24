@@ -7,12 +7,12 @@ import { usePageContext } from '../../hook';
 import useI18n from '@/lib/hooks/useI18n';
 import { TestLinkType, TestType } from '@/lib/constants';
 import { getTestStats } from '@/lib/api/item';
+import { useListener } from '@projectproxima/proxima-sdk-js';
 
 import cx from './index.less';
 
 interface ExecutionStatusProps {
   selectedExecution?: Record<string, any>;
-  setCurTestRuns?: (val: Record<string, any>[]) => void;
 }
 
 const ExecutionStatus: React.FC<ExecutionStatusProps> = ({ selectedExecution }) => {
@@ -53,6 +53,10 @@ const ExecutionStatus: React.FC<ExecutionStatusProps> = ({ selectedExecution }) 
     if (key === 'refreshExecutionStatus') {
       refresh();
     }
+  });
+
+  useListener('updateTestRunStatus', () => {
+    refresh();
   });
 
   const getRate = (statusData: Record<string, number>) => {
