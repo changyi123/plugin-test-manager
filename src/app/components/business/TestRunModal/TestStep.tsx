@@ -1,4 +1,4 @@
-import { useDebounceFn, useHover, useUpdateEffect, useWhyDidYouUpdate } from 'ahooks';
+import { useDebounceFn, useHover, useUpdateEffect } from 'ahooks';
 import { Empty, Popconfirm } from 'antd';
 import { components } from 'proxima-sdk';
 import React, { useCallback, useMemo, useRef } from 'react';
@@ -198,9 +198,6 @@ const TestStep: React.FC<TestStepProps> = props => {
         description={t('components.business.testRunModal.testStep.noSteps')}
       />
     );
-
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  useWhyDidYouUpdate('stepstep ------------->', { ...props, runSteps });
 
   return (
     <div className={cx('step-list')}>
