@@ -20,23 +20,30 @@ export const createdItemLinkType = async () => {
   };
   if (!item) return;
   console.info('createdItemLinkType ----------------->', item);
-  const workspaceKey = item.workspace.key;
-  const itemType = item.itemType.key;
+  const workspaceKey = item.workspace?.key ?? item.workspace?.get('key');
+  const itemType = item.itemType?.key ?? item.itemType?.get('key');
   const objectId = item.objectId;
   const testType = item.values?.r_test_manager_type;
 
   try {
     // 查询当前空间的测试管理配置
     const testConfigQuery = await getParseQuery(false, TestConfigClassName);
+    console.info('testWorkspaceKey1 ------------->', workspaceKey);
+    console.info('testWorkspaceKey2 ------------->', itemType);
 
     const [testConfig] = await testConfigQuery
       .equalTo('workspaceKey', workspaceKey)
       .find(ParseBaseQueryOptions);
     const itemTypeMap = testConfig.get('itemTypeMap') ?? {};
+    console.info('testWorkspaceKey3 ------------->', JSON.stringify(itemTypeMap));
 
     if (!isTestEntity(testType)) {
       // 不存在测试实体需要判断是否需要新建
       const needUpdateItemValues = { objectId } as any;
+      console.info(
+        'testWorkspaceKey5 ------------->',
+        findKey(itemTypeMap, val => isEqual(val, itemType)),
+      );
       if (itemTypeMap) {
         const testEntityType = findKey(itemTypeMap, val => isEqual(val, itemType));
         if (!testEntityType) {
@@ -47,6 +54,8 @@ export const createdItemLinkType = async () => {
         needUpdateItemValues.type = testEntityType;
         // 默认创建时生成排序 sortIndex
         needUpdateItemValues.sortIndex = generateSortIndex(1);
+        console.info('testWorkspaceKey6 ------------->', needUpdateItemValues.type);
+        console.info('testWorkspaceKey7 ------------->', needUpdateItemValues.sortIndex);
 
         await batchUpdateItems([needUpdateItemValues]);
       }
