@@ -488,16 +488,11 @@ export const updateTestRunDetail = async (
       select: ['id', 'caseStatus', 'caseExecutor'],
     });
 
-    const caseStatusValue = {};
-    if (params.planId) {
-      caseStatusValue[params.planId] = needUpdateAttrs.status;
-    }
-
     needUpdateCase = test.map(d => ({
       objectId: d.id,
       caseStatus: {
         ...d?.caseStatus,
-        ...caseStatusValue,
+        [params.planId]: needUpdateAttrs.status,
       },
       caseExecutor: {
         ...d?.caseExecutor,
