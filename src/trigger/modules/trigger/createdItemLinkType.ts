@@ -19,31 +19,51 @@ export const createdItemLinkType = async () => {
     sessionToken: global.sessionToken,
   };
   if (!item) return;
-  console.info('createdItemLinkType ----------------->', item);
-  const workspaceKey = item.workspace?.key ?? item.workspace?.get('key');
-  const itemType = item.itemType?.key ?? item.itemType?.get('key');
-  const objectId = item.objectId;
-  const testType = item.values?.r_test_manager_type;
 
   try {
+    console.info('createdItemLinkType ----------------->', JSON.stringify(item));
+
+    let workspaceKey = item.workspace?.key;
+    // 空间 key 不存在重新查询
+    if (!workspaceKey) {
+      const workspaceId = item.workspace.objectId ?? item.workspace.id;
+      console.info('createdItemLinkType-workspaceId ----------------->', workspaceId);
+      const workspaceQuery = await getParseQuery(false, 'Workspace');
+      workspaceKey = await workspaceQuery
+        .equalTo('objectId', workspaceId)
+        .first(ParseBaseQueryOptions)
+        .then(item => item.get('key'));
+    }
+    console.info('createdItemLinkType-workspaceKey ----------------->', workspaceKey);
+
+    let itemType = item.itemType?.key;
+    if (!itemType) {
+      const itemTypeId = item.itemType?.objectId ?? item.itemType?.id;
+      console.info('createdItemLinkType-itemTypeId ----------------->', itemTypeId);
+      const itemTypeQuery = await getParseQuery(false, 'ItemType');
+      itemType = await itemTypeQuery
+        .equalTo('objectId', itemTypeId)
+        .first(ParseBaseQueryOptions)
+        .then(item => item.get('key'));
+    }
+    console.info('createdItemLinkType-itemType ----------------->', itemType);
+
+    const objectId = item.objectId;
+    const testType = item.values?.r_test_manager_type;
+    console.info('createdItemLinkType-testType ----------------->', testType, objectId);
+
     // 查询当前空间的测试管理配置
     const testConfigQuery = await getParseQuery(false, TestConfigClassName);
-    console.info('testWorkspaceKey1 ------------->', workspaceKey);
-    console.info('testWorkspaceKey2 ------------->', itemType);
 
-    const [testConfig] = await testConfigQuery
+    const itemTypeMap = await testConfigQuery
       .equalTo('workspaceKey', workspaceKey)
-      .find(ParseBaseQueryOptions);
-    const itemTypeMap = testConfig.get('itemTypeMap') ?? {};
-    console.info('testWorkspaceKey3 ------------->', JSON.stringify(itemTypeMap));
+      .first(ParseBaseQueryOptions)
+      .then(item => item.get('itemTypeMap'));
+    console.info('createdItemLinkType-itemTypeMap ------------->', JSON.stringify(itemTypeMap));
 
     if (!isTestEntity(testType)) {
       // 不存在测试实体需要判断是否需要新建
       const needUpdateItemValues = { objectId } as any;
-      console.info(
-        'testWorkspaceKey5 ------------->',
-        findKey(itemTypeMap, val => isEqual(val, itemType)),
-      );
       if (itemTypeMap) {
         const testEntityType = findKey(itemTypeMap, val => isEqual(val, itemType));
         if (!testEntityType) {
@@ -54,8 +74,11 @@ export const createdItemLinkType = async () => {
         needUpdateItemValues.type = testEntityType;
         // 默认创建时生成排序 sortIndex
         needUpdateItemValues.sortIndex = generateSortIndex(1);
-        console.info('testWorkspaceKey6 ------------->', needUpdateItemValues.type);
-        console.info('testWorkspaceKey7 ------------->', needUpdateItemValues.sortIndex);
+        console.info('createdItemLinkType-type ------------->', needUpdateItemValues.type);
+        console.info(
+          'createdItemLinkType-sortIndex ------------->',
+          needUpdateItemValues.sortIndex,
+        );
 
         await batchUpdateItems([needUpdateItemValues]);
       }
