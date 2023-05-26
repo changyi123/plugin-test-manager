@@ -71,6 +71,10 @@ export type Query = Partial<{
    *  iql: 测试用例引用 in []
    */
   referenceCase: string | string[];
+  /** 关联事项类型
+   *  iql: 类型 is 'NULL'
+   */
+  linkType: string;
 }>;
 
 /** 测试实体查询的通用  */
@@ -246,4 +250,19 @@ export type MinderDataPayload = {
 export type MinderDataImportPayload = {
   workspaceKey: string;
   minderData: any;
+};
+
+/**
+ * 测试管理统计自定义字段状态
+ * @example POST /api/project/app/osc/test_manager/webhooks/api-count-test
+ */
+export type TestCountPayload = {
+  groups?: string | string[];
+  params?: QueryLinkedTestEntityPayload;
+  linkParams?: {
+    planId?: string;
+    workspaceKey?: string;
+    caseIds?: string[];
+  };
+  sessionToken?: string;
 };

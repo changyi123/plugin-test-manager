@@ -41,7 +41,6 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
   const { t } = useI18n();
   const [showType, setShowType] = useState('all');
   const [orderByCratedAt, setOrderByCratedAt] = useState<'asc' | 'desc'>('asc');
-  // const searchName = useMemo(() => (selectors?.[0] as any)?.name?.value, [selectors]);
   const [selectCaseIdsSet, setSelectCaseIdsSet] = useState<Set<string> | null>(null);
   const ignoreTestDetailIdsSet = useMemo(() => new Set(ignoreTestDetailIds), [ignoreTestDetailIds]);
   const [caseListMap, setCaseListMap] = useState<Map<number, Record<string, any>[]>>(new Map());
@@ -264,7 +263,17 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
         };
   }, [treeProps, showType, selectedNode]);
 
-  const { groupCounts } = useGetGroupCounts({ workspaceKey, current, params, selectedNode });
+  const { groupCounts, treeData } = useGetGroupCounts({
+    workspaceKey,
+    current,
+    params,
+    selectedNode,
+  });
+
+  const group = useMemo(
+    () => (treeType === 'plan' && searchName ? treeData : [selectedNode]).filter(Boolean),
+    [selectedNode, treeData, searchName, treeType],
+  );
 
   const showList = useMemo(() => {
     if (treeType === 'plan') {
@@ -378,7 +387,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
           {showList}
           {showList ? (
             <VirtualScrollList
-              group={[selectedNode].filter(Boolean)}
+              group={group}
               caseListMap={treeType === 'plan' ? planCaseListMap : caseListMap}
               selectCaseIdsSet={selectCaseIdsSet}
               setSelectCaseIdsSet={setSelectCaseIdsSet}

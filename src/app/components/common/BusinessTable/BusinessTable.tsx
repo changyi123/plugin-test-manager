@@ -96,6 +96,7 @@ type BusinessTableProps = TableProps<any> &
       total: number;
     } | null>;
     testFieldKeys?: string[];
+    setCheckedRowKeys?: (val?: string[]) => void;
   };
 
 const BusinessTable: React.FC<BusinessTableProps> = props => {
@@ -113,6 +114,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     selectionActionNodes,
     onHasRowSelected,
     expandChangePage,
+    setCheckedRowKeys,
     showPagination = true,
     useColumnSetting = false,
     PaginationFooterRender,
@@ -289,9 +291,11 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     const handleCheck = checked => {
       if (checked) {
         setSelectedRowKeys(allSelectableRowKeys);
+        setCheckedRowKeys?.(allSelectableRowKeys);
       } else {
         // 取差集
         setSelectedRowKeys([]);
+        setCheckedRowKeys?.([]);
       }
     };
     const handleClose = () => {
@@ -306,7 +310,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     const allRowSelectionIndeterminate = !isSameWithAllRowKeys && !!selectedRowKeys?.length;
 
     return (
-      <div className={cx('selection-header')}>
+      <div className={`${cx('selection-header')} selection-header-box`}>
         <TableSelection
           onClose={handleClose}
           tableExpandable={Boolean(expandable)}
@@ -351,23 +355,25 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     );
   };
 
-  const rowSelectionProp = selectionMode
-    ? {
-        fixed: true,
-        minWidth: 32,
-        maxWidth: 32,
-        columnWidth: 32,
-        selectedRowKeys,
-        onChange(rowKeys: string[]) {
-          const _selectedRowKeys =
-            selectedRowKeys?.filter(d => !currentPageSelectableRowKeys.includes(d)) ?? [];
+  const rowSelectionProp =
+    selectionMode && antdTableProps?.pagination?.total
+      ? {
+          fixed: true,
+          minWidth: 32,
+          maxWidth: 32,
+          columnWidth: 32,
+          selectedRowKeys,
+          onChange(rowKeys: string[]) {
+            const _selectedRowKeys =
+              selectedRowKeys?.filter(d => !currentPageSelectableRowKeys.includes(d)) ?? [];
 
-          const _rowKeys = rowKeys.concat(_selectedRowKeys);
+            const _rowKeys = rowKeys.concat(_selectedRowKeys);
 
-          setSelectedRowKeys(_rowKeys);
-        },
-      }
-    : undefined;
+            setSelectedRowKeys(_rowKeys);
+            setCheckedRowKeys?.(_rowKeys);
+          },
+        }
+      : undefined;
 
   React.useImperativeHandle(
     actionRef,
@@ -380,10 +386,11 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
       expandChangePage,
       resetSelectedRowKeys: () => {
         setSelectedRowKeys(undefined);
+        setCheckedRowKeys?.([]);
       },
       tableColumns,
     }),
-    [expandChangePage, selectedRowKeys, refresh, tableColumns],
+    [refresh, selectedRowKeys, expandChangePage, tableColumns, setCheckedRowKeys],
   );
 
   React.useEffect(() => {

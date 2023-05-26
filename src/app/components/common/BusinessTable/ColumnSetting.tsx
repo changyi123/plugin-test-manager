@@ -71,6 +71,9 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
     if (titleCellOption.testType === TestType.Case) {
       return testCaseFieldKeys;
     }
+    // if (titleCellOption.testType === TestType.Execution) {
+    //   return testExecutionFieldKeys;
+    // }
     if (titleCellOption.testType === TestType.Plan) {
       return testPlanFieldKeys;
     }
@@ -78,7 +81,7 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
   const keys = useMemo(() => [].concat(SystemFieldKeys, _keys ?? []), [_keys?.toString()]);
   const fieldKeys = useMemo(() => keys?.filter(key => !TABLE_EXCLUDE_FIELDS.includes(key)), [keys]);
   const { data: customFields } = useNoExpiredRequest(() => getCustomFields(fieldKeys), {
-    cacheKey: `CustomFields_${fieldKeys.toString()}`,
+    cacheKey: `CustomFields_${fieldKeys?.toString()}`,
     refreshDeps: [fieldKeys],
   });
   const [fields, setFields] = useState<string[] | undefined>([]);

@@ -42,12 +42,15 @@ interface FilterSearchProps {
   fields: string[];
   onSearch: (data: SearchSelectors) => void;
   beforeSearch?: (v: Record<string, any>) => void;
-  extendFields: any[];
+  extendFields?: any[];
   className?: string;
   testType?: TestType;
   hideSelectorTag?: boolean;
   /** 持久化数据 */
   enableLocalStorage?: boolean;
+  checkedFields?: string[];
+  filterId?: string;
+  storageKey?: string;
 }
 
 interface FilterRefMethod {
@@ -55,9 +58,9 @@ interface FilterRefMethod {
 }
 
 // 生成存储器
-const useSelectorStorage = (enableLocalStorage, { selectors, setSelectors }) => {
+const useSelectorStorage = (enableLocalStorage, { selectors, setSelectors, storageKey = '' }) => {
   const location = useLocation();
-  const key = generateStorageKey('selector-' + location.pathname);
+  const key = generateStorageKey('selector-' + storageKey + location.pathname);
 
   const invokeRef = React.useRef(false);
 
@@ -89,7 +92,18 @@ const useSelectorStorage = (enableLocalStorage, { selectors, setSelectors }) => 
 };
 
 const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearchProps> = (
-  { fields, onSearch, extendFields, className, testType, hideSelectorTag, enableLocalStorage },
+  {
+    fields,
+    onSearch,
+    extendFields = [],
+    className,
+    testType,
+    checkedFields,
+    hideSelectorTag,
+    enableLocalStorage,
+    filterId,
+    storageKey,
+  },
   ref,
 ) => {
   const { t } = useI18n();
@@ -98,7 +112,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
   const { getGlobalConfig, testPlanFieldKeys, testCaseFieldKeys } = useBaseAction();
   const [selectors, setSelectorsState] = useState<Selectors>({});
   const currentSelectors = useRef<Selectors>({});
-  const [activeSelector, setActiveSelector] = useState('');
+  // const [activeSelector, setActiveSelector] = useState('');
 
   const setSelectors = useMemoizedFn(selectors => {
     setSelectorsState(selectors);
@@ -110,12 +124,45 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
     searchFn(true);
   });
 
-  // 将 selector 存储到 localStorage
-  useSelectorStorage(enableLocalStorage, { selectors, setSelectors: setSelectorsFromStorageValue });
-
   const customFields = useGetCustomFields({
     filedKeys: testType === TestType.Plan ? testPlanFieldKeys : testCaseFieldKeys,
   });
+
+  const customFieldsKey = useMemo(() => customFields?.map(d => d.key), [customFields]);
+
+  const defaultSelectors = useMemo(() => {
+    if (checkedFields?.length && customFields?.length) {
+      return checkedFields.reduce((prev, cur) => {
+        const data = customFields.find(d => cur === d.key) ?? {};
+        prev[data.objectId] = {
+          component: data.fieldType.component,
+          expression: data.fieldType.expression,
+          isExtend: data.fieldType.isExtend,
+          key: data.key,
+          fieldId: data.objectId,
+          fieldName: data.name,
+          value: undefined,
+        };
+        return prev;
+      }, {});
+    }
+  }, [customFieldsKey?.toString(), checkedFields?.toString()]);
+
+  // 将 selector 存储到 localStorage
+  useSelectorStorage(enableLocalStorage, {
+    selectors,
+    setSelectors: setSelectorsFromStorageValue,
+    storageKey,
+  });
+
+  useEffect(() => {
+    if (defaultSelectors) {
+      setSelectors({
+        ...defaultSelectors,
+        ...selectors,
+      });
+    }
+  }, [defaultSelectors]);
 
   const { data: fieldsName, refresh } = useRequest(
     async () => {
@@ -294,7 +341,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
       const systemTarget = getExtendFields(t).find(item => item.objectId === fieldId);
       const isExtend = IS_EXTEND_FIELDS.includes(data.component);
       const component = IS_EXTEND_FIELDS.includes(data.component) ? data.component : data.key;
-      setActiveSelector(fieldId);
+      // setActiveSelector(fieldId);
       const props = {
         isExtend: systemTarget?.fieldType?.isExtend ?? isExtend,
         fieldId,
@@ -310,7 +357,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
         workspace: workspace?.objectId,
         onChange: updateSelectorValue,
         onClose: () => {
-          setActiveSelector('');
+          // setActiveSelector('');
           handleSearch();
         },
         expression: data.expression,
@@ -355,6 +402,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
       ...item,
       name: item?.fieldName,
       objectId: item?.fieldId,
+      active: Array.isArray(item.value) ? !!item.value?.length : !!item.value,
     }));
     return item || [];
   }, [selectors]);
@@ -385,7 +433,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
         .map(item => (
           <SelectorTag
             key={item?.fieldId}
-            active={item?.fieldId === activeSelector}
+            active={item?.active}
             data={item}
             onClick={data => {
               const backup = cloneDeep(data);
@@ -401,7 +449,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
         ))}
       {!hideSelectorTag && (
         <Button
-          id="filter-btn"
+          id={filterId || 'filter-btn'}
           icon={<AddFilterIcon className={cx('filter-tag-icon')} />}
           className={cx('filter-tag-btn')}
           onClick={() => {
@@ -410,7 +458,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
               fields,
               onChange: onFilterChange,
               extendFields,
-              dom: document.querySelector('#filter-btn'),
+              dom: document.querySelector(`#${filterId || 'filter-btn'}`),
             });
           }}
         >

@@ -23,10 +23,10 @@ import { getCurrentUserSetting, saveUserSetting } from '@/lib/api/userSetting';
 import { useCurrentUser } from '@/lib/api/user';
 import fetch from '@/lib/utils/fetch';
 import useI18n from '@/lib/hooks/useI18n';
-
-import cx from './Table.less';
 import { useGetWorkspaceRepository } from '@/lib/hooks/useTest';
 import RenderRepository from '@/components/business/RenderRepository';
+
+import cx from './Table.less';
 
 const proxima = createProximaSdk();
 
@@ -247,7 +247,9 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
             return;
           }
           // 删除刷新
-          onDataChange?.();
+          setTimeout(() => {
+            onDataChange?.();
+          }, 500);
           setTableLoading(false);
           notification.success({
             message: t('page.repository.view.list.deleteCaseMessageSuccess'),
@@ -358,6 +360,14 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         },
       },
       {
+        key: 'quoteCount',
+        title: t('page.plan.testEntityList.quoteCount'),
+        width: 200,
+        render(_, rowData) {
+          return <span>{rowData.quoteCount}</span>;
+        },
+      },
+      {
         key: 'repositoryGroup',
         title: t('page.plan.testEntityList.repositoryGroup'),
         width: 200,
@@ -384,7 +394,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         },
       },
     ];
-  }, [onDataChange, t]);
+  }, [onDataChange, setTableLoading, t]);
 
   const handleFilterField = useCallback(
     async ({ testType, fieldKeys }) => {
@@ -495,8 +505,8 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         useColumnSetting
         columns={columns}
         bodyRowComponent={DropRow}
-        defaultColumnKey={['key', 'repositoryGroup', 'createdBy', 'createdAt']}
-        privateColumnKey={['repositoryGroup']}
+        defaultColumnKey={['key', 'repositoryGroup', 'quoteCount', 'createdBy', 'createdAt']}
+        privateColumnKey={['repositoryGroup', 'quoteCount']}
         name={`${workspaceKey}_TestDetailTable`}
         actionRef={tableActionRef}
         getDataSource={dataSourceGetter}

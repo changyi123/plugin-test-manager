@@ -75,7 +75,6 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     runLinkCaseIds,
     tableSelectionToggleEvent,
     mutateTestTableList,
-    getTestCaseRepositoryPath,
   } = usePageContext();
   const { t } = useI18n();
   const proxima = createProximaSdk();
@@ -229,7 +228,15 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       sourceIds: [executionId],
       destinationType: TestType.Run,
       limit: 9999,
-      select: ['id', 'referenceCase', 'designee', 'executor', 'sortIndex', 'status'],
+      select: [
+        'id',
+        'referenceCase',
+        'designee',
+        'executor',
+        'sortIndex',
+        'status',
+        'executeCount',
+      ],
       selector: [{}, filterRunSelector],
     });
 
@@ -259,6 +266,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           'designee',
           'executor',
           'status',
+          'executeCount',
         ]);
 
         return {
@@ -310,7 +318,15 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       sourceIds: [executionId],
       limit: 9999,
       destinationType: TestType.Run,
-      select: ['id', 'referenceCase', 'designee', 'executor', 'sortIndex', 'status'],
+      select: [
+        'id',
+        'referenceCase',
+        'designee',
+        'executor',
+        'sortIndex',
+        'executeCount',
+        'status',
+      ],
     });
 
     const runCaseMap = new Map();
@@ -327,6 +343,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           'designee',
           'executor',
           'status',
+          'executeCount',
         ]);
 
         return {
@@ -454,6 +471,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           caseStatus: omit(d.caseStatus ?? {}, [planId]),
         })),
       );
+
       if (res?.status === 'error') {
         message.error(res.data);
         return;
@@ -540,7 +558,15 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
                     title: t('common.tip'),
                     okText: t('common.okText'),
                     cancelText: t('common.cancel'),
-                    content: t('page.plan.testEntityList.removeCaseTips'),
+                    content: (
+                      <>
+                        <span>
+                          {rowData.runCount
+                            ? t('page.plan.testEntityList.removeCaseTips2')
+                            : t('page.plan.testEntityList.removeCaseTips')}
+                        </span>
+                      </>
+                    ),
                   },
                   () => {
                     removeTestRelation(rowData.selectedTestPlanId, [rowData]);
@@ -554,7 +580,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         },
       },
     ];
-  }, [getTestCaseRepositoryPath, removeTestRelation, t]);
+  }, [removeTestRelation, t]);
 
   const handleTestRunStatusChange = useCallback(
     async (testRun, status) => {
@@ -658,6 +684,16 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         },
       },
       {
+        key: 'executeCount',
+        title: t('page.plan.testEntityList.executeCount'),
+        shouldCellUpdate: (record, prevRecord) =>
+          !isEqual(record?.executeCount, prevRecord?.executeCount),
+        width: 200,
+        render(_, record) {
+          return <span>{record?.executeCount ?? 0}</span>;
+        },
+      },
+      {
         key: 'executor',
         title: t('page.plan.testEntityList.executor'),
         shouldCellUpdate: (record, prevRecord) =>
@@ -724,7 +760,6 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       canExecuteTestRun,
       deleteTestRunByIds,
       getCreatePermission,
-      getTestCaseRepositoryPath,
       handleTestRunStatusChange,
       mutateStatusEvent,
       t,
@@ -740,7 +775,11 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
             title: t('common.tip'),
             okText: t('common.okText'),
             cancelText: t('common.cancel'),
-            content: t('page.plan.testEntityList.removeCaseTips1'),
+            content: (
+              <>
+                <span>{t('page.plan.testEntityList.removeCaseTips2')}</span>
+              </>
+            ),
           },
           async () => {
             setTableLoading(true);
@@ -750,7 +789,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
                 type: TestType.Case,
                 id: actionRef.current.selectedRowKeys ?? [],
               },
-              limit: 9999,
+              limit: 99999,
               select: ['id', 'caseStatus'],
             });
             const res = await updateTestEntity(
@@ -759,6 +798,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
                 linkItems: {
                   action: 'delete',
                   value: [selectedTestPlan?.objectId],
+                  deleteTestRun: !!item.runCount,
                 },
                 caseStatus: omit(item.caseStatus ?? {}, [selectedTestPlan?.objectId]),
               })),
@@ -1019,11 +1059,18 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
             'repositoryGroup',
             'designee',
             'runStatus',
+            'executeCount',
             'createdBy',
             'createdAt',
             'executor',
           ]}
-          privateColumnKey={['repositoryGroup', 'runStatus', 'executor', 'designee']}
+          privateColumnKey={[
+            'repositoryGroup',
+            'runStatus',
+            'executeCount',
+            'executor',
+            'designee',
+          ]}
           rowKey="objectId"
           columns={executionColumns}
           name={`${workspaceKey}_TestExecutionList`}
