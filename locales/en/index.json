@@ -349,7 +349,7 @@
           "step": "step",
           "result": "result",
           "data": "data",
-          "status": "status",
+          "status": "execution status",
           "testPlan": "testPlan",
           "assignee": "assignee",
           "executor": "executor"
