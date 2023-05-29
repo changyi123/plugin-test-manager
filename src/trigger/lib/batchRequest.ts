@@ -47,6 +47,7 @@ export const batchUpdateItems = async (data: Partial<TestEntity>[]) => {
         ...item.values,
       },
       eventExtraData: { skipItemChange: true },
+      parseContext: CreateApiParseContext,
     });
 
     return await updateItems(item.objectId, values);
