@@ -491,11 +491,11 @@ export const updateTestRunDetail = async (
     needUpdateCase = test.map(d => ({
       objectId: d.id,
       caseStatus: {
-        ...d?.caseStatus,
+        ...d.caseStatus,
         [params.planId]: needUpdateAttrs.status,
       },
       caseExecutor: {
-        ...d?.caseExecutor,
+        ...d.caseExecutor,
         [params.planId]: needUpdateAttrs.executor?.[0],
       },
     }));
