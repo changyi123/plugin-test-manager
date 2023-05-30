@@ -196,7 +196,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
       const res = await copyTestCases(testCaseIds);
       if (res?.status === 'error') {
         setTableLoading(false);
-        return message.error(res.message);
+        return message.error(res.data);
       }
 
       // 复制刷新
@@ -268,7 +268,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
       const res = await copyTestCases([data.objectId]);
       if (res?.status === 'error') {
         setTableLoading(false);
-        return message.error(res.message);
+        return message.error(res.data);
       }
 
       // 复制刷新
