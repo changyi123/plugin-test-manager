@@ -1,0 +1,56 @@
+.steps {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+
+  .step {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 16px 0;
+    width: 50%;
+    border-bottom: 1px solid #d8d8d8;
+    cursor: pointer;
+
+    .num {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: #f5f6f8;
+      color: #091e42;
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      margin-right: 16px;
+    }
+
+    .label {
+      font-size: 16px;
+      line-height: 24px;
+      color: #213053;
+    }
+    &.active {
+      &::after {
+        position: absolute;
+        content: '';
+        width: 100%;
+        height: 0;
+        left: 0;
+        bottom: 0;
+        border-bottom: 3px solid #0c62ff;
+        border-radius: 2px;
+      }
+
+      .num {
+        background-color: #0c62ff;
+        color: #fff;
+      }
+
+      .label {
+        font-weight: bold;
+        color: #091940;
+      }
+    }
+  }
+}

@@ -103,6 +103,23 @@
     "runNum": "test execution",
     "addTestExecution": "Add test execution"
   },
+  "report": {
+    "pass": "Pass",
+    "noPass": "Not pass",
+    "partPass": "Part pass",
+    "reportName": "Test report name",
+    "reportNamePlaceholder": "Please enter a test report name",
+    "reportResult": "Test conclusion",
+    "choiceTemplate": "select template",
+    "choiceTemplatePlaceholder": "Please select a template",
+    "range": "Statistical range",
+    "reportInfo": "report summary",
+    "addReport": "Add report",
+    "addTestReport": "Add test report",
+    "selectTemplate": "Enter a name and choose a template",
+    "selectRange": "Select statistical range",
+    "validateTips": "There are missing fields, please check required fields"
+  },
   "status": {
     "PASSED": {
       "name": "PASS",

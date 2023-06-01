@@ -102,6 +102,23 @@
     "runNum": "条执行",
     "addTestExecution": "添加执行任务"
   },
+  "report": {
+    "pass": "通过",
+    "noPass": "未通过",
+    "partPass": "部分通过",
+    "reportName": "测试报告名称",
+    "reportNamePlaceholder": "请输入测试报告名称",
+    "reportResult": "测试结论",
+    "choiceTemplate": "选择模板",
+    "choiceTemplatePlaceholder": "请选择模板",
+    "range": "统计范围",
+    "reportInfo": "报告摘要",
+    "addReport": "新建报告",
+    "addTestReport": "新建测试报告",
+    "selectTemplate": "输入名称和选择模板",
+    "selectRange": "选择统计范围",
+    "validateTips": "存在未填字段，请检查必填字段"
+  },
   "status": {
     "PASSED": {
       "name": "通过",

@@ -2,7 +2,7 @@ app:
   key: test_manager
   uuid: bf73e61c-e15a-4461-a1f7-f940c2009332
   name: test_manager
-  version: "3.10.0-alpha.1"
+  version: "4.1.0-alpha.1"
 modules:
   webtrigger:
     # TODO: Debug 使用，生产环境禁止调用下面的 trigger
@@ -213,6 +213,12 @@ modules:
       title: 测试管理脑图数据导入
       loadType: Micro
       route: /xmindimport
+      hidden: true
+    - key: test-report
+      resource: main
+      title: 测试报告预览
+      loadType: Micro
+      route: /report
       hidden: true
   beforeCreateOrUpdateModal:
     - key: before-create-or-update-modal
@@ -463,6 +469,37 @@ tables:
       user:
         type: Pointer
         targetClass: _User
+  - className: TestReport
+    fields:
+      name:
+        type: String
+      workspace:
+        type: Pointer
+        targetClass: Workspace
+      chartGroup:
+        type: Pointer
+        targetClass: ChartGroup
+      # 是否是测试报告模板 
+      isTemplate:
+        type: Boolean
+      # 是否是租户级模板 
+      isGlobalTemplate:
+        type: Boolean
+      # 是否是默认模板
+      isDefaultTemplate:
+        type: Boolean
+      # 模板配置文件
+      templateConfig:
+        type: Object
+      # 报告概览数据
+      reportOverviewData:
+        type: Object
+      # 基于哪个模板生成
+      usingReportTemplate:
+        type: Object
+      # 报告状态
+      reportStatus:
+        type: String
 locales:
   zh-CN:
     test-manager-test-detail:

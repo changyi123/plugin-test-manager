@@ -12,11 +12,18 @@ import cx from './SelectorTag.less';
 
 interface SelectorTagProps {
   data: SelectCase;
-  onDelete: (id: string) => void;
+  onDelete?: (id: string) => void;
   onClick: (data: SelectCase) => void;
   active?: boolean;
+  showCloseIcon?: boolean;
 }
-const SelectorTag: React.FC<SelectorTagProps> = ({ data, onDelete, onClick, active }) => {
+const SelectorTag: React.FC<SelectorTagProps> = ({
+  data,
+  onDelete,
+  onClick,
+  active,
+  showCloseIcon = true,
+}) => {
   const { t } = useI18n();
   const { fieldName, value, component, fieldId, expression: _expression } = data;
 
@@ -58,13 +65,15 @@ const SelectorTag: React.FC<SelectorTagProps> = ({ data, onDelete, onClick, acti
         {expressionText && <div className={cx('expression', 'ml4')}>{expressionText}</div>}
         {_value && _value !== 'NULL' && <div className={cx('value', 'ml4')}>{_value}</div>}
         {!!count && <div className={cx('count', 'ml4')}>+{count}</div>}
-        <CloseOutlined
-          className={cx('search-criteria-icon')}
-          onClick={e => {
-            e.stopPropagation();
-            onDelete(fieldId);
-          }}
-        />
+        {showCloseIcon && (
+          <CloseOutlined
+            className={cx('search-criteria-icon')}
+            onClick={e => {
+              e.stopPropagation();
+              onDelete?.(fieldId);
+            }}
+          />
+        )}
       </div>
     </div>
   );
