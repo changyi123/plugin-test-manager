@@ -11,20 +11,22 @@ const TemplateForm: React.FC<FormProps> = ({ state, workspace }) => {
   const { t } = useI18n();
 
   const [inputStatus, setInputStatus] = useState(undefined);
+  const [radioStatus, setRadioStatus] = useState(undefined);
+  const [selectStatus, setSelectStatus] = useState(undefined);
 
   const options = useMemo(() => {
     return [
       {
         value: 'pass',
-        label: t('common.report.pass'),
+        label: t('report.pass'),
       },
       {
         value: 'noPass',
-        label: t('common.report.noPass'),
+        label: t('report.noPass'),
       },
       {
         value: 'partPass',
-        label: t('common.report.partPass'),
+        label: t('report.partPass'),
       },
     ];
   }, [t]);
@@ -46,10 +48,11 @@ const TemplateForm: React.FC<FormProps> = ({ state, workspace }) => {
   return (
     <>
       <div className={cx('form-box')}>
-        <span className={cx('step-label', 'required')}>{t('common.report.reportName')}</span>
+        <span className={cx('step-label', 'required')}>{t('report.reportName')}</span>
+        {inputStatus === 'error' && <span className={cx('error')}>{t('report.required')}</span>}
         <div className={cx('step-cont')}>
           <Input
-            placeholder={t('common.report.reportNamePlaceholder')}
+            placeholder={t('report.reportNamePlaceholder')}
             defaultValue={state.name}
             onChange={e => {
               state.name = e.target.value;
@@ -62,7 +65,8 @@ const TemplateForm: React.FC<FormProps> = ({ state, workspace }) => {
         </div>
       </div>
       <div className={cx('form-box')}>
-        <span className={cx('step-label', 'required')}>{t('common.report.reportResult')}</span>
+        <span className={cx('step-label', 'required')}>{t('report.reportResult')}</span>
+        {radioStatus === 'error' && <span className={cx('error')}>{t('report.required')}</span>}
         <div className={cx('step-cont')}>
           <Radio.Group
             options={options}
@@ -70,20 +74,28 @@ const TemplateForm: React.FC<FormProps> = ({ state, workspace }) => {
             onChange={e => {
               state.conclusion = e.target.value;
             }}
+            onBlur={() => {
+              setRadioStatus(state.conclusion ? undefined : 'error');
+            }}
           ></Radio.Group>
         </div>
       </div>
       <div className={cx('form-box')}>
-        <span className={cx('step-label', 'required')}>{t('common.report.choiceTemplate')}</span>
+        <span className={cx('step-label', 'required')}>{t('report.choiceTemplate')}</span>
+        {selectStatus === 'error' && <span className={cx('error')}>{t('report.required')}</span>}
         <div className={cx('step-cont')}>
           <Select
             className={cx('step-select')}
-            placeholder={t('common.report.choiceTemplatePlaceholder')}
+            placeholder={t('report.choiceTemplatePlaceholder')}
             defaultValue={state.template?.objectId}
             options={templateList}
             loading={loading}
+            status={selectStatus}
             onChange={e => {
               state.template = templateList.find(d => d.value === e.target.value);
+            }}
+            onBlur={() => {
+              setSelectStatus(state.template?.objectId ? undefined : 'error');
             }}
           ></Select>
         </div>

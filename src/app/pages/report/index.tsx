@@ -25,4 +25,4 @@ const TestPlanPage = () => {
   );
 };
 
-export default TestPlanPage;
+export default React.memo(TestPlanPage);

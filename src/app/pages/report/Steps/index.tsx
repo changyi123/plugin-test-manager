@@ -16,11 +16,11 @@ const CreateReportSteps: React.FC<CreateReportStepsProps> = ({ current }) => {
     () => [
       {
         key: '1',
-        label: t('common.report.selectTemplate'),
+        label: t('report.selectTemplate'),
       },
       {
         key: '2',
-        label: t('common.report.selectRange'),
+        label: t('report.selectRange'),
       },
     ],
     [t],

@@ -113,6 +113,7 @@
     "choiceTemplate": "select template",
     "choiceTemplatePlaceholder": "Please select a template",
     "range": "Statistical range",
+    "required": "Required",
     "reportInfo": "report summary",
     "addReport": "Add report",
     "addTestReport": "Add test report",

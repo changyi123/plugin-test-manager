@@ -166,7 +166,7 @@ const RangeForm: React.FC<any> = ({ state, workspace }) => {
   return (
     <>
       <div className={cx('form-box')}>
-        <span className={cx('step-label')}>{t('common.report.range')}</span>
+        <span className={cx('step-label')}>{t('report.range')}</span>
         <div className={cx('step-cont')}>
           {currentSelector
             ?.filter(item => item?.fieldId !== 'name')
@@ -190,7 +190,7 @@ const RangeForm: React.FC<any> = ({ state, workspace }) => {
         </div>
       </div>
       {/* <div className={cx('form-box')}>
-        <span className={cx('step-label')}>{t('common.report.reportInfo')}</span>
+        <span className={cx('step-label')}>{t('report.reportInfo')}</span>
         <div className={cx('step-cont')}></div>
       </div> */}
     </>

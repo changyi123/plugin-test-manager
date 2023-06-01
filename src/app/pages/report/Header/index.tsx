@@ -26,7 +26,7 @@ const ReportHeader: React.FC<any> = () => {
         <div>{t('common.testReport')}</div>
         <div>
           <Button type="primary" icon={<PlusOutlined />} onClick={createReport}>
-            {t('common.report.addReport')}
+            {t('report.addReport')}
           </Button>
         </div>
       </div>
@@ -36,4 +36,4 @@ const ReportHeader: React.FC<any> = () => {
   );
 };
 
-export default ReportHeader;
+export default React.memo(ReportHeader);

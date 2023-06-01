@@ -111,7 +111,7 @@ const CreateReportModel: React.FC<CreateReportModelProps> = props => {
           <Button
             onClick={() => {
               const validate = validateState();
-              if (validate) return message.error(t('common.report.validateTips'));
+              if (validate) return message.error(t('report.validateTips'));
               setCurrent('2');
             }}
           >
@@ -132,7 +132,7 @@ const CreateReportModel: React.FC<CreateReportModelProps> = props => {
       className={classnames(className)}
       open={visible}
       destroyOnClose
-      title={t('common.report.addTestReport')}
+      title={t('report.addTestReport')}
       width={600}
       maskClosable={false}
       onCancel={handleCloseModal}

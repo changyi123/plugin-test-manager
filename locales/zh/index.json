@@ -112,6 +112,7 @@
     "choiceTemplate": "选择模板",
     "choiceTemplatePlaceholder": "请选择模板",
     "range": "统计范围",
+    "required": "必填",
     "reportInfo": "报告摘要",
     "addReport": "新建报告",
     "addTestReport": "新建测试报告",
