@@ -10,7 +10,7 @@ import {
   TestCaseStatusModel,
 } from '@/lib/constants';
 import { RepositoryModel, SelectorNullValue } from '@/lib/constants';
-import { Repository, Test, User } from '@/lib/models';
+import { Repository, Test, User } from '@/services/models';
 
 import { DateTimestampRang } from './date';
 

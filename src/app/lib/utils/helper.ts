@@ -17,6 +17,12 @@ const getProximaGateWay = () => {
   );
 };
 
+/** 获取跳转路由前缀 */
+export const getPagePrefix = () => {
+  const baseUrl = getProximaBasePath() ? `${getProximaBasePath()}` : '/';
+  return `${baseUrl}/${getTenantKey()}`;
+};
+
 /** 获取租户信息 */
 export const getTenantKey = () => {
   // dev 环境默认取 env 中的 PROXIMA_APP_ID

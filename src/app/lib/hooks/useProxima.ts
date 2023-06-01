@@ -3,8 +3,8 @@ import _ from 'lodash';
 import React from 'react';
 
 import { SYSTEM_FIELD } from '@/lib/constants';
-import { ItemTypeScreenSchemeMapping, Screen, Workspace } from '@/lib/models';
 import Parse from '@/lib/parse';
+import { ItemTypeScreenSchemeMapping, Screen, Workspace } from '@/services/models';
 
 import { useNoExpiredRequest } from './useRequest';
 

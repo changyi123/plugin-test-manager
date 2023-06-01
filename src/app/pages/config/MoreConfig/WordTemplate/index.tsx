@@ -2,9 +2,9 @@ import { Button, message, Modal, Space, Table } from 'antd';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import useI18n from '@/lib/hooks/useI18n';
-import { WordTemplate as WordTemplateObject } from '@/lib/models';
 import Parse from '@/lib/parse';
 import { FileType } from '@/lib/types/Test';
+import { WordTemplate as WordTemplateObject } from '@/services/models';
 
 import cx from './index.less';
 import TemplateModal from './TemplateModal';

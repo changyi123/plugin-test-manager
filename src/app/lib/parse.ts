@@ -2,6 +2,18 @@ import { getDevConfig, getParseReqHeader } from '@/devEnv';
 import { getTenantKey } from '@/lib/utils/helper';
 let Parse;
 
+export const escapeMatchesQueryArg = (_str: unknown): RegExp => {
+  const str = _str?.toString() ?? '';
+  let reg = str as unknown as RegExp;
+  try {
+    // 对正则关键特殊字符进行转义
+    reg = new RegExp(str.trim().replace(/[!$()*+.:?=[\]^{|}]/g, '\\$&'));
+  } catch (error) {
+    console.error('parse RegExp error', error);
+  }
+  return reg;
+};
+
 if (process.env.NODE_ENV === 'production' || window.__POWERED_BY_QIANKUN__) {
   // TODO: 添加 log
   console.info('QiankunProps', window.QiankunProps, window);

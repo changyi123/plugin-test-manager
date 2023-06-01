@@ -7,7 +7,7 @@ import React, { useCallback } from 'react';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import { getAllItemTypes } from '@/lib/api/proxima';
 import useI18n from '@/lib/hooks/useI18n';
-import { Chart, CustomField } from '@/lib/models';
+import { Chart, CustomField } from '@/services/models';
 
 import { useCurrentTestConfig, useDataContext } from '../hooks';
 

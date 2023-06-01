@@ -214,11 +214,11 @@ modules:
       loadType: Micro
       route: /xmindimport
       hidden: true
-    - key: test-report
+    - key: test-report-creator
       resource: main
-      title: 测试报告预览
+      title: 测试管理模板创建
       loadType: Micro
-      route: /report
+      route: /reportCreator
       hidden: true
   beforeCreateOrUpdateModal:
     - key: before-create-or-update-modal

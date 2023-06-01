@@ -4,9 +4,9 @@ import React, { useState } from 'react';
 import { getTestConfig } from '@/lib/api/common';
 import { getWorkspaceByKey, updateUsedHierarchySchema } from '@/lib/api/proxima';
 import { useAllTestWorkspace } from '@/lib/hooks/useTest';
-import { TestConfig } from '@/lib/models';
 import Parse from '@/lib/parse';
 import { generateStorageKey } from '@/lib/utils/helper';
+import { TestConfig } from '@/services/models';
 
 import { DataContext } from '../context';
 import { generateDefaultTestConfig } from '../helper';
