@@ -78,10 +78,10 @@ export const runGiteeMenus = async () => {
       title: i18n.t('common.overview'),
       key: `test-stats-report-${workspaceKey}`,
       icon: 'iconNavi-icafeplan',
-      url: `${giteeRoutePrefix}/report/test_manager?disabledCreate=true&displayContext=test_manager`,
+      url: `${giteeRoutePrefix}/plugin/team_insight_charts_base_team_insight_charts_base_workspace?disabledCreate=true&displayContext=test_manager&moduleKey=test_manager`,
       type: 'IFRAME',
       openWindow: '0',
-      iframeUrl: `${proximaRoutePrefix}/report/test_manager?disabledCreate=true&displayContext=test_manager`,
+      iframeUrl: `${proximaRoutePrefix}/plugin/team_insight_charts_base_team_insight_charts_base_workspace?disabledCreate=true&displayContext=test_manager&moduleKey=test_manager`,
     };
 
     const menus = [
