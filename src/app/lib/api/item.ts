@@ -325,21 +325,19 @@ export const updateTestStatus = async data => {
     executeCount: (d.executeCount ?? 0) + (['PASSED', 'FAILED']?.includes(status) ? 1 : 0),
   }));
 
-  const updateTestCases = [];
+  let updateTestCases = [];
   if (planId) {
-    updateTestCases.push(
-      testCases.map(d => ({
-        objectId: d.id,
-        caseStatus: {
-          ...d.caseStatus,
-          [planId]: status,
-        },
-        caseExecutor: {
-          ...d.caseExecutor,
-          [planId]: getCurrentUserInfo(),
-        },
-      })),
-    );
+    updateTestCases = testCases.map(d => ({
+      objectId: d.id,
+      caseStatus: {
+        ...d.caseStatus,
+        [planId]: status,
+      },
+      caseExecutor: {
+        ...d.caseExecutor,
+        [planId]: getCurrentUserInfo(),
+      },
+    }));
   }
 
   const res = await updateTestEntity([].concat(updateTestRuns, updateTestCases));
@@ -490,19 +488,14 @@ export const updateTestRunDetail = async (
       select: ['id', 'caseStatus', 'caseExecutor'],
     });
 
-    const caseStatusValue = {};
-    if (params.planId) {
-      caseStatusValue[params.planId] = needUpdateAttrs.status;
-    }
-
     needUpdateCase = test.map(d => ({
       objectId: d.id,
       caseStatus: {
-        ...(d?.caseStatus ?? {}),
-        ...caseStatusValue,
+        ...d.caseStatus,
+        [params.planId]: needUpdateAttrs.status,
       },
       caseExecutor: {
-        ...(d?.caseExecutor ?? {}),
+        ...d.caseExecutor,
         [params.planId]: needUpdateAttrs.executor?.[0],
       },
     }));

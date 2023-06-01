@@ -20,6 +20,7 @@ type BadgeProps = {
   emptyNode?: React.ReactNode;
   onStatusChange?: (status) => void;
   onReady?: (statusConfig) => void;
+  actionRef?: React.ForwardedRef<any>;
 };
 
 const Status = ({
@@ -57,6 +58,7 @@ const Status = ({
 };
 
 const Badge: React.FC<BadgeProps> = props => {
+  const { actionRef } = props;
   const badgeRef = React.useRef();
   const statusConfig = useStatusConfig();
   const isInitialRef = React.useRef(false);
@@ -76,6 +78,8 @@ const Badge: React.FC<BadgeProps> = props => {
   }, [statusConfig, props]);
 
   const [visible, setVisible] = React.useState(false);
+
+  React.useImperativeHandle(actionRef, () => ({ statusConfig }), [statusConfig]);
 
   const PopoverContent = React.useMemo(() => {
     if (props.readonly) return null;
