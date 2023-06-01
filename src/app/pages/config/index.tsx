@@ -16,6 +16,7 @@ import ItemTypeMapping from './ItemTypeMapping';
 import IsolatedSystem from './MoreConfig/IsolatedSystem';
 import WordTemplate from './MoreConfig/WordTemplate';
 import TableFields from './TableFields';
+import TestReportTemplate from './TestReportTemplate';
 
 const { Sider, Content, Header } = Layout;
 
@@ -39,6 +40,12 @@ const MoreConfigPages = [
 ];
 
 const ConfigPages = [
+  {
+    key: 'TestReportTemplate',
+    title: 'testReportTemplate',
+    component: TestReportTemplate,
+    isGlobalConfig: true,
+  },
   {
     key: 'ItemTypeMapping',
     title: 'itemTypeMapping',
@@ -188,9 +195,11 @@ const Config = () => {
           <Header className={cx('header')}>
             <div className={cx('left')}>
               <h3 className={cx('title')}>{t(`page.config.${currentConfigPage.title}.title`)}</h3>
-              <p className={cx('description')}>
-                {t(`page.config.${currentConfigPage.description}.description`)}
-              </p>
+              {typeof currentConfigPage.description === 'string' && (
+                <p className={cx('description')}>
+                  {t(`page.config.${currentConfigPage.description}.description`)}
+                </p>
+              )}
             </div>
             <div className={cx('right')}>
               {currentConfigPage.isGlobalConfig ? null : <WorkspaceSelector />}

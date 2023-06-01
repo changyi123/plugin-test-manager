@@ -7,7 +7,7 @@ import Parse from '@/lib/parse';
 import { arrayToTree } from '@/lib/utils/arrayToTree';
 import { UNGROUPED_FOLDER_KEY } from '@/pages/repository/constant';
 
-import { Item, Repository, Test } from '../models';
+import { Item, Repository, Test } from '../../services/models';
 import { generateSortIndex } from '../utils/helper';
 export interface ICommonRes<T = any> {
   success: boolean;

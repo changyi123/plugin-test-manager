@@ -1,5 +1,5 @@
-import { appKey, RepositoryModel } from './constants';
-import Parse from './parse';
+import { appKey, RepositoryModel } from '../lib/constants';
+import Parse from '../lib/parse';
 
 export const Item = Parse.Object.extend('Item');
 export const User = Parse.Object.extend('User');
@@ -25,3 +25,6 @@ export const WordTemplate = Parse.Object.extend(`${appKey}_WordTemplate`);
 export const TestRelation = Parse.Object.extend(`${appKey}_TestRelation`);
 export const UserSetting = Parse.Object.extend(`${appKey}_UserSetting`);
 export const TestExecution = Parse.Object.extend(`${appKey}_TestExecution`);
+
+export { default as TestReport } from './testReport/model';
+export type { TestReportModelType } from './testReport/model';

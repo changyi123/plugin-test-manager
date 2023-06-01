@@ -178,8 +178,8 @@
         "systemTips": "测试管理系统隔离说明"
       },
       "wordTemplate": {
-        "title": "测试报告模板管理",
-        "description": "测试报告模板管理",
+        "title": "测试报告 Word 模板管理",
+        "description": "测试报告 Word 模板管理",
         "templateName": "模板名称",
         "file": "模板上传",
         "uploadTestReportTemplate": "上传测试报告模板",
@@ -190,6 +190,22 @@
         "ruleTips": "请输入模板名称",
         "uploadFile": "模板上传",
         "uploadFileTips": "请上传模板"
+      },
+      "testReportTemplate": {
+        "title": "测试报告模板管理",
+        "table": {
+          "title": "模板管理",
+          "header": {
+            "name": "标题",
+            "action": "操作"
+          },
+          "action": {
+            "view": "查看"
+          }
+        },
+        "buttons": {
+          "create": "新建报告模板"
+        }
       },
       "isolatedSystem": {
         "title": "测试管理系统隔离",
@@ -206,6 +222,27 @@
       "workspaceSelectorModal": {
         "modelTitle": "请选择测试管理配置空间",
         "placeholder": "请选择空间"
+      }
+    },
+    "reportTemplateCreator": {
+      "title": "新建报告模板",
+      "buttons": {
+        "next": "下一步"
+      },
+      "steps": {
+        "basic": "基本信息",
+        "template": "界面配置",
+        "dataSource": "数据源配置"
+      },
+      "basicConfig": {
+        "title": "基础信息",
+        "form": {
+          "name": {
+            "label": "模板标题",
+            "placeholder": "请输入模板标题",
+            "error": "模板标题必填"
+          }
+        }
       }
     },
     "plan": {

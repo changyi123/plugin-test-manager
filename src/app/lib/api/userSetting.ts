@@ -1,4 +1,4 @@
-import { UserSetting, Workspace } from '../models';
+import { UserSetting, Workspace } from '../../services/models';
 
 export const getCurrentUserSetting = async ({
   workspaceKey,

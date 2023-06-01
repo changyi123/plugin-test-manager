@@ -3,6 +3,7 @@ import React from 'react';
 const routes = [
   {
     path: '/repository',
+    // component: React.lazy(() => import('../pages/reportTemplateCreator')),
     component: React.lazy(() => import('../pages/repository')),
     exact: true,
   },
@@ -33,6 +34,11 @@ const routes = [
   {
     path: '/beforeItemCreateModule',
     component: React.lazy(() => import('../modules/beforeCreateOrUpdateModal')),
+    exact: true,
+  },
+  {
+    path: '/reportCreator',
+    component: React.lazy(() => import('../pages/reportTemplateCreator')),
     exact: true,
   },
 ];
