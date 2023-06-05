@@ -6,7 +6,7 @@ import ErrorBoundary from '@/components/common/ErrorBoundary';
 import getDevConfig from '@/devEnv';
 import { logPluginVersion } from '@/lib/utils/helper';
 
-import ReportHeader from './Header';
+import View from './View';
 
 logPluginVersion();
 
@@ -17,9 +17,7 @@ const TestPlanPage = () => {
   return (
     <ErrorBoundary>
       <TestManagerProvider workspaceKey={workspaceKey}>
-        <>
-          <ReportHeader />
-        </>
+        <View />
       </TestManagerProvider>
     </ErrorBoundary>
   );

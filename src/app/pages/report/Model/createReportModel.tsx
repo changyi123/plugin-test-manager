@@ -1,7 +1,7 @@
 import { useReactive } from 'ahooks';
 import { Button, message, Modal } from 'antd';
 import classnames from 'classnames';
-import { clone } from 'lodash';
+import clone from 'lodash/clone';
 import React, { useCallback, useMemo, useState } from 'react';
 
 import useI18n from '@/lib/hooks/useI18n';
@@ -31,14 +31,17 @@ const CreateReportModel: React.FC<CreateReportModelProps> = props => {
   const { t } = useI18n();
 
   const [visible, setVisible] = useState(false);
-  const [current, setCurrent] = useState('1');
+  const [current, setCurrent] = useState('2');
 
   const state = useReactive({
     name: '',
-    conclusion: '',
-    template: {},
+    reportStatus: '',
+    template: {
+      objectId: 'test-id',
+      name: '测试报告模板',
+    },
     selectors: {},
-    // reportSummary: {},
+    // reportOverviewData: {},
   });
 
   React.useImperativeHandle(
@@ -47,10 +50,15 @@ const CreateReportModel: React.FC<CreateReportModelProps> = props => {
       async open(params?: any) {
         console.info('CreateReportModel ------------->', params);
         setVisible(true);
+        eventBusRef.current.disposer();
         return new Promise(resolve => {
-          eventBusRef.current.register(CreateReportEventType, data => {
-            resolve(data);
-          });
+          eventBusRef.current.disposer = eventBusRef.current.register(
+            CreateReportEventType,
+            data => {
+              if (!data) return;
+              resolve(data);
+            },
+          );
         });
       },
     }),
@@ -61,8 +69,8 @@ const CreateReportModel: React.FC<CreateReportModelProps> = props => {
     data => {
       setTimeout(() => {
         state.name = '';
-        state.conclusion = '';
-        state.template = {};
+        state.reportStatus = '';
+        state.template = {} as any;
         state.selectors = {};
         setCurrent('1');
         setVisible(false);
@@ -76,7 +84,7 @@ const CreateReportModel: React.FC<CreateReportModelProps> = props => {
     if (!state.name) {
       return true;
     }
-    if (!state.conclusion) {
+    if (!state.reportStatus) {
       return true;
     }
     if (!(state.template as any)?.objectId) {
@@ -100,6 +108,7 @@ const CreateReportModel: React.FC<CreateReportModelProps> = props => {
               {t('common.prevStep')}
             </Button>
             <Button
+              type="primary"
               onClick={() => {
                 handleCloseModal(clone(state));
               }}

@@ -1,5 +1,8 @@
 import { flattenDepth, omitBy } from 'lodash';
 
+import { getLinkedTestEntityByQuery, getTestEntityByQuery } from './api/item';
+import { TestLinkType, TestPlanModel, TestType } from './constants';
+
 export type SelectorType = 'test_manager_Plan' | 'sprint' | 'version' | 'workspace' | 'customField';
 
 /** 支持数据源配置的 Chart */
@@ -45,15 +48,15 @@ export const DataSourceCollection: DataSource[] = [
   },
   // 第二级筛选器
   {
-    key: 'testCase',
+    key: TestType.Case,
     isFirstLevel: false,
   },
   {
-    key: 'testRun',
+    key: TestType.Run,
     isFirstLevel: false,
   },
   {
-    key: 'testDefect',
+    key: TestType.TestDefect,
     isFirstLevel: false,
   },
 ];
@@ -67,12 +70,132 @@ export const dataSourcePrepareData = (
 };
 
 /** 数据源 IQL 生成器  */
-export const dataSourceIqlGenerator = (dataSource: TemplateDataSourceConfig) => {
-  console.info(dataSource);
+export const dataSourceIqlGenerator = async (
+  dataSource: TemplateDataSourceConfig,
+  reportParams?: Record<string, any>,
+) => {
+  const { dataSourceIql, defectsMapping } = reportParams;
+  console.info(dataSource, dataSourceIql);
+  // 无 dataSource，直接范围空字符串
+  if (!dataSource?.length) return '';
+  // 取第一层级 dataSource 拼写 iql
+  // 三种情况：1、[{有plan},{}] 查 plan，在处理二级
+  // 2、[{无plan}]，查 plan
+  // 3、[{无plan},{}]，层级一 iql 降级查询层级二数据
+  const [firstLevelDataSource, secondLevelDataSource] = dataSource;
+  const firstLevelIql = dataSourceIql?.[firstLevelDataSource.selector];
+
+  // 是否降级查询,有第二层级，且第一层级无 plan
+  const isDowngrade = !!secondLevelDataSource && !firstLevelDataSource?.[TestPlanModel];
+
+  if (isDowngrade) {
+    const query = {} as Record<string, unknown>;
+    if (secondLevelDataSource.key === TestType.TestDefect) {
+      const [defectType] = defectsMapping ?? [];
+      defectType && (query.itemType = defectType);
+    } else {
+      query.type = secondLevelDataSource.key;
+    }
+    const { list: testIds } = await getTestEntityByQuery({
+      ...query,
+      selector: firstLevelIql,
+      limit: 99999,
+      onlySelectId: true,
+    });
+
+    return testIds?.length ? `'id' in ${JSON.stringify(testIds)}` : '';
+  } else {
+    // 查询测试计划
+    const { list: planIds } = await getTestEntityByQuery({
+      query: {
+        type: TestType.Plan,
+      },
+      selector: firstLevelIql,
+      limit: 99999,
+      onlySelectId: true,
+    });
+
+    const itemIds = await getItemIdByPlan({
+      planIds,
+      secondLevelDataSource,
+    });
+
+    // 无层级二直接返回 IQL
+    if (!secondLevelDataSource) return `'id' in ${JSON.stringify(itemIds)}`;
+  }
   // TODO: 生成数据源 IQL
-  // const iql = '';
-  // const firstLevelDataSource = dataSource.pop();
-  // const secondLevelDataSource = dataSource.pop();
+};
+
+const getItemIdByPlan = async ({ planIds, secondLevelDataSource }) => {
+  if (secondLevelDataSource.key === TestType.Case) {
+    const { list: caseIds } = await getLinkedTestEntityByQuery({
+      query: {
+        type: TestType.Case,
+      },
+      linkType: TestLinkType.CaseLinkPlan,
+      sourceIds: planIds,
+      destinationType: TestType.Case,
+      limit: 99999,
+      onlySelectId: true,
+    });
+
+    return caseIds;
+  }
+  const { list: executionIds } = await getLinkedTestEntityByQuery({
+    query: {
+      type: TestType.Execution,
+    },
+    linkType: TestLinkType.ExecutionLinkPlan,
+    sourceIds: planIds,
+    destinationType: TestType.Execution,
+    limit: 99999,
+    onlySelectId: true,
+  });
+
+  if (!executionIds?.length) return [];
+
+  if (secondLevelDataSource.key === TestType.Run) {
+    const { list: runIds } = await getLinkedTestEntityByQuery({
+      query: {
+        type: TestType.Run,
+      },
+      linkType: TestLinkType.RunLinkExecution,
+      sourceIds: executionIds,
+      destinationType: TestType.Run,
+      limit: 99999,
+      onlySelectId: true,
+    });
+    return runIds ?? [];
+  }
+
+  if (secondLevelDataSource.key === TestType.TestDefect) {
+    const { list: runList } = await getLinkedTestEntityByQuery({
+      query: {
+        type: TestType.Run,
+      },
+      linkType: TestLinkType.RunLinkExecution,
+      sourceIds: executionIds,
+      destinationType: TestType.Run,
+      limit: 99999,
+    });
+
+    const getDefectId = data => {
+      const runDetails = data?.map(d => d?.runDetail).filter(Boolean) ?? [];
+
+      const stepDefectIds = runDetails
+        .filter(d => d?.steps)
+        .map(d => d.steps)
+        .flat()
+        .map(d => d.defectItemIds ?? [])
+        .flat();
+      const runDefectItemIds = runDetails.map(d => d?.defectItemIds ?? []).flat();
+      return [...new Set([...stepDefectIds, ...runDefectItemIds])].filter(Boolean);
+    };
+
+    return getDefectId(runList);
+  }
+
+  return [];
 };
 
 /** chart iql 绑定适配器，某些报告小组件比较特殊，需要增加适配器 */

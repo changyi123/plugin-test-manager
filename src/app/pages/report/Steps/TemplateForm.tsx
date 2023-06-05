@@ -11,7 +11,6 @@ const TemplateForm: React.FC<FormProps> = ({ state, workspace }) => {
   const { t } = useI18n();
 
   const [inputStatus, setInputStatus] = useState(undefined);
-  const [radioStatus, setRadioStatus] = useState(undefined);
   const [selectStatus, setSelectStatus] = useState(undefined);
 
   const options = useMemo(() => {
@@ -66,16 +65,12 @@ const TemplateForm: React.FC<FormProps> = ({ state, workspace }) => {
       </div>
       <div className={cx('form-box')}>
         <span className={cx('step-label', 'required')}>{t('report.reportResult')}</span>
-        {radioStatus === 'error' && <span className={cx('error')}>{t('report.required')}</span>}
         <div className={cx('step-cont')}>
           <Radio.Group
             options={options}
-            defaultValue={state.conclusion}
+            defaultValue={state.reportStatus}
             onChange={e => {
-              state.conclusion = e.target.value;
-            }}
-            onBlur={() => {
-              setRadioStatus(state.conclusion ? undefined : 'error');
+              state.reportStatus = e.target.value;
             }}
           ></Radio.Group>
         </div>

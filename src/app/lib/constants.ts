@@ -85,7 +85,11 @@ export const TABLE_EXCLUDE_FIELDS = [SYSTEM_FIELD.Team];
 
 export const ICLUDE_SYSTEM_FIELD = [SYSTEM_FIELD.Status];
 
-export const REPORT_SYSTEM_FIELD = [SYSTEM_FIELD.Version, SYSTEM_FIELD.Sprint];
+export const REPORT_SYSTEM_FIELD = [
+  SYSTEM_FIELD.Version,
+  SYSTEM_FIELD.Sprint,
+  SYSTEM_FIELD.Workspace,
+];
 
 // FieldType字段映射, 对应FieldType表的key字段
 export const FIELD_TYPE_KEY_MAPPINGS = {

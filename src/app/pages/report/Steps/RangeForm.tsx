@@ -13,7 +13,6 @@ import {
   FILTER_EXPRESSIONS,
   getReportFilterFields,
   IS_EXTEND_FIELDS,
-  REPORT_SYSTEM_FIELD,
   TestPlanModel,
   TestType,
 } from '@/lib/constants';
@@ -31,10 +30,24 @@ export type FormProps = {
 const RangeForm: React.FC<any> = ({ state, workspace }) => {
   const { t } = useI18n();
   const [selectors, setSelectors] = useState(undefined);
+  // reportOverviewConfig
+  const reportFields = useMemo(() => {
+    const { dataSource } = state.template?.templateConfig ?? {};
+    if (!dataSource) return;
+    const selectorFields = Object.values(dataSource)
+      .map(d => d?.[0].selector)
+      ?.filter(Boolean);
+    return [...new Set(selectorFields)];
+  }, [state.template?.templateConfig]);
+
+  // const reportOverview = useMemo(() => {
+  //   return state.template?.reportOverviewConfig;
+  // }, [state.template?.reportOverviewConfig]);
+
   // 获取统计范围字段 fields
   const { data: defaultSelectors, loading } = useRequest(
     async () => {
-      const res = await getCustomFields(REPORT_SYSTEM_FIELD);
+      const res = await getCustomFields(reportFields);
 
       return [...getReportFilterFields(t), ...res]?.reduce((prev, cur) => {
         prev[cur.objectId] = {
@@ -51,14 +64,12 @@ const RangeForm: React.FC<any> = ({ state, workspace }) => {
       }, {});
     },
     {
-      ready: Boolean(REPORT_SYSTEM_FIELD?.length),
-      refreshDeps: [REPORT_SYSTEM_FIELD],
-      cacheKey: `Range_Form`,
+      ready: Boolean(reportFields?.length),
+      refreshDeps: [reportFields],
+      cacheKey: `Range_Form_${(reportFields ?? []).toString()}`,
       staleTime: -1,
     },
   );
-
-  console.info(11111111111, selectors);
 
   useUpdateEffect(() => {
     if (!loading && defaultSelectors) {

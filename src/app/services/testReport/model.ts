@@ -98,7 +98,10 @@ const TestReport = Parse.Object.extend('test_manager_Report', {
   async createReport(
     templateId: string,
     reportParams: Partial<Pick<TestReportModelType, 'reportStatus' | 'reportOverviewData'>> &
-      Pick<TestReportModelType, 'workspace' | 'name'>,
+      Pick<TestReportModelType, 'workspace' | 'name'> & {
+        dataSourceIql?: Record<string, string>;
+        defectsMapping?: string[];
+      },
   ) {
     // 获取模板数据
     const templateReportData = await new Parse.Query('test_manager_Report')
@@ -112,7 +115,7 @@ const TestReport = Parse.Object.extend('test_manager_Report', {
 
     // 获取模板关联的 chart 数据
     const chartGroupId = reportTemplateChartGroup.objectId;
-    const chartGroupDataList = await new Parse.Query(Chart)
+    const chartDataList = await new Parse.Query(Chart)
       .equalTo('chartGroup', chartGroupId)
       .findAll({ json: true });
 
@@ -135,7 +138,7 @@ const TestReport = Parse.Object.extend('test_manager_Report', {
     const templateDataSourceConfig = reportTemplateConfig.dataSource;
 
     // 2. 创建测试报告关联的 chart
-    const newChartObjects = chartGroupDataList.reduce(async (objects, chartData) => {
+    const newChartObjects = chartDataList.reduce(async (objects, chartData) => {
       const newChartObject = new Chart();
       newChartObject.set(
         Object.assign(
@@ -151,7 +154,7 @@ const TestReport = Parse.Object.extend('test_manager_Report', {
         const dataSource = templateDataSourceConfig[chartData.objectId];
         // 根据数据源配置生成对应的 iql
         // TODO: prepareData 数据
-        const iql = await dataSourceIqlGenerator(dataSource);
+        const iql = await dataSourceIqlGenerator(dataSource, reportParams);
         // 根据 iql 增加到 chartOption 中
         const option = bindIqlToChartOption(iql, chartData);
         // 设置 option
