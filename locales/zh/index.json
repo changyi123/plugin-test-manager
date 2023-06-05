@@ -230,6 +230,7 @@
         "next": "下一步",
         "finish": "完成"
       },
+
       "steps": {
         "basic": "基本信息",
         "template": "界面配置",
@@ -246,23 +247,27 @@
         }
       },
       "dataSourceConfig": {
+        "labels": {
+          "plan": "所选测试计划",
+          "sprint": "所选迭代",
+          "version": "所选版本",
+          "workspace": "所选空间",
+          "currentWorkspace": "当前空间",
+
+          "testCase": "所有的测试用例",
+          "testRun": "所有的测试执行",
+          "testDefect": "所有的缺陷"
+        },
         "title": "数据规则配置",
         "select": {
-          "labels": {
-            "plan": "所选测试计划",
-            "sprint": "所选迭代",
-            "version": "所选版本",
-            "workspace": "所选空间",
-            "currentWorkspace": "当前空间",
-
-            "testCase": "所有的测试用例",
-            "testRun": "所有的测试执行",
-            "testDefect": "所有的缺陷"
-          },
           "placeholders": {
             "firstLevel": "请选择数据源范围",
             "secondLevel": "请选择数据源范围"
           }
+        },
+        "message": {
+          "addDataSourceSuccess": "添加数据源成功",
+          "dataSourceExisted": "该数据源已存在"
         },
         "buttons": {
           "addDataSource": "添加数据源"

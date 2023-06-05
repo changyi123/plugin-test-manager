@@ -104,7 +104,7 @@ export const useChartGroupQuery = (params: {
     TestReportQueryKeys.chartGroup(params),
     async () => {
       const queryTasks = [
-        new Parse.Query(TestReport).equalTo('objectId', params.id).first({ json: true }),
+        new Parse.Query(ChartGroup).equalTo('objectId', params.id).first({ json: true }),
       ];
 
       if (params.includeChart) {

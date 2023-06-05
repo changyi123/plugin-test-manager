@@ -101,3 +101,8 @@ export const bindIqlToChartOption = (iql, chartData) => {
 
   return (adaptors[chartData.chartView] ?? adaptors.default)(chartData.option);
 };
+
+/** 生成数据源配置 uid */
+export const genDataSourceConfigUid = (dataSourceConfig: TemplateDataSourceConfig) => {
+  return dataSourceConfig.map(dataSource => dataSource.key).join('_');
+};
