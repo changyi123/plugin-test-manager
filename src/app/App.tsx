@@ -1,4 +1,5 @@
 import { PluginSDKContext } from '@projectproxima/plugin-sdk';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ConfigProvider, Empty, message, notification } from 'antd';
 import React, { Suspense, useEffect, useMemo } from 'react';
 import { HashRouter, MemoryRouter, Route, Switch, useHistory } from 'react-router-dom';
@@ -63,39 +64,39 @@ const App: React.FC<{ locale: any; lngDict: any; antdLang: any }> = props => {
     });
   }, []);
 
-  console.info('locale---->', locale, antdLang);
-
   return (
     <I18n lngDict={lngDict} locale={locale}>
       <PluginSDKContext.Provider value={qiankunContextValue.sdk}>
-        <ConfigProvider
-          locale={antdLang}
-          getPopupContainer={() => document.getElementById(rootElement)}
-          renderEmpty={EmptyRender}
-        >
-          {process.env.NODE_ENV === 'production' || window.__POWERED_BY_QIANKUN__ ? (
-            <MemoryRouter>
-              <GoPropsRoute {...props} />
-              <Switch>
-                <Suspense fallback={null}>
-                  {routes.map(({ path, component, exact }) => (
-                    <Route path={path} component={component} exact={exact} key={path} />
-                  ))}
-                </Suspense>
-              </Switch>
-            </MemoryRouter>
-          ) : (
-            <HashRouter>
-              <Switch>
-                <Suspense fallback={null}>
-                  {routes.map(({ path, component, exact }) => (
-                    <Route path={path} component={component} exact={exact} key={path} />
-                  ))}
-                </Suspense>
-              </Switch>
-            </HashRouter>
-          )}
-        </ConfigProvider>
+        <QueryClientProvider client={new QueryClient()}>
+          <ConfigProvider
+            locale={antdLang}
+            getPopupContainer={() => document.getElementById(rootElement)}
+            renderEmpty={EmptyRender}
+          >
+            {process.env.NODE_ENV === 'production' || window.__POWERED_BY_QIANKUN__ ? (
+              <MemoryRouter>
+                <GoPropsRoute {...props} />
+                <Switch>
+                  <Suspense fallback={null}>
+                    {routes.map(({ path, component, exact }) => (
+                      <Route path={path} component={component} exact={exact} key={path} />
+                    ))}
+                  </Suspense>
+                </Switch>
+              </MemoryRouter>
+            ) : (
+              <HashRouter>
+                <Switch>
+                  <Suspense fallback={null}>
+                    {routes.map(({ path, component, exact }) => (
+                      <Route path={path} component={component} exact={exact} key={path} />
+                    ))}
+                  </Suspense>
+                </Switch>
+              </HashRouter>
+            )}
+          </ConfigProvider>
+        </QueryClientProvider>
       </PluginSDKContext.Provider>
     </I18n>
   );

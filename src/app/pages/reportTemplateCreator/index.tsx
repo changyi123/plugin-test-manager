@@ -66,6 +66,7 @@ const TestReportTemplate: React.FC = () => {
               {scopedT('buttons.next')}
             </Button>
           )}
+          {endOfStep && <Button type="primary">{scopedT('buttons.finish')}</Button>}
         </div>
       </div>
       <div>

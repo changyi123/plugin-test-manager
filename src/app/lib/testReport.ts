@@ -13,6 +13,8 @@ export type DataSource = {
   isFirstLevel: boolean;
   // 数据源需要创建时限定的范围
   selector?: SelectorType;
+  // 二级数据源依赖的一级数据源
+  dependOn?: DataSource['key'][];
 };
 
 export type TemplateDataSourceConfig = [DataSource] | [DataSource, DataSource];
@@ -47,14 +49,17 @@ export const DataSourceCollection: DataSource[] = [
   {
     key: 'testCase',
     isFirstLevel: false,
+    dependOn: ['plan', 'workspace', 'currentWorkspace'],
   },
   {
     key: 'testRun',
     isFirstLevel: false,
+    dependOn: ['plan', 'workspace', 'currentWorkspace'],
   },
   {
     key: 'testDefect',
     isFirstLevel: false,
+    dependOn: ['sprint', 'version', 'workspace', 'currentWorkspace'],
   },
 ];
 

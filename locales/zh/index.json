@@ -227,7 +227,8 @@
     "reportTemplateCreator": {
       "title": "新建报告模板",
       "buttons": {
-        "next": "下一步"
+        "next": "下一步",
+        "finish": "完成"
       },
       "steps": {
         "basic": "基本信息",
@@ -242,6 +243,29 @@
             "placeholder": "请输入模板标题",
             "error": "模板标题必填"
           }
+        }
+      },
+      "dataSourceConfig": {
+        "title": "数据规则配置",
+        "select": {
+          "labels": {
+            "plan": "所选测试计划",
+            "sprint": "所选迭代",
+            "version": "所选版本",
+            "workspace": "所选空间",
+            "currentWorkspace": "当前空间",
+
+            "testCase": "所有的测试用例",
+            "testRun": "所有的测试执行",
+            "testDefect": "所有的缺陷"
+          },
+          "placeholders": {
+            "firstLevel": "请选择数据源范围",
+            "secondLevel": "请选择数据源范围"
+          }
+        },
+        "buttons": {
+          "addDataSource": "添加数据源"
         }
       }
     },
