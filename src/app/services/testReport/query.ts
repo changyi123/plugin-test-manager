@@ -11,14 +11,15 @@ export const TestReportQueryKeys = {
   workspaceTemplateList: params => ['testReport', 'templateList', params],
   /** 查询当前空间的报告 */
   workspaceReportList: params => ['testReport', 'reportList', params],
-  /** 获取单个模板查询 */
-  template: params => ['testReport', 'template', params],
 
   /** 获取仪表盘数据 */
   chartGroup: params => ['testReport', 'chartGroup', params],
 
   /** 查询配置页面模板 */
   allTemplate: params => ['testConfig', 'allTemplate', params],
+
+  /** objectId */
+  objectId: objectId => ['testReport', objectId],
 } as const;
 
 /** 获取空间内支持创建模板 */
@@ -79,17 +80,14 @@ export const useWorkspaceReportListQuery = (params: {
 };
 
 /** 获取单个模板查询 */
-export const useTemplateQuery = (params: { id?: string }) => {
+export const useTestReportByObjectId = objectId => {
   return useQuery(
-    TestReportQueryKeys.template(params),
+    TestReportQueryKeys.objectId(objectId),
     async () => {
-      return new Parse.Query(TestReport)
-        .equalTo('objectId', params.id)
-        .equalTo('isTemplate', true)
-        .first({ json: true });
+      return new Parse.Query(TestReport).equalTo('objectId', objectId).first({ json: true });
     },
     {
-      enabled: Boolean(params.id),
+      enabled: Boolean(objectId),
     },
   );
 };

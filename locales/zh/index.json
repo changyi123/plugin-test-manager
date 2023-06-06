@@ -226,9 +226,9 @@
     },
     "reportTemplateCreator": {
       "title": "新建报告模板",
-      "buttons": {
+      "button": {
         "next": "下一步",
-        "finish": "完成"
+        "finish": "保存"
       },
 
       "steps": {
@@ -247,6 +247,10 @@
         }
       },
       "dataSourceConfig": {
+        "subtitle": {
+          "addDataSource": "添加数据源",
+          "bindDataSource": "报表数据源"
+        },
         "labels": {
           "plan": "所选测试计划",
           "sprint": "所选迭代",
@@ -266,11 +270,19 @@
           }
         },
         "message": {
+          "createReportTemplateSuccess": "测试报告模板创建成功",
           "addDataSourceSuccess": "添加数据源成功",
+          "deleteDataSourceSuccess": "数据源删除成功",
           "dataSourceExisted": "该数据源已存在"
         },
-        "buttons": {
-          "addDataSource": "添加数据源"
+        "button": {
+          "addDataSource": "添加"
+        },
+        "table": {
+          "title": {
+            "chartName": "仪表盘小组件",
+            "dataSource": "数据源"
+          }
         }
       }
     },

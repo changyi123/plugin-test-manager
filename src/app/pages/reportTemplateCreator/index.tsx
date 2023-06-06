@@ -1,12 +1,17 @@
 import { useMemoizedFn } from 'ahooks';
 import { Button, Steps as AntdSteps } from 'antd';
+import { useSetAtom } from 'jotai';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { testReportQuery } from '@/services/query';
+
 import cx from './index.less';
+import { LocationStoreHashKey } from './lib';
 import BasicConfig from './steps/BasicConfig';
 import DataSourceConfig from './steps/DataSourceConfig';
 import TemplateConfig from './steps/TemplateConfig';
+import { reportTemplateConnectLocation } from './store';
 
 export type ActionRefType = {
   goNextButtonClick?: () => Promise<void>;
@@ -37,14 +42,32 @@ const TestReportTemplate: React.FC = () => {
     keyPrefix: 'page.reportTemplateCreator',
   });
 
+  const setReportTemplate = useSetAtom(reportTemplateConnectLocation);
+
   const [currentStep, setCurrentStep] = React.useState(2);
   const currentStepConfig = StepsConfig[currentStep];
 
+  // 从 URL 中获取测试报告模板 ID
+  const testReportId = location.hash.match(new RegExp(`${LocationStoreHashKey}=(.+)`))?.[1];
+
+  const { data: testReportTemplateData } = testReportQuery.useTestReportByObjectId(testReportId);
+
   const goNextStep = useMemoizedFn(async () => {
     // 通知 Step 组件执行下一步
-    await actionRef.current?.goNextButtonClick?.();
-    setCurrentStep(step => step + 1);
+
+    try {
+      await actionRef.current?.goNextButtonClick?.();
+      setCurrentStep(step => step + 1);
+    } catch (_err) {
+      // do nothing
+    }
   });
+
+  React.useEffect(() => {
+    if (testReportTemplateData) {
+      setReportTemplate(testReportTemplateData);
+    }
+  }, [setReportTemplate, testReportTemplateData]);
 
   const endOfStep = currentStep === StepsConfig.length - 1;
 
@@ -63,10 +86,10 @@ const TestReportTemplate: React.FC = () => {
         <div className={cx('action')}>
           {!endOfStep && (
             <Button type="primary" onClick={goNextStep}>
-              {scopedT('buttons.next')}
+              {scopedT('button.next')}
             </Button>
           )}
-          {endOfStep && <Button type="primary">{scopedT('buttons.finish')}</Button>}
+          {endOfStep && <Button type="primary">{scopedT('button.finish')}</Button>}
         </div>
       </div>
       <div>

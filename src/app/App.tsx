@@ -16,6 +16,12 @@ message.config({
   getContainer: getRootContainer,
 });
 
+const ReactQueryDevtoolsProduction = React.lazy(() =>
+  import('@tanstack/react-query-devtools/build/lib/index.prod.js').then(d => ({
+    default: d.ReactQueryDevtools,
+  })),
+);
+
 interface QiankunContextProps {
   setGlobalState?: (data: { data: any }) => void;
   Parse?: any;
@@ -49,8 +55,11 @@ const EmptyRender = () => {
   );
 };
 
+const showReactQueryDevtools = !!localStorage.getItem('showReactQueryDevtools');
+
 const App: React.FC<{ locale: any; lngDict: any; antdLang: any }> = props => {
   const { locale, lngDict, antdLang } = props;
+
   const qiankunContextValue: any = useMemo(
     () => ({
       ...props,
@@ -68,6 +77,11 @@ const App: React.FC<{ locale: any; lngDict: any; antdLang: any }> = props => {
     <I18n lngDict={lngDict} locale={locale}>
       <PluginSDKContext.Provider value={qiankunContextValue.sdk}>
         <QueryClientProvider client={new QueryClient()}>
+          {showReactQueryDevtools && (
+            <React.Suspense fallback={null}>
+              <ReactQueryDevtoolsProduction initialIsOpen />
+            </React.Suspense>
+          )}
           <ConfigProvider
             locale={antdLang}
             getPopupContainer={() => document.getElementById(rootElement)}

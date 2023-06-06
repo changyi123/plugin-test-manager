@@ -1,7 +1,9 @@
-import { Button, message, Select } from 'antd';
+import { Button, message, Select, Table } from 'antd';
+import { useAtomValue } from 'jotai';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { DeleteOutlined } from '@/icons';
 import {
   DataSource,
   DataSourceCollection,
@@ -11,6 +13,7 @@ import {
 import { testConfigMutation } from '@/services/mutation';
 import { testConfigQuery, testReportQuery } from '@/services/query';
 
+import { reportTemplateConnectLocation } from '../store';
 import cx from './DataSourceConfig.less';
 
 const FirstLevelDataSourceCollection = DataSourceCollection.filter(ds => ds.isFirstLevel);
@@ -41,7 +44,7 @@ const DataSourceSelector: React.FC<{
 
   const selectOptionsBuilder = (dataSource: DataSource[]) =>
     dataSource.map(ds => ({
-      label: scopedT(`select.labels.${ds.key}`),
+      label: scopedT(`labels.${ds.key}`),
       value: ds.key,
     }));
 
@@ -88,25 +91,61 @@ const DataSourceSelector: React.FC<{
         disabled={!dataSourceConfig[0]}
         type="primary"
       >
-        {scopedT('buttons.addDataSource')}
+        {scopedT('button.addDataSource')}
       </Button>
     </div>
   );
 };
 
 /** 数据源关联 */
-const DataSourceBinding: React.FC = () => {
-  // TODO: 查询的模板 Id
-  // const { data: templateData } = testReportQuery.useTemplateQuery({ id: '1' });
+const DataSourceBinding: React.FC<{
+  reportDataSourceFlattenData: any[];
+}> = ({ reportDataSourceFlattenData }) => {
+  const testReportTemplateData = useAtomValue(reportTemplateConnectLocation);
+
   const { data: chartGroupData } = testReportQuery.useChartGroupQuery({
-    // id: templateData?.chartGroup.objectId,
-    id: 'X1ZqULzaUM',
+    id: testReportTemplateData.chartGroup?.objectId,
     includeChart: true,
   });
 
-  console.info(chartGroupData?.charts);
+  const { t: scopedT } = useTranslation('', {
+    keyPrefix: 'page.reportTemplateCreator.dataSourceConfig',
+  });
 
-  return null;
+  const columns = [
+    {
+      title: scopedT('table.title.chartName'),
+      dataIndex: 'chartName',
+    },
+    {
+      title: scopedT('table.title.dataSource'),
+      dataIndex: 'dataSource',
+      render: () => {
+        const options =
+          reportDataSourceFlattenData?.map(ds => ({
+            ...ds,
+            value: ds.key,
+          })) ?? [];
+
+        return <Select style={{ width: 250 }} options={options} />;
+      },
+    },
+  ];
+
+  const dataSource =
+    chartGroupData?.charts.map(chart => ({
+      key: chart.objectId,
+      chartName: chart.name,
+    })) ?? [];
+
+  return (
+    <Table
+      columns={columns}
+      pagination={false}
+      dataSource={dataSource}
+      scroll={{ y: 500, x: 500 }}
+    ></Table>
+  );
 };
 
 const DataSourceConfig: React.FC = () => {
@@ -115,9 +154,8 @@ const DataSourceConfig: React.FC = () => {
   });
 
   const dataSourceSelectorActionRef = React.useRef(null);
-  const { mutateAsync: updateTestConfig } = testConfigMutation.useTestConfigMutation();
-  const { data: globalTestConfig, refetch: refetchGlobalTestConfig } =
-    testConfigQuery.useGlobalTestConfig();
+  const { mutateAsync: updateTestConfig } = testConfigMutation.useTestConfigUpdateMutation();
+  const { data: globalTestConfig } = testConfigQuery.useGlobalTestConfig();
 
   const extraConfig = globalTestConfig?.extra;
   const reportDataSource = extraConfig?.reportDataSource;
@@ -141,26 +179,57 @@ const DataSourceConfig: React.FC = () => {
       objectId: globalTestConfig.objectId,
       extra: extraConfig,
     });
-    refetchGlobalTestConfig();
+
     dataSourceSelectorActionRef.current.resetSelector();
     message.success(scopedT('message.addDataSourceSuccess'));
   };
+
+  const handleDeleteDataSource = async dataSourceConfigUid => {
+    if (Array.isArray(reportDataSource)) {
+      const reservedDataSource = reportDataSource.filter(
+        ds => genDataSourceConfigUid(ds) !== dataSourceConfigUid,
+      );
+
+      extraConfig.reportDataSource = reservedDataSource;
+
+      await updateTestConfig({
+        objectId: globalTestConfig.objectId,
+        extra: extraConfig,
+      });
+
+      message.success(scopedT('message.deleteDataSourceSuccess'));
+    }
+  };
+
+  const reportDataSourceFlattenData =
+    reportDataSource?.map(ds => ({
+      key: genDataSourceConfigUid(ds),
+      label: ds.map(ds => scopedT(`labels.${ds.key}`)).join('，'),
+      original: ds,
+    })) ?? [];
 
   return (
     <div className={cx('container')}>
       <h3 className={cx('title')}>{scopedT('title')}</h3>
       <div className={cx('data-setting')}>
+        <div className={cx('subtitle')}>{scopedT('subtitle.addDataSource')}</div>
+        <DataSourceSelector
+          onAddDataSource={handleAddDataSource}
+          actionRef={dataSourceSelectorActionRef}
+        />
         <div>
-          <DataSourceSelector
-            onAddDataSource={handleAddDataSource}
-            actionRef={dataSourceSelectorActionRef}
-          />
-          <div>
-            {Array.isArray(reportDataSource) &&
-              reportDataSource.map(ds => <li key={genDataSourceConfigUid(ds)}>{scopedT('')}</li>)}
-          </div>
+          {Array.isArray(reportDataSource) &&
+            reportDataSourceFlattenData.map(ds => (
+              <div className={cx('list')} key={ds.key}>
+                <span>{ds.label}</span>
+                <a onClick={() => handleDeleteDataSource(ds.key)}>
+                  <DeleteOutlined />
+                </a>
+              </div>
+            ))}
         </div>
-        <DataSourceBinding />
+        <div className={cx('subtitle')}>{scopedT('subtitle.addDataSource')}</div>
+        <DataSourceBinding reportDataSourceFlattenData={reportDataSourceFlattenData} />
       </div>
       <div className={cx('data-bind')}></div>
     </div>
