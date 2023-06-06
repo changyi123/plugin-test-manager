@@ -89,13 +89,16 @@ export const dataSourceIqlGenerator = async (
   const isDowngrade = !!secondLevelDataSource && !firstLevelDataSource?.[TestPlanModel];
 
   if (isDowngrade) {
+    // 降级查询
     const query = {} as Record<string, unknown>;
+
     if (secondLevelDataSource.key === TestType.TestDefect) {
       const [defectType] = defectsMapping ?? [];
       defectType && (query.itemType = defectType);
     } else {
       query.type = secondLevelDataSource.key;
     }
+
     const { list: testIds } = await getTestEntityByQuery({
       ...query,
       selector: firstLevelIql,
@@ -115,18 +118,21 @@ export const dataSourceIqlGenerator = async (
       onlySelectId: true,
     });
 
+    // 无层级二直接返回 IQL
+    if (!secondLevelDataSource) return `'id' in ${JSON.stringify(planIds)}`;
+
     const itemIds = await getItemIdByPlan({
       planIds,
       secondLevelDataSource,
     });
 
-    // 无层级二直接返回 IQL
-    if (!secondLevelDataSource) return `'id' in ${JSON.stringify(itemIds)}`;
+    return `'id' in ${JSON.stringify(itemIds)}`;
   }
   // TODO: 生成数据源 IQL
 };
 
 const getItemIdByPlan = async ({ planIds, secondLevelDataSource }) => {
+  // 测试用例
   if (secondLevelDataSource.key === TestType.Case) {
     const { list: caseIds } = await getLinkedTestEntityByQuery({
       query: {
@@ -141,6 +147,7 @@ const getItemIdByPlan = async ({ planIds, secondLevelDataSource }) => {
 
     return caseIds;
   }
+  // 查询测试执行任务
   const { list: executionIds } = await getLinkedTestEntityByQuery({
     query: {
       type: TestType.Execution,
@@ -154,6 +161,7 @@ const getItemIdByPlan = async ({ planIds, secondLevelDataSource }) => {
 
   if (!executionIds?.length) return [];
 
+  // 查询测试执行任务关联的测试执行
   if (secondLevelDataSource.key === TestType.Run) {
     const { list: runIds } = await getLinkedTestEntityByQuery({
       query: {
@@ -168,6 +176,7 @@ const getItemIdByPlan = async ({ planIds, secondLevelDataSource }) => {
     return runIds ?? [];
   }
 
+  // 查询测试执行关联的缺陷
   if (secondLevelDataSource.key === TestType.TestDefect) {
     const { list: runList } = await getLinkedTestEntityByQuery({
       query: {

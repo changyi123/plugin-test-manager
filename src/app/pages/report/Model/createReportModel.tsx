@@ -31,7 +31,7 @@ const CreateReportModel: React.FC<CreateReportModelProps> = props => {
   const { t } = useI18n();
 
   const [visible, setVisible] = useState(false);
-  const [current, setCurrent] = useState('2');
+  const [current, setCurrent] = useState('1');
 
   const state = useReactive({
     name: '',
