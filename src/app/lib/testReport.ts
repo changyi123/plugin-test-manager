@@ -16,6 +16,8 @@ export type DataSource = {
   isFirstLevel: boolean;
   // 数据源需要创建时限定的范围
   selector?: SelectorType;
+  // 二级数据源依赖的一级数据源
+  dependOn?: DataSource['key'][];
 };
 
 export type TemplateDataSourceConfig = [DataSource] | [DataSource, DataSource];
@@ -50,14 +52,17 @@ export const DataSourceCollection: DataSource[] = [
   {
     key: TestType.Case,
     isFirstLevel: false,
+    dependOn: ['plan', 'workspace', 'currentWorkspace'],
   },
   {
     key: TestType.Run,
     isFirstLevel: false,
+    dependOn: ['plan', 'workspace', 'currentWorkspace'],
   },
   {
     key: TestType.TestDefect,
     isFirstLevel: false,
+    dependOn: ['sprint', 'version', 'workspace', 'currentWorkspace'],
   },
 ];
 
@@ -227,4 +232,9 @@ export const bindIqlToChartOption = (iql, chartData) => {
   };
 
   return (adaptors[chartData.chartView] ?? adaptors.default)(chartData.option);
+};
+
+/** 生成数据源配置 uid */
+export const genDataSourceConfigUid = (dataSourceConfig: TemplateDataSourceConfig) => {
+  return dataSourceConfig.map(dataSource => dataSource.key).join('_');
 };

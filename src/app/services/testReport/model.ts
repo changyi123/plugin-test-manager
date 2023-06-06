@@ -59,7 +59,7 @@ const ReportTemplateChartGroupKey = 'test_manager_report_template' as const;
 const ReportChartGroupKey = 'test_manager_report' as const;
 
 // 测试报告模板
-const TestReport = Parse.Object.extend('test_manager_Report', {
+const TestReport = Parse.Object.extend('test_manager_TestReport', {
   /** 创建报告模板 */
   async createTemplate(reportTemplateParams) {
     const objectId = this.get('objectId');
@@ -104,7 +104,7 @@ const TestReport = Parse.Object.extend('test_manager_Report', {
       },
   ) {
     // 获取模板数据
-    const templateReportData = await new Parse.Query('test_manager_Report')
+    const templateReportData = await new Parse.Query(TestReport)
       .equalTo('objectId', templateId)
       .include('chartGroup')
       .first({ json: true });
@@ -163,7 +163,7 @@ const TestReport = Parse.Object.extend('test_manager_Report', {
 
       return objects.concat(newChartObject);
     }, []);
-    // 3. 创建 test_manager_Report
+    // 3. 创建 test_manager_TestReport
     const newTestReportObject = new TestReport().set({
       ...omitBy(templateReportData, ['objectId', 'chartGroup', ...FilterReportTemplateKey]),
       isTemplate: false,

@@ -3,8 +3,8 @@ import React from 'react';
 const routes = [
   {
     path: '/repository',
-    // component: React.lazy(() => import('../pages/reportTemplateCreator')),
-    component: React.lazy(() => import('../pages/repository')),
+    component: React.lazy(() => import('../pages/reportTemplateCreator')),
+    // component: React.lazy(() => import('../pages/repository')),
     exact: true,
   },
   {

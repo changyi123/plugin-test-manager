@@ -1871,10 +1871,19 @@
     "@svgr/plugin-svgo" "^5.5.0"
     loader-utils "^2.0.0"
 
-"@tanstack/query-core@4.29.11":
-  version "4.29.11"
-  resolved "https://registry.npmmirror.com/@tanstack/query-core/-/query-core-4.29.11.tgz#fa338f7d6897c6be5de6d8dabd603d9b78ee48c7"
-  integrity sha512-8C+hF6SFAb/TlFZyS9FItgNwrw4PMa7YeX+KQYe2ZAiEz6uzg6yIr+QBzPkUwZ/L0bXvGd1sufTm3wotoz+GwQ==
+"@tanstack/query-core@4.29.7":
+  version "4.29.7"
+  resolved "https://registry.npmmirror.com/@tanstack/query-core/-/query-core-4.29.7.tgz#9fe4587e23cb9566b937c518ffa44226041d388d"
+  integrity sha512-GXG4b5hV2Loir+h2G+RXhJdoZhJLnrBWsuLB2r0qBRyhWuXq9w/dWxzvpP89H0UARlH6Mr9DiVj4SMtpkF/aUA==
+
+"@tanstack/react-query-devtools@^4.29.12":
+  version "4.29.12"
+  resolved "https://registry.npmmirror.com/@tanstack/react-query-devtools/-/react-query-devtools-4.29.12.tgz#a5180bbd850dde6c81f87296acba1ac94302f936"
+  integrity sha512-ug4YGQhMhh6QI8/sWJhjXxuvdeehxf1cyxpTifGMH5qreQ5ECHT6vzqG/aKvADQDzqLBGrF0q4wTDnRRYvvtrA==
+  dependencies:
+    "@tanstack/match-sorter-utils" "^8.7.0"
+    superjson "^1.10.0"
+    use-sync-external-store "^1.2.0"
 
 "@tanstack/react-query@^4.29.7":
   version "4.29.12"
@@ -2621,6 +2630,11 @@ ajv@^8.0.0, ajv@^8.11.0, ajv@^8.9.0:
     json-schema-traverse "^1.0.0"
     require-from-string "^2.0.2"
     uri-js "^4.2.2"
+
+ansi-colors@^4.1.3:
+  version "4.1.3"
+  resolved "https://registry.npmmirror.com/ansi-colors/-/ansi-colors-4.1.3.tgz#37611340eb2243e70cc604cad35d63270d48781b"
+  integrity sha512-/6w/C21Pm1A7aZitlI5Ni/2J6FFQN8i1Cvz3kHABAAbw93v/NlvKdVOqz7CCWz/3iv/JplRSEEZ83XION15ovw==
 
 ansi-escapes@^4.2.1:
   version "4.3.2"
@@ -3643,6 +3657,13 @@ copy-anything@^2.0.1:
   integrity sha512-1j20GZTsvKNkc4BY3NpMOM8tt///wY3FpIzozTOFO2ffuZcV61nojHXVKIy3WM+7ADCy5FVhdZYHYDdgTU0yJw==
   dependencies:
     is-what "^3.14.1"
+
+copy-anything@^3.0.2:
+  version "3.0.5"
+  resolved "https://registry.npmmirror.com/copy-anything/-/copy-anything-3.0.5.tgz#2d92dce8c498f790fa7ad16b01a1ae5a45b020a0"
+  integrity sha512-yCEafptTtb4bk7GLEQoM8KVJpxAfdBJYaXyzQEgQQQgYrZiDp8SJmGKlYza6CYjEDNstAdNdKA3UuoULlEbS6w==
+  dependencies:
+    is-what "^4.1.8"
 
 copy-to-clipboard@^3.2.0:
   version "3.3.3"
@@ -6018,6 +6039,11 @@ is-what@^3.14.1:
   resolved "https://registry.npmmirror.com/is-what/-/is-what-3.14.1.tgz#e1222f46ddda85dead0fd1c9df131760e77755c1"
   integrity sha512-sNxgpk9793nzSs7bA6JQJGeIuRBQhAaNGG77kzYQgMkrID+lS6SlK07K5LaptscDlSaIgH+GPFzf+d75FVxozA==
 
+is-what@^4.1.8:
+  version "4.1.13"
+  resolved "https://registry.npmmirror.com/is-what/-/is-what-4.1.13.tgz#df4a3814261fe50f33c24bc53789d63eebd136b9"
+  integrity sha512-Aoe8pT24sWzyoO0S2PTDyutGp9l7qYHyFtzYlC8hMLshyqV/minljBANT4f2hiS5OxnWvcKMiA5io+VaLMJ1oA==
+
 is-wsl@^2.1.1, is-wsl@^2.2.0:
   version "2.2.0"
   resolved "https://registry.npmmirror.com/is-wsl/-/is-wsl-2.2.0.tgz#74a4c76e77ca9fd3f932f290c17ea326cd157271"
@@ -6066,6 +6092,11 @@ jest-worker@^27.4.5:
     "@types/node" "*"
     merge-stream "^2.0.0"
     supports-color "^8.0.0"
+
+jotai@^2.1.1:
+  version "2.1.1"
+  resolved "https://registry.npmmirror.com/jotai/-/jotai-2.1.1.tgz#7fc4edf16d7e20ff42952fbf2c36e8bd57510c07"
+  integrity sha512-LaaiuSaq+6XkwkrCtCkczyFVZOXe0dfjAFN4DVMsSZSRv/A/4xuLHnlpHMEDqvngjWYBotTIrnQ7OogMkUE6wA==
 
 js-cookie@^2.x.x:
   version "2.2.1"
@@ -8373,6 +8404,11 @@ relateurl@^0.2.7:
   resolved "https://registry.npmmirror.com/relateurl/-/relateurl-0.2.7.tgz#54dbf377e51440aca90a4cd274600d3ff2d888a9"
   integrity sha512-G08Dxvm4iDN3MLM0EsP62EDV9IuhXPR6blNz6Utcp7zyV3tr4HVNINt6MpaRWbxoOHT3Q7YN2P+jaHX8vUbgog==
 
+remove-accents@0.4.2:
+  version "0.4.2"
+  resolved "https://registry.npmmirror.com/remove-accents/-/remove-accents-0.4.2.tgz#0a43d3aaae1e80db919e07ae254b285d9e1c7bb5"
+  integrity sha512-7pXIJqJOq5tFgG1A2Zxti3Ht8jJF337m4sowbuHsW30ZnkQFnDzy9qBNhgzX8ZLW4+UBcXiiR7SwR6pokHsxiA==
+
 renderkid@^3.0.0:
   version "3.0.0"
   resolved "https://registry.npmmirror.com/renderkid/-/renderkid-3.0.0.tgz#5fd823e4d6951d37358ecc9a58b1f06836b6268a"
@@ -9137,6 +9173,13 @@ stylis@^4.0.13:
   version "4.2.0"
   resolved "https://registry.npmmirror.com/stylis/-/stylis-4.2.0.tgz#79daee0208964c8fe695a42fcffcac633a211a51"
   integrity sha512-Orov6g6BB1sDfYgzWfTHDOxamtX1bE/zo104Dh9e6fqJ3PooipYyfJ0pUmrZO2wAvO8YbEyeFrkV91XTsGMSrw==
+
+superjson@^1.10.0:
+  version "1.12.3"
+  resolved "https://registry.npmmirror.com/superjson/-/superjson-1.12.3.tgz#383aacfd795c6eef24c383c70154c6cbbcbfb31a"
+  integrity sha512-0j+U70KUtP8+roVPbwfqkyQI7lBt7ETnuA7KXbTDX3mCKiD/4fXs2ldKSMdt0MCfpTwiMxo20yFU3vu6ewETpQ==
+  dependencies:
+    copy-anything "^3.0.2"
 
 supports-color@^3.2.3:
   version "3.2.3"
