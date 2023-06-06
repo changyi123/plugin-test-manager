@@ -241,6 +241,10 @@ export const runImport = async () => {
             ...item.values,
             r_test_manager_repository: testRepoMap.get(item.objectId),
           },
+          // 导入时跳过应用中心 trigger 触发，避免把 runtime-server 搞崩
+          parseContext: {
+            skipHandleApps: true,
+          },
         });
     });
 

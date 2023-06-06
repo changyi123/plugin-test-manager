@@ -206,7 +206,7 @@ modules:
       resource: main
       title: 测试统计
       loadType: Redirect
-      route: /[tenant]/workspaces/[workspace]/report/test_manager?disabledCreate=true&displayContext=test_manager
+      route: /[tenant]/workspaces/[workspace]/plugin/team_insight_charts_base_team_insight_charts_base_workspace?disabledCreate=true&displayContext=test_manager&moduleKey=test_manager
       {workspacePageHidden}
     - key: test-xmindimport
       resource: main
