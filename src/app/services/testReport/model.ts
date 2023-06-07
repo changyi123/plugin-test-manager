@@ -7,6 +7,7 @@ import { bindIqlToChartOption, dataSourceIqlGenerator } from '@/lib/testReport';
 import { Chart, ChartGroup, Workspace } from '../models';
 
 export type TestReportModelType = {
+  objectId: string;
   /** 报告名称 */
   name: string;
   /** 对应的 chartGroup */
@@ -176,8 +177,8 @@ const TestReport = Parse.Object.extend('test_manager_TestReport', {
   },
 
   /** 删除报告或模板 */
-  async delete() {
-    const objectId = this.get('objectId');
+  async delete(_objectId) {
+    const objectId = this.get('objectId') ?? _objectId;
     if (!objectId) throw new Error('ReportTemplate is not existed');
     try {
       const chartGroupObjectId = this.get('chartGroup');

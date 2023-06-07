@@ -31,13 +31,14 @@ const BasicConfig: React.FC<{
     goNextButtonClick: async () => {
       try {
         // 已存在模板数据，不需要创建，走更新逻辑
-        if (reportTemplateData) {
+        if (reportTemplateData?.objectId) {
           // TODO: 更新测试报告模板
           return;
         }
         const data = await form.validateFields();
         const testReportTemplate = await createTestReport({
           isGlobalTemplate: true,
+          isDefaultTemplate: false,
           templateConfig: {
             dataSource: {},
           },

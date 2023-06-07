@@ -4,6 +4,7 @@ import { useSetAtom } from 'jotai';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { useLayoutHeight } from '@/components/common/PageLayout/hook';
 import { testReportQuery } from '@/services/query';
 
 import cx from './index.less';
@@ -44,22 +45,36 @@ const TestReportTemplate: React.FC = () => {
 
   const setReportTemplate = useSetAtom(reportTemplateConnectLocation);
 
-  const [currentStep, setCurrentStep] = React.useState(2);
+  const [nextButtonLoading, setNextButtonLoading] = React.useState(false);
+
+  // 获取页面高度
+  const height = useLayoutHeight();
+
+  const [currentStep, setCurrentStep] = React.useState(0);
   const currentStepConfig = StepsConfig[currentStep];
 
   // 从 URL 中获取测试报告模板 ID
-  const testReportId = location.hash.match(new RegExp(`${LocationStoreHashKey}=(.+)`))?.[1];
+  const testReportId = location.search.match(new RegExp(`${LocationStoreHashKey}=(.+)`))?.[1];
 
   const { data: testReportTemplateData } = testReportQuery.useTestReportByObjectId(testReportId);
+
+  const endOfStep = currentStep === StepsConfig.length - 1;
 
   const goNextStep = useMemoizedFn(async () => {
     // 通知 Step 组件执行下一步
 
     try {
+      setNextButtonLoading(true);
       await actionRef.current?.goNextButtonClick?.();
-      setCurrentStep(step => step + 1);
+      if (!endOfStep) {
+        setCurrentStep(step => step + 1);
+      } else {
+        // TODO: 跳转回列表页面
+      }
     } catch (_err) {
       // do nothing
+    } finally {
+      setNextButtonLoading(false);
     }
   });
 
@@ -69,30 +84,25 @@ const TestReportTemplate: React.FC = () => {
     }
   }, [setReportTemplate, testReportTemplateData]);
 
-  const endOfStep = currentStep === StepsConfig.length - 1;
-
   return (
-    <div>
+    <div className={cx('container')} style={{ height }}>
       <div className={cx('header')}>
-        <h3>{scopedT('title')}</h3>
+        <h3>{scopedT(testReportId ? 'editorTitle' : 'createTitle')}</h3>
         <div className={cx('step-container')}>
           <AntdSteps
             current={currentStep}
             items={StepsConfig.map(step => ({
               title: scopedT(step.title),
             }))}
-          ></AntdSteps>
+          />
         </div>
         <div className={cx('action')}>
-          {!endOfStep && (
-            <Button type="primary" onClick={goNextStep}>
-              {scopedT('button.next')}
-            </Button>
-          )}
-          {endOfStep && <Button type="primary">{scopedT('button.finish')}</Button>}
+          <Button loading={nextButtonLoading} type="primary" onClick={goNextStep}>
+            {scopedT(`button.${endOfStep ? 'finish' : 'next'}`)}
+          </Button>
         </div>
       </div>
-      <div>
+      <div className={cx('content')}>
         {React.createElement(currentStepConfig.component, {
           actionRef,
         } as any)}

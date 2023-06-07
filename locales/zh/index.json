@@ -193,6 +193,7 @@
       },
       "testReportTemplate": {
         "title": "测试报告模板管理",
+        "description": "全局空间测试报告模板",
         "table": {
           "title": "模板管理",
           "header": {
@@ -200,11 +201,22 @@
             "action": "操作"
           },
           "action": {
-            "view": "查看"
+            "default": "设为默认",
+            "view": "查看",
+            "delete": "删除"
+          },
+          "tag": {
+            "isGlobalTemplate": "全局",
+            "isDefaultTemplate": "默认"
           }
         },
         "buttons": {
           "create": "新建报告模板"
+        },
+        "message": {
+          "setDefaultSuccess": "默认模板设置成功",
+          "deleteSuccess": "测试报告模板删除成功",
+          "deleteConfirm": "确认是否删除测试报告模板？"
         }
       },
       "isolatedSystem": {
@@ -225,7 +237,8 @@
       }
     },
     "reportTemplateCreator": {
-      "title": "新建报告模板",
+      "createTitle": "新建报告模板",
+      "editorTitle": "编辑测试报告模板",
       "button": {
         "next": "下一步",
         "finish": "保存"
@@ -238,6 +251,9 @@
       },
       "basicConfig": {
         "title": "基础信息",
+        "message": {
+          "createReportTemplateSuccess": "测试报告模板创建成功"
+        },
         "form": {
           "name": {
             "label": "模板标题",
@@ -270,7 +286,7 @@
           }
         },
         "message": {
-          "createReportTemplateSuccess": "测试报告模板创建成功",
+          "dataSourceConfigSaveSuccess": "数据源配置保存成功",
           "addDataSourceSuccess": "添加数据源成功",
           "deleteDataSourceSuccess": "数据源删除成功",
           "dataSourceExisted": "该数据源已存在"
