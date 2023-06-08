@@ -55,7 +55,7 @@ const TestReportTemplate: React.FC = () => {
         onOk: async () => {
           await testReportServices.deleteTestReport(objectId);
           refreshTemplateList();
-          message.success(scopedT('message.setDefaultSuccess'));
+          message.success(scopedT('message.deleteSuccess'));
         },
       });
     },

@@ -193,21 +193,24 @@ const TestReport = Parse.Object.extend('test_manager_TestReport', {
   },
 
   /** 删除报告或模板 */
-  async delete(_objectId) {
-    const objectId = this.get('objectId') ?? _objectId;
+  async delete(objectId) {
     if (!objectId) throw new Error('ReportTemplate is not existed');
     try {
-      const chartGroupObjectId = this.get('chartGroup');
+      const testReportObject = await new Parse.Query(TestReport)
+        .equalTo('objectId', objectId)
+        .first();
+      const chartGroupData = testReportObject.toJSON();
+      const chartGroupObjectId = chartGroupData.chartGroup.objectId;
       const chartGroupQuery = new Parse.Query('ChartGroup')
         .equalTo('objectId', chartGroupObjectId)
-        .find();
+        .first();
 
       const chartQuery = new Parse.Query('Chart')
         .equalTo('chartGroup', chartGroupObjectId)
         .findAll();
 
-      const [chartGroupObjects, chartObjects] = await Promise.all([chartGroupQuery, chartQuery]);
-      await Parse.Object.destroyAll([chartGroupObjects, ...chartObjects]);
+      const [chartGroupObject, chartObjects] = await Promise.all([chartGroupQuery, chartQuery]);
+      await Parse.Object.destroyAll([testReportObject, chartGroupObject, ...chartObjects]);
     } catch (error) {
       console.error(error);
     }
