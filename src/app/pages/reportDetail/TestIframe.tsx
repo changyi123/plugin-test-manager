@@ -1,17 +1,26 @@
-import React from 'react';
+import React, { useRef, useState } from 'react';
+
+import cx from './TestIframe.less';
 
 const TestIframe: React.FC<any> = props => {
+  const iframeRef = useRef<any>();
+  const [height, setHeight] = useState('100%');
+
   return (
     <iframe
-      className={props.className}
+      className={cx('report-charts', props.className)}
       onLoad={() => {
-        // const obj = ReactDOM.findDOMNode(this);
-        // this.setState({ iFrameHeight: obj.contentWindow.document.body.scrollHeight + 'px' });
+        const clientHeight =
+          iframeRef?.current?.contentWindow.document.getElementsByClassName(
+            'react-grid-layout',
+          )?.[0]?.clientHeight;
+
+        clientHeight && setHeight(`${clientHeight}px`);
       }}
-      ref={() => 'iframe'}
+      ref={iframeRef}
       src={props.src}
       width={props.width}
-      height={props.height}
+      height={height}
     />
   );
 };

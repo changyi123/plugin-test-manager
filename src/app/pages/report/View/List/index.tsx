@@ -73,7 +73,9 @@ const List: React.FC<any> = () => {
                   // 跳转到导入页面
                   const href = `${baseUrl}/${getTenantKey()}/workspaces/${
                     workspace?.key
-                  }/plugin/test_manager_test-report/?reportId=${rowData.objectId}&detail=true`;
+                  }/plugin/test_manager_test-report/?fromWorkspace=${workspace?.key}&reportId=${
+                    rowData.objectId
+                  }&detail=true`;
 
                   window.open(href, '_blank');
                 }}

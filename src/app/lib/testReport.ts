@@ -2,6 +2,7 @@ import { flattenDepth, omitBy } from 'lodash';
 
 import { getLinkedTestEntityByQuery, getTestEntityByQuery } from './api/item';
 import { TestLinkType, TestPlanModel, TestType } from './constants';
+import { getPagePrefix } from './utils/helper';
 
 export type SelectorType = 'test_manager_Plan' | 'sprint' | 'version' | 'workspace' | 'customField';
 
@@ -238,3 +239,17 @@ export const bindIqlToChartOption = (iql, chartData) => {
 export const genDataSourceConfigUid = (dataSourceConfig: TemplateDataSourceConfig) => {
   return dataSourceConfig.map(dataSource => dataSource.key).join('_');
 };
+
+// 生成测试报告模板 Url
+export const genReportTemplateUrl = (testReportId?: string, workspaceKey?: string) => {
+  const currentPageUrl = location.href.split('?')[0];
+  const pagePrefix = getPagePrefix();
+  const testReportIdSearch = testReportId ? `&testReportId=${testReportId}` : '';
+
+  return `${pagePrefix}/workspaces/${workspaceKey}/plugin/test_manager_test-report-creator?redirectLink=${encodeURIComponent(
+    currentPageUrl,
+  )}${testReportIdSearch}`;
+};
+
+export const genReportViewUrl = (chartGroupId?: string) =>
+  `${getPagePrefix()}/plugin/team_insight_charts_base_team_insight_charts_base?chartGroupId=${chartGroupId}&hiddenHeader=true&showChartListHeader=1`;
