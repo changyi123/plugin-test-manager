@@ -1,4 +1,5 @@
 import { PlusOutlined } from '@ant-design/icons';
+import createProximaSdk from '@projectproxima/proxima-sdk-js';
 import { Button, notification, Spin } from 'antd';
 import isEmpty from 'lodash/isEmpty';
 import React, { useCallback, useRef } from 'react';
@@ -64,6 +65,8 @@ const ReportHeader: React.FC<any> = () => {
     });
     notification.destroy();
     if (reportInfo.status === 'success') {
+      const proxima = createProximaSdk();
+      proxima.execute('refreshTestReportTable');
       notification.success({
         message: `测试报告【${res.name}】创建成功`,
       });

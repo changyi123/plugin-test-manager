@@ -1,3 +1,4 @@
+import { useListener } from '@projectproxima/proxima-sdk-js';
 import { Button } from 'antd';
 import React, { useCallback, useRef } from 'react';
 
@@ -6,6 +7,7 @@ import { TestType } from '@/lib/constants';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import { getProximaBasePath, getTenantKey } from '@/lib/utils/helper';
+import { TestReport } from '@/services/models';
 import { useWorkspaceReportListQuery } from '@/services/testReport/query';
 
 import ReportLinkPlan from '../../ReportLinkPlan';
@@ -16,9 +18,17 @@ const List: React.FC<any> = () => {
   const { t } = useI18n();
   const { workspace } = useTestConfig();
   const workspaceKey = workspace?.key;
-  const { data: dataSource, isLoading } = useWorkspaceReportListQuery({
+  const {
+    data: dataSource,
+    isLoading,
+    refetch,
+  } = useWorkspaceReportListQuery({
     workspace: workspace?.objectId,
     pagination: { limit: 10, offset: 0 },
+  });
+
+  useListener('refreshTestReportTable', () => {
+    refetch?.();
   });
 
   const genReportDetail = useCallback(
@@ -86,7 +96,15 @@ const List: React.FC<any> = () => {
             {/* <Button type="link" size="small">
               下载
             </Button> */}
-            <Button type="link" size="small">
+            <Button
+              type="link"
+              size="small"
+              onClick={async () => {
+                const testReport = new TestReport();
+                await testReport.delete(rowData.chartGroup.objectId);
+                refetch();
+              }}
+            >
               删除
             </Button>
           </>
