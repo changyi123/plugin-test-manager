@@ -56,7 +56,7 @@ const FilterReportTemplateKey = [
 ] as (keyof TestReportModelType)[];
 
 // 排除原始数据中的字段
-const FilterOriginalParseDataKeys = ['objectId', 'key', 'className', 'chartGroup'];
+const FilterOriginalParseDataKeys = ['objectId', 'key', 'className', 'chartGroup', '__type'];
 
 /** 测试报告模板 Key */
 const ReportTemplateChartGroupKey = 'test_manager_report_template' as const;
@@ -110,7 +110,7 @@ const TestReport = Parse.Object.extend('test_manager_TestReport', {
     // 获取模板数据
     const templateReportData = await new Parse.Query(TestReport)
       .equalTo('objectId', templateId)
-      .include('chartGroup')
+      .include(['chartGroup'])
       .first({ json: true });
 
     const reportTemplateChartGroup = templateReportData.chartGroup;
@@ -126,27 +126,30 @@ const TestReport = Parse.Object.extend('test_manager_TestReport', {
     // 创建测试报告
     // 1. 创建测试报告关联的 chartGroup
     const chartGroupObject = new ChartGroup();
-    chartGroupObject.set(
-      Object.assign(omit(reportTemplateChartGroup, FilterOriginalParseDataKeys), {
-        key: ReportChartGroupKey,
-        reportStatus: reportParams?.reportStatus,
-        reportOverviewData: reportParams?.reportOverviewData,
-      }),
-    );
+    chartGroupObject.set({
+      ...omit(
+        reportTemplateChartGroup,
+        FilterOriginalParseDataKeys.concat(FilterReportTemplateKey),
+      ),
+      name: reportParams?.name,
+      key: ReportChartGroupKey,
+      reportStatus: reportParams?.reportStatus,
+      reportOverviewData: reportParams?.reportOverviewData,
+    });
     await chartGroupObject.save();
 
     const chartGroupData = chartGroupObject.toJSON();
+    console.info('chartGroupData ------------->', chartGroupData);
     const templateDataSourceConfig = reportTemplateConfig?.dataSource ?? {};
 
     // 2. 创建测试报告关联的 chart
     const newChartObjects = await Promise.all(
       chartDataList.map(async chartData => {
         const newChartObject = new Chart();
-        newChartObject.set(
-          Object.assign(omit(chartData, FilterOriginalParseDataKeys), {
-            chartGroup: ChartGroup.createWithoutData(chartGroupData.objectId),
-          }),
-        );
+        newChartObject.set({
+          ...omit(chartData, FilterOriginalParseDataKeys),
+          chartGroup: ChartGroup.createWithoutData(chartGroupData.objectId),
+        });
 
         // 只有 basic 类型的 chart 才可以使用数据源
         if (SupportDataSourceChartViewReg.test(chartData.view)) {
