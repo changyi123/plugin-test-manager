@@ -1,4 +1,4 @@
-import { omitBy } from 'lodash';
+import { omit } from 'lodash';
 
 import Parse from '@/lib/parse';
 import { DataSource, SupportDataSourceChartViewReg } from '@/lib/testReport';
@@ -121,61 +121,77 @@ const TestReport = Parse.Object.extend('test_manager_TestReport', {
 
     // 创建测试报告
     // 1. 创建测试报告关联的 chartGroup
-    const chartGroupObject = await new ChartGroup()
-      .set(
-        Object.assign(
-          {
-            key: ReportChartGroupKey,
-            reportStatus: reportParams?.reportStatus,
-            reportOverviewData: reportParams?.reportOverviewData,
-          },
-          omitBy(reportTemplateChartGroup, ['objectId', 'key']),
-        ),
-      )
-      .save();
+    const chartGroupQuery = new ChartGroup();
+    chartGroupQuery.set(
+      Object.assign(
+        {
+          key: ReportChartGroupKey,
+          reportStatus: reportParams?.reportStatus,
+          reportOverviewData: reportParams?.reportOverviewData,
+        },
+        omit(reportTemplateChartGroup, ['objectId', 'key', 'className']),
+      ),
+    );
+    const chartGroupObject = await chartGroupQuery.save();
 
     const chartGroupData = chartGroupObject.toJSON();
-    const templateDataSourceConfig = reportTemplateConfig.dataSource;
+    const templateDataSourceConfig = reportTemplateConfig?.dataSource ?? {};
 
     // 2. 创建测试报告关联的 chart
-    const newChartObjects = chartDataList.reduce(async (objects, chartData) => {
-      const newChartObject = new Chart();
-      newChartObject.set(
-        Object.assign(
-          {
-            chartGroup: ChartGroup.createWithoutData(chartGroupData.objectId),
-          },
-          omitBy(chartData, ['objectId', 'chartGroup']),
-        ),
-      );
+    const newChartObjects = await Promise.all(
+      chartDataList.map(async chartData => {
+        const newChartObject = new Chart();
+        newChartObject.set(
+          Object.assign(
+            {
+              chartGroup: ChartGroup.createWithoutData(chartGroupData.objectId),
+            },
+            omit(chartData, ['objectId', 'chartGroup', 'className']),
+          ),
+        );
 
-      // 只有 basic 类型的 chart 才可以使用数据源
-      if (SupportDataSourceChartViewReg.test(chartData.view)) {
-        const dataSource = templateDataSourceConfig[chartData.objectId];
-        // 根据数据源配置生成对应的 iql
-        // TODO: prepareData 数据
-        const iql = await dataSourceIqlGenerator(dataSource, reportParams);
-        // 根据 iql 增加到 chartOption 中
-        const option = bindIqlToChartOption(iql, chartData);
-        // 设置 option
-        newChartObject.set({ option });
-      }
+        // 只有 basic 类型的 chart 才可以使用数据源
+        if (SupportDataSourceChartViewReg.test(chartData.view)) {
+          const dataSource = templateDataSourceConfig[chartData.objectId];
+          // 根据数据源配置生成对应的 iql
+          // TODO: prepareData 数据
+          const iql = await dataSourceIqlGenerator(dataSource, reportParams);
+          // 根据 iql 增加到 chartOption 中
+          const option = bindIqlToChartOption(iql, chartData);
+          // 设置 option
+          newChartObject.set({ option });
+        }
+        return newChartObject;
+      }),
+    );
 
-      return objects.concat(newChartObject);
-    }, []);
     // 3. 创建 test_manager_TestReport
     const newTestReportObject = new TestReport().set({
-      ...omitBy(templateReportData, ['objectId', 'chartGroup', ...FilterReportTemplateKey]),
+      ...omit(templateReportData, [
+        'objectId',
+        'chartGroup',
+        'className',
+        ...FilterReportTemplateKey,
+      ]),
       isTemplate: false,
       name: reportParams.name,
       reportStatus: reportParams.reportStatus,
       reportOverviewData: reportParams?.reportOverviewData,
       usingReportTemplate: TestReport.createWithoutData(templateId),
       chartGroup: ChartGroup.createWithoutData(chartGroupData.objectId),
-      workspace: Workspace.createWithoutData(reportParams.workspace),
+      workspace: Workspace.createWithoutData(reportParams.workspace?.objectId),
     });
 
-    await Parse.Object.saveAll([...newChartObjects, newTestReportObject]);
+    try {
+      await Parse.Object.saveAll([...newChartObjects, newTestReportObject]);
+      return {
+        status: 'success',
+      };
+    } catch (error) {
+      return {
+        status: 'failed',
+      };
+    }
   },
 
   /** 删除报告或模板 */

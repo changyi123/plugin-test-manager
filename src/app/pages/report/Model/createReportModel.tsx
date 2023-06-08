@@ -36,12 +36,9 @@ const CreateReportModel: React.FC<CreateReportModelProps> = props => {
   const state = useReactive({
     name: '',
     reportStatus: '',
-    template: {
-      objectId: 'test-id',
-      name: '测试报告模板',
-    },
+    template: {},
     selectors: {},
-    // reportOverviewData: {},
+    reportOverviewData: {},
   });
 
   React.useImperativeHandle(

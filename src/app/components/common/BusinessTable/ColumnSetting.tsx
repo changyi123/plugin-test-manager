@@ -262,173 +262,169 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
 
   return (
     <>
+      {titleCellOption?.isSettingPage && (
+        <Button className={cx('setting-page-btn')} onClick={() => setVisible(true)}>
+          {t('components.common.businessTable.setHeader')}
+        </Button>
+      )}
       {!titleCellOption?.isHideIcon && (
-        <>
-          {titleCellOption?.isSettingPage && (
-            <Button className={cx('setting-page-btn')} onClick={() => setVisible(true)}>
-              {t('components.common.businessTable.setHeader')}
+        <Tooltip placement="topRight" title={t('components.common.businessTable.tableSetting')}>
+          <Setting className={cx(className, 'setting-icon')} onClick={() => setVisible(true)} />
+        </Tooltip>
+      )}
+      <Drawer
+        className={cx('drawer-box')}
+        open={visible}
+        onClose={() => setVisible(false)}
+        width={visible ? 320 : 0}
+        title={t('components.common.businessTable.tableSetting')}
+      >
+        <div className={cx('box-header')}>
+          <div className={cx('title')}>{t('components.common.businessTable.headerSetting')}</div>
+          {!titleCellOption?.isSettingPage && (
+            <Button
+              className={cx('link')}
+              type="link"
+              size="small"
+              onClick={async () => {
+                setLoading(true);
+                setFields(defaultFields ?? []);
+                setStorageColumnKeys(tableFields ?? defaultColumnKey);
+                await handleFilterField?.({
+                  testType: titleCellOption.testType,
+                  fieldKeys: defaultFields,
+                });
+                proxima.execute('updateFilterSearchFields');
+                setLoading(false);
+              }}
+            >
+              {t('components.common.businessTable.restoreDefault')}
             </Button>
           )}
-          <Tooltip placement="topRight" title={t('components.common.businessTable.tableSetting')}>
-            <Setting className={cx(className, 'setting-icon')} onClick={() => setVisible(true)} />
-          </Tooltip>
-          <Drawer
-            className={cx('drawer-box')}
-            open={visible}
-            onClose={() => setVisible(false)}
-            width={visible ? 320 : 0}
-            title={t('components.common.businessTable.tableSetting')}
-          >
-            <div className={cx('box-header')}>
-              <div className={cx('title')}>
-                {t('components.common.businessTable.headerSetting')}
-              </div>
-              {!titleCellOption?.isSettingPage && (
-                <Button
-                  className={cx('link')}
-                  type="link"
-                  size="small"
-                  onClick={async () => {
-                    setLoading(true);
-                    setFields(defaultFields ?? []);
-                    setStorageColumnKeys(tableFields ?? defaultColumnKey);
-                    await handleFilterField?.({
-                      testType: titleCellOption.testType,
-                      fieldKeys: defaultFields,
-                    });
-                    proxima.execute('updateFilterSearchFields');
-                    setLoading(false);
-                  }}
+        </div>
+        <Tooltip
+          className={cx('field-tips')}
+          placement="bottom"
+          title={t('components.common.businessTable.actionTips')}
+        >
+          <QuestionCircleOutlined />
+        </Tooltip>
+        <Select
+          showSearch
+          mode="multiple"
+          allowClear={false}
+          filterOption={true}
+          tagRender={() => null}
+          options={selectOptions}
+          optionFilterProp="label"
+          value={storageColumnKeys ?? defaultColumnKey}
+          placeholder={t('components.common.businessTable.placeholder')}
+          className={cx('field-select')}
+          onChange={keys => setStorageColumnKeys(keys)}
+        />
+        <Spin spinning={loading}>
+          <DragDropContext onDragEnd={handleColumnSort}>
+            <Droppable droppableId="column">
+              {provider => (
+                <div
+                  {...provider.droppableProps}
+                  ref={provider.innerRef}
+                  className={cx('sort-area')}
                 >
-                  {t('components.common.businessTable.restoreDefault')}
-                </Button>
-              )}
-            </div>
-            <Tooltip
-              className={cx('field-tips')}
-              placement="bottom"
-              title={t('components.common.businessTable.actionTips')}
-            >
-              <QuestionCircleOutlined />
-            </Tooltip>
-            <Select
-              showSearch
-              mode="multiple"
-              allowClear={false}
-              filterOption={true}
-              tagRender={() => null}
-              options={selectOptions}
-              optionFilterProp="label"
-              value={storageColumnKeys ?? defaultColumnKey}
-              placeholder={t('components.common.businessTable.placeholder')}
-              className={cx('field-select')}
-              onChange={keys => setStorageColumnKeys(keys)}
-            />
-            <Spin spinning={loading}>
-              <DragDropContext onDragEnd={handleColumnSort}>
-                <Droppable droppableId="column">
-                  {provider => (
-                    <div
-                      {...provider.droppableProps}
-                      ref={provider.innerRef}
-                      className={cx('sort-area')}
-                    >
-                      {selectColumns?.map((col, index) => (
-                        <Draggable key={col.key} index={index} draggableId={col.key as string}>
-                          {(provider, snapshot) => (
-                            <div
-                              {...provider.draggableProps}
-                              {...provider.dragHandleProps}
-                              ref={provider.innerRef}
-                              className={cx('sort-item', snapshot.isDragging && 'dragging')}
-                            >
-                              <DragHandler />
-                              <OverflowTooltip
-                                mountOnCurrentNode
-                                className={cx('title')}
-                                title={col.title}
-                              >
-                                {col.title}
-                              </OverflowTooltip>
-                              {['Key', 'Text'].includes(col?.fieldType?.key) && (
-                                <span
-                                  className={cx('filter-icon')}
-                                  onClick={async () => {
-                                    const action = fields?.includes(col.key) ? 'delete' : 'add';
-                                    let fieldKeys;
-                                    if (fields?.includes(col.key)) {
-                                      fieldKeys = fields.filter(d => d !== col.key);
-                                      setFields(fieldKeys);
-                                    } else {
-                                      if (fields?.length >= 4) {
-                                        return message.warning(
-                                          t('components.common.businessTable.searchWarningMessage'),
-                                        );
-                                      }
-                                      fieldKeys = fields.concat(col.key);
-                                      setFields(fieldKeys);
-                                    }
-                                    setLoading(true);
-                                    await handleFilterField?.({
-                                      key: col.key,
-                                      action,
-                                      testType: titleCellOption.testType,
-                                      fieldKeys,
-                                    });
-                                    proxima.execute('updateFilterSearchFields');
-                                    setLoading(false);
-                                  }}
-                                >
-                                  <Tooltip
-                                    placement="topRight"
-                                    title={
-                                      fields?.includes(col.key)
-                                        ? t('components.common.businessTable.removeSearch')
-                                        : t('components.common.businessTable.addSearch')
-                                    }
-                                  >
-                                    {fields?.includes(col.key) ? (
-                                      <DeleteSearch className={cx('icon', 'delete')} />
-                                    ) : (
-                                      <AddSearch className={cx('icon', 'add')} />
-                                    )}
-                                  </Tooltip>
-                                </span>
-                              )}
-                              <DeleteIcon
-                                className={cx('icon')}
-                                onClick={async () => {
-                                  deleteStorageColumnKey(col.key);
-                                  if (
-                                    ['Key', 'Text'].includes(col?.fieldType?.key) &&
-                                    fields?.includes(col.key)
-                                  ) {
-                                    setLoading(true);
-                                    const fieldKeys = fields?.filter(d => d !== col.key) ?? [];
-                                    setFields(fieldKeys);
-                                    await handleFilterField?.({
-                                      key: col.key,
-                                      testType: titleCellOption.testType,
-                                      fieldKeys,
-                                    });
-                                    proxima.execute('updateFilterSearchFields');
-                                    setLoading(false);
+                  {selectColumns?.map((col, index) => (
+                    <Draggable key={col.key} index={index} draggableId={col.key as string}>
+                      {(provider, snapshot) => (
+                        <div
+                          {...provider.draggableProps}
+                          {...provider.dragHandleProps}
+                          ref={provider.innerRef}
+                          className={cx('sort-item', snapshot.isDragging && 'dragging')}
+                        >
+                          <DragHandler />
+                          <OverflowTooltip
+                            mountOnCurrentNode
+                            className={cx('title')}
+                            title={col.title}
+                          >
+                            {col.title}
+                          </OverflowTooltip>
+                          {['Key', 'Text'].includes(col?.fieldType?.key) && (
+                            <span
+                              className={cx('filter-icon')}
+                              onClick={async () => {
+                                const action = fields?.includes(col.key) ? 'delete' : 'add';
+                                let fieldKeys;
+                                if (fields?.includes(col.key)) {
+                                  fieldKeys = fields.filter(d => d !== col.key);
+                                  setFields(fieldKeys);
+                                } else {
+                                  if (fields?.length >= 4) {
+                                    return message.warning(
+                                      t('components.common.businessTable.searchWarningMessage'),
+                                    );
                                   }
-                                }}
-                              />
-                            </div>
+                                  fieldKeys = fields.concat(col.key);
+                                  setFields(fieldKeys);
+                                }
+                                setLoading(true);
+                                await handleFilterField?.({
+                                  key: col.key,
+                                  action,
+                                  testType: titleCellOption.testType,
+                                  fieldKeys,
+                                });
+                                proxima.execute('updateFilterSearchFields');
+                                setLoading(false);
+                              }}
+                            >
+                              <Tooltip
+                                placement="topRight"
+                                title={
+                                  fields?.includes(col.key)
+                                    ? t('components.common.businessTable.removeSearch')
+                                    : t('components.common.businessTable.addSearch')
+                                }
+                              >
+                                {fields?.includes(col.key) ? (
+                                  <DeleteSearch className={cx('icon', 'delete')} />
+                                ) : (
+                                  <AddSearch className={cx('icon', 'add')} />
+                                )}
+                              </Tooltip>
+                            </span>
                           )}
-                        </Draggable>
-                      ))}
-                      {provider.placeholder}
-                    </div>
-                  )}
-                </Droppable>
-              </DragDropContext>
-            </Spin>
-          </Drawer>
-        </>
-      )}
+                          <DeleteIcon
+                            className={cx('icon')}
+                            onClick={async () => {
+                              deleteStorageColumnKey(col.key);
+                              if (
+                                ['Key', 'Text'].includes(col?.fieldType?.key) &&
+                                fields?.includes(col.key)
+                              ) {
+                                setLoading(true);
+                                const fieldKeys = fields?.filter(d => d !== col.key) ?? [];
+                                setFields(fieldKeys);
+                                await handleFilterField?.({
+                                  key: col.key,
+                                  testType: titleCellOption.testType,
+                                  fieldKeys,
+                                });
+                                proxima.execute('updateFilterSearchFields');
+                                setLoading(false);
+                              }
+                            }}
+                          />
+                        </div>
+                      )}
+                    </Draggable>
+                  ))}
+                  {provider.placeholder}
+                </div>
+              )}
+            </Droppable>
+          </DragDropContext>
+        </Spin>
+      </Drawer>
     </>
   );
 };

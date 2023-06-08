@@ -1,41 +1,28 @@
 import { Button } from 'antd';
-import React, { useCallback, useMemo, useRef } from 'react';
+import React, { useMemo, useRef } from 'react';
 
 import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
 import { TestType } from '@/lib/constants';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import { getProximaBasePath, getTenantKey } from '@/lib/utils/helper';
+import { useWorkspaceReportListQuery } from '@/services/testReport/query';
 
-// import { useWorkspaceTemplate } from '@/services/testReport/query';
+import ReportLinkPlan from '../../ReportLinkPlan';
+import ReportStatus from '../../ReportStatus';
 import cx from './index.less';
 
 const List: React.FC<any> = () => {
   const { t } = useI18n();
   const { workspace } = useTestConfig();
-  // const { data, isLoading } = useWorkspaceTemplate({
-  //   workspace: workspace?.objectId,
-  //   pagination: { limit: 999 },
-  // });
+  const { data: dataSource, isLoading } = useWorkspaceReportListQuery({
+    workspace: workspace?.objectId,
+    pagination: { limit: 10, offset: 0 },
+  });
 
-  // console.log('data ------------------->', data);
-
-  // const fieldsData = useGetCustomerFieldCell([SystemField.CreatedAt, SystemField.CreatedBy]);
-  // const fieldCellsPropDict = React.useMemo(() => {
-  //   return keyBy(fieldsData, 'key');
-  // }, [fieldsData]);
-
-  // console.log('fieldCellsPropDict -------------->', fieldCellsPropDict);
+  console.info('dataSource ---------------->', dataSource);
 
   const actionRef = useRef<BusinessTableActionType>();
-  // const [tableLoading, settableLoading] = useState(false);
-  const tableDataGetter = useCallback(async () => {
-    return {
-      list: [{}],
-      total: 1,
-    };
-  }, []);
-
   const columns: any = useMemo(
     () => [
       {
@@ -45,9 +32,6 @@ const List: React.FC<any> = () => {
         isSystem: true,
         title: t('common.title'),
         className: 'test-case-title',
-        // extraProps: {
-        //   onClick: record => setSelectedTestPlan(record),
-        // },
         render(_, rowData) {
           return (
             <div className={'test-plan-title-box'}>
@@ -61,15 +45,15 @@ const List: React.FC<any> = () => {
         title: '状态',
         width: 100,
         render(_, rowData) {
-          return <span>{rowData?.caseCount}</span>;
+          return <ReportStatus status={rowData?.reportStatus} />;
         },
       },
       {
-        key: 'reportPlan',
+        key: 'linkPlanId',
         title: '测试计划',
         width: 200,
         render(_, rowData) {
-          return <span>{rowData?.caseCount}</span>;
+          return <ReportLinkPlan linkPlanId={rowData?.reportOverviewData?.linkPlanId} />;
         },
       },
       {
@@ -78,7 +62,7 @@ const List: React.FC<any> = () => {
         isSystem: true,
         fixed: 'right' as any,
         width: 100,
-        render(_) {
+        render(_, rowData) {
           return (
             <>
               <Button
@@ -89,7 +73,7 @@ const List: React.FC<any> = () => {
                   // 跳转到导入页面
                   const href = `${baseUrl}/${getTenantKey()}/workspaces/${
                     workspace?.key
-                  }/plugin/test_manager_test-report/?reportId=123456&detail=true`;
+                  }/plugin/test_manager_test-report/?reportId=${rowData.objectId}&detail=true`;
 
                   window.open(href, '_blank');
                 }}
@@ -118,13 +102,15 @@ const List: React.FC<any> = () => {
           testType: TestType.Plan,
           isHideIcon: true,
         }}
-        defaultColumnKey={['reportStatus', 'reportPlan', 'createdBy', 'createdAt']}
+        defaultColumnKey={['reportStatus', 'linkPlanId', 'createdBy', 'createdAt']}
+        privateColumnKey={['reportStatus', 'linkPlanId']}
         useColumnSetting
         rowKey="objectId"
+        name={`${workspace?.key}_test_report`}
         columns={columns}
         actionRef={actionRef}
-        loading={false}
-        getDataSource={tableDataGetter}
+        loading={isLoading}
+        dataSource={dataSource}
       />
     </div>
   );

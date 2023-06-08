@@ -500,9 +500,13 @@ tables:
       # 报告概览数据
       reportOverviewData:
         type: Object
+      createdBy:
+        type: Pointer
+        targetClass: _User
       # 基于哪个模板生成
       usingReportTemplate:
-        type: Object
+        type: Pointer
+        targetClass: test_manager_TestReport
       # 报告状态
       reportStatus:
         type: String

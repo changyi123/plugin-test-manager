@@ -1,8 +1,8 @@
-import { useRequest } from 'ahooks';
 import { Input, Radio, Select } from 'antd';
 import React, { useMemo, useState } from 'react';
 
 import useI18n from '@/lib/hooks/useI18n';
+import { useWorkspaceTemplateListQuery } from '@/services/testReport/query';
 
 import { FormProps } from './RangeForm';
 import cx from './TemplateForm.less';
@@ -12,6 +12,21 @@ const TemplateForm: React.FC<FormProps> = ({ state, workspace }) => {
 
   const [inputStatus, setInputStatus] = useState(undefined);
   const [selectStatus, setSelectStatus] = useState(undefined);
+
+  const { data: reportTemplateList, isLoading } = useWorkspaceTemplateListQuery({
+    workspace: workspace?.objectId,
+    pagination: { limit: 999 },
+  });
+
+  const templateList = useMemo(
+    () =>
+      reportTemplateList?.map(d => ({
+        ...d,
+        label: d.name,
+        value: d.objectId,
+      })),
+    [reportTemplateList],
+  );
 
   const options = useMemo(() => {
     return [
@@ -29,20 +44,6 @@ const TemplateForm: React.FC<FormProps> = ({ state, workspace }) => {
       },
     ];
   }, [t]);
-
-  // 查询模板数据
-  const { data: templateList, loading } = useRequest(
-    async () => {
-      // TODO 查询模板数据
-      return [];
-    },
-    {
-      ready: Boolean(workspace?.objectId),
-      cacheKey: `templateList_${workspace?.key}`,
-      refreshDeps: [workspace?.objectId],
-      staleTime: -1,
-    },
-  );
 
   return (
     <>
@@ -84,10 +85,10 @@ const TemplateForm: React.FC<FormProps> = ({ state, workspace }) => {
             placeholder={t('report.choiceTemplatePlaceholder')}
             defaultValue={state.template?.objectId}
             options={templateList}
-            loading={loading}
+            loading={isLoading}
             status={selectStatus}
-            onChange={e => {
-              state.template = templateList.find(d => d.value === e.target.value);
+            onChange={val => {
+              state.template = templateList.find(d => d.value === val) ?? {};
             }}
             onBlur={() => {
               setSelectStatus(state.template?.objectId ? undefined : 'error');

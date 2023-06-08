@@ -9,29 +9,28 @@ import List from './List';
 
 const View: React.FC<any> = () => {
   const [isDetail, setIsDetail] = useState(false);
+  const [chartGroupId, setChartGroupId] = useState<string>('');
   useResizeContainerDOM();
   useEffect(() => {
     for (const [key, value] of new URLSearchParams(window.location.search).entries()) {
-      console.info('111111111--------->', key, value);
       if (key === 'detail') {
         setIsDetail(true);
+      }
+      if (key === 'reportId') {
+        setChartGroupId(value);
       }
     }
   }, []);
   return (
     <div className={cx('view-box')}>
       {isDetail ? (
-        <ReportDetail />
+        <ReportDetail chartGroupId={chartGroupId} />
       ) : (
         <>
           <ReportHeader />
           <List />
         </>
       )}
-      {/* <>
-        <ReportHeader />
-        <List />
-      </> */}
     </div>
   );
 };

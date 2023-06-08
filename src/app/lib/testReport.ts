@@ -79,8 +79,8 @@ export const dataSourceIqlGenerator = async (
   dataSource: TemplateDataSourceConfig,
   reportParams?: Record<string, any>,
 ) => {
+  // TODO 提取公共，优化查询
   const { dataSourceIql, defectsMapping } = reportParams;
-  console.info(dataSource, dataSourceIql);
   // 无 dataSource，直接范围空字符串
   if (!dataSource?.length) return '';
   // 取第一层级 dataSource 拼写 iql

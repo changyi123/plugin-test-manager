@@ -11,6 +11,7 @@
     .report-header-title {
       display: flex;
       align-items: center;
+      cursor: pointer;
 
       .title {
         font-size: 18px;
@@ -27,39 +28,53 @@
   }
 
   .report-body {
-    padding: 18px 24px 0;
+    padding: 18px 24px;
     background-color: #f5f6f8;
+    height: 100%;
 
     .report-overview {
-      padding: 24px 16px;
-      margin-bottom: 12px;
-      background-color: #fff;
+      box-sizing: border-box;
+      padding: 24px 16px 64px 16px;
       border-radius: 4px;
+      background: linear-gradient(180deg, #0c62ff, #4dcbff);
+      cursor: pointer;
 
       .title {
-        position: relative;
         display: flex;
         align-items: center;
-        justify-content: center;
+        justify-content: space-between;
 
-        .editor-icon {
-          position: absolute;
-          content: '';
-          right: 0;
-          top: 0;
-          color: #848c9f;
-          font-size: 14px;
-          cursor: pointer;
+        .info {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
 
-          &:hover {
-            color: #0c62ff;
+        .icon-box {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          width: 32px;
+          height: 32px;
+          border-radius: 4px;
+          background-color: #ffffff33;
+
+          .editor-icon {
+            color: #ffffff;
+            font-size: 14px;
+            cursor: pointer;
+            z-index: 2;
+
+            // &:hover {
+            //   color: #0c62ff;
+            // }
           }
         }
 
         .name {
           font-size: 24px;
           font-weight: 500;
-          color: #091940;
+          color: #fff;
           line-height: 32px;
         }
 
@@ -76,6 +91,21 @@
             background-color: #dff7e8;
           }
         }
+      }
+    }
+
+    .report-iframe {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: -30px;
+      height: inherit;
+
+      .report-charts {
+        width: ~'calc(100% - 32px)';
+        height: 100%;
+        border: none;
+        border-radius: 4px;
       }
     }
   }

@@ -28,7 +28,7 @@ export const useFieldsWithFieldCellProps = fields => {
         case SYSTEM_FIELD.ItemGroup:
           return card[key];
         default:
-          return card.values[key];
+          return card.values?.[key];
       }
     };
     return (

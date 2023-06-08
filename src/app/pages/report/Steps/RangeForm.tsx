@@ -30,7 +30,6 @@ export type FormProps = {
 const RangeForm: React.FC<any> = ({ state, workspace }) => {
   const { t } = useI18n();
   const [selectors, setSelectors] = useState(undefined);
-  // reportOverviewConfig
   const reportFields = useMemo(() => {
     const { dataSource } = state.template?.templateConfig ?? {};
     if (!dataSource) return;
@@ -40,12 +39,8 @@ const RangeForm: React.FC<any> = ({ state, workspace }) => {
     return [...new Set(selectorFields)];
   }, [state.template?.templateConfig]);
 
-  // const reportOverview = useMemo(() => {
-  //   return state.template?.reportOverviewConfig;
-  // }, [state.template?.reportOverviewConfig]);
-
   // 获取统计范围字段 fields
-  const { data: defaultSelectors, loading } = useRequest(
+  const { data: defaultSelectors } = useRequest(
     async () => {
       const res = await getCustomFields(reportFields);
 
@@ -66,16 +61,16 @@ const RangeForm: React.FC<any> = ({ state, workspace }) => {
     {
       ready: Boolean(reportFields?.length),
       refreshDeps: [reportFields],
-      cacheKey: `Range_Form_${(reportFields ?? []).toString()}`,
-      staleTime: -1,
+      // cacheKey: `Range_Form_${(reportFields ?? []).toString()}`,
+      // staleTime: -1,
     },
   );
 
   useUpdateEffect(() => {
-    if (!loading && defaultSelectors) {
+    if (defaultSelectors) {
       setSelectors(defaultSelectors);
     }
-  }, [defaultSelectors, loading]);
+  }, [defaultSelectors]);
 
   const getExpression = useCallback(
     (component, key) => {
