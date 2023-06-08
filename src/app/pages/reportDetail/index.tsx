@@ -3,7 +3,7 @@ import { Button, Space } from 'antd';
 import React from 'react';
 
 import { useTestConfig } from '@/lib/hooks/useContext';
-import { genReportViewUrl } from '@/lib/testReport';
+import { genChartGroupPageUrl } from '@/lib/testReport';
 import { getProximaBasePath, getTenantKey } from '@/lib/utils/helper';
 import { useTestReportByObjectId } from '@/services/testReport/query';
 
@@ -53,7 +53,7 @@ const ReportDetail: React.FC<any> = ({ chartGroupId }) => {
             <div className={cx('report-iframe')}>
               <TestIframe
                 src={
-                  genReportViewUrl(reportData?.chartGroup?.objectId)
+                  genChartGroupPageUrl({ chartGroupId: reportData?.chartGroup?.objectId })
                   // 'http://localhost:3000/inspur/workspaces/LPTEST01/report/test_manager?disabledCreate=true&displayContext=test_manager'
                 }
               />
