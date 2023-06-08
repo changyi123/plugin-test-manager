@@ -1,8 +1,14 @@
 import { omit } from 'lodash';
 
 import Parse from '@/lib/parse';
-import { DataSource, SupportDataSourceChartViewReg } from '@/lib/testReport';
-import { bindIqlToChartOption, dataSourceIqlGenerator } from '@/lib/testReport';
+import {
+  bindIqlToChartOption,
+  DataSource,
+  dataSourceIqlGenerator,
+  ReportChartGroupKey,
+  ReportTemplateChartGroupKey,
+  SupportDataSourceChartViewReg,
+} from '@/lib/testReport';
 
 import { Chart, ChartGroup, Workspace } from '../models';
 
@@ -57,10 +63,6 @@ const FilterReportTemplateKey = [
 
 // 排除原始数据中的字段
 const FilterOriginalParseDataKeys = ['objectId', 'key', 'className', 'chartGroup', '__type'];
-
-/** 测试报告模板 Key */
-const ReportTemplateChartGroupKey = 'test_manager_report_template' as const;
-const ReportChartGroupKey = 'test_manager_report' as const;
 
 // 测试报告模板
 const TestReport = Parse.Object.extend('test_manager_TestReport', {

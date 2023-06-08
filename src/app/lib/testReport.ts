@@ -6,6 +6,10 @@ import { getPagePrefix } from './utils/helper';
 
 export type SelectorType = 'test_manager_Plan' | 'sprint' | 'version' | 'workspace' | 'customField';
 
+/** 测试报告模板 Key */
+export const ReportTemplateChartGroupKey = 'test_manager_report_template' as const;
+export const ReportChartGroupKey = 'test_manager_report' as const;
+
 /** 支持数据源配置的 Chart */
 export const SupportDataSourceChartViewReg = /^basic/;
 
@@ -254,10 +258,10 @@ export const genChartGroupPageUrl = ({
     '?hiddenHeader=true&hiddenSidebar=true&displayContext=test_manager',
   );
   if (isTemplate) {
-    searchParams.append('moduleKey', 'test_manager_report_template');
+    searchParams.append('moduleKey', ReportTemplateChartGroupKey);
   } else {
     searchParams.append('showChartListHeader', '1');
-    searchParams.append('moduleKey', 'test_report');
+    searchParams.append('moduleKey', ReportChartGroupKey);
   }
   if (chartGroupId) {
     searchParams.append('chartGroupId', chartGroupId);
