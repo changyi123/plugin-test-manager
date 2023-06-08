@@ -101,7 +101,7 @@ const List: React.FC<any> = () => {
               size="small"
               onClick={async () => {
                 const testReport = new TestReport();
-                await testReport.delete(rowData.chartGroup.objectId);
+                await testReport.delete(rowData.objectId);
                 refetch();
               }}
             >

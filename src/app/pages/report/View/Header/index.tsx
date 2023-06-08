@@ -1,6 +1,6 @@
 import { PlusOutlined } from '@ant-design/icons';
 import createProximaSdk from '@projectproxima/proxima-sdk-js';
-import { Button, notification, Spin } from 'antd';
+import { Button, notification, Space, Spin } from 'antd';
 import isEmpty from 'lodash/isEmpty';
 import React, { useCallback, useRef } from 'react';
 
@@ -31,7 +31,7 @@ const handleSelector = selector => {
 
 const getLinkPlanId = selector => {
   if (!selector?.[TestPlanModel]) return null;
-  return selector[TestPlanModel].value.map(d => d.value);
+  return selector[TestPlanModel].value?.map(d => d.value)?.filter(Boolean);
 };
 
 const ReportHeader: React.FC<any> = () => {
@@ -81,11 +81,14 @@ const ReportHeader: React.FC<any> = () => {
     <>
       <div className={cx('report-header')}>
         <div className={cx('report-title')}>{t('common.testReport')}</div>
-        <div>
+        <Space>
+          <Button icon={<PlusOutlined />} onClick={() => {}}>
+            模板设置
+          </Button>
           <Button type="primary" icon={<PlusOutlined />} onClick={createReport}>
             {t('report.addReport')}
           </Button>
-        </div>
+        </Space>
       </div>
 
       <CreateReportModel actionRef={modalRef} workspace={workspace}></CreateReportModel>
