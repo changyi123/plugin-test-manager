@@ -1,17 +1,22 @@
 import { useAtomValue } from 'jotai';
 import React from 'react';
 
+import { genChartGroupPageUrl } from '@/lib/testReport';
+
 import { reportTemplateConnectLocation } from '../store';
 import cx from './TemplateConfig.less';
 
 const TemplateConfig: React.FC = () => {
   const reportTemplateData = useAtomValue(reportTemplateConnectLocation);
-
-  console.info('reportTemplateData-------------', reportTemplateData);
+  const chartGroupUrl = reportTemplateData?.chartGroup.objectId
+    ? genChartGroupPageUrl({
+        chartGroupId: reportTemplateData.chartGroup.objectId,
+      })
+    : '';
 
   return (
     <div className={cx('container')}>
-      <iframe title="report_template_editor" className={cx('iframe')}></iframe>;
+      <iframe className={cx('iframe')} title="report_template_editor" src={chartGroupUrl} />
     </div>
   );
 };

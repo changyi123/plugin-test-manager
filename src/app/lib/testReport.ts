@@ -2,6 +2,7 @@ import { flattenDepth, omitBy } from 'lodash';
 
 import { getLinkedTestEntityByQuery, getTestEntityByQuery } from './api/item';
 import { TestLinkType, TestPlanModel, TestType } from './constants';
+import { getPagePrefix } from './utils/helper';
 
 export type SelectorType = 'test_manager_Plan' | 'sprint' | 'version' | 'workspace' | 'customField';
 
@@ -237,4 +238,30 @@ export const bindIqlToChartOption = (iql, chartData) => {
 /** 生成数据源配置 uid */
 export const genDataSourceConfigUid = (dataSourceConfig: TemplateDataSourceConfig) => {
   return dataSourceConfig.map(dataSource => dataSource.key).join('_');
+};
+
+/** 生成仪表盘页面链接 */
+export const genChartGroupPageUrl = ({
+  isTemplate,
+  chartGroupId,
+}: {
+  isTemplate?: boolean;
+  chartGroupId: string;
+}) => {
+  const pagePrefix = getPagePrefix();
+
+  const searchParams = new URLSearchParams(
+    '?hiddenHeader=true&hiddenSidebar=true&displayContext=test_manager',
+  );
+  if (isTemplate) {
+    searchParams.append('moduleKey', 'test_manager_report_template');
+  } else {
+    searchParams.append('showChartListHeader', '1');
+    searchParams.append('moduleKey', 'test_report');
+  }
+  if (chartGroupId) {
+    searchParams.append('chartGroupId', chartGroupId);
+  }
+
+  return `${pagePrefix}/plugin/team_insight_charts_base_team_insight_charts_base?${searchParams.toString()}`;
 };
