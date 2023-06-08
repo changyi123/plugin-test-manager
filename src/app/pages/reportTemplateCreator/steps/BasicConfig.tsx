@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { testReportMutation } from '@/services/mutation';
 
 import type { ActionRefType } from '../index';
-import { reportTemplateConnectLocation } from '../store';
+import { testReportWitchConnectWithLocationAtom } from '../store';
 import cx from './BasicConfig.less';
 
 const BasicConfig: React.FC<{
@@ -17,7 +17,9 @@ const BasicConfig: React.FC<{
   });
 
   const form = Form.useForm()[0];
-  const [reportTemplateData, setReportTemplateData] = useAtom(reportTemplateConnectLocation);
+  const [reportTemplateData, setReportTemplateData] = useAtom(
+    testReportWitchConnectWithLocationAtom,
+  );
 
   React.useEffect(() => {
     if (reportTemplateData) {

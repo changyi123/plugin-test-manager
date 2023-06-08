@@ -14,7 +14,7 @@ import { testConfigMutation, testReportMutation } from '@/services/mutation';
 import { testConfigQuery, testReportQuery } from '@/services/query';
 
 import { ActionRefType } from '../index';
-import { reportTemplateConnectLocation } from '../store';
+import { testReportWitchConnectWithLocationAtom } from '../store';
 import cx from './DataSourceConfig.less';
 
 const FirstLevelDataSourceCollection = DataSourceCollection.filter(ds => ds.isFirstLevel);
@@ -45,7 +45,7 @@ const DataSourceSelector: React.FC<{
 
   const selectOptionsBuilder = (dataSource: DataSource[]) =>
     dataSource.map(ds => ({
-      label: scopedT(`labels.${ds.key}`),
+      label: scopedT(`label.${ds.key}`),
       value: ds.key,
     }));
 
@@ -103,7 +103,7 @@ const DataSourceBinding: React.FC<{
   reportDataSourceFlattenData: any[];
   onDataConfigTemplateChange: (value: Record<string, TemplateDataSourceConfig>) => void;
 }> = ({ reportDataSourceFlattenData, onDataConfigTemplateChange }) => {
-  const testReportTemplateData = useAtomValue(reportTemplateConnectLocation);
+  const testReportTemplateData = useAtomValue(testReportWitchConnectWithLocationAtom);
 
   const [templateDataSourceConfig, setTemplateDataSourceConfig] = React.useState(
     {} as Record<string, TemplateDataSourceConfig>,
@@ -198,7 +198,7 @@ const DataSourceConfig: React.FC<{ actionRef: React.MutableRefObject<ActionRefTy
   const { mutateAsync: updateTestConfig } = testConfigMutation.useTestConfigUpdateMutation();
   const { mutateAsync: updateTestReport } = testReportMutation.useTestReportUpdateMutation();
   const { data: globalTestConfig } = testConfigQuery.useGlobalTestConfig();
-  const testReportTemplateData = useAtomValue(reportTemplateConnectLocation);
+  const testReportTemplateData = useAtomValue(testReportWitchConnectWithLocationAtom);
 
   const extraConfig = globalTestConfig?.extra;
   const reportDataSource = extraConfig?.reportDataSource;
@@ -270,7 +270,7 @@ const DataSourceConfig: React.FC<{ actionRef: React.MutableRefObject<ActionRefTy
   const reportDataSourceFlattenData =
     reportDataSource?.map(ds => ({
       key: genDataSourceConfigUid(ds),
-      label: ds.map(ds => scopedT(`labels.${ds.key}`)).join('，'),
+      label: ds.map(ds => scopedT(`label.${ds.key}`)).join('，'),
       original: ds,
     })) ?? [];
 
