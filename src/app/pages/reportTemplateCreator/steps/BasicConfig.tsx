@@ -58,7 +58,7 @@ const BasicConfig: React.FC<{
   return (
     <div className={cx('container')}>
       <h3 className={cx('title')}>{scopedT('title')}</h3>
-      <Form form={form}>
+      <Form form={form} className={cx('form')}>
         <div className={cx('name')}>
           <p className={cx('label')}>{scopedT('form.name.label')}</p>
           <Form.Item

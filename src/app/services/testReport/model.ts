@@ -125,15 +125,15 @@ const TestReport = Parse.Object.extend('test_manager_TestReport', {
 
     // 创建测试报告
     // 1. 创建测试报告关联的 chartGroup
-    const chartGroupQuery = new ChartGroup();
-    chartGroupQuery.set(
+    const chartGroupObject = new ChartGroup();
+    chartGroupObject.set(
       Object.assign(omit(reportTemplateChartGroup, FilterOriginalParseDataKeys), {
         key: ReportChartGroupKey,
         reportStatus: reportParams?.reportStatus,
         reportOverviewData: reportParams?.reportOverviewData,
       }),
     );
-    const chartGroupObject = await chartGroupQuery.save();
+    await chartGroupObject.save();
 
     const chartGroupData = chartGroupObject.toJSON();
     const templateDataSourceConfig = reportTemplateConfig?.dataSource ?? {};

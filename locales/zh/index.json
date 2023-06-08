@@ -292,9 +292,9 @@
           "workspace": "所选空间",
           "currentWorkspace": "当前空间",
 
-          "testCase": "所有的测试用例",
-          "testRun": "所有的测试执行",
-          "testDefect": "所有的缺陷"
+          "TestCase": "所有的测试用例",
+          "TestRun": "所有的测试执行",
+          "TestDefect": "所有的缺陷"
         },
         "title": "数据规则配置",
         "select": {
