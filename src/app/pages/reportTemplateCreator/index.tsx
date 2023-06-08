@@ -1,6 +1,6 @@
 import { useMemoizedFn } from 'ahooks';
 import { Button, Steps as AntdSteps } from 'antd';
-import { useSetAtom } from 'jotai';
+import { useAtomValue, useSetAtom } from 'jotai';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -12,7 +12,7 @@ import { LocationStoreHashKey } from './lib';
 import BasicConfig from './steps/BasicConfig';
 import DataSourceConfig from './steps/DataSourceConfig';
 import TemplateConfig from './steps/TemplateConfig';
-import { reportTemplateConnectLocation } from './store';
+import { stageAtom, testReportWitchConnectWithLocationAtom } from './store';
 
 export type ActionRefType = {
   goNextButtonClick?: () => Promise<void>;
@@ -43,7 +43,8 @@ const TestReportTemplate: React.FC = () => {
     keyPrefix: 'page.reportTemplateCreator',
   });
 
-  const setReportTemplate = useSetAtom(reportTemplateConnectLocation);
+  const setTestReportTemplateData = useSetAtom(testReportWitchConnectWithLocationAtom);
+  const stage = useAtomValue(stageAtom);
 
   const [nextButtonLoading, setNextButtonLoading] = React.useState(false);
 
@@ -80,14 +81,14 @@ const TestReportTemplate: React.FC = () => {
 
   React.useEffect(() => {
     if (testReportTemplateData) {
-      setReportTemplate(testReportTemplateData);
+      setTestReportTemplateData(testReportTemplateData);
     }
-  }, [setReportTemplate, testReportTemplateData]);
+  }, [setTestReportTemplateData, testReportTemplateData]);
 
   return (
     <div className={cx('container')} style={{ height }}>
       <div className={cx('header')}>
-        <h3>{scopedT(testReportId ? 'editorTitle' : 'createTitle')}</h3>
+        <h3>{scopedT(stage === 'create' && testReportId ? 'createTitle' : 'editorTitle')}</h3>
         <div className={cx('step-container')}>
           <AntdSteps
             current={currentStep}

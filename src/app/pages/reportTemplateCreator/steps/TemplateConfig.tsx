@@ -1,15 +1,39 @@
+import { Modal } from 'antd';
 import { useAtomValue } from 'jotai';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { genChartGroupPageUrl } from '@/lib/testReport';
 
-import { reportTemplateConnectLocation } from '../store';
+import { ActionRefType } from '../index';
+import { testReportWitchConnectWithLocationAtom } from '../store';
 import cx from './TemplateConfig.less';
 
-const TemplateConfig: React.FC = () => {
+const TemplateConfig: React.FC<{ actionRef: React.MutableRefObject<ActionRefType> }> = ({
+  actionRef,
+}) => {
+  const { t: scopedT } = useTranslation('', {
+    keyPrefix: 'page.reportTemplateCreator.templateConfig',
+  });
   const [containerHeight, setContainerHeight] = React.useState(0);
   const containerDomRef = React.useRef<HTMLDivElement>(null);
-  const reportTemplateData = useAtomValue(reportTemplateConnectLocation);
+  const reportTemplateData = useAtomValue(testReportWitchConnectWithLocationAtom);
+
+  React.useImperativeHandle(actionRef, () => ({
+    goNextButtonClick: async () => {
+      await new Promise<void>((resolve, reject) => {
+        Modal.confirm({
+          content: scopedT('message.nextButtonClickConfirm'),
+          onOk: () => {
+            resolve();
+          },
+          onCancel: () => {
+            reject();
+          },
+        });
+      });
+    },
+  }));
 
   const chartGroupUrl = reportTemplateData?.chartGroup.objectId
     ? genChartGroupPageUrl({

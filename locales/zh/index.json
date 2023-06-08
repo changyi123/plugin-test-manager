@@ -267,6 +267,11 @@
         "template": "界面配置",
         "dataSource": "数据源配置"
       },
+      "templateConfig": {
+        "message": {
+          "nextButtonClickConfirm": "请确认是否已经保存仪表盘配置？"
+        }
+      },
       "basicConfig": {
         "title": "基础信息",
         "message": {
@@ -285,7 +290,7 @@
           "addDataSource": "添加数据源",
           "bindDataSource": "报表数据源"
         },
-        "labels": {
+        "label": {
           "plan": "所选测试计划",
           "sprint": "所选迭代",
           "version": "所选版本",
