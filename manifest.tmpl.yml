@@ -183,6 +183,12 @@ modules:
       loadType: Micro
       route: /panelModule
       defaultActive: true
+  appPage:
+    - key: test-report-creator
+      resource: main
+      title: 测试管理模板创建
+      loadType: Micro
+      route: /reportCreator
   adminPage:
     - key: test-config
       resource: main
@@ -225,7 +231,6 @@ modules:
       title: 测试管理模板创建
       loadType: Micro
       route: /reportCreator
-      hidden: true
   beforeCreateOrUpdateModal:
     - key: before-create-or-update-modal
       resource: main

@@ -19,8 +19,8 @@ const getProximaGateWay = () => {
 
 /** 获取跳转路由前缀 */
 export const getPagePrefix = () => {
-  const baseUrl = !isDev() ? `${getProximaBasePath()}` : '';
-  return `${baseUrl}/${getTenantKey()}`;
+  const baseUrl = isDev() ? '/' : `${getProximaBasePath()}/`;
+  return `${baseUrl}${getTenantKey()}`;
 };
 
 /** 获取租户信息 */
