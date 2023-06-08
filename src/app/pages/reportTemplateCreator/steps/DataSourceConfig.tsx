@@ -214,10 +214,11 @@ const DataSourceConfig: React.FC<{ actionRef: React.MutableRefObject<ActionRefTy
         },
       });
       message.success(scopedT('message.dataSourceConfigSaveSuccess'));
-      // 跳转
-      const urlParams = new URLSearchParams(window.location.search);
-      console.log('(urlParams as any).redirectLink', (urlParams as any).redirectLink);
-      window.open((urlParams as any).redirectLink, '_self');
+      // 跳转会原链接
+      const searchParams = new URLSearchParams(window.location.search);
+      if (searchParams.has('redirectLink')) {
+        window.open(decodeURIComponent(searchParams.get('redirectLink')), '_self');
+      }
     },
   }));
 

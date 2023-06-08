@@ -55,6 +55,9 @@ const FilterReportTemplateKey = [
   'templateConfig',
 ] as (keyof TestReportModelType)[];
 
+// 排除原始数据中的字段
+const FilterOriginalParseDataKeys = ['objectId', 'key', 'className', 'chartGroup'];
+
 /** 测试报告模板 Key */
 const ReportTemplateChartGroupKey = 'test_manager_report_template' as const;
 const ReportChartGroupKey = 'test_manager_report' as const;
@@ -124,14 +127,11 @@ const TestReport = Parse.Object.extend('test_manager_TestReport', {
     // 1. 创建测试报告关联的 chartGroup
     const chartGroupQuery = new ChartGroup();
     chartGroupQuery.set(
-      Object.assign(
-        {
-          key: ReportChartGroupKey,
-          reportStatus: reportParams?.reportStatus,
-          reportOverviewData: reportParams?.reportOverviewData,
-        },
-        omit(reportTemplateChartGroup, ['objectId', 'key', 'className']),
-      ),
+      Object.assign(omit(reportTemplateChartGroup, FilterOriginalParseDataKeys), {
+        key: ReportChartGroupKey,
+        reportStatus: reportParams?.reportStatus,
+        reportOverviewData: reportParams?.reportOverviewData,
+      }),
     );
     const chartGroupObject = await chartGroupQuery.save();
 
@@ -143,12 +143,9 @@ const TestReport = Parse.Object.extend('test_manager_TestReport', {
       chartDataList.map(async chartData => {
         const newChartObject = new Chart();
         newChartObject.set(
-          Object.assign(
-            {
-              chartGroup: ChartGroup.createWithoutData(chartGroupData.objectId),
-            },
-            omit(chartData, ['objectId', 'chartGroup', 'className']),
-          ),
+          Object.assign(omit(chartData, FilterOriginalParseDataKeys), {
+            chartGroup: ChartGroup.createWithoutData(chartGroupData.objectId),
+          }),
         );
 
         // 只有 basic 类型的 chart 才可以使用数据源
@@ -168,12 +165,7 @@ const TestReport = Parse.Object.extend('test_manager_TestReport', {
 
     // 3. 创建 test_manager_TestReport
     const newTestReportObject = new TestReport().set({
-      ...omit(templateReportData, [
-        'objectId',
-        'chartGroup',
-        'className',
-        ...FilterReportTemplateKey,
-      ]),
+      ...omit(templateReportData, FilterOriginalParseDataKeys.concat(FilterReportTemplateKey)),
       isTemplate: false,
       name: reportParams.name,
       reportStatus: reportParams.reportStatus,

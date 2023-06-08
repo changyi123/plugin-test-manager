@@ -240,16 +240,28 @@ export const genDataSourceConfigUid = (dataSourceConfig: TemplateDataSourceConfi
   return dataSourceConfig.map(dataSource => dataSource.key).join('_');
 };
 
-// 生成测试报告模板 Url
-export const genReportTemplateUrl = (testReportId?: string, workspaceKey?: string) => {
-  const currentPageUrl = location.href.split('?')[0];
+/** 生成仪表盘页面链接 */
+export const genChartGroupPageUrl = ({
+  isTemplate,
+  chartGroupId,
+}: {
+  isTemplate?: boolean;
+  chartGroupId: string;
+}) => {
   const pagePrefix = getPagePrefix();
-  const testReportIdSearch = testReportId ? `&testReportId=${testReportId}` : '';
 
-  return `${pagePrefix}/workspaces/${workspaceKey}/plugin/test_manager_test-report-creator?redirectLink=${encodeURIComponent(
-    currentPageUrl,
-  )}${testReportIdSearch}`;
+  const searchParams = new URLSearchParams(
+    '?hiddenHeader=true&hiddenSidebar=true&displayContext=test_manager',
+  );
+  if (isTemplate) {
+    searchParams.append('moduleKey', 'test_manager_report_template');
+  } else {
+    searchParams.append('showChartListHeader', '1');
+    searchParams.append('moduleKey', 'test_report');
+  }
+  if (chartGroupId) {
+    searchParams.append('chartGroupId', chartGroupId);
+  }
+
+  return `${pagePrefix}/plugin/team_insight_charts_base_team_insight_charts_base?${searchParams.toString()}`;
 };
-
-export const genReportViewUrl = (chartGroupId?: string) =>
-  `${getPagePrefix()}/plugin/team_insight_charts_base_team_insight_charts_base?chartGroupId=${chartGroupId}&hiddenHeader=true&showChartListHeader=1`;
