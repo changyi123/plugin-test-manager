@@ -221,8 +221,8 @@ export const bindIqlToChartOption = (iql, chartData) => {
       return Object.assign(
         {
           // 贮存原始 iql，方便后期恢复
-          stashIql: option.iql,
-          iql: `${iql} and (${option.iql})`,
+          stashIql: option?.iql ?? '',
+          iql: option?.iql ? `${iql} and (${option.iql})` : iql,
           iqlContext: {
             displayContext: 'test_manager',
           },
