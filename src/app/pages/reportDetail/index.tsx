@@ -3,6 +3,7 @@ import { Button, Space } from 'antd';
 import React from 'react';
 
 import { useTestConfig } from '@/lib/hooks/useContext';
+import useI18n from '@/lib/hooks/useI18n';
 import { genChartGroupPageUrl } from '@/lib/testReport';
 import { getProximaBasePath, getTenantKey } from '@/lib/utils/helper';
 import { useTestReportByObjectId } from '@/services/testReport/query';
@@ -12,6 +13,7 @@ import cx from './index.less';
 import TestIframe from './TestIframe';
 
 const ReportDetail: React.FC<any> = ({ chartGroupId }) => {
+  const { t } = useI18n();
   const { workspace } = useTestConfig();
   const { data: reportData } = useTestReportByObjectId(chartGroupId);
 
@@ -31,10 +33,10 @@ const ReportDetail: React.FC<any> = ({ chartGroupId }) => {
               }}
             >
               <ArrowLeftOutlined className={cx('icon')} />
-              <span className={cx('title')}>测试报告标题</span>
+              <span className={cx('title')}>{reportData?.name}</span>
             </div>
             <Space>
-              <Button>导出</Button>
+              <Button>{t('report.export')}</Button>
             </Space>
           </div>
           <div className={cx('report-body')}>

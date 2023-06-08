@@ -44,7 +44,7 @@ const ReportHeader: React.FC<any> = () => {
     if (!res.template?.objectId) return;
 
     notification.open({
-      message: '测试报告创建中...',
+      message: t('report.createLoading'),
       icon: <Spin spinning={true} />,
       duration: null,
     });
@@ -66,25 +66,25 @@ const ReportHeader: React.FC<any> = () => {
     notification.destroy();
     if (reportInfo.status === 'success') {
       const proxima = createProximaSdk();
-      proxima.execute('refreshTestReportTable');
+      proxima.execute('refreshTestReportTable', reportInfo?.data?.objectId);
       notification.success({
-        message: `测试报告【${res.name}】创建成功`,
+        message: `${t('report.testReport')}【${res.name}】${t('report.addSuccess')}`,
       });
     } else {
       notification.error({
-        message: `测试报告【${res.name}】创建失败`,
+        message: `${t('report.testReport')}【${res.name}】${t('report.addFail')}`,
       });
     }
-  }, [config?.defectsMapping, workspace]);
+  }, [config?.defectsMapping, workspace, t]);
 
   return (
     <>
       <div className={cx('report-header')}>
         <div className={cx('report-title')}>{t('common.testReport')}</div>
         <Space>
-          <Button icon={<PlusOutlined />} onClick={() => {}}>
-            模板设置
-          </Button>
+          {/* <Button icon={<PlusOutlined />} onClick={() => {}}>
+            {t('report.templateSet')}
+          </Button> */}
           <Button type="primary" icon={<PlusOutlined />} onClick={createReport}>
             {t('report.addReport')}
           </Button>

@@ -1,4 +1,4 @@
-import { omit } from 'lodash';
+import { last, omit } from 'lodash';
 
 import Parse from '@/lib/parse';
 import {
@@ -135,8 +135,6 @@ const TestReport = Parse.Object.extend('test_manager_TestReport', {
       ),
       name: reportParams?.name,
       key: ReportChartGroupKey,
-      reportStatus: reportParams?.reportStatus,
-      reportOverviewData: reportParams?.reportOverviewData,
     });
     await chartGroupObject.save();
 
@@ -181,9 +179,10 @@ const TestReport = Parse.Object.extend('test_manager_TestReport', {
     });
 
     try {
-      await Parse.Object.saveAll([...newChartObjects, newTestReportObject]);
+      const res: any[] = await Parse.Object.saveAll([...newChartObjects, newTestReportObject]);
       return {
         status: 'success',
+        data: last(res)?.toJSON(),
       };
     } catch (error) {
       return {

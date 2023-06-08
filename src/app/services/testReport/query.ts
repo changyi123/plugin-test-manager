@@ -73,6 +73,7 @@ export const useWorkspaceReportListQuery = (params: {
         .matches('name', escapeMatchesQueryArg(params.name))
         .skip(params.pagination?.offset ?? 0)
         .limit(params.pagination?.limit ?? 99)
+        .withCount()
         .find({ json: true });
     },
     {
