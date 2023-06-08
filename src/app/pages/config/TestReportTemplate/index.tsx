@@ -5,7 +5,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 
 import Parse from '@/lib/parse';
-import { genReportTemplateUrl } from '@/lib/testReport';
+import { getPagePrefix } from '@/lib/utils/helper';
 import { testReportServices } from '@/services';
 import { Workspace } from '@/services/models';
 import { testReportQuery } from '@/services/query';
@@ -25,6 +25,17 @@ const TestReportTemplate: React.FC = () => {
       .first({ json: true });
     return workspaceKey;
   });
+
+  // 生成测试报告模板 Url
+  const genReportTemplateUrl = (testReportId?: string) => {
+    const currentPageUrl = location.href.split('?')[0];
+    const pagePrefix = getPagePrefix();
+    const testReportIdSearch = testReportId ? `&testReportId=${testReportId}` : '';
+
+    return `${pagePrefix}/workspaces/${workspaceKey}/plugin/test_manager_test-report-creator?redirectLink=${encodeURIComponent(
+      currentPageUrl,
+    )}${testReportIdSearch}`;
+  };
 
   const {
     data: templateList,
@@ -49,7 +60,7 @@ const TestReportTemplate: React.FC = () => {
       });
     },
     editReportTemplate: async objectId => {
-      window.open(genReportTemplateUrl(objectId, workspaceKey), '_self');
+      window.open(genReportTemplateUrl(objectId), '_self');
     },
     setDefaultReportTemplate: async (objectId: string) => {
       await testReportServices.setDefaultReportTemplate(objectId);
