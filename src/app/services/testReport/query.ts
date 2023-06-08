@@ -16,7 +16,7 @@ export const TestReportQueryKeys = {
   chartGroup: params => ['testReport', 'chartGroup', params],
 
   /** 查询配置页面模板 */
-  allTemplate: params => ['testConfig', 'allTemplate', params],
+  allTemplateList: ['testConfig', 'allTemplate'],
 
   /** objectId */
   objectId: objectId => ['testReport', objectId],
@@ -43,11 +43,13 @@ export const useWorkspaceTemplateListQuery = (params: {
         buildBasicQuery().equalTo('isGlobalTemplate', true),
         buildBasicQuery().equalTo('workspace', Workspace.createWithoutData(params.workspace)),
       )
+        .descending('isDefaultTemplate')
         .skip(params.pagination?.offset ?? 0)
         .limit(params.pagination?.limit ?? 99)
         .find({ json: true });
     },
     {
+      initialData: [],
       enabled: Boolean(params.workspace),
     },
   );
@@ -74,6 +76,7 @@ export const useWorkspaceReportListQuery = (params: {
         .find({ json: true });
     },
     {
+      initialData: [],
       enabled: Boolean(params.workspace),
     },
   );
@@ -122,6 +125,29 @@ export const useChartGroupQuery = (params: {
     },
     {
       enabled: Boolean(params.id),
+    },
+  );
+};
+
+/** 查找全部的模板 */
+export const useAllTemplateList = (params?: {
+  pagination?: {
+    limit?: number;
+    offset?: number;
+  };
+}) => {
+  return useQuery(
+    TestReportQueryKeys.allTemplateList,
+    async () => {
+      return new Parse.Query(TestReport)
+        .equalTo('isTemplate', true)
+        .descending('isDefaultTemplate')
+        .skip(params?.pagination?.offset ?? 0)
+        .limit(params?.pagination?.limit ?? 99)
+        .find({ json: true });
+    },
+    {
+      initialData: [],
     },
   );
 };

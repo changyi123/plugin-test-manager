@@ -10,9 +10,10 @@ import {
   genDataSourceConfigUid,
   TemplateDataSourceConfig,
 } from '@/lib/testReport';
-import { testConfigMutation } from '@/services/mutation';
+import { testConfigMutation, testReportMutation } from '@/services/mutation';
 import { testConfigQuery, testReportQuery } from '@/services/query';
 
+import { ActionRefType } from '../index';
 import { reportTemplateConnectLocation } from '../store';
 import cx from './DataSourceConfig.less';
 
@@ -100,8 +101,13 @@ const DataSourceSelector: React.FC<{
 /** 数据源关联 */
 const DataSourceBinding: React.FC<{
   reportDataSourceFlattenData: any[];
-}> = ({ reportDataSourceFlattenData }) => {
+  onDataConfigTemplateChange: (value: Record<string, TemplateDataSourceConfig>) => void;
+}> = ({ reportDataSourceFlattenData, onDataConfigTemplateChange }) => {
   const testReportTemplateData = useAtomValue(reportTemplateConnectLocation);
+
+  const [templateDataSourceConfig, setTemplateDataSourceConfig] = React.useState(
+    {} as Record<string, TemplateDataSourceConfig>,
+  );
 
   const { data: chartGroupData } = testReportQuery.useChartGroupQuery({
     id: testReportTemplateData.chartGroup?.objectId,
@@ -112,6 +118,25 @@ const DataSourceBinding: React.FC<{
     keyPrefix: 'page.reportTemplateCreator.dataSourceConfig',
   });
 
+  // 同步到父组件
+  React.useEffect(() => {
+    onDataConfigTemplateChange(templateDataSourceConfig);
+  }, [onDataConfigTemplateChange, templateDataSourceConfig]);
+
+  React.useEffect(() => {
+    if (testReportTemplateData.templateConfig) {
+      setTemplateDataSourceConfig(testReportTemplateData.templateConfig.dataSource);
+    }
+  }, [testReportTemplateData]);
+
+  // 选中下来框
+  const handleSelectOption = (dataSourceConfig, rowData) => {
+    setTemplateDataSourceConfig(prev => ({
+      ...prev,
+      [rowData.chartId]: dataSourceConfig,
+    }));
+  };
+
   const columns = [
     {
       title: scopedT('table.title.chartName'),
@@ -120,14 +145,25 @@ const DataSourceBinding: React.FC<{
     {
       title: scopedT('table.title.dataSource'),
       dataIndex: 'dataSource',
-      render: () => {
+      render: (_, rowData) => {
+        const { chartId } = rowData;
         const options =
           reportDataSourceFlattenData?.map(ds => ({
             ...ds,
             value: ds.key,
           })) ?? [];
 
-        return <Select style={{ width: 250 }} options={options} />;
+        const dataConfig = templateDataSourceConfig[chartId];
+        const value = dataConfig ? genDataSourceConfigUid(dataConfig) : null;
+
+        return (
+          <Select
+            value={value}
+            options={options}
+            style={{ width: 250 }}
+            onSelect={(_, opt) => handleSelectOption(opt.original, rowData)}
+          />
+        );
       },
     },
   ];
@@ -135,6 +171,7 @@ const DataSourceBinding: React.FC<{
   const dataSource =
     chartGroupData?.charts.map(chart => ({
       key: chart.objectId,
+      chartId: chart.objectId,
       chartName: chart.name,
     })) ?? [];
 
@@ -142,23 +179,51 @@ const DataSourceBinding: React.FC<{
     <Table
       columns={columns}
       pagination={false}
+      className={cx('table')}
       dataSource={dataSource}
-      scroll={{ y: 500, x: 500 }}
-    ></Table>
+      scroll={{ x: 500 }}
+    />
   );
 };
 
-const DataSourceConfig: React.FC = () => {
+const DataSourceConfig: React.FC<{ actionRef: React.MutableRefObject<ActionRefType> }> = ({
+  actionRef,
+}) => {
   const { t: scopedT } = useTranslation('', {
     keyPrefix: 'page.reportTemplateCreator.dataSourceConfig',
   });
 
   const dataSourceSelectorActionRef = React.useRef(null);
+  const templateDataSourceConfigDataRef = React.useRef(null);
   const { mutateAsync: updateTestConfig } = testConfigMutation.useTestConfigUpdateMutation();
+  const { mutateAsync: updateTestReport } = testReportMutation.useTestReportUpdateMutation();
   const { data: globalTestConfig } = testConfigQuery.useGlobalTestConfig();
+  const testReportTemplateData = useAtomValue(reportTemplateConnectLocation);
 
   const extraConfig = globalTestConfig?.extra;
   const reportDataSource = extraConfig?.reportDataSource;
+
+  React.useImperativeHandle(actionRef, () => ({
+    goNextButtonClick: async () => {
+      const dataSource = templateDataSourceConfigDataRef.current;
+      await updateTestReport({
+        objectId: testReportTemplateData.objectId,
+        templateConfig: {
+          ...testReportTemplateData.templateConfig,
+          dataSource,
+        },
+      });
+      message.success(scopedT('message.dataSourceConfigSaveSuccess'));
+      // 跳转
+      const urlParams = new URLSearchParams(window.location.search);
+      console.log('(urlParams as any).redirectLink', (urlParams as any).redirectLink);
+      window.open((urlParams as any).redirectLink, '_self');
+    },
+  }));
+
+  const handleDataConfigTemplateChange = templateDataSourceConfig => {
+    templateDataSourceConfigDataRef.current = templateDataSourceConfig;
+  };
 
   const handleAddDataSource = async dataSource => {
     if (Array.isArray(reportDataSource)) {
@@ -217,10 +282,10 @@ const DataSourceConfig: React.FC = () => {
           onAddDataSource={handleAddDataSource}
           actionRef={dataSourceSelectorActionRef}
         />
-        <div>
+        <div className={cx('list')}>
           {Array.isArray(reportDataSource) &&
             reportDataSourceFlattenData.map(ds => (
-              <div className={cx('list')} key={ds.key}>
+              <div className={cx('item')} key={ds.key}>
                 <span>{ds.label}</span>
                 <a onClick={() => handleDeleteDataSource(ds.key)}>
                   <DeleteOutlined />
@@ -228,10 +293,14 @@ const DataSourceConfig: React.FC = () => {
               </div>
             ))}
         </div>
-        <div className={cx('subtitle')}>{scopedT('subtitle.addDataSource')}</div>
-        <DataSourceBinding reportDataSourceFlattenData={reportDataSourceFlattenData} />
       </div>
-      <div className={cx('data-bind')}></div>
+      <div className={cx('data-bind')}>
+        <div className={cx('subtitle')}>{scopedT('subtitle.addDataSource')}</div>
+        <DataSourceBinding
+          reportDataSourceFlattenData={reportDataSourceFlattenData}
+          onDataConfigTemplateChange={handleDataConfigTemplateChange}
+        />
+      </div>
     </div>
   );
 };

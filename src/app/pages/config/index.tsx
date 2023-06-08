@@ -43,8 +43,10 @@ const ConfigPages = [
   {
     key: 'TestReportTemplate',
     title: 'testReportTemplate',
+    description: 'testReportTemplate',
     component: TestReportTemplate,
     isGlobalConfig: true,
+    noPadding: true,
   },
   {
     key: 'ItemTypeMapping',
@@ -205,7 +207,7 @@ const Config = () => {
               {currentConfigPage.isGlobalConfig ? null : <WorkspaceSelector />}
             </div>
           </Header>
-          <Content className={cx('content')}>
+          <Content className={cx('content', currentConfigPage.noPadding && 'no-padding')}>
             <PageContent currentConfigPage={currentConfigPage} />
           </Content>
         </Layout>
