@@ -1,8 +1,10 @@
 import { useListener } from '@projectproxima/proxima-sdk-js';
+import useDebounce from 'ahooks/lib/useDebounce';
 import { Button, Pagination } from 'antd';
 import React, { useCallback, useRef, useState } from 'react';
 
 import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
+import SearchInput from '@/components/common/FilterSearch/SearchInput';
 import { TestType } from '@/lib/constants';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
@@ -55,6 +57,9 @@ const List: React.FC<any> = () => {
 
   const [limit, setLimit] = useState<number>(10);
   const [offset, setOffset] = useState<number>(1);
+  const [searchName, setSearchName] = useState<string>('');
+
+  const name = useDebounce(searchName, { wait: 500 });
 
   const {
     data: { results: dataSource, count: total },
@@ -62,6 +67,7 @@ const List: React.FC<any> = () => {
     refetch,
   } = useWorkspaceReportListQuery({
     workspace: workspace?.objectId,
+    name,
     pagination: { limit, offset: (offset - 1 || 0) * limit },
   });
 
@@ -80,6 +86,13 @@ const List: React.FC<any> = () => {
       return href;
     },
     [workspaceKey],
+  );
+
+  const onChangeInput = useCallback(
+    val => {
+      setSearchName(val);
+    },
+    [setSearchName],
   );
 
   const actionRef = useRef<BusinessTableActionType>();
@@ -169,6 +182,13 @@ const List: React.FC<any> = () => {
 
   return (
     <div className={cx('report-list')}>
+      <div className={cx('report-header')}>
+        <SearchInput
+          onChange={onChangeInput}
+          placeholder={t('components.common.filterSearch.screenPlaceholder')}
+          value={searchName}
+        />
+      </div>
       {workspace?.key && (
         <BusinessTable
           titleCellOption={{
