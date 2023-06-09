@@ -88,7 +88,7 @@ const TestReportTemplate: React.FC = () => {
   return (
     <div className={cx('container')} style={{ height }}>
       <div className={cx('header')}>
-        <h3>{scopedT(stage === 'create' && testReportId ? 'createTitle' : 'editorTitle')}</h3>
+        <h3>{scopedT(!testReportId || stage === 'create' ? 'creatorTitle' : 'editorTitle')}</h3>
         <div className={cx('step-container')}>
           <AntdSteps
             current={currentStep}

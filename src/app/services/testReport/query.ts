@@ -2,8 +2,9 @@ import { useQuery } from '@tanstack/react-query';
 
 import Parse, { escapeMatchesQueryArg } from '@/lib/parse';
 
+import { bindPaginationToParseQuery } from '../lib';
 import { Chart, ChartGroup, TestReport, Workspace } from '../models';
-import type { PaginationParams } from '../type';
+import type { OrderParams, PaginationParams } from '../type';
 
 /** query key */
 export const TestReportQueryKeys = {
@@ -39,13 +40,13 @@ export const useWorkspaceTemplateListQuery = (params: {
         return query;
       };
 
-      return await Parse.Query.or(
+      const query = Parse.Query.or(
         buildBasicQuery().equalTo('isGlobalTemplate', true),
         buildBasicQuery().equalTo('workspace', Workspace.createWithoutData(params.workspace)),
-      )
-        .descending('isDefaultTemplate')
-        .skip(params.pagination?.offset ?? 0)
-        .limit(params.pagination?.limit ?? 99)
+      );
+
+      return bindPaginationToParseQuery(query, params.pagination)
+        .descending(['isDefaultTemplate', 'createdAt'])
         .find({ json: true });
     },
     {
@@ -59,22 +60,18 @@ export const useWorkspaceTemplateListQuery = (params: {
 export const useWorkspaceReportListQuery = (params: {
   workspace: string;
   name?: string;
-  pagination?: {
-    limit?: number;
-    offset?: number;
-  };
+  order?: OrderParams;
+  pagination?: PaginationParams;
 }) => {
   return useQuery(
     TestReportQueryKeys.workspaceReportList(params),
     async () => {
-      return new Parse.Query(TestReport)
+      const query = new Parse.Query(TestReport)
         .equalTo('isTemplate', false)
         .equalTo('workspace', Workspace.createWithoutData(params.workspace))
-        .matches('name', escapeMatchesQueryArg(params.name))
-        .skip(params.pagination?.offset ?? 0)
-        .limit(params.pagination?.limit ?? 99)
-        .withCount()
-        .find({ json: true });
+        .matches('name', escapeMatchesQueryArg(params.name));
+
+      return bindPaginationToParseQuery(query, params.pagination).find({ json: true });
     },
     {
       initialData: [],
@@ -120,8 +117,8 @@ export const useChartGroupQuery = (params: {
       const [chartGroup, charts] = await Promise.all(queryTasks);
 
       return {
-        chartGroup,
         charts,
+        chartGroup,
       };
     },
     {
@@ -131,21 +128,15 @@ export const useChartGroupQuery = (params: {
 };
 
 /** 查找全部的模板 */
-export const useAllTemplateList = (params?: {
-  pagination?: {
-    limit?: number;
-    offset?: number;
-  };
-}) => {
+export const useAllTemplateList = (params?: { pagination?: PaginationParams }) => {
   return useQuery(
     TestReportQueryKeys.allTemplateList,
     async () => {
-      return new Parse.Query(TestReport)
+      const query = new Parse.Query(TestReport)
         .equalTo('isTemplate', true)
-        .descending('isDefaultTemplate')
-        .skip(params?.pagination?.offset ?? 0)
-        .limit(params?.pagination?.limit ?? 99)
-        .find({ json: true });
+        .descending(['isDefaultTemplate', 'createdAt']);
+
+      return bindPaginationToParseQuery(query, params?.pagination).find({ json: true });
     },
     {
       initialData: [],

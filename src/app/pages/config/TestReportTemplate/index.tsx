@@ -1,13 +1,10 @@
-import { useQuery } from '@tanstack/react-query';
 import { useMemoizedFn } from 'ahooks';
 import { Button, message, Modal, Table } from 'antd';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
-import Parse from '@/lib/parse';
 import { getPagePrefix } from '@/lib/utils/helper';
 import { testReportServices } from '@/services';
-import { Workspace } from '@/services/models';
 import { testReportQuery } from '@/services/query';
 
 import cx from './index.less';
@@ -18,23 +15,16 @@ const TestReportTemplate: React.FC = () => {
     keyPrefix: 'page.config.testReportTemplate',
   });
 
-  const { data: workspaceKey } = useQuery(['route', 'required', 'workspaceKey'], async () => {
-    // FIXME: 因没有空白页插件挂载点，创建页面先使用空间页面挂载点，空间使用第一个
-    const { key: workspaceKey } = await new Parse.Query(Workspace)
-      .select(['key'])
-      .first({ json: true });
-    return workspaceKey;
-  });
-
   // 生成测试报告模板 Url
   const genReportTemplateUrl = (testReportId?: string) => {
-    const currentPageUrl = location.href.split('?')[0];
     const pagePrefix = getPagePrefix();
-    const testReportIdSearch = testReportId ? `&testReportId=${testReportId}` : '';
+    const currentPageUrl = location.href.split('?')[0];
+    const searchParams = new URLSearchParams();
+    if (testReportId) searchParams.append('testReportId', testReportId);
+    // 添加重定向地址
+    searchParams.append('redirectLink', encodeURIComponent(currentPageUrl));
 
-    return `${pagePrefix}/workspaces/${workspaceKey}/plugin/test_manager_test-report-creator?redirectLink=${encodeURIComponent(
-      currentPageUrl,
-    )}${testReportIdSearch}`;
+    return `${pagePrefix}/plugin/test_manager_test-report-creator?${searchParams.toString()}`;
   };
 
   const {
