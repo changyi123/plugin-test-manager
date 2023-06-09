@@ -1,3 +1,4 @@
+import i18n from 'i18next';
 import { omit } from 'lodash';
 
 import Parse from '@/lib/parse';
@@ -70,7 +71,17 @@ const TestReport = Parse.Object.extend('test_manager_TestReport', {
   async createTemplate(reportTemplateParams) {
     const objectId = this.get('objectId');
     const isExisted = Boolean(objectId);
-    if (isExisted) throw new Error('ReportTemplate is existed');
+    if (isExisted) throw new Error(i18n.t('page.reportTemplateCreator.templateExisted'));
+
+    // 校验名称是否重复
+    const alreadyExistedSameNameTemplate = await new Parse.Query(TestReport)
+      .equalTo('name', reportTemplateParams.name)
+      .select(['objectId'])
+      .first({ json: true });
+
+    if (alreadyExistedSameNameTemplate) {
+      throw new Error(i18n.t('page.reportTemplateCreator.nameExisted'));
+    }
 
     const { name, workspace, isDefaultTemplate, isGlobalTemplate, templateConfig } = Object.assign(
       {},
@@ -94,6 +105,7 @@ const TestReport = Parse.Object.extend('test_manager_TestReport', {
       isDefaultTemplate,
       chartGroup: chartGroupObject,
       workspace: typeof workspace === 'string' ? Workspace.createWithoutData(workspace) : workspace,
+      createdBy: Parse.User.current(),
     });
 
     // 创建 report template
@@ -137,11 +149,11 @@ const TestReport = Parse.Object.extend('test_manager_TestReport', {
       key: ReportChartGroupKey,
       reportStatus: reportParams?.reportStatus,
       reportOverviewData: reportParams?.reportOverviewData,
+      createdBy: Parse.User.current(),
     });
     await chartGroupObject.save();
 
     const chartGroupData = chartGroupObject.toJSON();
-    console.info('chartGroupData ------------->', chartGroupData);
     const templateDataSourceConfig = reportTemplateConfig?.dataSource ?? {};
 
     // 2. 创建测试报告关联的 chart
@@ -178,6 +190,7 @@ const TestReport = Parse.Object.extend('test_manager_TestReport', {
       usingReportTemplate: TestReport.createWithoutData(templateId),
       chartGroup: ChartGroup.createWithoutData(chartGroupData.objectId),
       workspace: Workspace.createWithoutData(reportParams.workspace?.objectId),
+      createdBy: Parse.User.current(),
     });
 
     try {
@@ -194,7 +207,7 @@ const TestReport = Parse.Object.extend('test_manager_TestReport', {
 
   /** 删除报告或模板 */
   async delete(objectId) {
-    if (!objectId) throw new Error('ReportTemplate is not existed');
+    if (!objectId) throw new Error('TestReport is not existed');
     try {
       const testReportObject = await new Parse.Query(TestReport)
         .equalTo('objectId', objectId)

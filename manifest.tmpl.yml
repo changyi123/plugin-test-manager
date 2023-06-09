@@ -220,14 +220,8 @@ modules:
       loadType: Micro
       route: /xmindimport
       hidden: true
-    - key: test-report-creator
-      resource: main
-      title: 测试管理模板创建
-      loadType: Micro
-      route: /reportCreator
-      hidden: true
   appPage:
-    - key: test-report-global-creator
+    - key: test-report-creator
       resource: main
       title: 测试管理模板创建
       loadType: Micro
