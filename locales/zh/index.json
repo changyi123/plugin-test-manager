@@ -118,7 +118,15 @@
     "addTestReport": "新建测试报告",
     "selectTemplate": "输入名称和选择模板",
     "selectRange": "选择统计范围",
-    "validateTips": "存在未填字段，请检查必填字段"
+    "validateTips": "存在未填字段，请检查必填字段",
+    "view": "查看",
+    "deleteTip1": "该操作会将测试报告删除，是否继续操作？",
+    "createLoading": "测试报告创建中",
+    "templateSet": "模板设置",
+    "testReport": "测试报告",
+    "addSuccess": "创建成功",
+    "addFail": "创建失败",
+    "export": "导出"
   },
   "status": {
     "PASSED": {

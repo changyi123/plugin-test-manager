@@ -119,7 +119,15 @@
     "addTestReport": "Add test report",
     "selectTemplate": "Enter a name and choose a template",
     "selectRange": "Select statistical range",
-    "validateTips": "There are missing fields, please check required fields"
+    "validateTips": "There are missing fields, please check required fields",
+    "view": "View",
+    "deleteTip1": "This operation will delete the test report. Do you want to continue?",
+    "createLoading": "Test report creation",
+    "templateSet": "Template setting",
+    "testReport": "Test report",
+    "addSuccess": "created successfully",
+    "addFail": "created failed",
+    "export": "export"
   },
   "status": {
     "PASSED": {

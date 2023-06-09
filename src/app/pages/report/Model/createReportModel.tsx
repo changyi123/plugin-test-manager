@@ -1,6 +1,7 @@
 import { useReactive } from 'ahooks';
 import { Button, message, Modal } from 'antd';
 import classnames from 'classnames';
+import { isEmpty } from 'lodash';
 import clone from 'lodash/clone';
 import React, { useCallback, useMemo, useState } from 'react';
 
@@ -91,6 +92,14 @@ const CreateReportModel: React.FC<CreateReportModelProps> = props => {
     return false;
   }, [state]);
 
+  const validateSelector = useCallback(() => {
+    if (isEmpty(state.selectors)) return true;
+
+    return !Object.values(state.selectors)
+      .map(s => (s as any).value?.length)
+      .filter(Boolean)?.length;
+  }, [state?.selectors]);
+
   const ModalFooterNode = useMemo(() => {
     return (
       <>
@@ -107,6 +116,8 @@ const CreateReportModel: React.FC<CreateReportModelProps> = props => {
             <Button
               type="primary"
               onClick={() => {
+                const isNull = validateSelector();
+                if (isNull) return message.error(t('report.validateTips'));
                 handleCloseModal(clone(state));
               }}
             >
@@ -126,7 +137,7 @@ const CreateReportModel: React.FC<CreateReportModelProps> = props => {
         )}
       </>
     );
-  }, [handleCloseModal, t, current, state, validateState]);
+  }, [handleCloseModal, t, current, state, validateState, validateSelector]);
 
   const steps = useMemo(() => {
     const Components = current === '2' ? RangeForm : TemplateForm;

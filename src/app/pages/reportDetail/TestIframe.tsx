@@ -10,11 +10,13 @@ const TestIframe: React.FC<any> = props => {
     <iframe
       className={cx('report-charts', props.className)}
       onLoad={() => {
-        const clientHeight =
-          iframeRef?.current?.contentWindow.document.getElementsByClassName(
-            'react-grid-layout',
-          )?.[0]?.clientHeight;
-
+        // TODO 无效果，待修改
+        const currentDom =
+          iframeRef?.current?.contentWindow.document.getElementsByClassName('react-grid-layout')[0];
+        if (currentDom?.parentElement) {
+          currentDom.parentElement.style.marginTop = 0;
+        }
+        const clientHeight = currentDom?.clientHeight;
         clientHeight && setHeight(`${clientHeight}px`);
       }}
       ref={iframeRef}

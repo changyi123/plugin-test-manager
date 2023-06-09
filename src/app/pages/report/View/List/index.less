@@ -1,4 +1,25 @@
 .report-list {
-  padding: 20px 0;
-  height: ~'calc(100% - 72px)';
+  padding: 12px 0 12px 0;
+  height: ~'calc(100% - 97px)';
+
+  .report-header {
+    padding: 0 24px;
+    border-bottom: 1px solid #f1f2f4;
+  }
+
+  .report-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    border-top: 1px solid #f1f2f4;
+  }
+}
+
+.test-report-title {
+  cursor: pointer;
+
+  &:hover {
+    color: #0c62ff;
+  }
 }

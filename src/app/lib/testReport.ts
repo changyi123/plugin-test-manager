@@ -1,4 +1,4 @@
-import { flattenDepth, omitBy } from 'lodash';
+import { flattenDepth, omit } from 'lodash';
 
 import { getLinkedTestEntityByQuery, getTestEntityByQuery } from './api/item';
 import { TestLinkType, TestPlanModel, TestType } from './constants';
@@ -221,7 +221,7 @@ const getItemIdByPlan = async ({ planIds, secondLevelDataSource }) => {
 export const bindIqlToChartOption = (iql, chartData) => {
   const adaptors = {
     default: option => {
-      const pureOption = omitBy(option, ['iql', 'selectors']);
+      const pureOption = omit(option, ['iql', 'selectors', 'queryType']);
       return Object.assign(
         {
           // 贮存原始 iql，方便后期恢复
@@ -230,6 +230,8 @@ export const bindIqlToChartOption = (iql, chartData) => {
           iqlContext: {
             displayContext: 'test_manager',
           },
+          // 默认 iql 查询
+          queryType: 'expression',
         },
         pureOption,
       );
