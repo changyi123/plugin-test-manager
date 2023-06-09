@@ -4,7 +4,8 @@ import Parse from '@/lib/parse';
 import {
   bindIqlToChartOption,
   DataSource,
-  dataSourceIqlGenerator,
+  getDataSourceIqlGenerator,
+  newDataSourceIqlGenerator,
   ReportChartGroupKey,
   ReportTemplateChartGroupKey,
   SupportDataSourceChartViewReg,
@@ -141,30 +142,37 @@ const TestReport = Parse.Object.extend('test_manager_TestReport', {
     const chartGroupData = chartGroupObject.toJSON();
     console.info('chartGroupData ------------->', chartGroupData);
     const templateDataSourceConfig = reportTemplateConfig?.dataSource ?? {};
+    console.info('templateDataSourceConfig ------------->', templateDataSourceConfig);
+
+    const dataSourceIqlMap = await newDataSourceIqlGenerator(
+      templateDataSourceConfig,
+      reportParams,
+    );
 
     // 2. 创建测试报告关联的 chart
-    const newChartObjects = await Promise.all(
-      chartDataList.map(async chartData => {
-        const newChartObject = new Chart();
-        newChartObject.set({
-          ...omit(chartData, FilterOriginalParseDataKeys),
-          chartGroup: ChartGroup.createWithoutData(chartGroupData.objectId),
-        });
+    const newChartObjects = chartDataList.map(chartData => {
+      const newChartObject = new Chart();
+      newChartObject.set({
+        ...omit(chartData, FilterOriginalParseDataKeys),
+        chartGroup: ChartGroup.createWithoutData(chartGroupData.objectId),
+      });
 
-        // 只有 basic 类型的 chart 才可以使用数据源
-        if (SupportDataSourceChartViewReg.test(chartData.view)) {
-          const dataSource = templateDataSourceConfig[chartData.objectId];
-          // 根据数据源配置生成对应的 iql
-          // TODO: prepareData 数据
-          const iql = await dataSourceIqlGenerator(dataSource, reportParams);
-          // 根据 iql 增加到 chartOption 中
-          const option = bindIqlToChartOption(iql, chartData);
-          // 设置 option
-          newChartObject.set({ option });
-        }
-        return newChartObject;
-      }),
-    );
+      // 只有 basic 类型的 chart 才可以使用数据源
+      if (SupportDataSourceChartViewReg.test(chartData.view)) {
+        const dataSource = templateDataSourceConfig[chartData.objectId];
+        // 根据数据源配置生成对应的 iql
+        // TODO: prepareData 数据
+        // const iql = await dataSourceIqlGenerator(dataSource, reportParams);
+        const iql = getDataSourceIqlGenerator(dataSource, dataSourceIqlMap);
+        // 根据 iql 增加到 chartOption 中
+        const option = bindIqlToChartOption(iql, chartData);
+        // 设置 option
+        newChartObject.set({ option });
+      }
+      return newChartObject;
+    });
+
+    console.info('newChartObjects ----------->', newChartObjects);
 
     // 3. 创建 test_manager_TestReport
     const newTestReportObject = new TestReport().set({

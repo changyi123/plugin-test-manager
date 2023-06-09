@@ -12,6 +12,7 @@ const TemplateForm: React.FC<FormProps> = ({ state, workspace }) => {
 
   const [inputStatus, setInputStatus] = useState(undefined);
   const [selectStatus, setSelectStatus] = useState(undefined);
+  const [exceedLength, setExceedLength] = useState(false);
 
   const { data: reportTemplateList, isLoading } = useWorkspaceTemplateListQuery({
     workspace: workspace?.objectId,
@@ -50,6 +51,7 @@ const TemplateForm: React.FC<FormProps> = ({ state, workspace }) => {
       <div className={cx('form-box')}>
         <span className={cx('step-label', 'required')}>{t('report.reportName')}</span>
         {inputStatus === 'error' && <span className={cx('error')}>{t('report.required')}</span>}
+        {exceedLength && <span className={cx('error')}>{t('report.exceedLength')}</span>}
         <div className={cx('step-cont')}>
           <Input
             placeholder={t('report.reportNamePlaceholder')}
@@ -59,6 +61,7 @@ const TemplateForm: React.FC<FormProps> = ({ state, workspace }) => {
             }}
             status={inputStatus}
             onBlur={() => {
+              setExceedLength(state.name?.length > 25);
               setInputStatus(state.name ? undefined : 'error');
             }}
           ></Input>

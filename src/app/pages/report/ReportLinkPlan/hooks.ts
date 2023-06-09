@@ -6,7 +6,7 @@ import { getTestEntityByQuery } from '@/lib/api/item';
 export const useGetReportLInkPLan = (linkPlanId: string[]) => {
   const { data } = useRequest(
     async () => {
-      if (!linkPlanId?.length) return '';
+      if (!linkPlanId?.length) return;
       const { list } = await getTestEntityByQuery({
         query: {
           type: TestType.Plan,

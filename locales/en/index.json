@@ -114,6 +114,7 @@
     "choiceTemplatePlaceholder": "Please select a template",
     "range": "Statistical range",
     "required": "Required",
+    "exceedLength": "Template name is limited to 25 characters",
     "reportInfo": "report summary",
     "addReport": "Add report",
     "addTestReport": "Add test report",
