@@ -25,8 +25,8 @@ const PaginationFooterRender: React.FC<any> = ({
   const { t } = useI18n();
   if (!showPagination) return null;
   const handlePaginationChange = (current, pageSize) => {
-    setLimit(pageSize);
-    setOffset(current);
+    limit !== pageSize && setLimit(pageSize);
+    current !== offset && setOffset(current);
   };
 
   return (
@@ -41,6 +41,7 @@ const PaginationFooterRender: React.FC<any> = ({
         pageSizeOptions={[10, 20, 50]}
         defaultPageSize={limit}
         current={offset}
+        total={total}
         onChange={handlePaginationChange}
       />
     </div>
@@ -53,7 +54,7 @@ const List: React.FC<any> = () => {
   const workspaceKey = workspace?.key;
 
   const [limit, setLimit] = useState<number>(10);
-  const [offset, setOffset] = useState<number>(0);
+  const [offset, setOffset] = useState<number>(1);
 
   const {
     data: { results: dataSource, count: total },
@@ -61,7 +62,7 @@ const List: React.FC<any> = () => {
     refetch,
   } = useWorkspaceReportListQuery({
     workspace: workspace?.objectId,
-    pagination: { limit, offset },
+    pagination: { limit, offset: (offset - 1 || 0) * limit },
   });
 
   useListener('refreshTestReportTable', id => {
@@ -89,11 +90,15 @@ const List: React.FC<any> = () => {
       fixed: true,
       isSystem: true,
       title: t('common.title'),
-      className: 'test-case-title',
       render(_, rowData) {
         return (
-          <div className={'test-plan-title-box'}>
-            <div className={'test-plan-title'}>{rowData.name}</div>
+          <div
+            className={cx('test-report-title')}
+            onClick={() => {
+              window.open(genReportDetail(rowData.objectId), '_blank');
+            }}
+          >
+            {rowData.name}
           </div>
         );
       },
