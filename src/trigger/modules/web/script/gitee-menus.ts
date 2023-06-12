@@ -37,7 +37,7 @@ export const runGiteeMenus = async () => {
     // 生成测试管理插件菜单
     const generateGiteeMenu = ({ langKey, pageKey }) => {
       return {
-        title: i18n.t(`common.${langKey}`),
+        title: i18n.t(`common.pageTitle.${langKey}`),
         key: `${pageKey}-${workspaceKey}`,
         icon: 'iconNavi-icafeplan',
         // url: `${giteeRoutePrefix}/plugin/${APP_KEY}_${appId}_${pageKey}`,
@@ -49,31 +49,6 @@ export const runGiteeMenus = async () => {
       };
     };
 
-    // 获取测试管理空间配置
-    // const testConfigQuery = getParseQuery(false, TestConfigClassName);
-    // const testConfig = await testConfigQuery
-    //   .equalTo('workspaceKey', workspaceKey)
-    //   .select(['defectBoard', 'displayDefectBoard'])
-    //   .include('defectBoard')
-    //   .first(ParseBaseQueryOptions)
-    //   .then(item => item.toJSON());
-
-    // const boardMenus = [];
-
-    // if (testConfig?.defectBoard) {
-    //   const defectBoardData = testConfig?.defectBoard;
-
-    //   boardMenus.push({
-    //     title: '缺陷管理',
-    //     key: `${defectBoardData.key}-${workspaceKey}`,
-    //     icon: 'iconNavi-icafeplan',
-    //     url: `${giteeRoutePrefix}/boards/${defectBoardData.key}`,
-    //     type: 'IFRAME',
-    //     openWindow: '0',
-    //     iframeUrl: `${proximaRoutePrefix}/boards/${defectBoardData.key}?hiddenSider=true&hiddenHeader=true`,
-    //   });
-    // }
-
     const reportStatsMenu = {
       title: i18n.t('common.overview'),
       key: `test-stats-report-${workspaceKey}`,
@@ -84,10 +59,16 @@ export const runGiteeMenus = async () => {
       iframeUrl: `${proximaRoutePrefix}/plugin/team_insight_charts_base_team_insight_charts_base_workspace?disabledCreate=true&displayContext=test_manager&moduleKey=test_manager`,
     };
 
+    // 是否开启测试报告
+    const enableTestReport = global.env?.FEATURE_FLAGS?.includes('ENABLE_TEST_REPORT');
+    console.info('enableTestReport-----------------', global.env?.FEATURE_FLAGS, enableTestReport);
+
     const menus = [
       { pageKey: 'test-plan', langKey: 'plan' },
       { pageKey: 'test-repository', langKey: 'repository' },
+      enableTestReport && { pageKey: 'test-report', langKey: 'report' },
     ]
+      .filter(Boolean)
       .map(generateGiteeMenu)
       .concat(reportStatsMenu);
 

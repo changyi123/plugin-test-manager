@@ -458,14 +458,14 @@ export const bindIqlToChartOption = (iql, chartData) => {
           iql: option?.iql ? `${iql} and (${option.iql})` : iql,
           iqlContext: {
             displayContext: 'test_manager',
-            // 增加筛选字段类型，使报表小组件再查询字段时保留这些字段的类型
-            extensionOption: {
-              fieldTypeKeys: [
-                'r_test_manager_es_object',
-                'r_test_manager_es_text_keyword',
-                'r_test_manager_es_array_keyword',
-              ],
-            },
+          },
+          // 增加筛选字段类型，使报表小组件再查询字段时保留这些字段的类型
+          extensionOption: {
+            fieldTypeKeys: [
+              'r_test_manager_es_object',
+              'r_test_manager_es_text_keyword',
+              'r_test_manager_es_array_keyword',
+            ],
           },
           // 默认 iql 查询
           queryType: 'expression',

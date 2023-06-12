@@ -8,6 +8,8 @@ import { get } from 'lodash';
 const SupportFeatureFlags = {
   /** 开启测试管理脑图 */
   ENABLE_MINDER: 'ENABLE_MINDER',
+  /** 开启测试报告 */
+  ENABLE_TEST_REPORT: 'ENABLE_TEST_REPORT',
 } as const;
 
 type SupportFeatureFlagKey = keyof typeof SupportFeatureFlags;

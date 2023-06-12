@@ -12,6 +12,11 @@
     "cannotExecuteTestCase": "当前测试用例未分配执行人，无法执行"
   },
   "common": {
+    "pageTitle": {
+      "repository": "测试用例",
+      "report": "测试报告",
+      "plan": "测试计划"
+    },
     "pleaseInputContent": "请输入内容",
     "updateAt": "修改时间",
     "success": "成功",
@@ -41,8 +46,6 @@
     "deleteFail": "删除失败",
     "actionSuccess": "操作成功",
     "actionFail": "操作失败",
-    "repository": "测试用例",
-    "plan": "测试计划",
     "overview": "测试概览",
     "testCase": "测试用例",
     "testPlan": "测试计划",
@@ -289,7 +292,8 @@
       "basicConfig": {
         "title": "基础信息",
         "message": {
-          "createReportTemplateSuccess": "测试报告模板创建成功"
+          "createReportTemplateSuccess": "测试报告模板创建成功",
+          "updateReportTemplateSuccess": "测试报告模板更新成功"
         },
         "form": {
           "name": {

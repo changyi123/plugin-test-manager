@@ -1,5 +1,6 @@
 import { Form, Input, message } from 'antd';
 import { useAtom } from 'jotai';
+import { eq } from 'lodash';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -28,16 +29,35 @@ const BasicConfig: React.FC<{
   }, [form, reportTemplateData]);
 
   const { mutateAsync: createTestReport } = testReportMutation.useTestReportCreateMutation();
+  const { mutateAsync: updateTestReport } = testReportMutation.useTestReportUpdateMutation();
 
   React.useImperativeHandle(actionRef, () => ({
     goNextButtonClick: async () => {
       try {
+        const data = await form.validateFields();
+
         // 已存在模板数据，不需要创建，走更新逻辑
         if (reportTemplateData?.objectId) {
-          // TODO: 更新测试报告模板
+          const differentDataValues = Object.keys(data).reduce((values, key) => {
+            if (!eq(data[key], reportTemplateData[key])) {
+              return {
+                ...values,
+                [key]: data[key],
+              };
+            }
+            return values;
+          }, {});
+
+          if (Object.values(differentDataValues).length !== 0) {
+            await updateTestReport({
+              objectId: reportTemplateData.objectId,
+              ...differentDataValues,
+            });
+            message.success(scopedT('message.updateReportTemplateSuccess'));
+          }
+
           return;
         }
-        const data = await form.validateFields();
         const testReportTemplate = await createTestReport({
           isGlobalTemplate: true,
           isDefaultTemplate: false,

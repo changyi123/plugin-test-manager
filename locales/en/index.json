@@ -12,6 +12,11 @@
     "cannotExecuteTestCase": "The current test case is not assigned to an executor and cannot be executed"
   },
   "common": {
+    "pageTitle": {
+      "repository": "Test Repository",
+      "plan": "Test Plan",
+      "report": "Test Report"
+    },
     "pleaseInputContent": "Please enter content",
     "updateAt": "updateAt",
     "success": "Success",
@@ -39,8 +44,7 @@
     "deleteFail": "Failed to delete",
     "actionSuccess": " Successful operation",
     "actionFail": "Operation failed",
-    "repository": "Test Repository",
-    "plan": "Test Plan",
+
     "overview": "Test Overview",
     "testCase": "Test case",
     "testPlan": "Test plan",
