@@ -1,4 +1,6 @@
 import { getParseModel, getParseQuery, saveAllObject } from '@giteeteam/apps-team-api';
+import { TestEntity } from 'common/types/test';
+import { flatten, omitBy } from 'lodash';
 import keyBy from 'lodash/keyBy';
 import uniqueId from 'lodash/uniqueId';
 
@@ -89,18 +91,23 @@ export const minderData = async () => {
 
       // 根据 repo 获取测试用例
       const getTestCasesByRepoKeys = async repoKeys => {
+        if (!Array.isArray(repoKeys)) return [];
+        const isIncludeRootRepository = repoKeys.includes(UngroupedRepositoryKey);
+
         const requestQuery = {
           workspaceKey,
           type: TestType.Case,
         } as any;
 
-        if (Array.isArray(repoKeys)) {
+        // 如果包含 root 节点，需要把空间内全部的 testCase 查出来
+        // 不包含 root 节点，才需要限定 repository key 的查询范围
+        if (!isIncludeRootRepository) {
           requestQuery.repository = repoKeys;
         }
 
         const {
           data: { list: allTestCases },
-        } = await iqlRequest({
+        } = await iqlRequest<TestEntity<TestType.Case>>({
           query: requestQuery,
           fields: [SystemField.Id, TestFiledKeyMapping.repository, ...select],
           pagination: {
@@ -142,18 +149,9 @@ export const minderData = async () => {
       };
 
       // 添加 caseIds
-      const appendCaseIds = (repo, testCases) => {
-        const repoKeyCaseIdsMapping = testCases.reduce((mapping, testCase) => {
-          const repoKey = testCase.repository ?? UngroupedRepositoryKey;
-          const arr = mapping[repoKey] ?? [];
-          return {
-            ...mapping,
-            [repoKey]: arr.concat(testCase.objectId),
-          };
-        }, {});
-
+      const appendCaseIds = (repo, repoKeyCaseIdsMapping) => {
         const traverse = repo => {
-          const caseIds = repoKeyCaseIdsMapping[repo.key];
+          const caseIds = repoKeyCaseIdsMapping[repo.key ?? UngroupedRepositoryKey];
           if (caseIds) {
             repo.caseIds = caseIds;
           }
@@ -167,14 +165,39 @@ export const minderData = async () => {
         return repo;
       };
 
+      // 获取 caseIds mapping
+      const getRepoKeyCaseIdsMapping = (testCases, subRepositoryKeys) => {
+        // 形成 repoKey -> caseIds 的映射
+        const repoKeyCaseIdsMapping = testCases.reduce((mapping, testCase) => {
+          const repoKey = testCase.repository ?? UngroupedRepositoryKey;
+          const arr = mapping[repoKey] ?? [];
+          return {
+            ...mapping,
+            [repoKey]: arr.concat(testCase.objectId),
+          };
+        }, {});
+
+        // 剩余的 repoKeyCaseIdsMapping
+        const notExistedRepoKeyCaseIdsMapping = omitBy(repoKeyCaseIdsMapping, subRepositoryKeys);
+        // 处理根模块
+        repoKeyCaseIdsMapping[UngroupedRepositoryKey] = flatten(
+          Object.values(notExistedRepoKeyCaseIdsMapping),
+        );
+
+        return repoKeyCaseIdsMapping;
+      };
+
       // 获取用例树
       const repoTree = await getRepoTree();
 
+      const subRepositoryKeys = getSubRepoIncludeKeys(repoTree);
       // 获取用例树下所有的 cases
-      const testCases = await getTestCasesByRepoKeys(getSubRepoIncludeKeys(repoTree));
+      const testCases = await getTestCasesByRepoKeys(subRepositoryKeys);
+      // 形成 repoKey -> caseIds 的映射
+      const repoKeyCaseIdsMapping = getRepoKeyCaseIdsMapping(testCases, subRepositoryKeys);
 
       return {
-        repositoryTree: appendCaseIds(repoTree, testCases),
+        repositoryTree: appendCaseIds(repoTree, repoKeyCaseIdsMapping),
 
         originalData: {
           testCases,
