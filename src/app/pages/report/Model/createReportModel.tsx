@@ -127,6 +127,7 @@ const CreateReportModel: React.FC<CreateReportModelProps> = props => {
         ) : (
           <Button
             onClick={() => {
+              if (state.name?.length > 25) return message.error(t('report.exceedLength'));
               const validate = validateState();
               if (validate) return message.error(t('report.validateTips'));
               setCurrent('2');

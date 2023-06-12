@@ -1,4 +1,4 @@
-import { flattenDepth, omit } from 'lodash';
+import { flattenDepth, isEmpty, omit } from 'lodash';
 
 import { getLinkedTestEntityByQuery, getTestEntityByQuery } from './api/item';
 import { TestLinkType, TestPlanModel, TestType } from './constants';
@@ -80,6 +80,230 @@ export const dataSourcePrepareData = (
 ) => {
   const flattedDataSources = flattenDepth(Object.values(dataSourceConfig), 2);
   console.info(flattedDataSources);
+};
+
+export const getDataSourceConfigMapKey = (dataSource: any[]) => {
+  const [firstLevel, secondLevel] = dataSource;
+  return `${firstLevel?.selector ?? ''}${secondLevel ? '_' + secondLevel.key : ''}`;
+};
+
+const getExcludePlanSelector = dataSourceConfig =>
+  Object.values(dataSourceConfig)
+    .filter(d => d?.[0]?.selector !== TestPlanModel && d?.[1])
+    ?.reduce((prev, cur) => {
+      const key = getDataSourceConfigMapKey(cur as any[]);
+      if (key) {
+        prev[key] = cur;
+      }
+      return prev;
+    }, {}) ?? {};
+
+export const getNeedQueryItemType = dataSourceConfig =>
+  Object.values(dataSourceConfig)
+    .filter(d => d?.[0]?.selector === TestPlanModel && d?.[1])
+    ?.map(d => d?.[1]?.key) ?? [];
+
+/** 数据源 IQL 生成器新版  */
+export const newDataSourceIqlGenerator = async (
+  dataSourceConfig: any[],
+  reportParams?: Record<string, any>,
+) => {
+  const dataSourceMap = new Map();
+  const { dataSourceIql } = reportParams;
+  const planIql = dataSourceIql?.[TestPlanModel];
+  if (planIql) {
+    // 查询测试计划
+    const { list: planIds } = await getTestEntityByQuery({
+      query: {
+        type: TestType.Plan,
+      },
+      selector: planIql,
+      limit: 99999,
+      onlySelectId: true,
+    });
+
+    dataSourceMap.set(TestType.Plan, planIds);
+    // 查询测试计划下的用例、执行、缺陷
+    const needQueryItemType = getNeedQueryItemType(dataSourceConfig);
+    // 查询测试用例
+    await getCaseIdByPlan(dataSourceMap, planIds, needQueryItemType.includes(TestType.Case));
+    // 查询测试执行
+    await getRunIdByPlan(dataSourceMap, planIds, needQueryItemType.includes(TestType.Run));
+    // 查询测试缺陷
+    await getDefectIdByPlan(
+      dataSourceMap,
+      planIds,
+      needQueryItemType.includes(TestType.TestDefect),
+    );
+  }
+
+  await getExcludePlanSelectorItemIds(dataSourceMap, dataSourceConfig, reportParams);
+
+  // 只有一级查询测试计划且不包含测试计划
+  await getExcludePlanSelectorPlanIds(dataSourceMap, dataSourceConfig, reportParams);
+
+  console.info('dataSourceMap -------------->', dataSourceMap);
+
+  return dataSourceMap;
+};
+
+export const getDataSourceIqlGenerator = (dataSource, dataSourceMap) => {
+  if (!dataSource?.length) return '';
+  const ids = dataSourceMap.get(getDataSourceConfigMapKey(dataSource));
+  return ids ? `'id' in ${JSON.stringify(ids)}` : '';
+};
+
+const getExcludePlanSelectorItemIds = async (dataSourceMap, dataSourceConfig, reportParams) => {
+  const excludePlanSelector = getExcludePlanSelector(dataSourceConfig);
+  if (isEmpty(excludePlanSelector)) return;
+  const { dataSourceIql, defectsMapping } = reportParams;
+  const excludePlanDataSource = await Promise.all(
+    Object.values(excludePlanSelector).map(async d => {
+      const [firstLevelDataSource, secondLevelDataSource] = d;
+      const firstLevelIql = dataSourceIql?.[firstLevelDataSource.selector];
+      const query = {} as Record<string, unknown>;
+      if (secondLevelDataSource.key === TestType.TestDefect) {
+        const [defectType] = defectsMapping ?? [];
+        defectType && (query.itemType = defectType);
+      } else {
+        query.type = secondLevelDataSource.key;
+      }
+
+      const { list: testIds } = await getTestEntityByQuery({
+        query,
+        selector: firstLevelIql,
+        limit: 99999,
+        onlySelectId: true,
+      });
+
+      return testIds;
+    }),
+  );
+
+  Object.keys(excludePlanSelector).forEach((d, index) => {
+    dataSourceMap.set(d, excludePlanDataSource[index]);
+  });
+};
+
+const getExcludePlanSelectorPlanIds = async (dataSourceMap, dataSourceConfig, reportParams) => {
+  // 只有一级查询测试计划且不包含测试计划
+  const excludePlanAndNoHaveSecondLevelDataSource = Object.values(dataSourceConfig as any[])
+    .filter(d => d.length === 1 && d?.[0] !== TestPlanModel)
+    .reduce((prev, cur) => {
+      const key = getDataSourceConfigMapKey(cur as any[]);
+      if (key) {
+        prev[key] = cur;
+      }
+      return prev;
+    }, {});
+
+  if (isEmpty(excludePlanAndNoHaveSecondLevelDataSource)) return;
+  const { dataSourceIql } = reportParams;
+  const planDataList = await Promise.all(
+    Object.values(excludePlanAndNoHaveSecondLevelDataSource).map(async d => {
+      const [firstLevelDataSource] = d as any[];
+      const firstLevelIql = dataSourceIql?.[firstLevelDataSource.selector];
+      // 查询测试计划
+      const { list: planIds } = await getTestEntityByQuery({
+        query: {
+          type: TestType.Plan,
+        },
+        selector: firstLevelIql,
+        limit: 99999,
+        onlySelectId: true,
+      });
+      return planIds;
+    }),
+  );
+  Object.keys(planDataList).forEach((d, index) => {
+    dataSourceMap.set(d, planDataList[index]);
+  });
+};
+
+const getCaseIdByPlan = async (dataSourceMap, planIds, isQuery) => {
+  if (!isQuery) return;
+  const { list: caseIds } = await getLinkedTestEntityByQuery({
+    query: {
+      type: TestType.Case,
+    },
+    linkType: TestLinkType.CaseLinkPlan,
+    sourceIds: planIds,
+    destinationType: TestType.Case,
+    limit: 99999,
+    onlySelectId: true,
+  });
+
+  dataSourceMap.set(`${TestPlanModel}_${TestType.Case}`, caseIds);
+};
+
+const getExecutionIdByPlan = async (dataSourceMap, planIds) => {
+  // 查询测试执行任务
+  const { list: executionIds } = await getLinkedTestEntityByQuery({
+    query: {
+      type: TestType.Execution,
+    },
+    linkType: TestLinkType.ExecutionLinkPlan,
+    sourceIds: planIds,
+    destinationType: TestType.Execution,
+    limit: 99999,
+    onlySelectId: true,
+  });
+
+  dataSourceMap.set(`${TestPlanModel}_${TestType.Execution}`, executionIds ?? []);
+  return executionIds;
+};
+
+const getRunIdByPlan = async (dataSourceMap, planIds, isQuery) => {
+  if (!isQuery) return;
+  let executionIds = dataSourceMap.get(TestType.Execution);
+  if (!dataSourceMap.has(TestType.Execution)) {
+    // 查询测试执行任务
+    executionIds = await getExecutionIdByPlan(dataSourceMap, planIds);
+  }
+  const { list: runIds } = await getLinkedTestEntityByQuery({
+    query: {
+      type: TestType.Run,
+    },
+    linkType: TestLinkType.RunLinkExecution,
+    sourceIds: executionIds,
+    destinationType: TestType.Run,
+    limit: 99999,
+    onlySelectId: true,
+  });
+
+  dataSourceMap.set(`${TestPlanModel}_${TestType.Run}`, runIds);
+};
+
+const getDefectIdByPlan = async (dataSourceMap, planIds, isQuery) => {
+  if (!isQuery) return;
+  let executionIds = dataSourceMap.get(TestType.Execution);
+  if (!dataSourceMap.has(TestType.Execution)) {
+    // 查询测试执行任务
+    executionIds = await getExecutionIdByPlan(dataSourceMap, planIds);
+  }
+  const { list: runList } = await getLinkedTestEntityByQuery({
+    query: {
+      type: TestType.Run,
+    },
+    linkType: TestLinkType.RunLinkExecution,
+    sourceIds: executionIds,
+    destinationType: TestType.Run,
+    limit: 99999,
+  });
+
+  const getDefectId = data => {
+    const runDetails = data?.map(d => d?.runDetail).filter(Boolean) ?? [];
+
+    const stepDefectIds = runDetails
+      .filter(d => d?.steps)
+      .map(d => d.steps)
+      .flat()
+      .map(d => d.defectItemIds ?? [])
+      .flat();
+    const runDefectItemIds = runDetails.map(d => d?.defectItemIds ?? []).flat();
+    return [...new Set([...stepDefectIds, ...runDefectItemIds])].filter(Boolean);
+  };
+  dataSourceMap.set(TestType.TestDefect, getDefectId(runList));
 };
 
 /** 数据源 IQL 生成器  */
