@@ -105,7 +105,8 @@
     "updateFail": "Update data failed",
     "unGrouped": "Ungrouped",
     "runNum": "test execution",
-    "addTestExecution": "Add test execution"
+    "addTestExecution": "Add test execution",
+    "curWorkspace": "Current workspace"
   },
   "report": {
     "pass": "Pass",

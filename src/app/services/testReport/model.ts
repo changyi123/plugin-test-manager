@@ -124,6 +124,7 @@ const TestReport = Parse.Object.extend('test_manager_TestReport', {
       Pick<TestReportModelType, 'workspace' | 'name'> & {
         dataSourceIql?: Record<string, string>;
         defectsMapping?: string[];
+        itemTypeMap?: string[];
       },
   ) {
     if (reportParams.name?.length > 25) {
