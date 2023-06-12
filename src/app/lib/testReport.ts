@@ -12,7 +12,7 @@ export type SelectorType =
   | 'test_manager_Plan'
   | 'sprint'
   | 'version'
-  | 'workspace'
+  // | 'workspace'
   | 'customField'
   | 'currentWorkspace';
 
@@ -55,11 +55,11 @@ export const DataSourceCollection: DataSource[] = [
     isFirstLevel: true,
     selector: 'version',
   },
-  {
-    key: 'workspace',
-    isFirstLevel: true,
-    selector: 'workspace',
-  },
+  // {
+  //   key: 'workspace',
+  //   isFirstLevel: true,
+  //   selector: 'workspace',
+  // },
   {
     key: 'currentWorkspace',
     isFirstLevel: true,
