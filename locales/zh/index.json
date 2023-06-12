@@ -292,7 +292,8 @@
       "basicConfig": {
         "title": "基础信息",
         "message": {
-          "createReportTemplateSuccess": "测试报告模板创建成功"
+          "createReportTemplateSuccess": "测试报告模板创建成功",
+          "updateReportTemplateSuccess": "测试报告模板更新成功"
         },
         "form": {
           "name": {
