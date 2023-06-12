@@ -4,11 +4,10 @@ import { useAtomValue, useSetAtom } from 'jotai';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { useLayoutHeight } from '@/components/common/PageLayout/hook';
 import { testReportQuery } from '@/services/query';
 
 import cx from './index.less';
-import { LocationStoreHashKey } from './lib';
+import { ReportIdUrlQueryKey } from './lib';
 import BasicConfig from './steps/BasicConfig';
 import DataSourceConfig from './steps/DataSourceConfig';
 import TemplateConfig from './steps/TemplateConfig';
@@ -48,14 +47,11 @@ const TestReportTemplate: React.FC = () => {
 
   const [nextButtonLoading, setNextButtonLoading] = React.useState(false);
 
-  // 获取页面高度
-  const height = useLayoutHeight();
-
   const [currentStep, setCurrentStep] = React.useState(0);
   const currentStepConfig = StepsConfig[currentStep];
 
   // 从 URL 中获取测试报告模板 ID
-  const testReportId = location.search.match(new RegExp(`${LocationStoreHashKey}=(.+)`))?.[1];
+  const testReportId = new URLSearchParams(window.location.search).get(ReportIdUrlQueryKey);
 
   const { data: testReportTemplateData } = testReportQuery.useTestReportByObjectId(testReportId);
 
@@ -86,7 +82,7 @@ const TestReportTemplate: React.FC = () => {
   }, [setTestReportTemplateData, testReportTemplateData]);
 
   return (
-    <div className={cx('container')} style={{ height }}>
+    <div className={cx('container')} style={{ height: '100%' }}>
       <div className={cx('header')}>
         <h3>{scopedT(!testReportId || stage === 'create' ? 'creatorTitle' : 'editorTitle')}</h3>
         <div className={cx('step-container')}>
