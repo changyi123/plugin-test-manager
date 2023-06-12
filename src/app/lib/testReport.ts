@@ -175,9 +175,13 @@ const getExcludePlanSelectorIql = async (dataSourceMap, dataSourceConfig, report
         iql?: string;
       } = {};
       if (secondLevelDataSource.key === TestType.TestDefect) {
-        query.iql = `'itemType' in ${JSON.stringify(defectsMapping ?? [])}`;
+        query.iql = `'itemType' in '${JSON.stringify(defectsMapping ?? [])}'`;
       } else {
-        query.iql = `'r_test_manager_type' is ${itemTypeMap[secondLevelDataSource.key] ?? ''}`;
+        const type =
+          secondLevelDataSource.key === TestType.Run
+            ? 'test_manager_run'
+            : itemTypeMap[secondLevelDataSource.key];
+        query.iql = `'r_test_manager_type' in ${JSON.stringify(type ? [type] : [])}`;
       }
 
       return mergeIQL(firstLevelIql, query.iql);
@@ -209,7 +213,7 @@ const getExcludePlanSelectorPlanIql = async (dataSourceMap, dataSourceConfig, re
       const firstLevelIql = dataSourceIql?.[firstLevelDataSource.selector];
       return mergeIQL(
         firstLevelIql,
-        `'r_test_manager_type' is ${itemTypeMap[TestType.Plan] ?? ''}`,
+        `'r_test_manager_type' in ${JSON.stringify([itemTypeMap[TestType.Plan]])}`,
       );
     }),
   );
