@@ -4,6 +4,9 @@ import { getLinkedTestEntityByQuery, getTestEntityByQuery } from './api/item';
 import { TestLinkType, TestPlanModel, TestType } from './constants';
 import { getPagePrefix } from './utils/helper';
 
+/** 测试报告名称最大支持的长度限制 */
+export const TestReportMaxNameLength = 25;
+
 export type SelectorType = 'test_manager_Plan' | 'sprint' | 'version' | 'workspace' | 'customField';
 
 /** 测试报告模板 Key */

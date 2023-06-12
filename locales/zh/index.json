@@ -267,6 +267,8 @@
       "editorTitle": "编辑测试报告模板",
       "nameExisted": "模板名称已存在",
       "templateExisted": "模板已存在",
+      "templateNameTooLong": "模板名称过长",
+      "reportNameTooLong": "模板名称过长",
       "button": {
         "next": "下一步",
         "finish": "保存"

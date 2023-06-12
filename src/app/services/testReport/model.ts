@@ -73,6 +73,10 @@ const TestReport = Parse.Object.extend('test_manager_TestReport', {
     const isExisted = Boolean(objectId);
     if (isExisted) throw new Error(i18n.t('page.reportTemplateCreator.templateExisted'));
 
+    if (reportTemplateParams.name?.length > 25) {
+      throw new Error(i18n.t('page.reportTemplateCreator.templateNameTooLong'));
+    }
+
     // 校验名称是否重复
     const alreadyExistedSameNameTemplate = await new Parse.Query(TestReport)
       .equalTo('name', reportTemplateParams.name)
@@ -121,6 +125,9 @@ const TestReport = Parse.Object.extend('test_manager_TestReport', {
         defectsMapping?: string[];
       },
   ) {
+    if (reportParams.name?.length > 25) {
+      throw new Error(i18n.t('page.reportTemplateCreator.reportNameTooLong'));
+    }
     // 获取模板数据
     const templateReportData = await new Parse.Query(TestReport)
       .equalTo('objectId', templateId)
