@@ -4,6 +4,7 @@ import { Button, Checkbox, Dropdown, Layout, Menu, Result } from 'antd';
 import { isNil } from 'lodash';
 import React from 'react';
 
+import { featureFlags } from '@/lib/appEnv';
 import useI18n from '@/lib/hooks/useI18n';
 
 import DataProvider from './DataProvider';
@@ -41,14 +42,6 @@ const MoreConfigPages = [
 
 const ConfigPages = [
   {
-    key: 'TestReportTemplate',
-    title: 'testReportTemplate',
-    description: 'testReportTemplate',
-    component: TestReportTemplate,
-    isGlobalConfig: true,
-    noPadding: true,
-  },
-  {
     key: 'ItemTypeMapping',
     title: 'itemTypeMapping',
     component: ItemTypeMapping,
@@ -78,7 +71,15 @@ const ConfigPages = [
     component: TableFields,
     description: 'tableFields',
   },
-];
+  featureFlags('ENABLE_TEST_REPORT') && {
+    key: 'TestReportTemplate',
+    title: 'testReportTemplate',
+    description: 'testReportTemplate',
+    component: TestReportTemplate,
+    isGlobalConfig: true,
+    noPadding: true,
+  },
+].filter(Boolean);
 
 const ALLConfigPages = [].concat(ConfigPages, MoreConfigPages);
 
