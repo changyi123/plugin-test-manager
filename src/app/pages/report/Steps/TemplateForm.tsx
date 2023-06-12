@@ -14,7 +14,10 @@ const TemplateForm: React.FC<FormProps> = ({ state, workspace }) => {
   const [selectStatus, setSelectStatus] = useState(undefined);
   const [exceedLength, setExceedLength] = useState(false);
 
-  const { data: reportTemplateList, isLoading } = useWorkspaceTemplateListQuery({
+  const {
+    data: { results: reportTemplateList },
+    isLoading,
+  } = useWorkspaceTemplateListQuery({
     workspace: workspace?.objectId,
     pagination: { limit: 999 },
   });
