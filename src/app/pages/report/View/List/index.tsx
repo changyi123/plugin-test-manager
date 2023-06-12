@@ -69,6 +69,9 @@ const List: React.FC<any> = () => {
     workspace: workspace?.objectId,
     name,
     pagination: { limit, offset: (offset - 1 || 0) * limit },
+    order: {
+      desc: ['createdAt'],
+    },
   });
 
   useListener('refreshTestReportTable', id => {

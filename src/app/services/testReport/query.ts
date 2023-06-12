@@ -70,6 +70,11 @@ export const useWorkspaceReportListQuery = (params: {
         .equalTo('isTemplate', false)
         .equalTo('workspace', Workspace.createWithoutData(params.workspace))
         .matches('name', escapeMatchesQueryArg(params.name));
+      if (params.order?.asc) {
+        query.addAscending(params.order?.asc ?? ['createdAt']);
+      } else {
+        query.addDescending(params.order?.desc ?? ['createdAt']);
+      }
 
       return bindPaginationToParseQuery(query, params.pagination).find({ json: true });
     },
