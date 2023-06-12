@@ -123,7 +123,7 @@ const SelectorTable: React.FC<SelectorTable> = ({
         actionRef={tableActionRef}
         getDataSource={tableDataGetter}
         setCheckedRowKeys={setSelectValue}
-        testFieldKeys={tableFieldsKeys}
+        testFieldKeys={[].concat(SystemFieldKeys, tableFieldsKeys ?? [])}
       />
       <span className={cx('checked-num')}>
         <span>{t('common.checked')} </span>

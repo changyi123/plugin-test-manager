@@ -100,7 +100,8 @@
     "updateFail": "数据更新失败",
     "unGrouped": "未分组",
     "runNum": "条执行",
-    "addTestExecution": "添加执行任务"
+    "addTestExecution": "添加执行任务",
+    "curWorkspace": "当前空间"
   },
   "report": {
     "pass": "通过",

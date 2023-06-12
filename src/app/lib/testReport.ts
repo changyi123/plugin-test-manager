@@ -3,11 +3,18 @@ import { flattenDepth, isEmpty, omit } from 'lodash';
 import { getLinkedTestEntityByQuery, getTestEntityByQuery } from './api/item';
 import { TestLinkType, TestPlanModel, TestType } from './constants';
 import { getPagePrefix } from './utils/helper';
+import { mergeIQL } from './utils/iql';
 
 /** 测试报告名称最大支持的长度限制 */
 export const TestReportMaxNameLength = 25;
 
-export type SelectorType = 'test_manager_Plan' | 'sprint' | 'version' | 'workspace' | 'customField';
+export type SelectorType =
+  | 'test_manager_Plan'
+  | 'sprint'
+  | 'version'
+  | 'workspace'
+  | 'customField'
+  | 'currentWorkspace';
 
 /** 测试报告模板 Key */
 export const ReportTemplateChartGroupKey = 'test_manager_report_template' as const;
@@ -26,6 +33,7 @@ export type DataSource = {
   selector?: SelectorType;
   // 二级数据源依赖的一级数据源
   dependOn?: DataSource['key'][];
+  notRequired?: boolean;
 };
 
 export type TemplateDataSourceConfig = [DataSource] | [DataSource, DataSource];
@@ -55,6 +63,8 @@ export const DataSourceCollection: DataSource[] = [
   {
     key: 'currentWorkspace',
     isFirstLevel: true,
+    selector: 'currentWorkspace',
+    notRequired: true,
   },
   // 第二级筛选器
   {
@@ -137,10 +147,10 @@ export const newDataSourceIqlGenerator = async (
     );
   }
 
-  await getExcludePlanSelectorItemIds(dataSourceMap, dataSourceConfig, reportParams);
+  await getExcludePlanSelectorIql(dataSourceMap, dataSourceConfig, reportParams);
 
   // 只有一级查询测试计划且不包含测试计划
-  await getExcludePlanSelectorPlanIds(dataSourceMap, dataSourceConfig, reportParams);
+  await getExcludePlanSelectorPlanIql(dataSourceMap, dataSourceConfig, reportParams);
 
   console.info('dataSourceMap -------------->', dataSourceMap);
 
@@ -149,34 +159,28 @@ export const newDataSourceIqlGenerator = async (
 
 export const getDataSourceIqlGenerator = (dataSource, dataSourceMap) => {
   if (!dataSource?.length) return '';
-  const ids = dataSourceMap.get(getDataSourceConfigMapKey(dataSource));
-  return ids ? `'id' in ${JSON.stringify(ids)}` : '';
+  const iql = dataSourceMap.get(getDataSourceConfigMapKey(dataSource));
+  return iql ?? '';
 };
 
-const getExcludePlanSelectorItemIds = async (dataSourceMap, dataSourceConfig, reportParams) => {
+const getExcludePlanSelectorIql = async (dataSourceMap, dataSourceConfig, reportParams) => {
   const excludePlanSelector = getExcludePlanSelector(dataSourceConfig);
   if (isEmpty(excludePlanSelector)) return;
-  const { dataSourceIql, defectsMapping } = reportParams;
+  const { dataSourceIql, defectsMapping, itemTypeMap = {} } = reportParams;
   const excludePlanDataSource = await Promise.all(
     Object.values(excludePlanSelector).map(async d => {
       const [firstLevelDataSource, secondLevelDataSource] = d;
       const firstLevelIql = dataSourceIql?.[firstLevelDataSource.selector];
-      const query = {} as Record<string, unknown>;
+      const query: {
+        iql?: string;
+      } = {};
       if (secondLevelDataSource.key === TestType.TestDefect) {
-        const [defectType] = defectsMapping ?? [];
-        defectType && (query.itemType = defectType);
+        query.iql = `'itemType' in ${JSON.stringify(defectsMapping ?? [])}`;
       } else {
-        query.type = secondLevelDataSource.key;
+        query.iql = `'r_test_manager_type' is ${itemTypeMap[secondLevelDataSource.key] ?? ''}`;
       }
 
-      const { list: testIds } = await getTestEntityByQuery({
-        query,
-        selector: firstLevelIql,
-        limit: 99999,
-        onlySelectId: true,
-      });
-
-      return testIds;
+      return mergeIQL(firstLevelIql, query.iql);
     }),
   );
 
@@ -185,7 +189,7 @@ const getExcludePlanSelectorItemIds = async (dataSourceMap, dataSourceConfig, re
   });
 };
 
-const getExcludePlanSelectorPlanIds = async (dataSourceMap, dataSourceConfig, reportParams) => {
+const getExcludePlanSelectorPlanIql = async (dataSourceMap, dataSourceConfig, reportParams) => {
   // 只有一级查询测试计划且不包含测试计划
   const excludePlanAndNoHaveSecondLevelDataSource = Object.values(dataSourceConfig as any[])
     .filter(d => d.length === 1 && d?.[0] !== TestPlanModel)
@@ -198,21 +202,15 @@ const getExcludePlanSelectorPlanIds = async (dataSourceMap, dataSourceConfig, re
     }, {});
 
   if (isEmpty(excludePlanAndNoHaveSecondLevelDataSource)) return;
-  const { dataSourceIql } = reportParams;
+  const { dataSourceIql, itemTypeMap = {} } = reportParams;
   const planDataList = await Promise.all(
     Object.values(excludePlanAndNoHaveSecondLevelDataSource).map(async d => {
       const [firstLevelDataSource] = d as any[];
       const firstLevelIql = dataSourceIql?.[firstLevelDataSource.selector];
-      // 查询测试计划
-      const { list: planIds } = await getTestEntityByQuery({
-        query: {
-          type: TestType.Plan,
-        },
-        selector: firstLevelIql,
-        limit: 99999,
-        onlySelectId: true,
-      });
-      return planIds;
+      return mergeIQL(
+        firstLevelIql,
+        `'r_test_manager_type' is ${itemTypeMap[TestType.Plan] ?? ''}`,
+      );
     }),
   );
   Object.keys(planDataList).forEach((d, index) => {
@@ -222,7 +220,7 @@ const getExcludePlanSelectorPlanIds = async (dataSourceMap, dataSourceConfig, re
 
 const getCaseIdByPlan = async (dataSourceMap, planIds, isQuery) => {
   if (!isQuery) return;
-  const { list: caseIds } = await getLinkedTestEntityByQuery({
+  const { list: caseIds = [] } = await getLinkedTestEntityByQuery({
     query: {
       type: TestType.Case,
     },
@@ -233,7 +231,7 @@ const getCaseIdByPlan = async (dataSourceMap, planIds, isQuery) => {
     onlySelectId: true,
   });
 
-  dataSourceMap.set(`${TestPlanModel}_${TestType.Case}`, caseIds);
+  dataSourceMap.set(`${TestPlanModel}_${TestType.Case}`, `'id' in ${JSON.stringify(caseIds)}`);
 };
 
 const getExecutionIdByPlan = async (dataSourceMap, planIds) => {
@@ -260,7 +258,7 @@ const getRunIdByPlan = async (dataSourceMap, planIds, isQuery) => {
     // 查询测试执行任务
     executionIds = await getExecutionIdByPlan(dataSourceMap, planIds);
   }
-  const { list: runIds } = await getLinkedTestEntityByQuery({
+  const { list: runIds = [] } = await getLinkedTestEntityByQuery({
     query: {
       type: TestType.Run,
     },
@@ -271,7 +269,7 @@ const getRunIdByPlan = async (dataSourceMap, planIds, isQuery) => {
     onlySelectId: true,
   });
 
-  dataSourceMap.set(`${TestPlanModel}_${TestType.Run}`, runIds);
+  dataSourceMap.set(`${TestPlanModel}_${TestType.Run}`, `'id' in ${JSON.stringify(runIds)}`);
 };
 
 const getDefectIdByPlan = async (dataSourceMap, planIds, isQuery) => {
@@ -303,7 +301,7 @@ const getDefectIdByPlan = async (dataSourceMap, planIds, isQuery) => {
     const runDefectItemIds = runDetails.map(d => d?.defectItemIds ?? []).flat();
     return [...new Set([...stepDefectIds, ...runDefectItemIds])].filter(Boolean);
   };
-  dataSourceMap.set(TestType.TestDefect, getDefectId(runList));
+  dataSourceMap.set(TestType.TestDefect, `'id' in ${JSON.stringify(getDefectId(runList))}`);
 };
 
 /** 数据源 IQL 生成器  */

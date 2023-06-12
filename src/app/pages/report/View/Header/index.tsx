@@ -62,6 +62,7 @@ const ReportHeader: React.FC<any> = () => {
       dataSourceIql: iqlMap,
       workspace: workspace,
       defectsMapping: config?.defectsMapping,
+      itemTypeMap: config?.itemTypeMap,
     });
     notification.destroy();
     if (reportInfo.status === 'success') {
@@ -75,7 +76,7 @@ const ReportHeader: React.FC<any> = () => {
         message: `${t('report.testReport')}【${res.name}】${t('report.addFail')}`,
       });
     }
-  }, [config?.defectsMapping, workspace, t]);
+  }, [config?.defectsMapping, config?.itemTypeMap, workspace, t]);
 
   return (
     <>

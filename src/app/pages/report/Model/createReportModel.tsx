@@ -93,8 +93,7 @@ const CreateReportModel: React.FC<CreateReportModelProps> = props => {
   }, [state]);
 
   const validateSelector = useCallback(() => {
-    if (isEmpty(state.selectors)) return true;
-
+    if (isEmpty(state.selectors)) return false;
     return !Object.values(state.selectors)
       .map(s => (s as any).value?.length)
       .filter(Boolean)?.length;
