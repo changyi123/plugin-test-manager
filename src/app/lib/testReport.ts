@@ -175,7 +175,7 @@ const getExcludePlanSelectorIql = async (dataSourceMap, dataSourceConfig, report
         iql?: string;
       } = {};
       if (secondLevelDataSource.key === TestType.TestDefect) {
-        query.iql = `'itemType' in '${JSON.stringify(defectsMapping ?? [])}'`;
+        query.iql = `'itemType' in ${JSON.stringify(defectsMapping ?? [])}`;
       } else {
         const type =
           secondLevelDataSource.key === TestType.Run
