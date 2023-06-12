@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { testReportQuery } from '@/services/query';
 
 import cx from './index.less';
-import { LocationStoreHashKey } from './lib';
+import { ReportIdUrlQueryKey } from './lib';
 import BasicConfig from './steps/BasicConfig';
 import DataSourceConfig from './steps/DataSourceConfig';
 import TemplateConfig from './steps/TemplateConfig';
@@ -51,7 +51,7 @@ const TestReportTemplate: React.FC = () => {
   const currentStepConfig = StepsConfig[currentStep];
 
   // 从 URL 中获取测试报告模板 ID
-  const testReportId = location.search.match(new RegExp(`${LocationStoreHashKey}=(.+)`))?.[1];
+  const testReportId = new URLSearchParams(window.location.search).get(ReportIdUrlQueryKey);
 
   const { data: testReportTemplateData } = testReportQuery.useTestReportByObjectId(testReportId);
 

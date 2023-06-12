@@ -1,1 +1,1 @@
-export const LocationStoreHashKey = 'testReportId';
+export const ReportIdUrlQueryKey = 'testReportId';
