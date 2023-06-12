@@ -4,7 +4,6 @@ import { useAtomValue, useSetAtom } from 'jotai';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { useLayoutHeight } from '@/components/common/PageLayout/hook';
 import { testReportQuery } from '@/services/query';
 
 import cx from './index.less';
@@ -48,9 +47,6 @@ const TestReportTemplate: React.FC = () => {
 
   const [nextButtonLoading, setNextButtonLoading] = React.useState(false);
 
-  // 获取页面高度
-  const height = useLayoutHeight();
-
   const [currentStep, setCurrentStep] = React.useState(0);
   const currentStepConfig = StepsConfig[currentStep];
 
@@ -86,7 +82,7 @@ const TestReportTemplate: React.FC = () => {
   }, [setTestReportTemplateData, testReportTemplateData]);
 
   return (
-    <div className={cx('container')} style={{ height }}>
+    <div className={cx('container')} style={{ height: '100%' }}>
       <div className={cx('header')}>
         <h3>{scopedT(!testReportId || stage === 'create' ? 'creatorTitle' : 'editorTitle')}</h3>
         <div className={cx('step-container')}>
