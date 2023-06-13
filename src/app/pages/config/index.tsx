@@ -41,6 +41,14 @@ const MoreConfigPages = [
 ];
 
 const ConfigPages = [
+  featureFlags('ENABLE_TEST_REPORT') && {
+    key: 'TestReportTemplate',
+    title: 'testReportTemplate',
+    description: 'testReportTemplate',
+    component: TestReportTemplate,
+    isGlobalConfig: true,
+    noPadding: true,
+  },
   {
     key: 'ItemTypeMapping',
     title: 'itemTypeMapping',
@@ -70,14 +78,6 @@ const ConfigPages = [
     title: 'tableFields',
     component: TableFields,
     description: 'tableFields',
-  },
-  featureFlags('ENABLE_TEST_REPORT') && {
-    key: 'TestReportTemplate',
-    title: 'testReportTemplate',
-    description: 'testReportTemplate',
-    component: TestReportTemplate,
-    isGlobalConfig: true,
-    noPadding: true,
   },
 ].filter(Boolean);
 
