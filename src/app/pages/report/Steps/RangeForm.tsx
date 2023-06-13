@@ -10,11 +10,9 @@ import { getTestEntityByQuery } from '@/lib/api/item';
 import { getCustomFields } from '@/lib/api/proxima';
 import { openFieldValuePopover } from '@/lib/api/sdk';
 import {
-  FILTER_EXPR_NAME,
   FILTER_EXPRESSIONS,
   getReportFilterFields,
   IS_EXTEND_FIELDS,
-  SYSTEM_FIELD,
   TestPlanModel,
   TestType,
 } from '@/lib/constants';
@@ -47,30 +45,15 @@ const RangeForm: React.FC<any> = ({ state, workspace }) => {
       const res = await getCustomFields(reportFields);
       const planField = reportFields.includes(TestPlanModel) ? getReportFilterFields(t) : [];
 
-      const getWorkspaceValue = (curKey, reportFields) => {
-        if (curKey !== SYSTEM_FIELD.Workspace) return;
-        return reportFields.includes('currentWorkspace')
-          ? [
-              {
-                value: workspace.objectId,
-                label: workspace.name,
-                key: workspace.key,
-              },
-            ]
-          : undefined;
-      };
-
       return [...planField, ...res]?.reduce((prev, cur) => {
         prev[cur.objectId] = {
           component: cur.fieldType.component,
-          expression: reportFields.includes('currentWorkspace')
-            ? FILTER_EXPR_NAME.Workspace_Contain
-            : null,
+          expression: null,
           isExtend: cur.fieldType.isExtend,
           key: cur.key,
           fieldId: cur.objectId,
           fieldName: cur.name,
-          value: getWorkspaceValue(cur.key, reportFields),
+          value: undefined,
         };
 
         return prev;
