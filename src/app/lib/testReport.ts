@@ -9,11 +9,10 @@ import { mergeIQL } from './utils/iql';
 export const TestReportMaxNameLength = 25;
 
 export type SelectorType =
-  | 'test_manager_Plan'
   | 'sprint'
   | 'version'
-  // | 'workspace'
   | 'customField'
+  | 'test_manager_Plan'
   | 'currentWorkspace';
 
 /** 测试报告模板 Key */
@@ -63,7 +62,6 @@ export const DataSourceCollection: DataSource[] = [
   {
     key: 'currentWorkspace',
     isFirstLevel: true,
-    selector: 'currentWorkspace',
     notRequired: true,
   },
   // 第二级筛选器
@@ -153,7 +151,6 @@ export const newDataSourceIqlGenerator = async (
   await getExcludePlanSelectorPlanIql(dataSourceMap, dataSourceConfig, reportParams);
 
   console.info('dataSourceMap -------------->', dataSourceMap);
-
   return dataSourceMap;
 };
 
@@ -166,25 +163,31 @@ export const getDataSourceIqlGenerator = (dataSource, dataSourceMap) => {
 const getExcludePlanSelectorIql = async (dataSourceMap, dataSourceConfig, reportParams) => {
   const excludePlanSelector = getExcludePlanSelector(dataSourceConfig);
   if (isEmpty(excludePlanSelector)) return;
-  const { dataSourceIql, defectsMapping, itemTypeMap = {} } = reportParams;
+  const { dataSourceIql, defectsMapping, itemTypeMap = {}, workspace } = reportParams;
   const excludePlanDataSource = await Promise.all(
     Object.values(excludePlanSelector).map(async d => {
       const [firstLevelDataSource, secondLevelDataSource] = d;
-      const firstLevelIql = dataSourceIql?.[firstLevelDataSource.selector];
       const query: {
         iql?: string;
+        firstLevelIql?: string;
       } = {};
+      // 当前空间 iql
+      if (['currentWorkspace'].includes(firstLevelDataSource.key)) {
+        query.firstLevelIql = `'workspaceKey' in ${JSON.stringify([workspace?.key])}`;
+      } else {
+        query.firstLevelIql = dataSourceIql?.[firstLevelDataSource.selector];
+      }
       if (secondLevelDataSource.key === TestType.TestDefect) {
-        query.iql = `'itemType' in ${JSON.stringify(defectsMapping ?? [])}`;
+        query.iql = `'itemTypeKey' in ${JSON.stringify(defectsMapping ?? [])}`;
       } else {
         const type =
           secondLevelDataSource.key === TestType.Run
             ? 'test_manager_run'
             : itemTypeMap[secondLevelDataSource.key];
-        query.iql = `'r_test_manager_type' in ${JSON.stringify(type ? [type] : [])}`;
+        query.iql = `'itemTypeKey' in ${JSON.stringify(type ? [type] : [])}`;
       }
 
-      return mergeIQL(firstLevelIql, query.iql);
+      return mergeIQL(query.firstLevelIql, query.iql);
     }),
   );
 
@@ -213,7 +216,7 @@ const getExcludePlanSelectorPlanIql = async (dataSourceMap, dataSourceConfig, re
       const firstLevelIql = dataSourceIql?.[firstLevelDataSource.selector];
       return mergeIQL(
         firstLevelIql,
-        `'r_test_manager_type' in ${JSON.stringify([itemTypeMap[TestType.Plan]])}`,
+        `'itemTypeKey' in ${JSON.stringify([itemTypeMap[TestType.Plan]])}`,
       );
     }),
   );
