@@ -29,7 +29,11 @@ export const setDefaultReportTemplate = async (objectId: string) => {
 export const updateTestReport = async (
   data: Pick<TestReportModelType, 'objectId'> & Partial<TestReportModelType>,
 ) => {
+  // const SyncUpdateChartGroupKeys = ['name'];
   const testReportObject = new TestReport();
+  // const chartGroupNeedUpdateKeys = Object.keys(data).filter(key =>
+  //   SyncUpdateChartGroupKeys.includes(key),
+  // );
   testReportObject.set(data);
   await testReportObject.save();
   return testReportObject.toJSON();

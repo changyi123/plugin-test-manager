@@ -4,6 +4,7 @@ import { eq } from 'lodash';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { TestReportMaxNameLength } from '@/lib/testReport';
 import { testReportMutation } from '@/services/mutation';
 
 import type { ActionRefType } from '../index';
@@ -82,13 +83,16 @@ const BasicConfig: React.FC<{
       <h3 className={cx('title')}>{scopedT('title')}</h3>
       <Form form={form} className={cx('form')}>
         <div className={cx('name')}>
-          <p className={cx('label')}>{scopedT('form.name.label')}</p>
+          <p className={cx('label', 'required')}>{scopedT('form.name.label')}</p>
           <Form.Item
             name="name"
             rules={[{ required: true, message: scopedT('form.name.error') }]}
             noStyle
           >
-            <Input placeholder={scopedT('form.name.placeholder')} />
+            <Input
+              placeholder={scopedT('form.name.placeholder')}
+              maxLength={TestReportMaxNameLength}
+            />
           </Form.Item>
         </div>
       </Form>
