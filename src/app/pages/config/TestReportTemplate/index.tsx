@@ -50,7 +50,7 @@ const TestReportTemplate: React.FC = () => {
       });
     },
     editReportTemplate: async objectId => {
-      window.open(genReportTemplateUrl(objectId), '_self');
+      window.open(genReportTemplateUrl(objectId));
     },
     setDefaultReportTemplate: async (objectId: string) => {
       await testReportServices.setDefaultReportTemplate(objectId);
@@ -117,7 +117,7 @@ const TestReportTemplate: React.FC = () => {
 
   const handleReportTemplateCreate = useMemoizedFn(async () => {
     // 跳转到测试报告模板创建页面
-    window.open(genReportTemplateUrl(), '_self');
+    window.open(genReportTemplateUrl());
   });
 
   return (
