@@ -1,8 +1,8 @@
 import { Button, message, Spin } from 'antd';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
-import { BusinessTableActionType } from '@/components/common/BusinessTable';
 import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/hook';
+import type { BusinessTableActionType } from '@/components/common/BusinessTable/type';
 import { updateAllTestConfigs, updateGlobalConfig } from '@/lib/api/common';
 import { TestType } from '@/lib/constants';
 import useI18n from '@/lib/hooks/useI18n';

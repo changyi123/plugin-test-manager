@@ -1,4 +1,4 @@
-import { LibraryProvider, useDataQuoteStore } from '@giteeteam/apps-team-components';
+import { useDataQuoteStore } from '@giteeteam/apps-team-components';
 import { PluginSDKContext, useSDK } from '@projectproxima/plugin-sdk';
 import { useAntdTable, useLocalStorageState, useSize } from 'ahooks';
 import { Pagination, Table } from 'antd';
@@ -8,6 +8,7 @@ import React, { useMemo, useRef } from 'react';
 import { Resizable } from 'react-resizable';
 
 import OverflowTooltip from '@/components/common/OverflowTooltip';
+import { LibraryProvider } from '@/components/dynamicComponents';
 import { getDevConfig } from '@/devEnv';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
@@ -18,6 +19,7 @@ import { getLang } from '@/lib/utils/locale';
 import cx from './BusinessTable.less';
 import ColumnSetting from './ColumnSetting';
 import TableSelection from './TableSelection';
+import type { BusinessTableActionType } from './type';
 import { TitleCellOption } from './type';
 
 const DEFAULT_PAGE_SIZE = 10;
@@ -62,15 +64,6 @@ const OverflowTooltipBodyCell = props => {
   );
 };
 
-export type ActionType = {
-  refresh: () => void;
-  expandChangePage?: (num: number) => void;
-  toggleSelection: (visible?: boolean) => void;
-  selectedRowKeys: any[];
-  resetSelectedRowKeys: () => void;
-  tableColumns: any[];
-};
-
 type BusinessTableProps = TableProps<any> &
   TitleCellOption & {
     name?: string;
@@ -90,7 +83,7 @@ type BusinessTableProps = TableProps<any> &
     // 是否已经有列被选中
     onHasRowSelected?: (check: boolean) => void;
     selectionActionNodes?: React.ReactNode[];
-    actionRef?: React.ForwardedRef<ActionType>;
+    actionRef?: React.ForwardedRef<BusinessTableActionType>;
     expandChangePage?: (num: number, size?: number) => void;
     getDataSource?: (queryParams: { offset: number; limit: number }) => Promise<{
       list: any[];

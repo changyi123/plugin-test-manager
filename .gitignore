@@ -10,3 +10,4 @@ test_manager*.zip
 .env
 manifest.yml
 release/*
+stats.json

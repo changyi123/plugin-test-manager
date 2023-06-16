@@ -1,6 +1,6 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-// const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const LessPluginFunctions = require('less-plugin-functions');
 const SpeedMeasurePlugin = require('speed-measure-webpack-plugin');
 const hasha = require('hasha');
@@ -10,8 +10,6 @@ const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const WebpackBar = require('webpackbar');
 const webpack = require('webpack');
 require('dotenv').config();
-
-const CompressionPlugin = require('compression-webpack-plugin');
 
 const BundleAnalyzer = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 const smp = new SpeedMeasurePlugin();
@@ -42,12 +40,14 @@ function resolveClientEnv(raw, cliEnv) {
   };
 }
 
-const getExternalDependencies = () => {
+const getExternalDependencies = isProd => {
+  const productionExternalDependencies = [isProd && 'parse'].filter(Boolean);
   // docx template 构建排除此依赖
   const DocxTemplateDependencyKeys = ['vm', 'stream'];
   // 暂时先加 proxima-key 测试，后续增加更多的模块
   const UseExternalDependencyKeys = ['react', 'react-dom', 'proxima-sdk'].concat(
     DocxTemplateDependencyKeys,
+    productionExternalDependencies,
   );
   const SharedComponentKey = 'proxima_shared_components';
 
@@ -97,7 +97,8 @@ const getLocalIdent = ({ resourcePath }, localIdentName, localName) => {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 module.exports = (cliEnv = {}, argv) => {
   const mode = argv.mode;
-  const { PROXIMA_USE_EXTERNAL_DEPENDENCIES, PROXIMA_ANALYZER_PACKAGE } = process.env;
+  const { PROXIMA_USE_EXTERNAL_DEPENDENCIES } = process.env;
+  const { ANALYZER_PACKAGE } = cliEnv;
 
   if (!['production', 'development'].includes(mode)) {
     throw new Error('The mode is required for NODE_ENV, BABEL_ENV but was not specified.');
@@ -112,9 +113,9 @@ module.exports = (cliEnv = {}, argv) => {
       classNamesModule: require.resolve('classnames'),
     },
   };
+
   // 生产环境使用 MiniCssExtractPlugin
-  // const extractOrStyleLoaderConfig = isProd ? MiniCssExtractPlugin.loader : 'style-loader';
-  const extractOrStyleLoaderConfig = 'style-loader';
+  const extractOrStyleLoaderConfig = isProd ? MiniCssExtractPlugin.loader : 'style-loader';
 
   // 根据 patterns 使用 style-resources-loader
   const makeStyleResourcesLoader = patterns => ({
@@ -182,7 +183,8 @@ module.exports = (cliEnv = {}, argv) => {
       return false;
     })(),
     // 生产环境使用 proxima-app 传入的
-    externals: isProd || PROXIMA_USE_EXTERNAL_DEPENDENCIES ? getExternalDependencies() : undefined,
+    externals:
+      isProd || PROXIMA_USE_EXTERNAL_DEPENDENCIES ? getExternalDependencies(isProd) : undefined,
     resolve: {
       extensions: ['.js', '.css', '.jsx', '.tsx', '.ts'],
       alias: {
@@ -222,23 +224,10 @@ module.exports = (cliEnv = {}, argv) => {
         'Access-Control-Allow-Headers': '*',
         'Access-Control-Allow-Methods': '*',
       },
-      // proxy: {
-      //   '/api': {
-      //     target: process.env.PROXIMA_GATEWAY,
-      //     changeOrigin: true,
-      //     pathRewrite: {
-      //       '^/api': '/',
-      //     },
-      //   },
-      // },
     },
     plugins: [
-      new CompressionPlugin({
-        filename: '[path][base].gz',
-        test: /\.(js|css|html)$/,
-      }),
       new WebpackBar(),
-      PROXIMA_ANALYZER_PACKAGE && new BundleAnalyzer(),
+      ANALYZER_PACKAGE && new BundleAnalyzer(),
       new webpack.DefinePlugin({
         ...resolveClientEnv(false, cliEnv),
       }),
@@ -248,11 +237,11 @@ module.exports = (cliEnv = {}, argv) => {
         inject: true,
         templateParameters: () => resolveClientEnv(true, cliEnv),
       }),
-      // isProd &&
-      //   new MiniCssExtractPlugin({
-      //     filename: '[name].[contenthash].css',
-      //     chunkFilename: '[name].[contenthash].chunk.css',
-      //   }),
+      isProd &&
+        new MiniCssExtractPlugin({
+          filename: '[name].[contenthash].css',
+          chunkFilename: '[name].[contenthash].chunk.css',
+        }),
       new CleanWebpackPlugin(),
     ].filter(Boolean),
     module: {
@@ -285,6 +274,7 @@ module.exports = (cliEnv = {}, argv) => {
         {
           test: /\.css/,
           include: [
+            path.resolve(__dirname, '../../proxima-share-components/dist'),
             path.resolve(__dirname, '../node_modules/@giteeteam/apps-team-components/dist'),
           ],
           use: [
@@ -300,7 +290,6 @@ module.exports = (cliEnv = {}, argv) => {
             path.resolve(__dirname, 'src'),
             path.resolve(__dirname, '../node_modules/antd/'),
             path.resolve(__dirname, '../node_modules/@osui'),
-            path.resolve(__dirname, '../node_modules/github-markdown-css'),
           ],
           use: [
             classNamesConfig,
@@ -346,11 +335,18 @@ module.exports = (cliEnv = {}, argv) => {
       ],
     },
     optimization: {
+      runtimeChunk: 'single',
+      minimize: true,
+      usedExports: true,
+      moduleIds: 'deterministic',
+      chunkIds: 'deterministic',
+
       splitChunks: {
         chunks: 'all',
-        // 100 kb 以下不拆包
-        minSize: 1000000,
-        minChunks: 3,
+        minSize: 100000,
+        minChunks: 2,
+        maxAsyncRequests: 20,
+        maxInitialRequests: 6,
       },
     },
   };

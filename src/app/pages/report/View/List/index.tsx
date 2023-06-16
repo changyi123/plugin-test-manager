@@ -3,8 +3,9 @@ import useDebounce from 'ahooks/lib/useDebounce';
 import { Button, Pagination } from 'antd';
 import React, { useCallback, useRef, useState } from 'react';
 
-import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
+import type { BusinessTableActionType } from '@/components/common/BusinessTable/type';
 import SearchInput from '@/components/common/FilterSearch/SearchInput';
+import { BusinessTable } from '@/components/dynamicComponents';
 import { TestType } from '@/lib/constants';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';

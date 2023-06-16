@@ -2,8 +2,8 @@ import { useMemoizedFn } from 'ahooks';
 import { message } from 'antd';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import MinderEditor from 'test-manager-minder';
 
+import { MinderEditor } from '@/components/dynamicComponents';
 import { validateMinderData } from '@/lib/minder';
 import { getLang } from '@/lib/utils/locale';
 

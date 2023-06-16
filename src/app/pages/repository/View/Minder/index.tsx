@@ -2,9 +2,9 @@ import { useBoolean, useMemoizedFn, useRequest } from 'ahooks';
 import { Button, Dropdown, message, Spin } from 'antd';
 import { MinderNodeType, TestType } from 'common/constant';
 import React from 'react';
-import MinderEditor from 'test-manager-minder';
 import { v4 } from 'uuid';
 
+import { MinderEditor } from '@/components/dynamicComponents';
 import { CustomMore } from '@/icons';
 import { deleteTestEntity, updateTestEntity } from '@/lib/api/item';
 import {

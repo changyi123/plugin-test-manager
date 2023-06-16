@@ -1,9 +1,10 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
-import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
 import { SystemFieldKeys } from '@/components/common/BusinessTable/hook';
+import type { BusinessTableActionType } from '@/components/common/BusinessTable/type';
 import FilterSearch from '@/components/common/FilterSearch';
 import { getFilterFields } from '@/components/common/FilterSearch/utils';
+import { BusinessTable } from '@/components/dynamicComponents';
 import { getTestEntityByQuery } from '@/lib/api/item';
 import { TestType } from '@/lib/constants';
 import useI18n from '@/lib/hooks/useI18n';

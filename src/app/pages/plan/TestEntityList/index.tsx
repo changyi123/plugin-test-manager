@@ -14,9 +14,10 @@ import { StatusBadge } from '@/components/business/Status';
 import TestRunModal, {
   ActionType as TestRunModalActionType,
 } from '@/components/business/TestRunModal';
-import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
 import { SystemFieldKeys } from '@/components/common/BusinessTable/hook';
+import type { BusinessTableActionType } from '@/components/common/BusinessTable/type';
 import Field from '@/components/common/Field';
+import { BusinessTable } from '@/components/dynamicComponents';
 import {
   deleteTestEntity,
   getCasesByStatus,

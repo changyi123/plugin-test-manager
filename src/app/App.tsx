@@ -17,7 +17,9 @@ message.config({
 });
 
 const ReactQueryDevtoolsProduction = React.lazy(() =>
-  import('@tanstack/react-query-devtools/build/lib/index.prod.js').then(d => ({
+  import(
+    /* webpackChunkName: "module_react-query-devtools" */ '@tanstack/react-query-devtools/build/lib/index.prod.js'
+  ).then(d => ({
     default: d.ReactQueryDevtools,
   })),
 );
