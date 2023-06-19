@@ -263,6 +263,8 @@ const getOrBatchCreateTestEntities = async (
     return {
       name: item.name,
       objectId: item.objectId,
+      // 事项创建成功时，需要增加 type 类型
+      type: testType,
       ...extraFields,
     };
   });
@@ -487,11 +489,11 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
         eventData.testEntityList = await getOrBatchCreateTestEntities(
           itemList.map(d => d.objectId),
           {
+            itemList,
             notice: true,
             storeValueList,
-            itemList,
-            fields: extraData.fields,
             type: extraData.type,
+            fields: extraData.fields,
             repository: extraData?.repository,
             t,
           },

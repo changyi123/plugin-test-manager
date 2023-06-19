@@ -78,12 +78,6 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
     return getTreeNodeByKey(folderTreeData, selectedNodeKey);
   }, [folderTreeData, selectedNodeKey]);
 
-  React.useEffect(() => {
-    if (viewMode !== 'minder')
-      // 折叠右侧面板
-      (window as any).globalState?.setItem?.('collapsedStatus', true);
-  }, [viewMode]);
-
   return (
     <PageLayout className={cx('test-repository')}>
       <PageLayout.Header>
