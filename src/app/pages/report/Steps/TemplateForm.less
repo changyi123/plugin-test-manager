@@ -1,0 +1,36 @@
+.form-box {
+  margin-top: 18px;
+
+  .error {
+    margin-left: 12px;
+    color: #ff5630;
+    font-size: 12px;
+  }
+
+  .step-label {
+    position: relative;
+    font-size: 14px;
+    line-height: 20px;
+    color: #213053;
+
+    &.required {
+      &::after {
+        position: absolute;
+        content: '*';
+        right: -8px;
+        top: 0;
+        color: #ff5630;
+      }
+    }
+  }
+
+  .step-cont {
+    display: flex;
+    flex-wrap: wrap;
+    margin-top: 4px;
+  }
+
+  .step-select {
+    width: 100%;
+  }
+}

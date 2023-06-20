@@ -11,6 +11,10 @@ import {
   TEST_MANAGER_PLUGIN_KEY,
 } from '@/lib/constants';
 import { BuiltinFieldNameMapping, TestFiledKeyMapping } from '@/lib/constants';
+import Parse from '@/lib/parse';
+import fetch from '@/lib/utils/fetch';
+import { hasArrayItem } from '@/lib/utils/helper';
+import { IQLBuilder } from '@/lib/utils/iql';
 import {
   AppsWorkspace,
   CustomField,
@@ -18,11 +22,7 @@ import {
   ItemType,
   ItemTypeScheme,
   Workspace,
-} from '@/lib/models';
-import Parse from '@/lib/parse';
-import fetch from '@/lib/utils/fetch';
-import { hasArrayItem } from '@/lib/utils/helper';
-import { IQLBuilder } from '@/lib/utils/iql';
+} from '@/services/models';
 
 import { getRefItemIdsByTestIds, transferObject } from './common';
 

@@ -12,6 +12,11 @@
     "cannotExecuteTestCase": "当前测试用例未分配执行人，无法执行"
   },
   "common": {
+    "pageTitle": {
+      "repository": "测试用例",
+      "report": "测试报告",
+      "plan": "测试计划"
+    },
     "pleaseInputContent": "请输入内容",
     "updateAt": "修改时间",
     "success": "成功",
@@ -41,8 +46,6 @@
     "deleteFail": "删除失败",
     "actionSuccess": "操作成功",
     "actionFail": "操作失败",
-    "repository": "测试用例",
-    "plan": "测试计划",
     "overview": "测试概览",
     "testCase": "测试用例",
     "testPlan": "测试计划",
@@ -100,7 +103,35 @@
     "updateFail": "数据更新失败",
     "unGrouped": "未分组",
     "runNum": "条执行",
-    "addTestExecution": "添加执行任务"
+    "addTestExecution": "添加执行任务",
+    "curWorkspace": "当前空间"
+  },
+  "report": {
+    "pass": "通过",
+    "noPass": "未通过",
+    "partPass": "部分通过",
+    "reportName": "测试报告名称",
+    "reportNamePlaceholder": "请输入测试报告名称",
+    "reportResult": "测试结论",
+    "choiceTemplate": "选择模板",
+    "choiceTemplatePlaceholder": "请选择模板",
+    "range": "统计范围",
+    "required": "必填",
+    "exceedLength": "模板名称最长限制 25 个字符",
+    "reportInfo": "报告摘要",
+    "addReport": "新建报告",
+    "addTestReport": "新建测试报告",
+    "selectTemplate": "输入名称和选择模板",
+    "selectRange": "选择统计范围",
+    "validateTips": "存在未填字段，请检查必填字段",
+    "view": "查看",
+    "deleteTip1": "该操作会将测试报告删除，是否继续操作？",
+    "createLoading": "测试报告创建中",
+    "templateSet": "模板设置",
+    "testReport": "测试报告",
+    "addSuccess": "创建成功",
+    "addFail": "创建失败",
+    "export": "导出"
   },
   "status": {
     "PASSED": {
@@ -178,8 +209,8 @@
         "systemTips": "测试管理系统隔离说明"
       },
       "wordTemplate": {
-        "title": "测试报告模板管理",
-        "description": "测试报告模板管理",
+        "title": "测试报告 Word 模板管理",
+        "description": "测试报告 Word 模板管理",
         "templateName": "模板名称",
         "file": "模板上传",
         "uploadTestReportTemplate": "上传测试报告模板",
@@ -190,6 +221,34 @@
         "ruleTips": "请输入模板名称",
         "uploadFile": "模板上传",
         "uploadFileTips": "请上传模板"
+      },
+      "testReportTemplate": {
+        "title": "测试报告模板管理",
+        "description": "全局空间测试报告模板",
+        "table": {
+          "title": "模板管理",
+          "header": {
+            "name": "标题",
+            "action": "操作"
+          },
+          "action": {
+            "default": "设为默认",
+            "view": "查看",
+            "delete": "删除"
+          },
+          "tag": {
+            "isGlobalTemplate": "全局",
+            "isDefaultTemplate": "默认"
+          }
+        },
+        "buttons": {
+          "create": "新建报告模板"
+        },
+        "message": {
+          "setDefaultSuccess": "默认模板设置成功",
+          "deleteSuccess": "测试报告模板删除成功",
+          "deleteConfirm": "确认是否删除测试报告模板？"
+        }
       },
       "isolatedSystem": {
         "title": "测试管理系统隔离",
@@ -206,6 +265,82 @@
       "workspaceSelectorModal": {
         "modelTitle": "请选择测试管理配置空间",
         "placeholder": "请选择空间"
+      }
+    },
+    "reportTemplateCreator": {
+      "creatorTitle": "新建报告模板",
+      "editorTitle": "编辑测试报告模板",
+      "nameExisted": "模板名称已存在",
+      "templateExisted": "模板已存在",
+      "templateNameTooLong": "模板名称过长",
+      "reportNameTooLong": "模板名称过长",
+      "button": {
+        "next": "下一步",
+        "finish": "保存"
+      },
+
+      "steps": {
+        "basic": "基本信息",
+        "template": "界面配置",
+        "dataSource": "数据源配置"
+      },
+      "templateConfig": {
+        "message": {
+          "nextButtonClickConfirm": "请确认是否已经保存仪表盘配置？"
+        }
+      },
+      "basicConfig": {
+        "title": "基础信息",
+        "message": {
+          "createReportTemplateSuccess": "测试报告模板创建成功",
+          "updateReportTemplateSuccess": "测试报告模板更新成功"
+        },
+        "form": {
+          "name": {
+            "label": "模板标题",
+            "placeholder": "请输入模板标题",
+            "error": "模板标题必填"
+          }
+        }
+      },
+      "dataSourceConfig": {
+        "subtitle": {
+          "addDataSource": "添加数据源",
+          "bindDataSource": "报表数据源"
+        },
+        "label": {
+          "plan": "所选测试计划",
+          "sprint": "所选迭代",
+          "version": "所选版本",
+          "workspace": "所选空间",
+          "currentWorkspace": "当前空间",
+
+          "TestCase": "所有的测试用例",
+          "TestRun": "所有的测试执行",
+          "TestDefect": "所有的缺陷"
+        },
+        "title": "数据规则配置",
+        "select": {
+          "placeholders": {
+            "firstLevel": "请选择数据源范围",
+            "secondLevel": "请选择数据源范围"
+          }
+        },
+        "message": {
+          "dataSourceConfigSaveSuccess": "数据源配置保存成功",
+          "addDataSourceSuccess": "添加数据源成功",
+          "deleteDataSourceSuccess": "数据源删除成功",
+          "dataSourceExisted": "该数据源已存在"
+        },
+        "button": {
+          "addDataSource": "添加"
+        },
+        "table": {
+          "title": {
+            "chartName": "仪表盘小组件",
+            "dataSource": "数据源"
+          }
+        }
       }
     },
     "plan": {

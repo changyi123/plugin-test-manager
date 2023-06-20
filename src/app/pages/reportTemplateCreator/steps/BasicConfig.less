@@ -1,0 +1,30 @@
+.container {
+  min-width: 600px;
+  width: 70%;
+  margin: 0 auto;
+
+  > h3 {
+    font-weight: 700;
+    font-size: 16px;
+    margin: 16px 0;
+  }
+
+  .label {
+    position: relative;
+    margin-bottom: 6px;
+    display: inline-block;
+    &.required {
+      &:before {
+        content: '*';
+        color: red;
+        font-size: 12px;
+        position: absolute;
+        right: -10px;
+        top: -2px;
+      }
+    }
+  }
+  .form {
+    max-width: 700px;
+  }
+}

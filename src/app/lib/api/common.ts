@@ -8,7 +8,6 @@ import {
   GlobalConfigStorageKey,
   TestRelationType,
 } from '@/lib/constants';
-import { Item, Repository, Test, TestRelation, Workspace } from '@/lib/models';
 import Parse from '@/lib/parse';
 import fetch from '@/lib/utils/fetch';
 import { escapeMatchesQueryArg, hasArrayItem, pointerTransfer, toArray } from '@/lib/utils/helper';
@@ -20,8 +19,9 @@ import {
   withItemType,
   withWorkspace,
 } from '@/lib/utils/iql';
+import { Item, Repository, Test, TestRelation, Workspace } from '@/services/models';
 
-import { TestConfig } from '../models';
+import { TestConfig } from '../../services/models';
 
 const BATCH_SIZE = 200;
 

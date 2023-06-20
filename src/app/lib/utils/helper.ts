@@ -17,11 +17,20 @@ const getProximaGateWay = () => {
   );
 };
 
+/** 获取跳转路由前缀 */
+export const getPagePrefix = () => {
+  const baseUrl = isDev() ? '/' : `${getProximaBasePath()}/`;
+  return `${baseUrl}${getTenantKey()}`;
+};
+
 /** 获取租户信息 */
 export const getTenantKey = () => {
   // dev 环境默认取 env 中的 PROXIMA_APP_ID
   return window?.env?.PROXIMA_APP_ID ?? process.env.PROXIMA_APP_ID ?? 'osc';
 };
+
+export const isDev = () => location.hostname === 'localhost';
+
 /** 获取 proxima baseUrl */
 export const getProximaBasePath = () => {
   // FIXME: 确认 spa 环境改造后 接口前缀 和 页面前缀有没有不一致的情况？

@@ -4,6 +4,7 @@ import { Button, Checkbox, Dropdown, Layout, Menu, Result } from 'antd';
 import { isNil } from 'lodash';
 import React from 'react';
 
+import { featureFlags } from '@/lib/appEnv';
 import useI18n from '@/lib/hooks/useI18n';
 
 import DataProvider from './DataProvider';
@@ -16,6 +17,7 @@ import ItemTypeMapping from './ItemTypeMapping';
 import IsolatedSystem from './MoreConfig/IsolatedSystem';
 import WordTemplate from './MoreConfig/WordTemplate';
 import TableFields from './TableFields';
+import TestReportTemplate from './TestReportTemplate';
 
 const { Sider, Content, Header } = Layout;
 
@@ -39,6 +41,14 @@ const MoreConfigPages = [
 ];
 
 const ConfigPages = [
+  featureFlags('ENABLE_TEST_REPORT') && {
+    key: 'TestReportTemplate',
+    title: 'testReportTemplate',
+    description: 'testReportTemplate',
+    component: TestReportTemplate,
+    isGlobalConfig: true,
+    noPadding: true,
+  },
   {
     key: 'ItemTypeMapping',
     title: 'itemTypeMapping',
@@ -69,7 +79,7 @@ const ConfigPages = [
     component: TableFields,
     description: 'tableFields',
   },
-];
+].filter(Boolean);
 
 const ALLConfigPages = [].concat(ConfigPages, MoreConfigPages);
 
@@ -188,15 +198,17 @@ const Config = () => {
           <Header className={cx('header')}>
             <div className={cx('left')}>
               <h3 className={cx('title')}>{t(`page.config.${currentConfigPage.title}.title`)}</h3>
-              <p className={cx('description')}>
-                {t(`page.config.${currentConfigPage.description}.description`)}
-              </p>
+              {typeof currentConfigPage.description === 'string' && (
+                <p className={cx('description')}>
+                  {t(`page.config.${currentConfigPage.description}.description`)}
+                </p>
+              )}
             </div>
             <div className={cx('right')}>
               {currentConfigPage.isGlobalConfig ? null : <WorkspaceSelector />}
             </div>
           </Header>
-          <Content className={cx('content')}>
+          <Content className={cx('content', currentConfigPage.noPadding && 'no-padding')}>
             <PageContent currentConfigPage={currentConfigPage} />
           </Content>
         </Layout>

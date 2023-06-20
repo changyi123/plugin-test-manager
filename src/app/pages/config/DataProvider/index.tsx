@@ -3,10 +3,11 @@ import React, { useState } from 'react';
 
 import { getTestConfig } from '@/lib/api/common';
 import { getWorkspaceByKey, updateUsedHierarchySchema } from '@/lib/api/proxima';
+import { useCurrentUser } from '@/lib/api/user';
 import { useAllTestWorkspace } from '@/lib/hooks/useTest';
-import { TestConfig } from '@/lib/models';
 import Parse from '@/lib/parse';
 import { generateStorageKey } from '@/lib/utils/helper';
+import { TestConfig } from '@/services/models';
 
 import { DataContext } from '../context';
 import { generateDefaultTestConfig } from '../helper';
@@ -20,6 +21,7 @@ const CurrentWorkspaceStorageKey = generateStorageKey('current-workspace');
  */
 const useConfigBootstrap = globalConfig => {
   const allWorkspaces = useAllTestWorkspace();
+  useCurrentUser();
   const allWorkspaceKeys = allWorkspaces?.map(item => item.key);
   const { data: testConfigs } = useRequest(
     async () =>

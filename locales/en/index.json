@@ -12,6 +12,11 @@
     "cannotExecuteTestCase": "The current test case is not assigned to an executor and cannot be executed"
   },
   "common": {
+    "pageTitle": {
+      "repository": "Test Repository",
+      "plan": "Test Plan",
+      "report": "Test Report"
+    },
     "pleaseInputContent": "Please enter content",
     "updateAt": "updateAt",
     "success": "Success",
@@ -39,8 +44,7 @@
     "deleteFail": "Failed to delete",
     "actionSuccess": " Successful operation",
     "actionFail": "Operation failed",
-    "repository": "Test Repository",
-    "plan": "Test Plan",
+
     "overview": "Test Overview",
     "testCase": "Test case",
     "testPlan": "Test plan",
@@ -101,7 +105,35 @@
     "updateFail": "Update data failed",
     "unGrouped": "Ungrouped",
     "runNum": "test execution",
-    "addTestExecution": "Add test execution"
+    "addTestExecution": "Add test execution",
+    "curWorkspace": "Current workspace"
+  },
+  "report": {
+    "pass": "Pass",
+    "noPass": "Not pass",
+    "partPass": "Part pass",
+    "reportName": "Test report name",
+    "reportNamePlaceholder": "Please enter a test report name",
+    "reportResult": "Test conclusion",
+    "choiceTemplate": "select template",
+    "choiceTemplatePlaceholder": "Please select a template",
+    "range": "Statistical range",
+    "required": "Required",
+    "exceedLength": "Template name is limited to 25 characters",
+    "reportInfo": "report summary",
+    "addReport": "Add report",
+    "addTestReport": "Add test report",
+    "selectTemplate": "Enter a name and choose a template",
+    "selectRange": "Select statistical range",
+    "validateTips": "There are missing fields, please check required fields",
+    "view": "View",
+    "deleteTip1": "This operation will delete the test report. Do you want to continue?",
+    "createLoading": "Test report creation",
+    "templateSet": "Template setting",
+    "testReport": "Test report",
+    "addSuccess": "created successfully",
+    "addFail": "created failed",
+    "export": "export"
   },
   "status": {
     "PASSED": {

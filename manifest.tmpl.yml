@@ -2,7 +2,7 @@ app:
   key: test_manager
   uuid: bf73e61c-e15a-4461-a1f7-f940c2009332
   name: test_manager
-  version: "4.0.0-alpha.1"
+  version: "4.0.1-alpha.4"
 modules:
   webtrigger:
     # TODO: Debug 使用，生产环境禁止调用下面的 trigger
@@ -202,6 +202,12 @@ modules:
       loadType: Micro
       route: /repository
       {workspacePageHidden}
+    - key: test-report
+      resource: main
+      title: 测试报告
+      loadType: Micro
+      route: /report
+      {workspacePageHidden}
     - key: test-stats-report
       resource: main
       title: 测试统计
@@ -214,6 +220,12 @@ modules:
       loadType: Micro
       route: /xmindimport
       hidden: true
+  appPage:
+    - key: test-report-creator
+      resource: main
+      title: 测试管理模板创建
+      loadType: Micro
+      route: /reportCreator
   beforeCreateOrUpdateModal:
     - key: before-create-or-update-modal
       resource: main
@@ -463,6 +475,41 @@ tables:
       user:
         type: Pointer
         targetClass: _User
+  - className: TestReport
+    fields:
+      name:
+        type: String
+      workspace:
+        type: Pointer
+        targetClass: Workspace
+      chartGroup:
+        type: Pointer
+        targetClass: ChartGroup
+      # 是否是测试报告模板 
+      isTemplate:
+        type: Boolean
+      # 是否是租户级模板 
+      isGlobalTemplate:
+        type: Boolean
+      # 是否是默认模板
+      isDefaultTemplate:
+        type: Boolean
+      # 模板配置文件
+      templateConfig:
+        type: Object
+      # 报告概览数据
+      reportOverviewData:
+        type: Object
+      createdBy:
+        type: Pointer
+        targetClass: _User
+      # 基于哪个模板生成
+      usingReportTemplate:
+        type: Pointer
+        targetClass: test_manager_TestReport
+      # 报告状态
+      reportStatus:
+        type: String
 locales:
   zh-CN:
     test-manager-test-detail:

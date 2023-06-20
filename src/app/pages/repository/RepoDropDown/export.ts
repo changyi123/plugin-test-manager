@@ -12,7 +12,6 @@ import { getCustomFields } from '@/lib/api/proxima';
 import { getRepositoryData } from '@/lib/api/repository';
 import { TestLinkType, TestType } from '@/lib/constants';
 import { SYSTEM_FIELD } from '@/lib/constants';
-import { CustomField } from '@/lib/models';
 import Parse from '@/lib/parse';
 import { Item } from '@/lib/types/App';
 import { Step } from '@/lib/types/Test';
@@ -20,6 +19,7 @@ import { arrayToTree } from '@/lib/utils/arrayToTree';
 import { escapeHtmlString } from '@/lib/utils/helper';
 import { isZhLang } from '@/lib/utils/locale';
 import { getRepositoryQuery } from '@/lib/utils/tree';
+import { CustomField } from '@/services/models';
 
 import { getTreeNodeByKey } from '../util';
 

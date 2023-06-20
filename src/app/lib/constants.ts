@@ -85,6 +85,12 @@ export const TABLE_EXCLUDE_FIELDS = [SYSTEM_FIELD.Team];
 
 export const ICLUDE_SYSTEM_FIELD = [SYSTEM_FIELD.Status];
 
+export const REPORT_SYSTEM_FIELD = [
+  SYSTEM_FIELD.Version,
+  SYSTEM_FIELD.Sprint,
+  SYSTEM_FIELD.Workspace,
+];
+
 // FieldType字段映射, 对应FieldType表的key字段
 export const FIELD_TYPE_KEY_MAPPINGS = {
   // FieldType的custom field
@@ -220,6 +226,8 @@ export const FILTER_EXPR_NAME = {
   Tag_Not_Contain: 'Tag_Not_Contain',
   Test_Repository_Not_Contain: 'test_manager_Repository_Not_Contain',
   Test_Repository_Contain: 'test_manager_Repository_Contain',
+  Test_Plan_Not_Contain: 'test_manager_Plan_Not_Contain',
+  Test_Plan_Contain: 'test_manager_Plan_Contain',
   Test_Status_Not_Contain: 'test_manager_status_Not_Contain',
   Test_Status_Contain: 'test_manager_status_Contain',
   UserGroup_Contain: 'UserGroup_Contain',
@@ -351,6 +359,11 @@ export const FILTER_EXPRESSIONS = t => ({
     { label: t('common.contain'), value: FILTER_EXPR_NAME.Test_Repository_Contain },
     { label: t('common.notContain'), value: FILTER_EXPR_NAME.Test_Repository_Not_Contain },
   ],
+  test_manager_Plan: [
+    // 测试计划
+    { label: t('common.contain'), value: FILTER_EXPR_NAME.Test_Plan_Contain },
+    { label: t('common.notContain'), value: FILTER_EXPR_NAME.Test_Plan_Not_Contain },
+  ],
   test_manager_status: [
     // 测试用例最新执行状态
     { label: t('common.contain'), value: FILTER_EXPR_NAME.Test_Status_Contain },
@@ -427,6 +440,7 @@ export const RepositoryModel = `${appKey}_Repository`;
 export const TestCaseStatusModel = `${appKey}_status`;
 export const TestRunDesigneeModel = `${appKey}_designee`;
 export const TestRunExecutorModel = `${appKey}_executor`;
+export const TestPlanModel = `${appKey}_Plan`;
 
 export const getExtendFields = t => [
   {
@@ -478,6 +492,22 @@ export const getExtendFields = t => [
       objectId: TestCaseStatusModel,
       key: TestCaseStatusModel,
       name: t('common.testCaseStatus'),
+    },
+  },
+];
+
+export const getReportFilterFields = t => [
+  {
+    key: TestPlanModel,
+    // name: '测试计划',
+    name: t('common.testPlan'),
+    objectId: TestPlanModel,
+    fieldType: {
+      isExtend: true,
+      dataType: 'object',
+      objectId: TestPlanModel,
+      key: TestPlanModel,
+      name: t('common.testPlan'),
     },
   },
 ];

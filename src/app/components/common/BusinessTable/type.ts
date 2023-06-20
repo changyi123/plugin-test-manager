@@ -13,5 +13,6 @@ export type TitleCellOption = {
     isCheckedGlobalConfig?: boolean;
     /** 返回数据是否包含系统字段 */
     includeSystemField?: boolean;
+    isHideIcon?: boolean;
   };
 };

@@ -31,9 +31,9 @@ import {
 import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import { useNoExpiredRequest } from '@/lib/hooks/useRequest';
-import { Repository } from '@/lib/models';
 import { generateStorageKey } from '@/lib/utils/helper';
 import { isDate, SearchSelectors, Selectors } from '@/lib/utils/iql';
+import { Repository } from '@/services/models';
 
 import { useGetCustomFields } from '../BusinessTable/hook';
 import cx from './index.less';

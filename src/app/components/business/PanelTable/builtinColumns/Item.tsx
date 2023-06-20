@@ -43,6 +43,10 @@ export const getItemTitle = t => ({
       return (
         <span style={{ color: '#ccc' }}>{t('components.business.panelTable.itemDeleted')}</span>
       );
-    return <Typography.Text ellipsis={{ tooltip: item?.name }}>{item?.name}</Typography.Text>;
+    return (
+      <Typography.Text className={cx('item-title')} ellipsis={{ tooltip: item?.name }}>
+        {item?.name}
+      </Typography.Text>
+    );
   },
 });

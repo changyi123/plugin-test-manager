@@ -1,0 +1,60 @@
+.container {
+  width: 70%;
+  margin: 0 auto;
+  > h3 {
+    font-weight: 700;
+    font-size: 16px;
+    margin: 16px 0;
+  }
+
+  :global {
+    .ant-table-container {
+      .ant-table-cell {
+        &:first-child {
+          padding-left: 0 !important;
+        }
+      }
+    }
+  }
+}
+
+.button {
+  margin-left: 8px;
+}
+
+.select {
+  width: 278px;
+  margin-right: 8px;
+}
+
+.list {
+  margin-top: 20px;
+  align-items: center;
+  font-size: 14px;
+  width: 600px;
+
+  .item {
+    display: flex;
+    height: 28px;
+    > a {
+      color: #999;
+      margin-left: auto;
+      &:hover {
+        color: #1890ff;
+      }
+    }
+  }
+}
+
+.subtitle {
+  margin-top: 16px;
+  margin-bottom: 8px;
+  font-weight: 700;
+  &.last {
+    margin-top: 32px;
+  }
+}
+
+.table {
+  width: 700px;
+}

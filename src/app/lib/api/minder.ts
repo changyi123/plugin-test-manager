@@ -1,8 +1,8 @@
 /** @file 脑图编辑器相关接口 */
 
-import { CustomField, Repository } from '@/lib/models';
 import Parse from '@/lib/parse';
 import fetch from '@/lib/utils/fetch';
+import { CustomField, Repository } from '@/services/models';
 
 import { getPluginWebTriggerBaseUrl, getSessionToken } from '../utils/helper';
 

@@ -80,6 +80,9 @@ export const BuiltinFieldNameMapping = {
   executor: 'test_manager_executor',
   sortIndex: 'test_manager_sortIndex',
   executeCount: 'test_manager_executeCount',
+
+  // 不需要拼接
+  runDetail: 'test_manager_runDetail',
 } as const;
 
 export const SystemFieldNameMapping = {

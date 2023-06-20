@@ -15,7 +15,7 @@ import { hasArrayItem } from '@/lib/utils/helper';
 import { generateSortIndex, pointerTransfer, toArray } from '@/lib/utils/helper';
 import { compactStepModel } from '@/lib/utils/modelTransfer';
 
-import { Item, ItemLink, ItemLinkType, ItemType, Test } from '../models';
+import { Item, ItemLink, ItemLinkType, ItemType, Test } from '../../services/models';
 import { ICommonRes } from './detail';
 import { getTestEntityByQuery } from './item';
 

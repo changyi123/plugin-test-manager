@@ -7,6 +7,11 @@ const routes = [
     exact: true,
   },
   {
+    path: '/report',
+    component: React.lazy(() => import('../pages/report')),
+    exact: true,
+  },
+  {
     path: '/xmindimport',
     component: React.lazy(() => import('../pages/xMindImport')),
     exact: true,
@@ -33,6 +38,11 @@ const routes = [
   {
     path: '/beforeItemCreateModule',
     component: React.lazy(() => import('../modules/beforeCreateOrUpdateModal')),
+    exact: true,
+  },
+  {
+    path: '/reportCreator',
+    component: React.lazy(() => import('../pages/reportTemplateCreator')),
     exact: true,
   },
 ];

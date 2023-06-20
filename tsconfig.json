@@ -11,6 +11,7 @@
     "sourceMap": true,
     "baseUrl": "./",
     "outDir": "./",
+    "forceConsistentCasingInFileNames": true,
     "strict": false,
     "skipLibCheck": true,
     "resolveJsonModule": true,

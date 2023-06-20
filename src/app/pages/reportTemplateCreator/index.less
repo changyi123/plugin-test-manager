@@ -1,0 +1,36 @@
+.header {
+  position: sticky;
+  top: 0;
+  height: 58px;
+  width: 100%;
+  box-shadow: 0px 3px 3px 0px rgba(115, 129, 152, 0.16), 0px 0px 2px 0px rgba(115, 129, 152, 0.32);
+  display: flex;
+  align-items: center;
+  z-index: 1;
+  background-color: #fff;
+  padding: 0 24px;
+
+  > h3 {
+    flex: none;
+    font-weight: 700;
+    font-size: 18px;
+  }
+
+  .step-container {
+    width: 70%;
+    min-width: 400px;
+    margin: 0 auto;
+  }
+
+  .action {
+    flex: none;
+  }
+}
+
+.content {
+  min-height: ~'calc(100% - 78px)';
+}
+
+.container {
+  overflow: auto;
+}

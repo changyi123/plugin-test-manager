@@ -15,7 +15,7 @@ import { getReportKey, getRepositoryQuery } from '@/lib/utils/tree';
 import { getCheckedByType } from './helper';
 import { useGetGroupCounts } from './hooks';
 import cx from './TestDetailsSelectorList.less';
-import VirtualScrollList from './virtualScrollList';
+import VirtualScrollList from './VirtualScrollList';
 
 interface TestDetailsSelectorListProps {
   workspaceKey?: string;
