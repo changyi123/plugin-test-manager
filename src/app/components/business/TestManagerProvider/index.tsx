@@ -1,4 +1,5 @@
 import { store } from '@nebulare/data';
+import createProximaSdk from '@projectproxima/proxima-sdk-js';
 import { useRequest } from 'ahooks';
 import { message, notification } from 'antd';
 import { isEmpty, union } from 'lodash';
@@ -295,11 +296,16 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
   children,
   workspaceKey,
 }) => {
+  const proxima = createProximaSdk();
   const { t } = useI18n();
   const [workspace, setWorkspace] = React.useState<Workspace>();
   const [testEntity, setTestEntity] = React.useState<TestEntity>();
 
   const { getCreatePermission } = useGetPermissions(workspace);
+
+  React.useEffect(() => {
+    proxima.execute('updateItemTypeEvent');
+  }, [proxima]);
 
   React.useEffect(() => {
     const execute = async () => {
