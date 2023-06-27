@@ -1,4 +1,4 @@
-import i18n from 'i18next';
+import { t } from 'i18next';
 import { last, omit } from 'lodash';
 
 import Parse from '@/lib/parse';
@@ -72,10 +72,10 @@ const TestReport = Parse.Object.extend('test_manager_TestReport', {
   async createTemplate(reportTemplateParams) {
     const objectId = this.get('objectId');
     const isExisted = Boolean(objectId);
-    if (isExisted) throw new Error(i18n.t('page.reportTemplateCreator.templateExisted'));
+    if (isExisted) throw new Error(t('page.reportTemplateCreator.templateExisted'));
 
     if (reportTemplateParams.name?.length > 25) {
-      throw new Error(i18n.t('page.reportTemplateCreator.templateNameTooLong'));
+      throw new Error(t('page.reportTemplateCreator.templateNameTooLong'));
     }
 
     // 校验名称是否重复
@@ -85,7 +85,7 @@ const TestReport = Parse.Object.extend('test_manager_TestReport', {
       .first({ json: true });
 
     if (alreadyExistedSameNameTemplate) {
-      throw new Error(i18n.t('page.reportTemplateCreator.nameExisted'));
+      throw new Error(t('page.reportTemplateCreator.nameExisted'));
     }
 
     const { name, workspace, isDefaultTemplate, isGlobalTemplate, templateConfig } = Object.assign(
@@ -128,7 +128,7 @@ const TestReport = Parse.Object.extend('test_manager_TestReport', {
       },
   ) {
     if (reportParams.name?.length > 25) {
-      throw new Error(i18n.t('page.reportTemplateCreator.reportNameTooLong'));
+      throw new Error(t('page.reportTemplateCreator.reportNameTooLong'));
     }
     // 获取模板数据
     const templateReportData = await new Parse.Query(TestReport)

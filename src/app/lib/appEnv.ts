@@ -53,6 +53,19 @@ const SupportAppEnv = {
     defaultValue: 1000,
     transformer: (value: string) => Number(value),
   },
+  /** 控制哪些用户可以进入页面 */
+  PAGE_USER_GUARD: {
+    defaultValue: {
+      // // 控制哪些用户可以进入页面，config 表示页面配置，如果为空数组表示所有用户都可以进入
+      // adminPage: {
+      //   blacklist: {
+      //     roles: [],
+      //   },
+      //   resultMessage: '当前配置页面无权限，可通过下载版了解或点击联系我们',
+      // },
+    },
+    transformer: val => val,
+  },
 } as const;
 
 /**

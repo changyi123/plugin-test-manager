@@ -17,6 +17,7 @@
       "report": "测试报告",
       "plan": "测试计划"
     },
+    "noPermissionToAccess": "当前用户无权限访问",
     "pleaseInputContent": "请输入内容",
     "updateAt": "修改时间",
     "success": "成功",
@@ -107,6 +108,31 @@
     "curWorkspace": "当前空间"
   },
   "report": {
+    "workspaceReportTemplate": {
+      "modalTitle": "空间测试报告模板管理",
+      "deleteConfirm": {
+        "title": "确认",
+        "content": "请确认是否删除该模板？",
+        "okText": "删除"
+      },
+      "message": {
+        "deleteSuccess": "模板删除成功",
+        "setDefaultSuccess": "默认模板设置成功"
+      },
+      "buttons": {
+        "create": "新建测试报告模板",
+        "edit": "编辑",
+        "delete": "删除",
+        "setDefault": "设置默认"
+      },
+      "tableColumns": {
+        "action": "操作",
+        "name": "模板名称",
+        "createdAt": "创建时间"
+      }
+    },
+    "globalTemplate": "全局",
+    "workspaceTemplate": "空间内",
     "pass": "通过",
     "noPass": "未通过",
     "partPass": "部分通过",
@@ -224,7 +250,12 @@
       },
       "testReportTemplate": {
         "title": "测试报告模板管理",
-        "description": "全局空间测试报告模板",
+        "description": "空间测试报告模板",
+        "workspaceTemplateSetting": {
+          "title": "空间模板设置",
+          "label": "允许空间自定义测试报告模板",
+          "updateSuccess": "模板配置更新成功"
+        },
         "table": {
           "title": "模板管理",
           "header": {

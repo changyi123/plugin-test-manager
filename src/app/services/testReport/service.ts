@@ -1,3 +1,4 @@
+import { Workspace } from '../models';
 import { default as TestReport, TestReportModelType } from './model';
 
 /** 创建测试报告模板 */
@@ -11,9 +12,25 @@ export const createReportTemplate = async (data: Partial<TestReportModelType>) =
 export const setDefaultReportTemplate = async (objectId: string) => {
   const defaultTemplateKey = 'isDefaultTemplate';
 
-  const defaultTemplateObject = await new Parse.Query(TestReport)
-    .equalTo(defaultTemplateKey, true)
-    .first();
+  const currentTemplateData = (await new Parse.Query(TestReport)
+    .equalTo('objectId', objectId)
+    .select(['objectId', 'isGlobalTemplate', 'workspace'])
+    .first({ json: true } as any)) as any;
+
+  // 模板存在空间默认模板和全局默认模板，所以需要根据当前模板的空间和全局属性来查询默认模板
+  const defaultTemplateQuery = new Parse.Query(TestReport).equalTo(defaultTemplateKey, true);
+
+  if (currentTemplateData.isGlobalTemplate) {
+    defaultTemplateQuery.equalTo('isGlobalTemplate', true);
+  }
+  if (currentTemplateData.workspace) {
+    defaultTemplateQuery.equalTo(
+      'workspace',
+      Workspace.createWithoutData(currentTemplateData.workspace),
+    );
+  }
+
+  const defaultTemplateObject = await defaultTemplateQuery.first();
 
   const currentTemplateObject = new TestReport({ objectId });
   // 取消原来的默认模板

@@ -1,11 +1,12 @@
 import { useMemoizedFn } from 'ahooks';
-import { Button, message, Modal, Table } from 'antd';
+import { Button, message, Modal, Switch, Table } from 'antd';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { getPagePrefix } from '@/lib/utils/helper';
+import { genReportTemplateUrl } from '@/lib/testReport';
 import { testReportServices } from '@/services';
-import { testReportQuery } from '@/services/query';
+import { testConfigMutation } from '@/services/mutation';
+import { testConfigQuery, testReportQuery } from '@/services/query';
 
 import cx from './index.less';
 
@@ -14,18 +15,6 @@ const TestReportTemplate: React.FC = () => {
   const { t: scopedT } = useTranslation('', {
     keyPrefix: 'page.config.testReportTemplate',
   });
-
-  // 生成测试报告模板 Url
-  const genReportTemplateUrl = (testReportId?: string) => {
-    const pagePrefix = getPagePrefix();
-    const currentPageUrl = location.href.split('?')[0];
-    const searchParams = new URLSearchParams();
-    if (testReportId) searchParams.append('testReportId', testReportId);
-    // 添加重定向地址
-    searchParams.append('redirectLink', encodeURIComponent(currentPageUrl));
-
-    return `${pagePrefix}/plugin/test_manager_test-report-creator?${searchParams.toString()}`;
-  };
 
   const {
     data: templateList,
@@ -37,6 +26,13 @@ const TestReportTemplate: React.FC = () => {
     key: tmpl.objectId,
     ...tmpl,
   }));
+
+  const { data: globalTestConfig } = testConfigQuery.useGlobalTestConfig();
+  const { mutateAsync: updateTestConfig, isLoading: isUpdateLoading } =
+    testConfigMutation.useTestConfigUpdateMutation();
+
+  const enableWorkspaceReportTemplate =
+    globalTestConfig?.extra?.enableWorkspaceReportTemplate ?? false;
 
   const actions = {
     deleteReportTemplate: async (objectId: string) => {
@@ -50,7 +46,11 @@ const TestReportTemplate: React.FC = () => {
       });
     },
     editReportTemplate: async objectId => {
-      window.open(genReportTemplateUrl(objectId));
+      window.open(
+        genReportTemplateUrl({
+          testReportId: objectId,
+        }),
+      );
     },
     setDefaultReportTemplate: async (objectId: string) => {
       await testReportServices.setDefaultReportTemplate(objectId);
@@ -130,6 +130,27 @@ const TestReportTemplate: React.FC = () => {
         >
           {scopedT('buttons.create')}
         </Button>
+      </div>
+      <div className={cx('workspace-template-setting')}>
+        <h6>{scopedT('workspaceTemplateSetting.title')}</h6>
+        <div>
+          <Switch
+            loading={isUpdateLoading}
+            className={cx('switch')}
+            checked={enableWorkspaceReportTemplate}
+            onChange={async () => {
+              await updateTestConfig({
+                objectId: globalTestConfig?.objectId,
+                extra: {
+                  ...globalTestConfig?.extra,
+                  enableWorkspaceReportTemplate: !enableWorkspaceReportTemplate,
+                },
+              });
+              message.success(scopedT('workspaceTemplateSetting.updateSuccess'));
+            }}
+          />
+          <span>{scopedT('workspaceTemplateSetting.label')}</span>
+        </div>
       </div>
       <h3>{scopedT('table.title')}</h3>
       <Table

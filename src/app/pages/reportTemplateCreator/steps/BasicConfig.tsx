@@ -4,6 +4,7 @@ import { eq } from 'lodash';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { getWorkspaceByKey } from '@/lib/api/proxima';
 import { TestReportMaxNameLength } from '@/lib/testReport';
 import { testReportMutation } from '@/services/mutation';
 
@@ -59,7 +60,21 @@ const BasicConfig: React.FC<{
 
           return;
         }
+
+        // 从 url 中获取对应的 workspaceKey, 并查询 workspaceId
+        const workspaceKey =
+          new URLSearchParams(window.location.search).get('workspaceKey') ?? null;
+
+        let workspaceId = null;
+        if (workspaceKey) {
+          const workspace = await getWorkspaceByKey(workspaceKey);
+          if (workspace) {
+            workspaceId = workspace.objectId;
+          }
+        }
+
         const testReportTemplate = await createTestReport({
+          workspace: workspaceId,
           isGlobalTemplate: true,
           isDefaultTemplate: false,
           templateConfig: {

@@ -1,10 +1,18 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+
+import { clearIframeLayoutEffect } from '@/lib/testReport';
 
 import cx from './TestIframe.less';
 
 const TestIframe: React.FC<any> = props => {
   const iframeRef = useRef<any>();
   const [height, setHeight] = useState('100%');
+
+  useEffect(() => {
+    return () => {
+      clearIframeLayoutEffect();
+    };
+  }, []);
 
   return (
     <iframe

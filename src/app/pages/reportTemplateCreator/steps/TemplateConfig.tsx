@@ -3,7 +3,7 @@ import { useAtomValue } from 'jotai';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { genChartGroupPageUrl } from '@/lib/testReport';
+import { clearIframeLayoutEffect, genChartGroupPageUrl } from '@/lib/testReport';
 
 import { ActionRefType } from '../index';
 import { testReportWitchConnectWithLocationAtom } from '../store';
@@ -44,6 +44,12 @@ const TemplateConfig: React.FC<{ actionRef: React.MutableRefObject<ActionRefType
 
   React.useEffect(() => {
     setContainerHeight(containerDomRef.current?.parentElement.clientHeight ?? 0);
+  }, []);
+
+  React.useEffect(() => {
+    return () => {
+      clearIframeLayoutEffect();
+    };
   }, []);
 
   return (

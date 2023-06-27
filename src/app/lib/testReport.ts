@@ -2,7 +2,7 @@ import { omit, uniqBy } from 'lodash';
 
 import { getLinkedTestEntityByQuery, getTestEntityByQuery } from './api/item';
 import { TestLinkType, TestPlanModel, TestType } from './constants';
-import { getPagePrefix } from './utils/helper';
+import { getPagePrefix, isInOne } from './utils/helper';
 
 /** 测试报告名称最大支持的长度限制 */
 export const TestReportMaxNameLength = 25;
@@ -382,4 +382,24 @@ export const genChartGroupPageUrl = ({
   }
 
   return `${pagePrefix}/plugin/team_insight_charts_base_team_insight_charts_base?${searchParams.toString()}`;
+};
+
+/** 模板编辑创建页面 */
+export const genReportTemplateUrl = (params?: { testReportId?: string; workspaceKey?: string }) => {
+  const pagePrefix = getPagePrefix();
+  const currentPageUrl = location.href.split('?')[0];
+  const searchParams = new URLSearchParams();
+  if (params?.testReportId) searchParams.append('testReportId', params.testReportId);
+  if (params?.workspaceKey) searchParams.append('workspaceKey', params.workspaceKey);
+  // 添加重定向地址
+  searchParams.append('redirectLink', encodeURIComponent(currentPageUrl));
+
+  return `${pagePrefix}/plugin/test_manager_test-report-creator?${searchParams.toString()}`;
+};
+
+// 移除 iframe 中加载的 layout params
+export const clearIframeLayoutEffect = () => {
+  if (isInOne()) {
+    localStorage.removeItem('proxima-layout-params');
+  }
 };
