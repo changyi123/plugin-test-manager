@@ -18,7 +18,7 @@ import { getLang } from '@/lib/utils/locale';
 import cx from './BusinessTable.less';
 import ColumnSetting from './ColumnSetting';
 import TableSelection from './TableSelection';
-import { TitleCellOption } from './type';
+import type { TitleCellOption } from './type';
 
 const DEFAULT_PAGE_SIZE = 10;
 const MIN_COLUMN_WIDTH = 120;
@@ -72,7 +72,7 @@ export type ActionType = {
 };
 
 type BusinessTableProps = TableProps<any> &
-  TitleCellOption & {
+  Partial<TitleCellOption> & {
     name?: string;
     // 事项获取 key
     itemKey?: string;
@@ -168,7 +168,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
   }, []);
 
   const ColumnSettingMemorizedNode = React.useMemo(() => {
-    if (selectionMode || !useColumnSetting) return null;
+    if (!titleCellOption || selectionMode || !useColumnSetting) return null;
     return (
       <ColumnSetting
         name={props?.name}

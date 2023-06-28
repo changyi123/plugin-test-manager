@@ -34,15 +34,8 @@
   background-color: #fafbfb;
 }
 
+.test-manager-drop-over-upward,
 .test-manager-drop-over-downward {
-  :global {
-    td {
-      border-bottom: 1px solid #0c62ff !important;
-    }
-  }
-}
-
-.test-manager-drop-over-upward {
   :global {
     td {
       border-top: 1px solid #0c62ff !important;
@@ -61,10 +54,6 @@
       .ant-table-cell {
         &.test-case-title {
           padding: 9.5px 16px 9.5px 6px !important;
-        }
-        &.ant-table-cell-fix-left-last {
-          left: 0 !important;
-          z-index: 10 !important;
         }
       }
     }

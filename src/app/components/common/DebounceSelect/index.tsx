@@ -3,8 +3,6 @@ import { SelectProps } from 'antd/es/select';
 import { debounce, isObject, uniqWith } from 'lodash';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import OverflowTooltip from '../OverflowTooltip';
-
 const { Option } = Select;
 
 const isObj = (val): boolean => isObject(val);
@@ -146,9 +144,7 @@ function DebounceSelect<
         const { label, value, key, disabled, ...otherOptions } = option;
         return (
           <Option key={key || value} value={value} disabled={disabled} {...otherOptions}>
-            <OverflowTooltip title={label as string} maxline={1}>
-              {label}
-            </OverflowTooltip>
+            {label}
           </Option>
         );
       })}
