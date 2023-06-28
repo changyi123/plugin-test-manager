@@ -242,8 +242,10 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
       return Object.values(testEntityDict).map(item => {
         return {
           label: (
-            <div className={cx('select-box')}>
-              <div className={cx('select-title')}>{item.name}</div>
+            <div title={item.name} className={cx('select-box', 'test-defect-select-box')}>
+              <div className={cx('select-title')} title={item.name}>
+                {item.name}
+              </div>
               <div className={cx('select-key')}>({item.key})</div>
             </div>
           ),

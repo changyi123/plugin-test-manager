@@ -1,6 +1,6 @@
 import { DownOutlined, PlusOutlined } from '@ant-design/icons';
 import createProximaSdk from '@projectproxima/proxima-sdk-js';
-import { Button, message, Table, Tooltip } from 'antd';
+import { Button, message } from 'antd';
 import { uniqueId } from 'lodash';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
@@ -10,7 +10,7 @@ import PanelTable, {
   BuiltinColumns,
   columnBuilder,
 } from '@/components/business/PanelTable';
-import { StatusBadge } from '@/components/business/Status';
+// import { StatusBadge } from '@/components/business/Status';
 import StatusProcessBar from '@/components/business/StatusProcessBar';
 import TestEntitySelectorModal, {
   ActionType as SelectorActionType,
@@ -18,8 +18,6 @@ import TestEntitySelectorModal, {
 import TestRunModal, {
   ActionType as TestRunModalActionType,
 } from '@/components/business/TestRunModal';
-import OverflowTooltip from '@/components/common/OverflowTooltip';
-import { QuestionCircleOutlined } from '@/icons';
 import {
   batchCreateTestRun,
   getLinkedTestEntityByQuery,
@@ -30,8 +28,6 @@ import { INITIAL_STATUS_KEY, TestLinkType, TestType } from '@/lib/constants';
 import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import { alert, getRootContainer } from '@/lib/utils/helper';
-
-import cx from './index.less';
 
 const Test = () => {
   const { t } = useI18n();
@@ -338,73 +334,73 @@ const Test = () => {
     refreshDepData();
   }, [createTestExecution, refreshDepData]);
 
-  const expandedRowRender = useCallback(
-    record => {
-      // 测试执行序列
-      const testIdSequence = record.relRuns?.map(item => item?.objectId).filter(Boolean);
+  // const expandedRowRender = useCallback(
+  //   record => {
+  //     // 测试执行序列
+  //     const testIdSequence = record.relRuns?.map(item => item?.objectId).filter(Boolean);
 
-      const columns = [
-        {
-          key: 'execution',
-          title: (
-            <span>
-              <Tooltip title={t('modules.panel.testPlan.testDetailPanel.executionTips')}>
-                {t('common.testExecution')}
-                <QuestionCircleOutlined style={{ marginLeft: 8 }} />
-              </Tooltip>
-            </span>
-          ),
-          width: 160,
-          tooltip: true,
-          render(_, record) {
-            const name = record.relExecutions?.[0]?.name;
-            return <OverflowTooltip title={name}>{name}</OverflowTooltip>;
-          },
-        },
-        {
-          key: 'status',
-          title: t('page.plan.testEntityList.runStatus'),
-          width: 150,
-          render(_, record) {
-            return <StatusBadge status={record.status} readonly />;
-          },
-        },
-        {
-          key: 'action',
-          title: t('common.action'),
-          width: 120,
-          render(_, record) {
-            return (
-              <a
-                onClick={async () => {
-                  await testRunModalActionRef.current.open({
-                    testId: record.objectId,
-                    testIdSequence,
-                  });
-                  refreshDepData(); //刷新依赖数据
-                }}
-              >
-                {t('common.run')}
-              </a>
-            );
-          },
-        },
-      ];
-      return (
-        <Table
-          scroll={{
-            x: 'max-content',
-          }}
-          pagination={false}
-          rowKey="objectId"
-          columns={columns}
-          className={cx('inner-table')}
-          dataSource={record.relRuns}
-        />
-      );
-    },
-    [refreshDepData, t],
-  );
+  //     const columns = [
+  //       {
+  //         key: 'execution',
+  //         title: (
+  //           <span>
+  //             <Tooltip title={t('modules.panel.testPlan.testDetailPanel.executionTips')}>
+  //               {t('common.testExecution')}
+  //               <QuestionCircleOutlined style={{ marginLeft: 8 }} />
+  //             </Tooltip>
+  //           </span>
+  //         ),
+  //         width: 160,
+  //         tooltip: true,
+  //         render(_, record) {
+  //           const name = record.relExecutions?.[0]?.name;
+  //           return <OverflowTooltip title={name}>{name}</OverflowTooltip>;
+  //         },
+  //       },
+  //       {
+  //         key: 'status',
+  //         title: t('page.plan.testEntityList.runStatus'),
+  //         width: 150,
+  //         render(_, record) {
+  //           return <StatusBadge status={record.status} readonly />;
+  //         },
+  //       },
+  //       {
+  //         key: 'action',
+  //         title: t('common.action'),
+  //         width: 120,
+  //         render(_, record) {
+  //           return (
+  //             <a
+  //               onClick={async () => {
+  //                 await testRunModalActionRef.current.open({
+  //                   testId: record.objectId,
+  //                   testIdSequence,
+  //                 });
+  //                 refreshDepData(); //刷新依赖数据
+  //               }}
+  //             >
+  //               {t('common.run')}
+  //             </a>
+  //           );
+  //         },
+  //       },
+  //     ];
+  //     return (
+  //       <Table
+  //         scroll={{
+  //           x: 'max-content',
+  //         }}
+  //         pagination={false}
+  //         rowKey="objectId"
+  //         columns={columns}
+  //         className={cx('inner-table')}
+  //         dataSource={record.relRuns}
+  //       />
+  //     );
+  //   },
+  //   [refreshDepData, t],
+  // );
 
   return (
     <div>
@@ -419,12 +415,6 @@ const Test = () => {
       <StatusProcessBar status={status} />
 
       <PanelTable
-        expandable={{
-          expandedRowRender,
-          rowExpandable(record) {
-            return !!record.relRuns?.length;
-          },
-        }}
         renderActions={() => (
           <>
             <Button

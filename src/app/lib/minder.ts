@@ -1,3 +1,4 @@
+import { BlobReader, TextWriter, ZipReader } from '@zip.js/zip.js';
 import { MinderNodeType } from 'common/constant';
 import JSZip from 'jszip';
 import { v4 } from 'uuid';
@@ -100,8 +101,6 @@ export const parseXMindFile2MinderData = async (file, { priorityOptions }) => {
   const contentJSONFileName = 'content.json';
   const contentXMLFileName = 'content.xml';
 
-  const zip = new JSZip();
-
   const covertTopic2Minder = rootTopic => {
     const topic2MinderData = ({ labels, title }) => {
       const data = { type: '', priority: '', text: title };
@@ -155,12 +154,20 @@ export const parseXMindFile2MinderData = async (file, { priorityOptions }) => {
   };
 
   try {
-    const { files } = await zip.loadAsync(file, { optimizedBinaryString: true });
-    const hasJSONFile = files[contentJSONFileName];
+    const getEntryFromZipEntries = (zipEntries, filename) => {
+      return zipEntries.find(file => file.filename === filename);
+    };
+    const zipFileReader = new BlobReader(file);
+    const zipReader = new ZipReader(zipFileReader);
+    const zipEntries = await zipReader.getEntries();
+
+    const JSONFileEntry = getEntryFromZipEntries(zipEntries, contentJSONFileName);
     let content = null;
     // 兼容 XMind 8.7.1 版本，content.json 文件不存在
-    if (!hasJSONFile) {
-      const xmlStr = await files[contentXMLFileName].async('string');
+    if (!JSONFileEntry) {
+      const xmlStr = await getEntryFromZipEntries(zipEntries, contentXMLFileName).getData(
+        new TextWriter(),
+      );
       // 读取 content.xml 文件
       const json = JSON.parse(
         XML.xml2json(xmlStr, {
@@ -199,7 +206,8 @@ export const parseXMindFile2MinderData = async (file, { priorityOptions }) => {
       content = json['xmap-content'].sheet.topic;
     } else {
       // 读取 content.json 文件
-      const contentJsonStr = await files[contentJSONFileName].async('string');
+      const contentJsonStr = await JSONFileEntry.getData(new TextWriter());
+      console.info('contentJsonStr', contentJsonStr);
       content = JSON.parse(contentJsonStr).shift().rootTopic;
     }
 

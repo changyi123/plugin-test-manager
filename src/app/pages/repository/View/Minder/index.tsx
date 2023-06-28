@@ -69,14 +69,14 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
   } = useRequest(
     async () => {
       const root = await getMinderData({
-        workspaceKey: workspace?.key,
-        repositoryKey: selectedNode?.key,
+        workspaceKey: workspace.key,
+        repositoryKey: selectedNode.key,
       });
       // 包装一个 root 节点
       return { root };
     },
     {
-      ready: Boolean(canRequestMinderData && workspace),
+      ready: Boolean(workspace && selectedNode && canRequestMinderData),
       // folderTreeData 变更也需要更新脑图数据
       refreshDeps: [workspace?.key, selectedNode?.key, folderTreeData],
     },
@@ -459,6 +459,7 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
 
   // 渲染数据
   const minderRenderData = React.useMemo(() => {
+    if (!selectedNode) return { root: {} };
     const EmptyRootNode = {
       root: {
         data: { id: EmptyNodeId, type: MinderNodeType.Module, text: selectedNode.name },
@@ -469,10 +470,11 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
     // 取消加载时返回 root 节点占位符
     if (cancelRender) return EmptyRootNode;
     return minderData ?? EmptyRootNode;
-  }, [selectedNode.name, requestMinderDataLoading, cancelRender, canRequestMinderData, minderData]);
+  }, [selectedNode, requestMinderDataLoading, cancelRender, canRequestMinderData, minderData]);
 
   // 模块切换先判断是否需要渲染，避免大数据量节点渲染导致页面卡顿
   React.useEffect(() => {
+    if (!selectedNode?.key) return;
     // 切换模块时，重置渲染状态
     disableRequestMinderData();
     setCancelRender(false);
