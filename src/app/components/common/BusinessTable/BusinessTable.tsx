@@ -1,4 +1,5 @@
 import { useDataQuoteStore } from '@giteeteam/apps-team-components';
+import { LibraryProvider } from '@giteeteam/apps-team-components';
 import { PluginSDKContext, useSDK } from '@projectproxima/plugin-sdk';
 import { useAntdTable, useLocalStorageState, useSize } from 'ahooks';
 import { Pagination, Table } from 'antd';
@@ -8,7 +9,6 @@ import React, { useMemo, useRef } from 'react';
 import { Resizable } from 'react-resizable';
 
 import OverflowTooltip from '@/components/common/OverflowTooltip';
-import { LibraryProvider } from '@/components/dynamicComponents';
 import { getDevConfig } from '@/devEnv';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';

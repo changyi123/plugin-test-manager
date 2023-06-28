@@ -384,7 +384,7 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
   // 导出 XMind 数据
   const handleXMindExport = useMemoizedFn(async () => {
     if (requestMinderDataLoading)
-      return message.warn(t('page.repository.view.minder.waitForMinderDataLoading'));
+      return message.warning(t('page.repository.view.minder.waitForMinderDataLoading'));
     const hide = message.loading(t('page.repository.view.minder.exportLoadingMessage'));
 
     setTimeout(async () => {

@@ -1,7 +1,7 @@
+import { UserCell } from '@giteeteam/apps-team-components';
 import type { UserProps } from '@giteeteam/apps-team-components/dist/cells/user';
 import React from 'react';
 
-import { UserCell } from '@/components/dynamicComponents';
 import { UserPointerInfo } from '@/lib/types/Test';
 import { toArray } from '@/lib/utils/helper';
 

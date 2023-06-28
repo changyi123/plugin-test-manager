@@ -117,7 +117,7 @@ const PanelTable: React.FC<PanelTableProps> = props => {
                 <Popconfirm
                   key={index}
                   placement="right"
-                  getPopupContainer={() => getRootContainer()}
+                  getPopupContainer={getRootContainer}
                   title={`
                    ${t('components.business.panelTable.selectConfirmTips.0')}
                     ${action.title} 

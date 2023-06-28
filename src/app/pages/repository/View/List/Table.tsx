@@ -1,3 +1,4 @@
+import { UserCell } from '@giteeteam/apps-team-components';
 import createProximaSdk from '@projectproxima/proxima-sdk-js';
 import { useDrag, useDrop, useRequest } from 'ahooks';
 import { message, notification, Space, Tooltip } from 'antd';
@@ -9,7 +10,6 @@ import RepositorySelector, {
 } from '@/components/business/RepositorySelector';
 import type { BusinessTableActionType } from '@/components/common/BusinessTable/type';
 import { BusinessTable } from '@/components/dynamicComponents';
-import { UserCell } from '@/components/dynamicComponents';
 import { DeleteIcon, DragHandler, LinkItemIcon, SwitcherOutlined, UserIcon } from '@/icons';
 import { deleteTestEntity, updateTestEntity } from '@/lib/api/item';
 import { useCurrentUser } from '@/lib/api/user';

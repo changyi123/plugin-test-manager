@@ -1,6 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import '@giteeteam/apps-team-components/dist/main.css';
 
+import { TableCell } from '@giteeteam/apps-team-components';
 import createProximaSdk from '@projectproxima/proxima-sdk-js';
 import { useDeepCompareEffect, useLocalStorageState, useUpdateEffect } from 'ahooks';
 import { Button, Drawer, message, Select, Spin, Tooltip } from 'antd';
@@ -10,7 +11,6 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd';
 
 import OverflowTooltip from '@/components/common/OverflowTooltip';
-import { TableCell } from '@/components/dynamicComponents';
 import {
   AddSearch,
   DeleteIcon,

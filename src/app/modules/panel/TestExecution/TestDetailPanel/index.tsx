@@ -307,7 +307,7 @@ const Test = () => {
                 placement="left"
                 cancelText={t('common.cancel')}
                 title={t('modules.panel.testDetail.testRunPanel.popConfirmTips')}
-                getPopupContainer={() => getRootContainer()}
+                getPopupContainer={getRootContainer}
                 onConfirm={() => removeTestRelation([record.objectId])}
               >
                 <Button size="small" type="link">

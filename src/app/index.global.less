@@ -1,6 +1,3 @@
-@import '~antd/dist/antd.less';
-@import '~@osui/theme/dist/theme/vars.css';
-
 :root {
   --menu-bg: rgba(255, 255, 255);
 }
@@ -103,9 +100,7 @@
 
     .ant-table-thead
       > tr
-      > th:not(:last-child):not(.ant-table-selection-column):not(
-        .ant-table-row-expand-icon-cell
-      ):not([colspan])::before {
+      > th:not(:last-child):not(.ant-table-selection-column):not(.ant-table-row-expand-icon-cell):not([colspan])::before {
       width: 0 !important;
     }
   }

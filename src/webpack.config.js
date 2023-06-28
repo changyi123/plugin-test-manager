@@ -1,7 +1,6 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const LessPluginFunctions = require('less-plugin-functions');
 const SpeedMeasurePlugin = require('speed-measure-webpack-plugin');
 const hasha = require('hasha');
 const autoprefixer = require('autoprefixer');
@@ -69,14 +68,14 @@ const getExternalDependencies = isProd => {
 const outputConfig = isProd =>
   isProd
     ? {
-        filename: 'js/[name].[chunkhash].min.js',
+        filename: 'js/[name].[chunkhash:6].min.js',
         path: path.resolve(__dirname, distOutputPath),
         publicPath: './',
         library: appPrefix,
         libraryTarget: 'umd',
       }
     : {
-        filename: 'main.js',
+        filename: 'main/[name].[id:4].js',
         path: path.resolve(__dirname, distOutputPath),
         publicPath: '/',
         library: appPrefix,
@@ -117,30 +116,8 @@ module.exports = (cliEnv = {}, argv) => {
   // 生产环境使用 MiniCssExtractPlugin
   const extractOrStyleLoaderConfig = isProd ? MiniCssExtractPlugin.loader : 'style-loader';
 
-  // 根据 patterns 使用 style-resources-loader
-  const makeStyleResourcesLoader = patterns => ({
-    loader: 'style-resources-loader',
-    options: {
-      patterns,
-      injector: 'append',
-    },
-  });
-
   const lessLoaderConfig = {
     loader: 'less-loader',
-    options: {
-      lessOptions: {
-        javascriptEnabled: true,
-        modifyVars: {
-          'ant-prefix': 'ant',
-        },
-        plugins: [
-          new LessPluginFunctions({
-            alwaysOverride: true,
-          }),
-        ],
-      },
-    },
   };
 
   const cssLoaderConfig = {
@@ -258,16 +235,6 @@ module.exports = (cliEnv = {}, argv) => {
             loader: 'babel-loader',
             options: {
               presets: ['@babel/preset-env', '@babel/preset-react'],
-              plugins: [
-                [
-                  'import',
-                  {
-                    libraryName: 'antd',
-                    libraryDirectory: 'es',
-                    style: true,
-                  },
-                ],
-              ],
             },
           },
         },
@@ -286,11 +253,7 @@ module.exports = (cliEnv = {}, argv) => {
         },
         {
           test: /\.css/,
-          include: [
-            path.resolve(__dirname, 'src'),
-            path.resolve(__dirname, '../node_modules/antd/'),
-            path.resolve(__dirname, '../node_modules/@osui'),
-          ],
+          include: [path.resolve(__dirname, 'src')],
           use: [
             classNamesConfig,
             extractOrStyleLoaderConfig,
@@ -306,13 +269,6 @@ module.exports = (cliEnv = {}, argv) => {
             cssLoaderConfig,
             getPostcssLoaderConfig(true),
             lessLoaderConfig,
-            makeStyleResourcesLoader([
-              path.resolve(__dirname, '../node_modules/@osui/theme/dist/antd-vars-patch.less'),
-              path.resolve(
-                __dirname,
-                '../node_modules/@osui/theme/dist/less-functions-overrides.less',
-              ),
-            ]),
           ],
         },
         // 静态资源
