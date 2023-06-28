@@ -87,7 +87,6 @@
     }
 
     .ant-table-selection-column {
-      padding-left: 24px !important;
       padding-right: 0px;
     }
 
@@ -103,6 +102,15 @@
         .resizable-handle-global {
           border-right: 2px solid #ccc;
         }
+      }
+    }
+  }
+
+  :global {
+    .ant-table-container .ant-table-cell-fix-left {
+      padding: 9.5px 0;
+      .ant-checkbox {
+        margin-left: -20px;
       }
     }
   }

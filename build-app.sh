@@ -27,6 +27,7 @@ buildZip() {
 
     sed "s/{workspacePageHidden}/$workspacePageHidden/g" manifest.tmpl.yml >manifest.yml
     yarn build-package
+    cp -r icons dist/main/icons
     name=$(awk -F': ' '{if (FNR==2) key=$2; else if (FNR==5) version=$2} END {print key"_"version}' manifest.yml | sed 's/"//g')
     filename="$name$fileExt.zip"
 

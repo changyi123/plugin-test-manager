@@ -4,9 +4,9 @@ import { last, omit } from 'lodash';
 import Parse from '@/lib/parse';
 import {
   bindIqlToChartOption,
+  buildIqlConfigsByDataSourceConfigs,
   DataSource,
-  getDataSourceIqlGenerator,
-  newDataSourceIqlGenerator,
+  genDataSourceConfigUid,
   ReportChartGroupKey,
   ReportTemplateChartGroupKey,
   SupportDataSourceChartViewReg,
@@ -163,10 +163,12 @@ const TestReport = Parse.Object.extend('test_manager_TestReport', {
     const templateDataSourceConfig = reportTemplateConfig?.dataSource ?? {};
     console.info('templateDataSourceConfig ------------->', templateDataSourceConfig);
 
-    const dataSourceIqlMap = await newDataSourceIqlGenerator(
-      templateDataSourceConfig,
+    const iqlConfigs = await buildIqlConfigsByDataSourceConfigs(
+      Object.values(templateDataSourceConfig),
       reportParams,
     );
+
+    console.info('iqlConfigs------------->', iqlConfigs);
 
     // 2. 创建测试报告关联的 chart
     const newChartObjects = chartDataList.map(chartData => {
@@ -180,18 +182,15 @@ const TestReport = Parse.Object.extend('test_manager_TestReport', {
       if (SupportDataSourceChartViewReg.test(chartData.view)) {
         const dataSource = templateDataSourceConfig[chartData.objectId];
         // 根据数据源配置生成对应的 iql
-        // TODO: prepareData 数据
-        // const iql = await dataSourceIqlGenerator(dataSource, reportParams);
-        const iql = getDataSourceIqlGenerator(dataSource, dataSourceIqlMap);
+        const iql = iqlConfigs[genDataSourceConfigUid(dataSource)];
         // 根据 iql 增加到 chartOption 中
         const option = bindIqlToChartOption(iql, chartData);
+
         // 设置 option
         newChartObject.set({ option });
       }
       return newChartObject;
     });
-
-    console.info('newChartObjects ----------->', newChartObjects);
 
     // 3. 创建 test_manager_TestReport
     const newTestReportObject = new TestReport().set({

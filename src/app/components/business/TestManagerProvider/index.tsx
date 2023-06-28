@@ -1,4 +1,5 @@
 import { store } from '@nebulare/data';
+import createProximaSdk from '@projectproxima/proxima-sdk-js';
 import { useRequest } from 'ahooks';
 import { message, notification } from 'antd';
 import { isEmpty, union } from 'lodash';
@@ -263,6 +264,8 @@ const getOrBatchCreateTestEntities = async (
     return {
       name: item.name,
       objectId: item.objectId,
+      // 事项创建成功时，需要增加 type 类型
+      type: testType,
       ...extraFields,
     };
   });
@@ -293,11 +296,16 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
   children,
   workspaceKey,
 }) => {
+  const proxima = createProximaSdk();
   const { t } = useI18n();
   const [workspace, setWorkspace] = React.useState<Workspace>();
   const [testEntity, setTestEntity] = React.useState<TestEntity>();
 
   const { getCreatePermission } = useGetPermissions(workspace);
+
+  React.useEffect(() => {
+    proxima.execute('updateItemTypeEvent');
+  }, [proxima]);
 
   React.useEffect(() => {
     const execute = async () => {
@@ -487,11 +495,11 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
         eventData.testEntityList = await getOrBatchCreateTestEntities(
           itemList.map(d => d.objectId),
           {
+            itemList,
             notice: true,
             storeValueList,
-            itemList,
-            fields: extraData.fields,
             type: extraData.type,
+            fields: extraData.fields,
             repository: extraData?.repository,
             t,
           },

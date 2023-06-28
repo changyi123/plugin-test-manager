@@ -513,3 +513,5 @@ export const getReportFilterFields = t => [
 ];
 
 export const UserTypeSelectorFieldKeys = ['test_designee', 'test_executor'];
+
+export const ItemUserTypeComponentKey = ['Assignee', 'createdBy', 'updatedBy'];

@@ -346,7 +346,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
                 node: parentNode,
               });
             } else {
-              // 当前模块无父级需要冲选择到新模块
+              // 当前模块无父级需要冲选择根目录
               handleSelect([UNGROUPED_FOLDER_KEY], {
                 node: getTreeNodeByKey(refreshedTreeData, UNGROUPED_FOLDER_KEY),
               });

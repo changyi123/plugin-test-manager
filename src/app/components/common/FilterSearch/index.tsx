@@ -22,6 +22,7 @@ import {
   FILTER_EXPRESSIONS,
   getExtendFields,
   IS_EXTEND_FIELDS,
+  ItemUserTypeComponentKey,
   RepositoryModel,
   SelectorCurrentUserValue,
   TestCaseStatusModel,
@@ -269,14 +270,13 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
     (initial?: boolean) => {
       const ids = extendFields.map(item => item.key);
       const currentSelectorsValue = currentSelectors.current;
-      // 事项的字段，首次加载不需要过滤
-      const itemSelector = initial ? currentSelectorsValue : omit(currentSelectorsValue, ids);
-      // 测试管理的字段
-      const testManageSelector = initial ? currentSelectorsValue : pick(currentSelectorsValue, ids);
 
-      Object.entries(testManageSelector).forEach(selector => {
+      Object.entries(currentSelectorsValue).forEach(selector => {
         const [selectorKey, data] = selector;
-        if (UserTypeSelectorFieldKeys.includes(selectorKey)) {
+        if (
+          UserTypeSelectorFieldKeys.includes(selectorKey) ||
+          ItemUserTypeComponentKey.includes(data.component)
+        ) {
           if (Array.isArray(data.value)) {
             data.value = data.value.map(user => {
               // currentUser 需要替换成当前用户的id
@@ -284,6 +284,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
                 return {
                   ...user,
                   value: currentUser.objectId,
+                  username: currentUser.username,
                 };
               }
               return user;
@@ -291,6 +292,11 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
           }
         }
       });
+
+      // 事项的字段，首次加载不需要过滤
+      const itemSelector = initial ? currentSelectorsValue : omit(currentSelectorsValue, ids);
+      // 测试管理的字段
+      const testManageSelector = initial ? currentSelectorsValue : pick(currentSelectorsValue, ids);
 
       onSearch([itemSelector, testManageSelector]);
     },
