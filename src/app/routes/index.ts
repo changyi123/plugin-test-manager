@@ -12,7 +12,7 @@ const routes = [
     exact: true,
   },
   {
-    path: '/xmindimport',
+    path: '/xmindImport',
     component: React.lazy(() => import('../pages/xMindImport')),
     exact: true,
   },
@@ -43,6 +43,11 @@ const routes = [
   {
     path: '/reportCreator',
     component: React.lazy(() => import('../pages/reportTemplateCreator')),
+    exact: true,
+  },
+  {
+    path: '/reportView',
+    component: React.lazy(() => import('../pages/reportView')),
     exact: true,
   },
 ];

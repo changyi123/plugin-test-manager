@@ -157,7 +157,7 @@
     "testReport": "测试报告",
     "addSuccess": "创建成功",
     "addFail": "创建失败",
-    "export": "导出"
+    "export": "下载"
   },
   "status": {
     "PASSED": {

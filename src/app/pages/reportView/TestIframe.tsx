@@ -16,6 +16,8 @@ const TestIframe: React.FC<any> = props => {
 
   return (
     <iframe
+      name="report-view"
+      title="report-view"
       className={cx('report-charts', props.className)}
       onLoad={() => {
         // TODO 无效果，待修改

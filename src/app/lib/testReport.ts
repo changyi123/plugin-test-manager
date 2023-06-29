@@ -397,9 +397,24 @@ export const genReportTemplateUrl = (params?: { testReportId?: string; workspace
   return `${pagePrefix}/plugin/test_manager_test-report-creator?${searchParams.toString()}`;
 };
 
+/** 生成测试报告访问链接 */
+export const genReportViewUrl = (params: { testReportId?: string }) => {
+  const pagePrefix = getPagePrefix();
+  const currentPageUrl = location.href.split('?')[0];
+  const searchParams = new URLSearchParams();
+  if (params?.testReportId) searchParams.append('testReportId', params.testReportId);
+  // 添加重定向地址
+  searchParams.append('redirectLink', encodeURIComponent(currentPageUrl));
+
+  return `${pagePrefix}/plugin/test_manager_test-report-view?${searchParams.toString()}`;
+};
+
 // 移除 iframe 中加载的 layout params
 export const clearIframeLayoutEffect = () => {
   if (isInOne()) {
     localStorage.removeItem('proxima-layout-params');
   }
 };
+
+// 下载测试报告
+export const downloadTestReportView = () => {};

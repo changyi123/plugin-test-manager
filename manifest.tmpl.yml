@@ -2,7 +2,7 @@ app:
   key: test_manager
   uuid: bf73e61c-e15a-4461-a1f7-f940c2009332
   name: test_manager
-  version: "4.0.4-alpha.2"
+  version: "4.0.4-alpha.3"
 modules:
   webtrigger:
     # TODO: Debug 使用，生产环境禁止调用下面的 trigger
@@ -218,7 +218,7 @@ modules:
       resource: main
       title: 测试管理脑图数据导入
       loadType: Micro
-      route: /xmindimport
+      route: /xmindImport
       hidden: true
   appPage:
     - key: test-report-creator
@@ -226,6 +226,11 @@ modules:
       title: 测试管理模板创建
       loadType: Micro
       route: /reportCreator
+    - key: test-report-view
+      resource: main
+      title: 测试管理模板创建
+      loadType: Micro
+      route: /reportView
   beforeCreateOrUpdateModal:
     - key: before-create-or-update-modal
       resource: main
@@ -524,6 +529,10 @@ locales:
       title: 测试统计
     before-create-or-update-modal:
       title: 新建事项
+    test-report:
+      title: 测试报告
+    test-xmindimport:
+      title: xmind 数据导入
   en-US:
     test-manager-test-detail:
       title: Test manager
@@ -537,6 +546,10 @@ locales:
       title: Test stats
     before-create-or-update-modal:
       title: Create item
+    test-report:
+      title: Test Report
+    test-xmindimport:
+      title: xmind import
 resources:
   - key: main
     path: ./src/dist

@@ -70,7 +70,7 @@ const ReportTemplateModal: React.FC<{ workspace: any; actionRef: React.Forwarded
         title: t('tableColumns.createdAt'),
         dataIndex: 'createdAt',
         width: 120,
-        render: () => dayjs().format('YYYY-MM-DD'),
+        render: () => dayjs().format('MM-DD:HH:ss'),
       },
       {
         title: t('tableColumns.action'),
@@ -103,6 +103,7 @@ const ReportTemplateModal: React.FC<{ workspace: any; actionRef: React.Forwarded
         width={700}
         maskClosable={false}
         title={t('modalTitle')}
+        style={{ minHeight: 400 }}
         onCancel={() => {
           setOpen(false);
         }}

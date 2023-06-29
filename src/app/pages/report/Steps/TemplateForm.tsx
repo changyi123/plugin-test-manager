@@ -108,7 +108,7 @@ const TemplateForm: React.FC<FormProps> = ({ state, workspace }) => {
             status={selectStatus}
             showSearch
             filterOption={(input, option) =>
-              ((option?.label ?? '') as any)?.toLowerCase().includes(input.toLowerCase())
+              ((option?.label ?? '') as any)?.toLowerCase?.().includes(input?.toLowerCase?.())
             }
             onChange={val => {
               state.template = templateList.find(d => d.value === val) ?? {};
