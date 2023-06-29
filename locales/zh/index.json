@@ -299,7 +299,10 @@
           "name": {
             "label": "模板标题",
             "placeholder": "请输入模板标题",
-            "error": "模板标题必填"
+            "error": {
+              "required": "模板标题必填",
+              "maxLength": "模板标题最多输入 25 个字符"
+            }
           }
         }
       },
