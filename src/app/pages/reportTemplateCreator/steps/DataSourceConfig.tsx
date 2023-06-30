@@ -296,7 +296,7 @@ const DataSourceConfig: React.FC<{ actionRef: React.MutableRefObject<ActionRefTy
         </div>
       </div>
       <div className={cx('data-bind')}>
-        <div className={cx('subtitle')}>{scopedT('subtitle.addDataSource')}</div>
+        <div className={cx('subtitle')}>{scopedT('subtitle.bindDataSource')}</div>
         <DataSourceBinding
           reportDataSourceFlattenData={reportDataSourceFlattenData}
           onDataConfigTemplateChange={handleDataConfigTemplateChange}

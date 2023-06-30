@@ -10,7 +10,6 @@ import { iqlRequest } from '../../lib/iqlRequest';
 
 export const deleteTestLink = async () => {
   const { item } = global as any;
-  console.info('deleteTestLink ----------------->', item);
   if (!item) return;
   const itemId = item.objectId;
   const workspaceKey = item.workspace.key;
