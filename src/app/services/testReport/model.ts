@@ -78,9 +78,23 @@ const TestReport = Parse.Object.extend('test_manager_TestReport', {
       throw new Error(t('page.reportTemplateCreator.templateNameTooLong'));
     }
 
+    // 重名校验逻辑
+    const existedNameTemplateQuery = new Parse.Query(TestReport).equalTo(
+      'name',
+      reportTemplateParams.name,
+    );
+
+    if (reportTemplateParams.workspace) {
+      existedNameTemplateQuery.equalTo(
+        'workspace',
+        Workspace.createWithoutData(reportTemplateParams.workspace),
+      );
+    } else if (reportTemplateParams.isGlobalTemplate) {
+      existedNameTemplateQuery.equalTo('isGlobalTemplate', reportTemplateParams.isGlobalTemplate);
+    }
+
     // 校验名称是否重复
-    const alreadyExistedSameNameTemplate = await new Parse.Query(TestReport)
-      .equalTo('name', reportTemplateParams.name)
+    const alreadyExistedSameNameTemplate = await existedNameTemplateQuery
       .select(['objectId'])
       .first({ json: true });
 

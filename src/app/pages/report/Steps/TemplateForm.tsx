@@ -36,7 +36,7 @@ const TemplateForm: React.FC<FormProps> = ({ state, workspace }) => {
           <div className={cx('option')}>
             {d.name}
             <span className={cx('tag')}>
-              {d.isGlobalTemplate ? t('report.globalTemplate') : t('report.workspaceTemplate')}
+              {d.workspace ? t('report.workspaceTemplate') : t('report.globalTemplate')}
             </span>
           </div>
         ),

@@ -51,7 +51,7 @@ export const useWorkspaceTemplateListQuery = (params: {
       const query = Parse.Query.or(...subQueries);
 
       return bindPaginationToParseQuery(query, params.pagination)
-        .descending(['isDefaultTemplate', 'workspace', 'createdAt'])
+        .descending(['isDefaultTemplate', 'createdAt', 'workspace'])
         .find({ json: true });
     },
     {
@@ -144,7 +144,8 @@ export const useAllTemplateList = (params?: { pagination?: PaginationParams }) =
     async () => {
       const query = new Parse.Query(TestReport)
         .equalTo('isTemplate', true)
-        .descending(['isDefaultTemplate', 'createdAt']);
+        .include('workspace')
+        .descending(['isDefaultTemplate', 'createdAt', 'workspace']);
 
       return bindPaginationToParseQuery(query, params?.pagination).find({ json: true });
     },

@@ -64,13 +64,13 @@ const ReportTemplateModal: React.FC<{ workspace: any; actionRef: React.Forwarded
       {
         title: t('tableColumns.name'),
         dataIndex: 'name',
-        width: 300,
+        width: 320,
       },
       {
         title: t('tableColumns.createdAt'),
         dataIndex: 'createdAt',
-        width: 120,
-        render: () => dayjs().format('MM-DD:HH:ss'),
+        width: 160,
+        render: createdAt => dayjs(createdAt).format('YYYY-MM-DD HH:mm'),
       },
       {
         title: t('tableColumns.action'),
@@ -78,17 +78,23 @@ const ReportTemplateModal: React.FC<{ workspace: any; actionRef: React.Forwarded
         render(objectId, row) {
           return (
             <>
-              <Button type="link" className={cx('edit')} onClick={() => actions.edit(objectId)}>
+              <Button
+                type="link"
+                size="small"
+                className={cx('edit')}
+                onClick={() => actions.edit(objectId)}
+              >
                 {t('buttons.edit')}
               </Button>
               <Button
                 type="link"
+                size="small"
                 disabled={row.isDefaultTemplate}
                 onClick={() => actions.setDefault(objectId)}
               >
                 {t('buttons.setDefault')}
               </Button>
-              <Button onClick={() => actions.delete(objectId)} type="link" danger>
+              <Button onClick={() => actions.delete(objectId)} type="link" size="small" danger>
                 {t('buttons.delete')}
               </Button>
             </>
@@ -100,10 +106,9 @@ const ReportTemplateModal: React.FC<{ workspace: any; actionRef: React.Forwarded
     return (
       <Modal
         open={open}
-        width={700}
+        width={780}
         maskClosable={false}
         title={t('modalTitle')}
-        style={{ minHeight: 400 }}
         onCancel={() => {
           setOpen(false);
         }}
@@ -122,7 +127,16 @@ const ReportTemplateModal: React.FC<{ workspace: any; actionRef: React.Forwarded
           </Button>
         }
       >
-        <Table dataSource={workspaceTemplateList} columns={tableColumns} />
+        <Table
+          style={{
+            height: 486,
+          }}
+          scroll={{
+            y: 400,
+          }}
+          dataSource={workspaceTemplateList}
+          columns={tableColumns}
+        />
       </Modal>
     );
   };

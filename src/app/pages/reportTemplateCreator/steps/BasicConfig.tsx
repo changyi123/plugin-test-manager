@@ -75,7 +75,7 @@ const BasicConfig: React.FC<{
 
         const testReportTemplate = await createTestReport({
           workspace: workspaceId,
-          isGlobalTemplate: true,
+          isGlobalTemplate: !workspaceId,
           isDefaultTemplate: false,
           templateConfig: {
             dataSource: {},
@@ -87,7 +87,12 @@ const BasicConfig: React.FC<{
         message.success(scopedT('message.createReportTemplateSuccess'));
         // 创建测试测试报告
       } catch (err) {
-        message.error(err?.errorFields[0]?.errors[0]);
+        if (err?.message) {
+          message.error(err?.message);
+        }
+        if (err?.errorFields[0]?.errors[0]) {
+          message.error(err?.errorFields[0]?.errors[0]);
+        }
         throw err;
       }
     },

@@ -8,7 +8,8 @@ import SearchInput from '@/components/common/FilterSearch/SearchInput';
 import { TestType } from '@/lib/constants';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
-import { actionConfirm, getProximaBasePath, getTenantKey } from '@/lib/utils/helper';
+import { genReportViewUrl } from '@/lib/testReport';
+import { actionConfirm } from '@/lib/utils/helper';
 import { TestReport } from '@/services/models';
 import { useWorkspaceReportListQuery } from '@/services/testReport/query';
 
@@ -53,7 +54,6 @@ const PaginationFooterRender: React.FC<any> = ({
 const List: React.FC<any> = () => {
   const { t } = useI18n();
   const { workspace } = useTestConfig();
-  const workspaceKey = workspace?.key;
 
   const [limit, setLimit] = useState<number>(10);
   const [offset, setOffset] = useState<number>(1);
@@ -74,22 +74,15 @@ const List: React.FC<any> = () => {
     },
   });
 
-  useListener('refreshTestReportTable', id => {
-    if (!id) return;
+  const goReportViewPage = testReportId => {
+    window.open(genReportViewUrl({ testReportId }), '_blank');
+  };
+
+  useListener('refreshTestReportTable', testReportId => {
+    if (!testReportId) return;
     refetch?.();
-    window.open(genReportDetail(id), '_blank');
+    goReportViewPage(testReportId);
   });
-
-  const genReportDetail = useCallback(
-    reportId => {
-      const baseUrl = getProximaBasePath() ? `${getProximaBasePath()}` : '/';
-      // 跳转到导入页面
-      const href = `${baseUrl}/${getTenantKey()}/workspaces/${workspaceKey}/plugin/test_manager_test-report/?fromWorkspace=${workspaceKey}&reportId=${reportId}&detail=true`;
-
-      return href;
-    },
-    [workspaceKey],
-  );
 
   const onChangeInput = useCallback(
     val => {
@@ -110,9 +103,7 @@ const List: React.FC<any> = () => {
         return (
           <div
             className={cx('test-report-title')}
-            onClick={() => {
-              window.open(genReportDetail(rowData.objectId), '_blank');
-            }}
+            onClick={() => goReportViewPage(rowData.objectId)}
           >
             {rowData.name}
           </div>
@@ -148,7 +139,7 @@ const List: React.FC<any> = () => {
               type="link"
               size="small"
               onClick={() => {
-                window.open(genReportDetail(rowData.objectId), '_blank');
+                goReportViewPage(rowData.objectId);
               }}
             >
               {t('report.view')}

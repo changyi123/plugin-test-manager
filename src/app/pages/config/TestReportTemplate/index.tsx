@@ -65,12 +65,26 @@ const TestReportTemplate: React.FC = () => {
       dataIndex: 'name',
       title: scopedT('table.header.name'),
       render: (text: string, rowData) => {
-        const tags = ['isGlobalTemplate', 'isDefaultTemplate'].map(key => {
-          const isTrue = rowData[key];
+        const tags = ['isGlobalTemplate', 'isDefaultTemplate', 'workspace'].map(key => {
+          const tagTextStrategies = {
+            workspace: () =>
+              rowData.workspace?.name
+                ? `${scopedT(`table.tag.${key}`)}：${rowData.workspace?.name}`
+                : scopedT(`table.tag.${key}`),
+          };
 
-          return isTrue ? (
-            <span key={key} className={cx('tag', key)}>
-              {scopedT(`table.tag.${key}`)}
+          const tagVisibleStrategies = {
+            isGlobalTemplate: () => rowData.isGlobalTemplate && !rowData.workspace,
+          };
+          const visible = tagVisibleStrategies[key] ? tagVisibleStrategies[key]() : !!rowData[key];
+
+          const tagText = tagTextStrategies[key]
+            ? tagTextStrategies[key]()
+            : scopedT(`table.tag.${key}`);
+
+          return visible ? (
+            <span key={key} className={cx('tag', key)} title={tagText}>
+              {tagText}
             </span>
           ) : null;
         });
