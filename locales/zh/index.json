@@ -346,6 +346,7 @@
           "version": "所选版本",
           "workspace": "所选空间",
           "currentWorkspace": "当前空间",
+          "customDataSource": "自定义数据源",
 
           "TestCase": "所有的测试用例",
           "TestRun": "所有的测试执行",
@@ -358,11 +359,17 @@
             "secondLevel": "请选择数据源范围"
           }
         },
+        "placeholder": {
+          "customDataSourceName": "请输入自定义数据源名称",
+          "customDataSourceConfigData": "请输入自定义数据源配置数据"
+        },
         "message": {
           "dataSourceConfigSaveSuccess": "数据源配置保存成功",
           "addDataSourceSuccess": "添加数据源成功",
           "deleteDataSourceSuccess": "数据源删除成功",
-          "dataSourceExisted": "该数据源已存在"
+          "dataSourceExisted": "该数据源已存在",
+          "customDataSourceNameRequired": "自定义数据源名称必填",
+          "invalidCustomDataSourceConfigData": "自定义数据源配置数据格式错误，配置数据需为 JSON 字符传"
         },
         "button": {
           "addDataSource": "添加"

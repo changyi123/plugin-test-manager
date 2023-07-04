@@ -33,9 +33,28 @@ const handleSelector = selector => {
   };
 };
 
-const getLinkPlanId = selector => {
-  if (!selector?.[TestPlanModel]) return null;
-  return selector[TestPlanModel].value?.map(d => d.value)?.filter(Boolean);
+const getReportOverviewData = selectors => {
+  const selectorDataGetters = {
+    test_manager_Plan(selector) {
+      if (!selector?.value) return null;
+      return {
+        testPlan: selector?.value?.map(i => i.value).filter(Boolean),
+      };
+    },
+    default(selector) {
+      if (!selector?.value) return null;
+      return {
+        [selector.key]: selector?.value?.map(i => i?.value ?? i?.id).filter(Boolean),
+      };
+    },
+  };
+
+  return Object.values(selectors ?? {}).reduce((res: any, selector: any) => {
+    return {
+      ...res,
+      ...(selectorDataGetters[selector.key] ?? selectorDataGetters.default)?.(selector),
+    };
+  }, {});
 };
 
 const ReportHeader: React.FC<any> = () => {
@@ -68,7 +87,7 @@ const ReportHeader: React.FC<any> = () => {
     const reportInfo = await testReport.createReport(res.template.objectId, {
       name: res.name,
       reportStatus: res.reportStatus,
-      reportOverviewData: { ...res.reportOverviewData, linkPlanId: getLinkPlanId(res.selectors) },
+      reportOverviewData: getReportOverviewData(res.selectors),
       dataSourceIql: iqlMap,
       workspace: workspace,
       defectsMapping: config?.defectsMapping,

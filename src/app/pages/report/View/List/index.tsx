@@ -1,6 +1,6 @@
 import { useListener } from '@projectproxima/proxima-sdk-js';
 import useDebounce from 'ahooks/lib/useDebounce';
-import { Button, Pagination } from 'antd';
+import { Button, message, Pagination } from 'antd';
 import React, { useCallback, useRef, useState } from 'react';
 
 import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
@@ -123,7 +123,14 @@ const List: React.FC<any> = () => {
       title: t('common.testPlan'),
       width: 200,
       render(_, rowData) {
-        return <ReportLinkPlan linkPlanId={rowData?.reportOverviewData?.linkPlanId} />;
+        return (
+          <ReportLinkPlan
+            linkPlanId={
+              // FIXME: 临时兼容，后期移除 linkPlanId 字段
+              rowData?.reportOverviewData?.testPlan ?? rowData?.reportOverviewData?.linkPlanId
+            }
+          />
+        );
       },
     },
     {
@@ -161,6 +168,7 @@ const List: React.FC<any> = () => {
                   async () => {
                     const testReport = new TestReport();
                     await testReport.delete(rowData.objectId);
+                    message.error(t('report.deleteSuccess'));
                     refetch();
                   },
                 );

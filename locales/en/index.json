@@ -275,6 +275,83 @@
         "placeholder": "Please select a workspace"
       }
     },
+    "reportTemplateCreator": {
+      "creatorTitle": "Create Report Template",
+      "editorTitle": "Edit Test Report Template",
+      "nameExisted": "Template name already exists",
+      "templateExisted": "Template already exists",
+      "templateNameTooLong": "Template name is too long",
+      "reportNameTooLong": "Report name is too long",
+      "button": {
+        "next": "Next",
+        "finish": "Save"
+      },
+
+      "steps": {
+        "basic": "Basic Information",
+        "template": "Interface Configuration",
+        "dataSource": "Data Source Configuration"
+      },
+      "templateConfig": {
+        "message": {
+          "nextButtonClickConfirm": "Please confirm whether the dashboard configuration has been saved?"
+        }
+      },
+      "basicConfig": {
+        "title": "Basic Information",
+        "message": {
+          "createReportTemplateSuccess": "Test report template created successfully",
+          "updateReportTemplateSuccess": "Test report template updated successfully"
+        },
+        "form": {
+          "name": {
+            "label": "Template Name",
+            "placeholder": "Please enter template name",
+            "error": "Template name is required"
+          }
+        }
+      },
+      "dataSourceConfig": {
+        "subtitle": {
+          "addDataSource": "Add Data Source",
+          "bindDataSource": "Report Data Source"
+        },
+        "label": {
+          "plan": "Selected Test Plan",
+          "sprint": "Selected Iteration",
+          "version": "Selected Version",
+          "workspace": "Selected Workspace",
+          "currentWorkspace": "Current Workspace",
+          "customDataSource": "Custom Data Source",
+
+          "TestCase": "All Test Cases",
+          "TestRun": "All Test Runs",
+          "TestDefect": "All Defects"
+        },
+        "title": "Data Rule Configuration",
+        "select": {
+          "placeholders": {
+            "firstLevel": "Please select the data source scope",
+            "secondLevel": "Please select the data source scope"
+          }
+        },
+        "message": {
+          "dataSourceConfigSaveSuccess": "Data source configuration saved successfully",
+          "addDataSourceSuccess": "Data source added successfully",
+          "deleteDataSourceSuccess": "Data source deleted successfully",
+          "dataSourceExisted": "The data source already exists"
+        },
+        "button": {
+          "addDataSource": "Add"
+        },
+        "table": {
+          "title": {
+            "chartName": "Dashboard Widget",
+            "dataSource": "Data Source"
+          }
+        }
+      }
+    },
     "plan": {
       "planPageLayout": {
         "selectCaseModelTitle": "Step 1: Select associated test case",

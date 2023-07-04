@@ -1,10 +1,13 @@
-import { Button, message, Select, Table } from 'antd';
+import { Button, Input, message, Select, Table, Tooltip } from 'antd';
+import TextArea from 'antd/lib/input/TextArea';
 import { useAtomValue } from 'jotai';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { DeleteOutlined } from '@/icons';
 import {
+  CustomDataSourceConfigKey,
+  CustomDataSourceKey,
   DataSource,
   DataSourceCollection,
   genDataSourceConfigUid,
@@ -63,12 +66,53 @@ const DataSourceSelector: React.FC<{
 
   // 添加数据源
   const handleAddDataSource = () => {
+    const DataSourceConfigHandlerStrategies = {
+      [CustomDataSourceKey]: () => {
+        // 校验数据
+        if (!dataSourceConfig[1]?.name)
+          return message.error(scopedT('message.customDataSourceNameRequired'));
+        try {
+          const config = JSON.parse(dataSourceConfig[1].config);
+          if (!config.webTriggerKey) throw new Error('webTriggerKey is required');
+        } catch (err) {
+          return message.error(err.message ?? scopedT('message.invalidCustomDataSourceConfigData'));
+        }
+        onAddDataSource([
+          DataSourceCollection.find(ds => ds.key === CustomDataSourceKey),
+          {
+            isFirstLevel: false,
+            key: CustomDataSourceConfigKey,
+            name: dataSourceConfig[1]?.name,
+            config: JSON.parse(dataSourceConfig[1].config),
+          },
+        ]);
+      },
+      default: () => {
+        onAddDataSource(
+          dataSourceConfig.map(dsKey =>
+            DataSourceCollection.find(ds => ds.key === dsKey),
+          ) as TemplateDataSourceConfig,
+        );
+      },
+    };
     if (dataSourceConfig.length === 0) return;
-    onAddDataSource(
-      dataSourceConfig.map(dsKey =>
-        DataSourceCollection.find(ds => ds.key === dsKey),
-      ) as TemplateDataSourceConfig,
-    );
+
+    // 添加自定义数据源
+    (
+      DataSourceConfigHandlerStrategies[dataSourceConfig[0]] ||
+      DataSourceConfigHandlerStrategies.default
+    )();
+  };
+
+  // 自定义数据源变更
+  const genCustomDataSourceChangeHandler = type => {
+    return event => {
+      if (type === 'name') {
+        setDataSourceConfig(prev => [prev[0], { ...prev[1], name: event.target.value }]);
+      } else if (type === 'config') {
+        setDataSourceConfig(prev => [prev[0], { ...prev[1], config: event.target.value }]);
+      }
+    };
   };
 
   return (
@@ -79,15 +123,35 @@ const DataSourceSelector: React.FC<{
         onChange={selectChangeHandler(true)}
         options={selectOptionsBuilder(FirstLevelDataSourceCollection)}
       />
-      <Select
-        className={cx('select')}
-        value={dataSourceConfig[1]}
-        onChange={selectChangeHandler(false)}
-        disabled={dataSourceConfig.length === 0}
-        options={selectOptionsBuilder(secondLevelDataSource)}
-      />
+
+      {dataSourceConfig[0] === CustomDataSourceKey ? (
+        <div className={cx('customDataSource')}>
+          <Input
+            className={cx('input')}
+            value={dataSourceConfig[1]?.name}
+            onChange={genCustomDataSourceChangeHandler('name')}
+            placeholder={scopedT('placeholder.customDataSourceName')}
+          />
+          <TextArea
+            rows={3}
+            className={cx('textarea')}
+            value={dataSourceConfig[1]?.config}
+            onChange={genCustomDataSourceChangeHandler('config')}
+            placeholder={scopedT('placeholder.customDataSourceConfigData')}
+          />
+        </div>
+      ) : (
+        <Select
+          className={cx('select')}
+          value={dataSourceConfig[1]}
+          onChange={selectChangeHandler(false)}
+          disabled={dataSourceConfig.length === 0}
+          options={selectOptionsBuilder(secondLevelDataSource)}
+        />
+      )}
+
       <Button
-        className={cx('button')}
+        className={cx('button', 'add')}
         onClick={handleAddDataSource}
         disabled={!dataSourceConfig[0]}
         type="primary"
@@ -267,10 +331,23 @@ const DataSourceConfig: React.FC<{ actionRef: React.MutableRefObject<ActionRefTy
     }
   };
 
+  const getCustomDataSourceTooltipTitle = val => {
+    try {
+      return JSON.stringify(val, null, 4);
+    } catch (_err) {
+      return undefined;
+    }
+  };
+
   const reportDataSourceFlattenData =
     reportDataSource?.map(ds => ({
       key: genDataSourceConfigUid(ds),
-      label: ds.map(ds => scopedT(`label.${ds.key}`)).join('，'),
+      label: ds.map(ds => ds.name ?? scopedT(`label.${ds.key}`)).join('，'),
+      // 提示信息
+      tooltipTitle:
+        ds?.[1]?.key === CustomDataSourceConfigKey
+          ? getCustomDataSourceTooltipTitle(ds?.[1]?.config)
+          : null,
       original: ds,
     })) ?? [];
 
@@ -286,12 +363,14 @@ const DataSourceConfig: React.FC<{ actionRef: React.MutableRefObject<ActionRefTy
         <div className={cx('list')}>
           {Array.isArray(reportDataSource) &&
             reportDataSourceFlattenData.map(ds => (
-              <div className={cx('item')} key={ds.key}>
-                <span>{ds.label}</span>
-                <a onClick={() => handleDeleteDataSource(ds.key)}>
-                  <DeleteOutlined />
-                </a>
-              </div>
+              <Tooltip key={ds.key} title={ds.tooltipTitle}>
+                <div className={cx('item')}>
+                  <span>{ds.label}</span>
+                  <a onClick={() => handleDeleteDataSource(ds.key)}>
+                    <DeleteOutlined />
+                  </a>
+                </div>
+              </Tooltip>
             ))}
         </div>
       </div>

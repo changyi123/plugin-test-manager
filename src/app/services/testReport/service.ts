@@ -30,16 +30,20 @@ export const setDefaultReportTemplate = async (objectId: string) => {
     );
   }
 
-  const defaultTemplateObject = await defaultTemplateQuery.first();
+  const defaultTemplateObjects = await defaultTemplateQuery.findAll();
 
   const currentTemplateObject = new TestReport({ objectId });
+
   // 取消原来的默认模板
-  if (defaultTemplateObject) {
-    defaultTemplateObject.set(defaultTemplateKey, false);
+  if (defaultTemplateObjects?.length) {
+    defaultTemplateObjects.forEach(obj => obj.set(defaultTemplateKey, false));
   }
+
   currentTemplateObject.set(defaultTemplateKey, true);
 
-  return await Parse.Object.saveAll([defaultTemplateObject, currentTemplateObject].filter(Boolean));
+  return await Parse.Object.saveAll(
+    [...defaultTemplateObjects, currentTemplateObject].filter(Boolean),
+  );
 };
 
 /** 更新测试报告或者模板 */
