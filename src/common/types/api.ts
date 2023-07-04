@@ -275,3 +275,9 @@ export type TestCountPayload = {
   };
   sessionToken?: string;
 };
+
+/** 查询测试报告 */
+export type QueryTestReportPayload = {
+  // 版本名称
+  versionName: string;
+};

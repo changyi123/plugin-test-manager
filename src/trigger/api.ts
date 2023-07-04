@@ -13,3 +13,5 @@ export { testPlanStats, testExecutionStats, testCaseStats, testCount } from './m
 export { repositoryTree, repositoryTreeV2 } from './modules/api/module';
 
 export { minderData, minderDataImport } from './modules/api/minder';
+
+export { queryTestReport } from './modules/dashboardReport/query';
