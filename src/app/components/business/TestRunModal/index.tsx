@@ -6,6 +6,7 @@ import useI18n from '@/lib/hooks/useI18n';
 import EventBus from '@/lib/utils/eventBus';
 import { getRootContainer } from '@/lib/utils/helper';
 
+import { SaveTriggerProvider, useSaveTriggerEvent } from './SaveTriggerEvent';
 import TestRun from './TestRun';
 
 export type ActionType = {
@@ -31,6 +32,8 @@ const TestRunModal: React.FC<ITestRunModalProps> = ({
   const [testRunDepData, setTestRunDepData] = React.useState(
     {} as Parameters<ActionType['open']>[0],
   );
+
+  const event = useSaveTriggerEvent();
   const eventBusRef = React.useRef(new EventBus());
 
   React.useImperativeHandle(
@@ -48,11 +51,12 @@ const TestRunModal: React.FC<ITestRunModalProps> = ({
   );
 
   const handleCloseModal = React.useCallback(() => {
+    event.emit();
     setTimeout(() => {
       setIsVisible(false);
     }, 500);
     eventBusRef.current.dispatch(CancelEventType);
-  }, [setIsVisible]);
+  }, [event]);
 
   const ModalFooterActionButtonsNode = React.useMemo(() => {
     return (
@@ -93,4 +97,12 @@ const TestRunModal: React.FC<ITestRunModalProps> = ({
   );
 };
 
-export default TestRunModal;
+const TestRunModalContainer = props => {
+  return (
+    <SaveTriggerProvider>
+      <TestRunModal {...props} />
+    </SaveTriggerProvider>
+  );
+};
+
+export default TestRunModalContainer;
