@@ -71,10 +71,19 @@ modules:
     - key: api-module-repository-tree-v2
       function: api-module-repository-tree-v2-function
 
+    # 发送消息
+    - key: api-send-message
+      function: api-send-message-function
+
     # 定制化代码
     # 获取查询测试报告
     - key: api-query-test-report
       function: api-query-test-report-function
+    
+    # 申万测试报告联调对接
+    - key: extension-report-shenwan
+      function: extension-report-shenwan-function
+    
 
   trigger:
     - key: test-manager-initial-script-install
@@ -181,8 +190,15 @@ modules:
     - key: api-module-minder-data-import-function
       handler: api.minderDataImport
     
+
+    - key: api-send-message-function
+      handler: api.sendMessage
+
     - key: api-query-test-report-function
       handler: api.queryTestReport
+
+    - key: extension-report-shenwan-function
+      handler: api.shenwanTestReportInfo
 
   itemPanel:
     - key: test-manager-test-detail

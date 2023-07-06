@@ -1,6 +1,6 @@
 import { useListener } from '@projectproxima/proxima-sdk-js';
 import useDebounce from 'ahooks/lib/useDebounce';
-import { Button, message, Pagination } from 'antd';
+import { Button, Dropdown, message, Pagination } from 'antd';
 import React, { useCallback, useRef, useState } from 'react';
 
 import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
@@ -15,6 +15,7 @@ import { useWorkspaceReportListQuery } from '@/services/testReport/query';
 
 import ReportLinkPlan from '../../ReportLinkPlan';
 import ReportStatus from '../../ReportStatus';
+import SendReportModal, { ActionType } from '../../SendReportModal';
 import cx from './index.less';
 
 const PaginationFooterRender: React.FC<any> = ({
@@ -55,6 +56,7 @@ const List: React.FC<any> = () => {
   const { t } = useI18n();
   const { workspace } = useTestConfig();
 
+  const sendReportModalRef = useRef<ActionType>();
   const [limit, setLimit] = useState<number>(10);
   const [offset, setOffset] = useState<number>(1);
   const [searchName, setSearchName] = useState<string>('');
@@ -149,33 +151,56 @@ const List: React.FC<any> = () => {
                 goReportViewPage(rowData.objectId);
               }}
             >
-              {t('report.view')}
+              {t('report.buttons.view')}
             </Button>
-            {/* <Button type="link" size="small">
-              {t('common.download')}
-            </Button> */}
-            <Button
-              type="link"
-              size="small"
-              onClick={async () => {
-                actionConfirm(
+            <Dropdown
+              menu={{
+                items: [
                   {
-                    title: t('common.tip'),
-                    okText: t('common.okText'),
-                    cancelText: t('common.cancel'),
-                    content: <span>{t('report.deleteTip1')}</span>,
+                    key: 'sendReport',
+                    label: (
+                      <Button
+                        size="small"
+                        type="link"
+                        onClick={() => sendReportModalRef.current.open()}
+                      >
+                        {t('report.buttons.sendReport')}
+                      </Button>
+                    ),
                   },
-                  async () => {
-                    const testReport = new TestReport();
-                    await testReport.delete(rowData.objectId);
-                    message.error(t('report.deleteSuccess'));
-                    refetch();
+                  {
+                    key: 'delete',
+                    label: (
+                      <Button
+                        danger
+                        type="link"
+                        size="small"
+                        onClick={async () => {
+                          actionConfirm(
+                            {
+                              title: t('common.tip'),
+                              okText: t('common.okText'),
+                              cancelText: t('common.cancel'),
+                              content: <span>{t('report.deleteTip1')}</span>,
+                            },
+                            async () => {
+                              const testReport = new TestReport();
+                              await testReport.delete(rowData.objectId);
+                              message.error(t('report.deleteSuccess'));
+                              refetch();
+                            },
+                          );
+                        }}
+                      >
+                        {t('report.buttons.delete')}
+                      </Button>
+                    ),
                   },
-                );
+                ],
               }}
             >
-              {t('common.delete')}
-            </Button>
+              <Button type="link">{t('report.buttons.more')}</Button>
+            </Dropdown>
           </>
         );
       },
@@ -219,6 +244,7 @@ const List: React.FC<any> = () => {
           )}
         />
       )}
+      <SendReportModal actionRef={sendReportModalRef} />
     </div>
   );
 };

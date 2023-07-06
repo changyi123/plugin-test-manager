@@ -37,3 +37,6 @@ export const aggsSearch = withCoreApiRequest([
   'POST',
   '/parse/api/report/normal-aggs-chart/search',
 ]);
+
+/** 发送消息通知 */
+export const sendMessage = withCoreApiRequest(['POST', '/connector/actions/send-email']);

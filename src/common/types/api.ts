@@ -281,3 +281,16 @@ export type QueryTestReportPayload = {
   // 版本名称
   versionName: string;
 };
+
+/** internal 站内信 */
+type PostType = 'internal' | 'email';
+
+/** 消息通知 */
+export type SendMessagePayload = {
+  useTemplate: string;
+  postType: PostType[];
+  creatUser?: string;
+  roles?: string[];
+  users?: string[];
+  templatePayload: Record<string, any>;
+};

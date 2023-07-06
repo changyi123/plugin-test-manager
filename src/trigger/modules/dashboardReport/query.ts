@@ -1,8 +1,8 @@
 import { getParseQuery } from '@giteeteam/apps-team-api';
+import { omit } from 'lodash';
 
 import { QueryTestReportPayload } from '../../../common/types/api';
 import { buildResponse, getReqInfoFromVMRuntime } from '../../lib/apiUtil';
-import { omit } from 'lodash';
 
 /** 查询测试报告 */
 export const queryTestReport = async () => {
@@ -29,8 +29,6 @@ export const queryTestReport = async () => {
       .first(parseOptions)
       .then(i => i?.toJSON());
 
-    console.info('query-test-report-version ---->', version);
-
     testReportOverviewDataParams.version = version;
   }
 
@@ -50,6 +48,12 @@ export const queryTestReport = async () => {
     .find({ sessionToken })
     .then(res => res?.map(i => i.toJSON()));
 
+  const genReportPageUrl = (testReportId: string) => {
+    return `${global.env?.PROXIMA_PAGE_BASE_URL ?? ''}/${
+      global.applicationId
+    }/plugin/test_manager_test-report-view?testReportId=${testReportId}`;
+  };
+
   const result = testReportDataList
     .filter(reportData => {
       if (testReportOverviewDataParams.version) {
@@ -58,13 +62,15 @@ export const queryTestReport = async () => {
         return reportVersionIdSet.has(versionId);
       }
     })
-    .map(reportData => ({
-      ...omit(reportData, ['reportOverviewData']),
-      // TODO: 生成测试报告 url
-      url: '',
-    }));
+    .map(reportData => {
+      console.info('reportUrl--------->', genReportPageUrl(reportData.objectId));
 
-  console.info('result', result);
+      return {
+        ...omit(reportData, ['reportOverviewData']),
+        // TODO: 生成测试报告 url
+        reportUrl: genReportPageUrl(reportData.objectId),
+      };
+    });
 
   return buildResponse(result);
 };

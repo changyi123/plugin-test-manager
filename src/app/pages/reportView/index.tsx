@@ -22,6 +22,10 @@ const ReportView: React.FC = () => {
     window.open(redirectLink, '_self');
   };
 
+  const handleExportButtonClick = () => {
+    // TODO: 导出报告
+  };
+
   return (
     <div className={cx('report-box')}>
       <>
@@ -31,10 +35,10 @@ const ReportView: React.FC = () => {
             <span className={cx('title')}>{reportData?.name}</span>
           </div>
           <Space>
-            <Button>{t('report.export')}</Button>
+            <Button onClick={handleExportButtonClick}>{t('report.export')}</Button>
           </Space>
         </div>
-        <div className={cx('report-body')}>
+        <div id="report-body" className={cx('report-body')}>
           <div className={cx('report-overview')}>
             <div className={cx('title')}>
               <div className={cx('info')}>

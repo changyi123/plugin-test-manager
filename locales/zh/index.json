@@ -150,14 +150,38 @@
     "selectTemplate": "输入名称和选择模板",
     "selectRange": "选择统计范围",
     "validateTips": "存在未填字段，请检查必填字段",
-    "view": "查看",
     "deleteTip1": "该操作会将测试报告删除，是否继续操作？",
     "createLoading": "测试报告创建中",
     "templateSet": "模板设置",
     "testReport": "测试报告",
     "addSuccess": "创建成功",
     "addFail": "创建失败",
-    "export": "下载"
+    "export": "下载",
+    "buttons": {
+      "delete": "删除",
+      "view": "查看",
+      "more": "更多",
+      "sendReport": "发送报告"
+    },
+    "seneReportModal": {
+      "modalTitle": "发送报告",
+      "sendType": {
+        "label": "发送方式",
+        "siteMessage": "站内信",
+        "email": "邮件"
+      },
+      "sendTo": {
+        "label": "添加发送人",
+        "selectorTagName": "项目负责人"
+      },
+      "button": {
+        "send": "发送"
+      },
+      "message": {
+        "sendTypeEmpty": "请选择发送方式",
+        "sendToEmpty": "请选择发送人"
+      }
+    }
   },
   "status": {
     "PASSED": {
