@@ -156,10 +156,10 @@ export const clearIframeLayoutEffect = () => {
 };
 
 // 下载测试报告
-export const downloadTestReportView = async _testReportData => {
+export const downloadTestReportView = async testReportData => {
   const iframe = document.body.querySelector('iframe');
 
-  // const title = testReportData.name;
+  const title = testReportData.name;
 
   // 准备初始化数据
   // const prepareData = async () => {
@@ -168,14 +168,33 @@ export const downloadTestReportView = async _testReportData => {
 
   // 生成 document
   const buildDocument = async dataUrl => {
-    const getImageInfo = async dataUrl => {
-      return new Promise<Record<'width' | 'height', number>>(resolve => {
+    const PageWidth = 595;
+    const PageHeight = 842;
+
+    const PageContentWidth = PageWidth - 72 * 2;
+    const PageContentHeight = PageHeight - 72 * 2;
+
+    const getImageTransformation = async dataUrl => {
+      return new Promise<Record<'width' | 'height' | 'aspectRatio', number>>(resolve => {
         const image = new Image();
         image.src = dataUrl;
         image.onload = () => {
+          let { width, height } = image;
+          const aspectRatio = width / height;
+
+          if (aspectRatio > 1) {
+            // 如果图片的宽度大于高度，将宽度设置为页面宽度，然后根据宽高比计算高度
+            width = PageContentWidth;
+            height = width / aspectRatio;
+          } else {
+            // 如果图片的高度大于宽度，将高度设置为页面高度，然后根据宽高比计算宽度
+            height = PageContentHeight;
+            width = height * aspectRatio;
+          }
           return resolve({
-            width: image.width,
-            height: image.height,
+            width,
+            height,
+            aspectRatio,
           });
         };
       });
@@ -185,7 +204,7 @@ export const downloadTestReportView = async _testReportData => {
       children: [
         new ImageRun({
           data: dataUrl,
-          transformation: await getImageInfo(dataUrl),
+          transformation: await getImageTransformation(dataUrl),
         }),
       ],
     });
@@ -193,7 +212,6 @@ export const downloadTestReportView = async _testReportData => {
     const doc = new Document({
       sections: [
         {
-          properties: {},
           children: [snapshotParagraph],
         },
       ],
@@ -205,13 +223,13 @@ export const downloadTestReportView = async _testReportData => {
   return domtoimage
     .toPng(iframe.contentDocument.querySelector('.react-grid-layout'), {})
     .then(buildDocument)
-    .them(doc => {
+    .then(doc => {
       // 将文档保存为 .docx 文件
-      Packer.toBlob(doc).then(blob => {
+      return Packer.toBlob(doc).then(blob => {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'document.docx';
+        a.download = `${title}.docx`;
         a.click();
         URL.revokeObjectURL(url);
       });

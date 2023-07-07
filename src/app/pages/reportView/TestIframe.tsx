@@ -40,8 +40,9 @@ const TestIframe: React.FC<any> = props => {
       name="report-view"
       title="report-view"
       className={cx('report-charts', props.className)}
-      onLoad={() => {
+      onLoad={event => {
         adjustIframeHeight();
+        props?.onLoad?.(event);
       }}
       ref={iframeRef}
       src={props.src}
