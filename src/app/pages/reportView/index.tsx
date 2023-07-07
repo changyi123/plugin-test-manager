@@ -3,7 +3,7 @@ import { Button, Space } from 'antd';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { genChartGroupPageUrl } from '@/lib/testReport';
+import { downloadTestReportView, genChartGroupPageUrl } from '@/lib/testReport';
 import { useTestReportByObjectId } from '@/services/testReport/query';
 
 import ReportStatus from '../report/ReportStatus';
@@ -24,6 +24,7 @@ const ReportView: React.FC = () => {
 
   const handleExportButtonClick = () => {
     // TODO: 导出报告
+    downloadTestReportView(reportData);
   };
 
   return (

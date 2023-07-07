@@ -1,3 +1,6 @@
+import { Document, ImageRun, Packer, Paragraph } from 'docx';
+import domtoimage from 'dom-to-image-more';
+
 import { TestType } from './constants';
 import { getPagePrefix, isInOne } from './utils/helper';
 
@@ -105,7 +108,7 @@ export const genChartGroupPageUrl = ({
   const pagePrefix = getPagePrefix();
 
   const searchParams = new URLSearchParams(
-    '?hiddenHeader=true&hiddenSidebar=true&displayContext=test_manager',
+    '?hiddenHeader=true&hiddenSidebar=true&disableLazyLoad=true&displayContext=test_manager',
   );
   if (isTemplate) {
     searchParams.append('moduleKey', ReportTemplateChartGroupKey);
@@ -153,4 +156,64 @@ export const clearIframeLayoutEffect = () => {
 };
 
 // 下载测试报告
-export const downloadTestReportView = () => {};
+export const downloadTestReportView = async _testReportData => {
+  const iframe = document.body.querySelector('iframe');
+
+  // const title = testReportData.name;
+
+  // 准备初始化数据
+  // const prepareData = async () => {
+  //   // 清空 iframe
+  // };
+
+  // 生成 document
+  const buildDocument = async dataUrl => {
+    const getImageInfo = async dataUrl => {
+      return new Promise<Record<'width' | 'height', number>>(resolve => {
+        const image = new Image();
+        image.src = dataUrl;
+        image.onload = () => {
+          return resolve({
+            width: image.width,
+            height: image.height,
+          });
+        };
+      });
+    };
+
+    const snapshotParagraph = new Paragraph({
+      children: [
+        new ImageRun({
+          data: dataUrl,
+          transformation: await getImageInfo(dataUrl),
+        }),
+      ],
+    });
+
+    const doc = new Document({
+      sections: [
+        {
+          properties: {},
+          children: [snapshotParagraph],
+        },
+      ],
+    });
+
+    return doc;
+  };
+
+  return domtoimage
+    .toPng(iframe.contentDocument.querySelector('.react-grid-layout'), {})
+    .then(buildDocument)
+    .them(doc => {
+      // 将文档保存为 .docx 文件
+      Packer.toBlob(doc).then(blob => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'document.docx';
+        a.click();
+        URL.revokeObjectURL(url);
+      });
+    });
+};

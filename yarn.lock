@@ -2072,6 +2072,11 @@
   resolved "https://registry.npmmirror.com/@types/node/-/node-20.3.1.tgz#e8a83f1aa8b649377bb1fb5d7bac5cb90e784dfe"
   integrity sha512-EhcH/wvidPy1WeML3TtYFGR83UzjxeWRen9V402T8aUGYsCHOmfoisV3ZSg03gAFIbLq8TnWOJ0f4cALtnSEUg==
 
+"@types/node@^20.3.1":
+  version "20.4.0"
+  resolved "https://registry.npmmirror.com/@types/node/-/node-20.4.0.tgz#01d637d1891e419bc85763b46f42809cd2d5addb"
+  integrity sha512-jfT7iTf/4kOQ9S7CHV9BIyRaQqHu67mOjsIQBC3BKZvzvUB6zLxEwJ6sBE3ozcvP8kF6Uk5PXN0Q+c0dfhGX0g==
+
 "@types/normalize-package-data@^2.4.0":
   version "2.4.1"
   resolved "https://registry.npmmirror.com/@types/normalize-package-data/-/normalize-package-data-2.4.1.tgz#d3357479a0fdfdd5907fe67e17e0a85c906e1301"
@@ -4112,6 +4117,18 @@ docx-templates@^4.9.2:
     sax "1.2.4"
     timm "^1.6.2"
 
+docx@^8.2.0:
+  version "8.2.0"
+  resolved "https://registry.npmmirror.com/docx/-/docx-8.2.0.tgz#f5d1797a90563140850c8c90db2cfb41d39c688d"
+  integrity sha512-0C2EfKFIysEYHf8mgGsFwmot7KUARw3LRs0GwO80251SHn5R66taPsdZhCAny1s8djXBgaImt1C5XhzsO7VQiQ==
+  dependencies:
+    "@types/node" "^20.3.1"
+    fflate "^0.8.0"
+    jszip "^3.10.1"
+    nanoid "^4.0.2"
+    xml "^1.0.1"
+    xml-js "^1.6.8"
+
 dom-align@^1.7.0:
   version "1.12.4"
   resolved "https://registry.npmmirror.com/dom-align/-/dom-align-1.12.4.tgz#3503992eb2a7cfcb2ed3b2a6d21e0b9c00d54511"
@@ -4148,6 +4165,11 @@ dom-serializer@^1.0.1:
     domelementtype "^2.0.1"
     domhandler "^4.2.0"
     entities "^2.0.0"
+
+dom-to-image-more@^3.1.6:
+  version "3.1.6"
+  resolved "https://registry.npmmirror.com/dom-to-image-more/-/dom-to-image-more-3.1.6.tgz#a8afd83fe90fac72d72159f2fe618c8a45281cde"
+  integrity sha512-VMO0jNme32T06mWtkOC9QXfj+1npoJxkaTFW0DCwBLguwBKMjqwndiDANxDnbZ0kvNEecwxkv0Zmgdr96cGtAA==
 
 domelementtype@1:
   version "1.3.1"
@@ -4929,6 +4951,11 @@ fbjs@^0.8.16:
     promise "^7.1.1"
     setimmediate "^1.0.5"
     ua-parser-js "^0.7.30"
+
+fflate@^0.8.0:
+  version "0.8.0"
+  resolved "https://registry.npmmirror.com/fflate/-/fflate-0.8.0.tgz#f93ad1dcbe695a25ae378cf2386624969a7cda32"
+  integrity sha512-FAdS4qMuFjsJj6XHbBaZeXOgaypXp8iw/Tpyuq/w3XA41jjLHT8NPA+n7czH/DDhdncq0nAyDZmPeWXh2qmdIg==
 
 figures@^3.0.0:
   version "3.2.0"
@@ -6648,6 +6675,11 @@ nanoid@^3.3.6:
   version "3.3.6"
   resolved "https://registry.npmmirror.com/nanoid/-/nanoid-3.3.6.tgz#443380c856d6e9f9824267d960b4236ad583ea4c"
   integrity sha512-BGcqMMJuToF7i1rt+2PWSNVnWIkGCU78jBG3RxO/bZlnZPK2Cmi2QaffxGO/2RvWi9sL+FAiRiXMgsyxQ1DIDA==
+
+nanoid@^4.0.2:
+  version "4.0.2"
+  resolved "https://registry.npmmirror.com/nanoid/-/nanoid-4.0.2.tgz#140b3c5003959adbebf521c170f282c5e7f9fb9e"
+  integrity sha512-7ZtY5KTCNheRGfEFxnedV5zFiORN1+Y1N6zvPTnHQd8ENUvfaDBeuJDZb2bN/oXwXxu3qkTXDzy57W5vAmDTBw==
 
 natural-compare-lite@^1.4.0:
   version "1.4.0"
@@ -9991,12 +10023,17 @@ xmind@^2.2.30:
     uuid "^3.3.2"
     xmind-model "^1.1.12"
 
-xml-js@^1.6.11:
+xml-js@^1.6.11, xml-js@^1.6.8:
   version "1.6.11"
   resolved "https://registry.npmmirror.com/xml-js/-/xml-js-1.6.11.tgz#927d2f6947f7f1c19a316dd8eea3614e8b18f8e9"
   integrity sha512-7rVi2KMfwfWFl+GpPg6m80IVMWXLRjO+PxTq7V2CDhoGak0wzYzFgUY2m4XJ47OGdXd8eLE8EmwfAmdjw7lC1g==
   dependencies:
     sax "^1.2.4"
+
+xml@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.npmmirror.com/xml/-/xml-1.0.1.tgz#78ba72020029c5bc87b8a81a3cfcd74b4a2fc1e5"
+  integrity sha512-huCv9IH9Tcf95zuYCsQraZtWnJvBtLVE0QHMOs8bWyZAFZNDcYjsPq1nEx8jKA9y+Beo9v+7OBPRisQTjinQMw==
 
 xmlhttprequest@1.8.0:
   version "1.8.0"
