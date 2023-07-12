@@ -1,4 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import type { UseBaseQueryOptions } from '@tanstack/react-query/src/types';
 
 import Parse from '@/lib/parse';
 
@@ -15,7 +16,10 @@ export const TestConfigQueryKeys = {
 } as const;
 
 /** 获取测试管理空间配置数据 */
-export const useWorkspaceTestConfig = (workspaceKey: string) => {
+export const useWorkspaceTestConfig = (
+  workspaceKey: string,
+  options?: UseBaseQueryOptions<any>,
+) => {
   const queryClient = useQueryClient();
   return useQuery(
     TestConfigQueryKeys.workspace(workspaceKey),
@@ -28,6 +32,7 @@ export const useWorkspaceTestConfig = (workspaceKey: string) => {
     },
     {
       enabled: Boolean(workspaceKey),
+      ...options,
     },
   );
 };

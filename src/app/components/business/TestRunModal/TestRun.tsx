@@ -158,7 +158,7 @@ const TestRun: React.FC<TestRunType> = props => {
 
     console.info('canExecuteTestRunIdSequence', canExecuteTestRunIdSequence, nextIndex);
     setTestId(canExecuteTestRunIdSequence[nextIndex]);
-  }, [canExecuteTestRunIdSequence, testId, canExecNext, t]);
+  }, [event, canExecuteTestRunIdSequence, testId, canExecNext, t]);
 
   const handleStatusChange = useMemoizedFn(
     async (status, isStepChange = false) => {
