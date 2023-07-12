@@ -186,7 +186,7 @@ const List: React.FC<any> = () => {
                             async () => {
                               const testReport = new TestReport();
                               await testReport.delete(rowData.objectId);
-                              message.error(t('report.deleteSuccess'));
+                              message.error(t('report.message.deleteSuccess'));
                               refetch();
                             },
                           );

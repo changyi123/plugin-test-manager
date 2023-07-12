@@ -172,6 +172,7 @@ const getCustomDataSourceResults = async (dsConfigs, reportParams) => {
             ret = await fetch.$post(
               `${pluginWebTriggerBaseUrl}/${webTriggerKey}`,
               {
+                reportId: reportParams.objectId,
                 reportOverviewData: reportParams.reportOverviewData,
                 workspace: reportParams.workspace,
                 sessionToken: getSessionToken(),

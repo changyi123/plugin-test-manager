@@ -261,6 +261,7 @@ modules:
       title: 新建事项
       loadType: Micro
       route: /beforeItemCreateModule
+
   importer:
     function: test-manager-import-script-function
     validate: test-manager-validate-script-function
@@ -422,6 +423,7 @@ modules:
           plugin:
             - testManager
         displayContext: test_manager
+
 tables:
   - className: Repository
     fields:

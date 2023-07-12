@@ -99,6 +99,7 @@
     "buffer": "^6.0.3",
     "classnames": "^2.3.1",
     "compression-webpack-plugin": "^10.0.0",
+    "crypto-js": "^4.1.1",
     "docx": "^8.2.0",
     "docx-templates": "^4.9.2",
     "dom-to-image-more": "^3.1.6",
