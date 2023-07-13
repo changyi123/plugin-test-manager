@@ -209,8 +209,14 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
   );
 
   const dataSource = React.useMemo(
-    () => (props.dataSource ?? antdTableProps.dataSource ?? []) as any[],
-    [antdTableProps.dataSource, props.dataSource],
+    () =>
+      ((props.dataSource ?? antdTableProps.dataSource ?? []) as any[]).map(i => ({
+        ...i,
+        _tableState: {
+          selectionMode,
+        },
+      })),
+    [antdTableProps.dataSource, selectionMode, props.dataSource],
   );
 
   // 当前页可选的 row keys

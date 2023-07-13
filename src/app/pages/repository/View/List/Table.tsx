@@ -282,38 +282,6 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
 
     return [
       {
-        width: 40,
-        key: 'move',
-        fixed: true,
-        isSystem: true,
-        shouldCellUpdate: (record, prevRecord) => {
-          return (
-            record.repository?.objectId !== prevRecord.repository?.objectId ||
-            record.sortIndex !== prevRecord.sortIndex
-          );
-        },
-        render(_, rowData) {
-          const folderKey = rowData?.repository ?? UNGROUPED_FOLDER_KEY;
-          return (
-            <RowDragBox
-              folderKey={folderKey}
-              testId={rowData.objectId}
-              sortIndex={rowData.sortIndex}
-              rowData={rowData}
-            >
-              <Tooltip
-                overlayClassName={cx('tooltip')}
-                title={t('page.repository.view.list.dropCaseToGroup')}
-              >
-                <span>
-                  <DragHandler />
-                </span>
-              </Tooltip>
-            </RowDragBox>
-          );
-        },
-      },
-      {
         width: 300,
         key: 'title',
         title: t('common.title'),
@@ -326,6 +294,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         },
         shouldCellUpdate: (record, prevRecord) => {
           return (
+            record._tableState.selectionMode !== prevRecord._tableState.selectionMode ||
             record.repository?.objectId !== prevRecord.repository?.objectId ||
             record.sortIndex !== prevRecord.sortIndex ||
             record.name !== prevRecord.name
@@ -333,21 +302,32 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         },
         render(_, rowData) {
           const folderKey = rowData?.repository ?? UNGROUPED_FOLDER_KEY;
+
           return (
-            <RowDragBox
-              folderKey={folderKey}
-              testId={rowData.objectId}
-              sortIndex={rowData.sortIndex}
-              rowData={rowData}
-            >
-              <span
-                data-drawer-handle-target
-                data-element-id="row-title"
-                style={{ cursor: 'pointer' }}
+            <>
+              <RowDragBox
+                folderKey={folderKey}
+                testId={rowData.objectId}
+                sortIndex={rowData.sortIndex}
+                rowData={rowData}
               >
-                {rowData?.name}
-              </span>
-            </RowDragBox>
+                {!rowData._tableState.selectionMode ? (
+                  <Tooltip
+                    overlayClassName={cx('tooltip')}
+                    title={t('page.repository.view.list.dropCaseToGroup')}
+                  >
+                    <DragHandler style={{ marginRight: 10 }} />
+                  </Tooltip>
+                ) : null}
+                <span
+                  data-drawer-handle-target
+                  data-element-id="row-title"
+                  style={{ cursor: 'pointer' }}
+                >
+                  {rowData?.name}
+                </span>
+              </RowDragBox>
+            </>
           );
         },
       },
