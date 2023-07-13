@@ -195,12 +195,16 @@ modules:
       title: 测试计划
       loadType: Micro
       route: /plan
+      icon: /main/icons/Panel_Testplan.svg
+      activeIcon: /main/icons/Panel_TestplanB.svg
       {workspacePageHidden}
     - key: test-repository
       resource: main
       title: 测试用例库
       loadType: Micro
       route: /repository
+      icon: /main/icons/Panel_Testcase.svg
+      activeIcon: /main/icons/Panel_TestcaseB.svg
       {workspacePageHidden}
     - key: test-report
       resource: main
@@ -212,6 +216,8 @@ modules:
       resource: main
       title: 测试统计
       loadType: Redirect
+      icon: /main/icons/Panel_Test.svg
+      activeIcon: /main/icons/Panel_TestB.svg
       route: /[tenant]/workspaces/[workspace]/plugin/team_insight_charts_base_team_insight_charts_base_workspace?disabledCreate=true&displayContext=test_manager&moduleKey=test_manager
       {workspacePageHidden}
     - key: test-xmindimport

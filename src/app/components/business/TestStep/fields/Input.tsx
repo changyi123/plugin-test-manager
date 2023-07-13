@@ -1,4 +1,4 @@
-import { useHover } from 'ahooks';
+import { useHover, useMemoizedFn, useUnmount } from 'ahooks';
 import classnames from 'classnames';
 import React from 'react';
 
@@ -24,6 +24,8 @@ const Input: React.ForwardRefRenderFunction<
   inheritedProps,
 ) => {
   const ref = React.useRef<HTMLDivElement>();
+  const textContentDataRef = React.useRef(value);
+  const isInputDataRef = React.useRef(false);
   const { t } = useI18n();
 
   React.useImperativeHandle(inheritedProps, () => ref.current);
@@ -56,19 +58,31 @@ const Input: React.ForwardRefRenderFunction<
   ];
 
   const handleKeyDown = e => {
-    if (ref.current.textContent.length >= maxLength && !escapedKeyCodes.includes(e.key)) {
+    if (!escapedKeyCodes.includes(e.key) && textContentDataRef.current?.length >= maxLength) {
       e.preventDefault();
     }
 
     if (e.key === 'Enter' && e.altKey) {
-      onKeyDownEnter?.(ref.current.textContent);
+      onKeyDownEnter?.(textContentDataRef.current);
       e.preventDefault();
     }
   };
 
-  const handleBlur = () => {
-    onChange?.(ref.current.textContent);
+  const handleInput = e => {
+    isInputDataRef.current = true;
+    textContentDataRef.current = e.target.textContent;
   };
+
+  const handleBlur = useMemoizedFn(() => {
+    if (isInputDataRef.current) {
+      onChange?.(textContentDataRef.current);
+    }
+  });
+
+  useUnmount(() => {
+    // 销毁时触发一次 blur 事件，提交表单的值
+    handleBlur();
+  });
 
   return (
     <div
@@ -76,10 +90,11 @@ const Input: React.ForwardRefRenderFunction<
       {...restProps}
       spellCheck={false}
       onBlur={handleBlur}
+      onInput={handleInput}
       contentEditable={true}
       onKeyDown={handleKeyDown}
-      placeholder={placeholder ?? t('components.business.testStep.pleaseInput')}
       suppressContentEditableWarning={true}
+      placeholder={placeholder ?? t('components.business.testStep.pleaseInput')}
       className={classnames('test-step-field', 'input', isHover && 'hover', className)}
     >
       {value}

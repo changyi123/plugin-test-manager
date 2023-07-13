@@ -106,7 +106,13 @@ const BasicConfig: React.FC<{
           <p className={cx('label', 'required')}>{scopedT('form.name.label')}</p>
           <Form.Item
             name="name"
-            rules={[{ required: true, message: scopedT('form.name.error') }]}
+            rules={[
+              { required: true, message: scopedT('form.name.error') },
+              {
+                max: 25,
+                message: scopedT('form.name.error'),
+              },
+            ]}
             noStyle
           >
             <Input

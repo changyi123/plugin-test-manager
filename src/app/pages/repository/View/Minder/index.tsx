@@ -57,11 +57,6 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
     { setTrue: startMinderInitialLoading, setFalse: endMinderInitialLoading },
   ] = useBoolean(true);
 
-  React.useEffect(() => {
-    // 折叠右侧面板
-    (window as any).globalState?.setItem?.('collapsedStatus', true);
-  }, []);
-
   const {
     data: minderData,
     mutate: mutateMinderData,

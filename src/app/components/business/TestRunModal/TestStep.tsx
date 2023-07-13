@@ -1,4 +1,4 @@
-import { useDebounceFn, useHover, useUpdateEffect } from 'ahooks';
+import { useHover, useUpdateEffect } from 'ahooks';
 import { Empty, Popconfirm } from 'antd';
 import { components } from 'proxima-sdk';
 import React, { useCallback, useMemo, useRef } from 'react';
@@ -13,11 +13,12 @@ import { escapeHtmlString, goToItemDetailPage } from '@/lib/utils/helper';
 import AddDefectButton from './AddDefectButton';
 import ExecutionEditor from './ExecutionEditor';
 import { useItemLinkTypeConfig } from './hooks';
+import { useSaveTriggerEvent } from './SaveTriggerEvent';
 import { TabsComponentBaseProps } from './type';
 
 const { ItemIcon } = components.Components.Common;
 
-import { clone } from 'lodash';
+import { clone, isEqual } from 'lodash';
 
 import cx from './TestStep.less';
 
@@ -46,6 +47,9 @@ const TestStep: React.FC<TestStepProps> = props => {
     () => testRunEntity?.runDetail?.steps ?? [],
     [testRunEntity?.runDetail?.steps],
   );
+
+  const needUpdateStepsDataRef = useRef(null);
+  const event = useSaveTriggerEvent();
 
   // const state = useReactive({
   //   steps: testRunEntity?.runDetail?.steps ?? [],
@@ -111,19 +115,17 @@ const TestStep: React.FC<TestStepProps> = props => {
   // 实际结果变更
   const handleActualResultChange = useCallback(
     async (stepId, actualResult) => {
-      const needUpdateSteps = runSteps.map(step =>
+      needUpdateStepsDataRef.current = (needUpdateStepsDataRef.current ?? runSteps).map(step =>
         step.id === stepId ? { ...step, actualResult } : step,
       );
-
-      // runSteps = needUpdateSteps;
-
-      await updateTestRunDetail(testRunEntity, { steps: needUpdateSteps });
     },
-    [runSteps, testRunEntity],
+    [runSteps],
   );
 
-  const { run: changeSteps } = useDebounceFn(handleActualResultChange, {
-    wait: 500,
+  event.useSubscription(async () => {
+    if (isEqual(needUpdateStepsDataRef.current, runSteps)) return;
+    await updateTestRunDetail(testRunEntity, { steps: needUpdateStepsDataRef.current });
+    needUpdateStepsDataRef.current = null;
   });
 
   // 执行步骤评论变更
@@ -248,8 +250,8 @@ const TestStep: React.FC<TestStepProps> = props => {
                   placeholder={t('components.business.testRunModal.testStep.resultPlaceholder')}
                   value={step.actualResult}
                   maxLength={2000}
-                  onKeyDownEnter={value => changeSteps(step.id, value)}
-                  onChange={value => changeSteps(step.id, value)}
+                  onKeyDownEnter={value => handleActualResultChange(step.id, value)}
+                  onChange={value => handleActualResultChange(step.id, value)}
                 />
               </span>
             </div>
