@@ -115,10 +115,10 @@ export const useUsedScreenFieldKeys = (
             'objectId',
             itemTypeScreenSchemeMappings.map(item => item.objectId),
           )
-          .findAll();
+          .findAll({ json: true });
 
         itemTypeMappings.forEach(data => {
-          const { itemType, screenScheme } = data.toJSON();
+          const { itemType, screenScheme } = data;
           itemTypeKeyScreenSchemeMapping[itemType?.key] = getScreenIdByScreenScheme(screenScheme);
         });
       }

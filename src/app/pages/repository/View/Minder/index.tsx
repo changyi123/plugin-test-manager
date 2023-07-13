@@ -21,7 +21,7 @@ import { useBaseAction } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import { useNoExpiredRequest } from '@/lib/hooks/useRequest';
 import { exportAndDownloadXMind, validateMinderData } from '@/lib/minder';
-import { getProximaBasePath, getRootContainer, getTenantKey } from '@/lib/utils/helper';
+import { getProximaBasePath, getRootContainer, getTenantKey, isInOne } from '@/lib/utils/helper';
 import { getLang } from '@/lib/utils/locale';
 
 import { ViewComponentProps } from '../type';
@@ -56,11 +56,6 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
     minderInitialLoading,
     { setTrue: startMinderInitialLoading, setFalse: endMinderInitialLoading },
   ] = useBoolean(true);
-
-  React.useEffect(() => {
-    // 折叠右侧面板
-    (window as any).globalState?.setItem?.('collapsedStatus', true);
-  }, []);
 
   const {
     data: minderData,
@@ -400,12 +395,16 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
   const handleXMindImport = useMemoizedFn(() => {
     const currentPageUrl = location.href.split('?')[0];
     const baseUrl = getProximaBasePath() ? `${getProximaBasePath()}` : '/';
+    let layoutParams = '';
+    if (isInOne()) {
+      layoutParams = '&hiddenHeader=true&hiddenSider=true';
+    }
     // 跳转到导入页面
     const href = `${baseUrl}/${getTenantKey()}/workspaces/${
       workspace.key
-    }/plugin/test_manager_test-xmindimport/?repositoryId=${
+    }/plugin/test_manager_test-xmindimport?repositoryId=${
       selectedNode?.key
-    }&redirectLink=${encodeURIComponent(currentPageUrl)}`;
+    }&redirectLink=${encodeURIComponent(currentPageUrl)}${layoutParams}`;
 
     window.open(href, '_blank');
   });

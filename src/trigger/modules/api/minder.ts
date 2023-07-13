@@ -1,6 +1,6 @@
 import { getParseModel, getParseQuery, saveAllObject } from '@giteeteam/apps-team-api';
 import { TestEntity } from 'common/types/test';
-import { flatten, omitBy } from 'lodash';
+import { flatten, omit } from 'lodash';
 import keyBy from 'lodash/keyBy';
 import uniqueId from 'lodash/uniqueId';
 
@@ -178,7 +178,7 @@ export const minderData = async () => {
         }, {});
 
         // 剩余的 repoKeyCaseIdsMapping
-        const notExistedRepoKeyCaseIdsMapping = omitBy(repoKeyCaseIdsMapping, subRepositoryKeys);
+        const notExistedRepoKeyCaseIdsMapping = omit(repoKeyCaseIdsMapping, subRepositoryKeys);
         // 处理根模块
         repoKeyCaseIdsMapping[UngroupedRepositoryKey] = flatten(
           Object.values(notExistedRepoKeyCaseIdsMapping),

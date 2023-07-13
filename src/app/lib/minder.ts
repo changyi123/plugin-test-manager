@@ -1,6 +1,12 @@
-import { BlobReader, TextWriter, ZipReader } from '@zip.js/zip.js';
+import {
+  BlobReader,
+  BlobWriter,
+  TextReader,
+  TextWriter,
+  ZipReader,
+  ZipWriter,
+} from '@zip.js/zip.js';
 import { MinderNodeType } from 'common/constant';
-import JSZip from 'jszip';
 import { v4 } from 'uuid';
 import { Dumper, Topic, Workbook } from 'xmind/dist/browser';
 import XML from 'xml-js';
@@ -81,11 +87,13 @@ export const exportAndDownloadXMind = async (minderData, { t, priorityOptions = 
   // 生成 files 文件
   const dumper = new Dumper({ workbook });
   const files = dumper.dumping();
-  const zip = new JSZip();
+  const zipWriter = new ZipWriter(new BlobWriter('application/zip'));
+
   for (const file of files) {
-    zip.file(file.filename, file.value);
+    zipWriter.add(file.filename, new TextReader(file.value));
   }
-  const blob = await zip.generateAsync({ type: 'blob' });
+
+  const blob = await zipWriter.close();
 
   // download xmind
   const fileName = rootMinderNode.data.text;

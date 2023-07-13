@@ -73,6 +73,11 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
     },
   );
 
+  React.useEffect(() => {
+    // 折叠右侧面板
+    (window as any).globalState?.setItem?.('collapsedStatus', true);
+  }, []);
+
   // 获取最新的 node 数据
   const selectedNode = React.useMemo(() => {
     return getTreeNodeByKey(folderTreeData, selectedNodeKey);
