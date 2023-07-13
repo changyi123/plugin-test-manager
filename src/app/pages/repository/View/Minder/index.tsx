@@ -397,12 +397,12 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
     const baseUrl = getProximaBasePath() ? `${getProximaBasePath()}` : '/';
     let layoutParams = '';
     if (isInOne()) {
-      layoutParams = '&hiddenHeader=true&hiddenSidebar=true';
+      layoutParams = '&hiddenHeader=true&hiddenSider=true';
     }
     // 跳转到导入页面
     const href = `${baseUrl}/${getTenantKey()}/workspaces/${
       workspace.key
-    }/plugin/test_manager_test-xmindimport/?repositoryId=${
+    }/plugin/test_manager_test-xmindimport?repositoryId=${
       selectedNode?.key
     }&redirectLink=${encodeURIComponent(currentPageUrl)}${layoutParams}`;
 
