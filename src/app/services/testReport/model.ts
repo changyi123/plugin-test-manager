@@ -7,7 +7,7 @@ import { TestLinkType, TestPlanModel, TestType } from '@/lib/constants';
 import Parse from '@/lib/parse';
 import type { TemplateDataSourceConfig } from '@/lib/testReport';
 import {
-  CustomDataSourceConfigKey,
+  CustomDataSourceKey,
   DataSource,
   genDataSourceConfigUid,
   ReportChartGroupKey,
@@ -149,7 +149,7 @@ const getPlanRefTestEntityIds = async (planIds, dsConfig: TemplateDataSourceConf
 const getCustomDataSourceResults = async (dsConfigs, reportParams) => {
   // 自定义数据源结果
   let customDataSourceConfigResult = {};
-  const isCustomDataSourceSelector = dsConfig => dsConfig[1]?.key === CustomDataSourceConfigKey;
+  const isCustomDataSourceSelector = dsConfig => dsConfig[0]?.key === CustomDataSourceKey;
 
   // 是否有自定义数据源
   const hasCustomDataSourceSelector = dsConfigs.some(isCustomDataSourceSelector);
@@ -169,7 +169,7 @@ const getCustomDataSourceResults = async (dsConfigs, reportParams) => {
         const taskRunners = webTriggerKeys.map((webTriggerKey: string) => async cb => {
           let ret = null;
           try {
-            ret = await fetch.$post(
+            const { data, status } = await fetch.$post(
               `${pluginWebTriggerBaseUrl}/${webTriggerKey}`,
               {
                 reportId: reportParams.objectId,
@@ -178,15 +178,17 @@ const getCustomDataSourceResults = async (dsConfigs, reportParams) => {
                 sessionToken: getSessionToken(),
               },
               {
-                // 设置 20s 超时时间
-                timeout: 30000,
+                // 设置 30s 超时时间
+                timeout: 300000,
               },
             );
+            if (status === 'ok') {
+              ret = data;
+            }
           } catch (err) {
             console.error('request custom data source error: ', err);
           }
-
-          cb({
+          cb(null, {
             [webTriggerKey]: ret,
           });
         });
@@ -373,12 +375,64 @@ const chainChartDataAdaptor = (chartData, dataSource) => {
         },
       };
 
-      chartData = (adaptors[chartData.chartView] ?? adaptors.default)(chartData.option);
+      chartData.option = (adaptors[chartData.chartView] ?? adaptors.default)(chartData.option);
 
       return adaptorChain;
     },
+    /** 自定义数据源 */
     customDataSource(customDataSourceResults) {
-      console.info('customDataSourceResults', customDataSourceResults);
+      const adaptors = {
+        richText(chartOption, chartOptionAdaptor, result) {
+          const { text } = chartOptionAdaptor;
+          return {
+            ...chartOption,
+            richTextValue: [
+              {
+                type: 'p',
+                children: [
+                  {
+                    type: 'a',
+                    url: result,
+                    children: [
+                      {
+                        text,
+                      },
+                    ],
+                    id: Date.now(),
+                  },
+                ],
+              },
+            ],
+          };
+        },
+      };
+
+      const customDataSource = dataSource?.[0].key === CustomDataSourceKey && dataSource?.[1];
+
+      if (customDataSource) {
+        const {
+          webTriggerKey,
+          chartOptionAdaptor,
+          resultHandler: resultHandlerStr,
+        } = customDataSource.config ?? {};
+        const customDataSourceResult = customDataSourceResults[webTriggerKey];
+
+        if (customDataSourceResult) {
+          try {
+            const resultHandler = new Function(`return ${resultHandlerStr}`)();
+            const result = resultHandler(customDataSourceResult);
+            console.info('result---------->', chartData, chartOptionAdaptor, result);
+
+            chartData.option = adaptors[chartOptionAdaptor.key](chartData.option, result);
+
+            console.info('chartData---------->', chartData);
+          } catch (err) {
+            console.error('result handler execute error: ', err);
+          }
+
+          return adaptorChain;
+        }
+      }
       return adaptorChain;
     },
 
@@ -569,6 +623,7 @@ const TestReport = Parse.Object.extend('test_manager_TestReport', {
     // 2. 创建测试报告关联的 chart
     const newChartObjects = chartDataList.map(chartData => {
       const newChartObject = new Chart();
+
       newChartObject.set({
         ...omit(chartData, FilterOriginalParseDataKeys),
         chartGroup: ChartGroup.createWithoutData(chartGroupData.objectId),
@@ -583,6 +638,8 @@ const TestReport = Parse.Object.extend('test_manager_TestReport', {
           .iql(iqlConfigs)
           // 如果是自定义数据源，则需要将自定义数据源的结果集绑定到 chartOption 中
           .customDataSource(customDataSourceResults).chartData;
+
+        console.info('modifyChartData===========>', modifyChartData);
 
         // 设置 option
         newChartObject.set({ ...omit(modifyChartData, FilterOriginalParseDataKeys) });

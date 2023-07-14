@@ -1,3 +1,4 @@
+import { useMutation } from '@tanstack/react-query';
 import { useMemoizedFn, useRequest } from 'ahooks';
 import { Checkbox, message, Modal } from 'antd';
 import { t } from 'i18next';
@@ -9,17 +10,19 @@ import SelectorTag from '@/components/common/FilterSearch/SelectorTag';
 import { getCustomFields } from '@/lib/api/proxima';
 import { openFieldValuePopover } from '@/lib/api/sdk';
 import { FILTER_EXPRESSIONS } from '@/lib/constants';
+import { useCurrentUser } from '@/lib/hooks/useTest';
+import { sendMessage as sendMessageService } from '@/services/common/service';
 
 import cx from './index.less';
 
 export type ActionType = {
-  open: () => void;
+  open: (testReportId: string) => void;
 };
 
-const SendTypes = [
+const PostTypes = [
   {
     label: t('report.seneReportModal.sendType.siteMessage'),
-    value: 'siteMessage',
+    value: 'internal',
   },
   {
     label: t('report.seneReportModal.sendType.email'),
@@ -30,27 +33,45 @@ const SendTypes = [
 const SendReportModal: React.FC<{
   actionRef: React.MutableRefObject<ActionType>;
 }> = ({ actionRef }) => {
-  const [sendTypeValue, setSendTypeValue] = React.useState([SendTypes[0].value] as any);
+  const [postType, setPostType] = React.useState([PostTypes[0].value] as any);
   const [assigneeSelectorValue, setAssigneeSelectorValue] = React.useState(null);
   const [open, setOpen] = React.useState(false);
+  const testReportIdDataRef = React.useRef(null);
+  const currentUser = useCurrentUser();
+
+  const { mutateAsync: sendMessageMutation, isLoading: sendMessageLoading } = useMutation({
+    mutationFn: sendMessageService,
+  });
 
   const { t } = useTranslation('', {
     keyPrefix: 'report.seneReportModal',
   });
 
   React.useImperativeHandle(actionRef, () => ({
-    open() {
+    open(testReportId) {
+      testReportIdDataRef.current = testReportId;
       setOpen(true);
     },
   }));
 
-  const sendMessage = useMemoizedFn(() => {
-    // TODO: 发送消息
-
-    if (!sendTypeValue.length) return message.error(t('message.sendTypeEmpty'));
+  const sendMessage = useMemoizedFn(async () => {
+    if (!postType.length) return message.error(t('message.sendTypeEmpty'));
     if (!assigneeSelectorValue.length) return message.error(t('message.sendToEmpty'));
 
-    // const body = {};
+    await sendMessageMutation({
+      postType,
+      useTemplate: 'testReport',
+      creatUser: currentUser.objectId,
+      users: assigneeSelectorValue.map(item => item.value),
+      templatePayload: {
+        testReportId: testReportIdDataRef.current,
+      },
+    });
+
+    setPostType([PostTypes[0].value]);
+    setAssigneeSelectorValue([]);
+    message.success(t('message.sendSuccess'));
+    setOpen(false);
   });
 
   // 获取统计范围字段 fields
@@ -131,6 +152,7 @@ const SendReportModal: React.FC<{
     <Modal
       open={open}
       onOk={sendMessage}
+      okButtonProps={{ loading: sendMessageLoading }}
       className={cx('modal')}
       okText={t('button.send')}
       onCancel={() => setOpen(false)}
@@ -141,8 +163,8 @@ const SendReportModal: React.FC<{
           <span className={cx('label')}>{t('sendType.label')}</span>
         </div>
         <span>
-          <Checkbox.Group value={sendTypeValue} onChange={value => setSendTypeValue(value)}>
-            {SendTypes.map(sendType => (
+          <Checkbox.Group value={postType} onChange={value => setPostType(value)}>
+            {PostTypes.map(sendType => (
               <Checkbox key={sendType.value} value={sendType.value}>
                 {sendType.label}
               </Checkbox>

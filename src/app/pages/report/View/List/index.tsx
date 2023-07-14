@@ -162,7 +162,7 @@ const List: React.FC<any> = () => {
                       <Button
                         size="small"
                         type="link"
-                        onClick={() => sendReportModalRef.current.open()}
+                        onClick={() => sendReportModalRef.current.open(rowData.objectId)}
                       >
                         {t('report.buttons.sendReport')}
                       </Button>

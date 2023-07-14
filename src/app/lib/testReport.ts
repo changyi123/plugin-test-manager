@@ -19,7 +19,6 @@ export type SelectorType =
 export const ReportTemplateChartGroupKey = 'test_manager_report_template' as const;
 export const ReportChartGroupKey = 'test_manager_report' as const;
 export const CustomDataSourceKey = 'customDataSource' as const;
-export const CustomDataSourceConfigKey = 'customDataSourceConfig' as const;
 
 /** 支持数据源配置的 Chart */
 export const SupportDataSourceChartViewReg = /^basic/;

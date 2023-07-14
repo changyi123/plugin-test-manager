@@ -10,6 +10,11 @@ const ReportStatusNameMapping = {
   partPass: '部分通过',
 };
 
+const ReportColorMapping = {
+  pass: '#09b866',
+  noPass: '#ff4d0d',
+  partPass: '#ffaa0c',
+};
 // 消息模板
 const MessageTemplate = {
   testReport: {
@@ -43,7 +48,9 @@ const MessageTemplate = {
       const versionId = testReportData?.reportOverviewData?.version?.[0];
 
       const info = {
+        name: testReportData?.name,
         status: ReportStatusNameMapping[testReportData?.reportStatus],
+        statusColor: ReportColorMapping[testReportData?.reportStatus],
         version: '',
       };
 
@@ -56,24 +63,27 @@ const MessageTemplate = {
           .find({ sessionToken })
           .then(i => i?.[0]?.get('name'));
 
-        info.version = `${name}版本`;
+        info.version = `【${name}】版本`;
       }
 
-      const title = `${info.version}测试报告（${info.status}）`;
+      const title = `${info.version ?? info.name}测试报告（${info.status}）`;
       const reportUrl = `${global.env?.PROXIMA_PAGE_BASE_URL ?? ''}/${
         global.applicationId
       }/plugin/test_manager_test-report-view?testReportId=${payload.testReportId}`;
 
-      console.info('reportUrl--------->', reportUrl);
-
       return {
         internal: {
           title,
-          content: `您收到了一份测试报告：<a href=${reportUrl}>${title}</a>，请查阅`,
+          content: `您收到了一份测试报告：${title} [${reportUrl}]，请打开测试报告链接进行查阅。`,
         },
         email: {
           title,
-          content: `<p>测试版本：${info.version}</p><p /><p>测试结论：${info.status}</p><p>测试报告链接：<a href=${reportUrl}>${reportUrl}</a></p>`,
+          content: `
+          <p>测试报告名称：<strong>${info.name}</strong></p>
+          ${info.version ? `<p>测试版本：<strong>${info.version}</strong></p>` : ''}
+          <p />
+          <p>测试结论：<strong style={{color: ${info.statusColor}}}>${info.status}</strong></p>
+          <p>测试报告链接：<a href=${reportUrl}>${reportUrl}</a></p>`,
         },
       };
     },
@@ -108,11 +118,15 @@ export const sendMessage = async () => {
   const runners = postType.map(type => {
     const payload = messagePayload[type];
     return sendMessageApi({
-      ...payload,
-      postType,
-      roles: body.roles,
-      users: body.users,
-      creatUser: body.creatUser,
+      payload: {
+        inputParameters: {
+          ...payload,
+          postType: [type],
+          roles: body.roles,
+          users: body.users,
+          creatUser: body.creatUser,
+        },
+      },
     });
   });
 

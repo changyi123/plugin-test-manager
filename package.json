@@ -4,7 +4,7 @@
   "description": "",
   "private": true,
   "scripts": {
-    "build": "cd src && webpack --mode=production",
+    "build": "cd src && cross-env NODE_OPTIONS=--max-old-space-size=4096 webpack --mode=production",
     "build-package": "giteeteam-apps build -i ./src/trigger -c ./locales -o ./dist --no-zip --prod -c version.yml",
     "dev": "yarn start",
     "start": "cd src && webpack server --mode=development",

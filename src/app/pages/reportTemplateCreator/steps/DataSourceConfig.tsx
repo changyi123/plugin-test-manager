@@ -3,10 +3,10 @@ import TextArea from 'antd/lib/input/TextArea';
 import { useAtomValue } from 'jotai';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import { v4 as uuidv4 } from 'uuid';
 
 import { DeleteOutlined } from '@/icons';
 import {
-  CustomDataSourceConfigKey,
   CustomDataSourceKey,
   DataSource,
   DataSourceCollection,
@@ -81,7 +81,7 @@ const DataSourceSelector: React.FC<{
           DataSourceCollection.find(ds => ds.key === CustomDataSourceKey),
           {
             isFirstLevel: false,
-            key: CustomDataSourceConfigKey,
+            key: uuidv4(8),
             name: dataSourceConfig[1]?.name,
             config: JSON.parse(dataSourceConfig[1].config),
           },
@@ -345,7 +345,7 @@ const DataSourceConfig: React.FC<{ actionRef: React.MutableRefObject<ActionRefTy
       label: ds.map(ds => ds.name ?? scopedT(`label.${ds.key}`)).join('，'),
       // 提示信息
       tooltipTitle:
-        ds?.[1]?.key === CustomDataSourceConfigKey
+        ds?.[0]?.key === CustomDataSourceKey
           ? getCustomDataSourceTooltipTitle(ds?.[1]?.config)
           : null,
       original: ds,

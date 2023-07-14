@@ -1,6 +1,8 @@
 import { axios, getParseQuery } from '@giteeteam/apps-team-api';
 import CryptoJS from 'crypto-js';
 
+const RequestTimeout = 15000;
+
 import { buildResponse, getReqInfoFromVMRuntime } from '../../lib/apiUtil';
 
 const PlatformInfo = {
@@ -25,8 +27,6 @@ const getAuthInfo = (
   { body = '' as any, method = 'POST', path = '' },
 ) => {
   const { AccessKeyId, AccessKeySecret, AccountName } = PlatformInfo[authKey];
-
-  console.info('1111111111');
 
   const timestamp = new Date().getTime();
   const md5 = CryptoJS.MD5(body).toString(CryptoJS.enc.Base64);
@@ -57,6 +57,7 @@ const requestXSeaPlan = async name => {
   const authInfo = getAuthInfo('XSea', requestInfo);
 
   const res = await axios({
+    timeout: RequestTimeout,
     url: PlatformInfo.XSea.BaseUrl + requestInfo.path,
     method: requestInfo.method,
     data: requestInfo.body,
@@ -83,6 +84,7 @@ const requestPerfMaPlan = async name => {
   const authInfo = getAuthInfo('PerfMa', requestInfo);
 
   const res = await axios({
+    timeout: RequestTimeout,
     url: PlatformInfo.PerfMa.BaseUrl + requestInfo.path,
     method: requestInfo.method,
     data: requestInfo.body,
@@ -116,15 +118,22 @@ export const shenwanTestReportInfo = async () => {
 
     console.info('versionName-------->', versionName);
   }
-  const [xSeaReportPageUrl, perfMaReportPageUrl] = await Promise.all([
-    requestXSeaPlan(versionName),
-    requestPerfMaPlan(versionName),
-  ]);
 
-  return buildResponse({
-    xSea:
-      xSeaReportPageUrl ??
-      'http://192.168.136.104:8081/1/product/business/737844164729253888/plan/targetExecuteDetail?id=641573952480620544',
-    perfMa: perfMaReportPageUrl ?? 'http://www.baidu.com',
-  });
+  try {
+    const [xSeaReportPageUrl, perfMaReportPageUrl] = await Promise.all([
+      requestXSeaPlan(versionName),
+      requestPerfMaPlan(versionName),
+    ]);
+
+    return buildResponse({
+      xSea: xSeaReportPageUrl,
+      perfMa: perfMaReportPageUrl,
+    });
+  } catch (err) {
+    console.info('err--------------------------------', err);
+    return buildResponse({
+      xSea: '//www.baidu.com',
+      perfMa: '//www.baidu.com',
+    });
+  }
 };
