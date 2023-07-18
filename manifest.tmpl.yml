@@ -2,7 +2,7 @@ app:
   key: test_manager
   uuid: bf73e61c-e15a-4461-a1f7-f940c2009332
   name: test_manager
-  version: "4.2.0-alpha.12"
+  version: "4.3.0-alpha.1"
 modules:
   webtrigger:
     # TODO: Debug 使用，生产环境禁止调用下面的 trigger
@@ -256,11 +256,13 @@ modules:
       title: 测试管理模板创建
       loadType: Micro
       route: /reportCreator
+      hidden: true
     - key: test-report-view
       resource: main
-      title: 测试管理模板创建
+      title: 测试报告预览
       loadType: Micro
       route: /reportView
+      hidden: true
   beforeCreateOrUpdateModal:
     - key: before-create-or-update-modal
       resource: main

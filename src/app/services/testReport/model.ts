@@ -421,11 +421,14 @@ const chainChartDataAdaptor = (chartData, dataSource) => {
           try {
             const resultHandler = new Function(`return ${resultHandlerStr}`)();
             const result = resultHandler(customDataSourceResult);
+
+            chartData.option = adaptors[chartOptionAdaptor.key](
+              chartData.option,
+              chartOptionAdaptor,
+              result,
+            );
+
             console.info('result---------->', chartData, chartOptionAdaptor, result);
-
-            chartData.option = adaptors[chartOptionAdaptor.key](chartData.option, result);
-
-            console.info('chartData---------->', chartData);
           } catch (err) {
             console.error('result handler execute error: ', err);
           }

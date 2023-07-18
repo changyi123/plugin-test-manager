@@ -5,20 +5,23 @@ const RequestTimeout = 15000;
 
 import { buildResponse, getReqInfoFromVMRuntime } from '../../lib/apiUtil';
 
+const XSeaInfo = global.env?.SHENWAN_XSEA_INFO ?? {};
+const PerfMaInfo = global.env?.SHENWAN_PERFMA_INFO ?? {};
+
 const PlatformInfo = {
   /** XSea 平台 */
   XSea: {
-    BaseUrl: 'http://192.168.136.104:8081',
-    AccessKeySecret: '009cb503cbd54584a031494ef492b7b6',
-    AccessKeyId: '95d0a7da081949d8b592d34f9c826390',
-    AccountName: 'baidu',
+    BaseUrl: XSeaInfo?.BaseUrl ?? 'http://192.168.136.104:8081',
+    AccessKeySecret: XSeaInfo?.AccessKeySecret ?? '009cb503cbd54584a031494ef492b7b6',
+    AccessKeyId: XSeaInfo?.AccessKeyId ?? '95d0a7da081949d8b592d34f9c826390',
+    AccountName: XSeaInfo?.AccountName ?? 'baidu',
   },
   /** 笨马平台 */
   PerfMa: {
-    BaseUrl: 'http://192.168.136.56:8088',
-    AccessKeySecret: '3d0c3b01ec4942e28f5c70af6e73b865',
-    AccessKeyId: 'c6dc17c7d9ce420ebbb8ec90783eccb2',
-    AccountName: 'baidu',
+    BaseUrl: PerfMaInfo?.BaseUrl ?? 'http://192.168.136.90:8088',
+    AccessKeySecret: PerfMaInfo?.AccessKeySecret ?? '2692ff7d2aff4f55b930cc59dbc9efe9',
+    AccessKeyId: PerfMaInfo?.AccessKeyId ?? 'a155224294f64734bf33aecc88e194ae',
+    AccountName: PerfMaInfo?.AccountName ?? 'baidu',
   },
 } as const;
 
@@ -66,7 +69,7 @@ const requestXSeaPlan = async name => {
     },
   });
 
-  console.info('XSea res ------------->', res);
+  console.info('XSea res ------------->', authInfo.headers, requestInfo.body, res);
 
   return res.object;
 };
@@ -93,9 +96,9 @@ const requestPerfMaPlan = async name => {
     },
   });
 
-  console.info('PerfMa res ------------->', res);
+  console.info('PerfMa res ------------->', authInfo.headers, requestInfo.body, res);
 
-  return res.object;
+  return res.object?.reportUrl ?? '';
 };
 
 /** 申万测试报告信息，对接申万笨马，XSea 平台接口 */

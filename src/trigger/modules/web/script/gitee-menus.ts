@@ -91,7 +91,7 @@ export const runGiteeMenus = async () => {
 
     const appWorkspace = await getParseQuery(false, 'AppsWorkspace')
       .equalTo('appKey', APP_KEY)
-      .equalTo('environmentKey', 'production')
+      // .equalTo('environmentKey', 'production')
       .include('workspaces')
       .first(ParseBaseQueryOptions);
 
