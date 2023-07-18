@@ -22,9 +22,12 @@ export const queryTestReport = async () => {
   };
 
   if (body.versionName) {
+    const majorVersionNames = Array.from(
+      new Set(body.versionName.split(',').map(versionName => versionName.replace(/patch\d+$/, ''))),
+    );
     // 查询所有的版本
     const version = await versionQuery
-      .equalTo('name', body.versionName)
+      .containedIn('name', majorVersionNames)
       .select(['name', 'objectId'])
       .first(parseOptions)
       .then(i => i?.toJSON());
