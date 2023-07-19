@@ -317,8 +317,17 @@ export const getPluginBoundWorkspaces = async () => {
   if (global) {
     boundWorkspaces = await new Parse.Query(Workspace).findAll({ json: true });
   } else {
+    if (!Array.isArray(appWorkspace?.workspaces)) {
+      return [];
+    }
+
+    // 兼容旧的数据结构
+    if (appWorkspace.workspaces.every(w => w && typeof w === 'object')) {
+      return appWorkspace?.workspaces ?? [];
+    }
+
     boundWorkspaces = await new Parse.Query(Workspace)
-      .containedIn('key', appWorkspace?.workspaces ?? [])
+      .containedIn('key', appWorkspace?.workspaces)
       .findAll({ json: true });
   }
   return boundWorkspaces;

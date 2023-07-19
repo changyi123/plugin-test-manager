@@ -32,17 +32,17 @@ class PageGuard implements Guard {
       return Object.keys(authInfo)
         .filter(key => Array.isArray(authConfig[key]))
         .some(key => {
-          return authConfig[key].includes(authInfo.key);
+          return authConfig[key].includes(authInfo[key]);
         });
     }
 
     // 白名单校验
     if (guardConfig.whitelist) {
-      this.activated = !userOrRoleIncludeCheck(guardConfig.whitelist);
+      this.activated = userOrRoleIncludeCheck(guardConfig.whitelist);
     }
     // 黑名单校验
     if (guardConfig.blacklist) {
-      this.activated = userOrRoleIncludeCheck(guardConfig.blacklist);
+      this.activated = !userOrRoleIncludeCheck(guardConfig.blacklist);
     }
 
     return this.activated;
