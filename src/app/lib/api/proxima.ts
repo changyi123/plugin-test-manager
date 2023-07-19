@@ -309,14 +309,19 @@ export const getPluginBoundWorkspaces = async () => {
   const appWorkspace = await new Parse.Query(AppsWorkspace)
     .equalTo('appKey', TEST_MANAGER_PLUGIN_KEY)
     .include('workspaces')
-    .first();
+    .first({ json: true });
 
-  const global = appWorkspace ? appWorkspace.get('global') : true;
+  const global = appWorkspace ? appWorkspace.global : true;
+  let boundWorkspaces = [];
+
   if (global) {
-    const boundWorkspaces = await new Parse.Query(Workspace).findAll();
-    return boundWorkspaces.map(w => w.toJSON());
+    boundWorkspaces = await new Parse.Query(Workspace).findAll({ json: true });
+  } else {
+    boundWorkspaces = await new Parse.Query(Workspace)
+      .containedIn('key', appWorkspace?.workspaces ?? [])
+      .findAll({ json: true });
   }
-  return appWorkspace?.toJSON()?.workspaces ?? [];
+  return boundWorkspaces;
 };
 
 /** 更新被测试管理插件关联的事项层级方案 */

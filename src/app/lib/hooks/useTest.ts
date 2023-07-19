@@ -114,8 +114,8 @@ export const useAllTestWorkspace = () => {
     },
     {
       cacheKey: 'AllTestWorkspaces',
-      cacheTime: 99999999999,
-      staleTime: 99999999999,
+      cacheTime: -1,
+      staleTime: -1,
     },
   );
 
