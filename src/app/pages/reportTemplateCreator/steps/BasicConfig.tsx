@@ -4,6 +4,7 @@ import { eq } from 'lodash';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { getWorkspaceByKey } from '@/lib/api/proxima';
 import { TestReportMaxNameLength } from '@/lib/testReport';
 import { testReportMutation } from '@/services/mutation';
 
@@ -59,8 +60,22 @@ const BasicConfig: React.FC<{
 
           return;
         }
+
+        // 从 url 中获取对应的 workspaceKey, 并查询 workspaceId
+        const workspaceKey =
+          new URLSearchParams(window.location.search).get('workspaceKey') ?? null;
+
+        let workspaceId = null;
+        if (workspaceKey) {
+          const workspace = await getWorkspaceByKey(workspaceKey);
+          if (workspace) {
+            workspaceId = workspace.objectId;
+          }
+        }
+
         const testReportTemplate = await createTestReport({
-          isGlobalTemplate: true,
+          workspace: workspaceId,
+          isGlobalTemplate: !workspaceId,
           isDefaultTemplate: false,
           templateConfig: {
             dataSource: {},
@@ -72,7 +87,12 @@ const BasicConfig: React.FC<{
         message.success(scopedT('message.createReportTemplateSuccess'));
         // 创建测试测试报告
       } catch (err) {
-        message.error(err?.errorFields[0]?.errors[0]);
+        if (err?.message) {
+          message.error(err?.message);
+        }
+        if (err?.errorFields[0]?.errors[0]) {
+          message.error(err?.errorFields[0]?.errors[0]);
+        }
         throw err;
       }
     },
@@ -86,7 +106,13 @@ const BasicConfig: React.FC<{
           <p className={cx('label', 'required')}>{scopedT('form.name.label')}</p>
           <Form.Item
             name="name"
-            rules={[{ required: true, message: scopedT('form.name.error') }]}
+            rules={[
+              { required: true, message: scopedT('form.name.error') },
+              {
+                max: 25,
+                message: scopedT('form.name.error'),
+              },
+            ]}
             noStyle
           >
             <Input

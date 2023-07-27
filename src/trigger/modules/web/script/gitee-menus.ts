@@ -1,5 +1,4 @@
-// import { TestConfigClassName } from '../../../../common/constant';
-import { getAppsData, getParseQuery, i18n } from '@giteeteam/apps-team-api';
+import { getParseQuery, i18n } from '@giteeteam/apps-team-api';
 
 const log = (msg, ...restArgs) => {
   console.info(`[testManager] ${msg}`, ...restArgs);
@@ -27,7 +26,7 @@ export const runGiteeMenus = async () => {
     sessionToken: global.sessionToken,
   };
 
-  const getGiteeMenusConfig = async (appId, workspaceKey) => {
+  const getGiteeMenusConfig = async workspaceKey => {
     const tenantKey = getTenantKey();
     const productPrefix = getProductPrefix();
 
@@ -61,7 +60,6 @@ export const runGiteeMenus = async () => {
 
     // 是否开启测试报告
     const enableTestReport = global.env?.FEATURE_FLAGS?.includes('ENABLE_TEST_REPORT');
-    console.info('enableTestReport-----------------', global.env?.FEATURE_FLAGS, enableTestReport);
 
     const menus = [
       { pageKey: 'test-plan', langKey: 'plan' },
@@ -75,14 +73,25 @@ export const runGiteeMenus = async () => {
     return menus;
   };
 
-  // const appQuery = getParseQuery(false, 'App');
   const workspaceKey = getWorkspaceKey();
 
   const responser = async () => {
     if (!workspaceKey) throw new Error('NO_WORKSPACE_KEY');
+    console.info(
+      'test_manager_global.env.ENABLE_PLUGIN_WORKSPACE_KEY',
+      global.env.ENABLE_PLUGIN_WORKSPACE_KEY,
+    );
+    // 判断环境变量中是否有 ENABLE_PLUGIN_WORKSPACE_KEY, 如果有则直接对比判断，不走应用中心表查询
+    if (Array.isArray(global?.env?.ENABLE_PLUGIN_WORKSPACE_KEY)) {
+      const isEnabled = global.env.ENABLE_PLUGIN_WORKSPACE_KEY.includes(workspaceKey);
+      if (isEnabled) {
+        return getGiteeMenusConfig(workspaceKey);
+      }
+    }
 
     const appWorkspace = await getParseQuery(false, 'AppsWorkspace')
       .equalTo('appKey', APP_KEY)
+      // .equalTo('environmentKey', 'production')
       .include('workspaces')
       .first(ParseBaseQueryOptions);
 
@@ -94,9 +103,7 @@ export const runGiteeMenus = async () => {
       if (!hasTestManagerPlugin) throw new Error('CURRENT_WORKSPACE_NOT_TEST_INSTALLED');
     }
 
-    const appData = await getAppsData('Apps', { key: APP_KEY });
-    const appId = appData.objectId;
-    return getGiteeMenusConfig(appId, workspaceKey);
+    return getGiteeMenusConfig(workspaceKey);
   };
 
   try {

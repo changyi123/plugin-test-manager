@@ -19,6 +19,7 @@ import AttachmentUpload from './AttachmentUpload';
 import DefectList from './DefectList';
 import ExecutionEditor from './ExecutionEditor';
 import ItemLinkTable from './ItemLinkTable';
+import { useSaveTriggerEvent } from './SaveTriggerEvent';
 // import TestComment from './TestComment';
 import cx from './TestRun.less';
 import TestStep from './TestStep';
@@ -77,6 +78,7 @@ const getDefectIds = data =>
 
 const TestRun: React.FC<TestRunType> = props => {
   const { t } = useI18n();
+  const event = useSaveTriggerEvent();
   const { idSequence = [], selectedTestPlanId } = props;
   const [autoNext, setAutoNext] = useSessionStorageState(
     generateStorageKey(TEST_RUN_AUTO_NEXT_KEY),
@@ -148,6 +150,7 @@ const TestRun: React.FC<TestRunType> = props => {
 
   // 执行下一个测试用例
   const nextTestRun = React.useCallback(() => {
+    event.emit();
     const nextIndex = canExecuteTestRunIdSequence.indexOf(testId) + 1;
     if (!canExecNext || nextIndex === canExecuteTestRunIdSequence.length) {
       return message.warning(t('components.business.testRunModal.testRun.runTips'));
@@ -155,7 +158,7 @@ const TestRun: React.FC<TestRunType> = props => {
 
     console.info('canExecuteTestRunIdSequence', canExecuteTestRunIdSequence, nextIndex);
     setTestId(canExecuteTestRunIdSequence[nextIndex]);
-  }, [canExecuteTestRunIdSequence, testId, setTestId, canExecNext, t]);
+  }, [event, canExecuteTestRunIdSequence, testId, canExecNext, t]);
 
   const handleStatusChange = useMemoizedFn(
     async (status, isStepChange = false) => {

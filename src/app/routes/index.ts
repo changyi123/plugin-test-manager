@@ -14,10 +14,8 @@ const routes = [
     exact: true,
   },
   {
-    path: '/xmindimport',
-    component: React.lazy(
-      () => import(/* webpackChunkName: "route_xMindImport" */ '../pages/xMindImport'),
-    ),
+    path: '/xmindImport',
+    component: React.lazy(() => import('../pages/xMindImport')),
     exact: true,
   },
   {
@@ -57,6 +55,11 @@ const routes = [
           /* webpackChunkName: "route_reportTemplateCreator" */ '../pages/reportTemplateCreator'
         ),
     ),
+    exact: true,
+  },
+  {
+    path: '/reportView',
+    component: React.lazy(() => import('../pages/reportView')),
     exact: true,
   },
 ];

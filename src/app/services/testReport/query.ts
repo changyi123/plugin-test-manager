@@ -25,9 +25,11 @@ export const TestReportQueryKeys = {
 
 /** 获取空间内支持创建模板 */
 export const useWorkspaceTemplateListQuery = (params: {
-  workspace: string;
   name?: string;
+  workspace: string;
   pagination?: PaginationParams;
+  onlyWorkspaceTemplate?: boolean;
+  onlyGlobalTemplate?: boolean;
 }) => {
   return useQuery(
     TestReportQueryKeys.workspaceTemplateList(params),
@@ -40,18 +42,21 @@ export const useWorkspaceTemplateListQuery = (params: {
         return query;
       };
 
-      const query = Parse.Query.or(
-        buildBasicQuery().equalTo('isGlobalTemplate', true),
-        buildBasicQuery().equalTo('workspace', Workspace.createWithoutData(params.workspace)),
-      );
+      const subQueries = [
+        !params.onlyWorkspaceTemplate && buildBasicQuery().equalTo('isGlobalTemplate', true),
+        !params.onlyGlobalTemplate &&
+          buildBasicQuery().equalTo('workspace', Workspace.createWithoutData(params.workspace)),
+      ].filter(Boolean);
+
+      const query = Parse.Query.or(...subQueries);
 
       return bindPaginationToParseQuery(query, params.pagination)
-        .descending(['isDefaultTemplate', 'createdAt'])
+        .descending(['isDefaultTemplate', 'createdAt', 'workspace'])
         .find({ json: true });
     },
     {
       initialData: [],
-      enabled: Boolean(params.workspace),
+      enabled: Boolean(params && params.workspace),
     },
   );
 };
@@ -139,7 +144,8 @@ export const useAllTemplateList = (params?: { pagination?: PaginationParams }) =
     async () => {
       const query = new Parse.Query(TestReport)
         .equalTo('isTemplate', true)
-        .descending(['isDefaultTemplate', 'createdAt']);
+        .include('workspace')
+        .descending(['isDefaultTemplate', 'createdAt', 'workspace']);
 
       return bindPaginationToParseQuery(query, params?.pagination).find({ json: true });
     },

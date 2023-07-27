@@ -2,6 +2,7 @@ import { Input, Radio, Select } from 'antd';
 import React, { useMemo, useState } from 'react';
 
 import useI18n from '@/lib/hooks/useI18n';
+import { testConfigQuery } from '@/services/query';
 import { useWorkspaceTemplateListQuery } from '@/services/testReport/query';
 
 import { FormProps } from './RangeForm';
@@ -14,22 +15,34 @@ const TemplateForm: React.FC<FormProps> = ({ state, workspace }) => {
   const [selectStatus, setSelectStatus] = useState(undefined);
   const [exceedLength, setExceedLength] = useState(false);
 
+  const { data: globalConfig } = testConfigQuery.useGlobalTestConfig();
+
   const {
     data: { results: reportTemplateList },
     isLoading,
-  } = useWorkspaceTemplateListQuery({
-    workspace: workspace?.objectId,
-    pagination: { limit: 999 },
-  });
+  } = useWorkspaceTemplateListQuery(
+    globalConfig && {
+      pagination: { limit: 999 },
+      workspace: workspace?.objectId,
+      onlyGlobalTemplate: !globalConfig?.extra?.enableWorkspaceReportTemplate,
+    },
+  );
 
   const templateList = useMemo(
     () =>
       reportTemplateList?.map(d => ({
         ...d,
-        label: d.name,
+        label: (
+          <div className={cx('option')}>
+            {d.name}
+            <span className={cx('tag')}>
+              {d.workspace ? t('report.workspaceTemplate') : t('report.globalTemplate')}
+            </span>
+          </div>
+        ),
         value: d.objectId,
       })),
-    [reportTemplateList],
+    [reportTemplateList, t],
   );
 
   const options = useMemo(() => {
@@ -95,7 +108,7 @@ const TemplateForm: React.FC<FormProps> = ({ state, workspace }) => {
             status={selectStatus}
             showSearch
             filterOption={(input, option) =>
-              ((option?.label ?? '') as any)?.toLowerCase().includes(input.toLowerCase())
+              ((option?.label ?? '') as any)?.toLowerCase?.().includes(input?.toLowerCase?.())
             }
             onChange={val => {
               state.template = templateList.find(d => d.value === val) ?? {};

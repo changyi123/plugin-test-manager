@@ -5,6 +5,7 @@ import { isNil } from 'lodash';
 import React from 'react';
 
 import { featureFlags } from '@/lib/appEnv';
+import { withPageGuard } from '@/lib/guards/page';
 import useI18n from '@/lib/hooks/useI18n';
 
 import DataProvider from './DataProvider';
@@ -217,4 +218,4 @@ const Config = () => {
   );
 };
 
-export default React.memo(Config);
+export default withPageGuard('adminPage', Config);

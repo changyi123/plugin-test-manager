@@ -1,16 +1,20 @@
-import { PlusOutlined } from '@ant-design/icons';
 import createProximaSdk from '@projectproxima/proxima-sdk-js';
 import { Button, notification, Space, Spin } from 'antd';
 import isEmpty from 'lodash/isEmpty';
 import React, { useCallback, useRef } from 'react';
 
+import { ControlOutlined, PlusOutlined } from '@/icons';
 import { TestPlanModel } from '@/lib/constants';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import { selectorToIql } from '@/lib/utils/iql';
 import { TestReport } from '@/services/models';
+import { testConfigQuery } from '@/services/query';
 
 import CreateReportModel, { ActionType } from '../../Model/createReportModel';
+import ReportTemplateModal, {
+  ActionType as ReportTemplateModalActionType,
+} from '../../ReportTemplateModal';
 import cx from './index.less';
 
 const handleSelector = selector => {
@@ -29,15 +33,40 @@ const handleSelector = selector => {
   };
 };
 
-const getLinkPlanId = selector => {
-  if (!selector?.[TestPlanModel]) return null;
-  return selector[TestPlanModel].value?.map(d => d.value)?.filter(Boolean);
+const getReportOverviewData = selectors => {
+  const selectorDataGetters = {
+    test_manager_Plan(selector) {
+      if (!selector?.value) return null;
+      return {
+        testPlan: selector?.value?.map(i => i.value).filter(Boolean),
+      };
+    },
+    default(selector) {
+      if (!selector?.value) return null;
+      return {
+        [selector.key]: selector?.value?.map(i => i?.value ?? i?.id).filter(Boolean),
+      };
+    },
+  };
+
+  return Object.values(selectors ?? {}).reduce((res: any, selector: any) => {
+    return {
+      ...res,
+      ...(selectorDataGetters[selector.key] ?? selectorDataGetters.default)?.(selector),
+    };
+  }, {});
 };
 
 const ReportHeader: React.FC<any> = () => {
   const modalRef = useRef<ActionType>();
+  const reportTemplateModalActionRef = useRef<ReportTemplateModalActionType>();
+
   const { t } = useI18n();
   const { workspace, config } = useTestConfig();
+
+  const openReportTemplateModal = () => {
+    reportTemplateModalActionRef.current.open();
+  };
 
   const createReport = useCallback(async () => {
     const res: any = await modalRef.current.open({});
@@ -58,7 +87,7 @@ const ReportHeader: React.FC<any> = () => {
     const reportInfo = await testReport.createReport(res.template.objectId, {
       name: res.name,
       reportStatus: res.reportStatus,
-      reportOverviewData: { ...res.reportOverviewData, linkPlanId: getLinkPlanId(res.selectors) },
+      reportOverviewData: getReportOverviewData(res.selectors),
       dataSourceIql: iqlMap,
       workspace: workspace,
       defectsMapping: config?.defectsMapping,
@@ -78,20 +107,27 @@ const ReportHeader: React.FC<any> = () => {
     }
   }, [config?.defectsMapping, config?.itemTypeMap, workspace, t]);
 
+  const { data: globalConfig } = testConfigQuery.useGlobalTestConfig();
+
+  const enableWorkspaceReportTemplate = globalConfig?.extra?.enableWorkspaceReportTemplate ?? false;
+
   return (
     <>
       <div className={cx('report-header')}>
         <div className={cx('report-title')}>{t('common.testReport')}</div>
         <Space>
-          {/* <Button icon={<PlusOutlined />} onClick={() => {}}>
-            {t('report.templateSet')}
-          </Button> */}
+          {enableWorkspaceReportTemplate && (
+            <Button icon={<ControlOutlined />} onClick={() => openReportTemplateModal()}>
+              {t('report.templateSet')}
+            </Button>
+          )}
           <Button type="primary" icon={<PlusOutlined />} onClick={createReport}>
             {t('report.addReport')}
           </Button>
         </Space>
       </div>
 
+      <ReportTemplateModal workspace={workspace} actionRef={reportTemplateModalActionRef} />
       <CreateReportModel actionRef={modalRef} workspace={workspace}></CreateReportModel>
     </>
   );

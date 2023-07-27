@@ -45,8 +45,7 @@ const CreateReportModel: React.FC<CreateReportModelProps> = props => {
   React.useImperativeHandle(
     actionRef,
     () => ({
-      async open(params?: any) {
-        console.info('CreateReportModel ------------->', params);
+      async open(_params) {
         setVisible(true);
         eventBusRef.current.disposer();
         return new Promise(resolve => {

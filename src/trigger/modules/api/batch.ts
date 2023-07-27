@@ -432,8 +432,8 @@ export const batchCopyTestCase = async () => {
       type: data.type,
       sortIndex: generateSortIndex(index),
       workspace: data.workspace,
-      values: data.values,
       itemType: data.itemType,
+      values: data.values,
       detail: data.detail
         ? {
             ...data.detail,

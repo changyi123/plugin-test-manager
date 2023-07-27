@@ -224,6 +224,40 @@
         "uploadFile": "Upload report template",
         "uploadFileTips": "Please upload test report template"
       },
+      "testReportTemplate": {
+        "title": "Test Report Template Management",
+        "description": "Space Test Report Template",
+        "workspaceTemplateSetting": {
+          "title": "Space Template Settings",
+          "label": "Allow spaces to customize test report templates",
+          "updateSuccess": "Template configuration updated successfully"
+        },
+        "table": {
+          "title": "Template Management",
+          "header": {
+            "name": "Title",
+            "action": "Action"
+          },
+          "action": {
+            "default": "Set as Default",
+            "view": "View",
+            "delete": "Delete"
+          },
+          "tag": {
+            "isGlobalTemplate": "Global",
+            "isDefaultTemplate": "Default",
+            "workspace": "WorkSpace"
+          }
+        },
+        "buttons": {
+          "create": "Create Report Template"
+        },
+        "message": {
+          "setDefaultSuccess": "Default template set successfully",
+          "deleteSuccess": "Test report template deleted successfully",
+          "deleteConfirm": "Are you sure you want to delete this test report template?"
+        }
+      },
       "isolatedSystem": {
         "title": "Test system isolation",
         "description": "Configure the test management system to be isolated from the business system"
@@ -239,6 +273,162 @@
       "workspaceSelectorModal": {
         "modelTitle": "Please select test management configuration workspace",
         "placeholder": "Please select a workspace"
+      },
+      "reportTemplateCreator": {
+        "creatorTitle": "New Report Template",
+        "editorTitle": "Edit Test Report Template",
+        "nameExisted": "Template name already exists",
+        "templateExisted": "Template already exists",
+        "templateNameTooLong": "Template name is too long",
+        "reportNameTooLong": "Report name is too long",
+        "button": {
+          "next": "Next",
+          "finish": "Save"
+        },
+
+        "steps": {
+          "basic": "Basic Information",
+          "template": "Interface Configuration",
+          "dataSource": "Data Source Configuration"
+        },
+        "templateConfig": {
+          "message": {
+            "nextButtonClickConfirm": "Please confirm whether the dashboard configuration has been saved?"
+          }
+        },
+        "basicConfig": {
+          "title": "Basic Information",
+          "message": {
+            "createReportTemplateSuccess": "Test report template created successfully",
+            "updateReportTemplateSuccess": "Test report template updated successfully"
+          },
+          "form": {
+            "name": {
+              "label": "Template Title",
+              "placeholder": "Please enter template title",
+              "error": {
+                "required": "Template title is required",
+                "maxLength": "Template title can have a maximum of 25 characters"
+              }
+            }
+          }
+        },
+        "dataSourceConfig": {
+          "subtitle": {
+            "addDataSource": "Add Data Source",
+            "bindDataSource": "Report Data Source"
+          },
+          "label": {
+            "plan": "Selected Test Plan",
+            "sprint": "Selected Iteration",
+            "version": "Selected Version",
+            "workspace": "Selected Workspace",
+            "currentWorkspace": "Current Workspace",
+
+            "TestCase": "All Test Cases",
+            "TestRun": "All Test Runs",
+            "TestDefect": "All Defects"
+          },
+          "title": "Data Rule Configuration",
+          "select": {
+            "placeholders": {
+              "firstLevel": "Please select data source scope",
+              "secondLevel": "Please select data source scope"
+            }
+          },
+          "message": {
+            "dataSourceConfigSaveSuccess": "Data source configuration saved successfully",
+            "addDataSourceSuccess": "Data source added successfully",
+            "deleteDataSourceSuccess": "Data source deleted successfully",
+            "dataSourceExisted": "This data source already exists"
+          },
+          "button": {
+            "addDataSource": "Add"
+          },
+          "table": {
+            "title": {
+              "chartName": "Dashboard Widget",
+              "dataSource": "Data Source"
+            }
+          }
+        }
+      }
+    },
+    "reportTemplateCreator": {
+      "creatorTitle": "Create Report Template",
+      "editorTitle": "Edit Test Report Template",
+      "nameExisted": "Template name already exists",
+      "templateExisted": "Template already exists",
+      "templateNameTooLong": "Template name is too long",
+      "reportNameTooLong": "Report name is too long",
+      "button": {
+        "next": "Next",
+        "finish": "Save"
+      },
+
+      "steps": {
+        "basic": "Basic Information",
+        "template": "Interface Configuration",
+        "dataSource": "Data Source Configuration"
+      },
+      "templateConfig": {
+        "message": {
+          "nextButtonClickConfirm": "Please confirm whether the dashboard configuration has been saved?"
+        }
+      },
+      "basicConfig": {
+        "title": "Basic Information",
+        "message": {
+          "createReportTemplateSuccess": "Test report template created successfully",
+          "updateReportTemplateSuccess": "Test report template updated successfully"
+        },
+        "form": {
+          "name": {
+            "label": "Template Name",
+            "placeholder": "Please enter template name",
+            "error": "Template name is required"
+          }
+        }
+      },
+      "dataSourceConfig": {
+        "subtitle": {
+          "addDataSource": "Add Data Source",
+          "bindDataSource": "Report Data Source"
+        },
+        "label": {
+          "plan": "Selected Test Plan",
+          "sprint": "Selected Iteration",
+          "version": "Selected Version",
+          "workspace": "Selected Workspace",
+          "currentWorkspace": "Current Workspace",
+          "customDataSource": "Custom Data Source",
+
+          "TestCase": "All Test Cases",
+          "TestRun": "All Test Runs",
+          "TestDefect": "All Defects"
+        },
+        "title": "Data Rule Configuration",
+        "select": {
+          "placeholders": {
+            "firstLevel": "Please select the data source scope",
+            "secondLevel": "Please select the data source scope"
+          }
+        },
+        "message": {
+          "dataSourceConfigSaveSuccess": "Data source configuration saved successfully",
+          "addDataSourceSuccess": "Data source added successfully",
+          "deleteDataSourceSuccess": "Data source deleted successfully",
+          "dataSourceExisted": "The data source already exists"
+        },
+        "button": {
+          "addDataSource": "Add"
+        },
+        "table": {
+          "title": {
+            "chartName": "Dashboard Widget",
+            "dataSource": "Data Source"
+          }
+        }
       }
     },
     "plan": {

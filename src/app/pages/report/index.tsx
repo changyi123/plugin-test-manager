@@ -5,8 +5,10 @@ import TestManagerProvider from '@/components/business/TestManagerProvider';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
 import getDevConfig from '@/devEnv';
 import { logPluginVersion } from '@/lib/utils/helper';
+import { useResizeContainerDOM } from '@/pages/plan/PlanPageLayout/hooks';
 
-import View from './View';
+import ReportHeader from './View/Header';
+import List from './View/List';
 
 logPluginVersion();
 
@@ -14,10 +16,14 @@ const TestPlanPage = () => {
   const { context } = useSDK();
 
   const workspaceKey = context?.env?.WORKSPACE_KEY ?? getDevConfig().workspaceKey;
+  useResizeContainerDOM();
   return (
     <ErrorBoundary>
       <TestManagerProvider workspaceKey={workspaceKey}>
-        <View />
+        <div style={{ height: '100%' }}>
+          <ReportHeader />
+          <List />
+        </div>
       </TestManagerProvider>
     </ErrorBoundary>
   );

@@ -17,6 +17,7 @@
       "report": "测试报告",
       "plan": "测试计划"
     },
+    "noPermissionToAccess": "当前用户无权限访问",
     "pleaseInputContent": "请输入内容",
     "updateAt": "修改时间",
     "success": "成功",
@@ -107,6 +108,31 @@
     "curWorkspace": "当前空间"
   },
   "report": {
+    "workspaceReportTemplate": {
+      "modalTitle": "空间测试报告模板管理",
+      "deleteConfirm": {
+        "title": "确认",
+        "content": "请确认是否删除该模板？",
+        "okText": "删除"
+      },
+      "message": {
+        "deleteSuccess": "模板删除成功",
+        "setDefaultSuccess": "默认模板设置成功"
+      },
+      "buttons": {
+        "create": "新建测试报告模板",
+        "edit": "编辑",
+        "delete": "删除",
+        "setDefault": "设置默认"
+      },
+      "tableColumns": {
+        "action": "操作",
+        "name": "模板名称",
+        "createdAt": "创建时间"
+      }
+    },
+    "globalTemplate": "全局",
+    "workspaceTemplate": "空间",
     "pass": "通过",
     "noPass": "未通过",
     "partPass": "部分通过",
@@ -124,14 +150,39 @@
     "selectTemplate": "输入名称和选择模板",
     "selectRange": "选择统计范围",
     "validateTips": "存在未填字段，请检查必填字段",
-    "view": "查看",
     "deleteTip1": "该操作会将测试报告删除，是否继续操作？",
     "createLoading": "测试报告创建中",
     "templateSet": "模板设置",
     "testReport": "测试报告",
     "addSuccess": "创建成功",
     "addFail": "创建失败",
-    "export": "导出"
+    "export": "下载",
+    "buttons": {
+      "delete": "删除",
+      "view": "查看",
+      "more": "更多",
+      "sendReport": "发送报告"
+    },
+    "seneReportModal": {
+      "modalTitle": "发送报告",
+      "sendType": {
+        "label": "发送方式",
+        "siteMessage": "站内信",
+        "email": "邮件"
+      },
+      "sendTo": {
+        "label": "添加发送人",
+        "selectorTagName": "项目负责人"
+      },
+      "button": {
+        "send": "发送"
+      },
+      "message": {
+        "sendSuccess": "消息发送成功",
+        "sendTypeEmpty": "请选择发送方式",
+        "sendToEmpty": "请选择发送人"
+      }
+    }
   },
   "status": {
     "PASSED": {
@@ -224,7 +275,12 @@
       },
       "testReportTemplate": {
         "title": "测试报告模板管理",
-        "description": "全局空间测试报告模板",
+        "description": "空间测试报告模板",
+        "workspaceTemplateSetting": {
+          "title": "空间模板设置",
+          "label": "允许空间自定义测试报告模板",
+          "updateSuccess": "模板配置更新成功"
+        },
         "table": {
           "title": "模板管理",
           "header": {
@@ -238,7 +294,8 @@
           },
           "tag": {
             "isGlobalTemplate": "全局",
-            "isDefaultTemplate": "默认"
+            "isDefaultTemplate": "默认",
+            "workspace": "空间"
           }
         },
         "buttons": {
@@ -299,7 +356,10 @@
           "name": {
             "label": "模板标题",
             "placeholder": "请输入模板标题",
-            "error": "模板标题必填"
+            "error": {
+              "required": "模板标题必填",
+              "maxLength": "模板标题最多输入 25 个字符"
+            }
           }
         }
       },
@@ -314,6 +374,7 @@
           "version": "所选版本",
           "workspace": "所选空间",
           "currentWorkspace": "当前空间",
+          "customDataSource": "自定义数据源",
 
           "TestCase": "所有的测试用例",
           "TestRun": "所有的测试执行",
@@ -326,11 +387,17 @@
             "secondLevel": "请选择数据源范围"
           }
         },
+        "placeholder": {
+          "customDataSourceName": "请输入自定义数据源名称",
+          "customDataSourceConfigData": "请输入自定义数据源配置数据"
+        },
         "message": {
           "dataSourceConfigSaveSuccess": "数据源配置保存成功",
           "addDataSourceSuccess": "添加数据源成功",
           "deleteDataSourceSuccess": "数据源删除成功",
-          "dataSourceExisted": "该数据源已存在"
+          "dataSourceExisted": "该数据源已存在",
+          "customDataSourceNameRequired": "自定义数据源名称必填",
+          "invalidCustomDataSourceConfigData": "自定义数据源配置数据格式错误，配置数据需为 JSON 字符传"
         },
         "button": {
           "addDataSource": "添加"

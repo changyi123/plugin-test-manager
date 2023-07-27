@@ -1,6 +1,6 @@
 import { useListener } from '@projectproxima/proxima-sdk-js';
 import useDebounce from 'ahooks/lib/useDebounce';
-import { Button, Pagination } from 'antd';
+import { Button, Dropdown, message, Pagination } from 'antd';
 import React, { useCallback, useRef, useState } from 'react';
 
 import type { BusinessTableActionType } from '@/components/common/BusinessTable/type';
@@ -9,12 +9,14 @@ import { BusinessTable } from '@/components/dynamicComponents';
 import { TestType } from '@/lib/constants';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
-import { actionConfirm, getProximaBasePath, getTenantKey } from '@/lib/utils/helper';
+import { genReportViewUrl } from '@/lib/testReport';
+import { actionConfirm } from '@/lib/utils/helper';
 import { TestReport } from '@/services/models';
 import { useWorkspaceReportListQuery } from '@/services/testReport/query';
 
 import ReportLinkPlan from '../../ReportLinkPlan';
 import ReportStatus from '../../ReportStatus';
+import SendReportModal, { ActionType } from '../../SendReportModal';
 import cx from './index.less';
 
 const PaginationFooterRender: React.FC<any> = ({
@@ -54,8 +56,8 @@ const PaginationFooterRender: React.FC<any> = ({
 const List: React.FC<any> = () => {
   const { t } = useI18n();
   const { workspace } = useTestConfig();
-  const workspaceKey = workspace?.key;
 
+  const sendReportModalRef = useRef<ActionType>();
   const [limit, setLimit] = useState<number>(10);
   const [offset, setOffset] = useState<number>(1);
   const [searchName, setSearchName] = useState<string>('');
@@ -75,22 +77,15 @@ const List: React.FC<any> = () => {
     },
   });
 
-  useListener('refreshTestReportTable', id => {
-    if (!id) return;
+  const goReportViewPage = testReportId => {
+    window.open(genReportViewUrl({ testReportId }), '_blank');
+  };
+
+  useListener('refreshTestReportTable', testReportId => {
+    if (!testReportId) return;
     refetch?.();
-    window.open(genReportDetail(id), '_blank');
+    goReportViewPage(testReportId);
   });
-
-  const genReportDetail = useCallback(
-    reportId => {
-      const baseUrl = getProximaBasePath() ? `${getProximaBasePath()}` : '/';
-      // 跳转到导入页面
-      const href = `${baseUrl}/${getTenantKey()}/workspaces/${workspaceKey}/plugin/test_manager_test-report/?fromWorkspace=${workspaceKey}&reportId=${reportId}&detail=true`;
-
-      return href;
-    },
-    [workspaceKey],
-  );
 
   const onChangeInput = useCallback(
     val => {
@@ -111,9 +106,7 @@ const List: React.FC<any> = () => {
         return (
           <div
             className={cx('test-report-title')}
-            onClick={() => {
-              window.open(genReportDetail(rowData.objectId), '_blank');
-            }}
+            onClick={() => goReportViewPage(rowData.objectId)}
           >
             {rowData.name}
           </div>
@@ -133,7 +126,14 @@ const List: React.FC<any> = () => {
       title: t('common.testPlan'),
       width: 200,
       render(_, rowData) {
-        return <ReportLinkPlan linkPlanId={rowData?.reportOverviewData?.linkPlanId} />;
+        return (
+          <ReportLinkPlan
+            linkPlanId={
+              // FIXME: 临时兼容，后期移除 linkPlanId 字段
+              rowData?.reportOverviewData?.testPlan ?? rowData?.reportOverviewData?.linkPlanId
+            }
+          />
+        );
       },
     },
     {
@@ -149,35 +149,61 @@ const List: React.FC<any> = () => {
               type="link"
               size="small"
               onClick={() => {
-                window.open(genReportDetail(rowData.objectId), '_blank');
+                goReportViewPage(rowData.objectId);
               }}
             >
-              {t('report.view')}
+              {t('report.buttons.view')}
             </Button>
-            {/* <Button type="link" size="small">
-              {t('common.download')}
-            </Button> */}
-            <Button
-              type="link"
-              size="small"
-              onClick={async () => {
-                actionConfirm(
+            <Dropdown
+              menu={{
+                items: [
                   {
-                    title: t('common.tip'),
-                    okText: t('common.okText'),
-                    cancelText: t('common.cancel'),
-                    content: <span>{t('report.deleteTip1')}</span>,
+                    key: 'sendReport',
+                    label: (
+                      <Button
+                        size="small"
+                        type="link"
+                        onClick={() => sendReportModalRef.current.open(rowData.objectId)}
+                      >
+                        {t('report.buttons.sendReport')}
+                      </Button>
+                    ),
                   },
-                  async () => {
-                    const testReport = new TestReport();
-                    await testReport.delete(rowData.objectId);
-                    refetch();
+                  {
+                    key: 'delete',
+                    label: (
+                      <Button
+                        danger
+                        type="link"
+                        size="small"
+                        onClick={async () => {
+                          actionConfirm(
+                            {
+                              title: t('common.tip'),
+                              okText: t('common.okText'),
+                              cancelText: t('common.cancel'),
+                              content: <span>{t('report.deleteTip1')}</span>,
+                            },
+                            async () => {
+                              const testReport = new TestReport();
+                              await testReport.delete(rowData.objectId);
+                              message.success(
+                                t('report.workspaceReportTemplate.message.deleteSuccess'),
+                              );
+                              refetch();
+                            },
+                          );
+                        }}
+                      >
+                        {t('report.buttons.delete')}
+                      </Button>
+                    ),
                   },
-                );
+                ],
               }}
             >
-              {t('common.delete')}
-            </Button>
+              <Button type="link">{t('report.buttons.more')}</Button>
+            </Dropdown>
           </>
         );
       },
@@ -221,6 +247,7 @@ const List: React.FC<any> = () => {
           )}
         />
       )}
+      <SendReportModal actionRef={sendReportModalRef} />
     </div>
   );
 };
