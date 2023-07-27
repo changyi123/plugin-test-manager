@@ -32,6 +32,7 @@ import { openMaxRenderNodeConfirm } from './MaxRenderNodeConfirm';
 const MaxModuleLevel = 8;
 const MaxRenderNodeCount = getAppEnv('MAX_RENDER_NODE_COUNT');
 const LargeNodeModeLimit = getAppEnv('LARGE_NODE_MODE_LIMIT');
+const UngroupedRepositoryKey = 'root';
 
 const EmptyNodeId = 'EmptyNodeId';
 
@@ -237,7 +238,7 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
             values: {
               priority: patch.priority,
             },
-            repository: repository?.objectId ?? 'UNGROUPED',
+            repository: repository?.objectId ?? UngroupedRepositoryKey,
           };
         });
 
@@ -262,7 +263,7 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
 
           if (modulePath) {
             const repository = getRepositoryDataFromLevelModulePaths(levelModulePaths, modulePath);
-            updateParams.repository = repository?.objectId ?? 'UNGROUPED';
+            updateParams.repository = repository?.objectId ?? UngroupedRepositoryKey;
           }
           if (steps || precondition) {
             updateParams.detail = {

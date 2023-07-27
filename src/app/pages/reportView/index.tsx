@@ -1,9 +1,9 @@
-import { ArrowLeftOutlined } from '@ant-design/icons';
-import { Button, message, Space } from 'antd';
+import { Button, Dropdown, message, Space } from 'antd';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { downloadTestReportView, genChartGroupPageUrl } from '@/lib/testReport';
+import { ArrowLeftOutlined } from '@/icons';
+import { exportWithDocx, exportWithHTML, genChartGroupPageUrl } from '@/lib/testReport';
 import { useTestReportByObjectId } from '@/services/testReport/query';
 
 import ReportStatus from '../report/ReportStatus';
@@ -25,11 +25,11 @@ const ReportView: React.FC = () => {
     window.open(redirectLink, '_self');
   };
 
-  const handleExportButtonClick = async () => {
+  const handleExportButtonClick = async type => {
     setExportLoading(true);
     const cancelLoading = message.loading('正在下载测试报告，情等待');
-    // TODO: 导出报告
-    await downloadTestReportView(reportData).finally(() => {
+    const exportFunc = type === 'html' ? exportWithHTML : exportWithDocx;
+    await exportFunc(reportData).finally(() => {
       cancelLoading();
       setExportLoading(false);
     });
@@ -99,9 +99,30 @@ const ReportView: React.FC = () => {
           </div>
           <Space>
             {exportButtonEnabled && (
-              <Button disabled={exportLoading} onClick={handleExportButtonClick}>
-                {t('report.export')}
-              </Button>
+              <Dropdown
+                menu={{
+                  items: [
+                    {
+                      key: 'exportHTML',
+                      label: (
+                        <span onClick={() => handleExportButtonClick('html')}>
+                          {t('report.exportHTML')}
+                        </span>
+                      ),
+                    },
+                    {
+                      key: 'exportWord',
+                      label: (
+                        <span onClick={() => handleExportButtonClick('word')}>
+                          {t('report.exportWord')}
+                        </span>
+                      ),
+                    },
+                  ],
+                }}
+              >
+                <Button loading={exportLoading}>{t('report.export')}</Button>
+              </Dropdown>
             )}
           </Space>
         </div>
@@ -115,7 +136,7 @@ const ReportView: React.FC = () => {
             </div>
             <div className={cx('overview')}>{/* TODO 概览信息 */}</div>
           </div>
-          <div className={cx('report-iframe')}>
+          <div className={cx('report-iframe')} id="report-iframe">
             <TestIframe
               onLoad={handleIframeLoad}
               src={genChartGroupPageUrl({ chartGroupId: reportData?.chartGroup?.objectId })}
