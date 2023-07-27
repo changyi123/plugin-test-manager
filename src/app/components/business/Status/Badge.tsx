@@ -112,10 +112,10 @@ const Badge: React.FC<BadgeProps> = props => {
       <Popover
         getPopupContainer={props.useRootContainer ? getRootContainer : () => badgeRef.current}
         trigger="click"
-        visible={visible}
+        open={visible}
         placement="bottomLeft"
         content={PopoverContent}
-        onVisibleChange={visible => !props.readonly && setVisible(visible)}
+        onOpenChange={visible => !props.readonly && setVisible(visible)}
         overlayClassName={cx('status-badge-overlay', 'status__overlay')}
       >
         {props.emptyNode ? (

@@ -16,6 +16,7 @@ export {
   ArrowLeftOutlined,
   QuestionCircleFilled,
   QuestionCircleOutlined,
+  ControlOutlined,
 } from '@ant-design/icons';
 
 export * from './customIcon';

@@ -102,8 +102,8 @@ const OverflowTooltip: React.FC<OverflowTooltip> = props => {
       overlayStyle={overlayStyle}
       overlayClassName={overlayClassName}
       title={title}
-      visible={visible}
-      onVisibleChange={handleVisibleChange}
+      open={visible}
+      onOpenChange={handleVisibleChange}
       getPopupContainer={getContainer}
     >
       {content}
