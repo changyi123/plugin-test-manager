@@ -470,12 +470,12 @@ const FolderTree: React.FC<FolderTreeProps> = ({
     <Dropdown
       key={t('page.repository.folderTree.buttonName.2')}
       disabled={selectedTreeNode?.key === UNGROUPED_FOLDER_KEY}
-      overlay={
+      dropdownRender={() => (
         <FolderMenu
           onClick={({ key }) => handleMenuClick(key, selectedTreeNode || {})}
           disabledKeys={folderMenuDisabledKeys}
         />
-      }
+      )}
     >
       <CustomMore className={cx(selectedTreeNode?.key === UNGROUPED_FOLDER_KEY && 'disabled')} />
     </Dropdown>,
@@ -530,12 +530,12 @@ const FolderTree: React.FC<FolderTreeProps> = ({
               className={cx('tree-node-length')}
             >{`${node?.counts[0]}(${node?.counts[1]})`}</span>
             <Dropdown
-              overlay={
+              dropdownRender={() => (
                 <FolderMenu
                   disabledKeys={getDisabledKeys()}
                   onClick={({ key }) => handleMenuClick(key, node)}
                 />
-              }
+              )}
             >
               <CustomMore
                 title=""

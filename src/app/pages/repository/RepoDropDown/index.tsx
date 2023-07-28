@@ -139,7 +139,7 @@ const RepoDropDown = ({
 
   return (
     <>
-      <Dropdown overlay={menu} placement="bottomLeft">
+      <Dropdown dropdownRender={() => menu} placement="bottomLeft">
         <Button className={classnames(className)} icon={<CustomMore />} />
       </Dropdown>
     </>

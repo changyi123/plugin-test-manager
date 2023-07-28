@@ -58,7 +58,9 @@ const OverflowTooltipBodyCell = props => {
 
   return (
     <td {...tdProps}>
-      <OverflowTooltip title={props.children}>{props.children}</OverflowTooltip>
+      <OverflowTooltip overlayClassName="global_arrow_tooltip_overflow" title={props.children}>
+        {props.children}
+      </OverflowTooltip>
     </td>
   );
 };

@@ -115,6 +115,7 @@ const PanelTable: React.FC<PanelTableProps> = props => {
             <div className={cx('actions')}>
               {actionMenuList.map((action, index) => (
                 <Popconfirm
+                  overlayClassName="global-popconfirm"
                   key={index}
                   placement="right"
                   getPopupContainer={getRootContainer}

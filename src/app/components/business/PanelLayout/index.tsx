@@ -30,24 +30,28 @@ const PanelLayout: React.FC<PanelLayoutProps> = props => {
   const useTabsComponent = Array.isArray(tabs) && tabs.length > 0;
 
   return (
-    <div className={cx('panel')}>
+    <div className={`${cx('panel')} PanelLayout`}>
       {useTabsComponent ? (
         <Tabs
           destroyInactiveTabPane
           className={cx('panel__tabs')}
           defaultActiveKey={tabs[0]?.key}
-          {...tabsProps}
-        >
-          {tabs.map(tab => {
-            const { Component } = tab;
-            return (
-              <Tabs.TabPane key={tab.key} {...tab}>
-                <div id={AlertDOMContainerId} />
-                <Component />
-              </Tabs.TabPane>
-            );
+          items={tabs.map(tab => {
+            console.log('diu_tab', tab);
+            const { Component, key } = tab;
+            return {
+              label: tab.tab,
+              key,
+              children: (
+                <>
+                  <div id={AlertDOMContainerId} />
+                  <Component />
+                </>
+              ),
+            };
           })}
-        </Tabs>
+          {...tabsProps}
+        ></Tabs>
       ) : (
         <>
           <div id={AlertDOMContainerId} />
