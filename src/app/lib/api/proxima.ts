@@ -315,7 +315,7 @@ export const getPluginBoundWorkspaces = async () => {
   let boundWorkspaces = [];
 
   if (global) {
-    boundWorkspaces = await new Parse.Query(Workspace).findAll({ json: true });
+    boundWorkspaces = await new Parse.Query(Workspace).find({ limit: 999, json: true });
   } else {
     if (!Array.isArray(appWorkspace?.workspaces)) {
       return [];
