@@ -268,7 +268,11 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
         </Button>
       )}
       {!titleCellOption?.isHideIcon && (
-        <Tooltip placement="topRight" title={t('components.common.businessTable.tableSetting')}>
+        <Tooltip
+          overlayClassName={cx('overlay-tooltip')}
+          placement="topRight"
+          title={t('components.common.businessTable.tableSetting')}
+        >
           <Setting className={cx(className, 'setting-icon')} onClick={() => setVisible(true)} />
         </Tooltip>
       )}

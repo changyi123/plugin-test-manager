@@ -1,5 +1,4 @@
-import { useDataQuoteStore } from '@giteeteam/apps-team-components';
-import { LibraryProvider } from '@giteeteam/apps-team-components';
+import { LibraryProvider, useDataQuoteStore } from '@giteeteam/apps-team-components';
 import { PluginSDKContext, useSDK } from '@projectproxima/plugin-sdk';
 import { useAntdTable, useLocalStorageState, useSize } from 'ahooks';
 import { Pagination, Table } from 'antd';
@@ -401,7 +400,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
   }, [dataSource, props.rowKey, setExpandedKeys]);
 
   return (
-    <div className={`${cx('table-container')} table-box`} ref={ref}>
+    <div className={`${cx('table-container')} table-box business-debug-table`} ref={ref}>
       <LibraryProvider
         lang={getLang()}
         workspaceKey={workspace?.key}

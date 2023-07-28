@@ -519,7 +519,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
       keyboard={false}
       open={visible}
       maskClosable={false}
-      className={cx('modal')}
+      className={`${cx('modal')} close-x-modal`}
       getContainer={getContainer ?? getTestManagerContainer}
       footer={ModalFooterNode}
       onCancel={() => {

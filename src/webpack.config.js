@@ -80,6 +80,7 @@ const outputConfig = isProd =>
         publicPath: '/',
         library: appPrefix,
         libraryTarget: 'umd',
+        chunkFilename: '[name].chunk.js',
       };
 
 const getLocalIdent = ({ resourcePath }, localIdentName, localName) => {
@@ -105,7 +106,7 @@ module.exports = (cliEnv = {}, argv) => {
 
   const isProd = mode === 'production';
   const isDev = mode === 'development';
-
+  console.log('isDev', isDev);
   const classNamesConfig = {
     loader: '@ecomfe/class-names-loader',
     options: {
@@ -153,12 +154,9 @@ module.exports = (cliEnv = {}, argv) => {
     entry: './app/index.tsx',
     mode: isProd ? 'production' : 'development',
     output: outputConfig(isProd),
-    devtool: (() => {
-      if (isDev) {
-        return 'source-map';
-      }
-      return false;
-    })(),
+    ...(isDev && {
+      devtool: 'source-map',
+    }),
     // 生产环境使用 proxima-app 传入的
     externals:
       isProd || PROXIMA_USE_EXTERNAL_DEPENDENCIES ? getExternalDependencies(isProd) : undefined,
@@ -241,7 +239,6 @@ module.exports = (cliEnv = {}, argv) => {
         {
           test: /\.css/,
           include: [
-            path.resolve(__dirname, '../../proxima-share-components/dist'),
             path.resolve(__dirname, '../node_modules/@giteeteam/apps-team-components/dist'),
           ],
           use: [
