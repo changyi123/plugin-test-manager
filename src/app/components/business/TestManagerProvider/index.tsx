@@ -10,22 +10,17 @@ import { v4 as uuid } from 'uuid';
 import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/hook';
 import { getTestConfig, getTestConfigByWorkspaceKeys } from '@/lib/api/common';
 import { getTestEntityByQuery, updateTestEntity } from '@/lib/api/item';
-import { getItemByIds, getItemTypeByKey, getWorkspaceByKey } from '@/lib/api/proxima';
+import { getItemByIds, getItemTypeByKey } from '@/lib/api/proxima';
 import { openCreateItemModal, openItemDetailPanel } from '@/lib/api/sdk';
-import {
-  CREATE_ITEM_STORE_FIELD_KEY,
-  ENTITY_NOT_FOUND,
-  ExtensionValType,
-  TestType,
-} from '@/lib/constants';
+import { CREATE_ITEM_STORE_FIELD_KEY, ExtensionValType, TestType } from '@/lib/constants';
 import { repositoryFolderTreeEvent } from '@/lib/events';
 import useI18n from '@/lib/hooks/useI18n';
 import { useOnItemCreateSuccess } from '@/lib/hooks/useProximaSDK';
 import { useGetWorkspaceRepository } from '@/lib/hooks/useTest';
-import { Workspace } from '@/lib/types/App';
 import { TestEntity } from '@/lib/types/Test';
 import { EventBus } from '@/lib/utils/eventBus';
 import { generateSortIndex, getKeyByValue, hasArrayItem } from '@/lib/utils/helper';
+import { commonQuery, testConfigQuery } from '@/services/query';
 
 import {
   BaseActionContext,
@@ -294,42 +289,26 @@ const messageKey = ItemCreateSuccessEventType + uuid();
 const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
   itemId,
   children,
-  workspaceKey,
+  workspaceKey: workspaceKeyFromProp,
 }) => {
   const proxima = createProximaSdk();
   const { t } = useI18n();
-  const [workspace, setWorkspace] = React.useState<Workspace>();
   const [testEntity, setTestEntity] = React.useState<TestEntity>();
+
+  const workspaceKey = itemId ? testEntity?.workspace?.key : workspaceKeyFromProp;
+
+  // 获取空间配置数据
+  const { data: workspace } = commonQuery.useWorkspace({ key: workspaceKey });
+  // 获取空间配置数据
+  const { data: testConfig = DefaultTestConfig } = testConfigQuery.useWorkspaceTestConfig({
+    workspaceKey,
+  });
 
   const { getCreatePermission } = useGetPermissions(workspace);
 
   React.useEffect(() => {
     proxima.execute('updateItemTypeEvent');
   }, [proxima]);
-
-  React.useEffect(() => {
-    const execute = async () => {
-      if (!workspaceKey) return;
-      const workspace = await getWorkspaceByKey(workspaceKey);
-      setWorkspace(workspace);
-    };
-    execute();
-  }, [workspaceKey]);
-
-  const { data: testConfig = DefaultTestConfig } = useRequest(
-    async () => {
-      const data = await getTestConfig({
-        workspaceKey: workspaceKey ?? workspace?.key,
-      });
-      return data?.toJSON() as unknown as TestConfigContextType['config'];
-    },
-    {
-      staleTime: 50000,
-      ready: !!workspace,
-      cacheKey: workspaceKey + workspace?.key,
-      refreshDeps: [workspaceKey, workspace?.key],
-    },
-  );
 
   // 获取测试实体，如果不存在测试实体（类型映射如果和事项匹配）需要新建
   React.useEffect(() => {
@@ -343,10 +322,18 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
         },
       });
 
+      setTestEntity(testEntity);
+      // 事项数据是否匹配测试实体类型
+      let isTestTypeMatched = false;
+      const itemTypeMappingKeys = Object.values(testConfig?.itemTypeMap ?? {});
+      if (itemTypeMappingKeys.length && testEntity?.itemType?.key) {
+        isTestTypeMatched = itemTypeMappingKeys.includes(testEntity?.itemType?.key);
+      }
+
       // 判断是否是测试实体
       const isTestEntity = testType => Object.values(TestType).includes(testType);
 
-      if (!isTestEntity(testEntity?.type)) {
+      if (isTestTypeMatched && !isTestEntity(testEntity?.type)) {
         // 不存在测试实体需要判断是否需要新建
         testEntity = await getOrCreateTestEntity(
           testEntity.objectId,
@@ -358,17 +345,6 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
             itemTypeMap: testConfig.itemTypeMap,
           },
         );
-      }
-
-      const entity = (isTestEntity(testEntity?.type)
-        ? testEntity
-        : ENTITY_NOT_FOUND) as unknown as TestEntity;
-
-      setTestEntity(entity);
-
-      if (testEntity) {
-        const workspace = testEntity.workspace;
-        workspace && setWorkspace(workspace as Workspace);
       }
     };
     if (itemId && testConfig) {
@@ -620,12 +596,12 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
     getGlobalConfig,
     getCreatePermission,
     getTestCaseRepositoryPath,
-    testConfig.defectsMapping,
-    testConfig?.itemTypeMap,
-    workspace?.objectId,
     testPlanFieldKeys,
     testCaseFieldKeys,
     testExecutionFieldKeys,
+    testConfig?.itemTypeMap,
+    testConfig.defectsMapping,
+    workspace,
     t,
   ]);
 
