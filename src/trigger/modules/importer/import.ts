@@ -148,19 +148,20 @@ export const runImport = async () => {
 
   const handleRepoPath = datas => {
     const getPath = (gro, _datas, path: any[] = []) => {
-      path.push(gro.name);
+      if (gro) {
+        path.push(gro.name);
 
-      if (gro.parentKey && gro.parentKey !== 'root') {
-        path = getPath(
-          _datas.find(d => d.objectId === gro.parentKey),
-          _datas,
-          path,
-        );
+        if (gro.parentKey && gro.parentKey !== 'root') {
+          path = getPath(
+            _datas.find(d => d.objectId === gro.parentKey),
+            _datas,
+            path,
+          );
+        }
       }
 
       return path;
     };
-
     return datas.map(d => ({
       ...d,
       path: getPath(d, datas).reverse().join('/'),
@@ -235,8 +236,12 @@ export const runImport = async () => {
     }));
 
     const taskQueue = needToUpdateItemValues.map(item => {
-      return async () =>
-        updateItems(item.objectId, {
+      return async () => {
+        console.info('<------------- updateItemValues ----------->', item.objectId, {
+          ...item.values,
+          r_test_manager_repository: testRepoMap.get(item.objectId),
+        });
+        return updateItems(item.objectId, {
           values: {
             ...item.values,
             r_test_manager_repository: testRepoMap.get(item.objectId),
@@ -246,6 +251,7 @@ export const runImport = async () => {
             skipHandleApps: true,
           },
         });
+      };
     });
 
     // TODO 更新事项 values

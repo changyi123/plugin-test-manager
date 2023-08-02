@@ -2,111 +2,111 @@
   height: 100%;
   background-color: #f5f6f8;
   overflow: auto;
+}
 
-  .report-header {
-    position: sticky;
-    top: 0;
-    box-shadow: 0px 2px 4px 0 #eee;
+.report-header {
+  position: sticky;
+  top: 0;
+  box-shadow: 0px 2px 4px 0 #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  background-color: #fff;
+
+  .report-header-title {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    padding: 16px 24px;
-    background-color: #fff;
+    cursor: pointer;
 
-    .report-header-title {
+    .title {
+      font-size: 18px;
+      line-height: 26px;
+      color: #091940;
+    }
+
+    .icon {
+      color: #091940;
+      margin-right: 8px;
+      font-size: 16px;
+    }
+  }
+}
+
+.report-body {
+  padding: 18px 24px;
+  height: ~'calc(100% - 64px)';
+
+  .report-overview {
+    box-sizing: border-box;
+    padding: 24px 16px 64px 16px;
+    border-radius: 4px;
+    background: linear-gradient(180deg, #0c62ff, #4dcbff);
+    cursor: pointer;
+
+    .title {
       display: flex;
       align-items: center;
-      cursor: pointer;
+      justify-content: space-between;
 
-      .title {
-        font-size: 18px;
-        line-height: 26px;
-        color: #091940;
+      .info {
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
 
-      .icon {
-        color: #091940;
-        margin-right: 8px;
-        font-size: 16px;
+      .icon-box {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 4px;
+        background-color: #ffffff33;
+
+        .editor-icon {
+          color: #ffffff;
+          font-size: 14px;
+          cursor: pointer;
+          z-index: 2;
+
+          // &:hover {
+          //   color: #0c62ff;
+          // }
+        }
+      }
+
+      .name {
+        font-size: 24px;
+        font-weight: 500;
+        color: #fff;
+        line-height: 32px;
+      }
+
+      .status {
+        display: flex;
+        margin-left: 8px;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        line-height: 16px;
+
+        &.pass {
+          color: #09b866;
+          background-color: #dff7e8;
+        }
       }
     }
   }
 
-  .report-body {
-    padding: 18px 24px;
-    height: ~'calc(100% - 64px)';
-
-    .report-overview {
-      box-sizing: border-box;
-      padding: 24px 16px 64px 16px;
-      border-radius: 4px;
-      background: linear-gradient(180deg, #0c62ff, #4dcbff);
-      cursor: pointer;
-
-      .title {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-
-        .info {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-
-        .icon-box {
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          width: 32px;
-          height: 32px;
-          border-radius: 4px;
-          background-color: #ffffff33;
-
-          .editor-icon {
-            color: #ffffff;
-            font-size: 14px;
-            cursor: pointer;
-            z-index: 2;
-
-            // &:hover {
-            //   color: #0c62ff;
-            // }
-          }
-        }
-
-        .name {
-          font-size: 24px;
-          font-weight: 500;
-          color: #fff;
-          line-height: 32px;
-        }
-
-        .status {
-          display: flex;
-          margin-left: 8px;
-          padding: 4px 8px;
-          border-radius: 4px;
-          font-size: 12px;
-          line-height: 16px;
-
-          &.pass {
-            color: #09b866;
-            background-color: #dff7e8;
-          }
-        }
-      }
-    }
-
-    .report-iframe {
-      display: flex;
-      margin-left: 18px;
-      margin-top: -30px;
-      width: ~'calc(100% - 36px)';
-      min-height: ~'calc(100% - 80px)';
-      background: #fff;
-      padding: 16px 6px;
-      border-radius: 4px;
-    }
+  .report-iframe {
+    display: flex;
+    margin-left: 18px;
+    margin-top: -30px;
+    width: ~'calc(100% - 36px)';
+    min-height: ~'calc(100% - 80px)';
+    background: #fff;
+    padding: 16px 6px;
+    border-radius: 4px;
   }
 }

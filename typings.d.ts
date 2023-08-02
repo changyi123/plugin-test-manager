@@ -24,3 +24,17 @@ declare type PointerType = string | Parse.Object | Parse.Pointer;
 declare module 'proxima-sdk';
 declare module 'vm';
 declare module 'test-manager-minder';
+
+declare global {}
+
+declare namespace Parse {
+  namespace Query {
+    interface FirstOptions {
+      json?: boolean;
+    }
+
+    interface FindOptions {
+      json?: boolean;
+    }
+  }
+}

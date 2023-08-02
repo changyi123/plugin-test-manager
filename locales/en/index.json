@@ -133,7 +133,35 @@
     "testReport": "Test report",
     "addSuccess": "created successfully",
     "addFail": "created failed",
-    "export": "export"
+    "export": "Export",
+    "exportHTML": "Export as HTML",
+    "exportWord": "Export as Word",
+    "buttons": {
+      "delete": "Delete",
+      "view": "View",
+      "more": "More",
+      "sendReport": "Send Report"
+    },
+    "seneReportModal": {
+      "modalTitle": "Send Report",
+      "sendType": {
+        "label": "Send Type",
+        "siteMessage": "Site Message",
+        "email": "Email"
+      },
+      "sendTo": {
+        "label": "Add Recipient",
+        "selectorTagName": "Project Manager"
+      },
+      "button": {
+        "send": "Send"
+      },
+      "message": {
+        "sendSuccess": "Message sent successfully",
+        "sendTypeEmpty": "Please select a send type",
+        "sendToEmpty": "Please select a recipient"
+      }
+    }
   },
   "status": {
     "PASSED": {

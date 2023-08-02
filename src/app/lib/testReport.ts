@@ -155,7 +155,7 @@ export const clearIframeLayoutEffect = () => {
 };
 
 // 下载测试报告
-export const downloadTestReportView = async testReportData => {
+export const exportWithDocx = async testReportData => {
   const iframe = document.body.querySelector('iframe');
 
   const title = testReportData.name;
@@ -233,4 +233,176 @@ export const downloadTestReportView = async testReportData => {
         URL.revokeObjectURL(url);
       });
     });
+};
+
+// 下载测试报告
+export const exportWithHTML = async testReportData => {
+  // iframe document 节点
+  const iframeDocument = document.body.querySelector('iframe')?.contentDocument.documentElement;
+  /** 获取导出的 html 字符传 */
+  const getExportIFrameHTMLString = async (): Promise<string> => {
+    // 删除无用的 dom 节点
+    const pruneDOMNode = async containerSelector => {
+      const copyNode = iframeDocument.cloneNode(true) as HTMLElement;
+
+      const retainTagNames = [
+        'STYLE',
+        // 'SCRIPT',
+        'META',
+        'TITLE',
+        'BODY',
+        'LINK',
+        'HEAD',
+        'HTML',
+        'QIANKUN-HEAD',
+      ];
+      const retainDomIds = ['webpack-style-holder'];
+
+      const container = copyNode.querySelector(containerSelector);
+
+      copyNode.querySelectorAll('*').forEach(node => {
+        if (
+          !retainDomIds.includes(node.id) &&
+          !retainTagNames.includes(node.tagName) &&
+          !(container.contains(node) || node.contains(container))
+        ) {
+          node.parentNode?.removeChild?.(node);
+        }
+      });
+
+      return copyNode;
+    };
+    // 由于 canvas 无法直接导出，所以需要将 canvas 转换为 img
+    const replaceCanvasNodeWithImage = async copyNode => {
+      const canvasNodes = iframeDocument.querySelectorAll('canvas');
+      const replacedCopyNodes = copyNode.querySelectorAll('canvas');
+      const tasks = Array.from(canvasNodes).map((canvasEle: HTMLCanvasElement, index) => {
+        return domtoimage
+          .toPng(canvasEle, {
+            quality: 1,
+            scale: 8,
+          })
+          .then(dataUrl => {
+            const img = new Image();
+            const canvasWrapperBounding = canvasEle.parentElement.getBoundingClientRect();
+            img.width = canvasWrapperBounding.width;
+            img.height = canvasWrapperBounding.height;
+            img.src = dataUrl;
+
+            const replacedCanvasNode = replacedCopyNodes[index];
+            replacedCanvasNode.parentNode.replaceChild(img, replacedCanvasNode);
+          });
+      });
+      console.info('tasks--------->', tasks);
+      await Promise.all(tasks);
+      console.info('copyNode------------------', copyNode);
+
+      return copyNode;
+    };
+    // 离线 style link 标签的内容
+    const downloadLinkContentIntoStyle = async copyNode => {
+      const linkNodes = copyNode.querySelectorAll('link');
+      console.info('linkNodes----------->', linkNodes);
+      const tasks = Array.from(linkNodes).map((linkEle: HTMLLinkElement, index) => {
+        return fetch(linkEle.href)
+          .then(res => res.text())
+          .then(text => {
+            const style = document.createElement('style');
+            style.type = 'text/css';
+            style.innerHTML = text;
+            style.id = `insert-style-${index}`;
+
+            const replacedLinkNode = linkNodes[index];
+            replacedLinkNode.parentNode.replaceChild(style, replacedLinkNode);
+          });
+      });
+      await Promise.all(tasks);
+
+      return copyNode;
+    };
+
+    // 将 copyNode 包裹在测试报告的 layout 中
+    const wrapLayoutWithTestReport = async copyNode => {
+      let styles = '';
+
+      const reportBodyNode = document.querySelector('#report-body') as HTMLElement;
+
+      const classNameSet = Array.from(reportBodyNode.querySelectorAll('*')).reduce((set, node) => {
+        node.className.split(' ').forEach(className => {
+          set.add(className);
+        });
+        return set;
+      }, new Set());
+
+      for (let i = 0; i < document.styleSheets.length; i++) {
+        const styleSheet = document.styleSheets[i];
+        try {
+          for (let j = 0; j < styleSheet.cssRules.length; j++) {
+            if (
+              (styleSheet.cssRules[j] as any).selectorText
+                ?.split(' ')
+                // 移除选择器前缀
+                .map(selector => selector.replace(/[.,]/, ''))
+                .some(className => classNameSet.has(className))
+            ) {
+              styles += styleSheet.cssRules[j].cssText.replace('#test-manager', '') + '\n';
+            }
+          }
+        } catch (error) {
+          console.error('Cannot access stylesheet: ' + error);
+        }
+      }
+
+      const styleElement = document.createElement('style');
+      styleElement.type = 'text/css';
+      styleElement.innerHTML = styles;
+      styleElement.id = 'inline-insert-style';
+      copyNode.querySelector('head').appendChild(styleElement);
+
+      const copyReportBodyNode = document
+        .querySelector('#report-body')
+        .cloneNode(true) as HTMLElement;
+
+      copyReportBodyNode.querySelector('#report-iframe').innerHTML =
+        copyNode.querySelector('body').innerHTML;
+      copyNode.querySelector('body').innerHTML = copyReportBodyNode.outerHTML;
+
+      return copyNode;
+    };
+
+    // 调整节点样式
+    const adjustNodeStyle = async copyNode => {
+      const style = document.createElement('style');
+      style.type = 'text/css';
+      style.innerHTML = `
+        #report-body {
+          height: 100vh;
+          overflow: hidden;
+        }
+        #report-iframe > div {
+          width: 100%;
+        }
+      `;
+      style.id = 'insert-adjust-style';
+      copyNode.querySelector('head').appendChild(style);
+      return copyNode;
+    };
+
+    const copyNode = await pruneDOMNode('.react-grid-layout')
+      .then(replaceCanvasNodeWithImage)
+      .then(downloadLinkContentIntoStyle)
+      .then(wrapLayoutWithTestReport)
+      .then(adjustNodeStyle);
+
+    return copyNode.outerHTML;
+  };
+
+  const HTMLString = await getExportIFrameHTMLString();
+  const a = document.createElement('a');
+  const blob = new Blob([HTMLString], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  a.href = url;
+  a.download = `${testReportData?.name ?? document.title}.html`;
+  a.click();
+  URL.revokeObjectURL(url);
 };

@@ -126,7 +126,7 @@ export const repositoryTreeV2 = async () => {
 
     const groupedCaseCount = {};
     result.forEach(({ r_test_manager_repository, count }) => {
-      groupedCaseCount[r_test_manager_repository || UngroupedRepositoryKey] = count;
+      groupedCaseCount[r_test_manager_repository ?? UngroupedRepositoryKey] = count;
     });
     return groupedCaseCount;
   };

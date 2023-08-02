@@ -3,31 +3,36 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Parse from '@/lib/parse';
 
 import { TestConfig } from '../models';
+import { QueryParamsGetters } from '../type';
 
 /** query key */
 export const TestConfigQueryKeys = {
   /** 全局配置 */
   global: ['testConfig', 'global'],
   /** 空间配置 */
-  workspace: workspaceKey => ['testConfig', 'workspace', workspaceKey],
+  workspace: (params: { workspaceKey?: string }) => ['testConfig', params],
   /** id 缓存 */
   objectId: objectId => ['testConfig', objectId],
 } as const;
 
+export type TestConfigQueryKeysType = typeof TestConfigQueryKeys;
+
 /** 获取测试管理空间配置数据 */
-export const useWorkspaceTestConfig = (workspaceKey: string) => {
+export const useWorkspaceTestConfig = (
+  params: QueryParamsGetters<TestConfigQueryKeysType, 'workspace'>,
+) => {
   const queryClient = useQueryClient();
   return useQuery(
-    TestConfigQueryKeys.workspace(workspaceKey),
+    TestConfigQueryKeys.workspace(params),
     async () => {
       const data = await new Parse.Query(TestConfig)
-        .equalTo('workspaceKey', workspaceKey)
+        .equalTo('workspaceKey', params.workspaceKey)
         .first({ json: true });
       queryClient.setQueryData(TestConfigQueryKeys.objectId(data.objectId), data);
       return data;
     },
     {
-      enabled: Boolean(workspaceKey),
+      enabled: Boolean(params.workspaceKey),
     },
   );
 };

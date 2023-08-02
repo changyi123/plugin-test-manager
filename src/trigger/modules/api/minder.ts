@@ -1,7 +1,8 @@
 import { getParseModel, getParseQuery, saveAllObject } from '@giteeteam/apps-team-api';
 import { TestEntity } from 'common/types/test';
-import { flatten, omit } from 'lodash';
+import flattenDeep from 'lodash/flattenDeep';
 import keyBy from 'lodash/keyBy';
+import omit from 'lodash/omit';
 import uniqueId from 'lodash/uniqueId';
 
 import {
@@ -143,7 +144,7 @@ export const minderData = async () => {
           if (Array.isArray(node.children)) {
             node.children.forEach(child => getSubRepoKeys(child, repoKeys));
           }
-          return repoKeys;
+          return Array.from(new Set(repoKeys));
         };
         return getSubRepoKeys(node);
       };
@@ -180,7 +181,7 @@ export const minderData = async () => {
         // 剩余的 repoKeyCaseIdsMapping
         const notExistedRepoKeyCaseIdsMapping = omit(repoKeyCaseIdsMapping, subRepositoryKeys);
         // 处理根模块
-        repoKeyCaseIdsMapping[UngroupedRepositoryKey] = flatten(
+        repoKeyCaseIdsMapping[UngroupedRepositoryKey] = flattenDeep(
           Object.values(notExistedRepoKeyCaseIdsMapping),
         );
 

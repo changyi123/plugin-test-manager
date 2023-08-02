@@ -156,7 +156,9 @@
     "testReport": "测试报告",
     "addSuccess": "创建成功",
     "addFail": "创建失败",
-    "export": "下载",
+    "export": "导出",
+    "exportHTML": "导出为 HTML",
+    "exportWord": "导出为 Word",
     "buttons": {
       "delete": "删除",
       "view": "查看",

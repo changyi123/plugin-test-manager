@@ -98,27 +98,28 @@ const ListView: React.FC<ViewComponentProps> = ({
         };
       setTableLoading(true);
       const repository = getRepositoryQuery(selectedNode, groupedMode);
-      const { list: data, total } = await getTestEntityByQuery({
-        query: {
-          workspaceKey: workspaceKey,
-          type: TestType.Case,
-          ...repository,
-        },
-        selector,
-        fields: [].concat(SystemFieldKeys, testCaseFieldKeys),
-        ...params,
-      });
-
-      const quoteCounts = await getTestStats({
-        groups: 'referenceCase',
-        params: {
+      const [{ list: data, total }, quoteCounts] = await Promise.all([
+        getTestEntityByQuery({
           query: {
             workspaceKey: workspaceKey,
-            type: TestType.Run,
+            type: TestType.Case,
+            ...repository,
           },
-          limit: 99999,
-        } as any,
-      });
+          selector,
+          fields: [].concat(SystemFieldKeys, testCaseFieldKeys),
+          ...params,
+        }),
+        getTestStats({
+          groups: 'referenceCase',
+          params: {
+            query: {
+              workspaceKey: workspaceKey,
+              type: TestType.Run,
+            },
+            limit: 99999,
+          } as any,
+        }),
+      ]);
 
       const quoteCountMap = new Map();
       quoteCounts.forEach(c => {

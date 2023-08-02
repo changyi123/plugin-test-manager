@@ -21,9 +21,6 @@ const TestIframe: React.FC<any> = props => {
       times++;
 
       if (currentDom?.parentElement) {
-        currentDom.parentElement.style.overflow = 'hidden';
-        currentDom.parentElement.style.marginTop = 0;
-
         const clientHeight = currentDom?.clientHeight;
         iframeRef.current.style.height = clientHeight + 'px';
         clearInterval(timer);

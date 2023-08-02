@@ -309,14 +309,28 @@ export const getPluginBoundWorkspaces = async () => {
   const appWorkspace = await new Parse.Query(AppsWorkspace)
     .equalTo('appKey', TEST_MANAGER_PLUGIN_KEY)
     .include('workspaces')
-    .first();
+    .first({ json: true });
 
-  const global = appWorkspace ? appWorkspace.get('global') : true;
+  const global = appWorkspace ? appWorkspace.global : true;
+  let boundWorkspaces = [];
+
   if (global) {
-    const boundWorkspaces = await new Parse.Query(Workspace).findAll();
-    return boundWorkspaces.map(w => w.toJSON());
+    boundWorkspaces = await new Parse.Query(Workspace).find({ limit: 999, json: true });
+  } else {
+    if (!Array.isArray(appWorkspace?.workspaces)) {
+      return [];
+    }
+
+    // 兼容旧的数据结构
+    if (appWorkspace.workspaces.every(w => w && typeof w === 'object')) {
+      return appWorkspace?.workspaces ?? [];
+    }
+
+    boundWorkspaces = await new Parse.Query(Workspace)
+      .containedIn('key', appWorkspace?.workspaces)
+      .findAll({ json: true });
   }
-  return appWorkspace?.toJSON()?.workspaces ?? [];
+  return boundWorkspaces;
 };
 
 /** 更新被测试管理插件关联的事项层级方案 */
