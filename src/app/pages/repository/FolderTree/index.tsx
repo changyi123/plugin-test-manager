@@ -60,6 +60,7 @@ const openFolderNameModal: OpenFolderNameModal = ({ title, name, validator, t })
       title,
       icon: null,
       content: input,
+      className: cx('title-editor'),
       getContainer: getRootContainer,
       async onOk() {
         const inputValue = inputRef.input.value?.trim() ?? '';

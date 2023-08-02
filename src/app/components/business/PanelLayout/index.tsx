@@ -37,7 +37,6 @@ const PanelLayout: React.FC<PanelLayoutProps> = props => {
           className={cx('panel__tabs')}
           defaultActiveKey={tabs[0]?.key}
           items={tabs.map(tab => {
-            console.log('diu_tab', tab);
             const { Component, key } = tab;
             return {
               label: tab.tab,

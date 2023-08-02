@@ -106,7 +106,6 @@ module.exports = (cliEnv = {}, argv) => {
 
   const isProd = mode === 'production';
   const isDev = mode === 'development';
-  console.log('isDev', isDev);
   const classNamesConfig = {
     loader: '@ecomfe/class-names-loader',
     options: {

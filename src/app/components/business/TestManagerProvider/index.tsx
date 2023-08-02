@@ -307,7 +307,10 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
   const { getCreatePermission } = useGetPermissions(workspace);
 
   React.useEffect(() => {
-    proxima.execute('updateItemTypeEvent');
+    setTimeout(() => {
+      proxima.execute('updateItemTypeEvent');
+      proxima.execute('updateAllItemTypeEvent');
+    }, 300);
   }, [proxima]);
 
   // 获取测试实体，如果不存在测试实体（类型映射如果和事项匹配）需要新建

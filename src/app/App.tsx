@@ -34,7 +34,6 @@ export const QiankunContext = React.createContext({} as QiankunContextProps);
 
 const GoPropsRoute = props => {
   const history = useHistory();
-  console.log('history', history);
   useEffect(() => {
     // 跳转渲染指定的路由
     if (props?.route) {

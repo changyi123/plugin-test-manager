@@ -218,18 +218,26 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         userData={userData}
         onChange={toggleAssignee}
         emptyChild={
-          <span className={cx('user-field')}>
+          <span className={cx('action', 'user-field')}>
             <UserIcon className={cx('icon')} /> {t('page.plan.testEntityList.assigneeSetting')}
           </span>
         }
       />,
-      <span key="copy" onClick={hasRowSelected && copyTestDetail}>
+      <span className={cx('action', 'copy')} key="copy" onClick={hasRowSelected && copyTestDetail}>
         <SwitcherOutlined /> 复制
       </span>,
-      <span key="link" onClick={hasRowSelected ? createItemLink : undefined}>
+      <span
+        className={cx('action')}
+        key="link"
+        onClick={hasRowSelected ? createItemLink : undefined}
+      >
         <LinkItemIcon className={cx('icon')} /> {t('page.repository.view.list.batchItemLink')}
       </span>,
-      <span key="delete" onClick={hasRowSelected ? deleteTestCase : undefined}>
+      <span
+        className={cx('action')}
+        key="delete"
+        onClick={hasRowSelected ? deleteTestCase : undefined}
+      >
         <DeleteIcon className={cx('icon')} /> {t('common.delete')}
       </span>,
     ];
