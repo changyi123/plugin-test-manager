@@ -382,6 +382,7 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
                               }}
                             >
                               <Tooltip
+                                overlayClassName="global_arrow_tooltip_overflow"
                                 placement="topRight"
                                 title={
                                   fields?.includes(col.key)

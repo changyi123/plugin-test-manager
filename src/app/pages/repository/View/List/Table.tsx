@@ -322,7 +322,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
               >
                 {!rowData._tableState.selectionMode ? (
                   <Tooltip
-                    overlayClassName={cx('tooltip')}
+                    overlayClassName={`${cx('tooltip')} global_arrow_tooltip_overflow`}
                     title={t('page.repository.view.list.dropCaseToGroup')}
                   >
                     <DragHandler style={{ marginRight: 10 }} />
