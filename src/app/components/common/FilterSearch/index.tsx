@@ -173,7 +173,8 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
 
   // 将 selector 存储到 localStorage
   useSelectorStorage(enableLocalStorage, {
-    selectors,
+    // 持久化数据，移除 name 字段
+    selectors: omit(selectors, ['name']),
     setSelectors: setSelectorsFromStorageValue,
     storageKey,
     workspaceKey,
