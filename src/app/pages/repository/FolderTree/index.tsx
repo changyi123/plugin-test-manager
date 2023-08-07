@@ -308,7 +308,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         });
       } else if (actionKey === MenuKey.deleteFolder) {
         Modal.confirm({
-          className: cx('confirm'),
+          className: `${cx('confirm')} global-ant-modal`,
           getContainer: getRootContainer,
           title: t('page.repository.folderTree.deleteFolder'),
           width: 500,
@@ -318,9 +318,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
                 {t('page.repository.folderTree.deleteFolderTips.0')}【{node.name}】
                 {t('page.repository.folderTree.deleteFolderTips.1')}？
               </div>
-              <div style={{ marginLeft: 14 }}>
-                {t('page.repository.folderTree.deleteFolderTips.2')}
-              </div>
+              <div>{t('page.repository.folderTree.deleteFolderTips.2')}</div>
             </>
           ),
           cancelText: t('common.cancel'),
