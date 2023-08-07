@@ -44,4 +44,23 @@
       color: rgb(170, 170, 170);
     }
   }
+
+  .modal {
+    :global {
+      .ant-modal {
+        .ant-modal-content {
+          // add
+          border-radius: 2px;
+          .ant-modal-header {
+            margin-bottom: 0;
+          }
+          .ant-modal-title {
+            font-weight: bold;
+            color: #091940;
+            line-height: 24px;
+          }
+        }
+      }
+    }
+  }
 }

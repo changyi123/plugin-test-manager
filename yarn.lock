@@ -56,18 +56,7 @@
   resolved "https://registry.npmmirror.com/@ant-design/icons-svg/-/icons-svg-4.3.0.tgz#cd8d3624bba50975e848591cea12cb6be132cd82"
   integrity sha512-WOgvdH/1Wl8Z7VXigRbCa5djO14zxrNTzvrAQzhWiBQtEKT0uTc8K1ltjKZ8U1gPn/wXhMA8/jE39SJl0WNxSg==
 
-"@ant-design/icons@4.7.0":
-  version "4.7.0"
-  resolved "https://registry.npmmirror.com/@ant-design/icons/-/icons-4.7.0.tgz#8c3cbe0a556ba92af5dc7d1e70c0b25b5179af0f"
-  integrity sha512-aoB4Z7JA431rt6d4u+8xcNPPCrdufSRMUOpxa1ab6mz1JCQZOEVolj2WVs/tDFmN62zzK30mNelEsprLYsSF3g==
-  dependencies:
-    "@ant-design/colors" "^6.0.0"
-    "@ant-design/icons-svg" "^4.2.1"
-    "@babel/runtime" "^7.11.2"
-    classnames "^2.2.6"
-    rc-util "^5.9.4"
-
-"@ant-design/icons@^4.7.0":
+"@ant-design/icons@^4.7.0", "@ant-design/icons@^4.8.0":
   version "4.8.0"
   resolved "https://registry.npmmirror.com/@ant-design/icons/-/icons-4.8.0.tgz#3084e2bb494cac3dad6c0392f77c1efc90ee1fa4"
   integrity sha512-T89P2jG2vM7OJ0IfGx2+9FC5sQjtTzRSz+mCHTXkFn/ELZc2YpfStmYHmqzq2Jx55J0F7+O6i5/ZKFSVNWCKNg==
@@ -78,10 +67,10 @@
     classnames "^2.2.6"
     rc-util "^5.9.4"
 
-"@ant-design/icons@^5.1.0":
-  version "5.2.3"
-  resolved "https://registry.npmmirror.com/@ant-design/icons/-/icons-5.2.3.tgz#90631255c70467848ccac4a0bf6d5225ebe1baa5"
-  integrity sha512-XB8606F4zTROJ1tReOJ1EK3yc1qzRbH9X66aqA9Usv1cEfVIEl6aAEF1S+L4/wH/1sgAHpbbtO6FJIKmDJPe6w==
+"@ant-design/icons@^5.2.2":
+  version "5.2.4"
+  resolved "https://registry.npmmirror.com/@ant-design/icons/-/icons-5.2.4.tgz#ffae1509e38d1a6518b67241ebf3274d625191d8"
+  integrity sha512-WFPLMLiLaTcw7Vzwuglgm7aViI9DJ8SdrLt6r1rI1oxA1yjp02/ZRB4b+OFlFy2F91JMq3FnAQ9K6irq9QiSvw==
   dependencies:
     "@ant-design/colors" "^7.0.0"
     "@ant-design/icons-svg" "^4.3.0"
@@ -89,17 +78,6 @@
     classnames "^2.2.6"
     lodash.camelcase "^4.3.0"
     rc-util "^5.31.1"
-
-"@ant-design/react-slick@~0.29.1":
-  version "0.29.2"
-  resolved "https://registry.npmmirror.com/@ant-design/react-slick/-/react-slick-0.29.2.tgz#53e6a7920ea3562eebb304c15a7fc2d7e619d29c"
-  integrity sha512-kgjtKmkGHa19FW21lHnAfyyH9AAoh35pBdcJ53rHmQ3O+cfFHGHnUbj/HFrRNJ5vIts09FKJVAD8RpaC+RaWfA==
-  dependencies:
-    "@babel/runtime" "^7.10.4"
-    classnames "^2.2.5"
-    json2mq "^0.2.0"
-    lodash "^4.17.21"
-    resize-observer-polyfill "^1.5.1"
 
 "@ant-design/react-slick@~1.0.0":
   version "1.0.2"
@@ -1418,12 +1396,12 @@
   dependencies:
     axios "^0.27.2"
 
-"@giteeteam/apps-team-components@0.3.4-remove-editor-0.8":
-  version "0.3.4-remove-editor-0.8"
-  resolved "https://registry.npmmirror.com/@giteeteam/apps-team-components/-/apps-team-components-0.3.4-remove-editor-0.8.tgz#8720fba9dde48e0b552bacb41b8655b399e703d3"
-  integrity sha512-HUJoXTCtAdK0Rw99AHYY9Xspr6w8ySdY3E9Yl+54lyI4ZhQOQkFZcmfaH5fQsoxQnsSM0mIUBMcUZXs0DrttUQ==
+"@giteeteam/apps-team-components@0.3.4-remove-editor-0.12":
+  version "0.3.4-remove-editor-0.12"
+  resolved "https://registry.npmmirror.com/@giteeteam/apps-team-components/-/apps-team-components-0.3.4-remove-editor-0.12.tgz#323d0ba4797a71ab88d6294280e837edc8a7832b"
+  integrity sha512-F81YWl5tDj25XBmKX4d/8V+H9hO3QrmJNY3jCvty9zuDT8xaCSYuQheKIuYgo6x2fTWsxBgPDsmp0wvWGq3S+w==
   dependencies:
-    "@ant-design/icons" "4.7.0"
+    "@ant-design/icons" "^4.8.0"
     "@projectproxima/plugin-loader" "^0.1.9"
     "@projectproxima/plugin-sdk" "0.2.9"
     "@projectproxima/proxima-sdk-js" "^0.4.4"
@@ -1448,6 +1426,7 @@
     rosetta "^1.1.0"
     swr "^1.2.2"
     uuid "^9.0.0"
+    webpack-bundle-analyzer "^4.9.0"
 
 "@humanwhocodes/config-array@^0.11.10":
   version "0.11.10"
@@ -1870,26 +1849,26 @@
   dependencies:
     remove-accents "0.4.2"
 
-"@tanstack/query-core@4.32.1":
-  version "4.32.1"
-  resolved "https://registry.npmmirror.com/@tanstack/query-core/-/query-core-4.32.1.tgz#6e364c33433b61f4dcef003725d4208e42b23860"
-  integrity sha512-VEAGHboOFWN/bvf/7cCoeLQfld0AA8n0V/kfc77W+FvxnnSwJufEh6gfjqpX5bRE/DEYfYDYdNtuL3KM+lIs8Q==
+"@tanstack/query-core@4.32.5":
+  version "4.32.5"
+  resolved "https://registry.npmmirror.com/@tanstack/query-core/-/query-core-4.32.5.tgz#1c9da404ba4906c35b3998ba03ea4ab44019750c"
+  integrity sha512-UOxiDYmzYWD21ASIUnW3w+Nq3LcW1BPFFfIyZOor6UsRl76KGLlvUhJ402/dof1JxcQFPK7nZ5iUGPVqLiT8zg==
 
 "@tanstack/react-query-devtools@^4.29.12":
-  version "4.32.1"
-  resolved "https://registry.npmmirror.com/@tanstack/react-query-devtools/-/react-query-devtools-4.32.1.tgz#99ab4448fd9397b40e88ed07dcfc48ff899ca7de"
-  integrity sha512-/ZgxCfGXLIXUvaIRzrNCP+C4iv1bIleNzXCjGKFZ4qKEifnv5A/SpWE2dG4SBjqXVlIkMAP82lesfoHcsOm+zg==
+  version "4.32.5"
+  resolved "https://registry.npmmirror.com/@tanstack/react-query-devtools/-/react-query-devtools-4.32.5.tgz#c859c3a812f52f32b6750fcaf921919746083de4"
+  integrity sha512-4JJjf8M2Q3X0fs5GTzq3DvVemeyEw1ASiFdAyVxuMCh8D4m45aqNMuYGsRTNVN2JMNnuLaBKctSB8t0iTNIEZQ==
   dependencies:
     "@tanstack/match-sorter-utils" "^8.7.0"
     superjson "^1.10.0"
     use-sync-external-store "^1.2.0"
 
 "@tanstack/react-query@^4.29.7":
-  version "4.32.1"
-  resolved "https://registry.npmmirror.com/@tanstack/react-query/-/react-query-4.32.1.tgz#8ba6ab4e0ee4513a0fe06f4452f1b400eb4f91fb"
-  integrity sha512-lPTfOq6bR6DorPaS018gTMd3zs8r06tlERiVY6BRP9SnDkkl4ckqeANava/jPLWrSZP+EA15loQUTmvZs6k2GA==
+  version "4.32.5"
+  resolved "https://registry.npmmirror.com/@tanstack/react-query/-/react-query-4.32.5.tgz#666abcf6cbeb8475e44f91a4279302f69b2f4ee9"
+  integrity sha512-4tR0GxyyKhLpYvbglOGpWVqHS+t3bs7yy89DuTgJvnKLnaS5UW2sbfAzlV9JtwL7s5Z8eW2q2EDMcAtutb0lAw==
   dependencies:
-    "@tanstack/query-core" "4.32.1"
+    "@tanstack/query-core" "4.32.5"
     use-sync-external-store "^1.2.0"
 
 "@tsconfig/node10@^1.0.7":
@@ -2070,9 +2049,9 @@
   integrity sha512-jhuKLIRrhvCPLqwPcx6INqmKeiA5EWrsCOPhrlFSrbrmU4ZMPjj5Ul/oLCMDO98XRUIwVm78xICz4EPCektzeQ==
 
 "@types/node@*", "@types/node@^20.3.1":
-  version "20.4.5"
-  resolved "https://registry.npmmirror.com/@types/node/-/node-20.4.5.tgz#9dc0a5cb1ccce4f7a731660935ab70b9c00a5d69"
-  integrity sha512-rt40Nk13II9JwQBdeYqmbn2Q6IVTA5uPhvSO+JVqdXw/6/4glI6oR9ezty/A9Hg5u7JH4OmYmuQ+XvjKm0Datg==
+  version "20.4.7"
+  resolved "https://registry.npmmirror.com/@types/node/-/node-20.4.7.tgz#74d323a93f1391a63477b27b9aec56669c98b2ab"
+  integrity sha512-bUBrPjEry2QUTsnuEjzjbS7voGWCc30W0qzgMf90GPeDGFRakvrz47ju+oqDAKCXLUCe39u57/ORMl/O/04/9g==
 
 "@types/normalize-package-data@^2.4.0":
   version "2.4.1"
@@ -2676,13 +2655,13 @@ ansi-styles@^4.0.0, ansi-styles@^4.1.0:
     color-convert "^2.0.1"
 
 antd@^4.16.13:
-  version "4.24.12"
-  resolved "https://registry.npmmirror.com/antd/-/antd-4.24.12.tgz#ce95ae93a52ab44f1e0e2ef3467e936ac66e8f04"
-  integrity sha512-VOW9+ekutTuov2NxH9ReDoUmEtfyGPoXSVplUrP7jkYIvPREQsLi+825/nwf1WRBxagWZgJxzJwtl2i9fbvh9A==
+  version "4.24.13"
+  resolved "https://registry.npmmirror.com/antd/-/antd-4.24.13.tgz#a6f376e851f97511b72274f142da8974fc574fbc"
+  integrity sha512-N2odRsbomseCE3U845Whf+RdgmQbiWbKvWS6ggH/xHjXojHx951rmZXW4nMqAeSoUp66sQOASGtrP/SUsdA2oQ==
   dependencies:
     "@ant-design/colors" "^6.0.0"
     "@ant-design/icons" "^4.7.0"
-    "@ant-design/react-slick" "~0.29.1"
+    "@ant-design/react-slick" "~1.0.0"
     "@babel/runtime" "^7.18.3"
     "@ctrl/tinycolor" "^3.4.0"
     classnames "^2.2.6"
@@ -2724,14 +2703,14 @@ antd@^4.16.13:
     rc-util "^5.22.5"
     scroll-into-view-if-needed "^2.2.25"
 
-antd@^5.4.2, antd@^5.6.3:
-  version "5.8.0"
-  resolved "https://registry.npmmirror.com/antd/-/antd-5.8.0.tgz#7ea22b5a24f42685ad8a77857376f008002e1dc5"
-  integrity sha512-ySwMuNidNmhKlwLzOT2/dPftGXiHKWnDbkRl1brVq0pbwqeszl0Fj7z/IDHEXP0/rJCTOjE8SeLpLQuAL/jpKA==
+antd@^5.4.2, antd@^5.8.1:
+  version "5.8.2"
+  resolved "https://registry.npmmirror.com/antd/-/antd-5.8.2.tgz#1ebaa11f601f13598badc8ba9511e002b33661b5"
+  integrity sha512-kkC2BSBde1JzJxk2wNYj/NXgNZQZ2yu6avJoCKleSi32nsjiadi7FFu1AyGxIzoJ9CrxoLacjGvrwbKJQ6kCvw==
   dependencies:
     "@ant-design/colors" "^7.0.0"
     "@ant-design/cssinjs" "^1.16.0"
-    "@ant-design/icons" "^5.1.0"
+    "@ant-design/icons" "^5.2.2"
     "@ant-design/react-slick" "~1.0.0"
     "@babel/runtime" "^7.18.3"
     "@ctrl/tinycolor" "^3.6.0"
@@ -3297,9 +3276,9 @@ camelize@^1.0.0:
   integrity sha512-dU+Tx2fsypxTgtLoE36npi3UqcjSSMNYfkqgmoEhtZrraP5VWq0K7FkWVTYa8eMPtnU/G2txVsfdCJTn9uzpuQ==
 
 caniuse-lite@^1.0.30001464, caniuse-lite@^1.0.30001517:
-  version "1.0.30001518"
-  resolved "https://registry.npmmirror.com/caniuse-lite/-/caniuse-lite-1.0.30001518.tgz#b3ca93904cb4699c01218246c4d77a71dbe97150"
-  integrity sha512-rup09/e3I0BKjncL+FesTayKtPrdwKhUufQFd3riFw1hHg8JmIFoInYfB102cFcY/pPgGmdyl/iy+jgiDi2vdA==
+  version "1.0.30001519"
+  resolved "https://registry.npmmirror.com/caniuse-lite/-/caniuse-lite-1.0.30001519.tgz#3e7b8b8a7077e78b0eb054d69e6edf5c7df35601"
+  integrity sha512-0QHgqR+Jv4bxHMp8kZ1Kn8CH55OikjKJ6JmKkZYP1F3D7w+lnFXF70nG5eNfsZS89jadi5Ywy5UCSKLAglIRkg==
 
 capital-case@^1.0.4:
   version "1.0.4"
@@ -4270,9 +4249,9 @@ ee-first@1.1.1:
   integrity sha512-WMwm9LhRUo+WUaRN+vRuETqG89IgZphVSNkdFgeb6sS/E4OrDIN7t48CAewSHXc6C8lefD8KKfr5vY61brQlow==
 
 electron-to-chromium@^1.4.477:
-  version "1.4.480"
-  resolved "https://registry.npmmirror.com/electron-to-chromium/-/electron-to-chromium-1.4.480.tgz#40e32849ca50bc23ce29c1516c5adb3fddac919d"
-  integrity sha512-IXTgg+bITkQv/FLP9FjX6f9KFCs5hQWeh5uNSKxB9mqYj/JXhHDbu+ekS43LVvbkL3eW6/oZy4+r9Om6lan1Uw==
+  version "1.4.484"
+  resolved "https://registry.npmmirror.com/electron-to-chromium/-/electron-to-chromium-1.4.484.tgz#770358eba089471c5dae5719db3a5a4fbf02bfb2"
+  integrity sha512-nO3ZEomTK2PO/3TUXgEx0A97xZTpKVf4p427lABHuCpT1IQ2N+njVh29DkQkCk6Q4m2wjU+faK4xAcfFndwjvw==
 
 emoji-regex@^8.0.0:
   version "8.0.0"
@@ -5746,9 +5725,9 @@ inline-style-prefixer@^4.0.0:
     css-in-js-utils "^2.0.0"
 
 inquirer@^8.2.4:
-  version "8.2.5"
-  resolved "https://registry.npmmirror.com/inquirer/-/inquirer-8.2.5.tgz#d8654a7542c35a9b9e069d27e2df4858784d54f8"
-  integrity sha512-QAgPDQMEgrDssk1XiwwHoOGYF9BAbUcc1+j+FhEvaOt8/cKRqyLn0U5qA6F74fGhTMGxf92pOvPBeh29jQJDTQ==
+  version "8.2.6"
+  resolved "https://registry.npmmirror.com/inquirer/-/inquirer-8.2.6.tgz#733b74888195d8d400a67ac332011b5fae5ea562"
+  integrity sha512-M1WuAmb7pn9zdFRtQYk26ZBoY043Sse0wVDdk4Bppr+JOXyQYybdtvK+l9wUibhtjdjvtoiNy8tk+EgsYIUqKg==
   dependencies:
     ansi-escapes "^4.2.1"
     chalk "^4.1.1"
@@ -5764,7 +5743,7 @@ inquirer@^8.2.4:
     string-width "^4.1.0"
     strip-ansi "^6.0.0"
     through "^2.3.6"
-    wrap-ansi "^7.0.0"
+    wrap-ansi "^6.0.1"
 
 internal-slot@^1.0.3, internal-slot@^1.0.5:
   version "1.0.5"
@@ -7630,9 +7609,9 @@ rc-field-form@~1.34.0:
     rc-util "^5.32.2"
 
 rc-field-form@~1.36.0:
-  version "1.36.1"
-  resolved "https://registry.npmmirror.com/rc-field-form/-/rc-field-form-1.36.1.tgz#2d4aae0e0ecc2a27efb6a03c0a215852d5146ea8"
-  integrity sha512-v6CKM4aQ0+U9PPB1y42TB8+n5nCcdJOayJzGUJW5t/+yXLMRyo3SKH9QvHpL5XQY86esuleb7kBAzGxt4IKkvg==
+  version "1.36.2"
+  resolved "https://registry.npmmirror.com/rc-field-form/-/rc-field-form-1.36.2.tgz#0a4e75ab9849e3c2517b8b07c1f97ecd3e52db55"
+  integrity sha512-tCF/JjUsnxW80Gk4E4ZH74ONsaQMxVTRtui6XhQB8DJc4FHWLLa5pP8zwhxtPKC5NaO0QZ0Cv79JggDubn6n2g==
   dependencies:
     "@babel/runtime" "^7.18.0"
     async-validator "^4.1.0"
@@ -7900,9 +7879,9 @@ rc-select@~14.1.0, rc-select@~14.1.17:
     rc-virtual-list "^3.2.0"
 
 rc-select@~14.7.0, rc-select@~14.7.1:
-  version "14.7.2"
-  resolved "https://registry.npmmirror.com/rc-select/-/rc-select-14.7.2.tgz#053e5e4bf47ca29e9e775b6b3ecafbe0cd161e1f"
-  integrity sha512-9OUZvxnO20f7VzY3w69N9GEwR7rwIQfe4OgYxMu29V/WwXp4Ts4vBc8p9x2I69spw9bBSjTQ5/SlnBc+74j2SQ==
+  version "14.7.3"
+  resolved "https://registry.npmmirror.com/rc-select/-/rc-select-14.7.3.tgz#260bb8611b9643abdc607060f30c141958519de9"
+  integrity sha512-s0SQ6voafPXRYLSmHtB8GrkMJsXi2xS5vigzeaRDEgzHyj6xb2omUTinP7nrTCkBveEzrfy7eV/OillDzmcFTw==
   dependencies:
     "@babel/runtime" "^7.10.1"
     "@rc-component/trigger" "^1.5.0"
@@ -8109,9 +8088,9 @@ rc-upload@~4.3.0:
     rc-util "^5.2.0"
 
 rc-util@^5.0.1, rc-util@^5.0.6, rc-util@^5.15.0, rc-util@^5.16.0, rc-util@^5.16.1, rc-util@^5.17.0, rc-util@^5.18.1, rc-util@^5.19.2, rc-util@^5.2.0, rc-util@^5.2.1, rc-util@^5.20.1, rc-util@^5.21.0, rc-util@^5.21.2, rc-util@^5.22.5, rc-util@^5.23.0, rc-util@^5.24.4, rc-util@^5.25.2, rc-util@^5.26.0, rc-util@^5.27.0, rc-util@^5.27.1, rc-util@^5.28.0, rc-util@^5.30.0, rc-util@^5.31.1, rc-util@^5.32.0, rc-util@^5.32.2, rc-util@^5.33.0, rc-util@^5.34.1, rc-util@^5.35.0, rc-util@^5.4.0, rc-util@^5.6.1, rc-util@^5.9.4:
-  version "5.35.0"
-  resolved "https://registry.npmmirror.com/rc-util/-/rc-util-5.35.0.tgz#bed1986248b7be525cc0894109e609ac60207f29"
-  integrity sha512-MTXlixb3EoSTEchsOc7XWsVyoUQqoCsh2Z1a2IptwNgqleMF6ZgQeY52UzUbNj5CcVBg9YljOWjuOV07jSSm4Q==
+  version "5.35.1"
+  resolved "https://registry.npmmirror.com/rc-util/-/rc-util-5.35.1.tgz#69589375058a4b03bb6471f998272610196be162"
+  integrity sha512-TFB8FMe/lLB8Bv97PNRShfueayQ7oXqfKC9Y6wtxKvjSQvqlPbSG+xjUqZYppdvtMrukZfX4/xKbLV3ldwT1YQ==
   dependencies:
     "@babel/runtime" "^7.18.3"
     react-is "^16.12.0"
@@ -9867,7 +9846,7 @@ wcwidth@^1.0.1:
   dependencies:
     defaults "^1.0.3"
 
-webpack-bundle-analyzer@^4.6.1:
+webpack-bundle-analyzer@^4.6.1, webpack-bundle-analyzer@^4.9.0:
   version "4.9.0"
   resolved "https://registry.npmmirror.com/webpack-bundle-analyzer/-/webpack-bundle-analyzer-4.9.0.tgz#fc093c4ab174fd3dcbd1c30b763f56d10141209d"
   integrity sha512-+bXGmO1LyiNx0i9enBu3H8mv42sj/BJWhZNFwjz92tVnBa9J3JMGo2an2IXlEleoDOPn/Hofl5hr/xCpObUDtw==
@@ -10072,7 +10051,7 @@ wmf@~1.0.1:
   resolved "https://registry.npmmirror.com/wmf/-/wmf-1.0.2.tgz#7d19d621071a08c2bdc6b7e688a9c435298cc2da"
   integrity sha512-/p9K7bEh0Dj6WbXg4JG0xvLQmIadrner1bi45VMJTfnbVHsc7yIajZyoSoK60/dtVBs12Fm6WkUI5/3WAVsNMw==
 
-wrap-ansi@^6.2.0:
+wrap-ansi@^6.0.1, wrap-ansi@^6.2.0:
   version "6.2.0"
   resolved "https://registry.npmmirror.com/wrap-ansi/-/wrap-ansi-6.2.0.tgz#e9393ba07102e6c91a3b221478f0257cd2856e53"
   integrity sha512-r6lPcBGxZXlIcymEu7InxDMhdW0KDxpLgoFLcguasxCaJ/SOIZwINatK9KY/tf+ZrlywOKU0UDj3ATXUBfxJXA==

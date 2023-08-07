@@ -141,7 +141,7 @@ const List: React.FC<any> = () => {
       title: t('common.action'),
       isSystem: true,
       fixed: 'right' as any,
-      width: 100,
+      width: 140,
       render(_, rowData) {
         return (
           <>

@@ -238,6 +238,7 @@ module.exports = (cliEnv = {}, argv) => {
         {
           test: /\.css/,
           include: [
+            // path.resolve(__dirname, '../../proxima-share-components/dist'),
             path.resolve(__dirname, '../node_modules/@giteeteam/apps-team-components/dist'),
           ],
           use: [

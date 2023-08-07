@@ -519,7 +519,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
       keyboard={false}
       open={visible}
       maskClosable={false}
-      className="global-ant-modal"
+      className={cx('modal')}
       getContainer={getContainer ?? getTestManagerContainer}
       footer={ModalFooterNode}
       onCancel={() => {
@@ -533,9 +533,6 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
         `${t('components.business.testEntitySelectorModal.pleaseSelect')}${testTypeName}`
       }
       width={testType === TestType.Case ? 800 : width ?? 500}
-      bodyStyle={{
-        padding: '16px 24px',
-      }}
     >
       {testSelectNode}
     </Modal>
