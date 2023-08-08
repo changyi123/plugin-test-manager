@@ -47,24 +47,20 @@
 
   :global {
     .test-plan-title-box {
-      position: relative;
+      display: flex;
+      align-items: center;
       cursor: pointer;
-
-      .test-plan-title {
-        padding: 0 24px;
+      &:hover {
+        color: #0c62ff;
       }
 
       .icon {
-        position: absolute;
-        content: '';
-        top: 3px;
-        left: 0;
         height: 22px;
       }
 
       &:hover {
         .plan-table-title-menu {
-          display: flex;
+          display: block;
           color: #848c9f;
 
           &:hover {
@@ -75,18 +71,12 @@
 
       .plan-table-title-menu {
         display: none;
-        align-items: center;
-        justify-content: center;
-        position: absolute;
-        content: '';
-        top: 0;
-        right: 0;
+        margin-top: -12px;
+        margin-left: auto;
         height: 20px;
         width: 20px;
-        height: 20px;
         border-radius: 4px;
         font-size: 20px;
-        font-weight: bold;
       }
     }
   }

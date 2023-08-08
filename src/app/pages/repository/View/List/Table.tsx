@@ -295,7 +295,6 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         key: 'title',
         title: t('common.title'),
         isSystem: true,
-        className: 'test-case-title',
         extraProps: {
           onClick: record => {
             openItemViewScreen(record?.objectId);
@@ -329,6 +328,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
                   </Tooltip>
                 ) : null}
                 <span
+                  className="test-case-title"
                   data-drawer-handle-target
                   data-element-id="row-title"
                   style={{ cursor: 'pointer' }}

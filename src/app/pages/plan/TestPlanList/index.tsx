@@ -115,7 +115,7 @@ const TestPlanList: React.FC<any> = () => {
       fixed: true,
       isSystem: true,
       title: t('components.business.testPlanList.planName'),
-      className: 'test-case-title',
+      // className: 'test-case-title',
       extraProps: {
         onClick: record => setSelectedTestPlan(record),
       },

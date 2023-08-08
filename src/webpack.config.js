@@ -50,18 +50,31 @@ const getExternalDependencies = isProd => {
   );
   const SharedComponentKey = 'proxima_shared_components';
 
-  return UseExternalDependencyKeys.reduce(
-    (deps, key) => ({
-      ...deps,
-      [key]: {
-        commonjs2: key,
-        commonjs: key,
-        amd: key,
-        root: [SharedComponentKey, key],
-      },
-    }),
-    {},
-  );
+  const getExternal = name => {
+    return ['window modules', name];
+  };
+
+  return [
+    'qiankun',
+    {
+      antd: getExternal('antd'),
+      react: getExternal('react'),
+      'react-dom': getExternal('reactDOM'),
+      axios: getExternal('axios'),
+      ...UseExternalDependencyKeys.reduce(
+        (deps, key) => ({
+          ...deps,
+          [key]: {
+            commonjs2: key,
+            commonjs: key,
+            amd: key,
+            root: [SharedComponentKey, key],
+          },
+        }),
+        {},
+      ),
+    },
+  ];
 };
 
 // output配置

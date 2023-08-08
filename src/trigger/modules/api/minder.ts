@@ -183,7 +183,9 @@ export const minderData = async () => {
         // 处理根模块
         repoKeyCaseIdsMapping[UngroupedRepositoryKey] = flattenDeep(
           Object.values(notExistedRepoKeyCaseIdsMapping),
-        );
+        )
+          // 包含 root 节点下的用例
+          .concat(repoKeyCaseIdsMapping[UngroupedRepositoryKey]);
 
         return repoKeyCaseIdsMapping;
       };
@@ -196,6 +198,13 @@ export const minderData = async () => {
       const testCases = await getTestCasesByRepoKeys(subRepositoryKeys);
       // 形成 repoKey -> caseIds 的映射
       const repoKeyCaseIdsMapping = getRepoKeyCaseIdsMapping(testCases, subRepositoryKeys);
+
+      console.info(
+        '--------subRepositoryKeys------------>',
+        testCases,
+        repoKeyCaseIdsMapping,
+        subRepositoryKeys,
+      );
 
       return {
         repositoryTree: appendCaseIds(repoTree, repoKeyCaseIdsMapping),

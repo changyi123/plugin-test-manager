@@ -363,7 +363,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
             getPopupContainer={e => e.parentNode}
             onChange={val => setShowType(val)}
           ></Select>
-          <Tooltip title={t('components.business.testEntitySelectorModal.addTimeSort')}>
+          <Tooltip open={true} title={t('components.business.testEntitySelectorModal.addTimeSort')}>
             <span
               className={cx('action')}
               onClick={() => {

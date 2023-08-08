@@ -1,3 +1,4 @@
+import { themeConfig } from '@giteeteam/apps-team-theme';
 import { PluginSDKContext } from '@projectproxima/plugin-sdk';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ConfigProvider, Empty, message, notification } from 'antd';
@@ -85,8 +86,9 @@ const App: React.FC<{ locale: any; lngDict: any; antdLang: any }> = props => {
           )}
           <ConfigProvider
             locale={antdLang}
-            getPopupContainer={() => document.getElementById(rootElement)}
+            theme={themeConfig}
             renderEmpty={EmptyRender}
+            getPopupContainer={() => document.getElementById(rootElement)}
           >
             {process.env.NODE_ENV === 'production' || window.__POWERED_BY_QIANKUN__ ? (
               <MemoryRouter>
