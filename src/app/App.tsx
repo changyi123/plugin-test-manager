@@ -2,6 +2,7 @@ import { themeConfig } from '@giteeteam/apps-team-theme';
 import { PluginSDKContext } from '@projectproxima/plugin-sdk';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ConfigProvider, Empty, message, notification } from 'antd';
+import type { ThemeConfig } from 'antd/lib';
 import React, { Suspense, useEffect, useMemo } from 'react';
 import { HashRouter, MemoryRouter, Route, Switch, useHistory } from 'react-router-dom';
 
@@ -75,6 +76,15 @@ const App: React.FC<{ locale: any; lngDict: any; antdLang: any }> = props => {
     });
   }, []);
 
+  const AntdTheme = React.useMemo(() => {
+    return {
+      // components: {
+      //   colorPrimaryHover: '#0C62FF',
+      // },
+      token: themeConfig.token,
+    } as ThemeConfig;
+  }, []);
+
   return (
     <I18n lngDict={lngDict} locale={locale}>
       <PluginSDKContext.Provider value={qiankunContextValue.sdk}>
@@ -86,7 +96,7 @@ const App: React.FC<{ locale: any; lngDict: any; antdLang: any }> = props => {
           )}
           <ConfigProvider
             locale={antdLang}
-            theme={themeConfig}
+            theme={AntdTheme}
             renderEmpty={EmptyRender}
             getPopupContainer={() => document.getElementById(rootElement)}
           >

@@ -118,7 +118,7 @@ const List: React.FC<any> = () => {
       title: t('common.status'),
       width: 100,
       render(_, rowData) {
-        return <ReportStatus status={rowData?.reportStatus} />;
+        return <ReportStatus style={{ marginLeft: 0 }} status={rowData?.reportStatus} />;
       },
     },
     {
@@ -148,6 +148,7 @@ const List: React.FC<any> = () => {
             <Button
               type="link"
               size="small"
+              style={{ paddingLeft: 0 }}
               onClick={() => {
                 goReportViewPage(rowData.objectId);
               }}

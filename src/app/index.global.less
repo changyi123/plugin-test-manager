@@ -105,12 +105,6 @@
       }
     }
 
-    .ant-tooltip-arrow-content,
-    .ant-tooltip-inner {
-      background-color: #576473;
-      --antd-arrow-background-color: #576473;
-    }
-
     .ant-input:focus,
     .ant-input-focused {
       border-color: #0c62ff !important;
@@ -133,7 +127,9 @@
 
     .ant-table-thead
       > tr
-      > th:not(:last-child):not(.ant-table-selection-column):not(.ant-table-row-expand-icon-cell):not([colspan])::before {
+      > th:not(:last-child):not(.ant-table-selection-column):not(
+        .ant-table-row-expand-icon-cell
+      ):not([colspan])::before {
       width: 0 !important;
     }
   }
