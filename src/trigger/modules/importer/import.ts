@@ -237,10 +237,6 @@ export const runImport = async () => {
 
     const taskQueue = needToUpdateItemValues.map(item => {
       return async () => {
-        console.info('<------------- updateItemValues ----------->', item.objectId, {
-          ...item.values,
-          r_test_manager_repository: testRepoMap.get(item.objectId),
-        });
         return updateItems(item.objectId, {
           values: {
             ...item.values,
@@ -248,7 +244,28 @@ export const runImport = async () => {
           },
           // 导入时跳过应用中心 trigger 触发，避免把 runtime-server 搞崩
           parseContext: {
+            // 跳过afterSave的行为
+            skipItemLink: true,
+            skipUpdateWorkflowConfigUsers: true,
+            skipItemType: true,
+            skipSnapshot: true,
+            skipAutomationTrigger: true,
+
+            skipRelationUser: true,
+            skipItemForest: true,
+            skipValidateSecurityLevel: true,
+            skipFieldBehaviorValidation: true,
+            skipWorkflow: true,
+            skipSnapshotValidate: true,
+            skipFormulaCalculation: true,
+            skipFormValidation: true,
+            skipPermission: true,
+            skipItemValidation: true,
             skipHandleApps: true,
+
+            // after
+            skipItemChange: true,
+            skipCheckWhetherArchived: true,
           },
         });
       };
@@ -293,12 +310,14 @@ export const runImport = async () => {
 
   // 导入成功后，创建事项数据后的回调函数
   const importCallBack = async () => {
+    console.time('importer process------>');
     // 获取创建的事项数据
     const needUpdateValues = handleItemValues();
-
     if (!group) {
       // 得到需要创建的用例库数据
+      console.time('toCreateGroupData--------------');
       const toCreateGroupData = await getToCreateGroupData();
+      console.timeEnd('toCreateGroupData--------------');
 
       if (toCreateGroupData.length) {
         const newToCreateGroupData = toCreateGroupData.reduce((prev, cur) => {
@@ -306,12 +325,16 @@ export const runImport = async () => {
           return prev;
         }, new Map());
 
+        console.time('createRepoGroupList--------------');
         // 创建用例库
         await createRepoGroupList(newToCreateGroupData);
+        console.timeEnd('createRepoGroupList--------------');
       }
 
+      console.time('updateItems--------------');
       // 绑定测试用例事项用例库，并更新事项数据
       await updateItemValue(needUpdateValues);
+      console.timeEnd('updateItems--------------');
     } else {
       // 更新测试用例用例库数据
       const taskQueue = needUpdateValues
@@ -327,7 +350,9 @@ export const runImport = async () => {
         });
 
       try {
-        await parallelLimit(taskQueue, 10);
+        console.time('updateItems--------------');
+        await parallelLimit(taskQueue, 12);
+        console.timeEnd('updateItems--------------');
       } catch (err) {
         errors = errors.concat(err?.map(err.data));
       }
@@ -341,6 +366,7 @@ export const runImport = async () => {
       };
     }
 
+    console.timeEnd('importer process------>');
     return {
       code: 200,
       message: i18n.t('common.success'),
