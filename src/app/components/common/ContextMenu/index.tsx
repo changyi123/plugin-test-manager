@@ -1,5 +1,3 @@
-import './index.global.less';
-
 import { Menu } from 'antd';
 import { MenuItemProps, MenuProps } from 'antd/lib/menu';
 import React from 'react';

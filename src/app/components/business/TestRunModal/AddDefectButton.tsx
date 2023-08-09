@@ -126,7 +126,7 @@ const AddDefectButton: React.FC<AddDefectButtonProps> = props => {
       ) : (
         <Dropdown
           key="2"
-          overlay={menu}
+          dropdownRender={() => menu}
           trigger={['click']}
           getPopupContainer={() => currentRef.current}
         >

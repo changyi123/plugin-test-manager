@@ -3,8 +3,9 @@ import useDebounce from 'ahooks/lib/useDebounce';
 import { Button, Dropdown, message, Pagination } from 'antd';
 import React, { useCallback, useRef, useState } from 'react';
 
-import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
+import type { BusinessTableActionType } from '@/components/common/BusinessTable/type';
 import SearchInput from '@/components/common/FilterSearch/SearchInput';
+import { BusinessTable } from '@/components/dynamicComponents';
 import { TestType } from '@/lib/constants';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
@@ -117,7 +118,7 @@ const List: React.FC<any> = () => {
       title: t('common.status'),
       width: 100,
       render(_, rowData) {
-        return <ReportStatus status={rowData?.reportStatus} />;
+        return <ReportStatus style={{ marginLeft: 0 }} status={rowData?.reportStatus} />;
       },
     },
     {
@@ -140,13 +141,14 @@ const List: React.FC<any> = () => {
       title: t('common.action'),
       isSystem: true,
       fixed: 'right' as any,
-      width: 100,
+      width: 140,
       render(_, rowData) {
         return (
           <>
             <Button
               type="link"
               size="small"
+              style={{ paddingLeft: 0 }}
               onClick={() => {
                 goReportViewPage(rowData.objectId);
               }}

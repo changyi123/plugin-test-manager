@@ -7,20 +7,6 @@
     width: 100%;
   }
 
-  .modal {
-    :global {
-      .ant-modal-close-x {
-        line-height: 55px !important;
-        height: 55px !important;
-      }
-      .ant-modal-title {
-        font-weight: bold !important;
-        color: #091940;
-        line-height: 24px;
-      }
-    }
-  }
-
   .footer {
     display: flex;
     align-items: center;
@@ -56,6 +42,25 @@
     .select-key {
       font-size: 12px;
       color: rgb(170, 170, 170);
+    }
+  }
+
+  .modal {
+    :global {
+      .ant-modal {
+        .ant-modal-content {
+          // add
+          border-radius: 2px;
+          .ant-modal-header {
+            margin-bottom: 0;
+          }
+          .ant-modal-title {
+            font-weight: bold;
+            color: #091940;
+            line-height: 24px;
+          }
+        }
+      }
     }
   }
 }

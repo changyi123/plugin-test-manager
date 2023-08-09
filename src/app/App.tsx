@@ -1,6 +1,8 @@
+import { themeConfig } from '@giteeteam/apps-team-theme';
 import { PluginSDKContext } from '@projectproxima/plugin-sdk';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ConfigProvider, Empty, message, notification } from 'antd';
+import type { ThemeConfig } from 'antd/lib';
 import React, { Suspense, useEffect, useMemo } from 'react';
 import { HashRouter, MemoryRouter, Route, Switch, useHistory } from 'react-router-dom';
 
@@ -17,7 +19,9 @@ message.config({
 });
 
 const ReactQueryDevtoolsProduction = React.lazy(() =>
-  import('@tanstack/react-query-devtools/build/lib/index.prod.js').then(d => ({
+  import(
+    /* webpackChunkName: "module_react-query-devtools" */ '@tanstack/react-query-devtools/build/lib/index.prod.js'
+  ).then(d => ({
     default: d.ReactQueryDevtools,
   })),
 );
@@ -32,7 +36,6 @@ export const QiankunContext = React.createContext({} as QiankunContextProps);
 
 const GoPropsRoute = props => {
   const history = useHistory();
-
   useEffect(() => {
     // 跳转渲染指定的路由
     if (props?.route) {
@@ -73,6 +76,15 @@ const App: React.FC<{ locale: any; lngDict: any; antdLang: any }> = props => {
     });
   }, []);
 
+  const AntdTheme = React.useMemo(() => {
+    return {
+      // components: {
+      //   colorPrimaryHover: '#0C62FF',
+      // },
+      token: themeConfig.token,
+    } as ThemeConfig;
+  }, []);
+
   return (
     <I18n lngDict={lngDict} locale={locale}>
       <PluginSDKContext.Provider value={qiankunContextValue.sdk}>
@@ -84,8 +96,9 @@ const App: React.FC<{ locale: any; lngDict: any; antdLang: any }> = props => {
           )}
           <ConfigProvider
             locale={antdLang}
-            getPopupContainer={() => document.getElementById(rootElement)}
+            theme={AntdTheme}
             renderEmpty={EmptyRender}
+            getPopupContainer={() => document.getElementById(rootElement)}
           >
             {process.env.NODE_ENV === 'production' || window.__POWERED_BY_QIANKUN__ ? (
               <MemoryRouter>

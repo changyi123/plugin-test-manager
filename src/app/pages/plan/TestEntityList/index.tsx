@@ -14,9 +14,10 @@ import { StatusBadge } from '@/components/business/Status';
 import TestRunModal, {
   ActionType as TestRunModalActionType,
 } from '@/components/business/TestRunModal';
-import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
 import { SystemFieldKeys } from '@/components/common/BusinessTable/hook';
+import type { BusinessTableActionType } from '@/components/common/BusinessTable/type';
 import Field from '@/components/common/Field';
+import { BusinessTable } from '@/components/dynamicComponents';
 import {
   deleteTestEntity,
   getCasesByStatus,
@@ -495,7 +496,6 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         fixed: true,
         isSystem: true,
         title: t('common.title'),
-        className: 'test-case-title',
         extraProps: {
           onClick: record => {
             openItemViewScreen(record?.objectId);
@@ -510,7 +510,11 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         render(_, rowData) {
           const itemData = rowData ?? {};
           return (
-            <span data-drawer-handle-target style={{ cursor: 'pointer' }}>
+            <span
+              className="test-case-title"
+              data-drawer-handle-target
+              style={{ cursor: 'pointer' }}
+            >
               {itemData.name}
             </span>
           );
@@ -647,7 +651,6 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         title: t('page.plan.testEntityList.detailName'),
         isSystem: true,
         fixed: true,
-        className: 'test-case-title',
         width: 400,
         tooltip: true,
         shouldCellUpdate: (record, prevRecord) => {
@@ -663,7 +666,11 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         },
         render(_, record) {
           return (
-            <span data-drawer-handle-target style={{ cursor: 'pointer' }}>
+            <span
+              className="test-case-title"
+              data-drawer-handle-target
+              style={{ cursor: 'pointer' }}
+            >
               {record?.name}
             </span>
           );

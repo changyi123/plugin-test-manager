@@ -100,10 +100,10 @@ const OverflowTooltip: React.FC<OverflowTooltip> = props => {
     <Tooltip
       placement={placement}
       overlayStyle={overlayStyle}
-      overlayClassName={overlayClassName}
+      overlayClassName={`${overlayClassName} global_arrow_tooltip_overflow`}
       title={title}
-      visible={visible}
-      onVisibleChange={handleVisibleChange}
+      open={visible}
+      onOpenChange={handleVisibleChange}
       getPopupContainer={getContainer}
     >
       {content}

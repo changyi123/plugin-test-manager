@@ -96,7 +96,7 @@ const WorkspaceSelector = () => {
 
   return (
     <Dropdown
-      overlay={
+      dropdownRender={() => (
         <Menu
           onClick={({ key }) => {
             if (key === 'toggleWorkspace') {
@@ -115,7 +115,7 @@ const WorkspaceSelector = () => {
             </Checkbox>
           )}
         </Menu>
-      }
+      )}
     >
       <Button>
         {t('common.workspace')}：

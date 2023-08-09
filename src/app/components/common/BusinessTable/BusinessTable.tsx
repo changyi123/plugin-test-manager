@@ -18,12 +18,13 @@ import { getLang } from '@/lib/utils/locale';
 import cx from './BusinessTable.less';
 import ColumnSetting from './ColumnSetting';
 import TableSelection from './TableSelection';
+import type { BusinessTableActionType } from './type';
 import type { TitleCellOption } from './type';
 
 const DEFAULT_PAGE_SIZE = 10;
 const MIN_COLUMN_WIDTH = 120;
-const OFFSET_HEIGHT = 88;
-const SELECTION_HEADER_HEIGHT = 40;
+const OFFSET_HEIGHT = 90;
+const SELECTION_HEADER_HEIGHT = 42;
 
 const ResizableHeaderCell = ({ onResize, resizable, width, ...restProps }) => {
   const thProps = pick(restProps, ['children', 'rowSpan', 'colSpan', 'style', 'className']);
@@ -57,18 +58,11 @@ const OverflowTooltipBodyCell = props => {
 
   return (
     <td {...tdProps}>
-      <OverflowTooltip title={props.children}>{props.children}</OverflowTooltip>
+      <OverflowTooltip overlayClassName="global_arrow_tooltip_overflow" title={props.children}>
+        {props.children}
+      </OverflowTooltip>
     </td>
   );
-};
-
-export type ActionType = {
-  refresh: () => void;
-  expandChangePage?: (num: number) => void;
-  toggleSelection: (visible?: boolean) => void;
-  selectedRowKeys: any[];
-  resetSelectedRowKeys: () => void;
-  tableColumns: any[];
 };
 
 type BusinessTableProps = TableProps<any> &
@@ -90,7 +84,7 @@ type BusinessTableProps = TableProps<any> &
     // 是否已经有列被选中
     onHasRowSelected?: (check: boolean) => void;
     selectionActionNodes?: React.ReactNode[];
-    actionRef?: React.ForwardedRef<ActionType>;
+    actionRef?: React.ForwardedRef<BusinessTableActionType>;
     expandChangePage?: (num: number, size?: number) => void;
     getDataSource?: (queryParams: { offset: number; limit: number }) => Promise<{
       list: any[];
@@ -408,7 +402,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
   }, [dataSource, props.rowKey, setExpandedKeys]);
 
   return (
-    <div className={`${cx('table-container')} table-box`} ref={ref}>
+    <div className={`${cx('table-container')} table-box business-debug-table`} ref={ref}>
       <LibraryProvider
         lang={getLang()}
         workspaceKey={workspace?.key}

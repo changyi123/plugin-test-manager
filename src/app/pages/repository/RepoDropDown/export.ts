@@ -1,6 +1,4 @@
-import FileSave from 'file-saver';
 import { difference } from 'lodash';
-import { utils as xlsxUtils, write as xlsxWrite } from 'sheetjs-style';
 
 import { getRepoData, handleRepoPath } from '@/components/business/RepositoryGroup/repository';
 import {
@@ -371,6 +369,8 @@ const exportExcelFile = (array: any[], sheetName = 'sheet1', fileName = 'example
     },
   };
 
+  const { utils: xlsxUtils, write: xlsxWrite } = require('sheetjs-style');
+
   const jsonWorkSheet = Object.entries(xlsxUtils.json_to_sheet(array)).reduce(
     (prev, [key, value]: any[]) => {
       prev[key] = /[A-Z]{1}\d+/g.test(key)
@@ -414,6 +414,7 @@ const exportExcelFile = (array: any[], sheetName = 'sheet1', fileName = 'example
     cellStyles: true,
   });
 
+  const FileSave = require('file-saver');
   return FileSave.saveAs(
     new Blob([s2ab(wbout) as any], {
       type: 'application/onctet-stream',

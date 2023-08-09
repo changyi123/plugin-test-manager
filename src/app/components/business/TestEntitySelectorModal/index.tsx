@@ -533,9 +533,6 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
         `${t('components.business.testEntitySelectorModal.pleaseSelect')}${testTypeName}`
       }
       width={testType === TestType.Case ? 800 : width ?? 500}
-      bodyStyle={{
-        padding: '16px 24px',
-      }}
     >
       {testSelectNode}
     </Modal>

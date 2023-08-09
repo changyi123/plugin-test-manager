@@ -5,7 +5,6 @@ import React, { useMemo } from 'react';
 import { v4 as uuid } from 'uuid';
 
 import { updateTestRun } from '@/lib/api/runs';
-// import { EditorField } from '@giteeteam/apps-team-components';
 import { useCurrentUser, useGetUserById } from '@/lib/api/user';
 import useI18n from '@/lib/hooks/useI18n';
 

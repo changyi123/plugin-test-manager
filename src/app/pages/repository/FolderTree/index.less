@@ -1,4 +1,4 @@
-@import '@/index.global.less';
+@import '@/common.less';
 
 .folder-tree {
   height: 100%;
@@ -186,6 +186,18 @@
         border-color: var(--theme-error-color) !important;
         background: var(--color-gray-1) !important;
         box-shadow: none !important;
+      }
+    }
+  }
+}
+
+:root {
+  .title-editor {
+    :global {
+      .ant-modal-confirm-content {
+        padding-top: 6px;
+        max-width: inherit !important;
+        width: 100%;
       }
     }
   }

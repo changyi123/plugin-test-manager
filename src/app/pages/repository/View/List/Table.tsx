@@ -8,7 +8,8 @@ import RenderRepository from '@/components/business/RenderRepository';
 import RepositorySelector, {
   ActionType as RepositorySelectorActionType,
 } from '@/components/business/RepositorySelector';
-import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
+import type { BusinessTableActionType } from '@/components/common/BusinessTable/type';
+import { BusinessTable } from '@/components/dynamicComponents';
 import { DeleteIcon, DragHandler, LinkItemIcon, SwitcherOutlined, UserIcon } from '@/icons';
 import { deleteTestEntity, updateTestEntity } from '@/lib/api/item';
 import { useCurrentUser } from '@/lib/api/user';
@@ -217,18 +218,26 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         userData={userData}
         onChange={toggleAssignee}
         emptyChild={
-          <span className={cx('user-field')}>
+          <span className={cx('action', 'user-field')}>
             <UserIcon className={cx('icon')} /> {t('page.plan.testEntityList.assigneeSetting')}
           </span>
         }
       />,
-      <span key="copy" onClick={hasRowSelected && copyTestDetail}>
+      <span className={cx('action', 'copy')} key="copy" onClick={hasRowSelected && copyTestDetail}>
         <SwitcherOutlined /> 复制
       </span>,
-      <span key="link" onClick={hasRowSelected ? createItemLink : undefined}>
+      <span
+        className={cx('action')}
+        key="link"
+        onClick={hasRowSelected ? createItemLink : undefined}
+      >
         <LinkItemIcon className={cx('icon')} /> {t('page.repository.view.list.batchItemLink')}
       </span>,
-      <span key="delete" onClick={hasRowSelected ? deleteTestCase : undefined}>
+      <span
+        className={cx('action')}
+        key="delete"
+        onClick={hasRowSelected ? deleteTestCase : undefined}
+      >
         <DeleteIcon className={cx('icon')} /> {t('common.delete')}
       </span>,
     ];
@@ -286,7 +295,6 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         key: 'title',
         title: t('common.title'),
         isSystem: true,
-        className: 'test-case-title',
         extraProps: {
           onClick: record => {
             openItemViewScreen(record?.objectId);
@@ -313,13 +321,14 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
               >
                 {!rowData._tableState.selectionMode ? (
                   <Tooltip
-                    overlayClassName={cx('tooltip')}
+                    overlayClassName={`${cx('tooltip')} global_arrow_tooltip_overflow`}
                     title={t('page.repository.view.list.dropCaseToGroup')}
                   >
                     <DragHandler style={{ marginRight: 10 }} />
                   </Tooltip>
                 ) : null}
                 <span
+                  className="test-case-title"
                   data-drawer-handle-target
                   data-element-id="row-title"
                   style={{ cursor: 'pointer' }}

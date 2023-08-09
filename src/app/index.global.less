@@ -1,6 +1,3 @@
-@import '~antd/dist/antd.less';
-@import '~@osui/theme/dist/theme/vars.css';
-
 :root {
   --menu-bg: rgba(255, 255, 255);
 }
@@ -22,6 +19,18 @@
     .search-popover-select-panel {
       min-width: 310px;
     }
+
+    .global-popconfirm.ant-popconfirm {
+      .ant-popover-inner {
+        padding: 0;
+      }
+    }
+
+    .global_arrow_tooltip_overflow.ant-tooltip {
+      .ant-tooltip-arrow {
+        display: none;
+      }
+    }
   }
 
   .ant-tooltip-arrow {
@@ -34,6 +43,27 @@
   #test-manager {
     position: relative;
     height: 100%;
+
+    // add
+    .tooltip-overflow {
+      color: var(--theme-text-color);
+    }
+    .ant-table-thead,
+    .ant-table-tbody {
+      tr {
+        th,
+        td {
+          overflow-wrap: break-word;
+          padding: 9.5px 16px;
+          background: var(--table-header-bg);
+          color: var(--table-header-color);
+          font-weight: normal;
+          text-align: left;
+          border-bottom: 1px solid var(--theme-border-color-split);
+          transition: background 0.3s ease;
+        }
+      }
+    }
 
     // .ant-table-ping-left .ant-table-cell-fix-left {
     //   border-right: 1px solid #eee;
@@ -75,12 +105,6 @@
       }
     }
 
-    .ant-tooltip-arrow-content,
-    .ant-tooltip-inner {
-      background-color: #576473;
-      --antd-arrow-background-color: #576473;
-    }
-
     .ant-input:focus,
     .ant-input-focused {
       border-color: #0c62ff !important;
@@ -103,7 +127,9 @@
 
     .ant-table-thead
       > tr
-      > th:not(:last-child):not(.ant-table-selection-column):not(.ant-table-row-expand-icon-cell):not([colspan])::before {
+      > th:not(:last-child):not(.ant-table-selection-column):not(
+        .ant-table-row-expand-icon-cell
+      ):not([colspan])::before {
       width: 0 !important;
     }
   }
@@ -115,45 +141,9 @@
   }
 }
 
-.custom-scrollbar-mixin() {
-  &::-webkit-scrollbar {
-    background-color: #fff;
-    width: 6px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background-color: #fff;
-  }
-
-  /* scrollbar itself */
-  &::-webkit-scrollbar-thumb {
-    background-color: #babac0;
-    border-radius: 16px;
-    border: 4px solid #b5bac5;
-    // visibility: hidden;
-  }
-
-  /* set button(top and bottom of the scrollbar) */
-  &::-webkit-scrollbar-button {
-    display: none;
-  }
-  // &:hover {
-  //   &::-webkit-scrollbar-thumb {
-  //     visibility: visible;
-  //   }
-  // }
-}
-
 .field-value {
   .anticon-down,
   .anticon-calendar {
     display: none;
   }
 }
-
-@border-color: #e9eaec;
-@highlight-color: #0a50d1;
-
-// 测试管理的左侧menu 激活态和 hover颜色
-@plan-item-hover: #f4f4f4;
-@plan-item-focus: #e2ecff;

@@ -16,7 +16,6 @@ import cx from './index.less';
 
 const TestPlanSelector: React.FC = () => {
   const { t } = useI18n();
-  const listRef = React.useRef();
   const { workspaceKey, selectedTestPlan, setSelectedTestPlan } = usePageContext();
   const [search, setSearch] = useState('');
 
@@ -79,18 +78,22 @@ const TestPlanSelector: React.FC = () => {
             onChange={value => setSearch(value)}
           />
         </div>
-        <div className={cx('selector-list')} ref={listRef}>
+        <div className={cx('selector-list')}>
           {data?.length ? (
-            data.map(d => (
+            data.map((d, index) => (
               <div
                 className={cx(
                   'plan-name',
                   `${d.objectId === selectedTestPlan?.objectId ? 'actived' : ''}`,
                 )}
-                key={d.objectId}
+                key={`${d.objectId}_${index}`}
                 onClick={() => handleClick(d)}
               >
-                <Tooltip placement="topLeft" title={d?.name ?? ''}>
+                <Tooltip
+                  placement="topLeft"
+                  title={d?.name ?? ''}
+                  overlayClassName="global_arrow_tooltip_overflow"
+                >
                   {d?.name}
                 </Tooltip>
               </div>
@@ -117,16 +120,20 @@ const TestPlanSelector: React.FC = () => {
         </div>
       </div>
     );
-  }, [data, listRef, search, selectedTestPlan?.objectId]);
+  }, [data, search, selectedTestPlan?.objectId]);
 
   return (
     <div className={cx('plan-selector-container')}>
-      <Dropdown overlay={menu} trigger={['click']}>
+      <Dropdown trigger={['click']} dropdownRender={menu}>
         <div className={cx('title')}>
-          <Tooltip title={selectedTestPlan?.name ?? ''} placement="topLeft">
+          <Tooltip
+            title={selectedTestPlan?.name ?? ''}
+            placement="topLeft"
+            overlayClassName="global_arrow_tooltip_overflow"
+          >
             <span className={cx('name')}>{selectedTestPlan?.name ?? ''}</span>
           </Tooltip>
-          <DropDown className={cx('icon')} />
+          <DropDown className={cx('icon')}>{''}</DropDown>
         </div>
       </Dropdown>
     </div>

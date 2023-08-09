@@ -116,9 +116,10 @@ const { workspaceKeys = [] } = global?.body ?? {};
 const createChartGroups = async ({ workspace, needToCreateGroupKeys, ...resProps }) => {
   const WorkspaceParseObj = getParseModel(false, 'Workspace');
   const ChartGroupParseObj = getParseModel(false, 'ChartGroup');
-  const chartGroupsData = needToCreateGroupKeys?.length
-    ? needToCreateGroupKeys.map(d => needToCreateChartGroupInfo?.[d])
-    : Object.values(needToCreateChartGroupInfo);
+  const chartGroupsData =
+    (Array.isArray(needToCreateGroupKeys) && needToCreateGroupKeys?.length
+      ? needToCreateGroupKeys.map(d => needToCreateChartGroupInfo?.[d])
+      : Object.values(needToCreateChartGroupInfo)) ?? [];
 
   // 创建 chartGroup
   const needToCreateChartGroups = chartGroupsData.map((data, index) =>
@@ -137,7 +138,7 @@ const createChartGroups = async ({ workspace, needToCreateGroupKeys, ...resProps
     .map(group => {
       const chartGroup = chartGroupsData.find(data => data.group.name === group.get('name'));
 
-      return chartGroup?.chart.map(chart =>
+      return chartGroup?.chart?.map(chart =>
         createChart(
           {
             ...chart,
@@ -148,7 +149,8 @@ const createChartGroups = async ({ workspace, needToCreateGroupKeys, ...resProps
         ),
       );
     })
-    .flat();
+    .flat()
+    .filter(Boolean);
 
   const charts = await saveAllObject(needToCreateChars).then(items =>
     items.map(item => item.toJSON()),
@@ -229,7 +231,7 @@ export const batchCreateChartGroups = async workspaceConfigs => {
     );
 
   const getIql = (config, field, types) =>
-    config?.defectsMapping
+    config?.defectsMapping && Array.isArray(types)
       ? `'${field.name}' in ${JSON.stringify(types.map(item => item.label))}`
       : '';
 
@@ -247,7 +249,7 @@ export const batchCreateChartGroups = async workspaceConfigs => {
         }
       : {};
 
-  workspaceConfigs = workspaceConfigs.map(config => {
+  workspaceConfigs = workspaceConfigs?.map(config => {
     const itemTypes = itemTypesObj?.filter(d => config?.defectsMapping?.includes(d.key)) ?? [];
     const groupKeys = config.needToCreateGroupKeys ?? ['TestDefectChartGroup'];
     const TestDefectChartGroupConfig = groupKeys.includes('TestDefectChartGroup')
@@ -264,7 +266,7 @@ export const batchCreateChartGroups = async workspaceConfigs => {
   });
   console.info('批量创建 chartGroup 和 charts 开始 ------------------->');
 
-  const taskQueue = workspaceConfigs.map(config => async () => createChartGroups(config));
+  const taskQueue = workspaceConfigs?.map(config => async () => createChartGroups(config)) ?? [];
 
   const res = await parallelLimit(taskQueue, 10);
   console.info('批量创建 chartGroup 和 charts 结束 ------------------->');

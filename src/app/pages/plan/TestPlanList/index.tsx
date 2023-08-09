@@ -4,9 +4,10 @@ import _ from 'lodash';
 import { components } from 'proxima-sdk';
 import React, { useCallback, useRef, useState } from 'react';
 
-import { BusinessTable, BusinessTableActionType } from '@/components/common/BusinessTable';
+import type { BusinessTableActionType } from '@/components/common/BusinessTable/type';
 import FilterSearch from '@/components/common/FilterSearch';
 import { getFilterFields } from '@/components/common/FilterSearch/utils';
+import { BusinessTable } from '@/components/dynamicComponents';
 import { EditIcon } from '@/icons';
 import { getStatsTestPlan, getTestEntityByQuery } from '@/lib/api/item';
 import { useCurrentUser } from '@/lib/api/user';
@@ -114,7 +115,7 @@ const TestPlanList: React.FC<any> = () => {
       fixed: true,
       isSystem: true,
       title: t('components.business.testPlanList.planName'),
-      className: 'test-case-title',
+      // className: 'test-case-title',
       extraProps: {
         onClick: record => setSelectedTestPlan(record),
       },

@@ -158,7 +158,7 @@ const Header: React.FC<HeaderProps> = ({
                 type="primary"
                 onClick={() => createTestExecution()}
                 icon={<DownOutlined />}
-                overlay={itemsList}
+                dropdownRender={() => itemsList}
                 trigger={['hover']}
               >
                 {t('common.addTestExecution')}

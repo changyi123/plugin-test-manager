@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 
-import { BusinessTable } from '@/components/common/BusinessTable';
+import { BusinessTable } from '@/components/dynamicComponents';
 import { TestType } from '@/lib/constants';
 
 import { useDataContext } from '../hooks';

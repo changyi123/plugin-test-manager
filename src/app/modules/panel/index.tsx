@@ -4,7 +4,7 @@ import React from 'react';
 
 import TestManagerProvider from '@/components/business/TestManagerProvider';
 import { getDevConfig } from '@/devEnv';
-import { ENTITY_NOT_FOUND, TestType } from '@/lib/constants';
+import { TestType } from '@/lib/constants';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 
@@ -25,7 +25,7 @@ const TestPanel = () => {
   const { testEntity } = useTestConfig();
 
   const panelRenderNode = React.useMemo(() => {
-    if ((testEntity as any) === ENTITY_NOT_FOUND)
+    if (testEntity && !testEntity.type)
       return (
         <Result
           className={cx('empty')}

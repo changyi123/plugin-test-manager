@@ -2,9 +2,9 @@ import { useBoolean, useMemoizedFn, useRequest } from 'ahooks';
 import { Button, Dropdown, message, Spin } from 'antd';
 import { MinderNodeType, TestType } from 'common/constant';
 import React from 'react';
-import MinderEditor from 'test-manager-minder';
 import { v4 } from 'uuid';
 
+import { MinderEditor } from '@/components/dynamicComponents';
 import { CustomMore } from '@/icons';
 import { deleteTestEntity, updateTestEntity } from '@/lib/api/item';
 import {
@@ -380,7 +380,7 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
   // 导出 XMind 数据
   const handleXMindExport = useMemoizedFn(async () => {
     if (requestMinderDataLoading)
-      return message.warn(t('page.repository.view.minder.waitForMinderDataLoading'));
+      return message.warning(t('page.repository.view.minder.waitForMinderDataLoading'));
     const hide = message.loading(t('page.repository.view.minder.exportLoadingMessage'));
 
     setTimeout(async () => {

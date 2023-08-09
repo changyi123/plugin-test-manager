@@ -68,7 +68,7 @@ const TemplateModal: React.FC<ModalProps> = ({
   return (
     <Modal
       title={t('page.config.wordTemplate.uploadTemplate')}
-      visible={visible}
+      open={visible}
       onOk={handleOk}
       onCancel={handleCancel}
       width={600}

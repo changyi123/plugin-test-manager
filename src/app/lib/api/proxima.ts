@@ -308,6 +308,7 @@ export const cloneItem = async (
 export const getPluginBoundWorkspaces = async () => {
   const appWorkspace = await new Parse.Query(AppsWorkspace)
     .equalTo('appKey', TEST_MANAGER_PLUGIN_KEY)
+    .equalTo('environmentKey', 'production')
     .include('workspaces')
     .first({ json: true });
 

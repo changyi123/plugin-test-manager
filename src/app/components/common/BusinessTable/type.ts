@@ -16,3 +16,12 @@ export type TitleCellOption = {
     isHideIcon?: boolean;
   };
 };
+
+export type BusinessTableActionType = {
+  refresh: () => void;
+  expandChangePage?: (num: number) => void;
+  toggleSelection: (visible?: boolean) => void;
+  selectedRowKeys: any[];
+  resetSelectedRowKeys: () => void;
+  tableColumns: any[];
+};

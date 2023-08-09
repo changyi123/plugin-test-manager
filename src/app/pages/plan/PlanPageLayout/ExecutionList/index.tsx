@@ -177,7 +177,7 @@ const ExecutionList: React.FC<ExecutionListProps> = ({
               </OverflowTooltip>
             </div>
             <div className={cx('icon')}>
-              <Dropdown overlay={menu(d)} trigger={['hover']}>
+              <Dropdown dropdownRender={() => menu(d)} trigger={['hover']}>
                 <EllipsisOutlined className={cx('action', 'right')} style={{ display: 'flex' }} />
               </Dropdown>
             </div>
@@ -211,7 +211,7 @@ const ExecutionList: React.FC<ExecutionListProps> = ({
                       </OverflowTooltip>
                     </div>
                     <div className={cx('icon')}>
-                      <Dropdown overlay={menu(d)} trigger={['hover']}>
+                      <Dropdown dropdownRender={() => menu(d)} trigger={['hover']}>
                         <EllipsisOutlined
                           className={cx('action', 'right')}
                           style={{ display: 'flex' }}
@@ -222,7 +222,7 @@ const ExecutionList: React.FC<ExecutionListProps> = ({
                 ))}
                 {!!hideList.length && (
                   <div className={cx('hide-list-icon')}>
-                    <Dropdown overlay={hideMenu} trigger={['hover']}>
+                    <Dropdown dropdownRender={hideMenu} trigger={['hover']}>
                       <div className={cx('more-box')}>
                         <EllipsisOutlined className={cx('icon')} />
                         <span className={cx('more')}>{t('common.more')}</span>

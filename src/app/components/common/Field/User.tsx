@@ -1,5 +1,5 @@
 import { UserCell } from '@giteeteam/apps-team-components';
-import { UserProps } from '@giteeteam/apps-team-components/dist/cells/user';
+import type { UserProps } from '@giteeteam/apps-team-components/dist/cells/user';
 import React from 'react';
 
 import { UserPointerInfo } from '@/lib/types/Test';

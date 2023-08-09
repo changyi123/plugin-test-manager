@@ -60,6 +60,7 @@ const openFolderNameModal: OpenFolderNameModal = ({ title, name, validator, t })
       title,
       icon: null,
       content: input,
+      className: cx('title-editor'),
       getContainer: getRootContainer,
       async onOk() {
         const inputValue = inputRef.input.value?.trim() ?? '';
@@ -247,7 +248,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         // 模块创建限制 8 个层级
         // 全部用例不算一个层级
         if (hierarchy >= 9) {
-          notification.warn({
+          notification.warning({
             message: t('page.repository.folderTree.hierarchyTips'),
           });
           return;
@@ -307,7 +308,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         });
       } else if (actionKey === MenuKey.deleteFolder) {
         Modal.confirm({
-          className: cx('confirm'),
+          className: `${cx('confirm')} global-ant-modal`,
           getContainer: getRootContainer,
           title: t('page.repository.folderTree.deleteFolder'),
           width: 500,
@@ -317,9 +318,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
                 {t('page.repository.folderTree.deleteFolderTips.0')}【{node.name}】
                 {t('page.repository.folderTree.deleteFolderTips.1')}？
               </div>
-              <div style={{ marginLeft: 14 }}>
-                {t('page.repository.folderTree.deleteFolderTips.2')}
-              </div>
+              <div>{t('page.repository.folderTree.deleteFolderTips.2')}</div>
             </>
           ),
           cancelText: t('common.cancel'),
@@ -470,12 +469,12 @@ const FolderTree: React.FC<FolderTreeProps> = ({
     <Dropdown
       key={t('page.repository.folderTree.buttonName.2')}
       disabled={selectedTreeNode?.key === UNGROUPED_FOLDER_KEY}
-      overlay={
+      dropdownRender={() => (
         <FolderMenu
           onClick={({ key }) => handleMenuClick(key, selectedTreeNode || {})}
           disabledKeys={folderMenuDisabledKeys}
         />
-      }
+      )}
     >
       <CustomMore className={cx(selectedTreeNode?.key === UNGROUPED_FOLDER_KEY && 'disabled')} />
     </Dropdown>,
@@ -530,12 +529,12 @@ const FolderTree: React.FC<FolderTreeProps> = ({
               className={cx('tree-node-length')}
             >{`${node?.counts[0]}(${node?.counts[1]})`}</span>
             <Dropdown
-              overlay={
+              dropdownRender={() => (
                 <FolderMenu
                   disabledKeys={getDisabledKeys()}
                   onClick={({ key }) => handleMenuClick(key, node)}
                 />
-              }
+              )}
             >
               <CustomMore
                 title=""
@@ -588,7 +587,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
       if (!info.dropToGap) {
         // 拖拽到子级, 排序到子节点的首位
         if (validateHierarchy(0)) {
-          notification.warn({
+          notification.warning({
             message: t('page.repository.folderTree.dropCaseTips.1'),
           });
           return;
@@ -606,7 +605,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
       ) {
         // 拖拽目标用例库底部，排序到底部
         if (validateHierarchy(0)) {
-          notification.warn({
+          notification.warning({
             message: t('page.repository.folderTree.dropCaseTips.1'),
           });
           return;
@@ -623,7 +622,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         // 平级拖拽，排序到目标节点后位，dropKey 为 root 不操作,
         if (dropKey === 'root') return;
         if (validateHierarchy(1)) {
-          notification.warn({
+          notification.warning({
             message: t('page.repository.folderTree.dropCaseTips.1'),
           });
           return;
