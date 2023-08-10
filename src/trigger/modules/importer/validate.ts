@@ -247,6 +247,13 @@ export const runValidate = async () => {
       itemType: 'itemType',
     },
     stop: false,
+
+    // parse context 用户跳过事项保存的后置操作
+    extendParseContext: global.env?.importerExtendParseContext ?? {
+      skipHandleApps: true,
+      skipItemForest: true,
+      // skipUpdateWorkflowConfigUsers: true,
+    },
   });
 
   return await validateAppData(getDataByFieldMaping(data, fieldMapping));
