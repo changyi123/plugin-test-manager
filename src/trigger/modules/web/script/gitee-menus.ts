@@ -26,7 +26,7 @@ export const runGiteeMenus = async () => {
     sessionToken: global.sessionToken,
   };
 
-  const getGiteeMenusConfig = async workspaceKey => {
+  const getGiteeMenusConfig = async (workspaceKey, info) => {
     const tenantKey = getTenantKey();
     const productPrefix = getProductPrefix();
 
@@ -56,6 +56,7 @@ export const runGiteeMenus = async () => {
       type: 'IFRAME',
       openWindow: '0',
       iframeUrl: `${proximaRoutePrefix}/plugin/team_insight_charts_base_team_insight_charts_base_workspace?disabledCreate=true&displayContext=test_manager&moduleKey=test_manager`,
+      info,
     };
 
     // 是否开启测试报告
@@ -85,7 +86,11 @@ export const runGiteeMenus = async () => {
     if (Array.isArray(global?.env?.ENABLE_PLUGIN_WORKSPACE_KEY)) {
       const isEnabled = global.env.ENABLE_PLUGIN_WORKSPACE_KEY.includes(workspaceKey);
       if (isEnabled) {
-        return getGiteeMenusConfig(workspaceKey);
+        return getGiteeMenusConfig(workspaceKey, {
+          token: 'plugin-config',
+          workspaceKey,
+          pluginConfig: global?.env?.ENABLE_PLUGIN_WORKSPACE_KEY,
+        });
       }
     }
 
@@ -96,14 +101,32 @@ export const runGiteeMenus = async () => {
       .first(ParseBaseQueryOptions);
 
     const globalWorkspace = appWorkspace ? appWorkspace.get('global') : true;
+    let info = {
+      token: 'global',
+      workspaceKey,
+      globalWorkspace,
+    } as any;
+
     if (!globalWorkspace) {
       const hasTestManagerPlugin = appWorkspace
         ?.get('workspaces')
-        ?.some(workspace => workspace.key === workspaceKey);
+        ?.map(workspace => workspace.get?.('key') ?? workspace?.key ?? workspace)
+        ?.includes(workspaceKey);
+
+      info = {
+        token: 'workspace',
+        globalWorkspace,
+        hasTestManagerPlugin,
+        workspaceKeys: appWorkspace
+          ?.get('workspaces')
+          ?.map(workspace => workspace.get?.('key') ?? workspace?.key ?? workspace),
+        workspaceKey,
+      };
+
       if (!hasTestManagerPlugin) throw new Error('CURRENT_WORKSPACE_NOT_TEST_INSTALLED');
     }
 
-    return getGiteeMenusConfig(workspaceKey);
+    return getGiteeMenusConfig(workspaceKey, info);
   };
 
   try {
