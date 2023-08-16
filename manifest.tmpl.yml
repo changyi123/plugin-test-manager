@@ -2,7 +2,7 @@ app:
   key: test_manager
   uuid: bf73e61c-e15a-4461-a1f7-f940c2009332
   name: test_manager
-  version: "4.3.0-alpha.3"
+  version: "4.3.2-alpha.1"
 modules:
   webtrigger:
     # TODO: Debug 使用，生产环境禁止调用下面的 trigger
@@ -118,8 +118,10 @@ modules:
       handler: trigger.createdItemLinkType
     - key: test-manager-validate-script-function
       handler: importer.runValidate
-    - key: test-manager-import-script-function
-      handler: importer.runImport
+    - key: test-manager-before-import-script-function
+      handler: importer.runBeforeImport
+    # - key: test-manager-import-script-function
+    #   handler: importer.runImport
       # 5 分钟超时时长
       timeout: 300000
     - key: huishang-script-function
@@ -271,7 +273,7 @@ modules:
       route: /beforeItemCreateModule
 
   importer:
-    function: test-manager-import-script-function
+    function: test-manager-before-import-script-function
     validate: test-manager-validate-script-function
     itemFields:
       - key: group
