@@ -25,7 +25,8 @@ const MIN_COLUMN_WIDTH = 120;
 const OFFSET_HEIGHT = 88;
 const SELECTION_HEADER_HEIGHT = 40;
 
-const ResizableHeaderCell = ({ onResize, resizable, width, ...restProps }) => {
+const ResizableHeaderCell = ({ onResize, resizable, width, onClick, ...restProps }) => {
+  const resizingDataRef = useRef(false);
   const thProps = pick(restProps, ['children', 'rowSpan', 'colSpan', 'style', 'className']);
   if (!resizable) {
     return <th {...thProps} />;
@@ -33,6 +34,12 @@ const ResizableHeaderCell = ({ onResize, resizable, width, ...restProps }) => {
 
   return (
     <Resizable
+      onResizeStart={() => {
+        resizingDataRef.current = true;
+      }}
+      onResizeStop={() => {
+        resizingDataRef.current = false;
+      }}
       handle={
         <span
           className={cx('resizable-handle', 'resizable-handle-global')}
@@ -46,7 +53,13 @@ const ResizableHeaderCell = ({ onResize, resizable, width, ...restProps }) => {
       onResize={onResize}
       draggableOpts={{ enableUserSelectHack: false }}
     >
-      <th {...thProps} />
+      <th
+        onClick={(...args) => {
+          if (resizingDataRef.current) return;
+          onClick?.(...args);
+        }}
+        {...thProps}
+      />
     </Resizable>
   );
 };
