@@ -180,6 +180,8 @@ export default class TemplateGenerator {
       responseType: 'arraybuffer',
     });
 
+    (window as any).setImmediate = window.setTimeout;
+
     const reportData = await createReport({
       template: templateFile,
       data: async () => {
@@ -202,7 +204,7 @@ export default class TemplateGenerator {
     }
 
     // 忽略该类型错误
-    if (this.invalidVariableMessageList) {
+    if (this.invalidVariableMessageList.length) {
       console.error('invalidVariable', this.invalidVariableMessageList);
     }
 
