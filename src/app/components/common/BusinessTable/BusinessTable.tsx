@@ -3,7 +3,7 @@ import { PluginSDKContext, useSDK } from '@projectproxima/plugin-sdk';
 import { useAntdTable, useLocalStorageState, useSize } from 'ahooks';
 import { Pagination, Table } from 'antd';
 import { TableProps } from 'antd/lib/table';
-import { difference, isEqual, omit, pick, sortBy } from 'lodash';
+import { difference, isEqual, omit, pick } from 'lodash';
 import React, { useMemo, useRef } from 'react';
 import { Resizable } from 'react-resizable';
 
@@ -233,7 +233,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
 
     const sortedResult = Object.values(tableSorter).reduce((arr: any[], item: any) => {
       const { sortOrder, sorter } = item;
-      const sorterFunc = typeof sorter === 'function' ? sorter : sorter.compare;
+      const sorterFunc = typeof sorter === 'function' ? sorter : sorter?.compare;
       if (typeof sorterFunc !== 'function') return arr;
       if (sortOrder === 'descend') return arr.sort((a, b) => sorterFunc(b, a));
 

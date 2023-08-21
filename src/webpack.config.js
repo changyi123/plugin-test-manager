@@ -207,6 +207,7 @@ module.exports = (cliEnv = {}, argv) => {
     devServer: {
       // hot: 'only',
       // hot: true, // 由于微前端热重载不支持局部更新，开启本项可使用全量刷新
+      port: '8000',
       static: {
         directory: path.resolve(__dirname, '../dist'),
         serveIndex: true,
