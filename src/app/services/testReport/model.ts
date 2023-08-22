@@ -326,27 +326,65 @@ const chainChartDataAdaptor = (chartData, dataSource) => {
     /** chart iql 绑定适配器，某些报告小组件比较特殊，需要增加适配器 */
     iql(iqlConfigs) {
       const iql = iqlConfigs[genDataSourceConfigUid(dataSource)];
+      // iql 组合器
+      class IqlComposer {
+        mergedIql = '';
+
+        constructor(mergedIql = '') {
+          this.mergedIql = mergedIql;
+        }
+
+        composeIql = iql => {
+          const { mergedIql } = this;
+          if (iql) {
+            this.mergedIql += mergedIql ? ` and (${iql})` : iql;
+          }
+          return this;
+        };
+      }
+
+      // 基础配置
+      const BasicOptions = {
+        iqlContext: {
+          displayContext: 'test_manager',
+        },
+        // 增加筛选字段类型，使报表小组件再查询字段时保留这些字段的类型
+        extensionOption: {
+          fieldTypeKeys: [
+            'r_test_manager_es_object',
+            'r_test_manager_es_text_keyword',
+            'r_test_manager_es_array_keyword',
+          ],
+        },
+        // 默认 iql 查询
+        queryType: 'expression',
+      };
 
       const adaptors = {
+        'basic-count-chart': option => {
+          const targetOption = option?.target;
+
+          return {
+            ...option,
+            ...BasicOptions,
+            target: targetOption?.map?.(option => {
+              const mergedIQL = new IqlComposer().composeIql(option?.iql).composeIql(iql).mergedIql;
+
+              return {
+                ...BasicOptions,
+                ...omit(option, ['iql', 'selectors', 'queryType']),
+                iql: mergedIQL,
+                value: option.value?.map?.(opt => ({
+                  ...BasicOptions,
+                  ...omit(opt, ['iql', 'selectors', 'queryType']),
+                  iql: mergedIQL,
+                })),
+              };
+            }),
+          };
+        },
         default: option => {
           const pureOption = omit(option, ['iql', 'selectors', 'queryType']);
-
-          // iql 组合器
-          class IqlComposer {
-            mergedIql = '';
-
-            constructor(mergedIql = '') {
-              this.mergedIql = mergedIql;
-            }
-
-            composeIql = iql => {
-              const { mergedIql } = this;
-              if (iql) {
-                this.mergedIql += mergedIql ? ` and (${iql})` : iql;
-              }
-              return this;
-            };
-          }
 
           const mergedIQL = new IqlComposer().composeIql(option?.iql).composeIql(iql).mergedIql;
 
@@ -356,26 +394,14 @@ const chainChartDataAdaptor = (chartData, dataSource) => {
               stashIql: option?.iql ?? '',
               // 合并 iql
               iql: mergedIQL,
-              iqlContext: {
-                displayContext: 'test_manager',
-              },
-              // 增加筛选字段类型，使报表小组件再查询字段时保留这些字段的类型
-              extensionOption: {
-                fieldTypeKeys: [
-                  'r_test_manager_es_object',
-                  'r_test_manager_es_text_keyword',
-                  'r_test_manager_es_array_keyword',
-                ],
-              },
-              // 默认 iql 查询
-              queryType: 'expression',
+              ...BasicOptions,
             },
             pureOption,
           );
         },
       };
 
-      chartData.option = (adaptors[chartData.chartView] ?? adaptors.default)(chartData.option);
+      chartData.option = (adaptors[chartData.view] ?? adaptors.default)(chartData.option);
 
       return adaptorChain;
     },
@@ -642,7 +668,7 @@ const TestReport = Parse.Object.extend('test_manager_TestReport', {
           // 如果是自定义数据源，则需要将自定义数据源的结果集绑定到 chartOption 中
           .customDataSource(customDataSourceResults).chartData;
 
-        console.info('modifyChartData===========>', modifyChartData);
+        console.info('<-----modifyChartData----->', modifyChartData.view, modifyChartData);
 
         // 设置 option
         newChartObject.set({ ...omit(modifyChartData, FilterOriginalParseDataKeys) });
