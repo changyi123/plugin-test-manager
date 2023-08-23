@@ -84,6 +84,8 @@ modules:
     - key: extension-report-shenwan
       function: extension-report-shenwan-function
     
+    - key: extension-weichai-file-encrypt
+      function: extension-weichai-file-encrypt-function
 
   trigger:
     - key: test-manager-initial-script-install
@@ -120,8 +122,8 @@ modules:
       handler: importer.runValidate
     - key: test-manager-before-import-script-function
       handler: importer.runBeforeImport
-    # - key: test-manager-import-script-function
-    #   handler: importer.runImport
+    - key: test-manager-import-script-function
+      handler: importer.runImport
       # 5 分钟超时时长
       timeout: 300000
     - key: huishang-script-function
@@ -202,6 +204,9 @@ modules:
     - key: extension-report-shenwan-function
       handler: api.shenwanTestReportInfo
 
+    - key: extension-weichai-file-encrypt-function
+      handler: api.weichaiFileEncrypt
+
   itemPanel:
     - key: test-manager-test-detail
       resource: main
@@ -273,6 +278,7 @@ modules:
       route: /beforeItemCreateModule
 
   importer:
+    # function: test-manager-import-script-function
     function: test-manager-before-import-script-function
     validate: test-manager-validate-script-function
     itemFields:
