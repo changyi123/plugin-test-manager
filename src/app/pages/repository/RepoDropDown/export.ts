@@ -471,14 +471,12 @@ const exportExcelFile = async (
 
   const buffer = s2ab(wbout) as ArrayBuffer;
 
-  const blob = new Blob([await encryptFile(buffer)]);
-  return FileSave.saveAs(
-    blob,
-    {
-      type: 'application/onctet-stream',
-    },
-    fileName,
-  );
+  const blob = new Blob([await encryptFile(buffer)], {
+    type: 'application/onctet-stream',
+  });
+  return FileSave.saveAs(blob, fileName, {
+    type: 'application/onctet-stream',
+  });
 };
 
 export default importTestInfo;
