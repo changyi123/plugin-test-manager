@@ -26,7 +26,8 @@ const MIN_COLUMN_WIDTH = 120;
 const OFFSET_HEIGHT = 90;
 const SELECTION_HEADER_HEIGHT = 42;
 
-const ResizableHeaderCell = ({ onResize, resizable, width, ...restProps }) => {
+const ResizableHeaderCell = ({ onResize, resizable, width, onClick, onSort, ...restProps }) => {
+  const resizingDataRef = useRef(false);
   const thProps = pick(restProps, ['children', 'rowSpan', 'colSpan', 'style', 'className']);
   if (!resizable) {
     return <th {...thProps} />;
@@ -34,6 +35,12 @@ const ResizableHeaderCell = ({ onResize, resizable, width, ...restProps }) => {
 
   return (
     <Resizable
+      onResizeStart={() => {
+        resizingDataRef.current = true;
+      }}
+      onResizeStop={() => {
+        resizingDataRef.current = false;
+      }}
       handle={
         <span
           className={cx('resizable-handle', 'resizable-handle-global')}
@@ -47,7 +54,14 @@ const ResizableHeaderCell = ({ onResize, resizable, width, ...restProps }) => {
       onResize={onResize}
       draggableOpts={{ enableUserSelectHack: false }}
     >
-      <th {...thProps} />
+      <th
+        onClick={e => {
+          if (resizingDataRef.current) return;
+          onClick?.(e);
+          onSort?.(e, restProps);
+        }}
+        {...thProps}
+      />
     </Resizable>
   );
 };
@@ -124,6 +138,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
 
   const currentPageRowsRef = React.useRef([]);
   const initialExpandedRef = React.useRef(false);
+  const [tableSorter, setTableSorter] = React.useState({});
   const [expandedRowKeys, setExpandedKeys] = React.useState([]);
   const [selectedRowKeys, setSelectedRowKeys] = React.useState<string[] | undefined>(undefined);
   const [selectionMode, setSelectionMode] = React.useState(false);
@@ -202,16 +217,25 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     { defaultPageSize: pagesize, refreshDeps: [getDataSource] },
   );
 
-  const dataSource = React.useMemo(
-    () =>
-      ((props.dataSource ?? antdTableProps.dataSource ?? []) as any[]).map(i => ({
-        ...i,
-        _tableState: {
-          selectionMode,
-        },
-      })),
-    [antdTableProps.dataSource, selectionMode, props.dataSource],
-  );
+  const dataSource = React.useMemo(() => {
+    const result = ((props.dataSource ?? antdTableProps.dataSource ?? []) as any[]).map(i => ({
+      ...i,
+      _tableState: {
+        selectionMode,
+      },
+    }));
+
+    const sortedResult = Object.values(tableSorter).reduce((arr: any[], item: any) => {
+      const { sortOrder, sorter } = item;
+      const sorterFunc = typeof sorter === 'function' ? sorter : sorter?.compare;
+      if (typeof sorterFunc !== 'function') return arr;
+      if (sortOrder === 'descend') return arr.sort((a, b) => sorterFunc(b, a));
+
+      return arr.sort(sorterFunc);
+    }, result);
+
+    return sortedResult as any;
+  }, [antdTableProps.dataSource, selectionMode, props.dataSource, tableSorter]);
 
   // 当前页可选的 row keys
   const currentPageSelectableRowKeys = React.useMemo(() => {
@@ -254,6 +278,20 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     }));
   };
 
+  const handleSort = (key, e, props) => {
+    const SortOrders = props.sortOrder ?? ['ascend', 'descend', null];
+    setTableSorter(prev => ({
+      ...prev,
+      [key]: {
+        sorter: props.sorter,
+        sortOrder:
+          SortOrders[Math.min(SortOrders.indexOf(prev?.[key]?.sorter) + 1, SortOrders.length - 1)],
+      },
+    }));
+
+    console.info(key, props);
+  };
+
   const columnsWithResizableAndSettingAction = tableColumns.map((col: any) => {
     const resizable = col.resizable ?? typeof col.width === 'number';
     const _col = omit(col, ['extraProps']);
@@ -282,6 +320,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
         ...column,
         width: column.width,
         onResize: handleResize.bind(null, col.key),
+        onSort: handleSort.bind(null, col.key),
       }),
     };
   });

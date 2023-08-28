@@ -1,5 +1,6 @@
 import { i18n } from '@giteeteam/apps-team-api';
 import difference from 'lodash/difference';
+import isObject from 'lodash/isObject';
 import keyBy from 'lodash/keyBy';
 
 import {
@@ -427,13 +428,26 @@ export const batchCopyTestCase = async () => {
       throw new Error('caseList is null');
     }
 
+    // 优先级字段异常容错处理
+    const dataValuesExceptionHandler = values => {
+      // 对象结构为异常的数据结构，需要进行容错处理
+      if (isObject(values?.priority) && Object.hasOwnProperty.call(values?.priority, 'key')) {
+        return {
+          ...values,
+          priority: values.priority.key,
+        };
+      }
+
+      return values;
+    };
+
     const needCreateItems = caseList.map((data, index) => ({
       name: `${data.name}_${copyName}`,
       type: data.type,
       sortIndex: generateSortIndex(index),
       workspace: data.workspace,
       itemType: data.itemType,
-      values: data.values,
+      values: dataValuesExceptionHandler(data.values),
       detail: data.detail
         ? {
             ...data.detail,

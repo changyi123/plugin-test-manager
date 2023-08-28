@@ -66,6 +66,10 @@ const SupportAppEnv = {
     },
     transformer: val => val,
   },
+  FILE_ENCRYPT_SERVER_BASE_URL: {
+    defaultValue: '',
+    transformer: val => val,
+  },
 } as const;
 
 /**

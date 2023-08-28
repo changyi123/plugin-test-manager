@@ -19,3 +19,5 @@ export { queryTestReport } from './modules/dashboardReport/query';
 export { sendMessage } from './modules/api/message';
 
 export { shenwanTestReportInfo } from './modules/extension/shenwan';
+
+export { weichaiFileEncrypt } from './modules/extension/weichai';

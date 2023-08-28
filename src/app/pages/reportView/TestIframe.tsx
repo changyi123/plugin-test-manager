@@ -21,12 +21,15 @@ const TestIframe: React.FC<any> = props => {
       times++;
 
       if (currentDom?.parentElement) {
-        const clientHeight = currentDom?.clientHeight;
-        iframeRef.current.style.height = clientHeight + 'px';
-        clearInterval(timer);
+        setTimeout(() => {
+          const clientHeight = currentDom?.clientHeight;
+          iframeRef.current.style.height =
+            Math.min(clientHeight, document.body.clientHeight - 220) + 'px';
+          clearInterval(timer);
+        }, 200);
       }
 
-      if (times > 200) {
+      if (times > 1000) {
         clearInterval(timer);
       }
     }, 200);

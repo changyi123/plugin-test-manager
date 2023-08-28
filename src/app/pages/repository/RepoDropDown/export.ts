@@ -8,13 +8,16 @@ import {
 } from '@/lib/api/item';
 import { getCustomFields } from '@/lib/api/proxima';
 import { getRepositoryData } from '@/lib/api/repository';
+import { getAppEnv } from '@/lib/appEnv';
 import { TestLinkType, TestType } from '@/lib/constants';
 import { SYSTEM_FIELD } from '@/lib/constants';
 import Parse from '@/lib/parse';
 import { Item } from '@/lib/types/App';
 import { Step } from '@/lib/types/Test';
 import { arrayToTree } from '@/lib/utils/arrayToTree';
+import fetch from '@/lib/utils/fetch';
 import { escapeHtmlString } from '@/lib/utils/helper';
+import { getPluginWebTriggerBaseUrl } from '@/lib/utils/helper';
 import { isZhLang } from '@/lib/utils/locale';
 import { getRepositoryQuery } from '@/lib/utils/tree';
 import { CustomField } from '@/services/models';
@@ -352,8 +355,60 @@ function s2ab(s: any) {
   }
 }
 
+// 文件加密
+const encryptFile = async (buffer: ArrayBuffer): Promise<ArrayBuffer> => {
+  // array buffer 转 base64
+  const arrayBufferToBase64 = (buffer: ArrayBuffer) => {
+    let binary = '';
+    const bytes = new Uint8Array(buffer);
+    const len = bytes.byteLength;
+
+    for (let i = 0; i < len; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+
+    return window.btoa(binary);
+  };
+
+  const base64ToArrayBuffer = (base64: string) => {
+    const binaryString = window.atob(base64);
+    const len = binaryString.length;
+    const bytes = new Uint8Array(len);
+
+    for (let i = 0; i < len; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+
+    return bytes.buffer;
+  };
+
+  const shouldEncrypt = !!getAppEnv('FILE_ENCRYPT_SERVER_BASE_URL');
+  // 文件加密服务配置
+  if (shouldEncrypt) {
+    const base64 = arrayBufferToBase64(buffer);
+    const { data } = await fetch.$post(
+      `${getPluginWebTriggerBaseUrl()}/extension-weichai-file-encrypt`,
+      {
+        base64,
+      },
+    );
+
+    const encryptBase64 = data?.base64;
+
+    // base64 转 array buffer
+    return base64ToArrayBuffer(encryptBase64);
+  }
+
+  return buffer;
+};
+
 /** 导出用例数据 */
-const exportExcelFile = (array: any[], sheetName = 'sheet1', fileName = 'example.xlsx', t) => {
+const exportExcelFile = async (
+  array: any[],
+  sheetName = 'sheet1',
+  fileName = 'example.xlsx',
+  t,
+) => {
   const defaultCellStyle = {
     font: {
       name: t('page.repository.repoDropDown.fontName'),
@@ -414,13 +469,15 @@ const exportExcelFile = (array: any[], sheetName = 'sheet1', fileName = 'example
     cellStyles: true,
   });
 
+  const buffer = s2ab(wbout) as ArrayBuffer;
+
+  const blob = new Blob([await encryptFile(buffer)], {
+    type: 'application/onctet-stream',
+  });
   const FileSave = require('file-saver');
-  return FileSave.saveAs(
-    new Blob([s2ab(wbout) as any], {
-      type: 'application/onctet-stream',
-    }),
-    fileName,
-  );
+  return FileSave.saveAs(blob, fileName, {
+    type: 'application/onctet-stream',
+  });
 };
 
 export default importTestInfo;
