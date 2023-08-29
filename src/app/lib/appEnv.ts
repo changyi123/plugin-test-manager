@@ -10,6 +10,8 @@ const SupportFeatureFlags = {
   ENABLE_MINDER: 'ENABLE_MINDER',
   /** 开启测试报告 */
   ENABLE_TEST_REPORT: 'ENABLE_TEST_REPORT',
+  /** 开启更多配置 */
+  ENABLE_MORE_CONFIG: 'ENABLE_MORE_CONFIG',
 } as const;
 
 type SupportFeatureFlagKey = keyof typeof SupportFeatureFlags;

@@ -3,9 +3,9 @@ import { Modal, Select } from 'antd';
 import React from 'react';
 
 import useI18n from '@/lib/hooks/useI18n';
-import { useAllTestWorkspace } from '@/lib/hooks/useTest';
 import EventBus from '@/lib/utils/eventBus';
 import { getRootContainer } from '@/lib/utils/helper';
+import { commonQuery } from '@/services/query';
 
 const CLICK_OK_EVENT_TYPE = 'CLICK_OK_EVENT_TYPE';
 
@@ -24,7 +24,7 @@ const WorkspaceSelectorModal: React.FC<WorkspaceSelectorModalProps> = ({ actionR
 
   const eventBusRef = React.useRef(new EventBus());
 
-  const workspaces = useAllTestWorkspace();
+  const { data: workspaces } = commonQuery.useInstalledWorkspaces();
 
   const workspaceOptions = React.useMemo(() => {
     if (!workspaces) return [];

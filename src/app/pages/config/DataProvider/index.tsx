@@ -2,12 +2,12 @@ import { useLocalStorageState, useRequest } from 'ahooks';
 import React, { useState } from 'react';
 
 import { getTestConfig } from '@/lib/api/common';
-import { getWorkspaceByKey, updateUsedHierarchySchema } from '@/lib/api/proxima';
+import { getWorkspaceByKey } from '@/lib/api/proxima';
 import { useCurrentUser } from '@/lib/api/user';
-import { useAllTestWorkspace } from '@/lib/hooks/useTest';
 import Parse from '@/lib/parse';
 import { generateStorageKey } from '@/lib/utils/helper';
 import { TestConfig } from '@/services/models';
+import { commonQuery } from '@/services/query';
 
 import { DataContext } from '../context';
 import { generateDefaultTestConfig } from '../helper';
@@ -20,14 +20,18 @@ const CurrentWorkspaceStorageKey = generateStorageKey('current-workspace');
  * 2. 开启事项隔离后，为所有类型层级方案增加内置类型
  */
 const useConfigBootstrap = globalConfig => {
-  const allWorkspaces = useAllTestWorkspace();
+  const { data: workspaces } = commonQuery.useInstalledWorkspaces();
+  const allWorkspaceKeys = workspaces?.map(item => item.key);
   useCurrentUser();
-  const allWorkspaceKeys = allWorkspaces?.map(item => item.key);
+
   const { data: testConfigs } = useRequest(
     async () =>
       new Parse.Query(TestConfig)
         .containedIn('workspaceKey', allWorkspaceKeys)
-        .map(item => item.toJSON()),
+        .limit(allWorkspaceKeys.length)
+        .find({
+          json: true,
+        }),
     {
       cacheKey: 'ALL_TEST_CONFIGS',
       ready: Array.isArray(allWorkspaceKeys),
@@ -40,7 +44,7 @@ const useConfigBootstrap = globalConfig => {
       const isolatedSystem = Boolean(globalConfig?.extra?.isolatedSystem);
       // 需要创建的测试执行配置
       const needCreatedTestConfigs = await Promise.all(
-        allWorkspaces
+        workspaces
           .filter(workspace => testConfigs.every(config => config.workspaceKey !== workspace.key))
           .map(async workspace => {
             const testConfigInfo = await generateDefaultTestConfig(workspace, isolatedSystem);
@@ -57,25 +61,11 @@ const useConfigBootstrap = globalConfig => {
     },
   );
 
-  const { data: hierarchySchemeReady } = useRequest(
-    async () => {
-      const isolatedSystem = Boolean(globalConfig?.extra?.isolatedSystem);
-      if (isolatedSystem) {
-        await updateUsedHierarchySchema();
-      }
-      return true;
-    },
-    {
-      ready: Boolean(globalConfig),
-    },
-  );
-
   React.useEffect(() => {
-    hierarchySchemeReady &&
-      testConfigsReady &&
+    testConfigsReady &&
       // eslint-disable-next-line no-console
       console.log('%c test configs ready', 'font-size: 20px');
-  }, [hierarchySchemeReady, testConfigsReady]);
+  }, [testConfigsReady]);
 };
 
 const DataProvider = ({ children }) => {

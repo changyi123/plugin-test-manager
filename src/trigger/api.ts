@@ -21,3 +21,5 @@ export { sendMessage } from './modules/api/message';
 export { shenwanTestReportInfo } from './modules/extension/shenwan';
 
 export { weichaiFileEncrypt } from './modules/extension/weichai';
+
+export { initTestConfig } from './modules/api/config';

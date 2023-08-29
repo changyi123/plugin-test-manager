@@ -2,7 +2,7 @@ app:
   key: test_manager
   uuid: bf73e61c-e15a-4461-a1f7-f940c2009332
   name: test_manager
-  version: "4.4.0-beta.1"
+  version: "4.5.0-alpha.1"
 modules:
   webtrigger:
     # TODO: Debug 使用，生产环境禁止调用下面的 trigger
@@ -87,6 +87,10 @@ modules:
     - key: extension-weichai-file-encrypt
       function: extension-weichai-file-encrypt-function
 
+    # 测试管理初始化脚本
+    - key: init-test-config
+      function: init-test-config-function
+
   trigger:
     - key: test-manager-initial-script-install
       events:
@@ -107,6 +111,11 @@ modules:
       function: item-created-trigger-function
       # 5 分钟超时时长
       timeout: 300000
+    - key: workspace-create-trigger
+      events:
+        - gei:proxima:workspace:created
+      function: workspace-create-trigger-function
+    
   function:
     - key: gitee-menus-function
       handler: web.runGiteeMenus
@@ -124,6 +133,8 @@ modules:
       handler: importer.runBeforeImport
     - key: test-manager-import-script-function
       handler: importer.runImport
+    - key: workspace-create-trigger-function
+      handler: trigger.workspaceCreated
       # 5 分钟超时时长
       timeout: 300000
     - key: huishang-script-function
@@ -206,6 +217,9 @@ modules:
 
     - key: extension-weichai-file-encrypt-function
       handler: api.weichaiFileEncrypt
+
+    - key: init-test-config-function
+      handler: api.initTestConfig
 
   itemPanel:
     - key: test-manager-test-detail

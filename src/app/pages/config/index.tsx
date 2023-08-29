@@ -1,7 +1,6 @@
 import { DownOutlined } from '@ant-design/icons';
-import { useLocalStorageState, useSafeState } from 'ahooks';
+import { useSafeState } from 'ahooks';
 import { Button, Checkbox, Dropdown, Layout, Menu, Result } from 'antd';
-import { isNil } from 'lodash';
 import React from 'react';
 
 import { featureFlags } from '@/lib/appEnv';
@@ -16,6 +15,7 @@ import cx from './index.less';
 import IsolatedTestType from './IsolatedTestType';
 import ItemTypeMapping from './ItemTypeMapping';
 import IsolatedSystem from './MoreConfig/IsolatedSystem';
+import TestConfigInitialization from './MoreConfig/TestConfigInitialization';
 import WordTemplate from './MoreConfig/WordTemplate';
 import TableFields from './TableFields';
 import TestReportTemplate from './TestReportTemplate';
@@ -23,7 +23,6 @@ import TestReportTemplate from './TestReportTemplate';
 const { Sider, Content, Header } = Layout;
 
 // 更多配置
-const MORE_CONFIG_STORAGE_KEY = 'more-config';
 const MoreConfigPages = [
   {
     key: 'IsolatedSystem',
@@ -37,6 +36,13 @@ const MoreConfigPages = [
     title: 'wordTemplate',
     component: WordTemplate,
     description: 'wordTemplate',
+    isGlobalConfig: true,
+  },
+  {
+    key: 'TestConfigInitialization',
+    title: 'testConfigInitialization',
+    component: TestConfigInitialization,
+    description: 'testConfigInitialization',
     isGlobalConfig: true,
   },
 ];
@@ -153,12 +159,7 @@ const PageContent = ({ currentConfigPage }) => {
 
 const Config = () => {
   const { t } = useI18n();
-  const [showMoreConfigPages] = useLocalStorageState(MORE_CONFIG_STORAGE_KEY, {
-    defaultValue: true,
-    deserializer(val) {
-      return !isNil(val);
-    },
-  });
+  const showMoreConfigPages = featureFlags('ENABLE_MORE_CONFIG');
 
   const [selectedKey, setSelectedKey] = useSafeState(ConfigPages[0].key);
   const currentConfigPage = ALLConfigPages.find(item => item.key === selectedKey) ?? ({} as any);

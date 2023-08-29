@@ -112,6 +112,21 @@ const createChart = (props, options = {}) => {
 
 const { workspaceKeys = [] } = global?.body ?? {};
 
+const isParseObject = obj => obj?.className && obj?.objectId && typeof obj?.get === 'function';
+const fromJSON = (parseModel, jsonObject) => {
+  const parseObject = parseModel.createWithoutData();
+  parseObject.id = jsonObject.objectId;
+
+  // 通过循环设置其他属性
+  for (const key in jsonObject) {
+    if (key !== 'className' && key !== 'objectId') {
+      parseObject.set(key, jsonObject[key]);
+    }
+  }
+
+  return parseObject;
+};
+
 // 创建 ChartGroup 和 Chart 脚本
 const createChartGroups = async ({ workspace, needToCreateGroupKeys, ...resProps }) => {
   const WorkspaceParseObj = getParseModel(false, 'Workspace');
@@ -120,6 +135,8 @@ const createChartGroups = async ({ workspace, needToCreateGroupKeys, ...resProps
     (Array.isArray(needToCreateGroupKeys) && needToCreateGroupKeys?.length
       ? needToCreateGroupKeys.map(d => needToCreateChartGroupInfo?.[d])
       : Object.values(needToCreateChartGroupInfo)) ?? [];
+
+  workspace = isParseObject(workspace) ? workspace : fromJSON(WorkspaceParseObj, workspace);
 
   // 创建 chartGroup
   const needToCreateChartGroups = chartGroupsData.map((data, index) =>
@@ -183,14 +200,15 @@ export const batchCreateChartGroups = async workspaceConfigs => {
   const itemTypeQuery = await getParseQuery(false, 'ItemType');
 
   if (!workspaceConfigs) {
-    const workspaces = await WorkspaceParseQuery.containedIn('key', workspaceKeys)
-      .select(['objectId', 'key'])
-      .findAll(ParseBaseQueryOptions);
-    // 获取空间配置 defectsMapping
-    const testConfig = await TestConfigParseQuery.containedIn('workspaceKey', workspaceKeys)
-      .select(['defectsMapping', 'workspaceKey', 'objectId'])
-      .findAll(ParseBaseQueryOptions)
-      .then(items => items?.map(item => item?.toJSON()).filter(Boolean));
+    const [workspaces, testConfig] = await Promise.all([
+      WorkspaceParseQuery.containedIn('key', workspaceKeys)
+        .select(['objectId', 'key'])
+        .findAll(ParseBaseQueryOptions),
+      TestConfigParseQuery.containedIn('workspaceKey', workspaceKeys)
+        .select(['defectsMapping', 'workspaceKey', 'objectId'])
+        .findAll(ParseBaseQueryOptions)
+        .then(items => items?.map(item => item?.toJSON()).filter(Boolean)),
+    ]);
 
     workspaceConfigs = workspaces?.filter(Boolean).map(workspace => ({
       workspace: workspace,

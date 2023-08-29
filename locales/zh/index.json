@@ -324,6 +324,13 @@
       "workspaceSelectorModal": {
         "modelTitle": "请选择测试管理配置空间",
         "placeholder": "请选择空间"
+      },
+      "testConfigInitialization": {
+        "title": "测试管理配置初始化",
+        "description": "开启配置初始化会将测试管理内置的事项类型关联映射修改为内置的事项类型",
+        "switchLabel": "开启配置初始化",
+        "builtInItemTypeHasBeenModified": "内置事项类型已被修改",
+        "messageSuccess": "测试管理配置初始化成功"
       }
     },
     "reportTemplateCreator": {
