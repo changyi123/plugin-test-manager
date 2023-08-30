@@ -32,7 +32,7 @@ const TestConfigInitialization = () => {
     // 更新全局配置
     await updateGlobalConfig({
       extra: {
-        enableAutoInit: checked,
+        enableItemTypeAutoBind: checked,
       },
     });
     await refreshGlobalConfig();
@@ -47,7 +47,7 @@ const TestConfigInitialization = () => {
         <Switch
           loading={loading}
           onChange={handleSwitchChange}
-          checked={!!globalConfig.extra?.enableAutoInit}
+          checked={!!globalConfig.extra?.enableItemTypeAutoBind}
         />
       </div>
     </div>

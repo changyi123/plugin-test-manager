@@ -153,10 +153,6 @@ export type InitializationOptions = {
   workspaceKeys?: string[];
   /** 是否初始化所有空间 */
   initAllWorkspace?: boolean;
-  /** 禁用自动初始化 */
-  disableAutoInitCheck?: boolean;
-  /** 禁止更新 itemTypeMap 数据 */
-  disableUpdateItemTypeMap?: boolean;
 };
 
 // 测试管理配置数据初始化 class
@@ -244,19 +240,6 @@ export const BuiltInInitializationStages: Record<string, InitializationStage> = 
       const { getConfigStorage } = instance;
       const workspaces = getConfigStorage('workspaces');
       const testConfigs = getConfigStorage('testConfigs');
-      const globalTestConfig = getConfigStorage('globalTestConfig');
-
-      if (
-        !instance.options.disableAutoInitCheck &&
-        // 如果全局配置中关闭了自动初始化的配置开关，不需要执行初始化脚本
-        !globalTestConfig.extra?.enableAutoInit
-      ) {
-        helper.logger('自动初始化配置未开启');
-        // 将空间数据配置给置空，阻塞后续的初始化脚本执行
-        instance.workspaceKeys = [];
-        instance.addConfigStorage('workspaces', []);
-        return false;
-      }
 
       const needToBeInitializedWorkspaceKeys = workspaces.filter(workspace => {
         const testConfig = testConfigs.find(i => i.workspaceKey === workspace.key);
@@ -278,11 +261,12 @@ export const BuiltInInitializationStages: Record<string, InitializationStage> = 
       };
     },
     function: async (instance, needToBeInitializedWorkspaceKeys) => {
+      const globalTestConfig = instance.getConfigStorage('globalTestConfig');
       const builtInItemTypes = await dataFetcher.getBuiltInItemType();
       // 如果内置的事项类型未被移除，能够更新空间层级方案
-      const disableUpdateItemTypeMap =
-        instance.options.disableUpdateItemTypeMap ||
-        builtInItemTypes.length !== Constants.BuiltInItemTypeKeys.length;
+      const enableUpdateItemTypeMap =
+        !!globalTestConfig.extra?.enableItemTypeAutoBind &&
+        builtInItemTypes.length === Constants.BuiltInItemTypeKeys.length;
 
       // 初始化空间配置数据
       const [ItemTypeSchemeModel, TestConfigModel] = await Promise.all([
@@ -306,7 +290,7 @@ export const BuiltInInitializationStages: Record<string, InitializationStage> = 
 
       // 初始化空间空间层级方案
       let needUpdateItemTypeSchemeObjects = [];
-      if (!disableUpdateItemTypeMap) {
+      if (enableUpdateItemTypeMap) {
         // 需要被增加隐藏是想类型的类型方案
         const needBeAddonItemTypeScheme = workspaceInfos
           .map(workspaceInfo => {
@@ -315,8 +299,6 @@ export const BuiltInInitializationStages: Record<string, InitializationStage> = 
               const excludeItemTypeKeySet = new Set(Constants.BuiltInItemTypeKeys);
               // 界面层级方案顶级事项中是否包含内置的三个事项类型
               const hierarchy = JSON.parse(itemTypeScheme?.hierarchy ?? '[]');
-
-              helper.logger('_____________hierarchy___________', itemTypeScheme, hierarchy);
 
               hierarchy.forEach(itemType => {
                 if (excludeItemTypeKeySet.has(itemType.key)) {
@@ -368,7 +350,7 @@ export const BuiltInInitializationStages: Record<string, InitializationStage> = 
         const initialConfigData = {
           global: false,
           isolateTestType: ['TestPlan', 'TestDefect', 'TestDetail', 'TestExecution'],
-          itemTypeMap: disableUpdateItemTypeMap ? undefined : DefaultItemTypeMap,
+          itemTypeMap: enableUpdateItemTypeMap ? DefaultItemTypeMap : undefined,
           workspaceKey: workspaceInfo.key,
           defectsMapping: [],
           tableFields: {

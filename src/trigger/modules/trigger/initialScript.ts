@@ -408,26 +408,17 @@ const initWorkspaceTestConfigs = async () => {
   };
 
   // 获取所有空间
-  const [appWorkspace, globalTestConfig] = await Promise.all([
+  const [appWorkspace] = await Promise.all([
     getParseQuery(false, 'AppsWorkspace')
       .equalTo('appKey', APP_KEY)
       .equalTo('environmentKey', 'production')
       .include('workspaces')
       .first(ParseBaseQueryOptions)
       .then(data => data.toJSON()),
-    getParseQuery(false, 'TestConfig')
-      .equalTo('global', true)
-      .first(ParseBaseQueryOptions)
-      .then(data => data.toJSON()),
   ]);
 
   let installedWorkspaceKeys = [];
   const isGlobalPlugin = !!appWorkspace.global;
-
-  if (!globalTestConfig.extra?.enableAutoInit) {
-    log('自动初始化配置开关未开启，不执行配置数据初始化');
-    return;
-  }
 
   if (isGlobalPlugin) {
     // 获取租户下所有空间
