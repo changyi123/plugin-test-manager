@@ -308,7 +308,6 @@ export const cloneItem = async (
 export const getPluginBoundWorkspaces = async () => {
   const appWorkspace = await new Parse.Query(AppsWorkspace)
     .equalTo('appKey', TEST_MANAGER_PLUGIN_KEY)
-    .equalTo('environmentKey', 'production')
     .include('workspaces')
     .first({ json: true });
 
@@ -318,18 +317,12 @@ export const getPluginBoundWorkspaces = async () => {
   if (global) {
     boundWorkspaces = await new Parse.Query(Workspace).limit(9999).find({ json: true });
   } else {
-    if (!Array.isArray(appWorkspace?.workspaces)) {
-      return [];
-    }
-
-    // 兼容旧的数据结构
-    if (appWorkspace.workspaces.every(w => w && typeof w === 'object')) {
-      return appWorkspace?.workspaces ?? [];
-    }
+    const appWorkspaceKeys = appWorkspace.workspaces.map(item => item?.key ?? item).filter(Boolean);
 
     boundWorkspaces = await new Parse.Query(Workspace)
-      .containedIn('key', appWorkspace?.workspaces)
-      .findAll({ json: true });
+      .containedIn('key', appWorkspaceKeys)
+      .limit(appWorkspaceKeys.length)
+      .find({ json: true });
   }
   return boundWorkspaces;
 };

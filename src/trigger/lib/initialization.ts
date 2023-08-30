@@ -247,7 +247,7 @@ export const BuiltInInitializationStages: Record<string, InitializationStage> = 
       const globalTestConfig = getConfigStorage('globalTestConfig');
 
       if (
-        instance.options.disableAutoInitCheck &&
+        !instance.options.disableAutoInitCheck &&
         // 如果全局配置中关闭了自动初始化的配置开关，不需要执行初始化脚本
         !globalTestConfig.extra?.enableAutoInit
       ) {
@@ -368,8 +368,14 @@ export const BuiltInInitializationStages: Record<string, InitializationStage> = 
         const initialConfigData = {
           global: false,
           isolateTestType: ['TestPlan', 'TestDefect', 'TestDetail', 'TestExecution'],
-          itemTypeMap: !disableUpdateItemTypeMap ? DefaultItemTypeMap : undefined,
+          itemTypeMap: disableUpdateItemTypeMap ? undefined : DefaultItemTypeMap,
           workspaceKey: workspaceInfo.key,
+          defectsMapping: [],
+          tableFields: {
+            TestCase: {
+              serachFields: ['key'],
+            },
+          },
         };
 
         const existedTestConfigObjectId = workspaceInfo.testConfig?.objectId;
