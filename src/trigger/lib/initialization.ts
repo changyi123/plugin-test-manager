@@ -19,6 +19,15 @@ const Constants = {
     ChartGroup: 'ChartGroup',
     Chart: 'Chart',
   } as const,
+
+  // 内置的事项类型关联映射
+  DefaultBuiltInItemTypeMap: {
+    TestPlan: 'test_manager_plan',
+    TestCase: 'test_manager_detail',
+    TestExecution: 'test_manager_execution',
+  } as const,
+
+  DefaultIsolateTestType: ['TestPlan', 'TestDefect', 'TestDetail', 'TestExecution'],
 } as const;
 
 const helper = {
@@ -70,6 +79,7 @@ const dataFetcher = {
       .containedIn('key', workspaceKeys)
       .select(['key', 'itemTypeScheme', 'testConfig'])
       .include(['itemTypeScheme'])
+      .limit(workspaceKeys.length)
       .find(ParseBaseQueryOptions)
       .then(data => data.map(i => i.toJSON()));
 
@@ -262,6 +272,8 @@ export const BuiltInInitializationStages: Record<string, InitializationStage> = 
     },
     function: async (instance, needToBeInitializedWorkspaceKeys) => {
       const globalTestConfig = instance.getConfigStorage('globalTestConfig');
+      const testConfigs = instance.getConfigStorage('testConfigs');
+
       const builtInItemTypes = await dataFetcher.getBuiltInItemType();
       // 如果内置的事项类型未被移除，能够更新空间层级方案
       const enableUpdateItemTypeMap =
@@ -277,14 +289,21 @@ export const BuiltInInitializationStages: Record<string, InitializationStage> = 
       const workspaces = instance.getConfigStorage('workspaces');
 
       // 需要被初始化的空间
-      const workspaceInfos = workspaces.filter(workspace =>
-        needToBeInitializedWorkspaceKeys.includes(workspace.key),
-      );
+      const workspaceInfos = workspaces
+        .filter(workspace => needToBeInitializedWorkspaceKeys.includes(workspace.key))
+        .map(workspace => {
+          const testConfig = testConfigs.find(config => config.workspaceKey === workspace.key);
+          return {
+            ...workspace,
+            testConfig,
+          };
+        });
 
       helper.logger(
         '空间配置开始初始化',
         workspaceInfos.map(i => ({
           workspaceKey: i.key,
+          testConfig: i.testConfig?.objectId,
         })),
       );
 
@@ -341,16 +360,10 @@ export const BuiltInInitializationStages: Record<string, InitializationStage> = 
       }
 
       const needUpdateTestConfigObjects = workspaceInfos.map(workspaceInfo => {
-        const DefaultItemTypeMap = {
-          TestPlan: 'test_manager_plan',
-          TestCase: 'test_manager_detail',
-          TestExecution: 'test_manager_execution',
-        };
-
         const initialConfigData = {
           global: false,
-          isolateTestType: ['TestPlan', 'TestDefect', 'TestDetail', 'TestExecution'],
-          itemTypeMap: enableUpdateItemTypeMap ? DefaultItemTypeMap : undefined,
+          isolateTestType: Constants.DefaultIsolateTestType,
+          itemTypeMap: enableUpdateItemTypeMap ? Constants.DefaultBuiltInItemTypeMap : undefined,
           workspaceKey: workspaceInfo.key,
           defectsMapping: [],
           tableFields: {
@@ -362,12 +375,21 @@ export const BuiltInInitializationStages: Record<string, InitializationStage> = 
 
         const existedTestConfigObjectId = workspaceInfo.testConfig?.objectId;
 
+        const testConfigParseObject = new TestConfigModel();
+
+        testConfigParseObject.set(initialConfigData);
+
         // 如果已经存在空间配置，但是数据不正确，需要更新
         if (existedTestConfigObjectId) {
-          (initialConfigData as any).objectId = existedTestConfigObjectId;
+          testConfigParseObject.set({
+            id: existedTestConfigObjectId,
+            objectId: existedTestConfigObjectId,
+          });
+
+          (testConfigParseObject as any).id = testConfigParseObject;
         }
 
-        return new TestConfigModel(initialConfigData);
+        return testConfigParseObject;
       });
 
       // 保存所有的对象

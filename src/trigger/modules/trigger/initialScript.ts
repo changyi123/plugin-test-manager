@@ -424,8 +424,7 @@ const initWorkspaceTestConfigs = async () => {
     // 获取租户下所有空间
     installedWorkspaceKeys = await getParseQuery(false, 'Workspace')
       .select(['objectId', 'key'])
-      .limit(9999)
-      .find(ParseBaseQueryOptions)
+      .findAll(ParseBaseQueryOptions)
       .then(data => data.map(item => item.toJSON().key));
   } else {
     installedWorkspaceKeys = appWorkspace?.workspaces
@@ -462,7 +461,7 @@ const executeSQL = async () => {
 
   const deleteChartSQL = `delete from "Chart" where "chartGroup" in (${ids
     .map(d => `'${d.objectId}'`)
-    .join(',')}`;
+    .join(',')})`;
 
   const deleteChartGroupSQL = `delete from "ChartGroup" where key = 'test_manager' and "objectId" in (${ids
     .map(d => `'${d.objectId}'`)
@@ -479,7 +478,7 @@ export const runInitialScript = async () => {
   try {
     await initGlobalTestConfig()
       .then(() => initWorkspaceTestConfigs())
-      .then(() => executeSQL())
+      // .then(() => executeSQL())
       .then(() => {
         log('测试管理插件初始化成功');
       });
