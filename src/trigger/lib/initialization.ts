@@ -77,10 +77,8 @@ const dataFetcher = {
 
     const workspaces = await workspaceQuery
       .containedIn('key', workspaceKeys)
-      .select(['key', 'itemTypeScheme', 'testConfig'])
       .include(['itemTypeScheme'])
-      .limit(workspaceKeys.length)
-      .find(ParseBaseQueryOptions)
+      .findAll(ParseBaseQueryOptions)
       .then(data => data.map(i => i.toJSON()));
 
     return workspaces;
@@ -90,8 +88,7 @@ const dataFetcher = {
     const testConfigQuery = await getParseQuery(false, Constants.ModelNames.TestConfig);
     return testConfigQuery
       .containedIn('workspaceKey', workspaceKeys)
-      .limit(workspaceKeys.length)
-      .find(ParseBaseQueryOptions)
+      .findAll(ParseBaseQueryOptions)
       .then(data => data?.map(i => i.toJSON()));
   },
   // 获取全局配置
@@ -250,13 +247,24 @@ export const BuiltInInitializationStages: Record<string, InitializationStage> = 
       const workspaces = getConfigStorage('workspaces');
       const testConfigs = getConfigStorage('testConfigs');
 
-      const needToBeInitializedWorkspaceKeys = workspaces.filter(workspace => {
-        const testConfig = testConfigs.find(i => i.workspaceKey === workspace.key);
-        if (!testConfig) return true;
-        // 已经被初始化，但是 itemTypeMap 为空，需要重新初始化
-        if (!testConfig.itemTypeMap || !Object.keys(testConfig.itemTypeMap ?? {}).length)
-          return true;
-      });
+      const needToBeInitializedWorkspaceKeys = workspaces
+        .map(workspace => {
+          const testConfig = testConfigs.find(i => i.workspaceKey === workspace.key);
+          // 已经被初始化，但是 itemTypeMap 为空，需要重新初始化
+          if (!testConfig?.itemTypeMap || !Object.keys(testConfig?.itemTypeMap ?? {}).length)
+            return {
+              workspaceKey: workspace?.key,
+              itemTypeMap: testConfig?.itemTypeMap,
+            };
+        })
+        .filter(Boolean);
+
+      console.info(
+        '\n',
+        '_____needToBeInitializedWorkspaceKeys_____',
+        JSON.stringify(needToBeInitializedWorkspaceKeys),
+        '\n',
+      );
 
       // 如果没有需要初始化的空间，不需要执行初始化脚本
       if (!needToBeInitializedWorkspaceKeys.length) {
@@ -266,7 +274,7 @@ export const BuiltInInitializationStages: Record<string, InitializationStage> = 
 
       return {
         canExecute: true,
-        data: needToBeInitializedWorkspaceKeys.map(item => item.key),
+        data: needToBeInitializedWorkspaceKeys.map(item => item.workspaceKey),
       };
     },
     function: async (instance, needToBeInitializedWorkspaceKeys) => {
@@ -288,8 +296,8 @@ export const BuiltInInitializationStages: Record<string, InitializationStage> = 
       const workspaces = instance.getConfigStorage('workspaces');
 
       // 需要被初始化的空间
-      const workspaceInfos = workspaces
-        .filter(workspace => needToBeInitializedWorkspaceKeys.includes(workspace.key))
+      const workspaceInfos = needToBeInitializedWorkspaceKeys
+        .map(workspaceKey => workspaces.find(workspace => workspace.key === workspaceKey))
         .map(workspace => {
           const testConfig = testConfigs.find(config => config.workspaceKey === workspace.key);
           return {

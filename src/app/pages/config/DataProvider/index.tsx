@@ -82,7 +82,7 @@ const DataProvider = ({ children }) => {
   const [checkAllWorkspace, setCheckAllWorkspace] = useState(false);
   const [showAllWorkspaceCheck, setShowAllWorkspaceCheck] = useState(false);
 
-  useConfigBootstrap(globalConfig);
+  // useConfigBootstrap(globalConfig);
 
   // 校验空间是否存在
   React.useEffect(() => {
