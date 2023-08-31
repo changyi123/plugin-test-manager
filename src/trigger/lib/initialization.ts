@@ -90,7 +90,6 @@ const dataFetcher = {
     const testConfigQuery = await getParseQuery(false, Constants.ModelNames.TestConfig);
     return testConfigQuery
       .containedIn('workspaceKey', workspaceKeys)
-      .select(['itemTypeMap', 'workspaceKey', 'objectId'])
       .limit(workspaceKeys.length)
       .find(ParseBaseQueryOptions)
       .then(data => data?.map(i => i.toJSON()));
@@ -359,38 +358,43 @@ export const BuiltInInitializationStages: Record<string, InitializationStage> = 
         });
       }
 
-      const needUpdateTestConfigObjects = workspaceInfos.map(workspaceInfo => {
-        const initialConfigData = {
-          global: false,
-          isolateTestType: Constants.DefaultIsolateTestType,
-          itemTypeMap: enableUpdateItemTypeMap ? Constants.DefaultBuiltInItemTypeMap : undefined,
-          workspaceKey: workspaceInfo.key,
-          defectsMapping: [],
-          tableFields: {
-            TestCase: {
-              serachFields: ['key'],
+      const needUpdateTestConfigObjects = workspaceInfos
+        .map(workspaceInfo => {
+          const initialConfigData = {
+            global: false,
+            isolateTestType: Constants.DefaultIsolateTestType,
+            itemTypeMap: enableUpdateItemTypeMap ? Constants.DefaultBuiltInItemTypeMap : undefined,
+            workspaceKey: workspaceInfo.key,
+            defectsMapping: [],
+            tableFields: {
+              TestCase: {
+                serachFields: ['key'],
+              },
             },
-          },
-        };
+          };
 
-        const existedTestConfigObjectId = workspaceInfo.testConfig?.objectId;
+          const existedTestConfigObjectId = workspaceInfo.testConfig?.objectId;
 
-        const testConfigParseObject = new TestConfigModel();
+          const testConfigParseObject = new TestConfigModel();
 
-        testConfigParseObject.set(initialConfigData);
+          // 如果已经存在空间配置，但是数据不正确，需要更新
+          if (existedTestConfigObjectId) {
+            if (enableUpdateItemTypeMap) {
+              // 覆盖式更新
+              testConfigParseObject.set({
+                itemTypeMap: initialConfigData.itemTypeMap,
+                id: existedTestConfigObjectId,
+                objectId: existedTestConfigObjectId,
+              });
+              (testConfigParseObject as any).id = testConfigParseObject;
+            }
+          } else {
+            testConfigParseObject.set(initialConfigData);
+          }
 
-        // 如果已经存在空间配置，但是数据不正确，需要更新
-        if (existedTestConfigObjectId) {
-          testConfigParseObject.set({
-            id: existedTestConfigObjectId,
-            objectId: existedTestConfigObjectId,
-          });
-
-          (testConfigParseObject as any).id = testConfigParseObject;
-        }
-
-        return testConfigParseObject;
-      });
+          return testConfigParseObject;
+        })
+        .filter(Boolean);
 
       // 保存所有的对象
       await saveAllObject([].concat(needUpdateTestConfigObjects, needUpdateItemTypeSchemeObjects));
@@ -408,6 +412,7 @@ export const BuiltInInitializationStages: Record<string, InitializationStage> = 
     canExecute: async instance => {
       const { getConfigStorage } = instance;
       const testConfigs = getConfigStorage('testConfigs');
+
       const needToBeInitializedWorkspaceKeys = testConfigs
         .filter(i => !i.chartGroups)
         .map(i => i.workspaceKey);
