@@ -31,7 +31,7 @@ import {
 import { UNGROUPED_FOLDER_KEY } from '../constant';
 import { useTreeFn } from '../hook';
 import { FolderMenu, MenuKey } from '../Menu';
-import { traverseTreeNodes } from '../util';
+import { traverseTreeNodes, traverseTreeNodesAndAddTitle } from '../util';
 import { getTreeNodeByKey } from '../util';
 import cx from './index.less';
 
@@ -162,7 +162,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
     expandedKeys: [],
     selectedKeys: [],
   });
-  const treeFn = useTreeFn(treeNodeData);
+  const treeFn = useTreeFn(traverseTreeNodesAndAddTitle(treeNodeData));
 
   const isInitialRef = React.useRef(false);
   const {
