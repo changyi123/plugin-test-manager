@@ -67,7 +67,7 @@ const ResizableHeaderCell = ({ onResize, resizable, width, onClick, onSort, ...r
 };
 
 const OverflowTooltipBodyCell = props => {
-  const tdProps = pick(props, ['rowSpan', 'colSpan', 'style', 'className', 'onClick']);
+  const tdProps = pick(props, ['rowSpan', 'colSpan', 'style', 'title', 'className', 'onClick']);
   if (!props.overflowEllipsis) return <td {...tdProps}>{props.children}</td>;
 
   return (

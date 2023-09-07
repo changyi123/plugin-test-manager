@@ -293,7 +293,11 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
               onClick={async () => {
                 setLoading(true);
                 setFields(defaultFields ?? []);
-                setStorageColumnKeys(tableFields ?? defaultColumnKey);
+                setStorageColumnKeys(
+                  titleCellOption.restoreWithDefaultColumnKey
+                    ? defaultColumnKey
+                    : tableFields ?? defaultColumnKey,
+                );
                 await handleFilterField?.({
                   testType: titleCellOption.testType,
                   fieldKeys: defaultFields,

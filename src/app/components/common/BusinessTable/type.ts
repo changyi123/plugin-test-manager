@@ -14,6 +14,8 @@ export type TitleCellOption = {
     /** 返回数据是否包含系统字段 */
     includeSystemField?: boolean;
     isHideIcon?: boolean;
+    /** 使用默认的列重置 */
+    restoreWithDefaultColumnKey?: boolean;
   };
 };
 

@@ -7,6 +7,7 @@ import { exportWithDocx, exportWithHTML, genChartGroupPageUrl } from '@/lib/test
 import { useTestReportByObjectId } from '@/services/testReport/query';
 
 import ReportStatus from '../report/ReportStatus';
+import { useReportOverviewDisplayText } from './hook';
 import cx from './index.less';
 import TestIframe from './TestIframe';
 
@@ -89,6 +90,8 @@ const ReportView: React.FC = () => {
     });
   };
 
+  const { data: overviewDisplayText } = useReportOverviewDisplayText(reportData);
+
   return (
     <div className={cx('report-box')}>
       <>
@@ -127,15 +130,31 @@ const ReportView: React.FC = () => {
           </Space>
         </div>
         <div id="report-body" className={cx('report-body')}>
-          <div className={cx('report-overview')}>
-            <div className={cx('title')}>
-              <div className={cx('info')}>
-                <div className={cx('name')}>{reportData?.name}</div>
-                <ReportStatus status={reportData?.reportStatus} />
+          <div className={cx('report-overview-wrapper')}>
+            <div className={cx('report-overview')}>
+              <div className={cx('title')}>
+                <div className={cx('info')}>
+                  <div className={cx('name')}>{reportData?.name}</div>
+                  <ReportStatus status={reportData?.reportStatus} />
+                </div>
               </div>
+              <div className={cx('content')}>
+                {overviewDisplayText?.map((item, index) => (
+                  <div className={cx('overview-item')} key={item.key}>
+                    <strong>{item.label}：</strong>
+                    <span className={cx('text')} title={item.text}>
+                      {item.text}
+                    </span>
+                    {index === overviewDisplayText?.length - 1 ? null : (
+                      <span className={cx('split')}>|</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <div className={cx('overview')}>{/* TODO 概览信息 */}</div>
             </div>
-            <div className={cx('overview')}>{/* TODO 概览信息 */}</div>
           </div>
+
           <div className={cx('report-iframe')} id="report-iframe">
             <TestIframe
               onLoad={handleIframeLoad}

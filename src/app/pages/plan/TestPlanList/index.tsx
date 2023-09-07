@@ -115,7 +115,6 @@ const TestPlanList: React.FC<any> = () => {
       fixed: true,
       isSystem: true,
       title: t('components.business.testPlanList.planName'),
-      // className: 'test-case-title',
       extraProps: {
         onClick: record => setSelectedTestPlan(record),
       },
@@ -123,8 +122,8 @@ const TestPlanList: React.FC<any> = () => {
         return (
           <div className={'test-plan-title-box'}>
             {ItemIcon && <ItemIcon className={'icon'} icon={rowData.itemType?.icon}></ItemIcon>}
-            <div className={'test-plan-title'}>{rowData.name}</div>
-            <div
+            <span className={'test-plan-title'}>{rowData.name}</span>
+            <span
               className={cx('plan-table-title-menu')}
               onClick={e => {
                 e.preventDefault();
@@ -137,7 +136,7 @@ const TestPlanList: React.FC<any> = () => {
                   handleView(rowData);
                 }}
               />
-            </div>
+            </span>
           </div>
         );
       },

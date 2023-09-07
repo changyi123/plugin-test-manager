@@ -163,7 +163,7 @@ const TestReportTemplate: React.FC = () => {
               message.success(scopedT('workspaceTemplateSetting.updateSuccess'));
             }}
           />
-          <span>{scopedT('workspaceTemplateSetting.label')}</span>
+          <span style={{ marginLeft: 8 }}>{scopedT('workspaceTemplateSetting.label')}</span>
         </div>
       </div>
       <h3>{scopedT('table.title')}</h3>

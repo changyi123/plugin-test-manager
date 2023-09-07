@@ -90,7 +90,7 @@ const OverflowTooltip: React.FC<OverflowTooltip> = props => {
   if (!children) {
     return null;
   }
-  const childElement = <span>{children}</span>;
+  const childElement = <div>{children}</div>;
   const content = cloneElement(childElement, {
     ref: elRef,
     className: classNames(`tooltip-overflow tooltip-maxline-${maxline}`, className),
@@ -98,13 +98,13 @@ const OverflowTooltip: React.FC<OverflowTooltip> = props => {
   });
   return (
     <Tooltip
+      open={visible}
       placement={placement}
       overlayStyle={overlayStyle}
-      overlayClassName={`${overlayClassName} global_arrow_tooltip_overflow`}
       title={title}
-      open={visible}
       onOpenChange={handleVisibleChange}
       getPopupContainer={getContainer}
+      overlayClassName={`${overlayClassName} global_arrow_tooltip_overflow`}
     >
       {content}
     </Tooltip>

@@ -109,6 +109,14 @@
     "curWorkspace": "Current workspace"
   },
   "report": {
+    "overViewData": {
+      "label": {
+        "testPlan": "Selected test plan",
+        "workspace": "Belongs to workspace",
+        "version": "Selected version",
+        "sprint": "Selected sprint"
+      }
+    },
     "pass": "Pass",
     "noPass": "Not pass",
     "partPass": "Part pass",
@@ -303,11 +311,11 @@
         "placeholder": "Please select a workspace"
       },
       "testConfigInitialization": {
-        "title": "测试管理配置初始化",
-        "description": "开启配置初始化会将测试管理内置的事项类型关联映射修改为内置的事项类型",
-        "switchLabel": "开启配置初始化",
-        "builtInItemTypeHasBeenModified": "内置事项类型已被修改",
-        "messageSuccess": "测试管理配置初始化成功"
+        "title": "Test Management Configuration Initialization",
+        "description": "Enabling configuration initialization will modify the association mapping of the built-in matter types in the test management to the built-in matter types.",
+        "switchLabel": "Enable Configuration Initialization",
+        "builtInItemTypeHasBeenModified": "Built-in matter types have been modified.",
+        "messageSuccess": "Test management configuration initialization successful."
       },
       "reportTemplateCreator": {
         "creatorTitle": "New Report Template",

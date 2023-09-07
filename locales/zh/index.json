@@ -108,6 +108,14 @@
     "curWorkspace": "当前空间"
   },
   "report": {
+    "overViewData": {
+      "label": {
+        "testPlan": "所选测试计划",
+        "workspace": "所属空间",
+        "version": "所选版本",
+        "sprint": "所选迭代"
+      }
+    },
     "workspaceReportTemplate": {
       "modalTitle": "空间测试报告模板管理",
       "deleteConfirm": {
