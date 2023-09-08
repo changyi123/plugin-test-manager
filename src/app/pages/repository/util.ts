@@ -21,6 +21,15 @@ export const traverseTreeNodes = (nodes: TreeNode[], cb?: (node: TreeNode) => Tr
   return nodes;
 };
 
+export const traverseTreeNodesAndAddTitle = nodes => {
+  if (!hasArrayItem(nodes)) return;
+  nodes.forEach(node => {
+    node.title = node?.name || '';
+    traverseTreeNodesAndAddTitle(node.children);
+  });
+  return nodes;
+};
+
 /**
  * 获取树节点
  */
