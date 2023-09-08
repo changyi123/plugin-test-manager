@@ -121,13 +121,21 @@
     .overview-item {
       flex: 0 0 auto;
       max-width: 33%;
+      display: inline-flex;
+    }
+
+    .text {
       overflow: hidden;
       white-space: nowrap;
       text-overflow: ellipsis;
     }
 
+    .label,
     .split {
-      padding: 0 1.5em;
+      flex: none;
+    }
+    .split {
+      padding: 0 1em;
     }
   }
 

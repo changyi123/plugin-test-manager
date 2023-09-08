@@ -141,7 +141,7 @@ const ReportView: React.FC = () => {
               <div className={cx('content')}>
                 {overviewDisplayText?.map((item, index) => (
                   <div className={cx('overview-item')} key={item.key}>
-                    <strong>{item.label}：</strong>
+                    <strong className={cx('label')}>{item.label}：</strong>
                     <span className={cx('text')} title={item.text}>
                       {item.text}
                     </span>
