@@ -97,7 +97,7 @@ const getLocalIdent = ({ resourcePath }, localIdentName, localName) => {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 module.exports = (cliEnv = {}, argv) => {
   const mode = argv.mode;
-  const { PROXIMA_USE_EXTERNAL_DEPENDENCIES, PROXIMA_ANALYZER_PACKAGE } = process.env;
+  const { PROXIMA_ANALYZER_PACKAGE } = process.env;
 
   if (!['production', 'development'].includes(mode)) {
     throw new Error('The mode is required for NODE_ENV, BABEL_ENV but was not specified.');
@@ -182,7 +182,7 @@ module.exports = (cliEnv = {}, argv) => {
       return false;
     })(),
     // 生产环境使用 proxima-app 传入的
-    externals: isProd || PROXIMA_USE_EXTERNAL_DEPENDENCIES ? getExternalDependencies() : undefined,
+    externals: getExternalDependencies(),
     resolve: {
       extensions: ['.js', '.css', '.jsx', '.tsx', '.ts'],
       alias: {
