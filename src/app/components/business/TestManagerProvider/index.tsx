@@ -294,11 +294,10 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
   const proxima = createProximaSdk();
   const { t } = useI18n();
   const [testEntity, setTestEntity] = React.useState<TestEntity>();
-
   const workspaceKey = itemId ? testEntity?.workspace?.key : workspaceKeyFromProp;
 
   // 获取空间配置数据
-  const { data: workspace } = commonQuery.useWorkspace({ key: workspaceKey });
+  const { data: workspace } = commonQuery.useWorkspaceQuery({ key: workspaceKey });
   // 获取空间配置数据
   const { data: testConfig = DefaultTestConfig } = testConfigQuery.useWorkspaceTestConfig({
     workspaceKey,
@@ -308,7 +307,6 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
 
   React.useEffect(() => {
     setTimeout(() => {
-      proxima.execute('updateItemTypeEvent');
       proxima.execute('updateAllItemTypeEvent');
     }, 300);
   }, [proxima]);
@@ -325,18 +323,10 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
         },
       });
 
-      setTestEntity(testEntity);
-      // 事项数据是否匹配测试实体类型
-      let isTestTypeMatched = false;
-      const itemTypeMappingKeys = Object.values(testConfig?.itemTypeMap ?? {});
-      if (itemTypeMappingKeys.length && testEntity?.itemType?.key) {
-        isTestTypeMatched = itemTypeMappingKeys.includes(testEntity?.itemType?.key);
-      }
-
       // 判断是否是测试实体
       const isTestEntity = testType => Object.values(TestType).includes(testType);
 
-      if (isTestTypeMatched && !isTestEntity(testEntity?.type)) {
+      if (!isTestEntity(testEntity?.type)) {
         // 不存在测试实体需要判断是否需要新建
         testEntity = await getOrCreateTestEntity(
           testEntity.objectId,
@@ -349,6 +339,8 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
           },
         );
       }
+
+      setTestEntity(testEntity);
     };
     if (itemId && testConfig) {
       execute();
@@ -599,12 +591,12 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
     getGlobalConfig,
     getCreatePermission,
     getTestCaseRepositoryPath,
+    testConfig.defectsMapping,
+    testConfig?.itemTypeMap,
+    workspace?.objectId,
     testPlanFieldKeys,
     testCaseFieldKeys,
     testExecutionFieldKeys,
-    testConfig?.itemTypeMap,
-    testConfig.defectsMapping,
-    workspace,
     t,
   ]);
 

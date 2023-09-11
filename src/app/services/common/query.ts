@@ -1,30 +1,57 @@
 import { useQuery } from '@tanstack/react-query';
+import type { UseQueryOptions } from '@tanstack/react-query/src/types';
 
 import { getPluginBoundWorkspaces } from '@/lib/api/proxima';
+import Parse from '@/lib/parse';
 import type { Workspace as WorkspaceType } from '@/lib/types/App';
+import fetch from '@/lib/utils/fetch';
 
-import { Workspace } from '../models';
+type WorkspaceQueryParams = { key?: string; id?: string };
 
 export const CommonQueryKeys = {
-  workspace: (params: { key: string }) => ['workspace', params],
+  workspace: (workspaceQueryParams: WorkspaceQueryParams) => ['workspace', workspaceQueryParams],
+  itemCreateScreenType: (workspaceId: string) => ['workspaceScreenType', workspaceId],
+  testEntityById: (testEntityId: string) => ['testEntity', testEntityId],
   installedWorkspaces: () => ['installedWorkspaces'],
-} as const;
+};
 
-export type CommonQueryKeysType = typeof CommonQueryKeys;
-
-export const useWorkspace = (params: Parameters<CommonQueryKeysType['workspace']>[0]) => {
+export const useWorkspaceQuery = (params: WorkspaceQueryParams) => {
   return useQuery(
-    CommonQueryKeys.workspace(params),
+    CommonQueryKeys.workspace(params ?? {}),
     async () => {
-      const workspaceQuery = new Parse.Query(Workspace);
-      if (params.key) {
-        workspaceQuery.equalTo('key', params.key);
+      const query = new Parse.Query('Workspace');
+      if (params.id) {
+        query.equalTo('objectId', params.id);
+      } else if (params.key) {
+        query.equalTo('key', params.key);
       }
-
-      return (await workspaceQuery.first({ json: true })) as unknown as WorkspaceType;
+      return query.first({ json: true });
     },
     {
+      cacheTime: Infinity,
       staleTime: Infinity,
+      enabled: Object.keys(params ?? {}).length > 0,
+    },
+  );
+};
+
+export const useItemCreateScreenType = (workspaceId: string, options?: UseQueryOptions<any>) => {
+  return useQuery(
+    CommonQueryKeys.itemCreateScreenType(workspaceId),
+    async () => {
+      if (!workspaceId) return;
+      return fetch.$post('/parse/api/itemType/screenType', {
+        workspaceId: workspaceId,
+        context: {
+          screenType: 'create',
+        },
+      });
+    },
+    {
+      cacheTime: Infinity,
+      staleTime: Infinity,
+      enabled: !!workspaceId,
+      ...options,
     },
   );
 };

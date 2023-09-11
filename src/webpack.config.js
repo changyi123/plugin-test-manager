@@ -110,7 +110,6 @@ const getLocalIdent = ({ resourcePath }, localIdentName, localName) => {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 module.exports = (cliEnv = {}, argv) => {
   const mode = argv.mode;
-  const { PROXIMA_USE_EXTERNAL_DEPENDENCIES } = process.env;
   const { ANALYZER_PACKAGE } = cliEnv;
 
   if (!['production', 'development'].includes(mode)) {
@@ -170,8 +169,7 @@ module.exports = (cliEnv = {}, argv) => {
       devtool: 'source-map',
     }),
     // 生产环境使用 proxima-app 传入的
-    externals:
-      isProd || PROXIMA_USE_EXTERNAL_DEPENDENCIES ? getExternalDependencies(isProd) : undefined,
+    externals: getExternalDependencies(),
     resolve: {
       extensions: ['.js', '.css', '.jsx', '.tsx', '.ts'],
       alias: {

@@ -5,6 +5,8 @@ import Parse from '@/lib/parse';
 import { TestConfig } from '../models';
 import { QueryParamsGetters } from '../type';
 
+const CacheTime = 5 * 60 * 1000;
+
 /** query key */
 export const TestConfigQueryKeys = {
   /** 全局配置 */
@@ -32,6 +34,8 @@ export const useWorkspaceTestConfig = (
       return data;
     },
     {
+      cacheTime: CacheTime,
+      staleTime: CacheTime,
       enabled: Boolean(params.workspaceKey),
     },
   );
@@ -40,9 +44,16 @@ export const useWorkspaceTestConfig = (
 /** 获取测试管理全局配置数据 */
 export const useGlobalTestConfig = () => {
   const queryClient = useQueryClient();
-  return useQuery(TestConfigQueryKeys.global, async () => {
-    const data = await new Parse.Query(TestConfig).equalTo('global', true).first({ json: true });
-    queryClient.setQueryData(TestConfigQueryKeys.objectId(data.objectId), data);
-    return data;
-  });
+  return useQuery(
+    TestConfigQueryKeys.global,
+    async () => {
+      const data = await new Parse.Query(TestConfig).equalTo('global', true).first({ json: true });
+      queryClient.setQueryData(TestConfigQueryKeys.objectId(data.objectId), data);
+      return data;
+    },
+    {
+      cacheTime: CacheTime,
+      staleTime: CacheTime,
+    },
+  );
 };
