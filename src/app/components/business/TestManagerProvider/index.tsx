@@ -313,7 +313,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
   const { getCreatePermission } = useGetPermissions(workspace);
 
   React.useEffect(() => {
-    proxima.execute('updateItemTypeEvent');
+    proxima.execute('updateAllItemTypeEvent');
   }, [proxima]);
 
   // 请求测试实体
