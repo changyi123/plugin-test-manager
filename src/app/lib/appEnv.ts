@@ -72,6 +72,10 @@ const SupportAppEnv = {
     defaultValue: '',
     transformer: val => val,
   },
+  ITEM_CREATE_COST: {
+    defaultValue: '',
+    transformer: val => +val ?? 250,
+  },
 } as const;
 
 /**

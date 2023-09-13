@@ -204,7 +204,8 @@ modules:
       handler: api.minderData
     - key: api-module-minder-data-import-function
       handler: api.minderDataImport
-    
+      # 5 分钟超时时长
+      timeout: 300000
 
     - key: api-send-message-function
       handler: api.sendMessage

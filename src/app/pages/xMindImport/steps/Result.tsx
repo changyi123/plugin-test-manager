@@ -1,48 +1,72 @@
 import { useMemoizedFn, useRequest } from 'ahooks';
-import { Button, Progress, Result as AntdResult } from 'antd';
+import { Button, message, Progress, Result as AntdResult } from 'antd';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { importMinderData } from '@/lib/api/minder';
+import { getAppEnv } from '@/lib/appEnv';
 
 import { StepComponentProp } from '../type';
 import cx from './Result.less';
 
-const useFakeProgress = () => {
+const useFakeProgress = testCaseCount => {
   const [percent, setPercent] = React.useState(0);
   const [start, setStart] = React.useState(false);
+  const [status, setStatus] = React.useState<'active' | 'success' | 'exception'>('active');
+  const MaxPercent = 95;
+  const TestCaseCreateTimeCost = getAppEnv('ITEM_CREATE_COST') ?? 250;
+
   React.useEffect(() => {
-    if (!start) return;
-    const MaxPercent = 80;
+    if (!start || !testCaseCount) return;
+    const startTime = Date.now();
+    const predictTotalCost = TestCaseCreateTimeCost * testCaseCount;
     const timer = setInterval(() => {
-      setPercent(percent => {
-        if (percent >= MaxPercent) {
-          clearInterval(timer);
-        }
-        return percent + 5;
-      });
+      if (!start) return;
+      const fakePercent = Math.floor(((Date.now() - startTime) / predictTotalCost) * 100);
+      const percent = Math.min(fakePercent, MaxPercent);
+      if (fakePercent >= MaxPercent) {
+        clearInterval(timer);
+      }
+      setPercent(percent);
     }, 500);
     return () => {
       clearInterval(timer);
     };
-  }, [start]);
+  }, [start, testCaseCount]);
 
   return {
     percent,
-    node: <Progress percent={percent} />,
+    node: <Progress status={status} percent={percent} />,
     start: useMemoizedFn(() => {
       setPercent(0);
       setStart(true);
     }),
     end: useMemoizedFn(() => {
+      setStatus('success');
       setPercent(100);
+      setStart(false);
+    }),
+    error: useMemoizedFn(() => {
+      setStatus('exception');
       setStart(false);
     }),
   };
 };
 
 const Result: React.FC<StepComponentProp> = ({ sharedState }) => {
-  const { percent, start, end, node: progressNode } = useFakeProgress();
+  const importTestCaseCount = React.useMemo(() => {
+    let count = 0;
+    const traverseMinderData = minderData => {
+      if (minderData.data?.type === 'TestCase') {
+        count++;
+      }
+      minderData.children?.forEach(traverseMinderData);
+    };
+    traverseMinderData(sharedState.submitMinderData);
+    return count;
+  }, [sharedState.submitMinderData]);
+
+  const { percent, start, end, error, node: progressNode } = useFakeProgress(importTestCaseCount);
   const { t } = useTranslation('', {
     keyPrefix: 'page.xMindImport.resultStep',
   });
@@ -51,10 +75,16 @@ const Result: React.FC<StepComponentProp> = ({ sharedState }) => {
   const { runAsync } = useRequest(
     async () => {
       start();
-      await importMinderData({
-        workspaceKey: sharedState.workspaceKey,
-        minderData: sharedState.submitMinderData,
-      });
+      try {
+        await importMinderData({
+          workspaceKey: sharedState.workspaceKey,
+          minderData: sharedState.submitMinderData,
+        });
+      } catch (err) {
+        error();
+        err.message && message.error(err.message);
+        return;
+      }
       end();
     },
     {
