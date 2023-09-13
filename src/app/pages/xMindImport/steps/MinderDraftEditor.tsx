@@ -73,7 +73,12 @@ const MinderDraftEditor: React.FC<StepComponentProp> = ({
   React.useEffect(() => {
     if (!sharedState.minderData) return;
     // return message.warn('当前导入数据节点存在错误，请修正后重试');
-    setTimeout(() => actionRef.current.validateMinderData());
+    const timer = setInterval(() => {
+      if (typeof actionRef.current?.validateMinderData === 'function') {
+        actionRef.current.validateMinderData();
+        clearInterval(timer);
+      }
+    }, 300);
   }, [sharedState.minderData]);
 
   return (
