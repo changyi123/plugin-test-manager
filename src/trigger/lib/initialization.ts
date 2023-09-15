@@ -137,6 +137,23 @@ const dataFetcher = {
 
     return workspaceKeys.filter(key => pluginIsInstalledWorkspaceKeys.includes(key));
   },
+  // 获取 itemType
+  getItemTypeByKeys: async (keys: string[]) => {
+    const ParseBaseQueryOptions = helper.getParseBaseQueryOptions();
+
+    const itemTypeQuery = await getParseQuery(false, Constants.ModelNames.ItemType);
+
+    return itemTypeQuery
+      .containedIn('key', keys)
+      .select(['key', 'name', 'objectId', 'icon'])
+      .find({
+        ...ParseBaseQueryOptions,
+        context: {
+          displayModule: 'plugin.testManager',
+        },
+      })
+      .then(data => data.map(i => i.toJSON()));
+  },
 };
 
 export type InitializationStage = {
@@ -281,12 +298,19 @@ export const BuiltInInitializationStages: Record<string, InitializationStage> = 
       const globalTestConfig = instance.getConfigStorage('globalTestConfig');
       const testConfigs = instance.getConfigStorage('testConfigs');
 
-      const builtInItemTypes = await dataFetcher.getBuiltInItemType();
+      let initialItemTypeMapping = globalTestConfig?.extra?.initialItemTypeMapping;
+
+      if (!initialItemTypeMapping || !Object.keys(initialItemTypeMapping).length) {
+        const builtInItemTypes = await dataFetcher.getBuiltInItemType();
+        if (builtInItemTypes.length === 3) {
+          initialItemTypeMapping = Constants.DefaultBuiltInItemTypeMap;
+        }
+      }
+
       // 如果内置的事项类型未被移除，能够更新空间层级方案
       const enableUpdateItemTypeMap =
         !!globalTestConfig.extra?.enableItemTypeAutoBind &&
-        builtInItemTypes.length === Constants.BuiltInItemTypeKeys.length;
-
+        !!Object.values(initialItemTypeMapping).length;
       // 初始化空间配置数据
       const [ItemTypeSchemeModel, TestConfigModel] = await Promise.all([
         getParseModel(false, Constants.ModelNames.ItemTypeScheme),
@@ -317,12 +341,14 @@ export const BuiltInInitializationStages: Record<string, InitializationStage> = 
       // 初始化空间空间层级方案
       let needUpdateItemTypeSchemeObjects = [];
       if (enableUpdateItemTypeMap) {
+        const initialItemTypeKeys = Object.values(initialItemTypeMapping) as string[];
+        const initialItemTypes = await dataFetcher.getItemTypeByKeys(initialItemTypeKeys);
         // 需要被增加隐藏是想类型的类型方案
         const needBeAddonItemTypeScheme = workspaceInfos
           .map(workspaceInfo => {
             const { itemTypeScheme } = workspaceInfo;
             try {
-              const excludeItemTypeKeySet = new Set(Constants.BuiltInItemTypeKeys);
+              const excludeItemTypeKeySet = new Set(initialItemTypeKeys);
               // 界面层级方案顶级事项中是否包含内置的三个事项类型
               const hierarchy = JSON.parse(itemTypeScheme?.hierarchy ?? '[]');
 
@@ -333,7 +359,7 @@ export const BuiltInInitializationStages: Record<string, InitializationStage> = 
               });
 
               if (excludeItemTypeKeySet.size) {
-                const hierarchyAppendItemTypes = builtInItemTypes
+                const hierarchyAppendItemTypes = initialItemTypes
                   .filter(item => excludeItemTypeKeySet.has(item.key))
                   .map(item => ({
                     key: item.key,
@@ -371,7 +397,7 @@ export const BuiltInInitializationStages: Record<string, InitializationStage> = 
           const initialConfigData = {
             global: false,
             isolateTestType: Constants.DefaultIsolateTestType,
-            itemTypeMap: enableUpdateItemTypeMap ? Constants.DefaultBuiltInItemTypeMap : undefined,
+            itemTypeMap: enableUpdateItemTypeMap ? initialItemTypeMapping : undefined,
             workspaceKey: workspaceInfo.key,
             defectsMapping: [],
             tableFields: {

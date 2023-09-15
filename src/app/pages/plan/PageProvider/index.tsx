@@ -64,7 +64,7 @@ export const PageContext = React.createContext<PageContextType>({
   setRunLinkCaseIds: noop,
 });
 
-const PageProvider: React.FC = ({ children }) => {
+const PageProvider: React.FC<any> = ({ children }) => {
   const { context } = useSDK();
   const refreshCacheRef = useRef<Record<string, () => void>>();
   const [searchValue, setSearchValue] = useState('');

@@ -220,6 +220,7 @@ export const getTopItemTypeFromHierarchy = async workspaceId => {
 /** 获取所有的类型 */
 export const getAllItemTypes = async (showHiddenItemType = false) => {
   return new Parse.Query(ItemType).limit(9999).find({
+    json: true,
     context: {
       displayModule: showHiddenItemType ? 'plugin.testManager' : '',
     },

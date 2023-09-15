@@ -32,7 +32,7 @@ const useFakeProgress = testCaseCount => {
     return () => {
       clearInterval(timer);
     };
-  }, [start, testCaseCount]);
+  }, [TestCaseCreateTimeCost, start, testCaseCount]);
 
   return {
     percent,

@@ -6,7 +6,7 @@ import cx from './index.less';
 
 type RenderNodeType = React.ReactNode;
 
-const Left: React.FC = ({ children }) => {
+const Left: React.FC<any> = ({ children }) => {
   const [width, setWidth] = useResizableWidth();
   const height = useLayoutHeight();
 
@@ -24,7 +24,7 @@ const Left: React.FC = ({ children }) => {
   );
 };
 
-const Right: React.FC = ({ children }) => {
+const Right: React.FC<any> = ({ children }) => {
   const height = useLayoutHeight();
   return (
     <div className={cx('right')} style={{ height }}>
@@ -33,7 +33,7 @@ const Right: React.FC = ({ children }) => {
   );
 };
 
-const NoData: React.FC = ({ children }) => {
+const NoData: React.FC<any> = ({ children }) => {
   const height = useLayoutHeight();
   return (
     <div className={cx('no-data')} style={{ height }}>
@@ -42,7 +42,7 @@ const NoData: React.FC = ({ children }) => {
   );
 };
 
-const Header: React.FC = ({ children }) => {
+const Header: React.FC<any> = ({ children }) => {
   return (
     <div data-element-id="test-manager-page-layout-header" className={cx('header')}>
       {children}
@@ -56,6 +56,7 @@ type PageLayoutProps = {
   left?: RenderNodeType;
   right?: RenderNodeType;
   header?: RenderNodeType;
+  children?: any;
 };
 
 const PageLayout = (props: React.PropsWithChildren<PageLayoutProps>) => {

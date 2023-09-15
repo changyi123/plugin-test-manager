@@ -17,6 +17,7 @@ export {
   QuestionCircleFilled,
   QuestionCircleOutlined,
   ControlOutlined,
+  ReloadOutlined,
 } from '@ant-design/icons';
 
 export * from './customIcon';

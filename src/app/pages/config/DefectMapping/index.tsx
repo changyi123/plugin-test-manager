@@ -73,10 +73,7 @@ const DefectMapping = () => {
   const { data } = useRequest(
     async () => {
       const itemTypes = await getAllItemTypes(!!globalConfig.extra.isolateTestType);
-      return keyBy(
-        itemTypes.map(item => item.toJSON()),
-        'key',
-      );
+      return keyBy(itemTypes, 'key');
     },
     {
       cacheKey: 'itemTypeMapping',

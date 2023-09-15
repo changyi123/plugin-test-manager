@@ -363,7 +363,7 @@ const PlanPageLayout: React.FC<any> = () => {
   );
 
   const refresh = useCallback(
-    (props = {}) => {
+    (props = {} as any) => {
       setSelectValue([]);
       setTreeType('plan');
       if (!props?.itemIdList?.length) {

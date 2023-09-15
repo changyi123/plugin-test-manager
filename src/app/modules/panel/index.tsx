@@ -25,7 +25,7 @@ const TestPanel = () => {
   const { testEntity } = useTestConfig();
 
   const panelRenderNode = React.useMemo(() => {
-    if (testEntity && !testEntity.type)
+    if (!testEntity || !testEntity?.type)
       return (
         <Result
           className={cx('empty')}

@@ -12,6 +12,7 @@ type DropdownButtonProps = {
   buttonProps?: ButtonProps;
   dropdownProps?: Omit<DropDownProps, 'overlay'>;
   menuList: Array<MenuItemProps & { [k: string]: any }>;
+  children: any;
 };
 
 const DropdownButton: React.FC<DropdownButtonProps> = ({

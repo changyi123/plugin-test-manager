@@ -315,7 +315,9 @@
         "description": "Enabling configuration initialization will modify the association mapping of the built-in matter types in the test management to the built-in matter types.",
         "switchLabel": "Enable Configuration Initialization",
         "builtInItemTypeHasBeenModified": "Built-in matter types have been modified.",
-        "messageSuccess": "Test management configuration initialization successful."
+        "messageSuccess": "Test management configuration initialization successful.",
+        "initialItemTypeMappingLabel": "",
+        "resetButtonText": "Reset"
       },
       "reportTemplateCreator": {
         "creatorTitle": "New Report Template",

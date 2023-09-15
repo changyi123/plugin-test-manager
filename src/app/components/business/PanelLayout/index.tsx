@@ -16,6 +16,7 @@ type PanelLayoutProps = {
   title?: string;
   tabsProps?: TabsProps;
   tabs?: ({ Component: any; key: string } & TabPaneProps)[];
+  children?: any;
 };
 
 const PanelLayout: React.FC<PanelLayoutProps> = props => {

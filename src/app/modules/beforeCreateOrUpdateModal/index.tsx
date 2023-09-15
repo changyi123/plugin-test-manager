@@ -43,39 +43,42 @@ const BeforeCreateOrUpdateModal = () => {
     itemTypeKey: '',
   });
 
-  const updateCurrentModalValues = React.useCallback(async ({ workspaceId, itemTypeId } = {}) => {
-    const props = {
-      workspaceKey: workspaceMappingCacheRef.current[workspaceId],
-      itemTypeKey: itemTypeMappingCacheRef.current[itemTypeId],
-    } as Record<string, string>;
+  const updateCurrentModalValues = React.useCallback(
+    async ({ workspaceId, itemTypeId } = {} as any) => {
+      const props = {
+        workspaceKey: workspaceMappingCacheRef.current[workspaceId],
+        itemTypeKey: itemTypeMappingCacheRef.current[itemTypeId],
+      } as Record<string, string>;
 
-    if (workspaceId && !props.workspaceKey) {
-      const workspace = await getWorkspaceById(workspaceId);
-      if (workspace?.key) {
-        props.workspaceKey = workspace.key;
-        workspaceMappingCacheRef.current = {
-          ...workspaceMappingCacheRef.current,
-          [workspaceId]: workspace.key,
-        };
+      if (workspaceId && !props.workspaceKey) {
+        const workspace = await getWorkspaceById(workspaceId);
+        if (workspace?.key) {
+          props.workspaceKey = workspace.key;
+          workspaceMappingCacheRef.current = {
+            ...workspaceMappingCacheRef.current,
+            [workspaceId]: workspace.key,
+          };
+        }
       }
-    }
 
-    if (itemTypeId && !props.itemTypeKey) {
-      const itemType = await getItemTypeById(itemTypeId);
-      if (itemType?.key) {
-        props.itemTypeKey = itemType.key;
-        itemTypeMappingCacheRef.current = {
-          ...itemTypeMappingCacheRef.current,
-          [itemTypeId]: itemType.key,
-        };
+      if (itemTypeId && !props.itemTypeKey) {
+        const itemType = await getItemTypeById(itemTypeId);
+        if (itemType?.key) {
+          props.itemTypeKey = itemType.key;
+          itemTypeMappingCacheRef.current = {
+            ...itemTypeMappingCacheRef.current,
+            [itemTypeId]: itemType.key,
+          };
+        }
       }
-    }
 
-    setCurrentModalValues(prevState => ({
-      ...prevState,
-      ...props,
-    }));
-  }, []);
+      setCurrentModalValues(prevState => ({
+        ...prevState,
+        ...props,
+      }));
+    },
+    [],
+  );
 
   const testDetailFormVisible = React.useMemo(() => {
     // if (!storeValues.extraData) return false;

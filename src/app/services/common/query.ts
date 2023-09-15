@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import type { UseQueryOptions } from '@tanstack/react-query/src/types';
 
-import { getPluginBoundWorkspaces } from '@/lib/api/proxima';
+import { getAllItemTypes, getPluginBoundWorkspaces } from '@/lib/api/proxima';
 import Parse from '@/lib/parse';
 import type { Workspace as WorkspaceType } from '@/lib/types/App';
 import fetch from '@/lib/utils/fetch';
@@ -13,6 +13,7 @@ export const CommonQueryKeys = {
   itemCreateScreenType: (workspaceId: string) => ['workspaceScreenType', workspaceId],
   testEntityById: (testEntityId: string) => ['testEntity', testEntityId],
   installedWorkspaces: () => ['installedWorkspaces'],
+  allItemTypes: () => ['allItemTypes'],
 };
 
 export const useWorkspaceQuery = (params: WorkspaceQueryParams) => {
@@ -68,4 +69,12 @@ export const useInstalledWorkspaces = () => {
       staleTime: Infinity,
     },
   );
+};
+
+/** 获取所有的事项类型 */
+export const useAllItemTypes = (showHiddenItemType = true) => {
+  return useQuery(CommonQueryKeys.allItemTypes(), () => getAllItemTypes(showHiddenItemType), {
+    cacheTime: Infinity,
+    staleTime: Infinity,
+  });
 };

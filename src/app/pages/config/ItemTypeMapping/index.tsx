@@ -60,13 +60,19 @@ const ItemTypeMapping = () => {
           <span className={cx('item-type-selector-label')}>
             <ItemIcon className={cx('icon')} icon={itemType.icon}></ItemIcon>
             <span>{itemType.name}</span>
+            <span style={{ fontSize: '0.8em', color: '#888', marginLeft: '0.5em' }}>
+              ({itemType.key})
+            </span>
           </span>
         ),
         value: itemType.key,
+        searchValue: itemType.key + itemType.name,
       }));
       const selectedItemType = itemTypeMapping[type];
       return (
         <Select
+          showSearch
+          optionFilterProp="searchValue"
           options={options}
           disabled={isolatedSystem}
           onChange={val => {
