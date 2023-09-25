@@ -8,6 +8,8 @@ import { useWorkspaceTemplateListQuery } from '@/services/testReport/query';
 import { FormProps } from './RangeForm';
 import cx from './TemplateForm.less';
 
+const MaxInputNameLength = 250;
+
 const TemplateForm: React.FC<FormProps> = ({ state, workspace }) => {
   const { t } = useI18n();
 
@@ -77,7 +79,7 @@ const TemplateForm: React.FC<FormProps> = ({ state, workspace }) => {
             }}
             status={inputStatus}
             onBlur={() => {
-              setExceedLength(state.name?.length > 25);
+              setExceedLength(state.name?.length > MaxInputNameLength);
               setInputStatus(state.name ? undefined : 'error');
             }}
           ></Input>

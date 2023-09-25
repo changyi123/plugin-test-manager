@@ -531,7 +531,7 @@ const TestReport = Parse.Object.extend('test_manager_TestReport', {
     const isExisted = Boolean(objectId);
     if (isExisted) throw new Error(t('page.reportTemplateCreator.templateExisted'));
 
-    if (reportTemplateParams.name?.length > 25) {
+    if (reportTemplateParams.name?.length > 250) {
       throw new Error(t('page.reportTemplateCreator.templateNameTooLong'));
     }
 
@@ -598,7 +598,7 @@ const TestReport = Parse.Object.extend('test_manager_TestReport', {
         itemTypeMap?: string[];
       },
   ) {
-    if (reportParams.name?.length > 25) {
+    if (reportParams.name?.length > 250) {
       throw new Error(t('page.reportTemplateCreator.reportNameTooLong'));
     }
     // 获取模板数据

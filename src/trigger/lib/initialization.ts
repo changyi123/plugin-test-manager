@@ -46,7 +46,8 @@ const helper = {
     );
   },
   getParseBaseQueryOptions: () => ({
-    sessionToken: global.sessionToken,
+    // sessionToken: global.sessionToken,
+    useMasterKey: true,
   }),
 };
 
@@ -263,6 +264,7 @@ export const BuiltInInitializationStages: Record<string, InitializationStage> = 
       const { getConfigStorage } = instance;
       const workspaces = getConfigStorage('workspaces');
       const testConfigs = getConfigStorage('testConfigs');
+      const globalTestConfig = instance.getConfigStorage('globalTestConfig');
 
       const needToBeInitializedWorkspaceKeys = workspaces
         .map(workspace => {
@@ -283,8 +285,8 @@ export const BuiltInInitializationStages: Record<string, InitializationStage> = 
         '\n',
       );
 
-      // 如果没有需要初始化的空间，不需要执行初始化脚本
-      if (!needToBeInitializedWorkspaceKeys.length) {
+      // 如果没有需要初始化的空间且未开启事项类型隔离映射，不需要执行初始化脚本
+      if (!needToBeInitializedWorkspaceKeys.length && !globalTestConfig?.extra?.isolatedSystem) {
         helper.logger('没有需要初始化的空间');
         return false;
       }
@@ -300,7 +302,13 @@ export const BuiltInInitializationStages: Record<string, InitializationStage> = 
 
       let initialItemTypeMapping = globalTestConfig?.extra?.initialItemTypeMapping;
 
-      if (!initialItemTypeMapping || !Object.keys(initialItemTypeMapping).length) {
+      if (
+        // 不存在初始化的配置
+        !initialItemTypeMapping ||
+        !Object.keys(initialItemTypeMapping).length ||
+        // 开启事项隔离
+        globalTestConfig?.extra?.isolatedSystem
+      ) {
         const builtInItemTypes = await dataFetcher.getBuiltInItemType();
         if (builtInItemTypes.length === 3) {
           initialItemTypeMapping = Constants.DefaultBuiltInItemTypeMap;
@@ -309,8 +317,16 @@ export const BuiltInInitializationStages: Record<string, InitializationStage> = 
 
       // 如果内置的事项类型未被移除，能够更新空间层级方案
       const enableUpdateItemTypeMap =
-        !!globalTestConfig.extra?.enableItemTypeAutoBind &&
+        (!!globalTestConfig?.extra?.isolatedSystem ||
+          !!globalTestConfig.extra?.enableItemTypeAutoBind) &&
         !!Object.values(initialItemTypeMapping).length;
+
+      console.info(
+        '_____enableUpdateItemTypeMap_____',
+        enableUpdateItemTypeMap,
+        initialItemTypeMapping,
+      );
+
       // 初始化空间配置数据
       const [ItemTypeSchemeModel, TestConfigModel] = await Promise.all([
         getParseModel(false, Constants.ModelNames.ItemTypeScheme),
@@ -431,7 +447,14 @@ export const BuiltInInitializationStages: Record<string, InitializationStage> = 
         .filter(Boolean);
 
       // 保存所有的对象
-      await saveAllObject([].concat(needUpdateTestConfigObjects, needUpdateItemTypeSchemeObjects));
+      await saveAllObject(
+        [].concat(
+          needUpdateTestConfigObjects.filter(
+            config => config.get('id') || config.get('objectId') || config.get('workspaceKey'),
+          ),
+          needUpdateItemTypeSchemeObjects,
+        ),
+      );
 
       // 因为可能存在新初始化的数据，重新获取一次配置数据，避免影响下一阶段的执行
       instance.addConfigStorage(

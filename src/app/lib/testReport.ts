@@ -5,7 +5,7 @@ import { TestType } from './constants';
 import { getPagePrefix, isInOne } from './utils/helper';
 
 /** 测试报告名称最大支持的长度限制 */
-export const TestReportMaxNameLength = 25;
+export const TestReportMaxNameLength = 250;
 
 export type SelectorType =
   | 'sprint'
@@ -259,6 +259,17 @@ export const exportWithHTML = async testReportData => {
       const retainDomIds = ['webpack-style-holder'];
 
       const container = copyNode.querySelector(containerSelector);
+      // 修正 container 的 style height
+      try {
+        // 修正 container 的高度
+        const height = container.getBoundingClientRect().height;
+        const modifyHeight = height + 180;
+        if (modifyHeight && typeof modifyHeight === 'number') {
+          container.style.height = `${modifyHeight}px`;
+        }
+      } catch (err) {
+        console.error(err);
+      }
 
       copyNode.querySelectorAll('*').forEach(node => {
         if (
@@ -293,16 +304,13 @@ export const exportWithHTML = async testReportData => {
             replacedCanvasNode.parentNode.replaceChild(img, replacedCanvasNode);
           });
       });
-      console.info('tasks--------->', tasks);
       await Promise.all(tasks);
-      console.info('copyNode------------------', copyNode);
 
       return copyNode;
     };
     // 离线 style link 标签的内容
     const downloadLinkContentIntoStyle = async copyNode => {
       const linkNodes = copyNode.querySelectorAll('link');
-      console.info('linkNodes----------->', linkNodes);
       const tasks = Array.from(linkNodes).map((linkEle: HTMLLinkElement, index) => {
         return fetch(linkEle.href)
           .then(res => res.text())
@@ -381,6 +389,9 @@ export const exportWithHTML = async testReportData => {
         }
         #report-iframe > div {
           width: 100%;
+        }
+        .gitee-loader-back {
+          display: none !important;
         }
       `;
       style.id = 'insert-adjust-style';

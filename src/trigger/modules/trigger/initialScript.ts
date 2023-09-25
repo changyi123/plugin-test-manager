@@ -404,7 +404,8 @@ const initGlobalTestConfig = async () => {
 
 const initWorkspaceTestConfigs = async () => {
   const ParseBaseQueryOptions = {
-    sessionToken: global.sessionToken,
+    // sessionToken: global.sessionToken,
+    useMasterKey: true,
   };
 
   // 获取所有空间
@@ -425,12 +426,14 @@ const initWorkspaceTestConfigs = async () => {
     installedWorkspaceKeys = await getParseQuery(false, 'Workspace')
       .select(['objectId', 'key'])
       .findAll(ParseBaseQueryOptions)
-      .then(data => data.map(item => item.toJSON().key));
+      .then(data => data.map(item => item.get('key')));
   } else {
     installedWorkspaceKeys = appWorkspace?.workspaces
       ?.map(workspace => workspace?.key ?? workspace)
       .filter(Boolean);
   }
+
+  console.info('installedWorkspaceKeys_______________', isGlobalPlugin, installedWorkspaceKeys);
 
   const initialization = new Initialization(
     [BuiltInInitializationStages.initTestConfig, BuiltInInitializationStages.initChartOption],

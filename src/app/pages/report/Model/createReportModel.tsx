@@ -13,6 +13,8 @@ import CreateReportSteps from '../Steps';
 import RangeForm from '../Steps/RangeForm';
 import TemplateForm from '../Steps/TemplateForm';
 
+const MaxInputNameLength = 250;
+
 export type ActionType = {
   open: (data: { name?: string }) => Promise<void>;
 };
@@ -125,7 +127,8 @@ const CreateReportModel: React.FC<CreateReportModelProps> = props => {
         ) : (
           <Button
             onClick={() => {
-              if (state.name?.length > 25) return message.error(t('report.exceedLength'));
+              if (state.name?.length > MaxInputNameLength)
+                return message.error(t('report.exceedLength'));
               const validate = validateState();
               if (validate) return message.error(t('report.validateTips'));
               setCurrent('2');

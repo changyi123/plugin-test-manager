@@ -48,10 +48,10 @@ const ReportView: React.FC = () => {
             );
             if (times > 500) return resolve([]);
             if (chartViews.length > 0) {
-              clearInterval(timer);
               resolve(chartViews);
+              clearInterval(timer);
             }
-          }, 200);
+          }, 500);
         });
       };
       return new Promise(resolve => {
@@ -59,23 +59,40 @@ const ReportView: React.FC = () => {
           let loadedCount = 0;
 
           const chartViews = (await getChartViewIfLoaded()) as any;
-
           chartViews.forEach(ele => {
-            const observer = new MutationObserver(mutationsList => {
-              // 遍历所有的变化
-              for (const mutation of mutationsList) {
-                // 如果是子元素的变化
-                if (mutation.type === 'childList') {
-                  loadedCount++;
-                  observer.disconnect();
-                  if (loadedCount === chartViews.length) {
-                    resolve(true);
-                  }
-                }
+            if (ele.lastChild) {
+              loadedCount++;
+              // 已经存在子元素，不需要监听，等接口加载后（约 500ms） 直接 resolve
+              if (loadedCount >= chartViews.length) {
+                setTimeout(() => {
+                  resolve(true);
+                }, 500);
               }
-            });
+            } else {
+              setTimeout(() => {
+                loadedCount++;
+                if (loadedCount >= chartViews.length) {
+                  setTimeout(() => {
+                    resolve(true);
+                  }, 500);
+                }
+              }, 500);
+              // const observer = new MutationObserver(mutationsList => {
+              //   // 遍历所有的变化
+              //   for (const mutation of mutationsList) {
+              //     // 如果是子元素的变化
+              //     if (mutation.type === 'childList') {
+              //       loadedCount++;
+              //       observer.disconnect();
+              //       if (loadedCount >= chartViews.length) {
+              //         resolve(true);
+              //       }
+              //     }
+              //   }
+              // });
 
-            observer.observe(ele, { childList: true });
+              // observer.observe(ele, { childList: true });
+            }
           });
         };
         runner();

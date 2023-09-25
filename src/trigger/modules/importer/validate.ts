@@ -35,7 +35,14 @@ const errorLog1 = i18n.t('trigger.importer.validate.numberValidate');
 
 const getStringLength = d => `${d ?? ''}`?.length;
 
-const splitSteps = datas => datas?.replace(/^[\r\n]+/g, '')?.split(/(?=【\d+】)/g) ?? [];
+const splitSteps = datas => {
+  try {
+    return datas?.replace(/^[\r\n]+/g, '')?.split(/(?=【\d+】)/g) ?? [];
+  } catch (err) {
+    console.info('______________error_____________', err, datas);
+    return [];
+  }
+};
 
 const testStep = datas => /(?=【\d+】)/g.test(datas);
 

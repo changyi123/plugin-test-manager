@@ -109,7 +109,7 @@ const BasicConfig: React.FC<{
             rules={[
               { required: true, message: scopedT('form.name.error') },
               {
-                max: 25,
+                max: 250,
                 message: scopedT('form.name.error'),
               },
             ]}

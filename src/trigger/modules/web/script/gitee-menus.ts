@@ -23,7 +23,8 @@ export const runGiteeMenus = async () => {
 
   const APP_KEY = global.appKey ?? 'test_manager';
   const ParseBaseQueryOptions = {
-    sessionToken: global.sessionToken,
+    // sessionToken: global.sessionToken,
+    useMasterKey: true,
   };
 
   const getGiteeMenusConfig = async (workspaceKey, info) => {

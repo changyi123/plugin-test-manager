@@ -19,7 +19,14 @@ const TEST_MANAGER_REPO = `test_manager_Repository`;
 
 const clone = d => JSON.parse(JSON.stringify(d));
 
-const replaceRn = datas => datas?.replace(/^[\r\n]+/g, '');
+const replaceRn = datas => {
+  try {
+    return datas?.replace(/^[\r\n]+/g, '');
+  } catch (err) {
+    console.info('______________error_____________', datas);
+    console.error(err);
+  }
+};
 
 const splitSteps = datas => `${replaceRn(datas) ?? ''}`?.split(/(?=【\d+】)/g) ?? [];
 
@@ -302,6 +309,7 @@ export const runBeforeImport = async () => {
           r_test_manager_repository: group === 'root' ? '' : group,
         },
       }));
+      console.info('_________itemDataList____________', newItemDataList);
     }
 
     console.timeEnd('[test-case-import] process');
