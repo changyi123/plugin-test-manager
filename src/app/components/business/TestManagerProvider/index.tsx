@@ -308,6 +308,8 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
   React.useEffect(() => {
     setTimeout(() => {
       proxima.execute('updateAllItemTypeEvent');
+      // 冗余一个 item-type filter 请求，避免有地方报错
+      proxima.execute('updateItemTypeEvent');
     }, 300);
   }, [proxima]);
 
