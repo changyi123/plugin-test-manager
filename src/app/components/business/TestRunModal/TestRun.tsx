@@ -25,7 +25,7 @@ import cx from './TestRun.less';
 import TestStep from './TestStep';
 
 // TODO: 类型问题
-type TestRunEntity = TestEntity<TestType.Run> | any;
+type TestRunEntity = TestEntity<TestType.Run>;
 type TestDetailEntity = TestEntity<TestType.Case>;
 
 type TestRunType = {
@@ -88,32 +88,115 @@ const TestRun: React.FC<TestRunType> = props => {
   );
   // 子组件 loading
   const [tabPaneLoading, setTabPaneLoading] = React.useState(false);
-  const [testId, setTestId] = React.useState(props.id);
+  const [testRunId, setTestRunId] = React.useState(props.id);
   const modelScrollRef = React.useRef();
   const [tabActiveKey, setTabActiveKey] = React.useState(getTestRunDetailTabs(t)[0]?.key);
 
   const {
-    data: testRunEntity,
+    data: testRunData,
     refresh: refreshTestRun,
     loading: testRunRequestLoading,
   } = useRequest(
     async () => {
-      if (!testId) return null;
-      const { list: runData } = await getTestEntityByQuery({
-        query: {
-          id: [testId],
-          type: TestType.Run,
-        },
-      });
+      console.time('初始化测试执行任务耗时：');
+      const returnData = {
+        testCaseEntity: null,
+        testRunEntity: null,
+      };
 
-      return (runData[0] ?? {}) as TestRunEntity;
+      const getTestRunEntity = async testRunId => {
+        const { list: testRunList } = await getTestEntityByQuery({
+          query: {
+            id: [testRunId],
+            type: TestType.Run,
+          },
+          limit: 1,
+        });
+
+        return testRunList[0] as TestRunEntity;
+      };
+
+      const getTestCaseEntity = async testCaseId => {
+        const { list: testCaseList } = await getTestEntityByQuery({
+          query: {
+            id: [testCaseId],
+            type: TestType.Case,
+          },
+          limit: 1,
+        });
+        return testCaseList[0] as TestDetailEntity;
+      };
+
+      const testRunEntity = (returnData.testRunEntity = await getTestRunEntity(testRunId));
+
+      if (!testRunEntity) return returnData;
+
+      // 增加 testCaseEntity 数据
+      returnData.testCaseEntity = {
+        objectId: testRunEntity.referenceCase,
+      };
+
+      // 未被初始化的测试用例详情字段为 {} 或 null
+      if (!testRunEntity.runDetail || !Object.keys(testRunEntity.runDetail).length) {
+        const testCaseEntity = (returnData.testCaseEntity = await getTestCaseEntity(
+          testRunEntity.referenceCase,
+        ));
+
+        // 进一步校验测试执行是否未被初始化
+        const testRunIsNotInitial =
+          !testRunEntity.runDetail ||
+          // 测试任务的前置条件或步骤没有数据，但是用例前置条件或步骤有数据
+          (!testRunEntity.runDetail?.precondition && testCaseEntity.detail?.precondition) ||
+          (!Array.isArray(testRunEntity.runDetail?.steps) &&
+            Array.isArray(testCaseEntity.detail?.steps));
+
+        // 测试执行进行初始化
+        if (testRunIsNotInitial) {
+          const stepsData = (testCaseEntity.detail.steps ?? []).map(d => ({
+            ...d,
+            id: uuid(),
+          }));
+          const preconditionData = testCaseEntity.detail.precondition ?? '';
+
+          const runDetailData = {
+            steps: stepsData,
+            precondition: preconditionData,
+          };
+
+          console.info('测试执行详情数据', runDetailData);
+
+          // 更新测试执行任务
+          await updateTestRunDetail(
+            testRunEntity,
+            {
+              runDetail: runDetailData,
+            },
+            {
+              // 初始化更新
+              initialization: true,
+            },
+          );
+
+          // 修改返回值
+          returnData.testRunEntity = {
+            ...testCaseEntity,
+            runDetail: runDetailData,
+          };
+        }
+      }
+
+      console.timeEnd('初始化测试执行任务耗时：');
+      return returnData;
     },
     {
-      ready: Boolean(testId),
-      refreshDeps: [testId],
-      // loadingDelay: 400,
+      ready: Boolean(testRunId),
+      refreshDeps: [testRunId],
+      cacheKey: `testRunData_${testRunId}`,
+      staleTime: -1,
     },
   );
+
+  const { testRunEntity, testCaseEntity } = testRunData ?? {};
 
   // 获得可执行的测试执行 id 序列
   const { canExecuteTestRunIdSequence } = useCanExecuteTestRunIdSequence({
@@ -121,44 +204,24 @@ const TestRun: React.FC<TestRunType> = props => {
     idSequence,
   });
 
-  const { data: testCaseEntity } = useRequest(
-    async () => {
-      if (!testRunEntity?.referenceCase) return null;
-      const { list: caseData } = await getTestEntityByQuery({
-        query: {
-          id: [testRunEntity.referenceCase],
-          type: TestType.Case,
-        },
-      });
-
-      return (caseData?.[0] ?? {}) as TestDetailEntity;
-    },
-    {
-      ready: Boolean(testRunEntity?.referenceCase),
-      refreshDeps: [testRunEntity?.referenceCase],
-      cacheKey: `testCaseEntity_${testRunEntity?.referenceCase}`,
-      staleTime: -1,
-    },
-  );
-
   // 能否可执行下一个执行, id 不存在 canExecuteTestRunIdSequence 或 已到最后一条不可执行
   const canExecNext =
     Array.isArray(canExecuteTestRunIdSequence) &&
     ![-1, canExecuteTestRunIdSequence.length - 1].includes(
-      canExecuteTestRunIdSequence.indexOf(testId),
+      canExecuteTestRunIdSequence.indexOf(testRunId),
     );
 
   // 执行下一个测试用例
   const nextTestRun = React.useCallback(() => {
     event.emit();
-    const nextIndex = canExecuteTestRunIdSequence.indexOf(testId) + 1;
+    const nextIndex = canExecuteTestRunIdSequence.indexOf(testRunId) + 1;
     if (!canExecNext || nextIndex === canExecuteTestRunIdSequence.length) {
       return message.warning(t('components.business.testRunModal.testRun.runTips'));
     }
 
     console.info('canExecuteTestRunIdSequence', canExecuteTestRunIdSequence, nextIndex);
-    setTestId(canExecuteTestRunIdSequence[nextIndex]);
-  }, [event, canExecuteTestRunIdSequence, testId, canExecNext, t]);
+    setTestRunId(canExecuteTestRunIdSequence[nextIndex]);
+  }, [event, canExecuteTestRunIdSequence, testRunId, canExecNext, t]);
 
   const handleStatusChange = useMemoizedFn(
     async (status, isStepChange = false) => {
@@ -235,49 +298,6 @@ const TestRun: React.FC<TestRunType> = props => {
     return globalDefects.concat(stepDefects).filter(data => data.item);
   }, [testRunEntity, allRelationDefectItems]);
 
-  React.useEffect(() => {
-    // 兼容测试执行无 step 情况（测试执行步骤可在执行阶段创建）
-    if (
-      testId &&
-      testRunEntity &&
-      !testRunEntity?.runDetail?.precondition &&
-      !Array.isArray(testRunEntity?.runDetail?.steps)
-    ) {
-      (async () => {
-        if (!testCaseEntity?.objectId && !testRunEntity?.objectId) return;
-        const detail = testCaseEntity?.detail;
-        if (!detail?.steps?.length && !detail?.precondition) return;
-        const steps = await getTestStepsByTestDetailId(testCaseEntity?.objectId);
-        if (!testCaseEntity.detail?.precondition && !steps?.length) return;
-        try {
-          const res = await updateTestRunDetail(
-            testRunEntity,
-            {
-              steps: steps?.map(d => ({
-                ...d,
-                id: uuid(),
-              })),
-              runDetail: {
-                precondition: detail?.precondition ?? '',
-              },
-            },
-            {
-              // 初始化更新
-              initialization: true,
-            },
-          );
-          if (res.status === 'error') {
-            message.error(res.data);
-            return;
-          }
-          refreshTestRun();
-        } catch (err) {
-          message.error(err.message);
-        }
-      })();
-    }
-  }, [testId, testRunEntity, refreshTestRun, testCaseEntity]);
-
   const onDataChange = useMemoizedFn(() => {
     refreshTestRun();
     setTabPaneLoading(false);
@@ -345,18 +365,6 @@ const TestRun: React.FC<TestRunType> = props => {
       children: React.createElement(tab.component, { ...tabItemsProps, name: tab.key } as any),
     }));
   }, [t, tabItemsProps, renderTabLabel]);
-
-  // const TestCommentsList = React.useMemo(
-  //   () => (
-  //     <TestComment
-  //       testRunEntity={testRunEntity}
-  //       testRunData={testRunData}
-  //       onDataChange={onDataChange}
-  //       modelScrollRef={modelScrollRef}
-  //     />
-  //   ),
-  //   [testRunEntity, testRunData, onDataChange, modelScrollRef],
-  // );
 
   const loading = tabPaneLoading || testRunRequestLoading;
 
@@ -429,11 +437,6 @@ const TestRun: React.FC<TestRunType> = props => {
                 />
               </Collapse.Panel>
             </Collapse>
-            {/* <Collapse className={cx('collapse')} defaultActiveKey={['1']}>
-              <Collapse.Panel key="1" header="评论">
-                {TestCommentsList}
-              </Collapse.Panel>
-            </Collapse> */}
           </div>
         </div>
       </Spin>
