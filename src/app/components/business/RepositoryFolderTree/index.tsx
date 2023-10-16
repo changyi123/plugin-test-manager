@@ -85,7 +85,8 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
   } = useRequest(
     async () => {
       if (!workspaceKey) return [];
-      if (!isShowAll && !params) return [];
+      if (!isShowAll && !Array.isArray(params?.query?.id)) return [];
+
       const { data } = await getRepositoryTreeV2({
         workspaceKey,
         params,

@@ -245,6 +245,8 @@ export const batchCreateTestRun = async () => {
           SystemField.Workspace,
           TestFiledKeyMapping.detail,
           TestFiledKeyMapping.sortIndex,
+          TestFiledKeyMapping.caseStatus,
+          TestFiledKeyMapping.caseExecutor,
         ],
       });
       return caseList;

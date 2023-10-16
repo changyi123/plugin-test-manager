@@ -14,10 +14,10 @@ import { StatusBadge } from '@/components/business/Status';
 import TestRunModal, {
   ActionType as TestRunModalActionType,
 } from '@/components/business/TestRunModal';
+import { BusinessTable } from '@/components/common/BusinessTable';
 import { SystemFieldKeys } from '@/components/common/BusinessTable/hook';
 import type { BusinessTableActionType } from '@/components/common/BusinessTable/type';
 import Field from '@/components/common/Field';
-import { BusinessTable } from '@/components/dynamicComponents';
 import {
   deleteTestEntity,
   getCasesByStatus,
@@ -47,24 +47,41 @@ import {
 import cx from './index.less';
 
 interface TestEntityListProps {
-  loading?: boolean;
+  loading: boolean;
   activeType: string;
-  selectedExecution?: Record<string, any>;
+  showType?: string;
   refreshPlanData?: () => void;
-  refreshTreeAndScopeTestCase?: () => void;
   tableSelectionVisible?: boolean;
   selectNode?: Record<string, any>;
-  showType?: string;
+  selectedExecution?: Record<string, any>;
+  refreshTreeAndScopeTestCase?: () => void;
 }
 
+const useFnHookTriggerFn = (fn, before, after) => {
+  return React.useCallback(
+    async (...args) => {
+      let res;
+      try {
+        before?.();
+        res = await fn?.(...args);
+      } catch (err) {
+        console.error(err);
+      }
+      after?.();
+      return res;
+    },
+    [fn],
+  );
+};
+
 const TestEntityList: React.FC<TestEntityListProps> = ({
-  loading,
+  loading: loadingFromParentElement,
+  showType,
   activeType,
+  selectNode,
   selectedExecution,
   refreshTreeAndScopeTestCase,
   tableSelectionVisible,
-  selectNode,
-  showType,
 }) => {
   const {
     workspaceKey,
@@ -90,6 +107,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
 
   const [tableLoading, setTableLoading] = useState(false);
   const [hasRowSelected, setHasRowSelected] = useState(false);
+  const loading = loadingFromParentElement || tableLoading;
 
   React.useEffect(() => {
     registerRefreshMethod({
@@ -131,80 +149,85 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   });
 
   // 获取全部用例 getter
-  const testPlanTableDataGetter = useCallback(
-    async queryParams => {
-      if (
-        !selectNode?.key ||
-        !workspaceKey ||
-        activeType === 'TestExecution' ||
-        !testCaseFieldKeys
-      ) {
-        return {
-          list: [],
-          total: 0,
-        };
-      }
-      setTableLoading(true);
-      // 处理测试用例最新状态筛选
-      const query: Record<string, any> = {};
-      const { selector, runStatusSelector } = handleCustomerSelector(selectors);
+  const testPlanTableDataGetter = useFnHookTriggerFn(
+    useCallback(
+      async queryParams => {
+        if (
+          !selectNode?.key ||
+          !workspaceKey ||
+          activeType === 'TestExecution' ||
+          !testCaseFieldKeys
+        ) {
+          return {
+            list: [],
+            total: 0,
+          };
+        }
+        // 处理测试用例最新状态筛选
+        const query: Record<string, any> = {};
+        const { selector, runStatusSelector } = handleCustomerSelector(selectors);
 
-      if (runStatusSelector[TestCaseStatusModel]?.value?.length) {
-        const params = getTestCaseStatusModelValue(runStatusSelector);
-        const { data: ids } = await getCasesByStatus({
-          planId: selectedTestPlan.objectId,
-          ...params,
+        if (runStatusSelector[TestCaseStatusModel]?.value?.length) {
+          const params = getTestCaseStatusModelValue(runStatusSelector);
+          const { data: ids } = await getCasesByStatus({
+            planId: selectedTestPlan.objectId,
+            ...params,
+          });
+          query.id = ids;
+        }
+
+        // 查询测试用例
+        query.repository = getRepositoryQuery(selectNode, showType)?.repository;
+        const { list: testDetails, total } = await getLinkedTestEntityByQuery({
+          query: {
+            workspaceKey: workspaceKey,
+            type: TestType.Case,
+            ...query,
+          },
+          ...queryParams,
+          linkType: TestLinkType.CaseLinkPlan,
+          sourceIds: [selectedTestPlan.objectId],
+          destinationType: TestType.Case,
+          fields: [].concat(SystemFieldKeys, testCaseFieldKeys ?? []),
+          selector,
         });
-        query.id = ids;
-      }
 
-      // 查询测试用例
-      query.repository = getRepositoryQuery(selectNode, showType)?.repository;
-      const { list: testDetails, total } = await getLinkedTestEntityByQuery({
-        query: {
-          workspaceKey: workspaceKey,
-          type: TestType.Case,
-          ...query,
-        },
-        ...queryParams,
-        linkType: TestLinkType.CaseLinkPlan,
-        sourceIds: [selectedTestPlan.objectId],
-        destinationType: TestType.Case,
-        fields: [].concat(SystemFieldKeys, testCaseFieldKeys ?? []),
-        selector,
-      });
+        // 查询统计数据
+        const stats = await getTestCaseStats({
+          planId: selectedTestPlan.objectId,
+          select: ['runCount', 'caseLatestStatus'],
+          caseIds: testDetails.map(d => d.id),
+        });
 
-      // 查询统计数据
-      const stats = await getTestCaseStats({
-        planId: selectedTestPlan.objectId,
-        select: ['runCount', 'caseLatestStatus'],
-        caseIds: testDetails.map(d => d.id),
-      });
+        const list = testDetails.map(detail => ({
+          ...detail,
+          selectedTestPlanId: selectedTestPlan.objectId,
+          ...(stats?.[detail.objectId] ?? {}),
+          status: detail.workflowStatus,
+          caseLatestExecutor: detail.caseExecutor?.[selectedTestPlan.objectId],
+        }));
 
-      const list = testDetails.map(detail => ({
-        ...detail,
-        selectedTestPlanId: selectedTestPlan.objectId,
-        ...(stats?.[detail.objectId] ?? {}),
-        status: detail.workflowStatus,
-        caseLatestExecutor: detail.caseExecutor?.[selectedTestPlan.objectId],
-      }));
-
-      setTableLoading(false);
-
-      return {
-        list: list,
-        total: total,
-      };
+        return {
+          list: list,
+          total: total,
+        };
+      },
+      [
+        selectNode,
+        workspaceKey,
+        activeType,
+        testCaseFieldKeys,
+        JSON.stringify(selectors),
+        selectedTestPlan?.objectId,
+        showType,
+      ],
+    ),
+    () => {
+      setTableLoading(true);
     },
-    [
-      selectNode,
-      workspaceKey,
-      activeType,
-      testCaseFieldKeys,
-      JSON.stringify(selectors),
-      selectedTestPlan?.objectId,
-      showType,
-    ],
+    () => {
+      setTableLoading(false);
+    },
   );
 
   const getTableDataByFilterRun = async params => {
@@ -258,7 +281,6 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       selector,
       ...queryParams,
     });
-    setTableLoading(false);
 
     return {
       list: cases?.map(c => {
@@ -335,7 +357,6 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     runs.forEach(d => {
       runCaseMap.set(d.referenceCase, d);
     });
-    setTableLoading(false);
 
     return {
       list: cases?.map(c => {
@@ -364,65 +385,73 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   };
 
   // 获取执行任务 getter
-  const executionTableDataGetter = useCallback(
-    async queryParams => {
-      if (
-        !selectedExecution?.objectId ||
-        !executionLinkRunIds?.length ||
-        !selectNode?.key ||
-        activeType === 'TestPlan' ||
-        !testCaseFieldKeys
-      )
-        return {
-          list: [],
-          total: 0,
-        };
+  const executionTableDataGetter = useFnHookTriggerFn(
+    useCallback(
+      async queryParams => {
+        if (
+          !selectedExecution?.objectId ||
+          !executionLinkRunIds?.length ||
+          !selectNode?.key ||
+          activeType === 'TestPlan' ||
+          !testCaseFieldKeys
+        )
+          return {
+            list: [],
+            total: 0,
+          };
 
-      const caseFieldKeys = [].concat(SystemFieldKeys, testCaseFieldKeys ?? []);
-      const [systemSelectors, customSelector] = selectors;
-      const filterCaseSelector = omit(customSelector, [
-        TestRunDesigneeModel,
-        TestRunExecutorModel,
-        TestCaseStatusModel,
-      ]);
-      const filterRunSelector = getTestRunSelector(customSelector);
+        const caseFieldKeys = [].concat(SystemFieldKeys, testCaseFieldKeys ?? []);
+        const [systemSelectors, customSelector] = selectors;
+        const filterCaseSelector = omit(customSelector, [
+          TestRunDesigneeModel,
+          TestRunExecutorModel,
+          TestCaseStatusModel,
+        ]);
+        const filterRunSelector = getTestRunSelector(customSelector);
 
-      if (filterRunSelector) {
-        return await getTableDataByFilterRun({
+        if (filterRunSelector) {
+          return await getTableDataByFilterRun({
+            workspaceKey,
+            executionLinkRunIds,
+            executionId: selectedExecution.objectId,
+            filterRunSelector: filterRunSelector,
+            selector: [systemSelectors, filterCaseSelector],
+            queryParams,
+            caseFieldKeys,
+            selectNode,
+            showType,
+          });
+        }
+
+        return await getTableDataByFilterCase({
           workspaceKey,
-          executionLinkRunIds,
+          runLinkCaseIds,
           executionId: selectedExecution.objectId,
-          filterRunSelector: filterRunSelector,
           selector: [systemSelectors, filterCaseSelector],
           queryParams,
           caseFieldKeys,
           selectNode,
           showType,
         });
-      }
-
-      return await getTableDataByFilterCase({
+      },
+      [
+        selectedExecution?.objectId,
+        executionLinkRunIds,
+        selectNode,
+        activeType,
+        testCaseFieldKeys,
+        JSON.stringify(selectors),
         workspaceKey,
         runLinkCaseIds,
-        executionId: selectedExecution.objectId,
-        selector: [systemSelectors, filterCaseSelector],
-        queryParams,
-        caseFieldKeys,
-        selectNode,
         showType,
-      });
+      ],
+    ),
+    () => {
+      setTableLoading(true);
     },
-    [
-      selectedExecution?.objectId,
-      executionLinkRunIds,
-      selectNode,
-      activeType,
-      testCaseFieldKeys,
-      JSON.stringify(selectors),
-      workspaceKey,
-      runLinkCaseIds,
-      showType,
-    ],
+    () => {
+      setTableLoading(false);
+    },
   );
 
   // 获取筛选后的测试执行关联的测试执行 ID
@@ -439,7 +468,6 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   useEffect(() => {
     const [systemSelectors] = selectors ?? [];
     if (!isEmpty(systemSelectors) && activeType !== 'TestPlan') {
-      setTableLoading(true);
       // scopedTestDetailRefresh();
       const isEmptyValue = Object.values(systemSelectors)
         .map(d => d?.value)
@@ -488,6 +516,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     [addAndDeleteRefresh, t],
   );
 
+  //  测试计划--全部用例表头
   const allTestColumns = React.useMemo(() => {
     return [
       {
@@ -496,6 +525,12 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         fixed: true,
         isSystem: true,
         title: t('common.title'),
+        sorter: {
+          compare: (a, b) => {
+            return a.name.length - b.name.length;
+          },
+        },
+        className: 'test-case-title',
         extraProps: {
           onClick: record => {
             openItemViewScreen(record?.objectId);
@@ -510,27 +545,35 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         render(_, rowData) {
           const itemData = rowData ?? {};
           return (
-            <span
-              className="test-case-title"
-              data-drawer-handle-target
-              style={{ cursor: 'pointer' }}
-            >
+            <span data-drawer-handle-target style={{ cursor: 'pointer' }}>
               {itemData.name}
             </span>
           );
         },
       },
+      // 所属模块
       {
         key: 'repositoryGroup',
         title: t('page.plan.testEntityList.repositoryGroup'),
+        sorter: {
+          compare: (a, b) => {
+            return +new Date(a.createdAt) - +new Date(b.createdAt);
+          },
+        },
         width: 200,
         render(_, rowData) {
           return <RenderRepository repository={rowData?.repository} />;
         },
       },
+      // 测试执行状态
       {
         key: 'caseLatestStatus',
         title: t('page.plan.testEntityList.runStatus'),
+        sorter: {
+          compare: (a, b) => {
+            return (a.caseLatestStatus || '').localeCompare(b.caseLatestStatus || '');
+          },
+        },
         width: 200,
         render(_, rowData) {
           return (
@@ -538,17 +581,31 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           );
         },
       },
+      // 最新执行人
       {
         key: 'caseLatestExecutor',
         title: t('page.plan.testEntityList.executor'),
+        sorter: {
+          compare: (a, b) => {
+            return (a.caseLatestExecutor?.nickname || '').localeCompare(
+              b.caseLatestExecutor?.nickname || '',
+            );
+          },
+        },
         width: 200,
         render(_, rowData) {
           return <Field.User userInfo={rowData?.caseLatestExecutor} />;
         },
       },
+      // 引用次数
       {
         key: 'runCount',
         title: <span>{t('page.plan.testEntityList.runCount')}</span>,
+        sorter: {
+          compare: (a, b) => {
+            return a.runCount - b.runCount;
+          },
+        },
         width: 140,
         render(_, rowData) {
           return rowData.runCount ?? 0;
@@ -646,11 +703,18 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
 
   const executionColumns = React.useMemo(
     () => [
+      //  用例标题
       {
         key: 'detailName',
         title: t('page.plan.testEntityList.detailName'),
+        sorter: {
+          compare: (a, b) => {
+            return a.name.length - b.name.length;
+          },
+        },
         isSystem: true,
         fixed: true,
+        className: 'test-case-title',
         width: 400,
         tooltip: true,
         shouldCellUpdate: (record, prevRecord) => {
@@ -666,27 +730,35 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         },
         render(_, record) {
           return (
-            <span
-              className="test-case-title"
-              data-drawer-handle-target
-              style={{ cursor: 'pointer' }}
-            >
+            <span data-drawer-handle-target style={{ cursor: 'pointer' }}>
               {record?.name}
             </span>
           );
         },
       },
+      //  所属模块
       {
         key: 'repositoryGroup',
         title: t('page.plan.testEntityList.repositoryGroup'),
         width: 200,
+        sorter: {
+          compare: (a, b) => {
+            return +new Date(a.createdAt) - +new Date(b.createdAt);
+          },
+        },
         render(_, rowData) {
           return <RenderRepository repository={rowData?.repository} />;
         },
       },
+      // 测试执行状态
       {
         key: 'runStatus',
         title: t('page.plan.testEntityList.runStatus'),
+        sorter: {
+          compare: (a, b) => {
+            return (a.runStatus || '').localeCompare(b.runStatus || '');
+          },
+        },
         shouldCellUpdate: (record, prevRecord) =>
           !isEqual(record.designee, prevRecord.designee) ||
           !isEqual(record.runStatus, prevRecord.runStatus),
@@ -703,9 +775,15 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           );
         },
       },
+      //  执行次数
       {
         key: 'executeCount',
         title: t('page.plan.testEntityList.executeCount'),
+        sorter: {
+          compare: (a, b) => {
+            return (a.executeCount || '') - (b.executeCount || '');
+          },
+        },
         shouldCellUpdate: (record, prevRecord) =>
           !isEqual(record?.executeCount, prevRecord?.executeCount),
         width: 200,
@@ -713,9 +791,15 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           return <span>{record?.executeCount ?? 0}</span>;
         },
       },
+      //  最新执行人
       {
         key: 'executor',
         title: t('page.plan.testEntityList.executor'),
+        sorter: {
+          compare: (a, b) => {
+            return (a?.executor?.[0].nickname || '').localeCompare(b?.executor?.[0].nickname || '');
+          },
+        },
         shouldCellUpdate: (record, prevRecord) =>
           !isEqual(record.executor?.[0], prevRecord.executor?.[0]),
         width: 150,
@@ -723,6 +807,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           return <Field.User readonly userInfo={record?.executor?.[0]} />;
         },
       },
+      //  执行人
       {
         key: 'designee',
         title: t('page.plan.testEntityList.designee'),
@@ -731,6 +816,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           return <Field.User userInfo={record?.designee} />;
         },
       },
+      //  操作
       {
         key: 'action',
         title: t('common.action'),
@@ -825,7 +911,6 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
               })),
             );
             if (res?.status === 'error') {
-              setTableLoading(false);
               message.error(res.data);
               return;
             }
@@ -835,7 +920,6 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
               addAndDeleteRefresh();
               actionRef.current?.refresh();
             }, 500);
-            setTableLoading(false);
             proxima.execute('refreshSelectedNode');
           },
         );
@@ -844,9 +928,8 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
 
     // 更新负责人
     const handleAssigneeChange = async assignee => {
-      setTableLoading(true);
       const testIds = actionRef.current.selectedRowKeys;
-
+      setTableLoading(true);
       const res = await updateTestEntity(
         testIds.map(d => ({
           objectId: d,
@@ -856,13 +939,11 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         })),
       );
       if (res?.status === 'error') {
-        setTableLoading(false);
         message.error(res.data);
         return;
       }
       actionRef.current.refresh();
 
-      setTableLoading(false);
       notification.success({
         message: `${testIds.length} ${t('page.plan.testEntityList.updateAssigneeTips')}`,
       });
@@ -903,8 +984,6 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       // 可执行的测试执行 id
       const canExecuteTestRunIds = await getCanExecuteTestRunIdSequence(testRunIds);
 
-      setTableLoading(true);
-
       // 更新测试执行状态
       const res = await updateTestStatus({
         status: status.key,
@@ -919,7 +998,6 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         // mutateTestPlanEvent.emit(selectedTestPlan?.objectId);
         mutateStatusEvent.emit('refreshExecutionStatus');
       }
-      setTableLoading(false);
     };
 
     const deleteTestRun = () => {
@@ -927,6 +1005,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         message.error(t('page.plan.testEntityList.deleteItemTips'));
         return;
       }
+      setTableLoading(true);
       const testRunIds = getTestRunIds();
       deleteTestRunByIds(testRunIds);
     };
@@ -937,8 +1016,8 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         message.error(t('page.plan.testEntityList.deleteItemTips'));
         return;
       }
-      const testRunIds = getTestRunIds();
       setTableLoading(true);
+      const testRunIds = getTestRunIds();
       // 更新测试执行执行人
       const res = await updateTestEntity(
         testRunIds.map(run => ({
@@ -947,7 +1026,6 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         })),
       );
       if (res?.status === 'error') {
-        setTableLoading(false);
         message.error(res.data);
         return;
       }
@@ -955,7 +1033,6 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       notification.success({
         message: t('page.plan.testEntityList.updateDesigneeStateTips'),
       });
-      setTableLoading(false);
       actionRef.current.refresh();
       // mutateTestPlanEvent.emit(selectedTestPlan?.objectId);
       // mutateStatusEvent.emit('refreshExecutionStatus');
@@ -1039,18 +1116,20 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   return (
     <div className={cx('test-entity-list-box')}>
       {activeType === 'TestPlan' ? (
+        //  测试计划--全部用例
         <BusinessTable
           className={cx(`${tableSelectionVisible ? 'batch-action' : ''}`)}
           titleCellOption={{
             workspaceKey,
             testType: TestType.Case,
+            restoreWithDefaultColumnKey: true,
           }}
           useColumnSetting
           defaultColumnKey={[
-            'key',
-            'repositoryGroup',
             'caseLatestStatus',
             'runCount',
+            'key',
+            'repositoryGroup',
             'createdBy',
             'createdAt',
           ]}
@@ -1059,7 +1138,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           columns={allTestColumns}
           name={`${workspaceKey}_AllTestEntity`}
           actionRef={actionRef}
-          loading={tableLoading || loading}
+          loading={loading}
           getDataSource={testPlanTableDataGetter}
           onHasRowSelected={setHasRowSelected}
           allSelectableRowKeys={allPlanRowKeys}
@@ -1068,19 +1147,21 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           handleFilterField={handleFilterField}
         />
       ) : (
+        //  测试计划--测试执行任务
         <BusinessTable
           className={cx(`${tableSelectionVisible ? 'batch-action' : ''}`)}
           titleCellOption={{
             workspaceKey,
             testType: TestType.Case,
+            restoreWithDefaultColumnKey: true,
           }}
           useColumnSetting
           defaultColumnKey={[
+            'runStatus',
+            'executeCount',
             'key',
             'repositoryGroup',
             'designee',
-            'runStatus',
-            'executeCount',
             'createdBy',
             'createdAt',
             'executor',
@@ -1096,7 +1177,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           columns={executionColumns}
           name={`${workspaceKey}_TestExecutionList`}
           actionRef={actionRef}
-          loading={tableLoading || loading}
+          loading={loading}
           getDataSource={executionTableDataGetter}
           onHasRowSelected={setHasRowSelected}
           allSelectableRowKeys={runRowKeys}

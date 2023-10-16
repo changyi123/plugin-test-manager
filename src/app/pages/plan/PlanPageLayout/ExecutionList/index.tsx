@@ -65,13 +65,11 @@ const ExecutionList: React.FC<ExecutionListProps> = ({
   //   }, 500);
   // });
 
-  useEffect(() => {
-    if (selectedExecution?.objectId) {
-      setActiveId(selectedExecution?.objectId);
-    }
-  }, [selectedExecution]);
-
-  const { data: executionList, refresh } = useRequest(
+  const {
+    refresh,
+    loading,
+    data: executionList,
+  } = useRequest(
     async () => {
       if (activeType !== 'TestExecution') return [];
 
@@ -102,18 +100,27 @@ const ExecutionList: React.FC<ExecutionListProps> = ({
   );
 
   useEffect(() => {
-    if (!selectedExecution?.objectId && query?.executionId) {
-      setSelectedExecution(executionList.find(d => d.objectId === query?.executionId));
-    }
+    setLoading(loading);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query?.executionId, selectedExecution]);
+  }, [loading]);
 
+  // 选中测试执行任务
   useEffect(() => {
-    if (executionList && !activeId) {
-      setSelectedExecution(executionList?.[0]);
+    let activeId = selectedExecution?.objectId;
+    if (!activeId && executionList?.length) {
+      activeId = executionList?.[0]?.objectId;
+    } else if (!activeId && query?.executionId) {
+      activeId = query?.executionId;
+    }
+
+    if (activeId && executionList?.length) {
+      const selectedExecution = executionList?.find(d => d.objectId === activeId);
+
+      setActiveId(activeId);
+      setSelectedExecution(selectedExecution);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [executionList, planId]);
+  }, [selectedExecution, executionList]);
 
   const menuClick = (type: string, data) => {
     if (type === 'check') {
