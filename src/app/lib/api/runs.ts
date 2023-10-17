@@ -512,8 +512,10 @@ export const getTestStepsByTestDetailId = async (testDetailId: string, currentTe
     // const testEntities = await getTestEntities({ id }, { include: ['reference'] });
     const { list: testData } = await getTestEntityByQuery({
       query: {
+        type: TestType.Case,
         id: Array.isArray(id) ? id : [id],
       },
+      limit: Array.isArray(id) ? id.length : 1,
     });
 
     return testData.map((item, index) => ({

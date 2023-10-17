@@ -138,9 +138,13 @@ const TestRun: React.FC<TestRunType> = props => {
 
       // 未被初始化的测试用例详情字段为 {} 或 null
       if (!testRunEntity.runDetail || !Object.keys(testRunEntity.runDetail).length) {
-        const testCaseEntity = (returnData.testCaseEntity = await getTestCaseEntity(
-          testRunEntity.referenceCase,
-        ));
+        const testCaseId = testRunEntity.referenceCase;
+        const [testCaseEntity, stepsDataFromTestCase] = await Promise.all([
+          getTestCaseEntity(testCaseId),
+          getTestStepsByTestDetailId(testCaseId),
+        ]);
+
+        returnData.testCaseEntity = testCaseEntity;
 
         // 进一步校验测试执行是否未被初始化
         const testRunIsNotInitial =
@@ -152,7 +156,7 @@ const TestRun: React.FC<TestRunType> = props => {
 
         // 测试执行进行初始化
         if (testRunIsNotInitial) {
-          const stepsData = (testCaseEntity.detail.steps ?? []).map(d => ({
+          const stepsData = (stepsDataFromTestCase ?? testCaseEntity.detail.steps ?? []).map(d => ({
             ...d,
             id: uuid(),
           }));
