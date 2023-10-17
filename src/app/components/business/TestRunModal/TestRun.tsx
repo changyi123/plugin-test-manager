@@ -191,8 +191,6 @@ const TestRun: React.FC<TestRunType> = props => {
     {
       ready: Boolean(testRunId),
       refreshDeps: [testRunId],
-      cacheKey: `testRunData_${testRunId}`,
-      staleTime: -1,
     },
   );
 
