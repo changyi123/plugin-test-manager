@@ -118,7 +118,7 @@ const Test = () => {
   const getAllRelTestEntities = useCallback(async () => {
     const { list, total } = await getReTestEntities({
       offset: 0,
-      limit: 9999,
+      limit: 99999,
       select: ['referenceCase', 'status', 'id'],
     });
 

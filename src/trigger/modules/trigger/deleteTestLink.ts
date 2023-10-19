@@ -15,16 +15,6 @@ export const deleteTestLink = async () => {
   const workspaceKey = item.workspace.key;
   const itemType = item.values.r_test_manager_type;
 
-  const deleteItemsThenWait = id => {
-    return Promise.race([
-      new Promise(resolve => {
-        // TODO: 留给有缘人优化
-        console.info('deleteItemsThenWait--------------1500');
-        setTimeout(resolve, 1500);
-      }),
-      batchDeleteItems(id),
-    ]);
-  };
   const tasks = [];
 
   try {
@@ -46,7 +36,7 @@ export const deleteTestLink = async () => {
       };
       const testRunIds = await getReferencedTestRunIds();
       if (testRunIds?.length) {
-        tasks.push(deleteItemsThenWait(testRunIds));
+        tasks.push(batchDeleteItems(testRunIds));
       }
     }
 
@@ -74,7 +64,7 @@ export const deleteTestLink = async () => {
 
       const runIds = await getRunIdByLInkItem();
       if (runIds?.length) {
-        tasks.push(deleteItemsThenWait(runIds));
+        tasks.push(batchDeleteItems(runIds));
       }
     }
 
@@ -100,7 +90,7 @@ export const deleteTestLink = async () => {
       };
       const executionIds = await getExecutionIdByLInkItem();
       if (executionIds?.length) {
-        tasks.push(deleteItemsThenWait(executionIds));
+        tasks.push(batchDeleteItems(executionIds));
       }
     }
 

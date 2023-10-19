@@ -54,7 +54,7 @@ const PlanPageLayout: React.FC<any> = () => {
   const [treeType, setTreeType] = React.useState<string | undefined>('plan');
   const [selectNode, setSelectNode] = React.useState<Record<string, any>>(null);
 
-  const [activeType, setActiveType] = useState('TestPlan');
+  const [activeType, setActiveType] = useState<'TestPlan' | 'TestExecution'>('TestPlan');
   const [selectedExecution, setSelectedExecution] = useState<Record<string, any> | undefined>(
     undefined,
   );
@@ -103,18 +103,19 @@ const PlanPageLayout: React.FC<any> = () => {
   }, [query?.actionType]);
 
   // 获取测试计划关联的全部测试用例 id
-  const { data: planLinkCaseIds, refresh: planLinkCaseIdRefresh } = useGetPlanLinkCaseIds({
+  const { data: planLinkCaseIds, refreshAsync: planLinkCaseIdRefresh } = useGetPlanLinkCaseIds({
     workspaceKey,
     type: 'TestPlan',
-    testPlanId: selectedTestPlan?.objectId,
+    testPlanId: activeType === 'TestPlan' ? selectedTestPlan?.objectId : null,
   });
 
   // 获取测试任务下测试执行 id
-  const { data: scopeTestRunIds, refresh: scopeTestRunIdsRefresh } = useGetExecutionLinkCaseRunIds({
-    workspaceKey,
-    type: 'TestExecution',
-    testExecutionId: selectedExecution?.objectId,
-  });
+  const { data: scopeTestRunIds, refreshAsync: scopeTestRunIdsRefresh } =
+    useGetExecutionLinkCaseRunIds({
+      workspaceKey,
+      type: 'TestExecution',
+      testExecutionId: activeType === 'TestExecution' ? selectedExecution?.objectId : null,
+    });
 
   useUpdateEffect(() => {
     setPlanLinkCaseIds(planLinkCaseIds);
@@ -211,11 +212,11 @@ const PlanPageLayout: React.FC<any> = () => {
     [createItemUseModal, selectedTestPlan?.objectId, t],
   );
 
-  const refreshTreeAndScopeTestCase = useCallback(() => {
+  const refreshTreeAndScopeTestCase = useCallback(async () => {
+    const refreshFn = activeType === 'TestPlan' ? planLinkCaseIdRefresh : scopeTestRunIdsRefresh;
+    await refreshFn();
     pageLeftRef.current.refresh?.();
-    planLinkCaseIdRefresh();
-    scopeTestRunIdsRefresh();
-  }, [planLinkCaseIdRefresh, scopeTestRunIdsRefresh, pageLeftRef]);
+  }, [activeType, planLinkCaseIdRefresh, scopeTestRunIdsRefresh]);
 
   // 创建测试执行任务
   const createTestExecution = useCallback(

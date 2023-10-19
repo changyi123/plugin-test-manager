@@ -252,7 +252,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       linkType: TestLinkType.RunLinkExecution,
       sourceIds: [executionId],
       destinationType: TestType.Run,
-      limit: 9999,
+      limit: 99999,
       select: [
         'id',
         'referenceCase',
@@ -321,6 +321,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     } = params;
 
     const repository = getRepositoryQuery(selectNode, showType);
+    // 筛选条件作用在测试用例，所以需要先查询出所有的测试用例，再查出测试执行
     const { list: cases, total } = await getTestEntityByQuery({
       query: {
         workspaceKey: workspaceKey,
@@ -340,7 +341,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       },
       linkType: TestLinkType.RunLinkExecution,
       sourceIds: [executionId],
-      limit: 9999,
+      limit: 99999,
       destinationType: TestType.Run,
       select: [
         'id',
@@ -388,6 +389,11 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   const executionTableDataGetter = useFnHookTriggerFn(
     useCallback(
       async queryParams => {
+        const EmptyListData = {
+          list: [],
+          total: 0,
+        } as const;
+
         if (
           !selectedExecution?.objectId ||
           !executionLinkRunIds?.length ||
@@ -395,10 +401,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           activeType === 'TestPlan' ||
           !testCaseFieldKeys
         )
-          return {
-            list: [],
-            total: 0,
-          };
+          return EmptyListData;
 
         const caseFieldKeys = [].concat(SystemFieldKeys, testCaseFieldKeys ?? []);
         const [systemSelectors, customSelector] = selectors;
@@ -414,7 +417,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
             workspaceKey,
             executionLinkRunIds,
             executionId: selectedExecution.objectId,
-            filterRunSelector: filterRunSelector,
+            filterRunSelector,
             selector: [systemSelectors, filterCaseSelector],
             queryParams,
             caseFieldKeys,

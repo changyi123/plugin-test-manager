@@ -23,7 +23,7 @@ type ExecutionListRef = {
 
 interface HeaderProps {
   activeType?: string;
-  setActiveType?: (val: string) => void;
+  setActiveType?: (val: 'TestPlan' | 'TestExecution') => void;
   selectedExecution?: Record<string, any>;
   setSelectedExecution?: (val: Record<string, any> | undefined) => void;
   refreshExecution?: boolean;

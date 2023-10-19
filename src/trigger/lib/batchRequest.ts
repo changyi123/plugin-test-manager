@@ -20,9 +20,7 @@ const CreateApiParseContext = {
 
 /** 删除测试实体 */
 export const batchDeleteItems = async (itemIds: string[]) => {
-  return deleteItems({
-    itemIds,
-  });
+  return deleteItems(itemIds.map(objectId => ({ objectId })));
 };
 
 /** 更新测试实体 */

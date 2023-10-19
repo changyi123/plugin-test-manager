@@ -94,7 +94,7 @@ const TestRun: React.FC<TestRunType> = props => {
 
   const {
     data: testRunData,
-    refresh: refreshTestRun,
+    refresh: refreshTestRunData,
     loading: testRunRequestLoading,
   } = useRequest(
     async () => {
@@ -242,7 +242,9 @@ const TestRun: React.FC<TestRunType> = props => {
         nextTestRun();
         return message.success(t('components.business.testRunModal.testRun.runSuccessMessage'));
       }
-      refreshTestRun();
+      setTimeout(() => {
+        refreshTestRunData();
+      }, 350);
     },
     // [autoNext, canExecNext, nextTestRun, refreshTestRun, selectedTestPlanId, testRunEntity, t],
   );
@@ -301,8 +303,10 @@ const TestRun: React.FC<TestRunType> = props => {
   }, [testRunEntity, allRelationDefectItems]);
 
   const onDataChange = useMemoizedFn(() => {
-    refreshTestRun();
-    setTabPaneLoading(false);
+    setTimeout(() => {
+      setTabPaneLoading(false);
+      refreshTestRunData();
+    }, 350);
   });
 
   const onLoading = useMemoizedFn((loading = true) => {

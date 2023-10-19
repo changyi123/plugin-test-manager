@@ -4,6 +4,7 @@
 
 import { IQLFieldNameMapping, TestLinkType, TestType } from '../constant';
 import { Status, TestEntity } from '../types/test';
+import { TestEntityLinkActionData } from './common';
 
 /** 已知字段 */
 export type FieldKey = keyof typeof IQLFieldNameMapping;
@@ -146,19 +147,7 @@ export type BatchDeletePayload = {
  * @example POST /api/project/app/osc/test_manager/webhooks/api-batch-update
  */
 export type BatchUpdatePayload = {
-  data: (
-    | Partial<TestEntity>
-    | {
-        objectId: string;
-        // linkItems 支持 { action: 'add' | 'delete', value: [] } 格式更新
-        linkItems:
-          | string[]
-          | {
-              action: 'add' | 'delete';
-              value: string[];
-            };
-      }
-  )[];
+  data: (Partial<TestEntity> | TestEntityLinkActionData)[];
 };
 
 /**
@@ -293,4 +282,12 @@ export type SendMessagePayload = {
   roles?: string[];
   users?: string[];
   templatePayload: Record<string, any>;
+};
+
+/** 批量添加执行到测试用例 */
+export type AddTestExecuteToTestPlanPayload = {
+  /** 测试用例 id */
+  testPlanId: string;
+  /** 测试执行任务 Id */
+  testExecutionIds: string[];
 };

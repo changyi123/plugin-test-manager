@@ -18,7 +18,7 @@ const withCoreApiRequest = (
 };
 
 /** 事项删除 */
-export const deleteItems = withCoreApiRequest(['POST', '/parse/functions/deleteItems']);
+export const deleteItems = withCoreApiRequest(['DELETE', '/parse/api/items/bulk']);
 
 /** 事项更新 */
 export const updateItems = withCoreApiRequest([

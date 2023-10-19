@@ -116,15 +116,13 @@ const Right: React.FC<RightProps> = props => {
       console.info('error', error);
     }
 
+    await refreshTreeAndScopeTestCase();
     mutateStatusEvent.emit('refreshExecutionStatus');
-    setTimeout(() => {
-      refreshTreeAndScopeTestCase();
-      mutateTestTableList.emit('refreshTable');
-    }, 1000);
     setLoading(false);
     notification.success({
       message: t('page.plan.planPageLayout.right.createTestRunSuccessMessage'),
     });
+    // 刷新详情页 pane
     proxima.execute('refreshTestRunPanel');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedExecution, selectedTestPlan]);

@@ -54,7 +54,7 @@ export const useGetPlanLinkCaseIds = (params: ScopedTestDetailIdsParams) => {
           workspaceKey: workspaceKey,
           type: TestType.Case,
         },
-        limit: 9999,
+        limit: 99999,
         linkType: TestLinkType.CaseLinkPlan,
         sourceIds: [testPlanId],
         destinationType: TestType.Case,
@@ -101,7 +101,7 @@ export const useGetFilterPlanLinkCaseIds = props => {
           ...repository,
           ...query,
         },
-        limit: 9999,
+        limit: 99999,
         selector,
         onlySelectId: true,
       });
