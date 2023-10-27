@@ -43,6 +43,7 @@ const TemplateForm: React.FC<FormProps> = ({ state, workspace }) => {
           </div>
         ),
         value: d.objectId,
+        searchText: d.name,
       })),
     [reportTemplateList, t],
   );
@@ -109,9 +110,7 @@ const TemplateForm: React.FC<FormProps> = ({ state, workspace }) => {
             loading={isLoading}
             status={selectStatus}
             showSearch
-            filterOption={(input, option) =>
-              ((option?.label ?? '') as any)?.toLowerCase?.().includes(input?.toLowerCase?.())
-            }
+            optionFilterProp="searchText"
             onChange={val => {
               state.template = templateList.find(d => d.value === val) ?? {};
             }}

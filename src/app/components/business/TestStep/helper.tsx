@@ -60,4 +60,20 @@ export const getFieldByImpl = field => {
   );
 };
 
+export const getFields = fields => {
+  const fieldDataMapping = keyBy(fields, 'key');
+
+  return StepFieldImpl.map(impl => {
+    const fieldData = fieldDataMapping[impl.key];
+
+    return Object.assign(
+      {
+        ...impl,
+        component: FieldComponentMapping[impl.type],
+      },
+      fieldData,
+    );
+  });
+};
+
 export { getRootContainer } from '@/lib/utils/helper';

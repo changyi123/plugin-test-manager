@@ -1,3 +1,4 @@
+import { useMemoizedFn } from 'ahooks';
 import { Button, message, notification } from 'antd';
 import sum from 'lodash/sum';
 import React, { useCallback, useState } from 'react';
@@ -17,6 +18,7 @@ import { TestLinkType, TestType } from '@/lib/constants';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import { alert, generateSortIndex, getTestManagerContainer } from '@/lib/utils/helper';
+import { addTestExecutionToTestPlan } from '@/services/testEntity/service';
 
 import cx from './index.less';
 
@@ -98,88 +100,35 @@ const Test = () => {
     [getAllRelTestEntities],
   );
 
-  const addTestExecutionToPlan = React.useCallback(
-    async executionIds => {
-      // 测试计划关联测试执行后需将测试执行任务中的测试执行对应的测试用例关联到测试计划中
-      const res = await updateTestEntity(
-        executionIds.map(objectId => ({
-          objectId,
-          linkType: TestLinkType.ExecutionLinkPlan,
-          type: TestType.Execution,
-          linkItems: { action: 'add', value: [testEntity?.objectId] },
-          sortIndex: generateSortIndex(),
-        })),
-      );
-      if (res?.status === 'error') {
-        message.error(res.data);
-        return;
-      }
-
-      const { list: caseLinkPlanIds } = await getLinkedTestEntityByQuery({
-        query: {
-          workspaceKey: workspace?.key,
-        },
-        limit: 9999,
-        linkType: TestLinkType.CaseLinkPlan,
-        sourceIds: [testEntity?.objectId],
-        destinationType: TestType.Case,
-        onlySelectId: true,
-      });
-
-      const { list: runs } = await getLinkedTestEntityByQuery({
-        query: {
-          workspaceKey: workspace?.key,
-        },
-        limit: 9999,
-        linkType: TestLinkType.RunLinkExecution,
-        sourceIds: executionIds,
-        destinationType: TestType.Run,
-        select: ['id', 'referenceCase'],
-      });
-
-      const runCaseIds = runs?.map(run => run.referenceCase) ?? [];
-      const caseIds = runCaseIds.filter(id => !caseLinkPlanIds.includes(id));
-
-      if (caseIds.length) {
-        const res = await updateTestEntity(
-          caseIds.map(item => ({
-            objectId: item,
-            linkType: TestLinkType.CaseLinkPlan,
-            linkItems: {
-              action: 'add',
-              value: [testEntity.objectId],
-            },
-          })),
-        );
-        if (res?.status === 'error') {
-          message.error(res.data);
-          return;
-        }
-      }
-      refresh();
-      alert({
-        type: 'success',
-        message: `${executionIds.length} ${t(
-          'modules.panel.testPlan.testExecutionPanel.addRunToPlanSuccess',
-        )}`,
-      });
-    },
-    [refresh, testEntity?.objectId, workspace, t],
-  );
-
   // 创建测试执行
-  const addExistedTestExecution = React.useCallback(async () => {
-    const ids = await selectorModalRef.current.open({
+  const addExistedTestExecution = useMemoizedFn(async () => {
+    const testExecutionIds = await selectorModalRef.current.open({
       testType: TestType.Execution,
     });
 
-    if (!ids?.length) {
+    if (!testExecutionIds?.length) {
       return notification.warning({
         message: t('modules.panel.testPlan.testExecutionPanel.notSelectMessage'),
       });
     }
-    await addTestExecutionToPlan(ids);
-  }, [addTestExecutionToPlan, t]);
+
+    try {
+      // 将测试执行添加至测试计划中
+      await addTestExecutionToTestPlan({
+        testPlanId: testEntity?.objectId,
+        testExecutionIds,
+      });
+      refresh();
+      alert({
+        type: 'success',
+        message: `${testExecutionIds.length} ${t(
+          'modules.panel.testPlan.testExecutionPanel.addRunToPlanSuccess',
+        )}`,
+      });
+    } catch (err) {
+      message.error(err.message);
+    }
+  });
 
   const removeTestRelation = React.useCallback(
     async ids => {

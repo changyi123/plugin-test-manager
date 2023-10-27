@@ -68,7 +68,7 @@ const WordTemplate: React.FC = () => {
           </Space>
         );
       },
-      width: 100,
+      width: 180,
     },
   ];
 

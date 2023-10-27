@@ -106,6 +106,7 @@ type BusinessTableProps = TableProps<any> &
     } | null>;
     testFieldKeys?: string[];
     setCheckedRowKeys?: (val?: string[]) => void;
+    selectionMode?: boolean;
   };
 
 const BusinessTable: React.FC<BusinessTableProps> = props => {
@@ -127,6 +128,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     showPagination = true,
     useColumnSetting = false,
     PaginationFooterRender,
+    selectionMode: selectionModeFromProp,
     scroll = {
       x: 'max-content',
     },
@@ -141,7 +143,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
   const [tableSorter, setTableSorter] = React.useState({});
   const [expandedRowKeys, setExpandedKeys] = React.useState([]);
   const [selectedRowKeys, setSelectedRowKeys] = React.useState<string[] | undefined>(undefined);
-  const [selectionMode, setSelectionMode] = React.useState(false);
+  const [selectionMode, setSelectionMode] = React.useState(selectionModeFromProp);
   const COLUMN_WIDTH_STORAGE_KEY = generateStorageKey(props.name, 'column-width');
   const PAGESIZE_STORAGE_KEY = generateStorageKey(props.name, 'default-pagesize');
   const [tableColumns, setTableColumns] = React.useState(useColumnSetting ? [] : columns);
@@ -177,31 +179,31 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
   }, []);
 
   const ColumnSettingMemorizedNode = React.useMemo(() => {
-    if (!titleCellOption || selectionMode || !useColumnSetting) return null;
+    if (!titleCellOption || !useColumnSetting) return null;
     return (
       <ColumnSetting
         name={props?.name}
+        additionalColumns={columns}
         testFieldKeys={testFieldKeys}
-        handleFilterField={props?.handleFilterField}
+        titleCellOption={titleCellOption}
         defaultColumnKey={defaultColumnKey}
         privateColumnKey={privateColumnKey}
-        titleCellOption={titleCellOption}
-        additionalColumns={columns}
-        className={`${cx('column-setting')} extra-column-setting`}
+        handleFilterField={props?.handleFilterField}
         onTableColumnChange={handleTableColumnChange}
+        className={cx('column-setting', 'extra-column-setting', selectionMode ? 'hidden' : null)}
       />
     );
   }, [
-    testFieldKeys,
-    selectionMode,
+    titleCellOption,
     useColumnSetting,
     props?.name,
     props?.handleFilterField,
-    titleCellOption,
     columns,
+    testFieldKeys,
     defaultColumnKey,
     privateColumnKey,
     handleTableColumnChange,
+    selectionMode,
   ]);
 
   const { tableProps: antdTableProps, refresh } = useAntdTable(

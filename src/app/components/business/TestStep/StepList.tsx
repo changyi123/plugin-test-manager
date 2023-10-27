@@ -13,7 +13,13 @@ import { getItemByIQL } from '@/lib/api/proxima';
 import useI18n from '@/lib/hooks/useI18n';
 import { Step } from '@/lib/types/Test';
 
-import { BuiltinFieldKeys, getFieldByImpl, getRootContainer, StepFieldImpl } from './helper';
+import {
+  BuiltinFieldKeys,
+  getFieldByImpl,
+  getFields,
+  getRootContainer,
+  StepFieldImpl,
+} from './helper';
 import { default as NextStepFieldProvider, useNextStepFieldContext } from './NextStepFieldProvider';
 import { StepField, StepRow } from './type';
 
@@ -29,7 +35,7 @@ const StepFields: React.FC<{
   fields: StepField[];
 }> = ({ fields, stepId }) => {
   const { t } = useI18n();
-  const fieldsWithImpl = fields?.map(getFieldByImpl).filter(Boolean);
+  const fieldsWithImpl = getFields(fields).filter(Boolean);
   const { saveFieldRef, nextField } = useNextStepFieldContext();
 
   return (
@@ -176,7 +182,7 @@ const StepRow: React.FC<StepRowProps> = props => {
 
     if (!usePortal) return child;
 
-    return ReactDOM.createPortal(child, RBDPortal);
+    return ReactDOM.createPortal(child, RBDPortal) as any;
   };
 
   return (

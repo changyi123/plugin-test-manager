@@ -6,7 +6,7 @@ import { sendMessage as sendMessageApi } from '../../lib/coreApi';
 
 const ReportStatusNameMapping = {
   pass: '通过',
-  noPass: '失败',
+  noPass: '未通过',
   partPass: '部分通过',
 };
 

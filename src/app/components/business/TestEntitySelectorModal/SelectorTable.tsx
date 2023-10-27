@@ -91,14 +91,6 @@ const SelectorTable: React.FC<SelectorTable> = ({
     },
   ];
 
-  useEffect(() => {
-    if (tableActionRef.current?.toggleSelection) {
-      setTimeout(() => {
-        tableActionRef.current.toggleSelection(true);
-      }, 500);
-    }
-  }, [tableActionRef]);
-
   const handleSelectorSearch = async selector => {
     setSelector(selector);
     // 添加筛选项目需要重置批量选中的 row
@@ -124,6 +116,7 @@ const SelectorTable: React.FC<SelectorTable> = ({
           workspaceKey,
           testType: TestType.Execution,
         }}
+        selectionMode
         rowKey="objectId"
         useColumnSetting
         columns={columns}

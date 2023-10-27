@@ -4,6 +4,7 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const SpeedMeasurePlugin = require('speed-measure-webpack-plugin');
 const hasha = require('hasha');
 const autoprefixer = require('autoprefixer');
+const cssnano = require('cssnano');
 const namespacePrefix = require('postcss-selector-namespace');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const WebpackBar = require('webpackbar');
@@ -144,6 +145,13 @@ module.exports = (cliEnv = {}, argv) => {
 
   const getPostcssLoaderConfig = useNamespace => {
     let plugins = [autoprefixer];
+    if (isProd) {
+      plugins = plugins.concat(
+        cssnano({
+          preset: 'default',
+        }),
+      );
+    }
     if (useNamespace) {
       plugins = plugins.concat(
         namespacePrefix({

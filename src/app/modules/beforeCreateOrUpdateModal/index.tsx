@@ -21,6 +21,9 @@ const BeforeCreateOrUpdateModal = () => {
   const storeValues = store.get(ExtensionValType.CREATE_OR_UPDATE_ITEM);
   const [testDetailValues, setTestDetailValues] = React.useState(storeValues);
 
+  // 创建弹窗才有 extraData
+  const isCreateModal = !!storeValues.extraData;
+
   const { data: itemTypeMappingDict } = useRequest(
     async () => {
       const result = await getAllTestConfigs(['itemTypeMap', 'workspaceKey']);
@@ -111,7 +114,7 @@ const BeforeCreateOrUpdateModal = () => {
     setTestDetailValues(values);
   };
 
-  return testDetailFormVisible ? (
+  return isCreateModal && testDetailFormVisible ? (
     <TestDetailForm
       onChange={handleDetailFormChange}
       extraData={storeValues?.extraData}
