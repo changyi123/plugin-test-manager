@@ -56,6 +56,13 @@
     display: flex;
     min-width: 400px;
     flex-direction: column;
+
+    :global {
+      .ant-spin-nested-loading,
+      .ant-spin-container {
+        height: 100%;
+      }
+    }
   }
 
   .no-data {
