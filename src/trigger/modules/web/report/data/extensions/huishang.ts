@@ -1,7 +1,8 @@
 /**
  * @file huishang 测试报告模板数据
  * */
-import { getParseQuery, i18n } from '@giteeteam/apps-team-api';
+import { i18n } from '@giteeteam/apps-api';
+import { getParseQuery } from '@giteeteam/apps-team-api';
 
 const { planStats } = global?.body ?? {};
 

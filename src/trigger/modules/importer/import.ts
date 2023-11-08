@@ -1,4 +1,5 @@
-import { getAllData, getData, getParseModel, i18n, saveAllObject } from '@giteeteam/apps-team-api';
+import { i18n } from '@giteeteam/apps-api';
+import { getAllData, getData, getParseModel, saveAllObject } from '@giteeteam/apps-team-api';
 import parallelLimit from 'async/parallelLimit';
 
 import { updateItems } from '../../lib/coreApi';

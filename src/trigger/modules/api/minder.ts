@@ -1,3 +1,4 @@
+import { i18n } from '@giteeteam/apps-api';
 import { getParseModel, getParseQuery, saveAllObject } from '@giteeteam/apps-team-api';
 import { TestEntity } from 'common/types/test';
 import flattenDeep from 'lodash/flattenDeep';

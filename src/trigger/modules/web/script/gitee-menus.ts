@@ -1,4 +1,5 @@
-import { getParseQuery, i18n } from '@giteeteam/apps-team-api';
+import { i18n } from '@giteeteam/apps-api';
+import { getParseQuery } from '@giteeteam/apps-team-api';
 
 const log = (msg, ...restArgs) => {
   console.info(`[testManager] ${msg}`, ...restArgs);

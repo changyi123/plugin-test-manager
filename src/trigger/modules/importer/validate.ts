@@ -1,4 +1,5 @@
-import { getData, i18n } from '@giteeteam/apps-team-api';
+import { i18n } from '@giteeteam/apps-api';
+import { getData } from '@giteeteam/apps-team-api';
 
 // 判断数据是否超过 1000 条
 const isMoreThanThousands = d => d?.length > 999;

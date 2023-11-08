@@ -1449,6 +1449,13 @@
   resolved "https://registry.npmmirror.com/@eslint/js/-/js-8.49.0.tgz#86f79756004a97fa4df866835093f1df3d03c333"
   integrity sha512-1S8uAY/MTJqVx0SC4epBq+N2yhuwtNwLbJYNZyhL2pO1ZVKn5HFXav5T41Ryzy9K9V7ZId2JB2oy/W4aCd9/2w==
 
+"@giteeteam/apps-api@^0.3.0":
+  version "0.3.0"
+  resolved "https://registry.npmmirror.com/@giteeteam/apps-api/-/apps-api-0.3.0.tgz#c2831ebe528e648e4d74a4cdddb1b1d4dfbde890"
+  integrity sha512-PRQ6IqjEy26P4QJd7+kXTOIcA9FUa3mWqcKM1SntxdLHSNmqpuQecAGCMsmoltp408TtvOgFe2bND4raRyTWag==
+  dependencies:
+    axios "^0.27.2"
+
 "@giteeteam/apps-cli@^0.5.5":
   version "0.5.6"
   resolved "https://registry.npmmirror.com/@giteeteam/apps-cli/-/apps-cli-0.5.6.tgz#56d73aac3809aa8aa775cf37b3c61d8f2487a867"
@@ -1486,12 +1493,12 @@
     lodash "^4.17.21"
     yaml "^2.1.1"
 
-"@giteeteam/apps-team-api@^0.4.9":
-  version "0.4.10"
-  resolved "https://registry.npmmirror.com/@giteeteam/apps-team-api/-/apps-team-api-0.4.10.tgz#2a5159355b8bc8966ad94bc7453a9a3c9686ce41"
-  integrity sha512-hIt+7X94FvLptoswkMnELY5vMegLLCyTJgg8j1tng36Th4ioR+5rCxygCYCX0lpB/oEbEERMSDTU90wKG8PAqQ==
+"@giteeteam/apps-team-api@^0.6.2":
+  version "0.6.2"
+  resolved "https://registry.npmmirror.com/@giteeteam/apps-team-api/-/apps-team-api-0.6.2.tgz#df3136a170c3d1c4ca603483bef363d725ef017d"
+  integrity sha512-2NsVzkR4gw/GXXMPF/0dOMr7VsZkdW3j2C6UUkefhEzoyCUDlIULasNMYabFbnpH2EMohrLn1AMOQSyxaRTfZw==
   dependencies:
-    axios "^0.27.2"
+    "@giteeteam/apps-api" "^0.3.0"
 
 "@giteeteam/apps-team-components@0.3.4-remove-editor-0.12":
   version "0.3.4-remove-editor-0.12"

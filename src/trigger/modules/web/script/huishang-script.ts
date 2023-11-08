@@ -1,5 +1,5 @@
 // import { getParseQuery } from '@giteeteam/apps-team-api';
-import { i18n } from '@giteeteam/apps-team-api';
+import { i18n } from '@giteeteam/apps-api';
 
 import { TestLinkType, TestType } from '../../../../common/constant';
 import { iqlRequest } from '../../../lib/iqlRequest';

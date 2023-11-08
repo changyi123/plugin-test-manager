@@ -398,7 +398,7 @@ const initGlobalTestConfig = async () => {
   console.info('测试管理插件全局配置', globalTestConfigData);
 
   if (isGlobalTestConfigDirty) {
-    await saveAllObject([globalTestConfig]);
+    await saveAllObject([globalTestConfig as any]);
   }
 };
 

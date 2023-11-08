@@ -1,7 +1,7 @@
 /**
  * @file 测试报告模板基础数据
  * */
-import { i18n } from '@giteeteam/apps-team-api';
+import { i18n } from '@giteeteam/apps-api';
 
 // 已完成的状态类型
 const FinishedStatusType = 'Finished';
