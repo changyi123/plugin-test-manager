@@ -78,7 +78,7 @@ const WordTemplate: React.FC = () => {
   const [templateData, setTemplateData] = useState(null);
   const [currentIndex, setCurrentIndex] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const getList = useCallback(async () => {
     try {
       setLoading(true);
@@ -160,9 +160,11 @@ const WordTemplate: React.FC = () => {
   return (
     <div className={cx('word-template')}>
       <div className={cx('word-template-btn')}>
-        <Button onClick={addTemplate} type="primary">
-          {t('page.config.wordTemplate.uploadTemplate')}
-        </Button>
+        {!loading && list.length === 0 && (
+          <Button onClick={addTemplate} type="primary">
+            {t('page.config.wordTemplate.uploadTemplate')}
+          </Button>
+        )}
       </div>
       {visible && (
         <TemplateModal

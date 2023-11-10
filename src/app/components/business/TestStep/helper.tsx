@@ -76,4 +76,9 @@ export const getFields = fields => {
   });
 };
 
+/** 获取事项详情页面 */
+export const getItemDetailPaneContainer = () => {
+  return document.querySelector('#view-item-detail-drawer') as HTMLElement;
+};
+
 export { getRootContainer } from '@/lib/utils/helper';

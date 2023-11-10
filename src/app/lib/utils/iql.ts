@@ -406,9 +406,9 @@ const toIqlName = (selector: SelectCase) => {
     }, '');
   };
 
-  const customeIql = fieldLabel?.filter(Boolean)?.length ? `${getIql(fieldLabel, value)}` : '';
+  const costumeIql = fieldLabel?.filter(Boolean)?.length ? `${getIql(fieldLabel, value)}` : '';
   // or 'key' = '${value}'
-  return value ? `('标题' ~ '${value}'${customeIql})` : '';
+  return value ? `('标题' ~ '${value}'${costumeIql})` : '';
 };
 
 // iql语句转换
@@ -417,12 +417,14 @@ const toIqlCase: IQLCaseFormatter = selector => {
   const isDateType = isDate(component);
   const isNameType = fieldId === 'name';
   const isCollectionType = isCollection(component);
+
   if (
     isNil(value) ||
     (isNil(expression) && !isDateType && !isCollectionType) ||
     (isArray(value) && !value?.length)
   )
     return null;
+
   if (isDateType) return toIqlDateCase(selector);
   if (isNameType) return toIqlName(selector);
   if (isCollectionType) return toIqlCollection(selector);
@@ -454,6 +456,7 @@ export const selectorToIql = (selectors: Selectors): IQL => {
     })
     .filter(Boolean)
     .join(IQL_CONDITION._AND_);
+
   // 添加排序
   if (orderSelector) {
     str += buildOrderBy(orderSelector.value as OrderBy[]);

@@ -18,6 +18,7 @@ import AddFilterIcon from '@/icons/svg/add-filter.svg';
 import { getTestConfig } from '@/lib/api/common';
 import { openFieldValuePopover, openFilterPopover } from '@/lib/api/sdk';
 import { getCurrentUserSetting } from '@/lib/api/userSetting';
+import { DATA_FIELDS } from '@/lib/constants';
 import {
   FILTER_EXPRESSIONS,
   getExtendFields,
@@ -122,7 +123,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
     useBaseAction();
   const [selectors, setSelectorsState] = useState<Selectors>({});
   const currentSelectors = useRef<Selectors>({});
-  // const [activeSelector, setActiveSelector] = useState('');
+  const [fieldsNameRequestTag, setFieldsNameRequestTag] = React.useState(1);
 
   const setSelectors = useMemoizedFn(selectors => {
     setSelectorsState(selectors);
@@ -192,7 +193,9 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [defaultSelectors]);
 
-  const { data: fieldsName, refresh } = useRequest(
+  const customFieldsToken = customFields?.map(i => i.key).toString();
+
+  const { data: fieldsName } = useRequest(
     async () => {
       if (!workspace?.key) return null;
       const defaultKeys = testType === TestType.Case ? ['key'] : [];
@@ -216,18 +219,14 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
     },
     {
       ready: Boolean(workspace?.key),
-      refreshDeps: [workspace?.key, testType, customFields],
-      cacheKey: `fieldsName_${workspace?.key ?? ''}_${testType}_${customFields
-        ?.map(d => d.key)
-        .toString()}`,
-      cacheTime: 99999,
-      staleTime: 99999,
+      refreshDeps: [fieldsNameRequestTag, workspace?.key, testType, customFieldsToken],
     },
   );
 
   useListener('updateFilterSearchFields', () => {
     setTimeout(() => {
-      refresh();
+      // 强制更新 fieldsName
+      setFieldsNameRequestTag(prev => prev + 1);
     }, 400);
   });
 
@@ -375,6 +374,20 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
       const isExtend = IS_EXTEND_FIELDS.includes(data.component);
       const component = IS_EXTEND_FIELDS.includes(data.component) ? data.component : data.key;
       const expression = data.expression ?? getExpression(data.component, data.key);
+      const isDateComponent = DATA_FIELDS.includes(data.key);
+
+      // 修复 date range 的值类型错误
+      const fixDateRangeValue = newData => {
+        let fixedValue = newData?.value?.filter(Boolean) ?? [];
+        if (fixedValue?.length === 1 && data?.value?.length === 1) {
+          fixedValue = [data.value[0], fixedValue[0]];
+        }
+        updateSelectorValue({
+          ...newData,
+          value: fixedValue,
+        });
+      };
+
       // setActiveSelector(fieldId);
       const props = {
         isExtend: systemTarget?.fieldType?.isExtend ?? isExtend,
@@ -389,7 +402,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
         value: data?.value,
         label: data?.fieldName,
         workspace: workspace?.objectId,
-        onChange: updateSelectorValue,
+        onChange: isDateComponent ? fixDateRangeValue : updateSelectorValue,
         onClose: () => {
           // setActiveSelector('');
           handleSearch();
@@ -404,6 +417,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
       if (fieldId === TestCaseStatusModel) {
         (props as any).fetchMethod = () => getStatusOptions();
       }
+
       return props;
     },
     [

@@ -146,7 +146,7 @@ const TestReportTemplate: React.FC = () => {
         </Button>
       </div>
       <div className={cx('workspace-template-setting')}>
-        <h6>{scopedT('workspaceTemplateSetting.title')}</h6>
+        <h6 style={{ fontSize: 18 }}>{scopedT('workspaceTemplateSetting.title')}</h6>
         <div>
           <Switch
             loading={isUpdateLoading}

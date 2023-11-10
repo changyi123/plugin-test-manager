@@ -62,6 +62,7 @@ export const openFilterPopover = async ({ fields, selectors, onChange, extendFie
 
   // proximaSDK.execute不能传递函数，限制太多
   window.QiankunProps.openFilterPopover({
+    showChoosedInSearch: false,
     selectors,
     list: [..._customFields, ...extendFields],
     onChange,

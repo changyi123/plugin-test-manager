@@ -13,13 +13,8 @@ import { getItemByIQL } from '@/lib/api/proxima';
 import useI18n from '@/lib/hooks/useI18n';
 import { Step } from '@/lib/types/Test';
 
-import {
-  BuiltinFieldKeys,
-  getFieldByImpl,
-  getFields,
-  getRootContainer,
-  StepFieldImpl,
-} from './helper';
+import { getItemDetailPaneContainer } from './helper';
+import { BuiltinFieldKeys, getFieldByImpl, getFields, StepFieldImpl } from './helper';
 import { default as NextStepFieldProvider, useNextStepFieldContext } from './NextStepFieldProvider';
 import { StepField, StepRow } from './type';
 
@@ -153,7 +148,7 @@ const StepRow: React.FC<StepRowProps> = props => {
             okText={t('common.confirm')}
             placement="left"
             cancelText={t('common.cancel')}
-            getPopupContainer={getRootContainer}
+            getPopupContainer={getItemDetailPaneContainer}
             title={t('components.business.testStep.copyStepTips')}
             onConfirm={() => actions.copy({ id: data.id, index })}
           >
@@ -166,7 +161,7 @@ const StepRow: React.FC<StepRowProps> = props => {
               okText={t('common.confirm')}
               placement="left"
               cancelText={t('common.cancel')}
-              getPopupContainer={getRootContainer}
+              getPopupContainer={getItemDetailPaneContainer}
               onConfirm={() => actions.delete(data.id)}
               title={t('components.business.testStep.deleteStepTips')}
             >

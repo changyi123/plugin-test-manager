@@ -10,8 +10,9 @@ import { getTestStepsByTestDetailId } from '@/lib/api/runs';
 import { TestType } from '@/lib/constants';
 import useI18n from '@/lib/hooks/useI18n';
 import { Step } from '@/lib/types/Test';
-import { getRootContainer, hasArrayItem } from '@/lib/utils/helper';
+import { hasArrayItem } from '@/lib/utils/helper';
 
+import { getItemDetailPaneContainer } from './helper';
 import { getStepInitialData } from './helper';
 import cx from './index.less';
 import StepList from './StepList';
@@ -151,7 +152,7 @@ const TestStep: React.FC<TestStepProps> = ({
           actionRef={testEntitySelectorRef}
           // 继承测试用例不能继承自己
           ignoreTestEntityIds={[testDetailId]}
-          getContainer={getRootContainer}
+          getContainer={getItemDetailPaneContainer}
         />
       )}
       <StepList actions={stepActions} steps={steps} />

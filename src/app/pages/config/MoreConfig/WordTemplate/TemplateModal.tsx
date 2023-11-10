@@ -87,7 +87,7 @@ const TemplateModal: React.FC<ModalProps> = ({
           name="name"
           rules={[{ required: true, message: t('page.config.wordTemplate.ruleTips') }]}
         >
-          <Input placeholder={t('page.config.wordTemplate.ruleTips')} />
+          <Input maxLength={30} placeholder={t('page.config.wordTemplate.ruleTips')} />
         </Form.Item>
 
         {/* <Form.Item label="应用空间" name="dataSet">
