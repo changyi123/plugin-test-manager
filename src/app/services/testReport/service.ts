@@ -1,5 +1,9 @@
 import { Workspace } from '../models';
+import fetch from '@/lib/utils/fetch';
 import { default as TestReport, TestReportModelType } from './model';
+import { getPluginWebTriggerBaseUrl } from '@/lib/utils/helper';
+
+const pluginWebTriggerBaseUrl = getPluginWebTriggerBaseUrl();
 
 /** 创建测试报告模板 */
 export const createReportTemplate = async (data: Partial<TestReportModelType>) => {
@@ -63,4 +67,11 @@ export const updateTestReport = async (
 /** 删除测试报告或模板 */
 export const deleteTestReport = async (objectId: string) => {
   await new TestReport().delete(objectId);
+};
+
+/** 生成测试报告离线文档 */
+export const generateTestReportOfflineFile = (testReportId: string) => {
+  return fetch.$post(`${pluginWebTriggerBaseUrl}/api-generate-offline-report`, {
+    testReportId,
+  });
 };

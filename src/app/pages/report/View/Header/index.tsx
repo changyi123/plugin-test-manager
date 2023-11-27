@@ -10,6 +10,7 @@ import useI18n from '@/lib/hooks/useI18n';
 import { selectorToIql } from '@/lib/utils/iql';
 import { TestReport } from '@/services/models';
 import { testConfigQuery } from '@/services/query';
+import { generateTestReportOfflineFile } from '@/services/testReport/service';
 
 import CreateReportModel, { ActionType } from '../../Model/createReportModel';
 import ReportTemplateModal, {
@@ -94,6 +95,11 @@ const ReportHeader: React.FC<any> = () => {
       itemTypeMap: config?.itemTypeMap,
     });
     notification.destroy();
+
+    console.log('create test report success!', reportInfo);
+    // 生成测试报告离线文档
+    await generateTestReportOfflineFile(reportInfo?.data?.objectId);
+
     if (reportInfo.status === 'success') {
       const proxima = createProximaSdk();
       proxima.execute('refreshTestReportTable', reportInfo?.data?.objectId);

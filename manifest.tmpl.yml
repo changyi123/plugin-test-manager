@@ -81,6 +81,9 @@ modules:
     # 获取查询测试报告
     - key: api-query-test-report
       function: api-query-test-report-function
+
+    - key: api-generate-offline-report
+      function: api-generate-offline-report-function
     
     # 申万测试报告联调对接
     - key: extension-report-shenwan
@@ -217,6 +220,9 @@ modules:
 
     - key: api-query-test-report-function
       handler: api.queryTestReport
+
+    - key: api-generate-offline-report-function
+      handler: api.generateOfflineReport
 
     - key: extension-report-shenwan-function
       handler: api.shenwanTestReportInfo
@@ -576,6 +582,9 @@ tables:
         targetClass: test_manager_TestReport
       # 报告状态
       reportStatus:
+        type: String
+      # 测试报告doc path
+      reportUrl:
         type: String
 locales:
   zh-CN:

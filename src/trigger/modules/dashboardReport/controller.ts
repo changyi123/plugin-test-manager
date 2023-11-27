@@ -1,7 +1,8 @@
-import { getParseQuery } from '@giteeteam/apps-team-api';
+import { axios } from '@giteeteam/apps-team-api';
+import { getParseModel, getParseQuery, saveAllObject } from '@giteeteam/apps-team-api';
 import { omit } from 'lodash';
 
-import { QueryTestReportPayload } from '../../../common/types/api';
+import { GenerateTestReportPayload, QueryTestReportPayload } from '../../../common/types/api';
 import { buildResponse, getReqInfoFromVMRuntime } from '../../lib/apiUtil';
 
 /** 查询测试报告 */
@@ -40,7 +41,7 @@ export const queryTestReport = async () => {
 
   // 增加 reportOverviewData 筛选条件
   if (hasReportOverDataQuery) {
-    testReportQuery.exists('reportOverviewData');
+    (testReportQuery as any).exists('reportOverviewData');
   }
 
   // 根据查询条件过滤对应的测试
@@ -76,4 +77,45 @@ export const queryTestReport = async () => {
     });
 
   return buildResponse(result);
+};
+
+/** 生成离线测试报告 */
+export const generateOfflineReport = async () => {
+  const { body, sessionToken } = getReqInfoFromVMRuntime<GenerateTestReportPayload>();
+  const testReportId = body.testReportId;
+
+  const wordExportServerBaseUrl =
+    global?.env?.WORD_EXPORT_BASE_SERVER_URL ?? 'http://word-export-server:3001';
+
+  const res = await axios({
+    method: 'POST',
+    url: `${wordExportServerBaseUrl}/api/word/generator/testReport`,
+    data: {
+      testReportId,
+    },
+    headers: {
+      'x-parse-application-id': global?.env?.applicationId ?? 'inspur',
+      // 'X-proxima-api-token': sessionToken,
+    },
+  });
+
+  const url = res?.url;
+
+  if (url) {
+    const testReportData = await getParseQuery(false, 'test_manager_TestReport')
+      .equalTo('objectId', testReportId)
+      .first({ sessionToken })
+      .then(i => i.toJSON());
+
+    const TestReportModel = getParseModel(false, 'test_manager_TestReport');
+
+    const testReport = new TestReportModel({
+      objectId: testReportData.objectId,
+      reportUrl: url,
+    });
+
+    await saveAllObject([testReport]);
+  }
+
+  return buildResponse(url);
 };
