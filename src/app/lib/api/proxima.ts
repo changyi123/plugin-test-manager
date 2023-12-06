@@ -199,12 +199,13 @@ export const getItemTypeByKey = async key => {
  */
 export const getItemTypeByKeys = async keys => {
   if (!keys.length) return;
-  return new Parse.Query(ItemType).containedIn('key', keys).find({
+  const itemTypeList = await new Parse.Query(ItemType).containedIn('key', keys).find({
     json: true,
     context: {
       displayModule: 'plugin.testManager',
     },
   });
+  return keys.map(key => itemTypeList.find(itemType => itemType.key === key)).filter(Boolean);
 };
 
 /**
