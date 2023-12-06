@@ -10,7 +10,7 @@ import { v4 as uuid } from 'uuid';
 import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/hook';
 import { getTestConfig, getTestConfigByWorkspaceKeys } from '@/lib/api/common';
 import { getTestEntityByQuery, updateTestEntity } from '@/lib/api/item';
-import { getItemByIds, getItemTypeByKey } from '@/lib/api/proxima';
+import { getItemByIds, getItemTypeByKey, getItemTypeByKeys } from '@/lib/api/proxima';
 import { openCreateItemModal, openItemDetailPanel } from '@/lib/api/sdk';
 import { CREATE_ITEM_STORE_FIELD_KEY, ExtensionValType, TestType } from '@/lib/constants';
 import { repositoryFolderTreeEvent } from '@/lib/events';
@@ -520,12 +520,18 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
       async createItemUseModal(params) {
         const { extraData, type, name, hideMessage } = params;
         let itemTypeKey = testConfig?.itemTypeMap?.[type] as string;
+        let itemType;
+        let itemTypeList;
+        const isTestDefect = type === TestType.TestDefect;
         // 获取缺陷类型 key
-        if (type === TestType.TestDefect) {
+        if (isTestDefect) {
+          // 可以配置多个类型，这里需要拿到全部可以配置的类型
+          itemTypeList = await getItemTypeByKeys(testConfig.defectsMapping);
+          itemType = itemTypeList?.[0];
           itemTypeKey = testConfig.defectsMapping?.[0];
+        } else {
+          itemType = await getItemTypeByKey(itemTypeKey ?? '');
         }
-
-        const itemType = await getItemTypeByKey(itemTypeKey ?? '');
 
         // TODO: 通知统一处理！
         if (!itemType?.objectId) {
@@ -544,6 +550,13 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
               workspaceId: workspace?.objectId,
               messageKey: messageKey,
             },
+            isTestDefect
+              ? {
+                  canCreateDefectItemTypeList: itemTypeList
+                    ?.map(itemType => itemType?.objectId)
+                    .filter(Boolean),
+                }
+              : {},
             extraData,
           ),
         });
