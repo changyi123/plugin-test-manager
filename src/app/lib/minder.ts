@@ -1,11 +1,3 @@
-import {
-  BlobReader,
-  BlobWriter,
-  TextReader,
-  TextWriter,
-  ZipReader,
-  ZipWriter,
-} from '@zip.js/zip.js';
 import { MinderNodeType } from 'common/constant';
 import { v4 } from 'uuid';
 import { Dumper, Topic, Workbook } from 'xmind/dist/browser';
@@ -84,6 +76,9 @@ export const exportAndDownloadXMind = async (minderData, { t, priorityOptions = 
     setTopicLabel(topicCIdMapping[id], { type, priority });
   }
 
+  // import导入会存在火狐浏览器兼容问题
+  const { ZipWriter, BlobWriter, TextReader } = require('@zip.js/zip.js');
+
   // 生成 files 文件
   const dumper = new Dumper({ workbook });
   const files = dumper.dumping();
@@ -106,6 +101,8 @@ export const exportAndDownloadXMind = async (minderData, { t, priorityOptions = 
 
 /** 解析 XMind 转换为 Minder Data 数据 */
 export const parseXMindFile2MinderData = async (file, { priorityOptions }) => {
+  // import导入会存在火狐浏览器兼容问题
+  const { BlobReader, TextWriter, ZipReader } = require('@zip.js/zip.js');
   const contentJSONFileName = 'content.json';
   const contentXMLFileName = 'content.xml';
 
