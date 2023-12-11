@@ -82,7 +82,6 @@ const TestRunModal: React.FC<ITestRunModalProps> = ({
           maxWidth: '1000px',
           maxHeight: 'calc(100vh - 220px)',
           overflowY: 'auto',
-          padding: '0 24px',
         }}
       >
         {isVisible && (

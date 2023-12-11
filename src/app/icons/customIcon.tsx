@@ -17,7 +17,7 @@ import PlusSVG from './svg/plus.svg';
 import ScreenOffSVG from './svg/screen-off.svg';
 import SettingSvg from './svg/setting.svg';
 
-const { Link, delete: ResetIcon, User } = components.Components.Icons.Icons;
+const { Link, delete: ResetIcon, User, Unfold } = components.Components.Icons.Icons;
 
 const CustomIconHOC = (
   component: IconComponentProps['component'],
@@ -46,3 +46,4 @@ export const LinkItem = CustomIconHOC(Link);
 export const LinkItemIcon = CustomIconHOC(Link);
 export const DeleteIcon = CustomIconHOC(ResetIcon);
 export const UserIcon = CustomIconHOC(User);
+export const UnfoldIcon = CustomIconHOC(Unfold);
