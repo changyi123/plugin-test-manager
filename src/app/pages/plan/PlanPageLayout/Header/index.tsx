@@ -104,7 +104,10 @@ const Header: React.FC<HeaderProps> = ({
         <div className={cx('header-left')}>
           <ArrowLeftOutlined
             className={cx('icon')}
-            onClick={() => setSelectedTestPlan(undefined)}
+            onClick={() => {
+              setSelectedTestPlan(undefined);
+              setActiveType('TestPlan');
+            }}
           />
           <TestPlanSelector />
           <div className={cx('test-tabs')}>
