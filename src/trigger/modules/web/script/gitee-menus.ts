@@ -1,5 +1,5 @@
 import { i18n } from '@giteeteam/apps-api';
-import { getAppsData, getParseQuery } from '@giteeteam/apps-team-api';
+import { getParseQuery } from '@giteeteam/apps-team-api';
 
 const log = (msg, ...restArgs) => {
   console.info(`[testManager] ${msg}`, ...restArgs);
@@ -19,8 +19,8 @@ const getProductPrefix = () => {
 };
 
 // 获取pluginKey
-const getBoardPluginKey = (key, appInstance) => {
-  return `${appInstance.key}_${appInstance.objectId}_${key}`;
+const getBoardPluginKey = (appKey, menuKey) => {
+  return `${appKey}_${menuKey}`;
 };
 
 const MENU_MAP = {
@@ -40,7 +40,7 @@ export const runGiteeMenus = async () => {
     useMasterKey: true,
   };
 
-  const getGiteeMenusConfig = async (workspaceKey, info, appInstance) => {
+  const getGiteeMenusConfig = async (workspaceKey, info) => {
     const tenantKey = getTenantKey();
     const productPrefix = getProductPrefix();
 
@@ -87,9 +87,7 @@ export const runGiteeMenus = async () => {
       .map(generateGiteeMenu)
       .concat(reportStatsMenu);
 
-    const pluginKeys = Object.keys(MENU_MAP).map(key =>
-      getBoardPluginKey(MENU_MAP[key], appInstance),
-    );
+    const pluginKeys = Object.keys(MENU_MAP).map(key => getBoardPluginKey(APP_KEY, MENU_MAP[key]));
 
     // 查询当前用户有权限访问的Board
     const hasPermissionBoards = await getParseQuery(false, 'Board')
@@ -103,7 +101,7 @@ export const runGiteeMenus = async () => {
     );
 
     return menus.filter(menu => {
-      const pluginKey = getBoardPluginKey(menu.pageKey, appInstance);
+      const pluginKey = getBoardPluginKey(APP_KEY, menu.pageKey);
       console.info('pluginKey', pluginKey);
       return hasPermissionBoards.findIndex(key => key === pluginKey) > -1;
     });
@@ -118,22 +116,15 @@ export const runGiteeMenus = async () => {
       global.env?.ENABLE_PLUGIN_WORKSPACE_KEY,
     );
 
-    // 查询插件信息
-    const appInstance = await getAppsData('Apps', { key: APP_KEY });
-
     // 判断环境变量中是否有 ENABLE_PLUGIN_WORKSPACE_KEY, 如果有则直接对比判断，不走应用中心表查询
     if (Array.isArray(global?.env?.ENABLE_PLUGIN_WORKSPACE_KEY)) {
-      const isEnabled = global.env.ENABLE_PLUGIN_WORKSPACE_KEY.includes(workspaceKey);
+      const isEnabled = global.env?.ENABLE_PLUGIN_WORKSPACE_KEY.includes(workspaceKey);
       if (isEnabled) {
-        return getGiteeMenusConfig(
+        return getGiteeMenusConfig(workspaceKey, {
+          token: 'plugin-config',
           workspaceKey,
-          {
-            token: 'plugin-config',
-            workspaceKey,
-            pluginConfig: global?.env?.ENABLE_PLUGIN_WORKSPACE_KEY,
-          },
-          appInstance,
-        );
+          pluginConfig: global?.env?.ENABLE_PLUGIN_WORKSPACE_KEY,
+        });
       }
     }
 
@@ -164,13 +155,12 @@ export const runGiteeMenus = async () => {
           ?.get('workspaces')
           ?.map(workspace => workspace.get?.('key') ?? workspace?.key ?? workspace),
         workspaceKey,
-        appInstance,
       };
 
       if (!hasTestManagerPlugin) throw new Error('CURRENT_WORKSPACE_NOT_TEST_INSTALLED');
     }
 
-    return getGiteeMenusConfig(workspaceKey, info, appInstance);
+    return getGiteeMenusConfig(workspaceKey, info);
   };
 
   try {
