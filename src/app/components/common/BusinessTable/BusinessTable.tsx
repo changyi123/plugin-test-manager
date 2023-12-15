@@ -1,19 +1,16 @@
-import { LibraryProvider, useDataQuoteStore } from '@giteeteam/apps-team-components';
-import { PluginSDKContext, useSDK } from '@projectproxima/plugin-sdk';
 import { useAntdTable, useLocalStorageState, useSize } from 'ahooks';
 import { Pagination, Table } from 'antd';
 import { TableProps } from 'antd/lib/table';
+import { useDataQuoteStore } from 'apps-team-components-v1';
 import { difference, isEqual, omit, pick } from 'lodash';
 import React, { useMemo, useRef } from 'react';
 import { Resizable } from 'react-resizable';
 
+import LibraryProvider from '@/components/business/LibraryProvider';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
-import { getDevConfig } from '@/devEnv';
-import { useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import { generateStorageKey } from '@/lib/utils/helper';
-import { getRootContainer, hasArrayItem } from '@/lib/utils/helper';
-import { getLang } from '@/lib/utils/locale';
+import { hasArrayItem } from '@/lib/utils/helper';
 
 import cx from './BusinessTable.less';
 import ColumnSetting from './ColumnSetting';
@@ -136,8 +133,6 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     ...restTableProps
   } = props;
 
-  const pluginSDKContext: any = React.useContext(PluginSDKContext);
-
   const currentPageRowsRef = React.useRef([]);
   const initialExpandedRef = React.useRef(false);
   const [tableSorter, setTableSorter] = React.useState({});
@@ -153,9 +148,6 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
   const [pagesize, setPageSize] = useLocalStorageState(PAGESIZE_STORAGE_KEY, {
     defaultValue: DEFAULT_PAGE_SIZE,
   });
-  const { workspace } = useTestConfig();
-  const { context } = useSDK();
-  const proximaGatewayURL = context?.PROXIMA_GATEWAY ?? getDevConfig()?.baseURL;
   const ref = useRef(null);
   const size = useSize(ref);
 
@@ -328,7 +320,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
   });
 
   const SelectionActionHeader = ({ referenceList = [] }) => {
-    useDataQuoteStore(referenceList);
+    useDataQuoteStore(referenceList, data => Promise.resolve(data));
     if (!selectionMode) return null;
     const handleCheck = checked => {
       if (checked) {
@@ -444,14 +436,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
 
   return (
     <div className={`${cx('table-container')} table-box business-debug-table`} ref={ref}>
-      <LibraryProvider
-        lang={getLang()}
-        workspaceKey={workspace?.key}
-        gatewayURL={proximaGatewayURL}
-        getPopupContainer={getRootContainer}
-        sessionToken={pluginSDKContext?.context?.env.sessionToken ?? ''}
-        applicationId={pluginSDKContext?.context?.env.PROXIMA_APP_ID ?? 'proxima-core'}
-      >
+      <LibraryProvider>
         <SelectionActionHeader referenceList={dataSource} />
         {ColumnSettingMemorizedNode}
         <Table

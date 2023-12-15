@@ -1,11 +1,11 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import '@giteeteam/apps-team-components/dist/main.css';
 
-import { TableCell } from '@giteeteam/apps-team-components';
 import createProximaSdk from '@projectproxima/proxima-sdk-js';
 import { useDeepCompareEffect, useLocalStorageState, useUpdateEffect } from 'ahooks';
 import { Button, Drawer, message, Select, Spin, Tooltip } from 'antd';
 import { ColumnType } from 'antd/lib/table';
+import { getAllReadComponents, StatusCell, TableCell } from 'apps-team-components-v1';
 import { keyBy, noop } from 'lodash';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd';
@@ -52,6 +52,8 @@ type ColumnSettingProps = TitleCellOption & {
 const proxima = createProximaSdk();
 
 const filedKeyText = ['User', 'Assignee'];
+
+const readComponents = getAllReadComponents();
 
 const ColumnSetting: React.FC<ColumnSettingProps> = props => {
   const {
@@ -127,12 +129,28 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
             ? text(itemData).map(d => d?.objectId ?? d)
             : text(itemData);
 
+        // 状态组件使用新版组件
+        if (field?.key === 'status') {
+          return (
+            <StatusCell
+              {...restTableCellProps}
+              id={itemData.objectId ?? itemData.id}
+              itemId={itemData.objectId ?? itemData.id}
+              text={textValue}
+              workspaceId={itemData?.workspace?.objectId}
+              itemType={itemData?.itemType?.objectId}
+              value={itemData?.status || {}}
+              readonly={false}
+            />
+          );
+        }
         return (
           <TableCell
             {...restTableCellProps}
-            id={itemData.objectId ?? itemData.id}
-            values={itemData?.values ?? {}}
-            text={textValue}
+            cellData={textValue}
+            column={{ cellType: field?.fieldType.component }}
+            rowData={itemData}
+            readComponents={readComponents}
           />
         );
       },
