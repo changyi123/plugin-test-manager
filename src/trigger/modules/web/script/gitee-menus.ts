@@ -92,6 +92,7 @@ export const runGiteeMenus = async () => {
     // 查询当前用户有权限访问的Board
     const hasPermissionBoards = await getParseQuery(false, 'Board')
       .containedIn('pluginKey', pluginKeys)
+      .matchesQuery('workspace', getParseQuery(false, 'Workspace').equalTo('key', workspaceKey))
       .find({ sessionToken: global.sessionToken })
       .then(boards => boards?.map(board => board?.get('pluginKey')));
 
