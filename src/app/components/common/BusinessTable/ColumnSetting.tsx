@@ -148,7 +148,7 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
           <TableCell
             {...restTableCellProps}
             cellData={textValue}
-            column={{ cellType: field?.fieldType.component }}
+            column={{ cellType: field?.fieldType.defaultKey }}
             rowData={itemData}
             readComponents={readComponents}
           />
