@@ -151,7 +151,7 @@
     "choiceTemplatePlaceholder": "请选择模板",
     "range": "统计范围",
     "required": "必填",
-    "exceedLength": "模板名称最长限制 250 个字符",
+    "exceedLength": "报告名称最长限制 250 个字符",
     "reportInfo": "报告摘要",
     "addReport": "新建报告",
     "addTestReport": "新建测试报告",
