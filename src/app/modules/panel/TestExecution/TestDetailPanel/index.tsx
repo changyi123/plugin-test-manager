@@ -62,7 +62,7 @@ const Test = () => {
       }
       const { list: runData } = await getLinkedTestEntityByQuery({
         query: {
-          workspaceKey: workspace.key,
+          workspaceKey: workspace?.key,
         },
         limit: 9999,
         linkType: TestLinkType.RunLinkExecution,
