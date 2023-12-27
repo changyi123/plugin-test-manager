@@ -303,6 +303,7 @@ module.exports = (cliEnv = {}, argv) => {
         {
           test: /locales/,
           use: ['@alienfast/i18next-loader'],
+          exclude: /node_modules/,
           // include: [path.resolve(__dirname, '../locales/**/index.json')],
         },
       ],

@@ -1,5 +1,5 @@
-import { UserCell } from '@giteeteam/apps-team-components';
 import type { UserProps } from '@giteeteam/apps-team-components/dist/cells/user';
+import { UserReadView } from 'apps-team-components-v1';
 import React from 'react';
 
 import { UserPointerInfo } from '@/lib/types/Test';
@@ -17,7 +17,7 @@ const UserField: React.FC<UserFieldProps> = ({
   ...restUserCellProps
 }) => {
   const value = toArray(userInfo).filter(Boolean);
-  return <UserCell displayDeletedUser readonly={readonly} value={value} {...restUserCellProps} />;
+  return <UserReadView readonly={readonly} value={value} {...restUserCellProps} />;
 };
 
 export default UserField;
