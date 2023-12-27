@@ -13,6 +13,10 @@ const getTenantKey = () => {
   return global.applicationId ?? global.headers['x-proxima-tenant'] ?? 'osc';
 };
 
+const getUserSessionToken = () => {
+  return global.headers['x-parse-session-token'];
+}
+
 /** 获取产品前缀 */
 const getProductPrefix = () => {
   return global.headers['x-proxima-prefix'] ?? 'project';
@@ -89,11 +93,16 @@ export const runGiteeMenus = async () => {
 
     const pluginKeys = Object.keys(MENU_MAP).map(key => getBoardPluginKey(APP_KEY, MENU_MAP[key]));
 
+    console.info('-----workspaceKey-----', workspaceKey);
+
+    const userSessionToken = getUserSessionToken();
+    console.info('----userSessionToken', userSessionToken);
+
     // 查询当前用户有权限访问的Board
     const hasPermissionBoards = await getParseQuery(false, 'Board')
       .containedIn('pluginKey', pluginKeys)
       .matchesQuery('workspace', getParseQuery(false, 'Workspace').equalTo('key', workspaceKey))
-      .find({ sessionToken: global.sessionToken })
+      .find({ sessionToken: userSessionToken })
       .then(boards => boards?.map(board => board?.get('pluginKey')));
 
     console.info(
