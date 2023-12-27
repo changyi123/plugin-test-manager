@@ -129,18 +129,23 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
             ? text(itemData).map(d => d?.objectId ?? d)
             : text(itemData);
 
+        const itemId = itemData.caseId || itemData.objectId || itemData.id;
+
         // 状态组件使用新版组件
         if (field?.key === 'status') {
           return (
             <StatusCell
               {...restTableCellProps}
-              id={itemData.objectId ?? itemData.id}
-              itemId={itemData.objectId ?? itemData.id}
+              id={itemId}
+              itemId={itemId}
               text={textValue}
               workspaceId={itemData?.workspace?.objectId}
               itemType={itemData?.itemType?.objectId}
               value={itemData?.status || {}}
               readonly={false}
+              onChange={data => {
+                itemData.status = data;
+              }}
             />
           );
         }

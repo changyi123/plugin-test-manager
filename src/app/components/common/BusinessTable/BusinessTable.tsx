@@ -1,7 +1,6 @@
 import { useAntdTable, useLocalStorageState, useSize } from 'ahooks';
 import { Pagination, Table } from 'antd';
 import { TableProps } from 'antd/lib/table';
-import { useDataQuoteStore } from 'apps-team-components-v1';
 import { difference, isEqual, omit, pick } from 'lodash';
 import React, { useMemo, useRef } from 'react';
 import { Resizable } from 'react-resizable';
@@ -319,8 +318,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     };
   });
 
-  const SelectionActionHeader = ({ referenceList = [] }) => {
-    useDataQuoteStore(referenceList, data => Promise.resolve(data));
+  const SelectionActionHeader = () => {
     if (!selectionMode) return null;
     const handleCheck = checked => {
       if (checked) {
@@ -437,7 +435,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
   return (
     <div className={`${cx('table-container')} table-box business-debug-table`} ref={ref}>
       <LibraryProvider>
-        <SelectionActionHeader referenceList={dataSource} />
+        <SelectionActionHeader />
         {ColumnSettingMemorizedNode}
         <Table
           sticky={true}

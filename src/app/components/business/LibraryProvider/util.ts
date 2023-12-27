@@ -105,8 +105,8 @@ export async function checkTransitionScript(
   const result = await fetch.$post(
     `/apps/api/v1/${applicationId}/apps/script_handler/environments/production/webtriggers/script-handler`,
     {
-      workType: 'WorkflowValidation',
-      ...params,
+      script: scriptText,
+      params,
     },
   );
   if (result.code !== 0 && result.code !== 200) {
