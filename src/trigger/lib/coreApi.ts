@@ -17,6 +17,19 @@ const withCoreApiRequest = (
   };
 };
 
+/** withCoreApiRequest get 方法不支持参数，需要拼接上url */
+const jsonToUrlParam = (object: object | string) => {
+  const params = [];
+  const handle = (prev: string, current: object | string) => {
+    if (typeof current !== 'object') return `${prev}=${current}`;
+    for (const key of Object.keys(current)) {
+      current[key] && params.push(handle(`${prev}[${key}]`, current[key]));
+    }
+  };
+  handle('', object);
+  return params.filter(Boolean).join('&');
+};
+
 /** 事项删除 */
 export const deleteItems = withCoreApiRequest(['DELETE', '/parse/api/items/bulk']);
 
@@ -40,3 +53,9 @@ export const aggsSearch = withCoreApiRequest([
 
 /** 发送消息通知 */
 export const sendMessage = withCoreApiRequest(['POST', '/connector/actions/send-email']);
+
+// 查询字段设置
+export const queryFields = withCoreApiRequest([
+  'GET',
+  params => `/parse/api/fields/search?${jsonToUrlParam(params as any)}`,
+]);
