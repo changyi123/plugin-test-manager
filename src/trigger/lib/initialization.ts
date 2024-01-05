@@ -18,6 +18,7 @@ const Constants = {
     AppsWorkspace: 'AppsWorkspace',
     ChartGroup: 'ChartGroup',
     Chart: 'Chart',
+    ChartTemplate: 'team_insight_charts_base_ChartGroupTemplate',
   } as const,
 
   // 内置的事项类型关联映射
@@ -82,7 +83,25 @@ const dataFetcher = {
       .findAll(ParseBaseQueryOptions)
       .then(data => data.map(i => i.toJSON()));
 
-    return workspaces;
+    let chartTemplateMaps = {};
+    try {
+      const chartTemplateQuery = await getParseQuery(false, Constants.ModelNames.ChartTemplate);
+      chartTemplateMaps = await chartTemplateQuery
+        .containedIn(
+          'templateId',
+          workspaces.map(workspace => workspace.workspaceTemplate?.objectId).filter(Boolean),
+        )
+        .findAll(ParseBaseQueryOptions)
+        .then(data => data.reduce((prev, cur) => ({ ...prev, [cur.get('templateId')]: true }), {}));
+    } catch (error) {
+      console.error('getChartTemplates error', error);
+    }
+
+    console.info('chartTemplateMaps______________', chartTemplateMaps, workspaces);
+    return workspaces.map(workspace => {
+      workspace.hasChartTemplate = !!chartTemplateMaps[workspace.workspaceTemplate?.objectId];
+      return workspace;
+    });
   },
   getTestConfigs: async workspaceKeys => {
     const ParseBaseQueryOptions = helper.getParseBaseQueryOptions();
@@ -486,7 +505,8 @@ export const BuiltInInitializationStages: Record<string, InitializationStage> = 
     },
     function: async (instance, needToBeInitializedWorkspaceKeys) => {
       const { getConfigStorage } = instance;
-      const workspaces = getConfigStorage('workspaces');
+      const workspaces = getConfigStorage('workspaces').filter(it => !it.hasChartTemplate);
+      console.info('initChartOptionWorkspaces______________', workspaces);
       const testConfigs = getConfigStorage('testConfigs');
       const TestConfigModel = await getParseModel(false, Constants.ModelNames.TestConfig);
 
