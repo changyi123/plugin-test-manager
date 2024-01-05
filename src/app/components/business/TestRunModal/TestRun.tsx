@@ -5,7 +5,7 @@ import React from 'react';
 import { v4 as uuid } from 'uuid';
 
 import { StatusBadge, StatusList } from '@/components/business/Status';
-import { QuestionCircleFilled } from '@/icons';
+import { QuestionCircleFilled, UnfoldIcon } from '@/icons';
 import { getTestEntityByQuery, updateTestRunDetail } from '@/lib/api/item';
 import { getItemByIds } from '@/lib/api/proxima';
 import { getItemLinkRelation, getTestStepsByTestDetailId } from '@/lib/api/runs';
@@ -420,7 +420,13 @@ const TestRun: React.FC<TestRunType> = props => {
             </div>
           </div>
           <div className={cx('main')}>
-            <Collapse className={cx('collapse')} defaultActiveKey={['1']}>
+            <Collapse
+              className={cx('collapse')}
+              defaultActiveKey={['1']}
+              expandIcon={({ isActive }) => (
+                <UnfoldIcon className={cx({ icon: true, 'active-rotate': isActive })} />
+              )}
+            >
               <Collapse.Panel
                 key="1"
                 header={t('components.business.testRunModal.testRun.panelTitle.0')}
@@ -430,7 +436,13 @@ const TestRun: React.FC<TestRunType> = props => {
                 </div>
               </Collapse.Panel>
             </Collapse>
-            <Collapse className={cx('collapse', 'tab')} defaultActiveKey={['1']}>
+            <Collapse
+              className={cx('collapse', 'tab')}
+              defaultActiveKey={['1']}
+              expandIcon={({ isActive }) => (
+                <UnfoldIcon className={cx({ icon: true, 'active-rotate': isActive })} />
+              )}
+            >
               <Collapse.Panel
                 key="1"
                 header={t('components.business.testRunModal.testRun.panelTitle.1')}

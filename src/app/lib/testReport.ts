@@ -158,6 +158,9 @@ export const clearIframeLayoutEffect = () => {
 export const exportWithDocx = async testReportData => {
   const iframe = document.body.querySelector('iframe');
 
+  // eslint-disable-next-line prefer-spread
+  const toBlob = (...args) => Packer?.toBlob.apply(Packer, args);
+
   const title = testReportData.name;
 
   // 准备初始化数据
@@ -215,23 +218,23 @@ export const exportWithDocx = async testReportData => {
         },
       ],
     });
-
+    // 修复 docx 导出的 bug，jszip 漏洞
+    (window as any).setImmediate = window.setTimeout;
     return doc;
   };
 
   return domtoimage
     .toPng(iframe.contentDocument.querySelector('.react-grid-layout'), {})
     .then(buildDocument)
-    .then(doc => {
+    .then(toBlob)
+    .then(blob => {
       // 将文档保存为 .docx 文件
-      return Packer.toBlob(doc).then(blob => {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${title}.docx`;
-        a.click();
-        URL.revokeObjectURL(url);
-      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${title}.docx`;
+      a.click();
+      URL.revokeObjectURL(url);
     });
 };
 
@@ -311,19 +314,21 @@ export const exportWithHTML = async testReportData => {
     // 离线 style link 标签的内容
     const downloadLinkContentIntoStyle = async copyNode => {
       const linkNodes = copyNode.querySelectorAll('link');
-      const tasks = Array.from(linkNodes).map((linkEle: HTMLLinkElement, index) => {
-        return fetch(linkEle.href)
-          .then(res => res.text())
-          .then(text => {
-            const style = document.createElement('style');
-            style.type = 'text/css';
-            style.innerHTML = text;
-            style.id = `insert-style-${index}`;
+      const tasks = Array.from(linkNodes)
+        .filter((linkEle: HTMLLinkElement) => linkEle.href.endsWith('.css'))
+        .map((linkEle: HTMLLinkElement, index) => {
+          return fetch(linkEle.href)
+            .then(res => res.text())
+            .then(text => {
+              const style = document.createElement('style');
+              style.type = 'text/css';
+              style.innerHTML = text;
+              style.id = `insert-style-${index}`;
 
-            const replacedLinkNode = linkNodes[index];
-            replacedLinkNode.parentNode.replaceChild(style, replacedLinkNode);
-          });
-      });
+              const replacedLinkNode = linkNodes[index];
+              replacedLinkNode.parentNode.replaceChild(style, replacedLinkNode);
+            });
+        });
       await Promise.all(tasks);
 
       return copyNode;
