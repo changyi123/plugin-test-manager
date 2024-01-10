@@ -1,4 +1,3 @@
-import { Document, ImageRun, Packer, Paragraph } from 'docx';
 import domtoimage from 'dom-to-image-more';
 
 import { TestType } from './constants';
@@ -171,7 +170,7 @@ export const exportWithDocx = async testReportData => {
 
   downloadUrl(reportUrl);
 
-  console.log(testReportData);
+  console.info(testReportData);
   // const iframe = document.body.querySelector('iframe');
 
   // const title = testReportData.name;
@@ -327,19 +326,21 @@ export const exportWithHTML = async testReportData => {
     // 离线 style link 标签的内容
     const downloadLinkContentIntoStyle = async copyNode => {
       const linkNodes = copyNode.querySelectorAll('link');
-      const tasks = Array.from(linkNodes).map((linkEle: HTMLLinkElement, index) => {
-        return fetch(linkEle.href)
-          .then(res => res.text())
-          .then(text => {
-            const style = document.createElement('style');
-            style.type = 'text/css';
-            style.innerHTML = text;
-            style.id = `insert-style-${index}`;
+      const tasks = Array.from(linkNodes)
+        .filter((linkEle: HTMLLinkElement) => linkEle.href.endsWith('.css'))
+        .map((linkEle: HTMLLinkElement, index) => {
+          return fetch(linkEle.href)
+            .then(res => res.text())
+            .then(text => {
+              const style = document.createElement('style');
+              style.type = 'text/css';
+              style.innerHTML = text;
+              style.id = `insert-style-${index}`;
 
-            const replacedLinkNode = linkNodes[index];
-            replacedLinkNode.parentNode.replaceChild(style, replacedLinkNode);
-          });
-      });
+              const replacedLinkNode = linkNodes[index];
+              replacedLinkNode.parentNode.replaceChild(style, replacedLinkNode);
+            });
+        });
       await Promise.all(tasks);
 
       return copyNode;

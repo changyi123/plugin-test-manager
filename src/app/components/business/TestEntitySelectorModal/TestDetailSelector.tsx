@@ -191,23 +191,26 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
 
   return (
     <div className={cx('container')}>
-      <div className={cx('title')}>
+      {/* <div className={cx('title')}>
         {t('components.business.testEntitySelectorModal.selectRepository')}
         <span className={cx('description')}>
           （{t('components.business.testEntitySelectorModal.selectRepositoryTips')}）
         </span>
-      </div>
+      </div> */}
       <div className={cx('search-box')}>
-        <Select
-          showSearch
-          getPopupContainer={trigNode => trigNode.parentElement}
-          optionFilterProp="title"
-          value={selectedWorkspaceKey}
-          disabled={isWorkspaceIsolate}
-          options={workspaceSelectOptions}
-          onChange={handleWorkspaceChange}
-          className={cx('workspace-selector')}
-        />
+        {/* 跨空间规划测试用例不生效，屏蔽切换空间入口 */}
+        {false && (
+          <Select
+            showSearch
+            getPopupContainer={trigNode => trigNode.parentElement}
+            optionFilterProp="title"
+            value={selectedWorkspaceKey}
+            disabled={isWorkspaceIsolate}
+            options={workspaceSelectOptions}
+            onChange={handleWorkspaceChange}
+            className={cx('workspace-selector')}
+          />
+        )}
         <FilterSearch
           ref={detailSearchRef}
           onSearch={setSearchParams}

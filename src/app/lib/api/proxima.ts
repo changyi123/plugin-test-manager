@@ -193,6 +193,22 @@ export const getItemTypeByKey = async key => {
 };
 
 /**
+ *
+ * 批量获取类型，通过key
+ *
+ */
+export const getItemTypeByKeys = async keys => {
+  if (!keys.length) return;
+  const itemTypeList = await new Parse.Query(ItemType).containedIn('key', keys).find({
+    json: true,
+    context: {
+      displayModule: 'plugin.testManager',
+    },
+  });
+  return keys.map(key => itemTypeList.find(itemType => itemType.key === key)).filter(Boolean);
+};
+
+/**
  * 通过 itemKey 获取 itemType （不要问为什么又这个方法，proxima 处处会给你人来惊喜）
  */
 export const getItemTypeById = async id => {
