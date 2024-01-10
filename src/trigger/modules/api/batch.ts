@@ -1,5 +1,4 @@
 import { i18n } from '@giteeteam/apps-api';
-import { getParseQuery } from '@giteeteam/apps-team-api';
 import isObject from 'lodash/isObject';
 
 import {
@@ -23,7 +22,7 @@ import { itemToTestEntity } from '../../../common/utils/dataTransfer';
 import { buildResponse } from '../../lib/apiUtil';
 import { getReqInfoFromVMRuntime } from '../../lib/apiUtil';
 import { batchCreateItems, batchDeleteItems, batchUpdateItems } from '../../lib/batchRequest';
-import { buildTestEntityLinkData, generateSortIndex, uuidv4 } from '../../lib/helper';
+import { buildTestEntityLinkData, concatIqlRequestFields, generateSortIndex, uuidv4 } from '../../lib/helper';
 import { iqlRequest } from '../../lib/iqlRequest';
 import { getItemCreateRequiredAttrs } from '../../lib/item';
 import { testEntityFieldTypeValidator, throwArgumentError } from '../../lib/validator';
@@ -343,10 +342,15 @@ export const batchCopyTestCase = async () => {
     } = getReqInfoFromVMRuntime<BatchCopyTestCasePayload>();
     const copyName = i18n.t('trigger.copyName');
 
-    const caseList = await getParseQuery(false, 'Item')
-      .containedIn('objectId', caseIds)
-      .limit(InfinityLimit)
-      .find({ json: true, sessionToken: global.sessionToken });
+    const {
+      data: { list: caseList },
+    } = await iqlRequest<TestCaseType>({
+      query: {
+        id: caseIds,
+      },
+      pagination: { limit: InfinityLimit },
+      fields: concatIqlRequestFields(fields),
+    });
 
     if (!caseList?.length) {
       throw new Error('caseList is null');
