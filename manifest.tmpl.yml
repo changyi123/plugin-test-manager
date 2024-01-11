@@ -248,6 +248,7 @@ modules:
       route: /plan
       icon: /main/icons/Panel_Testplan.svg
       activeIcon: /main/icons/Panel_TestplanB.svg
+      displayInBoardManage: true
       {workspacePageHidden}
     - key: test-repository
       resource: main
@@ -256,12 +257,14 @@ modules:
       route: /repository
       icon: /main/icons/Panel_Testcase.svg
       activeIcon: /main/icons/Panel_TestcaseB.svg
+      displayInBoardManage: true
       {workspacePageHidden}
     - key: test-report
       resource: main
       title: 测试报告
       loadType: Micro
       route: /report
+      displayInBoardManage: true
       {workspacePageHidden}
     - key: test-stats-report
       resource: main
@@ -269,7 +272,7 @@ modules:
       loadType: Redirect
       icon: /main/icons/Panel_Test.svg
       activeIcon: /main/icons/Panel_TestB.svg
-      route: /[tenant]/workspaces/[workspace]/plugin/team_insight_charts_base_team_insight_charts_base_workspace?disabledCreate=true&displayContext=test_manager&moduleKey=test_manager
+      route: /[tenant]/workspaces/[workspace]/plugin/team_insight_charts_base_team_insight_test_manager?disabledCreate=true&displayContext=test_manager&moduleKey=test_manager
       {workspacePageHidden}
     - key: test-xmindimport
       resource: main
