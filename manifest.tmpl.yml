@@ -268,7 +268,7 @@ modules:
       {workspacePageHidden}
     - key: test-stats-report
       resource: main
-      title: 测试统计
+      title: 测试概览
       loadType: Redirect
       icon: /main/icons/Panel_Test.svg
       activeIcon: /main/icons/Panel_TestB.svg
@@ -591,7 +591,7 @@ locales:
     test-repository:
       title: 测试用例库
     test-stats-report:
-      title: 测试统计
+      title: 测试概览
     before-create-or-update-modal:
       title: 新建事项
     test-report:
