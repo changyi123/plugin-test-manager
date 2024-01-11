@@ -15,7 +15,7 @@ const getTenantKey = () => {
 
 const getUserSessionToken = () => {
   return global.headers['x-parse-session-token'];
-}
+};
 
 /** 获取产品前缀 */
 const getProductPrefix = () => {
@@ -24,6 +24,9 @@ const getProductPrefix = () => {
 
 // 获取pluginKey
 const getBoardPluginKey = (appKey, menuKey) => {
+  // 测试统计使用的是报表面板
+  if (menuKey === MENU_MAP.TEST_STATS_REPORT)
+    return 'team_insight_charts_base_team_insight_test_manager';
   return `${appKey}_${menuKey}`;
 };
 
@@ -72,10 +75,10 @@ export const runGiteeMenus = async () => {
       pageKey: MENU_MAP.TEST_STATS_REPORT,
       key: `${MENU_MAP.TEST_STATS_REPORT}-${workspaceKey}`,
       icon: 'iconNavi-icafeplan',
-      url: `${giteeRoutePrefix}/plugin/team_insight_charts_base_team_insight_charts_base_workspace?disabledCreate=true&displayContext=test_manager&moduleKey=test_manager`,
+      url: `${giteeRoutePrefix}/plugin/team_insight_charts_base_team_insight_test_manager?disabledCreate=true&displayContext=test_manager&moduleKey=test_manager`,
       type: 'IFRAME',
       openWindow: '0',
-      iframeUrl: `${proximaRoutePrefix}/plugin/team_insight_charts_base_team_insight_charts_base_workspace?disabledCreate=true&displayContext=test_manager&moduleKey=test_manager`,
+      iframeUrl: `${proximaRoutePrefix}/plugin/team_insight_charts_base_team_insight_test_manager?disabledCreate=true&displayContext=test_manager&moduleKey=test_manager`,
       info,
     };
 
@@ -92,6 +95,8 @@ export const runGiteeMenus = async () => {
       .concat(reportStatsMenu);
 
     const pluginKeys = Object.keys(MENU_MAP).map(key => getBoardPluginKey(APP_KEY, MENU_MAP[key]));
+
+    console.info('----------pluginKeys------', JSON.stringify(pluginKeys));
 
     console.info('-----workspaceKey-----', workspaceKey);
 
