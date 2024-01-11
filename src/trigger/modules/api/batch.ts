@@ -1,9 +1,9 @@
 import { i18n } from '@giteeteam/apps-api';
-import { getParseQuery } from '@giteeteam/apps-team-api';
 import isObject from 'lodash/isObject';
 
 import {
   BuiltInItemTypeMapping,
+  FIELD_TYPE,
   InfinityLimit,
   SystemField,
   TestFiledKeyMapping,
@@ -23,10 +23,16 @@ import { itemToTestEntity } from '../../../common/utils/dataTransfer';
 import { buildResponse } from '../../lib/apiUtil';
 import { getReqInfoFromVMRuntime } from '../../lib/apiUtil';
 import { batchCreateItems, batchDeleteItems, batchUpdateItems } from '../../lib/batchRequest';
-import { buildTestEntityLinkData, generateSortIndex, uuidv4 } from '../../lib/helper';
+import {
+  buildTestEntityLinkData,
+  concatIqlRequestFields,
+  generateSortIndex,
+  uuidv4,
+} from '../../lib/helper';
 import { iqlRequest } from '../../lib/iqlRequest';
 import { getItemCreateRequiredAttrs } from '../../lib/item';
 import { testEntityFieldTypeValidator, throwArgumentError } from '../../lib/validator';
+import { queryFields } from './../../lib/coreApi';
 
 type TestCaseType = TestEntity<TestType.Case>;
 type TestRunType = TestEntity<TestType.Run>;
@@ -343,10 +349,28 @@ export const batchCopyTestCase = async () => {
     } = getReqInfoFromVMRuntime<BatchCopyTestCasePayload>();
     const copyName = i18n.t('trigger.copyName');
 
-    const caseList = await getParseQuery(false, 'Item')
-      .containedIn('objectId', caseIds)
-      .limit(InfinityLimit)
-      .find({ json: true, sessionToken: global.sessionToken });
+    // 查询字段，确认字段类型
+    const { payload: results = [] } = await queryFields({
+      keys: fields,
+      fieldType: true,
+    });
+    const objectToIdFieldKeys = results
+      .filter(item =>
+        [FIELD_TYPE.SPRINT, FIELD_TYPE.VERSION, FIELD_TYPE.CUSTOM_VERSION].includes(
+          item.fieldType.key,
+        ),
+      )
+      .map(item => item.key);
+
+    const {
+      data: { list: caseList },
+    } = await iqlRequest<TestCaseType>({
+      query: {
+        id: caseIds,
+      },
+      pagination: { limit: InfinityLimit },
+      fields: concatIqlRequestFields(fields),
+    });
 
     if (!caseList?.length) {
       throw new Error('caseList is null');
@@ -354,13 +378,25 @@ export const batchCopyTestCase = async () => {
 
     // 优先级字段异常容错处理
     const dataValuesExceptionHandler = values => {
-      // 对象结构为异常的数据结构，需要进行容错处理
-      if (isObject(values?.priority) && Object.hasOwnProperty.call(values?.priority, 'key')) {
-        return {
-          ...values,
-          priority: values.priority.key,
+      const handleObjectToId = (key: string, id: string) => {
+        const getObjectKey = value => {
+          console.info('value', value?.[id], value);
+          if (isObject(value) && Object.hasOwnProperty.call(value, id)) {
+            return value?.[id];
+          }
+          return value;
         };
-      }
+        if (Array.isArray(values[key])) {
+          values[key] = values[key].map(getObjectKey).filter(Boolean);
+        } else {
+          values[key] = getObjectKey(values[key]);
+        }
+      };
+      // 对象结构为异常的数据结构，需要进行容错处理
+      // 优先级字段异常容错处理
+      handleObjectToId('priority', 'key');
+      // 版本、迭代和自定义版本异常处理
+      objectToIdFieldKeys.forEach(fieldKey => handleObjectToId(fieldKey, 'objectId'));
 
       return values;
     };
