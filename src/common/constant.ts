@@ -1,5 +1,58 @@
 export const AppKey = 'test_manager' as const;
 
+export const FIELD_TYPE = {
+  // 系统字段
+  NAME: 'Name',
+  BOARD: 'Board',
+  ANNEX: 'Annex',
+  STATUS: 'Status',
+  ITEM_TYPE: 'ItemType',
+  WORKSPACE: 'Workspace',
+  TAG: 'Tag',
+  DATE: 'Date',
+  NUMBER: 'Number',
+  TIME: 'Time',
+  USER: 'User',
+  TREE: 'Tree',
+  FILE: 'File',
+  RADIO: 'Radio',
+  EDITOR: 'Editor',
+  CHECKBOX: 'Checkbox',
+  DROPDOWN: 'Dropdown',
+  TEXT: 'Text',
+  LINK: 'Link',
+  FORMULA: 'Formula',
+  LONG_TEXT: 'LongText',
+  SECURITY_LEVEL: 'SecurityLevel',
+  VERSION: 'Version',
+  SPRINT: 'Sprint',
+  ITEMGROUP: 'ItemGroup',
+  PRIORITY: 'Priority',
+  ASSIGNEE: 'Assignee',
+  SNAPSHOT: 'Snapshot',
+  // 当前处理人
+  ACTORS: 'Actors',
+  ITEMHANDLER: 'ItemHandler',
+  ROLE: 'Role',
+  // GROUP: 'Group',
+  BINDWORKSPACE: 'BindWorkspace',
+  // 字段集合
+  FIELDCOLLECTION: 'FieldCollection',
+  SCRIPT: 'Script',
+  ITEMLEVEL: 'ItemLevel',
+  DATAQUOTE: 'DataQuote',
+  R_REMOTE_FIELD_REMOTE_DATA_QUOTE_FIELD_TYPE: 'r_remote_field_remote_data_quote_field_type',
+  // 自定义字段
+  CUSTOM_VERSION: 'CustomVersion',
+  // 状态类型
+  STATUS_TYPE: 'StatusType',
+  //用户组
+  USER_GROUP: 'UserGroup',
+  REPORTER: 'Reporter',
+  WORKSPACE_ROLE: 'WorkspaceRole',
+  STORY_POINT: 'StoryPoint',
+};
+
 /** 测试实体类型 */
 export enum TestType {
   /** 测试执行 */
