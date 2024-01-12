@@ -2,7 +2,7 @@ app:
   key: test_manager
   uuid: bf73e61c-e15a-4461-a1f7-f940c2009332
   name: test_manager
-  version: "4.9.1"
+  version: "4.9.2"
 modules:
   webtrigger:
     # TODO: Debug 使用，生产环境禁止调用下面的 trigger
@@ -254,6 +254,7 @@ modules:
       route: /plan
       icon: /main/icons/Panel_Testplan.svg
       activeIcon: /main/icons/Panel_TestplanB.svg
+      displayInBoardManage: true
       {workspacePageHidden}
     - key: test-repository
       resource: main
@@ -262,20 +263,22 @@ modules:
       route: /repository
       icon: /main/icons/Panel_Testcase.svg
       activeIcon: /main/icons/Panel_TestcaseB.svg
+      displayInBoardManage: true
       {workspacePageHidden}
     - key: test-report
       resource: main
       title: 测试报告
       loadType: Micro
       route: /report
+      displayInBoardManage: true
       {workspacePageHidden}
     - key: test-stats-report
       resource: main
-      title: 测试统计
+      title: 测试概览
       loadType: Redirect
       icon: /main/icons/Panel_Test.svg
       activeIcon: /main/icons/Panel_TestB.svg
-      route: /[tenant]/workspaces/[workspace]/plugin/team_insight_charts_base_team_insight_charts_base_workspace?disabledCreate=true&displayContext=test_manager&moduleKey=test_manager
+      route: /[tenant]/workspaces/[workspace]/plugin/team_insight_charts_base_team_insight_test_manager?disabledCreate=true&displayContext=test_manager&moduleKey=test_manager
       {workspacePageHidden}
     - key: test-xmindimport
       resource: main
@@ -597,7 +600,7 @@ locales:
     test-repository:
       title: 测试用例库
     test-stats-report:
-      title: 测试统计
+      title: 测试概览
     before-create-or-update-modal:
       title: 新建事项
     test-report:

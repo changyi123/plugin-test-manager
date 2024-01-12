@@ -85,7 +85,7 @@ export const generateOfflineReport = async () => {
   const testReportId = body.testReportId;
 
   const wordExportServerBaseUrl =
-    global?.env?.WORD_EXPORT_BASE_SERVER_URL ?? 'http://word-export-server:3001';
+    global?.env?.WORD_EXPORT_BASE_SERVER_URL ?? 'http://gitee-proxima-word-export-server:3001';
 
   const res = await axios({
     method: 'POST',

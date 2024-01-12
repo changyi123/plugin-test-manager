@@ -1,11 +1,11 @@
 {
   "name": "test-manager__bf73e61c-e15a-4461-a1f7-f940c2009332",
-  "version": "1.0.0",
+  "version": "4.8.1",
   "description": "",
   "private": true,
   "scripts": {
     "build": "cd src && cross-env NODE_OPTIONS=--max-old-space-size=4096 webpack --mode=production",
-    "build-package": "giteeteam-apps build -i ./src/trigger -c ./locales -o ./dist --no-zip --prod -c version.yml",
+    "build-package": "giteeteam-apps build -i ./src/trigger -c ./locales -o ./dist --no-zip --prod",
     "dev": "yarn start",
     "start": "cd src && webpack server --mode=development",
     "build-app": "sh ./build-app.sh",

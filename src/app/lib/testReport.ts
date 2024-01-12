@@ -1,5 +1,7 @@
+import { Document, ImageRun, Packer, Paragraph } from 'docx';
 import domtoimage from 'dom-to-image-more';
 
+import { featureFlags, SupportFeatureFlags } from './appEnv';
 import { TestType } from './constants';
 import { getPagePrefix, isInOne } from './utils/helper';
 
@@ -153,8 +155,87 @@ export const clearIframeLayoutEffect = () => {
   }
 };
 
-// 下载测试报告
-export const exportWithDocx = async testReportData => {
+const exportDocx = async testReportData => {
+  const iframe = document.body.querySelector('iframe');
+
+  const title = testReportData.name;
+
+  // 准备初始化数据
+  // const prepareData = async () => {
+  //   // 清空 iframe
+  // };
+
+  // 生成 document
+  const buildDocument = async dataUrl => {
+    const PageWidth = 595;
+    const PageHeight = 842;
+
+    const PageContentWidth = PageWidth - 72 * 2;
+    const PageContentHeight = PageHeight - 72 * 2;
+
+    const getImageTransformation = async dataUrl => {
+      return new Promise<Record<'width' | 'height' | 'aspectRatio', number>>(resolve => {
+        const image = new Image();
+        image.src = dataUrl;
+        image.onload = () => {
+          let { width, height } = image;
+          const aspectRatio = width / height;
+
+          if (aspectRatio > 1) {
+            // 如果图片的宽度大于高度，将宽度设置为页面宽度，然后根据宽高比计算高度
+            width = PageContentWidth;
+            height = width / aspectRatio;
+          } else {
+            // 如果图片的高度大于宽度，将高度设置为页面高度，然后根据宽高比计算宽度
+            height = PageContentHeight;
+            width = height * aspectRatio;
+          }
+          return resolve({
+            width,
+            height,
+            aspectRatio,
+          });
+        };
+      });
+    };
+
+    const snapshotParagraph = new Paragraph({
+      children: [
+        new ImageRun({
+          data: dataUrl,
+          transformation: await getImageTransformation(dataUrl),
+        }),
+      ],
+    });
+
+    const doc = new Document({
+      sections: [
+        {
+          children: [snapshotParagraph],
+        },
+      ],
+    });
+
+    return doc;
+  };
+
+  return domtoimage
+    .toPng(iframe.contentDocument.querySelector('.react-grid-layout'), {})
+    .then(buildDocument)
+    .then(doc => {
+      // 将文档保存为 .docx 文件
+      return Packer.toBlob(doc).then(blob => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${title}.docx`;
+        a.click();
+        URL.revokeObjectURL(url);
+      });
+    });
+};
+
+const exportOfflineDocx = async testReportData => {
   const reportUrl = testReportData?.reportUrl;
   const reportName = testReportData?.name;
 
@@ -169,85 +250,12 @@ export const exportWithDocx = async testReportData => {
   };
 
   downloadUrl(reportUrl);
+};
 
-  console.info(testReportData);
-  // const iframe = document.body.querySelector('iframe');
-
-  // const title = testReportData.name;
-
-  // // 准备初始化数据
-  // // const prepareData = async () => {
-  // //   // 清空 iframe
-  // // };
-
-  // // 生成 document
-  // const buildDocument = async dataUrl => {
-  //   const PageWidth = 595;
-  //   const PageHeight = 842;
-
-  //   const PageContentWidth = PageWidth - 72 * 2;
-  //   const PageContentHeight = PageHeight - 72 * 2;
-
-  //   const getImageTransformation = async dataUrl => {
-  //     return new Promise<Record<'width' | 'height' | 'aspectRatio', number>>(resolve => {
-  //       const image = new Image();
-  //       image.src = dataUrl;
-  //       image.onload = () => {
-  //         let { width, height } = image;
-  //         const aspectRatio = width / height;
-
-  //         if (aspectRatio > 1) {
-  //           // 如果图片的宽度大于高度，将宽度设置为页面宽度，然后根据宽高比计算高度
-  //           width = PageContentWidth;
-  //           height = width / aspectRatio;
-  //         } else {
-  //           // 如果图片的高度大于宽度，将高度设置为页面高度，然后根据宽高比计算宽度
-  //           height = PageContentHeight;
-  //           width = height * aspectRatio;
-  //         }
-  //         return resolve({
-  //           width,
-  //           height,
-  //           aspectRatio,
-  //         });
-  //       };
-  //     });
-  //   };
-
-  //   const snapshotParagraph = new Paragraph({
-  //     children: [
-  //       new ImageRun({
-  //         data: dataUrl,
-  //         transformation: await getImageTransformation(dataUrl),
-  //       }),
-  //     ],
-  //   });
-
-  //   const doc = new Document({
-  //     sections: [
-  //       {
-  //         children: [snapshotParagraph],
-  //       },
-  //     ],
-  //   });
-
-  //   return doc;
-  // };
-
-  // return domtoimage
-  //   .toPng(iframe.contentDocument.querySelector('.react-grid-layout'), {})
-  //   .then(buildDocument)
-  //   .then(doc => {
-  //     // 将文档保存为 .docx 文件
-  //     return Packer.toBlob(doc).then(blob => {
-  //       const url = URL.createObjectURL(blob);
-  //       const a = document.createElement('a');
-  //       a.href = url;
-  //       a.download = `${title}.docx`;
-  //       a.click();
-  //       URL.revokeObjectURL(url);
-  //     });
-  //   });
+// 下载测试报告
+export const exportWithDocx = async testReportData => {
+  const enableOfflineReport = featureFlags(SupportFeatureFlags.ENABLE_OFFLINE_TEST_REPORT);
+  enableOfflineReport ? exportOfflineDocx(testReportData) : exportDocx(testReportData);
 };
 
 // 下载测试报告
