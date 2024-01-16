@@ -64,6 +64,8 @@ export enum TestType {
   /** 测试执行任务 */
   Execution = 'TestExecution',
   TestDefect = 'TestDefect', // 避免大量ts报错
+  /** 测试报告 */
+  Report = 'TestReport',
 }
 
 /** 测试关联类型 */
