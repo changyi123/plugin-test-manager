@@ -1,0 +1,25 @@
+diff --git a/node_modules/@nebulare/data/lib/cache.js b/node_modules/@nebulare/data/lib/cache.js
+index 10d1850..bf54ec8 100644
+--- a/node_modules/@nebulare/data/lib/cache.js
++++ b/node_modules/@nebulare/data/lib/cache.js
+@@ -3,13 +3,20 @@ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.getCache = exports.setCache = void 0;
+ var namespace = 'NEBULA';
+ var setCache = function (key, value) {
++  try {
+     if (typeof window !== 'undefined') {
+         var gb = window;
+         if (!(gb === null || gb === void 0 ? void 0 : gb[namespace])) {
+             gb[namespace] = {};
+         }
++        if (!gb) gb = {}
++        if(!namespace) namespace = 'NEBULA';
++        if (!gb[namespace]) gb[namespace] = {};
+         gb[namespace][key] = value;
+     }
++  } catch (error) {
++    console.error('set NEBULA cache error: ', error);
++  }
+ };
+ exports.setCache = setCache;
+ var getCache = function (key) {
