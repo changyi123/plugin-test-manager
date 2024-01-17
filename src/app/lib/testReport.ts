@@ -315,7 +315,7 @@ export const exportWithHTML = async testReportData => {
     const downloadLinkContentIntoStyle = async copyNode => {
       const linkNodes = copyNode.querySelectorAll('link');
       const tasks = Array.from(linkNodes)
-        .filter((linkEle: HTMLLinkElement) => linkEle.href.endsWith('.css'))
+        .filter((linkEle: HTMLLinkElement) => linkEle.href.includes('.css'))
         .map((linkEle: HTMLLinkElement, index) => {
           return fetch(linkEle.href)
             .then(res => res.text())
@@ -389,7 +389,6 @@ export const exportWithHTML = async testReportData => {
       style.type = 'text/css';
       style.innerHTML = `
         #report-body {
-          height: 100vh;
           overflow: hidden;
         }
         #report-iframe > div {

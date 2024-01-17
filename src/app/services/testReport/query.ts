@@ -74,6 +74,7 @@ export const useWorkspaceReportListQuery = (params: {
       const query = new Parse.Query(TestReport)
         .equalTo('isTemplate', false)
         .equalTo('workspace', Workspace.createWithoutData(params.workspace))
+        .include('createdBy')
         .matches('name', escapeMatchesQueryArg(params.name));
       if (params.order?.asc) {
         query.addAscending(params.order?.asc ?? ['createdAt']);
