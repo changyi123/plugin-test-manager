@@ -51,7 +51,7 @@ type ColumnSettingProps = TitleCellOption & {
 
 const proxima = createProximaSdk();
 
-const filedKeyText = ['User', 'Assignee'];
+const filedKeyText = ['User', 'Assignee', 'Sprint', 'Version'];
 
 const readComponents = getAllReadComponents();
 
@@ -153,7 +153,7 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
           <TableCell
             {...restTableCellProps}
             cellData={textValue}
-            column={{ cellType: field?.fieldType.defaultKey }}
+            column={{ ...field, cellType: field?.fieldType.defaultKey }}
             rowData={itemData}
             readComponents={readComponents}
           />

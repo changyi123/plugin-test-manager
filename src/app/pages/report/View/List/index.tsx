@@ -224,7 +224,7 @@ const List: React.FC<any> = () => {
         <BusinessTable
           titleCellOption={{
             workspaceKey: workspace?.key,
-            testType: TestType.Plan,
+            testType: TestType.Report,
             isHideIcon: true,
           }}
           defaultColumnKey={['reportStatus', 'linkPlanId', 'createdBy', 'createdAt']}
