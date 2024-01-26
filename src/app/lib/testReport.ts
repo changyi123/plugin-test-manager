@@ -1,6 +1,8 @@
 import { Document, ImageRun, Packer, Paragraph } from 'docx';
 import domtoimage from 'dom-to-image-more';
 
+import { generateTestReportOfflineFile } from '@/services/testReport/service';
+
 import { featureFlags, SupportFeatureFlags } from './appEnv';
 import { TestType } from './constants';
 import { getPagePrefix, isInOne } from './utils/helper';
@@ -94,7 +96,7 @@ export const DataSourceCollection: DataSource[] = [
 
 /** 生成数据源配置 uid */
 export const genDataSourceConfigUid = (dataSourceConfig: TemplateDataSourceConfig) => {
-  return dataSourceConfig.map(dataSource => dataSource.key).join('_');
+  return dataSourceConfig?.map(dataSource => dataSource.key).join('_');
 };
 
 /** 生成仪表盘页面链接 */
@@ -159,6 +161,8 @@ const exportDocx = async testReportData => {
   const iframe = document.body.querySelector('iframe');
 
   const title = testReportData.name;
+  // eslint-disable-next-line prefer-spread
+  const toBlob = (...args) => Packer?.toBlob.apply(Packer, args);
 
   // 准备初始化数据
   // const prepareData = async () => {
@@ -216,33 +220,39 @@ const exportDocx = async testReportData => {
       ],
     });
 
+    // 修复 docx 导出的 bug，jszip 漏洞
+    (window as any).setImmediate = window.setTimeout;
     return doc;
   };
 
   return domtoimage
     .toPng(iframe.contentDocument.querySelector('.react-grid-layout'), {})
     .then(buildDocument)
-    .then(doc => {
+    .then(toBlob)
+    .then(blob => {
       // 将文档保存为 .docx 文件
-      return Packer.toBlob(doc).then(blob => {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${title}.docx`;
-        a.click();
-        URL.revokeObjectURL(url);
-      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${title}.docx`;
+      a.click();
+      URL.revokeObjectURL(url);
     });
 };
 
 const exportOfflineDocx = async testReportData => {
-  const reportUrl = testReportData?.reportUrl;
+  let reportUrl = testReportData?.reportUrl;
   const reportName = testReportData?.name;
+  if (!reportUrl) {
+    await generateTestReportOfflineFile(testReportData?.objectId).then(data => {
+      reportUrl = data?.data;
+    });
+  }
 
   const downloadUrl = data => {
     const a = document.createElement('a');
     a.href = data;
-    a.download = `test_report_${reportName}.docx`;
+    a.download = `${reportName}.docx`;
     (a as any).style = 'display: none';
     document.body.appendChild(a);
     a.click();
@@ -335,7 +345,7 @@ export const exportWithHTML = async testReportData => {
     const downloadLinkContentIntoStyle = async copyNode => {
       const linkNodes = copyNode.querySelectorAll('link');
       const tasks = Array.from(linkNodes)
-        .filter((linkEle: HTMLLinkElement) => linkEle.href.endsWith('.css'))
+        .filter((linkEle: HTMLLinkElement) => linkEle.href.includes('.css'))
         .map((linkEle: HTMLLinkElement, index) => {
           return fetch(linkEle.href)
             .then(res => res.text())
@@ -409,7 +419,6 @@ export const exportWithHTML = async testReportData => {
       style.type = 'text/css';
       style.innerHTML = `
         #report-body {
-          height: 100vh;
           overflow: hidden;
         }
         #report-iframe > div {
