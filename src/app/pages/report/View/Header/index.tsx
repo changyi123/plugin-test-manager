@@ -4,12 +4,14 @@ import isEmpty from 'lodash/isEmpty';
 import React, { useCallback, useRef } from 'react';
 
 import { ControlOutlined, PlusOutlined } from '@/icons';
+import { featureFlags, SupportFeatureFlags } from '@/lib/appEnv';
 import { TestPlanModel } from '@/lib/constants';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import { selectorToIql } from '@/lib/utils/iql';
 import { TestReport } from '@/services/models';
 import { testConfigQuery } from '@/services/query';
+import { generateTestReportOfflineFile } from '@/services/testReport/service';
 
 import CreateReportModel, { ActionType } from '../../Model/createReportModel';
 import ReportTemplateModal, {
@@ -60,6 +62,10 @@ const getReportOverviewData = selectors => {
 const ReportHeader: React.FC<any> = () => {
   const modalRef = useRef<ActionType>();
   const reportTemplateModalActionRef = useRef<ReportTemplateModalActionType>();
+  const enableOfflineReport = React.useMemo(
+    () => featureFlags(SupportFeatureFlags.ENABLE_OFFLINE_TEST_REPORT),
+    [],
+  );
 
   const { t } = useI18n();
   const { workspace, config } = useTestConfig();
@@ -94,6 +100,11 @@ const ReportHeader: React.FC<any> = () => {
       itemTypeMap: config?.itemTypeMap,
     });
     notification.destroy();
+
+    console.info('create test report success!', reportInfo);
+    // 生成测试报告离线文档
+    enableOfflineReport && (await generateTestReportOfflineFile(reportInfo?.data?.objectId));
+
     if (reportInfo.status === 'success') {
       const proxima = createProximaSdk();
       proxima.execute('refreshTestReportTable', reportInfo?.data?.objectId);
@@ -105,7 +116,7 @@ const ReportHeader: React.FC<any> = () => {
         message: `${t('report.testReport')}【${res.name}】${t('report.addFail')}`,
       });
     }
-  }, [config?.defectsMapping, config?.itemTypeMap, workspace, t]);
+  }, [t, workspace, config?.defectsMapping, config?.itemTypeMap, enableOfflineReport]);
 
   const { data: globalConfig } = testConfigQuery.useGlobalTestConfig();
 

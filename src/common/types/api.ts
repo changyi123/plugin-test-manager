@@ -271,6 +271,12 @@ export type QueryTestReportPayload = {
   versionName: string;
 };
 
+/** 查询测试报告 */
+export type GenerateTestReportPayload = {
+  // 测试报告 ID
+  testReportId: string;
+};
+
 /** internal 站内信 */
 type PostType = 'internal' | 'email';
 

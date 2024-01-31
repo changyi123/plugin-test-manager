@@ -1,6 +1,9 @@
 import { Document, ImageRun, Packer, Paragraph } from 'docx';
 import domtoimage from 'dom-to-image-more';
 
+import { generateTestReportOfflineFile } from '@/services/testReport/service';
+
+import { featureFlags, SupportFeatureFlags } from './appEnv';
 import { TestType } from './constants';
 import { getPagePrefix, isInOne } from './utils/helper';
 
@@ -93,7 +96,7 @@ export const DataSourceCollection: DataSource[] = [
 
 /** 生成数据源配置 uid */
 export const genDataSourceConfigUid = (dataSourceConfig: TemplateDataSourceConfig) => {
-  return dataSourceConfig.map(dataSource => dataSource.key).join('_');
+  return dataSourceConfig?.map(dataSource => dataSource.key).join('_');
 };
 
 /** 生成仪表盘页面链接 */
@@ -154,14 +157,12 @@ export const clearIframeLayoutEffect = () => {
   }
 };
 
-// 下载测试报告
-export const exportWithDocx = async testReportData => {
+const exportDocx = async testReportData => {
   const iframe = document.body.querySelector('iframe');
 
+  const title = testReportData.name;
   // eslint-disable-next-line prefer-spread
   const toBlob = (...args) => Packer?.toBlob.apply(Packer, args);
-
-  const title = testReportData.name;
 
   // 准备初始化数据
   // const prepareData = async () => {
@@ -218,6 +219,7 @@ export const exportWithDocx = async testReportData => {
         },
       ],
     });
+
     // 修复 docx 导出的 bug，jszip 漏洞
     (window as any).setImmediate = window.setTimeout;
     return doc;
@@ -236,6 +238,34 @@ export const exportWithDocx = async testReportData => {
       a.click();
       URL.revokeObjectURL(url);
     });
+};
+
+const exportOfflineDocx = async testReportData => {
+  let reportUrl = testReportData?.reportUrl;
+  const reportName = testReportData?.name;
+  if (!reportUrl) {
+    await generateTestReportOfflineFile(testReportData?.objectId).then(data => {
+      reportUrl = data?.data;
+    });
+  }
+
+  const downloadUrl = data => {
+    const a = document.createElement('a');
+    a.href = data;
+    a.download = `${reportName}.docx`;
+    (a as any).style = 'display: none';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  };
+
+  downloadUrl(reportUrl);
+};
+
+// 下载测试报告
+export const exportWithDocx = async testReportData => {
+  const enableOfflineReport = featureFlags(SupportFeatureFlags.ENABLE_OFFLINE_TEST_REPORT);
+  enableOfflineReport ? exportOfflineDocx(testReportData) : exportDocx(testReportData);
 };
 
 // 下载测试报告
