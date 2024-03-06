@@ -5,13 +5,15 @@ import { get } from 'lodash';
  * 默认功能为开，需要关闭该功能。变量需要以 disable 开头
  * 默认功能为关，需要打开该功能。变量需要以 enable 开头
  **/
-const SupportFeatureFlags = {
+export const SupportFeatureFlags = {
   /** 开启测试管理脑图 */
   ENABLE_MINDER: 'ENABLE_MINDER',
   /** 开启测试报告 */
   ENABLE_TEST_REPORT: 'ENABLE_TEST_REPORT',
   /** 开启更多配置 */
   ENABLE_MORE_CONFIG: 'ENABLE_MORE_CONFIG',
+  /** 开启离线测试报告 */
+  ENABLE_OFFLINE_TEST_REPORT: 'ENABLE_OFFLINE_TEST_REPORT',
 } as const;
 
 type SupportFeatureFlagKey = keyof typeof SupportFeatureFlags;
