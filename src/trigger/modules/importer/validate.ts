@@ -166,9 +166,16 @@ const getFiledByValue = (name, maps) => {
 const getCurData = (cur, maps) =>
   [...Object.entries(cur)].reduce((curPrev, [key, value]) => {
     if (maps[key]) {
+      let targetValue = value;
+      if (maps[key] === 'group') {
+        const prevGroup = curPrev[maps[key]];
+        if (prevGroup?.length) {
+          targetValue = prevGroup + '/' + targetValue;
+        }
+      }
       curPrev = {
         ...curPrev,
-        [maps[key]]: value,
+        [maps[key]]: targetValue,
       };
     }
     return curPrev;
