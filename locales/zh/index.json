@@ -683,6 +683,13 @@
           "popConfirmTips": "当前操作会移除该测试执行，是否继续执行？",
           "addTestExecution": "新增测试执行任务",
           "tooltip": "该测试用例的运行包含以下执行轮次"
+        },
+        "historyRunPanel": {
+          "runRecord": "执行记录",
+          "onlyShowLatelyRun": "仅显示最新执行",
+          "runTip": "勾选时仅展示每个测试计划中当前用例的最新执行结果",
+          "latestExecutionStatus": "最新执行状态",
+          "executeTime": "执行时间"
         }
       },
       "testExecution": {

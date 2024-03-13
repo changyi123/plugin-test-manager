@@ -17,6 +17,7 @@ import {
   RepositoryModel,
   SYSTEM_FIELD,
   TestCaseStatusModel,
+  TestLinkType,
   TestRunDesigneeModel,
   TestRunExecutorModel,
   TestType,
@@ -306,7 +307,7 @@ export const updateTestStatus = async data => {
       type: TestType.Run,
     },
     limit: 9999,
-    select: ['id', 'referenceCase', 'executor', 'status', 'executeCount'],
+    select: ['id', 'referenceCase', 'executor', 'status', 'executeCount', 'executeTime'],
   });
 
   const { list: testCases } = await getTestEntityByQuery({
@@ -323,6 +324,7 @@ export const updateTestStatus = async data => {
     status,
     executor: [getCurrentUserInfo(), ...(d.executor ?? [])].slice(0, 3),
     executeCount: (d.executeCount ?? 0) + (['PASSED', 'FAILED']?.includes(status) ? 1 : 0),
+    executeTime: new Date().getTime(),
   }));
 
   let updateTestCases = [];
@@ -389,6 +391,7 @@ export const updateTestRunDetail = async (
   // 执行状态为通过或者失败，且前后状态不一致 +1
   if (['PASSED', 'FAILED']?.includes(params.status) && testEntity.status !== params.status) {
     needUpdateAttrs.executeCount = executeCount + 1;
+    needUpdateAttrs.executeTime = new Date().getTime();
   }
 
   if (Array.isArray(params.steps)) {
@@ -420,6 +423,7 @@ export const updateTestRunDetail = async (
         if (testEntity.status !== 'FAILED') {
           needUpdateAttrs.status = 'FAILED';
           needUpdateAttrs.executeCount = executeCount + 1;
+          needUpdateAttrs.executeTime = new Date().getTime();
         }
       } else if (hasExecuting && !hasBlock && !hasCannel && !hasFail) {
         // 正在执行且没有取消、阻塞、失败 - 正在执行
@@ -436,6 +440,7 @@ export const updateTestRunDetail = async (
         if (testEntity.status !== 'PASSED') {
           needUpdateAttrs.status = 'PASSED';
           needUpdateAttrs.executeCount = executeCount + 1;
+          needUpdateAttrs.executeTime = new Date().getTime();
         }
       } else if (hasCannel) {
         // 一个取消 - 取消
@@ -623,4 +628,91 @@ export const getRepositoryTreeV2 = async (params: RepositoryTreePayload) => {
     sessionToken: getSessionToken(),
   });
   return data;
+};
+
+// 获取测试用例的全部执行
+export const getCaseAllRuns = async caseId => {
+  // 查询测试用例关联的测试执行
+  const queryRuns = async caseId => {
+    const {
+      data: { data },
+    } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-query-test-entity`, {
+      query: { type: TestType.Run, referenceCase: caseId },
+      offset: 0,
+      limit: 9999,
+      sessionToken: getSessionToken(),
+    });
+    return data.list ?? [];
+  };
+
+  // 查询测试执行关联的测试执行任务
+  const queryExecution = async runIds => {
+    const {
+      data: { data },
+    } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-query-linked-test-entity`, {
+      descending: [],
+      onlySelectId: false,
+      linkType: TestLinkType.RunLinkExecution,
+      sourceIds: runIds,
+      destinationType: TestType.Execution,
+      offset: 0,
+      limit: 9999,
+      sessionToken: getSessionToken(),
+    });
+    return data.list ?? [];
+  };
+
+  // 查询测试执行任务关联的测试计划
+  const queryPlans = async executionIds => {
+    const {
+      data: { data },
+    } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-query-linked-test-entity`, {
+      descending: [],
+      onlySelectId: false,
+      linkType: TestLinkType.ExecutionLinkPlan,
+      sourceIds: executionIds,
+      destinationType: TestType.Plan,
+      offset: 0,
+      limit: 9999,
+      sessionToken: getSessionToken(),
+    });
+    return data.list ?? [];
+  };
+
+  const arrayToMap = array => {
+    return array.reduce((result, current) => {
+      result[current.objectId] = current;
+      return result;
+    }, {});
+  };
+
+  const runs = await queryRuns(caseId);
+
+  const runIds = runs.map(run => run.objectId);
+
+  // 没有关联测试执行，直接返回
+  if (!runIds.length) return [];
+
+  const executions = await queryExecution(runIds);
+
+  const executionIds = executions.map(execution => execution.objectId);
+
+  const executionMap = arrayToMap(executions);
+
+  const plans = await queryPlans(executionIds);
+  const planMap = arrayToMap(plans);
+
+  return runs.map(run => {
+    const executionId = run?.linkItems?.[0];
+    const linkedExecution = executionMap[executionId];
+
+    const planId = linkedExecution?.linkItems?.[0];
+    const linkedPlan = planMap[planId];
+
+    return {
+      linkedExecution,
+      linkedPlan,
+      ...run,
+    };
+  });
 };

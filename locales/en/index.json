@@ -739,6 +739,13 @@
           "popConfirmTips": "The current operation will remove the test execution, continue to execute? ",
           "addTestExecution": "New test execution task",
           "tooltip": "The test case runs are comprised of the following execution cycles"
+        },
+        "historyRunPanel": {
+          "runRecord": "Execution Record",
+          "onlyShowLatelyRun": "Show only latest executions",
+          "runTip": "When checked, only the latest execution results of the current use case in each test plan will be displayed.",
+          "latestExecutionStatus": "Latest execution status",
+          "executeTime": "execution time"
         }
       },
       "testExecution": {
