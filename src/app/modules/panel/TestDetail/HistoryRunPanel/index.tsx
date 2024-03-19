@@ -100,7 +100,7 @@ const Execution: React.FC = () => {
       .map(key => {
         const group = groupRuns[key];
 
-        group.sort((a, b) => (b.time || 0) - (a.time || 0));
+        group.sort((a, b) => (b.executeTime || 0) - (a.executeTime || 0));
 
         return group?.[0];
       })
