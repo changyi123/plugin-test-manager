@@ -5,6 +5,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 
 import { StatusBadge } from '@/components/business/Status';
 import Field from '@/components/common/Field';
+import OverflowTooltip from '@/components/common/OverflowTooltip';
 import { QuestionCircleFilled } from '@/icons';
 import { getCaseAllRuns } from '@/lib/api/item';
 import { useTestConfig } from '@/lib/hooks/useContext';
@@ -27,20 +28,31 @@ const Execution: React.FC = () => {
       {
         title: t('common.testPlan'),
         key: 'linkedPlan',
+        width: 200,
         render: (_, record) => {
-          return record.linkedPlan?.name;
+          return (
+            <OverflowTooltip title={record.linkedPlan?.name}>
+              {record.linkedPlan?.name}
+            </OverflowTooltip>
+          );
         },
       },
       {
         title: t('common.testExecution'),
         key: 'linkedExecution',
+        width: 200,
         render: (_, record) => {
-          return record.linkedExecution?.name;
+          return (
+            <OverflowTooltip title={record.linkedExecution?.name}>
+              {record.linkedExecution?.name}
+            </OverflowTooltip>
+          );
         },
       },
       {
         title: t('common.designee'),
         key: 'executor',
+        width: 150,
         render: (_, record) => {
           return <Field.User readonly userInfo={record?.executor?.[0]} />;
         },
@@ -48,19 +60,21 @@ const Execution: React.FC = () => {
       {
         title: t('page.plan.testEntityList.executeCount'),
         key: 'executeCount',
+        width: 150,
         render: (_, record) => {
           return record?.executeCount || 0;
         },
       },
       {
         title: t('modules.panel.testDetail.historyRunPanel.latestExecutionStatus'),
-        key: 'executeCount',
+        key: 'status',
+        width: 150,
         render: (_, record) => {
           return (
             <StatusBadge
               useRootContainer
               readonly={true}
-              status={record.runStatus}
+              status={record.status}
               onStatusChange={() => {}}
             />
           );
@@ -69,6 +83,7 @@ const Execution: React.FC = () => {
       {
         title: t('modules.panel.testDetail.historyRunPanel.executeTime'),
         key: 'executeTime',
+        width: 200,
         render: (_, record) => {
           return record.executeTime ? dayjs(record?.executeTime).format('YYYY-MM-DD HH:mm') : '';
         },
@@ -85,7 +100,7 @@ const Execution: React.FC = () => {
       .map(key => {
         const group = groupRuns[key];
 
-        group.sort((a, b) => (dayjs(b.time) as any) - (dayjs(a.time) as any));
+        group.sort((a, b) => (b.time || 0) - (a.time || 0));
 
         return group?.[0];
       })
@@ -129,7 +144,9 @@ const Execution: React.FC = () => {
           rowKey="objectId"
           columns={tableColumns}
           dataSource={finallyRuns}
-          pagination={false}
+          scroll={{
+            x: 'max-content',
+          }}
         />
       </Spin>
     </div>

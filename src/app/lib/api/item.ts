@@ -319,13 +319,20 @@ export const updateTestStatus = async data => {
     select: ['id', 'caseStatus', 'caseExecutor'],
   });
 
-  const updateTestRuns = testRuns.map(d => ({
-    objectId: d.id,
-    status,
-    executor: [getCurrentUserInfo(), ...(d.executor ?? [])].slice(0, 3),
-    executeCount: (d.executeCount ?? 0) + (['PASSED', 'FAILED']?.includes(status) ? 1 : 0),
-    executeTime: new Date().getTime(),
-  }));
+  const updateTestRuns = testRuns.map(d => {
+    const isRun = ['PASSED', 'FAILED']?.includes(status);
+    const result = {
+      objectId: d.id,
+      status,
+      executor: [getCurrentUserInfo(), ...(d.executor ?? [])].slice(0, 3),
+      executeCount: (d.executeCount ?? 0) + (isRun ? 1 : 0),
+    };
+    if (isRun) {
+      Object.assign(result, { executeTime: new Date().getTime() });
+    }
+
+    return result;
+  });
 
   let updateTestCases = [];
   if (planId) {
@@ -632,87 +639,13 @@ export const getRepositoryTreeV2 = async (params: RepositoryTreePayload) => {
 
 // 获取测试用例的全部执行
 export const getCaseAllRuns = async caseId => {
-  // 查询测试用例关联的测试执行
-  const queryRuns = async caseId => {
-    const {
-      data: { data },
-    } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-query-test-entity`, {
-      query: { type: TestType.Run, referenceCase: caseId },
-      offset: 0,
-      limit: 9999,
-      sessionToken: getSessionToken(),
-    });
-    return data.list ?? [];
-  };
-
-  // 查询测试执行关联的测试执行任务
-  const queryExecution = async runIds => {
-    const {
-      data: { data },
-    } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-query-linked-test-entity`, {
-      descending: [],
-      onlySelectId: false,
-      linkType: TestLinkType.RunLinkExecution,
-      sourceIds: runIds,
-      destinationType: TestType.Execution,
-      offset: 0,
-      limit: 9999,
-      sessionToken: getSessionToken(),
-    });
-    return data.list ?? [];
-  };
-
-  // 查询测试执行任务关联的测试计划
-  const queryPlans = async executionIds => {
-    const {
-      data: { data },
-    } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-query-linked-test-entity`, {
-      descending: [],
-      onlySelectId: false,
-      linkType: TestLinkType.ExecutionLinkPlan,
-      sourceIds: executionIds,
-      destinationType: TestType.Plan,
-      offset: 0,
-      limit: 9999,
-      sessionToken: getSessionToken(),
-    });
-    return data.list ?? [];
-  };
-
-  const arrayToMap = array => {
-    return array.reduce((result, current) => {
-      result[current.objectId] = current;
-      return result;
-    }, {});
-  };
-
-  const runs = await queryRuns(caseId);
-
-  const runIds = runs.map(run => run.objectId);
-
-  // 没有关联测试执行，直接返回
-  if (!runIds.length) return [];
-
-  const executions = await queryExecution(runIds);
-
-  const executionIds = executions.map(execution => execution.objectId);
-
-  const executionMap = arrayToMap(executions);
-
-  const plans = await queryPlans(executionIds);
-  const planMap = arrayToMap(plans);
-
-  return runs.map(run => {
-    const executionId = run?.linkItems?.[0];
-    const linkedExecution = executionMap[executionId];
-
-    const planId = linkedExecution?.linkItems?.[0];
-    const linkedPlan = planMap[planId];
-
-    return {
-      linkedExecution,
-      linkedPlan,
-      ...run,
-    };
+  const {
+    data: { data },
+  } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-query-case-run-record`, {
+    query: { type: TestType.Run, referenceCase: caseId },
+    offset: 0,
+    limit: 9999,
+    sessionToken: getSessionToken(),
   });
+  return data.list ?? [];
 };
