@@ -26,8 +26,20 @@ import cx from './index.less';
 
 const Plan = () => {
   const { t } = useI18n();
-  const { testEntity, workspace, setTestEntity } = useTestConfig();
+  const {
+    testEntity,
+    workspace,
+    setTestEntity,
+    config: { statusList, listType },
+  } = useTestConfig();
+
   const { createItemUseModal, getCreatePermission } = useBaseAction();
+  const enablePlan = useMemo(() => {
+    const existInStatusList = statusList?.some(
+      status => status?.statusId === testEntity?.workflowStatus?.objectId,
+    );
+    return !listType || listType === 'black' ? !existInStatusList : existInStatusList;
+  }, [listType, statusList, testEntity?.workflowStatus]);
   const tableActionRef = useRef<ActionType>();
   const selectorModalRef = useRef<SelectorActionType>();
 
@@ -241,12 +253,14 @@ const Plan = () => {
         getContainer={getRootContainer}
       />
       <PanelTable
-        renderActions={() => (
-          <DropDownButton menuList={testPlanMenuList}>
-            {t('modules.panel.testDetail.testPlanPanel.dropButton')}
-            <DownOutlined />
-          </DropDownButton>
-        )}
+        renderActions={() =>
+          enablePlan ? (
+            <DropDownButton menuList={testPlanMenuList}>
+              {t('modules.panel.testDetail.testPlanPanel.dropButton')}
+              <DownOutlined />
+            </DropDownButton>
+          ) : null
+        }
         actionRef={tableActionRef}
         actionMenuList={[
           {

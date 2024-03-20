@@ -13,7 +13,7 @@ import useI18n from '@/lib/hooks/useI18n';
 import { getReportKey, getRepositoryQuery } from '@/lib/utils/tree';
 
 import { getCheckedByType } from './helper';
-import { useGetGroupCounts } from './hooks';
+import { useCasePlanRule, useGetGroupCounts } from './hooks';
 import cx from './TestDetailsSelectorList.less';
 import VirtualScrollList from './VirtualScrollList';
 
@@ -50,7 +50,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
   );
   const [current, setCurrent] = useState(1);
 
-  const { data: planLinkCaseIds } = useRequest(
+  const { data: planLinkCases } = useRequest(
     async () => {
       if (!workspaceKey || !planId) return [];
       if (treeType !== 'plan') return [];
@@ -69,7 +69,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
         sourceIds: [planId],
         destinationType: TestType.Case,
         sortByRepositoryIds: allNodeKeys,
-        onlySelectId: true,
+        select: ['id', 'status'],
       });
 
       return caseIds;
@@ -84,8 +84,9 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
       staleTime: 99999,
     },
   );
+  const planLinkCaseIds = useMemo(() => planLinkCases?.map(({ id }) => id) ?? [], [planLinkCases]);
 
-  const { data: allCaseIds, loading: allCaseIdsLoading } = useRequest(
+  const { data: allCases, loading: allCaseIdsLoading } = useRequest(
     async () => {
       if (!workspaceKey || !selectedNode?.key || treeType === 'plan') return;
       const repository = getRepositoryQuery(selectedNode, showType);
@@ -101,10 +102,10 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
         ascending: ['sortIndex', 'createdAt'],
         limit: 99999,
         sortByRepositoryIds: allNodeKeys,
-        onlySelectId: true,
+        select: ['id', 'status'],
       });
 
-      return data as string[];
+      return data as Array<{ id: string; workflowStatus: { objectId: string } }>;
     },
     {
       refreshDeps: [workspaceKey, selectedNode, treeType, searchName, showType],
@@ -115,6 +116,8 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
       cacheTime: 999999999,
     },
   );
+
+  const allCaseIds = useMemo(() => allCases?.map(({ id }) => id) ?? [], [allCases]);
 
   const caseIds = useMemo(() => {
     const ids = treeType === 'plan' ? planLinkCaseIds : allCaseIds;
@@ -139,7 +142,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
         ...baseQueryOptions,
         offset: (current - 1) * 100,
         limit: 100,
-        select: ['id', 'name'],
+        select: ['id', 'name', 'status'],
         sortByRepositoryIds: allNodeKeys,
       });
 
@@ -170,7 +173,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
         destinationType: TestType.Case,
         offset: (current - 1) * 100,
         limit: 100,
-        select: ['id', 'name'],
+        select: ['id', 'name', 'status'],
         sortByRepositoryIds: allNodeKeys,
       });
 
@@ -236,6 +239,14 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
   );
 
   const { list: testCaseList, total = 0 } = testCaseData ?? {};
+  const { getEnableToPlan } = useCasePlanRule();
+  const disabledIdsSet = useMemo(() => {
+    return new Set<string>(
+      (treeType === 'plan' ? planLinkCases : allCases)
+        ?.filter(i => !getEnableToPlan(i.workflowStatus?.objectId))
+        ?.map(i => i.id) || [],
+    );
+  }, [allCases, planLinkCases, treeType]);
 
   const params = useMemo(() => {
     const query = {} as any;
@@ -323,7 +334,11 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
 
   const checkAllTest = useCallback(
     e => {
-      setSelectCaseIdsSet(e.target.checked ? new Set(clone(caseIds)) : new Set([]));
+      setSelectCaseIdsSet(
+        e.target.checked
+          ? new Set(clone(caseIds.filter(id => !disabledIdsSet.has(id))))
+          : new Set([]),
+      );
     },
     [caseIds],
   );
@@ -332,9 +347,18 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
     <div className={'case-selector'}>
       <div className={cx('detail-selector-header')}>
         <Checkbox
-          disabled={allCaseIdsLoading || getCheckedByType(caseIds, ignoreTestDetailIdsSet)}
+          disabled={
+            allCaseIdsLoading ||
+            getCheckedByType(
+              caseIds,
+              new Set([...(ignoreTestDetailIdsSet ?? []), ...(disabledIdsSet ?? [])]),
+            )
+          }
           indeterminate={getCheckedByType(caseIds, selectCaseIdsSet, 'indeterminate')}
-          checked={getCheckedByType(caseIds, selectCaseIdsSet)}
+          checked={getCheckedByType(
+            caseIds,
+            new Set([...(selectCaseIdsSet ?? []), ...(disabledIdsSet ?? [])]),
+          )}
           onChange={checkAllTest}
         >
           <span className={cx('check-all-title')}>
@@ -394,6 +418,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
               setSelectCaseIdsSet={setSelectCaseIdsSet}
               ignoreTestDetailIdsSet={ignoreTestDetailIdsSet}
               allCaseIds={treeType === 'plan' ? planLinkCaseIds : allCaseIds}
+              disabledIdsSet={disabledIdsSet}
               setCurrent={setCurrent}
               current={current}
               groupCounts={groupCounts}

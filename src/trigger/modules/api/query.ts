@@ -20,6 +20,7 @@ import {
   QueryLinkedTestEntityPayload,
   QueryTestEntityPayload,
 } from '../../../common/types/api';
+import { RewriteFieldKey } from '../../../common/utils/dataTransfer';
 import { buildPaginationResponse, buildResponse, getReqInfoFromVMRuntime } from '../../lib/apiUtil';
 import { concatIqlRequestFields, toArray } from '../../lib/helper';
 import { iqlRequest } from '../../lib/iqlRequest';
@@ -39,14 +40,24 @@ const overwriteIqlParamsWithOnlySelectId = onlySelectId => {
 
 const overwriteIqlParamsWithSelect = select => {
   if (Array.isArray(select)) {
+    // status字段在测试管理有重写，所以此处做下兼容
     const fields = Array.from(
-      new Set(select.map(key => TestFiledKeyMapping[key] ?? key).filter(Boolean)),
+      new Set(
+        select
+          .flatMap(key => (RewriteFieldKey[key] ? [TestFiledKeyMapping[key], key] : key))
+          .filter(Boolean),
+      ),
     );
 
     return {
       // select 只能筛选测试用例实体的 key
       dataTransfer: data => {
-        return data.map(item => pick(item, select));
+        return data.map(item =>
+          pick(
+            item,
+            select.flatMap(key => (RewriteFieldKey[key] ? [RewriteFieldKey[key], key] : key)),
+          ),
+        );
       },
       fields,
     };

@@ -1,10 +1,10 @@
 import { useMemoizedFn, useMount } from 'ahooks';
-import { Button, message, Switch } from 'antd';
+import { Button, message, Radio, Switch } from 'antd';
 import { pick } from 'lodash';
 import { components } from 'proxima-sdk';
 import React from 'react';
 
-import { getWorkspaceRoleMembers } from '@/lib/api/proxima';
+import { getStatusByWorkspaceAndItemType, getWorkspaceRoleMembers } from '@/lib/api/proxima';
 import useI18n from '@/lib/hooks/useI18n';
 
 import { useCurrentTestConfig, useDataContext } from '../hooks';
@@ -19,6 +19,10 @@ const DefaultTestRunAction = {
   canOnlyExecuteMineCase: false,
   // 未分配的测试用例无法执行
   canOnlyExecuteAssignedCase: false,
+  // 当前空间可以规划的测试用例状态名单类型：黑 | 白
+  listType: 'black',
+  // 当前空间可以规划的测试用例状态名单
+  statusList: [],
 };
 
 /** 获取空间成员列表 */
@@ -58,6 +62,45 @@ const useWorkspaceMemberUserList = ({ workspaceId: workspaceId, selectedUserList
   };
 };
 
+/** 获取空间成员列表 */
+const useStatusList = ({ workspaceId, itemTypeKey, selectedStatusList }) => {
+  // 首次请求用户列表请求
+  const defaultStatusListCacheRef = React.useRef<any[]>([]);
+  const [statusList, setStatusList] = React.useState([]);
+
+  const fetchAndSetStatusList = useMemoizedFn(async keyword => {
+    let statusList = defaultStatusListCacheRef.current;
+    console.info(itemTypeKey, workspaceId);
+    if (keyword?.trim() || (itemTypeKey && workspaceId)) {
+      statusList = await getStatusByWorkspaceAndItemType({
+        workspaceId,
+        itemTypeKey,
+        keyword,
+      });
+    }
+    setStatusList(statusList);
+    return statusList;
+  });
+
+  useMount(async () => {
+    const selectedStatusIdSet = new Set(selectedStatusList?.map(status => status.statusId) ?? []);
+    const statusList = await fetchAndSetStatusList('');
+    if (!Array.isArray(statusList)) return;
+    defaultStatusListCacheRef.current = []
+      .concat(
+        selectedStatusList,
+        // 过滤已被选中的用户列表
+        statusList.filter(status => !selectedStatusIdSet.has(status.statusId)),
+      )
+      .filter(Boolean);
+  });
+
+  return {
+    onStatusKeywordSearch: fetchAndSetStatusList,
+    statusList,
+  };
+};
+
 /** 过滤无效字段 */
 const getUsefulUserInfo = user => {
   return pick(user, ['username', 'nickname', 'displayName', 'objectId', 'enabled', 'deleted']);
@@ -92,6 +135,8 @@ const ExecuteTestRunAction = () => {
           Promise.resolve().then(() => buildConfigChange('canOnlyExecuteAssignedCase')(false));
         return val;
       },
+      listType: e => e.target.value,
+      statusList: val => val.map(v => pick(v, ['statusId', 'name', 'isStartStatus'])),
     };
 
     const handleConfigChange = data => {
@@ -118,6 +163,18 @@ const ExecuteTestRunAction = () => {
     }));
   }, [workspaceMemberUserList]);
 
+  const { onStatusKeywordSearch, statusList } = useStatusList({
+    workspaceId: workspace.objectId,
+    itemTypeKey: testConfig?.get('itemTypeMap')?.TestCase,
+    selectedStatusList: testRunAction.statusList,
+  });
+
+  const selectStatusListProp = React.useMemo(() => {
+    return statusList.filter(Boolean).map(status => ({
+      ...status,
+    }));
+  }, [statusList]);
+
   // 测试人员仅可执行自己的测试用例
   const canOnlyExecuteAssignedCaseSwitchDisabled = React.useMemo(() => {
     return !testRunAction.canOnlyExecuteMineCase;
@@ -140,7 +197,7 @@ const ExecuteTestRunAction = () => {
         />
       </div>
       <div className={cx('section')}>
-        <span className={cx('label')}>
+        <span className={cx('section-label')}>
           {t('page.config.executeTestRunAction.testersCannotExecuteOtherCases')}：
         </span>
         <Switch
@@ -149,13 +206,37 @@ const ExecuteTestRunAction = () => {
         />
       </div>
       <div className={cx('section')}>
-        <span className={cx('label')}>
+        <span className={cx('section-label')}>
           {t('page.config.executeTestRunAction.unassignedCaseCannotBeExecuted')}：
         </span>
         <Switch
           checked={testRunAction.canOnlyExecuteAssignedCase}
           onChange={buildConfigChange('canOnlyExecuteAssignedCase')}
           disabled={canOnlyExecuteAssignedCaseSwitchDisabled}
+        />
+      </div>
+      <div className={cx('section')}>
+        <h3>{t('page.config.executeTestRunAction.caseToPlanRule')}</h3>
+        <Radio.Group
+          value={testRunAction.listType}
+          defaultValue={testRunAction.listType}
+          className={cx('section-radio-group')}
+          options={[
+            { label: t('page.config.executeTestRunAction.radioBlackLabel'), value: 'black' },
+            { label: t('page.config.executeTestRunAction.radioWhiteLabel'), value: 'white' },
+          ]}
+          onChange={buildConfigChange('listType')}
+        />
+        <SearchPopoverSelect
+          allowClear
+          mode="multiple"
+          valueKey="statusId"
+          labelKey="name"
+          list={selectStatusListProp}
+          placeholder={t('page.config.executeTestRunAction.caseToPlanPlaceholder')}
+          value={testRunAction.statusList}
+          onSearchChange={onStatusKeywordSearch}
+          onChange={buildConfigChange('statusList')}
         />
       </div>
       <Button type="primary" className={cx('action')} onClick={handleSave}>

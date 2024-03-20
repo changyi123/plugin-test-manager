@@ -17,6 +17,9 @@
       "report": "测试报告",
       "plan": "测试计划"
     },
+    "whiteCaseRule": "状态不属于“{{statusNames}}”，不允许规划",
+    "blackCaseRule": "状态属于“{{statusNames}}”，不允许规划",
+    "casePlanRule": "{{statusName}}状态的用例不允许规划",
     "noPermissionToAccess": "当前用户无权限访问",
     "pleaseInputContent": "请输入内容",
     "updateAt": "修改时间",
@@ -239,6 +242,10 @@
         "description": "配置当前空间在用例执行时的约束",
         "caseToPlan": "用例分配授权",
         "placeholder": "请选择用户",
+        "caseToPlanPlaceholder": "请选择状态",
+        "caseToPlanRule": "用例规划限制",
+        "radioBlackLabel": "不允许被规划的用例工作流状态",
+        "radioWhiteLabel": "允许被规划的用例工作流状态",
         "testersCannotExecuteOtherCases": "测试人员不可执行他人测试用例",
         "unassignedCaseCannotBeExecuted": "未分配的测试用例无法执行"
       },

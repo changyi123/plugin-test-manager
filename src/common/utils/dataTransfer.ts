@@ -63,6 +63,11 @@ export const testEntityToItemValues = data => {
   return compactNilValue(values);
 };
 
+// 重写混入的 key
+export const RewriteFieldKey = {
+  status: 'workflowStatus',
+};
+
 /** item 转换为测试管理实体 */
 export const itemToTestEntity = item => {
   /** 自定义字段转换策略，用于处理转成 testEntity 的额外处理 */
@@ -90,11 +95,6 @@ export const itemToTestEntity = item => {
     'updatedAt',
     'updatedBy',
   ] as const;
-
-  // 重写混入的 key
-  const RewriteFieldKey = {
-    status: 'workflowStatus',
-  };
 
   /** 事项字段转换策略， */
   const itemFiledTransferStrategy = {
