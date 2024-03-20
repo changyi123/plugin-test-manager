@@ -306,7 +306,7 @@ export const updateTestStatus = async data => {
       type: TestType.Run,
     },
     limit: 9999,
-    select: ['id', 'referenceCase', 'executor', 'status', 'executeCount'],
+    select: ['id', 'referenceCase', 'executor', 'status', 'executeCount', 'executeTime'],
   });
 
   const { list: testCases } = await getTestEntityByQuery({
@@ -318,12 +318,20 @@ export const updateTestStatus = async data => {
     select: ['id', 'caseStatus', 'caseExecutor'],
   });
 
-  const updateTestRuns = testRuns.map(d => ({
-    objectId: d.id,
-    status,
-    executor: [getCurrentUserInfo(), ...(d.executor ?? [])].slice(0, 3),
-    executeCount: (d.executeCount ?? 0) + (['PASSED', 'FAILED']?.includes(status) ? 1 : 0),
-  }));
+  const updateTestRuns = testRuns.map(d => {
+    const isRun = ['PASSED', 'FAILED']?.includes(status);
+    const result = {
+      objectId: d.id,
+      status,
+      executor: [getCurrentUserInfo(), ...(d.executor ?? [])].slice(0, 3),
+      executeCount: (d.executeCount ?? 0) + (isRun ? 1 : 0),
+    };
+    if (isRun) {
+      Object.assign(result, { executeTime: new Date().getTime() });
+    }
+
+    return result;
+  });
 
   let updateTestCases = [];
   if (planId) {
@@ -389,6 +397,7 @@ export const updateTestRunDetail = async (
   // 执行状态为通过或者失败，且前后状态不一致 +1
   if (['PASSED', 'FAILED']?.includes(params.status) && testEntity.status !== params.status) {
     needUpdateAttrs.executeCount = executeCount + 1;
+    needUpdateAttrs.executeTime = new Date().getTime();
   }
 
   if (Array.isArray(params.steps)) {
@@ -420,6 +429,7 @@ export const updateTestRunDetail = async (
         if (testEntity.status !== 'FAILED') {
           needUpdateAttrs.status = 'FAILED';
           needUpdateAttrs.executeCount = executeCount + 1;
+          needUpdateAttrs.executeTime = new Date().getTime();
         }
       } else if (hasExecuting && !hasBlock && !hasCannel && !hasFail) {
         // 正在执行且没有取消、阻塞、失败 - 正在执行
@@ -436,6 +446,7 @@ export const updateTestRunDetail = async (
         if (testEntity.status !== 'PASSED') {
           needUpdateAttrs.status = 'PASSED';
           needUpdateAttrs.executeCount = executeCount + 1;
+          needUpdateAttrs.executeTime = new Date().getTime();
         }
       } else if (hasCannel) {
         // 一个取消 - 取消
