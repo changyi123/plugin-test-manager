@@ -384,6 +384,10 @@ modules:
       name: test_manager_executeCount
       description: 测试管理内置字段-测试执行状态执行通过或者失败统计次数（勿删改）
       type: Number
+    - key: executeTime
+      name: test_manager_executeTime
+      description: 测试管理内置字段-测试执行执行时间（勿删改）
+      type: Date
     # 下面字段也保存入 es，方便 iql 直接查询。以字符串类型存储。防止 es 创建索引时定义默认类型，防止后续更新是出现类型错误
     - key: detail
       name: test_manager_detail

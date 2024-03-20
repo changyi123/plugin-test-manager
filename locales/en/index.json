@@ -739,6 +739,9 @@
           "popConfirmTips": "The current operation will remove the test execution, continue to execute? ",
           "addTestExecution": "New test execution task",
           "tooltip": "The test case runs are comprised of the following execution cycles"
+        },
+        "historyRunPanel": {
+          "executeTime": "execution time"
         }
       },
       "testExecution": {

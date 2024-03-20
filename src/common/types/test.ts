@@ -67,6 +67,7 @@ export type BaseTestEntity = {
   createdBy: any;
   updatedBy: any;
   executeCount: number;
+  executeTime: number;
 
   /** 事项自定义字段 */
   values: Record<string, any>;
@@ -88,7 +89,8 @@ type RunFieldKeys =
   | 'runDetail'
   | 'linkedCase'
   | 'status'
-  | 'executeCount';
+  | 'executeCount'
+  | 'executeTime';
 
 /** 测试实体类型 */
 export type TestEntity<TTestType extends TestType = any> = TTestType extends TestType.Case
