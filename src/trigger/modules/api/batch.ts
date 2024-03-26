@@ -68,8 +68,14 @@ export const batchDelete = async () => {
       body: { ids },
     } = getReqInfoFromVMRuntime<BatchDeletePayload>();
     if (!Array.isArray(ids)) throwArgumentError('ids', 'objectId[]');
-    await batchDeleteItems(ids);
-    return buildResponse('delete success');
+    const res = await batchDeleteItems(ids);
+    const errorItems = res?.filter(i => i.status !== 'success');
+    if (errorItems?.length) {
+      // 有错误数据
+      return buildResponse(new Error(errorItems[0].message));
+    } else {
+      return buildResponse('delete success');
+    }
   } catch (err) {
     return buildResponse(err);
   }
