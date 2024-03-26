@@ -1,8 +1,10 @@
 import { useDeepCompareEffect, useRequest } from 'ahooks';
 import { clone, sum } from 'lodash';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { getRepositoryTreeV2 } from '@/lib/api/item';
+import { useTestConfig } from '@/lib/hooks/useContext';
+import useI18n from '@/lib/hooks/useI18n';
 import { traverseTreeNodes } from '@/pages/repository/util';
 // import { TestType } from 'common/constant';
 
@@ -107,5 +109,40 @@ export const useGetGroupCounts = ({ workspaceKey, current, params, selectedNode 
   return {
     groupCounts: groupCounts,
     treeData,
+  };
+};
+
+// 获取用例规划限制
+export const useCasePlanRule = () => {
+  const { t } = useI18n();
+  const {
+    config: { statusList, listType },
+  } = useTestConfig();
+  const getEnableToPlan = useCallback(
+    statusId => {
+      const existInStatusList = statusList?.some(status => status?.statusId === statusId);
+      return !listType || (listType === 'black' ? !existInStatusList : existInStatusList);
+    },
+    [listType, statusList],
+  );
+  const getToolTipFun = useCallback(
+    statusId => {
+      const enableToPlan = getEnableToPlan(statusId);
+      const statusNames = statusList?.map(s => s.name).join('、');
+      return name =>
+        enableToPlan
+          ? name
+          : listType === 'black'
+          ? t('common.blackCaseRule', { statusNames })
+          : t('common.whiteCaseRule', { statusNames });
+    },
+    [getEnableToPlan, listType, statusList, t],
+  );
+
+  return {
+    getEnableToPlan,
+    getToolTipFun,
+    statusList,
+    listType,
   };
 };

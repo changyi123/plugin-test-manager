@@ -2,6 +2,7 @@ import { appKey, RepositoryModel } from '../lib/constants';
 import Parse from '../lib/parse';
 
 export const Item = Parse.Object.extend('Item');
+export const Status = Parse.Object.extend('Status');
 export const User = Parse.Object.extend('User');
 export const Screen = Parse.Object.extend('Screen');
 export const ItemType = Parse.Object.extend('ItemType');

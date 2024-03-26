@@ -26,7 +26,7 @@ const DropdownButton: React.FC<DropdownButtonProps> = ({
     return (
       <Menu>
         {menuList.map((menu, index) => (
-          <Menu.Item {...menu} key={index}>
+          <Menu.Item {...menu} key={index} title={menu.extraTitle || menu.title}>
             {menu.title}
           </Menu.Item>
         ))}

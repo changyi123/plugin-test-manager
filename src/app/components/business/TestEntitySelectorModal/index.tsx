@@ -111,7 +111,8 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
 
   // 获取租户所有的配置
   const { runAsync: getAllConfigs } = useRequest(
-    async () => getAllTestConfigs(['itemTypeMap', 'defectsMapping', 'workspaceKey']),
+    async () =>
+      getAllTestConfigs(['itemTypeMap', 'defectsMapping', 'workspaceKey', 'testRunAction']),
     {
       manual: true,
       cacheTime: 99999999999,
