@@ -1,4 +1,9 @@
-export { queryTestEntity, queryLinkedTestEntity, queryCaseIdByStatus } from './modules/api/query';
+export {
+  queryTestEntity,
+  queryLinkedTestEntity,
+  queryCaseIdByStatus,
+  queryCaseRunRecords,
+} from './modules/api/query';
 
 export {
   batchDelete,

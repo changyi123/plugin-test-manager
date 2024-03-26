@@ -177,3 +177,95 @@ export const queryCaseIdByStatus = async () => {
 
   return buildResponse(ret);
 };
+
+/** 查询测试用例的执行记录 */
+export const queryCaseRunRecords = async () => {
+  // 查询测试用例关联的测试执行
+  const queryRuns = async () => {
+    const { body } = getReqInfoFromVMRuntime<QueryTestEntityPayload>();
+
+    const { query, fields, limit, offset, ascending, descending } = body;
+
+    return iqlRequest({
+      query,
+      fields: concatIqlRequestFields(fields),
+      pagination: { limit, offset },
+      ascending,
+      descending,
+    });
+  };
+
+  // 查询测试执行关联的测试执行任务
+  const queryExecutions = async runIds => {
+    return iqlRequest({
+      linkQuery: {
+        sourceIds: runIds,
+        linkType: TestLinkType.RunLinkExecution,
+        destinationType: TestType.Execution,
+      },
+      fields: [
+        SystemFieldNameMapping.id,
+        SystemFieldNameMapping.name,
+        TestFiledKeyMapping.linkItems,
+      ],
+      pagination: { limit: InfinityLimit },
+    });
+  };
+
+  // 查询测试执行任务关联的测试执行计划
+  const queryPlans = async executionIds => {
+    return iqlRequest({
+      linkQuery: {
+        sourceIds: executionIds,
+        linkType: TestLinkType.ExecutionLinkPlan,
+        destinationType: TestType.Plan,
+      },
+      fields: [SystemFieldNameMapping.id, SystemFieldNameMapping.name],
+      pagination: { limit: InfinityLimit },
+    });
+  };
+
+  const arrayToMap = array => {
+    if (!Array.isArray(array)) return {};
+    return array.reduce((result, current) => {
+      result[current.objectId] = current;
+      return result;
+    }, {});
+  };
+  try {
+    // 查询测试执行
+    const runs = await queryRuns();
+
+    const runIds = runs?.data?.list.map(run => run.objectId);
+
+    if (!runIds.length) return runs;
+
+    // 查询测试执行任务
+    const executions = await queryExecutions(runIds);
+
+    const executionIds = executions?.data?.list?.map(execution => execution.objectId);
+
+    // 查询测试计划
+    const plans = await queryPlans(executionIds);
+    const executionMap = arrayToMap(executions?.data?.list);
+
+    const planMap = arrayToMap(plans?.data?.list);
+
+    runs.data.list = runs.data.list.map(run => {
+      const executionId = run?.linkItems?.[0];
+      const linkedExecution = executionMap[executionId];
+
+      const planId = linkedExecution?.linkItems?.[0];
+      const linkedPlan = planMap[planId];
+
+      return {
+        linkedExecution,
+        linkedPlan,
+        ...run,
+      };
+    });
+    return runs;
+  } catch (err) {
+    return buildPaginationResponse(err);
+  }
+};
