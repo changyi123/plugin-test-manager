@@ -184,17 +184,10 @@ export const queryCaseRunRecords = async () => {
   const queryRuns = async () => {
     const { body } = getReqInfoFromVMRuntime<QueryTestEntityPayload>();
 
-    const {
-      query: { referenceCase },
-      fields,
-      limit,
-      offset,
-      ascending,
-      descending,
-    } = body;
+    const { query, fields, limit, offset, ascending, descending } = body;
 
     return iqlRequest({
-      query: { type: TestType.Run, referenceCase },
+      query,
       fields: concatIqlRequestFields(fields),
       pagination: { limit, offset },
       ascending,

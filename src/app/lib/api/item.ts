@@ -316,8 +316,10 @@ export const updateTestStatus = async data => {
       type: TestType.Case,
     },
     limit: 9999,
-    select: ['id', 'caseStatus', 'caseExecutor'],
+    select: ['id', 'caseStatus', 'caseExecutor', 'caseRun'],
   });
+
+  const caseRun = {};
 
   const updateTestRuns = testRuns.map(d => {
     const isRun = ['PASSED', 'FAILED']?.includes(status);
@@ -329,6 +331,9 @@ export const updateTestStatus = async data => {
     };
     if (isRun) {
       Object.assign(result, { executeTime: new Date().getTime() });
+      caseRun[d.referenceCase] = {
+        [planId]: d.id,
+      };
     }
 
     return result;
@@ -345,6 +350,10 @@ export const updateTestStatus = async data => {
       caseExecutor: {
         ...d.caseExecutor,
         [planId]: getCurrentUserInfo(),
+      },
+      caseRun: {
+        ...d.caseRun,
+        ...(caseRun[d.id] || {}), // 记录对应测试计划下的最新测试执行
       },
     }));
   }
@@ -395,10 +404,13 @@ export const updateTestRunDetail = async (
 
   const needUpdateAttrs = {} as TestEntity<TestType.Run>;
 
+  const caseRun = {};
+
   // 执行状态为通过或者失败，且前后状态不一致 +1
   if (['PASSED', 'FAILED']?.includes(params.status) && testEntity.status !== params.status) {
     needUpdateAttrs.executeCount = executeCount + 1;
     needUpdateAttrs.executeTime = new Date().getTime();
+    caseRun[testEntity.referenceCase] = { [params.planId]: testEntity.objectId };
   }
 
   if (Array.isArray(params.steps)) {
@@ -431,6 +443,7 @@ export const updateTestRunDetail = async (
           needUpdateAttrs.status = 'FAILED';
           needUpdateAttrs.executeCount = executeCount + 1;
           needUpdateAttrs.executeTime = new Date().getTime();
+          caseRun[testEntity.referenceCase] = { [params.planId]: testEntity.objectId };
         }
       } else if (hasExecuting && !hasBlock && !hasCannel && !hasFail) {
         // 正在执行且没有取消、阻塞、失败 - 正在执行
@@ -448,6 +461,7 @@ export const updateTestRunDetail = async (
           needUpdateAttrs.status = 'PASSED';
           needUpdateAttrs.executeCount = executeCount + 1;
           needUpdateAttrs.executeTime = new Date().getTime();
+          caseRun[testEntity.referenceCase] = { [params.planId]: testEntity.objectId };
         }
       } else if (hasCannel) {
         // 一个取消 - 取消
@@ -497,7 +511,7 @@ export const updateTestRunDetail = async (
         type: TestType.Case,
       },
       limit: 9999,
-      select: ['id', 'caseStatus', 'caseExecutor'],
+      select: ['id', 'caseStatus', 'caseExecutor', 'caseRun'],
     });
 
     needUpdateCase = test.map(d => ({
@@ -509,6 +523,10 @@ export const updateTestRunDetail = async (
       caseExecutor: {
         ...d.caseExecutor,
         [params.planId]: needUpdateAttrs.executor?.[0],
+      },
+      caseRun: {
+        ...d.caseRun,
+        ...(caseRun[d.id] || {}),
       },
     }));
   }
@@ -637,15 +655,13 @@ export const getRepositoryTreeV2 = async (params: RepositoryTreePayload) => {
   return data;
 };
 
-// 获取测试用例的全部执行
-export const getCaseAllRuns = async caseId => {
+// 获取测试用例的测试执行
+export const getCaseAllRuns = async params => {
   const {
     data: { data },
   } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-query-case-run-record`, {
-    query: { type: TestType.Run, referenceCase: caseId },
-    offset: 0,
-    limit: 9999,
+    ...params,
     sessionToken: getSessionToken(),
   });
-  return data.list ?? [];
+  return data;
 };

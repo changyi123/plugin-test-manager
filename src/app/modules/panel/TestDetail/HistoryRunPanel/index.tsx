@@ -1,13 +1,13 @@
 import { Checkbox, Spin, Table, Tooltip } from 'antd';
 import dayjs from 'dayjs';
-import { groupBy } from 'lodash';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { StatusBadge } from '@/components/business/Status';
 import Field from '@/components/common/Field';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import { QuestionCircleFilled } from '@/icons';
 import { getCaseAllRuns } from '@/lib/api/item';
+import { TestType } from '@/lib/constants';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import { getRootContainer } from '@/lib/utils/helper';
@@ -16,9 +16,12 @@ import css from './index.less';
 
 const Execution: React.FC = () => {
   const { t } = useI18n();
-  const [testRuns, setTestRuns] = useState([]);
+  const [data, setData] = useState([]);
+  const [total, setTotal] = useState(0);
   const [checked, setChecked] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+
+  const [currentIndex, setCurrentIndex] = useState(1);
 
   const { testEntity } = useTestConfig();
 
@@ -91,42 +94,45 @@ const Execution: React.FC = () => {
     ];
   }, [t]);
 
-  const finallyRuns = useMemo(() => {
-    if (!checked) {
-      return testRuns;
-    }
-    const groupRuns = groupBy(testRuns, run => run?.linkedPlan?.objectId);
-    const list = Object.keys(groupRuns)
-      .map(key => {
-        const group = groupRuns[key];
-
-        group.sort((a, b) => (b.executeTime || 0) - (a.executeTime || 0));
-
-        return group?.[0];
-      })
-      .filter(Boolean);
-
-    return list;
-  }, [testRuns, checked]);
-
   const onChange = e => {
     setChecked(e.target.checked);
+    setCurrentIndex(1);
   };
 
-  useEffect(() => {
-    const fetch = async () => {
-      try {
-        setLoading(true);
-        const list = await getCaseAllRuns(testEntity?.objectId);
-        setTestRuns(list);
-      } finally {
-        setLoading(false);
+  const pageChange = page => {
+    setCurrentIndex(page);
+  };
+
+  const getRecords = useCallback(async () => {
+    try {
+      setLoading(true);
+
+      const params = {
+        limit: 10,
+        offset: (currentIndex - 1) * 10,
+      };
+      //checked为true，展示每个计划下最新的执行
+      if (checked) {
+        Object.assign(params, {
+          query: { type: TestType.Run, id: Object.values(testEntity?.caseRun || {}) },
+        });
+      } else {
+        Object.assign(params, {
+          query: { type: TestType.Run, referenceCase: testEntity?.objectId },
+        });
       }
-    };
-    if (testEntity?.objectId) {
-      fetch();
+
+      const { list, total } = await getCaseAllRuns(params);
+      setTotal(total);
+      setData(list);
+    } finally {
+      setLoading(false);
     }
-  }, [testEntity?.objectId]);
+  }, [testEntity, checked, currentIndex]);
+
+  useEffect(() => {
+    getRecords();
+  }, [getRecords]);
 
   return (
     <div className={css('execution-panel')}>
@@ -143,9 +149,19 @@ const Execution: React.FC = () => {
         <Table
           rowKey="objectId"
           columns={tableColumns}
-          dataSource={finallyRuns}
+          dataSource={data}
           scroll={{
             x: 'max-content',
+          }}
+          pagination={{
+            size: 'small',
+            showTotal(total) {
+              return `${t('common.tableTotal.0')} ${total} ${t('common.tableTotal.1')}`;
+            },
+            pageSizeOptions: ['10'],
+            current: currentIndex,
+            onChange: pageChange,
+            total: total,
           }}
         />
       </Spin>

@@ -38,6 +38,8 @@ export type BaseTestEntity = {
   caseStatus: Status['caseStatus'];
   /** 隔离测试计划下测试用例最新执行人 */
   caseExecutor: Record<string, unknown>;
+  /** 隔离测试计划下测试用例最新测试执行 */
+  caseRun: Record<string, unknown>;
   /** 测试执行关联测试用例实体 */
   referenceCase: string;
   /** 额外数据 */
@@ -81,7 +83,7 @@ export type BaseTestEntity = {
   workflowStatus?: { objectId: string; name: string; key: string };
 };
 
-type CaseFieldKeys = 'detail' | 'caseStatus' | 'caseExecutor' | 'repository';
+type CaseFieldKeys = 'detail' | 'caseStatus' | 'caseExecutor' | 'repository' | 'caseRun';
 type RunFieldKeys =
   | 'comments'
   | 'executor'
