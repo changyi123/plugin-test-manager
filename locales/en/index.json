@@ -528,6 +528,7 @@
         "editorItemTips": "No item editing permission at the moment, please check the item operation permission configuration or contact the administrator",
         "deleteItemTips": "No item deletion permission at the moment, please check the item operation permission configuration or contact the administrator",
         "addItemTips": "No item add permission at the moment, please check the item operation permission configuration or contact the administrator",
+        "noCanUpdateRunStateTips": "The selected test execution cannot change execution status",
         "updateRunStateTips": "Selected test execution status updated successfully",
         "updateDesigneeStateTips": "The selected test executor has been successfully updated",
         "notUpdateDesignee": "Cannot change executor of test case",

@@ -480,6 +480,7 @@
         "editorItemTips": "暂无事项编辑权限，请检查事项操作权限配置或联系管理员",
         "deleteItemTips": "暂无事项删除权限，请检查事项操作权限配置或联系管理员",
         "addItemTips": "暂无事项新增权限，请检查事项操作权限配置或联系管理员",
+        "noCanUpdateRunStateTips": "所选测试执行不能更改执行状态",
         "updateRunStateTips": "所选测试执行状态更新成功",
         "updateDesigneeStateTips": "所选测试执行人更新成功",
         "notUpdateDesignee": "不可对用例更改执行人",

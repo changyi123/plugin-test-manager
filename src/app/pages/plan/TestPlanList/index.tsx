@@ -122,7 +122,7 @@ const TestPlanList: React.FC<any> = () => {
         return (
           <div className={'test-plan-title-box'}>
             {ItemIcon && <ItemIcon className={'icon'} icon={rowData.itemType?.icon}></ItemIcon>}
-            <span>{rowData.name}</span>
+            <span className={cx('plan-name')}>{rowData.name}</span>
             <span
               className={cx('plan-table-title-menu')}
               onClick={e => {
