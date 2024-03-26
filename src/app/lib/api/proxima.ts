@@ -393,3 +393,21 @@ export const getWorkspaceRoleMembers = async (params: {
 
   return result;
 };
+
+// 获取空间列表
+export const getWorkspaces = async (params: {
+  pageIndex: number;
+  pageSize?: number;
+  keyword?: string;
+}) => {
+  const result = await fetch.$get(`/parse/api/workspaces`, {
+    params: {
+      keyword: params.keyword ?? '',
+      showCollected: false,
+      pageIndex: params.pageIndex,
+      pageSize: params.pageSize || 10,
+    },
+  });
+
+  return result;
+};

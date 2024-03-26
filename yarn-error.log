@@ -1,40 +1,30 @@
 Arguments: 
-  D:\software\nodejs\node.exe C:\Users\zbl91\AppData\Roaming\npm\node_modules\yarn\bin\yarn.js add @giteeteam/apps-team-app@latest
+  /Users/wushihao/.nvm/versions/node/v16.14.0/bin/node /Users/wushihao/.yarn/bin/yarn.js add dayjs swr recoil -S
 
 PATH: 
-  C:\Users\zbl91\AppData\Local\oh-my-posh;D:\software\vm pro\bin\;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;D:\software\Git\cmd;D:\software\Gow\bin;C:\Users\zbl91\AppData\Local\Programs\Microsoft VS Code Insiders\bin;D:\software\Bandizip\;D:\software\nvm;D:\software\nodejs;C:\Program Files\Docker\Docker\resources\bin;C:\ProgramData\DockerDesktop\version-bin;C:\Program Files (x86)\dotnet\;D:\software\GoLang\bin;D:\software\EasyShare\x86\;D:\software\EasyShare\x64\;C:\Program Files\dotnet\;D:\Code\xray\tutorial-js-cypress-cucumber\cucumber-json-formatter;C:\Users\zbl91\AppData\Local\pnpm;C:\Users\zbl91\scoop\shims;C:\Users\zbl91\AppData\Local\Microsoft\WindowsApps;C:\Users\zbl91\AppData\Roaming\npm;C:\Users\zbl91\AppData\Local\Microsoft\WindowsApps;D:\software\nvm;D:\software\nodejs;C:\Users\zbl91\go\bin;D:\software\Microsoft VS Code\bin;D:\software\Microsoft VS Code Insiders\bin;C:\Users\zbl91\AppData\Roaming\JumpServer\Client\;
+  /usr/local/opt/openssl/bin:/Users/wushihao/.yarn/bin:/Users/wushihao/.config/yarn/global/node_modules/.bin:/Users/wushihao/.yarn/bin:/Users/wushihao/.config/yarn/global/node_modules/.bin:/Users/wushihao/.nvm/versions/node/v16.14.0/bin:/opt/local/bin:/opt/local/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/Library/Apple/usr/bin:/Users/wushihao/.rvm/bin
 
 Yarn version: 
-  1.22.17
+  1.12.3
 
 Node version: 
   16.14.0
 
 Platform: 
-  win32 x64
+  darwin x64
 
 Trace: 
-  Error: https://registry.npmmirror.com/@giteeteam%2fapps-team-app: Not found
-      at Request.params.callback [as _callback] (C:\Users\zbl91\AppData\Roaming\npm\node_modules\yarn\lib\cli.js:67029:18)
-      at Request.self.callback (C:\Users\zbl91\AppData\Roaming\npm\node_modules\yarn\lib\cli.js:140883:22)
-      at Request.emit (node:events:520:28)
-      at Request.<anonymous> (C:\Users\zbl91\AppData\Roaming\npm\node_modules\yarn\lib\cli.js:141855:10)
-      at Request.emit (node:events:520:28)
-      at IncomingMessage.<anonymous> (C:\Users\zbl91\AppData\Roaming\npm\node_modules\yarn\lib\cli.js:141777:12)
-      at Object.onceWrapper (node:events:639:28)
-      at IncomingMessage.emit (node:events:532:35)
-      at endReadableNT (node:internal/streams/readable:1346:12)
-      at processTicksAndRejections (node:internal/process/task_queues:83:21)
+  Error: ENOENT: no such file or directory, copyfile '/Users/wushihao/Library/Caches/Yarn/v4/npm-ms-2.1.3-574c8138ce1d2b5861f0b44579dbadd60c6615b2/node_modules/ms/package.json' -> '/Users/wushihao/menu/code/plugin-test-manager/node_modules/eslint-module-utils/node_modules/ms/package.json'
 
 npm manifest: 
   {
     "name": "test-manager__bf73e61c-e15a-4461-a1f7-f940c2009332",
-    "version": "1.0.0",
+    "version": "4.8.1",
     "description": "",
     "private": true,
     "scripts": {
       "build": "cd src && cross-env NODE_OPTIONS=--max-old-space-size=4096 webpack --mode=production",
-      "build-package": "giteeteam-apps build -i ./src/trigger -c ./locales -o ./dist --no-zip --prod -c version.yml",
+      "build-package": "giteeteam-apps build -i ./src/trigger -c ./locales -o ./dist --no-zip --prod",
       "dev": "yarn start",
       "start": "cd src && webpack server --mode=development",
       "build-app": "sh ./build-app.sh",
@@ -68,6 +58,7 @@ npm manifest:
       "@types/react-dom": "^17.0.9",
       "@typescript-eslint/eslint-plugin": "^5.59.2",
       "@typescript-eslint/parser": "^5.59.2",
+      "@vue/preload-webpack-plugin": "^2.0.0",
       "ansi-colors": "^4.1.3",
       "autoprefixer": "^10.3.4",
       "babel-eslint": "10.1.0",
@@ -112,10 +103,12 @@ npm manifest:
     },
     "dependencies": {
       "@alienfast/i18next-loader": "^2.0.1",
-      "@ant-design/icons": "^4.7.0",
-      "@giteeteam/apps-team-api": "^0.4.9",
+      "@ant-design/icons": "^5.2.6",
+      "@giteeteam/apps-api": "^0.3.0",
+      "@giteeteam/apps-team-api": "^0.6.2",
       "@giteeteam/apps-team-components": "0.3.4-remove-editor-0.12",
       "@giteeteam/apps-team-theme": "^0.1.0",
+      "@giteeteam/proxima-sdk-js": "^0.7.1",
       "@nebulare/data": "^0.1.5",
       "@projectproxima/plugin-sdk": "^0.1.8",
       "@projectproxima/proxima-sdk-js": "^0.4.4",
@@ -126,6 +119,7 @@ npm manifest:
       "accept-language-parser": "^1.5.0",
       "ahooks": "3.1.9",
       "antd": "^5.7.3",
+      "apps-team-components-v1": "npm:@giteeteam/apps-team-components@1.0.12",
       "axios": "^0.21.4",
       "buffer": "^6.0.3",
       "classnames": "^2.3.1",
@@ -235,7 +229,7 @@ Lockfile:
       lodash "^4.17.15"
       rc-util "^5.9.4"
   
-  "@ant-design/icons@^5.2.2":
+  "@ant-design/icons@^5.2.2", "@ant-design/icons@^5.2.6":
     version "5.2.6"
     resolved "https://registry.npmmirror.com/@ant-design/icons/-/icons-5.2.6.tgz#2d4a9a37f531eb2a20cebec01d6fb69cf593900d"
     integrity sha512-4wn0WShF43TrggskBJPRqCD0fcHbzTYjnaoskdiJrVHg86yxoZ8ZUqsXvyn4WUqehRiFKnaclOhqk9w4Ui2KVw==
@@ -388,7 +382,7 @@ Lockfile:
     dependencies:
       "@babel/types" "^7.22.15"
   
-  "@babel/helper-module-imports@^7.0.0", "@babel/helper-module-imports@^7.22.15", "@babel/helper-module-imports@^7.22.5":
+  "@babel/helper-module-imports@^7.0.0", "@babel/helper-module-imports@^7.16.7", "@babel/helper-module-imports@^7.22.15", "@babel/helper-module-imports@^7.22.5":
     version "7.22.15"
     resolved "https://registry.npmmirror.com/@babel/helper-module-imports/-/helper-module-imports-7.22.15.tgz#16146307acdc40cc00c3b2c647713076464bdbf0"
     integrity sha512-0pYVBnDKZO2fnSPCrgM/6WMc7eS20Fbok+0r88fp+YtWVLZrp4CkafFGIp+W0VKw4a22sgebPT99y+FDNMdP4w==
@@ -1447,10 +1441,43 @@ Lockfile:
     dependencies:
       semver "^7.3.5"
   
+  "@emotion/babel-plugin@^11.11.0":
+    version "11.11.0"
+    resolved "https://registry.npmmirror.com/@emotion/babel-plugin/-/babel-plugin-11.11.0.tgz#c2d872b6a7767a9d176d007f5b31f7d504bb5d6c"
+    integrity sha512-m4HEDZleaaCH+XgDDsPF15Ht6wTLsgDTeR3WYj9Q/k76JtWhrJjcP4+/XlG8LGT/Rol9qUfOIztXeA84ATpqPQ==
+    dependencies:
+      "@babel/helper-module-imports" "^7.16.7"
+      "@babel/runtime" "^7.18.3"
+      "@emotion/hash" "^0.9.1"
+      "@emotion/memoize" "^0.8.1"
+      "@emotion/serialize" "^1.1.2"
+      babel-plugin-macros "^3.1.0"
+      convert-source-map "^1.5.0"
+      escape-string-regexp "^4.0.0"
+      find-root "^1.1.0"
+      source-map "^0.5.7"
+      stylis "4.2.0"
+  
+  "@emotion/cache@^11.11.0":
+    version "11.11.0"
+    resolved "https://registry.npmmirror.com/@emotion/cache/-/cache-11.11.0.tgz#809b33ee6b1cb1a625fef7a45bc568ccd9b8f3ff"
+    integrity sha512-P34z9ssTCBi3e9EI1ZsWpNHcfY1r09ZO0rZbRO2ob3ZQMnFI35jB536qoXbkdesr5EUhYi22anuEJuyxifaqAQ==
+    dependencies:
+      "@emotion/memoize" "^0.8.1"
+      "@emotion/sheet" "^1.2.2"
+      "@emotion/utils" "^1.2.1"
+      "@emotion/weak-memoize" "^0.3.1"
+      stylis "4.2.0"
+  
   "@emotion/hash@^0.8.0":
     version "0.8.0"
     resolved "https://registry.npmmirror.com/@emotion/hash/-/hash-0.8.0.tgz#bbbff68978fefdbe68ccb533bc8cbe1d1afb5413"
     integrity sha512-kBJtf7PH6aWwZ6fka3zQ0p6SBYzx4fl1LoZXE2RrnYST9Xljm7WfKJrU4g/Xr3Beg72MLrp1AWNUmuYJTL7Cow==
+  
+  "@emotion/hash@^0.9.1":
+    version "0.9.1"
+    resolved "https://registry.npmmirror.com/@emotion/hash/-/hash-0.9.1.tgz#4ffb0055f7ef676ebc3a5a91fb621393294e2f43"
+    integrity sha512-gJB6HLm5rYwSLI6PQa+X1t5CFGrv1J1TWG+sOyMCeKz2ojaj6Fnl/rZEspogG+cvqbt4AE/2eIyD2QfLKTBNlQ==
   
   "@emotion/is-prop-valid@^1.1.0":
     version "1.2.1"
@@ -1464,6 +1491,36 @@ Lockfile:
     resolved "https://registry.npmmirror.com/@emotion/memoize/-/memoize-0.8.1.tgz#c1ddb040429c6d21d38cc945fe75c818cfb68e17"
     integrity sha512-W2P2c/VRW1/1tLox0mVUalvnWXxavmv/Oum2aPsRcoDJuob75FC3Y8FbpfLwUegRcxINtGUMPq0tFCvYNTBXNA==
   
+  "@emotion/react@^11.11.1":
+    version "11.11.3"
+    resolved "https://registry.npmmirror.com/@emotion/react/-/react-11.11.3.tgz#96b855dc40a2a55f52a72f518a41db4f69c31a25"
+    integrity sha512-Cnn0kuq4DoONOMcnoVsTOR8E+AdnKFf//6kUWc4LCdnxj31pZWn7rIULd6Y7/Js1PiPHzn7SKCM9vB/jBni8eA==
+    dependencies:
+      "@babel/runtime" "^7.18.3"
+      "@emotion/babel-plugin" "^11.11.0"
+      "@emotion/cache" "^11.11.0"
+      "@emotion/serialize" "^1.1.3"
+      "@emotion/use-insertion-effect-with-fallbacks" "^1.0.1"
+      "@emotion/utils" "^1.2.1"
+      "@emotion/weak-memoize" "^0.3.1"
+      hoist-non-react-statics "^3.3.1"
+  
+  "@emotion/serialize@^1.1.2", "@emotion/serialize@^1.1.3":
+    version "1.1.3"
+    resolved "https://registry.npmmirror.com/@emotion/serialize/-/serialize-1.1.3.tgz#84b77bfcfe3b7bb47d326602f640ccfcacd5ffb0"
+    integrity sha512-iD4D6QVZFDhcbH0RAG1uVu1CwVLMWUkCvAqqlewO/rxf8+87yIBAlt4+AxMiiKPLs5hFc0owNk/sLLAOROw3cA==
+    dependencies:
+      "@emotion/hash" "^0.9.1"
+      "@emotion/memoize" "^0.8.1"
+      "@emotion/unitless" "^0.8.1"
+      "@emotion/utils" "^1.2.1"
+      csstype "^3.0.2"
+  
+  "@emotion/sheet@^1.2.2":
+    version "1.2.2"
+    resolved "https://registry.npmmirror.com/@emotion/sheet/-/sheet-1.2.2.tgz#d58e788ee27267a14342303e1abb3d508b6d0fec"
+    integrity sha512-0QBtGvaqtWi+nx6doRwDdBIzhNdZrXUppvTM4dtZZWEGTXL/XE/yJxLMGlDT1Gt+UHH5IX1n+jkXyytE/av7OA==
+  
   "@emotion/stylis@^0.8.4":
     version "0.8.5"
     resolved "https://registry.npmmirror.com/@emotion/stylis/-/stylis-0.8.5.tgz#deacb389bd6ee77d1e7fcaccce9e16c5c7e78e04"
@@ -1473,6 +1530,26 @@ Lockfile:
     version "0.7.5"
     resolved "https://registry.npmmirror.com/@emotion/unitless/-/unitless-0.7.5.tgz#77211291c1900a700b8a78cfafda3160d76949ed"
     integrity sha512-OWORNpfjMsSSUBVrRBVGECkhWcULOAJz9ZW8uK9qgxD+87M7jHRcvh/A96XXNhXTLmKcoYSQtBEX7lHMO7YRwg==
+  
+  "@emotion/unitless@^0.8.1":
+    version "0.8.1"
+    resolved "https://registry.npmmirror.com/@emotion/unitless/-/unitless-0.8.1.tgz#182b5a4704ef8ad91bde93f7a860a88fd92c79a3"
+    integrity sha512-KOEGMu6dmJZtpadb476IsZBclKvILjopjUii3V+7MnXIQCYh8W3NgNcgwo21n9LXZX6EDIKvqfjYxXebDwxKmQ==
+  
+  "@emotion/use-insertion-effect-with-fallbacks@^1.0.1":
+    version "1.0.1"
+    resolved "https://registry.npmmirror.com/@emotion/use-insertion-effect-with-fallbacks/-/use-insertion-effect-with-fallbacks-1.0.1.tgz#08de79f54eb3406f9daaf77c76e35313da963963"
+    integrity sha512-jT/qyKZ9rzLErtrjGgdkMBn2OP8wl0G3sQlBb3YPryvKHsjvINUhVaPFfP+fpBcOkmrVOVEEHQFJ7nbj2TH2gw==
+  
+  "@emotion/utils@^1.2.1":
+    version "1.2.1"
+    resolved "https://registry.npmmirror.com/@emotion/utils/-/utils-1.2.1.tgz#bbab58465738d31ae4cb3dbb6fc00a5991f755e4"
+    integrity sha512-Y2tGf3I+XVnajdItskUCn6LX+VUDmP6lTL4fcqsXAv43dnlbZiuW4MWQW38rW/BVWSE7Q/7+XQocmpnRYILUmg==
+  
+  "@emotion/weak-memoize@^0.3.1":
+    version "0.3.1"
+    resolved "https://registry.npmmirror.com/@emotion/weak-memoize/-/weak-memoize-0.3.1.tgz#d0fce5d07b0620caa282b5131c297bb60f9d87e6"
+    integrity sha512-EsBwpc7hBUJWAsNPBmJy4hxWx12v6bshQsldrVmjxJoc3isbxhOrF2IcCpaXxfvq03NwkI7sbsOLXbYuqF/8Ww==
   
   "@esbuild/android-arm64@0.18.20":
     version "0.18.20"
@@ -1616,6 +1693,13 @@ Lockfile:
     resolved "https://registry.npmmirror.com/@eslint/js/-/js-8.49.0.tgz#86f79756004a97fa4df866835093f1df3d03c333"
     integrity sha512-1S8uAY/MTJqVx0SC4epBq+N2yhuwtNwLbJYNZyhL2pO1ZVKn5HFXav5T41Ryzy9K9V7ZId2JB2oy/W4aCd9/2w==
   
+  "@giteeteam/apps-api@^0.3.0":
+    version "0.3.0"
+    resolved "https://registry.npmmirror.com/@giteeteam/apps-api/-/apps-api-0.3.0.tgz#c2831ebe528e648e4d74a4cdddb1b1d4dfbde890"
+    integrity sha512-PRQ6IqjEy26P4QJd7+kXTOIcA9FUa3mWqcKM1SntxdLHSNmqpuQecAGCMsmoltp408TtvOgFe2bND4raRyTWag==
+    dependencies:
+      axios "^0.27.2"
+  
   "@giteeteam/apps-cli@^0.5.5":
     version "0.5.6"
     resolved "https://registry.npmmirror.com/@giteeteam/apps-cli/-/apps-cli-0.5.6.tgz#56d73aac3809aa8aa775cf37b3c61d8f2487a867"
@@ -1653,12 +1737,12 @@ Lockfile:
       lodash "^4.17.21"
       yaml "^2.1.1"
   
-  "@giteeteam/apps-team-api@^0.4.9":
-    version "0.4.10"
-    resolved "https://registry.npmmirror.com/@giteeteam/apps-team-api/-/apps-team-api-0.4.10.tgz#2a5159355b8bc8966ad94bc7453a9a3c9686ce41"
-    integrity sha512-hIt+7X94FvLptoswkMnELY5vMegLLCyTJgg8j1tng36Th4ioR+5rCxygCYCX0lpB/oEbEERMSDTU90wKG8PAqQ==
+  "@giteeteam/apps-team-api@^0.6.2":
+    version "0.6.2"
+    resolved "https://registry.npmmirror.com/@giteeteam/apps-team-api/-/apps-team-api-0.6.2.tgz#df3136a170c3d1c4ca603483bef363d725ef017d"
+    integrity sha512-2NsVzkR4gw/GXXMPF/0dOMr7VsZkdW3j2C6UUkefhEzoyCUDlIULasNMYabFbnpH2EMohrLn1AMOQSyxaRTfZw==
     dependencies:
-      axios "^0.27.2"
+      "@giteeteam/apps-api" "^0.3.0"
   
   "@giteeteam/apps-team-components@0.3.4-remove-editor-0.12":
     version "0.3.4-remove-editor-0.12"
@@ -1696,6 +1780,11 @@ Lockfile:
     version "0.1.0"
     resolved "https://registry.npmmirror.com/@giteeteam/apps-team-theme/-/apps-team-theme-0.1.0.tgz#6bae8bce037539040832fb77c0e3e7fd707fa49c"
     integrity sha512-ERphFe0k3H0hxlqekfrvHwMNySLUFTaXzXVhzvYdmQ51fyDpphTCSRVStfl6rFCvKTyKBhFm9Os0mlKATzh8xg==
+  
+  "@giteeteam/proxima-sdk-js@^0.7.1":
+    version "0.7.1"
+    resolved "https://registry.npmmirror.com/@giteeteam/proxima-sdk-js/-/proxima-sdk-js-0.7.1.tgz#a215f8f72b5ec3647eafaa88a92aab26ae402860"
+    integrity sha512-fLE3bpfXoxMTyqkdIsFmO9ulR/HFJLmeOTM54Cjn+RNMuy6JDTzArl6AzeImqYZ8G0EKiH44NO3+ggl6mMQGPA==
   
   "@humanwhocodes/config-array@^0.11.11":
     version "0.11.11"
@@ -2612,6 +2701,11 @@ Lockfile:
       "@typescript-eslint/types" "5.62.0"
       eslint-visitor-keys "^3.3.0"
   
+  "@vue/preload-webpack-plugin@^2.0.0":
+    version "2.0.0"
+    resolved "https://registry.npmmirror.com/@vue/preload-webpack-plugin/-/preload-webpack-plugin-2.0.0.tgz#a43bfc087e91f7d0efb0086100148f4b16437b68"
+    integrity sha512-RoorRB50WehYbsiWu497q8egZBYlrvOo9KBUG41uth4O023Cbs+7POLm9uw2CAiViBAIhvpw1Y4w4i+MZxOfXw==
+  
   "@webassemblyjs/ast@1.11.6", "@webassemblyjs/ast@^1.11.5":
     version "1.11.6"
     resolved "https://registry.npmmirror.com/@webassemblyjs/ast/-/ast-1.11.6.tgz#db046555d3c413f8966ca50a95176a0e2c642e24"
@@ -3044,6 +3138,16 @@ Lockfile:
       normalize-path "^3.0.0"
       picomatch "^2.0.4"
   
+  "apps-team-components-v1@npm:@giteeteam/apps-team-components@1.0.12":
+    version "1.0.12"
+    resolved "https://registry.npmmirror.com/@giteeteam/apps-team-components/-/apps-team-components-1.0.12.tgz#d44be120b722bb26e330d78b551e2c310b2b1dcf"
+    integrity sha512-LNzGzD88G34Z4Jtdc2AnNRDleFuf4Yte9yTZqxaObDGpwvAWAb3QdpCeA4TnVZ78R5lM3ZKHN2VqHaL3OV/p1w==
+    dependencies:
+      "@emotion/cache" "^11.11.0"
+      "@emotion/react" "^11.11.1"
+      debug "^4.3.4"
+      lodash-es "^4.17.21"
+  
   archiver-utils@^2.1.0:
     version "2.1.0"
     resolved "https://registry.npmmirror.com/archiver-utils/-/archiver-utils-2.1.0.tgz#e8a460e94b693c3e3da182a098ca6285ba9249e2"
@@ -3356,6 +3460,15 @@ Lockfile:
     integrity sha512-36babpjra5m3gca44V6tSTomeBlPA7cHUynrE2WiQIm3rEGD9xy28MKsx5IdO45EbnpJY7Jrgd00C6Dwt/l/2Q==
     dependencies:
       "@babel/helper-module-imports" "^7.0.0"
+  
+  babel-plugin-macros@^3.1.0:
+    version "3.1.0"
+    resolved "https://registry.npmmirror.com/babel-plugin-macros/-/babel-plugin-macros-3.1.0.tgz#9ef6dc74deb934b4db344dc973ee851d148c50c1"
+    integrity sha512-Cg7TFGpIr01vOQNODXOOaGz2NpCU5gl8x1qJFbb6hbZxR7XrcE2vtbAsTAbJ7/xwJtUuJEw8K8Zr/AE0LHlesg==
+    dependencies:
+      "@babel/runtime" "^7.12.5"
+      cosmiconfig "^7.0.0"
+      resolve "^1.19.0"
   
   babel-plugin-polyfill-corejs2@^0.4.5:
     version "0.4.5"
@@ -4005,7 +4118,7 @@ Lockfile:
       meow "^8.1.2"
       split2 "^3.2.2"
   
-  convert-source-map@^1.7.0:
+  convert-source-map@^1.5.0, convert-source-map@^1.7.0:
     version "1.9.0"
     resolved "https://registry.npmmirror.com/convert-source-map/-/convert-source-map-1.9.0.tgz#7faae62353fb4213366d0ca98358d22e8368b05f"
     integrity sha512-ASFBup0Mz1uyiIjANan1jzLQami9z1PoYSZCiiYW2FczPbenXc45FZdBZLzOT+r6+iciuEModtmCti+hjaAk0A==
@@ -5425,6 +5538,11 @@ Lockfile:
     resolved "https://registry.npmmirror.com/find-matching-bracket/-/find-matching-bracket-1.0.3.tgz#f96a1dee39ec756c9798cc795760b9acec4924ac"
     integrity sha512-GZzxZa/G9gTIwV6MPuQcRL7utE2iWTmJuUgb8iAap7HcudnR8aSb1G/490lqtLyh6Seg+ZUidKoqP0z8SIOxzw==
   
+  find-root@^1.1.0:
+    version "1.1.0"
+    resolved "https://registry.npmmirror.com/find-root/-/find-root-1.1.0.tgz#abcfc8ba76f708c42a97b3d685b7e9450bfb9ce4"
+    integrity sha512-NKfW6bec6GfKc0SGx1e07QZY9PE99u0Bft/0rzSD5k3sO/vwkVUpDUKVm5Gpp5Ue3YfShPFTX2070tDs5kB9Ng==
+  
   find-up@^4.0.0, find-up@^4.1.0:
     version "4.1.0"
     resolved "https://registry.npmmirror.com/find-up/-/find-up-4.1.0.tgz#97afe7d6cdc0bc5928584b7c8d7b16e8a9aa5d19"
@@ -5865,7 +5983,7 @@ Lockfile:
     resolved "https://registry.npmmirror.com/hoist-non-react-statics/-/hoist-non-react-statics-2.5.5.tgz#c5903cf409c0dfd908f388e619d86b9c1174cb47"
     integrity sha512-rqcy4pJo55FTTLWt+bU8ukscqHeE/e9KWvsOW2b/a3afxQZhwkQdT1rPPCJ0rYXdj4vNcasY8zHTH+jF/qStxw==
   
-  hoist-non-react-statics@^3.0.0, hoist-non-react-statics@^3.1.0, hoist-non-react-statics@^3.3.0, hoist-non-react-statics@^3.3.2:
+  hoist-non-react-statics@^3.0.0, hoist-non-react-statics@^3.1.0, hoist-non-react-statics@^3.3.0, hoist-non-react-statics@^3.3.1, hoist-non-react-statics@^3.3.2:
     version "3.3.2"
     resolved "https://registry.npmmirror.com/hoist-non-react-statics/-/hoist-non-react-statics-3.3.2.tgz#ece0acaf71d62c2969c2ec59feff42a4b1a85b45"
     integrity sha512-/gGivxi8JPKWNm/W0jSmzcMPpfpPLc3dY/6GxhX2hQ9iGj3aDfklV4ET7NjKpSinLpJ5vafa9iiGIEZg10SfBw==
@@ -9759,6 +9877,11 @@ Lockfile:
       buffer-from "^1.0.0"
       source-map "^0.6.0"
   
+  source-map@^0.5.7:
+    version "0.5.7"
+    resolved "https://registry.npmmirror.com/source-map/-/source-map-0.5.7.tgz#8a039d2d1021d22d1ea14c80d8ea468ba2ef3fcc"
+    integrity sha512-LbrmJOMUSdEVxIKvdcJzQC+nQhe8FUZQTXQy6+I75skNgn3OoQ0DZA8YnFa7gp8tqtL3KPf1kmo0R5DoApeSGQ==
+  
   source-map@^0.6.0, source-map@^0.6.1, source-map@~0.6.0:
     version "0.6.1"
     resolved "https://registry.npmmirror.com/source-map/-/source-map-0.6.1.tgz#74722af32e9614e9c287a8d0bbde48b5e2f1a263"
@@ -10028,6 +10151,11 @@ Lockfile:
     version "0.0.10"
     resolved "https://registry.npmmirror.com/stylis-rule-sheet/-/stylis-rule-sheet-0.0.10.tgz#44e64a2b076643f4b52e5ff71efc04d8c3c4a430"
     integrity sha512-nTbZoaqoBnmK+ptANthb10ZRZOGC+EmTLLUxeYIuHNkEKcmKgXX1XWKkUBT2Ac4es3NybooPe0SmvKdhKJZAuw==
+  
+  stylis@4.2.0:
+    version "4.2.0"
+    resolved "https://registry.npmmirror.com/stylis/-/stylis-4.2.0.tgz#79daee0208964c8fe695a42fcffcac633a211a51"
+    integrity sha512-Orov6g6BB1sDfYgzWfTHDOxamtX1bE/zo104Dh9e6fqJ3PooipYyfJ0pUmrZO2wAvO8YbEyeFrkV91XTsGMSrw==
   
   stylis@^3.5.0:
     version "3.5.4"

@@ -27,4 +27,6 @@ export type WordTemplate = {
 export type CopyTestCasePayload = {
   caseIds: string[];
   fields: string[];
+  repository?: string;
+  workspaceKey?: string;
 };

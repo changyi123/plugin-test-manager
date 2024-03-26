@@ -89,6 +89,14 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
     setSelectedTestDetailIds(selectValue ?? []);
   }, [selectValue]);
 
+  useEffect(() => {
+    setSelectedWorkspaceKey(workspaceKey);
+    // 清空选中
+    setFolderCheckedKey(DEFAULT_CHECKED_KEY);
+    setFolderSearchValue('');
+    setSelectedTestDetailIds([]);
+  }, [workspaceKey]);
+
   const treeProps: any = useMemo(() => {
     return planId && treeType === 'plan'
       ? {
@@ -214,7 +222,7 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
         <FilterSearch
           ref={detailSearchRef}
           onSearch={setSearchParams}
-          className={cx('plan-page-layout-search')}
+          className={`${cx('plan-page-layout-search')} common-search-box`}
           extendFields={[]}
           fields={[]}
           testType={TestType.Case}

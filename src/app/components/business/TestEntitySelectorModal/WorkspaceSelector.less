@@ -1,0 +1,42 @@
+.workspace-selector-label {
+  position: absolute;
+  top: 4px;
+  color: var(--color-gray-9);
+}
+
+.workspace-selector-wrap {
+  position: relative;
+  margin-top: 16px;
+  margin-bottom: 16px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--color-gray-4);
+}
+
+.workspace-selector {
+  width: calc(100% - 80px);
+  margin-left: 80px;
+}
+
+.workspace-selector-dropdown {
+  max-height: 300px;
+  overflow: auto;
+}
+
+.workspace-selector-dropdown-text {
+  font-weight: 400;
+  font-size: 14px;
+  color: var(--color-gray-9);
+}
+
+.workspace-selector-dropdown-item {
+  padding: 5px 12px;
+  vertical-align: middle;
+  cursor: pointer;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+
+  &:hover {
+    background-color: #fafbfb;
+  }
+}

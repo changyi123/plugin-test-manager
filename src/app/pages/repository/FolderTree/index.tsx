@@ -635,7 +635,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         await updateRepository([needUpdateDragNode]);
       }
       await repositoryFolderTreeEvent.dispatch();
-      await proxima.execute('updateItemList');
+      await proxima.execute('updateItemList', { type: 'delete' });
     },
     [treeData, updateRepository, onFolderTreeChange],
   );
