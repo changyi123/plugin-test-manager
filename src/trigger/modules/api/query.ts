@@ -44,7 +44,11 @@ const overwriteIqlParamsWithSelect = select => {
     const fields = Array.from(
       new Set(
         select
-          .flatMap(key => (RewriteFieldKey[key] ? [TestFiledKeyMapping[key], key] : key))
+          .flatMap(key =>
+            RewriteFieldKey[key]
+              ? [TestFiledKeyMapping[key], key]
+              : TestFiledKeyMapping[key] ?? key,
+          )
           .filter(Boolean),
       ),
     );
