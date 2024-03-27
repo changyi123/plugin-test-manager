@@ -236,6 +236,7 @@ export const iqlRequest: IqlRequestType = async params => {
       fields = IQLUsefulFieldKeys,
       pagination: originalPagination,
     } = params;
+    console.info('iqlRequest params:', JSON.stringify(params));
 
     // 参数处理
     const query = cloneDeep(originalQuery) ?? {};
@@ -331,6 +332,7 @@ export const iqlRequest: IqlRequestType = async params => {
     };
 
     const testEntityList = appendLinkSourceField(items?.map(itemToTestEntity));
+    console.info('iqlRequest testEntityList:', JSON.stringify(testEntityList[0]));
 
     const result =
       typeof dataTransfer === 'function' ? await dataTransfer(testEntityList) : testEntityList;

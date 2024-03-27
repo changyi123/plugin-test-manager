@@ -6,9 +6,10 @@ import { GroupedVirtuoso } from 'react-virtuoso';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import emptyImg from '@/icons/svg/empty-data.png';
 import useI18n from '@/lib/hooks/useI18n';
+import { getRootContainer } from '@/lib/utils/helper';
 
 import { filterIgnoreTestCaseId, getCheckedByType, handleGroupPath } from './helper';
-import { useGetGroupNodeId, useGetVirtualScrollList } from './hooks';
+import { useCasePlanRule, useGetGroupNodeId, useGetVirtualScrollList } from './hooks';
 import cx from './VirtualScrollList.less';
 
 interface VirtualScrollListProps {
@@ -20,6 +21,7 @@ interface VirtualScrollListProps {
   current?: number;
   selectCaseIdsSet?: Set<string>;
   ignoreTestDetailIdsSet?: Set<string>;
+  disabledIdsSet?: Set<string>;
   setSelectCaseIdsSet?: (val?: Set<string>) => void;
   setCurrent?: (val: number) => void;
 }
@@ -32,6 +34,7 @@ const VirtualScrollList: React.FC<VirtualScrollListProps> = props => {
     caseListMap,
     current,
     ignoreTestDetailIdsSet,
+    disabledIdsSet,
     selectCaseIdsSet,
     setSelectCaseIdsSet,
     setCurrent,
@@ -40,6 +43,7 @@ const VirtualScrollList: React.FC<VirtualScrollListProps> = props => {
   const { groupArray, groups, totalCount } = useGetVirtualScrollList(group, current);
   const items = useMemo(() => [...caseListMap.values()].flat(), [caseListMap]);
   const { groupNodeMap } = useGetGroupNodeId(group, allCaseIds);
+  const { getToolTipFun } = useCasePlanRule();
 
   const groupContent = useCallback(
     index => {
@@ -60,7 +64,10 @@ const VirtualScrollList: React.FC<VirtualScrollListProps> = props => {
       return (
         <div className={cx('detail-list-box')}>
           <Checkbox
-            disabled={getCheckedByType(nodeCaseIds, ignoreTestDetailIdsSet)}
+            disabled={getCheckedByType(
+              nodeCaseIds,
+              new Set([...(ignoreTestDetailIdsSet || []), ...(disabledIdsSet || [])]),
+            )}
             indeterminate={getCheckedByType(
               filterIgnoreTestCaseId(new Set(nodeCaseIds), ignoreTestDetailIdsSet),
               selectCaseIdsSet,
@@ -71,7 +78,10 @@ const VirtualScrollList: React.FC<VirtualScrollListProps> = props => {
               new Set([...(selectCaseIdsSet ?? []), ...(ignoreTestDetailIdsSet ?? [])]),
             )}
             onChange={e => {
-              const ids = pullAll(clone(nodeCaseIds), [...(ignoreTestDetailIdsSet ?? [])]);
+              const ids = pullAll(clone(nodeCaseIds), [
+                ...(ignoreTestDetailIdsSet ?? []),
+                ...(disabledIdsSet ?? []),
+              ]);
               const set = new Set([...(selectCaseIdsSet ?? [])]);
               if (e.target.checked) {
                 setSelectCaseIdsSet(new Set(ids.concat([...set])));
@@ -89,11 +99,12 @@ const VirtualScrollList: React.FC<VirtualScrollListProps> = props => {
       );
     },
     [
-      groups,
       groupNodeMap,
+      groups,
       groupArray,
-      selectCaseIdsSet,
       ignoreTestDetailIdsSet,
+      selectCaseIdsSet,
+      disabledIdsSet,
       setSelectCaseIdsSet,
     ],
   );
@@ -113,20 +124,34 @@ const VirtualScrollList: React.FC<VirtualScrollListProps> = props => {
               }
               setSelectCaseIdsSet(set);
             }}
-            disabled={ignoreTestDetailIdsSet?.has(items?.[index]?.id)}
+            disabled={
+              ignoreTestDetailIdsSet?.has(items?.[index]?.id) ||
+              disabledIdsSet?.has(items?.[index]?.id)
+            }
             checked={
               selectCaseIdsSet?.has(items?.[index]?.id) ||
               ignoreTestDetailIdsSet?.has(items?.[index]?.id)
             }
           >
-            <OverflowTooltip className={cx('name')} title={items?.[index]?.name}>
+            <Tooltip
+              getPopupContainer={getRootContainer}
+              className={cx('name')}
+              title={getToolTipFun(items?.[index]?.workflowStatus?.objectId)(items?.[index]?.name)}
+            >
               {items?.[index]?.name}
-            </OverflowTooltip>
+            </Tooltip>
           </Checkbox>
         </div>
       );
     },
-    [ignoreTestDetailIdsSet, items, selectCaseIdsSet, setSelectCaseIdsSet],
+    [
+      disabledIdsSet,
+      getToolTipFun,
+      ignoreTestDetailIdsSet,
+      items,
+      selectCaseIdsSet,
+      setSelectCaseIdsSet,
+    ],
   );
 
   return (

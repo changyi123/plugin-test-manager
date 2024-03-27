@@ -177,7 +177,7 @@ export const useGetUserNameByName = (name: string) => {
 
 /** 获取所有的测试管理配置 */
 export const useAllTestConfigs = (
-  selectedFields = ['itemTypeMap', 'defectsMapping', 'workspaceKey'],
+  selectedFields = ['itemTypeMap', 'defectsMapping', 'workspaceKey', 'testRunAction'],
 ) => {
   const { data: testConfigs } = useRequest(async () => getAllTestConfigs(selectedFields), {
     cacheTime: 99999999999,

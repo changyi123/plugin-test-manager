@@ -17,6 +17,9 @@
       "report": "测试报告",
       "plan": "测试计划"
     },
+    "whiteCaseRule": "状态不属于“{{statusNames}}”，不允许规划",
+    "blackCaseRule": "状态属于“{{statusNames}}”，不允许规划",
+    "casePlanRule": "{{statusName}}状态的用例不允许规划",
     "noPermissionToAccess": "当前用户无权限访问",
     "pleaseInputContent": "请输入内容",
     "updateAt": "修改时间",
@@ -239,6 +242,10 @@
         "description": "配置当前空间在用例执行时的约束",
         "caseToPlan": "用例分配授权",
         "placeholder": "请选择用户",
+        "caseToPlanPlaceholder": "请选择状态",
+        "caseToPlanRule": "用例规划限制",
+        "radioBlackLabel": "不允许被规划的用例工作流状态",
+        "radioWhiteLabel": "允许被规划的用例工作流状态",
         "testersCannotExecuteOtherCases": "测试人员不可执行他人测试用例",
         "unassignedCaseCannotBeExecuted": "未分配的测试用例无法执行"
       },
@@ -480,6 +487,7 @@
         "editorItemTips": "暂无事项编辑权限，请检查事项操作权限配置或联系管理员",
         "deleteItemTips": "暂无事项删除权限，请检查事项操作权限配置或联系管理员",
         "addItemTips": "暂无事项新增权限，请检查事项操作权限配置或联系管理员",
+        "noCanUpdateRunStateTips": "所选测试执行不能更改执行状态",
         "updateRunStateTips": "所选测试执行状态更新成功",
         "updateDesigneeStateTips": "所选测试执行人更新成功",
         "notUpdateDesignee": "不可对用例更改执行人",
@@ -684,6 +692,13 @@
           "popConfirmTips": "当前操作会移除该测试执行，是否继续执行？",
           "addTestExecution": "新增测试执行任务",
           "tooltip": "该测试用例的运行包含以下执行轮次"
+        },
+        "historyRunPanel": {
+          "runRecord": "执行记录",
+          "onlyShowLatelyRun": "仅显示最新执行",
+          "runTip": "勾选时仅展示每个测试计划中当前用例的最新执行结果",
+          "latestExecutionStatus": "最新执行状态",
+          "executeTime": "执行时间"
         }
       },
       "testExecution": {

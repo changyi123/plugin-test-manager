@@ -64,12 +64,15 @@ const ResizableHeaderCell = ({ onResize, resizable, width, onClick, onSort, ...r
 
 const OverflowTooltipBodyCell = props => {
   const tdProps = pick(props, ['rowSpan', 'colSpan', 'style', 'title', 'className', 'onClick']);
-  if (!props.overflowEllipsis) return <td {...tdProps}>{props.children}</td>;
+  if (!props.overflowEllipsis) return <td {...tdProps}>{props.children.filter(Boolean)?.[0]}</td>;
 
   return (
     <td {...tdProps}>
-      <OverflowTooltip overlayClassName="global_arrow_tooltip_overflow" title={props.children}>
-        {props.children}
+      <OverflowTooltip
+        overlayClassName="global_arrow_tooltip_overflow"
+        title={props.children.filter(Boolean)?.[0]}
+      >
+        {props.children.filter(Boolean)?.[0]}
       </OverflowTooltip>
     </td>
   );

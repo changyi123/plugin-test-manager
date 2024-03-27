@@ -411,3 +411,35 @@ export const getWorkspaces = async (params: {
 
   return result;
 };
+
+/** 获取空间下某类型的状态列表 */
+export const getStatusByWorkspaceAndItemType = async (params: {
+  workspaceId: string;
+  itemTypeKey: string;
+  keyword?: string;
+}) => {
+  const itemType = await getItemTypeByKey(params.itemTypeKey);
+  const result = await fetch
+    .$post(`/parse/api/workflows/search`, [
+      {
+        workspace: { objectId: params.workspaceId },
+        itemType,
+      },
+    ])
+    .then(data => {
+      const linkedStartNodeId = data?.[0]?.transitions?.find(t => t.source?.key === 'start_node')
+        ?.target?.key;
+      return data?.[0]?.nodes
+        ?.filter(
+          node => node?.name?.includes(params?.keyword?.trim() ?? '') && node.id !== 'start_node',
+        )
+        ?.map(node => {
+          if (node.statusId === linkedStartNodeId) {
+            node.isStartStatus = true;
+          }
+          return node;
+        });
+    });
+
+  return result ?? [];
+};

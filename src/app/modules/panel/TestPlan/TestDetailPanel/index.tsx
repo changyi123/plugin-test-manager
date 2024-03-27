@@ -31,7 +31,8 @@ import { alert, getRootContainer } from '@/lib/utils/helper';
 
 const Test = () => {
   const { t } = useI18n();
-  const { testEntity, workspace } = useTestConfig();
+  const { testEntity, workspace, config } = useTestConfig();
+  const { statusList, listType } = config;
   const { createItemUseModal, getCreatePermission } = useBaseAction();
   const tableActionRef = React.useRef<ActionType>();
   const selectorModalRef = React.useRef<SelectorActionType>();
@@ -185,6 +186,11 @@ const Test = () => {
     });
   }, [createExecution, testEntity.objectId, tableActionRef, t]);
 
+  const existStartNode = useMemo(() => statusList?.find(s => s.isStartStatus), [statusList]);
+  const enableCreateCase = useMemo(() => {
+    return listType === 'black' ? !existStartNode : statusList?.length && existStartNode;
+  }, [listType, existStartNode, statusList?.length]);
+
   // 添加测试用例菜单
   const testDetailMenuList = useMemo(() => {
     return [
@@ -222,7 +228,10 @@ const Test = () => {
       },
       {
         title: t('common.addTestCase'),
-        disabled: getCreatePermission(TestType.Case),
+        disabled: getCreatePermission(TestType.Case) || !enableCreateCase,
+        extraTitle: enableCreateCase
+          ? t('common.addTestCase')
+          : t('common.casePlanRule', { statusName: existStartNode?.name }),
         async onClick() {
           const { testEntityList } = await createItemUseModal({
             hideMessage: true,

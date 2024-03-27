@@ -24,6 +24,10 @@ export type TestConfigContextType = {
     isolateTestType: TestType[];
     // 状态
     statuses: StatusType[];
+    // 限制状态列表类型
+    listType?: string;
+    // 限制状态列表
+    statusList?: { statusId: string; name: string; isStartStatus?: boolean }[];
   };
   workspace?: Workspace;
   testEntity?: BaseTestEntity;

@@ -11,3 +11,4 @@ test_manager*.zip
 manifest.yml
 release/*
 stats.json
+cache

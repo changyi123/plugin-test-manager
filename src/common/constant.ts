@@ -105,6 +105,8 @@ export const TestFiledKeyMapping = {
   executor: 'r_test_manager_executor',
   sortIndex: 'r_test_manager_sortIndex',
   executeCount: 'r_test_manager_executeCount',
+  executeTime: 'r_test_manager_executeTime',
+  caseRun: 'r_test_manager_caseRun',
 
   // 以下字段以字符串形式存入，存入前需要 stringify，返回需要 parse
   detail: 'r_test_manager_detail',
@@ -135,6 +137,8 @@ export const BuiltinFieldNameMapping = {
   executor: 'test_manager_executor',
   sortIndex: 'test_manager_sortIndex',
   executeCount: 'test_manager_executeCount',
+  executeTime: 'r_test_manager_executeTime',
+  caseRun: 'test_manager_caseRun',
 
   // 不需要拼接
   runDetail: 'test_manager_runDetail',

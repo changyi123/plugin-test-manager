@@ -18,7 +18,7 @@ import { TabsComponentBaseProps } from './type';
 
 const { ItemIcon } = components.Components.Common;
 
-import { clone, isEqual } from 'lodash';
+import { clone } from 'lodash';
 
 import cx from './TestStep.less';
 
@@ -113,18 +113,23 @@ const TestStep: React.FC<TestStepProps> = props => {
   }, [handleStatusChangeBySteps]);
 
   // 实际结果变更
-  const handleActualResultChange = useCallback(
-    async (stepId, actualResult) => {
-      needUpdateStepsDataRef.current = (needUpdateStepsDataRef.current ?? runSteps).map(step =>
-        step.id === stepId ? { ...step, actualResult } : step,
-      );
-    },
-    [runSteps],
-  );
+  const handleActualResultChange = useCallback(async (stepId, actualResult) => {
+    needUpdateStepsDataRef.current = {
+      ...(needUpdateStepsDataRef.current || {}),
+      [stepId]: actualResult,
+    };
+  }, []);
 
+  // 更新测试执行的执行结果
   event.useSubscription(async () => {
-    if (isEqual(needUpdateStepsDataRef.current, runSteps)) return;
-    await updateTestRunDetail(testRunEntity, { steps: needUpdateStepsDataRef.current });
+    if (needUpdateStepsDataRef.current) {
+      await updateTestRunDetail(testRunEntity, {
+        steps: runSteps.map(step => ({
+          ...step,
+          actualResult: needUpdateStepsDataRef.current?.[step.id],
+        })),
+      });
+    }
     needUpdateStepsDataRef.current = null;
   });
 

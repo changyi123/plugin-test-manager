@@ -20,6 +20,7 @@ import {
   QueryLinkedTestEntityPayload,
   QueryTestEntityPayload,
 } from '../../../common/types/api';
+import { RewriteFieldKey } from '../../../common/utils/dataTransfer';
 import { buildPaginationResponse, buildResponse, getReqInfoFromVMRuntime } from '../../lib/apiUtil';
 import { concatIqlRequestFields, toArray } from '../../lib/helper';
 import { iqlRequest } from '../../lib/iqlRequest';
@@ -39,14 +40,28 @@ const overwriteIqlParamsWithOnlySelectId = onlySelectId => {
 
 const overwriteIqlParamsWithSelect = select => {
   if (Array.isArray(select)) {
+    // status字段在测试管理有重写，所以此处做下兼容
     const fields = Array.from(
-      new Set(select.map(key => TestFiledKeyMapping[key] ?? key).filter(Boolean)),
+      new Set(
+        select
+          .flatMap(key =>
+            RewriteFieldKey[key]
+              ? [TestFiledKeyMapping[key], key]
+              : TestFiledKeyMapping[key] ?? key,
+          )
+          .filter(Boolean),
+      ),
     );
 
     return {
       // select 只能筛选测试用例实体的 key
       dataTransfer: data => {
-        return data.map(item => pick(item, select));
+        return data.map(item =>
+          pick(
+            item,
+            select.flatMap(key => (RewriteFieldKey[key] ? [RewriteFieldKey[key], key] : key)),
+          ),
+        );
       },
       fields,
     };
@@ -176,4 +191,96 @@ export const queryCaseIdByStatus = async () => {
     .map(item => item.id);
 
   return buildResponse(ret);
+};
+
+/** 查询测试用例的执行记录 */
+export const queryCaseRunRecords = async () => {
+  // 查询测试用例关联的测试执行
+  const queryRuns = async () => {
+    const { body } = getReqInfoFromVMRuntime<QueryTestEntityPayload>();
+
+    const { query, fields, limit, offset, ascending, descending } = body;
+
+    return iqlRequest({
+      query,
+      fields: concatIqlRequestFields(fields),
+      pagination: { limit, offset },
+      ascending,
+      descending,
+    });
+  };
+
+  // 查询测试执行关联的测试执行任务
+  const queryExecutions = async runIds => {
+    return iqlRequest({
+      linkQuery: {
+        sourceIds: runIds,
+        linkType: TestLinkType.RunLinkExecution,
+        destinationType: TestType.Execution,
+      },
+      fields: [
+        SystemFieldNameMapping.id,
+        SystemFieldNameMapping.name,
+        TestFiledKeyMapping.linkItems,
+      ],
+      pagination: { limit: InfinityLimit },
+    });
+  };
+
+  // 查询测试执行任务关联的测试执行计划
+  const queryPlans = async executionIds => {
+    return iqlRequest({
+      linkQuery: {
+        sourceIds: executionIds,
+        linkType: TestLinkType.ExecutionLinkPlan,
+        destinationType: TestType.Plan,
+      },
+      fields: [SystemFieldNameMapping.id, SystemFieldNameMapping.name],
+      pagination: { limit: InfinityLimit },
+    });
+  };
+
+  const arrayToMap = array => {
+    if (!Array.isArray(array)) return {};
+    return array.reduce((result, current) => {
+      result[current.objectId] = current;
+      return result;
+    }, {});
+  };
+  try {
+    // 查询测试执行
+    const runs = await queryRuns();
+
+    const runIds = runs?.data?.list.map(run => run.objectId);
+
+    if (!runIds.length) return runs;
+
+    // 查询测试执行任务
+    const executions = await queryExecutions(runIds);
+
+    const executionIds = executions?.data?.list?.map(execution => execution.objectId);
+
+    // 查询测试计划
+    const plans = await queryPlans(executionIds);
+    const executionMap = arrayToMap(executions?.data?.list);
+
+    const planMap = arrayToMap(plans?.data?.list);
+
+    runs.data.list = runs.data.list.map(run => {
+      const executionId = run?.linkItems?.[0];
+      const linkedExecution = executionMap[executionId];
+
+      const planId = linkedExecution?.linkItems?.[0];
+      const linkedPlan = planMap[planId];
+
+      return {
+        linkedExecution,
+        linkedPlan,
+        ...run,
+      };
+    });
+    return runs;
+  } catch (err) {
+    return buildPaginationResponse(err);
+  }
 };

@@ -45,6 +45,8 @@ modules:
       function: api-query-linked-test-entity-function
     - key: api-query-case-by-status
       function: api-query-case-by-status-function
+    - key: api-query-case-run-record
+      function: api-query-case-run-record-function
     # 批量操作（删除，更新，创建测试执行）
     - key: api-batch-delete
       function: api-batch-delete-function
@@ -168,6 +170,8 @@ modules:
       handler: api.queryLinkedTestEntity
     - key: api-query-case-by-status-function
       handler: api.queryCaseIdByStatus
+    - key: api-query-case-run-record-function
+      handler: api.queryCaseRunRecords
 
      # api batch
     - key: api-batch-delete-function
@@ -239,7 +243,7 @@ modules:
       title: 测试管理
       loadType: Micro
       route: /panelModule
-      defaultActive: true
+      defaultActive: false
   adminPage:
     - key: test-config
       resource: main
@@ -373,6 +377,10 @@ modules:
       name: test_manager_caseExecutor
       description: 测试管理内置字段-用例最新执行人（勿删改）
       type: _self:es_object
+    - key: caseRun
+      name: test_manager_caseRun
+      description: 测试管理内置字段-用例最新执行的测试执行（勿删改）
+      type: _self:es_object
     - key: repository
       name: test_manager_repository
       description: 测试管理内置字段-测试用例库模块（勿删改）
@@ -393,6 +401,10 @@ modules:
       name: test_manager_executeCount
       description: 测试管理内置字段-测试执行状态执行通过或者失败统计次数（勿删改）
       type: Number
+    - key: executeTime
+      name: test_manager_executeTime
+      description: 测试管理内置字段-测试执行执行时间（勿删改）
+      type: Date
     # 下面字段也保存入 es，方便 iql 直接查询。以字符串类型存储。防止 es 创建索引时定义默认类型，防止后续更新是出现类型错误
     - key: detail
       name: test_manager_detail

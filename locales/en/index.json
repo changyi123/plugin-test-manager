@@ -17,6 +17,9 @@
       "plan": "Test Plan",
       "report": "Test Report"
     },
+    "whiteCaseRule": "Status does not belong to '{{statusNames}}', planning is not allowed",
+    "blackCaseRule": "Status belong to '{{statusNames}}', planning is not allowed",
+    "casePlanRule": "Planning is not allowed for use cases in {{statusName}} status",
     "pleaseInputContent": "Please enter content",
     "updateAt": "updateAt",
     "success": "Success",
@@ -215,7 +218,11 @@
         "title": "Test case execution configuration",
         "description": "Configure the constraints of the current workspace during test case execution",
         "caseToPlan": "Test case assignment authorization",
+        "caseToPlanRule": "Test case planning rule",
         "placeholder": "Please select a user",
+        "caseToPlanPlaceholder": "Please select a status",
+        "radioBlackLabel": "Workflow states for use cases that are not allowed to be planned",
+        "radioWhiteLabel": "Workflow states for use cases that are allowed to be planned",
         "testersCannotExecuteOtherCases": "Testers may not execute others test cases",
         "unassignedCaseCannotBeExecuted": "Unassigned test cases cannot be executed"
       },
@@ -528,6 +535,7 @@
         "editorItemTips": "No item editing permission at the moment, please check the item operation permission configuration or contact the administrator",
         "deleteItemTips": "No item deletion permission at the moment, please check the item operation permission configuration or contact the administrator",
         "addItemTips": "No item add permission at the moment, please check the item operation permission configuration or contact the administrator",
+        "noCanUpdateRunStateTips": "The selected test execution cannot change execution status",
         "updateRunStateTips": "Selected test execution status updated successfully",
         "updateDesigneeStateTips": "The selected test executor has been successfully updated",
         "notUpdateDesignee": "Cannot change executor of test case",
@@ -740,6 +748,13 @@
           "popConfirmTips": "The current operation will remove the test execution, continue to execute? ",
           "addTestExecution": "New test execution task",
           "tooltip": "The test case runs are comprised of the following execution cycles"
+        },
+        "historyRunPanel": {
+          "runRecord": "Execution Record",
+          "onlyShowLatelyRun": "Show only latest executions",
+          "runTip": "When checked, only the latest execution results of the current use case in each test plan will be displayed.",
+          "latestExecutionStatus": "Latest execution status",
+          "executeTime": "execution time"
         }
       },
       "testExecution": {
