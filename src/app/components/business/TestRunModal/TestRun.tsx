@@ -127,7 +127,9 @@ const TestRun: React.FC<TestRunType> = props => {
         return testCaseList[0] as TestDetailEntity;
       };
 
-      const testRunEntity = (returnData.testRunEntity = await getTestRunEntity(testRunId));
+      const testRunEntity = await getTestRunEntity(testRunId);
+
+      returnData.testRunEntity = testRunEntity;
 
       if (!testRunEntity) return returnData;
 
@@ -183,7 +185,7 @@ const TestRun: React.FC<TestRunType> = props => {
 
           // 修改返回值
           returnData.testRunEntity = {
-            ...testCaseEntity,
+            ...testRunEntity,
             runDetail: runDetailData,
           };
         }

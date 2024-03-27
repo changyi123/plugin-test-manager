@@ -1007,6 +1007,12 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       // 可执行的测试执行 id
       const canExecuteTestRunIds = await getCanExecuteTestRunIdSequence(testRunIds);
 
+      // 没有可执行的测试执行时直接返回
+      if (!canExecuteTestRunIds.length) {
+        message.error(t('page.plan.testEntityList.noCanUpdateRunStateTips'));
+        return;
+      }
+
       // 更新测试执行状态
       const res = await updateTestStatus({
         status: status.key,
