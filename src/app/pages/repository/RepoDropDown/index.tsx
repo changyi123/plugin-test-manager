@@ -1,10 +1,15 @@
+import createProximaSdk from '@projectproxima/proxima-sdk-js';
 import { Button, Dropdown, Menu, message, notification, Spin } from 'antd';
 import { MenuItemProps } from 'antd/lib/menu';
 import classnames from 'classnames';
-import React, { useCallback } from 'react';
+import React, { useCallback, useRef } from 'react';
 
+import { ActionType as ModelActionType } from '@/components/business/TestEntitySelectorModal';
+import ManageWorkspace from '@/components/business/TestEntitySelectorModal/ManageWorkspace';
 import { SystemFieldKeys } from '@/components/common/BusinessTable/hook';
 import { CustomMore } from '@/icons';
+import { copyTestCase } from '@/lib/api/item';
+import { TestType } from '@/lib/constants';
 import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import { getProximaBasePath, getTenantKey, inIframe } from '@/lib/utils/helper';
@@ -34,6 +39,53 @@ const RepoDropDown = ({
   const { workspace } = useTestConfig();
   const { testCaseFieldKeys } = useBaseAction();
 
+  const testEntitySelectorRef = useRef<ModelActionType>();
+
+  const startImportByWorkspace = useCallback(async () => {
+    if (!testEntitySelectorRef.current?.open) return;
+    const data = await testEntitySelectorRef.current?.open({
+      selectValue: [],
+      treeType: 'case',
+      modelProps: {
+        title: t('page.repository.repoDropDown.MenuItem.2'),
+        footer: {
+          ok: {
+            name: t('common.confirm'),
+          },
+          cancel: {
+            name: t('common.cancel'),
+          },
+        },
+      },
+    });
+    if (data?.selectedData?.length) {
+      notification.open({
+        message: '测试用例创建中',
+        icon: <Spin spinning={true} />,
+        duration: null,
+      });
+      setPageLoading?.(true);
+      const copyRes = await copyTestCase({
+        caseIds: data.selectedData,
+        fields: [].concat(SystemFieldKeys, testCaseFieldKeys),
+        repository: folderKey,
+        workspaceKey: workspace?.key,
+      });
+      notification.destroy();
+      if (copyRes?.status === 'error') {
+        notification.error({ message: `测试用例创建失败：${copyRes.data}` });
+      } else {
+        // 成功
+        notification.success({ message: '测试用例创建成功' });
+      }
+      // 调接口更新列表
+      const proxima = createProximaSdk();
+      proxima.execute('updateItemList', { type: 'delete' });
+      setPageLoading?.(false);
+    }
+    return data;
+  }, [folderKey, setPageLoading, t, testCaseFieldKeys, workspace?.key]);
+
   const menuClick = useCallback(
     async e => {
       const key = e.key;
@@ -49,6 +101,9 @@ const RepoDropDown = ({
         window.open(href);
       } else if (key === 'example') {
         downloadExampleFile([].concat(SystemFieldKeys, testCaseFieldKeys), t, locale);
+      } else if (key === 'importFromWorkspace') {
+        // 从别的空间导入
+        startImportByWorkspace();
       } else if (
         ['exportAll', 'exportChildGroup', 'exportGroup', 'exportFilter', 'exportPlan'].includes(key)
       ) {
@@ -110,24 +165,29 @@ const RepoDropDown = ({
     ],
   );
 
+  const refresh = useCallback(() => {}, []);
+
   const menu = (
     <Menu onClick={e => menuClick(e)}>
       {type === 'repository' && (
         <>
           <Menu.Item key="import">{t('page.repository.repoDropDown.MenuItem.0')}</Menu.Item>
           <Menu.Item key="example">{t('page.repository.repoDropDown.MenuItem.1')}</Menu.Item>
-          <Menu.Item key="exportAll">{t('page.repository.repoDropDown.MenuItem.2')}</Menu.Item>
-          <Menu.Item key="exportGroup">{t('page.repository.repoDropDown.MenuItem.3')}</Menu.Item>
-          <Menu.Item key="exportChildGroup">
-            {t('page.repository.repoDropDown.MenuItem.4')}
+          <Menu.Item key="importFromWorkspace">
+            {t('page.repository.repoDropDown.MenuItem.2')}
           </Menu.Item>
-          <Menu.Item key="exportFilter">{t('page.repository.repoDropDown.MenuItem.6')}</Menu.Item>
+          <Menu.Item key="exportAll">{t('page.repository.repoDropDown.MenuItem.3')}</Menu.Item>
+          <Menu.Item key="exportGroup">{t('page.repository.repoDropDown.MenuItem.4')}</Menu.Item>
+          <Menu.Item key="exportChildGroup">
+            {t('page.repository.repoDropDown.MenuItem.5')}
+          </Menu.Item>
+          <Menu.Item key="exportFilter">{t('page.repository.repoDropDown.MenuItem.7')}</Menu.Item>
         </>
       )}
       {type === 'plan' && (
         <>
           <Menu.Item key="exportPlan" disabled={!selectedTestPlanId}>
-            {t('page.repository.repoDropDown.MenuItem.5')}
+            {t('page.repository.repoDropDown.MenuItem.6')}
           </Menu.Item>
         </>
       )}
@@ -142,6 +202,18 @@ const RepoDropDown = ({
       <Dropdown dropdownRender={() => menu} placement="bottomLeft">
         <Button className={classnames(className)} icon={<CustomMore />} />
       </Dropdown>
+      {/* 规划空间测试用例 */}
+      <ManageWorkspace
+        title={t('page.plan.planPageLayout.right.caseSelectModelTitle')}
+        testType={TestType.Case}
+        actionRef={testEntitySelectorRef}
+        onCancel={() => {
+          refresh();
+        }}
+        afterClose={() => {
+          refresh();
+        }}
+      />
     </>
   );
 };

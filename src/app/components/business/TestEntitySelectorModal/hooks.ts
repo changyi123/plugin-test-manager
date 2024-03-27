@@ -1,12 +1,17 @@
 import { useDeepCompareEffect, useRequest } from 'ahooks';
+import { useDebounceFn } from 'ahooks';
 import { clone, sum } from 'lodash';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { getRepositoryTreeV2 } from '@/lib/api/item';
+import { getWorkspaces } from '@/lib/api/proxima';
+// import { TestType } from 'common/constant';
+import { TEST_MANAGER_PLUGIN_KEY } from '@/lib/constants';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
+import { escapeMatchesQueryArg } from '@/lib/utils/helper';
 import { traverseTreeNodes } from '@/pages/repository/util';
-// import { TestType } from 'common/constant';
+import { AppsWorkspace, Workspace } from '@/services/models';
 
 interface VirtualScrollList {
   groups: Record<string, any>;
@@ -109,6 +114,67 @@ export const useGetGroupCounts = ({ workspaceKey, current, params, selectedNode 
   return {
     groupCounts: groupCounts,
     treeData,
+  };
+};
+
+const workspaceDataFormat = (w, currentWorkspace) =>
+  w.map(d => ({ ...d, label: d.name, value: d.key })).filter(i => i.key !== currentWorkspace);
+
+// 根据关键字查询空间
+export const usePluginWorkspace = ({ keyword, currentWorkspace }) => {
+  const [isGlobal, setGlobal] = useState(null);
+  const [bindWorkspaceKeys, setBindWorkspaceKeys] = useState([]);
+
+  const [loading, setLoading] = useState(true);
+
+  const [workspaces, setWorkspaces] = useState([]);
+
+  // 查询插件是否全局插件
+  useEffect(() => {
+    new Parse.Query(AppsWorkspace)
+      .equalTo('appKey', TEST_MANAGER_PLUGIN_KEY)
+      .include('workspaces')
+      .first({ json: true })
+      .then((res: any) => {
+        setGlobal(res.global);
+        if (!res.global) {
+          setBindWorkspaceKeys(res.workspaces?.map(item => item?.key ?? item).filter(Boolean));
+        }
+      });
+  }, []);
+
+  const onSearch = useCallback(() => {
+    if (isGlobal === null) return;
+    setLoading(true);
+    if (isGlobal) {
+      getWorkspaces({ pageIndex: 1, pageSize: 100, keyword }).then(res => {
+        setWorkspaces(workspaceDataFormat(res.results, currentWorkspace));
+        setLoading(false);
+      });
+    } else {
+      new Parse.Query(Workspace)
+        .containedIn('key', bindWorkspaceKeys)
+        .limit(bindWorkspaceKeys.length)
+        .matches('name', escapeMatchesQueryArg(keyword))
+        .find({ json: true })
+        .then(res => {
+          setWorkspaces(workspaceDataFormat(res, currentWorkspace));
+          setLoading(false);
+        });
+    }
+  }, [bindWorkspaceKeys, currentWorkspace, isGlobal, keyword]);
+
+  const { run: handleSearch } = useDebounceFn(onSearch, { wait: 300 });
+
+  // 根据关键字查询空间
+  useEffect(() => {
+    if (isGlobal === null) return;
+    handleSearch();
+  }, [onSearch]);
+
+  return {
+    workspaces,
+    loading,
   };
 };
 

@@ -166,6 +166,8 @@ export type BatchCreateTestCasePayload = {
 export type BatchCopyTestCasePayload = {
   caseIds: string[];
   fields: string[];
+  workspaceKey?: string;
+  repository?: string;
 };
 
 /**

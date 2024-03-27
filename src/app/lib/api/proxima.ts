@@ -394,6 +394,24 @@ export const getWorkspaceRoleMembers = async (params: {
   return result;
 };
 
+// 获取空间列表
+export const getWorkspaces = async (params: {
+  pageIndex: number;
+  pageSize?: number;
+  keyword?: string;
+}) => {
+  const result = await fetch.$get(`/parse/api/workspaces`, {
+    params: {
+      keyword: params.keyword ?? '',
+      showCollected: false,
+      pageIndex: params.pageIndex,
+      pageSize: params.pageSize || 10,
+    },
+  });
+
+  return result;
+};
+
 /** 获取空间下某类型的状态列表 */
 export const getStatusByWorkspaceAndItemType = async (params: {
   workspaceId: string;

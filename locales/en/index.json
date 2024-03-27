@@ -591,6 +591,7 @@
         "MenuItem": [
           "Test case import",
           "Test case import template download",
+          "Test case import from workspace",
           "Test case export (all groups)",
           "Test case export (current group)",
           "Test case export (current groups)",

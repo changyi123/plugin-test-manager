@@ -1,4 +1,5 @@
 import { i18n } from '@giteeteam/apps-api';
+import { getParseQuery } from '@giteeteam/apps-team-api';
 import isObject from 'lodash/isObject';
 
 import {
@@ -345,9 +346,21 @@ export const batchCreateTestRun = async () => {
 export const batchCopyTestCase = async () => {
   try {
     const {
-      body: { caseIds, fields },
+      body: { caseIds, fields, workspaceKey, repository },
+      sessionToken,
     } = getReqInfoFromVMRuntime<BatchCopyTestCasePayload>();
     const copyName = i18n.t('trigger.copyName');
+
+    // 如果workspaceId存在，则批量创建在该空间下
+    let newWorkspace = null;
+
+    if (workspaceKey) {
+      const workspaceObj = await getParseQuery(false, 'Workspace')
+        .equalTo('key', workspaceKey)
+        .first({ sessionToken });
+      if (!workspaceObj) throw new Error('空间不存在');
+      newWorkspace = workspaceObj.toJSON();
+    }
 
     // 查询字段，确认字段类型
     const { payload: results = [] } = await queryFields({
@@ -402,10 +415,10 @@ export const batchCopyTestCase = async () => {
     };
 
     const needCreateItems = caseList.map((data, index) => ({
-      name: `${data.name}_${copyName}`,
+      name: workspaceKey ? data.name : `${data.name}_${copyName}`,
       type: data.type,
       sortIndex: generateSortIndex(index),
-      workspace: data.workspace,
+      workspace: workspaceKey ? newWorkspace : data.workspace,
       itemType: data.itemType,
       values: dataValuesExceptionHandler(data.values),
       detail: data.detail
@@ -417,7 +430,7 @@ export const batchCopyTestCase = async () => {
             })),
           }
         : {},
-      repository: data.repository,
+      repository: repository === undefined ? data.repository : repository,
     }));
 
     const copyItems = await batchCreateItems(needCreateItems as any, fields);
