@@ -2,6 +2,7 @@ import { Input, Radio, Select } from 'antd';
 import React, { useMemo, useState } from 'react';
 
 import useI18n from '@/lib/hooks/useI18n';
+import { getRootContainer } from '@/lib/utils/helper';
 import { testConfigQuery } from '@/services/query';
 import { useWorkspaceTemplateListQuery } from '@/services/testReport/query';
 
@@ -35,7 +36,10 @@ const TemplateForm: React.FC<FormProps> = ({ state, workspace }) => {
       reportTemplateList?.map(d => ({
         ...d,
         label: (
-          <div className={cx('option')}>
+          <div
+            className={cx('option')}
+            style={{ display: 'flex', justifyContent: 'space-between' }}
+          >
             {d.name}
             <span className={cx('tag')}>
               {d.workspace ? t('report.workspaceTemplate') : t('report.globalTemplate')}
@@ -117,6 +121,7 @@ const TemplateForm: React.FC<FormProps> = ({ state, workspace }) => {
             onBlur={() => {
               setSelectStatus(state.template?.objectId ? undefined : 'error');
             }}
+            getPopupContainer={getRootContainer}
           ></Select>
         </div>
       </div>
