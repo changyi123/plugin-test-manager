@@ -17,7 +17,6 @@ import {
   RepositoryModel,
   SYSTEM_FIELD,
   TestCaseStatusModel,
-  TestLinkType,
   TestRunDesigneeModel,
   TestRunExecutorModel,
   TestType,
