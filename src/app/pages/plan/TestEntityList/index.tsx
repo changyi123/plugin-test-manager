@@ -6,6 +6,7 @@ import createProximaSdk from '@projectproxima/proxima-sdk-js';
 import { useMemoizedFn, useRequest } from 'ahooks';
 import { Button, message, notification, Tooltip } from 'antd';
 import { TestLinkType, TestType } from 'common/constant';
+import dayjs from 'dayjs';
 import { isEmpty, isEqual, omit, pick } from 'lodash';
 import React, { useCallback, useEffect, useState } from 'react';
 
@@ -261,6 +262,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         'sortIndex',
         'status',
         'executeCount',
+        'executeTime',
       ],
       selector: [{}, filterRunSelector],
     });
@@ -291,6 +293,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           'executor',
           'status',
           'executeCount',
+          'executeTime',
         ]);
 
         return {
@@ -350,6 +353,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         'executor',
         'sortIndex',
         'executeCount',
+        'executeTime',
         'status',
       ],
     });
@@ -368,6 +372,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           'executor',
           'status',
           'executeCount',
+          'executeTime',
         ]);
 
         return {
@@ -819,6 +824,21 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           return <Field.User userInfo={record?.designee} />;
         },
       },
+      {
+        key: 'executeTime',
+        title: t('modules.panel.testDetail.historyRunPanel.executeTime'),
+        width: 150,
+        sorter: {
+          compare: (a, b) => {
+            return (a.executeTime || '') - (b.executeTime || '');
+          },
+        },
+        shouldCellUpdate: (record, prevRecord) =>
+          !isEqual(record?.executeTime, prevRecord?.executeTime),
+        render(_, record) {
+          return record.executeTime ? dayjs(record?.executeTime).format('YYYY-MM-DD HH:mm') : '';
+        },
+      },
       //  操作
       {
         key: 'action',
@@ -1168,6 +1188,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
             'createdBy',
             'createdAt',
             'executor',
+            'executeTime',
           ]}
           privateColumnKey={[
             'repositoryGroup',
@@ -1175,6 +1196,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
             'executeCount',
             'executor',
             'designee',
+            'executeTime',
           ]}
           rowKey="objectId"
           columns={executionColumns}
