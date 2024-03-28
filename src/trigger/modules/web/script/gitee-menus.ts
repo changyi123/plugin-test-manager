@@ -13,9 +13,28 @@ const getTenantKey = () => {
   return global.applicationId ?? global.headers['x-proxima-tenant'] ?? 'osc';
 };
 
+const getUserSessionToken = () => {
+  return global.headers['x-parse-session-token'];
+};
+
 /** 获取产品前缀 */
 const getProductPrefix = () => {
   return global.headers['x-proxima-prefix'] ?? 'project';
+};
+
+// 获取pluginKey
+const getBoardPluginKey = (appKey, menuKey) => {
+  // 测试统计使用的是报表面板
+  if (menuKey === MENU_MAP.TEST_STATS_REPORT)
+    return 'team_insight_charts_base_team_insight_test_manager';
+  return `${appKey}_${menuKey}`;
+};
+
+const MENU_MAP = {
+  TEST_PLAN: 'test-plan', // 测试计划
+  TEST_REPORT: 'test-report', // 测试报告
+  TEST_REPOSITORY: 'test-repository', // 测试用例库
+  TEST_STATS_REPORT: 'test-stats-report', // 测试统计
 };
 
 export const runGiteeMenus = async () => {
@@ -39,6 +58,7 @@ export const runGiteeMenus = async () => {
     const generateGiteeMenu = ({ langKey, pageKey }) => {
       return {
         title: i18n.t(`common.pageTitle.${langKey}`),
+        pageKey,
         key: `${pageKey}-${workspaceKey}`,
         icon: 'iconNavi-icafeplan',
         // url: `${giteeRoutePrefix}/plugin/${APP_KEY}_${appId}_${pageKey}`,
@@ -52,12 +72,13 @@ export const runGiteeMenus = async () => {
 
     const reportStatsMenu = {
       title: i18n.t('common.overview'),
-      key: `test-stats-report-${workspaceKey}`,
+      pageKey: MENU_MAP.TEST_STATS_REPORT,
+      key: `${MENU_MAP.TEST_STATS_REPORT}-${workspaceKey}`,
       icon: 'iconNavi-icafeplan',
-      url: `${giteeRoutePrefix}/plugin/team_insight_charts_base_team_insight_charts_base_workspace?disabledCreate=true&displayContext=test_manager&moduleKey=test_manager`,
+      url: `${giteeRoutePrefix}/plugin/team_insight_charts_base_team_insight_test_manager?disabledCreate=true&displayContext=test_manager&moduleKey=test_manager`,
       type: 'IFRAME',
       openWindow: '0',
-      iframeUrl: `${proximaRoutePrefix}/plugin/team_insight_charts_base_team_insight_charts_base_workspace?disabledCreate=true&displayContext=test_manager&moduleKey=test_manager`,
+      iframeUrl: `${proximaRoutePrefix}/plugin/team_insight_charts_base_team_insight_test_manager?disabledCreate=true&displayContext=test_manager&moduleKey=test_manager`,
       info,
     };
 
@@ -65,15 +86,40 @@ export const runGiteeMenus = async () => {
     const enableTestReport = global.env?.FEATURE_FLAGS?.includes('ENABLE_TEST_REPORT');
 
     const menus = [
-      { pageKey: 'test-plan', langKey: 'plan' },
-      { pageKey: 'test-repository', langKey: 'repository' },
-      enableTestReport && { pageKey: 'test-report', langKey: 'report' },
+      { pageKey: MENU_MAP.TEST_PLAN, langKey: 'plan' },
+      { pageKey: MENU_MAP.TEST_REPOSITORY, langKey: 'repository' },
+      enableTestReport && { pageKey: MENU_MAP.TEST_REPORT, langKey: 'report' },
     ]
       .filter(Boolean)
       .map(generateGiteeMenu)
       .concat(reportStatsMenu);
 
-    return menus;
+    const pluginKeys = Object.keys(MENU_MAP).map(key => getBoardPluginKey(APP_KEY, MENU_MAP[key]));
+
+    console.info('----------pluginKeys------', JSON.stringify(pluginKeys));
+
+    console.info('-----workspaceKey-----', workspaceKey);
+
+    const userSessionToken = getUserSessionToken();
+    console.info('----userSessionToken', userSessionToken);
+
+    // 查询当前用户有权限访问的Board
+    const hasPermissionBoards = await getParseQuery(false, 'Board')
+      .containedIn('pluginKey', pluginKeys)
+      .matchesQuery('workspace', getParseQuery(false, 'Workspace').equalTo('key', workspaceKey))
+      .find({ sessionToken: userSessionToken })
+      .then(boards => boards?.map(board => board?.get('pluginKey')));
+
+    console.info(
+      '------------------------hasPermissionBoards------------------------------------',
+      JSON.stringify(hasPermissionBoards),
+    );
+
+    return menus.filter(menu => {
+      const pluginKey = getBoardPluginKey(APP_KEY, menu.pageKey);
+      console.info('pluginKey', pluginKey);
+      return hasPermissionBoards.findIndex(key => key === pluginKey) > -1;
+    });
   };
 
   const workspaceKey = getWorkspaceKey();
@@ -82,11 +128,12 @@ export const runGiteeMenus = async () => {
     if (!workspaceKey) throw new Error('NO_WORKSPACE_KEY');
     console.info(
       'test_manager_global.env.ENABLE_PLUGIN_WORKSPACE_KEY',
-      global.env.ENABLE_PLUGIN_WORKSPACE_KEY,
+      global.env?.ENABLE_PLUGIN_WORKSPACE_KEY,
     );
+
     // 判断环境变量中是否有 ENABLE_PLUGIN_WORKSPACE_KEY, 如果有则直接对比判断，不走应用中心表查询
     if (Array.isArray(global?.env?.ENABLE_PLUGIN_WORKSPACE_KEY)) {
-      const isEnabled = global.env.ENABLE_PLUGIN_WORKSPACE_KEY.includes(workspaceKey);
+      const isEnabled = global.env?.ENABLE_PLUGIN_WORKSPACE_KEY.includes(workspaceKey);
       if (isEnabled) {
         return getGiteeMenusConfig(workspaceKey, {
           token: 'plugin-config',

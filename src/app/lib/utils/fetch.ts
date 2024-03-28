@@ -20,7 +20,7 @@ interface FetchInstance extends AxiosInstance {
 
   $patch<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T>;
 }
-const { baseURL, env } = getDevConfig();
+const { env } = getDevConfig();
 
 const tenantKey = getTenantKey();
 const currentUserStorageKey = `Parse/${tenantKey}/currentUser`;
@@ -39,7 +39,7 @@ const config: AxiosRequestConfig = {
 };
 
 if (process.env.NODE_ENV === 'development') {
-  config.baseURL = baseURL;
+  config.baseURL = window.QiankunProps?.context?.env?.PROXIMA_GATEWAY;
   config.headers = Object.assign({}, env === 'one' ? getParseReqHeader() : {}, config.headers);
 }
 
