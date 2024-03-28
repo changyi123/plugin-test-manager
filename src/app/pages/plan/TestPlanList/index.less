@@ -47,7 +47,18 @@
 
   :global {
     .test-plan-title-box {
+      display: flex;
+      align-items: center;
       cursor: pointer;
+      .plan-name {
+        max-width: ~'calc(100% - 55px)';
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        word-break: break-all;
+        -webkit-line-clamp: 1;
+      }
       &:hover {
         color: #0c62ff;
         .plan-table-title-menu {
@@ -63,7 +74,6 @@
       .plan-table-title-menu {
         display: none;
         margin-top: -12px;
-        margin-left: auto;
         height: 20px;
         width: 20px;
         border-radius: 4px;

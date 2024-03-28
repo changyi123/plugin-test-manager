@@ -7,6 +7,7 @@ const autoprefixer = require('autoprefixer');
 const cssnano = require('cssnano');
 const namespacePrefix = require('postcss-selector-namespace');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
+const PreloadWebpackPlugin = require('@vue/preload-webpack-plugin');
 const WebpackBar = require('webpackbar');
 const webpack = require('webpack');
 require('dotenv').config();
@@ -231,6 +232,12 @@ module.exports = (cliEnv = {}, argv) => {
         inject: true,
         templateParameters: () => resolveClientEnv(true, cliEnv),
       }),
+      isProd &&
+        new PreloadWebpackPlugin({
+          rel: 'prefetch',
+          // 脑图资源不预先加载
+          fileBlacklist: [/module_test-manager-minder/],
+        }),
       isProd &&
         new MiniCssExtractPlugin({
           filename: '[name].[contenthash].css',
