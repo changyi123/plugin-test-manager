@@ -86,6 +86,7 @@ export const EsSourceFieldKey = {
 /** 测试管理统计字段类型 key 映射 */
 export const TestFieldTypeKeyMapping = {
   executeCount: 'r_test_manager_es_number_keyword',
+  executeTime: 'r_test_manager_executeTime',
   repository: 'r_test_manager_es_text_keyword',
   referenceCase: 'r_test_manager_es_text_keyword',
   status: 'r_test_manager_es_text_keyword',
@@ -105,6 +106,7 @@ export const TestFiledKeyMapping = {
   executor: 'r_test_manager_executor',
   sortIndex: 'r_test_manager_sortIndex',
   executeCount: 'r_test_manager_executeCount',
+  executeTime: 'r_test_manager_executeTime',
 
   // 以下字段以字符串形式存入，存入前需要 stringify，返回需要 parse
   detail: 'r_test_manager_detail',
@@ -135,6 +137,7 @@ export const BuiltinFieldNameMapping = {
   executor: 'test_manager_executor',
   sortIndex: 'test_manager_sortIndex',
   executeCount: 'test_manager_executeCount',
+  executeTime: 'r_test_manager_executeTime',
 
   // 不需要拼接
   runDetail: 'test_manager_runDetail',
