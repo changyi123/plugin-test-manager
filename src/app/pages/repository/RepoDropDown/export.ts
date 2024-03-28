@@ -127,6 +127,7 @@ const getExcelData = async (data: any) => {
 
   /** 获取事项数据 */
   const getItemInfo = (item: Item, priInfo: any) => ({
+    key: item.key,
     [t('page.repository.repoDropDown.excelExportTitle.name')]: item.name,
     [t('page.repository.repoDropDown.excelExportTitle.itemType')]: (item?.itemType as any)?.name,
     [t('page.repository.repoDropDown.excelExportTitle.assignee')]: getAssignee(item?.values),
