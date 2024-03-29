@@ -1,4 +1,3 @@
-import { Query } from './../../../common/types/api';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 import Parse from '@/lib/parse';
@@ -34,7 +33,7 @@ export const useWorkspaceTestConfig = (
         .then(async config => {
           // 更新配置状态名称
           const statusIds = config?.testRunAction?.statusList?.map(status => status.statusId);
-          if (!statusIds.length) return config;
+          if (!statusIds?.length) return config;
           const statusMap = await new Parse.Query(Status)
             .containedIn('objectId', statusIds)
             .find({ json: true })
