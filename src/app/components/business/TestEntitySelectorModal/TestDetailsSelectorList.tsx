@@ -27,6 +27,7 @@ interface TestDetailsSelectorListProps {
   treeType?: string;
   planId?: string;
   treeProps?: Record<string, any>;
+  validateCaseStatus?: boolean;
 }
 
 const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
@@ -38,6 +39,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
   treeType,
   planId,
   treeProps,
+  validateCaseStatus = false,
 }) => {
   const { t } = useI18n();
   const [showType, setShowType] = useState('all');
@@ -239,14 +241,14 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
   );
 
   const { list: testCaseList, total = 0 } = testCaseData ?? {};
-  const { getEnableToPlan } = useCasePlanRule();
+  const { getEnableToPlan } = useCasePlanRule(validateCaseStatus);
   const disabledIdsSet = useMemo(() => {
     return new Set<string>(
       (treeType === 'plan' ? planLinkCases : allCases)
         ?.filter(i => !getEnableToPlan(i.workflowStatus?.objectId))
         ?.map(i => i.id) || [],
     );
-  }, [allCases, planLinkCases, treeType]);
+  }, [allCases, planLinkCases, treeType, validateCaseStatus]);
 
   const params = useMemo(() => {
     const query = {} as any;
@@ -422,6 +424,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
               setCurrent={setCurrent}
               current={current}
               groupCounts={groupCounts}
+              validateCaseStatus={validateCaseStatus}
             />
           ) : (
             <Empty

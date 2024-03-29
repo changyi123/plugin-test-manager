@@ -30,6 +30,7 @@ type TestDetailSelectorProps = {
   planId?: string;
   treeType?: string;
   setTreeType?: (val: string) => void;
+  validateCaseStatus?: boolean;
 };
 
 const tabsList = [
@@ -54,6 +55,7 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
     planId,
     treeType,
     setTreeType,
+    validateCaseStatus,
   } = props;
   const { t } = useI18n();
   const repositoryFolderTreeRef = React.useRef<ActionType>();
@@ -275,6 +277,7 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
               treeType={treeType}
               planId={planId}
               treeProps={treeProps}
+              validateCaseStatus={validateCaseStatus}
             />
           </div>
         </div>
