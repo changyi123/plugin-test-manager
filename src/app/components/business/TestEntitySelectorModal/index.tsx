@@ -419,6 +419,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
         planId={planId}
         treeType={treeType}
         setTreeType={setTreeType}
+        validateCaseStatus
       />
     );
   }, [
