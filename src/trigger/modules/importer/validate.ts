@@ -1,5 +1,7 @@
 import { i18n } from '@giteeteam/apps-api';
-import { getData } from '@giteeteam/apps-team-api';
+import { getData, getParseQuery } from '@giteeteam/apps-team-api';
+
+import { InfinityLimit } from '../../../common/constant';
 
 // 判断数据是否超过 1000 条
 const isMoreThanThousands = d => d?.length > 999;
@@ -163,27 +165,30 @@ const getFiledByValue = (name, maps) => {
   return mapData ? mapData[0] : '';
 };
 
-const getCurData = (cur, maps) =>
+const getCurData = (cur, maps, path) =>
   [...Object.entries(cur)].reduce((curPrev, [key, value]) => {
-    if (maps[key]) {
-      let targetValue = value;
-      if (maps[key] === 'group') {
-        const prevGroup = curPrev[maps[key]];
-        if (prevGroup?.length) {
-          targetValue = prevGroup + '/' + targetValue;
+      if (maps[key]) {
+        let targetValue = value;
+        if (maps[key] === 'group') {
+          const prevGroup = curPrev[maps[key]];
+          if (prevGroup?.length) {
+            targetValue = prevGroup + '/' + targetValue;
+          }
         }
+        curPrev = {
+          ...curPrev,
+          [maps[key]]: targetValue,
+        };
       }
-      curPrev = {
-        ...curPrev,
-        [maps[key]]: targetValue,
-      };
-    }
-    return curPrev;
-  }, {});
+      return curPrev;
+    },
+    // 分组前加当前分组信息
+    { group: path },
+  );
 
-const getDataByFieldMaping = (datas, maps) =>
+const getDataByFieldMaping = (datas, maps, path) =>
   datas?.reduce((prev, cur) => {
-    prev.push(getCurData(cur, maps));
+    prev.push(getCurData(cur, maps, path));
 
     return prev;
   }, []);
@@ -192,11 +197,7 @@ export const runValidate = async () => {
   const { data, fieldMapping, workspaceId, group } = global.triggerParams;
 
   // 根据 workspaceKId 获取事项类型
-  const getItemTypeName = async () => {
-    const workspace = await getData(false, 'Workspace', {
-      objectId: workspaceId,
-    });
-
+  const getItemTypeName = async workspace => {
     const testMangerConfig = await getData(true, 'TestConfig', {
       workspaceKey: workspace?.get('key'),
     });
@@ -212,10 +213,51 @@ export const runValidate = async () => {
     return itemType?.get('name');
   };
 
+  const getGroupPath = async workspace => {
+    let path = '';
+    if (!group) return path;
+    const getRepositoryMap = async () => {
+      const query = await (getParseQuery(true, 'Repository') as any)
+        .equalTo('workspaceKey', workspace.get('key'))
+        .select(['name', 'objectId', 'parent'])
+        .limit(InfinityLimit);
+      const repositoryParseObjects = await query.find({
+        useMasterKey: true,
+      });
+
+      return repositoryParseObjects.reduce(
+        (prev, parseObj) => ({
+          ...prev,
+          [parseObj.get('objectId')]: {
+            key: parseObj.get('objectId'),
+            name: parseObj.get('name'),
+            parentId: parseObj.get('parent')?.objectId,
+          },
+        }),
+        {},
+      );
+    };
+    const repositoryMap = await getRepositoryMap();
+    console.info('repositoryMap', JSON.stringify(repositoryMap));
+
+    const getRepositoryPath = repository => {
+      console.info('getRepositoryPath', JSON.stringify(repository));
+      if (repository?.name) path = `${repository.name}/${path}`;
+      if (repository?.parentId) getRepositoryPath(repositoryMap[repository.parentId]);
+    };
+    getRepositoryPath(repositoryMap[group]);
+    console.info('path', path);
+    return path;
+  };
+
   // eslint-disable-next-line no-console
   console.log('vali-1111', data);
+  const workspace = await getData(false, 'Workspace', {
+    objectId: workspaceId,
+  });
+  const itemTypeName = await getItemTypeName(workspace);
 
-  const itemTypeName = await getItemTypeName();
+  const groupPath = await getGroupPath(workspace);
 
   const getValidateErrors = (datas, errors: any[] = []) => {
     if (isMoreThanThousands(datas)) {
@@ -271,5 +313,7 @@ export const runValidate = async () => {
     },
   });
 
-  return await validateAppData(getDataByFieldMaping(data, fieldMapping));
+  const res = await validateAppData(getDataByFieldMaping(data, fieldMapping, groupPath));
+  console.info('res', JSON.stringify(res, fieldMapping));
+  return res;
 };
