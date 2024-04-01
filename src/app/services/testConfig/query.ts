@@ -32,7 +32,7 @@ export const useWorkspaceTestConfig = (
         .first({ json: true })
         .then(async config => {
           // 更新配置状态名称
-          const statusIds = config?.testRunAction?.statusList?.map(status => status.statusId);
+          const statusIds = config?.testRunAction?.statusList?.map(status => status.statusId) || [];
           if (!statusIds?.length) return config;
           const statusMap = await new Parse.Query(Status)
             .containedIn('objectId', statusIds)
