@@ -179,17 +179,18 @@ export const usePluginWorkspace = ({ keyword, currentWorkspace }) => {
 };
 
 // 获取用例规划限制
-export const useCasePlanRule = () => {
+export const useCasePlanRule = validateCaseStatus => {
   const { t } = useI18n();
   const {
     config: { statusList, listType },
   } = useTestConfig();
   const getEnableToPlan = useCallback(
     statusId => {
+      if (!validateCaseStatus) return true;
       const existInStatusList = statusList?.some(status => status?.statusId === statusId);
       return !listType || (listType === 'black' ? !existInStatusList : existInStatusList);
     },
-    [listType, statusList],
+    [listType, statusList, validateCaseStatus],
   );
   const getToolTipFun = useCallback(
     statusId => {

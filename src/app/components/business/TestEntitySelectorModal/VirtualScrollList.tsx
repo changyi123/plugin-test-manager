@@ -24,6 +24,7 @@ interface VirtualScrollListProps {
   disabledIdsSet?: Set<string>;
   setSelectCaseIdsSet?: (val?: Set<string>) => void;
   setCurrent?: (val: number) => void;
+  validateCaseStatus?: boolean;
 }
 
 const VirtualScrollList: React.FC<VirtualScrollListProps> = props => {
@@ -38,12 +39,13 @@ const VirtualScrollList: React.FC<VirtualScrollListProps> = props => {
     selectCaseIdsSet,
     setSelectCaseIdsSet,
     setCurrent,
+    validateCaseStatus,
   } = props;
   const { t } = useI18n();
   const { groupArray, groups, totalCount } = useGetVirtualScrollList(group, current);
   const items = useMemo(() => [...caseListMap.values()].flat(), [caseListMap]);
   const { groupNodeMap } = useGetGroupNodeId(group, allCaseIds);
-  const { getToolTipFun } = useCasePlanRule();
+  const { getToolTipFun } = useCasePlanRule(validateCaseStatus);
 
   const groupContent = useCallback(
     index => {

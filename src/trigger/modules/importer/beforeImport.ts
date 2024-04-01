@@ -86,8 +86,6 @@ const getStepsData = datas => {
 };
 
 export const runBeforeImport = async () => {
-  const { group } = global.triggerParams;
-
   const appFieldsData = global.triggerParams?.appFieldsData?.map((item, index) => ({
     ...item,
     __indexKey: index,
@@ -283,34 +281,24 @@ export const runBeforeImport = async () => {
     const itemDataList = getItemDataList();
     let newItemDataList = [];
 
-    if (!group) {
-      // 得到需要创建的用例库数据
-      console.time('[test-case-import] group create');
-      const toCreateGroupData = await getToCreateGroupData();
+    // 得到需要创建的用例库数据
+    console.time('[test-case-import] group create');
+    const toCreateGroupData = await getToCreateGroupData();
 
-      if (toCreateGroupData.length) {
-        const newToCreateGroupData = toCreateGroupData.reduce((prev, cur) => {
-          prev.set(cur.index, (prev.get(cur.index) || []).concat([cur]));
-          return prev;
-        }, new Map());
+    if (toCreateGroupData.length) {
+      const newToCreateGroupData = toCreateGroupData.reduce((prev, cur) => {
+        prev.set(cur.index, (prev.get(cur.index) || []).concat([cur]));
+        return prev;
+      }, new Map());
 
-        // 创建用例库
-        await createRepoGroupList(newToCreateGroupData);
-        console.timeEnd('[test-case-import] group create');
-      }
-
-      // 绑定测试用例事项用例库，并更新事项数据
-      newItemDataList = await addNewRepositoryFieldValue(itemDataList);
-    } else {
-      newItemDataList = itemDataList.map(item => ({
-        ...item,
-        values: {
-          ...item.values,
-          r_test_manager_repository: group === 'root' ? '' : group,
-        },
-      }));
-      console.info('_________itemDataList____________', newItemDataList);
+      // 创建用例库
+      await createRepoGroupList(newToCreateGroupData);
+      console.timeEnd('[test-case-import] group create');
     }
+
+    // 绑定测试用例事项用例库，并更新事项数据
+    newItemDataList = await addNewRepositoryFieldValue(itemDataList);
+    console.info('_________itemDataList____________', newItemDataList);
 
     console.timeEnd('[test-case-import] process');
 

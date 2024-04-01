@@ -391,9 +391,9 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         // 跳转到导入页面
         const href = `${baseUrl}/${getTenantKey()}/workspaces/${workspace.key}/import/${
           workspace.objectId
-        }?app=test_manager&disableToggleWorkspace${appendedQueryString}&group=${
+        }?app=test_manager&disableToggleWorkspace=true&hiddenItemType=true${appendedQueryString}&group=${
           node.key
-        }&excludeFieldsKey=group`;
+        }`;
         window.open(href);
       }
 
