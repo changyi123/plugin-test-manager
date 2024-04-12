@@ -1,13 +1,13 @@
-import { useAntdTable, useLocalStorageState, useSize } from 'ahooks';
+import { useLocalStorageState, useMemoizedFn, useSize } from 'ahooks';
 import { Pagination, Table } from 'antd';
 import { TableProps } from 'antd/lib/table';
 import { difference, isEqual, omit, pick } from 'lodash';
 import React, { useMemo, useRef } from 'react';
 import { Resizable } from 'react-resizable';
 
-import LibraryProvider from '@/components/business/LibraryProvider';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import useI18n from '@/lib/hooks/useI18n';
+import useTable from '@/lib/hooks/useTable';
 import { generateStorageKey } from '@/lib/utils/helper';
 import { hasArrayItem } from '@/lib/utils/helper';
 
@@ -106,6 +106,10 @@ type BusinessTableProps = TableProps<any> &
     testFieldKeys?: string[];
     setCheckedRowKeys?: (val?: string[]) => void;
     selectionMode?: boolean;
+    queryDeps?: string;
+    onSuccess?: (data: any, mutate: (data: any) => void) => void;
+    cacheKey?: string;
+    ignoreInit?: boolean;
   };
 
 const BusinessTable: React.FC<BusinessTableProps> = props => {
@@ -132,9 +136,14 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
       x: 'max-content',
     },
     className,
+    queryDeps,
+    onSuccess,
+    cacheKey,
+    ignoreInit,
     ...restTableProps
   } = props;
 
+  const { t } = useI18n();
   const currentPageRowsRef = React.useRef([]);
   const initialExpandedRef = React.useRef(false);
   const [tableSorter, setTableSorter] = React.useState({});
@@ -200,17 +209,31 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     selectionMode,
   ]);
 
-  const { tableProps: antdTableProps, refresh } = useAntdTable(
-    queryParams => {
+  const refreshDeps = useMemo(() => [queryDeps || getDataSource], [queryDeps, getDataSource]);
+
+  const {
+    tableProps: antdTableProps,
+    refresh,
+    mutate,
+  } = useTable(
+    async queryParams => {
       if (!queryParams) return null;
-      const { current, pageSize } = queryParams;
+      const { current, pageSize: _pageSize } = queryParams;
       const _current = current < 1 ? 1 : current;
-      return getDataSource?.({
-        offset: (_current - 1) * pageSize,
-        limit: pageSize,
+      return await getDataSource?.({
+        offset: (_current - 1) * _pageSize,
+        limit: _pageSize,
       });
     },
-    { defaultPageSize: pagesize, refreshDeps: [getDataSource] },
+    {
+      defaultPageSize: pagesize,
+      refreshDeps,
+      cacheKey,
+      ignoreInit,
+      onSuccess: data => {
+        onSuccess?.(data, mutate);
+      },
+    },
   );
 
   const dataSource = React.useMemo(() => {
@@ -254,7 +277,12 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
         }),
       );
     }
-  }, [antdTableProps]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    antdTableProps?.pagination?.size,
+    antdTableProps?.pagination?.total,
+    antdTableProps?.pagination?.current,
+  ]);
 
   React.useEffect(() => {
     // 数据源变更重置 selectedRowKeys
@@ -267,14 +295,14 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     onHasRowSelected?.(selectedRowKeys?.length > 0);
   }, [selectedRowKeys, onHasRowSelected]);
 
-  const handleResize = (key, _e, { size }) => {
+  const handleResize = useMemoizedFn((key, _e, { size }) => {
     setColumnsWidth(dict => ({
       ...dict,
       [key]: Math.max(MIN_COLUMN_WIDTH, size.width),
     }));
-  };
+  });
 
-  const handleSort = (key, e, props) => {
+  const handleSort = useMemoizedFn((key, e, props) => {
     const SortOrders = props.sortOrder ?? ['ascend', 'descend', null];
     setTableSorter(prev => ({
       ...prev,
@@ -284,44 +312,48 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
           SortOrders[Math.min(SortOrders.indexOf(prev?.[key]?.sorter) + 1, SortOrders.length - 1)],
       },
     }));
-
-    console.info(key, props);
-  };
-
-  const columnsWithResizableAndSettingAction = tableColumns.map((col: any) => {
-    const resizable = col.resizable ?? typeof col.width === 'number';
-    const _col = omit(col, ['extraProps']);
-
-    const cellOnClick = (record, row) =>
-      row?.extraProps?.onClick
-        ? {
-            onClick: () => {
-              row?.extraProps.onClick(record);
-            },
-          }
-        : {};
-
-    return {
-      ..._col,
-      resizable,
-      width: resizable ? columnsWidth[col.key] ?? col.width : undefined,
-      onCell: record =>
-        ({
-          ...cellOnClick(record, col),
-          resizable,
-          overflowEllipsis:
-            typeof col.overflowEllipsis === 'boolean' ? col.overflowEllipsis : Boolean(resizable),
-        } as any),
-      onHeaderCell: column => ({
-        ...column,
-        width: column.width,
-        onResize: handleResize.bind(null, col.key),
-        onSort: handleSort.bind(null, col.key),
-      }),
-    };
   });
 
-  const SelectionActionHeader = () => {
+  const columnsWithResizableAndSettingAction = React.useMemo(
+    () =>
+      tableColumns.map((col: any) => {
+        const resizable = col.resizable ?? typeof col.width === 'number';
+        const _col = omit(col, ['extraProps']);
+
+        const cellOnClick = (record, row) =>
+          row?.extraProps?.onClick
+            ? {
+                onClick: () => {
+                  row?.extraProps.onClick(record);
+                },
+              }
+            : {};
+
+        return {
+          ..._col,
+          resizable,
+          width: resizable ? columnsWidth[col.key] ?? col.width : undefined,
+          onCell: record =>
+            ({
+              ...cellOnClick(record, col),
+              resizable,
+              overflowEllipsis:
+                typeof col.overflowEllipsis === 'boolean'
+                  ? col.overflowEllipsis
+                  : Boolean(resizable),
+            } as any),
+          onHeaderCell: column => ({
+            ...column,
+            width: column.width,
+            onResize: handleResize.bind(null, col.key),
+            onSort: handleSort.bind(null, col.key),
+          }),
+        };
+      }),
+    [columnsWidth, handleResize, handleSort, tableColumns],
+  );
+
+  const SelectionActionHeader = useMemo(() => {
     if (!selectionMode) return null;
     const handleCheck = checked => {
       if (checked) {
@@ -361,10 +393,19 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
         />
       </div>
     );
-  };
+  }, [
+    allSelectableRowKeys,
+    antdTableProps.loading,
+    expandable,
+    onSelectionCancel,
+    props.allSelectableRowKeys,
+    selectedRowKeys,
+    selectionActionNodes,
+    selectionMode,
+    setCheckedRowKeys,
+  ]);
 
-  const PaginationFooter = () => {
-    const { t } = useI18n();
+  const PaginationFooter = useMemo(() => {
     if (!showPagination) return null;
     const pagination = antdTableProps.pagination;
     const handlePaginationChange = (current, pageSize) => {
@@ -388,27 +429,37 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
         />
       </div>
     );
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [antdTableProps?.pagination, pagesize, showPagination]);
 
-  const rowSelectionProp =
-    selectionMode && antdTableProps?.pagination?.total
-      ? {
-          fixed: true,
-          minWidth: 32,
-          maxWidth: 32,
-          columnWidth: 32,
-          selectedRowKeys,
-          onChange(rowKeys: string[]) {
-            const _selectedRowKeys =
-              selectedRowKeys?.filter(d => !currentPageSelectableRowKeys.includes(d)) ?? [];
+  const rowSelectionProp = useMemo(
+    () =>
+      selectionMode && antdTableProps?.pagination?.total
+        ? {
+            fixed: true,
+            minWidth: 32,
+            maxWidth: 32,
+            columnWidth: 32,
+            selectedRowKeys,
+            onChange(rowKeys: string[]) {
+              const _selectedRowKeys =
+                selectedRowKeys?.filter(d => !currentPageSelectableRowKeys.includes(d)) ?? [];
 
-            const _rowKeys = rowKeys.concat(_selectedRowKeys);
+              const _rowKeys = rowKeys.concat(_selectedRowKeys);
 
-            setSelectedRowKeys(_rowKeys);
-            setCheckedRowKeys?.(_rowKeys);
-          },
-        }
-      : undefined;
+              setSelectedRowKeys(_rowKeys);
+              setCheckedRowKeys?.(_rowKeys);
+            },
+          }
+        : undefined,
+    [
+      antdTableProps?.pagination?.total,
+      currentPageSelectableRowKeys,
+      selectedRowKeys,
+      selectionMode,
+      setCheckedRowKeys,
+    ],
+  );
 
   React.useImperativeHandle(
     actionRef,
@@ -437,49 +488,47 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
 
   return (
     <div className={`${cx('table-container')} table-box business-debug-table`} ref={ref}>
-      <LibraryProvider>
-        <SelectionActionHeader />
-        {ColumnSettingMemorizedNode}
-        <Table
-          sticky={true}
-          scroll={scrollMemo}
-          pagination={false}
-          className={cx('table', `${className ?? ''}`)}
-          components={{
-            header: {
-              cell: ResizableHeaderCell,
-            },
-            body: {
-              cell: OverflowTooltipBodyCell,
-              row: bodyRowComponent,
-            },
-          }}
-          onRow={(rowData, index) => {
-            const attr = {
-              index,
-              rowData,
-            };
-            return attr as React.HTMLAttributes<any>;
-          }}
-          dataSource={dataSource}
-          rowSelection={rowSelectionProp}
-          loading={antdTableProps.loading || restTableProps.loading}
-          columns={columnsWithResizableAndSettingAction}
-          expandable={
-            expandable
-              ? {
-                  ...expandable,
-                  fixed: true,
-                  expandedRowKeys,
-                  expandRowByClick: false,
-                  onExpandedRowsChange: rows => setExpandedKeys(rows as any[]),
-                }
-              : undefined
-          }
-          {...restTableProps}
-        />
-        {PaginationFooterRender ? <PaginationFooterRender /> : <PaginationFooter />}
-      </LibraryProvider>
+      {SelectionActionHeader}
+      {ColumnSettingMemorizedNode}
+      <Table
+        sticky={true}
+        scroll={scrollMemo}
+        pagination={false}
+        className={cx('table', `${className ?? ''}`)}
+        components={{
+          header: {
+            cell: ResizableHeaderCell,
+          },
+          body: {
+            cell: OverflowTooltipBodyCell,
+            row: bodyRowComponent,
+          },
+        }}
+        onRow={(rowData, index) => {
+          const attr = {
+            index,
+            rowData,
+          };
+          return attr as React.HTMLAttributes<any>;
+        }}
+        dataSource={dataSource}
+        rowSelection={rowSelectionProp}
+        loading={antdTableProps.loading || restTableProps.loading}
+        columns={columnsWithResizableAndSettingAction}
+        expandable={
+          expandable
+            ? {
+                ...expandable,
+                fixed: true,
+                expandedRowKeys,
+                expandRowByClick: false,
+                onExpandedRowsChange: rows => setExpandedKeys(rows as any[]),
+              }
+            : undefined
+        }
+        {...restTableProps}
+      />
+      {PaginationFooterRender ? <PaginationFooterRender /> : PaginationFooter}
     </div>
   );
 };

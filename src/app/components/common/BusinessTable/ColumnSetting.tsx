@@ -119,6 +119,7 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
       resizable: true,
       fieldType: field.fieldType,
       title: field.name,
+      overflowEllipsis: false,
       render(_, record) {
         const itemData = record;
         const { text, ...restTableCellProps } = fieldCellsPropDict[field.key] ?? {};

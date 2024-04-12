@@ -53,7 +53,7 @@ export const repositoryTree = async () => {
 
 /** 性能优化后的接口，使用 ES 聚合查询，repository 中不包含 caseIds */
 export const repositoryTreeV2 = async () => {
-  const { body, sessionToken } = getReqInfoFromVMRuntime<RepositoryTreePayload>();
+  const { body } = getReqInfoFromVMRuntime<RepositoryTreePayload>();
   const repositoryQuery = await getParseQuery(false, RepositoryClassName);
 
   const getRepositoryData = async () => {
@@ -64,7 +64,7 @@ export const repositoryTreeV2 = async () => {
       .limit(InfinityLimit);
 
     const repositoryParseObjects = await query.find({
-      sessionToken,
+      useMasterKey: true,
     });
 
     const ungroupedRepository = {

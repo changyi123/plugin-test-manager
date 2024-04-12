@@ -26,7 +26,7 @@ const DefaultTestRunAction = {
 };
 
 /** 获取空间成员列表 */
-const useWorkspaceMemberUserList = ({ workspaceId: workspaceId, selectedUserList }) => {
+export const useWorkspaceMemberUserList = ({ workspaceId: workspaceId, selectedUserList }) => {
   // 首次请求用户列表请求
   const defaultMemberUserListCacheRef = React.useRef<any[]>();
   const [memberUserList, setMemberUserList] = React.useState([]);
@@ -51,7 +51,7 @@ const useWorkspaceMemberUserList = ({ workspaceId: workspaceId, selectedUserList
       .concat(
         selectedUserList,
         // 过滤已被选中的用户列表
-        memberUserList.filter(user => !selectedUserIdSet.has(user.objectId)),
+        memberUserList?.filter(user => !selectedUserIdSet.has(user.objectId)),
       )
       .filter(Boolean);
   });
