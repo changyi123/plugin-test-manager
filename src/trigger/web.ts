@@ -4,6 +4,8 @@ export { runShenWanScript } from './modules/web/script/shenwan-script';
 export { batchCreateChartGroups } from './modules/web/script/create-chart-groups';
 export { generateSortIndex } from './modules/web/script/generate-sortIndex';
 
+export { checkDuplicateCase } from './modules/web/script/check-duplicate-case';
+
 // report 数据相关
 export { main as requestReportStats } from './modules/web/report/stats';
 export { main as requestReportDataBase } from './modules/web/report/data/base';
