@@ -1,7 +1,6 @@
 import { WorkflowStatusType } from 'apps-team-components-v1/dist/lib/global';
 import { ElementEnum, NodeEnum, userType } from 'apps-team-components-v1/dist/lib/workflow';
 import { cloneDeep } from 'lodash';
-import { useEffect, useState } from 'react';
 
 import fetch from '@/lib/utils/fetch';
 
@@ -127,30 +126,4 @@ export async function fetchUserRole(userId) {
   return Array.isArray(response?.results)
     ? response.results.map(role => ({ id: role.id, tag: role.title }))
     : [];
-}
-
-export function useUserGroupAndRole(userId) {
-  const [groups, setGroups] = useState();
-  const [role, setRole] = useState();
-  const [user, setUser] = useState();
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!userId) return;
-    async function initAuth() {
-      setLoading(true);
-      const [groups, role, user] = await Promise.all([
-        fetchUserGroups(userId),
-        fetchUserRole(userId),
-        Parse.User.current(),
-      ]);
-      setGroups(groups);
-      setRole(role);
-      setUser(user as any);
-      setLoading(false);
-    }
-    initAuth();
-  }, [userId]);
-
-  return { currentGroups: groups, currentRoles: role, loading, currentUser: user };
 }

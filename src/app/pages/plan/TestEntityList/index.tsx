@@ -1,6 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { DeleteOutlined, FlagOutlined, UserOutlined } from '@ant-design/icons';
-import { UserCell } from '@giteeteam/apps-team-components';
 import { useListener } from '@projectproxima/proxima-sdk-js';
 import createProximaSdk from '@projectproxima/proxima-sdk-js';
 import { useMemoizedFn, useRequest } from 'ahooks';
@@ -15,6 +14,7 @@ import { StatusBadge } from '@/components/business/Status';
 import TestRunModal, {
   ActionType as TestRunModalActionType,
 } from '@/components/business/TestRunModal';
+import UserCell from '@/components/business/UserCell';
 import { BusinessTable } from '@/components/common/BusinessTable';
 import { SystemFieldKeys } from '@/components/common/BusinessTable/hook';
 import type { BusinessTableActionType } from '@/components/common/BusinessTable/type';
@@ -133,7 +133,10 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
 
   const { data: currentFields } = useRequest(
     async () => {
-      return await getCurrentUserSetting({ workspaceKey, user: currentUser });
+      return await getCurrentUserSetting({
+        workspaceKey,
+        user: currentUser as unknown as Parse.Pointer,
+      });
     },
     {
       refreshDeps: [workspaceKey, currentUser],
@@ -1127,7 +1130,6 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     async ({ testType, fieldKeys }) => {
       await saveUserSetting({
         workspaceKey,
-        user: currentUser,
         testType,
         filterFields: {
           ...(currentFields?.filterFields ?? {}),

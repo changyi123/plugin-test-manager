@@ -276,6 +276,7 @@ const importTestInfo = async (
     } else if (type === 'exportFilter') {
       query.id = ids;
     }
+    console.info('exportTestInfo', type, ids);
 
     const { list: results } = await getTestEntityByQuery({
       query: {

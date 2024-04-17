@@ -48,9 +48,7 @@ export const getSingletonUrl = workspaceKey => {
 export const getPluginWebTriggerBaseUrl = () => {
   // 集成环境需要先判断前缀
   const ApiPrefix = isInOne() ? getProximaBasePath() : '';
-  return process.env.NODE_ENV === 'production'
-    ? `/api${ApiPrefix}/app/${getTenantKey()}/test_manager/webhooks`
-    : `/app/${getTenantKey()}/test_manager/webhooks`;
+  return `/api${ApiPrefix}/app/${getTenantKey()}/test_manager/webhooks`;
 };
 
 export const hasArrayItem = (arr?: unknown[]) => Boolean(Array.isArray(arr) && arr.length);

@@ -1,3 +1,4 @@
+import { useSDK } from '@projectproxima/plugin-sdk';
 import { useListener } from '@projectproxima/proxima-sdk-js';
 import { useDebounceFn, useMemoizedFn, useRequest } from 'ahooks';
 import { Button } from 'antd';
@@ -118,6 +119,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
 ) => {
   const { t } = useI18n();
   const { workspace } = useTestConfig();
+  const { context } = useSDK();
   const [search, setSearch] = useState('');
   const { getGlobalConfig, testPlanFieldKeys, testCaseFieldKeys, testExecutionFieldKeys } =
     useBaseAction();
@@ -258,6 +260,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
 
   const { data: currentUser } = useNoExpiredRequest(
     async () => {
+      if (context.currentUser) return context.currentUser;
       const currentUserObject = await Parse.User.current();
       return currentUserObject?.toJSON();
     },

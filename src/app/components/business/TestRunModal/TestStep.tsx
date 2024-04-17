@@ -126,7 +126,10 @@ const TestStep: React.FC<TestStepProps> = props => {
       await updateTestRunDetail(testRunEntity, {
         steps: runSteps.map(step => ({
           ...step,
-          actualResult: needUpdateStepsDataRef.current?.[step.id],
+          // 更新测试步骤的测试执行结果，以needUpdateStepsDataRef为准
+          actualResult: Reflect.has(needUpdateStepsDataRef.current || {}, step?.id)
+            ? needUpdateStepsDataRef.current?.[step?.id]
+            : step?.actualResult,
         })),
       });
     }

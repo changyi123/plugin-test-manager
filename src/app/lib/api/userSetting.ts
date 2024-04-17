@@ -5,18 +5,15 @@ export const getCurrentUserSetting = async ({
   user,
 }: {
   workspaceKey?: string;
-  user?: PointerType;
+  user?: Parse.Pointer;
 }) => {
   if (!workspaceKey) return null;
   const workspace = await new Parse.Query(Workspace).equalTo('key', workspaceKey).first();
 
-  if (!user) {
-    user = await Parse.User.current();
-  }
-
+  user = user || window.QiankunProps?.context?.currentUser;
   const userSettingData = await new Parse.Query(UserSetting)
     .equalTo('workspace', workspace)
-    .equalTo('user', user)
+    .equalTo('user', Parse.User.createWithoutData(user.objectId).toPointer())
     .first();
 
   return userSettingData?.toJSON();
@@ -34,17 +31,15 @@ export const saveUserSetting = async ({
   };
   testType?: string;
   workspaceKey: string;
-  user: PointerType;
+  user?: Parse.Pointer;
 }) => {
   const workspace = await new Parse.Query(Workspace).equalTo('key', workspaceKey).first();
 
-  if (!user) {
-    user = await Parse.User.current();
-  }
+  user = user || window.QiankunProps?.context?.currentUser;
 
   const userSettingData = await new Parse.Query(UserSetting)
     .equalTo('workspace', workspace)
-    .equalTo('user', user)
+    .equalTo('user', Parse.User.createWithoutData(user.objectId).toPointer())
     .first();
 
   if (userSettingData) {

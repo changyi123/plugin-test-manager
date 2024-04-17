@@ -1,0 +1,36 @@
+.field-value {
+  &:hover[data-hideHover='false'] {
+    .hover-style {
+      border: 1px solid rgba(9, 25, 64, 0.7);
+      box-sizing: border-box;
+      padding: 0 8px !important;
+      height: 32px;
+      border-radius: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .hover-icon {
+      display: inline-block;
+    }
+  }
+
+  .hover-icon {
+    display: none;
+  }
+
+  :global {
+    .ant-select {
+      width: 100%;
+    }
+  }
+
+  .deleted {
+    text-decoration: line-through;
+  }
+
+  .disabled {
+    color: rgba(9, 25, 64, 0.5);
+  }
+}

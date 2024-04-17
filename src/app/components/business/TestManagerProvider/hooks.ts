@@ -1,12 +1,9 @@
 import { TestType } from 'common/constant';
 import React from 'react';
 
-import { commonQuery, testConfigQuery } from '@/services/query';
+import { commonQuery } from '@/services/query';
 
-const useGetPermissions = (workspace: Record<string, any>) => {
-  const { data: testConfig } = testConfigQuery.useWorkspaceTestConfig({
-    workspaceKey: workspace?.key,
-  });
+const useGetPermissions = (workspace: Record<string, any>, testConfig: Record<string, any>) => {
   const { data: itemScreenType } = commonQuery.useItemCreateScreenType(workspace?.objectId);
   // 获取不可用的创建权限
   const getCreatePermission = React.useCallback(
