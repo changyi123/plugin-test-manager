@@ -191,6 +191,12 @@ export const checkDuplicateCase = async () => {
         return;
       }
 
+      // 没有分组的用例 repository 可能为空 或者root，这里统一成root
+      cases.forEach(item => {
+        if (!item.repository) {
+          item.repository = 'root';
+        }
+      });
       const duplicateCases = [];
 
       // 根据所属分组进行分组
