@@ -111,12 +111,12 @@ export const checkDuplicateCase = async () => {
       if (isGlobal) {
         workspaceKeys = propsWorkspaceKeys; // 全局插件直接用传入的空间keys
       } else {
-        propsWorkspaceKeys.filter(key => workspaces.include(key)); //非全局插件根据插件绑定的空间对传入的空间keys进行过滤
+        workspaceKeys = propsWorkspaceKeys.filter(key => workspaces?.includes?.(key)); //非全局插件根据插件绑定的空间对传入的空间keys进行过滤
       }
     }
 
     // 非全局插件并且workspaceKeys为空时直接返回（workspaceKeys为空有两种情况，1.测试管理没有绑定空间. 2，查询的空间均没有绑定测试管理 ）
-    if (!isFetchAll && !workspaceKeys.length) {
+    if (!isFetchAll && !workspaceKeys?.length) {
       return [];
     }
 
