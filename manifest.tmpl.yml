@@ -125,6 +125,10 @@ modules:
       events:
         - gei:proxima:workspace:created
       function: workspace-create-trigger-function
+    - key: workspace-bind-trigger
+      events:
+        - gei:apps:bound:workspace
+      function: workspace-bind-trigger-function
     
   function:
     - key: gitee-menus-function
@@ -145,6 +149,8 @@ modules:
       handler: importer.runImport
     - key: workspace-create-trigger-function
       handler: trigger.workspaceCreated
+    - key: workspace-bind-trigger-function
+      handler: trigger.workspaceBind
       # 5 分钟超时时长
       timeout: 300000
     - key: huishang-script-function
