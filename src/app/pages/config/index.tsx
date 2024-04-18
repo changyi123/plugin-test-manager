@@ -3,7 +3,7 @@ import { useSafeState } from 'ahooks';
 import { Button, Checkbox, Dropdown, Layout, Menu, Result } from 'antd';
 import React from 'react';
 
-import { featureFlags } from '@/lib/appEnv';
+import { featureFlags, getAppEnv } from '@/lib/appEnv';
 import { withPageGuard } from '@/lib/guards/page';
 import useI18n from '@/lib/hooks/useI18n';
 
@@ -18,6 +18,7 @@ import IsolatedSystem from './MoreConfig/IsolatedSystem';
 import TestConfigInitialization from './MoreConfig/TestConfigInitialization';
 import WordTemplate from './MoreConfig/WordTemplate';
 import TableFields from './TableFields';
+import TestCaseRemoveDuplicates from './TestCaseRemoveDuplicates';
 import TestReportTemplate from './TestReportTemplate';
 
 const { Sider, Content, Header } = Layout;
@@ -85,6 +86,12 @@ const ConfigPages = [
     title: 'tableFields',
     component: TableFields,
     description: 'tableFields',
+  },
+  getAppEnv('CASE_DUPLICATE_CHECK_CONFIG')?.show && {
+    key: 'TestCaseRemoveDuplicates',
+    title: 'testCaseRemoveDuplicates',
+    component: TestCaseRemoveDuplicates,
+    description: 'testCaseRemoveDuplicates',
   },
 ].filter(Boolean);
 

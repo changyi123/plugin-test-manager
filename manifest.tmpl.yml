@@ -38,6 +38,9 @@ modules:
       function: report-data-extensions-huishang-function
     - key: report-data-extensions-inspur
       function: report-data-extensions-inspur-function
+    # CFCA测试用例重名校验接口
+    - key: check-duplicate-case
+      function: check-duplicate-case-function
       # 查询实体数据
     - key: api-query-test-entity
       function: api-query-test-entity-function
@@ -162,7 +165,10 @@ modules:
       # 浪潮测试报告拓展数据
     - key: report-data-extensions-inspur-function
       handler: web.requestReportInspurDataExtensions
-
+     # cfca测试用例重名用例校验
+    - key: check-duplicate-case-function
+      handler: web.checkDuplicateCase
+      timeout: 90000
       # api backend Query
     - key: api-query-test-entity-function
       handler: api.queryTestEntity

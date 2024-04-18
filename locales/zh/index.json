@@ -348,6 +348,19 @@
         "messageSuccess": "测试管理初始化配置修改成功",
         "initialItemTypeMappingLabel": "配置初始化类型映射",
         "resetButtonText": "重置类型映射"
+      },
+      "testCaseRemoveDuplicates": {
+        "title": "测试用例去重",
+        "description": "筛选当前空间的测试用例，进行去重处理",
+        "query": "查询",
+        "chooseTime": "请选择时间范围",
+        "createdAt": "创建时间",
+        "removeDuplicates": "去重",
+        "duplicateCaseNum": "重复的测试用例条数为：{{num}}",
+        "noDuplicateCase": "没有需要去重的测试用例",
+        "modalTitle": "测试用例去重",
+        "modalContent": "执行去重，会将重名的测试用例删除，是否进行去重处理",
+        "allModules": "全部用例"
       }
     },
     "reportTemplateCreator": {
