@@ -78,6 +78,14 @@ const SupportAppEnv = {
     defaultValue: '',
     transformer: val => +val ?? 250,
   },
+  // 测试用例去重页面配置
+  CASE_DUPLICATE_CHECK_CONFIG: {
+    defaultValue: {
+      // show: true, // 配置是否显示去重页面
+      // fieldKey: 'someone', // 通过fieldKey去重用例
+    },
+    transformer: value => value,
+  },
 } as const;
 
 /**

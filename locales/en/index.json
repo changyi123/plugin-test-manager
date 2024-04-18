@@ -326,6 +326,19 @@
         "initialItemTypeMappingLabel": "",
         "resetButtonText": "Reset"
       },
+      "testCaseRemoveDuplicates": {
+        "title": "Test case deduplication",
+        "description": "Filter the use cases of the current space and perform deduplication processing",
+        "query": "Query",
+        "chooseTime": "Please select a time range",
+        "createdAt": "createdAt",
+        "removeDuplicates": "Remove duplicates",
+        "duplicateCaseNum": "The number of repeated test cases is：{{num}}",
+        "noDuplicateCase": "There are no test cases that require deduplication",
+        "modalTitle": "Test case deduplication",
+        "modalContent": "When performing deduplication, test cases with duplicate names will be deleted. Whether to perform deduplication processing",
+        "allModules": "All Modules"
+      },
       "reportTemplateCreator": {
         "creatorTitle": "New Report Template",
         "editorTitle": "Edit Test Report Template",

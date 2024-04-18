@@ -364,7 +364,9 @@ export const batchCopyTestCase = async () => {
       const workspaceObj = await getParseQuery(false, 'Workspace')
         .equalTo('key', workspaceKey)
         .first({ sessionToken });
-      if (!workspaceObj) throw new Error('空间不存在');
+      if (!workspaceObj) {
+        throw new Error(i18n.t('components.business.testManagerProvider.notCreateCase'));
+      }
       newWorkspace = workspaceObj.toJSON();
     }
 
@@ -392,7 +394,7 @@ export const batchCopyTestCase = async () => {
     });
 
     if (!caseList?.length) {
-      throw new Error('caseList is null');
+      throw new Error(i18n.t('components.business.testEntitySelectorModal.itemDeleted'));
     }
 
     // 优先级字段异常容错处理
