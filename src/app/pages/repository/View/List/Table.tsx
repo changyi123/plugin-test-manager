@@ -135,7 +135,14 @@ const DropRow = ({ rowData, ...restProps }) => {
     },
   });
 
-  const trProps = pick(restProps, ['rowData', 'onClick', 'className', 'style', 'children']);
+  const trProps = pick(restProps, [
+    'rowData',
+    'onClick',
+    'className',
+    'style',
+    'children',
+    'data-row-key', // 拖拽测试用例需要
+  ]);
   return <tr ref={ref} {...trProps} />;
 };
 
