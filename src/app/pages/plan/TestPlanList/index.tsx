@@ -1,6 +1,6 @@
 import { useMemoizedFn, useRequest } from 'ahooks';
 import { Button, notification } from 'antd';
-import _ from 'lodash';
+import _, { uniq } from 'lodash';
 import { components } from 'proxima-sdk';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 
@@ -53,12 +53,13 @@ const TestPlanList: React.FC<any> = () => {
   );
 
   const tableDataGetter = useCallback(
-    async queryParams => {
-      if (!workspaceKey || !testPlanFieldKeys)
+    async (queryParams, tableFields) => {
+      if (!workspaceKey || !tableFields?.length)
         return {
           list: [],
           total: 0,
         };
+        console.log('是不是这里触发了两次', queryParams, tableFields)
       setTableLoading(true);
 
       const { list, total } = await getTestEntityByQuery({
@@ -66,8 +67,14 @@ const TestPlanList: React.FC<any> = () => {
           workspaceKey: workspaceKey,
           type: TestType.Plan,
         },
-        fields: [].concat(SystemFieldKeys, testPlanFieldKeys),
+        fields: uniq(
+          ['id'].concat(
+            SystemFieldKeys,
+            tableFields.map(i => i.key).filter(i => i !== 'action'),
+          ),
+        ),
         selector: selectors,
+        notConcatField: true,
         ...queryParams,
       });
 
@@ -226,6 +233,7 @@ const TestPlanList: React.FC<any> = () => {
         [testType]: fieldKeys,
       },
     });
+    await actionRef.current.refresh();
   });
 
   return (

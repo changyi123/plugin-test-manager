@@ -96,6 +96,8 @@ export type CommonTestEntityQueryPayload = PaginationParams & {
   onlySelectId?: boolean;
   /** 按照 repository 参数对响应结果排序 */
   sortByRepositoryIds?: string[];
+  /** 不需要拼接测试用例专属字段 */
+  notConcatField?: boolean;
 };
 
 /**

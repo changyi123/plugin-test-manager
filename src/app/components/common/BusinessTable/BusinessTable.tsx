@@ -1,6 +1,6 @@
 import { useLocalStorageState, useMemoizedFn, useSize } from 'ahooks';
 import { Pagination, Table } from 'antd';
-import { TableProps } from 'antd/lib/table';
+import { ColumnsType, TableProps } from 'antd/lib/table';
 import { difference, isEqual, omit, pick } from 'lodash';
 import React, { useMemo, useRef } from 'react';
 import { Resizable } from 'react-resizable';
@@ -99,7 +99,10 @@ type BusinessTableProps = TableProps<any> &
     selectionActionNodes?: React.ReactNode[];
     actionRef?: React.ForwardedRef<BusinessTableActionType>;
     expandChangePage?: (num: number, size?: number) => void;
-    getDataSource?: (queryParams: { offset: number; limit: number }) => Promise<{
+    getDataSource?: (
+      queryParams: { offset: number; limit: number },
+      columnFields?: ColumnsType<any>,
+    ) => Promise<{
       list: any[];
       total: number;
     } | null>;
@@ -181,6 +184,36 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     });
   }, []);
 
+  const refreshDeps = useMemo(() => [queryDeps || getDataSource], [queryDeps, getDataSource]);
+
+  const {
+    tableProps: antdTableProps,
+    refresh,
+    mutate,
+  } = useTable(
+    async queryParams => {
+      if (!queryParams) return null;
+      const { current, pageSize: _pageSize, tableColumns: _tableColumns } = queryParams;
+      const _current = current < 1 ? 1 : current;
+      return await getDataSource?.(
+        {
+          offset: (_current - 1) * _pageSize,
+          limit: _pageSize,
+        },
+        _tableColumns || tableColumns,
+      );
+    },
+    {
+      defaultPageSize: pagesize,
+      refreshDeps,
+      cacheKey,
+      ignoreInit,
+      onSuccess: data => {
+        onSuccess?.(data, mutate);
+      },
+    },
+  );
+
   const ColumnSettingMemorizedNode = React.useMemo(() => {
     if (!titleCellOption || !useColumnSetting) return null;
     return (
@@ -193,6 +226,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
         privateColumnKey={privateColumnKey}
         handleFilterField={props?.handleFilterField}
         onTableColumnChange={handleTableColumnChange}
+        onClose={refresh}
         className={cx('column-setting', 'extra-column-setting', selectionMode ? 'hidden' : null)}
       />
     );
@@ -206,35 +240,9 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     defaultColumnKey,
     privateColumnKey,
     handleTableColumnChange,
+    refresh,
     selectionMode,
   ]);
-
-  const refreshDeps = useMemo(() => [queryDeps || getDataSource], [queryDeps, getDataSource]);
-
-  const {
-    tableProps: antdTableProps,
-    refresh,
-    mutate,
-  } = useTable(
-    async queryParams => {
-      if (!queryParams) return null;
-      const { current, pageSize: _pageSize } = queryParams;
-      const _current = current < 1 ? 1 : current;
-      return await getDataSource?.({
-        offset: (_current - 1) * _pageSize,
-        limit: _pageSize,
-      });
-    },
-    {
-      defaultPageSize: pagesize,
-      refreshDeps,
-      cacheKey,
-      ignoreInit,
-      onSuccess: data => {
-        onSuccess?.(data, mutate);
-      },
-    },
-  );
 
   const dataSource = React.useMemo(() => {
     const result = ((props.dataSource ?? antdTableProps.dataSource ?? []) as any[]).map(i => ({

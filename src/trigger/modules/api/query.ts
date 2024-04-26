@@ -70,6 +70,7 @@ const overwriteIqlParamsWithSelect = select => {
 
 /** 查询测试类型实体数据 */
 export const queryTestEntity = async () => {
+  console.time('test-manager-iqlSearch-queryTestEntity');
   const { body } = getReqInfoFromVMRuntime<QueryTestEntityPayload>();
   const {
     offset,
@@ -82,19 +83,22 @@ export const queryTestEntity = async () => {
     descending,
     onlySelectId,
     sortByRepositoryIds,
+    notConcatField,
   } = body;
 
-  return iqlRequest({
+  const res = await iqlRequest({
     query,
     selector,
     ascending,
     descending,
     sortByRepositoryIds,
     pagination: { limit, offset },
-    fields: concatIqlRequestFields(fields),
+    fields: notConcatField ? fields : concatIqlRequestFields(fields),
     ...overwriteIqlParamsWithOnlySelectId(onlySelectId),
     ...overwriteIqlParamsWithSelect(select),
   });
+  console.timeEnd('test-manager-iqlSearch-queryTestEntity');
+  return res;
 };
 
 /** 查询关联的测试实体数据 */

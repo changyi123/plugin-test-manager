@@ -177,7 +177,7 @@ modules:
       timeout: 90000
       # api backend Query
     - key: api-query-test-entity-function
-      handler: api.queryTestEntity
+      handler: query.queryTestEntity
     - key: api-query-linked-test-entity-function
       handler: api.queryLinkedTestEntity
     - key: api-query-case-by-status-function
@@ -211,7 +211,7 @@ modules:
 
     # api stats
     - key: api-stats-test-plan-function
-      handler: api.testPlanStats
+      handler: query.testPlanStats
     - key: api-stats-test-execution-function
       handler: api.testExecutionStats
     - key: api-stats-test-case-function

@@ -47,6 +47,7 @@ type ColumnSettingProps = TitleCellOption & {
     testType: string;
     fieldKeys: string[];
   }) => void;
+  onClose?: () => void;
 };
 
 const proxima = createProximaSdk();
@@ -303,7 +304,10 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
       <Drawer
         className={cx('drawer-box')}
         open={visible}
-        onClose={() => setVisible(false)}
+        onClose={() => {
+          setVisible(false);
+          props.onClose?.();
+        }}
         width={visible ? 320 : 0}
         title={t('components.common.businessTable.tableSetting')}
       >
