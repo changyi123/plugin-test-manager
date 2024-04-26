@@ -6,10 +6,13 @@ import times from 'lodash/times';
 import { BaseTestEntity, TestEntity } from '../../common/types/test';
 import { compactNilValue, testEntityToItemValues } from '../../common/utils/dataTransfer';
 import { logTimeCost } from '../lib/logger';
-import { createItems, deleteItems, updateItems } from './coreApi';
+import {  createItems, deleteItems, updateItems } from './coreApi';
 
 /** 并发数量 */
-const ParallelLimit = 10;
+const ParallelLimit = global.env?.ParallelLimit ?? 10;
+const UnRefreshLimit = global.env?.UnRefreshLimit ?? 10;
+
+const getUnRefresh = data => ({ unRefresh: data?.length > UnRefreshLimit });
 
 const CreateApiParseContext = {
   // 跳过事项创建校验
@@ -18,6 +21,25 @@ const CreateApiParseContext = {
   skipItemTypeQueryFilter: true,
   // 跳过层级校验
   skipItemValidationLevel: true,
+  // 更新版本号 跳过除 recordItemChange 外的以外行为
+  // 跳过beforeSave的行为
+  skipCheckWhetherArchived: true,
+  skipItemValidation: true,
+  skipPermission: true,
+  skipFormulaCalculation: true,
+  skipSnapshotValidate: true,
+  skipFieldBehaviorValidation: true,
+  skipValidateSecurityLevel: true,
+  skipWorkflow: true,
+  skipItemForest: true,
+  skipRelationUser: true,
+  // skipHandleApps: true,
+
+  // 跳过afterSave的行为
+  skipItemLink: true,
+  skipUpdateWorkflowConfigUsers: true,
+  skipItemType: true,
+  skipSnapshot: true,
 };
 
 const sleep = time => {
@@ -86,7 +108,7 @@ export const batchUpdateItems = async (data: Partial<TestEntity>[]) => {
         ...item.values,
       },
       eventExtraData: { skipItemChange: true },
-      parseContext: CreateApiParseContext,
+      parseContext: { ...CreateApiParseContext, ...getUnRefresh(data) },
     });
 
     return await updateItems(item.objectId, values);
@@ -121,7 +143,7 @@ export const batchCreateItems = async (
     itemGroup: data.itemGroup,
     itemType: data.itemType,
     workspace: data.workspace,
-    parseContext: CreateApiParseContext,
+    parseContext: { ...CreateApiParseContext, ...getUnRefresh(data) },
   }));
 
   const taskQueue = itemData.map(item => async () => {
