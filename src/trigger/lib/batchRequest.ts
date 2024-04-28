@@ -1,5 +1,7 @@
 import parallelLimit from 'async/parallelLimit';
+import flatten from 'lodash/flatten';
 import pick from 'lodash/pick';
+import times from 'lodash/times';
 
 import { BaseTestEntity, TestEntity } from '../../common/types/test';
 import { compactNilValue, testEntityToItemValues } from '../../common/utils/dataTransfer';
@@ -8,6 +10,8 @@ import { createItems, deleteItems, updateItems } from './coreApi';
 
 /** 并发数量 */
 const ParallelLimit = 10;
+
+const DeleteParallelLimit = 100;
 
 const CreateApiParseContext = {
   // 跳过事项创建校验
@@ -20,7 +24,25 @@ const CreateApiParseContext = {
 
 /** 删除测试实体 */
 export const batchDeleteItems = async (itemIds: string[]) => {
-  return deleteItems(itemIds.map(objectId => ({ objectId })));
+  const num = Math.ceil(itemIds.length / DeleteParallelLimit);
+  const arr = times(num, String);
+  const taskQueue = arr.map((_, index) => async () => {
+    const start = index * DeleteParallelLimit;
+    const end = (index + 1) * DeleteParallelLimit;
+
+    const needDeleteItems = itemIds.slice(start, end).map(objectId => ({ objectId }));
+
+    return await deleteItems(needDeleteItems);
+  });
+
+  const dump = logTimeCost(
+    `delete ${itemIds.length} items, parallelLimit ${DeleteParallelLimit}, request ${num} times`,
+  );
+  const res = await parallelLimit(taskQueue, 1);
+  dump();
+  const flattenRes = flatten(res);
+  console.info('----delete items result', res, flattenRes);
+  return flattenRes;
 };
 
 /** 更新测试实体 */
