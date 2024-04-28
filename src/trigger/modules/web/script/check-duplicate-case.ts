@@ -1,5 +1,5 @@
 import { getParseQuery } from '@giteeteam/apps-team-api';
-import { groupBy } from 'lodash';
+import { groupBy, isNumber, isString } from 'lodash';
 
 import { TestType } from '../../../../common/constant';
 import { iqlRequest } from '../../../lib/iqlRequest';
@@ -13,18 +13,25 @@ const parseValue = arr => {
   return numberValue > 0 ? numberValue : 0; //负的版本号、NaN当作0
 };
 
+const getStringValue = value => {
+  if (isString(value)) {
+    return value;
+  } else if (isNumber(value)) {
+    return `${value}`;
+  } else {
+    return Object.prototype.toString.call(value);
+  }
+};
+
 const compareCheckDuplicateField = (version1, version2) => {
-  const version1Arr = version1?.split('.');
-  const version2Arr = version2?.split('.');
+  const version1Arr = getStringValue(version1)?.split('.');
+  const version2Arr = getStringValue(version2)?.split('.');
 
   const version1Num = parseValue(version1Arr);
   const version2Num = parseValue(version2Arr);
 
-  if (version1Num === 0) {
-    return -version2Num;
-  }
-  if (version2Num === 0) {
-    return version1Num;
+  if (version1Num === 0 || version2Num === 0) {
+    return version1Num - version2Num;
   }
 
   const len = Math.max(version1Arr.length, version2Arr.length);
@@ -133,14 +140,28 @@ export const checkDuplicateCase = async () => {
   };
 
   // 查询测试用例
-  const queryTestCase = async workspaceKey => {
+  const queryTestCase = async ({
+    workspaceKey,
+    repositoryId,
+    isRoot = false,
+    allRepositoryIds = [],
+  }) => {
+    const limit = 200000;
+
+    const query = { workspaceKey, type: TestType.Case };
+
+    if (!isRoot) {
+      Object.assign(query, { repository: [repositoryId] });
+    } else {
+      Object.assign(query, { repository: { operator: 'not in', value: allRepositoryIds } });
+    }
+
+    console.info('repositoryId----', query);
+
     const {
-      data: { list: cases },
+      data: { list: cases, total },
     } = await iqlRequest({
-      query: {
-        workspaceKey,
-        type: TestType.Case,
-      },
+      query,
       selector,
       fields: [
         'id',
@@ -152,10 +173,15 @@ export const checkDuplicateCase = async () => {
       ].filter(Boolean),
       pagination: {
         offset: 0,
-        limit: 99999,
+        limit,
       },
     });
-    console.info('---test cases-----', workspaceKey, cases);
+    console.info('---test cases-----', workspaceKey, total);
+
+    if (total > limit) {
+      throw new Error('当前范围下用例数量过多，请缩小查询范围');
+    }
+
     return cases;
   };
 
@@ -166,44 +192,84 @@ export const checkDuplicateCase = async () => {
       .select(['name', 'parent'])
       .findAll(ParseBaseQueryOptions);
     console.info('----repository---', list);
-    return list.reduce((result, item) => {
-      result[item.id] = {
-        name: item.get('name'),
-        objectId: item.id,
-        parent: item.get('parent')?.objectId,
-      };
-      return result;
-    }, {});
+
+    const repositoryIds = [];
+    const repositoryMap = {};
+
+    list.forEach(item => {
+      Object.assign(repositoryMap, {
+        [item.id]: {
+          name: item.get('name'),
+          objectId: item.id,
+          parent: item.get('parent')?.objectId,
+        },
+      });
+      repositoryIds.push(item.id);
+    });
+
+    return { repositoryMap, repositoryIds };
+  };
+
+  const queryRepositoryCase = async workspaceKey => {
+    // 获取空间下的全部分组
+    const { repositoryIds, repositoryMap } = await queryRepository(workspaceKey);
+
+    const repositoryCase = {};
+
+    const queryNoRepositoryCase = async (workspaceKey, repositoryIds, repositoryCase) => {
+      const cases = await queryTestCase({
+        workspaceKey,
+        repositoryId: null,
+        isRoot: true,
+        allRepositoryIds: repositoryIds,
+      });
+      if (cases?.length) {
+        repositoryCase.root = cases.map(item => ({
+          ...item,
+          repository: 'root',
+        }));
+      }
+    };
+
+    // 获取各个分组下的用例
+    await Promise.all([
+      ...repositoryIds.map(async repositoryId => {
+        const cases = await queryTestCase({
+          workspaceKey,
+          repositoryId,
+        });
+        if (cases?.length) {
+          repositoryCase[repositoryId] = cases.map(item => ({
+            ...item,
+            repositoryName: repositoryMap[repositoryId]?.name,
+          }));
+        }
+      }),
+      queryNoRepositoryCase(workspaceKey, repositoryIds, repositoryCase),
+    ]);
+    return repositoryCase;
   };
 
   // 重复校验
-  const checkDuplicate = (workspaceCase, repositoryMap) => {
+  const checkDuplicate = workspaceCase => {
     const results = [];
 
     const duplicateCaseIds = [];
 
     Object.keys(workspaceCase).forEach(workspaceId => {
       const target = workspaceCase[workspaceId];
-      const cases = target.cases;
+      const repositoryCase = target.repositoryCase;
 
-      // 没有用例时直接返回
-      if (!cases?.length) {
+      const keys = Object.keys(repositoryCase);
+      // 分组下没有用例时返回
+      if (!keys?.length) {
         return;
       }
 
-      // 没有分组的用例 repository 可能为空 或者root，这里统一成root
-      cases.forEach(item => {
-        if (!item.repository) {
-          item.repository = 'root';
-        }
-      });
       const duplicateCases = [];
 
-      // 根据所属分组进行分组
-      const groupByRepositoryCase = groupBy(cases, 'repository');
-
-      Object.keys(groupByRepositoryCase).forEach(repositoryId => {
-        const sameRepositoryCases = groupByRepositoryCase[repositoryId];
+      keys.forEach(repositoryId => {
+        const sameRepositoryCases = repositoryCase[repositoryId];
 
         // 对应分组下用例条数小于等于1时返回
         if (sameRepositoryCases.length <= 1) return;
@@ -225,17 +291,8 @@ export const checkDuplicateCase = async () => {
           console.info('----保留的用例', savedCase);
           console.info('----重复的用例', sameNameCases);
 
-          const caseIds = [];
-          const arr = sameNameCases.map(item => {
-            caseIds.push(item.objectId);
-            return {
-              ...item,
-              repositoryName: repositoryMap[item.repository]?.name,
-            };
-          });
-
-          duplicateCases.push(...arr);
-          duplicateCaseIds.push(...caseIds);
+          duplicateCases.push(...sameNameCases);
+          duplicateCaseIds.push(...sameNameCases.map(item => item.objectId));
         });
       });
 
@@ -257,28 +314,22 @@ export const checkDuplicateCase = async () => {
   if (!workspaces.length) {
     return {};
   }
-  // 2。查询空间的全部用例和全部分组
+  // 2。查询空间的分组和用例
   const workspaceCase = {};
-  const repositoryMap = {};
 
   await Promise.all(
     workspaces.map(async workspace => {
-      const [cases, repository] = await Promise.all([
-        queryTestCase(workspace.key),
-        queryRepository(workspace.key),
-      ]);
+      const repositoryCase = await queryRepositoryCase(workspace.key);
       workspaceCase[workspace.objectId] = {
         workspaceName: workspace.name,
         workspaceKey: workspace.key,
-        cases,
+        repositoryCase,
       };
-
-      Object.assign(repositoryMap, repository);
     }),
   );
 
-  console.info('-------workspaceCase-----', workspaceCase, repositoryMap);
+  console.info('-------workspaceCase-----', workspaceCase);
 
   // 3. 重名校验
-  return checkDuplicate(workspaceCase, repositoryMap);
+  return checkDuplicate(workspaceCase);
 };
