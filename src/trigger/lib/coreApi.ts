@@ -8,10 +8,16 @@ const withCoreApiRequest = (
   info: [SupportRequestMethods, string | ((dynamicPath: string) => string)],
 ) => {
   return async function request(...args) {
-    const params = typeof info[1] === 'function' ? args[1] : args[0];
-    const path = typeof info[1] === 'function' ? info[1](args[0]) : info[1];
+    const isDynamicPath = typeof info[1] === 'function';
+    const params = isDynamicPath ? args[1] : args[0];
+    const path = isDynamicPath
+      ? (info[1] as (dynamicPath: string) => string)(args[0])
+      : (info[1] as string);
+    const headers = (isDynamicPath ? args[2] : args[1]) ?? {};
+    console.info(JSON.stringify({ isDynamicPath, params, path, headers }), 'withCoreApiRequest');
 
     return requestCoreApi(info[0], path, params, {
+      ...headers,
       'accept-language': genAcceptLanguage(getLang()),
     }) as any;
   };
@@ -39,8 +45,14 @@ export const updateItems = withCoreApiRequest([
   itemId => `/parse/api/items/${itemId}/quickEdit`,
 ]);
 
+/** 事项批量更新 */
+export const bulkUpdateItems = withCoreApiRequest(['POST', `/parse/api/apps/field/value`]);
+
 /** 事项创建 */
 export const createItems = withCoreApiRequest(['POST', '/parse/api/v2/items']);
+
+/** 事项批量创建 */
+export const bulkCreateItems = withCoreApiRequest(['POST', `/parse/api/v2/items/bulk`]);
 
 /** IQL 查询 */
 export const iqlSearch = withCoreApiRequest(['POST', '/parse/api/search']);

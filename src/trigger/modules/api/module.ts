@@ -65,6 +65,7 @@ export const repositoryTreeV2 = async () => {
 
     const repositoryParseObjects = await query.find({
       useMasterKey: true,
+      batchSize: InfinityLimit,
     });
 
     const ungroupedRepository = {
@@ -159,6 +160,7 @@ export const repositoryTreeV2 = async () => {
 
     // 构建目录树
     // 创建一个哈希表，用于存储每个repo对象的子对象
+    console.time('build repos tree');
     const repoMap = {};
     repositoryData.forEach(repo => {
       repoMap[repo.key] = repoMap[repo.key] || [];
@@ -191,6 +193,8 @@ export const repositoryTreeV2 = async () => {
 
     const rootRepositoryTreeNode = repositoryKeyMapping[UngroupedRepositoryKey];
     addRepositoryCaseCountsField(rootRepositoryTreeNode);
+
+    console.timeEnd('build repos tree');
 
     return buildResponse(rootRepositoryTreeNode);
   } catch (err) {

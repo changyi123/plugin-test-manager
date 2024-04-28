@@ -151,7 +151,7 @@ export const batchUpdate = async () => {
       tasks.push(batchDeleteItems(needDeleteTestRunIds));
     }
     const [res] = await Promise.all(tasks);
-    return buildResponse(res.map(data => itemToTestEntity(data.item)));
+    return buildResponse(res.filter(Boolean).map(data => itemToTestEntity(data.item)));
   } catch (err) {
     return buildResponse(err);
   }
@@ -339,7 +339,7 @@ export const batchCreateTestRun = async () => {
       batchUpdateTestPlanLinkCase(),
     ]);
 
-    const createdItemIds = createdTestRuns.map(item => item.objectId);
+    const createdItemIds = createdTestRuns.filter(Boolean).map(item => item.objectId);
     console.info('create success res: ', createdItemIds);
     return buildResponse(createdItemIds);
     // 查询测试执行任务
