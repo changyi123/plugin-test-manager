@@ -158,9 +158,24 @@ export const repositoryTreeV2 = async () => {
     const repositoryKeyMapping = keyBy(repositoryData, 'key');
 
     // 构建目录树
+    // 创建一个哈希表，用于存储每个repo对象的子对象
+    const repoMap = {};
     repositoryData.forEach(repo => {
-      repo.children = repositoryData.filter(item => item.parentKey === repo.key);
+      repoMap[repo.key] = repoMap[repo.key] || [];
     });
+
+    // 遍历repositoryData，将每个repo对象添加到其父对象的children属性中
+    repositoryData.forEach(repo => {
+      if (repo.parentKey && repoMap[repo.parentKey]) {
+        repoMap[repo.parentKey].push(repo);
+      }
+    });
+
+    // 将每个repo对象的children属性设置为其在哈希表中存储的子对象数组
+    repositoryData.forEach(repo => {
+      repo.children = repoMap[repo.key] || [];
+    });
+
     const addRepositoryCaseCountsField = repo => {
       const aggregateChildrenCaseCount = repo => {
         const childCount = repo.children?.reduce((acc, childRepo) => {
