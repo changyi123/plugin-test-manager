@@ -42,7 +42,7 @@ export const batchDeleteItems = async (itemIds: string[]) => {
   dump();
   const flattenRes = flatten(res);
   console.info('----delete items result', res, flattenRes);
-  return flattenRes;
+  return flattenRes as any[];
 };
 
 /** 更新测试实体 */
