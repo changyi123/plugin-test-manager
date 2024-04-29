@@ -536,6 +536,8 @@ tables:
       # deprecated 使用 Test 表的 repository 替代
       # testDetailIds:
       #   type: Array
+      ancestors:
+        type: Array
       sortIndex:
         type: Number
   - className: TestConfig

@@ -329,6 +329,7 @@ export const batchCreateTestRun = async () => {
             return item;
           });
         });
+        if (!needUpdateItemsData.length) return;
 
         return await batchUpdateItems(needUpdateItemsData);
       }

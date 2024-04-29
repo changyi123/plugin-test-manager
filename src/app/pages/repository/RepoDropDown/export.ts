@@ -1,6 +1,6 @@
 import { difference } from 'lodash';
 
-import { getRepoData, handleRepoPath } from '@/components/business/RepositoryGroup/repository';
+import { getRepoFullPathMap } from '@/components/business/RepositoryGroup/repository';
 import {
   getLinkedTestEntityByQuery,
   getRepositoryTreeV2,
@@ -138,13 +138,11 @@ const getExcelData = async (data: any) => {
   });
 
   const priorityInfo = await getTestPriorityInfo('priority');
-  const repoDataMap = new Map();
 
-  const _repoData = repoData ?? (await getRepositoryData([workspaceKey]));
+  const _repoData =
+    repoData ?? (await getRepositoryData([workspaceKey], ['name', 'objectId', 'parentKey']));
 
-  handleRepoPath(getRepoData(_repoData)).forEach(d => {
-    repoDataMap.set(d.objectId, d.path);
-  });
+  const repoDataMap = getRepoFullPathMap(_repoData);
 
   let testPlanObj = {};
 

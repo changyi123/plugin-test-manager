@@ -50,6 +50,8 @@ export const buildTestEntityLinkData = async (data: TestEntityLinkActionData[]) 
 
   let needUpdateItemData = data as any;
 
+  console.info(JSON.stringify(needProcessedEntityIds), 'needProcessedEntityIds');
+
   if (needProcessedEntityIds?.[0]) {
     const {
       data: { list: originalTestEntityMapping },
@@ -64,36 +66,44 @@ export const buildTestEntityLinkData = async (data: TestEntityLinkActionData[]) 
       dataTransfer: data => keyBy(data, 'objectId'),
     });
 
-    needUpdateItemData = data.map(item => {
-      const { linkItems, objectId } = item;
+    console.info(JSON.stringify(originalTestEntityMapping), 'originalTestEntityMapping');
 
-      if (isActionSchema(linkItems)) {
-        const originalTestEntity = originalTestEntityMapping[objectId];
-        if (!originalTestEntity) return data;
-        const { linkItems: originalLinkItems = [], linkType: originalLinkType } =
-          originalTestEntity;
+    needUpdateItemData = data
+      .map(item => {
+        const { linkItems, objectId } = item;
 
-        const { action, value } = linkItems as any;
-        const processedLinkData = { linkItems: value } as any;
-        if (action === 'delete') {
-          const linkItems = difference(originalLinkItems, value);
-          processedLinkData.linkItems = linkItems?.length ? linkItems : null;
-          if (originalLinkType && !linkItems?.length) {
-            processedLinkData.linkType = null;
+        if (isActionSchema(linkItems)) {
+          const originalTestEntity = originalTestEntityMapping[objectId];
+          if (!originalTestEntity) return;
+          const { linkItems: originalLinkItems = [], linkType: originalLinkType } =
+            originalTestEntity;
+
+          const { action, value } = linkItems as any;
+          const processedLinkData = { linkItems: value } as any;
+          if (action === 'delete') {
+            const linkItems = difference(originalLinkItems, value);
+            processedLinkData.linkItems = linkItems?.length ? linkItems : null;
+            if (originalLinkType && !linkItems?.length) {
+              processedLinkData.linkType = null;
+            }
+          } else {
+            console.info(value, originalLinkItems, 'add linkItems');
+            if (value.every(i => originalLinkItems.includes(i))) return;
+            processedLinkData.linkItems = Array.from(new Set([].concat(originalLinkItems, value)));
           }
-        } else {
-          processedLinkData.linkItems = Array.from(new Set([].concat(originalLinkItems, value)));
+
+          return {
+            ...item,
+            ...processedLinkData,
+          };
         }
 
-        return {
-          ...item,
-          ...processedLinkData,
-        };
-      }
-
-      return data;
-    });
+        return;
+      })
+      .filter(Boolean);
   }
+
+  console.info(JSON.stringify(needUpdateItemData), 'needUpdateItemData');
 
   return needUpdateItemData;
 };

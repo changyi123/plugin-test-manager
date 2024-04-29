@@ -12,6 +12,7 @@ import { bulkCreateItems, bulkUpdateItems, deleteItems } from './coreApi';
 /** 并发数量 */
 const ParallelLimit = global.env?.ParallelLimit ?? 10;
 const UnRefreshLimit = global.env?.UnRefreshLimit ?? 10;
+const BatchChunkSize = global.env?.BatchChunkSize ?? 20;
 
 const getUnRefresh = data => ({ unRefresh: data?.length > UnRefreshLimit });
 const chunk = (list, size, handle = i => i) =>
@@ -100,7 +101,7 @@ export const batchDeleteItems = async (itemIds: string[]) => {
 
 /** 更新测试实体 */
 export const batchUpdateItems = async (data: Partial<TestEntity>[]) => {
-  const itemsQueue = chunk(data, ParallelLimit, item => {
+  const itemsQueue = chunk(data, BatchChunkSize, item => {
     // 允许更新自定义字段（支持内置字段 assignee. priority
     // 其他自定义字段不能进行更新
     const customValues = pick(item.values, ['assignee', 'priority']);
@@ -126,14 +127,14 @@ export const batchUpdateItems = async (data: Partial<TestEntity>[]) => {
 
     console.info(JSON.stringify(updates), 'batchUpdateItems');
 
-    return await bulkUpdateItems({ updates }).then(({ data }) => data?.map(i => i.item) ?? []);
+    return await bulkUpdateItems({ updates }).then(({ data }) => data ?? []);
   });
 
   const dump = logTimeCost(`update ${taskQueue.length} items`);
   const res = await parallelLimit(taskQueue, ParallelLimit);
   dump();
   console.info(JSON.stringify(res), 'batchUpdateItems');
-  return res;
+  return res.flat();
 };
 
 type TokenSchema = Partial<Record<'objectId' | 'key', string>>;
@@ -149,7 +150,7 @@ export const batchCreateItems = async (
   fields?: string[],
 ) => {
   // 需要创建的事项数据
-  const itemsData = chunk(data, ParallelLimit, item => {
+  const itemsData = chunk(data, BatchChunkSize, item => {
     item.values = {
       ...testEntityToItemValues(item),
       // priority assignee 支持創建時更新
@@ -162,12 +163,12 @@ export const batchCreateItems = async (
   const taskQueue = itemsData.map(items => async () => {
     return await bulkCreateItems(items, {
       'X-Parse-Cloud-Context': JSON.stringify({ ...CreateApiParseContext, ...getUnRefresh(data) }),
-    }).then(data => data?.flat() || []);
+    });
   });
 
   const dump = logTimeCost(`create ${taskQueue.length} items`);
   const res = await parallelLimit(taskQueue, ParallelLimit);
   dump();
   console.info(JSON.stringify(res), 'batchCreateItems');
-  return res;
+  return res?.flat();
 };

@@ -104,6 +104,8 @@ export const itemToTestEntity = item => {
   // 事项自定义字段
   const values = item.values;
 
+  console.info(values, 'values');
+
   const testEntity = Object.entries(TestFiledKeyMapping).reduce((res, [fieldKey, valuesKey]) => {
     const data = values?.[valuesKey];
 
@@ -130,6 +132,7 @@ export const itemToTestEntity = item => {
       }
     }
   });
+  console.info(testEntity, 'testEntity');
 
   return testEntity;
 };
