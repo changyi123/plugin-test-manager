@@ -121,7 +121,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
   const { workspace } = useTestConfig();
   const { context } = useSDK();
   const [search, setSearch] = useState('');
-  const { getGlobalConfig, testPlanFieldKeys, testCaseFieldKeys, testExecutionFieldKeys } =
+  const { globalTestConfig, testPlanFieldKeys, testCaseFieldKeys, testExecutionFieldKeys } =
     useBaseAction();
   const [selectors, setSelectorsState] = useState<Selectors>({});
   const currentSelectors = useRef<Selectors>({});
@@ -370,12 +370,11 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
   }, [getStructure, workspace?.key]);
 
   const getStatusOptions = useCallback(async () => {
-    const globalConfig = await getGlobalConfig();
-    return globalConfig?.statuses.map(item => ({
+    return globalTestConfig?.statuses.map(item => ({
       value: item.key,
       label: t(`status.${item.key}.name`),
     }));
-  }, [getGlobalConfig, t]);
+  }, [globalTestConfig, t]);
 
   // 组装打开字段值选择器的函数
   const getFieldValueProps = useCallback(

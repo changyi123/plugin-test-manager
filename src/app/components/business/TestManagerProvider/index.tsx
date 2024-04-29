@@ -389,6 +389,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
       return globalTestConfig?.extra ?? { statuses: [] };
     },
     {
+      refreshDeps: [globalTestConfig],
       // manual: true,
       cacheKey: 'GLOBAL_TEST_CONFIG',
       // 永不过期
@@ -611,6 +612,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
       testCaseFieldKeys,
       testExecutionFieldKeys,
       openItemViewPanel: openItemDetailPanel,
+      globalTestConfig: globalTestConfig?.extra || { statuses: [] },
     };
 
     return actions;
@@ -624,6 +626,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
     testPlanFieldKeys,
     testCaseFieldKeys,
     testExecutionFieldKeys,
+    globalTestConfig?.extra,
     t,
   ]);
 
