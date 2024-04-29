@@ -32,7 +32,6 @@ const TestPlanList: React.FC<any> = () => {
   const { createItemUseModal, getCreatePermission, testPlanFieldKeys } = useBaseAction();
   const { workspaceKey, selectedTestPlan, setSelectedTestPlan, setSearchParams } = usePageContext();
   const [selectors, setSelectors] = useState([{}, {}]);
-
   const [tableLoading, setTableLoading] = useState(false);
   const { data: currentUser } = useCurrentUser();
 
@@ -59,7 +58,6 @@ const TestPlanList: React.FC<any> = () => {
           list: [],
           total: 0,
         };
-        console.log('是不是这里触发了两次', queryParams, tableFields)
       setTableLoading(true);
 
       const { list, total } = await getTestEntityByQuery({

@@ -101,6 +101,10 @@ modules:
     - key: init-test-config
       function: init-test-config-function
 
+    # 基础数据合并接口
+    - key: api-query-basic-data
+      function: api-query-basic-data-function
+
   trigger:
     - key: test-manager-initial-script-install
       events:
@@ -220,6 +224,8 @@ modules:
       handler: api.testCount
 
     # api module
+    - key: api-query-basic-data-function
+      handler: query.queryBasicData
     - key: api-module-repository-tree-function
       handler: api.repositoryTree
     - key: api-module-repository-tree-v2-function

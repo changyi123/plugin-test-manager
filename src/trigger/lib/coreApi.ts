@@ -71,3 +71,10 @@ export const queryFields = withCoreApiRequest([
   'GET',
   params => `/parse/api/fields/search?${jsonToUrlParam(params as any)}`,
 ]);
+
+// 查询空间详情
+export const queryWorkspace = withCoreApiRequest([
+  'GET',
+  (params: any) =>
+    `/parse/api/workspace/${params.workspaceKeyOrId}/scheme?include=${params.include}`,
+]);

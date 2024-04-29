@@ -19,16 +19,14 @@ import {
   QuestionCircleOutlined,
   Setting,
 } from '@/icons';
-import { getCustomFields } from '@/lib/api/proxima';
 import { TABLE_EXCLUDE_FIELDS, TestType } from '@/lib/constants';
 import { useBaseAction } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import { useFieldsWithFieldCellProps } from '@/lib/hooks/useProxima';
-import { useNoExpiredRequest } from '@/lib/hooks/useRequest';
 import { generateStorageKey } from '@/lib/utils/helper';
 
 import cx from './ColumnSetting.less';
-import { SystemFieldKeys, useGetTableFilterFields } from './hook';
+import { SystemFieldKeys, useGetCustomFields, useGetTableFilterFields } from './hook';
 import { TitleCellOption } from './type';
 
 type ColumnDuckTyping = ColumnType<any> & Record<string, any>;
@@ -85,10 +83,9 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
   }, [testPlanFieldKeys?.toString(), testCaseFieldKeys?.toString(), testFieldKeys?.toString()]);
   const keys = useMemo(() => [].concat(SystemFieldKeys, _keys ?? []), [_keys?.toString()]);
   const fieldKeys = useMemo(() => keys?.filter(key => !TABLE_EXCLUDE_FIELDS.includes(key)), [keys]);
-  const { data: customFields } = useNoExpiredRequest(() => getCustomFields(fieldKeys), {
-    cacheKey: `CustomFields_${fieldKeys?.toString()}`,
-    refreshDeps: [fieldKeys],
-  });
+
+  const customFields = useGetCustomFields({ filedKeys: fieldKeys });
+
   const [fields, setFields] = useState<string[] | undefined>([]);
   const [loading, setLoading] = useState(false);
 
@@ -240,6 +237,8 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
 
   // 处理 fixed column 排列
   useDeepCompareEffect(() => {
+    // 等字段初始化完再触发列表加载
+    if (allColumns.findIndex(i => !!i.fieldType) === -1) return;
     const systemColumns = allColumns.filter(col => col.isSystem);
 
     const selectedColumns = systemColumns

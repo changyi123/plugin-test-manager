@@ -1,8 +1,8 @@
 /**
  * @file 数据查询
  */
-
 // app cli 不支持指定 tsconfig 需要使用相对路径
+import { getParseQuery } from '@giteeteam/apps-team-api';
 import { TestEntity } from 'common/types/test';
 import pick from 'lodash/pick';
 
@@ -22,7 +22,9 @@ import {
 } from '../../../common/types/api';
 import { RewriteFieldKey } from '../../../common/utils/dataTransfer';
 import { buildPaginationResponse, buildResponse, getReqInfoFromVMRuntime } from '../../lib/apiUtil';
+import { queryWorkspace } from '../../lib/coreApi';
 import { concatIqlRequestFields, toArray } from '../../lib/helper';
+import { dataFetcher } from '../../lib/initialization';
 import { iqlRequest } from '../../lib/iqlRequest';
 import { testEntityFieldTypeValidator } from '../../lib/validator';
 
@@ -288,3 +290,35 @@ export const queryCaseRunRecords = async () => {
     return buildPaginationResponse(err);
   }
 };
+
+// 查询初始化需要的数据
+export async function queryBasicData() {
+  const {
+    body: { workspaceKey },
+  } = getReqInfoFromVMRuntime<{ workspaceKey: string }>();
+  // 空间与测试管理配置
+  const [workspace, [currentTestConfig], globalTestConfig] = await Promise.all([
+    queryWorkspace({
+      workspaceKeyOrId: workspaceKey,
+      include:
+        'itemTypeScheme,itemTypeScreenScheme,itemTypeScreenScheme.defaultScreenScheme,itemTypeScreenScheme.itemTypeScreenSchemeMappings,workflowScheme',
+    }),
+    dataFetcher.getTestConfigs([workspaceKey]),
+    dataFetcher.getGlobalTestConfig(),
+  ]);
+  // 测试执行状态映射
+  const statusIds =
+    currentTestConfig?.testRunAction?.statusList?.map(status => status.statusId) || [];
+  if (statusIds?.length) {
+    const statusMap = await getParseQuery(true, 'Status')
+      .containedIn('objectId', statusIds)
+      .find({ json: true })
+      .then(status => status.reduce((prev, cur) => ({ ...prev, [cur.objectId]: cur.name }), {}));
+    currentTestConfig.testRunAction.statusList.forEach(s => (s.name = statusMap[s.statusId]));
+  }
+  return {
+    workspace,
+    currentTestConfig,
+    globalTestConfig,
+  };
+}

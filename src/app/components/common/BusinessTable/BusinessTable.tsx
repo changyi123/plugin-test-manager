@@ -184,8 +184,20 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     });
   }, []);
 
-  const refreshDeps = useMemo(() => [queryDeps || getDataSource], [queryDeps, getDataSource]);
+  const tableColumnsDeps = useMemo(
+    () =>
+      (tableColumns || [])
+        .map(i => i.key)
+        .sort()
+        .join(','),
+    [tableColumns],
+  );
 
+  const refreshDeps = useMemo(
+    () => [queryDeps || getDataSource, tableColumnsDeps],
+    [queryDeps, getDataSource, tableColumnsDeps],
+  );
+  // console.log('查看表头', tableColumns, )
   const {
     tableProps: antdTableProps,
     refresh,
@@ -194,13 +206,14 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     async queryParams => {
       if (!queryParams) return null;
       const { current, pageSize: _pageSize, tableColumns: _tableColumns } = queryParams;
+      const fields = _tableColumns || tableColumns || [];
       const _current = current < 1 ? 1 : current;
       return await getDataSource?.(
         {
           offset: (_current - 1) * _pageSize,
           limit: _pageSize,
         },
-        _tableColumns || tableColumns,
+        fields,
       );
     },
     {

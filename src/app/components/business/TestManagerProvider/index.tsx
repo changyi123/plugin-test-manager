@@ -3,11 +3,11 @@ import createProximaSdk from '@projectproxima/proxima-sdk-js';
 import { useRequest } from 'ahooks';
 import { message, notification } from 'antd';
 import { isEmpty, union } from 'lodash';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import { v4 as uuid } from 'uuid';
 
-import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/hook';
+import { useScreenFieldKeysFromTestConfig } from '@/components/common/BusinessTable/hook';
 import { getTestConfig, getTestConfigByWorkspaceKeys } from '@/lib/api/common';
 import { getTestEntityByQuery, updateTestEntity } from '@/lib/api/item';
 import { getItemByIds, getItemTypeByKey, getItemTypeByKeys } from '@/lib/api/proxima';
@@ -20,7 +20,7 @@ import { useGetWorkspaceRepository } from '@/lib/hooks/useTest';
 import { TestEntity } from '@/lib/types/Test';
 import { EventBus } from '@/lib/utils/eventBus';
 import { generateSortIndex, getKeyByValue, hasArrayItem } from '@/lib/utils/helper';
-import { commonQuery, testConfigQuery } from '@/services/query';
+import { testConfigQuery } from '@/services/query';
 
 import {
   BaseActionContext,
@@ -296,11 +296,21 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
   const [testEntity, setTestEntity] = React.useState<TestEntity>();
   const workspaceKey = itemId ? testEntity?.workspace?.key : workspaceKeyFromProp;
   // 获取空间配置数据
-  const { data: workspace } = commonQuery.useWorkspaceQuery({ key: workspaceKey });
-  // 获取空间配置数据
-  const { data: testConfig = DefaultTestConfig } = testConfigQuery.useWorkspaceTestConfig({
+  const { data: queryRes } = testConfigQuery.useWorkspaceTestConfig({
     workspaceKey,
-  });
+  }) as any;
+
+  // 当前空间
+  const workspace = useMemo(() => queryRes?.workspace, [queryRes?.workspace]);
+
+  // 全局配置
+  const globalTestConfig = useMemo(() => queryRes?.globalTestConfig, [queryRes?.globalTestConfig]);
+
+  // 当前测试管理配置
+  const testConfig = useMemo(
+    () => queryRes?.currentTestConfig || DefaultTestConfig,
+    [queryRes?.currentTestConfig],
+  );
 
   const { getCreatePermission } = useGetPermissions(workspace, testConfig);
 
@@ -348,12 +358,14 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
     }
   }, [itemId, testConfig, t]);
 
-  const testPlanFieldKeys = useTestTypeScreenFieldKeys({
+  const testPlanFieldKeys = useScreenFieldKeysFromTestConfig({
+    testConfig,
     testType: TestType.Plan,
     workspaceKey,
   });
 
-  const testCaseFieldKeys = useTestTypeScreenFieldKeys({
+  const testCaseFieldKeys = useScreenFieldKeysFromTestConfig({
+    testConfig,
     testType: TestType.Case,
     workspaceKey,
   });
@@ -365,19 +377,16 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
     pathname && repositoryFolderTreeEvent.dispatch();
   }, [pathname]);
 
-  const testExecutionFieldKeys = useTestTypeScreenFieldKeys({
+  const testExecutionFieldKeys = useScreenFieldKeysFromTestConfig({
     testType: TestType.Execution,
+    testConfig,
     workspaceKey,
   });
 
   // 获取全局配置时使用缓存
   const { runAsync: getGlobalConfig } = useRequest(
     async () => {
-      const testConfig = await getTestConfig({
-        global: true,
-      });
-
-      return testConfig?.get('extra') ?? { statuses: [] };
+      return globalTestConfig?.extra ?? { statuses: [] };
     },
     {
       // manual: true,
