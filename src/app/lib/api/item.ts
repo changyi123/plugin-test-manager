@@ -21,7 +21,13 @@ import {
   TestRunExecutorModel,
   TestType,
 } from '../constants';
-import { BaseTestEntity, CopyTestCasePayload, Status, TestEntity } from '../types/Test';
+import {
+  BaseTestEntity,
+  CopyTestCasePayload,
+  CopyTestCaseV2Payload,
+  Status,
+  TestEntity,
+} from '../types/Test';
 import { getPluginWebTriggerBaseUrl, getSessionToken } from '../utils/helper';
 import { SearchSelectors, selectorToIql } from '../utils/iql';
 import { compactStepModel } from '../utils/modelTransfer';
@@ -36,7 +42,7 @@ interface QueryCaseIdByStatusPayload {
 }
 
 // 处理筛选器数据
-const handleSelector = selector => {
+export const handleSelector = selector => {
   if (!selector) return null;
   const [systemSelector, customSelector] = selector;
   const _customSelector = omit(customSelector, RepositoryModel);
@@ -230,6 +236,18 @@ export const deleteTestEntity = async ids => {
   }
   return res;
 };
+// 批量删除测试实体事项 v2
+export const deleteTestEntityV2 = async queryParams => {
+  const { data: res } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-batch-delete-v2`, {
+    queryParams,
+    sessionToken: getSessionToken(),
+  });
+
+  if (res.status === 'error') {
+    return res;
+  }
+  return res;
+};
 
 // 批量更新测试实体事项
 export const updateTestEntity = async data => {
@@ -244,11 +262,41 @@ export const updateTestEntity = async data => {
   return res?.data;
 };
 
+// 批量更新测试实体事项 统一值
+export const updateTestEntityValue = async params => {
+  const { data: res } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-batch-update-value`, {
+    ...params,
+    sessionToken: getSessionToken(),
+  });
+
+  if (res.status === 'error') {
+    return res;
+  }
+  return res?.data;
+};
+
 // 复制测试用例
 export const copyTestCase = async (data: CopyTestCasePayload) => {
   try {
     const { data: copyItemData } = await fetch.post(
       `${pluginWebTriggerBaseUrl}/api-batch-copy-test-case`,
+      {
+        ...data,
+        sessionToken: getSessionToken(),
+      },
+    );
+
+    return copyItemData;
+  } catch (error) {
+    return error;
+  }
+};
+
+// 复制测试用例 V2
+export const copyTestCaseV2 = async (data: CopyTestCaseV2Payload) => {
+  try {
+    const { data: copyItemData } = await fetch.post(
+      `${pluginWebTriggerBaseUrl}/api-batch-copy-test-case-v2`,
       {
         ...data,
         sessionToken: getSessionToken(),

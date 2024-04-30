@@ -18,6 +18,7 @@ import { arrayToTree } from '@/lib/utils/arrayToTree';
 import fetch from '@/lib/utils/fetch';
 import { escapeHtmlString } from '@/lib/utils/helper';
 import { getPluginWebTriggerBaseUrl } from '@/lib/utils/helper';
+import { SearchSelectors } from '@/lib/utils/iql';
 import { isZhLang } from '@/lib/utils/locale';
 import { getRepositoryQuery } from '@/lib/utils/tree';
 import { CustomField } from '@/services/models';
@@ -38,7 +39,8 @@ interface ImportArgs {
   checkedId: string;
   workspace: Record<string, any>;
   treeData?: TreeNode[];
-  ids?: string[];
+  repository?: Record<string, any>;
+  selector?: SearchSelectors | string;
 }
 
 const getTestPriorityInfo = async (filedKey: string) => {
@@ -233,7 +235,7 @@ const importTestInfo = async (
   t: (val: string) => string | string[],
   excelData = [],
 ) => {
-  const { type, checkedId, workspace, ids } = args;
+  const { type, checkedId, workspace, repository, selector } = args;
 
   if (type === 'exportPlan') {
     // 获取当前测试计划下的测试用例
@@ -254,7 +256,7 @@ const importTestInfo = async (
       t,
     });
   } else {
-    const query: Record<string, unknown> = {};
+    let repositoryParams: Record<string, unknown> = repository;
     // 获取用例树
     const workspaceKey = workspace.key;
     const [{ data: repositoryTree }, repositoryData] = await Promise.all([
@@ -264,26 +266,30 @@ const importTestInfo = async (
 
     const selectTreeNode = getTreeNodeByKey([repositoryTree], checkedId);
 
+    const queryParams = {
+      query: null,
+      selector: null,
+      limit: 99999,
+    };
+
     // 导出当前分组及其字分组，需要特殊处理 repository 数据
     if (type === 'exportChildGroup') {
       // 获取当前分组及其所有子分组用例
-      query.repository = getRepositoryQuery(selectTreeNode, 'all')?.repository;
+      repositoryParams = getRepositoryQuery(selectTreeNode, 'all')?.repository;
     } else if (type === 'exportGroup') {
       // 导出当前分组用例
-      query.repository = getRepositoryQuery(selectTreeNode, 'current')?.repository;
+      repositoryParams = getRepositoryQuery(selectTreeNode, 'current')?.repository;
     } else if (type === 'exportFilter') {
-      query.id = ids;
+      queryParams.selector = selector;
     }
-    console.info('exportTestInfo', type, ids);
+    queryParams.query = {
+      type: TestType.Case,
+      workspaceKey: workspace.key,
+      ...repositoryParams,
+    };
+    console.info('exportTestInfo', type, queryParams);
 
-    const { list: results } = await getTestEntityByQuery({
-      query: {
-        type: TestType.Case,
-        workspaceKey: workspace.key,
-        ...query,
-      },
-      limit: 99999,
-    });
+    const { list: results } = await getTestEntityByQuery(queryParams);
 
     excelData = await getExcelData({ results, repoData: repositoryData, t });
   }

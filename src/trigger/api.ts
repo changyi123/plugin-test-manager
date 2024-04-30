@@ -6,8 +6,11 @@ export {
 
 export {
   batchDelete,
+  batchDeleteV2,
   batchUpdate,
+  batchUpdateValue,
   batchCopyTestCase,
+  batchCopyTestCaseV2,
   batchCreateTestRun,
   batchCreateTestCase,
 } from './modules/api/batch';

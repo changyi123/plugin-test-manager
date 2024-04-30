@@ -145,11 +145,30 @@ export type BatchDeletePayload = {
 };
 
 /**
+ * 删除测试实体V2
+ * @example POST /api/project/app/osc/test_manager/webhooks/api-batch-delete-v2
+ */
+export type BatchDeleteV2Payload = {
+  queryParams: CommonTestEntityQueryPayload;
+  /** 跳过更新关联数据 */
+  skipDeletedLinkItems: boolean;
+};
+
+/**
  * 更新测试实体数据
  * @example POST /api/project/app/osc/test_manager/webhooks/api-batch-update
  */
 export type BatchUpdatePayload = {
   data: (Partial<TestEntity> | TestEntityLinkActionData)[];
+};
+
+/**
+ * 更新测试实体数据 统一字段
+ * @example POST /api/project/app/osc/test_manager/webhooks/api-batch-update-value
+ */
+export type BatchUpdateValuePayload = {
+  queryParams: CommonTestEntityQueryPayload;
+  value: TestEntity;
 };
 
 /**
@@ -170,6 +189,15 @@ export type BatchCopyTestCasePayload = {
   fields: string[];
   workspaceKey?: string;
   repository?: string;
+};
+
+/**
+ * 复制测试用例
+ * @example POST /api/project/app/osc/test_manager/webhooks/api-batch-copy-test-case-v2
+ */
+export type BatchCopyTestCaseV2Payload = {
+  queryParams: CommonTestEntityQueryPayload;
+  fields: string[];
 };
 
 /**

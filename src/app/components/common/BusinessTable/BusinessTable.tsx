@@ -2,7 +2,7 @@ import { useLocalStorageState, useMemoizedFn, useSize } from 'ahooks';
 import { Pagination, Table } from 'antd';
 import { ColumnsType, TableProps } from 'antd/lib/table';
 import { difference, isEqual, omit, pick } from 'lodash';
-import React, { useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { Resizable } from 'react-resizable';
 
 import OverflowTooltip from '@/components/common/OverflowTooltip';
@@ -94,6 +94,7 @@ type BusinessTableProps = TableProps<any> &
     // 所有可选的 row 标识
     allSelectableRowKeys?: string[];
     onSelectionCancel?: () => void;
+    virtualSelectAll?: boolean;
     // 是否已经有列被选中
     onHasRowSelected?: (check: boolean) => void;
     selectionActionNodes?: React.ReactNode[];
@@ -120,6 +121,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     columns,
     testFieldKeys,
     defaultColumnKey,
+    virtualSelectAll,
     privateColumnKey,
     actionRef,
     expandable,
@@ -151,7 +153,10 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
   const [tableSorter, setTableSorter] = React.useState({});
   const [expandedRowKeys, setExpandedKeys] = React.useState([]);
   const [selectedRowKeys, setSelectedRowKeys] = React.useState<string[] | undefined>(undefined);
+  const [unSelectedRowKeys, setUnSelectedRowKeys] = React.useState<string[] | undefined>(undefined);
   const [selectionMode, setSelectionMode] = React.useState(selectionModeFromProp);
+  const [selectAll, setSelectAll] = React.useState(false);
+  const allSelectableRowKeysRef = React.useRef([]); // 用于虚拟全选
   const COLUMN_WIDTH_STORAGE_KEY = generateStorageKey(props.name, 'column-width');
   const PAGESIZE_STORAGE_KEY = generateStorageKey(props.name, 'default-pagesize');
   const [tableColumns, setTableColumns] = React.useState(useColumnSetting ? [] : columns);
@@ -204,8 +209,9 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     mutate,
   } = useTable(
     async queryParams => {
-      if (!queryParams) return null;
       const { current, pageSize: _pageSize, tableColumns: _tableColumns } = queryParams;
+      // 等待表头加载完，请求
+      if (!queryParams || !tableColumns.length) return null;
       const fields = _tableColumns || tableColumns || [];
       const _current = current < 1 ? 1 : current;
       return await getDataSource?.(
@@ -281,6 +287,22 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
   const currentPageSelectableRowKeys = React.useMemo(() => {
     return dataSource.map(data => data[props.rowKey as string]) ?? [];
   }, [dataSource, props.rowKey]);
+
+  useEffect(() => {
+    if (selectAll && virtualSelectAll) {
+      setSelectedRowKeys([
+        ...new Set(
+          (selectedRowKeys ?? []).concat(
+            currentPageSelectableRowKeys.filter(d => !unSelectedRowKeys?.includes(d)),
+          ),
+        ),
+      ]);
+      allSelectableRowKeysRef.current = [
+        ...new Set(allSelectableRowKeysRef.current.concat(currentPageSelectableRowKeys)),
+      ];
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPageSelectableRowKeys, selectAll, virtualSelectAll]);
 
   // 所有可选的 row keys
   const allSelectableRowKeys = React.useMemo(() => {
@@ -390,26 +412,45 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
 
   const SelectionActionHeader = useMemo(() => {
     if (!selectionMode) return null;
+    const _allSelectedRowKeys = virtualSelectAll
+      ? allSelectableRowKeysRef.current?.length
+        ? allSelectableRowKeysRef.current
+        : currentPageSelectableRowKeys
+      : allSelectableRowKeys;
     const handleCheck = checked => {
+      setSelectAll(checked);
       if (checked) {
-        setSelectedRowKeys(allSelectableRowKeys);
-        setCheckedRowKeys?.(allSelectableRowKeys);
+        console.info(_allSelectedRowKeys);
+        setSelectedRowKeys(_allSelectedRowKeys);
+        setCheckedRowKeys?.(_allSelectedRowKeys);
+        setUnSelectedRowKeys([]);
       } else {
         // 取差集
         setSelectedRowKeys([]);
         setCheckedRowKeys?.([]);
+        setUnSelectedRowKeys(_allSelectedRowKeys);
       }
     };
     const handleClose = () => {
       setSelectionMode(false);
       onSelectionCancel?.();
     };
-    const disableTableSelectAll = !Array.isArray(props.allSelectableRowKeys);
+    const disableTableSelectAll = !Array.isArray(_allSelectedRowKeys);
+    const selectNum = virtualSelectAll
+      ? !selectAll
+        ? selectedRowKeys?.length ?? 0
+        : (antdTableProps?.pagination?.total ?? 0) - (unSelectedRowKeys?.length ?? 0)
+      : selectedRowKeys?.length ?? 0;
     // 是否全等 rowKey
-    const isSameWithAllRowKeys = !difference(allSelectableRowKeys, selectedRowKeys).length;
+    const isSameWithAllRowKeys = virtualSelectAll
+      ? !selectAll
+        ? selectedRowKeys && selectedRowKeys.length >= (antdTableProps?.pagination?.total ?? 0)
+        : !unSelectedRowKeys?.length
+      : !difference(allSelectableRowKeys, selectedRowKeys).length;
     const allRowSelectionChecked = isSameWithAllRowKeys;
     // 有选中的值，但不全等全部 rowKey 则为半选
-    const allRowSelectionIndeterminate = !isSameWithAllRowKeys && !!selectedRowKeys?.length;
+    const allRowSelectionIndeterminate =
+      !isSameWithAllRowKeys && ((virtualSelectAll && selectAll) || !!selectedRowKeys?.length);
 
     return (
       <div className={`${cx('selection-header')} selection-header-box`}>
@@ -423,7 +464,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
             onChange: e => handleCheck(e.target.checked),
             indeterminate: allRowSelectionIndeterminate,
           }}
-          selectNum={selectedRowKeys?.length}
+          selectNum={selectNum}
           actions={selectionActionNodes ?? []}
         />
       </div>
@@ -431,13 +472,17 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
   }, [
     allSelectableRowKeys,
     antdTableProps.loading,
+    antdTableProps?.pagination?.total,
+    currentPageSelectableRowKeys,
     expandable,
     onSelectionCancel,
-    props.allSelectableRowKeys,
+    selectAll,
     selectedRowKeys,
     selectionActionNodes,
     selectionMode,
     setCheckedRowKeys,
+    unSelectedRowKeys?.length,
+    virtualSelectAll,
   ]);
 
   const PaginationFooter = useMemo(() => {
@@ -479,11 +524,19 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
             onChange(rowKeys: string[]) {
               const _selectedRowKeys =
                 selectedRowKeys?.filter(d => !currentPageSelectableRowKeys.includes(d)) ?? [];
+              const curUnselectedRowKeys =
+                unSelectedRowKeys?.filter(d => !currentPageSelectableRowKeys.includes(d)) ?? [];
 
-              const _rowKeys = rowKeys.concat(_selectedRowKeys);
+              const _rowKeys = new Set(rowKeys.concat(_selectedRowKeys));
+              const _unselectRowKeys = new Set(
+                currentPageSelectableRowKeys
+                  .filter(d => !rowKeys.includes(d))
+                  .concat(curUnselectedRowKeys),
+              );
 
-              setSelectedRowKeys(_rowKeys);
-              setCheckedRowKeys?.(_rowKeys);
+              setUnSelectedRowKeys([..._unselectRowKeys] as string[]);
+              setSelectedRowKeys([..._rowKeys]);
+              setCheckedRowKeys?.([..._rowKeys]);
             },
           }
         : undefined,
@@ -493,6 +546,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
       selectedRowKeys,
       selectionMode,
       setCheckedRowKeys,
+      unSelectedRowKeys,
     ],
   );
 
@@ -503,15 +557,30 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
         setSelectionMode(visible);
       },
       refresh,
+      tableTotal: antdTableProps?.pagination?.total,
+      selectAll,
       selectedRowKeys,
+      unSelectedRowKeys,
       expandChangePage,
       resetSelectedRowKeys: () => {
         setSelectedRowKeys(undefined);
+        setUnSelectedRowKeys(undefined);
         setCheckedRowKeys?.([]);
+        setSelectAll(false);
+        allSelectableRowKeysRef.current = [];
       },
       tableColumns,
     }),
-    [refresh, selectedRowKeys, expandChangePage, tableColumns, setCheckedRowKeys],
+    [
+      refresh,
+      selectAll,
+      selectedRowKeys,
+      expandChangePage,
+      tableColumns,
+      setCheckedRowKeys,
+      antdTableProps?.pagination?.total,
+      unSelectedRowKeys,
+    ],
   );
 
   React.useEffect(() => {

@@ -13,10 +13,13 @@ import {
 } from '../../../common/constant';
 import {
   BatchCopyTestCasePayload,
+  BatchCopyTestCaseV2Payload,
   BatchCreateTestCasePayload,
   BatchCreateTestRunPayload,
   BatchDeletePayload,
+  BatchDeleteV2Payload,
   BatchUpdatePayload,
+  BatchUpdateValuePayload,
 } from '../../../common/types/api';
 import { TestEntityLinkActionData } from '../../../common/types/common';
 import { TestEntity } from '../../../common/types/test';
@@ -28,6 +31,7 @@ import {
   buildTestEntityLinkData,
   concatIqlRequestFields,
   generateSortIndex,
+  getAllEntity,
   uuidv4,
 } from '../../lib/helper';
 import { iqlRequest } from '../../lib/iqlRequest';
@@ -70,6 +74,26 @@ export const batchDelete = async () => {
     } = getReqInfoFromVMRuntime<BatchDeletePayload>();
     if (!Array.isArray(ids)) throwArgumentError('ids', 'objectId[]');
     const res = await batchDeleteItems(ids);
+    const errorItems = res?.filter(i => i.status !== 'success');
+    if (errorItems?.length) {
+      // 有错误数据
+      return buildResponse(new Error(errorItems[0].message));
+    } else {
+      return buildResponse('delete success');
+    }
+  } catch (err) {
+    return buildResponse(err);
+  }
+};
+
+/** 批量删除 */
+export const batchDeleteV2 = async () => {
+  try {
+    const {
+      body: { queryParams },
+    } = getReqInfoFromVMRuntime<BatchDeleteV2Payload>();
+    const items = await getAllEntity(queryParams);
+    const res = await batchDeleteItems(items);
     const errorItems = res?.filter(i => i.status !== 'success');
     if (errorItems?.length) {
       // 有错误数据
@@ -150,6 +174,32 @@ export const batchUpdate = async () => {
     if (needDeleteTestRunIds?.length) {
       tasks.push(batchDeleteItems(needDeleteTestRunIds));
     }
+    const [res] = await Promise.all(tasks);
+    return buildResponse(res.filter(Boolean).map(data => itemToTestEntity(data.item)));
+  } catch (err) {
+    return buildResponse(err);
+  }
+};
+
+/** 批量更新 固定值 */
+export const batchUpdateValue = async () => {
+  try {
+    const {
+      body: { queryParams, value },
+    } = getReqInfoFromVMRuntime<BatchUpdateValuePayload>();
+    if (!value) throwArgumentError('data', 'testEntity[]');
+    const ids = await getAllEntity(queryParams);
+    const data = ids.map(objectId => ({
+      objectId,
+      ...value,
+    }));
+
+    // 需要更新的事项
+    const needUpdateItemData = await buildTestEntityLinkData(data as TestEntityLinkActionData[]);
+    // 校验需要保存的参数
+    needUpdateItemData.forEach(testEntityFieldTypeValidator);
+    const tasks = [batchUpdateItems(needUpdateItemData)];
+
     const [res] = await Promise.all(tasks);
     return buildResponse(res.filter(Boolean).map(data => itemToTestEntity(data.item)));
   } catch (err) {
@@ -393,6 +443,101 @@ export const batchCopyTestCase = async () => {
       pagination: { limit: InfinityLimit },
       fields: concatIqlRequestFields(fields),
     });
+
+    if (!caseList?.length) {
+      throw new Error(i18n.t('components.business.testEntitySelectorModal.itemDeleted'));
+    }
+
+    // 优先级字段异常容错处理
+    const dataValuesExceptionHandler = values => {
+      const handleObjectToId = (key: string, id: string) => {
+        const getObjectKey = value => {
+          console.info('value', value?.[id], value);
+          if (isObject(value) && Object.hasOwnProperty.call(value, id)) {
+            return value?.[id];
+          }
+          return value;
+        };
+        if (Array.isArray(values[key])) {
+          values[key] = values[key].map(getObjectKey).filter(Boolean);
+        } else {
+          values[key] = getObjectKey(values[key]);
+        }
+      };
+      // 对象结构为异常的数据结构，需要进行容错处理
+      // 优先级字段异常容错处理
+      handleObjectToId('priority', 'key');
+      // 版本、迭代和自定义版本异常处理
+      objectToIdFieldKeys.forEach(fieldKey => handleObjectToId(fieldKey, 'objectId'));
+
+      return values;
+    };
+
+    const needCreateItems = caseList.map((data, index) => ({
+      name: workspaceKey ? data.name : `${data.name}_${copyName}`,
+      type: data.type,
+      sortIndex: generateSortIndex(index),
+      workspace: workspaceKey ? newWorkspace : data.workspace,
+      itemType: data.itemType,
+      values: dataValuesExceptionHandler(data.values),
+      detail: data.detail
+        ? {
+            ...data.detail,
+            steps: data.detail?.steps?.map(s => ({
+              ...s,
+              id: uuidv4(),
+            })),
+          }
+        : {},
+      repository: repository === undefined ? data.repository : repository,
+    }));
+
+    const copyItems = await batchCreateItems(needCreateItems as any, fields);
+    return buildResponse(copyItems);
+  } catch (err) {
+    return buildResponse(err);
+  }
+};
+
+/** 批量复制测试用例 V2 */
+export const batchCopyTestCaseV2 = async () => {
+  try {
+    const {
+      body: { queryParams, fields },
+      sessionToken,
+    } = getReqInfoFromVMRuntime<BatchCopyTestCaseV2Payload>();
+    const copyName = i18n.t('trigger.copyName');
+    if (!queryParams) throwArgumentError('queryParams', '{ query, selector }');
+    const workspaceKey = queryParams.query?.workspaceKey;
+    const repository = queryParams.query?.repository;
+
+    // 如果workspaceId存在，则批量创建在该空间下
+    let newWorkspace = null;
+
+    if (workspaceKey) {
+      const workspaceObj = await getParseQuery(false, 'Workspace')
+        .equalTo('key', workspaceKey)
+        .first({ sessionToken });
+      if (!workspaceObj) {
+        throw new Error(i18n.t('components.business.testManagerProvider.notCreateCase'));
+      }
+      newWorkspace = workspaceObj.toJSON();
+    }
+
+    // 查询字段，确认字段类型
+    const { payload: results = [] } = await queryFields({
+      keys: fields,
+      fieldType: true,
+    });
+    const objectToIdFieldKeys = results
+      .filter(item =>
+        [FIELD_TYPE.SPRINT, FIELD_TYPE.VERSION, FIELD_TYPE.CUSTOM_VERSION].includes(
+          item.fieldType.key,
+        ),
+      )
+      .map(item => item.key);
+
+    const caseList = await getAllEntity(queryParams, concatIqlRequestFields(fields));
 
     if (!caseList?.length) {
       throw new Error(i18n.t('components.business.testEntitySelectorModal.itemDeleted'));

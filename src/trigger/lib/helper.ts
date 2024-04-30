@@ -9,6 +9,7 @@ import {
 } from '../../common/constant';
 import { TestEntityLinkActionData } from '../../common/types/common';
 import { iqlRequest } from './iqlRequest';
+import { throwArgumentError } from './validator';
 
 export const toArray = data => (Array.isArray(data) ? data : [data]);
 
@@ -82,7 +83,7 @@ export const buildTestEntityLinkData = async (data: TestEntityLinkActionData[]) 
           const processedLinkData = { linkItems: value } as any;
           if (action === 'delete') {
             const linkItems = difference(originalLinkItems, value);
-            processedLinkData.linkItems = linkItems?.length ? linkItems : null;
+            processedLinkData.linkItems = linkItems?.length ? linkItems : [];
             if (originalLinkType && !linkItems?.length) {
               processedLinkData.linkType = null;
             }
@@ -106,4 +107,25 @@ export const buildTestEntityLinkData = async (data: TestEntityLinkActionData[]) 
   console.info(JSON.stringify(needUpdateItemData), 'needUpdateItemData');
 
   return needUpdateItemData;
+};
+
+export const getAllEntity = async (queryParams, fields?: string[]) => {
+  const onlySelectId = !fields;
+  if (!queryParams) throwArgumentError('queryParams', '{ query, selector }');
+  let caseIds = [];
+  let total = 0;
+  do {
+    const res = await iqlRequest({
+      ...queryParams,
+      ascending: ['sortIndex', 'createdAt'],
+      offset: caseIds.length,
+      limit: 99999,
+      fields: onlySelectId ? ['id'] : fields,
+    });
+    const entities = onlySelectId ? res.data.list.map(({ objectId }) => objectId) : res.data.list;
+    caseIds = caseIds.concat(entities);
+    total = res.data.total;
+  } while (caseIds.length < total);
+
+  return caseIds;
 };
