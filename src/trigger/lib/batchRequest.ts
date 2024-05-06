@@ -11,8 +11,6 @@ import { createItems, deleteItems, updateItems } from './coreApi';
 /** 并发数量 */
 const ParallelLimit = 10;
 
-const DeleteParallelLimit = 100;
-
 const CreateApiParseContext = {
   // 跳过事项创建校验
   skipFormValidation: true,
@@ -22,21 +20,42 @@ const CreateApiParseContext = {
   skipItemValidationLevel: true,
 };
 
+const sleep = time => {
+  return new Promise(resolve => {
+    setTimeout(() => {
+      resolve(undefined);
+    }, time);
+  });
+};
+
 /** 删除测试实体 */
 export const batchDeleteItems = async (itemIds: string[]) => {
-  const num = Math.ceil(itemIds.length / DeleteParallelLimit);
+  const {
+    deleteSize = 10,
+    sleepTime = 1000,
+    needSleepSize = 100,
+  } = global.env?.DELETE_CONFIG || {};
+
+  const num = Math.ceil(itemIds.length / deleteSize);
   const arr = times(num, String);
+  const needSleep = itemIds.length > needSleepSize;
   const taskQueue = arr.map((_, index) => async () => {
-    const start = index * DeleteParallelLimit;
-    const end = (index + 1) * DeleteParallelLimit;
+    const start = index * deleteSize;
+    const end = (index + 1) * deleteSize;
 
     const needDeleteItems = itemIds.slice(start, end).map(objectId => ({ objectId }));
 
-    return await deleteItems(needDeleteItems);
+    const res = await deleteItems(needDeleteItems);
+
+    // 由于删除实体会触发删除trigger，删除大量的数据会占用过多资源，这里降一下速  TODO: 删除掉
+    if (needSleep) {
+      await sleep(sleepTime);
+    }
+    return res;
   });
 
   const dump = logTimeCost(
-    `delete ${itemIds.length} items, parallelLimit ${DeleteParallelLimit}, request ${num} times`,
+    `delete ${itemIds.length} items, parallelLimit ${deleteSize}, request ${num} times`,
   );
   const res = await parallelLimit(taskQueue, 1);
   dump();
