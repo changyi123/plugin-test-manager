@@ -129,13 +129,20 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
     // 批量删除用例
     const deleteTestCase = () => {
       const testDetailIds = tableActionRef.current.selectedRowKeys;
+      const deleteContent = t('page.repository.view.list.multipleDeleteCase', {
+        count: testDetailIds.length,
+      });
+      const highlightCountContent = deleteContent.replace(
+        testDetailIds.length,
+        `<span style="color: #ff4d0d">${testDetailIds.length}</span>`,
+      );
 
       actionConfirm(
         {
           title: t('common.tip'),
           okText: t('common.okText'),
           cancelText: t('common.cancel'),
-          content: t('page.repository.view.list.actionConfirm.0'),
+          content: <div dangerouslySetInnerHTML={{ __html: highlightCountContent }} />,
         },
         async () => {
           setTableLoading(true);
@@ -234,7 +241,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         <LinkItemIcon className={cx('icon')} /> {t('page.repository.view.list.batchItemLink')}
       </span>,
       <span
-        className={cx('action')}
+        className={cx('action', 'delete')}
         key="delete"
         onClick={hasRowSelected ? deleteTestCase : undefined}
       >
@@ -250,7 +257,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
           title: t('common.tip'),
           okText: t('common.okText'),
           cancelText: t('common.cancel'),
-          content: t('page.repository.view.list.actionConfirm.1'),
+          content: t('page.repository.view.list.deleteCase'),
         },
         async () => {
           setTableLoading(true);

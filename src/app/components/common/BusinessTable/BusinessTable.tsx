@@ -152,6 +152,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
   });
   const ref = useRef(null);
   const size = useSize(ref);
+  const { t } = useI18n();
 
   const scrollMemo = useMemo(() => {
     const selectionHeaderHeight = selectionMode ? SELECTION_HEADER_HEIGHT : 0;
@@ -288,9 +289,22 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     console.info(key, props);
   };
 
-  const columnsWithResizableAndSettingAction = tableColumns.map((col: any) => {
+  const columnsWithResizableAndSettingAction = tableColumns.map((col: any, index) => {
     const resizable = col.resizable ?? typeof col.width === 'number';
     const _col = omit(col, ['extraProps']);
+
+    let title = _col.title;
+    if (index === 0 && selectionMode && antdTableProps?.pagination?.total) {
+      title = (
+        <div className={cx('title-container')}>
+          <div className={cx('current-page-text')}>
+            {t('components.common.businessTable.checkCurrentPage')}
+          </div>
+          <div className={cx('dividing-line')} />
+          <div>{title}</div>
+        </div>
+      );
+    }
 
     const cellOnClick = (record, row) =>
       row?.extraProps?.onClick
@@ -303,6 +317,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
 
     return {
       ..._col,
+      title,
       resizable,
       width: resizable ? columnsWidth[col.key] ?? col.width : undefined,
       onCell: record =>

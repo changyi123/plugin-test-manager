@@ -648,10 +648,8 @@
       },
       "view": {
         "list": {
-          "actionConfirm": [
-            "This action will delete the selected test case, do you want to continue?",
-            "This action will delete the current test case, do you want to continue?"
-          ],
+          "multipleDeleteCase": "This action will delete the selected {{ count }} test case, do you want to continue?",
+          "deleteCase": "This action will delete the current test case, do you want to continue?",
           "deleteCaseSuccess": "{{count}} test case have been deleted",
           "deleteCaseSuccess_other": "{{count}} test cases have been deleted",
           "batchItemLink": "Batch item link",
@@ -1014,7 +1012,8 @@
         "searchWarningMessage": "No more than 4 table search items can be configured",
         "removeSearch": "Remove search item",
         "addSearch": " Add search item",
-        "checkAllPages": "Select all"
+        "checkAllPages": "Select all",
+        "checkCurrentPage": "Select all on this page"
       },
       "filterSearch": {
         "screenPlaceholder": "Please enter the search term keyword",

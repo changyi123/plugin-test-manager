@@ -593,10 +593,8 @@
       },
       "view": {
         "list": {
-          "actionConfirm": [
-            "该操作会将所选的测试用例删除，是否继续操作？",
-            "该操作会将当前测试用例删除，是否继续操作？"
-          ],
+          "multipleDeleteCase": "该操作会将所选的 {{count}} 条测试用例删除，是否继续操作？",
+          "deleteCase": "该操作会将当前测试用例删除，是否继续操作？",
           "deleteCaseSuccess": "{{count}} 个测试用例已被删除",
           "batchItemLink": "批量事项关联",
           "deleteCaseMessageSuccess": "测试用例删除成功",
@@ -949,7 +947,8 @@
         "searchWarningMessage": "表检索项配置不能超过 4 个",
         "removeSearch": "移除检索项",
         "addSearch": "添加检索项",
-        "checkAllPages": "选中所有分页"
+        "checkAllPages": "所有页全选",
+        "checkCurrentPage": "本页全选"
       },
       "filterSearch": {
         "screenPlaceholder": "请输入检索项关键字",
