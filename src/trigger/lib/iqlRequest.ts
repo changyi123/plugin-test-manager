@@ -132,7 +132,7 @@ export const getPayload = async (params: QueryLinkedTestEntityPayload) => {
 
 const buildSearchExtendParam = (params: { sortByRepositoryIds?: string[] }) => {
   const param = {} as Record<string, any>;
-  if (Array.isArray(params.sortByRepositoryIds)) {
+  if (Array.isArray(params.sortByRepositoryIds) && params.sortByRepositoryIds.length) {
     param.sort = [
       {
         _script: {
