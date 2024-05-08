@@ -279,6 +279,7 @@ modules:
       icon: /main/icons/Panel_Test.svg
       activeIcon: /main/icons/Panel_TestB.svg
       route: /[tenant]/workspaces/[workspace]/plugin/team_insight_charts_base_team_insight_test_manager?disabledCreate=true&displayContext=test_manager&moduleKey=test_manager
+      displayInBoardManage: true
       {workspacePageHidden}
     - key: test-xmindimport
       resource: main
