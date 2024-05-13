@@ -509,7 +509,6 @@ export const batchCopyTestCaseV2 = async () => {
     const copyName = i18n.t('trigger.copyName');
     if (!queryParams) throwArgumentError('queryParams', '{ query, selector }');
     const workspaceKey = queryParams.query?.workspaceKey;
-    const repository = queryParams.query?.repository;
 
     // 如果workspaceId存在，则批量创建在该空间下
     let newWorkspace = null;
@@ -584,7 +583,7 @@ export const batchCopyTestCaseV2 = async () => {
             })),
           }
         : {},
-      repository: repository === undefined ? data.repository : repository,
+      repository: data.repository,
     }));
 
     const copyItems = await batchCreateItems(needCreateItems as any, fields);
