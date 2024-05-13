@@ -29,6 +29,11 @@ const LibraryProvider: React.FC<{ children: React.ReactNode }> = ({ children }) 
     [context?.env.PROXIMA_APP_ID],
   );
 
+  const currentUser = useMemo(
+    () => Parse.Object.fromJSON(context.currentUser),
+    [context.currentUser],
+  );
+
   return (
     <RecoilRoot>
       <TokenProvider tenant={tenant} token={context?.env?.sessionToken}>
@@ -40,7 +45,7 @@ const LibraryProvider: React.FC<{ children: React.ReactNode }> = ({ children }) 
           teamBasePath={proximaGatewayURL}
           currentUser={
             {
-              currentUser: context?.currentUser,
+              currentUser,
             } as any
           }
           tenant={tenant}
