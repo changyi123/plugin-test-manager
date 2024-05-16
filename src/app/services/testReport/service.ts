@@ -1,7 +1,8 @@
-import { Workspace } from '../models';
 import fetch from '@/lib/utils/fetch';
-import { default as TestReport, TestReportModelType } from './model';
 import { getPluginWebTriggerBaseUrl } from '@/lib/utils/helper';
+
+import { Workspace } from '../models';
+import { default as TestReport, TestReportModelType } from './model';
 
 const pluginWebTriggerBaseUrl = getPluginWebTriggerBaseUrl();
 
@@ -70,8 +71,9 @@ export const deleteTestReport = async (objectId: string) => {
 };
 
 /** 生成测试报告离线文档 */
-export const generateTestReportOfflineFile = (testReportId: string) => {
+export const generateTestReportOfflineFile = (testReportId: string, exportPdf?: boolean) => {
   return fetch.$post(`${pluginWebTriggerBaseUrl}/api-generate-offline-report`, {
     testReportId,
+    exportPdf,
   });
 };

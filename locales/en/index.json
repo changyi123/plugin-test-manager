@@ -147,6 +147,7 @@
     "export": "Export",
     "exportHTML": "Export as HTML",
     "exportWord": "Export as Word",
+    "exportPdf": "Export as Pdf",
     "buttons": {
       "delete": "Delete",
       "view": "View",

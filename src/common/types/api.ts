@@ -277,6 +277,7 @@ export type QueryTestReportPayload = {
 export type GenerateTestReportPayload = {
   // 测试报告 ID
   testReportId: string;
+  exportPdf?: boolean;
 };
 
 /** internal 站内信 */

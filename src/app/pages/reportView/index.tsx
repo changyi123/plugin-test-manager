@@ -3,13 +3,24 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { ArrowLeftOutlined } from '@/icons';
-import { exportWithDocx, exportWithHTML, genChartGroupPageUrl } from '@/lib/testReport';
+import {
+  exportWithDocx,
+  exportWithHTML,
+  exportWithPdf,
+  genChartGroupPageUrl,
+} from '@/lib/testReport';
 import { useTestReportByObjectId } from '@/services/testReport/query';
 
 import ReportStatus from '../report/ReportStatus';
 import { useReportOverviewDisplayText } from './hook';
 import cx from './index.less';
 import TestIframe from './TestIframe';
+
+const exFuncMap = {
+  html: exportWithHTML,
+  word: exportWithDocx,
+  pdf: exportWithPdf,
+};
 
 const ReportView: React.FC = () => {
   const [exportLoading, setExportLoading] = React.useState(false);
@@ -29,7 +40,7 @@ const ReportView: React.FC = () => {
   const handleExportButtonClick = async type => {
     setExportLoading(true);
     const cancelLoading = message.loading('正在下载测试报告，情等待');
-    const exportFunc = type === 'html' ? exportWithHTML : exportWithDocx;
+    const exportFunc = exFuncMap[type];
     await exportFunc(reportData).finally(() => {
       cancelLoading();
       setExportLoading(false);
@@ -135,6 +146,14 @@ const ReportView: React.FC = () => {
                       label: (
                         <span onClick={() => handleExportButtonClick('word')}>
                           {t('report.exportWord')}
+                        </span>
+                      ),
+                    },
+                    {
+                      key: 'exportPdf',
+                      label: (
+                        <span onClick={() => handleExportButtonClick('pdf')}>
+                          {t('report.exportPdf')}
                         </span>
                       ),
                     },
