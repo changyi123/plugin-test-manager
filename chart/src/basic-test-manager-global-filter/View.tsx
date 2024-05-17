@@ -1,4 +1,4 @@
-import { Select } from 'antd';
+import { Button, Select } from 'antd';
 import { cloneDeep, isEqual } from 'lodash';
 import { SingleEvents } from 'proxima-event';
 import { DebounceSelect } from 'proxima-sdk/components/Components/Common';
@@ -117,7 +117,7 @@ const View: React.FC<ViewProps> = ({
         return {
           ...prevOption,
           [TEST_MANAGER_SELECTOR.TEST_EXECUTION]: values,
-          iql: formatterIql(values, prevOption[TEST_MANAGER_SELECTOR.TEST_PLAN]),
+          iql: formatterIql(prevOption[TEST_MANAGER_SELECTOR.TEST_PLAN], values),
         };
       });
     },
@@ -246,6 +246,15 @@ const View: React.FC<ViewProps> = ({
         options={chartsOptions}
         onChange={onRelatedChartsChange}
       />
+      {isListView && (
+        <Button
+          type="primary"
+          style={{ position: 'absolute', bottom: 20, right: 20 }}
+          onClick={updateGlobalFilter}
+        >
+          {i18n.t('reportPlugin.common.submit')}
+        </Button>
+      )}
     </div>
   );
 };

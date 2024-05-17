@@ -103,11 +103,11 @@ export const getTestEntityByIds = async ({ ids, type }) => {
 
 export const formatterIql = (planIds, executionIds) => {
   let iql = '';
-  if (planIds?.length) {
-    iql = mergeIQL(iql, `test_manager_linkItems in ${JSON.stringify(planIds)} `);
-  }
+  // 有测试执行，忽略测试计划
   if (executionIds?.length) {
     iql = mergeIQL(iql, `test_manager_linkItems in ${JSON.stringify(executionIds)}`);
+  } else if (planIds?.length) {
+    iql = mergeIQL(iql, `test_manager_linkItems in ${JSON.stringify(planIds)} `);
   }
 
   return iql;
