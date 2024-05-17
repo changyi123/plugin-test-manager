@@ -33,6 +33,8 @@ const View: React.FC<ViewProps> = ({
   const [onlyWorkspaceForExecution, setOnlyWorkspaceForExecution] = useState(!!workspace);
   const [executionSelectKey, setExecutionSelectKey] = useState(new Date().getTime());
 
+  const [listViewOption, setListViewOption] = useState(option);
+
   const chartsOptions = useMemo(() => {
     return charts
       .filter(chart => !chart.view.includes('filter') && !chart.view.includes('insight')) // 过滤自身及离线图表
@@ -40,21 +42,25 @@ const View: React.FC<ViewProps> = ({
   }, [charts]);
 
   const planValues = useMemo(() => {
-    const targetOption = isListView ? option : chartOption;
+    const targetOption = isListView ? listViewOption : chartOption;
     const values = targetOption?.[TEST_MANAGER_SELECTOR.TEST_PLAN];
     return values || [];
-  }, [chartOption, option, isListView]);
+  }, [chartOption, listViewOption, isListView]);
 
   const executionValues = useMemo(() => {
-    const targetOption = isListView ? option : chartOption;
+    const targetOption = isListView ? listViewOption : chartOption;
     const values = targetOption?.[TEST_MANAGER_SELECTOR.TEST_EXECUTION];
     return values || [];
-  }, [chartOption, option, isListView]);
+  }, [chartOption, listViewOption, isListView]);
 
   // 筛选器图表名字
   const filterName = useMemo(() => {
     return charts?.find(chart => chart?.uid || chart?.objectId == uid)?.name;
   }, [charts, uid]);
+
+  const updateOption = useMemo(() => {
+    return isListView ? setListViewOption : setOption;
+  }, [isListView, setOption]);
 
   const getTestPlanByName = useCallback(
     async name => {
@@ -77,16 +83,17 @@ const View: React.FC<ViewProps> = ({
 
   const onTestPlanSelectChange = useCallback(
     values => {
-      setOption(prevOption => {
+      updateOption(prevOption => {
         return {
           ...prevOption,
           [TEST_MANAGER_SELECTOR.TEST_PLAN]: values,
           iql: formatterIql(values, prevOption[TEST_MANAGER_SELECTOR.TEST_EXECUTION]),
         };
       });
+
       setExecutionSelectKey(new Date().getTime());
     },
-    [setOption],
+    [updateOption],
   );
 
   const getTestExecutionByName = useCallback(
@@ -113,7 +120,7 @@ const View: React.FC<ViewProps> = ({
 
   const onTestExecutionSelectChange = useCallback(
     values => {
-      setOption(prevOption => {
+      updateOption(prevOption => {
         return {
           ...prevOption,
           [TEST_MANAGER_SELECTOR.TEST_EXECUTION]: values,
@@ -121,18 +128,18 @@ const View: React.FC<ViewProps> = ({
         };
       });
     },
-    [setOption],
+    [updateOption],
   );
 
   const onRelatedChartsChange = useCallback(
     (selectedCharts, selectedChartsOptions) => {
-      setOption(prevOption => ({
+      updateOption(prevOption => ({
         ...prevOption,
         selectedCharts,
         selectedChartsOptions,
       }));
     },
-    [setOption],
+    [updateOption],
   );
 
   const updateGlobalFilter = useCallback(() => {
@@ -179,6 +186,10 @@ const View: React.FC<ViewProps> = ({
     eventEmitter.fire(BASIC_EMITTER_EVENTS.BASIC_GLOBAL_FILTER_SEARCH, newConds);
   }, [option, uid, filterName]);
 
+  const onSearch = useCallback(() => {
+    setOption(listViewOption);
+  }, [listViewOption, setOption]);
+
   useEffect(() => {
     console.info('useLayoutEffect');
     const chart = charts.find(c => (c.uid && c.uid === uid) || c.objectId === uid);
@@ -186,6 +197,10 @@ const View: React.FC<ViewProps> = ({
       updateGlobalFilter();
     }
   }, [charts, uid, isListView, updateGlobalFilter]);
+
+  useEffect(() => {
+    setListViewOption(option);
+  }, [option]);
 
   return (
     <div style={{ padding: '40px 20px 0 20px', height: '100%', overflow: 'auto' }}>
@@ -250,7 +265,7 @@ const View: React.FC<ViewProps> = ({
         <Button
           type="primary"
           style={{ position: 'absolute', bottom: 20, right: 20 }}
-          onClick={updateGlobalFilter}
+          onClick={onSearch}
         >
           {i18n.t('reportPlugin.common.submit')}
         </Button>
