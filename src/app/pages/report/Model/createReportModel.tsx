@@ -95,9 +95,8 @@ const CreateReportModel: React.FC<CreateReportModelProps> = props => {
 
   const validateSelector = useCallback(() => {
     if (isEmpty(state.selectors)) return false;
-    return !Object.values(state.selectors)
-      .map(s => (s as any).value?.length)
-      .filter(Boolean)?.length;
+    const values = Object.values(state.selectors);
+    return values.map(s => (s as any).value?.length).filter(Boolean)?.length !== values?.length;
   }, [state?.selectors]);
 
   const ModalFooterNode = useMemo(() => {
