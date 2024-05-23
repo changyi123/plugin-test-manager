@@ -170,6 +170,7 @@
     "export": "导出",
     "exportHTML": "导出为 HTML",
     "exportWord": "导出为 Word",
+    "exportPdf": "导出为 Pdf",
     "buttons": {
       "delete": "删除",
       "view": "查看",

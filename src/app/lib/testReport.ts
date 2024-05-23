@@ -252,32 +252,47 @@ const exportDocx = async testReportData => {
     });
 };
 
+const downloadUrl = (data, reportName, extName) => {
+  const a = document.createElement('a');
+  a.href = data;
+  a.download = `${reportName}.${extName}`;
+  (a as any).style = 'display: none';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+};
+
 const exportOfflineDocx = async testReportData => {
   let reportUrl = testReportData?.reportUrl;
   const reportName = testReportData?.name;
-  if (!reportUrl) {
+
+  // 没有生成url，或者不是docx文件时重新生成
+  if (!reportUrl || !/\.docx$/.test(reportUrl)) {
     await generateTestReportOfflineFile(testReportData?.objectId).then(data => {
       reportUrl = data?.data;
     });
   }
 
-  const downloadUrl = data => {
-    const a = document.createElement('a');
-    a.href = data;
-    a.download = `${reportName}.docx`;
-    (a as any).style = 'display: none';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-  };
-
-  downloadUrl(reportUrl);
+  downloadUrl(reportUrl, reportName, 'docx');
 };
 
 // 下载测试报告
 export const exportWithDocx = async testReportData => {
   const enableOfflineReport = featureFlags(SupportFeatureFlags.ENABLE_OFFLINE_TEST_REPORT);
   enableOfflineReport ? exportOfflineDocx(testReportData) : exportDocx(testReportData);
+};
+
+// 导出pdf测试报告
+export const exportWithPdf = async testReportData => {
+  let reportUrl = testReportData?.reportUrl;
+  const reportName = testReportData?.name;
+  if (!reportUrl || !/\.pdf$/.test(reportUrl)) {
+    await generateTestReportOfflineFile(testReportData?.objectId, true).then(data => {
+      reportUrl = data?.data;
+    });
+  }
+
+  downloadUrl(reportUrl, reportName, 'pdf');
 };
 
 // 下载测试报告
