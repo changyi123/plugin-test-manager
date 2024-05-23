@@ -132,7 +132,7 @@ export const useGetWorkspaceRepository = workspaceKey => {
   const { data: testCaseRepositoryPath, refresh: refreshRepositoryData } = useRequest(
     async () => {
       if (!workspaceKey) return;
-      const data = await getRepositoryData([workspaceKey], ['name', 'objectId', 'parentKey']);
+      const data = await getRepositoryData([workspaceKey], ['name', 'objectId', 'parent']);
       if (!hasArrayItem(data)) return;
       return getRepoFullPathMap(data);
     },

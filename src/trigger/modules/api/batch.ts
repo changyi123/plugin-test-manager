@@ -503,12 +503,11 @@ export const batchCopyTestCase = async () => {
 export const batchCopyTestCaseV2 = async () => {
   try {
     const {
-      body: { queryParams, fields },
+      body: { queryParams, fields, workspaceKey },
       sessionToken,
     } = getReqInfoFromVMRuntime<BatchCopyTestCaseV2Payload>();
     const copyName = i18n.t('trigger.copyName');
     if (!queryParams) throwArgumentError('queryParams', '{ query, selector }');
-    const workspaceKey = queryParams.query?.workspaceKey;
 
     // 如果workspaceId存在，则批量创建在该空间下
     let newWorkspace = null;

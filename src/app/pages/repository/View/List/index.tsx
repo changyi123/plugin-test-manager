@@ -73,8 +73,6 @@ const ListView: React.FC<ViewComponentProps> = ({
     [selectedNode?.key, groupedMode],
   );
 
-  console.info(repository, 'repository');
-
   const dataSourceGetter = useCallback(
     async params => {
       if (!selectedNode?.key || !workspaceKey || !testCaseFieldKeys)

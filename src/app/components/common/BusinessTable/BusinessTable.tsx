@@ -16,6 +16,7 @@ import ColumnSetting from './ColumnSetting';
 import TableSelection from './TableSelection';
 import type { BusinessTableActionType } from './type';
 import type { TitleCellOption } from './type';
+import { useCallback } from 'react';
 
 const DEFAULT_PAGE_SIZE = 10;
 const MIN_COLUMN_WIDTH = 120;
@@ -550,14 +551,21 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     ],
   );
 
+  const tableRefresh = useCallback(() => {
+    refresh();
+    setSelectAll(false);
+    setSelectedRowKeys([]);
+    setUnSelectedRowKeys([]);
+  }, [refresh])
+
   React.useImperativeHandle(
     actionRef,
     () => ({
       toggleSelection(visible = true) {
         setSelectionMode(visible);
       },
-      refresh,
-      tableTotal: antdTableProps?.pagination?.total,
+      refresh: tableRefresh,
+      total: antdTableProps?.pagination?.total,
       selectAll,
       selectedRowKeys,
       unSelectedRowKeys,
@@ -572,7 +580,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
       tableColumns,
     }),
     [
-      refresh,
+      tableRefresh,
       selectAll,
       selectedRowKeys,
       expandChangePage,

@@ -253,7 +253,10 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
       if (!params) return;
       const { selectedRowKeys = [], unSelectedRowKeys = [], selectAll, total } = params;
       if (!selectAll || (selectAll && selectedRowKeys?.length >= total)) {
-        return { notNeedQuery: true, selectedRowKeys };
+        batchParams.query.id = {
+          operator: Operator.In,
+          value: selectedRowKeys,
+        } as unknown as any;
       } else {
         batchParams.query.id = {
           operator: Operator.NotIn,
@@ -284,7 +287,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         total = res.total;
       } while (caseIds.length < total);
 
-      return caseIds;
+      return caseIds?.map(({ id }) => id);
     },
     [getBatchParams],
   );
@@ -292,13 +295,17 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
   const selectionActionNodes = React.useMemo(() => {
     // 批量删除用例
     const deleteTestCase = () => {
-      const testDetailIds = tableActionRef.current.selectedRowKeys;
+      const table = tableActionRef.current;
+      const deletedCount = table.selectAll
+        ? table.total - table.unSelectedRowKeys.length
+        : table.selectedRowKeys.length;
+
       const deleteContent = t('page.repository.view.list.multipleDeleteCase', {
-        count: testDetailIds.length,
+        count: deletedCount,
       });
       const highlightCountContent = deleteContent.replace(
-        testDetailIds.length,
-        `<span style="color: #ff4d0d">${testDetailIds.length}</span>`,
+        deletedCount,
+        `<span style="color: #ff4d0d">${deletedCount}</span>`,
       );
 
       actionConfirm(
@@ -312,12 +319,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
           setTableLoading(true);
           const batchParams = getBatchParams(tableActionRef.current);
           if (!batchParams) return;
-          let res;
-          if (batchParams.notNeedQuery) {
-            res = await deleteTestEntity(batchParams.selectedRowKeys);
-          } else {
-            res = await deleteTestEntityV2(batchParams);
-          }
+          const res = await deleteTestEntityV2(batchParams);
           if (res?.status === 'error') {
             setTableLoading(false);
             message.error(res.data);
@@ -329,10 +331,10 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
 
           notification.success({
             message: t('page.repository.view.list.deleteCaseSuccess', {
-              count: tableActionRef.current.selectedRowKeys.length,
+              count: deletedCount,
             }),
           });
-          tableActionRef.current.resetSelectedRowKeys();
+          table.resetSelectedRowKeys();
         },
       );
     };
@@ -342,26 +344,14 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
       setTableLoading(true);
       const batchParams = getBatchParams(tableActionRef.current);
       if (!batchParams) return;
-      let res;
-      if (batchParams.notNeedQuery) {
-        res = await updateTestEntity(
-          batchParams.selectedRowKeys.map(d => ({
-            objectId: d,
-            values: {
-              assignee,
-            },
-          })),
-        );
-      } else {
-        res = await updateTestEntityValue({
-          queryParams: batchParams,
-          value: {
-            values: {
-              assignee,
-            },
+      const res = await updateTestEntityValue({
+        queryParams: batchParams,
+        value: {
+          values: {
+            assignee,
           },
-        });
-      }
+        },
+      });
 
       if (res?.status === 'error') {
         setTableLoading(false);
@@ -369,11 +359,14 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         return;
       }
       // 刷新表格
-      tableActionRef.current.refresh();
+      const table = tableActionRef.current;
+      const changedCount = table.selectAll
+        ? table.total - table.unSelectedRowKeys.length
+        : table.selectedRowKeys.length;
+      table.refresh();
+
       notification.success({
-        message: `${tableActionRef.current.selectedRowKeys.length} ${t(
-          'page.plan.testEntityList.updateAssigneeTips',
-        )}`,
+        message: `${changedCount} ${t('page.plan.testEntityList.updateAssigneeTips')}`,
       });
       setTableLoading(false);
     };
@@ -389,12 +382,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
       setTableLoading(true);
       const batchParams = getBatchParams(tableActionRef.current);
       if (!batchParams) return;
-      let res;
-      if (batchParams.notNeedQuery) {
-        res = await copyTestCases(batchParams.selectedRowKeys);
-      } else {
-        res = await copyTestCasesV2(batchParams);
-      }
+      const res = await copyTestCasesV2(batchParams);
       if (res?.status === 'error') {
         setTableLoading(false);
         return message.error(res.data);
@@ -440,7 +428,15 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         <DeleteIcon className={cx('icon')} /> {t('common.delete')}
       </span>,
     ];
-  }, [hasRowSelected, t, setTableLoading, onDataChange, getSelectTestCaseId, copyTestCases]);
+  }, [
+    hasRowSelected,
+    t,
+    setTableLoading,
+    getBatchParams,
+    onDataChange,
+    getSelectTestCaseId,
+    copyTestCasesV2,
+  ]);
 
   const columns = React.useMemo(() => {
     const deleteTestDetail = data => {

@@ -34,25 +34,6 @@ const CreateApiParseContext = {
   skipItemTypeQueryFilter: true,
   // 跳过层级校验
   skipItemValidationLevel: true,
-  // 更新版本号 跳过除 recordItemChange 外的以外行为
-  // 跳过beforeSave的行为
-  skipCheckWhetherArchived: true,
-  skipItemValidation: true,
-  skipPermission: true,
-  skipFormulaCalculation: true,
-  skipSnapshotValidate: true,
-  skipFieldBehaviorValidation: true,
-  skipValidateSecurityLevel: true,
-  skipWorkflow: true,
-  skipItemForest: true,
-  skipRelationUser: true,
-  // skipHandleApps: true,
-
-  // 跳过afterSave的行为
-  skipItemLink: true,
-  skipUpdateWorkflowConfigUsers: true,
-  skipItemType: true,
-  skipSnapshot: true,
 };
 
 const sleep = time => {

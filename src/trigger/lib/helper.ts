@@ -118,8 +118,7 @@ export const getAllEntity = async (queryParams, fields?: string[]) => {
     const res = await iqlRequest({
       ...queryParams,
       ascending: ['sortIndex', 'createdAt'],
-      offset: caseIds.length,
-      limit: 99999,
+      pagination: { limit: 9999, offset: caseIds.length },
       fields: onlySelectId ? ['id'] : fields,
     });
     const entities = onlySelectId ? res.data.list.map(({ objectId }) => objectId) : res.data.list;

@@ -198,6 +198,7 @@ export type BatchCopyTestCasePayload = {
 export type BatchCopyTestCaseV2Payload = {
   queryParams: CommonTestEntityQueryPayload;
   fields: string[];
+  workspaceKey?:string;
 };
 
 /**

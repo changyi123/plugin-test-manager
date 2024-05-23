@@ -142,7 +142,7 @@ const getExcelData = async (data: any) => {
   const priorityInfo = await getTestPriorityInfo('priority');
 
   const _repoData =
-    repoData ?? (await getRepositoryData([workspaceKey], ['name', 'objectId', 'parentKey']));
+    repoData ?? (await getRepositoryData([workspaceKey], ['name', 'objectId', 'parent']));
 
   const repoDataMap = getRepoFullPathMap(_repoData);
 

@@ -30,17 +30,17 @@ export const getRepoFullPathMap = repositoryData => {
 
   // 遍历repositoryData，将每个父对象的path对象添加到当前pathMap
   repositoryData.forEach(repo => {
-    if (repo.parentKey) {
-      if (pathMap[repo.parentKey]) {
-        pathMap[repo.key].unshift(pathMap[repo.parentKey]);
+    if (repo.parent) {
+      if (pathMap[repo.parent.objectId]) {
+        pathMap[repo.objectId].unshift(pathMap[repo.parent.objectId]);
       }
     }
   });
 
   // 将pathMap的每一项转为路径
   repositoryData.forEach(repo => {
-    if (pathMap[repo.key]) {
-      pathMap[repo.key] = pathMap[repo.key].flat(Infinity).join('/');
+    if (pathMap[repo.objectId]) {
+      pathMap[repo.objectId] = pathMap[repo.objectId].flat(Infinity).join('/');
     }
   });
 
