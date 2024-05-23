@@ -471,7 +471,9 @@
 
           "TestCase": "All Test Cases",
           "TestRun": "All Test Runs",
-          "TestDefect": "All Defects"
+          "TestDefect": "All Defects",
+          "parent": "All Parent",
+          "relative": "All Bug (Relative)"
         },
         "title": "Data Rule Configuration",
         "select": {

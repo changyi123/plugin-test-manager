@@ -4,7 +4,7 @@ import domtoimage from 'dom-to-image-more';
 import { generateTestReportOfflineFile } from '@/services/testReport/service';
 
 import { featureFlags, SupportFeatureFlags } from './appEnv';
-import { TestType } from './constants';
+import { ExtendReportType, TestType } from './constants';
 import { getPagePrefix, isInOne } from './utils/helper';
 
 /** 测试报告名称最大支持的长度限制 */
@@ -91,6 +91,18 @@ export const DataSourceCollection: DataSource[] = [
     key: TestType.TestDefect,
     isFirstLevel: false,
     dependOn: ['sprint', 'version', 'workspace', 'currentWorkspace'],
+  },
+  // 所有父事项
+  {
+    key: ExtendReportType.Parent,
+    isFirstLevel: false,
+    dependOn: ['plan'],
+  },
+  // 所有关联
+  {
+    key: ExtendReportType.Relative,
+    isFirstLevel: false,
+    dependOn: ['plan'],
   },
 ];
 

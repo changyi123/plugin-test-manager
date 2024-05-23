@@ -68,6 +68,12 @@ export enum TestType {
   Report = 'TestReport',
 }
 
+// 拓展的测试报告条件
+export enum ExtendReportType {
+  Parent = 'parent',
+  Relative = 'relative',
+}
+
 /** 测试关联类型 */
 export enum TestLinkType {
   /** 测试用例关联计划（N:1）*/

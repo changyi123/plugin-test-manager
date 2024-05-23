@@ -2,8 +2,8 @@ import parallelLimit from 'async/parallelLimit';
 import { t } from 'i18next';
 import { last, omit, uniq, uniqBy } from 'lodash';
 
-import { getLinkedTestEntityByQuery, getTestEntityByQuery } from '@/lib/api/item';
-import { TestLinkType, TestPlanModel, TestType } from '@/lib/constants';
+import { getLinkedTestEntityByQuery, getRelativeItem, getTestEntityByQuery } from '@/lib/api/item';
+import { ExtendReportType, TestLinkType, TestPlanModel, TestType } from '@/lib/constants';
 import Parse from '@/lib/parse';
 import type { TemplateDataSourceConfig } from '@/lib/testReport';
 import {
@@ -23,6 +23,31 @@ import { Chart, ChartGroup, Workspace } from '../models';
 const parallelRequestTriggerLimit = 4;
 
 const pluginWebTriggerBaseUrl = getPluginWebTriggerBaseUrl();
+
+async function fetchReportPlan(
+  selector,
+  needAncestors: boolean,
+): Promise<{ list: string[]; ancestorIds?: string[] }> {
+  const params = needAncestors
+    ? {
+        fields: ['ancestors'],
+      }
+    : {
+        onlySelectId: true,
+      };
+  const data = await getTestEntityByQuery({
+    selector,
+    limit: 99999,
+    ...params,
+  });
+  // 不需要父事项
+  if (!needAncestors) return data;
+  // 需要父亲事项
+  return {
+    list: data.list.map(i => i.id),
+    ancestorIds: uniq(data.list.map(i => i.ancestors?.pop()).filter(Boolean)),
+  };
+}
 
 /** 获取一级数据源 */
 const buildFirstLevelDsIqlConfig = async (dsConfig: TemplateDataSourceConfig[], reportParams) => {
@@ -142,6 +167,10 @@ const getPlanRefTestEntityIds = async (planIds, dsConfig: TemplateDataSourceConf
     ret[TestType.TestDefect] = await getDefectIdsByRunIds(ret[TestType.Run]);
   }
 
+  if (shouldFetchPlanRefEntityIds('relative')) {
+    (ret as any).relative = await getRelativeItem(planIds);
+  }
+
   return ret;
 };
 
@@ -230,22 +259,24 @@ const buildSecondLevelDsIqlConfig = async (
   const isTestPlanSelector = dsConfig => dsConfig[0]?.selector === TestPlanModel;
   // 获取一级数据源的 IQL
   const getFirstLevelDsIql = dsConfig => firstLevelDsIqlConfig[dsConfig[0].key];
+  // 是否是父事项筛选
+  const isParentSelector = dsConfig => !!dsConfig?.find(i => i.key === ExtendReportType.Parent);
 
   // 所选测试计划下关联的实体 ids
-  let planRefTestEntityIds = {};
+  let planRefTestEntityIds = {} as any;
 
   const hasTestPlanSelector = dsConfigs.some(isTestPlanSelector);
+  const hasParentSelector = dsConfigs.some(isParentSelector);
 
   // 一级选择器下有所选测试计划
   if (hasTestPlanSelector) {
     // 获取测试计划关联的实体 ids
-    const { list: planIds } = await getTestEntityByQuery({
-      selector: reportParams.dataSourceIql?.[TestPlanModel],
-      onlySelectId: true,
-      limit: 99999,
-    });
-
+    const { list: planIds, ancestorIds } = await fetchReportPlan(
+      reportParams.dataSourceIql?.[TestPlanModel],
+      hasParentSelector,
+    );
     planRefTestEntityIds = await getPlanRefTestEntityIds(planIds, dsConfig);
+    planRefTestEntityIds.ancestorIds = ancestorIds || [];
   }
 
   // 针对不同的二级数据源生成不同的 IQL
@@ -276,6 +307,14 @@ const buildSecondLevelDsIqlConfig = async (
           reportParams.defectsMapping ?? [],
         )})`;
       }
+    },
+    [ExtendReportType.Parent]: async () => {
+      return `id in ${JSON.stringify(planRefTestEntityIds.ancestorIds)}`;
+    },
+    [ExtendReportType.Relative]: async () => {
+      return `id in ${JSON.stringify(
+        planRefTestEntityIds[ExtendReportType.Relative] || [],
+      )} and ("itemTypeKey" in ${JSON.stringify(reportParams.defectsMapping ?? [])}) `;
     },
   };
 

@@ -8,7 +8,7 @@ import {
   TestExecutionStatsPayload,
   TestPlanStatsPayload,
 } from 'common/types/api';
-import { has, omit, pick } from 'lodash';
+import { has, omit, pick, uniq } from 'lodash';
 import { merge } from 'lodash';
 
 import fetch from '@/lib/utils/fetch';
@@ -663,4 +663,17 @@ export const getCaseAllRuns = async params => {
     sessionToken: getSessionToken(),
   });
   return data;
+};
+
+export const getRelativeItem = async planIds => {
+  const res = await new Parse.Query('ItemLink')
+    .containedIn('source', planIds)
+    .limit(9999)
+    .find({
+      json: true,
+      context: {
+        displayModule: 'plugin.testManager',
+      },
+    } as any);
+  return uniq(res.map(i => (i as any).destination?.objectId));
 };

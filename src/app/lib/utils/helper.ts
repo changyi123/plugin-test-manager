@@ -48,7 +48,7 @@ export const getSingletonUrl = workspaceKey => {
 export const getPluginWebTriggerBaseUrl = () => {
   // 集成环境需要先判断前缀
   const ApiPrefix = isInOne() ? getProximaBasePath() : '';
-  return process.env.NODE_ENV === 'production'
+  return process.env.NODE_ENV === 'production' || window.location.href.indexOf('localhost') > -1 // 避免本地调试调接口路径不对
     ? `/api${ApiPrefix}/app/${getTenantKey()}/test_manager/webhooks`
     : `/app/${getTenantKey()}/test_manager/webhooks`;
 };
