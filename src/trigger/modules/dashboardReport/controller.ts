@@ -83,13 +83,16 @@ export const queryTestReport = async () => {
 export const generateOfflineReport = async () => {
   const { body, sessionToken } = getReqInfoFromVMRuntime<GenerateTestReportPayload>();
   const testReportId = body.testReportId;
+  const exportPdf = body.exportPdf;
 
   const wordExportServerBaseUrl =
     global?.env?.WORD_EXPORT_BASE_SERVER_URL ?? 'http://gitee-proxima-word-export:3001';
 
   const res = await axios({
     method: 'POST',
-    url: `${wordExportServerBaseUrl}/api/word/generator/testReport`,
+    url: `${wordExportServerBaseUrl}/api/word/generator/${
+      exportPdf ? 'testReportToPdf' : 'testReport'
+    }`,
     data: {
       testReportId,
     },
