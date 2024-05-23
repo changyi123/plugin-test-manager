@@ -1,5 +1,7 @@
 import parallelLimit from 'async/parallelLimit';
+import flatten from 'lodash/flatten';
 import pick from 'lodash/pick';
+import times from 'lodash/times';
 
 import { BaseTestEntity, TestEntity } from '../../common/types/test';
 import { compactNilValue, testEntityToItemValues } from '../../common/utils/dataTransfer';
@@ -18,9 +20,48 @@ const CreateApiParseContext = {
   skipItemValidationLevel: true,
 };
 
+const sleep = time => {
+  return new Promise(resolve => {
+    setTimeout(() => {
+      resolve(undefined);
+    }, time);
+  });
+};
+
 /** 删除测试实体 */
 export const batchDeleteItems = async (itemIds: string[]) => {
-  return deleteItems(itemIds.map(objectId => ({ objectId })));
+  const {
+    deleteSize = 10,
+    sleepTime = 1000,
+    needSleepSize = 100,
+  } = global.env?.DELETE_CONFIG || {};
+
+  const num = Math.ceil(itemIds.length / deleteSize);
+  const arr = times(num, String);
+  const needSleep = itemIds.length > needSleepSize;
+  const taskQueue = arr.map((_, index) => async () => {
+    const start = index * deleteSize;
+    const end = (index + 1) * deleteSize;
+
+    const needDeleteItems = itemIds.slice(start, end).map(objectId => ({ objectId }));
+
+    const res = await deleteItems(needDeleteItems);
+
+    // 由于删除实体会触发删除trigger，删除大量的数据会占用过多资源，这里降一下速  TODO: 删除掉
+    if (needSleep) {
+      await sleep(sleepTime);
+    }
+    return res;
+  });
+
+  const dump = logTimeCost(
+    `delete ${itemIds.length} items, parallelLimit ${deleteSize}, request ${num} times`,
+  );
+  const res = await parallelLimit(taskQueue, 1);
+  dump();
+  const flattenRes = flatten(res);
+  console.info('----delete items result', res, flattenRes);
+  return flattenRes as any[];
 };
 
 /** 更新测试实体 */

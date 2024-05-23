@@ -49,56 +49,62 @@ const getAuthInfo = (
 
 /** 请求 XSea 平台测试 */
 const requestXSeaPlan = async name => {
-  const requestInfo = {
-    path: '/api/xsea/open/scene/getLastReportByPlan',
-    body: {
-      planName: name,
-    },
-    method: 'POST',
-  } as const;
+  try {
+    const requestInfo = {
+      path: '/api/xsea/open/scene/getLastReportByPlan',
+      body: {
+        planName: name,
+      },
+      method: 'POST',
+    } as const;
 
-  const authInfo = getAuthInfo('XSea', requestInfo);
+    const authInfo = getAuthInfo('XSea', requestInfo);
 
-  const res = await axios({
-    timeout: RequestTimeout,
-    url: PlatformInfo.XSea.BaseUrl + requestInfo.path,
-    method: requestInfo.method,
-    data: requestInfo.body,
-    headers: {
-      ...authInfo.headers,
-    },
-  });
+    const res = await axios({
+      timeout: RequestTimeout,
+      url: PlatformInfo.XSea.BaseUrl + requestInfo.path,
+      method: requestInfo.method,
+      data: requestInfo.body,
+      headers: {
+        ...authInfo.headers,
+      },
+    });
 
-  console.info('XSea res ------------->', authInfo.headers, requestInfo.body, res);
+    console.info('XSea res ------------->', authInfo.headers, requestInfo.body, res);
 
-  return res.object;
+    return res.object;
+  } catch {
+    return '无';
+  }
 };
 
 /** 请求 PerfMa 平台 */
 const requestPerfMaPlan = async name => {
-  const requestInfo = {
-    path: '/api/tocean/open/v4/report/getUptodateReport',
-    body: {
-      name,
-    },
-    method: 'POST',
-  } as const;
+  try {
+    const requestInfo = {
+      path: '/api/tocean/open/v4/report/getUptodateReport',
+      body: {
+        name,
+      },
+      method: 'POST',
+    } as const;
 
-  const authInfo = getAuthInfo('PerfMa', requestInfo);
+    const authInfo = getAuthInfo('PerfMa', requestInfo);
+    const res = await axios({
+      timeout: RequestTimeout,
+      url: PlatformInfo.PerfMa.BaseUrl + requestInfo.path,
+      method: requestInfo.method,
+      data: requestInfo.body,
+      headers: {
+        ...authInfo.headers,
+      },
+    });
 
-  const res = await axios({
-    timeout: RequestTimeout,
-    url: PlatformInfo.PerfMa.BaseUrl + requestInfo.path,
-    method: requestInfo.method,
-    data: requestInfo.body,
-    headers: {
-      ...authInfo.headers,
-    },
-  });
-
-  console.info('PerfMa res ------------->', authInfo.headers, requestInfo.body, res);
-
-  return res.object?.reportUrl ?? '';
+    console.info('PerfMa res ------------->', authInfo.headers, requestInfo.body, res);
+    return res.object?.reportUrl ?? '';
+  } catch {
+    return '无';
+  }
 };
 
 /** 申万测试报告信息，对接申万笨马，XSea 平台接口 */
@@ -135,8 +141,8 @@ export const shenwanTestReportInfo = async () => {
   } catch (err) {
     console.info('err--------------------------------', err);
     return buildResponse({
-      xSea: '//www.baidu.com',
-      perfMa: '//www.baidu.com',
+      xSea: '无',
+      perfMa: '无',
     });
   }
 };

@@ -1,7 +1,8 @@
+import { useSDK } from '@projectproxima/plugin-sdk';
 import { useListener } from '@projectproxima/proxima-sdk-js';
 import { useMemoizedFn, useRequest, useUpdateEffect } from 'ahooks';
 import { Button, notification, Select } from 'antd';
-import React from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 
 import { SystemFieldKeys } from '@/components/common/BusinessTable/hook';
 import FilterSearch from '@/components/common/FilterSearch';
@@ -9,7 +10,6 @@ import { getFilterFields } from '@/components/common/FilterSearch/utils';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import { copyTestCase, getTestEntityByQuery, getTestStats } from '@/lib/api/item';
 import { getExtendFields, RepositoryModel, TestType } from '@/lib/constants';
-import { useTestConfig } from '@/lib/hooks/useContext';
 import { useBaseAction } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import { logPluginVersion } from '@/lib/utils/helper';
@@ -44,7 +44,6 @@ const ListView: React.FC<ViewComponentProps> = ({
 }) => {
   const { t } = useI18n();
   const tableActionRef = React.useRef<ActionType>();
-  const { workspace } = useTestConfig();
   const { createItemUseModal, getCreatePermission, testCaseFieldKeys } = useBaseAction();
   const [selector, setSelector] = React.useState(null);
   const [breadcrumbs, setBreadcrumbs] = React.useState([]);
@@ -52,11 +51,13 @@ const ListView: React.FC<ViewComponentProps> = ({
   const [groupedMode, setGroupedMode] = React.useState<GroupedMode>('all');
   const [tableLoading, setTableLoading] = React.useState(false);
 
-  const workspaceKey = workspace?.key;
+  const workspaceKey = useSDK()?.context?.env?.WORKSPACE_KEY;
+  const queryLoading = useRef(false);
   const selectNodeKey = selectedNode?.key;
 
   // 事项数据更新后刷新列表
   useListener('updateItemList', props => {
+    console.info('updateItemList');
     if (props?.type === 'create') return;
     if (props?.type === 'delete') {
       refreshAll();
@@ -89,14 +90,17 @@ const ListView: React.FC<ViewComponentProps> = ({
     },
   );
 
-  const dataSourceGetter = React.useCallback(
+  const dataSourceGetter = useCallback(
     async params => {
       if (!selectedNode?.key || !workspaceKey || !testCaseFieldKeys)
         return {
           list: [],
           total: 0,
         };
-      setTableLoading(true);
+      if (!queryLoading.current) {
+        queryLoading.current = true;
+        setTableLoading(true);
+      }
       const repository = getRepositoryQuery(selectedNode, groupedMode);
       const [{ list: data, total }, quoteCounts] = await Promise.all([
         getTestEntityByQuery({
@@ -125,6 +129,7 @@ const ListView: React.FC<ViewComponentProps> = ({
       quoteCounts.forEach(c => {
         quoteCountMap.set(c.referenceCase, c.count);
       });
+      queryLoading.current = false;
       setTableLoading(false);
 
       return {
@@ -139,9 +144,17 @@ const ListView: React.FC<ViewComponentProps> = ({
       };
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [selectedNode, workspaceKey, groupedMode, selector, testCaseFieldKeys],
+    [groupedMode, selectedNode?.key, selector, testCaseFieldKeys, workspaceKey],
   );
 
+  const queryDeps = useMemo(
+    () =>
+      `${selectedNode?.key}_${workspaceKey}_${groupedMode}_${JSON.stringify(
+        selector ?? {},
+      )}_${testCaseFieldKeys?.sort()?.join(',')}`,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [selectedNode?.key, workspaceKey, groupedMode, selector, testCaseFieldKeys?.sort()?.join(',')],
+  );
   const copyTestCases = useMemoizedFn(async ids => {
     return await copyTestCase({
       caseIds: ids,
@@ -151,10 +164,10 @@ const ListView: React.FC<ViewComponentProps> = ({
 
   useUpdateEffect(() => {
     // 重置全部事项 ID
-    if (workspaceKey && selectedNode) {
+    if (workspaceKey && selectedNode?.key) {
       refreshTable();
     }
-  }, [workspaceKey, refreshTable, selectedNode, groupedMode]);
+  }, [workspaceKey, refreshTable, selectedNode?.key, groupedMode]);
 
   useUpdateEffect(() => {
     const breadcrumbs = [];
@@ -179,6 +192,7 @@ const ListView: React.FC<ViewComponentProps> = ({
   // }, [onFolderTreeChange, selectNodeKey]);
 
   const refreshAll = React.useCallback(async () => {
+    console.info('refreshAll');
     await Promise.all([onFolderTreeChange(), tableActionRef.current.refresh(), refreshTable()]);
   }, [onFolderTreeChange, refreshTable]);
 
@@ -240,7 +254,6 @@ const ListView: React.FC<ViewComponentProps> = ({
             type="primary"
             disabled={getCreatePermission(TestType.Case)}
             onClick={createTestDetail}
-            className={cx('action')}
           >
             {t('common.addTestCase')}
           </Button>
@@ -270,6 +283,8 @@ const ListView: React.FC<ViewComponentProps> = ({
           tableLoading={tableLoading}
           setTableLoading={setTableLoading}
           copyTestCases={copyTestCases}
+          queryDeps={queryDeps}
+          workspaceKey={workspaceKey}
         />
       </div>
     </div>

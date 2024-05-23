@@ -1,3 +1,4 @@
+import { useSDK } from '@projectproxima/plugin-sdk';
 import { Result } from 'antd';
 import { t } from 'i18next';
 import React from 'react';
@@ -57,11 +58,15 @@ export const withPageGuard = (pageKey, WrappedComponent) => {
     const guardRef = React.useRef(new PageGuard(pageKey));
     const [authInfo, setAuthInfo] = React.useState(null);
     const [active, setActive] = React.useState(true);
+    const { context } = useSDK();
 
     React.useEffect(() => {
       const runner = async () => {
-        const user = await Parse.User.current();
-        const userData = user.toJSON();
+        let currentUser = context.currentUser;
+        if (!currentUser) {
+          currentUser = await Parse.User.current().then(user => user.toJSON());
+        }
+        const userData = currentUser;
         console.info('authInfo', {
           usernames: userData.username,
           roles: userData?.role?.name,

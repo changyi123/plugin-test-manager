@@ -56,7 +56,13 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
   const enableMinder = featureFlags('ENABLE_MINDER');
 
   const {
-    data: folderTreeData = [],
+    data: folderTreeData = [
+      {
+        key: 'root',
+        name: '全部用例',
+        parentKey: null,
+      },
+    ],
     loading: folderTreeLoading,
     refreshAsync: refreshFolderTree,
   } = useRequest(
@@ -75,7 +81,7 @@ const TestRepository: React.FC<{ workspaceKey: string }> = ({ workspaceKey }) =>
 
   React.useEffect(() => {
     // 折叠右侧面板
-    (window as any).globalState?.setItem?.('collapsedStatus', true);
+    // (window as any).globalState?.setItem?.('collapsedStatus', true);
   }, []);
 
   // 获取最新的 node 数据

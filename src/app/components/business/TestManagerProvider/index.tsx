@@ -295,7 +295,6 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
   const { t } = useI18n();
   const [testEntity, setTestEntity] = React.useState<TestEntity>();
   const workspaceKey = itemId ? testEntity?.workspace?.key : workspaceKeyFromProp;
-
   // 获取空间配置数据
   const { data: workspace } = commonQuery.useWorkspaceQuery({ key: workspaceKey });
   // 获取空间配置数据
@@ -303,7 +302,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
     workspaceKey,
   });
 
-  const { getCreatePermission } = useGetPermissions(workspace);
+  const { getCreatePermission } = useGetPermissions(workspace, testConfig);
 
   React.useEffect(() => {
     setTimeout(() => {
