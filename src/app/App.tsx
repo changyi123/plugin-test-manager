@@ -9,6 +9,7 @@ import { HashRouter, MemoryRouter, Route, Switch, useHistory } from 'react-route
 import { getRootContainer } from '@/lib/utils/helper';
 import I18n from '@/lib/utils/i18n';
 
+import LibraryProvider from './components/business/LibraryProvider';
 import useI18n from './lib/hooks/useI18n';
 import routes from './routes';
 
@@ -88,42 +89,44 @@ const App: React.FC<{ locale: any; lngDict: any; antdLang: any }> = props => {
   return (
     <I18n lngDict={lngDict} locale={locale}>
       <PluginSDKContext.Provider value={qiankunContextValue.sdk}>
-        <QueryClientProvider client={new QueryClient()}>
-          {showReactQueryDevtools && (
-            <React.Suspense fallback={null}>
-              <ReactQueryDevtoolsProduction initialIsOpen />
-            </React.Suspense>
-          )}
-          <ConfigProvider
-            locale={antdLang}
-            theme={AntdTheme}
-            renderEmpty={EmptyRender}
-            getPopupContainer={() => document.getElementById(rootElement)}
-          >
-            {process.env.NODE_ENV === 'production' || window.__POWERED_BY_QIANKUN__ ? (
-              <MemoryRouter>
-                <GoPropsRoute {...props} />
-                <Switch>
-                  <Suspense fallback={null}>
-                    {routes.map(({ path, component, exact }) => (
-                      <Route path={path} component={component} exact={exact} key={path} />
-                    ))}
-                  </Suspense>
-                </Switch>
-              </MemoryRouter>
-            ) : (
-              <HashRouter>
-                <Switch>
-                  <Suspense fallback={null}>
-                    {routes.map(({ path, component, exact }) => (
-                      <Route path={path} component={component} exact={exact} key={path} />
-                    ))}
-                  </Suspense>
-                </Switch>
-              </HashRouter>
+        <LibraryProvider>
+          <QueryClientProvider client={new QueryClient()}>
+            {showReactQueryDevtools && (
+              <React.Suspense fallback={null}>
+                <ReactQueryDevtoolsProduction initialIsOpen />
+              </React.Suspense>
             )}
-          </ConfigProvider>
-        </QueryClientProvider>
+            <ConfigProvider
+              locale={antdLang}
+              theme={AntdTheme}
+              renderEmpty={EmptyRender}
+              getPopupContainer={() => document.getElementById(rootElement)}
+            >
+              {process.env.NODE_ENV === 'production' || window.__POWERED_BY_QIANKUN__ ? (
+                <MemoryRouter>
+                  <GoPropsRoute {...props} />
+                  <Switch>
+                    <Suspense fallback={null}>
+                      {routes.map(({ path, component, exact }) => (
+                        <Route path={path} component={component} exact={exact} key={path} />
+                      ))}
+                    </Suspense>
+                  </Switch>
+                </MemoryRouter>
+              ) : (
+                <HashRouter>
+                  <Switch>
+                    <Suspense fallback={null}>
+                      {routes.map(({ path, component, exact }) => (
+                        <Route path={path} component={component} exact={exact} key={path} />
+                      ))}
+                    </Suspense>
+                  </Switch>
+                </HashRouter>
+              )}
+            </ConfigProvider>
+          </QueryClientProvider>
+        </LibraryProvider>
       </PluginSDKContext.Provider>
     </I18n>
   );

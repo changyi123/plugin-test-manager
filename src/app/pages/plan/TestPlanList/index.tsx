@@ -1,8 +1,8 @@
-import { useRequest } from 'ahooks';
+import { useMemoizedFn, useRequest } from 'ahooks';
 import { Button, notification } from 'antd';
 import _ from 'lodash';
 import { components } from 'proxima-sdk';
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 
 import type { BusinessTableActionType } from '@/components/common/BusinessTable/type';
 import FilterSearch from '@/components/common/FilterSearch';
@@ -47,6 +47,11 @@ const TestPlanList: React.FC<any> = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedTestPlan]);
 
+  const queryDeps = useMemo(
+    () => [workspaceKey, ...(testPlanFieldKeys || []), JSON.stringify(selectors)].join('_'),
+    [workspaceKey, testPlanFieldKeys, selectors],
+  );
+
   const tableDataGetter = useCallback(
     async queryParams => {
       if (!workspaceKey || !testPlanFieldKeys)
@@ -66,35 +71,49 @@ const TestPlanList: React.FC<any> = () => {
         ...queryParams,
       });
 
-      const stats = await getStatsTestPlan({
-        planIds: list.map(d => d.objectId),
-        select: ['caseStatus', 'caseCount'],
-      });
-
-      const testPlans = _.chain(list)
-        .map(testPlan => {
-          return {
-            ...testPlan,
-            ...stats?.[testPlan.objectId],
-            status: testPlan.workflowStatus,
-          };
-        })
-        .value();
-
       setTableLoading(false);
 
       return {
-        list: testPlans ?? [],
+        list:
+          list.map(i => ({
+            ...i,
+            status: i.workflowStatus,
+          })) ?? [],
         total: total ?? 0,
       };
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [workspaceKey, testPlanFieldKeys, JSON.stringify(selectors)],
+    [queryDeps],
   );
+
+  const onSuccess = useMemoizedFn(async (data, mutate) => {
+    const { list = [], total } = data ?? {};
+    if (!list.length) return;
+    const stats = await getStatsTestPlan({
+      planIds: list.map(d => d.objectId),
+      select: ['caseStatus', 'caseCount'],
+    });
+
+    mutate({
+      total,
+      list: _.chain(list)
+        .map(testPlan => {
+          return {
+            ...testPlan,
+            ...stats?.[testPlan.objectId],
+            status: testPlan.status,
+          };
+        })
+        .value(),
+    });
+  });
 
   const { data: currentFields } = useRequest(
     async () => {
-      return await getCurrentUserSetting({ workspaceKey, user: currentUser });
+      return await getCurrentUserSetting({
+        workspaceKey,
+        user: currentUser as unknown as Parse.Pointer,
+      });
     },
     {
       refreshDeps: [workspaceKey, currentUser],
@@ -198,20 +217,16 @@ const TestPlanList: React.FC<any> = () => {
     });
   };
 
-  const handleFilterField = useCallback(
-    async ({ testType, fieldKeys }) => {
-      await saveUserSetting({
-        workspaceKey,
-        user: currentUser,
-        testType,
-        filterFields: {
-          ...(currentFields?.filterFields ?? {}),
-          [testType]: fieldKeys,
-        },
-      });
-    },
-    [currentUser, workspaceKey, currentFields],
-  );
+  const handleFilterField = useMemoizedFn(async ({ testType, fieldKeys }) => {
+    await saveUserSetting({
+      workspaceKey,
+      testType,
+      filterFields: {
+        ...(currentFields?.filterFields ?? {}),
+        [testType]: fieldKeys,
+      },
+    });
+  });
 
   return (
     <div className={cx('test-plan-container')}>
@@ -263,6 +278,7 @@ const TestPlanList: React.FC<any> = () => {
         loading={tableLoading}
         getDataSource={tableDataGetter}
         handleFilterField={handleFilterField}
+        onSuccess={onSuccess}
       />
     </div>
   );

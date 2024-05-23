@@ -1,16 +1,16 @@
 import { useListener } from '@projectproxima/proxima-sdk-js';
 import useDebounce from 'ahooks/lib/useDebounce';
-import { Button, Dropdown, message, Pagination } from 'antd';
-import React, { useCallback, useRef, useState } from 'react';
+import { Button, Dropdown, Form, Input, message, Modal, Pagination } from 'antd';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 
 import type { BusinessTableActionType } from '@/components/common/BusinessTable/type';
 import SearchInput from '@/components/common/FilterSearch/SearchInput';
 import { BusinessTable } from '@/components/dynamicComponents';
-import { TestType } from '@/lib/constants';
+import { MaxInputNameLength, TestType } from '@/lib/constants';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import { genReportViewUrl } from '@/lib/testReport';
-import { actionConfirm } from '@/lib/utils/helper';
+import { actionConfirm, getRootContainer } from '@/lib/utils/helper';
 import { TestReport } from '@/services/models';
 import { useWorkspaceReportListQuery } from '@/services/testReport/query';
 
@@ -56,6 +56,8 @@ const PaginationFooterRender: React.FC<any> = ({
 const List: React.FC<any> = () => {
   const { t } = useI18n();
   const { workspace } = useTestConfig();
+  const [renameForm] = Form.useForm();
+  const [open, setOpen] = useState(false);
 
   const sendReportModalRef = useRef<ActionType>();
   const [limit, setLimit] = useState<number>(10);
@@ -92,6 +94,53 @@ const List: React.FC<any> = () => {
       setSearchName(val);
     },
     [setSearchName],
+  );
+
+  const renameModalProps = useMemo(
+    () => ({
+      icon: null,
+      width: 500,
+      getContainer: getRootContainer,
+      title: t('report.buttons.rename'),
+      okText: t('common.confirm'),
+      cancelText: t('common.cancel'),
+      destroyOnClose: true,
+      children: (
+        <Form form={renameForm} layout="vertical">
+          <Form.Item
+            label={t('report.reportName')}
+            name="name"
+            rules={[
+              {
+                max: MaxInputNameLength,
+                message: t('report.exceedLength'),
+              },
+              {
+                required: true,
+                message: t('report.reportNamePlaceholder'),
+              },
+            ]}
+          >
+            <Input placeholder={t('report.reportNamePlaceholder')} />
+          </Form.Item>
+        </Form>
+      ),
+      onOk: () => {
+        renameForm
+          .validateFields(['name', 'objectId'])
+          .then(async report => {
+            setOpen(false);
+            const testReport = TestReport.createWithoutData(report.objectId);
+            testReport.set('name', report.name);
+            await testReport.save();
+            message.success(t('report.workspaceReportTemplate.message.renameSuccess'));
+            refetch();
+          })
+          .catch(e => console.info(e.message));
+      },
+      onCancel: () => setOpen(false),
+    }),
+    [refetch, renameForm, t],
   );
 
   const actionRef = useRef<BusinessTableActionType>();
@@ -167,6 +216,21 @@ const List: React.FC<any> = () => {
                         onClick={() => sendReportModalRef.current.open(rowData.objectId)}
                       >
                         {t('report.buttons.sendReport')}
+                      </Button>
+                    ),
+                  },
+                  {
+                    key: 'rename',
+                    label: (
+                      <Button
+                        size="small"
+                        type="link"
+                        onClick={() => {
+                          renameForm.setFieldsValue(rowData);
+                          setOpen(true);
+                        }}
+                      >
+                        {t('report.buttons.rename')}
                       </Button>
                     ),
                   },
@@ -249,6 +313,7 @@ const List: React.FC<any> = () => {
         />
       )}
       <SendReportModal actionRef={sendReportModalRef} />
+      <Modal {...renameModalProps} open={open} />
     </div>
   );
 };

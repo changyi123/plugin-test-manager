@@ -27,6 +27,7 @@ export const useWorkspaceTestConfig = (
   return useQuery(
     TestConfigQueryKeys.workspace(params),
     async () => {
+      if (!params.workspaceKey) return;
       const data = await new Parse.Query(TestConfig)
         .equalTo('workspaceKey', params.workspaceKey)
         .first({ json: true })

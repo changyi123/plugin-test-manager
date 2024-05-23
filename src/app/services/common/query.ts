@@ -20,6 +20,7 @@ export const useWorkspaceQuery = (params: WorkspaceQueryParams) => {
   return useQuery(
     CommonQueryKeys.workspace(params ?? {}),
     async () => {
+      if (!params.id && !params.key) return;
       const query = new Parse.Query('Workspace');
       if (params.id) {
         query.equalTo('objectId', params.id);

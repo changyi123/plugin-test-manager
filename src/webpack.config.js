@@ -63,6 +63,9 @@ const getExternalDependencies = isProd => {
       react: getExternal('react'),
       'react-dom': getExternal('reactDOM'),
       axios: getExternal('axios'),
+      lodash: getExternal('lodash'),
+      parse: getExternal('parse'),
+      'antd/lib': ['window modules', 'antd'],
       ...UseExternalDependencyKeys.reduce(
         (deps, key) => ({
           ...deps,
@@ -128,7 +131,11 @@ module.exports = (cliEnv = {}, argv) => {
   };
 
   // 生产环境使用 MiniCssExtractPlugin
-  const extractOrStyleLoaderConfig = isProd ? MiniCssExtractPlugin.loader : 'style-loader';
+  // const extractOrStyleLoaderConfig = isProd ? MiniCssExtractPlugin.loader : 'style-loader';
+  const extractOrStyleLoaderConfig = {
+    loader: 'style-loader',
+    options: { injectType: 'singletonStyleTag' },
+  };
 
   const lessLoaderConfig = {
     loader: 'less-loader',

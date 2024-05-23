@@ -160,7 +160,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
   const { t } = useI18n();
   const state = useReactive({
     expandedKeys: [],
-    selectedKeys: [],
+    selectedKeys: ['root'],
   });
   const treeFn = useTreeFn(traverseTreeNodesAndAddTitle(treeNodeData));
 
@@ -500,6 +500,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
 
       await onFolderTreeChange();
       repositoryFolderTreeEvent.dispatch();
+      proxima.execute('updateItemList');
     },
     [onFolderTreeChange, repositoryFolderTreeEvent],
   );
@@ -521,13 +522,12 @@ const FolderTree: React.FC<FolderTreeProps> = ({
       return (
         <DropTreeTitle key={node.key} nodeKey={node.key} onItemDrop={handleItemDrop}>
           <>
-            <OverflowTooltip className={cx('tree-node-name')} title={node.name}>
-              <span>{node.name}</span>
-            </OverflowTooltip>
-
-            <span
-              className={cx('tree-node-length')}
-            >{`${node?.counts[0]}(${node?.counts[1]})`}</span>
+            <span className="ellipsis" title={node.name}>
+              {node.name}
+            </span>
+            <span className={cx('tree-node-length')}>
+              {`${node?.counts ? `${node?.counts?.[0]}(${node?.counts?.[1]})` : ''}`}
+            </span>
             <Dropdown
               dropdownRender={() => (
                 <FolderMenu

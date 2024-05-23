@@ -1,3 +1,4 @@
+import { useSDK } from '@projectproxima/plugin-sdk';
 import { clearCache, useMemoizedFn, useRequest } from 'ahooks';
 import { pick } from 'lodash';
 import React from 'react';
@@ -57,10 +58,14 @@ export const useAllRelTestEntities = (
 
 /** 获取当前用户信息 */
 export const useCurrentUser = () => {
+  const { context } = useSDK();
   const { data } = useRequest(
     async () => {
-      const data = await Parse.User.current();
-      return data.toJSON();
+      let currentUser = context.currentUser;
+      if (!currentUser) {
+        currentUser = await Parse.User.current().then(user => user.toJSON());
+      }
+      return currentUser;
     },
     {
       cacheKey: `current_user`,
@@ -69,7 +74,7 @@ export const useCurrentUser = () => {
     },
   );
 
-  return data;
+  return data ?? {};
 };
 
 /** 获取当前空间配置 */

@@ -86,6 +86,14 @@ const SupportAppEnv = {
     },
     transformer: value => value,
   },
+  DELETE_CONFIG: {
+    defaultValue: {
+      // deleteSize: 10, // 单次删除事项最大数量
+      // sleepTime: 1000, // 单次删除事项的休息时间（毫秒）
+      // needSleepSize: 100, // 大于给定值时，单次删除事项后，休息sleepTime
+    },
+    transformer: value => value,
+  },
 } as const;
 
 /**

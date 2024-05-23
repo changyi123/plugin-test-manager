@@ -1,13 +1,15 @@
-import { UserCell } from '@giteeteam/apps-team-components';
+import { useSDK } from '@projectproxima/plugin-sdk';
 import createProximaSdk from '@projectproxima/proxima-sdk-js';
-import { useDrag, useDrop, useRequest } from 'ahooks';
+import { useDrag, useDrop, useMemoizedFn, useRequest } from 'ahooks';
 import { message, notification, Space, Tooltip } from 'antd';
-import React, { useCallback } from 'react';
+import { pick } from 'lodash-es';
+import React from 'react';
 
 import RenderRepository from '@/components/business/RenderRepository';
 import RepositorySelector, {
   ActionType as RepositorySelectorActionType,
 } from '@/components/business/RepositorySelector';
+import UserCell from '@/components/business/UserCell';
 import type { BusinessTableActionType } from '@/components/common/BusinessTable/type';
 import { BusinessTable } from '@/components/dynamicComponents';
 import { DeleteIcon, DragHandler, LinkItemIcon, SwitcherOutlined, UserIcon } from '@/icons';
@@ -15,10 +17,7 @@ import { deleteTestEntity, updateTestEntity } from '@/lib/api/item';
 import { useCurrentUser } from '@/lib/api/user';
 import { getCurrentUserSetting, saveUserSetting } from '@/lib/api/userSetting';
 import { TestType } from '@/lib/constants';
-import { useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
-import { useUserCellUserDataProp } from '@/lib/hooks/useProxima';
-import { useGetWorkspaceRepository } from '@/lib/hooks/useTest';
 import fetch from '@/lib/utils/fetch';
 import { actionConfirm, getPluginWebTriggerBaseUrl, openItemViewScreen } from '@/lib/utils/helper';
 
@@ -52,6 +51,101 @@ const RowDragBox = ({ children, ...data }) => {
   return <span ref={ref}>{children}</span>;
 };
 
+const DropRow = ({ rowData, ...restProps }) => {
+  const ref = React.useRef(null);
+  const { context } = useSDK();
+
+  const handleDragoverClassName = useMemoizedFn((e, node, sortIndex, type) => {
+    const getDropClassName = () => {
+      return cx(
+        `${
+          sortIndex < node?.sortIndex
+            ? 'test-manager-drop-over-downward'
+            : 'test-manager-drop-over-upward'
+        }`,
+      );
+    };
+
+    const dragoverClassName = getDropClassName();
+    const rowNode = (e.target as any).closest('.ant-table-row');
+    if (type === 'add') {
+      rowNode.classList.add(dragoverClassName);
+    } else {
+      rowNode.classList.remove(dragoverClassName);
+    }
+  });
+
+  useDrop(ref, {
+    onDom: async (_, e) => {
+      // rowData 接受节点
+      console.info('DropRow', e);
+      const data = JSON.parse(e.dataTransfer.getData('data'));
+      if (!data?.rowData?.sortIndex) return;
+      if (data.rowData.sortIndex === rowData.sortIndex) return;
+      const params = [
+        {
+          source: {
+            id: data.rowData.id,
+            name: data.rowData.name,
+            sortIndex: data.rowData.sortIndex,
+          },
+          target: {
+            id: rowData.id,
+            name: rowData.name,
+            sortIndex: rowData.sortIndex,
+          },
+        },
+      ];
+
+      // 请求脚本 generate-sortIndex 获取 sortIndex
+      const { sortIndex } = await fetch.$post(
+        `${getPluginWebTriggerBaseUrl()}/generate-sortIndex`,
+        {
+          list: params,
+          workspaceKey: context?.env?.WORKSPACE_KEY,
+        },
+      );
+
+      if (sortIndex) {
+        const res = await updateTestEntity([
+          {
+            objectId: data.rowData.id,
+            sortIndex,
+          },
+        ]);
+        if (res?.status === 'error') {
+          message.error(res.data);
+          return;
+        }
+
+        await proxima.execute('updateItemList');
+      }
+
+      handleDragoverClassName(e, data, rowData.sortIndex, 'remove');
+    },
+    onDragEnter(e) {
+      if (!global.dragNode?.sortIndex) return;
+      if (global.dragNode?.sortIndex === rowData?.sortIndex) return;
+      handleDragoverClassName(e, global.dragNode, rowData.sortIndex, 'add');
+    },
+    onDragLeave(e) {
+      if (!global.dragNode?.sortIndex) return;
+      if (global.dragNode?.sortIndex === rowData?.sortIndex) return;
+      handleDragoverClassName(e, global.dragNode, rowData.sortIndex, 'remove');
+    },
+  });
+
+  const trProps = pick(restProps, [
+    'rowData',
+    'onClick',
+    'className',
+    'style',
+    'children',
+    'data-row-key', // 拖拽测试用例需要
+  ]);
+  return <tr ref={ref} {...trProps} />;
+};
+
 export type ActionType = BusinessTableActionType;
 
 type TestDetailTableProps = {
@@ -65,6 +159,8 @@ type TestDetailTableProps = {
   tableLoading?: boolean;
   setTableLoading?: (val?: boolean) => void;
   copyTestCases?: (val: string[]) => any;
+  queryDeps: string;
+  workspaceKey: string;
 };
 
 const TestDetailTable: React.FC<TestDetailTableProps> = props => {
@@ -78,6 +174,8 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
     setTableLoading,
     tableLoading,
     copyTestCases,
+    queryDeps,
+    workspaceKey,
   } = props;
   const { t } = useI18n();
   const externalDataLoading =
@@ -85,13 +183,10 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
 
   const tableActionRef = React.useRef<BusinessTableActionType>();
   const repositorySelectorRef = React.useRef<RepositorySelectorActionType>();
-  const { workspace } = useTestConfig();
-  const workspaceKey = workspace?.key;
-  // 缓存用例库数据，用于监听用例库修改后刷新表格所属模块
-  useGetWorkspaceRepository(workspaceKey);
+  // // 缓存用例库数据，用于监听用例库修改后刷新表格所属模块
+  // useGetWorkspaceRepository(workspaceKey);
   const { data: currentUser } = useCurrentUser();
   const [hasRowSelected, setHasRowSelected] = React.useState(false);
-  const userData = useUserCellUserDataProp(workspaceKey);
 
   React.useImperativeHandle(actionRef, () => tableActionRef.current);
 
@@ -118,7 +213,10 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
 
   const { data: currentFields } = useRequest(
     async () => {
-      return await getCurrentUserSetting({ workspaceKey, user: currentUser });
+      return await getCurrentUserSetting({
+        workspaceKey,
+        user: currentUser as unknown as Parse.Pointer,
+      });
     },
     {
       refreshDeps: [workspaceKey, currentUser],
@@ -215,7 +313,6 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         key="assignee"
         mode="multiple"
         readonly={!hasRowSelected}
-        userData={userData}
         onChange={toggleAssignee}
         emptyChild={
           <span className={cx('action', 'user-field')}>
@@ -241,7 +338,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         <DeleteIcon className={cx('icon')} /> {t('common.delete')}
       </span>,
     ];
-  }, [hasRowSelected, userData, t, setTableLoading, onDataChange, copyTestCases]);
+  }, [hasRowSelected, t, setTableLoading, onDataChange, copyTestCases]);
 
   const columns = React.useMemo(() => {
     const deleteTestDetail = data => {
@@ -295,6 +392,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         key: 'title',
         title: t('common.title'),
         isSystem: true,
+        overflowEllipsis: false,
         extraProps: {
           onClick: record => {
             openItemViewScreen(record?.objectId);
@@ -343,7 +441,9 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
       {
         key: 'quoteCount',
         title: t('page.plan.testEntityList.quoteCount'),
-        width: 200,
+        width: 120,
+        overflowEllipsis: false,
+        shouldCellUpdate: (record, prevRecord) => record.quoteCount !== prevRecord.quoteCount,
         render(_, rowData) {
           return <span>{rowData.quoteCount}</span>;
         },
@@ -352,6 +452,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         key: 'repositoryGroup',
         title: t('page.plan.testEntityList.repositoryGroup'),
         width: 200,
+        overflowEllipsis: false,
         render(_, rowData) {
           return <RenderRepository repository={rowData?.repository} />;
         },
@@ -362,6 +463,8 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         isSystem: true,
         fixed: 'right' as any,
         width: 100,
+        overflowEllipsis: false,
+        shouldCellUpdate: (record, prevRecord) => record.objectId !== prevRecord.objectId,
         render(_, rowData) {
           return (
             <Space>
@@ -374,103 +477,16 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
     ];
   }, [copyTestCases, onDataChange, setTableLoading, t]);
 
-  const handleFilterField = useCallback(
-    async ({ testType, fieldKeys }) => {
-      await saveUserSetting({
-        workspaceKey,
-        user: currentUser,
-        testType,
-        filterFields: {
-          ...(currentFields?.filterFields ?? {}),
-          [testType]: fieldKeys,
-        },
-      });
-    },
-    [currentUser, workspaceKey, currentFields],
-  );
-
-  const handleDragoverClassName = useCallback((e, node, sortIndex, type) => {
-    const getDropClassName = () => {
-      return cx(
-        `${
-          sortIndex < node?.sortIndex
-            ? 'test-manager-drop-over-downward'
-            : 'test-manager-drop-over-upward'
-        }`,
-      );
-    };
-
-    const dragoverClassName = getDropClassName();
-    const rowNode = (e.target as any).closest('.ant-table-row');
-    if (type === 'add') {
-      rowNode.classList.add(dragoverClassName);
-    } else {
-      rowNode.classList.remove(dragoverClassName);
-    }
-  }, []);
-
-  const DropRow = ({ rowData, ...restProps }) => {
-    const ref = React.useRef(null);
-    useDrop(ref, {
-      onDom: async (_, e) => {
-        // rowData 接受节点
-        const data = JSON.parse(e.dataTransfer.getData('data'));
-        if (!data?.rowData?.sortIndex) return;
-        if (data.rowData.sortIndex === rowData.sortIndex) return;
-        const params = [
-          {
-            source: {
-              id: data.rowData.id,
-              name: data.rowData.name,
-              sortIndex: data.rowData.sortIndex,
-            },
-            target: {
-              id: rowData.id,
-              name: rowData.name,
-              sortIndex: rowData.sortIndex,
-            },
-          },
-        ];
-
-        // 请求脚本 generate-sortIndex 获取 sortIndex
-        const { sortIndex } = await fetch.$post(
-          `${getPluginWebTriggerBaseUrl()}/generate-sortIndex`,
-          {
-            list: params,
-            workspaceKey,
-          },
-        );
-
-        if (sortIndex) {
-          const res = await updateTestEntity([
-            {
-              objectId: data.rowData.id,
-              sortIndex,
-            },
-          ]);
-          if (res?.status === 'error') {
-            message.error(res.data);
-            return;
-          }
-
-          tableActionRef.current.refresh();
-        }
-
-        handleDragoverClassName(e, data, rowData.sortIndex, 'remove');
-      },
-      onDragEnter(e) {
-        if (!global.dragNode?.sortIndex) return;
-        if (global.dragNode?.sortIndex === rowData?.sortIndex) return;
-        handleDragoverClassName(e, global.dragNode, rowData.sortIndex, 'add');
-      },
-      onDragLeave(e) {
-        if (!global.dragNode?.sortIndex) return;
-        if (global.dragNode?.sortIndex === rowData?.sortIndex) return;
-        handleDragoverClassName(e, global.dragNode, rowData.sortIndex, 'remove');
+  const handleFilterField = useMemoizedFn(async ({ testType, fieldKeys }) => {
+    await saveUserSetting({
+      workspaceKey,
+      testType,
+      filterFields: {
+        ...(currentFields?.filterFields ?? {}),
+        [testType]: fieldKeys,
       },
     });
-    return <tr ref={ref} {...restProps} />;
-  };
+  });
 
   return (
     <>
@@ -495,6 +511,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         loading={externalDataLoading || tableLoading}
         selectionActionNodes={selectionActionNodes}
         handleFilterField={handleFilterField}
+        queryDeps={queryDeps}
       />
       <RepositorySelector actionRef={repositorySelectorRef} />
     </>

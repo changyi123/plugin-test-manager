@@ -7,6 +7,7 @@ import React from 'react';
 import { useGetPermissions } from '@/components/business/TestManagerProvider/hooks';
 import { getPriorityOptions } from '@/lib/api/minder';
 import { getWorkspaceByKey } from '@/lib/api/proxima';
+import { useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 
 import cx from './index.less';
@@ -103,7 +104,8 @@ const useSharedState = () => {
   }, [workspaceKey, setPartialSharedState, t]);
 
   // 获取创建权限
-  const { getCreatePermission: getDisabledCreatePermission } = useGetPermissions(workspace);
+  const { config } = useTestConfig();
+  const { getCreatePermission: getDisabledCreatePermission } = useGetPermissions(workspace, config);
   React.useEffect(() => {
     setPartialSharedState({ canCreateTestCaseItem: !getDisabledCreatePermission(TestType.Case) });
   }, [getDisabledCreatePermission, setPartialSharedState]);
