@@ -987,7 +987,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         }
       />,
 
-      <span key="delete" onClick={() => hasRowSelected && handleDelete()}>
+      <span className={cx('danger')} key="delete" onClick={() => hasRowSelected && handleDelete()}>
         <DeleteOutlined /> {t('common.remove')}
       </span>,
     ];
@@ -1102,7 +1102,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         }
       />,
 
-      <span key="delete" onClick={() => hasRowSelected && deleteTestRun()}>
+      <span className={cx('danger')} key="delete" onClick={() => hasRowSelected && deleteTestRun()}>
         <DeleteOutlined /> {t('common.delete')}
       </span>,
     ];
