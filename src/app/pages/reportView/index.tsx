@@ -3,6 +3,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { ArrowLeftOutlined } from '@/icons';
+import { featureFlags, SupportFeatureFlags } from '@/lib/appEnv';
 import {
   exportWithDocx,
   exportWithHTML,
@@ -29,6 +30,7 @@ const ReportView: React.FC = () => {
   const searchParams = new URLSearchParams(window.location.search);
   const testReportId = searchParams.get('testReportId');
   const redirectLink = decodeURIComponent(searchParams.get('redirectLink') || '');
+  const enableOfflineReport = featureFlags(SupportFeatureFlags.ENABLE_OFFLINE_TEST_REPORT);
 
   const { data: reportData } = useTestReportByObjectId(testReportId);
   const { t } = useTranslation();
@@ -149,7 +151,7 @@ const ReportView: React.FC = () => {
                         </span>
                       ),
                     },
-                    {
+                    enableOfflineReport && {
                       key: 'exportPdf',
                       label: (
                         <span onClick={() => handleExportButtonClick('pdf')}>
@@ -157,7 +159,7 @@ const ReportView: React.FC = () => {
                         </span>
                       ),
                     },
-                  ],
+                  ].filter(Boolean),
                 }}
               >
                 <Button loading={exportLoading}>{t('report.export')}</Button>
