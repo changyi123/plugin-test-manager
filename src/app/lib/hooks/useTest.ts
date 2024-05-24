@@ -3,7 +3,7 @@ import { clearCache, useMemoizedFn, useRequest } from 'ahooks';
 import { pick } from 'lodash';
 import React from 'react';
 
-import { getRepoData, handleRepoPath } from '@/components/business/RepositoryGroup/repository';
+import { getRepoFullPathMap } from '@/components/business/RepositoryGroup/repository';
 import {
   getAllTestConfigs,
   getTestConfig,
@@ -132,14 +132,9 @@ export const useGetWorkspaceRepository = workspaceKey => {
   const { data: testCaseRepositoryPath, refresh: refreshRepositoryData } = useRequest(
     async () => {
       if (!workspaceKey) return;
-      const data = await getRepositoryData([workspaceKey]);
+      const data = await getRepositoryData([workspaceKey], ['name', 'objectId', 'parent']);
       if (!hasArrayItem(data)) return;
-      const pathMap = new Map();
-      handleRepoPath(getRepoData(data)).forEach(d => {
-        pathMap.set(d.objectId, d.path);
-      });
-
-      return pathMap;
+      return getRepoFullPathMap(data);
     },
     {
       cacheKey: `repository_data_${workspaceKey ?? ''}`,

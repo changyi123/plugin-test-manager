@@ -2,7 +2,7 @@ import { useDeepCompareEffect } from 'ahooks';
 import _ from 'lodash';
 import React from 'react';
 
-import { SYSTEM_FIELD } from '@/lib/constants';
+import { CurrentWorkspaceInfo, SYSTEM_FIELD } from '@/lib/constants';
 import Parse from '@/lib/parse';
 import { ItemTypeScreenSchemeMapping, Screen, Workspace } from '@/services/models';
 
@@ -93,12 +93,19 @@ export const useUsedScreenFieldKeys = (
   // 获取空间界面方案关联的全部方案
   const { data: itemUsedFieldKeyMapping } = useNoExpiredRequest(
     async () => {
-      const workspace = await new Parse.Query(Workspace)
-        .select(['itemTypeScreenScheme'])
-        .include(['itemTypeScreenScheme.defaultScreenScheme'])
-        .equalTo('key', workspaceKey)
-        .first()
-        .then(item => item?.toJSON());
+      let workspace = null;
+      // 先查本地存储
+      const localData = localStorage.getItem(`${CurrentWorkspaceInfo}_${workspaceKey}`);
+      if (localData) {
+        workspace = JSON.parse(localData);
+      } else {
+        workspace = await new Parse.Query(Workspace)
+          .select(['itemTypeScreenScheme'])
+          .include(['itemTypeScreenScheme.defaultScreenScheme'])
+          .equalTo('key', workspaceKey)
+          .first()
+          .then(item => item?.toJSON());
+      }
 
       const { itemTypeScreenSchemeMappings, defaultScreenScheme } =
         workspace?.itemTypeScreenScheme ?? {};

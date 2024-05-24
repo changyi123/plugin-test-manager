@@ -13,6 +13,7 @@ import useI18n from '@/lib/hooks/useI18n';
 import { useCurrentUser } from '@/lib/hooks/useTest';
 import Parse from '@/lib/parse';
 import { User as UserProps } from '@/lib/types/App';
+import { i18n } from '@/lib/utils/i18n';
 import { User as UserModel, Workspace } from '@/services/models';
 
 import cx from './index.less';
@@ -55,9 +56,9 @@ export const isUserDisabled = (user: UserProps): boolean => user?.enabled === fa
 export const generateUserDisplayName = (user: UserProps, onlyNickname = false): string => {
   const getDisplaySuffix = () => {
     if (isUserDeleted(user)) {
-      return `(${i18n.t('global.haveDelete')})`;
+      return `(${i18n.t('common.haveDelete')})`;
     } else if (isUserDisabled(user)) {
-      return `(${i18n.t('global.forbiddenActive')})`;
+      return `(${i18n.t('common.forbiddenActive')})`;
     } else if (!onlyNickname && user?.nickname) {
       return `(${user?.username})`;
     }

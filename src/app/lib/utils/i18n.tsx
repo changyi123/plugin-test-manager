@@ -1,4 +1,4 @@
-import i18n from 'i18next';
+import i18next from 'i18next';
 import React, { createContext, useEffect, useRef, useState } from 'react';
 import { initReactI18next } from 'react-i18next';
 
@@ -11,11 +11,13 @@ const resources = Object.entries(locales).reduce((resource, [lng, translation]) 
   return resource;
 }, {});
 
-i18n.use(initReactI18next).init({
+i18next.use(initReactI18next).init({
   fallbackLng: 'zh',
   debug: false,
   resources,
 });
+
+export const i18n = i18next;
 
 export const defaultLanguage = 'zh';
 export const I18nContext = createContext<i18nContext>(null);

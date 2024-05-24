@@ -1,15 +1,31 @@
 import parallelLimit from 'async/parallelLimit';
 import flatten from 'lodash/flatten';
+import isNil from 'lodash/isNil';
 import pick from 'lodash/pick';
 import times from 'lodash/times';
 
 import { BaseTestEntity, TestEntity } from '../../common/types/test';
 import { compactNilValue, testEntityToItemValues } from '../../common/utils/dataTransfer';
 import { logTimeCost } from '../lib/logger';
-import { createItems, deleteItems, updateItems } from './coreApi';
+import { bulkCreateItems, bulkUpdateItems, deleteItems } from './coreApi';
 
 /** 并发数量 */
-const ParallelLimit = 10;
+const ParallelLimit = global.env?.ParallelLimit ?? 10;
+const UnRefreshLimit = global.env?.UnRefreshLimit ?? 10;
+const BatchChunkSize = global.env?.BatchChunkSize ?? 20;
+
+const getUnRefresh = data => ({ unRefresh: data?.length > UnRefreshLimit });
+const chunk = (list, size, handle = i => i) =>
+  list.reduce(
+    (prev, cur) => {
+      handle(cur);
+      prev[prev.length - 1].length < size
+        ? prev[prev.length - 1].push(cur)
+        : (prev[prev.length] = [cur]);
+      return prev;
+    },
+    [[]],
+  );
 
 const CreateApiParseContext = {
   // 跳过事项创建校验
@@ -66,36 +82,40 @@ export const batchDeleteItems = async (itemIds: string[]) => {
 
 /** 更新测试实体 */
 export const batchUpdateItems = async (data: Partial<TestEntity>[]) => {
-  const itemData = data.map(data => {
+  const itemsQueue = chunk(data, BatchChunkSize, item => {
     // 允许更新自定义字段（支持内置字段 assignee. priority
     // 其他自定义字段不能进行更新
-    const customValues = pick(data.values, ['assignee', 'priority']);
-    return {
-      ...data,
-      objectId: data.objectId,
-      originalValues: customValues,
-      values: testEntityToItemValues(data),
-    };
+    const customValues = pick(item.values, ['assignee', 'priority']);
+    item.values = compactNilValue({
+      ...customValues,
+      ...testEntityToItemValues(item),
+    });
   });
 
-  const taskQueue = itemData.map(item => async () => {
-    const values = compactNilValue({
-      name: item.name,
-      values: {
-        ...item.originalValues,
-        ...item.values,
-      },
-      eventExtraData: { skipItemChange: true },
-      parseContext: CreateApiParseContext,
+  const taskQueue = itemsQueue.map(items => async () => {
+    const updates = [];
+    items.map(item => {
+      Object.entries(item.values ?? {}).map(([key, value]) => {
+        if (item.objectId && !isNil(value)) {
+          updates.push({
+            itemIds: [item.objectId],
+            customField: key,
+            value,
+          });
+        }
+      });
     });
 
-    return await updateItems(item.objectId, values);
+    console.info(JSON.stringify(updates), 'batchUpdateItems');
+
+    return await bulkUpdateItems({ updates }).then(({ data }) => data ?? []);
   });
 
   const dump = logTimeCost(`update ${taskQueue.length} items`);
   const res = await parallelLimit(taskQueue, ParallelLimit);
   dump();
-  return res;
+  console.info(JSON.stringify(res), 'batchUpdateItems');
+  return res.flat();
 };
 
 type TokenSchema = Partial<Record<'objectId' | 'key', string>>;
@@ -111,26 +131,25 @@ export const batchCreateItems = async (
   fields?: string[],
 ) => {
   // 需要创建的事项数据
-  const itemData = data.map(data => ({
-    name: data.name,
-    values: {
-      ...testEntityToItemValues(data),
+  const itemsData = chunk(data, BatchChunkSize, item => {
+    item.values = {
+      ...testEntityToItemValues(item),
       // priority assignee 支持創建時更新
-      ...pick(data.values, ['assignee', 'priority'].concat(fields ?? [])),
-    },
-    itemGroup: data.itemGroup,
-    itemType: data.itemType,
-    workspace: data.workspace,
-    parseContext: CreateApiParseContext,
-  }));
+      ...pick(item.values, ['assignee', 'priority'].concat(fields ?? [])),
+    };
+  });
 
-  const taskQueue = itemData.map(item => async () => {
-    const values = compactNilValue(item);
-    return createItems(values);
+  console.info(JSON.stringify(itemsData), 'batchCreateItems');
+
+  const taskQueue = itemsData.map(items => async () => {
+    return await bulkCreateItems(items, {
+      'X-Parse-Cloud-Context': JSON.stringify({ ...CreateApiParseContext, ...getUnRefresh(data) }),
+    });
   });
 
   const dump = logTimeCost(`create ${taskQueue.length} items`);
   const res = await parallelLimit(taskQueue, ParallelLimit);
   dump();
-  return res;
+  console.info(JSON.stringify(res), 'batchCreateItems');
+  return res?.flat();
 };

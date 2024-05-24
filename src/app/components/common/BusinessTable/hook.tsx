@@ -1,9 +1,11 @@
 import { useRequest } from 'ahooks';
+import { uniq } from 'lodash';
 
 import { getTestConfig } from '@/lib/api/common';
 import { getCustomFields } from '@/lib/api/proxima';
 import { getCurrentUserSetting } from '@/lib/api/userSetting';
 import { SYSTEM_FIELD, TestType } from '@/lib/constants';
+import { CurrentWorkspaceConfigStorageKey, GlobalConfigStorageKey } from '@/lib/constants';
 import { useUsedScreenFieldKeys } from '@/lib/hooks/useProxima';
 import { useNoExpiredRequest } from '@/lib/hooks/useRequest';
 
@@ -31,7 +33,7 @@ export const useTestTypeScreenFieldKeys = ({
   workspaceKey,
   testType,
 }: TitleCellOption['titleCellOption']) => {
-  const { data: itemTypeMap } = useNoExpiredRequest(
+  const testConfig = useNoExpiredRequest(
     async () => {
       const config = await getTestConfig({ workspaceKey });
       const { itemTypeMap } = config?.toJSON() ?? ({} as any);
@@ -43,22 +45,19 @@ export const useTestTypeScreenFieldKeys = ({
       staleTime: -1,
     },
   );
+  const customerFieldKeys = useScreenFieldKeysFromTestConfig({
+    workspaceKey,
+    testConfig,
+    testType,
+  });
+  return customerFieldKeys;
+};
 
+export const useScreenFieldKeysFromTestConfig = ({ workspaceKey, testConfig, testType }) => {
+  const itemTypeMap = testConfig.itemTypeMap;
   const itemTypeKey = itemTypeMap?.[testType];
-  // 除测试计划外其他测试类型需要隐藏状态字段
-  // const shouldHiddenFieldKeys = testType !== TestType.Plan ? TestIncludeFiledKeys : [];
-  const customerFieldKeys = useUsedScreenFieldKeys(workspaceKey, itemTypeKey);
 
-  // const { data: typeScreenFiledKeys } = useRequest(
-  //   // async () => [].concat(SystemFieldKeys, customerFields),
-  //   async () => customerFields,
-  //   {
-  //     cacheKey: `${workspaceKey}_${testType}_${JSON.stringify(customerFields)}`,
-  //     refreshDeps: [JSON.stringify(customerFields), workspaceKey, testType],
-  //     cacheTime: 99999,
-  //     staleTime: 99999,
-  //   },
-  // );
+  const customerFieldKeys = useUsedScreenFieldKeys(workspaceKey, itemTypeKey);
   return customerFieldKeys;
 };
 
@@ -77,6 +76,10 @@ export const useGetTableFilterFields = ({
   const { data: globalConfig } = useRequest(
     async () => {
       if (!isSettingPage && !isCheckedGlobalConfig) return null;
+      // 先查本地存储
+      const localGlobalConfig = localStorage.getItem(GlobalConfigStorageKey);
+      if (localGlobalConfig) return JSON.parse(localGlobalConfig);
+      // 没有再调接口
       const globalConfig = await getTestConfig({ global: true });
       return globalConfig?.toJSON();
     },
@@ -88,6 +91,10 @@ export const useGetTableFilterFields = ({
   const { data: testConfig } = useRequest(
     async () => {
       if (!workspaceKey) return null;
+      // 先查本地存储
+      const localConfig = localStorage.getItem(CurrentWorkspaceConfigStorageKey);
+      if (localConfig) return JSON.parse(localConfig);
+      // 没有再调接口
       const testConfig = await getTestConfig({ workspaceKey });
       return testConfig?.toJSON();
     },
@@ -137,16 +144,14 @@ export const useGetTableFilterFields = ({
 };
 
 export const useGetCustomFields = ({ filedKeys }: { filedKeys?: string[] }) => {
-  const { data: customFields } = useNoExpiredRequest(
-    () => getCustomFields(filedKeys.concat(SystemFieldKeys)),
-    {
-      ready: Boolean(filedKeys),
-      cacheKey: `CustomFields_${filedKeys?.toString()}_${SystemFieldKeys?.toString()}}`,
-      refreshDeps: [filedKeys],
-      cacheTime: 999999,
-      staleTime: 999999,
-    },
-  );
-
+  const _fieldKeys = uniq((filedKeys || []).concat(SystemFieldKeys)).sort();
+  const { data: customFields } = useNoExpiredRequest(() => getCustomFields(_fieldKeys), {
+    ready: Boolean(filedKeys),
+    cacheKey: `CustomFields_${_fieldKeys.toString()}`,
+    refreshDeps: [filedKeys],
+    cacheTime: 999999,
+    staleTime: 999999,
+    debounceWait: 300,
+  });
   return customFields;
 };

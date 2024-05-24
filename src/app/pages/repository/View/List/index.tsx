@@ -1,6 +1,6 @@
 import { useSDK } from '@projectproxima/plugin-sdk';
 import { useListener } from '@projectproxima/proxima-sdk-js';
-import { useMemoizedFn, useRequest, useUpdateEffect } from 'ahooks';
+import { useMemoizedFn, useUpdateEffect } from 'ahooks';
 import { Button, notification, Select } from 'antd';
 import React, { useCallback, useMemo, useRef } from 'react';
 
@@ -8,7 +8,7 @@ import { SystemFieldKeys } from '@/components/common/BusinessTable/hook';
 import FilterSearch from '@/components/common/FilterSearch';
 import { getFilterFields } from '@/components/common/FilterSearch/utils';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
-import { copyTestCase, getTestEntityByQuery, getTestStats } from '@/lib/api/item';
+import { copyTestCase, copyTestCaseV2, getTestEntityByQuery, getTestStats } from '@/lib/api/item';
 import { getExtendFields, RepositoryModel, TestType } from '@/lib/constants';
 import { useBaseAction } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
@@ -67,27 +67,10 @@ const ListView: React.FC<ViewComponentProps> = ({
     }, 400);
   });
 
-  // 获取当前筛选条件下全部用例 ID
-  const { data: allTestCaseIds, refreshAsync: refreshTable } = useRequest(
-    async () => {
-      if (!workspaceKey) return [];
-      const repository = getRepositoryQuery(selectedNode, groupedMode);
-      const { list: caseIds } = await getTestEntityByQuery({
-        query: {
-          workspaceKey: workspaceKey,
-          type: TestType.Case,
-          ...repository,
-        },
-        limit: 99999,
-        selector,
-        onlySelectId: true,
-      });
-
-      return caseIds;
-    },
-    {
-      manual: true,
-    },
+  const repository = useMemo(
+    () => getRepositoryQuery(selectedNode, groupedMode),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [selectedNode?.key, groupedMode],
   );
 
   const dataSourceGetter = useCallback(
@@ -144,7 +127,7 @@ const ListView: React.FC<ViewComponentProps> = ({
       };
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [groupedMode, selectedNode?.key, selector, testCaseFieldKeys, workspaceKey],
+    [repository, selector, testCaseFieldKeys, workspaceKey],
   );
 
   const queryDeps = useMemo(
@@ -161,13 +144,12 @@ const ListView: React.FC<ViewComponentProps> = ({
       fields: [].concat(SystemFieldKeys, testCaseFieldKeys),
     });
   });
-
-  useUpdateEffect(() => {
-    // 重置全部事项 ID
-    if (workspaceKey && selectedNode?.key) {
-      refreshTable();
-    }
-  }, [workspaceKey, refreshTable, selectedNode?.key, groupedMode]);
+  const copyTestCasesV2 = useMemoizedFn(async queryParams => {
+    return await copyTestCaseV2({
+      queryParams,
+      fields: [].concat(SystemFieldKeys, testCaseFieldKeys),
+    });
+  });
 
   useUpdateEffect(() => {
     const breadcrumbs = [];
@@ -193,15 +175,14 @@ const ListView: React.FC<ViewComponentProps> = ({
 
   const refreshAll = React.useCallback(async () => {
     console.info('refreshAll');
-    await Promise.all([onFolderTreeChange(), tableActionRef.current.refresh(), refreshTable()]);
-  }, [onFolderTreeChange, refreshTable]);
+    await Promise.all([onFolderTreeChange(), tableActionRef.current.refresh()]);
+  }, [onFolderTreeChange]);
 
   // 处理筛选器搜索
   const handleSelectorSearch = async selector => {
     setSelector(selector);
     // 添加筛选项目需要重置批量选中的 row
     tableActionRef.current.resetSelectedRowKeys();
-    await refreshTable();
   };
 
   const toggleSelection = (visible?: boolean) => {
@@ -261,7 +242,9 @@ const ListView: React.FC<ViewComponentProps> = ({
             type="repository"
             treeNodeData={folderTreeData}
             folderKey={selectNodeKey}
-            filteredCaseIds={allTestCaseIds}
+            repository={repository}
+            selector={selector}
+            // filteredCaseIds={allTestCaseIds}
           />
         </div>
       </div>
@@ -275,7 +258,6 @@ const ListView: React.FC<ViewComponentProps> = ({
         />
         <Table
           actionRef={tableActionRef}
-          testDetailIds={allTestCaseIds}
           onDataChange={refreshAll}
           testDetailFieldKeys={[].concat(SystemFieldKeys, testCaseFieldKeys)}
           onSelectionCancel={() => toggleSelection(false)}
@@ -283,8 +265,11 @@ const ListView: React.FC<ViewComponentProps> = ({
           tableLoading={tableLoading}
           setTableLoading={setTableLoading}
           copyTestCases={copyTestCases}
+          copyTestCasesV2={copyTestCasesV2}
           queryDeps={queryDeps}
           workspaceKey={workspaceKey}
+          repository={repository}
+          selector={selector}
         />
       </div>
     </div>

@@ -12,6 +12,8 @@
     "cannotExecuteTestCase": "当前测试用例未分配执行人，无法执行"
   },
   "common": {
+    "haveDelete": "已删除",
+    "forbiddenActive": "已禁用",
     "pageTitle": {
       "repository": "测试用例",
       "report": "测试报告",
