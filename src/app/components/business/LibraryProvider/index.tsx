@@ -30,7 +30,7 @@ const LibraryProvider: React.FC<{ children: React.ReactNode }> = ({ children }) 
   );
 
   const currentUser = useMemo(
-    () => Parse.Object.fromJSON(context.currentUser),
+    () => Parse.Object.fromJSON({ ...context.currentUser, className: '_User' }),
     [context.currentUser],
   );
 
