@@ -183,14 +183,15 @@ const Runs: React.FC = () => {
                   disabled={getCreatePermission(TestType.Execution)}
                   onClick={() => createTestExecution()}
                 >
-                  新增测试执行任务
+                  {t('modules.panel.testRunPanel.addTestExecution')}
                 </Button>
               </div>
             )}
             actionRef={tableActionRef}
             actionMenuList={[
               {
-                title: '删除',
+                key: 'delete',
+                content: t('common.delete'),
                 onClick(selectedRowKeys) {
                   removeTestRelation(selectedRowKeys);
                 },

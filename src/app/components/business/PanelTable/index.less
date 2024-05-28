@@ -40,14 +40,53 @@
 .left {
   display: flex;
   align-items: center;
+  .checkbox-wrapper {
+    .checkbox {
+      margin-right: 24px;
+    }
+    .checkbox-label {
+      color: #0c62ff;
+    }
+  }
+
   .select-tip {
     margin: 0 12px;
   }
+  .select-num {
+    color: #0c62ff;
+    margin: 0 0.5em;
+  }
   .actions {
+    display: flex;
+    gap: 16px;
+    .action-item {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      color: #0c62ff;
+      &-delete {
+        color: #ff4d0d;
+      }
+    }
     > a {
       + & {
         margin-left: 15px;
       }
     }
+  }
+}
+
+.title-container {
+  display: flex;
+  .current-page-text {
+    color: #0c62ff;
+    font-weight: normal;
+  }
+  .dividing-line {
+    width: 1px;
+    height: 15px;
+    align-self: center;
+    background-color: #f1f2f4;
+    margin: 0 12px;
   }
 }
