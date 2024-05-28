@@ -13,6 +13,7 @@ import useI18n from '@/lib/hooks/useI18n';
 import { useCurrentUser } from '@/lib/hooks/useTest';
 import Parse from '@/lib/parse';
 import { User as UserProps } from '@/lib/types/App';
+import { i18n } from '@/lib/utils/i18n';
 import { User as UserModel, Workspace } from '@/services/models';
 
 import cx from './index.less';
@@ -55,9 +56,9 @@ export const isUserDisabled = (user: UserProps): boolean => user?.enabled === fa
 export const generateUserDisplayName = (user: UserProps, onlyNickname = false): string => {
   const getDisplaySuffix = () => {
     if (isUserDeleted(user)) {
-      return `(${i18n.t('global.haveDelete')})`;
+      return `(${i18n.t('common.haveDelete')})`;
     } else if (isUserDisabled(user)) {
-      return `(${i18n.t('global.forbiddenActive')})`;
+      return `(${i18n.t('common.forbiddenActive')})`;
     } else if (!onlyNickname && user?.nickname) {
       return `(${user?.username})`;
     }
@@ -213,7 +214,10 @@ export const useUserSelect = (
   const totalCache = useMemo(
     () => ({
       append(options) {
-        totalCacheRef.current = uniqWith(totalCacheRef.current.concat(options), (a, b) => a.value === b.value);
+        totalCacheRef.current = uniqWith(
+          totalCacheRef.current.concat(options),
+          (a, b) => a.value === b.value,
+        );
       },
       getById(ids: string[]) {
         return totalCacheRef.current.filter(opt => ids.includes(opt.value));
@@ -226,8 +230,12 @@ export const useUserSelect = (
   const storeUsers = useCallback(
     async _options => {
       // 禁用，删除状态用户不展示到选择列表中
-      const options = _options.map(userDataFormat).filter(user => !isUserDeleted(user) && !isUserDisabled(user));
-      const notExistedKeys = values?.filter(val => val && options.every(item => item.value !== val));
+      const options = _options
+        .map(userDataFormat)
+        .filter(user => !isUserDeleted(user) && !isUserDisabled(user));
+      const notExistedKeys = values?.filter(
+        val => val && options.every(item => item.value !== val),
+      );
       totalCache.append(options);
       isFetchingRef.current = false;
       requestCacheRef.current[requestCacheKey] = options;
