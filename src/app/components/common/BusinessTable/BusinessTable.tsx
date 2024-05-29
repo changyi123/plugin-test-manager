@@ -3,6 +3,7 @@ import { Pagination, Table } from 'antd';
 import { ColumnsType, TableProps } from 'antd/lib/table';
 import { difference, isEqual, omit, pick } from 'lodash';
 import React, { useEffect, useMemo, useRef } from 'react';
+import { useCallback } from 'react';
 import { Resizable } from 'react-resizable';
 
 import OverflowTooltip from '@/components/common/OverflowTooltip';
@@ -16,7 +17,6 @@ import ColumnSetting from './ColumnSetting';
 import TableSelection from './TableSelection';
 import type { BusinessTableActionType } from './type';
 import type { TitleCellOption } from './type';
-import { useCallback } from 'react';
 
 const DEFAULT_PAGE_SIZE = 10;
 const MIN_COLUMN_WIDTH = 120;
@@ -26,6 +26,8 @@ const SELECTION_HEADER_HEIGHT = 42;
 const ResizableHeaderCell = ({ onResize, resizable, width, onClick, onSort, ...restProps }) => {
   const resizingDataRef = useRef(false);
   const thProps = pick(restProps, ['children', 'rowSpan', 'colSpan', 'style', 'className']);
+  thProps.children = thProps.children.filter(Boolean)[0];
+  if (!thProps.children) return;
   if (!resizable) {
     return <th {...thProps} />;
   }
@@ -408,7 +410,15 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
           }),
         };
       }),
-    [columnsWidth, handleResize, handleSort, tableColumns],
+    [
+      columnsWidth,
+      handleResize,
+      handleSort,
+      selectionMode,
+      tableColumns,
+      t,
+      antdTableProps?.pagination?.total,
+    ],
   );
 
   const SelectionActionHeader = useMemo(() => {
@@ -556,7 +566,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
     setSelectAll(false);
     setSelectedRowKeys([]);
     setUnSelectedRowKeys([]);
-  }, [refresh])
+  }, [refresh]);
 
   React.useImperativeHandle(
     actionRef,

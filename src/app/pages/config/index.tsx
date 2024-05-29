@@ -39,13 +39,6 @@ const MoreConfigPages = [
     description: 'wordTemplate',
     isGlobalConfig: true,
   },
-  {
-    key: 'TestConfigInitialization',
-    title: 'testConfigInitialization',
-    component: TestConfigInitialization,
-    description: 'testConfigInitialization',
-    isGlobalConfig: true,
-  },
 ];
 
 const ConfigPages = [
@@ -86,6 +79,13 @@ const ConfigPages = [
     title: 'tableFields',
     component: TableFields,
     description: 'tableFields',
+  },
+  {
+    key: 'TestConfigInitialization',
+    title: 'testConfigInitialization',
+    component: TestConfigInitialization,
+    description: 'testConfigInitialization',
+    isGlobalConfig: true,
   },
   getAppEnv('CASE_DUPLICATE_CHECK_CONFIG')?.show && {
     key: 'TestCaseRemoveDuplicates',

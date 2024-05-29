@@ -1,4 +1,4 @@
-import { Empty, message, Select, Spin } from 'antd';
+import { Empty, message, Select, SelectProps, Spin } from 'antd';
 import { isEqual } from 'lodash';
 import { components } from 'proxima-sdk';
 import React, { useCallback, useMemo, useState } from 'react';
@@ -12,7 +12,21 @@ import cx from './WorkspaceSelector.less';
 
 const { ItemIcon: WorkspaceIcon } = components.Components.Common;
 
-function WorkspaceSelector({ value, onChange }) {
+const WorkspaceSelector: React.FC<
+  SelectProps & {
+    wrapClassName?: string;
+    onChange?: (value: any) => void;
+    hiddenLabel?: boolean;
+    showCurrent?: boolean;
+  }
+> = ({
+  value,
+  onChange,
+  hiddenLabel = false,
+  showCurrent = false,
+  wrapClassName,
+  ...otherProps
+}) => {
   const [keyword, setKeyword] = useState('');
   const { t } = useI18n();
   const TestConfig = useTestConfig();
@@ -29,6 +43,7 @@ function WorkspaceSelector({ value, onChange }) {
   const { workspaces: options, loading } = usePluginWorkspace({
     keyword,
     currentWorkspace: TestConfig?.workspace?.key,
+    showCurrent,
   });
 
   const beforeChange = useCallback(
@@ -46,8 +61,10 @@ function WorkspaceSelector({ value, onChange }) {
   );
 
   return (
-    <div className={cx('workspace-selector-wrap')}>
-      <span className={cx('workspace-selector-label')}>选择空间</span>
+    <div className={wrapClassName ?? cx('workspace-selector-wrap')}>
+      {!hiddenLabel && (
+        <span className={cx('workspace-selector-label')}>{t('page.config.selectWorkspace')}</span>
+      )}
       <Select
         className={cx('workspace-selector')}
         showSearch
@@ -56,7 +73,7 @@ function WorkspaceSelector({ value, onChange }) {
         value={value}
         labelInValue
         filterOption={false}
-        placeholder="请选择空间"
+        placeholder={t('page.config.workspaceSelectorModal.placeholder')}
         options={options}
         onSearch={setKeyword}
         onChange={beforeChange}
@@ -95,9 +112,10 @@ function WorkspaceSelector({ value, onChange }) {
             <div>{`${t('components.business.testEntitySelectorModal.notFound')}`}</div>
           )
         }
+        {...otherProps}
       ></Select>
     </div>
   );
-}
+};
 
 export default WorkspaceSelector;

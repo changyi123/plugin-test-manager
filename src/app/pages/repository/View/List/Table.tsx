@@ -31,6 +31,7 @@ import { actionConfirm, getPluginWebTriggerBaseUrl, openItemViewScreen } from '@
 import { SearchSelectors, selectorToIql } from '@/lib/utils/iql';
 
 import { UNGROUPED_FOLDER_KEY } from '../../constant';
+import CopyButton from '../Copy/Button';
 import cx from './Table.less';
 
 const proxima = createProximaSdk();
@@ -377,26 +378,6 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
       proxima.execute('openAddLinkScreen', testCaseIds.toString());
     };
 
-    // 批量复制用例
-    const copyTestDetail = async () => {
-      setTableLoading(true);
-      const batchParams = getBatchParams(tableActionRef.current);
-      if (!batchParams) return;
-      const res = await copyTestCasesV2(batchParams);
-      if (res?.status === 'error') {
-        setTableLoading(false);
-        return message.error(res.data);
-      }
-
-      // 复制刷新
-      onDataChange?.();
-      setTableLoading(false);
-
-      notification.success({
-        message: t('page.repository.view.list.copyCaseMessageSuccess'),
-      });
-    };
-
     return [
       <UserCell
         value={[]}
@@ -410,9 +391,20 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
           </span>
         }
       />,
-      <span className={cx('action', 'copy')} key="copy" onClick={hasRowSelected && copyTestDetail}>
-        <SwitcherOutlined /> 复制
-      </span>,
+      <CopyButton
+        key="copyAction"
+        disabled={!hasRowSelected}
+        queryParams={getBatchParams(tableActionRef.current)}
+        onStart={() => setTableLoading(true)}
+        onFinished={() => {
+          onDataChange?.();
+          setTableLoading(false);
+        }}
+      >
+        <span className={cx('action', 'copy')}>
+          <SwitcherOutlined /> {t('common.copy')}
+        </span>
+      </CopyButton>,
       <span
         className={cx('action')}
         key="link"
@@ -428,15 +420,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         <DeleteIcon className={cx('icon')} /> {t('common.delete')}
       </span>,
     ];
-  }, [
-    hasRowSelected,
-    t,
-    setTableLoading,
-    getBatchParams,
-    onDataChange,
-    getSelectTestCaseId,
-    copyTestCasesV2,
-  ]);
+  }, [hasRowSelected, t, setTableLoading, getBatchParams, onDataChange, getSelectTestCaseId]);
 
   const columns = React.useMemo(() => {
     const deleteTestDetail = data => {
@@ -465,23 +449,6 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
           });
         },
       );
-    };
-
-    const copyTestDetail = async data => {
-      setTableLoading(true);
-      const res = await copyTestCases([data.objectId]);
-      if (res?.status === 'error') {
-        setTableLoading(false);
-        return message.error(res.data);
-      }
-
-      // 复制刷新
-      onDataChange?.();
-      setTableLoading(false);
-
-      notification.success({
-        message: t('page.repository.view.list.copyCaseMessageSuccess'),
-      });
     };
 
     return [
@@ -566,14 +533,26 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         render(_, rowData) {
           return (
             <Space>
-              <a onClick={() => copyTestDetail(rowData)}>{t('common.copy')}</a>
+              <CopyButton
+                queryParams={getBatchParams({
+                  selectedRowKeys: [rowData.objectId],
+                  selectAll: false,
+                })}
+                onStart={() => setTableLoading(true)}
+                onFinished={() => {
+                  onDataChange?.();
+                  setTableLoading(false);
+                }}
+              >
+                <a>{t('common.copy')}</a>
+              </CopyButton>
               <a onClick={() => deleteTestDetail(rowData)}>{t('common.delete')}</a>
             </Space>
           );
         },
       },
     ];
-  }, [copyTestCases, onDataChange, setTableLoading, t]);
+  }, [getBatchParams, onDataChange, setTableLoading, t]);
 
   const handleFilterField = useMemoizedFn(async ({ testType, fieldKeys }) => {
     await saveUserSetting({

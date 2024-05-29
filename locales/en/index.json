@@ -33,6 +33,8 @@
     "delete": "Delete",
     "remove": "Remove",
     "copy": "Copy",
+    "copyToCurrent": "Copy to the current place",
+    "copyToOthers": "Copy to the other place",
     "tip": "Tips",
     "okText": "OK",
     "title": "Title",

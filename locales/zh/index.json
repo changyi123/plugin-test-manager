@@ -34,6 +34,8 @@
     "delete": "删除",
     "remove": "移除",
     "copy": "复制",
+    "copyToCurrent": "复制到当前位置",
+    "copyToOthers": "复制到其他位置",
     "tip": "提示",
     "okText": "继续",
     "title": "标题",
