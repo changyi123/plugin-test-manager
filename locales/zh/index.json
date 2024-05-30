@@ -12,6 +12,7 @@
     "cannotExecuteTestCase": "当前测试用例未分配执行人，无法执行"
   },
   "common": {
+    "createPermissionTip": "请联系管理员检查空间的类型映射，或开启",
     "haveDelete": "已删除",
     "forbiddenActive": "已禁用",
     "pageTitle": {

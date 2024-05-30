@@ -167,8 +167,10 @@ const PageContent = ({ currentConfigPage }) => {
 const Config = () => {
   const { t } = useI18n();
   const showMoreConfigPages = featureFlags('ENABLE_MORE_CONFIG');
+  const searchParams = new URLSearchParams(window.location.search);
+  const defaultSelectedKey = searchParams.get('selectKey');
 
-  const [selectedKey, setSelectedKey] = useSafeState(ConfigPages[0].key);
+  const [selectedKey, setSelectedKey] = useSafeState(defaultSelectedKey || ConfigPages[0].key);
   const currentConfigPage = ALLConfigPages.find(item => item.key === selectedKey) ?? ({} as any);
 
   const renderMenuItems = menuList => {
