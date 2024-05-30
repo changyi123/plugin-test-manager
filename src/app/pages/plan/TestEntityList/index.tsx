@@ -1072,7 +1072,6 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     };
 
     const canDesigneeSelect = canAssignTestRun();
-
     return [
       <Tooltip
         key="assignee"
@@ -1095,7 +1094,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       </Tooltip>,
       <StatusBadge
         useRootContainer
-        readonly={!hasRowSelected && getCreatePermission(TestType.Case)}
+        readonly={!hasRowSelected || getCreatePermission(TestType.Case)}
         onStatusChange={toggleSTestRunStatus}
         key="toggleRunStatus"
         emptyNode={

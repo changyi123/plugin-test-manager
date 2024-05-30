@@ -128,12 +128,14 @@
       },
       "message": {
         "deleteSuccess": "模板删除成功",
-        "setDefaultSuccess": "默认模板设置成功"
+        "setDefaultSuccess": "默认模板设置成功",
+        "renameSuccess": "重命名成功"
       },
       "buttons": {
         "create": "新建测试报告模板",
         "edit": "编辑",
         "delete": "删除",
+        "rename": "重命名",
         "setDefault": "设置默认"
       },
       "tableColumns": {
@@ -175,6 +177,7 @@
       "delete": "删除",
       "view": "查看",
       "more": "更多",
+      "rename": "重命名",
       "sendReport": "发送报告"
     },
     "seneReportModal": {
