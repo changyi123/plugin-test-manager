@@ -1,6 +1,7 @@
 import { Document, ImageRun, Packer, Paragraph } from 'docx';
 import domtoimage from 'dom-to-image-more';
 
+import { i18n } from '@/lib/utils/i18n';
 import { generateTestReportOfflineFile } from '@/services/testReport/service';
 
 import { featureFlags, SupportFeatureFlags } from './appEnv';
@@ -460,11 +461,18 @@ export const exportWithHTML = async testReportData => {
       return copyNode;
     };
 
+    // 调整报表标题
+    const adjustTitle = async copyNode => {
+      copyNode.getElementsByTagName('title')[0].innerHTML = i18n.t('common.pageTitle.report');
+      return copyNode;
+    };
+
     const copyNode = await pruneDOMNode('.react-grid-layout')
       .then(replaceCanvasNodeWithImage)
       .then(downloadLinkContentIntoStyle)
       .then(wrapLayoutWithTestReport)
-      .then(adjustNodeStyle);
+      .then(adjustNodeStyle)
+      .then(adjustTitle);
 
     return copyNode.outerHTML;
   };
