@@ -394,7 +394,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
       <CopyButton
         key="copyAction"
         disabled={!hasRowSelected}
-        queryParams={getBatchParams(tableActionRef.current)}
+        getQueryParams={() => getBatchParams(tableActionRef.current)}
         onStart={() => setTableLoading(true)}
         onFinished={() => {
           onDataChange?.();
@@ -534,10 +534,12 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
           return (
             <Space>
               <CopyButton
-                queryParams={getBatchParams({
-                  selectedRowKeys: [rowData.objectId],
-                  selectAll: false,
-                })}
+                getQueryParams={() =>
+                  getBatchParams({
+                    selectedRowKeys: [rowData.objectId],
+                    selectAll: false,
+                  })
+                }
                 onStart={() => setTableLoading(true)}
                 onFinished={() => {
                   onDataChange?.();

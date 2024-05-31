@@ -591,7 +591,7 @@ export const batchCopyTestCaseV2 = async () => {
       repository: to ? to.repository : data.repository,
     }));
 
-    const copyItems = await batchCreateItems(needCreateItems as any, fields);
+    const copyItems = await batchCreateItems(needCreateItems as any, fields, sessionToken);
     return buildResponse(copyItems);
   } catch (err) {
     return buildResponse(err);

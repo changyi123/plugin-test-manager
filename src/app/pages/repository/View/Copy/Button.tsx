@@ -11,7 +11,7 @@ import { CopyTestCaseV2PayloadTo } from '@/lib/types/Test';
 import CopyModal from './Modal';
 
 interface ICopyButtonProps extends DropdownProps {
-  queryParams: Record<string, unknown>;
+  getQueryParams: () => Record<string, unknown>;
   onStart: () => void;
   onFinished: () => void;
 }
@@ -20,18 +20,24 @@ const CopyButton: React.FC<ICopyButtonProps> = props => {
   const { t } = useI18n();
   const { testCaseFieldKeys } = useBaseAction();
   const [open, setOpen] = useState(false);
-  const { disabled, onStart, onFinished, queryParams, ...otherProps } = props;
+  const { disabled, onStart, onFinished, getQueryParams, ...otherProps } = props;
 
   const copyTestDetail = useMemoizedFn(async (to?: CopyTestCaseV2PayloadTo) => {
     try {
       await onStart();
       const res = await copyTestCaseV2({
         to,
-        queryParams,
+        queryParams: getQueryParams(),
         fields: [].concat(SystemFieldKeys, testCaseFieldKeys),
       });
       if (res?.status === 'error') {
         message.error(res.data);
+        return;
+      }
+
+      if (!res?.data?.length) {
+        message.error(t('page.plan.testEntityList.addItemTips'));
+        return;
       }
 
       notification.success({
