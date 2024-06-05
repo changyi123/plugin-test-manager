@@ -1,6 +1,7 @@
 import { Button, Empty, Space } from 'antd';
 import React from 'react';
 
+import CreatePermission from '@/components/business/Contianer/CreatePermission';
 import TestEntitySelectorModal, {
   ActionType as SelectorActionType,
 } from '@/components/business/TestEntitySelectorModal';
@@ -29,25 +30,26 @@ const NoData: React.FC<NoDataProps> = ({
     <div className={cx('no-data-box')}>
       <Empty description={t('page.plan.planPageLayout.noData.description')} image={emptyImg}>
         <Space>
-          <Button
-            type="primary"
-            disabled={getCreatePermission(TestType.Execution)}
-            onClick={async () => {
-              createTestExecution();
-            }}
-          >
-            {t('common.createTestExecution')}
-          </Button>
-
-          <Button
-            type="primary"
-            disabled={getCreatePermission(TestType.Execution)}
-            onClick={async () => {
-              addExistedTestExecution();
-            }}
-          >
-            {t('modules.panel.testPlan.testExecutionPanel.modelTitle')}
-          </Button>
+          <CreatePermission type={TestType.Execution}>
+            <Button
+              type="primary"
+              onClick={async () => {
+                createTestExecution();
+              }}
+            >
+              {t('common.createTestExecution')}
+            </Button>
+          </CreatePermission>
+          <CreatePermission type={TestType.Execution}>
+            <Button
+              type="primary"
+              onClick={async () => {
+                addExistedTestExecution();
+              }}
+            >
+              {t('modules.panel.testPlan.testExecutionPanel.modelTitle')}
+            </Button>
+          </CreatePermission>
         </Space>
       </Empty>
       <TestEntitySelectorModal

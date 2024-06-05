@@ -12,6 +12,7 @@
     "cannotExecuteTestCase": "The current test case is not assigned to an executor and cannot be executed"
   },
   "common": {
+    "createPermissionTip": "Please contact the administrator to check the type mapping of the workspace, or enable",
     "haveDelete": "deleted",
     "forbiddenActive": "disabled",
     "pageTitle": {
@@ -33,6 +34,8 @@
     "delete": "Delete",
     "remove": "Remove",
     "copy": "Copy",
+    "copyToCurrent": "Copy to the current place",
+    "copyToOthers": "Copy to the other place",
     "tip": "Tips",
     "okText": "OK",
     "title": "Title",

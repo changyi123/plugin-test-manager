@@ -503,9 +503,10 @@ export const batchCopyTestCase = async () => {
 export const batchCopyTestCaseV2 = async () => {
   try {
     const {
-      body: { queryParams, fields, workspaceKey },
+      body: { queryParams, fields, workspaceKey: originWorkspaceKey, to },
       sessionToken,
     } = getReqInfoFromVMRuntime<BatchCopyTestCaseV2Payload>();
+    const workspaceKey = originWorkspaceKey ?? to?.workspaceKey;
     const copyName = i18n.t('trigger.copyName');
     if (!queryParams) throwArgumentError('queryParams', '{ query, selector }');
 
@@ -566,8 +567,13 @@ export const batchCopyTestCaseV2 = async () => {
       return values;
     };
 
+    console.info(JSON.stringify({ newWorkspace, caseList, to }), 'info-------');
     const needCreateItems = caseList.map((data, index) => ({
-      name: workspaceKey ? data.name : `${data.name}_${copyName}`,
+      name:
+        (newWorkspace && newWorkspace?.objectId !== data.workspace?.objectId) ||
+        (to && to?.repository !== data?.repository)
+          ? data.name
+          : `${data.name}_${copyName}`,
       type: data.type,
       sortIndex: generateSortIndex(index),
       workspace: workspaceKey ? newWorkspace : data.workspace,
@@ -582,10 +588,10 @@ export const batchCopyTestCaseV2 = async () => {
             })),
           }
         : {},
-      repository: data.repository,
+      repository: to ? to.repository : data.repository,
     }));
 
-    const copyItems = await batchCreateItems(needCreateItems as any, fields);
+    const copyItems = await batchCreateItems(needCreateItems as any, fields, sessionToken);
     return buildResponse(copyItems);
   } catch (err) {
     return buildResponse(err);

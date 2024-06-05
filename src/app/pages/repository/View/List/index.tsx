@@ -4,6 +4,7 @@ import { useMemoizedFn, useUpdateEffect } from 'ahooks';
 import { Button, notification, Select } from 'antd';
 import React, { useCallback, useMemo, useRef } from 'react';
 
+import CreatePermission from '@/components/business/Contianer/CreatePermission';
 import { SystemFieldKeys } from '@/components/common/BusinessTable/hook';
 import FilterSearch from '@/components/common/FilterSearch';
 import { getFilterFields } from '@/components/common/FilterSearch/utils';
@@ -231,13 +232,11 @@ const ListView: React.FC<ViewComponentProps> = ({
           <Button onClick={() => toggleSelection()}>
             {tableSelectionVisible ? t('common.cancelAction') : t('common.batchAction')}
           </Button>
-          <Button
-            type="primary"
-            disabled={getCreatePermission(TestType.Case)}
-            onClick={createTestDetail}
-          >
-            {t('common.addTestCase')}
-          </Button>
+          <CreatePermission type={TestType.Case}>
+            <Button type="primary" onClick={createTestDetail}>
+              {t('common.addTestCase')}
+            </Button>
+          </CreatePermission>
           <RepoDropDown
             type="repository"
             treeNodeData={folderTreeData}

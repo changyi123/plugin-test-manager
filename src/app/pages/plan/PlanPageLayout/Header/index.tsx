@@ -2,6 +2,7 @@ import { useRequest } from 'ahooks';
 import { Button, Dropdown, Menu } from 'antd';
 import React, { useMemo } from 'react';
 
+import CreatePermission from '@/components/business/Contianer/CreatePermission';
 import TestEntitySelectorModal, {
   ActionType as SelectorActionType,
 } from '@/components/business/TestEntitySelectorModal';
@@ -50,7 +51,7 @@ const Header: React.FC<HeaderProps> = ({
   const { t } = useI18n();
   const { workspaceKey, selectedTestPlan, setSelectedTestPlan, tableSelectionToggleEvent } =
     usePageContext();
-  const { getCreatePermission, testExecutionFieldKeys } = useBaseAction();
+  const { testExecutionFieldKeys } = useBaseAction();
   const [isReportGenerating, setIsReportGenerating] = React.useState(false);
   const [executionKeys, setExecutionKeys] = React.useState<string[]>([]);
 
@@ -85,17 +86,21 @@ const Header: React.FC<HeaderProps> = ({
   const itemsList = useMemo(
     () => (
       <Menu>
-        <Menu.Item key="create" disabled={getCreatePermission(TestType.Execution)}>
-          <a onClick={() => createTestExecution()}>{t('common.createTestExecution')}</a>
-        </Menu.Item>
-        <Menu.Item key="link" disabled={getCreatePermission(TestType.Execution)}>
-          <a onClick={addExistedTestExecution}>
-            {t('modules.panel.testPlan.testExecutionPanel.modelTitle')}
-          </a>
-        </Menu.Item>
+        <CreatePermission type={TestType.Execution}>
+          <Menu.Item key="create">
+            <a onClick={() => createTestExecution()}>{t('common.createTestExecution')}</a>
+          </Menu.Item>
+        </CreatePermission>
+        <CreatePermission type={TestType.Execution}>
+          <Menu.Item key="link">
+            <a onClick={addExistedTestExecution}>
+              {t('modules.panel.testPlan.testExecutionPanel.modelTitle')}
+            </a>
+          </Menu.Item>
+        </CreatePermission>
       </Menu>
     ),
-    [addExistedTestExecution, createTestExecution, getCreatePermission, t],
+    [addExistedTestExecution, createTestExecution, t],
   );
 
   return (
