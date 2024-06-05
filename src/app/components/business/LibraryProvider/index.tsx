@@ -43,6 +43,7 @@ const LibraryProvider: React.FC<{ children: React.ReactNode }> = ({ children }) 
           teamGateway={proximaGatewayURL}
           getPopupContainer={getRootContainer}
           teamBasePath={proximaGatewayURL}
+          datetimeFormat="absolute"
           currentUser={
             {
               currentUser,
