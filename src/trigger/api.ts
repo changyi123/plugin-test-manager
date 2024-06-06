@@ -1,5 +1,4 @@
 export {
-  queryTestEntity,
   queryLinkedTestEntity,
   queryCaseIdByStatus,
   queryCaseRunRecords,
@@ -7,13 +6,16 @@ export {
 
 export {
   batchDelete,
+  batchDeleteV2,
   batchUpdate,
+  batchUpdateValue,
   batchCopyTestCase,
+  batchCopyTestCaseV2,
   batchCreateTestRun,
   batchCreateTestCase,
 } from './modules/api/batch';
 
-export { testPlanStats, testExecutionStats, testCaseStats, testCount } from './modules/api/stats';
+export { testExecutionStats, testCaseStats, testCount } from './modules/api/stats';
 
 export { repositoryTree, repositoryTreeV2 } from './modules/api/module';
 

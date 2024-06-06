@@ -33,8 +33,8 @@ const TestConfigInitialization = () => {
   const enableItemTypeAutoBind = Form.useWatch(FormFieldKey.enableItemTypeAutoBind, form);
 
   React.useEffect(() => {
-    form.setFieldsValue(pick(globalConfig.extra, Object.keys(FormFieldKey)));
-  }, [form, globalConfig]);
+    form.setFieldsValue(pick(globalConfig?.extra, Object.keys(FormFieldKey)));
+  }, [form, globalConfig?.extra]);
 
   const resetItemTypeMapping = useMemoizedFn(() => {
     form.setFieldValue('initialItemTypeMapping', {});

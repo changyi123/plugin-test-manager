@@ -13,6 +13,7 @@ import { TestType } from '@/lib/constants';
 import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import { getProximaBasePath, getTenantKey, inIframe } from '@/lib/utils/helper';
+import { SearchSelectors } from '@/lib/utils/iql';
 
 import importTestInfo, { downloadExampleFile, TreeNode } from './export';
 
@@ -24,7 +25,8 @@ const RepoDropDown = ({
   setPageLoading,
   extraMenuOptions,
   selectedTestPlanId,
-  filteredCaseIds,
+  repository,
+  selector,
 }: {
   type: string;
   className?: string;
@@ -34,6 +36,8 @@ const RepoDropDown = ({
   filteredCaseIds?: string[];
   extraMenuOptions?: MenuItemProps[];
   setPageLoading?: (val: boolean) => void;
+  repository?: Record<string, any>;
+  selector?: SearchSelectors | string;
 }) => {
   const { t, locale } = useI18n();
   const { workspace } = useTestConfig();
@@ -123,7 +127,7 @@ const RepoDropDown = ({
           setPageLoading?.(false);
         }
 
-        const params = 'exportFilter' === key ? { ids: filteredCaseIds } : {};
+        const params = 'exportFilter' === key ? { repository, selector } : {};
 
         await importTestInfo(
           Object.assign(
@@ -152,16 +156,18 @@ const RepoDropDown = ({
       }
     },
     [
-      t,
-      locale,
       workspace,
       testCaseFieldKeys,
+      t,
+      locale,
+      startImportByWorkspace,
       setPageLoading,
-      type,
       folderKey,
+      type,
+      repository,
+      selector,
       selectedTestPlanId,
       treeNodeData,
-      filteredCaseIds,
     ],
   );
 

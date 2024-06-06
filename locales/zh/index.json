@@ -12,6 +12,9 @@
     "cannotExecuteTestCase": "当前测试用例未分配执行人，无法执行"
   },
   "common": {
+    "createPermissionTip": "请联系管理员检查空间的类型映射，或开启",
+    "haveDelete": "已删除",
+    "forbiddenActive": "已禁用",
     "pageTitle": {
       "repository": "测试用例",
       "report": "测试报告",
@@ -32,6 +35,8 @@
     "delete": "删除",
     "remove": "移除",
     "copy": "复制",
+    "copyToCurrent": "复制到当前位置",
+    "copyToOthers": "复制到其他位置",
     "tip": "提示",
     "okText": "继续",
     "title": "标题",

@@ -1,6 +1,6 @@
 import { useMemoizedFn, useRequest } from 'ahooks';
 import { Button, notification } from 'antd';
-import _ from 'lodash';
+import _, { uniq } from 'lodash';
 import { components } from 'proxima-sdk';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 
@@ -22,6 +22,7 @@ import { StatusProgress } from '../../../components/business/Status';
 
 const { ItemIcon } = components.Components.Common;
 
+import CreatePermission from '@/components/business/Contianer/CreatePermission';
 import { SystemFieldKeys } from '@/components/common/BusinessTable/hook';
 
 import cx from './index.less';
@@ -29,10 +30,9 @@ import cx from './index.less';
 const TestPlanList: React.FC<any> = () => {
   const { t } = useI18n();
   const actionRef = React.useRef<BusinessTableActionType>();
-  const { createItemUseModal, getCreatePermission, testPlanFieldKeys } = useBaseAction();
+  const { createItemUseModal, testPlanFieldKeys } = useBaseAction();
   const { workspaceKey, selectedTestPlan, setSelectedTestPlan, setSearchParams } = usePageContext();
   const [selectors, setSelectors] = useState([{}, {}]);
-
   const [tableLoading, setTableLoading] = useState(false);
   const { data: currentUser } = useCurrentUser();
 
@@ -53,8 +53,8 @@ const TestPlanList: React.FC<any> = () => {
   );
 
   const tableDataGetter = useCallback(
-    async queryParams => {
-      if (!workspaceKey || !testPlanFieldKeys)
+    async (queryParams, tableFields) => {
+      if (!workspaceKey || !tableFields?.length)
         return {
           list: [],
           total: 0,
@@ -66,8 +66,14 @@ const TestPlanList: React.FC<any> = () => {
           workspaceKey: workspaceKey,
           type: TestType.Plan,
         },
-        fields: [].concat(SystemFieldKeys, testPlanFieldKeys),
+        fields: uniq(
+          ['id'].concat(
+            SystemFieldKeys,
+            tableFields.map(i => i.key).filter(i => i !== 'action'),
+          ),
+        ),
         selector: selectors,
+        notConcatField: true,
         ...queryParams,
       });
 
@@ -226,6 +232,7 @@ const TestPlanList: React.FC<any> = () => {
         [testType]: fieldKeys,
       },
     });
+    await actionRef.current.refresh();
   });
 
   return (
@@ -234,13 +241,11 @@ const TestPlanList: React.FC<any> = () => {
         <div className={cx('plan-header-body')}>
           <div className={cx('header-left')}>{t('common.testPlan')}</div>
           <div className={cx('header-right')}>
-            <Button
-              type="primary"
-              disabled={getCreatePermission(TestType.Plan)}
-              onClick={() => handleCreate()}
-            >
-              {t('components.business.testPlanList.addTestPlan')}
-            </Button>
+            <CreatePermission type={TestType.Plan}>
+              <Button type="primary" onClick={() => handleCreate()}>
+                {t('components.business.testPlanList.addTestPlan')}
+              </Button>
+            </CreatePermission>
           </div>
         </div>
         <div className={cx('plan-header-slot')}>

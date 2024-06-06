@@ -243,7 +243,7 @@ export const iqlRequest: IqlRequestType = async params => {
     const pagination = Object.assign({}, DefaultPagination, originalPagination);
     // 反向关联方的字段 map
     const backwardLinkSourceMap = {} as Record<string, string[]>;
-
+    console.time('test-manager-iqlSearch-linkQuery');
     // 处理关联关系查询
     if (linkQuery) {
       const { query: linkQueryInfo = {}, backwardLinkSourceMap: backwardLinkSourceMapInfo = {} } =
@@ -257,7 +257,7 @@ export const iqlRequest: IqlRequestType = async params => {
         backwardLinkSourceMap[key] = value;
       });
     }
-
+    console.timeEnd('test-manager-iqlSearch-linkQuery');
     const customFieldParams = Object.keys(query)
       .filter(key => !IQLSearchFieldKeys.includes(key as any))
       .reduce(
@@ -292,7 +292,20 @@ export const iqlRequest: IqlRequestType = async params => {
     const extendSearchBody = buildSearchExtendParam({
       sortByRepositoryIds,
     });
-
+    console.info(
+      'test-manager-iqlSearch',
+      JSON.stringify({
+        ...iqlSearchParamsBuilder({
+          fields,
+          payload,
+          andCompositionIqlStr: selector,
+          order: transformOrderParams({ ascending, descending }),
+          ...pagination,
+        }),
+        extend: extendSearchBody,
+      }),
+    );
+    console.time('test-manager-iqlSearch-time');
     const {
       payload: { count, items },
     } = await iqlSearch({
@@ -305,6 +318,7 @@ export const iqlRequest: IqlRequestType = async params => {
       }),
       extend: extendSearchBody,
     });
+    console.timeEnd('test-manager-iqlSearch-time');
 
     // 关联查询添加 source 字段
     const appendLinkSourceField = testEntityList => {
@@ -333,10 +347,10 @@ export const iqlRequest: IqlRequestType = async params => {
 
     const testEntityList = appendLinkSourceField(items?.map(itemToTestEntity));
     console.info('iqlRequest testEntityList:', JSON.stringify(testEntityList[0]));
-
+    console.time('test-manager-iqlSearch-result');
     const result =
       typeof dataTransfer === 'function' ? await dataTransfer(testEntityList) : testEntityList;
-
+    console.timeEnd('test-manager-iqlSearch-result');
     return buildPaginationResponse(result, {
       total: count,
       ...pagination,

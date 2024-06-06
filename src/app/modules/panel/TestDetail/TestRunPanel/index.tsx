@@ -2,6 +2,7 @@ import { InfoCircleOutlined } from '@ant-design/icons';
 import { Button, Divider, message, Popconfirm, Space, Tooltip, Typography } from 'antd';
 import React from 'react';
 
+import CreatePermission from '@/components/business/Contianer/CreatePermission';
 import PanelTable, { ActionType } from '@/components/business/PanelTable';
 import { StatusBadge } from '@/components/business/Status';
 import TestRunModal, {
@@ -33,7 +34,7 @@ const Runs: React.FC = () => {
   const { testEntity: testDetailEntity } = useTestConfig();
   const tableActionRef = React.useRef<ActionType>();
   const testRunModalActionRef = React.useRef<TestRunModalActionType>();
-  const { createItemUseModal, getCreatePermission } = useBaseAction();
+  const { createItemUseModal } = useBaseAction();
   const [currentPageTestRunIdSequence, setCurrentPageTestRunIdSequence] = React.useState([]);
 
   const removeTestRelation = React.useCallback(
@@ -178,13 +179,11 @@ const Runs: React.FC = () => {
             scroll={null}
             renderActions={() => (
               <div className={css('runs__new')}>
-                <Button
-                  type="primary"
-                  disabled={getCreatePermission(TestType.Execution)}
-                  onClick={() => createTestExecution()}
-                >
-                  {t('modules.panel.testRunPanel.addTestExecution')}
-                </Button>
+                <CreatePermission type={TestType.Execution}>
+                  <Button type="primary" onClick={() => createTestExecution()}>
+                    {t('modules.panel.testPlan.testExecutionPanel.addTestExecution')}
+                  </Button>
+                </CreatePermission>
               </div>
             )}
             actionRef={tableActionRef}

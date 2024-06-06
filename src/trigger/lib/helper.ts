@@ -9,6 +9,7 @@ import {
 } from '../../common/constant';
 import { TestEntityLinkActionData } from '../../common/types/common';
 import { iqlRequest } from './iqlRequest';
+import { throwArgumentError } from './validator';
 
 export const toArray = data => (Array.isArray(data) ? data : [data]);
 
@@ -50,6 +51,8 @@ export const buildTestEntityLinkData = async (data: TestEntityLinkActionData[]) 
 
   let needUpdateItemData = data as any;
 
+  console.info(JSON.stringify(needProcessedEntityIds), 'needProcessedEntityIds');
+
   if (needProcessedEntityIds?.[0]) {
     const {
       data: { list: originalTestEntityMapping },
@@ -64,36 +67,64 @@ export const buildTestEntityLinkData = async (data: TestEntityLinkActionData[]) 
       dataTransfer: data => keyBy(data, 'objectId'),
     });
 
-    needUpdateItemData = data.map(item => {
-      const { linkItems, objectId } = item;
+    console.info(JSON.stringify(originalTestEntityMapping), 'originalTestEntityMapping');
 
-      if (isActionSchema(linkItems)) {
-        const originalTestEntity = originalTestEntityMapping[objectId];
-        if (!originalTestEntity) return data;
-        const { linkItems: originalLinkItems = [], linkType: originalLinkType } =
-          originalTestEntity;
+    needUpdateItemData = data
+      .map(item => {
+        const { linkItems, objectId } = item;
 
-        const { action, value } = linkItems as any;
-        const processedLinkData = { linkItems: value } as any;
-        if (action === 'delete') {
-          const linkItems = difference(originalLinkItems, value);
-          processedLinkData.linkItems = linkItems?.length ? linkItems : null;
-          if (originalLinkType && !linkItems?.length) {
-            processedLinkData.linkType = null;
+        if (isActionSchema(linkItems)) {
+          const originalTestEntity = originalTestEntityMapping[objectId];
+          if (!originalTestEntity) return;
+          const { linkItems: originalLinkItems = [], linkType: originalLinkType } =
+            originalTestEntity;
+
+          const { action, value } = linkItems as any;
+          const processedLinkData = { linkItems: value } as any;
+          if (action === 'delete') {
+            const linkItems = difference(originalLinkItems, value);
+            processedLinkData.linkItems = linkItems?.length ? linkItems : [];
+            if (originalLinkType && !linkItems?.length) {
+              processedLinkData.linkType = null;
+            }
+          } else {
+            console.info(value, originalLinkItems, 'add linkItems');
+            if (value.every(i => originalLinkItems.includes(i))) return;
+            processedLinkData.linkItems = Array.from(new Set([].concat(originalLinkItems, value)));
           }
-        } else {
-          processedLinkData.linkItems = Array.from(new Set([].concat(originalLinkItems, value)));
+
+          return {
+            ...item,
+            ...processedLinkData,
+          };
         }
 
-        return {
-          ...item,
-          ...processedLinkData,
-        };
-      }
-
-      return data;
-    });
+        return;
+      })
+      .filter(Boolean);
   }
 
+  console.info(JSON.stringify(needUpdateItemData), 'needUpdateItemData');
+
   return needUpdateItemData;
+};
+
+export const getAllEntity = async (queryParams, fields?: string[]) => {
+  const onlySelectId = !fields;
+  if (!queryParams) throwArgumentError('queryParams', '{ query, selector }');
+  let caseIds = [];
+  let total = 0;
+  do {
+    const res = await iqlRequest({
+      ...queryParams,
+      ascending: ['sortIndex', 'createdAt'],
+      pagination: { limit: 9999, offset: caseIds.length },
+      fields: onlySelectId ? ['id'] : fields,
+    });
+    const entities = onlySelectId ? res.data.list.map(({ objectId }) => objectId) : res.data.list;
+    caseIds = caseIds.concat(entities);
+    total = res.data.total;
+  } while (caseIds.length < total);
+
+  return caseIds;
 };

@@ -13,7 +13,7 @@
     "postinstall": "patch-package",
     "dev-trigger": "node scripts/triggerDev.js",
     "prepare": "husky install",
-    "tunnel": "giteeteam-apps tunnel -i src/trigger --no-server -c locales",
+    "tunnel": "giteeteam-apps tunnel --no-server -c locales",
     "login-app": "giteeteam-apps login",
     "deploy": "giteeteam-apps deploy"
   },

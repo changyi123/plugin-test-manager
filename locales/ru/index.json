@@ -1,0 +1,1064 @@
+{
+  "lang": "en",
+  "testTypeName": {
+    "TestCase": "Test Case",
+    "TestPlan": "Test Plan",
+    "testExecution": "Test Execution",
+    "testRun": "Test Run",
+    "testDefect": "Test Defect"
+  },
+  "testRunAuth": {
+    "cannotAssignedTestCase": "Cannot execute assigned to others test cases",
+    "cannotExecuteTestCase": "The current test case is not assigned to an executor and cannot be executed"
+  },
+  "common": {
+    "createPermissionTip": "Please contact the administrator to check the type mapping of the workspace, or enable",
+    "haveDelete": "deleted",
+    "forbiddenActive": "disabled",
+    "pageTitle": {
+      "repository": "Test Repository",
+      "plan": "Test Plan",
+      "report": "Test Report"
+    },
+    "whiteCaseRule": "Status does not belong to '{{statusNames}}', planning is not allowed",
+    "blackCaseRule": "Status belong to '{{statusNames}}', planning is not allowed",
+    "casePlanRule": "Planning is not allowed for use cases in {{statusName}} status",
+    "pleaseInputContent": "Please enter content",
+    "updateAt": "updateAt",
+    "success": "Success",
+    "testManager": "Test management",
+    "save": "Save",
+    "action": "Action",
+    "warning": "Warning",
+    "editor": "Edit",
+    "delete": "Delete",
+    "remove": "Remove",
+    "copy": "Copy",
+    "copyToCurrent": "Copy to the current place",
+    "copyToOthers": "Copy to the other place",
+    "tip": "Tips",
+    "okText": "OK",
+    "title": "Title",
+    "confirm": "OK",
+    "type": "Type",
+    "cancel": "Cancel",
+    "close": "Close",
+    "nextStep": "Next step",
+    "prevStep": "Prev step",
+    "workspace": "Workspace",
+    "allWorkspace": "All workspace",
+    "saveSuccess": "Saved successfully",
+    "deleteSuccess": "Deleted successfully",
+    "deleteFail": "Failed to delete",
+    "actionSuccess": " Successful operation",
+    "actionFail": "Operation failed",
+
+    "overview": "Test Overview",
+    "testCase": "Test case",
+    "testPlan": "Test plan",
+    "testExecution": "Test execution task",
+    "testRun": "Test run",
+    "testDefect": "Test defect",
+    "testRepository": "Test case repository",
+    "testCaseRepository": "Cases repository",
+    "designee": "Designee",
+    "assignee": "Assignee",
+    "testExecutor": "The latest executor",
+    "testRunStatus": "Test status",
+    "testCaseStatus": "Test execution status",
+    "allRepository": "All cases",
+    "testReport": "Test report",
+    "exportReportFail": "Failed to export test report",
+    "pleaseSelectType": "Please choose the type",
+    "tableTotal": ["Total", "Data"],
+    "testManagerConfig": "Test management config",
+    "moreConfig": "More configuration",
+    "more": "More",
+    "search": "Search",
+    "status": "State",
+    "download": "Download",
+    "allTestCase": "All test cases",
+    "createTestExecution": "Create a new test execution task",
+    "createTestReport": "Generate test report",
+    "cancelAction": "Cancel operation",
+    "batchAction": " Batch operation",
+    "cancelSelect": "Cancel select",
+    "batchSelect": "Batch select",
+    "planCase": "Planning test cases",
+    "run": "Executive",
+    "precondition": "Preconditions",
+    "preconditionPlaceholder": "Please enter test case preconditions",
+    "testStep": "Test case steps",
+    "addTestCase": "Create a new test case",
+    "user": "User",
+    "nothing": "None",
+    "checked": "Selected",
+    "item": "item",
+    "item_zero": "item",
+    "item_other": "items",
+    "strip": "Strip",
+    "appItem": "Item",
+    "include": "contain in",
+    "exclude": "not Contain in",
+    "empty": "null",
+    "notEmpty": "not null",
+    "equal": "equal to",
+    "notEqual": "not equal to",
+    "contain": "Contain",
+    "notContain": "Does not Contain",
+    "lessThan": "less than",
+    "greaterThan": "greater than",
+    "noData": "No data",
+    "minderRootNodeName": "All Modules",
+    "updateFail": "Update data failed",
+    "unGrouped": "Ungrouped",
+    "runNum": "test execution",
+    "addTestExecution": "Add test execution",
+    "curWorkspace": "Current workspace"
+  },
+  "report": {
+    "overViewData": {
+      "label": {
+        "testPlan": "Selected test plan",
+        "workspace": "Belongs to workspace",
+        "version": "Selected version",
+        "sprint": "Selected sprint"
+      }
+    },
+    "pass": "Pass",
+    "noPass": "Not pass",
+    "partPass": "Part pass",
+    "reportName": "Test report name",
+    "reportNamePlaceholder": "Please enter a test report name",
+    "reportResult": "Test conclusion",
+    "choiceTemplate": "select template",
+    "choiceTemplatePlaceholder": "Please select a template",
+    "range": "Statistical range",
+    "required": "Required",
+    "exceedLength": "Report name is limited to 25 characters",
+    "reportInfo": "report summary",
+    "addReport": "Add report",
+    "addTestReport": "Add test report",
+    "selectTemplate": "Enter a name and choose a template",
+    "selectRange": "Select statistical range",
+    "validateTips": "There are missing fields, please check required fields",
+    "view": "View",
+    "deleteTip1": "This operation will delete the test report. Do you want to continue?",
+    "createLoading": "Test report creation",
+    "templateSet": "Template setting",
+    "testReport": "Test report",
+    "addSuccess": "created successfully",
+    "addFail": "created failed",
+    "export": "Export",
+    "exportHTML": "Export as HTML",
+    "exportWord": "Export as Word",
+    "buttons": {
+      "delete": "Delete",
+      "view": "View",
+      "more": "More",
+      "sendReport": "Send Report"
+    },
+    "seneReportModal": {
+      "modalTitle": "Send Report",
+      "sendType": {
+        "label": "Send Type",
+        "siteMessage": "Site Message",
+        "email": "Email"
+      },
+      "sendTo": {
+        "label": "Add Recipient",
+        "selectorTagName": "Project Manager"
+      },
+      "button": {
+        "send": "Send"
+      },
+      "message": {
+        "sendSuccess": "Message sent successfully",
+        "sendTypeEmpty": "Please select a send type",
+        "sendToEmpty": "Please select a recipient"
+      }
+    }
+  },
+  "status": {
+    "PASSED": {
+      "name": "PASS",
+      "description": "Test run Passed"
+    },
+    "TODO": {
+      "name": "TODO",
+      "description": " Test run pending"
+    },
+    "EXECUTING": {
+      "name": "EXECUTING",
+      "description": "Test run is running"
+    },
+    "FAILED": {
+      "name": "FAILED",
+      "description": "Test run failed"
+    },
+    "BLOCK": {
+      "name": "BLOCK",
+      "description": "Test run Blocked"
+    },
+    "CANCEL": {
+      "name": "CANCEL",
+      "description": "Test run canceled"
+    }
+  },
+  "page": {
+    "config": {
+      "changeWorkspace": "Switch the selected workspace",
+      "notSelected": "Unselected",
+      "selectWorkspace": "Select workspace",
+      "resultTitle": "Please select the workspace to be configured",
+      "resultSubTitle": "This configuration is a workspace level configuration, please select the workspace to be configured",
+      "defectMapping": {
+        "title": "Defect association configuration",
+        "description": "Configures the type of defects managed by the current workspace test, a defect indicates an error, defect, fault or failure that produces incorrect or unexpected results in the test.",
+        "usableType": "Usable type",
+        "defectType": "Defect association",
+        "messageSuccess": "Defect type saved successfully"
+      },
+      "executeTestRunAction": {
+        "title": "Test case execution configuration",
+        "description": "Configure the constraints of the current workspace during test case execution",
+        "caseToPlan": "Test case assignment authorization",
+        "caseToPlanRule": "Test case planning rule",
+        "placeholder": "Please select a user",
+        "caseToPlanPlaceholder": "Please select a status",
+        "radioBlackLabel": "Workflow states for use cases that are not allowed to be planned",
+        "radioWhiteLabel": "Workflow states for use cases that are allowed to be planned",
+        "testersCannotExecuteOtherCases": "Testers may not execute others test cases",
+        "unassignedCaseCannotBeExecuted": "Unassigned test cases cannot be executed"
+      },
+      "isolatedTestType": {
+        "title": "Isolation configuration",
+        "description": "Configures the spatial visibility of test cases, test plans, test executions, and test defects in the current workspace",
+        "operableCrossSpaceTestData": "Test data that can be manipulated across workspace",
+        "notOperableCrossSpaceTestData": "Inoperable cross-workspace test data",
+        "workspaceDataIsolationConfigSaveSuccess": "The spatial data isolation configuration is saved as achievement",
+        "crossSpaceTestDataActionConfig": "Cross-workspace test data operation configuration",
+        "canBeCreatedAndAssociatedCrossSpace": "Can be created across spaces, associated "
+      },
+      "itemTypeMapping": {
+        "title": "Type association configuration",
+        "description": "Configure the type associated with the current workspace test management type",
+        "typeAssociationConfigurationSavedSuccessfully": "Type association configuration save successfully"
+      },
+      "moreConfig": {
+        "descriptions": [
+          "The test management plugin has three types of test cases, test plans and test execution tasks built into the initialization phase, so please do not remove them. If the three built-in types are deleted, the Test Management System isolation configuration will not be enabled",
+          "When the test management system isolation configuration is turned on, the type association configuration will not be able to be modified. The test management matter association configuration will be associated with the three types built into the test management plugin by default and the full test workspace type association configuration will be updated to the three built-in types",
+          "When the test management system isolation configuration is turned on, the matters created by the test management association types will be hidden and the matters will not appear in the workspace view and cannot be searched for in IQL",
+          "The three types built into the Test Management plugin cannot be selected in the dropdown selection box for all types in the view panel of the matter management"
+        ],
+        "messageError": "The type built into Test Management does not exist and cannot be enabled for this configuration",
+        "warningTips": "The current action will cause all test workspace type associated configuration types to be overwritten",
+        "messageSuccess": "Test management system isolation operation successful",
+        "enableTestManagerSystemIsolation": "Enable test management System isolation",
+        "systemTips": "Test management system isolation description"
+      },
+      "wordTemplate": {
+        "title": "Report template",
+        "description": "Report template management",
+        "templateName": "Name",
+        "file": "File",
+        "uploadTestReportTemplate": "Upload test report template",
+        "uploadTemplate": "Upload report template",
+        "editorTestReportTemplate": "Edit test report Template",
+        "deleteTemplate": "Delete template",
+        "areYouSureToDeleteThisTemplate": "Sure to delete this template",
+        "ruleTips": "Please enter a template name",
+        "uploadFile": "Upload report template",
+        "uploadFileTips": "Please upload test report template"
+      },
+      "testReportTemplate": {
+        "title": "Test Report Template Management",
+        "description": "Space Test Report Template",
+        "workspaceTemplateSetting": {
+          "title": "Space Template Settings",
+          "label": "Allow spaces to customize test report templates",
+          "updateSuccess": "Template configuration updated successfully"
+        },
+        "table": {
+          "title": "Template Management",
+          "header": {
+            "name": "Title",
+            "action": "Action"
+          },
+          "action": {
+            "default": "Set as Default",
+            "view": "View",
+            "delete": "Delete"
+          },
+          "tag": {
+            "isGlobalTemplate": "Global",
+            "isDefaultTemplate": "Default",
+            "workspace": "WorkSpace"
+          }
+        },
+        "buttons": {
+          "create": "Create Report Template"
+        },
+        "message": {
+          "setDefaultSuccess": "Default template set successfully",
+          "deleteSuccess": "Test report template deleted successfully",
+          "deleteConfirm": "Are you sure you want to delete this test report template?"
+        }
+      },
+      "isolatedSystem": {
+        "title": "Test system isolation",
+        "description": "Configure the test management system to be isolated from the business system"
+      },
+      "tableFields": {
+        "title": "Table column and search settings",
+        "description": "Configure default list table headers and filter items for the current workspace test plan, test cases, and other types",
+        "messageSuccess": "Table header and retrieval item configuration saved successfully",
+        "planName": "Plan name",
+        "testPlanHeader": "Test plan header",
+        "testCaseHeader": "Test case header"
+      },
+      "workspaceSelectorModal": {
+        "modelTitle": "Please select test management configuration workspace",
+        "placeholder": "Please select a workspace"
+      },
+      "testConfigInitialization": {
+        "title": "Test Management Configuration Initialization",
+        "description": "Enabling configuration initialization will modify the association mapping of the built-in matter types in the test management to the built-in matter types.",
+        "switchLabel": "Enable Configuration Initialization",
+        "builtInItemTypeHasBeenModified": "Built-in matter types have been modified.",
+        "messageSuccess": "Test management configuration initialization successful.",
+        "initialItemTypeMappingLabel": "",
+        "resetButtonText": "Reset"
+      },
+      "testCaseRemoveDuplicates": {
+        "title": "Test case deduplication",
+        "description": "Filter the use cases of the current space and perform deduplication processing",
+        "query": "Query",
+        "chooseTime": "Please select a time range",
+        "createdAt": "createdAt",
+        "removeDuplicates": "Remove duplicates",
+        "duplicateCaseNum": "The number of repeated test cases is：{{num}}",
+        "noDuplicateCase": "There are no test cases that require deduplication",
+        "modalTitle": "Test case deduplication",
+        "modalContent": "When performing deduplication, test cases with duplicate names will be deleted. Whether to perform deduplication processing",
+        "allModules": "All Modules"
+      },
+      "reportTemplateCreator": {
+        "creatorTitle": "New Report Template",
+        "editorTitle": "Edit Test Report Template",
+        "nameExisted": "Template name already exists",
+        "templateExisted": "Template already exists",
+        "templateNameTooLong": "Template name is too long",
+        "reportNameTooLong": "Report name is too long",
+        "button": {
+          "next": "Next",
+          "finish": "Save"
+        },
+
+        "steps": {
+          "basic": "Basic Information",
+          "template": "Interface Configuration",
+          "dataSource": "Data Source Configuration"
+        },
+        "templateConfig": {
+          "message": {
+            "nextButtonClickConfirm": "Please confirm whether the dashboard configuration has been saved?"
+          }
+        },
+        "basicConfig": {
+          "title": "Basic Information",
+          "message": {
+            "createReportTemplateSuccess": "Test report template created successfully",
+            "updateReportTemplateSuccess": "Test report template updated successfully"
+          },
+          "form": {
+            "name": {
+              "label": "Template Title",
+              "placeholder": "Please enter template title",
+              "error": {
+                "required": "Template title is required",
+                "maxLength": "Template title can have a maximum of 25 characters"
+              }
+            }
+          }
+        },
+        "dataSourceConfig": {
+          "subtitle": {
+            "addDataSource": "Add Data Source",
+            "bindDataSource": "Report Data Source"
+          },
+          "label": {
+            "plan": "Selected Test Plan",
+            "sprint": "Selected Iteration",
+            "version": "Selected Version",
+            "workspace": "Selected Workspace",
+            "currentWorkspace": "Current Workspace",
+
+            "TestCase": "All Test Cases",
+            "TestRun": "All Test Runs",
+            "TestDefect": "All Defects"
+          },
+          "title": "Data Rule Configuration",
+          "select": {
+            "placeholders": {
+              "firstLevel": "Please select data source scope",
+              "secondLevel": "Please select data source scope"
+            }
+          },
+          "message": {
+            "dataSourceConfigSaveSuccess": "Data source configuration saved successfully",
+            "addDataSourceSuccess": "Data source added successfully",
+            "deleteDataSourceSuccess": "Data source deleted successfully",
+            "dataSourceExisted": "This data source already exists"
+          },
+          "button": {
+            "addDataSource": "Add"
+          },
+          "table": {
+            "title": {
+              "chartName": "Dashboard Widget",
+              "dataSource": "Data Source"
+            }
+          }
+        }
+      }
+    },
+    "reportTemplateCreator": {
+      "creatorTitle": "Create Report Template",
+      "editorTitle": "Edit Test Report Template",
+      "nameExisted": "Template name already exists",
+      "templateExisted": "Template already exists",
+      "templateNameTooLong": "Template name is too long",
+      "reportNameTooLong": "Report name is too long",
+      "button": {
+        "next": "Next",
+        "finish": "Save"
+      },
+
+      "steps": {
+        "basic": "Basic Information",
+        "template": "Interface Configuration",
+        "dataSource": "Data Source Configuration"
+      },
+      "templateConfig": {
+        "message": {
+          "nextButtonClickConfirm": "Please confirm whether the dashboard configuration has been saved?"
+        }
+      },
+      "basicConfig": {
+        "title": "Basic Information",
+        "message": {
+          "createReportTemplateSuccess": "Test report template created successfully",
+          "updateReportTemplateSuccess": "Test report template updated successfully"
+        },
+        "form": {
+          "name": {
+            "label": "Template Name",
+            "placeholder": "Please enter template name",
+            "error": "Template name is required"
+          }
+        }
+      },
+      "dataSourceConfig": {
+        "subtitle": {
+          "addDataSource": "Add Data Source",
+          "bindDataSource": "Report Data Source"
+        },
+        "label": {
+          "plan": "Selected Test Plan",
+          "sprint": "Selected Iteration",
+          "version": "Selected Version",
+          "workspace": "Selected Workspace",
+          "currentWorkspace": "Current Workspace",
+          "customDataSource": "Custom Data Source",
+
+          "TestCase": "All Test Cases",
+          "TestRun": "All Test Runs",
+          "TestDefect": "All Defects"
+        },
+        "title": "Data Rule Configuration",
+        "select": {
+          "placeholders": {
+            "firstLevel": "Please select the data source scope",
+            "secondLevel": "Please select the data source scope"
+          }
+        },
+        "message": {
+          "dataSourceConfigSaveSuccess": "Data source configuration saved successfully",
+          "addDataSourceSuccess": "Data source added successfully",
+          "deleteDataSourceSuccess": "Data source deleted successfully",
+          "dataSourceExisted": "The data source already exists"
+        },
+        "button": {
+          "addDataSource": "Add"
+        },
+        "table": {
+          "title": {
+            "chartName": "Dashboard Widget",
+            "dataSource": "Data Source"
+          }
+        }
+      }
+    },
+    "plan": {
+      "planPageLayout": {
+        "selectCaseModelTitle": "Step 1: Select associated test case",
+        "createExecutionModelTitle_one": "Step 2: Create new test execution task (selected {{count}} case)",
+        "createExecutionModelTitle_other": "Step 2: Create new test execution task (selected {{count}} cases)",
+        "testExecutionCreateLoading": "Test execution task is being created",
+        "executionList": {
+          "deleteTips": "This operation will delete the test execution task. do you want to continue?",
+          "deleteSuccess": "Test execution task deleted successfully",
+          "checkTask": " Check tasks",
+          "deleteTask": "Delete task"
+        },
+        "executionStatus": {
+          "rate": "Pass rate"
+        },
+        "left": {
+          "placeholder": "Please enter module name"
+        },
+        "noData": {
+          "description": "No test execution tasks at this time"
+        },
+        "right": {
+          "showChild": "Show sub group",
+          "showCur": "Show current group",
+          "notSelectMessage": "No test case selected",
+          "createTestRunSuccessMessage": "Test case execution created successfully",
+          "caseToPlanSuccessMessage": "The test case has been successfully added to the test plan",
+          "caseSelectModelTitle": "Select a planned test case",
+          "createTestExecutionSuccessMessage": ["Test execution task", "created successfully"],
+          "createTestExecutionFailMessage": "Test execution of task new failure"
+        }
+      },
+      "testEntityList": {
+        "removeCaseMessage": "test cases were removed from the test plan",
+        "removeCaseTips": "This action will remove this test case from the test plan, do you want to continue",
+        "removeCaseTips1": "This action removes the selected test case from the test plan, do you want to continue",
+        "removeCaseTips2": "The current case has been associated with the test run task, and delete the test execution task association, do you want to continue",
+        "deleteRunTips": "This action will delete the selected test execution. do you want to continue?",
+        "deleteRunMessage": "Test case executions were deleted",
+        "updateAssigneeTips": "Test owners have been updated",
+        "repositoryGroup": "Belonging module",
+        "quoteCount": "Quote counts",
+        "executeCount": "Execution counts",
+        "runCount": "Quote counts",
+        "detailName": "Test case Title",
+        "runStatus": "Test execution status",
+        "executor": "Last action executor",
+        "designee": "Executor",
+        "assigneeSetting": "Set assignee",
+        "editorItemTips": "No item editing permission at the moment, please check the item operation permission configuration or contact the administrator",
+        "deleteItemTips": "No item deletion permission at the moment, please check the item operation permission configuration or contact the administrator",
+        "addItemTips": "No item add permission at the moment, please check the item operation permission configuration or contact the administrator",
+        "noCanUpdateRunStateTips": "The selected test execution cannot change execution status",
+        "updateRunStateTips": "Selected test execution status updated successfully",
+        "updateDesigneeStateTips": "The selected test executor has been successfully updated",
+        "notUpdateDesignee": "Cannot change executor of test case",
+        "updateDesignee": "Change executor",
+        "updateRunStatus": "Change execution status"
+      }
+    },
+    "repository": {
+      "list": "List",
+      "minder": "Minder",
+      "folderTree": {
+        "placeholder": "Please enter a module name",
+        "inputNameValidatorMessage": [
+          "Module names cannot be repeated at the same level",
+          "Module name cannot be empty",
+          "Module name can be up to 30 character"
+        ],
+        "hierarchyTips": "Limit to 8 levels, no new submodules above 8 levels",
+        "createChildFolder": "New submodule",
+        "createChildFolderSuccess": " Submodule created successfully",
+        "renameFolder": "Rename module",
+        "renameFolderSuccess": "Module renaming as",
+        "deleteFolder": "Delete module",
+        "deleteFolderTips": [
+          "Confirm delete",
+          "Module",
+          "The submodules under the module will be deleted together, and the test cases in the module will still be retained and automatically moved to ungrouped test cases"
+        ],
+        "deleteFolderSuccess": "Module deleted successfully",
+        "caseCreateSuccessTips": [
+          "test cases was created successfully",
+          "test case",
+          "Created successfully"
+        ],
+        "buttonName": ["Create Module", "Collapse all", "More"],
+        "dropCaseTips": [
+          "Test case moved successfully",
+          "Limit 8 levels, dragging is not allowed after more than 8 levels"
+        ]
+      },
+      "menu": {
+        "menusName": [
+          "New submodule",
+          "Rename",
+          "Delete",
+          "Expand",
+          "New test case",
+          "Import test case",
+          "View test case"
+        ]
+      },
+      "repoDropDown": {
+        "MenuItem": [
+          "Test case import",
+          "Test case import template download",
+          "Test case import from workspace",
+          "Test case export (all groups)",
+          "Test case export (current group)",
+          "Test case export (current groups)",
+          "Test case export (current plan)",
+          "Test case export (filter result)"
+        ],
+        "importCaseSuccess": "Test management test case export complete",
+        "importCaseWarning": "No test case repository is selected, please select the test case repository to be exported first",
+        "importCaseLoading": "Exporting test management test cases",
+        "importPlanLinkCase": "Exporting test plan linked cases",
+        "importRepoCase": "Test management case library export",
+        "pleaseEnterContent": "Please enter content",
+        "excelName": "Test management import template",
+        "excelContent": {
+          "group": "group1/group2",
+          "name": "Test case name (sample data, please delete this data when executing the test case import)",
+          "itemType": "Test Case",
+          "priority": "Priority can fill in the value range: highest, higher, normal, lower, lowest",
+          "precondition": "Test case preconditions",
+          "assignee": "assignee",
+          "step": "【1】need to start with [serial number]\n【2】Line breaks in the step description will be preserved",
+          "result": "【1】need to start with [serial number]\n【2】The newline characters in the expected result will be preserved",
+          "data": "【1】need to start with [serial number]\n【2】Newline characters in the data will be preserved"
+        },
+        "excelExportTitle": {
+          "group": "group",
+          "name": "name",
+          "itemType": "itemType",
+          "priority": "priority",
+          "precondition": "precondition",
+          "step": "step",
+          "result": "result",
+          "data": "data",
+          "status": "execution status",
+          "testPlan": "testPlan",
+          "assignee": "assignee",
+          "executor": "executor"
+        },
+        "todo": "Todo",
+        "fontName": "Times new roman "
+      },
+      "view": {
+        "list": {
+          "actionConfirm": [
+            "This action will delete the selected test case, do you want to continue?",
+            "This action will delete the current test case, do you want to continue?"
+          ],
+          "deleteCaseSuccess": "{{count}} test case have been deleted",
+          "deleteCaseSuccess_other": "{{count}} test cases have been deleted",
+          "batchItemLink": "Batch item link",
+          "deleteCaseMessageSuccess": "Test case deleted successfully",
+          "copyCaseMessageSuccess": "Test case copy successfully",
+          "dropCaseToGroup": "Drag to test case group"
+        },
+        "minder": {
+          "dataError": "Data error",
+          "nameRepeat": ["Save fail, modules", "with the same module name"],
+          "overMaxLevelModulePath": "The module has exceeded the maximum level limit, please modify it before saving",
+          "updateDataSuccess": "Data updated successfully",
+          "saveFail": "Save failed",
+          "export": "Export XMind",
+          "import": "Import XMind",
+          "exportLoadingMessage": "XMind exporting",
+          "waitForMinderDataLoading": "Please wait for data loading before export",
+          "maxRenderNodeConfirm": {
+            "title": "Prompt",
+            "content": "There are too many nodes in the current use case library group. The mind map page load time is too long. It is recommended to switch to the sub-group to view or return to the list page. Please confirm whether to continue loading?",
+            "next": "Continue",
+            "cancel": "Cancel",
+            "goBack": "Return to list page"
+          },
+          "hasExistedError": "The current mind map data has errors. Please fix it and try again."
+        }
+      }
+    },
+    "xMindImport": {
+      "title": "Import XMind",
+      "step": {
+        "upload": "Upload",
+        "validate": "Validate",
+        "result": "Result"
+      },
+      "button": {
+        "nextStep": "Next step",
+        "save": "Save",
+        "close": "close"
+      },
+      "draftEditorStep": {
+        "lawyerErrorMessage": "The node type is not compliant. The parent node type of the current node should be {{nodeTypeName}}",
+        "maxLevelErrorMessage": "The module node level exceeds the maximum limit. The maximum level limit is 8",
+        "nodeTextMaxLengthErrorMessage": "Node content exceeds the maximum limit. The maximum limit is {{length}}",
+        "duplicateErrorMessage": "Module name is duplicated in the same level",
+        "nodeUnsetErrorMessage": "The node type is not set",
+        "hasExistedError": "The current data node import error, please try again after correction"
+      },
+      "uploadStep": {
+        "importLocation": "Import Location",
+        "uploader": {
+          "text": "Click or drag file to this area to upload",
+          "hint": "Please upload an XMind file with no more than 1000 cases to avoid upload failure"
+        },
+        "importTips": "Import Tips",
+        "noPermissionTip": "No permission to import test cases in current workspace",
+        "includeRootTip": "The file will be imported into the current mind, and you can set whether to import the root node",
+        "importIncludeRoot": "Import Root Node",
+        "typeTip": "Nodes using the system-defined module/test case/precondition/step tags will be recognized",
+        "typeExample": "Node type examples",
+        "levelTip": "The level of the module in the XMind file plus the grouping level of the current mind cannot exceed 8 levels",
+        "countLimitTip": "Up to 1000 cases can be imported at a time",
+        "downloadTemplate": "Download Template"
+      },
+      "resultStep": {
+        "hint": "Saving data, please wait",
+        "stats": {
+          "label": "Data Statistics:",
+          "count": ["Total", "cases"]
+        },
+        "success": "Imported successfully",
+        "redirectRepositoryPage": "Redirect to repository page"
+      }
+    }
+  },
+  "modules": {
+    "BeforeCreateOrUpdateModal": {},
+    "panel": {
+      "resultTitle": "The current type does not exist in the test management type association configuration",
+      "resultSubTitle": [
+        "Please go to",
+        "System settings",
+        "Plugins",
+        "Test management configuration",
+        "Page, select the type associated configuration to configure"
+      ],
+      "testDetail": {
+        "detail": "Details",
+        "testDetailPanel": {
+          "detailTips": "Can't get",
+          "refreshButton": "Reload",
+          "testStepTips": ["Current test case Inheritance", "Test Cases"]
+        },
+        "testPlanPanel": {
+          "menuList": ["Existing test plan", "New test plan"],
+          "addCaseSuccessMessage": "The current test case is added to the test plan",
+          "addPlanSuccessMessage": ["Test plan", "Created successfully"],
+          "deleteCaseSuccessMessage": "The current test case is removed from the test plan",
+          "planStatus": "Test plan status",
+          "planCount": "Number of test cases",
+          "modelTitle": "Add the current test case to the selected test plan",
+          "dropButton": "Add to test plan"
+        },
+        "testRunPanel": {
+          "runRoundTips": "The run of this test case consists of the following execution rounds",
+          "runStatus": "TestRun status",
+          "popConfirmTips": "The current operation will remove the test execution, continue to execute? ",
+          "addTestExecution": "New test execution task",
+          "tooltip": "The test case runs are comprised of the following execution cycles"
+        },
+        "historyRunPanel": {
+          "runRecord": "Execution Record",
+          "onlyShowLatelyRun": "Show only latest executions",
+          "runTip": "When checked, only the latest execution results of the current use case in each test plan will be displayed.",
+          "latestExecutionStatus": "Latest execution status",
+          "executeTime": "execution time"
+        }
+      },
+      "testExecution": {
+        "testDetailPanel": {
+          "itemKey": "Item key",
+          "itemName": "Item name",
+          "runStatus": "execution state",
+          "existingTestCase": "Existing test cases",
+          "assCaseToExecution": "Add test case to current test execution",
+          "addCase": "Add test case"
+        }
+      },
+      "testPlan": {
+        "testDetailPanel": {
+          "modelTitle": ["New test execution task (selected", "article test case)"],
+          "addCaseToPlanSuccess": "test cases added to the test plan",
+          "addCaseToPlanSuccessTips": [
+            "Test cases have been added to the test plan",
+            "Test case",
+            "has been added to the test plan"
+          ],
+          "removeCaseFromPlanSuccess": "test cases were removed from the test plan",
+          "executionCount": "Executed tasks",
+          "executionTips": "This test case is executed in the following task",
+          "selectCaseModelTitle": "Add test case to current test plan",
+          "addTestCase": "Add test case"
+        },
+        "testExecutionPanel": {
+          "addRunToPlanSuccess": "Test executions added to the test plan",
+          "deleteRunToPlanSuccess": "Test executions were removed from the test plan",
+          "modelTitle": "Associated test execution",
+          "addTestExecution": "Add test execution task",
+          "notSelectMessage": "No test execution selected"
+        }
+      }
+    }
+  },
+  "trigger": {
+    "importer": {
+      "validate": {
+        "No": "No. ",
+        "case": "Test case",
+        "itemType": "itemType",
+        "numberValidate": "Single import supports up to 1000 entries, over 1000, import the first 1000 entries",
+        "validateErrors": [
+          "The title of the test case is empty, and the title of the test case is required and will not be imported",
+          "The number of levels of the group to which the article belongs exceeds the limit, the group to which the article belongs can only import 8 levels and will not be imported",
+          "The number of characters in the group to which the article belongs exceeds 100 characters, it will not be imported",
+          "The number of characters in the precondition of the entry exceeds the limit, the precondition is limited to 2000 characters and will not be imported",
+          "Incorrectly formatted step description for article, not imported",
+          "Article step description exceeds limit,the step description limit 2000 characters are not imported",
+          "The expected result is in the wrong format and will not be imported",
+          "Article expected result exceeds limit,the expected result limit 2000 characters are not imported",
+          "The data format of the article is wrong, it will not be imported",
+          "Article data exceeds limit, data limit 2000 characters are not imported",
+          "Item type association is not configured, all data will not be imported, please configure the associated item type first"
+        ]
+      }
+    },
+    "web": {
+      "report": {
+        "defectStatusAnalysis": "Defect status analysis",
+        "defectSeverityTable": "Defect severity statistics table",
+        "severity": "Severity",
+        "severityValue": ["Serious", "Generally", "Small", "Suggestion"],
+        "defectCount": "Number of defects",
+        "defectChart": "Defect convergence trend graph",
+        "none": "No",
+        "canceled": "Canceled"
+      },
+      "script": {
+        "defectStatist": "Defect statistics",
+        "defectChartName": [
+          "Defect status distribution",
+          "Defect list",
+          "Defect priority distribution",
+          "New defect trend",
+          "Defect owner distribution"
+        ],
+        "testRunStatist": "Test case execution statistics",
+        "testRunChartName": ["Execution pass rate", "Test case priority distribution"],
+        "huishangWorkflowMessage": [
+          "No test case associated",
+          "No test execution task",
+          "All test execution tasks must",
+          "Test plan status does not belong to",
+          "There are unexecuted test cases, please perform state transition after execution"
+        ],
+        "shenwanWorkflowMessage": [
+          "Under the test plan",
+          "Test cases failed, please execute the pass and proceed with the state flow"
+        ]
+      }
+    },
+    "copyName": "copy"
+  },
+  "components": {
+    "business": {
+      "panelTable": {
+        "selectConfirmTips": ["Current operation will", " selected data, continue operation?"],
+        "itemDeleted": "Item has been deleted",
+        "newRunStatus": "Latest Execution status",
+        "select": "Selected"
+      },
+      "repositorySelector": {
+        "copyCase": "Copy test case",
+        "choiceRepository": "Select test case repository",
+        "choiceGroup": "Select module",
+        "emptyDesc": "The current test case repository does not create a test case module"
+      },
+      "repositorySelectorField": {
+        "placeholder1": "Please enter module keywords to search",
+        "placeholder2": "Please select the module to which the test case belongs, if it is empty, it will be ungrouped by default"
+      },
+      "status": {
+        "total": "Total"
+      },
+      "statusProcessBar": {
+        "caseCount": "Total number of test cases"
+      },
+      "testEntitySelectorModal": {
+        "modelTip": "Please enter and select an existing one from the list",
+        "notFound": "No relevant query found",
+        "selected": "Selected",
+        "case": "Test case",
+        "pleaseSelect": "please select",
+        "selectRepository": "Select test case repository",
+        "selectRepositoryTips": "Only the test case repository that currently has permission can be selected",
+        "searchGroup": "Search repository",
+        "addTimeSort": "Creation time sort",
+        "earliest": "Earliest",
+        "latest": "Latest",
+        "itemDeleted": "Item was deleted",
+        "noLinkItem": "The current directory is not associated with a test case",
+        "notHaveCase": "There are no test cases in the current test case repository"
+      },
+      "testManagerProvider": {
+        "tips": "Tips",
+        "notHaveTestTypeTips": "The workspace to which the item belongs is not configured with the test management association type",
+        "saveFailTips": "This workspace has been configured to inoperable cross-workspace [item type] data, and items not in this workspace failed to save",
+        "notCreateCase": "The workspace to which the entity belongs cannot be created, please select another workspace item to create",
+        "typeUnmatched": "New type does not match created test type"
+      },
+      "testPlanList": {
+        "deleteLinkTips": "This operation will delete the test plan and the test cases associated with the test plan. do you want to continue? ",
+        "deletePlanSuccess": "Test plan deleted successfully",
+        "addPlanSuccess": "The test plan was created successfully",
+        "planName": "Program name",
+        "deleteTestPlan": "Delete test plan",
+        "checkTestPlan": " View test plan",
+        "caseStatus": "Case status",
+        "planCaseCount": "Count case",
+        "addTestPlan": "New test plan"
+      },
+      "testPlanSelector": {
+        "placeholder": "Please enter a search keywords",
+        "desc": "No Data",
+        "checkAllPlan": "View all plans"
+      },
+      "testRunModal": {
+        "addDefectButton": {
+          "createDefectSuccess": "Defect created successfully",
+          "addDefectSuccess": "Defect added successfully",
+          "addExistingDefect": "Add existing defects",
+          "createDefect": "Create defect",
+          "addDefect": "Add defect",
+          "modelTitle": "Please select a test defect"
+        },
+        "attachmentUpload": {
+          "selectFile": "Please select an attachment",
+          "download": "Download",
+          "actionTips": "This operation will remove the attachment from the test case, do you want to continue? ",
+          "noData": " The current test execution has no attached data",
+          "uploadTips": "Size cannot exceed ",
+          "uploadFile": "Upload Attachment"
+        },
+        "defectList": {
+          "notLintDefect": "The current test execution has no associated defects",
+          "noPermission": "The current user have not permission",
+          "removeTips": ["Please step in", "Remove the defect"],
+          "deleteButtonTips": "The current operation deletes the association with the defect, do you want to continue?",
+          "global": "Global",
+          "step": "Step "
+        },
+        "executionEditor": {
+          "stepDesc": "Step overview"
+        },
+        "testComment": {
+          "noData": "The current test case has no comment data",
+          "editorComment": "Write a review"
+        },
+        "testRun": {
+          "tabsTitle": [
+            "Test case steps",
+            "Execution result description",
+            "Defect",
+            "Related matters",
+            "Attached"
+          ],
+          "runTips": "The current test execution is the last one, and all test executions have been executed",
+          "runSuccessMessage": "Automatically switch to the next test execution",
+          "runNext": "Execute the next",
+          "autoNext": "Auto switch to the next article",
+          "autoNextTips": "When the test execution status changes to pass, automatically switch to the next test execution",
+          "panelTitle": ["Preconditions", "Test execution details"]
+        },
+        "testStep": {
+          "noSteps": "The current testRun not have test case steps",
+          "step": "Step",
+          "stepResult": "Step Result",
+          "expect": "Expected",
+          "result": "Result",
+          "resultPlaceholder": "Please enter result",
+          "data": "Data",
+          "defect": "Defect"
+        }
+      },
+      "testStep": {
+        "stepField": ["Step", "Expected", "Data"],
+        "hasCircularInheritance": "The test case: [${testCaseName}] has a circular inheritance",
+        "notInheritCase": "Cannot inherit this test case",
+        "modelTitle": "Please select inheritance test case",
+        "addStep": "Add steps",
+        "inheritCase": " Inheritance test case",
+        "pleaseInput": "Please enter",
+        "switchNext": "Alt + Enter toggle next column",
+        "caseInherit": "Test case Inheritance",
+        "stepTotal": ["Total", "Steps"],
+        "copyStep": " Copy steps",
+        "copyStepTips": "The current action will copy the test case steps, do you want to continue? ",
+        "deleteStep": "Delete step",
+        "deleteStepTips": "The current action will delete the test case step, do you want to continue? "
+      }
+    },
+    "common": {
+      "businessTable": {
+        "columnSetting": ["Test management Fields", "Item Field"],
+        "setHeader": "Table head configuration",
+        "tableSetting": "Set columns",
+        "headerSetting": "Table header settings",
+        "restoreDefault": "Reset",
+        "actionTips": "Configurable table header column content and sorting, list search box default search items, up to four search item",
+        "placeholder": "Please select the columns to display",
+        "searchWarningMessage": "No more than 4 table search items can be configured",
+        "removeSearch": "Remove search item",
+        "addSearch": " Add search item",
+        "checkAllPages": "Select all"
+      },
+      "filterSearch": {
+        "screenPlaceholder": "Please enter the search term keyword",
+        "screen": "Filter",
+        "inputPlaceholder": "Please enter title",
+        "to": "To",
+        "or": "Or",
+        "none": "None"
+      },
+      "uploadFile": {
+        "uploadErrorMessage": "The number of files cannot exceed"
+      }
+    }
+  },
+  "minderNodeTypeName": {
+    "Module": "Module",
+    "TestCase": "Case",
+    "Precondition": "Precondition",
+    "Step": "Step",
+    "Result": "Result",
+    "Data": "Data"
+  },
+  "importer": {
+    "itemFields": {
+      "group": "group",
+      "precondition": "precondition",
+      "action": "step",
+      "result": "result",
+      "data": "data"
+    }
+  },
+  "minderExport": {
+    "root": "import case",
+    "module": "module {{num}}",
+    "caseZero": "case",
+    "case": "case {{num}}",
+    "precondition": "precondition {{num}}",
+    "step": "step {{num}}",
+    "result": "result {{num}}",
+    "data": "data"
+  }
+}

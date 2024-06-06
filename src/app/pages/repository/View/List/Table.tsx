@@ -2,8 +2,9 @@ import { useSDK } from '@projectproxima/plugin-sdk';
 import createProximaSdk from '@projectproxima/proxima-sdk-js';
 import { useDrag, useDrop, useMemoizedFn, useRequest } from 'ahooks';
 import { message, notification, Space, Tooltip } from 'antd';
+import { Operator } from 'common/utils/iqlBuilder';
 import { pick } from 'lodash-es';
-import React from 'react';
+import React, { useCallback } from 'react';
 
 import RenderRepository from '@/components/business/RenderRepository';
 import RepositorySelector, {
@@ -13,15 +14,24 @@ import UserCell from '@/components/business/UserCell';
 import type { BusinessTableActionType } from '@/components/common/BusinessTable/type';
 import { BusinessTable } from '@/components/dynamicComponents';
 import { DeleteIcon, DragHandler, LinkItemIcon, SwitcherOutlined, UserIcon } from '@/icons';
-import { deleteTestEntity, updateTestEntity } from '@/lib/api/item';
+import {
+  deleteTestEntity,
+  deleteTestEntityV2,
+  getTestEntityByQuery,
+  handleSelector,
+  updateTestEntity,
+  updateTestEntityValue,
+} from '@/lib/api/item';
 import { useCurrentUser } from '@/lib/api/user';
 import { getCurrentUserSetting, saveUserSetting } from '@/lib/api/userSetting';
 import { TestType } from '@/lib/constants';
 import useI18n from '@/lib/hooks/useI18n';
 import fetch from '@/lib/utils/fetch';
 import { actionConfirm, getPluginWebTriggerBaseUrl, openItemViewScreen } from '@/lib/utils/helper';
+import { SearchSelectors, selectorToIql } from '@/lib/utils/iql';
 
 import { UNGROUPED_FOLDER_KEY } from '../../constant';
+import CopyButton from '../Copy/Button';
 import cx from './Table.less';
 
 const proxima = createProximaSdk();
@@ -159,8 +169,11 @@ type TestDetailTableProps = {
   tableLoading?: boolean;
   setTableLoading?: (val?: boolean) => void;
   copyTestCases?: (val: string[]) => any;
+  copyTestCasesV2?: (val: any) => any;
   queryDeps: string;
   workspaceKey: string;
+  repository?: Record<string, any>;
+  selector?: SearchSelectors | string;
 };
 
 const TestDetailTable: React.FC<TestDetailTableProps> = props => {
@@ -169,13 +182,15 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
     actionRef,
     onSelectionCancel,
     externalDataLoading: externalDataLoadingProp,
-    testDetailIds,
     dataSourceGetter,
     setTableLoading,
     tableLoading,
     copyTestCases,
+    copyTestCasesV2,
     queryDeps,
     workspaceKey,
+    repository,
+    selector,
   } = props;
   const { t } = useI18n();
   const externalDataLoading =
@@ -223,16 +238,75 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
     },
   );
 
+  const getBatchParams = useCallback(
+    params => {
+      const batchParams = {
+        query: {
+          workspaceKey,
+          id: null,
+          type: TestType.Case,
+          ...repository,
+        },
+        selector: typeof selector === 'string' ? selector : selectorToIql(handleSelector(selector)),
+        notNeedQuery: false,
+        selectedRowKeys: [],
+      };
+      if (!params) return;
+      const { selectedRowKeys = [], unSelectedRowKeys = [], selectAll, total } = params;
+      if (!selectAll || (selectAll && selectedRowKeys?.length >= total)) {
+        batchParams.query.id = {
+          operator: Operator.In,
+          value: selectedRowKeys,
+        } as unknown as any;
+      } else {
+        batchParams.query.id = {
+          operator: Operator.NotIn,
+          value: unSelectedRowKeys,
+        } as unknown as any;
+      }
+      return batchParams;
+    },
+    [repository, selector, workspaceKey],
+  );
+
+  const getSelectTestCaseId = useCallback(
+    async params => {
+      const batchParams = getBatchParams(params);
+      if (!batchParams) return;
+      if (batchParams.notNeedQuery) return batchParams.selectedRowKeys;
+      let caseIds = [];
+      let total = 0;
+      do {
+        const res = await getTestEntityByQuery({
+          ...batchParams,
+          ascending: ['sortIndex', 'createdAt'],
+          offset: caseIds.length,
+          limit: 9999,
+          select: ['id'],
+        });
+        caseIds = caseIds.concat(res.list);
+        total = res.total;
+      } while (caseIds.length < total);
+
+      return caseIds?.map(({ id }) => id);
+    },
+    [getBatchParams],
+  );
+
   const selectionActionNodes = React.useMemo(() => {
     // 批量删除用例
     const deleteTestCase = () => {
-      const testDetailIds = tableActionRef.current.selectedRowKeys;
+      const table = tableActionRef.current;
+      const deletedCount = table.selectAll
+        ? table.total - table.unSelectedRowKeys.length
+        : table.selectedRowKeys.length;
+
       const deleteContent = t('page.repository.view.list.multipleDeleteCase', {
-        count: testDetailIds.length,
+        count: deletedCount,
       });
       const highlightCountContent = deleteContent.replace(
-        testDetailIds.length,
-        `<span style="color: #ff4d0d">${testDetailIds.length}</span>`,
+        deletedCount,
+        `<span style="color: #ff4d0d">${deletedCount}</span>`,
       );
 
       actionConfirm(
@@ -244,7 +318,9 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         },
         async () => {
           setTableLoading(true);
-          const res = await deleteTestEntity(testDetailIds);
+          const batchParams = getBatchParams(tableActionRef.current);
+          if (!batchParams) return;
+          const res = await deleteTestEntityV2(batchParams);
           if (res?.status === 'error') {
             setTableLoading(false);
             message.error(res.data);
@@ -256,62 +332,50 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
 
           notification.success({
             message: t('page.repository.view.list.deleteCaseSuccess', {
-              count: tableActionRef.current.selectedRowKeys.length,
+              count: deletedCount,
             }),
           });
-          tableActionRef.current.resetSelectedRowKeys();
+          table.resetSelectedRowKeys();
         },
       );
     };
 
     // 更新负责人
     const toggleAssignee = async assignee => {
-      const updateValues = tableActionRef.current.selectedRowKeys.map(d => ({
-        objectId: d,
-        values: {
-          assignee,
-        },
-      }));
       setTableLoading(true);
-      const res = await updateTestEntity(updateValues);
+      const batchParams = getBatchParams(tableActionRef.current);
+      if (!batchParams) return;
+      const res = await updateTestEntityValue({
+        queryParams: batchParams,
+        value: {
+          values: {
+            assignee,
+          },
+        },
+      });
+
       if (res?.status === 'error') {
         setTableLoading(false);
         message.error(res.data);
         return;
       }
       // 刷新表格
-      tableActionRef.current.refresh();
+      const table = tableActionRef.current;
+      const changedCount = table.selectAll
+        ? table.total - table.unSelectedRowKeys.length
+        : table.selectedRowKeys.length;
+      table.refresh();
+
       notification.success({
-        message: `${tableActionRef.current.selectedRowKeys.length} ${t(
-          'page.plan.testEntityList.updateAssigneeTips',
-        )}`,
+        message: `${changedCount} ${t('page.plan.testEntityList.updateAssigneeTips')}`,
       });
       setTableLoading(false);
     };
 
     // 批量创建事项关联
     const createItemLink = async () => {
-      const testCaseIds = tableActionRef.current.selectedRowKeys;
+      const testCaseIds = (await getSelectTestCaseId(tableActionRef.current)) ?? [];
       proxima.execute('openAddLinkScreen', testCaseIds.toString());
-    };
-
-    // 批量复制用例
-    const copyTestDetail = async () => {
-      const testCaseIds = tableActionRef.current.selectedRowKeys;
-      setTableLoading(true);
-      const res = await copyTestCases(testCaseIds);
-      if (res?.status === 'error') {
-        setTableLoading(false);
-        return message.error(res.data);
-      }
-
-      // 复制刷新
-      onDataChange?.();
-      setTableLoading(false);
-
-      notification.success({
-        message: t('page.repository.view.list.copyCaseMessageSuccess'),
-      });
     };
 
     return [
@@ -327,9 +391,20 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
           </span>
         }
       />,
-      <span className={cx('action', 'copy')} key="copy" onClick={hasRowSelected && copyTestDetail}>
-        <SwitcherOutlined /> 复制
-      </span>,
+      <CopyButton
+        key="copyAction"
+        disabled={!hasRowSelected}
+        getQueryParams={() => getBatchParams(tableActionRef.current)}
+        onStart={() => setTableLoading(true)}
+        onFinished={() => {
+          onDataChange?.();
+          setTableLoading(false);
+        }}
+      >
+        <span className={cx('action', 'copy')}>
+          <SwitcherOutlined /> {t('common.copy')}
+        </span>
+      </CopyButton>,
       <span
         className={cx('action')}
         key="link"
@@ -345,7 +420,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         <DeleteIcon className={cx('icon')} /> {t('common.delete')}
       </span>,
     ];
-  }, [hasRowSelected, t, setTableLoading, onDataChange, copyTestCases]);
+  }, [hasRowSelected, t, setTableLoading, getBatchParams, onDataChange, getSelectTestCaseId]);
 
   const columns = React.useMemo(() => {
     const deleteTestDetail = data => {
@@ -374,23 +449,6 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
           });
         },
       );
-    };
-
-    const copyTestDetail = async data => {
-      setTableLoading(true);
-      const res = await copyTestCases([data.objectId]);
-      if (res?.status === 'error') {
-        setTableLoading(false);
-        return message.error(res.data);
-      }
-
-      // 复制刷新
-      onDataChange?.();
-      setTableLoading(false);
-
-      notification.success({
-        message: t('page.repository.view.list.copyCaseMessageSuccess'),
-      });
     };
 
     return [
@@ -475,14 +533,28 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         render(_, rowData) {
           return (
             <Space>
-              <a onClick={() => copyTestDetail(rowData)}>{t('common.copy')}</a>
+              <CopyButton
+                getQueryParams={() =>
+                  getBatchParams({
+                    selectedRowKeys: [rowData.objectId],
+                    selectAll: false,
+                  })
+                }
+                onStart={() => setTableLoading(true)}
+                onFinished={() => {
+                  onDataChange?.();
+                  setTableLoading(false);
+                }}
+              >
+                <a>{t('common.copy')}</a>
+              </CopyButton>
               <a onClick={() => deleteTestDetail(rowData)}>{t('common.delete')}</a>
             </Space>
           );
         },
       },
     ];
-  }, [copyTestCases, onDataChange, setTableLoading, t]);
+  }, [getBatchParams, onDataChange, setTableLoading, t]);
 
   const handleFilterField = useMemoizedFn(async ({ testType, fieldKeys }) => {
     await saveUserSetting({
@@ -512,13 +584,13 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         name={`${workspaceKey}_TestDetailTable`}
         actionRef={tableActionRef}
         getDataSource={dataSourceGetter}
-        allSelectableRowKeys={testDetailIds}
         onHasRowSelected={setHasRowSelected}
         onSelectionCancel={onSelectionCancel}
         loading={externalDataLoading || tableLoading}
         selectionActionNodes={selectionActionNodes}
         handleFilterField={handleFilterField}
         queryDeps={queryDeps}
+        virtualSelectAll
       />
       <RepositorySelector actionRef={repositorySelectorRef} />
     </>

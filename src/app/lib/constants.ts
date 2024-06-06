@@ -428,6 +428,8 @@ export const SystemIncludeFieldKeys = [
 export const GlobalConfigStorageKey = 'test_manager_global_config';
 // 当前空间缓存 key
 export const CurrentWorkspaceConfigStorageKey = 'test_manager_current_workspace_config';
+// 空间信息存储 key
+export const CurrentWorkspaceInfo = 'test_manager_current_workspace_Info';
 
 export const appKey = window.QiankunProps?.frame?.app?.key || 'test_manager';
 

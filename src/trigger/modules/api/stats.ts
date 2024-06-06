@@ -88,7 +88,8 @@ export const testPlanStats = async () => {
   } = getReqInfoFromVMRuntime<TestPlanStatsPayload>();
 
   const taskPool = buildStatsTaskPool();
-
+  console.info('test-manager-iqlSearch-testPlanStats');
+  console.time('test-manager-iqlSearch-testPlanStats');
   // 测试执行用例统计数据
   taskPool
     .register(['caseStatus', 'caseCount'], async function (result) {
@@ -103,7 +104,7 @@ export const testPlanStats = async () => {
         fields: [SystemField.Id, TestFiledKeyMapping.caseStatus, TestFiledKeyMapping.linkItems],
         pagination: { limit: InfinityLimit, offset: 0 },
       });
-
+      console.timeEnd('test-manager-iqlSearch-testPlanStats');
       testCases.forEach(testCase => {
         const { caseStatus, source } = testCase;
         // 统计状态数据
@@ -153,6 +154,7 @@ export const testPlanStats = async () => {
       });
     })
     .register('executionCount', async function (result) {
+      console.time('test-manager-iqlSearch-executionCount');
       const {
         data: { list: testExecution },
       } = await iqlRequest<TestExecutionEntityType>({
@@ -164,7 +166,7 @@ export const testPlanStats = async () => {
         fields: [TestFiledKeyMapping.linkItems],
         pagination: { limit: InfinityLimit, offset: 0 },
       });
-
+      console.timeEnd('test-manager-iqlSearch-executionCount');
       testExecution.forEach(item => {
         const { linkItems } = item;
 

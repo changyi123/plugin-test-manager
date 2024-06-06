@@ -2,7 +2,7 @@ app:
   key: test_manager
   uuid: bf73e61c-e15a-4461-a1f7-f940c2009332
   name: test_manager
-  version: "4.16.0"
+  version: "4.17.0"
 modules:
   webtrigger:
     # TODO: Debug 使用，生产环境禁止调用下面的 trigger
@@ -53,14 +53,20 @@ modules:
     # 批量操作（删除，更新，创建测试执行）
     - key: api-batch-delete
       function: api-batch-delete-function
+    - key: api-batch-delete-v2
+      function: api-batch-delete-v2-function
     - key: api-batch-update
       function: api-batch-update-function
+    - key: api-batch-update-value
+      function: api-batch-update-value-function
     - key: api-batch-create-test-run
       function: api-batch-create-test-run-function
     - key: api-batch-create-test-case
       function: api-batch-create-test-case-function
     - key: api-batch-copy-test-case
       function: api-batch-copy-test-case-function
+    - key: api-batch-copy-test-case-v2
+      function: api-batch-copy-test-case-v2-function
     - key: api-batch-link-test-execution-to-test-plan
       function: api-batch-link-test-execution-to-test-plan-function
     # 数据统计
@@ -100,6 +106,10 @@ modules:
     # 测试管理初始化脚本
     - key: init-test-config
       function: init-test-config-function
+
+    # 基础数据合并接口
+    - key: api-query-basic-data
+      function: api-query-basic-data-function
 
   trigger:
     - key: test-manager-initial-script-install
@@ -177,7 +187,7 @@ modules:
       timeout: 90000
       # api backend Query
     - key: api-query-test-entity-function
-      handler: api.queryTestEntity
+      handler: query.queryTestEntity
     - key: api-query-linked-test-entity-function
       handler: api.queryLinkedTestEntity
     - key: api-query-case-by-status-function
@@ -189,8 +199,16 @@ modules:
     - key: api-batch-delete-function
       handler: api.batchDelete
       timeout: 300000
+     # api batch
+    - key: api-batch-delete-v2-function
+      handler: api.batchDeleteV2
+      timeout: 300000
     - key: api-batch-update-function
       handler: api.batchUpdate
+      # 5 分钟超时时长
+      timeout: 300000
+    - key: api-batch-update-value-function
+      handler: api.batchUpdateValue
       # 5 分钟超时时长
       timeout: 300000
     - key: api-batch-create-test-run-function
@@ -205,13 +223,17 @@ modules:
       handler: api.batchCopyTestCase
       # 5 分钟超时时长
       timeout: 300000
+    - key: api-batch-copy-test-case-v2-function
+      handler: api.batchCopyTestCaseV2
+      # 5 分钟超时时长
+      timeout: 300000
     - key: api-batch-link-test-execution-to-test-plan-function
       handler: api.linkTestExecuteToTestPlan
       timeout: 300000
 
     # api stats
     - key: api-stats-test-plan-function
-      handler: api.testPlanStats
+      handler: query.testPlanStats
     - key: api-stats-test-execution-function
       handler: api.testExecutionStats
     - key: api-stats-test-case-function
@@ -220,6 +242,8 @@ modules:
       handler: api.testCount
 
     # api module
+    - key: api-query-basic-data-function
+      handler: query.queryBasicData
     - key: api-module-repository-tree-function
       handler: api.repositoryTree
     - key: api-module-repository-tree-v2-function
@@ -536,6 +560,8 @@ tables:
       # deprecated 使用 Test 表的 repository 替代
       # testDetailIds:
       #   type: Array
+      ancestors:
+        type: Array
       sortIndex:
         type: Number
   - className: TestConfig
