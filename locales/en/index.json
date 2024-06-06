@@ -326,7 +326,7 @@
         "switchLabel": "Enable Configuration Initialization",
         "builtInItemTypeHasBeenModified": "Built-in matter types have been modified.",
         "messageSuccess": "Test management configuration initialization successful.",
-        "initialItemTypeMappingLabel": "",
+        "initialItemTypeMappingLabel": "Configuring Initialization Type Mapping",
         "resetButtonText": "Reset"
       },
       "testCaseRemoveDuplicates": {
