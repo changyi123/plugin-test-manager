@@ -284,7 +284,10 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
     // 批量创建事项关联
     const createItemLink = async () => {
       const testCaseIds = tableActionRef.current.selectedRowKeys;
-      proxima.execute('openAddLinkScreen', testCaseIds.toString());
+      proxima.execute('openAddLinkScreen', {
+        itemId: testCaseIds.toString(),
+        displayContext: 'test_manager',
+      });
     };
 
     // 批量复制用例
