@@ -117,11 +117,13 @@ export const useGetGroupCounts = ({ workspaceKey, current, params, selectedNode 
   };
 };
 
-const workspaceDataFormat = (w, currentWorkspace) =>
-  w.map(d => ({ ...d, label: d.name, value: d.key })).filter(i => i.key !== currentWorkspace);
+const workspaceDataFormat = (w, currentWorkspace, showCurrent) =>
+  w
+    .map(d => ({ ...d, label: d.name, value: d.key }))
+    .filter(showCurrent ? Boolean : i => i.key !== currentWorkspace);
 
 // 根据关键字查询空间
-export const usePluginWorkspace = ({ keyword, currentWorkspace }) => {
+export const usePluginWorkspace = ({ keyword, currentWorkspace, showCurrent }) => {
   const [isGlobal, setGlobal] = useState(null);
   const [bindWorkspaceKeys, setBindWorkspaceKeys] = useState([]);
 
@@ -148,7 +150,7 @@ export const usePluginWorkspace = ({ keyword, currentWorkspace }) => {
     setLoading(true);
     if (isGlobal) {
       getWorkspaces({ pageIndex: 1, pageSize: 100, keyword }).then(res => {
-        setWorkspaces(workspaceDataFormat(res.results, currentWorkspace));
+        setWorkspaces(workspaceDataFormat(res.results, currentWorkspace, showCurrent));
         setLoading(false);
       });
     } else {
@@ -158,11 +160,11 @@ export const usePluginWorkspace = ({ keyword, currentWorkspace }) => {
         .matches('name', escapeMatchesQueryArg(keyword))
         .find({ json: true })
         .then(res => {
-          setWorkspaces(workspaceDataFormat(res, currentWorkspace));
+          setWorkspaces(workspaceDataFormat(res, currentWorkspace, showCurrent));
           setLoading(false);
         });
     }
-  }, [bindWorkspaceKeys, currentWorkspace, isGlobal, keyword]);
+  }, [bindWorkspaceKeys, currentWorkspace, isGlobal, keyword, showCurrent]);
 
   const { run: handleSearch } = useDebounceFn(onSearch, { wait: 300 });
 

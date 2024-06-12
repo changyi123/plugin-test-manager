@@ -22,6 +22,7 @@ import { StatusProgress } from '../../../components/business/Status';
 
 const { ItemIcon } = components.Components.Common;
 
+import CreatePermission from '@/components/business/Contianer/CreatePermission';
 import { SystemFieldKeys } from '@/components/common/BusinessTable/hook';
 
 import cx from './index.less';
@@ -29,7 +30,7 @@ import cx from './index.less';
 const TestPlanList: React.FC<any> = () => {
   const { t } = useI18n();
   const actionRef = React.useRef<BusinessTableActionType>();
-  const { createItemUseModal, getCreatePermission, testPlanFieldKeys } = useBaseAction();
+  const { createItemUseModal, testPlanFieldKeys } = useBaseAction();
   const { workspaceKey, selectedTestPlan, setSelectedTestPlan, setSearchParams } = usePageContext();
   const [selectors, setSelectors] = useState([{}, {}]);
   const [tableLoading, setTableLoading] = useState(false);
@@ -240,13 +241,11 @@ const TestPlanList: React.FC<any> = () => {
         <div className={cx('plan-header-body')}>
           <div className={cx('header-left')}>{t('common.testPlan')}</div>
           <div className={cx('header-right')}>
-            <Button
-              type="primary"
-              disabled={getCreatePermission(TestType.Plan)}
-              onClick={() => handleCreate()}
-            >
-              {t('components.business.testPlanList.addTestPlan')}
-            </Button>
+            <CreatePermission type={TestType.Plan}>
+              <Button type="primary" onClick={() => handleCreate()}>
+                {t('components.business.testPlanList.addTestPlan')}
+              </Button>
+            </CreatePermission>
           </div>
         </div>
         <div className={cx('plan-header-slot')}>

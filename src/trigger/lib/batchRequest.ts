@@ -129,6 +129,7 @@ export const batchCreateItems = async (
   } & Partial<BaseTestEntity>)[],
   // 创建测试实体时取 data.values 的自定义数据
   fields?: string[],
+  sessionToken?: string,
 ) => {
   // 需要创建的事项数据
   const itemsData = chunk(data, BatchChunkSize, item => {
@@ -141,10 +142,16 @@ export const batchCreateItems = async (
 
   console.info(JSON.stringify(itemsData), 'batchCreateItems');
 
+  const headers = {
+    'X-Parse-Cloud-Context': JSON.stringify({ ...CreateApiParseContext, ...getUnRefresh(data) }),
+  };
+
+  if (sessionToken) {
+    headers['X-Parse-Session-Token'] = sessionToken;
+  }
+
   const taskQueue = itemsData.map(items => async () => {
-    return await bulkCreateItems(items, {
-      'X-Parse-Cloud-Context': JSON.stringify({ ...CreateApiParseContext, ...getUnRefresh(data) }),
-    });
+    return await bulkCreateItems(items, headers);
   });
 
   const dump = logTimeCost(`create ${taskQueue.length} items`);
