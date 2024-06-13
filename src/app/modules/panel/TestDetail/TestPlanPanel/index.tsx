@@ -264,7 +264,8 @@ const Plan = () => {
         actionRef={tableActionRef}
         actionMenuList={[
           {
-            title: t('common.delete'),
+            key: 'delete',
+            content: t('common.delete'),
             onClick(selectedRowKeys) {
               removeTestRelation(selectedRowKeys);
             },
@@ -273,6 +274,7 @@ const Plan = () => {
         rowKey="objectId"
         columns={tableColumns}
         getDataSource={tableDataSourceGetter}
+        allSelectableRowKeys={testEntity?.linkItems}
       />
     </div>
   );

@@ -189,7 +189,8 @@ const Runs: React.FC = () => {
             actionRef={tableActionRef}
             actionMenuList={[
               {
-                title: '删除',
+                key: 'delete',
+                content: t('common.delete'),
                 onClick(selectedRowKeys) {
                   removeTestRelation(selectedRowKeys);
                 },

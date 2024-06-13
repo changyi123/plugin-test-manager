@@ -1,7 +1,7 @@
 import { useMemoizedFn } from 'ahooks';
 import { Button, message, notification } from 'antd';
 import sum from 'lodash/sum';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 
 import PanelTable, {
   ActionType,
@@ -17,10 +17,12 @@ import { getLinkedTestEntityByQuery, getTestStats, updateTestEntity } from '@/li
 import { TestLinkType, TestType } from '@/lib/constants';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
-import { alert, generateSortIndex, getTestManagerContainer } from '@/lib/utils/helper';
+import { alert, getTestManagerContainer } from '@/lib/utils/helper';
 import { addTestExecutionToTestPlan } from '@/services/testEntity/service';
 
 import cx from './index.less';
+
+const EMPTY_ARRAY = [];
 
 const Test = () => {
   const { t } = useI18n();
@@ -34,6 +36,10 @@ const Test = () => {
   });
 
   const [allTestEntities, setAllTestEntities] = useState([]);
+
+  const allExecutionIds = useMemo(() => {
+    return allTestEntities?.map(item => item.objectId) || EMPTY_ARRAY;
+  }, [allTestEntities]);
 
   // 获取计划下的测试用例
   const getAllRelTestEntities = useCallback(
@@ -206,9 +212,11 @@ const Test = () => {
           </Button>
         )}
         actionRef={tableActionRef}
+        allSelectableRowKeys={allExecutionIds}
         actionMenuList={[
           {
-            title: t('common.delete'),
+            key: 'delete',
+            content: t('common.delete'),
             onClick(selectedRowKeys) {
               removeTestRelation(selectedRowKeys);
             },

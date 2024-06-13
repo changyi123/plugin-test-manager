@@ -1,9 +1,10 @@
 import { useAntdTable, useSafeState } from 'ahooks';
-import { Button, Popconfirm, Table } from 'antd';
+import { Button, Checkbox, Popconfirm, Table, Tooltip } from 'antd';
 import { TableProps } from 'antd/lib/table';
-import { uniqBy } from 'lodash';
+import { difference, uniqBy } from 'lodash';
 import React from 'react';
 
+import { DeleteIcon } from '@/icons';
 import useI18n from '@/lib/hooks/useI18n';
 import { getRootContainer, hasArrayItem } from '@/lib/utils/helper';
 
@@ -14,8 +15,14 @@ export type ActionType = { refresh: () => void; selectedRowKeys?: string[] };
 type PanelTableProps = TableProps<any> & {
   actionRef?: React.RefObject<ActionType>;
   renderActions?: () => React.ReactNode;
+  // 所有可选的 row 标识
+  allSelectableRowKeys?: string[];
   getDataSource: (params: { offset: number; limit: number }) => Promise<any>;
-  actionMenuList?: Array<{ title: string; onClick: (selectedRowKeys) => void }>;
+  actionMenuList?: Array<{
+    content: string | ((selectedRowKeys?) => React.ReactNode);
+    key: string;
+    onClick: (selectedRowKeys) => void;
+  }>;
 };
 
 const PanelTable: React.FC<PanelTableProps> = props => {
@@ -25,6 +32,7 @@ const PanelTable: React.FC<PanelTableProps> = props => {
     getDataSource,
     actionRef,
     renderActions,
+    allSelectableRowKeys,
     scroll,
     ...restTableProps
   } = props;
@@ -78,8 +86,28 @@ const PanelTable: React.FC<PanelTableProps> = props => {
   }, [props.rowKey, tableProps.dataSource]);
 
   const tableColumnsProp = React.useMemo(() => {
-    return columns;
-  }, [columns]);
+    if (!batchSelect) return columns;
+
+    return columns.map((item, index) => {
+      if (index === 0) {
+        const title = (
+          <div className={cx('title-container')}>
+            <div className={cx('current-page-text')}>
+              {t('components.common.businessTable.checkCurrentPage')}
+            </div>
+            <div className={cx('dividing-line')} />
+            <div>{item.title}</div>
+          </div>
+        );
+        return {
+          ...item,
+          title,
+        };
+      }
+      return item;
+    });
+  }, [batchSelect, columns, t]);
+  console.info('tableColumnsProp', tableColumnsProp);
 
   const rowSelection = React.useMemo(
     () =>
@@ -97,45 +125,113 @@ const PanelTable: React.FC<PanelTableProps> = props => {
     setBatchSelect(prev => !prev);
   }, [setBatchSelect]);
 
+  const disableTableSelectAll = React.useMemo(() => {
+    return !Array.isArray(allSelectableRowKeys);
+  }, [allSelectableRowKeys]);
+
+  // 是否全等 rowKey
+  const isSameWithAllRowKeys = React.useMemo(() => {
+    return !difference(allSelectableRowKeys, selectedRowKeys).length;
+  }, [allSelectableRowKeys, selectedRowKeys]);
+  // 有选中的值，但不全等全部 rowKey 则为半选
+  const allRowSelectionIndeterminate = React.useMemo(() => {
+    return !isSameWithAllRowKeys && !!selectedRowKeys?.length;
+  }, [isSameWithAllRowKeys, selectedRowKeys?.length]);
+
+  const handleCheck = React.useCallback(
+    checked => {
+      if (checked) {
+        setSelectedRowKeys(allSelectableRowKeys);
+      } else {
+        // 取差集
+        setSelectedRowKeys([]);
+      }
+    },
+    [allSelectableRowKeys, setSelectedRowKeys],
+  );
+
   return (
     <div className={cx('table')}>
       <div className={cx('actions-header')}>
         <div className={cx('left')}>
-          <Button type="default" onClick={handleBatchSelect}>
-            {batchSelect ? t('common.cancelSelect') : t('common.batchSelect')}
-          </Button>
           {batchSelect ? (
-            <div className={cx('select-tip')}>
-              {`${t('components.business.panelTable.select')}
-               ${selectedRowKeys.length} 
-              ${t('common.item', { count: selectedRowKeys.length })}`}
-            </div>
+            <>
+              {disableTableSelectAll ? null : (
+                <div className={cx('checkbox-wrapper')}>
+                  <Tooltip
+                    title={t('components.common.businessTable.checkAllPages')}
+                    placement="leftTop"
+                  >
+                    <Checkbox
+                      className={cx('checkbox')}
+                      checked={isSameWithAllRowKeys}
+                      disabled={tableProps.loading}
+                      onChange={e => handleCheck(e.target.checked)}
+                      indeterminate={allRowSelectionIndeterminate}
+                    />
+                  </Tooltip>
+                  <span className={cx('checkbox-label')}>
+                    {t('components.common.businessTable.checkAllPages')}
+                  </span>
+                </div>
+              )}
+              <div className={cx('select-tip')}>
+                {t('components.business.panelTable.select')}
+                <span className={cx('select-num')}>{selectedRowKeys.length}</span>
+                {t('common.item', { count: selectedRowKeys.length })}
+              </div>
+            </>
           ) : null}
           {batchSelect && hasArrayItem(actionMenuList) && hasArrayItem(selectedRowKeys) ? (
             <div className={cx('actions')}>
               {actionMenuList.map((action, index) => (
-                <Popconfirm
-                  overlayClassName="global-popconfirm"
-                  key={index}
-                  placement="right"
-                  getPopupContainer={getRootContainer}
-                  title={`
+                <>
+                  {action?.key !== 'delete' ? (
+                    <>
+                      {typeof action?.content === 'function' ? (
+                        <span className={cx('action-item')}>
+                          {action?.content(selectedRowKeys)}
+                        </span>
+                      ) : (
+                        <span
+                          className={cx('action-item', 'action-item-delete')}
+                          onClick={() => action?.onClick(selectedRowKeys)}
+                        >
+                          {action?.content}
+                        </span>
+                      )}
+                    </>
+                  ) : (
+                    <Popconfirm
+                      overlayClassName="global-popconfirm"
+                      key={index}
+                      placement="right"
+                      getPopupContainer={getRootContainer}
+                      title={`
                    ${t('components.business.panelTable.selectConfirmTips.0')}
-                    ${action.title} 
+                    ${action.content} 
                    ${t('components.business.panelTable.selectConfirmTips.1')}`}
-                  onConfirm={() => action?.onClick(selectedRowKeys)}
-                  okText={t('common.confirm')}
-                  cancelText={t('common.cancel')}
-                >
-                  <a>{action.title}</a>
-                </Popconfirm>
+                      onConfirm={() => action?.onClick(selectedRowKeys)}
+                      okText={t('common.confirm')}
+                      cancelText={t('common.cancel')}
+                    >
+                      <a className={cx('action-item', 'action-item-delete')}>
+                        {' '}
+                        <DeleteIcon className={cx('icon')} /> {action.content}
+                      </a>
+                    </Popconfirm>
+                  )}
+                </>
               ))}
             </div>
           ) : null}
         </div>
-        {typeof renderActions === 'function' ? (
-          <div className={cx('right')}>{renderActions()}</div>
-        ) : null}
+        <div className={cx('right')}>
+          <Button type="default" onClick={handleBatchSelect}>
+            {batchSelect ? t('common.cancelAction') : t('common.batchAction')}
+          </Button>
+          {typeof renderActions === 'function' ? <>{renderActions()}</> : null}
+        </div>
       </div>
       <Table
         {...tableProps}
