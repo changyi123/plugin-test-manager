@@ -39,7 +39,7 @@ const ReportView: React.FC = () => {
 
   const handleExportButtonClick = async type => {
     setExportLoading(true);
-    const cancelLoading = message.loading('正在下载测试报告，情等待');
+    const cancelLoading = message.loading(t('report.downloadingReport'));
     const exportFunc = exFuncMap[type];
     await exportFunc(reportData).finally(() => {
       cancelLoading();

@@ -64,7 +64,7 @@ const RepoDropDown = ({
     });
     if (data?.selectedData?.length) {
       notification.open({
-        message: '测试用例创建中',
+        message: t('page.repository.repoDropDown.creatingTestCase'),
         icon: <Spin spinning={true} />,
         duration: null,
       });
@@ -77,10 +77,12 @@ const RepoDropDown = ({
       });
       notification.destroy();
       if (copyRes?.status === 'error') {
-        notification.error({ message: `测试用例创建失败：${copyRes.data}` });
+        notification.error({
+          message: `${t('page.repository.repoDropDown.createTestCaseFail')}：${copyRes.data}`,
+        });
       } else {
         // 成功
-        notification.success({ message: '测试用例创建成功' });
+        notification.success({ message: t('page.repository.repoDropDown.createTestCaseSuccess') });
       }
       // 调接口更新列表
       const proxima = createProximaSdk();

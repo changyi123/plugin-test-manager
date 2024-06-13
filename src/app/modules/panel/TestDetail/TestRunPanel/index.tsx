@@ -65,7 +65,7 @@ const Runs: React.FC = () => {
         <Space>
           <div>{t('common.testExecution')}</div>
           <div>
-            <Tooltip placement="right" title="该测试用例的运行包含以下执行轮次">
+            <Tooltip placement="right" title={t('modules.panel.testRunPanel.tooltip')}>
               <InfoCircleOutlined />
             </Tooltip>
           </div>
@@ -109,7 +109,7 @@ const Runs: React.FC = () => {
       },
     },
     {
-      title: '操作',
+      title: t('common.action'),
       key: 'testRunId',
       render: (value, record) => {
         const testRun = record.relTestRun ?? {};
@@ -126,18 +126,18 @@ const Runs: React.FC = () => {
                 tableActionRef.current.refresh();
               }}
             >
-              执行
+              {t('common.run')}
             </Button>
             <Popconfirm
               placement="left"
               getPopupContainer={getRootContainer}
-              title="当前操作会移除该测试执行，是否继续执行？"
+              title={t('modules.panel.testDetail.testRunPanel.popConfirmTips')}
               onConfirm={() => removeTestRelation([record.relation.objectId])}
-              okText="确定"
-              cancelText="取消"
+              okText={t('common.confirm')}
+              cancelText={t('common.cancel')}
             >
               <Button size="small" type="link">
-                移除
+                {t('common.remove')}
               </Button>
             </Popconfirm>
           </Space>
@@ -189,7 +189,7 @@ const Runs: React.FC = () => {
             actionRef={tableActionRef}
             actionMenuList={[
               {
-                title: '删除',
+                title: t('common.delete'),
                 onClick(selectedRowKeys) {
                   removeTestRelation(selectedRowKeys);
                 },

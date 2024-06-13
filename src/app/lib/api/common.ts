@@ -11,6 +11,7 @@ import {
 import Parse from '@/lib/parse';
 import fetch from '@/lib/utils/fetch';
 import { escapeMatchesQueryArg, hasArrayItem, pointerTransfer, toArray } from '@/lib/utils/helper';
+import { i18n } from '@/lib/utils/i18n';
 import {
   ItemSelectors,
   SearchSelectors,
@@ -61,7 +62,7 @@ export const getTestEntitiesByRelation = async <TResponseList extends any[] = an
   );
 
   if (config.descendingBy) {
-    throw new Error('该方法不支持排序使用 getTestEntitiesByRelationWithOrder 方法替代');
+    throw new Error(i18n.t('common.methodNotSupport'));
   }
 
   // 查另一向的关联关系
