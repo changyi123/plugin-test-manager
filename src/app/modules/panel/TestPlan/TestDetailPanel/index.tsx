@@ -312,7 +312,6 @@ const Test = () => {
       {
         title: t('modules.panel.testPlan.testDetailPanel.executionCount'),
         key: 'execution',
-        width: 90,
         render: (_, record) => {
           return record.relRuns?.runCount ?? 0;
         },
@@ -439,9 +438,11 @@ const Test = () => {
           </>
         )}
         actionRef={tableActionRef}
+        allSelectableRowKeys={testEntityIds}
         actionMenuList={[
           {
-            title: t('common.delete'),
+            key: 'delete',
+            content: t('common.delete'),
             onClick(selectedRowKeys) {
               removeTestRelation(selectedRowKeys);
             },

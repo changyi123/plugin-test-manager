@@ -1,7 +1,16 @@
-import { DownOutlined } from '@ant-design/icons';
+import { DownOutlined, FlagOutlined } from '@ant-design/icons';
 import createProximaSdk, { useListener } from '@projectproxima/proxima-sdk-js';
 import { useRequest } from 'ahooks';
-import { Button, Divider, message, Popconfirm, Space, Tooltip, Typography } from 'antd';
+import {
+  Button,
+  Divider,
+  message,
+  notification,
+  Popconfirm,
+  Space,
+  Tooltip,
+  Typography,
+} from 'antd';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import DropDownButton from '@/components/business/DropDownButton';
@@ -25,7 +34,7 @@ import {
 import { TestLinkType, TestType } from '@/lib/constants';
 import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
-import { useTestRunActionAuth } from '@/lib/hooks/useTest';
+import { useCanExecuteTestRunIdSequence, useTestRunActionAuth } from '@/lib/hooks/useTest';
 import { getRootContainer, goToItemDetailPage } from '@/lib/utils/helper';
 
 import cx from './index.less';
@@ -37,6 +46,9 @@ const Test = () => {
   const { getCreatePermission } = useBaseAction();
   const tableActionRef = React.useRef<ActionType>();
   const { canExecuteTestRun } = useTestRunActionAuth({ workspaceKey: workspace?.key });
+  const { getCanExecuteTestRunIdSequence } = useCanExecuteTestRunIdSequence({
+    workspaceKey: workspace?.key,
+  });
 
   const selectorModalRef = React.useRef<SelectorActionType>();
   const testRunModalActionRef = React.useRef<TestRunModalActionType>();
@@ -222,7 +234,7 @@ const Test = () => {
       {
         title: t('modules.panel.testExecution.testDetailPanel.itemKey'),
         key: 'key',
-        width: 100,
+        width: 170,
         render(_, item) {
           return (
             <Typography.Link
@@ -360,6 +372,39 @@ const Test = () => {
     ];
   }, [getCreatePermission, refreshDepData, relCase, testEntity.objectId, t]);
 
+  const toggleSTestRunStatus = useCallback(
+    async (status, selectedRowKeys) => {
+      if (getCreatePermission(TestType.Case)) {
+        message.error(t('page.plan.testEntityList.editorItemTips'));
+        return;
+      }
+      console.info('--selectedRowKeys', status, selectedRowKeys);
+
+      // 可执行的测试执行 id
+      const canExecuteTestRunIds = await getCanExecuteTestRunIdSequence(selectedRowKeys);
+
+      // 没有可执行的测试执行时直接返回
+      if (!canExecuteTestRunIds.length) {
+        message.error(t('page.plan.testEntityList.noCanUpdateRunStateTips'));
+        return;
+      }
+
+      // 更新测试执行状态
+      const res = await updateTestStatus({
+        status: status.key,
+        runIds: canExecuteTestRunIds,
+        planId: testEntity?.linkItems?.[0],
+      });
+      if (res) {
+        notification.success({
+          message: t('page.plan.testEntityList.updateRunStateTips'),
+        });
+        refreshDepData();
+      }
+    },
+    [getCanExecuteTestRunIdSequence, getCreatePermission, refreshDepData, t, testEntity?.linkItems],
+  );
+
   return (
     <div className={cx('test')}>
       <TestEntitySelectorModal
@@ -379,9 +424,30 @@ const Test = () => {
           </DropDownButton>
         )}
         actionRef={tableActionRef}
+        allSelectableRowKeys={allTestRunIds}
         actionMenuList={[
           {
-            title: t('common.delete'),
+            key: 'changeStatus',
+            content: selectedRowKeys => (
+              <StatusBadge
+                useRootContainer
+                readonly={getCreatePermission(TestType.Case)}
+                onStatusChange={status => toggleSTestRunStatus(status, selectedRowKeys)}
+                key="toggleRunStatus"
+                emptyNode={
+                  <span>
+                    <FlagOutlined /> {t('page.plan.testEntityList.updateRunStatus')}
+                  </span>
+                }
+              />
+            ),
+            onClick(selectedRowKeys) {
+              removeTestRelation(selectedRowKeys);
+            },
+          },
+          {
+            key: 'delete',
+            content: t('common.delete'),
             onClick(selectedRowKeys) {
               removeTestRelation(selectedRowKeys);
             },
