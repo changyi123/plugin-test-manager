@@ -80,6 +80,7 @@ const DropRow = ({ rowData, ...restProps }) => {
       // rowData 接受节点
       console.info('DropRow', e);
       const data = JSON.parse(e.dataTransfer.getData('data'));
+      handleDragoverClassName(e, data, rowData.sortIndex, 'remove');
       if (!data?.rowData?.sortIndex) return;
       if (data.rowData.sortIndex === rowData.sortIndex) return;
       const params = [
@@ -120,8 +121,6 @@ const DropRow = ({ rowData, ...restProps }) => {
 
         await proxima.execute('updateItemList');
       }
-
-      handleDragoverClassName(e, data, rowData.sortIndex, 'remove');
     },
     onDragEnter(e) {
       if (!global.dragNode?.sortIndex) return;
@@ -292,7 +291,10 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
     // 批量创建事项关联
     const createItemLink = async () => {
       const testCaseIds = tableActionRef.current.selectedRowKeys;
-      proxima.execute('openAddLinkScreen', testCaseIds.toString());
+      proxima.execute('openAddLinkScreen', {
+        itemId: testCaseIds.toString(),
+        displayContext: 'test_manager',
+      });
     };
 
     // 批量复制用例

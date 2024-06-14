@@ -249,7 +249,7 @@ const View: React.FC<ViewProps> = ({
       <Select
         mode="multiple"
         showArrow
-        value={isListView ? option.selectedCharts : chartOption.selectedCharts}
+        value={isListView ? listViewOption.selectedCharts : chartOption.selectedCharts}
         maxTagCount="responsive"
         placeholder={i18n.t('reportPlugin.basicGlobalFilter.chartsChooseTips')}
         style={{ width: 400, marginTop: 10 }}
