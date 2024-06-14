@@ -437,7 +437,7 @@ const PlanPageLayout: React.FC<any> = () => {
             )}
           </PageLayout>
           <TestEntitySelectorModal
-            title="选择规划的测试用例"
+            title={t('page.plan.planPageLayout.right.caseSelectModelTitle')}
             testType={TestType.Case}
             actionRef={testEntitySelectorRef}
             onCancel={() => {

@@ -113,7 +113,8 @@
     "unGrouped": "未分组",
     "runNum": "条执行",
     "addTestExecution": "添加执行任务",
-    "curWorkspace": "当前空间"
+    "curWorkspace": "当前空间",
+    "methodNotSupport": "该方法不支持排序使用,请使用 getTestEntitiesByRelationWithOrder 方法替代"
   },
   "report": {
     "overViewData": {
@@ -178,6 +179,7 @@
     "exportHTML": "导出为 HTML",
     "exportWord": "导出为 Word",
     "exportPdf": "导出为 Pdf",
+    "downloadingReport": "正在下载测试报告，请等待",
     "buttons": {
       "delete": "删除",
       "view": "查看",
@@ -574,6 +576,9 @@
         "importRepoCase": "测试管理用例库导出",
         "pleaseEnterContent": "请输入内容",
         "excelName": "测试管理导入模板",
+        "creatingTestCase": "测试用例创建中",
+        "createTestCaseFail": "测试用例创建失败",
+        "createTestCaseSuccess": "测试用例创建成功",
         "excelContent": {
           "所属分组": "分组1/分组2",
           "标题": "测试用例标题（样例数据，执行用例导入时请删除该数据）",
@@ -809,7 +814,10 @@
           "测试计划状态不属于",
           "存在未执行的测试用例，请执行完成后在进行状态流转"
         ],
-        "shenwanWorkflowMessage": ["测试计划下有", "条测试用例未通过，请执行通过在进行状态流转"]
+        "shenwanWorkflowMessage": ["测试计划下有", "条测试用例未通过，请执行通过在进行状态流转"],
+        "checkDuplicateCase": {
+          "caseTooMany": "当前范围下用例数量过多，请缩小查询范围"
+        }
       }
     },
     "copyName": "副本"

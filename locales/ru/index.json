@@ -1,811 +1,815 @@
 {
-  "lang": "en",
+  "lang": "ru",
   "testTypeName": {
-    "TestCase": "Test Case",
-    "TestPlan": "Test Plan",
-    "testExecution": "Test Execution",
-    "testRun": "Test Run",
-    "testDefect": "Test Defect"
+    "TestCase": "Прецедент", 
+    "TestPlan": "План испытаний",
+    "testExecution": "Выполнение теста",
+    "testRun": "Тестовый забег",
+    "testDefect": "дефекты испытаний"
   },
   "testRunAuth": {
-    "cannotAssignedTestCase": "Cannot execute assigned to others test cases",
-    "cannotExecuteTestCase": "The current test case is not assigned to an executor and cannot be executed"
+    "cannotAssignedTestCase": "Невозможно выполнить назначенные другим тестовые случаи",
+    "cannotExecuteTestCase": "Текущий тестовый пример не назначен исполнителю и не может быть выполнен"
   },
   "common": {
-    "createPermissionTip": "Please contact the administrator to check the type mapping of the workspace, or enable",
-    "haveDelete": "deleted",
-    "forbiddenActive": "disabled",
+    "createPermissionTip": "Обратитесь к администратору, чтобы проверить сопоставление типов рабочей области или включить",
+    "haveDelete": "удалено",
+    "forbiddenActive": "неполноценный",
     "pageTitle": {
-      "repository": "Test Repository",
-      "plan": "Test Plan",
-      "report": "Test Report"
+      "repository": "Тестовый репозиторий",
+      "plan": "План испытаний",
+      "report": "Отчет об испытаниях"
     },
-    "whiteCaseRule": "Status does not belong to '{{statusNames}}', planning is not allowed",
-    "blackCaseRule": "Status belong to '{{statusNames}}', planning is not allowed",
-    "casePlanRule": "Planning is not allowed for use cases in {{statusName}} status",
-    "pleaseInputContent": "Please enter content",
-    "updateAt": "updateAt",
-    "success": "Success",
-    "testManager": "Test management",
-    "save": "Save",
-    "action": "Action",
-    "warning": "Warning",
-    "editor": "Edit",
-    "delete": "Delete",
-    "remove": "Remove",
-    "copy": "Copy",
-    "copyToCurrent": "Copy to the current place",
-    "copyToOthers": "Copy to the other place",
-    "tip": "Tips",
-    "okText": "OK",
-    "title": "Title",
-    "confirm": "OK",
-    "type": "Type",
-    "cancel": "Cancel",
-    "close": "Close",
-    "nextStep": "Next step",
-    "prevStep": "Prev step",
-    "workspace": "Workspace",
-    "allWorkspace": "All workspace",
-    "saveSuccess": "Saved successfully",
-    "deleteSuccess": "Deleted successfully",
-    "deleteFail": "Failed to delete",
-    "actionSuccess": " Successful operation",
-    "actionFail": "Operation failed",
+    "whiteCaseRule": "Статус не принадлежит '{{statusNames}}', планирование запрещено",
+    "blackCaseRule": "Статус принадлежит '{{statusNames}}', планирование запрещено",
+    "casePlanRule": "Планирование не разрешено для вариантов использования в статусе {{statusName}}",
+    "pleaseInputContent": "Пожалуйста, введите содержание",
+    "updateAt": "обновление в",
+    "success": "Успех",
+    "testManager": "Управление тестированием",
+    "save": "Сохранять",
+    "action": "Действие",
+    "warning": "Предупреждение",
+    "editor": "Редактировать",
+    "delete": "Удалить",
+    "remove": "Удалять",
+    "copy": "Копировать",
+    "copyToCurrent": "Копировать в текущее место",
+    "copyToOthers": "Скопировать в другое место",
+    "tip": "Советы",
+    "okText": "Хорошо",
+    "title": "Заголовок",
+    "confirm": "Хорошо",
+    "type": "Тип",
+    "cancel": "Отмена",
+    "close": "Закрывать",
+    "nextStep": "Следующий шаг",
+    "prevStep": "Предыдущий шаг",
+    "workspace": "Рабочая среда",
+    "allWorkspace": "Все рабочее пространство",
+    "saveSuccess": "Успешно сохранено",
+    "deleteSuccess": "Удален успешно",
+    "deleteFail": "Не удалось удалить",
+    "actionSuccess": " Успешная операция",
+    "actionFail": "Операция не удалась",
 
-    "overview": "Test Overview",
-    "testCase": "Test case",
-    "testPlan": "Test plan",
-    "testExecution": "Test execution task",
-    "testRun": "Test run",
-    "testDefect": "Test defect",
-    "testRepository": "Test case repository",
-    "testCaseRepository": "Cases repository",
-    "designee": "Designee",
-    "assignee": "Assignee",
-    "testExecutor": "The latest executor",
-    "testRunStatus": "Test status",
-    "testCaseStatus": "Test execution status",
-    "allRepository": "All cases",
-    "testReport": "Test report",
-    "exportReportFail": "Failed to export test report",
-    "pleaseSelectType": "Please choose the type",
-    "tableTotal": ["Total", "Data"],
-    "testManagerConfig": "Test management config",
-    "moreConfig": "More configuration",
-    "more": "More",
-    "search": "Search",
-    "status": "State",
-    "download": "Download",
-    "allTestCase": "All test cases",
-    "createTestExecution": "Create a new test execution task",
-    "createTestReport": "Generate test report",
-    "cancelAction": "Cancel operation",
-    "batchAction": " Batch operation",
-    "cancelSelect": "Cancel select",
-    "batchSelect": "Batch select",
-    "planCase": "Planning test cases",
-    "run": "Executive",
-    "precondition": "Preconditions",
-    "preconditionPlaceholder": "Please enter test case preconditions",
-    "testStep": "Test case steps",
-    "addTestCase": "Create a new test case",
-    "user": "User",
-    "nothing": "None",
-    "checked": "Selected",
-    "item": "item",
-    "item_zero": "item",
-    "item_other": "items",
-    "strip": "Strip",
-    "appItem": "Item",
-    "include": "contain in",
-    "exclude": "not Contain in",
-    "empty": "null",
-    "notEmpty": "not null",
-    "equal": "equal to",
-    "notEqual": "not equal to",
-    "contain": "Contain",
-    "notContain": "Does not Contain",
-    "lessThan": "less than",
-    "greaterThan": "greater than",
-    "noData": "No data",
-    "minderRootNodeName": "All Modules",
-    "updateFail": "Update data failed",
-    "unGrouped": "Ungrouped",
-    "runNum": "test execution",
-    "addTestExecution": "Add test execution",
-    "curWorkspace": "Current workspace"
+    "overview": "Обзор теста",
+    "testCase": "Прецедент",
+    "testPlan": "План испытаний",
+    "testExecution": "Задача выполнения теста",
+    "testRun": "Тестовый забег",
+    "testDefect": "дефекты испытаний",
+    "testRepository": "Репозиторий тестовых примеров",
+    "testCaseRepository": "Репозиторий кейсов",
+    "designee": "уполномоченный",
+    "assignee": "Правопреемник",
+    "testExecutor": "Последний исполнитель",
+    "testRunStatus": "Статус теста",
+    "testCaseStatus": "Статус выполнения теста",
+    "allRepository": "Все случаи",
+    "testReport": "Отчет об испытаниях",
+    "exportReportFail": "Не удалось экспортировать отчет о тестировании",
+    "pleaseSelectType": "Пожалуйста, выберите тип",
+    "tableTotal": ["Общий", "Данные"],
+    "testManagerConfig": "Конфигурация управления тестированием",
+    "moreConfig": "Дополнительная конфигурация",
+    "more": "Более",
+    "search": "Поиск",
+    "status": "Состояние",
+    "download": "Скачать",
+    "allTestCase": "Все тестовые случаи",
+    "createTestExecution": "Создайте новую задачу выполнения теста",
+    "createTestReport": "Создать отчет об испытаниях",
+    "cancelAction": "Отменить операцию",
+    "batchAction": " Пакетная операция",
+    "cancelSelect": "Отменить выбор",
+    "batchSelect": "Пакетный выбор",
+    "planCase": "Планирование тестовых случаев",
+    "run": "Исполнительный",
+    "precondition": "Предварительные условия",
+    "preconditionPlaceholder": "Введите предварительные условия тестового примера",
+    "testStep": "Шаги тестового примера",
+    "addTestCase": "Создайте новый тестовый пример",
+    "user": "Пользователь",
+    "nothing": "Никто",
+    "checked": "Выбрано",
+    "item": "элемент",
+    "item_zero": "элемент",
+    "item_other": "предметы",
+    "strip": "Полоска",
+    "appItem": "Элемент",
+    "include": "содержать в",
+    "exclude": "не содержать в",
+    "empty": "нулевой",
+    "notEmpty": "не ноль",
+    "equal": "равно",
+    "notEqual": "не равен",
+    "contain": "Содержать",
+    "notContain": "Не содержит",
+    "lessThan": "меньше, чем",
+    "greaterThan": "больше чем",
+    "noData": "Нет данных",
+    "minderRootNodeName": "Все модули",
+    "updateFail": "Обновить данные не удалось",
+    "unGrouped": "Разгруппировано",
+    "runNum": "выполнение теста",
+    "addTestExecution": "Добавить выполнение теста",
+    "curWorkspace": "Текущая рабочая область",
+    "methodNotSupport": "Этот метод не поддерживает сортировку, вместо этого используйте метод getTestEntitiesByRelationWithOrder"
   },
   "report": {
     "overViewData": {
       "label": {
-        "testPlan": "Selected test plan",
-        "workspace": "Belongs to workspace",
-        "version": "Selected version",
-        "sprint": "Selected sprint"
+        "testPlan": "Выбранный план тестирования",
+        "workspace": "Принадлежит рабочей области",
+        "version": "Выбранная версия",
+        "sprint": "Выбранный спринт"
       }
     },
-    "pass": "Pass",
-    "noPass": "Not pass",
-    "partPass": "Part pass",
-    "reportName": "Test report name",
-    "reportNamePlaceholder": "Please enter a test report name",
-    "reportResult": "Test conclusion",
-    "choiceTemplate": "select template",
-    "choiceTemplatePlaceholder": "Please select a template",
-    "range": "Statistical range",
-    "required": "Required",
-    "exceedLength": "Report name is limited to 25 characters",
-    "reportInfo": "report summary",
-    "addReport": "Add report",
-    "addTestReport": "Add test report",
-    "selectTemplate": "Enter a name and choose a template",
-    "selectRange": "Select statistical range",
-    "validateTips": "There are missing fields, please check required fields",
-    "view": "View",
-    "deleteTip1": "This operation will delete the test report. Do you want to continue?",
-    "createLoading": "Test report creation",
-    "templateSet": "Template setting",
-    "testReport": "Test report",
-    "addSuccess": "created successfully",
-    "addFail": "created failed",
-    "export": "Export",
-    "exportHTML": "Export as HTML",
-    "exportWord": "Export as Word",
+    "pass": "Проходить",
+    "noPass": "Не проходят",
+    "partPass": "Частичный проход",
+    "reportName": "Название отчета об испытаниях",
+    "reportNamePlaceholder": "Пожалуйста, введите название отчета об испытаниях",
+    "reportResult": "Заключение теста",
+    "choiceTemplate": "выбрать шаблон",
+    "choiceTemplatePlaceholder": "Пожалуйста, выберите шаблон",
+    "range": "Статистический диапазон",
+    "required": "Необходимый",
+    "exceedLength": "Имя отчета ограничено 25 символами",
+    "reportInfo": "сводка отчета",
+    "addReport": "Добавить отчет",
+    "addTestReport": "Добавить отчет о тестировании",
+    "selectTemplate": "Введите имя и выберите шаблон",
+    "selectRange": "Выберите статистический диапазон",
+    "validateTips": "Недостающие поля, проверьте обязательные поля",
+    "view": "Вид",
+    "deleteTip1": "Эта операция приведет к удалению отчета о тестировании. Вы хотите продолжать?",
+    "createLoading": "Создание протокола испытаний",
+    "templateSet": "Настройка шаблона",
+    "testReport": "Отчет об испытаниях",
+    "addSuccess": "создано успешно",
+    "addFail": "создано не удалось",
+    "export": "Экспорт",
+    "exportHTML": "Экспортировать как HTML",
+    "exportWord": "Экспортировать как Word",
+    "exportPdf": "Экспортировать как Pdf",
+    "downloadingReport": "Загрузка отчета об испытаниях, пожалуйста, подождите",
     "buttons": {
-      "delete": "Delete",
-      "view": "View",
-      "more": "More",
-      "sendReport": "Send Report"
+      "delete": "Удалить",
+      "view": "Вид",
+      "more": "Более",
+      "sendReport": "Отправить жалобу"
     },
     "seneReportModal": {
-      "modalTitle": "Send Report",
+      "modalTitle": "Отправить жалобу",
       "sendType": {
-        "label": "Send Type",
-        "siteMessage": "Site Message",
-        "email": "Email"
+        "label": "Тип отправки",
+        "siteMessage": "Сообщение сайта",
+        "email": "Электронная почта"
       },
       "sendTo": {
-        "label": "Add Recipient",
-        "selectorTagName": "Project Manager"
+        "label": "Добавить получателя",
+        "selectorTagName": "Руководитель проекта"
       },
       "button": {
-        "send": "Send"
+        "send": "Отправлять"
       },
       "message": {
-        "sendSuccess": "Message sent successfully",
-        "sendTypeEmpty": "Please select a send type",
-        "sendToEmpty": "Please select a recipient"
+        "sendSuccess": "Сообщение успешно отправлено",
+        "sendTypeEmpty": "Пожалуйста, выберите тип отправки",
+        "sendToEmpty": "Пожалуйста, выберите получателя"
       }
     }
   },
   "status": {
     "PASSED": {
-      "name": "PASS",
-      "description": "Test run Passed"
+      "name": "ПРОХОДИТЬ",
+      "description": "Тестовый запуск пройден"
     },
     "TODO": {
-      "name": "TODO",
-      "description": " Test run pending"
+      "name": "ВСЕ",
+      "description": " Ожидается тестовый запуск"
     },
     "EXECUTING": {
-      "name": "EXECUTING",
-      "description": "Test run is running"
+      "name": "ВЫПОЛНЕНИЕ",
+      "description": "Тестовый запуск выполняется"
     },
     "FAILED": {
-      "name": "FAILED",
-      "description": "Test run failed"
+      "name": "НЕУСПЕШНЫЙ",
+      "description": "Тестовый запуск не удался"
     },
     "BLOCK": {
-      "name": "BLOCK",
-      "description": "Test run Blocked"
+      "name": "БЛОКИРОВАТЬ",
+      "description": "Тестовый запуск заблокирован"
     },
     "CANCEL": {
-      "name": "CANCEL",
-      "description": "Test run canceled"
+      "name": "ОТМЕНА",
+      "description": "Тестовый запуск отменен"
     }
   },
   "page": {
     "config": {
-      "changeWorkspace": "Switch the selected workspace",
-      "notSelected": "Unselected",
-      "selectWorkspace": "Select workspace",
-      "resultTitle": "Please select the workspace to be configured",
-      "resultSubTitle": "This configuration is a workspace level configuration, please select the workspace to be configured",
+      "changeWorkspace": "Переключить выбранное рабочее пространство",
+      "notSelected": "Не выбрано",
+      "selectWorkspace": "Выберите рабочую область",
+      "resultTitle": "Пожалуйста, выберите рабочую область для настройки",
+      "resultSubTitle": "Эта конфигурация представляет собой конфигурацию уровня рабочей области. Выберите рабочую область для настройки",
       "defectMapping": {
-        "title": "Defect association configuration",
-        "description": "Configures the type of defects managed by the current workspace test, a defect indicates an error, defect, fault or failure that produces incorrect or unexpected results in the test.",
-        "usableType": "Usable type",
-        "defectType": "Defect association",
-        "messageSuccess": "Defect type saved successfully"
+        "title": "Конфигурация ассоциации дефектов",
+        "description": "Настраивает тип дефектов, управляемых текущим тестом рабочей области. Дефект указывает на ошибку, дефект, сбой или сбой, который приводит к неверным или неожиданным результатам теста.",
+        "usableType": "Тип использования",
+        "defectType": "Ассоциация дефектов",
+        "messageSuccess": "Тип дефекта успешно сохранен"
       },
       "executeTestRunAction": {
-        "title": "Test case execution configuration",
-        "description": "Configure the constraints of the current workspace during test case execution",
-        "caseToPlan": "Test case assignment authorization",
-        "caseToPlanRule": "Test case planning rule",
-        "placeholder": "Please select a user",
-        "caseToPlanPlaceholder": "Please select a status",
-        "radioBlackLabel": "Workflow states for use cases that are not allowed to be planned",
-        "radioWhiteLabel": "Workflow states for use cases that are allowed to be planned",
-        "testersCannotExecuteOtherCases": "Testers may not execute others test cases",
-        "unassignedCaseCannotBeExecuted": "Unassigned test cases cannot be executed"
+        "title": "Конфигурация выполнения тестового примера",
+        "description": "Настройте ограничения текущей рабочей области во время выполнения тестового примера",
+        "caseToPlan": "Разрешение на назначение тестового примера",
+        "caseToPlanRule": "Правило планирования тест-кейса",
+        "placeholder": "Пожалуйста, выберите пользователя",
+        "caseToPlanPlaceholder": "Пожалуйста, выберите статус",
+        "radioBlackLabel": "Состояния рабочего процесса для вариантов использования, планирование которых запрещено",
+        "radioWhiteLabel": "Состояния рабочего процесса для вариантов использования, которые разрешено планировать",
+        "testersCannotExecuteOtherCases": "Тестировщики не могут выполнять чужие тестовые случаи",
+        "unassignedCaseCannotBeExecuted": "Неназначенные тестовые случаи не могут быть выполнены"
       },
       "isolatedTestType": {
-        "title": "Isolation configuration",
-        "description": "Configures the spatial visibility of test cases, test plans, test executions, and test defects in the current workspace",
-        "operableCrossSpaceTestData": "Test data that can be manipulated across workspace",
-        "notOperableCrossSpaceTestData": "Inoperable cross-workspace test data",
-        "workspaceDataIsolationConfigSaveSuccess": "The spatial data isolation configuration is saved as achievement",
-        "crossSpaceTestDataActionConfig": "Cross-workspace test data operation configuration",
-        "canBeCreatedAndAssociatedCrossSpace": "Can be created across spaces, associated "
+        "title": "Конфигурация изоляции",
+        "description": "Настраивает пространственную видимость тестовых примеров, планов тестирования, выполнения тестов и дефектов тестов в текущей рабочей области",
+        "operableCrossSpaceTestData": "Тестовые данные, которыми можно манипулировать в рабочей области",
+        "notOperableCrossSpaceTestData": "Неработоспособные данные межрабочих испытаний",
+        "workspaceDataIsolationConfigSaveSuccess": "Конфигурация изоляции пространственных данных сохраняется как достижение",
+        "crossSpaceTestDataActionConfig": "Конфигурация работы с тестовыми данными в разных рабочих областях",
+        "canBeCreatedAndAssociatedCrossSpace": "Может быть создан в пространствах, связанных "
       },
       "itemTypeMapping": {
-        "title": "Type association configuration",
-        "description": "Configure the type associated with the current workspace test management type",
-        "typeAssociationConfigurationSavedSuccessfully": "Type association configuration save successfully"
+        "title": "Тип конфигурации ассоциации",
+        "description": "Настройте тип, связанный с текущим типом управления тестированием рабочей области",
+        "typeAssociationConfigurationSavedSuccessfully": "Конфигурация ассоциации типов успешно сохранена"
       },
       "moreConfig": {
         "descriptions": [
-          "The test management plugin has three types of test cases, test plans and test execution tasks built into the initialization phase, so please do not remove them. If the three built-in types are deleted, the Test Management System isolation configuration will not be enabled",
-          "When the test management system isolation configuration is turned on, the type association configuration will not be able to be modified. The test management matter association configuration will be associated with the three types built into the test management plugin by default and the full test workspace type association configuration will be updated to the three built-in types",
-          "When the test management system isolation configuration is turned on, the matters created by the test management association types will be hidden and the matters will not appear in the workspace view and cannot be searched for in IQL",
-          "The three types built into the Test Management plugin cannot be selected in the dropdown selection box for all types in the view panel of the matter management"
+          "Плагин управления тестированием имеет три типа тестовых примеров, планов тестирования и задач выполнения тестов, встроенных в фазу инициализации, поэтому не удаляйте их. Если три встроенных типа удалены, конфигурация изоляции системы управления тестированием не будет включена",
+          "Если включена конфигурация изоляции системы управления тестированием, конфигурацию ассоциации типов невозможно будет изменить. Конфигурация ассоциации вопросов управления тестированием будет связана с тремя типами, встроенными в плагин управления тестированием по умолчанию, а конфигурация ассоциации типов полной рабочей области тестирования будет обновлена ​​до трех встроенных типов",
+          "Когда включена конфигурация изоляции системы управления тестированием, вопросы, созданные типами ассоциаций управления тестированием, будут скрыты, они не будут отображаться в представлении рабочей области и не смогут быть найдены в IQL",
+          "Три типа, встроенные в плагин управления тестированием, нельзя выбрать в раскрывающемся списке для всех типов на панели просмотра управления вопросами"
         ],
-        "messageError": "The type built into Test Management does not exist and cannot be enabled for this configuration",
-        "warningTips": "The current action will cause all test workspace type associated configuration types to be overwritten",
-        "messageSuccess": "Test management system isolation operation successful",
-        "enableTestManagerSystemIsolation": "Enable test management System isolation",
-        "systemTips": "Test management system isolation description"
+        "messageError": "Тип, встроенный в Управление тестированием, не существует и не может быть включен для этой конфигурации",
+        "warningTips": "Текущее действие приведет к перезаписи всех типов конфигурации, связанных с типом тестовой рабочей области",
+        "messageSuccess": "Операция изоляции системы управления тестированием прошла успешно",
+        "enableTestManagerSystemIsolation": "Включить управление тестированием Изоляция системы",
+        "systemTips": "Описание изоляции системы управления тестированием"
       },
       "wordTemplate": {
-        "title": "Report template",
-        "description": "Report template management",
-        "templateName": "Name",
-        "file": "File",
-        "uploadTestReportTemplate": "Upload test report template",
-        "uploadTemplate": "Upload report template",
-        "editorTestReportTemplate": "Edit test report Template",
-        "deleteTemplate": "Delete template",
-        "areYouSureToDeleteThisTemplate": "Sure to delete this template",
-        "ruleTips": "Please enter a template name",
-        "uploadFile": "Upload report template",
-        "uploadFileTips": "Please upload test report template"
+        "title": "Шаблон отчета",
+        "description": "Управление шаблонами отчетов",
+        "templateName": "Имя",
+        "file": "Файл",
+        "uploadTestReportTemplate": "Загрузить шаблон отчета об испытаниях",
+        "uploadTemplate": "Загрузить шаблон отчета",
+        "editorTestReportTemplate": "Редактировать шаблон отчета об испытаниях",
+        "deleteTemplate": "Удалить шаблон",
+        "areYouSureToDeleteThisTemplate": "Обязательно удалите этот шаблон",
+        "ruleTips": "Пожалуйста, введите название шаблона",
+        "uploadFile": "Загрузить шаблон отчета",
+        "uploadFileTips": "Пожалуйста, загрузите шаблон отчета об испытаниях"
       },
       "testReportTemplate": {
-        "title": "Test Report Template Management",
-        "description": "Space Test Report Template",
+        "title": "Управление шаблонами отчетов об испытаниях",
+        "description": "Шаблон отчета о космических испытаниях",
         "workspaceTemplateSetting": {
-          "title": "Space Template Settings",
-          "label": "Allow spaces to customize test report templates",
-          "updateSuccess": "Template configuration updated successfully"
+          "title": "Настройки шаблона пространства",
+          "label": "Разрешить пространствам настраивать шаблоны отчетов о тестировании",
+          "updateSuccess": "Конфигурация шаблона успешно обновлена"
         },
         "table": {
-          "title": "Template Management",
+          "title": "Управление шаблонами",
           "header": {
-            "name": "Title",
-            "action": "Action"
+            "name": "Заголовок",
+            "action": "Действие"
           },
           "action": {
-            "default": "Set as Default",
-            "view": "View",
-            "delete": "Delete"
+            "default": "Установить по умолчанию",
+            "view": "Вид",
+            "delete": "Удалить"
           },
           "tag": {
-            "isGlobalTemplate": "Global",
-            "isDefaultTemplate": "Default",
-            "workspace": "WorkSpace"
+            "isGlobalTemplate": "Глобальный",
+            "isDefaultTemplate": "По умолчанию",
+            "workspace": "Рабочая среда"
           }
         },
         "buttons": {
-          "create": "Create Report Template"
+          "create": "Создать шаблон отчета"
         },
         "message": {
-          "setDefaultSuccess": "Default template set successfully",
-          "deleteSuccess": "Test report template deleted successfully",
-          "deleteConfirm": "Are you sure you want to delete this test report template?"
+          "setDefaultSuccess": "Шаблон по умолчанию успешно установлен",
+          "deleteSuccess": "Шаблон отчета об испытаниях успешно удален",
+          "deleteConfirm": "Вы уверены, что хотите удалить этот шаблон отчета о тестировании?"
         }
       },
       "isolatedSystem": {
-        "title": "Test system isolation",
-        "description": "Configure the test management system to be isolated from the business system"
+        "title": "Изоляция тестовой системы",
+        "description": "Настройте систему управления тестированием для изоляции от бизнес-системы"
       },
       "tableFields": {
-        "title": "Table column and search settings",
-        "description": "Configure default list table headers and filter items for the current workspace test plan, test cases, and other types",
-        "messageSuccess": "Table header and retrieval item configuration saved successfully",
-        "planName": "Plan name",
-        "testPlanHeader": "Test plan header",
-        "testCaseHeader": "Test case header"
+        "title": "Столбец таблицы и настройки поиска",
+        "description": "Настройте заголовки таблиц списков по умолчанию и элементы фильтрации для текущего плана тестирования рабочей области, тестовых примеров и других типов",
+        "messageSuccess": "Заголовок таблицы и конфигурация элемента извлечения успешно сохранены",
+        "planName": "Название плана",
+        "testPlanHeader": "Заголовок плана тестирования",
+        "testCaseHeader": "Заголовок тестового примера"
       },
       "workspaceSelectorModal": {
-        "modelTitle": "Please select test management configuration workspace",
-        "placeholder": "Please select a workspace"
+        "modelTitle": "Пожалуйста, выберите рабочую область конфигурации управления тестированием",
+        "placeholder": "Пожалуйста, выберите рабочее место"
       },
       "testConfigInitialization": {
-        "title": "Test Management Configuration Initialization",
-        "description": "Enabling configuration initialization will modify the association mapping of the built-in matter types in the test management to the built-in matter types.",
-        "switchLabel": "Enable Configuration Initialization",
-        "builtInItemTypeHasBeenModified": "Built-in matter types have been modified.",
-        "messageSuccess": "Test management configuration initialization successful.",
-        "initialItemTypeMappingLabel": "",
-        "resetButtonText": "Reset"
+        "title": "Инициализация конфигурации управления тестированием",
+        "description": "Включение инициализации конфигурации изменит сопоставление ассоциаций встроенных типов вопросов в управлении тестированием со встроенными типами вопросов.",
+        "switchLabel": "Включить инициализацию конфигурации",
+        "builtInItemTypeHasBeenModified": "Встроенные типы материй были изменены.",
+        "messageSuccess": "Инициализация конфигурации управления тестированием прошла успешно.",
+        "initialItemTypeMappingLabel": "Настройка сопоставления типов инициализации",
+        "resetButtonText": "Перезагрузить"
       },
       "testCaseRemoveDuplicates": {
-        "title": "Test case deduplication",
-        "description": "Filter the use cases of the current space and perform deduplication processing",
-        "query": "Query",
-        "chooseTime": "Please select a time range",
-        "createdAt": "createdAt",
-        "removeDuplicates": "Remove duplicates",
-        "duplicateCaseNum": "The number of repeated test cases is：{{num}}",
-        "noDuplicateCase": "There are no test cases that require deduplication",
-        "modalTitle": "Test case deduplication",
-        "modalContent": "When performing deduplication, test cases with duplicate names will be deleted. Whether to perform deduplication processing",
-        "allModules": "All Modules"
+        "title": "Дедупликация тестового примера",
+        "description": "Отфильтруйте варианты использования текущего пространства и выполните обработку дедупликации",
+        "query": "Запрос",
+        "chooseTime": "Пожалуйста, выберите временной диапазон",
+        "createdAt": "создан в",
+        "removeDuplicates": "Удалить дубликаты",
+        "duplicateCaseNum": "Количество повторных тестовых случаев: {{num}}",
+        "noDuplicateCase": "Нет тестовых случаев, требующих дедупликации",
+        "modalTitle": "Дедупликация тестового примера",
+        "modalContent": "При выполнении дедупликации тест-кейсы с повторяющимися именами будут удалены. Следует ли выполнять обработку дедупликации",
+        "allModules": "Все модули"
       },
       "reportTemplateCreator": {
-        "creatorTitle": "New Report Template",
-        "editorTitle": "Edit Test Report Template",
-        "nameExisted": "Template name already exists",
-        "templateExisted": "Template already exists",
-        "templateNameTooLong": "Template name is too long",
-        "reportNameTooLong": "Report name is too long",
+        "creatorTitle": "Новый шаблон отчета",
+        "editorTitle": "Редактировать шаблон отчета об испытаниях",
+        "nameExisted": "Название шаблона уже существует",
+        "templateExisted": "Шаблон уже существует",
+        "templateNameTooLong": "Название шаблона слишком длинное",
+        "reportNameTooLong": "Название отчета слишком длинное",
         "button": {
-          "next": "Next",
-          "finish": "Save"
+          "next": "Следующий",
+          "finish": "Сохранять"
         },
 
         "steps": {
-          "basic": "Basic Information",
-          "template": "Interface Configuration",
-          "dataSource": "Data Source Configuration"
+          "basic": "Основная информация",
+          "template": "Конфигурация интерфейса",
+          "dataSource": "Конфигурация источника данных"
         },
         "templateConfig": {
           "message": {
-            "nextButtonClickConfirm": "Please confirm whether the dashboard configuration has been saved?"
+            "nextButtonClickConfirm": "Пожалуйста, подтвердите, сохранена ли конфигурация приборной панели?"
           }
         },
         "basicConfig": {
-          "title": "Basic Information",
+          "title": "Основная информация",
           "message": {
-            "createReportTemplateSuccess": "Test report template created successfully",
-            "updateReportTemplateSuccess": "Test report template updated successfully"
+            "createReportTemplateSuccess": "Шаблон отчета о тестировании успешно создан",
+            "updateReportTemplateSuccess": "Шаблон отчета об испытаниях успешно обновлен"
           },
           "form": {
             "name": {
-              "label": "Template Title",
-              "placeholder": "Please enter template title",
+              "label": "Название шаблона",
+              "placeholder": "Пожалуйста, введите название шаблона",
               "error": {
-                "required": "Template title is required",
-                "maxLength": "Template title can have a maximum of 25 characters"
+                "required": "Укажите название шаблона",
+                "maxLength": "Название шаблона может содержать максимум 25 символов"
               }
             }
           }
         },
         "dataSourceConfig": {
           "subtitle": {
-            "addDataSource": "Add Data Source",
-            "bindDataSource": "Report Data Source"
+            "addDataSource": "Добавить источник данных",
+            "bindDataSource": "Источник данных отчета"
           },
           "label": {
-            "plan": "Selected Test Plan",
-            "sprint": "Selected Iteration",
-            "version": "Selected Version",
-            "workspace": "Selected Workspace",
-            "currentWorkspace": "Current Workspace",
+            "plan": "Выбранный план тестирования",
+            "sprint": "Выбранная итерация",
+            "version": "Выбранная версия",
+            "workspace": "Выбранное рабочее пространство",
+            "currentWorkspace": "Текущая рабочая область",
 
-            "TestCase": "All Test Cases",
-            "TestRun": "All Test Runs",
-            "TestDefect": "All Defects"
+            "TestCase": "Все тестовые случаи",
+            "TestRun": "Все тестовые прогоны",
+            "TestDefect": "Все дефекты"
           },
-          "title": "Data Rule Configuration",
+          "title": "Конфигурация правил данных",
           "select": {
             "placeholders": {
-              "firstLevel": "Please select data source scope",
-              "secondLevel": "Please select data source scope"
+              "firstLevel": "Пожалуйста, выберите область источника данных",
+              "secondLevel": "Пожалуйста, выберите область источника данных"
             }
           },
           "message": {
-            "dataSourceConfigSaveSuccess": "Data source configuration saved successfully",
-            "addDataSourceSuccess": "Data source added successfully",
-            "deleteDataSourceSuccess": "Data source deleted successfully",
-            "dataSourceExisted": "This data source already exists"
+            "dataSourceConfigSaveSuccess": "Конфигурация источника данных успешно сохранена",
+            "addDataSourceSuccess": "Источник данных успешно добавлен",
+            "deleteDataSourceSuccess": "Источник данных успешно удален",
+            "dataSourceExisted": "Этот источник данных уже существует"
           },
           "button": {
-            "addDataSource": "Add"
+            "addDataSource": "Добавлять"
           },
           "table": {
             "title": {
-              "chartName": "Dashboard Widget",
-              "dataSource": "Data Source"
+              "chartName": "Виджет информационной панели",
+              "dataSource": "Источник данных"
             }
           }
         }
       }
     },
     "reportTemplateCreator": {
-      "creatorTitle": "Create Report Template",
-      "editorTitle": "Edit Test Report Template",
-      "nameExisted": "Template name already exists",
-      "templateExisted": "Template already exists",
-      "templateNameTooLong": "Template name is too long",
-      "reportNameTooLong": "Report name is too long",
+      "creatorTitle": "Создать шаблон отчета",
+      "editorTitle": "Редактировать шаблон отчета об испытаниях",
+      "nameExisted": "Название шаблона уже существует",
+      "templateExisted": "Шаблон уже существует",
+      "templateNameTooLong": "Название шаблона слишком длинное",
+      "reportNameTooLong": "Название отчета слишком длинное",
       "button": {
-        "next": "Next",
-        "finish": "Save"
+        "next": "Следующий",
+        "finish": "Сохранять"
       },
 
       "steps": {
-        "basic": "Basic Information",
-        "template": "Interface Configuration",
-        "dataSource": "Data Source Configuration"
+        "basic": "Основная информация",
+        "template": "Конфигурация интерфейса",
+        "dataSource": "Конфигурация источника данных"
       },
       "templateConfig": {
         "message": {
-          "nextButtonClickConfirm": "Please confirm whether the dashboard configuration has been saved?"
+          "nextButtonClickConfirm": "Пожалуйста, подтвердите, сохранена ли конфигурация приборной панели?"
         }
       },
       "basicConfig": {
-        "title": "Basic Information",
+        "title": "Основная информация",
         "message": {
-          "createReportTemplateSuccess": "Test report template created successfully",
-          "updateReportTemplateSuccess": "Test report template updated successfully"
+          "createReportTemplateSuccess": "Шаблон отчета о тестировании успешно создан",
+          "updateReportTemplateSuccess": "Шаблон отчета об испытаниях успешно обновлен"
         },
         "form": {
           "name": {
-            "label": "Template Name",
-            "placeholder": "Please enter template name",
-            "error": "Template name is required"
+            "label": "Имя Шаблона",
+            "placeholder": "Пожалуйста, введите название шаблона",
+            "error": "Укажите название шаблона"
           }
         }
       },
       "dataSourceConfig": {
         "subtitle": {
-          "addDataSource": "Add Data Source",
-          "bindDataSource": "Report Data Source"
+          "addDataSource": "Добавить источник данных",
+          "bindDataSource": "Источник данных отчета"
         },
         "label": {
-          "plan": "Selected Test Plan",
-          "sprint": "Selected Iteration",
-          "version": "Selected Version",
-          "workspace": "Selected Workspace",
-          "currentWorkspace": "Current Workspace",
-          "customDataSource": "Custom Data Source",
+          "plan": "Выбранный план тестирования",
+          "sprint": "Выбранная итерация",
+          "version": "Выбранная версия",
+          "workspace": "Выбранное рабочее пространство",
+          "currentWorkspace": "Текущий рабочий процесс",
+          "customDataSource": "Пользовательский источник данных",
 
-          "TestCase": "All Test Cases",
-          "TestRun": "All Test Runs",
-          "TestDefect": "All Defects"
+          "TestCase": "Все тестовые случаи",
+          "TestRun": "Все тестовые прогоны",
+          "TestDefect": "Все дефекты"
         },
-        "title": "Data Rule Configuration",
+        "title": "Конфигурация правил данных",
         "select": {
           "placeholders": {
-            "firstLevel": "Please select the data source scope",
-            "secondLevel": "Please select the data source scope"
+            "firstLevel": "Пожалуйста, выберите область источника данных",
+            "secondLevel": "Пожалуйста, выберите область источника данных"
           }
         },
         "message": {
-          "dataSourceConfigSaveSuccess": "Data source configuration saved successfully",
-          "addDataSourceSuccess": "Data source added successfully",
-          "deleteDataSourceSuccess": "Data source deleted successfully",
-          "dataSourceExisted": "The data source already exists"
+          "dataSourceConfigSaveSuccess": "Конфигурация источника данных успешно сохранена",
+          "addDataSourceSuccess": "Источник данных успешно добавлен",
+          "deleteDataSourceSuccess": "Источник данных успешно удален",
+          "dataSourceExisted": "Источник данных уже существует"
         },
         "button": {
-          "addDataSource": "Add"
+          "addDataSource": "Добавлять"
         },
         "table": {
           "title": {
-            "chartName": "Dashboard Widget",
-            "dataSource": "Data Source"
+            "chartName": "Виджет информационной панели",
+            "dataSource": "Источник данных"
           }
         }
       }
     },
     "plan": {
       "planPageLayout": {
-        "selectCaseModelTitle": "Step 1: Select associated test case",
-        "createExecutionModelTitle_one": "Step 2: Create new test execution task (selected {{count}} case)",
-        "createExecutionModelTitle_other": "Step 2: Create new test execution task (selected {{count}} cases)",
-        "testExecutionCreateLoading": "Test execution task is being created",
+        "selectCaseModelTitle": "Шаг 1. Выберите соответствующий тестовый пример",
+        "createExecutionModelTitle_one": "Шаг 2. Создайте новую задачу выполнения теста (выбран случай: {{count}})",
+        "createExecutionModelTitle_other": "Шаг 2. Создайте новую задачу выполнения теста (выбрано {{count}} случаев)",
+        "testExecutionCreateLoading": "Задача на выполнение теста создается",
         "executionList": {
-          "deleteTips": "This operation will delete the test execution task. do you want to continue?",
-          "deleteSuccess": "Test execution task deleted successfully",
-          "checkTask": " Check tasks",
-          "deleteTask": "Delete task"
+          "deleteTips": "Эта операция удалит задачу выполнения теста. Вы хотите продолжать?",
+          "deleteSuccess": "Задача выполнения теста успешно удалена",
+          "checkTask": " Проверить задачи",
+          "deleteTask": "Удалить задачу"
         },
         "executionStatus": {
-          "rate": "Pass rate"
+          "rate": "Проходной балл"
         },
         "left": {
-          "placeholder": "Please enter module name"
+          "placeholder": "Пожалуйста, введите название модуля"
         },
         "noData": {
-          "description": "No test execution tasks at this time"
+          "description": "В настоящее время нет задач по выполнению тестов"
         },
         "right": {
-          "showChild": "Show sub group",
-          "showCur": "Show current group",
-          "notSelectMessage": "No test case selected",
-          "createTestRunSuccessMessage": "Test case execution created successfully",
-          "caseToPlanSuccessMessage": "The test case has been successfully added to the test plan",
-          "caseSelectModelTitle": "Select a planned test case",
-          "createTestExecutionSuccessMessage": ["Test execution task", "created successfully"],
-          "createTestExecutionFailMessage": "Test execution of task new failure"
+          "showChild": "Показать подгруппу",
+          "showCur": "Показать текущую группу",
+          "notSelectMessage": "Тестовый набор не выбран",
+          "createTestRunSuccessMessage": "Выполнение тестового набора успешно создано",
+          "caseToPlanSuccessMessage": "Тестовый пример был успешно добавлен в план тестирования",
+          "caseSelectModelTitle": "Выберите запланированный тестовый пример",
+          "createTestExecutionSuccessMessage": ["Задача выполнения теста", "создано успешно"],
+          "createTestExecutionFailMessage": "Тестовое выполнение задачи, новый сбой"
         }
       },
       "testEntityList": {
-        "removeCaseMessage": "test cases were removed from the test plan",
-        "removeCaseTips": "This action will remove this test case from the test plan, do you want to continue",
-        "removeCaseTips1": "This action removes the selected test case from the test plan, do you want to continue",
-        "removeCaseTips2": "The current case has been associated with the test run task, and delete the test execution task association, do you want to continue",
-        "deleteRunTips": "This action will delete the selected test execution. do you want to continue?",
-        "deleteRunMessage": "Test case executions were deleted",
-        "updateAssigneeTips": "Test owners have been updated",
-        "repositoryGroup": "Belonging module",
-        "quoteCount": "Quote counts",
-        "executeCount": "Execution counts",
-        "runCount": "Quote counts",
-        "detailName": "Test case Title",
-        "runStatus": "Test execution status",
-        "executor": "Last action executor",
-        "designee": "Executor",
-        "assigneeSetting": "Set assignee",
-        "editorItemTips": "No item editing permission at the moment, please check the item operation permission configuration or contact the administrator",
-        "deleteItemTips": "No item deletion permission at the moment, please check the item operation permission configuration or contact the administrator",
-        "addItemTips": "No item add permission at the moment, please check the item operation permission configuration or contact the administrator",
-        "noCanUpdateRunStateTips": "The selected test execution cannot change execution status",
-        "updateRunStateTips": "Selected test execution status updated successfully",
-        "updateDesigneeStateTips": "The selected test executor has been successfully updated",
-        "notUpdateDesignee": "Cannot change executor of test case",
-        "updateDesignee": "Change executor",
-        "updateRunStatus": "Change execution status"
+        "removeCaseMessage": "тестовые случаи были удалены из плана тестирования",
+        "removeCaseTips": "Это действие удалит этот тестовый набор из плана тестирования. Продолжить",
+        "removeCaseTips1": "Это действие удаляет выбранный тестовый набор из плана тестирования. Продолжить",
+        "removeCaseTips2": "Текущий случай был связан с задачей запуска теста. Удалите ассоциацию с задачей выполнения теста. Продолжить",
+        "deleteRunTips": "Это действие приведет к удалению выбранного выполнения теста. Вы хотите продолжать?",
+        "deleteRunMessage": "Выполнение тестовых случаев было удалено",
+        "updateAssigneeTips": "Владельцы тестов обновлены",
+        "repositoryGroup": "Принадлежащий модуль",
+        "quoteCount": "Цитата имеет значение",
+        "executeCount": "Количество выполнений",
+        "runCount": "Цитата имеет значение",
+        "detailName": "Название тестового примера",
+        "runStatus": "Статус выполнения теста",
+        "executor": "Исполнитель последнего действия",
+        "designee": "Исполнитель",
+        "assigneeSetting": "Установить правопреемника",
+        "editorItemTips": "На данный момент нет разрешения на редактирование элемента, пожалуйста, проверьте конфигурацию разрешения на работу с элементом или свяжитесь с администратором",
+        "deleteItemTips": "На данный момент нет разрешения на удаление элемента, пожалуйста, проверьте конфигурацию разрешения на операцию с элементом или свяжитесь с администратором",
+        "addItemTips": "На данный момент нет разрешения на добавление элемента, пожалуйста, проверьте конфигурацию разрешения на работу с элементом или свяжитесь с администратором",
+        "noCanUpdateRunStateTips": "Выбранное выполнение теста не может изменить статус выполнения",
+        "updateRunStateTips": "Статус выполнения выбранного теста успешно обновлен",
+        "updateDesigneeStateTips": "Выбранный исполнитель теста успешно обновлен",
+        "notUpdateDesignee": "Невозможно изменить исполнителя тестового примера",
+        "updateDesignee": "Сменить исполнителя",
+        "updateRunStatus": "Изменить статус выполнения"
       }
     },
     "repository": {
-      "list": "List",
-      "minder": "Minder",
+      "list": "Список",
+      "minder": "Миндер",
       "folderTree": {
-        "placeholder": "Please enter a module name",
+        "placeholder": "Пожалуйста, введите название модуля",
         "inputNameValidatorMessage": [
-          "Module names cannot be repeated at the same level",
-          "Module name cannot be empty",
-          "Module name can be up to 30 character"
+          "Названия модулей не могут повторяться на одном уровне",
+          "Имя модуля не может быть пустым",
+          "Имя модуля может содержать до 30 символов"
         ],
-        "hierarchyTips": "Limit to 8 levels, no new submodules above 8 levels",
-        "createChildFolder": "New submodule",
-        "createChildFolderSuccess": " Submodule created successfully",
-        "renameFolder": "Rename module",
-        "renameFolderSuccess": "Module renaming as",
-        "deleteFolder": "Delete module",
+        "hierarchyTips": "Ограничение до 8 уровней, никаких новых подмодулей выше 8 уровней",
+        "createChildFolder": "Новый субмодуль",
+        "createChildFolderSuccess": " Подмодуль успешно создан",
+        "renameFolder": "Переименовать модуль",
+        "renameFolderSuccess": "Переименование модуля как",
+        "deleteFolder": "Удалить модуль",
         "deleteFolderTips": [
-          "Confirm delete",
-          "Module",
-          "The submodules under the module will be deleted together, and the test cases in the module will still be retained and automatically moved to ungrouped test cases"
+          "Подтвердите удаление",
+          "Модуль",
+          "Субмодули в модуле будут удалены вместе, а тестовые примеры в модуле по-прежнему будут сохранены и автоматически перемещены в несгруппированные тестовые примеры"
         ],
-        "deleteFolderSuccess": "Module deleted successfully",
+        "deleteFolderSuccess": "Модуль успешно удален",
         "caseCreateSuccessTips": [
-          "test cases was created successfully",
-          "test case",
-          "Created successfully"
+          "тестовые примеры успешно созданы",
+          "прецедент",
+          "Создано успешно"
         ],
-        "buttonName": ["Create Module", "Collapse all", "More"],
+        "buttonName": ["Создать модуль", "Свернуть все", "Более"],
         "dropCaseTips": [
-          "Test case moved successfully",
-          "Limit 8 levels, dragging is not allowed after more than 8 levels"
+          "Тестовый пример успешно перемещен",
+          "Ограничить 8 уровней, перетаскивание не разрешено после более чем 8 уровней"
         ]
       },
       "menu": {
         "menusName": [
-          "New submodule",
-          "Rename",
-          "Delete",
-          "Expand",
-          "New test case",
-          "Import test case",
-          "View test case"
+          "Новый субмодуль",
+          "Переименовать",
+          "Удалить",
+          "Расширять",
+          "Новый тестовый пример",
+          "Импортировать тестовый пример",
+          "Посмотреть тестовый пример"
         ]
       },
       "repoDropDown": {
         "MenuItem": [
-          "Test case import",
-          "Test case import template download",
-          "Test case import from workspace",
-          "Test case export (all groups)",
-          "Test case export (current group)",
-          "Test case export (current groups)",
-          "Test case export (current plan)",
-          "Test case export (filter result)"
+          "Импорт тестового примера",
+          "Загрузка шаблона импорта тестового примера",
+          "Импорт тестового примера из рабочей области",
+          "Экспорт тестовых примеров (все группы)",
+          "Экспорт тестового примера (текущая группа)",
+          "Экспорт тестового примера (текущие группы)",
+          "Экспорт тестовых примеров (текущий план)",
+          "Экспорт тестового примера (результат фильтра)"
         ],
-        "importCaseSuccess": "Test management test case export complete",
-        "importCaseWarning": "No test case repository is selected, please select the test case repository to be exported first",
-        "importCaseLoading": "Exporting test management test cases",
-        "importPlanLinkCase": "Exporting test plan linked cases",
-        "importRepoCase": "Test management case library export",
-        "pleaseEnterContent": "Please enter content",
-        "excelName": "Test management import template",
+        "importCaseSuccess": "Экспорт тестового набора управления тестированием завершен",
+        "importCaseWarning": "Репозиторий тестовых наборов не выбран. Сначала выберите репозиторий тестовых наборов для экспорта",
+        "importCaseLoading": "Экспорт тестовых примеров управления тестированием",
+        "importPlanLinkCase": "Экспорт случаев, связанных с планом тестирования",
+        "importRepoCase": "Экспорт библиотеки кейсов управления тестированием",
+        "pleaseEnterContent": "Пожалуйста, введите содержание",
+        "excelName": "Шаблон импорта управления тестированием",
+        "creatingTestCase": "Тестовый пример создается",
+        "createTestCaseFail": "Не удалось создать тестовый набор",
+        "createTestCaseSuccess": "Тестовый пример успешно создан",
         "excelContent": {
-          "group": "group1/group2",
-          "name": "Test case name (sample data, please delete this data when executing the test case import)",
-          "itemType": "Test Case",
-          "priority": "Priority can fill in the value range: highest, higher, normal, lower, lowest",
-          "precondition": "Test case preconditions",
-          "assignee": "assignee",
-          "step": "【1】need to start with [serial number]\n【2】Line breaks in the step description will be preserved",
-          "result": "【1】need to start with [serial number]\n【2】The newline characters in the expected result will be preserved",
-          "data": "【1】need to start with [serial number]\n【2】Newline characters in the data will be preserved"
+          "group": "группа1/группа2",
+          "name": "Имя тестового примера (пример данных, удалите эти данные при выполнении импорта тестового примера)",
+          "itemType": "Прецедент",
+          "priority": "Приоритет может заполнять диапазон значений: самый высокий, высший, нормальный, низший, низший",
+          "precondition": "Предварительные условия тестового примера",
+          "assignee": "правопреемник",
+          "step": "【1】нужно начинать с [серийный номер]\n【2】Разрывы строк в описании шага будут сохранены",
+          "result": "【1】нужно начинать с [серийный номер]\n【2】Символы новой строки в ожидаемом результате будут сохранены",
+          "data": "【1】нужно начинать с [серийный номер]\n【2】Символы новой строки в данных будут сохранены"
         },
         "excelExportTitle": {
-          "group": "group",
-          "name": "name",
-          "itemType": "itemType",
-          "priority": "priority",
-          "precondition": "precondition",
-          "step": "step",
-          "result": "result",
-          "data": "data",
-          "status": "execution status",
-          "testPlan": "testPlan",
-          "assignee": "assignee",
-          "executor": "executor"
+          "group": "группа",
+          "name": "имя",
+          "itemType": "тип вещи",
+          "priority": "приоритет",
+          "precondition": "предварительное условие",
+          "step": "шаг",
+          "result": "результат",
+          "data": "данные",
+          "status": "статус выполнения",
+          "testPlan": "тестПлан",
+          "assignee": "правопреемник",
+          "executor": "исполнитель"
         },
-        "todo": "Todo",
-        "fontName": "Times new roman "
+        "todo": "Делать",
+        "fontName": "Таймс новый роман "
       },
       "view": {
         "list": {
-          "actionConfirm": [
-            "This action will delete the selected test case, do you want to continue?",
-            "This action will delete the current test case, do you want to continue?"
-          ],
-          "deleteCaseSuccess": "{{count}} test case have been deleted",
-          "deleteCaseSuccess_other": "{{count}} test cases have been deleted",
-          "batchItemLink": "Batch item link",
-          "deleteCaseMessageSuccess": "Test case deleted successfully",
-          "copyCaseMessageSuccess": "Test case copy successfully",
-          "dropCaseToGroup": "Drag to test case group"
+          "multipleDeleteCase": "Это действие удалит выбранный тестовый пример. Продолжить?",
+          "deleteCase": "Это действие удалит текущий тестовый пример. Продолжить?",
+          "deleteCaseSuccess": "{{count}} тестовый пример был удален",
+          "deleteCaseSuccess_other": "{{count}} тестовых случаев были удалены",
+          "batchItemLink": "Ссылка на пакетный элемент",
+          "deleteCaseMessageSuccess": "Тестовый пример успешно удален",
+          "copyCaseMessageSuccess": "Тестовый пример скопирован успешно",
+          "dropCaseToGroup": "Перетащите в группу тестовых случаев"
         },
         "minder": {
-          "dataError": "Data error",
-          "nameRepeat": ["Save fail, modules", "with the same module name"],
-          "overMaxLevelModulePath": "The module has exceeded the maximum level limit, please modify it before saving",
-          "updateDataSuccess": "Data updated successfully",
-          "saveFail": "Save failed",
-          "export": "Export XMind",
-          "import": "Import XMind",
-          "exportLoadingMessage": "XMind exporting",
-          "waitForMinderDataLoading": "Please wait for data loading before export",
+          "dataError": "Ошибка данных",
+          "nameRepeat": ["Сохранение не удалось, модули", "с тем же именем модуля"],
+          "overMaxLevelModulePath": "Модуль превысил максимальный уровень, измените его перед сохранением",
+          "updateDataSuccess": "Данные успешно обновлены",
+          "saveFail": "Сохранить не удалось",
+          "export": "Экспорт XMind",
+          "import": "Импортировать XMind",
+          "exportLoadingMessage": "XMind экспорт",
+          "waitForMinderDataLoading": "Пожалуйста, дождитесь загрузки данных перед экспортом",
           "maxRenderNodeConfirm": {
-            "title": "Prompt",
-            "content": "There are too many nodes in the current use case library group. The mind map page load time is too long. It is recommended to switch to the sub-group to view or return to the list page. Please confirm whether to continue loading?",
-            "next": "Continue",
-            "cancel": "Cancel",
-            "goBack": "Return to list page"
+            "title": "Быстрый",
+            "content": "В текущей группе библиотек вариантов использования слишком много узлов. Время загрузки страницы интеллект-карты слишком велико. Рекомендуется переключиться на подгруппу для просмотра или вернуться на страницу списка. Пожалуйста, подтвердите, продолжать ли загрузку?",
+            "next": "Продолжать",
+            "cancel": "Отмена",
+            "goBack": "Вернуться на страницу списка"
           },
-          "hasExistedError": "The current mind map data has errors. Please fix it and try again."
+          "hasExistedError": "Текущие данные интеллект-карты содержат ошибки. Пожалуйста, исправьте это и попробуйте еще раз."
         }
       }
     },
     "xMindImport": {
-      "title": "Import XMind",
+      "title": "Импортировать XMind",
       "step": {
-        "upload": "Upload",
-        "validate": "Validate",
-        "result": "Result"
+        "upload": "Загрузить",
+        "validate": "Подтвердить",
+        "result": "Результат"
       },
       "button": {
-        "nextStep": "Next step",
-        "save": "Save",
-        "close": "close"
+        "nextStep": "Следующий шаг",
+        "save": "Сохранять",
+        "close": "закрывать"
       },
       "draftEditorStep": {
-        "lawyerErrorMessage": "The node type is not compliant. The parent node type of the current node should be {{nodeTypeName}}",
-        "maxLevelErrorMessage": "The module node level exceeds the maximum limit. The maximum level limit is 8",
-        "nodeTextMaxLengthErrorMessage": "Node content exceeds the maximum limit. The maximum limit is {{length}}",
-        "duplicateErrorMessage": "Module name is duplicated in the same level",
-        "nodeUnsetErrorMessage": "The node type is not set",
-        "hasExistedError": "The current data node import error, please try again after correction"
+        "lawyerErrorMessage": "Тип узла не соответствует требованиям. Тип родительского узла текущего узла должен быть {{nodeTypeName}}",
+        "maxLevelErrorMessage": "Уровень узла модуля превышает максимальный предел. Максимальный предел уровня - 8",
+        "nodeTextMaxLengthErrorMessage": "Содержимое узла превышает максимальный предел. Максимальный предел — {{длина}}",
+        "duplicateErrorMessage": "Название модуля дублируется на одном уровне",
+        "nodeUnsetErrorMessage": "Тип узла не установлен",
+        "hasExistedError": "Текущая ошибка импорта узла данных. Повторите попытку после исправления"
       },
       "uploadStep": {
-        "importLocation": "Import Location",
+        "importLocation": "Импортировать местоположение",
         "uploader": {
-          "text": "Click or drag file to this area to upload",
-          "hint": "Please upload an XMind file with no more than 1000 cases to avoid upload failure"
+          "text": "Нажмите или перетащите файл в эту область, чтобы загрузить",
+          "hint": "Пожалуйста, загрузите файл XMind, содержащий не более 1000 случаев, чтобы избежать сбоя при загрузке"
         },
-        "importTips": "Import Tips",
-        "noPermissionTip": "No permission to import test cases in current workspace",
-        "includeRootTip": "The file will be imported into the current mind, and you can set whether to import the root node",
-        "importIncludeRoot": "Import Root Node",
-        "typeTip": "Nodes using the system-defined module/test case/precondition/step tags will be recognized",
-        "typeExample": "Node type examples",
-        "levelTip": "The level of the module in the XMind file plus the grouping level of the current mind cannot exceed 8 levels",
-        "countLimitTip": "Up to 1000 cases can be imported at a time",
-        "downloadTemplate": "Download Template"
+        "importTips": "Советы по импорту",
+        "noPermissionTip": "Нет разрешения на импорт тестовых примеров в текущей рабочей области",
+        "includeRootTip": "Файл будет импортирован в текущий разум, и вы сможете указать, следует ли импортировать корневой узел",
+        "importIncludeRoot": "Импортировать корневой узел",
+        "typeTip": "Узлы, использующие определяемые системой теги модуля/тестового примера/предварительного условия/шага, будут распознаваться",
+        "typeExample": "Примеры типов узлов",
+        "levelTip": "Уровень модуля в файле XMind плюс уровень группировки текущего разума не может превышать 8 уровней",
+        "countLimitTip": "Одновременно можно импортировать до 1000 случаев",
+        "downloadTemplate": "Скачать шаблон"
       },
       "resultStep": {
-        "hint": "Saving data, please wait",
+        "hint": "Идет сохранение данных, пожалуйста, подождите",
         "stats": {
-          "label": "Data Statistics:",
-          "count": ["Total", "cases"]
+          "label": "Статистика данных:",
+          "count": ["Общий", "случаи"]
         },
-        "success": "Imported successfully",
-        "redirectRepositoryPage": "Redirect to repository page"
+        "success": "Импортирован успешно",
+        "redirectRepositoryPage": "Перенаправление на страницу репозитория"
       }
     }
   },
   "modules": {
     "BeforeCreateOrUpdateModal": {},
     "panel": {
-      "resultTitle": "The current type does not exist in the test management type association configuration",
+      "resultTitle": "Текущий тип не существует в конфигурации ассоциации типов управления тестированием",
       "resultSubTitle": [
-        "Please go to",
-        "System settings",
-        "Plugins",
-        "Test management configuration",
-        "Page, select the type associated configuration to configure"
+        "Пожалуйста, перейдите в",
+        "Настройки системы",
+        "Плагины",
+        "Конфигурация управления тестированием",
+        "Страница, выберите тип связанной конфигурации для настройки"
       ],
       "testDetail": {
-        "detail": "Details",
+        "detail": "Подробности",
         "testDetailPanel": {
-          "detailTips": "Can't get",
-          "refreshButton": "Reload",
-          "testStepTips": ["Current test case Inheritance", "Test Cases"]
+          "detailTips": "Не могу получить",
+          "refreshButton": "Перезагрузить",
+          "testStepTips": ["Текущий тестовый пример Наследование", "Тестовые случаи"]
         },
         "testPlanPanel": {
-          "menuList": ["Existing test plan", "New test plan"],
-          "addCaseSuccessMessage": "The current test case is added to the test plan",
-          "addPlanSuccessMessage": ["Test plan", "Created successfully"],
-          "deleteCaseSuccessMessage": "The current test case is removed from the test plan",
-          "planStatus": "Test plan status",
-          "planCount": "Number of test cases",
-          "modelTitle": "Add the current test case to the selected test plan",
-          "dropButton": "Add to test plan"
+          "menuList": ["Существующий план тестирования", "Новый план испытаний"],
+          "addCaseSuccessMessage": "Текущий тестовый набор добавлен в план тестирования",
+          "addPlanSuccessMessage": ["План испытаний", "Создано успешно"],
+          "deleteCaseSuccessMessage": "Текущий тестовый набор удален из плана тестирования",
+          "planStatus": "Статус плана тестирования",
+          "planCount": "Количество тестовых случаев",
+          "modelTitle": "Добавьте текущий тестовый набор в выбранный план тестирования",
+          "dropButton": "Добавить в план тестирования"
         },
         "testRunPanel": {
-          "runRoundTips": "The run of this test case consists of the following execution rounds",
-          "runStatus": "TestRun status",
-          "popConfirmTips": "The current operation will remove the test execution, continue to execute? ",
-          "addTestExecution": "New test execution task",
-          "tooltip": "The test case runs are comprised of the following execution cycles"
+          "runRoundTips": "Выполнение этого тестового примера состоит из следующих раундов выполнения",
+          "runStatus": "Статус выполнения теста",
+          "popConfirmTips": "Текущая операция отменит выполнение теста, продолжить выполнение? ",
+          "addTestExecution": "Новая задача выполнения теста",
+          "tooltip": "Выполнение тестовых примеров состоит из следующих циклов выполнения"
         },
         "historyRunPanel": {
-          "runRecord": "Execution Record",
-          "onlyShowLatelyRun": "Show only latest executions",
-          "runTip": "When checked, only the latest execution results of the current use case in each test plan will be displayed.",
-          "latestExecutionStatus": "Latest execution status",
-          "executeTime": "execution time"
+          "runRecord": "Отчет о выполнении",
+          "onlyShowLatelyRun": "Показать только последние исполнения",
+          "runTip": "Если этот флажок установлен, в каждом плане тестирования будут отображаться только последние результаты выполнения текущего варианта использования.",
+          "latestExecutionStatus": "Последний статус выполнения",
+          "executeTime": "время исполнения"
         }
       },
       "testExecution": {
         "testDetailPanel": {
-          "itemKey": "Item key",
-          "itemName": "Item name",
-          "runStatus": "execution state",
-          "existingTestCase": "Existing test cases",
-          "assCaseToExecution": "Add test case to current test execution",
-          "addCase": "Add test case"
+          "itemKey": "Ключ элемента",
+          "itemName": "Имя элемента",
+          "runStatus": "состояние выполнения",
+          "existingTestCase": "Существующие тестовые примеры",
+          "assCaseToExecution": "Добавить тестовый пример к текущему выполнению теста",
+          "addCase": "Добавить тестовый пример"
         }
       },
       "testPlan": {
         "testDetailPanel": {
-          "modelTitle": ["New test execution task (selected", "article test case)"],
-          "addCaseToPlanSuccess": "test cases added to the test plan",
+          "modelTitle": ["Новая задача выполнения теста (выбрана", "тест-кейс статьи)"],
+          "addCaseToPlanSuccess": "тестовые случаи добавлены в план тестирования",
           "addCaseToPlanSuccessTips": [
-            "Test cases have been added to the test plan",
-            "Test case",
-            "has been added to the test plan"
+            "Тестовые случаи добавлены в план тестирования",
+            "Прецедент",
+            "добавлен в план тестирования"
           ],
-          "removeCaseFromPlanSuccess": "test cases were removed from the test plan",
-          "executionCount": "Executed tasks",
-          "executionTips": "This test case is executed in the following task",
-          "selectCaseModelTitle": "Add test case to current test plan",
-          "addTestCase": "Add test case"
+          "removeCaseFromPlanSuccess": "тестовые случаи были удалены из плана тестирования",
+          "executionCount": "Выполненные задачи",
+          "executionTips": "Этот тестовый пример выполняется в следующей задаче",
+          "selectCaseModelTitle": "Добавить тестовый набор в текущий план тестирования",
+          "addTestCase": "Добавить тестовый пример"
         },
         "testExecutionPanel": {
-          "addRunToPlanSuccess": "Test executions added to the test plan",
-          "deleteRunToPlanSuccess": "Test executions were removed from the test plan",
-          "modelTitle": "Associated test execution",
-          "addTestExecution": "Add test execution task",
-          "notSelectMessage": "No test execution selected"
+          "addRunToPlanSuccess": "Выполнение тестов добавлено в план тестирования",
+          "deleteRunToPlanSuccess": "Выполнения тестов были удалены из плана тестирования",
+          "modelTitle": "Выполнение связанного теста",
+          "addTestExecution": "Добавить задачу выполнения теста",
+          "notSelectMessage": "Выполнение теста не выбрано"
         }
       }
     }
@@ -813,252 +817,255 @@
   "trigger": {
     "importer": {
       "validate": {
-        "No": "No. ",
-        "case": "Test case",
-        "itemType": "itemType",
-        "numberValidate": "Single import supports up to 1000 entries, over 1000, import the first 1000 entries",
+        "No": "Нет. ",
+        "case": "Прецедент",
+        "itemType": "тип вещи",
+        "numberValidate": "Одиночный импорт поддерживает до 1000 записей, более 1000 — импортируйте первые 1000 записей",
         "validateErrors": [
-          "The title of the test case is empty, and the title of the test case is required and will not be imported",
-          "The number of levels of the group to which the article belongs exceeds the limit, the group to which the article belongs can only import 8 levels and will not be imported",
-          "The number of characters in the group to which the article belongs exceeds 100 characters, it will not be imported",
-          "The number of characters in the precondition of the entry exceeds the limit, the precondition is limited to 2000 characters and will not be imported",
-          "Incorrectly formatted step description for article, not imported",
-          "Article step description exceeds limit,the step description limit 2000 characters are not imported",
-          "The expected result is in the wrong format and will not be imported",
-          "Article expected result exceeds limit,the expected result limit 2000 characters are not imported",
-          "The data format of the article is wrong, it will not be imported",
-          "Article data exceeds limit, data limit 2000 characters are not imported",
-          "Item type association is not configured, all data will not be imported, please configure the associated item type first"
+          "Заголовок тестового примера пуст, а заголовок тестового примера является обязательным и не будет импортирован",
+          "Количество уровней группы, к которой принадлежит статья, превышает лимит, группа, к которой принадлежит статья, может импортировать только 8 уровней и не будет импортирована",
+          "Количество символов в группе, к которой принадлежит статья, превышает 100 символов, она не будет импортирована",
+          "Количество символов в предварительном условии записи превышает лимит, предварительное условие ограничено 2000 символами и не будет импортировано",
+          "Неверно отформатированное описание шага для статьи, не импортировано",
+          "Описание шага статьи превышает лимит, ограничение в 2000 символов не импортируется",
+          "Ожидаемый результат имеет неверный формат и не будет импортирован",
+          "Ожидаемый результат статьи превышает лимит, лимит ожидаемого результата в 2000 символов не импортируется",
+          "Неверный формат данных статьи, она не будет импортирована",
+          "Данные статьи превышают лимит, лимит данных в 2000 символов не импортируется",
+          "Ассоциация типа элемента не настроена, все данные не будут импортированы, сначала настройте связанный тип элемента"
         ]
       }
     },
     "web": {
       "report": {
-        "defectStatusAnalysis": "Defect status analysis",
-        "defectSeverityTable": "Defect severity statistics table",
-        "severity": "Severity",
-        "severityValue": ["Serious", "Generally", "Small", "Suggestion"],
-        "defectCount": "Number of defects",
-        "defectChart": "Defect convergence trend graph",
-        "none": "No",
-        "canceled": "Canceled"
+        "defectStatusAnalysis": "Анализ статуса дефекта",
+        "defectSeverityTable": "Таблица статистики серьезности дефектов",
+        "severity": "Строгость",
+        "severityValue": ["Серьезный", "В целом", "Маленький", "Предположение"],
+        "defectCount": "Количество дефектов",
+        "defectChart": "График тенденции конвергенции дефектов",
+        "none": "Нет",
+        "canceled": "Отменено"
       },
       "script": {
-        "defectStatist": "Defect statistics",
+        "defectStatist": "Статистика дефектов",
         "defectChartName": [
-          "Defect status distribution",
-          "Defect list",
-          "Defect priority distribution",
-          "New defect trend",
-          "Defect owner distribution"
+          "Распределение статусов дефектов",
+          "Список дефектов",
+          "Распределение приоритетов дефектов",
+          "Новая тенденция дефектов",
+          "Распределение владельцев дефектов"
         ],
-        "testRunStatist": "Test case execution statistics",
-        "testRunChartName": ["Execution pass rate", "Test case priority distribution"],
+        "testRunStatist": "Статистика выполнения тест-кейсов",
+        "testRunChartName": ["Процент прохождения выполнения", "Распределение приоритетов тестовых примеров"],
         "huishangWorkflowMessage": [
-          "No test case associated",
-          "No test execution task",
-          "All test execution tasks must",
-          "Test plan status does not belong to",
-          "There are unexecuted test cases, please perform state transition after execution"
+          "Ни один тестовый пример не связан",
+          "Нет задачи выполнения теста",
+          "Все задачи выполнения теста должны",
+          "Статус плана тестирования не принадлежит",
+          "Имеются невыполненные тестовые примеры. После выполнения выполните переход состояния"
         ],
         "shenwanWorkflowMessage": [
-          "Under the test plan",
-          "Test cases failed, please execute the pass and proceed with the state flow"
-        ]
+          "По плану испытаний",
+          "Тестовые примеры не пройдены, выполните проход и продолжите поток состояний"
+        ],
+        "checkDuplicateCase": {
+          "caseTooMany": "В текущей области слишком много вариантов использования, сузьте область запроса"
+        }
       }
     },
-    "copyName": "copy"
+    "copyName": "копировать"
   },
   "components": {
     "business": {
       "panelTable": {
-        "selectConfirmTips": ["Current operation will", " selected data, continue operation?"],
-        "itemDeleted": "Item has been deleted",
-        "newRunStatus": "Latest Execution status",
-        "select": "Selected"
+        "selectConfirmTips": ["Текущая операция будет", " выбранные данные, продолжить работу?"],
+        "itemDeleted": "Элемент был удален",
+        "newRunStatus": "Статус последнего выполнения",
+        "select": "Выбрано"
       },
       "repositorySelector": {
-        "copyCase": "Copy test case",
-        "choiceRepository": "Select test case repository",
-        "choiceGroup": "Select module",
-        "emptyDesc": "The current test case repository does not create a test case module"
+        "copyCase": "Скопировать тестовый пример",
+        "choiceRepository": "Выберите репозиторий тестовых примеров",
+        "choiceGroup": "Выберите модуль",
+        "emptyDesc": "Текущий репозиторий тестовых наборов не создает модуль тестовых наборов"
       },
       "repositorySelectorField": {
-        "placeholder1": "Please enter module keywords to search",
-        "placeholder2": "Please select the module to which the test case belongs, if it is empty, it will be ungrouped by default"
+        "placeholder1": "Пожалуйста, введите ключевые слова модуля для поиска",
+        "placeholder2": "Пожалуйста, выберите модуль, к которому принадлежит тестовый пример. Если он пуст, он будет разгруппирован по умолчанию"
       },
       "status": {
-        "total": "Total"
+        "total": "Общий"
       },
       "statusProcessBar": {
-        "caseCount": "Total number of test cases"
+        "caseCount": "Общее количество тестовых случаев"
       },
       "testEntitySelectorModal": {
-        "modelTip": "Please enter and select an existing one from the list",
-        "notFound": "No relevant query found",
-        "selected": "Selected",
-        "case": "Test case",
-        "pleaseSelect": "please select",
-        "selectRepository": "Select test case repository",
-        "selectRepositoryTips": "Only the test case repository that currently has permission can be selected",
-        "searchGroup": "Search repository",
-        "addTimeSort": "Creation time sort",
-        "earliest": "Earliest",
-        "latest": "Latest",
-        "itemDeleted": "Item was deleted",
-        "noLinkItem": "The current directory is not associated with a test case",
-        "notHaveCase": "There are no test cases in the current test case repository"
+        "modelTip": "Пожалуйста, введите и выберите существующий из списка",
+        "notFound": "Соответствующий запрос не найден",
+        "selected": "Выбрано",
+        "case": "Прецедент",
+        "pleaseSelect": "пожалуйста выберите",
+        "selectRepository": "Выберите репозиторий тестовых примеров",
+        "selectRepositoryTips": "Можно выбрать только тот репозиторий тестовых примеров, у которого в данный момент есть разрешение",
+        "searchGroup": "Поиск в репозитории",
+        "addTimeSort": "Сортировка по времени создания",
+        "earliest": "Самый ранний",
+        "latest": "Последний",
+        "itemDeleted": "Элемент был удален",
+        "noLinkItem": "Текущий каталог не связан с тестовым примером",
+        "notHaveCase": "В текущем репозитории тестовых наборов нет тестовых примеров"
       },
       "testManagerProvider": {
-        "tips": "Tips",
-        "notHaveTestTypeTips": "The workspace to which the item belongs is not configured with the test management association type",
-        "saveFailTips": "This workspace has been configured to inoperable cross-workspace [item type] data, and items not in this workspace failed to save",
-        "notCreateCase": "The workspace to which the entity belongs cannot be created, please select another workspace item to create",
-        "typeUnmatched": "New type does not match created test type"
+        "tips": "Советы",
+        "notHaveTestTypeTips": "Рабочая область, к которой принадлежит элемент, не настроена с типом ассоциации управления тестированием",
+        "saveFailTips": "Это рабочее пространство настроено на неработоспособные данные [тип элемента] в разных рабочих пространствах, и элементы, не входящие в это рабочее пространство, не удалось сохранить",
+        "notCreateCase": "Невозможно создать рабочую область, к которой принадлежит объект. Выберите другой элемент рабочей области для создания",
+        "typeUnmatched": "Новый тип не соответствует созданному типу теста"
       },
       "testPlanList": {
-        "deleteLinkTips": "This operation will delete the test plan and the test cases associated with the test plan. do you want to continue? ",
-        "deletePlanSuccess": "Test plan deleted successfully",
-        "addPlanSuccess": "The test plan was created successfully",
-        "planName": "Program name",
-        "deleteTestPlan": "Delete test plan",
-        "checkTestPlan": " View test plan",
-        "caseStatus": "Case status",
-        "planCaseCount": "Count case",
-        "addTestPlan": "New test plan"
+        "deleteLinkTips": "Эта операция удалит план тестирования и тестовые наборы, связанные с ним. Вы хотите продолжать? ",
+        "deletePlanSuccess": "План тестирования успешно удален",
+        "addPlanSuccess": "План тестирования успешно создан",
+        "planName": "Название программы",
+        "deleteTestPlan": "Удалить план тестирования",
+        "checkTestPlan": " Посмотреть план тестирования",
+        "caseStatus": "Статус дела",
+        "planCaseCount": "Считать регистр",
+        "addTestPlan": "Новый план испытаний"
       },
       "testPlanSelector": {
-        "placeholder": "Please enter a search keywords",
-        "desc": "No Data",
-        "checkAllPlan": "View all plans"
+        "placeholder": "Пожалуйста, введите ключевые слова для поиска",
+        "desc": "Нет данных",
+        "checkAllPlan": "Посмотреть все планы"
       },
       "testRunModal": {
         "addDefectButton": {
-          "createDefectSuccess": "Defect created successfully",
-          "addDefectSuccess": "Defect added successfully",
-          "addExistingDefect": "Add existing defects",
-          "createDefect": "Create defect",
-          "addDefect": "Add defect",
-          "modelTitle": "Please select a test defect"
+          "createDefectSuccess": "Дефект успешно создан",
+          "addDefectSuccess": "Дефект успешно добавлен",
+          "addExistingDefect": "Добавить существующие дефекты",
+          "createDefect": "Создать дефект",
+          "addDefect": "Добавить дефект",
+          "modelTitle": "Пожалуйста, выберите тестовый дефект"
         },
         "attachmentUpload": {
-          "selectFile": "Please select an attachment",
-          "download": "Download",
-          "actionTips": "This operation will remove the attachment from the test case, do you want to continue? ",
-          "noData": " The current test execution has no attached data",
-          "uploadTips": "Size cannot exceed ",
-          "uploadFile": "Upload Attachment"
+          "selectFile": "Пожалуйста, выберите вложение",
+          "download": "Скачать",
+          "actionTips": "Эта операция удалит вложение из тестового набора. Продолжить? ",
+          "noData": " Текущее выполнение теста не имеет прикрепленных данных",
+          "uploadTips": "Размер не может превышать ",
+          "uploadFile": "Загрузить вложение"
         },
         "defectList": {
-          "notLintDefect": "The current test execution has no associated defects",
-          "noPermission": "The current user have not permission",
-          "removeTips": ["Please step in", "Remove the defect"],
-          "deleteButtonTips": "The current operation deletes the association with the defect, do you want to continue?",
-          "global": "Global",
-          "step": "Step "
+          "notLintDefect": "Текущее выполнение теста не имеет связанных дефектов",
+          "noPermission": "Текущий пользователь не имеет разрешения",
+          "removeTips": ["Пожалуйста, вступите", "Устранить дефект"],
+          "deleteButtonTips": "Текущая операция удаляет связь с дефектом. Продолжить?",
+          "global": "Глобальный",
+          "step": "Шаг "
         },
         "executionEditor": {
-          "stepDesc": "Step overview"
+          "stepDesc": "Обзор шагов"
         },
         "testComment": {
-          "noData": "The current test case has no comment data",
-          "editorComment": "Write a review"
+          "noData": "Текущий тестовый пример не имеет данных комментариев",
+          "editorComment": "Написать обзор"
         },
         "testRun": {
           "tabsTitle": [
-            "Test case steps",
-            "Execution result description",
-            "Defect",
-            "Related matters",
-            "Attached"
+            "Шаги тестового примера",
+            "Описание результата выполнения",
+            "Дефект",
+            "Связанные вопросы",
+            "Прикрепил"
           ],
-          "runTips": "The current test execution is the last one, and all test executions have been executed",
-          "runSuccessMessage": "Automatically switch to the next test execution",
-          "runNext": "Execute the next",
-          "autoNext": "Auto switch to the next article",
-          "autoNextTips": "When the test execution status changes to pass, automatically switch to the next test execution",
-          "panelTitle": ["Preconditions", "Test execution details"]
+          "runTips": "Текущее выполнение теста является последним, и все выполнения тестов уже выполнены",
+          "runSuccessMessage": "Автоматически переходить к следующему выполнению теста",
+          "runNext": "Выполните следующий",
+          "autoNext": "Автоматический переход к следующей статье",
+          "autoNextTips": "Когда статус выполнения теста изменится на «Пройден», автоматически переключится на следующее выполнение теста",
+          "panelTitle": ["Предварительные условия", "Подробности выполнения теста"]
         },
         "testStep": {
-          "noSteps": "The current testRun not have test case steps",
-          "step": "Step",
-          "stepResult": "Step Result",
-          "expect": "Expected",
-          "result": "Result",
-          "resultPlaceholder": "Please enter result",
-          "data": "Data",
-          "defect": "Defect"
+          "noSteps": "Текущий testRun не содержит шагов тестового примера",
+          "step": "Шаг",
+          "stepResult": "Шаг Результат",
+          "expect": "Ожидал",
+          "result": "Результат",
+          "resultPlaceholder": "Пожалуйста, введите результат",
+          "data": "Данные",
+          "defect": "Дефект"
         }
       },
       "testStep": {
-        "stepField": ["Step", "Expected", "Data"],
-        "hasCircularInheritance": "The test case: [${testCaseName}] has a circular inheritance",
-        "notInheritCase": "Cannot inherit this test case",
-        "modelTitle": "Please select inheritance test case",
-        "addStep": "Add steps",
-        "inheritCase": " Inheritance test case",
-        "pleaseInput": "Please enter",
-        "switchNext": "Alt + Enter toggle next column",
-        "caseInherit": "Test case Inheritance",
-        "stepTotal": ["Total", "Steps"],
-        "copyStep": " Copy steps",
-        "copyStepTips": "The current action will copy the test case steps, do you want to continue? ",
-        "deleteStep": "Delete step",
-        "deleteStepTips": "The current action will delete the test case step, do you want to continue? "
+        "stepField": ["Шаг", "Ожидал", "Данные"],
+        "hasCircularInheritance": "Тестовый пример: [${testCaseName}] имеет циклическое наследование",
+        "notInheritCase": "Невозможно наследовать этот тестовый пример",
+        "modelTitle": "Пожалуйста, выберите тестовый пример наследования",
+        "addStep": "Добавить шаги",
+        "inheritCase": " Тестовый пример наследования",
+        "pleaseInput": "Пожалуйста входите",
+        "switchNext": "Alt + Enter переключить следующий столбец",
+        "caseInherit": "Тестовый пример Наследование",
+        "stepTotal": ["Общий", "Шаги"],
+        "copyStep": " Копировать шаги",
+        "copyStepTips": "Текущее действие скопирует шаги тестового примера. Продолжить? ",
+        "deleteStep": "Удалить шаг",
+        "deleteStepTips": "Текущее действие приведет к удалению шага тестового примера. Продолжить? "
       }
     },
     "common": {
       "businessTable": {
-        "columnSetting": ["Test management Fields", "Item Field"],
-        "setHeader": "Table head configuration",
-        "tableSetting": "Set columns",
-        "headerSetting": "Table header settings",
-        "restoreDefault": "Reset",
-        "actionTips": "Configurable table header column content and sorting, list search box default search items, up to four search item",
-        "placeholder": "Please select the columns to display",
-        "searchWarningMessage": "No more than 4 table search items can be configured",
-        "removeSearch": "Remove search item",
-        "addSearch": " Add search item",
-        "checkAllPages": "Select all"
+        "columnSetting": ["Поля управления тестированием", "Поле элемента"],
+        "setHeader": "Конфигурация головки стола",
+        "tableSetting": "Установить столбцы",
+        "headerSetting": "Установить столбцыНастройки заголовка таблиц",
+        "restoreDefault": "Перезагрузить",
+        "actionTips": "Настраиваемое содержимое и сортировка столбца заголовка таблицы, список элементов поиска по умолчанию в окне поиска, до четырех элементов поиска",
+        "placeholder": "Пожалуйста, выберите столбцы для отображения",
+        "searchWarningMessage": "Можно настроить не более 4-х элементов поиска по таблице",
+        "removeSearch": "Удалить элемент поиска",
+        "addSearch": " Добавить элемент поиска",
+        "checkAllPages": "Выбрать все"
       },
       "filterSearch": {
-        "screenPlaceholder": "Please enter the search term keyword",
-        "screen": "Filter",
-        "inputPlaceholder": "Please enter title",
-        "to": "To",
-        "or": "Or",
-        "none": "None"
+        "screenPlaceholder": "Пожалуйста, введите ключевое слово для поиска",
+        "screen": "Фильтр",
+        "inputPlaceholder": "Пожалуйста, введите название",
+        "to": "К",
+        "or": "Или",
+        "none": "Никто"
       },
       "uploadFile": {
-        "uploadErrorMessage": "The number of files cannot exceed"
+        "uploadErrorMessage": "Количество файлов не может превышать"
       }
     }
   },
   "minderNodeTypeName": {
-    "Module": "Module",
-    "TestCase": "Case",
-    "Precondition": "Precondition",
-    "Step": "Step",
-    "Result": "Result",
-    "Data": "Data"
+    "Module": "Модуль",
+    "TestCase": "Случай",
+    "Precondition": "Предварительное условие",
+    "Step": "Шаг",
+    "Result": "Результат",
+    "Data": "Данные"
   },
   "importer": {
     "itemFields": {
-      "group": "group",
-      "precondition": "precondition",
-      "action": "step",
-      "result": "result",
-      "data": "data"
+      "group": "группа",
+      "precondition": "предварительное условие",
+      "action": "шаг",
+      "result": "результат",
+      "data": "данные"
     }
   },
   "minderExport": {
-    "root": "import case",
-    "module": "module {{num}}",
-    "caseZero": "case",
-    "case": "case {{num}}",
-    "precondition": "precondition {{num}}",
-    "step": "step {{num}}",
-    "result": "result {{num}}",
-    "data": "data"
+    "root": "импортный случай",
+    "module": "модуль {{num}}",
+    "caseZero": "случай",
+    "case": "случай {{num}}",
+    "precondition": "предварительное условие {{num}}",
+    "step": "шаг {{num}}",
+    "result": "результат {{num}}",
+    "data": "данные"
   }
 }

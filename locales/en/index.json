@@ -114,7 +114,8 @@
     "unGrouped": "Ungrouped",
     "runNum": "test execution",
     "addTestExecution": "Add test execution",
-    "curWorkspace": "Current workspace"
+    "curWorkspace": "Current workspace",
+    "methodNotSupport": "This method does not support sorting. Please use the getTestEntitiesByRelationWithOrder method instead"
   },
   "report": {
     "overViewData": {
@@ -178,6 +179,7 @@
     "exportHTML": "Export as HTML",
     "exportWord": "Export as Word",
     "exportPdf": "Export as Pdf",
+    "downloadingReport": "Downloading test report, please wait",
     "buttons": {
       "delete": "Delete",
       "view": "View",
@@ -355,7 +357,7 @@
         "switchLabel": "Enable Configuration Initialization",
         "builtInItemTypeHasBeenModified": "Built-in matter types have been modified.",
         "messageSuccess": "Test management configuration initialization successful.",
-        "initialItemTypeMappingLabel": "",
+        "initialItemTypeMappingLabel": "Configuring Initialization Type Mapping",
         "resetButtonText": "Reset"
       },
       "testCaseRemoveDuplicates": {
@@ -652,6 +654,9 @@
         "importRepoCase": "Test management case library export",
         "pleaseEnterContent": "Please enter content",
         "excelName": "Test management import template",
+        "creatingTestCase": "Test case creation",
+        "createTestCaseFail": "Test case creation failed",
+        "createTestCaseSuccess": "Test case created successfully",
         "excelContent": {
           "group": "group1/group2",
           "name": "Test case name (sample data, please delete this data when executing the test case import)",
@@ -891,7 +896,10 @@
         "shenwanWorkflowMessage": [
           "Under the test plan",
           "Test cases failed, please execute the pass and proceed with the state flow"
-        ]
+        ],
+        "checkDuplicateCase": {
+          "caseTooMany": "There are too many use cases in the current scope. Please narrow the search scope"
+        }
       }
     },
     "copyName": "copy"

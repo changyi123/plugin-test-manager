@@ -1,3 +1,4 @@
+import { i18n } from '@giteeteam/apps-api';
 import { getParseQuery } from '@giteeteam/apps-team-api';
 import { groupBy, isNumber, isString } from 'lodash';
 
@@ -179,7 +180,7 @@ export const checkDuplicateCase = async () => {
     console.info('---test cases-----', workspaceKey, total);
 
     if (total > limit) {
-      throw new Error('当前范围下用例数量过多，请缩小查询范围');
+      throw new Error(i18n.t('trigger.web.script.checkDuplicateCase.caseTooMany'));
     }
 
     return cases;
