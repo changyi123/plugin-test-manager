@@ -125,6 +125,31 @@
         "sprint": "Selected sprint"
       }
     },
+    "workspaceReportTemplate": {
+      "modalTitle": "Report template manager in the workspace",
+      "deleteConfirm": {
+        "title": "Confirm",
+        "content": "Are you sure to delete this",
+        "okText": "Delete"
+      },
+      "message": {
+        "deleteSuccess": "Delete successfully",
+        "setDefaultSuccess": "Set default successfully",
+        "renameSuccess": "Rename successfully"
+      },
+      "buttons": {
+        "create": "Create",
+        "edit": "Edit",
+        "delete": "Delete",
+        "rename": "Rename",
+        "setDefault": "Default"
+      },
+      "tableColumns": {
+        "action": "Action",
+        "name": "Name",
+        "createdAt": "CreatedAt"
+      }
+    },
     "pass": "Pass",
     "noPass": "Not pass",
     "partPass": "Part pass",
@@ -135,7 +160,7 @@
     "choiceTemplatePlaceholder": "Please select a template",
     "range": "Statistical range",
     "required": "Required",
-    "exceedLength": "Report name is limited to 25 characters",
+    "exceedLength": "Report name is limited to 250 characters",
     "reportInfo": "report summary",
     "addReport": "Add report",
     "addTestReport": "Add test report",
@@ -157,6 +182,7 @@
       "delete": "Delete",
       "view": "View",
       "more": "More",
+      "rename": "Rename",
       "sendReport": "Send Report"
     },
     "seneReportModal": {

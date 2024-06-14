@@ -210,6 +210,7 @@ const ListView: React.FC<ViewComponentProps> = ({
           }】${t('page.repository.folderTree.caseCreateSuccessTips.2')}`;
     notification.success({
       message: successMessage,
+      className: 'test-manager-notification-wrap',
     });
     await refreshAll();
   };

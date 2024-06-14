@@ -715,7 +715,7 @@ export const getCaseAllRuns = async params => {
 
 export const getRelativeItem = async planIds => {
   const res = await new Parse.Query('ItemLink')
-    .containedIn('source', planIds)
+    .containedIn('destination', planIds)
     .limit(9999)
     .find({
       json: true,
@@ -723,5 +723,5 @@ export const getRelativeItem = async planIds => {
         displayModule: 'plugin.testManager',
       },
     } as any);
-  return uniq(res.map(i => (i as any).destination?.objectId));
+  return uniq(res.map(i => (i as any).source?.objectId));
 };

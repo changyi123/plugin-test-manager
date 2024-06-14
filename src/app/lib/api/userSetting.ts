@@ -65,7 +65,7 @@ export const saveUserSetting = async ({
 
   const userSetting = new UserSetting({
     filterFields,
-    user,
+    user: Parse.User.createWithoutData(user.objectId).toPointer(),
     workspace,
   });
 

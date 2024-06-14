@@ -214,7 +214,10 @@ export const useUserSelect = (
   const totalCache = useMemo(
     () => ({
       append(options) {
-        totalCacheRef.current = uniqWith(totalCacheRef.current.concat(options), (a, b) => a.value === b.value);
+        totalCacheRef.current = uniqWith(
+          totalCacheRef.current.concat(options),
+          (a, b) => a.value === b.value,
+        );
       },
       getById(ids: string[]) {
         return totalCacheRef.current.filter(opt => ids.includes(opt.value));
@@ -227,8 +230,12 @@ export const useUserSelect = (
   const storeUsers = useCallback(
     async _options => {
       // 禁用，删除状态用户不展示到选择列表中
-      const options = _options.map(userDataFormat).filter(user => !isUserDeleted(user) && !isUserDisabled(user));
-      const notExistedKeys = values?.filter(val => val && options.every(item => item.value !== val));
+      const options = _options
+        .map(userDataFormat)
+        .filter(user => !isUserDeleted(user) && !isUserDisabled(user));
+      const notExistedKeys = values?.filter(
+        val => val && options.every(item => item.value !== val),
+      );
       totalCache.append(options);
       isFetchingRef.current = false;
       requestCacheRef.current[requestCacheKey] = options;

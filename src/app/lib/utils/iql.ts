@@ -268,19 +268,28 @@ const getComponentValue: (selector: SelectCase) => componentValueProps = selecto
 
   // 用户类型的 需要使用 用户名而非id
   if (['User', 'createdBy', 'updatedBy', 'Assignee', 'Reporter'].includes(component)) {
-    const usernames = (value as { username: string }[]).map(user => {
-      const name = user.username;
-      // TODO，对函数的字符串处理
-      if (name === 'currentUser') {
-        return window.currentUser?.username;
-      } else {
-        return name;
-      }
-    });
+    const usernames = (value as { username: string }[])
+      .map(user => {
+        const name = user.username;
+        // TODO，对函数的字符串处理
+        if (name === 'currentUser') {
+          return window.currentUser?.username;
+        } else {
+          return name;
+        }
+      })
+      .filter(Boolean);
+    const userGroupNameList = (value as { userGroupName: string }[])
+      .filter(_user => !!_user.userGroupName)
+      .map(_user => `membersOf(${_user?.userGroupName})`);
     // 包含条件的 就 使用数组
-    if (useArray) return { curIqlValue: JSON.stringify(usernames), nullIql };
+    if (useArray)
+      return {
+        curIqlValue: JSON.stringify([...usernames, ...userGroupNameList]),
+        nullIql,
+      };
     // 其他 条件直接使用用户名
-    return { curIqlValue: `'${usernames[0]}'`, nullIql };
+    return { curIqlValue: `'${usernames[0] || userGroupNameList[0]}'`, nullIql };
   }
 
   // 空间类型、类型、事项组、优先级、绑定空间、状态类型 使用事项名称
