@@ -120,7 +120,7 @@ const ListView: React.FC<ViewComponentProps> = ({
         // 加拖拽依赖的 folderKey 数据
         list: data.map(item => ({
           ...item,
-          folderKey: selectedNode?.key,
+          folderKey: item.repository,
           status: item.workflowStatus,
           quoteCount: quoteCountMap.get(item.id) ?? 0,
         })),

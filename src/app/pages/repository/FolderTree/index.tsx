@@ -5,7 +5,6 @@ import { Button, Dropdown, Input, message, Modal, notification, Tree } from 'ant
 import { sum, uniq } from 'lodash';
 import React, { useCallback } from 'react';
 
-import OverflowTooltip from '@/components/common/OverflowTooltip';
 import {
   CaretDownOutlined,
   CustomMore,

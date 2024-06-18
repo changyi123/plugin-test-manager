@@ -468,7 +468,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         shouldCellUpdate: (record, prevRecord) => {
           return (
             record._tableState.selectionMode !== prevRecord._tableState.selectionMode ||
-            record.repository?.objectId !== prevRecord.repository?.objectId ||
+            record.repository !== prevRecord.repository ||
             record.sortIndex !== prevRecord.sortIndex ||
             record.name !== prevRecord.name
           );
