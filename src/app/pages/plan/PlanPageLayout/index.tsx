@@ -51,10 +51,10 @@ const PlanPageLayout: React.FC<any> = () => {
   const { createItemUseModal } = useBaseAction();
   const testEntitySelectorRef = useRef<ModelActionType>();
   const [selectValue, setSelectValue] = useState<string[] | undefined>(undefined);
-  const [treeType, setTreeType] = React.useState<string | undefined>('plan');
+  const [treeType, setTreeType] = React.useState<string | undefined>('repository');
   const [selectNode, setSelectNode] = React.useState<Record<string, any>>(null);
 
-  const [activeType, setActiveType] = useState<'TestPlan' | 'TestExecution'>('TestPlan');
+  const [activeType, setActiveType] = useState<'TestPlan' | 'TestExecution'>('TestExecution');
   const [selectedExecution, setSelectedExecution] = useState<Record<string, any> | undefined>(
     undefined,
   );
@@ -87,7 +87,7 @@ const PlanPageLayout: React.FC<any> = () => {
 
   useUpdateEffect(() => {
     if (selectedTestPlan?.objectId) {
-      activeType !== 'TestPlan' && setActiveType('TestPlan');
+      activeType !== 'TestExecution' && setActiveType('TestExecution');
       showType !== 'all' && setShowType('all');
       setSelectedExecution(undefined);
     }
@@ -366,7 +366,7 @@ const PlanPageLayout: React.FC<any> = () => {
   const refresh = useCallback(
     (props = {} as any) => {
       setSelectValue([]);
-      setTreeType('plan');
+      setTreeType('repository');
       if (!props?.itemIdList?.length) {
         executionListRef?.current?.refresh();
       }
