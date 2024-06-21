@@ -19,6 +19,7 @@ export const createdItemLinkType = async () => {
     sessionToken: global.sessionToken,
   };
   if (!item) return;
+  if (item.values.r_test_manager_type) return;
 
   try {
     console.info('createdItemLinkType ----------------->', JSON.stringify(item));

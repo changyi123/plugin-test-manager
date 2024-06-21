@@ -542,3 +542,5 @@ export const BuiltInInitializationStages: Record<string, InitializationStage> = 
 } as const;
 
 export default Initialization;
+
+export { dataFetcher };

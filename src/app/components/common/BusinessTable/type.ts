@@ -26,4 +26,7 @@ export type BusinessTableActionType = {
   selectedRowKeys: any[];
   resetSelectedRowKeys: () => void;
   tableColumns: any[];
+  total?: number;
+  selectAll?: boolean;
+  unSelectedRowKeys?: any[];
 };

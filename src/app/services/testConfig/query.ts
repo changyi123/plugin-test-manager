@@ -1,9 +1,18 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
+import {
+  CurrentWorkspaceConfigStorageKey,
+  CurrentWorkspaceInfo,
+  GlobalConfigStorageKey,
+} from '@/lib/constants';
 import Parse from '@/lib/parse';
+import fetch from '@/lib/utils/fetch';
+import { getPluginWebTriggerBaseUrl } from '@/lib/utils/helper';
 
-import { Status, TestConfig } from '../models';
+import { TestConfig } from '../models';
 import { QueryParamsGetters } from '../type';
+
+const pluginWebTriggerBaseUrl = getPluginWebTriggerBaseUrl();
 
 const CacheTime = 5 * 60 * 1000;
 
@@ -27,24 +36,34 @@ export const useWorkspaceTestConfig = (
   return useQuery(
     TestConfigQueryKeys.workspace(params),
     async () => {
-      if (!params.workspaceKey) return;
-      const data = await new Parse.Query(TestConfig)
-        .equalTo('workspaceKey', params.workspaceKey)
-        .first({ json: true })
-        .then(async config => {
-          // 更新配置状态名称
-          const statusIds = config?.testRunAction?.statusList?.map(status => status.statusId) || [];
-          if (!statusIds?.length) return config;
-          const statusMap = await new Parse.Query(Status)
-            .containedIn('objectId', statusIds)
-            .find({ json: true })
-            .then(status =>
-              status.reduce((prev, cur) => ({ ...prev, [cur.objectId]: cur.name }), {}),
-            );
-          config.testRunAction.statusList.forEach(s => (s.name = statusMap[s.statusId]));
-          return config;
-        });
-      queryClient.setQueryData(TestConfigQueryKeys.objectId(data.objectId), data);
+      if (!params.workspaceKey) return {};
+      const data = await fetch.$post(`${pluginWebTriggerBaseUrl}/api-query-basic-data`, {
+        workspaceKey: params.workspaceKey,
+      });
+      if (data.currentTestConfig) {
+        queryClient.setQueryData(
+          TestConfigQueryKeys.objectId(data.currentTestConfig.objectId),
+          data.currentTestConfig,
+        );
+      }
+
+      if (data.currentTestConfig) {
+        localStorage.setItem(
+          CurrentWorkspaceConfigStorageKey,
+          JSON.stringify(data.currentTestConfig),
+        );
+      }
+
+      if (data.globalTestConfig) {
+        localStorage.setItem(GlobalConfigStorageKey, JSON.stringify(data.globalTestConfig));
+      }
+
+      if (data.workspace) {
+        localStorage.setItem(
+          `${CurrentWorkspaceInfo}_${params.workspaceKey}`,
+          JSON.stringify(data.workspace),
+        );
+      }
       return data;
     },
     {

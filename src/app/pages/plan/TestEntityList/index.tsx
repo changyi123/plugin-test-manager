@@ -990,7 +990,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         }
       />,
 
-      <span key="delete" onClick={() => hasRowSelected && handleDelete()}>
+      <span className={cx('danger')} key="delete" onClick={() => hasRowSelected && handleDelete()}>
         <DeleteOutlined /> {t('common.remove')}
       </span>,
     ];
@@ -1072,7 +1072,6 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     };
 
     const canDesigneeSelect = canAssignTestRun();
-
     return [
       <Tooltip
         key="assignee"
@@ -1095,7 +1094,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       </Tooltip>,
       <StatusBadge
         useRootContainer
-        readonly={!hasRowSelected && getCreatePermission(TestType.Case)}
+        readonly={!hasRowSelected || getCreatePermission(TestType.Case)}
         onStatusChange={toggleSTestRunStatus}
         key="toggleRunStatus"
         emptyNode={
@@ -1105,7 +1104,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         }
       />,
 
-      <span key="delete" onClick={() => hasRowSelected && deleteTestRun()}>
+      <span className={cx('danger')} key="delete" onClick={() => hasRowSelected && deleteTestRun()}>
         <DeleteOutlined /> {t('common.delete')}
       </span>,
     ];

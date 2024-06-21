@@ -30,3 +30,14 @@ export type CopyTestCasePayload = {
   repository?: string;
   workspaceKey?: string;
 };
+
+export type CopyTestCaseV2Payload = {
+  queryParams: Record<string, any>;
+  fields: string[];
+  to?: CopyTestCaseV2PayloadTo;
+};
+
+export type CopyTestCaseV2PayloadTo = {
+  repository: string;
+  workspaceKey: string;
+};

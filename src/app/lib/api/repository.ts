@@ -15,12 +15,11 @@ export interface ICommonRes<T = any> {
   data?: T;
 }
 
-export const getRepositoryData = async (workspaceKeys: string[]) => {
+export const getRepositoryData = async (workspaceKeys: string[], select?: string[]) => {
   if (!workspaceKeys?.length) return;
-  const repositoryData = await new Parse.Query(Repository)
-    .containedIn('workspaceKey', workspaceKeys)
-    .limit(99999)
-    .find({ json: true });
+  const query = new Parse.Query(Repository).containedIn('workspaceKey', workspaceKeys).limit(99999);
+  if (select?.length) query.select(select);
+  const repositoryData = await query.find({ json: true });
 
   return repositoryData ?? [];
 };

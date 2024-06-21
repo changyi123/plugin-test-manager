@@ -4,17 +4,16 @@ import React from 'react';
 import { useBaseAction } from '@/lib/hooks/useContext';
 
 export const useStatusConfig = () => {
-  const { getGlobalConfig } = useBaseAction();
+  const { globalTestConfig } = useBaseAction();
   const [statusConfig, setStatusConfig] = React.useState({});
 
   React.useEffect(() => {
     const runner = async () => {
-      const globalConfig = await getGlobalConfig();
-      const statusConfig = keyBy(globalConfig?.statuses ?? [], 'key');
+      const statusConfig = keyBy(globalTestConfig?.statuses ?? [], 'key');
       setStatusConfig(statusConfig);
     };
     runner();
-  }, [getGlobalConfig]);
+  }, [globalTestConfig]);
 
   return statusConfig;
 };

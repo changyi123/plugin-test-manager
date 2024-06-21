@@ -62,6 +62,7 @@ export type BaseActionContextType = {
   testPlanFieldKeys?: string[];
   testCaseFieldKeys?: string[];
   testExecutionFieldKeys?: string[];
+  globalTestConfig: any;
 };
 /** proxima 操作 context */
 export const BaseActionContext = React.createContext<BaseActionContextType>(

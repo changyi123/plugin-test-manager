@@ -12,6 +12,9 @@
     "cannotExecuteTestCase": "The current test case is not assigned to an executor and cannot be executed"
   },
   "common": {
+    "createPermissionTip": "Please contact the administrator to check the type mapping of the workspace, or enable",
+    "haveDelete": "deleted",
+    "forbiddenActive": "disabled",
     "pageTitle": {
       "repository": "Test Repository",
       "plan": "Test Plan",
@@ -31,6 +34,8 @@
     "delete": "Delete",
     "remove": "Remove",
     "copy": "Copy",
+    "copyToCurrent": "Copy to the current place",
+    "copyToOthers": "Copy to the other place",
     "tip": "Tips",
     "okText": "OK",
     "title": "Title",
@@ -109,7 +114,8 @@
     "unGrouped": "Ungrouped",
     "runNum": "test execution",
     "addTestExecution": "Add test execution",
-    "curWorkspace": "Current workspace"
+    "curWorkspace": "Current workspace",
+    "methodNotSupport": "This method does not support sorting. Please use the getTestEntitiesByRelationWithOrder method instead"
   },
   "report": {
     "overViewData": {
@@ -118,6 +124,31 @@
         "workspace": "Belongs to workspace",
         "version": "Selected version",
         "sprint": "Selected sprint"
+      }
+    },
+    "workspaceReportTemplate": {
+      "modalTitle": "Report template manager in the workspace",
+      "deleteConfirm": {
+        "title": "Confirm",
+        "content": "Are you sure to delete this",
+        "okText": "Delete"
+      },
+      "message": {
+        "deleteSuccess": "Delete successfully",
+        "setDefaultSuccess": "Set default successfully",
+        "renameSuccess": "Rename successfully"
+      },
+      "buttons": {
+        "create": "Create",
+        "edit": "Edit",
+        "delete": "Delete",
+        "rename": "Rename",
+        "setDefault": "Default"
+      },
+      "tableColumns": {
+        "action": "Action",
+        "name": "Name",
+        "createdAt": "CreatedAt"
       }
     },
     "pass": "Pass",
@@ -130,7 +161,7 @@
     "choiceTemplatePlaceholder": "Please select a template",
     "range": "Statistical range",
     "required": "Required",
-    "exceedLength": "Report name is limited to 25 characters",
+    "exceedLength": "Report name is limited to 250 characters",
     "reportInfo": "report summary",
     "addReport": "Add report",
     "addTestReport": "Add test report",
@@ -148,10 +179,12 @@
     "exportHTML": "Export as HTML",
     "exportWord": "Export as Word",
     "exportPdf": "Export as Pdf",
+    "downloadingReport": "Downloading test report, please wait",
     "buttons": {
       "delete": "Delete",
       "view": "View",
       "more": "More",
+      "rename": "Rename",
       "sendReport": "Send Report"
     },
     "seneReportModal": {
@@ -324,7 +357,7 @@
         "switchLabel": "Enable Configuration Initialization",
         "builtInItemTypeHasBeenModified": "Built-in matter types have been modified.",
         "messageSuccess": "Test management configuration initialization successful.",
-        "initialItemTypeMappingLabel": "",
+        "initialItemTypeMappingLabel": "Configuring Initialization Type Mapping",
         "resetButtonText": "Reset"
       },
       "testCaseRemoveDuplicates": {
@@ -621,6 +654,9 @@
         "importRepoCase": "Test management case library export",
         "pleaseEnterContent": "Please enter content",
         "excelName": "Test management import template",
+        "creatingTestCase": "Test case creation",
+        "createTestCaseFail": "Test case creation failed",
+        "createTestCaseSuccess": "Test case created successfully",
         "excelContent": {
           "group": "group1/group2",
           "name": "Test case name (sample data, please delete this data when executing the test case import)",
@@ -651,10 +687,8 @@
       },
       "view": {
         "list": {
-          "actionConfirm": [
-            "This action will delete the selected test case, do you want to continue?",
-            "This action will delete the current test case, do you want to continue?"
-          ],
+          "multipleDeleteCase": "This action will delete the selected {{ count }} test case, do you want to continue?",
+          "deleteCase": "This action will delete the current test case, do you want to continue?",
           "deleteCaseSuccess": "{{count}} test case have been deleted",
           "deleteCaseSuccess_other": "{{count}} test cases have been deleted",
           "batchItemLink": "Batch item link",
@@ -862,7 +896,10 @@
         "shenwanWorkflowMessage": [
           "Under the test plan",
           "Test cases failed, please execute the pass and proceed with the state flow"
-        ]
+        ],
+        "checkDuplicateCase": {
+          "caseTooMany": "There are too many use cases in the current scope. Please narrow the search scope"
+        }
       }
     },
     "copyName": "copy"
@@ -1017,7 +1054,8 @@
         "searchWarningMessage": "No more than 4 table search items can be configured",
         "removeSearch": "Remove search item",
         "addSearch": " Add search item",
-        "checkAllPages": "Select all"
+        "checkAllPages": "Select all",
+        "checkCurrentPage": "Select all on this page"
       },
       "filterSearch": {
         "screenPlaceholder": "Please enter the search term keyword",

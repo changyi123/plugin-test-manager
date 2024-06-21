@@ -19,7 +19,7 @@ import AddFilterIcon from '@/icons/svg/add-filter.svg';
 import { getTestConfig } from '@/lib/api/common';
 import { openFieldValuePopover, openFilterPopover } from '@/lib/api/sdk';
 import { getCurrentUserSetting } from '@/lib/api/userSetting';
-import { DATA_FIELDS } from '@/lib/constants';
+import { CurrentWorkspaceConfigStorageKey, DATA_FIELDS } from '@/lib/constants';
 import {
   FILTER_EXPRESSIONS,
   getExtendFields,
@@ -121,7 +121,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
   const { workspace } = useTestConfig();
   const { context } = useSDK();
   const [search, setSearch] = useState('');
-  const { getGlobalConfig, testPlanFieldKeys, testCaseFieldKeys, testExecutionFieldKeys } =
+  const { globalTestConfig, testPlanFieldKeys, testCaseFieldKeys, testExecutionFieldKeys } =
     useBaseAction();
   const [selectors, setSelectorsState] = useState<Selectors>({});
   const currentSelectors = useRef<Selectors>({});
@@ -201,9 +201,17 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
     async () => {
       if (!workspace?.key) return null;
       const defaultKeys = testType === TestType.Case ? ['key'] : [];
-      const testConfig = await getTestConfig({ workspaceKey: workspace?.key });
+      let testConfig = null;
+      // 先查本地存储
+      const localConfig = localStorage.getItem(CurrentWorkspaceConfigStorageKey);
+      if (localConfig) {
+        testConfig = JSON.parse(localConfig);
+      } else {
+        const data = await getTestConfig({ workspaceKey: workspace?.key });
+        testConfig = data?.toJSON();
+      }
 
-      const { serachFields } = testConfig?.toJSON()?.tableFields?.[testType] ?? {};
+      const { serachFields } = testConfig?.tableFields?.[testType] ?? {};
 
       const res = await getCurrentUserSetting({
         workspaceKey: workspace?.key,
@@ -362,12 +370,11 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
   }, [getStructure, workspace?.key]);
 
   const getStatusOptions = useCallback(async () => {
-    const globalConfig = await getGlobalConfig();
-    return globalConfig?.statuses.map(item => ({
+    return globalTestConfig?.statuses.map(item => ({
       value: item.key,
       label: t(`status.${item.key}.name`),
     }));
-  }, [getGlobalConfig, t]);
+  }, [globalTestConfig, t]);
 
   // 组装打开字段值选择器的函数
   const getFieldValueProps = useCallback(

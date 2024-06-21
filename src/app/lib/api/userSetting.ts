@@ -1,3 +1,5 @@
+import { CurrentWorkspaceInfo } from '@/lib/constants';
+
 import { UserSetting, Workspace } from '../../services/models';
 
 export const getCurrentUserSetting = async ({
@@ -8,7 +10,14 @@ export const getCurrentUserSetting = async ({
   user?: Parse.Pointer;
 }) => {
   if (!workspaceKey) return null;
-  const workspace = await new Parse.Query(Workspace).equalTo('key', workspaceKey).first();
+  let workspace = null;
+  // 先查本地存储
+  const localData = localStorage.getItem(`${CurrentWorkspaceInfo}_${workspaceKey}`);
+  if (localData) {
+    workspace = Workspace.createWithoutData(JSON.parse(localData).objectId);
+  } else {
+    workspace = await new Parse.Query(Workspace).equalTo('key', workspaceKey).first();
+  }
 
   user = user || window.QiankunProps?.context?.currentUser;
   const userSettingData = await new Parse.Query(UserSetting)
@@ -56,7 +65,7 @@ export const saveUserSetting = async ({
 
   const userSetting = new UserSetting({
     filterFields,
-    user,
+    user: Parse.User.createWithoutData(user.objectId).toPointer(),
     workspace,
   });
 

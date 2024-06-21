@@ -39,13 +39,6 @@ const MoreConfigPages = [
     description: 'wordTemplate',
     isGlobalConfig: true,
   },
-  {
-    key: 'TestConfigInitialization',
-    title: 'testConfigInitialization',
-    component: TestConfigInitialization,
-    description: 'testConfigInitialization',
-    isGlobalConfig: true,
-  },
 ];
 
 const ConfigPages = [
@@ -86,6 +79,13 @@ const ConfigPages = [
     title: 'tableFields',
     component: TableFields,
     description: 'tableFields',
+  },
+  {
+    key: 'TestConfigInitialization',
+    title: 'testConfigInitialization',
+    component: TestConfigInitialization,
+    description: 'testConfigInitialization',
+    isGlobalConfig: true,
   },
   getAppEnv('CASE_DUPLICATE_CHECK_CONFIG')?.show && {
     key: 'TestCaseRemoveDuplicates',
@@ -167,8 +167,10 @@ const PageContent = ({ currentConfigPage }) => {
 const Config = () => {
   const { t } = useI18n();
   const showMoreConfigPages = featureFlags('ENABLE_MORE_CONFIG');
+  const searchParams = new URLSearchParams(window.location.search);
+  const defaultSelectedKey = searchParams.get('selectKey');
 
-  const [selectedKey, setSelectedKey] = useSafeState(ConfigPages[0].key);
+  const [selectedKey, setSelectedKey] = useSafeState(defaultSelectedKey || ConfigPages[0].key);
   const currentConfigPage = ALLConfigPages.find(item => item.key === selectedKey) ?? ({} as any);
 
   const renderMenuItems = menuList => {
