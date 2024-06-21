@@ -52,7 +52,8 @@ const SelectorTag: React.FC<SelectorTagProps> = ({
   }, [component, value, t]);
 
   const expressionText = useMemo(() => {
-    const options = FILTER_EXPRESSIONS(t)[component] || [];
+    const key = component === 'test_manager_status' ? 'Workspace' : component;
+    const options = FILTER_EXPRESSIONS(t)[key] || [];
     return options.find(item => item.value === _expression)?.label || null;
   }, [_expression, component, t]);
 
