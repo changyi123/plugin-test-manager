@@ -35,10 +35,7 @@ function getParentRepositoryNameFromId(t, id: string, treeData) {
   function getName(data) {
     let _res = '';
     if (id === data.key) {
-      _res = data.name;
-      return _res;
-    } else if (id === 'root') {
-      return t('views.gantt.default.groupedValue');
+      return data.name;
     }
     if (data.children?.length) {
       data.children.some(i => {
@@ -90,7 +87,11 @@ export function buildRepositoryStatics(t, statisticsData, treeData, params) {
     const statics = [];
     _statics.forEach(i => {
       // 通过当前模块的id，获取父仓库的名称
-      const name = getParentRepositoryNameFromId(t, i.name, treeData) || t('views.gantt.default.groupedValue');
+      const name =
+        i.name === 'root'
+          ? t('views.gantt.default.groupedValue')
+          : getParentRepositoryNameFromId(t, i.name, treeData) ||
+            t('views.gantt.default.groupedValue');
       const targetIndex = statics.findIndex(s => s.name === name);
       // 不存在推送新值
       if (targetIndex === -1) {
