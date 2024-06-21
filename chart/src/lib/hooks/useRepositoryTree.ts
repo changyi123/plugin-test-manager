@@ -80,8 +80,9 @@ function add(a, b) {
 export function buildRepositoryStatics(t, statisticsData, treeData, params) {
   if (!statisticsData) return statisticsData;
   const {
-    payload: { data: _data },
+    payload: { data: _ },
   } = statisticsData;
+  const _data = JSON.parse(JSON.stringify(_));
   const data = [];
   function updateCache(_statics) {
     const statics = [];
