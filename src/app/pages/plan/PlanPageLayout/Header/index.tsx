@@ -117,15 +117,6 @@ const Header: React.FC<HeaderProps> = ({
           <TestPlanSelector />
           <div className={cx('test-tabs')}>
             <div
-              className={cx('tab-title', activeType === 'TestPlan' ? 'actived' : '')}
-              onClick={() => {
-                tableSelectionToggleEvent.emit(false);
-                setActiveType('TestPlan');
-              }}
-            >
-              {t('common.allTestCase')}
-            </div>
-            <div
               className={cx('tab-title', activeType === 'TestExecution' ? 'actived' : '')}
               onClick={() => {
                 tableSelectionToggleEvent.emit(false);
@@ -133,6 +124,15 @@ const Header: React.FC<HeaderProps> = ({
               }}
             >
               {t('common.testExecution')}
+            </div>
+            <div
+              className={cx('tab-title', activeType === 'TestPlan' ? 'actived' : '')}
+              onClick={() => {
+                tableSelectionToggleEvent.emit(false);
+                setActiveType('TestPlan');
+              }}
+            >
+              {t('common.allTestCase')}
             </div>
             {wordTemplate ? (
               <div className={cx('tab-extra-action')}>

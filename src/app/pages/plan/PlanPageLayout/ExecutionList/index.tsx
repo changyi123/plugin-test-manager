@@ -115,12 +115,13 @@ const ExecutionList: React.FC<ExecutionListProps> = ({
 
     if (activeId && executionList?.length) {
       const selectedExecution = executionList?.find(d => d.objectId === activeId);
-
-      setActiveId(activeId);
-      setSelectedExecution(selectedExecution);
+      if (selectedExecution?.linkItems?.includes(planId)) {
+        setActiveId(activeId);
+        setSelectedExecution(selectedExecution);
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedExecution, executionList]);
+  }, [selectedExecution, executionList, planId]);
 
   const menuClick = (type: string, data) => {
     if (type === 'check') {

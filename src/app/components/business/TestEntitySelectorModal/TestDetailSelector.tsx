@@ -35,12 +35,12 @@ type TestDetailSelectorProps = {
 
 const tabsList = [
   {
-    label: 'testPlan',
-    key: 'plan',
-  },
-  {
     label: 'allRepository',
     key: 'repository',
+  },
+  {
+    label: 'testPlan',
+    key: 'plan',
   },
 ];
 
