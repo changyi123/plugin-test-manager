@@ -275,10 +275,10 @@ const importTestInfo = async (
     // 导出当前分组及其字分组，需要特殊处理 repository 数据
     if (type === 'exportChildGroup') {
       // 获取当前分组及其所有子分组用例
-      repositoryParams = getRepositoryQuery(selectTreeNode, 'all')?.repository;
+      repositoryParams = getRepositoryQuery(selectTreeNode, 'all');
     } else if (type === 'exportGroup') {
       // 导出当前分组用例
-      repositoryParams = getRepositoryQuery(selectTreeNode, 'current')?.repository;
+      repositoryParams = getRepositoryQuery(selectTreeNode, 'current');
     } else if (type === 'exportFilter') {
       queryParams.selector = selector;
     }

@@ -28,8 +28,10 @@ const jsonToUrlParam = (object: object | string) => {
   const params = [];
   const handle = (prev: string, current: object | string) => {
     if (typeof current !== 'object') return `${prev}=${current}`;
+    const isArray = Array.isArray(current);
     for (const key of Object.keys(current)) {
-      current[key] && params.push(handle(`${prev}[${key}]`, current[key]));
+      const prefix = isArray ? `${prev}[]` : `${prev}[${key}]`;
+      current[key] && params.push(handle(prefix, current[key]));
     }
   };
   handle('', object);

@@ -42,7 +42,10 @@ const ItemTypeMapping = () => {
     ready: !!workspaceId,
     refreshDeps: [workspaceId],
     onSuccess(itemTypes) {
-      setTopItemTypes(itemTypes ?? []);
+      const uniqueItemTypes = Object.values(
+        itemTypes.reduce((set, itemType) => ({ ...set, [itemType.key]: itemType }), {}),
+      );
+      setTopItemTypes(uniqueItemTypes ?? []);
     },
   });
 

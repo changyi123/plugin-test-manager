@@ -6,7 +6,7 @@ import { DeleteOutlined, DownloadOutlined, LoadingOutlined, UploadOutlined } fro
 import { updateTestRunDetail } from '@/lib/api/item';
 import useI18n from '@/lib/hooks/useI18n';
 import Parse from '@/lib/parse';
-import { actionConfirm } from '@/lib/utils/helper';
+import { actionConfirm, getRootContainer } from '@/lib/utils/helper';
 
 import cx from './AttachmentUpload.less';
 import { TabsComponentBaseProps } from './type';
@@ -217,7 +217,7 @@ const AttachmentList: React.FC<any> = props => {
                       <div className={cx('name-text')}>{file.name}</div>
                       {testImg(file.name) && file.url && (
                         <div className={cx('name-img')}>
-                          <Image src={file.url}></Image>
+                          <Image src={file.url} preview={{ getContainer: getRootContainer }} ></Image>
                         </div>
                       )}
                     </div>
