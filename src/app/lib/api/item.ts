@@ -250,9 +250,10 @@ export const deleteTestEntityV2 = async queryParams => {
 };
 
 // 批量更新测试实体事项
-export const updateTestEntity = async data => {
+export const updateTestEntity = async (data, onlyValues?: boolean) => {
   const { data: res } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-batch-update`, {
     data,
+    onlyValues,
     sessionToken: getSessionToken(),
   });
 

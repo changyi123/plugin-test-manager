@@ -7,7 +7,7 @@ import times from 'lodash/times';
 import { BaseTestEntity, TestEntity } from '../../common/types/test';
 import { compactNilValue, testEntityToItemValues } from '../../common/utils/dataTransfer';
 import { logTimeCost } from '../lib/logger';
-import { bulkCreateItems, bulkUpdateItems, deleteItems } from './coreApi';
+import { bulkCreateItems, bulkUpdateItems, deleteItems, updateItems } from './coreApi';
 
 /** 并发数量 */
 const ParallelLimit = global.env?.ParallelLimit ?? 10;
@@ -82,6 +82,40 @@ export const batchDeleteItems = async (itemIds: string[]) => {
 
 /** 更新测试实体 */
 export const batchUpdateItems = async (data: Partial<TestEntity>[]) => {
+  const itemData = data.map(data => {
+    // 允许更新自定义字段（支持内置字段 assignee. priority
+    // 其他自定义字段不能进行更新
+    const customValues = pick(data.values, ['assignee', 'priority']);
+    return {
+      ...data,
+      objectId: data.objectId,
+      originalValues: customValues,
+      values: testEntityToItemValues(data),
+    };
+  });
+
+  const taskQueue = itemData.map(item => async () => {
+    const values = compactNilValue({
+      name: item.name,
+      values: {
+        ...item.originalValues,
+        ...item.values,
+      },
+      eventExtraData: { skipItemChange: true },
+      parseContext: CreateApiParseContext,
+    });
+
+    return await updateItems(item.objectId, values);
+  });
+
+  const dump = logTimeCost(`update ${taskQueue.length} items`);
+  const res = await parallelLimit(taskQueue, ParallelLimit);
+  dump();
+  return res;
+};
+
+/** 更新测试实体的values */
+export const batchUpdateItemsValues = async (data: Partial<TestEntity>[]) => {
   const itemsQueue = chunk(data, BatchChunkSize, item => {
     // 允许更新自定义字段（支持内置字段 assignee. priority
     // 其他自定义字段不能进行更新
@@ -106,7 +140,7 @@ export const batchUpdateItems = async (data: Partial<TestEntity>[]) => {
       });
     });
 
-    console.info(JSON.stringify(updates), 'batchUpdateItems');
+    console.info(JSON.stringify(updates), 'batchUpdateItemsValues');
 
     return await bulkUpdateItems({ updates }).then(({ data }) => data ?? []);
   });
@@ -114,7 +148,7 @@ export const batchUpdateItems = async (data: Partial<TestEntity>[]) => {
   const dump = logTimeCost(`update ${taskQueue.length} items`);
   const res = await parallelLimit(taskQueue, ParallelLimit);
   dump();
-  console.info(JSON.stringify(res), 'batchUpdateItems');
+  console.info(JSON.stringify(res), 'batchUpdateItemsValues');
   return res.flat();
 };
 

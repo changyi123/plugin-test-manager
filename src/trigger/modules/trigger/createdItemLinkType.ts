@@ -4,7 +4,7 @@ import isEqual from 'lodash/isEqual';
 
 import { TestConfigClassName, TestType } from '../../../common/constant';
 import { buildResponse } from '../../lib/apiUtil';
-import { batchUpdateItems } from '../../lib/batchRequest';
+import { batchUpdateItemsValues } from '../../lib/batchRequest';
 
 const generateSortIndex = (index = 0) => {
   return Math.floor(Date.now() / 1000) * 10e5 + index * 1000;
@@ -81,7 +81,7 @@ export const createdItemLinkType = async () => {
           needUpdateItemValues.sortIndex,
         );
 
-        await batchUpdateItems([needUpdateItemValues]);
+        await batchUpdateItemsValues([needUpdateItemValues]);
       }
       return buildResponse('created success');
     }

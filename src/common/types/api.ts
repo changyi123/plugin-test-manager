@@ -160,6 +160,7 @@ export type BatchDeleteV2Payload = {
  */
 export type BatchUpdatePayload = {
   data: (Partial<TestEntity> | TestEntityLinkActionData)[];
+  onlyValues?: boolean;
 };
 
 /**

@@ -11,9 +11,8 @@ export const getItemCreateRequiredAttrs = async (workspaceInfo: {
 
   if (!workspaceInfo.objectId && !workspaceInfo.key) throw new Error('workspace is required');
 
-  const [workspaceQuery, itemGroupQuery, testConfigQuery] = await Promise.all([
+  const [workspaceQuery, testConfigQuery] = await Promise.all([
     getParseQuery(false, 'Workspace'),
-    getParseQuery(false, 'ItemGroup'),
     getParseQuery(false, 'test_manager_TestConfig'),
   ]);
 
@@ -28,12 +27,7 @@ export const getItemCreateRequiredAttrs = async (workspaceInfo: {
     .first(ParseBaseQueryOptions)
     .then(o => o.toJSON());
 
-  const [itemGroupData, testConfigData] = await Promise.all([
-    itemGroupQuery
-      .equalTo('workspace', workspaceId)
-      .select(['objectId'])
-      .first(ParseBaseQueryOptions)
-      .then(o => o.toJSON()),
+  const [testConfigData] = await Promise.all([
     testConfigQuery
       .equalTo('workspaceKey', workspaceKey)
       .select(['itemTypeMap'])
@@ -45,7 +39,6 @@ export const getItemCreateRequiredAttrs = async (workspaceInfo: {
 
   return {
     itemType: { key: testConfigData.itemTypeMap.TestCase },
-    itemGroup: { objectId: itemGroupData.objectId },
     workspace: { objectId: workspaceId },
   };
 };
