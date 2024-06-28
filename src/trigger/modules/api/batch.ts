@@ -26,7 +26,12 @@ import { TestEntity } from '../../../common/types/test';
 import { itemToTestEntity } from '../../../common/utils/dataTransfer';
 import { buildResponse } from '../../lib/apiUtil';
 import { getReqInfoFromVMRuntime } from '../../lib/apiUtil';
-import { batchCreateItems, batchDeleteItems, batchUpdateItems } from '../../lib/batchRequest';
+import {
+  batchCreateItems,
+  batchDeleteItems,
+  batchUpdateItems,
+  batchUpdateItemsValues,
+} from '../../lib/batchRequest';
 import {
   buildTestEntityLinkData,
   concatIqlRequestFields,
@@ -159,7 +164,8 @@ const getRunDataByLinkItemDelete = async data => {
 export const batchUpdate = async () => {
   try {
     const {
-      body: { data },
+      //@todo 待core支持事项批量更新接口
+      body: { data, onlyValues = true },
     } = getReqInfoFromVMRuntime<BatchUpdatePayload>();
     if (!Array.isArray(data)) throwArgumentError('data', 'testEntity[]');
 
@@ -167,7 +173,11 @@ export const batchUpdate = async () => {
     const needUpdateItemData = await buildTestEntityLinkData(data as TestEntityLinkActionData[]);
     // 校验需要保存的参数
     needUpdateItemData.forEach(testEntityFieldTypeValidator);
-    const tasks = [batchUpdateItems(needUpdateItemData)];
+    const tasks = [
+      onlyValues
+        ? batchUpdateItems(needUpdateItemData)
+        : batchUpdateItemsValues(needUpdateItemData),
+    ];
 
     // 移除测试计划下的测试用例关联的测试执行
     const needDeleteTestRunIds = await getRunDataByLinkItemDelete(data);
@@ -198,7 +208,7 @@ export const batchUpdateValue = async () => {
     const needUpdateItemData = await buildTestEntityLinkData(data as TestEntityLinkActionData[]);
     // 校验需要保存的参数
     needUpdateItemData.forEach(testEntityFieldTypeValidator);
-    const tasks = [batchUpdateItems(needUpdateItemData)];
+    const tasks = [batchUpdateItemsValues(needUpdateItemData)];
 
     const [res] = await Promise.all(tasks);
     return buildResponse(res.filter(Boolean).map(data => itemToTestEntity(data.item)));
@@ -381,7 +391,7 @@ export const batchCreateTestRun = async () => {
         });
         if (!needUpdateItemsData.length) return;
 
-        return await batchUpdateItems(needUpdateItemsData);
+        return await batchUpdateItemsValues(needUpdateItemsData);
       }
     };
 

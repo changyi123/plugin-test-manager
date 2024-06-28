@@ -11,7 +11,7 @@ import {
 import { AddTestExecuteToTestPlanPayload } from '../../../common/types/api';
 import { TestEntity } from '../../../common/types/test';
 import { buildResponse, getReqInfoFromVMRuntime } from '../../lib/apiUtil';
-import { batchUpdateItems } from '../../lib/batchRequest';
+import { batchUpdateItemsValues } from '../../lib/batchRequest';
 import { buildTestEntityLinkData, generateSortIndex } from '../../lib/helper';
 import { iqlRequest } from '../../lib/iqlRequest';
 
@@ -85,7 +85,7 @@ export const linkTestExecuteToTestPlan = async () => {
         );
 
         // 批量更新实体数据管理
-        await batchUpdateItems(testEntityLinkData);
+        await batchUpdateItemsValues(testEntityLinkData);
       },
       // 将计划下存在的测试执行对应的用例关联至测试计划中，对于未被关联的测试用例则，创建事项更新数据时需要增加 caseStatus
       batchLinkCaseToPlan: async () => {
@@ -141,7 +141,7 @@ export const linkTestExecuteToTestPlan = async () => {
           );
 
           // 批量更新实体数据管理
-          await batchUpdateItems(testEntityLinkData);
+          await batchUpdateItemsValues(testEntityLinkData);
         }
       },
       // TODO: 确认重新关联是否会把最新的用例执行状态给覆盖
@@ -171,7 +171,7 @@ export const linkTestExecuteToTestPlan = async () => {
           .filter(Boolean);
 
         // 更新测试用例实体数据
-        await batchUpdateItems(caseStatusTestEntityData);
+        await batchUpdateItemsValues(caseStatusTestEntityData);
       },
     };
 
