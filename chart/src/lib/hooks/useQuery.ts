@@ -9,7 +9,8 @@ type UseQueryProps = {
   url: string;
   params: Record<string, any>;
   enableFetch?: boolean; // params参数是否为空，若为空，则不请求数据。因为每个图表的参数不一样，所以判断逻辑会不一样，顾将判断放到外部
-  isNoDataFunc?: (data: any) => boolean; //
+  isNoDataFunc?: (data: any) => boolean;
+  extendRequest?: any;
 };
 
 type useQueryResult = {
@@ -19,7 +20,13 @@ type useQueryResult = {
   isLoading: boolean;
 };
 
-const useQuery = ({ url, params, enableFetch = true, isNoDataFunc }: UseQueryProps): useQueryResult => {
+const useQuery = ({
+  url,
+  params,
+  enableFetch = true,
+  isNoDataFunc,
+  extendRequest,
+}: UseQueryProps): useQueryResult => {
   const { sessionToken } = useToken();
 
   const { data, isValidating } = useSWR(
@@ -31,8 +38,14 @@ const useQuery = ({ url, params, enableFetch = true, isNoDataFunc }: UseQueryPro
 
       try {
         params.timezone = dayjs().format('ZZ');
-        const data = await fetch.$post(url, params);
+        let data = null;
+        if (extendRequest) {
+          data = await extendRequest(url, params);
+        } else {
+          data = await fetch.$post(url, params);
+        }
         const enableSave = true;
+        console.log('查看返回数据', data)
         return { data, enableSave };
       } catch {
         return null;

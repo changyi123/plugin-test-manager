@@ -1,3 +1,4 @@
+import { startsWith } from 'lodash';
 import { i18n } from 'proxima-sdk/lib/I18n';
 import { mergeIQL } from 'proxima-sdk/lib/Iql';
 
@@ -13,7 +14,8 @@ export const isIncludeTotal = function (str) {
 
 // 是否是合法UUID
 export const isValidUUID = function (str) {
-  const regexExp = /^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/gi;
+  const regexExp =
+    /^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/gi;
 
   return regexExp.test(str);
 };
@@ -194,3 +196,46 @@ export function computeColumn(body: ReportBody, result: ESResultFormatTmp): ESRe
   });
   return result;
 }
+
+const getProximaGateWay = () => {
+  return (
+    window?.QiankunProps?.context?.env?.PROXIMA_GATEWAY ??
+    window?.env?.PROXIMA_GATEWAY ??
+    process?.env?.PROXIMA_GATEWAY
+  );
+};
+
+
+/** 获取 proxima baseUrl */
+export const getProximaBasePath = () => {
+  // FIXME: 确认 spa 环境改造后 接口前缀 和 页面前缀有没有不一致的情况？
+  // 目前暂时先保留该方法，后续需要单独的判断
+  return '/project';
+};
+
+export const isInOne = () => {
+  const isServer = (): boolean => typeof window === 'undefined';
+  const inServer = isServer();
+
+  if (inServer) return false;
+  try {
+    const gateway = getProximaGateWay();
+    return startsWith(new URL(gateway).pathname, '/api');
+  } catch (e) {
+    console.info('isInOne', e);
+    return true;
+  }
+};
+
+/** 获取租户信息 */
+export const getTenantKey = () => {
+  // dev 环境默认取 env 中的 PROXIMA_APP_ID
+  return window?.env?.PROXIMA_APP_ID ?? process.env.PROXIMA_APP_ID ?? 'osc';
+};
+
+// 获取 webTrigger 前缀
+export const getPluginWebTriggerBaseUrl = () => {
+  // 集成环境需要先判断前缀
+  const ApiPrefix = isInOne() ? getProximaBasePath() : '';
+  return `/api${ApiPrefix}/app/${getTenantKey()}/test_manager/webhooks`;
+};

@@ -1,10 +1,11 @@
 import { useListener } from '@giteeteam/proxima-sdk-js';
 import dayjs from 'dayjs';
 import { AutoResizer, BaseTable, Spin } from 'insight';
-import { flatten } from 'lodash';
+import { flatten, isEmpty } from 'lodash';
 import { NoData } from 'proxima-sdk/components/Components/Chart';
 import { OverflowTooltip } from 'proxima-sdk/components/Components/Common';
 import { useI18n } from 'proxima-sdk/hooks/Hooks';
+import fetch from 'proxima-sdk/lib/Fetch';
 import { mergeIQL, withOrderBy, withWorkspace } from 'proxima-sdk/lib/Iql';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import type { ColumnShape } from 'react-base-table';
@@ -13,6 +14,7 @@ import { customHeaderRendererForBaseTable } from '../common/TabelCell';
 import useCacheColumns from '../lib/hooks/useCacheColumns';
 import useQuery from '../lib/hooks/useQuery';
 import { buildRepositoryStatics, useRepositoryTree } from '../lib/hooks/useRepositoryTree';
+import useTestConfig from '../lib/hooks/useTestConfig';
 import { ViewProps } from '../lib/type';
 import { getEnvData, isIncludeTotal, isValidUUID } from '../lib/util';
 import cx from './View.less';
@@ -29,6 +31,60 @@ const HIGH_STYLE = {
 type DataType = {
   name: string;
 };
+
+function generateStatistics(basicStatistics, fieldValue) {
+  if (!basicStatistics[fieldValue]) {
+    basicStatistics[fieldValue] = { count: 1 };
+    return;
+  }
+  basicStatistics[fieldValue].count++;
+}
+
+function fieldValueFormat(fieldValue) {
+  if (typeof fieldValue === 'string') return fieldValue;
+  if (Array.isArray(fieldValue)) return fieldValue.join(',');
+}
+
+async function fetchCaseStatistics(testConfig, url, params) {
+  const testCaseItemTypeKey =
+    testConfig?.currentTestConfig?.itemTypeMap?.TestCase ||
+    testConfig?.globalTestConfig?.extra?.initialItemTypeMapping?.TestCase;
+  function search() {
+    const iql = mergeIQL(
+      `'itemTypeKey' in ['${testCaseItemTypeKey}'] and 'test_manager_repository' is NULL`,
+      params.iql,
+    );
+    return fetch.$post('/search', {
+      iql,
+      displayContext: 'test_manager',
+      from: 0,
+      size: 9999,
+    });
+  }
+  const [
+    statisticsData,
+    {
+      payload: { items: emptyData },
+    },
+  ] = await Promise.all([fetch.$post(url, params), search()]);
+  // 合并数据
+  const emptyStatistics = {};
+  // 需要统计的字段
+  params.cluster.forEach(c => {
+    const fieldKey = c.key;
+    emptyData.forEach(i => {
+      const fieldValue = i.values[fieldKey];
+      if (!isEmpty(fieldValue) && fieldValue?.length) {
+        generateStatistics(emptyStatistics, fieldValueFormat(i.values[fieldKey]));
+      }
+    });
+  });
+  // 填充空值
+  if (!isEmpty(emptyStatistics)) {
+    statisticsData.payload.data?.[0]?.push({ name: 'test-repository-empty', ...emptyStatistics });
+  }
+  return statisticsData;
+}
 
 const View: React.FC<ViewProps> = ({
   option,
@@ -53,6 +109,7 @@ const View: React.FC<ViewProps> = ({
   const [resData, setResData] = useState([]);
   const [clusterData, setClusterData] = useState([]);
   const { PROXIMA_GATEWAY } = getEnvData();
+  const testConfig = useTestConfig(workspace?.key);
 
   // chartKey 作为 local 里的 key 来存储列宽
   const chartKey = isValidUUID(uid) ? 'default' : uid;
@@ -92,7 +149,7 @@ const View: React.FC<ViewProps> = ({
     url,
     workspace,
     params,
-    enableFetch: !!(value?.length && group?.length && !treeLoading),
+    enableFetch: !!(value?.length && group?.length && !treeLoading && testConfig),
     isNoDataFunc: function (result = {} as Record<string, any>) {
       const { payload } = result;
       let isClusterData = false;
@@ -109,11 +166,16 @@ const View: React.FC<ViewProps> = ({
       });
       return !(result && isClusterData && isData);
     },
+    extendRequest: (url, params) => {
+      return fetchCaseStatistics(testConfig, url, params);
+    },
   });
-
   // 重新构建仓库树为一级仓库
   const chartData = useMemo(
-    () => buildRepositoryStatics(i18n.t, _chartData, treeData, params) || ({ payload: { cluster: [], data: [] } }),
+    () =>
+      buildRepositoryStatics(i18n.t, _chartData, treeData, params) || {
+        payload: { cluster: [], data: [] },
+      },
     [_chartData, treeData, JSON.stringify(params)],
   );
 
