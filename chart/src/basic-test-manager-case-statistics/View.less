@@ -1,0 +1,71 @@
+.header-cell {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  background: #f9f8f8;
+  padding-left: 15px;
+  width: 120px;
+  border-right: 1px solid #ecedf0;
+}
+
+.header-outer {
+  justify-content: center;
+  padding-left: 0;
+}
+
+.formula-cell:last-child {
+  border-right: none;
+}
+
+.view {
+  margin: 10px 16px;
+  padding-bottom: 20px;
+  height: ~'calc(100% - 10px)';
+  :global {
+    .BaseTable__header {
+      .BaseTable__header-row {
+        background: #f9f8f8;
+      }
+    }
+    .BaseTable__row-cell {
+      border-right: 1px solid #ecedf0;
+    }
+
+    .BaseTable__row,
+    .BaseTable__table-main,
+    .BaseTable .BaseTable__header,
+    .BaseTable .BaseTable__header > div,
+    .BaseTable .BaseTable__body,
+    .BaseTable .BaseTable__body > div {
+      max-width: inherit;
+    }
+  }
+}
+
+.detail-view {
+  width: ~'calc(100% - 80px)';
+  height: ~'calc(100% - 60px)';
+  margin: 30px 0px 30px 30px;
+
+  :global {
+    .BaseTable__row-cell {
+      border-right: 1px solid #ecedf0;
+    }
+
+    .BaseTable__row,
+    .BaseTable__table-main,
+    .BaseTable .BaseTable__header,
+    .BaseTable .BaseTable__header > div,
+    .BaseTable .BaseTable__body,
+    .BaseTable .BaseTable__body > div {
+      max-width: inherit;
+    }
+  }
+}
+
+.loading-layer-wrapper {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}

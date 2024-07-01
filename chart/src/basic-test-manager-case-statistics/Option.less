@@ -1,0 +1,86 @@
+.row-set-icon {
+  position: absolute;
+  right: 44px;
+}
+
+.row-set-panel {
+  width: 248px;
+  .row-set-radio {
+    margin-top: 10px;
+    margin-bottom: 20px;
+  }
+}
+
+:global {
+  .chart-option-row-set {
+    .ant-popover-title {
+      font-size: 14px;
+      color: #2e405e;
+    }
+  }
+  .rst__lineHalfHorizontalRight::before,
+  .rst__lineFullVertical::after,
+  .rst__lineHalfVerticalTop::after,
+  .rst__lineHalfVerticalBottom::after {
+    background: #d8d8d8;
+  }
+
+  .ant-btn.ant-btn-text.formulas-add {
+    border-radius: 4px;
+    border: 1px dashed #dadde3;
+    width: 98%;
+    height: 32px;
+    color: #0045d9;
+    font-size: 14px;
+    text-align: center;
+    margin: 5px 5px 20px;
+    background: none;
+  }
+}
+
+.total {
+  display: flex;
+  justify-content: space-between;
+  :global {
+    span.ant-radio + * {
+      padding-right: 0;
+    }
+  }
+}
+
+.formulas-precision {
+  width: 100%;
+}
+
+.formulas-box {
+  margin-bottom: 54px;
+
+  .formula {
+    background-color: #f5f6f8;
+    padding: 6px 6px 6px 8px;
+    font-size: 14px;
+    border-radius: 4px;
+    cursor: pointer;
+
+    &:not(:last-child) {
+      margin-right: 8px;
+    }
+
+    .formula-name {
+      padding: 0 4px 0 2px;
+    }
+  }
+}
+
+:global {
+  .form-main-title + div {
+    margin-bottom: 60px;
+  }
+}
+
+.chart-search {
+  position: fixed;
+  right: 24px;
+  bottom: 5px;
+  width: 492px;
+}

@@ -1,9 +1,3 @@
-.test-manager-query {
-  .select {
-    width: 240px;
-    margin-right: 20px;
-  }
-}
 .dimension {
   width: 100%;
 
@@ -19,8 +13,15 @@
     .ant-cascader-menus {
       position: relative;
 
+      .ant-cascader-menu {
+        height: auto;
+        max-height: 180px;
+        overflow-y: auto;
+      }
+
       .ant-cascader-menu-item-expand-icon {
         top: 50%;
+        transform: translateY(-50%);
       }
 
       .ant-cascader-menu-item > .ant-cascader-checkbox {

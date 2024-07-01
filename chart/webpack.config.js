@@ -171,6 +171,8 @@ module.exports = (cliEnv = {}, argv) => {
       classnames: 'classnames',
       lodash: 'lodash',
       'proxima-event': 'proxima-event',
+      insight: 'insight',
+      formik: 'formik',
     },
     function ({ _context, request }, callback) {
       if (request.startsWith('proxima-sdk')) {
