@@ -175,8 +175,8 @@ export const batchUpdate = async () => {
     needUpdateItemData.forEach(testEntityFieldTypeValidator);
     const tasks = [
       onlyValues
-        ? batchUpdateItems(needUpdateItemData)
-        : batchUpdateItemsValues(needUpdateItemData),
+        ? batchUpdateItemsValues(needUpdateItemData)
+        : batchUpdateItems(needUpdateItemData),
     ];
 
     // 移除测试计划下的测试用例关联的测试执行

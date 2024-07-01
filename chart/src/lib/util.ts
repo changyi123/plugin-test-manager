@@ -4,6 +4,8 @@ import { mergeIQL } from 'proxima-sdk/lib/Iql';
 
 import { ESResultFormatTmp, GlobalIqlFilterCond, ReportBody, ReportFormula } from './type';
 
+const { PROXIMA_APP_ID } = globalThis.env || require('insight');
+
 // 是否是总计小计的行列
 export const isIncludeTotal = function (str) {
   return (
@@ -230,7 +232,7 @@ export const isInOne = () => {
 /** 获取租户信息 */
 export const getTenantKey = () => {
   // dev 环境默认取 env 中的 PROXIMA_APP_ID
-  return window?.env?.PROXIMA_APP_ID ?? process.env.PROXIMA_APP_ID ?? 'osc';
+  return window?.env?.PROXIMA_APP_ID ?? PROXIMA_APP_ID ?? process?.env?.PROXIMA_APP_ID ?? 'osc';
 };
 
 // 获取 webTrigger 前缀
