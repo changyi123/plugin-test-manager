@@ -312,7 +312,7 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
 
       if (updateTestEntityParams.length) {
         tasks.push(
-          updateTestEntity(updateTestEntityParams).then(resp => {
+          updateTestEntity(updateTestEntityParams, false).then(resp => {
             if (resp?.status === 'error') {
               throw new Error(resp.data);
             }

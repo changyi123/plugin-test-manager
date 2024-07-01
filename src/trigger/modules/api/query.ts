@@ -311,9 +311,12 @@ export async function queryBasicData() {
     currentTestConfig?.testRunAction?.statusList?.map(status => status.statusId) || [];
   if (statusIds?.length) {
     const statusMap = await getParseQuery(true, 'Status')
+      .select(['name'])
       .containedIn('objectId', statusIds)
-      .find({ json: true })
-      .then(status => status.reduce((prev, cur) => ({ ...prev, [cur.objectId]: cur.name }), {}));
+      .find({ useMasterKey: true })
+      .then(status =>
+        status.reduce((prev, cur) => ({ ...prev, [cur.objectId]: cur.get('name') }), {}),
+      );
     currentTestConfig.testRunAction.statusList.forEach(s => (s.name = statusMap[s.statusId]));
   }
   return {
