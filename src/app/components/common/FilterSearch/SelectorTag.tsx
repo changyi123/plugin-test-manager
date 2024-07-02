@@ -5,7 +5,7 @@ import React, { useMemo } from 'react';
 
 import { FILTER_EXPRESSIONS } from '@/lib/constants';
 import useI18n from '@/lib/hooks/useI18n';
-import { SelectCase } from '@/lib/utils/iql';
+import { getDateDisplayText, SelectCase } from '@/lib/utils/iql';
 import { isDate } from '@/lib/utils/iql';
 
 import cx from './SelectorTag.less';
@@ -52,10 +52,14 @@ const SelectorTag: React.FC<SelectorTagProps> = ({
   }, [component, value, t]);
 
   const expressionText = useMemo(() => {
+    if (isDate(component)) {
+      return getDateDisplayText(_expression, value as string[], t);
+    }
+
     const key = component === 'test_manager_status' ? 'Workspace' : component;
     const options = FILTER_EXPRESSIONS(t)[key] || [];
     return options.find(item => item.value === _expression)?.label || null;
-  }, [_expression, component, t]);
+  }, [_expression, component, t, value]);
 
   return (
     <div className={cx('search-criteria', { active })}>
@@ -64,7 +68,9 @@ const SelectorTag: React.FC<SelectorTagProps> = ({
       <div className={cx('search-tag')} onClick={() => onClick(data)}>
         <div className={cx('name')}>{fieldName}</div>
         {expressionText && <div className={cx('expression', 'ml4')}>{expressionText}</div>}
-        {_value && _value !== 'NULL' && <div className={cx('value', 'ml4')}>{_value}</div>}
+        {!isDate(component) && _value && _value !== 'NULL' && (
+          <div className={cx('value', 'ml4')}>{_value}</div>
+        )}
         {!!count && <div className={cx('count', 'ml4')}>+{count}</div>}
         {showCloseIcon && (
           <CloseOutlined
