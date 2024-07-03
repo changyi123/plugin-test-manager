@@ -73,7 +73,7 @@ export const useGetGroupNodeId = (group, allCaseIds) => {
 export const useGetGroupCounts = ({ workspaceKey, current, params, selectedNode }) => {
   const { data: treeData } = useRequest(
     async () => {
-      if (!workspaceKey) return [];
+      if (!workspaceKey || !params) return [];
       const { data } = await getRepositoryTreeV2({
         workspaceKey,
         params: params,

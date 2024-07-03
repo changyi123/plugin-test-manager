@@ -10,6 +10,7 @@ import emptyImg from '@/icons/svg/empty-data.png';
 import { getLinkedTestEntityByQuery, getTestEntityByQuery } from '@/lib/api/item';
 import { TestLinkType, TestType } from '@/lib/constants';
 import useI18n from '@/lib/hooks/useI18n';
+import { SearchSelectors } from '@/lib/utils/iql';
 import { getReportKey, getRepositoryQuery } from '@/lib/utils/tree';
 
 import { getCheckedByType } from './helper';
@@ -21,6 +22,7 @@ interface TestDetailsSelectorListProps {
   workspaceKey?: string;
   selectedNode?: any;
   searchName?: string;
+  selectors?: SearchSelectors;
   ignoreTestDetailIds?: string[];
   selectedTestDetailIds?: string[];
   setSelectedTestDetailIds?: (val: any) => void;
@@ -38,7 +40,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
   setSelectedTestDetailIds,
   treeType,
   planId,
-  treeProps,
+  selectors: selector,
   validateCaseStatus = false,
 }) => {
   const { t } = useI18n();
@@ -66,6 +68,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
           name: searchName,
           ...repository,
         },
+        selector,
         limit: 9999,
         linkType: TestLinkType.CaseLinkPlan,
         sourceIds: [planId],
@@ -101,6 +104,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
           name: searchName,
           ...repository,
         },
+        selector,
         ascending: ['sortIndex', 'createdAt'],
         limit: 99999,
         sortByRepositoryIds: allNodeKeys,
@@ -110,10 +114,12 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
       return data as Array<{ id: string; workflowStatus: { objectId: string } }>;
     },
     {
-      refreshDeps: [workspaceKey, selectedNode, treeType, searchName, showType],
+      refreshDeps: [workspaceKey, selectedNode, treeType, selector, showType],
       cacheKey: `Repository_${
         selectedNode?.key ?? ''
-      }_${selectedNode?.counts?.toString()}_${treeType}_${showType}_${workspaceKey}_${searchName}`,
+      }_${selectedNode?.counts?.toString()}_${treeType}_${showType}_${workspaceKey}_${
+        typeof selector === 'object' ? JSON.stringify(selector) : selector
+      }`,
       staleTime: 999999999,
       cacheTime: 999999999,
     },
@@ -195,13 +201,16 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
       const baseQueryOptions: {
         ascending?: FieldKey[];
         descending?: FieldKey[];
+        selector?: string | SearchSelectors;
       } =
         orderByCratedAt === 'asc'
           ? {
               ascending: ['sortIndex', 'createdAt'],
+              selector,
             }
           : {
               descending: ['sortIndex', 'createdAt'],
+              selector,
             };
       const repository = getRepositoryQuery(selectedNode, showType);
       const allNodeKeys = getReportKey([selectedNode]);
@@ -225,15 +234,15 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
     {
       refreshDeps: [
         workspaceKey,
-        searchName,
         treeType,
         current,
         selectedNode,
         showType,
         orderByCratedAt,
+        selector,
       ],
       cacheKey: `Repository_${selectedNode?.key ?? ''}_${selectedNode?.counts?.toString()}_${
-        searchName ?? ''
+        (typeof selector === 'object' ? JSON.stringify(selector) : selector) ?? ''
       }_${showType}_${current}_${treeType}_${orderByCratedAt}${workspaceKey}`,
       staleTime: 999999999,
       cacheTime: 999999999,
@@ -264,6 +273,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
             type: TestType.Case,
             ...query,
           },
+          selector,
           linkType: TestLinkType.CaseLinkPlan,
           sourceIds: [planId],
           destinationType: TestType.Case,
@@ -274,8 +284,9 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
             type: TestType.Case,
             ...query,
           },
+          selector,
         };
-  }, [treeProps, showType, selectedNode]);
+  }, [showType, selectedNode, selector]);
 
   const { groupCounts, treeData } = useGetGroupCounts({
     workspaceKey,
@@ -285,8 +296,8 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
   });
 
   const group = useMemo(
-    () => (treeType === 'plan' && searchName ? treeData : [selectedNode]).filter(Boolean),
-    [selectedNode, treeData, searchName, treeType],
+    () => (treeType === 'plan' && selector ? treeData : [selectedNode]).filter(Boolean),
+    [selectedNode, treeData, selector, treeType],
   );
 
   const showList = useMemo(() => {

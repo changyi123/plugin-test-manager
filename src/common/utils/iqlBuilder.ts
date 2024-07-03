@@ -174,6 +174,6 @@ export default class IQLBuilder {
       return `${iql}${orderSyntaxStr} ${OrderProcessor(order.column, order.type)}${endToken}`;
     }, '');
 
-    return `${iqlWhereString} ${iqlOrderString}`;
+    return `${iqlWhereString} ${iqlOrderString}`.trim();
   };
 }

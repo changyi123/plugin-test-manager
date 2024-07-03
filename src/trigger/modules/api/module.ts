@@ -95,6 +95,7 @@ export const repositoryTreeV2 = async () => {
       payload,
       limit: InfinityLimit,
       order: [],
+      andCompositionIqlStr: body.params.selector,
     });
     linkIql = iql;
   }
