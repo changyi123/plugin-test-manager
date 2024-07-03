@@ -19,7 +19,7 @@ import AddFilterIcon from '@/icons/svg/add-filter.svg';
 import { getTestConfig } from '@/lib/api/common';
 import { openFieldValuePopover, openFilterPopover } from '@/lib/api/sdk';
 import { getCurrentUserSetting } from '@/lib/api/userSetting';
-import { CurrentWorkspaceConfigStorageKey, DATA_FIELDS } from '@/lib/constants';
+import { CurrentWorkspaceConfigStorageKey } from '@/lib/constants';
 import {
   FILTER_EXPRESSIONS,
   getExtendFields,
@@ -384,19 +384,6 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
       const isExtend = IS_EXTEND_FIELDS.includes(data.component);
       const component = IS_EXTEND_FIELDS.includes(data.component) ? data.component : data.key;
       const expression = data.expression ?? getExpression(data.component, data.key);
-      const isDateComponent = DATA_FIELDS.includes(data.key);
-
-      // 修复 date range 的值类型错误
-      const fixDateRangeValue = newData => {
-        let fixedValue = newData?.value?.filter(Boolean) ?? [];
-        if (fixedValue?.length === 1 && data?.value?.length === 1) {
-          fixedValue = [data.value[0], fixedValue[0]];
-        }
-        updateSelectorValue({
-          ...newData,
-          value: fixedValue,
-        });
-      };
 
       // setActiveSelector(fieldId);
       const props = {
@@ -412,7 +399,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
         value: data?.value,
         label: data?.fieldName,
         workspace: workspace?.objectId,
-        onChange: isDateComponent ? fixDateRangeValue : updateSelectorValue,
+        onChange: updateSelectorValue,
         onClose: () => {
           // setActiveSelector('');
           handleSearch();

@@ -1,3 +1,4 @@
+import dayjs from 'dayjs';
 import matchBracket from 'find-matching-bracket';
 import { cloneDeep, isArray, isEmpty, isNil, omit, pick } from 'lodash';
 
@@ -216,19 +217,79 @@ const toIqlCollection = (selector: SelectCase) => {
     ?.join(IQL_CONDITION._AND_);
 };
 
+const getExpressionText = (expression: string, t): string => {
+  // 等于
+  if (expression === FILTER_EXPR_NAME.Date_Equal) return t('common.equal');
+  // 不等于
+  if (expression === FILTER_EXPR_NAME.Date_Not_Equal) return t('common.notEqual');
+  // 大于
+  if (expression === FILTER_EXPR_NAME.Date_Great_Than) return t('common.greaterThan');
+  // 小于
+  if (expression === FILTER_EXPR_NAME.Date_Less_Than) return t('common.lessThan');
+};
+
+const getDateCondition = (expression: string): IQLCase => {
+  // 等于
+  if (expression === FILTER_EXPR_NAME.Date_Equal) return IQL_CONDITION.EQUAL;
+  // 不等于
+  if (expression === FILTER_EXPR_NAME.Date_Not_Equal) return IQL_CONDITION.NOT_EQUAL;
+  // 大于
+  if (expression === FILTER_EXPR_NAME.Date_Great_Than) return IQL_CONDITION.GREATER_THAN;
+  // 小于
+  if (expression === FILTER_EXPR_NAME.Date_Less_Than) return IQL_CONDITION.LESS_THAN;
+};
+export const getDateDisplayText = (expression: string, value: string[], t): string => {
+  const [startTime, endTime] = value || [];
+  // 介于
+  if (!expression || expression === FILTER_EXPR_NAME.Date_Contain) {
+    if (!startTime) return t('common.between');
+    return `${t('common.between')} ${dayjs(startTime).format('YYYY-MM-DD')} ${t(
+      'components.common.filterSearch.to',
+    )} ${endTime ? dayjs(endTime).format('YYYY-MM-DD') : ''}`;
+  } else if (expression.includes('_Empty')) {
+    return expression.includes('_Not_Empty') ? t('common.notNull') : t('common.null');
+    // 为空、非空
+  } else {
+    // 其他
+    return `${getExpressionText(expression, t)} ${
+      startTime ? dayjs(startTime).format('YYYY-MM-DD') : ''
+    }`;
+  }
+};
+
 // 针对 Date 类型单独处理
 const toIqlDateCase: IQLCaseFormatter = (selector, prefix) => {
-  const { fieldName, value } = selector;
+  const { fieldName, value, expression } = selector;
   const [startTime, endTime] = (value || []) as DateTimestampRang;
-  // TODO iql不支持week查询
-  const startDate = typeof startTime === 'number' ? startTime : `'${startTime}'`;
-  const endDate = typeof endTime === 'number' ? endTime : `'${endTime}'`;
-  return [
-    startDate && `${fieldName} ${IQL_CONDITION.GREATER_THAN_EQUAL} ${startDate}`,
-    endDate && `${fieldName} ${IQL_CONDITION.LESS_THAN_EQUAL} ${endDate}`,
-  ]
-    .map(item => (prefix ? `'${prefix}'.${item}` : item))
+
+  let result = [];
+
+  const startDate = typeof startTime === 'number' ? startTime : startTime ? `'${startTime}'` : null;
+  const endDate = typeof endTime === 'number' ? endTime : endTime ? `'${endTime}'` : null;
+  const curFieldName = prefix ? fieldName : `'${fieldName}'`;
+
+  // 介于
+  if (!expression || expression === FILTER_EXPR_NAME.Date_Contain) {
+    result = [
+      startDate && `${curFieldName} ${IQL_CONDITION.GREATER_THAN_EQUAL} ${startDate}`,
+      endDate && `${curFieldName} ${IQL_CONDITION.LESS_THAN_EQUAL} ${endDate}`,
+    ];
+  } else if (expression.includes('_Empty')) {
+    // 为空、非空情况
+    const emptyCondition = expression.includes('_Not_Empty')
+      ? IQL_CONDITION.IS_NOT
+      : IQL_CONDITION.IS;
+    result = [`${curFieldName} ${emptyCondition} ${NULL}`];
+  } else {
+    // 其他
+    const condition = getDateCondition(expression);
+
+    result = [startDate && `${curFieldName} ${condition} ${startDate}`];
+  }
+
+  return result
     .filter(Boolean)
+    .map(item => (prefix ? `'${prefix}'.${item}` : item))
     .join(IQL_CONDITION._AND_);
 };
 

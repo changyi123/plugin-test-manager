@@ -236,6 +236,15 @@ export const FILTER_EXPR_NAME = {
   Reporter_Not_Contain: 'Reporter_Not_Contain',
   FieldCollection_Contain: 'FieldCollection_Contain',
   FieldCollection_Not_Contain: 'FieldCollection_Not_Contain',
+  Date_Contain: 'Date_Contain',
+  Date_Less_Than: 'Date_Less_Than',
+  Date_Less_Than_Equal: 'Date_Less_Than_Equal',
+  Date_Great_Than: 'Date_Great_Than',
+  Date_Great_Than_Equal: 'Date_Great_Than_Equal',
+  Date_Not_Equal: 'Date_Not_Equal',
+  Date_Equal: 'Date_Equal',
+  Date_Empty: 'Date_Empty',
+  Date_Not_Empty: 'Date_Not_Empty',
 };
 
 export const FILTER_EXPRESSIONS = t => ({
