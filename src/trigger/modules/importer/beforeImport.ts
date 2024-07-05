@@ -28,14 +28,54 @@ const replaceRn = datas => {
   }
 };
 
-const splitSteps = datas => `${replaceRn(datas) ?? ''}`?.split(/(?=【\d+】)/g) ?? [];
+const regexpList = ['【\\d+】', '\\d+\\. ', '\\d+、'];
+const indexRegexpList = [/【(\d+)】(.|[\r\n])*?$/, /(\d+)(.|[\r\n])*?$/, /(\d+)(.|[\r\n])*?$/];
+
+const splitSteps = datas => {
+  try {
+    const stepsString = replaceRn(datas) ?? '';
+    let steps = [];
+    for (const regexp of regexpList) {
+      if (new RegExp(`^${regexp}`, 'g').test(stepsString)) {
+        steps = stepsString.split(new RegExp(`(?=${regexp})`, 'g'));
+        break;
+      }
+    }
+    return steps;
+  } catch (err) {
+    console.info('______________error_____________', err, datas);
+    return [];
+  }
+};
+
+const testStep = datas =>
+  regexpList.some(regexp => new RegExp(`(^|([\r\n]))${regexp}`, 'g').test(datas));
 
 const pickStepIndex = data => {
-  return +data.replace(/【(\d+)】(.|[\r\n])*?$/, '$1');
+  let index = 0;
+  let i = 0;
+  for (const regexp of regexpList) {
+    if (new RegExp(regexp, 'g').test(data)) {
+      index = +data.replace(indexRegexpList[i], '$1');
+      break;
+    }
+    i++;
+  }
+  return index;
 };
-const getStepData = datas => datas.replace(/^【\d+】/g, '');
 
-const getIsStrict = step => (replaceRn(step) ? /(^|([\r\n]))【\d+】/g.test(replaceRn(step)) : true);
+const getStepData = datas => {
+  let data = datas;
+  for (const regexp of regexpList) {
+    if (new RegExp(`^${regexp}`, 'g').test(data)) {
+      data = datas.replace(new RegExp(`^${regexp}`, 'g'), '');
+      break;
+    }
+  }
+  return data;
+};
+
+const getIsStrict = step => (replaceRn(step) ? testStep(replaceRn(step)) : true);
 
 const getSortIndex = (index = 0, time = 0) =>
   Math.floor(Date.now() / 1000 + time) * 10e5 + index * 1000;

@@ -7,18 +7,19 @@ import { InfinityLimit } from '../../../common/constant';
 const isMoreThanThousands = d => d?.length > 999;
 
 // 去除首位空格
-const trimData = datas => `${datas}`?.trim() ?? '';
+const trimData = datas => `${datas ?? ''}`.trim();
 
 // 根据数据是否超过 1000 条来截取数据
 const getDataByLength = d => (isMoreThanThousands(d) ? d.slice(0, 999) : d);
 
-const isFilterGroup = group => `${group ?? ''}`?.split('/').filter(d => trimData(d)).length > 8;
+const isFilterGroup = (group, limit = 8) =>
+  `${group ?? ''}`?.split('/').filter(d => trimData(d)).length > limit;
 
 const filterGroupNum = group =>
   `${group ?? ''}`?.split('/').filter(d => trimData(d)?.length > 100).length > 0;
 
 // 过滤不符合条件数据
-const filterData = d => d.filter(item => item.name && !isFilterGroup(item?.group ?? ''));
+const filterData = d => d.filter(item => !isFilterGroup(item?.group ?? ''));
 
 const clone = d => JSON.parse(JSON.stringify(d));
 
@@ -37,19 +38,28 @@ const errorLog1 = i18n.t('trigger.importer.validate.numberValidate');
 //   }, 0);
 
 const getStringLength = d => `${d ?? ''}`?.length;
+const regexpList = ['【\\d+】', '\\d+. ', '\\d+、'];
 
 const splitSteps = datas => {
   try {
-    return datas?.replace(/^[\r\n]+/g, '')?.split(/(?=【\d+】)/g) ?? [];
+    const stepsString = datas?.replace(/^[\r\n]+/g, '') ?? '';
+    let steps = [];
+    for (const regexp of regexpList) {
+      if (new RegExp(`^${regexp}`, 'g').test(stepsString)) {
+        steps = stepsString.split(new RegExp(`(?=${regexp})`, 'g'));
+        break;
+      }
+    }
+    return steps;
   } catch (err) {
     console.info('______________error_____________', err, datas);
     return [];
   }
 };
 
-const testStep = datas => /(?=【\d+】)/g.test(datas);
+const testStep = datas => regexpList.some(regexp => new RegExp(`(?=${regexp})`, 'g').test(datas));
 
-const isSteps = datas => /【\d+】/g.test(datas);
+const isSteps = datas => regexpList.some(regexp => new RegExp(`^${regexp}`, 'g').test(datas));
 
 const testSteps = datas => (isSteps(datas) ? splitSteps(datas).some(d => !testStep(d)) : false);
 
@@ -65,6 +75,19 @@ const getTestDetailsErrors = (datas, resProps?: Record<string, unknown>) =>
       prev = prev.concat([
         `${i18n.t('trigger.importer.validate.No')} ${index + 1} ${i18n.t(
           'trigger.importer.validate.validateErrors.0',
+        )}`,
+      ]);
+    }
+
+    // 校验所属分组是否为空
+    if (
+      global.env.GROUP_REQUIRED_WHEN_VALIDATE &&
+      !isFilterGroup(cur?.group, 0) &&
+      !resProps?.group
+    ) {
+      prev = prev.concat([
+        `${i18n.t('trigger.importer.validate.No')} ${index + 1} ${i18n.t(
+          'trigger.importer.validate.validateErrors.11',
         )}`,
       ]);
     }
@@ -314,6 +337,5 @@ export const runValidate = async () => {
   });
 
   const res = await validateAppData(getDataByFieldMaping(data, fieldMapping, groupPath));
-  console.info('res', JSON.stringify(res, fieldMapping));
   return res;
 };

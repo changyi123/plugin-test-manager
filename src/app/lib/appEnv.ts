@@ -94,6 +94,10 @@ const SupportAppEnv = {
     },
     transformer: value => value,
   },
+  GROUP_REQUIRED_WHEN_VALIDATE: {
+    defaultValue: false,
+    transformer: val => val,
+  },
 } as const;
 
 /**

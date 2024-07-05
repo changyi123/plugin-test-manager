@@ -15,6 +15,7 @@ import {
 } from '@/icons';
 import { updateTestEntity } from '@/lib/api/item';
 import { createFolder, deleteFolder, updateFolders } from '@/lib/api/repository';
+import { getAppEnv } from '@/lib/appEnv';
 import { TestType } from '@/lib/constants';
 import { repositoryFolderTreeEvent } from '@/lib/events';
 import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
@@ -392,7 +393,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
           workspace.objectId
         }?app=test_manager&disableToggleWorkspace=true&hiddenItemType=true${appendedQueryString}&group=${
           node.key
-        }`;
+        }&validateRequired=${getAppEnv('GROUP_REQUIRED_WHEN_VALIDATE')}`;
         window.open(href);
       }
 
