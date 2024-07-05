@@ -38,7 +38,7 @@ const errorLog1 = i18n.t('trigger.importer.validate.numberValidate');
 //   }, 0);
 
 const getStringLength = d => `${d ?? ''}`?.length;
-const regexpList = ['【\\d+】', '\\d+. ', '\\d+、'];
+const regexpList = ['【\\d+】', '\\d+.', '\\d+、'];
 
 const splitSteps = datas => {
   try {
@@ -72,11 +72,7 @@ const getTestDetailsErrors = (datas, resProps?: Record<string, unknown>) =>
   datas?.reduce((prev, cur, index) => {
     // 校验用例标题
     if (!trimData(cur.name)) {
-      prev = prev.concat([
-        `${i18n.t('trigger.importer.validate.No')} ${index + 1} ${i18n.t(
-          'trigger.importer.validate.validateErrors.0',
-        )}`,
-      ]);
+      prev = prev.concat({ index, error: i18n.t('trigger.importer.validate.validateErrors.0') });
     }
 
     // 校验所属分组是否为空
@@ -85,98 +81,70 @@ const getTestDetailsErrors = (datas, resProps?: Record<string, unknown>) =>
       !isFilterGroup(cur?.group, 0) &&
       !resProps?.group
     ) {
-      prev = prev.concat([
-        `${i18n.t('trigger.importer.validate.No')} ${index + 1} ${i18n.t(
-          'trigger.importer.validate.validateErrors.11',
-        )}`,
-      ]);
+      prev = prev.concat({
+        index,
+        error: i18n.t('trigger.importer.validate.validateErrors.11'),
+      });
     }
 
     // 校验所属分组
     if (isFilterGroup(cur?.group) && !resProps?.group) {
-      prev = prev.concat([
-        `${i18n.t('trigger.importer.validate.No')} ${index + 1} ${i18n.t(
-          'trigger.importer.validate.validateErrors.1',
-        )}`,
-      ]);
+      prev = prev.concat({ index, error: i18n.t('trigger.importer.validate.validateErrors.1') });
     }
 
     // 校验所属分组字数
     if (filterGroupNum(cur?.group) && !resProps?.group) {
-      prev = prev.concat([
-        `${i18n.t('trigger.importer.validate.No')} ${index + 1} ${i18n.t(
-          'trigger.importer.validate.validateErrors.2',
-        )}`,
-      ]);
+      prev = prev.concat({ index, error: i18n.t('trigger.importer.validate.validateErrors.2') });
     }
 
     // 校验前置条件字数
     if (getStringLength(cur.precondition) > 2000) {
-      prev = prev.concat([
-        `${i18n.t('trigger.importer.validate.No')} ${index + 1} ${i18n.t(
-          'trigger.importer.validate.validateErrors.3',
-        )}`,
-      ]);
+      prev = prev.concat({ index, error: i18n.t('trigger.importer.validate.validateErrors.3') });
     }
 
     // 校验步骤格式
     if (testSteps(cur.action)) {
-      prev = prev.concat([
-        `${i18n.t('trigger.importer.validate.No')} ${index + 1} ${i18n.t(
-          'trigger.importer.validate.validateErrors.4',
-        )}`,
-      ]);
+      prev = prev.concat({ index, error: i18n.t('trigger.importer.validate.validateErrors.4') });
     }
 
     // 校验步骤字数
     if (getCharNumErrorIndex(cur.action).length) {
-      prev = prev.concat(
-        `${i18n.t('trigger.importer.validate.No')} ${index + 1} ${i18n.t(
-          'trigger.importer.validate.case',
-        )} ${getCharNumErrorIndex(cur.action)
+      prev = prev.concat({
+        index,
+        error: `${i18n.t('trigger.importer.validate.case')} ${getCharNumErrorIndex(cur.action)
           .map(d => d + 1)
           .join('、')} ${i18n.t('trigger.importer.validate.validateErrors.5')}`,
-      );
+      });
     }
 
     // 校验预期结果格式
     if (testSteps(cur.result)) {
-      prev = prev.concat([
-        `${i18n.t('trigger.importer.validate.No')} ${index + 1} ${i18n.t(
-          'trigger.importer.validate.validateErrors.6',
-        )}`,
-      ]);
+      prev = prev.concat({ index, error: i18n.t('trigger.importer.validate.validateErrors.6') });
     }
 
     // 校验预期结果字数
     if (getCharNumErrorIndex(cur.result).length) {
-      prev = prev.concat(
-        `${i18n.t('trigger.importer.validate.No')} ${index + 1} ${i18n.t(
-          'trigger.importer.validate.case',
-        )} ${getCharNumErrorIndex(cur.result)
+      prev = prev.concat({
+        index,
+        error: `${i18n.t('trigger.importer.validate.case')} ${getCharNumErrorIndex(cur.action)
           .map(d => d + 1)
           .join('、')} ${i18n.t('trigger.importer.validate.validateErrors.7')}`,
-      );
+      });
     }
 
     // 校验数据格式
     if (testSteps(cur.data)) {
-      prev = prev.concat([
-        `${i18n.t('trigger.importer.validate.No')} ${index + 1} ${i18n.t(
-          'trigger.importer.validate.validateErrors.8',
-        )}`,
-      ]);
+      prev = prev.concat({ index, error: i18n.t('trigger.importer.validate.validateErrors.8') });
     }
 
     // 校验数据字数
     if (getCharNumErrorIndex(cur.data).length) {
-      prev = prev.concat(
-        `${i18n.t('trigger.importer.validate.No')} ${index + 1} ${i18n.t(
-          'trigger.importer.validate.case',
-        )} ${getCharNumErrorIndex(cur.data)
+      prev = prev.concat({
+        index,
+        error: `${i18n.t('trigger.importer.validate.case')} ${getCharNumErrorIndex(cur.action)
           .map(d => d + 1)
           .join('、')} ${i18n.t('trigger.importer.validate.validateErrors.9')}`,
-      );
+      });
     }
 
     return prev;
@@ -284,11 +252,11 @@ export const runValidate = async () => {
 
   const getValidateErrors = (datas, errors: any[] = []) => {
     if (isMoreThanThousands(datas)) {
-      !errors.includes(errorLog1) && errors.push(errorLog1);
+      errors.push({ error: errorLog1 });
     }
 
     if (!itemTypeName) {
-      errors = [i18n.t('trigger.importer.validate.validateErrors.10'), ...errors];
+      errors = [{ error: i18n.t('trigger.importer.validate.validateErrors.10') }, ...errors];
     }
 
     return errors.concat(getTestDetailsErrors(datas, { group }) ?? []).filter(Boolean);

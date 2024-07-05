@@ -28,7 +28,7 @@ const replaceRn = datas => {
   }
 };
 
-const regexpList = ['【\\d+】', '\\d+\\. ', '\\d+、'];
+const regexpList = ['【\\d+】', '\\d+\\.', '\\d+、'];
 const indexRegexpList = [/【(\d+)】(.|[\r\n])*?$/, /(\d+)(.|[\r\n])*?$/, /(\d+)(.|[\r\n])*?$/];
 
 const splitSteps = datas => {

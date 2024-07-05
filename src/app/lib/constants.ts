@@ -85,6 +85,13 @@ export const TABLE_EXCLUDE_FIELDS = [SYSTEM_FIELD.Team];
 
 export const ICLUDE_SYSTEM_FIELD = [SYSTEM_FIELD.Status];
 
+export const TEMPLATE_SYSTEM_FIELDS = [
+  SYSTEM_FIELD.Sprint,
+  SYSTEM_FIELD.Version,
+  SYSTEM_FIELD.Assignee,
+  SYSTEM_FIELD.Priority,
+];
+
 export const REPORT_SYSTEM_FIELD = [
   SYSTEM_FIELD.Version,
   SYSTEM_FIELD.Sprint,
