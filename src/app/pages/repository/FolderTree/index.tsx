@@ -341,11 +341,12 @@ const FolderTree: React.FC<FolderTreeProps> = ({
             if (checkCaseForDeleteRepository) {
               const hasCase = node.counts?.some(count => count > 0);
               if (hasCase) {
-                return message.error(
+                message.error(
                   t('page.repository.folderTree.checkCaseDeleteFolderTips.cannotDeleteRepository', {
                     name: node.name,
                   }),
                 );
+                return Promise.resolve();
               }
             }
 
