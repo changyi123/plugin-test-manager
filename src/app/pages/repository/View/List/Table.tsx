@@ -25,8 +25,10 @@ import {
 import { useCurrentUser } from '@/lib/api/user';
 import { getCurrentUserSetting, saveUserSetting } from '@/lib/api/userSetting';
 import { TestType } from '@/lib/constants';
+import { useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import fetch from '@/lib/utils/fetch';
+import { getProximaBasePath, getTenantKey } from '@/lib/utils/helper';
 import { actionConfirm, getPluginWebTriggerBaseUrl, openItemViewScreen } from '@/lib/utils/helper';
 import { SearchSelectors, selectorToIql } from '@/lib/utils/iql';
 
@@ -202,6 +204,8 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
   const { data: currentUser } = useCurrentUser();
   const [hasRowSelected, setHasRowSelected] = React.useState(false);
 
+  const { workspace } = useTestConfig();
+
   React.useImperativeHandle(actionRef, () => tableActionRef.current);
 
   // useListener('updateItemExtraCustomerFields', async itemId => {
@@ -269,7 +273,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
   );
 
   const getSelectTestCaseId = useCallback(
-    async params => {
+    async (params, isDetail?: boolean) => {
       const batchParams = getBatchParams(params);
       if (!batchParams) return;
       if (batchParams.notNeedQuery) return batchParams.selectedRowKeys;
@@ -281,13 +285,16 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
           ascending: ['sortIndex', 'createdAt'],
           offset: caseIds.length,
           limit: 9999,
-          select: ['id'],
+          select: ['id', 'key'],
         });
         caseIds = caseIds.concat(res.list);
         total = res.total;
       } while (caseIds.length < total);
-
-      return caseIds?.map(({ id }) => id);
+      if (isDetail) {
+        return caseIds;
+      } else {
+        return caseIds?.map(({ id }) => id);
+      }
     },
     [getBatchParams],
   );
@@ -380,7 +387,34 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
       });
     };
 
+    const openBatchPage = async () => {
+      const localIqlKey = `batch_quick_edit_test_manager`;
+      // 组装批量操作地址
+      const testCases = (await getSelectTestCaseId(tableActionRef.current, true)) ?? [];
+      const testBoard = await new Parse.Query('Board')
+        .equalTo('pluginKey', 'test_manager_test-repository')
+        .equalTo('workspace', workspace?.objectId)
+        .first();
+      window.localStorage.setItem(
+        localIqlKey,
+        `"key" in [${testCases.map(i => `"${i.key}"`).join(',')}]`,
+      );
+      // 构造url，打开批量编辑页面
+      const itemBatchPage = `${getProximaBasePath()}/${getTenantKey()}/workspaces/${workspaceKey}/batch-operate/${testBoard.get(
+        'key',
+      )}?localIql=${localIqlKey}&displayContext=test_manager&operate=quick_edit`;
+      window.open(itemBatchPage, '_blank');
+      tableActionRef.current.refresh();
+    };
+
     return [
+      <span
+        className={cx('action')}
+        key="link"
+        onClick={hasRowSelected ? openBatchPage : undefined}
+      >
+        批量编辑
+      </span>,
       <UserCell
         value={[]}
         key="assignee"
@@ -422,7 +456,16 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         <DeleteIcon className={cx('icon')} /> {t('common.delete')}
       </span>,
     ];
-  }, [hasRowSelected, t, setTableLoading, getBatchParams, onDataChange, getSelectTestCaseId]);
+  }, [
+    hasRowSelected,
+    t,
+    setTableLoading,
+    getBatchParams,
+    onDataChange,
+    getSelectTestCaseId,
+    workspace?.objectId,
+    workspaceKey,
+  ]);
 
   const columns = React.useMemo(() => {
     const deleteTestDetail = data => {
