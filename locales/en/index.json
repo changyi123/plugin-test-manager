@@ -108,6 +108,9 @@
     "notContain": "Does not Contain",
     "lessThan": "less than",
     "greaterThan": "greater than",
+    "between": "between",
+    "notNull": "not null",
+    "null": "null",
     "noData": "No data",
     "minderRootNodeName": "All Modules",
     "updateFail": "Update data failed",
@@ -613,6 +616,10 @@
           "Module",
           "The submodules under the module will be deleted together, and the test cases in the module will still be retained and automatically moved to ungrouped test cases"
         ],
+        "checkCaseDeleteFolderTips": {
+          "cannotDeleteRepository": "Unable to delete the 【{{name}}】 module. Please remove the use cases under the module first",
+          "confirmDeleteRepositoryTip": "The submodules under the module will be deleted together. If there are use cases under the module or submodule, please move the use cases out of the module first"
+        },
         "deleteFolderSuccess": "Module deleted successfully",
         "caseCreateSuccessTips": [
           "test cases was created successfully",

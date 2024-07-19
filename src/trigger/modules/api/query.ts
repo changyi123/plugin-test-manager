@@ -310,10 +310,10 @@ export async function queryBasicData() {
   const statusIds =
     currentTestConfig?.testRunAction?.statusList?.map(status => status.statusId) || [];
   if (statusIds?.length) {
-    const statusMap = await getParseQuery(true, 'Status')
+    const statusMap = await getParseQuery(false, 'Status')
       .select(['name'])
       .containedIn('objectId', statusIds)
-      .find({ useMasterKey: true })
+      .findAll({ useMasterKey: true })
       .then(status =>
         status.reduce((prev, cur) => ({ ...prev, [cur.objectId]: cur.get('name') }), {}),
       );

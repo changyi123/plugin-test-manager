@@ -107,6 +107,9 @@
     "notContain": "不属于",
     "lessThan": "小于",
     "greaterThan": "大于",
+    "between": "介于",
+    "notNull": "不为空",
+    "null": "为空",
     "noData": "暂无数据",
     "minderRootNodeName": "全部用例",
     "updateFail": "数据更新失败",
@@ -542,6 +545,10 @@
           "模块吗",
           "模块下的子模块将会一同删除，模块内的用例仍保留且自动移至未分组用例下。"
         ],
+        "checkCaseDeleteFolderTips": {
+          "cannotDeleteRepository": "无法删除 【{{name}}】模块，请先将模块下用例移除",
+          "confirmDeleteRepositoryTip": "模块下的子模块将会一同删除，如果模块或子模块下有用例，请先将用例移出模块"
+        },
         "deleteFolderSuccess": "模块删除成功",
         "caseCreateSuccessTips": ["个测试用例新建成功", "测试用例", "新建成功"],
         "buttonName": ["创建模块", "折叠全部", "更多"],
