@@ -6,9 +6,9 @@ import React from 'react';
 
 import { useGetPermissions } from '@/components/business/TestManagerProvider/hooks';
 import { getPriorityOptions } from '@/lib/api/minder';
-import { getWorkspaceByKey } from '@/lib/api/proxima';
-import { useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
+import fetch from '@/lib/utils/fetch';
+import { getPluginWebTriggerBaseUrl } from '@/lib/utils/helper';
 
 import cx from './index.less';
 import { getRepositoryTreeWithParentNode } from './lib';
@@ -40,7 +40,7 @@ const RootRepositoryId = 'root';
 
 // 各组件间共享的状态
 const useSharedState = () => {
-  const [workspace, setWorkspace] = React.useState(null);
+  const [config, setConfig] = React.useState(null);
   const { t } = useI18n();
   const { context } = useSDK();
   const workspaceKey = context?.env?.WORKSPACE_KEY;
@@ -94,18 +94,22 @@ const useSharedState = () => {
   React.useEffect(() => {
     if (workspaceKey) {
       Promise.all([
-        getWorkspaceByKey(workspaceKey),
+        fetch.$post(`${getPluginWebTriggerBaseUrl()}/api-query-basic-data`, {
+          workspaceKey,
+        }),
         getRepositoryTreeWithParentNode(workspaceKey, t),
-      ]).then(([workspace, repositoryTree]) => {
-        setWorkspace(workspace);
+      ]).then(([config, repositoryTree]) => {
+        setConfig(config);
         setPartialSharedState({ workspaceKey, repositoryTree });
       });
     }
   }, [workspaceKey, setPartialSharedState, t]);
 
   // 获取创建权限
-  const { config } = useTestConfig();
-  const { getCreatePermission: getDisabledCreatePermission } = useGetPermissions(workspace, config);
+  const { getCreatePermission: getDisabledCreatePermission } = useGetPermissions(
+    config?.workspace,
+    config?.currentTestConfig,
+  );
   React.useEffect(() => {
     setPartialSharedState({ canCreateTestCaseItem: !getDisabledCreatePermission(TestType.Case) });
   }, [getDisabledCreatePermission, setPartialSharedState]);
