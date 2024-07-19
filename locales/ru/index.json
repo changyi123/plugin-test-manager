@@ -17,6 +17,7 @@
     "forbiddenActive": "неполноценный",
     "pageTitle": {
       "repository": "Тестовый репозиторий",
+      "task": "Задача",
       "plan": "План испытаний",
       "report": "Отчет об испытаниях"
     },
@@ -929,6 +930,7 @@
         "deletePlanSuccess": "План тестирования успешно удален",
         "addPlanSuccess": "План тестирования успешно создан",
         "planName": "Название программы",
+        "taskName": "Task name",
         "deleteTestPlan": "Удалить план тестирования",
         "checkTestPlan": " Посмотреть план тестирования",
         "caseStatus": "Статус дела",

@@ -18,6 +18,7 @@
     "pageTitle": {
       "repository": "测试用例",
       "report": "测试报告",
+      "task": "测试执行任务",
       "plan": "测试计划"
     },
     "whiteCaseRule": "状态不属于“{{statusNames}}”，不允许规划",
@@ -875,6 +876,7 @@
         "deletePlanSuccess": "测试计划删除成功",
         "addPlanSuccess": "测试计划新建成功",
         "planName": "计划名称",
+        "taskName": "测试执行任务名称",
         "deleteTestPlan": "删除测试计划",
         "checkTestPlan": "查看测试计划",
         "caseStatus": "执行通过率",

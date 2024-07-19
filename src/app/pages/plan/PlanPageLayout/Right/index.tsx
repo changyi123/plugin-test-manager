@@ -34,6 +34,7 @@ interface RightProps {
   setShowType?: (val: string) => void;
   refreshTreeAndScopeTestCase?: () => void;
   selectNode?: Record<string, unknown>;
+  showRepoDropDown?: boolean;
 }
 
 const Right: React.FC<RightProps> = props => {
@@ -44,6 +45,7 @@ const Right: React.FC<RightProps> = props => {
     setShowType,
     refreshTreeAndScopeTestCase,
     selectNode,
+    showRepoDropDown = true,
   } = props;
 
   const {
@@ -232,11 +234,13 @@ const Right: React.FC<RightProps> = props => {
               >
                 {t('common.planCase')}
               </Button>
-              <RepoDropDown
-                type="plan"
-                className={cx('action')}
-                selectedTestPlanId={selectedTestPlan?.objectId}
-              />
+              {showRepoDropDown && (
+                <RepoDropDown
+                  type="plan"
+                  className={cx('action')}
+                  selectedTestPlanId={selectedTestPlan?.objectId}
+                />
+              )}
             </>
           </div>
         </div>
