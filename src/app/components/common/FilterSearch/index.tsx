@@ -23,7 +23,6 @@ import { CurrentWorkspaceConfigStorageKey } from '@/lib/constants';
 import {
   FILTER_EXPRESSIONS,
   getExtendFields,
-  IS_EXTEND_FIELDS,
   ItemUserTypeComponentKey,
   RepositoryModel,
   SelectorCurrentUserValue,
@@ -381,24 +380,27 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
     (data, dom) => {
       const fieldId = data.fieldId;
       const systemTarget = getExtendFields(t).find(item => item.objectId === fieldId);
-      const isExtend = IS_EXTEND_FIELDS.includes(data.component);
-      const component = IS_EXTEND_FIELDS.includes(data.component) ? data.component : data.key;
+      // const isExtend = IS_EXTEND_FIELDS.includes(data.component);
+      // const component = data.component ? data.component : data.key;
       const expression = data.expression ?? getExpression(data.component, data.key);
 
       // setActiveSelector(fieldId);
       const props = {
-        isExtend: systemTarget?.fieldType?.isExtend ?? isExtend,
+        isExtend: systemTarget?.fieldType?.isExtend || false,
         fieldId,
+        workspace: workspace?.objectId,
         field: systemTarget || {
+          objectId: fieldId,
+          name: data.fieldName,
+          key: data.key,
           fieldType: {
-            component: component,
+            component: data.component || data.key,
             label: data.fieldName,
             key: data.key,
           },
         },
         value: data?.value,
         label: data?.fieldName,
-        workspace: workspace?.objectId,
         onChange: updateSelectorValue,
         onClose: () => {
           // setActiveSelector('');
