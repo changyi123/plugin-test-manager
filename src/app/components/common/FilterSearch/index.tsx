@@ -380,8 +380,6 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
     (data, dom) => {
       const fieldId = data.fieldId;
       const systemTarget = getExtendFields(t).find(item => item.objectId === fieldId);
-      // const isExtend = IS_EXTEND_FIELDS.includes(data.component);
-      // const component = data.component ? data.component : data.key;
       const expression = data.expression ?? getExpression(data.component, data.key);
 
       // setActiveSelector(fieldId);
@@ -415,6 +413,10 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
       }
       if (fieldId === TestCaseStatusModel) {
         (props as any).fetchMethod = () => getStatusOptions();
+      }
+
+      if (isDate(data.key)) {
+        (props as any).className = 'reset-bg';
       }
 
       return props;
