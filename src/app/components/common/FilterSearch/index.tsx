@@ -242,28 +242,9 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
   useImperativeHandle(ref, () => ({
     reset: () => {
       setSearch('');
-      handleSetSelectors({});
+      setSelectors(handleDataSelector({}));
     },
   }));
-
-  const handleSetSelectors = useCallback(
-    (data, searchValue?) => {
-      // 因为name字段不在筛选器中维护，要手动合并name
-      data.name = {
-        isExtend: false,
-        component: 'name',
-        expression: '',
-        fieldId: 'name',
-        fieldName: '标题',
-        key: 'name',
-        value: searchValue === undefined ? search : searchValue,
-        fieldLabel: fieldsName,
-      };
-      setSelectors(handleDataSelector(data));
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [search, JSON.stringify(fieldsName)],
-  );
 
   const { data: currentUser } = useNoExpiredRequest(
     async () => {
@@ -293,8 +274,8 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
               if (user.value === SelectorCurrentUserValue) {
                 return {
                   ...user,
-                  value: currentUser.objectId,
-                  username: currentUser.username,
+                  value: currentUser?.objectId,
+                  username: currentUser?.username,
                 };
               }
               return user;
@@ -304,13 +285,25 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
       });
 
       // 事项的字段，首次加载不需要过滤
-      const itemSelector = initial ? currentSelectorsValue : omit(currentSelectorsValue, ids);
+      let itemSelector = initial ? currentSelectorsValue : omit(currentSelectorsValue, ids);
       // 测试管理的字段
       const testManageSelector = initial ? currentSelectorsValue : pick(currentSelectorsValue, ids);
+      itemSelector = {
+        ...itemSelector,
+        name: {
+          component: 'name',
+          expression: '',
+          fieldId: 'name',
+          fieldName: '标题',
+          key: 'name',
+          value: search,
+          fieldLabel: fieldsName,
+        },
+      };
 
       onSearch([itemSelector, testManageSelector]);
     },
-    [extendFields, onSearch, currentUser],
+    [extendFields, search, fieldsName, onSearch, currentUser?.objectId, currentUser?.username],
   );
 
   const { run: handleSearch } = useDebounceFn(searchFn, { wait: 300 });
@@ -320,13 +313,13 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
       setSearch(value);
       // 往selectors中塞name
       const data = cloneDeep(currentSelectors.current);
-      handleSetSelectors(data, value);
+      setSelectors(handleDataSelector(data));
       // 避免查数据的时候，拿不到最新的iql
       setTimeout(() => {
         handleSearch();
       }, 200);
     },
-    [handleSearch, handleSetSelectors],
+    [handleSearch, setSelectors],
   );
 
   const updateSelectorValue = useCallback(
@@ -336,10 +329,10 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
       if (target) {
         target.value = selector.value;
         target.expression = selector.expression;
-        handleSetSelectors(data);
+        setSelectors(handleDataSelector(data));
       }
     },
-    [handleSetSelectors],
+    [setSelectors],
   );
 
   // 获取各个层级
@@ -392,7 +385,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
           name: data.fieldName,
           key: data.key,
           fieldType: {
-            component: data.component || data.key,
+            component: data.key || data.component,
             label: data.fieldName,
             key: data.key,
           },
@@ -434,7 +427,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
 
   const onFilterChange = useCallback(
     (data, filterId) => {
-      handleSetSelectors(data);
+      setSelectors(handleDataSelector(data));
       const filterDetail = data?.[filterId];
       // 得等上一个popover注销完，才能打开新的popover
       setTimeout(() => {
@@ -452,7 +445,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
         }
       }, 500);
     },
-    [handleSetSelectors, getFieldValueProps, handleSearch],
+    [setSelectors, getFieldValueProps, handleSearch],
   );
 
   const currentSelector = useMemo(() => {
@@ -476,10 +469,10 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
     id => {
       const data = cloneDeep(selectors);
       delete data[id];
-      handleSetSelectors(data);
+      setSelectors(handleDataSelector(data));
       handleSearch();
     },
-    [handleSearch, handleSetSelectors, selectors],
+    [handleSearch, selectors, setSelectors],
   );
 
   const generateFieldValue = useCallback(data => {
