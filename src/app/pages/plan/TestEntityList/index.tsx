@@ -882,7 +882,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
                   deleteTestRunByIds([record.id]);
                 }}
               >
-                {t('common.delete')}
+                {t('common.remove')}
               </Button>
             </div>
           );
