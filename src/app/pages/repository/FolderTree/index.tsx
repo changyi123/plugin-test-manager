@@ -1,4 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
+import { useSDK } from '@projectproxima/plugin-sdk';
 import createProximaSdk from '@projectproxima/proxima-sdk-js';
 import { useDrop, useReactive } from 'ahooks';
 import { Button, Dropdown, Input, message, Modal, notification, Tree } from 'antd';
@@ -140,6 +141,7 @@ type TreeNode = {
   parentKey: string | null;
   caseIds?: string[];
   children: TreeNode[];
+  counts: number[];
 };
 
 type FolderTreeProps = {
@@ -171,6 +173,9 @@ const FolderTree: React.FC<FolderTreeProps> = ({
   } = useTestConfig();
 
   const { createItemUseModal, getCreatePermission } = useBaseAction();
+  const { context } = useSDK();
+
+  const checkCaseForDeleteRepository = context?.env?.CHECK_CASE_FOR_DELETE_REPOSITORY;
 
   const selectedTreeNode = React.useMemo(() => {
     return treeFn.getTreeNodeByKey(state.selectedKeys[0]);
@@ -318,7 +323,13 @@ const FolderTree: React.FC<FolderTreeProps> = ({
                 {t('page.repository.folderTree.deleteFolderTips.0')}【{node.name}】
                 {t('page.repository.folderTree.deleteFolderTips.1')}？
               </div>
-              <div>{t('page.repository.folderTree.deleteFolderTips.2')}</div>
+              <div>
+                {checkCaseForDeleteRepository
+                  ? t(
+                      'page.repository.folderTree.checkCaseDeleteFolderTips.confirmDeleteRepositoryTip',
+                    )
+                  : t('page.repository.folderTree.deleteFolderTips.2')}{' '}
+              </div>
             </>
           ),
           cancelText: t('common.cancel'),
@@ -328,6 +339,18 @@ const FolderTree: React.FC<FolderTreeProps> = ({
             danger: true,
           },
           onOk: async () => {
+            if (checkCaseForDeleteRepository) {
+              const hasCase = node.counts?.some(count => count > 0);
+              if (hasCase) {
+                message.error(
+                  t('page.repository.folderTree.checkCaseDeleteFolderTips.cannotDeleteRepository', {
+                    name: node.name,
+                  }),
+                );
+                return Promise.resolve();
+              }
+            }
+
             const keys = [];
             traverseTreeNodes([node], node => {
               keys.push(node.key);

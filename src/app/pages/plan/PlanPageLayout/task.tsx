@@ -330,15 +330,19 @@ const TaskPageLayout: React.FC<any> = () => {
 
   return (
     <div className={cx('test-plan-page')}>
-      {!selectedExecution?.objectId ? (
+      <div
+        style={selectedExecution?.objectId ? { display: 'none' } : { display: 'contents' }}
+        className={cx('test-task-list')}
+      >
         <TestTaskList
-          ref={executionListRef}
+          listRef={executionListRef}
           setSelectedExecution={setSelectedExecution}
           createTestExecution={createTestExecution}
           addExistedTestExecution={addExistedTestExecution}
           selectorModalRef={selectorModalRef}
         />
-      ) : (
+      </div>
+      {selectedExecution?.objectId && (
         <>
           <PageLayout>
             <PageLayout.Header>

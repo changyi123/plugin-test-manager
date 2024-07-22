@@ -15,7 +15,7 @@ import {
 } from '@/lib/api/item';
 import { useCurrentUser } from '@/lib/api/user';
 import { getCurrentUserSetting, saveUserSetting } from '@/lib/api/userSetting';
-import { TestFiledKeyMapping, TestLinkType, TestType } from '@/lib/constants';
+import { SystemField, TestFiledKeyMapping, TestLinkType, TestType } from '@/lib/constants';
 import { useBaseAction } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import { goToItemDetailPage } from '@/lib/utils/helper';
@@ -111,7 +111,7 @@ const TestTaskList: React.FC<any> = ({
             type: TestType.Execution,
           },
           fields: uniq(
-            ['id', TestFiledKeyMapping.linkItems].concat(
+            ['id', SystemField.ItemType, TestFiledKeyMapping.linkItems].concat(
               SystemFieldKeys,
               tableFields.map(i => i.key).filter(i => i !== 'action'),
             ),

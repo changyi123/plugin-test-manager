@@ -229,6 +229,7 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
           />
         )}
         <FilterSearch
+          filterId="testDetailSelector"
           ref={detailSearchRef}
           onSearch={setSearchParams}
           className={`${cx('plan-page-layout-search')} common-search-box`}

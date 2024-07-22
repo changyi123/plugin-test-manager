@@ -311,7 +311,16 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
         title={t('components.common.businessTable.tableSetting')}
       >
         <div className={cx('box-header')}>
-          <div className={cx('title')}>{t('components.common.businessTable.headerSetting')}</div>
+          <div className={cx('title')}>
+            {t('components.common.businessTable.headerSetting')}
+            <Tooltip
+              className={cx('field-tips')}
+              placement="bottom"
+              title={t('components.common.businessTable.actionTips')}
+            >
+              <QuestionCircleOutlined />
+            </Tooltip>
+          </div>
           {!titleCellOption?.isSettingPage && (
             <Button
               className={cx('link')}
@@ -337,13 +346,6 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
             </Button>
           )}
         </div>
-        <Tooltip
-          className={cx('field-tips')}
-          placement="bottom"
-          title={t('components.common.businessTable.actionTips')}
-        >
-          <QuestionCircleOutlined />
-        </Tooltip>
         <Select
           showSearch
           mode="multiple"

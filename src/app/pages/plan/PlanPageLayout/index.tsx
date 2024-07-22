@@ -135,7 +135,7 @@ const PlanPageLayout: React.FC<any> = () => {
     setSearchParams([{}, {}]);
     pageLeftRef.current?.reset();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeType, selectedExecution, selectedTestPlan]);
+  }, [activeType, selectedExecution?.objectId, selectedTestPlan]);
 
   useUpdateEffect(() => {
     if (activeType === 'TestPlan') {

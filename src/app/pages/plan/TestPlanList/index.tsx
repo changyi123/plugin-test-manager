@@ -12,7 +12,7 @@ import { EditIcon } from '@/icons';
 import { getStatsTestPlan, getTestEntityByQuery } from '@/lib/api/item';
 import { useCurrentUser } from '@/lib/api/user';
 import { getCurrentUserSetting, saveUserSetting } from '@/lib/api/userSetting';
-import { TestType } from '@/lib/constants';
+import { SystemField, TestType } from '@/lib/constants';
 import { useBaseAction } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import { goToItemDetailPage } from '@/lib/utils/helper';
@@ -67,7 +67,7 @@ const TestPlanList: React.FC<any> = () => {
           type: TestType.Plan,
         },
         fields: uniq(
-          ['id'].concat(
+          ['id', SystemField.ItemType].concat(
             SystemFieldKeys,
             tableFields.map(i => i.key).filter(i => i !== 'action'),
           ),
