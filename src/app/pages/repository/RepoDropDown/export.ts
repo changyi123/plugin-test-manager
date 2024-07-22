@@ -9,7 +9,7 @@ import {
 import { getCustomFields } from '@/lib/api/proxima';
 import { getRepositoryData } from '@/lib/api/repository';
 import { getAppEnv } from '@/lib/appEnv';
-import { TestLinkType, TestType } from '@/lib/constants';
+import { TEMPLATE_SYSTEM_FIELDS, TestLinkType, TestType } from '@/lib/constants';
 import { SYSTEM_FIELD } from '@/lib/constants';
 import Parse from '@/lib/parse';
 import { Item } from '@/lib/types/App';
@@ -19,7 +19,7 @@ import fetch from '@/lib/utils/fetch';
 import { escapeHtmlString } from '@/lib/utils/helper';
 import { getPluginWebTriggerBaseUrl } from '@/lib/utils/helper';
 import { SearchSelectors } from '@/lib/utils/iql';
-import { isZhLang } from '@/lib/utils/locale';
+// import { isZhLang } from '@/lib/utils/locale';
 import { getRepositoryQuery } from '@/lib/utils/tree';
 import { CustomField } from '@/services/models';
 
@@ -307,17 +307,15 @@ const importTestInfo = async (
 };
 
 /** 下载 excel 用例导出文件 */
-export const downloadExampleFile = async (fieldKeys, t, lang) => {
+export const downloadExampleFile = async (fieldKeys, t, _lang) => {
   // 获取需要导出的自定义字段
   const SystemFieldKeys = Object.values(SYSTEM_FIELD);
-  const CustomFieldKeys = difference(fieldKeys, SystemFieldKeys);
+  const CustomFieldKeys = [...difference(fieldKeys, SystemFieldKeys), ...TEMPLATE_SYSTEM_FIELDS];
   const CustomFields = await getCustomFields(CustomFieldKeys);
   const ExportCustomFields = CustomFields.reduce((res, field) => {
     return {
       ...res,
-      [isZhLang(lang) ? field.name : field.key]: t(
-        'page.repository.repoDropDown.pleaseEnterContent',
-      ),
+      [field.name]: '',
     };
   }, {});
   exportExcelFile(

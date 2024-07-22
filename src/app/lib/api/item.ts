@@ -696,8 +696,16 @@ export const getRepositoryTree = async (params: RepositoryTreePayload) => {
 
 // 获取测试用例库树V2
 export const getRepositoryTreeV2 = async (params: RepositoryTreePayload) => {
+  const { params: originParams = { selector: '' } } = params;
   const { data } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-module-repository-tree-v2`, {
     ...params,
+    params: {
+      ...originParams,
+      selector:
+        typeof originParams.selector === 'string'
+          ? originParams.selector
+          : selectorToIql(handleSelector(originParams.selector)),
+    },
     sessionToken: getSessionToken(),
   });
   return data;

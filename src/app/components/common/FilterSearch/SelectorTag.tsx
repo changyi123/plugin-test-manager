@@ -64,7 +64,10 @@ const SelectorTag: React.FC<SelectorTagProps> = ({
   return (
     <div className={cx('search-criteria', { active })}>
       {/* 挂载popover的节点 */}
-      <span id={`filter-search-selector-${fieldId}`}></span>
+      <span
+        id={`filter-search-selector-${fieldId}`}
+        className={cx('test-manager-filter-popover-transparency')}
+      ></span>
       <div className={cx('search-tag')} onClick={() => onClick(data)}>
         <div className={cx('name')}>{fieldName}</div>
         {expressionText && <div className={cx('expression', 'ml4')}>{expressionText}</div>}

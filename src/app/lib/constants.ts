@@ -85,6 +85,13 @@ export const TABLE_EXCLUDE_FIELDS = [SYSTEM_FIELD.Team];
 
 export const ICLUDE_SYSTEM_FIELD = [SYSTEM_FIELD.Status];
 
+export const TEMPLATE_SYSTEM_FIELDS = [
+  SYSTEM_FIELD.Sprint,
+  SYSTEM_FIELD.Version,
+  SYSTEM_FIELD.Assignee,
+  SYSTEM_FIELD.Priority,
+];
+
 export const REPORT_SYSTEM_FIELD = [
   SYSTEM_FIELD.Version,
   SYSTEM_FIELD.Sprint,
@@ -147,6 +154,8 @@ export const FIELD_TYPE_KEY_MAPPINGS = {
   DataQuote: 'DataQuote', // 数据引用
   Actors: 'Actors', // 当前负责人(执行人)
   UserGroup: 'UserGroup', // 用户组
+  Ancestors: 'Ancestor', // 父事项
+  Cascade: 'Cascade', // 级联
 };
 
 export const DATA_FIELDS = [
@@ -418,7 +427,12 @@ export const isUseOptionLabel = (component: string): boolean => {
   ].includes(component);
 };
 
-export const EXINCLUDE_FIELDS = [FIELD_TYPE_KEY_MAPPINGS.DataQuote];
+export const EXINCLUDE_FIELDS = [
+  FIELD_TYPE_KEY_MAPPINGS.Ancestors,
+  FIELD_TYPE_KEY_MAPPINGS.FieldCollection,
+  FIELD_TYPE_KEY_MAPPINGS.Cascade,
+  FIELD_TYPE_KEY_MAPPINGS.Tree,
+];
 
 export const isUseOptionValue = (component: string): boolean => {
   return [FIELD_TYPE_KEY_MAPPINGS.Dropdown].includes(component);

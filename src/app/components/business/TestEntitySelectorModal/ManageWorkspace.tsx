@@ -395,7 +395,6 @@ const ManageWorkspaceModal: React.FC<TestEntitySelectorProps> = props => {
         {!isSingleMode && (
           <WorkspaceSelector value={currentWorkspaceKey} onChange={setCurrentWorkspaceKey} />
         )}
-        <span className={cx('choose-label')}>选择用例</span>
         <TestComponents
           isSingleMode={isSingleMode}
           workspaceKey={currentWorkspaceKey}

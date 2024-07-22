@@ -867,7 +867,8 @@
           "Article expected result exceeds limit,the expected result limit 2000 characters are not imported",
           "The data format of the article is wrong, it will not be imported",
           "Article data exceeds limit, data limit 2000 characters are not imported",
-          "Item type association is not configured, all data will not be imported, please configure the associated item type first"
+          "Item type association is not configured, all data will not be imported, please configure the associated item type first",
+          "The group of the test case is empty, not imported"
         ]
       }
     },
