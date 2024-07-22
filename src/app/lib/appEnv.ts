@@ -98,6 +98,10 @@ const SupportAppEnv = {
     defaultValue: false,
     transformer: val => val,
   },
+  CHECK_CASE_FOR_DELETE_REPOSITORY: {
+    defaultValue: false,
+    transformer: value => value,
+  },
 } as const;
 
 /**
