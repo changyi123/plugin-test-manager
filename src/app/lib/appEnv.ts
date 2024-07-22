@@ -94,6 +94,10 @@ const SupportAppEnv = {
     },
     transformer: value => value,
   },
+  CHECK_CASE_FOR_DELETE_REPOSITORY: {
+    defaultValue: false,
+    transformer: value => value,
+  },
 } as const;
 
 /**
