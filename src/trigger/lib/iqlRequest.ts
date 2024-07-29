@@ -316,6 +316,7 @@ export const iqlRequest: IqlRequestType = async params => {
         order: transformOrderParams({ ascending, descending }),
         ...pagination,
       }),
+      isShowDetails: true,
       extend: extendSearchBody,
     });
     console.timeEnd('test-manager-iqlSearch-time');

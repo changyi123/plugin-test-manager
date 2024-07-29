@@ -2977,10 +2977,10 @@ anymatch@~3.1.2:
     normalize-path "^3.0.0"
     picomatch "^2.0.4"
 
-"apps-team-components-v1@npm:@giteeteam/apps-team-components@1.0.12":
-  version "1.0.12"
-  resolved "https://registry.npmmirror.com/@giteeteam/apps-team-components/-/apps-team-components-1.0.12.tgz#d44be120b722bb26e330d78b551e2c310b2b1dcf"
-  integrity sha512-LNzGzD88G34Z4Jtdc2AnNRDleFuf4Yte9yTZqxaObDGpwvAWAb3QdpCeA4TnVZ78R5lM3ZKHN2VqHaL3OV/p1w==
+"apps-team-components-v1@npm:@giteeteam/apps-team-components@1.1.6":
+  version "1.1.6"
+  resolved "https://registry.npmmirror.com/@giteeteam/apps-team-components/-/apps-team-components-1.1.6.tgz#87b3acf83aa41febfd31b3ec4f4f28e981787537"
+  integrity sha512-RJOYV8Z5eqGcFnTzn/DCgiPI3rU69wno+MnKVEtvoJHof1rZ5hlaGMOOfqIdkbotNmodZHnCS66c/lzGnLdyPQ==
   dependencies:
     "@emotion/cache" "^11.11.0"
     "@emotion/react" "^11.11.1"

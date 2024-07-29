@@ -1,12 +1,14 @@
 import { useLocalStorageState, useMemoizedFn, useSize } from 'ahooks';
 import { Pagination, Table } from 'antd';
 import { ColumnsType, TableProps } from 'antd/lib/table';
+import { useDataQuoteStore } from 'apps-team-components-v1';
 import { difference, isEqual, omit, pick } from 'lodash';
 import React, { useEffect, useMemo, useRef } from 'react';
 import { useCallback } from 'react';
 import { Resizable } from 'react-resizable';
 
 import OverflowTooltip from '@/components/common/OverflowTooltip';
+import { getItemByIQL } from '@/lib/api/proxima';
 import useI18n from '@/lib/hooks/useI18n';
 import useTable from '@/lib/hooks/useTable';
 import { generateStorageKey } from '@/lib/utils/helper';
@@ -599,6 +601,12 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
       antdTableProps?.pagination?.total,
       unSelectedRowKeys,
     ],
+  );
+
+  useDataQuoteStore(dataSource, ids =>
+    getItemByIQL({
+      itemId: ids,
+    }).then(res => res.items),
   );
 
   React.useEffect(() => {

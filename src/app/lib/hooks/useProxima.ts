@@ -39,10 +39,12 @@ export const useFieldsWithFieldCellProps = fields => {
           text: cellTextPropGetter(field),
           readonly: true,
           data: field.data,
+          apply: 'cell',
+          readOnly: true,
           dataIndex: field.key,
           property: {
             ...field.property,
-            hiddenAvatar: true,
+            hiddenAvatar: false,
             displayDeletedUser: true,
           },
           objectId: field.objectId,

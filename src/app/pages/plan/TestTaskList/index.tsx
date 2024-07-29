@@ -25,12 +25,13 @@ import { StatusProgress } from '../../../components/business/Status';
 
 const { ItemIcon } = components.Components.Common;
 
-import { Divider, Empty, Space } from 'antd';
+import { Button, Divider, Space } from 'antd';
 
+import CreatePermission from '@/components/business/Contianer/CreatePermission';
+import TestEntitySelectorModal from '@/components/business/TestEntitySelectorModal';
 import TestPlanSelector from '@/components/business/TestPlanSelector';
 import { SystemFieldKeys } from '@/components/common/BusinessTable/hook';
 
-import NoData from '../PlanPageLayout/NoData';
 import cx from './index.less';
 
 const TestTaskList: React.FC<any> = ({
@@ -43,21 +44,12 @@ const TestTaskList: React.FC<any> = ({
   const { t } = useI18n();
   const actionRef = React.useRef<BusinessTableActionType>();
   const { testExecutionFieldKeys } = useBaseAction();
-  const { workspaceKey, selectedTestPlan, setSearchParams, setPlanId } = usePageContext();
+  const { workspaceKey, selectedTestPlan, setPlanId } = usePageContext();
   const [selectors, setSelectors] = useState([{}, {}]);
   const [tableLoading, setTableLoading] = useState(false);
   const { data: currentUser } = useCurrentUser();
 
   const detailSearchRef = useRef(null);
-
-  React.useEffect(() => {
-    if (selectedTestPlan) {
-      // 还原筛选器数据
-      detailSearchRef.current?.reset();
-      setSearchParams([{}, {}]);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedTestPlan]);
 
   const queryDeps = useMemo(
     () =>
@@ -273,12 +265,36 @@ const TestTaskList: React.FC<any> = ({
   return (
     <div className={cx('test-plan-container')}>
       <div className={cx('plan-header')}>
-        <div className={cx('plan-header-body')} style={{ paddingRight: '100px' }}>
+        <div className={cx('plan-header-body')}>
           <Space className={cx('header-left')}>
             {t('common.testExecution')}
             <Divider type="vertical" />
             <TestPlanSelector hiddenCheckAll />
           </Space>
+          {selectedTestPlan?.objectId ?(
+            <Space className={cx('header-right')}>
+              <CreatePermission type={TestType.Execution}>
+                <Button
+                  type="primary"
+                  onClick={async () => {
+                    createTestExecution();
+                  }}
+                >
+                  {t('common.createTestExecution')}
+                </Button>
+              </CreatePermission>
+              <CreatePermission type={TestType.Execution}>
+                <Button
+                  type="primary"
+                  onClick={async () => {
+                    addExistedTestExecution();
+                  }}
+                >
+                  {t('modules.panel.testPlan.testExecutionPanel.modelTitle')}
+                </Button>
+              </CreatePermission>
+            </Space>
+          ) : null}
         </div>
         <div className={cx('plan-header-slot')}>
           <FilterSearch
@@ -293,6 +309,13 @@ const TestTaskList: React.FC<any> = ({
           />
         </div>
       </div>
+      <TestEntitySelectorModal
+        actionRef={selectorModalRef}
+        title={t('modules.panel.testPlan.testExecutionPanel.modelTitle')}
+        ignoreTestEntityIds={[]}
+        tableFieldsKeys={testExecutionFieldKeys}
+        width={800}
+      />
       <BusinessTable
         titleCellOption={{
           workspaceKey,
@@ -313,17 +336,6 @@ const TestTaskList: React.FC<any> = ({
         name={`${workspaceKey}_TestTaskTable`}
         actionRef={actionRef}
         loading={tableLoading}
-        locale={{
-          emptyText: selectedTestPlan?.objectId ? (
-            <NoData
-              createTestExecution={createTestExecution}
-              addExistedTestExecution={addExistedTestExecution}
-              selectorModalRef={selectorModalRef}
-            />
-          ) : (
-            <Empty description={t('common.noData')} />
-          ),
-        }}
         getDataSource={tableDataGetter}
         handleFilterField={handleFilterField}
         onSuccess={onSuccess}
