@@ -17,6 +17,7 @@
     "forbiddenActive": "disabled",
     "pageTitle": {
       "repository": "Test Repository",
+      "task": "Test Task",
       "plan": "Test Plan",
       "report": "Test Report"
     },
@@ -964,6 +965,7 @@
         "deletePlanSuccess": "Test plan deleted successfully",
         "addPlanSuccess": "The test plan was created successfully",
         "planName": "Program name",
+        "taskName": "Task name",
         "deleteTestPlan": "Delete test plan",
         "checkTestPlan": " View test plan",
         "caseStatus": "Case status",

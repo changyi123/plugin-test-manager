@@ -14,7 +14,7 @@ import { usePageContext } from '@/pages/plan/hook';
 import SearchInput from '../SearchInput';
 import cx from './index.less';
 
-const TestPlanSelector: React.FC = () => {
+const TestPlanSelector: React.FC<{ hiddenCheckAll?: boolean }> = ({ hiddenCheckAll }) => {
   const { t } = useI18n();
   const { workspaceKey, selectedTestPlan, setSelectedTestPlan } = usePageContext();
   const [search, setSearch] = useState('');
@@ -44,7 +44,16 @@ const TestPlanSelector: React.FC = () => {
         })
         .value();
 
-      return testPlans;
+      const data = hiddenCheckAll
+        ? [
+            {
+              name: t('components.business.testPlanSelector.checkAllPlan'),
+            },
+            ...testPlans,
+          ]
+        : testPlans;
+
+      return data;
     },
     {
       refreshDeps: [searchValue, workspaceKey],
@@ -84,9 +93,9 @@ const TestPlanSelector: React.FC = () => {
               <div
                 className={cx(
                   'plan-name',
-                  `${d.objectId === selectedTestPlan?.objectId ? 'actived' : ''}`,
+                  `${d.id === selectedTestPlan?.objectId ? 'actived' : ''}`,
                 )}
-                key={`${d.objectId}_${index}`}
+                key={`${d.id}_${index}`}
                 onClick={() => handleClick(d)}
               >
                 <Tooltip
@@ -110,28 +119,32 @@ const TestPlanSelector: React.FC = () => {
             ></Empty>
           )}
         </div>
-        <div
-          className={cx('check-all')}
-          onClick={() => {
-            setSelectedTestPlan(undefined);
-          }}
-        >
-          {t('components.business.testPlanSelector.checkAllPlan')}
-        </div>
+        {!hiddenCheckAll && (
+          <div
+            className={cx('check-all')}
+            onClick={() => {
+              setSelectedTestPlan(undefined);
+            }}
+          >
+            {t('components.business.testPlanSelector.checkAllPlan')}
+          </div>
+        )}
       </div>
     );
   }, [data, search, selectedTestPlan?.objectId]);
 
   return (
     <div className={cx('plan-selector-container')}>
-      <Dropdown trigger={['click']} dropdownRender={menu}>
+      <Dropdown trigger={['click']} dropdownRender={menu} autoAdjustOverflow>
         <div className={cx('title')}>
           <Tooltip
             title={selectedTestPlan?.name ?? ''}
             placement="topLeft"
             overlayClassName="global_arrow_tooltip_overflow"
           >
-            <span className={cx('name')}>{selectedTestPlan?.name ?? ''}</span>
+            <span className={cx('name')}>
+              {selectedTestPlan?.name ?? t('components.business.testPlanSelector.checkAllPlan')}
+            </span>
           </Tooltip>
           <DropDown className={cx('icon')}>{''}</DropDown>
         </div>

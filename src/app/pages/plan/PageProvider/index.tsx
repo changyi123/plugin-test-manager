@@ -40,6 +40,7 @@ type PageContextType = {
   setPlanLinkCaseIds: (val?: string[]) => void;
   setExecutionLinkRunIds: (val?: string[]) => void;
   setRunLinkCaseIds: (val?: string[]) => void;
+  setPlanId: (val?: string) => void;
 };
 
 export const PageContext = React.createContext<PageContextType>({
@@ -62,6 +63,7 @@ export const PageContext = React.createContext<PageContextType>({
   setPlanLinkCaseIds: noop,
   setExecutionLinkRunIds: noop,
   setRunLinkCaseIds: noop,
+  setPlanId: noop,
 });
 
 const PageProvider: React.FC<any> = ({ children }) => {
@@ -85,6 +87,13 @@ const PageProvider: React.FC<any> = ({ children }) => {
     }
     Object.values(refreshCacheRef.current).forEach(method => method?.());
   }, []);
+
+  const setPlanId = useCallback(
+    id => {
+      setSelectedTestPlan(selectedTestPlan ?? id ? { objectId: id } : null);
+    },
+    [selectedTestPlan],
+  );
 
   const registerRefreshMethod = React.useCallback(methods => {
     refreshCacheRef.current = {
@@ -125,6 +134,7 @@ const PageProvider: React.FC<any> = ({ children }) => {
             setPlanLinkCaseIds,
             setExecutionLinkRunIds,
             setRunLinkCaseIds,
+            setPlanId,
           }}
         >
           {children}

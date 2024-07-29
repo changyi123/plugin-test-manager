@@ -50,7 +50,7 @@ type ColumnSettingProps = TitleCellOption & {
 
 const proxima = createProximaSdk();
 
-const filedKeyText = ['User', 'Assignee', 'Sprint', 'Version'];
+const filedKeyText = ['User', 'UserGroup', 'Assignee', 'Sprint', 'Version'];
 
 const readComponents = getAllReadComponents();
 
@@ -80,7 +80,13 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
     if (titleCellOption.testType === TestType.Plan) {
       return testPlanFieldKeys;
     }
-  }, [testPlanFieldKeys?.toString(), testCaseFieldKeys?.toString(), testFieldKeys?.toString()]);
+  }, [
+    titleCellOption.testType,
+    testPlanFieldKeys?.toString(),
+    testCaseFieldKeys?.toString(),
+    testFieldKeys?.toString(),
+    testExecutionFieldKeys?.toString(),
+  ]);
   const keys = useMemo(() => [].concat(SystemFieldKeys, _keys ?? []), [_keys?.toString()]);
   const fieldKeys = useMemo(() => keys?.filter(key => !TABLE_EXCLUDE_FIELDS.includes(key)), [keys]);
 
@@ -148,11 +154,14 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
             />
           );
         }
+        if (record.name === '5555') console.info(restTableCellProps, textValue);
         return (
           <TableCell
             {...restTableCellProps}
+            text={textValue}
             cellData={textValue}
             column={{ ...field, cellType: field?.fieldType.defaultKey }}
+            values={itemData.values}
             rowData={itemData}
             readComponents={readComponents}
           />
@@ -311,7 +320,16 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
         title={t('components.common.businessTable.tableSetting')}
       >
         <div className={cx('box-header')}>
-          <div className={cx('title')}>{t('components.common.businessTable.headerSetting')}</div>
+          <div className={cx('title')}>
+            {t('components.common.businessTable.headerSetting')}
+            <Tooltip
+              className={cx('field-tips')}
+              placement="bottom"
+              title={t('components.common.businessTable.actionTips')}
+            >
+              <QuestionCircleOutlined />
+            </Tooltip>
+          </div>
           {!titleCellOption?.isSettingPage && (
             <Button
               className={cx('link')}
@@ -337,13 +355,6 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
             </Button>
           )}
         </div>
-        <Tooltip
-          className={cx('field-tips')}
-          placement="bottom"
-          title={t('components.common.businessTable.actionTips')}
-        >
-          <QuestionCircleOutlined />
-        </Tooltip>
         <Select
           showSearch
           mode="multiple"

@@ -24,7 +24,7 @@ const NoData: React.FC<NoDataProps> = ({
   selectorModalRef,
 }) => {
   const { t } = useI18n();
-  const { getCreatePermission, testExecutionFieldKeys } = useBaseAction();
+  const { testExecutionFieldKeys } = useBaseAction();
 
   return (
     <div className={cx('no-data-box')}>

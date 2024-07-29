@@ -17,7 +17,7 @@ import { useLocation } from 'react-router-dom';
 
 import AddFilterIcon from '@/icons/svg/add-filter.svg';
 import { getTestConfig } from '@/lib/api/common';
-import { openFieldValuePopover, openFilterPopover } from '@/lib/api/sdk';
+import { openFieldValuePopover, useOpenFilterPopover } from '@/lib/api/sdk';
 import { getCurrentUserSetting } from '@/lib/api/userSetting';
 import { CurrentWorkspaceConfigStorageKey } from '@/lib/constants';
 import {
@@ -42,6 +42,7 @@ import cx from './index.less';
 import SearchInput from './SearchInput';
 import SelectorTag from './SelectorTag';
 import { handleDataSelector } from './utils';
+import { display } from 'html2canvas/dist/types/css/property-descriptors/display';
 
 interface FilterSearchProps {
   fields: string[];
@@ -77,6 +78,7 @@ const useSelectorStorage = (
     () => ({
       get: () => JSON.parse(localStorage.getItem(key)),
       set: value => localStorage.setItem(key, JSON.stringify(value)),
+      del: () => localStorage.removeItem(key),
     }),
     [key],
   );
@@ -98,6 +100,11 @@ const useSelectorStorage = (
       storage.set(selectors);
     }
   }, [selectors, enableLocalStorage, storage, isEmptySelectors]);
+
+  return () => {
+    setSelectors(handleDataSelector({}));
+    storage.del();
+  };
 };
 
 const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearchProps> = (
@@ -125,6 +132,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
   const [selectors, setSelectorsState] = useState<Selectors>({});
   const currentSelectors = useRef<Selectors>({});
   const [fieldsNameRequestTag, setFieldsNameRequestTag] = React.useState(1);
+  const { fieldsDataMap, openFilterPopover } = useOpenFilterPopover(fields);
 
   const setSelectors = useMemoizedFn(selectors => {
     setSelectorsState(selectors);
@@ -174,7 +182,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
   }, [customFieldsKey?.toString(), checkedFields?.toString()]);
 
   // 将 selector 存储到 localStorage
-  useSelectorStorage(enableLocalStorage, {
+  const delSelectorStorage = useSelectorStorage(enableLocalStorage, {
     // 持久化数据，移除 name 字段
     selectors: omit(selectors, ['name']),
     setSelectors: setSelectorsFromStorageValue,
@@ -390,6 +398,9 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
             key: data.key,
           },
         },
+        userData: fieldsDataMap.current[data.fieldId],
+        display: fieldsDataMap.current[data.fieldId]?.display,
+        // searchComponent: FIELD_TYPE_KEY_MAPPINGS.DataQuote !== (data.key || data.component),
         value: data?.value,
         label: data?.fieldName,
         onChange: updateSelectorValue,
@@ -469,10 +480,12 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
     id => {
       const data = cloneDeep(selectors);
       delete data[id];
-      setSelectors(handleDataSelector(data));
+      JSON.stringify(data ?? {}) === '{}'
+        ? delSelectorStorage()
+        : setSelectors(handleDataSelector(data));
       handleSearch();
     },
-    [handleSearch, selectors, setSelectors],
+    [delSelectorStorage, handleSearch, selectors, setSelectors],
   );
 
   const generateFieldValue = useCallback(data => {
@@ -507,16 +520,15 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
         ))}
       {!hideSelectorTag && (
         <Button
-          id={filterId || 'filter-btn'}
+          id={filterId || storageKey || 'filter-btn'}
           icon={<AddFilterIcon className={cx('filter-tag-icon')} />}
           className={cx('filter-tag-btn')}
           onClick={() => {
             openFilterPopover({
               selectors,
-              fields,
               onChange: onFilterChange,
               extendFields,
-              dom: document.querySelector(`#${filterId || 'filter-btn'}`),
+              dom: document.querySelector(`#${filterId || storageKey || 'filter-btn'}`),
             });
           }}
         >

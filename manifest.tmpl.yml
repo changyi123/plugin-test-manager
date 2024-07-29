@@ -296,6 +296,13 @@ modules:
       activeIcon: /main/icons/Panel_TestplanB.svg
       displayInBoardManage: true
       {workspacePageHidden}
+    - key: test-task
+      resource: main
+      title: 测试执行任务
+      loadType: Micro
+      route: /task
+      displayInBoardManage: true
+      {workspacePageHidden}
     - key: test-repository
       resource: main
       title: 测试用例库
@@ -699,6 +706,8 @@ locales:
       title: 新建事项
     test-report:
       title: 测试报告
+    test-task:
+      title: 测试执行任务
     test-xmindimport:
       title: xmind 数据导入
     basic-test-manager-global-filter:
@@ -727,6 +736,8 @@ locales:
       title: Create item
     test-report:
       title: Test Report
+    test-task:
+      title: Test Task
     test-xmindimport:
       title: xmind import
     basic-test-manager-global-filter:

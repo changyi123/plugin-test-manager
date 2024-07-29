@@ -32,6 +32,7 @@ const getBoardPluginKey = (appKey, menuKey) => {
 
 const MENU_MAP = {
   TEST_PLAN: 'test-plan', // 测试计划
+  TEST_TASK: 'test-task', // 测试执行任务
   TEST_REPORT: 'test-report', // 测试报告
   TEST_REPOSITORY: 'test-repository', // 测试用例库
   TEST_STATS_REPORT: 'test-stats-report', // 测试统计
@@ -87,6 +88,7 @@ export const runGiteeMenus = async () => {
 
     const menus = [
       { pageKey: MENU_MAP.TEST_PLAN, langKey: 'plan' },
+      { pageKey: MENU_MAP.TEST_TASK, langKey: 'task' },
       { pageKey: MENU_MAP.TEST_REPOSITORY, langKey: 'repository' },
       enableTestReport && { pageKey: MENU_MAP.TEST_REPORT, langKey: 'report' },
     ]
