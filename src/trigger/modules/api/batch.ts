@@ -1,5 +1,6 @@
 import { i18n } from '@giteeteam/apps-api';
 import { getParseQuery } from '@giteeteam/apps-team-api';
+import { addAuditLog } from '@giteeteam/apps-team-api';
 import isObject from 'lodash/isObject';
 
 import {
@@ -98,12 +99,60 @@ export const batchDeleteV2 = async () => {
       body: { queryParams },
     } = getReqInfoFromVMRuntime<BatchDeleteV2Payload>();
     const items = await getAllEntity(queryParams);
+    const itemsObj = await getParseQuery(false, 'Item')
+      .containedIn('objectId', items)
+      .limit(9999)
+      .find({ sessionToken })
+      .then(items =>
+        items.map(item => ({
+          name: item?.get('name') || item.name,
+          key: item?.get('key') || item.key,
+        })),
+      );
     const res = await batchDeleteItems(items);
     const errorItems = res?.filter(i => i.status !== 'success');
     if (errorItems?.length) {
       // 有错误数据
       return buildResponse(new Error(errorItems[0].message));
     } else {
+      const successItems = res?.filter(i => i.status == 'success');
+      const successObjectIds = successItems.map(item => item.objectId);
+      const workspaceQuery = await getParseQuery(false, 'Workspace');
+      const workspaceName = await workspaceQuery
+        .equalTo('key', queryParams.query.workspaceKey)
+        .first({ sessionToken })
+        .then(item => item.get('name'));
+      const extraAttributes = [
+        {
+          name: i18n.t('trigger.modules.api.batch.numberItems'),
+          value: `${successObjectIds.length}`,
+        },
+        {
+          name: i18n.t('trigger.modules.api.batch.caseName'),
+          value: `${itemsObj.map(item => `${item.name}(${item.key})`).join(', ')}`,
+        },
+      ];
+      if (queryParams?.selectAll) {
+        extraAttributes.push({
+          name: i18n.t('trigger.modules.api.batch.operate'),
+          value: i18n.t('trigger.modules.api.batch.selectAll'),
+        });
+        extraAttributes.push({
+          name: i18n.t('trigger.modules.api.batch.modulePath'),
+          value: `${queryParams?.breadcrumbs.join(' > ')}`,
+        });
+      }
+      addAuditLog({
+        action: 'plungin_test_respository_batch_delete.action',
+        extraAttributes,
+        resources: [
+          {
+            type: 'nullRoute',
+            id: '',
+            name: `${workspaceName}-${i18n.t('trigger.modules.api.batch.testCases')}`,
+          },
+        ],
+      });
       return buildResponse('delete success');
     }
   } catch (err) {
@@ -211,7 +260,52 @@ export const batchUpdateValue = async () => {
     const tasks = [batchUpdateItemsValues(needUpdateItemData)];
 
     const [res] = await Promise.all(tasks);
-    return buildResponse(res.filter(Boolean).map(data => itemToTestEntity(data.item)));
+    const responseResult = buildResponse(
+      res.filter(Boolean).map(data => itemToTestEntity(data.item)),
+    );
+    if (responseResult.status === 'ok') {
+      const workspaceQuery = await getParseQuery(false, 'Workspace');
+      const workspaceName = await workspaceQuery
+        .equalTo('key', queryParams.query.workspaceKey)
+        .first({ sessionToken })
+        .then(item => item.get('name'));
+      const extraAttributes = [
+        {
+          name: i18n.t('trigger.modules.api.batch.caseName'),
+          value: responseResult?.data.map(i => `${i.name}(${i.key})`).join(', '),
+        },
+        {
+          name: i18n.t('trigger.modules.api.batch.numberItems'),
+          value: `${responseResult?.data.length || 0}`,
+        },
+        {
+          name: i18n.t('trigger.modules.api.batch.setCharge'),
+          value: value.values.assignee.map(i => i.label).join(', '),
+        },
+      ];
+      if (queryParams?.selectAll) {
+        extraAttributes.push({
+          name: i18n.t('trigger.modules.api.batch.operate'),
+          value: i18n.t('trigger.modules.api.batch.selectAll'),
+        });
+        extraAttributes.push({
+          name: i18n.t('trigger.modules.api.batch.modulePath'),
+          value: `${queryParams?.breadcrumbs.join(' > ')}`,
+        });
+      }
+      addAuditLog({
+        action: 'plungin_test_respository_batch_assignee.action',
+        extraAttributes,
+        resources: [
+          {
+            type: 'nullRoute',
+            id: '',
+            name: `${workspaceName}-${i18n.t('trigger.modules.api.batch.testCases')}`,
+          },
+        ],
+      });
+    }
+    return responseResult;
   } catch (err) {
     return buildResponse(err);
   }
@@ -602,7 +696,51 @@ export const batchCopyTestCaseV2 = async () => {
     }));
 
     const copyItems = await batchCreateItems(needCreateItems as any, fields, sessionToken);
-    return buildResponse(copyItems);
+    const result = buildResponse(copyItems);
+    if (result.status === 'ok') {
+      const [copyItem] = copyItems;
+      const affectWorksapceName = await getParseQuery(false, 'Workspace')
+        .equalTo('objectId', copyItem.workspace.objectId)
+        .first({ sessionToken })
+        .then(item => item.get('name'));
+      const coptItemsStr = copyItems.map(item => `${item.name}(${item.key})`).join(',');
+      const extraAttributes = [
+        {
+          name: i18n.t('trigger.modules.api.batch.copySpace'),
+          value: affectWorksapceName,
+        },
+        {
+          name: i18n.t('trigger.modules.api.batch.copyCaseEvents'),
+          value: coptItemsStr,
+        },
+        {
+          name: i18n.t('trigger.modules.api.batch.numberItems'),
+          value: `${copyItems.length || 0}`,
+        },
+      ];
+      if (queryParams?.selectAll) {
+        extraAttributes.push({
+          name: i18n.t('trigger.modules.api.batch.operate'),
+          value: i18n.t('trigger.modules.api.batch.selectAll'),
+        });
+        extraAttributes.push({
+          name: i18n.t('trigger.modules.api.batch.modulePath'),
+          value: `${queryParams?.breadcrumbs.join(' > ')}`,
+        });
+      }
+      addAuditLog({
+        action: 'plungin_test_respository_batch_copy.action',
+        resources: [
+          {
+            type: 'nullRoute',
+            id: '',
+            name: `${affectWorksapceName}-${i18n.t('trigger.modules.api.batch.testCases')}`,
+          },
+        ],
+        extraAttributes,
+      });
+    }
+    return result;
   } catch (err) {
     return buildResponse(err);
   }

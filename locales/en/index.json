@@ -905,7 +905,22 @@
         }
       }
     },
-    "copyName": "copy"
+    "copyName": "copy",
+    "modules": {
+      "api": {
+        "batch": {
+          "numberItems": "Number of use case items",
+          "caseName": "Use Case Item Name",
+          "operate": "operate",
+          "selectAll": "All Pages Select All",
+          "modulePath": "Module Path",
+          "testCases": "Test Cases",
+          "setCharge": "Set the person in charge",
+          "copySpace": "Copy to space",
+          "copyCaseEvents": "Copy Use Case Events"
+        }
+      }
+    }
   },
   "components": {
     "business": {

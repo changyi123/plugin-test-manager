@@ -86,7 +86,7 @@
     "@alienfast/i18next-loader": "^2.0.1",
     "@ant-design/icons": "^5.2.6",
     "@giteeteam/apps-api": "^0.3.0",
-    "@giteeteam/apps-team-api": "^0.6.2",
+    "@giteeteam/apps-team-api": "^0.7.0",
     "@giteeteam/apps-team-components": "0.3.4-remove-editor-0.12",
     "@giteeteam/apps-team-theme": "^0.1.0",
     "@giteeteam/proxima-sdk-js": "^0.7.1",

@@ -55,7 +55,7 @@ export type Query = Partial<{
   /** 事项 id
    *  iql: id in []
    */
-  id: string | string[];
+  id: string | string[] | any;
   /** 事项 key
    *  iql: key in []
    */
@@ -98,6 +98,10 @@ export type CommonTestEntityQueryPayload = PaginationParams & {
   sortByRepositoryIds?: string[];
   /** 不需要拼接测试用例专属字段 */
   notConcatField?: boolean;
+  /** 是否全选 */
+  selectAll?: boolean;
+  /** 路径面包屑 */
+  breadcrumbs?: string[];
 };
 
 /**
