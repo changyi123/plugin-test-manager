@@ -98,18 +98,8 @@ export const batchDeleteV2 = async () => {
     const {
       body: { queryParams },
     } = getReqInfoFromVMRuntime<BatchDeleteV2Payload>();
-    const items = await getAllEntity(queryParams);
-    const itemsObj = await getParseQuery(false, 'Item')
-      .containedIn('objectId', items)
-      .limit(9999)
-      .find({ sessionToken })
-      .then(items =>
-        items.map(item => ({
-          name: item?.get('name') || item.name,
-          key: item?.get('key') || item.key,
-        })),
-      );
-    const res = await batchDeleteItems(items);
+    const { caseIds, list } = await getAllEntity(queryParams);
+    const res = await batchDeleteItems(caseIds);
     const errorItems = res?.filter(i => i.status !== 'success');
     if (errorItems?.length) {
       // 有错误数据
@@ -129,7 +119,7 @@ export const batchDeleteV2 = async () => {
         },
         {
           name: i18n.t('trigger.modules.api.batch.caseName'),
-          value: `${itemsObj.map(item => `${item.name}(${item.key})`).join(', ')}`,
+          value: `${list.map(item => `${item.name}`).join(', ')}`,
         },
       ];
       if (queryParams?.selectAll) {
@@ -247,8 +237,8 @@ export const batchUpdateValue = async () => {
       body: { queryParams, value },
     } = getReqInfoFromVMRuntime<BatchUpdateValuePayload>();
     if (!value) throwArgumentError('data', 'testEntity[]');
-    const ids = await getAllEntity(queryParams);
-    const data = ids.map(objectId => ({
+    const { caseIds } = await getAllEntity(queryParams);
+    const data = caseIds.map(objectId => ({
       objectId,
       ...value,
     }));
@@ -640,7 +630,7 @@ export const batchCopyTestCaseV2 = async () => {
       )
       .map(item => item.key);
 
-    const caseList = await getAllEntity(queryParams, concatIqlRequestFields(fields));
+    const { caseIds: caseList } = await getAllEntity(queryParams, concatIqlRequestFields(fields));
 
     if (!caseList?.length) {
       throw new Error(i18n.t('components.business.testEntitySelectorModal.itemDeleted'));
