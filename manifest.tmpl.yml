@@ -139,6 +139,11 @@ modules:
       events:
         - gei:apps:bound:workspace
       function: workspace-bind-trigger-function
+    - key: auditLog-action-catogory-install
+      events:
+        - proxima:app:install
+        - proxima:app:upgrade
+      function: auditLog-action-catogory-install-function
     
   function:
     - key: gitee-menus-function
@@ -194,6 +199,8 @@ modules:
       handler: api.queryCaseIdByStatus
     - key: api-query-case-run-record-function
       handler: api.queryCaseRunRecords
+    - key: auditLog-action-catogory-install-function
+      handler: trigger.installAuditLog
 
      # api batch
     - key: api-batch-delete-function

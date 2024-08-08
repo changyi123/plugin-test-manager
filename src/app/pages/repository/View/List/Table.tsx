@@ -171,6 +171,7 @@ type TestDetailTableProps = {
   copyTestCasesV2?: (val: any) => any;
   queryDeps: string;
   workspaceKey: string;
+  breadcrumbs?: string[];
   repository?: Record<string, any>;
   selector?: SearchSelectors | string;
 };
@@ -190,6 +191,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
     workspaceKey,
     repository,
     selector,
+    breadcrumbs,
   } = props;
   const { t } = useI18n();
   const externalDataLoading =
@@ -249,6 +251,8 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         selector: typeof selector === 'string' ? selector : selectorToIql(handleSelector(selector)),
         notNeedQuery: false,
         selectedRowKeys: [],
+        selectAll: params?.selectAll,
+        breadcrumbs,
       };
       if (!params) return;
       const { selectedRowKeys = [], unSelectedRowKeys = [], selectAll, total } = params;
@@ -265,7 +269,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
       }
       return batchParams;
     },
-    [repository, selector, workspaceKey],
+    [repository, selector, workspaceKey, breadcrumbs],
   );
 
   const getSelectTestCaseId = useCallback(
@@ -376,6 +380,8 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
       const testCaseIds = (await getSelectTestCaseId(tableActionRef.current)) ?? [];
       proxima.execute('openAddLinkScreen', {
         itemId: testCaseIds.toString(),
+        breadcrumbs,
+        selectAll: tableActionRef.current.selectAll,
         displayContext: 'test_manager',
       });
     };

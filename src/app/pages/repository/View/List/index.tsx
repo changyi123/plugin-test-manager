@@ -258,6 +258,7 @@ const ListView: React.FC<ViewComponentProps> = ({
         />
         <Table
           actionRef={tableActionRef}
+          breadcrumbs={breadcrumbs}
           onDataChange={refreshAll}
           testDetailFieldKeys={[].concat(SystemFieldKeys, testCaseFieldKeys)}
           onSelectionCancel={() => toggleSelection(false)}
