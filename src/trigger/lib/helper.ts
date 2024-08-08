@@ -113,7 +113,6 @@ export const getAllEntity = async (queryParams, fields?: string[]) => {
   const onlySelectId = !fields;
   if (!queryParams) throwArgumentError('queryParams', '{ query, selector }');
   let caseIds = [];
-  let list = [];
   let total = 0;
   do {
     const res = await iqlRequest({
@@ -123,10 +122,9 @@ export const getAllEntity = async (queryParams, fields?: string[]) => {
       fields: onlySelectId ? ['id'] : fields,
     });
     const entities = onlySelectId ? res.data.list.map(({ objectId }) => objectId) : res.data.list;
-    list = res.data.list.map(item => ({ name: item.name }));
     caseIds = caseIds.concat(entities);
     total = res.data.total;
   } while (caseIds.length < total);
 
-  return { caseIds, list };
+  return caseIds;
 };

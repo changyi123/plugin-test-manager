@@ -98,8 +98,8 @@ export const batchDeleteV2 = async () => {
     const {
       body: { queryParams },
     } = getReqInfoFromVMRuntime<BatchDeleteV2Payload>();
-    const { caseIds, list } = await getAllEntity(queryParams);
-    const res = await batchDeleteItems(caseIds);
+    const caseList = await getAllEntity(queryParams, ['id', 'name', 'key']);
+    const res = await batchDeleteItems(caseList.map(item => item.objectId));
     const errorItems = res?.filter(i => i.status !== 'success');
     if (errorItems?.length) {
       // 有错误数据
@@ -119,7 +119,7 @@ export const batchDeleteV2 = async () => {
         },
         {
           name: i18n.t('trigger.modules.api.batch.caseName'),
-          value: `${list.map(item => `${item.name}`).join(', ')}`,
+          value: `${caseList.map(item => `${item.name}(${item.key})`).join(', ')}`,
         },
       ];
       if (queryParams?.selectAll) {
@@ -237,7 +237,7 @@ export const batchUpdateValue = async () => {
       body: { queryParams, value },
     } = getReqInfoFromVMRuntime<BatchUpdateValuePayload>();
     if (!value) throwArgumentError('data', 'testEntity[]');
-    const { caseIds } = await getAllEntity(queryParams);
+    const caseIds = await getAllEntity(queryParams);
     const data = caseIds.map(objectId => ({
       objectId,
       ...value,
@@ -630,7 +630,7 @@ export const batchCopyTestCaseV2 = async () => {
       )
       .map(item => item.key);
 
-    const { caseIds: caseList } = await getAllEntity(queryParams, concatIqlRequestFields(fields));
+    const caseList = await getAllEntity(queryParams, concatIqlRequestFields(fields));
 
     if (!caseList?.length) {
       throw new Error(i18n.t('components.business.testEntitySelectorModal.itemDeleted'));
