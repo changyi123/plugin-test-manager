@@ -909,7 +909,8 @@
         }
       }
     },
-    "copyName": "copy"
+    "copyName": "copy",
+    "checkRun": "The test execution task already has a test case and cannot be deleted"
   },
   "components": {
     "business": {

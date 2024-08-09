@@ -123,6 +123,7 @@ modules:
       events:
         - gei:proxima:item:beforeDelete
       function: item-delete-trigger-function
+      async: false
       # 5 分钟超时时长
       timeout: 300000
     - key: item-created-trigger

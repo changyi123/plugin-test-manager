@@ -827,7 +827,8 @@
         }
       }
     },
-    "copyName": "副本"
+    "copyName": "副本",
+    "checkRun": "测试执行任务已存在用例，无法删除"
   },
   "components": {
     "business": {
