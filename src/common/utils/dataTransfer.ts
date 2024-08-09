@@ -101,7 +101,8 @@ export const itemToTestEntity = item => {
     values: data => omit(data, Object.values(TestFiledKeyMapping)),
   } as Record<keyof typeof MixinFieldKeys, (data) => any>;
 
-  // 事项自定义字段
+  // 事项自定义字段 事项引用字段
+  item.values = { ...(item.values ?? {}), ...(item.dataQuotes ?? {}) };
   const values = item.values;
 
   console.info(values, 'values');

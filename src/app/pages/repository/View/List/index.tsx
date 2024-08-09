@@ -45,7 +45,7 @@ const ListView: React.FC<ViewComponentProps> = ({
 }) => {
   const { t } = useI18n();
   const tableActionRef = React.useRef<ActionType>();
-  const { createItemUseModal, getCreatePermission, testCaseFieldKeys } = useBaseAction();
+  const { createItemUseModal, testCaseFieldKeys } = useBaseAction();
   const [selector, setSelector] = React.useState(null);
   const [breadcrumbs, setBreadcrumbs] = React.useState([]);
   const [tableSelectionVisible, setTableSelectionVisible] = React.useState(false);
@@ -258,6 +258,7 @@ const ListView: React.FC<ViewComponentProps> = ({
         />
         <Table
           actionRef={tableActionRef}
+          breadcrumbs={breadcrumbs}
           onDataChange={refreshAll}
           testDetailFieldKeys={[].concat(SystemFieldKeys, testCaseFieldKeys)}
           onSelectionCancel={() => toggleSelection(false)}

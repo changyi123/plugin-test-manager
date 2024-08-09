@@ -17,13 +17,12 @@ import { useLocation } from 'react-router-dom';
 
 import AddFilterIcon from '@/icons/svg/add-filter.svg';
 import { getTestConfig } from '@/lib/api/common';
-import { openFieldValuePopover, openFilterPopover } from '@/lib/api/sdk';
+import { openFieldValuePopover, useOpenFilterPopover } from '@/lib/api/sdk';
 import { getCurrentUserSetting } from '@/lib/api/userSetting';
 import { CurrentWorkspaceConfigStorageKey } from '@/lib/constants';
 import {
   FILTER_EXPRESSIONS,
   getExtendFields,
-  IS_EXTEND_FIELDS,
   ItemUserTypeComponentKey,
   RepositoryModel,
   SelectorCurrentUserValue,
@@ -43,6 +42,7 @@ import cx from './index.less';
 import SearchInput from './SearchInput';
 import SelectorTag from './SelectorTag';
 import { handleDataSelector } from './utils';
+import { display } from 'html2canvas/dist/types/css/property-descriptors/display';
 
 interface FilterSearchProps {
   fields: string[];
@@ -78,6 +78,7 @@ const useSelectorStorage = (
     () => ({
       get: () => JSON.parse(localStorage.getItem(key)),
       set: value => localStorage.setItem(key, JSON.stringify(value)),
+      del: () => localStorage.removeItem(key),
     }),
     [key],
   );
@@ -99,6 +100,11 @@ const useSelectorStorage = (
       storage.set(selectors);
     }
   }, [selectors, enableLocalStorage, storage, isEmptySelectors]);
+
+  return () => {
+    setSelectors(handleDataSelector({}));
+    storage.del();
+  };
 };
 
 const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearchProps> = (
@@ -126,6 +132,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
   const [selectors, setSelectorsState] = useState<Selectors>({});
   const currentSelectors = useRef<Selectors>({});
   const [fieldsNameRequestTag, setFieldsNameRequestTag] = React.useState(1);
+  const { fieldsDataMap, openFilterPopover } = useOpenFilterPopover(fields);
 
   const setSelectors = useMemoizedFn(selectors => {
     setSelectorsState(selectors);
@@ -175,7 +182,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
   }, [customFieldsKey?.toString(), checkedFields?.toString()]);
 
   // 将 selector 存储到 localStorage
-  useSelectorStorage(enableLocalStorage, {
+  const delSelectorStorage = useSelectorStorage(enableLocalStorage, {
     // 持久化数据，移除 name 字段
     selectors: omit(selectors, ['name']),
     setSelectors: setSelectorsFromStorageValue,
@@ -243,28 +250,9 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
   useImperativeHandle(ref, () => ({
     reset: () => {
       setSearch('');
-      handleSetSelectors({});
+      setSelectors(handleDataSelector({}));
     },
   }));
-
-  const handleSetSelectors = useCallback(
-    (data, searchValue?) => {
-      // 因为name字段不在筛选器中维护，要手动合并name
-      data.name = {
-        isExtend: false,
-        component: 'name',
-        expression: '',
-        fieldId: 'name',
-        fieldName: '标题',
-        key: 'name',
-        value: searchValue === undefined ? search : searchValue,
-        fieldLabel: fieldsName,
-      };
-      setSelectors(handleDataSelector(data));
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [search, JSON.stringify(fieldsName)],
-  );
 
   const { data: currentUser } = useNoExpiredRequest(
     async () => {
@@ -294,8 +282,8 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
               if (user.value === SelectorCurrentUserValue) {
                 return {
                   ...user,
-                  value: currentUser.objectId,
-                  username: currentUser.username,
+                  value: currentUser?.objectId,
+                  username: currentUser?.username,
                 };
               }
               return user;
@@ -305,13 +293,25 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
       });
 
       // 事项的字段，首次加载不需要过滤
-      const itemSelector = initial ? currentSelectorsValue : omit(currentSelectorsValue, ids);
+      let itemSelector = initial ? currentSelectorsValue : omit(currentSelectorsValue, ids);
       // 测试管理的字段
       const testManageSelector = initial ? currentSelectorsValue : pick(currentSelectorsValue, ids);
+      itemSelector = {
+        ...itemSelector,
+        name: {
+          component: 'name',
+          expression: '',
+          fieldId: 'name',
+          fieldName: '标题',
+          key: 'name',
+          value: search,
+          fieldLabel: fieldsName,
+        },
+      };
 
       onSearch([itemSelector, testManageSelector]);
     },
-    [extendFields, onSearch, currentUser],
+    [extendFields, search, fieldsName, onSearch, currentUser?.objectId, currentUser?.username],
   );
 
   const { run: handleSearch } = useDebounceFn(searchFn, { wait: 300 });
@@ -321,13 +321,13 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
       setSearch(value);
       // 往selectors中塞name
       const data = cloneDeep(currentSelectors.current);
-      handleSetSelectors(data, value);
+      setSelectors(handleDataSelector(data));
       // 避免查数据的时候，拿不到最新的iql
       setTimeout(() => {
         handleSearch();
       }, 200);
     },
-    [handleSearch, handleSetSelectors],
+    [handleSearch, setSelectors],
   );
 
   const updateSelectorValue = useCallback(
@@ -337,10 +337,10 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
       if (target) {
         target.value = selector.value;
         target.expression = selector.expression;
-        handleSetSelectors(data);
+        setSelectors(handleDataSelector(data));
       }
     },
-    [handleSetSelectors],
+    [setSelectors],
   );
 
   // 获取各个层级
@@ -381,24 +381,28 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
     (data, dom) => {
       const fieldId = data.fieldId;
       const systemTarget = getExtendFields(t).find(item => item.objectId === fieldId);
-      const isExtend = IS_EXTEND_FIELDS.includes(data.component);
-      const component = IS_EXTEND_FIELDS.includes(data.component) ? data.component : data.key;
       const expression = data.expression ?? getExpression(data.component, data.key);
 
       // setActiveSelector(fieldId);
       const props = {
-        isExtend: systemTarget?.fieldType?.isExtend ?? isExtend,
+        isExtend: systemTarget?.fieldType?.isExtend || false,
         fieldId,
+        workspace: workspace?.objectId,
         field: systemTarget || {
+          objectId: fieldId,
+          name: data.fieldName,
+          key: data.key,
           fieldType: {
-            component: component,
+            component: data.key || data.component,
             label: data.fieldName,
             key: data.key,
           },
         },
+        userData: fieldsDataMap.current[data.fieldId],
+        display: fieldsDataMap.current[data.fieldId]?.display,
+        // searchComponent: FIELD_TYPE_KEY_MAPPINGS.DataQuote !== (data.key || data.component),
         value: data?.value,
         label: data?.fieldName,
-        workspace: workspace?.objectId,
         onChange: updateSelectorValue,
         onClose: () => {
           // setActiveSelector('');
@@ -413,6 +417,10 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
       }
       if (fieldId === TestCaseStatusModel) {
         (props as any).fetchMethod = () => getStatusOptions();
+      }
+
+      if (isDate(data.key)) {
+        (props as any).className = 'reset-bg';
       }
 
       return props;
@@ -430,7 +438,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
 
   const onFilterChange = useCallback(
     (data, filterId) => {
-      handleSetSelectors(data);
+      setSelectors(handleDataSelector(data));
       const filterDetail = data?.[filterId];
       // 得等上一个popover注销完，才能打开新的popover
       setTimeout(() => {
@@ -448,7 +456,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
         }
       }, 500);
     },
-    [handleSetSelectors, getFieldValueProps, handleSearch],
+    [setSelectors, getFieldValueProps, handleSearch],
   );
 
   const currentSelector = useMemo(() => {
@@ -472,10 +480,12 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
     id => {
       const data = cloneDeep(selectors);
       delete data[id];
-      handleSetSelectors(data);
+      JSON.stringify(data ?? {}) === '{}'
+        ? delSelectorStorage()
+        : setSelectors(handleDataSelector(data));
       handleSearch();
     },
-    [handleSearch, handleSetSelectors, selectors],
+    [delSelectorStorage, handleSearch, selectors, setSelectors],
   );
 
   const generateFieldValue = useCallback(data => {
@@ -510,16 +520,15 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
         ))}
       {!hideSelectorTag && (
         <Button
-          id={filterId || 'filter-btn'}
+          id={filterId || storageKey || 'filter-btn'}
           icon={<AddFilterIcon className={cx('filter-tag-icon')} />}
           className={cx('filter-tag-btn')}
           onClick={() => {
             openFilterPopover({
               selectors,
-              fields,
               onChange: onFilterChange,
               extendFields,
-              dom: document.querySelector(`#${filterId || 'filter-btn'}`),
+              dom: document.querySelector(`#${filterId || storageKey || 'filter-btn'}`),
             });
           }}
         >

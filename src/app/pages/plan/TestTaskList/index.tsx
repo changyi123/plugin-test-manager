@@ -1,5 +1,4 @@
 import { useMemoizedFn, useRequest } from 'ahooks';
-import { Button, notification } from 'antd';
 import _, { uniq } from 'lodash';
 import { components } from 'proxima-sdk';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
@@ -9,10 +8,14 @@ import FilterSearch from '@/components/common/FilterSearch';
 import { getFilterFields } from '@/components/common/FilterSearch/utils';
 import { BusinessTable } from '@/components/dynamicComponents';
 import { EditIcon } from '@/icons';
-import { getStatsTestPlan, getTestEntityByQuery } from '@/lib/api/item';
+import {
+  getLinkedTestEntityByQuery,
+  getStatsTestExecution,
+  getTestEntityByQuery,
+} from '@/lib/api/item';
 import { useCurrentUser } from '@/lib/api/user';
 import { getCurrentUserSetting, saveUserSetting } from '@/lib/api/userSetting';
-import { SystemField, TestType } from '@/lib/constants';
+import { SystemField, TestFiledKeyMapping, TestLinkType, TestType } from '@/lib/constants';
 import { useBaseAction } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import { goToItemDetailPage } from '@/lib/utils/helper';
@@ -22,35 +25,48 @@ import { StatusProgress } from '../../../components/business/Status';
 
 const { ItemIcon } = components.Components.Common;
 
+import { Button, Divider, Space } from 'antd';
+
 import CreatePermission from '@/components/business/Contianer/CreatePermission';
+import TestEntitySelectorModal from '@/components/business/TestEntitySelectorModal';
+import TestPlanSelector from '@/components/business/TestPlanSelector';
 import { SystemFieldKeys } from '@/components/common/BusinessTable/hook';
 
 import cx from './index.less';
 
-const TestPlanList: React.FC<any> = () => {
+const TestTaskList: React.FC<any> = ({
+  listRef,
+  setSelectedExecution,
+  createTestExecution,
+  selectorModalRef,
+  addExistedTestExecution,
+}) => {
   const { t } = useI18n();
   const actionRef = React.useRef<BusinessTableActionType>();
-  const { createItemUseModal, testPlanFieldKeys } = useBaseAction();
-  const { workspaceKey, selectedTestPlan, setSelectedTestPlan, setSearchParams } = usePageContext();
+  const { testExecutionFieldKeys } = useBaseAction();
+  const { workspaceKey, selectedTestPlan, setPlanId } = usePageContext();
   const [selectors, setSelectors] = useState([{}, {}]);
   const [tableLoading, setTableLoading] = useState(false);
   const { data: currentUser } = useCurrentUser();
 
   const detailSearchRef = useRef(null);
 
-  React.useEffect(() => {
-    if (selectedTestPlan) {
-      // 还原筛选器数据
-      detailSearchRef.current?.reset();
-      setSearchParams([{}, {}]);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedTestPlan]);
-
   const queryDeps = useMemo(
-    () => [workspaceKey, ...(testPlanFieldKeys || []), JSON.stringify(selectors)].join('_'),
-    [workspaceKey, testPlanFieldKeys, selectors],
+    () =>
+      [
+        workspaceKey,
+        ...(testExecutionFieldKeys || []),
+        JSON.stringify(selectors),
+        selectedTestPlan?.objectId,
+      ].join('_'),
+    [workspaceKey, testExecutionFieldKeys, selectors, selectedTestPlan?.objectId],
   );
+
+  React.useImperativeHandle(listRef, () => ({
+    refresh: () => {
+      actionRef.current?.refresh(); // 刷新表格
+    },
+  }));
 
   const tableDataGetter = useCallback(
     async (queryParams, tableFields) => {
@@ -60,22 +76,45 @@ const TestPlanList: React.FC<any> = () => {
           total: 0,
         };
       setTableLoading(true);
+      let res = { list: [], total: 0 };
 
-      const { list, total } = await getTestEntityByQuery({
-        query: {
-          workspaceKey: workspaceKey,
-          type: TestType.Plan,
-        },
-        fields: uniq(
-          ['id', SystemField.ItemType].concat(
-            SystemFieldKeys,
-            tableFields.map(i => i.key).filter(i => i !== 'action'),
+      if (selectedTestPlan?.objectId) {
+        res = await getLinkedTestEntityByQuery({
+          query: {
+            workspaceKey: workspaceKey,
+          },
+          fields: uniq(
+            ['id'].concat(
+              SystemFieldKeys,
+              tableFields.map(i => i.key).filter(i => i !== 'action'),
+            ),
           ),
-        ),
-        selector: selectors,
-        notConcatField: true,
-        ...queryParams,
-      });
+          notConcatField: true,
+          ...queryParams,
+          selector: selectors,
+          linkType: TestLinkType.ExecutionLinkPlan,
+          sourceIds: [selectedTestPlan.objectId],
+          destinationType: TestType.Execution,
+        });
+      } else {
+        res = await getTestEntityByQuery({
+          query: {
+            workspaceKey: workspaceKey,
+            type: TestType.Execution,
+          },
+          fields: uniq(
+            ['id', SystemField.ItemType, TestFiledKeyMapping.linkItems].concat(
+              SystemFieldKeys,
+              tableFields.map(i => i.key).filter(i => i !== 'action'),
+            ),
+          ),
+          selector: selectors,
+          notConcatField: true,
+          ...queryParams,
+        });
+      }
+
+      const { list, total } = res;
 
       setTableLoading(false);
 
@@ -95,9 +134,9 @@ const TestPlanList: React.FC<any> = () => {
   const onSuccess = useMemoizedFn(async (data, mutate) => {
     const { list = [], total } = data ?? {};
     if (!list.length) return;
-    const stats = await getStatsTestPlan({
-      planIds: list.map(d => d.objectId),
-      select: ['caseStatus', 'caseCount'],
+    const stats = await getStatsTestExecution({
+      executionIds: list.map(d => d.objectId),
+      select: ['runStatus', 'runCount'],
     });
 
     mutate({
@@ -139,9 +178,12 @@ const TestPlanList: React.FC<any> = () => {
       key: 'title',
       fixed: true,
       isSystem: true,
-      title: t('components.business.testPlanList.planName'),
+      title: t('components.business.testPlanList.taskName'),
       extraProps: {
-        onClick: record => setSelectedTestPlan(record),
+        onClick: rowData => {
+          rowData?.linkItems?.[0] && setPlanId(rowData.linkItems[0]);
+          setSelectedExecution(rowData);
+        },
       },
       render(_, rowData) {
         return (
@@ -171,9 +213,9 @@ const TestPlanList: React.FC<any> = () => {
       title: t('components.business.testPlanList.caseStatus'),
       width: 240,
       render(_, rowData) {
-        const passCount = rowData.caseStatus?.PASSED ?? 0;
+        const passCount = rowData.runStatus?.PASSED ?? 0;
         const total =
-          Object.values(rowData.caseStatus ?? {})?.reduce((prev: number, cur: number) => {
+          Object.values(rowData.runStatus ?? {})?.reduce((prev: number, cur: number) => {
             prev = prev + cur;
             return prev;
           }, 0) || 1;
@@ -181,19 +223,19 @@ const TestPlanList: React.FC<any> = () => {
 
         return (
           <div className={cx('table-rate')}>
-            <StatusProgress className={cx('status')} hasSummary status={rowData.caseStatus} />
+            <StatusProgress className={cx('status')} hasSummary status={rowData.runStatus} />
             <span className={cx('rate')}>{`${Math.floor(rate * 100)}%`}</span>
           </div>
         );
       },
     },
     {
-      key: 'caseCount',
+      key: 'runCount',
       title: t('components.business.testPlanList.planCaseCount'),
       align: 'right',
       width: 100,
       render(_, rowData) {
-        return <span>{rowData?.caseCount}</span>;
+        return <span>{rowData?.runCount}</span>;
       },
     },
     {
@@ -207,21 +249,6 @@ const TestPlanList: React.FC<any> = () => {
       },
     },
   ];
-
-  const handleCreate = async () => {
-    await createItemUseModal({
-      type: TestType.Plan,
-      extraData: {
-        isDisableCreateNext: true,
-      },
-    });
-    setTimeout(() => {
-      actionRef.current.refresh();
-    }, 500);
-    notification.success({
-      message: t('components.business.testPlanList.addPlanSuccess'),
-    });
-  };
 
   const handleFilterField = useMemoizedFn(async ({ testType, fieldKeys }) => {
     await saveUserSetting({
@@ -239,14 +266,35 @@ const TestPlanList: React.FC<any> = () => {
     <div className={cx('test-plan-container')}>
       <div className={cx('plan-header')}>
         <div className={cx('plan-header-body')}>
-          <div className={cx('header-left')}>{t('common.testPlan')}</div>
-          <div className={cx('header-right')}>
-            <CreatePermission type={TestType.Plan}>
-              <Button type="primary" onClick={() => handleCreate()}>
-                {t('components.business.testPlanList.addTestPlan')}
-              </Button>
-            </CreatePermission>
-          </div>
+          <Space className={cx('header-left')}>
+            {t('common.testExecution')}
+            <Divider type="vertical" />
+            <TestPlanSelector hiddenCheckAll />
+          </Space>
+          {selectedTestPlan?.objectId ?(
+            <Space className={cx('header-right')}>
+              <CreatePermission type={TestType.Execution}>
+                <Button
+                  type="primary"
+                  onClick={async () => {
+                    createTestExecution();
+                  }}
+                >
+                  {t('common.createTestExecution')}
+                </Button>
+              </CreatePermission>
+              <CreatePermission type={TestType.Execution}>
+                <Button
+                  type="primary"
+                  onClick={async () => {
+                    addExistedTestExecution();
+                  }}
+                >
+                  {t('modules.panel.testPlan.testExecutionPanel.modelTitle')}
+                </Button>
+              </CreatePermission>
+            </Space>
+          ) : null}
         </div>
         <div className={cx('plan-header-slot')}>
           <FilterSearch
@@ -254,17 +302,24 @@ const TestPlanList: React.FC<any> = () => {
             workspaceKey={workspaceKey}
             className={cx('test-manager-filter')}
             ref={detailSearchRef}
-            fields={getFilterFields([].concat(SystemFieldKeys, testPlanFieldKeys))}
+            fields={getFilterFields([].concat(SystemFieldKeys, testExecutionFieldKeys))}
             extendFields={[]}
             onSearch={setSelectors}
-            testType={TestType.Plan}
+            testType={TestType.Execution}
           />
         </div>
       </div>
+      <TestEntitySelectorModal
+        actionRef={selectorModalRef}
+        title={t('modules.panel.testPlan.testExecutionPanel.modelTitle')}
+        ignoreTestEntityIds={[]}
+        tableFieldsKeys={testExecutionFieldKeys}
+        width={800}
+      />
       <BusinessTable
         titleCellOption={{
           workspaceKey,
-          testType: TestType.Plan,
+          testType: TestType.Execution,
         }}
         useColumnSetting
         defaultColumnKey={[
@@ -278,7 +333,7 @@ const TestPlanList: React.FC<any> = () => {
         privateColumnKey={['caseCount', 'caseStatus']}
         rowKey="objectId"
         columns={columns}
-        name={`${workspaceKey}_TestPlanTable`}
+        name={`${workspaceKey}_TestTaskTable`}
         actionRef={actionRef}
         loading={tableLoading}
         getDataSource={tableDataGetter}
@@ -289,4 +344,4 @@ const TestPlanList: React.FC<any> = () => {
   );
 };
 
-export default TestPlanList;
+export default TestTaskList;

@@ -668,7 +668,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       const res = await updateTestStatus({
         runIds: [testRun.objectId],
         status: status.key,
-        planId: selectedTestPlan.objectId,
+        planId: selectedTestPlan?.objectId,
       });
       if (res?.status === 'error') {
         message.error(res.data);
@@ -677,7 +677,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       actionRef.current.refresh();
       mutateStatusEvent.emit('refreshExecutionStatus');
     },
-    [mutateStatusEvent, selectedTestPlan.objectId],
+    [mutateStatusEvent, selectedTestPlan?.objectId],
   );
 
   /** 根据列表记录删除测试执行 */
@@ -1222,7 +1222,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         <TestRunModal
           actionRef={testRunModalActionRef}
           idSequence={runRowKeys}
-          selectedTestPlanId={selectedTestPlan.objectId}
+          selectedTestPlanId={selectedTestPlan?.objectId}
         />
       )}
     </div>

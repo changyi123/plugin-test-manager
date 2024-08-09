@@ -3,9 +3,12 @@ import { Input, Select } from 'antd';
 import { cloneDeep, isEqual } from 'lodash';
 import React, { useEffect, useMemo, useRef } from 'react';
 
+import { SystemFieldKeys } from '@/components/common/BusinessTable/hook';
 import FilterSearch from '@/components/common/FilterSearch';
+import { getFilterFields } from '@/components/common/FilterSearch/utils';
 import { SearchOutlined } from '@/icons';
 import { TestLinkType, TestType } from '@/lib/constants';
+import { useBaseAction } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import { useAllTestWorkspace } from '@/lib/hooks/useTest';
 import { SearchSelectors } from '@/lib/utils/iql';
@@ -57,10 +60,11 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
     setTreeType,
     validateCaseStatus,
   } = props;
+  const { testCaseFieldKeys } = useBaseAction();
   const { t } = useI18n();
   const repositoryFolderTreeRef = React.useRef<ActionType>();
   const detailSearchRef = useRef(null);
-  const [selectors, setSelectors] = React.useState<string | SearchSelectors>();
+  const [selectors, setSelectors] = React.useState<SearchSelectors>();
   const searchName = useMemo(() => (selectors?.[0] as any)?.name?.value, [selectors]);
 
   // 目录搜索
@@ -108,23 +112,26 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
               workspaceKey: selectedWorkspaceKey,
               type: TestType.Case,
             },
+            selector: selectors,
+            fields: ['name'],
             linkType: TestLinkType.CaseLinkPlan,
             sourceIds: [planId],
             destinationType: TestType.Case,
           },
         }
-      : searchName
+      : selectors
       ? {
           params: {
             query: {
               workspaceKey: selectedWorkspaceKey,
               type: TestType.Case,
-              name: searchName,
             },
+            selector: selectors,
+            fields: ['name'],
           },
         }
       : { isShowAll: true };
-  }, [planId, treeType, selectedWorkspaceKey, searchName]);
+  }, [planId, treeType, selectedWorkspaceKey, selectors]);
 
   // 测试案例库选中
   const allTestWorkspaces = useAllTestWorkspace();
@@ -222,13 +229,12 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
           />
         )}
         <FilterSearch
+          filterId="testDetailSelector"
           ref={detailSearchRef}
           onSearch={setSearchParams}
           className={`${cx('plan-page-layout-search')} common-search-box`}
-          extendFields={[]}
-          fields={[]}
+          fields={getFilterFields([].concat(SystemFieldKeys, testCaseFieldKeys))}
           testType={TestType.Case}
-          hideSelectorTag={true}
         />
       </div>
       <div className={cx('main')}>
@@ -271,6 +277,7 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
               workspaceKey={selectedWorkspaceKey}
               selectedNode={selectedNode}
               searchName={searchName}
+              selectors={selectors}
               ignoreTestDetailIds={ignoreTestDetailIds ?? []}
               selectedTestDetailIds={selectedTestDetailIds}
               setSelectedTestDetailIds={setSelectedTestDetailIds}

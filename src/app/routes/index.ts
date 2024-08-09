@@ -24,6 +24,11 @@ const routes = [
     exact: true,
   },
   {
+    path: '/task',
+    component: React.lazy(() => import(/* webpackChunkName: "route_plan" */ '../pages/task')),
+    exact: true,
+  },
+  {
     path: '/dev',
     component: React.lazy(() => import(/* webpackChunkName: "route_dev" */ '../pages/dev')),
     exact: true,

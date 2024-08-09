@@ -1539,6 +1539,11 @@
   dependencies:
     axios "^0.27.2"
 
+"@giteeteam/apps-api@^0.4.3":
+  version "0.4.3"
+  resolved "https://registry.npmmirror.com/@giteeteam/apps-api/-/apps-api-0.4.3.tgz#53353c91a5940ac3d9d9cae0d733fbf80655555e"
+  integrity sha512-0v/x2B+lBpQrNJH62zNexKrrYViUPSupEGDrEBpdt2qNNoXTv5CaK2e0jGp1BC7X5Nddfx+MjjframjO7gytpw==
+
 "@giteeteam/apps-cli@^0.5.5":
   version "0.5.6"
   resolved "https://registry.npmmirror.com/@giteeteam/apps-cli/-/apps-cli-0.5.6.tgz#56d73aac3809aa8aa775cf37b3c61d8f2487a867"
@@ -1576,12 +1581,12 @@
     lodash "^4.17.21"
     yaml "^2.1.1"
 
-"@giteeteam/apps-team-api@^0.6.2":
-  version "0.6.2"
-  resolved "https://registry.npmmirror.com/@giteeteam/apps-team-api/-/apps-team-api-0.6.2.tgz#df3136a170c3d1c4ca603483bef363d725ef017d"
-  integrity sha512-2NsVzkR4gw/GXXMPF/0dOMr7VsZkdW3j2C6UUkefhEzoyCUDlIULasNMYabFbnpH2EMohrLn1AMOQSyxaRTfZw==
+"@giteeteam/apps-team-api@^0.7.0":
+  version "0.7.0"
+  resolved "https://registry.npmmirror.com/@giteeteam/apps-team-api/-/apps-team-api-0.7.0.tgz#c60c3dfee95661e6b017d9396f93f6476b6a3f34"
+  integrity sha512-7ZABmoS3p0xnhEAE1mUeM5FxZbctUiXVp/mvVRDD32AM4IG+V8qaWOaII4Wg/Sb1Oa30Hcowuh31L1IZaj0lgA==
   dependencies:
-    "@giteeteam/apps-api" "^0.3.0"
+    "@giteeteam/apps-api" "^0.4.3"
 
 "@giteeteam/apps-team-components@0.3.4-remove-editor-0.12":
   version "0.3.4-remove-editor-0.12"
@@ -2977,10 +2982,10 @@ anymatch@~3.1.2:
     normalize-path "^3.0.0"
     picomatch "^2.0.4"
 
-"apps-team-components-v1@npm:@giteeteam/apps-team-components@1.0.12":
-  version "1.0.12"
-  resolved "https://registry.npmmirror.com/@giteeteam/apps-team-components/-/apps-team-components-1.0.12.tgz#d44be120b722bb26e330d78b551e2c310b2b1dcf"
-  integrity sha512-LNzGzD88G34Z4Jtdc2AnNRDleFuf4Yte9yTZqxaObDGpwvAWAb3QdpCeA4TnVZ78R5lM3ZKHN2VqHaL3OV/p1w==
+"apps-team-components-v1@npm:@giteeteam/apps-team-components@1.1.6":
+  version "1.1.6"
+  resolved "https://registry.npmmirror.com/@giteeteam/apps-team-components/-/apps-team-components-1.1.6.tgz#87b3acf83aa41febfd31b3ec4f4f28e981787537"
+  integrity sha512-RJOYV8Z5eqGcFnTzn/DCgiPI3rU69wno+MnKVEtvoJHof1rZ5hlaGMOOfqIdkbotNmodZHnCS66c/lzGnLdyPQ==
   dependencies:
     "@emotion/cache" "^11.11.0"
     "@emotion/react" "^11.11.1"

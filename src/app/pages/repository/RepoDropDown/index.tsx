@@ -9,6 +9,7 @@ import ManageWorkspace from '@/components/business/TestEntitySelectorModal/Manag
 import { SystemFieldKeys } from '@/components/common/BusinessTable/hook';
 import { CustomMore } from '@/icons';
 import { copyTestCase } from '@/lib/api/item';
+import { getAppEnv } from '@/lib/appEnv';
 import { TestType } from '@/lib/constants';
 import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
@@ -103,7 +104,9 @@ const RepoDropDown = ({
         // 跳转到导入页面
         const href = `${baseUrl}/${getTenantKey()}/workspaces/${workspace.key}/import/${
           workspace.objectId
-        }?app=test_manager&disableToggleWorkspace=true&hiddenItemType=true${appendedQueryString}`;
+        }?app=test_manager&disableToggleWorkspace=true&hiddenItemType=true&validateRequired=${getAppEnv(
+          'GROUP_REQUIRED_WHEN_VALIDATE',
+        )}${appendedQueryString}`;
         window.open(href);
       } else if (key === 'example') {
         downloadExampleFile([].concat(SystemFieldKeys, testCaseFieldKeys), t, locale);

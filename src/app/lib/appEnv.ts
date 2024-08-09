@@ -96,6 +96,14 @@ const SupportAppEnv = {
   },
   CHECK_RUN_FOR_DELETE_EXECUTION: {
     defaultValue: false,
+    transformer: val => val,
+  },
+  GROUP_REQUIRED_WHEN_VALIDATE: {
+    defaultValue: false,
+    transformer: val => val,
+  },
+  CHECK_CASE_FOR_DELETE_REPOSITORY: {
+    defaultValue: false,
     transformer: value => value,
   },
 } as const;

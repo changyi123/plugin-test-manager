@@ -17,6 +17,7 @@
     "forbiddenActive": "disabled",
     "pageTitle": {
       "repository": "Test Repository",
+      "task": "Test Task",
       "plan": "Test Plan",
       "report": "Test Report"
     },
@@ -867,7 +868,8 @@
           "Article expected result exceeds limit,the expected result limit 2000 characters are not imported",
           "The data format of the article is wrong, it will not be imported",
           "Article data exceeds limit, data limit 2000 characters are not imported",
-          "Item type association is not configured, all data will not be imported, please configure the associated item type first"
+          "Item type association is not configured, all data will not be imported, please configure the associated item type first",
+          "The group of the test case is empty, not imported"
         ]
       }
     },
@@ -910,7 +912,22 @@
       }
     },
     "copyName": "copy",
-    "checkRun": "The test execution task already has a test case and cannot be deleted"
+    "checkRun": "The test execution task already has a test case and cannot be deleted",
+    "modules": {
+      "api": {
+        "batch": {
+          "numberItems": "Number of use case items",
+          "caseName": "Use Case Item Name",
+          "operate": "operate",
+          "selectAll": "All Pages Select All",
+          "modulePath": "Module Path",
+          "testCases": "Test Cases",
+          "setCharge": "Set the person in charge",
+          "copySpace": "Copy to space",
+          "copyCaseEvents": "Copy Use Case Events"
+        }
+      }
+    }
   },
   "components": {
     "business": {
@@ -964,6 +981,7 @@
         "deletePlanSuccess": "Test plan deleted successfully",
         "addPlanSuccess": "The test plan was created successfully",
         "planName": "Program name",
+        "taskName": "Task name",
         "deleteTestPlan": "Delete test plan",
         "checkTestPlan": " View test plan",
         "caseStatus": "Case status",
