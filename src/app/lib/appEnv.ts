@@ -94,6 +94,10 @@ const SupportAppEnv = {
     },
     transformer: value => value,
   },
+  CHECK_RUN_FOR_DELETE_EXECUTION: {
+    defaultValue: false,
+    transformer: val => val,
+  },
   GROUP_REQUIRED_WHEN_VALIDATE: {
     defaultValue: false,
     transformer: val => val,

@@ -1,3 +1,5 @@
+import { i18n } from '@giteeteam/apps-api';
+
 import {
   InfinityLimit,
   IQLRequiredFieldKeys,
@@ -63,6 +65,14 @@ export const deleteTestLink = async () => {
       };
 
       const runIds = await getRunIdByLInkItem();
+
+      const checkRun = global.env?.CHECK_RUN_FOR_DELETE_EXECUTION;
+
+      console.info('checkRun', checkRun, runIds?.length);
+      if (checkRun && runIds?.length) {
+        throw new Error(i18n.t('trigger.checkRun'));
+      }
+
       if (runIds?.length) {
         tasks.push(batchDeleteItems(runIds));
       }
@@ -100,6 +110,10 @@ export const deleteTestLink = async () => {
     }
     return buildResponse('no data');
   } catch (error) {
+    console.info('delete items error', error);
+    if (error?.message === i18n.t('trigger.checkRun')) {
+      throw error;
+    }
     return buildResponse(error);
   }
 };

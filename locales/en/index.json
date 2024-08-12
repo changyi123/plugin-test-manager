@@ -912,6 +912,7 @@
       }
     },
     "copyName": "copy",
+    "checkRun": "The test execution task already has a test case and cannot be deleted",
     "modules": {
       "api": {
         "batch": {
