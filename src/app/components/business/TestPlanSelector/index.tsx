@@ -32,7 +32,7 @@ const TestPlanSelector: React.FC<{ hiddenCheckAll?: boolean }> = ({ hiddenCheckA
           name: searchValue,
         },
         select: ['id', 'name'],
-        limit: 99999,
+        limit: 100,
       });
 
       const testPlans = _.chain(list)

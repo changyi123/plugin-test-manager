@@ -3,7 +3,7 @@ import { useListener } from '@projectproxima/proxima-sdk-js';
 import { useDebounceFn, useMemoizedFn, useRequest } from 'ahooks';
 import { Button, Checkbox, Tooltip } from 'antd';
 import dayjs from 'dayjs';
-import { cloneDeep, omit, pick, values } from 'lodash';
+import { cloneDeep, isEmpty, isEqual, isNil, omit, pick, values } from 'lodash';
 import React, {
   forwardRef,
   useCallback,
@@ -91,11 +91,11 @@ const useSelectorStorage = (
   useEffect(() => {
     const storageSelectors = enableLocalStorage ? storage.get() : null;
 
-    if (!invokeRef.current && isEmptySelectors && storageSelectors) {
+    if (!invokeRef.current && storageSelectors) {
       invokeRef.current = true;
-      setSelectors(handleDataSelector(storageSelectors));
+      setSelectors(handleDataSelector(storageSelectors), true);
     }
-  }, [selectors, setSelectors, enableLocalStorage, storage, isEmptySelectors]);
+  }, [selectors, setSelectors, enableLocalStorage, storage]);
 
   // 存储 selectors state
   useEffect(() => {
@@ -148,15 +148,16 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
   const currentSelectors = useRef<Selectors>({});
   const [fieldsNameRequestTag, setFieldsNameRequestTag] = React.useState(1);
   const { fieldsDataMap, openFilterPopover } = useOpenFilterPopover(fields);
+  const needSearch = useRef(false);
 
   const setSelectors = useMemoizedFn(selectors => {
     setSelectorsState(selectors);
     currentSelectors.current = selectors;
   });
 
-  const setSelectorsFromStorageValue = useMemoizedFn(selectors => {
+  const setSelectorsFromStorageValue = useMemoizedFn((selectors, needSearch) => {
     setSelectors(handleDataSelector(selectors));
-    searchFn(true);
+    needSearch && searchFn(true);
   });
 
   const customFields = useGetCustomFields({
@@ -358,6 +359,17 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
       const data = cloneDeep(currentSelectors.current);
       const target = data[selector.objectId];
       if (target) {
+        if (
+          // 如果筛选没选值，即两者都为空， 不查询
+          (isEmpty(target.value) && isEmpty(selector.value)) ||
+          // 或者筛选未改变，不查询
+          (isEqual(target.value, selector.value) && isEqual(target.expression, selector.expression))
+        ) {
+          needSearch.current = false;
+        } else {
+          console.info(JSON.stringify({ target, selector }));
+          needSearch.current = true;
+        }
         target.value = selector.value;
         target.expression = selector.expression;
         setSelectors(handleDataSelector(data));
@@ -430,7 +442,9 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
         onChange: updateSelectorValue,
         onClose: () => {
           // setActiveSelector('');
-          handleSearch();
+          setTimeout(() => {
+            needSearch.current && handleSearch();
+          }, 0);
         },
         expression,
         dom,
@@ -475,13 +489,9 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
           // 打开值的选择器
           openFieldValuePopover(props as any);
         }
-        if (!filterId) {
-          // 删除参数-执行重新查询
-          handleSearch();
-        }
       }, 500);
     },
-    [setSelectors, getFieldValueProps, handleSearch],
+    [setSelectors, getFieldValueProps],
   );
 
   const currentSelector = useMemo(() => {
@@ -504,11 +514,13 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
   const onDeleteSelector = useCallback(
     id => {
       const data = cloneDeep(selectors);
+      const value = data[id]?.value;
+      const needSearch = Array.isArray(value) ? !!value.filter(Boolean).length : !isNil(value);
       delete data[id];
       JSON.stringify(data ?? {}) === '{}'
         ? delSelectorStorage()
         : setSelectors(handleDataSelector(data));
-      handleSearch();
+      needSearch && handleSearch();
     },
     [delSelectorStorage, handleSearch, selectors, setSelectors],
   );
