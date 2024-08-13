@@ -60,6 +60,7 @@ export type TestEntitySelectorProps = {
   modelType?: string;
   tableFieldsKeys?: string[];
   ignoreTestEntityIds?: string[];
+  showDefaultRange?: boolean;
   onSelect?: (testIds: string[]) => void;
   actionRef?: React.ForwardedRef<ActionType>;
   afterClose?: () => void;
@@ -77,6 +78,7 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
     needFillValue,
     tableFieldsKeys,
     width,
+    showDefaultRange,
     afterClose,
     onCancel,
     getContainer,
@@ -419,17 +421,19 @@ const TestEntitySelector: React.FC<TestEntitySelectorProps> = props => {
         planId={planId}
         treeType={treeType}
         setTreeType={setTreeType}
+        showDefaultRange={showDefaultRange}
         validateCaseStatus
       />
     );
   }, [
-    isolateTestType,
-    workspace?.key,
     isSingleMode,
-    ignoreTestEntityIds,
+    workspace?.key,
     selectValue,
+    ignoreTestEntityIds,
+    isolateTestType,
     planId,
     treeType,
+    showDefaultRange,
   ]);
 
   const ModalFooterNode = React.useMemo(() => {

@@ -28,6 +28,8 @@ export type TestConfigContextType = {
     listType?: string;
     // 限制状态列表
     statusList?: { statusId: string; name: string; isStartStatus?: boolean }[];
+    // 默认测试用例规划范围
+    iql?: string;
   };
   workspace?: Workspace;
   testEntity?: BaseTestEntity;

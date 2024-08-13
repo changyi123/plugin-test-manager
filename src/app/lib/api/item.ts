@@ -44,7 +44,7 @@ interface QueryCaseIdByStatusPayload {
 // 处理筛选器数据
 export const handleSelector = selector => {
   if (!selector) return null;
-  const [systemSelector, customSelector] = selector;
+  const [systemSelector, customSelector, defaultIql] = selector;
   const _customSelector = omit(customSelector, RepositoryModel);
   const _systemSelector = omit(systemSelector, SYSTEM_FIELD.Status);
   const selectors = {} as Record<string, any>;
@@ -109,6 +109,7 @@ export const handleSelector = selector => {
     ..._systemSelector,
     ..._customSelector,
     ...selectors,
+    defaultIql,
   };
 };
 

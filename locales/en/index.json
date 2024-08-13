@@ -262,7 +262,8 @@
         "radioBlackLabel": "Workflow states for use cases that are not allowed to be planned",
         "radioWhiteLabel": "Workflow states for use cases that are allowed to be planned",
         "testersCannotExecuteOtherCases": "Testers may not execute others test cases",
-        "unassignedCaseCannotBeExecuted": "Unassigned test cases cannot be executed"
+        "unassignedCaseCannotBeExecuted": "Unassigned test cases cannot be executed",
+        "defaultCaseRange": "The default planning scope for the test case"
       },
       "isolatedTestType": {
         "title": "Isolation configuration",
@@ -1069,6 +1070,7 @@
       },
       "filterSearch": {
         "screenPlaceholder": "Please enter the search term keyword",
+        "defaultFilterScope": "Default filter scope",
         "screen": "Filter",
         "inputPlaceholder": "Please enter title",
         "to": "To",

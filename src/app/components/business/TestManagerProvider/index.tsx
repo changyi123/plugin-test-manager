@@ -511,6 +511,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
         statuses: testConfig.statuses,
         listType: testConfig?.testRunAction?.listType,
         statusList: testConfig?.testRunAction?.statusList,
+        iql: testConfig?.testRunAction?.iql,
       },
       // item,
       workspace,
@@ -524,6 +525,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
     testConfig.statuses,
     testConfig?.testRunAction?.listType,
     testConfig?.testRunAction?.statusList,
+    testConfig?.testRunAction?.iql,
     workspace,
     testEntity,
   ]);

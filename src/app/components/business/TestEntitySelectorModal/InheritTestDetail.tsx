@@ -35,6 +35,7 @@ type InheritTestDetailProps = {
   selectValue?: string[];
   planId?: string;
   treeType?: string;
+  showDefaultRange?: boolean;
   setTreeType?: (val: string) => void;
 };
 
