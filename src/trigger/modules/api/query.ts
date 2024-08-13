@@ -314,9 +314,7 @@ export async function queryBasicData() {
       .select(['name'])
       .containedIn('objectId', statusIds)
       .findAll({ useMasterKey: true })
-      .then(status =>
-        status.reduce((prev, cur) => ({ ...prev, [cur.objectId]: cur.get('name') }), {}),
-      );
+      .then(status => status.reduce((prev, cur) => ({ ...prev, [cur.id]: cur.get('name') }), {}));
     currentTestConfig.testRunAction.statusList.forEach(s => (s.name = statusMap[s.statusId]));
   }
   return {

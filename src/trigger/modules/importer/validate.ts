@@ -68,7 +68,7 @@ const getCharNumErrorIndex = datas =>
     .map((d, index) => (getStringLength(d) > 2000 ? index : null))
     .filter(d => d !== null);
 
-const getTestDetailsErrors = (datas, resProps?: Record<string, unknown>) =>
+const getTestDetailsErrors = (datas, repositoryPathMap, resProps?: Record<string, unknown>) =>
   datas?.reduce((prev, cur, index) => {
     // 校验用例标题
     if (!trimData(cur.name)) {
@@ -78,8 +78,7 @@ const getTestDetailsErrors = (datas, resProps?: Record<string, unknown>) =>
     // 校验所属分组是否为空
     if (
       global.env.GROUP_REQUIRED_WHEN_VALIDATE &&
-      !isFilterGroup(cur?.group, 0) &&
-      !resProps?.group
+      !repositoryPathMap[`${cur?.group ? `${cur.group}/` : ''}`]
     ) {
       prev = prev.concat({
         index,
@@ -204,41 +203,51 @@ export const runValidate = async () => {
     return itemType?.get('name');
   };
 
-  const getGroupPath = async workspace => {
+  const getRepositoryMap = async workspace => {
+    if (!global.env.GROUP_REQUIRED_WHEN_VALIDATE && !group) return {};
+    const query = await (getParseQuery(true, 'Repository') as any)
+      .equalTo('workspaceKey', workspace.get('key'))
+      .select(['name', 'objectId', 'parent'])
+      .limit(InfinityLimit);
+    const repositoryParseObjects = await query.find({
+      useMasterKey: true,
+    });
+
+    return repositoryParseObjects.reduce(
+      (prev, parseObj) => ({
+        ...prev,
+        [parseObj.get('objectId')]: {
+          key: parseObj.get('objectId'),
+          name: parseObj.get('name'),
+          parentId: parseObj.get('parent')?.objectId,
+        },
+      }),
+      {},
+    );
+  };
+
+  const getPath = repository => {
     let path = '';
-    if (!group) return path;
-    const getRepositoryMap = async () => {
-      const query = await (getParseQuery(true, 'Repository') as any)
-        .equalTo('workspaceKey', workspace.get('key'))
-        .select(['name', 'objectId', 'parent'])
-        .limit(InfinityLimit);
-      const repositoryParseObjects = await query.find({
-        useMasterKey: true,
-      });
-
-      return repositoryParseObjects.reduce(
-        (prev, parseObj) => ({
-          ...prev,
-          [parseObj.get('objectId')]: {
-            key: parseObj.get('objectId'),
-            name: parseObj.get('name'),
-            parentId: parseObj.get('parent')?.objectId,
-          },
-        }),
-        {},
-      );
-    };
-    const repositoryMap = await getRepositoryMap();
-    console.info('repositoryMap', JSON.stringify(repositoryMap));
-
     const getRepositoryPath = repository => {
-      console.info('getRepositoryPath', JSON.stringify(repository));
       if (repository?.name) path = `${repository.name}/${path}`;
       if (repository?.parentId) getRepositoryPath(repositoryMap[repository.parentId]);
     };
-    getRepositoryPath(repositoryMap[group]);
-    console.info('path', path);
+    getRepositoryPath(repository);
     return path;
+  };
+
+  const getRepositoryPathMap = repositoryMap => {
+    const existPathMap = {};
+    Object.values(repositoryMap).forEach(repository => {
+      existPathMap[getPath(repository)] = true;
+    });
+    return existPathMap;
+  };
+
+  const getGroupPath = async (repositoryMap, group) => {
+    if (!group) return '';
+
+    return getPath(repositoryMap[group]);
   };
 
   // eslint-disable-next-line no-console
@@ -247,8 +256,11 @@ export const runValidate = async () => {
     objectId: workspaceId,
   });
   const itemTypeName = await getItemTypeName(workspace);
+  const repositoryMap = await getRepositoryMap(workspace);
+  const repositoryPathMap = getRepositoryPathMap(repositoryMap);
+  console.info('repositoryMap', JSON.stringify({ repositoryMap, repositoryPathMap }));
 
-  const groupPath = await getGroupPath(workspace);
+  const groupPath = await getGroupPath(repositoryMap, group);
 
   const getValidateErrors = (datas, errors: any[] = []) => {
     if (isMoreThanThousands(datas)) {
@@ -259,7 +271,9 @@ export const runValidate = async () => {
       errors = [{ error: i18n.t('trigger.importer.validate.validateErrors.10') }, ...errors];
     }
 
-    return errors.concat(getTestDetailsErrors(datas, { group }) ?? []).filter(Boolean);
+    return errors
+      .concat(getTestDetailsErrors(datas, repositoryPathMap, { group }) ?? [])
+      .filter(Boolean);
   };
 
   const getDataByFieldKey = (datas, maps) =>
