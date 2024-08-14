@@ -107,7 +107,6 @@ const PanelTable: React.FC<PanelTableProps> = props => {
       return item;
     });
   }, [batchSelect, columns, t]);
-  console.info('tableColumnsProp', tableColumnsProp);
 
   const rowSelection = React.useMemo(
     () =>

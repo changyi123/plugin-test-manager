@@ -158,7 +158,9 @@ export type ItemSelectors = Selectors;
 
 export type TestManageSelectors = Selectors;
 
-export type SearchSelectors = [ItemSelectors, TestManageSelectors];
+export type SearchSelectors =
+  | [ItemSelectors, TestManageSelectors]
+  | [ItemSelectors, TestManageSelectors, string | undefined];
 
 export type IQLCase = IQL;
 
@@ -519,7 +521,9 @@ export const selectorToIql = (selectors: Selectors): IQL => {
       const selector = selectors[selectorKey];
       if (!selector) return;
       if (typeof selector === 'string') {
-        return `标题 ${IQL_CONDITION.TEXT_CONTAIN} '${replaceSingleQuote(selector)}'`;
+        return selectorKey === 'defaultIql'
+          ? `${selector ? `(${selector})` : ''}`
+          : `标题 ${IQL_CONDITION.TEXT_CONTAIN} '${replaceSingleQuote(selector)}'`;
       }
 
       return toIqlCase(selector);

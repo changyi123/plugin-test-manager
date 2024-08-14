@@ -262,7 +262,8 @@
         "radioBlackLabel": "不允许被规划的用例工作流状态",
         "radioWhiteLabel": "允许被规划的用例工作流状态",
         "testersCannotExecuteOtherCases": "测试人员不可执行他人测试用例",
-        "unassignedCaseCannotBeExecuted": "未分配的测试用例无法执行"
+        "unassignedCaseCannotBeExecuted": "未分配的测试用例无法执行",
+        "defaultCaseRange": "用例默认规划范围"
       },
       "isolatedTestType": {
         "title": "空间数据隔离配置",
@@ -997,6 +998,7 @@
       },
       "filterSearch": {
         "screenPlaceholder": "请输入检索项关键字",
+        "defaultFilterScope": "默认筛选范围",
         "screen": "筛选",
         "inputPlaceholder": "请输入标题关键字",
         "to": "至",

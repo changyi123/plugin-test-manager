@@ -266,6 +266,7 @@ const Right: React.FC<RightProps> = props => {
         />
         <TestEntitySelectorModal
           title={t('page.plan.planPageLayout.right.caseSelectModelTitle')}
+          showDefaultRange
           testType={TestType.Case}
           actionRef={testEntitySelectorRef}
           afterClose={() => refreshTreeAndScopeTestCase?.()}

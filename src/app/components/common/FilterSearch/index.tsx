@@ -1,7 +1,7 @@
 import { useSDK } from '@projectproxima/plugin-sdk';
 import { useListener } from '@projectproxima/proxima-sdk-js';
 import { useDebounceFn, useMemoizedFn, useRequest } from 'ahooks';
-import { Button } from 'antd';
+import { Button, Checkbox, Tooltip } from 'antd';
 import dayjs from 'dayjs';
 import { cloneDeep, isEmpty, isEqual, isNil, omit, pick, values } from 'lodash';
 import React, {
@@ -57,6 +57,10 @@ interface FilterSearchProps {
   checkedFields?: string[];
   filterId?: string;
   storageKey?: string;
+  // 显示默认筛选范围
+  showDefaultRange?: boolean;
+  // 默认筛选iql
+  defaultIql?: string;
 }
 
 interface FilterRefMethod {
@@ -119,11 +123,23 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
     filterId,
     storageKey,
     workspaceKey,
+    showDefaultRange,
+    defaultIql: defaultIqlProp,
   },
   ref,
 ) => {
-  const { t } = useI18n();
+  const [useDefaultRange, setUseDefaultRange] = useState(true);
   const { workspace } = useTestConfig();
+  const defaultIql = useMemo(() => {
+    return useDefaultRange ? defaultIqlProp || '' : '';
+  }, [useDefaultRange, defaultIqlProp]);
+
+  useEffect(() => {
+    showDefaultRange && defaultIql && handleSearch();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [defaultIql, showDefaultRange]);
+
+  const { t } = useI18n();
   const { context } = useSDK();
   const [search, setSearch] = useState('');
   const { globalTestConfig, testPlanFieldKeys, testCaseFieldKeys, testExecutionFieldKeys } =
@@ -309,9 +325,17 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
         },
       };
 
-      onSearch([itemSelector, testManageSelector]);
+      onSearch([itemSelector, testManageSelector, defaultIql]);
     },
-    [extendFields, search, fieldsName, onSearch, currentUser?.objectId, currentUser?.username],
+    [
+      extendFields,
+      search,
+      fieldsName,
+      onSearch,
+      defaultIql,
+      currentUser?.objectId,
+      currentUser?.username,
+    ],
   );
 
   const { run: handleSearch } = useDebounceFn(searchFn, { wait: 300 });
@@ -409,6 +433,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
             key: data.key,
           },
         },
+        iql: fieldsDataMap.current[data.fieldId]?.expression,
         userData: fieldsDataMap.current[data.fieldId],
         display: fieldsDataMap.current[data.fieldId]?.display,
         // searchComponent: FIELD_TYPE_KEY_MAPPINGS.DataQuote !== (data.key || data.component),
@@ -442,6 +467,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
       t,
       getExpression,
       workspace?.objectId,
+      fieldsDataMap,
       updateSelectorValue,
       handleSearch,
       extendFetch,
@@ -510,6 +536,20 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
         placeholder={t('components.common.filterSearch.screenPlaceholder')}
         value={search}
       />
+      {showDefaultRange && defaultIqlProp && (
+        <Checkbox
+          style={{ lineHeight: '28px' }}
+          checked={useDefaultRange}
+          onChange={e => {
+            setUseDefaultRange(e.target.checked);
+            handleSearch();
+          }}
+        >
+          <Tooltip title={defaultIqlProp}>
+            {t('components.common.filterSearch.defaultFilterScope')}
+          </Tooltip>
+        </Checkbox>
+      )}
       {currentSelector
         ?.filter(item => item?.fieldId !== 'name')
         .map(item => (

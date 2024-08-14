@@ -1,5 +1,5 @@
 import { useMemoizedFn, useMount } from 'ahooks';
-import { Button, message, Radio, Switch } from 'antd';
+import { Button, Input, message, Radio, Switch } from 'antd';
 import { pick } from 'lodash';
 import { components } from 'proxima-sdk';
 import React from 'react';
@@ -23,6 +23,8 @@ const DefaultTestRunAction = {
   listType: 'black',
   // 当前空间可以规划的测试用例状态名单
   statusList: [],
+  // 当前空间可以规划测试用例的默认范围
+  iql: '',
 };
 
 /** 获取空间成员列表 */
@@ -137,6 +139,7 @@ const ExecuteTestRunAction = () => {
       },
       listType: e => e.target.value,
       statusList: val => val.map(v => pick(v, ['statusId', 'name', 'isStartStatus'])),
+      iql: e => e.target.value,
     };
 
     const handleConfigChange = data => {
@@ -238,6 +241,10 @@ const ExecuteTestRunAction = () => {
           onSearchChange={onStatusKeywordSearch}
           onChange={buildConfigChange('statusList')}
         />
+      </div>
+      <div className={cx('section')}>
+        <h3>{t('page.config.executeTestRunAction.defaultCaseRange')}</h3>
+        <Input value={testRunAction.iql} onChange={buildConfigChange('iql')} />
       </div>
       <Button type="primary" className={cx('action')} onClick={handleSave}>
         {t('common.save')}

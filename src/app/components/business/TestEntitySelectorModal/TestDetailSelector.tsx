@@ -8,7 +8,7 @@ import FilterSearch from '@/components/common/FilterSearch';
 import { getFilterFields } from '@/components/common/FilterSearch/utils';
 import { SearchOutlined } from '@/icons';
 import { TestLinkType, TestType } from '@/lib/constants';
-import { useBaseAction } from '@/lib/hooks/useContext';
+import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import { useAllTestWorkspace } from '@/lib/hooks/useTest';
 import { SearchSelectors } from '@/lib/utils/iql';
@@ -34,6 +34,7 @@ type TestDetailSelectorProps = {
   treeType?: string;
   setTreeType?: (val: string) => void;
   validateCaseStatus?: boolean;
+  showDefaultRange?: boolean;
 };
 
 const tabsList = [
@@ -59,13 +60,21 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
     treeType,
     setTreeType,
     validateCaseStatus,
+    showDefaultRange,
   } = props;
+
   const { testCaseFieldKeys } = useBaseAction();
   const { t } = useI18n();
   const repositoryFolderTreeRef = React.useRef<ActionType>();
   const detailSearchRef = useRef(null);
   const [selectors, setSelectors] = React.useState<SearchSelectors>();
   const searchName = useMemo(() => (selectors?.[0] as any)?.name?.value, [selectors]);
+  const {
+    config: { iql },
+  } = useTestConfig();
+  const defaultIql = useMemo(() => {
+    return iql?.replace(/\bplanId\b/g, planId) || '';
+  }, [iql, planId]);
 
   // 目录搜索
   const [folderSearchValue, setFolderSearchValue] = React.useState('');
@@ -230,11 +239,13 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
         )}
         <FilterSearch
           filterId="testDetailSelector"
+          showDefaultRange={showDefaultRange}
           ref={detailSearchRef}
           onSearch={setSearchParams}
-          className={`${cx('plan-page-layout-search')} common-search-box`}
+          className={`${cx('plan-page-layout-search')} ${cx('common-search-box')}`}
           fields={getFilterFields([].concat(SystemFieldKeys, testCaseFieldKeys))}
           testType={TestType.Case}
+          defaultIql={defaultIql}
         />
       </div>
       <div className={cx('main')}>

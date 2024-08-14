@@ -383,6 +383,7 @@ const TaskPageLayout: React.FC<any> = () => {
       )}
       <TestEntitySelectorModal
         title={t('page.plan.planPageLayout.right.caseSelectModelTitle')}
+        showDefaultRange
         testType={TestType.Case}
         actionRef={testEntitySelectorRef}
         onCancel={() => {
