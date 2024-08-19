@@ -566,7 +566,8 @@
         "updateDesigneeStateTips": "Выбранный исполнитель теста успешно обновлен",
         "notUpdateDesignee": "Невозможно изменить исполнителя тестового примера",
         "updateDesignee": "Сменить исполнителя",
-        "updateRunStatus": "Изменить статус выполнения"
+        "updateRunStatus": "Изменить статус выполнения",
+        "batchEdit": "Пакетное редактирование"
       }
     },
     "repository": {

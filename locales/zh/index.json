@@ -523,7 +523,8 @@
         "updateDesigneeStateTips": "所选测试执行人更新成功",
         "notUpdateDesignee": "不可对用例更改执行人",
         "updateDesignee": "更改执行人",
-        "updateRunStatus": "更改执行状态"
+        "updateRunStatus": "更改执行状态",
+        "batchEdit": "批量编辑"
       }
     },
     "repository": {
