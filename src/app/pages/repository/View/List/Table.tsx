@@ -13,7 +13,14 @@ import RepositorySelector, {
 import UserCell from '@/components/business/UserCell';
 import type { BusinessTableActionType } from '@/components/common/BusinessTable/type';
 import { BusinessTable } from '@/components/dynamicComponents';
-import { DeleteIcon, DragHandler, LinkItemIcon, SwitcherOutlined, UserIcon } from '@/icons';
+import {
+  DeleteIcon,
+  DragHandler,
+  EditIcon,
+  LinkItemIcon,
+  SwitcherOutlined,
+  UserIcon,
+} from '@/icons';
 import {
   deleteTestEntity,
   deleteTestEntityV2,
@@ -413,7 +420,8 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         key="link"
         onClick={hasRowSelected ? openBatchPage : undefined}
       >
-        批量编辑
+        <EditIcon />
+        {t('page.plan.testEntityList.batchEdit')}
       </span>,
       <UserCell
         value={[]}

@@ -589,7 +589,8 @@
         "updateDesigneeStateTips": "The selected test executor has been successfully updated",
         "notUpdateDesignee": "Cannot change executor of test case",
         "updateDesignee": "Change executor",
-        "updateRunStatus": "Change execution status"
+        "updateRunStatus": "Change execution status",
+        "batchEdit": "Batch edit"
       }
     },
     "repository": {
