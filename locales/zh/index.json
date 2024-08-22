@@ -539,7 +539,7 @@
         "createChildFolder": "新建子模块",
         "createChildFolderSuccess": "子模块新建成功",
         "renameFolder": "重命名模块",
-        "renameFolderSuccess": "模块重命被为",
+        "renameFolderSuccess": "模块重命名为",
         "deleteFolder": "删除模块",
         "deleteFolderTips": [
           "确定删除",
