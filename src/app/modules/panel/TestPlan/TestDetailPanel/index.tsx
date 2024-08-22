@@ -24,6 +24,7 @@ import {
   getRunsFromCase,
   updateTestEntity,
 } from '@/lib/api/item';
+import { getAppEnv } from '@/lib/appEnv';
 import { INITIAL_STATUS_KEY, TestLinkType, TestType } from '@/lib/constants';
 import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
@@ -134,6 +135,12 @@ const Test = () => {
 
   const createExecution = useCallback(
     async (caseIds, token) => {
+      const defaultNameConfig = getAppEnv('CREATE_EXECUTION_DEFAULT_NAME_CONFIG');
+      const enable = defaultNameConfig?.enable;
+      const suffixName = defaultNameConfig?.suffixName;
+
+      const config = enable ? { name: `${testEntity?.name}_${suffixName}` } : {};
+
       const res = await createItemUseModal({
         type: TestType.Execution,
         extraData: {
@@ -146,11 +153,12 @@ const Test = () => {
             } ${t('modules.panel.testPlan.testDetailPanel.modelTitle.1')}`,
           },
         },
+        ...config,
       });
 
       return res;
     },
-    [createItemUseModal, testEntity?.objectId, t],
+    [testEntity?.name, testEntity?.objectId, createItemUseModal, t],
   );
 
   // 创建测试执行
