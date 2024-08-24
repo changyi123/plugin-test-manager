@@ -254,9 +254,16 @@ export const FILTER_EXPR_NAME = {
   Date_Equal: 'Date_Equal',
   Date_Empty: 'Date_Empty',
   Date_Not_Empty: 'Date_Not_Empty',
+  File_Empty: 'File_Empty',
+  File_Not_Empty: 'File_Not_Empty',
 };
 
 export const FILTER_EXPRESSIONS = t => ({
+  [FIELD_TYPE_KEY_MAPPINGS.File]: [
+    //事项ID
+    { label: t('common.empty'), value: FILTER_EXPR_NAME.File_Empty },
+    { label: t('common.notEmpty'), value: FILTER_EXPR_NAME.File_Not_Empty },
+  ],
   Text: [
     // { label: t('common.equal'), value: FILTER_EXPR_NAME.Text_Equal },
     { label: t('common.include'), value: FILTER_EXPR_NAME.Text_Contain },
