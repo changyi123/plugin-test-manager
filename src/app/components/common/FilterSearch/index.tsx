@@ -3,7 +3,7 @@ import { useListener } from '@projectproxima/proxima-sdk-js';
 import { useDebounceFn, useMemoizedFn, useRequest } from 'ahooks';
 import { Button, Checkbox, Tooltip } from 'antd';
 import dayjs from 'dayjs';
-import { cloneDeep, isEmpty, isEqual, isNil, omit, pick, values } from 'lodash';
+import { cloneDeep, isEmpty, isEqual, isNil, isNumber, omit, pick, values } from 'lodash';
 import React, {
   forwardRef,
   useCallback,
@@ -95,7 +95,8 @@ const useSelectorStorage = (
       invokeRef.current = true;
       setSelectors(handleDataSelector(storageSelectors), true);
     }
-  }, [selectors, setSelectors, enableLocalStorage, storage]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // 存储 selectors state
   useEffect(() => {
@@ -361,13 +362,15 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
       if (target) {
         if (
           // 如果筛选没选值，即两者都为空， 不查询
-          (isEmpty(target.value) && isEmpty(selector.value)) ||
+          (!isNumber(target.value) &&
+            isEmpty(target.value) &&
+            !isNumber(selector.value) &&
+            isEmpty(selector.value)) ||
           // 或者筛选未改变，不查询
           (isEqual(target.value, selector.value) && isEqual(target.expression, selector.expression))
         ) {
           needSearch.current = false;
         } else {
-          console.info(JSON.stringify({ target, selector }));
           needSearch.current = true;
         }
         target.value = selector.value;
@@ -497,7 +500,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
   const currentSelector = useMemo(() => {
     const getExpression = (value, expression) => {
       if (typeof value === 'number') {
-        return value ? expression : null;
+        return expression;
       }
       return value?.length ? expression : null;
     };

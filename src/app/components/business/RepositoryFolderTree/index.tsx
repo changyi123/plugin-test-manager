@@ -30,7 +30,7 @@ const filterEmptyFolder = folders => {
   if (Array.isArray(folders)) {
     return folders
       .filter(folder => {
-        const [, childTestDetailNum] = folder.counts;
+        const [, childTestDetailNum] = folder?.counts ?? [];
         return childTestDetailNum > 0;
       })
       .map(folder => {
@@ -96,7 +96,7 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
     },
     {
       ready: Boolean(workspaceKey),
-      refreshDeps: [workspaceKey, JSON.stringify(params), hideEmptyFolder, isShowAll],
+      refreshDeps: [`${workspaceKey}_${JSON.stringify(params)}_${hideEmptyFolder}_${isShowAll}`],
     },
   );
 
@@ -171,7 +171,7 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
 
   // 树节点渲染
   const titleRender = useMemoizedFn(node => {
-    const [currentNum, childNodeNum] = node.counts;
+    const [currentNum, childNodeNum] = node?.counts ?? [0, 0];
     const matchedText = matchedFolderText[node.key];
     const matchedClassName = cx('matched');
     const highlightMatchedNodeName = matchedText

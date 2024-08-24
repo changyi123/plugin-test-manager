@@ -709,6 +709,16 @@ export const getRepositoryTreeV2 = async (params: RepositoryTreePayload) => {
     },
     sessionToken: getSessionToken(),
   });
+  if ((data.status as unknown as string) === 'error') {
+    message.error(data.data);
+    return {
+      data: {
+        key: 'root',
+        name: '全部用例',
+        parentKey: null,
+      },
+    };
+  }
   return data;
 };
 

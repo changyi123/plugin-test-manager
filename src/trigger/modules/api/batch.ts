@@ -522,9 +522,13 @@ export const batchCopyTestCase = async () => {
     });
     const objectToIdFieldKeys = results
       .filter(item =>
-        [FIELD_TYPE.SPRINT, FIELD_TYPE.VERSION, FIELD_TYPE.CUSTOM_VERSION].includes(
-          item.fieldType.key,
-        ),
+        [
+          FIELD_TYPE.SPRINT,
+          FIELD_TYPE.VERSION,
+          FIELD_TYPE.CUSTOM_VERSION,
+          FIELD_TYPE.BINDWORKSPACE,
+          FIELD_TYPE.TEAM,
+        ].includes(item.fieldType.key),
       )
       .map(item => item.key);
 
@@ -624,9 +628,13 @@ export const batchCopyTestCaseV2 = async () => {
     });
     const objectToIdFieldKeys = results
       .filter(item =>
-        [FIELD_TYPE.SPRINT, FIELD_TYPE.VERSION, FIELD_TYPE.CUSTOM_VERSION].includes(
-          item.fieldType.key,
-        ),
+        [
+          FIELD_TYPE.SPRINT,
+          FIELD_TYPE.VERSION,
+          FIELD_TYPE.CUSTOM_VERSION,
+          FIELD_TYPE.BINDWORKSPACE,
+          FIELD_TYPE.TEAM,
+        ].includes(item.fieldType.key),
       )
       .map(item => item.key);
 
