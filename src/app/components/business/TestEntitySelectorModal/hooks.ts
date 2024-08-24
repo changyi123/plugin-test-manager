@@ -36,7 +36,7 @@ export const useGetVirtualScrollList = (
       const mapArray = new Map();
       traverseTreeNodes(group, node => {
         mapArray.set(node.key, node);
-        if (node?.counts[0]) {
+        if (node?.counts?.[0]) {
           map.set(node.key, node);
         }
       });
@@ -60,7 +60,7 @@ export const useGetGroupNodeId = (group, allCaseIds) => {
     if (allCaseIds?.length) {
       const itemIds = clone(allCaseIds);
       traverseTreeNodes(group, node => {
-        groupNodeMap.set(node.key, itemIds?.splice(0, node?.counts[0]) ?? []);
+        groupNodeMap.set(node.key, itemIds?.splice(0, node?.counts?.[0]) ?? []);
       });
       setGroupNodeMap(groupNodeMap);
     }
@@ -74,6 +74,7 @@ export const useGetGroupCounts = ({ workspaceKey, current, params, selectedNode 
   const { data: treeData } = useRequest(
     async () => {
       if (!workspaceKey || !params) return [];
+
       const { data } = await getRepositoryTreeV2({
         workspaceKey,
         params: params,
@@ -86,7 +87,8 @@ export const useGetGroupCounts = ({ workspaceKey, current, params, selectedNode 
       refreshDeps: [workspaceKey, params, selectedNode],
       cacheKey: `Tree_Counts_${workspaceKey}_${JSON.stringify(
         params,
-      )}_${selectedNode?.counts?.toString()}`,
+        selectedNode?.counts ?? [0, 0],
+      )?.toString()}`,
       cacheTime: 999999,
       staleTime: 999999,
     },

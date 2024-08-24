@@ -51,6 +51,7 @@ export const FIELD_TYPE = {
   REPORTER: 'Reporter',
   WORKSPACE_ROLE: 'WorkspaceRole',
   STORY_POINT: 'StoryPoint',
+  TEAM: 'Team',
 };
 
 /** 测试实体类型 */

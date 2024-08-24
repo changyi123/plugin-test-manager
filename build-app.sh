@@ -12,11 +12,13 @@ rootDir=$(
 )
 
 # 构建插件静态资源文件
-yarn && yarn build -- --env PROXIMA_VERSION_COMMIT="$commit" PROXIMA_VERSION_BRANCH="$branch" PROXIMA_VERSION_DATE="$date" PROXIMA_VERSION_TAG="$tag"
+yarn install --registry=https://registry.npmmirror.com
+yarn build -- --env PROXIMA_VERSION_COMMIT="$commit" PROXIMA_VERSION_BRANCH="$branch" PROXIMA_VERSION_DATE="$date" PROXIMA_VERSION_TAG="$tag"
 
 # 构建chart
 cd chart
-yarn && yarn build --env PROXIMA_VERSION_TAG="${tag}"
+yarn install --registry=https://registry.npmmirror.com
+yarn build --env PROXIMA_VERSION_TAG="${tag}"
 cp dist/combined-components.css dist/combined-components
 cd ..
 
