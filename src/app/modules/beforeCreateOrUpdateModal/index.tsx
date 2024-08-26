@@ -1,13 +1,13 @@
 import { store } from '@nebulare/data';
 import { useSDK } from '@projectproxima/plugin-sdk';
 import { useRequest } from 'ahooks';
-import { get, keyBy } from 'lodash';
+import { get } from 'lodash';
 import React from 'react';
 
 import { getDevConfig } from '@/devEnv';
-import { getAllTestConfigs } from '@/lib/api/common';
 import { getItemTypeById, getWorkspaceById } from '@/lib/api/proxima';
 import { CREATE_ITEM_STORE_FIELD_KEY, ExtensionValType, TestType } from '@/lib/constants';
+import { TestConfig } from '@/services/models';
 
 import TestDetailForm from './TestDetailForm';
 
@@ -26,15 +26,15 @@ const BeforeCreateOrUpdateModal = () => {
 
   const { data: itemTypeMappingDict } = useRequest(
     async () => {
-      const result = await getAllTestConfigs(['itemTypeMap', 'workspaceKey']);
-      const allConfigs = result.map(item => item.toJSON());
-      return keyBy(allConfigs, 'workspaceKey');
+      const result = await new Parse.Query(TestConfig)
+        .select('itemTypeMap')
+        .equalTo('workspaceKey', context.workspaceKey)
+        .first();
+      return result.toJSON();
     },
     {
-      ready: Boolean(storeValues.extraData),
-      cacheKey: 'ALL_CONFIGS',
-      cacheTime: 9999999999,
-      staleTime: 9999999999,
+      ready: Boolean(context?.workspaceKey),
+      refreshDeps: [context?.workspaceKey],
     },
   );
 
@@ -85,11 +85,11 @@ const BeforeCreateOrUpdateModal = () => {
 
   const testDetailFormVisible = React.useMemo(() => {
     // if (!storeValues.extraData) return false;
-    const testDetailRefItemTypeKey =
-      itemTypeMappingDict?.[currentModalValues.workspaceKey]?.itemTypeMap?.[TestType.Case];
+    const testDetailRefItemTypeKey = itemTypeMappingDict?.itemTypeMap?.[TestType.Case];
 
     return testDetailRefItemTypeKey && testDetailRefItemTypeKey === currentModalValues.itemTypeKey;
-  }, [currentModalValues, itemTypeMappingDict]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentModalValues.itemTypeKey, itemTypeMappingDict?.id]);
 
   React.useEffect(() => {
     const handleCreateOrUpdateItemMsg = values => {

@@ -1,7 +1,7 @@
 import { store } from '@nebulare/data';
 import createProximaSdk from '@projectproxima/proxima-sdk-js';
 import { useRequest } from 'ahooks';
-import { message, notification } from 'antd';
+import { message, notification, Spin } from 'antd';
 import { isEmpty, union } from 'lodash';
 import React, { useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
@@ -20,6 +20,7 @@ import { useGetWorkspaceRepository } from '@/lib/hooks/useTest';
 import { TestEntity } from '@/lib/types/Test';
 import { EventBus } from '@/lib/utils/eventBus';
 import { generateSortIndex, getKeyByValue, hasArrayItem } from '@/lib/utils/helper';
+import { TestReport } from '@/services/models';
 import { testConfigQuery } from '@/services/query';
 
 import {
@@ -39,10 +40,14 @@ const getOrCreateTestEntity = async (
   options?: {
     repository?: string | null;
     fields?: Record<string, any>;
+    iqlMap?: Record<string, any>;
+    templateId?: string;
+    defectsMapping?: Record<string, any>;
     itemData?: Record<string, any>;
     type?: string;
     notice?: boolean;
     t?: (val?: string) => string;
+    proxima?: any;
   },
   preparedData?: {
     itemTypeMap?: Record<string, any>;
@@ -50,7 +55,7 @@ const getOrCreateTestEntity = async (
 ) => {
   if (!itemId) return null;
   let testEntity;
-  const { itemData, type, t } = options;
+  const { itemData, fields, type, t, iqlMap, templateId, defectsMapping, proxima } = options;
   const storeValues = store.get(ExtensionValType.CREATE_OR_UPDATE_ITEM);
 
   let itemTypeMap = preparedData?.itemTypeMap;
@@ -87,7 +92,7 @@ const getOrCreateTestEntity = async (
       return null;
     }
 
-    // 测试用例创建
+    // 测试报告创建
     if (testType === TestType.Case) {
       // 测试用例创建时需要生成默认 sortIndex
       extraFields = {
@@ -106,6 +111,49 @@ const getOrCreateTestEntity = async (
         };
       }
       console.info('extraFields', extraFields);
+    }
+
+    if (testType === TestType.Report) {
+      if (templateId) {
+        // 创建测试报告
+        notification.open({
+          message: t('report.generateLoading'),
+          icon: <Spin spinning={true} />,
+          duration: null,
+        });
+        const testReport = new TestReport();
+        const { data: reportInfo, status } = await testReport.createReport(templateId, {
+          name: itemData.name,
+          dataSourceIql: iqlMap,
+          workspace: itemData.workspace,
+          defectsMapping,
+          itemTypeMap,
+          report: itemData,
+          ...fields,
+        });
+        notification.destroy();
+        needCreatedItem = {
+          ...needCreatedItem,
+          ...fields,
+          ...{ reportChartGroup: reportInfo.chartGroup?.id },
+        };
+
+        console.info('create test report success!', reportInfo);
+        // 生成测试报告离线文档
+        // enableOfflineReport && (await generateTestReportOfflineFile(reportInfo?.data?.objectId));
+
+        if (status === 'success') {
+          proxima.execute('refreshTestReportTable', itemData?.objectId);
+          notification.success({
+            message: `${t('report.testReport')}【${reportInfo.name}】${t('report.addSuccess')}`,
+          });
+        } else {
+          notification.error({
+            message: `${t('report.testReport')}【${reportInfo.name}】${t('report.addFail')}`,
+          });
+        }
+      }
+      console.info('needCreatedItem', needCreatedItem);
     }
 
     if (!isEmpty(needCreatedItem)) {
@@ -344,6 +392,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
           {
             itemData: testEntity,
             t,
+            proxima,
           },
           {
             itemTypeMap: testConfig.itemTypeMap,
@@ -356,11 +405,18 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
     if (itemId && testConfig) {
       execute();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [itemId, testConfig, t]);
 
   const testPlanFieldKeys = useScreenFieldKeysFromTestConfig({
     testConfig,
     testType: TestType.Plan,
+    workspaceKey,
+  });
+
+  const testReportFieldKeys = useScreenFieldKeysFromTestConfig({
+    testConfig,
+    testType: TestType.Report,
     workspaceKey,
   });
 
@@ -419,11 +475,10 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
       // 缺陷类型不需要创建测试管理测试实体
       if (extraData.type !== TestType.TestDefect) {
         testEntity = await getOrCreateTestEntity(params.itemId, {
-          repository: extraData?.repository,
-          fields: extraData.fields,
+          ...extraData,
           itemData,
-          type: extraData.type,
           notice: true,
+          proxima,
           t,
         });
       }
@@ -434,6 +489,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
         useItemBatchCreate: false,
       });
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [testConfig.isolateTestType, workspace?.key, t],
   );
 
@@ -612,6 +668,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
       getTestCaseRepositoryPath,
       testPlanFieldKeys,
       testCaseFieldKeys,
+      testReportFieldKeys,
       testExecutionFieldKeys,
       openItemViewPanel: openItemDetailPanel,
       globalTestConfig: globalTestConfig?.extra || { statuses: [] },
@@ -626,6 +683,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
     testConfig?.itemTypeMap,
     workspace?.objectId,
     testPlanFieldKeys,
+    testReportFieldKeys,
     testCaseFieldKeys,
     testExecutionFieldKeys,
     globalTestConfig?.extra,

@@ -29,6 +29,8 @@ export { shenwanTestReportInfo } from './modules/extension/shenwan';
 
 export { weichaiFileEncrypt } from './modules/extension/weichai';
 
+export { zgcTestReportInfo } from './modules/extension/zgc';
+
 export { initTestConfig } from './modules/api/config';
 
 export { linkTestExecuteToTestPlan } from './modules/batch/execution';

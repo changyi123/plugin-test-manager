@@ -2,7 +2,7 @@ import { useRequest, useUpdateEffect } from 'ahooks';
 import dayjs from 'dayjs';
 import { values } from 'lodash';
 import cloneDeep from 'lodash/cloneDeep';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import SelectorTag from '@/components/common/FilterSearch/SelectorTag';
 import { handleDataSelector } from '@/components/common/FilterSearch/utils';
@@ -12,7 +12,10 @@ import { openFieldValuePopover } from '@/lib/api/sdk';
 import {
   FILTER_EXPRESSIONS,
   getReportFilterFields,
+  getTestExecutionField,
+  getTestPlanField,
   IS_EXTEND_FIELDS,
+  TestExecutionModel,
   TestPlanModel,
   TestType,
 } from '@/lib/constants';
@@ -43,9 +46,12 @@ const RangeForm: React.FC<any> = ({ state, workspace }) => {
   const { data: defaultSelectors } = useRequest(
     async () => {
       const res = await getCustomFields(reportFields);
-      const planField = reportFields.includes(TestPlanModel) ? getReportFilterFields(t) : [];
+      const planField = reportFields.includes(TestPlanModel) ? getTestPlanField(t) : [];
+      const executionField = reportFields.includes(TestExecutionModel)
+        ? getTestExecutionField(t)
+        : [];
 
-      return [...planField, ...res]?.reduce((prev, cur) => {
+      return [...executionField, ...planField, ...res]?.reduce((prev, cur) => {
         prev[cur.objectId] = {
           component: cur.fieldType.component,
           expression: null,
@@ -68,11 +74,19 @@ const RangeForm: React.FC<any> = ({ state, workspace }) => {
   );
 
   useUpdateEffect(() => {
-    if (defaultSelectors) {
+    if (defaultSelectors && !state.init) {
       state.selectors = defaultSelectors;
       setSelectors(defaultSelectors);
     }
   }, [defaultSelectors]);
+
+  useEffect(() => {
+    if (state.init) {
+      state.init = false;
+      setSelectors(state.selectors);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const getExpression = useCallback(
     (component, key) => {
@@ -112,25 +126,28 @@ const RangeForm: React.FC<any> = ({ state, workspace }) => {
     [selectors, state],
   );
 
-  const extendFetch = useCallback(async () => {
-    const { list: data } = await getTestEntityByQuery({
-      query: {
-        workspaceKey: workspace?.key,
-        type: TestType.Plan,
-      },
-      limit: 9999,
-      select: ['id', 'name'],
-    });
+  const getExtendFetch = useCallback(
+    type => async () => {
+      const { list: data } = await getTestEntityByQuery({
+        query: {
+          workspaceKey: workspace?.key,
+          type: type,
+        },
+        limit: 9999,
+        select: ['id', 'name'],
+      });
 
-    return (
-      data?.map(d => ({
-        ...d,
-        value: d.id,
-        label: d.name,
-        toolTip: d.name,
-      })) ?? []
-    );
-  }, [workspace?.key]);
+      return (
+        data?.map(d => ({
+          ...d,
+          value: d.id,
+          label: d.name,
+          toolTip: d.name,
+        })) ?? []
+      );
+    },
+    [workspace?.key],
+  );
 
   // 组装打开字段值选择器的函数
   const getFieldValueProps = useCallback(
@@ -162,11 +179,14 @@ const RangeForm: React.FC<any> = ({ state, workspace }) => {
         allowNull: false,
       };
       if (fieldId === TestPlanModel) {
-        (props as any).fetchMethod = () => extendFetch();
+        (props as any).fetchMethod = getExtendFetch(TestType.Plan);
+      }
+      if (fieldId === TestExecutionModel) {
+        (props as any).fetchMethod = getExtendFetch(TestType.Execution);
       }
       return props;
     },
-    [t, getExpression, workspace?.objectId, updateSelectorValue, extendFetch],
+    [t, getExpression, workspace?.objectId, updateSelectorValue, getExtendFetch],
   );
 
   const generateFieldValue = useCallback(data => {

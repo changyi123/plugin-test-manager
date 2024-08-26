@@ -73,6 +73,8 @@ export enum TestType {
 export enum ExtendReportType {
   Parent = 'parent',
   Relative = 'relative',
+  PlanParent = 'planParent',
+  Self = 'self',
 }
 
 /** 测试关联类型 */
@@ -115,6 +117,9 @@ export const TestFiledKeyMapping = {
   executeCount: 'r_test_manager_executeCount',
   executeTime: 'r_test_manager_executeTime',
   caseRun: 'r_test_manager_caseRun',
+  reportOverviewData: 'r_test_manager_reportOverviewData',
+  reportChartGroup: 'r_test_manager_reportChartGroup',
+  reportTemplate: 'r_test_manager_reportTemplate',
 
   // 以下字段以字符串形式存入，存入前需要 stringify，返回需要 parse
   detail: 'r_test_manager_detail',
@@ -208,8 +213,8 @@ export const IQLUsefulFieldKeys = [
   SystemField.Workspace,
   SystemField.Assignee,
   SystemField.Priority,
-  // SystemField.UpdatedAt,
-  // SystemField.UpdatedBy,
+  SystemField.UpdatedAt,
+  SystemField.UpdatedBy,
   // 'values',
   // 测试管理自定义字段
   ...Object.values(TestFiledKeyMapping),

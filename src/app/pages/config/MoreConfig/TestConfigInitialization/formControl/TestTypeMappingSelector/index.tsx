@@ -23,6 +23,10 @@ const TestTypes = [
     type: TestType.Execution,
     title: 'testExecution',
   },
+  {
+    type: TestType.Report,
+    title: 'testReport',
+  },
 ];
 
 const TestTypeMappingSelector: React.FC<any> = ({ value, onChange }) => {

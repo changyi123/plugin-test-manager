@@ -21,6 +21,7 @@ import {
   Item,
   ItemType,
   ItemTypeScheme,
+  ReportTemplate,
   Workspace,
 } from '@/services/models';
 
@@ -265,7 +266,7 @@ export const getItemByIds = async (itemIds: string[]) => {
     .containedIn('objectId', itemIds)
     .select('itemType', 'workspace', 'name', 'key', 'status')
     .include(['itemType', 'workspace', 'status'])
-    .findAll();
+    .findAll({ sessionToken: 'a:d36e77a9a6f5cb1b9d37c6cc' });
 
   return res.map(item => item.toJSON());
 };
@@ -442,4 +443,22 @@ export const getStatusByWorkspaceAndItemType = async (params: {
     });
 
   return result ?? [];
+};
+
+/** 测试报告导出 */
+export const exportReport = async (params: {
+  chartGroupId: string;
+  templateId: string;
+  name?: string;
+  slotData: Record<string, unknown>;
+}) => {
+  let templateId = params.templateId;
+  if (!templateId) {
+    const template = await new Parse.Query(ReportTemplate).addDescending('updatedAt').first();
+    templateId = template.id;
+  }
+  return await fetch.$post(`/parse/api/generateReport/generate`, {
+    templateId,
+    ...params,
+  });
 };

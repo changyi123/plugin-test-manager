@@ -45,6 +45,7 @@ export const TestTypeNameMapping = {
   [TestType.Case]: 'testCase',
   [TestType.Plan]: 'testPlan',
   [TestType.Execution]: 'testExecution',
+  [TestType.Report]: 'testReport',
   [TestType.Run]: 'testRun',
   [TestType.TestDefect]: 'testDefect',
 };
@@ -54,6 +55,7 @@ export const BuiltinItemTypeMapping = {
   [TestType.Case]: 'test_manager_detail',
   [TestType.Plan]: 'test_manager_plan',
   [TestType.Execution]: 'test_manager_execution',
+  [TestType.Report]: 'test_manager_report',
 };
 
 /** 本地存储前缀 */
@@ -472,6 +474,7 @@ export const RepositoryModel = `${appKey}_Repository`;
 export const TestCaseStatusModel = `${appKey}_status`;
 export const TestRunDesigneeModel = `${appKey}_designee`;
 export const TestRunExecutorModel = `${appKey}_executor`;
+export const TestExecutionModel = `${appKey}_Execution`;
 export const TestPlanModel = `${appKey}_Plan`;
 
 export const getExtendFields = t => [
@@ -528,7 +531,7 @@ export const getExtendFields = t => [
   },
 ];
 
-export const getReportFilterFields = t => [
+export const getTestPlanField = t => [
   {
     key: TestPlanModel,
     // name: '测试计划',
@@ -543,6 +546,24 @@ export const getReportFilterFields = t => [
     },
   },
 ];
+
+export const getTestExecutionField = t => [
+  {
+    key: TestExecutionModel,
+    // name: '测试计划',
+    name: t('common.testExecution'),
+    objectId: TestExecutionModel,
+    fieldType: {
+      isExtend: true,
+      dataType: 'object',
+      objectId: TestExecutionModel,
+      key: TestExecutionModel,
+      name: t('common.testExecution'),
+    },
+  },
+];
+
+export const getReportFilterFields = t => [...getTestExecutionField(t), ...getTestPlanField(t)];
 
 export const UserTypeSelectorFieldKeys = ['test_designee', 'test_executor'];
 

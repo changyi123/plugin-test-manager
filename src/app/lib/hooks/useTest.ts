@@ -204,6 +204,7 @@ export const useTestTypeUsedItemTypes = () => {
       [TestType.Case]: new Set(),
       [TestType.Plan]: new Set(),
       [TestType.Execution]: new Set(),
+      [TestType.Report]: new Set(),
     };
 
     if (!testConfigs) return transformResult(testTypeUsedItemTypes);

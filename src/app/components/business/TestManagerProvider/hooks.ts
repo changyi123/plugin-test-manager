@@ -9,13 +9,13 @@ const useGetPermissions = (workspace: Record<string, any>, testConfig: Record<st
   const getCreatePermission = React.useCallback(
     (key: TestType) => {
       const itemScreenTypeKeys = itemScreenType?.map(d => d.key) ?? [];
-      const testTypeMapping = Object.entries(
-        testConfig?.itemTypeMap ?? {
-          [TestType.Case]: null,
-          [TestType.Plan]: null,
-          [TestType.Execution]: null,
-        },
-      )
+      const testTypeMapping = Object.entries({
+        [TestType.Case]: null,
+        [TestType.Plan]: null,
+        [TestType.Execution]: null,
+        [TestType.Report]: null,
+        ...(testConfig?.itemTypeMap ?? {}),
+      })
         .concat([[TestType.TestDefect, testConfig?.defectsMapping?.[0]]])
         .reduce((prev, [testKey, typeKey]) => {
           prev[testKey] = !itemScreenTypeKeys.includes(typeKey);

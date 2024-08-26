@@ -2,7 +2,7 @@ app:
   key: test_manager
   uuid: bf73e61c-e15a-4461-a1f7-f940c2009332
   name: test_manager
-  version: "4.22.2"
+  version: "4.23.0-alpha.64"
 modules:
   webtrigger:
     # TODO: Debug 使用，生产环境禁止调用下面的 trigger
@@ -99,6 +99,10 @@ modules:
     # 申万测试报告联调对接
     - key: extension-report-shenwan
       function: extension-report-shenwan-function
+
+    # 中关村测试报告联调对接
+    - key: extension-report-zgc
+      function: extension-report-zgc-function
     
     - key: extension-weichai-file-encrypt
       function: extension-weichai-file-encrypt-function
@@ -110,6 +114,9 @@ modules:
     # 基础数据合并接口
     - key: api-query-basic-data
       function: api-query-basic-data-function
+
+    - key: run-script
+      function: run-script-function
 
   trigger:
     - key: test-manager-initial-script-install
@@ -275,11 +282,16 @@ modules:
     - key: extension-report-shenwan-function
       handler: api.shenwanTestReportInfo
 
+    - key: extension-report-zgc-function
+      handler: api.zgcTestReportInfo
+
     - key: extension-weichai-file-encrypt-function
       handler: api.weichaiFileEncrypt
 
     - key: init-test-config-function
       handler: api.initTestConfig
+    - key: run-script-function
+      handler: scriptHandler.runScript
 
   itemPanel:
     - key: test-manager-test-detail
@@ -395,6 +407,25 @@ modules:
       name: 测试管理基础字段类型（字符串）
       description: 测试管理基础字段类型（勿删改）
       dataType: text
+  proxima:CustomField:
+    - key: r_test_manager_reportTemplate
+      name: test_report_template
+      fieldType: Text
+      undeletable: true
+      locked: true
+      description: 测试管理内置字段-测试报告引用的报告模板（勿删改）
+    - key: r_test_manager_reportChartGroup
+      name: test_report_chart_group
+      fieldType: Text
+      undeletable: true
+      locked: true
+      description: 测试管理内置字段-测试报告引用的报表（勿删改）
+    - key: r_test_manager_reportOverviewData
+      name: test_report_overview_data
+      fieldType: r_test_manager_es_object
+      undeletable: true
+      locked: true
+      description: 测试管理内置字段-测试报告的数据源配置（勿删改）
   customField:
       # 描述关联关系的配置（使用事项关联不需要处理）
     - key: linkType
@@ -529,6 +560,23 @@ modules:
       description: 测试管理类型-测试执行
       displayConditions:
         displayModules:
+          plugin:
+            - testManager
+        displayContext: test_manager
+    - key: test_manager_report
+      name: 测试报告
+      icon: /icons/Issue_Doc.svg
+      description: 测试管理类型-测试报告
+      displayConditions:
+        displayModules:
+          adminPage:
+            - automation
+            - itemType
+            - hierarchy
+            - linkType
+            - screenScheme
+            - workflowScheme
+            - fieldBehavior
           plugin:
             - testManager
         displayContext: test_manager
@@ -697,6 +745,16 @@ tables:
         type: String
       # 测试报告doc path
       reportUrl:
+        type: String
+      # 测试报告禁用状态
+      disabled:
+        type: Boolean
+      # 测试报告所用模板文件
+      reportTemplate:
+        type: Pointer
+        targetClass: ReportTemplate
+      # 测试报告导出校验脚本
+      validateScript:
         type: String
 locales:
   zh-CN:

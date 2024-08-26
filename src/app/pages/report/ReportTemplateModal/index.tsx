@@ -5,7 +5,11 @@ import { useTranslation } from 'react-i18next';
 
 import { genReportTemplateUrl } from '@/lib/testReport';
 import { testReportQuery } from '@/services/query';
-import { deleteTestReport, setDefaultReportTemplate } from '@/services/testReport/service';
+import {
+  deleteTestReport,
+  setDefaultReportTemplate,
+  updateTestReport,
+} from '@/services/testReport/service';
 
 import cx from './index.less';
 
@@ -60,6 +64,11 @@ const ReportTemplateModal: React.FC<{
       refreshWorkspaceTemplateList();
       message.success(t('message.setDefaultSuccess'));
     },
+    setEnabled: async (testReportId, disabled) => {
+      await updateTestReport({ objectId: testReportId, disabled: !disabled });
+      refreshWorkspaceTemplateList();
+      message.success(disabled ? t('message.setEnabledSuccess') : t('message.setDisabledSuccess'));
+    },
   };
 
   const tableColumns = [
@@ -87,6 +96,15 @@ const ReportTemplateModal: React.FC<{
               onClick={() => actions.edit(objectId)}
             >
               {t('buttons.edit')}
+            </Button>
+            <Button
+              type="link"
+              size="small"
+              disabled={row.isDefaultTemplate}
+              danger={!row.disabled}
+              onClick={() => actions.setEnabled(objectId, row.disabled)}
+            >
+              {row.disabled ? t('buttons.enabled') : t('buttons.disabled')}
             </Button>
             <Button
               type="link"

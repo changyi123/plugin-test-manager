@@ -13,7 +13,11 @@ import type { ColumnShape } from 'react-base-table';
 import { customHeaderRendererForBaseTable } from '../common/TabelCell';
 import useCacheColumns from '../lib/hooks/useCacheColumns';
 import useQuery from '../lib/hooks/useQuery';
-import { buildRepositoryStatics, useRepositoryTree } from '../lib/hooks/useRepositoryTree';
+import {
+  buildRepositoryStatics,
+  buildRepositoryStaticsWithChildren,
+  useRepositoryTree,
+} from '../lib/hooks/useRepositoryTree';
 import useTestConfig from '../lib/hooks/useTestConfig';
 import { ViewProps } from '../lib/type';
 import { getEnvData, isIncludeTotal, isValidUUID } from '../lib/util';
@@ -89,12 +93,15 @@ async function fetchCaseStatistics(testConfig, url, params) {
 const View: React.FC<ViewProps> = ({
   option,
   isListView,
-  workspace,
+  workspace: workspaceProps,
   setEnableSave,
   chartGroupId,
   uid,
 }) => {
   const i18n = useI18n();
+  const search = new URLSearchParams(window.location.search);
+  const key = search.get('workspaceKey');
+  const name = search.get('workspaceName');
 
   const {
     group = [],
@@ -105,6 +112,10 @@ const View: React.FC<ViewProps> = ({
     formulas = [],
     globalFiltersIql,
   } = option;
+
+  const workspace = useMemo(() => {
+    return workspaceProps ?? (key && name) ? { key, name } : {};
+  }, [key, name, workspaceProps]);
 
   const [resData, setResData] = useState([]);
   const [clusterData, setClusterData] = useState([]);
@@ -117,6 +128,8 @@ const View: React.FC<ViewProps> = ({
     chartGroupId,
     chartKey,
   );
+
+  new URLSearchParams(window.location.search).get('workspaceKey');
 
   const { loading: treeLoading, data: treeData } = useRepositoryTree(workspace);
   // // 初始化测试管理模块树
@@ -173,6 +186,7 @@ const View: React.FC<ViewProps> = ({
   // 重新构建仓库树为一级仓库
   const chartData = useMemo(
     () =>
+      buildRepositoryStaticsWithChildren(i18n.t, _chartData, treeData, params) ||
       buildRepositoryStatics(i18n.t, _chartData, treeData, params) || {
         payload: { cluster: [], data: [] },
       },
@@ -181,7 +195,7 @@ const View: React.FC<ViewProps> = ({
 
   useEffect(() => {
     if (setEnableSave) {
-      setEnableSave(enableSave);
+      setEnableSave(enableSave || true);
     }
   }, [enableSave, setEnableSave]);
 

@@ -14,6 +14,8 @@ export const SupportFeatureFlags = {
   ENABLE_MORE_CONFIG: 'ENABLE_MORE_CONFIG',
   /** 开启离线测试报告 */
   ENABLE_OFFLINE_TEST_REPORT: 'ENABLE_OFFLINE_TEST_REPORT',
+  /** 开启V2测试报告 */
+  ENABLE_TEST_REPORT_V2: 'ENABLE_TEST_REPORT_V2',
 } as const;
 
 type SupportFeatureFlagKey = keyof typeof SupportFeatureFlags;

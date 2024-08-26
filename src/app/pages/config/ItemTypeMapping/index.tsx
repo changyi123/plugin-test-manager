@@ -1,7 +1,7 @@
 import { useRequest, useSafeState } from 'ahooks';
 import { Button, message, Select } from 'antd';
 import { components } from 'proxima-sdk';
-import React from 'react';
+import React, { useMemo } from 'react';
 
 import { getTopItemTypeFromHierarchy } from '@/lib/api/proxima';
 import { TestType } from '@/lib/constants';
@@ -10,6 +10,8 @@ import useI18n from '@/lib/hooks/useI18n';
 import { useCurrentTestConfig, useDataContext } from '../hooks';
 
 const { ItemIcon } = components.Components.Common;
+
+import { featureFlags, SupportFeatureFlags } from '@/lib/appEnv';
 
 import cx from './index.less';
 
@@ -102,9 +104,21 @@ const ItemTypeMapping = () => {
     message.success(t('page.config.itemTypeMapping.typeAssociationConfigurationSavedSuccessfully'));
   };
 
+  const testTypes = useMemo(() => {
+    return featureFlags(SupportFeatureFlags.ENABLE_TEST_REPORT_V2)
+      ? [
+          ...TestTypes,
+          {
+            type: TestType.Report,
+            title: 'testReport',
+          },
+        ]
+      : TestTypes;
+  }, []);
+
   return (
     <div className={cx('test-type-mapping')}>
-      {TestTypes.map(({ title, type }) => (
+      {testTypes.map(({ title, type }) => (
         <div className={cx('test-type-mapping-item')} key={type}>
           <h3>{t(`common.${title}`)}</h3>
           {renderItemTypeSelector(type)}

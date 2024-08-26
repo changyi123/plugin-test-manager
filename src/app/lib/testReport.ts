@@ -1,9 +1,11 @@
+import { Workspace } from 'common/types/app';
 import { Document, ImageRun, Packer, Paragraph } from 'docx';
 import domtoimage from 'dom-to-image-more';
 
 import { i18n } from '@/lib/utils/i18n';
 import { generateTestReportOfflineFile } from '@/services/testReport/service';
 
+import { exportReport } from './api/proxima';
 import { featureFlags, SupportFeatureFlags } from './appEnv';
 import { ExtendReportType, TestType } from './constants';
 import { getPagePrefix, isInOne } from './utils/helper';
@@ -17,7 +19,8 @@ export type SelectorType =
   | 'workspace'
   | 'customField'
   | 'test_manager_Plan'
-  | 'currentWorkspace';
+  | 'currentWorkspace'
+  | 'test_manager_Execution';
 
 /** 测试报告模板 Key */
 export const ReportTemplateChartGroupKey = 'test_manager_report_template' as const;
@@ -58,6 +61,11 @@ export const DataSourceCollection: DataSource[] = [
     selector: 'test_manager_Plan',
   },
   {
+    key: 'execution',
+    isFirstLevel: true,
+    selector: 'test_manager_Execution',
+  },
+  {
     key: 'sprint',
     isFirstLevel: true,
     selector: 'sprint',
@@ -81,12 +89,12 @@ export const DataSourceCollection: DataSource[] = [
   {
     key: TestType.Case,
     isFirstLevel: false,
-    dependOn: ['plan', 'workspace', 'currentWorkspace'],
+    dependOn: ['plan', 'execution', 'workspace', 'currentWorkspace'],
   },
   {
     key: TestType.Run,
     isFirstLevel: false,
-    dependOn: ['plan', 'workspace', 'currentWorkspace'],
+    dependOn: ['plan', 'execution', 'workspace', 'currentWorkspace'],
   },
   {
     key: TestType.TestDefect,
@@ -99,11 +107,22 @@ export const DataSourceCollection: DataSource[] = [
     isFirstLevel: false,
     dependOn: ['plan'],
   },
+  // 所有测试计划的父事项
+  {
+    key: ExtendReportType.PlanParent,
+    isFirstLevel: false,
+    dependOn: ['execution'],
+  },
   // 所有关联
   {
     key: ExtendReportType.Relative,
     isFirstLevel: false,
-    dependOn: ['plan'],
+    dependOn: ['plan', 'execution'],
+  },
+  {
+    key: ExtendReportType.Self,
+    isFirstLevel: false,
+    dependOn: ['execution'],
   },
 ];
 
@@ -116,9 +135,11 @@ export const genDataSourceConfigUid = (dataSourceConfig: TemplateDataSourceConfi
 export const genChartGroupPageUrl = ({
   isTemplate,
   chartGroupId,
+  workspace,
 }: {
   isTemplate?: boolean;
   chartGroupId: string;
+  workspace?: Record<string, string>;
 }) => {
   const pagePrefix = getPagePrefix();
 
@@ -130,6 +151,14 @@ export const genChartGroupPageUrl = ({
   } else {
     searchParams.append('showChartListHeader', '1');
     searchParams.append('moduleKey', ReportChartGroupKey);
+  }
+  if (workspace) {
+    if (workspace.name) {
+      searchParams.append('workspaceName', workspace.name);
+    }
+    if (workspace.key) {
+      searchParams.append('workspaceKey', workspace.key);
+    }
   }
   if (chartGroupId) {
     searchParams.append('chartGroupId', chartGroupId);
@@ -152,11 +181,19 @@ export const genReportTemplateUrl = (params?: { testReportId?: string; workspace
 };
 
 /** 生成测试报告访问链接 */
-export const genReportViewUrl = (params: { testReportId?: string }) => {
+export const genReportViewUrl = (params: { testReportId?: string; workspace?: Workspace }) => {
   const pagePrefix = getPagePrefix();
   const currentPageUrl = location.href.split('?')[0];
   const searchParams = new URLSearchParams();
   if (params?.testReportId) searchParams.append('testReportId', params.testReportId);
+  if (params.workspace) {
+    if (params.workspace.name) {
+      searchParams.append('workspaceName', params.workspace.name);
+    }
+    if (params.workspace.key) {
+      searchParams.append('workspaceKey', params.workspace.key);
+    }
+  }
   // 添加重定向地址
   searchParams.append('redirectLink', encodeURIComponent(currentPageUrl));
 
@@ -281,6 +318,21 @@ const exportOfflineDocx = async testReportData => {
 export const exportWithDocx = async testReportData => {
   const enableOfflineReport = featureFlags(SupportFeatureFlags.ENABLE_OFFLINE_TEST_REPORT);
   enableOfflineReport ? exportOfflineDocx(testReportData) : exportDocx(testReportData);
+};
+
+// 下载测试报告
+export const exportWithDocxV2 = async testReportData => {
+  const {
+    name,
+    reportChartGroup: chartGroupId,
+    reportTemplate: templateId,
+    slotData,
+  } = testReportData;
+  await exportReport({ name, chartGroupId, templateId, slotData }).then(data => {
+    if (data?.response?.payload) {
+      downloadUrl(data.response.payload, testReportData?.name, 'docx');
+    }
+  });
 };
 
 // 导出pdf测试报告

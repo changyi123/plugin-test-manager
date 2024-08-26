@@ -1,9 +1,23 @@
 import parallelLimit from 'async/parallelLimit';
+import dayjs from 'dayjs';
 import { t } from 'i18next';
-import { last, omit, uniq, uniqBy } from 'lodash';
+import { cloneDeep, last, omit, uniq, uniqBy } from 'lodash';
 
-import { getLinkedTestEntityByQuery, getRelativeItem, getTestEntityByQuery } from '@/lib/api/item';
-import { ExtendReportType, TestLinkType, TestPlanModel, TestType } from '@/lib/constants';
+import {
+  getLinkedTestEntityByQuery,
+  getRelativeAllItem,
+  getRelativeItem,
+  getTestEntityByQuery,
+} from '@/lib/api/item';
+import { featureFlags, SupportFeatureFlags } from '@/lib/appEnv';
+import {
+  ExtendReportType,
+  TestExecutionModel,
+  TestFiledKeyMapping,
+  TestLinkType,
+  TestPlanModel,
+  TestType,
+} from '@/lib/constants';
 import Parse from '@/lib/parse';
 import type { TemplateDataSourceConfig } from '@/lib/testReport';
 import {
@@ -46,6 +60,19 @@ async function fetchReportPlan(
   return {
     list: data.list.map(i => i.id),
     ancestorIds: uniq(data.list.map(i => i.ancestors?.pop()).filter(Boolean)),
+  };
+}
+
+async function fetchReportExecution(selector): Promise<{ list: string[]; planIds?: string[] }> {
+  const data = await getTestEntityByQuery({
+    selector,
+    limit: 99999,
+    fields: [TestFiledKeyMapping.linkItems],
+  });
+
+  return {
+    list: data.list.map(i => i.id),
+    planIds: uniq(data.list.map(i => i.linkItems?.pop()).filter(Boolean)),
   };
 }
 
@@ -167,17 +194,88 @@ const getPlanRefTestEntityIds = async (planIds, dsConfig: TemplateDataSourceConf
     ret[TestType.TestDefect] = await getDefectIdsByRunIds(ret[TestType.Run]);
   }
 
-  if (shouldFetchPlanRefEntityIds('relative')) {
+  if (shouldFetchPlanRefEntityIds(ExtendReportType.Relative)) {
     (ret as any).relative = await getRelativeItem(planIds);
   }
 
   return ret;
 };
 
+/** 获取测试执行任务关联的 ids */
+const getExecutionRefTestEntityIds = async (executionIds, dsConfig: TemplateDataSourceConfig[]) => {
+  const ret = {};
+
+  // 获取测试计划关联的执行
+  const getRunIdsByExecution = async executionIds => {
+    const data = await getLinkedTestEntityByQuery({
+      query: {
+        type: TestType.Run,
+      },
+      linkType: TestLinkType.RunLinkExecution,
+      sourceIds: executionIds,
+      destinationType: TestType.Run,
+      limit: 99999,
+      fields: [TestFiledKeyMapping.referenceCase],
+    });
+
+    return {
+      runIds: data.list.map(i => i.id),
+      caseIds: uniq(data.list.map(i => i.referenceCase).filter(Boolean)),
+    };
+  };
+
+  // 获取测试计划关联的缺陷
+  const getDefectIdsByRunIds = async runIds => {
+    const { list: runList } = await getTestEntityByQuery({
+      query: {
+        id: runIds,
+      },
+      select: ['id', 'runDetail'],
+      limit: 99999,
+    });
+
+    const runDetails = runList?.map(d => d?.runDetail).filter(Boolean) ?? [];
+    const getDefectId = runDetails => {
+      const stepDefectIds = runDetails
+        .filter(d => d?.steps)
+        .map(d => d.steps)
+        .flat()
+        .map(d => d.defectItemIds ?? [])
+        .flat();
+      const runDefectItemIds = runDetails.map(d => d?.defectItemIds ?? []).flat();
+      return [...new Set([...stepDefectIds, ...runDefectItemIds])].filter(Boolean);
+    };
+
+    return getDefectId(runDetails);
+  };
+
+  const shouldFetchExecutionRefEntityIds = testType =>
+    dsConfig.some(ds => ds[0].selector === TestExecutionModel && ds[1]?.key === testType);
+
+  if (
+    shouldFetchExecutionRefEntityIds(TestType.Run) ||
+    shouldFetchExecutionRefEntityIds(TestType.Case)
+  ) {
+    const data = await getRunIdsByExecution(executionIds);
+    ret[TestType.Run] = data.runIds;
+    ret[TestType.Case] = data.caseIds;
+  }
+
+  if (shouldFetchExecutionRefEntityIds(TestType.TestDefect)) {
+    ret[TestType.TestDefect] = await getDefectIdsByRunIds(ret[TestType.Run]);
+  }
+
+  if (shouldFetchExecutionRefEntityIds(ExtendReportType.Relative)) {
+    ret[ExtendReportType.Relative] = await getRelativeAllItem(executionIds);
+  }
+
+  return ret;
+};
+
 // 获取自定义数据源请求结果集
-const getCustomDataSourceResults = async (dsConfigs, reportParams) => {
+const getCustomDataSourceResults = async (dsConfigs, reportParams, dsIqlConfig) => {
   // 自定义数据源结果
-  let customDataSourceConfigResult = {};
+  let customDataSourceConfigResult = {} as any;
   const isCustomDataSourceSelector = dsConfig => dsConfig[0]?.key === CustomDataSourceKey;
 
   // 是否有自定义数据源
@@ -201,9 +299,10 @@ const getCustomDataSourceResults = async (dsConfigs, reportParams) => {
             const { data, status } = await fetch.$post(
               `${pluginWebTriggerBaseUrl}/${webTriggerKey}`,
               {
-                reportId: reportParams.objectId,
+                report: reportParams.report,
                 reportOverviewData: reportParams.reportOverviewData,
                 workspace: reportParams.workspace,
+                dsIqlConfig,
                 sessionToken: getSessionToken(),
               },
               {
@@ -239,6 +338,7 @@ const getCustomDataSourceResults = async (dsConfigs, reportParams) => {
     };
 
     customDataSourceConfigResult = await parallelRequestWebTrigger();
+    customDataSourceConfigResult.report = reportParams.report;
   }
 
   return customDataSourceConfigResult;
@@ -257,6 +357,8 @@ const buildSecondLevelDsIqlConfig = async (
 
   // 是否测试计划选择器
   const isTestPlanSelector = dsConfig => dsConfig[0]?.selector === TestPlanModel;
+  // 是否测试计划选择器
+  const isTestExecutionSelector = dsConfig => dsConfig[0]?.selector === TestExecutionModel;
   // 获取一级数据源的 IQL
   const getFirstLevelDsIql = dsConfig => firstLevelDsIqlConfig[dsConfig[0].key];
   // 是否是父事项筛选
@@ -264,8 +366,11 @@ const buildSecondLevelDsIqlConfig = async (
 
   // 所选测试计划下关联的实体 ids
   let planRefTestEntityIds = {} as any;
+  // 所选测试执行任务下关联的实体 ids
+  let executionRefTestEntityIds = {} as any;
 
   const hasTestPlanSelector = dsConfigs.some(isTestPlanSelector);
+  const hasTestExecutionSelector = dsConfigs.some(isTestExecutionSelector);
   const hasParentSelector = dsConfigs.some(isParentSelector);
 
   // 一级选择器下有所选测试计划
@@ -279,11 +384,26 @@ const buildSecondLevelDsIqlConfig = async (
     planRefTestEntityIds.ancestorIds = ancestorIds || [];
   }
 
+  // 一级选择器下有所选测试计划
+  if (hasTestExecutionSelector) {
+    // 获取测试计划关联的实体 ids
+    const { list: executionIds, planIds } = await fetchReportExecution(
+      reportParams.dataSourceIql?.[TestExecutionModel],
+    );
+    executionRefTestEntityIds = await getExecutionRefTestEntityIds(executionIds, dsConfig);
+    executionRefTestEntityIds.planIds = planIds || [];
+    executionRefTestEntityIds.self = executionIds || [];
+  }
+
   // 针对不同的二级数据源生成不同的 IQL
   const secondDataSourceBuildIqlStrategies = {
     [TestType.Case]: async (dsConfig: TemplateDataSourceConfig) => {
       if (isTestPlanSelector(dsConfig)) {
         return `id in ${JSON.stringify(planRefTestEntityIds[TestType.Case])}`;
+      }
+
+      if (isTestExecutionSelector(dsConfig)) {
+        return `id in ${JSON.stringify(executionRefTestEntityIds[TestType.Case])}`;
       }
 
       return `(${getFirstLevelDsIql(dsConfig)}) and ("itemTypeKey" = ${
@@ -294,6 +414,8 @@ const buildSecondLevelDsIqlConfig = async (
       if (isTestPlanSelector(dsConfig)) {
         // 一级数据源为测试计划，则需要查询到测试计划下的所有测试执行
         return `id in ${JSON.stringify(planRefTestEntityIds[TestType.Run])}`;
+      } else if (isTestExecutionSelector(dsConfig)) {
+        return `id in ${JSON.stringify(executionRefTestEntityIds[TestType.Run])}`;
       } else {
         return `(${getFirstLevelDsIql(dsConfig)}) and ("itemTypeKey" = "test_manager_run")`;
       }
@@ -302,6 +424,8 @@ const buildSecondLevelDsIqlConfig = async (
       if (isTestPlanSelector(dsConfig)) {
         // 一级数据源为测试计划，则需要查询到测试计划下的所有测试执行
         return `id in ${JSON.stringify(planRefTestEntityIds[TestType.TestDefect])}`;
+      } else if (isTestExecutionSelector(dsConfig)) {
+        return `id in ${JSON.stringify(executionRefTestEntityIds[TestType.TestDefect])}`;
       } else {
         return `(${getFirstLevelDsIql(dsConfig)}) and ("itemTypeKey" in ${JSON.stringify(
           reportParams.defectsMapping ?? [],
@@ -311,10 +435,24 @@ const buildSecondLevelDsIqlConfig = async (
     [ExtendReportType.Parent]: async () => {
       return `id in ${JSON.stringify(planRefTestEntityIds.ancestorIds)}`;
     },
-    [ExtendReportType.Relative]: async () => {
-      return `id in ${JSON.stringify(
-        planRefTestEntityIds[ExtendReportType.Relative] || [],
-      )} and ("itemTypeKey" in ${JSON.stringify(reportParams.defectsMapping ?? [])}) `;
+    [ExtendReportType.PlanParent]: async () => {
+      return `children in ${JSON.stringify(executionRefTestEntityIds.planIds ?? [])}`;
+    },
+    [ExtendReportType.Self]: async () => {
+      return `id in ${JSON.stringify(executionRefTestEntityIds.self ?? [])}`;
+    },
+    [ExtendReportType.Relative]: async dsConfig => {
+      if (isTestPlanSelector(dsConfig)) {
+        return `id in ${JSON.stringify(
+          planRefTestEntityIds[ExtendReportType.Relative] || [],
+        )} and ("itemTypeKey" in ${JSON.stringify(reportParams.defectsMapping ?? [])}) `;
+      }
+
+      if (isTestExecutionSelector(dsConfig)) {
+        return `id in ${JSON.stringify(
+          executionRefTestEntityIds[ExtendReportType.Relative] || [],
+        )} and ("itemTypeKey" in ${JSON.stringify(reportParams.defectsMapping ?? [])}) `;
+      }
     },
   };
 
@@ -325,6 +463,8 @@ const buildSecondLevelDsIqlConfig = async (
     // 二级数据源中可能存在自定义数据源，需要进行容错处理
     const iql = (await secondDataSourceBuildIqlStrategies[dsStrategyKey]?.(ds)) ?? '';
     return {
+      executionRefTestEntityIds,
+      planRefTestEntityIds,
       ...(await iqlConfigs),
       [genDataSourceConfigUid(ds)]: iql,
     };
@@ -346,17 +486,22 @@ const buildIqlConfigsByDataSourceConfigs = async (
     reportParams,
   );
 
-  return dataSourceConfigs.reduce((iqlConfig, dsConfig) => {
-    const dsConfigKey = genDataSourceConfigUid(dsConfig);
+  return dataSourceConfigs.reduce(
+    (iqlConfig, dsConfig) => {
+      const dsConfigKey = genDataSourceConfigUid(dsConfig);
 
-    return {
-      ...iqlConfig,
-      [dsConfigKey]:
-        dsConfig.length === 1
-          ? firstLevelDsIqlConfig[dsConfig[0].key]
-          : secondLevelDsIqlConfig[dsConfigKey],
-    };
-  }, {});
+      return {
+        ...iqlConfig,
+        [dsConfigKey]:
+          dsConfig.length === 1
+            ? firstLevelDsIqlConfig[dsConfig[0].key]
+            : secondLevelDsIqlConfig[dsConfigKey],
+      };
+    },
+    {
+      secondLevelDsIqlConfig,
+    },
+  );
 };
 
 // chartData 工厂
@@ -448,10 +593,28 @@ const chainChartDataAdaptor = (chartData, dataSource) => {
     customDataSource(customDataSourceResults) {
       const adaptors = {
         richText(chartOption, chartOptionAdaptor, result) {
-          const { text } = chartOptionAdaptor;
-          return {
-            ...chartOption,
-            richTextValue: [
+          let richTextValue = chartOption.richTextValue ?? [];
+          let replaceValue;
+          const context = cloneDeep(result);
+          const replace = data => {
+            replaceValue = data;
+          };
+          const { text, useTemplate } = chartOptionAdaptor;
+          if (useTemplate) {
+            let richTextValueString = JSON.stringify(richTextValue);
+            richTextValueString = richTextValueString.replace(/#{{(.*?)}}#/g, (_, s) => {
+              const fun = new Function('context', 'dayjs', 'replace', `return ${s}`);
+              let result = '';
+              try {
+                result = fun(context, dayjs, replace);
+              } catch (e) {
+                result = '';
+              }
+              return result;
+            });
+            richTextValue = replaceValue ?? JSON.parse(richTextValueString);
+          } else {
+            richTextValue = [
               {
                 type: 'p',
                 children: [
@@ -467,7 +630,12 @@ const chainChartDataAdaptor = (chartData, dataSource) => {
                   },
                 ],
               },
-            ],
+            ];
+          }
+
+          return {
+            ...chartOption,
+            richTextValue,
           };
         },
       };
@@ -484,8 +652,14 @@ const chainChartDataAdaptor = (chartData, dataSource) => {
 
         if (customDataSourceResult) {
           try {
-            const resultHandler = new Function(`return ${resultHandlerStr}`)();
-            const result = resultHandler(customDataSourceResult);
+            const { useTemplate } = chartOptionAdaptor;
+            let result;
+            if (useTemplate) {
+              result = { report: customDataSourceResults.report, ...customDataSourceResult };
+            } else {
+              const resultHandler = new Function(`return ${resultHandlerStr}`)();
+              result = resultHandler(customDataSourceResult);
+            }
 
             chartData.option = adaptors[chartOptionAdaptor.key](
               chartData.option,
@@ -549,6 +723,12 @@ export type TestReportModelType = {
   reportStatus: string;
   /** 报告概览数据 */
   reportOverviewData: Record<string, any>;
+  /** 报告禁用状态 */
+  disabled: boolean;
+  /** 报告所选择的模板文件 */
+  reportTemplate: any;
+  /** 测试报告导出校验脚本 */
+  validateScript: string;
 };
 
 /** 测试报告模板相关的 Key */
@@ -635,6 +815,7 @@ const TestReport = Parse.Object.extend('test_manager_TestReport', {
         dataSourceIql?: Record<string, string>;
         defectsMapping?: string[];
         itemTypeMap?: string[];
+        report?: Record<string, any>;
       },
   ) {
     if (reportParams.name?.length > 250) {
@@ -664,7 +845,7 @@ const TestReport = Parse.Object.extend('test_manager_TestReport', {
         reportTemplateChartGroup,
         FilterOriginalParseDataKeys.concat(FilterReportTemplateKey),
       ),
-      name: reportParams?.name,
+      name: reportParams?.report?.name ?? ReportChartGroupKey,
       key: ReportChartGroupKey,
     });
     await chartGroupObject.save();
@@ -674,12 +855,17 @@ const TestReport = Parse.Object.extend('test_manager_TestReport', {
 
     const dataSourceConfigs = Object.values(templateDataSourceConfig);
 
-    const iqlConfigs = await buildIqlConfigsByDataSourceConfigs(dataSourceConfigs, reportParams);
+    const originIqlConfigs = await buildIqlConfigsByDataSourceConfigs(
+      dataSourceConfigs,
+      reportParams,
+    );
+    const { secondLevelDsIqlConfig, ...iqlConfigs } = originIqlConfigs;
 
     // 获取自定义数据源的结果集
     const customDataSourceResults = await getCustomDataSourceResults(
       dataSourceConfigs,
       reportParams,
+      secondLevelDsIqlConfig,
     );
 
     console.info(
@@ -716,23 +902,27 @@ const TestReport = Parse.Object.extend('test_manager_TestReport', {
     });
 
     // 3. 创建 test_manager_TestReport
-    const newTestReportObject = new TestReport().set({
+    const reportInfo = {
       ...omit(templateReportData, FilterOriginalParseDataKeys.concat(FilterReportTemplateKey)),
       isTemplate: false,
-      name: reportParams.name,
+      name: reportParams.report.name,
       reportStatus: reportParams.reportStatus,
       reportOverviewData: reportParams?.reportOverviewData,
       usingReportTemplate: TestReport.createWithoutData(templateId),
       chartGroup: ChartGroup.createWithoutData(chartGroupData.objectId),
       workspace: Workspace.createWithoutData(reportParams.workspace?.objectId),
       createdBy: Parse.User.current(),
-    });
+    };
+    const newTestReportObject = new TestReport().set(reportInfo);
 
     try {
-      const res: any[] = await Parse.Object.saveAll([...newChartObjects, newTestReportObject]);
+      const reportIsV2 = featureFlags(SupportFeatureFlags.ENABLE_TEST_REPORT_V2);
+      const res: any[] = await Parse.Object.saveAll(
+        reportIsV2 ? newChartObjects : [...newChartObjects, newTestReportObject],
+      );
       return {
         status: 'success',
-        data: last(res)?.toJSON(),
+        data: reportIsV2 ? reportInfo : last(res)?.toJSON(),
       };
     } catch (error) {
       return {
