@@ -130,6 +130,7 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
         }
       : selectors
       ? {
+          hideEmptyFolder: true,
           params: {
             query: {
               workspaceKey: selectedWorkspaceKey,
@@ -139,7 +140,7 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
             fields: ['name'],
           },
         }
-      : { isShowAll: true };
+      : { isShowAll: false };
   }, [planId, treeType, selectedWorkspaceKey, selectors]);
 
   // 测试案例库选中
