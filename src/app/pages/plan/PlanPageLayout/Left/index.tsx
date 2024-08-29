@@ -56,6 +56,7 @@ const Left: React.FC<LeftProps> = ({ actionRef, treeParams, onFolderSelect }) =>
           workspaceKey={workspaceKey}
           params={treeParams}
           onFolderSelect={onFolderSelect}
+          isShowAll={false}
         />
       </div>
     </>
