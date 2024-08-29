@@ -130,6 +130,7 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
         }
       : selectors
       ? {
+          hideEmptyFolder: true,
           params: {
             query: {
               workspaceKey: selectedWorkspaceKey,
