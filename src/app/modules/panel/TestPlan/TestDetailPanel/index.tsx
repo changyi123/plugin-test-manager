@@ -27,7 +27,7 @@ import {
 import { INITIAL_STATUS_KEY, TestLinkType, TestType } from '@/lib/constants';
 import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
-import { alert, getRootContainer } from '@/lib/utils/helper';
+import { alert, getTestManagerContainer } from '@/lib/utils/helper';
 
 const Test = () => {
   const { t } = useI18n();
@@ -417,7 +417,7 @@ const Test = () => {
         title={t('modules.panel.testPlan.testDetailPanel.selectCaseModelTitle')}
         testType={TestType.Case}
         ignoreTestEntityIds={testEntityIds}
-        getContainer={getRootContainer}
+        getContainer={getTestManagerContainer}
       />
       {/* 状态条的变化 */}
       <StatusProcessBar status={status} />

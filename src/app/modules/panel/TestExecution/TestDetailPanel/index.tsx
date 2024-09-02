@@ -35,7 +35,7 @@ import { TestLinkType, TestType } from '@/lib/constants';
 import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import { useCanExecuteTestRunIdSequence, useTestRunActionAuth } from '@/lib/hooks/useTest';
-import { getRootContainer, goToItemDetailPage } from '@/lib/utils/helper';
+import { getRootContainer, getTestManagerContainer, goToItemDetailPage } from '@/lib/utils/helper';
 
 import cx from './index.less';
 
@@ -412,7 +412,7 @@ const Test = () => {
         title={t('modules.panel.testExecution.testDetailPanel.assCaseToExecution')}
         ignoreTestEntityIds={relCase}
         tableFieldsKeys={testExecutionFieldKeys}
-        getContainer={getRootContainer}
+        getContainer={getTestManagerContainer}
       />
 
       <StatusProcessBar status={relRunStatuses} />
