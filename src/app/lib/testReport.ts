@@ -424,9 +424,11 @@ export const exportWithHTML = async testReportData => {
     // 离线 style link 标签的内容
     const downloadLinkContentIntoStyle = async copyNode => {
       const linkNodes = copyNode.querySelectorAll('link');
-      const tasks = Array.from(linkNodes)
-        .filter((linkEle: HTMLLinkElement) => linkEle.href.includes('.css'))
-        .map((linkEle: HTMLLinkElement, index) => {
+      const tasks = Array.from(linkNodes).map((linkEle: HTMLLinkElement, index) => {
+        if (
+          linkEle.href.includes('.css') &&
+          !['preload', 'prefetch'].includes((linkEle as any).ref)
+        ) {
           return fetch(linkEle.href)
             .then(res => res.text())
             .then(text => {
@@ -438,7 +440,11 @@ export const exportWithHTML = async testReportData => {
               const replacedLinkNode = linkNodes[index];
               replacedLinkNode.parentNode.replaceChild(style, replacedLinkNode);
             });
-        });
+        } else {
+          const removeLinkNode = linkNodes[index];
+          removeLinkNode?.parentNode?.removeChild(removeLinkNode);
+        }
+      });
       await Promise.all(tasks);
 
       return copyNode;
@@ -503,6 +509,9 @@ export const exportWithHTML = async testReportData => {
         }
         #report-iframe > div {
           width: 100%;
+        }
+        #proxima-layout-content{
+          height: 100%;
         }
         .gitee-loader-back {
           display: none !important;

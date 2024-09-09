@@ -83,12 +83,12 @@ export const useGetGroupCounts = ({ workspaceKey, current, params, selectedNode 
       return [data];
     },
     {
-      ready: Boolean(workspaceKey),
+      ready: Boolean(workspaceKey) && Boolean(selectedNode?.key),
       refreshDeps: [workspaceKey, params, selectedNode],
-      cacheKey: `Tree_Counts_${workspaceKey}_${JSON.stringify(
+      cacheKey: `Tree_Counts_${workspaceKey}_${JSON.stringify({
         params,
-        selectedNode?.counts ?? [0, 0],
-      )?.toString()}`,
+        selectedNode,
+      })}`,
       cacheTime: 999999,
       staleTime: 999999,
     },
