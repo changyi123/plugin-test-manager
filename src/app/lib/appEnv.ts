@@ -108,6 +108,13 @@ const SupportAppEnv = {
     defaultValue: false,
     transformer: value => value,
   },
+  CREATE_EXECUTION_DEFAULT_NAME_CONFIG: {
+    defaultValue: {
+      enable: false, // 是否开启默认名称配置
+      suffixName: '测试单', // 默认的后缀名
+    },
+    transformer: value => value,
+  },
 } as const;
 
 /**
