@@ -115,7 +115,7 @@ export const zgcTestReportInfo = async () => {
       const envIds = [];
       const getGroupMap = testList => {
         testList.forEach(test => {
-          const testTimes = test?.values?.test_time ?? [];
+          const testTimes = test?.values?.[zgcConfig?.测试阶段 ?? 'ceshijieduan'] ?? [];
           testTimes.forEach(test_time => {
             if (!groupMap[test_time]) {
               groupMap[test_time] = [];
@@ -130,7 +130,7 @@ export const zgcTestReportInfo = async () => {
         console.info(`zgc requestTestList`, JSON.stringify(testList));
         setRes({ testList });
         getGroupMap(testList);
-        envIds.push(...uniq(testList.flatMap(test => test.values.test_env)));
+        envIds.push(...uniq(testList.flatMap(test => test.values[zgcConfig.测试环境 ?? 'bchj'])));
       });
 
       const requestRunList = search(
@@ -172,7 +172,7 @@ export const zgcTestReportInfo = async () => {
           if (versionName) {
             await search(
               `'版本' in ['${versionName}'] and '类型' in ['${
-                zgcConfig?.subStoryName ?? '系统子需求'
+                zgcConfig.系统子需求 ?? '系统子需求'
               }']`,
               ['id'],
             ).then(list => {
@@ -232,14 +232,14 @@ export const zgcTestReportInfo = async () => {
           test_time,
           workspaceName: testList[0].workspace.name,
           test_env: testList
-            .map(test => envMap[test.values.test_env?.[0]])
+            .map(test => envMap[test.values?.[zgcConfig.测试环境 ?? 'bchj']?.[0]])
             .filter(Boolean)
             .join(','),
           env_desc: uniq(
             testList
               .map(test => {
                 const story = planToStoryMap[test.values[TestFiledKeyMapping.linkItems]?.[0]];
-                const env = envMap[test.values.test_env?.[0]];
+                const env = envMap[test.values[zgcConfig.测试环境 ?? 'bchj']?.[0]];
                 return `需求${story ?? ''} 在${env ?? ' '} 环境进行测试`;
               })
               .filter(Boolean),
@@ -281,7 +281,7 @@ export const zgcTestReportInfo = async () => {
         const tableMap = {};
         const testerMap = {};
         res.testList.forEach(test => {
-          map[test.objectId] = test.values?.test_time?.[0];
+          map[test.objectId] = test.values?.[zgcConfig?.测试阶段 ?? 'ceshijieduan']?.[0];
         });
         runList.forEach(run => {
           const test_time = map[run.values[TestFiledKeyMapping.linkItems][0]];

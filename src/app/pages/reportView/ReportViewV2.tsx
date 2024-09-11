@@ -46,9 +46,13 @@ const ReportView: React.FC = () => {
         .equalTo('view', 'basic-test-manager-case-statistics')
         .find({ json: true });
       if (!charts.length) return;
-      let echart = echarts.init(null, null, {
+      const div = document.createElement('div');
+      (
+        div as any
+      ).style = `position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -9999; opacity: 0;`;
+      document.body.appendChild(div);
+      let echart = echarts.init(div, null, {
         ssr: true,
-        renderer: 'svg',
         width: 800,
         height: 450,
       });
@@ -79,9 +83,10 @@ const ReportView: React.FC = () => {
         handleRepo(repositories);
         const list = [];
         Object.values(chartDataMap).forEach(i => {
+          const names = i.name.split('/');
           if (i?.count) {
             list.push(i);
-            xData.push(i.name);
+            xData.push(names[names.length - 1]);
             yData.push(i.count);
           }
         });
@@ -117,7 +122,7 @@ const ReportView: React.FC = () => {
             data: xData,
             axisLabel: {
               show: true,
-              rotate: 45,
+              rotate: 30,
             },
           },
           yAxis: {
@@ -155,9 +160,11 @@ const ReportView: React.FC = () => {
           },
         };
         echart.setOption(basicOption);
-        const SVGHTMLString = echart.renderToSVGString();
-        const utf8Bytes = new TextEncoder().encode(SVGHTMLString);
-        const data = btoa(String.fromCharCode.apply(null, utf8Bytes));
+        const dataURL = echart.getDataURL({
+          type: 'png',
+          // pixelRatio: 2,
+        });
+        const data = dataURL.slice('data:image/png;base64,'.length);
         return {
           name: chart.name,
           list,
@@ -165,13 +172,14 @@ const ReportView: React.FC = () => {
             // 单位是 cm。px 转换 cm 转换需要除 100
             width: 16,
             height: 9,
-            data: data,
-            extension: '.svg',
+            data,
+            extension: '.png',
           },
         };
       };
       const chartsData = await Promise.all(charts.map(replaceChartData));
       echart.dispose();
+      div.remove();
       echart = null;
       const chartsSlotData = chartsData.filter(Boolean).reduce(
         (slotData, chartData) => ({
