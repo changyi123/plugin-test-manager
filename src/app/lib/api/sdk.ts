@@ -25,7 +25,7 @@ export const openCreateItemModal = ({ itemTypeId, workspaceId, name, extraData }
       filterItemTypeList: true,
     },
     initItemData: {
-      name: name,
+      defaultName: name,
       workspace: {
         objectId: workspaceId,
       },
