@@ -24,20 +24,6 @@ const BeforeCreateOrUpdateModal = () => {
   // 创建弹窗才有 extraData
   const isCreateModal = !!storeValues.extraData;
 
-  const { data: itemTypeMappingDict } = useRequest(
-    async () => {
-      const result = await new Parse.Query(TestConfig)
-        .select('itemTypeMap')
-        .equalTo('workspaceKey', context.workspaceKey)
-        .first();
-      return result.toJSON();
-    },
-    {
-      ready: Boolean(context?.workspaceKey),
-      refreshDeps: [context?.workspaceKey],
-    },
-  );
-
   const workspaceMappingCacheRef = React.useRef({});
   const itemTypeMappingCacheRef = React.useRef({});
 
@@ -45,6 +31,20 @@ const BeforeCreateOrUpdateModal = () => {
     workspaceKey: context?.workspaceKey ?? getDevConfig().workspaceKey,
     itemTypeKey: '',
   });
+
+  const { data: itemTypeMappingDict } = useRequest(
+    async () => {
+      const result = await new Parse.Query(TestConfig)
+        .select('itemTypeMap')
+        .equalTo('workspaceKey', currentModalValues.workspaceKey)
+        .first();
+      return result.toJSON();
+    },
+    {
+      ready: Boolean(currentModalValues?.workspaceKey),
+      refreshDeps: [currentModalValues?.workspaceKey],
+    },
+  );
 
   const updateCurrentModalValues = React.useCallback(
     async ({ workspaceId, itemTypeId } = {} as any) => {
@@ -89,7 +89,7 @@ const BeforeCreateOrUpdateModal = () => {
 
     return testDetailRefItemTypeKey && testDetailRefItemTypeKey === currentModalValues.itemTypeKey;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentModalValues.itemTypeKey, itemTypeMappingDict?.id]);
+  }, [currentModalValues.itemTypeKey, itemTypeMappingDict?.objectId]);
 
   React.useEffect(() => {
     const handleCreateOrUpdateItemMsg = values => {

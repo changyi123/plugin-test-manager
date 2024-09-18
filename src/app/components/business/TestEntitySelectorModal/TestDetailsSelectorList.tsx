@@ -296,7 +296,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
   });
 
   const group = useMemo(
-    () => (treeType === 'plan' && selector ? treeData : [selectedNode]).filter(Boolean),
+    () => (treeType === 'plan' && selector ? treeData : [selectedNode])?.filter(Boolean),
     [selectedNode, treeData, selector, treeType],
   );
 

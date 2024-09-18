@@ -71,7 +71,7 @@ export const useGetGroupNodeId = (group, allCaseIds) => {
 };
 
 export const useGetGroupCounts = ({ workspaceKey, current, params, selectedNode }) => {
-  const { data: treeData } = useRequest(
+  const { data: treeData = [] } = useRequest(
     async () => {
       if (!workspaceKey || !params) return [];
 
