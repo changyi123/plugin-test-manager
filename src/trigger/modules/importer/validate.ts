@@ -1,5 +1,5 @@
 import { i18n } from '@giteeteam/apps-api';
-import { getData, getParseQuery } from '@giteeteam/apps-team-api';
+import { axios, getData, getParseQuery } from '@giteeteam/apps-team-api';
 
 import { InfinityLimit } from '../../../common/constant';
 
@@ -19,7 +19,10 @@ const filterGroupNum = group =>
   `${group ?? ''}`?.split('/').filter(d => trimData(d)?.length > 100).length > 0;
 
 // 过滤不符合条件数据
-const filterData = d => d.filter(item => !isFilterGroup(item?.group ?? ''));
+const filterDataByErrors = (d, errors) => {
+  const errorIndexMap = errors.reduce((map, error) => ({ ...map, [error.index]: true }), {});
+  return d.filter((_, index) => !errorIndexMap[index]);
+};
 
 const clone = d => JSON.parse(JSON.stringify(d));
 
@@ -156,7 +159,8 @@ const getFiledByValue = (name, maps) => {
 };
 
 const getCurData = (cur, maps, path) =>
-  [...Object.entries(cur)].reduce((curPrev, [key, value]) => {
+  [...Object.entries(cur)].reduce(
+    (curPrev, [key, value]) => {
       if (maps[key]) {
         let targetValue = value;
         if (maps[key] === 'group') {
@@ -296,28 +300,53 @@ export const runValidate = async () => {
     }, []);
 
   // 校验数据
-  const validateAppData = d => ({
-    errors: getValidateErrors(d)?.filter(Boolean) || [],
-    errorCount: getValidateErrors(d)?.filter(Boolean)?.length || 0,
-    data: getValidateErrors(d)?.length
-      ? []
-      : getDataByFieldKey(filterData(getDataByLength(clone(d))), fieldMapping) || [],
-    fieldMapping: {
-      ...fieldMapping,
-      // [i18n.t('trigger.importer.validate.itemType')]: 'itemType',
-      类型: 'itemType',
-      itemType: 'itemType',
-    },
-    stop: false,
+  const buildResponse = (errors, data) => {
+    const validated = filterDataByErrors(clone(data), errors);
+    return {
+      errors,
+      errorCount: data.length - validated.length,
+      data: getDataByFieldKey(getDataByLength(validated), fieldMapping) || [],
+      fieldMapping: {
+        ...fieldMapping,
+        // [i18n.t('trigger.importer.validate.itemType')]: 'itemType',
+        类型: 'itemType',
+        itemType: 'itemType',
+      },
+      stop: false,
 
-    // parse context 用户跳过事项保存的后置操作
-    extendParseContext: global.env?.importerExtendParseContext ?? {
-      skipHandleApps: true,
-      skipItemForest: true,
-      // skipUpdateWorkflowConfigUsers: true,
-    },
-  });
+      // parse context 用户跳过事项保存的后置操作
+      extendParseContext: global.env?.importerExtendParseContext ?? {
+        skipHandleApps: true,
+        skipItemForest: true,
+        // skipUpdateWorkflowConfigUsers: true,
+      },
+    };
+  };
 
-  const res = await validateAppData(getDataByFieldMaping(data, fieldMapping, groupPath));
+  const items = getDataByFieldMaping(data, fieldMapping, groupPath);
+  console.info(items, 'getDataByFieldMaping');
+  const errors = getValidateErrors(items)?.filter(Boolean) || [];
+
+  const validateWebTriggers = global.env.VALIDATE_WEB_TRIGGERS || [];
+  const replaceData = {
+    applicationId: global.env.applicationId,
+  };
+  for (const originWebTriggerParams of validateWebTriggers) {
+    try {
+      const webTriggerParamsString = JSON.stringify(originWebTriggerParams);
+      const webTriggerParams = JSON.parse(
+        webTriggerParamsString.replace(/\${(.*?)}/g, (match, key) => replaceData[key] ?? key),
+      );
+      const errorResults = await axios({
+        ...webTriggerParams,
+        data: { items, workspaceKey: workspace.get('key') },
+      });
+      if (errorResults.length) errors.push(...errorResults);
+    } catch (error) {
+      console.error(error.message);
+    }
+  }
+
+  const res = buildResponse(errors, items);
   return res;
 };

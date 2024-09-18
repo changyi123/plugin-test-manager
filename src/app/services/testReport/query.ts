@@ -100,6 +100,24 @@ export const useWorkspaceReportListQuery = (params: {
   );
 };
 
+/** 获取空间内的旧版本报告数 */
+export const useWorkspaceReportCountQuery = (params: { workspace: string }) => {
+  return useQuery(
+    TestReportQueryKeys.workspaceReportList(params),
+    async () => {
+      const query = new Parse.Query(TestReport)
+        .equalTo('isTemplate', false)
+        .equalTo('workspace', Workspace.createWithoutData(params.workspace));
+
+      return query.count(true);
+    },
+    {
+      initialData: 0,
+      enabled: Boolean(params.workspace),
+    },
+  );
+};
+
 /** 获取单个模板查询 */
 export const useTestReportByObjectId = objectId => {
   return useQuery(

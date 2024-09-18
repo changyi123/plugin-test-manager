@@ -905,7 +905,7 @@ const TestReport = Parse.Object.extend('test_manager_TestReport', {
     const reportInfo = {
       ...omit(templateReportData, FilterOriginalParseDataKeys.concat(FilterReportTemplateKey)),
       isTemplate: false,
-      name: reportParams.report.name,
+      name: reportParams.report?.name ?? reportParams?.name,
       reportStatus: reportParams.reportStatus,
       reportOverviewData: reportParams?.reportOverviewData,
       usingReportTemplate: TestReport.createWithoutData(templateId),

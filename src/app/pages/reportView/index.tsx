@@ -1,13 +1,13 @@
 import React from 'react';
 
 import ErrorBoundary from '@/components/common/ErrorBoundary';
-import { featureFlags, SupportFeatureFlags } from '@/lib/appEnv';
 
 import ReportView from './ReportView';
 import ReportViewV2 from './ReportViewV2';
 
 const TestPlanPage = () => {
-  const isV2 = featureFlags(SupportFeatureFlags.ENABLE_TEST_REPORT_V2);
+  const searchParams = new URLSearchParams(window.location.search);
+  const isV2 = searchParams.get('isV2');
 
   return <ErrorBoundary>{isV2 ? <ReportViewV2 /> : <ReportView />}</ErrorBoundary>;
 };

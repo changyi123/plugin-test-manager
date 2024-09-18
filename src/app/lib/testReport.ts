@@ -181,11 +181,16 @@ export const genReportTemplateUrl = (params?: { testReportId?: string; workspace
 };
 
 /** 生成测试报告访问链接 */
-export const genReportViewUrl = (params: { testReportId?: string; workspace?: Workspace }) => {
+export const genReportViewUrl = (params: {
+  testReportId?: string;
+  workspace?: Workspace;
+  isV2?: boolean;
+}) => {
   const pagePrefix = getPagePrefix();
   const currentPageUrl = location.href.split('?')[0];
   const searchParams = new URLSearchParams();
   if (params?.testReportId) searchParams.append('testReportId', params.testReportId);
+  if (params?.isV2) searchParams.append('isV2', 'true');
   if (params.workspace) {
     if (params.workspace.name) {
       searchParams.append('workspaceName', params.workspace.name);

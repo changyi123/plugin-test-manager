@@ -211,7 +211,7 @@ export const runBeforeImport = async () => {
           })
           .filter(Boolean),
       )
-      .then(data => addRepositoryPath(data));
+      .then(addRepositoryPath);
 
     return existedRepositoryData;
   };
@@ -228,8 +228,10 @@ export const runBeforeImport = async () => {
       return prev;
     }, []);
 
-  const getGroupPath = repository =>
-    `${repository ?? ''}`?.split('/').filter(d => `${d}`.trim()) ?? [];
+  const getGroupPath = repository => {
+    const groupPath = `${repository ?? ''}`?.split('/').filter(d => `${d}`.trim()) ?? [];
+    return groupPath;
+  };
 
   const getImportGroupData = () => {
     return appFieldsData

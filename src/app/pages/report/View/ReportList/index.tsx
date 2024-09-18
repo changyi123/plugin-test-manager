@@ -107,7 +107,7 @@ const TestReportList: React.FC<any> = () => {
   };
 
   const goReportViewPage = testReportId => {
-    window.open(genReportViewUrl({ testReportId, workspace }), '_blank');
+    window.open(genReportViewUrl({ testReportId, workspace, isV2: true }), '_blank');
   };
 
   useListener('refreshTestReportTable', testReportId => {

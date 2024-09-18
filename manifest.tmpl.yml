@@ -2,7 +2,7 @@ app:
   key: test_manager
   uuid: bf73e61c-e15a-4461-a1f7-f940c2009332
   name: test_manager
-  version: "4.23.0-alpha"
+  version: "4.24.0"
 modules:
   webtrigger:
     # TODO: Debug 使用，生产环境禁止调用下面的 trigger
@@ -117,6 +117,8 @@ modules:
 
     - key: run-script
       function: run-script-function
+    - key: validate-duplicate-name
+      function: test-manager-duplicate-name-function
 
   trigger:
     - key: test-manager-initial-script-install
@@ -170,6 +172,8 @@ modules:
       handler: importer.runBeforeImport
     - key: test-manager-import-script-function
       handler: importer.runImport
+    - key: test-manager-duplicate-name-function
+      handler: importer.duplicateName
     - key: workspace-create-trigger-function
       handler: trigger.workspaceCreated
     - key: workspace-bind-trigger-function
