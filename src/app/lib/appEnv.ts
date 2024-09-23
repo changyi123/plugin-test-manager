@@ -113,6 +113,11 @@ const SupportAppEnv = {
     },
     transformer: value => value,
   },
+  // 改变测试执行状态时校验步骤
+  CHECK_STEP_FOR_CHANGE_RUN_STATUS: {
+    defaultValue: false,
+    transformer: value => value,
+  },
 } as const;
 
 /**

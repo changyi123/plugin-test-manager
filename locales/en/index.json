@@ -119,7 +119,9 @@
     "runNum": "test execution",
     "addTestExecution": "Add test execution",
     "curWorkspace": "Current workspace",
-    "methodNotSupport": "This method does not support sorting. Please use the getTestEntitiesByRelationWithOrder method instead"
+    "methodNotSupport": "This method does not support sorting. Please use the getTestEntitiesByRelationWithOrder method instead",
+    "stepStatusNoMatch": "Step status does not match",
+    "descriptionRequire": "You must enter a result description first"
   },
   "report": {
     "overViewData": {

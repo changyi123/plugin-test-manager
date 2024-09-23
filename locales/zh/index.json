@@ -118,7 +118,9 @@
     "runNum": "条执行",
     "addTestExecution": "添加执行任务",
     "curWorkspace": "当前空间",
-    "methodNotSupport": "该方法不支持排序使用,请使用 getTestEntitiesByRelationWithOrder 方法替代"
+    "methodNotSupport": "该方法不支持排序使用,请使用 getTestEntitiesByRelationWithOrder 方法替代",
+    "stepStatusNoMatch": "步骤状态不符合",
+    "descriptionRequire": "必须先输入结果描述"
   },
   "report": {
     "overViewData": {

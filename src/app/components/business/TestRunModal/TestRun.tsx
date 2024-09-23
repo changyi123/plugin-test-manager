@@ -1,6 +1,6 @@
 import { useMemoizedFn, useRequest, useSessionStorageState } from 'ahooks';
 import { Button, Checkbox, Collapse, message, Spin, Tabs, Tooltip } from 'antd';
-import _, { clone } from 'lodash';
+import _, { clone, keyBy } from 'lodash';
 import React from 'react';
 import { v4 as uuid } from 'uuid';
 
@@ -9,10 +9,13 @@ import { QuestionCircleFilled, UnfoldIcon } from '@/icons';
 import { getTestEntityByQuery, updateTestRunDetail } from '@/lib/api/item';
 import { getItemByIds } from '@/lib/api/proxima';
 import { getItemLinkRelation, getTestStepsByTestDetailId } from '@/lib/api/runs';
+import { getAppEnv } from '@/lib/appEnv';
 import { PASS_STATUS_TYPE, TestType } from '@/lib/constants';
+import { useBaseAction } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import { useCanExecuteTestRunIdSequence } from '@/lib/hooks/useTest';
 import { TestEntity } from '@/lib/types/Test';
+import { checkRunStatus } from '@/lib/utils/checkRunStatus';
 import { generateStorageKey, getRootContainer } from '@/lib/utils/helper';
 
 import AttachmentUpload from './AttachmentUpload';
@@ -227,9 +230,24 @@ const TestRun: React.FC<TestRunType> = props => {
     setTestRunId(canExecuteTestRunIdSequence[nextIndex]);
   }, [event, canExecuteTestRunIdSequence, testRunId, canExecNext, t]);
 
+  const { globalTestConfig } = useBaseAction();
+
+  const statusesConfig = React.useMemo(() => {
+    return keyBy(globalTestConfig?.statuses ?? [], 'key');
+  }, [globalTestConfig]);
+
   const handleStatusChange = useMemoizedFn(
     async (status, isStepChange = false) => {
       if (!isStepChange) {
+        const checkStep = getAppEnv('CHECK_STEP_FOR_CHANGE_RUN_STATUS');
+
+        if (checkStep) {
+          const flag = checkRunStatus(testRunEntity, status, statusesConfig, t);
+          if (!flag) {
+            return;
+          }
+        }
+
         const res = await updateTestRunDetail(testRunEntity, {
           status: status.key,
           planId: selectedTestPlanId,

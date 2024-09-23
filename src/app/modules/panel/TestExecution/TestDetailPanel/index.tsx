@@ -11,6 +11,7 @@ import {
   Tooltip,
   Typography,
 } from 'antd';
+import { keyBy } from 'lodash';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import DropDownButton from '@/components/business/DropDownButton';
@@ -31,10 +32,12 @@ import {
   getTestEntityByQuery,
   updateTestStatus,
 } from '@/lib/api/item';
+import { getAppEnv } from '@/lib/appEnv';
 import { TestLinkType, TestType } from '@/lib/constants';
 import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import { useCanExecuteTestRunIdSequence, useTestRunActionAuth } from '@/lib/hooks/useTest';
+import { checkRunStatus } from '@/lib/utils/checkRunStatus';
 import { getRootContainer, goToItemDetailPage } from '@/lib/utils/helper';
 
 import cx from './index.less';
@@ -43,7 +46,7 @@ const Test = () => {
   const proxima = createProximaSdk();
   const { t } = useI18n();
   const { testEntity, workspace } = useTestConfig();
-  const { getCreatePermission } = useBaseAction();
+  const { getCreatePermission, globalTestConfig } = useBaseAction();
   const tableActionRef = React.useRef<ActionType>();
   const { canExecuteTestRun } = useTestRunActionAuth({ workspaceKey: workspace?.key });
   const { getCanExecuteTestRunIdSequence } = useCanExecuteTestRunIdSequence({
@@ -160,6 +163,10 @@ const Test = () => {
   //   proxima.execute('deleteExecutionRefresh');
   // }, [testEntity?.objectId, workspace?.key]);
 
+  const statusesConfig = useMemo(() => {
+    return keyBy(globalTestConfig?.statuses ?? [], 'key');
+  }, [globalTestConfig]);
+
   // 关联的测试用例
   const relCase = useMemo(() => allTestEntities.map(item => item.referenceCase), [allTestEntities]);
 
@@ -267,6 +274,13 @@ const Test = () => {
         key: 'status',
         render: (_, record) => {
           const handleStatusChange = async status => {
+            const checkStep = getAppEnv('CHECK_STEP_FOR_CHANGE_RUN_STATUS');
+            if (checkStep) {
+              const flag = checkRunStatus(record, status, statusesConfig, t);
+              if (!flag) {
+                return;
+              }
+            }
             await updateTestStatus({
               runIds: [record.objectId],
               status: status.key,
@@ -332,7 +346,14 @@ const Test = () => {
       },
     ];
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [testEntity?.linkItems, refreshDepData, allTestRunIds, allTestEntities, removeTestRelation]);
+  }, [
+    testEntity?.linkItems,
+    refreshDepData,
+    allTestRunIds,
+    allTestEntities,
+    removeTestRelation,
+    statusesConfig,
+  ]);
 
   // 添加测试用例菜单
   const testDetailMenuList = React.useMemo(() => {
