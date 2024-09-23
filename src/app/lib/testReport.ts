@@ -311,7 +311,7 @@ const exportOfflineDocx = async testReportData => {
 
   // 没有生成url，或者不是docx文件时重新生成
   if (!reportUrl || !/\.docx$/.test(reportUrl)) {
-    await generateTestReportOfflineFile(testReportData?.objectId).then(data => {
+    await generateTestReportOfflineFile(testReportData).then(data => {
       reportUrl = data?.data;
     });
   }
@@ -321,8 +321,10 @@ const exportOfflineDocx = async testReportData => {
 
 // 下载测试报告
 export const exportWithDocx = async testReportData => {
-  const enableOfflineReport = featureFlags(SupportFeatureFlags.ENABLE_OFFLINE_TEST_REPORT);
-  enableOfflineReport ? exportOfflineDocx(testReportData) : exportDocx(testReportData);
+  const exportFun = featureFlags(SupportFeatureFlags.ENABLE_OFFLINE_TEST_REPORT)
+    ? exportOfflineDocx
+    : exportDocx;
+  exportFun(testReportData);
 };
 
 // 下载测试报告
@@ -345,7 +347,7 @@ export const exportWithPdf = async testReportData => {
   let reportUrl = testReportData?.reportUrl;
   const reportName = testReportData?.name;
   if (!reportUrl || !/\.pdf$/.test(reportUrl)) {
-    await generateTestReportOfflineFile(testReportData?.objectId, true).then(data => {
+    await generateTestReportOfflineFile(testReportData, true).then(data => {
       reportUrl = data?.data;
     });
   }

@@ -9,7 +9,7 @@ import {
   getRelativeItem,
   getTestEntityByQuery,
 } from '@/lib/api/item';
-import { featureFlags, SupportFeatureFlags } from '@/lib/appEnv';
+import { judgeTestReportVersion, TEST_REPORT_VERSION } from '@/lib/appEnv';
 import {
   ExtendReportType,
   TestExecutionModel,
@@ -916,7 +916,7 @@ const TestReport = Parse.Object.extend('test_manager_TestReport', {
     const newTestReportObject = new TestReport().set(reportInfo);
 
     try {
-      const reportIsV2 = featureFlags(SupportFeatureFlags.ENABLE_TEST_REPORT_V2);
+      const reportIsV2 = judgeTestReportVersion(TEST_REPORT_VERSION.V2);
       const res: any[] = await Parse.Object.saveAll(
         reportIsV2 ? newChartObjects : [...newChartObjects, newTestReportObject],
       );

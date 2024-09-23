@@ -1,26 +1,24 @@
-import { Form, Input, message, Select } from 'antd';
+import { Form, Input, message } from 'antd';
 import { useAtom } from 'jotai';
 import { eq } from 'lodash';
 import { components } from 'proxima-sdk';
-import React, { useMemo } from 'react';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { getWorkspaceByKey } from '@/lib/api/proxima';
-import useI18n from '@/lib/hooks/useI18n';
 import { TestReportMaxNameLength } from '@/lib/testReport';
-import { getTestManagerContainer, toPointer } from '@/lib/utils/helper';
+import { toPointer } from '@/lib/utils/helper';
 import { testReportMutation } from '@/services/mutation';
-import { useReportTemplateList } from '@/services/testReport/query';
 
 import type { ActionRefType } from '../../index';
 import { testReportWitchConnectWithLocationAtom } from '../../store';
 import cx from './BasicConfig.less';
+import TemplateFileSelect from './TemplateFileSelect';
 const { ScriptEditor } = components.Components.Common;
 
 const BasicConfig: React.FC<{
   actionRef: React.MutableRefObject<ActionRefType>;
 }> = ({ actionRef }) => {
-  const { t } = useI18n();
   const { t: scopedT } = useTranslation('', {
     keyPrefix: 'page.reportTemplateCreator.basicConfig',
   });
@@ -114,26 +112,6 @@ const BasicConfig: React.FC<{
     },
   }));
 
-  const { data: templateFileList, isLoading: templateLoading } = useReportTemplateList();
-
-  const templateFiles = useMemo(
-    () =>
-      templateFileList?.map(d => ({
-        ...d,
-        label: (
-          <div
-            className={cx('option')}
-            style={{ display: 'flex', justifyContent: 'space-between' }}
-          >
-            {d.name}
-          </div>
-        ),
-        value: d.objectId,
-        searchText: d.name,
-      })),
-    [templateFileList],
-  );
-
   return (
     <div className={cx('container')}>
       <h3 className={cx('title')}>{scopedT('title')}</h3>
@@ -164,15 +142,7 @@ const BasicConfig: React.FC<{
             rules={[{ required: true, message: scopedT('form.file.error.required') }]}
             style={{ width: '100%' }}
           >
-            <Select
-              className={cx('step-select')}
-              placeholder={t('report.choiceTemplateFilePlaceholder')}
-              options={templateFiles}
-              loading={templateLoading}
-              showSearch
-              optionFilterProp="searchText"
-              getPopupContainer={getTestManagerContainer}
-            ></Select>
+            <TemplateFileSelect />
           </Form.Item>
         </div>
         <div className={cx('script')}>

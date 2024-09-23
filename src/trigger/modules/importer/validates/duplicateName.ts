@@ -5,6 +5,7 @@ import { getReqInfoFromVMRuntime } from '../../../../trigger/lib/apiUtil';
 
 /** 校验用例重名 */
 export const duplicateName = async () => {
+  const duplicateNameChunkSize = global.env.DUPLICATE_NAME_CHUNK_SIZE || 20;
   const { body } = getReqInfoFromVMRuntime<{
     workspaceKey: string;
     items: any[];
@@ -71,7 +72,7 @@ export const duplicateName = async () => {
     const errors = [];
     const groupNameMap = items.reduce((map, item, index) => {
       const { name, group: groupProps } = item;
-      const group = groupProps?.trim() || '$root';
+      const group = (groupProps + '').trim() || '$root';
       if (!map[group]) {
         map[group] = {};
       }
@@ -82,18 +83,27 @@ export const duplicateName = async () => {
       return map;
     }, {});
     const iqlList = Object.entries(groupNameMap)
-      .map(([group, nameMap]) => {
+      .flatMap(([group, nameMap]) => {
         const names = Object.keys(nameMap);
+        const chunkNames = [];
         if (names?.length && repositoryIqlMap[group]) {
-          return {
-            iql: `${repositoryIqlMap[group]} and 'test_manager_type' = 'TestCase' and (${names
+          while (names.length > duplicateNameChunkSize) {
+            chunkNames.push(names.splice(0, duplicateNameChunkSize));
+          }
+          chunkNames.push(names);
+          return chunkNames.map(names => ({
+            iql: `${
+              repositoryIqlMap[group]
+            } and 'test_manager_type' = 'TestCase' and 'workspaceKey' = '${workspaceKey}' and (${names
               .map(name => `'标题' = '${name}'`)
               .join(' or ')})`,
             group,
-          };
+          }));
         }
       })
       .filter(Boolean);
+
+    console.info(groupNameMap, iqlList, repositoryIqlMap, 'duplicateName');
 
     const validateItem = async ({ iql, group }) => {
       return await search(iql)
@@ -115,6 +125,7 @@ export const duplicateName = async () => {
     await Promise.all(iqlList.map(validateItem));
     return errors;
   } catch (error) {
+    console.info(error);
     return [];
   }
 };

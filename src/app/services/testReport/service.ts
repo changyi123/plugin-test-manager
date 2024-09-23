@@ -71,9 +71,9 @@ export const deleteTestReport = async (objectId: string) => {
 };
 
 /** 生成测试报告离线文档 */
-export const generateTestReportOfflineFile = (testReportId: string, exportPdf?: boolean) => {
+export const generateTestReportOfflineFile = (testReport: unknown, exportPdf?: boolean) => {
   return fetch.$post(`${pluginWebTriggerBaseUrl}/api-generate-offline-report`, {
-    testReportId,
+    testReport,
     exportPdf,
   });
 };

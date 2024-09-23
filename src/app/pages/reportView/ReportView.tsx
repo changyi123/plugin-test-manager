@@ -43,7 +43,13 @@ const ReportView: React.FC = () => {
     setExportLoading(true);
     const cancelLoading = message.loading(t('report.downloadingReport'));
     const exportFunc = exFuncMap[type];
-    await exportFunc(reportData).finally(() => {
+    await exportFunc({
+      ...reportData,
+      slotData: {
+        overviewDisplayText: overviewDisplayText,
+        reportStatusText: reportData?.reportStatus,
+      },
+    }).finally(() => {
       cancelLoading();
       setExportLoading(false);
     });

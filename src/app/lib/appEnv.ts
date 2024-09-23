@@ -1,5 +1,11 @@
 import { get } from 'lodash';
 
+export enum TEST_REPORT_VERSION {
+  V0,
+  V1,
+  V2,
+}
+
 /**
  * feature flags 通过应用中心环境变量控制功能
  * 默认功能为开，需要关闭该功能。变量需要以 disable 开头
@@ -14,8 +20,6 @@ export const SupportFeatureFlags = {
   ENABLE_MORE_CONFIG: 'ENABLE_MORE_CONFIG',
   /** 开启离线测试报告 */
   ENABLE_OFFLINE_TEST_REPORT: 'ENABLE_OFFLINE_TEST_REPORT',
-  /** 开启V2测试报告 */
-  ENABLE_TEST_REPORT_V2: 'ENABLE_TEST_REPORT_V2',
 } as const;
 
 type SupportFeatureFlagKey = keyof typeof SupportFeatureFlags;
@@ -108,6 +112,10 @@ const SupportAppEnv = {
     defaultValue: false,
     transformer: value => value,
   },
+  TEST_REPORT_VERSION: {
+    defaultValue: TEST_REPORT_VERSION.V2,
+    transformer: value => value,
+  },
   CREATE_EXECUTION_DEFAULT_NAME_CONFIG: {
     defaultValue: {
       enable: false, // 是否开启默认名称配置
@@ -126,4 +134,13 @@ export function getAppEnv(key: keyof typeof SupportAppEnv) {
   const variable = get(window.QiankunProps?.context?.env, key);
   if (variable == null) return envConfig.defaultValue;
   return typeof envConfig?.transformer === 'function' ? envConfig.transformer(variable) : variable;
+}
+
+/**
+ * 判断测试报告版本
+ */
+export function judgeTestReportVersion(version: TEST_REPORT_VERSION | TEST_REPORT_VERSION[]) {
+  return Array.isArray(version)
+    ? version.includes(getAppEnv('TEST_REPORT_VERSION'))
+    : getAppEnv('TEST_REPORT_VERSION') === version;
 }

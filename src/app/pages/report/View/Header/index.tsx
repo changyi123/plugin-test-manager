@@ -4,7 +4,12 @@ import isEmpty from 'lodash/isEmpty';
 import React, { useCallback, useRef } from 'react';
 
 import { ControlOutlined, PlusOutlined } from '@/icons';
-import { featureFlags, SupportFeatureFlags } from '@/lib/appEnv';
+import {
+  featureFlags,
+  judgeTestReportVersion,
+  SupportFeatureFlags,
+  TEST_REPORT_VERSION,
+} from '@/lib/appEnv';
 import { TestExecutionModel, TestPlanModel } from '@/lib/constants';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
@@ -58,7 +63,7 @@ const getReportOverviewData = selectors => {
           return {
             [selector.key]: selector?.value?.map(i => i?.value ?? i?.id).filter(Boolean),
           };
-      }
+        };
     }
   };
 
@@ -116,7 +121,9 @@ const ReportHeader: React.FC<any> = () => {
 
     console.info('create test report success!', reportInfo);
     // 生成测试报告离线文档
-    enableOfflineReport && (await generateTestReportOfflineFile(reportInfo?.data?.objectId));
+    enableOfflineReport &&
+      judgeTestReportVersion(TEST_REPORT_VERSION.V0) &&
+      (await generateTestReportOfflineFile(reportInfo?.data?.objectId));
 
     if (reportInfo.status === 'success') {
       const proxima = createProximaSdk();

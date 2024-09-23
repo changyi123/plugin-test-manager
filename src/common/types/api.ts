@@ -1,7 +1,6 @@
 /**
  * @file 后端 webTrigger 接口数据请求
  */
-
 import { IQLFieldNameMapping, TestLinkType, TestType } from '../constant';
 import { Status, TestEntity } from '../types/test';
 import { TestEntityLinkActionData } from './common';
@@ -318,7 +317,13 @@ export type QueryTestReportPayload = {
 /** 查询测试报告 */
 export type GenerateTestReportPayload = {
   // 测试报告 ID
-  testReportId: string;
+  testReport: {
+    name: string;
+    objectId: string;
+    chartGroup: { objectId: string };
+    reportTemplate: { objectId: string };
+    slotData: unknown;
+  };
   exportPdf?: boolean;
 };
 

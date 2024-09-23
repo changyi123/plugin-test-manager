@@ -1,7 +1,7 @@
 import React from 'react';
 
 import ErrorBoundary from '@/components/common/ErrorBoundary';
-import { featureFlags, SupportFeatureFlags } from '@/lib/appEnv';
+import { judgeTestReportVersion, TEST_REPORT_VERSION } from '@/lib/appEnv';
 import { logPluginVersion } from '@/lib/utils/helper';
 import { useResizeContainerDOM } from '@/pages/plan/PlanPageLayout/hooks';
 
@@ -12,7 +12,7 @@ import TestReportV2Page from './ReportV2';
 logPluginVersion();
 
 const TestPlanPage = () => {
-  const isV2 = featureFlags(SupportFeatureFlags.ENABLE_TEST_REPORT_V2);
+  const isV2 = judgeTestReportVersion(TEST_REPORT_VERSION.V2);
 
   useResizeContainerDOM();
   return (

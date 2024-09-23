@@ -9,9 +9,6 @@ const isMoreThanThousands = d => d?.length > 999;
 // 去除首位空格
 const trimData = datas => `${datas ?? ''}`.trim();
 
-// 根据数据是否超过 1000 条来截取数据
-const getDataByLength = d => (isMoreThanThousands(d) ? d.slice(0, 999) : d);
-
 const isFilterGroup = (group, limit = 8) =>
   `${group ?? ''}`?.split('/').filter(d => trimData(d)).length > limit;
 
@@ -188,7 +185,7 @@ const getDataByFieldMaping = (datas, maps, path) =>
   }, []);
 
 export const runValidate = async () => {
-  const { data, fieldMapping, workspaceId, group } = global.triggerParams;
+  const { data: originData, fieldMapping, workspaceId, group } = global.triggerParams;
 
   // 根据 workspaceKId 获取事项类型
   const getItemTypeName = async workspace => {
@@ -255,7 +252,7 @@ export const runValidate = async () => {
   };
 
   // eslint-disable-next-line no-console
-  console.log('vali-1111', data);
+  console.log('vali-1111', originData);
   const workspace = await getData(false, 'Workspace', {
     objectId: workspaceId,
   });
@@ -267,10 +264,6 @@ export const runValidate = async () => {
   const groupPath = await getGroupPath(repositoryMap, group);
 
   const getValidateErrors = (datas, errors: any[] = []) => {
-    if (isMoreThanThousands(datas)) {
-      errors.push({ error: errorLog1 });
-    }
-
     if (!itemTypeName) {
       errors = [{ error: i18n.t('trigger.importer.validate.validateErrors.10') }, ...errors];
     }
@@ -301,11 +294,11 @@ export const runValidate = async () => {
 
   // 校验数据
   const buildResponse = (errors, data) => {
-    const validated = filterDataByErrors(clone(data), errors);
+    const validated = filterDataByErrors(data, errors);
     return {
       errors,
       errorCount: data.length - validated.length,
-      data: getDataByFieldKey(getDataByLength(validated), fieldMapping) || [],
+      data: getDataByFieldKey(data, fieldMapping) || [],
       fieldMapping: {
         ...fieldMapping,
         // [i18n.t('trigger.importer.validate.itemType')]: 'itemType',
@@ -323,9 +316,15 @@ export const runValidate = async () => {
     };
   };
 
+  let errors = [];
+  let data = originData;
+  if (isMoreThanThousands(originData)) {
+    data = clone(originData).slice(0, 999);
+    errors.push({ error: errorLog1 });
+  }
   const items = getDataByFieldMaping(data, fieldMapping, groupPath);
   console.info(items, 'getDataByFieldMaping');
-  const errors = getValidateErrors(items)?.filter(Boolean) || [];
+  errors = getValidateErrors(items, errors)?.filter(Boolean) || [];
 
   const validateWebTriggers = global.env.VALIDATE_WEB_TRIGGERS || [];
   const replaceData = {

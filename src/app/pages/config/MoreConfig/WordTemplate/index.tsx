@@ -1,7 +1,7 @@
 import { Button, message, Modal, Space, Table } from 'antd';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { featureFlags, SupportFeatureFlags } from '@/lib/appEnv';
+import { judgeTestReportVersion, TEST_REPORT_VERSION } from '@/lib/appEnv';
 import useI18n from '@/lib/hooks/useI18n';
 import Parse from '@/lib/parse';
 import { FileType } from '@/lib/types/Test';
@@ -110,7 +110,9 @@ const WordTemplate: React.FC = () => {
 
   const apis = useMemo(
     () =>
-      featureFlags(SupportFeatureFlags.ENABLE_TEST_REPORT_V2) ? reportTemplateApi : wordTemplateApi,
+      judgeTestReportVersion([TEST_REPORT_VERSION.V1, TEST_REPORT_VERSION.V2])
+        ? reportTemplateApi
+        : wordTemplateApi,
     [],
   );
 
@@ -203,7 +205,8 @@ const WordTemplate: React.FC = () => {
     <div className={cx('word-template')}>
       <div className={cx('word-template-btn')}>
         {!loading &&
-          (featureFlags(SupportFeatureFlags.ENABLE_TEST_REPORT_V2) || list.length === 0) && (
+          (judgeTestReportVersion([TEST_REPORT_VERSION.V1, TEST_REPORT_VERSION.V2]) ||
+            list.length === 0) && (
             <Button onClick={addTemplate} type="primary">
               {t('page.config.wordTemplate.uploadTemplate')}
             </Button>

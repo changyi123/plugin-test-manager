@@ -11,7 +11,7 @@ import { useCurrentTestConfig, useDataContext } from '../hooks';
 
 const { ItemIcon } = components.Components.Common;
 
-import { featureFlags, SupportFeatureFlags } from '@/lib/appEnv';
+import { judgeTestReportVersion, TEST_REPORT_VERSION } from '@/lib/appEnv';
 
 import cx from './index.less';
 
@@ -105,7 +105,7 @@ const ItemTypeMapping = () => {
   };
 
   const testTypes = useMemo(() => {
-    return featureFlags(SupportFeatureFlags.ENABLE_TEST_REPORT_V2)
+    return judgeTestReportVersion(TEST_REPORT_VERSION.V2)
       ? [
           ...TestTypes,
           {
