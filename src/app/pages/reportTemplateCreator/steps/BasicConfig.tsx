@@ -5,12 +5,15 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { getWorkspaceByKey } from '@/lib/api/proxima';
+import { judgeTestReportVersion, TEST_REPORT_VERSION } from '@/lib/appEnv';
 import { TestReportMaxNameLength } from '@/lib/testReport';
+import { toPointer } from '@/lib/utils/helper';
 import { testReportMutation } from '@/services/mutation';
 
 import type { ActionRefType } from '../index';
 import { testReportWitchConnectWithLocationAtom } from '../store';
 import cx from './BasicConfig.less';
+import TemplateFileSelect from './V2/TemplateFileSelect';
 
 const BasicConfig: React.FC<{
   actionRef: React.MutableRefObject<ActionRefType>;
@@ -26,7 +29,10 @@ const BasicConfig: React.FC<{
 
   React.useEffect(() => {
     if (reportTemplateData) {
-      form.setFieldsValue({ name: reportTemplateData.name });
+      form.setFieldsValue({
+        name: reportTemplateData.name,
+        reportTemplate: reportTemplateData.reportTemplate?.objectId,
+      });
     }
   }, [form, reportTemplateData]);
 
@@ -36,7 +42,11 @@ const BasicConfig: React.FC<{
   React.useImperativeHandle(actionRef, () => ({
     goNextButtonClick: async () => {
       try {
-        const data = await form.validateFields();
+        const origin = await form.validateFields();
+        const data = {
+          ...origin,
+          reportTemplate: toPointer('ReportTemplate', origin.reportTemplate),
+        };
 
         // 已存在模板数据，不需要创建，走更新逻辑
         if (reportTemplateData?.objectId) {
@@ -121,6 +131,18 @@ const BasicConfig: React.FC<{
             />
           </Form.Item>
         </div>
+        {judgeTestReportVersion(TEST_REPORT_VERSION.V1) && (
+          <div className={cx('file')}>
+            <p className={cx('label', 'required')}>{scopedT('form.file.label')}</p>
+            <Form.Item
+              name="reportTemplate"
+              rules={[{ required: true, message: scopedT('form.file.error.required') }]}
+              style={{ width: '100%' }}
+            >
+              <TemplateFileSelect />
+            </Form.Item>
+          </div>
+        )}
       </Form>
     </div>
   );

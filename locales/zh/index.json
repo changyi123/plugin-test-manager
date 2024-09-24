@@ -124,6 +124,7 @@
     "overViewData": {
       "label": {
         "testPlan": "所选测试计划",
+        "testExecution": "所选测试执行任务",
         "workspace": "所属空间",
         "version": "所选版本",
         "sprint": "所选迭代"
@@ -139,14 +140,18 @@
       "message": {
         "deleteSuccess": "模板删除成功",
         "setDefaultSuccess": "默认模板设置成功",
-        "renameSuccess": "重命名成功"
+        "renameSuccess": "重命名成功",
+        "setDisabledSuccess": "禁用成功",
+        "setEnabledSuccess": "启用成功"
       },
       "buttons": {
         "create": "新建测试报告模板",
         "edit": "编辑",
         "delete": "删除",
         "rename": "重命名",
-        "setDefault": "设置默认"
+        "setDefault": "设置默认",
+        "enabled": "启用",
+        "disabled": "禁用"
       },
       "tableColumns": {
         "action": "操作",
@@ -163,7 +168,10 @@
     "reportNamePlaceholder": "请输入测试报告名称",
     "reportResult": "测试结论",
     "choiceTemplate": "选择模板",
+    "choiceTemplateFile": "选择模板文件",
+    "reportTemplateTooltip": "测试报告未绑定报告模板文件",
     "choiceTemplatePlaceholder": "请选择模板",
+    "choiceTemplateFilePlaceholder": "请选择模板文件",
     "range": "统计范围",
     "required": "必填",
     "exceedLength": "报告名称最长限制 250 个字符",
@@ -175,6 +183,7 @@
     "validateTips": "存在未填字段，请检查必填字段",
     "deleteTip1": "该操作会将测试报告删除，是否继续操作？",
     "createLoading": "测试报告创建中",
+    "generateLoading": "测试报告数据加载中",
     "templateSet": "模板设置",
     "testReport": "测试报告",
     "addSuccess": "创建成功",
@@ -380,6 +389,7 @@
       }
     },
     "reportTemplateCreator": {
+      "createReportModelTitle": "第 3 步：填写测试报告信息",
       "creatorTitle": "新建报告模板",
       "editorTitle": "编辑测试报告模板",
       "nameExisted": "模板名称已存在",
@@ -415,6 +425,15 @@
               "required": "模板标题必填",
               "maxLength": "模板标题最多输入 25 个字符"
             }
+          },
+          "file": {
+            "label": "模板文件",
+            "error": {
+              "required": "模板文件必填"
+            }
+          },
+          "script": {
+            "label": "导出校验脚本"
           }
         }
       },
@@ -426,6 +445,7 @@
         "label": {
           "plan": "所选测试计划",
           "sprint": "所选迭代",
+          "execution": "所选测试执行任务",
           "version": "所选版本",
           "workspace": "所选空间",
           "currentWorkspace": "当前空间",
@@ -435,7 +455,9 @@
           "TestRun": "所有的测试执行",
           "TestDefect": "所有的缺陷",
           "parent": "所有的父事项",
-          "relative": "所有的缺陷（事项关联）"
+          "relative": "所有的缺陷（事项关联）",
+          "planParent": "所属测试计划的父事项",
+          "self": "本身"
         },
         "title": "数据规则配置",
         "select": {

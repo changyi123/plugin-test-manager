@@ -125,6 +125,7 @@
     "overViewData": {
       "label": {
         "testPlan": "Selected test plan",
+        "testExecution": "Selected test execution",
         "workspace": "Belongs to workspace",
         "version": "Selected version",
         "sprint": "Selected sprint"
@@ -140,14 +141,18 @@
       "message": {
         "deleteSuccess": "Delete successfully",
         "setDefaultSuccess": "Set default successfully",
-        "renameSuccess": "Rename successfully"
+        "renameSuccess": "Rename successfully",
+        "setDisabledSuccess": "Set disabled successfully",
+        "setEnabledSuccess": "Set enabled successfully"
       },
       "buttons": {
         "create": "Create",
         "edit": "Edit",
         "delete": "Delete",
         "rename": "Rename",
-        "setDefault": "Default"
+        "setDefault": "Default",
+        "enabled": "Enabled",
+        "disabled": "Disabled"
       },
       "tableColumns": {
         "action": "Action",
@@ -162,7 +167,10 @@
     "reportNamePlaceholder": "Please enter a test report name",
     "reportResult": "Test conclusion",
     "choiceTemplate": "select template",
+    "choiceTemplateFile": "select a template file",
+    "reportTemplateTooltip": "Test report not bound to report template file",
     "choiceTemplatePlaceholder": "Please select a template",
+    "choiceTemplateFilePlaceholder": "Please select a template file",
     "range": "Statistical range",
     "required": "Required",
     "exceedLength": "Report name is limited to 250 characters",
@@ -175,6 +183,7 @@
     "view": "View",
     "deleteTip1": "This operation will delete the test report. Do you want to continue?",
     "createLoading": "Test report creation",
+    "generateLoading": "Test report data creation",
     "templateSet": "Template setting",
     "testReport": "Test report",
     "addSuccess": "created successfully",
@@ -379,6 +388,7 @@
         "allModules": "All Modules"
       },
       "reportTemplateCreator": {
+        "createReportModelTitle": "Step 3：test report info",
         "creatorTitle": "New Report Template",
         "editorTitle": "Edit Test Report Template",
         "nameExisted": "Template name already exists",
@@ -414,6 +424,15 @@
                 "required": "Template title is required",
                 "maxLength": "Template title can have a maximum of 25 characters"
               }
+            },
+            "file": {
+              "label": "Template file",
+              "error": {
+                "required": "Template file is required"
+              }
+            },
+            "script": {
+              "label": "Export validate script"
             }
           }
         },
@@ -501,6 +520,7 @@
         },
         "label": {
           "plan": "Selected Test Plan",
+          "execution": "Selected Test Execution",
           "sprint": "Selected Iteration",
           "version": "Selected Version",
           "workspace": "Selected Workspace",
@@ -511,7 +531,9 @@
           "TestRun": "All Test Runs",
           "TestDefect": "All Defects",
           "parent": "All Parent",
-          "relative": "All Bug (Relative)"
+          "relative": "All Bug (Relative)",
+          "planParent": "All Parent",
+          "self": "self"
         },
         "title": "Data Rule Configuration",
         "select": {

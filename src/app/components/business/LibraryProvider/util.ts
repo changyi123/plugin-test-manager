@@ -18,7 +18,7 @@ const StartNodeData: NodeProps = {
 };
 
 export function fetchItemById(id) {
-  return fetch.$get(`/parse/api/items/${id}/values?detail=true`).then(res => ({ item: res.data }));
+  return fetch.$get(`/parse/api/items/${id}/values?detail=true`);
 }
 
 export function fetchRole(workspaceId) {

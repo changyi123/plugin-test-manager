@@ -45,7 +45,7 @@ const useQuery = ({
           data = await fetch.$post(url, params);
         }
         const enableSave = true;
-        console.log('查看返回数据', data)
+        console.log('查看返回数据', data);
         return { data, enableSave };
       } catch {
         return null;

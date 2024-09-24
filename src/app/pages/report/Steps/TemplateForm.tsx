@@ -28,6 +28,7 @@ const TemplateForm: React.FC<FormProps> = ({ state, workspace }) => {
       pagination: { limit: 999 },
       workspace: workspace?.objectId,
       onlyGlobalTemplate: !globalConfig?.extra?.enableWorkspaceReportTemplate,
+      onlyEnabled: true,
     },
   );
 

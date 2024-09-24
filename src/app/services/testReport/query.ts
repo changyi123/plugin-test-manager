@@ -1,9 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
 
+import { getTestEntityByQuery } from '@/lib/api/item';
+import { TestType } from '@/lib/constants';
 import Parse, { escapeMatchesQueryArg } from '@/lib/parse';
 
 import { bindPaginationToParseQuery } from '../lib';
-import { Chart, ChartGroup, TestReport, Workspace } from '../models';
+import { Chart, ChartGroup, ReportTemplate, TestReport, Workspace } from '../models';
 import type { OrderParams, PaginationParams } from '../type';
 
 /** query key */
@@ -21,6 +23,9 @@ export const TestReportQueryKeys = {
 
   /** objectId */
   objectId: objectId => ['testReport', objectId],
+
+  /** reportTemplate 查询 */
+  reportTemplateList: ['testReport', 'templateFileList'],
 } as const;
 
 /** 获取空间内支持创建模板 */
@@ -30,12 +35,16 @@ export const useWorkspaceTemplateListQuery = (params: {
   pagination?: PaginationParams;
   onlyWorkspaceTemplate?: boolean;
   onlyGlobalTemplate?: boolean;
+  onlyEnabled?: boolean;
 }) => {
   return useQuery(
     TestReportQueryKeys.workspaceTemplateList(params),
     async () => {
       const buildBasicQuery = () => {
         const query = new Parse.Query(TestReport).equalTo('isTemplate', true);
+        if (params.onlyEnabled) {
+          query.notEqualTo('disabled', true);
+        }
         if (params.name) {
           query.matches('name', escapeMatchesQueryArg(params.name));
         }
@@ -91,12 +100,60 @@ export const useWorkspaceReportListQuery = (params: {
   );
 };
 
+/** 获取空间内的旧版本报告数 */
+export const useWorkspaceReportCountQuery = (params: { workspace: string }) => {
+  return useQuery(
+    TestReportQueryKeys.workspaceReportList(params),
+    async () => {
+      const query = new Parse.Query(TestReport)
+        .equalTo('isTemplate', false)
+        .equalTo('workspace', Workspace.createWithoutData(params.workspace));
+
+      return query.count(true);
+    },
+    {
+      initialData: 0,
+      enabled: Boolean(params.workspace),
+    },
+  );
+};
+
 /** 获取单个模板查询 */
 export const useTestReportByObjectId = objectId => {
   return useQuery(
     TestReportQueryKeys.objectId(objectId),
     async () => {
       return new Parse.Query(TestReport).equalTo('objectId', objectId).first({ json: true });
+    },
+    {
+      enabled: Boolean(objectId),
+    },
+  );
+};
+
+/** 获取单个模板查询V2 */
+export const useTestReportV2ByObjectId = objectId => {
+  return useQuery(
+    TestReportQueryKeys.objectId(objectId),
+    async () => {
+      return getTestEntityByQuery({
+        query: {
+          id: [objectId],
+          type: TestType.Report,
+        },
+      }).then(async (data: any) => {
+        const report = data?.list?.[0];
+        let template;
+        if (report) {
+          template = await new Parse.Query(TestReport)
+            .equalTo('objectId', report.reportTemplate)
+            .first({ json: true });
+        }
+        return {
+          report,
+          template,
+        };
+      });
     },
     {
       enabled: Boolean(objectId),
@@ -147,6 +204,21 @@ export const useAllTemplateList = (params?: { pagination?: PaginationParams }) =
         .equalTo('isTemplate', true)
         .include('workspace')
         .descending(['isDefaultTemplate', 'createdAt', 'workspace']);
+
+      return bindPaginationToParseQuery(query, params?.pagination).find({ json: true });
+    },
+    {
+      initialData: [],
+    },
+  );
+};
+
+/** 获取空间内支持创建模板 */
+export const useReportTemplateList = (params?: { pagination?: PaginationParams }) => {
+  return useQuery(
+    TestReportQueryKeys.reportTemplateList,
+    async () => {
+      const query = new Parse.Query(ReportTemplate).exists('createdAt').addDescending('updatedAt');
 
       return bindPaginationToParseQuery(query, params?.pagination).find({ json: true });
     },

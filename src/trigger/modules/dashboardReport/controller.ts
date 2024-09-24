@@ -1,4 +1,4 @@
-import { axios } from '@giteeteam/apps-team-api';
+import { axios, requestCoreApi } from '@giteeteam/apps-team-api';
 import { getParseModel, getParseQuery, saveAllObject } from '@giteeteam/apps-team-api';
 import { omit } from 'lodash';
 
@@ -82,27 +82,54 @@ export const queryTestReport = async () => {
 /** 生成离线测试报告 */
 export const generateOfflineReport = async () => {
   const { body, sessionToken } = getReqInfoFromVMRuntime<GenerateTestReportPayload>();
-  const testReportId = body.testReportId;
+  const testReport = body.testReport;
   const exportPdf = body.exportPdf;
+  const testReportId = testReport.objectId;
+  const testReportVersion = global?.env?.TEST_REPORT_VERSION ?? 2;
 
-  const wordExportServerBaseUrl =
-    global?.env?.WORD_EXPORT_BASE_SERVER_URL ?? 'http://gitee-proxima-word-export:3001';
+  const fetchExportServer = async url => {
+    const wordExportServerBaseUrl =
+      global?.env?.WORD_EXPORT_BASE_SERVER_URL ?? 'http://gitee-proxima-word-export:3001';
+    const res = await axios({
+      method: 'POST',
+      url: `${wordExportServerBaseUrl}/api/word/generator/${url}`,
+      data: {
+        testReportId,
+      },
+      headers: {
+        'x-parse-application-id': global?.env?.applicationId ?? 'inspur',
+        // 'X-proxima-api-token': sessionToken,
+      },
+    });
 
-  const res = await axios({
-    method: 'POST',
-    url: `${wordExportServerBaseUrl}/api/word/generator/${
-      exportPdf ? 'testReportToPdf' : 'testReport'
-    }`,
-    data: {
-      testReportId,
-    },
-    headers: {
-      'x-parse-application-id': global?.env?.applicationId ?? 'inspur',
-      // 'X-proxima-api-token': sessionToken,
-    },
-  });
+    return res?.url;
+  };
 
-  const url = res?.url;
+  const generatePdf = async () => {
+    return await fetchExportServer('testReportToPdf');
+  };
+
+  const generateWord = async () => {
+    return await fetchExportServer('testReport');
+  };
+
+  const generateWordV2 = async () => {
+    const params = {
+      templateId: testReport?.reportTemplate?.objectId,
+      chartGroupId: testReport?.chartGroup?.objectId,
+      name: testReport?.name,
+      slotData: testReport?.slotData
+    };
+
+    const res = (await requestCoreApi('POST', '/parse/api/generateReport/generate', params)) as {
+      response: { payload: string };
+    };
+
+    return res?.response?.payload;
+  };
+
+  const generateFun = exportPdf ? generatePdf : testReportVersion ? generateWordV2 : generateWord;
+  const url = await generateFun();
 
   if (url) {
     const testReportData = await getParseQuery(false, 'test_manager_TestReport')

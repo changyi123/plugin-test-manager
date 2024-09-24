@@ -45,12 +45,17 @@ const sleep = time => {
 };
 
 /** 删除测试实体 */
-export const batchDeleteItems = async (itemIds: string[]) => {
+export const batchDeleteItems = async (itemIds: string[], sessionToken?: string) => {
   const {
     deleteSize = 10,
     sleepTime = 1000,
     needSleepSize = 100,
   } = global.env?.DELETE_CONFIG || {};
+
+  const headers = {};
+  if (sessionToken) {
+    headers['X-Parse-Session-Token'] = sessionToken;
+  }
 
   const num = Math.ceil(itemIds.length / deleteSize);
   const arr = times(num, String);
@@ -61,7 +66,7 @@ export const batchDeleteItems = async (itemIds: string[]) => {
 
     const needDeleteItems = itemIds.slice(start, end).map(objectId => ({ objectId }));
 
-    const res = await deleteItems(needDeleteItems);
+    const res = await deleteItems(needDeleteItems, headers);
 
     // 由于删除实体会触发删除trigger，删除大量的数据会占用过多资源，这里降一下速  TODO: 删除掉
     if (needSleep) {

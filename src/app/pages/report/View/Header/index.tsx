@@ -4,8 +4,13 @@ import isEmpty from 'lodash/isEmpty';
 import React, { useCallback, useRef } from 'react';
 
 import { ControlOutlined, PlusOutlined } from '@/icons';
-import { featureFlags, SupportFeatureFlags } from '@/lib/appEnv';
-import { TestPlanModel } from '@/lib/constants';
+import {
+  featureFlags,
+  judgeTestReportVersion,
+  SupportFeatureFlags,
+  TEST_REPORT_VERSION,
+} from '@/lib/appEnv';
+import { TestExecutionModel, TestPlanModel } from '@/lib/constants';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import { selectorToIql } from '@/lib/utils/iql';
@@ -19,12 +24,12 @@ import ReportTemplateModal, {
 } from '../../ReportTemplateModal';
 import cx from './index.less';
 
-const handleSelector = selector => {
+const handleSelector = (selector, key) => {
   if (isEmpty(selector)) return null;
   const selectors = {} as Record<string, any>;
   if (selector) {
     // 处理测试用例库筛选字段
-    selectors[TestPlanModel] = {
+    selectors[key] = {
       ...selector,
       component: 'Dropdown',
       fieldName: 'id',
@@ -36,25 +41,36 @@ const handleSelector = selector => {
 };
 
 const getReportOverviewData = selectors => {
-  const selectorDataGetters = {
-    test_manager_Plan(selector) {
-      if (!selector?.value) return null;
-      return {
-        testPlan: selector?.value?.map(i => i.value).filter(Boolean),
-      };
-    },
-    default(selector) {
-      if (!selector?.value) return null;
-      return {
-        [selector.key]: selector?.value?.map(i => i?.value ?? i?.id).filter(Boolean),
-      };
-    },
+  const getSelectorDataGetters = type => {
+    switch (type) {
+      case TestPlanModel:
+        return selector => {
+          if (!selector?.value) return null;
+          return {
+            testPlan: selector?.value?.map(i => i.value).filter(Boolean),
+          };
+        };
+      case TestExecutionModel:
+        return selector => {
+          if (!selector?.value) return null;
+          return {
+            testExecution: selector?.value?.map(i => i.value).filter(Boolean),
+          };
+        };
+      default:
+        return selector => {
+          if (!selector?.value) return null;
+          return {
+            [selector.key]: selector?.value?.map(i => i?.value ?? i?.id).filter(Boolean),
+          };
+        };
+    }
   };
 
   return Object.values(selectors ?? {}).reduce((res: any, selector: any) => {
     return {
       ...res,
-      ...(selectorDataGetters[selector.key] ?? selectorDataGetters.default)?.(selector),
+      ...(getSelectorDataGetters(selector.key)(selector) ?? {}),
     };
   }, {});
 };
@@ -85,7 +101,9 @@ const ReportHeader: React.FC<any> = () => {
     });
     const iqlMap = Object.entries(res.selectors ?? {}).reduce((prev, [key, value]: any[]) => {
       prev[value.key] = selectorToIql(
-        key === TestPlanModel ? handleSelector(value) : { key: value },
+        [TestPlanModel, TestExecutionModel].includes(key)
+          ? handleSelector(value, key)
+          : { key: value },
       );
       return prev;
     }, {});
@@ -103,7 +121,9 @@ const ReportHeader: React.FC<any> = () => {
 
     console.info('create test report success!', reportInfo);
     // 生成测试报告离线文档
-    enableOfflineReport && (await generateTestReportOfflineFile(reportInfo?.data?.objectId));
+    enableOfflineReport &&
+      judgeTestReportVersion(TEST_REPORT_VERSION.V0) &&
+      (await generateTestReportOfflineFile(reportInfo?.data?.objectId));
 
     if (reportInfo.status === 'success') {
       const proxima = createProximaSdk();

@@ -64,6 +64,7 @@ export type BaseActionContextType = {
   testPlanFieldKeys?: string[];
   testCaseFieldKeys?: string[];
   testExecutionFieldKeys?: string[];
+  testReportFieldKeys?: string[];
   globalTestConfig: any;
 };
 /** proxima 操作 context */

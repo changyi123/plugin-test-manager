@@ -4,6 +4,12 @@ import { useAtomValue, useSetAtom } from 'jotai';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
+import {
+  featureFlags,
+  judgeTestReportVersion,
+  SupportFeatureFlags,
+  TEST_REPORT_VERSION,
+} from '@/lib/appEnv';
 import { testReportQuery } from '@/services/query';
 
 import cx from './index.less';
@@ -11,6 +17,7 @@ import { ReportIdUrlQueryKey } from './lib';
 import BasicConfig from './steps/BasicConfig';
 import DataSourceConfig from './steps/DataSourceConfig';
 import TemplateConfig from './steps/TemplateConfig';
+import BasicConfigV2 from './steps/V2/BasicConfig';
 import { stageAtom, testReportWitchConnectWithLocationAtom } from './store';
 
 export type ActionRefType = {
@@ -21,7 +28,7 @@ const StepsConfig = [
   {
     key: 'basic',
     title: 'steps.basic',
-    component: BasicConfig,
+    component: judgeTestReportVersion(TEST_REPORT_VERSION.V2) ? BasicConfigV2 : BasicConfig,
   },
   {
     key: 'template',

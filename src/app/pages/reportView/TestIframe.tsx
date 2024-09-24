@@ -13,27 +13,27 @@ const TestIframe: React.FC<any> = props => {
     };
   }, []);
 
-  const adjustIframeHeight = () => {
-    let times = 0;
-    const timer = setInterval(() => {
-      const currentDom =
-        iframeRef?.current?.contentWindow.document.querySelector('.react-grid-layout');
-      times++;
+  // const adjustIframeHeight = () => {
+  //   let times = 0;
+  //   const timer = setInterval(() => {
+  //     const currentDom =
+  //       iframeRef?.current?.contentWindow.document.querySelector('.react-grid-layout');
+  //     times++;
 
-      if (currentDom?.parentElement) {
-        setTimeout(() => {
-          const clientHeight = currentDom?.clientHeight;
-          iframeRef.current.style.height =
-            Math.max(clientHeight, document.body.clientHeight - 220) + 'px';
-          clearInterval(timer);
-        }, 300);
-      }
+  //     if (currentDom?.parentElement) {
+  //       setTimeout(() => {
+  //         const clientHeight = currentDom?.clientHeight;
+  //         iframeRef.current.style.height =
+  //           Math.max(clientHeight, document.body.clientHeight - 220) + 'px';
+  //         clearInterval(timer);
+  //       }, 300);
+  //     }
 
-      if (times > 1000) {
-        clearInterval(timer);
-      }
-    }, 200);
-  };
+  //     if (times > 1000) {
+  //       clearInterval(timer);
+  //     }
+  //   }, 200);
+  // };
 
   return (
     <iframe
@@ -41,7 +41,7 @@ const TestIframe: React.FC<any> = props => {
       title="report-view"
       className={cx('report-charts', props.className)}
       onLoad={event => {
-        adjustIframeHeight();
+        // adjustIframeHeight();
         props?.onLoad?.(event);
       }}
       ref={iframeRef}

@@ -39,6 +39,17 @@ const OverViewLabelFetcher = {
 
     return buildOverViewLabelResult('testPlan', list);
   },
+  async testExecution(ids) {
+    // 获取测试计划数据
+    const { list } = await getTestEntityByQuery({
+      query: {
+        type: TestType.Execution,
+        id: ids,
+      },
+    });
+
+    return buildOverViewLabelResult('testExecution', list);
+  },
   async version(ids) {
     const data = await parseDataQuery(Version, ids);
     return buildOverViewLabelResult('version', data);

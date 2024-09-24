@@ -1,10 +1,11 @@
 import { Button, message, Modal, Space, Table } from 'antd';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
+import { judgeTestReportVersion, TEST_REPORT_VERSION } from '@/lib/appEnv';
 import useI18n from '@/lib/hooks/useI18n';
 import Parse from '@/lib/parse';
 import { FileType } from '@/lib/types/Test';
-import { WordTemplate as WordTemplateObject } from '@/services/models';
+import { ReportTemplate, WordTemplate as WordTemplateObject } from '@/services/models';
 
 import cx from './index.less';
 import TemplateModal from './TemplateModal';
@@ -50,12 +51,69 @@ export const wordTemplateApi = {
   },
 };
 
+export const reportTemplateApi = {
+  async create(data: WordTemplateInterface): Promise<any> {
+    const { file, ...rest } = data;
+    await new ReportTemplate({ ...rest, url: file.href }).save();
+  },
+
+  async delete({ objectId }: { objectId: string }): Promise<any> {
+    await new ReportTemplate({ objectId }).destroy();
+  },
+
+  async edit(record: { objectId?: string; name?: string | number; file?: any }): Promise<any> {
+    const { file, ...rest } = record;
+    await new ReportTemplate({ ...rest, url: file.href }).save();
+  },
+  async findByPagination(currentIndex = 1, pageSize = 10): Promise<any> {
+    const query = new Parse.Query(ReportTemplate).exists('createdAt');
+    const total = await query.count(true);
+    const data = await query
+      .addDescending('updatedAt')
+      .skip((currentIndex - 1) * pageSize)
+      .limit(pageSize)
+      .find();
+    return {
+      data: data.map(ele => ele.toJSON()),
+      total: total,
+      pageSize,
+      current: currentIndex,
+    };
+  },
+};
+
+const downLoadFile = record => {
+  const file = judgeTestReportVersion([TEST_REPORT_VERSION.V1, TEST_REPORT_VERSION.V2])
+    ? record
+    : record.file;
+  const xhr = new XMLHttpRequest();
+  xhr.open('GET', file.url, true);
+  xhr.responseType = 'blob';
+  xhr.onload = () => {
+    if (xhr.status === 200) {
+      // 获取文件blob数据并保存
+      const urlObject = window.URL;
+      const export_blob = new Blob([xhr.response], { type: xhr.getResponseHeader('content-type') });
+      const link = document.createElement('a');
+      link.href = urlObject.createObjectURL(export_blob);
+      link.download = file.name;
+      link.click();
+      // document.body.removeChild(link);
+    }
+  };
+  xhr.send();
+};
+
 const WordTemplate: React.FC = () => {
   const { t } = useI18n();
   const columns = [
     {
       title: t('page.config.wordTemplate.templateName'),
       dataIndex: 'name',
+    },
+    {
+      title: t('common.updateAt'),
+      dataIndex: 'updatedAt',
     },
     {
       title: t('common.action'),
@@ -65,12 +123,21 @@ const WordTemplate: React.FC = () => {
           <Space size="middle">
             <a onClick={() => templateConfig(record)}>{t('common.editor')}</a>
             <a onClick={() => templateDelete(record)}>{t('common.delete')}</a>
+            <a onClick={() => downLoadFile(record)}>{t('common.download')}</a>
           </Space>
         );
       },
       width: 180,
     },
   ];
+
+  const apis = useMemo(
+    () =>
+      judgeTestReportVersion([TEST_REPORT_VERSION.V1, TEST_REPORT_VERSION.V2])
+        ? reportTemplateApi
+        : wordTemplateApi,
+    [],
+  );
 
   const [visible, setVisible] = useState(false);
   const [list, setList] = useState([]);
@@ -82,14 +149,14 @@ const WordTemplate: React.FC = () => {
   const getList = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await wordTemplateApi.findByPagination(currentIndex, pageSize);
+      const res = await apis.findByPagination(currentIndex, pageSize);
       setLoading(false);
       setList(res.data);
       setTotal(res.total);
     } catch (error) {
       setLoading(false);
     }
-  }, [currentIndex, pageSize]);
+  }, [apis, currentIndex, pageSize]);
   const title = useMemo(() => {
     return templateData
       ? t('page.config.wordTemplate.uploadTestReportTemplate')
@@ -111,7 +178,7 @@ const WordTemplate: React.FC = () => {
       content: t('page.config.wordTemplate.areYouSureToDeleteThisTemplate'),
       onOk: async () => {
         try {
-          await wordTemplateApi.delete({ objectId: record.objectId });
+          await apis.delete({ objectId: record.objectId });
           getList();
           message.success(t('common.deleteSuccess'));
           // 删除模板数据后删除文件
@@ -135,10 +202,10 @@ const WordTemplate: React.FC = () => {
     try {
       // 编辑
       if (templateData) {
-        await wordTemplateApi.edit({ ...value, objectId: templateData.objectId });
+        await apis.edit({ ...value, objectId: templateData.objectId });
       } else {
         // 新建
-        await wordTemplateApi.create(value);
+        await apis.create(value);
       }
       getList();
       setVisible(false);
@@ -160,11 +227,13 @@ const WordTemplate: React.FC = () => {
   return (
     <div className={cx('word-template')}>
       <div className={cx('word-template-btn')}>
-        {!loading && list.length === 0 && (
-          <Button onClick={addTemplate} type="primary">
-            {t('page.config.wordTemplate.uploadTemplate')}
-          </Button>
-        )}
+        {!loading &&
+          (judgeTestReportVersion([TEST_REPORT_VERSION.V1, TEST_REPORT_VERSION.V2]) ||
+            list.length === 0) && (
+            <Button onClick={addTemplate} type="primary">
+              {t('page.config.wordTemplate.uploadTemplate')}
+            </Button>
+          )}
       </div>
       {visible && (
         <TemplateModal

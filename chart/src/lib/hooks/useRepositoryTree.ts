@@ -63,7 +63,7 @@ function add(a, b) {
   let res = '';
   // 是否有百分号
   const hasPercent = a.indexOf('%') > -1 || b.indexOf('%') > -1;
-  const toNumber = (c) => {
+  const toNumber = c => {
     if (typeof c === 'string') {
       return Number(c.replace('%', ''));
     }
@@ -128,5 +128,42 @@ export function buildRepositoryStatics(t, statisticsData, treeData, params) {
     JSON.parse(JSON.stringify(params)),
     JSON.parse(JSON.stringify({ ...statisticsData.payload, data })),
   );
+  return { payload: { ...payload, cluster: uniqWith(payload.cluster, isEqual) } };
+}
+
+// 构建新的数据树
+export function buildRepositoryStaticsWithChildren(t, statisticsData, treeData, params) {
+  if (!statisticsData) return statisticsData;
+
+  const repoMap = {} as Record<string, string>;
+  const handleRepo = repo => {
+    const { parentKey, name, key } = repo;
+    if (!parentKey) {
+      repoMap.root = t('views.gantt.default.groupedValue');
+    } else {
+      repoMap[key] = `${parentKey === 'root' ? '' : `${repoMap[parentKey]}/`}${name}`;
+    }
+
+    if (repo.children?.length) {
+      repo.children.map(handleRepo);
+    }
+  };
+
+  handleRepo(treeData);
+  const {
+    payload: { data: _ },
+  } = statisticsData;
+  const _data = JSON.parse(JSON.stringify(_));
+  _data.forEach(i => {
+    Array.isArray(i) &&
+      i.forEach(ii => (ii.name = repoMap[ii.name] || t('views.gantt.default.groupedValue')));
+  });
+  // 计算结果
+  const payload = computeColumn(
+    JSON.parse(JSON.stringify(params)),
+    JSON.parse(JSON.stringify({ ...statisticsData.payload, data: _data })),
+  );
+
+  console.info(repoMap, _data, payload);
   return { payload: { ...payload, cluster: uniqWith(payload.cluster, isEqual) } };
 }

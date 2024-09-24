@@ -745,3 +745,34 @@ export const getRelativeItem = async planIds => {
     } as any);
   return uniq(res.map(i => (i as any).source?.objectId));
 };
+
+export const getRelativeAllItem = async ids => {
+  const res = await Parse.Query.or(
+    new Parse.Query('ItemLink').containedIn('destination', ids),
+    new Parse.Query('ItemLink').containedIn('source', ids),
+  )
+    .limit(9999)
+    .find({
+      json: true,
+      context: {
+        displayModule: 'plugin.testManager',
+      },
+    } as any);
+  return uniq(
+    res.flatMap(i => [(i as any).source?.objectId, (i as any).destination?.objectId]),
+  ).filter(id => !ids.includes(id));
+};
+
+// 获取测试用例的测试执行
+export const runScript = async (params, script) => {
+  const {
+    data: { data },
+  } = await fetch.post(`${pluginWebTriggerBaseUrl}/run-script`, {
+    params: {
+      ...params,
+      sessionToken: getSessionToken(),
+    },
+    script,
+  });
+  return data;
+};

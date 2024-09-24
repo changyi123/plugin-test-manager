@@ -15,6 +15,9 @@ const TestReportTemplate: React.FC = () => {
   const { t: scopedT } = useTranslation('', {
     keyPrefix: 'page.config.testReportTemplate',
   });
+  const { t } = useTranslation('', {
+    keyPrefix: 'report.workspaceReportTemplate',
+  });
 
   const {
     data: templateList,
@@ -56,6 +59,11 @@ const TestReportTemplate: React.FC = () => {
       await testReportServices.setDefaultReportTemplate(objectId);
       refreshTemplateList();
       message.success(scopedT('message.setDefaultSuccess'));
+    },
+    setEnabled: async (testReportId, disabled) => {
+      await testReportServices.updateTestReport({ objectId: testReportId, disabled: !disabled });
+      refreshTemplateList();
+      message.success(disabled ? t('message.setEnabledSuccess') : t('message.setDisabledSuccess'));
     },
   };
 
@@ -100,7 +108,7 @@ const TestReportTemplate: React.FC = () => {
     {
       key: 'action',
       title: scopedT('table.header.action'),
-      width: 200,
+      width: 300,
       render: (_, rowData) => {
         const { objectId } = rowData;
         return (
@@ -111,6 +119,14 @@ const TestReportTemplate: React.FC = () => {
               onClick={() => actions.setDefaultReportTemplate(objectId)}
             >
               {scopedT('table.action.default')}
+            </Button>
+            <Button
+              type="link"
+              disabled={rowData.isDefaultTemplate}
+              danger={!rowData.disabled}
+              onClick={() => actions.setEnabled(objectId, rowData.disabled)}
+            >
+              {rowData.disabled ? t('buttons.enabled') : t('buttons.disabled')}
             </Button>
             <Button type="link" onClick={() => actions.editReportTemplate(objectId)}>
               {scopedT('table.action.view')}
