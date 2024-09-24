@@ -125,6 +125,7 @@
     "overViewData": {
       "label": {
         "testPlan": "Selected test plan",
+        "testExecution": "Selected test execution",
         "workspace": "Belongs to workspace",
         "version": "Selected version",
         "sprint": "Selected sprint"
@@ -166,7 +167,9 @@
     "reportNamePlaceholder": "Please enter a test report name",
     "reportResult": "Test conclusion",
     "choiceTemplate": "select template",
+    "choiceTemplateFile": "select a template file",
     "choiceTemplatePlaceholder": "Please select a template",
+    "choiceTemplateFilePlaceholder": "Please select a template file",
     "range": "Statistical range",
     "required": "Required",
     "exceedLength": "Report name is limited to 250 characters",
@@ -384,6 +387,7 @@
         "allModules": "All Modules"
       },
       "reportTemplateCreator": {
+        "createReportModelTitle": "Step 3：test report info",
         "creatorTitle": "New Report Template",
         "editorTitle": "Edit Test Report Template",
         "nameExisted": "Template name already exists",
@@ -527,7 +531,8 @@
           "TestDefect": "All Defects",
           "parent": "All Parent",
           "relative": "All Bug (Relative)",
-          "planParent": "All Parent"
+          "planParent": "All Parent",
+          "self": "self"
         },
         "title": "Data Rule Configuration",
         "select": {
