@@ -33,7 +33,7 @@ const TemplateForm: React.FC<FormProps> = ({ state, workspace }) => {
       reportTemplateList?.map(d => ({
         ...d,
         label: (
-          <Tooltip title={!d.reportTemplate ? '测试报告未绑定报告模板文件' : ''}>
+          <Tooltip title={!d.reportTemplate ? t('report.reportTemplateTooltip') : ''}>
             <div
               className={cx('option')}
               style={{ display: 'flex', justifyContent: 'space-between' }}

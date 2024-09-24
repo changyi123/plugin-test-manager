@@ -145,6 +145,7 @@ export type BatchDeletePayload = {
   ids: string[];
   /** 跳过更新关联数据 */
   skipDeletedLinkItems: boolean;
+  sessionToken?: string;
 };
 
 /**
@@ -155,6 +156,7 @@ export type BatchDeleteV2Payload = {
   queryParams: CommonTestEntityQueryPayload;
   /** 跳过更新关联数据 */
   skipDeletedLinkItems: boolean;
+  sessionToken?: string;
 };
 
 /**

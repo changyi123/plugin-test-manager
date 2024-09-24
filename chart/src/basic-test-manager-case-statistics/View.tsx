@@ -129,8 +129,6 @@ const View: React.FC<ViewProps> = ({
     chartKey,
   );
 
-  new URLSearchParams(window.location.search).get('workspaceKey');
-
   const { loading: treeLoading, data: treeData } = useRepositoryTree(workspace);
   // // 初始化测试管理模块树
   const url = `${PROXIMA_GATEWAY}/parse/api/report/basic-table-chart/search`;

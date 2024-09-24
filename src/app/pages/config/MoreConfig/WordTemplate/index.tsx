@@ -82,6 +82,28 @@ export const reportTemplateApi = {
   },
 };
 
+const downLoadFile = record => {
+  const file = judgeTestReportVersion([TEST_REPORT_VERSION.V1, TEST_REPORT_VERSION.V2])
+    ? record
+    : record.file;
+  const xhr = new XMLHttpRequest();
+  xhr.open('GET', file.url, true);
+  xhr.responseType = 'blob';
+  xhr.onload = () => {
+    if (xhr.status === 200) {
+      // 获取文件blob数据并保存
+      const urlObject = window.URL;
+      const export_blob = new Blob([xhr.response], { type: xhr.getResponseHeader('content-type') });
+      const link = document.createElement('a');
+      link.href = urlObject.createObjectURL(export_blob);
+      link.download = file.name;
+      link.click();
+      // document.body.removeChild(link);
+    }
+  };
+  xhr.send();
+};
+
 const WordTemplate: React.FC = () => {
   const { t } = useI18n();
   const columns = [
@@ -90,7 +112,7 @@ const WordTemplate: React.FC = () => {
       dataIndex: 'name',
     },
     {
-      title: '更新时间',
+      title: t('common.updateAt'),
       dataIndex: 'updatedAt',
     },
     {
@@ -101,6 +123,7 @@ const WordTemplate: React.FC = () => {
           <Space size="middle">
             <a onClick={() => templateConfig(record)}>{t('common.editor')}</a>
             <a onClick={() => templateDelete(record)}>{t('common.delete')}</a>
+            <a onClick={() => downLoadFile(record)}>{t('common.download')}</a>
           </Space>
         );
       },

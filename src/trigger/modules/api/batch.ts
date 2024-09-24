@@ -76,10 +76,10 @@ export const batchCreateTestCase = async () => {
 export const batchDelete = async () => {
   try {
     const {
-      body: { ids },
+      body: { ids, sessionToken },
     } = getReqInfoFromVMRuntime<BatchDeletePayload>();
     if (!Array.isArray(ids)) throwArgumentError('ids', 'objectId[]');
-    const res = await batchDeleteItems(ids);
+    const res = await batchDeleteItems(ids, sessionToken);
     const errorItems = res?.filter(i => i.status !== 'success');
     if (errorItems?.length) {
       // 有错误数据
@@ -96,10 +96,13 @@ export const batchDelete = async () => {
 export const batchDeleteV2 = async () => {
   try {
     const {
-      body: { queryParams },
+      body: { queryParams, sessionToken },
     } = getReqInfoFromVMRuntime<BatchDeleteV2Payload>();
     const caseList = await getAllEntity(queryParams, ['id', 'name', 'key']);
-    const res = await batchDeleteItems(caseList.map(item => item.objectId));
+    const res = await batchDeleteItems(
+      caseList.map(item => item.objectId),
+      sessionToken,
+    );
     const errorItems = res?.filter(i => i.status !== 'success');
     if (errorItems?.length) {
       // 有错误数据

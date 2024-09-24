@@ -169,6 +169,7 @@
     "reportResult": "测试结论",
     "choiceTemplate": "选择模板",
     "choiceTemplateFile": "选择模板文件",
+    "reportTemplateTooltip": "测试报告未绑定报告模板文件",
     "choiceTemplatePlaceholder": "请选择模板",
     "choiceTemplateFilePlaceholder": "请选择模板文件",
     "range": "统计范围",

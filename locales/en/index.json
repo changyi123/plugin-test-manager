@@ -168,6 +168,7 @@
     "reportResult": "Test conclusion",
     "choiceTemplate": "select template",
     "choiceTemplateFile": "select a template file",
+    "reportTemplateTooltip": "Test report not bound to report template file",
     "choiceTemplatePlaceholder": "Please select a template",
     "choiceTemplateFilePlaceholder": "Please select a template file",
     "range": "Statistical range",

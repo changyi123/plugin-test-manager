@@ -139,6 +139,7 @@
     "reportResult": "Заключение теста",
     "choiceTemplate": "выбрать шаблон",
     "choiceTemplateFile": "Выберите файл шаблона",
+    "reportTemplateTooltip": "Отчет о тестировании не привязан к файлу шаблона отчета",
     "choiceTemplatePlaceholder": "Пожалуйста, выберите шаблон",
     "choiceTemplateFilePlaceholder": "Выберите файл шаблона",
     "range": "Статистический диапазон",
