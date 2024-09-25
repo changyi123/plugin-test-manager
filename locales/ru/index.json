@@ -119,7 +119,9 @@
     "runNum": "выполнение теста",
     "addTestExecution": "Добавить выполнение теста",
     "curWorkspace": "Текущая рабочая область",
-    "methodNotSupport": "Этот метод не поддерживает сортировку, вместо этого используйте метод getTestEntitiesByRelationWithOrder"
+    "methodNotSupport": "Этот метод не поддерживает сортировку, вместо этого используйте метод getTestEntitiesByRelationWithOrder",
+    "stepStatusNoMatch": "Статус шага не соответствует",
+    "descriptionRequire": "Сначала необходимо ввести описание результата"
   },
   "report": {
     "overViewData": {

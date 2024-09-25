@@ -6,7 +6,7 @@ import { useMemoizedFn, useRequest } from 'ahooks';
 import { Button, message, notification, Tooltip } from 'antd';
 import { TestLinkType, TestType } from 'common/constant';
 import dayjs from 'dayjs';
-import { isEmpty, isEqual, omit, pick } from 'lodash';
+import { isEmpty, isEqual, keyBy, omit, pick } from 'lodash';
 import React, { useCallback, useEffect, useState } from 'react';
 
 import RenderRepository from '@/components/business/RenderRepository';
@@ -30,11 +30,13 @@ import {
 } from '@/lib/api/item';
 import { useCurrentUser } from '@/lib/api/user';
 import { getCurrentUserSetting, saveUserSetting } from '@/lib/api/userSetting';
+import { getAppEnv } from '@/lib/appEnv';
 import { TestCaseStatusModel, TestRunDesigneeModel, TestRunExecutorModel } from '@/lib/constants';
 import { useBaseAction } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import { useUserCellUserDataProp } from '@/lib/hooks/useProxima';
 import { useCanExecuteTestRunIdSequence, useTestRunActionAuth } from '@/lib/hooks/useTest';
+import { checkRunStatus } from '@/lib/utils/checkRunStatus';
 import { actionConfirm, openItemViewScreen } from '@/lib/utils/helper';
 import { getTestCaseStatusModelValue, handleCustomerSelector } from '@/lib/utils/iql';
 import { getRepositoryQuery } from '@/lib/utils/tree';
@@ -98,7 +100,8 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   } = usePageContext();
   const { t } = useI18n();
   const proxima = createProximaSdk();
-  const { getCreatePermission, testCaseFieldKeys } = useBaseAction();
+  const { getCreatePermission, testCaseFieldKeys, globalTestConfig } = useBaseAction();
+
   const actionRef = React.useRef<BusinessTableActionType>();
   const testRunModalActionRef = React.useRef<TestRunModalActionType>();
   const userData = useUserCellUserDataProp(workspaceKey);
@@ -109,6 +112,10 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   const [tableLoading, setTableLoading] = useState(false);
   const [hasRowSelected, setHasRowSelected] = useState(false);
   const loading = loadingFromParentElement || tableLoading;
+
+  const statusesConfig = React.useMemo(() => {
+    return keyBy(globalTestConfig?.statuses ?? [], 'key');
+  }, [globalTestConfig]);
 
   React.useEffect(() => {
     registerRefreshMethod({
@@ -358,6 +365,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         'executeCount',
         'executeTime',
         'status',
+        'runDetail',
       ],
     });
 
@@ -376,6 +384,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           'status',
           'executeCount',
           'executeTime',
+          'runDetail',
         ]);
 
         return {
@@ -663,6 +672,16 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
 
   const handleTestRunStatusChange = useCallback(
     async (testRun, status) => {
+      const checkStep = getAppEnv('CHECK_STEP_FOR_CHANGE_RUN_STATUS');
+
+      if (checkStep) {
+        // 校验执行步骤状态、结果描述
+        const flag = checkRunStatus(testRun, status, statusesConfig, t);
+        if (!flag) {
+          return;
+        }
+      }
+
       // 更新测试执行状态
       // 更新测试执行对应的测试用例状态
       const res = await updateTestStatus({
@@ -677,7 +696,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       actionRef.current.refresh();
       mutateStatusEvent.emit('refreshExecutionStatus');
     },
-    [mutateStatusEvent, selectedTestPlan?.objectId],
+    [mutateStatusEvent, selectedTestPlan?.objectId, statusesConfig, t],
   );
 
   /** 根据列表记录删除测试执行 */
@@ -772,7 +791,8 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         },
         shouldCellUpdate: (record, prevRecord) =>
           !isEqual(record.designee, prevRecord.designee) ||
-          !isEqual(record.runStatus, prevRecord.runStatus),
+          !isEqual(record.runStatus, prevRecord.runStatus) ||
+          !isEqual(record.runDetail, prevRecord.runDetail),
         width: 200,
         render(_, record) {
           const { result: enabled } = canExecuteTestRun(record.designee);

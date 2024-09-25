@@ -32,6 +32,7 @@ import { getPluginWebTriggerBaseUrl, getSessionToken } from '../utils/helper';
 import { SearchSelectors, selectorToIql } from '../utils/iql';
 import { compactStepModel } from '../utils/modelTransfer';
 import { createItemLink, deleteItemLink, getExistedItemLinks, IItemLink } from './runs';
+import { getAppEnv } from '../appEnv';
 
 const pluginWebTriggerBaseUrl = getPluginWebTriggerBaseUrl();
 
@@ -471,8 +472,10 @@ export const updateTestRunDetail = async (
       },
     });
 
+    // 中关村需求，改变测试执行状态时校验执行的步骤状态，不需要改动步骤时联动更新执行状态
+    const checkStep = getAppEnv('CHECK_STEP_FOR_CHANGE_RUN_STATUS');
     // 初始化 step 不更新测试执行状态
-    if (!opts.initialization) {
+    if (!opts.initialization && !checkStep) {
       // 有一个失败
       const hasFail = steps.some(item => item.status === 'FAILED');
       // 有一个正在执行
