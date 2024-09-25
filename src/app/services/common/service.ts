@@ -5,7 +5,7 @@ const pluginWebTriggerBaseUrl = getPluginWebTriggerBaseUrl();
 
 /** 发送消息通知 */
 export const sendMessage = async (params: {
-  useTemplate: 'testReport';
+  useTemplate: 'testReport' | 'testReportV2';
   templatePayload: Record<string, any>;
   postType: ('internal' | 'email')[];
   users: string[];
