@@ -699,6 +699,7 @@ export const batchCopyTestCaseV2 = async () => {
     const copyItems = await batchCreateItems(needCreateItems as any, fields, sessionToken);
     const result = buildResponse(copyItems);
     if (result.status === 'ok') {
+      if (!copyItems?.length) return result;
       const [copyItem] = copyItems;
       const affectWorksapceName = await getParseQuery(false, 'Workspace')
         .equalTo('objectId', copyItem.workspace.objectId)
