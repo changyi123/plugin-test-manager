@@ -778,11 +778,15 @@ const TestReport = Parse.Object.extend('test_manager_TestReport', {
       throw new Error(t('page.reportTemplateCreator.nameExisted'));
     }
 
-    const { name, workspace, isDefaultTemplate, isGlobalTemplate, templateConfig } = Object.assign(
-      {},
-      this,
-      reportTemplateParams,
-    );
+    const {
+      name,
+      workspace,
+      isDefaultTemplate,
+      isGlobalTemplate,
+      templateConfig,
+      validateScript,
+      reportTemplate,
+    } = Object.assign({}, this, reportTemplateParams);
 
     // 创建 chartGroup object
     const chartGroupObject = await new ChartGroup({
@@ -801,6 +805,8 @@ const TestReport = Parse.Object.extend('test_manager_TestReport', {
       chartGroup: chartGroupObject,
       workspace: typeof workspace === 'string' ? Workspace.createWithoutData(workspace) : workspace,
       createdBy: Parse.User.current(),
+      reportTemplate,
+      validateScript,
     });
 
     // 创建 report template
