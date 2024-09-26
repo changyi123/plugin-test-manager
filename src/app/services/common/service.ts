@@ -9,6 +9,7 @@ export const sendMessage = async (params: {
   templatePayload: Record<string, any>;
   postType: ('internal' | 'email')[];
   users: string[];
+  groups: string[];
   creatUser?: string;
 }) => {
   return fetch.$post(`${pluginWebTriggerBaseUrl}/api-send-message`, params);

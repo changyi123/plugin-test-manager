@@ -58,12 +58,22 @@ const SendReportModal: React.FC<{
   const sendMessage = useMemoizedFn(async () => {
     if (!postType.length) return message.error(t('message.sendTypeEmpty'));
     if (!assigneeSelectorValue.length) return message.error(t('message.sendToEmpty'));
+    const groups = [];
+    const users = [];
+    assigneeSelectorValue.forEach(i => {
+      if (i.userGroupName) {
+        groups.push(i.id);
+      } else {
+        users.push(i.value);
+      }
+    });
 
     await sendMessageMutation({
       postType,
       useTemplate: judgeTestReportVersion(TEST_REPORT_VERSION.V2) ? 'testReportV2' : 'testReport',
       creatUser: currentUser.objectId,
-      users: assigneeSelectorValue.map(item => item.value),
+      users,
+      groups,
       templatePayload: {
         testReportId: testReportIdDataRef.current,
       },
