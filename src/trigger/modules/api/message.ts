@@ -19,6 +19,11 @@ const ReportColorMapping = {
   Finished: '#ffaa0c',
 };
 
+const typeMap = {
+  internal: 'internal',
+  email: global.env.EMAIL_ALIAS || 'email',
+};
+
 // 消息模板
 const MessageTemplate = {
   testReport: {
@@ -182,9 +187,10 @@ export const sendMessage = async () => {
       payload: {
         inputParameters: {
           ...payload,
-          postType: [type],
+          postType: [typeMap[type]],
           roles: body.roles,
           users: body.users,
+          groups: body.groups,
           creatUser: body.creatUser,
         },
       },
