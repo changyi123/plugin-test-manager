@@ -1,0 +1,15 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "jsx": "react",
+    "baseUrl": "./",
+    "outDir": "./",
+    "isolatedModules": false,
+    "paths": {
+      "@/*": ["src/*"],
+      "icons": ["src/assets/icons"],
+      "lib/*": ["src/lib/*"]
+    }
+  },
+  "include": ["src/**/*", "typings.d.ts"]
+}

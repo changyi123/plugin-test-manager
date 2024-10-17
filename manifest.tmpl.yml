@@ -2,7 +2,7 @@ app:
   key: test_manager
   uuid: bf73e61c-e15a-4461-a1f7-f940c2009332
   name: test_manager
-  version: "4.23.4"
+  version: "4.26.0-alpha"
 modules:
   webtrigger:
     # TODO: Debug 使用，生产环境禁止调用下面的 trigger
@@ -411,6 +411,11 @@ modules:
       name: 测试管理基础字段类型（字符串）
       description: 测试管理基础字段类型（勿删改）
       dataType: text
+    - key: test_detail
+      name: 测试管理内置字段类型-用例详情
+      description: 测试管理内置字段-用例详情（勿删改）
+      dataType: text
+      resource: test_detail
   proxima:CustomField:
     - key: r_test_manager_reportTemplate
       name: test_report_template
@@ -496,7 +501,7 @@ modules:
     - key: detail
       name: test_manager_detail
       description: 测试管理内置字段-测试用例详情（勿删改）
-      type: Text
+      type: _self:test_detail
     - key: runDetail
       name: test_manager_runDetail
       description: 测试管理内置字段-测试执行详情（勿删改）
@@ -826,3 +831,5 @@ resources:
     path: ./src/dist
   - key: combined-components
     path: ./chart/dist/combined-components
+  - key: test_detail
+    path: ./fields/build/test-detail
