@@ -26,7 +26,6 @@ cd ..
 cd fields
 yarn install --registry=https://registry.npmmirror.com
 yarn build --env PROXIMA_VERSION_TAG="${tag}"
-cp dist/combined-components.css dist/combined-components
 cd ..
 
 buildZip() {
