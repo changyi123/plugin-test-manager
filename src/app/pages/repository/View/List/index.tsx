@@ -5,6 +5,7 @@ import { Button, notification, Select } from 'antd';
 import React, { useCallback, useMemo, useRef } from 'react';
 
 import CreatePermission from '@/components/business/Contianer/CreatePermission';
+import TestCaseFilterGroup from '@/components/business/TestCaseFilterGroup';
 import { SystemFieldKeys } from '@/components/common/BusinessTable/hook';
 import FilterSearch from '@/components/common/FilterSearch';
 import { getFilterFields } from '@/components/common/FilterSearch/utils';
@@ -52,8 +53,11 @@ const ListView: React.FC<ViewComponentProps> = ({
   const [groupedMode, setGroupedMode] = React.useState<GroupedMode>('all');
   const [tableLoading, setTableLoading] = React.useState(false);
 
+  const [selectFilterView, setSelectFilterView] = React.useState();
+
   const workspaceKey = useSDK()?.context?.env?.WORKSPACE_KEY;
   const queryLoading = useRef(false);
+  const filterSearchRef = useRef<any>();
   const selectNodeKey = selectedNode?.key;
 
   // 事项数据更新后刷新列表
@@ -166,6 +170,12 @@ const ListView: React.FC<ViewComponentProps> = ({
     }
   }, [groupedMode]);
 
+  useUpdateEffect(() => {
+    const selector = (selectFilterView as any)?.selector || {};
+    filterSearchRef.current.updateSelectors?.(selector);
+    handleSelectorSearch([selector, {}, '']);
+  }, [selectFilterView]);
+
   // const handleDataChange = React.useCallback(async () => {
   //   const treeData = await onFolderTreeChange();
   //   const selectedFolder = getTreeNodeByKey(treeData, selectNodeKey);
@@ -218,16 +228,27 @@ const ListView: React.FC<ViewComponentProps> = ({
   return (
     <div className={cx('list-view')}>
       <div className={cx('breadcrumb-container')}>
-        <OverflowTooltip title={breadcrumbs.join('>')} className={cx('breadcrumb')}>
-          <div>
-            {breadcrumbs.map((title, index) => (
-              <span className={cx(index !== breadcrumbs.length - 1 && 'secondary')} key={index}>
-                {title}
-                {index !== breadcrumbs.length - 1 && <span className={cx('separator')}>&gt;</span>}
-              </span>
-            ))}
-          </div>
-        </OverflowTooltip>
+        <div className={cx('left-box')}>
+          <OverflowTooltip title={breadcrumbs.join('>')} className={cx('breadcrumb')}>
+            <div>
+              {breadcrumbs.map((title, index) => (
+                <span className={cx(index !== breadcrumbs.length - 1 && 'secondary')} key={index}>
+                  {title}
+                  {index !== breadcrumbs.length - 1 && (
+                    <span className={cx('separator')}>&gt;</span>
+                  )}
+                </span>
+              ))}
+            </div>
+          </OverflowTooltip>
+          ：
+          <TestCaseFilterGroup
+            selectFilterView={selectFilterView}
+            setSelectFilterView={setSelectFilterView}
+            workspaceKey={workspaceKey}
+          />
+        </div>
+
         <div className={cx('actions')}>
           <GroupModeSelector mode={groupedMode} onChange={mode => setGroupedMode(mode)} />
           <Button onClick={() => toggleSelection()}>
@@ -255,6 +276,7 @@ const ListView: React.FC<ViewComponentProps> = ({
           fields={getFilterFields([].concat(SystemFieldKeys, testCaseFieldKeys))}
           extendFields={getExtendFields(t)?.filter(field => field.key === RepositoryModel)}
           testType={TestType.Case}
+          ref={filterSearchRef}
         />
         <Table
           actionRef={tableActionRef}

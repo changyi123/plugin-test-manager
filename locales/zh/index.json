@@ -669,6 +669,32 @@
             "goBack": "返回列表页"
           },
           "hasExistedError": "当前脑图数据存在错误，请修正后重试"
+        },
+        "filterGroup": {
+          "defaultName": "分组全部用例",
+          "dropdown": {
+            "addFilter": "新增筛选条件组",
+            "deleteTitle": "删除筛选条件组",
+            "deleteContent": "是否删除筛选条件组"
+          },
+          "modal": {
+            "addTitle": "新增筛选条件组",
+            "editTitle": "编辑筛选条件组",
+            "tip": "筛选条件在测试用例模块全局生效，无论是在哪个文件夹下都可切换该筛选条件",
+            "name": "名称",
+            "nameDuplicate": "名称重复",
+            "namePlaceholder": "请输入名称",
+            "nameLength": "名称, 长度{{min}}-{{max}}个字符",
+            "nameVerifySpace": "首位或末尾存在空格",
+            "filterCondition": "筛选条件",
+            "permission": "权限",
+            "publicPermission": "公开",
+            "publicPermissionTip": "拥有测试用例菜单的人均可查看",
+            "privatePermission": "私有",
+            "privatePermissionTip": "仅自己可查看",
+            "addSuccess": "创建成功",
+            "editSuccess": "修改成功"
+          }
         }
       }
     },

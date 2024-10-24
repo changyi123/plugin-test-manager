@@ -34,3 +34,5 @@ export { zgcTestReportInfo } from './modules/extension/zgc';
 export { initTestConfig } from './modules/api/config';
 
 export { linkTestExecuteToTestPlan } from './modules/batch/execution';
+
+export { checkFilterGroupName } from './modules/filterGroup';
