@@ -210,7 +210,7 @@ const TestPlanSelector: React.FC<{
       const list = await getCaseViewFilter(workspaceKey, searchValue, currentUser);
 
       list.forEach(item => {
-        if (!isAdmin && item.createdBy?.object !== currentUser.id) {
+        if (!isAdmin && item.createdBy?.objectId !== currentUser.id) {
           item.disabled = true;
         }
       });

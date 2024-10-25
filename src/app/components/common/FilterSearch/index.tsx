@@ -151,7 +151,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
   const [search, setSearch] = useState('');
   const { globalTestConfig, testPlanFieldKeys, testCaseFieldKeys, testExecutionFieldKeys } =
     useBaseAction();
-  const [selectors, setSelectorsState] = useState<Selectors>(() => initSelector || {});
+  const [selectors, setSelectorsState] = useState<Selectors>();
   const currentSelectors = useRef<Selectors>({});
   const [fieldsNameRequestTag, setFieldsNameRequestTag] = React.useState(1);
   const { fieldsDataMap, openFilterPopover } = useOpenFilterPopover(fields);
@@ -221,9 +221,11 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
           ...selectors,
         }),
       );
+    } else if (initSelector) {
+      setSelectors(handleDataSelector(initSelector));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [defaultSelectors]);
+  }, [defaultSelectors, initSelector]);
 
   const customFieldsToken = customFields?.map(i => i.key).toString();
 
