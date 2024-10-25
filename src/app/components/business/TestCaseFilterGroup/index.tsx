@@ -242,11 +242,11 @@ const TestPlanSelector: React.FC<{
 
       const isCreate = !values.objectId;
       if (isCreate) {
-        view = new FilterGroup({ objectId: values.objectId });
-        obj.updatedBy = Parse.User.createWithoutData(currentUser.id);
-      } else {
         view = new FilterGroup();
         obj.createdBy = Parse.User.createWithoutData(currentUser.id);
+      } else {
+        view = new FilterGroup({ objectId: values.objectId });
+        obj.updatedBy = Parse.User.createWithoutData(currentUser.id);
       }
 
       const { name, selector, permissionType } = values;
