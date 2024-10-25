@@ -120,7 +120,8 @@
     "curWorkspace": "当前空间",
     "methodNotSupport": "该方法不支持排序使用,请使用 getTestEntitiesByRelationWithOrder 方法替代",
     "stepStatusNoMatch": "步骤状态不符合",
-    "descriptionRequire": "必须先输入结果描述"
+    "descriptionRequire": "必须先输入结果描述",
+    "objectNotFound": "该数据已被删除，请刷新页面"
   },
   "report": {
     "overViewData": {

@@ -295,7 +295,7 @@ const TestPlanSelector: React.FC<{
   const deleteFilterView = async view => {
     Modal.confirm({
       title: t('page.repository.view.filterGroup.dropdown.deleteTitle'),
-      content: `${t('page.repository.view.filterGroup.dropdown.deleteContent')}?`,
+      content: `${t('page.repository.view.filterGroup.dropdown.deleteContent')}【${view.name}】?`,
       okType: 'danger',
       onOk: async () => {
         try {
@@ -306,8 +306,12 @@ const TestPlanSelector: React.FC<{
           if (selectFilterView?.objectId === view.objectId) {
             setSelectFilterView();
           }
-        } catch (err) {
-          message.error(err.message);
+        } catch (error) {
+          if (error?.message?.indexOf('Object not found') > -1) {
+            message.error(t('common.objectNotFound'));
+          } else {
+            message.error(error.message);
+          }
         }
       },
     });

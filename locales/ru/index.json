@@ -121,7 +121,8 @@
     "curWorkspace": "Текущая рабочая область",
     "methodNotSupport": "Этот метод не поддерживает сортировку, вместо этого используйте метод getTestEntitiesByRelationWithOrder",
     "stepStatusNoMatch": "Статус шага не соответствует",
-    "descriptionRequire": "Сначала необходимо ввести описание результата"
+    "descriptionRequire": "Сначала необходимо ввести описание результата",
+    "objectNotFound": "Данные удалены, обновите страницу"
   },
   "report": {
     "overViewData": {
