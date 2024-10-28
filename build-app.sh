@@ -22,6 +22,12 @@ yarn build --env PROXIMA_VERSION_TAG="${tag}"
 cp dist/combined-components.css dist/combined-components
 cd ..
 
+# 构建fields
+cd fields
+yarn install --registry=https://registry.npmmirror.com
+yarn build --env PROXIMA_VERSION_TAG="${tag}"
+cd ..
+
 buildZip() {
     cd "${rootDir}"
     # dev 包构建
