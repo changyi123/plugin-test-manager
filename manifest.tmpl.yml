@@ -2,7 +2,7 @@ app:
   key: test_manager
   uuid: bf73e61c-e15a-4461-a1f7-f940c2009332
   name: test_manager
-  version: "4.23.4"
+  version: "4.27.0"
 modules:
   webtrigger:
     # TODO: Debug 使用，生产环境禁止调用下面的 trigger
@@ -119,6 +119,8 @@ modules:
       function: run-script-function
     - key: validate-duplicate-name
       function: test-manager-duplicate-name-function
+    - key: check-filter-group-name
+      function: test-manager-check-filter-group-name-function
 
   trigger:
     - key: test-manager-initial-script-install
@@ -291,6 +293,9 @@ modules:
 
     - key: extension-weichai-file-encrypt-function
       handler: api.weichaiFileEncrypt
+
+    - key: test-manager-check-filter-group-name-function
+      handler: api.checkFilterGroupName
 
     - key: init-test-config-function
       handler: api.initTestConfig
@@ -760,6 +765,22 @@ tables:
       # 测试报告导出校验脚本
       validateScript:
         type: String
+  - className: FilterGroup
+    fields:
+      name:
+        type: String
+      selector:
+        type: Object
+      workspaceKey:
+        type: String
+      permissionType:
+        type: Number
+      createdBy:
+        type: Pointer
+        targetClass: _User
+      updatedBy:
+        type: Pointer
+        targetClass: _User
 locales:
   zh-CN:
     test-manager-test-detail:

@@ -16,6 +16,7 @@ interface SelectorTagProps {
   onClick: (data: SelectCase) => void;
   active?: boolean;
   showCloseIcon?: boolean;
+  selectTagId?: string;
 }
 const SelectorTag: React.FC<SelectorTagProps> = ({
   data,
@@ -23,6 +24,7 @@ const SelectorTag: React.FC<SelectorTagProps> = ({
   onClick,
   active,
   showCloseIcon = true,
+  selectTagId = 'filter-search-selector',
 }) => {
   const { t } = useI18n();
   const { fieldName, value, component, fieldId, expression: _expression } = data;
@@ -65,7 +67,7 @@ const SelectorTag: React.FC<SelectorTagProps> = ({
     <div className={cx('search-criteria', { active })}>
       {/* 挂载popover的节点 */}
       <span
-        id={`filter-search-selector-${fieldId}`}
+        id={`${selectTagId}-${fieldId}`}
         className={cx('test-manager-filter-popover-transparency')}
       ></span>
       <div className={cx('search-tag')} onClick={() => onClick(data)}>

@@ -570,3 +570,14 @@ export const UserTypeSelectorFieldKeys = ['test_designee', 'test_executor'];
 export const ItemUserTypeComponentKey = ['Assignee', 'createdBy', 'updatedBy'];
 
 export const MaxInputNameLength = 250;
+
+export enum USER_ROLE {
+  SUPER_ADMIN = 'superAdmin',
+  ADMIN = 'admin',
+}
+
+// 用例分组权限
+export const groupPermission = {
+  public: 1, // 公共
+  private: 2, // 私有
+};

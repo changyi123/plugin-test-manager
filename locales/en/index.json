@@ -121,7 +121,8 @@
     "curWorkspace": "Current workspace",
     "methodNotSupport": "This method does not support sorting. Please use the getTestEntitiesByRelationWithOrder method instead",
     "stepStatusNoMatch": "Step status does not match",
-    "descriptionRequire": "You must enter a result description first"
+    "descriptionRequire": "You must enter a result description first",
+    "objectNotFound": "The data has been deleted, please refresh the page"
   },
   "report": {
     "overViewData": {
@@ -748,6 +749,32 @@
             "goBack": "Return to list page"
           },
           "hasExistedError": "The current mind map data has errors. Please fix it and try again."
+        },
+        "filterGroup": {
+          "defaultName": "Group all use cases",
+          "dropdown": {
+            "addFilter": "Add filter view",
+            "deleteTitle": "Deleting a filter group",
+            "deleteContent": "Whether to delete the filter condition group"
+          },
+          "modal": {
+            "addTitle": "Add a new filter group",
+            "editTitle": "Edit filter group",
+            "tip": "The filter condition is effective globally in the test case module, and can be switched in any folder",
+            "name": "Name",
+            "nameDuplicate": "Duplicate name",
+            "namePlaceholder": "Please enter a name",
+            "nameLength": "Name, length {{min}}-{{max}} characters",
+            "nameVerifySpace": "There is a leading or trailing space",
+            "filterCondition": "Filters",
+            "permission": "Permissions",
+            "publicPermission": "Public",
+            "publicPermissionTip": "Anyone with a test case menu can view",
+            "privatePermission": "Private",
+            "privatePermissionTip": "Only visible to me",
+            "addSuccess": "Create Success",
+            "editSuccess": "Modification successful"
+          }
         }
       }
     },

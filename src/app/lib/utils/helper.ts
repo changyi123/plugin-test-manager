@@ -3,7 +3,7 @@ import { Modal } from 'antd';
 import { findKey, isEqual, noop, startsWith } from 'lodash';
 
 // import { Modal } from 'antd';
-import { STORAGE_PREFIX_KEY } from '../constants';
+import { STORAGE_PREFIX_KEY, USER_ROLE } from '../constants';
 
 /**
  * 获取 team api 地址
@@ -187,4 +187,12 @@ export const toPointer = (className, objectId) => ({
 /** 获取token */
 export const getSessionToken = () => {
   return global?.QiankunProps.context?.env?.sessionToken ?? '';
+};
+
+export const isSuperAdmin = roles => {
+  if (!roles?.length) {
+    return false;
+  }
+
+  return roles.some(role => [USER_ROLE.ADMIN, USER_ROLE.SUPER_ADMIN].includes(role.name));
 };

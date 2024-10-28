@@ -29,6 +29,7 @@ export const ReportTemplate = Parse.Object.extend(`ReportTemplate`);
 export const TestRelation = Parse.Object.extend(`${appKey}_TestRelation`);
 export const UserSetting = Parse.Object.extend(`${appKey}_UserSetting`);
 export const TestExecution = Parse.Object.extend(`${appKey}_TestExecution`);
+export const FilterGroup = Parse.Object.extend(`${appKey}_FilterGroup`);
 
 export { default as TestReport } from './testReport/model';
 export type { TestReportModelType } from './testReport/model';

@@ -1,0 +1,133 @@
+:root {
+  .filter-selector-container {
+    position: relative;
+    cursor: pointer;
+    max-width: 50%;
+
+    .title {
+      display: flex;
+      align-items: center;
+      color: #1e2a3d;
+      line-height: 26px;
+
+      &:hover {
+        .name {
+          color: #0c62ff;
+        }
+        .icon svg path {
+          fill: #0c62ff;
+        }
+      }
+
+      .icon {
+        margin-left: 8px;
+
+        svg {
+          width: 16px;
+          height: 16px;
+        }
+      }
+    }
+  }
+
+  .selector-box {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 260px;
+    background-color: #fff;
+    box-shadow: 0 0 2px 0px #beb7b7;
+    border-radius: 4px;
+    margin-top: 8px;
+    z-index: 1;
+
+    .search-box {
+      :global {
+        .ant-input-affix-wrapper {
+          line-height: 34px !important;
+          border: none !important;
+
+          &.ant-input-affix-wrapper-focused {
+            border: none !important;
+            box-shadow: none !important;
+          }
+
+          &:focus {
+            border: none !important;
+            box-shadow: none !important;
+          }
+        }
+      }
+    }
+
+    .view-list {
+      overflow: auto;
+      padding: 4px;
+      max-height: 320px;
+      border-top: 1px solid #f1f2f4;
+      border-bottom: 1px solid #f1f2f4;
+
+      .view-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-radius: 4px;
+        &:hover {
+          background-color: #f5f6f8;
+        }
+
+        &.actived {
+          background-color: #e6f3ff;
+          color: #091940;
+        }
+
+        &:hover {
+          .view-actions {
+            display: block;
+          }
+        }
+      }
+
+      .view-name {
+        padding: 8px;
+        font-size: 14px;
+        line-height: 20px;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        white-space: nowrap;
+      }
+      .view-actions {
+        display: none;
+        margin-right: 14px;
+        flex-shrink: 0;
+        flex-grow: 0;
+      }
+    }
+
+    .add-filter {
+      display: flex;
+      align-items: center;
+      padding: 8px 16px;
+      font-size: 14px;
+      line-height: 20px;
+      cursor: pointer;
+      color: #0c62ff;
+      gap: 4px;
+      &-icon {
+        fill: #0c62ff;
+      }
+    }
+  }
+  .permission-desc {
+    color: #848c9f;
+  }
+
+  .title-wrapper {
+    display: flex;
+    align-items: center;
+  }
+
+  .filter-search-box {
+    border-width: 0px !important;
+  }
+}

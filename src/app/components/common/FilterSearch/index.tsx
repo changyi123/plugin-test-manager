@@ -61,6 +61,9 @@ interface FilterSearchProps {
   showDefaultRange?: boolean;
   // 默认筛选iql
   defaultIql?: string;
+  hiddenSearchInput?: boolean; // 是否隐藏搜索框
+  initSelector?: Selectors; // 初始selector
+  selectTagId?: string; // 筛选id
 }
 
 interface FilterRefMethod {
@@ -126,6 +129,9 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
     workspaceKey,
     showDefaultRange,
     defaultIql: defaultIqlProp,
+    hiddenSearchInput,
+    initSelector,
+    selectTagId = 'filter-search-selector',
   },
   ref,
 ) => {
@@ -145,7 +151,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
   const [search, setSearch] = useState('');
   const { globalTestConfig, testPlanFieldKeys, testCaseFieldKeys, testExecutionFieldKeys } =
     useBaseAction();
-  const [selectors, setSelectorsState] = useState<Selectors>({});
+  const [selectors, setSelectorsState] = useState<Selectors>();
   const currentSelectors = useRef<Selectors>({});
   const [fieldsNameRequestTag, setFieldsNameRequestTag] = React.useState(1);
   const { fieldsDataMap, openFilterPopover } = useOpenFilterPopover(fields);
@@ -215,9 +221,11 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
           ...selectors,
         }),
       );
+    } else if (initSelector) {
+      setSelectors(handleDataSelector(initSelector));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [defaultSelectors]);
+  }, [defaultSelectors, initSelector]);
 
   const customFieldsToken = customFields?.map(i => i.key).toString();
 
@@ -268,6 +276,9 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
     reset: () => {
       setSearch('');
       setSelectors(handleDataSelector({}));
+    },
+    updateSelectors: newSelectors => {
+      setSelectors(handleDataSelector(newSelectors));
     },
   }));
 
@@ -487,14 +498,14 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
         if (filterId && filterDetail) {
           const props = getFieldValueProps(
             filterDetail,
-            document.querySelector(`#filter-search-selector-${filterId}`),
+            document.querySelector(`#${selectTagId}-${filterId}`),
           );
           // 打开值的选择器
           openFieldValuePopover(props as any);
         }
       }, 500);
     },
-    [setSelectors, getFieldValueProps],
+    [setSelectors, getFieldValueProps, selectTagId],
   );
 
   const currentSelector = useMemo(() => {
@@ -534,11 +545,13 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
 
   return (
     <div className={cx('filter-search-wrap', `${className ?? ''}`)}>
-      <SearchInput
-        onChange={onChangeInput}
-        placeholder={t('components.common.filterSearch.screenPlaceholder')}
-        value={search}
-      />
+      {!hiddenSearchInput && (
+        <SearchInput
+          onChange={onChangeInput}
+          placeholder={t('components.common.filterSearch.screenPlaceholder')}
+          value={search}
+        />
+      )}
       {showDefaultRange && defaultIqlProp && (
         <Checkbox
           style={{ lineHeight: '28px' }}
@@ -560,12 +573,13 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
             key={item?.fieldId}
             active={item?.active}
             data={item}
+            selectTagId={selectTagId}
             onClick={data => {
               const backup = cloneDeep(data);
               backup.value = generateFieldValue(backup);
               const props = getFieldValueProps(
                 backup,
-                document.querySelector(`#filter-search-selector-${item?.fieldId}`),
+                document.querySelector(`#${selectTagId}-${item?.fieldId}`),
               );
               openFieldValuePopover(props as any);
             }}
