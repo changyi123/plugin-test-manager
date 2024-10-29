@@ -251,3 +251,80 @@ export enum MinderNodeType {
 }
 
 export const UngroupedRepositoryKey = 'root';
+
+export const EXPORT_FIELD_PREFIX = 'apps:';
+export const EXPORT_FIELD_VALUES = {
+  precondition: `${EXPORT_FIELD_PREFIX}${TestFiledKeyMapping.detail}:precondition`,
+  step: `${EXPORT_FIELD_PREFIX}${TestFiledKeyMapping.detail}:step`,
+  result: `${EXPORT_FIELD_PREFIX}${TestFiledKeyMapping.detail}:result`,
+  data: `${EXPORT_FIELD_PREFIX}${TestFiledKeyMapping.detail}:data`,
+  group: `${EXPORT_FIELD_PREFIX}${TestFiledKeyMapping.repository}`,
+  executor: `${EXPORT_FIELD_PREFIX}${TestFiledKeyMapping.caseExecutor}`,
+  status: `${EXPORT_FIELD_PREFIX}${TestFiledKeyMapping.caseStatus}`,
+  testPlan: `${EXPORT_FIELD_PREFIX}${TestFiledKeyMapping.linkItems}`,
+};
+
+export const EXPORT_ITEM_FIELDS = [
+  {
+    label: SystemField.Name,
+    value: SystemField.Name,
+  },
+  {
+    label: SystemField.ItemType,
+    value: SystemField.ItemType,
+  },
+  {
+    label: SystemField.Assignee,
+    value: SystemField.Assignee,
+  },
+  {
+    label: SystemField.Priority,
+    value: SystemField.Priority,
+  },
+];
+
+export const EXPORT_TEST_FIELDS = [
+  {
+    label: 'precondition',
+    value: EXPORT_FIELD_VALUES.precondition,
+    fieldKey: TestFiledKeyMapping.detail,
+  },
+  {
+    label: 'step',
+    value: EXPORT_FIELD_VALUES.step,
+    fieldKey: TestFiledKeyMapping.detail,
+  },
+  {
+    label: 'result',
+    value: EXPORT_FIELD_VALUES.result,
+    fieldKey: TestFiledKeyMapping.detail,
+  },
+  {
+    label: 'data',
+    value: EXPORT_FIELD_VALUES.data,
+    fieldKey: TestFiledKeyMapping.detail,
+  },
+  {
+    label: 'group',
+    value: EXPORT_FIELD_VALUES.group,
+    fieldKey: TestFiledKeyMapping.repository,
+  },
+];
+
+export const EXPORT_PLAN_FIELDS = [
+  {
+    label: 'executor',
+    value: EXPORT_FIELD_VALUES.executor,
+    fieldKey: TestFiledKeyMapping.caseExecutor,
+  },
+  {
+    label: 'testPlan',
+    value: EXPORT_FIELD_VALUES.testPlan,
+    fieldKey: TestFiledKeyMapping.linkItems,
+  },
+  {
+    label: 'status',
+    value: EXPORT_FIELD_VALUES.status,
+    fieldKey: TestFiledKeyMapping.caseStatus,
+  },
+];

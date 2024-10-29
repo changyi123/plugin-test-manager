@@ -121,6 +121,8 @@ modules:
       function: test-manager-duplicate-name-function
     - key: check-filter-group-name
       function: test-manager-check-filter-group-name-function
+    - key: test-manager-export-script
+      function: test-manager-export-script-function
 
   trigger:
     - key: test-manager-initial-script-install
@@ -301,6 +303,8 @@ modules:
       handler: api.initTestConfig
     - key: run-script-function
       handler: scriptHandler.runScript
+    - key: test-manager-export-script-function
+      handler: exporter.runScript
 
   itemPanel:
     - key: test-manager-test-detail
@@ -400,6 +404,8 @@ modules:
         title: importer.itemFields.result
       - key: data
         title: importer.itemFields.data
+  proxima:exporter:
+    function: test-manager-export-script
   # 初始化 dataType 为 object， array 的数据类型
   customFieldType:
     - key: es_object

@@ -2,21 +2,37 @@ import createProximaSdk from '@projectproxima/proxima-sdk-js';
 import { Button, Dropdown, Menu, message, notification, Spin } from 'antd';
 import { MenuItemProps } from 'antd/lib/menu';
 import classnames from 'classnames';
-import React, { useCallback, useRef } from 'react';
+import { components, hooks } from 'proxima-sdk';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { ActionType as ModelActionType } from '@/components/business/TestEntitySelectorModal';
 import ManageWorkspace from '@/components/business/TestEntitySelectorModal/ManageWorkspace';
 import { SystemFieldKeys } from '@/components/common/BusinessTable/hook';
 import { CustomMore } from '@/icons';
-import { copyTestCase } from '@/lib/api/item';
+import { copyTestCase, handleSelector } from '@/lib/api/item';
+import { searchFields } from '@/lib/api/proxima';
 import { getAppEnv } from '@/lib/appEnv';
-import { TestType } from '@/lib/constants';
+import {
+  AppKey,
+  EXPORT_EXCLUDED_TYPES,
+  EXPORT_ITEM_FIELDS,
+  EXPORT_PLAN_FIELDS,
+  EXPORT_TEST_FIELDS,
+  IQLFieldNameMapping,
+  TestLinkType,
+  TestType,
+} from '@/lib/constants';
 import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import { getProximaBasePath, getTenantKey, inIframe } from '@/lib/utils/helper';
-import { SearchSelectors } from '@/lib/utils/iql';
+import { SearchSelectors, selectorToIql } from '@/lib/utils/iql';
+import { getRepositoryQuery } from '@/lib/utils/tree';
 
-import importTestInfo, { downloadExampleFile, TreeNode } from './export';
+import { getTreeNodeByKey } from '../util';
+import { downloadExampleFile, TreeNode } from './export';
+
+const { ExportModal } = components.Components.ItemImport;
+const { FilterProvider, RecoilRoot } = hooks;
 
 const RepoDropDown = ({
   type,
@@ -40,9 +56,24 @@ const RepoDropDown = ({
   repository?: Record<string, any>;
   selector?: SearchSelectors | string;
 }) => {
+  const [visible, setVisible] = useState(false);
+  const [iql, setIql] = useState('');
   const { t, locale } = useI18n();
   const { workspace } = useTestConfig();
   const { testCaseFieldKeys } = useBaseAction();
+
+  const [testCaseFields, setTestCaseFields] = useState([]);
+
+  useEffect(() => {
+    testCaseFieldKeys?.length &&
+      searchFields({
+        keys: testCaseFieldKeys,
+        propertyNames: ['name', 'key', 'fieldType'],
+        fieldType: true,
+      }).then(data => {
+        setTestCaseFields(data.filter(f => !EXPORT_EXCLUDED_TYPES.includes(f.fieldType?.key)));
+      });
+  }, [testCaseFieldKeys]);
 
   const testEntitySelectorRef = useRef<ModelActionType>();
 
@@ -93,6 +124,47 @@ const RepoDropDown = ({
     return data;
   }, [folderKey, setPageLoading, t, testCaseFieldKeys, workspace?.key]);
 
+  const repositoryQuery2Iql = useCallback(
+    repository =>
+      repository &&
+      `'${IQLFieldNameMapping.repository}' ${repository.operator || 'in'} ${JSON.stringify(
+        repository.value ?? repository,
+      )}`,
+    [],
+  );
+
+  const paramsToIql = useCallback(
+    params => {
+      const { checkedId, type, workspace, treeData, repository, selector } = params;
+      const selectTreeNode = getTreeNodeByKey(treeData, checkedId);
+      const iqlList = [
+        `'${IQLFieldNameMapping.type}' = '${TestType.Case}'`,
+        `'${IQLFieldNameMapping.workspaceKey}' = '${workspace.key}'`,
+      ];
+
+      switch (type) {
+        case 'exportChildGroup':
+          iqlList.push(repositoryQuery2Iql(getRepositoryQuery(selectTreeNode, 'all').repository));
+          break;
+        case 'exportGroup':
+          iqlList.push(
+            repositoryQuery2Iql(getRepositoryQuery(selectTreeNode, 'current').repository),
+          );
+          break;
+        case 'exportFilter':
+          iqlList.push(repositoryQuery2Iql(repository.repository));
+          iqlList.push(selectorToIql(handleSelector(selector)));
+          break;
+        case 'exportPlan':
+          iqlList.push(`'${IQLFieldNameMapping.linkItems}' in ['${checkedId}']`);
+          iqlList.push(`'${IQLFieldNameMapping.linkType}' = '${TestLinkType.CaseLinkPlan}'`);
+          break;
+      }
+      return iqlList.filter(Boolean).join(' and ');
+    },
+    [repositoryQuery2Iql],
+  );
+
   const menuClick = useCallback(
     async e => {
       const key = e.key;
@@ -116,48 +188,37 @@ const RepoDropDown = ({
       } else if (
         ['exportAll', 'exportChildGroup', 'exportGroup', 'exportFilter', 'exportPlan'].includes(key)
       ) {
-        // 导出逻辑
-        notification.open({
-          message: t('page.repository.repoDropDown.importCaseLoading'),
-          icon: <Spin spinning={true} />,
-          duration: null,
-        });
-        setPageLoading?.(true);
         if (
           !folderKey &&
           type === 'repository' &&
           ['exportGroup', 'exportChildGroup'].includes(key)
         ) {
           message.warning(t('page.repository.repoDropDown.importCaseWarning'));
-          setPageLoading?.(false);
+          // setPageLoading?.(false);
         }
 
         const params = 'exportFilter' === key ? { repository, selector } : {};
-
-        await importTestInfo(
-          Object.assign(
-            {},
-            type === 'plan'
-              ? {
-                  type: key,
-                  checkedId: selectedTestPlanId,
-                  workspace,
-                }
-              : {
-                  type: key,
-                  checkedId: folderKey,
-                  treeData: treeNodeData,
-                  workspace,
-                  ...params,
-                },
+        setIql(
+          paramsToIql(
+            Object.assign(
+              {},
+              type === 'plan'
+                ? {
+                    type: key,
+                    checkedId: selectedTestPlanId,
+                    workspace,
+                  }
+                : {
+                    type: key,
+                    checkedId: folderKey,
+                    treeData: treeNodeData,
+                    workspace,
+                    ...params,
+                  },
+            ),
           ),
-          t,
         );
-        setPageLoading?.(false);
-        notification.destroy();
-        notification.success({
-          message: t('page.repository.repoDropDown.importCaseSuccess'),
-        });
+        setVisible(true);
       }
     },
     [
@@ -166,17 +227,51 @@ const RepoDropDown = ({
       t,
       locale,
       startImportByWorkspace,
-      setPageLoading,
       folderKey,
       type,
       repository,
       selector,
+      paramsToIql,
       selectedTestPlanId,
       treeNodeData,
     ],
   );
 
   const refresh = useCallback(() => {}, []);
+  console.info(iql);
+
+  const extraParams = useMemo(
+    () => ({
+      planId: type === 'plan' && selectedTestPlanId,
+      iqlContext: {
+        displayContext: AppKey,
+      },
+      fileName: `${
+        type === 'exportPlan'
+          ? t('page.repository.repoDropDown.importPlanLinkCase')
+          : t('page.repository.repoDropDown.importRepoCase')
+      }-${workspace?.name}`,
+    }),
+    [selectedTestPlanId, t, type, workspace?.name],
+  );
+
+  const basicFields = useMemo(() => {
+    const basic = [...EXPORT_ITEM_FIELDS, ...EXPORT_TEST_FIELDS];
+    const fields = type === 'plan' ? [...basic, ...EXPORT_PLAN_FIELDS] : basic;
+    return fields.map(field => ({
+      ...field,
+      label: t(`page.repository.repoDropDown.excelExportTitle.${field.label}`),
+      checked: true,
+      readonly: true,
+    }));
+  }, [t, type]);
+
+  const appFields = useMemo(() => {
+    const moreFields = testCaseFields
+      .filter(field => !EXPORT_ITEM_FIELDS.some(f => f.value === field.key))
+      .map(field => ({ value: field.key, label: field.name }));
+    return [...basicFields, ...moreFields];
+  }, [testCaseFields, basicFields]);
 
   const menu = (
     <Menu onClick={e => menuClick(e)}>
@@ -214,6 +309,19 @@ const RepoDropDown = ({
         <Button className={classnames(className)} icon={<CustomMore />} />
       </Dropdown>
       {/* 规划空间测试用例 */}
+      <RecoilRoot>
+        <FilterProvider>
+          <ExportModal
+            iql={iql}
+            exportModalVisible={visible}
+            setExportModalVisible={setVisible}
+            workspace={workspace}
+            appKey={AppKey}
+            appFields={appFields}
+            extraParams={extraParams}
+          />
+        </FilterProvider>
+      </RecoilRoot>
       <ManageWorkspace
         title={t('page.plan.planPageLayout.right.caseSelectModelTitle')}
         testType={TestType.Case}

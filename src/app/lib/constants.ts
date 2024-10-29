@@ -158,7 +158,19 @@ export const FIELD_TYPE_KEY_MAPPINGS = {
   UserGroup: 'UserGroup', // 用户组
   Ancestors: 'Ancestor', // 父事项
   Cascade: 'Cascade', // 级联
+  HyperLink: 'HyperLink', // 超链接
+  RepoFiles: 'RepoFiles', // 制品文件
 };
+
+export const EXPORT_EXCLUDED_TYPES = [
+  FIELD_TYPE_KEY_MAPPINGS.ItemLevel,
+  FIELD_TYPE_KEY_MAPPINGS.FieldCollection,
+  FIELD_TYPE_KEY_MAPPINGS.Link,
+  FIELD_TYPE_KEY_MAPPINGS.StatusType,
+  FIELD_TYPE_KEY_MAPPINGS.RepoFiles,
+  FIELD_TYPE_KEY_MAPPINGS.Cascade,
+  FIELD_TYPE_KEY_MAPPINGS.HyperLink,
+];
 
 export const DATA_FIELDS = [
   FIELD_TYPE_KEY_MAPPINGS.CreatedAt,
