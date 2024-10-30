@@ -1,10 +1,13 @@
-import React, { useEffect, useRef } from 'react';
+import React, { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
 
 import { clearIframeLayoutEffect } from '@/lib/testReport';
 
 import cx from './TestIframe.less';
 
-const TestIframe: React.FC<any> = props => {
+const TestIframe: React.ForwardRefRenderFunction<
+  { refresh: () => void },
+  { onLoad: (event: unknown) => void; src: string }
+> = (props, ref) => {
   const iframeRef = useRef<any>();
 
   useEffect(() => {
@@ -35,19 +38,24 @@ const TestIframe: React.FC<any> = props => {
   //   }, 200);
   // };
 
+  useImperativeHandle(ref, () => {
+    return {
+      refresh: () => iframeRef?.current?.contentWindow?.location?.reload(),
+    };
+  });
+
   return (
     <iframe
       name="report-view"
       title="report-view"
-      className={cx('report-charts', props.className)}
+      className={cx('report-charts')}
       onLoad={event => {
         // adjustIframeHeight();
         props?.onLoad?.(event);
       }}
       ref={iframeRef}
       src={props.src}
-      width={props.width}
     />
   );
 };
-export default React.memo(TestIframe);
+export default forwardRef(TestIframe);

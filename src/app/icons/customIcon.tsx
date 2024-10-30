@@ -17,7 +17,10 @@ import PlusSVG from './svg/plus.svg';
 import ScreenOffSVG from './svg/screen-off.svg';
 import SettingSvg from './svg/setting.svg';
 
-const { Link, delete: ResetIcon, User, Unfold, History } = components.Components.Icons.Icons;
+const Icons = components.Components.Icons;
+
+const { Link, delete: ResetIcon, User, Unfold, History, Refresh } = Icons.Icons;
+const { SingleColorIcon } = Icons;
 
 const CustomIconHOC = (
   component: IconComponentProps['component'],
@@ -48,3 +51,6 @@ export const DeleteIcon = CustomIconHOC(ResetIcon);
 export const UserIcon = CustomIconHOC(User);
 export const UnfoldIcon = CustomIconHOC(Unfold);
 export const HistoryIcon = CustomIconHOC(History);
+export const RefreshIcon = CustomIconHOC(Refresh);
+export const LockIcon = props => <SingleColorIcon type="Lock" {...props} />;
+export const UnlockIcon = props => <SingleColorIcon type="Unlock" {...props} />;

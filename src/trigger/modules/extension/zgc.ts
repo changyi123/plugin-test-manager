@@ -225,8 +225,9 @@ export const zgcTestReportInfo = async () => {
       const getEnvList = async () => {
         const envMap = await search(`id in ${JSON.stringify(envIds.filter(Boolean))}`, [
           'name',
+          'id',
         ]).then(data => {
-          return data.reduce((map, env) => ({ ...map, [env.objectId]: env.name }), {});
+          return data.reduce((map, env) => ({ ...map, [env.id]: env.name }), {});
         });
         const envList = Object.entries(groupMap).map(([test_time, testList]) => ({
           test_time,
@@ -245,6 +246,7 @@ export const zgcTestReportInfo = async () => {
               .filter(Boolean),
           ).join(','),
         }));
+
         const columns = [
           { title: '所属空间', dataIndex: 'workspaceName' },
           { title: '测试阶段', dataIndex: 'test_time' },

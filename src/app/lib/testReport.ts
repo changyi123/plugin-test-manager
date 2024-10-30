@@ -49,6 +49,8 @@ export type DataSource = {
   config?: {
     webTriggerKey?: string;
   };
+  // 数据是否支持锁定：测试报告刷新时不处理
+  locked?: boolean;
 };
 
 export type TemplateDataSourceConfig = [DataSource] | [DataSource, DataSource];
@@ -125,6 +127,39 @@ export const DataSourceCollection: DataSource[] = [
     dependOn: ['execution'],
   },
 ];
+
+// overview 转 dataSourceIql
+export const overview2Iql = (overview: Record<string, unknown>): Record<string, unknown> => {
+  const dataSourceIql = {};
+  const handleValue = (type, value) => {
+    const valueString = JSON.stringify(value);
+    switch (type) {
+      case 'version':
+        return `'版本' in ${valueString}`;
+      case 'sprint':
+        return `'迭代' in ${valueString}`;
+      case 'testExecution':
+      case 'testPlan':
+        return `'id' in ${valueString}`;
+      default:
+        return '';
+    }
+  };
+  const handleKey = key => {
+    switch (key) {
+      case 'testExecution':
+        return 'test_manager_Execution';
+      case 'testPlan':
+        return 'test_manager_Plan';
+      default:
+        return key;
+    }
+  };
+  for (const key of Object.keys(overview)) {
+    dataSourceIql[handleKey(key)] = handleValue(key, overview[key]);
+  }
+  return dataSourceIql;
+};
 
 /** 生成数据源配置 uid */
 export const genDataSourceConfigUid = (dataSourceConfig: TemplateDataSourceConfig) => {
@@ -320,11 +355,15 @@ const exportOfflineDocx = async testReportData => {
 };
 
 // 下载测试报告
-export const exportWithDocx = async testReportData => {
-  const exportFun = featureFlags(SupportFeatureFlags.ENABLE_OFFLINE_TEST_REPORT)
-    ? exportOfflineDocx
-    : exportDocx;
-  exportFun(testReportData);
+export const exportWithDocx = async (testReportData, updateUrl) => {
+  const offlineExport = featureFlags(SupportFeatureFlags.ENABLE_OFFLINE_TEST_REPORT);
+  if (offlineExport) {
+    if (updateUrl) testReportData.reportUrl = undefined;
+    exportOfflineDocx(testReportData);
+  } // 非离线的，不需要更新url
+  else if (!updateUrl) {
+    exportDocx(testReportData);
+  }
 };
 
 // 下载测试报告

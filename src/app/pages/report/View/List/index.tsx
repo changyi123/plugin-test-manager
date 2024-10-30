@@ -80,7 +80,7 @@ const List: React.FC<any> = () => {
   });
 
   const goReportViewPage = testReportId => {
-    window.open(genReportViewUrl({ testReportId }), '_blank');
+    window.open(genReportViewUrl({ testReportId, workspace }), '_blank');
   };
 
   useListener('refreshTestReportTable', testReportId => {

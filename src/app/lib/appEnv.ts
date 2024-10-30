@@ -128,6 +128,11 @@ const SupportAppEnv = {
     defaultValue: false,
     transformer: value => value,
   },
+  // 默认隐藏创建按钮的类型
+  CREATE_HIDDEN_TYPE: {
+    defaultValue: [],
+    transformer: value => value,
+  },
 } as const;
 
 /**
