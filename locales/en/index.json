@@ -704,6 +704,9 @@
           "data": "【1】need to start with [serial number]\n【2】Newline characters in the data will be preserved"
         },
         "excelExportTitle": {
+          "key": "key",
+          "itemStatus": "status",
+          "workspace": "workspace",
           "group": "group",
           "name": "name",
           "itemType": "itemType",

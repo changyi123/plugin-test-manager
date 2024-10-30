@@ -626,6 +626,9 @@
           "数据": "【1】需要以[序号]开头\n【2】数据中换行符会被保留"
         },
         "excelExportTitle": {
+          "key": "key",
+          "itemStatus": "状态",
+          "workspace": "所属空间",
           "group": "所属分组",
           "name": "标题",
           "itemType": "类型",

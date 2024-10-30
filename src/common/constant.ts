@@ -266,8 +266,20 @@ export const EXPORT_FIELD_VALUES = {
 
 export const EXPORT_ITEM_FIELDS = [
   {
+    label: SystemField.Key,
+    value: SystemField.Key,
+  },
+  {
     label: SystemField.Name,
     value: SystemField.Name,
+  },
+  {
+    label: 'itemStatus',
+    value: SystemField.Status,
+  },
+  {
+    label: SystemField.Workspace,
+    value: SystemField.Workspace,
   },
   {
     label: SystemField.ItemType,

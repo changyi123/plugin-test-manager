@@ -194,7 +194,6 @@ const RepoDropDown = ({
           ['exportGroup', 'exportChildGroup'].includes(key)
         ) {
           message.warning(t('page.repository.repoDropDown.importCaseWarning'));
-          // setPageLoading?.(false);
         }
 
         const params = 'exportFilter' === key ? { repository, selector } : {};
@@ -238,7 +237,6 @@ const RepoDropDown = ({
   );
 
   const refresh = useCallback(() => {}, []);
-  console.info(iql);
 
   const extraParams = useMemo(
     () => ({
