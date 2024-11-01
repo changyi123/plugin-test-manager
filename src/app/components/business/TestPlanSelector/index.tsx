@@ -31,7 +31,7 @@ const TestPlanSelector: React.FC<{ hiddenCheckAll?: boolean }> = ({ hiddenCheckA
           type: TestType.Plan,
           name: searchValue,
         },
-        select: ['id', 'name'],
+        select: ['id', 'name', 'key'],
         limit: 100,
       });
 
