@@ -402,6 +402,7 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
 
     const openBatchPage = async () => {
       const localIqlKey = `batch_quick_edit_test_manager`;
+      const extendsCustomKey = ['r_test_manager_repository'];
       // 组装批量操作地址
       const testCases = (await getSelectTestCaseId(tableActionRef.current, true)) ?? [];
       const testBoard = await new Parse.Query('Board')
@@ -415,7 +416,9 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
       // 构造url，打开批量编辑页面
       const itemBatchPage = `${getProximaBasePath()}/${getTenantKey()}/workspaces/${workspaceKey}/batch-operate/${testBoard.get(
         'key',
-      )}?localIql=${localIqlKey}&displayContext=test_manager&operate=quick_edit`;
+      )}?localIql=${localIqlKey}&displayContext=test_manager&operate=quick_edit&extendsCustomKey=${encodeURIComponent(
+        JSON.stringify(extendsCustomKey),
+      )}`;
       window.open(itemBatchPage, '_blank');
       tableActionRef.current.refresh();
     };

@@ -52,7 +52,7 @@ const WorkspaceSelector: React.FC<
       const targetConfig = await new Parse.Query(TestConfigModel as any)
         .equalTo('workspaceKey', workspaceKey)
         .first();
-      if (!isEqual(currentItemTypeMap, targetConfig?.toJSON()?.itemTypeMap)) {
+      if (!isEqual(currentItemTypeMap.TestCase, targetConfig?.toJSON()?.itemTypeMap?.TestCase)) {
         return message.error('类型关联不匹配');
       }
       onChange(workspaceKey);

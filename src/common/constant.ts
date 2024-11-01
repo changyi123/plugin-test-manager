@@ -89,14 +89,14 @@ export enum TestLinkType {
 
 /** es source key */
 export const EsSourceFieldKey = {
-  repository: 'r_test_manager_repository#r_test_manager_es_text_keyword',
+  repository: 'r_test_manager_repository#r_test_manager_repository_keyword',
 };
 
 /** 测试管理统计字段类型 key 映射 */
 export const TestFieldTypeKeyMapping = {
   executeCount: 'r_test_manager_es_number_keyword',
   executeTime: 'r_test_manager_executeTime',
-  repository: 'r_test_manager_es_text_keyword',
+  repository: 'r_test_manager_repository_keyword',
   referenceCase: 'r_test_manager_es_text_keyword',
   status: 'r_test_manager_es_text_keyword',
 };
