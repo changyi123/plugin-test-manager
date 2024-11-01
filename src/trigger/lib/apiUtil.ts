@@ -5,12 +5,14 @@ import { PaginationParams, PaginationResponse, ResponseType } from '../../common
 /** 从 VM 运行时获取请求数据 */
 export const getReqInfoFromVMRuntime = <TBody, THeader = any>(): {
   body: TBody;
+  triggerParams: TBody;
   headers: THeader;
   sessionToken: string;
 } => {
-  const { headers = {}, body = {} } = global as any;
+  const { headers = {}, body = {}, triggerParams } = global as any;
   return {
     body: cloneDeep(body) as TBody,
+    triggerParams: cloneDeep(triggerParams) as TBody,
     headers: cloneDeep(headers) as THeader,
     sessionToken: global.sessionToken,
   };

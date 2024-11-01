@@ -462,3 +462,15 @@ export const exportReport = async (params: {
     ...params,
   });
 };
+
+export const searchFields = async (params: {
+  keys: string[];
+  propertyNames: string[];
+  fieldType?: boolean;
+}) => {
+  return await fetch
+    .$get('/parse/api/fields/search', {
+      params,
+    })
+    .then(result => result.payload);
+};
