@@ -1,4 +1,4 @@
-import { getParseQuery } from '@giteeteam/apps-team-api';
+import { getParseQuery, requestCoreApi } from '@giteeteam/apps-team-api';
 
 import type { SendMessagePayload } from '../../../common/types/api';
 import { buildResponse, getReqInfoFromVMRuntime } from '../../lib/apiUtil';
@@ -14,7 +14,16 @@ const ReportColorMapping = {
   pass: '#09b866',
   noPass: '#ff4d0d',
   partPass: '#ffaa0c',
+  InProgress: '#09b866',
+  Start: '#ff4d0d',
+  Finished: '#ffaa0c',
 };
+
+const typeMap = {
+  internal: 'internal',
+  email: global.env.EMAIL_ALIAS || 'email',
+};
+
 // 消息模板
 const MessageTemplate = {
   testReport: {
@@ -88,6 +97,63 @@ const MessageTemplate = {
       };
     },
   },
+  testReportV2: {
+    payloadValidator: async (payload: SendMessagePayload['templatePayload']) => {
+      // 参数校验，不合规直接抛错
+      if (!payload) throw new Error('参数不能为空');
+      if (!payload.testReportId) throw new Error('报告 ID 不能为空');
+      // 查询报告的详情
+
+      const testReportData = await requestCoreApi('POST', '/parse/api/search', {
+        iql: `id = '${payload.testReportId}'`,
+        isShowDetails: true,
+        displayContext: 'test_manager',
+      })
+        .then((data: any) => data?.payload.items?.[0] ?? null)
+        .catch(e => {
+          console.info('search fail: ', e.message);
+        });
+
+      if (!testReportData) throw new Error('报告不存在');
+
+      return testReportData;
+    },
+    messagePayloadBuilder: async (
+      payload: SendMessagePayload['templatePayload'],
+      { validatorResult: testReportData },
+    ) => {
+      // hard core
+      const version = testReportData?.values?.version;
+
+      const info = {
+        name: testReportData?.name,
+        status: testReportData?.status?.name,
+        statusColor: ReportColorMapping[testReportData?.status?.type],
+        version: version?.name ? `【${version.name}】版本` : '',
+      };
+
+      const title = `${info.version || info.name}测试报告（${info.status}）`;
+      const reportUrl = `${global.env?.PROXIMA_PAGE_BASE_URL ?? ''}/${
+        global.applicationId
+      }/plugin/test_manager_test-report-view?testReportId=${payload.testReportId}&isV2=true`;
+
+      return {
+        internal: {
+          title,
+          content: `您收到了一份测试报告：${title} [${reportUrl}]，请打开测试报告链接进行查阅。`,
+        },
+        email: {
+          title,
+          content: `
+          <p>测试报告名称：<strong>${info.name}</strong></p>
+          ${info.version ? `<p>测试版本：<strong>${info.version}</strong></p>` : ''}
+          <p />
+          <p>测试结论：<strong style={{color: ${info.statusColor}}}>${info.status}</strong></p>
+          <p>测试报告链接：<a href=${reportUrl}>${reportUrl}</a></p>`,
+        },
+      };
+    },
+  },
 };
 
 /** 发送消息通知 */
@@ -121,9 +187,10 @@ export const sendMessage = async () => {
       payload: {
         inputParameters: {
           ...payload,
-          postType: [type],
+          postType: [typeMap[type]],
           roles: body.roles,
           users: body.users,
+          groups: body.groups,
           creatUser: body.creatUser,
         },
       },

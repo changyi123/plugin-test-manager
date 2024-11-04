@@ -1,11 +1,11 @@
-import { Button, Input, message, Select, Table, Tooltip } from 'antd';
+import { Button, Input, message, Select, Space, Table, Tooltip } from 'antd';
 import TextArea from 'antd/lib/input/TextArea';
 import { useAtomValue } from 'jotai';
-import React from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { v4 as uuidv4 } from 'uuid';
 
-import { DeleteOutlined } from '@/icons';
+import { DeleteOutlined, LockIcon, UnlockIcon } from '@/icons';
 import {
   CustomDataSourceKey,
   DataSource,
@@ -22,6 +22,32 @@ import cx from './DataSourceConfig.less';
 
 const FirstLevelDataSourceCollection = DataSourceCollection.filter(ds => ds.isFirstLevel);
 const SecondLevelDataSourceCollection = DataSourceCollection.filter(ds => !ds.isFirstLevel);
+
+const LockComponent: React.FC<{ value: boolean; onChange: (value: boolean) => void }> = ({
+  value: valueProps,
+  onChange,
+}) => {
+  const [value, setValue] = useState(valueProps);
+
+  return (
+    <div
+      onClick={() => {
+        setValue(!value);
+        onChange(!value);
+      }}
+    >
+      {value ? (
+        <Tooltip title="锁定数据，刷新报告不更新">
+          <LockIcon className={cx('locked')} />
+        </Tooltip>
+      ) : (
+        <Tooltip title="未锁定数据，刷新报告时更新">
+          <UnlockIcon className={cx('unlocked')} />
+        </Tooltip>
+      )}
+    </div>
+  );
+};
 
 /** 数据源选择器 */
 const DataSourceSelector: React.FC<{
@@ -167,6 +193,7 @@ const DataSourceBinding: React.FC<{
   reportDataSourceFlattenData: any[];
   onDataConfigTemplateChange: (value: Record<string, TemplateDataSourceConfig>) => void;
 }> = ({ reportDataSourceFlattenData, onDataConfigTemplateChange }) => {
+  const dataSourceLockedRef = useRef(null);
   const testReportTemplateData = useAtomValue(testReportWitchConnectWithLocationAtom);
 
   const [templateDataSourceConfig, setTemplateDataSourceConfig] = React.useState(
@@ -188,16 +215,33 @@ const DataSourceBinding: React.FC<{
   }, [onDataConfigTemplateChange, templateDataSourceConfig]);
 
   React.useEffect(() => {
-    if (testReportTemplateData.templateConfig) {
+    if (testReportTemplateData.templateConfig?.dataSource) {
+      const result = {};
+      Object.entries(testReportTemplateData.templateConfig.dataSource).forEach(([chartId, ds]) => {
+        result[chartId] = ds?.[0]?.locked;
+      });
+      dataSourceLockedRef.current = result;
       setTemplateDataSourceConfig(testReportTemplateData.templateConfig.dataSource);
+    }
+  }, [testReportTemplateData]);
+
+  React.useEffect(() => {
+    if (testReportTemplateData.templateConfig?.dataSource) {
+      const result = {};
+      Object.entries(testReportTemplateData.templateConfig.dataSource).forEach(([chartId, ds]) => {
+        result[chartId] = !!ds?.[0]?.locked;
+      });
+      dataSourceLockedRef.current = result;
     }
   }, [testReportTemplateData]);
 
   // 选中下来框
   const handleSelectOption = (dataSourceConfig, rowData) => {
+    const config = dataSourceConfig ?? templateDataSourceConfig[rowData.chartId];
+    config[0].locked = dataSourceLockedRef.current[rowData.chartId];
     setTemplateDataSourceConfig(prev => ({
       ...prev,
-      [rowData.chartId]: dataSourceConfig,
+      [rowData.chartId]: config,
     }));
   };
 
@@ -219,14 +263,24 @@ const DataSourceBinding: React.FC<{
 
         const dataConfig = templateDataSourceConfig[chartId];
         const value = dataConfig ? genDataSourceConfigUid(dataConfig) : null;
+        const locked = dataSourceLockedRef.current[chartId];
 
         return (
-          <Select
-            value={value}
-            options={options}
-            style={{ width: 250 }}
-            onSelect={(_, opt) => handleSelectOption(opt.original, rowData)}
-          />
+          <Space>
+            <Select
+              value={value}
+              options={options}
+              style={{ width: 250 }}
+              onSelect={(_, opt) => handleSelectOption(opt.original, rowData)}
+            />
+            <LockComponent
+              value={locked}
+              onChange={v => {
+                dataSourceLockedRef.current[chartId] = v;
+                handleSelectOption(null, rowData);
+              }}
+            />
+          </Space>
         );
       },
     },

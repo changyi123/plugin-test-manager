@@ -2,7 +2,7 @@ import { Button, Dropdown, message, Space } from 'antd';
 import { StatusCell } from 'apps-team-components-v1';
 import { RepositoryTreePayload } from 'common/types/api';
 import * as echarts from 'echarts';
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { ArrowLeftOutlined } from '@/icons';
@@ -14,6 +14,7 @@ import { useTestReportV2ByObjectId } from '@/services/testReport/query';
 
 import { useReportOverviewDisplayText } from './hook';
 import cx from './index.less';
+import Refresh from './Refresh';
 import TestIframe from './TestIframe';
 
 const exFuncMap = {
@@ -21,6 +22,7 @@ const exFuncMap = {
 };
 
 const ReportView: React.FC = () => {
+  const iframeRef = useRef(null);
   const [exportLoading, setExportLoading] = React.useState(false);
   const [exportButtonEnabled, setExportButtonEnabled] = React.useState(false);
   const slotData = useRef(null);
@@ -36,7 +38,7 @@ const ReportView: React.FC = () => {
     }
   }, [workspaceKey, workspaceName]);
 
-  const { data } = useTestReportV2ByObjectId(testReportId);
+  const { data, refetch } = useTestReportV2ByObjectId(testReportId);
   useEffect(() => {
     const setSlotData = async groupId => {
       const xData = [];
@@ -289,6 +291,11 @@ const ReportView: React.FC = () => {
 
   const { data: overviewDisplayText } = useReportOverviewDisplayText(data?.report);
 
+  const refresh = useCallback(async () => {
+    await refetch();
+    iframeRef.current?.refresh();
+  }, [refetch]);
+
   return (
     <div className={cx('report-box')}>
       <>
@@ -299,30 +306,27 @@ const ReportView: React.FC = () => {
           </div>
           <Space>
             {exportButtonEnabled && (
-              <Dropdown
-                menu={{
-                  items: [
-                    // {
-                    //   key: 'exportHTML',
-                    //   label: (
-                    //     <span onClick={() => handleExportButtonClick('html')}>
-                    //       {t('report.exportHTML')}
-                    //     </span>
-                    //   ),
-                    // },
-                    {
-                      key: 'exportWord',
-                      label: (
-                        <span onClick={() => handleExportButtonClick('word')}>
-                          {t('report.exportWord')}
-                        </span>
-                      ),
-                    },
-                  ].filter(Boolean),
-                }}
-              >
-                <Button loading={exportLoading}>{t('report.export')}</Button>
-              </Dropdown>
+              <>
+                <Dropdown
+                  menu={{
+                    items: [
+                      {
+                        key: 'exportWord',
+                        label: (
+                          <span onClick={() => handleExportButtonClick('word')}>
+                            {t('report.exportWord')}
+                          </span>
+                        ),
+                      },
+                    ].filter(Boolean),
+                  }}
+                >
+                  <Button loading={exportLoading}>{t('report.export')}</Button>
+                </Dropdown>
+                {data?.report && (
+                  <Refresh report={data.report} workspaceKey={workspaceKey} refresh={refresh} />
+                )}
+              </>
             )}
           </Space>
         </div>
@@ -356,6 +360,7 @@ const ReportView: React.FC = () => {
 
           <div className={cx('report-iframe')} id="report-iframe">
             <TestIframe
+              ref={iframeRef}
               onLoad={handleIframeLoad}
               src={genChartGroupPageUrl({
                 chartGroupId: data?.report?.reportChartGroup,

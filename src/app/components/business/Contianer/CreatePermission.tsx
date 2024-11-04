@@ -2,7 +2,8 @@ import { Popover, Typography } from 'antd/lib';
 import { TestType } from 'common/constant';
 import React, { cloneElement, isValidElement, PropsWithChildren, useMemo } from 'react';
 
-import { useBaseAction } from '@/lib/hooks/useContext';
+import { getAppEnv } from '@/lib/appEnv';
+import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import { getProximaBasePath, getTenantKey, isInOne } from '@/lib/utils/helper';
 
@@ -29,9 +30,13 @@ const Content: React.FC = () => {
 };
 
 const CreatePermission: React.FC<PropsWithChildren<{ type: TestType }>> = props => {
+  const createHiddenType = getAppEnv('CREATE_HIDDEN_TYPE');
+  const { config } = useTestConfig();
   const { getCreatePermission } = useBaseAction();
   const { children, type } = props;
+  const hasTestType = useMemo(() => config?.itemTypeMap?.[type], [config, type]);
   const disabled = useMemo(() => getCreatePermission(type), [getCreatePermission, type]);
+  if ((disabled && hasTestType) || createHiddenType.includes(type)) return null;
   if (!disabled) return <>{children}</>;
   return (
     <Popover content={Content} trigger="hover" arrow={false}>

@@ -1,5 +1,5 @@
 import { Button, Dropdown, message, Space } from 'antd';
-import React from 'react';
+import React, { useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { ArrowLeftOutlined } from '@/icons';
@@ -15,6 +15,7 @@ import { useTestReportByObjectId } from '@/services/testReport/query';
 import ReportStatus from '../report/ReportStatus';
 import { useReportOverviewDisplayText } from './hook';
 import cx from './index.less';
+import Refresh from './Refresh';
 import TestIframe from './TestIframe';
 
 const exFuncMap = {
@@ -24,11 +25,13 @@ const exFuncMap = {
 };
 
 const ReportView: React.FC = () => {
+  const iframeRef = useRef(null);
   const [exportLoading, setExportLoading] = React.useState(false);
   const [exportButtonEnabled, setExportButtonEnabled] = React.useState(false);
 
   const searchParams = new URLSearchParams(window.location.search);
   const testReportId = searchParams.get('testReportId');
+  const workspaceKey = searchParams.get('workspaceKey');
   const redirectLink = decodeURIComponent(searchParams.get('redirectLink') || '');
   const enableOfflineReport = featureFlags(SupportFeatureFlags.ENABLE_OFFLINE_TEST_REPORT);
 
@@ -39,21 +42,28 @@ const ReportView: React.FC = () => {
     window.open(redirectLink, '_self');
   };
 
-  const handleExportButtonClick = async type => {
-    setExportLoading(true);
-    const cancelLoading = message.loading(t('report.downloadingReport'));
-    const exportFunc = exFuncMap[type];
-    await exportFunc({
-      ...reportData,
-      slotData: {
-        overviewDisplayText: overviewDisplayText,
-        reportStatusText: reportData?.reportStatus,
-      },
-    }).finally(() => {
-      cancelLoading();
-      setExportLoading(false);
-    });
-  };
+  const { data: overviewDisplayText, refetch } = useReportOverviewDisplayText(reportData);
+  const handleExportButtonClick = useCallback(
+    async (type, updateUrl = false) => {
+      setExportLoading(true);
+      const cancelLoading = message.loading(t('report.downloadingReport'));
+      const exportFunc = exFuncMap[type];
+      await exportFunc(
+        {
+          ...reportData,
+          slotData: {
+            overviewDisplayText: overviewDisplayText,
+            reportStatusText: reportData?.reportStatus,
+          },
+        },
+        updateUrl,
+      ).finally(() => {
+        cancelLoading();
+        setExportLoading(false);
+      });
+    },
+    [overviewDisplayText, reportData, t],
+  );
 
   const handleIframeLoad = event => {
     const isAllChartViewLoaded = async () => {
@@ -126,7 +136,11 @@ const ReportView: React.FC = () => {
     });
   };
 
-  const { data: overviewDisplayText } = useReportOverviewDisplayText(reportData);
+  const refresh = useCallback(async () => {
+    await refetch();
+    iframeRef.current?.refresh();
+    handleExportButtonClick('word', true);
+  }, [handleExportButtonClick, refetch]);
 
   return (
     <div className={cx('report-box')}>
@@ -138,38 +152,43 @@ const ReportView: React.FC = () => {
           </div>
           <Space>
             {exportButtonEnabled && (
-              <Dropdown
-                menu={{
-                  items: [
-                    {
-                      key: 'exportHTML',
-                      label: (
-                        <span onClick={() => handleExportButtonClick('html')}>
-                          {t('report.exportHTML')}
-                        </span>
-                      ),
-                    },
-                    {
-                      key: 'exportWord',
-                      label: (
-                        <span onClick={() => handleExportButtonClick('word')}>
-                          {t('report.exportWord')}
-                        </span>
-                      ),
-                    },
-                    enableOfflineReport && {
-                      key: 'exportPdf',
-                      label: (
-                        <span onClick={() => handleExportButtonClick('pdf')}>
-                          {t('report.exportPdf')}
-                        </span>
-                      ),
-                    },
-                  ].filter(Boolean),
-                }}
-              >
-                <Button loading={exportLoading}>{t('report.export')}</Button>
-              </Dropdown>
+              <>
+                <Dropdown
+                  menu={{
+                    items: [
+                      {
+                        key: 'exportHTML',
+                        label: (
+                          <span onClick={() => handleExportButtonClick('html')}>
+                            {t('report.exportHTML')}
+                          </span>
+                        ),
+                      },
+                      {
+                        key: 'exportWord',
+                        label: (
+                          <span onClick={() => handleExportButtonClick('word')}>
+                            {t('report.exportWord')}
+                          </span>
+                        ),
+                      },
+                      enableOfflineReport && {
+                        key: 'exportPdf',
+                        label: (
+                          <span onClick={() => handleExportButtonClick('pdf')}>
+                            {t('report.exportPdf')}
+                          </span>
+                        ),
+                      },
+                    ].filter(Boolean),
+                  }}
+                >
+                  <Button loading={exportLoading}>{t('report.export')}</Button>
+                </Dropdown>
+                {reportData && (
+                  <Refresh report={reportData} workspaceKey={workspaceKey} refresh={refresh} />
+                )}
+              </>
             )}
           </Space>
         </div>
@@ -201,6 +220,7 @@ const ReportView: React.FC = () => {
 
           <div className={cx('report-iframe')} id="report-iframe">
             <TestIframe
+              ref={iframeRef}
               onLoad={handleIframeLoad}
               src={genChartGroupPageUrl({ chartGroupId: reportData?.chartGroup?.objectId })}
             />

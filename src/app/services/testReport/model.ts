@@ -24,6 +24,7 @@ import {
   CustomDataSourceKey,
   DataSource,
   genDataSourceConfigUid,
+  overview2Iql,
   ReportChartGroupKey,
   ReportTemplateChartGroupKey,
   SupportDataSourceChartViewReg,
@@ -778,11 +779,15 @@ const TestReport = Parse.Object.extend('test_manager_TestReport', {
       throw new Error(t('page.reportTemplateCreator.nameExisted'));
     }
 
-    const { name, workspace, isDefaultTemplate, isGlobalTemplate, templateConfig } = Object.assign(
-      {},
-      this,
-      reportTemplateParams,
-    );
+    const {
+      name,
+      workspace,
+      isDefaultTemplate,
+      isGlobalTemplate,
+      templateConfig,
+      validateScript,
+      reportTemplate,
+    } = Object.assign({}, this, reportTemplateParams);
 
     // 创建 chartGroup object
     const chartGroupObject = await new ChartGroup({
@@ -801,6 +806,8 @@ const TestReport = Parse.Object.extend('test_manager_TestReport', {
       chartGroup: chartGroupObject,
       workspace: typeof workspace === 'string' ? Workspace.createWithoutData(workspace) : workspace,
       createdBy: Parse.User.current(),
+      reportTemplate,
+      validateScript,
     });
 
     // 创建 report template
@@ -923,6 +930,116 @@ const TestReport = Parse.Object.extend('test_manager_TestReport', {
       return {
         status: 'success',
         data: reportIsV2 ? reportInfo : last(res)?.toJSON(),
+      };
+    } catch (error) {
+      return {
+        status: 'failed',
+      };
+    }
+  },
+
+  /** 刷新测试报告数据源 */
+  async refreshReport(
+    reportParams: Partial<Pick<TestReportModelType, 'reportOverviewData'>> &
+      Pick<TestReportModelType, 'workspace'> & {
+        defectsMapping: string[];
+        itemTypeMap: string[];
+        report: Record<string, unknown>;
+        chartGroupId: string;
+        templateId: string; // 测试报告多用的测试报告模版文件
+        dataSourceIql?: Record<string, unknown>;
+      },
+  ) {
+    // 获取模板数据
+    const templateReportData = await new Parse.Query(TestReport)
+      .equalTo('objectId', reportParams.templateId)
+      .include(['chartGroup'])
+      .first({ json: true });
+
+    const reportTemplateChartGroup = templateReportData.chartGroup;
+    /** 报告模板配置数据 */
+    const reportTemplateConfig = templateReportData.templateConfig;
+
+    reportParams.dataSourceIql = overview2Iql(reportParams.reportOverviewData);
+
+    // 获取模板关联的 chart 数据
+    const chartGroupId = reportParams.chartGroupId;
+    const templateChartGroupId = reportTemplateChartGroup.objectId;
+    const [chartDataList, name2IdMap] = await Promise.all([
+      new Parse.Query(Chart).equalTo('chartGroup', chartGroupId).findAll({ json: true }),
+      new Parse.Query(Chart)
+        .equalTo('chartGroup', templateChartGroupId)
+        .findAll({ json: true })
+        .then(chartList =>
+          chartList.reduce(
+            (prev, cur) => ({
+              ...prev,
+              [cur.name]: cur,
+            }),
+            {},
+          ),
+        ),
+    ]);
+
+    // 更新测试报告charts
+    const templateDataSourceConfig = reportTemplateConfig?.dataSource ?? {};
+
+    const dataSourceConfigs = Object.values(templateDataSourceConfig);
+
+    const originIqlConfigs = await buildIqlConfigsByDataSourceConfigs(
+      dataSourceConfigs,
+      reportParams,
+    );
+    const { secondLevelDsIqlConfig, ...iqlConfigs } = originIqlConfigs;
+
+    // 获取自定义数据源的结果集
+    const customDataSourceResults = await getCustomDataSourceResults(
+      dataSourceConfigs,
+      reportParams,
+      secondLevelDsIqlConfig,
+    );
+
+    console.info(
+      '<---------- customDataSourceResults&iqlConfigs ---------->',
+      customDataSourceResults,
+      iqlConfigs,
+    );
+
+    // 2. 创建测试报告关联的 chart
+    const newChartObjects = chartDataList
+      .map(chartData => {
+        const templateChart = name2IdMap[chartData.name];
+        //过滤锁定数据
+        if (templateDataSourceConfig[templateChart?.objectId]?.[0]?.locked) return;
+        const newChartObject = Chart.createWithoutData(chartData.objectId);
+
+        newChartObject.set({
+          ...omit(chartData, FilterOriginalParseDataKeys),
+        });
+
+        // 只有 basic 类型的 chart 才可以使用数据源
+        if (SupportDataSourceChartViewReg.test(chartData.view)) {
+          const dataSource = templateDataSourceConfig[templateChart?.objectId];
+          // 根据数据源配置生成对应的 iql
+          const modifyChartData = chainChartDataAdaptor(templateChart, dataSource)
+            // 根据 iql 增加到 chartOption 中
+            .iql(iqlConfigs)
+            // 如果是自定义数据源，则需要将自定义数据源的结果集绑定到 chartOption 中
+            .customDataSource(customDataSourceResults).chartData;
+
+          console.info('<-----modifyChartData----->', modifyChartData.view, modifyChartData);
+
+          // 设置 option
+          newChartObject.set({ ...omit(modifyChartData, FilterOriginalParseDataKeys) });
+        }
+        return newChartObject;
+      })
+      .filter(Boolean);
+
+    try {
+      await Parse.Object.saveAll(newChartObjects);
+      return {
+        status: 'success',
       };
     } catch (error) {
       return {
