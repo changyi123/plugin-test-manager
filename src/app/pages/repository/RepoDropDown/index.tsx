@@ -31,7 +31,7 @@ import { getRepositoryQuery } from '@/lib/utils/tree';
 import { getTreeNodeByKey } from '../util';
 import { downloadExampleFile, TreeNode } from './export';
 
-const { ExportModal } = components.Components.ItemImport;
+const { ExportModal } = components.Components;
 const { FilterProvider, RecoilRoot } = hooks;
 
 const RepoDropDown = ({
