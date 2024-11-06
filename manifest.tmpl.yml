@@ -139,6 +139,11 @@ modules:
       async: false
       # 5 分钟超时时长
       timeout: 300000
+    - key: item-before-create-trigger
+      events:
+        - gei:proxima:item:beforeCreate
+      function: item-before-create-trigger-function
+      async: false
     - key: item-created-trigger
       events:
         - gei:proxima:item:created
@@ -168,6 +173,8 @@ modules:
       handler: trigger.runInitialScript
     - key: item-delete-trigger-function
       handler: trigger.deleteTestLink
+    - key: item-before-create-trigger-function
+      handler: trigger.handleBeforeCreate
     - key: item-created-trigger-function
       handler: trigger.createdItemLinkType
     - key: test-manager-validate-script-function

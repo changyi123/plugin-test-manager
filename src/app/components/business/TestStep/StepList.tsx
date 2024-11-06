@@ -23,6 +23,8 @@ const { ItemIcon } = components.Components.Common;
 const REACT_DND_PORTAL_CLASS = 'react-beautiful-dnd-portal';
 let RBDPortal = null;
 
+import { getAppEnv } from '@/lib/appEnv';
+
 import cx from './StepList.less';
 
 const StepFields: React.FC<{
@@ -197,10 +199,11 @@ const getAllCallTestIds = steps =>
 type StepListProps = {
   steps: Step[];
   actions: any;
+  hasRequiredTip?: boolean;
 };
 
 /** 测试步骤 list */
-const StepList: React.FC<StepListProps> = ({ steps, actions }) => {
+const StepList: React.FC<StepListProps> = ({ steps, actions, hasRequiredTip }) => {
   const { t } = useI18n();
   const [form] = Form.useForm();
   const [testDetailEntities, setTestDetailEntities] = React.useState([]);
@@ -226,6 +229,30 @@ const StepList: React.FC<StepListProps> = ({ steps, actions }) => {
       document.body.appendChild(RBDPortal);
     }
   }, []);
+
+  const ActualStepFieldImpl = React.useMemo(() => {
+    const defaultNameConfig = getAppEnv('CREATE_EXECUTION_DEFAULT_NAME_CONFIG');
+    const enable = defaultNameConfig?.enable;
+
+    if (!enable) {
+      return StepFieldImpl;
+    }
+
+    return StepFieldImpl.map(field => {
+      if (field.key === 'data') {
+        return {
+          ...field,
+          title: 'stepField.3',
+        };
+      } else if (hasRequiredTip) {
+        return {
+          ...field,
+          hasRequiredTip: true,
+        };
+      }
+      return field;
+    });
+  }, [hasRequiredTip]);
 
   // 处理测试步骤渲染数据
   const stepRowData = React.useMemo(() => {
@@ -309,9 +336,10 @@ const StepList: React.FC<StepListProps> = ({ steps, actions }) => {
         <div className={cx('list')}>
           <div className={cx('header')}>
             <span className={cx('column', 'drag-area')}>#</span>
-            {StepFieldImpl.map(field => (
+            {ActualStepFieldImpl.map(field => (
               <span className={cx('column', 'field')} key={field.key}>
                 {t(`components.business.testStep.${field.title}`)}
+                {(field as any).hasRequiredTip && <span className={cx('required')}>*</span>}
               </span>
             ))}
           </div>

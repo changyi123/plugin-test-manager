@@ -6,6 +6,7 @@ import React from 'react';
 import RepositorySelectorField from '@/components/business/RepositorySelectorField';
 import TestStep, { ActionType } from '@/components/business/TestStep';
 import { getStepInitialData } from '@/components/business/TestStep/helper';
+import { getAppEnv } from '@/lib/appEnv';
 import { CREATE_ITEM_STORE_FIELD_KEY } from '@/lib/constants';
 import useI18n from '@/lib/hooks/useI18n';
 import { Step } from '@/lib/types/Test';
@@ -36,6 +37,8 @@ const TestDetailForm: React.FC<TestDetailFormProps> = ({ onChange, values, extra
     onChange(valuesRef.current);
   };
 
+  const enable = getAppEnv('CREATE_EXECUTION_DEFAULT_NAME_CONFIG')?.enable;
+
   useListener('createNextAndResetForm', ({ extraData }: any) => {
     if (extraData) {
       saveValues({
@@ -56,6 +59,10 @@ const TestDetailForm: React.FC<TestDetailFormProps> = ({ onChange, values, extra
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [extraData?.repository]);
 
+  React.useEffect(() => {
+    window?.QiankunProps?.handleItemContextChange?.({});
+  }, []);
+
   const repositorySelectedKeys = values?.repository ? [values.repository] : [];
 
   const handleRepositoryKeysSelect = repository => {
@@ -66,7 +73,10 @@ const TestDetailForm: React.FC<TestDetailFormProps> = ({ onChange, values, extra
 
   return (
     <div className={cx('form')}>
-      <h6 className={cx('field-label')}>{t('page.plan.testEntityList.repositoryGroup')}</h6>
+      <h6 className={cx('field-label')}>
+        {t('page.plan.testEntityList.repositoryGroup')}
+        {enable && <span className={cx('required')}>*</span>}
+      </h6>
       <RepositorySelectorField
         value={repositorySelectedKeys}
         onChange={handleRepositoryKeysSelect}
@@ -74,7 +84,10 @@ const TestDetailForm: React.FC<TestDetailFormProps> = ({ onChange, values, extra
         workspaceId={extraData?.workspaceId}
       />
 
-      <h6 className={cx('step-title', 'field-label')}>{t('common.precondition')}</h6>
+      <h6 className={cx('step-title', 'field-label')}>
+        {t('common.precondition')}
+        {enable && <span className={cx('required')}>*</span>}
+      </h6>
       <div className={cx('precondition')}>
         <Input.TextArea
           maxLength={2000}
@@ -87,6 +100,7 @@ const TestDetailForm: React.FC<TestDetailFormProps> = ({ onChange, values, extra
       </div>
       <h6 className={cx('step-title', 'field-label')}>{t('common.testStep')}</h6>
       <TestStep
+        hasRequiredTip={enable}
         steps={values?.steps ?? [getStepInitialData()]}
         onChange={steps => saveValues({ steps })}
         actionRef={actionRef}
