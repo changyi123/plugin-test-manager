@@ -680,7 +680,8 @@
           "Test case export (current group)",
           "Test case export (current groups)",
           "Test case export (current plan)",
-          "Test case export (filter result)"
+          "Test case export (filter result)",
+          "Test execution export"
         ],
         "importCaseSuccess": "Test management test case export complete",
         "importCaseWarning": "No test case repository is selected, please select the test case repository to be exported first",
@@ -718,7 +719,15 @@
           "status": "execution status",
           "testPlan": "testPlan",
           "assignee": "assignee",
-          "executor": "executor"
+          "executor": "executor",
+          "testExecution": "测试执行任务",
+          "testTitle": "Test case",
+          "testKey": "Test case key",
+          "testExecutionStatus": "Test execution status",
+          "testExecutionCount": "Test execution count",
+          "stepStatus": "Step status",
+          "actualResult": "Actual result",
+          "testExecutionTime": "Test execution time"
         },
         "todo": "Todo",
         "fontName": "Times new roman "

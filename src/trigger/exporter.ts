@@ -40,23 +40,38 @@ const escapeHtmlString = str => {
   );
 };
 
+const getStatusMap = {
+  TODO: '未开始',
+  PASSED: '通过',
+  BLOCK: '阻塞',
+  FAILED: '失败',
+  EXECUTING: '执行中',
+  CANCEL: '取消',
+};
+
 const getSteps = steps => {
   const data = steps
     ?.filter(d => !d.callTestId)
     ?.reduce(
       (prev, cur, index) => {
         prev = {
+          status: prev.status.concat(
+            `【${index + 1}】${escapeHtmlString(getStatusMap[cur.status])}`,
+          ),
           action: prev.action.concat(`【${index + 1}】${escapeHtmlString(cur.action)}`),
           result: prev.result.concat(`【${index + 1}】${escapeHtmlString(cur.result)}`),
           data: prev.data.concat(`【${index + 1}】${escapeHtmlString(cur.data)}`),
+          actualResult: prev.data.concat(`【${index + 1}】${escapeHtmlString(cur.actualResult)}`),
         };
 
         return prev;
       },
       {
-        action: [],
-        result: [],
+        action: [], // step title
+        result: [], // predicates
         data: [],
+        status: [],
+        actualResult: [],
       },
     );
 
@@ -66,17 +81,90 @@ const getSteps = steps => {
     step: data?.action?.map(d => d.replace(/\n*/g, '')).join(BreakLineCode) ?? '',
     result: data?.result?.map(d => d.replace(/\n*/g, '')).join(BreakLineCode) ?? '',
     data: data?.data?.map(d => d.replace(/\n*/g, '')).join(BreakLineCode) ?? '',
+    status: data?.status?.map(d => d.replace(/\n*/g, '')).join(BreakLineCode) ?? '',
+    actualResult: data?.actualResult?.map(d => d.replace(/\n*/g, '')).join(BreakLineCode) ?? '',
   };
 };
 
 const getLabel = value => value.split(':').pop();
 
+export const exportExecution = async (body, items) => {
+  const { choseFields, extraParams } = body;
+  const { planMapExecution } = extraParams;
+  const allIds = [...Object.keys(planMapExecution), ...Object.values(planMapExecution).flat()];
+  const result = await iqlSearch({
+    iql: `id in ['${allIds.join("','")}']`,
+    displayContext: AppKey,
+    fields: ['id', 'name'],
+  });
+  const nameMap = {};
+  result?.payload?.items?.forEach(_item => {
+    nameMap[_item.id] = _item.name;
+  });
+  const testFields = choseFields.filter(field => !!field.fieldKey);
+
+  const handleItem = itemProps => {
+    const item = {
+      id: itemProps.id,
+      values: {},
+    };
+    const executionId = itemProps.values[TestFiledKeyMapping.linkItems]?.[0];
+    const runDetail = JSON.parse(itemProps.values[TestFiledKeyMapping.runDetail] || '{}');
+    const steps = getSteps(runDetail?.steps);
+    const runExecutor = itemProps.values[TestFiledKeyMapping.executor]?.[0];
+    for (const field of testFields) {
+      switch (field.value) {
+        case EXPORT_FIELD_VALUES.testExecutionBindPlan: {
+          const planId = Object.keys(planMapExecution).find(_key =>
+            planMapExecution[_key].includes(executionId),
+          );
+          item.values[field.value] = nameMap[planId] ?? '';
+          break;
+        }
+        case EXPORT_FIELD_VALUES.testExecution: {
+          item.values[field.value] = nameMap[executionId] ?? '';
+          break;
+        }
+        case EXPORT_FIELD_VALUES.step:
+          item.values[field.value] = steps.step ?? '';
+          break;
+        case EXPORT_FIELD_VALUES.result:
+          item.values[field.value] = steps.result ?? '';
+          break;
+        case EXPORT_FIELD_VALUES.data:
+          item.values[field.value] = steps.data ?? '';
+          break;
+        case EXPORT_FIELD_VALUES.stepStatus:
+          item.values[field.value] = steps.status ?? '';
+          break;
+        case EXPORT_FIELD_VALUES.actualResult:
+          item.values[field.value] = steps.actualResult ?? '';
+          break;
+        case EXPORT_FIELD_VALUES.runExecutor:
+          item.values[field.value] = runExecutor?.nickname ?? runExecutor?.username ?? '';
+          break;
+        case EXPORT_FIELD_VALUES.status:
+          item.values[field.value] = getStatusMap[itemProps.values[field.fieldKey]];
+          break;
+        case EXPORT_FIELD_VALUES.testExecutionCount:
+          item.values[field.value] = itemProps.values[field.fieldKey] || 0;
+          break;
+        default:
+          item.values[field.value] = itemProps.values[field.fieldKey];
+      }
+    }
+
+    return item;
+  };
+
+  return items.map(handleItem).reduce((prev, item) => ({ ...prev, [item.id]: item.values }), {});
+};
 const runScript = async () => {
   const {
     triggerParams: { items, body },
   } = getReqInfoFromVMRuntime<{
     body: {
-      extraParams: { planId: string };
+      extraParams: { planId: string; exportType: string };
       choseFields: { value: string; fieldKey: string; label: string }[];
     };
     items: {
@@ -85,6 +173,13 @@ const runScript = async () => {
       values: Record<string, unknown>;
     }[];
   }>();
+
+  const { extraParams } = body;
+  const { exportType } = extraParams;
+  if (exportType === 'testExecution') {
+    const res = await exportExecution(body, items);
+    return res;
+  }
 
   const workspaceKeys = [...new Set(items.map(item => item?.workspace?.key).filter(Boolean))];
   const repositoryQuery = getParseQuery(true, 'Repository');
