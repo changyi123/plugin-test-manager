@@ -109,7 +109,7 @@ export const testPlanStats = async () => {
         const { caseStatus, source } = testCase;
         // 统计状态数据
         if (caseStatus) {
-          Object.entries(caseStatus as any[]).forEach(([planId, statusKey]) => {
+          Object.entries(caseStatus).forEach(([planId, statusKey]) => {
             // 不在 result plan 中的数据  or 当前计划未在 source 中不需要被统计
             if (!Object.hasOwnProperty.call(result, planId) || !source.includes(planId)) return;
             const planStats = result[planId];

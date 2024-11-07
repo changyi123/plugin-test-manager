@@ -7,11 +7,10 @@ import {
   getLinkedTestEntityByQuery,
   getTestEntityByQuery,
 } from '@/lib/api/item';
-import { EXPORT_EXECUTION_FIELDS, SystemField, TestLinkType, TestType } from '@/lib/constants';
+import { EXPORT_EXECUTION_FIELDS, TestLinkType, TestType } from '@/lib/constants';
 import useI18n from '@/lib/hooks/useI18n';
 import { usePageContext } from '@/pages/plan/hook';
 
-import { iqlRequest, transformOrderParams } from '../../../../trigger/lib/iqlRequest';
 import cx from './ExportModal.less';
 export const downLoadFile = (data: string, tempName: string): void => {
   const blob = new Blob([data], { type: 'application/octet-stream' });
@@ -84,7 +83,6 @@ const ExportModal = props => {
         notConcatField: true,
         limit: 99999,
       });
-      console.log('testPlanList', selectedTestPlan, testPlanList);
       setTestPlanList(testPlanList);
     };
     fetchData();
@@ -122,69 +120,91 @@ const ExportModal = props => {
       fetchData(selectedTestPlanIds);
     }
   }, [selectedTestPlanIds, workspaceKey]);
+  const [loading, setLoading] = useState(false);
+  const loadingRef = React.useRef(false);
+  const _executionList = useMemo(() => {
+    if (selectedTestPlanIds.length === 0) return [];
+    return [
+      {
+        id: 'all',
+        name: t('executionTaskExport.all'),
+      },
+    ].concat(executionList);
+  }, [executionList, t, selectedTestPlanIds]);
   return (
     <Modal
       open={true}
-      okButtonProps={{ disabled: !selectedExecutionIds.length }}
+      okButtonProps={{ disabled: !selectedExecutionIds.length, loading: loading }}
       okText={t('executionTaskExport.sure')}
       title={t('executionTaskExport.record')}
       cancelText={t('executionTaskExport.cancel')}
       onOk={async () => {
-        // const res = await exportTestExecution({
-        //   sourceIds: selectedExecutionIds,
-        //   choseFields: basicFields,
-        //   planMapExecution,
-        // });
-        const iql = `'test_manager_linkType' = "RunLinkExecution" and 'test_manager_type' = "TestRun" and 'test_manager_linkItems' in [${selectedExecutionIds
-          .map(_id => JSON.stringify(_id))
-          .join(',')}] order by test_manager_sortIndex desc, 创建时间 desc`;
-        const res = await exportTestExecution({
-          iql,
-          iqlContext: {
-            displayContext: 'test_manager',
-          },
-          extraParams: {
-            filename: '执行记录导出',
-            exportType: 'testExecution',
-            planMapExecution,
-          },
-          choseFields: basicFields,
-          appKey: 'test_manager',
-        });
-        if (res.data?.type === 'application/octet-stream') {
-          message.warning(t('fileTooLargeTip'));
-        } else if (res.data.type === 'application/json') {
-          const reader = new FileReader();
-          reader.readAsText(res.data);
-          reader.onloadend = () => {
-            const result = JSON.parse(reader.result as string);
-            const reason = (
-              <>
-                {t('pages.settings.system.downloadList.exportError') +
-                  result?.map(v => v.message)?.join(t('global.comma')) +
-                  t('global.comma')}
-                <span
-                  className={cx('link')}
-                  onClick={() => {
-                    message.destroy('error-message');
-                  }}
-                >
-                  {t('pages.settings.system.downloadList.viewDetails')}
-                </span>
-              </>
+        if (loadingRef.current) return;
+        loadingRef.current = true;
+        setLoading(true);
+        try {
+          const hasAll = selectedExecutionIds.includes('all');
+          const _selectedExecutionIds = hasAll
+            ? executionList.map(item => item.id)
+            : selectedExecutionIds;
+          const _filterSelectedExecutionIds = _selectedExecutionIds.filter(_id => _id !== 'all');
+          const iql = `'test_manager_linkType' = "RunLinkExecution" and 'test_manager_type' = "TestRun" and 'test_manager_linkItems' in [${_filterSelectedExecutionIds
+            .map(_id => JSON.stringify(_id))
+            .join(',')}] order by test_manager_sortIndex desc, 创建时间 desc`;
+          const res = await exportTestExecution({
+            iql,
+            iqlContext: {
+              displayContext: 'test_manager',
+            },
+            extraParams: {
+              fileName: '执行记录导出',
+              exportType: 'testExecution',
+              planMapExecution,
+            },
+            choseFields: basicFields,
+            appKey: 'test_manager',
+          });
+          if (res.data?.type === 'application/octet-stream') {
+            message.warning(t('fileTooLargeTip'));
+          } else if (res.data.type === 'application/json') {
+            const reader = new FileReader();
+            reader.readAsText(res.data);
+            reader.onloadend = () => {
+              const result = JSON.parse(reader.result as string);
+              const reason = (
+                <>
+                  {t('pages.settings.system.downloadList.exportError') +
+                    result?.map(v => v.message)?.join(',') +
+                    ','}
+                  <span
+                    className={cx('link')}
+                    onClick={() => {
+                      message.destroy('error-message');
+                    }}
+                  >
+                    {t('pages.settings.system.downloadList.viewDetails')}
+                  </span>
+                </>
+              );
+              message.error({ content: reason, key: 'error-message' });
+            };
+          } else {
+            const fileName = getFileNameFromContentDisposition(
+              res.headers['content-disposition'],
+              `Team ${dayjs().format('YYYY-MM-DDTHH_mm_ss')}.xlsx`,
             );
-            message.error({ content: reason, key: 'error-message' });
-          };
-        } else {
-          const fileName = getFileNameFromContentDisposition(
-            res.headers['content-disposition'],
-            `Team ${dayjs().format('YYYY-MM-DDTHH_mm_ss')}.xlsx`,
-          );
-          downLoadFile(res.data, fileName);
+            downLoadFile(res.data, fileName);
+          }
+          onCancel();
+        } catch (e) {
+          message.error(e.message);
+        } finally {
+          loadingRef.current = false;
+          setLoading(false);
         }
-        console.log('res', res);
       }}
       onCancel={onCancel}
+      maskClosable={false}
     >
       <div>
         <div>{t('executionTaskExport.plan')}</div>
@@ -214,7 +234,7 @@ const ExportModal = props => {
             setSelectedExecutionIds(values);
           }}
         >
-          {executionList.map(item => {
+          {_executionList.map(item => {
             return (
               <Select.Option key={item.id} value={item.id}>
                 {item.name}
@@ -223,6 +243,7 @@ const ExportModal = props => {
           })}
         </Select>
       </div>
+      <span className={cx('maxSupport')}>{t('executionTaskExport.maxSupport')}</span>
     </Modal>
   );
 };

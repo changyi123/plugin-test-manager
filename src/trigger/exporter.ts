@@ -61,7 +61,9 @@ const getSteps = steps => {
           action: prev.action.concat(`【${index + 1}】${escapeHtmlString(cur.action)}`),
           result: prev.result.concat(`【${index + 1}】${escapeHtmlString(cur.result)}`),
           data: prev.data.concat(`【${index + 1}】${escapeHtmlString(cur.data)}`),
-          actualResult: prev.data.concat(`【${index + 1}】${escapeHtmlString(cur.actualResult)}`),
+          actualResult: prev.actualResult.concat(
+            `【${index + 1}】${escapeHtmlString(cur.actualResult)}`,
+          ),
         };
 
         return prev;
@@ -143,7 +145,7 @@ export const exportExecution = async (body, items) => {
         case EXPORT_FIELD_VALUES.runExecutor:
           item.values[field.value] = runExecutor?.nickname ?? runExecutor?.username ?? '';
           break;
-        case EXPORT_FIELD_VALUES.status:
+        case EXPORT_FIELD_VALUES.testExecutionStatus:
           item.values[field.value] = getStatusMap[itemProps.values[field.fieldKey]];
           break;
         case EXPORT_FIELD_VALUES.testExecutionCount:

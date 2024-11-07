@@ -1165,6 +1165,9 @@
     "precondition": "предварительное условие {{num}}",
     "step": "шаг {{num}}",
     "result": "результат {{num}}",
-    "data": "данные"
-  }
+    "data": "данные",
+    "all": "все"
+  },
+  "pages.settings.system.downloadList.exportError": "Ошибка экспорта",
+  "pages.settings.system.downloadList.viewDetails": "Посмотреть детали"
 }
