@@ -165,7 +165,7 @@ const ExportModal = props => {
             appKey: 'test_manager',
           });
           if (res.data?.type === 'application/octet-stream') {
-            message.warning(t('fileTooLargeTip'));
+            message.warning(t('executionTaskExport.fileTooLargeTip'));
           } else if (res.data.type === 'application/json') {
             const reader = new FileReader();
             reader.readAsText(res.data);
@@ -173,7 +173,7 @@ const ExportModal = props => {
               const result = JSON.parse(reader.result as string);
               const reason = (
                 <>
-                  {t('pages.settings.system.downloadList.exportError') +
+                  {t('executionTaskExport.exportError') +
                     result?.map(v => v.message)?.join(',') +
                     ','}
                   <span
@@ -182,7 +182,7 @@ const ExportModal = props => {
                       message.destroy('error-message');
                     }}
                   >
-                    {t('pages.settings.system.downloadList.viewDetails')}
+                    {t('executionTaskExport.viewDetails')}
                   </span>
                 </>
               );

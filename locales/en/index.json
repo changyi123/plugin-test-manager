@@ -1196,8 +1196,9 @@
     "cancel": "cancel",
     "sure": "export",
     "all": "all",
-    "maxSupport": "Support up to 10000 records"
-  },
-  "pages.settings.system.downloadList.exportError": "Export failed",
-  "pages.settings.system.downloadList.viewDetails": "View details"
+    "maxSupport": "Support up to 10000 records",
+    "exportError": "Export failed",
+    "viewDetails": "View details",
+    "fileTooLargeTips": "The file is too large and has been downloaded in the background. Please click on the upper right corner [Personal Center-Download List] to view"
+  }
 }

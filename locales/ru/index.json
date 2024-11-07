@@ -1174,8 +1174,9 @@
     "cancel": "отмена",
     "sure": "уверен",
     "all": "все",
-    "maxSupport": "Максимальная поддержка"
-  },
-  "pages.settings.system.downloadList.exportError": "Ошибка экспорта",
-  "pages.settings.system.downloadList.viewDetails": "Посмотреть детали"
+    "maxSupport": "Максимальная поддержка",
+    "exportError": "Ошибка экспорта",
+    "viewDetails": "Посмотреть детали",
+    "fileTooLargeTips": "Файл слишком большой, пожалуйста, уменьшите количество записей или экспортируйте в несколько файлов"
+  }
 }
