@@ -539,6 +539,7 @@ const chainChartDataAdaptor = (chartData, dataSource) => {
             'r_test_manager_es_object',
             'r_test_manager_es_text_keyword',
             'r_test_manager_es_array_keyword',
+            'r_test_manager_repository_keyword',
           ],
         },
         // 默认 iql 查询

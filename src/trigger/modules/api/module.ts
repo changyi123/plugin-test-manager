@@ -110,7 +110,7 @@ export const repositoryTreeV2 = async () => {
         {
           key: 'r_test_manager_repository',
           name: '',
-          fieldType: 'r_test_manager_es_text_keyword',
+          fieldType: 'r_test_manager_repository_keyword',
         },
       ],
       value: [
