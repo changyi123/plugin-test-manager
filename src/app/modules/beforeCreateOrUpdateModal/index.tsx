@@ -21,8 +21,8 @@ const BeforeCreateOrUpdateModal = () => {
   const storeValues = store.get(ExtensionValType.CREATE_OR_UPDATE_ITEM);
   const [testDetailValues, setTestDetailValues] = React.useState(storeValues);
 
-  // 创建弹窗才有 extraData
-  const isCreateModal = !!storeValues.extraData;
+  // 创建弹窗没有itemId
+  const isCreateModal = !context.itemId;
 
   const workspaceMappingCacheRef = React.useRef({});
   const itemTypeMappingCacheRef = React.useRef({});
@@ -112,6 +112,7 @@ const BeforeCreateOrUpdateModal = () => {
       [CREATE_ITEM_STORE_FIELD_KEY]: values,
     });
     setTestDetailValues(values);
+    window?.QiankunProps?.handleItemContextChange?.(values);
   };
 
   return isCreateModal && testDetailFormVisible ? (

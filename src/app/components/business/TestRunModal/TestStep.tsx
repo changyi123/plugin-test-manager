@@ -20,6 +20,8 @@ const { ItemIcon } = components.Components.Common;
 
 import { clone } from 'lodash';
 
+import { getAppEnv } from '@/lib/appEnv';
+
 import cx from './TestStep.less';
 
 type TestStepProps = TabsComponentBaseProps;
@@ -50,6 +52,9 @@ const TestStep: React.FC<TestStepProps> = props => {
 
   const needUpdateStepsDataRef = useRef(null);
   const event = useSaveTriggerEvent();
+
+  const defaultNameConfig = getAppEnv('CREATE_EXECUTION_DEFAULT_NAME_CONFIG');
+  const enable = defaultNameConfig?.enable;
 
   // const state = useReactive({
   //   steps: testRunEntity?.runDetail?.steps ?? [],
@@ -265,7 +270,7 @@ const TestStep: React.FC<TestStepProps> = props => {
             </div>
             <div className={cx('field')}>
               <span className={cx('label')}>
-                {t('components.business.testRunModal.testStep.data')}：
+                {t(`components.business.testRunModal.testStep.${enable ? 'preData' : 'data'}`)}：
               </span>
               <span className={cx('data')}>{renderFieldValue(step.data)}</span>
             </div>

@@ -24,10 +24,10 @@ import {
   getRunsFromCase,
   updateTestEntity,
 } from '@/lib/api/item';
-import { getAppEnv } from '@/lib/appEnv';
 import { INITIAL_STATUS_KEY, TestLinkType, TestType } from '@/lib/constants';
 import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
+import { getExecutionDefaultConfig } from '@/lib/utils/execution';
 import { alert, getRootContainer } from '@/lib/utils/helper';
 
 const Test = () => {
@@ -135,11 +135,7 @@ const Test = () => {
 
   const createExecution = useCallback(
     async (caseIds, token) => {
-      const defaultNameConfig = getAppEnv('CREATE_EXECUTION_DEFAULT_NAME_CONFIG');
-      const enable = defaultNameConfig?.enable;
-      const suffixName = defaultNameConfig?.suffixName;
-
-      const config = enable ? { name: `${testEntity?.name}_${suffixName}` } : {};
+      const config = await getExecutionDefaultConfig(testEntity);
 
       const res = await createItemUseModal({
         type: TestType.Execution,
@@ -158,7 +154,7 @@ const Test = () => {
 
       return res;
     },
-    [testEntity?.name, testEntity?.objectId, createItemUseModal, t],
+    [testEntity, createItemUseModal, t],
   );
 
   // 创建测试执行
@@ -450,7 +446,7 @@ const Test = () => {
         actionMenuList={[
           {
             key: 'delete',
-            content: t('common.delete'),
+            content: t('common.remove'),
             onClick(selectedRowKeys) {
               removeTestRelation(selectedRowKeys);
             },

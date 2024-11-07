@@ -1125,7 +1125,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       />,
 
       <span className={cx('danger')} key="delete" onClick={() => hasRowSelected && deleteTestRun()}>
-        <DeleteOutlined /> {t('common.delete')}
+        <DeleteOutlined /> {t('common.remove')}
       </span>,
     ];
   }, [
