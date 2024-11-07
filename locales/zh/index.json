@@ -1111,6 +1111,6 @@
     "maxSupport": "单次最大支持导出 10000 条数据"
   },
   "fileTooLargeTip": "文件过大，已在后台进行下载。请点击右上角【个人中心—下载列表】中进行查看",
-  "pages.settings.system.downloadList.exportError": "导出失败！",
+  "pages.settings.system.downloadList.exportError": "导出失败",
   "pages.settings.system.downloadList.viewDetails": "查看详细"
 }

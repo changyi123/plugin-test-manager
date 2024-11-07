@@ -1165,8 +1165,16 @@
     "precondition": "предварительное условие {{num}}",
     "step": "шаг {{num}}",
     "result": "результат {{num}}",
-    "data": "данные",
-    "all": "все"
+    "data": "данные"
+  },
+  "executionTaskExport": {
+    "record": "запись",
+    "plan": "план",
+    "execution": "выполнение",
+    "cancel": "отмена",
+    "sure": "уверен",
+    "all": "все",
+    "maxSupport": "Максимальная поддержка"
   },
   "pages.settings.system.downloadList.exportError": "Ошибка экспорта",
   "pages.settings.system.downloadList.viewDetails": "Посмотреть детали"

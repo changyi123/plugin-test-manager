@@ -1187,8 +1187,16 @@
     "precondition": "precondition {{num}}",
     "step": "step {{num}}",
     "result": "result {{num}}",
-    "data": "data",
-    "all": "all"
+    "data": "data"
+  },
+  "executionTaskExport": {
+    "record": "record",
+    "plan": "plan",
+    "execution": "export execution",
+    "cancel": "cancel",
+    "sure": "export",
+    "all": "all",
+    "maxSupport": "Support up to 10000 records"
   },
   "pages.settings.system.downloadList.exportError": "Export failed",
   "pages.settings.system.downloadList.viewDetails": "View details"
