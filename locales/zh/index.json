@@ -513,8 +513,8 @@
           "description": "暂无测试执行任务"
         },
         "right": {
-          "showChild": "显示子分组用例",
-          "showCur": "显示当前分组用例",
+          "showChild": "显示子模块用例",
+          "showCur": "显示当前模块用例",
           "notSelectMessage": "未选择测试用例",
           "createTestRunSuccessMessage": "用例执行创建成功",
           "caseToPlanSuccessMessage": "测试用例已成功添加至测试计划中",
@@ -528,8 +528,8 @@
         "removeCaseTips": "该操作会将该测试用例从测试计划中移除，是否继续操作？",
         "removeCaseTips1": "该操作会将所选测试用例从测试计划中移除，是否继续操作？",
         "removeCaseTips2": "该操作会将所选测试用例从测试计划中移除，并删除测试执行任务关联，是否继续操作？",
-        "deleteRunTips": "该操作会将所选测试执行删除，是否继续操作？",
-        "deleteRunMessage": "个用例执行被删除",
+        "deleteRunTips": "该操作会将所选测试执行移除，是否继续操作？",
+        "deleteRunMessage": "个用例执行被移除",
         "updateAssigneeTips": "个测试负责人已更新",
         "repositoryGroup": "所属模块",
         "quoteCount": "引用次数",
@@ -598,9 +598,9 @@
           "用例导入",
           "用例导入模板下载",
           "从其他空间导入",
-          "用例导出（所有分组）",
-          "用例导出（当前分组）",
-          "用例导出（当前分组及子分组）",
+          "用例导出（所有模块）",
+          "用例导出（当前模块）",
+          "用例导出（当前模块及子模块）",
           "用例导出（当前计划）",
           "用例导出（筛选结果）",
           "执行记录导出"
@@ -616,7 +616,7 @@
         "createTestCaseFail": "测试用例创建失败",
         "createTestCaseSuccess": "测试用例创建成功",
         "excelContent": {
-          "所属分组": "分组1/分组2",
+          "所属模块": "模块1/模块2",
           "标题": "测试用例标题（样例数据，执行用例导入时请删除该数据）",
           "类型": "测试用例",
           "优先级": "优先级可填值范围：最高，较高，普通，较低，最低",
@@ -630,7 +630,7 @@
           "key": "key",
           "itemStatus": "状态",
           "workspace": "所属空间",
-          "group": "所属分组",
+          "group": "所属模块",
           "name": "标题",
           "itemType": "类型",
           "priority": "优先级",
@@ -676,7 +676,7 @@
           "waitForMinderDataLoading": "脑图数据正在获取中，请稍后进行导出操作",
           "maxRenderNodeConfirm": {
             "title": "提示",
-            "content": "当前用例库分组下节点数量过多。脑图页面加载时间过长，建议切换子分组查看或返回列表页面。请确认是否继续加载？",
+            "content": "当前用例库模块下节点数量过多。脑图页面加载时间过长，建议切换子模块查看或返回列表页面。请确认是否继续加载？",
             "next": "继续加载",
             "cancel": "取消加载",
             "goBack": "返回列表页"
@@ -743,7 +743,7 @@
         "importIncludeRoot": "导入根节点",
         "typeTip": "使用系统定义的模块/测试用例/前置条件/步骤标签的节点将会被识别",
         "typeExample": "节点标签示例",
-        "levelTip": "XMind 文件中模块的层级加上当前脑图分组层级不可以超过8层",
+        "levelTip": "XMind 文件中模块的层级加上当前脑图模块层级不可以超过8层",
         "countLimitTip": "单次上传最大支持导入 1000 条用例",
         "downloadTemplate": "下载模板 "
       },
@@ -820,7 +820,7 @@
             "测试用例",
             "已被添加到测试计划中"
           ],
-          "removeCaseFromPlanSuccess": "个测试用例从测试计划中删除",
+          "removeCaseFromPlanSuccess": "个测试用例从测试计划中移除",
           "executionCount": "执行任务数",
           "executionTips": "该测试用例在以下任务中进行执行",
           "selectCaseModelTitle": "添加测试用例到当前测试计划",
@@ -845,8 +845,8 @@
         "numberValidate": "单次导入最多支持1000条，超过1000条，导入前1000条",
         "validateErrors": [
           "用例标题为空，用例标题 为必填项，不予以导入",
-          "所属分组层数超过限制，所属分组 只能导入 8 层，不予以导入",
-          "所属分组字数超过 100 个字符，不予以导入",
+          "所属模块层数超过限制，所属模块 只能导入 8 层，不予以导入",
+          "所属模块字数超过 100 个字符，不予以导入",
           "前置条件字符数超过限制，前置条件 限制 2000 个字符，不予以导入",
           "步骤格式错误，不予以导入",
           "步骤超过限制，步骤 限制 2000 个字符，不予以导入",
@@ -855,7 +855,7 @@
           "数据格式错误，不予以导入",
           "数据超过限制，数据 限制 2000 个字符，不予以导入",
           "事项类型关联未配置，所有数据不予导入，请先配置关联的事项类型",
-          "所属分组不存在，不予以导入"
+          "所属模块不存在，不予以导入"
         ]
       }
     },
@@ -944,7 +944,7 @@
         "pleaseSelect": "请选择",
         "selectRepository": "选择用例库",
         "selectRepositoryTips": "仅可选择当前拥有权限的用例库",
-        "searchGroup": "搜索用例库分组",
+        "searchGroup": "搜索用例库模块",
         "addTimeSort": "创建时间排序",
         "earliest": "最早",
         "latest": "最晚",
@@ -1025,11 +1025,12 @@
           "result": "实际结果",
           "resultPlaceholder": "请输入实际结果",
           "data": "数据",
+          "preData": "准备数据",
           "defect": "缺陷"
         }
       },
       "testStep": {
-        "stepField": ["步骤", "预期", "数据"],
+        "stepField": ["步骤", "预期", "数据", "准备数据"],
         "hasCircularInheritance": "与测试用例【${testCaseName}】存在循环继承",
         "notInheritCase": "不能继承该测试用例",
         "modelTitle": "请选择继承测试用例",
@@ -1084,7 +1085,7 @@
   },
   "importer": {
     "itemFields": {
-      "group": "所属分组",
+      "group": "所属模块",
       "precondition": "前置条件",
       "action": "步骤",
       "result": "预期结果",

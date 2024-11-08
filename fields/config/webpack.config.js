@@ -16,22 +16,21 @@ module.exports = function (webpackEnv) {
 
   const externals = isEnvProduction
     ? [
-      function ({ request }, callback) {
+        function ({ request }, callback) {
+          const dependencies = ['antd', 'formik', 'lodash', 'react'];
+          if (request.startsWith('proxima-sdk') || dependencies.includes(request)) {
+            return callback(null, 'commonjs2 ' + request);
+          }
 
-        const dependencies = ['antd', 'formik', 'lodash', 'react'];
-        if (request.startsWith('proxima-sdk') || dependencies.includes(request)) {
-          return callback(null, 'commonjs2 ' + request);
-        }
-
-        // 继续下一步且不外部化引用
-        callback();
-      },
-    ]
+          // 继续下一步且不外部化引用
+          callback();
+        },
+      ]
     : [
-      {
-        xmlhttprequest: '{XMLHttpRequest:XMLHttpRequest}',
-      },
-    ];
+        {
+          xmlhttprequest: '{XMLHttpRequest:XMLHttpRequest}',
+        },
+      ];
 
   const plugins = [
     new CleanWebpackPlugin(),
@@ -41,6 +40,7 @@ module.exports = function (webpackEnv) {
       'process.env.SESSION_TOKEN': JSON.stringify(process.env.SESSION_TOKEN),
     }),
   ];
+
   if (isEnvDevelopment) {
     plugins.push(
       new HtmlWebpackPlugin({
@@ -119,18 +119,11 @@ module.exports = function (webpackEnv) {
     stats: 'minimal',
     plugins,
     devServer: {
-      compress: true,
-      hot: true,
-      port: 8001,
-      proxy: {
-        '/api': {
-          target: process.env.REACT_APP_API_SERVER,
-          changeOrigin: true,
-          pathRewrite: {
-            '^/api': '/',
-          },
-        },
+      static: {
+        directory: path.join(__dirname, '../build/test-repository'), //允许配置从跟目录下提供静态文件
+        publicPath: `/`,
       },
+      port: 8000,
     },
   };
 };

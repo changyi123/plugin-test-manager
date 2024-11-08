@@ -28,6 +28,7 @@ type TestStepProps = {
   canCallTest?: boolean;
   onChange?: (steps) => void;
   actionRef?: React.MutableRefObject<ActionType>;
+  hasRequiredTip?: boolean;
 };
 
 const TestStep: React.FC<TestStepProps> = ({
@@ -36,6 +37,7 @@ const TestStep: React.FC<TestStepProps> = ({
   canCallTest,
   testDetailId,
   steps: stepsProps = [],
+  hasRequiredTip,
 }) => {
   const { t } = useI18n();
   const isInitialStepRef = React.useRef(false);
@@ -155,7 +157,7 @@ const TestStep: React.FC<TestStepProps> = ({
           getContainer={getItemDetailPaneContainer}
         />
       )}
-      <StepList actions={stepActions} steps={steps} />
+      <StepList actions={stepActions} steps={steps} hasRequiredTip={hasRequiredTip} />
       <div className={cx('actions')}>
         <a onClick={() => stepActions.add()}>
           <PlusOutlined /> {t('components.business.testStep.addStep')}

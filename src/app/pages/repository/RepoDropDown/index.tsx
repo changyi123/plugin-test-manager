@@ -3,7 +3,7 @@ import { Button, Dropdown, Menu, message, notification, Spin } from 'antd';
 import { MenuItemProps } from 'antd/lib/menu';
 import classnames from 'classnames';
 import { components, hooks } from 'proxima-sdk';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { ActionType as ModelActionType } from '@/components/business/TestEntitySelectorModal';
 import ManageWorkspace from '@/components/business/TestEntitySelectorModal/ManageWorkspace';
@@ -307,19 +307,21 @@ const RepoDropDown = ({
         <Button className={classnames(className)} icon={<CustomMore />} />
       </Dropdown>
       {/* 规划空间测试用例 */}
-      <RecoilRoot>
-        <FilterProvider>
-          <ExportModal
-            iql={iql}
-            exportModalVisible={visible}
-            setExportModalVisible={setVisible}
-            workspace={workspace}
-            appKey={AppKey}
-            appFields={appFields}
-            extraParams={extraParams}
-          />
-        </FilterProvider>
-      </RecoilRoot>
+      <Suspense fallback={null}>
+        <RecoilRoot>
+          <FilterProvider>
+            <ExportModal
+              iql={iql}
+              exportModalVisible={visible}
+              setExportModalVisible={setVisible}
+              workspace={workspace}
+              appKey={AppKey}
+              appFields={appFields}
+              extraParams={extraParams}
+            />
+          </FilterProvider>
+        </RecoilRoot>
+      </Suspense>
       <ManageWorkspace
         title={t('page.plan.planPageLayout.right.caseSelectModelTitle')}
         testType={TestType.Case}

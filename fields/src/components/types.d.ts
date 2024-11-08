@@ -42,7 +42,7 @@ export interface FieldProp {
   itemValues: ItemValues;
   itemId: string;
   name: string;
-  onChange: (v: any) => void;
+  onChange: (v: any, o?: any) => void;
   mode?: string;
   // 自动化参数类型  标识是否需要手动处理参数
   isHandle: boolean;
@@ -54,6 +54,7 @@ export interface FieldProp {
   fieldConfiguration: any;
   editMode: boolean;
   screenMode: string;
+  workspace?: string;
 }
 
 type CustomData = {

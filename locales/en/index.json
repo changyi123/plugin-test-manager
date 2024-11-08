@@ -599,8 +599,8 @@
         "removeCaseTips": "This action will remove this test case from the test plan, do you want to continue",
         "removeCaseTips1": "This action removes the selected test case from the test plan, do you want to continue",
         "removeCaseTips2": "The current case has been associated with the test run task, and delete the test execution task association, do you want to continue",
-        "deleteRunTips": "This action will delete the selected test execution. do you want to continue?",
-        "deleteRunMessage": "Test case executions were deleted",
+        "deleteRunTips": "This action will remove the selected test execution. do you want to continue?",
+        "deleteRunMessage": "Test case executions were removed",
         "updateAssigneeTips": "Test owners have been updated",
         "repositoryGroup": "Belonging module",
         "quoteCount": "Quote counts",
@@ -1113,11 +1113,12 @@
           "result": "Result",
           "resultPlaceholder": "Please enter result",
           "data": "Data",
+          "preData": "Data",
           "defect": "Defect"
         }
       },
       "testStep": {
-        "stepField": ["Step", "Expected", "Data"],
+        "stepField": ["Step", "Expected", "Data", "Data"],
         "hasCircularInheritance": "The test case: [${testCaseName}] has a circular inheritance",
         "notInheritCase": "Cannot inherit this test case",
         "modelTitle": "Please select inheritance test case",

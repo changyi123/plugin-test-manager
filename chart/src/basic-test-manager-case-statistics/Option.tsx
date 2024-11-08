@@ -62,10 +62,10 @@ const Option: React.FC<OptionProps> = ({
       {
         name: '测试用例模块',
         key: 'r_test_manager_repository',
-        fieldType: { key: 'r_test_manager_es_text_keyword' },
+        fieldType: { key: 'r_test_manager_repository_keyword' },
       },
     ],
-    keys: ['r_test_manager_es_text_keyword'],
+    keys: ['r_test_manager_repository_keyword'],
   });
 
   // 获取列纬度的自定义字段

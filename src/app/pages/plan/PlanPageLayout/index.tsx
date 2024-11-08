@@ -9,10 +9,10 @@ import TestEntitySelectorModal, {
 } from '@/components/business/TestEntitySelectorModal';
 import PageLayout from '@/components/common/PageLayout';
 import { batchCreateTestRun, getLinkedTestEntityByQuery, updateTestEntity } from '@/lib/api/item';
-import { getAppEnv } from '@/lib/appEnv';
 import { PROXIMA_EVENT_KEY, TestLinkType, TestType } from '@/lib/constants';
 import { useBaseAction } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
+import { getExecutionDefaultConfig } from '@/lib/utils/execution';
 import { generateSortIndex } from '@/lib/utils/helper';
 import TestPlanList from '@/pages/plan/TestPlanList';
 
@@ -168,11 +168,7 @@ const PlanPageLayout: React.FC<any> = () => {
 
   const createExecution = useCallback(
     async (caseIds = [], createNext = false) => {
-      const defaultNameConfig = getAppEnv('CREATE_EXECUTION_DEFAULT_NAME_CONFIG');
-      const enable = defaultNameConfig?.enable;
-      const suffixName = defaultNameConfig?.suffixName;
-
-      const config = enable ? { name: `${selectedTestPlan?.name}_${suffixName}` } : {};
+      const config = await getExecutionDefaultConfig(selectedTestPlan);
       const res = await createItemUseModal({
         type: TestType.Execution,
         extraData: {
@@ -196,7 +192,7 @@ const PlanPageLayout: React.FC<any> = () => {
 
       return res;
     },
-    [createItemUseModal, selectedTestPlan?.name, selectedTestPlan?.objectId, t],
+    [createItemUseModal, selectedTestPlan, t],
   );
 
   const refreshTreeAndScopeTestCase = useCallback(async () => {
