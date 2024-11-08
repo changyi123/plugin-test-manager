@@ -1,5 +1,6 @@
 import { i18n } from '@giteeteam/apps-api';
 import { getParseQuery } from '@giteeteam/apps-team-api';
+import dayjs from 'dayjs';
 
 import { AppKey, EXPORT_FIELD_VALUES, TestFiledKeyMapping } from '../common/constant';
 import { getReqInfoFromVMRuntime } from './lib/apiUtil';
@@ -55,15 +56,29 @@ const getSteps = steps => {
     ?.reduce(
       (prev, cur, index) => {
         prev = {
-          status: prev.status.concat(
-            `【${index + 1}】${escapeHtmlString(getStatusMap[cur.status])}`,
-          ),
-          action: prev.action.concat(`【${index + 1}】${escapeHtmlString(cur.action)}`),
-          result: prev.result.concat(`【${index + 1}】${escapeHtmlString(cur.result)}`),
-          data: prev.data.concat(`【${index + 1}】${escapeHtmlString(cur.data)}`),
-          actualResult: prev.actualResult.concat(
-            `【${index + 1}】${escapeHtmlString(cur.actualResult)}`,
-          ),
+          status: prev.status
+            .concat(
+              cur.status
+                ? `【${index + 1}】${escapeHtmlString(getStatusMap[cur.status])}`
+                : undefined,
+            )
+            .filter(Boolean),
+          action: prev.action
+            .concat(cur.action ? `【${index + 1}】${escapeHtmlString(cur.action)}` : undefined)
+            .filter(Boolean),
+          result: prev.result
+            .concat(cur.result ? `【${index + 1}】${escapeHtmlString(cur.result)}` : undefined)
+            .filter(Boolean),
+          data: prev.data
+            .concat(cur.data ? `【${index + 1}】${escapeHtmlString(cur.data)}` : undefined)
+            .filter(Boolean),
+          actualResult: prev.actualResult
+            .concat(
+              cur.actualResult
+                ? `【${index + 1}】${escapeHtmlString(cur.actualResult)}`
+                : undefined,
+            )
+            .filter(Boolean),
         };
 
         return prev;
@@ -149,7 +164,12 @@ export const exportExecution = async (body, items) => {
           item.values[field.value] = getStatusMap[itemProps.values[field.fieldKey]];
           break;
         case EXPORT_FIELD_VALUES.testExecutionCount:
-          item.values[field.value] = itemProps.values[field.fieldKey] || 0;
+          item.values[field.value] = itemProps.values[field.fieldKey];
+          break;
+        case EXPORT_FIELD_VALUES.executionTime:
+          item.values[field.value] = itemProps.values[field.fieldKey]
+            ? dayjs(itemProps.values[field.fieldKey]).format('YYYY-MM-DD HH:mm')
+            : '';
           break;
         default:
           item.values[field.value] = itemProps.values[field.fieldKey];

@@ -269,6 +269,7 @@ export const EXPORT_FIELD_VALUES = {
   actualResult: `${EXPORT_FIELD_PREFIX}${TestFiledKeyMapping.runDetail}:actualResult`,
   stepStatus: `${EXPORT_FIELD_PREFIX}${TestFiledKeyMapping.runDetail}:stepStatus`,
   runExecutor: `${EXPORT_FIELD_PREFIX}${TestFiledKeyMapping.executor}`,
+  executionTime: `${EXPORT_FIELD_PREFIX}${TestFiledKeyMapping.executeTime}`,
 };
 
 export const EXPORT_ITEM_FIELDS = [
@@ -404,7 +405,8 @@ export const EXPORT_EXECUTION_FIELDS = [
   },
   {
     label: 'testExecutionTime',
-    value: SystemField.UpdatedAt,
+    value: EXPORT_FIELD_VALUES.executionTime,
+    fieldKey: TestFiledKeyMapping.executeTime,
   },
   {
     label: 'executor',

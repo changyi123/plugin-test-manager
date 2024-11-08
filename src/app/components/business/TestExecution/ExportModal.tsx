@@ -150,7 +150,7 @@ const ExportModal = props => {
           const _filterSelectedExecutionIds = _selectedExecutionIds.filter(_id => _id !== 'all');
           const iql = `'test_manager_linkType' = "RunLinkExecution" and 'test_manager_type' = "TestRun" and 'test_manager_linkItems' in [${_filterSelectedExecutionIds
             .map(_id => JSON.stringify(_id))
-            .join(',')}] order by test_manager_sortIndex desc, 创建时间 desc`;
+            .join(',')}] order by test_manager_linkItems desc, 创建时间 desc`;
           const res = await exportTestExecution({
             iql,
             iqlContext: {
