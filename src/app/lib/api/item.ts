@@ -13,6 +13,7 @@ import { merge } from 'lodash';
 
 import fetch from '@/lib/utils/fetch';
 
+import { getAppEnv } from '../appEnv';
 import {
   RepositoryModel,
   SYSTEM_FIELD,
@@ -32,7 +33,6 @@ import { getPluginWebTriggerBaseUrl, getSessionToken } from '../utils/helper';
 import { SearchSelectors, selectorToIql } from '../utils/iql';
 import { compactStepModel } from '../utils/modelTransfer';
 import { createItemLink, deleteItemLink, getExistedItemLinks, IItemLink } from './runs';
-import { getAppEnv } from '../appEnv';
 
 const pluginWebTriggerBaseUrl = getPluginWebTriggerBaseUrl();
 
@@ -146,6 +146,17 @@ export const getTestEntityByQuery = async (
     list: data.list ?? [],
     total: data.total ?? [],
   };
+};
+
+export const exportTestExecution = async params => {
+  const res = await fetch.post(
+    '/parse/api/export/excel',
+    {
+      ...params,
+    },
+    { responseType: 'blob' },
+  );
+  return res;
 };
 
 // 关联查询

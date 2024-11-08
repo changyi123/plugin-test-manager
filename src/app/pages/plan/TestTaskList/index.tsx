@@ -1,12 +1,15 @@
 import { useMemoizedFn, useRequest } from 'ahooks';
+import { Button, Divider, Dropdown, Menu, Space } from 'antd';
 import _, { uniq } from 'lodash';
 import { components } from 'proxima-sdk';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 
+import ExportModal from '@/components/business/TestExecution/ExportModal';
 import type { BusinessTableActionType } from '@/components/common/BusinessTable/type';
 import FilterSearch from '@/components/common/FilterSearch';
 import { getFilterFields } from '@/components/common/FilterSearch/utils';
 import { BusinessTable } from '@/components/dynamicComponents';
+import { CustomMore } from '@/icons';
 import { EditIcon } from '@/icons';
 import {
   getLinkedTestEntityByQuery,
@@ -24,8 +27,6 @@ import { usePageContext } from '@/pages/plan/hook';
 import { StatusProgress } from '../../../components/business/Status';
 
 const { ItemIcon } = components.Components.Common;
-
-import { Button, Divider, Space } from 'antd';
 
 import CreatePermission from '@/components/business/Contianer/CreatePermission';
 import TestEntitySelectorModal from '@/components/business/TestEntitySelectorModal';
@@ -262,6 +263,21 @@ const TestTaskList: React.FC<any> = ({
     await actionRef.current.refresh();
   });
 
+  const [exportShow, setExportShow] = useState(false);
+
+  const menuClick = useCallback(async e => {
+    const key = e.key;
+    if (key === 'exportTask') {
+      // do something
+      setExportShow(true);
+    }
+  }, []);
+  const menu = (
+    <Menu onClick={e => menuClick(e)}>
+      <Menu.Item key="exportTask">{t('page.repository.repoDropDown.MenuItem.8')}</Menu.Item>
+    </Menu>
+  );
+
   return (
     <div className={cx('test-plan-container')}>
       <div className={cx('plan-header')}>
@@ -271,30 +287,43 @@ const TestTaskList: React.FC<any> = ({
             <Divider type="vertical" />
             <TestPlanSelector hiddenCheckAll />
           </Space>
-          {selectedTestPlan?.objectId ?(
-            <Space className={cx('header-right')}>
-              <CreatePermission type={TestType.Execution}>
-                <Button
-                  type="primary"
-                  onClick={async () => {
-                    createTestExecution();
-                  }}
-                >
-                  {t('common.createTestExecution')}
-                </Button>
-              </CreatePermission>
-              <CreatePermission type={TestType.Execution}>
-                <Button
-                  type="primary"
-                  onClick={async () => {
-                    addExistedTestExecution();
-                  }}
-                >
-                  {t('modules.panel.testPlan.testExecutionPanel.modelTitle')}
-                </Button>
-              </CreatePermission>
-            </Space>
-          ) : null}
+
+          <Space className={cx('header-right')}>
+            {selectedTestPlan?.objectId ? (
+              <>
+                <CreatePermission type={TestType.Execution}>
+                  <Button
+                    type="primary"
+                    onClick={async () => {
+                      createTestExecution();
+                    }}
+                  >
+                    {t('common.createTestExecution')}
+                  </Button>
+                </CreatePermission>
+                <CreatePermission type={TestType.Execution}>
+                  <Button
+                    type="primary"
+                    onClick={async () => {
+                      addExistedTestExecution();
+                    }}
+                  >
+                    {t('modules.panel.testPlan.testExecutionPanel.modelTitle')}
+                  </Button>
+                </CreatePermission>
+              </>
+            ) : null}
+            <Dropdown dropdownRender={() => menu} placement="bottomLeft">
+              <Button icon={<CustomMore />} />
+            </Dropdown>
+            {exportShow && (
+              <ExportModal
+                onCancel={() => {
+                  setExportShow(false);
+                }}
+              />
+            )}
+          </Space>
         </div>
         <div className={cx('plan-header-slot')}>
           <FilterSearch
