@@ -256,12 +256,20 @@ const RepoDropDown = ({
   const basicFields = useMemo(() => {
     const basic = [...EXPORT_ITEM_FIELDS, ...EXPORT_TEST_FIELDS];
     const fields = type === 'plan' ? [...basic, ...EXPORT_PLAN_FIELDS] : basic;
-    return fields.map(field => ({
-      ...field,
-      label: t(`page.repository.repoDropDown.excelExportTitle.${field.label}`),
-      checked: true,
-      readonly: true,
-    }));
+    const defaultNameConfig = getAppEnv('CREATE_EXECUTION_DEFAULT_NAME_CONFIG');
+    const enable = defaultNameConfig?.enable;
+    return fields.map(field => {
+      return {
+        ...field,
+        label: t(
+          `page.repository.repoDropDown.excelExportTitle.${
+            enable && field.label === 'data' ? 'preData' : field.label
+          }`,
+        ),
+        checked: true,
+        readonly: true,
+      };
+    });
   }, [t, type]);
 
   const appFields = useMemo(() => {

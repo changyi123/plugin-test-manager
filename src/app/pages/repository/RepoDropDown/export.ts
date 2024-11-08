@@ -1,4 +1,4 @@
-import { difference } from 'lodash';
+import { difference, omit } from 'lodash';
 
 import { getRepoFullPathMap } from '@/components/business/RepositoryGroup/repository';
 import {
@@ -308,6 +308,7 @@ const importTestInfo = async (
 
 /** 下载 excel 用例导出文件 */
 export const downloadExampleFile = async (fieldKeys, t, _lang) => {
+  console.info('fieldKeys', fieldKeys, t, _lang);
   // 获取需要导出的自定义字段
   const SystemFieldKeys = Object.values(SYSTEM_FIELD);
   const CustomFieldKeys = [...difference(fieldKeys, SystemFieldKeys), ...TEMPLATE_SYSTEM_FIELDS];
@@ -318,12 +319,27 @@ export const downloadExampleFile = async (fieldKeys, t, _lang) => {
       [field.name]: '',
     };
   }, {});
+
+  const defaultNameConfig = getAppEnv('CREATE_EXECUTION_DEFAULT_NAME_CONFIG');
+  const enable = defaultNameConfig?.enable;
+
+  let testManagerFields =
+    t('page.repository.repoDropDown.excelContent', {
+      returnObjects: true,
+    }) ?? {};
+
+  const dataField = testManagerFields['数据'];
+
+  if (enable && dataField) {
+    testManagerFields = Object.assign(omit(testManagerFields, '数据'), {
+      准备数据: dataField,
+    });
+  }
+
   exportExcelFile(
     [
       {
-        ...(t('page.repository.repoDropDown.excelContent', {
-          returnObjects: true,
-        }) ?? {}),
+        ...testManagerFields,
         // 所属分组: '分组1/分组2',
         // 标题: '测试用例标题（样例数据，执行用例导入时请删除该数据）',
         // 类型: '测试用例',
