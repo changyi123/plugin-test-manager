@@ -339,6 +339,7 @@ export type SendMessagePayload = {
   creatUser?: string;
   roles?: string[];
   users?: string[];
+  groups?: string[];
   templatePayload: Record<string, any>;
 };
 

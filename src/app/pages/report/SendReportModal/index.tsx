@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 import SelectorTag from '@/components/common/FilterSearch/SelectorTag';
 import { getCustomFields } from '@/lib/api/proxima';
 import { openFieldValuePopover } from '@/lib/api/sdk';
+import { judgeTestReportVersion, TEST_REPORT_VERSION } from '@/lib/appEnv';
 import { FILTER_EXPRESSIONS } from '@/lib/constants';
 import { useCurrentUser } from '@/lib/hooks/useTest';
 import { sendMessage as sendMessageService } from '@/services/common/service';
@@ -57,12 +58,22 @@ const SendReportModal: React.FC<{
   const sendMessage = useMemoizedFn(async () => {
     if (!postType.length) return message.error(t('message.sendTypeEmpty'));
     if (!assigneeSelectorValue.length) return message.error(t('message.sendToEmpty'));
+    const groups = [];
+    const users = [];
+    assigneeSelectorValue.forEach(i => {
+      if (i.userGroupName) {
+        groups.push(i.id);
+      } else {
+        users.push(i.value);
+      }
+    });
 
     await sendMessageMutation({
       postType,
-      useTemplate: 'testReport',
+      useTemplate: judgeTestReportVersion(TEST_REPORT_VERSION.V2) ? 'testReportV2' : 'testReport',
       creatUser: currentUser.objectId,
-      users: assigneeSelectorValue.map(item => item.value),
+      users,
+      groups,
       templatePayload: {
         testReportId: testReportIdDataRef.current,
       },
