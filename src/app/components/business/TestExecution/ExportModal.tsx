@@ -62,6 +62,8 @@ const ExportModal = props => {
   const [executionList, setExecutionList] = useState([]);
   const [planMapExecution, setPlanMapExecution] = useState({});
 
+  console.info('zjqprops', props);
+
   const basicFields = useMemo(() => {
     const basic = [...EXPORT_EXECUTION_FIELDS];
     return basic.map(field => ({
@@ -83,6 +85,7 @@ const ExportModal = props => {
         notConcatField: true,
         limit: 99999,
       });
+      console.info('testPlanList', testPlanList);
       setTestPlanList(testPlanList);
     };
     fetchData();

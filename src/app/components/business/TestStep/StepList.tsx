@@ -45,10 +45,11 @@ const StepFields: React.FC<{
               Object.assign(
                 {
                   key: field.key,
+                  style: { padding: '5px' },
                   maxLength: 2000,
                   placeholder: `${t('components.business.testStep.pleaseInput')} ${t(
                     `components.business.testStep.${field.title}`,
-                  )}（${t('components.business.testStep.switchNext')}）`,
+                  )}`,
                   onKeyDownEnter: () => nextField(stepId, field.key),
                   ref: ref => {
                     // 只有 input 类型组件需要缓存 ref

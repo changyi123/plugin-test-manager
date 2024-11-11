@@ -8,6 +8,17 @@ import { t } from '@/i18n';
 import { CellProp } from '../types';
 import cx from './index.less';
 
+const getTextFromEditorOrString = data => {
+  if (!data) {
+    return '-';
+  }
+  if (typeof data === 'string') {
+    return data || '-';
+  } else {
+    const [forMinderText] = data;
+    return forMinderText.stringText;
+  }
+};
 const parseData = v => {
   try {
     const data = JSON.parse(v);
@@ -45,7 +56,8 @@ const Cell: FC<CellProp> = props => {
         key: 'action',
         width: '35%',
         render: text => {
-          return <div className={cx['common-box']}>{text || '-'}</div>;
+          console.info('action-text', text);
+          return <div className={cx['common-box']}>{getTextFromEditorOrString(text) || '-'}</div>;
         },
       },
       {
@@ -54,7 +66,8 @@ const Cell: FC<CellProp> = props => {
         key: 'result',
         width: '35%',
         render: text => {
-          return <div className={cx['common-box']}>{text || '-'}</div>;
+          console.info('result-text', text);
+          return <div className={cx['common-box']}>{getTextFromEditorOrString(text) || '-'}</div>;
         },
       },
       {
@@ -63,7 +76,8 @@ const Cell: FC<CellProp> = props => {
         key: 'data',
         width: '15%',
         render: text => {
-          return <div className={cx['common-box']}>{text || '-'}</div>;
+          console.info('data-text', text);
+          return <div className={cx['common-box']}>{getTextFromEditorOrString(text) || '-'}</div>;
         },
       },
     ];
