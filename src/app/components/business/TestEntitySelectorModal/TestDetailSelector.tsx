@@ -243,7 +243,7 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
           showDefaultRange={showDefaultRange}
           ref={detailSearchRef}
           onSearch={setSearchParams}
-          className={`${cx('plan-page-layout-search')} ${cx('common-search-box')}`}
+          className={`${cx('plan-page-layout-search')} common-search-box`}
           fields={getFilterFields([].concat(SystemFieldKeys, testCaseFieldKeys))}
           testType={TestType.Case}
           defaultIql={defaultIql}
