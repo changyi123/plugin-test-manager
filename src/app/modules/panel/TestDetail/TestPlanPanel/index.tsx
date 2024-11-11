@@ -20,7 +20,7 @@ import { getItemByIQL } from '@/lib/api/proxima';
 import { TestLinkType } from '@/lib/constants';
 import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
-import { alert, getRootContainer } from '@/lib/utils/helper';
+import { alert, getTestManagerContainer } from '@/lib/utils/helper';
 
 import cx from './index.less';
 
@@ -250,7 +250,7 @@ const Plan = () => {
         actionRef={selectorModalRef}
         testType={TestType.Plan}
         ignoreTestEntityIds={planIds}
-        getContainer={getRootContainer}
+        getContainer={getTestManagerContainer}
       />
       <PanelTable
         renderActions={() =>

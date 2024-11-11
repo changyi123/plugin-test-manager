@@ -212,8 +212,6 @@ const InheritTestDetail: React.FC<InheritTestDetailProps> = props => {
                 shouldIncludeSubFolder
                 actionRef={repositoryFolderTreeRef}
                 onFolderSelect={node => setSelectedNode(node)}
-                isShowAll={false}
-                hideEmptyFolder
               />
             </div>
             <div className={cx('detail-selector-container')}>

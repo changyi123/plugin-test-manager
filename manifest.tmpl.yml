@@ -95,7 +95,7 @@ modules:
 
     - key: api-generate-offline-report
       function: api-generate-offline-report-function
-    
+
     # 申万测试报告联调对接
     - key: extension-report-shenwan
       function: extension-report-shenwan-function
@@ -154,7 +154,7 @@ modules:
         - proxima:app:install
         - proxima:app:upgrade
       function: auditLog-action-catogory-install-function
-    
+
   function:
     - key: gitee-menus-function
       handler: web.runGiteeMenus
@@ -311,6 +311,9 @@ modules:
       loadType: Micro
       route: /config
   workspacePage:
+    - key: test-manager-group
+      type: group
+      title: 测试管理
     - key: test-plan
       resource: main
       title: 测试计划
@@ -319,6 +322,7 @@ modules:
       icon: /main/icons/Panel_Testplan.svg
       activeIcon: /main/icons/Panel_TestplanB.svg
       displayInBoardManage: true
+      parent: test-manager-group
       {workspacePageHidden}
     - key: test-task
       resource: main
@@ -326,6 +330,7 @@ modules:
       loadType: Micro
       route: /task
       displayInBoardManage: true
+      parent: test-manager-group
       {workspacePageHidden}
     - key: test-repository
       resource: main
@@ -335,6 +340,7 @@ modules:
       icon: /main/icons/Panel_Testcase.svg
       activeIcon: /main/icons/Panel_TestcaseB.svg
       displayInBoardManage: true
+      parent: test-manager-group
       {workspacePageHidden}
     - key: test-report
       resource: main
@@ -342,6 +348,7 @@ modules:
       loadType: Micro
       route: /report
       displayInBoardManage: true
+      parent: test-manager-group
       {workspacePageHidden}
     - key: test-stats-report
       resource: main
@@ -351,6 +358,7 @@ modules:
       activeIcon: /main/icons/Panel_TestB.svg
       route: /[tenant]/workspaces/[workspace]/plugin/team_insight_charts_base_team_insight_test_manager?disabledCreate=true&displayContext=test_manager&moduleKey=test_manager
       displayInBoardManage: true
+      parent: test-manager-group
       {workspacePageHidden}
     - key: test-xmindimport
       resource: main
@@ -722,10 +730,10 @@ tables:
       chartGroup:
         type: Pointer
         targetClass: ChartGroup
-      # 是否是测试报告模板 
+      # 是否是测试报告模板
       isTemplate:
         type: Boolean
-      # 是否是租户级模板 
+      # 是否是租户级模板
       isGlobalTemplate:
         type: Boolean
       # 是否是默认模板
