@@ -56,7 +56,6 @@ const Cell: FC<CellProp> = props => {
         key: 'action',
         width: '35%',
         render: text => {
-          console.info('action-text', text);
           return <div className={cx['common-box']}>{getTextFromEditorOrString(text) || '-'}</div>;
         },
       },
@@ -66,7 +65,6 @@ const Cell: FC<CellProp> = props => {
         key: 'result',
         width: '35%',
         render: text => {
-          console.info('result-text', text);
           return <div className={cx['common-box']}>{getTextFromEditorOrString(text) || '-'}</div>;
         },
       },
@@ -76,7 +74,6 @@ const Cell: FC<CellProp> = props => {
         key: 'data',
         width: '15%',
         render: text => {
-          console.info('data-text', text);
           return <div className={cx['common-box']}>{getTextFromEditorOrString(text) || '-'}</div>;
         },
       },
