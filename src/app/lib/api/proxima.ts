@@ -266,7 +266,7 @@ export const getItemByIds = async (itemIds: string[]) => {
     .containedIn('objectId', itemIds)
     .select('itemType', 'workspace', 'name', 'key', 'status')
     .include(['itemType', 'workspace', 'status'])
-    .findAll({ sessionToken: 'a:d36e77a9a6f5cb1b9d37c6cc' });
+    .findAll({ 'X-Proxima-API-Token': 'a:d36e77a9a6f5cb1b9d37c6cc' });
 
   return res.map(item => item.toJSON());
 };

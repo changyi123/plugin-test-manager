@@ -262,6 +262,14 @@ export const EXPORT_FIELD_VALUES = {
   executor: `${EXPORT_FIELD_PREFIX}${TestFiledKeyMapping.caseExecutor}`,
   status: `${EXPORT_FIELD_PREFIX}${TestFiledKeyMapping.caseStatus}`,
   testPlan: `${EXPORT_FIELD_PREFIX}${TestFiledKeyMapping.linkItems}`,
+  testExecution: `${EXPORT_FIELD_PREFIX}${TestFiledKeyMapping.linkItems}:testExecution`,
+  testExecutionBindPlan: `${EXPORT_FIELD_PREFIX}${TestFiledKeyMapping.linkItems}:testPlan`,
+  testExecutionStatus: `${EXPORT_FIELD_PREFIX}${TestFiledKeyMapping.status}`,
+  testExecutionCount: `${EXPORT_FIELD_PREFIX}${TestFiledKeyMapping.executeCount}`,
+  actualResult: `${EXPORT_FIELD_PREFIX}${TestFiledKeyMapping.runDetail}:actualResult`,
+  stepStatus: `${EXPORT_FIELD_PREFIX}${TestFiledKeyMapping.runDetail}:stepStatus`,
+  runExecutor: `${EXPORT_FIELD_PREFIX}${TestFiledKeyMapping.executor}`,
+  executionTime: `${EXPORT_FIELD_PREFIX}${TestFiledKeyMapping.executeTime}`,
 };
 
 export const EXPORT_ITEM_FIELDS = [
@@ -338,5 +346,71 @@ export const EXPORT_PLAN_FIELDS = [
     label: 'status',
     value: EXPORT_FIELD_VALUES.status,
     fieldKey: TestFiledKeyMapping.caseStatus,
+  },
+];
+
+export const EXPORT_EXECUTION_FIELDS = [
+  {
+    label: 'testPlan',
+    value: EXPORT_FIELD_VALUES.testExecutionBindPlan,
+    fieldKey: TestFiledKeyMapping.linkItems,
+  },
+  {
+    label: 'testExecution',
+    value: EXPORT_FIELD_VALUES.testExecution,
+    fieldKey: TestFiledKeyMapping.linkItems,
+  },
+  {
+    label: 'testTitle',
+    value: 'name',
+  },
+  {
+    label: 'testKey',
+    value: 'key',
+  },
+  {
+    label: 'testExecutionStatus',
+    value: EXPORT_FIELD_VALUES.testExecutionStatus,
+    fieldKey: TestFiledKeyMapping.status,
+  },
+  {
+    label: 'testExecutionCount',
+    value: EXPORT_FIELD_VALUES.testExecutionCount,
+    fieldKey: TestFiledKeyMapping.executeCount,
+  },
+  {
+    label: 'step',
+    value: EXPORT_FIELD_VALUES.step,
+    fieldKey: TestFiledKeyMapping.runDetail,
+  },
+  {
+    label: 'result',
+    value: EXPORT_FIELD_VALUES.result,
+    fieldKey: TestFiledKeyMapping.runDetail,
+  },
+  {
+    label: 'data',
+    value: EXPORT_FIELD_VALUES.data,
+    fieldKey: TestFiledKeyMapping.runDetail,
+  },
+  {
+    label: 'stepStatus',
+    value: EXPORT_FIELD_VALUES.stepStatus,
+    fieldKey: TestFiledKeyMapping.runDetail,
+  },
+  {
+    label: 'actualResult',
+    value: EXPORT_FIELD_VALUES.actualResult,
+    fieldKey: TestFiledKeyMapping.runDetail,
+  },
+  {
+    label: 'testExecutionTime',
+    value: EXPORT_FIELD_VALUES.executionTime,
+    fieldKey: TestFiledKeyMapping.executeTime,
+  },
+  {
+    label: 'executor',
+    value: EXPORT_FIELD_VALUES.runExecutor,
+    fieldKey: TestFiledKeyMapping.executor,
   },
 ];

@@ -602,7 +602,8 @@
           "用例导出（当前模块）",
           "用例导出（当前模块及子模块）",
           "用例导出（当前计划）",
-          "用例导出（筛选结果）"
+          "用例导出（筛选结果）",
+          "执行记录导出"
         ],
         "importCaseSuccess": "测试管理用例导出完成",
         "importCaseWarning": "未选择用例库，请先选择需要导出的用例库",
@@ -637,10 +638,19 @@
           "step": "步骤",
           "result": "预期结果",
           "data": "数据",
+          "preData": "准备数据",
           "status": "测试执行状态",
           "testPlan": "测试计划",
           "assignee": "负责人",
-          "executor": "最新执行人"
+          "executor": "最新执行人",
+          "testExecution": "测试执行任务",
+          "testTitle": "用例标题",
+          "testKey": "用例key",
+          "testExecutionStatus": "测试执行状态",
+          "testExecutionCount": "执行次数",
+          "stepStatus": "步骤状态",
+          "actualResult": "实际结果",
+          "testExecutionTime": "最新执行时间"
         },
         "todo": "未开始",
         "fontName": "宋体"
@@ -1092,5 +1102,17 @@
     "step": "步骤 {{num}}",
     "result": "预期结果 {{num}}",
     "data": "数据"
+  },
+  "executionTaskExport": {
+    "record": "执行记录导出",
+    "plan": "导出测试计划",
+    "execution": "导出测试执行任务",
+    "cancel": "取消",
+    "sure": "导出",
+    "all": "全部",
+    "maxSupport": "单次最大支持导出 10000 条数据",
+    "exportError": "导出失败",
+    "viewDetails": "查看详细",
+    "fileTooLargeTip": "文件过大，已在后台进行下载。请点击右上角【个人中心—下载列表】中进行查看"
   }
 }

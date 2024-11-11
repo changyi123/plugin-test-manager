@@ -189,13 +189,27 @@ export const batchCreateItems = async (
     headers['X-Parse-Session-Token'] = sessionToken;
   }
 
-  const taskQueue = itemsData.map(items => async () => {
-    return await bulkCreateItems(items, headers);
+  // 记录创建成功的事项和错误信息
+  const items = [];
+  const errors = [];
+
+  const taskQueue = itemsData.map(i => async () => {
+    const result = await bulkCreateItems(i, headers);
+    items.push(...(result?.items ?? []));
+    errors.push(
+      ...(result?.errors?.map(
+        e => `${i?.[e.index]?.name ? `${i[e.index].name}: ` : ''}${e.error}`,
+      ) ?? []),
+    );
   });
 
   const dump = logTimeCost(`create ${taskQueue.length} items`);
-  const res = await parallelLimit(taskQueue, ParallelLimit);
+  await parallelLimit(taskQueue, ParallelLimit);
   dump();
-  console.info(JSON.stringify(res), 'batchCreateItems');
-  return res?.flat();
+  console.info(
+    JSON.stringify({ items: items?.length, errors: errors?.length }),
+    'batchCreateItems',
+  );
+  if (errors.length) throw new Error(errors.join(';'));
+  return items;
 };
