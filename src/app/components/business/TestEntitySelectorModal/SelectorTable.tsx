@@ -41,7 +41,7 @@ const SelectorTable: React.FC<SelectorTable> = ({
         query: {
           workspaceKey: workspaceKeyCondition,
           type: testType,
-          linkType: {
+          linkItems: {
             operator: 'is',
             value: null,
           } as any,
