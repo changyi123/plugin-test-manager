@@ -151,18 +151,22 @@ const ExportModal = props => {
           const iql = `'test_manager_linkType' = "RunLinkExecution" and 'test_manager_type' = "TestRun" and 'test_manager_linkItems' in [${_filterSelectedExecutionIds
             .map(_id => JSON.stringify(_id))
             .join(',')}] order by test_manager_linkItems desc, 创建时间 desc`;
+          const findTestPlanName = testPlanList?.find(
+            _plan => _plan.id === selectedTestPlanIds[0],
+          )?.name;
           const res = await exportTestExecution({
             iql,
             iqlContext: {
               displayContext: 'test_manager',
             },
             extraParams: {
-              fileName: '执行记录导出',
+              fileName: `测试执行记录导出-【${findTestPlanName}】`,
               exportType: 'testExecution',
               planMapExecution,
             },
             choseFields: basicFields,
             appKey: 'test_manager',
+            viewId: 'filters-Default', // just for file name
           });
           if (res.data?.type === 'application/octet-stream') {
             message.warning(t('executionTaskExport.fileTooLargeTip'));
@@ -210,10 +214,9 @@ const ExportModal = props => {
         <div>{t('executionTaskExport.plan')}</div>
         <Select
           className={cx('select')}
-          mode="multiple"
           value={selectedTestPlanIds}
           onChange={values => {
-            setSelectedTestPlanIds(values);
+            setSelectedTestPlanIds([values]);
           }}
         >
           {testPlanList.map(item => {
