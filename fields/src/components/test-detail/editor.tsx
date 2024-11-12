@@ -1,11 +1,25 @@
-import './style.less';
-
 import { components } from 'proxima-sdk';
 import React, { useEffect, useState } from 'react';
-import { uuidv4 } from 'src/trigger/lib/helper';
 
-import { TOOLBAR_BUTTONS_FIELDS } from './constant';
+import cx from './index.less';
 
+const TOOLBAR_BUTTONS_FIELDS = {
+  FONST_SIZE: 'fontSize',
+  LINE_HEIGHT: 'lineHeight',
+  HEADER_GROUP: 'hearderGroup',
+  BOLD: 'bold',
+  ITALIC: 'italic',
+  UNDERLINE: 'underline',
+  STRIKETHROUGH: 'strikethrough',
+  COLOR_PICKER: 'colorPicker',
+  HIGHLIGHT: 'highlight',
+  LIST: 'list',
+  ALIGN: 'align',
+  TABLE: 'table',
+  IMAGE: 'image',
+  CODE: 'code',
+  LINK: 'link',
+};
 const { Field } = components.Components.Common.Editor;
 
 interface EditorProps {
@@ -73,8 +87,6 @@ const Editor: React.FC<EditorProps> = ({
     value ?? defaultEditorValue,
   );
 
-  const nameId = uuidv4();
-
   // 数据转为富文本数组结构
   useEffect(() => {
     if (typeof value === 'string' && value) {
@@ -106,9 +118,9 @@ const Editor: React.FC<EditorProps> = ({
   };
 
   return (
-    <div className="comment-editor" style={style}>
+    <div className={cx['comment-editor']} style={style}>
       <Field
-        name={nameId}
+        name={name ?? 'comment-editor'}
         placeholder={placeholder}
         value={editorValue}
         onChange={handleSave}
