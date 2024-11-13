@@ -6,6 +6,7 @@ import React, { FC, useMemo } from 'react';
 import { t } from '@/i18n';
 
 import { CellProp } from '../types';
+import Editor from './editor';
 import cx from './index.less';
 
 const parseData = v => {
@@ -34,7 +35,7 @@ const Cell: FC<CellProp> = props => {
         title: '#',
         dataIndex: 'index',
         key: 'index',
-        width: '15%',
+        width: '10%',
         render: (_, __, index) => {
           return <div className={cx['index-box']}>{index}</div>;
         },
@@ -43,27 +44,27 @@ const Cell: FC<CellProp> = props => {
         title: t('step'),
         dataIndex: 'action',
         key: 'action',
-        width: '35%',
+        width: '30%',
         render: text => {
-          return <div className={cx['common-box']}>{text || '-'}</div>;
+          return <Editor value={text} readonly={true} />;
         },
       },
       {
         title: t('expected'),
         dataIndex: 'result',
         key: 'result',
-        width: '35%',
+        width: '30%',
         render: text => {
-          return <div className={cx['common-box']}>{text || '-'}</div>;
+          return <Editor value={text} readonly={true} />;
         },
       },
       {
         title: t('data'),
         dataIndex: 'data',
         key: 'data',
-        width: '15%',
+        width: '30%',
         render: text => {
-          return <div className={cx['common-box']}>{text || '-'}</div>;
+          return <Editor value={text} readonly={true} />;
         },
       },
     ];
