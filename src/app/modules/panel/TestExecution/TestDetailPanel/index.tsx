@@ -434,6 +434,7 @@ const Test = () => {
         ignoreTestEntityIds={relCase}
         tableFieldsKeys={testExecutionFieldKeys}
         getContainer={getTestManagerContainer}
+        showDefaultRange
       />
 
       <StatusProcessBar status={relRunStatuses} />
