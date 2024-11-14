@@ -2,7 +2,7 @@ import './style.less';
 
 import { components } from 'proxima-sdk';
 import React, { useEffect, useState } from 'react';
-import { uuidv4 } from 'src/trigger/lib/helper';
+import { v4 as uuidv4 } from 'uuid';
 
 import { TOOLBAR_BUTTONS_FIELDS } from './constant';
 

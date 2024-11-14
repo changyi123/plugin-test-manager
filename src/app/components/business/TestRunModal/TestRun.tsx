@@ -142,7 +142,11 @@ const TestRun: React.FC<TestRunType> = props => {
       };
 
       // 未被初始化的测试用例详情字段为 {} 或 null
-      if (!testRunEntity.runDetail || !Object.keys(testRunEntity.runDetail).length) {
+      if (
+        !testRunEntity.runDetail ||
+        !Object.keys(testRunEntity.runDetail).length ||
+        testRunEntity.runDetail.init
+      ) {
         const testCaseId = testRunEntity.referenceCase;
         const [testCaseEntity, stepsDataFromTestCase] = await Promise.all([
           getTestCaseEntity(testCaseId),
@@ -154,6 +158,7 @@ const TestRun: React.FC<TestRunType> = props => {
         // 进一步校验测试执行是否未被初始化
         const testRunIsNotInitial =
           !testRunEntity.runDetail ||
+          testRunEntity.runDetail.init ||
           // 测试任务的前置条件或步骤没有数据，但是用例前置条件或步骤有数据
           (!testRunEntity.runDetail?.precondition && testCaseEntity.detail?.precondition) ||
           (!Array.isArray(testRunEntity.runDetail?.steps) &&
@@ -170,6 +175,7 @@ const TestRun: React.FC<TestRunType> = props => {
           const runDetailData = {
             steps: stepsData,
             precondition: preconditionData,
+            init: false,
           };
 
           console.info('测试执行详情数据', runDetailData);

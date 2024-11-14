@@ -409,7 +409,7 @@ export const batchCreateTestRun = async () => {
             ...linkData,
             type: TestType.Run,
             // 修改测试执行详情数据在创建时确定
-            runDetail: data.detail,
+            runDetail: { ...(data.detail ?? {}), init: true },
             // runDetail: {},
             // 空间和测试用例的空间保持一致
             workspace: data.workspace,
