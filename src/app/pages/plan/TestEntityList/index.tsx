@@ -708,7 +708,9 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         title: t('common.tip'),
         okText: t('common.okText'),
         cancelText: t('common.cancel'),
-        content: t(`page.plan.testEntityList.${enable ? 'deleteRunTips1' : 'deleteRunTips'} `),
+        content: enable
+          ? t('page.plan.testEntityList.deleteRunTips1')
+          : t('page.plan.testEntityList.deleteRunTips'),
       },
       async () => {
         // 删除测试执行
