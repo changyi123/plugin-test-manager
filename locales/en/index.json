@@ -911,7 +911,8 @@
           "deleteRunToPlanSuccess": "Test executions were removed from the test plan",
           "modelTitle": "Associated test execution",
           "addTestExecution": "Add test execution task",
-          "notSelectMessage": "No test execution selected"
+          "notSelectMessage": "No test execution selected",
+          "createReport": "Creating a test report"
         }
       }
     }
@@ -1157,7 +1158,8 @@
         "inputPlaceholder": "Please enter title",
         "to": "To",
         "or": "Or",
-        "none": "None"
+        "none": "None",
+        "selected": "Selected"
       },
       "uploadFile": {
         "uploadErrorMessage": "The number of files cannot exceed"

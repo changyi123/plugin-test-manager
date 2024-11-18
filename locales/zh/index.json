@@ -832,7 +832,8 @@
           "deleteRunToPlanSuccess": "个测试执行从测试计划中删除",
           "modelTitle": "关联测试执行任务",
           "addTestExecution": "添加测试执行任务",
-          "notSelectMessage": "未选择测试执行任务"
+          "notSelectMessage": "未选择测试执行任务",
+          "createReport": "创建测试报告"
         }
       }
     }
@@ -1069,7 +1070,8 @@
         "inputPlaceholder": "请输入标题关键字",
         "to": "至",
         "or": "或",
-        "none": "无"
+        "none": "无",
+        "selected": "已选项"
       },
       "uploadFile": {
         "uploadErrorMessage": "文件数量不能超过"

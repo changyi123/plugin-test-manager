@@ -30,6 +30,8 @@ export type FormProps = {
   workspace?: Workspace;
 };
 
+const emptyObject = {};
+
 const RangeForm: React.FC<any> = ({ state, workspace }) => {
   const { t } = useI18n();
   const [selectors, setSelectors] = useState(undefined);
@@ -42,6 +44,10 @@ const RangeForm: React.FC<any> = ({ state, workspace }) => {
     return [...new Set(selectorFields)];
   }, [state.template?.templateConfig]);
 
+  const extraSelectors = useMemo(() => {
+    return state.extraSelectors || emptyObject;
+  }, [state.extraSelectors]);
+
   // 获取统计范围字段 fields
   const { data: defaultSelectors } = useRequest(
     async () => {
@@ -51,7 +57,7 @@ const RangeForm: React.FC<any> = ({ state, workspace }) => {
         ? getTestExecutionField(t)
         : [];
 
-      return [...executionField, ...planField, ...res]?.reduce((prev, cur) => {
+      const config = [...executionField, ...planField, ...res]?.reduce((prev, cur) => {
         prev[cur.objectId] = {
           component: cur.fieldType.component,
           expression: null,
@@ -64,10 +70,15 @@ const RangeForm: React.FC<any> = ({ state, workspace }) => {
 
         return prev;
       }, {});
+
+      const result = Object.assign(config, extraSelectors);
+
+      console.info('----result', result);
+      return result;
     },
     {
       ready: Boolean(reportFields?.length),
-      refreshDeps: [reportFields, workspace],
+      refreshDeps: [reportFields, workspace, extraSelectors],
       // cacheKey: `Range_Form_${(reportFields ?? []).toString()}`,
       // staleTime: -1,
     },
@@ -83,7 +94,8 @@ const RangeForm: React.FC<any> = ({ state, workspace }) => {
   useEffect(() => {
     if (state.init) {
       state.init = false;
-      setSelectors(state.selectors);
+      const selectors = Object.assign({}, state.selectors, state.extraSelectors || {});
+      setSelectors(selectors);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
