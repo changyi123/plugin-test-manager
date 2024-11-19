@@ -263,10 +263,11 @@ export const deleteTestEntityV2 = async queryParams => {
 };
 
 // 批量更新测试实体事项
-export const updateTestEntity = async (data, onlyValues?: boolean) => {
+export const updateTestEntity = async (data, onlyValues?: boolean, isChangeStatus?: boolean) => {
   const { data: res } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-batch-update`, {
     data,
     onlyValues,
+    isChangeStatus,
     sessionToken: getSessionToken(),
   });
 
@@ -419,7 +420,10 @@ export const updateTestStatus = async data => {
     }));
   }
 
-  const res = await updateTestEntity([].concat(updateTestRuns, updateTestCases));
+  // 更新测试执行
+  const res = await updateTestEntity(updateTestRuns);
+  // 更新测试用例,这个为联动修改，需要跳过权限
+  await updateTestEntity(updateTestCases, null, true);
 
   if (res?.status === 'error') {
     message.error(res.data);

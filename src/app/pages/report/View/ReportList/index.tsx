@@ -196,11 +196,15 @@ const TestReportList: React.FC<any> = () => {
                               content: <span>{t('report.deleteTip1')}</span>,
                             },
                             async () => {
-                              await deleteTestEntity([rowData.objectId]);
-                              message.success(
-                                t('report.workspaceReportTemplate.message.deleteSuccess'),
-                              );
-                              actionRef.current.refresh();
+                              const res = await deleteTestEntity([rowData.objectId]);
+                              if (res.status !== 'error') {
+                                message.success(
+                                  t('report.workspaceReportTemplate.message.deleteSuccess'),
+                                );
+                                actionRef.current.refresh();
+                              } else {
+                                message.error(res.data || res.message || '请求异常');
+                              }
                             },
                           );
                         }}
