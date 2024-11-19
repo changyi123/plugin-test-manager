@@ -47,7 +47,7 @@ const splitSteps = datas => {
         break;
       }
     }
-    return steps;
+    return steps.length ? steps : [datas];
   } catch (err) {
     console.info('______________error_____________', err, datas);
     return [];
@@ -182,6 +182,8 @@ export const runBeforeImport = async () => {
     ...item,
     __indexKey: index,
   }));
+
+  console.info('___ItemData___Params', JSON.stringify({ appFieldsData, data }));
 
   // 获取测试管理的自定义数据
   const getItemDataList = ({ userNameMap }) => {

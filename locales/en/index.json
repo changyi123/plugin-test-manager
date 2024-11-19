@@ -716,6 +716,7 @@
           "step": "step",
           "result": "result",
           "data": "data",
+          "preData": "data",
           "status": "execution status",
           "testPlan": "testPlan",
           "assignee": "assignee",

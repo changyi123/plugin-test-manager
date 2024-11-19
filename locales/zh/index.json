@@ -638,6 +638,7 @@
           "step": "步骤",
           "result": "预期结果",
           "data": "数据",
+          "preData": "准备数据",
           "status": "测试执行状态",
           "testPlan": "测试计划",
           "assignee": "负责人",
