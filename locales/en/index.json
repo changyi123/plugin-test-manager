@@ -122,7 +122,8 @@
     "methodNotSupport": "This method does not support sorting. Please use the getTestEntitiesByRelationWithOrder method instead",
     "stepStatusNoMatch": "Step status does not match",
     "descriptionRequire": "You must enter a result description first",
-    "objectNotFound": "The data has been deleted, please refresh the page"
+    "objectNotFound": "The data has been deleted, please refresh the page",
+    "versionTip": "This panel is currently not supported in historical versions"
   },
   "report": {
     "overViewData": {

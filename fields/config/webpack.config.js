@@ -33,7 +33,7 @@ module.exports = function (webpackEnv) {
       ];
 
   const plugins = [
-    new CleanWebpackPlugin(),
+    // new CleanWebpackPlugin(),
     new webpack.DefinePlugin({
       'process.env.REACT_APP_API_SERVER': JSON.stringify(process.env.REACT_APP_API_SERVER),
       'process.env.APPLICATION_ID': JSON.stringify(process.env.APPLICATION_ID),
@@ -120,7 +120,7 @@ module.exports = function (webpackEnv) {
     plugins,
     devServer: {
       static: {
-        directory: path.join(__dirname, '../build/test-repository'), //允许配置从跟目录下提供静态文件
+        directory: path.join(__dirname, '../build/test-detail'), //允许配置从跟目录下提供静态文件
         publicPath: `/`,
       },
       port: 8000,

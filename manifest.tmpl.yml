@@ -320,6 +320,7 @@ modules:
       loadType: Micro
       route: /panelModule
       defaultActive: false
+      baseLineItem: true
   adminPage:
     - key: test-config
       resource: main

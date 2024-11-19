@@ -5,6 +5,7 @@ const en: {
   step: 'Шаг',
   expected: 'Ожидал',
   data: 'Данные',
+  precondition: 'Предварительное условие',
 };
 
 export default en;

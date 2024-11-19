@@ -122,7 +122,8 @@
     "methodNotSupport": "Этот метод не поддерживает сортировку, вместо этого используйте метод getTestEntitiesByRelationWithOrder",
     "stepStatusNoMatch": "Статус шага не соответствует",
     "descriptionRequire": "Сначала необходимо ввести описание результата",
-    "objectNotFound": "Данные удалены, обновите страницу"
+    "objectNotFound": "Данные удалены, обновите страницу",
+    "versionTip": "Панель не поддерживается в исторической версии"
   },
   "report": {
     "overViewData": {

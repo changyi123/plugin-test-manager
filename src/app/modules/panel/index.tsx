@@ -1,6 +1,6 @@
 import { useSDK } from '@projectproxima/plugin-sdk';
 import { Result } from 'antd';
-import React from 'react';
+import React, { useMemo } from 'react';
 
 import TestManagerProvider from '@/components/business/TestManagerProvider';
 import { getDevConfig } from '@/devEnv';
@@ -22,11 +22,16 @@ const TestPanelComponents = {
 
 const TestPanel = () => {
   const { t } = useI18n();
-  const { testEntity } = useTestConfig();
+  const { testEntity, baseLineItemId } = useTestConfig();
 
   const panelRenderNode = React.useMemo(() => {
-    if (!testEntity || !testEntity?.type)
-      return (
+    const testType = testEntity?.type ?? TestType.Case;
+    const hiddenVersion = baseLineItemId && testType !== TestType.Case;
+    console.info(testType, hiddenVersion, 'panelRenderNode');
+    if (!testEntity || !testEntity?.type || hiddenVersion)
+      return hiddenVersion ? (
+        <Result className={cx('empty')} status="404" title={t('common.versionTip')} />
+      ) : (
         <Result
           className={cx('empty')}
           status="404"
@@ -44,13 +49,10 @@ const TestPanel = () => {
         ></Result>
       );
 
-    if (!testEntity) return null;
-    const testType = testEntity.type ?? TestType.Case;
-
     const TestPanelComponent = TestPanelComponents[testType];
 
     return TestPanelComponent ? <TestPanelComponent /> : null;
-  }, [testEntity, t]);
+  }, [testEntity, t, baseLineItemId]);
 
   return <div className={cx('test-panel')}>{panelRenderNode}</div>;
 };
@@ -58,10 +60,15 @@ const TestPanel = () => {
 const TestPanelWrapper = () => {
   const { context } = useSDK();
   const itemId = context?.itemId ?? getDevConfig().itemId;
+  const baseLineItemId = context?.baseLineItemId ?? getDevConfig().baseLineItemId;
   const workspaceKey = context?.env?.WORKSPACE_KEY ?? getDevConfig().workspaceKey;
 
   return (
-    <TestManagerProvider workspaceKey={workspaceKey} itemId={itemId}>
+    <TestManagerProvider
+      workspaceKey={workspaceKey}
+      itemId={itemId}
+      baseLineItemId={baseLineItemId}
+    >
       <TestPanel />
     </TestManagerProvider>
   );
