@@ -2,9 +2,10 @@ import { useMemoizedFn, useRequest } from 'ahooks';
 import { Button, Divider, Dropdown, Menu, Space } from 'antd';
 import _, { uniq } from 'lodash';
 import { components } from 'proxima-sdk';
-import React, { useCallback, useMemo, useRef, useState } from 'react';
-
+import React, { useCallback, useMemo, useRef, useState, useContext } from 'react';
+import { EXPORT_EXECUTION_FIELDS } from '@/lib/constants';
 import ExportModal from '@/components/business/TestExecution/ExportModal';
+import ImportModal from '@/components/business/TestExecution/ImportModal';
 import type { BusinessTableActionType } from '@/components/common/BusinessTable/type';
 import FilterSearch from '@/components/common/FilterSearch';
 import { getFilterFields } from '@/components/common/FilterSearch/utils';
@@ -27,12 +28,11 @@ import { usePageContext } from '@/pages/plan/hook';
 import { StatusProgress } from '../../../components/business/Status';
 
 const { ItemIcon } = components.Components.Common;
-
 import CreatePermission from '@/components/business/Contianer/CreatePermission';
 import TestEntitySelectorModal from '@/components/business/TestEntitySelectorModal';
 import TestPlanSelector from '@/components/business/TestPlanSelector';
 import { SystemFieldKeys } from '@/components/common/BusinessTable/hook';
-
+import { downloadImportExcelFile } from '@/pages/repository/RepoDropDown/export';
 import cx from './index.less';
 
 const TestTaskList: React.FC<any> = ({
@@ -44,12 +44,13 @@ const TestTaskList: React.FC<any> = ({
 }) => {
   const { t } = useI18n();
   const actionRef = React.useRef<BusinessTableActionType>();
+
   const { testExecutionFieldKeys } = useBaseAction();
   const { workspaceKey, selectedTestPlan, setPlanId } = usePageContext();
+
   const [selectors, setSelectors] = useState([{}, {}]);
   const [tableLoading, setTableLoading] = useState(false);
   const { data: currentUser } = useCurrentUser();
-
   const detailSearchRef = useRef(null);
 
   const queryDeps = useMemo(
@@ -264,17 +265,32 @@ const TestTaskList: React.FC<any> = ({
   });
 
   const [exportShow, setExportShow] = useState(false);
+  const [importShow, setImportShow] = useState(false);
 
-  const menuClick = useCallback(async e => {
-    const key = e.key;
-    if (key === 'exportTask') {
-      // do something
-      setExportShow(true);
-    }
-  }, []);
+  const openTheImportWindow = () => {
+    setImportShow(true);
+  };
+  const menuClick = useCallback(
+    async e => {
+      const key = e.key;
+      if (key === 'exportTask') {
+        // do something
+        setExportShow(true);
+      }
+      if (key === 'importTask') {
+        openTheImportWindow();
+      }
+      if (key === 'importTaskTemplate') {
+        downloadImportExcelFile({ t, fieldKeys: [] });
+      }
+    },
+    [openTheImportWindow, t],
+  );
   const menu = (
     <Menu onClick={e => menuClick(e)}>
       <Menu.Item key="exportTask">{t('page.repository.repoDropDown.MenuItem.8')}</Menu.Item>
+      <Menu.Item key="importTask">{t('executionTaskImport.entry')}</Menu.Item>
+      <Menu.Item key="importTaskTemplate">{t('executionTaskImport.download')}</Menu.Item>
     </Menu>
   );
 
@@ -320,6 +336,13 @@ const TestTaskList: React.FC<any> = ({
               <ExportModal
                 onCancel={() => {
                   setExportShow(false);
+                }}
+              />
+            )}
+            {importShow && (
+              <ImportModal
+                onCancel={() => {
+                  setImportShow(false);
                 }}
               />
             )}

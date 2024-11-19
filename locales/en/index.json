@@ -1177,7 +1177,12 @@
       "precondition": "precondition",
       "action": "step",
       "result": "result",
-      "data": "data"
+      "data": "data",
+      "executionStatus": "execution status",
+      "stepStatus": "step status",
+      "actualResult": "actual result",
+      "executionTime": "execution time",
+      "executor": "executor"
     }
   },
   "minderExport": {

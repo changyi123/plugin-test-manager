@@ -243,10 +243,27 @@ const executeSQL = async () => {
   return;
 };
 
+const updateSomeConfig = async () => {
+  const itemType = await getData(false, 'ItemType', {
+    key: 'test_manager_run',
+    // 测试管理隐藏事项不被过滤
+    __context: {
+      displayModule: 'plugin.testManager',
+    },
+  });
+  console.log('itemTyp', itemType);
+  const displayConditions = itemType.get('displayConditions');
+  itemType.set('displayConditions', {
+    ...displayConditions,
+    displayModules: ['plugin.testManager', 'adminPage.hierarchy'],
+  });
+  await saveAllObject([itemType as any]);
+};
 export const runInitialScript = async () => {
   try {
     await initGlobalTestConfig()
       .then(() => initWorkspaceTestConfigs())
+      .then(() => updateSomeConfig())
       // .then(() => executeSQL())
       .then(() => {
         log('测试管理插件初始化成功');

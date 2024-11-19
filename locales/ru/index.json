@@ -1155,7 +1155,12 @@
       "precondition": "предварительное условие",
       "action": "шаг",
       "result": "результат",
-      "data": "данные"
+      "data": "данные",
+      "executionStatus": "статус выполнения",
+      "stepStatus": "статус шага",
+      "actualResult": "фактический результат",
+      "executionTime": "время выполнения",
+      "executor": "исполнитель"
     }
   },
   "minderExport": {

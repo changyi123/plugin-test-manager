@@ -1,7 +1,20 @@
 import { i18n } from '@giteeteam/apps-api';
 import { axios, getData, getParseQuery } from '@giteeteam/apps-team-api';
-
+import dayjs from 'dayjs';
 import { InfinityLimit } from '../../../common/constant';
+
+// uuid
+function getRandomIntInclusive(min, max) {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min + 1)) + min; //含最大值，含最小值
+}
+
+function uuidv4() {
+  return ([1e7].toString() + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, c =>
+    (+c ^ (getRandomIntInclusive(0, 100) & (15 >> (+c / 4)))).toString(16),
+  );
+}
 
 // 判断数据是否超过 1000 条
 const isMoreThanThousands = d => d?.length > 999;
@@ -68,6 +81,21 @@ const getCharNumErrorIndex = datas =>
     .map((d, index) => (getStringLength(d) > 2000 ? index : null))
     .filter(d => d !== null);
 
+const statusNames = ['未开始', '通过', '失败', '阻塞', '执行中', '已取消'];
+const checkStepStatus = datas =>
+  splitSteps(datas)
+    .map((d, index) => {
+      if (statusNames.includes(d?.trim())) {
+        return index;
+      } else {
+        return null;
+      }
+    })
+    .filter(d => d !== null);
+
+const checkExecutionStatus = data => {
+  return !statusNames.includes(data?.trim());
+};
 const getTestDetailsErrors = (datas, repositoryPathMap, resProps?: Record<string, unknown>) =>
   datas?.reduce((prev, cur, index) => {
     // 校验用例标题
@@ -146,6 +174,44 @@ const getTestDetailsErrors = (datas, repositoryPathMap, resProps?: Record<string
       });
     }
 
+    // 校验实际结果格式
+    if (testSteps(cur.actualResult)) {
+      prev = prev.concat({ index, error: i18n.t('trigger.importer.validate.validateErrors.12') });
+    }
+
+    // 校验实际结果字数
+    if (getCharNumErrorIndex(cur.actualResult).length) {
+      prev = prev.concat({
+        index,
+        error: `${i18n.t('trigger.importer.validate.run')} ${getCharNumErrorIndex(cur.actualResult)
+          .map(d => d + 1)
+          .join('、')} ${i18n.t('trigger.importer.validate.validateErrors.13')}`,
+      });
+    }
+
+    // validate step status
+    if (testSteps(cur.stepStatus)) {
+      prev = prev.concat({ index, error: i18n.t('trigger.importer.validate.validateErrors.14') });
+    }
+
+    if (checkStepStatus(cur.stepStatus).length) {
+      prev = prev.concat({
+        index,
+        error: `${i18n.t('trigger.importer.validate.run')} ${checkStepStatus(cur.stepStatus)
+          .map(d => d + 1)
+          .join('、')} ${i18n.t('trigger.importer.validate.validateErrors.15')}`,
+      });
+    }
+
+    // validate execution status
+    if (cur.executionStatus && checkExecutionStatus(cur.executionStatus)) {
+      prev = prev.concat({ index, error: i18n.t('trigger.importer.validate.validateErrors.16') });
+    }
+
+    // validate execution time
+    if (cur.executionTime && !dayjs(cur.executionTime).isValid()) {
+      prev = prev.concat({ index, error: i18n.t('trigger.importer.validate.validateErrors.17') });
+    }
     return prev;
   }, []);
 
@@ -185,8 +251,7 @@ const getDataByFieldMaping = (datas, maps, path) =>
   }, []);
 
 export const runValidate = async () => {
-  const { data: originData, fieldMapping, workspaceId, group } = global.triggerParams;
-
+  const { data: originData, fieldMapping, workspaceId, group, executionId } = global.triggerParams;
   // 根据 workspaceKId 获取事项类型
   const getItemTypeName = async workspace => {
     const testMangerConfig = await getData(true, 'TestConfig', {
@@ -202,6 +267,20 @@ export const runValidate = async () => {
     });
 
     return itemType?.get('name');
+  };
+
+  const getRunItemTypeName = async workspace => {
+    if (executionId) {
+      const itemType = await getData(false, 'ItemType', {
+        key: 'test_manager_run',
+        // 测试管理隐藏事项不被过滤
+        __context: {
+          displayModule: 'plugin.testManager',
+        },
+      });
+      return itemType?.get('name');
+    }
+    return '';
   };
 
   const getRepositoryMap = async workspace => {
@@ -252,19 +331,27 @@ export const runValidate = async () => {
   };
 
   // eslint-disable-next-line no-console
-  console.log('vali-1111', originData);
+  console.log('test_manager_validate_originData', originData);
   const workspace = await getData(false, 'Workspace', {
     objectId: workspaceId,
   });
   const itemTypeName = await getItemTypeName(workspace);
+  const runItemTypeName = await getRunItemTypeName(workspace);
+  console.info('test_manager_validate_itemTypeName', itemTypeName, runItemTypeName);
   const repositoryMap = await getRepositoryMap(workspace);
   const repositoryPathMap = getRepositoryPathMap(repositoryMap);
-  console.info('repositoryMap', JSON.stringify({ repositoryMap, repositoryPathMap }));
+  console.info(
+    'test_manager_validate_repositoryMap',
+    JSON.stringify({ repositoryMap, repositoryPathMap }),
+  );
 
   const groupPath = await getGroupPath(repositoryMap, group);
 
   const getValidateErrors = (datas, errors: any[] = []) => {
     if (!itemTypeName) {
+      errors = [{ error: i18n.t('trigger.importer.validate.validateErrors.10') }, ...errors];
+    }
+    if (executionId && !runItemTypeName) {
       errors = [{ error: i18n.t('trigger.importer.validate.validateErrors.10') }, ...errors];
     }
 
@@ -278,12 +365,17 @@ export const runValidate = async () => {
       itemTypeName &&
         prev.push(
           [...Object.entries(cur)].reduce((curPrev, [key, value]) => {
+            const isExecution = cur?.executionId;
             curPrev = {
               ...curPrev,
               [getFiledByValue(key, maps)]: value,
               // [i18n.t('trigger.importer.validate.itemType')]: itemTypeName,
-              类型: itemTypeName,
-              itemType: itemTypeName,
+              类型: isExecution ? runItemTypeName : itemTypeName,
+              itemType: isExecution ? runItemTypeName : itemTypeName,
+              r_test_manager_runMapCaseKey: cur?.mapKey,
+              ...(isExecution && {
+                r_test_manager_linkItems: [cur?.executionId],
+              }),
             };
             return curPrev;
           }, {}),
@@ -304,6 +396,10 @@ export const runValidate = async () => {
         // [i18n.t('trigger.importer.validate.itemType')]: 'itemType',
         类型: 'itemType',
         itemType: 'itemType',
+        ...(executionId && {
+          r_test_manager_runMapCaseKey: 'r_test_manager_runMapCaseKey',
+          r_test_manager_linkItems: 'r_test_manager_linkItems',
+        }),
       },
       stop: false,
 
@@ -322,7 +418,7 @@ export const runValidate = async () => {
     data = clone(originData).slice(0, 999);
     errors.push({ error: errorLog1 });
   }
-  const items = getDataByFieldMaping(data, fieldMapping, groupPath);
+  let items = getDataByFieldMaping(data, fieldMapping, groupPath);
   console.info(items, 'getDataByFieldMaping');
   errors = getValidateErrors(items, errors)?.filter(Boolean) || [];
 
@@ -344,6 +440,26 @@ export const runValidate = async () => {
     } catch (error) {
       console.error(error.message);
     }
+  }
+
+  // copy data to response
+  if (executionId) {
+    items = items
+      .map(_item => {
+        const key = uuidv4();
+        return [
+          {
+            ..._item,
+            mapKey: key,
+          },
+          {
+            ..._item,
+            mapKey: key,
+            executionId,
+          },
+        ];
+      })
+      .flat();
   }
 
   const res = buildResponse(errors, items);
