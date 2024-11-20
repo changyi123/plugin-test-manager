@@ -212,6 +212,10 @@ const getTestDetailsErrors = (datas, repositoryPathMap, resProps?: Record<string
     if (cur.executionTime && !dayjs(cur.executionTime).isValid()) {
       prev = prev.concat({ index, error: i18n.t('trigger.importer.validate.validateErrors.17') });
     }
+
+    if (!cur.executionStatus && resProps?.executionId) {
+      prev = prev.concat({ index, error: i18n.t('trigger.importer.validate.validateErrors.18') });
+    }
     return prev;
   }, []);
 
@@ -359,7 +363,7 @@ export const runValidate = async () => {
     }
 
     return errors
-      .concat(getTestDetailsErrors(datas, repositoryPathMap, { group }) ?? [])
+      .concat(getTestDetailsErrors(datas, repositoryPathMap, { group, executionId }) ?? [])
       .filter(Boolean);
   };
 

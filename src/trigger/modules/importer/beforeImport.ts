@@ -27,7 +27,7 @@ const clone = d => JSON.parse(JSON.stringify(d));
 
 const replaceRn = datas => {
   try {
-    return datas?.replace(/^[\r\n]+/g, '');
+    return datas?.replace(/[\r\n]/g, '');
   } catch (err) {
     console.info('______________error_____________', datas);
     console.error(err);
@@ -186,7 +186,7 @@ export const runBeforeImport = async () => {
   console.info('___ItemData___Params', JSON.stringify({ appFieldsData, data }));
 
   // 获取测试管理的自定义数据
-  const getItemDataList = ({ userNameMap }) => {
+  const getItemDataList = ({ userNameMap, currentUser }) => {
     const isNotHaveMap = appFieldsData.length;
     const itemsDataList = (isNotHaveMap ? appFieldsData : data).reverse().map((item, index) => {
       return {
@@ -205,7 +205,7 @@ export const runBeforeImport = async () => {
           ...(data[index]?.values?.r_test_manager_linkItems && {
             ...data[index]?.values,
             r_test_manager_type: 'TestRun',
-            r_test_manager_executeCount: 1,
+            r_test_manager_executeCount: item.executionCount || 1,
             r_test_manager_linkItems: [executionId],
             r_test_manager_linkType: 'RunLinkExecution',
             r_test_manager_runDetail: JSON.stringify({
@@ -214,7 +214,7 @@ export const runBeforeImport = async () => {
             r_test_manager_status: statusMap[item.executionStatus],
             r_test_manager_executeTime: dayjs(item.executionTime).valueOf(),
             ...(userNameMap[item.executor] && {
-              r_test_manager_executor: userNameMap[item.executor],
+              r_test_manager_executor: userNameMap[item.executor] || currentUser,
             }),
           }),
         },
@@ -391,6 +391,21 @@ export const runBeforeImport = async () => {
     // 获取创建的事项数据
     const userTypeNames = appFieldsData?.map(_item => _item.executor).filter(Boolean);
     const userNameMap = {};
+    let currentUser = {};
+    // find the current User
+    if (global?.sessionToken) {
+      const _userSessionQuery = await getParseQuery(false, '_Session');
+      const sessionList = await _userSessionQuery
+        .equalTo('sessionToken', global?.sessionToken)
+        .first({ useMasterKey: true });
+      const userId = sessionList?.get('user');
+      console.log('test_case_import_userId', userId);
+      currentUser = {
+        value: userId?.objectId,
+        objectId: userId?.objectId,
+      };
+    }
+
     if (userTypeNames.length) {
       console.log('userTypeNames', userTypeNames);
       const userQuery = await getParseQuery(false, '_User');
@@ -413,7 +428,7 @@ export const runBeforeImport = async () => {
         }
       });
     }
-    const itemDataList = getItemDataList({ userNameMap });
+    const itemDataList = getItemDataList({ userNameMap, currentUser });
 
     let newItemDataList = [];
 
