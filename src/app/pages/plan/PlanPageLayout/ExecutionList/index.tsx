@@ -3,7 +3,7 @@ import { useListener } from '@projectproxima/proxima-sdk-js';
 import { useRequest } from 'ahooks';
 import { Dropdown, Menu, message, notification } from 'antd';
 import { TestLinkType, TestType } from 'common/constant';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 
 import OverflowTooltip from '@/components/common/OverflowTooltip';
@@ -46,6 +46,8 @@ const ExecutionList: React.FC<ExecutionListProps> = ({
   const { tableSelectionToggleEvent } = usePageContext();
   const { query } = useLocation();
   const [activeId, setActiveId] = useState('');
+
+  const deleteRef = useRef('');
 
   // 事项数据更新后刷新列表
   useListener('updateItemList', async props => {
@@ -104,6 +106,14 @@ const ExecutionList: React.FC<ExecutionListProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading]);
 
+  useEffect(() => {
+    if (!deleteRef.current) return;
+
+    if (!executionList?.includes(deleteRef.current)) {
+      deleteRef.current = '';
+    }
+  }, [executionList]);
+
   // 选中测试执行任务
   useEffect(() => {
     let activeId = selectedExecution?.objectId;
@@ -111,6 +121,10 @@ const ExecutionList: React.FC<ExecutionListProps> = ({
       activeId = executionList?.[0]?.objectId;
     } else if (!activeId && query?.executionId) {
       activeId = query?.executionId;
+    }
+
+    if (activeId === deleteRef.current) {
+      return;
     }
 
     if (activeId && executionList?.length) {
@@ -143,7 +157,13 @@ const ExecutionList: React.FC<ExecutionListProps> = ({
             message.error(res.data);
             return;
           }
-          setActiveId('');
+          deleteRef.current = data?.objectId;
+          const firstExecution = executionList.filter(
+            item => item.objectId !== data?.objectId,
+          )?.[0];
+          setActiveId(firstExecution?.objectId);
+          setSelectedExecution(firstExecution);
+
           setTimeout(() => {
             actionRef.current?.refresh();
           }, 500);
