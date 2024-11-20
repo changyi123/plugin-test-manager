@@ -204,33 +204,29 @@ const getRunDataByLinkItemDelete = async data => {
 
 /** 批量更新 */
 export const batchUpdate = async () => {
-  try {
-    const {
-      //@todo 待core支持事项批量更新接口
-      body: { data, onlyValues = true },
-    } = getReqInfoFromVMRuntime<BatchUpdatePayload>();
-    if (!Array.isArray(data)) throwArgumentError('data', 'testEntity[]');
+  const {
+    //@todo 待core支持事项批量更新接口
+    body: { data, onlyValues = true, isChangeStatus = false },
+  } = getReqInfoFromVMRuntime<BatchUpdatePayload>();
+  if (!Array.isArray(data)) throwArgumentError('data', 'testEntity[]');
 
-    // 需要更新的事项
-    const needUpdateItemData = await buildTestEntityLinkData(data as TestEntityLinkActionData[]);
-    // 校验需要保存的参数
-    needUpdateItemData.forEach(testEntityFieldTypeValidator);
-    const tasks = [
-      onlyValues
-        ? batchUpdateItemsValues(needUpdateItemData)
-        : batchUpdateItems(needUpdateItemData),
-    ];
+  // 需要更新的事项
+  const needUpdateItemData = await buildTestEntityLinkData(data as TestEntityLinkActionData[]);
+  // 校验需要保存的参数
+  needUpdateItemData.forEach(testEntityFieldTypeValidator);
+  const tasks = [
+    onlyValues
+      ? batchUpdateItemsValues(needUpdateItemData, isChangeStatus)
+      : batchUpdateItems(needUpdateItemData),
+  ];
 
-    // 移除测试计划下的测试用例关联的测试执行
-    const needDeleteTestRunIds = await getRunDataByLinkItemDelete(data);
-    if (needDeleteTestRunIds?.length) {
-      tasks.push(batchDeleteItems(needDeleteTestRunIds));
-    }
-    const [res] = await Promise.all(tasks);
-    return buildResponse(res.filter(Boolean).map(data => itemToTestEntity(data.item)));
-  } catch (err) {
-    return buildResponse(err);
+  // 移除测试计划下的测试用例关联的测试执行
+  const needDeleteTestRunIds = await getRunDataByLinkItemDelete(data);
+  if (needDeleteTestRunIds?.length) {
+    tasks.push(batchDeleteItems(needDeleteTestRunIds));
   }
+  const [res] = await Promise.all(tasks);
+  return buildResponse(res.filter(Boolean).map(data => itemToTestEntity(data.item)));
 };
 
 /** 批量更新 固定值 */
@@ -478,14 +474,13 @@ export const batchCreateTestRun = async () => {
         });
         if (!needUpdateItemsData.length) return;
 
-        return await batchUpdateItemsValues(needUpdateItemsData);
+        return await batchUpdateItemsValues(needUpdateItemsData, true);
       }
     };
 
-    const [createdTestRuns] = await Promise.all([
-      batchCreateTestRuns(),
-      batchUpdateTestPlanLinkCase(),
-    ]);
+    const createdTestRuns = await batchCreateTestRuns();
+    // 因为增加了权限，这里需要避免创建执行失败，又规划了用例
+    await batchUpdateTestPlanLinkCase();
 
     const createdItemIds = createdTestRuns.filter(Boolean).map(item => item.objectId);
     console.info('create success res: ', createdItemIds);
