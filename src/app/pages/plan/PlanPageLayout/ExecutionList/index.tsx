@@ -43,7 +43,7 @@ const ExecutionList: React.FC<ExecutionListProps> = ({
   setExecutionKeys,
 }) => {
   const { t } = useI18n();
-  const { tableSelectionToggleEvent } = usePageContext();
+  const { tableSelectionToggleEvent, setActiveExecutionPlan } = usePageContext();
   const { query } = useLocation();
   const [activeId, setActiveId] = useState('');
 
@@ -117,6 +117,7 @@ const ExecutionList: React.FC<ExecutionListProps> = ({
       const selectedExecution = executionList?.find(d => d.objectId === activeId);
       if (selectedExecution?.linkItems?.includes(planId)) {
         setActiveId(activeId);
+        setActiveExecutionPlan(selectedExecution);
         setSelectedExecution(selectedExecution);
       }
     }
@@ -175,6 +176,7 @@ const ExecutionList: React.FC<ExecutionListProps> = ({
             onClick={e => {
               e.preventDefault();
               setActiveId(d.objectId);
+              setActiveExecutionPlan(d);
               tableSelectionToggleEvent.emit(false);
               setSelectedExecution(d);
             }}
@@ -209,6 +211,7 @@ const ExecutionList: React.FC<ExecutionListProps> = ({
                     onClick={e => {
                       e.preventDefault();
                       setActiveId(d.objectId);
+                      setActiveExecutionPlan(d);
                       tableSelectionToggleEvent.emit(false);
                       setSelectedExecution(d);
                     }}

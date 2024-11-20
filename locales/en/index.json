@@ -1115,7 +1115,12 @@
           "resultPlaceholder": "Please enter result",
           "data": "Data",
           "preData": "Data",
-          "defect": "Defect"
+          "defect": "Defect",
+          "planName": "Test Plan Name",
+          "testExecutionName": "Test execution task name",
+          "testCaseName": "Test case name",
+          "stepNumber": "Step number",
+          "stepName": "Step name"
         }
       },
       "testStep": {

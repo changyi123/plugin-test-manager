@@ -1094,7 +1094,12 @@
           "resultPlaceholder": "Пожалуйста, введите результат",
           "data": "Данные",
           "preData": "Данные",
-          "defect": "Дефект"
+          "defect": "Дефект",
+          "planName": "Название плана тестирования",
+          "testExecutionName": "Название задачи выполнения теста",
+          "testCaseName": "Название тестового примера",
+          "stepNumber": "Номер шага",
+          "stepName":"имя шага"
         }
       },
       "testStep": {

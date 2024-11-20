@@ -150,6 +150,7 @@ export type Step = {
   // 以下字段为保留字段暂时不用
   attachments?: string[]; // 附件
   customFields?: StepField[]; // 自定义字段
+  index?: number; // 步骤索引
 };
 
 export type Comment = {

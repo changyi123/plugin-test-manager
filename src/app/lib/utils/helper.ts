@@ -196,3 +196,15 @@ export const isSuperAdmin = roles => {
 
   return roles.some(role => [USER_ROLE.ADMIN, USER_ROLE.SUPER_ADMIN].includes(role.name));
 };
+
+export const getEditorOrStringText = (text: any) => {
+  if (!text) {
+    return '';
+  }
+  if (typeof text === 'string') {
+    return escapeHtmlString(text);
+  } else {
+    const [editorText] = text;
+    return editorText?.stringText;
+  }
+};

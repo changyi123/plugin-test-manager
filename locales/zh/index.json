@@ -1027,7 +1027,12 @@
           "resultPlaceholder": "请输入实际结果",
           "data": "数据",
           "preData": "准备数据",
-          "defect": "缺陷"
+          "defect": "缺陷",
+          "planName": "测试计划名称",
+          "testExecutionName": "测试执行任务名称",
+          "testCaseName": "测试用例名称",
+          "stepNumber": "步骤序号",
+          "stepName": "步骤名称"
         }
       },
       "testStep": {
