@@ -5,10 +5,11 @@ import React, { useMemo, useState } from 'react';
 import { exportTestExecution } from '@/lib/api/item';
 import { EXPORT_EXECUTION_FIELDS } from '@/lib/constants';
 import useI18n from '@/lib/hooks/useI18n';
-
+import { alert, getTestManagerContainer } from '@/lib/utils/helper';
 import cx from './ExportModal.less';
 import { downLoadFile, getFileNameFromContentDisposition } from './common/util';
 import useRequest from './common/useRequest';
+import { defaultFilterOptions } from './common/util';
 const ExportModal = props => {
   const { t } = useI18n();
   const basicFields = useMemo(() => {
@@ -121,6 +122,9 @@ const ExportModal = props => {
           onChange={values => {
             setSelectedTestPlanIds([values]);
           }}
+          getPopupContainer={() => document.body}
+          showSearch
+          filterOption={defaultFilterOptions}
         >
           {testPlanList.map(item => {
             return (
@@ -134,11 +138,14 @@ const ExportModal = props => {
       <div>
         <div className={cx('title')}>{t('executionTaskExport.execution')}</div>
         <Select
+          getPopupContainer={() => document.body}
           className={cx('select')}
           mode="multiple"
           onChange={values => {
             setSelectedExecutionIds(values);
           }}
+          showSearch
+          filterOption={defaultFilterOptions}
         >
           {_executionList.map(item => {
             return (

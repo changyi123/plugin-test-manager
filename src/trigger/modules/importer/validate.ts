@@ -213,7 +213,7 @@ const getTestDetailsErrors = (datas, repositoryPathMap, resProps?: Record<string
       prev = prev.concat({ index, error: i18n.t('trigger.importer.validate.validateErrors.17') });
     }
 
-    if (!cur.executionStatus && resProps?.executionId) {
+    if (!cur.executionStatus && resProps?.executionId && resProps?.planId) {
       prev = prev.concat({ index, error: i18n.t('trigger.importer.validate.validateErrors.18') });
     }
     return prev;
@@ -255,7 +255,14 @@ const getDataByFieldMaping = (datas, maps, path) =>
   }, []);
 
 export const runValidate = async () => {
-  const { data: originData, fieldMapping, workspaceId, group, executionId } = global.triggerParams;
+  const {
+    data: originData,
+    fieldMapping,
+    workspaceId,
+    group,
+    executionId,
+    planId,
+  } = global.triggerParams;
   // 根据 workspaceKId 获取事项类型
   const getItemTypeName = async workspace => {
     const testMangerConfig = await getData(true, 'TestConfig', {
@@ -363,7 +370,7 @@ export const runValidate = async () => {
     }
 
     return errors
-      .concat(getTestDetailsErrors(datas, repositoryPathMap, { group, executionId }) ?? [])
+      .concat(getTestDetailsErrors(datas, repositoryPathMap, { group, executionId, planId }) ?? [])
       .filter(Boolean);
   };
 
@@ -373,6 +380,7 @@ export const runValidate = async () => {
         prev.push(
           [...Object.entries(cur)].reduce((curPrev, [key, value]) => {
             const isExecution = cur?.executionId;
+            const isPlan = cur?.planId;
             curPrev = {
               ...curPrev,
               [getFiledByValue(key, maps)]: value,
@@ -381,7 +389,12 @@ export const runValidate = async () => {
               itemType: isExecution ? runItemTypeName : itemTypeName,
               r_test_manager_runMapCaseKey: cur?.mapKey,
               ...(isExecution && {
+                r_test_manager_linkType: 'RunLinkExecution',
                 r_test_manager_linkItems: [cur?.executionId],
+              }),
+              ...(isPlan && {
+                r_test_manager_linkType: 'CaseLinkPlan',
+                r_test_manager_linkItems: [cur?.planId],
               }),
             };
             return curPrev;
@@ -403,10 +416,12 @@ export const runValidate = async () => {
         // [i18n.t('trigger.importer.validate.itemType')]: 'itemType',
         类型: 'itemType',
         itemType: 'itemType',
-        ...(executionId && {
-          r_test_manager_runMapCaseKey: 'r_test_manager_runMapCaseKey',
-          r_test_manager_linkItems: 'r_test_manager_linkItems',
-        }),
+        ...(executionId &&
+          planId && {
+            r_test_manager_runMapCaseKey: 'r_test_manager_runMapCaseKey',
+            r_test_manager_linkItems: 'r_test_manager_linkItems',
+            r_test_manager_linkType: 'r_test_manager_linkType',
+          }),
       },
       stop: false,
 
@@ -426,6 +441,26 @@ export const runValidate = async () => {
     errors.push({ error: errorLog1 });
   }
   let items = getDataByFieldMaping(data, fieldMapping, groupPath);
+  // copy data to response
+  if (executionId && planId) {
+    items = items
+      .map(_item => {
+        const key = uuidv4();
+        return [
+          {
+            ..._item,
+            mapKey: key,
+            planId,
+          },
+          {
+            ..._item,
+            mapKey: key,
+            executionId,
+          },
+        ];
+      })
+      .flat();
+  }
   console.info(items, 'getDataByFieldMaping');
   errors = getValidateErrors(items, errors)?.filter(Boolean) || [];
 
@@ -447,26 +482,6 @@ export const runValidate = async () => {
     } catch (error) {
       console.error(error.message);
     }
-  }
-
-  // copy data to response
-  if (executionId) {
-    items = items
-      .map(_item => {
-        const key = uuidv4();
-        return [
-          {
-            ..._item,
-            mapKey: key,
-          },
-          {
-            ..._item,
-            mapKey: key,
-            executionId,
-          },
-        ];
-      })
-      .flat();
   }
 
   const res = buildResponse(errors, items);

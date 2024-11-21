@@ -173,6 +173,7 @@ const getStepsData = datas => {
 
 export const runBeforeImport = async () => {
   const executionId = global.triggerParams?.executionId;
+  const planId = global.triggerParams?.planId;
   const appFieldsData = global.triggerParams?.appFieldsData?.map((item, index) => ({
     ...item,
     __indexKey: index,
@@ -193,7 +194,33 @@ export const runBeforeImport = async () => {
         ...item,
         values: {
           ...item.values,
-          ...(!data[index]?.values?.r_test_manager_linkItems && {
+          ...(data[index]?.values?.r_test_manager_linkType && {
+            ...data[index]?.values,
+            ...(data[index]?.values?.r_test_manager_linkType === 'RunLinkExecution' && {
+              r_test_manager_type: 'TestRun',
+              r_test_manager_executeCount: item.executionCount || 1,
+              r_test_manager_linkItems: [executionId],
+              r_test_manager_linkType: 'RunLinkExecution',
+              r_test_manager_runDetail: JSON.stringify({
+                steps: isNotHaveMap ? getStepsData(clone(item)) : [],
+              }),
+              r_test_manager_status: statusMap[item.executionStatus],
+              r_test_manager_executeTime: dayjs(item.executionTime).valueOf(),
+              r_test_manager_executor: [userNameMap[item.executor] || currentUser],
+            }),
+            ...(data[index]?.values?.r_test_manager_linkType === 'CaseLinkPlan' && {
+              r_test_manager_type: 'TestCase',
+              r_test_manager_detail: JSON.stringify({
+                precondition: item.precondition,
+                steps: isNotHaveMap ? getStepsData(clone(item)) : [],
+              }),
+              r_test_manager_sortIndex: getSortIndex(index),
+              r_test_manager_caseStatus: {
+                [planId]: statusMap[item.executionStatus],
+              },
+            }),
+          }),
+          ...(!data[index]?.values?.r_test_manager_linkType && {
             ...data[index]?.values,
             r_test_manager_type: 'TestCase',
             r_test_manager_detail: JSON.stringify({
@@ -201,21 +228,6 @@ export const runBeforeImport = async () => {
               steps: isNotHaveMap ? getStepsData(clone(item)) : [],
             }),
             r_test_manager_sortIndex: getSortIndex(index),
-          }),
-          ...(data[index]?.values?.r_test_manager_linkItems && {
-            ...data[index]?.values,
-            r_test_manager_type: 'TestRun',
-            r_test_manager_executeCount: item.executionCount || 1,
-            r_test_manager_linkItems: [executionId],
-            r_test_manager_linkType: 'RunLinkExecution',
-            r_test_manager_runDetail: JSON.stringify({
-              steps: isNotHaveMap ? getStepsData(clone(item)) : [],
-            }),
-            r_test_manager_status: statusMap[item.executionStatus],
-            r_test_manager_executeTime: dayjs(item.executionTime).valueOf(),
-            ...(userNameMap[item.executor] && {
-              r_test_manager_executor: userNameMap[item.executor] || currentUser,
-            }),
           }),
         },
       };
@@ -399,28 +411,44 @@ export const runBeforeImport = async () => {
         .equalTo('sessionToken', global?.sessionToken)
         .first({ useMasterKey: true });
       const userId = sessionList?.get('user');
-      console.log('test_case_import_userId', userId);
-      currentUser = {
-        value: userId?.objectId,
-        objectId: userId?.objectId,
-      };
+      const curUserId = userId?.objectId;
+      const _userQuery = await getParseQuery(false, '_User');
+      const userQuery = await _userQuery
+        .equalTo('objectId', curUserId)
+        .first({ useMasterKey: true });
+      if (userQuery) {
+        const curUser = userQuery?.toJSON();
+        console.log('test_case_import_userId', curUser);
+        currentUser = {
+          deleted: false,
+          label: curUser?.username,
+          username: curUser?.username,
+          nickname: curUser?.nickname,
+          value: curUser?.objectId,
+        };
+      }
     }
 
     if (userTypeNames.length) {
       console.log('userTypeNames', userTypeNames);
       const userQuery = await getParseQuery(false, '_User');
-      const otherQuery = await getParseQuery(false, '_User').containedIn('username', userTypeNames);
+      const otherQuery = await getParseQuery(false, '_User');
       const userList = await userQuery
         .containedIn('nickname', userTypeNames)
-        ._orQuery([otherQuery])
         .find({ useMasterKey: true });
+      const otherUserList = await otherQuery
+        .containedIn('username', userTypeNames)
+        .find({ useMasterKey: true });
+
       userTypeNames.forEach(_name => {
-        const user = userList.find(
+        const user = [...userList, ...otherUserList].find(
           _user => _user.get('nickname') === _name || _user.get('username') === _name,
         );
+        console.log('userTypeNames_findName', user);
         if (user) {
           userNameMap[_name] = {
-            objectId: user.id,
+            deleted: false,
+            label: user.get('username'),
             username: user.get('username'),
             nickname: user.get('nickname'),
             value: user.id,
@@ -428,6 +456,7 @@ export const runBeforeImport = async () => {
         }
       });
     }
+    console.info('_________userNameMap____________', userNameMap);
     const itemDataList = getItemDataList({ userNameMap, currentUser });
 
     let newItemDataList = [];

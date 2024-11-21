@@ -263,7 +263,7 @@ export const runInitialScript = async () => {
   try {
     await initGlobalTestConfig()
       .then(() => initWorkspaceTestConfigs())
-      .then(() => updateSomeConfig())
+      // .then(() => updateSomeConfig()) // temp disabled
       // .then(() => executeSQL())
       .then(() => {
         log('测试管理插件初始化成功');

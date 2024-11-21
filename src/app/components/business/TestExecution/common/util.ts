@@ -43,3 +43,22 @@ export const getFileNameFromContentDisposition = (
 
   return defaultName;
 };
+
+export const defaultFilterOptions = (
+  inputValue: string,
+  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+  option: any,
+): boolean => {
+  const lowerInputValue = inputValue.toLocaleLowerCase();
+  try {
+    if (typeof option.children === 'string') {
+      return option.children.toLowerCase().indexOf(lowerInputValue) >= 0;
+    } else if (option.children) {
+      const str = JSON.stringify(option);
+      return str.toLowerCase().indexOf(lowerInputValue) >= 0;
+    }
+  } catch (e) {
+    return false;
+  }
+  return false;
+};
