@@ -99,8 +99,14 @@ const checkExecutionStatus = data => {
 const getTestDetailsErrors = (datas, repositoryPathMap, resProps?: Record<string, unknown>) =>
   datas?.reduce((prev, cur, index) => {
     // 校验用例标题
+    const isDouble = resProps?.executionId && resProps?.planId;
+    const getIndex = _index => (isDouble ? Math.floor(_index / 2) + 2 : _index);
     if (!trimData(cur.name)) {
-      prev = prev.concat({ index, error: i18n.t('trigger.importer.validate.validateErrors.0') });
+      prev = prev.concat({
+        index,
+        realIndex: getIndex(index),
+        error: i18n.t('trigger.importer.validate.validateErrors.0'),
+      });
     }
 
     // 校验所属分组是否为空
@@ -110,34 +116,52 @@ const getTestDetailsErrors = (datas, repositoryPathMap, resProps?: Record<string
     ) {
       prev = prev.concat({
         index,
+        realIndex: getIndex(index),
         error: i18n.t('trigger.importer.validate.validateErrors.11'),
       });
     }
 
     // 校验所属分组
     if (isFilterGroup(cur?.group) && !resProps?.group) {
-      prev = prev.concat({ index, error: i18n.t('trigger.importer.validate.validateErrors.1') });
+      prev = prev.concat({
+        index,
+        realIndex: getIndex(index),
+        error: i18n.t('trigger.importer.validate.validateErrors.1'),
+      });
     }
 
     // 校验所属分组字数
     if (filterGroupNum(cur?.group) && !resProps?.group) {
-      prev = prev.concat({ index, error: i18n.t('trigger.importer.validate.validateErrors.2') });
+      prev = prev.concat({
+        index,
+        realIndex: getIndex(index),
+        error: i18n.t('trigger.importer.validate.validateErrors.2'),
+      });
     }
 
     // 校验前置条件字数
     if (getStringLength(cur.precondition) > 2000) {
-      prev = prev.concat({ index, error: i18n.t('trigger.importer.validate.validateErrors.3') });
+      prev = prev.concat({
+        index,
+        realIndex: getIndex(index),
+        error: i18n.t('trigger.importer.validate.validateErrors.3'),
+      });
     }
 
     // 校验步骤格式
     if (testSteps(cur.action)) {
-      prev = prev.concat({ index, error: i18n.t('trigger.importer.validate.validateErrors.4') });
+      prev = prev.concat({
+        index,
+        realIndex: getIndex(index),
+        error: i18n.t('trigger.importer.validate.validateErrors.4'),
+      });
     }
 
     // 校验步骤字数
     if (getCharNumErrorIndex(cur.action).length) {
       prev = prev.concat({
         index,
+        realIndex: getIndex(index),
         error: `${i18n.t('trigger.importer.validate.case')} ${getCharNumErrorIndex(cur.action)
           .map(d => d + 1)
           .join('、')} ${i18n.t('trigger.importer.validate.validateErrors.5')}`,
@@ -146,13 +170,18 @@ const getTestDetailsErrors = (datas, repositoryPathMap, resProps?: Record<string
 
     // 校验预期结果格式
     if (testSteps(cur.result)) {
-      prev = prev.concat({ index, error: i18n.t('trigger.importer.validate.validateErrors.6') });
+      prev = prev.concat({
+        index,
+        realIndex: getIndex(index),
+        error: i18n.t('trigger.importer.validate.validateErrors.6'),
+      });
     }
 
     // 校验预期结果字数
     if (getCharNumErrorIndex(cur.result).length) {
       prev = prev.concat({
         index,
+        realIndex: getIndex(index),
         error: `${i18n.t('trigger.importer.validate.case')} ${getCharNumErrorIndex(cur.action)
           .map(d => d + 1)
           .join('、')} ${i18n.t('trigger.importer.validate.validateErrors.7')}`,
@@ -161,13 +190,18 @@ const getTestDetailsErrors = (datas, repositoryPathMap, resProps?: Record<string
 
     // 校验数据格式
     if (testSteps(cur.data)) {
-      prev = prev.concat({ index, error: i18n.t('trigger.importer.validate.validateErrors.8') });
+      prev = prev.concat({
+        index,
+        realIndex: getIndex(index),
+        error: i18n.t('trigger.importer.validate.validateErrors.8'),
+      });
     }
 
     // 校验数据字数
     if (getCharNumErrorIndex(cur.data).length) {
       prev = prev.concat({
         index,
+        realIndex: getIndex(index),
         error: `${i18n.t('trigger.importer.validate.case')} ${getCharNumErrorIndex(cur.action)
           .map(d => d + 1)
           .join('、')} ${i18n.t('trigger.importer.validate.validateErrors.9')}`,
@@ -176,13 +210,18 @@ const getTestDetailsErrors = (datas, repositoryPathMap, resProps?: Record<string
 
     // 校验实际结果格式
     if (testSteps(cur.actualResult)) {
-      prev = prev.concat({ index, error: i18n.t('trigger.importer.validate.validateErrors.12') });
+      prev = prev.concat({
+        index,
+        realIndex: getIndex(index),
+        error: i18n.t('trigger.importer.validate.validateErrors.12'),
+      });
     }
 
     // 校验实际结果字数
     if (getCharNumErrorIndex(cur.actualResult).length) {
       prev = prev.concat({
         index,
+        realIndex: getIndex(index),
         error: `${i18n.t('trigger.importer.validate.run')} ${getCharNumErrorIndex(cur.actualResult)
           .map(d => d + 1)
           .join('、')} ${i18n.t('trigger.importer.validate.validateErrors.13')}`,
@@ -191,12 +230,17 @@ const getTestDetailsErrors = (datas, repositoryPathMap, resProps?: Record<string
 
     // validate step status
     if (testSteps(cur.stepStatus)) {
-      prev = prev.concat({ index, error: i18n.t('trigger.importer.validate.validateErrors.14') });
+      prev = prev.concat({
+        index,
+        realIndex: getIndex(index),
+        error: i18n.t('trigger.importer.validate.validateErrors.14'),
+      });
     }
 
     if (checkStepStatus(cur.stepStatus).length) {
       prev = prev.concat({
         index,
+        realIndex: getIndex(index),
         error: `${i18n.t('trigger.importer.validate.run')} ${checkStepStatus(cur.stepStatus)
           .map(d => d + 1)
           .join('、')} ${i18n.t('trigger.importer.validate.validateErrors.15')}`,
@@ -205,16 +249,28 @@ const getTestDetailsErrors = (datas, repositoryPathMap, resProps?: Record<string
 
     // validate execution status
     if (cur.executionStatus && checkExecutionStatus(cur.executionStatus)) {
-      prev = prev.concat({ index, error: i18n.t('trigger.importer.validate.validateErrors.16') });
+      prev = prev.concat({
+        index,
+        realIndex: getIndex(index),
+        error: i18n.t('trigger.importer.validate.errorMap.executionStatus'),
+      });
     }
 
     // validate execution time
     if (cur.executionTime && !dayjs(cur.executionTime).isValid()) {
-      prev = prev.concat({ index, error: i18n.t('trigger.importer.validate.validateErrors.17') });
+      prev = prev.concat({
+        index,
+        realIndex: getIndex(index),
+        error: i18n.t('trigger.importer.validate.errorMap.executionTime'),
+      });
     }
 
     if (!cur.executionStatus && resProps?.executionId && resProps?.planId) {
-      prev = prev.concat({ index, error: i18n.t('trigger.importer.validate.validateErrors.18') });
+      prev = prev.concat({
+        index,
+        realIndex: getIndex(index),
+        error: i18n.t('trigger.importer.validate.errorMap.executionStatusRequired'),
+      });
     }
     return prev;
   }, []);
@@ -365,7 +421,7 @@ export const runValidate = async () => {
     if (!itemTypeName) {
       errors = [{ error: i18n.t('trigger.importer.validate.validateErrors.10') }, ...errors];
     }
-    if (executionId && !runItemTypeName) {
+    if (executionId && planId && !runItemTypeName) {
       errors = [{ error: i18n.t('trigger.importer.validate.validateErrors.10') }, ...errors];
     }
 

@@ -95,7 +95,7 @@ const statusMap = {
   ['阻塞']: 'BLOCK',
   ['失败']: 'FAILED',
   ['执行中']: 'EXECUTING',
-  ['取消']: 'CANCEL',
+  ['已取消']: 'CANCEL',
 };
 
 const getStepsData = datas => {
@@ -202,6 +202,7 @@ export const runBeforeImport = async () => {
               r_test_manager_linkItems: [executionId],
               r_test_manager_linkType: 'RunLinkExecution',
               r_test_manager_runDetail: JSON.stringify({
+                precondition: item.precondition,
                 steps: isNotHaveMap ? getStepsData(clone(item)) : [],
               }),
               r_test_manager_status: statusMap[item.executionStatus],
@@ -420,8 +421,8 @@ export const runBeforeImport = async () => {
         const curUser = userQuery?.toJSON();
         console.log('test_case_import_userId', curUser);
         currentUser = {
-          deleted: false,
-          label: curUser?.username,
+          deleted: curUser?.deleted,
+          label: curUser?.nickname,
           username: curUser?.username,
           nickname: curUser?.nickname,
           value: curUser?.objectId,
@@ -447,8 +448,8 @@ export const runBeforeImport = async () => {
         console.log('userTypeNames_findName', user);
         if (user) {
           userNameMap[_name] = {
-            deleted: false,
-            label: user.get('username'),
+            deleted: user.get('deleted'),
+            label: user.get('nickname'),
             username: user.get('username'),
             nickname: user.get('nickname'),
             value: user.id,
