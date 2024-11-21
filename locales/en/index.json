@@ -46,9 +46,11 @@
     "name": "Name",
     "translationTitle": "Translate {{name}}",
     "translation": "Translate",
-    "locale.zh-CN": "中文 (简体)",
-    "locale.en-US": "English (US)",
-    "locale.ru-RU": "Русский язык (RU)",
+    "locale":{
+      "zh-CN": "中文 (简体)",
+      "en-US": "English (US)",
+      "ru-RU": "Русский язык (RU)"
+    },
     "confirm": "OK",
     "type": "Type",
     "cancel": "Cancel",

@@ -46,9 +46,11 @@
     "name": "Имя",
     "translationTitle": "Перевод {{name}}",
     "translation": "Перевод",
-    "locale.zh-CN": "中文 (简体)",
-    "locale.en-US": "English (US)",
-    "locale.ru-RU": "Русский язык (RU)",
+    "locale": {
+      "zh-CN": "中文 (简体)",
+      "en-US": "English (US)",
+      "ru-RU": "Русский язык (RU)"
+    },
     "confirm": "Хорошо",
     "type": "Тип",
     "cancel": "Отмена",
@@ -1115,7 +1117,7 @@
           "testExecutionName": "Название задачи выполнения теста",
           "testCaseName": "Название тестового примера",
           "stepNumber": "Номер шага",
-          "stepName":"имя шага"
+          "stepName": "имя шага"
         }
       },
       "testStep": {
