@@ -40,6 +40,15 @@
     "tip": "Tips",
     "okText": "OK",
     "title": "Title",
+    "key": "Key",
+    "description": "Description",
+    "language": "Language",
+    "name": "Name",
+    "translationTitle": "Translate {{name}}",
+    "translation": "Translate",
+    "locale.zh-CN": "中文 (简体)",
+    "locale.en-US": "English (US)",
+    "locale.ru-RU": "Русский язык (RU)",
     "confirm": "OK",
     "type": "Type",
     "cancel": "Cancel",
@@ -122,7 +131,8 @@
     "methodNotSupport": "This method does not support sorting. Please use the getTestEntitiesByRelationWithOrder method instead",
     "stepStatusNoMatch": "Step status does not match",
     "descriptionRequire": "You must enter a result description first",
-    "objectNotFound": "The data has been deleted, please refresh the page"
+    "objectNotFound": "The data has been deleted, please refresh the page",
+    "versionTip": "This panel is currently not supported in historical versions"
   },
   "report": {
     "overViewData": {
@@ -317,6 +327,10 @@
         "ruleTips": "Please enter a template name",
         "uploadFile": "Upload report template",
         "uploadFileTips": "Please upload test report template"
+      },
+      "testFieldsSettings": {
+        "title": "Test management related field configuration",
+        "description": "Translation test management related fields"
       },
       "testReportTemplate": {
         "title": "Test Report Template Management",

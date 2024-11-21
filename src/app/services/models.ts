@@ -20,6 +20,8 @@ export const ItemTypeScheme = Parse.Object.extend('ItemTypeScheme');
 export const AppInstallation = Parse.Object.extend('AppInstallation');
 export const ItemTypeScreenScheme = Parse.Object.extend('ItemTypeScreenScheme');
 export const ItemTypeScreenSchemeMapping = Parse.Object.extend('ItemTypeScreenSchemeMapping');
+export const BaseLineItem = Parse.Object.extend('BaseLineItem');
+export const Translation = Parse.Object.extend('Translation');
 
 export const Test = Parse.Object.extend(`${appKey}_Test`);
 export const Repository = Parse.Object.extend(RepositoryModel);

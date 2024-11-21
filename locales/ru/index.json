@@ -40,6 +40,15 @@
     "tip": "Советы",
     "okText": "Хорошо",
     "title": "Заголовок",
+    "key": "Уникальный идентификатор",
+    "description": "Описание",
+    "language": "Язык",
+    "name": "Имя",
+    "translationTitle": "Перевод {{name}}",
+    "translation": "Перевод",
+    "locale.zh-CN": "中文 (简体)",
+    "locale.en-US": "English (US)",
+    "locale.ru-RU": "Русский язык (RU)",
     "confirm": "Хорошо",
     "type": "Тип",
     "cancel": "Отмена",
@@ -122,7 +131,8 @@
     "methodNotSupport": "Этот метод не поддерживает сортировку, вместо этого используйте метод getTestEntitiesByRelationWithOrder",
     "stepStatusNoMatch": "Статус шага не соответствует",
     "descriptionRequire": "Сначала необходимо ввести описание результата",
-    "objectNotFound": "Данные удалены, обновите страницу"
+    "objectNotFound": "Данные удалены, обновите страницу",
+    "versionTip": "Панель не поддерживается в исторической версии"
   },
   "report": {
     "overViewData": {
@@ -290,6 +300,10 @@
         "ruleTips": "Пожалуйста, введите название шаблона",
         "uploadFile": "Загрузить шаблон отчета",
         "uploadFileTips": "Пожалуйста, загрузите шаблон отчета об испытаниях"
+      },
+      "testFieldsSettings": {
+        "title": "Настройка поля для управления тестом",
+        "description": "Управление тестом перевода"
       },
       "testReportTemplate": {
         "title": "Управление шаблонами отчетов об испытаниях",

@@ -29,6 +29,7 @@ type TestStepProps = {
   onChange?: (steps) => void;
   actionRef?: React.MutableRefObject<ActionType>;
   hasRequiredTip?: boolean;
+  readonly?: boolean;
 };
 
 const TestStep: React.FC<TestStepProps> = ({
@@ -38,6 +39,7 @@ const TestStep: React.FC<TestStepProps> = ({
   testDetailId,
   steps: stepsProps = [],
   hasRequiredTip,
+  readonly,
 }) => {
   const { t } = useI18n();
   const isInitialStepRef = React.useRef(false);
@@ -146,7 +148,7 @@ const TestStep: React.FC<TestStepProps> = ({
 
   return (
     <div>
-      {canCallTest && (
+      {canCallTest && !readonly && (
         <TestEntitySelectorModal
           isSingleMode
           title={t('components.business.testStep.modelTitle')}
@@ -157,15 +159,22 @@ const TestStep: React.FC<TestStepProps> = ({
           getContainer={getItemDetailPaneContainer}
         />
       )}
-      <StepList actions={stepActions} steps={steps} hasRequiredTip={hasRequiredTip} />
-      <div className={cx('actions')}>
-        <a onClick={() => stepActions.add()}>
-          <PlusOutlined /> {t('components.business.testStep.addStep')}
-        </a>
-        {canCallTest ? (
-          <a onClick={openCallTestModal}>{t('components.business.testStep.inheritCase')}</a>
-        ) : null}
-      </div>
+      <StepList
+        actions={stepActions}
+        steps={steps}
+        hasRequiredTip={hasRequiredTip}
+        readonly={readonly}
+      />
+      {!readonly && (
+        <div className={cx('actions')}>
+          <a onClick={() => stepActions.add()}>
+            <PlusOutlined /> {t('components.business.testStep.addStep')}
+          </a>
+          {canCallTest ? (
+            <a onClick={openCallTestModal}>{t('components.business.testStep.inheritCase')}</a>
+          ) : null}
+        </div>
+      )}
     </div>
   );
 };

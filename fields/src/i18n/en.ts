@@ -6,6 +6,7 @@ const en: {
   step: 'Step',
   expected: 'Expected',
   data: 'Data',
+  precondition: 'Precondition',
 };
 
 export default en;
