@@ -1,7 +1,13 @@
 // 测试用例导入前置操作，用于数据处理
 
-import { getAllData, getData, getParseModel, saveAllObject } from '@giteeteam/apps-team-api';
-
+import {
+  getAllData,
+  getData,
+  getParseModel,
+  getParseQuery,
+  saveAllObject,
+} from '@giteeteam/apps-team-api';
+import dayjs from 'dayjs';
 // uuid
 function getRandomIntInclusive(min, max) {
   min = Math.ceil(min);
@@ -21,7 +27,7 @@ const clone = d => JSON.parse(JSON.stringify(d));
 
 const replaceRn = datas => {
   try {
-    return datas?.replace(/^[\r\n]+/g, '');
+    return datas?.replace(/[\r\n]/g, '');
   } catch (err) {
     console.info('______________error_____________', datas);
     console.error(err);
@@ -83,6 +89,15 @@ const getSortIndex = (index = 0, time = 0) =>
 const isStrictEOLMode = datas =>
   getIsStrict(datas.action) && getIsStrict(datas.result) && getIsStrict(datas.data);
 
+const statusMap = {
+  ['未开始']: 'TODO',
+  ['通过']: 'PASSED',
+  ['阻塞']: 'BLOCK',
+  ['失败']: 'FAILED',
+  ['执行中']: 'EXECUTING',
+  ['已取消']: 'CANCEL',
+};
+
 const getStepsData = datas => {
   const stepsMap = new Map();
 
@@ -96,6 +111,8 @@ const getStepsData = datas => {
       result: stepsMap.get(_index)?.result ?? '',
       data: stepsMap.get(_index)?.data ?? '',
       id: stepsMap.get(_index)?.id || uuidv4(),
+      actualResult: stepsMap.get(_index)?.actualResult ?? '',
+      status: stepsMap.get(_index)?.status ?? '',
     });
   });
 
@@ -106,6 +123,8 @@ const getStepsData = datas => {
       result: getStepData(result),
       data: stepsMap.get(_index)?.data ?? '',
       id: stepsMap.get(_index)?.id || uuidv4(),
+      actualResult: stepsMap.get(_index)?.actualResult ?? '',
+      status: stepsMap.get(_index)?.status ?? '',
     });
   });
 
@@ -116,6 +135,33 @@ const getStepsData = datas => {
       action: stepsMap.get(_index)?.action ?? '',
       result: stepsMap.get(_index)?.result ?? '',
       id: stepsMap.get(_index)?.id || uuidv4(),
+      actualResult: stepsMap.get(_index)?.actualResult ?? '',
+      status: stepsMap.get(_index)?.status ?? '',
+    });
+  });
+
+  splitSteps(datas.actualResult ?? '')?.forEach((_data, index) => {
+    const _index = isStrictMode ? pickStepIndex(_data) : index;
+    stepsMap.set(_index, {
+      actualResult: getStepData(_data),
+      action: stepsMap.get(_index)?.action ?? '',
+      data: stepsMap.get(_index)?.data ?? '',
+      result: stepsMap.get(_index)?.result ?? '',
+      id: stepsMap.get(_index)?.id || uuidv4(),
+      status: stepsMap.get(_index)?.status ?? '',
+    });
+  });
+
+  splitSteps(datas.stepStatus ?? '')?.forEach((_data, index) => {
+    const _index = isStrictMode ? pickStepIndex(_data) : index;
+
+    stepsMap.set(_index, {
+      status: statusMap[getStepData(_data)],
+      action: stepsMap.get(_index)?.action ?? '',
+      data: stepsMap.get(_index)?.data ?? '',
+      result: stepsMap.get(_index)?.result ?? '',
+      id: stepsMap.get(_index)?.id || uuidv4(),
+      actualResult: stepsMap.get(_index)?.actualResult ?? '',
     });
   });
 
@@ -126,6 +172,8 @@ const getStepsData = datas => {
 };
 
 export const runBeforeImport = async () => {
+  const executionId = global.triggerParams?.executionId;
+  const planId = global.triggerParams?.planId;
   const appFieldsData = global.triggerParams?.appFieldsData?.map((item, index) => ({
     ...item,
     __indexKey: index,
@@ -139,20 +187,52 @@ export const runBeforeImport = async () => {
   console.info('___ItemData___Params', JSON.stringify({ appFieldsData, data }));
 
   // 获取测试管理的自定义数据
-  const getItemDataList = () => {
+  const getItemDataList = ({ userNameMap, currentUser }) => {
     const isNotHaveMap = appFieldsData.length;
-    const itemsDataList = (isNotHaveMap ? appFieldsData : data).reverse().map((item, index) => ({
-      ...item,
-      values: {
-        ...item.values,
-        r_test_manager_type: 'TestCase',
-        r_test_manager_detail: JSON.stringify({
-          precondition: item.precondition,
-          steps: isNotHaveMap ? getStepsData(clone(item)) : [],
-        }),
-        r_test_manager_sortIndex: getSortIndex(index),
-      },
-    }));
+    const itemsDataList = (isNotHaveMap ? appFieldsData : data).reverse().map((item, index) => {
+      return {
+        ...item,
+        values: {
+          ...item.values,
+          ...(data[index]?.values?.r_test_manager_linkType && {
+            ...data[index]?.values,
+            ...(data[index]?.values?.r_test_manager_linkType === 'RunLinkExecution' && {
+              r_test_manager_type: 'TestRun',
+              r_test_manager_executeCount: item.executionCount || 1,
+              r_test_manager_linkItems: [executionId],
+              r_test_manager_linkType: 'RunLinkExecution',
+              r_test_manager_runDetail: JSON.stringify({
+                precondition: item.precondition,
+                steps: isNotHaveMap ? getStepsData(clone(item)) : [],
+              }),
+              r_test_manager_status: statusMap[item.executionStatus],
+              r_test_manager_executeTime: dayjs(item.executionTime).valueOf(),
+              r_test_manager_executor: [userNameMap[item.executor] || currentUser],
+            }),
+            ...(data[index]?.values?.r_test_manager_linkType === 'CaseLinkPlan' && {
+              r_test_manager_type: 'TestCase',
+              r_test_manager_detail: JSON.stringify({
+                precondition: item.precondition,
+                steps: isNotHaveMap ? getStepsData(clone(item)) : [],
+              }),
+              r_test_manager_sortIndex: getSortIndex(index),
+              r_test_manager_caseStatus: {
+                [planId]: statusMap[item.executionStatus],
+              },
+            }),
+          }),
+          ...(!data[index]?.values?.r_test_manager_linkType && {
+            ...data[index]?.values,
+            r_test_manager_type: 'TestCase',
+            r_test_manager_detail: JSON.stringify({
+              precondition: item.precondition,
+              steps: isNotHaveMap ? getStepsData(clone(item)) : [],
+            }),
+            r_test_manager_sortIndex: getSortIndex(index),
+          }),
+        },
+      };
+    });
 
     return itemsDataList;
   };
@@ -322,7 +402,64 @@ export const runBeforeImport = async () => {
   const importCallBack = async () => {
     console.time('[test-case-import] process');
     // 获取创建的事项数据
-    const itemDataList = getItemDataList();
+    const userTypeNames = appFieldsData?.map(_item => _item.executor).filter(Boolean);
+    const userNameMap = {};
+    let currentUser = {};
+    // find the current User
+    if (global?.sessionToken) {
+      const _userSessionQuery = await getParseQuery(false, '_Session');
+      const sessionList = await _userSessionQuery
+        .equalTo('sessionToken', global?.sessionToken)
+        .first({ useMasterKey: true });
+      const userId = sessionList?.get('user');
+      const curUserId = userId?.objectId;
+      const _userQuery = await getParseQuery(false, '_User');
+      const userQuery = await _userQuery
+        .equalTo('objectId', curUserId)
+        .first({ useMasterKey: true });
+      if (userQuery) {
+        const curUser = userQuery?.toJSON();
+        console.log('test_case_import_userId', curUser);
+        currentUser = {
+          deleted: curUser?.deleted,
+          label: curUser?.nickname,
+          username: curUser?.username,
+          nickname: curUser?.nickname,
+          value: curUser?.objectId,
+        };
+      }
+    }
+
+    if (userTypeNames.length) {
+      console.log('userTypeNames', userTypeNames);
+      const userQuery = await getParseQuery(false, '_User');
+      const otherQuery = await getParseQuery(false, '_User');
+      const userList = await userQuery
+        .containedIn('nickname', userTypeNames)
+        .find({ useMasterKey: true });
+      const otherUserList = await otherQuery
+        .containedIn('username', userTypeNames)
+        .find({ useMasterKey: true });
+
+      userTypeNames.forEach(_name => {
+        const user = [...userList, ...otherUserList].find(
+          _user => _user.get('nickname') === _name || _user.get('username') === _name,
+        );
+        console.log('userTypeNames_findName', user);
+        if (user) {
+          userNameMap[_name] = {
+            deleted: user.get('deleted'),
+            label: user.get('nickname'),
+            username: user.get('username'),
+            nickname: user.get('nickname'),
+            value: user.id,
+          };
+        }
+      });
+    }
+    console.info('_________userNameMap____________', userNameMap);
+    const itemDataList = getItemDataList({ userNameMap, currentUser });
+
     let newItemDataList = [];
 
     // 得到需要创建的用例库数据

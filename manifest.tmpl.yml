@@ -179,6 +179,8 @@ modules:
       handler: trigger.createdItemLinkType
     - key: test-manager-validate-script-function
       handler: importer.runValidate
+    - key: test-manager-after-import-script-function
+      handler: importer.runAfterImport
     - key: test-manager-before-import-script-function
       handler: importer.runBeforeImport
     - key: test-manager-import-script-function
@@ -407,6 +409,7 @@ modules:
     # function: test-manager-import-script-function
     function: test-manager-before-import-script-function
     validate: test-manager-validate-script-function
+    after: test-manager-after-import-script-function
     itemFields:
       - key: group
         title: importer.itemFields.group
@@ -420,6 +423,18 @@ modules:
         title: importer.itemFields.result
       - key: data
         title: importer.itemFields.data
+      - key: executionStatus
+        title: importer.itemFields.executionStatus
+      - key: stepStatus
+        title: importer.itemFields.stepStatus
+      - key: actualResult
+        title: importer.itemFields.actualResult
+      - key: executionTime
+        title: importer.itemFields.executionTime
+      - key: executor
+        title: importer.itemFields.executor
+      - key: executionCount
+        title: importer.itemFields.executionCount
   proxima:exporter:
     function: test-manager-export-script
   # 初始化 dataType 为 object， array 的数据类型
@@ -542,6 +557,10 @@ modules:
     - key: comment
       name: test_manager_comment
       description: 测试管理内置字段-测试执行评论（勿删改）
+      type: Text
+    - key: runMapCaseKey
+      name: test_manager_runMapCaseKey
+      description: 测试管理内置字段-测试执行关联的测试用例 key（勿删改）
       type: Text
   customItemType:
     - key: test_manager_detail
