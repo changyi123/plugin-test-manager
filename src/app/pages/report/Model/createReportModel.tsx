@@ -16,7 +16,7 @@ import TemplateForm from '../Steps/TemplateForm';
 const MaxInputNameLength = 250;
 
 export type ActionType = {
-  open: (data: { name?: string }) => Promise<void>;
+  open: (data: { name?: string; selectors?: any }) => Promise<void>;
 };
 
 type CreateReportModelProps = {

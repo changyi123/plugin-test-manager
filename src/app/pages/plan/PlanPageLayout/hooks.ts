@@ -258,3 +258,29 @@ export const useGetFilterExecutionLinkCaseRunIds = props => {
     },
   );
 };
+
+export const useGetExecutionIds = props => {
+  const { workspaceKey, selectors } = props;
+  return useRequest(
+    async () => {
+      if (!workspaceKey) return [];
+      // 获取空间下的全局测试执行任务ids
+      const { list: executionIds } = await getTestEntityByQuery({
+        query: {
+          workspaceKey,
+          type: TestType.Execution,
+        },
+        limit: 99990,
+        selector: selectors,
+        onlySelectId: true,
+      });
+      return executionIds;
+    },
+    {
+      ready: Boolean(workspaceKey),
+      refreshDeps: [workspaceKey, selectors],
+      cacheTime: 99999,
+      staleTime: 99999,
+    },
+  );
+};
