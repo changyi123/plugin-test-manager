@@ -73,6 +73,18 @@ const getExcelData = async (data: any) => {
     };
   };
 
+  const getEditorOrStringText = (text: any) => {
+    if (!text) {
+      return '';
+    }
+    if (typeof text === 'string') {
+      return escapeHtmlString(text);
+    } else {
+      const [editorText] = text;
+      return editorText?.stringText;
+    }
+  };
+
   /** 获取测试用例数据 */
   const getTestInfo = data => ({
     ...getTestInfoByDetail(data.detail),
@@ -89,9 +101,9 @@ const getExcelData = async (data: any) => {
       ?.reduce(
         (prev, cur, index) => {
           prev = {
-            action: prev.action.concat(`【${index + 1}】${escapeHtmlString(cur.action)}`),
-            result: prev.result.concat(`【${index + 1}】${escapeHtmlString(cur.result)}`),
-            data: prev.data.concat(`【${index + 1}】${escapeHtmlString(cur.data)}`),
+            action: prev.action.concat(`【${index + 1}】${getEditorOrStringText(cur.action)}`),
+            result: prev.result.concat(`【${index + 1}】${getEditorOrStringText(cur.result)}`),
+            data: prev.data.concat(`【${index + 1}】${getEditorOrStringText(cur.data)}`),
           };
 
           return prev;

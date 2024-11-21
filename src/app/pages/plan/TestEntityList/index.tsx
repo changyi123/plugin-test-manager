@@ -701,12 +701,16 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
 
   /** 根据列表记录删除测试执行 */
   const deleteTestRunByIds = useMemoizedFn(testRunIds => {
+    const enable = getAppEnv('CREATE_EXECUTION_DEFAULT_NAME_CONFIG')?.enable;
+
     actionConfirm(
       {
         title: t('common.tip'),
         okText: t('common.okText'),
         cancelText: t('common.cancel'),
-        content: t('page.plan.testEntityList.deleteRunTips'),
+        content: enable
+          ? t('page.plan.testEntityList.deleteRunTips1')
+          : t('page.plan.testEntityList.deleteRunTips'),
       },
       async () => {
         // 删除测试执行

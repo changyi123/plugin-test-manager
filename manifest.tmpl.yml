@@ -2,7 +2,7 @@ app:
   key: test_manager
   uuid: bf73e61c-e15a-4461-a1f7-f940c2009332
   name: test_manager
-  version: "4.29.52"
+  version: "4.29.0"
 modules:
   webtrigger:
     # TODO: Debug 使用，生产环境禁止调用下面的 trigger
@@ -322,6 +322,7 @@ modules:
       loadType: Micro
       route: /panelModule
       defaultActive: false
+      baseLineItem: true
   adminPage:
     - key: test-config
       resource: main
@@ -452,6 +453,7 @@ modules:
       name: 测试管理基础字段类型（字符串）
       description: 测试管理基础字段类型（勿删改）
       dataType: text
+      resource: test_text
     - key: test_detail
       name: 测试管理内置字段类型-用例详情
       description: 测试管理内置字段-用例详情（勿删改）
@@ -901,5 +903,5 @@ resources:
     path: ./fields/build/test-detail
   - key: test_repository
     path: ./fields/build/test-repository
-
-
+  - key: test_text
+    path: ./fields/build/test-text

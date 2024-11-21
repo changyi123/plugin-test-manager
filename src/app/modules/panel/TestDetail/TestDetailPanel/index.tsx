@@ -26,7 +26,7 @@ let firstLoad = true;
 
 const Detail: React.FC = () => {
   const { t } = useI18n();
-  const { testEntity, setTestEntity } = useTestConfig();
+  const { testEntity, setTestEntity, baseLineItemId } = useTestConfig();
   const [steps, setStepsState] = useState<TestStep[]>([]);
 
   const { objectId: testDetailId } = testEntity || {};
@@ -56,7 +56,7 @@ const Detail: React.FC = () => {
       }
       setTestEntity(data?.[0]);
     },
-    [testEntity, setTestEntity],
+    [testEntity.detail, testEntity.objectId, setTestEntity],
   );
 
   const { run: handlePreconditionChange } = useDebounceFn(async precondition => {
@@ -108,6 +108,7 @@ const Detail: React.FC = () => {
           defaultValue={testEntity.detail?.precondition}
           onBlur={e => handlePreconditionChange(e.target.value)}
           onChange={e => handlePreconditionChange(e.target.value)}
+          disabled={!!baseLineItemId}
         />
       </div>
       <h6 className={css('step-header')}>{t('common.testStep')}</h6>
@@ -127,6 +128,7 @@ const Detail: React.FC = () => {
           steps={steps}
           testDetailId={testDetailId}
           onChange={steps => saveStep(steps)}
+          readonly={!!baseLineItemId}
         />
       </div>
     </div>

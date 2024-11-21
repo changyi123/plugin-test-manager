@@ -33,7 +33,7 @@ import {
 import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import { useNoExpiredRequest } from '@/lib/hooks/useRequest';
-import { generateStorageKey } from '@/lib/utils/helper';
+import { generateStorageKey, getRootContainer } from '@/lib/utils/helper';
 import { isDate, SearchSelectors, Selectors } from '@/lib/utils/iql';
 import { Repository } from '@/services/models';
 
@@ -561,7 +561,7 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
             handleSearch();
           }}
         >
-          <Tooltip title={defaultIqlProp}>
+          <Tooltip title={defaultIqlProp} getPopupContainer={getRootContainer}>
             {t('components.common.filterSearch.defaultFilterScope')}
           </Tooltip>
         </Checkbox>

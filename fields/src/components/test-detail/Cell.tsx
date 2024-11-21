@@ -6,6 +6,7 @@ import React, { FC, useMemo } from 'react';
 import { t } from '@/i18n';
 
 import { CellProp } from '../types';
+import Editor from './editor';
 import cx from './index.less';
 
 const parseData = v => {
@@ -13,13 +14,15 @@ const parseData = v => {
     const data = JSON.parse(v);
     const { precondition, steps } = data;
     return [
-      {
-        action: precondition,
-      },
-      ...steps,
+      [
+        {
+          precondition,
+        },
+      ],
+      steps || [],
     ];
   } catch (err) {
-    return [];
+    return [[], []];
   }
 };
 
@@ -34,49 +37,76 @@ const Cell: FC<CellProp> = props => {
         title: '#',
         dataIndex: 'index',
         key: 'index',
-        width: '15%',
+        width: '10%',
+        className: cx['test-table-cell'],
         render: (_, __, index) => {
-          return <div className={cx['index-box']}>{index}</div>;
+          return <div className={cx['index-box']}>{index + 1}</div>;
         },
       },
       {
         title: t('step'),
         dataIndex: 'action',
         key: 'action',
-        width: '35%',
+        width: '30%',
+        className: cx['test-table-cell'],
         render: text => {
-          return <div className={cx['common-box']}>{text || '-'}</div>;
+          return <Editor value={text} readonly={true} />;
         },
       },
       {
         title: t('expected'),
         dataIndex: 'result',
         key: 'result',
-        width: '35%',
+        width: '30%',
+        className: cx['test-table-cell'],
         render: text => {
-          return <div className={cx['common-box']}>{text || '-'}</div>;
+          return <Editor value={text} readonly={true} />;
         },
       },
       {
         title: t('data'),
         dataIndex: 'data',
         key: 'data',
-        width: '15%',
+        width: '30%',
+        className: cx['test-table-cell'],
         render: text => {
-          return <div className={cx['common-box']}>{text || '-'}</div>;
+          return <Editor value={text} readonly={true} />;
         },
       },
     ];
   }, []);
-  console.info('props', props);
+
+  const preconditionColumns = useMemo(() => {
+    return [
+      {
+        title: t('precondition'),
+        dataIndex: 'precondition',
+        key: 'precondition',
+        width: '100%',
+        className: cx['test-table-cell'],
+        render: text => {
+          return <Editor value={text} readonly={true} />;
+        },
+      },
+    ];
+  }, []);
   return (
-    <Table
-      dataSource={tableData}
-      columns={columns}
-      pagination={false}
-      bordered
-      scroll={{ y: 500 }}
-    />
+    <div>
+      <Table
+        className={cx['test-precondition-table']}
+        dataSource={tableData[0]}
+        columns={preconditionColumns}
+        pagination={false}
+        bordered
+      />
+      <Table
+        className={cx['test-detail-table']}
+        dataSource={tableData[1]}
+        columns={columns}
+        pagination={false}
+        bordered
+      />
+    </div>
   );
 };
 

@@ -30,7 +30,8 @@ import cx from './StepList.less';
 const StepFields: React.FC<{
   stepId: string;
   fields: StepField[];
-}> = ({ fields, stepId }) => {
+  readonly?: boolean;
+}> = ({ fields, stepId, readonly }) => {
   const { t } = useI18n();
   const fieldsWithImpl = getFields(fields).filter(Boolean);
   const { saveFieldRef, nextField } = useNextStepFieldContext();
@@ -45,15 +46,17 @@ const StepFields: React.FC<{
               Object.assign(
                 {
                   key: field.key,
+                  style: { padding: '5px' },
                   maxLength: 2000,
                   placeholder: `${t('components.business.testStep.pleaseInput')} ${t(
                     `components.business.testStep.${field.title}`,
-                  )}（${t('components.business.testStep.switchNext')}）`,
+                  )}`,
                   onKeyDownEnter: () => nextField(stepId, field.key),
                   ref: ref => {
                     // 只有 input 类型组件需要缓存 ref
                     field.type === 'input' && saveFieldRef(stepId, field.key, ref);
                   },
+                  readonly,
                 },
                 field,
               ),
@@ -70,11 +73,12 @@ type StepRowProps = {
   index: number;
   actions: any;
   enableDelete?: boolean;
+  readonly?: boolean;
 };
 
 const StepRow: React.FC<StepRowProps> = props => {
   const { t } = useI18n();
-  const { data, index, actions, enableDelete } = props;
+  const { data, index, actions, enableDelete, readonly } = props;
   const rowRef = React.useRef<HTMLDivElement>();
 
   const isMouseHover = useHover(rowRef);
@@ -88,9 +92,9 @@ const StepRow: React.FC<StepRowProps> = props => {
   const isCallTestStep = !!data.callTestId;
 
   // memoized StepFields 渲染，表单字段 render 由 Form.Item 接管
-  const StepFieldsMemoKey = data.id + data.fields.map(field => field.key).toString();
+  const StepFieldsMemoKey = data.id + data.fields.map(field => field.key).toString() + readonly;
   const StepFieldsMemoNode = React.useMemo(
-    () => <StepFields stepId={data.id} fields={data.fields} />,
+    () => <StepFields stepId={data.id} fields={data.fields} readonly={readonly} />,
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [StepFieldsMemoKey],
   );
@@ -122,7 +126,8 @@ const StepRow: React.FC<StepRowProps> = props => {
   }, [data, t]);
 
   const renderDraggableChild = (provider, snapshot) => {
-    const isHover = isMouseHover && !snapshot.isDragging;
+    const isHover = isMouseHover && !snapshot.isDragging && !readonly;
+    console.info(readonly, 'renderDraggableChild');
 
     const child = (
       <div
@@ -183,7 +188,7 @@ const StepRow: React.FC<StepRowProps> = props => {
   };
 
   return (
-    <Draggable index={index} draggableId={data.id}>
+    <Draggable index={index} draggableId={data.id} isDragDisabled={readonly}>
       {renderDraggableChild}
     </Draggable>
   );
@@ -200,10 +205,11 @@ type StepListProps = {
   steps: Step[];
   actions: any;
   hasRequiredTip?: boolean;
+  readonly?: boolean;
 };
 
 /** 测试步骤 list */
-const StepList: React.FC<StepListProps> = ({ steps, actions, hasRequiredTip }) => {
+const StepList: React.FC<StepListProps> = ({ steps, actions, hasRequiredTip, readonly }) => {
   const { t } = useI18n();
   const [form] = Form.useForm();
   const [testDetailEntities, setTestDetailEntities] = React.useState([]);
@@ -297,12 +303,13 @@ const StepList: React.FC<StepListProps> = ({ steps, actions, hasRequiredTip }) =
 
   const handleDragEnd = React.useCallback(
     ({ source, destination }) => {
+      if (readonly) return;
       actions?.swap({
         sourceIndex: source.index,
         destinationIndex: destination.index,
       });
     },
-    [actions],
+    [actions, readonly],
   );
 
   const handleValuesChange = React.useCallback(
@@ -345,7 +352,7 @@ const StepList: React.FC<StepListProps> = ({ steps, actions, hasRequiredTip }) =
           </div>
 
           <NextStepFieldProvider addStep={actions.add} stepRowData={stepRowData}>
-            <Droppable droppableId="step">
+            <Droppable droppableId="step" isDropDisabled={readonly}>
               {provider => (
                 <div className={cx('body')} {...provider.droppableProps} ref={provider.innerRef}>
                   {stepRowData.map((row, index) => (
@@ -355,6 +362,7 @@ const StepList: React.FC<StepListProps> = ({ steps, actions, hasRequiredTip }) =
                       data={row}
                       index={index}
                       enableDelete={stepRowData.length > 1}
+                      readonly={readonly}
                     />
                   ))}
                   {provider.placeholder}
