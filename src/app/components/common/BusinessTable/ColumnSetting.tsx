@@ -26,7 +26,7 @@ import { useFieldsWithFieldCellProps } from '@/lib/hooks/useProxima';
 import { generateStorageKey } from '@/lib/utils/helper';
 
 import cx from './ColumnSetting.less';
-import { SystemFieldKeys, useGetCustomFields, useGetTableFilterFields } from './hook';
+import { useGetCustomFields, useGetTableFilterFields } from './hook';
 import { TitleCellOption } from './type';
 
 type ColumnDuckTyping = ColumnType<any> & Record<string, any>;
@@ -69,7 +69,7 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
   const { t } = useI18n();
   const [visible, setVisible] = React.useState(false);
   const { testPlanFieldKeys, testCaseFieldKeys, testExecutionFieldKeys } = useBaseAction();
-  const _keys = useMemo(() => {
+  const keys = useMemo(() => {
     if (testFieldKeys) return testFieldKeys;
     if (titleCellOption.testType === TestType.Case) {
       return testCaseFieldKeys;
@@ -87,7 +87,6 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
     testFieldKeys?.toString(),
     testExecutionFieldKeys?.toString(),
   ]);
-  const keys = useMemo(() => [].concat(SystemFieldKeys, _keys ?? []), [_keys?.toString()]);
   const fieldKeys = useMemo(() => keys?.filter(key => !TABLE_EXCLUDE_FIELDS.includes(key)), [keys]);
 
   const customFields = useGetCustomFields({ filedKeys: fieldKeys });
