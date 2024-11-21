@@ -600,6 +600,7 @@
         "removeCaseTips1": "This action removes the selected test case from the test plan, do you want to continue",
         "removeCaseTips2": "The current case has been associated with the test run task, and delete the test execution task association, do you want to continue",
         "deleteRunTips": "This action will remove the selected test execution. do you want to continue?",
+        "deleteRunTips1": "This operation will remove the execution of the selected test case. Do you want to continue?",
         "deleteRunMessage": "Test case executions were removed",
         "updateAssigneeTips": "Test owners have been updated",
         "repositoryGroup": "Belonging module",

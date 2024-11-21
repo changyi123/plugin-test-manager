@@ -22,6 +22,7 @@ import { clone } from 'lodash';
 
 import { getAppEnv } from '@/lib/appEnv';
 
+import Editor from '../TestStep/fields/editor';
 import cx from './TestStep.less';
 
 type TestStepProps = TabsComponentBaseProps;
@@ -229,7 +230,7 @@ const TestStep: React.FC<TestStepProps> = props => {
             <span className={cx('position')}>
               <span className={cx('position-tip')}>{index + 1}</span>
             </span>
-            <span className={cx('action')}>{renderFieldValue(step.action)}</span>
+            <span className={cx('action')}>{<Editor value={step.action} readonly />}</span>
             <span className={cx('status')}>
               <div className={cx('status-selector')}>
                 <StatusList
@@ -252,18 +253,16 @@ const TestStep: React.FC<TestStepProps> = props => {
               <span className={cx('label')}>
                 {t('components.business.testRunModal.testStep.expect')}：
               </span>
-              <span className={cx('data')}>{renderFieldValue(step.result)}</span>
+              <span className={cx('data')}>{<Editor value={step.result} readonly />}</span>
             </div>
             <div className={cx('field')}>
               <span className={cx('label')}>
                 {t('components.business.testRunModal.testStep.result')}：
               </span>
               <span className={cx('input')}>
-                <Input
+                <Editor
                   placeholder={t('components.business.testRunModal.testStep.resultPlaceholder')}
                   value={step.actualResult}
-                  maxLength={2000}
-                  onKeyDownEnter={value => handleActualResultChange(step.id, value)}
                   onChange={value => handleActualResultChange(step.id, value)}
                 />
               </span>
@@ -272,7 +271,7 @@ const TestStep: React.FC<TestStepProps> = props => {
               <span className={cx('label')}>
                 {t(`components.business.testRunModal.testStep.${enable ? 'preData' : 'data'}`)}：
               </span>
-              <span className={cx('data')}>{renderFieldValue(step.data)}</span>
+              <span className={cx('data')}>{<Editor value={step.data} readonly={true} />}</span>
             </div>
           </div>
           <div className={cx('step-defects')}>

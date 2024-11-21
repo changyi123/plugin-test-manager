@@ -14,6 +14,7 @@ declare interface Option {
 }
 
 declare module 'proxima-sdk/lib';
+declare module 'proxima-sdk';
 
 declare interface Window {
   __POWERED_BY_QIANKUN__: boolean;

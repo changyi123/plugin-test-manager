@@ -59,6 +59,7 @@ export type BaseTestEntity = {
     attachments?: FileType[]; // 附件
     /** 执行结果描述 */
     executeResultDesc?: Record<string, any>[];
+    init: boolean;
   };
   /** 测试执行评论数据 */
   comments: Comment[];

@@ -216,7 +216,7 @@ const Test = () => {
         actionMenuList={[
           {
             key: 'delete',
-            content: t('common.delete'),
+            content: t('common.remove'),
             onClick(selectedRowKeys) {
               removeTestRelation(selectedRowKeys);
             },
