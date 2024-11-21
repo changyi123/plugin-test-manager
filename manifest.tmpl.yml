@@ -438,6 +438,7 @@ modules:
       name: 测试管理基础字段类型（字符串）
       description: 测试管理基础字段类型（勿删改）
       dataType: text
+      resource: test_text
     - key: test_detail
       name: 测试管理内置字段类型-用例详情
       description: 测试管理内置字段-用例详情（勿删改）
@@ -883,3 +884,5 @@ resources:
     path: ./fields/build/test-detail
   - key: test_repository
     path: ./fields/build/test-repository
+  - key: test_text
+    path: ./fields/build/test-text
