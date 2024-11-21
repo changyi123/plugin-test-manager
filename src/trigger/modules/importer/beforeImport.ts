@@ -190,13 +190,15 @@ export const runBeforeImport = async () => {
   const getItemDataList = ({ userNameMap, currentUser }) => {
     const isNotHaveMap = appFieldsData.length;
     const itemsDataList = (isNotHaveMap ? appFieldsData : data).reverse().map((item, index) => {
+      const { __indexKey } = item;
+      const findData = data?.find(_data => _data.__indexKey === __indexKey);
       return {
         ...item,
         values: {
           ...item.values,
-          ...(data[index]?.values?.r_test_manager_linkType && {
-            ...data[index]?.values,
-            ...(data[index]?.values?.r_test_manager_linkType === 'RunLinkExecution' && {
+          ...(findData?.values?.r_test_manager_linkType && {
+            ...findData?.values,
+            ...(findData?.values?.r_test_manager_linkType === 'RunLinkExecution' && {
               r_test_manager_type: 'TestRun',
               r_test_manager_executeCount: item.executionCount || 1,
               r_test_manager_linkItems: [executionId],
@@ -209,7 +211,7 @@ export const runBeforeImport = async () => {
               r_test_manager_executeTime: dayjs(item.executionTime).valueOf(),
               r_test_manager_executor: [userNameMap[item.executor] || currentUser],
             }),
-            ...(data[index]?.values?.r_test_manager_linkType === 'CaseLinkPlan' && {
+            ...(findData?.values?.r_test_manager_linkType === 'CaseLinkPlan' && {
               r_test_manager_type: 'TestCase',
               r_test_manager_detail: JSON.stringify({
                 precondition: item.precondition,
@@ -221,8 +223,8 @@ export const runBeforeImport = async () => {
               },
             }),
           }),
-          ...(!data[index]?.values?.r_test_manager_linkType && {
-            ...data[index]?.values,
+          ...(!findData?.values?.r_test_manager_linkType && {
+            ...findData?.values,
             r_test_manager_type: 'TestCase',
             r_test_manager_detail: JSON.stringify({
               precondition: item.precondition,
