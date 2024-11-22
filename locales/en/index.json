@@ -951,8 +951,19 @@
           "The data format of the article is wrong, it will not be imported",
           "Article data exceeds limit, data limit 2000 characters are not imported",
           "Item type association is not configured, all data will not be imported, please configure the associated item type first",
-          "The group of the test case is empty, not imported"
-        ]
+          "The group of the test case is empty, not imported",
+          "Invalid actual result format, cannot be imported",
+          "Actual result exceeds the limit, expected result is limited to 2000 characters, cannot be imported",
+          "Invalid step status format, cannot be imported",
+          "Invalid step status format, not within a reasonable range of states"
+        ],
+        "run": "Execution",
+        "errorMap": {
+          "executionStatus": "Invalid execution status format, cannot be imported",
+          "executionTime": "Invalid execution time format",
+          "executionStatusRequired": "Execution status cannot be empty",
+          "executionCount": "Invalid execution count format, cannot be imported"
+        }
       }
     },
     "web": {
@@ -1229,5 +1240,31 @@
     "exportError": "Export failed",
     "viewDetails": "View details",
     "fileTooLargeTips": "The file is too large and has been downloaded in the background. Please click on the upper right corner [Personal Center-Download List] to view"
+  },
+  "executionTaskImport": {
+    "sure": "Import",
+    "entry": "Execution Record Import",
+    "download": "Download Execution Record Import Template",
+    "settings": {
+      "title": "Import Execution Records",
+      "tip": "To batch import execution records, you need to provide data in an Excel file.",
+      "bottomTip": "When importing execution records, the system will import both cases and execution records into the system. (One record corresponds to two items)"
+    },
+    "testPlan": "Test Plan to Import",
+    "testExecution": "Test Execution Task to Import",
+    "excelContent": {
+      "name": "Title 1",
+      "group": "Module 1/Module 2",
+      "step": "【1】Must start with [index]\n【2】Line breaks in steps will be retained",
+      "result": "【1】Must start with [index]\n【2】Line breaks in expected results will be retained",
+      "data": "【1】Must start with [index]\n【2】Line breaks in data will be retained",
+      "executionStatus": "Passed",
+      "stepStatus": "【1】Must start with [index]\n【2】Line breaks in step status will be retained",
+      "actualResult": "【1】Must start with [index]\n【2】Line breaks in actual results will be retained",
+      "executionTime": "2024/10/31 15:57",
+      "executor": "osc-admin",
+      "precondition": "Description of preconditions",
+      "executionCount": "Enter a number, default is 1"
+    }
   }
 }
