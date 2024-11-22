@@ -1,13 +1,10 @@
+import { TreeSelect } from 'antd';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
-import { TreeSelect } from 'antd';
+import Parse from 'proxima-sdk/lib/Parse';
 import React, { FC, useCallback, useEffect, useState } from 'react';
 
 import { FieldProp } from '../types';
-
-const Parse = global.Parse;
-const workspaceQuery = new Parse.Query('Workspace');
-const repositoryQuery = new Parse.Query('test_manager_Repository');
 
 const Field: FC<FieldProp> = props => {
   const { onChange, workspace, ...restProps } = props;
@@ -17,7 +14,7 @@ const Field: FC<FieldProp> = props => {
   useEffect(() => {
     if (!workspace) return;
     (async () => {
-      const curWorkspace = await workspaceQuery
+      const curWorkspace = await new Parse.Query('Workspace')
         .equalTo('objectId', workspace)
         .select('key')
         .first();
@@ -30,7 +27,7 @@ const Field: FC<FieldProp> = props => {
       if (!workspaceKey) return;
       // 构建目录树
       // 创建一个哈希表，用于存储每个repo对象的子对象
-      const repositories = await repositoryQuery
+      const repositories = await new Parse.Query('test_manager_Repository')
         .equalTo('workspaceKey', workspaceKey)
         .select(['name', 'objectId', 'parent', 'sortIndex'])
         .addAscending(['sortIndex', 'createdAt'])
