@@ -1115,7 +1115,7 @@
           "testExecutionName": "Название задачи выполнения теста",
           "testCaseName": "Название тестового примера",
           "stepNumber": "Номер шага",
-          "stepName":"имя шага"
+          "stepName": "имя шага"
         }
       },
       "testStep": {
