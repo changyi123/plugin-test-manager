@@ -156,6 +156,7 @@ export const zgcTestReportInfo = async () => {
         ];
         setRes({ ['测试工具']: createTable(columns, tools, 'tools') });
       };
+      let allStroyList = [];
       const setVersion = async reportRes => {
         const versionId = reportRes?.values?.version?.[0]?.objectId;
         const versionName = reportRes?.values?.version?.[0]?.name;
@@ -174,8 +175,9 @@ export const zgcTestReportInfo = async () => {
               `'版本' in ['${versionName}'] and '类型' in ['${
                 zgcConfig.系统子需求 ?? '系统子需求'
               }']`,
-              ['id'],
+              ['id', 'key'],
             ).then(list => {
+              allStroyList = [...list];
               const versionStoryCount = list.length || 0;
               setRes({ versionStoryCount });
             });
@@ -213,8 +215,14 @@ export const zgcTestReportInfo = async () => {
         });
 
         setRes({ storyCount: storyList.length || 0 });
+        setRes({ storyList });
       });
       await Promise.all([requestTestList, requestTestPlanList, requestReportList, requestRunList]);
+      const unTestedStoryList = allStroyList
+        .filter(story => !storyList.includes(story.key))
+        .map(story => '#' + story.key.split('-')[1] + '-' + story.name)
+      setRes({ unTestedStoryList });
+
       console.info('zgc', JSON.stringify({ res, groupMap }));
       const testCoverage =
         res.storyCount && res.versionStoryCount
@@ -223,32 +231,21 @@ export const zgcTestReportInfo = async () => {
       setRes({ testCoverage: testCoverage.toFixed(2) });
 
       const getEnvList = async () => {
-        const envMap = await search(`id in ${JSON.stringify(envIds.filter(Boolean))}`, [
-          'name',
-          'id',
-        ]).then(data => {
-          return data.reduce((map, env) => ({ ...map, [env.id]: env.name }), {});
+        const envList = [];
+        Object.entries(groupMap).map(([test_time, testList]) => {
+          const existed = envList.find(env => env.test_time === test_time);
+          if (!existed) {
+            envList.push({
+              test_time,
+              workspaceName: testList[0].workspace.name,
+              test_env: '',
+              env_desc: '',
+            });
+          }
         });
-        const envList = Object.entries(groupMap).map(([test_time, testList]) => ({
-          test_time,
-          workspaceName: testList[0].workspace.name,
-          test_env: testList
-            .map(test => envMap[test.values?.[zgcConfig.测试环境 ?? 'bchj']?.[0]])
-            .filter(Boolean)
-            .join(','),
-          env_desc: uniq(
-            testList
-              .map(test => {
-                const story = planToStoryMap[test.values[TestFiledKeyMapping.linkItems]?.[0]];
-                const env = envMap[test.values[zgcConfig.测试环境 ?? 'bchj']?.[0]];
-                return `需求${story ?? ''} 在${env ?? ' '} 环境进行测试`;
-              })
-              .filter(Boolean),
-          ).join(','),
-        }));
 
         const columns = [
-          { title: '所属空间', dataIndex: 'workspaceName' },
+          { title: '系统名称', dataIndex: 'workspaceName' },
           { title: '测试阶段', dataIndex: 'test_time' },
           { title: '测试环境', dataIndex: 'test_env' },
           { title: '需求环境说明', dataIndex: 'env_desc' },
@@ -269,10 +266,10 @@ export const zgcTestReportInfo = async () => {
           ).join(','),
         }));
         const columns = [
-          { title: '所属空间', dataIndex: 'workspaceName' },
+          { title: '系统名称', dataIndex: 'workspaceName' },
           { title: '测试阶段', dataIndex: 'test_time' },
-          { title: '版本号', dataIndex: 'test_version' },
-          { title: '版本下载地址', dataIndex: 'test_version_url' },
+          { title: '被测版本号', dataIndex: 'test_version' },
+          { title: '被测版本下载地址', dataIndex: 'test_version_url' },
         ];
         setRes({ ['被测系统版本']: createTable(columns, versionList, 'version') });
       };
