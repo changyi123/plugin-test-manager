@@ -47,11 +47,9 @@
     "name": "名称",
     "translationTitle": "翻译{{name}}",
     "translation": "翻译",
-    "locale":{
-      "zh-CN": "中文 (简体)",
-      "en-US": "English (US)",
-      "ru-RU": "Русский язык (RU)"
-    },
+    "locale_zh-CN": "中文 (简体)",
+    "locale_en-US": "English (US)",
+    "locale_ru-RU": "Русский язык (RU)",
     "confirm": "确认",
     "type": "类型",
     "cancel": "取消",

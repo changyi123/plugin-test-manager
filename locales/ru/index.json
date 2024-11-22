@@ -46,11 +46,9 @@
     "name": "Имя",
     "translationTitle": "Перевод {{name}}",
     "translation": "Перевод",
-    "locale": {
-      "zh-CN": "中文 (简体)",
-      "en-US": "English (US)",
-      "ru-RU": "Русский язык (RU)"
-    },
+    "locale_zh-CN": "中文 (简体)",
+    "locale_en-US": "English (US)",
+    "locale_ru-RU": "Русский язык (RU)",
     "confirm": "Хорошо",
     "type": "Тип",
     "cancel": "Отмена",

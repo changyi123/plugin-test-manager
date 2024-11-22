@@ -86,7 +86,7 @@ const TranslateModal: React.FC<TranslateModalProps> = ({
   const options = useMemo(
     () =>
       Object.values(contentLanguageMap).map(lang => ({
-        label: t(`common.locale.${lang}`),
+        label: t(`common.locale_${lang}`),
         value: lang,
       })),
     [t],
