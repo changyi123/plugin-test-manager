@@ -272,6 +272,14 @@ const getTestDetailsErrors = (datas, repositoryPathMap, resProps?: Record<string
         error: i18n.t('trigger.importer.validate.errorMap.executionStatusRequired'),
       });
     }
+
+    if (cur?.executionCount && !/^[0-9]+$/g.test(cur.executionCount)) {
+      prev = prev.concat({
+        index,
+        realIndex: getIndex(index),
+        error: i18n.t('trigger.importer.validate.errorMap.executionCount'),
+      });
+    }
     return prev;
   }, []);
 
