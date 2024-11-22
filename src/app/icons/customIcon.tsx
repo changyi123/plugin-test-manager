@@ -13,6 +13,7 @@ import FileCloseSVG from './svg/file-close.svg';
 import FileOpenSVG from './svg/file-open.svg';
 import FullScreenSVG from './svg/full-screen.svg';
 import MoreSVG from './svg/more.svg';
+import PageSvg from './svg/page.svg';
 import PlusSVG from './svg/plus.svg';
 import ScreenOffSVG from './svg/screen-off.svg';
 import SettingSvg from './svg/setting.svg';
@@ -33,6 +34,7 @@ const CustomIconHOC = (
 };
 
 export const CustomMore = CustomIconHOC(MoreSVG);
+export const CustomPage = CustomIconHOC(PageSvg);
 export const CustomScreenOff = CustomIconHOC(ScreenOffSVG);
 export const CustomPlus = CustomIconHOC(PlusSVG);
 export const CloseMore = CustomIconHOC(CloseMoreSVG);

@@ -40,6 +40,15 @@
     "tip": "Tips",
     "okText": "OK",
     "title": "Title",
+    "key": "Key",
+    "description": "Description",
+    "language": "Language",
+    "name": "Name",
+    "translationTitle": "Translate {{name}}",
+    "translation": "Translate",
+    "locale_zh-CN": "中文 (简体)",
+    "locale_en-US": "English (US)",
+    "locale_ru-RU": "Русский язык (RU)",
     "confirm": "OK",
     "type": "Type",
     "cancel": "Cancel",
@@ -122,7 +131,8 @@
     "methodNotSupport": "This method does not support sorting. Please use the getTestEntitiesByRelationWithOrder method instead",
     "stepStatusNoMatch": "Step status does not match",
     "descriptionRequire": "You must enter a result description first",
-    "objectNotFound": "The data has been deleted, please refresh the page"
+    "objectNotFound": "The data has been deleted, please refresh the page",
+    "versionTip": "This panel is currently not supported in historical versions"
   },
   "report": {
     "overViewData": {
@@ -317,6 +327,10 @@
         "ruleTips": "Please enter a template name",
         "uploadFile": "Upload report template",
         "uploadFileTips": "Please upload test report template"
+      },
+      "testFieldsSettings": {
+        "title": "Test management related field configuration",
+        "description": "Translation test management related fields"
       },
       "testReportTemplate": {
         "title": "Test Report Template Management",
@@ -600,6 +614,7 @@
         "removeCaseTips1": "This action removes the selected test case from the test plan, do you want to continue",
         "removeCaseTips2": "The current case has been associated with the test run task, and delete the test execution task association, do you want to continue",
         "deleteRunTips": "This action will remove the selected test execution. do you want to continue?",
+        "deleteRunTips1": "This operation will remove the execution of the selected test case. Do you want to continue?",
         "deleteRunMessage": "Test case executions were removed",
         "updateAssigneeTips": "Test owners have been updated",
         "repositoryGroup": "Belonging module",
@@ -911,7 +926,8 @@
           "deleteRunToPlanSuccess": "Test executions were removed from the test plan",
           "modelTitle": "Associated test execution",
           "addTestExecution": "Add test execution task",
-          "notSelectMessage": "No test execution selected"
+          "notSelectMessage": "No test execution selected",
+          "createReport": "Creating a test report"
         }
       }
     }
@@ -935,8 +951,19 @@
           "The data format of the article is wrong, it will not be imported",
           "Article data exceeds limit, data limit 2000 characters are not imported",
           "Item type association is not configured, all data will not be imported, please configure the associated item type first",
-          "The group of the test case is empty, not imported"
-        ]
+          "The group of the test case is empty, not imported",
+          "Invalid actual result format, cannot be imported",
+          "Actual result exceeds the limit, expected result is limited to 2000 characters, cannot be imported",
+          "Invalid step status format, cannot be imported",
+          "Invalid step status format, not within a reasonable range of states"
+        ],
+        "run": "Execution",
+        "errorMap": {
+          "executionStatus": "Invalid execution status format, cannot be imported",
+          "executionTime": "Invalid execution time format",
+          "executionStatusRequired": "Execution status cannot be empty",
+          "executionCount": "Invalid execution count format, cannot be imported"
+        }
       }
     },
     "web": {
@@ -1115,7 +1142,12 @@
           "resultPlaceholder": "Please enter result",
           "data": "Data",
           "preData": "Data",
-          "defect": "Defect"
+          "defect": "Defect",
+          "planName": "Test Plan Name",
+          "testExecutionName": "Test execution task name",
+          "testCaseName": "Test case name",
+          "stepNumber": "Step number",
+          "stepName": "Step name"
         }
       },
       "testStep": {
@@ -1157,7 +1189,8 @@
         "inputPlaceholder": "Please enter title",
         "to": "To",
         "or": "Or",
-        "none": "None"
+        "none": "None",
+        "selected": "Selected"
       },
       "uploadFile": {
         "uploadErrorMessage": "The number of files cannot exceed"
@@ -1178,7 +1211,12 @@
       "precondition": "precondition",
       "action": "step",
       "result": "result",
-      "data": "data"
+      "data": "data",
+      "executionStatus": "execution status",
+      "stepStatus": "step status",
+      "actualResult": "actual result",
+      "executionTime": "execution time",
+      "executor": "executor"
     }
   },
   "minderExport": {
@@ -1202,5 +1240,31 @@
     "exportError": "Export failed",
     "viewDetails": "View details",
     "fileTooLargeTips": "The file is too large and has been downloaded in the background. Please click on the upper right corner [Personal Center-Download List] to view"
+  },
+  "executionTaskImport": {
+    "sure": "Import",
+    "entry": "Execution Record Import",
+    "download": "Download Execution Record Import Template",
+    "settings": {
+      "title": "Import Execution Records",
+      "tip": "To batch import execution records, you need to provide data in an Excel file.",
+      "bottomTip": "When importing execution records, the system will import both cases and execution records into the system. (One record corresponds to two items)"
+    },
+    "testPlan": "Test Plan to Import",
+    "testExecution": "Test Execution Task to Import",
+    "excelContent": {
+      "name": "Title 1",
+      "group": "Module 1/Module 2",
+      "step": "【1】Must start with [index]\n【2】Line breaks in steps will be retained",
+      "result": "【1】Must start with [index]\n【2】Line breaks in expected results will be retained",
+      "data": "【1】Must start with [index]\n【2】Line breaks in data will be retained",
+      "executionStatus": "Passed",
+      "stepStatus": "【1】Must start with [index]\n【2】Line breaks in step status will be retained",
+      "actualResult": "【1】Must start with [index]\n【2】Line breaks in actual results will be retained",
+      "executionTime": "2024/10/31 15:57",
+      "executor": "osc-admin",
+      "precondition": "Description of preconditions",
+      "executionCount": "Enter a number, default is 1"
+    }
   }
 }

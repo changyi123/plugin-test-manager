@@ -128,3 +128,12 @@ export const getAllEntity = async (queryParams, fields?: string[]) => {
 
   return caseIds;
 };
+
+export const getTextFromEditorOrString = data => {
+  if (typeof data === 'string') {
+    return data;
+  } else {
+    const [forMinderText] = data;
+    return forMinderText.stringText;
+  }
+};

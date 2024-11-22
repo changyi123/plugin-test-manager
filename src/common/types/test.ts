@@ -59,6 +59,7 @@ export type BaseTestEntity = {
     attachments?: FileType[]; // 附件
     /** 执行结果描述 */
     executeResultDesc?: Record<string, any>[];
+    init: boolean;
   };
   /** 测试执行评论数据 */
   comments: Comment[];
@@ -150,6 +151,7 @@ export type Step = {
   // 以下字段为保留字段暂时不用
   attachments?: string[]; // 附件
   customFields?: StepField[]; // 自定义字段
+  index?: number; // 步骤索引
 };
 
 export type Comment = {

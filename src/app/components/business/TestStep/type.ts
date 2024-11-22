@@ -12,6 +12,7 @@ export type StepRow = {
   callTestId: StepDeclaration['callTestId'];
   fields: StepField[];
   callTestEntity: TestEntity<TestType.Case>;
+  readonly?: boolean;
 };
 
 export type StepFieldEventProps = {

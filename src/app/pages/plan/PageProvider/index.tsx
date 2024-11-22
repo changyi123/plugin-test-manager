@@ -41,6 +41,8 @@ type PageContextType = {
   setExecutionLinkRunIds: (val?: string[]) => void;
   setRunLinkCaseIds: (val?: string[]) => void;
   setPlanId: (val?: string) => void;
+  activeExecutionPlan: TestPlanEntity | null;
+  setActiveExecutionPlan: (val: TestPlanEntity | null) => void;
 };
 
 export const PageContext = React.createContext<PageContextType>({
@@ -64,6 +66,8 @@ export const PageContext = React.createContext<PageContextType>({
   setExecutionLinkRunIds: noop,
   setRunLinkCaseIds: noop,
   setPlanId: noop,
+  activeExecutionPlan: null,
+  setActiveExecutionPlan: noop,
 });
 
 const PageProvider: React.FC<any> = ({ children }) => {
@@ -80,6 +84,7 @@ const PageProvider: React.FC<any> = ({ children }) => {
   const [planLinkCaseIds, setPlanLinkCaseIds] = useState<string[]>(null);
   const [executionLinkRunIds, setExecutionLinkRunIds] = useState<string[]>(null);
   const [runLinkCaseIds, setRunLinkCaseIds] = useState<string[]>(null);
+  const [activeExecutionPlan, setActiveExecutionPlan] = useState(null);
 
   const refresh = useCallback(key => {
     if (key) {
@@ -135,6 +140,8 @@ const PageProvider: React.FC<any> = ({ children }) => {
             setExecutionLinkRunIds,
             setRunLinkCaseIds,
             setPlanId,
+            activeExecutionPlan,
+            setActiveExecutionPlan,
           }}
         >
           {children}

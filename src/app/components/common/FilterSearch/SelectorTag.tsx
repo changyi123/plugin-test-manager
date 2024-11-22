@@ -1,6 +1,7 @@
 import { CloseOutlined } from '@ant-design/icons';
+import { Dropdown } from 'antd';
 import dayjs from 'dayjs';
-import { isArray } from 'lodash';
+import { isArray, isPlainObject } from 'lodash';
 import React, { useMemo } from 'react';
 
 import { FILTER_EXPRESSIONS } from '@/lib/constants';
@@ -18,6 +19,23 @@ interface SelectorTagProps {
   showCloseIcon?: boolean;
   selectTagId?: string;
 }
+
+const stopPropagation = e => e.stopPropagation();
+
+const DropdownList = ({ list, t }) => {
+  return (
+    <div className={cx('dropdown-wrapper')} onClick={stopPropagation}>
+      <div className={cx('dropdown-header')}>{t('components.common.filterSearch.selected')}</div>
+      <div className={cx('dropdown-content')}>
+        {list.map(item => (
+          <div key={item.value} title={item.label}>
+            {item.workspaceName ? item.value : item.label}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
 const SelectorTag: React.FC<SelectorTagProps> = ({
   data,
   onDelete,
@@ -53,6 +71,24 @@ const SelectorTag: React.FC<SelectorTagProps> = ({
     return [content, count];
   }, [component, value, t]);
 
+  const menus = useMemo(() => {
+    if (Array.isArray(value)) {
+      return value
+        .map(item => {
+          if (isPlainObject(item)) {
+            return {
+              ...item,
+              label: item?.nickname || item?.username || item?.label || item?.key || item?.value,
+            };
+          }
+          const v = item === 'NULL' ? t('components.common.filterSearch.none') : item;
+          return { value: v, label: v };
+        })
+        .filter(item => item.label);
+    }
+    return [];
+  }, [value, t]);
+
   const expressionText = useMemo(() => {
     if (isDate(component)) {
       return getDateDisplayText(_expression, value as string[], t);
@@ -76,7 +112,11 @@ const SelectorTag: React.FC<SelectorTagProps> = ({
         {!isDate(component) && _value && _value !== 'NULL' && (
           <div className={cx('value', 'ml4')}>{_value}</div>
         )}
-        {!!count && <div className={cx('count', 'ml4')}>+{count}</div>}
+        {!!count && (
+          <Dropdown arrow dropdownRender={() => <DropdownList t={t} list={menus} />}>
+            <div className={cx('count', 'ml4')}>+{count}</div>
+          </Dropdown>
+        )}
         {showCloseIcon && (
           <CloseOutlined
             className={cx('search-criteria-icon')}

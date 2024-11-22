@@ -50,6 +50,18 @@ const getStatusMap = {
   CANCEL: '取消',
 };
 
+const getEditorOrStringText = (text: any) => {
+  if (!text) {
+    return '';
+  }
+  if (typeof text === 'string') {
+    return escapeHtmlString(text);
+  } else {
+    const [editorText] = text;
+    return editorText?.stringText;
+  }
+};
+
 const getSteps = steps => {
   const data = steps
     ?.filter(d => !d.callTestId)
@@ -64,13 +76,13 @@ const getSteps = steps => {
             )
             .filter(Boolean),
           action: prev.action
-            .concat(cur.action ? `【${index + 1}】${escapeHtmlString(cur.action)}` : undefined)
+            .concat(cur.action ? `【${index + 1}】${getEditorOrStringText(cur.action)}` : undefined)
             .filter(Boolean),
           result: prev.result
-            .concat(cur.result ? `【${index + 1}】${escapeHtmlString(cur.result)}` : undefined)
+            .concat(cur.result ? `【${index + 1}】${getEditorOrStringText(cur.result)}` : undefined)
             .filter(Boolean),
           data: prev.data
-            .concat(cur.data ? `【${index + 1}】${escapeHtmlString(cur.data)}` : undefined)
+            .concat(cur.data ? `【${index + 1}】${getEditorOrStringText(cur.data)}` : undefined)
             .filter(Boolean),
           actualResult: prev.actualResult
             .concat(
@@ -131,6 +143,9 @@ export const exportExecution = async (body, items) => {
     const runExecutor = itemProps.values[TestFiledKeyMapping.executor]?.[0];
     for (const field of testFields) {
       switch (field.value) {
+        case EXPORT_FIELD_VALUES.precondition:
+          item.values[field.value] = runDetail?.precondition ?? '';
+          break;
         case EXPORT_FIELD_VALUES.testExecutionBindPlan: {
           const planId = Object.keys(planMapExecution).find(_key =>
             planMapExecution[_key].includes(executionId),

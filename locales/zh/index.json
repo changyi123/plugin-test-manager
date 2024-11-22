@@ -41,6 +41,15 @@
     "tip": "提示",
     "okText": "继续",
     "title": "标题",
+    "key": "唯一标识",
+    "description": "描述",
+    "language": "语言",
+    "name": "名称",
+    "translationTitle": "翻译{{name}}",
+    "translation": "翻译",
+    "locale_zh-CN": "中文 (简体)",
+    "locale_en-US": "English (US)",
+    "locale_ru-RU": "Русский язык (RU)",
     "confirm": "确认",
     "type": "类型",
     "cancel": "取消",
@@ -121,7 +130,8 @@
     "methodNotSupport": "该方法不支持排序使用,请使用 getTestEntitiesByRelationWithOrder 方法替代",
     "stepStatusNoMatch": "步骤状态不符合",
     "descriptionRequire": "必须先输入结果描述",
-    "objectNotFound": "该数据已被删除，请刷新页面"
+    "objectNotFound": "该数据已被删除，请刷新页面",
+    "versionTip": "该面板在历史版本下暂不支持"
   },
   "report": {
     "overViewData": {
@@ -317,6 +327,10 @@
         "ruleTips": "请输入模板名称",
         "uploadFile": "模板上传",
         "uploadFileTips": "请上传模板"
+      },
+      "testFieldsSettings": {
+        "title": "测试管理相关字段配置",
+        "description": "翻译测试管理相关字段"
       },
       "testReportTemplate": {
         "title": "测试报告模板管理",
@@ -529,6 +543,7 @@
         "removeCaseTips1": "该操作会将所选测试用例从测试计划中移除，是否继续操作？",
         "removeCaseTips2": "该操作会将所选测试用例从测试计划中移除，并删除测试执行任务关联，是否继续操作？",
         "deleteRunTips": "该操作会将所选测试执行移除，是否继续操作？",
+        "deleteRunTips1": "该操作会将所选测试用例的执行移除，是否继续操作？",
         "deleteRunMessage": "个用例执行被移除",
         "updateAssigneeTips": "个测试负责人已更新",
         "repositoryGroup": "所属模块",
@@ -832,7 +847,8 @@
           "deleteRunToPlanSuccess": "个测试执行从测试计划中删除",
           "modelTitle": "关联测试执行任务",
           "addTestExecution": "添加测试执行任务",
-          "notSelectMessage": "未选择测试执行任务"
+          "notSelectMessage": "未选择测试执行任务",
+          "createReport": "创建测试报告"
         }
       }
     }
@@ -856,8 +872,19 @@
           "数据格式错误，不予以导入",
           "数据超过限制，数据 限制 2000 个字符，不予以导入",
           "事项类型关联未配置，所有数据不予导入，请先配置关联的事项类型",
-          "所属模块不存在，不予以导入"
-        ]
+          "所属模块不存在，不予以导入",
+          "实际结果格式错误，不予以导入",
+          "实际结果超过限制，预期结果 限制 2000 个字符，不予以导入",
+          "步骤状态格式错误，不予以导入",
+          "步骤状态格式错误，不在合理的状态范围之内"
+        ],
+        "run": "条执行的",
+        "errorMap": {
+          "executionStatus": "执行状态格式错误，不予以导入",
+          "executionTime": "执行时间格式有误",
+          "executionStatusRequired": "执行状态不能为空",
+          "executionCount": "执行次数格式错误，不予以导入"
+        }
       }
     },
     "web": {
@@ -1027,7 +1054,12 @@
           "resultPlaceholder": "请输入实际结果",
           "data": "数据",
           "preData": "准备数据",
-          "defect": "缺陷"
+          "defect": "缺陷",
+          "planName": "测试计划名称",
+          "testExecutionName": "测试执行任务名称",
+          "testCaseName": "测试用例名称",
+          "stepNumber": "步骤序号",
+          "stepName": "步骤名称"
         }
       },
       "testStep": {
@@ -1069,7 +1101,8 @@
         "inputPlaceholder": "请输入标题关键字",
         "to": "至",
         "or": "或",
-        "none": "无"
+        "none": "无",
+        "selected": "已选项"
       },
       "uploadFile": {
         "uploadErrorMessage": "文件数量不能超过"
@@ -1090,7 +1123,13 @@
       "precondition": "前置条件",
       "action": "步骤",
       "result": "预期结果",
-      "data": "数据"
+      "data": "数据",
+      "executionStatus": "测试执行状态",
+      "stepStatus": "步骤状态",
+      "actualResult": "实际结果",
+      "executionTime": "最新执行时间",
+      "executor": "最新执行人",
+      "executionCount": "执行次数"
     }
   },
   "minderExport": {
@@ -1114,5 +1153,31 @@
     "exportError": "导出失败",
     "viewDetails": "查看详细",
     "fileTooLargeTip": "文件过大，已在后台进行下载。请点击右上角【个人中心—下载列表】中进行查看"
+  },
+  "executionTaskImport": {
+    "sure": "导入",
+    "entry": "执行记录导入",
+    "download": "执行记录导入模版下载",
+    "settings": {
+      "title": "导入执行记录",
+      "tip": "要批量导入执行记录，您需要提供excel文件的数据.",
+      "bottomTip": "导入执行记录时，系统会将用例和执行记录一起导入系统。(一条记录对应2条事项）"
+    },
+    "testPlan": "要导入的测试计划",
+    "testExecution": "要导入的测试执行任务",
+    "excelContent": {
+      "标题": "标题1",
+      "所属模块": "模块1/模块2",
+      "步骤": "【1】需要以[序号]开头\n【2】步骤中换行符会被保留",
+      "预期结果": "【1】需要以[序号]开头\n【2】预期中换行符会被保留",
+      "数据": "【1】需要以[序号]开头\n【2】数据中换行符会被保留",
+      "测试执行状态": "通过",
+      "步骤状态": "【1】需要以[序号]开头\n【2】步骤状态中换行符会被保留",
+      "实际结果": "【1】需要以[序号]开头\n【2】实际结果中换行符会被保留",
+      "最新执行时间": "2024/10/31 15:57",
+      "最新执行人": "osc-admin",
+      "前置条件": "前置条件的相关描述",
+      "执行次数": "填数字，默认为1"
+    }
   }
 }

@@ -1,8 +1,10 @@
 import { Button, Select } from 'antd';
 import { cloneDeep, isEqual } from 'lodash';
 import { SingleEvents } from 'proxima-event';
+import { FilterQuery } from 'proxima-sdk/components/Components/Chart';
 import { DebounceSelect } from 'proxima-sdk/components/Components/Common';
 import { useI18n } from 'proxima-sdk/hooks/Hooks';
+import { selectorToIql } from 'proxima-sdk/lib/Iql';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { t as chartT } from '../i18n';
@@ -53,6 +55,12 @@ const View: React.FC<ViewProps> = ({
     return values || [];
   }, [chartOption, listViewOption, isListView]);
 
+  const filterValues = useMemo(() => {
+    const targetOption = isListView ? listViewOption : chartOption;
+    const values = targetOption?.[TEST_MANAGER_SELECTOR.FILTER];
+    return values || [];
+  }, [chartOption, listViewOption, isListView]);
+
   // 筛选器图表名字
   const filterName = useMemo(() => {
     return charts?.find(chart => chart?.uid || chart?.objectId == uid)?.name;
@@ -61,6 +69,10 @@ const View: React.FC<ViewProps> = ({
   const updateOption = useMemo(() => {
     return isListView ? setListViewOption : setOption;
   }, [isListView, setOption]);
+
+  const handleFilterIql = useCallback(option => {
+    return option?.queryType === 'expression' ? option.iql : selectorToIql(option?.selectors);
+  }, []);
 
   const getTestPlanByName = useCallback(
     async name => {
@@ -87,13 +99,17 @@ const View: React.FC<ViewProps> = ({
         return {
           ...prevOption,
           [TEST_MANAGER_SELECTOR.TEST_PLAN]: values,
-          iql: formatterIql(values, prevOption[TEST_MANAGER_SELECTOR.TEST_EXECUTION]),
+          iql: formatterIql(
+            values,
+            prevOption[TEST_MANAGER_SELECTOR.TEST_EXECUTION],
+            handleFilterIql(prevOption[TEST_MANAGER_SELECTOR.FILTER]),
+          ),
         };
       });
 
       setExecutionSelectKey(new Date().getTime());
     },
-    [updateOption],
+    [handleFilterIql, updateOption],
   );
 
   const getTestExecutionByName = useCallback(
@@ -124,11 +140,15 @@ const View: React.FC<ViewProps> = ({
         return {
           ...prevOption,
           [TEST_MANAGER_SELECTOR.TEST_EXECUTION]: values,
-          iql: formatterIql(prevOption[TEST_MANAGER_SELECTOR.TEST_PLAN], values),
+          iql: formatterIql(
+            prevOption[TEST_MANAGER_SELECTOR.TEST_PLAN],
+            values,
+            handleFilterIql(prevOption[TEST_MANAGER_SELECTOR.FILTER]),
+          ),
         };
       });
     },
-    [updateOption],
+    [handleFilterIql, updateOption],
   );
 
   const onRelatedChartsChange = useCallback(
@@ -190,6 +210,24 @@ const View: React.FC<ViewProps> = ({
     setOption(listViewOption);
   }, [listViewOption, setOption]);
 
+  const onQueryChange = useCallback(
+    newOption => {
+      const _iql = handleFilterIql(newOption);
+      updateOption(prevOption => {
+        return {
+          ...prevOption,
+          [TEST_MANAGER_SELECTOR.FILTER]: newOption,
+          iql: formatterIql(
+            prevOption[TEST_MANAGER_SELECTOR.TEST_PLAN],
+            prevOption[TEST_MANAGER_SELECTOR.TEST_EXECUTION],
+            _iql,
+          ),
+        };
+      });
+    },
+    [handleFilterIql, updateOption],
+  );
+
   useEffect(() => {
     console.info('useLayoutEffect');
     const chart = charts.find(c => (c.uid && c.uid === uid) || c.objectId === uid);
@@ -204,6 +242,11 @@ const View: React.FC<ViewProps> = ({
 
   return (
     <div style={{ padding: '40px 20px 0 20px', height: '100%', overflow: 'auto' }}>
+      <FilterQuery
+        style={{ display: 'inline-block' }}
+        setOption={onQueryChange}
+        option={filterValues}
+      />
       <div className={cx('test-manager-query')}>
         <DebounceSelect
           maxTagCount="responsive"
@@ -245,22 +288,23 @@ const View: React.FC<ViewProps> = ({
             onTestExecutionSelectChange(value);
           }}
         />
+
+        <Select
+          mode="multiple"
+          showArrow
+          value={isListView ? listViewOption.selectedCharts : chartOption.selectedCharts}
+          maxTagCount="responsive"
+          placeholder={i18n.t('reportPlugin.basicGlobalFilter.chartsChooseTips')}
+          style={{ width: 400, marginTop: 10 }}
+          filterOption={(input, option) => {
+            return String(option?.label ?? '')
+              .toLowerCase()
+              .includes(input.toLowerCase());
+          }}
+          options={chartsOptions}
+          onChange={onRelatedChartsChange}
+        />
       </div>
-      <Select
-        mode="multiple"
-        showArrow
-        value={isListView ? listViewOption.selectedCharts : chartOption.selectedCharts}
-        maxTagCount="responsive"
-        placeholder={i18n.t('reportPlugin.basicGlobalFilter.chartsChooseTips')}
-        style={{ width: 400, marginTop: 10 }}
-        filterOption={(input, option) => {
-          return String(option?.label ?? '')
-            .toLowerCase()
-            .includes(input.toLowerCase());
-        }}
-        options={chartsOptions}
-        onChange={onRelatedChartsChange}
-      />
       {isListView && (
         <Button
           type="primary"

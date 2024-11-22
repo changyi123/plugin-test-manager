@@ -2,10 +2,12 @@ import { keyBy } from 'lodash';
 import { v4 as uuid } from 'uuid';
 
 import { Input } from './fields';
+import Editor from './fields/editor';
 
 /** 渲染组件映射 */
 export const FieldComponentMapping = {
   input: Input,
+  editor: Editor,
 };
 
 /** 内置字段 key */
@@ -29,17 +31,17 @@ export const StepFieldImpl = [
   {
     key: 'action',
     title: 'stepField.0',
-    type: 'input',
+    type: 'editor',
   },
   {
     key: 'result',
     title: 'stepField.1',
-    type: 'input',
+    type: 'editor',
   },
   {
     key: 'data',
     title: 'stepField.2',
-    type: 'input',
+    type: 'editor',
   },
 ];
 
