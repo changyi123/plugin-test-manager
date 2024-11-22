@@ -156,6 +156,7 @@ export const zgcTestReportInfo = async () => {
         ];
         setRes({ ['测试工具']: createTable(columns, tools, 'tools') });
       };
+      let allStroyList = [];
       const setVersion = async reportRes => {
         const versionId = reportRes?.values?.version?.[0]?.objectId;
         const versionName = reportRes?.values?.version?.[0]?.name;
@@ -174,8 +175,9 @@ export const zgcTestReportInfo = async () => {
               `'版本' in ['${versionName}'] and '类型' in ['${
                 zgcConfig.系统子需求 ?? '系统子需求'
               }']`,
-              ['id'],
+              ['id', 'key'],
             ).then(list => {
+              allStroyList = [...list];
               const versionStoryCount = list.length || 0;
               setRes({ versionStoryCount });
             });
@@ -216,6 +218,11 @@ export const zgcTestReportInfo = async () => {
         setRes({ storyList });
       });
       await Promise.all([requestTestList, requestTestPlanList, requestReportList, requestRunList]);
+      const unTestedStoryList = allStroyList
+        .filter(story => !storyList.includes(story.key))
+        .map(story => '#' + story.key.split('-')[1] + '-' + story.name)
+      setRes({ unTestedStoryList });
+
       console.info('zgc', JSON.stringify({ res, groupMap }));
       const testCoverage =
         res.storyCount && res.versionStoryCount
