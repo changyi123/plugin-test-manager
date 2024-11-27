@@ -443,11 +443,13 @@ modules:
       name: 测试管理基础字段类型（对象）
       description: 测试管理基础字段类型（勿删改）
       dataType: object
+      resource: test_object
     - key: es_array_keyword
       # 字符串数组，keyword 可以使用 es keyword 类型查询
       name: 测试管理基础字段类型（字符串数组）
       description: 测试管理基础字段类型（勿删改）
       dataType: array
+      resource: test_object
     - key: es_text_keyword
       # 字符串数组，keyword 可以使用 es keyword 类型查询
       name: 测试管理基础字段类型（字符串）
@@ -905,3 +907,5 @@ resources:
     path: ./fields/build/test-repository
   - key: test_text
     path: ./fields/build/test-text
+  - key: test_object
+    path: ./fields/build/test-object
