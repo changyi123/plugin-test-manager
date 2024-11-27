@@ -220,7 +220,7 @@ export const zgcTestReportInfo = async () => {
       await Promise.all([requestTestList, requestTestPlanList, requestReportList, requestRunList]);
       const unTestedStoryList = allStroyList
         .filter(story => !storyList.includes(story.key))
-        .map(story => '#' + story.key.split('-')[1] + '-' + story.name)
+        .map(story => '#' + story.key.split('-')[1] + '-' + story.name);
       setRes({ unTestedStoryList });
 
       console.info('zgc', JSON.stringify({ res, groupMap }));

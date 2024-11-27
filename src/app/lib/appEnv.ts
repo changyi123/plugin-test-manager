@@ -133,6 +133,17 @@ const SupportAppEnv = {
     defaultValue: [],
     transformer: value => value,
   },
+  ENTERPRISE_NAME: {
+    defaultValue: '',
+    transformer: value => value,
+  },
+  ZGC_CONFIG: {
+    defaultValue: {
+      测试环境: 'test_env',
+      测试阶段: 'test_time',
+    },
+    transformer: value => value,
+  },
 } as const;
 
 /**
