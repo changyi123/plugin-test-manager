@@ -326,6 +326,7 @@ const RepoDropDown = ({
               appKey={AppKey}
               appFields={appFields}
               extraParams={extraParams}
+              exportType="excel"
             />
           </FilterProvider>
         </RecoilRoot>
