@@ -221,7 +221,8 @@ export type BatchCreateTestRunPayload = {
   /** 测试执行任务 id */
   executionId?: string;
   /** 测试执行任务 id */
-  caseIds: string[];
+  case: { key: string; caseId: string; createAt?: number }[];
+  withProcess?: boolean;
 };
 
 /** 状态类型 */

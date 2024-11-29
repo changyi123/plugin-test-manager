@@ -377,7 +377,7 @@ const Test = () => {
             // 添加关联
             const { data } = await batchCreateTestRun({
               executionId: testEntity.objectId,
-              caseIds: _selectedTestDetailIds,
+              case: _selectedTestDetailIds.map(i => ({ caseId: i })),
             });
             if (data?.status === 'error') {
               message.error(data.data);

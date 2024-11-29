@@ -99,6 +99,7 @@ export const TestFieldTypeKeyMapping = {
   repository: 'r_test_manager_repository_keyword',
   referenceCase: 'r_test_manager_es_text_keyword',
   status: 'r_test_manager_es_text_keyword',
+  linkItems: 'r_test_manager_es_array_keyword',
 };
 
 /** 测试管理自定义字段 key 映射 */
@@ -120,6 +121,7 @@ export const TestFiledKeyMapping = {
   reportOverviewData: 'r_test_manager_reportOverviewData',
   reportChartGroup: 'r_test_manager_reportChartGroup',
   reportTemplate: 'r_test_manager_reportTemplate',
+  plan: 'r_test_manager_plan',
 
   // 以下字段以字符串形式存入，存入前需要 stringify，返回需要 parse
   detail: 'r_test_manager_detail',
@@ -152,6 +154,7 @@ export const BuiltinFieldNameMapping = {
   executeCount: 'test_manager_executeCount',
   executeTime: 'r_test_manager_executeTime',
   caseRun: 'test_manager_caseRun',
+  plan: 'test_manager_plan',
 
   // 不需要拼接
   runDetail: 'test_manager_runDetail',

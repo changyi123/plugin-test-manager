@@ -7,7 +7,13 @@ import times from 'lodash/times';
 import { BaseTestEntity, TestEntity } from '../../common/types/test';
 import { compactNilValue, testEntityToItemValues } from '../../common/utils/dataTransfer';
 import { logTimeCost } from '../lib/logger';
-import { bulkCreateItems, bulkUpdateItems, deleteItems, updateItems } from './coreApi';
+import {
+  batchCreateWithProgress,
+  bulkCreateItems,
+  bulkUpdateItems,
+  deleteItems,
+  updateItems,
+} from './coreApi';
 
 /** 并发数量 */
 const ParallelLimit = global.env?.ParallelLimit ?? 10;
@@ -158,6 +164,18 @@ export const batchUpdateItemsValues = async (data: Partial<TestEntity>[]) => {
 };
 
 type TokenSchema = Partial<Record<'objectId' | 'key', string>>;
+
+function createRequestHeaders(data, sessionToken) {
+  const headers = {
+    'X-Parse-Cloud-Context': JSON.stringify({ ...CreateApiParseContext, ...getUnRefresh(data) }),
+  };
+
+  if (sessionToken) {
+    headers['X-Parse-Session-Token'] = sessionToken;
+  }
+  return headers;
+}
+
 /** 创建测试实体 */
 export const batchCreateItems = async (
   data: ({
@@ -181,13 +199,7 @@ export const batchCreateItems = async (
 
   console.info(JSON.stringify(itemsData), 'batchCreateItems');
 
-  const headers = {
-    'X-Parse-Cloud-Context': JSON.stringify({ ...CreateApiParseContext, ...getUnRefresh(data) }),
-  };
-
-  if (sessionToken) {
-    headers['X-Parse-Session-Token'] = sessionToken;
-  }
+  const headers = createRequestHeaders(data, sessionToken);
 
   // 记录创建成功的事项和错误信息
   const items = [];
@@ -213,3 +225,15 @@ export const batchCreateItems = async (
   if (errors.length) throw new Error(errors.join(';'));
   return items;
 };
+
+// 异步批量操作
+export function batchCreateItemWithProgress(items, fields?: string[]) {
+  items.forEach(i => {
+    i.values = {
+      ...testEntityToItemValues(i),
+      ...pick(i.values, ['assignee', 'priority'].concat(fields ?? [])),
+    };
+  });
+  console.log('查看批量新增的数据', items);
+  return batchCreateWithProgress({ items, parseContext: CreateApiParseContext });
+}

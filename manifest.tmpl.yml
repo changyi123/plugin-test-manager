@@ -2,7 +2,7 @@ app:
   key: test_manager
   uuid: bf73e61c-e15a-4461-a1f7-f940c2009332
   name: test_manager
-  version: "4.28.0"
+  version: "4.29.1"
 modules:
   webtrigger:
     # TODO: Debug 使用，生产环境禁止调用下面的 trigger
@@ -143,6 +143,11 @@ modules:
       events:
         - gei:proxima:item:beforeCreate
       function: item-before-create-trigger-function
+      async: false
+    - key: test-manager-item-after-save-trigger
+      events:
+        - gei:proxima:item:updated
+      function: test-manager-item-after-save-function
       async: false
     - key: item-created-trigger
       events:
@@ -312,6 +317,8 @@ modules:
       handler: scriptHandler.runScript
     - key: test-manager-export-script-function
       handler: exporter.runScript
+    - key: test-manager-item-after-save-function
+      handler: trigger.itemAfterSave
 
   itemPanel:
     - key: test-manager-test-detail
@@ -541,6 +548,10 @@ modules:
       name: test_manager_comment
       description: 测试管理内置字段-测试执行评论（勿删改）
       type: Text
+    - key: plan
+      name: test_manager_plan
+      description: 测试管理内置字段-测试计划
+      type: Text
   customItemType:
     - key: test_manager_detail
       name: 测试用例
@@ -682,6 +693,13 @@ tables:
         type: Array
       sortIndex:
         type: Number
+    indexes:
+      - name: unique_repository
+        fields:
+          - workspaceKey
+          - name
+          - parent
+        unique: true
   - className: TestConfig
     fields:
       workspaceKey:

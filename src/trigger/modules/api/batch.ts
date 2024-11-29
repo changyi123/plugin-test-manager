@@ -1,6 +1,7 @@
 import { i18n } from '@giteeteam/apps-api';
 import { getParseQuery } from '@giteeteam/apps-team-api';
 import { addAuditLog } from '@giteeteam/apps-team-api';
+import { omit } from 'lodash';
 import isObject from 'lodash/isObject';
 
 import {
@@ -29,6 +30,7 @@ import { buildResponse } from '../../lib/apiUtil';
 import { getReqInfoFromVMRuntime } from '../../lib/apiUtil';
 import {
   batchCreateItems,
+  batchCreateItemWithProgress,
   batchDeleteItems,
   batchUpdateItems,
   batchUpdateItemsValues,
@@ -41,7 +43,7 @@ import {
   uuidv4,
 } from '../../lib/helper';
 import { iqlRequest } from '../../lib/iqlRequest';
-import { getItemCreateRequiredAttrs } from '../../lib/item';
+import { getItemCreateRequiredAttrs, getItemTypeFromKey } from '../../lib/item';
 import { testEntityFieldTypeValidator, throwArgumentError } from '../../lib/validator';
 import { queryFields } from './../../lib/coreApi';
 
@@ -308,11 +310,11 @@ export const batchUpdateValue = async () => {
 export const batchCreateTestRun = async () => {
   try {
     const {
-      body: { executionId, caseIds },
+      body: { executionId, case: _case, withProcess = true },
     } = getReqInfoFromVMRuntime<BatchCreateTestRunPayload>();
 
-    if (!Array.isArray(caseIds)) throwArgumentError('caseIds', 'objectId[]');
-
+    if (!Array.isArray(_case)) throwArgumentError('caseIds', 'objectId[]');
+    const caseIds = _case.map(i => i.caseId);
     // 获取所有测试用例数据
     const getTestCaseByCaseIds = async () => {
       const {
@@ -390,106 +392,76 @@ export const batchCreateTestRun = async () => {
     // 1. 查所有测试用例
     // 2. 创建测试执行
     // 3. 过滤已规划的测试用例
+    const generateCreateRuns = async () => {
+      let itemType = { key: BuiltInItemTypeMapping.TestRun };
+      // 获取事项类型信息
+      if (withProcess) {
+        const [{ objectId: runItemTypeId }] = await getItemTypeFromKey([
+          BuiltInItemTypeMapping.TestRun,
+        ]);
+        itemType = {
+          __type: 'Pointer',
+          className: 'ItemType',
+          objectId: runItemTypeId,
+        } as any;
+      }
+
+      return (
+        caseList
+          // 过滤已规划的测试用例
+          .filter(testCase => !existedReferenceCaseIdSet.has(testCase.objectId))
+          // 生成需要创建的测试执行属性
+          .map(data => {
+            // 关联数据，测试执行关联测试执行任务
+            const linkData = executionId
+              ? {
+                  linkType: TestLinkType.RunLinkExecution,
+                  linkItems: [executionId],
+                  plan: testPlan.objectId,
+                }
+              : null;
+            const params = _case.find(i => i.caseId === data.objectId);
+
+            return {
+              ...linkData,
+              type: TestType.Run,
+              // 修改测试执行详情数据在创建时确定
+              runDetail: data.detail,
+              // runDetail: {},
+              // 空间和测试用例的空间保持一致
+              workspace: withProcess
+                ? { __type: 'Pointer', className: 'Workspace', objectId: data.workspace.objectId }
+                : data.workspace,
+              // 测试执行的 sortIndex 和 测试用例的保持一致
+              sortIndex: data.sortIndex,
+              // 事项类型使用内置的事项类型（不可变）
+              itemType,
+              // // 事项组
+              itemGroup: (data as any).itemGroup,
+              // 初始化状态为 TODO
+              status: StartStatusKey,
+              name: data.name,
+              referenceCase: data.objectId,
+              createdBy: data.createdBy,
+              ...omit(params, ['caseId']),
+            };
+          })
+      );
+    };
     // 4. 创建测试执行并关联
     const batchCreateTestRuns = async () => {
-      const needCreatedItems = caseList
-        // 过滤已规划的测试用例
-        .filter(testCase => !existedReferenceCaseIdSet.has(testCase.objectId))
-        // 生成需要创建的测试执行属性
-        .map(data => {
-          // 关联数据，测试执行关联测试执行任务
-          const linkData = executionId
-            ? {
-                linkType: TestLinkType.RunLinkExecution,
-                linkItems: [executionId],
-              }
-            : null;
-
-          return {
-            ...linkData,
-            type: TestType.Run,
-            // 修改测试执行详情数据在创建时确定
-            runDetail: data.detail,
-            // runDetail: {},
-            // 空间和测试用例的空间保持一致
-            workspace: data.workspace,
-            // 测试执行的 sortIndex 和 测试用例的保持一致
-            sortIndex: data.sortIndex,
-            // 事项类型使用内置的事项类型（不可变）
-            itemType: { key: BuiltInItemTypeMapping.TestRun },
-            // // 事项组
-            itemGroup: (data as any).itemGroup,
-            // 初始化状态为 TODO
-            status: StartStatusKey,
-            name: data.name,
-            referenceCase: data.objectId,
-            createdBy: data.createdBy,
-          };
-        });
-
-      return await batchCreateItems(needCreatedItems as any);
+      return await batchCreateItems((await generateCreateRuns()) as any);
     };
-
-    // 创建测试计划和测试用例的关联关系
-    // 1. 获取测试执行任务关联的测试计划
-    // 2. 更新测试计划和测试用例的关联
-    // 3. 将 caseStatus 中的 caseStatus 置为 TODO
-    const batchUpdateTestPlanLinkCase = async () => {
-      // 可能存在测试执行任务没有关联计划的情况，需要做容错处理
-      if (testPlan) {
-        const linkItemParams = caseIds.map(caseId => ({
-          objectId: caseId,
-          linkType: TestLinkType.CaseLinkPlan,
-          linkItems: {
-            action: 'add',
-            value: [testPlan.objectId],
-          },
-        }));
-
-        // 原始测试用例的状态数据映射
-        const originalCaseStatusDataMapping = caseList.reduce(
-          (res, testCase) => ({
-            ...res,
-            [testCase.objectId]: testCase.caseStatus,
-          }),
-          {},
-        );
-
-        // 更新测试计划和测试用例的关联关系，使用 buildLinkItemData 方法构建更新关联数据
-        const needUpdateItemsData = await buildTestEntityLinkData(
-          linkItemParams as TestEntityLinkActionData[],
-        ).then(data => {
-          return data.map(item => {
-            // 原始的测试执行状态
-            const originalCaseStatus = originalCaseStatusDataMapping?.[item.objectId];
-            // 当前计划已有最新测试执行状态，则不做处理
-            const caseLatestStatus = originalCaseStatus?.[testPlan.objectId];
-
-            // 不存在最新的测试执行状态，则需要更新一个默认值
-            if (!caseLatestStatus) {
-              item.caseStatus = {
-                ...originalCaseStatus,
-                // 将测试用例的设置为起始的 key
-                [testPlan.objectId]: StartStatusKey,
-              };
-            }
-            return item;
-          });
-        });
-        if (!needUpdateItemsData.length) return;
-
-        return await batchUpdateItemsValues(needUpdateItemsData);
-      }
-    };
-
-    const [createdTestRuns] = await Promise.all([
-      batchCreateTestRuns(),
-      batchUpdateTestPlanLinkCase(),
-    ]);
-
-    const createdItemIds = createdTestRuns.filter(Boolean).map(item => item.objectId);
-    console.info('create success res: ', createdItemIds);
-    return buildResponse(createdItemIds);
+    if (!withProcess) {
+      // 批量保存
+      const createdTestRuns = await batchCreateTestRuns();
+      const createdItemIds = createdTestRuns.filter(Boolean).map(item => item.objectId);
+      console.info('create success res: ', createdItemIds);
+      return buildResponse(createdItemIds);
+    } else {
+      // 带进度条的新批量接口
+      return batchCreateItemWithProgress(await generateCreateRuns());
+    }
     // 查询测试执行任务
   } catch (err) {
     return buildResponse(err);

@@ -42,3 +42,21 @@ export const getItemCreateRequiredAttrs = async (workspaceInfo: {
     workspace: { objectId: workspaceId },
   };
 };
+
+export async function getItemTypeFromKey(keys) {
+  const itemTypeQuery = await getParseQuery(false, 'ItemType');
+  const ParseBaseQueryOptions = {
+    sessionToken: global.sessionToken,
+  };
+
+  return itemTypeQuery
+    .containedIn('key', keys)
+    .select(['key', 'name', 'objectId', 'icon'])
+    .find({
+      ...ParseBaseQueryOptions,
+      context: {
+        displayModule: 'plugin.testManager',
+      },
+    })
+    .then(data => data.map(i => i.toJSON()));
+}
