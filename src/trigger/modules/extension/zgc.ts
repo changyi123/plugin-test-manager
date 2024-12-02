@@ -112,6 +112,8 @@ export const zgcTestReportInfo = async () => {
       setRes({ bugCount: executionRefTestEntityIds.relative?.length });
 
       const groupMap = {} as Record<string, any[]>;
+      const storyMap = {} as Record<string, any>;
+      const testToPlanMap = {} as Record<string, any>;
       const envIds = [];
       const getGroupMap = testList => {
         testList.forEach(test => {
@@ -124,12 +126,52 @@ export const zgcTestReportInfo = async () => {
           });
         });
       };
+
+      let allStroyList = [];
+      const setVersion = async version => {
+        const versionId = version?.[0]?.objectId;
+        const versionName = version?.[0]?.name;
+        const getVersion = async () => {
+          if (versionId) {
+            await getParseQuery(false, 'Version')
+              .equalTo('objectId', versionId)
+              .include('createdBy')
+              .first({ useMasterKey: true })
+              .then(version => version && setRes({ version: version.toJSON() }));
+          }
+        };
+        const getStory = async () => {
+          if (versionName) {
+            await search(
+              `'版本' in ['${versionName}'] and '类型' in ['${
+                zgcConfig.系统子需求 ?? '系统子需求'
+              }']`,
+              ['id', 'key', 'name'],
+            ).then(list => {
+              allStroyList = [...list];
+              const versionStoryCount = list.length || 0;
+              setRes({ versionStoryCount });
+              list.reduce((prev, cur) => {
+                prev[cur.id] = cur;
+                return prev;
+              }, storyMap);
+            });
+          }
+        };
+        await Promise.all([getStory(), getVersion()]);
+      };
+
       const requestTestList = search(
         `id in ${JSON.stringify(executionRefTestEntityIds.self)}`,
       ).then(async testList => {
         console.info(`zgc requestTestList`, JSON.stringify(testList));
         setRes({ testList });
         getGroupMap(testList);
+        await setVersion(testList?.find(i => !!i.values?.version?.length)?.values.version);
+        testList.reduce((prev, cur) => {
+          prev[cur.id] = cur?.values?.[TestFiledKeyMapping.linkItems]?.[0];
+          return prev;
+        }, testToPlanMap);
         envIds.push(...uniq(testList.flatMap(test => test.values[zgcConfig.测试环境 ?? 'bchj'])));
       });
 
@@ -156,41 +198,12 @@ export const zgcTestReportInfo = async () => {
         ];
         setRes({ ['测试工具']: createTable(columns, tools, 'tools') });
       };
-      let allStroyList = [];
-      const setVersion = async reportRes => {
-        const versionId = reportRes?.values?.version?.[0]?.objectId;
-        const versionName = reportRes?.values?.version?.[0]?.name;
-        const getVersion = async () => {
-          if (versionId) {
-            await getParseQuery(false, 'Version')
-              .equalTo('objectId', versionId)
-              .include('createdBy')
-              .first({ useMasterKey: true })
-              .then(version => version && setRes({ version: version.toJSON() }));
-          }
-        };
-        const getStory = async () => {
-          if (versionName) {
-            await search(
-              `'版本' in ['${versionName}'] and '类型' in ['${
-                zgcConfig.系统子需求 ?? '系统子需求'
-              }']`,
-              ['id', 'key'],
-            ).then(list => {
-              allStroyList = [...list];
-              const versionStoryCount = list.length || 0;
-              setRes({ versionStoryCount });
-            });
-          }
-        };
-        await Promise.all([getStory(), getVersion()]);
-      };
       const requestReportList = search(`id in [${JSON.stringify(report.objectId)}]`).then(
         async reports => {
           console.info(`zgc requestReportList`, JSON.stringify(reports));
           const reportRes = reports[0];
           setRes({ report: reportRes });
-          await Promise.all([setToolList(reportRes), setVersion(reportRes)]);
+          await Promise.all([setToolList(reportRes)]);
         },
       );
 
@@ -198,6 +211,7 @@ export const zgcTestReportInfo = async () => {
       const storyList = [];
       const requestTestPlanList = search(
         `id in ${JSON.stringify(executionRefTestEntityIds.planIds)}`,
+        ['ancestor', 'id'],
       ).then(async planList => {
         console.info(`zgc requestTestList`, JSON.stringify(planList));
         setRes({ planList });
@@ -206,7 +220,7 @@ export const zgcTestReportInfo = async () => {
           const ancestorKey = plan.ancestor?.key;
           if (!ancestorKey) return;
           if (!planToStoryMap[planId]) {
-            planToStoryMap[planId] = ancestorKey;
+            planToStoryMap[planId] = plan.ancestor?.objectId;
           }
 
           if (!storyList.includes(ancestorKey)) {
@@ -220,7 +234,7 @@ export const zgcTestReportInfo = async () => {
       await Promise.all([requestTestList, requestTestPlanList, requestReportList, requestRunList]);
       const unTestedStoryList = allStroyList
         .filter(story => !storyList.includes(story.key))
-        .map(story => '#' + story.key.split('-')[1] + '-' + story.name)
+        .map(story => '#' + story.key.split('-')[1] + '-' + story.name);
       setRes({ unTestedStoryList });
 
       console.info('zgc', JSON.stringify({ res, groupMap }));
@@ -278,15 +292,35 @@ export const zgcTestReportInfo = async () => {
       const getRunStatics = () => {
         const map = {};
         const tableMap = {};
+        const storyTableMap = {};
         const testerMap = {};
         res.testList.forEach(test => {
           map[test.objectId] = test.values?.[zgcConfig?.测试阶段 ?? 'ceshijieduan']?.[0];
         });
+        console.info('getRunStatics', JSON.stringify({ storyMap, planToStoryMap, testToPlanMap }));
         runList.forEach(run => {
           const test_time = map[run.values[TestFiledKeyMapping.linkItems][0]];
+          const storyId =
+            storyMap[
+              planToStoryMap?.[testToPlanMap?.[run.values[TestFiledKeyMapping.linkItems][0]]]
+            ]?.id;
           const executor = run.values[TestFiledKeyMapping?.executor]?.[0]?.nickname;
           if (executor) {
             testerMap[executor] = true;
+          }
+
+          if (!storyTableMap[storyId]) {
+            storyTableMap[storyId] = {
+              storyName: storyMap[storyId]?.name,
+              total: 0,
+              cancel_count: 0,
+              todo_count: 0,
+              passed_count: 0,
+              failed_count: 0,
+              block_count: 0,
+              executing_count: 0,
+              passPercent: 0,
+            };
           }
 
           if (!tableMap[test_time]) {
@@ -305,13 +339,23 @@ export const zgcTestReportInfo = async () => {
           const key = `${(run.values[TestFiledKeyMapping.status] ?? '').toLowerCase()}_count`;
           tableMap[test_time][key] += 1;
           tableMap[test_time].total += 1;
+          storyTableMap[storyId][key] += 1;
+          storyTableMap[storyId].total += 1;
         });
         const list = Object.values(tableMap).map((row: any) => {
           row.passPercent = `${((row.passed_count * 100) / (row.total || 1)).toFixed(2)}%`;
           return row;
         });
+
+        const storyStaticList = Object.values(storyTableMap).map((row: any) => {
+          row.passPercent = `${((row.passed_count * 100) / (row.total || 1)).toFixed(2)}%`;
+          row.executedPercent = `${(
+            ((row.total - row.todo_count) * 100) /
+            (row.total || 1)
+          ).toFixed(2)}%`;
+          return row;
+        });
         const executors = Object.keys(testerMap).join('、');
-        console.info('getRunStatics', tableMap, executors);
 
         const columns = [
           { title: '测试阶段', dataIndex: 'test_time' },
@@ -323,7 +367,22 @@ export const zgcTestReportInfo = async () => {
           { title: '阻塞用例数', dataIndex: 'block_count' },
           { title: '通过率', dataIndex: 'passPercent' },
         ];
+
+        const storyStaticColumns = [
+          { title: '需求名称', dataIndex: 'storyName' },
+          { title: '无效用例数', dataIndex: 'cancel_count' },
+          { title: '未执行用例数', dataIndex: 'todo_count' },
+          { title: '通过用例数', dataIndex: 'passed_count' },
+          { title: '失败用例数', dataIndex: 'failed_count' },
+          { title: '执行中用例数', dataIndex: 'executing_count' },
+          { title: '阻塞用例数', dataIndex: 'block_count' },
+          { title: '需求用例执行率', dataIndex: 'executedPercent' },
+          { title: '需求用例执行通过率', dataIndex: 'passPercent' },
+        ];
         setRes({ ['用例执行统计']: createTable(columns, list, 'run') });
+        setRes({
+          ['需求相关用例执行统计']: createTable(storyStaticColumns, storyStaticList, 'story'),
+        });
         setRes({ executors });
       };
       getRunStatics();
