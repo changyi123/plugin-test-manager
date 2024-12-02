@@ -243,13 +243,10 @@ const ReportView: React.FC = () => {
     }
 
     let fileName = data?.report?.name;
-    const enterpriseName = getAppEnv('ENTERPRISE_NAME');
-    console.info('enterpriseName', enterpriseName);
-    if (enterpriseName === 'zgc') {
+    const zgcConfig = getAppEnv('ZGC_CONFIG');
+    if (zgcConfig) {
       const reports = await search(`id in [${JSON.stringify(data.report.objectId)}]`);
       const reportRes = reports[0];
-
-      const zgcConfig = getAppEnv('ZGC_CONFIG');
 
       const uniq = list => (Array.isArray(list) ? [...new Set(list ?? [])] : list);
 
