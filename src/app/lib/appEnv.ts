@@ -135,8 +135,8 @@ const SupportAppEnv = {
   },
   ZGC_CONFIG: {
     defaultValue: {
-      测试环境: 'test_env',
-      测试阶段: 'test_time',
+      测试环境: 'bchj',
+      测试阶段: 'ceshijieduan',
     },
     transformer: value => value,
   },

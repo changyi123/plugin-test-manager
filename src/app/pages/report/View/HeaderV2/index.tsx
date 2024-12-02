@@ -5,7 +5,9 @@ import React, { useCallback, useRef } from 'react';
 
 import CreatePermission from '@/components/business/Contianer/CreatePermission';
 import { ControlOutlined, PlusOutlined } from '@/icons';
-import { TestExecutionModel, TestPlanModel, TestType } from '@/lib/constants';
+import { search } from '@/lib/api/proxima';
+import { getAppEnv } from '@/lib/appEnv';
+import { TestExecutionModel, TestFiledKeyMapping, TestPlanModel, TestType } from '@/lib/constants';
 import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import { selectorToIql } from '@/lib/utils/iql';
@@ -91,7 +93,41 @@ const ReportHeader: React.FC<any> = () => {
         return prev;
       }, {});
 
+      const zgcConfig = getAppEnv('ZGC_CONFIG');
+      let name;
+      if (zgcConfig) {
+        const executionIql = iqlMap[TestExecutionModel];
+        const testTimeKey = zgcConfig.测试阶段;
+        const executions = await search(executionIql, [
+          TestFiledKeyMapping.linkItems,
+          'version',
+          testTimeKey,
+        ]);
+
+        const test_times = [];
+        let version;
+        const planIds = executions.map(i => {
+          if (i.values?.[testTimeKey]?.[0] && !test_times.includes(i.values[testTimeKey][0]))
+            test_times.push(i.values[testTimeKey][0]);
+          if (i.values?.version?.length && !version) version = i.values.version[0].name;
+          return i.values?.[TestFiledKeyMapping.linkItems]?.[0];
+        });
+
+        const storyList = await search(`id in ${JSON.stringify(planIds)}`, ['ancestor']).then(
+          planList =>
+            planList.reduce((prev, cur) => {
+              const key = cur.ancestor?.key;
+              if (!key) return prev;
+              const index = key.split('-').pop();
+              if (!prev.includes(index)) prev.push(index);
+              return prev;
+            }, []),
+        );
+        name = `${version}_系统子需求#${storyList.join('，')}_${test_times.join('&')} 报告`;
+      }
+
       return await createItemUseModal({
+        name,
         type: TestType.Report,
         extraData: {
           fields: {

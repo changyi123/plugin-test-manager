@@ -68,11 +68,15 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
   } = props;
   const { t } = useI18n();
   const [visible, setVisible] = React.useState(false);
-  const { testPlanFieldKeys, testCaseFieldKeys, testExecutionFieldKeys } = useBaseAction();
-  const _keys = useMemo(() => {
+  const { testPlanFieldKeys, testCaseFieldKeys, testExecutionFieldKeys, testReportFieldKeys } =
+    useBaseAction();
+  const keys = useMemo(() => {
     if (testFieldKeys) return testFieldKeys;
     if (titleCellOption.testType === TestType.Case) {
       return testCaseFieldKeys;
+    }
+    if (titleCellOption.testType === TestType.Report) {
+      return testReportFieldKeys;
     }
     if (titleCellOption.testType === TestType.Execution) {
       return testExecutionFieldKeys;
@@ -88,7 +92,6 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
     testExecutionFieldKeys?.toString(),
   ]);
 
-  const keys = useMemo(() => [].concat(SystemFieldKeys, _keys ?? []), [_keys?.toString()]);
   const fieldKeys = useMemo(() => keys?.filter(key => !TABLE_EXCLUDE_FIELDS.includes(key)), [keys]);
 
   const customFields = useGetCustomFields({ filedKeys: fieldKeys });
