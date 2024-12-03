@@ -19,6 +19,7 @@ import {
   QuestionCircleOutlined,
   Setting,
 } from '@/icons';
+import { judgeTestReportVersion, TEST_REPORT_VERSION } from '@/lib/appEnv';
 import { TABLE_EXCLUDE_FIELDS, TestType } from '@/lib/constants';
 import { useBaseAction } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
@@ -68,11 +69,18 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
   } = props;
   const { t } = useI18n();
   const [visible, setVisible] = React.useState(false);
-  const { testPlanFieldKeys, testCaseFieldKeys, testExecutionFieldKeys } = useBaseAction();
+  const { testPlanFieldKeys, testCaseFieldKeys, testExecutionFieldKeys, testReportFieldKeys } =
+    useBaseAction();
   const keys = useMemo(() => {
     if (testFieldKeys) return testFieldKeys;
     if (titleCellOption.testType === TestType.Case) {
       return testCaseFieldKeys;
+    }
+    if (
+      titleCellOption.testType === TestType.Report &&
+      judgeTestReportVersion([TEST_REPORT_VERSION.V2])
+    ) {
+      return testReportFieldKeys;
     }
     if (titleCellOption.testType === TestType.Execution) {
       return testExecutionFieldKeys;

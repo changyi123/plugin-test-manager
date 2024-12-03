@@ -293,8 +293,9 @@ const List: React.FC<any> = () => {
           }}
           defaultColumnKey={['reportStatus', 'linkPlanId', 'createdBy', 'createdAt']}
           privateColumnKey={['reportStatus', 'linkPlanId']}
-          useColumnSetting
+          testFieldKeys={['reportStatus', 'linkPlanId', 'createdBy', 'createdAt']}
           rowKey="objectId"
+          useColumnSetting
           name={`${workspace?.key}_test_report`}
           columns={columns}
           actionRef={actionRef}
