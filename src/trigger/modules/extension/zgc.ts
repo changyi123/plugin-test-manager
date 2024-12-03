@@ -302,7 +302,22 @@ export const zgcTestReportInfo = async () => {
       const getRunStatics = () => {
         const map = {};
         const tableMap = {};
-        const storyTableMap = {};
+        const storyTableMap = res.planList?.reduce((map, plan) => {
+          if (plan.ancestor?.objectId && !map[plan.ancestor.objectId]) {
+            map[plan.ancestor.objectId] = {
+              storyName: plan.ancestor?.name,
+              total: 0,
+              cancel_count: 0,
+              todo_count: 0,
+              passed_count: 0,
+              failed_count: 0,
+              block_count: 0,
+              executing_count: 0,
+              passPercent: 0,
+            };
+          }
+          return map;
+        }, {});
         const testerMap = {};
         res.testList.forEach(test => {
           map[test.objectId] = test.values?.[zgcConfig?.测试阶段 ?? 'ceshijieduan']?.[0];
@@ -317,20 +332,6 @@ export const zgcTestReportInfo = async () => {
           const executor = run.values[TestFiledKeyMapping?.executor]?.[0]?.nickname;
           if (executor) {
             testerMap[executor] = true;
-          }
-
-          if (!storyTableMap[storyId]) {
-            storyTableMap[storyId] = {
-              storyName: storyMap[storyId]?.name,
-              total: 0,
-              cancel_count: 0,
-              todo_count: 0,
-              passed_count: 0,
-              failed_count: 0,
-              block_count: 0,
-              executing_count: 0,
-              passPercent: 0,
-            };
           }
 
           if (!tableMap[test_time]) {
@@ -380,6 +381,7 @@ export const zgcTestReportInfo = async () => {
 
         const storyStaticColumns = [
           { title: '需求名称', dataIndex: 'storyName' },
+          { title: '需求用例总数', dataIndex: 'total' },
           { title: '无效用例数', dataIndex: 'cancel_count' },
           { title: '未执行用例数', dataIndex: 'todo_count' },
           { title: '通过用例数', dataIndex: 'passed_count' },
