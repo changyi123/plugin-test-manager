@@ -8,6 +8,7 @@ const zgcConfig = global.env?.ZGC_CONFIG ?? {};
 
 const search = async (iql: string, fields = []) => {
   return await requestCoreApi('POST', '/parse/api/search', {
+    size: 9999,
     iql,
     fields,
     isShowDetails: true,
@@ -112,7 +113,6 @@ export const zgcTestReportInfo = async () => {
       setRes({ testCount: executionRefTestEntityIds.self?.length });
       setRes({ runCount: executionRefTestEntityIds[TestType.Run]?.length });
       setRes({ caseCount: executionRefTestEntityIds[TestType.Case]?.length });
-      setRes({ bugCount: executionRefTestEntityIds.relative?.length });
 
       const groupMap = {} as Record<string, any[]>;
       const storyMap = {} as Record<string, any>;
@@ -236,6 +236,12 @@ export const zgcTestReportInfo = async () => {
       });
 
       await Promise.all([requestTestList, requestTestPlanList, requestReportList, requestRunList]);
+      res.planList?.forEach(plan => {
+        if (plan.ancestor?.objectId && !storyMap[plan.ancestor.objectId]) {
+          storyMap[plan.ancestor?.objectId] = { ...plan.ancestor, id: plan.ancestor.objectId };
+        }
+      });
+
       const unTestedStoryList = allStroyList
         .filter(story => !storyList.includes(story.key))
         .map(story => '#' + story.key.split('-')[1] + '-' + story.name);
@@ -301,7 +307,7 @@ export const zgcTestReportInfo = async () => {
         res.testList.forEach(test => {
           map[test.objectId] = test.values?.[zgcConfig?.测试阶段 ?? 'ceshijieduan']?.[0];
         });
-        console.info('getRunStatics', JSON.stringify({ storyMap, planToStoryMap, testToPlanMap }));
+
         runList.forEach(run => {
           const test_time = map[run.values[TestFiledKeyMapping.linkItems][0]];
           const storyId =
@@ -438,15 +444,16 @@ export const zgcTestReportInfo = async () => {
             (zgcConfig.有效解决方案 || []).includes(b.values[zgcConfig.解决方案]?.toString()),
           ).length;
           const discoverBugs = bugList.filter(b => (b as any).isRelativeCase);
+          const total = bugList.length || 1;
           return {
             name: i.name,
             bug_total: bugList.length,
             close_count,
             deferred_count: bugList.filter(b => (b.status as any)?.name === '延期处理').length,
             not_close_count: bugList.length - close_count,
-            discover_rate: `${((100 * discoverBugs.length) / bugList.length).toFixed(2)}%`,
-            close_rate: `${((100 * close_count) / bugList.length).toFixed(2)}%`,
-            valid_rate: `${((100 * validLength) / bugList.length).toFixed(2)}%`,
+            discover_rate: `${((100 * discoverBugs.length) / total).toFixed(2)}%`,
+            close_rate: `${((100 * close_count) / total).toFixed(2)}%`,
+            valid_rate: `${((100 * validLength) / total).toFixed(2)}%`,
           };
         });
         // 统计缺陷通过率
@@ -475,6 +482,7 @@ export const zgcTestReportInfo = async () => {
           `"itemTypeKey" in ${JSON.stringify(bugItemType)}`,
         );
         console.info('查看测试执行关联的缺陷', JSON.stringify({ links, runBugs, groupMap }));
+        setRes({ bugCount: runBugs?.length });
         setRes({ ['阶段统计测试']: { links, runBugs, groupMap } });
         // 构建表格
         const list = Object.keys(groupMap).map(stage => {
@@ -492,6 +500,7 @@ export const zgcTestReportInfo = async () => {
             (zgcConfig.有效解决方案 || []).includes(b.values[zgcConfig.解决方案]?.toString()),
           ).length;
           const discoverBugs = bugList.filter(b => (b as any).isRelativeCase);
+          const total = bugList.length || 1;
 
           return {
             test_time: stage,
@@ -499,9 +508,9 @@ export const zgcTestReportInfo = async () => {
             close_count,
             deferred_count: bugList.filter(b => (b.status as any)?.name === '延期处理').length,
             not_close_count: bugList.length - close_count,
-            discover_rate: `${((100 * discoverBugs.length) / bugList.length).toFixed(2)}%`,
-            close_rate: `${((100 * close_count) / bugList.length).toFixed(2)}%`,
-            valid_rate: `${((100 * validLength) / bugList.length).toFixed(2)}%`,
+            discover_rate: `${((100 * discoverBugs.length) / total).toFixed(2)}%`,
+            close_rate: `${((100 * close_count) / total).toFixed(2)}%`,
+            valid_rate: `${((100 * validLength) / total).toFixed(2)}%`,
           };
         });
         // 统计缺陷通过率

@@ -93,12 +93,14 @@ export const fetchBugFromItemLinks = async (
 
   items.forEach(i => {
     i.isRelativeCase = false;
-    bugLinks.some(b => {
-      if (b.source.values[TestFiledKeyMapping.type] === TestType.Case) {
-        i.isRelativeCase = true;
-        return true;
-      }
-    });
+    bugLinks
+      .filter(b => b.destination.objectId === i.id)
+      .some(b => {
+        if (b.source.values[TestFiledKeyMapping.type] === TestType.Case) {
+          i.isRelativeCase = true;
+          return true;
+        }
+      });
   });
 
   return [links.map(i => i.toJSON()), items];
