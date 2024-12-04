@@ -78,11 +78,6 @@ const TestRunModal: React.FC<ITestRunModalProps> = ({
         getContainer={getRootContainer}
         className={classnames(className)}
         footer={ModalFooterActionButtonsNode}
-        bodyStyle={{
-          maxWidth: '1000px',
-          maxHeight: 'calc(100vh - 220px)',
-          overflowY: 'auto',
-        }}
       >
         {isVisible && (
           <TestRun

@@ -14,6 +14,7 @@ import { useDataContext } from './hooks';
 import cx from './index.less';
 import IsolatedTestType from './IsolatedTestType';
 import ItemTypeMapping from './ItemTypeMapping';
+import FieldSettings from './MoreConfig/FieldSettings';
 import IsolatedSystem from './MoreConfig/IsolatedSystem';
 import TestConfigInitialization from './MoreConfig/TestConfigInitialization';
 import WordTemplate from './MoreConfig/WordTemplate';
@@ -37,6 +38,13 @@ const MoreConfigPages = [
     title: 'wordTemplate',
     component: WordTemplate,
     description: 'wordTemplate',
+    isGlobalConfig: true,
+  },
+  {
+    key: 'TestFieldsSettings',
+    title: 'testFieldsSettings',
+    component: FieldSettings,
+    description: 'testFieldsSettings',
     isGlobalConfig: true,
   },
 ];

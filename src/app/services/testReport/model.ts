@@ -305,6 +305,7 @@ const getCustomDataSourceResults = async (dsConfigs, reportParams, dsIqlConfig) 
                 workspace: reportParams.workspace,
                 dsIqlConfig,
                 sessionToken: getSessionToken(),
+                defectsMapping: reportParams.defectsMapping,
               },
               {
                 // 设置 30s 超时时间

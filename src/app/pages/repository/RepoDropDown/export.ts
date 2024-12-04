@@ -370,6 +370,40 @@ export const downloadExampleFile = async (fieldKeys, t, _lang) => {
   );
 };
 
+export const downloadImportExcelFile = async ({ t, fieldKeys }) => {
+  const SystemFieldKeys = Object.values(SYSTEM_FIELD);
+  const CustomFieldKeys = [...difference(fieldKeys, SystemFieldKeys)];
+  const CustomFields = await getCustomFields(CustomFieldKeys);
+  const ExportCustomFields = CustomFields.reduce((res, field) => {
+    return {
+      ...res,
+      [field.name]: '',
+    };
+  }, {});
+  exportExcelFile(
+    [
+      {
+        ...(t('executionTaskImport.excelContent', {
+          returnObjects: true,
+        }) ?? {}),
+        // 所属分组: '分组1/分组2',
+        // 标题: '测试用例标题（样例数据，执行用例导入时请删除该数据）',
+        // 类型: '测试用例',
+        // 优先级: '优先级可填值范围：最高，较高，普通，较低，最低',
+        // 前置条件: '测试用例前置条件',
+        // 负责人: '用户名',
+        // 步骤: '【1】需要以【序号】开头\n【2】步骤中换行符会被保留',
+        // 预期结果: '【1】需要以【序号】开头\n【2】预期结果中换行符会被保留',
+        // 数据: '【1】需要以【序号】开头\n【2】数据中换行符会被保留',
+        ...ExportCustomFields,
+      },
+    ],
+    'sheet1',
+    `${t('page.repository.repoDropDown.excelName')}.xlsx`,
+    t,
+  );
+};
+
 function s2ab(s: any) {
   if (typeof ArrayBuffer !== 'undefined') {
     const buf = new ArrayBuffer(s.length);
