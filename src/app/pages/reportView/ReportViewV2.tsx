@@ -7,10 +7,10 @@ import { useTranslation } from 'react-i18next';
 
 import { ArrowLeftOutlined } from '@/icons';
 import { getRepositoryTreeV2, runScript } from '@/lib/api/item';
+import { search } from '@/lib/api/proxima';
 import { getAppEnv } from '@/lib/appEnv';
 // import { featureFlags, SupportFeatureFlags } from '@/lib/appEnv';
 import { exportWithDocxV2, genChartGroupPageUrl } from '@/lib/testReport';
-import fetch from '@/lib/utils/fetch';
 import { Chart, ChartGroup } from '@/services/models';
 import { useTestReportV2ByObjectId } from '@/services/testReport/query';
 
@@ -18,23 +18,6 @@ import { useReportOverviewDisplayText } from './hook';
 import cx from './index.less';
 import Refresh from './Refresh';
 import TestIframe from './TestIframe';
-
-const search = async (iql, fields = []) => {
-  try {
-    const {
-      data: { payload },
-    } = await fetch.post('/parse/api/search', {
-      iql: iql,
-      fields,
-      isShowDetails: true,
-      displayContext: 'test_manager',
-    });
-    return payload?.items ?? [];
-  } catch (e) {
-    console.info('search fail: ', e.message);
-    return [];
-  }
-};
 
 const exFuncMap = {
   word: exportWithDocxV2,
@@ -245,24 +228,27 @@ const ReportView: React.FC = () => {
     let fileName = data?.report?.name;
     const zgcConfig = getAppEnv('ZGC_CONFIG');
     if (zgcConfig) {
-      const reports = await search(`id in [${JSON.stringify(data.report.objectId)}]`);
-      const reportRes = reports[0];
-
       const uniq = list => (Array.isArray(list) ? [...new Set(list ?? [])] : list);
 
+      let versionName;
       const testTimes = await search(
         `id in ${JSON.stringify(data.report.reportOverviewData?.testExecution)}`,
+        [zgcConfig.测试阶段, 'version'],
       ).then(async testList => {
         const testTimes = [];
-        testTimes.push(...uniq(testList.flatMap(test => test.values[zgcConfig.测试阶段 ?? []])));
+        testTimes.push(
+          ...uniq(testList.flatMap(test => test.values[zgcConfig.测试阶段]).filter(Boolean)),
+        );
+        versionName = uniq(testList.flatMap(test => test.values?.version?.[0]?.name))
+          .filter(Boolean)
+          .join('_');
         return testTimes;
       });
 
-      const versionName = reportRes?.values?.version?.[0]?.name;
       const testTimesString = testTimes.join('&').replace(/&+$/, '');
 
       fileName =
-        '中关村银行' +
+        '北京中关村银行' +
         '_' +
         workspaceName +
         '_' +
@@ -271,7 +257,6 @@ const ReportView: React.FC = () => {
         testTimesString +
         ' ' +
         '测试报告';
-      console.info(fileName);
     }
     await exportFunc({
       name: fileName,

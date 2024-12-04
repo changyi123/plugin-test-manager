@@ -474,3 +474,20 @@ export const searchFields = async (params: {
     })
     .then(result => result.payload);
 };
+
+export const search = async (iql, fields = []) => {
+  try {
+    const {
+      data: { payload },
+    } = await fetch.post('/parse/api/search', {
+      iql: iql,
+      fields,
+      isShowDetails: true,
+      displayContext: 'test_manager',
+    });
+    return payload?.items ?? [];
+  } catch (e) {
+    console.info('search fail: ', e.message);
+    return [];
+  }
+};
