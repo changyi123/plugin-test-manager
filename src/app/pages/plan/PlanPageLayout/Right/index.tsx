@@ -151,6 +151,8 @@ const Right: React.FC<RightProps> = props => {
       });
     }
 
+    let willSuccess = true;
+
     try {
       setLoading(true);
       const res = await updateTestEntity(
@@ -170,6 +172,7 @@ const Right: React.FC<RightProps> = props => {
       }
     } catch (error) {
       setLoading(false);
+      willSuccess = false;
       // eslint-disable-next-line no-console
       console.log('error', error);
     }
@@ -180,9 +183,12 @@ const Right: React.FC<RightProps> = props => {
       mutateTestTableList.emit('refreshTable');
     }, 500);
     setLoading(false);
-    notification.success({
-      message: t('page.plan.planPageLayout.right.caseToPlanSuccessMessage'),
-    });
+
+    if (willSuccess) {
+      notification.success({
+        message: t('page.plan.planPageLayout.right.caseToPlanSuccessMessage'),
+      });
+    }
   };
 
   return (

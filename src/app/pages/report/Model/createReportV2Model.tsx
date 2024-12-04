@@ -38,6 +38,7 @@ const CreateReportV2Model: React.FC<CreateReportModelProps> = props => {
     template: {},
     selectors: {},
     reportOverviewData: {},
+    extraSelectors: {},
     init: false,
   });
 
@@ -47,11 +48,12 @@ const CreateReportV2Model: React.FC<CreateReportModelProps> = props => {
       async open(params) {
         setVisible(true);
         if (params) {
-          const { template, selectors, reportOverviewData, currentStep } = params;
+          const { template, selectors, reportOverviewData, currentStep, extraSelectors } = params;
           state.template = template;
           state.selectors = selectors;
           state.reportOverviewData = reportOverviewData;
           state.init = true;
+          state.extraSelectors = extraSelectors;
           setCurrent(currentStep);
         }
         eventBusRef.current.disposer();

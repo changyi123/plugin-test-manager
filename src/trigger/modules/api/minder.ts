@@ -20,6 +20,7 @@ import { buildResponse, getReqInfoFromVMRuntime } from '../../lib/apiUtil';
 import { batchCreateItems } from '../../lib/batchRequest';
 import { uuidv4 } from '../../lib/helper';
 import { generateSortIndex } from '../../lib/helper';
+import { getTextFromEditorOrString } from '../../lib/helper';
 import { iqlRequest } from '../../lib/iqlRequest';
 import { getItemCreateRequiredAttrs } from '../../lib/item';
 
@@ -259,13 +260,13 @@ export const minderData = async () => {
               const { action, result, data } = step;
 
               const dataNode = buildMinderNode({
-                text: data,
+                text: getTextFromEditorOrString(data),
                 type: MinderNodeType.Data,
               });
 
               const resultNode = buildMinderNode(
                 {
-                  text: result,
+                  text: getTextFromEditorOrString(result),
                   type: MinderNodeType.Result,
                 },
                 [dataNode],
@@ -273,7 +274,7 @@ export const minderData = async () => {
 
               const stepNode = buildMinderNode(
                 {
-                  text: action,
+                  text: getTextFromEditorOrString(action),
                   type: MinderNodeType.Step,
                 },
                 [resultNode],

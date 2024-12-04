@@ -250,6 +250,19 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
       }
     };
 
+    // 将 step 中的 action, result, data 转换为富文本格式的函数
+    const convertToRichText = text => [
+      { stringText: text },
+      {
+        type: 'p',
+        children: [
+          {
+            text: text,
+          },
+        ],
+      },
+    ];
+
     // 更新测试用例
     const changeTestData = async levelModulePaths => {
       const tasks = [];
@@ -271,6 +284,9 @@ const TestManagerMinder: React.FC<ViewComponentProps> = ({
                 ...step,
                 // 容错处理：给未含有 id 的 step 增加 uid
                 id: step.id ?? v4(),
+                action: convertToRichText(step.action),
+                result: convertToRichText(step.result),
+                data: convertToRichText(step.data),
               })),
               precondition,
             };

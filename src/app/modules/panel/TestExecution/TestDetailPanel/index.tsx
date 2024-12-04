@@ -434,6 +434,7 @@ const Test = () => {
         ignoreTestEntityIds={relCase}
         tableFieldsKeys={testExecutionFieldKeys}
         getContainer={getTestManagerContainer}
+        showDefaultRange
       />
 
       <StatusProcessBar status={relRunStatuses} />
@@ -468,7 +469,7 @@ const Test = () => {
           },
           {
             key: 'delete',
-            content: t('common.delete'),
+            content: t('common.remove'),
             onClick(selectedRowKeys) {
               removeTestRelation(selectedRowKeys);
             },

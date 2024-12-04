@@ -56,7 +56,7 @@ const Detail: React.FC = () => {
       }
       setTestEntity(data?.[0]);
     },
-    [testEntity, setTestEntity],
+    [testEntity.detail, testEntity.objectId, setTestEntity],
   );
 
   const { run: handlePreconditionChange } = useDebounceFn(async precondition => {

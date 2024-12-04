@@ -126,7 +126,10 @@ export const batchUpdateItems = async (data: Partial<TestEntity>[]) => {
 };
 
 /** 更新测试实体的values */
-export const batchUpdateItemsValues = async (data: Partial<TestEntity>[]) => {
+export const batchUpdateItemsValues = async (
+  data: Partial<TestEntity>[],
+  skipPermission = false,
+) => {
   const itemsQueue = chunk(data, BatchChunkSize, item => {
     // 允许更新自定义字段（支持内置字段 assignee. priority
     // 其他自定义字段不能进行更新
@@ -153,7 +156,12 @@ export const batchUpdateItemsValues = async (data: Partial<TestEntity>[]) => {
 
     console.info(JSON.stringify(updates), 'batchUpdateItemsValues');
 
-    return await bulkUpdateItems({ updates }).then(({ data }) => data ?? []);
+    return await bulkUpdateItems({ updates, parseContext: { skipPermission } }).then(
+      ({ code, data, message }) => {
+        if (code !== 200) throw new Error(message);
+        return data ?? [];
+      },
+    );
   });
 
   const dump = logTimeCost(`update ${taskQueue.length} items`);
