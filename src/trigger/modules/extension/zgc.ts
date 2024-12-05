@@ -169,11 +169,11 @@ export const zgcTestReportInfo = async () => {
       ).then(async testList => {
         console.info(`zgc requestTestList`, JSON.stringify(testList));
         const minKsrq = testList
-          .map(test => test.values.ksrq)
+          .map(test => test.values[zgcConfig?.开始日期 ?? 'ksrq'])
           .filter(Boolean)
           .reduce((a, b) => Math.min(a, b));
         const maxJsrq = testList
-          .map(test => test.values.jsrq)
+          .map(test => test.values[zgcConfig?.结束日期 ?? 'jsrq'])
           .filter(Boolean)
           .reduce((a, b) => Math.max(a, b));
         setRes({ minKsrq });
