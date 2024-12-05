@@ -292,8 +292,8 @@ export const zgcTestReportInfo = async () => {
         const columns = [
           { title: '系统名称', dataIndex: 'workspaceName' },
           { title: '测试阶段', dataIndex: 'test_time' },
-          { title: '被测版本号', dataIndex: 'test_version' },
-          { title: '被测版本下载地址', dataIndex: 'test_version_url' },
+          { title: '被测版本号', dataIndex: zgcConfig?.被测版本号 ?? 'Text2' },
+          { title: '被测版本下载地址', dataIndex: zgcConfig?.被测版本下载地址 ?? 'es_array2' },
         ];
         setRes({ ['被测系统版本']: createTable(columns, versionList, 'version') });
       };
