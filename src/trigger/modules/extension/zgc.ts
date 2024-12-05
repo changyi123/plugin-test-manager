@@ -191,6 +191,7 @@ export const zgcTestReportInfo = async () => {
           const maxJsrq = maxJsrqList.reduce((a, b) => Math.max(a, b));
           setRes({ maxJsrq });
         }
+        setRes({ testList });
         getGroupMap(testList);
         await setVersion(testList?.find(i => !!i.values?.version?.length)?.values.version);
         testList.reduce((prev, cur) => {
