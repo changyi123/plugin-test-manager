@@ -161,7 +161,15 @@ export const zgcTestReportInfo = async () => {
             });
           }
         };
-        await Promise.all([getStory(), getVersion()]);
+        const getTccck = async () => {
+          const tccck = version?.expandFieldValues?.[zgcConfig?.投资窗口 ?? 'tccck'];
+          if (tccck) {
+            await search(`id in ${JSON.stringify(tccck)}`, ['name']).then(tccck => {
+              setRes({ tccck });
+            });
+          }
+        };
+        await Promise.all([getStory(), getVersion(), getTccck()]);
       };
 
       const requestTestList = search(
