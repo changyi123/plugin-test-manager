@@ -168,6 +168,16 @@ export const zgcTestReportInfo = async () => {
         `id in ${JSON.stringify(executionRefTestEntityIds.self)}`,
       ).then(async testList => {
         console.info(`zgc requestTestList`, JSON.stringify(testList));
+        const minKsrq = testList
+          .map(test => test.values.ksrq)
+          .filter(Boolean)
+          .reduce((a, b) => Math.min(a, b));
+        const maxJsrq = testList
+          .map(test => test.values.jsrq)
+          .filter(Boolean)
+          .reduce((a, b) => Math.max(a, b));
+        setRes({ minKsrq });
+        setRes({ maxJsrq });
         setRes({ testList });
         getGroupMap(testList);
         await setVersion(testList?.find(i => !!i.values?.version?.length)?.values.version);
@@ -329,7 +339,7 @@ export const zgcTestReportInfo = async () => {
             storyMap[
               planToStoryMap?.[testToPlanMap?.[run.values[TestFiledKeyMapping.linkItems][0]]]
             ]?.id;
-          const executor = run.values[TestFiledKeyMapping?.executor]?.[0]?.nickname;
+          const executor = run.values[TestFiledKeyMapping?.designee]?.[0]?.nickname;
           if (executor) {
             testerMap[executor] = true;
           }
