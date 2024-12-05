@@ -2,8 +2,8 @@ import { useMemoizedFn, useRequest } from 'ahooks';
 import { Button, Divider, Dropdown, Menu, message, Space } from 'antd';
 import _, { groupBy, isEmpty, uniq } from 'lodash';
 import { components } from 'proxima-sdk';
-import React, { useCallback, useMemo, useRef, useState, useContext } from 'react';
-import { EXPORT_EXECUTION_FIELDS } from '@/lib/constants';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
+
 import ExportModal from '@/components/business/TestExecution/ExportModal';
 import ImportModal from '@/components/business/TestExecution/ImportModal';
 import type { BusinessTableActionType } from '@/components/common/BusinessTable/type';
@@ -39,10 +39,11 @@ import CreatePermission from '@/components/business/Contianer/CreatePermission';
 import TestEntitySelectorModal from '@/components/business/TestEntitySelectorModal';
 import TestPlanSelector from '@/components/business/TestPlanSelector';
 import { SystemFieldKeys } from '@/components/common/BusinessTable/hook';
-import { downloadImportExcelFile } from '@/pages/repository/RepoDropDown/export';
+import { search } from '@/lib/api/proxima';
 import { getAppEnv } from '@/lib/appEnv';
 import Parse from '@/lib/parse';
 import { selectorToIql } from '@/lib/utils/iql';
+import { downloadImportExcelFile } from '@/pages/repository/RepoDropDown/export';
 import { Version } from '@/services/models';
 
 import CreateReportModel, { ActionType } from '../../report/Model/createReportV2Model';
@@ -403,7 +404,43 @@ const TestTaskList: React.FC<any> = ({
         return prev;
       }, {});
 
+      const zgcConfig = getAppEnv('ZGC_CONFIG');
+      let name;
+      if (zgcConfig) {
+        const executionIql = iqlMap[TestExecutionModel];
+        const testTimeKey = zgcConfig.测试阶段;
+        const executions = await search(executionIql, [
+          TestFiledKeyMapping.linkItems,
+          'version',
+          testTimeKey,
+        ]);
+
+        const test_times = [];
+        let version;
+        const planIds = executions.map(i => {
+          if (i.values?.[testTimeKey]?.[0] && !test_times.includes(i.values[testTimeKey][0]))
+            test_times.push(i.values[testTimeKey][0]);
+          if (i.values?.version?.length && !version) version = i.values.version[0].name;
+          return i.values?.[TestFiledKeyMapping.linkItems]?.[0];
+        });
+
+        const storyList = await search(`id in ${JSON.stringify(planIds)}`, ['ancestor']).then(
+          planList =>
+            planList.reduce((prev, cur) => {
+              const key = cur.ancestor?.key;
+              if (!key) return prev;
+              const index = key.split('-').pop();
+              if (!prev.includes(index)) prev.push(index);
+              return prev;
+            }, []),
+        );
+        name = `【${version}】_系统子需求#【${storyList.join('】【')}】_${test_times.join(
+          '&',
+        )} 报告`;
+      }
+
       await createItemUseModal({
+        name,
         type: TestType.Report,
         extraData: {
           fields: {

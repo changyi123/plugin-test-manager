@@ -49,7 +49,7 @@ export const CASE_TABLE_CHART_INIT_VALUE = {
     {
       key: 'r_test_manager_repository',
       name: '测试用例模块',
-      fieldType: 'r_test_manager_es_text_keyword',
+      fieldType: 'r_test_manager_repository_keyword',
     },
   ],
   ...commonValue,
