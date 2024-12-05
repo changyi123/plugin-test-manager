@@ -180,14 +180,14 @@ export const zgcTestReportInfo = async () => {
         const minKsrqList = testList
           .map(test => test.values[zgcConfig?.开始日期 ?? 'ksrq'])
           .filter(Boolean);
-        if (minKsrqList || minKsrqList.length > 0) {
+        if (minKsrqList && minKsrqList.length > 0) {
           const minKsrq = minKsrqList.reduce((a, b) => Math.min(a, b));
           setRes({ minKsrq });
         }
         const maxJsrqList = testList
           .map(test => test.values[zgcConfig?.结束日期 ?? 'jsrq'])
           .filter(Boolean);
-        if (maxJsrqList || maxJsrqList.length > 0) {
+        if (maxJsrqList && maxJsrqList.length > 0) {
           const maxJsrq = maxJsrqList.reduce((a, b) => Math.max(a, b));
           setRes({ maxJsrq });
         }
