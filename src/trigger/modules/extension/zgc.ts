@@ -176,17 +176,21 @@ export const zgcTestReportInfo = async () => {
         `id in ${JSON.stringify(executionRefTestEntityIds.self)}`,
       ).then(async testList => {
         console.info(`zgc requestTestList`, JSON.stringify(testList));
-        const minKsrq = testList
+
+        const minKsrqList = testList
           .map(test => test.values[zgcConfig?.开始日期 ?? 'ksrq'])
-          .filter(Boolean)
-          .reduce((a, b) => Math.min(a, b));
-        const maxJsrq = testList
+          .filter(Boolean);
+        if (minKsrqList || minKsrqList.length > 0) {
+          const minKsrq = minKsrqList.reduce((a, b) => Math.min(a, b));
+          setRes({ minKsrq });
+        }
+        const maxJsrqList = testList
           .map(test => test.values[zgcConfig?.结束日期 ?? 'jsrq'])
-          .filter(Boolean)
-          .reduce((a, b) => Math.max(a, b));
-        setRes({ minKsrq });
-        setRes({ maxJsrq });
-        setRes({ testList });
+          .filter(Boolean);
+        if (maxJsrqList || maxJsrqList.length > 0) {
+          const maxJsrq = maxJsrqList.reduce((a, b) => Math.max(a, b));
+          setRes({ maxJsrq });
+        }
         getGroupMap(testList);
         await setVersion(testList?.find(i => !!i.values?.version?.length)?.values.version);
         testList.reduce((prev, cur) => {
