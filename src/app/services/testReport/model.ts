@@ -340,7 +340,8 @@ const getCustomDataSourceResults = async (dsConfigs, reportParams, dsIqlConfig) 
     };
 
     customDataSourceConfigResult = await parallelRequestWebTrigger();
-    customDataSourceConfigResult.report = reportParams.report;
+    if (!customDataSourceConfigResult.report)
+      customDataSourceConfigResult.report = reportParams.report;
   }
 
   return customDataSourceConfigResult;

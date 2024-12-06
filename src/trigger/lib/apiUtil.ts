@@ -1,7 +1,7 @@
 import { getParseQuery } from '@giteeteam/apps-team-api';
 import cloneDeep from 'lodash/cloneDeep';
 
-import { AppKey, TestFiledKeyMapping, TestType } from '../../common/constant';
+import { AppKey } from '../../common/constant';
 import { PaginationParams, PaginationResponse, ResponseType } from '../../common/types/api';
 import { Item } from '../../common/types/app';
 import { iqlSearch } from '../../trigger/lib/coreApi';
@@ -61,14 +61,20 @@ export const buildPaginationResponse = <T = any>(
 
 // 在关联表中根据从sourceId查询到target，并确认改缺陷是否关联用例
 export const fetchBugFromItemLinks = async (
-  sourceId: string[],
+  ids: string[],
   extendIql?: string,
 ): Promise<[any[], Item[]]> => {
   const links = await getParseQuery(false, 'ItemLink')
-    .containedIn('source', sourceId)
-    .findAll({ sessionToken: global.sessionToken });
+    ._orQuery([
+      getParseQuery(false, 'ItemLink').containedIn('source', ids),
+      getParseQuery(false, 'ItemLink').containedIn('destination', ids),
+    ])
+    .findAll({ useMasterKey: true });
   if (!links?.length) return [[], []];
-  let iql = `id in ['${links.map(d => d.get('destination').objectId).join("','")}']`;
+  let iql = `id in ['${links
+    .flatMap(d => [d.get('destination').objectId, d.get('source').objectId])
+    .filter(id => !ids.includes(id))
+    .join("','")}']`;
   if (extendIql) {
     iql += ` and ${extendIql}`;
   }
@@ -81,13 +87,28 @@ export const fetchBugFromItemLinks = async (
   });
 
   // 通过事项关联查询，获取缺陷对应的事项，通过TestType.case来判断是否是测试用例
+  const bugIds = items.map(i => i.id);
   let bugLinks = await getParseQuery(false, 'ItemLink')
-    .containedIn(
-      'destination',
-      items.map(i => i.id),
-    )
-    .include('source')
-    .findAll({ sessionToken: global.sessionToken });
+    ._orQuery([
+      getParseQuery(false, 'ItemLink').containedIn('source', bugIds),
+      getParseQuery(false, 'ItemLink').containedIn('destination', bugIds),
+    ])
+    .findAll({ useMasterKey: true });
+
+  const caseIql = `id in ['${bugLinks
+    .flatMap(d => [d.get('destination').objectId, d.get('source').objectId])
+    .filter(id => !bugIds.includes(id))
+    .join("','")}'] and 'test_manager_type' = 'TestCase'`;
+
+  const {
+    payload: { items: cases },
+  } = await iqlSearch({
+    iql: caseIql,
+    fields: ['id'],
+    displayContext: AppKey,
+    limit: bugLinks.length,
+  });
+  const caseIds = cases.map(i => i.id);
 
   bugLinks = bugLinks.map(i => i.toJSON());
 
@@ -96,7 +117,15 @@ export const fetchBugFromItemLinks = async (
     bugLinks
       .filter(b => b.destination.objectId === i.id)
       .some(b => {
-        if (b.source.values[TestFiledKeyMapping.type] === TestType.Case) {
+        if (caseIds.includes(b.source.objectId)) {
+          i.isRelativeCase = true;
+          return true;
+        }
+      });
+    bugLinks
+      .filter(b => b.source.objectId === i.id)
+      .some(b => {
+        if (caseIds.includes(b.destination.objectId)) {
           i.isRelativeCase = true;
           return true;
         }

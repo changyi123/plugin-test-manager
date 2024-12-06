@@ -140,7 +140,12 @@ export const zgcTestReportInfo = async () => {
               .equalTo('objectId', versionId)
               .include('createdBy')
               .first({ useMasterKey: true })
-              .then(version => version && setRes({ version: version.toJSON() }));
+              .then(async version => {
+                if (version) {
+                  setRes({ version: version.toJSON() });
+                }
+                await getTccck(version.toJSON());
+              });
           }
         };
         const getStory = async () => {
@@ -161,7 +166,7 @@ export const zgcTestReportInfo = async () => {
             });
           }
         };
-        const getTccck = async () => {
+        const getTccck = async version => {
           const tccck = version?.expandFieldValues?.[zgcConfig?.投资窗口 ?? 'tccck'];
           if (tccck) {
             await search(`id in ${JSON.stringify(tccck)}`, ['name']).then(tccck => {
@@ -169,21 +174,21 @@ export const zgcTestReportInfo = async () => {
             });
           }
         };
-        await Promise.all([getStory(), getVersion(), getTccck()]);
+        await Promise.all([getStory(), getVersion()]);
       };
 
       const requestTestList = search(
         `id in ${JSON.stringify(executionRefTestEntityIds.self)}`,
       ).then(async testList => {
         console.info(`zgc requestTestList`, JSON.stringify(testList));
-        const minKsrq = testList
+        const minKsrqList = testList
           .map(test => test.values[zgcConfig?.开始日期 ?? 'ksrq'])
-          .filter(Boolean)
-          .reduce((a, b) => Math.min(a, b));
-        const maxJsrq = testList
+          .filter(Boolean);
+        const minKsrq = minKsrqList.length ? minKsrqList.reduce((a, b) => Math.min(a, b)) : '';
+        const maxJsrqList = testList
           .map(test => test.values[zgcConfig?.结束日期 ?? 'jsrq'])
-          .filter(Boolean)
-          .reduce((a, b) => Math.max(a, b));
+          .filter(Boolean);
+        const maxJsrq = maxJsrqList.length ? maxJsrqList.reduce((a, b) => Math.max(a, b)) : '';
         setRes({ minKsrq });
         setRes({ maxJsrq });
         setRes({ testList });
@@ -347,7 +352,7 @@ export const zgcTestReportInfo = async () => {
             storyMap[
               planToStoryMap?.[testToPlanMap?.[run.values[TestFiledKeyMapping.linkItems][0]]]
             ]?.id;
-          const executor = run.values[TestFiledKeyMapping?.designee]?.[0]?.nickname;
+          const executor = run.values[TestFiledKeyMapping.executor]?.[0]?.nickname;
           if (executor) {
             testerMap[executor] = true;
           }
@@ -456,8 +461,13 @@ export const zgcTestReportInfo = async () => {
         });
         const list = _storyList.map(i => {
           const bugList = links
-            .filter(d => d.source.objectId === i.objectId)
-            .map(b => storyBugs.find(bug => bug.objectId === b.destination.objectId))
+            .filter(d => d.source.objectId === i.objectId || d.destination.objectId === i.objectId)
+            .map(b =>
+              storyBugs.find(
+                bug =>
+                  bug.objectId === b.destination.objectId || bug.objectId === b.source.objectId,
+              ),
+            )
             .filter(Boolean);
           const close_count = bugList.filter(b => (b.status as any)?.name === '已关闭').length;
           const validLength = bugList.filter(b =>
@@ -507,11 +517,19 @@ export const zgcTestReportInfo = async () => {
         // 构建表格
         const list = Object.keys(groupMap).map(stage => {
           const executions = groupMap[stage] || [];
+          const executionsIds = executions.map(i => i.id);
           // 找到测试执行所关联的缺陷
           const bugList = runBugs.filter(i => {
-            const executionsIds = executions.map(i => i.id);
-            const _link = links.filter(l => executionsIds.includes(l.source.objectId));
-            const bugIds = _link.map(i => i.destination.objectId);
+            const _link = links.filter(
+              l =>
+                executionsIds.includes(l.source.objectId) ||
+                executionsIds.includes(l.destination.objectId),
+            );
+            const bugIds = _link.map(i =>
+              executionsIds.includes(i.destination.objectId)
+                ? i.source.objectId
+                : i.destination.objectId,
+            );
             return bugIds.includes(i.objectId);
           });
           console.info('查看这条阶段对应的数据', JSON.stringify({ executions, bugList }));
