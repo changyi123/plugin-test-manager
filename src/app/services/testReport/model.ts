@@ -612,6 +612,7 @@ const chainChartDataAdaptor = (chartData, dataSource) => {
               try {
                 result = fun(context, dayjs, replace);
               } catch (e) {
+                console.error(e, context);
                 result = '';
               }
               return result;

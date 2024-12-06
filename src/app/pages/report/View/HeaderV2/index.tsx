@@ -123,9 +123,7 @@ const ReportHeader: React.FC<any> = () => {
               return prev;
             }, []),
         );
-        name = `【${version}】_系统子需求#【${storyList.join('】【')}】_${test_times.join(
-          '&',
-        )} 报告`;
+        name = `${version}_系统子需求#【${storyList.join('】【')}】_${test_times.join('&')}报告`;
       }
 
       return await createItemUseModal({

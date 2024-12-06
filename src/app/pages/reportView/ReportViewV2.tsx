@@ -250,12 +250,11 @@ const ReportView: React.FC = () => {
       fileName =
         '北京中关村银行' +
         '_' +
-        workspaceName +
+        '金融科技部' +
         '_' +
         versionName +
         '_' +
         testTimesString +
-        ' ' +
         '测试报告';
     }
     await exportFunc({

@@ -65,9 +65,11 @@ const createTable = (columns, data = [], key, showIndex = false) => {
             id: `yxv78${index}${i}`,
             type: 'p',
             children: [
-              {
-                text: dataIndex === '$index' ? `${index + 1}` : `${row[dataIndex] ?? ''}`,
-              },
+              typeof row[dataIndex] === 'object' && row[dataIndex]?.children
+                ? row[dataIndex].children
+                : {
+                    text: dataIndex === '$index' ? `${index + 1}` : `${row[dataIndex] ?? ''}`,
+                  },
             ],
           },
         ],
@@ -223,6 +225,7 @@ export const zgcTestReportInfo = async () => {
           { title: '用途', dataIndex: 'tool_scope' },
         ];
         setRes({ ['测试工具']: createTable(columns, tools, 'tools') });
+        setRes({ ['测试工具表格']: tools });
       };
       const requestReportList = search(`id in [${JSON.stringify(report.objectId)}]`).then(
         async reports => {
@@ -278,12 +281,20 @@ export const zgcTestReportInfo = async () => {
       setRes({ testCoverage: testCoverage.toFixed(2) });
 
       const getEnvList = async () => {
+        const createPlaceHold = text => ({ children: { italic: true, color: '#6C9EEB', text } });
+        const placeHold = {
+          workspaceName: '（需要在本文档中手工补充）样例：第三方联调环境、人行前置机环境',
+          test_time: '（需要在本文档中手工补充）样例：SIT阶段',
+          test_env: '（需要在本文档中手工补充）样例：SIT、SIT2、SIT3...',
+          env_desc:
+            '（需要在本文档中手工补充）样例：需要填写哪些需求分别在哪个环境测试。若所有需求均在主环境测试，此列可不填。样例：需求ID:8990在SIT2环境测试',
+        };
         const envList = [];
         Object.entries(groupMap).map(([test_time, testList]) => {
           const existed = envList.find(env => env.test_time === test_time);
           if (!existed) {
             envList.push({
-              test_time,
+              test_time: test_time,
               workspaceName: testList[0].workspace.name,
               test_env: '',
               env_desc: '',
@@ -291,13 +302,45 @@ export const zgcTestReportInfo = async () => {
           }
         });
 
+        if (envList.length) {
+          envList[0].test_env = createPlaceHold(placeHold.test_env);
+          envList[0].env_desc = createPlaceHold(placeHold.env_desc);
+          envList.push({
+            test_time: createPlaceHold(placeHold.test_time),
+            workspaceName: createPlaceHold(placeHold.workspaceName),
+          });
+        } else {
+          envList.push(
+            Object.keys(placeHold).reduce(
+              (env, key) => ({
+                ...env,
+                [key]: createPlaceHold(key),
+              }),
+              {},
+            ),
+          );
+        }
+
         const columns = [
-          { title: '系统名称', dataIndex: 'workspaceName' },
-          { title: '测试阶段', dataIndex: 'test_time' },
-          { title: '测试环境', dataIndex: 'test_env' },
-          { title: '需求环境说明', dataIndex: 'env_desc' },
+          {
+            title: '系统名称',
+            dataIndex: 'workspaceName',
+          },
+          {
+            title: '测试阶段',
+            dataIndex: 'test_time',
+          },
+          {
+            title: '测试环境',
+            dataIndex: 'test_env',
+          },
+          {
+            title: '需求环境说明',
+            dataIndex: 'env_desc',
+          },
         ];
         setRes({ ['测试环境']: createTable(columns, envList, 'env') });
+        setRes({ ['测试环境表格']: envList });
       };
       await getEnvList();
 
@@ -305,20 +348,23 @@ export const zgcTestReportInfo = async () => {
         const versionList = Object.entries(groupMap).map(([test_time, testList]) => ({
           test_time,
           workspaceName: testList[0].workspace.name,
-          test_version: uniq(testList.map(test => test.values.test_version).filter(Boolean)).join(
-            ',',
-          ),
+          test_version: uniq(
+            testList.map(test => test.values?.[zgcConfig?.被测版本号 ?? 'Text2']).filter(Boolean),
+          ).join(','),
           test_version_url: uniq(
-            testList.map(test => test.values.test_version_url).filter(Boolean),
+            testList
+              .map(test => test.values?.[zgcConfig?.被测版本下载地址 ?? 'es_array2'])
+              .filter(Boolean),
           ).join(','),
         }));
         const columns = [
           { title: '系统名称', dataIndex: 'workspaceName' },
           { title: '测试阶段', dataIndex: 'test_time' },
-          { title: '被测版本号', dataIndex: zgcConfig?.被测版本号 ?? 'Text2' },
-          { title: '被测版本下载地址', dataIndex: zgcConfig?.被测版本下载地址 ?? 'es_array2' },
+          { title: '被测版本号', dataIndex: 'test_version' },
+          { title: '被测版本下载地址', dataIndex: 'test_version_url' },
         ];
         setRes({ ['被测系统版本']: createTable(columns, versionList, 'version') });
+        setRes({ ['被测系统版本表格']: versionList });
       };
       getVersion();
 
@@ -415,8 +461,12 @@ export const zgcTestReportInfo = async () => {
           { title: '需求用例执行通过率', dataIndex: 'passPercent' },
         ];
         setRes({ ['用例执行统计']: createTable(columns, list, 'run') });
+        setRes({ ['用例执行统计表格']: list });
         setRes({
           ['需求相关用例执行统计']: createTable(storyStaticColumns, storyStaticList, 'story'),
+        });
+        setRes({
+          ['需求相关用例执行统计表格']: storyStaticList,
         });
         setRes({ executors });
       };
@@ -499,6 +549,7 @@ export const zgcTestReportInfo = async () => {
         ];
         // 构建表格
         setRes({ ['需求相关缺陷统计']: createTable(columns, list, 'bugStaticsByStory') });
+        setRes({ ['需求相关缺陷统计表格']: list });
       };
 
       await getBugStaticsByStory();
@@ -564,6 +615,7 @@ export const zgcTestReportInfo = async () => {
         ];
         // 构建表格
         setRes({ ['阶段相关缺陷统计']: createTable(columns, list, 'timeStaticsByStory') });
+        setRes({ ['阶段相关缺陷统计表格']: list });
       };
 
       await getBugStaticsByStage();
