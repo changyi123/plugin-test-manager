@@ -215,23 +215,13 @@ const DataSourceBinding: React.FC<{
   }, [onDataConfigTemplateChange, templateDataSourceConfig]);
 
   React.useEffect(() => {
-    if (testReportTemplateData.templateConfig?.dataSource) {
-      const result = {};
-      Object.entries(testReportTemplateData.templateConfig.dataSource).forEach(([chartId, ds]) => {
-        result[chartId] = ds?.[0]?.locked;
-      });
-      dataSourceLockedRef.current = result;
-      setTemplateDataSourceConfig(testReportTemplateData.templateConfig.dataSource);
-    }
-  }, [testReportTemplateData]);
-
-  React.useEffect(() => {
-    if (testReportTemplateData.templateConfig?.dataSource) {
+    if (testReportTemplateData.templateConfig?.dataSource && !dataSourceLockedRef.current) {
       const result = {};
       Object.entries(testReportTemplateData.templateConfig.dataSource).forEach(([chartId, ds]) => {
         result[chartId] = !!ds?.[0]?.locked;
       });
       dataSourceLockedRef.current = result;
+      setTemplateDataSourceConfig(testReportTemplateData.templateConfig.dataSource);
     }
   }, [testReportTemplateData]);
 
