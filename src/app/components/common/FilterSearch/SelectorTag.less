@@ -10,6 +10,7 @@
     font-weight: 400;
     color: #848c9f;
     line-height: 20px;
+    flex-shrink: 0;
   }
 
   .value {
@@ -62,6 +63,16 @@
   &.active {
     background: #e6f3ff;
   }
+  &.disabled {
+    cursor: not-allowed;
+    max-width: 100%;
+    .search-tag {
+      width: 100%;
+      .value {
+        max-width: 100%;
+      }
+    }
+  }
 }
 
 .search-criteria-icon {
@@ -82,7 +93,7 @@
 .dropdown {
   &-wrapper {
     box-sizing: border-box;
-    max-width: 320px;
+    max-width: 600px;
     max-height: 320px;
     padding: 12px;
     overflow-y: auto;
@@ -96,5 +107,14 @@
 
   &-header {
     color: #848c9f;
+  }
+  &-item {
+    display: -webkit-box;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    word-break: break-all;
+    white-space: pre-line !important;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
   }
 }

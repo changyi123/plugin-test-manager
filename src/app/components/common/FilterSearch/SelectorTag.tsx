@@ -18,6 +18,7 @@ interface SelectorTagProps {
   active?: boolean;
   showCloseIcon?: boolean;
   selectTagId?: string;
+  disabled?: boolean;
 }
 
 const stopPropagation = e => e.stopPropagation();
@@ -28,9 +29,9 @@ const DropdownList = ({ list, t }) => {
       <div className={cx('dropdown-header')}>{t('components.common.filterSearch.selected')}</div>
       <div className={cx('dropdown-content')}>
         {list.map(item => (
-          <div key={item.value} title={item.label}>
+          <span className={cx('dropdown-item')} key={item.value} title={item.label}>
             {item.workspaceName ? item.value : item.label}
-          </div>
+          </span>
         ))}
       </div>
     </div>
@@ -41,6 +42,7 @@ const SelectorTag: React.FC<SelectorTagProps> = ({
   onDelete,
   onClick,
   active,
+  disabled,
   showCloseIcon = true,
   selectTagId = 'filter-search-selector',
 }) => {
@@ -100,7 +102,7 @@ const SelectorTag: React.FC<SelectorTagProps> = ({
   }, [_expression, component, t, value]);
 
   return (
-    <div className={cx('search-criteria', { active })}>
+    <div className={cx('search-criteria', { active, disabled })}>
       {/* 挂载popover的节点 */}
       <span
         id={`${selectTagId}-${fieldId}`}
@@ -110,7 +112,9 @@ const SelectorTag: React.FC<SelectorTagProps> = ({
         <div className={cx('name')}>{fieldName}</div>
         {expressionText && <div className={cx('expression', 'ml4')}>{expressionText}</div>}
         {!isDate(component) && _value && _value !== 'NULL' && (
-          <div className={cx('value', 'ml4')}>{_value}</div>
+          <div className={cx('value', 'ml4')} title={_value}>
+            {_value}
+          </div>
         )}
         {!!count && (
           <Dropdown arrow dropdownRender={() => <DropdownList t={t} list={menus} />}>

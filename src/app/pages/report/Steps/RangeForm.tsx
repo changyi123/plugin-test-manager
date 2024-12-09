@@ -2,6 +2,7 @@ import { useRequest, useUpdateEffect } from 'ahooks';
 import dayjs from 'dayjs';
 import { values } from 'lodash';
 import cloneDeep from 'lodash/cloneDeep';
+import has from 'lodash/has';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import SelectorTag from '@/components/common/FilterSearch/SelectorTag';
@@ -204,6 +205,7 @@ const RangeForm: React.FC<any> = ({ state, workspace }) => {
   const generateFieldValue = useCallback(data => {
     return isDate(data.key) ? (data.value as string[])?.map(item => dayjs(item)) : data.value;
   }, []);
+  console.info('extranselect', extraSelectors);
   return (
     <>
       <div className={cx('form-box')}>
@@ -211,23 +213,31 @@ const RangeForm: React.FC<any> = ({ state, workspace }) => {
         <div className={cx('step-cont')}>
           {currentSelector
             ?.filter(item => item?.fieldId !== 'name')
-            .map(item => (
-              <SelectorTag
-                key={item?.fieldId}
-                active={item?.active}
-                data={item}
-                onClick={data => {
-                  const backup = cloneDeep(data);
-                  backup.value = generateFieldValue(backup);
-                  const props = getFieldValueProps(
-                    backup,
-                    document.querySelector(`#filter-search-selector-${item?.fieldId}`),
-                  );
-                  openFieldValuePopover(props as any);
-                }}
-                showCloseIcon={false}
-              />
-            ))}
+            .map(item => {
+              const disabled = has(extraSelectors, item?.fieldId);
+              return (
+                <SelectorTag
+                  disabled={disabled}
+                  key={item?.fieldId}
+                  active={item?.active}
+                  data={item}
+                  onClick={data => {
+                    if (disabled) {
+                      return;
+                    }
+
+                    const backup = cloneDeep(data);
+                    backup.value = generateFieldValue(backup);
+                    const props = getFieldValueProps(
+                      backup,
+                      document.querySelector(`#filter-search-selector-${item?.fieldId}`),
+                    );
+                    openFieldValuePopover(props as any);
+                  }}
+                  showCloseIcon={false}
+                />
+              );
+            })}
         </div>
       </div>
       {/* <div className={cx('form-box')}>
