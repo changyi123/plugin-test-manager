@@ -31,6 +31,8 @@ export { weichaiFileEncrypt } from './modules/extension/weichai';
 
 export { zgcTestReportInfo } from './modules/extension/zgc';
 
+export { dssTestReportInfo } from './modules/extension/dashangsuo';
+
 export { initTestConfig } from './modules/api/config';
 
 export { linkTestExecuteToTestPlan } from './modules/batch/execution';

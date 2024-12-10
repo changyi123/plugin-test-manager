@@ -547,6 +547,7 @@
           "TestCase": "All Test Cases",
           "TestRun": "All Test Runs",
           "TestDefect": "All Defects",
+          "TestExecution": "All Test Executions",
           "parent": "All Parent",
           "relative": "All Bug (Relative)",
           "planParent": "All Parent",
