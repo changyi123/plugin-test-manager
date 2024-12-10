@@ -5,6 +5,14 @@ import { TestFiledKeyMapping, TestType } from '../../../common/constant';
 import { buildResponse, fetchBugFromItemLinks, getReqInfoFromVMRuntime } from '../../lib/apiUtil';
 
 const zgcConfig = global.env?.ZGC_CONFIG ?? {};
+const STATUS_MAP = zgcConfig?.statusMap ?? {
+  未开始: 'TODO',
+  通过: 'PASSED',
+  阻塞: 'BLOCK',
+  失败: 'FAILED',
+  执行中: 'EXECUTING',
+  已取消: 'CANCEL',
+};
 
 const search = async (iql: string, fields = []) => {
   return await requestCoreApi('POST', '/parse/api/search', {
@@ -103,6 +111,7 @@ export const zgcTestReportInfo = async () => {
   try {
     let res = {} as any;
     let runList = [];
+    let caseMap = {};
     const setRes = data => {
       res = { ...res, ...data };
       return res;
@@ -205,9 +214,28 @@ export const zgcTestReportInfo = async () => {
 
       const requestRunList = search(
         `id in ${JSON.stringify(executionRefTestEntityIds[TestType.Run])}`,
-        [TestFiledKeyMapping.status, TestFiledKeyMapping.linkItems, TestFiledKeyMapping.executor],
+        [
+          TestFiledKeyMapping.status,
+          TestFiledKeyMapping.linkItems,
+          TestFiledKeyMapping.executor,
+          TestFiledKeyMapping.referenceCase,
+        ],
       ).then(list => {
         runList = list;
+      });
+
+      const result_exec = zgcConfig.最新执行结果 ?? 'result_exec';
+      const requestCaseList = search(
+        `id in ${JSON.stringify(executionRefTestEntityIds[TestType.Case])}`,
+        ['id', zgcConfig.最新执行结果 ?? 'result_exec'],
+      ).then(list => {
+        caseMap = list.reduce(
+          (prev, i) => ({
+            ...prev,
+            [i.id]: i,
+          }),
+          {},
+        );
       });
 
       const setToolList = async reportRes => {
@@ -261,7 +289,13 @@ export const zgcTestReportInfo = async () => {
         setRes({ storyList });
       });
 
-      await Promise.all([requestTestList, requestTestPlanList, requestReportList, requestRunList]);
+      await Promise.all([
+        requestTestList,
+        requestTestPlanList,
+        requestReportList,
+        requestRunList,
+        requestCaseList,
+      ]);
       res.planList?.forEach(plan => {
         if (plan.ancestor?.objectId && !storyMap[plan.ancestor.objectId]) {
           storyMap[plan.ancestor?.objectId] = { ...plan.ancestor, id: plan.ancestor.objectId };
@@ -392,6 +426,7 @@ export const zgcTestReportInfo = async () => {
           map[test.objectId] = test.values?.[zgcConfig?.测试阶段 ?? 'ceshijieduan']?.[0];
         });
 
+        const caseSet = {};
         runList.forEach(run => {
           const test_time = map[run.values[TestFiledKeyMapping.linkItems][0]];
           const storyId =
@@ -419,8 +454,20 @@ export const zgcTestReportInfo = async () => {
           const key = `${(run.values[TestFiledKeyMapping.status] ?? '').toLowerCase()}_count`;
           tableMap[test_time][key] += 1;
           tableMap[test_time].total += 1;
-          storyTableMap[storyId][key] += 1;
-          storyTableMap[storyId].total += 1;
+
+          const testCase = caseMap[run.values[TestFiledKeyMapping.referenceCase]];
+          const caseKey = `${(
+            STATUS_MAP[testCase.values[result_exec]] ?? 'todo'
+          ).toLowerCase()}_count`;
+          if (!caseSet[storyId]?.length) {
+            caseSet[storyId] = [];
+          }
+
+          if (!caseSet[storyId].includes(testCase.id)) {
+            caseSet[storyId].push(testCase.id);
+            storyTableMap[storyId][caseKey] += 1;
+            storyTableMap[storyId].total += 1;
+          }
         });
         const list = Object.values(tableMap).map((row: any) => {
           row.passPercent = `${((row.passed_count * 100) / (row.total || 1)).toFixed(2)}%`;
@@ -510,15 +557,20 @@ export const zgcTestReportInfo = async () => {
           },
         });
         const list = _storyList.map(i => {
-          const bugList = links
-            .filter(d => d.source.objectId === i.objectId || d.destination.objectId === i.objectId)
-            .map(b =>
-              storyBugs.find(
-                bug =>
-                  bug.objectId === b.destination.objectId || bug.objectId === b.source.objectId,
-              ),
-            )
-            .filter(Boolean);
+          const bugList = uniqBy(
+            links
+              .filter(
+                d => d.source.objectId === i.objectId || d.destination.objectId === i.objectId,
+              )
+              .map(b =>
+                storyBugs.find(
+                  bug =>
+                    bug.objectId === b.destination.objectId || bug.objectId === b.source.objectId,
+                ),
+              )
+              .filter(Boolean),
+            'objectId',
+          );
           const close_count = bugList.filter(b => (b.status as any)?.name === '已关闭').length;
           const validLength = bugList.filter(b =>
             (zgcConfig.有效解决方案 || []).includes(b.values[zgcConfig.解决方案]?.toString()),
@@ -570,19 +622,22 @@ export const zgcTestReportInfo = async () => {
           const executions = groupMap[stage] || [];
           const executionsIds = executions.map(i => i.id);
           // 找到测试执行所关联的缺陷
-          const bugList = runBugs.filter(i => {
-            const _link = links.filter(
-              l =>
-                executionsIds.includes(l.source.objectId) ||
-                executionsIds.includes(l.destination.objectId),
-            );
-            const bugIds = _link.map(i =>
-              executionsIds.includes(i.destination.objectId)
-                ? i.source.objectId
-                : i.destination.objectId,
-            );
-            return bugIds.includes(i.objectId);
-          });
+          const bugList = uniqBy(
+            runBugs.filter(i => {
+              const _link = links.filter(
+                l =>
+                  executionsIds.includes(l.source.objectId) ||
+                  executionsIds.includes(l.destination.objectId),
+              );
+              const bugIds = _link.map(i =>
+                executionsIds.includes(i.destination.objectId)
+                  ? i.source.objectId
+                  : i.destination.objectId,
+              );
+              return bugIds.includes(i.objectId);
+            }),
+            'objectId',
+          );
           console.info('查看这条阶段对应的数据', JSON.stringify({ executions, bugList }));
           const close_count = bugList.filter(b => (b.status as any)?.name === '已关闭').length;
           const validLength = bugList.filter(b =>
