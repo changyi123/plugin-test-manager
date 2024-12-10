@@ -1,7 +1,7 @@
 import { Button, Input, message, Select, Space, Table, Tooltip } from 'antd';
 import TextArea from 'antd/lib/input/TextArea';
 import { useAtomValue } from 'jotai';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { v4 as uuidv4 } from 'uuid';
 

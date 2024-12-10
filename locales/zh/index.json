@@ -471,6 +471,7 @@
 
           "TestCase": "所有的测试用例",
           "TestRun": "所有的测试执行",
+          "TestExecution": "所有的测试执行任务",
           "TestDefect": "所有的缺陷",
           "parent": "所有的父事项",
           "relative": "所有的缺陷（事项关联）",

@@ -140,6 +140,11 @@ const SupportAppEnv = {
     },
     transformer: value => value,
   },
+
+  EXTENSION_SLOT_DATA_WEB_KEY: {
+    defaultValue: '',
+    transformer: value => value,
+  },
 } as const;
 
 /**

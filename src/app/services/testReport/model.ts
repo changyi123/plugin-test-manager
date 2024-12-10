@@ -157,7 +157,7 @@ const getPlanRefTestEntityIds = async (
       selector: enableCaseSnapshot ? '' : `${BuiltinFieldNameMapping.referenceCase} is not null`,
     });
 
-    return runIds;
+    return { runIds, executionIds };
   };
 
   // 获取测试计划关联的缺陷
@@ -194,9 +194,12 @@ const getPlanRefTestEntityIds = async (
 
   if (
     shouldFetchPlanRefEntityIds(TestType.Run) ||
-    shouldFetchPlanRefEntityIds(TestType.TestDefect)
+    shouldFetchPlanRefEntityIds(TestType.TestDefect) ||
+    shouldFetchPlanRefEntityIds(TestType.Execution)
   ) {
-    ret[TestType.Run] = await getRunIdsByPlan(planIds);
+    const { runIds, executionIds } = await getRunIdsByPlan(planIds);
+    ret[TestType.Run] = runIds;
+    ret[TestType.Execution] = executionIds;
   }
 
   if (shouldFetchPlanRefEntityIds(TestType.TestDefect)) {
@@ -456,6 +459,14 @@ const buildSecondLevelDsIqlConfig = async (
         return `id in ${JSON.stringify(executionRefTestEntityIds[TestType.Run])}`;
       } else {
         return `(${getFirstLevelDsIql(dsConfig)}) and ("itemTypeKey" = "test_manager_run")`;
+      }
+    },
+    [TestType.Execution]: async (dsConfig: TemplateDataSourceConfig) => {
+      if (isTestPlanSelector(dsConfig)) {
+        // 一级数据源为测试计划，则需要查询到测试计划下的所有测试执行任务
+        return `id in ${JSON.stringify(planRefTestEntityIds[TestType.Execution])}`;
+      } else {
+        return `(${getFirstLevelDsIql(dsConfig)}) and ("itemTypeKey" = "test_manager_execution")`;
       }
     },
     [TestType.TestDefect]: async (dsConfig: TemplateDataSourceConfig) => {

@@ -121,10 +121,17 @@ export const DataSourceCollection: DataSource[] = [
     isFirstLevel: false,
     dependOn: ['plan', 'execution'],
   },
+  // 本身
   {
     key: ExtendReportType.Self,
     isFirstLevel: false,
     dependOn: ['execution'],
+  },
+  // 测试计划下的测试执行任务
+  {
+    key: TestType.Execution,
+    isFirstLevel: false,
+    dependOn: ['plan'],
   },
 ];
 

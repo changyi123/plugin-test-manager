@@ -103,6 +103,10 @@ modules:
     # 中关村测试报告联调对接
     - key: extension-report-zgc
       function: extension-report-zgc-function
+
+    # 大商所测试报告联调对接
+    - key: extension-report-dss
+      function: extension-report-dss-function
     
     - key: extension-weichai-file-encrypt
       function: extension-weichai-file-encrypt-function
@@ -301,6 +305,9 @@ modules:
 
     - key: extension-report-zgc-function
       handler: api.zgcTestReportInfo
+
+    - key: extension-report-dss-function
+      handler: api.dssTestReportInfo
 
     - key: extension-weichai-file-encrypt-function
       handler: api.weichaiFileEncrypt
