@@ -457,13 +457,13 @@ export const zgcTestReportInfo = async () => {
 
           const testCase = caseMap[run.values[TestFiledKeyMapping.referenceCase]];
           const caseKey = `${(
-            STATUS_MAP[testCase.values[result_exec]] ?? 'todo'
+            STATUS_MAP[testCase?.values[result_exec]] ?? 'todo'
           ).toLowerCase()}_count`;
           if (!caseSet[storyId]?.length) {
             caseSet[storyId] = [];
           }
 
-          if (!caseSet[storyId].includes(testCase.id)) {
+          if (testCase && !caseSet[storyId].includes(testCase.id)) {
             caseSet[storyId].push(testCase.id);
             storyTableMap[storyId][caseKey] += 1;
             storyTableMap[storyId].total += 1;
