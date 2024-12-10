@@ -306,7 +306,7 @@ export const batchUpdateValue = async () => {
 export const batchCreateTestRun = async () => {
   try {
     const {
-      body: { executionId, case: _case, withProcess = true },
+      body: { executionId, case: _case, withProcess = true, notificationUrl },
     } = getReqInfoFromVMRuntime<BatchCreateTestRunPayload>();
 
     if (!Array.isArray(_case)) throwArgumentError('caseIds', 'objectId[]');
@@ -456,7 +456,7 @@ export const batchCreateTestRun = async () => {
       return buildResponse(createdItemIds);
     } else {
       // 带进度条的新批量接口
-      return batchCreateItemWithProgress(await generateCreateRuns());
+      return batchCreateItemWithProgress(await generateCreateRuns(), notificationUrl);
     }
     // 查询测试执行任务
   } catch (err) {

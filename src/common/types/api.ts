@@ -224,6 +224,7 @@ export type BatchCreateTestRunPayload = {
   /** 测试执行任务 id */
   case: { key: string; caseId: string; createAt?: number }[];
   withProcess?: boolean;
+  notificationUrl?: string;
 };
 
 /** 状态类型 */

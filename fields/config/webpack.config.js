@@ -120,7 +120,7 @@ module.exports = function (webpackEnv) {
     plugins,
     devServer: {
       static: {
-        directory: path.join(__dirname, '../build/test-repository'), //允许配置从跟目录下提供静态文件
+        directory: path.join(__dirname, '../build/test-detail'), //允许配置从跟目录下提供静态文件
         publicPath: `/`,
       },
       port: 8000,

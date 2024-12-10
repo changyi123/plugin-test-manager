@@ -235,13 +235,13 @@ export const batchCreateItems = async (
 };
 
 // 异步批量操作
-export function batchCreateItemWithProgress(items, fields?: string[]) {
+export function batchCreateItemWithProgress(items, notificationUrl?: string, fields?: string[]) {
   items.forEach(i => {
     i.values = {
       ...testEntityToItemValues(i),
       ...pick(i.values, ['assignee', 'priority'].concat(fields ?? [])),
     };
   });
-  console.log('查看批量新增的数据', items);
-  return batchCreateWithProgress({ items, parseContext: CreateApiParseContext });
+  console.info('查看批量新增的数据', items);
+  return batchCreateWithProgress({ notificationUrl, items, parseContext: CreateApiParseContext });
 }

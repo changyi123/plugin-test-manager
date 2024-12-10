@@ -143,6 +143,9 @@ export const exportExecution = async (body, items) => {
     const runExecutor = itemProps.values[TestFiledKeyMapping.executor]?.[0];
     for (const field of testFields) {
       switch (field.value) {
+        case EXPORT_FIELD_VALUES.precondition:
+          item.values[field.value] = runDetail?.precondition ?? '';
+          break;
         case EXPORT_FIELD_VALUES.testExecutionBindPlan: {
           const planId = Object.keys(planMapExecution).find(_key =>
             planMapExecution[_key].includes(executionId),

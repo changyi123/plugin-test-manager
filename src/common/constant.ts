@@ -416,4 +416,9 @@ export const EXPORT_EXECUTION_FIELDS = [
     value: EXPORT_FIELD_VALUES.runExecutor,
     fieldKey: TestFiledKeyMapping.executor,
   },
+  {
+    label: 'precondition',
+    value: EXPORT_FIELD_VALUES.precondition,
+    fieldKey: TestFiledKeyMapping.runDetail,
+  },
 ];

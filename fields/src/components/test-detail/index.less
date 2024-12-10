@@ -13,6 +13,46 @@
   white-space: pre-line;
 }
 
+.test-table-cell {
+  padding: 8px !important;
+}
+
+.comment-editor {
+  :global {
+    .inner-read {
+      margin-bottom: 0 !important;
+      p[data-slate-node=element] {
+        margin-top: 0 !important;
+      }
+    } 
+  }
+}
+
+.test-precondition-table, .test-detail-table {
+  :global {
+    .team-front-table-empty {
+      .team-front-table-placeholder {
+        >td {
+          padding: 8px !important;
+          >div {
+            margin-top: 0;
+            >img {
+              display: none;
+            }
+            >p {
+              margin: 0;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+.test-precondition-table {
+  margin-bottom: 8px;
+}
+
 .comment-editor {
   height: 100%;
   width: 100%;

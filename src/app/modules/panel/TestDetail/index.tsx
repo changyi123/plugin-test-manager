@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 
 import PanelLayout from '@/components/business/PanelLayout';
 import { TestType } from '@/lib/constants';
+import { useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 
 import HistoryRUnPanel from './HistoryRunPanel';
@@ -10,23 +11,36 @@ import TestPlanPanel from './TestPlanPanel';
 
 const TestDetail: React.FC = () => {
   const { t } = useI18n();
-  const tabs = [
-    {
-      tab: t('modules.panel.testDetail.detail'),
-      key: TestType.Case,
-      Component: TestDetailPanel,
-    },
-    {
-      tab: t('common.testPlan'),
-      key: TestType.Plan,
-      Component: TestPlanPanel,
-    },
-    {
-      tab: t('modules.panel.testDetail.historyRunPanel.runRecord'),
-      key: TestType.Run,
-      Component: HistoryRUnPanel,
-    },
-  ];
+  const { baseLineItemId } = useTestConfig();
+  const tabs = useMemo(
+    () =>
+      baseLineItemId
+        ? [
+            {
+              tab: t('modules.panel.testDetail.detail'),
+              key: TestType.Case,
+              Component: TestDetailPanel,
+            },
+          ]
+        : [
+            {
+              tab: t('modules.panel.testDetail.detail'),
+              key: TestType.Case,
+              Component: TestDetailPanel,
+            },
+            {
+              tab: t('common.testPlan'),
+              key: TestType.Plan,
+              Component: TestPlanPanel,
+            },
+            {
+              tab: t('modules.panel.testDetail.historyRunPanel.runRecord'),
+              key: TestType.Run,
+              Component: HistoryRUnPanel,
+            },
+          ],
+    [baseLineItemId, t],
+  );
   return (
     <PanelLayout
       tabsProps={{ defaultActiveKey: TestType.Case }}

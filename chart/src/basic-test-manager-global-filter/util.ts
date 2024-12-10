@@ -9,6 +9,7 @@ export enum TEST_MANAGER_TYPE {
 export enum TEST_MANAGER_SELECTOR {
   TEST_PLAN = 'testPlan',
   TEST_EXECUTION = 'testExecution',
+  FILTER = 'filter',
 }
 
 export interface TEST_MANAGER_PARAMS {
@@ -101,8 +102,7 @@ export const getTestEntityByIds = async ({ ids, type }) => {
   return getTestManagerItems({ iql: `id in ${JSON.stringify(ids)}`, type });
 };
 
-export const formatterIql = (planIds, executionIds) => {
-  let iql = '';
+export const formatterIql = (planIds, executionIds, iql = '') => {
   // 有测试执行，忽略测试计划
   if (executionIds?.length) {
     iql = mergeIQL(iql, `test_manager_linkItems in ${JSON.stringify(executionIds)}`);

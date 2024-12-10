@@ -7,6 +7,8 @@ import { useTranslation } from 'react-i18next';
 
 import { ArrowLeftOutlined } from '@/icons';
 import { getRepositoryTreeV2, runScript } from '@/lib/api/item';
+import { search } from '@/lib/api/proxima';
+import { getAppEnv } from '@/lib/appEnv';
 // import { featureFlags, SupportFeatureFlags } from '@/lib/appEnv';
 import { exportWithDocxV2, genChartGroupPageUrl } from '@/lib/testReport';
 import { Chart, ChartGroup } from '@/services/models';
@@ -222,8 +224,42 @@ const ReportView: React.FC = () => {
         return;
       }
     }
+
+    let fileName = data?.report?.name;
+    const zgcConfig = getAppEnv('ZGC_CONFIG');
+    if (zgcConfig) {
+      const uniq = list => (Array.isArray(list) ? [...new Set(list ?? [])] : list);
+
+      let versionName;
+      const testTimes = await search(
+        `id in ${JSON.stringify(data.report.reportOverviewData?.testExecution)}`,
+        [zgcConfig.测试阶段, 'version'],
+      ).then(async testList => {
+        const testTimes = [];
+        testTimes.push(
+          ...uniq(testList.flatMap(test => test.values[zgcConfig.测试阶段]).filter(Boolean)),
+        );
+        versionName = uniq(testList.flatMap(test => test.values?.version?.[0]?.name))
+          .filter(Boolean)
+          .join('_');
+        return testTimes;
+      });
+
+      const testTimesString = testTimes.join('&').replace(/&+$/, '');
+
+      fileName =
+        '北京中关村银行' +
+        '_' +
+        workspaceName +
+        '_' +
+        versionName +
+        '_' +
+        testTimesString +
+        ' ' +
+        '测试报告';
+    }
     await exportFunc({
-      name: data?.report?.name,
+      name: fileName,
       reportChartGroup: data?.report?.reportChartGroup,
       reportTemplate: data?.template?.reportTemplate?.objectId,
       slotData: slotData.current,

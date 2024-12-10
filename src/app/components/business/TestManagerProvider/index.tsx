@@ -326,6 +326,7 @@ const getOrBatchCreateTestEntities = async (
 
 type RepositoryDataProviderProps = {
   itemId?: string;
+  baseLineItemId?: string;
   workspaceKey?: string;
   children: React.ReactNode;
 };
@@ -336,6 +337,7 @@ const messageKey = ItemCreateSuccessEventType + uuid();
 
 const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
   itemId,
+  baseLineItemId,
   children,
   workspaceKey: workspaceKeyFromProp,
 }) => {
@@ -402,7 +404,24 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
 
       setTestEntity(testEntity);
     };
-    if (itemId && testConfig) {
+    const executeBaseLineItem = async baseLineItemId => {
+      // 先获取事项详情
+      const {
+        list: [testEntity],
+      } = await getTestEntityByQuery({
+        query: {
+          id: baseLineItemId,
+        },
+        selector: `'baseLineSources' in ['BaseLineItemVersion']`,
+      });
+      setTestEntity(testEntity);
+    };
+
+    if (baseLineItemId) {
+      executeBaseLineItem(baseLineItemId);
+    }
+
+    if (itemId && !baseLineItemId && testConfig) {
       execute();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -573,6 +592,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
       workspace,
       testEntity,
       setTestEntity,
+      baseLineItemId,
     };
   }, [
     testConfig.itemTypeMap,
@@ -584,6 +604,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
     testConfig?.testRunAction?.iql,
     workspace,
     testEntity,
+    baseLineItemId,
   ]);
 
   const baseActionContextValues = React.useMemo(() => {

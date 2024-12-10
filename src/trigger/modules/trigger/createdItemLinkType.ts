@@ -36,6 +36,7 @@ export const createdItemLinkType = async () => {
           await requestCoreApi('PUT', `/parse/api/v2/items/${caseId}`, {
             values: {
               __screen_type: 'view',
+              r_test_manager_linkType: 'CaseLinkPlan',
               r_test_manager_linkItems: [...originalLinkItems, item.values.r_test_manager_plan],
             },
             parseContext: {
