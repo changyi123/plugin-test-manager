@@ -571,7 +571,9 @@ export const zgcTestReportInfo = async () => {
               .filter(Boolean),
             'objectId',
           );
-          const close_count = bugList.filter(b => (b.status as any)?.name === '已关闭').length;
+          const close_count = bugList.filter(
+            b => (b.status as any)?.name === (zgcConfig.已关闭 ?? '已关闭'),
+          ).length;
           const validLength = bugList.filter(b =>
             (zgcConfig.有效解决方案 || []).includes(b.values[zgcConfig.解决方案]?.toString()),
           ).length;
@@ -581,7 +583,9 @@ export const zgcTestReportInfo = async () => {
             name: i.name,
             bug_total: bugList.length,
             close_count,
-            deferred_count: bugList.filter(b => (b.status as any)?.name === '延期处理').length,
+            deferred_count: bugList.filter(
+              b => (b.status as any)?.name === (zgcConfig.延期待解决 ?? '延期待解决'),
+            ).length,
             not_close_count: bugList.length - close_count,
             discover_rate: `${((100 * discoverBugs.length) / total).toFixed(2)}%`,
             close_rate: `${((100 * close_count) / total).toFixed(2)}%`,

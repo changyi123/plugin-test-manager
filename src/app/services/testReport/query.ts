@@ -141,6 +141,8 @@ export const useTestReportV2ByObjectId = objectId => {
           id: [objectId],
           type: TestType.Report,
         },
+        notConcatField: true,
+        fields: [],
       }).then(async (data: any) => {
         const report = data?.list?.[0];
         let template;
