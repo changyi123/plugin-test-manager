@@ -2,7 +2,12 @@ import { getParseQuery, requestCoreApi } from '@giteeteam/apps-team-api';
 import uniqBy from 'lodash/uniqBy';
 
 import { TestFiledKeyMapping, TestType } from '../../../common/constant';
-import { buildResponse, fetchBugFromItemLinks, getReqInfoFromVMRuntime } from '../../lib/apiUtil';
+import {
+  buildResponse,
+  fetchBugFromItemLinks,
+  fetchByItemLinks,
+  getReqInfoFromVMRuntime,
+} from '../../lib/apiUtil';
 
 const zgcConfig = global.env?.ZGC_CONFIG ?? {};
 const STATUS_MAP = zgcConfig?.statusMap ?? {
@@ -111,7 +116,6 @@ export const zgcTestReportInfo = async () => {
   try {
     let res = {} as any;
     let runList = [];
-    let caseMap = {};
     const setRes = data => {
       res = { ...res, ...data };
       return res;
@@ -225,18 +229,6 @@ export const zgcTestReportInfo = async () => {
       });
 
       const result_exec = zgcConfig.最新执行结果 ?? 'result_exec';
-      const requestCaseList = search(
-        `id in ${JSON.stringify(executionRefTestEntityIds[TestType.Case])}`,
-        ['id', zgcConfig.最新执行结果 ?? 'result_exec'],
-      ).then(list => {
-        caseMap = list.reduce(
-          (prev, i) => ({
-            ...prev,
-            [i.id]: i,
-          }),
-          {},
-        );
-      });
 
       const setToolList = async reportRes => {
         let tools = [];
@@ -289,13 +281,7 @@ export const zgcTestReportInfo = async () => {
         setRes({ storyList });
       });
 
-      await Promise.all([
-        requestTestList,
-        requestTestPlanList,
-        requestReportList,
-        requestRunList,
-        requestCaseList,
-      ]);
+      await Promise.all([requestTestList, requestTestPlanList, requestReportList, requestRunList]);
       res.planList?.forEach(plan => {
         if (plan.ancestor?.objectId && !storyMap[plan.ancestor.objectId]) {
           storyMap[plan.ancestor?.objectId] = { ...plan.ancestor, id: plan.ancestor.objectId };
@@ -405,34 +391,13 @@ export const zgcTestReportInfo = async () => {
       const getRunStatics = () => {
         const map = {};
         const tableMap = {};
-        const storyTableMap = res.planList?.reduce((map, plan) => {
-          if (plan.ancestor?.objectId && !map[plan.ancestor.objectId]) {
-            map[plan.ancestor.objectId] = {
-              storyName: plan.ancestor?.name,
-              total: 0,
-              cancel_count: 0,
-              todo_count: 0,
-              passed_count: 0,
-              failed_count: 0,
-              block_count: 0,
-              executing_count: 0,
-              passPercent: 0,
-            };
-          }
-          return map;
-        }, {});
         const testerMap = {};
         res.testList.forEach(test => {
           map[test.objectId] = test.values?.[zgcConfig?.测试阶段 ?? 'ceshijieduan']?.[0];
         });
 
-        const caseSet = {};
         runList.forEach(run => {
           const test_time = map[run.values[TestFiledKeyMapping.linkItems][0]];
-          const storyId =
-            storyMap[
-              planToStoryMap?.[testToPlanMap?.[run.values[TestFiledKeyMapping.linkItems][0]]]
-            ]?.id;
           const executor = run.values[TestFiledKeyMapping.executor]?.[0]?.nickname;
           if (executor) {
             testerMap[executor] = true;
@@ -454,34 +419,12 @@ export const zgcTestReportInfo = async () => {
           const key = `${(run.values[TestFiledKeyMapping.status] ?? '').toLowerCase()}_count`;
           tableMap[test_time][key] += 1;
           tableMap[test_time].total += 1;
-
-          const testCase = caseMap[run.values[TestFiledKeyMapping.referenceCase]];
-          const caseKey = `${(
-            STATUS_MAP[testCase?.values[result_exec]] ?? 'todo'
-          ).toLowerCase()}_count`;
-          if (!caseSet[storyId]?.length) {
-            caseSet[storyId] = [];
-          }
-
-          if (testCase && !caseSet[storyId].includes(testCase.id)) {
-            caseSet[storyId].push(testCase.id);
-            storyTableMap[storyId][caseKey] += 1;
-            storyTableMap[storyId].total += 1;
-          }
         });
         const list = Object.values(tableMap).map((row: any) => {
           row.passPercent = `${((row.passed_count * 100) / (row.total || 1)).toFixed(2)}%`;
           return row;
         });
 
-        const storyStaticList = Object.values(storyTableMap).map((row: any) => {
-          row.passPercent = `${((row.passed_count * 100) / (row.total || 1)).toFixed(2)}%`;
-          row.executedPercent = `${(
-            ((row.total - row.todo_count) * 100) /
-            (row.total || 1)
-          ).toFixed(2)}%`;
-          return row;
-        });
         const executors = Object.keys(testerMap).join('、');
 
         const columns = [
@@ -495,6 +438,87 @@ export const zgcTestReportInfo = async () => {
           { title: '通过率', dataIndex: 'passPercent' },
         ];
 
+        setRes({ ['用例执行统计']: createTable(columns, list, 'run') });
+        setRes({ ['用例执行统计表格']: list });
+        setRes({ executors });
+      };
+      getRunStatics();
+
+      // 需求和用例的统计
+      const getCaseStaticsByStage = async () => {
+        const _storyList = uniqBy(
+          executionRefTestEntityIds.self
+            .map(executionId => {
+              return storyMap[planToStoryMap?.[testToPlanMap?.[executionId]]];
+            })
+            .filter(Boolean),
+          'id',
+        ) as any[];
+        // 查询需求关联的测试用例
+        const [links, cases] = await fetchByItemLinks(
+          _storyList.map(i => i.id),
+          `'test_manager_type' in ['TestCase']`,
+          ['id', result_exec],
+        );
+        console.info('查看需求关联的测试用例', JSON.stringify({ cases }));
+
+        const storyTableMap = res.planList?.reduce((map, plan) => {
+          if (plan.ancestor?.objectId && !map[plan.ancestor.objectId]) {
+            map[plan.ancestor.objectId] = {
+              storyName: plan.ancestor?.name,
+              total: 0,
+              cancel_count: 0,
+              todo_count: 0,
+              passed_count: 0,
+              failed_count: 0,
+              block_count: 0,
+              executing_count: 0,
+              passPercent: 0,
+            };
+          }
+          return map;
+        }, {});
+
+        const caseSet = {};
+        // 构建表格数据
+        _storyList.forEach(i => {
+          const caseList = uniqBy(
+            links
+              .filter(d => d.source.objectId === i.id || d.destination.objectId === i.id)
+              .map(b =>
+                cases.find(
+                  (c: any) => c.id === b.destination.objectId || c.id === b.source.objectId,
+                ),
+              )
+              .filter(Boolean),
+            'objectId',
+          );
+
+          const storyId = i.id;
+          caseList.forEach((testCase: any) => {
+            const caseKey = `${(
+              STATUS_MAP[testCase?.values[result_exec] as string] ?? 'todo'
+            ).toLowerCase()}_count`;
+            if (!caseSet[storyId]?.length) {
+              caseSet[storyId] = [];
+            }
+
+            if (testCase && !caseSet[storyId].includes(testCase.id)) {
+              caseSet[storyId].push(testCase.id);
+              storyTableMap[storyId][caseKey] += 1;
+              storyTableMap[storyId].total += 1;
+            }
+          });
+        });
+        // 构建表格
+        const storyStaticList = Object.values(storyTableMap).map((row: any) => {
+          row.passPercent = `${((row.passed_count * 100) / (row.total || 1)).toFixed(2)}%`;
+          row.executedPercent = `${(
+            ((row.total - row.todo_count) * 100) /
+            (row.total || 1)
+          ).toFixed(2)}%`;
+          return row;
+        });
         const storyStaticColumns = [
           { title: '需求名称', dataIndex: 'storyName' },
           { title: '需求用例总数', dataIndex: 'total' },
@@ -507,17 +531,16 @@ export const zgcTestReportInfo = async () => {
           { title: '需求用例执行率', dataIndex: 'executedPercent' },
           { title: '需求用例执行通过率', dataIndex: 'passPercent' },
         ];
-        setRes({ ['用例执行统计']: createTable(columns, list, 'run') });
-        setRes({ ['用例执行统计表格']: list });
+
         setRes({
           ['需求相关用例执行统计']: createTable(storyStaticColumns, storyStaticList, 'story'),
         });
         setRes({
           ['需求相关用例执行统计表格']: storyStaticList,
         });
-        setRes({ executors });
       };
-      getRunStatics();
+
+      await getCaseStaticsByStage();
 
       // 保存需求相关缺陷统计
       const getBugStaticsByStory = async () => {

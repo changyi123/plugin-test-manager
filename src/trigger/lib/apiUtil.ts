@@ -134,3 +134,35 @@ export const fetchBugFromItemLinks = async (
 
   return [links.map(i => i.toJSON()), items];
 };
+
+// 在关联表中根据从sourceId查询到target
+export const fetchByItemLinks = async (
+  ids: string[],
+  extendIql?: string,
+  fields?: string[],
+): Promise<[any[], Item[]]> => {
+  const links = await getParseQuery(false, 'ItemLink')
+    ._orQuery([
+      getParseQuery(false, 'ItemLink').containedIn('source', ids),
+      getParseQuery(false, 'ItemLink').containedIn('destination', ids),
+    ])
+    .findAll({ useMasterKey: true });
+  if (!links?.length) return [[], []];
+  let iql = `id in ['${links
+    .flatMap(d => [d.get('destination').objectId, d.get('source').objectId])
+    .filter(id => !ids.includes(id))
+    .join("','")}']`;
+  if (extendIql) {
+    iql += ` and ${extendIql}`;
+  }
+  const {
+    payload: { items },
+  } = await iqlSearch({
+    iql,
+    displayContext: AppKey,
+    fields: fields?.length ? fields : [],
+    limit: links.length,
+  });
+
+  return [links.map(i => i.toJSON()), items];
+};
