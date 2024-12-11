@@ -125,16 +125,35 @@ export const dssTestReportInfo = async () => {
           TestFiledKeyMapping.linkItems,
           TestFiledKeyMapping.status,
           TestFiledKeyMapping.repository,
+          TestFiledKeyMapping.referenceCase,
+          TestFiledKeyMapping.referenceCaseSnapshot,
         ],
       );
 
       if (testRuns.length) {
         const workspaceKey = testExecutions[0].workspace.key;
         const fullRepoPathMap = await getRepositoryData(workspaceKey);
-        console.info('fullRepoPathMap', fullRepoPathMap);
         const repoTableMap = {};
 
-        
+        const caseIds = testRuns.flatMap(run =>
+          [
+            run.values[TestFiledKeyMapping.referenceCaseSnapshot],
+            run.values[TestFiledKeyMapping.referenceCase],
+          ].filter(Boolean),
+        );
+        const executionIds = testExecutions.map(execution => execution.id);
+        const cases = await search(
+          `id in ${JSON.stringify(caseIds)} and ('baseLineSources' in ${JSON.stringify(
+            executionIds,
+          )} or 'baseLineSources' is null)`,
+          ['id', TestFiledKeyMapping.repository],
+        );
+        const caseRepoMap = cases.reduce(
+          (m, i) => ({ ...m, [i.id]: i.values[TestFiledKeyMapping.repository] }),
+          {},
+        );
+
+        console.info('fullRepoPathMap', fullRepoPathMap, caseRepoMap);
 
         testRuns.forEach(run => {
           const key = `${(run.values[TestFiledKeyMapping.status] ?? '').toLowerCase()}_count`;
@@ -143,7 +162,12 @@ export const dssTestReportInfo = async () => {
             testExecutionsMap[run.values[TestFiledKeyMapping.linkItems][0]].total += 1;
           }
           const fullPath =
-            fullRepoPathMap[run.values[TestFiledKeyMapping.repository]] ?? UngroupedRepository;
+            fullRepoPathMap[
+              caseRepoMap[
+                run.values[TestFiledKeyMapping.referenceCaseSnapshot] ||
+                  run.values[TestFiledKeyMapping.referenceCase]
+              ]
+            ] ?? UngroupedRepository;
           if (!repoTableMap[fullPath]) {
             repoTableMap[fullPath] = {
               fullPath,
