@@ -19,6 +19,7 @@ let builtinItemTypes = null;
 const FormFieldKey = {
   enableItemTypeAutoBind: 'enableItemTypeAutoBind',
   initialItemTypeMapping: 'initialItemTypeMapping',
+  enableCaseSnapshot: 'enableCaseSnapshot',
 } as const;
 
 const TestConfigInitialization = () => {
@@ -31,6 +32,7 @@ const TestConfigInitialization = () => {
 
   const form = Form.useForm()[0];
   const enableItemTypeAutoBind = Form.useWatch(FormFieldKey.enableItemTypeAutoBind, form);
+  const enableCaseSnapshot = Form.useWatch(FormFieldKey.enableCaseSnapshot, form);
 
   React.useEffect(() => {
     form.setFieldsValue(pick(globalConfig?.extra, Object.keys(FormFieldKey)));
@@ -45,7 +47,7 @@ const TestConfigInitialization = () => {
       const values = form.getFieldsValue();
       if (values.enableItemTypeAutoBind && !Object.keys(values.initialItemTypeMapping).length) {
         builtinItemTypes = await getBuiltinItemTypes();
-        if (builtinItemTypes.length !== 3) return message.error(scopeT('builtinItemTypeChanged'));
+        if (builtinItemTypes.length !== 4) return message.error(scopeT('builtinItemTypeChanged'));
         // 事项类型映射
         values[FormFieldKey.initialItemTypeMapping] = BuiltinItemTypeMapping;
       }
@@ -61,6 +63,13 @@ const TestConfigInitialization = () => {
 
   return (
     <Form form={form} onFinish={handleSubmit} className={cx('container')}>
+      <Form.Item
+        label={<div>{scopeT('switchSnapshotLabel')}</div>}
+        name={FormFieldKey.enableCaseSnapshot}
+        valuePropName="checked"
+      >
+        <Switch checked={enableCaseSnapshot} />
+      </Form.Item>
       <Form.Item
         label={<div>{scopeT('switchLabel')}</div>}
         name={FormFieldKey.enableItemTypeAutoBind}

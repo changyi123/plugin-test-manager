@@ -4,6 +4,7 @@ import { addAuditLog } from '@giteeteam/apps-team-api';
 import isObject from 'lodash/isObject';
 
 import {
+  BuiltinFieldNameMapping,
   BuiltInItemTypeMapping,
   FIELD_TYPE,
   InfinityLimit,
@@ -43,7 +44,7 @@ import {
 import { iqlRequest } from '../../lib/iqlRequest';
 import { getItemCreateRequiredAttrs } from '../../lib/item';
 import { testEntityFieldTypeValidator, throwArgumentError } from '../../lib/validator';
-import { queryFields } from './../../lib/coreApi';
+import { operateSnapshots, queryFields } from './../../lib/coreApi';
 
 type TestCaseType = TestEntity<TestType.Case>;
 type TestRunType = TestEntity<TestType.Run>;
@@ -65,7 +66,7 @@ export const batchCreateTestCase = async () => {
       sortIndex: generateSortIndex(),
     }));
 
-    const res = await batchCreateItems(params as any);
+    const res = (await batchCreateItems(params as any)) as any;
     return buildResponse(res.map(itemToTestEntity));
   } catch (err) {
     return buildResponse(err);
@@ -196,6 +197,7 @@ const getRunDataByLinkItemDelete = async data => {
       linkType: TestLinkType.RunLinkExecution,
     },
     fields: [SystemField.Id],
+    selector: `'${BuiltinFieldNameMapping.referenceCaseSnapshot}' is null`,
     pagination: { limit: InfinityLimit, offset: 0 },
   });
 
@@ -306,6 +308,7 @@ export const batchCreateTestRun = async () => {
     const {
       body: { executionId, caseIds },
     } = getReqInfoFromVMRuntime<BatchCreateTestRunPayload>();
+    const APP_KEY = global.appKey ?? 'test_manager';
 
     if (!Array.isArray(caseIds)) throwArgumentError('caseIds', 'objectId[]');
 
@@ -320,6 +323,7 @@ export const batchCreateTestRun = async () => {
         pagination: { limit: InfinityLimit },
         fields: [
           SystemField.Id,
+          SystemField.Key,
           SystemField.Name,
           SystemField.ItemGroup,
           SystemField.Workspace,
@@ -352,6 +356,22 @@ export const batchCreateTestRun = async () => {
       return new Set(existedReferenceCaseIds.map(item => item.referenceCase));
     };
 
+    // 获取测试执行任务 testExecution
+    const getExecution = async () => {
+      const {
+        data: {
+          list: [testPlan],
+        },
+      } = await iqlRequest({
+        query: {
+          id: [executionId],
+        },
+        fields: [SystemField.Name],
+      });
+
+      return testPlan;
+    };
+
     // 获取测试执行任务关联的 testPlan
     const getExecutionLinkedTestPlan = async () => {
       const {
@@ -382,15 +402,63 @@ export const batchCreateTestRun = async () => {
       getExistedTestRunReferenceCaseIdSet(),
     ]);
 
+    const needCaseList = caseList
+      // 过滤已规划的测试用例
+      .filter(testCase => !existedReferenceCaseIdSet.has(testCase.objectId));
+
+    // 创建测试用例快照
+    // 1. 获取用例所属空间是否支持规划时批量快照
+    // 2. 创建测试用例快照
+    const batchCreateCaseSnapshot = async () => {
+      let caseSnapshotMap = {};
+      const workspaceKeys = needCaseList.reduce((keys, i) => {
+        const workspaceKey = i?.workspace?.key;
+        if (workspaceKey && !keys.includes(workspaceKey)) {
+          keys.push(workspaceKey);
+        }
+        return keys;
+      }, []);
+      const workspaceConfigs = await getParseQuery(false, 'test_manager_TestConfig')
+        .containedIn('workspaceKey', workspaceKeys)
+        .select(['workspaceKey', 'enableCaseSnapshot'])
+        .findAll({ useMasterKey: true })
+        .then(data =>
+          data?.reduce((m, i) => {
+            return {
+              ...m,
+              [i.get('workspaceKey')]: i.get('enableCaseSnapshot'),
+            };
+          }, {}),
+        );
+
+      const caseSnapshots = needCaseList.filter(i => workspaceConfigs[i.workspace?.key]);
+      if (caseSnapshots.length) {
+        const testExecution = await getExecution();
+        const snapshots = await operateSnapshots({
+          add: {
+            keys: caseSnapshots.map(i => i.key),
+          },
+          sourceId: executionId,
+          sourceType: APP_KEY,
+          baseLineItemVersion: {
+            name: testExecution.name,
+          },
+        });
+        caseSnapshotMap = snapshots?.baselineItems?.reduce(
+          (m, v) => ({ ...m, [v.itemId]: v.objectId }),
+          caseSnapshotMap,
+        );
+      }
+      return caseSnapshotMap;
+    };
+
     // 创建测试执行
     // 1. 查所有测试用例
     // 2. 创建测试执行
     // 3. 过滤已规划的测试用例
     // 4. 创建测试执行并关联
-    const batchCreateTestRuns = async () => {
-      const needCreatedItems = caseList
-        // 过滤已规划的测试用例
-        .filter(testCase => !existedReferenceCaseIdSet.has(testCase.objectId))
+    const batchCreateTestRuns = async caseSnapshotMap => {
+      const needCreatedItems = needCaseList
         // 生成需要创建的测试执行属性
         .map(data => {
           // 关联数据，测试执行关联测试执行任务
@@ -419,18 +487,19 @@ export const batchCreateTestRun = async () => {
             status: StartStatusKey,
             name: data.name,
             referenceCase: data.objectId,
+            referenceCaseSnapshot: caseSnapshotMap[data.objectId],
             createdBy: data.createdBy,
           };
         });
 
-      return await batchCreateItems(needCreatedItems as any);
+      return await batchCreateItems(needCreatedItems as any, null, null, true);
     };
 
     // 创建测试计划和测试用例的关联关系
     // 1. 获取测试执行任务关联的测试计划
     // 2. 更新测试计划和测试用例的关联
     // 3. 将 caseStatus 中的 caseStatus 置为 TODO
-    const batchUpdateTestPlanLinkCase = async () => {
+    const batchUpdateTestPlanLinkCase = async caseIds => {
       // 可能存在测试执行任务没有关联计划的情况，需要做容错处理
       if (testPlan) {
         const linkItemParams = caseIds.map(caseId => ({
@@ -478,12 +547,20 @@ export const batchCreateTestRun = async () => {
       }
     };
 
-    const createdTestRuns = await batchCreateTestRuns();
-    // 因为增加了权限，这里需要避免创建执行失败，又规划了用例
-    await batchUpdateTestPlanLinkCase();
+    const caseSnapshotMap = await batchCreateCaseSnapshot();
+    const { items, errors } = (await batchCreateTestRuns(caseSnapshotMap)) as any;
+    const createdTestRuns = items.filter(Boolean);
+    const linkCaseIds = createdTestRuns
+      .map(i => i.values?.[TestFiledKeyMapping.referenceCase])
+      .filter(Boolean);
 
-    const createdItemIds = createdTestRuns.filter(Boolean).map(item => item.objectId);
+    // 因为增加了权限，这里需要避免创建执行失败，又规划了用例
+    await batchUpdateTestPlanLinkCase(linkCaseIds);
+
+    const createdItemIds = createdTestRuns.map(item => item.objectId);
     console.info('create success res: ', createdItemIds);
+
+    if (errors.length) throw new Error(errors.join(';'));
     return buildResponse(createdItemIds);
     // 查询测试执行任务
   } catch (err) {
@@ -691,7 +768,7 @@ export const batchCopyTestCaseV2 = async () => {
       repository: to ? to.repository : data.repository,
     }));
 
-    const copyItems = await batchCreateItems(needCreateItems as any, fields, sessionToken);
+    const copyItems = (await batchCreateItems(needCreateItems as any, fields, sessionToken)) as any;
     const result = buildResponse(copyItems);
     if (result.status === 'ok') {
       if (!copyItems?.length) return result;

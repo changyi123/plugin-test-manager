@@ -87,6 +87,7 @@ export const itemToTestEntity = item => {
     'status',
     'objectId',
     'itemType',
+    'itemId',
     'itemGroup',
     'workspace',
     'createdAt',

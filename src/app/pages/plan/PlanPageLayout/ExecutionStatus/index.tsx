@@ -6,7 +6,8 @@ import React from 'react';
 
 import { StatusProgress } from '@/components/business/Status';
 import { getTestStats } from '@/lib/api/item';
-import { TestLinkType, TestType } from '@/lib/constants';
+import { BuiltinFieldNameMapping, TestFiledKeyMapping, TestLinkType, TestType } from '@/lib/constants';
+import { useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 
 import { usePageContext } from '../../hook';
@@ -19,6 +20,7 @@ interface ExecutionStatusProps {
 const ExecutionStatus: React.FC<ExecutionStatusProps> = ({ selectedExecution }) => {
   const { t } = useI18n();
   const { mutateStatusEvent, workspaceKey } = usePageContext();
+  const { config } = useTestConfig();
   const { data, refresh, loading } = useRequest(
     async () => {
       if (!selectedExecution?.objectId) return [];
@@ -30,6 +32,9 @@ const ExecutionStatus: React.FC<ExecutionStatusProps> = ({ selectedExecution }) 
             workspaceKey: workspaceKey,
             type: TestType.Run,
           },
+          selector: config.enableCaseSnapshot
+            ? ''
+            : `${BuiltinFieldNameMapping.referenceCase} is not null`,
           linkType: TestLinkType.RunLinkExecution,
           sourceIds: [selectedExecution?.objectId],
           destinationType: TestType.Run,

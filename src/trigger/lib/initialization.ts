@@ -289,7 +289,11 @@ export const BuiltInInitializationStages: Record<string, InitializationStage> = 
         .map(workspace => {
           const testConfig = testConfigs.find(i => i.workspaceKey === workspace.key);
           // 已经被初始化，但是 itemTypeMap 为空，需要重新初始化
-          if (!testConfig?.itemTypeMap || !Object.keys(testConfig?.itemTypeMap ?? {}).length)
+          if (
+            !testConfig?.itemTypeMap ||
+            !Object.keys(testConfig?.itemTypeMap ?? {}).length ||
+            typeof testConfig?.enableCaseSnapshot !== 'boolean'
+          )
             return {
               workspaceKey: workspace?.key,
               itemTypeMap: testConfig?.itemTypeMap,
@@ -320,6 +324,7 @@ export const BuiltInInitializationStages: Record<string, InitializationStage> = 
       const testConfigs = instance.getConfigStorage('testConfigs');
 
       let initialItemTypeMapping = globalTestConfig?.extra?.initialItemTypeMapping;
+      const enableCaseSnapshot = !!globalTestConfig?.extra?.enableCaseSnapshot;
 
       if (
         // 不存在初始化的配置
@@ -329,7 +334,7 @@ export const BuiltInInitializationStages: Record<string, InitializationStage> = 
         globalTestConfig?.extra?.isolatedSystem
       ) {
         const builtInItemTypes = await dataFetcher.getBuiltInItemType();
-        if (builtInItemTypes.length === 3) {
+        if (builtInItemTypes.length === 4) {
           initialItemTypeMapping = Constants.DefaultBuiltInItemTypeMap;
         }
       }
@@ -433,6 +438,7 @@ export const BuiltInInitializationStages: Record<string, InitializationStage> = 
             global: false,
             isolateTestType: Constants.DefaultIsolateTestType,
             itemTypeMap: enableUpdateItemTypeMap ? initialItemTypeMapping : undefined,
+            enableCaseSnapshot: enableCaseSnapshot,
             workspaceKey: workspaceInfo.key,
             defectsMapping: [],
             tableFields: {
@@ -455,6 +461,11 @@ export const BuiltInInitializationStages: Record<string, InitializationStage> = 
                 id: existedTestConfigObjectId,
                 objectId: existedTestConfigObjectId,
               });
+              (testConfigParseObject as any).id = testConfigParseObject;
+            }
+
+            if (typeof workspaceInfo.testConfig?.enableCaseSnapshot !== 'boolean') {
+              testConfigParseObject.set('enableCaseSnapshot', enableCaseSnapshot);
               (testConfigParseObject as any).id = testConfigParseObject;
             }
           } else {

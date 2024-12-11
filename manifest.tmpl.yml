@@ -2,7 +2,7 @@ app:
   key: test_manager
   uuid: bf73e61c-e15a-4461-a1f7-f940c2009332
   name: test_manager
-  version: "4.29.1"
+  version: "4.30.0"
 modules:
   webtrigger:
     # TODO: Debug 使用，生产环境禁止调用下面的 trigger
@@ -507,6 +507,10 @@ modules:
       name: test_manager_referenceCase
       description: 测试管理内置字段-测试用例引用（勿删改）
       type: _self:es_text_keyword
+    - key: referenceCaseSnapshot
+      name: test_manager_referenceCaseSnapshot
+      description: 测试管理内置字段-测试用例快照引用（勿删改）
+      type: _self:es_text_keyword
     - key: type
       description: 测试管理内置字段-测试管理类型（勿删改）
       name: test_manager_type
@@ -733,6 +737,8 @@ tables:
       # 关联统计报表
       chartGroups:
         type: Object
+      enableCaseSnapshot:
+        type: Boolean
   - className: TestRelation
     fields:
       from:

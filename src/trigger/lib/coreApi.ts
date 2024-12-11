@@ -80,3 +80,6 @@ export const queryWorkspace = withCoreApiRequest([
   (params: any) =>
     `/parse/api/workspace/${params.workspaceKeyOrId}/scheme?include=${params.include}`,
 ]);
+
+// 批量操作快照
+export const operateSnapshots = withCoreApiRequest(['POST', `/parse/api/baseLineItems`]);

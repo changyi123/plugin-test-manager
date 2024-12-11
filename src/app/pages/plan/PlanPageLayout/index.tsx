@@ -8,6 +8,7 @@ import TestEntitySelectorModal, {
   ActionType as ModelActionType,
 } from '@/components/business/TestEntitySelectorModal';
 import PageLayout from '@/components/common/PageLayout';
+import BasicPageLayout from '@/components/common/PageLayout/Basic';
 import { batchCreateTestRun, getLinkedTestEntityByQuery, updateTestEntity } from '@/lib/api/item';
 import { PROXIMA_EVENT_KEY, TestLinkType, TestType } from '@/lib/constants';
 import { useBaseAction } from '@/lib/hooks/useContext';
@@ -18,11 +19,7 @@ import TestPlanList from '@/pages/plan/TestPlanList';
 
 import { usePageContext } from '../hook';
 import Header from './Header';
-import {
-  useGetExecutionLinkCaseRunIds,
-  useGetPlanLinkCaseIds,
-  useResizeContainerDOM,
-} from './hooks';
+import { useGetExecutionLinkCaseRunIds, useGetPlanLinkCaseIds } from './hooks';
 import cx from './index.less';
 import Left from './Left';
 import NoData from './NoData';
@@ -37,6 +34,8 @@ const PlanPageLayout: React.FC<any> = () => {
     workspaceKey,
     selectedTestPlan,
     runLinkCaseIds,
+    runLinkSnapshotIds,
+    setRunLinkSnapshotIds,
     setSearchParams,
     // setSelectedTestPlan,
     setPlanLinkCaseIds,
@@ -46,7 +45,6 @@ const PlanPageLayout: React.FC<any> = () => {
   const { t } = useI18n();
   const executionListRef = React.useRef<ExecutionListRef>();
   const selectorModalRef = React.useRef<ModelActionType>();
-  useResizeContainerDOM(selectedTestPlan?.objectId);
   const detailSearchRef = useRef(null);
   const pageLeftRef = useRef(null);
   const { createItemUseModal } = useBaseAction();
@@ -105,18 +103,27 @@ const PlanPageLayout: React.FC<any> = () => {
   useUpdateEffect(() => {
     setRunLinkCaseIds(scopeTestRunIds?.runLinkCaseIds);
     setExecutionLinkRunIds(scopeTestRunIds?.executionLinkRunIds);
+    setRunLinkSnapshotIds(scopeTestRunIds?.runLinkSnapshotIds);
   }, [scopeTestRunIds]);
 
   useUpdateEffect(() => {
     if (!workspaceKey || !selectedTestPlan?.objectId) return;
     if (activeType === 'TestExecution') {
-      setTreeParams({
+      if (runLinkSnapshotIds?.length && !selectedExecution?.objectId) return;
+      const treeParams = {
         query: {
           workspaceKey: workspaceKey,
           type: TestType.Case,
           id: runLinkCaseIds,
         },
-      });
+        selector: '',
+      };
+
+      if (runLinkSnapshotIds?.length) {
+        treeParams.query.id = runLinkSnapshotIds;
+        treeParams.selector = `'baseLineSources' in ['${selectedExecution.objectId}']`;
+      }
+      setTreeParams(treeParams);
     } else {
       setTreeParams({
         query: {
@@ -128,7 +135,14 @@ const PlanPageLayout: React.FC<any> = () => {
         destinationType: TestType.Case,
       });
     }
-  }, [activeType, runLinkCaseIds, selectedTestPlan?.objectId, workspaceKey]);
+  }, [
+    activeType,
+    runLinkCaseIds,
+    selectedTestPlan?.objectId,
+    workspaceKey,
+    selectedExecution,
+    runLinkSnapshotIds,
+  ]);
 
   useUpdateEffect(() => {
     if (!selectedTestPlan?.objectId) return;
@@ -365,7 +379,9 @@ const PlanPageLayout: React.FC<any> = () => {
   return (
     <div className={cx('test-plan-page')}>
       {!selectedTestPlan?.objectId ? (
-        <TestPlanList />
+        <BasicPageLayout id={selectedExecution?.objectId}>
+          <TestPlanList />
+        </BasicPageLayout>
       ) : (
         <>
           <PageLayout>

@@ -98,6 +98,7 @@ export const TestFieldTypeKeyMapping = {
   executeTime: 'r_test_manager_executeTime',
   repository: 'r_test_manager_repository_keyword',
   referenceCase: 'r_test_manager_es_text_keyword',
+  referenceCaseSnapshot: 'r_test_manager_es_text_keyword',
   status: 'r_test_manager_es_text_keyword',
 };
 
@@ -107,6 +108,7 @@ export const TestFiledKeyMapping = {
   linkItems: 'r_test_manager_linkItems',
   status: 'r_test_manager_status',
   referenceCase: 'r_test_manager_referenceCase',
+  referenceCaseSnapshot: 'r_test_manager_referenceCaseSnapshot',
   type: 'r_test_manager_type',
   caseStatus: 'r_test_manager_caseStatus',
   caseExecutor: 'r_test_manager_caseExecutor',
@@ -142,6 +144,7 @@ export const BuiltinFieldNameMapping = {
   linkItems: 'test_manager_linkItems',
   status: 'test_manager_status',
   referenceCase: 'test_manager_referenceCase',
+  referenceCaseSnapshot: 'test_manager_referenceCaseSnapshot',
   type: 'test_manager_type',
   caseStatus: 'test_manager_caseStatus',
   caseExecutor: 'test_manager_caseExecutor',

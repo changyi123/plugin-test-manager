@@ -1,10 +1,14 @@
 /**
  * @file 测试用例相关统计
  */
+import { getParseQuery } from '@giteeteam/apps-team-api';
+
 import {
+  BuiltinFieldNameMapping,
   InfinityLimit,
   StartStatusKey,
   SystemField,
+  TestConfigClassName,
   TestFieldTypeKeyMapping,
   TestFiledKeyMapping,
   TestLinkType,
@@ -195,13 +199,20 @@ export const testPlanStats = async () => {
  */
 export const testExecutionStats = async () => {
   const {
-    body: { select = [], executionIds },
+    body: { select = [], executionIds, workspaceKey },
   } = getReqInfoFromVMRuntime<TestExecutionStatsPayload>();
 
   const taskPool = buildStatsTaskPool();
 
   // 测试执行用例统计数据
   taskPool.register(['runStatus', 'runCount'], async function (result) {
+    let enableCaseSnapshot = false;
+    if (workspaceKey) {
+      enableCaseSnapshot = await getParseQuery(false, TestConfigClassName)
+        .equalTo('workspaceKey', workspaceKey)
+        .first({ useMasterKey: true })
+        .then(item => item.get('enableCaseSnapshot'));
+    }
     const {
       data: { list: testRuns },
     } = await iqlRequest<TestRunEntityType>({
@@ -212,6 +223,7 @@ export const testExecutionStats = async () => {
       },
       fields: [TestFiledKeyMapping.status, TestFiledKeyMapping.linkItems],
       pagination: { limit: InfinityLimit, offset: 0 },
+      selector: enableCaseSnapshot ? '' : `${BuiltinFieldNameMapping.referenceCase} is not null`,
     });
 
     testRuns.forEach(item => {
@@ -361,6 +373,7 @@ export const testCount = async () => {
       payload,
       limit: InfinityLimit,
       order: [],
+      andCompositionIqlStr: params.selector,
     });
     query.iql = iql;
   }

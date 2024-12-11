@@ -177,6 +177,7 @@ export const batchCreateItems = async (
   // 创建测试实体时取 data.values 的自定义数据
   fields?: string[],
   sessionToken?: string,
+  ignoreError?: boolean, // 在存在错误时，不直接抛出
 ) => {
   // 需要创建的事项数据
   const itemsData = chunk(data, BatchChunkSize, item => {
@@ -218,6 +219,14 @@ export const batchCreateItems = async (
     JSON.stringify({ items: items?.length, errors: errors?.length }),
     'batchCreateItems',
   );
+
+  if (ignoreError) {
+    return {
+      items,
+      errors,
+    };
+  }
+
   if (errors.length) throw new Error(errors.join(';'));
   return items;
 };

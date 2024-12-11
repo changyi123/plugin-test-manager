@@ -254,6 +254,7 @@ export type TestExecutionStatsPayload = {
   executionIds: string[];
   /** 数据数据字段 */
   select?: ('runStatus' | 'runCount')[];
+  workspaceKey: string;
 };
 
 /**

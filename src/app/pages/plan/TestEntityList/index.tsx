@@ -28,6 +28,7 @@ import {
   updateTestEntity,
   updateTestStatus,
 } from '@/lib/api/item';
+import { openBaseLineViewItemModal } from '@/lib/api/sdk';
 import { useCurrentUser } from '@/lib/api/user';
 import { getCurrentUserSetting, saveUserSetting } from '@/lib/api/userSetting';
 import { getAppEnv } from '@/lib/appEnv';
@@ -95,6 +96,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     planLinkCaseIds: scopedTestCaseIds,
     executionLinkRunIds,
     runLinkCaseIds,
+    runLinkSnapshotIds,
     tableSelectionToggleEvent,
     mutateTestTableList,
   } = usePageContext();
@@ -267,6 +269,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       select: [
         'id',
         'referenceCase',
+        'referenceCaseSnapshot',
         'designee',
         'executor',
         'sortIndex',
@@ -299,6 +302,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         const runData = pick(runCaseMap.get(c.id), [
           'id',
           'referenceCase',
+          'referenceCaseSnapshot',
           'designee',
           'executor',
           'status',
@@ -325,6 +329,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     const {
       workspaceKey,
       runLinkCaseIds,
+      runLinkSnapshotIds,
       executionId,
       selector,
       queryParams,
@@ -335,7 +340,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
 
     const repository = getRepositoryQuery(selectNode, showType);
     // 筛选条件作用在测试用例，所以需要先查询出所有的测试用例，再查出测试执行
-    const { list: cases, total } = await getTestEntityByQuery({
+    const searchParams = {
       query: {
         workspaceKey: workspaceKey,
         type: TestType.Case,
@@ -345,13 +350,20 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       fields: caseFieldKeys ?? [],
       selector,
       ...queryParams,
-    });
+    };
 
-    const { list: runs } = await getLinkedTestEntityByQuery({
+    if (runLinkSnapshotIds?.length) {
+      searchParams.query.id = runLinkSnapshotIds;
+      searchParams.selector.push(`'baseLineSources' in ['${executionId}']`);
+      searchParams.fields.push('itemId');
+    }
+
+    const { list: cases, total } = await getTestEntityByQuery(searchParams);
+
+    const caseSearchParams = {
       query: {
         workspaceKey: workspaceKey,
-        referenceCase: cases.map(d => d.id),
-      },
+      } as any,
       linkType: TestLinkType.RunLinkExecution,
       sourceIds: [executionId],
       limit: 99999,
@@ -359,6 +371,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       select: [
         'id',
         'referenceCase',
+        'referenceCaseSnapshot',
         'designee',
         'executor',
         'sortIndex',
@@ -367,11 +380,24 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         'status',
         'runDetail',
       ],
+    };
+
+    const referenceCase = [];
+    const referenceCaseSnapshot = [];
+    cases.forEach(i => {
+      if (i.itemId) referenceCaseSnapshot.push(i.id);
+      if (i.id) referenceCase.push(i.id);
     });
+
+    if (runLinkSnapshotIds?.length)
+      caseSearchParams.query.referenceCaseSnapshot = referenceCaseSnapshot;
+    else if (referenceCase.length) caseSearchParams.query.referenceCase = referenceCase;
+
+    const { list: runs } = await getLinkedTestEntityByQuery(caseSearchParams as any);
 
     const runCaseMap = new Map();
     runs.forEach(d => {
-      runCaseMap.set(d.referenceCase, d);
+      runCaseMap.set(d.referenceCaseSnapshot ?? d.referenceCase, d);
     });
 
     return {
@@ -379,6 +405,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         const runData = pick(runCaseMap.get(c.id), [
           'id',
           'referenceCase',
+          'referenceCaseSnapshot',
           'designee',
           'executor',
           'status',
@@ -446,6 +473,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         return await getTableDataByFilterCase({
           workspaceKey,
           runLinkCaseIds,
+          runLinkSnapshotIds,
           executionId: selectedExecution.objectId,
           selector: [systemSelectors, filterCaseSelector],
           queryParams,
@@ -463,6 +491,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         JSON.stringify(selectors),
         workspaceKey,
         runLinkCaseIds,
+        runLinkSnapshotIds,
         showType,
       ],
     ),
@@ -480,6 +509,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     type: 'TestExecution',
     runId: executionLinkRunIds,
     runLinkCaseId: runLinkCaseIds,
+    runLinkSnapshotIds,
     selectNode,
     selectors,
     executionId: selectedExecution?.objectId,
@@ -759,7 +789,9 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         },
         extraProps: {
           onClick: record => {
-            openItemViewScreen(record?.caseId);
+            if (record?.referenceCaseSnapshot)
+              openBaseLineViewItemModal(record?.key, record.referenceCaseSnapshot);
+            else openItemViewScreen(record?.caseId);
           },
         },
         render(_, record) {

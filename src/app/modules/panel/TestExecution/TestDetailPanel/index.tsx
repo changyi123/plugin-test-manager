@@ -32,6 +32,7 @@ import {
   getTestEntityByQuery,
   updateTestStatus,
 } from '@/lib/api/item';
+import { openBaseLineViewItemModal } from '@/lib/api/sdk';
 import { getAppEnv } from '@/lib/appEnv';
 import { TestLinkType, TestType } from '@/lib/constants';
 import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
@@ -247,12 +248,15 @@ const Test = () => {
             <Typography.Link
               ellipsis={true}
               target="_blank"
-              onClick={() =>
-                goToItemDetailPage({
-                  workspaceKey: item?.workspace?.key,
-                  itemKey: item?.key,
-                })
-              }
+              onClick={() => {
+                if (item?.referenceCaseSnapshot)
+                  openBaseLineViewItemModal(item?.key, item?.referenceCaseSnapshot);
+                else
+                  goToItemDetailPage({
+                    workspaceKey: item?.workspace?.key,
+                    itemKey: item?.key,
+                  });
+              }}
             >
               {item?.key}
             </Typography.Link>

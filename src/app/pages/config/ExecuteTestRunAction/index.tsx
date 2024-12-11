@@ -27,6 +27,9 @@ const DefaultTestRunAction = {
   iql: '',
 };
 
+// 向测试执行任务中规划用例时自动打快照
+const DefaultEnableCaseSnapshot = false;
+
 /** 获取空间成员列表 */
 export const useWorkspaceMemberUserList = ({ workspaceId: workspaceId, selectedUserList }) => {
   // 首次请求用户列表请求
@@ -114,14 +117,17 @@ const ExecuteTestRunAction = () => {
 
   const testConfig = useCurrentTestConfig(workspace?.key);
   const [testRunAction, setTestRunAction] = React.useState(DefaultTestRunAction);
+  const [enableCaseSnapshot, setEnableCaseSnapshot] = React.useState(DefaultEnableCaseSnapshot);
 
   React.useEffect(() => {
     setTestRunAction(testConfig?.get('testRunAction') ?? DefaultTestRunAction);
+    setEnableCaseSnapshot(testConfig?.get('enableCaseSnapshot') ?? DefaultEnableCaseSnapshot);
   }, [testConfig]);
 
   const handleSave = async () => {
-    if (testConfig && testRunAction) {
+    if (testConfig) {
       await testConfig.save({
+        enableCaseSnapshot,
         testRunAction,
       });
       message.success(t('common.saveSuccess'));
@@ -245,6 +251,10 @@ const ExecuteTestRunAction = () => {
       <div className={cx('section')}>
         <h3>{t('page.config.executeTestRunAction.defaultCaseRange')}</h3>
         <Input value={testRunAction.iql} onChange={buildConfigChange('iql')} />
+      </div>
+      <div className={cx('section')}>
+        <h3>{t('page.config.testConfigInitialization.switchSnapshotLabel')}</h3>
+        <Switch checked={!!enableCaseSnapshot} onChange={setEnableCaseSnapshot} />
       </div>
       <Button type="primary" className={cx('action')} onClick={handleSave}>
         {t('common.save')}
