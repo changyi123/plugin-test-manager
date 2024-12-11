@@ -654,7 +654,9 @@ export const zgcTestReportInfo = async () => {
             test_time: stage,
             bug_total: bugList.length,
             close_count,
-            deferred_count: bugList.filter(b => (b.status as any)?.name === '延期处理').length,
+            deferred_count: bugList.filter(
+              b => (b.status as any)?.name === (zgcConfig.延期待解决 ?? '延期待解决'),
+            ).length,
             not_close_count: bugList.length - close_count,
             discover_rate: `${((100 * discoverBugs.length) / total).toFixed(2)}%`,
             close_rate: `${((100 * close_count) / total).toFixed(2)}%`,
