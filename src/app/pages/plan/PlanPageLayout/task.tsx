@@ -230,7 +230,7 @@ const TaskPageLayout: React.FC<any> = () => {
         if (caseIds.length > 0) {
           await batchCreateTestRun({
             executionId: item.objectId,
-            caseIds,
+            case: caseIds.map(i => ({ caseId: i })),
           });
         }
 

@@ -56,7 +56,7 @@ export const createFolder = async (params: {
   const batchSortIndex = generateSortIndex();
 
   const repository = new Repository({
-    parent: params.parentKey ? Repository.createWithoutData(params.parentKey) : undefined,
+    parent: Repository.createWithoutData(params.parentKey || 'root'),
     workspaceKey: params.workspaceKey,
     name: params.name,
     sortIndex: params.sortIndex ?? batchSortIndex,
@@ -80,10 +80,7 @@ export const createRepositories = async repositories => {
       const repositoryObj = new Repository();
       Object.keys(data).forEach(key => {
         if (key === 'parent') {
-          repositoryObj.set(
-            'parent',
-            data[key] ? Repository.createWithoutData(data[key]) : undefined,
-          );
+          repositoryObj.set('parent', Repository.createWithoutData(data[key] || 'root'));
         } else if (data[key]) {
           repositoryObj.set(key, data[key]);
         }

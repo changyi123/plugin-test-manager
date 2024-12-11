@@ -127,6 +127,8 @@ modules:
       function: test-manager-check-filter-group-name-function
     - key: test-manager-export-script
       function: test-manager-export-script-function
+    - key: create-repository
+      function: test-manager-create-repository-function
 
   trigger:
     - key: test-manager-initial-script-install
@@ -147,6 +149,11 @@ modules:
       events:
         - gei:proxima:item:beforeCreate
       function: item-before-create-trigger-function
+      async: false
+    - key: test-manager-item-after-save-trigger
+      events:
+        - gei:proxima:item:updated
+      function: test-manager-item-after-save-function
       async: false
     - key: item-created-trigger
       events:
@@ -315,12 +322,17 @@ modules:
     - key: test-manager-check-filter-group-name-function
       handler: api.checkFilterGroupName
 
+    - key: test-manager-create-repository-function
+      handler: api.createRepository
+
     - key: init-test-config-function
       handler: api.initTestConfig
     - key: run-script-function
       handler: scriptHandler.runScript
     - key: test-manager-export-script-function
       handler: exporter.runScript
+    - key: test-manager-item-after-save-function
+      handler: trigger.itemAfterSave
 
   itemPanel:
     - key: test-manager-test-detail
@@ -571,6 +583,10 @@ modules:
       name: test_manager_comment
       description: 测试管理内置字段-测试执行评论（勿删改）
       type: Text
+    - key: plan
+      name: test_manager_plan
+      description: 测试管理内置字段-测试计划
+      type: Text
     - key: runMapCaseKey
       name: test_manager_runMapCaseKey
       description: 测试管理内置字段-测试执行关联的测试用例 key（勿删改）
@@ -716,6 +732,13 @@ tables:
         type: Array
       sortIndex:
         type: Number
+    indexes:
+      - name: unique_repository
+        fields:
+          - workspaceKey
+          - name
+          - parent
+        unique: true
   - className: TestConfig
     fields:
       workspaceKey:

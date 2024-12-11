@@ -25,6 +25,13 @@ import iqlSearchParamsBuilder from '../../../common/utils/iqlSearchParamsBuilder
 import { buildResponse, getReqInfoFromVMRuntime } from '../../lib/apiUtil';
 import { aggsSearch } from '../../lib/coreApi';
 import { getPayload, iqlRequest } from '../../lib/iqlRequest';
+import {
+  computeCaseStatus,
+  computeStatusCount,
+  statisticsCaseFromPlan,
+  statisticsRunFromCase,
+  statisticsRunFromPlan,
+} from '../../lib/statistics';
 
 type TestRunEntityType = TestEntity<TestType.Run>;
 type TestCaseEntityType = TestEntity<TestType.Case>;
@@ -88,77 +95,38 @@ const buildStatsTaskPool = () => {
  */
 export const testPlanStats = async () => {
   const {
-    body: { select = [], planIds },
+    body: { select, planIds },
   } = getReqInfoFromVMRuntime<TestPlanStatsPayload>();
-
-  const taskPool = buildStatsTaskPool();
-  console.info('test-manager-iqlSearch-testPlanStats');
-  console.time('test-manager-iqlSearch-testPlanStats');
-  // 测试执行用例统计数据
-  taskPool
-    .register(['caseStatus', 'caseCount'], async function (result) {
-      const {
-        data: { list: testCases },
-      } = await iqlRequest<TestCaseEntityType>({
-        linkQuery: {
-          sourceIds: planIds,
-          linkType: TestLinkType.CaseLinkPlan,
-          destinationType: TestType.Case,
-        },
-        fields: [SystemField.Id, TestFiledKeyMapping.caseStatus, TestFiledKeyMapping.linkItems],
-        pagination: { limit: InfinityLimit, offset: 0 },
-      });
-      console.timeEnd('test-manager-iqlSearch-testPlanStats');
-      testCases.forEach(testCase => {
-        const { caseStatus, source } = testCase;
-        // 统计状态数据
-        if (caseStatus) {
-          Object.entries(caseStatus).forEach(([planId, statusKey]) => {
-            // 不在 result plan 中的数据  or 当前计划未在 source 中不需要被统计
-            if (!Object.hasOwnProperty.call(result, planId) || !source.includes(planId)) return;
-            const planStats = result[planId];
-            planStats.caseStatus = {
-              ...planStats.caseStatus,
-              [statusKey]: (planStats.caseStatus?.[statusKey] ?? 0) + 1,
-            };
-          });
-        }
-
-        // 统计用例数量
-        source.forEach(planId => {
-          // 不在 result plan 中的数据不需要被统计
-          if (!Object.hasOwnProperty.call(result, planId)) return;
-          const planStats = result[planId];
-          planStats.caseCount = (planStats.caseCount ?? 0) + 1;
-        });
-
-        // 统计状态值为 undefined 的节点，变为起始节点
-        Object.keys(result).forEach(planId => {
-          const stats = result[planId];
-          const processedStatusCount = (Object.values(stats.caseStatus) as any).reduce(
-            (acc, num) => acc + num,
-            0,
-          );
-
-          const StartStatusCount = stats.caseStatus[StartStatusKey] ?? 0;
-
-          const resComputedStartStatusCount = Math.max(
-            stats.caseCount - processedStatusCount + StartStatusCount,
-            0,
-          );
-
-          result[planId] = {
-            ...stats,
-            caseStatus: {
-              ...stats.caseStatus,
-              [StartStatusKey]: resComputedStartStatusCount,
-            },
-          };
-        });
-      });
-    })
-    .register('executionCount', async function (result) {
-      console.time('test-manager-iqlSearch-executionCount');
+  const result = buildStatsResult(planIds, select, {
+    caseCount: 0,
+    caseStatus: {},
+    executionCount: 0,
+  });
+  try {
+    // 获取用例数量与各用例最新的测试执行
+    const [{ value: caseCounts }, caseStatus] = await Promise.all([
+      statisticsCaseFromPlan(planIds),
+      statisticsRunFromPlan(planIds),
+    ]);
+    // 记录数量
+    caseCounts.forEach(i => {
+      const _planId = i.r_test_manager_linkItems;
+      if (!Object.hasOwnProperty.call(result, _planId)) return;
+      result[_planId].caseCount = i.count;
+    });
+    console.info('查看统计数据 caseStatus -> ', caseStatus);
+    // 记录状态
+    planIds.forEach(_planId => {
+      // 统计查询结果
+      result[_planId].caseStatus = computeStatusCount(
+        _planId,
+        caseStatus,
+        result[_planId].caseCount,
+      );
+    });
+    console.info('查看统计数据 results -> ', result);
+    // 测试执行任务统计数据
+    if (select.includes('executionCount')) {
       const {
         data: { list: testExecution },
       } = await iqlRequest<TestExecutionEntityType>({
@@ -170,27 +138,22 @@ export const testPlanStats = async () => {
         fields: [TestFiledKeyMapping.linkItems],
         pagination: { limit: InfinityLimit, offset: 0 },
       });
-      console.timeEnd('test-manager-iqlSearch-executionCount');
+
       testExecution.forEach(item => {
         const { linkItems } = item;
-
         // 统计测试执行数量
-        if (select.includes('executionCount')) {
-          linkItems.forEach(planId => {
-            // 不在 result plan 中的数据不需要被统计
-            if (!Object.hasOwnProperty.call(result, planId)) return;
-            const planStats = result[planId];
-            planStats.executionCount = (planStats.executionCount ?? 0) + 1;
-          });
-        }
+        linkItems.forEach(planId => {
+          // 不在 result plan 中的数据不需要被统计
+          if (!Object.hasOwnProperty.call(result, planId)) return;
+          const planStats = result[planId];
+          planStats.executionCount = (planStats.executionCount ?? 0) + 1;
+        });
       });
-    });
-
-  return taskPool.run(planIds, select, {
-    caseCount: 0,
-    caseStatus: {},
-    executionCount: 0,
-  });
+    }
+    return buildResponse(result);
+  } catch (err) {
+    return buildResponse(err);
+  }
 };
 
 /**
@@ -268,24 +231,13 @@ export const testCaseStats = async () => {
   const taskPool = buildStatsTaskPool();
 
   taskPool.register('caseLatestStatus', async function (result) {
-    // 获取所有的测试用例
-    const {
-      data: { list: testCases },
-    } = await iqlRequest<TestCaseEntityType>({
-      query: {
-        id: caseIds,
-      },
-      fields: [SystemField.Id, TestFiledKeyMapping.caseStatus],
-      pagination: { limit: InfinityLimit, offset: 0 },
-    });
-
-    testCases?.forEach(testCase => {
-      const { objectId, caseStatus } = testCase;
-      const status = caseStatus?.[planId] ?? StartStatusKey;
-      const stats = result[objectId];
-      if (stats) {
-        stats.caseLatestStatus = status;
-      }
+    const caseStatus = await statisticsRunFromCase(planId, caseIds);
+    console.log('查看caseLatestStatus', caseStatus);
+    const res = computeCaseStatus(planId, caseStatus);
+    console.log('查看computeCaseStatus', res);
+    Object.keys(res).forEach(caseId => {
+      const stats = result[caseId];
+      stats.caseLatestStatus = res[caseId];
     });
   });
 

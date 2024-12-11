@@ -17,7 +17,7 @@ export {
 
 export { testExecutionStats, testCaseStats, testCount } from './modules/api/stats';
 
-export { repositoryTree, repositoryTreeV2 } from './modules/api/module';
+export { repositoryTree, repositoryTreeV2, createRepository } from './modules/api/module';
 
 export { minderData, minderDataImport } from './modules/api/minder';
 

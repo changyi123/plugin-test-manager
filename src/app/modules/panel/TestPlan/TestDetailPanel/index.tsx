@@ -180,7 +180,7 @@ const Test = () => {
     if (caseIds?.length) {
       await batchCreateTestRun({
         executionId: testExecution.objectId,
-        caseIds,
+        case: caseIds.map(i => ({ caseIds: i })),
       });
     }
 
