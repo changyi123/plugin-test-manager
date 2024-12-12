@@ -12,6 +12,7 @@ import { getTestConfig, getTestConfigByWorkspaceKeys } from '@/lib/api/common';
 import { getTestEntityByQuery, updateTestEntity } from '@/lib/api/item';
 import { getItemByIds, getItemTypeByKey, getItemTypeByKeys } from '@/lib/api/proxima';
 import { openCreateItemModal, openItemDetailPanel } from '@/lib/api/sdk';
+import { judgeCaseSnapshot } from '@/lib/appEnv';
 import { CREATE_ITEM_STORE_FIELD_KEY, ExtensionValType, TestType } from '@/lib/constants';
 import { repositoryFolderTreeEvent } from '@/lib/events';
 import useI18n from '@/lib/hooks/useI18n';
@@ -577,6 +578,12 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
   useOnItemCreateSuccess(messageKey, itemCreateSuccessCb, itemBatchCreateSuccessCb);
 
   const testConfigContextValues = React.useMemo(() => {
+    console.info(
+      judgeCaseSnapshot({
+        enableCaseSnapshot: testConfig?.enableCaseSnapshot,
+      }),
+      'judgeCaseSnapshot',
+    );
     return {
       // TODO: fetch config
       config: {
@@ -587,7 +594,9 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
         listType: testConfig?.testRunAction?.listType,
         statusList: testConfig?.testRunAction?.statusList,
         iql: testConfig?.testRunAction?.iql,
-        enableCaseSnapshot: testConfig?.enableCaseSnapshot,
+        enableCaseSnapshot: judgeCaseSnapshot({
+          enableCaseSnapshot: testConfig?.enableCaseSnapshot,
+        }),
       },
       // item,
       workspace,

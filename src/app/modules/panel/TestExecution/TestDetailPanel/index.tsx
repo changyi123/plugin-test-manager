@@ -46,7 +46,7 @@ import cx from './index.less';
 const Test = () => {
   const proxima = createProximaSdk();
   const { t } = useI18n();
-  const { testEntity, workspace } = useTestConfig();
+  const { testEntity, workspace, config } = useTestConfig();
   const { getCreatePermission, globalTestConfig } = useBaseAction();
   const tableActionRef = React.useRef<ActionType>();
   const { canExecuteTestRun } = useTestRunActionAuth({ workspaceKey: workspace?.key });
@@ -249,7 +249,7 @@ const Test = () => {
               ellipsis={true}
               target="_blank"
               onClick={() => {
-                if (item?.referenceCaseSnapshot)
+                if (item?.referenceCaseSnapshot && config?.enableCaseSnapshot)
                   openBaseLineViewItemModal(item?.key, item?.referenceCaseSnapshot);
                 else
                   goToItemDetailPage({
@@ -357,6 +357,7 @@ const Test = () => {
     allTestEntities,
     removeTestRelation,
     statusesConfig,
+    config,
   ]);
 
   // 添加测试用例菜单

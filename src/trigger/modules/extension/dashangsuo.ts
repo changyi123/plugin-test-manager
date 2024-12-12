@@ -124,7 +124,6 @@ export const dssTestReportInfo = async () => {
           'id',
           TestFiledKeyMapping.linkItems,
           TestFiledKeyMapping.status,
-          TestFiledKeyMapping.repository,
           TestFiledKeyMapping.referenceCase,
           TestFiledKeyMapping.referenceCaseSnapshot,
         ],
@@ -149,7 +148,7 @@ export const dssTestReportInfo = async () => {
           ['id', TestFiledKeyMapping.repository],
         );
         const caseRepoMap = cases.reduce(
-          (m, i) => ({ ...m, [i.id]: i.values[TestFiledKeyMapping.repository] }),
+          (m, i) => ({ ...m, [i.id]: i.values?.[TestFiledKeyMapping.repository] }),
           {},
         );
 

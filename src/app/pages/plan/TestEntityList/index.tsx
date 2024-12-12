@@ -33,7 +33,7 @@ import { useCurrentUser } from '@/lib/api/user';
 import { getCurrentUserSetting, saveUserSetting } from '@/lib/api/userSetting';
 import { getAppEnv } from '@/lib/appEnv';
 import { TestCaseStatusModel, TestRunDesigneeModel, TestRunExecutorModel } from '@/lib/constants';
-import { useBaseAction } from '@/lib/hooks/useContext';
+import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import { useUserCellUserDataProp } from '@/lib/hooks/useProxima';
 import { useCanExecuteTestRunIdSequence, useTestRunActionAuth } from '@/lib/hooks/useTest';
@@ -102,6 +102,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   } = usePageContext();
   const { t } = useI18n();
   const proxima = createProximaSdk();
+  const { config } = useTestConfig();
   const { getCreatePermission, testCaseFieldKeys, globalTestConfig } = useBaseAction();
 
   const actionRef = React.useRef<BusinessTableActionType>();
@@ -352,7 +353,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       ...queryParams,
     };
 
-    if (runLinkSnapshotIds?.length) {
+    if (config?.enableCaseSnapshot) {
       searchParams.query.id = runLinkSnapshotIds;
       searchParams.selector.push(`'baseLineSources' in ['${executionId}']`);
       searchParams.fields.push('itemId');
@@ -389,7 +390,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       if (i.id) referenceCase.push(i.id);
     });
 
-    if (runLinkSnapshotIds?.length)
+    if (config?.enableCaseSnapshot)
       caseSearchParams.query.referenceCaseSnapshot = referenceCaseSnapshot;
     else if (referenceCase.length) caseSearchParams.query.referenceCase = referenceCase;
 
@@ -397,7 +398,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
 
     const runCaseMap = new Map();
     runs.forEach(d => {
-      runCaseMap.set(d.referenceCaseSnapshot ?? d.referenceCase, d);
+      runCaseMap.set(config?.enableCaseSnapshot ? d.referenceCaseSnapshot : d.referenceCase, d);
     });
 
     return {
@@ -789,7 +790,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         },
         extraProps: {
           onClick: record => {
-            if (record?.referenceCaseSnapshot)
+            if (record?.referenceCaseSnapshot && config?.enableCaseSnapshot)
               openBaseLineViewItemModal(record?.key, record.referenceCaseSnapshot);
             else openItemViewScreen(record?.caseId);
           },
@@ -951,6 +952,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       getCreatePermission,
       handleTestRunStatusChange,
       mutateStatusEvent,
+      config,
       t,
     ],
   );

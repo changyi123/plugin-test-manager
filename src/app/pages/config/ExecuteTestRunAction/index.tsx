@@ -5,6 +5,7 @@ import { components } from 'proxima-sdk';
 import React from 'react';
 
 import { getStatusByWorkspaceAndItemType, getWorkspaceRoleMembers } from '@/lib/api/proxima';
+import { getAppEnv } from '@/lib/appEnv';
 import useI18n from '@/lib/hooks/useI18n';
 
 import { useCurrentTestConfig, useDataContext } from '../hooks';
@@ -252,10 +253,12 @@ const ExecuteTestRunAction = () => {
         <h3>{t('page.config.executeTestRunAction.defaultCaseRange')}</h3>
         <Input value={testRunAction.iql} onChange={buildConfigChange('iql')} />
       </div>
-      <div className={cx('section')}>
-        <h3>{t('page.config.testConfigInitialization.switchSnapshotLabel')}</h3>
-        <Switch checked={!!enableCaseSnapshot} onChange={setEnableCaseSnapshot} />
-      </div>
+      {getAppEnv('ENABLED_CASE_SNAPSHOT') && (
+        <div className={cx('section')}>
+          <h3>{t('page.config.testConfigInitialization.switchSnapshotLabel')}</h3>
+          <Switch checked={!!enableCaseSnapshot} onChange={setEnableCaseSnapshot} />
+        </div>
+      )}
       <Button type="primary" className={cx('action')} onClick={handleSave}>
         {t('common.save')}
       </Button>

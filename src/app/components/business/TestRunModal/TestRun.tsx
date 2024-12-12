@@ -11,7 +11,7 @@ import { getItemByIds } from '@/lib/api/proxima';
 import { getItemLinkRelation, getTestStepsByTestDetailId } from '@/lib/api/runs';
 import { getAppEnv } from '@/lib/appEnv';
 import { PASS_STATUS_TYPE, TestType } from '@/lib/constants';
-import { useBaseAction } from '@/lib/hooks/useContext';
+import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import { useCanExecuteTestRunIdSequence } from '@/lib/hooks/useTest';
 import { TestEntity } from '@/lib/types/Test';
@@ -82,6 +82,7 @@ const getDefectIds = data =>
 const TestRun: React.FC<TestRunType> = props => {
   const { t } = useI18n();
   const event = useSaveTriggerEvent();
+  const { config } = useTestConfig();
   const { idSequence = [], selectedTestPlanId } = props;
   const [autoNext, setAutoNext] = useSessionStorageState(
     generateStorageKey(TEST_RUN_AUTO_NEXT_KEY),
@@ -143,9 +144,10 @@ const TestRun: React.FC<TestRunType> = props => {
 
       // 未被初始化的测试用例详情字段为 {} 或 null
       if (
-        !testRunEntity.runDetail ||
-        !Object.keys(testRunEntity.runDetail).length ||
-        testRunEntity.runDetail.init
+        (!testRunEntity.runDetail ||
+          !Object.keys(testRunEntity.runDetail).length ||
+          testRunEntity.runDetail.init) &&
+        !config.enableCaseSnapshot
       ) {
         const testCaseId = testRunEntity.referenceCase;
         const [testCaseEntity, stepsDataFromTestCase] = await Promise.all([

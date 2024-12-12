@@ -174,7 +174,11 @@ export const testExecutionStats = async () => {
       enableCaseSnapshot = await getParseQuery(false, TestConfigClassName)
         .equalTo('workspaceKey', workspaceKey)
         .first({ useMasterKey: true })
-        .then(item => item.get('enableCaseSnapshot'));
+        .then(item =>
+          global.env?.ENABLED_CASE_SNAPSHOT
+            ? item.get('enableCaseSnapshot')
+            : global.env?.DEFAULT_ENABLED_CASE_SNAPSHOT,
+        );
     }
     const {
       data: { list: testRuns },
@@ -186,7 +190,9 @@ export const testExecutionStats = async () => {
       },
       fields: [TestFiledKeyMapping.status, TestFiledKeyMapping.linkItems],
       pagination: { limit: InfinityLimit, offset: 0 },
-      selector: enableCaseSnapshot ? '' : `${BuiltinFieldNameMapping.referenceCase} is not null`,
+      selector: enableCaseSnapshot
+        ? `'baseLineSources' in ${JSON.stringify(executionIds)}`
+        : `${BuiltinFieldNameMapping.referenceCase} is not null`,
     });
 
     testRuns.forEach(item => {

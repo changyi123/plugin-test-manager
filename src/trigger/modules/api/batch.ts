@@ -413,6 +413,8 @@ export const batchCreateTestRun = async () => {
     // 2. 创建测试用例快照
     const batchCreateCaseSnapshot = async () => {
       let caseSnapshotMap = {};
+      if (!global.env?.ENABLED_CASE_SNAPSHOT && !global.env?.DEFAULT_ENABLED_CASE_SNAPSHOT)
+        return caseSnapshotMap;
       const workspaceKeys = needCaseList.reduce((keys, i) => {
         const workspaceKey = i?.workspace?.key;
         if (workspaceKey && !keys.includes(workspaceKey)) {
@@ -428,7 +430,9 @@ export const batchCreateTestRun = async () => {
           data?.reduce((m, i) => {
             return {
               ...m,
-              [i.get('workspaceKey')]: i.get('enableCaseSnapshot'),
+              [i.get('workspaceKey')]: global.env?.ENABLED_CASE_SNAPSHOT
+                ? i.get('enableCaseSnapshot')
+                : global.env?.DEFAULT_ENABLED_CASE_SNAPSHOT,
             };
           }, {}),
         );

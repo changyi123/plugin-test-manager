@@ -10,7 +10,7 @@ import {
   getRelativeItem,
   getTestEntityByQuery,
 } from '@/lib/api/item';
-import { judgeTestReportVersion, TEST_REPORT_VERSION } from '@/lib/appEnv';
+import { judgeCaseSnapshot, judgeTestReportVersion, TEST_REPORT_VERSION } from '@/lib/appEnv';
 import {
   BuiltinFieldNameMapping,
   ExtendReportType,
@@ -154,7 +154,9 @@ const getPlanRefTestEntityIds = async (
       destinationType: TestType.Run,
       limit: 99999,
       onlySelectId: true,
-      selector: enableCaseSnapshot ? '' : `${BuiltinFieldNameMapping.referenceCase} is not null`,
+      selector: enableCaseSnapshot
+        ? `${BuiltinFieldNameMapping.referenceCaseSnapshot} is not null`
+        : `${BuiltinFieldNameMapping.referenceCase} is not null`,
     });
 
     return { runIds, executionIds };
@@ -236,6 +238,9 @@ const getExecutionRefTestEntityIds = async (
         TestFiledKeyMapping.referenceCaseSnapshot,
         SystemField.Workspace,
       ],
+      selector: enableCaseSnapshot
+        ? `${BuiltinFieldNameMapping.referenceCaseSnapshot} is not null`
+        : `${BuiltinFieldNameMapping.referenceCase} is not null`,
     });
 
     return {
@@ -402,7 +407,7 @@ const buildSecondLevelDsIqlConfig = async (
     const workspaceKey = reportParams?.workspace?.key;
     if (workspaceKey) {
       const { currentTestConfig } = await getTestConfigByWorkspaceKeys([workspaceKey]);
-      enableCaseSnapshot = currentTestConfig.enableCaseSnapshot;
+      enableCaseSnapshot = judgeCaseSnapshot(currentTestConfig);
     }
   }
 

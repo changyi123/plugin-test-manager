@@ -140,9 +140,16 @@ const SupportAppEnv = {
     },
     transformer: value => value,
   },
-
   EXTENSION_SLOT_DATA_WEB_KEY: {
     defaultValue: '',
+    transformer: value => value,
+  },
+  DEFAULT_ENABLED_CASE_SNAPSHOT: {
+    defaultValue: false,
+    transformer: value => value,
+  },
+  ENABLED_CASE_SNAPSHOT: {
+    defaultValue: false,
     transformer: value => value,
   },
 } as const;
@@ -165,4 +172,13 @@ export function judgeTestReportVersion(version: TEST_REPORT_VERSION | TEST_REPOR
   return Array.isArray(version)
     ? version.includes(getAppEnv('TEST_REPORT_VERSION'))
     : getAppEnv('TEST_REPORT_VERSION') === version;
+}
+
+/**
+ * 判断是否开启规划用例自动打快照
+ */
+export function judgeCaseSnapshot(testConfig) {
+  return getAppEnv('ENABLED_CASE_SNAPSHOT')
+    ? testConfig?.enableCaseSnapshot
+    : getAppEnv('DEFAULT_ENABLED_CASE_SNAPSHOT');
 }

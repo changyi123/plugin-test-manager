@@ -19,7 +19,7 @@ import { generateSortIndex } from '@/lib/utils/helper';
 
 import { usePageContext } from '../hook';
 import TestTaskList from '../TestTaskList';
-import { useGetExecutionLinkCaseRunIds } from './hooks';
+import { useGetExecutionLinkCaseRunIds, useTreeParams } from './hooks';
 import cx from './index.less';
 import Left from './Left';
 import Right from './Right';
@@ -55,7 +55,6 @@ const TaskPageLayout: React.FC<any> = () => {
   const [selectedExecution, setSelectedExecution] = useState<Record<string, any> | undefined>();
 
   const [showType, setShowType] = useState('all');
-  const [treeParams, setTreeParams] = useState<any>(null);
 
   const { query } = useLocation();
 
@@ -81,43 +80,14 @@ const TaskPageLayout: React.FC<any> = () => {
     setRunLinkSnapshotIds(scopeTestRunIds?.runLinkSnapshotIds);
   }, [scopeTestRunIds]);
 
-  useUpdateEffect(() => {
-    if (!workspaceKey || !selectedTestPlan?.objectId) return;
-    if (activeType === 'TestExecution') {
-      if (runLinkSnapshotIds?.length && !selectedExecution?.objectId) return;
-      const treeParams = {
-        query: {
-          workspaceKey: workspaceKey,
-          type: TestType.Case,
-          id: runLinkCaseIds,
-        },
-        selector: '',
-      };
-
-      if (runLinkSnapshotIds?.length) {
-        treeParams.query.id = runLinkSnapshotIds;
-        treeParams.selector = `'baseLineSources' in ['${selectedExecution.objectId}']`;
-      }
-      setTreeParams(treeParams);
-    } else {
-      setTreeParams({
-        query: {
-          workspaceKey: workspaceKey,
-          type: TestType.Case,
-        },
-        linkType: TestLinkType.CaseLinkPlan,
-        sourceIds: [selectedTestPlan?.objectId as string],
-        destinationType: TestType.Case,
-      });
-    }
-  }, [
+  const treeParams = useTreeParams({
+    workspaceKey,
+    selectedTestPlan,
     activeType,
     runLinkCaseIds,
-    selectedTestPlan?.objectId,
     runLinkSnapshotIds,
-    workspaceKey,
     selectedExecution,
-  ]);
+  });
 
   useUpdateEffect(() => {
     if (!selectedTestPlan?.objectId) return;

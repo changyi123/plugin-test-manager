@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { ReloadOutlined } from '@/icons';
 import { updateGlobalConfig } from '@/lib/api/common';
 import { getBuiltinItemTypes } from '@/lib/api/proxima';
+import { getAppEnv } from '@/lib/appEnv';
 import { BuiltinItemTypeMapping } from '@/lib/constants';
 
 import { useDataContext } from '../../hooks';
@@ -63,13 +64,15 @@ const TestConfigInitialization = () => {
 
   return (
     <Form form={form} onFinish={handleSubmit} className={cx('container')}>
-      <Form.Item
-        label={<div>{scopeT('switchSnapshotLabel')}</div>}
-        name={FormFieldKey.enableCaseSnapshot}
-        valuePropName="checked"
-      >
-        <Switch checked={enableCaseSnapshot} />
-      </Form.Item>
+      {getAppEnv('ENABLED_CASE_SNAPSHOT') && (
+        <Form.Item
+          label={<div>{scopeT('switchSnapshotLabel')}</div>}
+          name={FormFieldKey.enableCaseSnapshot}
+          valuePropName="checked"
+        >
+          <Switch checked={enableCaseSnapshot} />
+        </Form.Item>
+      )}
       <Form.Item
         label={<div>{scopeT('switchLabel')}</div>}
         name={FormFieldKey.enableItemTypeAutoBind}

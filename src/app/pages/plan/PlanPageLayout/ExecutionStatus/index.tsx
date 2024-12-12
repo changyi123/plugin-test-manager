@@ -23,7 +23,7 @@ const ExecutionStatus: React.FC<ExecutionStatusProps> = ({ selectedExecution }) 
   const { config } = useTestConfig();
   const { data, refresh, loading } = useRequest(
     async () => {
-      if (!selectedExecution?.objectId) return [];
+      if (!selectedExecution?.objectId || !config) return [];
       // 查询测试执行任务状态 统计数据
       const quoteCounts = await getTestStats({
         groups: 'status',
@@ -32,8 +32,8 @@ const ExecutionStatus: React.FC<ExecutionStatusProps> = ({ selectedExecution }) 
             workspaceKey: workspaceKey,
             type: TestType.Run,
           },
-          selector: config.enableCaseSnapshot
-            ? ''
+          selector: config?.enableCaseSnapshot
+            ? `${BuiltinFieldNameMapping.referenceCaseSnapshot} is not null`
             : `${BuiltinFieldNameMapping.referenceCase} is not null`,
           linkType: TestLinkType.RunLinkExecution,
           sourceIds: [selectedExecution?.objectId],
@@ -51,7 +51,7 @@ const ExecutionStatus: React.FC<ExecutionStatusProps> = ({ selectedExecution }) 
       );
     },
     {
-      refreshDeps: [selectedExecution, workspaceKey],
+      refreshDeps: [selectedExecution, workspaceKey, config?.enableCaseSnapshot],
     },
   );
 
