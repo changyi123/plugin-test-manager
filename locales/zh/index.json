@@ -475,6 +475,7 @@
           "parent": "所有的父事项",
           "relative": "所有的缺陷（事项关联）",
           "planParent": "所属测试计划的父事项",
+          "planParentLink": "所属测试计划父事项关联的事项",
           "self": "本身"
         },
         "title": "数据规则配置",

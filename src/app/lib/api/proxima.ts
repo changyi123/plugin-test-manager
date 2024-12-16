@@ -7,6 +7,7 @@ import { findKey, pick } from 'lodash';
 import {
   BuiltinItemTypeMapping,
   FIELD_TYPE_KEY_MAPPINGS,
+  InfinityLimit,
   SYSTEM_FIELD,
   TEST_MANAGER_PLUGIN_KEY,
 } from '@/lib/constants';
@@ -475,11 +476,12 @@ export const searchFields = async (params: {
     .then(result => result.payload);
 };
 
-export const search = async (iql, fields = []) => {
+export const search = async (iql, fields = [], size = InfinityLimit) => {
   try {
     const {
       data: { payload },
     } = await fetch.post('/parse/api/search', {
+      size,
       iql: iql,
       fields,
       isShowDetails: true,

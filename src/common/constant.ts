@@ -74,6 +74,7 @@ export enum ExtendReportType {
   Parent = 'parent',
   Relative = 'relative',
   PlanParent = 'planParent',
+  PlanParentLink = 'planParentLink',
   Self = 'self',
 }
 

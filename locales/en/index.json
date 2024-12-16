@@ -550,7 +550,8 @@
           "TestExecution": "All Test Executions",
           "parent": "All Parent",
           "relative": "All Bug (Relative)",
-          "planParent": "All Parent",
+          "planParent": "All Plan Parent",
+          "planParentLink": "All Plan Parent Linked",
           "self": "self"
         },
         "title": "Data Rule Configuration",

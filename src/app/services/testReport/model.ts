@@ -9,6 +9,7 @@ import {
   getRelativeItem,
   getTestEntityByQuery,
 } from '@/lib/api/item';
+import { search } from '@/lib/api/proxima';
 import { judgeTestReportVersion, TEST_REPORT_VERSION } from '@/lib/appEnv';
 import {
   ExtendReportType,
@@ -64,16 +65,30 @@ async function fetchReportPlan(
   };
 }
 
-async function fetchReportExecution(selector): Promise<{ list: string[]; planIds?: string[] }> {
+// 获取测试执行任务关联的缺陷
+const getParentLinkIdsByPlanIds = async planIds => {
+  if (!planIds?.length) return [];
+  const planParentIds = await search(`children in ${JSON.stringify(planIds ?? [])}`, ['id']).then(
+    list => list.map(i => i.id),
+  );
+  const planParentLinkIds = await getRelativeAllItem(planParentIds);
+
+  return planParentLinkIds;
+};
+async function fetchReportExecution(
+  selector,
+): Promise<{ list: string[]; planIds?: string[]; planParentLinkIds?: string[] }> {
   const data = await getTestEntityByQuery({
     selector,
     limit: 99999,
     fields: [TestFiledKeyMapping.linkItems],
   });
+  const planIds = uniq<string>(data.list.map(i => i.linkItems?.pop()).filter(Boolean));
 
   return {
     list: data.list.map(i => i.id),
-    planIds: uniq(data.list.map(i => i.linkItems?.pop()).filter(Boolean)),
+    planIds,
+    planParentLinkIds: await getParentLinkIdsByPlanIds(planIds),
   };
 }
 
@@ -209,7 +224,7 @@ const getPlanRefTestEntityIds = async (planIds, dsConfig: TemplateDataSourceConf
 const getExecutionRefTestEntityIds = async (executionIds, dsConfig: TemplateDataSourceConfig[]) => {
   const ret = {};
 
-  // 获取测试计划关联的执行
+  // 获取试执行任务关联的执行
   const getRunIdsByExecution = async executionIds => {
     const data = await getLinkedTestEntityByQuery({
       query: {
@@ -228,7 +243,7 @@ const getExecutionRefTestEntityIds = async (executionIds, dsConfig: TemplateData
     };
   };
 
-  // 获取测试计划关联的缺陷
+  // 获取测试执行任务关联的缺陷
   const getDefectIdsByRunIds = async runIds => {
     const { list: runList } = await getTestEntityByQuery({
       query: {
@@ -270,6 +285,10 @@ const getExecutionRefTestEntityIds = async (executionIds, dsConfig: TemplateData
   }
 
   if (shouldFetchExecutionRefEntityIds(ExtendReportType.Relative)) {
+    ret[ExtendReportType.Relative] = await getRelativeAllItem(executionIds);
+  }
+
+  if (shouldFetchExecutionRefEntityIds(ExtendReportType.PlanParentLink)) {
     ret[ExtendReportType.Relative] = await getRelativeAllItem(executionIds);
   }
 
@@ -393,12 +412,15 @@ const buildSecondLevelDsIqlConfig = async (
   // 一级选择器下有所选测试计划
   if (hasTestExecutionSelector) {
     // 获取测试计划关联的实体 ids
-    const { list: executionIds, planIds } = await fetchReportExecution(
-      reportParams.dataSourceIql?.[TestExecutionModel],
-    );
+    const {
+      list: executionIds,
+      planIds,
+      planParentLinkIds,
+    } = await fetchReportExecution(reportParams.dataSourceIql?.[TestExecutionModel]);
     executionRefTestEntityIds = await getExecutionRefTestEntityIds(executionIds, dsConfig);
     executionRefTestEntityIds.planIds = planIds || [];
     executionRefTestEntityIds.self = executionIds || [];
+    executionRefTestEntityIds.planParentLinkIds = planParentLinkIds || [];
   }
 
   // 针对不同的二级数据源生成不同的 IQL
@@ -451,6 +473,9 @@ const buildSecondLevelDsIqlConfig = async (
     },
     [ExtendReportType.PlanParent]: async () => {
       return `children in ${JSON.stringify(executionRefTestEntityIds.planIds ?? [])}`;
+    },
+    [ExtendReportType.PlanParentLink]: async () => {
+      return `id in ${JSON.stringify(executionRefTestEntityIds.planParentLinkIds ?? [])}`;
     },
     [ExtendReportType.Self]: async () => {
       return `id in ${JSON.stringify(executionRefTestEntityIds.self ?? [])}`;

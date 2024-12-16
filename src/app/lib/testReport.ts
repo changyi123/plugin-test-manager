@@ -115,6 +115,12 @@ export const DataSourceCollection: DataSource[] = [
     isFirstLevel: false,
     dependOn: ['execution'],
   },
+  // 所有测试计划的父事项关联的事项
+  {
+    key: ExtendReportType.PlanParentLink,
+    isFirstLevel: false,
+    dependOn: ['execution'],
+  },
   // 所有关联
   {
     key: ExtendReportType.Relative,
