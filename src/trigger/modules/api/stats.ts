@@ -191,7 +191,7 @@ export const testExecutionStats = async () => {
       fields: [TestFiledKeyMapping.status, TestFiledKeyMapping.linkItems],
       pagination: { limit: InfinityLimit, offset: 0 },
       selector: enableCaseSnapshot
-        ? `'baseLineSources' in ${JSON.stringify(executionIds)}`
+        ? `${BuiltinFieldNameMapping.referenceCaseSnapshot} is not null`
         : `${BuiltinFieldNameMapping.referenceCase} is not null`,
     });
 
@@ -238,9 +238,9 @@ export const testCaseStats = async () => {
 
   taskPool.register('caseLatestStatus', async function (result) {
     const caseStatus = await statisticsRunFromCase(planId, caseIds);
-    console.log('查看caseLatestStatus', caseStatus);
+    console.info('查看caseLatestStatus', caseStatus);
     const res = computeCaseStatus(planId, caseStatus);
-    console.log('查看computeCaseStatus', res);
+    console.info('查看computeCaseStatus', res);
     Object.keys(res).forEach(caseId => {
       const stats = result[caseId];
       stats.caseLatestStatus = res[caseId];

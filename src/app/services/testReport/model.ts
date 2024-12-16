@@ -155,8 +155,8 @@ const getPlanRefTestEntityIds = async (
       limit: 99999,
       onlySelectId: true,
       selector: enableCaseSnapshot
-        ? `${BuiltinFieldNameMapping.referenceCaseSnapshot} is not null`
-        : `${BuiltinFieldNameMapping.referenceCase} is not null`,
+        ? [{}, {}, `${BuiltinFieldNameMapping.referenceCaseSnapshot} is not null`]
+        : [{}, {}, `${BuiltinFieldNameMapping.referenceCase} is not null`],
     });
 
     return { runIds, executionIds };
@@ -239,8 +239,8 @@ const getExecutionRefTestEntityIds = async (
         SystemField.Workspace,
       ],
       selector: enableCaseSnapshot
-        ? `${BuiltinFieldNameMapping.referenceCaseSnapshot} is not null`
-        : `${BuiltinFieldNameMapping.referenceCase} is not null`,
+        ? [{}, {}, `${BuiltinFieldNameMapping.referenceCaseSnapshot} is not null`]
+        : [{}, {}, `${BuiltinFieldNameMapping.referenceCase} is not null`],
     });
 
     return {

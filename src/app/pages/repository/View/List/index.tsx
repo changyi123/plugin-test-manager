@@ -103,7 +103,7 @@ const ListView: React.FC<ViewComponentProps> = ({
           ...params,
         }),
         getTestStats({
-          groups: config?.enableCaseSnapshot ? 'referenceCaseSnapshot' : 'referenceCase',
+          groups: 'referenceCase',
           params: {
             query: {
               workspaceKey: workspaceKey,

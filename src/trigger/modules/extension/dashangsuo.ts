@@ -87,7 +87,7 @@ export const dssTestReportInfo = async () => {
     report: any;
   }>();
   const testPlan = body.report?.reportOverviewData?.testPlan;
-  if (!testPlan?.length) return buildResponse({ _测试执行任务列表: [], _系统模块统计列表: [] });
+  if (!testPlan?.length) return buildResponse({ TestList: [], TestStaticList: [] });
 
   try {
     let res = {} as any;
@@ -112,8 +112,8 @@ export const dssTestReportInfo = async () => {
       {},
     );
 
-    setRes({ _测试执行任务列表: Object.values(testExecutionsMap) });
-    setRes({ _系统模块统计列表: [] });
+    setRes({ TestList: Object.values(testExecutionsMap) });
+    setRes({ TestStaticList: [] });
 
     if (testExecutions.length) {
       const testRuns = await search(
@@ -177,8 +177,8 @@ export const dssTestReportInfo = async () => {
           repoTableMap[fullPath].total += 1;
         });
 
-        setRes({ _测试执行任务列表: getList(testExecutionsMap) });
-        setRes({ _系统模块统计列表: getList(repoTableMap) });
+        setRes({ TestList: getList(testExecutionsMap) });
+        setRes({ TestStaticList: getList(repoTableMap) });
       }
     }
 

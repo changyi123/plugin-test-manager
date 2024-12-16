@@ -35,7 +35,7 @@ const condition = {
       },
       aggs: {
         statistics: {
-          terms: { field: 'r_test_manager_referenceCase#r_test_manager_es_text_keyword' },
+          terms: { field: 'r_test_manager_referenceCaseSnapshot#r_test_manager_es_text_keyword' },
           aggs: {
             statistics: {
               top_hits: {
@@ -44,7 +44,7 @@ const condition = {
                 _source: [
                   'r_test_manager_status#r_test_manager_es_text_keyword',
                   'key',
-                  'r_test_manager_referenceCase#r_test_manager_es_text_keyword',
+                  'r_test_manager_referenceCaseSnapshot#r_test_manager_es_text_keyword',
                   'r_test_manager_plan#Text',
                 ],
               },
@@ -161,7 +161,7 @@ export async function fetchExecutionFromPlan(ids) {
 
 // 根据用例id，查出最新的测试执行
 export async function statisticsRunFromCase(planId, ids) {
-  let iql = `${BuiltinFieldNameMapping.referenceCase} in [${ids.map(i => `'${i}'`)}] and ${
+  let iql = `${BuiltinFieldNameMapping.referenceCaseSnapshot} in [${ids.map(i => `'${i}'`)}] and ${
     BuiltinFieldNameMapping.type
   } = '${TestType.Run}'`;
   if (planId) {
@@ -213,7 +213,7 @@ export function computeCaseStatus(planId: string, list) {
   targetList.forEach(i => {
     const _case =
       i.statistics.hits.hits[0]?._source[
-        'r_test_manager_referenceCase#r_test_manager_es_text_keyword'
+        'r_test_manager_referenceCaseSnapshot#r_test_manager_es_text_keyword'
       ];
     result[_case] =
       i.statistics.hits.hits[0]?._source['r_test_manager_status#r_test_manager_es_text_keyword'];

@@ -58,9 +58,7 @@ export const deleteTestLink = async () => {
           batchUpdateItemsValues(
             updateIds.map(id => ({
               objectId: id,
-              values: {
-                [TestFiledKeyMapping.referenceCase]: '',
-              },
+              referenceCase: '',
             })),
           ),
           true,
