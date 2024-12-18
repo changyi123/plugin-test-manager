@@ -2,7 +2,7 @@ app:
   key: test_manager
   uuid: bf73e61c-e15a-4461-a1f7-f940c2009332
   name: test_manager
-  version: "4.29.2"
+  version: "4.29.2-alpha.2"
 modules:
   webtrigger:
     # TODO: Debug 使用，生产环境禁止调用下面的 trigger
@@ -103,6 +103,8 @@ modules:
     # 中关村测试报告联调对接
     - key: extension-report-zgc
       function: extension-report-zgc-function
+    - key: extension-report-zgc-slot
+      function: extension-report-zgc-slot-function
 
     # 大商所测试报告联调对接
     - key: extension-report-dss
@@ -305,6 +307,9 @@ modules:
 
     - key: extension-report-zgc-function
       handler: api.zgcTestReportInfo
+
+    - key: extension-report-zgc-slot-function
+      handler: api.zgcTestReportSlotData
 
     - key: extension-report-dss-function
       handler: api.dssTestReportInfo

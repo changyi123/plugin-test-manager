@@ -29,7 +29,7 @@ export { shenwanTestReportInfo } from './modules/extension/shenwan';
 
 export { weichaiFileEncrypt } from './modules/extension/weichai';
 
-export { zgcTestReportInfo } from './modules/extension/zgc';
+export { zgcTestReportInfo, zgcTestReportSlotData } from './modules/extension/zgc';
 
 export { dssTestReportInfo } from './modules/extension/dashangsuo';
 

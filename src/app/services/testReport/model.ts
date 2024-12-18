@@ -289,7 +289,7 @@ const getExecutionRefTestEntityIds = async (executionIds, dsConfig: TemplateData
   }
 
   if (shouldFetchExecutionRefEntityIds(ExtendReportType.PlanParentLink)) {
-    ret[ExtendReportType.Relative] = await getRelativeAllItem(executionIds);
+    ret[ExtendReportType.PlanParentLink] = await getRelativeAllItem(executionIds);
   }
 
   return ret;
