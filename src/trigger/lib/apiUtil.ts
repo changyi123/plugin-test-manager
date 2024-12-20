@@ -63,6 +63,7 @@ export const buildPaginationResponse = <T = any>(
 export const fetchBugFromItemLinks = async (
   ids: string[],
   extendIql?: string,
+  fields?: string[],
 ): Promise<[any[], Item[]]> => {
   const links = await getParseQuery(false, 'ItemLink')
     ._orQuery([
@@ -82,6 +83,7 @@ export const fetchBugFromItemLinks = async (
     payload: { items },
   } = await iqlSearch({
     iql,
+    fields,
     displayContext: AppKey,
     limit: links.length,
   });

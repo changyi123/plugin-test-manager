@@ -43,8 +43,9 @@ const ReportView: React.FC = () => {
   }, [workspaceKey, workspaceName]);
 
   const { data, refetch } = useTestReportV2ByObjectId(testReportId);
-  useEffect(() => {
-    const setSlotData = async groupId => {
+  const setSlotData = useCallback(
+    async groupId => {
+      if (!groupId) return;
       const getTestChart = async () => {
         const xData = [];
         const yData = [];
@@ -208,9 +209,11 @@ const ReportView: React.FC = () => {
         ...(await getTestChart()),
         ...(await getExtensionSlotData()),
       };
-    };
-    const groupId = data?.report?.reportChartGroup;
-    groupId && setSlotData(groupId);
+    },
+    [data, workspaceKey],
+  );
+  useEffect(() => {
+    setSlotData(data?.report?.reportChartGroup);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data?.report?.reportChartGroup]);
 
@@ -340,8 +343,9 @@ const ReportView: React.FC = () => {
 
   const refresh = useCallback(async () => {
     await refetch();
+    setSlotData(data?.report?.reportChartGroup);
     iframeRef.current?.refresh();
-  }, [refetch]);
+  }, [data?.report?.reportChartGroup, refetch, setSlotData]);
 
   return (
     <div className={cx('report-box')}>

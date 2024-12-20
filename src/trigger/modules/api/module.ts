@@ -51,9 +51,41 @@ export const repositoryTree = async () => {
   }
 };
 
-/** 性能优化后的接口，使用 ES 聚合查询，repository 中不包含 caseIds */
-export const repositoryTreeV2 = async () => {
-  const { body } = getReqInfoFromVMRuntime<RepositoryTreePayload>();
+export const getGroupedCaseCount = async iql => {
+  const {
+    payload: { value: result },
+  } = await aggsSearch({
+    size: 99999,
+    // FIXME: 参数先写死后续再改
+    group: [
+      {
+        key: 'r_test_manager_repository',
+        name: '',
+        fieldType: 'r_test_manager_repository_keyword',
+      },
+    ],
+    value: [
+      {
+        key: 'count',
+        name: 'count',
+        fieldType: 'count',
+        compute: 'count',
+      },
+    ],
+    iql,
+    iqlContext: {
+      displayContext: 'test_manager',
+    },
+  });
+
+  const groupedCaseCount = {};
+  result.forEach(({ r_test_manager_repository, count }) => {
+    groupedCaseCount[r_test_manager_repository ?? UngroupedRepositoryKey] = count;
+  });
+  return groupedCaseCount;
+};
+
+export const getRepositoryTreeV2 = async body => {
   const repositoryQuery = await getParseQuery(false, RepositoryClassName);
 
   const getRepositoryData = async () => {
@@ -100,103 +132,79 @@ export const repositoryTreeV2 = async () => {
     linkIql = iql;
   }
 
-  const getGroupedCaseCount = async () => {
-    const {
-      payload: { value: result },
-    } = await aggsSearch({
-      size: 99999,
-      // FIXME: 参数先写死后续再改
-      group: [
-        {
-          key: 'r_test_manager_repository',
-          name: '',
-          fieldType: 'r_test_manager_repository_keyword',
-        },
-      ],
-      value: [
-        {
-          key: 'count',
-          name: 'count',
-          fieldType: 'count',
-          compute: 'count',
-        },
-      ],
-      iql: linkIql || `workspaceKey='${body.workspaceKey}' and 'test_manager_type' = "TestCase"`,
-      iqlContext: {
-        displayContext: 'test_manager',
-      },
-    });
+  const [repositoryData, groupedCaseCount] = await Promise.all([
+    getRepositoryData(),
+    getGroupedCaseCount(
+      linkIql || `workspaceKey='${body.workspaceKey}' and 'test_manager_type' = "TestCase"`,
+    ),
+  ]);
 
-    const groupedCaseCount = {};
-    result.forEach(({ r_test_manager_repository, count }) => {
-      groupedCaseCount[r_test_manager_repository ?? UngroupedRepositoryKey] = count;
-    });
-    return groupedCaseCount;
-  };
+  const clonedGroupedCaseCount = cloneDeep(groupedCaseCount);
+  repositoryData.forEach(repo => {
+    repo.counts = [groupedCaseCount[repo.key] ?? 0, 0];
+    delete clonedGroupedCaseCount[repo.key];
+  });
 
-  try {
-    const [repositoryData, groupedCaseCount] = await Promise.all([
-      getRepositoryData(),
-      getGroupedCaseCount(),
-    ]);
+  const retainedUngroupedRepositoryCount = (
+    Object.values(clonedGroupedCaseCount) as number[]
+  ).reduce((acc, count) => acc + count, 0);
 
-    const clonedGroupedCaseCount = cloneDeep(groupedCaseCount);
-    repositoryData.forEach(repo => {
-      repo.counts = [groupedCaseCount[repo.key] ?? 0, 0];
-      delete clonedGroupedCaseCount[repo.key];
-    });
+  const ungroupedRepository = repositoryData.find(repo => repo.key === UngroupedRepositoryKey);
 
-    const retainedUngroupedRepositoryCount = (
-      Object.values(clonedGroupedCaseCount) as number[]
-    ).reduce((acc, count) => acc + count, 0);
+  ungroupedRepository.counts = [
+    ungroupedRepository.counts[0] + retainedUngroupedRepositoryCount,
+    0,
+  ];
 
-    const ungroupedRepository = repositoryData.find(repo => repo.key === UngroupedRepositoryKey);
+  const repositoryKeyMapping = keyBy(repositoryData, 'key');
 
-    ungroupedRepository.counts = [
-      ungroupedRepository.counts[0] + retainedUngroupedRepositoryCount,
-      0,
-    ];
+  // 构建目录树
+  // 创建一个哈希表，用于存储每个repo对象的子对象
+  console.time('build repos tree');
+  const repoMap = {};
+  repositoryData.forEach(repo => {
+    repoMap[repo.key] = repoMap[repo.key] || [];
+  });
 
-    const repositoryKeyMapping = keyBy(repositoryData, 'key');
+  // 遍历repositoryData，将每个repo对象添加到其父对象的children属性中
+  repositoryData.forEach(repo => {
+    if (repo.parentKey && repoMap[repo.parentKey]) {
+      repoMap[repo.parentKey].push(repo);
+    }
+  });
 
-    // 构建目录树
-    // 创建一个哈希表，用于存储每个repo对象的子对象
-    console.time('build repos tree');
-    const repoMap = {};
-    repositoryData.forEach(repo => {
-      repoMap[repo.key] = repoMap[repo.key] || [];
-    });
+  // 将每个repo对象的children属性设置为其在哈希表中存储的子对象数组
+  repositoryData.forEach(repo => {
+    repo.children = repoMap[repo.key] || [];
+  });
 
-    // 遍历repositoryData，将每个repo对象添加到其父对象的children属性中
-    repositoryData.forEach(repo => {
-      if (repo.parentKey && repoMap[repo.parentKey]) {
-        repoMap[repo.parentKey].push(repo);
-      }
-    });
-
-    // 将每个repo对象的children属性设置为其在哈希表中存储的子对象数组
-    repositoryData.forEach(repo => {
-      repo.children = repoMap[repo.key] || [];
-    });
-
-    const addRepositoryCaseCountsField = repo => {
-      const aggregateChildrenCaseCount = repo => {
-        const childCount = repo.children?.reduce((acc, childRepo) => {
-          return acc + aggregateChildrenCaseCount(childRepo);
-        }, 0);
-        return repo.counts[0] + (childCount ?? 0);
-      };
-
-      const caseCount = repo.counts[0];
-      repo.counts = [caseCount, aggregateChildrenCaseCount(repo)];
-      repo.children?.forEach(addRepositoryCaseCountsField);
+  const addRepositoryCaseCountsField = repo => {
+    const aggregateChildrenCaseCount = repo => {
+      const childCount = repo.children?.reduce((acc, childRepo) => {
+        return acc + aggregateChildrenCaseCount(childRepo);
+      }, 0);
+      return repo.counts[0] + (childCount ?? 0);
     };
 
-    const rootRepositoryTreeNode = repositoryKeyMapping[UngroupedRepositoryKey];
-    addRepositoryCaseCountsField(rootRepositoryTreeNode);
+    const caseCount = repo.counts[0];
+    repo.counts = [caseCount, aggregateChildrenCaseCount(repo)];
+    repo.children?.forEach(addRepositoryCaseCountsField);
+  };
 
-    console.timeEnd('build repos tree');
+  const rootRepositoryTreeNode = repositoryKeyMapping[UngroupedRepositoryKey];
+  addRepositoryCaseCountsField(rootRepositoryTreeNode);
 
+  console.timeEnd('build repos tree');
+
+  return rootRepositoryTreeNode;
+};
+
+/** 性能优化后的接口，使用 ES 聚合查询，repository 中不包含 caseIds */
+export const repositoryTreeV2 = async () => {
+  const { body } = getReqInfoFromVMRuntime<RepositoryTreePayload>();
+
+  try {
+    const rootRepositoryTreeNode = await getRepositoryTreeV2(body);
     return buildResponse(rootRepositoryTreeNode);
   } catch (err) {
     return buildResponse(err);

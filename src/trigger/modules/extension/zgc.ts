@@ -8,6 +8,7 @@ import {
   fetchByItemLinks,
   getReqInfoFromVMRuntime,
 } from '../../lib/apiUtil';
+import { getRepositoryTreeV2 } from '../api/module';
 
 const zgcConfig = global.env?.ZGC_CONFIG ?? {};
 const STATUS_MAP = zgcConfig?.statusMap ?? {
@@ -42,7 +43,7 @@ const search = async (iql: string, fields = []) => {
     });
 };
 
-// 获取字段映射
+// 获取数据引用字段映射
 const getDataQuoteMap = async groupId => {
   if (!groupId) return;
   const ChartGroupModel = getParseModel(false, 'ChartGroup');
@@ -78,6 +79,36 @@ const getDataQuoteMap = async groupId => {
   }
 
   return dataQuoteMap;
+};
+
+// 获取用例所属模块统计
+const getCaseRepository = async ({ caseIql, workspaceKey }) => {
+  if (!caseIql || !workspaceKey) return [];
+  const repositories = await getRepositoryTreeV2({
+    params: { selector: caseIql },
+    workspaceKey,
+  });
+
+  const chartDataMap = {} as Record<string, { name: string; count: number }>;
+  const handleRepo = repo => {
+    const { counts, parentKey, name, key } = repo;
+    if (!parentKey) {
+      chartDataMap[key] = { count: counts[0], name: '未分组' };
+    } else {
+      chartDataMap[key] = {
+        count: counts[0],
+        name: `${parentKey === 'root' ? '' : `${chartDataMap[parentKey].name}/`}${name}`,
+      };
+    }
+
+    if (repo.children?.length) {
+      repo.children.map(handleRepo);
+    }
+  };
+
+  handleRepo(repositories);
+
+  return Object.values(chartDataMap);
 };
 
 const uniq = list => (Array.isArray(list) ? [...new Set(list ?? [])] : list);
@@ -177,6 +208,7 @@ const getTestReportInfo = async body => {
   const executionRefTestEntityIds = body?.executionRefTestEntityIds ?? {};
   const executionIds = executionRefTestEntityIds?.self ?? [];
   const report = body?.report ?? {};
+  const workspace = report?.workspace;
   const bugItemType = body.defectsMapping || [];
   let res = {} as any;
   let runList = [];
@@ -369,7 +401,7 @@ const getTestReportInfo = async body => {
         test_time: '（需要在本文档中手工补充）样例：SIT阶段',
         test_env: '（需要在本文档中手工补充）样例：SIT、SIT2、SIT3...',
         env_desc:
-          '（需要在本文档中手工补充）样例：需要填写哪些需求分别在哪个环境测试。若所有需求均在主环境测试，此列可不填。样例：需求ID:8990在SIT2环境测试',
+          '（需要在本文档中手工补充）样例：需要填写哪些需求分别在哪个环境测试。若所有需求均在主环境测试，此列可不填。样例：需求Key:8990在SIT2环境测试',
       };
       const envList = [];
       Object.entries(groupMap).map(([test_time, testList]) => {
@@ -625,6 +657,7 @@ const getTestReportInfo = async body => {
       const [links, storyBugs] = await fetchBugFromItemLinks(
         _storyList.map(i => i.id),
         `("itemTypeKey" in ${JSON.stringify(bugItemType)})`,
+        ['status', zgcConfig.解决方案, 'id'],
       );
       console.info('查看需求关联的缺陷', JSON.stringify({ links, storyBugs, _storyList }));
       setRes({
@@ -697,6 +730,7 @@ const getTestReportInfo = async body => {
       const [links, runBugs] = await fetchBugFromItemLinks(
         executionRefTestEntityIds.self,
         `"itemTypeKey" in ${JSON.stringify(bugItemType)}`,
+        ['status', zgcConfig.解决方案, 'id'],
       );
       console.info('查看测试执行关联的缺陷', JSON.stringify({ links, runBugs, groupMap }));
       setRes({ bugCount: runBugs?.length });
@@ -760,6 +794,28 @@ const getTestReportInfo = async body => {
     };
 
     await getBugStaticsByStage();
+
+    const getCaseStaticsByRepo = async () => {
+      const params = {
+        caseIql: `'id' in ${JSON.stringify(executionRefTestEntityIds[TestType.Case])}`,
+        workspaceKey: workspace?.key,
+      };
+      const caseStaticsList = await getCaseRepository(params);
+      const list = caseStaticsList
+        .filter(i => i.count)
+        .map(i => ({ ...i, workspace: workspace.name }));
+      // 统计缺陷通过率
+      const columns = [
+        { title: '所属空间', dataIndex: 'workspace' },
+        { title: '用例所属模块', dataIndex: 'name' },
+        { title: '用例设计数', dataIndex: 'count' },
+      ];
+      // 构建表格
+      setRes({ ['用例系统模块分布']: createTable(columns, list, 'caseStaticsByRepo') });
+      setRes({ ['用例系统模块分布表格']: list });
+    };
+
+    await getCaseStaticsByRepo();
   }
 
   return res;
