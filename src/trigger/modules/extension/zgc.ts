@@ -386,7 +386,7 @@ const getTestReportInfo = async body => {
 
     const unTestedStoryList = allStroyList
       .filter(story => !storyList.includes(story.key))
-      .map(story => '#' + story.key.split('-')[1] + '-' + story.name);
+      .map(story => '#' + story.key.split('-')[story.key.split('-').length - 1] + '-' + story.name);
     setRes({ unTestedStoryList });
 
     console.info('zgc', JSON.stringify({ res, groupMap }));
@@ -453,10 +453,10 @@ const getTestReportInfo = async body => {
           dataIndex: 'env_desc',
         },
       ];
-      setRes({ ['测试环境']: createTable(columns, envList, 'env') });
+      setRes({ ['测试环境数据']: createTable(columns, envList, 'env') });
       setRes({ ['测试环境表格']: envList });
     };
-    await getEnvList();
+    getEnvList();
 
     const getVersion = () => {
       const versionList = Object.entries(groupMap).map(([test_time, testList]) => ({
@@ -538,6 +538,27 @@ const getTestReportInfo = async body => {
     };
     getRunStatics();
 
+    // 处理用例分布chart
+    const getCaseStaticsByRepo = async caseIql => {
+      const params = {
+        caseIql,
+        workspaceKey: workspace?.key,
+      };
+      const caseStaticsList = await getCaseRepository(params);
+      const list = caseStaticsList
+        .filter(i => i.count)
+        .map(i => ({ ...i, workspace: workspace.name }));
+      // 统计缺陷通过率
+      const columns = [
+        { title: '所属空间', dataIndex: 'workspace' },
+        { title: '用例所属模块', dataIndex: 'name' },
+        { title: '用例设计数', dataIndex: 'count' },
+      ];
+      // 构建表格
+      setRes({ ['用例系统模块分布']: createTable(columns, list, 'caseStaticsByRepo') });
+      setRes({ ['用例系统模块分布表格']: list });
+    };
+
     // 需求和用例的统计
     const getCaseStaticsByStage = async () => {
       const _storyList = uniqBy(
@@ -554,7 +575,8 @@ const getTestReportInfo = async body => {
         `'test_manager_type' in ['TestCase']`,
         ['id', result_exec],
       );
-      console.info('查看需求关联的测试用例', JSON.stringify({ cases }));
+      console.info('查看需求关联的测试用例', JSON.stringify(cases.length));
+      await getCaseStaticsByRepo(`id in ${JSON.stringify(cases.map(c => (c as any).id))}`);
 
       const storyTableMap = res.planList?.reduce((map, plan) => {
         if (plan.ancestor?.objectId && !map[plan.ancestor.objectId]) {
@@ -631,8 +653,6 @@ const getTestReportInfo = async body => {
       });
     };
 
-    await getCaseStaticsByStage();
-
     // 保存需求相关缺陷统计
     const getBugStaticsByStory = async () => {
       // 查询测试任务关联的需求
@@ -659,6 +679,7 @@ const getTestReportInfo = async body => {
         `("itemTypeKey" in ${JSON.stringify(bugItemType)})`,
         ['status', zgcConfig.解决方案, 'id'],
       );
+      setRes({ bugCount: storyBugs?.length });
       console.info('查看需求关联的缺陷', JSON.stringify({ links, storyBugs, _storyList }));
       setRes({
         ['需求相关缺陷']: {
@@ -721,8 +742,6 @@ const getTestReportInfo = async body => {
       setRes({ ['需求相关缺陷统计表格']: list });
     };
 
-    await getBugStaticsByStory();
-
     // 保存阶段与缺陷的统计
     const getBugStaticsByStage = async () => {
       // 查询测试任务中的自定义字段-阶段
@@ -733,7 +752,6 @@ const getTestReportInfo = async body => {
         ['status', zgcConfig.解决方案, 'id'],
       );
       console.info('查看测试执行关联的缺陷', JSON.stringify({ links, runBugs, groupMap }));
-      setRes({ bugCount: runBugs?.length });
       setRes({ ['阶段统计测试']: { links, runBugs, groupMap } });
       // 构建表格
       const list = Object.keys(groupMap).map(stage => {
@@ -793,29 +811,7 @@ const getTestReportInfo = async body => {
       setRes({ ['阶段相关缺陷统计表格']: list });
     };
 
-    await getBugStaticsByStage();
-
-    const getCaseStaticsByRepo = async () => {
-      const params = {
-        caseIql: `'id' in ${JSON.stringify(executionRefTestEntityIds[TestType.Case])}`,
-        workspaceKey: workspace?.key,
-      };
-      const caseStaticsList = await getCaseRepository(params);
-      const list = caseStaticsList
-        .filter(i => i.count)
-        .map(i => ({ ...i, workspace: workspace.name }));
-      // 统计缺陷通过率
-      const columns = [
-        { title: '所属空间', dataIndex: 'workspace' },
-        { title: '用例所属模块', dataIndex: 'name' },
-        { title: '用例设计数', dataIndex: 'count' },
-      ];
-      // 构建表格
-      setRes({ ['用例系统模块分布']: createTable(columns, list, 'caseStaticsByRepo') });
-      setRes({ ['用例系统模块分布表格']: list });
-    };
-
-    await getCaseStaticsByRepo();
+    await Promise.all([getCaseStaticsByStage(), getBugStaticsByStory(), getBugStaticsByStage()]);
   }
 
   return res;

@@ -70,6 +70,7 @@ export const fetchBugFromItemLinks = async (
       getParseQuery(false, 'ItemLink').containedIn('source', ids),
       getParseQuery(false, 'ItemLink').containedIn('destination', ids),
     ])
+    .select(['source', 'destination'])
     .findAll({ useMasterKey: true });
   if (!links?.length) return [[], []];
   let iql = `id in ['${links
@@ -95,6 +96,7 @@ export const fetchBugFromItemLinks = async (
       getParseQuery(false, 'ItemLink').containedIn('source', bugIds),
       getParseQuery(false, 'ItemLink').containedIn('destination', bugIds),
     ])
+    .select(['source', 'destination'])
     .findAll({ useMasterKey: true });
 
   const caseIql = `id in ['${bugLinks
@@ -148,6 +150,7 @@ export const fetchByItemLinks = async (
       getParseQuery(false, 'ItemLink').containedIn('source', ids),
       getParseQuery(false, 'ItemLink').containedIn('destination', ids),
     ])
+    .select(['source', 'destination'])
     .findAll({ useMasterKey: true });
   if (!links?.length) return [[], []];
   let iql = `id in ['${links
