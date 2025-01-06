@@ -86,12 +86,16 @@ export const fetchBugFromItemLinks = async (
     iql,
     fields,
     displayContext: AppKey,
-    limit: links.length,
+    size: links.length,
   });
 
   // 通过事项关联查询，获取缺陷对应的事项，通过TestType.case来判断是否是测试用例
-  const bugIds = items.map(i => i.id);
-  let bugLinks = await getParseQuery(false, 'ItemLink')
+  const bugIds = [];
+  const bugsMap = items.reduce((m, i) => {
+    bugIds.push(i.id);
+    return { ...m, [i.id]: i };
+  }, {});
+  const bugLinks = await getParseQuery(false, 'ItemLink')
     ._orQuery([
       getParseQuery(false, 'ItemLink').containedIn('source', bugIds),
       getParseQuery(false, 'ItemLink').containedIn('destination', bugIds),
@@ -101,7 +105,7 @@ export const fetchBugFromItemLinks = async (
 
   const caseIql = `id in ['${bugLinks
     .flatMap(d => [d.get('destination').objectId, d.get('source').objectId])
-    .filter(id => !bugIds.includes(id))
+    .filter(id => !bugsMap[id])
     .join("','")}'] and 'test_manager_type' = 'TestCase'`;
 
   const {
@@ -110,30 +114,18 @@ export const fetchBugFromItemLinks = async (
     iql: caseIql,
     fields: ['id'],
     displayContext: AppKey,
-    limit: bugLinks.length,
+    size: bugLinks.length,
   });
-  const caseIds = cases.map(i => i.id);
+  const linkedCaseMap = cases.reduce((m, c) => ({ ...m, [c.id]: true }), {});
 
-  bugLinks = bugLinks.map(i => i.toJSON());
+  bugLinks.forEach(link => {
+    if (bugsMap[link.get('destination').objectId] && linkedCaseMap[link.get('source').objectId]) {
+      bugsMap[link.get('destination').objectId].isRelativeCase = true;
+    }
 
-  items.forEach(i => {
-    i.isRelativeCase = false;
-    bugLinks
-      .filter(b => b.destination.objectId === i.id)
-      .some(b => {
-        if (caseIds.includes(b.source.objectId)) {
-          i.isRelativeCase = true;
-          return true;
-        }
-      });
-    bugLinks
-      .filter(b => b.source.objectId === i.id)
-      .some(b => {
-        if (caseIds.includes(b.destination.objectId)) {
-          i.isRelativeCase = true;
-          return true;
-        }
-      });
+    if (bugsMap[link.get('source').objectId] && linkedCaseMap[link.get('destination').objectId]) {
+      bugsMap[link.get('source').objectId].isRelativeCase = true;
+    }
   });
 
   return [links.map(i => i.toJSON()), items];
@@ -166,7 +158,7 @@ export const fetchByItemLinks = async (
     iql,
     displayContext: AppKey,
     fields: fields?.length ? fields : [],
-    limit: links.length,
+    size: links.length,
   });
 
   return [links.map(i => i.toJSON()), items];

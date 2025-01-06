@@ -140,8 +140,8 @@ const TestDetailSelector: React.FC<TestDetailSelectorProps> = props => {
             fields: ['name'],
           },
         }
-      : { isShowAll: !iql };
-  }, [planId, treeType, selectedWorkspaceKey, selectors, iql]);
+      : { isShowAll: showDefaultRange ? !iql : true };
+  }, [planId, treeType, selectedWorkspaceKey, selectors, showDefaultRange, iql]);
 
   // 测试案例库选中
   const allTestWorkspaces = useAllTestWorkspace();

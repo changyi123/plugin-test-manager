@@ -137,6 +137,7 @@ const SupportAppEnv = {
     defaultValue: {
       测试环境: 'bchj',
       测试阶段: 'ceshijieduan',
+      enable: false,
     },
     transformer: value => value,
   },

@@ -122,38 +122,47 @@ const getOrCreateTestEntity = async (
           duration: null,
         });
         const testReport = new TestReport();
-        const { data: reportInfo, status } = await testReport.createReport(templateId, {
-          name: itemData.name,
-          dataSourceIql: iqlMap,
-          workspace: itemData.workspace,
-          defectsMapping,
-          itemTypeMap,
-          report: itemData,
-          ...fields,
-        });
-        notification.destroy();
-        needCreatedItem = {
-          ...needCreatedItem,
-          ...fields,
-          ...{ reportChartGroup: reportInfo.chartGroup?.id },
-        };
-
-        console.info('create test report success!', reportInfo);
-        // 生成测试报告离线文档
-        // enableOfflineReport && (await generateTestReportOfflineFile(reportInfo?.data?.objectId));
-
-        if (status === 'success') {
-          proxima.execute('refreshTestReportTable', itemData?.objectId);
-          notification.success({
-            message: `${t('report.testReport')}【${reportInfo.name}】${t('report.addSuccess')}`,
+        try {
+          const { data: reportInfo, status } = await testReport.createReport(templateId, {
+            name: itemData.name,
+            dataSourceIql: iqlMap,
+            workspace: itemData.workspace,
+            defectsMapping,
+            itemTypeMap,
+            report: itemData,
+            ...fields,
           });
-        } else {
+          notification.destroy();
+          needCreatedItem = {
+            ...needCreatedItem,
+            ...fields,
+            ...{ reportChartGroup: reportInfo.chartGroup?.id },
+          };
+
+          console.info('create test report success!', reportInfo);
+          // 生成测试报告离线文档
+          // enableOfflineReport && (await generateTestReportOfflineFile(reportInfo?.data?.objectId));
+
+          if (status === 'success') {
+            proxima.execute('refreshTestReportTable', itemData?.objectId);
+            notification.success({
+              message: `${t('report.testReport')}【${reportInfo.name}】${t('report.addSuccess')}`,
+            });
+          } else {
+            notification.error({
+              message: `${t('report.testReport')}【${reportInfo.name}】${t('report.addFail')}`,
+            });
+          }
+
+          console.info('needCreatedItem', needCreatedItem);
+        } catch (error) {
+          console.error('create test report error', error);
           notification.error({
-            message: `${t('report.testReport')}【${reportInfo.name}】${t('report.addFail')}`,
+            message: error.message,
           });
+          return;
         }
       }
-      console.info('needCreatedItem', needCreatedItem);
     }
 
     if (!isEmpty(needCreatedItem)) {

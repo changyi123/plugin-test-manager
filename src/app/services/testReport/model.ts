@@ -10,7 +10,7 @@ import {
   getTestEntityByQuery,
 } from '@/lib/api/item';
 import { search } from '@/lib/api/proxima';
-import { judgeTestReportVersion, TEST_REPORT_VERSION } from '@/lib/appEnv';
+import { getAppEnv, judgeTestReportVersion, TEST_REPORT_VERSION } from '@/lib/appEnv';
 import {
   ExtendReportType,
   TestExecutionModel,
@@ -865,7 +865,8 @@ const TestReport = Parse.Object.extend('test_manager_TestReport', {
         report?: Record<string, any>;
       },
   ) {
-    if (reportParams.name?.length > 250) {
+    const zgcConfig = getAppEnv('ZGC_CONFIG');
+    if (!zgcConfig?.enable && reportParams.name?.length > 250) {
       throw new Error(t('page.reportTemplateCreator.reportNameTooLong'));
     }
     // 获取模板数据

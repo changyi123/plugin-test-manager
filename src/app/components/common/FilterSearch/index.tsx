@@ -138,8 +138,8 @@ const FilterSearch: React.ForwardRefRenderFunction<FilterRefMethod, FilterSearch
   const [useDefaultRange, setUseDefaultRange] = useState(true);
   const { workspace } = useTestConfig();
   const defaultIql = useMemo(() => {
-    return useDefaultRange ? defaultIqlProp || '' : '';
-  }, [useDefaultRange, defaultIqlProp]);
+    return useDefaultRange && showDefaultRange ? defaultIqlProp || '' : '';
+  }, [useDefaultRange, showDefaultRange, defaultIqlProp]);
 
   useEffect(() => {
     showDefaultRange && defaultIql && handleSearch();

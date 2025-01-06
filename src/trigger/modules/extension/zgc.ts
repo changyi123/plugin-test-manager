@@ -226,12 +226,17 @@ const getTestReportInfo = async body => {
     setRes({ caseCount: executionRefTestEntityIds[TestType.Case]?.length });
 
     const groupMap = {} as Record<string, any[]>;
+    const executionId2GroupMap = {} as Record<string, string[]>;
     const storyMap = {} as Record<string, any>;
     const testToPlanMap = {} as Record<string, any>;
     const envIds = [];
     const getGroupMap = testList => {
       testList.forEach(test => {
         const testTimes = test?.values?.[zgcConfig?.测试阶段 ?? 'ceshijieduan'] ?? [];
+        if (!executionId2GroupMap[test.id]?.length) {
+          executionId2GroupMap[test.id] = [];
+        }
+        executionId2GroupMap[test.id] = [...executionId2GroupMap[test.id], ...testTimes];
         testTimes.forEach(test_time => {
           if (!groupMap[test_time]) {
             groupMap[test_time] = [];
@@ -290,7 +295,6 @@ const getTestReportInfo = async body => {
 
     const requestTestList = search(`id in ${JSON.stringify(executionRefTestEntityIds.self)}`).then(
       async testList => {
-        console.info(`zgc requestTestList`, JSON.stringify(testList));
         const minKsrqList = testList
           .map(test => test.values[zgcConfig?.开始日期 ?? 'ksrq'])
           .filter(Boolean);
@@ -345,7 +349,6 @@ const getTestReportInfo = async body => {
     };
     const requestReportList = search(`id in [${JSON.stringify(report.objectId)}]`).then(
       async reports => {
-        console.info(`zgc requestReportList`, JSON.stringify(reports));
         const reportRes = reports[0];
         setRes({ report: reportRes });
         await Promise.all([setToolList(reportRes)]);
@@ -358,7 +361,6 @@ const getTestReportInfo = async body => {
       `id in ${JSON.stringify(executionRefTestEntityIds.planIds)}`,
       ['ancestor', 'id'],
     ).then(async planList => {
-      console.info(`zgc requestTestList`, JSON.stringify(planList));
       setRes({ planList });
       planList.forEach(plan => {
         const planId = plan.id;
@@ -377,19 +379,20 @@ const getTestReportInfo = async body => {
       setRes({ storyList });
     });
 
+    console.info('测试报告-开始处理数据源数据');
     await Promise.all([requestTestList, requestTestPlanList, requestReportList, requestRunList]);
     res.planList?.forEach(plan => {
       if (plan.ancestor?.objectId && !storyMap[plan.ancestor.objectId]) {
         storyMap[plan.ancestor?.objectId] = { ...plan.ancestor, id: plan.ancestor.objectId };
       }
     });
+    console.info('测试报告-数据源数据处理完成');
 
     const unTestedStoryList = allStroyList
       .filter(story => !storyList.includes(story.key))
       .map(story => '#' + story.key.split('-')[story.key.split('-').length - 1] + '-' + story.name);
     setRes({ unTestedStoryList });
 
-    console.info('zgc', JSON.stringify({ res, groupMap }));
     const testCoverage =
       res.storyCount && res.versionStoryCount ? (res.storyCount * 100) / res.versionStoryCount : 0;
     setRes({ testCoverage: testCoverage.toFixed(2) });
@@ -540,14 +543,17 @@ const getTestReportInfo = async body => {
 
     // 处理用例分布chart
     const getCaseStaticsByRepo = async caseIql => {
+      console.info('测试报告-开始处理用例分布数据');
       const params = {
         caseIql,
         workspaceKey: workspace?.key,
       };
       const caseStaticsList = await getCaseRepository(params);
-      const list = caseStaticsList
-        .filter(i => i.count)
-        .map(i => ({ ...i, workspace: workspace.name }));
+      const list = [];
+      caseStaticsList.forEach(item => {
+        const { name, count } = item;
+        if (count) list.push({ name, count, workspace: workspace.name });
+      });
       // 统计缺陷通过率
       const columns = [
         { title: '所属空间', dataIndex: 'workspace' },
@@ -557,10 +563,12 @@ const getTestReportInfo = async body => {
       // 构建表格
       setRes({ ['用例系统模块分布']: createTable(columns, list, 'caseStaticsByRepo') });
       setRes({ ['用例系统模块分布表格']: list });
+      console.info('测试报告-用例分布数据处理完成');
     };
 
     // 需求和用例的统计
     const getCaseStaticsByStage = async () => {
+      console.info('测试报告-开始处理需求和用例的统计');
       const _storyList = uniqBy(
         executionRefTestEntityIds.self
           .map(executionId => {
@@ -570,16 +578,22 @@ const getTestReportInfo = async body => {
         'id',
       ) as any[];
       // 查询需求关联的测试用例
+      console.info('测试报告-开始查询需求和用例的关联关系');
       const [links, cases] = await fetchByItemLinks(
         _storyList.map(i => i.id),
         `'test_manager_type' in ['TestCase']`,
         ['id', result_exec],
       );
-      console.info('查看需求关联的测试用例', JSON.stringify(cases.length));
+      console.info('测试报告-结束查询需求和用例的关联关系');
+
       await getCaseStaticsByRepo(`id in ${JSON.stringify(cases.map(c => (c as any).id))}`);
 
+      // 需求关联的测试用例去重
+      const storyCaseSet = {};
+      // 测试计划所属的系统子需求
       const storyTableMap = res.planList?.reduce((map, plan) => {
         if (plan.ancestor?.objectId && !map[plan.ancestor.objectId]) {
+          storyCaseSet[plan.ancestor.objectId] = {};
           map[plan.ancestor.objectId] = {
             storyName: plan.ancestor?.name,
             total: 0,
@@ -595,36 +609,35 @@ const getTestReportInfo = async body => {
         return map;
       }, {});
 
-      const caseSet = {};
-      // 构建表格数据
-      _storyList.forEach(i => {
-        const caseList = uniqBy(
-          links
-            .filter(d => d.source.objectId === i.id || d.destination.objectId === i.id)
-            .map(b =>
-              cases.find((c: any) => c.id === b.destination.objectId || c.id === b.source.objectId),
-            )
-            .filter(Boolean),
-          'objectId',
-        );
+      // 用例状态映射
+      const caseStatusMap = cases.reduce((map, caseItem) => {
+        return {
+          ...map,
+          [(caseItem as any).id]: (caseItem?.values[result_exec] as string) || '未开始',
+        };
+      }, {});
 
-        const storyId = i.id;
-        caseList.forEach((testCase: any) => {
-          const caseKey = `${(
-            STATUS_MAP[testCase?.values[result_exec] as string] ?? 'todo'
-          ).toLowerCase()}_count`;
-          if (!caseSet[storyId]?.length) {
-            caseSet[storyId] = [];
-          }
+      // 处理数据
+      const handleLink = (storyId, caseId) => {
+        if (storyTableMap[storyId] && !storyCaseSet[storyId][caseId] && caseStatusMap[caseId]) {
+          storyCaseSet[storyId][caseId] = true;
+          const caseKey = `${STATUS_MAP[caseStatusMap[caseId]].toLowerCase()}_count`;
+          storyTableMap[storyId][caseKey] += 1;
+          storyTableMap[storyId].total += 1;
+        }
+      };
+      links.forEach(link => {
+        const { source, destination } = link;
+        let stroyId = source.objectId;
+        let caseId = destination.objectId;
 
-          if (testCase && !caseSet[storyId].includes(testCase.id)) {
-            caseSet[storyId].push(testCase.id);
-            storyTableMap[storyId][caseKey] += 1;
-            storyTableMap[storyId].total += 1;
-          }
-        });
+        handleLink(stroyId, caseId);
+        // 双向事项关联反向处理一次
+        stroyId = destination.objectId;
+        caseId = source.objectId;
+        handleLink(stroyId, caseId);
       });
-      // 构建表格
+      // 计算通过率
       const storyStaticList = Object.values(storyTableMap).map((row: any) => {
         row.passPercent = `${((row.passed_count * 100) / (row.total || 1)).toFixed(2)}%`;
         row.executedPercent = `${(((row.total - row.todo_count) * 100) / (row.total || 1)).toFixed(
@@ -651,10 +664,12 @@ const getTestReportInfo = async body => {
       setRes({
         ['需求相关用例执行统计表格']: storyStaticList,
       });
+      console.info('测试报告-需求和用例的统计处理完成');
     };
 
     // 保存需求相关缺陷统计
     const getBugStaticsByStory = async () => {
+      console.info('测试报告-开始处理需求相关缺陷统计');
       // 查询测试任务关联的需求
       const _storyList = uniqBy(
         executionRefTestEntityIds.self
@@ -664,68 +679,90 @@ const getTestReportInfo = async body => {
           .filter(Boolean),
         'id',
       ) as any[];
-      console.info(
-        '查看需求关联的缺陷',
-        JSON.stringify({
-          storyMap,
-          executionRefTestEntityIds: executionRefTestEntityIds.self,
-          planToStoryMap,
-          testToPlanMap,
-        }),
-      );
+
       // 查询需求关联的缺陷
+      console.info('测试报告-开始查询需求和缺陷的关联关系');
       const [links, storyBugs] = await fetchBugFromItemLinks(
         _storyList.map(i => i.id),
         `("itemTypeKey" in ${JSON.stringify(bugItemType)})`,
         ['status', zgcConfig.解决方案, 'id'],
       );
+      console.info('测试报告-结束查询需求和缺陷的关联关系');
       setRes({ bugCount: storyBugs?.length });
-      console.info('查看需求关联的缺陷', JSON.stringify({ links, storyBugs, _storyList }));
-      setRes({
-        ['需求相关缺陷']: {
-          links,
-          storyBugs,
-          _storyList,
-          storyMap,
-          planToStoryMap,
-          testToPlanMap,
-          executionRefTestEntityIds: executionRefTestEntityIds.self,
-        },
-      });
-      const list = _storyList.map(i => {
-        const bugList = uniqBy(
-          links
-            .filter(d => d.source.objectId === i.objectId || d.destination.objectId === i.objectId)
-            .map(b =>
-              storyBugs.find(
-                bug =>
-                  bug.objectId === b.destination.objectId || bug.objectId === b.source.objectId,
-              ),
-            )
-            .filter(Boolean),
-          'objectId',
+
+      // 需求关联的缺陷去重
+      const storyBugSet = {};
+      // 测试计划所属的系统子需求
+      const storyTableMap = res.planList?.reduce((map, plan) => {
+        if (plan.ancestor?.objectId && !map[plan.ancestor.objectId]) {
+          storyBugSet[plan.ancestor.objectId] = {};
+          map[plan.ancestor.objectId] = {
+            name: plan.ancestor?.name,
+            bug_total: 0,
+            valid_count: 0,
+            close_count: 0,
+            deferred_count: 0,
+            discover_count: 0,
+            not_close_count: 0,
+            discover_rate: `0.00%`,
+            close_rate: `0.00%`,
+            valid_rate: `0.00%`,
+          };
+        }
+        return map;
+      }, {});
+      // 缺陷映射
+      const validBugMap = {};
+      const closeBugMap = {};
+      const discoverBugMap = {};
+      const deferredBugMap = {};
+      const bugMap = storyBugs.reduce((map, bugItem) => {
+        const { id } = bugItem as any;
+        validBugMap[id] = (zgcConfig.有效解决方案 || []).includes(
+          bugItem.values[zgcConfig.解决方案]?.toString(),
         );
-        const close_count = bugList.filter(
-          b => (b.status as any)?.name === (zgcConfig.已关闭 ?? '已关闭'),
-        ).length;
-        const validLength = bugList.filter(b =>
-          (zgcConfig.有效解决方案 || []).includes(b.values[zgcConfig.解决方案]?.toString()),
-        ).length;
-        const discoverBugs = bugList.filter(b => (b as any).isRelativeCase);
-        const total = bugList.length || 1;
+        closeBugMap[id] = (zgcConfig.已关闭 ?? '已关闭') === (bugItem.status as any)?.name;
+        discoverBugMap[id] = (bugItem as any).isRelativeCase;
+        deferredBugMap[id] =
+          (bugItem.status as any)?.name === (zgcConfig.延期待解决 ?? '延期待解决');
         return {
-          name: i.name,
-          bug_total: bugList.length,
-          close_count,
-          deferred_count: bugList.filter(
-            b => (b.status as any)?.name === (zgcConfig.延期待解决 ?? '延期待解决'),
-          ).length,
-          not_close_count: bugList.length - close_count,
-          discover_rate: `${((100 * discoverBugs.length) / total).toFixed(2)}%`,
-          close_rate: `${((100 * close_count) / total).toFixed(2)}%`,
-          valid_rate: `${((100 * validLength) / total).toFixed(2)}%`,
+          ...map,
+          [(bugItem as any).id]: bugItem,
         };
+      }, {});
+      // 处理数据
+      const handleLink = (storyId, bugId) => {
+        if (storyTableMap[storyId] && bugMap[bugId] && !storyBugSet[storyId][bugId]) {
+          const item = storyTableMap[storyId];
+          storyBugSet[storyId][bugId] = true;
+          item.bug_total += 1;
+          item.close_count += closeBugMap[bugId] ? 1 : 0;
+          item.deferred_count += deferredBugMap[bugId] ? 1 : 0;
+          item.valid_count += validBugMap[bugId] ? 1 : 0;
+          item.discover_count += discoverBugMap[bugId] ? 1 : 0;
+          item.not_close_count = item.bug_total - item.close_count;
+          return;
+        }
+      };
+      links.forEach(link => {
+        const { source, destination } = link;
+
+        let bugId = destination.objectId;
+        let storyId = source.objectId;
+        handleLink(storyId, bugId);
+        // 双向事项关联反向处理一次
+        bugId = source.objectId;
+        storyId = destination.objectId;
+        handleLink(storyId, bugId);
       });
+      // 计算通过率
+      const list = Object.values(storyTableMap).map((row: any) => {
+        row.discover_rate = `${((row.discover_count * 100) / (row.bug_total || 1)).toFixed(2)}%`;
+        row.close_rate = `${((row.close_count * 100) / (row.bug_total || 1)).toFixed(2)}%`;
+        row.valid_rate = `${((row.valid_count * 100) / (row.bug_total || 1)).toFixed(2)}%`;
+        return row;
+      });
+
       // 统计缺陷通过率
       const columns = [
         { title: '需求名称', dataIndex: 'name' },
@@ -740,60 +777,107 @@ const getTestReportInfo = async body => {
       // 构建表格
       setRes({ ['需求相关缺陷统计']: createTable(columns, list, 'bugStaticsByStory') });
       setRes({ ['需求相关缺陷统计表格']: list });
+      console.info('测试报告-需求相关缺陷统计处理完成');
     };
 
     // 保存阶段与缺陷的统计
     const getBugStaticsByStage = async () => {
       // 查询测试任务中的自定义字段-阶段
       // 查询测试执行关联的缺陷
+      console.info('测试报告-开始处理阶段与缺陷的统计');
+      console.info('测试报告-结束查询测试执行任务和缺陷的关联关系');
       const [links, runBugs] = await fetchBugFromItemLinks(
         executionRefTestEntityIds.self,
         `"itemTypeKey" in ${JSON.stringify(bugItemType)}`,
         ['status', zgcConfig.解决方案, 'id'],
       );
-      console.info('查看测试执行关联的缺陷', JSON.stringify({ links, runBugs, groupMap }));
       setRes({ ['阶段统计测试']: { links, runBugs, groupMap } });
-      // 构建表格
-      const list = Object.keys(groupMap).map(stage => {
-        const executions = groupMap[stage] || [];
-        const executionsIds = executions.map(i => i.id);
-        // 找到测试执行所关联的缺陷
-        const bugList = uniqBy(
-          runBugs.filter(i => {
-            const _link = links.filter(
-              l =>
-                executionsIds.includes(l.source.objectId) ||
-                executionsIds.includes(l.destination.objectId),
-            );
-            const bugIds = _link.map(i =>
-              executionsIds.includes(i.destination.objectId)
-                ? i.source.objectId
-                : i.destination.objectId,
-            );
-            return bugIds.includes(i.objectId);
-          }),
-          'objectId',
-        );
-        console.info('查看这条阶段对应的数据', JSON.stringify({ executions, bugList }));
-        const close_count = bugList.filter(b => (b.status as any)?.name === '已关闭').length;
-        const validLength = bugList.filter(b =>
-          (zgcConfig.有效解决方案 || []).includes(b.values[zgcConfig.解决方案]?.toString()),
-        ).length;
-        const discoverBugs = bugList.filter(b => (b as any).isRelativeCase);
-        const total = bugList.length || 1;
-
+      console.info('测试报告-结束查询测试执行任务和缺陷的关联关系');
+      // 缺陷映射
+      const validBugMap = {};
+      const closeBugMap = {};
+      const discoverBugMap = {};
+      const deferredBugMap = {};
+      const bugsMap = runBugs.reduce((map, bugItem) => {
+        const { id } = bugItem as any;
         return {
-          test_time: stage,
-          bug_total: bugList.length,
-          close_count,
-          deferred_count: bugList.filter(
-            b => (b.status as any)?.name === (zgcConfig.延期待解决 ?? '延期待解决'),
-          ).length,
-          not_close_count: bugList.length - close_count,
-          discover_rate: `${((100 * discoverBugs.length) / total).toFixed(2)}%`,
-          close_rate: `${((100 * close_count) / total).toFixed(2)}%`,
-          valid_rate: `${((100 * validLength) / total).toFixed(2)}%`,
+          ...map,
+          [id]: bugItem,
         };
+      }, {});
+
+      // 构建表格，并初始化数据
+      const tableMap = Object.keys(groupMap).reduce((m, stage) => {
+        return {
+          ...m,
+          [stage]: {
+            test_time: stage,
+            bug_total: 0,
+            close_count: 0,
+            deferred_count: 0,
+            not_close_count: 0,
+            discover_count: 0,
+            valid_count: 0,
+            discover_rate: `0.00%`,
+            close_rate: `0.00%`,
+            valid_rate: `0.00%`,
+          },
+        };
+      }, {});
+      const handleLink = (executionId, bugId) => {
+        if (
+          executionSet.has(executionId) &&
+          bugsMap[bugId] &&
+          !executionBugSet[executionId][bugId]
+        ) {
+          executionBugSet[executionId][bugId] = true;
+          calcTableItem(executionId, bugId);
+        }
+      };
+      const calcTableItem = (executionId, bugId) => {
+        const stages = executionId2GroupMap[executionId] || [];
+        stages.forEach(stage => {
+          if (!tableMap[stage]) return;
+          tableMap[stage].bug_total += 1;
+          tableMap[stage].close_count += closeBugMap[bugId] ? 1 : 0;
+          tableMap[stage].deferred_count += deferredBugMap[bugId] ? 1 : 0;
+          tableMap[stage].valid_count += validBugMap[bugId] ? 1 : 0;
+          tableMap[stage].discover_count += discoverBugMap[bugId] ? 1 : 0;
+          tableMap[stage].not_close_count = tableMap[stage].bug_total - tableMap[stage].close_count;
+        });
+      };
+
+      // 构建set 去重
+      const executionBugSet = {};
+      const executionSet = new Set();
+      executionRefTestEntityIds.self.forEach(executionId => {
+        if (!executionBugSet[executionId]) {
+          executionBugSet[executionId] = {};
+        }
+        executionSet.add(executionId);
+      });
+      // 构建表格
+      links.forEach(link => {
+        const { source, destination } = link;
+
+        let bugId = destination.objectId;
+        let executionId = source.objectId;
+
+        handleLink(executionId, bugId);
+
+        // 双向事项关联反向处理一次
+        bugId = source.objectId;
+        executionId = destination.objectId;
+
+        handleLink(executionId, bugId);
+      });
+
+      // 计算通过率
+      const list = Object.values(tableMap).map((row: any) => {
+        row.discover_rate = `${((row.discover_count * 100) / (row.bug_total || 1)).toFixed(2)}%`;
+        row.close_rate = `${((row.close_count * 100) / (row.bug_total || 1)).toFixed(2)}%`;
+        row.valid_rate = `${((row.valid_count * 100) / (row.bug_total || 1)).toFixed(2)}%`;
+        return row;
       });
       // 统计缺陷通过率
       const columns = [
@@ -809,6 +893,7 @@ const getTestReportInfo = async body => {
       // 构建表格
       setRes({ ['阶段相关缺陷统计']: createTable(columns, list, 'timeStaticsByStory') });
       setRes({ ['阶段相关缺陷统计表格']: list });
+      console.info('测试报告-阶段相关缺陷统计处理完成');
     };
 
     await Promise.all([getCaseStaticsByStage(), getBugStaticsByStory(), getBugStaticsByStage()]);

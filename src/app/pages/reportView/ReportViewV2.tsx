@@ -240,9 +240,8 @@ const ReportView: React.FC = () => {
 
     let fileName = data?.report?.name;
     const zgcConfig = getAppEnv('ZGC_CONFIG');
-    const defaultNameConfig = getAppEnv('CREATE_EXECUTION_DEFAULT_NAME_CONFIG');
-    const enable = defaultNameConfig?.enable;
-    if (zgcConfig && enable) {
+
+    if (zgcConfig?.enable) {
       const uniq = list => (Array.isArray(list) ? [...new Set(list ?? [])] : list);
 
       let versionName;

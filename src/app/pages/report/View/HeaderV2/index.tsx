@@ -93,9 +93,9 @@ const ReportHeader: React.FC<any> = () => {
         return prev;
       }, {});
 
-      const zgcConfig = getAppEnv('ZGC_CONFIG');
       let name;
-      if (zgcConfig) {
+      const zgcConfig = getAppEnv('ZGC_CONFIG');
+      if (zgcConfig?.enable) {
         const executionIql = iqlMap[TestExecutionModel];
         const testTimeKey = zgcConfig.测试阶段;
         const executions = await search(executionIql, [

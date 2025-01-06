@@ -17,7 +17,7 @@ function uuidv4() {
 }
 
 // 判断数据是否超过 1000 条
-const isMoreThanThousands = d => d?.length > 999;
+const isMoreThanThousands = d => d?.length > 1000;
 
 // 去除首位空格
 const trimData = datas => `${datas ?? ''}`.trim();
@@ -501,7 +501,7 @@ export const runValidate = async () => {
   let errors = [];
   let data = originData;
   if (isMoreThanThousands(originData)) {
-    data = clone(originData).slice(0, 999);
+    data = clone(originData).slice(0, 1000);
     errors.push({ error: errorLog1 });
   }
   let items = getDataByFieldMaping(data, fieldMapping, groupPath);
