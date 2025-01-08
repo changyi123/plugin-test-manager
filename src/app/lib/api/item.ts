@@ -382,9 +382,10 @@ export const updateTestStatus = async data => {
   });
 
   const caseRun = {};
+  const checkStep = getAppEnv('CHECK_STEP_FOR_CHANGE_RUN_STATUS');
 
   const updateTestRuns = testRuns.map(d => {
-    const isRun = ['PASSED', 'FAILED']?.includes(status);
+    const isRun = checkStep || ['PASSED', 'FAILED']?.includes(status);
     const result = {
       objectId: d.id,
       status,
@@ -470,9 +471,15 @@ export const updateTestRunDetail = async (
   const needUpdateAttrs = {} as TestEntity<TestType.Run>;
 
   const caseRun = {};
+  // 中关村需求，改变测试执行状态时校验执行的步骤状态，不需要改动步骤时联动更新执行状态，每次修改状态都算为执行一次
+  const checkStep = getAppEnv('CHECK_STEP_FOR_CHANGE_RUN_STATUS');
 
   // 执行状态为通过或者失败，且前后状态不一致 +1
-  if (['PASSED', 'FAILED']?.includes(params.status) && testEntity.status !== params.status) {
+  if (
+    (checkStep || ['PASSED', 'FAILED']?.includes(params.status)) &&
+    params.status &&
+    testEntity.status !== params.status
+  ) {
     needUpdateAttrs.executeCount = executeCount + 1;
     needUpdateAttrs.executeTime = new Date().getTime();
     caseRun[testEntity.referenceCase] = { [params.planId]: testEntity.objectId };
@@ -487,8 +494,6 @@ export const updateTestRunDetail = async (
       },
     });
 
-    // 中关村需求，改变测试执行状态时校验执行的步骤状态，不需要改动步骤时联动更新执行状态
-    const checkStep = getAppEnv('CHECK_STEP_FOR_CHANGE_RUN_STATUS');
     // 初始化 step 不更新测试执行状态
     if (!opts.initialization && !checkStep) {
       // 有一个失败

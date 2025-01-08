@@ -647,6 +647,8 @@ const chainChartDataAdaptor = (chartData, dataSource) => {
               let result = '';
               try {
                 result = fun(context, dayjs, replace);
+                // 使用 JSON.stringify 来转义 result
+                result = typeof result === 'string' ? JSON.stringify(result).slice(1, -1) : result; // 去掉 JSON.stringify 添加的双引号
               } catch (e) {
                 console.error(e, context);
                 result = '';
