@@ -29,7 +29,7 @@ const commonValue = {
     h: 2,
     maxW: 12,
   },
-}
+};
 
 // 多维表格默认值
 export const BASIC_TABLE_CHART_INIT_VALUE = {
@@ -54,6 +54,7 @@ export const CASE_TABLE_CHART_INIT_VALUE = {
   ],
   ...commonValue,
 };
+export const CHANGE_PAGE = 'change_page';
 
 export const INIT_OPTION = {
   key: '',
@@ -82,6 +83,18 @@ export const INIT_ITEM_LIST_OPTION = {
     SYSTEM_FIELD.ItemGroup,
   ],
 };
+
+// 默认显示的表头
+export const DEFAULT_SHOW_FIELDS = [
+  SYSTEM_FIELD.Key,
+  SYSTEM_FIELD.Name,
+  'linkedExecution',
+  'r_test_manager_repository',
+  'r_test_manager_status',
+  'r_test_manager_executeCount',
+  'r_test_manager_executor',
+  'r_test_manager_executeTime',
+];
 
 // 全局x轴下拉框
 export const {

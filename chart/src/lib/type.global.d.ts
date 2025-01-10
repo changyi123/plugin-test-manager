@@ -1,6 +1,6 @@
 declare module 'insight';
 declare module 'proxima-sdk/components/Components/Common' {
-  export { FormField, DebounceSelect, OverflowTooltip, addErrorMessage };
+  export { FormField, DebounceSelect, OverflowTooltip, addErrorMessage, ColumnsSettings };
 }
 
 declare module 'proxima-sdk/hooks/Hooks' {
@@ -38,5 +38,5 @@ declare module 'proxima-sdk/schema/types/error' {
 declare module 'proxima-sdk/components/Components/Icons';
 
 declare module 'proxima-sdk/components/Components/Chart' {
-  export { DropdownInput, FilterQuery, NoData, useQueryFields };
+  export { DropdownInput, FilterQuery, NoData, useQueryFields, useItemListColumns };
 }

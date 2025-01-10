@@ -2,10 +2,10 @@ import dayjs from 'dayjs';
 import { useToken } from 'proxima-sdk/hooks/Hooks';
 import fetch from 'proxima-sdk/lib/Fetch';
 import { Workspace } from 'proxima-sdk/schema/types/models';
-import useSWR from 'swr';
+import useSWR, { KeyedMutator } from 'swr';
 
 type UseQueryProps = {
-  workspace: Workspace;
+  workspace?: Workspace;
   url: string;
   params: Record<string, any>;
   enableFetch?: boolean; // params参数是否为空，若为空，则不请求数据。因为每个图表的参数不一样，所以判断逻辑会不一样，顾将判断放到外部
@@ -18,6 +18,7 @@ type useQueryResult = {
   isNoData: boolean;
   enableSave: boolean;
   isLoading: boolean;
+  mutate: KeyedMutator<unknown>;
 };
 
 const useQuery = ({
@@ -29,7 +30,7 @@ const useQuery = ({
 }: UseQueryProps): useQueryResult => {
   const { sessionToken } = useToken();
 
-  const { data, isValidating } = useSWR(
+  const { data, isValidating, mutate } = useSWR(
     [url, JSON.stringify(params), enableFetch],
     async () => {
       if (!enableFetch || !sessionToken) {
@@ -45,7 +46,7 @@ const useQuery = ({
           data = await fetch.$post(url, params);
         }
         const enableSave = true;
-        console.log('查看返回数据', data);
+        console.info('查看返回数据', data);
         return { data, enableSave };
       } catch {
         return null;
@@ -64,6 +65,7 @@ const useQuery = ({
     isNoData: isNoDataFunc && isNoDataFunc(result),
     enableSave,
     isLoading: isValidating,
+    mutate,
   };
 };
 

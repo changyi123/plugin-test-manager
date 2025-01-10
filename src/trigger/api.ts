@@ -2,6 +2,7 @@ export {
   queryLinkedTestEntity,
   queryCaseIdByStatus,
   queryCaseRunRecords,
+  queryRunRecords,
 } from './modules/api/query';
 
 export {

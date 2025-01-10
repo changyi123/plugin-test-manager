@@ -1,0 +1,71 @@
+.view {
+  min-width: 65%;
+  height: ~'calc(100% - 20px)';
+  margin: 10px 16px;
+  overflow: hidden;
+  :global {
+    .BaseTable {
+      overflow: hidden;
+      min-width: 430px;
+      .BaseTable__header-row {
+        background-color: #fff;
+        font-size: 12px;
+        color: var(--table-header-color);
+      }
+      .BaseTable__table-main {
+        outline: 0px;
+        .BaseTable__header-cell,
+        .BaseTable__row-cell {
+          padding: 0px 5px;
+        }
+        .BaseTable__header-cell:first-child,
+        .BaseTable__row-cell:first-child {
+          padding-left: 0;
+        }
+      }
+      .BaseTable__footer {
+        white-space: nowrap;
+        text-align: right;
+        .ant-pagination {
+          margin-top: 10px;
+        }
+      }
+    }
+  }
+}
+
+.detail-view {
+  width: ~'calc(100% - 80px)';
+  height: ~'calc(100% - 60px)';
+  margin: 30px 0px 30px 30px;
+  overflow: hidden;
+  :global {
+    .BaseTable__table-main {
+      outline: 0px;
+      .BaseTable__header-cell,
+      .BaseTable__row-cell {
+        padding: 0px 5px;
+        &:last-child {
+          padding-right: 0;
+        }
+      }
+    }
+    .BaseTable__footer {
+      white-space: nowrap;
+      text-align: right;
+    }
+  }
+}
+
+.loading-layer-wrapper {
+  position: absolute;
+  left: 45%;
+  top: 50%;
+}
+
+.footer-pagination {
+  padding: 12px;
+  text-align: right;
+  min-width: 450px;
+  overflow: hidden;
+}

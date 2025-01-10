@@ -43,6 +43,66 @@ export const STATUS_STYLE = {
   },
 };
 
+export const CASE_STATUS_STYLE = {
+  TODO: {
+    ...COMMON_STATUS_STYLE,
+    color: 'rgb(12, 98, 255)',
+    backgroundColor: 'rgb(230, 243, 255)',
+  },
+  PASSED: {
+    ...COMMON_STATUS_STYLE,
+    color: '#09b866',
+    backgroundColor: '#e2ffee',
+  },
+  BLOCK: {
+    ...COMMON_STATUS_STYLE,
+    color: '#5b42ff',
+    backgroundColor: '#f0ecff',
+  },
+  FAILED: {
+    ...COMMON_STATUS_STYLE,
+    color: '#ff4d0d',
+    backgroundColor: '#ffebe5',
+  },
+  EXECUTING: {
+    ...COMMON_STATUS_STYLE,
+    color: '#ffaa0c',
+    backgroundColor: '#fffae6',
+  },
+  CANCEL: {
+    ...COMMON_STATUS_STYLE,
+    color: '#848c9f',
+    backgroundColor: '#f5f6f8',
+  },
+};
+
+export const CASE_STATUS = {
+  TODO: {
+    name: '未开始',
+    style: CASE_STATUS_STYLE.TODO,
+  },
+  PASSED: {
+    name: '通过',
+    style: CASE_STATUS_STYLE.PASSED,
+  },
+  BLOCK: {
+    name: '阻塞',
+    style: CASE_STATUS_STYLE.BLOCK,
+  },
+  FAILED: {
+    name: '失败',
+    style: CASE_STATUS_STYLE.FAILED,
+  },
+  EXECUTING: {
+    name: '执行中',
+    style: CASE_STATUS_STYLE.EXECUTING,
+  },
+  CANCEL: {
+    name: '取消',
+    style: CASE_STATUS_STYLE.CANCEL,
+  },
+};
+
 const customHeaderRenderer = ({ column }) => {
   return (
     <div
@@ -75,7 +135,11 @@ export const customHeaderRendererForBaseTable = ({ columns, column, columnIndex,
     if (column.valueLength > 1) {
       // 第一层
       if (headerIndex === 0) {
-        if (columnIndex > 0 && column.parent !== '_default' && column?.parent === columns[columnIndex - 1]?.parent) {
+        if (
+          columnIndex > 0 &&
+          column.parent !== '_default' &&
+          column?.parent === columns[columnIndex - 1]?.parent
+        ) {
           return null;
         } else {
           return customHeaderRenderer({ column: { title } });
@@ -105,7 +169,9 @@ export const getRenderByCustomColumn = ({ customColumn, customColumnWidth, tenan
             onClick={e =>
               openNewTabWithoutBubble(
                 e,
-                getSourcePath(`/${tenant}/workspaces/${rowData.workspace?.key}/item/${rowData?.key}?hiddenHeader=true`),
+                getSourcePath(
+                  `/${tenant}/workspaces/${rowData.workspace?.key}/item/${rowData?.key}?hiddenHeader=true`,
+                ),
               )
             }
             title={cellData}
@@ -130,6 +196,47 @@ export const getRenderByCustomColumn = ({ customColumn, customColumnWidth, tenan
         );
       },
     };
+  } else if (customColumn?.dataIndex === 'linkedExecution') {
+    return {
+      dataKey: 'linkedExecution',
+      ...customColumn,
+      width: customColumnWidth(customColumn),
+      headerRenderer: customHeaderRenderer,
+      cellRenderer: ({ cellData, rowData }) => {
+        if (!cellData?.objectId) return '-';
+        return (
+          <a
+            href="#"
+            onClick={e =>
+              openNewTabWithoutBubble(
+                e,
+                getSourcePath(
+                  `/${tenant}/workspaces/${rowData.workspace?.key}/item/${cellData.objectId}?hiddenHeader=true`,
+                ),
+              )
+            }
+            title={cellData.name}
+            style={TEXT_OVERFLOW_HIDDEN_STYLE as CSSProperties}
+          >
+            {cellData.name}
+          </a>
+        );
+      },
+    };
+  } else if (customColumn?.dataIndex === 'r_test_manager_status') {
+    return {
+      dataKey: 'r_test_manager_status',
+      ...customColumn,
+      width: customColumnWidth(customColumn),
+      headerRenderer: customHeaderRenderer,
+      cellRenderer: ({ cellData = 'TODO' }) => {
+        return (
+          <div style={CASE_STATUS[cellData].style} title={CASE_STATUS[cellData].name}>
+            {CASE_STATUS[cellData].name}
+          </div>
+        );
+      },
+    };
   } else {
     return {
       dataKey: customColumn.dataIndex,
@@ -138,8 +245,20 @@ export const getRenderByCustomColumn = ({ customColumn, customColumnWidth, tenan
       width: customColumnWidth(customColumn),
       cellRenderer: ({ rowData, cellData, column }) => {
         return (
-          <div style={{ width: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            <TableCell rowData={rowData} cellData={cellData} column={column} readComponents={readComponents} />
+          <div
+            style={{
+              width: '100%',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            <TableCell
+              rowData={rowData}
+              cellData={cellData}
+              column={column}
+              readComponents={readComponents}
+            />
           </div>
         );
       },

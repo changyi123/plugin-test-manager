@@ -10,6 +10,7 @@ import {
   InfinityLimit,
   IQLRequiredFieldKeys,
   StartStatusKey,
+  SystemField,
   SystemFieldNameMapping,
   TestFiledKeyMapping,
   TestLinkType,
@@ -22,7 +23,7 @@ import {
 } from '../../../common/types/api';
 import { RewriteFieldKey } from '../../../common/utils/dataTransfer';
 import { buildPaginationResponse, buildResponse, getReqInfoFromVMRuntime } from '../../lib/apiUtil';
-import { queryWorkspace } from '../../lib/coreApi';
+import { iqlSearch, queryWorkspace } from '../../lib/coreApi';
 import { concatIqlRequestFields, toArray } from '../../lib/helper';
 import { dataFetcher } from '../../lib/initialization';
 import { iqlRequest } from '../../lib/iqlRequest';
@@ -286,6 +287,156 @@ export const queryCaseRunRecords = async () => {
       };
     });
     return runs;
+  } catch (err) {
+    return buildPaginationResponse(err);
+  }
+};
+
+/** 查询测试执行记录列表 */
+export const queryRunRecords = async () => {
+  const { body } = getReqInfoFromVMRuntime<any>();
+
+  const handleRes = res => {
+    return res?.payload?.items || [];
+  };
+
+  const arrayToMap = array => {
+    if (!Array.isArray(array)) return {};
+    return array.reduce((result, current) => {
+      result[current.objectId] = current;
+      return result;
+    }, {});
+  };
+
+  // 查询测试用例关联的测试执行
+  const queryRuns = async () => {
+    return iqlSearch({
+      ...body,
+      fields: [],
+    });
+  };
+
+  // 查询测试执行关联的测试执行任务
+  const queryExecutions = async executionIds => {
+    if (!executionIds.length) return [];
+    return iqlSearch({
+      iql: `id in ${JSON.stringify(executionIds)}`,
+      fields: [SystemField.Id, SystemField.Name, SystemField.Workspace],
+      size: InfinityLimit,
+    })
+      .then(handleRes)
+      .then(arrayToMap);
+  };
+
+  // 处理所属模块路径
+  const getRepoFullPathMap = repositoryData => {
+    const pathMap = {};
+    // 创建一个哈希表，用于存储每个path对象的子对象
+    repositoryData.forEach(repo => {
+      pathMap[repo.objectId] = pathMap[repo.objectId] || [repo.name];
+    });
+
+    // 遍历repositoryData，将每个父对象的path对象添加到当前pathMap
+    repositoryData.forEach(repo => {
+      if (repo.parent) {
+        if (pathMap[repo.parent.objectId]) {
+          pathMap[repo.objectId].unshift(pathMap[repo.parent.objectId]);
+        }
+      }
+    });
+
+    // 将pathMap的每一项转为路径
+    repositoryData.forEach(repo => {
+      if (pathMap[repo.objectId]) {
+        pathMap[repo.objectId] = pathMap[repo.objectId].flat(Infinity).join('/');
+      }
+    });
+
+    return new Map<string, string>(Object.entries(pathMap));
+  };
+
+  // 查询测试执行关联的测试执行任务
+  const handleRepository = async cases => {
+    const workspaceKey = cases?.[0]?.workspace?.key;
+    if (!workspaceKey) return cases;
+    const repoMap = await getParseQuery(true, 'Repository')
+      .equalTo('workspaceKey', workspaceKey)
+      .select(['name', 'objectId', 'parent'])
+      .findAll({ useMasterKey: true })
+      .then(data => data.map(i => i.toJSON()))
+      .then(getRepoFullPathMap);
+    console.info('handleRepository', repoMap);
+    return cases.map(caseItem => {
+      const repoId = caseItem.values?.r_test_manager_repository;
+      if (!repoId || !repoMap.has(repoId)) return caseItem;
+      caseItem.values.r_test_manager_repository = repoMap.get(repoId) ?? '';
+      return caseItem;
+    });
+  };
+
+  // 查询测试执行对应的测试用例
+  const queryCases = async caseIds => {
+    if (!caseIds.length) return [];
+    return iqlSearch({
+      iql: `id in ${JSON.stringify(caseIds)}`,
+      size: InfinityLimit,
+    })
+      .then(handleRes)
+      .then(async cases => await handleRepository(cases))
+      .then(arrayToMap);
+  };
+
+  try {
+    // 查询测试执行
+    const runRes = await queryRuns();
+    const runs = handleRes(runRes);
+    console.info('queryRunRecords', runs);
+    if (!runs?.length) return [];
+
+    const executionIds = [];
+    const caseIds = [];
+    const runIds = [];
+    runs.forEach(run => {
+      runIds.push(run.objectId);
+      const executionId = run?.values?.r_test_manager_linkItems?.[0];
+      if (executionId) {
+        executionIds.push(executionId);
+      }
+      const caseId = run?.values?.r_test_manager_referenceCase;
+      if (caseId) {
+        caseIds.push(caseId);
+      }
+    });
+
+    // 查询测试执行任务和测试用例
+    const [executionMap, caseMap] = await Promise.all([
+      queryExecutions(executionIds),
+      queryCases(caseIds),
+    ]);
+    console.info('queryExecutionsAndCases', executionIds, caseIds, executionMap, caseMap);
+
+    const list = runs.map(run => {
+      const executionId = run?.values?.r_test_manager_linkItems?.[0];
+      const linkedExecution = executionMap[executionId];
+      const caseId = run?.values?.r_test_manager_referenceCase;
+      const referenceCase = caseMap[caseId];
+
+      if (referenceCase?.values) {
+        referenceCase.values = {
+          ...run.values,
+          ...referenceCase.values,
+        };
+      }
+
+      return {
+        linkedExecution,
+        ...(referenceCase ?? run),
+      };
+    });
+    return {
+      list,
+      total: runRes?.payload?.count,
+    };
   } catch (err) {
     return buildPaginationResponse(err);
   }
