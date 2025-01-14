@@ -743,7 +743,9 @@
           "testExecutionCount": "Test execution count",
           "stepStatus": "Step status",
           "actualResult": "Actual result",
-          "testExecutionTime": "Test execution time"
+          "testExecutionTime": "Test execution time",
+          "createdAt": "createdAt",
+          "createdBy": "createdBy"
         },
         "todo": "Todo",
         "fontName": "Times new roman "

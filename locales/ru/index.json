@@ -719,7 +719,9 @@
           "testExecutionCount": "Количество выполнений",
           "stepStatus": "Статус шага",
           "actualResult": "Фактический результат",
-          "testExecutionTime": "Время выполнения теста"
+          "testExecutionTime": "Время выполнения теста",
+          "createdAt": "Время создания",
+          "createdBy": "Основатель"
         },
         "todo": "Делать",
         "fontName": "Таймс новый роман "
