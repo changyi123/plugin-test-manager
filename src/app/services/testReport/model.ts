@@ -1046,6 +1046,8 @@ const TestReport = Parse.Object.extend('test_manager_TestReport', {
       '<---------- customDataSourceResults&iqlConfigs ---------->',
       customDataSourceResults,
       iqlConfigs,
+      chartDataList,
+      name2IdMap,
     );
 
     // 2. 创建测试报告关联的 chart
@@ -1053,12 +1055,23 @@ const TestReport = Parse.Object.extend('test_manager_TestReport', {
       .map(chartData => {
         const templateChart = name2IdMap[chartData.name];
         //过滤锁定数据
-        if (templateDataSourceConfig[templateChart?.objectId]?.[0]?.locked) return;
         const newChartObject = Chart.createWithoutData(chartData.objectId);
 
         newChartObject.set({
           ...omit(chartData, FilterOriginalParseDataKeys),
         });
+
+        // 锁定数据的修改布局后直接返回
+        if (templateDataSourceConfig[templateChart?.objectId]?.[0]?.locked) {
+          const option = chartData.option;
+          const templateOption = templateChart.option;
+          newChartObject.set('option', {
+            ...option,
+            grid: templateOption.grid || option.grid,
+            color: templateOption.color || option.color,
+          });
+          return newChartObject;
+        }
 
         // 只有 basic 类型的 chart 才可以使用数据源
         if (SupportDataSourceChartViewReg.test(chartData.view)) {
@@ -1085,6 +1098,7 @@ const TestReport = Parse.Object.extend('test_manager_TestReport', {
         status: 'success',
       };
     } catch (error) {
+      console.error(error);
       return {
         status: 'failed',
       };

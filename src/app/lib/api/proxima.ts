@@ -452,6 +452,7 @@ export const exportReport = async (params: {
   templateId: string;
   name?: string;
   slotData: Record<string, unknown>;
+  parallelSize: number;
 }) => {
   let templateId = params.templateId;
   if (!templateId) {

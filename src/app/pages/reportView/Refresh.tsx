@@ -38,7 +38,7 @@ const Refresh: React.FC<any> = ({ report, workspaceKey, refresh: refreshIframe }
       await testReport.refreshReport(refreshParams);
       refreshIframe();
     } catch (e) {
-      console.error(e.message);
+      console.error(e);
     } finally {
       setLoading(false);
     }

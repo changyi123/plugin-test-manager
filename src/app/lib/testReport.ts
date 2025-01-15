@@ -6,7 +6,7 @@ import { i18n } from '@/lib/utils/i18n';
 import { generateTestReportOfflineFile } from '@/services/testReport/service';
 
 import { exportReport } from './api/proxima';
-import { featureFlags, SupportFeatureFlags } from './appEnv';
+import { featureFlags, getAppEnv, SupportFeatureFlags } from './appEnv';
 import { ExtendReportType, TestType } from './constants';
 import { getPagePrefix, isInOne } from './utils/helper';
 
@@ -387,7 +387,8 @@ export const exportWithDocxV2 = async testReportData => {
     reportTemplate: templateId,
     slotData,
   } = testReportData;
-  await exportReport({ name, chartGroupId, templateId, slotData }).then(data => {
+  const parallelSize = getAppEnv('EXPORT_REPORT_PARALLEL_SIZE');
+  await exportReport({ name, chartGroupId, templateId, slotData, parallelSize }).then(data => {
     if (data?.response?.payload) {
       downloadUrl(data.response.payload, testReportData?.name, 'docx');
     }

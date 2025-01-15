@@ -146,6 +146,11 @@ const SupportAppEnv = {
     defaultValue: '',
     transformer: value => value,
   },
+
+  EXPORT_REPORT_PARALLEL_SIZE: {
+    defaultValue: 6,
+    transformer: value => Number(value),
+  },
 } as const;
 
 /**
