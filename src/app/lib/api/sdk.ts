@@ -43,6 +43,13 @@ export const openItemDetailPanel = (itemId: string) => {
   proximaSDK.execute('openItemViewScreen', itemId);
 };
 
+/**
+ * 打开快照弹框
+ */
+export const openBaseLineViewItemModal = (itemKey: string, baseLineItemId: string) => {
+  proximaSDK.execute('openBaseLineViewItemModal', { itemKey, baseLineItemId });
+};
+
 export const useOpenFilterPopover = fields => {
   const fieldsDataMap = useRef({});
   const [customFields, setCustomFields] = useState([]);
@@ -70,7 +77,7 @@ export const useOpenFilterPopover = fields => {
   const openFilterPopover = useCallback(
     async ({ selectors, onChange, extendFields, dom }) => {
       const includeFileds = INCLUDE_FILTER_FIELD_TYPES?.filter(
-        field => !EXINCLUDE_FIELDS?.includes(field) ?? [],
+        field => !EXINCLUDE_FIELDS?.includes(field),
       );
 
       const _customFields = customFields

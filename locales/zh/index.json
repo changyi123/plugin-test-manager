@@ -386,6 +386,7 @@
         "title": "测试管理空间配置初始化",
         "description": "开启自动类型关联会将测试管理内置的事项类型关联配置修改为内置的事项类型",
         "switchLabel": "开启自动类型关联",
+        "switchSnapshotLabel": "向测试执行任务中规划用例时自动打快照",
         "builtInItemTypeHasBeenModified": "内置事项类型已被修改",
         "messageSuccess": "测试管理初始化配置修改成功",
         "initialItemTypeMappingLabel": "配置初始化类型映射",
@@ -470,6 +471,7 @@
 
           "TestCase": "所有的测试用例",
           "TestRun": "所有的测试执行",
+          "TestExecution": "所有的测试执行任务",
           "TestDefect": "所有的缺陷",
           "parent": "所有的父事项",
           "relative": "所有的缺陷（事项关联）",
@@ -665,7 +667,9 @@
           "testExecutionCount": "执行次数",
           "stepStatus": "步骤状态",
           "actualResult": "实际结果",
-          "testExecutionTime": "最新执行时间"
+          "testExecutionTime": "最新执行时间",
+          "createdAt": "创建时间",
+          "createdBy": "创建人"
         },
         "todo": "未开始",
         "fontName": "宋体"

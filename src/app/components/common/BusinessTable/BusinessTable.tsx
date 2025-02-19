@@ -22,7 +22,7 @@ import type { TitleCellOption } from './type';
 
 const DEFAULT_PAGE_SIZE = 10;
 const MIN_COLUMN_WIDTH = 120;
-const OFFSET_HEIGHT = 90;
+const OFFSET_HEIGHT = 92;
 const SELECTION_HEADER_HEIGHT = 42;
 
 const ResizableHeaderCell = ({ onResize, resizable, width, onClick, onSort, ...restProps }) => {

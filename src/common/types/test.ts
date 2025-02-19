@@ -42,6 +42,8 @@ export type BaseTestEntity = {
   caseRun: Record<string, unknown>;
   /** 测试执行关联测试用例实体 */
   referenceCase: string;
+  /** 测试执行关联测试用例快照实体 */
+  referenceCaseSnapshot: string;
   /** 额外数据 */
   extra: Record<string, unknown>;
   /** 测试用例，执行排序索引 */

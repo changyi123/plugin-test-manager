@@ -2,8 +2,8 @@ import { useMemoizedFn, useRequest } from 'ahooks';
 import { Button, Divider, Dropdown, Menu, message, Space } from 'antd';
 import _, { groupBy, isEmpty, uniq } from 'lodash';
 import { components } from 'proxima-sdk';
-import React, { useCallback, useMemo, useRef, useState, useContext } from 'react';
-import { EXPORT_EXECUTION_FIELDS } from '@/lib/constants';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
+
 import ExportModal from '@/components/business/TestExecution/ExportModal';
 import ImportModal from '@/components/business/TestExecution/ImportModal';
 import type { BusinessTableActionType } from '@/components/common/BusinessTable/type';
@@ -39,10 +39,10 @@ import CreatePermission from '@/components/business/Contianer/CreatePermission';
 import TestEntitySelectorModal from '@/components/business/TestEntitySelectorModal';
 import TestPlanSelector from '@/components/business/TestPlanSelector';
 import { SystemFieldKeys } from '@/components/common/BusinessTable/hook';
-import { downloadImportExcelFile } from '@/pages/repository/RepoDropDown/export';
 import { getAppEnv } from '@/lib/appEnv';
 import Parse from '@/lib/parse';
 import { selectorToIql } from '@/lib/utils/iql';
+import { downloadImportExcelFile } from '@/pages/repository/RepoDropDown/export';
 import { Version } from '@/services/models';
 
 import CreateReportModel, { ActionType } from '../../report/Model/createReportV2Model';
@@ -221,6 +221,7 @@ const TestTaskList: React.FC<any> = ({
     const stats = await getStatsTestExecution({
       executionIds: list.map(d => d.objectId),
       select: ['runStatus', 'runCount'],
+      workspaceKey,
     });
 
     mutate({
@@ -370,13 +371,19 @@ const TestTaskList: React.FC<any> = ({
     },
     [openTheImportWindow, t],
   );
-  const menu = (
-    <Menu onClick={e => menuClick(e)}>
-      <Menu.Item key="exportTask">{t('page.repository.repoDropDown.MenuItem.8')}</Menu.Item>
-      <Menu.Item key="importTask">{t('executionTaskImport.entry')}</Menu.Item>
-      <Menu.Item key="importTaskTemplate">{t('executionTaskImport.download')}</Menu.Item>
-    </Menu>
-  );
+  const menu = useMemo(() => {
+    return (
+      <Menu onClick={e => menuClick(e)}>
+        <Menu.Item key="exportTask">{t('page.repository.repoDropDown.MenuItem.8')}</Menu.Item>
+        {!config?.enableCaseSnapshot ? (
+          <>
+            <Menu.Item key="importTask">{t('executionTaskImport.entry')}</Menu.Item>
+            <Menu.Item key="importTaskTemplate">{t('executionTaskImport.download')}</Menu.Item>
+          </>
+        ) : null}
+      </Menu>
+    );
+  }, [config?.enableCaseSnapshot, menuClick, t]);
 
   const toggleSelection = useCallback(
     (visible?: boolean) => {

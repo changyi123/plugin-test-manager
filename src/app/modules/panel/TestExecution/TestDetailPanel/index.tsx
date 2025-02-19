@@ -32,6 +32,7 @@ import {
   getTestEntityByQuery,
   updateTestStatus,
 } from '@/lib/api/item';
+import { openBaseLineViewItemModal } from '@/lib/api/sdk';
 import { getAppEnv } from '@/lib/appEnv';
 import { TestLinkType, TestType } from '@/lib/constants';
 import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
@@ -45,7 +46,7 @@ import cx from './index.less';
 const Test = () => {
   const proxima = createProximaSdk();
   const { t } = useI18n();
-  const { testEntity, workspace } = useTestConfig();
+  const { testEntity, workspace, config } = useTestConfig();
   const { getCreatePermission, globalTestConfig } = useBaseAction();
   const tableActionRef = React.useRef<ActionType>();
   const { canExecuteTestRun } = useTestRunActionAuth({ workspaceKey: workspace?.key });
@@ -247,12 +248,15 @@ const Test = () => {
             <Typography.Link
               ellipsis={true}
               target="_blank"
-              onClick={() =>
-                goToItemDetailPage({
-                  workspaceKey: item?.workspace?.key,
-                  itemKey: item?.key,
-                })
-              }
+              onClick={() => {
+                if (item?.referenceCaseSnapshot && config?.enableCaseSnapshot)
+                  openBaseLineViewItemModal(item?.key, item?.referenceCaseSnapshot);
+                else
+                  goToItemDetailPage({
+                    workspaceKey: item?.workspace?.key,
+                    itemKey: item?.key,
+                  });
+              }}
             >
               {item?.key}
             </Typography.Link>
@@ -353,6 +357,7 @@ const Test = () => {
     allTestEntities,
     removeTestRelation,
     statusesConfig,
+    config,
   ]);
 
   // 添加测试用例菜单
@@ -377,7 +382,7 @@ const Test = () => {
             // 添加关联
             const { data } = await batchCreateTestRun({
               executionId: testEntity.objectId,
-              caseIds: _selectedTestDetailIds,
+              case: _selectedTestDetailIds.map(i => ({ caseId: i })),
             });
             if (data?.status === 'error') {
               message.error(data.data);

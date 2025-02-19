@@ -202,6 +202,7 @@ export const runBeforeImport = async () => {
               r_test_manager_type: 'TestRun',
               r_test_manager_executeCount: item.executionCount || 1,
               r_test_manager_linkItems: [executionId],
+              r_test_manager_plan: planId,
               r_test_manager_linkType: 'RunLinkExecution',
               r_test_manager_runDetail: JSON.stringify({
                 precondition: item.precondition,
@@ -226,6 +227,7 @@ export const runBeforeImport = async () => {
           ...(!findData?.values?.r_test_manager_linkType && {
             ...findData?.values,
             r_test_manager_type: 'TestCase',
+            r_test_manager_linkType: 'CaseLinkPlan',
             r_test_manager_detail: JSON.stringify({
               precondition: item.precondition,
               steps: isNotHaveMap ? getStepsData(clone(item)) : [],
@@ -421,7 +423,6 @@ export const runBeforeImport = async () => {
         .first({ useMasterKey: true });
       if (userQuery) {
         const curUser = userQuery?.toJSON();
-        console.log('test_case_import_userId', curUser);
         currentUser = {
           deleted: curUser?.deleted,
           label: curUser?.nickname,
@@ -433,7 +434,6 @@ export const runBeforeImport = async () => {
     }
 
     if (userTypeNames.length) {
-      console.log('userTypeNames', userTypeNames);
       const userQuery = await getParseQuery(false, '_User');
       const otherQuery = await getParseQuery(false, '_User');
       const userList = await userQuery
@@ -447,7 +447,6 @@ export const runBeforeImport = async () => {
         const user = [...userList, ...otherUserList].find(
           _user => _user.get('nickname') === _name || _user.get('username') === _name,
         );
-        console.log('userTypeNames_findName', user);
         if (user) {
           userNameMap[_name] = {
             deleted: user.get('deleted'),
