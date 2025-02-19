@@ -667,7 +667,9 @@
           "testExecutionCount": "执行次数",
           "stepStatus": "步骤状态",
           "actualResult": "实际结果",
-          "testExecutionTime": "最新执行时间"
+          "testExecutionTime": "最新执行时间",
+          "createdAt": "创建时间",
+          "createdBy": "创建人"
         },
         "todo": "未开始",
         "fontName": "宋体"

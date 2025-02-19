@@ -386,6 +386,7 @@
         "title": "Test Management Configuration Initialization",
         "description": "Enabling configuration initialization will modify the association mapping of the built-in matter types in the test management to the built-in matter types.",
         "switchLabel": "Enable Configuration Initialization",
+        "switchSnapshotLabel": "Automatically take snapshots when planning cases for executions",
         "builtInItemTypeHasBeenModified": "Built-in matter types have been modified.",
         "messageSuccess": "Test management configuration initialization successful.",
         "initialItemTypeMappingLabel": "Configuring Initialization Type Mapping",
@@ -744,7 +745,9 @@
           "testExecutionCount": "Test execution count",
           "stepStatus": "Step status",
           "actualResult": "Actual result",
-          "testExecutionTime": "Test execution time"
+          "testExecutionTime": "Test execution time",
+          "createdAt": "createdAt",
+          "createdBy": "createdBy"
         },
         "todo": "Todo",
         "fontName": "Times new roman "

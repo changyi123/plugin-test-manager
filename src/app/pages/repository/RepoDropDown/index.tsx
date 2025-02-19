@@ -19,6 +19,7 @@ import {
   EXPORT_PLAN_FIELDS,
   EXPORT_TEST_FIELDS,
   IQLFieldNameMapping,
+  SystemField,
   TestLinkType,
   TestType,
 } from '@/lib/constants';
@@ -258,6 +259,7 @@ const RepoDropDown = ({
     const fields = type === 'plan' ? [...basic, ...EXPORT_PLAN_FIELDS] : basic;
     const defaultNameConfig = getAppEnv('CREATE_EXECUTION_DEFAULT_NAME_CONFIG');
     const enable = defaultNameConfig?.enable;
+
     return fields.map(field => {
       return {
         ...field,
@@ -273,11 +275,22 @@ const RepoDropDown = ({
   }, [t, type]);
 
   const appFields = useMemo(() => {
+    const extraCaseFields = [
+      {
+        value: SystemField.CreatedAt,
+        label: t('page.repository.repoDropDown.excelExportTitle.createdAt'),
+      },
+      {
+        value: SystemField.CreatedBy,
+        label: t('page.repository.repoDropDown.excelExportTitle.createdBy'),
+      },
+    ];
+
     const moreFields = testCaseFields
       .filter(field => !EXPORT_ITEM_FIELDS.some(f => f.value === field.key))
       .map(field => ({ value: field.key, label: field.name }));
-    return [...basicFields, ...moreFields];
-  }, [testCaseFields, basicFields]);
+    return [...basicFields, ...extraCaseFields, ...moreFields];
+  }, [testCaseFields, basicFields, t]);
 
   const menu = (
     <Menu onClick={e => menuClick(e)}>
