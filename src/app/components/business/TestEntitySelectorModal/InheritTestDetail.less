@@ -29,7 +29,7 @@
 
     .folder-selector {
       flex: 30%;
-      overflow-y: auto;
+      overflow: auto;
       border-right: 1px solid @border-color;
       .custom-scrollbar-mixin();
 
@@ -43,6 +43,12 @@
             box-shadow: none;
             height: 40px;
           }
+        }
+      }
+
+      :global {
+        .ant-tree {
+          width: 'max-content';
         }
       }
     }
