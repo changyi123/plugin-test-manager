@@ -3,6 +3,7 @@ export { runHuishangScript } from './modules/web/script/huishang-script';
 export { runShenWanScript } from './modules/web/script/shenwan-script';
 export { batchCreateChartGroups } from './modules/web/script/create-chart-groups';
 export { generateSortIndex } from './modules/web/script/generate-sortIndex';
+export { handleSnapshotScript } from './modules/web/script/handle-snapshot-script';
 
 export { checkDuplicateCase } from './modules/web/script/check-duplicate-case';
 

@@ -222,6 +222,7 @@ const TestTaskList: React.FC<any> = ({
     const stats = await getStatsTestExecution({
       executionIds: list.map(d => d.objectId),
       select: ['runStatus', 'runCount'],
+      workspaceKey,
     });
 
     mutate({
@@ -371,13 +372,19 @@ const TestTaskList: React.FC<any> = ({
     },
     [openTheImportWindow, t],
   );
-  const menu = (
-    <Menu onClick={e => menuClick(e)}>
-      <Menu.Item key="exportTask">{t('page.repository.repoDropDown.MenuItem.8')}</Menu.Item>
-      <Menu.Item key="importTask">{t('executionTaskImport.entry')}</Menu.Item>
-      <Menu.Item key="importTaskTemplate">{t('executionTaskImport.download')}</Menu.Item>
-    </Menu>
-  );
+  const menu = useMemo(() => {
+    return (
+      <Menu onClick={e => menuClick(e)}>
+        <Menu.Item key="exportTask">{t('page.repository.repoDropDown.MenuItem.8')}</Menu.Item>
+        {!config?.enableCaseSnapshot ? (
+          <>
+            <Menu.Item key="importTask">{t('executionTaskImport.entry')}</Menu.Item>
+            <Menu.Item key="importTaskTemplate">{t('executionTaskImport.download')}</Menu.Item>
+          </>
+        ) : null}
+      </Menu>
+    );
+  }, [config?.enableCaseSnapshot, menuClick, t]);
 
   const toggleSelection = useCallback(
     (visible?: boolean) => {

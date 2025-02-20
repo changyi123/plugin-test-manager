@@ -1,5 +1,5 @@
 import { i18n } from '@giteeteam/apps-api';
-import { getParseQuery } from '@giteeteam/apps-team-api';
+import { getParseModel, getParseQuery, saveAllObject } from '@giteeteam/apps-team-api';
 import cloneDeep from 'lodash/cloneDeep';
 import keyBy from 'lodash/keyBy';
 
@@ -208,5 +208,40 @@ export const repositoryTreeV2 = async () => {
     return buildResponse(rootRepositoryTreeNode);
   } catch (err) {
     return buildResponse(err);
+  }
+};
+
+export const createRepository = async () => {
+  const { body } = getReqInfoFromVMRuntime<{
+    name: string;
+    parent: string;
+    sortIndex?: string;
+    workspaceKey: string;
+  }>();
+  const RepositoryModel = getParseModel(true, 'Repository');
+  const repository = new RepositoryModel();
+  repository.set('name', body.name);
+  repository.set(
+    'parent',
+    RepositoryModel.createWithoutData((body.parent || UngroupedRepositoryKey) as string),
+  );
+  repository.set('workspaceKey', body.workspaceKey);
+  repository.set('sortIndex', body.sortIndex || new Date().getTime());
+  try {
+    const [res] = await saveAllObject([repository]);
+    return res;
+  } catch (err) {
+    if (err.toString().indexOf('unique') > -1) {
+      const target = await getParseQuery(true, 'Repository')
+        .equalTo('name', body.name)
+        .equalTo('workspaceKey', body.workspaceKey)
+        .equalTo('parent', body.parent)
+        .first({
+          useMasterKey: true,
+        });
+      const error = new Error(err.toString() + `:${target?.id}`);
+      throw error;
+    }
+    throw new Error(err);
   }
 };

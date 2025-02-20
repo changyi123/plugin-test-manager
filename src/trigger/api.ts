@@ -18,7 +18,7 @@ export {
 
 export { testExecutionStats, testCaseStats, testCount } from './modules/api/stats';
 
-export { repositoryTree, repositoryTreeV2 } from './modules/api/module';
+export { repositoryTree, repositoryTreeV2, createRepository } from './modules/api/module';
 
 export { minderData, minderDataImport } from './modules/api/minder';
 
@@ -31,6 +31,8 @@ export { shenwanTestReportInfo } from './modules/extension/shenwan';
 export { weichaiFileEncrypt } from './modules/extension/weichai';
 
 export { zgcTestReportInfo, zgcTestReportSlotData } from './modules/extension/zgc';
+
+export { dssTestReportInfo } from './modules/extension/dashangsuo';
 
 export { dssTestReportInfo } from './modules/extension/dashangsuo';
 

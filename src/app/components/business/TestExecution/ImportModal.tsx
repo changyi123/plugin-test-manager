@@ -1,13 +1,14 @@
 import { Modal, Select } from 'antd';
-import React, { useState } from 'react';
-import { getProximaBasePath, getTenantKey, inIframe } from '@/lib/utils/helper';
-import useI18n from '@/lib/hooks/useI18n';
 import queryString from 'query-string';
-import cx from './ExportModal.less';
-import { getAppEnv } from '@/lib/appEnv';
-import useRequest from './common/useRequest';
+import React from 'react';
+
+import useI18n from '@/lib/hooks/useI18n';
+import { getProximaBasePath, getTenantKey, inIframe } from '@/lib/utils/helper';
 import { testConfigQuery } from '@/services/query';
+
+import useRequest from './common/useRequest';
 import { defaultFilterOptions } from './common/util';
+import cx from './ExportModal.less';
 const ImportModal = props => {
   const { t } = useI18n();
 
@@ -25,11 +26,10 @@ const ImportModal = props => {
     workspaceKey,
   }) as any;
   const { workspace } = queryRes || {};
-  const [loading, setLoading] = useState(false);
   return (
     <Modal
       open={true}
-      okButtonProps={{ disabled: !selectedExecutionIds.length, loading: loading }}
+      okButtonProps={{ disabled: !selectedExecutionIds.length }}
       okText={t('executionTaskImport.sure')}
       title={t('executionTaskImport.settings.title')}
       cancelText={t('executionTaskExport.cancel')}
@@ -50,8 +50,8 @@ const ImportModal = props => {
           disableMultiplySheet: true,
           disableHistoryFile: true,
           executionId: selectedExecutionIds[0],
-          extendRow: true,
           ignoreValidateItemTypeScheme: true,
+          extendRow: true,
           planId: selectedTestPlanIds[0],
         });
         // 跳转到导入页面

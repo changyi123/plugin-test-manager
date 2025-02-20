@@ -13,6 +13,7 @@ const hasOneHeader = () => {
 
 export const useLayoutHeight = () => {
   const offsetY = 63;
+  const padding = 2;
 
   const size = useSize(document.querySelector('[data-element-id="workspace.layout.content"]'));
   const pageHeader = useSize(
@@ -32,7 +33,7 @@ export const useLayoutHeight = () => {
       workspacePluginContainerDOM.style = 'padding: 0';
     }
   }, []);
-  return (size?.height ?? 700) - (pageHeader?.height ?? offsetY);
+  return (size?.height ?? 700) - (pageHeader?.height ?? offsetY) - padding;
 };
 
 export const useResizableWidth = () => {
