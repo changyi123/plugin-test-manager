@@ -1,8 +1,9 @@
 import { keyBy } from 'lodash';
 import { v4 as uuid } from 'uuid';
 
+import Editor from '@/components/common/Editor';
+
 import { Input } from './fields';
-import Editor from './fields/editor';
 
 /** 渲染组件映射 */
 export const FieldComponentMapping = {
