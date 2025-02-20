@@ -3,15 +3,18 @@ import dayjs from 'dayjs';
 import { t } from 'i18next';
 import { cloneDeep, last, omit, uniq, uniqBy } from 'lodash';
 
+import { getTestConfigByWorkspaceKeys } from '@/lib/api/common';
 import {
   getLinkedTestEntityByQuery,
   getRelativeAllItem,
   getRelativeItem,
   getTestEntityByQuery,
 } from '@/lib/api/item';
-import { judgeTestReportVersion, TEST_REPORT_VERSION } from '@/lib/appEnv';
+import { judgeCaseSnapshot, judgeTestReportVersion, TEST_REPORT_VERSION } from '@/lib/appEnv';
 import {
+  BuiltinFieldNameMapping,
   ExtendReportType,
+  SystemField,
   TestExecutionModel,
   TestFiledKeyMapping,
   TestLinkType,
@@ -106,7 +109,11 @@ const buildFirstLevelDsIqlConfig = async (dsConfig: TemplateDataSourceConfig[], 
 };
 
 /** 获取测试计划关联的 ids */
-const getPlanRefTestEntityIds = async (planIds, dsConfig: TemplateDataSourceConfig[]) => {
+const getPlanRefTestEntityIds = async (
+  planIds,
+  dsConfig: TemplateDataSourceConfig[],
+  enableCaseSnapshot?: boolean,
+) => {
   const ret = {};
 
   // 获取测试计划关联的用例
@@ -147,9 +154,12 @@ const getPlanRefTestEntityIds = async (planIds, dsConfig: TemplateDataSourceConf
       destinationType: TestType.Run,
       limit: 99999,
       onlySelectId: true,
+      selector: enableCaseSnapshot
+        ? [{}, {}, `${BuiltinFieldNameMapping.referenceCaseSnapshot} is not null`]
+        : [{}, {}, `${BuiltinFieldNameMapping.referenceCase} is not null`],
     });
 
-    return runIds;
+    return { runIds, executionIds };
   };
 
   // 获取测试计划关联的缺陷
@@ -186,9 +196,12 @@ const getPlanRefTestEntityIds = async (planIds, dsConfig: TemplateDataSourceConf
 
   if (
     shouldFetchPlanRefEntityIds(TestType.Run) ||
-    shouldFetchPlanRefEntityIds(TestType.TestDefect)
+    shouldFetchPlanRefEntityIds(TestType.TestDefect) ||
+    shouldFetchPlanRefEntityIds(TestType.Execution)
   ) {
-    ret[TestType.Run] = await getRunIdsByPlan(planIds);
+    const { runIds, executionIds } = await getRunIdsByPlan(planIds);
+    ret[TestType.Run] = runIds;
+    ret[TestType.Execution] = executionIds;
   }
 
   if (shouldFetchPlanRefEntityIds(TestType.TestDefect)) {
@@ -203,7 +216,11 @@ const getPlanRefTestEntityIds = async (planIds, dsConfig: TemplateDataSourceConf
 };
 
 /** 获取测试执行任务关联的 ids */
-const getExecutionRefTestEntityIds = async (executionIds, dsConfig: TemplateDataSourceConfig[]) => {
+const getExecutionRefTestEntityIds = async (
+  executionIds,
+  dsConfig: TemplateDataSourceConfig[],
+  enableCaseSnapshot?: boolean,
+) => {
   const ret = {};
 
   // 获取测试计划关联的执行
@@ -216,12 +233,22 @@ const getExecutionRefTestEntityIds = async (executionIds, dsConfig: TemplateData
       sourceIds: executionIds,
       destinationType: TestType.Run,
       limit: 99999,
-      fields: [TestFiledKeyMapping.referenceCase],
+      fields: [
+        TestFiledKeyMapping.referenceCase,
+        TestFiledKeyMapping.referenceCaseSnapshot,
+        SystemField.Workspace,
+      ],
+      selector: enableCaseSnapshot
+        ? [{}, {}, `${BuiltinFieldNameMapping.referenceCaseSnapshot} is not null`]
+        : [{}, {}, `${BuiltinFieldNameMapping.referenceCase} is not null`],
     });
 
     return {
       runIds: data.list.map(i => i.id),
-      caseIds: uniq(data.list.map(i => i.referenceCase).filter(Boolean)),
+      caseIds: enableCaseSnapshot ? [] : uniq(data.list.map(i => i.referenceCase).filter(Boolean)),
+      snapshotIds: enableCaseSnapshot
+        ? uniq(data.list.map(i => i.referenceCaseSnapshot).filter(Boolean))
+        : [],
     };
   };
 
@@ -259,7 +286,7 @@ const getExecutionRefTestEntityIds = async (executionIds, dsConfig: TemplateData
   ) {
     const data = await getRunIdsByExecution(executionIds);
     ret[TestType.Run] = data.runIds;
-    ret[TestType.Case] = data.caseIds;
+    ret[TestType.Case] = [...data.caseIds, ...data.snapshotIds];
   }
 
   if (shouldFetchExecutionRefEntityIds(TestType.TestDefect)) {
@@ -375,6 +402,15 @@ const buildSecondLevelDsIqlConfig = async (
   const hasTestExecutionSelector = dsConfigs.some(isTestExecutionSelector);
   const hasParentSelector = dsConfigs.some(isParentSelector);
 
+  let enableCaseSnapshot = false;
+  if (hasTestPlanSelector || hasTestExecutionSelector) {
+    const workspaceKey = reportParams?.workspace?.key;
+    if (workspaceKey) {
+      const { currentTestConfig } = await getTestConfigByWorkspaceKeys([workspaceKey]);
+      enableCaseSnapshot = judgeCaseSnapshot(currentTestConfig);
+    }
+  }
+
   // 一级选择器下有所选测试计划
   if (hasTestPlanSelector) {
     // 获取测试计划关联的实体 ids
@@ -382,7 +418,7 @@ const buildSecondLevelDsIqlConfig = async (
       reportParams.dataSourceIql?.[TestPlanModel],
       hasParentSelector,
     );
-    planRefTestEntityIds = await getPlanRefTestEntityIds(planIds, dsConfig);
+    planRefTestEntityIds = await getPlanRefTestEntityIds(planIds, dsConfig, enableCaseSnapshot);
     planRefTestEntityIds.ancestorIds = ancestorIds || [];
   }
 
@@ -392,7 +428,11 @@ const buildSecondLevelDsIqlConfig = async (
     const { list: executionIds, planIds } = await fetchReportExecution(
       reportParams.dataSourceIql?.[TestExecutionModel],
     );
-    executionRefTestEntityIds = await getExecutionRefTestEntityIds(executionIds, dsConfig);
+    executionRefTestEntityIds = await getExecutionRefTestEntityIds(
+      executionIds,
+      dsConfig,
+      enableCaseSnapshot,
+    );
     executionRefTestEntityIds.planIds = planIds || [];
     executionRefTestEntityIds.self = executionIds || [];
   }
@@ -405,7 +445,11 @@ const buildSecondLevelDsIqlConfig = async (
       }
 
       if (isTestExecutionSelector(dsConfig)) {
-        return `id in ${JSON.stringify(executionRefTestEntityIds[TestType.Case])}`;
+        return `id in ${JSON.stringify(
+          executionRefTestEntityIds[TestType.Case],
+        )} and ('baseLineSources' in ${JSON.stringify(
+          executionRefTestEntityIds.self,
+        )} or 'baseLineSources' is null)`;
       }
 
       return `(${getFirstLevelDsIql(dsConfig)}) and ("itemTypeKey" = ${
@@ -420,6 +464,14 @@ const buildSecondLevelDsIqlConfig = async (
         return `id in ${JSON.stringify(executionRefTestEntityIds[TestType.Run])}`;
       } else {
         return `(${getFirstLevelDsIql(dsConfig)}) and ("itemTypeKey" = "test_manager_run")`;
+      }
+    },
+    [TestType.Execution]: async (dsConfig: TemplateDataSourceConfig) => {
+      if (isTestPlanSelector(dsConfig)) {
+        // 一级数据源为测试计划，则需要查询到测试计划下的所有测试执行任务
+        return `id in ${JSON.stringify(planRefTestEntityIds[TestType.Execution])}`;
+      } else {
+        return `(${getFirstLevelDsIql(dsConfig)}) and ("itemTypeKey" = "test_manager_execution")`;
       }
     },
     [TestType.TestDefect]: async (dsConfig: TemplateDataSourceConfig) => {

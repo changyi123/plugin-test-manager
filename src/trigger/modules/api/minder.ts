@@ -508,7 +508,7 @@ export const minderDataImport = async () => {
     await createRepoAndSetObjectId(minderData);
 
     // 批量创建测试用例
-    const createdTestCases = await batchCreateTestCase(minderData);
+    const createdTestCases = (await batchCreateTestCase(minderData)) as any;
     console.info('import success ------>', createdTestCases);
     return buildResponse(`${createdTestCases.length} test case created`);
   } catch (err) {

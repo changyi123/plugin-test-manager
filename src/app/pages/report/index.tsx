@@ -1,9 +1,9 @@
 import React from 'react';
 
 import ErrorBoundary from '@/components/common/ErrorBoundary';
+import BasicPageLayout from '@/components/common/PageLayout/Basic';
 import { judgeTestReportVersion, TEST_REPORT_VERSION } from '@/lib/appEnv';
 import { logPluginVersion } from '@/lib/utils/helper';
-import { useResizeContainerDOM } from '@/pages/plan/PlanPageLayout/hooks';
 
 import PageProvider from '../plan/PageProvider';
 import TestReportPage from './Report';
@@ -14,10 +14,11 @@ logPluginVersion();
 const TestPlanPage = () => {
   const isV2 = judgeTestReportVersion(TEST_REPORT_VERSION.V2);
 
-  useResizeContainerDOM();
   return (
     <ErrorBoundary>
-      <PageProvider>{isV2 ? <TestReportV2Page /> : <TestReportPage />}</PageProvider>
+      <PageProvider>
+        <BasicPageLayout>{isV2 ? <TestReportV2Page /> : <TestReportPage />}</BasicPageLayout>
+      </PageProvider>
     </ErrorBoundary>
   );
 };

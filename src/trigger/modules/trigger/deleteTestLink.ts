@@ -3,11 +3,12 @@ import { i18n } from '@giteeteam/apps-api';
 import {
   InfinityLimit,
   IQLRequiredFieldKeys,
+  TestFiledKeyMapping,
   TestLinkType,
   TestType,
 } from '../../../common/constant';
 import { buildResponse } from '../../lib/apiUtil';
-import { batchDeleteItems } from '../../lib/batchRequest';
+import { batchDeleteItems, batchUpdateItemsValues } from '../../lib/batchRequest';
 import { iqlRequest } from '../../lib/iqlRequest';
 
 export const deleteTestLink = async () => {
@@ -31,14 +32,37 @@ export const deleteTestLink = async () => {
             referenceCase: [itemId],
           },
           pagination: { limit: InfinityLimit },
-          fields: IQLRequiredFieldKeys,
+          fields: [
+            ...IQLRequiredFieldKeys,
+            TestFiledKeyMapping.referenceCaseSnapshot,
+            TestFiledKeyMapping.referenceCase,
+          ],
         });
 
-        return testRuns?.map(item => item.objectId);
+        const deleteIds =
+          testRuns?.filter(i => !i.referenceCaseSnapshot)?.map(item => item.objectId) ?? [];
+        const updateIds =
+          testRuns?.filter(i => i.referenceCaseSnapshot)?.map(item => item.objectId) ?? [];
+
+        return {
+          deleteIds,
+          updateIds,
+        };
       };
-      const testRunIds = await getReferencedTestRunIds();
-      if (testRunIds?.length) {
-        tasks.push(batchDeleteItems(testRunIds));
+      const { deleteIds, updateIds } = await getReferencedTestRunIds();
+      if (deleteIds?.length) {
+        tasks.push(batchDeleteItems(deleteIds));
+      }
+      if (updateIds?.length) {
+        tasks.push(
+          batchUpdateItemsValues(
+            updateIds.map(id => ({
+              objectId: id,
+              referenceCase: '',
+            })),
+          ),
+          true,
+        );
       }
     }
 

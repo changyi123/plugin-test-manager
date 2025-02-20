@@ -12,7 +12,7 @@ import { getFilterFields } from '@/components/common/FilterSearch/utils';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import { copyTestCase, copyTestCaseV2, getTestEntityByQuery, getTestStats } from '@/lib/api/item';
 import { getExtendFields, RepositoryModel, TestType } from '@/lib/constants';
-import { useBaseAction } from '@/lib/hooks/useContext';
+import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import { logPluginVersion } from '@/lib/utils/helper';
 import { getRepositoryQuery } from '@/lib/utils/tree';
@@ -46,6 +46,7 @@ const ListView: React.FC<ViewComponentProps> = ({
 }) => {
   const { t } = useI18n();
   const tableActionRef = React.useRef<ActionType>();
+  const { config } = useTestConfig();
   const { createItemUseModal, testCaseFieldKeys } = useBaseAction();
   const [selector, setSelector] = React.useState(null);
   const [breadcrumbs, setBreadcrumbs] = React.useState([]);
@@ -80,7 +81,7 @@ const ListView: React.FC<ViewComponentProps> = ({
 
   const dataSourceGetter = useCallback(
     async params => {
-      if (!selectedNode?.key || !workspaceKey || !testCaseFieldKeys)
+      if (!selectedNode?.key || !workspaceKey || !testCaseFieldKeys || !config)
         return {
           list: [],
           total: 0,
@@ -132,7 +133,7 @@ const ListView: React.FC<ViewComponentProps> = ({
       };
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [repository, selector, testCaseFieldKeys, workspaceKey],
+    [repository, selector, testCaseFieldKeys, workspaceKey, config?.enableCaseSnapshot],
   );
 
   const queryDeps = useMemo(

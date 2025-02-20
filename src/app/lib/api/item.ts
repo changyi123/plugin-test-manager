@@ -341,6 +341,7 @@ export const copyTesCase = async (data: CopyTestCasePayload) => {
 export const batchCreateTestRun = async data => {
   const res = await fetch.post(`${pluginWebTriggerBaseUrl}/api-batch-create-test-run`, {
     ...data,
+    withProcess: false,
     sessionToken: getSessionToken(),
   });
 
@@ -794,3 +795,19 @@ export const runScript = async (params, script) => {
   });
   return data;
 };
+
+// 结果查询
+export async function fetchBatchResult(
+  batchId: string,
+): Promise<{ success: number; fail: number; count: number; items: any; failItems: any }> {
+  return fetch.get('/parse/api/items/batch/result/' + batchId);
+}
+
+// 进度查询
+export async function fetchBatchProgress(batchId: string): Promise<{
+  success: number;
+  fail: number;
+  count: number;
+}> {
+  return fetch.get('/parse/api/items/batch/progress/' + batchId);
+}

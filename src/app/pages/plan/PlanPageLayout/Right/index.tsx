@@ -106,7 +106,7 @@ const Right: React.FC<RightProps> = props => {
       // 创建执行任务
       const { data } = await batchCreateTestRun({
         executionId: selectedExecution.objectId,
-        caseIds,
+        case: caseIds.map(i => ({ caseId: i })),
       });
       if (data?.status === 'error') {
         setLoading(false);

@@ -98,7 +98,9 @@ export const TestFieldTypeKeyMapping = {
   executeTime: 'r_test_manager_executeTime',
   repository: 'r_test_manager_repository_keyword',
   referenceCase: 'r_test_manager_es_text_keyword',
+  referenceCaseSnapshot: 'r_test_manager_es_text_keyword',
   status: 'r_test_manager_es_text_keyword',
+  linkItems: 'r_test_manager_es_array_keyword',
 };
 
 /** 测试管理自定义字段 key 映射 */
@@ -107,6 +109,7 @@ export const TestFiledKeyMapping = {
   linkItems: 'r_test_manager_linkItems',
   status: 'r_test_manager_status',
   referenceCase: 'r_test_manager_referenceCase',
+  referenceCaseSnapshot: 'r_test_manager_referenceCaseSnapshot',
   type: 'r_test_manager_type',
   caseStatus: 'r_test_manager_caseStatus',
   caseExecutor: 'r_test_manager_caseExecutor',
@@ -120,6 +123,7 @@ export const TestFiledKeyMapping = {
   reportOverviewData: 'r_test_manager_reportOverviewData',
   reportChartGroup: 'r_test_manager_reportChartGroup',
   reportTemplate: 'r_test_manager_reportTemplate',
+  plan: 'r_test_manager_plan',
 
   // 以下字段以字符串形式存入，存入前需要 stringify，返回需要 parse
   detail: 'r_test_manager_detail',
@@ -142,6 +146,7 @@ export const BuiltinFieldNameMapping = {
   linkItems: 'test_manager_linkItems',
   status: 'test_manager_status',
   referenceCase: 'test_manager_referenceCase',
+  referenceCaseSnapshot: 'test_manager_referenceCaseSnapshot',
   type: 'test_manager_type',
   caseStatus: 'test_manager_caseStatus',
   caseExecutor: 'test_manager_caseExecutor',
@@ -152,6 +157,7 @@ export const BuiltinFieldNameMapping = {
   executeCount: 'test_manager_executeCount',
   executeTime: 'r_test_manager_executeTime',
   caseRun: 'test_manager_caseRun',
+  plan: 'test_manager_plan',
 
   // 不需要拼接
   runDetail: 'test_manager_runDetail',

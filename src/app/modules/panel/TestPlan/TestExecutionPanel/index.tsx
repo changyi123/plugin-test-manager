@@ -14,7 +14,7 @@ import TestEntitySelectorModal, {
 } from '@/components/business/TestEntitySelectorModal';
 import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/hook';
 import { getLinkedTestEntityByQuery, getTestStats, updateTestEntity } from '@/lib/api/item';
-import { TestLinkType, TestType } from '@/lib/constants';
+import { BuiltinFieldNameMapping, TestLinkType, TestType } from '@/lib/constants';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import { alert, getTestManagerContainer } from '@/lib/utils/helper';
@@ -26,7 +26,7 @@ const EMPTY_ARRAY = [];
 
 const Test = () => {
   const { t } = useI18n();
-  const { testEntity, workspace } = useTestConfig();
+  const { testEntity, workspace, config } = useTestConfig();
   const tableActionRef = React.useRef<ActionType>();
   const selectorModalRef = React.useRef<SelectorActionType>();
 
@@ -45,7 +45,7 @@ const Test = () => {
   const getAllRelTestEntities = useCallback(
     async params => {
       const sourceIds = testEntity.objectId;
-      if (!sourceIds) return;
+      if (!sourceIds || !config) return;
       // 获取计划下的所有执行
       const { list, total } = await getLinkedTestEntityByQuery({
         query: {
@@ -66,6 +66,9 @@ const Test = () => {
                 workspaceKey: workspace?.key,
                 type: TestType.Run,
               },
+              selector: config?.enableCaseSnapshot
+                ? `${BuiltinFieldNameMapping.referenceCaseSnapshot} is not null`
+                : `${BuiltinFieldNameMapping.referenceCase} is not null`,
               linkType: TestLinkType.RunLinkExecution,
               sourceIds: [d.id],
               destinationType: TestType.Run,
@@ -94,7 +97,7 @@ const Test = () => {
         total,
       };
     },
-    [testEntity.objectId, workspace?.key],
+    [config?.enableCaseSnapshot, testEntity.objectId, workspace?.key],
   );
 
   const refresh = React.useCallback(() => {

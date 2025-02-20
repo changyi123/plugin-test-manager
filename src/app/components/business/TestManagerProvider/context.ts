@@ -30,6 +30,8 @@ export type TestConfigContextType = {
     statusList?: { statusId: string; name: string; isStartStatus?: boolean }[];
     // 默认测试用例规划范围
     iql?: string;
+    // 是否支持规划时自动打快照
+    enableCaseSnapshot?: boolean;
   };
   workspace?: Workspace;
   testEntity?: BaseTestEntity;

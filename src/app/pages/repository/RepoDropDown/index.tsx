@@ -68,7 +68,7 @@ const RepoDropDown = ({
   useEffect(() => {
     testCaseFieldKeys?.length &&
       searchFields({
-        keys: testCaseFieldKeys,
+        keys: [...testCaseFieldKeys, ...SystemFieldKeys],
         propertyNames: ['name', 'key', 'fieldType'],
         fieldType: true,
       }).then(data => {

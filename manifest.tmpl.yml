@@ -10,6 +10,9 @@ modules:
     - key: test-manager-initial-script
       function: test-manager-initial-script-function
     # ---------------------------------------------
+    # 快照数据处理脚本
+    - key: handle-snapshot-script
+      function: handle-snapshot-script-function
     # 动态配置 one 路由
     - key: gitee-menus
       function: gitee-menus-function
@@ -103,6 +106,10 @@ modules:
     # 中关村测试报告联调对接
     - key: extension-report-zgc
       function: extension-report-zgc-function
+
+    # 大商所测试报告联调对接
+    - key: extension-report-dss
+      function: extension-report-dss-function
     
     - key: extension-weichai-file-encrypt
       function: extension-weichai-file-encrypt-function
@@ -123,6 +130,8 @@ modules:
       function: test-manager-check-filter-group-name-function
     - key: test-manager-export-script
       function: test-manager-export-script-function
+    - key: create-repository
+      function: test-manager-create-repository-function
 
   trigger:
     - key: test-manager-initial-script-install
@@ -143,6 +152,11 @@ modules:
       events:
         - gei:proxima:item:beforeCreate
       function: item-before-create-trigger-function
+      async: false
+    - key: test-manager-item-after-save-trigger
+      events:
+        - gei:proxima:item:updated
+      function: test-manager-item-after-save-function
       async: false
     - key: item-created-trigger
       events:
@@ -199,6 +213,9 @@ modules:
       handler: web.runShenWanScript
     - key: generate-sortIndex-function
       handler: web.generateSortIndex
+    - key: handle-snapshot-script-function
+      handler: web.handleSnapshotScript
+      timeout: 300000
       # 测试报告统计数据
     - key: report-stats-function
       handler: web.requestReportStats
@@ -302,11 +319,17 @@ modules:
     - key: extension-report-zgc-function
       handler: api.zgcTestReportInfo
 
+    - key: extension-report-dss-function
+      handler: api.dssTestReportInfo
+
     - key: extension-weichai-file-encrypt-function
       handler: api.weichaiFileEncrypt
 
     - key: test-manager-check-filter-group-name-function
       handler: api.checkFilterGroupName
+
+    - key: test-manager-create-repository-function
+      handler: api.createRepository
 
     - key: init-test-config-function
       handler: api.initTestConfig
@@ -314,6 +337,8 @@ modules:
       handler: scriptHandler.runScript
     - key: test-manager-export-script-function
       handler: exporter.runScript
+    - key: test-manager-item-after-save-function
+      handler: trigger.itemAfterSave
 
   itemPanel:
     - key: test-manager-test-detail
@@ -507,6 +532,10 @@ modules:
       name: test_manager_referenceCase
       description: 测试管理内置字段-测试用例引用（勿删改）
       type: _self:es_text_keyword
+    - key: referenceCaseSnapshot
+      name: test_manager_referenceCaseSnapshot
+      description: 测试管理内置字段-测试用例快照引用（勿删改）
+      type: _self:es_text_keyword
     - key: type
       description: 测试管理内置字段-测试管理类型（勿删改）
       name: test_manager_type
@@ -559,6 +588,10 @@ modules:
     - key: comment
       name: test_manager_comment
       description: 测试管理内置字段-测试执行评论（勿删改）
+      type: Text
+    - key: plan
+      name: test_manager_plan
+      description: 测试管理内置字段-测试计划
       type: Text
     - key: runMapCaseKey
       name: test_manager_runMapCaseKey
@@ -705,6 +738,13 @@ tables:
         type: Array
       sortIndex:
         type: Number
+    indexes:
+      - name: unique_repository
+        fields:
+          - workspaceKey
+          - name
+          - parent
+        unique: true
   - className: TestConfig
     fields:
       workspaceKey:
@@ -733,6 +773,8 @@ tables:
       # 关联统计报表
       chartGroups:
         type: Object
+      enableCaseSnapshot:
+        type: Boolean
   - className: TestRelation
     fields:
       from:
