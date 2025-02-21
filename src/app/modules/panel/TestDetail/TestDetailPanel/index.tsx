@@ -23,24 +23,34 @@ export interface TestStep extends Step {
 }
 
 let firstLoad = true;
+const EMPTY_STEPS = [];
 
 const Detail: React.FC = () => {
   const { t } = useI18n();
   const { testEntity, setTestEntity, baseLineItemId } = useTestConfig();
-  const [steps, setStepsState] = useState<TestStep[]>([]);
+  const [steps, setStepsState] = useState<TestStep[]>(EMPTY_STEPS);
 
   const { objectId: testDetailId } = testEntity || {};
 
+  const setSteps = useCallback(
+    value => {
+      if (JSON.stringify(value || EMPTY_STEPS) !== JSON.stringify(steps || EMPTY_STEPS))
+        setStepsState(value || EMPTY_STEPS);
+    },
+    [steps],
+  );
+
   // 同步步骤
   useEffect(() => {
-    setStepsState(testEntity.detail?.steps || []);
-  }, [testEntity]);
+    setSteps(testEntity.detail?.steps);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(testEntity.detail?.steps)]);
 
   /** 保存步骤 */
   const saveStep = useCallback(
     async newSteps => {
       if (!newSteps) return;
-      setStepsState(newSteps);
+      setSteps(newSteps);
 
       const cpDetail = cloneDeep(testEntity.detail) || { steps: [] };
       cpDetail.steps = newSteps;
@@ -56,7 +66,7 @@ const Detail: React.FC = () => {
       }
       setTestEntity(data?.[0]);
     },
-    [testEntity.detail, testEntity.objectId, setTestEntity],
+    [setSteps, testEntity.detail, testEntity.objectId, setTestEntity],
   );
 
   const { run: handlePreconditionChange } = useDebounceFn(async precondition => {
@@ -107,7 +117,6 @@ const Detail: React.FC = () => {
           placeholder={t('common.preconditionPlaceholder')}
           defaultValue={testEntity.detail?.precondition}
           onBlur={e => handlePreconditionChange(e.target.value)}
-          onChange={e => handlePreconditionChange(e.target.value)}
           disabled={!!baseLineItemId}
         />
       </div>
