@@ -1,8 +1,11 @@
 import './style.less';
 
+import { Button, Space } from 'antd';
 import { components } from 'proxima-sdk';
 import React, { useEffect, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
+
+import useI18n from '@/lib/hooks/useI18n';
 
 import { TOOLBAR_BUTTONS_FIELDS } from './constant';
 
@@ -64,15 +67,14 @@ const Editor: React.FC<EditorProps> = ({
   readonly = false,
   placeholder,
   value,
-  name,
   onChange,
   style,
-  ...props
 }) => {
   const [editorValue, setEditorValue] = useState<Record<string, any>[] | any>(
     value ?? defaultEditorValue,
   );
-
+  const [showEditor, setShowEditor] = useState(false);
+  const { t } = useI18n();
   const nameId = uuidv4();
 
   // 数据转为富文本数组结构
@@ -96,6 +98,11 @@ const Editor: React.FC<EditorProps> = ({
     }
   }, [value]);
 
+  const submitEditor = () => {
+    setShowEditor(false);
+    onChange && onChange(editorValue);
+  };
+
   const handleSave = value => {
     // 获取收集到的字符串文本
     const stringText = collectEditorText(value);
@@ -106,20 +113,42 @@ const Editor: React.FC<EditorProps> = ({
   };
 
   return (
-    <div className="comment-editor" style={style}>
-      <Field
-        name={nameId}
-        placeholder={placeholder}
-        value={editorValue}
-        onChange={handleSave}
-        selectedButtons={TEST_MANAGER_EDITOR_BUTTONS_FIELDS}
-        watchChange={false}
-        readonly={readonly}
-        editMode={false}
-        hiddenLabel
-        hideMention
-        {...props}
-      />
+    <div className="comment-editor">
+      <div
+        style={style}
+        onClick={() => {
+          !readonly && setShowEditor(true);
+        }}
+      >
+        <Field
+          name={nameId}
+          placeholder={placeholder}
+          value={editorValue}
+          onChange={handleSave}
+          selectedButtons={TEST_MANAGER_EDITOR_BUTTONS_FIELDS}
+          watchChange={false}
+          readonly={readonly}
+          editMode={showEditor}
+          hiddenLabel
+          hideMention
+          hideEditBtn
+        />
+      </div>
+      {showEditor && !readonly && (
+        <Space style={{ marginTop: '12px' }}>
+          <Button type="primary" onClick={submitEditor}>
+            {t('common.save')}
+          </Button>
+          <Button
+            onClick={() => {
+              setEditorValue(value ?? defaultEditorValue);
+              setShowEditor(false);
+            }}
+          >
+            {t('common.cancel')}
+          </Button>
+        </Space>
+      )}
     </div>
   );
 };
