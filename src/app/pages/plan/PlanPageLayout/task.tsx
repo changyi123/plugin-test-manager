@@ -60,7 +60,6 @@ const TaskPageLayout: React.FC<any> = () => {
   const { query } = useLocation();
 
   useUpdateEffect(() => {
-    if (!selectedTestPlan?.objectId) return;
     if (query?.actionType && !activeType) {
       setActiveType(query?.actionType);
     }
@@ -91,19 +90,12 @@ const TaskPageLayout: React.FC<any> = () => {
   });
 
   useUpdateEffect(() => {
-    if (!selectedTestPlan?.objectId) return;
+    if (!selectedExecution?.objectId) return;
     detailSearchRef.current?.reset();
     setSearchParams([{}, {}]);
     pageLeftRef.current?.reset();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeType, selectedExecution, selectedTestPlan]);
-
-  useUpdateEffect(() => {
-    if (activeType === 'TestPlan') {
-      selectedExecution && setSelectedExecution(undefined);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeType, pageLeftRef]);
+  }, [activeType, selectedExecution]);
 
   const getSelectCaseIds = useCallback(async () => {
     if (!testEntitySelectorRef.current?.open) return;
@@ -264,7 +256,7 @@ const TaskPageLayout: React.FC<any> = () => {
             linkType: TestLinkType.CaseLinkPlan,
             linkItems: {
               action: 'add',
-              value: [selectedTestPlan.objectId],
+              value: [selectedTestPlan?.objectId],
             },
           })),
         );

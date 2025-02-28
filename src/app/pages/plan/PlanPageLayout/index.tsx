@@ -113,6 +113,7 @@ const PlanPageLayout: React.FC<any> = () => {
     activeType,
     runLinkCaseIds,
     runLinkSnapshotIds,
+    isPlanList: true,
   });
 
   useUpdateEffect(() => {

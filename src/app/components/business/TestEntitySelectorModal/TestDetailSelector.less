@@ -84,11 +84,12 @@
       .tree-box {
         margin-top: 40px;
         max-height: ~'calc(100% - 40px)';
-        overflow-y: auto;
+        overflow: auto;
 
         :global {
           .ant-tree {
             padding: 0;
+            width: max-content;
           }
         }
         &.tab-layout {

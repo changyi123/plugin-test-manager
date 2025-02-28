@@ -344,6 +344,7 @@ export const useTreeParams = (props: {
   selectedExecution: Record<string, any> | undefined;
   runLinkCaseIds: string[];
   runLinkSnapshotIds: string[];
+  isPlanList?: boolean;
 }) => {
   const [treeParams, setTreeParams] = useState<any>(null);
   const { config } = useTestConfig();
@@ -354,10 +355,11 @@ export const useTreeParams = (props: {
     selectedExecution,
     runLinkCaseIds,
     runLinkSnapshotIds,
+    isPlanList,
   } = props;
 
   useUpdateEffect(() => {
-    if (!workspaceKey || !selectedTestPlan?.objectId || !config) return;
+    if (!workspaceKey || (!selectedTestPlan?.objectId && isPlanList) || !config) return;
     if (activeType === 'TestExecution') {
       if (!selectedExecution?.objectId) return;
       const treeParams = {
