@@ -31,14 +31,15 @@ const CopyModal: React.FC<
   return (
     <Modal {...otherProps} destroyOnClose onOk={onOk} afterOpenChange={afterOpenChange}>
       <Form form={form} layout="vertical" initialValues={{ workspaceKey }}>
-        <Form.Item name="workspaceKey" label={t('page.config.selectWorkspace')} required>
+        <Form.Item name="workspace" label={t('page.config.selectWorkspace')} required>
           <WorkspaceSelector
             onChange={v => {
-              form.setFieldValue('workspaceKey', v);
-              setWorkspaceKey(v);
+              form.setFieldValue('workspace', v);
+              setWorkspaceKey(v.key);
             }}
             showCurrent
             hiddenLabel
+            onlyValue={false}
             wrapClassName="wrap"
             className="select"
           />

@@ -12,7 +12,9 @@ export {
   batchUpdateValue,
   batchCopyTestCase,
   batchCopyTestCaseV2,
+  batchCopyTestCaseV3,
   batchCreateTestRun,
+  batchCreateTestRunV2,
   batchCreateTestCase,
 } from './modules/api/batch';
 
@@ -31,8 +33,6 @@ export { shenwanTestReportInfo } from './modules/extension/shenwan';
 export { weichaiFileEncrypt } from './modules/extension/weichai';
 
 export { zgcTestReportInfo, zgcTestReportSlotData } from './modules/extension/zgc';
-
-export { dssTestReportInfo } from './modules/extension/dashangsuo';
 
 export { dssTestReportInfo } from './modules/extension/dashangsuo';
 

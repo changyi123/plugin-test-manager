@@ -4,12 +4,13 @@ import { message, notification, Spin } from 'antd';
 import React, { useCallback, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 
+import { createTestRunWithProcess } from '@/components/business/BatchResult/hooks';
 import TestEntitySelectorModal, {
   ActionType as ModelActionType,
 } from '@/components/business/TestEntitySelectorModal';
 import PageLayout from '@/components/common/PageLayout';
 import BasicPageLayout from '@/components/common/PageLayout/Basic';
-import { batchCreateTestRun, getLinkedTestEntityByQuery, updateTestEntity } from '@/lib/api/item';
+import { getLinkedTestEntityByQuery, updateTestEntity } from '@/lib/api/item';
 import { PROXIMA_EVENT_KEY, TestLinkType, TestType } from '@/lib/constants';
 import { useBaseAction } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
@@ -196,14 +197,27 @@ const PlanPageLayout: React.FC<any> = () => {
       const { item, extraData } = await createExecution(caseIds, createNext);
       const isCheckCreateNext: boolean = (extraData as any)?.isCheckCreateNext;
 
-      // TODO 创建测试执行，创建测试执行任务和执行关系，创建执行和用例关系
-      try {
-        notification.open({
-          message: t('page.plan.planPageLayout.testExecutionCreateLoading'),
-          icon: <Spin spinning={true} />,
-          duration: null,
+      const handleSuccess = () => {
+        if (isCheckCreateNext) {
+          setTimeout(() => {
+            createTestExecution(isCheckCreateNext);
+          }, 500);
+        }
+        executionListRef?.current?.refresh();
+        notification.success({
+          message: `${t('page.plan.planPageLayout.right.createTestExecutionSuccessMessage.0')}【${
+            item.name
+          }】${t('page.plan.planPageLayout.right.createTestExecutionSuccessMessage.1')}`,
+        });
+      };
+
+      const handleFail = () =>
+        notification.error({
+          message: t('page.plan.planPageLayout.right.createTestExecutionFailMessage'),
         });
 
+      // TODO 创建测试执行，创建测试执行任务和执行关系，创建执行和用例关系
+      try {
         // 创建完测试执行任务事项，更新测试执行任务关联测试计划
         const res = await updateTestEntity([
           {
@@ -224,31 +238,17 @@ const PlanPageLayout: React.FC<any> = () => {
 
         // 创建测试执行
         if (caseIds.length > 0) {
-          await batchCreateTestRun({
-            executionId: item.objectId,
-            case: caseIds.map(i => ({
-              caseId: i,
-            })),
+          await createTestRunWithProcess({
+            execution: item,
+            caseIds: caseIds,
+            workspace: item?.workspace as any,
+            planId: extraData?.planId,
+            handleSuccess,
+            handleFail,
           });
         }
-
-        notification.destroy();
-        if (isCheckCreateNext) {
-          setTimeout(() => {
-            createTestExecution(isCheckCreateNext);
-          }, 500);
-        }
-        executionListRef?.current?.refresh();
-        notification.success({
-          message: `${t('page.plan.planPageLayout.right.createTestExecutionSuccessMessage.0')}【${
-            item.name
-          }】${t('page.plan.planPageLayout.right.createTestExecutionSuccessMessage.1')}`,
-        });
       } catch (err) {
-        notification.destroy();
-        notification.error({
-          message: t('page.plan.planPageLayout.right.createTestExecutionFailMessage'),
-        });
+        handleFail;
       }
     },
     [createExecution, getSelectCaseIds, executionListRef, t],

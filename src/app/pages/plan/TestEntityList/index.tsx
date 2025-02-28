@@ -9,6 +9,7 @@ import dayjs from 'dayjs';
 import { isEmpty, isEqual, keyBy, omit, pick } from 'lodash';
 import React, { useCallback, useEffect, useState } from 'react';
 
+import { deleteWithProcess } from '@/components/business/BatchResult/hooks';
 import RenderRepository from '@/components/business/RenderRepository';
 import { StatusBadge } from '@/components/business/Status';
 import TestRunModal, {
@@ -20,7 +21,6 @@ import { SystemFieldKeys } from '@/components/common/BusinessTable/hook';
 import type { BusinessTableActionType } from '@/components/common/BusinessTable/type';
 import Field from '@/components/common/Field';
 import {
-  deleteTestEntity,
   getCasesByStatus,
   getLinkedTestEntityByQuery,
   getTestCaseStats,
@@ -746,24 +746,27 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       async () => {
         setTableLoading(true);
         // 删除测试执行
-        const res = await deleteTestEntity(testRunIds);
-        if (res?.status === 'error') {
-          message.error(res.data);
-          setTableLoading(false);
-          return;
-        }
-
-        // 删除刷新
-        setTimeout(() => {
-          addAndDeleteRefresh();
-          actionRef.current?.refresh();
-        }, 500);
-        mutateStatusEvent.emit('refreshExecutionStatus');
-        notification.success({
-          message: `${testRunIds.length} ${t('page.plan.testEntityList.deleteRunMessage')}`,
+        await deleteWithProcess({
+          ids: testRunIds,
+          actionType: 'deleteV1',
+          handleSuccess: () => {
+            setTableLoading(false);
+            setTimeout(() => {
+              addAndDeleteRefresh();
+              actionRef.current?.refresh();
+            }, 500);
+            mutateStatusEvent.emit('refreshExecutionStatus');
+            notification.success({
+              message: `${testRunIds.length} ${t('page.plan.testEntityList.deleteRunMessage')}`,
+            });
+            proxima.execute('refreshTestRunPanel');
+            proxima.execute('refreshSelectedNode');
+          },
+          handleFail: error => {
+            message.error(error.message);
+            setTableLoading(false);
+          },
         });
-        proxima.execute('refreshTestRunPanel');
-        proxima.execute('refreshSelectedNode');
       },
     );
   });

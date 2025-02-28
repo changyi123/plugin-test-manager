@@ -18,6 +18,7 @@ const WorkspaceSelector: React.FC<
     onChange?: (value: any) => void;
     hiddenLabel?: boolean;
     showCurrent?: boolean;
+    onlyValue?: boolean;
   }
 > = ({
   value,
@@ -25,6 +26,7 @@ const WorkspaceSelector: React.FC<
   hiddenLabel = false,
   showCurrent = false,
   wrapClassName,
+  onlyValue = true,
   ...otherProps
 }) => {
   const [keyword, setKeyword] = useState('');
@@ -47,17 +49,17 @@ const WorkspaceSelector: React.FC<
   });
 
   const beforeChange = useCallback(
-    async workspaceKey => {
+    async (_, workspace) => {
       // 比较类型映射是否匹配
       const targetConfig = await new Parse.Query(TestConfigModel as any)
-        .equalTo('workspaceKey', workspaceKey)
+        .equalTo('workspaceKey', workspace.key)
         .first();
       if (!isEqual(currentItemTypeMap.TestCase, targetConfig?.toJSON()?.itemTypeMap?.TestCase)) {
         return message.error('类型关联不匹配');
       }
-      onChange(workspaceKey);
+      onChange(onlyValue ? workspace.key : workspace);
     },
-    [currentItemTypeMap, onChange],
+    [currentItemTypeMap?.TestCase, onChange, onlyValue],
   );
 
   return (
@@ -88,7 +90,7 @@ const WorkspaceSelector: React.FC<
                 <div
                   key={option.key}
                   className={cx('workspace-selector-dropdown-item')}
-                  onClick={() => beforeChange(option.key)}
+                  onClick={() => beforeChange(null, option)}
                 >
                   <WorkspaceIcon icon={option.icon} />
                   <span className={cx('workspace-selector-dropdown-text')} title={option.name}>

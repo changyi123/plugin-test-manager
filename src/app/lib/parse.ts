@@ -27,6 +27,7 @@ if (process.env.NODE_ENV === 'production' || window.__POWERED_BY_QIANKUN__) {
   if (env === 'one') {
     Parse?.CoreManager?.set('REQUEST_HEADERS', getParseReqHeader());
   }
+  Parse.liveQueryServerURL = `${baseURL}/parse`;
   Parse.serverURL = `${baseURL}/parse`;
   Parse.initialize(PROXIMA_APP_ID);
 }

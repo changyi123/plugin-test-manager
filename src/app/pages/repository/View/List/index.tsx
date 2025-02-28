@@ -1,6 +1,6 @@
 import { useSDK } from '@projectproxima/plugin-sdk';
 import { useListener } from '@projectproxima/proxima-sdk-js';
-import { useMemoizedFn, useUpdateEffect } from 'ahooks';
+import { useUpdateEffect } from 'ahooks';
 import { Button, notification, Select } from 'antd';
 import React, { useCallback, useMemo, useRef } from 'react';
 
@@ -10,7 +10,7 @@ import { SystemFieldKeys } from '@/components/common/BusinessTable/hook';
 import FilterSearch from '@/components/common/FilterSearch';
 import { getFilterFields } from '@/components/common/FilterSearch/utils';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
-import { copyTestCase, copyTestCaseV2, getTestEntityByQuery, getTestStats } from '@/lib/api/item';
+import { getTestEntityByQuery, getTestStats } from '@/lib/api/item';
 import { getExtendFields, RepositoryModel, TestType } from '@/lib/constants';
 import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
@@ -144,18 +144,6 @@ const ListView: React.FC<ViewComponentProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [selectedNode?.key, workspaceKey, groupedMode, selector, testCaseFieldKeys?.sort()?.join(',')],
   );
-  const copyTestCases = useMemoizedFn(async ids => {
-    return await copyTestCase({
-      caseIds: ids,
-      fields: [].concat(SystemFieldKeys, testCaseFieldKeys),
-    });
-  });
-  const copyTestCasesV2 = useMemoizedFn(async queryParams => {
-    return await copyTestCaseV2({
-      queryParams,
-      fields: [].concat(SystemFieldKeys, testCaseFieldKeys),
-    });
-  });
 
   useUpdateEffect(() => {
     const breadcrumbs = [];
@@ -288,8 +276,6 @@ const ListView: React.FC<ViewComponentProps> = ({
           dataSourceGetter={dataSourceGetter}
           tableLoading={tableLoading}
           setTableLoading={setTableLoading}
-          copyTestCases={copyTestCases}
-          copyTestCasesV2={copyTestCasesV2}
           queryDeps={queryDeps}
           workspaceKey={workspaceKey}
           repository={repository}

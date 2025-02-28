@@ -1,0 +1,36 @@
+.errors-box {
+  margin-top: 1em;
+
+  :global {
+    .ant-collapse-content {
+      padding: 0;
+    }
+  }
+}
+
+.progress-desc {
+
+  .success{
+    margin-right: 1em;
+    >span {
+      color: green;
+    }
+  }
+  .fail {
+
+    >span {
+      color: red;
+    }
+  }
+}
+
+
+.ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  word-break: break-all;
+  white-space: pre-line;
+  -webkit-line-clamp: 1;
+}

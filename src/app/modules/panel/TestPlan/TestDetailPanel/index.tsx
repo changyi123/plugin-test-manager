@@ -4,6 +4,7 @@ import { Button, message } from 'antd';
 import { uniqueId } from 'lodash';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
+import { createTestRunWithProcess } from '@/components/business/BatchResult/hooks';
 import DropDownButton from '@/components/business/DropDownButton';
 import PanelTable, {
   ActionType,
@@ -18,12 +19,7 @@ import TestEntitySelectorModal, {
 import TestRunModal, {
   ActionType as TestRunModalActionType,
 } from '@/components/business/TestRunModal';
-import {
-  batchCreateTestRun,
-  getLinkedTestEntityByQuery,
-  getRunsFromCase,
-  updateTestEntity,
-} from '@/lib/api/item';
+import { getLinkedTestEntityByQuery, getRunsFromCase, updateTestEntity } from '@/lib/api/item';
 import { INITIAL_STATUS_KEY, TestLinkType, TestType } from '@/lib/constants';
 import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
@@ -178,17 +174,15 @@ const Test = () => {
 
     // 规划用例创建测试执行
     if (caseIds?.length) {
-      await batchCreateTestRun({
-        executionId: testExecution.objectId,
-        case: caseIds.map(i => ({ caseIds: i })),
+      await createTestRunWithProcess({
+        execution: testExecution,
+        caseIds: caseIds,
+        workspace: testExecution?.workspace as any,
+        planId: testEntity?.objectId,
+        handleSuccess: refreshDepData,
       });
     }
-
-    alert({
-      type: 'success',
-      message: `${t('common.testExecution')}【${testExecution?.name}】${t('common.addSuccess')}`,
-    });
-  }, [createExecution, testEntity.objectId, tableActionRef, t]);
+  }, [createExecution, testEntity?.objectId, refreshDepData]);
 
   const existStartNode = useMemo(() => statusList?.find(s => s.isStartStatus), [statusList]);
   const enableCreateCase = useMemo(() => {
@@ -279,7 +273,16 @@ const Test = () => {
         },
       },
     ];
-  }, [createItemUseModal, refreshDepData, getCreatePermission, testEntity, testEntityIds, t]);
+  }, [
+    t,
+    getCreatePermission,
+    enableCreateCase,
+    existStartNode?.name,
+    refreshDepData,
+    testEntityIds,
+    testEntity?.objectId,
+    createItemUseModal,
+  ]);
 
   const removeTestRelation = useCallback(
     async testDetailIds => {
@@ -340,11 +343,6 @@ const Test = () => {
       },
     ];
   }, [removeTestRelation, t]);
-
-  const onClick = useCallback(async () => {
-    await createTestExecution();
-    refreshDepData();
-  }, [createTestExecution, refreshDepData]);
 
   // const expandedRowRender = useCallback(
   //   record => {
@@ -432,7 +430,7 @@ const Test = () => {
             <Button
               icon={<PlusOutlined />}
               disabled={getCreatePermission(TestType.Execution)}
-              onClick={onClick}
+              onClick={createTestExecution}
             >
               {t('common.testExecution')}
             </Button>

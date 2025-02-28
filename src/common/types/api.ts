@@ -144,8 +144,9 @@ export type QueryLinkedTestEntityResponse<T extends TestType> = PaginationRespon
 export type BatchDeletePayload = {
   ids: string[];
   /** 跳过更新关联数据 */
-  skipDeletedLinkItems: boolean;
+  skipDeletedLinkItems?: boolean;
   sessionToken?: string;
+  key?: string;
 };
 
 /**
@@ -155,8 +156,9 @@ export type BatchDeletePayload = {
 export type BatchDeleteV2Payload = {
   queryParams: CommonTestEntityQueryPayload;
   /** 跳过更新关联数据 */
-  skipDeletedLinkItems: boolean;
+  skipDeletedLinkItems?: boolean;
   sessionToken?: string;
+  key?: string;
 };
 
 /**
@@ -204,10 +206,20 @@ export type BatchCopyTestCasePayload = {
  */
 export type BatchCopyTestCaseV2Payload = {
   queryParams: CommonTestEntityQueryPayload;
-  fields: string[];
-  workspaceKey?: string;
-  to?: CopyTestCaseV2PayloadTo;
+  itemType: string;
+  workspace: { objectId: string; key: string };
+  repository?: string;
+  needSuffix?: boolean;
+  key?: string;
 };
+
+/**
+ * 复制测试用例
+ * @example POST /api/project/app/osc/test_manager/webhooks/api-batch-copy-test-case-v3
+ */
+export type BatchCopyTestCaseV3Payload = {
+  caseIds: string[];
+} & Omit<BatchCopyTestCaseV2Payload, 'queryParams'>;
 
 export type CopyTestCaseV2PayloadTo = {
   repository: string;
@@ -225,6 +237,23 @@ export type BatchCreateTestRunPayload = {
   case: { key: string; caseId: string; createAt?: number }[];
   withProcess?: boolean;
   notificationUrl?: string;
+};
+
+/**
+ * 创建测试实体
+ * @example POST /api/project/app/osc/test_manager/webhooks/api-batch-create-test-run-v2
+ */
+export type BatchCreateTestRunV2Payload = {
+  /** 测试执行任务 id name*/
+  execution: { objectId: string; name: string };
+  /** 测试计划 id */
+  planId?: string;
+  /** 测试用例 id */
+  caseIds: string[];
+  /** 空间 id key */
+  workspace: { objectId: string; key: string };
+  /** processBar key */
+  key?: string;
 };
 
 /** 状态类型 */
@@ -313,6 +342,35 @@ export type TestCountPayload = {
   };
   sessionToken?: string;
 };
+
+/**
+ * 批量创建接口
+ * @example POST /parse/api/v2/items/batch/create
+ */
+export interface IBatchCreateParams {
+  from: string[];
+  fields: Record<string, any>;
+  workspace: string;
+  itemType: string;
+  ancestors?: string[];
+  reporter?: string;
+  securityLevel?: string;
+  update?: Record<string, any>;
+  context?: Record<string, any>;
+}
+
+/**
+ * 批量更新接口
+ * @example POST /parse/api/v2/items/batch/update
+ */
+export interface IBatchUpdateParams {
+  items: string[];
+  fields?: Record<string, unknown>;
+  context?: Record<string, unknown>;
+  notificationUrl?: string;
+  timeout?: number;
+  asynchronous?: boolean;
+}
 
 /** 查询测试报告 */
 export type QueryTestReportPayload = {

@@ -2,7 +2,7 @@ app:
   key: test_manager
   uuid: bf73e61c-e15a-4461-a1f7-f940c2009332
   name: test_manager
-  version: "4.33.0"
+  version: "4.33.0-alpha.23"
 modules:
   webtrigger:
     # TODO: Debug 使用，生产环境禁止调用下面的 trigger
@@ -66,12 +66,22 @@ modules:
       function: api-batch-update-value-function
     - key: api-batch-create-test-run
       function: api-batch-create-test-run-function
+    - key: api-batch-create-test-run-v2
+      function: api-batch-create-test-run-v2-function
     - key: api-batch-create-test-case
       function: api-batch-create-test-case-function
+    - key: job-create-test-run
+      function: job-create-test-run-function
+    - key: job-batch-delete-items
+      function: job-batch-delete-items-function
+    - key: job-copy-test-case
+      function: job-copy-test-case-function
     - key: api-batch-copy-test-case
       function: api-batch-copy-test-case-function
     - key: api-batch-copy-test-case-v2
       function: api-batch-copy-test-case-v2-function
+    - key: api-batch-copy-test-case-v3
+      function: api-batch-copy-test-case-v3-function
     - key: api-batch-link-test-execution-to-test-plan
       function: api-batch-link-test-execution-to-test-plan-function
     # 数据统计
@@ -157,11 +167,11 @@ modules:
         - gei:proxima:item:beforeCreate
       function: item-before-create-trigger-function
       async: false
-    - key: test-manager-item-after-save-trigger
-      events:
-        - gei:proxima:item:updated
-      function: test-manager-item-after-save-function
-      async: false
+    # - key: test-manager-item-after-save-trigger
+    #   events:
+    #     - gei:proxima:item:updated
+    #   function: test-manager-item-after-save-function
+    #   async: false
     - key: item-created-trigger
       events:
         - gei:proxima:item:created
@@ -270,6 +280,22 @@ modules:
       handler: api.batchCreateTestRun
       # 5 分钟超时时长
       timeout: 300000
+    - key: api-batch-create-test-run-v2-function
+      handler: api.batchCreateTestRunV2
+    # 60 分钟超时时长
+      timeout: 3600000
+    - key: job-batch-delete-items-function
+      handler: job.batchDeleteItemsJob
+      # 60 分钟超时时长
+      timeout: 3600000
+    - key: job-create-test-run-function
+      handler: job.createTestRunsJob
+      # 60 分钟超时时长
+      timeout: 3600000
+    - key: job-copy-test-case-function
+      handler: job.copyTesCasesJob
+      # 60 分钟超时时长
+      timeout: 3600000
     - key: api-batch-create-test-case-function
       handler: api.batchCreateTestCase
       # 5 分钟超时时长
@@ -280,6 +306,10 @@ modules:
       timeout: 300000
     - key: api-batch-copy-test-case-v2-function
       handler: api.batchCopyTestCaseV2
+      # 5 分钟超时时长
+      timeout: 300000
+    - key: api-batch-copy-test-case-v3-function
+      handler: api.batchCopyTestCaseV3
       # 5 分钟超时时长
       timeout: 300000
     - key: api-batch-link-test-execution-to-test-plan-function
@@ -335,9 +365,6 @@ modules:
     - key: extension-report-dss-function
       handler: api.dssTestReportInfo
 
-    - key: extension-report-dss-function
-      handler: api.dssTestReportInfo
-
     - key: extension-weichai-file-encrypt-function
       handler: api.weichaiFileEncrypt
 
@@ -353,8 +380,8 @@ modules:
       handler: scriptHandler.runScript
     - key: test-manager-export-script-function
       handler: exporter.runScript
-    - key: test-manager-item-after-save-function
-      handler: trigger.itemAfterSave
+    # - key: test-manager-item-after-save-function
+    #   handler: trigger.itemAfterSave
 
   itemPanel:
     - key: test-manager-test-detail

@@ -1,5 +1,8 @@
 import { message } from 'antd';
 import {
+  BatchCopyTestCaseV2Payload,
+  BatchCopyTestCaseV3Payload,
+  BatchCreateTestRunV2Payload,
   QueryLinkedTestEntityPayload,
   QueryTestEntityPayload,
   RepositoryTreePayload,
@@ -25,7 +28,6 @@ import {
 import {
   BaseTestEntity,
   CopyTestCasePayload,
-  CopyTestCaseV2Payload,
   Status,
   TestEntity,
 } from '../types/Test';
@@ -238,9 +240,9 @@ export const getTestCaseStats = async (props: TestCaseStatsPayload) => {
 };
 
 // 批量删除测试实体事项
-export const deleteTestEntity = async ids => {
+export const deleteTestEntity = async params => {
   const { data: res } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-batch-delete`, {
-    ids,
+    ...params,
     sessionToken: getSessionToken(),
   });
 
@@ -250,9 +252,9 @@ export const deleteTestEntity = async ids => {
   return res;
 };
 // 批量删除测试实体事项 v2
-export const deleteTestEntityV2 = async queryParams => {
+export const deleteTestEntityV2 = async params => {
   const { data: res } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-batch-delete-v2`, {
-    queryParams,
+    ...params,
     sessionToken: getSessionToken(),
   });
 
@@ -308,10 +310,27 @@ export const copyTestCase = async (data: CopyTestCasePayload) => {
 };
 
 // 复制测试用例 V2
-export const copyTestCaseV2 = async (data: CopyTestCaseV2Payload) => {
+export const copyTestCaseV2 = async (data: BatchCopyTestCaseV2Payload) => {
   try {
     const { data: copyItemData } = await fetch.post(
       `${pluginWebTriggerBaseUrl}/api-batch-copy-test-case-v2`,
+      {
+        ...data,
+        sessionToken: getSessionToken(),
+      },
+    );
+
+    return copyItemData;
+  } catch (error) {
+    return error;
+  }
+};
+
+// 复制测试用例
+export const copyTestCaseV3 = async (data: BatchCopyTestCaseV3Payload) => {
+  try {
+    const { data: copyItemData } = await fetch.post(
+      `${pluginWebTriggerBaseUrl}/api-batch-copy-test-case-v3`,
       {
         ...data,
         sessionToken: getSessionToken(),
@@ -340,6 +359,17 @@ export const copyTesCase = async (data: CopyTestCasePayload) => {
 // 批量创建测试执行
 export const batchCreateTestRun = async data => {
   const res = await fetch.post(`${pluginWebTriggerBaseUrl}/api-batch-create-test-run`, {
+    ...data,
+    withProcess: false,
+    sessionToken: getSessionToken(),
+  });
+
+  return res;
+};
+
+// 批量创建测试执行
+export const batchCreateTestRunV2 = async (data: BatchCreateTestRunV2Payload) => {
+  const res = await fetch.post(`${pluginWebTriggerBaseUrl}/api-batch-create-test-run-v2`, {
     ...data,
     withProcess: false,
     sessionToken: getSessionToken(),

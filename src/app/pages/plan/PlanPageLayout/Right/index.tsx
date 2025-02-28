@@ -3,13 +3,14 @@ import { useUpdateEffect } from 'ahooks';
 import { Button, message, notification, Select, Tooltip } from 'antd';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 
+import { createTestRunWithProcess } from '@/components/business/BatchResult/hooks';
 import TestEntitySelectorModal, {
   ActionType as ModelActionType,
 } from '@/components/business/TestEntitySelectorModal';
 import { SystemFieldKeys } from '@/components/common/BusinessTable/hook';
 import FilterSearch from '@/components/common/FilterSearch';
 import { getFilterFields } from '@/components/common/FilterSearch/utils';
-import { batchCreateTestRun, updateTestEntity } from '@/lib/api/item';
+import { updateTestEntity } from '@/lib/api/item';
 import {
   getExtendFields,
   RepositoryModel,
@@ -101,31 +102,35 @@ const Right: React.FC<RightProps> = props => {
       });
     }
 
+    const handleFail = error => {
+      setLoading(false);
+      message.error(error.message);
+    };
+
     try {
       setLoading(true);
       // 创建执行任务
-      const { data } = await batchCreateTestRun({
-        executionId: selectedExecution.objectId,
-        case: caseIds.map(i => ({ caseId: i })),
+      await createTestRunWithProcess({
+        execution: selectedExecution as any,
+        caseIds,
+        workspace: selectedExecution?.workspace as any,
+        planId: selectedExecution?.linkItems?.[0],
+        handleSuccess: async () => {
+          await refreshTreeAndScopeTestCase();
+          mutateStatusEvent.emit('refreshExecutionStatus');
+          setLoading(false);
+          notification.success({
+            message: t('page.plan.planPageLayout.right.createTestRunSuccessMessage'),
+          });
+          // 刷新详情页 pane
+          proxima.execute('refreshTestRunPanel');
+        },
+        handleFail,
       });
-      if (data?.status === 'error') {
-        setLoading(false);
-        message.error(data.data);
-        return;
-      }
     } catch (error) {
-      setLoading(false);
-      console.info('error', error);
+      handleFail(error);
     }
 
-    await refreshTreeAndScopeTestCase();
-    mutateStatusEvent.emit('refreshExecutionStatus');
-    setLoading(false);
-    notification.success({
-      message: t('page.plan.planPageLayout.right.createTestRunSuccessMessage'),
-    });
-    // 刷新详情页 pane
-    proxima.execute('refreshTestRunPanel');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedExecution, selectedTestPlan]);
 

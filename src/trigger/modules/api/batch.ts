@@ -1,5 +1,5 @@
 import { i18n } from '@giteeteam/apps-api';
-import { getParseQuery } from '@giteeteam/apps-team-api';
+import { getParseQuery, requestCoreApi } from '@giteeteam/apps-team-api';
 import { addAuditLog } from '@giteeteam/apps-team-api';
 import { omit } from 'lodash';
 import isObject from 'lodash/isObject';
@@ -17,8 +17,10 @@ import {
 import {
   BatchCopyTestCasePayload,
   BatchCopyTestCaseV2Payload,
+  BatchCopyTestCaseV3Payload,
   BatchCreateTestCasePayload,
   BatchCreateTestRunPayload,
+  BatchCreateTestRunV2Payload,
   BatchDeletePayload,
   BatchDeleteV2Payload,
   BatchUpdatePayload,
@@ -32,7 +34,6 @@ import { getReqInfoFromVMRuntime } from '../../lib/apiUtil';
 import {
   batchCreateItems,
   batchCreateItemWithProgress,
-  batchDeleteItems,
   batchUpdateItems,
   batchUpdateItemsValues,
 } from '../../lib/batchRequest';
@@ -41,16 +42,28 @@ import {
   concatIqlRequestFields,
   generateSortIndex,
   getAllEntity,
+  initProcessBar,
   uuidv4,
 } from '../../lib/helper';
 import { iqlRequest } from '../../lib/iqlRequest';
 import { getItemCreateRequiredAttrs, getItemTypeFromKey } from '../../lib/item';
 import { testEntityFieldTypeValidator, throwArgumentError } from '../../lib/validator';
+import { batchDeleteItems, copyTesCases, createTestRuns } from '../job';
 import { operateSnapshots, queryFields } from './../../lib/coreApi';
 
 type TestCaseType = TestEntity<TestType.Case>;
 type TestRunType = TestEntity<TestType.Run>;
 type TestExecutionType = TestEntity<TestType.Execution>;
+
+const batchRequestDecorator = async ({ key, asyncFunc, syncFunc }) => {
+  if (key) {
+    const processId = await initProcessBar(key);
+    asyncFunc(processId);
+    return buildResponse('success');
+  } else {
+    return await syncFunc();
+  }
+};
 
 /** 批量创建测试用例 */
 export const batchCreateTestCase = async () => {
@@ -78,18 +91,24 @@ export const batchCreateTestCase = async () => {
 /** 批量删除 */
 export const batchDelete = async () => {
   try {
-    const {
-      body: { ids, sessionToken },
-    } = getReqInfoFromVMRuntime<BatchDeletePayload>();
+    const { body } = getReqInfoFromVMRuntime<BatchDeletePayload>();
+    const { ids, key } = body;
     if (!Array.isArray(ids)) throwArgumentError('ids', 'objectId[]');
-    const res = await batchDeleteItems(ids, sessionToken);
-    const errorItems = res?.filter(i => i.status !== 'success');
-    if (errorItems?.length) {
-      // 有错误数据
-      return buildResponse(new Error(errorItems[0].message));
-    } else {
-      return buildResponse('delete success');
-    }
+
+    return await batchRequestDecorator({
+      key,
+      asyncFunc: processId =>
+        requestCoreApi(
+          'POST',
+          `/api/app/${global.env.TENANT_KEY}/${global.appKey}/webhooks/job-batch-delete-items`,
+          {
+            ...body,
+            processId,
+          },
+          headers,
+        ),
+      syncFunc: async () => await batchDeleteItems(body),
+    });
   } catch (err) {
     return buildResponse(err);
   }
@@ -99,58 +118,24 @@ export const batchDelete = async () => {
 export const batchDeleteV2 = async () => {
   try {
     const {
-      body: { queryParams, sessionToken },
+      body: { queryParams, key },
     } = getReqInfoFromVMRuntime<BatchDeleteV2Payload>();
-    const caseList = await getAllEntity(queryParams, ['id', 'name', 'key']);
-    const res = await batchDeleteItems(
-      caseList.map(item => item.objectId),
-      sessionToken,
-    );
-    const errorItems = res?.filter(i => i.status !== 'success');
-    if (errorItems?.length) {
-      // 有错误数据
-      return buildResponse(new Error(errorItems[0].message));
-    } else {
-      const successItems = res?.filter(i => i.status == 'success');
-      const successObjectIds = successItems.map(item => item.objectId);
-      const workspaceQuery = await getParseQuery(false, 'Workspace');
-      const workspaceName = await workspaceQuery
-        .equalTo('key', queryParams.query.workspaceKey)
-        .first({ sessionToken })
-        .then(item => item.get('name'));
-      const extraAttributes = [
-        {
-          name: i18n.t('trigger.modules.api.batch.numberItems'),
-          value: `${successObjectIds.length}`,
-        },
-        {
-          name: i18n.t('trigger.modules.api.batch.caseName'),
-          value: `${caseList.map(item => `${item.name}(${item.key})`).join(', ')}`,
-        },
-      ];
-      if (queryParams?.selectAll) {
-        extraAttributes.push({
-          name: i18n.t('trigger.modules.api.batch.operate'),
-          value: i18n.t('trigger.modules.api.batch.selectAll'),
-        });
-        extraAttributes.push({
-          name: i18n.t('trigger.modules.api.batch.modulePath'),
-          value: `${queryParams?.breadcrumbs.join(' > ')}`,
-        });
-      }
-      addAuditLog({
-        action: 'plungin_test_respository_batch_delete.action',
-        extraAttributes,
-        resources: [
+    const caseList = await getAllEntity(queryParams, ['id']);
+    const ids = caseList.map(item => item.objectId);
+    return await batchRequestDecorator({
+      key,
+      asyncFunc: processId =>
+        requestCoreApi(
+          'POST',
+          `/api/app/${global.env.TENANT_KEY}/${global.appKey}/webhooks/job-batch-delete-items`,
           {
-            type: 'nullRoute',
-            id: '',
-            name: `${workspaceName}-${i18n.t('trigger.modules.api.batch.testCases')}`,
+            ids,
+            processId,
           },
-        ],
-      });
-      return buildResponse('delete success');
-    }
+          headers,
+        ),
+      syncFunc: async () => await batchDeleteItems({ ids }),
+    });
   } catch (err) {
     return buildResponse(err);
   }
@@ -227,7 +212,7 @@ export const batchUpdate = async () => {
   // 移除测试计划下的测试用例关联的测试执行
   const needDeleteTestRunIds = await getRunDataByLinkItemDelete(data);
   if (needDeleteTestRunIds?.length) {
-    tasks.push(batchDeleteItems(needDeleteTestRunIds));
+    tasks.push(batchDeleteItems({ ids: needDeleteTestRunIds }));
   }
   const [res] = await Promise.all(tasks);
   return buildResponse(res.filter(Boolean).map(data => itemToTestEntity(data.item)));
@@ -545,6 +530,37 @@ export const batchCreateTestRun = async () => {
   }
 };
 
+/** 批量创建测试执行任务 */
+export const batchCreateTestRunV2 = async () => {
+  try {
+    const { body, headers } = getReqInfoFromVMRuntime<BatchCreateTestRunV2Payload>();
+    const { execution, caseIds, workspace, key } = body;
+
+    if (!Array.isArray(caseIds)) throwArgumentError('caseIds', 'objectId[]');
+    if (!execution) throwArgumentError('execution', '{ objectId: string, name: string }');
+    if (!workspace || !workspace?.objectId || !workspace.key)
+      throwArgumentError('workspace', '{ objectId: string, key: string }');
+
+    return await batchRequestDecorator({
+      key,
+      asyncFunc: processId =>
+        requestCoreApi(
+          'POST',
+          `/api/app/${global.env.TENANT_KEY}/${global.appKey}/webhooks/job-create-test-run`,
+          {
+            ...body,
+            processId,
+          },
+          headers,
+        ),
+      syncFunc: async () => await createTestRuns(body),
+    });
+    // 查询测试执行任务
+  } catch (err) {
+    return buildResponse(err);
+  }
+};
+
 /** 批量复制测试用例 */
 export const batchCopyTestCase = async () => {
   try {
@@ -652,146 +668,61 @@ export const batchCopyTestCase = async () => {
 /** 批量复制测试用例 V2 */
 export const batchCopyTestCaseV2 = async () => {
   try {
-    const {
-      body: { queryParams, fields, workspaceKey: originWorkspaceKey, to },
-      sessionToken,
-    } = getReqInfoFromVMRuntime<BatchCopyTestCaseV2Payload>();
-    const workspaceKey = originWorkspaceKey ?? to?.workspaceKey;
-    const copyName = i18n.t('trigger.copyName');
+    const { body, headers } = getReqInfoFromVMRuntime<BatchCopyTestCaseV2Payload>();
+    const { queryParams, key } = body;
     if (!queryParams) throwArgumentError('queryParams', '{ query, selector }');
 
-    // 如果workspaceId存在，则批量创建在该空间下
-    let newWorkspace = null;
-
-    if (workspaceKey) {
-      const workspaceObj = await getParseQuery(false, 'Workspace')
-        .equalTo('key', workspaceKey)
-        .first({ sessionToken });
-      if (!workspaceObj) {
-        throw new Error(i18n.t('components.business.testManagerProvider.notCreateCase'));
-      }
-      newWorkspace = workspaceObj.toJSON();
-    }
-
-    // 查询字段，确认字段类型
-    const { payload: results = [] } = await queryFields({
-      keys: fields,
-      fieldType: true,
-    });
-    const objectToIdFieldKeys = results
-      .filter(item =>
-        [
-          FIELD_TYPE.SPRINT,
-          FIELD_TYPE.VERSION,
-          FIELD_TYPE.CUSTOM_VERSION,
-          FIELD_TYPE.BINDWORKSPACE,
-          FIELD_TYPE.TEAM,
-        ].includes(item.fieldType.key),
-      )
-      .map(item => item.key);
-
-    const caseList = await getAllEntity(queryParams, concatIqlRequestFields(fields));
+    const caseList = await getAllEntity(queryParams, [SystemField.Id]);
 
     if (!caseList?.length) {
       throw new Error(i18n.t('components.business.testEntitySelectorModal.itemDeleted'));
     }
+    const caseIds = caseList.map(i => i.id);
 
-    // 优先级字段异常容错处理
-    const dataValuesExceptionHandler = values => {
-      const handleObjectToId = (key: string, id: string) => {
-        const getObjectKey = value => {
-          console.info('value', value?.[id], value);
-          if (isObject(value) && Object.hasOwnProperty.call(value, id)) {
-            return value?.[id];
-          }
-          return value;
-        };
-        if (Array.isArray(values[key])) {
-          values[key] = values[key].map(getObjectKey).filter(Boolean);
-        } else {
-          values[key] = getObjectKey(values[key]);
-        }
-      };
-      // 对象结构为异常的数据结构，需要进行容错处理
-      // 优先级字段异常容错处理
-      handleObjectToId('priority', 'key');
-      // 版本、迭代和自定义版本异常处理
-      objectToIdFieldKeys.forEach(fieldKey => handleObjectToId(fieldKey, 'objectId'));
-
-      return values;
-    };
-
-    console.info(JSON.stringify({ newWorkspace, caseList, to }), 'info-------');
-    const needCreateItems = caseList.map((data, index) => ({
-      name:
-        (newWorkspace && newWorkspace?.objectId !== data.workspace?.objectId) ||
-        (to && to?.repository !== data?.repository)
-          ? data.name
-          : `${data.name}_${copyName}`,
-      type: data.type,
-      sortIndex: generateSortIndex(index),
-      workspace: workspaceKey ? newWorkspace : data.workspace,
-      itemType: data.itemType,
-      values: dataValuesExceptionHandler(data.values),
-      detail: data.detail
-        ? {
-            ...data.detail,
-            steps: data.detail?.steps?.map(s => ({
-              ...s,
-              id: uuidv4(),
-            })),
-          }
-        : {},
-      repository: to ? to.repository : data.repository,
-    }));
-
-    const copyItems = (await batchCreateItems(needCreateItems as any, fields, sessionToken)) as any;
-    const result = buildResponse(copyItems);
-    if (result.status === 'ok') {
-      if (!copyItems?.length) return result;
-      const [copyItem] = copyItems;
-      const affectWorksapceName = await getParseQuery(false, 'Workspace')
-        .equalTo('objectId', copyItem.workspace.objectId)
-        .first({ sessionToken })
-        .then(item => item.get('name'));
-      const coptItemsStr = copyItems.map(item => `${item.name}(${item.key})`).join(',');
-      const extraAttributes = [
-        {
-          name: i18n.t('trigger.modules.api.batch.copySpace'),
-          value: affectWorksapceName,
-        },
-        {
-          name: i18n.t('trigger.modules.api.batch.copyCaseEvents'),
-          value: coptItemsStr,
-        },
-        {
-          name: i18n.t('trigger.modules.api.batch.numberItems'),
-          value: `${copyItems.length || 0}`,
-        },
-      ];
-      if (queryParams?.selectAll) {
-        extraAttributes.push({
-          name: i18n.t('trigger.modules.api.batch.operate'),
-          value: i18n.t('trigger.modules.api.batch.selectAll'),
-        });
-        extraAttributes.push({
-          name: i18n.t('trigger.modules.api.batch.modulePath'),
-          value: `${queryParams?.breadcrumbs.join(' > ')}`,
-        });
-      }
-      addAuditLog({
-        action: 'plungin_test_respository_batch_copy.action',
-        resources: [
+    return await batchRequestDecorator({
+      key,
+      asyncFunc: processId =>
+        requestCoreApi(
+          'POST',
+          `/api/app/${global.env.TENANT_KEY}/${global.appKey}/webhooks/job-copy-test-case`,
           {
-            type: 'nullRoute',
-            id: '',
-            name: `${affectWorksapceName}-${i18n.t('trigger.modules.api.batch.testCases')}`,
+            ...body,
+            caseIds,
+            processId,
           },
-        ],
-        extraAttributes,
-      });
-    }
-    return result;
+          headers,
+        ),
+      syncFunc: async () => await copyTesCases({ ...body, caseIds }),
+    });
+  } catch (err) {
+    return buildResponse(err);
+  }
+};
+
+/** 批量复制测试用例 V3 */
+export const batchCopyTestCaseV3 = async () => {
+  try {
+    const { body, headers } = getReqInfoFromVMRuntime<BatchCopyTestCaseV3Payload>();
+    const { caseIds, itemType, workspace, key } = body;
+    // const copyName = i18n.t('trigger.copyName');
+    if (!caseIds) throwArgumentError('caseIds', 'string[]');
+    if (!itemType) throwArgumentError('itemType', 'string');
+    if (!workspace) throwArgumentError('workspace', '{ objectId: string; key: string }');
+
+    return await batchRequestDecorator({
+      key,
+      asyncFunc: processId =>
+        requestCoreApi(
+          'POST',
+          `/api/app/${global.env.TENANT_KEY}/${global.appKey}/webhooks/job-copy-test-case`,
+          {
+            ...body,
+            processId,
+          },
+          headers,
+        ),
+      syncFunc: async () => await copyTesCases(body),
+    });
   } catch (err) {
     return buildResponse(err);
   }

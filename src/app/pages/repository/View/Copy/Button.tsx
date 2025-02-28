@@ -2,9 +2,8 @@ import { useMemoizedFn } from 'ahooks';
 import { Dropdown, DropdownProps, message, notification } from 'antd/lib';
 import React, { useState } from 'react';
 
-import { SystemFieldKeys } from '@/components/common/BusinessTable/hook';
-import { copyTestCaseV2 } from '@/lib/api/item';
-import { useBaseAction } from '@/lib/hooks/useContext';
+import { copyTestCaseWithProcess } from '@/components/business/BatchResult/hooks';
+import { useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import { CopyTestCaseV2PayloadTo } from '@/lib/types/Test';
 
@@ -18,36 +17,38 @@ interface ICopyButtonProps extends DropdownProps {
 
 const CopyButton: React.FC<ICopyButtonProps> = props => {
   const { t } = useI18n();
-  const { testCaseFieldKeys } = useBaseAction();
+  const {
+    workspace,
+    config: { itemTypeMap },
+  } = useTestConfig();
   const [open, setOpen] = useState(false);
   const { disabled, onStart, onFinished, getQueryParams, ...otherProps } = props;
 
   const copyTestDetail = useMemoizedFn(async (to?: CopyTestCaseV2PayloadTo) => {
     try {
       await onStart();
-      const res = await copyTestCaseV2({
-        to,
+      await copyTestCaseWithProcess({
+        itemType: itemTypeMap.TestCase,
         queryParams: getQueryParams(),
-        fields: [].concat(SystemFieldKeys, testCaseFieldKeys),
-      });
-      if (res?.status === 'error') {
-        message.error(res.data);
-        return;
-      }
+        workspace: (to?.workspace ?? workspace) as any,
+        repository: to?.repository,
+        needSuffix: !to,
+        handleSuccess: async () => {
+          notification.success({
+            message: t('page.repository.view.list.copyCaseMessageSuccess'),
+          });
+          await onFinished();
+          open && setOpen(false);
+        },
 
-      if (!res?.data?.length) {
-        message.error(t('page.plan.testEntityList.addItemTips'));
-        return;
-      }
-
-      notification.success({
-        message: t('page.repository.view.list.copyCaseMessageSuccess'),
+        handleFail: async error => {
+          message.error(error.message);
+          await onFinished();
+          open && setOpen(false);
+        },
       });
     } catch (e) {
       console.error(e);
-    } finally {
-      await onFinished();
-      open && setOpen(false);
     }
   });
 

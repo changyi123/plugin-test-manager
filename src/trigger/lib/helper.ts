@@ -1,3 +1,4 @@
+import { getParseModel, getParseQuery, saveAllObject } from '@giteeteam/apps-team-api';
 import difference from 'lodash/difference';
 import keyBy from 'lodash/keyBy';
 
@@ -136,4 +137,40 @@ export const getTextFromEditorOrString = data => {
     const [forMinderText] = data;
     return forMinderText.stringText;
   }
+};
+
+// 初始化进度条
+export const initProcessBar = async (key: string, desc?: string): Promise<string> => {
+  const existedProcess = await getParseQuery(false, 'ProcessBar')
+    .select(['objectId'])
+    .equalTo('key', key)
+    .first({ useMasterKey: true });
+  const ProcessBar = getParseModel(false, 'ProcessBar');
+
+  const processBar = existedProcess
+    ? ProcessBar.createWithoutData(existedProcess.id)
+    : new ProcessBar();
+  processBar.set('key', key);
+  if (desc) {
+    processBar.set('desc', desc);
+  }
+  processBar.set('percentage', 0);
+  const result = await saveAllObject([processBar]);
+  return result[0]?.id;
+};
+
+// 更新进度条
+export const updateProcessBar = async (
+  id: string,
+  value: number,
+  message?: string,
+): Promise<void> => {
+  const ProcessBar = getParseModel(false, 'ProcessBar');
+  const processBar = ProcessBar.createWithoutData(id);
+
+  processBar.set('percentage', value);
+  if (message) {
+    processBar.set('desc', message);
+  }
+  await saveAllObject([processBar]);
 };

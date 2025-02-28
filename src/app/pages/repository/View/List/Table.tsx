@@ -2,10 +2,12 @@ import { useSDK } from '@projectproxima/plugin-sdk';
 import createProximaSdk from '@projectproxima/proxima-sdk-js';
 import { useDrag, useDrop, useMemoizedFn, useRequest } from 'ahooks';
 import { message, notification, Space, Tooltip } from 'antd';
+import { BatchDeleteV2Payload } from 'common/types/api';
 import { Operator } from 'common/utils/iqlBuilder';
 import { pick } from 'lodash-es';
 import React, { useCallback } from 'react';
 
+import { deleteWithProcess } from '@/components/business/BatchResult/hooks';
 import RenderRepository from '@/components/business/RenderRepository';
 import RepositorySelector, {
   ActionType as RepositorySelectorActionType,
@@ -23,7 +25,6 @@ import {
 } from '@/icons';
 import {
   deleteTestEntity,
-  deleteTestEntityV2,
   getTestEntityByQuery,
   handleSelector,
   updateTestEntity,
@@ -176,8 +177,6 @@ type TestDetailTableProps = {
   dataSourceGetter?: any;
   tableLoading?: boolean;
   setTableLoading?: (val?: boolean) => void;
-  copyTestCases?: (val: string[]) => any;
-  copyTestCasesV2?: (val: any) => any;
   queryDeps: string;
   workspaceKey: string;
   breadcrumbs?: string[];
@@ -194,8 +193,6 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
     dataSourceGetter,
     setTableLoading,
     tableLoading,
-    copyTestCases,
-    copyTestCasesV2,
     queryDeps,
     workspaceKey,
     repository,
@@ -337,22 +334,25 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
           setTableLoading(true);
           const batchParams = getBatchParams(tableActionRef.current);
           if (!batchParams) return;
-          const res = await deleteTestEntityV2(batchParams);
-          if (res?.status === 'error') {
-            setTableLoading(false);
-            message.error(res.data);
-            return;
-          }
-          // 删除刷新
-          onDataChange?.();
-          setTableLoading(false);
+          await deleteWithProcess({
+            queryParams: batchParams,
+            actionType: 'deleteV2',
+            handleSuccess: () => {
+              onDataChange?.();
+              setTableLoading(false);
 
-          notification.success({
-            message: t('page.repository.view.list.deleteCaseSuccess', {
-              count: deletedCount,
-            }),
+              notification.success({
+                message: t('page.repository.view.list.deleteCaseSuccess', {
+                  count: deletedCount,
+                }),
+              });
+              table.resetSelectedRowKeys();
+            },
+            handleFail: error => {
+              setTableLoading(false);
+              message.error(error.message);
+            },
           });
-          table.resetSelectedRowKeys();
         },
       );
     };

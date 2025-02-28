@@ -39,5 +39,5 @@ export type CopyTestCaseV2Payload = {
 
 export type CopyTestCaseV2PayloadTo = {
   repository: string;
-  workspaceKey: string;
+  workspace: { objectId: string; key: string };
 };

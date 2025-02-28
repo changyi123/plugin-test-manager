@@ -1,15 +1,16 @@
 import createProximaSdk from '@projectproxima/proxima-sdk-js';
-import { Button, Dropdown, Menu, message, notification, Spin } from 'antd';
+import { Button, Dropdown, Menu, message, notification } from 'antd';
 import { MenuItemProps } from 'antd/lib/menu';
 import classnames from 'classnames';
 import { components, hooks } from 'proxima-sdk';
 import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import { importTestCaseWithProcess } from '@/components/business/BatchResult/hooks';
 import { ActionType as ModelActionType } from '@/components/business/TestEntitySelectorModal';
 import ManageWorkspace from '@/components/business/TestEntitySelectorModal/ManageWorkspace';
 import { SystemFieldKeys } from '@/components/common/BusinessTable/hook';
 import { CustomMore } from '@/icons';
-import { copyTestCase, handleSelector } from '@/lib/api/item';
+import { handleSelector } from '@/lib/api/item';
 import { searchFields } from '@/lib/api/proxima';
 import { getAppEnv } from '@/lib/appEnv';
 import {
@@ -60,7 +61,10 @@ const RepoDropDown = ({
   const [visible, setVisible] = useState(false);
   const [iql, setIql] = useState('');
   const { t, locale } = useI18n();
-  const { workspace } = useTestConfig();
+  const {
+    workspace,
+    config: { itemTypeMap },
+  } = useTestConfig();
   const { testCaseFieldKeys } = useBaseAction();
 
   const [testCaseFields, setTestCaseFields] = useState([]);
@@ -96,34 +100,29 @@ const RepoDropDown = ({
       },
     });
     if (data?.selectedData?.length) {
-      notification.open({
-        message: t('page.repository.repoDropDown.creatingTestCase'),
-        icon: <Spin spinning={true} />,
-        duration: null,
-      });
       setPageLoading?.(true);
-      const copyRes = await copyTestCase({
+      await importTestCaseWithProcess({
         caseIds: data.selectedData,
-        fields: [].concat(SystemFieldKeys, testCaseFieldKeys),
+        itemType: itemTypeMap?.TestCase,
         repository: folderKey,
-        workspaceKey: workspace?.key,
+        workspace: workspace as any,
+        handleSuccess: () => {
+          notification.success({
+            message: t('page.repository.repoDropDown.createTestCaseSuccess'),
+          });
+          // 调接口更新列表
+          const proxima = createProximaSdk();
+          proxima.execute('updateItemList', { type: 'delete' });
+          setPageLoading?.(false);
+        },
+        handleFail: () => {
+          const proxima = createProximaSdk();
+          proxima.execute('updateItemList', { type: 'delete' });
+          setPageLoading?.(false);
+        },
       });
-      notification.destroy();
-      if (copyRes?.status === 'error') {
-        notification.error({
-          message: `${t('page.repository.repoDropDown.createTestCaseFail')}：${copyRes.data}`,
-        });
-      } else {
-        // 成功
-        notification.success({ message: t('page.repository.repoDropDown.createTestCaseSuccess') });
-      }
-      // 调接口更新列表
-      const proxima = createProximaSdk();
-      proxima.execute('updateItemList', { type: 'delete' });
-      setPageLoading?.(false);
     }
-    return data;
-  }, [folderKey, setPageLoading, t, testCaseFieldKeys, workspace?.key]);
+  }, [folderKey, itemTypeMap?.TestCase, setPageLoading, t, workspace]);
 
   const repositoryQuery2Iql = useCallback(
     repository =>

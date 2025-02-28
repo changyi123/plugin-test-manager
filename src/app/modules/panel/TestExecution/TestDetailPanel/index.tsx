@@ -14,6 +14,10 @@ import {
 import { keyBy } from 'lodash';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
+import {
+  createTestRunWithProcess,
+  deleteWithProcess,
+} from '@/components/business/BatchResult/hooks';
 import DropDownButton from '@/components/business/DropDownButton';
 import PanelTable, { ActionType } from '@/components/business/PanelTable';
 import { StatusBadge } from '@/components/business/Status';
@@ -26,7 +30,6 @@ import TestRunModal, {
 } from '@/components/business/TestRunModal';
 import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/hook';
 import {
-  batchCreateTestRun,
   deleteTestEntity,
   getLinkedTestEntityByQuery,
   getTestEntityByQuery,
@@ -223,15 +226,17 @@ const Test = () => {
         return;
       }
       // 删除测试和测试执行的关联
-      const res = await deleteTestEntity(testRunIds);
-      if (res?.status === 'error') {
-        message.error(res.data);
-        return;
-      }
-
-      refreshDepData();
-
-      message.success(t('common.deleteSuccess'));
+      await deleteWithProcess({
+        actionType: 'deleteV1',
+        ids: testRunIds,
+        handleSuccess: () => {
+          refreshDepData();
+          message.success(t('common.deleteSuccess'));
+        },
+        handleFail: error => {
+          message.error(error.message);
+        },
+      });
     },
     [getCreatePermission, refreshDepData, t],
   );
@@ -380,23 +385,21 @@ const Test = () => {
 
           try {
             // 添加关联
-            const { data } = await batchCreateTestRun({
-              executionId: testEntity.objectId,
-              case: _selectedTestDetailIds.map(i => ({ caseId: i })),
+            await createTestRunWithProcess({
+              execution: testEntity,
+              caseIds: _selectedTestDetailIds,
+              workspace: testEntity?.workspace,
+              planId: testEntity?.linkItems?.[0],
+              handleSuccess: () => refreshDepData('updateTestRunStatus'),
+              handleFail: error => message.error(error.message),
             });
-            if (data?.status === 'error') {
-              message.error(data.data);
-              return;
-            }
-
-            refreshDepData('updateTestRunStatus');
           } catch (error) {
             console.info(error);
           }
         },
       },
     ];
-  }, [getCreatePermission, refreshDepData, relCase, testEntity.objectId, t]);
+  }, [getCreatePermission, refreshDepData, relCase, testEntity, t]);
 
   const toggleSTestRunStatus = useCallback(
     async (status, selectedRowKeys) => {

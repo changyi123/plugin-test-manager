@@ -74,6 +74,12 @@ export const queryFields = withCoreApiRequest([
   params => `/parse/api/fields/search?${jsonToUrlParam(params as any)}`,
 ]);
 
+// 批量创建事项
+export const batchCreateItemsV2 = withCoreApiRequest(['POST', `/parse/api/v2/items/batch/create`]);
+
+// 批量更新事项
+export const batchUpdateItemsV2 = withCoreApiRequest(['POST', `/parse/api/v2/items/batch/update`]);
+
 // 查询空间详情
 export const queryWorkspace = withCoreApiRequest([
   'GET',

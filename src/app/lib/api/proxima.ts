@@ -1,6 +1,7 @@
 /**
  * proxima api 只为获取数据，返回数据为 JSON。不要在插件内修改 proxima 内的数据模型 ！！
  */
+import { IBatchCreateParams, IBatchUpdateParams } from 'common/types/api';
 import { itemToTestEntity } from 'common/utils/dataTransfer';
 import { findKey, pick } from 'lodash';
 
@@ -321,6 +322,18 @@ export const cloneItem = async (
   });
 
   return result.data?.objectId;
+};
+
+export const batchCreateItems = async (params: IBatchCreateParams) => {
+  const result = await fetch.$post('/parse/api/v2/items/batch/create', params);
+
+  return result.data;
+};
+
+export const batchUpdateItems = async (params: IBatchUpdateParams) => {
+  const result = await fetch.$post('/parse/api/v2/items/batch/update', params);
+
+  return result.data;
 };
 
 // 获取插件关联的工作空间
