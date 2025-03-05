@@ -159,7 +159,7 @@ const getCurData = (cur, maps, path) =>
   [...Object.entries(cur)].reduce(
     (curPrev, [key, value]) => {
       if (maps[key]) {
-        let targetValue = value;
+        let targetValue = `${value}`;
         if (maps[key] === 'group') {
           const prevGroup = curPrev[maps[key]];
           if (prevGroup?.length) {
@@ -227,10 +227,11 @@ export const runValidate = async () => {
     );
   };
 
-  const getPath = repository => {
+  const getPath = (repository, endWithSplitter = true) => {
     let path = '';
     const getRepositoryPath = repository => {
-      if (repository?.name) path = `${repository.name}/${path}`;
+      if (repository?.name)
+        path = !path && !endWithSplitter ? repository.name : `${repository.name}/${path}`;
       if (repository?.parentId) getRepositoryPath(repositoryMap[repository.parentId]);
     };
     getRepositoryPath(repository);
@@ -245,10 +246,10 @@ export const runValidate = async () => {
     return existPathMap;
   };
 
-  const getGroupPath = async (repositoryMap, group) => {
+  const getGroupPath = (repositoryMap, group) => {
     if (!group) return '';
 
-    return getPath(repositoryMap[group]);
+    return getPath(repositoryMap[group], false);
   };
 
   // eslint-disable-next-line no-console
@@ -259,9 +260,10 @@ export const runValidate = async () => {
   const itemTypeName = await getItemTypeName(workspace);
   const repositoryMap = await getRepositoryMap(workspace);
   const repositoryPathMap = getRepositoryPathMap(repositoryMap);
-  console.info('repositoryMap', JSON.stringify({ repositoryMap, repositoryPathMap }));
 
-  const groupPath = await getGroupPath(repositoryMap, group);
+  const groupPath = getGroupPath(repositoryMap, group);
+
+  console.info('repositoryMap', JSON.stringify({ repositoryMap, repositoryPathMap, groupPath }));
 
   const getValidateErrors = (datas, errors: any[] = []) => {
     if (!itemTypeName) {
