@@ -95,6 +95,7 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
     testFieldKeys?.toString(),
     testExecutionFieldKeys?.toString(),
   ]);
+
   const fieldKeys = useMemo(() => keys?.filter(key => !TABLE_EXCLUDE_FIELDS.includes(key)), [keys]);
 
   const customFields = useGetCustomFields({ filedKeys: fieldKeys });
