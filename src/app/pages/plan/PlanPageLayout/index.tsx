@@ -9,13 +9,14 @@ import TestEntitySelectorModal, {
 } from '@/components/business/TestEntitySelectorModal';
 import PageLayout from '@/components/common/PageLayout';
 import BasicPageLayout from '@/components/common/PageLayout/Basic';
-import { batchCreateTestRun, getLinkedTestEntityByQuery, updateTestEntity } from '@/lib/api/item';
+import { batchCreateTestRun, updateTestEntity } from '@/lib/api/item';
 import { PROXIMA_EVENT_KEY, TestLinkType, TestType } from '@/lib/constants';
 import { useBaseAction } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import { getExecutionDefaultConfig } from '@/lib/utils/execution';
 import { generateSortIndex } from '@/lib/utils/helper';
 import TestPlanList from '@/pages/plan/TestPlanList';
+import { addTestExecutionToTestPlan } from '@/services/testEntity/service';
 
 import { usePageContext } from '../hook';
 import Header from './Header';
@@ -257,55 +258,19 @@ const PlanPageLayout: React.FC<any> = () => {
   const addTestExecutionToPlan = React.useCallback(
     async ids => {
       // 测试计划关联测试执行后需将测试执行任务中的测试执行对应的测试用例关联到测试计划中
-      const res = await updateTestEntity(
-        ids.map(objectId => ({
-          objectId,
-          linkType: TestLinkType.ExecutionLinkPlan,
-          type: TestType.Execution,
-          linkItems: { action: 'add', value: [selectedTestPlan?.objectId] },
-          sortIndex: generateSortIndex(),
-        })),
-      );
+      const res = await addTestExecutionToTestPlan({
+        testPlanId: selectedTestPlan?.objectId,
+        testExecutionIds: ids,
+      });
       if (res?.status === 'error') {
         message.error(res.data);
         return;
-      }
-
-      const { list: runs } = await getLinkedTestEntityByQuery({
-        query: {
-          workspaceKey: workspaceKey,
-        },
-        limit: 9999,
-        linkType: TestLinkType.RunLinkExecution,
-        sourceIds: ids,
-        destinationType: TestType.Run,
-        select: ['id', 'referenceCase'],
-      });
-
-      const runCaseIds = runs?.map(run => run.referenceCase) ?? [];
-      const caseIds = runCaseIds.filter(id => !planLinkCaseIds?.includes(id));
-
-      if (caseIds.length) {
-        const res = await updateTestEntity(
-          caseIds.map(item => ({
-            objectId: item,
-            linkType: TestLinkType.CaseLinkPlan,
-            linkItems: {
-              action: 'add',
-              value: [selectedTestPlan.objectId],
-            },
-          })),
-        );
-        if (res?.status === 'error') {
-          message.error(res.data);
-          return;
-        }
       }
       message.success(
         `${ids.length} ${t('modules.panel.testPlan.testExecutionPanel.addRunToPlanSuccess')}`,
       );
     },
-    [workspaceKey, selectedTestPlan?.objectId, planLinkCaseIds, t],
+    [selectedTestPlan?.objectId, t],
   );
 
   // 关联测试执行任务

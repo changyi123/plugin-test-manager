@@ -104,8 +104,6 @@
     "nothing": "None",
     "checked": "Selected",
     "item": "item",
-    "item_zero": "item",
-    "item_other": "items",
     "strip": "Strip",
     "appItem": "Item",
     "include": "contain in",
@@ -211,7 +209,10 @@
       "view": "View",
       "more": "More",
       "rename": "Rename",
-      "sendReport": "Send Report"
+      "sendReport": "Send Report",
+      "setDefault": "Default",
+      "enabled": "Enabled",
+      "disabled": "Disabled"
     },
     "seneReportModal": {
       "modalTitle": "Send Report",
@@ -581,8 +582,7 @@
     "plan": {
       "planPageLayout": {
         "selectCaseModelTitle": "Step 1: Select associated test case",
-        "createExecutionModelTitle_one": "Step 2: Create new test execution task (selected {{count}} case)",
-        "createExecutionModelTitle_other": "Step 2: Create new test execution task (selected {{count}} cases)",
+        "createExecutionModelTitle": "Step 2: Create new test execution task (selected {{count}} case)",
         "testExecutionCreateLoading": "Test execution task is being created",
         "executionList": {
           "deleteTips": "This operation will delete the test execution task. do you want to continue?",
@@ -757,7 +757,6 @@
           "multipleDeleteCase": "This action will delete the selected {{ count }} test case, do you want to continue?",
           "deleteCase": "This action will delete the current test case, do you want to continue?",
           "deleteCaseSuccess": "{{count}} test case have been deleted",
-          "deleteCaseSuccess_other": "{{count}} test cases have been deleted",
           "batchItemLink": "Batch item link",
           "deleteCaseMessageSuccess": "Test case deleted successfully",
           "copyCaseMessageSuccess": "Test case copy successfully",
@@ -858,7 +857,6 @@
     }
   },
   "modules": {
-    "BeforeCreateOrUpdateModal": {},
     "panel": {
       "resultTitle": "The current type does not exist in the test management type association configuration",
       "resultSubTitle": [
@@ -1156,7 +1154,7 @@
       },
       "testStep": {
         "stepField": ["Step", "Expected", "Data", "Data"],
-        "hasCircularInheritance": "The test case: [${testCaseName}] has a circular inheritance",
+        "hasCircularInheritance": "The test case: [{{testCaseName}}] has a circular inheritance",
         "notInheritCase": "Cannot inherit this test case",
         "modelTitle": "Please select inheritance test case",
         "addStep": "Add steps",

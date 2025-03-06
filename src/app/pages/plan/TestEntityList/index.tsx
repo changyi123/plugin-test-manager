@@ -744,10 +744,12 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
           : t('page.plan.testEntityList.deleteRunTips'),
       },
       async () => {
+        setTableLoading(true);
         // 删除测试执行
         const res = await deleteTestEntity(testRunIds);
         if (res?.status === 'error') {
           message.error(res.data);
+          setTableLoading(false);
           return;
         }
 
@@ -1095,7 +1097,6 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
         message.error(t('page.plan.testEntityList.deleteItemTips'));
         return;
       }
-      setTableLoading(true);
       const testRunIds = getTestRunIds();
       deleteTestRunByIds(testRunIds);
     };
