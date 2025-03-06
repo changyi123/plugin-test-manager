@@ -61,6 +61,7 @@ export function useWatchProgressUpdate(props: IProgressBarUpdateProps): IProgres
   );
 
   const reset = useCallback(() => {
+    console.info('reset');
     try {
       if (subscription.current) {
         subscription.current?.unsubscribe();
@@ -75,6 +76,29 @@ export function useWatchProgressUpdate(props: IProgressBarUpdateProps): IProgres
     }
   }, []);
 
+  const handleProcessBar = useCallback(
+    async object => {
+      setPercent(floor(object.get('percentage'), 1));
+      const desc = object.get('desc');
+      if (desc) {
+        setProcessDesc(desc);
+      }
+      if (object.get('percentage') === -1) {
+        handleError(desc);
+      }
+      if (object.get('percentage') >= SUCCESS_PERCENTAGE) {
+        if (subscription.current) {
+          await subscription.current?.unsubscribe();
+          subscription.current = null;
+        }
+        await new ProcessBar({ objectId: object.id }).destroy();
+        !error && handleSuccess && handleSuccess(desc);
+        setError(false);
+      }
+    },
+    [error, handleError, handleSuccess],
+  );
+
   const execSubscription = useCallback(() => {
     const subscribe = async () => {
       try {
@@ -86,31 +110,21 @@ export function useWatchProgressUpdate(props: IProgressBarUpdateProps): IProgres
         }
         subscription.current = await query.subscribe();
         subscription.current.on('update', async object => {
-          setPercent(floor(object.get('percentage'), 1));
-          const desc = object.get('desc');
-          if (desc) {
-            setProcessDesc(desc);
-          }
-          if (object.get('percentage') === -1) {
-            handleError(desc);
-          }
-          if (object.get('percentage') >= SUCCESS_PERCENTAGE) {
-            if (subscription.current) {
-              await subscription.current?.unsubscribe();
-              subscription.current = null;
-            }
-            await new ProcessBar({ objectId: object.id }).destroy();
-            !error && handleSuccess && handleSuccess(desc);
-            setError(false);
-          }
+          console.info('update', object.toJSON(), error);
+          handleProcessBar(object);
         });
+        // 防止打开弹框时，进度已结束
+        const bar = await new Parse.Query(ProcessBar).equalTo('key', processBarKey).first();
+        if (bar.get('percentage') >= SUCCESS_PERCENTAGE) {
+          handleProcessBar(bar);
+        }
       } catch (e) {
         console.error(e.message);
-        handleSuccess();
+        handleSuccess && handleSuccess();
       }
     };
     subscribe();
-  }, [processBarKey, handleError, error, handleSuccess]);
+  }, [processBarKey, error, handleProcessBar, handleSuccess]);
 
   useEffect(() => {
     reset();

@@ -57,6 +57,7 @@ const StepFields: React.FC<{
                     field.type === 'input' && saveFieldRef(stepId, field.key, ref);
                   },
                   readonly,
+                  isNeedSomeButton: true,
                 },
                 field,
               ),

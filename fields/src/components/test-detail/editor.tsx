@@ -1,5 +1,6 @@
 import { components } from 'proxima-sdk';
 import React, { useEffect, useState } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 
 import cx from './index.less';
 
@@ -86,6 +87,7 @@ const Editor: React.FC<EditorProps> = ({
   const [editorValue, setEditorValue] = useState<Record<string, any>[] | any>(
     value ?? defaultEditorValue,
   );
+  const nameId = uuidv4();
 
   // 数据转为富文本数组结构
   useEffect(() => {
@@ -120,7 +122,7 @@ const Editor: React.FC<EditorProps> = ({
   return (
     <div className={cx['comment-editor']} style={style}>
       <Field
-        name={name ?? 'comment-editor'}
+        name={nameId}
         placeholder={placeholder}
         value={editorValue}
         onChange={handleSave}

@@ -513,7 +513,6 @@ export const updateTestRunDetail = async (
 
   const needUpdateAttrs = {} as TestEntity<TestType.Run>;
 
-  const caseRun = {};
   // 中关村需求，改变测试执行状态时校验执行的步骤状态，不需要改动步骤时联动更新执行状态，每次修改状态都算为执行一次
   const checkStep = getAppEnv('CHECK_STEP_FOR_CHANGE_RUN_STATUS');
 
@@ -525,7 +524,6 @@ export const updateTestRunDetail = async (
   ) {
     needUpdateAttrs.executeCount = executeCount + 1;
     needUpdateAttrs.executeTime = new Date().getTime();
-    caseRun[testEntity.referenceCase] = { [params.planId]: testEntity.objectId };
   }
 
   if (Array.isArray(params.steps)) {
@@ -558,7 +556,6 @@ export const updateTestRunDetail = async (
           needUpdateAttrs.status = 'FAILED';
           needUpdateAttrs.executeCount = executeCount + 1;
           needUpdateAttrs.executeTime = new Date().getTime();
-          caseRun[testEntity.referenceCase] = { [params.planId]: testEntity.objectId };
         }
       } else if (hasExecuting && !hasBlock && !hasCannel && !hasFail) {
         // 正在执行且没有取消、阻塞、失败 - 正在执行
@@ -576,7 +573,6 @@ export const updateTestRunDetail = async (
           needUpdateAttrs.status = 'PASSED';
           needUpdateAttrs.executeCount = executeCount + 1;
           needUpdateAttrs.executeTime = new Date().getTime();
-          caseRun[testEntity.referenceCase] = { [params.planId]: testEntity.objectId };
         }
       } else if (hasCannel) {
         // 一个取消 - 取消

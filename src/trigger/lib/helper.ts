@@ -131,11 +131,11 @@ export const getAllEntity = async (queryParams, fields?: string[]) => {
 };
 
 export const getTextFromEditorOrString = data => {
-  if (typeof data === 'string') {
-    return data;
-  } else {
+  if (Array.isArray(data)) {
     const [forMinderText] = data;
-    return forMinderText.stringText;
+    return forMinderText?.stringText;
+  } else {
+    return data;
   }
 };
 

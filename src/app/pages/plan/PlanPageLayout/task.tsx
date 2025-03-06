@@ -1,17 +1,20 @@
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import { useListener } from '@projectproxima/proxima-sdk-js';
 import { useUpdateEffect } from 'ahooks';
-import { message, notification, Space, Spin } from 'antd';
+import { message, notification, Space } from 'antd';
 import React, { useCallback, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 
-import { addExecutionToPlanWithProcess, createTestRunWithProcess } from '@/components/business/BatchResult/hooks';
+import {
+  addExecutionToPlanWithProcess,
+  createTestRunWithProcess,
+} from '@/components/business/BatchResult/hooks';
 import TestEntitySelectorModal, {
   ActionType as ModelActionType,
 } from '@/components/business/TestEntitySelectorModal';
 import PageLayout from '@/components/common/PageLayout';
 import BasicPageLayout from '@/components/common/PageLayout/Basic';
-import { getLinkedTestEntityByQuery, updateTestEntity } from '@/lib/api/item';
+import { updateTestEntity } from '@/lib/api/item';
 import { PROXIMA_EVENT_KEY, TestLinkType, TestType } from '@/lib/constants';
 import { useBaseAction } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';

@@ -1,4 +1,5 @@
 import { getParseQuery } from '@giteeteam/apps-team-api';
+import { groupBy } from 'lodash';
 
 import {
   InfinityLimit,
@@ -22,7 +23,7 @@ import { getReqInfoFromVMRuntime } from '../../lib/apiUtil';
 import { batchUpdateItemsValues } from '../../lib/batchRequest';
 import {
   batchCreateItemsV2,
-  batchUpdateItemsV2,
+  batchUpdateItemsV2 as originBatchUpdateItemsV2,
   deleteItems,
   operateSnapshots,
 } from '../../lib/coreApi';
@@ -57,6 +58,25 @@ const getHeaders = () => ({
   'Company-Current': global.applicationId,
   'HEADER-USERINFO': global.sessionToken,
 });
+
+// 批量编辑时根据状态分组
+const batchUpdateItemsV2 = async props => {
+  const { items: itemIds, ...updateParams } = props;
+  const updatedItems = await getAllEntity({ query: { id: itemIds } }, ['id', SystemField.Status]);
+  const diffItems = groupBy(updatedItems, 'workflowStatus.objectId');
+  return await Promise.all(
+    Object.values(diffItems).map(async items => {
+      if (!items?.length) return [];
+      return await originBatchUpdateItemsV2(
+        {
+          items: items.map(i => i.objectId),
+          ...updateParams,
+        },
+        getHeaders(),
+      );
+    }),
+  );
+};
 
 const batchExecFunction = async ({ list, fun, batchSize }) => {
   const step = Math.ceil(list.length / batchSize);
@@ -313,7 +333,7 @@ export const createTestRuns = async ({
           },
         },
       };
-      return await batchUpdateItemsV2(updateParams, getHeaders());
+      return await batchUpdateItemsV2(updateParams);
     };
 
     // 对用例打快照
@@ -382,14 +402,12 @@ export const updateItemsV2 = async (props: ProcessJobParams<IBatchUpdateParams>)
       };
 
       try {
-        await batchUpdateItemsV2(updateParams, getHeaders());
+        await batchUpdateItemsV2(updateParams);
         result.success += items.length;
       } catch (e) {
         console.error(e.message);
         result.message.push(e.message);
         result.fail += items.length;
-      } finally {
-        console.info('batchUpdateItemsV2 items end');
       }
     };
 
@@ -611,7 +629,7 @@ export const removeCaseFromPlanWorker = async (
       };
 
       try {
-        await batchUpdateItemsV2(updateParams, getHeaders());
+        await batchUpdateItemsV2(updateParams);
         const runIds = await getAllEntity({
           query: { referenceCase: cases, plan: planId, type: TestType.Run },
         });
@@ -622,8 +640,6 @@ export const removeCaseFromPlanWorker = async (
         console.error(e.message);
         result.message.push(e.message);
         result.fail += cases.length;
-      } finally {
-        console.info('batchUpdateItemsV2 items end');
       }
     };
 
@@ -677,7 +693,7 @@ export const removeExecutionFromPlanWorker = async (
       items: executionIds,
       asynchronous: false,
     };
-    await batchUpdateItemsV2(removeExecutionParams, getHeaders());
+    await batchUpdateItemsV2(removeExecutionParams);
     const runIds = await getAllEntity({
       query: {
         type: TestType.Run,
@@ -699,14 +715,12 @@ export const removeExecutionFromPlanWorker = async (
       };
 
       try {
-        await batchUpdateItemsV2(updateParams, getHeaders());
+        await batchUpdateItemsV2(updateParams);
         result.success += items.length;
       } catch (e) {
         console.error(e.message);
         result.message.push(e.message);
         result.fail += items.length;
-      } finally {
-        console.info('batchUpdateItemsV2 items end');
       }
     };
 
@@ -760,7 +774,7 @@ export const addExecutionToPlanWorker = async (
       items: executionIds,
       asynchronous: false,
     };
-    await batchUpdateItemsV2(addExecutionParams, getHeaders());
+    await batchUpdateItemsV2(addExecutionParams);
     const runs = await getAllEntity(
       {
         query: {
@@ -802,16 +816,14 @@ export const addExecutionToPlanWorker = async (
 
       try {
         await Promise.all([
-          batchUpdateItemsV2(updateRunParams, getHeaders()),
-          batchUpdateItemsV2(updateCaseParams, getHeaders()),
+          batchUpdateItemsV2(updateRunParams),
+          batchUpdateItemsV2(updateCaseParams),
         ]);
         result.success += items.length;
       } catch (e) {
         console.error(e.message);
         result.message.push(e.message);
         result.fail += items.length;
-      } finally {
-        console.info('batchUpdateItemsV2 items end');
       }
     };
 

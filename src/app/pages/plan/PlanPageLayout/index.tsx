@@ -13,7 +13,7 @@ import TestEntitySelectorModal, {
 } from '@/components/business/TestEntitySelectorModal';
 import PageLayout from '@/components/common/PageLayout';
 import BasicPageLayout from '@/components/common/PageLayout/Basic';
-import { getLinkedTestEntityByQuery, updateTestEntity } from '@/lib/api/item';
+import { updateTestEntity } from '@/lib/api/item';
 import { PROXIMA_EVENT_KEY, TestLinkType, TestType } from '@/lib/constants';
 import { useBaseAction } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
