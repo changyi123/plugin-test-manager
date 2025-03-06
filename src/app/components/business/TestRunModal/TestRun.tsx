@@ -172,7 +172,7 @@ const TestRun: React.FC<TestRunType> = props => {
             ...d,
             id: uuid(),
           }));
-          const preconditionData = testCaseEntity.detail.precondition ?? '';
+          const preconditionData = testCaseEntity.detail?.precondition ?? '';
 
           const runDetailData = {
             steps: stepsData,

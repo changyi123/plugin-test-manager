@@ -28,7 +28,7 @@ const condition = {
     compute: 'count',
   },
   testManagerIqlContext: { iqlContext: { displayContext: 'test_manager' } },
-  statisticsRunAggs: (snapshot = false) => {
+  statisticsRunAggs: (snapshot = false, fields = []) => {
     const field = snapshot
       ? 'r_test_manager_referenceCaseSnapshot#r_test_manager_es_text_keyword'
       : 'r_test_manager_referenceCase#r_test_manager_es_text_keyword';
@@ -46,13 +46,22 @@ const condition = {
             aggs: {
               statistics: {
                 top_hits: {
-                  sort: [{ updatedAt: { order: 'desc' } }],
+                  sort: [
+                    {
+                      updatedAt: {
+                        order: 'desc',
+                        missing: '_last', // 处理空值排序
+                        unmapped_type: 'date', // 兼容字段不存在情况
+                      },
+                    },
+                  ],
                   size: 1,
                   _source: [
                     'r_test_manager_status#r_test_manager_es_text_keyword',
                     'key',
                     field,
                     'r_test_manager_plan#Text',
+                    ...fields,
                   ],
                 },
               },
@@ -168,7 +177,7 @@ export async function fetchExecutionFromPlan(ids) {
 }
 
 // 根据用例id，查出最新的测试执行
-export async function statisticsRunFromCase(planId, ids) {
+export async function statisticsRunFromCase(planId, ids, fields = []) {
   let iql = `${BuiltinFieldNameMapping.referenceCase} in [${ids.map(i => `'${i}'`)}] and ${
     BuiltinFieldNameMapping.type
   } = '${TestType.Run}'`;
@@ -181,7 +190,8 @@ export async function statisticsRunFromCase(planId, ids) {
   } = await statisticsApi(
     {
       iql,
-      nativeAggs: condition.statisticsRunAggs(),
+      // @TODO 处理版本快照下的统计
+      nativeAggs: condition.statisticsRunAggs(false, fields),
       ...condition.testManagerIqlContext,
     },
     'native-aggs-chart',

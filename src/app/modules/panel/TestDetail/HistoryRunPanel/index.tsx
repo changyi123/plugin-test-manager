@@ -112,15 +112,10 @@ const Execution: React.FC = () => {
         offset: (currentIndex - 1) * 10,
       };
       //checked为true，展示每个计划下最新的执行
-      if (checked) {
-        Object.assign(params, {
-          query: { type: TestType.Run, id: Object.values(testEntity?.caseRun || {}) },
-        });
-      } else {
-        Object.assign(params, {
-          query: { type: TestType.Run, referenceCase: testEntity?.objectId },
-        });
-      }
+      Object.assign(params, {
+        query: { type: TestType.Run, referenceCase: testEntity?.objectId },
+        statistics: checked,
+      });
 
       const { list, total } = await getCaseAllRuns(params);
       setTotal(total);
@@ -153,16 +148,19 @@ const Execution: React.FC = () => {
           scroll={{
             x: 'max-content',
           }}
-          pagination={{
-            size: 'small',
-            showTotal(total) {
-              return `${t('common.tableTotal.0')} ${total} ${t('common.tableTotal.1')}`;
-            },
-            pageSizeOptions: ['10'],
-            current: currentIndex,
-            onChange: pageChange,
-            total: total,
-          }}
+          pagination={
+            !checked && {
+              size: 'small',
+              showTotal(total) {
+                return `${t('common.tableTotal.0')} ${total} ${t('common.tableTotal.1')}`;
+              },
+              pageSizeOptions: ['10'],
+              current: currentIndex,
+              onChange: pageChange,
+              total: total,
+              disabled: checked,
+            }
+          }
         />
       </Spin>
     </div>

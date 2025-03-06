@@ -27,6 +27,7 @@ import { iqlSearch, queryWorkspace } from '../../lib/coreApi';
 import { concatIqlRequestFields, toArray } from '../../lib/helper';
 import { dataFetcher } from '../../lib/initialization';
 import { iqlRequest } from '../../lib/iqlRequest';
+import { statisticsRunFromCase } from '../../lib/statistics';
 import { testEntityFieldTypeValidator } from '../../lib/validator';
 
 const overwriteIqlParamsWithOnlySelectId = onlySelectId => {
@@ -204,17 +205,96 @@ export const queryCaseIdByStatus = async () => {
 export const queryCaseRunRecords = async () => {
   // 查询测试用例关联的测试执行
   const queryRuns = async () => {
-    const { body } = getReqInfoFromVMRuntime<QueryTestEntityPayload>();
+    const { body } = getReqInfoFromVMRuntime<{ statistics?: boolean } & QueryTestEntityPayload>();
 
-    const { query, fields, limit, offset, ascending, descending } = body;
+    const { query, fields, limit, offset, ascending, descending, statistics } = body;
 
-    return iqlRequest({
-      query,
-      fields: concatIqlRequestFields(fields),
-      pagination: { limit, offset },
-      ascending,
-      descending,
-    });
+    if (!statistics) {
+      return iqlRequest({
+        query,
+        fields: concatIqlRequestFields(fields),
+        pagination: { limit, offset },
+        ascending,
+        descending,
+      });
+    } else {
+      const staticsRuns = await statisticsRunFromCase(
+        null,
+        [query.referenceCase],
+        [
+          'id',
+          'r_test_manager_status#r_test_manager_es_text_keyword',
+          'r_test_manager_executor#User',
+          'r_test_manager_executeTime#Date',
+          'r_test_manager_executeCount#Number',
+          'r_test_manager_linkItems#r_test_manager_es_array_keyword',
+          'r_test_manager_plan#Text',
+        ],
+      );
+      const runs = {
+        data: {
+          list: [],
+          total: 0,
+        },
+      };
+      const userSet = new Set();
+
+      staticsRuns.forEach(item => {
+        item.statistics?.buckets?.forEach(bucket => {
+          bucket?.statistics?.hits?.hits?.forEach(doc => {
+            const source = doc._source;
+            if (!source) return;
+            const run = {
+              objectId: source.id,
+              status: source['r_test_manager_status#r_test_manager_es_text_keyword'],
+              executorIds: source['r_test_manager_executor#User'] || [],
+              executeCount: source['r_test_manager_executeCount#Number'],
+              executeTime: source['r_test_manager_executeTime#Date'],
+              linkItems: source['r_test_manager_linkItems#r_test_manager_es_array_keyword'],
+              plan: source['r_test_manager_plan#Text'],
+            };
+
+            runs.data.list.push(run);
+            runs.data.total += 1;
+            run.executorIds.forEach(id => userSet.add(id));
+          });
+        });
+      });
+
+      console.info(
+        'queryCaseRunRecords',
+        'queryRuns',
+        JSON.stringify({ runs, staticsRuns, userSet: [...userSet] }),
+      );
+
+      const userMap = new Map();
+      if (userSet.size) {
+        const users = await getParseQuery(false, '_User')
+          .containedIn('objectId', [...userSet])
+          .select(['username', 'nickname', 'objectId', 'deleted'])
+          .findAll({
+            useMasterKey: true,
+          });
+
+        users.forEach(user =>
+          userMap.set(user.id, {
+            deleted: user.get('deleted'),
+            value: user.get('objectId'),
+            nickname: user.get('nickname'),
+            username: user.get('username'),
+            label: `${user.get('nickname')}(${user.get('username')})`,
+          }),
+        );
+      }
+
+      console.info('queryCaseRunRecords', 'queryRuns', JSON.stringify({ runs, staticsRuns }));
+
+      runs.data.list.forEach(run => {
+        run.executor = run.executorIds.length ? run.executorIds.map(id => userMap.get(id)) : [];
+      });
+
+      return runs;
+    }
   };
 
   // 查询测试执行关联的测试执行任务

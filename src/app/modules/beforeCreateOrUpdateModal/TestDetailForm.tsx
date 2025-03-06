@@ -93,9 +93,8 @@ const TestDetailForm: React.FC<TestDetailFormProps> = ({ onChange, values, extra
           maxLength={2000}
           autoSize={{ minRows: 3, maxRows: 6 }}
           placeholder={t('common.preconditionPlaceholder')}
-          value={values?.precondition}
+          defaultValue={values?.precondition}
           onBlur={e => saveValues({ precondition: e.target.value })}
-          onChange={e => saveValues({ precondition: e.target.value })}
         />
       </div>
       <h6 className={cx('step-title', 'field-label')}>{t('common.testStep')}</h6>

@@ -107,6 +107,7 @@ const BeforeCreateOrUpdateModal = () => {
 
   const handleDetailFormChange = values => {
     const prevStoreValues = store.get(ExtensionValType.CREATE_OR_UPDATE_ITEM);
+    console.info('handleDetailFormChange', prevStoreValues, values);
     store.set(ExtensionValType.CREATE_OR_UPDATE_ITEM, {
       ...prevStoreValues,
       [CREATE_ITEM_STORE_FIELD_KEY]: values,

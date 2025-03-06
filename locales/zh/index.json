@@ -211,7 +211,10 @@
       "view": "查看",
       "more": "更多",
       "rename": "重命名",
-      "sendReport": "发送报告"
+      "sendReport": "发送报告",
+      "setDefault": "设置默认",
+      "enabled": "启用",
+      "disabled": "禁用"
     },
     "seneReportModal": {
       "modalTitle": "发送报告",
@@ -780,7 +783,6 @@
     }
   },
   "modules": {
-    "BeforeCreateOrUpdateModal": {},
     "panel": {
       "resultTitle": "当前类型不存在测试管理类型关联配置中",
       "resultSubTitle": [
@@ -1069,7 +1071,7 @@
       },
       "testStep": {
         "stepField": ["步骤", "预期", "数据", "准备数据"],
-        "hasCircularInheritance": "与测试用例【${testCaseName}】存在循环继承",
+        "hasCircularInheritance": "与测试用例【{{testCaseName}}】存在循环继承",
         "notInheritCase": "不能继承该测试用例",
         "modelTitle": "请选择继承测试用例",
         "addStep": "添加步骤",
