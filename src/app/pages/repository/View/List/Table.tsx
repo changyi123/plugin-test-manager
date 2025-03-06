@@ -2,12 +2,14 @@ import { useSDK } from '@projectproxima/plugin-sdk';
 import createProximaSdk from '@projectproxima/proxima-sdk-js';
 import { useDrag, useDrop, useMemoizedFn, useRequest } from 'ahooks';
 import { message, notification, Space, Tooltip } from 'antd';
-import { BatchDeleteV2Payload } from 'common/types/api';
 import { Operator } from 'common/utils/iqlBuilder';
 import { pick } from 'lodash-es';
 import React, { useCallback } from 'react';
 
-import { deleteWithProcess } from '@/components/business/BatchResult/hooks';
+import {
+  deleteV2WithProcess,
+  updateItemsWithProcess,
+} from '@/components/business/BatchResult/hooks';
 import RenderRepository from '@/components/business/RenderRepository';
 import RepositorySelector, {
   ActionType as RepositorySelectorActionType,
@@ -334,9 +336,8 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
           setTableLoading(true);
           const batchParams = getBatchParams(tableActionRef.current);
           if (!batchParams) return;
-          await deleteWithProcess({
+          await deleteV2WithProcess({
             queryParams: batchParams,
-            actionType: 'deleteV2',
             handleSuccess: () => {
               onDataChange?.();
               setTableLoading(false);
@@ -362,31 +363,30 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
       setTableLoading(true);
       const batchParams = getBatchParams(tableActionRef.current);
       if (!batchParams) return;
-      const res = await updateTestEntityValue({
+      await updateItemsWithProcess({
         queryParams: batchParams,
-        value: {
+        fields: {
           values: {
             assignee,
           },
         },
-      });
+        handleSuccess: () => {
+          const table = tableActionRef.current;
+          const changedCount = table.selectAll
+            ? table.total - table.unSelectedRowKeys.length
+            : table.selectedRowKeys.length;
+          table.refresh();
 
-      if (res?.status === 'error') {
-        setTableLoading(false);
-        message.error(res.data);
-        return;
-      }
-      // 刷新表格
-      const table = tableActionRef.current;
-      const changedCount = table.selectAll
-        ? table.total - table.unSelectedRowKeys.length
-        : table.selectedRowKeys.length;
-      table.refresh();
-
-      notification.success({
-        message: `${changedCount} ${t('page.plan.testEntityList.updateAssigneeTips')}`,
+          notification.success({
+            message: `${changedCount} ${t('page.plan.testEntityList.updateAssigneeTips')}`,
+          });
+          setTableLoading(false);
+        },
+        handleFail: error => {
+          setTableLoading(false);
+          message.error(error.message);
+        },
       });
-      setTableLoading(false);
     };
 
     // 批量创建事项关联

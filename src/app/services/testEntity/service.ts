@@ -1,14 +1,24 @@
 import fetch from '@/lib/utils/fetch';
 import { getPluginWebTriggerBaseUrl } from '@/lib/utils/helper';
 
-import { AddTestExecuteToTestPlanPayload } from '../../../common/types/api';
-
+import {
+  AddExecuteToPlanProcessParams,
+  RemoveCaseFromPlanProcessParams,
+  RemoveExecuteFromPlanProcessParams,
+} from '../../../common/types/api';
 const pluginWebTriggerBaseUrl = getPluginWebTriggerBaseUrl();
 
 /** 发送消息通知 */
-export const addTestExecutionToTestPlan = async (payload: AddTestExecuteToTestPlanPayload) => {
-  return fetch.$post(
-    `${pluginWebTriggerBaseUrl}/api-batch-link-test-execution-to-test-plan`,
-    payload,
-  );
+export const addTestExecutionToTestPlan = async (payload: AddExecuteToPlanProcessParams) => {
+  return fetch.$post(`${pluginWebTriggerBaseUrl}/api-add-execution-to-plan`, payload);
+};
+
+export const removeTestCaseFromTestPlan = async (payload: RemoveCaseFromPlanProcessParams) => {
+  return fetch.$post(`${pluginWebTriggerBaseUrl}/api-remove-case-from-plan`, payload);
+};
+
+export const removeTestExecutionFromTestPlan = async (
+  payload: RemoveExecuteFromPlanProcessParams,
+) => {
+  return fetch.$post(`${pluginWebTriggerBaseUrl}/api-remove-execution-from-plan`, payload);
 };

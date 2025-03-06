@@ -8,7 +8,7 @@ import {
   TestLinkType,
   TestType,
 } from '../../../common/constant';
-import { AddTestExecuteToTestPlanPayload } from '../../../common/types/api';
+import { AddExecuteToPlanPayload } from '../../../common/types/api';
 import { TestEntity } from '../../../common/types/test';
 import { buildResponse, getReqInfoFromVMRuntime } from '../../lib/apiUtil';
 import { batchUpdateItemsValues } from '../../lib/batchRequest';
@@ -23,11 +23,11 @@ export const linkTestExecuteToTestPlan = async () => {
    *  3. 更新测试执行的执行状态至计划关联用例的 casaStatus 中
    */
   try {
-    const { body: requestPayload } = getReqInfoFromVMRuntime<AddTestExecuteToTestPlanPayload>();
+    const { body: requestPayload } = getReqInfoFromVMRuntime<AddExecuteToPlanPayload>();
 
-    if (!Array.isArray(requestPayload.testExecutionIds)) {
+    if (!Array.isArray(requestPayload.executionIds)) {
       throw new Error('testExecutionIds must be an array');
-    } else if (!requestPayload.testPlanId) {
+    } else if (!requestPayload.planId) {
       throw new Error('testPlanId is required');
     }
 
@@ -46,7 +46,7 @@ export const linkTestExecuteToTestPlan = async () => {
         },
         linkQuery: {
           linkType: TestLinkType.RunLinkExecution,
-          sourceIds: requestPayload.testExecutionIds,
+          sourceIds: requestPayload.executionIds,
           destinationType: TestType.Run,
         },
         fields: [
@@ -62,7 +62,7 @@ export const linkTestExecuteToTestPlan = async () => {
         },
         linkQuery: {
           linkType: TestLinkType.CaseLinkPlan,
-          sourceIds: requestPayload.testPlanId,
+          sourceIds: requestPayload.planId,
           destinationType: TestType.Case,
         },
         fields: [SystemField.Id, TestFiledKeyMapping.caseStatus, TestFiledKeyMapping.caseExecutor],
@@ -72,14 +72,14 @@ export const linkTestExecuteToTestPlan = async () => {
     const Actions = {
       // 将测试执行任务和测试计划进行关联
       batchLinkExecutionToPlan: async () => {
-        const { testPlanId, testExecutionIds } = requestPayload;
+        const { planId, executionIds } = requestPayload;
         // 获取测试用例关联类型
         const testEntityLinkData = await buildTestEntityLinkData(
-          testExecutionIds.map(testExecutionId => ({
+          executionIds.map(testExecutionId => ({
             objectId: testExecutionId,
             linkType: TestLinkType.ExecutionLinkPlan,
             type: TestType.Execution,
-            linkItems: { action: 'add', value: [testPlanId] },
+            linkItems: { action: 'add', value: [planId] },
             sortIndex: generateSortIndex(),
           })),
         );
@@ -89,7 +89,7 @@ export const linkTestExecuteToTestPlan = async () => {
       },
       // 将计划下存在的测试执行对应的用例关联至测试计划中，对于未被关联的测试用例则，创建事项更新数据时需要增加 caseStatus
       batchLinkCaseToPlan: async () => {
-        const { testPlanId } = requestPayload;
+        const { planId } = requestPayload;
         // 所有测试执行任务对应的测试用例
 
         const linkedCaseIdsSet = new Set(linkedTestCases.map(testCase => testCase.objectId));
@@ -126,16 +126,16 @@ export const linkTestExecuteToTestPlan = async () => {
               objectId: testRun.referenceCase,
               linkType: TestLinkType.CaseLinkPlan,
               type: TestType.Case,
-              linkItems: { action: 'add', value: [testPlanId] },
+              linkItems: { action: 'add', value: [planId] },
               sortIndex: generateSortIndex(),
               // 更新事项最新执行状态
               caseStatus: {
                 ...idToReferenceTestCaseMapping[testRun.referenceCase]?.caseStatus,
-                [testPlanId]: testRun.status,
+                [planId]: testRun.status,
               },
               caseExecutor: {
                 ...idToReferenceTestCaseMapping[testRun.referenceCase]?.caseExecutor,
-                [testPlanId]: testRun.executor?.[0],
+                [planId]: testRun.executor?.[0],
               },
             })),
           );
@@ -147,7 +147,7 @@ export const linkTestExecuteToTestPlan = async () => {
       // TODO: 确认重新关联是否会把最新的用例执行状态给覆盖
       // 更新测试执行的执行状态至计划关联用例的 casaStatus 中
       batchUpdateCaseStatus: async () => {
-        const { testPlanId } = requestPayload;
+        const { planId } = requestPayload;
         const idToLinkedTestCaseMapping = keyBy(linkedTestCases, 'objectId');
         // 获取已经被关联的测试用例
         const caseStatusTestEntityData = linkedTestRuns
@@ -160,11 +160,11 @@ export const linkTestExecuteToTestPlan = async () => {
               objectId: linkedTestCase.objectId,
               caseStatus: {
                 ...linkedTestCase.caseStatus,
-                [testPlanId]: testRun.status,
+                [planId]: testRun.status,
               },
               caseExecutor: {
                 ...linkedTestCase.caseExecutor,
-                [testPlanId]: testRun.executor?.[0],
+                [planId]: testRun.executor?.[0],
               },
             };
           })

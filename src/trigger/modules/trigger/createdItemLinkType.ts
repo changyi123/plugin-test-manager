@@ -1,4 +1,4 @@
-import { getItem, getParseQuery, requestCoreApi } from '@giteeteam/apps-team-api';
+import { getParseQuery } from '@giteeteam/apps-team-api';
 import findKey from 'lodash/findKey';
 import isEqual from 'lodash/isEqual';
 
@@ -24,39 +24,7 @@ export const createdItemLinkType = async () => {
   const testType = item.values?.r_test_manager_type;
 
   try {
-    if (item.values.r_test_manager_type) {
-      const caseId = item.values.r_test_manager_referenceCase;
-      // 若创建的是测试执行,需要为对应的测试用例添加测试计划
-      if (testType === TestType.Run && caseId) {
-        // 获取对应用例的测试计划
-        const targetCase = (await getItem(caseId, true)) as any;
-        const originalLinkItems = targetCase.r_test_manager_linkItems || [];
-        if (!originalLinkItems.includes(item.values.r_test_manager_plan)) {
-          // 更新对应的用例
-          await requestCoreApi('PUT', `/parse/api/v2/items/${caseId}`, {
-            values: {
-              __screen_type: 'view',
-              r_test_manager_linkType: 'CaseLinkPlan',
-              r_test_manager_linkItems: [...originalLinkItems, item.values.r_test_manager_plan],
-            },
-            parseContext: {
-              skipFieldBehaviorValidation: true,
-              skipItemValidationLevel: true,
-              skipCheckWhetherArchived: true,
-              skipItemValidation: true,
-              skipFormValidation: true,
-              skipFormulaCalculation: true,
-              skipSnapshotValidate: true,
-              skipValidateSecurityLevel: true,
-              skipRelationUser: true,
-              skipHandleApps: true,
-              skipItemLink: true,
-              skipPermission: true,
-            },
-          });
-        }
-      }
-    } else {
+    if (!item.values.r_test_manager_type) {
       console.info('createdItemLinkType ----------------->', JSON.stringify(item));
 
       let workspaceKey = item.workspace?.key;
@@ -67,6 +35,7 @@ export const createdItemLinkType = async () => {
         const workspaceQuery = await getParseQuery(false, 'Workspace');
         workspaceKey = await workspaceQuery
           .equalTo('objectId', workspaceId)
+          .select(['key'])
           .first(ParseBaseQueryOptions)
           .then(item => item.get('key'));
       }
@@ -79,6 +48,7 @@ export const createdItemLinkType = async () => {
         const itemTypeQuery = await getParseQuery(false, 'ItemType');
         itemType = await itemTypeQuery
           .equalTo('objectId', itemTypeId)
+          .select(['key'])
           .first(ParseBaseQueryOptions)
           .then(item => item.get('key'));
       }
@@ -90,6 +60,7 @@ export const createdItemLinkType = async () => {
 
       const itemTypeMap = await testConfigQuery
         .equalTo('workspaceKey', workspaceKey)
+        .select(['itemTypeMap'])
         .first(ParseBaseQueryOptions)
         .then(item => item.get('itemTypeMap'));
       console.info('createdItemLinkType-itemTypeMap ------------->', JSON.stringify(itemTypeMap));

@@ -1,5 +1,4 @@
 import { Collapse, ConfigProvider, Progress } from 'antd/lib';
-import { BatchCreateTestRunV2Payload } from 'common/types/api';
 import React, { useEffect, useImperativeHandle, useMemo, useState } from 'react';
 
 import {
@@ -31,7 +30,7 @@ interface BatchResultRefMethod {
 const DEFAULT_RESULT = {
   message: [],
   total: 0,
-  error: 0,
+  fail: 0,
   success: 0,
   skip: 0,
 };
@@ -41,12 +40,7 @@ const BatchResult: React.ForwardRefRenderFunction<BatchResultRefMethod, IProgres
   ref,
 ) => {
   const [visible, setVisible] = useState(false);
-  const { processBarKey, handleFail, handleSuccess } = props;
-  const { percent, processDesc, execSubscription, reset } = useWatchProgressUpdate({
-    processBarKey,
-    handleFail,
-    handleSuccess,
-  });
+  const { percent, processDesc, execSubscription, reset } = useWatchProgressUpdate(props);
 
   const batchResult = useMemo(() => {
     let result = DEFAULT_RESULT;
@@ -64,7 +58,6 @@ const BatchResult: React.ForwardRefRenderFunction<BatchResultRefMethod, IProgres
   }, [processDesc]);
 
   const showError = useMemo(() => !!batchResult?.message?.length, [batchResult]);
-
   useImperativeHandle(
     ref,
     () => ({
@@ -98,7 +91,7 @@ const BatchResult: React.ForwardRefRenderFunction<BatchResultRefMethod, IProgres
         </span>
         <span>
           <strong>失败:</strong>
-          <span style={{ color: '#ff4d0d' }}> {batchResult?.error ?? 0} </span>
+          <span style={{ color: '#ff4d0d' }}> {batchResult?.fail ?? 0} </span>
           <strong>条</strong>
         </span>
       </div>

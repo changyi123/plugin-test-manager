@@ -681,25 +681,6 @@ export const getTestEntitiesByQuery = async (
 };
 
 /**
- * 更新用例
- */
-export const updateTestEntities = async (testEntities: Record<'objectId' | string, any>[]) => {
-  const needUpdateTestEntities = testEntities.map(({ objectId, repository }) => {
-    const test = Test.createWithoutData(objectId);
-
-    if (repository !== undefined) {
-      test.set('repository', pointerTransfer(Repository, repository));
-    }
-
-    test.set('updatedBy', Parse.User.current());
-
-    return test;
-  });
-
-  return await Parse.Object.saveAll(needUpdateTestEntities);
-};
-
-/**
  * 获取测试管理配置，走缓存
  */
 export const getTestConfigFromCache = async (params: {

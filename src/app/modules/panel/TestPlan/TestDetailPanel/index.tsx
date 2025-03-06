@@ -4,7 +4,11 @@ import { Button, message } from 'antd';
 import { uniqueId } from 'lodash';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { createTestRunWithProcess } from '@/components/business/BatchResult/hooks';
+import {
+  createTestRunWithProcess,
+  removeCaseFromPlanWithProcess,
+  updateItemsWithProcess,
+} from '@/components/business/BatchResult/hooks';
 import DropDownButton from '@/components/business/DropDownButton';
 import PanelTable, {
   ActionType,
@@ -20,7 +24,7 @@ import TestRunModal, {
   ActionType as TestRunModalActionType,
 } from '@/components/business/TestRunModal';
 import { getLinkedTestEntityByQuery, getRunsFromCase, updateTestEntity } from '@/lib/api/item';
-import { INITIAL_STATUS_KEY, TestLinkType, TestType } from '@/lib/constants';
+import { INITIAL_STATUS_KEY, TestFiledKeyMapping, TestLinkType, TestType } from '@/lib/constants';
 import { useBaseAction, useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import { getExecutionDefaultConfig } from '@/lib/utils/execution';
@@ -202,25 +206,29 @@ const Test = () => {
           }
           const _testDetailIds = testDetailIds.filter(d => !(testEntityIds ?? []).includes(d));
 
-          const res = await updateTestEntity(
-            _testDetailIds.map(objectId => ({
-              linkType: TestLinkType.CaseLinkPlan,
-              objectId,
-              linkItems: { action: 'add', value: [testEntity.objectId] },
-            })),
-          );
-          if (res?.status === 'error') {
-            message.error(res.data);
-            return;
-          }
+          await updateItemsWithProcess({
+            items: _testDetailIds,
+            fields: {
+              values: {
+                [TestFiledKeyMapping.linkType]: TestLinkType.CaseLinkPlan,
+              },
+            },
+            update: {
+              [TestFiledKeyMapping.linkItems]: [testEntity.objectId],
+            },
+            handleSuccess: () => {
+              refreshDepData();
 
-          refreshDepData();
-
-          alert({
-            type: 'success',
-            message: `${_testDetailIds.length} ${t(
-              'modules.panel.testPlan.testDetailPanel.addCaseToPlanSuccess',
-            )}`,
+              alert({
+                type: 'success',
+                message: `${_testDetailIds.length} ${t(
+                  'modules.panel.testPlan.testDetailPanel.addCaseToPlanSuccess',
+                )}`,
+              });
+            },
+            handleFail: error => {
+              message.error(error.message);
+            },
           });
         },
       },
@@ -288,24 +296,25 @@ const Test = () => {
     async testDetailIds => {
       if (!Array.isArray(testDetailIds)) return;
       // 移除测试用例和计划的关联
-      const res = await updateTestEntity(
-        testDetailIds.map(objectId => ({
-          objectId,
-          linkItems: { action: 'delete', value: [testEntity.objectId] },
-        })),
-      );
-      if (res?.status === 'error') {
-        message.error(res.data);
-        return;
-      }
 
-      refreshDepData();
+      //update V2 remove case from plan
+      await removeCaseFromPlanWithProcess({
+        caseIds: testDetailIds,
+        planId: testEntity.objectId,
+        handleSuccess: () => {
+          refreshDepData();
 
-      alert({
-        type: 'success',
-        message: `${testDetailIds.length} ${t(
-          'modules.panel.testPlan.testDetailPanel.removeCaseFromPlanSuccess',
-        )}`,
+          alert({
+            type: 'success',
+            message: `${testDetailIds.length} ${t(
+              'modules.panel.testPlan.testDetailPanel.removeCaseFromPlanSuccess',
+            )}`,
+          });
+        },
+        handleFail: error => {
+          message.error(error.message);
+          refreshDepData();
+        },
       });
     },
     [refreshDepData, testEntity?.objectId, t],

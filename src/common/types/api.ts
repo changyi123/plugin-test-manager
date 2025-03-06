@@ -10,6 +10,10 @@ export type FieldKey = keyof typeof IQLFieldNameMapping;
 
 export type StatusCode = 'ok' | 'error';
 
+type ProcessApiParams<T> = T & {
+  key?: string;
+};
+
 /** 关联类型查询参数 */
 export type LinkQueryPayload = {
   /** 关联类型 */
@@ -146,8 +150,8 @@ export type BatchDeletePayload = {
   /** 跳过更新关联数据 */
   skipDeletedLinkItems?: boolean;
   sessionToken?: string;
-  key?: string;
 };
+export type BatchDeleteProcessParams = ProcessApiParams<BatchDeletePayload>;
 
 /**
  * 删除测试实体V2
@@ -158,8 +162,8 @@ export type BatchDeleteV2Payload = {
   /** 跳过更新关联数据 */
   skipDeletedLinkItems?: boolean;
   sessionToken?: string;
-  key?: string;
 };
+export type BatchDeleteV2ProcessParams = ProcessApiParams<BatchDeleteV2Payload>;
 
 /**
  * 更新测试实体数据
@@ -210,8 +214,8 @@ export type BatchCopyTestCaseV2Payload = {
   workspace: { objectId: string; key: string };
   repository?: string;
   needSuffix?: boolean;
-  key?: string;
 };
+export type BatchCopyTestCaseV2ProcessParams = ProcessApiParams<BatchCopyTestCaseV2Payload>;
 
 /**
  * 复制测试用例
@@ -220,6 +224,7 @@ export type BatchCopyTestCaseV2Payload = {
 export type BatchCopyTestCaseV3Payload = {
   caseIds: string[];
 } & Omit<BatchCopyTestCaseV2Payload, 'queryParams'>;
+export type BatchCopyTestCaseV3ProcessParams = ProcessApiParams<BatchCopyTestCaseV3Payload>;
 
 export type CopyTestCaseV2PayloadTo = {
   repository: string;
@@ -252,9 +257,8 @@ export type BatchCreateTestRunV2Payload = {
   caseIds: string[];
   /** 空间 id key */
   workspace: { objectId: string; key: string };
-  /** processBar key */
-  key?: string;
 };
+export type BatchCreateTestRunV2ProcessParams = ProcessApiParams<BatchCreateTestRunV2Payload>;
 
 /** 状态类型 */
 type StatusStatsType = Record<Status['key'], number>;
@@ -364,13 +368,16 @@ export interface IBatchCreateParams {
  * @example POST /parse/api/v2/items/batch/update
  */
 export interface IBatchUpdateParams {
-  items: string[];
+  queryParams?: CommonTestEntityQueryPayload;
+  items?: string[];
   fields?: Record<string, unknown>;
+  update?: Record<string, any>;
   context?: Record<string, unknown>;
   notificationUrl?: string;
   timeout?: number;
   asynchronous?: boolean;
 }
+export type BatchUpdateProcessParams = ProcessApiParams<IBatchUpdateParams>;
 
 /** 查询测试报告 */
 export type QueryTestReportPayload = {
@@ -405,10 +412,29 @@ export type SendMessagePayload = {
   templatePayload: Record<string, any>;
 };
 
-/** 批量添加执行到测试用例 */
-export type AddTestExecuteToTestPlanPayload = {
-  /** 测试用例 id */
-  testPlanId: string;
+/** 批量添加测试执行任务到测试计划 */
+export type AddExecuteToPlanPayload = {
+  /** 测试计划 id */
+  planId: string;
   /** 测试执行任务 Id */
-  testExecutionIds: string[];
+  executionIds: string[];
 };
+export type AddExecuteToPlanProcessParams = ProcessApiParams<AddExecuteToPlanPayload>;
+
+/** 批量从测试计划移除测试执行任务 */
+export type RemoveExecuteFromPlanPayload = {
+  /** 测试计划 id */
+  planId: string;
+  /** 测试执行任务 Id */
+  executionIds: string[];
+};
+export type RemoveExecuteFromPlanProcessParams = ProcessApiParams<RemoveExecuteFromPlanPayload>;
+
+/** 批量从测试计划移除测试执行任务 */
+export type RemoveCaseFromPlanPayload = {
+  /** 测试计划 id */
+  planId: string;
+  /** 测试执行任务 Id */
+  caseIds: string[];
+};
+export type RemoveCaseFromPlanProcessParams = ProcessApiParams<RemoveCaseFromPlanPayload>;

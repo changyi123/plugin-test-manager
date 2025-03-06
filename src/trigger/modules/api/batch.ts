@@ -15,16 +15,20 @@ import {
   TestType,
 } from '../../../common/constant';
 import {
+  AddExecuteToPlanProcessParams,
   BatchCopyTestCasePayload,
-  BatchCopyTestCaseV2Payload,
-  BatchCopyTestCaseV3Payload,
+  BatchCopyTestCaseV2ProcessParams,
+  BatchCopyTestCaseV3ProcessParams,
   BatchCreateTestCasePayload,
   BatchCreateTestRunPayload,
-  BatchCreateTestRunV2Payload,
-  BatchDeletePayload,
-  BatchDeleteV2Payload,
+  BatchCreateTestRunV2ProcessParams,
+  BatchDeleteProcessParams,
+  BatchDeleteV2ProcessParams,
   BatchUpdatePayload,
+  BatchUpdateProcessParams,
   BatchUpdateValuePayload,
+  RemoveCaseFromPlanProcessParams,
+  RemoveExecuteFromPlanProcessParams,
 } from '../../../common/types/api';
 import { TestEntityLinkActionData } from '../../../common/types/common';
 import { TestEntity } from '../../../common/types/test';
@@ -48,7 +52,15 @@ import {
 import { iqlRequest } from '../../lib/iqlRequest';
 import { getItemCreateRequiredAttrs, getItemTypeFromKey } from '../../lib/item';
 import { testEntityFieldTypeValidator, throwArgumentError } from '../../lib/validator';
-import { batchDeleteItems, copyTesCases, createTestRuns } from '../job';
+import {
+  addExecutionToPlanWorker,
+  batchDeleteItems,
+  copyTesCases,
+  createTestRuns,
+  removeCaseFromPlanWorker,
+  removeExecutionFromPlanWorker,
+  updateItemsV2,
+} from '../job';
 import { operateSnapshots, queryFields } from './../../lib/coreApi';
 
 type TestCaseType = TestEntity<TestType.Case>;
@@ -91,7 +103,7 @@ export const batchCreateTestCase = async () => {
 /** 批量删除 */
 export const batchDelete = async () => {
   try {
-    const { body } = getReqInfoFromVMRuntime<BatchDeletePayload>();
+    const { body } = getReqInfoFromVMRuntime<BatchDeleteProcessParams>();
     const { ids, key } = body;
     if (!Array.isArray(ids)) throwArgumentError('ids', 'objectId[]');
 
@@ -119,7 +131,7 @@ export const batchDeleteV2 = async () => {
   try {
     const {
       body: { queryParams, key },
-    } = getReqInfoFromVMRuntime<BatchDeleteV2Payload>();
+    } = getReqInfoFromVMRuntime<BatchDeleteV2ProcessParams>();
     const caseList = await getAllEntity(queryParams, ['id']);
     const ids = caseList.map(item => item.objectId);
     return await batchRequestDecorator({
@@ -135,6 +147,36 @@ export const batchDeleteV2 = async () => {
           headers,
         ),
       syncFunc: async () => await batchDeleteItems({ ids }),
+    });
+  } catch (err) {
+    return buildResponse(err);
+  }
+};
+
+/** 批量更新事项V2接口 */
+export const batchUpdateItemsV2 = async () => {
+  try {
+    const {
+      body: { key, queryParams, items: propItems, ...params },
+    } = getReqInfoFromVMRuntime<BatchUpdateProcessParams>();
+    let items = propItems;
+    if (queryParams) {
+      items = await getAllEntity(queryParams);
+    }
+    return await batchRequestDecorator({
+      key,
+      asyncFunc: processId =>
+        requestCoreApi(
+          'POST',
+          `/api/app/${global.env.TENANT_KEY}/${global.appKey}/webhooks/job-update-items-v2`,
+          {
+            ...params,
+            items,
+            processId,
+          },
+          headers,
+        ),
+      syncFunc: async () => await updateItemsV2(params),
     });
   } catch (err) {
     return buildResponse(err);
@@ -533,7 +575,7 @@ export const batchCreateTestRun = async () => {
 /** 批量创建测试执行任务 */
 export const batchCreateTestRunV2 = async () => {
   try {
-    const { body, headers } = getReqInfoFromVMRuntime<BatchCreateTestRunV2Payload>();
+    const { body, headers } = getReqInfoFromVMRuntime<BatchCreateTestRunV2ProcessParams>();
     const { execution, caseIds, workspace, key } = body;
 
     if (!Array.isArray(caseIds)) throwArgumentError('caseIds', 'objectId[]');
@@ -668,7 +710,7 @@ export const batchCopyTestCase = async () => {
 /** 批量复制测试用例 V2 */
 export const batchCopyTestCaseV2 = async () => {
   try {
-    const { body, headers } = getReqInfoFromVMRuntime<BatchCopyTestCaseV2Payload>();
+    const { body, headers } = getReqInfoFromVMRuntime<BatchCopyTestCaseV2ProcessParams>();
     const { queryParams, key } = body;
     if (!queryParams) throwArgumentError('queryParams', '{ query, selector }');
 
@@ -702,7 +744,7 @@ export const batchCopyTestCaseV2 = async () => {
 /** 批量复制测试用例 V3 */
 export const batchCopyTestCaseV3 = async () => {
   try {
-    const { body, headers } = getReqInfoFromVMRuntime<BatchCopyTestCaseV3Payload>();
+    const { body, headers } = getReqInfoFromVMRuntime<BatchCopyTestCaseV3ProcessParams>();
     const { caseIds, itemType, workspace, key } = body;
     // const copyName = i18n.t('trigger.copyName');
     if (!caseIds) throwArgumentError('caseIds', 'string[]');
@@ -722,6 +764,91 @@ export const batchCopyTestCaseV3 = async () => {
           headers,
         ),
       syncFunc: async () => await copyTesCases(body),
+    });
+  } catch (err) {
+    return buildResponse(err);
+  }
+};
+
+/** 从测试计划移除测试用例 */
+export const removeCaseFromPlan = async () => {
+  try {
+    const { body, headers } = getReqInfoFromVMRuntime<RemoveCaseFromPlanProcessParams>();
+    const { caseIds, planId, key } = body;
+    if (!Array.isArray(caseIds) || !caseIds.length) throwArgumentError('caseIds', 'string[]');
+    if (!planId) throwArgumentError('planId', 'string');
+
+    return await batchRequestDecorator({
+      key,
+      asyncFunc: processId =>
+        requestCoreApi(
+          'POST',
+          `/api/app/${global.env.TENANT_KEY}/${global.appKey}/webhooks/job-remove-case-from-plan`,
+          {
+            ...body,
+            processId,
+          },
+          headers,
+        ),
+      syncFunc: async () => await removeCaseFromPlanWorker(body),
+    });
+  } catch (err) {
+    return buildResponse(err);
+  }
+};
+
+/** 从测试计划移除测试执行任务 */
+export const removeExecutionFromPlan = async () => {
+  try {
+    const { body, headers } = getReqInfoFromVMRuntime<RemoveExecuteFromPlanProcessParams>();
+    const { executionIds, planId, key } = body;
+
+    if (!Array.isArray(executionIds) || !executionIds.length)
+      throwArgumentError('executionIds', 'string[]');
+    if (!planId) throwArgumentError('planId', 'string');
+
+    return await batchRequestDecorator({
+      key,
+      asyncFunc: processId =>
+        requestCoreApi(
+          'POST',
+          `/api/app/${global.env.TENANT_KEY}/${global.appKey}/webhooks/job-remove-execution-from-plan`,
+          {
+            ...body,
+            processId,
+          },
+          headers,
+        ),
+      syncFunc: async () => await removeExecutionFromPlanWorker(body),
+    });
+  } catch (err) {
+    return buildResponse(err);
+  }
+};
+
+/** 添加测试执行任务到测试计划 */
+export const addExecutionToPlan = async () => {
+  try {
+    const { body, headers } = getReqInfoFromVMRuntime<AddExecuteToPlanProcessParams>();
+    const { planId, executionIds, key } = body;
+    // const copyName = i18n.t('trigger.copyName');
+    if (!planId) throwArgumentError('testPlanId', 'string');
+    if (!Array.isArray(executionIds) || !executionIds.length)
+      throwArgumentError('executionIds', 'string[]');
+
+    return await batchRequestDecorator({
+      key,
+      asyncFunc: processId =>
+        requestCoreApi(
+          'POST',
+          `/api/app/${global.env.TENANT_KEY}/${global.appKey}/webhooks/job-add-execution-to-plan`,
+          {
+            ...body,
+            processId,
+          },
+          headers,
+        ),
+      syncFunc: async () => await addExecutionToPlanWorker(body),
     });
   } catch (err) {
     return buildResponse(err);

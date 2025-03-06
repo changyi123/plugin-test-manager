@@ -4,12 +4,16 @@ import { useListener } from '@projectproxima/proxima-sdk-js';
 import createProximaSdk from '@projectproxima/proxima-sdk-js';
 import { useMemoizedFn, useRequest } from 'ahooks';
 import { Button, message, notification, Tooltip } from 'antd';
-import { TestLinkType, TestType } from 'common/constant';
+import { TestFiledKeyMapping, TestLinkType, TestType } from 'common/constant';
 import dayjs from 'dayjs';
 import { isEmpty, isEqual, keyBy, omit, pick } from 'lodash';
 import React, { useCallback, useEffect, useState } from 'react';
 
-import { deleteWithProcess } from '@/components/business/BatchResult/hooks';
+import {
+  deleteV1WithProcess,
+  removeCaseFromPlanWithProcess,
+  updateItemsWithProcess,
+} from '@/components/business/BatchResult/hooks';
 import RenderRepository from '@/components/business/RenderRepository';
 import { StatusBadge } from '@/components/business/Status';
 import TestRunModal, {
@@ -25,6 +29,7 @@ import {
   getLinkedTestEntityByQuery,
   getTestCaseStats,
   getTestEntityByQuery,
+  getUpdateParams,
   updateTestEntity,
   updateTestStatus,
 } from '@/lib/api/item';
@@ -746,9 +751,8 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       async () => {
         setTableLoading(true);
         // 删除测试执行
-        await deleteWithProcess({
+        await deleteV1WithProcess({
           ids: testRunIds,
-          actionType: 'deleteV1',
           handleSuccess: () => {
             setTableLoading(false);
             setTimeout(() => {
@@ -978,38 +982,23 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
             ),
           },
           async () => {
+            // @TODO update V2 remove case from plan
             setTableLoading(true);
-            const { list: items } = await getTestEntityByQuery({
-              query: {
-                workspaceKey: workspaceKey,
-                type: TestType.Case,
-                id: actionRef.current.selectedRowKeys ?? [],
+            await removeCaseFromPlanWithProcess({
+              caseIds: actionRef.current.selectedRowKeys ?? [],
+              planId: selectedTestPlan?.objectId,
+              handleSuccess: () => {
+                setTimeout(() => {
+                  addAndDeleteRefresh();
+                  actionRef.current?.refresh();
+                }, 500);
+                proxima.execute('refreshSelectedNode');
               },
-              limit: 99999,
-              select: ['id', 'caseStatus'],
+              handleFail: error => {
+                setTableLoading(false);
+                message.error(error.message);
+              },
             });
-            const res = await updateTestEntity(
-              items.map(item => ({
-                objectId: item.id,
-                linkItems: {
-                  action: 'delete',
-                  value: [selectedTestPlan?.objectId],
-                  deleteTestRun: !!item.runCount,
-                },
-                caseStatus: omit(item.caseStatus ?? {}, [selectedTestPlan?.objectId]),
-              })),
-            );
-            if (res?.status === 'error') {
-              message.error(res.data);
-              return;
-            }
-
-            // 删除刷新
-            setTimeout(() => {
-              addAndDeleteRefresh();
-              actionRef.current?.refresh();
-            }, 500);
-            proxima.execute('refreshSelectedNode');
           },
         );
       }
@@ -1019,22 +1008,22 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     const handleAssigneeChange = async assignee => {
       const testIds = actionRef.current.selectedRowKeys;
       setTableLoading(true);
-      const res = await updateTestEntity(
-        testIds.map(d => ({
-          objectId: d,
-          values: {
-            assignee,
-          },
-        })),
-      );
-      if (res?.status === 'error') {
-        message.error(res.data);
-        return;
-      }
-      actionRef.current.refresh();
+      await updateItemsWithProcess({
+        items: testIds,
+        fields: {
+          values: { assignee },
+        },
+        handleSuccess: () => {
+          actionRef.current.refresh();
 
-      notification.success({
-        message: `${testIds.length} ${t('page.plan.testEntityList.updateAssigneeTips')}`,
+          notification.success({
+            message: `${testIds.length} ${t('page.plan.testEntityList.updateAssigneeTips')}`,
+          });
+        },
+        handleFail: error => {
+          message.error(error.message);
+          actionRef.current.refresh();
+        },
       });
     };
 
@@ -1080,19 +1069,27 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       }
 
       // 更新测试执行状态
-      const res = await updateTestStatus({
-        status: status.key,
+      const updateParams = await getUpdateParams({
         runIds: canExecuteTestRunIds,
+        status: status.key,
         planId: selectedTestPlan?.objectId,
       });
-      if (res) {
-        notification.success({
-          message: t('page.plan.testEntityList.updateRunStateTips'),
-        });
-        actionRef.current.refresh();
-        // mutateTestPlanEvent.emit(selectedTestPlan?.objectId);
-        mutateStatusEvent.emit('refreshExecutionStatus');
-      }
+      await updateItemsWithProcess({
+        ...updateParams,
+        handleSuccess: () => {
+          notification.success({
+            message: t('page.plan.testEntityList.updateRunStateTips'),
+          });
+          actionRef.current.refresh();
+          // mutateTestPlanEvent.emit(selectedTestPlan?.objectId);
+          mutateStatusEvent.emit('refreshExecutionStatus');
+        },
+        handleFail: e => {
+          message.error(e.message);
+          // mutateTestPlanEvent.emit(selectedTestPlan?.objectId);
+          mutateStatusEvent.emit('refreshExecutionStatus');
+        },
+      });
     };
 
     const deleteTestRun = () => {
@@ -1113,24 +1110,22 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
       setTableLoading(true);
       const testRunIds = getTestRunIds();
       // 更新测试执行执行人
-      const res = await updateTestEntity(
-        testRunIds.map(run => ({
-          objectId: run,
-          designee: users,
-        })),
-      );
-      if (res?.status === 'error') {
-        message.error(res.data);
-        return;
-      }
-
-      notification.success({
-        message: t('page.plan.testEntityList.updateDesigneeStateTips'),
+      await updateItemsWithProcess({
+        items: testRunIds,
+        fields: {
+          values: { [TestFiledKeyMapping.designee]: users },
+        },
+        handleSuccess: () => {
+          notification.success({
+            message: t('page.plan.testEntityList.updateDesigneeStateTips'),
+          });
+          actionRef.current.refresh();
+        },
+        handleFail: error => {
+          message.error(error.message);
+          actionRef.current.refresh();
+        },
       });
-      actionRef.current.refresh();
-      // mutateTestPlanEvent.emit(selectedTestPlan?.objectId);
-      // mutateStatusEvent.emit('refreshExecutionStatus');
-      // refreshAndMutateData();
     };
 
     const canDesigneeSelect = canAssignTestRun();

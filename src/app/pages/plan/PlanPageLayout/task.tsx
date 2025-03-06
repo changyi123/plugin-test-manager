@@ -5,7 +5,7 @@ import { message, notification, Space, Spin } from 'antd';
 import React, { useCallback, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 
-import { createTestRunWithProcess } from '@/components/business/BatchResult/hooks';
+import { addExecutionToPlanWithProcess, createTestRunWithProcess } from '@/components/business/BatchResult/hooks';
 import TestEntitySelectorModal, {
   ActionType as ModelActionType,
 } from '@/components/business/TestEntitySelectorModal';
@@ -222,54 +222,21 @@ const TaskPageLayout: React.FC<any> = () => {
   const addTestExecutionToPlan = React.useCallback(
     async ids => {
       // 测试计划关联测试执行后需将测试执行任务中的测试执行对应的测试用例关联到测试计划中
-      const res = await updateTestEntity(
-        ids.map(objectId => ({
-          objectId,
-          linkType: TestLinkType.ExecutionLinkPlan,
-          type: TestType.Execution,
-          linkItems: { action: 'add', value: [selectedTestPlan?.objectId] },
-          sortIndex: generateSortIndex(),
-        })),
-      );
-      if (res?.status === 'error') {
-        message.error(res.data);
-        return;
-      }
-
-      const { list: runs } = await getLinkedTestEntityByQuery({
-        query: {
-          workspaceKey: workspaceKey,
+      // @TODO update V2 add execution to plan
+      await addExecutionToPlanWithProcess({
+        executionIds: ids,
+        planId: selectedTestPlan?.objectId,
+        handleSuccess: () => {
+          message.success(
+            `${ids.length} ${t('modules.panel.testPlan.testExecutionPanel.addRunToPlanSuccess')}`,
+          );
         },
-        limit: 9999,
-        linkType: TestLinkType.RunLinkExecution,
-        sourceIds: ids,
-        destinationType: TestType.Run,
-        select: ['id', 'referenceCase'],
+        handleFail: error => {
+          message.error(error.message);
+        },
       });
-
-      const caseIds = runs?.map(run => run.referenceCase) ?? [];
-
-      if (caseIds.length) {
-        const res = await updateTestEntity(
-          caseIds.map(item => ({
-            objectId: item,
-            linkType: TestLinkType.CaseLinkPlan,
-            linkItems: {
-              action: 'add',
-              value: [selectedTestPlan?.objectId],
-            },
-          })),
-        );
-        if (res?.status === 'error') {
-          message.error(res.data);
-          return;
-        }
-      }
-      message.success(
-        `${ids.length} ${t('modules.panel.testPlan.testExecutionPanel.addRunToPlanSuccess')}`,
-      );
     },
-    [workspaceKey, selectedTestPlan?.objectId, t],
+    [selectedTestPlan?.objectId, t],
   );
 
   // 关联测试执行任务

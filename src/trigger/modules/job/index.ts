@@ -8,9 +8,13 @@ import {
   TestType,
 } from '../../../common/constant';
 import {
+  AddExecuteToPlanPayload,
   BatchCopyTestCaseV3Payload,
   BatchCreateTestRunV2Payload,
   BatchDeletePayload,
+  IBatchUpdateParams,
+  RemoveCaseFromPlanPayload,
+  RemoveExecuteFromPlanPayload,
 } from '../../../common/types/api';
 import { TestEntity } from '../../../common/types/test';
 import { buildResponse } from '../../lib/apiUtil';
@@ -22,7 +26,7 @@ import {
   deleteItems,
   operateSnapshots,
 } from '../../lib/coreApi';
-import { generateSortIndex, updateProcessBar } from '../../lib/helper';
+import { generateSortIndex, getAllEntity, updateProcessBar } from '../../lib/helper';
 import { iqlRequest } from '../../lib/iqlRequest';
 
 type TestRunType = TestEntity<TestType.Run>;
@@ -30,21 +34,28 @@ type ProcessJobParams<T> = T & {
   processId?: string;
 };
 
-const {
-  CREATE_V2: { batchSize: createV2BatchSize },
-  DELETE_V1: { batchSize: deleteBatchSize },
-} = global.env?.BATCH_CONFIG ?? {
-  CREATE_V2: {
+const DEFAULT_CONFIG = {
+  ITEMS_V2: {
     batchSize: 100,
   },
   DELETE_V1: {
+    batchSize: 10,
+  },
+  REMOVE_CASE: {
     batchSize: 100,
   },
 };
 
+const itemsV2BatchSize = (global.env?.BATCH_CONFIG?.ITEMS_V2 ?? DEFAULT_CONFIG.ITEMS_V2).batchSize;
+const deleteBatchSize = (global.env?.BATCH_CONFIG?.DELETE_V1 ?? DEFAULT_CONFIG.DELETE_V1).batchSize;
+const removeCaseBatchSize = (global.env?.BATCH_CONFIG?.DELETE_V1 ?? DEFAULT_CONFIG.REMOVE_CASE)
+  .batchSize;
+
 const getHeaders = () => ({
   'X-Parse-Application-Id': global.applicationId,
   'X-Parse-Session-Token': global.sessionToken,
+  'Company-Current': global.applicationId,
+  'HEADER-USERINFO': global.sessionToken,
 });
 
 const batchExecFunction = async ({ list, fun, batchSize }) => {
@@ -86,7 +97,7 @@ export const createTestRuns = async ({
   const result = {
     message: [],
     total: caseIds.length,
-    error: 0,
+    fail: 0,
     success: 0,
     skip: 0,
   };
@@ -160,7 +171,7 @@ export const createTestRuns = async ({
         return validatedCases;
       } catch (e) {
         result.message.push(e.message);
-        result.error += cases.length;
+        result.fail += cases.length;
         return [];
       } finally {
         console.info('batchCreateTestRunV2 validateCases end');
@@ -213,7 +224,7 @@ export const createTestRuns = async ({
         );
       } catch (e) {
         result.message.push(e.message);
-        result.error += cases.length;
+        result.fail += cases.length;
       } finally {
         console.info('batchCreateTestRunV2 createRuns end');
       }
@@ -327,13 +338,13 @@ export const createTestRuns = async ({
         execFunc: planCases,
         list: caseIds,
         getDesc: () => JSON.stringify(result),
-        batchSize: createV2BatchSize,
+        batchSize: itemsV2BatchSize,
       });
     else
       await batchExecFunction({
         list: caseIds,
         fun: planCases,
-        batchSize: createV2BatchSize,
+        batchSize: itemsV2BatchSize,
       });
 
     return buildResponse(result);
@@ -352,6 +363,64 @@ export const createTestRunsJob = async () => {
   return await createTestRuns(body);
 };
 
+export const updateItemsV2 = async (props: ProcessJobParams<IBatchUpdateParams>) => {
+  const { processId, items, ...updatePropParams } = props;
+  const withProcess = !!processId;
+  const result = {
+    total: items.length,
+    message: [],
+    success: 0,
+    fail: 0,
+    skip: 0,
+  };
+  try {
+    const updateItems = async items => {
+      const updateParams = {
+        ...updatePropParams,
+        items: items,
+        asynchronous: false,
+      };
+
+      try {
+        await batchUpdateItemsV2(updateParams, getHeaders());
+        result.success += items.length;
+      } catch (e) {
+        console.error(e.message);
+        result.message.push(e.message);
+        result.fail += items.length;
+      } finally {
+        console.info('batchUpdateItemsV2 items end');
+      }
+    };
+
+    if (withProcess)
+      await execWithProcess({
+        processId,
+        execFunc: updateItems,
+        list: items,
+        getDesc: () => JSON.stringify(result),
+        batchSize: itemsV2BatchSize,
+      });
+    else
+      await batchExecFunction({
+        list: items,
+        fun: updateItems,
+        batchSize: itemsV2BatchSize,
+      });
+
+    return buildResponse(result);
+  } catch (err) {
+    result.message.push(err.message);
+    withProcess && (await updateProcessBar(processId, -1, JSON.stringify(result)));
+    return buildResponse(result);
+  }
+};
+
+export const updateItemsV2Job = async () => {
+  const { body } = getReqInfoFromVMRuntime<ProcessJobParams<IBatchUpdateParams>>();
+  return await updateItemsV2(body);
+};
+
 export const copyTesCases = async ({
   caseIds,
   itemType: itemTypeKey,
@@ -364,7 +433,7 @@ export const copyTesCases = async ({
     total: caseIds.length,
     message: [],
     success: 0,
-    error: 0,
+    fail: 0,
     skip: 0,
   };
   const copyName = i18n.t('trigger.copyName');
@@ -419,8 +488,9 @@ export const copyTesCases = async ({
         );
         result.success += cases.length;
       } catch (e) {
+        console.error('error:', JSON.stringify(e));
         result.message.push(e.message);
-        result.error += cases.length;
+        result.fail += cases.length;
       } finally {
         console.info('batchCreateTestRunV2 createRuns end');
       }
@@ -432,13 +502,13 @@ export const copyTesCases = async ({
         execFunc: createCases,
         list: caseIds,
         getDesc: () => JSON.stringify(result),
-        batchSize: createV2BatchSize,
+        batchSize: itemsV2BatchSize,
       });
     else
       await batchExecFunction({
         list: caseIds,
         fun: createCases,
-        batchSize: createV2BatchSize,
+        batchSize: itemsV2BatchSize,
       });
 
     return buildResponse(result);
@@ -463,7 +533,7 @@ export const batchDeleteItems = async ({
     total: itemIds.length,
     message: [],
     success: 0,
-    error: 0,
+    fail: 0,
     skip: 0,
   };
   const withProcess = !!processId;
@@ -473,13 +543,13 @@ export const batchDeleteItems = async ({
         const res = await deleteItems(items, getHeaders());
         const errors = res?.filter(i => i.status !== 'success');
         result.success += items.length - errors.length;
-        result.error += errors.length;
+        result.fail += errors.length;
         if (errors.length) {
           result.message.push(errors[0]?.message);
         }
       } catch (e) {
         result.message.push(e.message);
-        result.error += items.length;
+        result.fail += items.length;
       } finally {
         console.info('deleteChunkItems end');
       }
@@ -498,7 +568,7 @@ export const batchDeleteItems = async ({
       await batchExecFunction({
         list: items,
         fun: deleteChunkItems,
-        batchSize: createV2BatchSize,
+        batchSize: itemsV2BatchSize,
       });
 
     return buildResponse(result);
@@ -513,4 +583,262 @@ export const batchDeleteItemsJob = async () => {
   const { body } = getReqInfoFromVMRuntime<ProcessJobParams<BatchDeletePayload>>();
 
   return await batchDeleteItems(body);
+};
+
+export const removeCaseFromPlanWorker = async (
+  props: ProcessJobParams<RemoveCaseFromPlanPayload>,
+) => {
+  const { processId, caseIds, planId } = props;
+  const withProcess = !!processId;
+  const result = {
+    total: caseIds.length,
+    message: [],
+    success: 0,
+    fail: 0,
+    skip: 0,
+  };
+  try {
+    const removeCases = async cases => {
+      const updateParams = {
+        update: {
+          [TestFiledKeyMapping.linkItems]: {
+            remove: planId,
+          },
+        },
+        fields: {},
+        items: cases,
+        asynchronous: false,
+      };
+
+      try {
+        await batchUpdateItemsV2(updateParams, getHeaders());
+        const runIds = await getAllEntity({
+          query: { referenceCase: cases, plan: planId, type: TestType.Run },
+        });
+        console.info('removeCaseFromPlanWorker', runIds.length, cases.length);
+        if (runIds.length) await batchDeleteItems({ ids: runIds });
+        result.success += cases.length;
+      } catch (e) {
+        console.error(e.message);
+        result.message.push(e.message);
+        result.fail += cases.length;
+      } finally {
+        console.info('batchUpdateItemsV2 items end');
+      }
+    };
+
+    if (withProcess)
+      await execWithProcess({
+        processId,
+        execFunc: removeCases,
+        list: caseIds,
+        getDesc: () => JSON.stringify(result),
+        batchSize: removeCaseBatchSize,
+      });
+    else
+      await batchExecFunction({
+        list: caseIds,
+        fun: removeCases,
+        batchSize: removeCaseBatchSize,
+      });
+
+    return buildResponse(result);
+  } catch (err) {
+    result.message.push(err.message);
+    withProcess && (await updateProcessBar(processId, -1, JSON.stringify(result)));
+    return buildResponse(result);
+  }
+};
+
+export const removeCaseFromPlanJob = async () => {
+  const { body } = getReqInfoFromVMRuntime<ProcessJobParams<RemoveCaseFromPlanPayload>>();
+  return await removeCaseFromPlanWorker(body);
+};
+
+export const removeExecutionFromPlanWorker = async (
+  props: ProcessJobParams<RemoveExecuteFromPlanPayload>,
+) => {
+  const { processId, executionIds } = props;
+  const withProcess = !!processId;
+  const result = {
+    total: 0,
+    message: [],
+    success: 0,
+    fail: 0,
+    skip: 0,
+  };
+  try {
+    const removeExecutionParams = {
+      fields: {
+        values: {
+          [TestFiledKeyMapping.linkItems]: [],
+        },
+      },
+      items: executionIds,
+      asynchronous: false,
+    };
+    await batchUpdateItemsV2(removeExecutionParams, getHeaders());
+    const runIds = await getAllEntity({
+      query: {
+        type: TestType.Run,
+        linkType: TestLinkType.RunLinkExecution,
+        linkItems: [executionIds],
+      },
+    });
+    result.total = runIds.length;
+
+    const removeRunFromPlan = async items => {
+      const updateParams = {
+        fields: {
+          values: {
+            [TestFiledKeyMapping.plan]: '',
+          },
+        },
+        items: items,
+        asynchronous: false,
+      };
+
+      try {
+        await batchUpdateItemsV2(updateParams, getHeaders());
+        result.success += items.length;
+      } catch (e) {
+        console.error(e.message);
+        result.message.push(e.message);
+        result.fail += items.length;
+      } finally {
+        console.info('batchUpdateItemsV2 items end');
+      }
+    };
+
+    if (withProcess)
+      await execWithProcess({
+        processId,
+        execFunc: removeRunFromPlan,
+        list: runIds,
+        getDesc: () => JSON.stringify(result),
+        batchSize: itemsV2BatchSize,
+      });
+    else
+      await batchExecFunction({
+        list: runIds,
+        fun: removeRunFromPlan,
+        batchSize: itemsV2BatchSize,
+      });
+
+    return buildResponse(result);
+  } catch (err) {
+    result.message.push(err.message);
+    withProcess && (await updateProcessBar(processId, -1, JSON.stringify(result)));
+    return buildResponse(result);
+  }
+};
+
+export const removeExecutionFromPlanJob = async () => {
+  const { body } = getReqInfoFromVMRuntime<ProcessJobParams<RemoveExecuteFromPlanPayload>>();
+  return await removeExecutionFromPlanWorker(body);
+};
+
+export const addExecutionToPlanWorker = async (
+  props: ProcessJobParams<AddExecuteToPlanPayload>,
+) => {
+  const { processId, executionIds, planId } = props;
+  const withProcess = !!processId;
+  const result = {
+    total: 0,
+    message: [],
+    success: 0,
+    fail: 0,
+    skip: 0,
+  };
+  try {
+    const addExecutionParams = {
+      fields: {
+        values: {
+          [TestFiledKeyMapping.linkItems]: [planId],
+        },
+      },
+      items: executionIds,
+      asynchronous: false,
+    };
+    await batchUpdateItemsV2(addExecutionParams, getHeaders());
+    const runs = await getAllEntity(
+      {
+        query: {
+          type: TestType.Run,
+          linkType: TestLinkType.RunLinkExecution,
+          linkItems: [executionIds],
+        },
+      },
+      ['id', TestFiledKeyMapping.referenceCase],
+    );
+    result.total = runs.length;
+
+    const addRunToPlan = async items => {
+      const runIds = [];
+      const caseIds = [];
+
+      items.forEach(i => {
+        runIds.push(i.objectId);
+        caseIds.push(i.referenceCase);
+      });
+
+      const updateRunParams = {
+        fields: {
+          values: { [TestFiledKeyMapping.plan]: planId },
+        },
+        items: runIds,
+        asynchronous: false,
+      };
+      const updateCaseParams = {
+        update: {
+          [TestFiledKeyMapping.linkItems]: {
+            add: [planId],
+          },
+        },
+        fields: {},
+        items: caseIds,
+        asynchronous: false,
+      };
+
+      try {
+        await Promise.all([
+          batchUpdateItemsV2(updateRunParams, getHeaders()),
+          batchUpdateItemsV2(updateCaseParams, getHeaders()),
+        ]);
+        result.success += items.length;
+      } catch (e) {
+        console.error(e.message);
+        result.message.push(e.message);
+        result.fail += items.length;
+      } finally {
+        console.info('batchUpdateItemsV2 items end');
+      }
+    };
+
+    if (withProcess)
+      await execWithProcess({
+        processId,
+        execFunc: addRunToPlan,
+        list: runs,
+        getDesc: () => JSON.stringify(result),
+        batchSize: itemsV2BatchSize,
+      });
+    else
+      await batchExecFunction({
+        list: runs,
+        fun: addRunToPlan,
+        batchSize: itemsV2BatchSize,
+      });
+
+    return buildResponse(result);
+  } catch (err) {
+    result.message.push(err.message);
+    withProcess && (await updateProcessBar(processId, -1, JSON.stringify(result)));
+    return buildResponse(result);
+  }
+};
+
+export const addExecutionToPlanJob = async () => {
+  const { body } = getReqInfoFromVMRuntime<ProcessJobParams<AddExecuteToPlanPayload>>();
+  return await addExecutionToPlanWorker(body);
 };

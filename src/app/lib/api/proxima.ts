@@ -327,13 +327,13 @@ export const cloneItem = async (
 export const batchCreateItems = async (params: IBatchCreateParams) => {
   const result = await fetch.$post('/parse/api/v2/items/batch/create', params);
 
-  return result.data;
+  return result;
 };
 
 export const batchUpdateItems = async (params: IBatchUpdateParams) => {
   const result = await fetch.$post('/parse/api/v2/items/batch/update', params);
 
-  return result.data;
+  return result;
 };
 
 // 获取插件关联的工作空间

@@ -3,18 +3,21 @@ import { useUpdateEffect } from 'ahooks';
 import { Button, message, notification, Select, Tooltip } from 'antd';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 
-import { createTestRunWithProcess } from '@/components/business/BatchResult/hooks';
+import {
+  createTestRunWithProcess,
+  updateItemsWithProcess,
+} from '@/components/business/BatchResult/hooks';
 import TestEntitySelectorModal, {
   ActionType as ModelActionType,
 } from '@/components/business/TestEntitySelectorModal';
 import { SystemFieldKeys } from '@/components/common/BusinessTable/hook';
 import FilterSearch from '@/components/common/FilterSearch';
 import { getFilterFields } from '@/components/common/FilterSearch/utils';
-import { updateTestEntity } from '@/lib/api/item';
 import {
   getExtendFields,
   RepositoryModel,
   TestCaseStatusModel,
+  TestFiledKeyMapping,
   TestLinkType,
   TestType,
 } from '@/lib/constants';
@@ -156,44 +159,34 @@ const Right: React.FC<RightProps> = props => {
       });
     }
 
-    let willSuccess = true;
-
-    try {
-      setLoading(true);
-      const res = await updateTestEntity(
-        itemData.map(item => ({
-          objectId: item,
-          linkType: TestLinkType.CaseLinkPlan,
-          linkItems: {
-            action: 'add',
-            value: [selectedTestPlan.objectId],
-          },
-        })),
-      );
-      if (res?.status === 'error') {
+    setLoading(true);
+    await updateItemsWithProcess({
+      title: '用例规划中',
+      items: itemData,
+      fields: {
+        values: { [TestFiledKeyMapping.linkType]: TestLinkType.CaseLinkPlan },
+      },
+      update: {
+        [TestFiledKeyMapping.linkItems]: {
+          add: [selectedTestPlan.objectId],
+        },
+      },
+      handleSuccess: () => {
+        refresh('detailTable');
+        setTimeout(() => {
+          refreshTreeAndScopeTestCase();
+          mutateTestTableList.emit('refreshTable');
+        }, 500);
         setLoading(false);
-        message.error(res.data);
-        return;
-      }
-    } catch (error) {
-      setLoading(false);
-      willSuccess = false;
-      // eslint-disable-next-line no-console
-      console.log('error', error);
-    }
-
-    refresh('detailTable');
-    setTimeout(() => {
-      refreshTreeAndScopeTestCase();
-      mutateTestTableList.emit('refreshTable');
-    }, 500);
-    setLoading(false);
-
-    if (willSuccess) {
-      notification.success({
-        message: t('page.plan.planPageLayout.right.caseToPlanSuccessMessage'),
-      });
-    }
+        notification.success({
+          message: t('page.plan.planPageLayout.right.caseToPlanSuccessMessage'),
+        });
+      },
+      handleFail: error => {
+        setLoading(false);
+        message.error(error.message);
+      },
+    });
   };
 
   return (

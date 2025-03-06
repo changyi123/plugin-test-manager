@@ -1,8 +1,8 @@
 import { message } from 'antd';
 import {
-  BatchCopyTestCaseV2Payload,
-  BatchCopyTestCaseV3Payload,
-  BatchCreateTestRunV2Payload,
+  BatchCopyTestCaseV2ProcessParams,
+  BatchCopyTestCaseV3ProcessParams,
+  BatchCreateTestRunV2ProcessParams,
   QueryLinkedTestEntityPayload,
   QueryTestEntityPayload,
   RepositoryTreePayload,
@@ -21,16 +21,12 @@ import {
   RepositoryModel,
   SYSTEM_FIELD,
   TestCaseStatusModel,
+  TestFiledKeyMapping,
   TestRunDesigneeModel,
   TestRunExecutorModel,
   TestType,
 } from '../constants';
-import {
-  BaseTestEntity,
-  CopyTestCasePayload,
-  Status,
-  TestEntity,
-} from '../types/Test';
+import { BaseTestEntity, CopyTestCasePayload, Status, TestEntity } from '../types/Test';
 import { getPluginWebTriggerBaseUrl, getSessionToken } from '../utils/helper';
 import { SearchSelectors, selectorToIql } from '../utils/iql';
 import { compactStepModel } from '../utils/modelTransfer';
@@ -240,7 +236,8 @@ export const getTestCaseStats = async (props: TestCaseStatsPayload) => {
 };
 
 // 批量删除测试实体事项
-export const deleteTestEntity = async params => {
+export const deleteTestEntity = async props => {
+  const params = Array.isArray(props) ? { ids: props } : props;
   const { data: res } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-batch-delete`, {
     ...params,
     sessionToken: getSessionToken(),
@@ -254,6 +251,19 @@ export const deleteTestEntity = async params => {
 // 批量删除测试实体事项 v2
 export const deleteTestEntityV2 = async params => {
   const { data: res } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-batch-delete-v2`, {
+    ...params,
+    sessionToken: getSessionToken(),
+  });
+
+  if (res.status === 'error') {
+    return res;
+  }
+  return res;
+};
+
+// 批量删编辑事项 v2
+export const updateItemsV2 = async params => {
+  const { data: res } = await fetch.post(`${pluginWebTriggerBaseUrl}/api-batch-update-items-v2`, {
     ...params,
     sessionToken: getSessionToken(),
   });
@@ -310,7 +320,7 @@ export const copyTestCase = async (data: CopyTestCasePayload) => {
 };
 
 // 复制测试用例 V2
-export const copyTestCaseV2 = async (data: BatchCopyTestCaseV2Payload) => {
+export const copyTestCaseV2 = async (data: BatchCopyTestCaseV2ProcessParams) => {
   try {
     const { data: copyItemData } = await fetch.post(
       `${pluginWebTriggerBaseUrl}/api-batch-copy-test-case-v2`,
@@ -327,7 +337,7 @@ export const copyTestCaseV2 = async (data: BatchCopyTestCaseV2Payload) => {
 };
 
 // 复制测试用例
-export const copyTestCaseV3 = async (data: BatchCopyTestCaseV3Payload) => {
+export const copyTestCaseV3 = async (data: BatchCopyTestCaseV3ProcessParams) => {
   try {
     const { data: copyItemData } = await fetch.post(
       `${pluginWebTriggerBaseUrl}/api-batch-copy-test-case-v3`,
@@ -368,19 +378,58 @@ export const batchCreateTestRun = async data => {
 };
 
 // 批量创建测试执行
-export const batchCreateTestRunV2 = async (data: BatchCreateTestRunV2Payload) => {
+export const batchCreateTestRunV2 = async (data: BatchCreateTestRunV2ProcessParams) => {
   const res = await fetch.post(`${pluginWebTriggerBaseUrl}/api-batch-create-test-run-v2`, {
     ...data,
     withProcess: false,
     sessionToken: getSessionToken(),
   });
 
-  return res;
+  return res.data;
+};
+
+export const getUpdateParams = async data => {
+  const { runIds, status } = data;
+
+  const userInfo = await Parse.User.current();
+  const getCurrentUserInfo = () => {
+    const user = userInfo.toJSON();
+    return {
+      deleted: user.deleted,
+      value: user.objectId,
+      nickname: user.nickname,
+      username: user.username,
+      label: user.username,
+    };
+  };
+
+  const checkStep = getAppEnv('CHECK_STEP_FOR_CHANGE_RUN_STATUS');
+  const isRun = checkStep || ['PASSED', 'FAILED']?.includes(status);
+
+  const updateRuns = {
+    items: runIds,
+    fields: {
+      values: {
+        [TestFiledKeyMapping.status]: status,
+        [TestFiledKeyMapping.executor]: [getCurrentUserInfo()],
+      },
+    },
+    update: {
+      [TestFiledKeyMapping.executeCount]: {
+        increment: isRun ? 1 : 0,
+      },
+    },
+  };
+  if (isRun) {
+    updateRuns.fields.values[TestFiledKeyMapping.executeTime] = new Date().getTime();
+  }
+
+  return updateRuns;
 };
 
 // 批量更新测试执行状态
 export const updateTestStatus = async data => {
-  const { runIds, status, planId } = data;
+  const { runIds, status } = data;
   const userInfo = await Parse.User.current();
   const getCurrentUserInfo = () => {
     const user = userInfo.toJSON();
@@ -403,16 +452,6 @@ export const updateTestStatus = async data => {
     select: ['id', 'referenceCase', 'executor', 'status', 'executeCount', 'executeTime'],
   });
 
-  const { list: testCases } = await getTestEntityByQuery({
-    query: {
-      id: testRuns.map(d => d.referenceCase) ?? [],
-      type: TestType.Case,
-    },
-    limit: 9999,
-    select: ['id', 'caseStatus', 'caseExecutor', 'caseRun'],
-  });
-
-  const caseRun = {};
   const checkStep = getAppEnv('CHECK_STEP_FOR_CHANGE_RUN_STATUS');
 
   const updateTestRuns = testRuns.map(d => {
@@ -425,37 +464,13 @@ export const updateTestStatus = async data => {
     };
     if (isRun) {
       Object.assign(result, { executeTime: new Date().getTime() });
-      caseRun[d.referenceCase] = {
-        [planId]: d.id,
-      };
     }
 
     return result;
   });
 
-  let updateTestCases = [];
-  if (planId) {
-    updateTestCases = testCases.map(d => ({
-      objectId: d.id,
-      caseStatus: {
-        ...d.caseStatus,
-        [planId]: status,
-      },
-      caseExecutor: {
-        ...d.caseExecutor,
-        [planId]: getCurrentUserInfo(),
-      },
-      caseRun: {
-        ...d.caseRun,
-        ...(caseRun[d.id] || {}), // 记录对应测试计划下的最新测试执行
-      },
-    }));
-  }
-
   // 更新测试执行
   const res = await updateTestEntity(updateTestRuns);
-  // 更新测试用例,这个为联动修改，需要跳过权限
-  await updateTestEntity(updateTestCases, null, true);
 
   if (res?.status === 'error') {
     message.error(res.data);
@@ -491,10 +506,7 @@ export const updateTestRunDetail = async (
       };
     };
     // 最新操作执行人存最近三条数据，多存无意
-    needUpdateAttrs.executor = [getCurrentUserInfo(), ...(needUpdateAttrs.executor ?? [])].slice(
-      0,
-      3,
-    );
+    needUpdateAttrs.executor = [getCurrentUserInfo()];
   };
   opts = merge({ initialization: false }, opts);
   const executeCount = testEntity?.executeCount ?? 0;
@@ -604,42 +616,11 @@ export const updateTestRunDetail = async (
     });
   }
 
-  let needUpdateCase = [];
-
-  // testRun 状态更新需要映射到关联的测试用例
-  if (needUpdateAttrs.status && params.planId) {
-    const { list: test } = await getTestEntityByQuery({
-      query: {
-        id: [testEntity.referenceCase],
-        type: TestType.Case,
-      },
-      limit: 9999,
-      select: ['id', 'caseStatus', 'caseExecutor', 'caseRun'],
-    });
-
-    needUpdateCase = test.map(d => ({
-      objectId: d.id,
-      caseStatus: {
-        ...d.caseStatus,
-        [params.planId]: needUpdateAttrs.status,
-      },
-      caseExecutor: {
-        ...d.caseExecutor,
-        [params.planId]: needUpdateAttrs.executor?.[0],
-      },
-      caseRun: {
-        ...d.caseRun,
-        ...(caseRun[d.id] || {}),
-      },
-    }));
-  }
-
   const res = await updateTestEntity([
     {
       objectId: testEntity.objectId,
       ...needUpdateAttrs,
     },
-    ...needUpdateCase,
   ]);
   return res;
 };

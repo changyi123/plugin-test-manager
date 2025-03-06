@@ -1,10 +1,14 @@
 import { Modal } from 'antd';
 import {
+  AddExecuteToPlanPayload,
   BatchCopyTestCaseV2Payload,
   BatchCopyTestCaseV3Payload,
   BatchCreateTestRunV2Payload,
   BatchDeletePayload,
   BatchDeleteV2Payload,
+  IBatchUpdateParams,
+  RemoveCaseFromPlanPayload,
+  RemoveExecuteFromPlanPayload,
 } from 'common/types/api';
 import React from 'react';
 import { v4 as uuid } from 'uuid';
@@ -16,150 +20,192 @@ import {
   copyTestCaseV3,
   deleteTestEntity,
   deleteTestEntityV2,
+  updateItemsV2,
 } from '@/lib/api/item';
 import { getRootContainer } from '@/lib/utils/helper';
+import {
+  addTestExecutionToTestPlan,
+  removeTestCaseFromTestPlan,
+  removeTestExecutionFromTestPlan,
+} from '@/services/testEntity/service';
 
 const { info } = Modal;
 
-type WithFunction<T> = T & {
-  handleSuccess: (data: unknown) => void;
+export enum ACTION_TYPE_ENUM {
+  DELETE_V1,
+  DELETE_V2,
+  UPDATE_V2,
+  CREATE_RUN,
+  IMPORT_CASE,
+  COPY_CASE,
+  REMOVE_CASE_FROM_PLAN,
+  REMOVE_EXECUTION_FROM_PLAN,
+  ADD_EXECUTION_TO_PLAN,
+}
+
+type ProcessSwap<T> = T & {
+  handleSuccess: (desc?: string) => void;
   handleFail?: (error?: Error) => void;
-  actionType?: string;
+  actionType?: ACTION_TYPE_ENUM;
+  title?: string;
+  key?: string;
 };
 
-export async function createTestRunWithProcess(props: WithFunction<BatchCreateTestRunV2Payload>) {
-  const { handleSuccess: originHandleSuccess, handleFail, ...createParams } = props;
-
-  const handleSuccess = async props => {
-    Modal.destroyAll();
-    await originHandleSuccess(props);
-  };
-
-  const processBarKey = uuid();
-  try {
-    const { data } = await batchCreateTestRunV2({
-      ...createParams,
-      key: processBarKey,
-    });
-    if (data?.status === 'error') {
-      throw new Error(data.data);
-    }
-
-    const batchResultParams = {
-      processBarKey,
-      handleSuccess,
-      handleFail,
-    };
-
-    info({
-      title: '规划用例中',
-      content: <BatchResult {...batchResultParams} />,
-      getContainer: getRootContainer,
-      closable: true,
-      footer: null,
-    });
-  } catch (e) {
-    handleFail(e);
-  }
+export async function createTestRunWithProcess(props: ProcessSwap<BatchCreateTestRunV2Payload>) {
+  return await execWithProcess({ ...props, actionType: ACTION_TYPE_ENUM.CREATE_RUN });
 }
 
-export async function importTestCaseWithProcess(props: WithFunction<BatchCopyTestCaseV3Payload>) {
-  const { handleSuccess: originHandleSuccess, handleFail, ...copyParams } = props;
-
-  const handleSuccess = async props => {
-    Modal.destroyAll();
-    await originHandleSuccess(props);
-  };
-
-  const processBarKey = uuid();
-  try {
-    const { data } = await copyTestCaseV3({
-      ...copyParams,
-      key: processBarKey,
-    });
-    if (data?.status === 'error') {
-      throw new Error(data.data);
-    }
-
-    const batchResultParams = {
-      processBarKey,
-      handleSuccess,
-      handleFail,
-    };
-
-    info({
-      title: '用例导入中',
-      content: <BatchResult {...batchResultParams} />,
-      getContainer: getRootContainer,
-      closable: true,
-      footer: null,
-    });
-  } catch (e) {
-    handleFail(e);
-  }
+export async function importTestCaseWithProcess(props: ProcessSwap<BatchCopyTestCaseV3Payload>) {
+  return await execWithProcess({ ...props, actionType: ACTION_TYPE_ENUM.IMPORT_CASE });
 }
 
-export async function copyTestCaseWithProcess(props: WithFunction<BatchCopyTestCaseV2Payload>) {
-  const { handleSuccess: originHandleSuccess, handleFail, ...copyParams } = props;
-
-  const handleSuccess = async props => {
-    Modal.destroyAll();
-    await originHandleSuccess(props);
-  };
-
-  const processBarKey = uuid();
-  try {
-    const { data } = await copyTestCaseV2({
-      ...copyParams,
-      key: processBarKey,
-    });
-    if (data?.status === 'error') {
-      throw new Error(data.data);
-    }
-
-    const batchResultParams = {
-      processBarKey,
-      handleSuccess,
-      handleFail,
-    };
-
-    info({
-      title: '用例复制中',
-      content: <BatchResult {...batchResultParams} />,
-      getContainer: getRootContainer,
-      closable: true,
-      footer: null,
-    });
-  } catch (e) {
-    handleFail(e);
-  }
+export async function copyTestCaseWithProcess(props: ProcessSwap<BatchCopyTestCaseV2Payload>) {
+  return await execWithProcess({ ...props, actionType: ACTION_TYPE_ENUM.COPY_CASE });
 }
 
-export async function deleteWithProcess(
-  props: WithFunction<BatchDeleteV2Payload | BatchDeletePayload>,
+export async function deleteV1WithProcess(props: ProcessSwap<BatchDeletePayload>) {
+  return await execWithProcess({ ...props, actionType: ACTION_TYPE_ENUM.DELETE_V1 });
+}
+
+export async function deleteV2WithProcess(props: ProcessSwap<BatchDeleteV2Payload>) {
+  return await execWithProcess({ ...props, actionType: ACTION_TYPE_ENUM.DELETE_V2 });
+}
+
+export async function updateItemsWithProcess(props: ProcessSwap<IBatchUpdateParams>) {
+  return await execWithProcess({ ...props, actionType: ACTION_TYPE_ENUM.UPDATE_V2 });
+}
+
+export async function addExecutionToPlanWithProcess(props: ProcessSwap<AddExecuteToPlanPayload>) {
+  return await execWithProcess({ ...props, actionType: ACTION_TYPE_ENUM.ADD_EXECUTION_TO_PLAN });
+}
+
+export async function removeExecutionFromPlanWithProcess(
+  props: ProcessSwap<RemoveExecuteFromPlanPayload>,
 ) {
-  const { actionType, handleSuccess: originHandleSuccess, handleFail, ...deleteParams } = props;
+  return await execWithProcess({
+    ...props,
+    actionType: ACTION_TYPE_ENUM.REMOVE_EXECUTION_FROM_PLAN,
+  });
+}
+
+export async function removeCaseFromPlanWithProcess(props: ProcessSwap<RemoveCaseFromPlanPayload>) {
+  return await execWithProcess({ ...props, actionType: ACTION_TYPE_ENUM.REMOVE_CASE_FROM_PLAN });
+}
+
+let timer = null;
+
+export async function execWithProcess(
+  props: ProcessSwap<
+    | BatchDeleteV2Payload
+    | BatchDeletePayload
+    | IBatchUpdateParams
+    | BatchCreateTestRunV2Payload
+    | BatchCopyTestCaseV3Payload
+    | BatchCopyTestCaseV2Payload
+    | AddExecuteToPlanPayload
+    | RemoveExecuteFromPlanPayload
+    | RemoveCaseFromPlanPayload
+  >,
+) {
+  const {
+    title: propsTitle,
+    actionType,
+    handleSuccess: originHandleSuccess,
+    handleFail,
+    ...params
+  } = props;
 
   const handleSuccess = async props => {
-    Modal.destroyAll();
-    await originHandleSuccess(props);
+    let closeModal = true;
+    let result = props;
+    if (props) {
+      try {
+        result = JSON.parse(props);
+        closeModal = !result?.message?.length;
+      } catch (e) {
+        console.error(e.message, props);
+      }
+    }
+    if (closeModal) {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        Modal.destroyAll();
+      }, 1000);
+    }
+    await originHandleSuccess(result);
   };
+  let title = '操作中';
 
   const processBarKey = uuid();
+
   try {
     let data;
     switch (actionType) {
-      case 'deleteV1':
+      case ACTION_TYPE_ENUM.DELETE_V1:
         data = await deleteTestEntity({
-          ...deleteParams,
+          ...params,
           key: processBarKey,
         });
+        title = '移除中';
         break;
-      case 'deleteV2':
+      case ACTION_TYPE_ENUM.DELETE_V2:
         data = await deleteTestEntityV2({
-          ...deleteParams,
+          ...params,
           key: processBarKey,
         });
+        title = '移除中';
+        break;
+      case ACTION_TYPE_ENUM.UPDATE_V2:
+        data = await updateItemsV2({
+          ...(params as IBatchUpdateParams),
+          key: processBarKey,
+        });
+        title = '更新中';
+        break;
+      case ACTION_TYPE_ENUM.CREATE_RUN:
+        data = await batchCreateTestRunV2({
+          ...(params as BatchCreateTestRunV2Payload),
+          key: processBarKey,
+        });
+        title = '规划用例中';
+        break;
+
+      case ACTION_TYPE_ENUM.IMPORT_CASE:
+        data = await copyTestCaseV3({
+          ...(params as BatchCopyTestCaseV3Payload),
+          key: processBarKey,
+        });
+        title = '用例导入中';
+        break;
+
+      case ACTION_TYPE_ENUM.COPY_CASE:
+        data = await copyTestCaseV2({
+          ...(params as BatchCopyTestCaseV2Payload),
+          key: processBarKey,
+        });
+        title = '用例复制中';
+        break;
+
+      case ACTION_TYPE_ENUM.ADD_EXECUTION_TO_PLAN:
+        data = await addTestExecutionToTestPlan({
+          ...(params as AddExecuteToPlanPayload),
+          key: processBarKey,
+        });
+        title = '测试执行任务的测试用例处理中';
+        break;
+      case ACTION_TYPE_ENUM.REMOVE_EXECUTION_FROM_PLAN:
+        data = await removeTestExecutionFromTestPlan({
+          ...(params as RemoveExecuteFromPlanPayload),
+          key: processBarKey,
+        });
+        title = '测试执行任务的测试用例处理中';
+        break;
+      case ACTION_TYPE_ENUM.REMOVE_CASE_FROM_PLAN:
+        data = await removeTestCaseFromTestPlan({
+          ...(params as RemoveCaseFromPlanPayload),
+          key: processBarKey,
+        });
+        title = '测试用例移除中';
         break;
     }
 
@@ -174,11 +220,11 @@ export async function deleteWithProcess(
     };
 
     info({
-      title: '移除中',
+      title: propsTitle || title,
       content: <BatchResult {...batchResultParams} />,
       getContainer: getRootContainer,
-      closable: true,
       footer: null,
+      closable: true,
     });
   } catch (e) {
     handleFail(e);

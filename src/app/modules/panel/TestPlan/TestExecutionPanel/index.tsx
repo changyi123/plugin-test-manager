@@ -3,6 +3,10 @@ import { Button, message, notification } from 'antd';
 import sum from 'lodash/sum';
 import React, { useCallback, useMemo, useState } from 'react';
 
+import {
+  addExecutionToPlanWithProcess,
+  removeExecutionFromPlanWithProcess,
+} from '@/components/business/BatchResult/hooks';
 import PanelTable, {
   ActionType,
   BuiltinColumns,
@@ -13,12 +17,11 @@ import TestEntitySelectorModal, {
   ActionType as SelectorActionType,
 } from '@/components/business/TestEntitySelectorModal';
 import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/hook';
-import { getLinkedTestEntityByQuery, getTestStats, updateTestEntity } from '@/lib/api/item';
+import { getLinkedTestEntityByQuery, getTestStats } from '@/lib/api/item';
 import { BuiltinFieldNameMapping, TestLinkType, TestType } from '@/lib/constants';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
 import { alert, getTestManagerContainer } from '@/lib/utils/helper';
-import { addTestExecutionToTestPlan } from '@/services/testEntity/service';
 
 import cx from './index.less';
 
@@ -123,16 +126,21 @@ const Test = () => {
 
     try {
       // 将测试执行添加至测试计划中
-      await addTestExecutionToTestPlan({
-        testPlanId: testEntity?.objectId,
-        testExecutionIds,
-      });
-      refresh();
-      alert({
-        type: 'success',
-        message: `${testExecutionIds.length} ${t(
-          'modules.panel.testPlan.testExecutionPanel.addRunToPlanSuccess',
-        )}`,
+      await addExecutionToPlanWithProcess({
+        planId: testEntity?.objectId,
+        executionIds: testExecutionIds,
+        handleSuccess: () => {
+          refresh();
+          alert({
+            type: 'success',
+            message: `${testExecutionIds.length} ${t(
+              'modules.panel.testPlan.testExecutionPanel.addRunToPlanSuccess',
+            )}`,
+          });
+        },
+        handleFail: error => {
+          message.error(error.message);
+        },
       });
     } catch (err) {
       message.error(err.message);
@@ -144,22 +152,23 @@ const Test = () => {
       if (!Array.isArray(ids)) return;
 
       // 移除测试计划下的任务
-      const res = await updateTestEntity(
-        ids.map(objectId => ({
-          objectId,
-          linkItems: { action: 'delete', value: [testEntity.objectId] },
-        })),
-      );
-      if (res?.status === 'error') {
-        message.error(res.data);
-        return;
-      }
-      refresh();
-      alert({
-        type: 'success',
-        message: `${ids.length} ${t(
-          'modules.panel.testPlan.testExecutionPanel.deleteRunToPlanSuccess',
-        )}`,
+      // @TODO update V2 remove execution from plan
+      await removeExecutionFromPlanWithProcess({
+        executionIds: ids,
+        planId: testEntity.objectId,
+        handleSuccess: () => {
+          refresh();
+          alert({
+            type: 'success',
+            message: `${ids.length} ${t(
+              'modules.panel.testPlan.testExecutionPanel.deleteRunToPlanSuccess',
+            )}`,
+          });
+        },
+        handleFail: error => {
+          message.error(error.message);
+          refresh();
+        },
       });
     },
     [refresh, testEntity.objectId, t],

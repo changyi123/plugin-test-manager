@@ -41,6 +41,7 @@ const condition = {
           statistics: {
             terms: {
               field: field,
+              size: 99999,
             },
             aggs: {
               statistics: {
@@ -201,7 +202,7 @@ export async function statisticsRunFromPlan(planId: string[]) {
   } = await statisticsApi(
     {
       iql,
-      nativeAggs: condition.statisticsRunAggs(true),
+      nativeAggs: condition.statisticsRunAggs(),
       ...condition.testManagerIqlContext,
     },
     'native-aggs-chart',

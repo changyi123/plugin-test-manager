@@ -2,7 +2,7 @@ app:
   key: test_manager
   uuid: bf73e61c-e15a-4461-a1f7-f940c2009332
   name: test_manager
-  version: "4.33.0-alpha.24"
+  version: "4.33.0-alpha.36"
 modules:
   webtrigger:
     # TODO: Debug 使用，生产环境禁止调用下面的 trigger
@@ -60,6 +60,8 @@ modules:
       function: api-batch-delete-function
     - key: api-batch-delete-v2
       function: api-batch-delete-v2-function
+    - key: api-batch-update-items-v2
+      function: api-batch-update-items-v2-function
     - key: api-batch-update
       function: api-batch-update-function
     - key: api-batch-update-value
@@ -74,8 +76,16 @@ modules:
       function: job-create-test-run-function
     - key: job-batch-delete-items
       function: job-batch-delete-items-function
+    - key: job-update-items-v2
+      function: job-update-items-v2-function
     - key: job-copy-test-case
       function: job-copy-test-case-function
+    - key: job-remove-execution-from-plan
+      function: job-remove-execution-from-plan-function
+    - key: job-remove-case-from-plan
+      function: job-remove-case-from-plan-function
+    - key: job-add-execution-to-plan
+      function: job-add-execution-to-plan-function
     - key: api-batch-copy-test-case
       function: api-batch-copy-test-case-function
     - key: api-batch-copy-test-case-v2
@@ -84,6 +94,12 @@ modules:
       function: api-batch-copy-test-case-v3-function
     - key: api-batch-link-test-execution-to-test-plan
       function: api-batch-link-test-execution-to-test-plan-function
+    - key: api-add-execution-to-plan
+      function: api-add-execution-to-plan-function
+    - key: api-remove-execution-from-plan
+      function: api-remove-execution-from-plan-function
+    - key: api-remove-case-from-plan
+      function: api-remove-case-from-plan-function
     # 数据统计
     - key: api-stats-test-plan
       function: api-stats-test-plan-function
@@ -265,6 +281,9 @@ modules:
       handler: api.batchDelete
       timeout: 300000
      # api batch
+    - key: api-batch-update-items-v2-function
+      handler: api.batchUpdateItemsV2
+      timeout: 300000
     - key: api-batch-delete-v2-function
       handler: api.batchDeleteV2
       timeout: 300000
@@ -288,12 +307,28 @@ modules:
       handler: job.batchDeleteItemsJob
       # 60 分钟超时时长
       timeout: 3600000
+    - key: job-update-items-v2-function
+      handler: job.updateItemsV2Job
+      # 60 分钟超时时长
+      timeout: 3600000
     - key: job-create-test-run-function
       handler: job.createTestRunsJob
       # 60 分钟超时时长
       timeout: 3600000
     - key: job-copy-test-case-function
       handler: job.copyTesCasesJob
+      # 60 分钟超时时长
+      timeout: 3600000
+    - key: job-add-execution-to-plan-function
+      handler: job.addExecutionToPlanJob
+      # 60 分钟超时时长
+      timeout: 3600000
+    - key: job-remove-case-from-plan-function
+      handler: job.removeCaseFromPlanJob
+      # 60 分钟超时时长
+      timeout: 3600000
+    - key: job-remove-execution-from-plan-function
+      handler: job.removeExecutionFromPlanJob
       # 60 分钟超时时长
       timeout: 3600000
     - key: api-batch-create-test-case-function
@@ -314,6 +349,15 @@ modules:
       timeout: 300000
     - key: api-batch-link-test-execution-to-test-plan-function
       handler: api.linkTestExecuteToTestPlan
+      timeout: 300000
+    - key: api-add-execution-to-plan-function
+      handler: api.addExecutionToPlan
+      timeout: 300000
+    - key: api-remove-execution-from-plan-function
+      handler: api.removeExecutionFromPlan
+      timeout: 300000
+    - key: api-remove-case-from-plan-function
+      handler: api.removeCaseFromPlan
       timeout: 300000
 
     # api stats

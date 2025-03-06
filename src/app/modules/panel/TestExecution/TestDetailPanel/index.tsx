@@ -16,7 +16,8 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import {
   createTestRunWithProcess,
-  deleteWithProcess,
+  deleteV1WithProcess,
+  updateItemsWithProcess,
 } from '@/components/business/BatchResult/hooks';
 import DropDownButton from '@/components/business/DropDownButton';
 import PanelTable, { ActionType } from '@/components/business/PanelTable';
@@ -29,12 +30,7 @@ import TestRunModal, {
   ActionType as TestRunModalActionType,
 } from '@/components/business/TestRunModal';
 import { useTestTypeScreenFieldKeys } from '@/components/common/BusinessTable/hook';
-import {
-  deleteTestEntity,
-  getLinkedTestEntityByQuery,
-  getTestEntityByQuery,
-  updateTestStatus,
-} from '@/lib/api/item';
+import { getLinkedTestEntityByQuery, getTestEntityByQuery, getUpdateParams, updateTestStatus } from '@/lib/api/item';
 import { openBaseLineViewItemModal } from '@/lib/api/sdk';
 import { getAppEnv } from '@/lib/appEnv';
 import { TestLinkType, TestType } from '@/lib/constants';
@@ -226,8 +222,7 @@ const Test = () => {
         return;
       }
       // 删除测试和测试执行的关联
-      await deleteWithProcess({
-        actionType: 'deleteV1',
+      await deleteV1WithProcess({
         ids: testRunIds,
         handleSuccess: () => {
           refreshDepData();
@@ -419,17 +414,24 @@ const Test = () => {
       }
 
       // 更新测试执行状态
-      const res = await updateTestStatus({
-        status: status.key,
+      const updateParams = await getUpdateParams({
         runIds: canExecuteTestRunIds,
+        status: status.key,
         planId: testEntity?.linkItems?.[0],
       });
-      if (res) {
-        notification.success({
-          message: t('page.plan.testEntityList.updateRunStateTips'),
-        });
-        refreshDepData();
-      }
+      await updateItemsWithProcess({
+        ...updateParams,
+        handleSuccess: () => {
+          notification.success({
+            message: t('page.plan.testEntityList.updateRunStateTips'),
+          });
+          refreshDepData();
+        },
+        handleFail: e => {
+          message.error(e.message);
+          refreshDepData();
+        },
+      });
     },
     [getCanExecuteTestRunIdSequence, getCreatePermission, refreshDepData, t, testEntity?.linkItems],
   );

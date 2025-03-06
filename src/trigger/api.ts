@@ -16,6 +16,10 @@ export {
   batchCreateTestRun,
   batchCreateTestRunV2,
   batchCreateTestCase,
+  batchUpdateItemsV2,
+  addExecutionToPlan,
+  removeCaseFromPlan,
+  removeExecutionFromPlan,
 } from './modules/api/batch';
 
 export { testExecutionStats, testCaseStats, testCount } from './modules/api/stats';
