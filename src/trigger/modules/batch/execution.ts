@@ -104,7 +104,7 @@ export const linkTestExecuteToTestPlan = async () => {
             data: { list: referenceTestCaseList },
           } = await iqlRequest<TestEntity<TestType.Case>>({
             query: {
-              id: unLinkedTestRuns.map(run => run.objectId),
+              id: unLinkedTestRuns.map(run => run.referenceCase),
               type: TestType.Case,
             },
             pagination: {
