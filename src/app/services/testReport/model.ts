@@ -11,7 +11,7 @@ import {
   getTestEntityByQuery,
 } from '@/lib/api/item';
 import { search } from '@/lib/api/proxima';
-import { judgeCaseSnapshot, getAppEnv, judgeTestReportVersion, TEST_REPORT_VERSION } from '@/lib/appEnv';
+import { getAppEnv, judgeCaseSnapshot, judgeTestReportVersion, TEST_REPORT_VERSION } from '@/lib/appEnv';
 import {
   BuiltinFieldNameMapping,
   ExtendReportType,

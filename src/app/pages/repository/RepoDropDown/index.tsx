@@ -274,22 +274,11 @@ const RepoDropDown = ({
   }, [t, type]);
 
   const appFields = useMemo(() => {
-    const extraCaseFields = [
-      {
-        value: SystemField.CreatedAt,
-        label: t('page.repository.repoDropDown.excelExportTitle.createdAt'),
-      },
-      {
-        value: SystemField.CreatedBy,
-        label: t('page.repository.repoDropDown.excelExportTitle.createdBy'),
-      },
-    ];
-
     const moreFields = testCaseFields
       .filter(field => !EXPORT_ITEM_FIELDS.some(f => f.value === field.key))
       .map(field => ({ value: field.key, label: field.name }));
-    return [...basicFields, ...extraCaseFields, ...moreFields];
-  }, [testCaseFields, basicFields, t]);
+    return [...basicFields, ...moreFields];
+  }, [testCaseFields, basicFields]);
 
   const menu = (
     <Menu onClick={e => menuClick(e)}>

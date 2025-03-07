@@ -246,7 +246,7 @@ export const createTestRuns = async ({
           getHeaders(),
         );
       } catch (e) {
-        result.message.push(e.message);
+        result.message.push(e.message || e);
         result.fail += cases.length;
       } finally {
         console.info('batchCreateTestRunV2 createRuns end');
@@ -345,9 +345,12 @@ export const createTestRuns = async ({
       const needPlanCases = await validateCases(cases);
       if (!needPlanCases.length) return;
 
+      const prevFail = result.fail;
       // 创建测试执行
       await createRuns(needPlanCases);
 
+      // 创建执行失败后，跳过后续
+      if (prevFail + needPlanCases.length === result.fail) return;
       // 根据配置，对测试用例打快照
       await createCaseSnapshot(needPlanCases);
 
