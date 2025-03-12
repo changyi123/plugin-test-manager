@@ -774,6 +774,7 @@ export const addExecutionToPlanWorker = async (
     const addExecutionParams = {
       fields: {
         values: {
+          [TestFiledKeyMapping.linkType]: TestLinkType.ExecutionLinkPlan,
           [TestFiledKeyMapping.linkItems]: [planId],
         },
       },
@@ -815,7 +816,9 @@ export const addExecutionToPlanWorker = async (
             add: [planId],
           },
         },
-        fields: {},
+        fields: {
+          [TestFiledKeyMapping.linkType]: TestLinkType.CaseLinkPlan,
+        },
         items: caseIds,
         asynchronous: false,
       };
