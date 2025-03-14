@@ -531,6 +531,7 @@ export const getTestStepsByTestDetailId = async (testDetailId: string, currentTe
   // 获取 testSteps, 将继承测试用例（callTestId） -> 测试步骤
   const recursiveGetTestSteps = async (id: string | string[]) => {
     const testData = await fetchTestStepsAndName(id);
+    if (testDetailId === currentTestId) throw new Error(testData?.[0]?.name);
 
     const callTestIds = _.chain(testData)
       .map(data => data.steps)
