@@ -7,6 +7,7 @@ import useI18n from '@/lib/hooks/useI18n';
 const { Field } = components.Components.Common.Editor;
 
 import { TOOLBAR_BUTTONS_FIELDS } from '@/components/business/TestStep/fields/constant';
+import { collectEditorText } from '@/components/business/TestStep/fields/editor';
 
 import cx from './index.less';
 
@@ -91,6 +92,13 @@ const Editor: React.FC<EditorProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isReset]);
 
+  const handleChange = value => {
+    const stringText = collectEditorText(value);
+    // 将字符串文本作为新对象插入到富文本数据的第一行
+    const newValue = [{ stringText }, ...value];
+    setEditorValue(newValue);
+  };
+
   return (
     <div className={cx('test-editor-container')}>
       <div
@@ -103,7 +111,7 @@ const Editor: React.FC<EditorProps> = ({
           value={editorValue}
           placeholder={t('page.repository.repoDropDown.pleaseEnterContent')}
           hiddenLabel
-          onChange={setEditorValue}
+          onChange={handleChange}
           selectedButtons={isNeedSomeButton ? TEST_MANAGER_EDITOR_BUTTONS_FIELDS : null}
           watchChange
           readonly={false}
@@ -120,7 +128,28 @@ const Editor: React.FC<EditorProps> = ({
           </Button>
           <Button
             onClick={() => {
-              setEditorValue(value ?? defaultEditorValue);
+              let changData = null;
+              if (typeof value === 'string' && value) {
+                changData = [
+                  {
+                    stringText: value,
+                  },
+                  {
+                    type: 'p',
+                    children: [
+                      {
+                        text: value,
+                      },
+                    ],
+                  },
+                ];
+              } else {
+                changData = value ?? defaultEditorValue;
+              }
+              const stringText = collectEditorText(changData || defaultEditorValue);
+              // 将字符串文本作为新对象插入到富文本数据的第一行
+              const newValue = [{ stringText }, ...changData];
+              setEditorValue(newValue);
               setShowEditor(false);
             }}
           >
