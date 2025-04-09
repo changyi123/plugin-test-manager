@@ -128,7 +128,28 @@ const Editor: React.FC<EditorProps> = ({
           </Button>
           <Button
             onClick={() => {
-              setEditorValue(value ?? defaultEditorValue);
+              let changData = null;
+              if (typeof value === 'string' && value) {
+                changData = [
+                  {
+                    stringText: value,
+                  },
+                  {
+                    type: 'p',
+                    children: [
+                      {
+                        text: value,
+                      },
+                    ],
+                  },
+                ];
+              } else {
+                changData = value ?? defaultEditorValue;
+              }
+              const stringText = collectEditorText(changData || defaultEditorValue);
+              // 将字符串文本作为新对象插入到富文本数据的第一行
+              const newValue = [{ stringText }, ...changData];
+              setEditorValue(newValue);
               setShowEditor(false);
             }}
           >
