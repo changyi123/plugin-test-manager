@@ -151,7 +151,7 @@
         "okText": "删除"
       },
       "message": {
-        "deleteSuccess": "模板删除成功",
+        "deleteSuccess": "删除成功",
         "setDefaultSuccess": "默认模板设置成功",
         "renameSuccess": "重命名成功",
         "setDisabledSuccess": "禁用成功",
