@@ -13,6 +13,8 @@ export {
   batchCopyTestCaseV2,
   batchCreateTestRun,
   batchCreateTestCase,
+  batchLinkBugsToRun,
+  batchRemoveBugsWithRun,
 } from './modules/api/batch';
 
 export { testExecutionStats, testCaseStats, testCount } from './modules/api/stats';

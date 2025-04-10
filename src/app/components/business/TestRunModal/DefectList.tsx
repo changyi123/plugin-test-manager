@@ -37,17 +37,10 @@ const DefectList: React.FC<DefectListProps> = ({
   const { t } = useI18n();
   const steps = testRunData.runDetail?.steps ?? [];
   const { TestToDefect = '' } = useItemLinkTypeConfig();
-  const currentDefectItemIds = testRunData.runDetail?.defectItemIds ?? [];
-
   // 添加缺陷
   const handleDefectAdd = async defectItemIds => {
     // onLoading();
     await addTestDefect(TestToDefect, testRunData, defectItemIds);
-    await updateTestRunDetail(testRunEntity, {
-      runDetail: {
-        defectItemIds,
-      },
-    });
     onDataChange();
   };
 
@@ -55,13 +48,7 @@ const DefectList: React.FC<DefectListProps> = ({
   const handleDeleteDefect = async defectItemId => {
     onLoading();
     try {
-      const newDefectItemIds = currentDefectItemIds.filter(id => defectItemId !== id);
       await deleteTestDefect(TestToDefect, testRunData, [defectItemId]);
-      await updateTestRunDetail(testRunEntity, {
-        runDetail: {
-          defectItemIds: newDefectItemIds,
-        },
-      });
       onDataChange();
     } catch (error) {
       message.error(

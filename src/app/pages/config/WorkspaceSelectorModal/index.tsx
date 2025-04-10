@@ -1,6 +1,6 @@
 import { useReactive } from 'ahooks';
 import { Modal, Select } from 'antd';
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 
 import useI18n from '@/lib/hooks/useI18n';
 import EventBus from '@/lib/utils/eventBus';
@@ -25,6 +25,10 @@ const WorkspaceSelectorModal: React.FC<WorkspaceSelectorModalProps> = ({ actionR
   const eventBusRef = React.useRef(new EventBus());
 
   const { data: workspaces } = commonQuery.useInstalledWorkspaces();
+  const workspacesRef = useRef([]);
+  useEffect(() => {
+    workspacesRef.current = workspaces;
+  }, [workspaces]);
 
   const workspaceOptions = React.useMemo(() => {
     if (!workspaces) return [];
@@ -50,7 +54,7 @@ const WorkspaceSelectorModal: React.FC<WorkspaceSelectorModalProps> = ({ actionR
         state.visible = true;
         return new Promise(resolve => {
           eventBusRef.current.register(CLICK_OK_EVENT_TYPE, () => {
-            const selectedWorkspace = workspaces.find(
+            const selectedWorkspace = workspacesRef.current.find(
               workspace => workspace.key === state.selectValue,
             );
             if (selectedWorkspace) {
@@ -60,7 +64,7 @@ const WorkspaceSelectorModal: React.FC<WorkspaceSelectorModalProps> = ({ actionR
         });
       },
     }),
-    [state, workspaces],
+    [state],
   );
 
   const selectContainerRef = React.useRef();

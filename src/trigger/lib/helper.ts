@@ -137,3 +137,9 @@ export const getTextFromEditorOrString = data => {
     return forMinderText.stringText;
   }
 };
+
+export const toPointer = (className: string, objectId: string) => ({
+  __type: 'Pointer',
+  className,
+  objectId,
+});

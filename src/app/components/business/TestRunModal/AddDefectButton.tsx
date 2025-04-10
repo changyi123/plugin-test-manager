@@ -3,7 +3,6 @@ import { Button, Dropdown, Menu, message } from 'antd';
 import React from 'react';
 
 import TestEntitySelectorModal, { ActionType } from '@/components/business/TestEntitySelectorModal';
-import { addTestDefect } from '@/lib/api/item';
 import { TestType } from '@/lib/constants';
 import { useBaseAction } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
@@ -145,11 +144,6 @@ const AddDefectButton: React.FC<AddDefectButtonProps> = props => {
       onLoading?.();
       // 创建事项关联
       try {
-        const tasks = defectItemList.map(d =>
-          addTestDefect(TestToDefect, testRunEntity, [d.objectId]),
-        );
-        await Promise.all(tasks);
-        // await addTestDefect(TestToDefect, testRunEntity, [defectItem.objectId]);
         const needAddedItemIds = []
           .concat(
             currentDefectIds,
@@ -173,7 +167,6 @@ const AddDefectButton: React.FC<AddDefectButtonProps> = props => {
       currentDefectIds,
       onSave,
       t,
-      TestToDefect,
     ],
   );
 
@@ -188,7 +181,6 @@ const AddDefectButton: React.FC<AddDefectButtonProps> = props => {
       onLoading?.();
       // 创建事项关联
       try {
-        await addTestDefect(TestToDefect, testRunEntity, itemIds);
         const needAddedItemIds = [].concat(currentDefectIds, itemIds).filter(Boolean);
         onSave?.(needAddedItemIds);
         message.success(t('components.business.testRunModal.addDefectButton.addDefectSuccess'));
