@@ -125,43 +125,6 @@ const DefectMapping = () => {
       // displayDefectBoard: checked,
     });
 
-    const itemTypeField = await new Parse.Query(CustomField)
-      .equalTo('key', 'itemType')
-      .first()
-      .then(item => item.toJSON());
-
-    // 保存测试缺陷统计 iql
-    const { charts } = testConfig.get('chartGroups')?.TestDefectChartGroup ?? {};
-    const chartsObj = await new Parse.Query(Chart).containedIn('objectId', charts).findAll();
-    const iql = `'${itemTypeField?.name}' in ${JSON.stringify(itemTypes.map(d => d.name))}`;
-    const needToUpdateCharts = chartsObj.map(chart => {
-      chart.set({
-        option: {
-          ...(chart.get('option') ?? {}),
-          iql,
-          selectors: itemTypeField
-            ? {
-                [itemTypeField.objectId]: {
-                  component: 'ItemType',
-                  expression: 'ItemType_Contain',
-                  fieldId: itemTypeField.objectId,
-                  fieldName: itemTypeField?.name,
-                  key: 'itemType',
-                  value: itemTypes.map(item => ({
-                    value: item.objectId,
-                    label: item.name,
-                  })),
-                },
-              }
-            : {},
-        },
-      });
-
-      return chart;
-    });
-
-    await Parse.Object.saveAll(needToUpdateCharts);
-
     message.success(t('page.config.defectMapping.messageSuccess'));
   }, [data, defectsItemTypeKeys, testConfig, t]);
 
