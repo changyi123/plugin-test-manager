@@ -94,3 +94,9 @@ export const batchCreateWithProgress = withCoreApiRequest([
   'POST',
   '/parse/api/items/batch/create',
 ]);
+
+// 序列化富文本
+export const serializeRichText = withCoreApiRequest([
+  'POST',
+  '/parse/api/fields/editor/serializer',
+]);

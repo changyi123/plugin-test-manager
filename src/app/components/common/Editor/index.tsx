@@ -20,6 +20,7 @@ interface EditorProps {
   setIsReset?: (val: boolean) => void;
   onChange?: (val?: Record<string, any>) => void;
   isNeedSomeButton?: boolean;
+  innerHTML?: string;
 }
 
 const TEST_MANAGER_EDITOR_BUTTONS_FIELDS = [
@@ -48,12 +49,14 @@ const Editor: React.FC<EditorProps> = ({
   setIsReset,
   onChange,
   isNeedSomeButton,
+  innerHTML,
 }) => {
   const { t } = useI18n();
   const [editorValue, setEditorValue] = useState<Record<string, any>[] | undefined>(
     value ?? defaultEditorValue,
   );
   const [showEditor, setShowEditor] = useState(false);
+  const [renderEditorField, setRenderEditorField] = useState(false);
 
   // 数据转为富文本数组结构
   useEffect(() => {
@@ -100,26 +103,38 @@ const Editor: React.FC<EditorProps> = ({
   };
 
   return (
-    <div className={cx('test-editor-container')}>
+    <div className={cx('test-editor-container', { 'editor-text': !renderEditorField })}>
       <div
         onClick={() => {
           !showEditor && setShowEditor(true);
+          !renderEditorField && setRenderEditorField(true);
         }}
       >
-        <Field
-          name={name ?? 'comment-editor'}
-          value={editorValue}
-          placeholder={t('page.repository.repoDropDown.pleaseEnterContent')}
-          hiddenLabel
-          onChange={handleChange}
-          selectedButtons={isNeedSomeButton ? TEST_MANAGER_EDITOR_BUTTONS_FIELDS : null}
-          watchChange
-          readonly={false}
-          editMode={showEditor}
-          hideEditBtn
-          hideMention
-          screenMode={showEditor ? 'view' : 'create'}
-        />
+        {renderEditorField ? (
+          <Field
+            name={name ?? 'comment-editor'}
+            value={editorValue}
+            placeholder={t('page.repository.repoDropDown.pleaseEnterContent')}
+            hiddenLabel
+            onChange={handleChange}
+            selectedButtons={isNeedSomeButton ? TEST_MANAGER_EDITOR_BUTTONS_FIELDS : null}
+            watchChange
+            readonly={false}
+            editMode={showEditor}
+            hideEditBtn
+            hideMention
+            screenMode={showEditor ? 'view' : 'create'}
+          />
+        ) : innerHTML ? (
+          <div
+            className={cx('editor-preview')}
+            dangerouslySetInnerHTML={{ __html: innerHTML }}
+          ></div>
+        ) : (
+          <div className={cx('placeholder', 'editor-preview')}>
+            {t('page.repository.repoDropDown.pleaseEnterContent')}
+          </div>
+        )}
       </div>
       {showEditor && (
         <Space style={{ marginTop: '12px' }}>

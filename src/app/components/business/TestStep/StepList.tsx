@@ -278,6 +278,10 @@ const StepList: React.FC<StepListProps> = ({ steps, actions, hasRequiredTip, rea
           .concat(step.customFields ?? [])
           .map(field => getFieldByImpl(field));
 
+        fields.forEach(field => {
+          field.innerHTML = step?.__innerHTML__?.[field.key];
+        });
+
         return _.chain(step)
           .pick(['id', 'callTestId'])
           .assign({ fields, callTestEntity })
