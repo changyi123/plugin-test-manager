@@ -16,10 +16,10 @@ import {
   PaginationResponse,
   QueryLinkedTestEntityPayload,
 } from '../../common/types/api';
-import { TestEntity } from '../../common/types/test';
+import { BaseTestEntity, TestEntity } from '../../common/types/test';
 import { itemToTestEntity } from '../../common/utils/dataTransfer';
 import { iqlSearchParamsBuilder, Operator } from '../../common/utils/iqlSearchParamsBuilder';
-import { iqlSearch } from '../lib/coreApi';
+import { iqlSearch, serializeRichText } from '../lib/coreApi';
 import { toArray } from '../lib/helper';
 import { testEntityFieldTypeValidator, throwArgumentError } from '../lib/validator';
 import { buildPaginationResponse } from './apiUtil';
@@ -222,6 +222,24 @@ export const getQueryByLinkQuery = async linkQuery => {
 type IqlRequestType = <TResp = TestEntity>(
   params: RequestParams,
 ) => Promise<PaginationResponse<TResp>>;
+
+const filterStringText = (value: object[]) => {
+  if (Array.isArray(value)) {
+    return value.filter(v => Object.hasOwnProperty.call(v, 'type'));
+  }
+  return undefined;
+};
+
+const setStepData = (acc, steps, objectId) => {
+  steps.forEach((step, index) => {
+    acc[`${objectId}_${index}_action`] = filterStringText(step.action);
+    acc[`${objectId}_${index}_result`] = filterStringText(step.result);
+    acc[`${objectId}_${index}_data`] = filterStringText(step.data);
+  });
+
+  return acc;
+};
+
 /** iql 请求查询 */
 export const iqlRequest: IqlRequestType = async params => {
   try {
@@ -346,9 +364,30 @@ export const iqlRequest: IqlRequestType = async params => {
       return testEntityList;
     };
 
-    const testEntityList = appendLinkSourceField(items?.map(itemToTestEntity));
+    const testEntityList: BaseTestEntity[] = appendLinkSourceField(items?.map(itemToTestEntity));
     console.info('iqlRequest testEntityList:', JSON.stringify(testEntityList[0]));
     console.time('test-manager-iqlSearch-result');
+
+    const testEntitySeriesMap = testEntityList.reduce((acc, testEntity) => {
+      const steps = testEntity.detail?.steps ?? [];
+      const objectId = testEntity.objectId;
+      return setStepData(acc, steps, objectId);
+    }, {});
+
+    const { data: serializerResultMap } = await serializeRichText({ data: testEntitySeriesMap });
+    console.info('serializerResultMap', JSON.stringify(serializerResultMap));
+    testEntityList.forEach(testEntity => {
+      if (testEntity.detail?.steps?.length) {
+        testEntity.detail.steps.forEach((step, index) => {
+          step.__innerHTML__ = {
+            action: serializerResultMap[`${testEntity.objectId}_${index}_action`],
+            result: serializerResultMap[`${testEntity.objectId}_${index}_result`],
+            data: serializerResultMap[`${testEntity.objectId}_${index}_data`],
+          };
+        });
+      }
+    });
+
     const result =
       typeof dataTransfer === 'function' ? await dataTransfer(testEntityList) : testEntityList;
     console.timeEnd('test-manager-iqlSearch-result');

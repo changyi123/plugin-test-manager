@@ -136,10 +136,15 @@ export type FileType = {
 export type Step = {
   id: string; // uuid
 
-  data?: string; // 数据
+  data?: string | Record<string, any>[]; // 数据
+  action?: string | Record<string, any>[]; // 步骤
+  result?: string | Record<string, any>[]; // 预期结果
 
-  action?: string; // 步骤
-  result?: string; // 预期结果
+  __innerHTML__?: {
+    data: string;
+    action: string;
+    result: string;
+  };
 
   // 改字段区分是否是测试继承类型
   callTestId?: string; // 测试继承（test entity id）
