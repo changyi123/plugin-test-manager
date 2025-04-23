@@ -130,6 +130,16 @@ export const getAllEntity = async (queryParams, fields?: string[]) => {
   return caseIds;
 };
 
+export const getMaxSortIndex = async selector => {
+  const res = await iqlRequest({
+    selector,
+    descending: ['sortIndex', 'createdAt'],
+    pagination: { limit: 1 },
+    fields: [TestFiledKeyMapping.sortIndex],
+  });
+  return res.data.list[0].sortIndex ?? generateSortIndex();
+};
+
 export const getTextFromEditorOrString = data => {
   if (Array.isArray(data)) {
     const [forMinderText] = data;

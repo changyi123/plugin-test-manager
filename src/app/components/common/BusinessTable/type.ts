@@ -29,4 +29,5 @@ export type BusinessTableActionType = {
   total?: number;
   selectAll?: boolean;
   unSelectedRowKeys?: any[];
+  dataSource?: any[];
 };

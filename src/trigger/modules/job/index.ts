@@ -27,7 +27,12 @@ import {
   deleteItems,
   operateSnapshots,
 } from '../../lib/coreApi';
-import { generateSortIndex, getAllEntity, updateProcessBar } from '../../lib/helper';
+import {
+  generateSortIndex,
+  getAllEntity,
+  getMaxSortIndex,
+  updateProcessBar,
+} from '../../lib/helper';
 import { iqlRequest } from '../../lib/iqlRequest';
 
 type TestRunType = TestEntity<TestType.Run>;
@@ -220,9 +225,6 @@ export const createTestRuns = async ({
           [TestFiledKeyMapping.referenceCase]: {
             copy: 'objectId',
             valueType: 'item',
-          },
-          [TestFiledKeyMapping.sortIndex]: {
-            copy: TestFiledKeyMapping.sortIndex,
           },
           [TestFiledKeyMapping.runDetail]: {
             copy: TestFiledKeyMapping.detail,
@@ -478,15 +480,21 @@ export const copyTesCases = async ({
       return;
     }
 
+    const maxSortIndex = await getMaxSortIndex(`id in ${JSON.stringify(caseIds)}`);
+    const sortIndexAddStep = generateSortIndex() - maxSortIndex;
+
     const createCases = async cases => {
       const createParams = {
         from: cases,
         fields: {
           [TestFiledKeyMapping.linkItems]: [],
           [TestFiledKeyMapping.linkType]: '',
-          [TestFiledKeyMapping.sortIndex]: generateSortIndex(),
         },
-        update: {},
+        update: {
+          [TestFiledKeyMapping.sortIndex]: {
+            add: sortIndexAddStep,
+          },
+        },
         itemType: itemType.get('objectId'),
         workspace: workspace.objectId,
       };

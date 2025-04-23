@@ -582,6 +582,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
       selectedRowKeys,
       unSelectedRowKeys,
       expandChangePage,
+      dataSource,
       resetSelectedRowKeys: () => {
         setSelectedRowKeys(undefined);
         setUnSelectedRowKeys(undefined);
@@ -592,6 +593,7 @@ const BusinessTable: React.FC<BusinessTableProps> = props => {
       tableColumns,
     }),
     [
+      dataSource,
       tableRefresh,
       selectAll,
       selectedRowKeys,
