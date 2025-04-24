@@ -437,72 +437,74 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     };
   };
 
-  // 获取执行任务 getter
-  const executionTableDataGetter = useFnHookTriggerFn(
-    useCallback(
-      async queryParams => {
-        const EmptyListData = {
-          list: [],
-          total: 0,
-        } as const;
+  const getExecutionTableData = useCallback(
+    async queryParams => {
+      const EmptyListData = {
+        list: [],
+        total: 0,
+      } as const;
 
-        if (
-          !selectedExecution?.objectId ||
-          !executionLinkRunIds?.length ||
-          !selectNode?.key ||
-          activeType === 'TestPlan' ||
-          !testCaseFieldKeys
-        )
-          return EmptyListData;
+      if (
+        !selectedExecution?.objectId ||
+        !executionLinkRunIds?.length ||
+        !selectNode?.key ||
+        activeType === 'TestPlan' ||
+        !testCaseFieldKeys
+      )
+        return EmptyListData;
 
-        const caseFieldKeys = [].concat(SystemFieldKeys, testCaseFieldKeys ?? []);
-        const [systemSelectors, customSelector] = selectors;
-        const filterCaseSelector = omit(customSelector, [
-          TestRunDesigneeModel,
-          TestRunExecutorModel,
-          TestCaseStatusModel,
-        ]);
-        const filterRunSelector = getTestRunSelector(customSelector);
+      const caseFieldKeys = [].concat(SystemFieldKeys, testCaseFieldKeys ?? []);
+      const [systemSelectors, customSelector] = selectors;
+      const filterCaseSelector = omit(customSelector, [
+        TestRunDesigneeModel,
+        TestRunExecutorModel,
+        TestCaseStatusModel,
+      ]);
+      const filterRunSelector = getTestRunSelector(customSelector);
 
-        if (filterRunSelector) {
-          return await getTableDataByFilterRun({
-            workspaceKey,
-            executionLinkRunIds,
-            executionId: selectedExecution.objectId,
-            filterRunSelector,
-            selector: [systemSelectors, filterCaseSelector],
-            queryParams,
-            caseFieldKeys,
-            selectNode,
-            showType,
-          });
-        }
-
-        return await getTableDataByFilterCase({
+      if (filterRunSelector) {
+        return await getTableDataByFilterRun({
           workspaceKey,
-          runLinkCaseIds,
-          runLinkSnapshotIds,
+          executionLinkRunIds,
           executionId: selectedExecution.objectId,
+          filterRunSelector,
           selector: [systemSelectors, filterCaseSelector],
           queryParams,
           caseFieldKeys,
           selectNode,
           showType,
         });
-      },
-      [
-        selectedExecution?.objectId,
-        executionLinkRunIds,
-        selectNode,
-        activeType,
-        testCaseFieldKeys,
-        JSON.stringify(selectors),
+      }
+
+      return await getTableDataByFilterCase({
         workspaceKey,
         runLinkCaseIds,
         runLinkSnapshotIds,
+        executionId: selectedExecution.objectId,
+        selector: [systemSelectors, filterCaseSelector],
+        queryParams,
+        caseFieldKeys,
+        selectNode,
         showType,
-      ],
-    ),
+      });
+    },
+    [
+      selectedExecution?.objectId,
+      executionLinkRunIds,
+      selectNode,
+      activeType,
+      testCaseFieldKeys,
+      JSON.stringify(selectors),
+      workspaceKey,
+      runLinkCaseIds,
+      runLinkSnapshotIds,
+      showType,
+    ],
+  );
+
+  // 获取执行任务 getter
+  const executionTableDataGetter = useFnHookTriggerFn(
+    getExecutionTableData,
     () => {
       setTableLoading(true);
     },
@@ -1204,6 +1206,7 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
   });
 
   const getNext = useCallback(async () => {
+    // 目前执行下一条只支持 当前表格页
     const list = actionRef.current?.dataSource ?? [];
     let id = currentRunRef.current;
     const canExecutes = list.filter(i => {
@@ -1214,8 +1217,10 @@ const TestEntityList: React.FC<TestEntityListProps> = ({
     const current = preIndex + 1;
     const nextIndex = current + 1;
 
-    id = canExecutes[current].id;
-    currentRunRef.current = id;
+    if (canExecutes[current]?.id) {
+      id = canExecutes[current].id;
+      currentRunRef.current = id;
+    }
 
     return {
       hasNext: !!canExecutes[nextIndex]?.id,

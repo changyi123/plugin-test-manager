@@ -69,7 +69,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
           ...repository,
         },
         selector,
-        limit: 9999,
+        limit: 99999,
         linkType: TestLinkType.CaseLinkPlan,
         sourceIds: [planId],
         destinationType: TestType.Case,
