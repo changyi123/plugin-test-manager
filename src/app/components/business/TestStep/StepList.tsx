@@ -280,7 +280,10 @@ const StepList: React.FC<StepListProps> = ({ steps, actions, hasRequiredTip, rea
 
         fields.forEach(field => {
           field.innerHTML = step?.__innerHTML__?.[field.key];
+          field.copy = step?.copy;
         });
+
+        step.copy && delete step.copy;
 
         return _.chain(step)
           .pick(['id', 'callTestId'])

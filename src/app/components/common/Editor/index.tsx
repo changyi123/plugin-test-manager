@@ -21,6 +21,7 @@ interface EditorProps {
   onChange?: (val?: Record<string, any>) => void;
   isNeedSomeButton?: boolean;
   innerHTML?: string;
+  copy?: true;
 }
 
 const TEST_MANAGER_EDITOR_BUTTONS_FIELDS = [
@@ -50,6 +51,7 @@ const Editor: React.FC<EditorProps> = ({
   onChange,
   isNeedSomeButton,
   innerHTML,
+  copy,
 }) => {
   const { t } = useI18n();
   const [editorValue, setEditorValue] = useState<Record<string, any>[] | undefined>(
@@ -110,7 +112,7 @@ const Editor: React.FC<EditorProps> = ({
           !renderEditorField && setRenderEditorField(true);
         }}
       >
-        {renderEditorField ? (
+        {renderEditorField || copy ? (
           <Field
             name={name ?? 'comment-editor'}
             value={editorValue}

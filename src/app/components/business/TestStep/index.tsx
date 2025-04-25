@@ -65,6 +65,7 @@ const TestStep: React.FC<TestStepProps> = ({
           {},
           steps.find(step => step.id === id),
           pick(getStepInitialData(), ['id']),
+          { copy: true },
         );
 
         const newSteps = Array.from(steps);

@@ -145,6 +145,7 @@ export type Step = {
     action: string;
     result: string;
   };
+  copy?: true;
 
   // 改字段区分是否是测试继承类型
   callTestId?: string; // 测试继承（test entity id）
