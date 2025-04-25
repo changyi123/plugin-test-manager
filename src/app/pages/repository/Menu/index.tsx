@@ -8,6 +8,8 @@ import useI18n from '@/lib/hooks/useI18n';
 
 export enum MenuKey {
   createFolder = 'createFolder',
+  moveFolder = 'moveFolder',
+  copyFolder = 'copyFolder',
   renameFolder = 'renameFolder',
   deleteFolder = 'deleteFolder',
   expandFolder = 'expandFolder',
@@ -30,24 +32,32 @@ const FolderTreeMenus = t => [
   },
   {
     title: t('page.repository.menu.menusName.1'),
-    key: MenuKey.renameFolder,
+    key: MenuKey.moveFolder,
   },
   {
     title: t('page.repository.menu.menusName.2'),
+    key: MenuKey.copyFolder,
+  },
+  {
+    title: t('page.repository.menu.menusName.3'),
+    key: MenuKey.renameFolder,
+  },
+  {
+    title: t('page.repository.menu.menusName.4'),
     key: MenuKey.deleteFolder,
   },
   { key: 'Divider' },
   {
-    title: t('page.repository.menu.menusName.3'),
+    title: t('page.repository.menu.menusName.5'),
     key: MenuKey.expandFolder,
   },
   { key: 'Divider' },
   {
-    title: t('page.repository.menu.menusName.4'),
+    title: t('page.repository.menu.menusName.6'),
     key: MenuKey.createTest,
   },
   {
-    title: t('page.repository.menu.menusName.5'),
+    title: t('page.repository.menu.menusName.7'),
     key: MenuKey.importTest,
   },
 ];

@@ -17,6 +17,7 @@ export {
   batchCreateTestRunV2,
   batchCreateTestCase,
   batchUpdateItemsV2,
+  batchCopyFolder,
   addExecutionToPlan,
   removeCaseFromPlan,
   removeExecutionFromPlan,

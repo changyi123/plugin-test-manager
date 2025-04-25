@@ -577,6 +577,7 @@
       "list": "列表",
       "minder": "脑图",
       "folderTree": {
+        "repositoryName": "模块名称",
         "placeholder": "请输入模块名",
         "inputNameValidatorMessage": [
           "同一层级模块名不能重复",
@@ -587,6 +588,10 @@
         "createChildFolder": "新建子模块",
         "createChildFolderSuccess": "子模块新建成功",
         "renameFolder": "重命名模块",
+        "moveFolder": "移动模块",
+        "moveFolderSuccess": "模块移动成功",
+        "copyFolder": "复制模块",
+        "copyFolderSuccess": "模块复制成功",
         "renameFolderSuccess": "模块重命名为",
         "deleteFolder": "删除模块",
         "deleteFolderTips": [
@@ -606,6 +611,8 @@
       "menu": {
         "menusName": [
           "新建子模块",
+          "移动",
+          "复制",
           "重命名",
           "删除",
           "展开",

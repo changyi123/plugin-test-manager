@@ -2,7 +2,7 @@ app:
   key: test_manager
   uuid: bf73e61c-e15a-4461-a1f7-f940c2009332
   name: test_manager
-  version: "4.35.1"
+  version: "4.35.2-alpha.11"
 modules:
   webtrigger:
     # TODO: Debug 使用，生产环境禁止调用下面的 trigger
@@ -86,6 +86,8 @@ modules:
       function: job-remove-case-from-plan-function
     - key: job-add-execution-to-plan
       function: job-add-execution-to-plan-function
+    - key: job-copy-folder
+      function: job-copy-folder-function
     - key: api-batch-copy-test-case
       function: api-batch-copy-test-case-function
     - key: api-batch-copy-test-case-v2
@@ -100,6 +102,8 @@ modules:
       function: api-remove-execution-from-plan-function
     - key: api-remove-case-from-plan
       function: api-remove-case-from-plan-function
+    - key: api-copy-folder
+      function: api-copy-folder-function
     # 数据统计
     - key: api-stats-test-plan
       function: api-stats-test-plan-function
@@ -331,6 +335,10 @@ modules:
       handler: job.removeExecutionFromPlanJob
       # 60 分钟超时时长
       timeout: 3600000
+    - key: job-copy-folder-function
+      handler: job.copyFolderJob
+      # 60 分钟超时时长
+      timeout: 3600000
     - key: api-batch-create-test-case-function
       handler: api.batchCreateTestCase
       # 5 分钟超时时长
@@ -358,6 +366,9 @@ modules:
       timeout: 300000
     - key: api-remove-case-from-plan-function
       handler: api.removeCaseFromPlan
+      timeout: 300000
+    - key: api-copy-folder-function
+      handler: api.batchCopyFolder
       timeout: 300000
 
     # api stats

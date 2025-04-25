@@ -1,8 +1,9 @@
 import fetch from '@/lib/utils/fetch';
-import { getPluginWebTriggerBaseUrl } from '@/lib/utils/helper';
+import { getPluginWebTriggerBaseUrl, getSessionToken } from '@/lib/utils/helper';
 
 import {
   AddExecuteToPlanProcessParams,
+  CopyFolderPayloadProcessParams,
   RemoveCaseFromPlanProcessParams,
   RemoveExecuteFromPlanProcessParams,
 } from '../../../common/types/api';
@@ -21,4 +22,11 @@ export const removeTestExecutionFromTestPlan = async (
   payload: RemoveExecuteFromPlanProcessParams,
 ) => {
   return fetch.$post(`${pluginWebTriggerBaseUrl}/api-remove-execution-from-plan`, payload);
+};
+
+export const copyFolder = async (payload: CopyFolderPayloadProcessParams) => {
+  return fetch.$post(`${pluginWebTriggerBaseUrl}/api-copy-folder`, {
+    ...payload,
+    sessionToken: getSessionToken(),
+  });
 };

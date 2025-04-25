@@ -2,7 +2,7 @@ import { useControllableValue, useMemoizedFn, useRequest } from 'ahooks';
 import { Input, Select, Tree } from 'antd';
 import { SelectProps } from 'antd/lib/select';
 import { cloneDeep } from 'lodash';
-import React from 'react';
+import React, { useImperativeHandle, useMemo } from 'react';
 
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import { CaretDownOutlined, FileClose, FileOpen, SearchOutlined } from '@/icons';
@@ -15,6 +15,8 @@ import { getTreeNodeByKey, reverseTreeNodes, traverseTreeNodes } from '@/pages/r
 import cx from './style.less';
 
 type RepositorySelectorInputProps = {
+  actionRef?: React.ForwardedRef<any>;
+  hiddenKey?: boolean;
   workspaceId?: string;
   workspaceKey?: string;
 } & SelectProps;
@@ -25,7 +27,9 @@ const RepositorySelectorInput: React.FC<RepositorySelectorInputProps> = props =>
     workspaceId,
     workspaceKey: workspaceKeyProp,
     value,
+    hiddenKey,
     onChange,
+    actionRef,
     ...restSelectProps
   } = props;
   const [selectedValue, setSelectedValue] = useControllableValue(
@@ -61,7 +65,7 @@ const RepositorySelectorInput: React.FC<RepositorySelectorInputProps> = props =>
 
   const prevWorkspaceKeyRef = React.useRef(null);
   // 获取目录数据
-  const { data: folderTreeData } = useRequest(
+  const { data: folderTreeData, loading: queryLoading } = useRequest(
     async () => {
       if (prevWorkspaceKeyRef.current && prevWorkspaceKeyRef.current !== workspaceKey) {
         // 重置为初始化状态
@@ -81,8 +85,24 @@ const RepositorySelectorInput: React.FC<RepositorySelectorInputProps> = props =>
     },
   );
 
+  const hiddenSelfAndChildrenKeys = useMemo(() => {
+    const flattenedTreeData = (folderTreeData as any)?.flattenedTreeData || [];
+    const keys = new Set();
+    const getSelfAndChildrenKeys = node => {
+      if (node.key) {
+        keys.add(node.key);
+        if (node.children?.length) {
+          node.children.forEach(getSelfAndChildrenKeys);
+        }
+      }
+    };
+    const node = flattenedTreeData.find(n => n.key === hiddenKey);
+    if (node) getSelfAndChildrenKeys(node);
+    return keys;
+  }, [folderTreeData, hiddenKey]);
+
   // 获取目录树数据
-  const { data: treeData } = useRequest(
+  const { data: treeData, loading: handleLoading } = useRequest(
     async () => {
       // 重置为初始态
       setMatchedFolderText({});
@@ -90,10 +110,12 @@ const RepositorySelectorInput: React.FC<RepositorySelectorInputProps> = props =>
       const text = searchText?.trim();
       const needExpandedKeys = [];
       const matchedText = {};
+      const clonedFolderTreeData = cloneDeep(folderTreeData);
+      const flattenedTreeData = (folderTreeData as any)?.flattenedTreeData || [];
 
       if (text) {
         const matchRegExp = escapeMatchesQueryArg(text, ['i', 'g']);
-        traverseTreeNodes(folderTreeData, node => {
+        traverseTreeNodes(clonedFolderTreeData, node => {
           const matched = node.name?.match(matchRegExp);
           if (matched) {
             matchedText[node.key] = matched[0];
@@ -103,8 +125,8 @@ const RepositorySelectorInput: React.FC<RepositorySelectorInputProps> = props =>
         setMatchedFolderText(matchedText);
       } else {
         // 无输入项，重置选中元素的父级
-        const selectedNode = getTreeNodeByKey(folderTreeData, treeSelectedKeys[0]);
-        reverseTreeNodes(folderTreeData, selectedNode, node => {
+        const selectedNode = getTreeNodeByKey(clonedFolderTreeData, treeSelectedKeys[0]);
+        reverseTreeNodes(clonedFolderTreeData, selectedNode, node => {
           needExpandedKeys.push(node.key);
         });
       }
@@ -112,14 +134,26 @@ const RepositorySelectorInput: React.FC<RepositorySelectorInputProps> = props =>
       setTreeAutoExpandParent(true);
       setTreeExpandedKeys(needExpandedKeys);
 
+      let displayFolderKeySet = new Set(flattenedTreeData.map(n => n.key));
+      const filterHiddenNodes = nodes => {
+        const filteredNodes = nodes.filter(
+          node => displayFolderKeySet.has(node.key) && !hiddenSelfAndChildrenKeys.has(node.key),
+        );
+        filteredNodes.forEach(node => {
+          if (hasArrayItem(node.children)) {
+            node.children = filterHiddenNodes(node.children);
+          }
+        });
+        return filteredNodes;
+      };
+
       if (text) {
-        const clonedFolderTreeData = cloneDeep(folderTreeData);
         // 标记节点的显示隐藏状态
         const getDisplayFolderKey = (nodes, parentKeys = [], result = []) => {
           if (hasArrayItem(nodes)) {
             nodes.forEach(node => {
               parentKeys = parentKeys.concat(node.key);
-              if (matchedText[node.key]) {
+              if (matchedText[node.key] && !hiddenSelfAndChildrenKeys.has(node.key)) {
                 result = result.concat(parentKeys);
               }
               result = getDisplayFolderKey(node.children, parentKeys, result);
@@ -131,27 +165,23 @@ const RepositorySelectorInput: React.FC<RepositorySelectorInputProps> = props =>
           return result;
         };
 
-        const displayFolderKeySet = new Set(getDisplayFolderKey(clonedFolderTreeData));
-
-        const filterHiddenNodes = nodes => {
-          const filteredNodes = nodes.filter(node => displayFolderKeySet.has(node.key));
-          filteredNodes.forEach(node => {
-            if (hasArrayItem(node.children)) {
-              node.children = filterHiddenNodes(node.children);
-            }
-          });
-          return filteredNodes;
-        };
-        return filterHiddenNodes(clonedFolderTreeData);
+        displayFolderKeySet = new Set(getDisplayFolderKey(clonedFolderTreeData));
       }
 
-      return folderTreeData;
+      return filterHiddenNodes(clonedFolderTreeData);
     },
     {
       refreshDeps: [folderTreeData, searchText],
       debounceWait: 500,
     },
   );
+
+  const loading = useMemo(() => handleLoading || queryLoading, [handleLoading, queryLoading]);
+
+  useImperativeHandle(actionRef, () => ({
+    folderTreeData,
+    loading,
+  }));
 
   // 扁平化的树形结构
   const selectOptions = React.useMemo(() => {
@@ -206,6 +236,7 @@ const RepositorySelectorInput: React.FC<RepositorySelectorInputProps> = props =>
         </div>
 
         <Tree.DirectoryTree
+          disabled={loading}
           treeData={treeData}
           expandAction={false}
           className={cx('tree')}

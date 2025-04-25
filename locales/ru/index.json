@@ -650,6 +650,7 @@
       "list": "Список",
       "minder": "?->Ментальная карта",
       "folderTree": {
+        "repositoryName": "Имя",
         "placeholder": "Введите название модуля",
         "inputNameValidatorMessage": [
           "Названия модулей не могут повторяться на одном уровне",
@@ -660,6 +661,10 @@
         "createChildFolder": "Новый подмодуль",
         "createChildFolderSuccess": " Подмодуль успешно создан",
         "renameFolder": "Переименовать модуль",
+        "moveFolder": "Переместить модуль",
+        "moveFolderSuccess": "Переместить модуль создан",
+        "copyFolder": "Копирование модуль",
+        "copyFolderSuccess": "Копирование модуль создан",
         "renameFolderSuccess": "Модуль будет переименован в",
         "deleteFolder": "Удалить модуль",
         "deleteFolderTips": [
@@ -690,6 +695,8 @@
       "menu": {
         "menusName": [
           "Новый подмодуль",
+          "Переместить",
+          "Копирование",
           "Переименовать",
           "Удалить",
           "Расширять",

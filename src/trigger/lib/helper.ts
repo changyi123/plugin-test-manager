@@ -165,6 +165,7 @@ export const updateProcessBar = async (
   value: number,
   message?: string,
 ): Promise<void> => {
+  if (!id) return;
   const ProcessBar = getParseModel(false, 'ProcessBar');
   const processBar = ProcessBar.createWithoutData(id);
 
