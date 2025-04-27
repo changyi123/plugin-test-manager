@@ -112,6 +112,7 @@ const RepoDropDown = ({
       if (copyRes?.status === 'error') {
         notification.error({
           message: `${t('page.repository.repoDropDown.createTestCaseFail')}：${copyRes.data}`,
+          closeIcon: null,
         });
       } else {
         // 成功

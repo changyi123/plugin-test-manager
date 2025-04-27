@@ -491,10 +491,10 @@ export const batchCreateTestRun = async () => {
             // 关联数据，测试执行关联测试执行任务
             const linkData = executionId
               ? {
-                linkType: TestLinkType.RunLinkExecution,
-                linkItems: [executionId],
-                plan: testPlan.objectId,
-              }
+                  linkType: TestLinkType.RunLinkExecution,
+                  linkItems: [executionId],
+                  plan: testPlan.objectId,
+                }
               : null;
             const params = _case.find(i => i.caseId === data.objectId);
 
