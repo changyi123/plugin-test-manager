@@ -20,6 +20,8 @@ export {
   addExecutionToPlan,
   removeCaseFromPlan,
   removeExecutionFromPlan,
+  batchLinkBugsToRun,
+  batchRemoveBugsWithRun,
 } from './modules/api/batch';
 
 export { testExecutionStats, testCaseStats, testCount } from './modules/api/stats';

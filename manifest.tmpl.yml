@@ -2,7 +2,7 @@ app:
   key: test_manager
   uuid: bf73e61c-e15a-4461-a1f7-f940c2009332
   name: test_manager
-  version: "4.35.1"
+  version: "4.35.2"
 modules:
   webtrigger:
     # TODO: Debug 使用，生产环境禁止调用下面的 trigger
@@ -100,6 +100,10 @@ modules:
       function: api-remove-execution-from-plan-function
     - key: api-remove-case-from-plan
       function: api-remove-case-from-plan-function
+    - key: api-batch-link-bug
+      function: api-batch-link-bug-function
+    - key: api-batch-remove-bug
+      function: api-batch-remove-bug-function
     # 数据统计
     - key: api-stats-test-plan
       function: api-stats-test-plan-function
@@ -358,6 +362,11 @@ modules:
       timeout: 300000
     - key: api-remove-case-from-plan-function
       handler: api.removeCaseFromPlan
+    - key: api-batch-link-bug-function
+      handler: api.batchLinkBugsToRun
+      timeout: 300000
+    - key: api-batch-remove-bug-function
+      handler: api.batchRemoveBugsWithRun
       timeout: 300000
 
     # api stats

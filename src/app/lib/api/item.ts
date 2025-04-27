@@ -30,7 +30,6 @@ import { BaseTestEntity, CopyTestCasePayload, Status, TestEntity } from '../type
 import { getPluginWebTriggerBaseUrl, getSessionToken } from '../utils/helper';
 import { SearchSelectors, selectorToIql } from '../utils/iql';
 import { compactStepModel } from '../utils/modelTransfer';
-import { createItemLink, deleteItemLink, getExistedItemLinks, IItemLink } from './runs';
 
 const pluginWebTriggerBaseUrl = getPluginWebTriggerBaseUrl();
 
@@ -53,9 +52,9 @@ export const handleSelector = selector => {
     const data = pick(systemSelector, SYSTEM_FIELD.Status)?.[SYSTEM_FIELD.Status];
     selectors[SYSTEM_FIELD.Status] = data
       ? {
-          ...data,
-          value: data?.value?.map(d => d.value),
-        }
+        ...data,
+        value: data?.value?.map(d => d.value),
+      }
       : {};
   }
 
@@ -64,10 +63,10 @@ export const handleSelector = selector => {
     const data = pick(customSelector, RepositoryModel)?.[RepositoryModel];
     selectors[RepositoryModel] = data
       ? {
-          ...data,
-          component: 'Dropdown',
-          fieldName: 'test_manager_repository',
-        }
+        ...data,
+        component: 'Dropdown',
+        fieldName: 'test_manager_repository',
+      }
       : {};
   }
 
@@ -76,9 +75,9 @@ export const handleSelector = selector => {
     const data = pick(customSelector, TestRunDesigneeModel)?.[TestRunDesigneeModel];
     selectors[TestRunDesigneeModel] = data
       ? {
-          ...data,
-          fieldName: TestRunDesigneeModel,
-        }
+        ...data,
+        fieldName: TestRunDesigneeModel,
+      }
       : {};
   }
 
@@ -87,9 +86,9 @@ export const handleSelector = selector => {
     const data = pick(customSelector, TestRunExecutorModel)?.[TestRunExecutorModel];
     selectors[TestRunExecutorModel] = data
       ? {
-          ...data,
-          fieldName: TestRunExecutorModel,
-        }
+        ...data,
+        fieldName: TestRunExecutorModel,
+      }
       : {};
   }
 
@@ -98,9 +97,9 @@ export const handleSelector = selector => {
     const data = pick(customSelector, TestCaseStatusModel)?.[TestCaseStatusModel];
     selectors[TestCaseStatusModel] = data
       ? {
-          ...data,
-          fieldName: TestCaseStatusModel,
-        }
+        ...data,
+        fieldName: TestCaseStatusModel,
+      }
       : {};
   }
 
@@ -117,8 +116,8 @@ export const getTestEntityByQuery = async (
   props:
     | QueryTestEntityPayload
     | {
-        selector?: SearchSelectors | string;
-      },
+      selector?: SearchSelectors | string;
+    },
   handleQuery?: (val: any) => any,
 ) => {
   props = handleQuery ? handleQuery(props) : props;
@@ -162,8 +161,8 @@ export const getLinkedTestEntityByQuery = async (
   props:
     | QueryLinkedTestEntityPayload
     | {
-        selector?: SearchSelectors;
-      },
+      selector?: SearchSelectors;
+    },
   handleQuery?: (val: any) => any,
 ) => {
   props = handleQuery ? handleQuery(props) : props;
@@ -623,75 +622,34 @@ export const updateTestRunDetail = async (
 
 // 新增缺陷关联
 export const addTestDefect = async (
-  itemLinkTypeId: string,
+  itemLinkType: string,
   testRunEntity: TestEntity<TestType.Run>,
   defectItemIds: string[],
+  stepId?: string,
 ) => {
-  const itemLinks = defectItemIds.reduce((itemLinks, defectItemId) => {
-    // 测试用例事项和缺陷事项关联
-    itemLinks.push({
-      linkType: itemLinkTypeId,
-      source: testRunEntity.objectId,
-      destination: defectItemId,
-    });
-
-    // 测试用例事项和缺陷事项关联
-    itemLinks.push({
-      linkType: itemLinkTypeId,
-      source: testRunEntity.linkItems[0],
-      destination: defectItemId,
-    });
-
-    return itemLinks;
-  }, [] as IItemLink[]);
-
-  return createItemLink(itemLinks);
+  await batchLinkBugs({
+    itemLinkType,
+    caseId: testRunEntity.referenceCase,
+    executionId: testRunEntity.linkItems[0],
+    defectItemIds,
+    stepId,
+  });
 };
 
 // 删除缺陷关联
 export const deleteTestDefect = async (
-  itemLinkTypeId: string,
+  itemLinkType: string,
   run: TestEntity<TestType.Run>,
   defectItemIds: string[],
+  stepId?: string,
 ) => {
-  // 测试用例的事项ID
-  const testItemId = run?.objectId;
-  const testExcItemId = run?.linkItems[0];
-  const itemLink: Array<IItemLink> = [];
-  defectItemIds.forEach(item => {
-    // 测试用例与缺陷关联
-    itemLink.push({
-      linkType: itemLinkTypeId,
-      source: testItemId,
-      destination: item,
-    });
-    // 测试执行与缺陷关联
-    itemLink.push({
-      linkType: itemLinkTypeId,
-      source: testExcItemId,
-      destination: item,
-    });
+  return await batchRemoveBugs({
+    itemLinkType,
+    caseId: run.referenceCase,
+    executionId: run.linkItems[0],
+    defectItemIds,
+    stepId,
   });
-
-  const results = await getExistedItemLinks(itemLink);
-
-  const deleteDefectItemIds: string[] = [];
-  itemLink.forEach(item => {
-    const deleteItem = results.find(item2 => {
-      const { linkType, source, destination } = item2.toJSON();
-      if (
-        linkType.objectId === item.linkType &&
-        source?.objectId === item?.source &&
-        destination?.objectId === item?.destination
-      ) {
-        return item2;
-      }
-    });
-    if (deleteItem) {
-      deleteDefectItemIds.push(deleteItem.id);
-    }
-  });
-  return deleteItemLink(deleteDefectItemIds);
 };
 
 // 测试计划数据统计接口
@@ -751,6 +709,46 @@ export const getRepositoryTreeV2 = async (params: RepositoryTreePayload) => {
     };
   }
   return data;
+};
+
+// 执行关联缺陷
+export const batchLinkBugs = async (data: {
+  itemLinkType: string;
+  caseId: string;
+  executionId: string;
+  defectItemIds: string[];
+  stepId?: string;
+}) => {
+  try {
+    const res = await fetch.post(`${pluginWebTriggerBaseUrl}/api-batch-link-bug`, {
+      ...data,
+      sessionToken: getSessionToken(),
+    });
+
+    return res;
+  } catch (error) {
+    return error;
+  }
+};
+
+// 执行移除缺陷
+export const batchRemoveBugs = async (data: {
+  itemLinkType: string;
+  caseId: string;
+  executionId: string;
+  defectItemIds: string[];
+  stepId?: string;
+}) => {
+  try {
+    const res = await fetch.post(`${pluginWebTriggerBaseUrl}/api-batch-remove-bug`, {
+      ...data,
+      sessionToken: getSessionToken(),
+    });
+
+    return res;
+  } catch (error) {
+    return error;
+  }
 };
 
 // 获取测试用例的测试执行

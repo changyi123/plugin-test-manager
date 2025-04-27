@@ -64,29 +64,15 @@ const TestStep: React.FC<TestStepProps> = props => {
   // 添加缺陷
   const handleDefectAdd = async (stepId, defectItemIds) => {
     // onLoading();
-    const needUpdateSteps = runSteps.map(step =>
-      step.id === stepId ? { ...step, defectItemIds } : step,
-    );
-    await Promise.all([
-      addTestDefect(TestToDefect, testRunData, defectItemIds),
-      updateTestRunDetail(testRunEntity, { steps: needUpdateSteps, planId: selectedTestPlanId }),
-    ]);
+    await addTestDefect(TestToDefect, testRunData, defectItemIds, stepId);
     onDataChange();
   };
 
   // 删除缺陷
   const handleDeleteDefect = async (stepId, defectItemId) => {
     onLoading();
-    const needUpdateSteps = runSteps.map(step =>
-      step.id === stepId
-        ? { ...step, defectItemIds: step.defectItemIds.filter(itemId => itemId !== defectItemId) }
-        : step,
-    );
 
-    await Promise.all([
-      deleteTestDefect(TestToDefect, testRunData, [defectItemId]),
-      updateTestRunDetail(testRunEntity, { steps: needUpdateSteps, planId: selectedTestPlanId }),
-    ]);
+    await deleteTestDefect(TestToDefect, testRunData, [defectItemId], stepId);
     onDataChange();
   };
 

@@ -1,10 +1,17 @@
 import { i18n } from '@giteeteam/apps-api';
-import { getParseQuery, requestCoreApi } from '@giteeteam/apps-team-api';
+import {
+  deleteParseObject,
+  getParseModel,
+  getParseQuery,
+  requestCoreApi,
+  saveAllObject,
+} from '@giteeteam/apps-team-api';
 import { addAuditLog } from '@giteeteam/apps-team-api';
 import { omit } from 'lodash';
 import isObject from 'lodash/isObject';
 
 import {
+  AppKey,
   BuiltinFieldNameMapping,
   BuiltInItemTypeMapping,
   FIELD_TYPE,
@@ -47,6 +54,7 @@ import {
   generateSortIndex,
   getAllEntity,
   initProcessBar,
+  toPointer,
   uuidv4,
 } from '../../lib/helper';
 import { iqlRequest } from '../../lib/iqlRequest';
@@ -61,7 +69,7 @@ import {
   removeExecutionFromPlanWorker,
   updateItemsV2,
 } from '../job';
-import { operateSnapshots, queryFields } from './../../lib/coreApi';
+import { bulkUpdateItems, iqlSearch, operateSnapshots, queryFields } from './../../lib/coreApi';
 
 type TestCaseType = TestEntity<TestType.Case>;
 type TestRunType = TestEntity<TestType.Run>;
@@ -690,12 +698,12 @@ export const batchCopyTestCase = async () => {
       values: dataValuesExceptionHandler(data.values),
       detail: data.detail
         ? {
-            ...data.detail,
-            steps: data.detail?.steps?.map(s => ({
-              ...s,
-              id: uuidv4(),
-            })),
-          }
+          ...data.detail,
+          steps: data.detail?.steps?.map(s => ({
+            ...s,
+            id: uuidv4(),
+          })),
+        }
         : {},
       repository: repository === undefined ? data.repository : repository,
     }));
@@ -852,5 +860,350 @@ export const addExecutionToPlan = async () => {
     });
   } catch (err) {
     return buildResponse(err);
+  }
+};
+
+const getItemLinkType = async () => {
+  const ParseBaseQueryOptions = { useMasterKey: true };
+  const globalTestConfig = await getParseQuery(true, 'TestConfig')
+    .equalTo('global', true)
+    .select(['extra'])
+    .first(ParseBaseQueryOptions);
+  if (!globalTestConfig) throw new Error('未找到对应关联类型');
+  const itemLinkType = globalTestConfig.get('extra')?.itemLinkTypeMapping?.TestToDefect;
+  if (!itemLinkType) throw new Error('未找到对应关联类型');
+  return itemLinkType;
+};
+
+const getLinkItems = async ({ caseId, executionId, defectItemIds }) => {
+  const linkItems = [...defectItemIds, caseId, executionId];
+  const {
+    payload: { items },
+  } = await iqlSearch({
+    iql: `(test_manager_referenceCase = '${caseId}' and test_manager_linkItems in ['${executionId}']) or id in ${JSON.stringify(
+      linkItems,
+    )}`,
+    fields: ['id', 'itemType', TestFiledKeyMapping.runDetail, TestFiledKeyMapping.type],
+    displayContext: AppKey,
+    size: linkItems.length + 1,
+  });
+
+  const bugIds = [];
+  let caseItem = null;
+  let execution = null;
+  let run = null;
+
+  console.info('batchLinkBugsToRun query result', items);
+  items.forEach(item => {
+    const typeKey = item.values?.[TestFiledKeyMapping.type];
+    switch (typeKey) {
+      case TestType.Run:
+        run = item;
+        break;
+      case TestType.Case:
+        caseItem = item;
+        break;
+      case TestType.Execution:
+        execution = item;
+        break;
+      default:
+        bugIds.push(item.id);
+    }
+  });
+  console.info('batchLinkBugsToRun run and bug', bugIds, run);
+
+  if (!bugIds.length) throw new Error('对应缺陷未找到');
+  if (!run) throw new Error('测试用例尚未规划进执行任务');
+  if (!execution) throw new Error('测试执行任务未找到');
+
+  return {
+    run,
+    caseItem,
+    execution,
+    bugIds,
+  };
+};
+
+const getLinkedBugs = async ({ bugIds, runId, caseId, executionId, itemLinkType }) => {
+  const existedItemLinks = await getParseQuery(false, 'ItemLink')
+    .equalTo('linkType', itemLinkType)
+    .containedIn('destination', bugIds)
+    .findAll({ useMasterKey: true });
+  console.info('batchLinkBugsToRun existedItemLinks', existedItemLinks);
+
+  const runLinkedBugs = [];
+  const executionLinkedBugs = [];
+  const caseLinkedBugs = [];
+  const otherLinks = [];
+  const existedLinksMap = new Map();
+
+  existedItemLinks.forEach(link => {
+    const sourceId = link.get('source').objectId;
+    const bugId = link.get('destination').objectId;
+    if (existedLinksMap.get(sourceId)) {
+      existedLinksMap.get(sourceId).push({ id: link.id, bug: bugId });
+    } else {
+      existedLinksMap.set(sourceId, [{ id: link.id, bug: bugId }]);
+    }
+
+    switch (sourceId) {
+      case runId:
+        runLinkedBugs.push(bugId);
+        break;
+      case caseId:
+        caseLinkedBugs.push(bugId);
+        break;
+      case executionId:
+        executionLinkedBugs.push(bugId);
+        break;
+      default:
+        otherLinks.push({ bug: bugId, source: sourceId });
+    }
+  });
+  console.info(
+    'batchLinkBugsToRun runLinkedBugs executionLinkedBugs',
+    runLinkedBugs,
+    existedItemLinks,
+  );
+
+  return {
+    existedLinksMap,
+    otherLinks,
+    runLinkedBugs,
+    executionLinkedBugs,
+    caseLinkedBugs,
+  };
+};
+
+const getHandleItemLinkParams = async ({ caseId, executionId, defectItemIds }) => {
+  const { run, bugIds } = await getLinkItems({
+    caseId,
+    executionId,
+    defectItemIds,
+  });
+  const itemLinkType = await getItemLinkType();
+  const linkedBugs = await getLinkedBugs({
+    caseId,
+    executionId,
+    runId: run.id,
+    bugIds,
+    itemLinkType,
+  });
+
+  return {
+    run,
+    linkItemIds: { caseId, executionId, bugIds, runId: run.id },
+    itemLinkType,
+    linkedBugs,
+  };
+};
+
+const addItemLinks = async ({
+  itemLinkType,
+  linkItemIds: { bugIds, runId, executionId, caseId },
+  linkedBugs: { runLinkedBugs, executionLinkedBugs, caseLinkedBugs },
+}) => {
+  const bugLinks = [];
+  const ItemLink = getParseModel(false, 'ItemLink');
+
+  bugIds
+    .filter(bug => !runLinkedBugs.includes(bug))
+    .forEach(bug => {
+      const link = new ItemLink();
+      link.set('source', toPointer('Item', runId));
+      link.set('destination', toPointer('Item', bug));
+      link.set('linkType', toPointer('ItemLinkType', itemLinkType));
+      bugLinks.push(link);
+    });
+
+  bugIds
+    .filter(bug => !executionLinkedBugs.includes(bug))
+    .forEach(bug => {
+      const link = new ItemLink();
+      link.set('source', toPointer('Item', executionId));
+      link.set('destination', toPointer('Item', bug));
+      link.set('linkType', toPointer('ItemLinkType', itemLinkType));
+      bugLinks.push(link);
+    });
+  caseId &&
+    bugIds
+      .filter(bug => !caseLinkedBugs.includes(bug))
+      .forEach(bug => {
+        const link = new ItemLink();
+        link.set('source', toPointer('Item', caseId));
+        link.set('destination', toPointer('Item', bug));
+        link.set('linkType', toPointer('ItemLinkType', itemLinkType));
+        bugLinks.push(link);
+      });
+
+  console.info('batchLinkBugsToRun bugLinks', bugLinks.length);
+  await saveAllObject(bugLinks);
+};
+
+// 关联执行和缺陷
+export const batchLinkBugsToRun = async () => {
+  const {
+    body: { caseId, executionId, defectItemIds, stepId },
+  } = getReqInfoFromVMRuntime<{
+    caseId: string;
+    executionId: string;
+    defectItemIds: string[];
+    stepId?: string;
+  }>();
+  try {
+    if (!Array.isArray(defectItemIds)) throwArgumentError('defectItemIds', 'objectId[]');
+    if (defectItemIds.length > 100) throwArgumentError('defectItemIds', '关联缺陷最多100条');
+    if (!caseId) throwArgumentError('caseId', 'objectId');
+    if (!executionId) throwArgumentError('executionId', 'objectId');
+
+    const handleItemLinkParams = await getHandleItemLinkParams({
+      caseId,
+      defectItemIds,
+      executionId,
+    });
+    await addItemLinks(handleItemLinkParams);
+
+    const run = handleItemLinkParams?.run;
+    let runDetail = {} as any;
+    try {
+      runDetail = JSON.parse(run.values?.[TestFiledKeyMapping.runDetail] || '{}');
+    } catch (e) {
+      console.error(`JSON parse runDetail error, ->`, runDetail, e.message);
+    }
+
+    const getDefectItemIds = (currentDefectItemIds = []) => [
+      ...new Set(currentDefectItemIds.concat(defectItemIds)),
+    ];
+    if (stepId) {
+      runDetail?.steps?.forEach(step => {
+        if (step.id === stepId) step.defectItemIds = getDefectItemIds(step.defectItemIds);
+      });
+    } else {
+      runDetail = {
+        ...runDetail,
+        defectItemIds: getDefectItemIds(runDetail.defectItemIds),
+      };
+    }
+    await bulkUpdateItems({
+      updates: [
+        {
+          itemIds: [run.id],
+          customField: TestFiledKeyMapping.runDetail,
+          value: JSON.stringify(runDetail),
+        },
+      ],
+    });
+
+    return buildResponse(defectItemIds);
+  } catch (error) {
+    return buildResponse(error);
+  }
+};
+
+// 移除执行和缺陷的关联
+export const batchRemoveBugsWithRun = async () => {
+  const {
+    body: { caseId, executionId, defectItemIds, stepId },
+  } = getReqInfoFromVMRuntime<{
+    caseId: string;
+    executionId: string;
+    defectItemIds: string[];
+    stepId?: string;
+  }>();
+
+  try {
+    if (!Array.isArray(defectItemIds)) throwArgumentError('defectItemIds', 'objectId[]');
+    if (!caseId) throwArgumentError('caseId', 'objectId');
+    if (!executionId) throwArgumentError('executionId', 'objectId');
+
+    const {
+      run,
+      linkedBugs: { existedLinksMap, otherLinks },
+    } = await getHandleItemLinkParams({
+      caseId,
+      executionId,
+      defectItemIds,
+    });
+
+    let deleteLinks = [
+      ...(existedLinksMap.get(caseId) || []).map(link => link.id),
+      ...(existedLinksMap.get(run.id) || []).map(link => link.id),
+    ];
+
+    // 如果同一用例重复规划进测试执行任务，只有在所有用例的执行都不关联该缺陷时，才删除执行任务和缺陷的关联
+    const otherLinkedItemIds = otherLinks.map(link => link.source);
+    if (otherLinkedItemIds.length) {
+      const {
+        payload: { items },
+      } = await iqlSearch({
+        iql: `id in ${JSON.stringify(
+          otherLinkedItemIds,
+        )} and test_manager_linkItems in ['${executionId}'] and test_manager_type = 'TestRun'`,
+        fields: ['id'],
+        displayContext: AppKey,
+        size: 9999,
+      });
+      if (items.length) {
+        const otherRunLinkedBugs = items.flatMap(i =>
+          (existedLinksMap.get(i.id) || []).map(link => link.bug),
+        );
+        const executionLinks = existedLinksMap.get(executionId) || [];
+        const needDeleteLinks = executionLinks.reduce((links, link) => {
+          if (!otherRunLinkedBugs.includes(link.bug) && !links.includes(link.id)) {
+            links.push(link.id);
+          }
+          return links;
+        }, []);
+        deleteLinks = deleteLinks.concat(needDeleteLinks);
+      } else {
+        deleteLinks = deleteLinks.concat([
+          ...(existedLinksMap.get(executionId) || []).map(link => link.id),
+        ]);
+      }
+    } else {
+      deleteLinks = deleteLinks.concat([
+        ...(existedLinksMap.get(executionId) || []).map(link => link.id),
+      ]);
+    }
+
+    const ItemLink = getParseModel(false, 'ItemLink');
+    deleteLinks.filter(Boolean).forEach(async link => {
+      await deleteParseObject(ItemLink.createWithoutData(link));
+    });
+
+    let runDetail = {} as any;
+    try {
+      runDetail = JSON.parse(run.values?.[TestFiledKeyMapping.runDetail] || '{}');
+    } catch (e) {
+      console.error(`JSON parse runDetail error, ->`, runDetail, e.message);
+      return;
+    }
+    const getDefectItemIds = (currentDefectItemIds = []) => [
+      ...new Set(currentDefectItemIds.filter(id => !defectItemIds.includes(id))),
+    ];
+    if (stepId) {
+      runDetail?.steps?.forEach(step => {
+        if (step.id === stepId) step.defectItemIds = getDefectItemIds(step.defectItemIds);
+      });
+    } else {
+      runDetail = {
+        ...runDetail,
+        defectItemIds: getDefectItemIds(runDetail.defectItemIds),
+      };
+    }
+
+    await bulkUpdateItems({
+      updates: [
+        {
+          itemIds: [run.id],
+          customField: TestFiledKeyMapping.runDetail,
+          value: JSON.stringify(runDetail),
+        },
+      ],
+    });
+
+    return buildResponse(defectItemIds);
+  } catch (error) {
+    return buildResponse(error);
   }
 };

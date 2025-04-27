@@ -20,7 +20,6 @@ import {
   EXPORT_PLAN_FIELDS,
   EXPORT_TEST_FIELDS,
   IQLFieldNameMapping,
-  SystemField,
   TestLinkType,
   TestType,
 } from '@/lib/constants';

@@ -174,3 +174,8 @@ export const updateProcessBar = async (
   }
   await saveAllObject([processBar]);
 };
+export const toPointer = (className: string, objectId: string) => ({
+  __type: 'Pointer',
+  className,
+  objectId,
+});
