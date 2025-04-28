@@ -1,11 +1,12 @@
 import fetch from '@/lib/utils/fetch';
-import { getPluginWebTriggerBaseUrl } from '@/lib/utils/helper';
+import { getPluginWebTriggerBaseUrl, getSessionToken } from '@/lib/utils/helper';
 
 import {
   AddExecuteToPlanProcessParams,
   RemoveCaseFromPlanProcessParams,
   RemoveExecuteFromPlanProcessParams,
 } from '../../../common/types/api';
+import { RetryPayloadProcessParams } from './../../../common/types/api';
 const pluginWebTriggerBaseUrl = getPluginWebTriggerBaseUrl();
 
 /** 发送消息通知 */
@@ -21,4 +22,11 @@ export const removeTestExecutionFromTestPlan = async (
   payload: RemoveExecuteFromPlanProcessParams,
 ) => {
   return fetch.$post(`${pluginWebTriggerBaseUrl}/api-remove-execution-from-plan`, payload);
+};
+
+export const retryBatchAction = async (payload: RetryPayloadProcessParams) => {
+  return fetch.$post(`${pluginWebTriggerBaseUrl}/api-retry`, {
+    ...payload,
+    sessionToken: getSessionToken(),
+  });
 };

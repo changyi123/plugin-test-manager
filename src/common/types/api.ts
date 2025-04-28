@@ -438,3 +438,9 @@ export type RemoveCaseFromPlanPayload = {
   caseIds: string[];
 };
 export type RemoveCaseFromPlanProcessParams = ProcessApiParams<RemoveCaseFromPlanPayload>;
+
+export type RetryPayload = {
+  /** 重试 id */
+  retryId: string;
+};
+export type RetryPayloadProcessParams = ProcessApiParams<RetryPayload>;

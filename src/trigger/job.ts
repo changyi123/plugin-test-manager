@@ -6,4 +6,5 @@ export {
   addExecutionToPlanJob,
   removeCaseFromPlanJob,
   removeExecutionFromPlanJob,
+  retryJob,
 } from './modules/job/index';

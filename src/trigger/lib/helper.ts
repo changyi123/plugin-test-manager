@@ -184,3 +184,31 @@ export const updateProcessBar = async (
   }
   await saveAllObject([processBar]);
 };
+
+// 记录批量操作记录
+export const insertBatchRecord = async (params: {
+  type: string;
+  items: string[];
+  params: any;
+  error?: any;
+  retryId?: string;
+}): Promise<string> => {
+  const BatchRecord = getParseModel(true, 'BatchHandleRecord');
+  const record = new BatchRecord(params);
+  // TODO 目前失败时才插入
+  record.set('status', 'fail');
+  const result = await saveAllObject([record]);
+  return result[0]?.id;
+};
+
+// 更新批量操作记录
+export const updateBatchRecordsDone = async (ids: string[]): Promise<void> => {
+  if (!ids.length) return;
+  const BatchRecord = getParseModel(true, 'BatchHandleRecord');
+  const records = ids.map(id => {
+    const record = BatchRecord.createWithoutData(id);
+    record.set('status', 'done');
+    return record;
+  });
+  await saveAllObject(records);
+};
