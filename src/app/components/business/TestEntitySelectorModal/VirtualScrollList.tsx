@@ -25,6 +25,7 @@ interface VirtualScrollListProps {
   setSelectCaseIdsSet?: (val?: Set<string>) => void;
   setCurrent?: (val: number) => void;
   validateCaseStatus?: boolean;
+  loading?: boolean;
 }
 
 const VirtualScrollList: React.FC<VirtualScrollListProps> = props => {
@@ -40,6 +41,7 @@ const VirtualScrollList: React.FC<VirtualScrollListProps> = props => {
     setSelectCaseIdsSet,
     setCurrent,
     validateCaseStatus,
+    loading,
   } = props;
   const { t } = useI18n();
   const { groupArray, groups, totalCount } = useGetVirtualScrollList(group, current);
@@ -165,8 +167,10 @@ const VirtualScrollList: React.FC<VirtualScrollListProps> = props => {
           groupCounts={groupCounts}
           groupContent={groupContent}
           itemContent={itemContent}
+          disabled={loading}
           atBottomStateChange={atBottom => {
             if (atBottom) {
+              if (loading) return;
               if (!items?.length) return;
               if (!groupCounts?.length) return;
               if (!totalCount) return;

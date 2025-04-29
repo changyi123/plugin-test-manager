@@ -1,10 +1,12 @@
-import { Collapse, ConfigProvider, Progress } from 'antd/lib';
-import React, { useEffect, useImperativeHandle, useMemo, useState } from 'react';
+import { Button, Collapse, ConfigProvider, Progress, Typography } from 'antd/lib';
+import React, { useCallback, useEffect, useImperativeHandle, useMemo, useState } from 'react';
 
 import {
   IProgressBarUpdateProps,
   useWatchProgressUpdate,
 } from '@/lib/hooks/useWatchProgressUpdate';
+
+import { retryWithProcess } from './hooks';
 
 const ellipsis = {
   overflow: 'hidden',
@@ -28,6 +30,8 @@ interface BatchResultRefMethod {
 }
 
 const DEFAULT_RESULT = {
+  retryId: null,
+  items: [],
   message: [],
   total: 0,
   fail: 0,
@@ -53,8 +57,8 @@ const BatchResult: React.ForwardRefRenderFunction<BatchResultRefMethod, IProgres
           message: [processDesc],
         };
       }
-      return result;
     }
+    return result;
   }, [processDesc]);
 
   const showError = useMemo(() => !!batchResult?.message?.length, [batchResult]);
@@ -78,6 +82,15 @@ const BatchResult: React.ForwardRefRenderFunction<BatchResultRefMethod, IProgres
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const retry = useCallback(async () => {
+    await retryWithProcess({
+      retryId: batchResult.retryId,
+      handleSuccess: () => false,
+    });
+  }, [batchResult.retryId]);
+
+  const hasFail = useMemo(() => batchResult?.fail > 0, [batchResult?.fail]);
+
   if (!visible) return null;
 
   return (
@@ -89,11 +102,24 @@ const BatchResult: React.ForwardRefRenderFunction<BatchResultRefMethod, IProgres
           <span style={{ color: '#09b866' }}> {batchResult?.success ?? 0} </span>
           <strong>条</strong>
         </span>
-        <span>
-          <strong>失败:</strong>
-          <span style={{ color: '#ff4d0d' }}> {batchResult?.fail ?? 0} </span>
-          <strong>条</strong>
-        </span>
+        {hasFail && (
+          <span>
+            <strong>失败:</strong>
+            <span>
+              {' '}
+              <Typography.Text
+                type="danger"
+                copyable={{ text: `id in ${JSON.stringify(batchResult?.items || [])}` }}
+              >
+                {batchResult.fail}
+              </Typography.Text>{' '}
+            </span>
+            <strong>条</strong>
+            <Button type="link" onClick={retry}>
+              重试
+            </Button>
+          </span>
+        )}
       </div>
 
       {showError ? (
@@ -116,7 +142,7 @@ const BatchResult: React.ForwardRefRenderFunction<BatchResultRefMethod, IProgres
                 children: (
                   <ul style={errorBox}>
                     {batchResult?.message?.map((text, key) => (
-                      <li key={key} style={ellipsis}>
+                      <li key={key} style={ellipsis} title={text}>
                         {text}
                       </li>
                     ))}

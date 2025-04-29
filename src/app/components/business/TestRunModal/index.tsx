@@ -8,15 +8,23 @@ import { getRootContainer } from '@/lib/utils/helper';
 
 import { SaveTriggerProvider, useSaveTriggerEvent } from './SaveTriggerEvent';
 import TestRun from './TestRun';
+import TestRunV2 from './TestRunV2';
 
 export type ActionType = {
   open: (data: { testId: string; testIdSequence?: string[] }) => Promise<void>;
 };
+export enum VERSION {
+  V1,
+  V2,
+}
+
 interface ITestRunModalProps {
   className?: string;
   actionRef?: React.ForwardedRef<ActionType>;
   idSequence?: string[];
   selectedTestPlanId?: string;
+  version?: VERSION;
+  getNext?: () => Promise<{ id: string; hasNext: boolean; end: boolean }>;
 }
 
 const CancelEventType = 'CancelEventType';
@@ -26,6 +34,8 @@ const TestRunModal: React.FC<ITestRunModalProps> = ({
   className,
   idSequence,
   selectedTestPlanId,
+  version = VERSION.V1,
+  getNext,
 }) => {
   const { t } = useI18n();
   const [isVisible, setIsVisible] = React.useState(false);
@@ -79,13 +89,20 @@ const TestRunModal: React.FC<ITestRunModalProps> = ({
         className={classnames(className)}
         footer={ModalFooterActionButtonsNode}
       >
-        {isVisible && (
-          <TestRun
-            id={testRunDepData.testId}
-            idSequence={testRunDepData.testIdSequence ?? idSequence}
-            selectedTestPlanId={selectedTestPlanId}
-          />
-        )}
+        {isVisible &&
+          (version === VERSION.V1 ? (
+            <TestRun
+              id={testRunDepData.testId}
+              idSequence={testRunDepData.testIdSequence ?? idSequence}
+              selectedTestPlanId={selectedTestPlanId}
+            />
+          ) : (
+            <TestRunV2
+              id={testRunDepData.testId}
+              getNext={getNext}
+              selectedTestPlanId={selectedTestPlanId}
+            />
+          ))}
       </Modal>
     </>
   );

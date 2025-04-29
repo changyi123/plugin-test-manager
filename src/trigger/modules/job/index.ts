@@ -16,6 +16,7 @@ import {
   IBatchUpdateParams,
   RemoveCaseFromPlanPayload,
   RemoveExecuteFromPlanPayload,
+  RetryPayload,
 } from '../../../common/types/api';
 import { TestEntity } from '../../../common/types/test';
 import { buildResponse } from '../../lib/apiUtil';
@@ -27,12 +28,20 @@ import {
   deleteItems,
   operateSnapshots,
 } from '../../lib/coreApi';
-import { generateSortIndex, getAllEntity, updateProcessBar } from '../../lib/helper';
+import {
+  generateSortIndex,
+  getAllEntity,
+  getMaxSortIndex,
+  insertBatchRecord,
+  updateBatchRecordsDone,
+  updateProcessBar,
+} from '../../lib/helper';
 import { iqlRequest } from '../../lib/iqlRequest';
 
 type TestRunType = TestEntity<TestType.Run>;
 type ProcessJobParams<T> = T & {
   processId?: string;
+  retry?: boolean;
 };
 
 const DEFAULT_CONFIG = {
@@ -46,6 +55,54 @@ const DEFAULT_CONFIG = {
     batchSize: 100,
   },
 };
+
+async function handleError(error, retry, result, processId) {
+  result.message.push(getErrorMessage(error));
+  processId && (await updateProcessBar(processId, -1, JSON.stringify(result)));
+  if (retry) throw error;
+  return buildResponse(result);
+}
+
+function safeStringify(obj) {
+  const seen = new WeakSet();
+  return JSON.stringify(obj, (key, value) => {
+    if (typeof value === 'object' && value !== null) {
+      if (seen.has(value)) {
+        return '[Circular]';
+      }
+      seen.add(value);
+    }
+    return value;
+  });
+}
+
+function safeToString(value) {
+  if (value === null) return 'null';
+  if (value === undefined) return 'undefined';
+  if (typeof value === 'string') return value;
+
+  try {
+    return typeof value === 'object' ? safeStringify(value) : String(value);
+  } catch (e) {
+    return Object.prototype.toString.call(value);
+  }
+}
+
+function getErrorMessage(error) {
+  return safeToString(error.message || error);
+}
+
+function getResult(retryId) {
+  return {
+    retryId,
+    message: [],
+    total: 0,
+    fail: 0,
+    success: 0,
+    skip: 0,
+    items: [],
+  };
+}
 
 const itemsV2BatchSize = (global.env?.BATCH_CONFIG?.ITEMS_V2 ?? DEFAULT_CONFIG.ITEMS_V2).batchSize;
 const deleteBatchSize = (global.env?.BATCH_CONFIG?.DELETE_V1 ?? DEFAULT_CONFIG.DELETE_V1).batchSize;
@@ -78,26 +135,39 @@ const batchUpdateItemsV2 = async props => {
   );
 };
 
+const getProcessValue = (index, step) => {
+  // 进度条向上取整，优化进度条开始进度
+  let processValue = Math.ceil((index * 100) / step);
+  // 向上取整为100，但是未走完则为99
+  if (processValue === 100 && index < step) processValue = 99;
+  return processValue;
+};
+
 const batchExecFunction = async ({ list, fun, batchSize }) => {
   const step = Math.ceil(list.length / batchSize);
 
   for (let index = 1; index <= step; index++) {
     const size = list.length > batchSize ? batchSize : list.length;
     const items = list.splice(0, size);
-    // 进度条向上取整，优化进度条开始进度
-    let processValue = Math.ceil((index * 100) / step);
-    // 向上取整为100，但是
-    if (processValue === 100 && index < step) processValue = 99;
-    await fun(items, processValue);
+    await fun(items, getProcessValue(index, step));
   }
 };
 
-const execWithProcess = async ({ processId, list, execFunc, getDesc, batchSize }) => {
+const execWithProcess = async ({
+  processId,
+  list,
+  execFunc,
+  getDesc,
+  batchSize,
+  getBatchRecord,
+}) => {
   const fun = async (items, processValue) => {
     try {
       await execFunc(items);
     } catch (e) {
-      console.error(e.message);
+      console.error('execWithProcess error:', e.message);
+      const params = getBatchRecord(items, e);
+      params && (await insertBatchRecord({ ...params, items }));
     } finally {
       await updateProcessBar(processId, processValue, getDesc());
     }
@@ -110,20 +180,10 @@ const execWithProcess = async ({ processId, list, execFunc, getDesc, batchSize }
   });
 };
 
-export const createTestRuns = async ({
-  execution,
-  caseIds,
-  workspace,
-  processId,
-  planId,
-}: ProcessJobParams<BatchCreateTestRunV2Payload>) => {
-  const result = {
-    message: [],
-    total: caseIds.length,
-    fail: 0,
-    success: 0,
-    skip: 0,
-  };
+export const createTestRuns = async (params: ProcessJobParams<BatchCreateTestRunV2Payload>) => {
+  const { execution, caseIds, workspace, processId, planId, retry } = params;
+  const result = getResult(processId);
+  result.total = caseIds.length;
   const withProcess = !!processId;
   try {
     // 初始的执行状态
@@ -184,21 +244,13 @@ export const createTestRuns = async ({
     // 校验需要规划的用例
     const validateCases = async cases => {
       console.info('batchCreateTestRunV2 validateCases start');
-      try {
-        const existedReferenceCases = await getExistedTestRuns(cases);
-        const existedReferenceCaseIdSet = new Set(
-          existedReferenceCases.map(item => item.referenceCase),
-        );
-        const validatedCases = cases.filter(testCase => !existedReferenceCaseIdSet.has(testCase));
-        result.skip += cases.length - validatedCases.length;
-        return validatedCases;
-      } catch (e) {
-        result.message.push(e.message);
-        result.fail += cases.length;
-        return [];
-      } finally {
-        console.info('batchCreateTestRunV2 validateCases end');
-      }
+      const existedReferenceCases = await getExistedTestRuns(cases);
+      const existedReferenceCaseIdSet = new Set(
+        existedReferenceCases.map(item => item.referenceCase),
+      );
+      const validatedCases = cases.filter(testCase => !existedReferenceCaseIdSet.has(testCase));
+      result.skip += cases.length - validatedCases.length;
+      return validatedCases;
     };
 
     // 创建测试执行
@@ -221,36 +273,26 @@ export const createTestRuns = async ({
             copy: 'objectId',
             valueType: 'item',
           },
-          [TestFiledKeyMapping.sortIndex]: {
-            copy: TestFiledKeyMapping.sortIndex,
-          },
           [TestFiledKeyMapping.runDetail]: {
             copy: TestFiledKeyMapping.detail,
           },
         },
       };
 
-      try {
-        await batchCreateItemsV2(
-          {
-            items: createParams,
-            parseContext: {
-              // 跳过事项创建校验
-              skipFormValidation: true,
-              // 跳过隐藏事项类型过滤
-              skipItemTypeQueryFilter: true,
-              // 跳过层级校验
-              skipItemValidationLevel: true,
-            },
+      await batchCreateItemsV2(
+        {
+          items: createParams,
+          parseContext: {
+            // 跳过事项创建校验
+            skipFormValidation: true,
+            // 跳过隐藏事项类型过滤
+            skipItemTypeQueryFilter: true,
+            // 跳过层级校验
+            skipItemValidationLevel: true,
           },
-          getHeaders(),
-        );
-      } catch (e) {
-        result.message.push(e.message || e);
-        result.fail += cases.length;
-      } finally {
-        console.info('batchCreateTestRunV2 createRuns end');
-      }
+        },
+        getHeaders(),
+      );
     };
 
     // 对用例打快照
@@ -341,22 +383,28 @@ export const createTestRuns = async ({
 
     // 对用例打快照
     const planCases = async cases => {
-      // 校验测试用例是否已经被规划进测试执行任务
-      const needPlanCases = await validateCases(cases);
-      if (!needPlanCases.length) return;
+      try {
+        // 校验测试用例是否已经被规划进测试执行任务
+        const needPlanCases = await validateCases(cases);
+        if (!needPlanCases.length) return;
 
-      const prevFail = result.fail;
-      // 创建测试执行
-      await createRuns(needPlanCases);
+        // 创建测试执行
+        await createRuns(needPlanCases);
 
-      // 创建执行失败后，跳过后续
-      if (prevFail + needPlanCases.length === result.fail) return;
-      // 根据配置，对测试用例打快照
-      await createCaseSnapshot(needPlanCases);
+        // 根据配置，对测试用例打快照
+        await createCaseSnapshot(needPlanCases);
 
-      // 更新测试用例上的
-      await updateCaseLinkPlan(needPlanCases);
-      result.success += needPlanCases.length;
+        // 更新测试用例上的
+        await updateCaseLinkPlan(needPlanCases);
+        result.success += needPlanCases.length;
+      } catch (e) {
+        result.message.push(getErrorMessage(e));
+        result.fail += cases.length;
+        result.items = result.items.concat(cases);
+        throw e;
+      } finally {
+        console.info('batchCreateTestRunV2 createRuns end');
+      }
     };
     if (withProcess)
       await execWithProcess({
@@ -365,7 +413,17 @@ export const createTestRuns = async ({
         list: caseIds,
         getDesc: () => JSON.stringify(result),
         batchSize: itemsV2BatchSize,
+        getBatchRecord: (items, error) => ({
+          retryId: processId,
+          type: 'createTestRuns',
+          params: {
+            ...params,
+            caseIds: items,
+          },
+          error,
+        }),
       });
+    else if (retry) await planCases(caseIds);
     else
       await batchExecFunction({
         list: caseIds,
@@ -376,9 +434,7 @@ export const createTestRuns = async ({
     return buildResponse(result);
     // 查询测试执行任务
   } catch (err) {
-    result.message.push(err.message);
-    withProcess && (await updateProcessBar(processId, -1, JSON.stringify(result)));
-    return buildResponse(result);
+    return handleError(err, retry, result, processId);
   }
 };
 
@@ -390,15 +446,10 @@ export const createTestRunsJob = async () => {
 };
 
 export const updateItemsV2 = async (props: ProcessJobParams<IBatchUpdateParams>) => {
-  const { processId, items, ...updatePropParams } = props;
+  const { processId, retry, items, ...updatePropParams } = props;
   const withProcess = !!processId;
-  const result = {
-    total: items.length,
-    message: [],
-    success: 0,
-    fail: 0,
-    skip: 0,
-  };
+  const result = getResult(processId);
+  result.total = items.length;
   try {
     const updateItems = async items => {
       const updateParams = {
@@ -411,9 +462,10 @@ export const updateItemsV2 = async (props: ProcessJobParams<IBatchUpdateParams>)
         await batchUpdateItemsV2(updateParams);
         result.success += items.length;
       } catch (e) {
-        console.error(e.message);
-        result.message.push(e.message);
+        result.message.push(getErrorMessage(e));
         result.fail += items.length;
+        result.items = result.items.concat(items);
+        throw e;
       }
     };
 
@@ -424,7 +476,17 @@ export const updateItemsV2 = async (props: ProcessJobParams<IBatchUpdateParams>)
         list: items,
         getDesc: () => JSON.stringify(result),
         batchSize: itemsV2BatchSize,
+        getBatchRecord: (items, error) => ({
+          retryId: processId,
+          type: 'updateItemsV2',
+          params: {
+            ...props,
+            items,
+          },
+          error,
+        }),
       });
+    else if (retry) await updateItems(items);
     else
       await batchExecFunction({
         list: items,
@@ -434,9 +496,7 @@ export const updateItemsV2 = async (props: ProcessJobParams<IBatchUpdateParams>)
 
     return buildResponse(result);
   } catch (err) {
-    result.message.push(err.message);
-    withProcess && (await updateProcessBar(processId, -1, JSON.stringify(result)));
-    return buildResponse(result);
+    return handleError(err, retry, result, processId);
   }
 };
 
@@ -445,21 +505,18 @@ export const updateItemsV2Job = async () => {
   return await updateItemsV2(body);
 };
 
-export const copyTesCases = async ({
-  caseIds,
-  itemType: itemTypeKey,
-  workspace,
-  repository,
-  processId,
-  needSuffix,
-}: ProcessJobParams<BatchCopyTestCaseV3Payload>) => {
-  const result = {
-    total: caseIds.length,
-    message: [],
-    success: 0,
-    fail: 0,
-    skip: 0,
-  };
+export const copyTesCases = async (params: ProcessJobParams<BatchCopyTestCaseV3Payload>) => {
+  const {
+    retry,
+    caseIds,
+    itemType: itemTypeKey,
+    workspace,
+    repository,
+    processId,
+    needSuffix,
+  } = params;
+  const result = getResult(processId);
+  result.total = caseIds.length;
   const copyName = i18n.t('trigger.copyName');
   const withProcess = !!processId;
   try {
@@ -478,15 +535,21 @@ export const copyTesCases = async ({
       return;
     }
 
+    const maxSortIndex = await getMaxSortIndex(`id in ${JSON.stringify(caseIds)}`);
+    const sortIndexAddStep = generateSortIndex() - maxSortIndex;
+
     const createCases = async cases => {
       const createParams = {
         from: cases,
         fields: {
           [TestFiledKeyMapping.linkItems]: [],
           [TestFiledKeyMapping.linkType]: '',
-          [TestFiledKeyMapping.sortIndex]: generateSortIndex(),
         },
-        update: {},
+        update: {
+          [TestFiledKeyMapping.sortIndex]: {
+            add: sortIndexAddStep,
+          },
+        },
         itemType: itemType.get('objectId'),
         workspace: workspace.objectId,
       };
@@ -512,9 +575,10 @@ export const copyTesCases = async ({
         );
         result.success += cases.length;
       } catch (e) {
-        console.error('error:', JSON.stringify(e));
-        result.message.push(e.message);
+        result.message.push(getErrorMessage(e));
         result.fail += cases.length;
+        result.items = result.items.concat(cases);
+        throw e;
       } finally {
         console.info('batchCreateTestRunV2 createRuns end');
       }
@@ -527,7 +591,17 @@ export const copyTesCases = async ({
         list: caseIds,
         getDesc: () => JSON.stringify(result),
         batchSize: itemsV2BatchSize,
+        getBatchRecord: (items, error) => ({
+          retryId: processId,
+          type: 'copyTesCases',
+          params: {
+            ...params,
+            caseIds: items,
+          },
+          error,
+        }),
       });
+    else if (retry) await createCases(caseIds);
     else
       await batchExecFunction({
         list: caseIds,
@@ -537,9 +611,7 @@ export const copyTesCases = async ({
 
     return buildResponse(result);
   } catch (err) {
-    result.message.push(err.message);
-    withProcess && (await updateProcessBar(processId, -1, JSON.stringify(result)));
-    return buildResponse(result);
+    return handleError(err, retry, result, processId);
   }
 };
 
@@ -551,15 +623,11 @@ export const copyTesCasesJob = async () => {
 
 export const batchDeleteItems = async ({
   ids: itemIds,
+  retry,
   processId,
 }: ProcessJobParams<BatchDeletePayload>) => {
-  const result = {
-    total: itemIds.length,
-    message: [],
-    success: 0,
-    fail: 0,
-    skip: 0,
-  };
+  const result = getResult(processId);
+  result.total = itemIds.length;
   const withProcess = !!processId;
   try {
     const deleteChunkItems = async items => {
@@ -568,12 +636,15 @@ export const batchDeleteItems = async ({
         const errors = res?.filter(i => i.status !== 'success');
         result.success += items.length - errors.length;
         result.fail += errors.length;
+        result.items = result.items.concat(errors.map(i => i.objectId));
         if (errors.length) {
           result.message.push(errors[0]?.message);
         }
       } catch (e) {
-        result.message.push(e.message);
+        result.message.push(getErrorMessage(e));
         result.fail += items.length;
+        result.items = result.items.concat(items);
+        throw e;
       } finally {
         console.info('deleteChunkItems end');
       }
@@ -587,7 +658,16 @@ export const batchDeleteItems = async ({
         list: items,
         getDesc: () => JSON.stringify(result),
         batchSize: deleteBatchSize,
+        getBatchRecord: (items, error) => ({
+          retryId: processId,
+          type: 'batchDeleteItems',
+          params: {
+            ids: items,
+          },
+          error,
+        }),
       });
+    else if (retry) await deleteChunkItems(items);
     else
       await batchExecFunction({
         list: items,
@@ -597,9 +677,7 @@ export const batchDeleteItems = async ({
 
     return buildResponse(result);
   } catch (err) {
-    result.message.push(err.message);
-    withProcess && (await updateProcessBar(processId, -1, JSON.stringify(result)));
-    return buildResponse(result);
+    return handleError(err, retry, result, processId);
   }
 };
 
@@ -612,15 +690,10 @@ export const batchDeleteItemsJob = async () => {
 export const removeCaseFromPlanWorker = async (
   props: ProcessJobParams<RemoveCaseFromPlanPayload>,
 ) => {
-  const { processId, caseIds, planId } = props;
+  const { processId, caseIds, planId, retry } = props;
   const withProcess = !!processId;
-  const result = {
-    total: caseIds.length,
-    message: [],
-    success: 0,
-    fail: 0,
-    skip: 0,
-  };
+  const result = getResult(processId);
+  result.total = caseIds.length;
   try {
     const removeCases = async cases => {
       const updateParams = {
@@ -643,9 +716,10 @@ export const removeCaseFromPlanWorker = async (
         if (runIds.length) await batchDeleteItems({ ids: runIds });
         result.success += cases.length;
       } catch (e) {
-        console.error(e.message);
-        result.message.push(e.message);
+        result.message.push(getErrorMessage(e));
         result.fail += cases.length;
+        result.items = result.items.concat(cases);
+        throw e;
       }
     };
 
@@ -656,7 +730,17 @@ export const removeCaseFromPlanWorker = async (
         list: caseIds,
         getDesc: () => JSON.stringify(result),
         batchSize: removeCaseBatchSize,
+        getBatchRecord: (items, error) => ({
+          retryId: processId,
+          params: {
+            ...props,
+            caseIds: items,
+          },
+          type: 'removeCaseFromPlanWorker',
+          error,
+        }),
       });
+    else if (retry) await removeCases(caseIds);
     else
       await batchExecFunction({
         list: caseIds,
@@ -666,9 +750,7 @@ export const removeCaseFromPlanWorker = async (
 
     return buildResponse(result);
   } catch (err) {
-    result.message.push(err.message);
-    withProcess && (await updateProcessBar(processId, -1, JSON.stringify(result)));
-    return buildResponse(result);
+    return handleError(err, retry, result, processId);
   }
 };
 
@@ -680,15 +762,9 @@ export const removeCaseFromPlanJob = async () => {
 export const removeExecutionFromPlanWorker = async (
   props: ProcessJobParams<RemoveExecuteFromPlanPayload>,
 ) => {
-  const { processId, executionIds } = props;
+  const { processId, executionIds, retry } = props;
   const withProcess = !!processId;
-  const result = {
-    total: 0,
-    message: [],
-    success: 0,
-    fail: 0,
-    skip: 0,
-  };
+  const result = getResult(processId);
   try {
     const removeExecutionParams = {
       fields: {
@@ -724,9 +800,10 @@ export const removeExecutionFromPlanWorker = async (
         await batchUpdateItemsV2(updateParams);
         result.success += items.length;
       } catch (e) {
-        console.error(e.message);
-        result.message.push(e.message);
+        result.message.push(getErrorMessage(e));
         result.fail += items.length;
+        result.items = result.items.concat(items);
+        throw e;
       }
     };
 
@@ -737,6 +814,7 @@ export const removeExecutionFromPlanWorker = async (
         list: runIds,
         getDesc: () => JSON.stringify(result),
         batchSize: itemsV2BatchSize,
+        getBatchRecord: () => false,
       });
     else
       await batchExecFunction({
@@ -747,9 +825,7 @@ export const removeExecutionFromPlanWorker = async (
 
     return buildResponse(result);
   } catch (err) {
-    result.message.push(err.message);
-    withProcess && (await updateProcessBar(processId, -1, JSON.stringify(result)));
-    return buildResponse(result);
+    return handleError(err, retry, result, processId);
   }
 };
 
@@ -763,17 +839,12 @@ export const addExecutionToPlanWorker = async (
 ) => {
   const { processId, executionIds, planId } = props;
   const withProcess = !!processId;
-  const result = {
-    total: 0,
-    message: [],
-    success: 0,
-    fail: 0,
-    skip: 0,
-  };
+  const result = getResult(processId);
   try {
     const addExecutionParams = {
       fields: {
         values: {
+          [TestFiledKeyMapping.linkType]: TestLinkType.ExecutionLinkPlan,
           [TestFiledKeyMapping.linkItems]: [planId],
         },
       },
@@ -815,7 +886,9 @@ export const addExecutionToPlanWorker = async (
             add: [planId],
           },
         },
-        fields: {},
+        fields: {
+          [TestFiledKeyMapping.linkType]: TestLinkType.CaseLinkPlan,
+        },
         items: caseIds,
         asynchronous: false,
       };
@@ -827,9 +900,10 @@ export const addExecutionToPlanWorker = async (
         ]);
         result.success += items.length;
       } catch (e) {
-        console.error(e.message);
-        result.message.push(e.message);
+        result.message.push(getErrorMessage(e));
         result.fail += items.length;
+        result.items = result.items.concat(items);
+        throw e;
       }
     };
 
@@ -840,6 +914,7 @@ export const addExecutionToPlanWorker = async (
         list: runs,
         getDesc: () => JSON.stringify(result),
         batchSize: itemsV2BatchSize,
+        getBatchRecord: () => false,
       });
     else
       await batchExecFunction({
@@ -850,7 +925,7 @@ export const addExecutionToPlanWorker = async (
 
     return buildResponse(result);
   } catch (err) {
-    result.message.push(err.message);
+    result.message.push(getErrorMessage(err));
     withProcess && (await updateProcessBar(processId, -1, JSON.stringify(result)));
     return buildResponse(result);
   }
@@ -859,4 +934,68 @@ export const addExecutionToPlanWorker = async (
 export const addExecutionToPlanJob = async () => {
   const { body } = getReqInfoFromVMRuntime<ProcessJobParams<AddExecuteToPlanPayload>>();
   return await addExecutionToPlanWorker(body);
+};
+
+const FUNC_MAP = {
+  removeCaseFromPlanWorker,
+  batchDeleteItems,
+  copyTesCases,
+  updateItemsV2,
+  createTestRuns,
+};
+
+export const retryWorker = async (props: ProcessJobParams<RetryPayload>) => {
+  const { processId, retryId } = props;
+  const withProcess = !!processId;
+  const result = getResult(processId);
+  try {
+    const batchRecords = await getParseQuery(true, 'BatchHandleRecord')
+      .equalTo('retryId', retryId)
+      .equalTo('status', 'fail')
+      .findAll({ useMasterKey: true });
+    if (!batchRecords.length) return;
+    const total = batchRecords.reduce((prev, record) => {
+      return prev + record.get('items').length;
+    }, 0);
+    result.total = total;
+    let index = 1;
+    for (const batchRecord of batchRecords) {
+      const type = batchRecord.get('type');
+      const params = batchRecord.get('params');
+      const items = batchRecord.get('items');
+      const execFun = FUNC_MAP[type];
+      params.processId = null;
+      try {
+        await execFun({ ...params, retry: true });
+        result.success += items.length;
+        await updateBatchRecordsDone([batchRecord.id]);
+      } catch (err) {
+        result.message.push(getErrorMessage(err));
+        result.fail += items.length;
+        result.items = result.items.concat(items);
+        await insertBatchRecord({
+          type,
+          params,
+          items,
+          retryId: processId,
+        });
+      } finally {
+        await updateProcessBar(
+          processId,
+          getProcessValue(index, batchRecords.length),
+          JSON.stringify(result),
+        );
+        index++;
+      }
+    }
+  } catch (err) {
+    result.message.push(getErrorMessage(err));
+    withProcess && (await updateProcessBar(processId, -1, JSON.stringify(result)));
+    return buildResponse(result);
+  }
+};
+
+export const retryJob = async () => {
+  const { body } = getReqInfoFromVMRuntime<ProcessJobParams<RetryPayload>>();
+  return await retryWorker(body);
 };

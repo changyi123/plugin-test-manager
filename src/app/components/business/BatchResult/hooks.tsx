@@ -9,6 +9,7 @@ import {
   IBatchUpdateParams,
   RemoveCaseFromPlanPayload,
   RemoveExecuteFromPlanPayload,
+  RetryPayload,
 } from 'common/types/api';
 import React from 'react';
 import { v4 as uuid } from 'uuid';
@@ -27,6 +28,7 @@ import {
   addTestExecutionToTestPlan,
   removeTestCaseFromTestPlan,
   removeTestExecutionFromTestPlan,
+  retryBatchAction,
 } from '@/services/testEntity/service';
 
 const { info } = Modal;
@@ -41,6 +43,7 @@ export enum ACTION_TYPE_ENUM {
   REMOVE_CASE_FROM_PLAN,
   REMOVE_EXECUTION_FROM_PLAN,
   ADD_EXECUTION_TO_PLAN,
+  RETRY,
 }
 
 type ProcessSwap<T> = T & {
@@ -92,6 +95,10 @@ export async function removeCaseFromPlanWithProcess(props: ProcessSwap<RemoveCas
   return await execWithProcess({ ...props, actionType: ACTION_TYPE_ENUM.REMOVE_CASE_FROM_PLAN });
 }
 
+export async function retryWithProcess(props: ProcessSwap<RetryPayload>) {
+  return await execWithProcess({ ...props, actionType: ACTION_TYPE_ENUM.RETRY });
+}
+
 let timer = null;
 
 export async function execWithProcess(
@@ -105,6 +112,7 @@ export async function execWithProcess(
     | AddExecuteToPlanPayload
     | RemoveExecuteFromPlanPayload
     | RemoveCaseFromPlanPayload
+    | RetryPayload
   >,
 ) {
   const {
@@ -207,6 +215,14 @@ export async function execWithProcess(
         });
         title = '测试用例移除中';
         break;
+      case ACTION_TYPE_ENUM.RETRY:
+        Modal.destroyAll();
+        data = await retryBatchAction({
+          ...(params as RetryPayload),
+          key: processBarKey,
+        });
+        title = '重试中';
+        break;
     }
 
     if (data?.status === 'error') {
@@ -227,6 +243,6 @@ export async function execWithProcess(
       closable: true,
     });
   } catch (e) {
-    handleFail(e);
+    handleFail?.(e);
   }
 }

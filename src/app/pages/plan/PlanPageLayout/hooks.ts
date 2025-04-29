@@ -1,5 +1,6 @@
 import { useRequest, useSize, useUpdateEffect } from 'ahooks';
 import { TestLinkType, TestType } from 'common/constant';
+import { getEnv } from 'common/utils/helper';
 import { isEmpty, omit } from 'lodash';
 import React, { useState } from 'react';
 
@@ -28,6 +29,8 @@ export const useResizeContainerDOM = (objectId?: string) => {
 
   return size;
 };
+
+const querySize = getEnv()?.QUERY_SIZE ?? 50000;
 
 type ScopedTestRunIds = {
   executionLinkRunIds: string[];
@@ -135,7 +138,7 @@ export const useGetExecutionLinkCaseRunIds = (params: ScopedTestDetailIdsParams)
         query: {
           workspaceKey: workspaceKey,
         },
-        limit: 9999,
+        limit: querySize,
         linkType: TestLinkType.RunLinkExecution,
         sourceIds: [testExecutionId],
         destinationType: TestType.Run,
@@ -185,7 +188,7 @@ export const useGetFilterExecutionLinkCaseRunIds = props => {
         type: TestType.Run,
         id,
       },
-      limit: 9999,
+      limit: querySize,
       select: ['id', 'referenceCase'],
       selector: [{}, filterRunSelector],
     });
@@ -203,7 +206,7 @@ export const useGetFilterExecutionLinkCaseRunIds = props => {
         id: [...runCaseMap.keys()],
         ...repository,
       },
-      limit: 9999,
+      limit: querySize,
       selector,
       onlySelectId: true,
     });
@@ -230,7 +233,7 @@ export const useGetFilterExecutionLinkCaseRunIds = props => {
         id: ids,
         ...repository,
       },
-      limit: 9999,
+      limit: querySize,
       selector,
       onlySelectId: true,
     };

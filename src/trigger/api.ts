@@ -20,6 +20,7 @@ export {
   addExecutionToPlan,
   removeCaseFromPlan,
   removeExecutionFromPlan,
+  retry,
 } from './modules/api/batch';
 
 export { testExecutionStats, testCaseStats, testCount } from './modules/api/stats';
