@@ -2,6 +2,7 @@ import { useSDK } from '@projectproxima/plugin-sdk';
 import createProximaSdk from '@projectproxima/proxima-sdk-js';
 import { useDrag, useDrop, useMemoizedFn, useRequest } from 'ahooks';
 import { message, notification, Space, Tooltip } from 'antd';
+import { batchQueryToIql } from 'common/utils/helper';
 import { Operator } from 'common/utils/iqlBuilder';
 import { pick } from 'lodash-es';
 import React, { useCallback } from 'react';
@@ -30,7 +31,6 @@ import {
   getTestEntityByQuery,
   handleSelector,
   updateTestEntity,
-  updateTestEntityValue,
 } from '@/lib/api/item';
 import { useCurrentUser } from '@/lib/api/user';
 import { getCurrentUserSetting, saveUserSetting } from '@/lib/api/userSetting';
@@ -391,9 +391,9 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
 
     // 批量创建事项关联
     const createItemLink = async () => {
-      const testCaseIds = (await getSelectTestCaseId(tableActionRef.current)) ?? [];
+      console.info(batchQueryToIql(getBatchParams(tableActionRef.current).query), 'getBatchParams');
       proxima.execute('openAddLinkScreen', {
-        itemId: testCaseIds.toString(),
+        iql: batchQueryToIql(getBatchParams(tableActionRef.current).query),
         breadcrumbs,
         selectAll: tableActionRef.current.selectAll,
         displayContext: 'test_manager',
@@ -404,14 +404,13 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
       const localIqlKey = `batch_quick_edit_test_manager`;
       const extendsCustomKey = ['r_test_manager_repository'];
       // 组装批量操作地址
-      const testCases = (await getSelectTestCaseId(tableActionRef.current, true)) ?? [];
       const testBoard = await new Parse.Query('Board')
         .equalTo('pluginKey', 'test_manager_test-repository')
         .equalTo('workspace', workspace?.objectId)
         .first();
       window.localStorage.setItem(
         localIqlKey,
-        `"key" in [${testCases.map(i => `"${i.key}"`).join(',')}]`,
+        batchQueryToIql(getBatchParams(tableActionRef.current).query),
       );
       // 构造url，打开批量编辑页面
       const itemBatchPage = `${getProximaBasePath()}/${getTenantKey()}/workspaces/${workspaceKey}/batch-operate/${testBoard.get(

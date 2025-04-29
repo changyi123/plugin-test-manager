@@ -2,7 +2,7 @@ app:
   key: test_manager
   uuid: bf73e61c-e15a-4461-a1f7-f940c2009332
   name: test_manager
-  version: "4.35.2"
+  version: "4.35.3-alpha.25"
 modules:
   webtrigger:
     # TODO: Debug 使用，生产环境禁止调用下面的 trigger
@@ -68,6 +68,10 @@ modules:
       function: api-batch-update-value-function
     - key: api-batch-create-test-run
       function: api-batch-create-test-run-function
+    - key: api-batch-create-test-run-job
+      function: api-batch-create-test-run-job-function
+    - key: api-query-batch-result
+      function: api-query-batch-result-function
     - key: api-batch-create-test-run-v2
       function: api-batch-create-test-run-v2-function
     - key: api-batch-create-test-case
@@ -299,10 +303,18 @@ modules:
       handler: api.batchUpdateValue
       # 5 分钟超时时长
       timeout: 300000
+    - key: api-query-batch-result-function
+      handler: api.getBatchResult
+      # 5 分钟超时时长
+      timeout: 300000
     - key: api-batch-create-test-run-function
       handler: api.batchCreateTestRun
       # 5 分钟超时时长
-      timeout: 300000
+      timeout: 3600000
+    - key: api-batch-create-test-run-job-function
+      handler: api.batchCreateTestRunJob
+      # 5 分钟超时时长
+      timeout: 3600000
     - key: api-batch-create-test-run-v2-function
       handler: api.batchCreateTestRunV2
     # 60 分钟超时时长
@@ -989,6 +1001,14 @@ tables:
       updatedBy:
         type: Pointer
         targetClass: _User
+  - className: BatchLog
+    fields:
+      logIds:
+        type: Array
+      count:
+        type: Number
+      type: 
+        type: String
 locales:
   zh-CN:
     test-manager-test-detail:

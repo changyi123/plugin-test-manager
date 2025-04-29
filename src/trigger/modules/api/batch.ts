@@ -1,12 +1,12 @@
 import { i18n } from '@giteeteam/apps-api';
 import {
+  addAuditLog,
   deleteParseObject,
   getParseModel,
   getParseQuery,
   requestCoreApi,
   saveAllObject,
 } from '@giteeteam/apps-team-api';
-import { addAuditLog } from '@giteeteam/apps-team-api';
 import { omit } from 'lodash';
 import isObject from 'lodash/isObject';
 
@@ -50,7 +50,9 @@ import {
 } from '../../lib/batchRequest';
 import {
   buildTestEntityLinkData,
+  chunkArray,
   concatIqlRequestFields,
+  execFuncWitRetry,
   generateSortIndex,
   getAllEntity,
   initProcessBar,
@@ -69,7 +71,14 @@ import {
   removeExecutionFromPlanWorker,
   updateItemsV2,
 } from '../job';
-import { bulkUpdateItems, iqlSearch, operateSnapshots, queryFields } from './../../lib/coreApi';
+import {
+  bulkUpdateItems,
+  iqlSearch,
+  operateSnapshots,
+  queryBatchProcess,
+  queryBatchResult,
+  queryFields,
+} from './../../lib/coreApi';
 
 type TestCaseType = TestEntity<TestType.Case>;
 type TestRunType = TestEntity<TestType.Run>;
@@ -342,56 +351,141 @@ export const batchUpdateValue = async () => {
 /** 批量创建测试执行任务 */
 export const batchCreateTestRun = async () => {
   try {
+    const { body } = getReqInfoFromVMRuntime<BatchCreateTestRunPayload>();
+    const { case: _case, withProcess = true, executionId } = body;
+
+    if (!Array.isArray(_case)) throwArgumentError('case', 'object[]');
+    const caseIds = _case.map(i => i.caseId);
+    const needCaseList = await getNeedPlanCaseList(caseIds, executionId);
+
+    const BatchLog = getParseModel(true, 'BatchLog');
+    const log = new BatchLog();
+    log.set('count', needCaseList.length);
+    log.set('type', 'bulk-create-item');
+    log.set('logIds', []);
+    const [batchLog] = await saveAllObject([log]);
+    const createTestRuns = () =>
+      requestCoreApi(
+        'POST',
+        `/api/app/${global.env.TENANT_KEY}/${global.appKey}/webhooks/api-batch-create-test-run-job`,
+        {
+          ...body,
+          withProcess: true,
+          batchLogId: batchLog.id,
+        },
+        headers,
+      );
+    if (withProcess) {
+      createTestRuns();
+    } else {
+      await createTestRuns();
+    }
+
+    return buildResponse({
+      batchId: batchLog.id, // 批次id
+      type: 'bulk-create-item', // 类型
+      status: 'running', // 批次状态： running | finished | timeout
+      count: needCaseList.length, // 批量创建的事项数
+    });
+  } catch (err) {
+    return buildResponse(err);
+  }
+};
+
+const getNeedPlanCaseList = async (caseIds, executionId) => {
+  // 获取所有测试用例数据
+  const getTestCaseByCaseIds = async () => {
     const {
-      body: { executionId, case: _case, withProcess = true, notificationUrl },
+      data: { list: caseList },
+    } = await iqlRequest<TestCaseType>({
+      query: {
+        id: caseIds,
+      },
+      pagination: { limit: InfinityLimit },
+      fields: [
+        SystemField.Id,
+        SystemField.Key,
+        SystemField.Name,
+        SystemField.ItemGroup,
+        SystemField.Workspace,
+        TestFiledKeyMapping.detail,
+        TestFiledKeyMapping.sortIndex,
+        TestFiledKeyMapping.caseStatus,
+        TestFiledKeyMapping.caseExecutor,
+      ],
+    });
+    return caseList;
+  };
+
+  // 获取测试管理已关联的测试执行 CaseIds
+  const getExistedTestRunReferenceCaseIdSet = async () => {
+    const {
+      data: { list: existedReferenceCaseIds },
+    } = await iqlRequest<TestRunType>({
+      query: {
+        referenceCase: caseIds,
+      },
+      pagination: { limit: InfinityLimit },
+      linkQuery: {
+        sourceIds: executionId,
+        destinationType: TestType.Run,
+        linkType: TestLinkType.RunLinkExecution,
+      },
+      fields: [TestFiledKeyMapping.referenceCase],
+    });
+
+    return new Set(existedReferenceCaseIds.map(item => item.referenceCase));
+  };
+
+  const [caseList, existedReferenceCaseIdSet] = await Promise.all([
+    getTestCaseByCaseIds(),
+    getExistedTestRunReferenceCaseIdSet(),
+  ]);
+
+  const needCaseList = caseList
+    // 过滤已规划的测试用例
+    .filter(testCase => !existedReferenceCaseIdSet.has(testCase.objectId));
+  return needCaseList;
+};
+
+const sendNotification = async (notificationUrl, data) => {
+  let retryCount = 0;
+  if (!notificationUrl) return;
+  const send = async () => {
+    await axios({ url: notificationUrl, data, method: 'POST' })
+      .then(result => {
+        if (result.status === 200) {
+          console.info('[batchOperation] send notification success', result.data);
+        } else {
+          console.error(
+            '[batchOperation] send notification failed with status code',
+            result.status,
+          );
+          retryCount++;
+        }
+      })
+      .catch(e => {
+        console.error('[batchOperation] send notification error', e.message);
+        retryCount++;
+      });
+  };
+  await execFuncWitRetry({
+    func: send,
+    label: 'send notification',
+    validate: () => retryCount > 3,
+  });
+};
+
+/** 批量创建测试执行Job */
+export const batchCreateTestRunJob = async () => {
+  try {
+    const {
+      body: { executionId, case: _case, batchLogId, notificationUrl },
     } = getReqInfoFromVMRuntime<BatchCreateTestRunPayload>();
     const APP_KEY = global.appKey ?? 'test_manager';
 
-    if (!Array.isArray(_case)) throwArgumentError('caseIds', 'objectId[]');
+    if (!Array.isArray(_case)) throwArgumentError('case', 'object[]');
     const caseIds = _case.map(i => i.caseId);
-    // 获取所有测试用例数据
-    const getTestCaseByCaseIds = async () => {
-      const {
-        data: { list: caseList },
-      } = await iqlRequest<TestCaseType>({
-        query: {
-          id: caseIds,
-        },
-        pagination: { limit: InfinityLimit },
-        fields: [
-          SystemField.Id,
-          SystemField.Key,
-          SystemField.Name,
-          SystemField.ItemGroup,
-          SystemField.Workspace,
-          TestFiledKeyMapping.detail,
-          TestFiledKeyMapping.sortIndex,
-          TestFiledKeyMapping.caseStatus,
-          TestFiledKeyMapping.caseExecutor,
-        ],
-      });
-      return caseList;
-    };
-
-    // 获取测试管理已关联的测试执行 CaseIds
-    const getExistedTestRunReferenceCaseIdSet = async () => {
-      const {
-        data: { list: existedReferenceCaseIds },
-      } = await iqlRequest<TestRunType>({
-        query: {
-          referenceCase: caseIds,
-        },
-        pagination: { limit: InfinityLimit },
-        linkQuery: {
-          sourceIds: executionId,
-          destinationType: TestType.Run,
-          linkType: TestLinkType.RunLinkExecution,
-        },
-        fields: [TestFiledKeyMapping.referenceCase],
-      });
-
-      return new Set(existedReferenceCaseIds.map(item => item.referenceCase));
-    };
 
     // 获取测试执行任务 testExecution
     const getExecution = async () => {
@@ -407,6 +501,17 @@ export const batchCreateTestRun = async () => {
       });
 
       return testPlan;
+    };
+
+    const getItemType = async () => {
+      const [{ objectId: runItemTypeId }] = await getItemTypeFromKey([
+        BuiltInItemTypeMapping.TestRun,
+      ]);
+      return {
+        __type: 'Pointer',
+        className: 'ItemType',
+        objectId: runItemTypeId,
+      };
     };
 
     // 获取测试执行任务关联的 testPlan
@@ -430,23 +535,16 @@ export const batchCreateTestRun = async () => {
       return testPlan;
     };
 
-    // 初始的任务 key
-    const StartStatusKey = 'TODO';
-
-    const [caseList, testPlan, existedReferenceCaseIdSet] = await Promise.all([
-      getTestCaseByCaseIds(),
+    const [testExecution, testPlan, itemType] = await Promise.all([
+      getExecution(),
       getExecutionLinkedTestPlan(),
-      getExistedTestRunReferenceCaseIdSet(),
+      getItemType(),
     ]);
-
-    const needCaseList = caseList
-      // 过滤已规划的测试用例
-      .filter(testCase => !existedReferenceCaseIdSet.has(testCase.objectId));
 
     // 创建测试用例快照
     // 1. 获取用例所属空间是否支持规划时批量快照
     // 2. 创建测试用例快照
-    const batchCreateCaseSnapshot = async () => {
+    const batchCreateCaseSnapshot = async needCaseList => {
       let caseSnapshotMap = {};
       if (!global.env?.ENABLED_CASE_SNAPSHOT && !global.env?.DEFAULT_ENABLED_CASE_SNAPSHOT)
         return caseSnapshotMap;
@@ -474,7 +572,6 @@ export const batchCreateTestRun = async () => {
 
       const caseSnapshots = needCaseList.filter(i => workspaceConfigs[i.workspace?.key]);
       if (caseSnapshots.length) {
-        const testExecution = await getExecution();
         const snapshots = await operateSnapshots({
           add: {
             keys: caseSnapshots.map(i => i.key),
@@ -493,24 +590,13 @@ export const batchCreateTestRun = async () => {
       return caseSnapshotMap;
     };
 
+    // 初始的任务 key
+    const StartStatusKey = 'TODO';
     // 创建测试执行
     // 1. 查所有测试用例
     // 2. 创建测试执行
     // 3. 过滤已规划的测试用例
-    const generateCreateRuns = async caseSnapshotMap => {
-      let itemType = { key: BuiltInItemTypeMapping.TestRun };
-      // 获取事项类型信息
-      if (withProcess) {
-        const [{ objectId: runItemTypeId }] = await getItemTypeFromKey([
-          BuiltInItemTypeMapping.TestRun,
-        ]);
-        itemType = {
-          __type: 'Pointer',
-          className: 'ItemType',
-          objectId: runItemTypeId,
-        } as any;
-      }
-
+    const generateCreateRuns = (caseSnapshotMap, needCaseList) => {
       return (
         // 过滤已规划的测试用例
         needCaseList
@@ -533,9 +619,11 @@ export const batchCreateTestRun = async () => {
               runDetail: data.detail,
               // runDetail: {},
               // 空间和测试用例的空间保持一致
-              workspace: withProcess
-                ? { __type: 'Pointer', className: 'Workspace', objectId: data.workspace.objectId }
-                : data.workspace,
+              workspace: {
+                __type: 'Pointer',
+                className: 'Workspace',
+                objectId: data.workspace.objectId,
+              },
               // 测试执行的 sortIndex 和 测试用例的保持一致
               sortIndex: data.sortIndex,
               // 事项类型使用内置的事项类型（不可变）
@@ -553,28 +641,117 @@ export const batchCreateTestRun = async () => {
           })
       );
     };
-    // 4. 创建测试执行并关联
-    const caseSnapshotMap = await batchCreateCaseSnapshot();
-    if (!withProcess) {
-      // 批量保存
-      const { items, errors } = (await batchCreateItems(
-        (await generateCreateRuns(caseSnapshotMap)) as any,
-        [],
-        undefined,
-        true,
-      )) as any;
-      const createdItemIds = items.filter(Boolean).map(item => item.objectId);
-      console.info('create success res: ', createdItemIds);
-      if (errors.length) throw new Error(errors.join(';'));
-      return buildResponse(createdItemIds);
-    } else {
-      // 带进度条的新批量接口
-      return batchCreateItemWithProgress(
-        await generateCreateRuns(caseSnapshotMap),
-        notificationUrl,
-      );
+
+    const createTestRuns = async caseList => {
+      const caseSnapshotMap = await batchCreateCaseSnapshot(caseList);
+      const testRuns = generateCreateRuns(caseSnapshotMap, caseList);
+      const batchResult = await batchCreateItemWithProgress(testRuns, null, null, true);
+      console.info(batchResult, 'createTestRuns-batchCreateItemWithProgress');
+      // 更新batchLog
+      if (batchLogId) {
+        const { batchId } = batchResult;
+        if (!batchId) return;
+        const batchLog = await getParseQuery(true, 'BatchLog')
+          .equalTo('objectId', batchLogId)
+          .first({ useMasterKey: true });
+        const logIds = batchLog.get('logIds') || [];
+        logIds.push(batchId);
+        const BatchModel = getParseModel(true, 'BatchLog');
+        const batchLogObject = BatchModel.createWithoutData(batchLogId);
+        batchLogObject.set('logIds', logIds);
+        await saveAllObject([batchLogObject]);
+      }
+    };
+
+    // 分批执行
+    const chunkCaseList = chunkArray(caseIds, 100);
+    for (const caseIds of chunkCaseList) {
+      console.info('createTestRuns', caseIds);
+      const caseList = await getNeedPlanCaseList(caseIds, executionId);
+      console.info('getNeedPlanCaseList', caseList);
+      await createTestRuns(caseList);
     }
+
+    const response = await getBatchResultFunction(batchLogId, true);
+    await sendNotification(notificationUrl, response);
+    return buildResponse(response);
     // 查询测试执行任务
+  } catch (err) {
+    console.info(err, 'error');
+    return buildResponse(err);
+  }
+};
+
+function getBasicResult(batchLog) {
+  return {
+    batchId: batchLog.get('objectId'), // 生成新的合并批次ID
+    type: batchLog.get('type'), // 类型将取自第一个批次
+    count: batchLog.get('count'), // 总事项数
+    success: 0, // 总成功数
+    fail: 0, // 总失败数
+    items: [], // 所有成功事项
+    failItems: [], // 所有失败事项
+  };
+}
+
+function mergeBatchResults(mergedResult, batchResults) {
+  // 遍历每个批次结果进行合并
+  batchResults.forEach((batch, index) => {
+    if (index === 0) {
+      mergedResult.type = batch.type; // 使用第一个批次的类型
+      mergedResult.startTime = batch.startTime; // 使用第一个批次的类型
+    }
+
+    // 累加计数
+    mergedResult.success += batch.success || 0;
+    mergedResult.fail += batch.fail || 0;
+
+    // 合并成功事项
+    if (batch.items && Array.isArray(batch.items)) {
+      mergedResult.items = mergedResult.items.concat(batch.items);
+    }
+
+    // 合并失败事项
+    if (batch.failItems && Array.isArray(batch.failItems)) {
+      mergedResult.failItems = mergedResult.failItems.concat(batch.failItems);
+    }
+    mergedResult.status = batch.status;
+    mergedResult.finishedTime = batch.finishedTime;
+  });
+
+  return mergedResult;
+}
+
+async function getBatchResultFunction(batchId, withResult) {
+  const batchLog = await getParseQuery(true, 'BatchLog')
+    .equalTo('objectId', batchId)
+    .first({ useMasterKey: true });
+  // 初始化合并结果对象
+  const mergedResult = getBasicResult(batchLog);
+  const logs = batchLog.get('logIds');
+  const getLogResult = async logId => {
+    let result;
+    if (withResult) {
+      result = await queryBatchResult(logId);
+    } else {
+      result = await queryBatchProcess(logId);
+    }
+    return result;
+  };
+  const results = await Promise.all(logs.map(getLogResult));
+  return mergeBatchResults(mergedResult, results);
+}
+
+/** 获取测试管理批量操作的进度条 */
+export const getBatchResult = async () => {
+  try {
+    const { body } = getReqInfoFromVMRuntime<{ batchId: string; withResult: boolean }>();
+    const { batchId, withResult } = body;
+
+    if (!batchId) throwArgumentError('batchId', 'objectId');
+    const response = await getBatchResultFunction(batchId, withResult);
+
+    return response;
   } catch (err) {
     return buildResponse(err);
   }

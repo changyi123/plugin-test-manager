@@ -215,7 +215,7 @@ const RepositoryTree: React.FC<RepositoryTreeProps> = props => {
       <DirectoryTree
         treeData={treeData}
         expandAction={false}
-        className={cx('tree', treeLoading ? 'tree-hide' : '')}
+        className={cx('tree', 'modal-tree', treeLoading ? 'tree-hide' : '')}
         titleRender={titleRender}
         onExpand={handleTreeExpand}
         onSelect={handleTreeSelect}

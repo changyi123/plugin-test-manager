@@ -100,3 +100,15 @@ export const serializeRichText = withCoreApiRequest([
   'POST',
   '/parse/api/fields/editor/serializer',
 ]);
+
+// 查询空间详情
+export const queryBatchProcess = withCoreApiRequest([
+  'GET',
+  (batchId: string) => `/parse/api/items/batch/progress/${batchId}`,
+]);
+
+// 查询空间详情
+export const queryBatchResult = withCoreApiRequest([
+  'GET',
+  (batchId: string) => `/parse/api/items/batch/result/${batchId}`,
+]);

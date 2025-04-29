@@ -157,7 +157,6 @@ export const createTestRuns = async ({
       // 没有快照配置 则以默认值 DEFAULT_ENABLED_CASE_SNAPSHOT 为准
       return caseSnapshotEnabled ?? global.env?.DEFAULT_ENABLED_CASE_SNAPSHOT;
     };
-    const caseSnapshotEnabled = await getCaseSnapshotEnabled();
 
     // 获取测试管理已关联的测试执行
     const getExistedTestRuns = async (cases, fields = []) => {
@@ -231,7 +230,7 @@ export const createTestRuns = async ({
       };
 
       try {
-        await batchCreateItemsV2(
+        const runs = await batchCreateItemsV2(
           {
             items: createParams,
             parseContext: {
@@ -245,6 +244,7 @@ export const createTestRuns = async ({
           },
           getHeaders(),
         );
+        return runs;
       } catch (e) {
         result.message.push(e.message || e);
         result.fail += cases.length;
@@ -255,6 +255,7 @@ export const createTestRuns = async ({
 
     // 对用例打快照
     const snapshotCases = async cases => {
+      console.info(`batchCreateTestRunV2 snapshotCases cases: ${cases.length}`);
       let caseSnapshotMap = {};
       const {
         data: { list: caseList },
@@ -263,7 +264,12 @@ export const createTestRuns = async ({
           id: cases,
         },
         fields: [SystemField.Key],
+        pagination: {
+          offset: 0,
+          limit: cases.length,
+        },
       });
+      console.info(`batchCreateTestRunV2 snapshotCases caseList: ${caseList.length}`);
 
       if (caseList.length) {
         const snapshots = await operateSnapshots({
@@ -271,7 +277,7 @@ export const createTestRuns = async ({
             keys: caseList.map(i => i.key),
           },
           sourceId: execution.objectId,
-          sourceType: APP_KEY,
+          sourceType: appKey,
           baseLineItemVersion: {
             name: execution.name,
           },
@@ -281,6 +287,7 @@ export const createTestRuns = async ({
           caseSnapshotMap,
         );
       }
+      console.info(`batchCreateTestRunV2 snapshotCases: `, caseSnapshotMap);
       return caseSnapshotMap;
     };
 
@@ -303,6 +310,8 @@ export const createTestRuns = async ({
     // 2. 创建测试用例快照
     const createCaseSnapshot = async cases => {
       console.info('batchCreateTestRunV2 createCaseSnapshot start');
+      const caseSnapshotEnabled = await getCaseSnapshotEnabled();
+      console.info(`batchCreateTestRunV2 createCaseSnapshot: ${caseSnapshotEnabled}`);
       if (!caseSnapshotEnabled) return;
       const existedRuns = await getExistedTestRuns(cases, [
         SystemField.Id,

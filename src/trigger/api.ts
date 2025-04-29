@@ -14,6 +14,8 @@ export {
   batchCopyTestCaseV2,
   batchCopyTestCaseV3,
   batchCreateTestRun,
+  batchCreateTestRunJob,
+  getBatchResult,
   batchCreateTestRunV2,
   batchCreateTestCase,
   batchUpdateItemsV2,

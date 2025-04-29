@@ -179,3 +179,49 @@ export const toPointer = (className: string, objectId: string) => ({
   className,
   objectId,
 });
+
+export function chunkArray<T>(array: Array<T>, maxChunkSize: number): Array<T>[] {
+  const chunks = [];
+  for (let i = 0; i < array.length; i += maxChunkSize) {
+    chunks.push(array.slice(i, i + maxChunkSize));
+  }
+  return chunks;
+}
+
+const wait = async (ms: number) => {
+  return new Promise(resolve => setTimeout(resolve, ms));
+};
+
+interface IExecFuncWithWaitParams<T> {
+  func: () => Promise<T>;
+  validate: (res: T) => boolean;
+  label: string;
+}
+
+/**
+ *
+ * @param props
+ * @returns
+ */
+export async function execFuncWitRetry<T>(props: IExecFuncWithWaitParams<T>): Promise<T> {
+  const { func, validate, label } = props;
+  let done = false;
+  let count = 1;
+  let res;
+  while (!(done || count > 100)) {
+    try {
+      res = await func();
+    } catch (error) {
+      console.info(`execFuncWithWait ${label} error`, count, error);
+    }
+
+    if (validate(res as T)) {
+      done = true;
+    } else {
+      count += 1;
+      await wait(count * 1000);
+    }
+    console.info(`execFuncWithWait ${label} count`, count, done);
+  }
+  return res as T;
+}

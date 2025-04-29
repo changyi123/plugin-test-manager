@@ -242,6 +242,7 @@ export type BatchCreateTestRunPayload = {
   case: { key: string; caseId: string; createAt?: number }[];
   withProcess?: boolean;
   notificationUrl?: string;
+  batchLogId?: string;
 };
 
 /**
