@@ -69,7 +69,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
           ...repository,
         },
         selector,
-        limit: 9999,
+        limit: 99999,
         linkType: TestLinkType.CaseLinkPlan,
         sourceIds: [planId],
         destinationType: TestType.Case,
@@ -427,6 +427,7 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
             <VirtualScrollList
               loading={testCaseListLoading}
               group={group}
+              loading={testCaseListLoading}
               caseListMap={treeType === 'plan' ? planCaseListMap : caseListMap}
               selectCaseIdsSet={selectCaseIdsSet}
               setSelectCaseIdsSet={setSelectCaseIdsSet}

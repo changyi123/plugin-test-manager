@@ -36,6 +36,7 @@ import {
   BatchUpdateValuePayload,
   RemoveCaseFromPlanProcessParams,
   RemoveExecuteFromPlanProcessParams,
+  RetryPayloadProcessParams,
 } from '../../../common/types/api';
 import { TestEntityLinkActionData } from '../../../common/types/common';
 import { TestEntity } from '../../../common/types/test';
@@ -69,6 +70,7 @@ import {
   createTestRuns,
   removeCaseFromPlanWorker,
   removeExecutionFromPlanWorker,
+  retryWorker,
   updateItemsV2,
 } from '../job';
 import {
@@ -1382,5 +1384,30 @@ export const batchRemoveBugsWithRun = async () => {
     return buildResponse(defectItemIds);
   } catch (error) {
     return buildResponse(error);
+  }
+};
+
+/** 添加测试执行任务到测试计划 */
+export const retry = async () => {
+  try {
+    const { body, headers } = getReqInfoFromVMRuntime<RetryPayloadProcessParams>();
+    const { key } = body;
+
+    return await batchRequestDecorator({
+      key,
+      asyncFunc: processId =>
+        requestCoreApi(
+          'POST',
+          `/api/app/${global.env.TENANT_KEY}/${global.appKey}/webhooks/job-retry`,
+          {
+            ...body,
+            processId,
+          },
+          headers,
+        ),
+      syncFunc: async () => await retryWorker(body),
+    });
+  } catch (err) {
+    return buildResponse(err);
   }
 };

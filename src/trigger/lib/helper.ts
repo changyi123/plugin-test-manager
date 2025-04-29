@@ -130,6 +130,16 @@ export const getAllEntity = async (queryParams, fields?: string[]) => {
   return caseIds;
 };
 
+export const getMaxSortIndex = async selector => {
+  const res = await iqlRequest({
+    selector,
+    descending: ['sortIndex', 'createdAt'],
+    pagination: { limit: 1 },
+    fields: [TestFiledKeyMapping.sortIndex],
+  });
+  return res.data.list[0].sortIndex ?? generateSortIndex();
+};
+
 export const getTextFromEditorOrString = data => {
   if (Array.isArray(data)) {
     const [forMinderText] = data;
@@ -174,6 +184,7 @@ export const updateProcessBar = async (
   }
   await saveAllObject([processBar]);
 };
+
 export const toPointer = (className: string, objectId: string) => ({
   __type: 'Pointer',
   className,
@@ -225,3 +236,31 @@ export async function execFuncWitRetry<T>(props: IExecFuncWithWaitParams<T>): Pr
   }
   return res as T;
 }
+
+// 记录批量操作记录
+export const insertBatchRecord = async (params: {
+  type: string;
+  items: string[];
+  params: any;
+  error?: any;
+  retryId?: string;
+}): Promise<string> => {
+  const BatchRecord = getParseModel(true, 'BatchHandleRecord');
+  const record = new BatchRecord(params);
+  // TODO 目前失败时才插入
+  record.set('status', 'fail');
+  const result = await saveAllObject([record]);
+  return result[0]?.id;
+};
+
+// 更新批量操作记录
+export const updateBatchRecordsDone = async (ids: string[]): Promise<void> => {
+  if (!ids.length) return;
+  const BatchRecord = getParseModel(true, 'BatchHandleRecord');
+  const records = ids.map(id => {
+    const record = BatchRecord.createWithoutData(id);
+    record.set('status', 'done');
+    return record;
+  });
+  await saveAllObject(records);
+};

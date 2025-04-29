@@ -24,6 +24,7 @@ export {
   removeExecutionFromPlan,
   batchLinkBugsToRun,
   batchRemoveBugsWithRun,
+  retry,
 } from './modules/api/batch';
 
 export { testExecutionStats, testCaseStats, testCount } from './modules/api/stats';

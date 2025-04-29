@@ -90,6 +90,10 @@ modules:
       function: job-remove-case-from-plan-function
     - key: job-add-execution-to-plan
       function: job-add-execution-to-plan-function
+    - key: job-retry
+      function: job-retry-function
+    - key: api-retry
+      function: api-retry-function
     - key: api-batch-copy-test-case
       function: api-batch-copy-test-case-function
     - key: api-batch-copy-test-case-v2
@@ -345,6 +349,14 @@ modules:
       timeout: 3600000
     - key: job-remove-execution-from-plan-function
       handler: job.removeExecutionFromPlanJob
+      # 60 分钟超时时长
+      timeout: 3600000
+    - key: job-retry-function
+      handler: job.retryJob
+      # 60 分钟超时时长
+      timeout: 3600000
+    - key: api-retry-function
+      handler: api.retry
       # 60 分钟超时时长
       timeout: 3600000
     - key: api-batch-create-test-case-function
@@ -1008,6 +1020,29 @@ tables:
       count:
         type: Number
       type: 
+        type: String
+  - className: BatchHandleRecord
+    fields:
+      type:
+        type: String
+      desc:
+        type: String
+      workspace:
+        type: String
+      items:
+        type: Array
+      user:
+        type: Pointer
+        targetClass: _User
+      error:
+        type: Object
+      status:
+        type: String
+      handleTime:
+        type: Date
+      params:
+        type: Object
+      retryId:
         type: String
 locales:
   zh-CN:
