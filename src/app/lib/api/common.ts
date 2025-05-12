@@ -1,4 +1,5 @@
 import { TestFiledKeyMapping, TestType } from 'common/constant';
+import { CommonResultType } from 'common/types/api';
 import { BaseTestEntity } from 'common/types/test';
 import { itemToTestEntity, testEntityToItemValues } from 'common/utils/dataTransfer';
 import { assign, cloneDeep, isEmpty, omit, transform, without } from 'lodash';
@@ -766,6 +767,28 @@ export const getAllTestConfigs = (selectKeys?: string[]) => {
   }
   return query.findAll();
 };
+
+// 调用外部接口保存itemTypeMap
+export async function saveTestItemTypes(params: {
+  itemTypeValues: Array<string>;
+  applicationId: string;
+}): Promise<CommonResultType> {
+  const result = await fetch.$post(
+    `/apps/api/v1/${params.applicationId}/test_manager/production/properties`,
+    {
+      displayConditions: {
+        'test-manager-test-detail': {
+          itemType: params.itemTypeValues,
+        },
+      },
+    },
+  );
+  if (result.code !== 0 && result.code !== 200) {
+    const message = result.message || result.data;
+    return { result: false, message };
+  }
+  return { result: true };
+}
 
 /**
  * 获取整个租户测试类型关联的类型
