@@ -33,11 +33,10 @@ export const useTestTypeScreenFieldKeys = ({
   workspaceKey,
   testType,
 }: TitleCellOption['titleCellOption']) => {
-  const testConfig = useNoExpiredRequest(
+  const { data: testConfig } = useNoExpiredRequest(
     async () => {
       const config = await getTestConfig({ workspaceKey });
-      const { itemTypeMap } = config?.toJSON() ?? ({} as any);
-      return itemTypeMap;
+      return config?.toJSON();
     },
     {
       ready: Boolean(workspaceKey),
@@ -45,9 +44,10 @@ export const useTestTypeScreenFieldKeys = ({
       staleTime: -1,
     },
   );
+
   const customerFieldKeys = useScreenFieldKeysFromTestConfig({
     workspaceKey,
-    testConfig,
+    testConfig: testConfig ?? {},
     testType,
   });
   return customerFieldKeys;
