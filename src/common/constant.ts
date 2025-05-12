@@ -102,6 +102,7 @@ export const TestFieldTypeKeyMapping = {
   referenceCaseSnapshot: 'r_test_manager_es_text_keyword',
   status: 'r_test_manager_es_text_keyword',
   linkItems: 'r_test_manager_es_array_keyword',
+  plan: 'Text.keyword',
 };
 
 /** 测试管理自定义字段 key 映射 */

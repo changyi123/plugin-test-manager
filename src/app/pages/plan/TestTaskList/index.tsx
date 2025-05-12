@@ -12,14 +12,11 @@ import { getFilterFields } from '@/components/common/FilterSearch/utils';
 import { BusinessTable } from '@/components/dynamicComponents';
 import { CustomMore, CustomPage } from '@/icons';
 import { EditIcon } from '@/icons';
-import {
-  getLinkedTestEntityByQuery,
-  getStatsTestExecution,
-  getTestEntityByQuery,
-} from '@/lib/api/item';
+import { getLinkedTestEntityByQuery, getTestEntityByQuery, getTestStats } from '@/lib/api/item';
 import { useCurrentUser } from '@/lib/api/user';
 import { getCurrentUserSetting, saveUserSetting } from '@/lib/api/userSetting';
 import {
+  BuiltinFieldNameMapping,
   SystemField,
   TestExecutionModel,
   TestFiledKeyMapping,
@@ -219,20 +216,44 @@ const TestTaskList: React.FC<any> = ({
   const onSuccess = useMemoizedFn(async (data, mutate) => {
     const { list = [], total } = data ?? {};
     if (!list.length) return;
-    const stats = await getStatsTestExecution({
-      executionIds: list.map(d => d.objectId),
-      select: ['runStatus', 'runCount'],
-      workspaceKey,
+
+    const result = await getTestStats({
+      groups: ['status', 'linkItems'],
+      params: {
+        query: {
+          workspaceKey: workspace?.key,
+          type: TestType.Run,
+        },
+        selector: config?.enableCaseSnapshot
+          ? `${BuiltinFieldNameMapping.referenceCaseSnapshot} is not null`
+          : `${BuiltinFieldNameMapping.referenceCase} is not null`,
+        linkType: TestLinkType.RunLinkExecution,
+        sourceIds: list.map(d => [d.id]),
+        destinationType: TestType.Run,
+        limit: 99999,
+      } as any,
     });
+    const stats = result.reduce((acc, s) => {
+      if (!s.linkItems) return acc;
+      if (!acc[s.linkItems]) {
+        acc[s.linkItems] = {
+          runStatus: {},
+          runCount: 0,
+        };
+      }
+      acc[s.linkItems].runStatus[s.status] = s.count;
+      acc[s.linkItems].runCount += s.count;
+      return acc;
+    }, {});
 
     mutate({
       total,
       list: _.chain(list)
-        .map(testPlan => {
+        .map(execution => {
           return {
-            ...testPlan,
-            ...stats?.[testPlan.objectId],
-            status: testPlan.status,
+            ...execution,
+            ...stats?.[execution.objectId],
+            status: execution.status,
           };
         })
         .value(),

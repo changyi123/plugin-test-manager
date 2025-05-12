@@ -199,7 +199,7 @@ export function chunkArray<T>(array: Array<T>, maxChunkSize: number): Array<T>[]
   return chunks;
 }
 
-const wait = async (ms: number) => {
+export const wait = async (ms: number) => {
   return new Promise(resolve => setTimeout(resolve, ms));
 };
 

@@ -383,12 +383,12 @@ export const batchCreateTestRun = async () => {
       await createTestRuns();
     }
 
-    return buildResponse({
+    return {
       batchId: batchLog.id, // 批次id
       type: 'bulk-create-item', // 类型
       status: 'running', // 批次状态： running | finished | timeout
       count: needCaseList.length, // 批量创建的事项数
-    });
+    };
   } catch (err) {
     return buildResponse(err);
   }
@@ -647,7 +647,7 @@ export const batchCreateTestRunJob = async () => {
     const createTestRuns = async caseList => {
       const caseSnapshotMap = await batchCreateCaseSnapshot(caseList);
       const testRuns = generateCreateRuns(caseSnapshotMap, caseList);
-      const batchResult = await batchCreateItemWithProgress(testRuns, null, null, true);
+      const batchResult = await batchCreateItemWithProgress(testRuns, null, null, false);
       console.info(batchResult, 'createTestRuns-batchCreateItemWithProgress');
       // 更新batchLog
       if (batchLogId) {
@@ -676,7 +676,7 @@ export const batchCreateTestRunJob = async () => {
 
     const response = await getBatchResultFunction(batchLogId, true);
     await sendNotification(notificationUrl, response);
-    return buildResponse(response);
+    return response;
     // 查询测试执行任务
   } catch (err) {
     console.info(err, 'error');

@@ -397,6 +397,9 @@ const TestDetailTable: React.FC<TestDetailTableProps> = props => {
         breadcrumbs,
         selectAll: tableActionRef.current.selectAll,
         displayContext: 'test_manager',
+        context: {
+          displayContext: 'test_manager',
+        },
       });
     };
 

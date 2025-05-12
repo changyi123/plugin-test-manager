@@ -427,7 +427,6 @@ const TestDetailsSelectorList: React.FC<TestDetailsSelectorListProps> = ({
             <VirtualScrollList
               loading={testCaseListLoading}
               group={group}
-              loading={testCaseListLoading}
               caseListMap={treeType === 'plan' ? planCaseListMap : caseListMap}
               selectCaseIdsSet={selectCaseIdsSet}
               setSelectCaseIdsSet={setSelectCaseIdsSet}

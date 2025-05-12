@@ -168,7 +168,6 @@ const VirtualScrollList: React.FC<VirtualScrollListProps> = props => {
           groupCounts={groupCounts}
           groupContent={groupContent}
           itemContent={itemContent}
-          disabled={loading}
           atBottomStateChange={atBottom => {
             if (atBottom) {
               if (loading) return;
