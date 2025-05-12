@@ -99,3 +99,23 @@ export const appendGroupedDetailIdsToTreeNode = (treeNodes, testDetails) => {
 
   return Array.from(new Set(ungroupedTestDetailIds));
 };
+
+export function getTreeDepthBFS(root) {
+  if (!root) return 0;
+
+  let depth = 0;
+  const queue = [{ node: root, level: 1 }]; // 队列存储节点和当前层级
+
+  while (queue.length > 0) {
+    const { node, level } = queue.shift();
+    depth = Math.max(depth, level); // 更新最大深度
+
+    if (node.children) {
+      for (const child of node.children) {
+        queue.push({ node: child, level: level + 1 }); // 子节点层级+1
+      }
+    }
+  }
+
+  return depth;
+}

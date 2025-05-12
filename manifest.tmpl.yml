@@ -94,6 +94,8 @@ modules:
       function: job-retry-function
     - key: api-retry
       function: api-retry-function
+    - key: job-copy-folder
+      function: job-copy-folder-function
     - key: api-batch-copy-test-case
       function: api-batch-copy-test-case-function
     - key: api-batch-copy-test-case-v2
@@ -112,6 +114,8 @@ modules:
       function: api-batch-link-bug-function
     - key: api-batch-remove-bug
       function: api-batch-remove-bug-function
+    - key: api-copy-folder
+      function: api-copy-folder-function
     # 数据统计
     - key: api-stats-test-plan
       function: api-stats-test-plan-function
@@ -357,6 +361,8 @@ modules:
       timeout: 3600000
     - key: api-retry-function
       handler: api.retry
+    - key: job-copy-folder-function
+      handler: job.copyFolderJob
       # 60 分钟超时时长
       timeout: 3600000
     - key: api-batch-create-test-case-function
@@ -391,6 +397,9 @@ modules:
       timeout: 300000
     - key: api-batch-remove-bug-function
       handler: api.batchRemoveBugsWithRun
+      timeout: 300000
+    - key: api-copy-folder-function
+      handler: api.batchCopyFolder
       timeout: 300000
 
     # api stats

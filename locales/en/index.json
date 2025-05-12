@@ -645,6 +645,7 @@
       "list": "List",
       "minder": "Minder",
       "folderTree": {
+        "repositoryName": "Name",
         "placeholder": "Please enter a module name",
         "inputNameValidatorMessage": [
           "Module names cannot be repeated at the same level",
@@ -655,6 +656,10 @@
         "createChildFolder": "New submodule",
         "createChildFolderSuccess": " Submodule created successfully",
         "renameFolder": "Rename module",
+        "moveFolder": "Move module",
+        "moveFolderSuccess": "Module moved successfully",
+        "copyFolder": "Copy module",
+        "copyFolderSuccess": "Module copied successfully",
         "renameFolderSuccess": "Module renaming as",
         "deleteFolder": "Delete module",
         "deleteFolderTips": [
@@ -681,6 +686,8 @@
       "menu": {
         "menusName": [
           "New submodule",
+          "Move",
+          "Copy",
           "Rename",
           "Delete",
           "Expand",

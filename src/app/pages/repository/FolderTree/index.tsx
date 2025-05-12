@@ -6,6 +6,7 @@ import { Button, Dropdown, Input, message, Modal, notification, Tree } from 'ant
 import { sum, uniq } from 'lodash';
 import React, { useCallback } from 'react';
 
+import { copyFolderWithProcess } from '@/components/business/BatchResult/hooks';
 import {
   CaretDownOutlined,
   CustomMore,
@@ -32,9 +33,10 @@ import {
 import { UNGROUPED_FOLDER_KEY } from '../constant';
 import { useTreeFn } from '../hook';
 import { FolderMenu, MenuKey } from '../Menu';
-import { traverseTreeNodes, traverseTreeNodesAndAddTitle } from '../util';
+import { getTreeDepthBFS, traverseTreeNodes, traverseTreeNodesAndAddTitle } from '../util';
 import { getTreeNodeByKey } from '../util';
 import cx from './index.less';
+import ChangeFolderModal, { CHANGE_TYPE } from './Modal/ChangeFolder';
 
 const proxima = createProximaSdk();
 
@@ -167,6 +169,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
   const treeFn = useTreeFn(traverseTreeNodesAndAddTitle(treeNodeData));
 
   const isInitialRef = React.useRef(false);
+  const changeFolderModalRef = React.useRef(null);
   const {
     workspace,
     config: { itemTypeMap },
@@ -242,17 +245,49 @@ const FolderTree: React.FC<FolderTreeProps> = ({
     }
   }, []);
 
+  const getReverseDepth = useCallback(
+    node => {
+      let hierarchy = 0;
+      treeFn.reverseTreeNodes(node, () => {
+        hierarchy++;
+      });
+      return hierarchy;
+    },
+    [treeFn],
+  );
+
+  const validateDepth = useCallback(
+    (node, targetNode) => {
+      const currentDepth = Math.max(getTreeDepthBFS(node) - 1, 0);
+      const targetDepth = Math.max(getReverseDepth(targetNode) - 1, 0);
+      // 模块创建限制 8 个层级
+      // 全部用例不算一个层级
+      if ((currentDepth || 0) + targetDepth >= 9) {
+        notification.warning({
+          message: t('page.repository.folderTree.hierarchyTips'),
+        });
+        return;
+      }
+      return true;
+    },
+    [t, getReverseDepth, getTreeDepthBFS],
+  );
+
+  const changeFolderValidate = useCallback(
+    (name, nodes, node, targetNode) => {
+      if (!validateDepth(node, targetNode)) {
+        throw new Error(t('page.repository.folderTree.createChildFolder'));
+      }
+      inputNameValidator(name, nodes);
+    },
+    [validateDepth, inputNameValidator, t],
+  );
+
   /** 右键菜单处理函数 */
   const handleMenuClick = React.useCallback(
     async (actionKey: MenuKey, node?: TreeNode) => {
       if (actionKey === MenuKey.createFolder) {
-        let hierarchy = 0;
-        treeFn.reverseTreeNodes(node, () => {
-          hierarchy++;
-        });
-        // 模块创建限制 8 个层级
-        // 全部用例不算一个层级
-        if (hierarchy >= 9) {
+        if (getReverseDepth(node) >= 9) {
           notification.warning({
             message: t('page.repository.folderTree.hierarchyTips'),
           });
@@ -284,6 +319,37 @@ const FolderTree: React.FC<FolderTreeProps> = ({
         repositoryFolderTreeEvent.dispatch();
         notification.success({
           message: t('page.repository.folderTree.createChildFolderSuccess'),
+        });
+      } else if (actionKey === MenuKey.moveFolder) {
+        const moveParams = await changeFolderModalRef.current.open(CHANGE_TYPE.MOVE, node);
+        await updateFolders([
+          {
+            key: node.key,
+            name: moveParams.name,
+            parentKey: moveParams.parentKey || UNGROUPED_FOLDER_KEY,
+          },
+        ]);
+        await onFolderTreeChange();
+        repositoryFolderTreeEvent.dispatch();
+        notification.success({
+          message: t('page.repository.folderTree.moveFolderSuccess'),
+        });
+      } else if (actionKey === MenuKey.copyFolder) {
+        const nodeParams = await changeFolderModalRef.current.open(CHANGE_TYPE.COPY, node);
+        await copyFolderWithProcess({
+          node: {
+            ...node,
+            ...nodeParams,
+          },
+          itemTypeKey: itemTypeMap[TestType.Case],
+          workspace: workspace,
+          handleSuccess: async () => {
+            await onFolderTreeChange();
+            repositoryFolderTreeEvent.dispatch();
+            notification.success({
+              message: t('page.repository.folderTree.copyFolderSuccess'),
+            });
+          },
         });
       } else if (actionKey === MenuKey.renameFolder) {
         const newFolderName = await openFolderNameModal({
@@ -533,7 +599,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
       const getDisabledKeys = (keys = []) => {
         keys =
           node.key === 'root'
-            ? [MenuKey.deleteFolder, MenuKey.renameFolder]
+            ? [MenuKey.deleteFolder, MenuKey.renameFolder, MenuKey.copyFolder, MenuKey.moveFolder]
             : node.disabledMenuKeys ?? [];
         if (getCreatePermission(TestType.Case)) {
           keys = keys.concat(MenuKey.createTest);
@@ -665,6 +731,7 @@ const FolderTree: React.FC<FolderTreeProps> = ({
 
   return (
     <div className={cx('folder-tree', className)}>
+      <ChangeFolderModal ref={changeFolderModalRef} validate={changeFolderValidate} />
       <div className={cx('toolkit-bar')}>{ToolKitButtons.map(Button => Button)}</div>
 
       <DirectoryTree

@@ -6,6 +6,7 @@ import {
   BatchCreateTestRunV2Payload,
   BatchDeletePayload,
   BatchDeleteV2Payload,
+  CopyFolderPayload,
   IBatchUpdateParams,
   RemoveCaseFromPlanPayload,
   RemoveExecuteFromPlanPayload,
@@ -26,6 +27,7 @@ import {
 import { getRootContainer } from '@/lib/utils/helper';
 import {
   addTestExecutionToTestPlan,
+  copyFolder,
   removeTestCaseFromTestPlan,
   removeTestExecutionFromTestPlan,
   retryBatchAction,
@@ -44,6 +46,7 @@ export enum ACTION_TYPE_ENUM {
   REMOVE_EXECUTION_FROM_PLAN,
   ADD_EXECUTION_TO_PLAN,
   RETRY,
+  COPY_FOLDER,
 }
 
 type ProcessSwap<T> = T & {
@@ -99,6 +102,10 @@ export async function retryWithProcess(props: ProcessSwap<RetryPayload>) {
   return await execWithProcess({ ...props, actionType: ACTION_TYPE_ENUM.RETRY });
 }
 
+export async function copyFolderWithProcess(props: ProcessSwap<CopyFolderPayload>) {
+  return await execWithProcess({ ...props, actionType: ACTION_TYPE_ENUM.COPY_FOLDER });
+}
+
 let timer = null;
 
 export async function execWithProcess(
@@ -113,6 +120,7 @@ export async function execWithProcess(
     | RemoveExecuteFromPlanPayload
     | RemoveCaseFromPlanPayload
     | RetryPayload
+    | CopyFolderPayload
   >,
 ) {
   const {
@@ -222,6 +230,13 @@ export async function execWithProcess(
           key: processBarKey,
         });
         title = '重试中';
+        break;
+      case ACTION_TYPE_ENUM.COPY_FOLDER:
+        data = await copyFolder({
+          ...(params as CopyFolderPayload),
+          key: processBarKey,
+        });
+        title = '模块移动中';
         break;
     }
 

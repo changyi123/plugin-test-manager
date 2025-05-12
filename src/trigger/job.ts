@@ -7,4 +7,5 @@ export {
   removeCaseFromPlanJob,
   removeExecutionFromPlanJob,
   retryJob,
+  copyFolderJob,
 } from './modules/job/index';

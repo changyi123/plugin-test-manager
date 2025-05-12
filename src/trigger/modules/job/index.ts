@@ -1,4 +1,4 @@
-import { getParseQuery } from '@giteeteam/apps-team-api';
+import { getParseModel, getParseQuery, saveAllObject } from '@giteeteam/apps-team-api';
 import { groupBy } from 'lodash';
 
 import {
@@ -13,6 +13,7 @@ import {
   BatchCopyTestCaseV3Payload,
   BatchCreateTestRunV2Payload,
   BatchDeletePayload,
+  CopyFolderPayload,
   IBatchUpdateParams,
   RemoveCaseFromPlanPayload,
   RemoveExecuteFromPlanPayload,
@@ -111,7 +112,7 @@ const removeCaseBatchSize = (global.env?.BATCH_CONFIG?.DELETE_V1 ?? DEFAULT_CONF
 
 const getHeaders = () => ({
   'X-Parse-Application-Id': global.applicationId,
-  'X-Parse-Session-Token': global.sessionToken,
+  'X-Parse-Session-Token': global.body?.sessionToken || global.sessionToken,
   'Company-Current': global.applicationId,
   'HEADER-USERINFO': global.sessionToken,
 });
@@ -1003,7 +1004,144 @@ export const retryWorker = async (props: ProcessJobParams<RetryPayload>) => {
   }
 };
 
+export const copyFolder = async (props: ProcessJobParams<CopyFolderPayload>) => {
+  const { processId, node, itemTypeKey, workspace } = props;
+  const result = {
+    total: 0,
+    message: [],
+    success: 0,
+    fail: 0,
+    skip: 0,
+  };
+  try {
+    const itemType = await getParseQuery(false, 'ItemType')
+      .equalTo('key', itemTypeKey)
+      .select(['objectId'])
+      .first({
+        useMasterKey: true,
+        context: {
+          displayModule: 'plugin.testManager',
+        },
+      });
+
+    if (!itemType) {
+      console.error('case itemType not found');
+      return;
+    }
+    const RepositoryModel = getParseModel(true, 'Repository');
+    const workspaceKey = workspace.key;
+    const getRepositoryObject = (node, parent) => {
+      const repository = new RepositoryModel();
+      repository.set('name', node.name);
+      repository.set('parent', RepositoryModel.createWithoutData((parent || 'root') as string));
+      repository.set('workspaceKey', workspaceKey);
+      repository.set('sortIndex', node.sortIndex || generateSortIndex());
+      return repository;
+    };
+    const handleTree = async (root, cb) => {
+      if (!root) return;
+
+      const queue = [{ node: root, parentId: root.parentKey }];
+
+      while (queue.length > 0) {
+        console.info(queue, 'copy folder handleTree');
+        const { node, parentId } = queue.shift();
+        const newNode = await cb(node, parentId);
+
+        if (node.children) {
+          node.children.forEach(child => queue.push({ node: child, parentId: newNode.id }));
+        }
+      }
+    };
+    const nodes = [];
+    const getNode = node => {
+      const newNode = {
+        id: node.key,
+      };
+      nodes.push(newNode);
+      return newNode;
+    };
+    await handleTree(node, getNode);
+    result.total = nodes.length;
+
+    const copySingleRepository = async (node, parentId) => {
+      const repository = getRepositoryObject(node, parentId);
+      const [newNode] = await saveAllObject([repository]);
+      try {
+        const cases = await getAllEntity(
+          {
+            query: {
+              type: TestType.Case,
+              repository: node.key,
+            },
+          },
+          ['id'],
+        );
+        console.info(cases, newNode, 'copy folder copySingleRepository');
+        const createCases = async cases => {
+          const createParams = {
+            from: cases,
+            fields: {
+              [TestFiledKeyMapping.repository]: newNode.id,
+              [TestFiledKeyMapping.linkItems]: [],
+              [TestFiledKeyMapping.linkType]: '',
+              [TestFiledKeyMapping.sortIndex]: generateSortIndex(),
+            },
+            itemType: itemType.get('objectId'),
+            workspace: workspace.objectId,
+          };
+          try {
+            await batchCreateItemsV2(
+              {
+                items: createParams,
+              },
+              getHeaders(),
+            );
+          } catch (e) {
+            console.error('error:', JSON.stringify(e));
+            throw new Error(`${newNode.get('name')}-创建用例失败: ${e.message}`);
+          } finally {
+            console.info('batchCopyItem when copy folder end');
+          }
+        };
+        await batchExecFunction({
+          list: cases.map(c => c.id),
+          fun: createCases,
+          batchSize: 5000,
+        });
+        result.success += 1;
+        await updateProcessBar(
+          processId,
+          getProcessValue(result.success + result.fail, result.total),
+          JSON.stringify(result),
+        );
+      } catch (error) {
+        result.fail += 1;
+        result.message.push(error.message);
+        await updateProcessBar(
+          processId,
+          getProcessValue(result.success + result.fail, result.total),
+          JSON.stringify(result),
+        );
+      }
+      return newNode;
+    };
+    await handleTree(node, copySingleRepository);
+
+    return buildResponse(result);
+  } catch (err) {
+    result.message.push(err.message);
+    await updateProcessBar(processId, -1, JSON.stringify(result));
+    return buildResponse(result);
+  }
+};
+
 export const retryJob = async () => {
   const { body } = getReqInfoFromVMRuntime<ProcessJobParams<RetryPayload>>();
   return await retryWorker(body);
+};
+
+export const copyFolderJob = async () => {
+  const { body } = getReqInfoFromVMRuntime<ProcessJobParams<CopyFolderPayload>>();
+  return await copyFolder(body);
 };

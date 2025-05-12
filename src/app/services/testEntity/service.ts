@@ -3,6 +3,7 @@ import { getPluginWebTriggerBaseUrl, getSessionToken } from '@/lib/utils/helper'
 
 import {
   AddExecuteToPlanProcessParams,
+  CopyFolderPayloadProcessParams,
   RemoveCaseFromPlanProcessParams,
   RemoveExecuteFromPlanProcessParams,
 } from '../../../common/types/api';
@@ -26,6 +27,13 @@ export const removeTestExecutionFromTestPlan = async (
 
 export const retryBatchAction = async (payload: RetryPayloadProcessParams) => {
   return fetch.$post(`${pluginWebTriggerBaseUrl}/api-retry`, {
+    ...payload,
+    sessionToken: getSessionToken(),
+  });
+};
+
+export const copyFolder = async (payload: CopyFolderPayloadProcessParams) => {
+  return fetch.$post(`${pluginWebTriggerBaseUrl}/api-copy-folder`, {
     ...payload,
     sessionToken: getSessionToken(),
   });

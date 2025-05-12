@@ -431,7 +431,7 @@ export type RemoveExecuteFromPlanPayload = {
 };
 export type RemoveExecuteFromPlanProcessParams = ProcessApiParams<RemoveExecuteFromPlanPayload>;
 
-/** 批量从测试计划移除测试执行任务 */
+/** 批量从测试计划移除测试用例 */
 export type RemoveCaseFromPlanPayload = {
   /** 测试计划 id */
   planId: string;
@@ -445,3 +445,16 @@ export type RetryPayload = {
   retryId: string;
 };
 export type RetryPayloadProcessParams = ProcessApiParams<RetryPayload>;
+type TreeNode = {
+  key: string;
+  name: string;
+  parentKey: string | null;
+  children: TreeNode[];
+};
+/** 批量从测试计划移除测试用例 */
+export type CopyFolderPayload = {
+  node: TreeNode;
+  itemTypeKey: string;
+  workspace: { objectId: string; key?: string };
+};
+export type CopyFolderPayloadProcessParams = ProcessApiParams<CopyFolderPayload>;

@@ -34,6 +34,7 @@ import {
   BatchUpdatePayload,
   BatchUpdateProcessParams,
   BatchUpdateValuePayload,
+  CopyFolderPayloadProcessParams,
   RemoveCaseFromPlanProcessParams,
   RemoveExecuteFromPlanProcessParams,
   RetryPayloadProcessParams,
@@ -66,6 +67,7 @@ import { testEntityFieldTypeValidator, throwArgumentError } from '../../lib/vali
 import {
   addExecutionToPlanWorker,
   batchDeleteItems,
+  copyFolder,
   copyTesCases,
   createTestRuns,
   removeCaseFromPlanWorker,
@@ -1406,6 +1408,30 @@ export const retry = async () => {
           headers,
         ),
       syncFunc: async () => await retryWorker(body),
+    });
+  } catch (err) {
+    return buildResponse(err);
+  }
+};
+/** 复制模块 */
+export const batchCopyFolder = async () => {
+  try {
+    const { body, headers } = getReqInfoFromVMRuntime<CopyFolderPayloadProcessParams>();
+    const { key } = body;
+
+    return await batchRequestDecorator({
+      key,
+      asyncFunc: processId =>
+        requestCoreApi(
+          'POST',
+          `/api/app/${global.env.TENANT_KEY}/${global.appKey}/webhooks/job-copy-folder`,
+          {
+            ...body,
+            processId,
+          },
+          headers,
+        ),
+      syncFunc: async () => await copyFolder(body),
     });
   } catch (err) {
     return buildResponse(err);
