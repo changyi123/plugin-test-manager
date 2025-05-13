@@ -13,7 +13,7 @@ const { ItemIcon } = components.Components.Common;
 
 import { useSDK } from '@projectproxima/plugin-sdk';
 
-import { saveTestItemTypes } from '@/lib/api/common';
+import { savePanelDisplayConditions } from '@/lib/api/common';
 import { judgeTestReportVersion, TEST_REPORT_VERSION } from '@/lib/appEnv';
 import Parse from '@/lib/parse';
 import { TestConfig } from '@/services/models';
@@ -130,7 +130,7 @@ const ItemTypeMapping = () => {
     const allItemMapValue = await getAllItemTypeValues();
 
     // 调用apps接口保存显示配置
-    saveTestItemTypes({
+    savePanelDisplayConditions({
       applicationId: tenant,
       itemTypeValues: allItemMapValue as Array<string>,
     });

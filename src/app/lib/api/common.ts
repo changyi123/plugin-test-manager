@@ -769,7 +769,7 @@ export const getAllTestConfigs = (selectKeys?: string[]) => {
 };
 
 // 调用外部接口保存itemTypeMap
-export async function saveTestItemTypes(params: {
+export async function savePanelDisplayConditions(params: {
   itemTypeValues: Array<string>;
   applicationId: string;
 }): Promise<CommonResultType> {
