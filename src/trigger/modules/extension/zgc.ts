@@ -798,11 +798,19 @@ const getTestReportInfo = async body => {
       const closeBugMap = {};
       const discoverBugMap = {};
       const deferredBugMap = {};
+
       const bugsMap = runBugs.reduce((map, bugItem) => {
         const { id } = bugItem as any;
+        validBugMap[id] = (zgcConfig.有效解决方案 || []).includes(
+          bugItem.values[zgcConfig.解决方案]?.toString(),
+        );
+        closeBugMap[id] = (zgcConfig.已关闭 ?? '已关闭') === (bugItem.status as any)?.name;
+        discoverBugMap[id] = (bugItem as any).isRelativeCase;
+        deferredBugMap[id] =
+          (bugItem.status as any)?.name === (zgcConfig.延期待解决 ?? '延期待解决');
         return {
           ...map,
-          [id]: bugItem,
+          [(bugItem as any).id]: bugItem,
         };
       }, {});
 
