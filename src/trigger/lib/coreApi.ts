@@ -6,6 +6,7 @@ type SupportRequestMethods = Parameters<typeof requestCoreApi>[0];
 
 const withCoreApiRequest = (
   info: [SupportRequestMethods, string | ((dynamicPath: string) => string)],
+  fullError?: boolean,
 ) => {
   return async function request(...args) {
     const isDynamicPath = typeof info[1] === 'function';
@@ -16,10 +17,18 @@ const withCoreApiRequest = (
     const headers = (isDynamicPath ? args[2] : args[1]) ?? {};
     console.info(JSON.stringify({ isDynamicPath, params, path, headers }), 'withCoreApiRequest');
 
-    return requestCoreApi(info[0], path, params, {
-      ...headers,
-      'accept-language': genAcceptLanguage(getLang()),
-    }) as any;
+    return requestCoreApi(
+      info[0],
+      path,
+      params,
+      {
+        ...headers,
+        'accept-language': genAcceptLanguage(getLang()),
+      },
+      {
+        fullError,
+      },
+    ) as any;
   };
 };
 
@@ -75,7 +84,10 @@ export const queryFields = withCoreApiRequest([
 ]);
 
 // 批量创建事项
-export const batchCreateItemsV2 = withCoreApiRequest(['POST', `/parse/api/v2/items/batch/create`]);
+export const batchCreateItemsV2 = withCoreApiRequest(
+  ['POST', `/parse/api/v2/items/batch/create`],
+  true,
+);
 
 // 批量更新事项
 export const batchUpdateItemsV2 = withCoreApiRequest(['POST', `/parse/api/v2/items/batch/update`]);

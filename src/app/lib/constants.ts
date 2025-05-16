@@ -528,19 +528,19 @@ export const getExtendFields = t => [
       name: t('common.user'),
     },
   },
-  // {
-  //   key: TestCaseStatusModel,
-  //   // name: '测试执行状态',
-  //   name: t('common.testCaseStatus'),
-  //   objectId: TestCaseStatusModel,
-  //   fieldType: {
-  //     isExtend: true,
-  //     dataType: 'object',
-  //     objectId: TestCaseStatusModel,
-  //     key: TestCaseStatusModel,
-  //     name: t('common.testCaseStatus'),
-  //   },
-  // },
+  {
+    key: TestCaseStatusModel,
+    // name: '测试执行状态',
+    name: t('common.testCaseStatus'),
+    objectId: TestCaseStatusModel,
+    fieldType: {
+      isExtend: true,
+      dataType: 'object',
+      objectId: TestCaseStatusModel,
+      key: TestCaseStatusModel,
+      name: t('common.testCaseStatus'),
+    },
+  },
 ];
 
 export const getTestPlanField = t => [
