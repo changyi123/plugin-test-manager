@@ -376,13 +376,22 @@ export const iqlRequest: IqlRequestType = async params => {
 
     const { data: serializerResultMap } = await serializeRichText({ data: testEntitySeriesMap });
     console.info('serializerResultMap', JSON.stringify(serializerResultMap));
+    const getSerializedValue = (
+      step: Record<string, any>,
+      testEntityId: string,
+      index: number,
+      key: 'action' | 'result' | 'data',
+    ) => {
+      const val = step?.[key];
+      return typeof val === 'string' ? val : serializerResultMap[`${testEntityId}_${index}_${key}`];
+    };
     testEntityList.forEach(testEntity => {
       if (testEntity.detail?.steps?.length) {
         testEntity.detail.steps.forEach((step, index) => {
           step.__innerHTML__ = {
-            action: serializerResultMap[`${testEntity.objectId}_${index}_action`],
-            result: serializerResultMap[`${testEntity.objectId}_${index}_result`],
-            data: serializerResultMap[`${testEntity.objectId}_${index}_data`],
+            action: getSerializedValue(step, testEntity.objectId, index, 'action'),
+            result: getSerializedValue(step, testEntity.objectId, index, 'result'),
+            data: getSerializedValue(step, testEntity.objectId, index, 'data'),
           };
         });
       }

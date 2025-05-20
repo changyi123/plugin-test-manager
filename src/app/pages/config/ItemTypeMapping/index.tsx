@@ -11,7 +11,12 @@ import { useCurrentTestConfig, useDataContext } from '../hooks';
 
 const { ItemIcon } = components.Components.Common;
 
+import { useSDK } from '@projectproxima/plugin-sdk';
+
+import { savePanelDisplayConditions } from '@/lib/api/common';
 import { judgeTestReportVersion, TEST_REPORT_VERSION } from '@/lib/appEnv';
+import Parse from '@/lib/parse';
+import { TestConfig } from '@/services/models';
 
 import cx from './index.less';
 
@@ -32,6 +37,7 @@ const TestTypes = [
 
 const ItemTypeMapping = () => {
   const { t } = useI18n();
+  const { context } = useSDK();
   const { workspace, globalConfig } = useDataContext();
   const isolatedSystem = Boolean(globalConfig?.extra?.isolatedSystem);
   const workspaceKey = workspace?.key;
@@ -39,6 +45,20 @@ const ItemTypeMapping = () => {
 
   const [topItemTypes, setTopItemTypes] = useSafeState([]);
   const [itemTypeMapping, setItemTypeMapping] = useSafeState({} as Record<TestType, string>);
+
+  const getAllItemTypeValues = async () => {
+    const allTestConfigs = (await new Parse.Query(TestConfig)
+      .select('itemTypeMap')
+      .equalTo('global', false)
+      .findAll()) as Array<Parse.Object>;
+    const allItemMapValues = allTestConfigs
+      .map(config => config.toJSON())
+      ?.map(config => config?.itemTypeMap)
+      ?.filter(item => item && Object.keys(item).length)
+      ?.map(item => Object.values(item))
+      ?.flat();
+    return [...new Set(allItemMapValues)];
+  };
 
   useRequest(() => getTopItemTypeFromHierarchy(workspaceId), {
     ready: !!workspaceId,
@@ -95,10 +115,24 @@ const ItemTypeMapping = () => {
     [topItemTypes, itemTypeMapping, isolatedSystem, setItemTypeMapping, t],
   );
 
+  const tenant = useMemo(
+    () => context?.env.PROXIMA_APP_ID ?? 'proxima-core',
+    [context?.env.PROXIMA_APP_ID],
+  );
+
   // 保存
   const handleSave = async () => {
     await testConfig?.save({
       itemTypeMap: itemTypeMapping,
+    });
+
+    // 查询所空间下的itemTypeMapping
+    const allItemMapValue = await getAllItemTypeValues();
+
+    // 调用apps接口保存显示配置
+    savePanelDisplayConditions({
+      applicationId: tenant,
+      itemTypeValues: allItemMapValue as Array<string>,
     });
 
     message.success(t('page.config.itemTypeMapping.typeAssociationConfigurationSavedSuccessfully'));

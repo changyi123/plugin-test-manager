@@ -457,4 +457,11 @@ export type CopyFolderPayload = {
   itemTypeKey: string;
   workspace: { objectId: string; key?: string };
 };
+
+/** 调用应用中心接口返回类型(转换格式后的类型)*/
+export interface CommonResultType {
+  result: boolean;
+  message?: string;
+}
+
 export type CopyFolderPayloadProcessParams = ProcessApiParams<CopyFolderPayload>;
