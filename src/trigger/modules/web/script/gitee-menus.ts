@@ -117,11 +117,17 @@ export const runGiteeMenus = async () => {
       JSON.stringify(hasPermissionBoards),
     );
 
-    return menus.filter(menu => {
-      const pluginKey = getBoardPluginKey(APP_KEY, menu.pageKey);
-      console.info('pluginKey', pluginKey);
-      return hasPermissionBoards.findIndex(key => key === pluginKey) > -1;
-    });
+    return menus
+      .filter(menu => {
+        const pluginKey = getBoardPluginKey(APP_KEY, menu.pageKey);
+        console.info('pluginKey', pluginKey);
+        return hasPermissionBoards.findIndex(key => key === pluginKey) > -1;
+      })
+      ?.filter(menu => menu)
+      ?.map(menu => {
+        menu.iframeUrl = null;
+        return menu;
+      });
   };
 
   const workspaceKey = getWorkspaceKey();
