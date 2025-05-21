@@ -9,7 +9,7 @@ type RenderNodeType = React.ReactNode;
 const Left: React.FC<any> = ({ children }) => {
   const [width, setWidth] = useResizableWidth();
   const height = useLayoutHeight();
-
+  if (!children) return
   return (
     <ResizableBox
       axis="x"
