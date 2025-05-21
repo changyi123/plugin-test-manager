@@ -47,6 +47,7 @@ type ColumnSettingProps = TitleCellOption & {
     fieldKeys: string[];
   }) => void;
   onClose?: () => void;
+  getContainer?: any;
 };
 
 const proxima = createProximaSdk();
@@ -66,6 +67,7 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
     handleFilterField,
     additionalColumns = [],
     onTableColumnChange = noop,
+    getContainer,
   } = props;
   const { t } = useI18n();
   const [visible, setVisible] = React.useState(false);
@@ -325,6 +327,7 @@ const ColumnSetting: React.FC<ColumnSettingProps> = props => {
           props.onClose?.();
         }}
         width={visible ? 320 : 0}
+        getContainer={getContainer}
         title={t('components.common.businessTable.tableSetting')}
       >
         <div className={cx('box-header')}>
