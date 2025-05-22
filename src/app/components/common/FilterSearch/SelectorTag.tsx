@@ -96,8 +96,8 @@ const SelectorTag: React.FC<SelectorTagProps> = ({
       return getDateDisplayText(_expression, value as string[], t);
     }
 
-    const key = component === 'test_manager_status' ? 'Workspace' : component;
-    const options = FILTER_EXPRESSIONS(t)[key] || [];
+    const keys = component === 'test_manager_status' ? ['Workspace', component] : [component];
+    const options = keys.flatMap(key => FILTER_EXPRESSIONS(t)[key]).filter(Boolean) || [];
     return options.find(item => item.value === _expression)?.label || null;
   }, [_expression, component, t, value]);
 

@@ -16,7 +16,6 @@ import { getFilterFields } from '@/components/common/FilterSearch/utils';
 import {
   getExtendFields,
   RepositoryModel,
-  TestCaseStatusModel,
   TestFiledKeyMapping,
   TestLinkType,
   TestType,
@@ -140,9 +139,7 @@ const Right: React.FC<RightProps> = props => {
   const filterSearchExtendFieldsProps = useMemo(() => {
     const fieldsMapping = {
       // 测试用例类型筛选，只有测试用例库模块
-      TestPlan: getExtendFields(t).filter(field =>
-        [TestCaseStatusModel, RepositoryModel].includes(field.key),
-      ),
+      TestPlan: getExtendFields(t).filter(field => [RepositoryModel].includes(field.key)),
       // 测试执行搜索
       TestExecution: getExtendFields(t),
     };

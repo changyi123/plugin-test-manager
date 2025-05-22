@@ -90,7 +90,13 @@ function safeToString(value) {
 }
 
 function getErrorMessage(error) {
-  return safeToString(error.message || error);
+  return safeToString(
+    error?.response?.data?.error ??
+      error?.response?.data?.message ??
+      error?.response?.data ??
+      error?.message ??
+      error,
+  );
 }
 
 function getResult(retryId) {
