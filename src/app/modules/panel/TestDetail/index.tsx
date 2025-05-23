@@ -4,8 +4,8 @@ import PanelLayout from '@/components/business/PanelLayout';
 import { TestType } from '@/lib/constants';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import useI18n from '@/lib/hooks/useI18n';
-
 import HistoryRUnPanel from './HistoryRunPanel';
+import TestDefect from './TestDefect';
 import TestDetailPanel from './TestDetailPanel';
 import TestPlanPanel from './TestPlanPanel';
 
@@ -37,6 +37,11 @@ const TestDetail: React.FC = () => {
               tab: t('modules.panel.testDetail.historyRunPanel.runRecord'),
               key: TestType.Run,
               Component: HistoryRUnPanel,
+            },
+            {
+              tab: t('common.testDefect'),
+              key: TestType.Defect,
+              Component: TestDefect,
             },
           ],
     [baseLineItemId, t],
