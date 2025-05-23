@@ -1,12 +1,17 @@
 import createProximaSdk from '@projectproxima/proxima-sdk-js';
+import { QueryLinkedTestEntityPayload } from 'common/types/api';
 import { useUpdateEffect } from 'ahooks';
-import { Button, message, notification, Select, Tooltip } from 'antd';
+import { Button, message, notification, Select, Tooltip, Dropdown, Space } from 'antd';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
+import { DownOutlined } from '@/icons';
 
 import {
   createTestRunWithProcess,
   updateItemsWithProcess,
 } from '@/components/business/BatchResult/hooks';
+import RepositoryFolderTree, {
+  ActionType as FolderTreeActionType,
+} from '@/components/business/RepositoryFolderTree';
 import TestEntitySelectorModal, {
   ActionType as ModelActionType,
 } from '@/components/business/TestEntitySelectorModal';
@@ -29,6 +34,7 @@ import { usePageContext } from '../../hook';
 import TestEntityList from '../../TestEntityList';
 import ExecutionStatus from '../ExecutionStatus';
 import { useSetTableHeight } from './hooks';
+import { useLocation } from 'react-router-dom';
 import cx from './index.less';
 
 interface RightProps {
@@ -39,6 +45,9 @@ interface RightProps {
   refreshTreeAndScopeTestCase?: () => void;
   selectNode?: Record<string, unknown>;
   showRepoDropDown?: boolean;
+  treeParams?: QueryLinkedTestEntityPayload;
+    /** 目录被选中 */
+  onFolderSelect?: (node?: any) => void;
 }
 
 const Right: React.FC<RightProps> = props => {
@@ -50,8 +59,9 @@ const Right: React.FC<RightProps> = props => {
     refreshTreeAndScopeTestCase,
     selectNode,
     showRepoDropDown = true,
+    treeParams,
+    onFolderSelect,
   } = props;
-
   const {
     refresh,
     selectedTestPlan,
@@ -61,10 +71,12 @@ const Right: React.FC<RightProps> = props => {
     mutateStatusEvent,
     mutateTestTableList,
     tableSelectionToggleEvent,
+    workspaceKey,
   } = usePageContext();
   const proxima = createProximaSdk();
   const { getCreatePermission, testCaseFieldKeys } = useBaseAction();
   const { t } = useI18n();
+  const { pathname } = useLocation();
 
   useSetTableHeight();
 
@@ -189,13 +201,36 @@ const Right: React.FC<RightProps> = props => {
     });
   };
 
+  const renderDropdown = (
+    <Dropdown
+      // open={true}
+      dropdownRender={menu => (
+        <div className={cx('right-box-dropdown-content')}>
+          <RepositoryFolderTree
+            hideEmptyFolder
+            // actionRef={folderTreeRef}
+            workspaceKey={workspaceKey}
+            params={treeParams}
+            onFolderSelect={onFolderSelect}
+            isShowAll={false}
+          />
+        </div>
+      )}
+    >
+      <Space size={5} className={cx('right-box-dropdown-text')}>
+        {selectNode?.name || t('common.allTestCase')}
+        <DownOutlined />
+      </Space>
+    </Dropdown>
+  )
   return (
     <div className={cx('right-box')}>
       <div data-element-id="test-manager-execution-table-header" className={cx('box-header')}>
         <div className={cx('extra-content')}>
           <div className={cx('extra-content-left')}>
             {activeType === 'TestExecution' ? (
-              <>
+              <Space size={10}>
+                {['/plan'].includes(pathname) && renderDropdown}
                 <Tooltip title={selectedExecution?.name ?? ''} placement="topLeft">
                   <div className={cx('title')}>{selectedExecution?.name}</div>
                 </Tooltip>
@@ -205,7 +240,7 @@ const Right: React.FC<RightProps> = props => {
                     // setCurTestRuns={setCurTestRuns}
                   />
                 </div>
-              </>
+              </Space>
             ) : (
               t('common.allTestCase')
             )}
