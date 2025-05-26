@@ -3,6 +3,7 @@ import React from 'react';
 
 import { TestType } from '@/lib/constants';
 import { Item, Workspace } from '@/lib/types/App';
+import { GeneralSetting } from '@/lib/types/Test';
 
 export interface StatusType {
   key: string;
@@ -37,6 +38,7 @@ export type TestConfigContextType = {
   testEntity?: BaseTestEntity;
   setTestEntity: (data: BaseTestEntity) => void;
   baseLineItemId?: string;
+  generalSetting?: GeneralSetting;
 };
 /** 测试管理配置 context */
 export const TestConfigContext = React.createContext<TestConfigContextType>(
