@@ -37,31 +37,41 @@ const TestDefect: React.FC = () => {
           total: 0,
         };
       setTableLoading(true);
-      const { list: testRunList } = await getTestEntityByQuery({
-        query: {
-          referenceCase: testEntity.objectId,
-          type: TestType.Run,
-        },
-        limit: 1,
-      });
-      const testRunEntity =  Array.isArray(testRunList) && !_.isEmpty(testRunList) && testRunList[0]
-      if (!testRunEntity?.runDetail) return;
-      const defectIds = getDefectIds(testRunEntity?.runDetail);
-      if (!defectIds.length) return;
-      const { count, items } = await getItemByIQL({ itemId: defectIds })
-      setTableLoading(false);
-      return {
-        list:
-          items.map(i => ({
-            ...i,
-            status: i.workflowStatus,
-          })) ?? [],
-        total: count ?? 0,
-      };
-      return {
-        list: items,
-        total: count,
-      };
+      try {
+        const { list: testRunList } = await getTestEntityByQuery({
+          query: {
+            referenceCase: testEntity.objectId,
+            type: TestType.Run,
+          },
+          limit: 1,
+        });
+        const testRunEntity =  Array.isArray(testRunList) && !_.isEmpty(testRunList) && testRunList[0]
+        if (!testRunEntity?.runDetail) {
+          setTableLoading(false)
+          return
+        };
+        const defectIds = getDefectIds(testRunEntity?.runDetail);
+        if (!defectIds.length) {
+          setTableLoading(false)
+          return
+        };
+        const { count, items } = await getItemByIQL({ itemId: defectIds })
+        setTableLoading(false);
+        return {
+          list:
+            items.map(i => ({
+              ...i,
+              status: i.workflowStatus,
+            })) ?? [],
+          total: count ?? 0,
+        };
+      } catch (error) {
+        setTableLoading(false);
+        return {
+          list: [],
+          total: 0,
+        };
+      }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [testEntity?.objectId, testEntity?.workspace?.key, getDefectIds],
