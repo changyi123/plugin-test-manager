@@ -1,5 +1,5 @@
 import { message } from 'antd';
-import { isEqual, pick } from 'lodash';
+import { isEqual, omit, pick } from 'lodash';
 import React from 'react';
 
 import TestEntitySelectorModal, {
@@ -52,7 +52,7 @@ const TestStep: React.FC<TestStepProps> = ({
       // 向上级组件通信
       if (!isEqual(stepsProps, newSteps)) {
         // stepsCacheRef.current
-        onChange?.(newSteps);
+        onChange?.(newSteps.map(step => omit(step, ['copy'])));
       }
     },
     [stepsProps, _setSteps, onChange],
@@ -100,7 +100,7 @@ const TestStep: React.FC<TestStepProps> = ({
       swap({ sourceIndex, destinationIndex }) {
         const newSteps = Array.from(steps);
         const [movedStep] = newSteps.splice(sourceIndex, 1);
-        newSteps.splice(destinationIndex, 0, movedStep);
+        newSteps.splice(destinationIndex, 0, { ...(movedStep || {}), copy: true });
         setSteps(newSteps);
       },
     };

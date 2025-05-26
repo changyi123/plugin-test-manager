@@ -93,7 +93,8 @@ const StepRow: React.FC<StepRowProps> = props => {
   const isCallTestStep = !!data.callTestId;
 
   // memoized StepFields 渲染，表单字段 render 由 Form.Item 接管
-  const StepFieldsMemoKey = data.id + data.fields.map(field => field.key).toString() + readonly;
+  const StepFieldsMemoKey =
+    data.id + data.fields.map(field => field.key + field.copy).toString() + readonly;
   const StepFieldsMemoNode = React.useMemo(
     () => <StepFields stepId={data.id} fields={data.fields} readonly={readonly} />,
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -282,8 +283,6 @@ const StepList: React.FC<StepListProps> = ({ steps, actions, hasRequiredTip, rea
           field.innerHTML = step?.__innerHTML__?.[field.key];
           field.copy = step?.copy;
         });
-
-        step.copy && delete step.copy;
 
         return _.chain(step)
           .pick(['id', 'callTestId'])
