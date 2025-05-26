@@ -113,31 +113,34 @@ const TestDefect: React.FC = () => {
   }, [t]);
 
   return (
-    <BusinessTable
-      titleCellOption={{
-        workspaceKey: testEntity?.workspace?.key,
-        testType: TestType.Case,
-      }}
-      useColumnSetting
-      defaultColumnKey={[
-        'key',
-        'name',
-        'status',
-        'createdBy',
-        'createdAt',
-      ]}
-      scroll = {{ 
-        x: 'max-content',
-        y: 200
-      }}
-      // privateColumnKey={['repositoryGroup', 'caseLatestStatus', 'runCount']}
-      rowKey="objectId"
-      columns={tableColumns}
-      name={`${testEntity?.workspace?.key}_AllTestEntity`}
-      actionRef={actionRef}
-      loading={tableLoading}
-      getDataSource={tableDataGetter}
-    />
+    <div id="container-1">
+      <BusinessTable
+        titleCellOption={{
+          workspaceKey: testEntity?.workspace?.key,
+          testType: TestType.Case,
+        }}
+        useColumnSetting
+        getContainer={() => document.getElementById('container-1')}
+        defaultColumnKey={[
+          'key',
+          'name',
+          'status',
+          'createdBy',
+          'createdAt',
+        ]}
+        scroll = {{ 
+          x: 'max-content',
+          y: 200
+        }}
+        // privateColumnKey={['repositoryGroup', 'caseLatestStatus', 'runCount']}
+        rowKey="objectId"
+        columns={tableColumns}
+        name={`${testEntity?.workspace?.key}_AllTestEntity`}
+        actionRef={actionRef}
+        loading={tableLoading}
+        getDataSource={tableDataGetter}
+      />
+    </div>
   );
 };
 
