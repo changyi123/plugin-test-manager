@@ -11,19 +11,19 @@ import TestPlanPanel from './TestPlanPanel';
 
 const TestDetail: React.FC = () => {
   const { t } = useI18n();
-  const { baseLineItemId } = useTestConfig();
+  const { baseLineItemId, generalSetting } = useTestConfig();
   const tabs = useMemo(
     () =>
-      baseLineItemId
+      (baseLineItemId
         ? [
-            {
+            !generalSetting?.caseDetailExtra && {
               tab: t('modules.panel.testDetail.detail'),
               key: TestType.Case,
               Component: TestDetailPanel,
             },
           ]
         : [
-            {
+            !generalSetting?.caseDetailExtra && {
               tab: t('modules.panel.testDetail.detail'),
               key: TestType.Case,
               Component: TestDetailPanel,
@@ -38,8 +38,9 @@ const TestDetail: React.FC = () => {
               key: TestType.Run,
               Component: HistoryRUnPanel,
             },
-          ],
-    [baseLineItemId, t],
+          ]
+      ).filter(Boolean),
+    [baseLineItemId, generalSetting, t],
   );
   return (
     <PanelLayout
