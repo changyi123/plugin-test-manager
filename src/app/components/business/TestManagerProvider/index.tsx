@@ -8,7 +8,7 @@ import { useLocation } from 'react-router-dom';
 import { v4 as uuid } from 'uuid';
 
 import { useScreenFieldKeysFromTestConfig } from '@/components/common/BusinessTable/hook';
-import { getTestConfig, getTestConfigByWorkspaceKeys } from '@/lib/api/common';
+import { getGeneralSetting, getTestConfig, getTestConfigByWorkspaceKeys } from '@/lib/api/common';
 import { getTestEntityByQuery, updateTestEntity } from '@/lib/api/item';
 import { getItemByIds, getItemTypeByKey, getItemTypeByKeys } from '@/lib/api/proxima';
 import { openCreateItemModal, openItemDetailPanel } from '@/lib/api/sdk';
@@ -18,7 +18,7 @@ import { repositoryFolderTreeEvent } from '@/lib/events';
 import useI18n from '@/lib/hooks/useI18n';
 import { useOnItemCreateSuccess } from '@/lib/hooks/useProximaSDK';
 import { useGetWorkspaceRepository } from '@/lib/hooks/useTest';
-import { TestEntity } from '@/lib/types/Test';
+import { GeneralSetting, TestEntity } from '@/lib/types/Test';
 import { EventBus } from '@/lib/utils/eventBus';
 import { generateSortIndex, getKeyByValue, hasArrayItem } from '@/lib/utils/helper';
 import { TestReport } from '@/services/models';
@@ -354,6 +354,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
   const proxima = createProximaSdk();
   const { t } = useI18n();
   const [testEntity, setTestEntity] = React.useState<TestEntity>();
+  const [generalSetting, setGeneralSetting] = React.useState<GeneralSetting>();
   const workspaceKey = itemId ? testEntity?.workspace?.key : workspaceKeyFromProp;
   // 获取空间配置数据
   const { data: queryRes } = testConfigQuery.useWorkspaceTestConfig({
@@ -436,6 +437,15 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [itemId, testConfig, t]);
+
+  // 获取测试管理通用配置
+  React.useEffect(() => {
+    const query = async () => {
+      const generalSetting = await getGeneralSetting();
+      setGeneralSetting(generalSetting);
+    };
+    query();
+  }, []);
 
   const testPlanFieldKeys = useScreenFieldKeysFromTestConfig({
     testConfig,
@@ -612,6 +622,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
       testEntity,
       setTestEntity,
       baseLineItemId,
+      generalSetting,
     };
   }, [
     testConfig.itemTypeMap,
@@ -625,6 +636,7 @@ const TestManagerProvider: React.FC<RepositoryDataProviderProps> = ({
     workspace,
     testEntity,
     baseLineItemId,
+    generalSetting,
   ]);
 
   const baseActionContextValues = React.useMemo(() => {
