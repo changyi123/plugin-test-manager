@@ -281,6 +281,7 @@ modules:
       # api backend Query
     - key: api-query-test-entity-function
       handler: query.queryTestEntity
+      timeout: 300000
     - key: api-query-linked-test-entity-function
       handler: api.queryLinkedTestEntity
     - key: api-query-case-by-status-function
