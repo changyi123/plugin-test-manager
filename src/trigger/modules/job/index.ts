@@ -295,6 +295,8 @@ export const createTestRuns = async (params: ProcessJobParams<BatchCreateTestRun
             skipItemTypeQueryFilter: true,
             // 跳过层级校验
             skipItemValidationLevel: true,
+            // 跳过 ItemForest
+            skipItemForest: true,
           },
         },
         getHeaders(),
@@ -585,6 +587,10 @@ export const copyTesCases = async (params: ProcessJobParams<BatchCopyTestCaseV3P
         await batchCreateItemsV2(
           {
             items: createParams,
+            parseContext: {
+              // 跳过 ItemForest
+              skipItemForest: true,
+            },
           },
           getHeaders(),
         );
