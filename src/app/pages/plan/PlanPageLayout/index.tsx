@@ -62,7 +62,7 @@ const PlanPageLayout: React.FC<any> = () => {
   const testEntitySelectorRef = useRef<ModelActionType>();
   const [selectValue, setSelectValue] = useState<string[] | undefined>(undefined);
   const [treeType, setTreeType] = React.useState<string | undefined>('repository');
-  const [selectNode, setSelectNode] = React.useState<Record<string, any>>(null);
+  const [selectNode, setSelectNode] = React.useState<Record<string, any>>({key: 'root'});
 
   const [activeType, setActiveType] = useState<'TestPlan' | 'TestExecution'>('TestExecution');
   const [selectedExecution, setSelectedExecution] = useState<Record<string, any> | undefined>(

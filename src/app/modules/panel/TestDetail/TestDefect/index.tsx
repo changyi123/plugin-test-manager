@@ -1,7 +1,6 @@
 import dayjs from 'dayjs';
 import React, { useMemo, useState, useCallback } from 'react';
 import { getTestEntityByQuery } from '@/lib/api/item';
-import { StatusBadge } from '@/components/business/Status';
 import { useTestConfig } from '@/lib/hooks/useContext';
 import OverflowTooltip from '@/components/common/OverflowTooltip';
 import { TestType } from '@/lib/constants';
@@ -10,7 +9,6 @@ import { BusinessTable } from '@/components/common/BusinessTable';
 import type { BusinessTableActionType } from '@/components/common/BusinessTable/type';
 import useI18n from '@/lib/hooks/useI18n';
 import _ from 'lodash';
-import cx from './index.less';
 
 const getDefectIds = data =>
   (_.chain(data?.steps) as unknown as any[])
@@ -43,19 +41,21 @@ const TestDefect: React.FC = () => {
             referenceCase: testEntity.objectId,
             type: TestType.Run,
           },
-          limit: 1,
+          limit: 999999,
         });
-        const testRunEntity =  Array.isArray(testRunList) && !_.isEmpty(testRunList) && testRunList[0]
-        if (!testRunEntity?.runDetail) {
-          setTableLoading(false)
-          return
-        };
-        const defectIds = getDefectIds(testRunEntity?.runDetail);
-        if (!defectIds.length) {
-          setTableLoading(false)
-          return
-        };
-        const { count, items } = await getItemByIQL({ itemId: defectIds })
+        let _defectIds = []
+        _.forEach(testRunList, (item) => {
+          const _arr1 = item?.runDetail?.defectItemIds || []
+          let _arr2 = []
+          const _stepsArr1 =  item?.runDetail?.steps || []
+          _.forEach(_stepsArr1, (_item) => {
+            _arr2 = _.concat(_arr2, _item?.defectItemIds)
+          })
+          const result = _.concat(_arr1, _arr2);
+          _defectIds = [ ..._defectIds, ...result ]
+        })
+        
+        const { count, items } = await getItemByIQL({ itemId: _defectIds })
         setTableLoading(false);
         return {
           list:
