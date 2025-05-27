@@ -2,7 +2,7 @@ app:
   key: test_manager
   uuid: bf73e61c-e15a-4461-a1f7-f940c2009332
   name: test_manager
-  version: "4.36.0"
+  version: "4.36.1"
 modules:
   webtrigger:
     # TODO: Debug 使用，生产环境禁止调用下面的 trigger
@@ -156,7 +156,7 @@ modules:
     # 大商所测试报告联调对接
     - key: extension-report-dss
       function: extension-report-dss-function
-    
+
     - key: extension-weichai-file-encrypt
       function: extension-weichai-file-encrypt-function
 
@@ -1029,7 +1029,7 @@ tables:
         type: Array
       count:
         type: Number
-      type: 
+      type:
         type: String
   - className: BatchHandleRecord
     fields:

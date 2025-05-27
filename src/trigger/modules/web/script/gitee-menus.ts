@@ -96,7 +96,7 @@ export const runGiteeMenus = async () => {
       .map(generateGiteeMenu)
       .concat(reportStatsMenu);
 
-    const pluginKeys = Object.keys(MENU_MAP).map(key => getBoardPluginKey(APP_KEY, MENU_MAP[key]));
+    const pluginKeys = Object.keys(MENU_MAP).map(key => getBoardPluginKey(APP_KEY, MENU_MAP[key])).concat(`${APP_KEY}_${MENU_MAP.TEST_STATS_REPORT}`);
 
     console.info('----------pluginKeys------', JSON.stringify(pluginKeys));
 
@@ -106,7 +106,7 @@ export const runGiteeMenus = async () => {
     console.info('----userSessionToken', userSessionToken);
 
     // 查询当前用户有权限访问的Board
-    const hasPermissionBoards = await getParseQuery(false, 'Board')
+    let hasPermissionBoards = await getParseQuery(false, 'Board')
       .containedIn('pluginKey', pluginKeys)
       .matchesQuery('workspace', getParseQuery(false, 'Workspace').equalTo('key', workspaceKey))
       .find({ sessionToken: userSessionToken })
@@ -121,6 +121,10 @@ export const runGiteeMenus = async () => {
       .filter(menu => {
         const pluginKey = getBoardPluginKey(APP_KEY, menu.pageKey);
         console.info('pluginKey', pluginKey);
+        // 测试概览需要特殊处理，如果没有测试概览的权限，移除仪表盘的菜单
+        if (pluginKey === getBoardPluginKey(APP_KEY, MENU_MAP.TEST_STATS_REPORT)) {
+          return hasPermissionBoards.includes(`${APP_KEY}_${MENU_MAP.TEST_STATS_REPORT}`) && hasPermissionBoards.findIndex(key => key === pluginKey) > -1;
+        }
         return hasPermissionBoards.findIndex(key => key === pluginKey) > -1;
       })
       .map(menu => {
